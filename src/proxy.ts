@@ -15,8 +15,8 @@ export default async function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    // Everything except Next internals and static assets. Auth cookie refresh
-    // has to cover API routes too, so this is deliberately broad.
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff2?)$).*)',
+    // Locale + auth cookie refresh for app pages. API routes stay outside
+    // next-intl so Bearer key auth on /api/v1/* is not rewritten.
+    '/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff2?)$).*)',
   ],
 };
