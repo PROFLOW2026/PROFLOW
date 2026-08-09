@@ -99,6 +99,22 @@ export const AUDIT_ACTIONS = {
   DOCUMENT_FINALIZED: 'document.finalized',
   DOCUMENT_DELETED: 'document.deleted',
 
+  CRM_PROSPECT_CREATED: 'crm.prospect_created',
+  CRM_OPPORTUNITY_CREATED: 'crm.opportunity_created',
+  CRM_OPPORTUNITY_CONVERTED: 'crm.opportunity_converted',
+  CRM_QUOTE_ACCEPTED: 'crm.quote_accepted',
+
+  COMPLIANCE_ARTIFACT_CREATED: 'compliance.artifact_created',
+  COMPLIANCE_ARTIFACT_UPDATED: 'compliance.artifact_updated',
+
+  PORTAL_GRANT_CREATED: 'portal.grant_created',
+  PORTAL_GRANT_REVOKED: 'portal.grant_revoked',
+
+  API_CLIENT_CREATED: 'api.client_created',
+  API_KEY_CREATED: 'api.key_created',
+  API_KEY_REVOKED: 'api.key_revoked',
+  WEBHOOK_ENDPOINT_CREATED: 'api.webhook_created',
+
   TAX_RULE_CREATED: 'tax_rule.created',
   TAX_RULE_UPDATED: 'tax_rule.updated',
 } as const;

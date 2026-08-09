@@ -29,6 +29,10 @@
     "documents": "Documents hub",
     "changes": "Cross-project changes list",
     "overhead": "Business overhead tools",
+    "crm": "CRM and pre-project sales",
+    "compliance": "Insurance and compliance",
+    "portal": "Customer portal access",
+    "api": "API and webhooks",
     "saved": "Feature visibility updated."
   },
   "presets": {
