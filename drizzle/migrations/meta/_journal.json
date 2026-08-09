@@ -78,6 +78,13 @@
       "when": 1786233000000,
       "tag": "0011_field_ops_assets",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1786233100000,
+      "tag": "0012_ap_vendor_portal",
+      "breakpoints": true
     }
   ]
 }

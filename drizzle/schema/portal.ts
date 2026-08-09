@@ -5,6 +5,7 @@ import { clients } from './clients';
 import { organizations } from './tenancy';
 import { projects } from './projects';
 import { profiles } from './identity';
+import { vendors } from './vendors';
 
 /**
  * External portal identity (doc 25).
@@ -37,6 +38,7 @@ export const externalAccessGrants = pgTable(
     portalKind: text('portal_kind').notNull(),
     clientId: uuid('client_id').references(() => clients.id, { onDelete: 'cascade' }),
     projectId: uuid('project_id').references(() => projects.id, { onDelete: 'cascade' }),
+    vendorId: uuid('vendor_id').references(() => vendors.id, { onDelete: 'cascade' }),
     scopes: jsonb('scopes').$type<string[]>().notNull().default([]),
     status: text('status').notNull().default('active'),
     expiresAt: timestamp('expires_at', { withTimezone: true, mode: 'date' }),
@@ -46,6 +48,7 @@ export const externalAccessGrants = pgTable(
   (table) => [
     index('external_access_grants_org_idx').on(table.organizationId),
     index('external_access_grants_principal_idx').on(table.principalId),
+    index('external_access_grants_vendor_idx').on(table.vendorId),
     check('external_access_grants_kind_known', sql`${table.portalKind} IN ('customer', 'vendor')`),
     check(
       'external_access_grants_status_known',
@@ -53,7 +56,7 @@ export const externalAccessGrants = pgTable(
     ),
     check(
       'external_access_grants_scope_present',
-      sql`num_nonnulls(${table.clientId}, ${table.projectId}) >= 1`,
+      sql`num_nonnulls(${table.clientId}, ${table.projectId}, ${table.vendorId}) >= 1`,
     ),
   ],
 );

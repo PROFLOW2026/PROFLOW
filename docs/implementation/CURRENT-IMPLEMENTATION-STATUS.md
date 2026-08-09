@@ -1,6 +1,6 @@
 # ProjectFlow — Current Implementation Status
 
-**Updated:** 2026-08-09 · Pre-launch program · Local HEAD ahead of origin · **Remote migrations:** through `0008` · **Local migrations:** through `0011_field_ops_assets`
+**Updated:** 2026-08-09 · Pre-launch program · Local HEAD ahead of origin · **Remote migrations:** through `0008` · **Local migrations:** through `0012_ap_vendor_portal`
 
 ## OWNER — before next push
 
@@ -9,6 +9,7 @@ REMOTE MIGRATIONS REQUIRED
 - 0009_wave2_foundations
 - 0010_procurement_foundations
 - 0011_field_ops_assets
+- 0012_ap_vendor_portal
 ```
 
 Do not push dependent code until these are applied. Local development continues.

@@ -12,7 +12,7 @@ export async function ProjectFieldOpsLinks({ projectId }: { projectId: string })
         <li>
           <Link
             href={`/field-ops/logs?projectId=${projectId}`}
-            className="text-[var(--pf-text-link)] hover:underline"
+            className="hover:underline"
           >
             {t('logs')}
           </Link>
@@ -20,7 +20,7 @@ export async function ProjectFieldOpsLinks({ projectId }: { projectId: string })
         <li>
           <Link
             href={`/field-ops/punch?projectId=${projectId}`}
-            className="text-[var(--pf-text-link)] hover:underline"
+            className="hover:underline"
           >
             {t('punch')}
           </Link>
@@ -28,7 +28,7 @@ export async function ProjectFieldOpsLinks({ projectId }: { projectId: string })
         <li>
           <Link
             href={`/field-ops/inspections?projectId=${projectId}`}
-            className="text-[var(--pf-text-link)] hover:underline"
+            className="hover:underline"
           >
             {t('inspections')}
           </Link>

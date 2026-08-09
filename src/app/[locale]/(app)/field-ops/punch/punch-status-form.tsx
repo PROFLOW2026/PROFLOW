@@ -55,7 +55,9 @@ export function PunchStatusForm({
       <Button type="submit" size="sm" variant="secondary" disabled={pending || status === currentStatus}>
         {pending ? t('updateStatus.pending') : t('updateStatus.submit')}
       </Button>
-      {state.error ? <span className="text-sm text-[var(--pf-danger)]">{state.error}</span> : null}
+      {state.error ? (
+        <span className="text-sm text-[var(--pf-status-danger-fg)]">{state.error}</span>
+      ) : null}
     </form>
   );
 }

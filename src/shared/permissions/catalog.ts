@@ -88,6 +88,9 @@ export const PERMISSIONS = {
   ASSETS_READ: 'assets.read',
   ASSETS_MANAGE: 'assets.manage',
 
+  AP_READ: 'ap.read',
+  AP_MANAGE: 'ap.manage',
+
   SETTINGS_MANAGE: 'settings.manage',
   TAX_MANAGE: 'tax.manage',
   AUDIT_READ: 'audit.read',
@@ -223,6 +226,17 @@ export const PERMISSION_CATALOG: readonly PermissionDefinition[] = [
     key: PERMISSIONS.ASSETS_MANAGE,
     category: 'expenses',
     description: 'Manage assets, fleet and maintenance',
+  },
+
+  {
+    key: PERMISSIONS.AP_READ,
+    category: 'expenses',
+    description: 'View vendor bills and PO matches',
+  },
+  {
+    key: PERMISSIONS.AP_MANAGE,
+    category: 'expenses',
+    description: 'Manage vendor bills and PO matching',
   },
 
   { key: PERMISSIONS.SETTINGS_MANAGE, category: 'administration', description: 'Change organization settings' },
