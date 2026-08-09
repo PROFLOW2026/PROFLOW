@@ -68,6 +68,16 @@ export const PERMISSIONS = {
   DOCUMENTS_READ: 'documents.read',
   DOCUMENTS_MANAGE: 'documents.manage',
 
+  CRM_READ: 'crm.read',
+  CRM_MANAGE: 'crm.manage',
+
+  COMPLIANCE_READ: 'compliance.read',
+  COMPLIANCE_MANAGE: 'compliance.manage',
+
+  CUSTOM_FIELDS_MANAGE: 'custom_fields.manage',
+  PORTAL_MANAGE: 'portal.manage',
+  API_MANAGE: 'api.manage',
+
   SETTINGS_MANAGE: 'settings.manage',
   TAX_MANAGE: 'tax.manage',
   AUDIT_READ: 'audit.read',
@@ -137,6 +147,31 @@ export const PERMISSION_CATALOG: readonly PermissionDefinition[] = [
 
   { key: PERMISSIONS.DOCUMENTS_READ, category: 'documents', description: 'View and download documents' },
   { key: PERMISSIONS.DOCUMENTS_MANAGE, category: 'documents', description: 'Upload, link and remove documents' },
+
+  { key: PERMISSIONS.CRM_READ, category: 'commercial', description: 'View CRM prospects, opportunities and sales quotes' },
+  { key: PERMISSIONS.CRM_MANAGE, category: 'commercial', description: 'Manage CRM pipeline and convert won deals' },
+
+  { key: PERMISSIONS.COMPLIANCE_READ, category: 'administration', description: 'View compliance artifacts' },
+  {
+    key: PERMISSIONS.COMPLIANCE_MANAGE,
+    category: 'administration',
+    description: 'Manage insurance, licenses and certifications',
+  },
+  {
+    key: PERMISSIONS.CUSTOM_FIELDS_MANAGE,
+    category: 'administration',
+    description: 'Define governed custom fields',
+  },
+  {
+    key: PERMISSIONS.PORTAL_MANAGE,
+    category: 'administration',
+    description: 'Manage external portal access grants',
+  },
+  {
+    key: PERMISSIONS.API_MANAGE,
+    category: 'administration',
+    description: 'Manage API clients, keys and webhooks',
+  },
 
   { key: PERMISSIONS.SETTINGS_MANAGE, category: 'administration', description: 'Change organization settings' },
   { key: PERMISSIONS.TAX_MANAGE, category: 'administration', description: 'Manage tax rules and overrides' },

@@ -28,6 +28,10 @@ export const OPTIONAL_MODULE_KEYS = [
   'documents',
   'changes',
   'overhead',
+  'crm',
+  'compliance',
+  'portal',
+  'api',
 ] as const;
 
 export type OptionalModuleKey = (typeof OPTIONAL_MODULE_KEYS)[number];

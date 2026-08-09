@@ -57,6 +57,13 @@
       "when": 1786232700000,
       "tag": "0008_light_scheduling",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1786232800000,
+      "tag": "0009_wave2_foundations",
+      "breakpoints": true
     }
   ]
 }

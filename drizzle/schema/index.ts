@@ -21,3 +21,8 @@ export * from './expenses';
 export * from './workforce';
 export * from './billing';
 export * from './tax';
+export * from './crm';
+export * from './portal';
+export * from './compliance';
+export * from './custom-fields';
+export * from './api-platform';
