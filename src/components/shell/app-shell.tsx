@@ -5,7 +5,6 @@ import { redirect } from '@/shared/i18n/navigation';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { ConnectivityBanner } from '@/modules/offline/ui/connectivity-banner';
 import { OfflineSyncProvider } from '@/modules/offline/ui/offline-sync-provider';
-import { ServiceWorkerRegistrar } from '@/modules/offline/ui/service-worker-registrar';
 import { MobileNav } from './mobile-nav';
 import { visibleNavItems } from './navigation';
 import { QuickCreate, type QuickCreateAction } from './quick-create';
@@ -34,7 +33,6 @@ export async function AppShell({ children }: { children: ReactNode }) {
   return (
     <OfflineSyncProvider organizationId={shell.organizationId}>
       <div className="flex min-h-dvh w-full max-w-full" data-pf-shell="app">
-        <ServiceWorkerRegistrar />
         <Sidebar items={items} organizationName={shell.organization.name} />
 
         <div className="relative flex min-w-0 max-w-full flex-1 flex-col">

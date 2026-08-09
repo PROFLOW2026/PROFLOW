@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation';
 import type { ReactNode } from 'react';
 import { ToastProvider } from '@/components/ui/toast';
 import { TooltipProvider } from '@/components/ui/tooltip';
+import { PwaBootstrap } from '@/modules/offline/ui/pwa-bootstrap';
 import { LOCALE_METADATA, type Locale } from '@/shared/i18n/config';
 import { routing } from '@/shared/i18n/routing';
 import '../globals.css';
@@ -65,6 +66,7 @@ export default async function LocaleLayout({
     <html lang={metadata.htmlLang} dir={metadata.dir} suppressHydrationWarning>
       <body className="min-h-dvh bg-page text-content antialiased" dir={metadata.dir}>
         <NextIntlClientProvider>
+          <PwaBootstrap />
           <TooltipProvider delayDuration={200}>
             <ToastProvider>{children}</ToastProvider>
           </TooltipProvider>

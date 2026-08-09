@@ -732,12 +732,12 @@ Covered on the same **Portal access** screen (`/settings/portal`): vendor-safe p
 ### התקנת ProjectFlow כאפליקציה · Install ProjectFlow as an app
 | | |
 |---|---|
-| **Route** | `/settings/app` |
-| **Opens from** | Settings → **אפליקציה** / App |
-| **For** | Install the Progressive Web App (home-screen / desktop app icon) — not a store binary |
-| **Primary actions** | Install when browser offers `beforeinstallprompt`; iOS shows Share → Add to Home Screen steps; hide/replace when already installed |
+| **Route** | Public: auth shell (sign-in / sign-up); Authenticated: Dashboard `/`; Settings: `/settings/app` |
+| **Opens from** | Sign-in/sign-up area (**התקנת ProjectFlow**); Dashboard install banner; Settings → **אפליקציה** / App |
+| **For** | Install the Progressive Web App (home-screen / desktop app icon) — not a store binary. No account required for the public CTA. |
+| **Primary actions** | One-tap native install when Chromium provides `beforeinstallprompt`; iOS shows Share → Add to Home Screen instructions (not a fake prompt); hide when already installed / standalone |
 | **Desktop / mobile** | Both (capability-dependent) |
-| **Permission** | Signed-in member |
+| **Permission** | Public CTA: none; Settings/Dashboard: signed-in for those surfaces |
 | **Status** | complete (install UX); offline depth remains partial |
 
 ### טיוטות לא מקוונות · Offline drafts

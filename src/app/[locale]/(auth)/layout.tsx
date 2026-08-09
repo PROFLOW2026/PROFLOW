@@ -1,5 +1,6 @@
 import { getTranslations } from 'next-intl/server';
 import type { ReactNode } from 'react';
+import { PwaInstallCta } from '@/modules/offline/ui/pwa-install-cta';
 
 export default async function AuthLayout({ children }: { children: ReactNode }) {
   const t = await getTranslations('common');
@@ -16,6 +17,9 @@ export default async function AuthLayout({ children }: { children: ReactNode }) 
       <div className="w-full min-w-0 max-w-sm rounded-xl border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-6 shadow-[var(--pf-shadow-sm)]">
         {children}
       </div>
+
+      {/* Pre-login install — no account required (LEO-style discoverability). */}
+      <PwaInstallCta variant="auth" />
     </div>
   );
 }

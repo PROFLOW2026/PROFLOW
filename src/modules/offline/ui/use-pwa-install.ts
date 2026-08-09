@@ -1,16 +1,18 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
   resolveInstallCapability,
   type InstallCapability,
   type InstallPromptOutcome,
 } from '../domain/installability';
-
-interface BeforeInstallPromptEvent extends Event {
-  readonly prompt: () => Promise<void>;
-  readonly userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
-}
+import {
+  getDeferredInstallPrompt,
+  initPwaInstallPromptCapture,
+  promptPwaInstall,
+  subscribePwaAppInstalled,
+  subscribePwaInstallPrompt,
+} from './pwa-install-prompt-capture';
 
 function readStandaloneFlags(): {
   displayModeStandalone: boolean;
@@ -26,110 +28,62 @@ function readStandaloneFlags(): {
   return { displayModeStandalone, iosNavigatorStandalone };
 }
 
-function initialCapability(): InstallCapability {
+function capabilityFromStore(): InstallCapability {
   if (typeof window === 'undefined') return 'unavailable';
   return resolveInstallCapability({
     ...readStandaloneFlags(),
     userAgent: navigator.userAgent,
-    hasDeferredPrompt: false,
+    hasDeferredPrompt: getDeferredInstallPrompt() !== null,
   });
 }
 
 export function usePwaInstall() {
-  const [capability, setCapability] = useState<InstallCapability>(initialCapability);
-  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+  const [capability, setCapability] = useState<InstallCapability>(capabilityFromStore);
   const [promptOutcome, setPromptOutcome] = useState<InstallPromptOutcome | null>(null);
   const [installing, setInstalling] = useState(false);
-  const deferredPromptRef = useRef<BeforeInstallPromptEvent | null>(null);
-
-  const recompute = useCallback((prompt: BeforeInstallPromptEvent | null) => {
-    const standalone = readStandaloneFlags();
-    setCapability(
-      resolveInstallCapability({
-        ...standalone,
-        userAgent: typeof navigator === 'undefined' ? '' : navigator.userAgent,
-        hasDeferredPrompt: prompt !== null,
-      }),
-    );
-  }, []);
 
   useEffect(() => {
-    deferredPromptRef.current = deferredPrompt;
-  }, [deferredPrompt]);
+    initPwaInstallPromptCapture();
 
-  useEffect(() => {
-    const onBeforeInstallPrompt = (event: Event) => {
-      event.preventDefault();
-      const bip = event as BeforeInstallPromptEvent;
-      deferredPromptRef.current = bip;
-      setDeferredPrompt(bip);
-      setPromptOutcome(null);
-      setCapability(
-        resolveInstallCapability({
-          ...readStandaloneFlags(),
-          userAgent: navigator.userAgent,
-          hasDeferredPrompt: true,
-        }),
-      );
+    const syncFromStore = () => {
+      setCapability(capabilityFromStore());
     };
 
     const onInstalled = () => {
-      deferredPromptRef.current = null;
-      setDeferredPrompt(null);
       setPromptOutcome('accepted');
       setCapability('installed');
     };
 
     const media = window.matchMedia('(display-mode: standalone)');
-    const onDisplayModeChange = () => {
-      setCapability(
-        resolveInstallCapability({
-          ...readStandaloneFlags(),
-          userAgent: navigator.userAgent,
-          hasDeferredPrompt: deferredPromptRef.current !== null,
-        }),
-      );
-    };
+    const unsubPrompt = subscribePwaInstallPrompt(syncFromStore);
+    const unsubInstalled = subscribePwaAppInstalled(onInstalled);
+    media.addEventListener('change', syncFromStore);
 
-    window.addEventListener('beforeinstallprompt', onBeforeInstallPrompt);
-    window.addEventListener('appinstalled', onInstalled);
-    media.addEventListener('change', onDisplayModeChange);
+    // Sync after listeners attach (covers BIP that fired before this mount).
+    queueMicrotask(syncFromStore);
 
     return () => {
-      window.removeEventListener('beforeinstallprompt', onBeforeInstallPrompt);
-      window.removeEventListener('appinstalled', onInstalled);
-      media.removeEventListener('change', onDisplayModeChange);
+      unsubPrompt();
+      unsubInstalled();
+      media.removeEventListener('change', syncFromStore);
     };
   }, []);
 
   const promptInstall = useCallback(async (): Promise<InstallPromptOutcome> => {
-    const prompt = deferredPromptRef.current;
-    if (!prompt) {
-      setPromptOutcome('unavailable');
-      return 'unavailable';
-    }
-
     setInstalling(true);
     try {
-      await prompt.prompt();
-      const choice = await prompt.userChoice;
-      deferredPromptRef.current = null;
-      setDeferredPrompt(null);
-      if (choice.outcome === 'accepted') {
-        setPromptOutcome('accepted');
+      const outcome = await promptPwaInstall();
+      setPromptOutcome(outcome);
+      if (outcome === 'accepted') {
         setCapability('installed');
-        return 'accepted';
+      } else {
+        setCapability(capabilityFromStore());
       }
-      setPromptOutcome('dismissed');
-      recompute(null);
-      return 'dismissed';
-    } catch {
-      setPromptOutcome('error');
-      return 'error';
+      return outcome;
     } finally {
       setInstalling(false);
     }
-  }, [recompute]);
+  }, []);
 
   return {
     capability,

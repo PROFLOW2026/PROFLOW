@@ -4,6 +4,7 @@ import { getTranslations } from 'next-intl/server';
 import { PageHeader } from '@/components/ui/page-header';
 import { getHomeDashboard } from '@/modules/financials';
 import { HomeDashboardContent } from '@/modules/financials/ui';
+import { PwaInstallCta } from '@/modules/offline/ui/pwa-install-cta';
 import { getShellContext, withOrgContext } from '@/shared/auth/session';
 import { DashboardSkeleton } from './dashboard-skeleton';
 
@@ -35,6 +36,7 @@ export default async function DashboardPage() {
   return (
     <div className="flex min-w-0 max-w-full flex-col gap-6">
       <PageHeader title={name ? t('greeting', { name }) : t('greetingNoName')} />
+      <PwaInstallCta variant="dashboard" />
       <Suspense
         fallback={<DashboardSkeleton showTitle={false} label={tCommon('states.loading')} />}
       >

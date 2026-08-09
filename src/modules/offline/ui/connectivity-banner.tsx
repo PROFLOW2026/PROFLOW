@@ -12,7 +12,7 @@ function readOnline(): boolean {
 
 /**
  * Sticky banner when the browser reports offline.
- * Service worker registration lives in `ServiceWorkerRegistrar` (production only).
+ * Service worker registration lives in `PwaBootstrap` (locale layout, production only).
  */
 export function ConnectivityBanner() {
   const t = useTranslations('offline');
