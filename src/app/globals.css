@@ -278,6 +278,17 @@
     text-align: start;
   }
 
+  /*
+   * Form controls inherit direction from the document. Keep placeholders and
+   * typed Hebrew text aligned to the reading start edge without forcing every
+   * numeric/code island to flip.
+   */
+  input:not([dir='ltr']):not([type='checkbox']):not([type='radio']),
+  textarea:not([dir='ltr']),
+  select:not([dir='ltr']) {
+    text-align: start;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     *,
     *::before,

@@ -1,7 +1,31 @@
 import { and, asc, eq, isNull } from 'drizzle-orm';
 import { contractValueEvents, contracts, profiles } from '@drizzle/schema';
 import type { DbExecutor } from '@/shared/db/types';
-import type { ContractRecord, ContractValueEventRecord } from '../domain/types';
+import type {
+  ContractRecord,
+  ContractTaxSnapshotRecord,
+  ContractValueEventRecord,
+} from '../domain/types';
+
+function mapTaxSnapshot(value: unknown): ContractTaxSnapshotRecord | null {
+  if (!value || typeof value !== 'object') return null;
+  const row = value as Partial<ContractTaxSnapshotRecord>;
+  if (typeof row.enteredAmount !== 'string' || typeof row.netAmount !== 'string') return null;
+  return {
+    enteredAmount: row.enteredAmount,
+    amountIncludesTax: Boolean(row.amountIncludesTax),
+    netAmount: row.netAmount,
+    taxAmount: typeof row.taxAmount === 'string' ? row.taxAmount : '0.000000',
+    grossAmount: typeof row.grossAmount === 'string' ? row.grossAmount : row.netAmount,
+    currency: typeof row.currency === 'string' ? row.currency : '',
+    ratePercent: row.ratePercent ?? null,
+    method: row.method ?? null,
+    ruleId: row.ruleId ?? null,
+    ruleKey: row.ruleKey ?? null,
+    ruleName: row.ruleName ?? null,
+    capturedAt: typeof row.capturedAt === 'string' ? row.capturedAt : '',
+  };
+}
 
 function mapContract(row: typeof contracts.$inferSelect): ContractRecord {
   return {
@@ -12,7 +36,12 @@ function mapContract(row: typeof contracts.$inferSelect): ContractRecord {
     name: row.name,
     reference: row.reference,
     status: row.status,
+    enteredValueAmount: row.enteredValueAmount,
+    amountIncludesTax: row.amountIncludesTax,
     originalValueAmount: row.originalValueAmount,
+    originalTaxAmount: row.originalTaxAmount,
+    originalGrossAmount: row.originalGrossAmount,
+    taxSnapshot: mapTaxSnapshot(row.taxSnapshot),
     currency: row.currency,
     signedDate: row.signedDate,
     notes: row.notes,
@@ -53,7 +82,12 @@ export async function insertContract(
     name?: string | null;
     reference?: string | null;
     status?: 'draft' | 'active' | 'closed' | 'cancelled';
+    enteredValueAmount?: string | null;
+    amountIncludesTax?: boolean;
     originalValueAmount?: string | null;
+    originalTaxAmount?: string | null;
+    originalGrossAmount?: string | null;
+    taxSnapshot?: ContractTaxSnapshotRecord | null;
     currency: string;
     signedDate?: string | null;
     notes?: string | null;
@@ -68,7 +102,12 @@ export async function insertContract(
       name: input.name ?? null,
       reference: input.reference ?? null,
       status: input.status ?? 'active',
+      enteredValueAmount: input.enteredValueAmount ?? null,
+      amountIncludesTax: input.amountIncludesTax ?? false,
       originalValueAmount: input.originalValueAmount ?? null,
+      originalTaxAmount: input.originalTaxAmount ?? null,
+      originalGrossAmount: input.originalGrossAmount ?? null,
+      taxSnapshot: (input.taxSnapshot as unknown as Record<string, unknown> | null) ?? null,
       currency: input.currency,
       signedDate: input.signedDate ?? null,
       notes: input.notes ?? null,
@@ -76,6 +115,38 @@ export async function insertContract(
     .returning();
 
   return mapContract(row!);
+}
+
+export async function updateContractAmounts(
+  db: DbExecutor,
+  organizationId: string,
+  contractId: string,
+  patch: {
+    enteredValueAmount: string;
+    amountIncludesTax: boolean;
+    originalValueAmount: string;
+    originalTaxAmount: string;
+    originalGrossAmount: string;
+    taxSnapshot: ContractTaxSnapshotRecord;
+    currency: string;
+  },
+): Promise<ContractRecord | null> {
+  const [row] = await db
+    .update(contracts)
+    .set({
+      enteredValueAmount: patch.enteredValueAmount,
+      amountIncludesTax: patch.amountIncludesTax,
+      originalValueAmount: patch.originalValueAmount,
+      originalTaxAmount: patch.originalTaxAmount,
+      originalGrossAmount: patch.originalGrossAmount,
+      taxSnapshot: patch.taxSnapshot as unknown as Record<string, unknown>,
+      currency: patch.currency,
+      updatedAt: new Date(),
+    })
+    .where(and(eq(contracts.id, contractId), eq(contracts.organizationId, organizationId)))
+    .returning();
+
+  return row ? mapContract(row) : null;
 }
 
 export async function insertContractValueEvent(
@@ -110,6 +181,26 @@ export async function insertContractValueEvent(
     .returning();
 
   return mapValueEvent(row!);
+}
+
+export async function updateContractValueEventAmount(
+  db: DbExecutor,
+  organizationId: string,
+  eventId: string,
+  patch: { amount: string; reason?: string | null },
+): Promise<ContractValueEventRecord | null> {
+  const [row] = await db
+    .update(contractValueEvents)
+    .set({
+      amount: patch.amount,
+      reason: patch.reason ?? undefined,
+    })
+    .where(
+      and(eq(contractValueEvents.id, eventId), eq(contractValueEvents.organizationId, organizationId)),
+    )
+    .returning();
+
+  return row ? mapValueEvent(row) : null;
 }
 
 export async function findPrimaryContractByProject(

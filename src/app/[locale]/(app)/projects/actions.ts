@@ -11,8 +11,14 @@ import {
   updateProject,
 } from '@/modules/projects';
 import { withOrgContext } from '@/shared/auth/session';
-import { AppError, AuthorizationError, ValidationError } from '@/shared/errors';
+import {
+  AppError,
+  AuthorizationError,
+  DomainRuleError,
+  ValidationError,
+} from '@/shared/errors';
 import { redirect } from '@/shared/i18n/navigation';
+import { ORIGINAL_AMOUNT_LOCKED_MESSAGE_KEY } from '@/modules/projects';
 
 export interface ProjectFormState {
   error?: string;
@@ -65,6 +71,7 @@ export async function createProjectAction(
         clientId,
         contractValueAmount: formValue(formData, 'contractValueAmount'),
         contractValueCurrency: formValue(formData, 'contractValueCurrency'),
+        amountIncludesTax: formValue(formData, 'amountIncludesTax'),
         domainName: formValue(formData, 'domainName'),
         location: formValue(formData, 'location'),
         description: formValue(formData, 'description'),
@@ -121,6 +128,9 @@ export async function updateProjectAction(
         targetEndDate: formValue(formData, 'targetEndDate'),
         actualEndDate: formValue(formData, 'actualEndDate'),
         notes: formValue(formData, 'notes'),
+        contractValueAmount: formValue(formData, 'contractValueAmount'),
+        contractValueCurrency: formValue(formData, 'contractValueCurrency'),
+        amountIncludesTax: formValue(formData, 'amountIncludesTax'),
       });
     });
 
@@ -129,6 +139,19 @@ export async function updateProjectAction(
     return {};
   } catch (error) {
     if (error instanceof ValidationError) return mapValidationError(error);
+    if (
+      error instanceof DomainRuleError &&
+      error.messageKey === ORIGINAL_AMOUNT_LOCKED_MESSAGE_KEY
+    ) {
+      const tProjects = await getTranslations('projects');
+      return {
+        error: tProjects('details.originalAmountLocked'),
+        fieldErrors: {
+          contractValueAmount: tProjects('details.originalAmountLocked'),
+          amountIncludesTax: tProjects('details.originalAmountLocked'),
+        },
+      };
+    }
     if (error instanceof AppError) return { error: tErrors('unexpected') };
     throw error;
   }

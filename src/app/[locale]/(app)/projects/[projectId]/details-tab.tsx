@@ -9,14 +9,32 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { PROJECT_STATUSES, type ProjectDetail } from '@/modules/projects';
+import { ContractAmountFields } from '@/modules/projects/ui/contract-amount-fields';
 import { updateProjectAction, type ProjectFormState } from '../actions';
 
 interface DetailsTabProps {
   detail: ProjectDetail;
   clients: { id: string; name: string }[];
+  baseCurrency: string;
+  currencySymbol: string;
+  canManageContract: boolean;
 }
 
-export function DetailsTab({ detail, clients }: DetailsTabProps) {
+function displayEnteredAmount(detail: ProjectDetail): string {
+  const contract = detail.contract;
+  if (!contract) return '';
+  const raw = contract.enteredValueAmount ?? contract.originalValueAmount ?? '';
+  if (!raw) return '';
+  return raw.replace(/\.?0+$/, '') === '' ? raw : raw.replace(/(\.\d*?)0+$/, '$1').replace(/\.$/, '');
+}
+
+export function DetailsTab({
+  detail,
+  clients,
+  baseCurrency,
+  currencySymbol,
+  canManageContract,
+}: DetailsTabProps) {
   const t = useTranslations('projects.details');
   const tStatus = useTranslations('status.project');
   const tCommon = useTranslations('common');
@@ -26,6 +44,7 @@ export function DetailsTab({ detail, clients }: DetailsTabProps) {
   );
 
   const { project } = detail;
+  const currency = detail.contract?.currency ?? project.currency ?? baseCurrency;
 
   return (
     <form action={formAction} className="mx-auto flex max-w-xl flex-col gap-4">
@@ -70,6 +89,18 @@ export function DetailsTab({ detail, clients }: DetailsTabProps) {
           </Select>
         )}
       </Field>
+
+      {canManageContract ? (
+        <ContractAmountFields
+          baseCurrency={currency}
+          currencySymbol={currencySymbol}
+          initialAmount={displayEnteredAmount(detail)}
+          initialIncludesTax={detail.contract?.amountIncludesTax ?? false}
+          amountError={state.fieldErrors?.contractValueAmount}
+          taxModeError={state.fieldErrors?.amountIncludesTax}
+          locked={detail.originalContractAmountLocked}
+        />
+      ) : null}
 
       <Field label={t('domainLabel')} optionalLabel={tCommon('labels.optional')}>
         {(control) => (

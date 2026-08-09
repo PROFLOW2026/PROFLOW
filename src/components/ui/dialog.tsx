@@ -3,6 +3,7 @@
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { X } from 'lucide-react';
 import * as React from 'react';
+import { useLocaleDir } from '@/shared/i18n/direction';
 import { cn } from '@/shared/ui/cn';
 
 export const Dialog = DialogPrimitive.Root;
@@ -40,14 +41,23 @@ export interface DialogContentProps
 export const DialogContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
   DialogContentProps
->(function DialogContent({ className, children, closeLabel = 'Close', mobileSheet = true, ...props }, ref) {
+>(function DialogContent({
+  className,
+  children,
+  closeLabel = 'Close',
+  mobileSheet = true,
+  dir,
+  ...props
+}, ref) {
+  const localeDir = useLocaleDir();
   return (
     <DialogPrimitive.Portal>
       <DialogOverlay />
       <DialogPrimitive.Content
         ref={ref}
+        dir={dir ?? localeDir}
         className={cn(
-          'fixed z-60 flex max-h-[90dvh] flex-col overflow-hidden bg-[var(--pf-bg-elevated)] shadow-[var(--pf-shadow-lg)]',
+          'fixed z-60 flex max-h-[90dvh] flex-col overflow-hidden bg-[var(--pf-bg-elevated)] shadow-[var(--pf-shadow-lg)] text-start',
           // Centring stays physical (left/-translate-x) so it is identical in
           // both directions; only the content inside flips.
           mobileSheet

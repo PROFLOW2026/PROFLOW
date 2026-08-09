@@ -8,5 +8,12 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(fun
   { className, rows = 3, ...props },
   ref,
 ) {
-  return <textarea ref={ref} rows={rows} className={cn(inputClassName, 'min-h-20 resize-y', className)} {...props} />;
+  return (
+    <textarea
+      ref={ref}
+      rows={rows}
+      className={cn(inputClassName, 'min-h-20 resize-y text-start', className)}
+      {...props}
+    />
+  );
 });

@@ -29,7 +29,7 @@ export async function AppShell({ children }: { children: ReactNode }) {
   const userMenu = <UserMenuSlot organizationName={shell.organization.name} />;
 
   return (
-    <div className="flex min-h-dvh">
+    <div className="flex min-h-dvh" data-pf-shell="app">
       <Sidebar items={items} organizationName={shell.organization.name} />
 
       <div className="relative flex min-w-0 flex-1 flex-col">

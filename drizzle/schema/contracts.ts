@@ -1,5 +1,5 @@
 import { relations, sql } from 'drizzle-orm';
-import { boolean, date, index, pgTable, text, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
+import { boolean, date, index, jsonb, pgTable, text, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
 import { archivedAt, currencyCode, moneyAmount, primaryId, timestamps } from './_shared';
 import { contractStatusEnum } from './enums';
 import { profiles } from './identity';
@@ -12,6 +12,12 @@ import { organizations } from './tenancy';
  * The schema allows many contracts per project from day one; V1 UX exposes only
  * the primary one. A partial unique index guarantees at most one primary
  * contract per project.
+ *
+ * Amount model:
+ *  - `enteredValueAmount` + `amountIncludesTax` = what the user typed
+ *  - `originalValueAmount` = **net** commercial value (profitability / CCV)
+ *  - `originalTaxAmount` / `originalGrossAmount` = derived VAT presentation
+ *  - `taxSnapshot` freezes the rule used at capture time (G1)
  */
 export const contracts = pgTable(
   'contracts',
@@ -27,8 +33,18 @@ export const contracts = pgTable(
     name: text('name'),
     reference: text('reference'),
     status: contractStatusEnum('status').notNull().default('active'),
-    /** Never overwritten once set; every later movement is a value event. */
+    /** Amount the user entered before VAT mode was applied. */
+    enteredValueAmount: moneyAmount('entered_value_amount'),
+    /** True when `enteredValueAmount` already includes VAT. */
+    amountIncludesTax: boolean('amount_includes_tax').notNull().default(false),
+    /**
+     * Net original contract value. Never treated as VAT-inclusive revenue;
+     * commercial / profitability math uses this (and value events) as net.
+     */
     originalValueAmount: moneyAmount('original_value_amount'),
+    originalTaxAmount: moneyAmount('original_tax_amount'),
+    originalGrossAmount: moneyAmount('original_gross_amount'),
+    taxSnapshot: jsonb('tax_snapshot').$type<Record<string, unknown>>(),
     currency: currencyCode().notNull(),
     signedDate: date('signed_date'),
     notes: text('notes'),

@@ -17,11 +17,15 @@ export function renderWithIntl(
   ui: ReactElement,
   { locale = 'he-IL' as TestLocale, ...options }: RenderOptions & { locale?: TestLocale } = {},
 ): RenderResult {
+  const dir = locale === 'he-IL' ? 'rtl' : 'ltr';
+
   function Wrapper({ children }: { children: ReactNode }) {
     return (
-      <NextIntlClientProvider locale={locale} messages={MESSAGES[locale]} timeZone="Asia/Jerusalem">
-        {children}
-      </NextIntlClientProvider>
+      <div dir={dir} lang={locale === 'he-IL' ? 'he' : 'en'}>
+        <NextIntlClientProvider locale={locale} messages={MESSAGES[locale]} timeZone="Asia/Jerusalem">
+          {children}
+        </NextIntlClientProvider>
+      </div>
     );
   }
 

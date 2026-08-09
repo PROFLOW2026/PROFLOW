@@ -63,6 +63,21 @@ export interface PhaseRecord {
   readonly updatedAt: Date;
 }
 
+export interface ContractTaxSnapshotRecord {
+  readonly enteredAmount: string;
+  readonly amountIncludesTax: boolean;
+  readonly netAmount: string;
+  readonly taxAmount: string;
+  readonly grossAmount: string;
+  readonly currency: string;
+  readonly ratePercent: string | null;
+  readonly method: string | null;
+  readonly ruleId: string | null;
+  readonly ruleKey: string | null;
+  readonly ruleName: string | null;
+  readonly capturedAt: string;
+}
+
 export interface ContractRecord {
   readonly id: string;
   readonly organizationId: string;
@@ -71,7 +86,14 @@ export interface ContractRecord {
   readonly name: string | null;
   readonly reference: string | null;
   readonly status: string;
+  /** User-entered amount before applying VAT mode. */
+  readonly enteredValueAmount: string | null;
+  readonly amountIncludesTax: boolean;
+  /** Net commercial original value (profitability / CCV basis). */
   readonly originalValueAmount: string | null;
+  readonly originalTaxAmount: string | null;
+  readonly originalGrossAmount: string | null;
+  readonly taxSnapshot: ContractTaxSnapshotRecord | null;
   readonly currency: string;
   readonly signedDate: string | null;
   readonly notes: string | null;

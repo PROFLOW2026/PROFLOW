@@ -29,3 +29,20 @@ export async function resolveTaxForDate(
   if (key) return resolveTaxRateForDate(rules, on, { key });
   return resolveDefaultTaxRate(rules, on);
 }
+
+/**
+ * Resolves the default tax rule for financial calculations (contracts, etc.).
+ * Does not require TAX_MANAGE — callers must already be authorized for the
+ * surrounding financial write.
+ */
+export async function resolveApplicableDefaultTax(
+  context: OrgContext,
+  on: BusinessDate,
+): Promise<TaxResolutionExplanation> {
+  const rules = await listTaxRulesForOrganization(
+    context.db,
+    context.organizationId,
+    context.organization.countryCode,
+  );
+  return resolveDefaultTaxRate(rules, on);
+}

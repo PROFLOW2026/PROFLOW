@@ -36,3 +36,16 @@ export function findOriginalValueEvent(
 ): ContractValueEventRecord | null {
   return events.find((event) => event.kind === 'original') ?? null;
 }
+
+/**
+ * Original contract amount / VAT mode may be edited only until a finalized
+ * contract-value event exists. Draft / awaiting / rejected / cancelled change
+ * requests do not create these events and therefore do not lock.
+ *
+ * Authoritative signal: `change_order` (approved CO) or `adjustment` events.
+ */
+export function isOriginalContractAmountLocked(
+  events: readonly ContractValueEventRecord[],
+): boolean {
+  return events.some((event) => event.kind === 'change_order' || event.kind === 'adjustment');
+}

@@ -3,6 +3,7 @@
 import * as SelectPrimitive from '@radix-ui/react-select';
 import { Check, ChevronDown } from 'lucide-react';
 import * as React from 'react';
+import { useLocaleDir } from '@/shared/i18n/direction';
 import { cn } from '@/shared/ui/cn';
 
 export const Select = SelectPrimitive.Root;
@@ -38,16 +39,18 @@ export const SelectTrigger = React.forwardRef<
 export const SelectContent = React.forwardRef<
   React.ElementRef<typeof SelectPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof SelectPrimitive.Content>
->(function SelectContent({ className, children, position = 'popper', ...props }, ref) {
+>(function SelectContent({ className, children, position = 'popper', dir, ...props }, ref) {
+  const localeDir = useLocaleDir();
   return (
     <SelectPrimitive.Portal>
       <SelectPrimitive.Content
         ref={ref}
         position={position}
         sideOffset={4}
+        dir={dir ?? localeDir}
         className={cn(
           'relative z-40 max-h-72 min-w-[var(--radix-select-trigger-width)] overflow-hidden rounded-md',
-          'border border-[var(--pf-border-default)] bg-[var(--pf-bg-elevated)] shadow-[var(--pf-shadow-md)]',
+          'border border-[var(--pf-border-default)] bg-[var(--pf-bg-elevated)] shadow-[var(--pf-shadow-md)] text-start',
           className,
         )}
         {...props}

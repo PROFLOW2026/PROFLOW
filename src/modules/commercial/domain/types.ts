@@ -138,7 +138,11 @@ export interface ContractRecord {
   readonly organizationId: string;
   readonly projectId: string;
   readonly isPrimary: boolean;
+  readonly enteredValueAmount?: string | null;
+  readonly amountIncludesTax?: boolean;
   readonly originalValueAmount: string | null;
+  readonly originalTaxAmount?: string | null;
+  readonly originalGrossAmount?: string | null;
   readonly currency: string;
 }
 

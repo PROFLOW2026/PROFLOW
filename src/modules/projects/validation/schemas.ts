@@ -14,12 +14,22 @@ export const projectNameSchema = z
   .min(1, 'Project name is required')
   .max(200, 'Project name must be at most 200 characters');
 
+const amountIncludesTaxSchema = z.preprocess((value) => {
+  if (value === '' || value === null || value === undefined) return false;
+  if (typeof value === 'boolean') return value;
+  if (value === 'true' || value === 'including' || value === '1') return true;
+  if (value === 'false' || value === 'excluding' || value === '0') return false;
+  return value;
+}, z.boolean());
+
 export const createProjectSchema = z.object({
   name: projectNameSchema,
   clientId: z.preprocess(emptyToNull, z.string().uuid().nullable().optional()),
   clientName: z.preprocess(emptyToNull, z.string().trim().min(1).max(200).nullable().optional()),
   contractValueAmount: z.preprocess(emptyToNull, z.string().trim().nullable().optional()),
   contractValueCurrency: z.preprocess(emptyToNull, z.string().trim().length(3).nullable().optional()),
+  /** false = excluding VAT (לא כולל מע״מ); true = including VAT (כולל מע״מ). */
+  amountIncludesTax: amountIncludesTaxSchema.optional(),
   domainName: z.preprocess(emptyToNull, z.string().trim().min(1).max(120).nullable().optional()),
   location: z.preprocess(emptyToNull, z.string().trim().max(500).nullable().optional()),
   description: optionalText,
@@ -48,6 +58,9 @@ export const updateProjectSchema = z.object({
   actualEndDate: z.preprocess(emptyToNull, z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable().optional()),
   notes: optionalText,
   domainName: z.preprocess(emptyToNull, z.string().trim().min(1).max(120).nullable().optional()),
+  contractValueAmount: z.preprocess(emptyToNull, z.string().trim().nullable().optional()),
+  contractValueCurrency: z.preprocess(emptyToNull, z.string().trim().length(3).nullable().optional()),
+  amountIncludesTax: amountIncludesTaxSchema.optional(),
 });
 
 export type UpdateProjectInput = z.input<typeof updateProjectSchema>;

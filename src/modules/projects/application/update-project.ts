@@ -1,13 +1,36 @@
 import { and, eq } from 'drizzle-orm';
 import { recordAuditEvent } from '@/shared/audit';
-import { NotFoundError, ValidationError } from '@/shared/errors';
+import { DomainRuleError, NotFoundError, ValidationError } from '@/shared/errors';
+import { money } from '@/shared/money';
 import { assertPermission, assertSameOrganization } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import type { OrgContext } from '@/shared/auth/context';
 import { projectDomains } from '@drizzle/schema';
 import type { ProjectRecord } from '../domain/types';
+import {
+  findPrimaryContractByProject,
+  listContractValueEvents,
+} from '../data/contracts.repository';
 import { findProjectById, updateProjectById } from '../data/projects.repository';
+import { isOriginalContractAmountLocked } from '../domain/contract-value';
 import { updateProjectSchema, type UpdateProjectInput } from '../validation/schemas';
+import {
+  ORIGINAL_AMOUNT_LOCKED_MESSAGE_KEY,
+  upsertPrimaryContractAmount,
+} from './contract-amount';
+
+function amountsDiffer(
+  left: string | null | undefined,
+  right: string,
+  currency: string,
+): boolean {
+  if (!left) return true;
+  try {
+    return money(left, currency).amount !== money(right, currency).amount;
+  } catch {
+    return true;
+  }
+}
 
 export async function updateProject(
   context: OrgContext,
@@ -58,6 +81,59 @@ export async function updateProject(
         organizationId: context.organizationId,
         projectId: input.projectId,
         adHocName: input.domainName,
+      });
+    }
+  }
+
+  if (input.contractValueAmount) {
+    const currency = (
+      input.contractValueCurrency ??
+      existing.currency ??
+      context.organization.baseCurrency
+    ).toUpperCase();
+    const includesTax = input.amountIncludesTax ?? false;
+    const existingContract = await findPrimaryContractByProject(
+      context.db,
+      context.organizationId,
+      input.projectId,
+    );
+
+    if (existingContract) {
+      const events = await listContractValueEvents(
+        context.db,
+        context.organizationId,
+        existingContract.id,
+      );
+      const locked = isOriginalContractAmountLocked(events);
+      const amountChanged = amountsDiffer(
+        existingContract.enteredValueAmount ?? existingContract.originalValueAmount,
+        input.contractValueAmount,
+        currency,
+      );
+      const modeChanged = existingContract.amountIncludesTax !== includesTax;
+
+      if (locked && (amountChanged || modeChanged)) {
+        throw new DomainRuleError(
+          'Original contract amount cannot be changed after an approved contract-value change',
+          ORIGINAL_AMOUNT_LOCKED_MESSAGE_KEY,
+          { projectId: input.projectId, contractId: existingContract.id },
+        );
+      }
+
+      if (!locked && (amountChanged || modeChanged)) {
+        await upsertPrimaryContractAmount(context, {
+          projectId: input.projectId,
+          enteredAmount: input.contractValueAmount,
+          currency,
+          amountIncludesTax: includesTax,
+        });
+      }
+    } else {
+      await upsertPrimaryContractAmount(context, {
+        projectId: input.projectId,
+        enteredAmount: input.contractValueAmount,
+        currency,
+        amountIncludesTax: includesTax,
       });
     }
   }

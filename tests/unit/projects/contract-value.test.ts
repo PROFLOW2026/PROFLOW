@@ -3,6 +3,7 @@ import {
   computeApprovedChangesTotal,
   computeCurrentContractValue,
   findOriginalValueEvent,
+  isOriginalContractAmountLocked,
 } from '@/modules/projects';
 import type { ContractValueEventRecord } from '@/modules/projects';
 
@@ -62,5 +63,22 @@ describe('contract value domain', () => {
   it('returns zero when no events exist', () => {
     const total = computeCurrentContractValue([], 'USD');
     expect(total.amount).toBe('0.000000');
+  });
+
+  it('does not lock original amount when only the original event exists', () => {
+    expect(isOriginalContractAmountLocked([events[0]!])).toBe(false);
+  });
+
+  it('locks original amount once a change_order event exists', () => {
+    expect(isOriginalContractAmountLocked(events)).toBe(true);
+  });
+
+  it('locks original amount for adjustment events as finalized value changes', () => {
+    expect(
+      isOriginalContractAmountLocked([
+        events[0]!,
+        { ...baseEvent, id: 'adj', kind: 'adjustment', amount: '100.000000', effectiveDate: '2026-04-01' },
+      ]),
+    ).toBe(true);
   });
 });

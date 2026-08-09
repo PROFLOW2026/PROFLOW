@@ -4,7 +4,10 @@ import { assertPermission, assertSameOrganization } from '@/shared/permissions/a
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import type { OrgContext } from '@/shared/auth/context';
 import { NotFoundError } from '@/shared/errors';
-import { computeCurrentContractValue } from '../domain/contract-value';
+import {
+  computeCurrentContractValue,
+  isOriginalContractAmountLocked,
+} from '../domain/contract-value';
 import { countActiveWorkPackages, shouldShowWorkPackages } from '../domain/work-package-visibility';
 import type {
   ContractRecord,
@@ -32,6 +35,8 @@ export interface ProjectDetail {
   readonly contract: ContractRecord | null;
   readonly contractValueEvents: readonly ContractValueEventRecord[];
   readonly currentContractValue: MoneyValue | null;
+  /** True once a finalized contract-value change exists (approved CO / adjustment). */
+  readonly originalContractAmountLocked: boolean;
 }
 
 export async function getProjectDetail(
@@ -70,6 +75,7 @@ export async function getProjectDetail(
   let contract: ContractRecord | null = null;
   let contractValueEvents: ContractValueEventRecord[] = [];
   let currentContractValue: MoneyValue | null = null;
+  let originalContractAmountLocked = false;
 
   if (context.permissions.has(PERMISSIONS.CONTRACTS_READ)) {
     contract = await findPrimaryContractByProject(context.db, context.organizationId, projectId);
@@ -80,6 +86,7 @@ export async function getProjectDetail(
         contract.id,
       );
       currentContractValue = computeCurrentContractValue(contractValueEvents, contract.currency);
+      originalContractAmountLocked = isOriginalContractAmountLocked(contractValueEvents);
     } else if (project.currency) {
       currentContractValue = fromNumericString('0', project.currency);
     }
@@ -95,5 +102,6 @@ export async function getProjectDetail(
     contract,
     contractValueEvents,
     currentContractValue,
+    originalContractAmountLocked,
   };
 }

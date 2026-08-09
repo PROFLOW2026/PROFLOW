@@ -52,7 +52,7 @@ export default async function LocaleLayout({
 
   return (
     <html lang={metadata.htmlLang} dir={metadata.dir} suppressHydrationWarning>
-      <body className="min-h-dvh bg-page text-content antialiased">
+      <body className="min-h-dvh bg-page text-content antialiased" dir={metadata.dir}>
         <NextIntlClientProvider>
           <TooltipProvider delayDuration={200}>{children}</TooltipProvider>
         </NextIntlClientProvider>

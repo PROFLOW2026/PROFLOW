@@ -32,6 +32,11 @@
     "clientNameExample": "לדוגמה: משפחת כהן",
     "contractValueLabel": "סכום חוזה מקורי",
     "contractValuePlaceholder": "לדוגמה: 150000",
+    "contractValueHint": "הסכום שישמש לחישוב מסחרי ורווחיות הוא נטו (ללא מע״מ).",
+    "amountTaxModeLabel": "הסכום שהוזן",
+    "amountTaxModeHint": "בחרו האם הסכום כולל מע״מ או לא. שיעור המע״מ נלקח מכלל המס הפעיל בארגון.",
+    "amountExcludingTax": "לא כולל מע״מ",
+    "amountIncludingTax": "כולל מע״מ",
     "domainLabel": "תחום / מקצוע",
     "domainPlaceholder": "לדוגמה: חשמל",
     "locationLabel": "מיקום",
@@ -103,7 +108,9 @@
     "descriptionLabel": "תיאור",
     "notesLabel": "הערות",
     "save": "שמירת שינויים",
-    "saved": "הפרטים נשמרו"
+    "saved": "הפרטים נשמרו",
+    "originalAmountLockedTitle": "סכום החוזה המקורי נעול",
+    "originalAmountLocked": "לא ניתן לשנות את סכום החוזה המקורי או את מצב המע״מ אחרי שינוי חוזה מאושר. שינויי סכום נוספים יש לבצע דרך שינוי חוזה (Change Order)."
   },
   "workPackages": {
     "title": "תחומי עבודה",

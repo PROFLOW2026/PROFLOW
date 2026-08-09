@@ -3,6 +3,7 @@
 import * as DropdownMenuPrimitive from '@radix-ui/react-dropdown-menu';
 import { Check } from 'lucide-react';
 import * as React from 'react';
+import { useLocaleDir } from '@/shared/i18n/direction';
 import { cn } from '@/shared/ui/cn';
 
 export const DropdownMenu = DropdownMenuPrimitive.Root;
@@ -14,15 +15,20 @@ export const DropdownMenuRadioGroup = DropdownMenuPrimitive.RadioGroup;
 
 export const DropdownMenuContent = React.forwardRef<
   React.ElementRef<typeof DropdownMenuPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Content>
->(function DropdownMenuContent({ className, sideOffset = 6, ...props }, ref) {
+  React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Content> & {
+    dir?: 'rtl' | 'ltr';
+  }
+>(function DropdownMenuContent({ className, sideOffset = 6, dir, ...props }, ref) {
+  const localeDir = useLocaleDir();
   return (
     <DropdownMenuPrimitive.Portal>
       <DropdownMenuPrimitive.Content
         ref={ref}
         sideOffset={sideOffset}
+        // Radix omits `dir` from the content props type; the DOM attribute is still valid.
+        {...{ dir: dir ?? localeDir }}
         className={cn(
-          'z-40 min-w-48 overflow-hidden rounded-md border border-[var(--pf-border-default)]',
+          'z-40 min-w-48 overflow-hidden rounded-md border border-[var(--pf-border-default)] text-start',
           'bg-[var(--pf-bg-elevated)] p-1 shadow-[var(--pf-shadow-md)]',
           className,
         )}

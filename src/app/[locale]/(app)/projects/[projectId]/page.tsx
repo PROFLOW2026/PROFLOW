@@ -7,6 +7,8 @@ import { TabsContent } from '@/components/ui/tabs';
 import { listClientsForOrg } from '@/modules/clients';
 import { getProjectDetail } from '@/modules/projects';
 import { getShellContext, withOrgContext } from '@/shared/auth/session';
+import { formatMoney } from '@/shared/money/format';
+import { zeroMoney } from '@/shared/money';
 import { PERMISSIONS, type PermissionKey } from '@/shared/permissions/catalog';
 import { Link } from '@/shared/i18n/navigation';
 import { ProjectBillingPanel } from '@/modules/billing/ui';
@@ -68,6 +70,16 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
   const showWorkTab = detail.showWorkPackages;
 
   const canArchive = shell?.permissions.has(PERMISSIONS.PROJECTS_ARCHIVE) ?? false;
+  const canManageContract = shell?.permissions.has(PERMISSIONS.CONTRACTS_MANAGE) ?? false;
+  const baseCurrency =
+    detail.contract?.currency ??
+    detail.project.currency ??
+    shell?.organization.baseCurrency ??
+    'ILS';
+  const sample = formatMoney(zeroMoney(baseCurrency), locale, {
+    currencyDisplay: 'narrowSymbol',
+  });
+  const currencySymbol = sample.replace(/[\d\s.,\u2212+-]/g, '').trim() || '₪';
 
   // Tabs follow Progressive Complexity: a capability the organization has not
   // turned on, or that this person cannot see, leaves no empty shelf behind.
@@ -189,7 +201,13 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
         ) : null}
 
         <TabsContent value="details">
-          <DetailsTab detail={detail} clients={clients} />
+          <DetailsTab
+            detail={detail}
+            clients={clients}
+            baseCurrency={baseCurrency}
+            currencySymbol={currencySymbol}
+            canManageContract={canManageContract}
+          />
         </TabsContent>
       </ProjectTabsShell>
       </Suspense>

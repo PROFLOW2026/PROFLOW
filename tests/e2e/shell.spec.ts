@@ -14,6 +14,7 @@ test.describe('locale routing and direction', () => {
     const html = page.locator('html');
     await expect(html).toHaveAttribute('dir', 'rtl');
     await expect(html).toHaveAttribute('lang', 'he');
+    await expect(page.locator('body')).toHaveAttribute('dir', 'rtl');
     await expect(page.getByRole('heading', { name: 'כניסה' })).toBeVisible();
   });
 
@@ -23,6 +24,7 @@ test.describe('locale routing and direction', () => {
     const html = page.locator('html');
     await expect(html).toHaveAttribute('dir', 'ltr');
     await expect(html).toHaveAttribute('lang', 'en');
+    await expect(page.locator('body')).toHaveAttribute('dir', 'ltr');
     await expect(page.getByRole('heading', { name: 'Sign in' })).toBeVisible();
   });
 

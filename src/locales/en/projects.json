@@ -32,6 +32,11 @@
     "clientNameExample": "e.g. Cohen family",
     "contractValueLabel": "Original contract value",
     "contractValuePlaceholder": "e.g. 150000",
+    "contractValueHint": "Commercial and profitability calculations use the net amount (excluding VAT).",
+    "amountTaxModeLabel": "Entered amount is",
+    "amountTaxModeHint": "Choose whether the amount includes VAT. The rate comes from the organization’s active tax rule.",
+    "amountExcludingTax": "Excluding VAT",
+    "amountIncludingTax": "Including VAT",
     "domainLabel": "Profession / domain",
     "domainPlaceholder": "e.g. Electrical",
     "locationLabel": "Location",
@@ -103,7 +108,9 @@
     "descriptionLabel": "Description",
     "notesLabel": "Notes",
     "save": "Save changes",
-    "saved": "Details saved"
+    "saved": "Details saved",
+    "originalAmountLockedTitle": "Original contract amount is locked",
+    "originalAmountLocked": "The original contract amount and VAT mode cannot be changed after an approved contract change. Make further value changes through Change Orders."
   },
   "workPackages": {
     "title": "Work areas",

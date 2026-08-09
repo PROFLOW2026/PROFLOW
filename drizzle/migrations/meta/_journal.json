@@ -43,6 +43,13 @@
       "when": 1786232520000,
       "tag": "0006_rls_hardening",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1786232600000,
+      "tag": "0007_contract_amount_tax",
+      "breakpoints": true
     }
   ]
 }

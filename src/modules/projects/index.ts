@@ -2,6 +2,7 @@
 export { createProject } from './application/create-project';
 export type { CreateProjectResult } from './application/create-project';
 export { updateProject } from './application/update-project';
+export { upsertPrimaryContractAmount } from './application/contract-amount';
 export { archiveProject } from './application/archive-project';
 export { listProjectsForOrg } from './application/list-projects';
 export { getProjectDetail } from './application/get-project-detail';
@@ -20,7 +21,9 @@ export {
   computeCurrentContractValue,
   computeApprovedChangesTotal,
   findOriginalValueEvent,
+  isOriginalContractAmountLocked,
 } from './domain/contract-value';
+export { ORIGINAL_AMOUNT_LOCKED_MESSAGE_KEY } from './application/contract-amount';
 export { shouldShowWorkPackages, countActiveWorkPackages } from './domain/work-package-visibility';
 export {
   PROJECT_STATUSES,
@@ -34,6 +37,7 @@ export type {
   WorkPackageRecord,
   PhaseRecord,
   ContractRecord,
+  ContractTaxSnapshotRecord,
   ContractValueEventRecord,
 } from './domain/types';
 

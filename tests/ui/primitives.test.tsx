@@ -69,9 +69,8 @@ describe('Field', () => {
 describe('MoneyText', () => {
   it('isolates the amount as a left-to-right run inside a Hebrew page', () => {
     const { container } = renderWithIntl(<MoneyText value={money('1500', 'ILS')} />);
-    const element = container.firstElementChild!;
+    const element = container.querySelector('.pf-numeric');
     expect(element).toHaveAttribute('dir', 'ltr');
-    expect(element.className).toContain('pf-numeric');
   });
 
   it('signs a negative amount textually', () => {

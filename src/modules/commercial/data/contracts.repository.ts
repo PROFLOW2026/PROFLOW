@@ -9,7 +9,11 @@ function mapContract(row: typeof contracts.$inferSelect): ContractRecord {
     organizationId: row.organizationId,
     projectId: row.projectId,
     isPrimary: row.isPrimary,
+    enteredValueAmount: row.enteredValueAmount,
+    amountIncludesTax: row.amountIncludesTax,
     originalValueAmount: row.originalValueAmount,
+    originalTaxAmount: row.originalTaxAmount,
+    originalGrossAmount: row.originalGrossAmount,
     currency: row.currency,
   };
 }

@@ -1,22 +1,17 @@
 import { recordAuditEvent } from '@/shared/audit';
-import { todayInTimeZone } from '@/shared/dates';
 import { NotFoundError, ValidationError } from '@/shared/errors';
-import { money, toNumericString } from '@/shared/money';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import type { OrgContext } from '@/shared/auth/context';
 import { clients, projectDomains } from '@drizzle/schema';
 import { and, eq } from 'drizzle-orm';
 import { DEFAULT_WORK_PACKAGE_NAME } from '../domain/types';
-import {
-  insertContract,
-  insertContractValueEvent,
-} from '../data/contracts.repository';
 import { insertProject } from '../data/projects.repository';
 import {
   insertWorkPackage,
 } from '../data/work-packages.repository';
 import { createProjectSchema, type CreateProjectInput } from '../validation/schemas';
+import { upsertPrimaryContractAmount } from './contract-amount';
 
 export interface CreateProjectResult {
   readonly projectId: string;
@@ -92,35 +87,11 @@ export async function createProject(
   }
 
   if (input.contractValueAmount) {
-    assertPermission(context, PERMISSIONS.CONTRACTS_MANAGE);
-    const amount = money(input.contractValueAmount, currency);
-    const effectiveDate = todayInTimeZone(context.organization.timezone);
-
-    const contract = await insertContract(context.db, {
-      organizationId: context.organizationId,
+    await upsertPrimaryContractAmount(context, {
       projectId: project.id,
-      isPrimary: true,
-      originalValueAmount: toNumericString(amount),
+      enteredAmount: input.contractValueAmount,
       currency,
-    });
-
-    await insertContractValueEvent(context.db, {
-      organizationId: context.organizationId,
-      contractId: contract.id,
-      projectId: project.id,
-      kind: 'original',
-      amount: toNumericString(amount),
-      currency,
-      effectiveDate,
-      reason: 'Original contract value',
-      actorUserId: context.userId,
-    });
-
-    await recordAuditEvent(context, {
-      action: 'contract.value_recorded',
-      entityType: 'contract',
-      entityId: contract.id,
-      after: { projectId: project.id, kind: 'original', amount: toNumericString(amount), currency },
+      amountIncludesTax: input.amountIncludesTax ?? false,
     });
   }
 
