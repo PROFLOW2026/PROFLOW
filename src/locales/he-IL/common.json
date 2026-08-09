@@ -94,6 +94,7 @@
     "openMenu": "פתיחת תפריט",
     "closeMenu": "סגירת תפריט",
     "sortAscending": "מיון עולה",
-    "sortDescending": "מיון יורד"
+    "sortDescending": "מיון יורד",
+    "navigating": "מעבר לדף"
   }
 }

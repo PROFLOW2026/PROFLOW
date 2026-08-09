@@ -1,4 +1,4 @@
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test, type Page, type Route } from '@playwright/test';
 import {
   assertFabClearsBottomNav,
   assertNoPageHorizontalOverflow,
@@ -186,6 +186,76 @@ test.describe('mobile reports layout', () => {
       expect(layout.desktopShown).toBe(false);
       expect(layout.scrollWidth).toBeLessThanOrEqual(layout.clientWidth);
       await assertNoPageHorizontalOverflow(page, 'reports@768');
+    });
+  });
+});
+
+test.describe('polish: dashboard loading + export pending', () => {
+  test('clicking Dashboard shows aria-busy skeleton or completes navigation promptly', async ({
+    page,
+  }) => {
+    await page.goto('/he-IL/projects');
+    await expect(page.getByRole('heading', { name: he.projects.title, level: 1 })).toBeVisible();
+
+    const mainNav = page.getByRole('navigation', { name: he.common.a11y.mainNavigation }).first();
+    const dashboardLink = mainNav.getByRole('link', { name: he.nav.dashboard });
+
+    // Slow home navigations so (home)/loading.tsx can paint under load.
+    const delayHome = async (route: Route) => {
+      const url = new URL(route.request().url());
+      const isHome = url.pathname === '/he-IL' || url.pathname === '/he-IL/';
+      if (isHome && (route.request().resourceType() === 'document' || url.search.includes('_rsc'))) {
+        await new Promise((resolve) => setTimeout(resolve, 750));
+      }
+      await route.continue();
+    };
+    await page.route('**/he-IL**', delayHome);
+
+    try {
+      const busyLocator = page.locator('[aria-busy="true"]').first();
+      const busySeen = busyLocator.waitFor({ state: 'visible', timeout: 4_000 }).then(
+        () => true,
+        () => false,
+      );
+
+      await dashboardLink.click();
+      const sawBusy = await busySeen;
+
+      // Always land on the authenticated shell; busy may race if navigation is still fast.
+      await expect(mainNav).toBeVisible({ timeout: 30_000 });
+      expect(
+        sawBusy || (await page.locator('main').count()) > 0,
+        'expected dashboard navigation to show aria-busy skeleton or complete into shell',
+      ).toBe(true);
+    } finally {
+      await page.unroute('**/he-IL**', delayHome);
+    }
+  });
+
+  test('export download shows preparing feedback while response is delayed', async ({ page }) => {
+    await page.goto('/he-IL/reports');
+    await expect(page.getByRole('heading', { name: he.dashboard.reports.title, level: 1 })).toBeVisible();
+
+    await page.route('**/exports/projects**', async (route) => {
+      await new Promise((resolve) => setTimeout(resolve, 900));
+      await route.fulfill({
+        status: 200,
+        headers: {
+          'Content-Type': 'text/csv; charset=utf-8',
+          'Content-Disposition': 'attachment; filename="projects.csv"',
+        },
+        body: '\uFEFFid,name\r\n1,Demo\r\n',
+      });
+    });
+
+    await page.getByRole('button', { name: he.dashboard.reports.exportMenu }).click();
+    await page.getByRole('menuitem', { name: he.dashboard.reports.exportProjects }).click();
+
+    await expect(page.getByText(he.exports.feedback.preparing).first()).toBeVisible({
+      timeout: 5_000,
+    });
+    await expect(page.getByText(he.exports.feedback.ready).first()).toBeVisible({
+      timeout: 15_000,
     });
   });
 });

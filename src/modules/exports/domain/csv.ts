@@ -3,10 +3,13 @@
  * Values are stringified; decimals stay as decimal strings (never floats).
  */
 
-export type CsvCell = string | number | boolean | null | undefined;
+export type CsvCell = string | number | boolean | Date | null | undefined;
 
 export function escapeCsvCell(value: CsvCell): string {
   if (value === null || value === undefined) return '';
+  if (value instanceof Date) {
+    return value.toISOString().slice(0, 10);
+  }
   const raw = typeof value === 'boolean' ? (value ? 'true' : 'false') : String(value);
   if (/[",\r\n]/.test(raw)) {
     return `"${raw.replaceAll('"', '""')}"`;

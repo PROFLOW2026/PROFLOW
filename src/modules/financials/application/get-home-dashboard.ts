@@ -74,38 +74,124 @@ export async function getHomeDashboard(context: OrgContext): Promise<HomeDashboa
   const monthStart = startOfMonth(today);
   const monthEnd = endOfMonth(today);
 
-  const hasProjects = await hasAnyProject(context.db, context.organizationId);
-  const hasExpenses = await hasAnyExpenseUsage(context.db, context.organizationId);
-  const hasBilling = await hasAnyBillingUsage(context.db, context.organizationId);
-
-  const isBrandNew = !hasProjects && !hasExpenses && !hasBilling;
-
   const canReadFinancials = hasPermission(context, PERMISSIONS.PROJECT_FINANCIALS_READ);
   const canReadBilling = hasPermission(context, PERMISSIONS.BILLING_READ);
   const canReadProfit = hasPermission(context, PERMISSIONS.PROJECT_PROFIT_READ);
   const canReadContracts = hasPermission(context, PERMISSIONS.CONTRACTS_READ);
+  const canCreateProject = hasPermission(context, PERMISSIONS.PROJECTS_CREATE);
+  const canCreateExpense = hasPermission(context, PERMISSIONS.EXPENSES_CREATE);
 
-  const activeProjectCount = await countActiveProjects(context.db, context.organizationId);
-  const recentProjects = await listRecentActiveProjects(context.db, context.organizationId);
+  // Wave 1: independent existence + list + attention counts (was a long sequential chain).
+  const [
+    hasProjects,
+    hasExpenses,
+    hasBilling,
+    activeProjectCount,
+    recentProjects,
+    pendingChangesCount,
+    unbilledApprovedCount,
+  ] = await Promise.all([
+    hasAnyProject(context.db, context.organizationId),
+    hasAnyExpenseUsage(context.db, context.organizationId),
+    hasAnyBillingUsage(context.db, context.organizationId),
+    countActiveProjects(context.db, context.organizationId),
+    listRecentActiveProjects(context.db, context.organizationId),
+    canReadContracts
+      ? countPendingChanges(context.db, context.organizationId)
+      : Promise.resolve(0),
+    canReadContracts
+      ? countUnbilledApprovedChanges(context.db, context.organizationId)
+      : Promise.resolve(0),
+  ]);
+
+  const isBrandNew = !hasProjects && !hasExpenses && !hasBilling;
+
+  if (isBrandNew) {
+    return {
+      isBrandNew: true,
+      activeProjectCount,
+      recentProjects,
+      totalContractValue: null,
+      contractValueCoverage: null,
+      totalActualCost: null,
+      costCoverage: null,
+      estimatedProfit: null,
+      profitCoverage: null,
+      billing: null,
+      billingCoverage: null,
+      organizationSummary: null,
+      attention: {
+        pendingChangesCount,
+        unbilledApprovedCount,
+        overdueBillingCount: 0,
+      },
+      showBilling: false,
+      showProfit: false,
+      canCreateProject,
+      canCreateExpense,
+    };
+  }
+
+  // Wave 2: all remaining aggregates in one pipelined round (flags known from wave 1).
+  const wantContracts = canReadContracts && canReadFinancials;
+  const wantCosts = canReadFinancials && hasExpenses;
+  const wantBilling = canReadBilling && hasBilling;
+  const wantMonthInvoiced = canReadFinancials && wantBilling;
+  const wantMonthCosts = canReadFinancials && (wantBilling || hasExpenses);
+
+  const [
+    contractSum,
+    orgCosts,
+    costAggregation,
+    billingRows,
+    overdueBillingCount,
+    invoicedThisMonth,
+    costsThisMonth,
+  ] = await Promise.all([
+    wantContracts
+      ? sumActiveProjectContractValues(context.db, context.organizationId, currency)
+      : Promise.resolve(null),
+    wantCosts
+      ? sumOrganizationActualCosts(context.db, context.organizationId, currency)
+      : Promise.resolve(null),
+    wantCosts ? collectOrgCostSources(context, currency) : Promise.resolve(null),
+    wantBilling
+      ? loadOrganizationBillingRows(context.db, context.organizationId)
+      : Promise.resolve(null),
+    wantBilling
+      ? countOverdueBillingRecords(context.db, context.organizationId, today)
+      : Promise.resolve(0),
+    wantMonthInvoiced
+      ? sumInvoicedInDateRange(
+          context.db,
+          context.organizationId,
+          currency,
+          monthStart,
+          monthEnd,
+        )
+      : Promise.resolve(null),
+    wantMonthCosts
+      ? sumOrganizationCostsInDateRange(
+          context.db,
+          context.organizationId,
+          currency,
+          monthStart,
+          monthEnd,
+        )
+      : Promise.resolve(null),
+  ]);
 
   let totalContractValue: MoneyValue | null = null;
   let contractValueCoverage: FinancialCoverage | null = null;
-  if (canReadContracts && canReadFinancials) {
-    const contractSum = await sumActiveProjectContractValues(
-      context.db,
-      context.organizationId,
-      currency,
-    );
-    if (contractSum.activeCount > 0) {
-      totalContractValue = fromNumericString(contractSum.total, currency) ?? zeroMoney(currency);
-      if (contractSum.excludedForeignCurrencyProjectCount > 0) {
-        contractValueCoverage = buildFinancialCoverage([], new Date(), [
-          {
-            reason: 'foreign_currency_contracts_excluded',
-            count: contractSum.excludedForeignCurrencyProjectCount,
-          },
-        ]);
-      }
+  if (contractSum && contractSum.activeCount > 0) {
+    totalContractValue = fromNumericString(contractSum.total, currency) ?? zeroMoney(currency);
+    if (contractSum.excludedForeignCurrencyProjectCount > 0) {
+      contractValueCoverage = buildFinancialCoverage([], new Date(), [
+        {
+          reason: 'foreign_currency_contracts_excluded',
+          count: contractSum.excludedForeignCurrencyProjectCount,
+        },
+      ]);
     }
   }
 
@@ -114,11 +200,8 @@ export async function getHomeDashboard(context: OrgContext): Promise<HomeDashboa
   let profitCoverage: FinancialCoverage | null = null;
   let estimatedProfit: MoneyValue | null = null;
 
-  if (canReadFinancials && hasExpenses) {
-    const orgCosts = await sumOrganizationActualCosts(context.db, context.organizationId, currency);
+  if (orgCosts && costAggregation) {
     totalActualCost = orgCosts.total;
-
-    const costAggregation = await collectOrgCostSources(context, currency);
     const mergedSources = mergeSourcePresence(costAggregation.sources);
     const mergedPartials = mergeCoveragePartials(
       costAggregation.partials,
@@ -138,8 +221,7 @@ export async function getHomeDashboard(context: OrgContext): Promise<HomeDashboa
   let billingCoverage: FinancialCoverage | null = null;
   let organizationSummary: HomeDashboardData['organizationSummary'] = null;
 
-  if (canReadBilling && hasBilling) {
-    const billingRows = await loadOrganizationBillingRows(context.db, context.organizationId);
+  if (billingRows) {
     const position = computeBillingPositionFromRows(billingRows, currency);
     billing = {
       invoiced: position.invoiced,
@@ -155,51 +237,20 @@ export async function getHomeDashboard(context: OrgContext): Promise<HomeDashboa
       ]);
     }
 
-    if (canReadFinancials) {
+    if (canReadFinancials && invoicedThisMonth && costsThisMonth) {
       organizationSummary = {
         outstanding: position.outstanding,
-        invoicedThisMonth: await sumInvoicedInDateRange(
-          context.db,
-          context.organizationId,
-          currency,
-          monthStart,
-          monthEnd,
-        ),
-        costsThisMonth: await sumOrganizationCostsInDateRange(
-          context.db,
-          context.organizationId,
-          currency,
-          monthStart,
-          monthEnd,
-        ),
+        invoicedThisMonth,
+        costsThisMonth,
       };
     }
-  } else if (canReadFinancials && hasExpenses) {
+  } else if (canReadFinancials && hasExpenses && costsThisMonth) {
     organizationSummary = {
       outstanding: zeroMoney(currency),
       invoicedThisMonth: zeroMoney(currency),
-      costsThisMonth: await sumOrganizationCostsInDateRange(
-        context.db,
-        context.organizationId,
-        currency,
-        monthStart,
-        monthEnd,
-      ),
+      costsThisMonth,
     };
   }
-
-  const attention: DashboardAttention = {
-    pendingChangesCount: canReadContracts
-      ? await countPendingChanges(context.db, context.organizationId)
-      : 0,
-    unbilledApprovedCount: canReadContracts
-      ? await countUnbilledApprovedChanges(context.db, context.organizationId)
-      : 0,
-    overdueBillingCount:
-      canReadBilling && hasBilling
-        ? await countOverdueBillingRecords(context.db, context.organizationId, today)
-        : 0,
-  };
 
   return {
     isBrandNew,
@@ -214,16 +265,20 @@ export async function getHomeDashboard(context: OrgContext): Promise<HomeDashboa
     billing,
     billingCoverage,
     organizationSummary,
-    attention,
+    attention: {
+      pendingChangesCount,
+      unbilledApprovedCount,
+      overdueBillingCount,
+    },
     showBilling: hasBilling && canReadBilling,
     showProfit: canReadProfit && estimatedProfit !== null,
-    canCreateProject: hasPermission(context, PERMISSIONS.PROJECTS_CREATE),
-    canCreateExpense: hasPermission(context, PERMISSIONS.EXPENSES_CREATE),
+    canCreateProject,
+    canCreateExpense,
   };
 }
 
 /**
- * Coverage sources for the home dashboard: two expense queries + optional one labor query.
+ * Coverage sources for the home dashboard: expense contributions + optional labor.
  * Avoids per-active-project N+1 that previously scaled with project count.
  */
 async function collectOrgCostSources(
@@ -233,28 +288,24 @@ async function collectOrgCostSources(
   sources: { source: CostSourceKey; hasData: boolean }[];
   partials: CoveragePartial[];
 }> {
-  const contributions = await loadOrganizationExpenseContributions(
-    context.db,
-    context.organizationId,
-  );
+  const canReadWorkforce = hasPermission(context, PERMISSIONS.WORKFORCE_READ);
+
+  const [contributions, laborAgg] = await Promise.all([
+    loadOrganizationExpenseContributions(context.db, context.organizationId),
+    canReadWorkforce
+      ? sumOrganizationProjectLaborCoverage(context.db, context.organizationId, currency)
+      : Promise.resolve(null),
+  ]);
 
   let labor = null;
-  if (hasPermission(context, PERMISSIONS.WORKFORCE_READ)) {
-    const laborAgg = await sumOrganizationProjectLaborCoverage(
-      context.db,
-      context.organizationId,
-      currency,
-    );
-    if (laborAgg.entryCount > 0) {
-      labor = {
-        laborCost:
-          fromNumericString(laborAgg.totalAmount ?? '0', laborAgg.currency) ??
-          zeroMoney(currency),
-        hasWorkforceData: true,
-        entriesMissingCost: laborAgg.entriesMissingCost,
-        excludedForeignCurrencyEntries: laborAgg.excludedForeignCurrencyEntries,
-      };
-    }
+  if (laborAgg && laborAgg.entryCount > 0) {
+    labor = {
+      laborCost:
+        fromNumericString(laborAgg.totalAmount ?? '0', laborAgg.currency) ?? zeroMoney(currency),
+      hasWorkforceData: true,
+      entriesMissingCost: laborAgg.entriesMissingCost,
+      excludedForeignCurrencyEntries: laborAgg.excludedForeignCurrencyEntries,
+    };
   }
 
   if (contributions.length === 0 && !labor?.hasWorkforceData) {

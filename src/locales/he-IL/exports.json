@@ -1,0 +1,235 @@
+{
+  "feedback": {
+    "preparing": "מכין את הקובץ…",
+    "ready": "הקובץ מוכן וההורדה החלה",
+    "failed": "לא ניתן להכין את הקובץ. נסו שוב.",
+    "forbidden": "אין הרשאה לייצא נתונים אלה.",
+    "invalid": "בקשת הייצוא אינה תקינה."
+  },
+  "sheets": {
+    "projects": "פרויקטים",
+    "clients": "לקוחות",
+    "vendors": "ספקים",
+    "expenses": "הוצאות",
+    "billing": "חיובים",
+    "projectFinancials": "כספי פרויקט",
+    "employees": "עובדים",
+    "timeEntries": "רישומי שעות",
+    "payments": "תשלומים",
+    "arOutstanding": "חייבים פתוחים",
+    "arAging": "הזדקנות חייבים",
+    "purchaseOrders": "הזמנות רכש",
+    "apBills": "חשבונות זכאים",
+    "activityLog": "יומן פעילות"
+  },
+  "headers": {
+    "id": "מזהה",
+    "name": "שם",
+    "status": "סטטוס",
+    "clientName": "לקוח",
+    "currency": "מטבע",
+    "startDate": "תאריך התחלה",
+    "targetEndDate": "תאריך יעד לסיום",
+    "actualEndDate": "תאריך סיום בפועל",
+    "currentContractValue": "שווי חוזה נוכחי",
+    "contractCurrency": "מטבע חוזה",
+    "legalName": "שם משפטי",
+    "email": "אימייל",
+    "phone": "טלפון",
+    "city": "עיר",
+    "countryCode": "מדינה",
+    "vendorType": "סוג ספק",
+    "expenseDate": "תאריך הוצאה",
+    "description": "תיאור",
+    "supplierName": "ספק",
+    "projectId": "מזהה פרויקט",
+    "projectName": "פרויקט",
+    "costFamily": "משפחת עלות",
+    "grossAmount": "סכום ברוטו",
+    "kind": "סוג",
+    "collectionStatus": "סטטוס גבייה",
+    "issueDate": "תאריך הנפקה",
+    "dueDate": "תאריך פירעון",
+    "totalAmount": "סכום כולל",
+    "paidAmount": "סכום ששולם",
+    "outstandingAmount": "יתרה לתשלום",
+    "metric": "מדד",
+    "amount": "סכום",
+    "notes": "הערות",
+    "employeeNumber": "מספר עובד",
+    "jobTitle": "תפקיד",
+    "currentRate": "תעריף נוכחי",
+    "rateUnit": "יחידת תעריף",
+    "rateCurrency": "מטבע תעריף",
+    "workDate": "תאריך עבודה",
+    "employeeId": "מזהה עובד",
+    "employeeName": "עובד",
+    "hours": "שעות",
+    "workPackageName": "חבילת עבודה",
+    "timeCodeName": "קוד זמן",
+    "costAmount": "סכום עלות",
+    "costCurrency": "מטבע עלות",
+    "billingRecordId": "מזהה רשומת חיוב",
+    "billingReference": "אסמכתא חיוב",
+    "billingKind": "סוג חיוב",
+    "paymentDate": "תאריך תשלום",
+    "method": "אמצעי",
+    "reference": "אסמכתא",
+    "bucket": "קטגוריה",
+    "count": "כמות",
+    "totalOutstanding": "סה״כ יתרה",
+    "asOf": "נכון ל־",
+    "vendorId": "מזהה ספק",
+    "committedAmount": "סכום מחויב",
+    "committedCostStatus": "סטטוס עלות מחויבת",
+    "committedCostAmount": "סכום עלות מחויבת",
+    "orderedOn": "תאריך הזמנה",
+    "revision": "גרסה",
+    "vendorName": "ספק",
+    "purchaseOrderId": "מזהה הזמנת רכש",
+    "billDate": "תאריך חשבון",
+    "createdAt": "נוצר ב־",
+    "actorUserId": "מזהה משתמש",
+    "actorDisplayName": "מבצע",
+    "actorEmail": "אימייל מבצע",
+    "action": "פעולה",
+    "entityType": "סוג ישות",
+    "entityId": "מזהה ישות"
+  },
+  "notes": {
+    "projectsContract": "סכומי חוזה מופיעים רק עם הרשאת contracts:read. מטבעות לפי שורה; אין לסכום מטבעות מעורבים.",
+    "expensesCurrency": "סכומים לפי מטבע השורה. אין לאגד מטבעות שונים. טיוטה ≠ סופי.",
+    "billingIntegrity": "חוזה ≠ חיוב ≠ תשלום. יתרה מחושבת. אין לסמן סה״כ כהכנסה. אין סיכום חוצה־מטבעות.",
+    "projectFinancialsProfit": "מדדי רווח דורשים project_profit:read. מטבע פרויקט יחיד בלבד.",
+    "timeEntriesCurrency": "צילומי עלות עבודה לפי מטבע הרשומה. אין לערבב מטבעות בסיכום.",
+    "timeEntriesCap": "הייצוא מוגבל ל־5000 שורות.",
+    "paymentsIntegrity": "תשלום ≠ סה״כ חיוב. תשלומים מבוטלים אינם נכללים אלא אם יתבקש במפורש בעתיד.",
+    "arCurrency": "מטבע לפי שורה — אין לסכום מטבעות מעורבים.",
+    "arIntegrity": "יתרה מחושבת. חוזה ≠ חיוב ≠ תשלום. לא מסומן כהכנסה.",
+    "arAgingRules": "הזדקנות לפי יתרה לתשלום בלבד (זיכויים מתקזזים בשוטף). מע״מ אינו מטופל כהכנסה. רשומות במטבע זר אינן נכללות.",
+    "arAgingBase": "מטבע בסיס הארגון בלבד ({currency}). יתרות במטבע זר אינן נכללות בסיכומי הקטגוריות.",
+    "arAgingOutstanding": "הזדקנות לפי יתרה לתשלום, לא לפי חויב. מע״מ אינו רווח.",
+    "poCommitted": "עלות מחויבת ≠ הוצאה. מחויבות הזמנת רכש שהונפקה אינה עלות בפועל עד קבלה/הוצאה לפי כללי הדומיין.",
+    "apNeExpense": "חשבון זכאים ≠ הוצאה. סטטוס התאמה שייך למחזור חיי החשבון, לא לתשלום.",
+    "auditPermission": "דורש audit.read (אותה הרשאה כמו הגדרות ← פעילות).",
+    "auditPayloads": "מטעני לפני/אחרי הושמטו במכוון — אותו חוזה בטיחות כמו במסך הפעילות.",
+    "auditCap": "הייצוא מוגבל ל־{cap} אירועים האחרונים."
+  },
+  "metrics": {
+    "projectId": "מזהה פרויקט",
+    "originalContract": "חוזה מקורי",
+    "approvedAdditions": "תוספות מאושרות",
+    "approvedReductions": "הפחתות מאושרות",
+    "currentContract": "חוזה נוכחי",
+    "pendingChanges": "שינויים ממתינים",
+    "commercial": "מסחרי",
+    "invoiced": "חויב",
+    "paid": "שולם",
+    "outstanding": "יתרה לתשלום",
+    "actualCostToDate": "עלות בפועל עד כה",
+    "estimatedFinalCost": "עלות סופית משוערת",
+    "estimatedProfit": "רווח משוער",
+    "marginPercent": "אחוז מרווח",
+    "coveragePartials": "כיסוי חלקי"
+  },
+  "metricNotes": {
+    "netCommercial": "מסחרי נטו",
+    "originalPlusApproved": "מקורי ± מאושר",
+    "notInCurrent": "לא נכלל בנוכחי",
+    "hidden": "מוסתר לפי הרשאה או לא זמין",
+    "notRevenue": "לא תווית הכנסה",
+    "derived": "מחושב",
+    "estimateOnly": "אומדן בלבד; מע״מ אינו רווח"
+  },
+  "enums": {
+    "projectStatus": {
+      "draft": "טיוטה",
+      "active": "פעיל",
+      "on_hold": "בהשהיה",
+      "completed": "הושלם",
+      "cancelled": "בוטל",
+      "archived": "בארכיון"
+    },
+    "partyStatus": {
+      "active": "פעיל",
+      "inactive": "לא פעיל"
+    },
+    "vendorType": {
+      "supplier": "ספק",
+      "subcontractor": "קבלן משנה",
+      "both": "ספק וקבלן משנה"
+    },
+    "expenseStatus": {
+      "draft": "טיוטה",
+      "finalized": "סופי",
+      "void": "מבוטל"
+    },
+    "costFamily": {
+      "direct_project": "עלות פרויקט ישירה",
+      "shared": "עלות משותפת",
+      "business_overhead": "תקורה עסקית",
+      "asset_capital": "נכס / הון"
+    },
+    "billingStatus": {
+      "draft": "טיוטה",
+      "finalized": "סופי",
+      "void": "מבוטל"
+    },
+    "collectionStatus": {
+      "open": "פתוח",
+      "partial": "שולם חלקית",
+      "paid": "שולם",
+      "overdue": "באיחור"
+    },
+    "billingKind": {
+      "invoice": "חשבונית",
+      "credit_note": "זיכוי",
+      "advance": "מקדמה",
+      "retention_release": "שחרור עיכבון"
+    },
+    "paymentStatus": {
+      "recorded": "נרשם",
+      "void": "מבוטל"
+    },
+    "employeeStatus": {
+      "active": "פעיל",
+      "inactive": "לא פעיל"
+    },
+    "rateUnit": {
+      "hourly": "שעתי",
+      "daily": "יומי",
+      "monthly": "חודשי"
+    },
+    "timeEntryKind": {
+      "project": "פרויקט",
+      "non_project": "לא פרויקט"
+    },
+    "agingBucket": {
+      "current": "שוטף / ללא תאריך פירעון",
+      "days_1_30": "1–30 ימים באיחור",
+      "days_31_60": "31–60 ימים",
+      "days_61_90": "61–90 ימים",
+      "days_90_plus": "מעל 90 ימים"
+    },
+    "purchaseOrderStatus": {
+      "draft": "טיוטה",
+      "issued": "הונפקה",
+      "partially_received": "התקבלה חלקית",
+      "closed": "סגורה",
+      "cancelled": "בוטלה"
+    },
+    "committedCostStatus": {
+      "open": "מחויבות פתוחה",
+      "partially_consumed": "נוצלה חלקית",
+      "closed": "סגורה",
+      "cancelled": "בוטלה"
+    },
+    "apBillStatus": {
+      "draft": "טיוטה",
+      "open": "פתוח",
+      "partially_matched": "הותאם חלקית",
+      "matched": "הותאם",
+      "void": "מבוטל"
+    }
+  }
+}

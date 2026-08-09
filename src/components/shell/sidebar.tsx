@@ -1,11 +1,10 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import * as React from 'react';
-import { Link, usePathname } from '@/shared/i18n/navigation';
-import { cn } from '@/shared/ui/cn';
+import type * as React from 'react';
+import { usePathname } from '@/shared/i18n/navigation';
 import { isNavItemActive, type NavItem } from './navigation';
-import { NavIcon } from './nav-icon';
+import { ShellNavLink } from './shell-nav-link';
 
 export interface SidebarProps {
   items: NavItem[];
@@ -42,19 +41,13 @@ export function Sidebar({ items, organizationName, footer }: SidebarProps) {
 
           return (
             <li key={item.key}>
-              <Link
+              <ShellNavLink
                 href={item.href}
-                aria-current={active ? 'page' : undefined}
-                className={cn(
-                  'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
-                  active
-                    ? 'bg-[var(--pf-teal-50)] text-[var(--pf-text-brand)]'
-                    : 'text-[var(--pf-text-secondary)] hover:bg-[var(--pf-bg-muted)] hover:text-[var(--pf-text-primary)]',
-                )}
-              >
-                <NavIcon iconKey={item.iconKey} className="size-4.5 shrink-0" />
-                <span className="truncate">{t(item.labelKey)}</span>
-              </Link>
+                label={t(item.labelKey)}
+                iconKey={item.iconKey}
+                active={active}
+                variant="sidebar"
+              />
             </li>
           );
         })}

@@ -1,13 +1,17 @@
 /* ProjectFlow offline shell — no push notifications.
- * Cache-first only for installable shell assets. Navigations stay network-first.
+ * Cache-first only for installable shell assets (not the manifest).
+ * Navigations stay network-first. Manifest is network-first so updates are not trapped.
+ *
+ * start_url "/" is locale-safe via src/proxy.ts: bare paths honor NEXT_LOCALE,
+ * otherwise default he-IL — Accept-Language alone never invents /en.
  */
-const SHELL_CACHE = 'projectflow-shell-v1';
+const SHELL_CACHE = 'projectflow-shell-v2';
 const PRECACHE = [
-  '/manifest.webmanifest',
   '/icons/icon-192.png',
   '/icons/icon-512.png',
   '/offline.html',
 ];
+const NETWORK_FIRST = ['/manifest.webmanifest'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -33,6 +37,10 @@ function isShellAsset(pathname) {
   return PRECACHE.includes(pathname);
 }
 
+function isNetworkFirstAsset(pathname) {
+  return NETWORK_FIRST.includes(pathname);
+}
+
 self.addEventListener('fetch', (event) => {
   const request = event.request;
   if (request.method !== 'GET') return;
@@ -48,6 +56,26 @@ self.addEventListener('fetch', (event) => {
         const fallback = await cache.match('/offline.html');
         return fallback || Response.error();
       }),
+    );
+    return;
+  }
+
+  if (isNetworkFirstAsset(url.pathname)) {
+    event.respondWith(
+      (async () => {
+        const cache = await caches.open(SHELL_CACHE);
+        try {
+          const response = await fetch(request);
+          if (response.ok) {
+            await cache.put(request, response.clone());
+          }
+          return response;
+        } catch (error) {
+          const cached = await cache.match(request);
+          if (cached) return cached;
+          throw error;
+        }
+      })(),
     );
     return;
   }

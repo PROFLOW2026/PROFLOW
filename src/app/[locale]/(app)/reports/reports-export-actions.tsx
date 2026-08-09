@@ -9,6 +9,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  ExportDownloadToast,
+  useExportDownload,
+} from '@/modules/exports/ui/export-download-control';
 import { Link } from '@/shared/i18n/navigation';
 
 const EXPORT_LINKS = [
@@ -23,7 +27,6 @@ const EXPORT_LINKS = [
   { href: '/exports/time-entries', labelKey: 'exportTimeEntries' },
   { href: '/exports/purchase-orders', labelKey: 'exportPurchaseOrders' },
   { href: '/exports/ap-bills', labelKey: 'exportApBills' },
-  { href: '/imports', labelKey: 'importData' },
 ] as const;
 
 /**
@@ -32,25 +35,45 @@ const EXPORT_LINKS = [
  */
 export function ReportsExportActions() {
   const t = useTranslations('dashboard.reports');
+  const download = useExportDownload();
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button type="button" variant="secondary" size="sm" className="min-h-11 gap-1">
-          {t('exportMenu')}
-          <ChevronDown className="size-4" aria-hidden />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent
-        align="end"
-        className="max-h-[min(70dvh,24rem)] min-w-48 max-w-xs overflow-y-auto text-start"
-      >
-        {EXPORT_LINKS.map((item) => (
-          <DropdownMenuItem key={item.href} asChild>
-            <Link href={item.href}>{t(item.labelKey)}</Link>
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            className="min-h-11 gap-1"
+            disabled={download.busy}
+            loading={download.busy}
+          >
+            {t('exportMenu')}
+            <ChevronDown className="size-4" aria-hidden />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent
+          align="end"
+          className="max-h-[min(70dvh,24rem)] min-w-48 max-w-xs overflow-y-auto text-start"
+        >
+          {EXPORT_LINKS.map((item) => (
+            <DropdownMenuItem
+              key={item.href}
+              disabled={download.busy}
+              onSelect={() => {
+                void download.run(item.href);
+              }}
+            >
+              {t(item.labelKey)}
+            </DropdownMenuItem>
+          ))}
+          <DropdownMenuItem asChild disabled={download.busy}>
+            <Link href="/imports">{t('importData')}</Link>
           </DropdownMenuItem>
-        ))}
-      </DropdownMenuContent>
-    </DropdownMenu>
+        </DropdownMenuContent>
+      </DropdownMenu>
+      <ExportDownloadToast feedback={download} />
+    </>
   );
 }

@@ -3,6 +3,7 @@ import { OfflineCaptureError, buildCaptureEnqueueInput } from '@/modules/offline
 import {
   shouldServeOfflineFallback,
   shouldUseCacheFirst,
+  shouldUseNetworkFirst,
   SHELL_PRECACHE_URLS,
 } from '@/modules/offline/domain/sw-policy';
 import {
@@ -280,7 +281,7 @@ describe('offline browser online helper', () => {
 });
 
 describe('offline shell cache policy', () => {
-  it('cache-first only for shell assets, never for navigations', () => {
+  it('cache-first only for shell assets, never for navigations or the manifest', () => {
     expect(
       shouldUseCacheFirst({
         method: 'GET',
@@ -295,6 +296,22 @@ describe('offline shell cache policy', () => {
         mode: 'cors',
         pathname: '/manifest.webmanifest',
       }),
+    ).toBe(false);
+
+    expect(
+      shouldUseNetworkFirst({
+        method: 'GET',
+        mode: 'cors',
+        pathname: '/manifest.webmanifest',
+      }),
+    ).toBe(true);
+
+    expect(
+      shouldUseCacheFirst({
+        method: 'GET',
+        mode: 'cors',
+        pathname: '/offline.html',
+      }),
     ).toBe(true);
 
     expect(
@@ -306,6 +323,7 @@ describe('offline shell cache policy', () => {
     ).toBe(false);
 
     expect(SHELL_PRECACHE_URLS).toContain('/offline.html');
+    expect(SHELL_PRECACHE_URLS).not.toContain('/manifest.webmanifest');
     expect(
       shouldServeOfflineFallback({ method: 'GET', mode: 'navigate' }),
     ).toBe(true);

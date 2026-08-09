@@ -10,10 +10,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Link, usePathname } from '@/shared/i18n/navigation';
+import { usePathname } from '@/shared/i18n/navigation';
 import { cn } from '@/shared/ui/cn';
 import { isNavItemActive, type NavItem } from './navigation';
-import { NavIcon } from './nav-icon';
+import { ShellNavLink } from './shell-nav-link';
 
 /**
  * Mobile bottom navigation (doc 62).
@@ -43,18 +43,13 @@ export function MobileNav({ items }: { items: NavItem[] }) {
 
             return (
               <li key={item.key} className="min-w-0 flex-1">
-                <Link
+                <ShellNavLink
                   href={item.href}
-                  aria-current={active ? 'page' : undefined}
-                  className={cn(
-                    'flex h-[var(--pf-bottomnav-height)] w-full min-w-0 flex-col items-center justify-center gap-1 px-1 text-[0.6875rem] font-medium',
-                    'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]',
-                    active ? 'text-[var(--pf-text-brand)]' : 'text-[var(--pf-text-secondary)]',
-                  )}
-                >
-                  <NavIcon iconKey={item.iconKey} className="size-5 shrink-0" />
-                  <span className="max-w-full truncate">{t(item.labelKey)}</span>
-                </Link>
+                  label={t(item.labelKey)}
+                  iconKey={item.iconKey}
+                  active={active}
+                  variant="mobile"
+                />
               </li>
             );
           })}
@@ -92,19 +87,19 @@ export function MobileNav({ items }: { items: NavItem[] }) {
           <DialogBody>
             <ul className="flex flex-col">
               {overflow.map((item) => {
+                const active = isNavItemActive(pathname, item.href);
                 return (
                   <li key={item.key}>
-                    <Link
+                    <ShellNavLink
                       href={item.href}
-                      onClick={() => setMoreOpen(false)}
-                      className="flex min-h-11 items-center gap-3 rounded-md px-2 py-3 text-sm hover:bg-[var(--pf-bg-muted)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
-                    >
-                      <NavIcon
-                        iconKey={item.iconKey}
-                        className="size-5 text-[var(--pf-text-muted)]"
-                      />
-                      {t(item.labelKey)}
-                    </Link>
+                      label={t(item.labelKey)}
+                      iconKey={item.iconKey}
+                      active={active}
+                      variant="sidebar"
+                      muteIcon
+                      onNavigate={() => setMoreOpen(false)}
+                      className="min-h-11 py-3"
+                    />
                   </li>
                 );
               })}

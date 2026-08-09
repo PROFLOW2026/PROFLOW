@@ -5,6 +5,7 @@ import { ProjectFinancialsPanel } from '@/modules/financials/ui';
 import { getProjectDetail } from '@/modules/projects';
 import { Link } from '@/shared/i18n/navigation';
 import { withOrgContext } from '@/shared/auth/session';
+import { ProjectFinancialsExportLink } from './project-financials-export-link';
 
 interface ProjectFinancialsPageProps {
   params: Promise<{ projectId: string; locale: string }>;
@@ -24,7 +25,6 @@ export async function generateMetadata({ params }: ProjectFinancialsPageProps): 
 export default async function ProjectFinancialsPage({ params }: ProjectFinancialsPageProps) {
   const { projectId } = await params;
   const tCommon = await getTranslations('common');
-  const tFinancial = await getTranslations('financial');
 
   const detail = await withOrgContext((context) => getProjectDetail(context, projectId));
 
@@ -37,14 +37,7 @@ export default async function ProjectFinancialsPage({ params }: ProjectFinancial
             {tCommon('actions.back')}
           </Link>
         }
-        actions={
-          <Link
-            className="text-sm underline underline-offset-2"
-            href={`/exports/project-financials?projectId=${encodeURIComponent(projectId)}`}
-          >
-            {tFinancial('exportCsv')}
-          </Link>
-        }
+        actions={<ProjectFinancialsExportLink projectId={projectId} />}
       />
       <ProjectFinancialsPanel projectId={projectId} />
     </div>

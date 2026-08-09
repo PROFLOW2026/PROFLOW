@@ -94,6 +94,7 @@
     "openMenu": "Open menu",
     "closeMenu": "Close menu",
     "sortAscending": "Sort ascending",
-    "sortDescending": "Sort descending"
+    "sortDescending": "Sort descending",
+    "navigating": "Navigating"
   }
 }

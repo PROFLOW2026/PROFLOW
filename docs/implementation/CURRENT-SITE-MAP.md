@@ -174,7 +174,7 @@
 | **Route** | `/expenses` |
 | **Opens from** | Main nav (always when permitted) |
 | **For** | All project and overhead costs |
-| **Primary actions** | Filter; open expense; add expense; **Photograph receipt / חילוץ** → `/documents/ocr-review` |
+| **Primary actions** | Filter; open expense; add expense; **צילום קבלה לחילוץ** / Photograph receipt (OCR) → `/documents/ocr-review` |
 | **Desktop / mobile** | Both (mobile primary) |
 | **Permission** | `expenses.read` |
 | **Status** | complete |
@@ -266,7 +266,7 @@
 
 ---
 
-## Commercial (changes & extras)
+## Changes / Commercial
 
 ### שינויים ותוספות · Changes list
 | | |
@@ -563,16 +563,16 @@
 | **Route** | `/documents` |
 | **Opens from** | Main nav (module **documents**) |
 | **For** | Org-wide browse of files linked to records |
-| **Primary actions** | Search/filter by owner type; open **Photograph receipt / חילוץ** |
+| **Primary actions** | Search/filter by owner type; open **צילום קבלה לחילוץ** / Photograph receipt (OCR) → `/documents/ocr-review` |
 | **Desktop / mobile** | Both |
 | **Permission** | `documents.read` |
 | **Status** | complete |
 
-### צילום קבלה / בדיקת חילוץ · Receipt photo / extraction review
+### צילום קבלה / בדיקת חילוץ · Receipt photo / OCR review
 | | |
 |---|---|
 | **Route** | `/documents/ocr-review` |
-| **Opens from** | Documents header; Expenses header (**צילום קבלה לחילוץ** / Photograph receipt) |
+| **Opens from** | Documents header; Expenses header (**צילום קבלה לחילוץ** / Photograph receipt (OCR)) |
 | **For** | Upload or photograph a receipt → review candidates → optional draft expense (see OCR section below) |
 | **Primary actions** | Photograph receipt; upload receipt/invoice; seed fixture; accept fields; preview mapping; confirm draft expense |
 | **Desktop / mobile** | Both (camera capture strongest on phone) |
@@ -635,6 +635,8 @@
 | מס | Tax | `/settings/tax` | Settings | Tax configuration | Edit tax settings | Both | `tax.manage` | complete |
 | יומן פעילות | Activity log | `/settings/activity` | Settings | Sensitive change audit | Browse; export CSV | Both | `audit.read` | complete |
 | הפרופיל שלכם | Your profile | `/settings/profile` | Settings / user menu | Personal profile | Edit profile | Both | self | complete |
+
+Also under Settings today: Templates, Custom fields, API/webhooks, Portal, **App (PWA install)** at `/settings/app`, Offline drafts (see those sections).
 
 ---
 
@@ -727,24 +729,35 @@ Covered on the same **Portal access** screen (`/settings/portal`): vendor-safe p
 
 ## PWA / Offline
 
+### התקנת ProjectFlow כאפליקציה · Install ProjectFlow as an app
+| | |
+|---|---|
+| **Route** | `/settings/app` |
+| **Opens from** | Settings → **אפליקציה** / App |
+| **For** | Install the Progressive Web App (home-screen / desktop app icon) — not a store binary |
+| **Primary actions** | Install when browser offers `beforeinstallprompt`; iOS shows Share → Add to Home Screen steps; hide/replace when already installed |
+| **Desktop / mobile** | Both (capability-dependent) |
+| **Permission** | Signed-in member |
+| **Status** | complete (install UX); offline depth remains partial |
+
 ### טיוטות לא מקוונות · Offline drafts
 | | |
 |---|---|
 | **Route** | `/settings/offline-drafts` |
-| **Opens from** | Settings |
-| **For** | Local offline draft queue visibility |
-| **Primary actions** | Review/sync drafts (as implemented) |
-| **Desktop / mobile** | Both (field/mobile intent) |
-| **Permission** | Signed-in (section always listed) |
+| **Opens from** | Settings; connectivity banner |
+| **For** | Local drafts waiting to sync |
+| **Primary actions** | Review / sync / resolve conflicts |
+| **Desktop / mobile** | Both |
+| **Permission** | Signed-in member |
 | **Status** | partial |
 
-*Not a full offline-first native PWA product yet.*
+*Not a full offline-first native PWA product yet — service worker + install shell are real. Install UX lives at `/settings/app`.*
 
 ---
 
 ## OCR
 
-See detailed Q&A in the next section. Product screen: `/documents/ocr-review` — **foundation only** (StubOcrProvider; in-memory jobs).
+See detailed Q&A below. Product screen: `/documents/ocr-review` — **foundation only** (`StubOcrProvider`; in-memory jobs).
 
 ---
 
@@ -762,63 +775,50 @@ See detailed Q&A in the next section. Product screen: `/documents/ocr-review` �
 
 # OCR / receipt photo — exact current state
 
-### 1) Is there a visible photograph receipt/invoice action?
-**Yes.** After discoverability labels/links:
+### 1) Where is **צילום קבלה לחילוץ**?
+Header action links on **Expenses** (`expenses.actions.receiptPhoto`) and **Documents** (`documents.ocr.reviewLink`). Both go to `/documents/ocr-review`.  
+On that screen the page title is **צילום קבלה / בדיקת חילוץ** / Receipt photo / OCR review; in-page controls are **צילום קבלה** / Photograph receipt and **העלאת קבלה או חשבונית** / Upload receipt or invoice.
 
-- Expenses → **Photograph receipt (OCR)** / **צילום קבלה לחילוץ**
-- Documents → same link
-- On `/documents/ocr-review`: **Photograph receipt** (camera) and **Upload receipt or invoice**
+Separate from OCR: record **Documents** panels have **Take photo** / **צילום** (attachment only — not this link).
 
-Separate from OCR: record **Documents** panels have **Take photo** / **צילום** (attachment only).
+### 2) Path from Expenses
+Expenses list (`/expenses`) → header **צילום קבלה לחילוץ** / Photograph receipt (OCR) → `/documents/ocr-review`.
 
-### 2) Exact route / screen
-`/documents/ocr-review` — **Receipt photo / extraction review** (`documents.ocr`).
+### 3) Path from Documents
+Documents hub (`/documents`) → header **צילום קבלה לחילוץ** / Photograph receipt (OCR) → `/documents/ocr-review`.
 
-### 3) Camera direct vs upload
-- OCR review: **both** — `capture="environment"` for photo; file picker for image/PDF upload.
-- Document attachments: upload + camera; **not** OCR.
+### 4) After photo / upload — what happens?
+User must already be on `/documents/ocr-review` (or navigates there first). Photo (`capture="environment"`, images) or upload (image/PDF) runs `extractReceiptAction`:
 
-### 4) Creates Document?
-**OCR extract path:** does **not** create a `documents` row. Job keeps source filename/mime (and optional `documentId` if supplied).  
-**Attachment Take photo / Upload:** **yes**, creates a Document on that owner.
+1. Creates an **in-memory** extraction job (does **not** create a `documents` row; keeps filename/mime, optional `documentId` if supplied).  
+2. Calls **`StubOcrProvider`** → usually **`failed`** with `not_configured` (no key) or `empty_result` (key present but still stub). No invented amounts.  
+3. Job appears in the review list; **no expense** yet.  
+4. Meaningful field review needs **Load fixture candidate** (or a future real provider). Then: accept ≥1 field → optional **Preview expense mapping** → **Confirm draft expense** → **draft** expense only (never finalized / ledger-posted).  
 
-### 5) Enters OCR review?
-Only when the user opens `/documents/ocr-review` and runs extract (or seeds a fixture). Attachment upload/photo does **not** auto-open OCR.
+Attachment Take photo / Upload on a record: creates a Document; does **not** open OCR.
 
-### 6) Creates only draft Expense?
-**Yes, and only after explicit confirm.** Confirm calls expense create as **draft** — never finalized / ledger-posted from OCR. Preview mapping creates **no** expense.
+### 5) What is real today?
+- Routes + UI: `/documents/ocr-review`, links from Expenses and Documents  
+- Permissions: view `documents.read`; extract/fixture `documents.manage`; confirm `expenses.create`  
+- Review → preview mapping → confirm **draft** expense (DB)  
+- Fixture seed for demos/tests  
+- Honesty: stub does **not** extract live receipt fields  
 
-### 7) Explicit confirmation steps
-1. Extract (or load fixture) → job `needs_review`  
-2. Accept at least one field (checkboxes)  
-3. Optional: **Preview expense mapping** (`confirm: false`)  
-4. **Confirm draft expense** (`confirm: true`) → draft expense only  
+Not real: live OCR extraction, durable job queue, auto-post to ledger.
 
-OCR never auto-posts.
+### 6) What is **StubOcrProvider**?
+Default `OcrProvider` (`getOcrProvider` / `createDefaultOcrProvider`). Never fabricates receipt fields.
 
-### 8) StubOcrProvider usage
-Default provider is **`StubOcrProvider`** (`getOcrProvider` / `createDefaultOcrProvider`).
+- No `OCR_PROVIDER_API_KEY` → `not_configured`  
+- Key present → still stub → `empty_result` (does not fake OCR; legacy `OCR_API_KEY` ignored)  
+- Tests may use `ScriptedOcrProvider`; demos use **Load fixture candidate**
 
-- No `OCR_PROVIDER_API_KEY` → `not_configured` (no invented amounts)  
-- Key present → still stub → `empty_result` (does not fake OCR)  
-- Demos/tests: **Load fixture candidate** (not provider output) or `ScriptedOcrProvider` in tests  
+### 7) Lost on refresh / redeploy?
+- **Extraction jobs / candidates:** process-local (`in-memory-ocr.store`). Survive a browser refresh only while the **same server process** still holds them. **Lost** on process restart, another instance, or redeploy.  
+- **Draft expense after confirm:** **Yes** — normal DB expense.  
+- **Document attachments:** **Yes** (when storage configured) — separate from OCR extract.
 
-### 9) What doesn’t work without a real provider
-- Real field extraction from photos/PDFs (vendor, amounts, dates, etc.)  
-- Production confidence/provenance from a vendor model  
-- Meaningful review queue from live captures (jobs fail or empty unless fixture)  
-
-Review UI, permissions, and draft-expense confirm **do** work with fixtures.
-
-### 10) In-memory only?
-**Yes** for extraction jobs — process-local store (`in-memory-ocr.store`). Draft expenses created on confirm are normal DB expenses.
-
-### 11) Survives refresh / redeploy?
-- **Jobs / candidates:** **No** — lost on process restart, refresh against another instance, or redeploy.  
-- **Draft expense after confirm:** **Yes** — persisted like any expense.  
-- **Document attachments:** **Yes** (when storage configured).
-
-### 12) Needed later for a real provider
+### 8) What needs a real provider later?
 - Real OCR adapter implementing `OcrProvider` (not stub)  
 - `OCR_PROVIDER_API_KEY` (server-only) wired to that adapter  
 - Optional durable jobs: proposed `0014_ocr_foundations` (see `docs/implementation/0014-OCR-FOUNDATIONS-PROPOSAL.md`) — Lead assigns migration number  

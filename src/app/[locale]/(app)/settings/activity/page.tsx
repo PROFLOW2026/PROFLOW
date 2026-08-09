@@ -1,12 +1,12 @@
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { Card } from '@/components/ui/card';
-import { Link } from '@/shared/i18n/navigation';
 import { withOrgContext } from '@/shared/auth/session';
 import { canAccessSection, SETTINGS_SECTIONS } from '../_lib/access';
 import { listAuditEvents } from '../_lib/audit';
 import { SettingsNotAllowed } from '../settings-not-allowed';
 import { SettingsPageShell, settingsMetadata } from '../settings-shell';
+import { ActivityExportLink } from './activity-export-link';
 import { ActivityLogPanel } from './activity-panel';
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -44,12 +44,7 @@ export default async function ActivitySettingsPage({
   return (
     <SettingsPageShell title={t('title')}>
       <div className="mb-4 flex flex-wrap items-center justify-end gap-2">
-        <Link
-          href="/exports/audit?format=csv"
-          className="inline-flex min-h-11 items-center text-start text-sm font-medium text-[var(--pf-text-brand)] underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
-        >
-          {t('exportCsv')}
-        </Link>
+        <ActivityExportLink />
       </div>
       <Card className="p-5">
         <ActivityLogPanel

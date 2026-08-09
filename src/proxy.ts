@@ -62,6 +62,7 @@ export const config = {
     // Locale + auth cookie refresh for app pages. API routes and `/auth/*`
     // (email confirmation / reset callback) stay outside next-intl so they are
     // not rewritten to `/en/...` via Accept-Language.
-    '/((?!api|auth|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff2?)$).*)',
+    // PWA shell assets must stay unprefixed or install/SW registration breaks.
+    '/((?!api|auth|_next/static|_next/image|favicon.ico|sw\\.js|manifest\\.webmanifest|offline\\.html|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff2?)$).*)',
   ],
 };

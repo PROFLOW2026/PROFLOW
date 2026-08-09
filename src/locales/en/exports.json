@@ -1,0 +1,235 @@
+{
+  "feedback": {
+    "preparing": "Preparing the file…",
+    "ready": "The file is ready and the download started",
+    "failed": "Could not prepare the file. Try again.",
+    "forbidden": "You do not have permission to export this data.",
+    "invalid": "Export request was invalid."
+  },
+  "sheets": {
+    "projects": "Projects",
+    "clients": "Clients",
+    "vendors": "Vendors",
+    "expenses": "Expenses",
+    "billing": "Billing",
+    "projectFinancials": "Project financials",
+    "employees": "Employees",
+    "timeEntries": "Time entries",
+    "payments": "Payments",
+    "arOutstanding": "AR outstanding",
+    "arAging": "AR aging",
+    "purchaseOrders": "Purchase orders",
+    "apBills": "AP bills",
+    "activityLog": "Activity log"
+  },
+  "headers": {
+    "id": "ID",
+    "name": "Name",
+    "status": "Status",
+    "clientName": "Client",
+    "currency": "Currency",
+    "startDate": "Start date",
+    "targetEndDate": "Target end date",
+    "actualEndDate": "Actual end date",
+    "currentContractValue": "Current contract value",
+    "contractCurrency": "Contract currency",
+    "legalName": "Legal name",
+    "email": "Email",
+    "phone": "Phone",
+    "city": "City",
+    "countryCode": "Country",
+    "vendorType": "Vendor type",
+    "expenseDate": "Expense date",
+    "description": "Description",
+    "supplierName": "Supplier",
+    "projectId": "Project ID",
+    "projectName": "Project",
+    "costFamily": "Cost family",
+    "grossAmount": "Gross amount",
+    "kind": "Kind",
+    "collectionStatus": "Collection status",
+    "issueDate": "Issue date",
+    "dueDate": "Due date",
+    "totalAmount": "Total amount",
+    "paidAmount": "Paid amount",
+    "outstandingAmount": "Outstanding amount",
+    "metric": "Metric",
+    "amount": "Amount",
+    "notes": "Notes",
+    "employeeNumber": "Employee number",
+    "jobTitle": "Job title",
+    "currentRate": "Current rate",
+    "rateUnit": "Rate unit",
+    "rateCurrency": "Rate currency",
+    "workDate": "Work date",
+    "employeeId": "Employee ID",
+    "employeeName": "Employee",
+    "hours": "Hours",
+    "workPackageName": "Work package",
+    "timeCodeName": "Time code",
+    "costAmount": "Cost amount",
+    "costCurrency": "Cost currency",
+    "billingRecordId": "Billing record ID",
+    "billingReference": "Billing reference",
+    "billingKind": "Billing kind",
+    "paymentDate": "Payment date",
+    "method": "Method",
+    "reference": "Reference",
+    "bucket": "Bucket",
+    "count": "Count",
+    "totalOutstanding": "Total outstanding",
+    "asOf": "As of",
+    "vendorId": "Vendor ID",
+    "committedAmount": "Committed amount",
+    "committedCostStatus": "Committed cost status",
+    "committedCostAmount": "Committed cost amount",
+    "orderedOn": "Ordered on",
+    "revision": "Revision",
+    "vendorName": "Vendor",
+    "purchaseOrderId": "Purchase order ID",
+    "billDate": "Bill date",
+    "createdAt": "Created at",
+    "actorUserId": "Actor user ID",
+    "actorDisplayName": "Actor",
+    "actorEmail": "Actor email",
+    "action": "Action",
+    "entityType": "Entity type",
+    "entityId": "Entity ID"
+  },
+  "notes": {
+    "projectsContract": "Contract amounts appear only with contracts:read. Currencies are per-row; do not sum mixed currencies.",
+    "expensesCurrency": "Amounts are per-row currency. Do not aggregate across currencies. Draft ≠ finalized.",
+    "billingIntegrity": "Contract ≠ Billing ≠ Payment. Outstanding is derived. Do not label totals as Revenue. No cross-currency sum.",
+    "projectFinancialsProfit": "Profit metrics require project_profit:read. Single project currency only.",
+    "timeEntriesCurrency": "Labor cost snapshots are per entry currency. Do not mix currencies when totaling.",
+    "timeEntriesCap": "Export capped at 5000 rows.",
+    "paymentsIntegrity": "Payment ≠ Billing total. Voided payments excluded unless explicitly requested later.",
+    "arCurrency": "Per-row currency — do not sum mixed currencies.",
+    "arIntegrity": "Outstanding is derived. Contract ≠ Billing ≠ Payment. Not labelled as Revenue.",
+    "arAgingRules": "Aging uses Outstanding only (credit notes net into current). VAT is not treated as revenue. Foreign-currency records are excluded.",
+    "arAgingBase": "Organization base currency only ({currency}). Foreign-currency outstanding excluded from bucket totals.",
+    "arAgingOutstanding": "Aging uses Outstanding, not Invoiced. VAT is not profit.",
+    "poCommitted": "CommittedCost ≠ Expense. Issued PO commitment is not actual cost until received/expensed per domain rules.",
+    "apNeExpense": "AP Bill ≠ Expense. Match status lives on the bill lifecycle, not as a payment.",
+    "auditPermission": "Requires audit.read (same permission as Settings → Activity).",
+    "auditPayloads": "Before/after payloads are omitted intentionally — same safety contract as the activity UI.",
+    "auditCap": "Export capped at {cap} newest events."
+  },
+  "metrics": {
+    "projectId": "Project ID",
+    "originalContract": "Original contract",
+    "approvedAdditions": "Approved additions",
+    "approvedReductions": "Approved reductions",
+    "currentContract": "Current contract",
+    "pendingChanges": "Pending changes",
+    "commercial": "Commercial",
+    "invoiced": "Invoiced",
+    "paid": "Paid",
+    "outstanding": "Outstanding",
+    "actualCostToDate": "Actual cost to date",
+    "estimatedFinalCost": "Estimated final cost",
+    "estimatedProfit": "Estimated profit",
+    "marginPercent": "Margin %",
+    "coveragePartials": "Coverage partials"
+  },
+  "metricNotes": {
+    "netCommercial": "net commercial",
+    "originalPlusApproved": "original ± approved",
+    "notInCurrent": "not included in current",
+    "hidden": "hidden by permission or unavailable",
+    "notRevenue": "not revenue label",
+    "derived": "derived",
+    "estimateOnly": "estimate only; VAT is not profit"
+  },
+  "enums": {
+    "projectStatus": {
+      "draft": "Draft",
+      "active": "Active",
+      "on_hold": "On hold",
+      "completed": "Completed",
+      "cancelled": "Cancelled",
+      "archived": "Archived"
+    },
+    "partyStatus": {
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "vendorType": {
+      "supplier": "Supplier",
+      "subcontractor": "Subcontractor",
+      "both": "Supplier & subcontractor"
+    },
+    "expenseStatus": {
+      "draft": "Draft",
+      "finalized": "Finalized",
+      "void": "Void"
+    },
+    "costFamily": {
+      "direct_project": "Direct project cost",
+      "shared": "Shared cost",
+      "business_overhead": "Business overhead",
+      "asset_capital": "Asset / capital"
+    },
+    "billingStatus": {
+      "draft": "Draft",
+      "finalized": "Finalized",
+      "void": "Void"
+    },
+    "collectionStatus": {
+      "open": "Open",
+      "partial": "Partially paid",
+      "paid": "Paid",
+      "overdue": "Overdue"
+    },
+    "billingKind": {
+      "invoice": "Invoice",
+      "credit_note": "Credit note",
+      "advance": "Advance",
+      "retention_release": "Retention release"
+    },
+    "paymentStatus": {
+      "recorded": "Recorded",
+      "void": "Void"
+    },
+    "employeeStatus": {
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "rateUnit": {
+      "hourly": "Hourly",
+      "daily": "Daily",
+      "monthly": "Monthly"
+    },
+    "timeEntryKind": {
+      "project": "Project",
+      "non_project": "Non-project"
+    },
+    "agingBucket": {
+      "current": "Current / no due date",
+      "days_1_30": "1–30 days past due",
+      "days_31_60": "31–60 days",
+      "days_61_90": "61–90 days",
+      "days_90_plus": "90+ days"
+    },
+    "purchaseOrderStatus": {
+      "draft": "Draft",
+      "issued": "Issued",
+      "partially_received": "Partially received",
+      "closed": "Closed",
+      "cancelled": "Cancelled"
+    },
+    "committedCostStatus": {
+      "open": "Open commitment",
+      "partially_consumed": "Partially consumed",
+      "closed": "Closed",
+      "cancelled": "Cancelled"
+    },
+    "apBillStatus": {
+      "draft": "Draft",
+      "open": "Open",
+      "partially_matched": "Partially matched",
+      "matched": "Matched",
+      "void": "Void"
+    }
+  }
+}

@@ -18,6 +18,14 @@ import { listProjectsForOrg } from '@/modules/projects';
 import { listVendorsForOrg } from '@/modules/vendors';
 import { listEmployeesForOrg, listTimeEntriesForOrg } from '@/modules/workforce';
 import { csvDownloadHeaders, rowsToCsv, type CsvCell } from '../domain/csv';
+import {
+  enumLabel,
+  getExportCopy,
+  resolveExportLocale,
+  toExcelDate,
+  toExcelNumber,
+  type ExportCopy,
+} from '../domain/export-copy';
 import type { ExportTable } from '../domain/table';
 import { tablesToXlsx, xlsxDownloadHeaders } from '../domain/xlsx';
 
@@ -75,7 +83,7 @@ const DEFAULT_FORMAT: ExportFormat = 'xlsx';
 export async function buildExport(
   context: OrgContext,
   kindRaw: string,
-  options: { projectId?: string | null; format?: string | null } = {},
+  options: { projectId?: string | null; format?: string | null; locale?: string | null } = {},
 ): Promise<ExportResult> {
   const kind = resolveExportKind(kindRaw);
   if (!kind) {
@@ -87,15 +95,17 @@ export async function buildExport(
     : kind === 'audit'
       ? 'csv'
       : DEFAULT_FORMAT;
-  const tables = await buildExportTables(context, kind, options.projectId);
-  return serializeExport(tables, kind, context.organizationId, format, options.projectId);
+  const locale = resolveExportLocale(options.locale ?? context.locale);
+  const copy = getExportCopy(locale);
+  const tables = await buildExportTables(context, kind, copy, options.projectId);
+  return serializeExport(tables, kind, context.organizationId, format, locale, options.projectId);
 }
 
 /** @deprecated Prefer buildExport — kept for callers that always want CSV. */
 export async function buildCsvExport(
   context: OrgContext,
   kindRaw: string,
-  options: { projectId?: string | null } = {},
+  options: { projectId?: string | null; locale?: string | null } = {},
 ): Promise<ExportResult> {
   return buildExport(context, kindRaw, { ...options, format: 'csv' });
 }
@@ -103,38 +113,39 @@ export async function buildCsvExport(
 async function buildExportTables(
   context: OrgContext,
   kind: ExportKind,
+  copy: ExportCopy,
   projectId?: string | null,
 ): Promise<readonly ExportTable[]> {
   switch (kind) {
     case 'projects':
-      return [await tableProjects(context)];
+      return [await tableProjects(context, copy)];
     case 'clients':
-      return [await tableClients(context)];
+      return [await tableClients(context, copy)];
     case 'vendors':
-      return [await tableVendors(context)];
+      return [await tableVendors(context, copy)];
     case 'expenses':
-      return [await tableExpenses(context)];
+      return [await tableExpenses(context, copy)];
     case 'billing':
-      return [await tableBilling(context)];
+      return [await tableBilling(context, copy)];
     case 'project-financials':
       if (!projectId) {
         throw new ValidationError([{ path: 'projectId', message: 'projectId is required' }]);
       }
-      return [await tableProjectFinancials(context, projectId)];
+      return [await tableProjectFinancials(context, projectId, copy)];
     case 'employees':
-      return [await tableEmployees(context)];
+      return [await tableEmployees(context, copy)];
     case 'time-entries':
-      return [await tableTimeEntries(context)];
+      return [await tableTimeEntries(context, copy)];
     case 'payments':
-      return [await tablePayments(context)];
+      return [await tablePayments(context, copy)];
     case 'receivables-aging':
-      return await tablesReceivables(context);
+      return await tablesReceivables(context, copy);
     case 'purchase-orders':
-      return [await tablePurchaseOrders(context)];
+      return [await tablePurchaseOrders(context, copy)];
     case 'ap-bills':
-      return [await tableApBills(context)];
+      return [await tableApBills(context, copy)];
     case 'audit':
-      return [await tableAudit(context)];
+      return [await tableAudit(context, copy)];
   }
 }
 
@@ -143,6 +154,7 @@ function serializeExport(
   kind: ExportKind,
   organizationId: string,
   format: ExportFormat,
+  locale: string,
   projectId?: string | null,
 ): Promise<ExportResult> | ExportResult {
   const stub = organizationId.slice(0, 8);
@@ -159,13 +171,17 @@ function serializeExport(
     };
   }
 
-  return tablesToXlsx(tables).then((body) => ({
+  return tablesToXlsx(tables, { locale }).then((body) => ({
     body: new Uint8Array(body),
     headers: xlsxDownloadHeaders(`${baseName}.xlsx`),
   }));
 }
 
-async function tableProjects(context: OrgContext): Promise<ExportTable> {
+function h(copy: ExportCopy, key: keyof ExportCopy['headers']): string {
+  return copy.headers[key];
+}
+
+async function tableProjects(context: OrgContext, copy: ExportCopy): Promise<ExportTable> {
   assertPermission(context, PERMISSIONS.PROJECTS_READ);
   const canReadContracts = context.permissions.has(PERMISSIONS.CONTRACTS_READ);
   const items = await listProjectsForOrg(context, {
@@ -174,47 +190,58 @@ async function tableProjects(context: OrgContext): Promise<ExportTable> {
   });
 
   const headers = [
-    'id',
-    'name',
-    'status',
-    'client_name',
-    'currency',
-    'start_date',
-    'target_end_date',
-    'actual_end_date',
-    ...(canReadContracts ? (['current_contract_value', 'contract_currency'] as const) : []),
+    h(copy, 'id'),
+    h(copy, 'name'),
+    h(copy, 'status'),
+    h(copy, 'clientName'),
+    h(copy, 'currency'),
+    h(copy, 'startDate'),
+    h(copy, 'targetEndDate'),
+    h(copy, 'actualEndDate'),
+    ...(canReadContracts ? [h(copy, 'currentContractValue'), h(copy, 'contractCurrency')] : []),
   ];
 
   const rows = items.map((item) => [
     item.id,
     item.name,
-    item.status,
+    enumLabel(copy, 'projectStatus', item.status),
     item.clientName,
     item.currency ?? context.organization.baseCurrency,
-    item.startDate,
-    item.targetEndDate,
-    item.actualEndDate,
-    ...(canReadContracts ? [item.currentContractValue, item.contractCurrency] : []),
+    toExcelDate(item.startDate),
+    toExcelDate(item.targetEndDate),
+    toExcelDate(item.actualEndDate),
+    ...(canReadContracts
+      ? [toExcelNumber(item.currentContractValue), item.contractCurrency]
+      : []),
   ]);
 
   return {
-    sheetName: 'Projects',
+    sheetName: copy.sheets.projects,
     headers,
     rows,
-    notes: ['Contract amounts appear only with contracts:read. Currencies are per-row; do not sum mixed currencies.'],
+    notes: [copy.notes.projectsContract],
   };
 }
 
-async function tableClients(context: OrgContext): Promise<ExportTable> {
+async function tableClients(context: OrgContext, copy: ExportCopy): Promise<ExportTable> {
   assertPermission(context, PERMISSIONS.CLIENTS_READ);
   const items = await listClientsForOrg(context, { limit: ORG_LIST_EXPORT_CAP });
   return {
-    sheetName: 'Clients',
-    headers: ['id', 'name', 'status', 'legal_name', 'email', 'phone', 'city', 'country_code'],
+    sheetName: copy.sheets.clients,
+    headers: [
+      h(copy, 'id'),
+      h(copy, 'name'),
+      h(copy, 'status'),
+      h(copy, 'legalName'),
+      h(copy, 'email'),
+      h(copy, 'phone'),
+      h(copy, 'city'),
+      h(copy, 'countryCode'),
+    ],
     rows: items.map((item) => [
       item.id,
       item.name,
-      item.status,
+      enumLabel(copy, 'partyStatus', item.status),
       item.legalName,
       item.email,
       item.phone,
@@ -224,17 +251,26 @@ async function tableClients(context: OrgContext): Promise<ExportTable> {
   };
 }
 
-async function tableVendors(context: OrgContext): Promise<ExportTable> {
+async function tableVendors(context: OrgContext, copy: ExportCopy): Promise<ExportTable> {
   assertPermission(context, PERMISSIONS.VENDORS_READ);
   const items = await listVendorsForOrg(context, { limit: ORG_LIST_EXPORT_CAP });
   return {
-    sheetName: 'Vendors',
-    headers: ['id', 'name', 'status', 'vendor_type', 'email', 'phone', 'city', 'country_code'],
+    sheetName: copy.sheets.vendors,
+    headers: [
+      h(copy, 'id'),
+      h(copy, 'name'),
+      h(copy, 'status'),
+      h(copy, 'vendorType'),
+      h(copy, 'email'),
+      h(copy, 'phone'),
+      h(copy, 'city'),
+      h(copy, 'countryCode'),
+    ],
     rows: items.map((item) => [
       item.id,
       item.name,
-      item.status,
-      item.type,
+      enumLabel(copy, 'partyStatus', item.status),
+      enumLabel(copy, 'vendorType', item.type),
       item.email,
       item.phone,
       item.city,
@@ -243,112 +279,161 @@ async function tableVendors(context: OrgContext): Promise<ExportTable> {
   };
 }
 
-async function tableExpenses(context: OrgContext): Promise<ExportTable> {
+async function tableExpenses(context: OrgContext, copy: ExportCopy): Promise<ExportTable> {
   assertPermission(context, PERMISSIONS.EXPENSES_READ);
   const { items } = await listExpensesForOrg(context, {
     limit: ORG_LIST_EXPORT_CAP,
     offset: 0,
   });
   return {
-    sheetName: 'Expenses',
+    sheetName: copy.sheets.expenses,
     headers: [
-      'id',
-      'expense_date',
-      'description',
-      'supplier_name',
-      'project_id',
-      'project_name',
-      'cost_family',
-      'gross_amount',
-      'currency',
-      'status',
+      h(copy, 'id'),
+      h(copy, 'expenseDate'),
+      h(copy, 'description'),
+      h(copy, 'supplierName'),
+      h(copy, 'projectId'),
+      h(copy, 'projectName'),
+      h(copy, 'costFamily'),
+      h(copy, 'grossAmount'),
+      h(copy, 'currency'),
+      h(copy, 'status'),
     ],
     rows: items.map((item) => [
       item.id,
-      item.expenseDate,
+      toExcelDate(item.expenseDate),
       item.description,
       item.supplierName,
       item.projectId,
       item.projectName,
-      item.costFamily,
-      item.grossAmount.amount,
+      enumLabel(copy, 'costFamily', item.costFamily),
+      toExcelNumber(item.grossAmount.amount),
       item.grossAmount.currency,
-      item.status,
+      enumLabel(copy, 'expenseStatus', item.status),
     ]),
-    notes: ['Amounts are per-row currency. Do not aggregate across currencies. Draft ≠ finalized.'],
+    notes: [copy.notes.expensesCurrency],
   };
 }
 
-async function tableBilling(context: OrgContext): Promise<ExportTable> {
+async function tableBilling(context: OrgContext, copy: ExportCopy): Promise<ExportTable> {
   assertPermission(context, PERMISSIONS.BILLING_READ);
   const items = await listBillingRecords(context, { limit: ORG_LIST_EXPORT_CAP });
   return {
-    sheetName: 'Billing',
+    sheetName: copy.sheets.billing,
     headers: [
-      'id',
-      'project_id',
-      'project_name',
-      'kind',
-      'status',
-      'collection_status',
-      'issue_date',
-      'due_date',
-      'currency',
-      'total_amount',
-      'paid_amount',
-      'outstanding_amount',
+      h(copy, 'id'),
+      h(copy, 'projectId'),
+      h(copy, 'projectName'),
+      h(copy, 'kind'),
+      h(copy, 'status'),
+      h(copy, 'collectionStatus'),
+      h(copy, 'issueDate'),
+      h(copy, 'dueDate'),
+      h(copy, 'currency'),
+      h(copy, 'totalAmount'),
+      h(copy, 'paidAmount'),
+      h(copy, 'outstandingAmount'),
     ],
     rows: items.map((item) => [
       item.id,
       item.projectId,
       item.projectName,
-      item.kind,
-      item.status,
-      item.collectionStatus,
-      item.issueDate,
-      item.dueDate,
+      enumLabel(copy, 'billingKind', item.kind),
+      enumLabel(copy, 'billingStatus', item.status),
+      enumLabel(copy, 'collectionStatus', item.collectionStatus),
+      toExcelDate(item.issueDate),
+      toExcelDate(item.dueDate),
       item.totalAmount.currency,
-      item.totalAmount.amount,
-      item.paidAmount.amount,
-      item.outstandingAmount.amount,
+      toExcelNumber(item.totalAmount.amount),
+      toExcelNumber(item.paidAmount.amount),
+      toExcelNumber(item.outstandingAmount.amount),
     ]),
-    notes: [
-      'Contract ≠ Billing ≠ Payment. Outstanding is derived. Do not label totals as Revenue. No cross-currency sum.',
-    ],
+    notes: [copy.notes.billingIntegrity],
   };
 }
 
-async function tableProjectFinancials(context: OrgContext, projectId: string): Promise<ExportTable> {
+async function tableProjectFinancials(
+  context: OrgContext,
+  projectId: string,
+  copy: ExportCopy,
+): Promise<ExportTable> {
   const financials = await getProjectFinancials(context, projectId);
-  const headers = ['metric', 'amount', 'currency', 'notes'];
-  const rows: CsvCell[][] = [['project_id', projectId, financials.currency, null]];
+  const headers = [h(copy, 'metric'), h(copy, 'amount'), h(copy, 'currency'), h(copy, 'notes')];
+  const rows: CsvCell[][] = [
+    [copy.metrics.projectId, projectId, financials.currency, null],
+  ];
 
   if (financials.commercial) {
     const c = financials.commercial;
     rows.push(
-      ['original_contract', c.originalContractValue.amount, c.originalContractValue.currency, 'net commercial'],
-      ['approved_additions', c.approvedAdditions.amount, c.approvedAdditions.currency, null],
-      ['approved_reductions', c.approvedReductions.amount, c.approvedReductions.currency, null],
-      ['current_contract', c.currentContractValue.amount, c.currentContractValue.currency, 'original ± approved'],
-      ['pending_changes', c.pendingChanges.amount, c.pendingChanges.currency, 'not included in current'],
+      [
+        copy.metrics.originalContract,
+        toExcelNumber(c.originalContractValue.amount),
+        c.originalContractValue.currency,
+        copy.metricNotes.netCommercial,
+      ],
+      [
+        copy.metrics.approvedAdditions,
+        toExcelNumber(c.approvedAdditions.amount),
+        c.approvedAdditions.currency,
+        null,
+      ],
+      [
+        copy.metrics.approvedReductions,
+        toExcelNumber(c.approvedReductions.amount),
+        c.approvedReductions.currency,
+        null,
+      ],
+      [
+        copy.metrics.currentContract,
+        toExcelNumber(c.currentContractValue.amount),
+        c.currentContractValue.currency,
+        copy.metricNotes.originalPlusApproved,
+      ],
+      [
+        copy.metrics.pendingChanges,
+        toExcelNumber(c.pendingChanges.amount),
+        c.pendingChanges.currency,
+        copy.metricNotes.notInCurrent,
+      ],
     );
   } else {
-    rows.push(['commercial', null, financials.currency, 'hidden_by_permission_or_unavailable']);
+    rows.push([
+      copy.metrics.commercial,
+      null,
+      financials.currency,
+      copy.metricNotes.hidden,
+    ]);
   }
 
   rows.push(
-    ['invoiced', financials.billing.invoiced.amount, financials.billing.invoiced.currency, 'not revenue label'],
-    ['paid', financials.billing.paid.amount, financials.billing.paid.currency, null],
-    ['outstanding', financials.billing.outstanding.amount, financials.billing.outstanding.currency, 'derived'],
     [
-      'actual_cost_to_date',
-      financials.cost.actualCostToDate.amount,
+      copy.metrics.invoiced,
+      toExcelNumber(financials.billing.invoiced.amount),
+      financials.billing.invoiced.currency,
+      copy.metricNotes.notRevenue,
+    ],
+    [
+      copy.metrics.paid,
+      toExcelNumber(financials.billing.paid.amount),
+      financials.billing.paid.currency,
+      null,
+    ],
+    [
+      copy.metrics.outstanding,
+      toExcelNumber(financials.billing.outstanding.amount),
+      financials.billing.outstanding.currency,
+      copy.metricNotes.derived,
+    ],
+    [
+      copy.metrics.actualCostToDate,
+      toExcelNumber(financials.cost.actualCostToDate.amount),
       financials.cost.actualCostToDate.currency,
       financials.coverage.basis,
     ],
     [
-      'estimated_final_cost',
-      financials.cost.estimatedFinalCost.amount,
+      copy.metrics.estimatedFinalCost,
+      toExcelNumber(financials.cost.estimatedFinalCost.amount),
       financials.cost.estimatedFinalCost.currency,
       null,
     ],
@@ -357,143 +442,140 @@ async function tableProjectFinancials(context: OrgContext, projectId: string): P
   if (context.permissions.has(PERMISSIONS.PROJECT_PROFIT_READ) && financials.profit) {
     rows.push(
       [
-        'estimated_profit',
-        financials.profit.estimatedProfit.amount,
+        copy.metrics.estimatedProfit,
+        toExcelNumber(financials.profit.estimatedProfit.amount),
         financials.profit.estimatedProfit.currency,
-        'estimate only; VAT is not profit',
+        copy.metricNotes.estimateOnly,
       ],
-      ['margin_percent', financials.profit.marginPercent, null, null],
+      [copy.metrics.marginPercent, toExcelNumber(financials.profit.marginPercent), null, null],
     );
   }
 
   rows.push([
-    'coverage_partials',
+    copy.metrics.coveragePartials,
     financials.coverage.partials?.map((p) => p.reason).join('|') || null,
     null,
     financials.coverage.basis,
   ]);
 
   return {
-    sheetName: 'Project financials',
+    sheetName: copy.sheets.projectFinancials,
     headers,
     rows,
-    notes: ['Profit metrics require project_profit:read. Single project currency only.'],
+    notes: [copy.notes.projectFinancialsProfit],
   };
 }
 
-async function tableEmployees(context: OrgContext): Promise<ExportTable> {
+async function tableEmployees(context: OrgContext, copy: ExportCopy): Promise<ExportTable> {
   assertPermission(context, PERMISSIONS.WORKFORCE_READ);
   const items = await listEmployeesForOrg(context, {});
   return {
-    sheetName: 'Employees',
+    sheetName: copy.sheets.employees,
     headers: [
-      'id',
-      'name',
-      'status',
-      'employee_number',
-      'job_title',
-      'email',
-      'phone',
-      'current_rate',
-      'rate_unit',
-      'rate_currency',
+      h(copy, 'id'),
+      h(copy, 'name'),
+      h(copy, 'status'),
+      h(copy, 'employeeNumber'),
+      h(copy, 'jobTitle'),
+      h(copy, 'email'),
+      h(copy, 'phone'),
+      h(copy, 'currentRate'),
+      h(copy, 'rateUnit'),
+      h(copy, 'rateCurrency'),
     ],
     rows: items.map((item) => [
       item.id,
       item.name,
-      item.status,
+      enumLabel(copy, 'employeeStatus', item.status),
       item.employeeNumber,
       item.jobTitle,
       item.email,
       item.phone,
-      item.currentRate,
-      item.currentRateUnit,
+      toExcelNumber(item.currentRate),
+      enumLabel(copy, 'rateUnit', item.currentRateUnit),
       item.currentRateCurrency,
     ]),
   };
 }
 
-async function tableTimeEntries(context: OrgContext): Promise<ExportTable> {
+async function tableTimeEntries(context: OrgContext, copy: ExportCopy): Promise<ExportTable> {
   assertPermission(context, PERMISSIONS.WORKFORCE_READ);
   const items = await listTimeEntriesForOrg(context, {
     kind: 'all',
     limit: ORG_LIST_EXPORT_CAP,
   });
   return {
-    sheetName: 'Time entries',
+    sheetName: copy.sheets.timeEntries,
     headers: [
-      'id',
-      'work_date',
-      'employee_id',
-      'employee_name',
-      'kind',
-      'hours',
-      'project_id',
-      'project_name',
-      'work_package_name',
-      'time_code_name',
-      'cost_amount',
-      'cost_currency',
-      'description',
+      h(copy, 'id'),
+      h(copy, 'workDate'),
+      h(copy, 'employeeId'),
+      h(copy, 'employeeName'),
+      h(copy, 'kind'),
+      h(copy, 'hours'),
+      h(copy, 'projectId'),
+      h(copy, 'projectName'),
+      h(copy, 'workPackageName'),
+      h(copy, 'timeCodeName'),
+      h(copy, 'costAmount'),
+      h(copy, 'costCurrency'),
+      h(copy, 'description'),
     ],
     rows: items.map((item) => [
       item.id,
-      item.workDate,
+      toExcelDate(item.workDate),
       item.employeeId,
       item.employeeName,
-      item.kind,
-      item.hours,
+      enumLabel(copy, 'timeEntryKind', item.kind),
+      toExcelNumber(item.hours),
       item.projectId,
       item.projectName,
       item.workPackageName,
       item.timeCodeName,
-      item.costAmount,
+      toExcelNumber(item.costAmount),
       item.costCurrency,
       item.description,
     ]),
-    notes: [
-      'Labor cost snapshots are per entry currency. Do not mix currencies when totaling.',
-      'Export capped at 5000 rows.',
-    ],
+    notes: [copy.notes.timeEntriesCurrency, copy.notes.timeEntriesCap],
   };
 }
 
-async function tablePayments(context: OrgContext): Promise<ExportTable> {
+async function tablePayments(context: OrgContext, copy: ExportCopy): Promise<ExportTable> {
   assertPermission(context, PERMISSIONS.BILLING_READ);
   const items = await listAllPaymentApplications(context);
   return {
-    sheetName: 'Payments',
+    sheetName: copy.sheets.payments,
     headers: [
-      'id',
-      'billing_record_id',
-      'billing_reference',
-      'billing_kind',
-      'project_id',
-      'project_name',
-      'amount',
-      'currency',
-      'payment_date',
-      'method',
-      'reference',
-      'status',
-      'notes',
+      h(copy, 'id'),
+      h(copy, 'billingRecordId'),
+      h(copy, 'billingReference'),
+      h(copy, 'billingKind'),
+      h(copy, 'projectId'),
+      h(copy, 'projectName'),
+      h(copy, 'amount'),
+      h(copy, 'currency'),
+      h(copy, 'paymentDate'),
+      h(copy, 'method'),
+      h(copy, 'reference'),
+      h(copy, 'status'),
+      h(copy, 'notes'),
     ],
     rows: items.map((item) => [
       item.id,
       item.billingRecordId,
       item.billingReference,
-      item.billingKind,
+      enumLabel(copy, 'billingKind', item.billingKind),
       item.projectId,
       item.projectName,
-      item.amount.amount,
+      toExcelNumber(item.amount.amount),
       item.amount.currency,
-      item.paymentDate,
+      toExcelDate(item.paymentDate),
       item.method,
       item.reference,
-      item.status,
+      enumLabel(copy, 'paymentStatus', item.status),
       item.notes,
     ]),
-    notes: ['Payment ≠ Billing total. Voided payments excluded unless explicitly requested later.'],
+    notes: [copy.notes.paymentsIntegrity],
   };
 }
 
@@ -508,167 +590,180 @@ async function listAllPaymentApplications(context: OrgContext) {
   return all;
 }
 
-async function tablesReceivables(context: OrgContext): Promise<readonly ExportTable[]> {
+async function tablesReceivables(
+  context: OrgContext,
+  copy: ExportCopy,
+): Promise<readonly ExportTable[]> {
   const [outstanding, aging] = await Promise.all([
-    tableReceivablesOutstanding(context),
-    tableReceivablesAging(context),
+    tableReceivablesOutstanding(context, copy),
+    tableReceivablesAging(context, copy),
   ]);
   return [outstanding, aging];
 }
 
-async function tableReceivablesOutstanding(context: OrgContext): Promise<ExportTable> {
+async function tableReceivablesOutstanding(
+  context: OrgContext,
+  copy: ExportCopy,
+): Promise<ExportTable> {
   assertPermission(context, PERMISSIONS.BILLING_READ);
-  const items = await listBillingRecords(context, { filter: 'outstanding', limit: ORG_LIST_EXPORT_CAP });
+  const items = await listBillingRecords(context, {
+    filter: 'outstanding',
+    limit: ORG_LIST_EXPORT_CAP,
+  });
   return {
-    sheetName: 'AR outstanding',
+    sheetName: copy.sheets.arOutstanding,
     headers: [
-      'id',
-      'project_id',
-      'project_name',
-      'kind',
-      'status',
-      'collection_status',
-      'issue_date',
-      'due_date',
-      'currency',
-      'total_amount',
-      'paid_amount',
-      'outstanding_amount',
+      h(copy, 'id'),
+      h(copy, 'projectId'),
+      h(copy, 'projectName'),
+      h(copy, 'kind'),
+      h(copy, 'status'),
+      h(copy, 'collectionStatus'),
+      h(copy, 'issueDate'),
+      h(copy, 'dueDate'),
+      h(copy, 'currency'),
+      h(copy, 'totalAmount'),
+      h(copy, 'paidAmount'),
+      h(copy, 'outstandingAmount'),
     ],
     rows: items.map((item) => [
       item.id,
       item.projectId,
       item.projectName,
-      item.kind,
-      item.status,
-      item.collectionStatus,
-      item.issueDate,
-      item.dueDate,
+      enumLabel(copy, 'billingKind', item.kind),
+      enumLabel(copy, 'billingStatus', item.status),
+      enumLabel(copy, 'collectionStatus', item.collectionStatus),
+      toExcelDate(item.issueDate),
+      toExcelDate(item.dueDate),
       item.totalAmount.currency,
-      item.totalAmount.amount,
-      item.paidAmount.amount,
-      item.outstandingAmount.amount,
+      toExcelNumber(item.totalAmount.amount),
+      toExcelNumber(item.paidAmount.amount),
+      toExcelNumber(item.outstandingAmount.amount),
     ]),
-    notes: [
-      'Per-row currency — do not sum mixed currencies.',
-      'Outstanding is derived. Contract ≠ Billing ≠ Payment. Not labelled as Revenue.',
-    ],
+    notes: [copy.notes.arCurrency, copy.notes.arIntegrity],
   };
 }
 
-async function tableReceivablesAging(context: OrgContext): Promise<ExportTable> {
+async function tableReceivablesAging(context: OrgContext, copy: ExportCopy): Promise<ExportTable> {
   assertPermission(context, PERMISSIONS.BILLING_READ);
   const aging = await getOrganizationReceivablesAging(context);
   return {
-    sheetName: 'AR aging',
-    headers: ['bucket', 'count', 'total_outstanding', 'currency', 'as_of'],
+    sheetName: copy.sheets.arAging,
+    headers: [
+      h(copy, 'bucket'),
+      h(copy, 'count'),
+      h(copy, 'totalOutstanding'),
+      h(copy, 'currency'),
+      h(copy, 'asOf'),
+    ],
     rows: aging.buckets.map((bucket) => [
-      bucket.key,
+      enumLabel(copy, 'agingBucket', bucket.key),
       bucket.count,
-      bucket.total.amount,
+      toExcelNumber(bucket.total.amount),
       aging.currency,
-      aging.asOf,
+      toExcelDate(aging.asOf),
     ]),
     notes: [
-      aging.note,
-      `Organization base currency only (${aging.currency}). Foreign-currency outstanding excluded from bucket totals.`,
-      'Aging uses Outstanding, not Invoiced. VAT is not profit.',
+      // Localized disclosure — do not pass domain English `aging.note` into he-IL workbooks.
+      copy.notes.arAgingRules,
+      copy.notes.arAgingBase.replace('{currency}', aging.currency),
+      copy.notes.arAgingOutstanding,
     ],
   };
 }
 
-async function tablePurchaseOrders(context: OrgContext): Promise<ExportTable> {
+async function tablePurchaseOrders(context: OrgContext, copy: ExportCopy): Promise<ExportTable> {
   assertPermission(context, PERMISSIONS.PROCUREMENT_READ);
   const items = await listPurchaseOrdersWithCommittedForOrg(context, undefined, {
     limit: ORG_LIST_EXPORT_CAP,
   });
   return {
-    sheetName: 'Purchase orders',
+    sheetName: copy.sheets.purchaseOrders,
     headers: [
-      'id',
-      'reference',
-      'status',
-      'vendor_id',
-      'project_id',
-      'currency',
-      'committed_amount',
-      'committed_cost_status',
-      'committed_cost_amount',
-      'ordered_on',
-      'revision',
-      'notes',
+      h(copy, 'id'),
+      h(copy, 'reference'),
+      h(copy, 'status'),
+      h(copy, 'vendorId'),
+      h(copy, 'projectId'),
+      h(copy, 'currency'),
+      h(copy, 'committedAmount'),
+      h(copy, 'committedCostStatus'),
+      h(copy, 'committedCostAmount'),
+      h(copy, 'orderedOn'),
+      h(copy, 'revision'),
+      h(copy, 'notes'),
     ],
     rows: items.map((item) => [
       item.id,
       item.reference,
-      item.status,
+      enumLabel(copy, 'purchaseOrderStatus', item.status),
       item.vendorId,
       item.projectId,
       item.currency,
-      item.committedAmount,
-      item.committedCost?.status ?? null,
-      item.committedCost?.amount ?? null,
-      item.orderedOn,
+      toExcelNumber(item.committedAmount),
+      item.committedCost?.status
+        ? enumLabel(copy, 'committedCostStatus', item.committedCost.status)
+        : null,
+      toExcelNumber(item.committedCost?.amount ?? null),
+      toExcelDate(item.orderedOn),
       item.revision,
       item.notes,
     ]),
-    notes: [
-      'CommittedCost ≠ Expense. Issued PO commitment is not actual cost until received/expensed per domain rules.',
-    ],
+    notes: [copy.notes.poCommitted],
   };
 }
 
-async function tableApBills(context: OrgContext): Promise<ExportTable> {
+async function tableApBills(context: OrgContext, copy: ExportCopy): Promise<ExportTable> {
   assertPermission(context, PERMISSIONS.AP_READ);
   const items = await listApBillsForOrg(context, { limit: ORG_LIST_EXPORT_CAP });
   return {
-    sheetName: 'AP bills',
+    sheetName: copy.sheets.apBills,
     headers: [
-      'id',
-      'reference',
-      'status',
-      'vendor_id',
-      'vendor_name',
-      'project_id',
-      'purchase_order_id',
-      'bill_date',
-      'due_date',
-      'currency',
-      'total_amount',
-      'notes',
+      h(copy, 'id'),
+      h(copy, 'reference'),
+      h(copy, 'status'),
+      h(copy, 'vendorId'),
+      h(copy, 'vendorName'),
+      h(copy, 'projectId'),
+      h(copy, 'purchaseOrderId'),
+      h(copy, 'billDate'),
+      h(copy, 'dueDate'),
+      h(copy, 'currency'),
+      h(copy, 'totalAmount'),
+      h(copy, 'notes'),
     ],
     rows: items.map((item) => [
       item.id,
       item.reference,
-      item.status,
+      enumLabel(copy, 'apBillStatus', item.status),
       item.vendorId,
       item.vendorName,
       item.projectId,
       item.purchaseOrderId,
-      item.billDate,
-      item.dueDate,
+      toExcelDate(item.billDate),
+      toExcelDate(item.dueDate),
       item.currency,
-      item.totalAmount,
+      toExcelNumber(item.totalAmount),
       item.notes,
     ]),
-    notes: ['AP Bill ≠ Expense. Match status lives on the bill lifecycle, not as a payment.'],
+    notes: [copy.notes.apNeExpense],
   };
 }
 
 /** Same columns as the activity UI; never includes before/after payloads. */
-async function tableAudit(context: OrgContext): Promise<ExportTable> {
+async function tableAudit(context: OrgContext, copy: ExportCopy): Promise<ExportTable> {
   const { items } = await listAuditEventSummaries(context, { limit: ORG_LIST_EXPORT_CAP });
   return {
-    sheetName: 'Activity log',
+    sheetName: copy.sheets.activityLog,
     headers: [
-      'id',
-      'created_at',
-      'actor_user_id',
-      'actor_display_name',
-      'actor_email',
-      'action',
-      'entity_type',
-      'entity_id',
+      h(copy, 'id'),
+      h(copy, 'createdAt'),
+      h(copy, 'actorUserId'),
+      h(copy, 'actorDisplayName'),
+      h(copy, 'actorEmail'),
+      h(copy, 'action'),
+      h(copy, 'entityType'),
+      h(copy, 'entityId'),
     ],
     rows: items.map((item) => [
       item.id,
@@ -681,9 +776,9 @@ async function tableAudit(context: OrgContext): Promise<ExportTable> {
       item.entityId,
     ]),
     notes: [
-      'Requires audit.read (same permission as Settings → Activity).',
-      'Before/after payloads are omitted intentionally — same safety contract as the activity UI.',
-      `Export capped at ${ORG_LIST_EXPORT_CAP} newest events.`,
+      copy.notes.auditPermission,
+      copy.notes.auditPayloads,
+      copy.notes.auditCap.replace('{cap}', String(ORG_LIST_EXPORT_CAP)),
     ],
   };
 }

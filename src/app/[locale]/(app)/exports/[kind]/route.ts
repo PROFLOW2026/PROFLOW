@@ -7,14 +7,14 @@ export async function GET(
   request: Request,
   context: { params: Promise<{ locale: string; kind: string }> },
 ) {
-  const { kind } = await context.params;
+  const { kind, locale } = await context.params;
   const url = new URL(request.url);
   const projectId = url.searchParams.get('projectId');
   const format = url.searchParams.get('format');
 
   try {
     const result = await withOrgContext((org) =>
-      buildExport(org, kind, { projectId, format }),
+      buildExport(org, kind, { projectId, format, locale }),
     );
     // CSV is text; XLSX is binary. Cast binary through BodyInit for DOM lib variance.
     if (typeof result.body === 'string') {

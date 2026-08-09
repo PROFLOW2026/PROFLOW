@@ -6,6 +6,7 @@ import type common from '../../../src/locales/he-IL/common.json';
 import type dashboard from '../../../src/locales/he-IL/dashboard.json';
 import type errors from '../../../src/locales/he-IL/errors.json';
 import type expenses from '../../../src/locales/he-IL/expenses.json';
+import type exportsNs from '../../../src/locales/he-IL/exports.json';
 import type financial from '../../../src/locales/he-IL/financial.json';
 import type nav from '../../../src/locales/he-IL/nav.json';
 import type organization from '../../../src/locales/he-IL/organization.json';
@@ -24,6 +25,7 @@ export const he = {
   dashboard: loadLocale<typeof dashboard>('dashboard'),
   errors: loadLocale<typeof errors>('errors'),
   expenses: loadLocale<typeof expenses>('expenses'),
+  exports: loadLocale<typeof exportsNs>('exports'),
   financial: loadLocale<typeof financial>('financial'),
   nav: loadLocale<typeof nav>('nav'),
   organization: loadLocale<typeof organization>('organization'),
