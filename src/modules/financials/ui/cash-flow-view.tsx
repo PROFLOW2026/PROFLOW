@@ -29,10 +29,8 @@ export function CashFlowView({
 
   return (
     <section className="flex flex-col gap-4 rounded-lg border border-[var(--pf-border-default)] p-4">
-      <div>
-        <h2 className="text-sm font-semibold">{copy.title}</h2>
-        <p className="mt-1 text-xs text-[var(--pf-text-secondary)]">{cashFlow.note}</p>
-      </div>
+      {/* Localized Actual/Forecast/outgoing copy lives in `copy`; do not render English domain notes. */}
+      <h2 className="text-sm font-semibold">{copy.title}</h2>
 
       <div className="flex flex-col gap-2">
         <div className="flex flex-wrap items-baseline justify-between gap-2">

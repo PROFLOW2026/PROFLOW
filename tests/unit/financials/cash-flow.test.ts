@@ -183,5 +183,7 @@ describe('buildCashFlowOutlook', () => {
     expect(view.outgoing.disclosureKey).toBe('no_ap_due_dates');
     expect(view.note).toContain('Actual');
     expect(view.note).toContain('Forecast');
+    expect(view.note).toMatch(/AP due dates/i);
+    expect(view.note).toMatch(/Do not invent AP/i);
   });
 });

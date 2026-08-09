@@ -119,6 +119,13 @@ describe('receivables summary', () => {
     expect(summary.totalOutstanding.amount).toBe('10.000000');
     expect(summary.excludedForeignCurrencyCount).toBe(1);
   });
+
+  it('documents credit/void integrity in the summary note', () => {
+    const summary = computeReceivablesSummary([], currency, asOf);
+    expect(summary.note).toMatch(/Credit notes reduce Invoiced/i);
+    expect(summary.note).toMatch(/voided/i);
+    expect(summary.note).toMatch(/VAT is not profit/i);
+  });
 });
 
 describe('receivables summary ↔ aging interaction', () => {
