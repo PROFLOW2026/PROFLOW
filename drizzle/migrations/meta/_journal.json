@@ -71,6 +71,13 @@
       "when": 1786232900000,
       "tag": "0010_procurement_foundations",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1786233000000,
+      "tag": "0011_field_ops_assets",
+      "breakpoints": true
     }
   ]
 }

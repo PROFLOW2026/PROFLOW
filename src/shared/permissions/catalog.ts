@@ -83,6 +83,11 @@ export const PERMISSIONS = {
   MATERIALS_READ: 'materials.read',
   MATERIALS_MANAGE: 'materials.manage',
 
+  FIELD_OPS_READ: 'field_ops.read',
+  FIELD_OPS_MANAGE: 'field_ops.manage',
+  ASSETS_READ: 'assets.read',
+  ASSETS_MANAGE: 'assets.manage',
+
   SETTINGS_MANAGE: 'settings.manage',
   TAX_MANAGE: 'tax.manage',
   AUDIT_READ: 'audit.read',
@@ -197,6 +202,27 @@ export const PERMISSION_CATALOG: readonly PermissionDefinition[] = [
     key: PERMISSIONS.MATERIALS_MANAGE,
     category: 'expenses',
     description: 'Manage material catalog and prices',
+  },
+
+  {
+    key: PERMISSIONS.FIELD_OPS_READ,
+    category: 'projects',
+    description: 'View daily logs, punch lists and inspections',
+  },
+  {
+    key: PERMISSIONS.FIELD_OPS_MANAGE,
+    category: 'projects',
+    description: 'Manage field operations records',
+  },
+  {
+    key: PERMISSIONS.ASSETS_READ,
+    category: 'expenses',
+    description: 'View assets and equipment',
+  },
+  {
+    key: PERMISSIONS.ASSETS_MANAGE,
+    category: 'expenses',
+    description: 'Manage assets, fleet and maintenance',
   },
 
   { key: PERMISSIONS.SETTINGS_MANAGE, category: 'administration', description: 'Change organization settings' },

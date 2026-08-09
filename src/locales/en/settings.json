@@ -35,6 +35,8 @@
     "api": "API and webhooks",
     "procurement": "Procurement and purchase orders",
     "materials": "Materials catalog",
+    "field_ops": "Field operations",
+    "assets": "Assets and fleet",
     "saved": "Feature visibility updated."
   },
   "presets": {

@@ -27,3 +27,4 @@ export * from './compliance';
 export * from './custom-fields';
 export * from './api-platform';
 export * from './procurement';
+export * from './field-ops';

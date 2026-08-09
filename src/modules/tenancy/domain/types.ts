@@ -34,6 +34,8 @@ export const OPTIONAL_MODULE_KEYS = [
   'api',
   'procurement',
   'materials',
+  'field_ops',
+  'assets',
 ] as const;
 
 export type OptionalModuleKey = (typeof OPTIONAL_MODULE_KEYS)[number];

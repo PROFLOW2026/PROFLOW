@@ -35,6 +35,8 @@
     "api": "API ו־webhooks",
     "procurement": "רכש והזמנות רכש",
     "materials": "קטלוג חומרים",
+    "field_ops": "תפעול שטח",
+    "assets": "נכסים וצי רכב",
     "saved": "תצוגת היכולות עודכנה."
   },
   "presets": {
