@@ -39,7 +39,7 @@ CI, CSV exports, light scheduling, presets, reports, documents drag/drop.
 |--------|--------|
 | Migration 0010 procurement + committed cost ≠ expense | Schema + module + UI |
 | Migration 0011 field ops / assets / inventory | Schema done; module in progress |
-| Vendor portal / AP–PO matching | Not started |
+| Vendor portal / AP–PO matching | Done (schema 0012 + `/procurement/ap` + vendor grants) |
 
 ## Deferred
 
