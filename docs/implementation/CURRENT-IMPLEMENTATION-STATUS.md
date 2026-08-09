@@ -1,6 +1,50 @@
 # ProjectFlow — Current Implementation Status
 
-**Updated:** 2026-08-09 · **Phase:** Pre-launch completion program (Wave 1 in progress) · **Git:** local Wave 1 checkpoint (not pushed) · **Migrations:** through `0008_light_scheduling` (local; remote through `0007` until owner applies `0008`)
+**Updated:** 2026-08-09 · **Phase:** Pre-launch completion · **Local HEAD:** `defc088` (3 commits ahead of `origin/main`, not pushed) · **Remote migrations:** through `0007` · **Local migrations:** through `0008`
+
+---
+
+## OWNER ACTION REQUIRED BEFORE PUSH
+
+```
+REMOTE MIGRATIONS REQUIRED
+- 0008_light_scheduling
+```
+
+Do not push `main` until `0008` is applied on Supabase (or push will deploy code that expects milestones/progress columns).
+
+---
+
+## Wave 1 (local checkpoint — largely complete)
+
+| Item | Status |
+|------|--------|
+| Reality/status matrix | Done |
+| GitHub Actions CI | Done |
+| CSV exports | Done |
+| Light scheduling / milestones / progress | Done (`0008`) |
+| Profession presets | Done |
+| Org reports / project comparison | Done (`/reports`) |
+| Documents drag/drop + mobile capture | Done |
+| Onboarding preset + Reports nav | Done |
+| Module visibility | Already existed; presets in settings |
+| Receivables aging (Wave 2 start) | Done (no new migration) |
+| Full UX 39–64 audit | Partial (targeted gaps) |
+| Formal Wave 1 review gate | Pending before push |
+| Full Vitest / Playwright / build gate | Pending before push |
+
+## Intentionally deferred
+
+- Notifications / doc 26 (owner)
+- Marketing / pricing / SaaS packaging
+- Native apps, SSO, deep Gantt, fake OCR
+
+## Next (continuing locally)
+
+- Cash-flow views from due dates
+- CRM pre-project foundation (migration `0009` when Lead ready)
+- Formal security/financial/UX review fixes
+- After remote `0008`: full gate → push
 
 > Authoritative live delta. Do not trust older counts without re-checking the repo.
 
