@@ -34,6 +34,29 @@ export interface PaymentSummary {
   readonly notes: string | null;
 }
 
+/** Payment applied to a billing record — for AR history, not a separate ledger. */
+export interface PaymentApplicationRow {
+  readonly id: string;
+  readonly billingRecordId: string;
+  readonly billingReference: string | null;
+  readonly billingKind: BillingKind;
+  readonly projectId: string | null;
+  readonly projectName: string | null;
+  readonly amount: MoneyValue;
+  readonly paymentDate: BusinessDate;
+  readonly method: string | null;
+  readonly reference: string | null;
+  readonly status: PaymentRecordStatus;
+  readonly notes: string | null;
+}
+
+export interface PaymentApplicationFilters {
+  readonly projectId?: string;
+  readonly limit?: number;
+  readonly offset?: number;
+  readonly includeVoided?: boolean;
+}
+
 export interface BillingRecordSummary {
   readonly id: string;
   readonly projectId: string | null;

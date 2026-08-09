@@ -67,9 +67,19 @@ export const paymentIdSchema = z.object({
 export const listBillingRecordsSchema = z.object({
   filter: z.enum(['all', 'paid', 'outstanding', 'overdue']).optional(),
   projectId: z.string().uuid().optional(),
-  limit: z.coerce.number().int().min(1).max(200).optional(),
+  /** Org AR summary/aging may need a large page; UI lists stay modest by default. */
+  limit: z.coerce.number().int().min(1).max(5_000).optional(),
   offset: z.coerce.number().int().min(0).optional(),
 });
+
+export const listPaymentApplicationsSchema = z.object({
+  projectId: z.string().uuid().optional(),
+  limit: z.coerce.number().int().min(1).max(200).optional(),
+  offset: z.coerce.number().int().min(0).optional(),
+  includeVoided: z.boolean().optional(),
+});
+
+export type ListPaymentApplicationsInput = z.infer<typeof listPaymentApplicationsSchema>;
 
 export type ListBillingRecordsInput = z.infer<typeof listBillingRecordsSchema>;
 

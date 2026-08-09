@@ -16,6 +16,7 @@ interface BillingListTableProps {
 
 export function BillingListTable({ records, locale }: BillingListTableProps) {
   const t = useTranslations('billing');
+  const tKind = useTranslations('billing.kinds');
 
   if (records.length === 0) {
     return null;
@@ -31,6 +32,7 @@ export function BillingListTable({ records, locale }: BillingListTableProps) {
             <TableRow>
               <TableHead>{t('list.project')}</TableHead>
               <TableHead>{t('list.reference')}</TableHead>
+              <TableHead>{t('list.kind')}</TableHead>
               <TableHead>{t('list.issueDate')}</TableHead>
               <TableHead numeric>{t('list.amount')}</TableHead>
               <TableHead numeric>{t('list.paid')}</TableHead>
@@ -47,6 +49,9 @@ export function BillingListTable({ records, locale }: BillingListTableProps) {
                   </Link>
                 </TableCell>
                 <TableCell>{record.reference ?? '—'}</TableCell>
+                <TableCell>
+                  <span className="text-sm">{tKind(record.kind)}</span>
+                </TableCell>
                 <TableCell>
                   <span dir="ltr">{formatBusinessDate(record.issueDate, locale, 'short')}</span>
                 </TableCell>
@@ -80,6 +85,8 @@ export function BillingListTable({ records, locale }: BillingListTableProps) {
           </div>
           <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">
             {record.reference ?? '—'}
+            {' · '}
+            {tKind(record.kind)}
             {' · '}
             <span dir="ltr">{formatBusinessDate(record.issueDate, locale, 'short')}</span>
           </p>

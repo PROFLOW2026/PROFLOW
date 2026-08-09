@@ -9,6 +9,7 @@ import {
   getProjectBillingPosition,
   listProjectBillingRecords,
   listUnbilledChangeOrders,
+  listPaymentApplications,
 } from '@/modules/billing';
 import { withOrgContext } from '@/shared/auth/session';
 import { hasPermission } from '@/shared/permissions/assert';
@@ -16,6 +17,7 @@ import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { Link } from '@/shared/i18n/navigation';
 import { formatBusinessDate } from '@/shared/dates/format';
 import { BillingStatusBadge } from './billing-status-badge';
+import { PaymentHistoryTable } from './payment-history-panel';
 
 interface ProjectBillingPanelProps {
   projectId: string;
@@ -26,12 +28,19 @@ export async function ProjectBillingPanel({ projectId }: ProjectBillingPanelProp
   const tFinancial = await getTranslations('financial');
   const locale = await getLocale();
 
-  const { position, records, unbilledChanges, canManage } = await withOrgContext(async (context) => ({
-    position: await getProjectBillingPosition(context, projectId),
-    records: await listProjectBillingRecords(context, projectId),
-    unbilledChanges: await listUnbilledChangeOrders(context, projectId),
-    canManage: hasPermission(context, PERMISSIONS.BILLING_MANAGE),
-  }));
+  const { position, records, unbilledChanges, canManage, payments } = await withOrgContext(
+    async (context) => ({
+      position: await getProjectBillingPosition(context, projectId),
+      records: await listProjectBillingRecords(context, projectId),
+      unbilledChanges: await listUnbilledChangeOrders(context, projectId),
+      canManage: hasPermission(context, PERMISSIONS.BILLING_MANAGE),
+      payments: await listPaymentApplications(context, {
+        projectId,
+        limit: 25,
+        includeVoided: true,
+      }),
+    }),
+  );
 
   return (
     <div className="flex flex-col gap-4">
@@ -58,6 +67,9 @@ export async function ProjectBillingPanel({ projectId }: ProjectBillingPanelProp
               <MoneyText value={position.outstanding} colorizeNegative />
             </p>
           </div>
+          <p className="sm:col-span-3 text-xs text-[var(--pf-text-secondary)]">
+            {t('panel.integrityHint')}
+          </p>
         </CardContent>
       </Card>
 
@@ -107,6 +119,7 @@ export async function ProjectBillingPanel({ projectId }: ProjectBillingPanelProp
               <TableHeader>
                 <TableRow>
                   <TableHead>{t('list.issueDate')}</TableHead>
+                  <TableHead>{t('list.kind')}</TableHead>
                   <TableHead numeric>{t('list.amount')}</TableHead>
                   <TableHead numeric>{t('list.outstanding')}</TableHead>
                   <TableHead>{t('list.status')}</TableHead>
@@ -120,6 +133,7 @@ export async function ProjectBillingPanel({ projectId }: ProjectBillingPanelProp
                         {formatBusinessDate(record.issueDate, locale)}
                       </Link>
                     </TableCell>
+                    <TableCell>{t(`kinds.${record.kind}`)}</TableCell>
                     <TableCell numeric>
                       <MoneyText value={record.totalAmount} />
                     </TableCell>
@@ -139,6 +153,20 @@ export async function ProjectBillingPanel({ projectId }: ProjectBillingPanelProp
           </CardContent>
         </Card>
       )}
+
+      {payments.length > 0 ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>{t('paymentHistory.title')}</CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-2 px-0 pb-0 sm:px-0">
+            <p className="px-6 text-xs text-[var(--pf-text-secondary)]">
+              {t('paymentHistory.subtitle')}
+            </p>
+            <PaymentHistoryTable rows={payments} locale={locale} hideProject />
+          </CardContent>
+        </Card>
+      ) : null}
     </div>
   );
 }

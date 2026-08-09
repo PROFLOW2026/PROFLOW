@@ -8,3 +8,5 @@
 
 export { ProjectFinancialsPanel, ProjectFinancialsSnapshot } from './ui/project-financials-panel';
 export { HomeDashboardContent } from './ui/home-dashboard-content';
+export { CashFlowView } from './ui/cash-flow-view';
+export type { CashFlowViewCopy } from './ui/cash-flow-view';

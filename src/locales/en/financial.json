@@ -46,5 +46,23 @@
   "basis": {
     "directOnly": "Based on direct costs only",
     "fullyLoaded": "Fully loaded, including allocated overhead"
+  },
+  "cashFlow": {
+    "title": "Project cash — Actual vs Forecast",
+    "actualTitle": "Actual — Paid collected",
+    "actualHint": "Payments on this project’s billing with a payment date in this month-to-date range.",
+    "forecastTitle": "Forecast — expected incoming",
+    "forecastHint": "This project’s Outstanding billing by due date. Not Paid.",
+    "outgoingTitle": "Outgoing",
+    "outgoingDisclosure": "Outgoing cash is not forecast here: expenses lack AP due dates and unpaid vendor-invoice status.",
+    "undatedNote": "Outstanding without a due date stays under “No due date” and is not timed into a Forecast bucket.",
+    "paymentCount": "{count, plural, =0 {No payments in range} =1 {# payment} other {# payments}}",
+    "buckets": {
+      "overdue": "Overdue (Forecast)",
+      "next_7": "Next 7 days (Forecast)",
+      "next_30": "8–30 days (Forecast)",
+      "later": "Later (Forecast)",
+      "undated": "No due date (Forecast)"
+    }
   }
 }

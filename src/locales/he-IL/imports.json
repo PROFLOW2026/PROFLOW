@@ -1,0 +1,71 @@
+{
+  "title": "ייבוא נתונים",
+  "description": "העלו קובץ CSV, התאימו עמודות, בדקו שגיאות בשורות ואשרו. היצירה עוברת באותם כללים כמו בטפסים הרגילים.",
+  "notAllowed": "אין לכם הרשאה לייבא אף אחד מסוגי הרשומות הנתמכים.",
+  "kindLabel": "מה לייבא",
+  "kindPlaceholder": "בחרו סוג",
+  "fileLabel": "קובץ CSV",
+  "expensesNotEnabled": "ייבוא הוצאות אינו זמין בגרסה זו — נדרש אימות חזק יותר לנתונים פיננסיים.",
+  "kinds": {
+    "clients": "לקוחות",
+    "vendors": "ספקים",
+    "employees": "עובדים",
+    "projects": "פרויקטים",
+    "expenses": "הוצאות (לא זמין)"
+  },
+  "fields": {
+    "name": "שם",
+    "legalName": "שם משפטי",
+    "email": "אימייל",
+    "phone": "טלפון",
+    "city": "עיר",
+    "countryCode": "קוד מדינה",
+    "notes": "הערות",
+    "type": "סוג ספק",
+    "jobTitle": "תפקיד",
+    "employeeNumber": "מספר עובד",
+    "rateUnit": "יחידת תעריף",
+    "baseRate": "תעריף בסיס",
+    "status": "סטטוס",
+    "clientId": "מזהה לקוח",
+    "location": "מיקום",
+    "startDate": "תאריך התחלה",
+    "targetEndDate": "תאריך יעד",
+    "description": "תיאור"
+  },
+  "mapping": {
+    "title": "מיפוי עמודות",
+    "hint": "התאימו איזו עמודת CSV מזינה כל שדה, ואז אמתו.",
+    "unmapped": "לא ממופה",
+    "emptyHeader": "עמודה {index}"
+  },
+  "preview": {
+    "title": "תצוגה מקדימה",
+    "summary": "{valid} מוכנים · {errors} עם שגיאות · {warnings} עם אזהרות",
+    "row": "שורה",
+    "values": "ערכים",
+    "issues": "בעיות",
+    "error": "שגיאה",
+    "warning": "אזהרה",
+    "truncated": "מוצגות 100 השורות הראשונות מתוך {count}."
+  },
+  "result": {
+    "title": "תוצאת ייבוא",
+    "summary": "נוצרו {created}. נכשלו {failed}.",
+    "rowFailed": "שורה {row}: {error}"
+  },
+  "actions": {
+    "preview": "המשך",
+    "back": "חזרה",
+    "validate": "אימות ותצוגה מקדימה",
+    "confirm": "אישור ייבוא ({count})",
+    "another": "ייבוא קובץ נוסף"
+  },
+  "errors": {
+    "readFile": "לא ניתן לקרוא את הקובץ.",
+    "chooseKind": "בחרו מה לייבא.",
+    "needFile": "בחרו קובץ CSV.",
+    "previewFailed": "לא ניתן להציג תצוגה מקדימה של הייבוא.",
+    "confirmFailed": "לא ניתן להשלים את הייבוא."
+  }
+}

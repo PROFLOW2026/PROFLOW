@@ -5,14 +5,22 @@ import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/ui/page-header';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { listBillingRecords, getOrganizationReceivablesAging } from '@/modules/billing';
+import {
+  listBillingRecords,
+  getOrganizationReceivablesAging,
+  getOrganizationReceivablesSummary,
+  listPaymentApplications,
+} from '@/modules/billing';
 import { BillingListTable } from '@/modules/billing/ui/billing-list-table';
+import { PaymentHistoryTable } from '@/modules/billing/ui/payment-history-panel';
 import { ReceivablesAgingPanel } from '@/modules/billing/ui/receivables-aging-panel';
+import { ReceivablesSummaryPanel } from '@/modules/billing/ui/receivables-summary-panel';
 import { withOrgContext } from '@/shared/auth/session';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { Link } from '@/shared/i18n/navigation';
 import type { BillingListFilter } from '@/modules/billing';
+import { isPositiveMoney } from '@/shared/money';
 
 export async function generateMetadata({
   params,
@@ -38,15 +46,37 @@ export default async function BillingListPage({
   const filter = (FILTERS.includes(rawFilter as BillingListFilter) ? rawFilter : 'all') as BillingListFilter;
 
   const t = await getTranslations('billing');
-  const { canRead, records, canManage, aging } = await withOrgContext(async (context) => {
-    const allowed = hasPermission(context, PERMISSIONS.BILLING_READ);
-    return {
-      canRead: allowed,
-      records: allowed ? await listBillingRecords(context, { filter }) : [],
-      canManage: hasPermission(context, PERMISSIONS.BILLING_MANAGE),
-      aging: allowed ? await getOrganizationReceivablesAging(context) : null,
-    };
-  });
+  const { canRead, records, canManage, summary, aging, payments } = await withOrgContext(
+    async (context) => {
+      const allowed = hasPermission(context, PERMISSIONS.BILLING_READ);
+      if (!allowed) {
+        return {
+          canRead: false,
+          records: [],
+          canManage: false,
+          summary: null,
+          aging: null,
+          payments: [],
+        };
+      }
+
+      const [listed, receivablesSummary, receivablesAging, paymentRows] = await Promise.all([
+        listBillingRecords(context, { filter }),
+        getOrganizationReceivablesSummary(context),
+        getOrganizationReceivablesAging(context),
+        listPaymentApplications(context, { limit: 25, includeVoided: true }),
+      ]);
+
+      return {
+        canRead: true,
+        records: listed,
+        canManage: hasPermission(context, PERMISSIONS.BILLING_MANAGE),
+        summary: receivablesSummary,
+        aging: receivablesAging,
+        payments: paymentRows,
+      };
+    },
+  );
 
   if (!canRead) {
     return (
@@ -61,6 +91,15 @@ export default async function BillingListPage({
       </div>
     );
   }
+
+  const showAging = aging && isPositiveMoney(aging.totalOutstanding);
+  const showSummary =
+    summary &&
+    (isPositiveMoney(summary.totalOutstanding) ||
+      summary.openCount > 0 ||
+      summary.partialPaidCount > 0 ||
+      summary.overdueCount > 0 ||
+      records.length > 0);
 
   return (
     <div className="flex flex-col gap-6">
@@ -81,9 +120,8 @@ export default async function BillingListPage({
         }
       />
 
-      {aging && (aging.totalOutstanding.amount !== '0.000000') ? (
-        <ReceivablesAgingPanel aging={aging} />
-      ) : null}
+      {showSummary && summary ? <ReceivablesSummaryPanel summary={summary} /> : null}
+      {showAging && aging ? <ReceivablesAgingPanel aging={aging} /> : null}
 
       <Tabs value={filter}>
         <TabsList aria-label={t('title')}>
@@ -114,6 +152,18 @@ export default async function BillingListPage({
           )}
         </TabsContent>
       </Tabs>
+
+      {payments.length > 0 ? (
+        <section className="flex flex-col gap-3">
+          <div>
+            <h2 className="text-sm font-semibold">{t('paymentHistory.title')}</h2>
+            <p className="mt-1 text-xs text-[var(--pf-text-secondary)]">
+              {t('paymentHistory.subtitle')}
+            </p>
+          </div>
+          <PaymentHistoryTable rows={payments} locale={locale} />
+        </section>
+      ) : null}
     </div>
   );
 }

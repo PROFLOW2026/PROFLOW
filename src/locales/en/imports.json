@@ -1,0 +1,71 @@
+{
+  "title": "Import data",
+  "description": "Upload a CSV, map columns, preview row issues, then confirm. Creates go through the same rules as the normal forms.",
+  "notAllowed": "You do not have permission to import any of the supported record types.",
+  "kindLabel": "What to import",
+  "kindPlaceholder": "Choose a type",
+  "fileLabel": "CSV file",
+  "expensesNotEnabled": "Expense import is not enabled in this release — financial rows need stronger validation first.",
+  "kinds": {
+    "clients": "Clients",
+    "vendors": "Vendors",
+    "employees": "Employees",
+    "projects": "Projects",
+    "expenses": "Expenses (not enabled)"
+  },
+  "fields": {
+    "name": "Name",
+    "legalName": "Legal name",
+    "email": "Email",
+    "phone": "Phone",
+    "city": "City",
+    "countryCode": "Country code",
+    "notes": "Notes",
+    "type": "Vendor type",
+    "jobTitle": "Job title",
+    "employeeNumber": "Employee number",
+    "rateUnit": "Rate unit",
+    "baseRate": "Base rate",
+    "status": "Status",
+    "clientId": "Client ID",
+    "location": "Location",
+    "startDate": "Start date",
+    "targetEndDate": "Target end date",
+    "description": "Description"
+  },
+  "mapping": {
+    "title": "Column mapping",
+    "hint": "Adjust which CSV column feeds each field, then validate.",
+    "unmapped": "Not mapped",
+    "emptyHeader": "Column {index}"
+  },
+  "preview": {
+    "title": "Preview",
+    "summary": "{valid} ready · {errors} with errors · {warnings} with warnings",
+    "row": "Row",
+    "values": "Values",
+    "issues": "Issues",
+    "error": "Error",
+    "warning": "Warning",
+    "truncated": "Showing first 100 of {count} rows."
+  },
+  "result": {
+    "title": "Import result",
+    "summary": "Created {created}. Failed {failed}.",
+    "rowFailed": "Row {row}: {error}"
+  },
+  "actions": {
+    "preview": "Continue",
+    "back": "Back",
+    "validate": "Validate and preview",
+    "confirm": "Confirm import ({count})",
+    "another": "Import another file"
+  },
+  "errors": {
+    "readFile": "Could not read the file.",
+    "chooseKind": "Choose what to import.",
+    "needFile": "Choose a CSV file.",
+    "previewFailed": "Could not preview the import.",
+    "confirmFailed": "Could not complete the import."
+  }
+}

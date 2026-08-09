@@ -33,6 +33,8 @@ export default async function BillingDetailPage({
   const { locale, billingRecordId } = await params;
   const t = await getTranslations('billing');
   const tStatus = await getTranslations('status.billing');
+  const tKind = await getTranslations('billing.kinds');
+  const tPayment = await getTranslations('status.payment');
 
   let record;
   let canManage = false;
@@ -88,6 +90,19 @@ export default async function BillingDetailPage({
           </CardHeader>
           <CardContent>
             <MoneyText value={record.totalAmount} className="text-lg font-semibold" />
+            <p className="mt-2 text-xs text-[var(--pf-text-secondary)]">
+              {t('detail.kind')}: {tKind(record.kind)}
+            </p>
+            {record.kind === 'credit_note' ? (
+              <p className="mt-1 text-xs text-[var(--pf-text-secondary)]">
+                {t('integrity.creditNoteReducesInvoiced')}
+              </p>
+            ) : null}
+            {record.status === 'void' ? (
+              <p className="mt-1 text-xs text-[var(--pf-text-secondary)]">
+                {t('integrity.voidExcluded')}
+              </p>
+            ) : null}
           </CardContent>
         </Card>
         <Card>
@@ -147,6 +162,7 @@ export default async function BillingDetailPage({
                   <TableHead numeric>{t('paymentForm.amount')}</TableHead>
                   <TableHead>{t('paymentForm.method')}</TableHead>
                   <TableHead>{t('paymentForm.reference')}</TableHead>
+                  <TableHead>{t('list.status')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -158,7 +174,11 @@ export default async function BillingDetailPage({
                     </TableCell>
                     <TableCell>{payment.method ?? '—'}</TableCell>
                     <TableCell>{payment.reference ?? '—'}</TableCell>
-                  </TableRow>
+                    <TableCell>
+                      <span className="text-sm text-[var(--pf-text-secondary)]">
+                        {tPayment(payment.status)}
+                      </span>
+                    </TableCell>                  </TableRow>
                 ))}
               </TableBody>
             </Table>

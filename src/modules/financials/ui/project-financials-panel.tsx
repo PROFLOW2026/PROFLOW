@@ -7,7 +7,9 @@ import { withOrgContext } from '@/shared/auth/session';
 import { negateMoney } from '@/shared/money';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
+import { getProjectCashFlowOutlook } from '../application/get-project-cash-flow';
 import { getProjectFinancials } from '../application/get-project-financials';
+import { CashFlowView } from './cash-flow-view';
 import { mapCoverageToSources, standalonePartialNotes } from './map-coverage-sources';
 import { ProjectFinancialsSnapshotView } from './project-financials-snapshot-view';
 
@@ -21,14 +23,14 @@ export interface ProjectFinancialsPanelProps {
 export async function ProjectFinancialsPanel({ projectId }: ProjectFinancialsPanelProps) {
   const t = await getTranslations('financial');
 
-  const { financials, canReadProfit, canReadBilling, canReadCommercial } = await withOrgContext(
-    async (context) => ({
+  const { financials, cashFlow, canReadProfit, canReadBilling, canReadCommercial } =
+    await withOrgContext(async (context) => ({
       financials: await getProjectFinancials(context, projectId),
+      cashFlow: await getProjectCashFlowOutlook(context, projectId),
       canReadProfit: hasPermission(context, PERMISSIONS.PROJECT_PROFIT_READ),
       canReadBilling: hasPermission(context, PERMISSIONS.BILLING_READ),
       canReadCommercial: hasPermission(context, PERMISSIONS.CONTRACTS_READ),
-    }),
-  );
+    }));
 
   const coverageSources = mapCoverageToSources(financials.coverage, t);
   const hasCostPartials = (financials.coverage.partials?.length ?? 0) > 0;
@@ -85,6 +87,24 @@ export async function ProjectFinancialsPanel({ projectId }: ProjectFinancialsPan
             ))}
           </CardContent>
         </Card>
+      ) : null}
+
+      {canReadBilling && cashFlow ? (
+        <CashFlowView
+          cashFlow={cashFlow}
+          copy={{
+            title: t('cashFlow.title'),
+            actualTitle: t('cashFlow.actualTitle'),
+            actualHint: t('cashFlow.actualHint'),
+            forecastTitle: t('cashFlow.forecastTitle'),
+            forecastHint: t('cashFlow.forecastHint'),
+            outgoingTitle: t('cashFlow.outgoingTitle'),
+            outgoingDisclosure: t('cashFlow.outgoingDisclosure'),
+            undatedNote: t('cashFlow.undatedNote'),
+            bucketLabel: (key) => t(`cashFlow.buckets.${key}`),
+            paymentCount: (count) => t('cashFlow.paymentCount', { count }),
+          }}
+        />
       ) : null}
 
       <Card>

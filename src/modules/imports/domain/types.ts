@@ -1,0 +1,85 @@
+/**
+ * Structured CSV import types (doc 37). Framework-free.
+ */
+
+export const IMPORT_KINDS = [
+  'clients',
+  'vendors',
+  'employees',
+  'projects',
+  'expenses',
+] as const;
+
+export type ImportKind = (typeof IMPORT_KINDS)[number];
+
+/** Kinds that can be confirmed in this foundation wave. */
+export const ENABLED_IMPORT_KINDS = [
+  'clients',
+  'vendors',
+  'employees',
+  'projects',
+] as const satisfies readonly ImportKind[];
+
+export type EnabledImportKind = (typeof ENABLED_IMPORT_KINDS)[number];
+
+export function isImportKind(value: string): value is ImportKind {
+  return (IMPORT_KINDS as readonly string[]).includes(value);
+}
+
+export function isEnabledImportKind(value: string): value is EnabledImportKind {
+  return (ENABLED_IMPORT_KINDS as readonly string[]).includes(value);
+}
+
+export type ImportIssueSeverity = 'error' | 'warning';
+
+export interface ImportIssue {
+  readonly severity: ImportIssueSeverity;
+  readonly field?: string;
+  readonly message: string;
+}
+
+export interface ImportFieldDef {
+  readonly key: string;
+  readonly required: boolean;
+  /** Header aliases matched case-insensitively (spaces/underscores ignored). */
+  readonly aliases: readonly string[];
+}
+
+export interface ParsedCsv {
+  readonly headers: readonly string[];
+  readonly rows: readonly (readonly string[])[];
+}
+
+/** Column index per canonical field key; -1 / missing = unmapped. */
+export type ColumnMapping = Readonly<Record<string, number>>;
+
+export interface MappedImportRow {
+  readonly rowNumber: number;
+  readonly values: Readonly<Record<string, string>>;
+  readonly issues: readonly ImportIssue[];
+}
+
+export interface ImportPreview {
+  readonly kind: ImportKind;
+  readonly headers: readonly string[];
+  readonly mapping: ColumnMapping;
+  readonly rows: readonly MappedImportRow[];
+  readonly validCount: number;
+  readonly errorCount: number;
+  readonly warningCount: number;
+  readonly enabled: boolean;
+}
+
+export interface ImportRowResult {
+  readonly rowNumber: number;
+  readonly ok: boolean;
+  readonly entityId?: string;
+  readonly error?: string;
+}
+
+export interface ImportConfirmResult {
+  readonly kind: EnabledImportKind;
+  readonly created: number;
+  readonly failed: number;
+  readonly results: readonly ImportRowResult[];
+}

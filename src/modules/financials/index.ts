@@ -7,7 +7,18 @@ export type {
   ProjectRollupRow,
 } from './application/get-organization-project-rollup';
 export { getOrganizationCashFlowOutlook } from './application/get-organization-cash-flow';
-export type { CashFlowOutlook, CashFlowBucket } from './domain/cash-flow';
+export { getProjectCashFlowOutlook } from './application/get-project-cash-flow';
+export type {
+  CashFlowOutlook,
+  CashFlowBucket,
+  CashFlowActualCollected,
+  CashFlowOutgoingCoverage,
+} from './domain/cash-flow';
+export {
+  computeIncomingCashOutlook,
+  computeCollectedActual,
+  buildCashFlowOutlook,
+} from './domain/cash-flow';
 export { getHomeDashboard } from './application/get-home-dashboard';
 export type { HomeDashboardData, DashboardAttention } from './application/get-home-dashboard';
 

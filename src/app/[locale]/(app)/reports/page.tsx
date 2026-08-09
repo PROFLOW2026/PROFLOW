@@ -5,6 +5,7 @@ import { ResponsiveTable } from '@/components/patterns/responsive-table';
 import { PageHeader } from '@/components/ui/page-header';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { getOrganizationProjectRollup, getOrganizationCashFlowOutlook } from '@/modules/financials';
+import { CashFlowView } from '@/modules/financials/ui';
 import { Link } from '@/shared/i18n/navigation';
 import { withOrgContext } from '@/shared/auth/session';
 
@@ -43,6 +44,9 @@ export default async function ReportsPage() {
             <Link className="underline underline-offset-2" href="/exports/billing">
               {t('exportBilling')}
             </Link>
+            <Link className="underline underline-offset-2" href="/imports">
+              {t('importData')}
+            </Link>
           </div>
         }
       />
@@ -55,24 +59,21 @@ export default async function ReportsPage() {
       ) : null}
 
       {cashFlow ? (
-        <section className="flex flex-col gap-3 rounded-lg border border-[var(--pf-border-default)] p-4">
-          <div>
-            <h2 className="text-sm font-semibold">{t('cashFlow.title')}</h2>
-            <p className="mt-1 text-xs text-[var(--pf-text-secondary)]">{cashFlow.note}</p>
-          </div>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-            {cashFlow.buckets.map((bucket) => (
-              <div key={bucket.key} className="rounded-md bg-[var(--pf-bg-muted)] p-3">
-                <p className="text-xs text-[var(--pf-text-secondary)]">
-                  {t(`cashFlow.buckets.${bucket.key}`)}
-                </p>
-                <p className="mt-1 text-base font-semibold">
-                  <MoneyText value={bucket.expectedIn} />
-                </p>
-              </div>
-            ))}
-          </div>
-        </section>
+        <CashFlowView
+          cashFlow={cashFlow}
+          copy={{
+            title: t('cashFlow.title'),
+            actualTitle: t('cashFlow.actualTitle'),
+            actualHint: t('cashFlow.actualHint'),
+            forecastTitle: t('cashFlow.forecastTitle'),
+            forecastHint: t('cashFlow.forecastHint'),
+            outgoingTitle: t('cashFlow.outgoingTitle'),
+            outgoingDisclosure: t('cashFlow.outgoingDisclosure'),
+            undatedNote: t('cashFlow.undatedNote'),
+            bucketLabel: (key) => t(`cashFlow.buckets.${key}`),
+            paymentCount: (count) => t('cashFlow.paymentCount', { count }),
+          }}
+        />
       ) : null}
 
       <ResponsiveTable

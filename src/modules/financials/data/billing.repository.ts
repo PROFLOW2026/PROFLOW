@@ -179,3 +179,83 @@ export async function hasAnyBillingUsage(
 
   return (row?.count ?? 0) > 0;
 }
+
+export interface CashFlowPaymentRow {
+  readonly amount: MoneyValue;
+  readonly paymentDate: BusinessDate;
+  readonly status: 'recorded' | 'void';
+  readonly projectId: string | null;
+}
+
+/**
+ * Recorded/void payments for cash Actual (Paid collected by paymentDate).
+ * Optionally scoped to one project via billing_records.project_id.
+ */
+export async function loadCashFlowPayments(
+  db: DbExecutor,
+  organizationId: string,
+  options: { readonly projectId?: string } = {},
+): Promise<CashFlowPaymentRow[]> {
+  const conditions = [eq(payments.organizationId, organizationId)];
+
+  if (options.projectId) {
+    const rows = await db
+      .select({
+        amount: payments.amount,
+        currency: payments.currency,
+        paymentDate: payments.paymentDate,
+        status: payments.status,
+        projectId: billingRecords.projectId,
+      })
+      .from(payments)
+      .innerJoin(billingRecords, eq(billingRecords.id, payments.billingRecordId))
+      .where(
+        and(
+          ...conditions,
+          eq(billingRecords.organizationId, organizationId),
+          eq(billingRecords.projectId, options.projectId),
+          isNull(billingRecords.archivedAt),
+        ),
+      );
+
+    return mapCashFlowPaymentRows(rows);
+  }
+
+  const rows = await db
+    .select({
+      amount: payments.amount,
+      currency: payments.currency,
+      paymentDate: payments.paymentDate,
+      status: payments.status,
+      projectId: billingRecords.projectId,
+    })
+    .from(payments)
+    .innerJoin(billingRecords, eq(billingRecords.id, payments.billingRecordId))
+    .where(and(...conditions, eq(billingRecords.organizationId, organizationId)));
+
+  return mapCashFlowPaymentRows(rows);
+}
+
+function mapCashFlowPaymentRows(
+  rows: readonly {
+    amount: string;
+    currency: string;
+    paymentDate: string;
+    status: string;
+    projectId: string | null;
+  }[],
+): CashFlowPaymentRow[] {
+  const mapped: CashFlowPaymentRow[] = [];
+  for (const row of rows) {
+    const amount = fromNumericString(row.amount, row.currency);
+    if (!amount) continue;
+    if (row.status !== 'recorded' && row.status !== 'void') continue;
+    mapped.push({
+      amount,
+      paymentDate: businessDate(row.paymentDate),
+      status: row.status,
+      projectId: row.projectId,
+    });
+  }
+  return mapped;
+}
