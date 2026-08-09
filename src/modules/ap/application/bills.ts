@@ -7,10 +7,16 @@ import { noteModuleUsage } from '@/modules/tenancy';
 import { addMoney, money, moneyEquals, zeroMoney } from '@/shared/money';
 import { findProjectById } from '@/modules/projects';
 import {
+  computeCommittedAfterConsumption,
+  findOpenCommittedCostForPo,
+  updateCommittedCostConsumption,
+} from '@/modules/procurement';
+import {
   computeMatchVariance,
   remainingUnmatchedAmount,
   type MatchVariance,
 } from '../domain/matching';
+import { consumeAmountForPostedPoBill } from '../domain/vendor-cost-recognition';
 import {
   assertVendorInOrganization,
   findApBillById,
@@ -106,8 +112,10 @@ export async function getApBillDetail(
 }
 
 /**
- * Creates an AP bill (payable obligation). Does NOT create an Expense.
- * AP bill != Expense.
+ * Creates a posted AP bill (status open). Does NOT create an Expense row.
+ * Posted bills recognize Actual Vendor Cost in financials; payments remain cash-only.
+ * When linked to a PO, consumes commitment by the bill total so Actual+Commitment
+ * do not double-count before match accept.
  */
 export async function createApBill(context: OrgContext, raw: CreateApBillInput) {
   assertPermission(context, PERMISSIONS.AP_MANAGE);
@@ -133,16 +141,14 @@ export async function createApBill(context: OrgContext, raw: CreateApBillInput) 
   );
   if (!vendorOk) throw new NotFoundError('Vendor');
 
-  if (input.projectId) {
-    const project = await findProjectById(context.db, context.organizationId, input.projectId);
-    if (!project || project.archivedAt) throw new NotFoundError('Project');
-  }
+  let projectId = input.projectId ?? null;
+  const purchaseOrderId = input.purchaseOrderId ?? null;
 
-  if (input.purchaseOrderId) {
+  if (purchaseOrderId) {
     const po = await findPurchaseOrderInOrg(
       context.db,
       context.organizationId,
-      input.purchaseOrderId,
+      purchaseOrderId,
     );
     if (!po) throw new NotFoundError('Purchase order');
     if (po.vendorId !== input.vendorId) {
@@ -157,6 +163,15 @@ export async function createApBill(context: OrgContext, raw: CreateApBillInput) 
         'ap.errors.currencyMismatch',
       );
     }
+    // Inherit project from PO when omitted so recognition lands on project financials.
+    if (!projectId && po.projectId) {
+      projectId = po.projectId;
+    }
+  }
+
+  if (projectId) {
+    const project = await findProjectById(context.db, context.organizationId, projectId);
+    if (!project || project.archivedAt) throw new NotFoundError('Project');
   }
 
   for (const line of input.lines) {
@@ -167,7 +182,7 @@ export async function createApBill(context: OrgContext, raw: CreateApBillInput) 
       line.purchaseOrderLineId,
     );
     if (!poLine) throw new NotFoundError('Purchase order line');
-    if (input.purchaseOrderId && poLine.purchaseOrderId !== input.purchaseOrderId) {
+    if (purchaseOrderId && poLine.purchaseOrderId !== purchaseOrderId) {
       throw new DomainRuleError(
         'Bill line purchase order line must belong to the selected purchase order',
         'ap.errors.poLineMismatch',
@@ -196,8 +211,8 @@ export async function createApBill(context: OrgContext, raw: CreateApBillInput) 
   const bill = await insertApBill(context.db, {
     organizationId: context.organizationId,
     vendorId: input.vendorId,
-    projectId: input.projectId ?? null,
-    purchaseOrderId: input.purchaseOrderId ?? null,
+    projectId,
+    purchaseOrderId,
     reference: input.reference ?? null,
     status: 'open',
     billDate: input.billDate ?? null,
@@ -222,6 +237,31 @@ export async function createApBill(context: OrgContext, raw: CreateApBillInput) 
     })),
   );
 
+  // Posted PO-linked bill → consume commitment by bill total (Actual recognition path).
+  if (purchaseOrderId) {
+    const openCommitted = await findOpenCommittedCostForPo(
+      context.db,
+      context.organizationId,
+      purchaseOrderId,
+    );
+    if (openCommitted) {
+      const { consumeAmount } = consumeAmountForPostedPoBill({
+        openCommitmentAmount: openCommitted.amount,
+        billTotal: bill.totalAmount,
+        currency: openCommitted.currency,
+      });
+      const next = computeCommittedAfterConsumption({
+        openAmount: openCommitted.amount,
+        consumeAmount,
+        currency: openCommitted.currency,
+      });
+      await updateCommittedCostConsumption(context.db, context.organizationId, openCommitted.id, {
+        amount: next.remainingAmount,
+        status: next.status,
+      });
+    }
+  }
+
   await noteModuleUsage(context.db, context.organizationId, 'procurement');
 
   await recordAuditEvent(context, {
@@ -233,6 +273,7 @@ export async function createApBill(context: OrgContext, raw: CreateApBillInput) 
       status: bill.status,
       totalAmount: bill.totalAmount,
       expenseCreated: false,
+      recognizedVendorActual: true,
     },
   });
 

@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/select';
 import { MoneyInput } from '@/components/patterns/money-input';
 import { money } from '@/shared/money/money';
-import type { CostCategoryRow, ProjectOption } from '@/modules/expenses/domain/types';
+import type { AllocationMethod, CostCategoryRow, ProjectOption } from '@/modules/expenses/domain/types';
 
 const OVERHEAD_VALUE = '__overhead__';
 
@@ -26,11 +26,12 @@ export interface AllocationDraft {
   projectId: string | null;
   workPackageId: string | null;
   costCategoryId: string | null;
-  method: 'manual_amount' | 'manual_percent';
+  method: AllocationMethod;
   amount: string;
   percent: string;
   notes: string;
   sortOrder: number;
+  amountBasis?: 'gross' | 'net';
 }
 
 export interface AllocationEditorProps {
@@ -41,6 +42,8 @@ export interface AllocationEditorProps {
   readonly value: AllocationDraft[];
   readonly onChange: (value: AllocationDraft[]) => void;
   readonly disabled?: boolean;
+  /** Recurrence / period label shown for overhead clarity. */
+  readonly periodLabel?: string;
 }
 
 function newLineId(): string {
@@ -74,6 +77,7 @@ export function AllocationEditor({
   value,
   onChange,
   disabled = false,
+  periodLabel,
 }: AllocationEditorProps) {
   const t = useTranslations('expenses');
   const tCommon = useTranslations('common');
@@ -96,10 +100,19 @@ export function AllocationEditor({
     onChange(value.filter((_, i) => i !== index).map((line, i) => ({ ...line, sortOrder: i })));
   }
 
+  const projectNames = value
+    .filter((line) => line.targetType === 'project' && line.projectId)
+    .map((line) => projects.find((project) => project.id === line.projectId)?.name)
+    .filter((name): name is string => Boolean(name));
+  const methodsUsed = [...new Set(value.map((line) => line.method))];
+
   return (
     <div className="flex min-w-0 flex-col gap-3">
       <div className="flex min-w-0 flex-wrap items-center justify-between gap-2">
-        <h4 className="min-w-0 text-start text-sm font-medium">{t('allocation.title')}</h4>
+        <div className="min-w-0 text-start">
+          <h4 className="text-sm font-medium">{t('allocation.title')}</h4>
+          <p className="mt-0.5 text-xs text-[var(--pf-text-muted)]">{t('allocation.subtitle')}</p>
+        </div>
         <Button
           type="button"
           variant="secondary"
@@ -113,8 +126,44 @@ export function AllocationEditor({
         </Button>
       </div>
 
+      {(periodLabel || projectNames.length > 0 || methodsUsed.length > 0) && value.length > 0 ? (
+        <dl className="grid min-w-0 gap-1 rounded-md border border-[var(--pf-border-default)] px-3 py-2 text-xs text-[var(--pf-text-secondary)] sm:grid-cols-3">
+          {periodLabel ? (
+            <div>
+              <dt className="text-[var(--pf-text-muted)]">{t('allocation.period')}</dt>
+              <dd>{periodLabel}</dd>
+            </div>
+          ) : null}
+          {methodsUsed.length > 0 ? (
+            <div>
+              <dt className="text-[var(--pf-text-muted)]">{t('allocation.method')}</dt>
+              <dd>
+                {methodsUsed
+                  .map((method) => {
+                    if (method === 'manual_percent') return t('allocation.methods.percent');
+                    if (method === 'manual_amount') return t('allocation.methods.amount');
+                    return t(`allocation.methods.${method}` as 'allocation.methods.equal_split');
+                  })
+                  .join(', ')}
+              </dd>
+            </div>
+          ) : null}
+          <div className="min-w-0 sm:col-span-1">
+            <dt className="text-[var(--pf-text-muted)]">{t('allocation.projectsLabel')}</dt>
+            <dd className="break-words">
+              {projectNames.length > 0 ? projectNames.join(', ') : t('allocation.unallocatedCallout')}
+            </dd>
+          </div>
+        </dl>
+      ) : null}
+
       {value.length === 0 ? (
-        <p className="text-start text-sm text-[var(--pf-text-muted)]">{t('allocation.empty')}</p>
+        <p
+          role="status"
+          className="rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-muted)] px-3 py-2 text-start text-sm text-[var(--pf-text-secondary)]"
+        >
+          {t('allocation.unallocatedCallout')}
+        </p>
       ) : null}
 
       {value.map((line, index) => {
@@ -154,37 +203,35 @@ export function AllocationEditor({
             </Field>
 
             <Field label={t('allocation.methodRow', { row: rowNumber })}>
-              {(controlProps) => (
-                <Select
-                  value={line.method}
-                  onValueChange={(method) =>
-                    updateLine(index, { method: method as AllocationDraft['method'] })
-                  }
-                  disabled={disabled}
-                >
-                  <SelectTrigger {...controlProps}>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="manual_amount">{t('allocation.methods.amount')}</SelectItem>
-                    <SelectItem value="manual_percent">{t('allocation.methods.percent')}</SelectItem>
-                  </SelectContent>
-                </Select>
-              )}
+              {(controlProps) =>
+                line.method === 'manual_amount' || line.method === 'manual_percent' ? (
+                  <Select
+                    value={line.method}
+                    onValueChange={(method) =>
+                      updateLine(index, { method: method as AllocationDraft['method'] })
+                    }
+                    disabled={disabled}
+                  >
+                    <SelectTrigger {...controlProps}>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="manual_amount">{t('allocation.methods.amount')}</SelectItem>
+                      <SelectItem value="manual_percent">{t('allocation.methods.percent')}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <Input
+                    {...controlProps}
+                    readOnly
+                    value={t(`allocation.methods.${line.method}`)}
+                    disabled
+                  />
+                )
+              }
             </Field>
 
-            {line.method === 'manual_amount' ? (
-              <Field label={t('allocation.amountRow', { row: rowNumber })}>
-                {(controlProps) => (
-                  <MoneyInput
-                    {...controlProps}
-                    value={line.amount}
-                    onValueChange={(amount) => updateLine(index, { amount })}
-                    disabled={disabled}
-                  />
-                )}
-              </Field>
-            ) : (
+            {line.method === 'manual_percent' ? (
               <Field label={t('allocation.percentRow', { row: rowNumber })}>
                 {(controlProps) => (
                   <Input
@@ -193,6 +240,17 @@ export function AllocationEditor({
                     value={line.percent}
                     onChange={(event) => updateLine(index, { percent: event.target.value })}
                     disabled={disabled}
+                  />
+                )}
+              </Field>
+            ) : (
+              <Field label={t('allocation.amountRow', { row: rowNumber })}>
+                {(controlProps) => (
+                  <MoneyInput
+                    {...controlProps}
+                    value={line.amount}
+                    onValueChange={(amount) => updateLine(index, { amount })}
+                    disabled={disabled || (line.method !== 'manual_amount' && line.method !== 'manual_percent')}
                   />
                 )}
               </Field>

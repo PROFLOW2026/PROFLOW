@@ -6,16 +6,21 @@ import { Button } from '@/components/ui/button';
 import { ConfirmAction } from '@/components/patterns/confirm-action';
 import { MoneyText } from '@/components/patterns/money-text';
 import { isBrowserOnline } from '@/modules/offline';
+import type { ExpenseDetail } from '@/modules/expenses/domain/types';
 import type { BusinessDate } from '@/shared/dates/dates';
 import { formatBusinessDate } from '@/shared/dates/format';
 import type { MoneyValue } from '@/shared/money/money';
-import { finalizeExpenseAction, voidExpenseAction } from '../actions';
+import { finalizeExpenseAction, reverseExpenseAction, voidExpenseAction } from '../actions';
+import { ExpenseCorrectDialog } from './expense-correct-dialog';
 
 export interface ExpenseDetailActionsProps {
   readonly expenseId: string;
   readonly status: 'draft' | 'finalized' | 'void';
   readonly canFinalize: boolean;
   readonly canVoid: boolean;
+  readonly canReverse?: boolean;
+  readonly canCorrect?: boolean;
+  readonly expense?: ExpenseDetail;
   readonly amount: MoneyValue;
   readonly expenseDate: BusinessDate;
 }
@@ -33,6 +38,9 @@ export function ExpenseDetailActions({
   status,
   canFinalize,
   canVoid,
+  canReverse = false,
+  canCorrect = false,
+  expense,
   amount,
   expenseDate,
 }: ExpenseDetailActionsProps) {
@@ -41,7 +49,7 @@ export function ExpenseDetailActions({
   const locale = useLocale();
   const [offlineFinalizeError, setOfflineFinalizeError] = useState<string | null>(null);
 
-  if (status !== 'draft' && !canVoid) return null;
+  if (status !== 'draft' && !canVoid && !canReverse && !canCorrect) return null;
 
   const moneyAndDate = {
     amount: () => <MoneyText value={amount} />,
@@ -76,9 +84,27 @@ export function ExpenseDetailActions({
               setOfflineFinalizeError(null);
               return finalizeExpenseAction(expenseId);
             }}
+            trigger={<Button type="button">{t('actions.finalize')}</Button>}
+          />
+        ) : null}
+
+        {canCorrect && expense ? <ExpenseCorrectDialog expense={expense} /> : null}
+
+        {canReverse ? (
+          <ConfirmAction
+            title={t('confirm.reverseTitle')}
+            description={
+              <>
+                <p>{t.rich('confirm.reverseQuestion', moneyAndDate)}</p>
+                <p>{t('confirm.reverseConsequence')}</p>
+              </>
+            }
+            confirmLabel={t('actions.reverse')}
+            successMessage={t('confirm.reverseSuccess')}
+            onConfirm={() => reverseExpenseAction(expenseId)}
             trigger={
-              <Button type="button">
-                {t('actions.finalize')}
+              <Button type="button" variant="secondary">
+                {t('actions.reverse')}
               </Button>
             }
           />

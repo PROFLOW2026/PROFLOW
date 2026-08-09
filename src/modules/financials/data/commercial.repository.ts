@@ -47,7 +47,7 @@ export async function loadProjectCommercialData(
   const pendingResult = await db.execute(sql`
     select cr.status, cr.direction, cr.requested_amount, cr.currency,
       (
-        select qv.total_amount
+        select qv.subtotal_amount
         from quote_versions qv
         inner join quotes q on q.id = qv.quote_id
         where q.change_request_id = cr.id and qv.is_selected = true

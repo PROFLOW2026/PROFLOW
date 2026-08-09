@@ -64,7 +64,32 @@ export const expenseStatusEnum = pgEnum('expense_status', ['draft', 'finalized',
 
 export const allocationTargetEnum = pgEnum('allocation_target', ['project', 'overhead']);
 
-export const allocationMethodEnum = pgEnum('allocation_method', ['manual_amount', 'manual_percent']);
+export const allocationMethodEnum = pgEnum('allocation_method', [
+  'manual_amount',
+  'manual_percent',
+  'contract_weight',
+  'labor_hours_weight',
+  'direct_cost_weight',
+  'equal_split',
+]);
+
+/** Snapshot lifecycle for automatic allocation runs (Wave 2). */
+export const allocationRunStatusEnum = pgEnum('allocation_run_status', [
+  'draft',
+  'applied',
+  'superseded',
+]);
+
+/**
+ * How source NET is split into period slices before weight allocation (Wave 3).
+ * Independent of expense invoice recurrence.
+ */
+export const allocationScheduleModeEnum = pgEnum('allocation_schedule_mode', [
+  'one_time',
+  'monthly',
+  'annual',
+  'custom',
+]);
 
 export const vendorTypeEnum = pgEnum('vendor_type', ['supplier', 'subcontractor', 'both', 'other']);
 

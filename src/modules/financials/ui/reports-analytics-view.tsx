@@ -180,11 +180,18 @@ export async function ReportsAnalyticsView({
             />
             <MoneyReportMetricTile
               metric={analytics.cost.overhead}
-              copy={moneyCopy(analytics.cost.overhead, tFinancial('overheadActual'))}
+              copy={moneyCopy(analytics.cost.overhead, tFinancial('kpis.allocatedOverhead'))}
             />
             <MoneyReportMetricTile
               metric={analytics.cost.committed}
               copy={moneyCopy(analytics.cost.committed, tFinancial('committedOpen'))}
+            />
+            <MoneyReportMetricTile
+              metric={analytics.cost.expectedRemaining}
+              copy={moneyCopy(
+                analytics.cost.expectedRemaining,
+                tFinancial('kpis.expectedRemaining'),
+              )}
             />
             <MoneyReportMetricTile
               metric={analytics.cost.openAp}
@@ -194,8 +201,20 @@ export async function ReportsAnalyticsView({
               metric={analytics.cost.estimatedFinal}
               copy={moneyCopy(analytics.cost.estimatedFinal, tFinancial('estimatedFinalCost'))}
             />
+            {analytics.cost.unallocatedBusinessCosts ? (
+              <MoneyReportMetricTile
+                metric={analytics.cost.unallocatedBusinessCosts}
+                copy={moneyCopy(
+                  analytics.cost.unallocatedBusinessCosts,
+                  tFinancial('unallocatedBusinessCosts'),
+                )}
+              />
+            ) : null}
           </div>
           <p className="text-xs text-[var(--pf-text-secondary)]">{tFinancial('committedVsActual')}</p>
+          <p className="text-xs text-[var(--pf-text-secondary)]">
+            {tFinancial('orgCostReconciliationHint')}
+          </p>
         </section>
       ) : null}
 
@@ -209,10 +228,18 @@ export async function ReportsAnalyticsView({
           </div>
           <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
             <MoneyReportMetricTile
+              metric={analytics.profitability.actualProfit}
+              copy={moneyCopy(
+                analytics.profitability.actualProfit,
+                tFinancial('kpis.actualMargin'),
+              )}
+              colorizeNegative
+            />
+            <MoneyReportMetricTile
               metric={analytics.profitability.estimatedProfit}
               copy={moneyCopy(
                 analytics.profitability.estimatedProfit,
-                tFinancial('estimatedProfitBasedOnEnteredData'),
+                tFinancial('kpis.forecastMargin'),
               )}
               colorizeNegative
             />

@@ -29,6 +29,7 @@ export function ExpenseCaptureForm({
   initialProjectId,
 }: ExpenseCaptureFormProps) {
   const tCommon = useTranslations('common');
+  const t = useTranslations('expenses');
   const tOffline = useTranslations('offline');
 
   const offlineSuccessState = useMemo<ExpenseActionState>(
@@ -68,7 +69,7 @@ export function ExpenseCaptureForm({
         workPackages={workPackages}
         vendors={vendors}
         initialValues={{
-          targeting: initialProjectId ?? '__none__',
+          targeting: initialProjectId ?? '__overhead__',
           projectId: initialProjectId,
         }}
         error={state.error ?? null}
@@ -79,7 +80,7 @@ export function ExpenseCaptureForm({
           ? tCommon('states.saving')
           : state.offlineQueued
             ? tOffline('forms.saveAnotherDraft')
-            : tCommon('actions.save')}
+            : t('actions.saveDraft')}
       </Button>
     </form>
   );

@@ -1,4 +1,5 @@
 {
+  "panelTitle": "כספים של הפרויקט",
   "originalContractValue": "סכום חוזה מקורי",
   "approvedChanges": "שינויים מאושרים",
   "approvedAdditions": "תוספות מאושרות",
@@ -12,7 +13,7 @@
   "outstanding": "יתרה לגבייה",
   "actualCostToDate": "עלות בפועל עד היום",
   "estimatedFinalCost": "עלות סופית משוערת (לפי נתונים שהוזנו)",
-  "estimatedFinalCostHint": "שווה לעלות בפועל עד שמוזנת עלות נותרת.",
+  "estimatedFinalCostHint": "תחזית עלות סופית = בפועל + התחייבויות שנותרו + עלות צפויה שנותרה.",
   "estimatedProfit": "רווח משוער",
   "estimatedProfitBasedOnEnteredData": "רווח משוער על בסיס הנתונים שהוזנו",
   "margin": "שיעור רווח",
@@ -22,13 +23,62 @@
   "metricNature": {
     "actual": "בפועל",
     "committed": "התחייבויות",
-    "forecast": "תחזית"
+    "forecast": "תחזית",
+    "commercial": "מסחרי"
+  },
+  "kpis": {
+    "currentContract": "חוזה נוכחי",
+    "currentContractHint": "חוזה מקורי ± שינויים מאושרים. שינויים ממתינים נשארים בחוץ.",
+    "pendingNotInContract": "לא נכלל בחוזה הנוכחי עד לאישור.",
+    "actualCost": "עלות בפועל",
+    "actualCostHint": "עלויות ישירות סופיות, עבודה, ספקים, משותף ותקורה שהוקצתה לפרויקט. טיוטות לא נכללות. מע״מ לא נכלל.",
+    "allocatedOverhead": "תקורה מוקצית",
+    "allocatedOverheadHint": "חלק מתקורת העסק שהוקצה לפרויקט זה. תקורה שלא הוקצתה לא תופיע כאן.",
+    "allocatedOverheadSourceHint": "משורות הקצאה סופיות שמכוונות לפרויקט זה.",
+    "committed": "התחייבויות",
+    "committedHint": "התחייבות בהזמנת רכש פתוחה — לא עלות בפועל. נשארת נפרדת עד לצריכה.",
+    "forecast": "תחזית עלות",
+    "forecastHint": "עלות בפועל + התחייבויות שנותרו + עלות צפויה שנותרה (ETC), בלי ספירה כפולה.",
+    "forecastEqualsActualHint": "התחזית שווה לעלות בפועל כשאין התחייבויות פתוחות ואין עלות צפויה שנותרה.",
+    "expectedRemaining": "עלות צפויה שנותרה",
+    "expectedRemainingHint": "ETC שהוזן בפרויקט — לא התחייבויות הזמנת רכש.",
+    "expectedRemainingSaved": "העלות הצפויה שנותרה נשמרה.",
+    "committedInForecastHint": "יתרת התחייבות בהזמנת רכש נכללת פעם אחת בתחזית העלות הסופית.",
+    "billed": "חויב",
+    "billedHint": "סכום שחויב בפרויקט — לא שולם ולא חוזה נוכחי.",
+    "paid": "שולם",
+    "paidHint": "מזומן שנגבה מול חיובים בפרויקט.",
+    "outstanding": "יתרה לגבייה",
+    "outstandingHint": "חויב פחות שולם (נטו מזיכויים). תחזית גבייה, לא שולם.",
+    "actualMargin": "מרווח בפועל",
+    "actualMarginHint": "חוזה נוכחי − עלות בפועל (נטו). לא נתון מזומן.",
+    "forecastMargin": "מרווח תחזית",
+    "forecastMarginHint": "חוזה נוכחי − תחזית עלות (נטו).",
+    "forecastMarginEqualsActualHint": "זהה למרווח בפועל כל עוד תחזית העלות שווה לעלות בפועל."
+  },
+  "drillLinks": {
+    "viewChanges": "פתיחת שינויים בפרויקט",
+    "viewFinalizedExpenses": "צפייה בהוצאות שאושרו לפרויקט",
+    "viewProjectExpenses": "צפייה בכל הוצאות הפרויקט",
+    "projectExpensesTab": "מעבר ללשונית הוצאות",
+    "viewOverheadOnProject": "צפייה בתקורה שהוקצתה לפרויקט",
+    "viewAllExpenses": "עיון בהוצאות",
+    "viewPurchaseOrders": "פתיחת הזמנות רכש",
+    "viewVendorBills": "פתיחת חשבונות ספק",
+    "projectBillingTab": "מעבר ללשונית חיובים",
+    "viewBilling": "עיון בחיובים",
+    "viewPaidBilling": "עיון בחיובים ששולמו",
+    "viewOutstandingBilling": "עיון ביתרות לגבייה"
   },
   "laborActual": "עבודה (בפועל)",
   "vendorActual": "ספקים / קבלני משנה (בפועל)",
   "overheadActual": "תקורה (בפועל)",
   "committedOpen": "התחייבויות (הזמנת רכש פתוחה)",
   "committedVsActual": "התחייבויות נשארות נפרדות מבפועל — אינן הוצאה",
+  "unallocatedBusinessCosts": "עלויות עסק שלא הוקצו",
+  "unallocatedBusinessCostsHint": "עלויות הממתינות להקצאה — נספרות בסיכום הוצאות הארגון, לא ברווחיות הפרויקט.",
+  "costsAwaitingAllocation": "עלויות הממתינות להקצאה",
+  "orgCostReconciliationHint": "סך עלויות הפרויקטים (שכבת הוצאות) + עלויות ארגון שלא הוקצו = סך הוצאות הארגון שאושרו. עלות עבודה מרישומי זמן היא ברמת פרויקט בלבד ואינה חלק ממשוואת ההוצאות.",
   "openApPayable": "חשבונות ספקים פתוחים שלא הותאמו (תחזית)",
   "openApPayableHint": "תחזית לפי חשבונות ספק פתוחים — לא עלות בפועל",
   "coverage": {
@@ -51,7 +101,8 @@
       "foreignCurrencyBilling": "{count, plural, one {רשומת חיוב אחת במטבע אחר — לא נכללה בסכום} two {שתי רשומות חיוב במטבע אחר — לא נכללו בסכום} other {{count} רשומות חיוב במטבע אחר — לא נכללו בסכום}}",
       "foreignCurrencyCommitted": "{count, plural, one {התחייבות אחת במטבע אחר — לא נכללה בסכום} two {שתי התחייבויות במטבע אחר — לא נכללו בסכום} other {{count} התחייבויות במטבע אחר — לא נכללו בסכום}}",
       "foreignCurrencyAp": "{count, plural, one {חשבון ספק אחד במטבע אחר — לא נכלל בסכום} two {שני חשבונות ספק במטבע אחר — לא נכללו בסכום} other {{count} חשבונות ספק במטבע אחר — לא נכללו בסכום}}",
-      "workforceEntriesMissingCost": "{count, plural, one {לרישום שעות אחד לא היה תעריף בתאריך — עלות העובדים נמוכה מהמציאות} two {לשני רישומי שעות לא היה תעריף בתאריך — עלות העובדים נמוכה מהמציאות} other {ל-{count} רישומי שעות לא היה תעריף בתאריך — עלות העובדים נמוכה מהמציאות}}"
+      "workforceEntriesMissingCost": "{count, plural, one {לרישום שעות אחד לא היה תעריף בתאריך — עלות העובדים נמוכה מהמציאות} two {לשני רישומי שעות לא היה תעריף בתאריך — עלות העובדים נמוכה מהמציאות} other {ל-{count} רישומי שעות לא היה תעריף בתאריך — עלות העובדים נמוכה מהמציאות}}",
+      "laborCategoryExcludedForWorkforce": "{count, plural, one {הוצאת עבודה אחת לא נכללה כי עלות עובדים לפי שעות כבר כלולה בפרויקט} two {שתי הוצאות עבודה לא נכללו כי עלות עובדים לפי שעות כבר כלולה בפרויקט} other {{count} הוצאות עבודה לא נכללו כי עלות עובדים לפי שעות כבר כלולה בפרויקט}}"
     }
   },
   "costFamilies": {

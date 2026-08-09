@@ -11,7 +11,19 @@ export interface MoneyInputProps extends Omit<InputProps, 'type' | 'numeric' | '
   currencySymbol?: string;
 }
 
-const ALLOWED = /^[0-9]*[.,]?[0-9]*$/;
+/**
+ * Normalize typed money text:
+ * - Commas are thousands separators (so 52,000 → 52000), never a decimal.
+ * - Period is the only decimal separator.
+ */
+export function normalizeMoneyInputText(raw: string): string | null {
+  const trimmed = raw.trim();
+  if (trimmed === '') return '';
+  if (!/^[0-9.,]*$/.test(trimmed)) return null;
+  const withoutThousands = trimmed.replace(/,/g, '');
+  if (!/^[0-9]*\.?[0-9]*$/.test(withoutThousands)) return null;
+  return withoutThousands;
+}
 
 /**
  * Money entry keeps the user's text as a decimal string all the way to the
@@ -23,9 +35,9 @@ export const MoneyInput = React.forwardRef<HTMLInputElement, MoneyInputProps>(fu
   ref,
 ) {
   function handleChange(event: React.ChangeEvent<HTMLInputElement>) {
-    const next = event.target.value.trim();
-    if (next === '' || ALLOWED.test(next)) {
-      onValueChange(next.replace(',', '.'));
+    const normalized = normalizeMoneyInputText(event.target.value);
+    if (normalized !== null) {
+      onValueChange(normalized);
     }
   }
 

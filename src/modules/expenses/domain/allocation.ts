@@ -8,31 +8,50 @@ import {
   money,
   moneyEquals,
   percentOfMoney,
+  roundMoney,
   subtractMoney,
   sumMoney,
   toDecimalValue,
   type MoneyValue,
 } from '@/shared/money';
-import type { AllocationLineInput, AllocationMethod, ResolvedAllocationLine } from './types';
+import type {
+  AllocationAmountBasis,
+  AllocationLineInput,
+  AllocationMethod,
+  AllocationRunExplanation,
+  ProjectWeightBasis,
+  ResolvedAllocationLine,
+  WeightAllocationMethod,
+} from './types';
+import { isWeightAllocationMethod } from './types';
 
 /**
  * Validates and resolves allocation lines so their amounts sum exactly to the
- * expense gross total (doc 04 §8).
+ * allocatable total (gross for legacy manual capture; net for automatic drivers).
  *
- * Percentage lines apply to the full expense amount; fixed-amount lines use the
- * entered value. Rounding residue lands on the last line.
+ * Percentage lines apply to the full allocatable amount; fixed-amount lines use
+ * the entered value. Rounding residue lands on the last line (deterministic).
  */
 export function resolveAllocationLines(
-  grossAmount: MoneyValue,
+  allocatableAmount: MoneyValue,
   lines: readonly AllocationLineInput[],
+  options?: { readonly defaultAmountBasis?: AllocationAmountBasis },
 ): ResolvedAllocationLine[] {
   if (lines.length === 0) return [];
 
   validateAllocationTargets(lines);
 
+  const defaultBasis = options?.defaultAmountBasis ?? 'gross';
   const resolvedAmounts: MoneyValue[] = [];
 
   for (const line of lines) {
+    if (isWeightAllocationMethod(line.method)) {
+      throw new DomainRuleError(
+        'Weight allocation methods must be resolved via allocateByProjectWeights',
+        'expenses.errors.useWeightAllocator',
+      );
+    }
+
     if (line.method === 'manual_amount') {
       if (!line.amount?.trim()) {
         throw new DomainRuleError(
@@ -40,7 +59,7 @@ export function resolveAllocationLines(
           'expenses.errors.allocationAmountRequired',
         );
       }
-      resolvedAmounts.push(money(line.amount, grossAmount.currency));
+      resolvedAmounts.push(money(line.amount, allocatableAmount.currency));
       continue;
     }
 
@@ -50,10 +69,10 @@ export function resolveAllocationLines(
         'expenses.errors.allocationPercentRequired',
       );
     }
-    resolvedAmounts.push(percentOfMoney(grossAmount, line.percent));
+    resolvedAmounts.push(percentOfMoney(allocatableAmount, line.percent));
   }
 
-  distributeRoundingResidue(grossAmount, resolvedAmounts);
+  distributeRoundingResidue(allocatableAmount, resolvedAmounts);
 
   return lines.map((line, index) => ({
     targetType: line.targetType,
@@ -65,23 +84,160 @@ export function resolveAllocationLines(
     percent: line.method === 'manual_percent' ? normalisePercent(line.percent!) : null,
     notes: line.notes ?? null,
     sortOrder: line.sortOrder,
+    amountBasis: line.amountBasis ?? defaultBasis,
   }));
 }
 
-function distributeRoundingResidue(grossAmount: MoneyValue, resolvedAmounts: MoneyValue[]): void {
-  const total = sumMoney(resolvedAmounts, grossAmount.currency);
-  if (moneyEquals(total, grossAmount)) return;
+/**
+ * Automatic shared/overhead allocation by project weights.
+ * SUM(amounts) = allocatableNet exactly; residue on the last project (id-sorted).
+ */
+export function allocateByProjectWeights(input: {
+  readonly allocatableNet: MoneyValue;
+  readonly method: WeightAllocationMethod;
+  readonly periodStart: string;
+  readonly periodEnd: string;
+  readonly bases: readonly ProjectWeightBasis[];
+  readonly costCategoryId?: string | null;
+  readonly sourceExpenseId?: string;
+}): {
+  readonly lines: ResolvedAllocationLine[];
+  readonly explanation: AllocationRunExplanation;
+} {
+  const { allocatableNet, method, bases } = input;
 
-  const residue = subtractMoney(grossAmount, total);
-  const scale = displayScaleFor(grossAmount.currency);
+  if (bases.length === 0) {
+    throw new DomainRuleError(
+      'No eligible projects for allocation',
+      'expenses.errors.allocationNoEligibleProjects',
+    );
+  }
+
+  const sorted = bases.slice().sort((a, b) => a.projectId.localeCompare(b.projectId));
+  const basisUnit = sorted[0]!.basisUnit;
+  if (sorted.some((row) => row.basisUnit !== basisUnit)) {
+    throw new DomainRuleError(
+      'Allocation bases must share a single unit',
+      'expenses.errors.allocationBasisUnitMismatch',
+    );
+  }
+
+  const basisDecimals = sorted.map((row) => {
+    const value = new Decimal(row.basisValue);
+    if (value.isNegative()) {
+      throw new DomainRuleError(
+        'Allocation basis values cannot be negative',
+        'expenses.errors.allocationBasisNegative',
+      );
+    }
+    return { projectId: row.projectId, basis: value };
+  });
+
+  const totalBasis = basisDecimals.reduce((acc, row) => acc.plus(row.basis), new Decimal(0));
+  if (totalBasis.isZero()) {
+    throw new DomainRuleError(
+      'Allocation basis total is zero — cannot allocate',
+      'expenses.errors.allocationBasisZero',
+    );
+  }
+
+  // equal_split: unit basis of 1 per full-slice project, or active-day counts
+  // after partial-month exposure (positive count required).
+  if (method === 'equal_split') {
+    for (const row of basisDecimals) {
+      if (row.basis.lte(0)) {
+        throw new DomainRuleError(
+          'equal_split requires a positive unit/active-day basis per project',
+          'expenses.errors.equalSplitBasisInvalid',
+        );
+      }
+    }
+  }
+
+  const scale = displayScaleFor(allocatableNet.currency);
+  const amounts: MoneyValue[] = [];
+  let allocated = money('0', allocatableNet.currency);
+
+  for (let index = 0; index < basisDecimals.length; index += 1) {
+    const row = basisDecimals[index]!;
+    if (index === basisDecimals.length - 1) {
+      amounts.push(subtractMoney(allocatableNet, allocated));
+      break;
+    }
+    const raw = toDecimalValue(allocatableNet).times(row.basis).dividedBy(totalBasis);
+    const rounded = roundMoney(money(raw, allocatableNet.currency), scale);
+    amounts.push(rounded);
+    allocated = addMoney(allocated, rounded);
+  }
+
+  distributeRoundingResidue(allocatableNet, amounts);
+
+  const lines: ResolvedAllocationLine[] = basisDecimals.map((row, index) => {
+    const amount = amounts[index]!;
+    const percent = toDecimalValue(allocatableNet).isZero()
+      ? '0.0000'
+      : toDecimalValue(amount).times(100).dividedBy(toDecimalValue(allocatableNet)).toFixed(4);
+    return {
+      targetType: 'project' as const,
+      projectId: row.projectId,
+      workPackageId: null,
+      costCategoryId: input.costCategoryId ?? null,
+      method,
+      amount,
+      percent,
+      notes: null,
+      sortOrder: index,
+      amountBasis: 'net' as const,
+    };
+  });
+
+  const explanation: AllocationRunExplanation = {
+    sourceExpenseId: input.sourceExpenseId,
+    method,
+    amountBasis: 'net',
+    allocatableNet,
+    periodStart: input.periodStart,
+    periodEnd: input.periodEnd,
+    eligibleProjectIds: lines.map((line) => line.projectId!),
+    totalBasis: totalBasis.toFixed(6),
+    basisUnit,
+    lines: lines.map((line, index) => ({
+      projectId: line.projectId!,
+      basisValue: basisDecimals[index]!.basis.toFixed(6),
+      percent: line.percent!,
+      amount: line.amount.amount,
+    })),
+  };
+
+  return { lines, explanation };
+}
+
+/** Builds equal-split bases (explicit method only — never a silent default). */
+export function equalSplitBases(projectIds: readonly string[]): ProjectWeightBasis[] {
+  return projectIds
+    .slice()
+    .sort((a, b) => a.localeCompare(b))
+    .map((projectId) => ({
+      projectId,
+      basisValue: '1',
+      basisUnit: 'count' as const,
+    }));
+}
+
+function distributeRoundingResidue(totalAmount: MoneyValue, resolvedAmounts: MoneyValue[]): void {
+  const total = sumMoney(resolvedAmounts, totalAmount.currency);
+  if (moneyEquals(total, totalAmount)) return;
+
+  const residue = subtractMoney(totalAmount, total);
+  const scale = displayScaleFor(totalAmount.currency);
   const minorUnit = new Decimal(10).pow(-scale);
   const tolerance = minorUnit.times(Math.max(resolvedAmounts.length, 1));
 
   if (toDecimalValue(absMoney(residue)).greaterThan(tolerance)) {
     throw new DomainRuleError(
-      `Allocation lines must sum to ${grossAmount.amount} ${grossAmount.currency}, received ${total.amount}`,
+      `Allocation lines must sum to ${totalAmount.amount} ${totalAmount.currency}, received ${total.amount}`,
       'expenses.errors.allocationSumMismatch',
-      { expected: grossAmount.amount, actual: total.amount },
+      { expected: totalAmount.amount, actual: total.amount },
     );
   }
 
@@ -89,10 +245,10 @@ function distributeRoundingResidue(grossAmount: MoneyValue, resolvedAmounts: Mon
   resolvedAmounts[lastIndex] = addMoney(resolvedAmounts[lastIndex]!, residue);
 }
 
-export function validateAllocationSum(grossAmount: MoneyValue, lineAmounts: readonly MoneyValue[]): void {
+export function validateAllocationSum(totalAmount: MoneyValue, lineAmounts: readonly MoneyValue[]): void {
   if (lineAmounts.length === 0) return;
-  const total = sumMoney(lineAmounts, grossAmount.currency);
-  if (!moneyEquals(total, grossAmount)) {
+  const total = sumMoney(lineAmounts, totalAmount.currency);
+  if (!moneyEquals(total, totalAmount)) {
     throw new DomainRuleError(
       'Allocation lines must sum exactly to the expense amount',
       'expenses.errors.allocationSumMismatch',
@@ -144,6 +300,7 @@ export function allocationFromPersisted(
     percent: string | null;
     notes: string | null;
     sortOrder: number;
+    amountBasis?: AllocationAmountBasis | null;
   }[],
 ): ResolvedAllocationLine[] {
   return rows.map((row) => ({
@@ -156,5 +313,6 @@ export function allocationFromPersisted(
     percent: row.percent,
     notes: row.notes,
     sortOrder: row.sortOrder,
+    amountBasis: row.amountBasis ?? 'gross',
   }));
 }

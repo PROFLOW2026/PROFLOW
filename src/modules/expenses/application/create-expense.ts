@@ -11,7 +11,9 @@ import { resolveExpenseCurrency } from '../domain/currency';
 import { isOverheadTargeting, resolveExpenseTargeting, assertNoAllocationsOnProjectExpense } from '../domain/targeting';
 import { encodeRecurrenceRule } from '../domain/recurrence';
 import { resolveTaxAmounts } from '../domain/tax';
+import { isWeightAllocationMethod } from '../domain/types';
 import type { AllocationLineInput } from '../domain/types';
+import { runAutomaticAllocation } from './run-automatic-allocation';
 import {
   findCostCategoryById,
   findDefaultWorkPackageId,
@@ -43,6 +45,7 @@ function mapAllocationsToInsert(
     percent: line.percent,
     notes: line.notes,
     sortOrder: line.sortOrder,
+    amountBasis: line.amountBasis,
   }));
 }
 
@@ -138,13 +141,60 @@ async function persistAllocations(
   }
 
   await validateAllocationReferences(context, allocationInputs);
-  const resolved = resolveAllocationLines(grossAmount, allocationInputs);
+  const resolved = resolveAllocationLines(grossAmount, allocationInputs, {
+    defaultAmountBasis: 'gross',
+  });
   await replaceExpenseAllocations(
     context.db,
     context.organizationId,
     expenseId,
     mapAllocationsToInsert(resolved),
   );
+}
+
+async function persistExpenseAllocations(
+  context: OrgContext,
+  expenseId: string,
+  input: CreateExpenseInput,
+  amounts: ReturnType<typeof resolveTaxAmounts>,
+  targeting: ReturnType<typeof resolveExpenseTargeting>,
+  costCategoryId: string | null,
+  runStatus: 'draft' | 'applied' = 'draft',
+): Promise<void> {
+  const driver = input.allocationDriverMethod ?? null;
+  const periodStart = input.allocationPeriodStart ?? null;
+  const periodEnd = input.allocationPeriodEnd ?? null;
+  const wantsAuto =
+    driver &&
+    isWeightAllocationMethod(driver) &&
+    periodStart &&
+    periodEnd &&
+    targeting.mode === 'overhead';
+
+  if (wantsAuto) {
+    if (input.allocations && input.allocations.length > 0) {
+      throw new DomainRuleError(
+        'Provide either manual allocation lines or an automatic driver, not both',
+        'expenses.errors.allocationManualAndAutoConflict',
+      );
+    }
+    await runAutomaticAllocation(context, {
+      expenseId,
+      costFamily: targeting.costFamily,
+      projectId: targeting.projectId,
+      costCategoryId,
+      netAmount: amounts.netAmount,
+      periodStart: businessDate(periodStart),
+      periodEnd: businessDate(periodEnd),
+      explicitMethod: driver,
+      eligibleProjectIds: input.allocationProjectIds,
+      scheduleMode: input.allocationScheduleMode ?? null,
+      runStatus,
+    });
+    return;
+  }
+
+  await persistAllocations(context, expenseId, amounts.grossAmount, input.allocations);
 }
 
 async function shouldNoteFirstOverheadUsage(
@@ -237,6 +287,12 @@ export async function buildExpensePayload(
       isRecurringTemplate: false,
       recurrenceRule,
       recurringTemplateId: null,
+      allocationPeriodStart: input.allocationPeriodStart
+        ? businessDate(input.allocationPeriodStart)
+        : null,
+      allocationPeriodEnd: input.allocationPeriodEnd ? businessDate(input.allocationPeriodEnd) : null,
+      allocationDriverMethod: input.allocationDriverMethod ?? null,
+      allocationScheduleMode: input.allocationScheduleMode ?? null,
       createdByUserId: context.userId,
     },
   };
@@ -249,7 +305,15 @@ export async function createExpense(context: OrgContext, input: CreateExpenseInp
   const noteOverhead = await shouldNoteFirstOverheadUsage(context, payload.targeting);
   const expenseId = await insertExpense(context.db, context.organizationId, payload.row);
 
-  await persistAllocations(context, expenseId, payload.amounts.grossAmount, input.allocations);
+  await persistExpenseAllocations(
+    context,
+    expenseId,
+    input,
+    payload.amounts,
+    payload.targeting,
+    payload.row.costCategoryId,
+    'draft',
+  );
   if (noteOverhead) {
     await noteModuleUsage(context.db, context.organizationId, 'overhead');
   }
@@ -267,4 +331,13 @@ export async function createExpense(context: OrgContext, input: CreateExpenseInp
   return created;
 }
 
-export { persistAllocations, shouldNoteFirstOverheadUsage, resolveWorkPackageId, validateCategory, validateVendor, validatePhase, validateAllocationReferences };
+export {
+  persistAllocations,
+  persistExpenseAllocations,
+  shouldNoteFirstOverheadUsage,
+  resolveWorkPackageId,
+  validateCategory,
+  validateVendor,
+  validatePhase,
+  validateAllocationReferences,
+};

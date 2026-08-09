@@ -8,15 +8,17 @@ import type {
 } from '@/modules/financials/domain/types';
 import type { OrgContext } from '@/shared/auth/context';
 import { NotFoundError } from '@/shared/errors';
-import { zeroMoney } from '@/shared/money';
+import { fromNumericString, zeroMoney } from '@/shared/money';
 import { hasPermission, assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
+import { composeVendorCostRecognition } from '@/modules/ap';
 import { excludeCommittedFromActualCost } from '@/modules/procurement';
 import { buildFinancialCoverage, defaultCostSourcePresence, mergeCoveragePartials } from '../domain/coverage';
 import {
   aggregateProjectCosts,
   emptyCostPosition,
   withCommittedAndApPayable,
+  withRecognizedVendorBills,
 } from '../domain/cost-aggregation';
 import { computeProfitPosition, roundProfitPosition } from '../domain/profit';
 import {
@@ -28,11 +30,15 @@ import {
   loadProjectCommercialData,
 } from '../data/commercial.repository';
 import {
+  loadRecognizedVendorBillsForProject,
   sumOpenApPayableForProject,
   sumOpenCommittedCostsForProject,
 } from '../data/committed-costs.repository';
 import { loadProjectExpenseContributions } from '../data/expenses.repository';
-import { assertProjectInOrg, findProjectCurrency } from '../data/projects.repository';
+import {
+  assertProjectInOrg,
+  findProjectForecastInputs,
+} from '../data/projects.repository';
 
 export async function getProjectFinancials(
   context: OrgContext,
@@ -43,12 +49,13 @@ export async function getProjectFinancials(
   const exists = await assertProjectInOrg(context.db, context.organizationId, projectId);
   if (!exists) throw new NotFoundError('Project');
 
-  const currency = await findProjectCurrency(
+  const forecastInputs = await findProjectForecastInputs(
     context.db,
     context.organizationId,
     projectId,
     context.organization.baseCurrency,
   );
+  const currency = forecastInputs.currency;
 
   const canReadCommercial = hasPermission(context, PERMISSIONS.CONTRACTS_READ);
   const canReadBilling = hasPermission(context, PERMISSIONS.BILLING_READ);
@@ -66,6 +73,7 @@ export async function getProjectFinancials(
     laborResult,
     committedResult,
     apResult,
+    recognizedVendorResult,
   ] = await Promise.all([
     canReadCommercial
       ? loadProjectCommercialData(context.db, context.organizationId, projectId)
@@ -107,6 +115,15 @@ export async function getProjectFinancials(
     canReadAp
       ? sumOpenApPayableForProject(context.db, context.organizationId, projectId, currency)
       : Promise.resolve(null),
+    // Posted vendor bills recognize Actual — requires AP read (not expenses alone).
+    canReadAp
+      ? loadRecognizedVendorBillsForProject(
+          context.db,
+          context.organizationId,
+          projectId,
+          currency,
+        )
+      : Promise.resolve(null),
   ]);
 
   const commercial: CommercialPosition | null = canReadCommercial
@@ -140,14 +157,39 @@ export async function getProjectFinancials(
 
   const laborInput = laborResult.laborInput;
 
+  // Exclude expenses linked to recognized bills so bill + expense never double-count.
+  const linkedExpenseIds = recognizedVendorResult?.linkedExpenseIds ?? new Set<string>();
+  const expensesForActual =
+    linkedExpenseIds.size === 0
+      ? expenseContributions
+      : expenseContributions.filter(
+          (line) => !line.expenseId || !linkedExpenseIds.has(line.expenseId),
+        );
+
+  const hasRecognizedBills = (recognizedVendorResult?.billCount ?? 0) > 0;
   const aggregated =
-    expenseContributions.length > 0 || laborInput?.hasWorkforceData
-      ? aggregateProjectCosts(expenseContributions, laborInput, currency)
+    expensesForActual.length > 0 || laborInput?.hasWorkforceData || hasRecognizedBills
+      ? aggregateProjectCosts(expensesForActual, laborInput, currency)
       : { cost: emptyCostPosition(currency), sources: defaultCostSourcePresence(), partials: [] };
 
   let { cost } = aggregated;
   const { sources, partials } = aggregated;
   const commitmentPartials: CoveragePartial[] = [];
+
+  if (recognizedVendorResult) {
+    const recognition = composeVendorCostRecognition({
+      currency,
+      recognizedBillAmounts: recognizedVendorResult.billAmounts,
+      linkedExpenseAmounts: [], // expenses already excluded upstream
+    });
+    cost = withRecognizedVendorBills(cost, recognition.netRecognizedVendorActual);
+    if (recognizedVendorResult.excludedForeignCurrencyCount > 0) {
+      commitmentPartials.push({
+        reason: 'foreign_currency_ap_excluded',
+        count: recognizedVendorResult.excludedForeignCurrencyCount,
+      });
+    }
+  }
 
   let committedOpen = zeroMoney(currency);
   if (committedResult) {
@@ -171,14 +213,19 @@ export async function getProjectFinancials(
     }
   }
 
-  // Hard separation: committed is reported beside actual, never folded in.
+  const expectedRemainingCost =
+    fromNumericString(forecastInputs.expectedRemainingCostAmount, currency) ??
+    zeroMoney(currency);
+
+  // Hard separation: committed is reported beside actual, never folded into Actual.
   excludeCommittedFromActualCost({
     actualExpenseTotal: cost.actualCostToDate.amount,
     committedOpenTotal: committedOpen.amount,
     currency,
   });
-  cost = withCommittedAndApPayable(cost, committedOpen, openApPayable);
-
+  // Forecast Final Cost = Actual (expenses + recognized bills) + Remaining Commitments + ETC.
+  // Open AP payable / vendor payments stay cash-only.
+  cost = withCommittedAndApPayable(cost, committedOpen, openApPayable, expectedRemainingCost);
   const coverage: FinancialCoverage = buildFinancialCoverage(
     sources,
     new Date(),
@@ -188,7 +235,11 @@ export async function getProjectFinancials(
   const profit =
     canReadProfit && commercial
       ? roundProfitPosition(
-          computeProfitPosition(commercial.currentContractValue, cost.estimatedFinalCost),
+          computeProfitPosition(
+            commercial.currentContractValue,
+            cost.estimatedFinalCost,
+            cost.actualCostToDate,
+          ),
         )
       : null;
 

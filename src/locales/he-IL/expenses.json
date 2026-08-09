@@ -3,13 +3,42 @@
   "subtitle": "רישום עלויות פרויקט והוצאות העסק במקום אחד.",
   "capture": {
     "title": "הוצאה חדשה",
-    "subtitle": "מספיק להזין סכום ולשמור. כל השאר אופציונלי."
+    "subtitle": "שמירה יוצרת טיוטה בלבד. ההוצאה נכנסת לעלויות הפרויקט אחרי אישור. להוצאות תפעול — הוסיפו שורות הקצאה כדי שלא תישאר תקורה לא מוקצית."
   },
   "detail": {
     "title": "הוצאה",
     "summary": "סיכום",
+    "draftBanner": "ההוצאה נשמרה כטיוטה ואינה נכללת עדיין בעלויות הפרויקט.",
+    "finalizedBanner": "ההוצאה אושרה ונכללת בעלויות הפרויקט.",
     "reversalOf": "ביטול של הוצאה {id}",
-    "viewVendor": "פתיחת ספק מקושר"
+    "adjustmentOf": "תיקון מחליף להוצאה {id}",
+    "viewVendor": "פתיחת ספק מקושר",
+    "correctionHistory": "היסטוריית תיקון",
+    "correctionHistoryHint": "המקור, הקיזוז וההחלפה נשארים גלויים. עלות בפועל נטו משתמשת בסכום המתוקן.",
+    "correctionRole": {
+      "original": "מקור",
+      "reversal": "קיזוז",
+      "replacement": "החלפה מתוקנת"
+    },
+    "correctionNet": "נטו אחרי תיקון"
+  },
+  "categoryPolicy": {
+    "title": "מדיניות הקטגוריה",
+    "family": "סעיף עלות",
+    "method": "שיטת הקצאה ברירת מחדל",
+    "period": "תקופה ברירת מחדל",
+    "none": "אין ברירת מחדל",
+    "overrideHint": "אפשר לשנות שיטה ותקופה למטה — ההוצאה שומרת על הדריסה שלכם.",
+    "fromPolicy": "ממדיניות הקטגוריה",
+    "overridden": "נדרס להוצאה זו"
+  },
+  "lifecycle": {
+    "draftHint": "שמירה יוצרת טיוטה בלבד. אשרו לעלות כשהסכום מוכן.",
+    "overheadUnallocatedWarning": "זו הוצאת תפעול בלי הקצאה לפרויקטים. היא לא תופיע בעלות בפועל או בתקורה המוקצית של אף פרויקט עד שתוסיפו שורות הקצאה.",
+    "overheadAllocatedHint": "שורות ההקצאה קובעות אילו פרויקטים מקבלים חלק מהתקורה.",
+    "allocationPeriod": "תקופה",
+    "allocationMethodSummary": "שיטה",
+    "allocationProjects": "פרויקטים"
   },
   "promoteVendor": {
     "title": "שמירה כספק",
@@ -19,18 +48,37 @@
   },
   "actions": {
     "add": "הוספת הוצאה",
-    "finalize": "סגירה",
-    "void": "ביטול"
+    "saveDraft": "שמירת טיוטה",
+    "finalize": "אישור לעלות בפועל",
+    "void": "ביטול",
+    "reverse": "קיזוז (היפוך)",
+    "correct": "תיקון הוצאה"
+  },
+  "correction": {
+    "title": "תיקון הוצאה",
+    "subtitle": "יוצר רשומת קיזוז למקור וטיוטת החלפה עם הסכומים המתוקנים. ההיסטוריה נשמרת.",
+    "amountLabel": "סכום מתוקן",
+    "submit": "יצירת תיקון",
+    "success": "נוצרה טיוטת תיקון. אשרו את ההחלפה כשהיא מוכנה.",
+    "exampleHint": "דוגמה: 52,000 ← 50,000 נשאר +52,000 מקור, −52,000 קיזוז, +50,000 החלפה (נטו 50,000)."
   },
   "confirm": {
-    "finalizeTitle": "סגירת הוצאה",
-    "finalizeQuestion": "לסגור את ההוצאה בסך <amount></amount> מתאריך <date></date>?",
-    "finalizeConsequence": "לאחר הסגירה לא ניתן לערוך את ההוצאה.",
-    "finalizeSuccess": "ההוצאה נסגרה.",
+    "finalizeTitle": "אישור הוצאה לעלות בפועל",
+    "finalizeQuestion": "לאשר את ההוצאה בסך <amount></amount> מתאריך <date></date> ולכלול אותה בעלות בפועל?",
+    "finalizeConsequence": "לאחר האישור לא ניתן לערוך את ההוצאה, והסכום ייכנס לעלות בפועל ולחישובי רווחיות (לפני מע״מ).",
+    "finalizeSuccess": "ההוצאה אושרה ונכללת בעלויות הפרויקט.",
     "voidTitle": "ביטול הוצאה",
     "voidQuestion": "לבטל את ההוצאה בסך <amount></amount> מתאריך <date></date>?",
     "voidConsequence": "ההוצאה תוצא מכל חישובי העלות.",
-    "voidSuccess": "ההוצאה בוטלה."
+    "voidSuccess": "ההוצאה בוטלה.",
+    "reverseTitle": "קיזוז הוצאה סופית",
+    "reverseQuestion": "ליצור רשומת קיזוז להוצאה בסך <amount></amount> מתאריך <date></date>?",
+    "reverseConsequence": "המקור נשמר בהיסטוריה. נוצרת הוצאה שלילית מקושרת שמאפסת את ההשפעה על עלות בפועל.",
+    "reverseSuccess": "נוצרה רשומת קיזוז.",
+    "correctTitle": "תיקון הוצאה סופית",
+    "correctQuestion": "ליצור קיזוז וטיוטה מתוקנת להוצאה בסך <amount></amount> מתאריך <date></date>?",
+    "correctConsequence": "המקור נשמר בהיסטוריה. נוצר קיזוז שמאזן אותו, וטיוטה חדשה עם הסכום המתוקן.",
+    "correctSuccess": "התיקון נוצר."
   },
   "fields": {
     "amount": "סכום",
@@ -63,7 +111,7 @@
     "category": "קטגוריה (אופציונלי)"
   },
   "targeting": {
-    "none": "ללא פרויקט (תפעול)",
+    "none": "הוצאות תפעול (ללא פרויקט)",
     "overhead": "הוצאות תפעול"
   },
   "costFamilies": {
@@ -102,7 +150,8 @@
     "monthly": "חודשי",
     "quarterly": "רבעוני",
     "yearly": "שנתי",
-    "custom": "מותאם"
+    "custom": "מותאם",
+    "date_range": "טווח תאריכים / תקופה שנתית"
   },
   "filters": {
     "dateFrom": "מתאריך",
@@ -134,12 +183,15 @@
     }
   },
   "allocation": {
-    "title": "פיצול הקצאה",
+    "title": "הקצאה לפרויקטים",
+    "subtitle": "בלי שורות הקצאה, תקורה כללית/משותפת לא נכנסת לעלות של אף פרויקט.",
     "addLine": "שורה חדשה",
     "removeLine": "הסרה",
-    "empty": "פצלו הוצאה בין פרויקטים או תפעול כשחשבונית אחת מכסה כמה יעדים.",
+    "empty": "הוסיפו שורות כדי לראות שיטה, תקופה ואילו פרויקטים מקבלים חלק.",
     "target": "יעד",
     "method": "שיטה",
+    "period": "תקופה (תדירות)",
+    "projectsLabel": "פרויקטים בהקצאה זו",
     "targetRow": "יעד – שורה {row}",
     "methodRow": "שיטה – שורה {row}",
     "amountRow": "סכום – שורה {row}",
@@ -148,9 +200,19 @@
     "selectTarget": "בחרו פרויקט או תפעול",
     "methods": {
       "amount": "סכום קבוע",
-      "percent": "אחוז"
+      "percent": "אחוז",
+      "contract_weight": "לפי משקל חוזה",
+      "labor_hours_weight": "לפי שעות עבודה",
+      "direct_cost_weight": "לפי עלות ישירה",
+      "equal_split": "חלוקה שווה"
     },
-    "sumHintPrefix": "השורות חייבות להסתכם בדיוק ב"
+    "driverLabel": "שיטת חלוקה אוטומטית",
+    "driverManual": "ידני (שורות הקצאה)",
+    "periodStart": "תחילת תקופת הקצאה",
+    "periodEnd": "סוף תקופת הקצאה",
+    "autoDriverHint": "המערכת תחלק את הנטו בין פרויקטים זכאים בתקופה לפי השיטה שנבחרה, ותשמור צילום היסטורי.",
+    "sumHintPrefix": "השורות חייבות להסתכם בדיוק ב",
+    "unallocatedCallout": "עדיין לא נבחרו פרויקטים — התקורה לא תיכנס לעלות בפועל של פרויקט."
   },
   "errors": {
     "workPackageRequiresProject": "תחום עבודה דורש פרויקט.",
@@ -166,6 +228,12 @@
     "notFinalizable": "ניתן לסגור רק הוצאות בטיוטה.",
     "notVoidable": "ניתן לבטל רק הוצאות סגורות.",
     "reversalNotVoidable": "לא ניתן לבטל שוב רשומת ביטול.",
+    "alreadyReversed": "להוצאה הזו כבר יש רשומת ביטול/קיזוז.",
+    "notReversible": "ניתן ליצור קיזוז רק להוצאות שאושרו לעלות.",
+    "reversalNotReversible": "לא ניתן לקזז שוב רשומת קיזוז.",
+    "adjustmentNotReversible": "לא ניתן לקזז כך רשומת התאמה.",
+    "notAdjustable": "ניתן להתאים רק הוצאות שאושרו לעלות.",
+    "reversalNotAdjustable": "לא ניתן להתאים רשומת קיזוז.",
     "currencyMustMatchProject": "מטבע ההוצאה חייב להתאים למטבע הפרויקט.",
     "currencyMustMatchOrganization": "מטבע הוצאת תפעול חייב להתאים למטבע הבסיס של העסק.",
     "projectExpenseNoAllocations": "הוצאה לפרויקט לא ניתנת לפיצול בשורות הקצאה.",

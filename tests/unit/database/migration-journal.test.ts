@@ -65,13 +65,12 @@ describe('migration journal', () => {
     }
   });
 
-  it('keeps frozen 0012 content-present and local wave tags through 0013', async () => {
+  it('keeps frozen 0012 content-present; 0013 remains in journal chain', async () => {
     const journal = await loadJournal();
     const tags = journal.entries.map((entry) => entry.tag);
 
     expect(tags).toContain('0012_ap_vendor_portal');
     expect(tags).toContain('0013_document_owner_types');
-    expect(tags.some((tag) => tag.startsWith('0014_'))).toBe(false);
 
     const sql = await readFile(
       path.join(MIGRATIONS_DIR, '0012_ap_vendor_portal.sql'),
@@ -81,5 +80,19 @@ describe('migration journal', () => {
     expect(sql).toContain('ap_bills');
     expect(sql).toContain('ap_po_matches');
     expect(sql).toContain('external_access_grants_scope_present');
+  });
+
+  it('orders financial allocation migrations 0014→0018 after 0013', async () => {
+    const journal = await loadJournal();
+    const tags = journal.entries.map((entry) => entry.tag);
+    const from13 = tags.slice(tags.indexOf('0013_document_owner_types'));
+    expect(from13).toEqual([
+      '0013_document_owner_types',
+      '0014_allocation_engine',
+      '0015_project_expected_remaining_cost',
+      '0016_category_allocation_policy',
+      '0017_periodic_allocation',
+      '0018_allocation_run_integrity',
+    ]);
   });
 });

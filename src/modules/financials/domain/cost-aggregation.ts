@@ -2,12 +2,14 @@ import type { CostPosition, CoveragePartial } from '@/modules/financials/domain/
 import {
   addMoney,
   fromNumericString,
+  isZeroMoney,
   roundMoney,
   sumMoney,
   zeroMoney,
   type MoneyValue,
 } from '@/shared/money';
 import type { CostSourcePresence } from './coverage';
+import { shouldExcludeLaborExpenseForWorkforce } from './labor-expense-integrity';
 
 export type DbCostFamily =
   | 'direct_project'
@@ -24,6 +26,12 @@ export interface ProjectExpenseContribution {
   readonly isDirectOnProject: boolean;
   readonly isAllocated: boolean;
   readonly isSubcontractor: boolean;
+  /** Project the contribution lands on (direct or allocation target). */
+  readonly projectId?: string | null;
+  /** System category key `labor` — Mode B payroll/labor lump sum. */
+  readonly isLaborCategory?: boolean;
+  /** Source expense id — used to exclude bill-linked expenses from Actual. */
+  readonly expenseId?: string | null;
 }
 
 export interface LaborCostContribution {
@@ -31,12 +39,25 @@ export interface LaborCostContribution {
   readonly hasWorkforceData: boolean;
   readonly entriesMissingCost?: number;
   readonly excludedForeignCurrencyEntries?: number;
+  /**
+   * Org-scope: exclude labor-category expenses only for these project ids.
+   * Project-scope: omit — any labor-category line is excluded when hasWorkforceData.
+   */
+  readonly projectIdsWithWorkforceLabor?: ReadonlySet<string>;
 }
 
 export interface AggregatedProjectCosts {
   readonly cost: CostPosition;
   readonly sources: readonly CostSourcePresence[];
   readonly partials: readonly CoveragePartial[];
+}
+
+export interface ForecastFinalCostInput {
+  readonly actualCostToDate: MoneyValue;
+  /** Remaining open / partially_consumed committed amounts (already net of consumption). */
+  readonly remainingCommitments: MoneyValue;
+  /** Uncovenanted ETC — must not duplicate PO commitments. */
+  readonly expectedRemainingCost: MoneyValue;
 }
 
 function familyKeyFromDb(value: string): CostFamilyKey {
@@ -55,10 +76,33 @@ function familyKeyFromDb(value: string): CostFamilyKey {
 }
 
 /**
+ * Forecast Final Cost = Actual + Remaining Valid Commitments + Expected Remaining Cost.
+ *
+ * Actual includes finalized expenses and recognized (posted) vendor bills.
+ * Commitments must already be remaining (post bill/PO consumption). Never add open AP
+ * payable / vendor payments here — cash obligations only, not incremental cost.
+ */
+export function computeForecastFinalCost(input: ForecastFinalCostInput): MoneyValue {
+  const currency = input.actualCostToDate.currency;
+  if (input.remainingCommitments.currency !== currency) {
+    throw new Error('Remaining commitments currency must match actual cost currency');
+  }
+  if (input.expectedRemainingCost.currency !== currency) {
+    throw new Error('Expected remaining cost currency must match actual cost currency');
+  }
+  return roundMoney(
+    sumMoney(
+      [input.actualCostToDate, input.remainingCommitments, input.expectedRemainingCost],
+      currency,
+    ),
+  );
+}
+
+/**
  * Aggregates every cost line that touches a project and derives coverage flags.
  *
- * V1 has no separate forecasting engine: estimated final cost equals actual cost
- * to date when no remaining-cost inputs exist (doc 04 §3).
+ * Estimated final starts equal to actual; getProjectFinancials applies forecast
+ * via remaining commitments + expected remaining cost.
  */
 export function aggregateProjectCosts(
   contributions: readonly ProjectExpenseContribution[],
@@ -78,11 +122,24 @@ export function aggregateProjectCosts(
   let hasOverheadAllocationRows = false;
   let hasSubcontractorRows = false;
   let excludedForeignCurrencyExpenses = 0;
+  let excludedLaborCategoryForWorkforce = 0;
   let vendorActual = zeroMoney(currency);
 
   for (const line of contributions) {
     if (line.currency.toUpperCase() !== normalizedCurrency) {
       excludedForeignCurrencyExpenses += 1;
+      continue;
+    }
+
+    if (
+      shouldExcludeLaborExpenseForWorkforce({
+        isLaborCategory: line.isLaborCategory ?? false,
+        projectId: line.projectId ?? null,
+        hasWorkforceData: labor?.hasWorkforceData ?? false,
+        projectIdsWithWorkforceLabor: labor?.projectIdsWithWorkforceLabor,
+      })
+    ) {
+      excludedLaborCategoryForWorkforce += 1;
       continue;
     }
 
@@ -150,12 +207,19 @@ export function aggregateProjectCosts(
       count: labor!.excludedForeignCurrencyEntries,
     });
   }
+  if (excludedLaborCategoryForWorkforce > 0) {
+    partials.push({
+      reason: 'labor_category_excluded_for_workforce',
+      count: excludedLaborCategoryForWorkforce,
+    });
+  }
 
   const laborActual = labor?.hasWorkforceData ? roundMoney(labor.laborCost) : zeroMoney(currency);
 
   return {
     cost: {
       actualCostToDate,
+      // Forecast applied later with commitments + ETC.
       estimatedFinalCost: actualCostToDate,
       byFamily: {
         directProject: roundMoney(byFamily.directProject),
@@ -166,8 +230,8 @@ export function aggregateProjectCosts(
       laborActual,
       vendorActual: roundMoney(vendorActual),
       overheadActual: roundMoney(byFamily.businessOverhead),
-      // Committed / AP attached by getProjectFinancials — never mixed into Actual here.
       committedOpen: zeroMoney(currency),
+      expectedRemainingCost: zeroMoney(currency),
       openApPayable: zeroMoney(currency),
     },
     sources,
@@ -190,30 +254,78 @@ export function emptyCostPosition(currency: string): CostPosition {
     vendorActual: zero,
     overheadActual: zero,
     committedOpen: zero,
+    expectedRemainingCost: zero,
     openApPayable: zero,
   };
 }
 
 /**
- * Attach Committed + Forecast AP obligation without folding them into Actual.
- * Uses procurement domain guard so CommittedCost stays ≠ Expense.
+ * Fold recognized vendor bills into Actual / vendorActual (direct_project family).
+ * Call after excluding expenses linked to those bills from expense aggregation.
+ */
+export function withRecognizedVendorBills(
+  cost: CostPosition,
+  recognizedVendorActual: MoneyValue,
+): CostPosition {
+  if (cost.actualCostToDate.currency !== recognizedVendorActual.currency) {
+    throw new Error('Recognized vendor bill currency must match project cost currency');
+  }
+  if (isZeroMoney(recognizedVendorActual)) {
+    return cost;
+  }
+
+  const actualCostToDate = roundMoney(addMoney(cost.actualCostToDate, recognizedVendorActual));
+  const vendorActual = roundMoney(addMoney(cost.vendorActual, recognizedVendorActual));
+  const directProject = roundMoney(
+    addMoney(cost.byFamily.directProject, recognizedVendorActual),
+  );
+
+  return {
+    ...cost,
+    actualCostToDate,
+    estimatedFinalCost: actualCostToDate,
+    vendorActual,
+    byFamily: {
+      ...cost.byFamily,
+      directProject,
+    },
+  };
+}
+
+/**
+ * Attach Committed + ETC into Forecast Final Cost, and AP payable for cash disclosure.
+ * Actual is unchanged here. Open AP / payments are never added into estimatedFinalCost.
  */
 export function withCommittedAndApPayable(
   cost: CostPosition,
   committedOpen: MoneyValue,
   openApPayable: MoneyValue,
+  expectedRemainingCost: MoneyValue = zeroMoney(cost.actualCostToDate.currency),
 ): CostPosition {
-  // Touch exclude pattern via amount equality — actual unchanged.
   if (cost.actualCostToDate.currency !== committedOpen.currency) {
     throw new Error('Committed currency must match project cost currency');
   }
   if (cost.actualCostToDate.currency !== openApPayable.currency) {
     throw new Error('AP payable currency must match project cost currency');
   }
+  if (cost.actualCostToDate.currency !== expectedRemainingCost.currency) {
+    throw new Error('Expected remaining currency must match project cost currency');
+  }
+
+  const remainingCommitments = roundMoney(committedOpen);
+  const etc = roundMoney(expectedRemainingCost);
+  const estimatedFinalCost = computeForecastFinalCost({
+    actualCostToDate: cost.actualCostToDate,
+    remainingCommitments,
+    expectedRemainingCost: etc,
+  });
+
   return {
     ...cost,
-    committedOpen: roundMoney(committedOpen),
+    committedOpen: remainingCommitments,
+    expectedRemainingCost: etc,
     openApPayable: roundMoney(openApPayable),
+    estimatedFinalCost,
   };
 }
 

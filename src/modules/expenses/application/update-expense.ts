@@ -8,7 +8,7 @@ import { findExpenseById, updateExpenseRow } from '../data/expenses.repository';
 import type { UpdateExpenseInput } from '../validation/schemas';
 import { noteModuleUsage } from '@/modules/tenancy';
 import { isOverheadTargeting } from '../domain/targeting';
-import { buildExpensePayload, persistAllocations, shouldNoteFirstOverheadUsage } from './create-expense';
+import { buildExpensePayload, persistExpenseAllocations, shouldNoteFirstOverheadUsage } from './create-expense';
 
 const EXPENSE_AUDIT_UPDATED = 'expense.updated';
 
@@ -31,7 +31,15 @@ export async function updateExpense(context: OrgContext, input: UpdateExpenseInp
   } = payload.row;
 
   await updateExpenseRow(context.db, context.organizationId, input.expenseId, updatePatch);
-  await persistAllocations(context, input.expenseId, payload.amounts.grossAmount, input.allocations);
+  await persistExpenseAllocations(
+    context,
+    input.expenseId,
+    input,
+    payload.amounts,
+    payload.targeting,
+    payload.row.costCategoryId,
+    'draft',
+  );
   if (noteOverhead && isOverheadTargeting(payload.targeting)) {
     await noteModuleUsage(context.db, context.organizationId, 'overhead');
   }

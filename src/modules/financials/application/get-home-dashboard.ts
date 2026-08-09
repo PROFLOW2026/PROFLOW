@@ -2,13 +2,21 @@ import { sumOrganizationProjectLaborCoverage } from '@/modules/workforce';
 import type { CostSourceKey, FinancialCoverage } from '@/modules/financials/domain/types';
 import type { OrgContext } from '@/shared/auth/context';
 import { endOfMonth, startOfMonth, todayInTimeZone } from '@/shared/dates';
-import { fromNumericString, zeroMoney, type MoneyValue } from '@/shared/money';
+import { fromNumericString, isZeroMoney, zeroMoney, type MoneyValue } from '@/shared/money';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { buildFinancialCoverage, mergeCoveragePartials } from '../domain/coverage';
 import type { CoveragePartial } from '../domain/types';
 import { aggregateProjectCosts } from '../domain/cost-aggregation';
-import { computeProfitPosition, roundProfitPosition } from '../domain/profit';
+import {
+  aggregateOrgCommercial,
+  aggregateOrgCost,
+  aggregateOrgProfit,
+} from '../domain/aggregate-org-report';
+import {
+  computeUnallocatedOrganizationCosts,
+  sumProjectTouchingExpenseNets,
+} from '../domain/org-cost-reconciliation';
 import {
   computeBillingPositionFromRows,
   countOverdueBillingRecords,
@@ -19,7 +27,6 @@ import {
 import {
   countPendingChanges,
   countUnbilledApprovedChanges,
-  sumActiveProjectContractValues,
 } from '../data/commercial.repository';
 import {
   hasAnyExpenseUsage,
@@ -33,11 +40,31 @@ import {
   listRecentActiveProjects,
   type ActiveProjectSummary,
 } from '../data/projects.repository';
+import { getOrganizationProjectRollup } from './get-organization-project-rollup';
 
 export interface DashboardAttention {
   readonly pendingChangesCount: number;
   readonly unbilledApprovedCount: number;
   readonly overdueBillingCount: number;
+}
+
+/**
+ * Organization forecast reconciliation across all base-currency active projects.
+ * Unallocated business costs are disclosed beside project totals — never forced into profit.
+ */
+export interface OrganizationForecastSummary {
+  readonly totalCurrentContract: MoneyValue;
+  readonly totalActualProjectCost: MoneyValue;
+  readonly totalAllocatedOverhead: MoneyValue;
+  readonly totalRemainingCommitments: MoneyValue;
+  readonly totalExpectedRemaining: MoneyValue;
+  readonly totalForecastFinalCost: MoneyValue;
+  readonly totalActualMargin: MoneyValue | null;
+  readonly totalForecastMargin: MoneyValue | null;
+  /** Finalized org costs awaiting allocation — not in project Actual / profit. */
+  readonly unallocatedBusinessCosts: MoneyValue;
+  readonly eligibleProjectCount: number;
+  readonly excludedForeignCurrencyCount: number;
 }
 
 export interface HomeDashboardData {
@@ -50,6 +77,8 @@ export interface HomeDashboardData {
   readonly costCoverage: FinancialCoverage | null;
   readonly estimatedProfit: MoneyValue | null;
   readonly profitCoverage: FinancialCoverage | null;
+  /** Full org forecast rollup (closes Wave 2 Actual-centric home limitation). */
+  readonly forecast: OrganizationForecastSummary | null;
   readonly billing: {
     readonly invoiced: MoneyValue;
     readonly paid: MoneyValue;
@@ -81,7 +110,6 @@ export async function getHomeDashboard(context: OrgContext): Promise<HomeDashboa
   const canCreateProject = hasPermission(context, PERMISSIONS.PROJECTS_CREATE);
   const canCreateExpense = hasPermission(context, PERMISSIONS.EXPENSES_CREATE);
 
-  // Wave 1: independent existence + list + attention counts (was a long sequential chain).
   const [
     hasProjects,
     hasExpenses,
@@ -117,6 +145,7 @@ export async function getHomeDashboard(context: OrgContext): Promise<HomeDashboa
       costCoverage: null,
       estimatedProfit: null,
       profitCoverage: null,
+      forecast: null,
       billing: null,
       billingCoverage: null,
       organizationSummary: null,
@@ -132,29 +161,21 @@ export async function getHomeDashboard(context: OrgContext): Promise<HomeDashboa
     };
   }
 
-  // Wave 2: all remaining aggregates in one pipelined round (flags known from wave 1).
-  const wantContracts = canReadContracts && canReadFinancials;
-  const wantCosts = canReadFinancials && hasExpenses;
+  const wantForecast = canReadFinancials;
   const wantBilling = canReadBilling && hasBilling;
   const wantMonthInvoiced = canReadFinancials && wantBilling;
   const wantMonthCosts = canReadFinancials && (wantBilling || hasExpenses);
 
   const [
-    contractSum,
-    orgCosts,
-    costAggregation,
+    rollup,
+    expenseLayer,
     billingRows,
     overdueBillingCount,
     invoicedThisMonth,
     costsThisMonth,
   ] = await Promise.all([
-    wantContracts
-      ? sumActiveProjectContractValues(context.db, context.organizationId, currency)
-      : Promise.resolve(null),
-    wantCosts
-      ? sumOrganizationActualCosts(context.db, context.organizationId, currency)
-      : Promise.resolve(null),
-    wantCosts ? collectOrgCostSources(context, currency) : Promise.resolve(null),
+    wantForecast ? getOrganizationProjectRollup(context) : Promise.resolve(null),
+    wantForecast ? collectOrgExpenseLayer(context, currency) : Promise.resolve(null),
     wantBilling
       ? loadOrganizationBillingRows(context.db, context.organizationId)
       : Promise.resolve(null),
@@ -181,40 +202,78 @@ export async function getHomeDashboard(context: OrgContext): Promise<HomeDashboa
       : Promise.resolve(null),
   ]);
 
+  const costCoverageBundle = expenseLayer?.coverage ?? null;
+  const unallocatedBusinessCosts = expenseLayer?.unallocatedBusinessCosts ?? null;
+
   let totalContractValue: MoneyValue | null = null;
   let contractValueCoverage: FinancialCoverage | null = null;
-  if (contractSum && contractSum.activeCount > 0) {
-    totalContractValue = fromNumericString(contractSum.total, currency) ?? zeroMoney(currency);
-    if (contractSum.excludedForeignCurrencyProjectCount > 0) {
-      contractValueCoverage = buildFinancialCoverage([], new Date(), [
-        {
-          reason: 'foreign_currency_contracts_excluded',
-          count: contractSum.excludedForeignCurrencyProjectCount,
-        },
-      ]);
-    }
-  }
-
   let totalActualCost: MoneyValue | null = null;
   let costCoverage: FinancialCoverage | null = null;
   let profitCoverage: FinancialCoverage | null = null;
   let estimatedProfit: MoneyValue | null = null;
+  let forecast: OrganizationForecastSummary | null = null;
 
-  if (orgCosts && costAggregation) {
-    totalActualCost = orgCosts.total;
-    const mergedSources = mergeSourcePresence(costAggregation.sources);
-    const mergedPartials = mergeCoveragePartials(
-      costAggregation.partials,
-      contractValueCoverage?.partials ?? [],
-    );
-    costCoverage = buildFinancialCoverage(mergedSources, new Date(), mergedPartials);
-    profitCoverage = costCoverage;
+  if (rollup) {
+    const commercial = rollup.canReadCommercial
+      ? aggregateOrgCommercial(rollup.rows, currency)
+      : null;
+    const cost = aggregateOrgCost(rollup.rows, currency, {
+      unallocatedBusinessCosts: unallocatedBusinessCosts ?? zeroMoney(currency),
+    });
+    const profitability = rollup.canReadProfit
+      ? aggregateOrgProfit(rollup.rows, currency)
+      : null;
 
-    if (canReadProfit && totalContractValue) {
-      estimatedProfit = roundProfitPosition(
-        computeProfitPosition(totalContractValue, orgCosts.total),
-      ).estimatedProfit;
+    if (commercial && rollup.totalEligibleProjectCount > 0) {
+      totalContractValue = commercial.current.value;
+      if (rollup.excludedForeignCurrencyCount > 0) {
+        contractValueCoverage = buildFinancialCoverage([], new Date(), [
+          {
+            reason: 'foreign_currency_contracts_excluded',
+            count: rollup.excludedForeignCurrencyCount,
+          },
+        ]);
+      }
     }
+
+    const hasProjectCost =
+      rollup.totalEligibleProjectCount > 0 &&
+      (costCoverageBundle?.hasCostData ||
+        !isZeroMoney(cost.actual.value) ||
+        !isZeroMoney(cost.committed.value) ||
+        !isZeroMoney(cost.expectedRemaining.value) ||
+        !isZeroMoney(cost.estimatedFinal.value));
+
+    if (hasProjectCost || (unallocatedBusinessCosts && !isZeroMoney(unallocatedBusinessCosts))) {
+      totalActualCost = cost.actual.value;
+      if (costCoverageBundle) {
+        const mergedSources = mergeSourcePresence(costCoverageBundle.sources);
+        const mergedPartials = mergeCoveragePartials(
+          costCoverageBundle.partials,
+          contractValueCoverage?.partials ?? [],
+        );
+        costCoverage = buildFinancialCoverage(mergedSources, new Date(), mergedPartials);
+        profitCoverage = costCoverage;
+      }
+
+      if (canReadProfit && profitability) {
+        estimatedProfit = profitability.estimatedProfit.value;
+      }
+    }
+
+    forecast = {
+      totalCurrentContract: commercial?.current.value ?? zeroMoney(currency),
+      totalActualProjectCost: cost.actual.value,
+      totalAllocatedOverhead: cost.overhead.value,
+      totalRemainingCommitments: cost.committed.value,
+      totalExpectedRemaining: cost.expectedRemaining.value,
+      totalForecastFinalCost: cost.estimatedFinal.value,
+      totalActualMargin: canReadProfit ? (profitability?.actualProfit.value ?? null) : null,
+      totalForecastMargin: canReadProfit ? (profitability?.estimatedProfit.value ?? null) : null,
+      unallocatedBusinessCosts: unallocatedBusinessCosts ?? zeroMoney(currency),
+      eligibleProjectCount: rollup.totalEligibleProjectCount,
+      excludedForeignCurrencyCount: rollup.excludedForeignCurrencyCount,
+    };
   }
 
   let billing: HomeDashboardData['billing'] = null;
@@ -262,6 +321,7 @@ export async function getHomeDashboard(context: OrgContext): Promise<HomeDashboa
     costCoverage,
     estimatedProfit,
     profitCoverage,
+    forecast,
     billing,
     billingCoverage,
     organizationSummary,
@@ -278,24 +338,40 @@ export async function getHomeDashboard(context: OrgContext): Promise<HomeDashboa
 }
 
 /**
- * Coverage sources for the home dashboard: expense contributions + optional labor.
- * Avoids per-active-project N+1 that previously scaled with project count.
+ * Expense-layer coverage + unallocated org costs in one pass.
+ * Unallocated = org finalized expense NET − project-touching expense NET.
  */
-async function collectOrgCostSources(
+async function collectOrgExpenseLayer(
   context: OrgContext,
   currency: string,
 ): Promise<{
-  sources: { source: CostSourceKey; hasData: boolean }[];
-  partials: CoveragePartial[];
+  coverage: {
+    sources: { source: CostSourceKey; hasData: boolean }[];
+    partials: CoveragePartial[];
+    hasCostData: boolean;
+  };
+  unallocatedBusinessCosts: MoneyValue;
 }> {
   const canReadWorkforce = hasPermission(context, PERMISSIONS.WORKFORCE_READ);
+  const canReadExpenses = hasPermission(context, PERMISSIONS.EXPENSES_READ);
 
-  const [contributions, laborAgg] = await Promise.all([
-    loadOrganizationExpenseContributions(context.db, context.organizationId),
+  const [contributions, laborAgg, orgExpense] = await Promise.all([
+    canReadExpenses
+      ? loadOrganizationExpenseContributions(context.db, context.organizationId)
+      : Promise.resolve([]),
     canReadWorkforce
       ? sumOrganizationProjectLaborCoverage(context.db, context.organizationId, currency)
       : Promise.resolve(null),
+    canReadExpenses
+      ? sumOrganizationActualCosts(context.db, context.organizationId, currency)
+      : Promise.resolve({ total: zeroMoney(currency), hasExpenseData: false }),
   ]);
+
+  const projectTouching = sumProjectTouchingExpenseNets(contributions, currency);
+  const unallocatedBusinessCosts = computeUnallocatedOrganizationCosts({
+    orgFinalizedExpenseTotal: orgExpense.total,
+    projectTouchingExpenseTotal: projectTouching,
+  });
 
   let labor = null;
   if (laborAgg && laborAgg.entryCount > 0) {
@@ -305,15 +381,26 @@ async function collectOrgCostSources(
       hasWorkforceData: true,
       entriesMissingCost: laborAgg.entriesMissingCost,
       excludedForeignCurrencyEntries: laborAgg.excludedForeignCurrencyEntries,
+      projectIdsWithWorkforceLabor: new Set(laborAgg.projectIdsWithLabor),
     };
   }
 
   if (contributions.length === 0 && !labor?.hasWorkforceData) {
-    return { sources: [], partials: [] };
+    return {
+      coverage: { sources: [], partials: [], hasCostData: false },
+      unallocatedBusinessCosts,
+    };
   }
 
   const aggregated = aggregateProjectCosts(contributions, labor, currency);
-  return { sources: [...aggregated.sources], partials: [...aggregated.partials] };
+  return {
+    coverage: {
+      sources: [...aggregated.sources],
+      partials: [...aggregated.partials],
+      hasCostData: true,
+    },
+    unallocatedBusinessCosts,
+  };
 }
 
 function mergeSourcePresence(

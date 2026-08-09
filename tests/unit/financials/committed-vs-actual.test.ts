@@ -48,12 +48,16 @@ describe('report cost Actual vs Committed', () => {
     expect(withCommitments.actualCostToDate).toEqual(aggregated.cost.actualCostToDate);
     expect(withCommitments.committedOpen).toEqual(money('500.00', 'ILS'));
     expect(withCommitments.openApPayable).toEqual(money('75.00', 'ILS'));
+    // Forecast = actual 1250 + remaining commitment 500 (AP not included).
+    expect(withCommitments.estimatedFinalCost).toEqual(money('1750.00', 'ILS'));
+    expect(withCommitments.expectedRemainingCost).toEqual(zeroMoney('ILS'));
   });
 
   it('empty cost position carries Actual/Committed/Forecast zeros', () => {
     const empty = emptyCostPosition('USD');
     expect(empty.laborActual).toEqual(zeroMoney('USD'));
     expect(empty.committedOpen).toEqual(zeroMoney('USD'));
+    expect(empty.expectedRemainingCost).toEqual(zeroMoney('USD'));
     expect(empty.openApPayable).toEqual(zeroMoney('USD'));
   });
 });

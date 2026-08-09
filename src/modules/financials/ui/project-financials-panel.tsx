@@ -11,7 +11,9 @@ import { getProjectCashFlowOutlook } from '../application/get-project-cash-flow'
 import { getProjectFinancials } from '../application/get-project-financials';
 import { CashFlowView } from './cash-flow-view';
 import { mapCoverageToSources, standalonePartialNotes } from './map-coverage-sources';
+import { ProjectFinancialsKpiPanel } from './project-financials-kpi-panel';
 import { ProjectFinancialsSnapshotView } from './project-financials-snapshot-view';
+import { ExpectedRemainingCostForm } from './expected-remaining-cost-form';
 
 export interface ProjectFinancialsPanelProps {
   readonly projectId: string;
@@ -19,12 +21,12 @@ export interface ProjectFinancialsPanelProps {
 
 /**
  * Embeddable server component for a project workspace Financials tab (doc 45 §5).
- * Primary truth metrics stay above the fold; coverage and long notes sit in disclosure.
+ * Primary truth metrics stay above the fold with drill-downs; coverage sits in disclosure.
  */
 export async function ProjectFinancialsPanel({ projectId }: ProjectFinancialsPanelProps) {
   const t = await getTranslations('financial');
 
-  const { financials, cashFlow, canReadProfit, canReadBilling, canReadCommercial } =
+  const { financials, cashFlow, canReadProfit, canReadBilling, canReadCommercial, canUpdateProject } =
     await withOrgContext(async (context) => {
       const [financialsResult, cashFlowResult] = await Promise.all([
         getProjectFinancials(context, projectId),
@@ -36,6 +38,7 @@ export async function ProjectFinancialsPanel({ projectId }: ProjectFinancialsPan
         canReadProfit: hasPermission(context, PERMISSIONS.PROJECT_PROFIT_READ),
         canReadBilling: hasPermission(context, PERMISSIONS.BILLING_READ),
         canReadCommercial: hasPermission(context, PERMISSIONS.CONTRACTS_READ),
+        canUpdateProject: hasPermission(context, PERMISSIONS.PROJECTS_UPDATE),
       };
     });
 
@@ -49,68 +52,18 @@ export async function ProjectFinancialsPanel({ projectId }: ProjectFinancialsPan
     <div className="flex min-w-0 max-w-full flex-col gap-4">
       <Card>
         <CardHeader>
-          <CardTitle>{t('contractValue')}</CardTitle>
+          <CardTitle>{t('panelTitle')}</CardTitle>
           <CardDescription>{financials.currency}</CardDescription>
         </CardHeader>
-        <CardContent className="flex flex-col gap-3 text-sm">
-          {canReadCommercial && financials.commercial ? (
-            <MetricRow
-              label={t('contractValue')}
-              value={financials.commercial.currentContractValue}
-              emphasis
-            />
-          ) : null}
-          <MetricRow
-            label={t('actualCostToDate')}
-            value={financials.cost.actualCostToDate}
-            nature={t('metricNature.actual')}
-            emphasis
+        <CardContent>
+          <ProjectFinancialsKpiPanel
+            projectId={projectId}
+            financials={financials}
+            canReadProfit={canReadProfit}
+            canReadBilling={canReadBilling}
+            canReadCommercial={canReadCommercial}
+            t={t}
           />
-          <MetricRow
-            label={t('committedOpen')}
-            value={financials.cost.committedOpen}
-            nature={t('metricNature.committed')}
-          />
-          {canReadBilling ? (
-            <>
-              <MetricRow
-                label={t('invoiced')}
-                value={financials.billing.invoiced}
-                nature={t('metricNature.actual')}
-              />
-              <MetricRow
-                label={t('paid')}
-                value={financials.billing.paid}
-                nature={t('metricNature.actual')}
-              />
-              <MetricRow
-                label={t('outstanding')}
-                value={financials.billing.outstanding}
-                nature={t('metricNature.forecast')}
-              />
-            </>
-          ) : (
-            <MetricRow
-              label={t('estimatedFinalCost')}
-              value={financials.cost.estimatedFinalCost}
-              nature={t('metricNature.forecast')}
-            />
-          )}
-          {canReadProfit && financials.profit ? (
-            <MetricRow
-              label={t('estimatedProfitBasedOnEnteredData')}
-              value={financials.profit.estimatedProfit}
-              nature={t('metricNature.forecast')}
-            />
-          ) : null}
-          {canReadProfit && financials.profit?.marginPercent !== null && financials.profit ? (
-            <p className="text-xs text-[var(--pf-text-secondary)]">
-              {t('margin')}:{' '}
-              <span dir="ltr" className="pf-numeric">
-                {financials.profit.marginPercent}%
-              </span>
-            </p>
-          ) : null}
         </CardContent>
       </Card>
 
@@ -222,6 +175,19 @@ export async function ProjectFinancialsPanel({ projectId }: ProjectFinancialsPan
               nature={t('metricNature.committed')}
             />
             <p className="text-xs text-[var(--pf-text-muted)]">{t('committedVsActual')}</p>
+            <MetricRow
+              label={t('kpis.expectedRemaining')}
+              value={financials.cost.expectedRemainingCost}
+              nature={t('metricNature.forecast')}
+            />
+            <p className="text-xs text-[var(--pf-text-muted)]">{t('kpis.expectedRemainingHint')}</p>
+            {canUpdateProject ? (
+              <ExpectedRemainingCostForm
+                projectId={projectId}
+                currency={financials.currency}
+                initialAmount={financials.cost.expectedRemainingCost.amount}
+              />
+            ) : null}
             <MetricRow
               label={t('openApPayable')}
               value={financials.cost.openApPayable}

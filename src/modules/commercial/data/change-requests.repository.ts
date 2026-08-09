@@ -112,7 +112,7 @@ export async function listChangeRequestsAcrossProjects(
       changeRequest: changeRequests,
       projectName: projects.name,
       pricedAmount: sql<string | null>`(
-        select qv.total_amount
+        select qv.subtotal_amount
         from quote_versions qv
         inner join quotes q on q.id = qv.quote_id
         where q.change_request_id = ${changeRequests.id}
@@ -315,7 +315,7 @@ export async function listPendingChangesForProject(
       requestedAmount: changeRequests.requestedAmount,
       currency: changeRequests.currency,
       pricedAmount: sql<string | null>`(
-        select qv.total_amount
+        select qv.subtotal_amount
         from quote_versions qv
         inner join quotes q on q.id = qv.quote_id
         where q.change_request_id = ${changeRequests.id}

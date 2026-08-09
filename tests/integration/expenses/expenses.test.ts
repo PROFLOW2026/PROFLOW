@@ -11,10 +11,15 @@ import {
 } from '@drizzle/schema';
 import { assignRole, findRoleByKey } from '@/modules/rbac';
 import { createExpense } from '@/modules/expenses/application/create-expense';
+import { createExpenseAdjustment } from '@/modules/expenses/application/create-expense-adjustment';
+import { createExpenseReversal } from '@/modules/expenses/application/create-expense-reversal';
 import { finalizeExpense } from '@/modules/expenses/application/finalize-expense';
 import { updateExpense } from '@/modules/expenses/application/update-expense';
 import { voidExpense } from '@/modules/expenses/application/void-expense';
+import { getExpenseCorrectionChain } from '@/modules/expenses/application/get-expense-correction-chain';
 import { getExpense, listExpensesForOrg } from '@/modules/expenses/application/queries';
+import { loadProjectExpenseContributions } from '@/modules/financials/data/expenses.repository';
+import { aggregateProjectCosts } from '@/modules/financials/domain/cost-aggregation';
 import { createOrganization } from '@/modules/tenancy/application/create-organization';
 import { resolveOrgContext } from '@/modules/tenancy/application/resolve-org-context';
 import { createVendor } from '@/modules/vendors';
@@ -348,6 +353,143 @@ describe('expenses integration', () => {
           phaseId: orgBPhaseId,
         }),
       ).rejects.toBeInstanceOf(NotFoundError);
+    });
+  });
+
+  it('creates a voidsExpenseId reversing entry that nets Actual to zero', async () => {
+    const { projectId } = await createProjectWithDefaultPackage(
+      database,
+      userA.id,
+      orgAId,
+      'Reversal site',
+    );
+
+    await database.asUser(userA.id, async (tx) => {
+      const context = await resolveOrgContext(tx, {
+        userId: userA.id,
+        organizationId: orgAId,
+        locale: 'en',
+      });
+
+      const original = await createExpense(context, {
+        amount: '1000',
+        currency: 'ILS',
+        projectId,
+        description: 'Wrong amount',
+      });
+      await finalizeExpense(context, original.id);
+
+      const reversal = await createExpenseReversal(context, original.id);
+      expect(reversal.status).toBe('finalized');
+      expect(reversal.voidsExpenseId).toBe(original.id);
+      expect(reversal.grossAmount.amount).toBe('-1000.000000');
+      expect(reversal.netAmount.amount).toBe('-1000.000000');
+
+      await expect(createExpenseReversal(context, original.id)).rejects.toBeInstanceOf(
+        DomainRuleError,
+      );
+      await expect(voidExpense(context, original.id)).rejects.toBeInstanceOf(DomainRuleError);
+
+      const contributions = await loadProjectExpenseContributions(tx, orgAId, projectId);
+      const { cost } = aggregateProjectCosts(contributions, null, 'ILS');
+      expect(cost.actualCostToDate.amount).toBe('0.000000');
+    });
+  });
+
+  it('creates an adjustsExpenseId replacement after reversing the original', async () => {
+    const { projectId } = await createProjectWithDefaultPackage(
+      database,
+      userA.id,
+      orgAId,
+      'Adjustment site',
+    );
+
+    await database.asUser(userA.id, async (tx) => {
+      const context = await resolveOrgContext(tx, {
+        userId: userA.id,
+        organizationId: orgAId,
+        locale: 'en',
+      });
+
+      const original = await createExpense(context, {
+        amount: '2000',
+        currency: 'ILS',
+        projectId,
+        description: 'Old figure',
+      });
+      await finalizeExpense(context, original.id);
+
+      const { replacement, reversal } = await createExpenseAdjustment(context, {
+        adjustsExpenseId: original.id,
+        amount: '1500',
+        currency: 'ILS',
+        projectId,
+        description: 'Corrected figure',
+      });
+
+      expect(reversal?.voidsExpenseId).toBe(original.id);
+      expect(replacement.status).toBe('draft');
+      expect(replacement.adjustsExpenseId).toBe(original.id);
+
+      await finalizeExpense(context, replacement.id);
+
+      const contributions = await loadProjectExpenseContributions(tx, orgAId, projectId);
+      const { cost } = aggregateProjectCosts(contributions, null, 'ILS');
+      expect(cost.actualCostToDate.amount).toBe('1500.000000');
+    });
+  });
+
+  it('corrects finalized 52000 → 50000 with exact ledger net (+52k -52k +50k)', async () => {
+    const { projectId } = await createProjectWithDefaultPackage(
+      database,
+      userA.id,
+      orgAId,
+      'Correction 52k site',
+    );
+
+    await database.asUser(userA.id, async (tx) => {
+      const context = await resolveOrgContext(tx, {
+        userId: userA.id,
+        organizationId: orgAId,
+        locale: 'en',
+      });
+
+      const original = await createExpense(context, {
+        amount: '52000',
+        currency: 'ILS',
+        projectId,
+        description: 'Materials wrong amount',
+        netAmount: '52000',
+      });
+      await finalizeExpense(context, original.id);
+
+      const { replacement, reversal } = await createExpenseAdjustment(context, {
+        adjustsExpenseId: original.id,
+        amount: '50000',
+        currency: 'ILS',
+        projectId,
+        description: 'Materials corrected',
+        netAmount: '50000',
+      });
+
+      expect(reversal?.netAmount.amount).toBe('-52000.000000');
+      expect(replacement.netAmount.amount).toBe('50000.000000');
+      expect(replacement.adjustsExpenseId).toBe(original.id);
+
+      await finalizeExpense(context, replacement.id);
+
+      const chain = await getExpenseCorrectionChain(context, original.id);
+      expect(chain.entries).toHaveLength(3);
+      expect(chain.entries.map((entry) => entry.role)).toEqual([
+        'original',
+        'reversal',
+        'replacement',
+      ]);
+      expect(chain.netAmount.amount).toBe('50000.000000');
+
+      const contributions = await loadProjectExpenseContributions(tx, orgAId, projectId);
+      const { cost } = aggregateProjectCosts(contributions, null, 'ILS');
+      expect(cost.actualCostToDate.amount).toBe('50000.000000');
     });
   });
 

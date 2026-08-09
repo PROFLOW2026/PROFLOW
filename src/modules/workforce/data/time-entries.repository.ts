@@ -232,6 +232,8 @@ export async function sumOrganizationProjectLaborCoverage(
   entryCount: number;
   entriesMissingCost: number;
   excludedForeignCurrencyEntries: number;
+  /** Projects with at least one project-kind time entry (Mode C present). */
+  projectIdsWithLabor: readonly string[];
 }> {
   const [row] = await db
     .select({
@@ -258,12 +260,27 @@ export async function sumOrganizationProjectLaborCoverage(
       ),
     );
 
+  const projectIdRows = await db
+    .selectDistinct({ projectId: timeEntries.projectId })
+    .from(timeEntries)
+    .where(
+      and(
+        eq(timeEntries.organizationId, organizationId),
+        eq(timeEntries.kind, 'project'),
+        isNull(timeEntries.archivedAt),
+        isNotNull(timeEntries.projectId),
+      ),
+    );
+
   return {
     totalAmount: row?.totalAmount ?? null,
     currency: baseCurrency.toUpperCase(),
     entryCount: row?.entryCount ?? 0,
     entriesMissingCost: row?.entriesMissingCost ?? 0,
     excludedForeignCurrencyEntries: row?.excludedForeignCurrencyEntries ?? 0,
+    projectIdsWithLabor: projectIdRows
+      .map((item) => item.projectId)
+      .filter((id): id is string => typeof id === 'string'),
   };
 }
 

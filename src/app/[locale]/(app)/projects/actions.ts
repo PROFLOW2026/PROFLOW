@@ -33,6 +33,7 @@ import {
 } from '@/shared/errors';
 import { redirect } from '@/shared/i18n/navigation';
 import { ORIGINAL_AMOUNT_LOCKED_MESSAGE_KEY } from '@/modules/projects';
+import { setProjectExpectedRemainingCost } from '@/modules/financials';
 
 export interface ProjectFormState {
   error?: string;
@@ -533,6 +534,23 @@ export async function updatePhaseScheduleAction(
     });
     revalidatePath(`/projects/${projectId}`);
     return {};
+  } catch (error) {
+    if (error instanceof ValidationError) return await mapValidationError(error);
+    if (error instanceof AppError) return { error: tErrors('unexpected') };
+    throw error;
+  }
+}
+
+export async function setProjectExpectedRemainingCostAction(
+  projectId: string,
+  amount: string | null,
+): Promise<{ error?: string; success?: boolean }> {
+  const tErrors = await getTranslations('errors');
+  try {
+    await withOrgContext((context) => setProjectExpectedRemainingCost(context, projectId, amount));
+    revalidatePath(`/projects/${projectId}`);
+    revalidatePath(`/projects/${projectId}/financials`);
+    return { success: true };
   } catch (error) {
     if (error instanceof ValidationError) return await mapValidationError(error);
     if (error instanceof AppError) return { error: tErrors('unexpected') };

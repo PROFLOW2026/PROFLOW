@@ -9,21 +9,29 @@ import {
 } from '@/shared/money';
 
 /**
- * Forecast profit arithmetic (doc 04 §10).
+ * Profit / margin arithmetic (doc 04 §10; Wave 2 forecast engine).
  *
- * Margin is intentionally null when contract value is zero — dividing by zero
- * would produce a meaningless percentage.
+ * ACTUAL MARGIN  = Current Contract Net − Actual Total Cost
+ * FORECAST MARGIN = Current Contract Net − Forecast Final Cost
+ *
+ * `estimatedProfit` / `marginPercent` remain the forecast pair for UI compatibility.
+ * Margin is null when contract value is zero — dividing by zero is meaningless.
  */
 export function computeProfitPosition(
   currentContractValue: MoneyValue,
   estimatedFinalCost: MoneyValue,
+  actualCostToDate: MoneyValue = estimatedFinalCost,
 ): ProfitPosition {
   const estimatedProfit = subtractMoney(currentContractValue, estimatedFinalCost);
+  const actualProfit = subtractMoney(currentContractValue, actualCostToDate);
   const marginPercent = isZeroMoney(currentContractValue)
     ? null
     : computeMarginPercent(estimatedProfit, currentContractValue);
+  const actualMarginPercent = isZeroMoney(currentContractValue)
+    ? null
+    : computeMarginPercent(actualProfit, currentContractValue);
 
-  return { estimatedProfit, marginPercent };
+  return { estimatedProfit, marginPercent, actualProfit, actualMarginPercent };
 }
 
 export function computeMarginPercent(profit: MoneyValue, contractValue: MoneyValue): string {
@@ -39,5 +47,7 @@ export function roundProfitPosition(position: ProfitPosition): ProfitPosition {
   return {
     estimatedProfit: roundMoney(position.estimatedProfit),
     marginPercent: position.marginPercent,
+    actualProfit: roundMoney(position.actualProfit),
+    actualMarginPercent: position.actualMarginPercent,
   };
 }

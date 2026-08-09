@@ -23,16 +23,28 @@ export interface OrgCostTotals {
   readonly actual: MoneyReportMetric;
   readonly labor: MoneyReportMetric;
   readonly vendors: MoneyReportMetric;
+  /** Allocated overhead that landed on projects (not unallocated business costs). */
   readonly overhead: MoneyReportMetric;
   readonly committed: MoneyReportMetric;
+  readonly expectedRemaining: MoneyReportMetric;
   readonly openAp: MoneyReportMetric;
   readonly estimatedFinal: MoneyReportMetric;
+  /**
+   * Finalized org/shared/overhead NET not yet allocated to any project.
+   * Null when the caller did not supply an unallocated total.
+   * Never folded into `actual` / project profit.
+   */
+  readonly unallocatedBusinessCosts: MoneyReportMetric | null;
 }
 
 export interface OrgProfitTotals {
+  /** Forecast margin: Σ (current contract − forecast final cost). */
   readonly estimatedProfit: MoneyReportMetric;
+  /** Actual margin: Σ (current contract − actual project cost). */
+  readonly actualProfit: MoneyReportMetric;
   /** Null when no projects have a margin (zero contract). */
   readonly sampleMarginPercent: string | null;
+  readonly sampleActualMarginPercent: string | null;
 }
 
 function sumField(
@@ -125,22 +137,42 @@ export function aggregateOrgCash(
   };
 }
 
+export interface AggregateOrgCostOptions {
+  /**
+   * Unallocated business costs / costs awaiting allocation.
+   * Surfaced beside project Actual — never added into project profit.
+   */
+  readonly unallocatedBusinessCosts?: MoneyValue | null;
+}
+
 /**
- * Cost rollup. Committed and AP stay beside Actual — never summed into it.
- * Estimated final is estimate (V1 often equals actual when no remaining inputs).
+ * Cost rollup. Committed stays beside Actual — never summed into it.
+ * Estimated Final Cost (Forecast Final Cost) = Actual + Remaining Commitments + ETC.
+ * Open AP payable / vendor payments are cash disclosure only — never folded into estimatedFinal.
+ * Actual includes recognized (posted) vendor bills from project financials.
+ * Unallocated org costs are disclosed separately when provided.
  */
 export function aggregateOrgCost(
   rows: readonly ProjectRollupRow[],
   currency: string,
+  options: AggregateOrgCostOptions = {},
 ): OrgCostTotals {
   const fx = [FX_EXCL];
+  const unallocatedValue = options.unallocatedBusinessCosts ?? null;
   return {
     actual: moneyMetric({
       key: 'actualCost',
       kind: 'actual',
       value: sumField(rows, currency, (r) => r.actualCost),
-      inclusions: ['expensesAndLaborEntered'],
-      exclusions: [...fx, 'committedPo', 'openAp', 'vatAsCost'],
+      inclusions: ['expensesAndLaborEntered', 'recognizedVendorBills'],
+      exclusions: [
+        ...fx,
+        'committedPo',
+        'openAp',
+        'vendorPayments',
+        'vatAsCost',
+        'unallocatedBusinessCosts',
+      ],
     }),
     labor: moneyMetric({
       key: 'laborActual',
@@ -153,22 +185,29 @@ export function aggregateOrgCost(
       key: 'vendorActual',
       kind: 'actual',
       value: sumField(rows, currency, (r) => r.vendorActual),
-      inclusions: ['subcontractorExpenses'],
-      exclusions: [...fx, 'committedPo'],
+      inclusions: ['subcontractorExpenses', 'recognizedVendorBills'],
+      exclusions: [...fx, 'committedPo', 'vendorPayments'],
     }),
     overhead: moneyMetric({
       key: 'overheadActual',
       kind: 'actual',
       value: sumField(rows, currency, (r) => r.overheadActual),
-      inclusions: ['businessOverheadFamily'],
-      exclusions: [...fx],
+      inclusions: ['allocatedOverheadOnProjects'],
+      exclusions: [...fx, 'unallocatedBusinessCosts'],
     }),
     committed: moneyMetric({
       key: 'committedOpen',
       kind: 'committed',
       value: sumField(rows, currency, (r) => r.committedOpen),
       inclusions: ['openPurchaseOrderCommitments'],
-      exclusions: [...fx, 'expenseActual', 'matchedAp'],
+      exclusions: [...fx, 'expenseActual', 'recognizedVendorBills'],
+    }),
+    expectedRemaining: moneyMetric({
+      key: 'expectedRemainingCost',
+      kind: 'estimate',
+      value: sumField(rows, currency, (r) => r.expectedRemainingCost),
+      inclusions: ['projectExpectedRemainingEtc'],
+      exclusions: [...fx, 'committedPo', 'expenseActual'],
     }),
     openAp: moneyMetric({
       key: 'openApPayable',
@@ -181,13 +220,23 @@ export function aggregateOrgCost(
       key: 'estimatedFinalCost',
       kind: 'estimate',
       value: sumField(rows, currency, (r) => r.estimatedFinalCost),
-      inclusions: ['actualPlusEnteredRemaining'],
-      exclusions: [...fx, 'committedPo', 'openAp'],
+      inclusions: ['actualPlusRemainingCommitmentsPlusEtc'],
+      exclusions: [...fx, 'openAp', 'vendorPayments', 'unallocatedBusinessCosts'],
     }),
+    unallocatedBusinessCosts:
+      unallocatedValue == null
+        ? null
+        : moneyMetric({
+            key: 'unallocatedBusinessCosts',
+            kind: 'actual',
+            value: unallocatedValue,
+            inclusions: ['finalizedOrgCostsAwaitingAllocation'],
+            exclusions: [...fx, 'projectActualCost', 'projectProfit'],
+          }),
   };
 }
 
-/** Profit = current contract − estimated final. VAT never treated as profit. */
+/** Profit margins from project rows. VAT never treated as profit. Unallocated org costs stay out. */
 export function aggregateOrgProfit(
   rows: readonly ProjectRollupRow[],
   currency: string,
@@ -197,13 +246,24 @@ export function aggregateOrgProfit(
     kind: 'estimate',
     value: sumField(rows, currency, (r) => r.estimatedProfit),
     inclusions: ['currentContractMinusEstimatedFinal'],
-    exclusions: [FX_EXCL, VAT_EXCL, 'incompleteCostCoverage'],
+    exclusions: [FX_EXCL, VAT_EXCL, 'incompleteCostCoverage', 'unallocatedBusinessCosts'],
+  });
+
+  const actualProfit = moneyMetric({
+    key: 'actualProfit',
+    kind: 'actual',
+    value: sumField(rows, currency, (r) => r.actualProfit),
+    inclusions: ['currentContractMinusActualCost'],
+    exclusions: [FX_EXCL, VAT_EXCL, 'incompleteCostCoverage', 'unallocatedBusinessCosts'],
   });
 
   const withMargin = rows.find((row) => row.marginPercent != null);
+  const withActualMargin = rows.find((row) => row.actualMarginPercent != null);
   return {
     estimatedProfit,
+    actualProfit,
     sampleMarginPercent: withMargin?.marginPercent ?? null,
+    sampleActualMarginPercent: withActualMargin?.actualMarginPercent ?? null,
   };
 }
 

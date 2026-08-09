@@ -6,7 +6,10 @@ import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { assertFinalizable } from '../domain/lifecycle';
 import { captureTaxSnapshot } from '../domain/tax';
+import { isWeightAllocationMethod } from '../domain/types';
 import { findExpenseById, updateExpenseRow } from '../data/expenses.repository';
+import { markExpenseAllocationRunsApplied } from '../data/allocation-runs.repository';
+import { runAutomaticAllocation } from './run-automatic-allocation';
 
 const EXPENSE_AUDIT_FINALIZED = 'expense.finalized';
 
@@ -19,6 +22,33 @@ export async function finalizeExpense(context: OrgContext, expenseId: string) {
 
   const finalizedAt = todayInTimeZone(context.organization.timezone);
   const taxSnapshot = captureTaxSnapshot(existing.netAmount, existing.taxAmount, existing.grossAmount);
+
+  // Freeze automatic allocation snapshot on finalize so later contract growth
+  // cannot rewrite this period's overhead. Periodic schedules keep prior applied
+  // slices frozen and only materialize pending months.
+  if (
+    existing.allocationDriverMethod &&
+    isWeightAllocationMethod(existing.allocationDriverMethod) &&
+    existing.allocationPeriodStart &&
+    existing.allocationPeriodEnd &&
+    !existing.projectId
+  ) {
+    await runAutomaticAllocation(context, {
+      expenseId,
+      costFamily: existing.costFamily,
+      projectId: existing.projectId,
+      costCategoryId: existing.costCategoryId,
+      netAmount: existing.netAmount,
+      periodStart: existing.allocationPeriodStart,
+      periodEnd: existing.allocationPeriodEnd,
+      explicitMethod: existing.allocationDriverMethod,
+      scheduleMode: existing.allocationScheduleMode,
+      runStatus: 'applied',
+      preserveAppliedSlices: true,
+    });
+  } else {
+    await markExpenseAllocationRunsApplied(context.db, context.organizationId, expenseId);
+  }
 
   await updateExpenseRow(context.db, context.organizationId, expenseId, {
     status: 'finalized',

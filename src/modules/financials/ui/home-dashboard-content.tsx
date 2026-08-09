@@ -73,6 +73,7 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
       {(data.totalContractValue ||
         data.totalActualCost ||
         data.estimatedProfit ||
+        data.forecast ||
         data.showBilling) && (
         <section className="min-w-0 max-w-full">
           <h2 className="mb-3 text-sm font-semibold text-[var(--pf-text-secondary)]">
@@ -84,7 +85,7 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
             ) : null}
             {data.totalContractValue ? (
               <KpiCard
-                title={tFinancial('currentContractValue')}
+                title={tFinancial('kpis.currentContract')}
                 money={data.totalContractValue}
                 footer={
                   contractValueNote ? (
@@ -95,7 +96,7 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
             ) : null}
             {data.totalActualCost ? (
               <KpiCard
-                title={tFinancial('actualCostToDate')}
+                title={tFinancial('kpis.actualCost')}
                 money={data.totalActualCost}
                 footer={
                   data.costCoverage ? (
@@ -106,17 +107,59 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
             ) : null}
             {data.showProfit && data.estimatedProfit ? (
               <KpiCard
-                title={tFinancial('estimatedProfitBasedOnEnteredData')}
+                title={tFinancial('kpis.forecastMargin')}
                 money={data.estimatedProfit}
                 footer={<CoverageDisclosure sources={coverageSources} />}
               />
             ) : null}
           </div>
 
+          {data.forecast ? (
+            <div className="mt-3 grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <KpiCard
+                title={tFinancial('kpis.allocatedOverhead')}
+                money={data.forecast.totalAllocatedOverhead}
+              />
+              <KpiCard
+                title={tFinancial('kpis.committed')}
+                money={data.forecast.totalRemainingCommitments}
+              />
+              <KpiCard
+                title={tFinancial('kpis.expectedRemaining')}
+                money={data.forecast.totalExpectedRemaining}
+              />
+              <KpiCard
+                title={tFinancial('kpis.forecast')}
+                money={data.forecast.totalForecastFinalCost}
+              />
+              {data.showProfit && data.forecast.totalActualMargin ? (
+                <KpiCard
+                  title={tFinancial('kpis.actualMargin')}
+                  money={data.forecast.totalActualMargin}
+                />
+              ) : null}
+              {data.showProfit && data.forecast.totalForecastMargin ? (
+                <KpiCard
+                  title={tFinancial('kpis.forecastMargin')}
+                  money={data.forecast.totalForecastMargin}
+                />
+              ) : null}
+              <KpiCard
+                title={tFinancial('unallocatedBusinessCosts')}
+                money={data.forecast.unallocatedBusinessCosts}
+                footer={
+                  <p className="break-words text-xs text-[var(--pf-text-secondary)]">
+                    {tFinancial('unallocatedBusinessCostsHint')}
+                  </p>
+                }
+              />
+            </div>
+          ) : null}
+
           {data.showBilling && data.billing ? (
             <div className="mt-3 grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-3">
               <KpiCard
-                title={tFinancial('invoiced')}
+                title={tFinancial('kpis.billed')}
                 money={data.billing.invoiced}
                 footer={(() => {
                   if (!data.billingCoverage) return null;
@@ -131,8 +174,8 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
                   ));
                 })()}
               />
-              <KpiCard title={tFinancial('paid')} money={data.billing.paid} />
-              <KpiCard title={tFinancial('outstanding')} money={data.billing.outstanding} />
+              <KpiCard title={tFinancial('kpis.paid')} money={data.billing.paid} />
+              <KpiCard title={tFinancial('kpis.outstanding')} money={data.billing.outstanding} />
             </div>
           ) : null}
         </section>

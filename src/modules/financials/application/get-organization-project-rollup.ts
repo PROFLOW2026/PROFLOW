@@ -8,8 +8,6 @@ import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { getProjectFinancials } from './get-project-financials';
 import { listActiveProjectIds } from '../data/projects.repository';
 
-/** Cap rollup fan-out; full org financial matrix is a later reporting wave. */
-const MAX_ROLLUP_PROJECTS = 50;
 const ROLLUP_CONCURRENCY = 8;
 
 export interface ProjectRollupRow {
@@ -31,10 +29,13 @@ export interface ProjectRollupRow {
   readonly overheadActual: MoneyValue | null;
   readonly committedOpen: MoneyValue | null;
   readonly openApPayable: MoneyValue | null;
+  readonly expectedRemainingCost: MoneyValue | null;
   readonly estimatedFinalCost: MoneyValue | null;
   readonly assetCapitalActual: MoneyValue | null;
   readonly estimatedProfit: MoneyValue | null;
   readonly marginPercent: string | null;
+  readonly actualProfit: MoneyValue | null;
+  readonly actualMarginPercent: string | null;
   readonly progressPercent: string | null;
   readonly profitable: boolean | null;
 }
@@ -46,14 +47,28 @@ export interface OrganizationOpsSummary {
   readonly profitableCount: number | null;
 }
 
+export interface OrganizationProjectRollupOptions {
+  /**
+   * Optional row pagination for UI tables.
+   * Financial totals / ops always use the full eligible set — never truncated.
+   */
+  readonly limit?: number;
+  readonly offset?: number;
+}
+
 export interface OrganizationProjectRollup {
   readonly currency: string;
   readonly rows: readonly ProjectRollupRow[];
   readonly ops: OrganizationOpsSummary;
   /** Projects excluded because their currency differs from org base. */
   readonly excludedForeignCurrencyCount: number;
-  /** Active projects not included due to the pre-launch rollup cap. */
+  /**
+   * @deprecated Always 0 — Wave 2 removed the 50-project correctness cap.
+   * Kept for UI compatibility; prefer totalEligibleProjectCount.
+   */
   readonly truncatedActiveProjectCount: number;
+  /** Base-currency active projects included in financial totals (before row pagination). */
+  readonly totalEligibleProjectCount: number;
   readonly note: string;
   readonly canReadProfit: boolean;
   readonly canReadBilling: boolean;
@@ -87,9 +102,13 @@ async function mapPool<T, R>(
  * Never mixes currencies. Profit only when PROJECT_PROFIT_READ is held.
  * Does not label anything as Revenue. VAT is not profit.
  * Actual / Committed / Forecast stay separate on cost fields.
+ *
+ * All base-currency active projects are included in financial totals.
+ * Optional limit/offset only pages the returned `rows` array.
  */
 export async function getOrganizationProjectRollup(
   context: OrgContext,
+  options: OrganizationProjectRollupOptions = {},
 ): Promise<OrganizationProjectRollup> {
   assertPermission(context, PERMISSIONS.PROJECT_FINANCIALS_READ);
 
@@ -99,8 +118,6 @@ export async function getOrganizationProjectRollup(
   const canCommercial = hasPermission(context, PERMISSIONS.CONTRACTS_READ);
 
   const activeIds = await listActiveProjectIds(context.db, context.organizationId);
-  const truncatedActiveProjectCount = Math.max(0, activeIds.length - MAX_ROLLUP_PROJECTS);
-  const cappedIds = activeIds.slice(0, MAX_ROLLUP_PROJECTS);
 
   const projectRows = await context.db
     .select({
@@ -119,7 +136,7 @@ export async function getOrganizationProjectRollup(
   let progressCount = 0;
 
   const eligibleIds: string[] = [];
-  for (const projectId of cappedIds) {
+  for (const projectId of activeIds) {
     const meta = byId.get(projectId);
     if (!meta) continue;
     const projectCurrency = (meta.currency ?? currency).toUpperCase();
@@ -130,7 +147,7 @@ export async function getOrganizationProjectRollup(
     eligibleIds.push(projectId);
   }
 
-  const rows = await mapPool(eligibleIds, ROLLUP_CONCURRENCY, async (projectId) => {
+  const allRows = await mapPool(eligibleIds, ROLLUP_CONCURRENCY, async (projectId) => {
     const meta = byId.get(projectId)!;
     const projectCurrency = (meta.currency ?? currency).toUpperCase();
     const financials = await getProjectFinancials(context, projectId);
@@ -159,10 +176,15 @@ export async function getOrganizationProjectRollup(
     const overheadActual = financials.cost.overheadActual;
     const committedOpen = financials.cost.committedOpen;
     const openApPayable = financials.cost.openApPayable;
+    const expectedRemainingCost = financials.cost.expectedRemainingCost;
     const estimatedFinalCost = financials.cost.estimatedFinalCost;
     const assetCapitalActual = financials.cost.byFamily.assetCapital;
     const estimatedProfit = canProfit ? (financials.profit?.estimatedProfit ?? null) : null;
     const marginPercent = canProfit ? (financials.profit?.marginPercent ?? null) : null;
+    const actualProfit = canProfit ? (financials.profit?.actualProfit ?? null) : null;
+    const actualMarginPercent = canProfit
+      ? (financials.profit?.actualMarginPercent ?? null)
+      : null;
     const profitable =
       estimatedProfit == null
         ? null
@@ -191,16 +213,19 @@ export async function getOrganizationProjectRollup(
       overheadActual,
       committedOpen,
       openApPayable,
+      expectedRemainingCost,
       estimatedFinalCost,
       assetCapitalActual,
       estimatedProfit,
       marginPercent,
+      actualProfit,
+      actualMarginPercent,
       progressPercent: meta.progressPercent,
       profitable,
     } satisfies ProjectRollupRow;
   });
 
-  for (const row of rows) {
+  for (const row of allRows) {
     if (row.progressPercent != null && row.progressPercent !== '') {
       const parsed = Number(row.progressPercent);
       if (Number.isFinite(parsed)) {
@@ -210,7 +235,7 @@ export async function getOrganizationProjectRollup(
     }
   }
 
-  rows.sort((a, b) => {
+  allRows.sort((a, b) => {
     if (canProfit && a.profitable !== b.profitable) {
       if (a.profitable === false) return -1;
       if (b.profitable === false) return 1;
@@ -219,26 +244,31 @@ export async function getOrganizationProjectRollup(
   });
 
   const lossMakingCount = canProfit
-    ? rows.filter((row) => row.profitable === false).length
+    ? allRows.filter((row) => row.profitable === false).length
     : null;
   const profitableCount = canProfit
-    ? rows.filter((row) => row.profitable === true).length
+    ? allRows.filter((row) => row.profitable === true).length
     : null;
+
+  const offset = Math.max(0, options.offset ?? 0);
+  const limit = options.limit != null && options.limit > 0 ? options.limit : undefined;
+  const rows = limit == null ? allRows : allRows.slice(offset, offset + limit);
 
   return {
     currency,
     rows,
     ops: {
-      /** Base-currency projects included in this rollup (not FX-excluded / beyond cap). */
-      activeProjectCount: rows.length,
+      /** Full base-currency eligible set — never reduced by row pagination. */
+      activeProjectCount: allRows.length,
       averageProgressPercent:
         progressCount > 0 ? (progressSum / progressCount).toFixed(1) : null,
       lossMakingCount,
       profitableCount,
     },
     excludedForeignCurrencyCount,
-    truncatedActiveProjectCount,
-    note: 'Amounts use organization base currency only. VAT is not treated as profit. Actual, Committed and Forecast stay labelled separately. Incomplete cost coverage is disclosed per project financials.',
+    truncatedActiveProjectCount: 0,
+    totalEligibleProjectCount: allRows.length,
+    note: 'Amounts use organization base currency only. VAT is not treated as profit. Actual, Committed and Forecast stay labelled separately. Incomplete cost coverage is disclosed per project financials. Org totals include every base-currency active project (limit/offset page rows only). Unallocated organization costs are reported beside rollup totals, never inside project profit.',
     canReadProfit: canProfit,
     canReadBilling: canBilling,
     canReadCommercial: canCommercial,

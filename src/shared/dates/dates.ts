@@ -90,6 +90,28 @@ export function endOfMonth(date: BusinessDate): BusinessDate {
   return businessDate(new Date(Date.UTC(year, month, 0)));
 }
 
+/** Calendar months forward/back; day-of-month is clamped to the target month length. */
+export function addMonths(date: BusinessDate, months: number): BusinessDate {
+  const [year, month, day] = date.split('-').map(Number) as [number, number, number];
+  const totalMonths = year * 12 + (month - 1) + months;
+  const targetYear = Math.floor(totalMonths / 12);
+  const targetMonth = (totalMonths % 12) + 1;
+  const lastDay = endOfMonth(businessDate(`${targetYear}-${String(targetMonth).padStart(2, '0')}-01`));
+  const lastDayNum = Number(lastDay.slice(8, 10));
+  const clampedDay = Math.min(day, lastDayNum);
+  return businessDate(
+    `${targetYear}-${String(targetMonth).padStart(2, '0')}-${String(clampedDay).padStart(2, '0')}`,
+  );
+}
+
+export function maxBusinessDate(left: BusinessDate, right: BusinessDate): BusinessDate {
+  return left >= right ? left : right;
+}
+
+export function minBusinessDate(left: BusinessDate, right: BusinessDate): BusinessDate {
+  return left <= right ? left : right;
+}
+
 /**
  * Effective-dated range check used by rate versions and tax rules (docs 06, 11).
  * `validFrom` is inclusive, `validTo` is inclusive, and a null `validTo` means

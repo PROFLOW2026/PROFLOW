@@ -33,7 +33,7 @@
   },
   "expense": {
     "draft": "Draft",
-    "finalized": "Finalized",
+    "finalized": "In Actual Cost",
     "void": "Void"
   },
   "quoteVersion": {

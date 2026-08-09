@@ -27,6 +27,24 @@ export {
 export type { ApBillStatus, ApMatchStatus, MatchVariance } from './domain/matching';
 
 export {
+  RECOGNIZED_VENDOR_BILL_STATUSES,
+  isRecognizedVendorBillStatus,
+  isVendorBillExcludedFromActual,
+  composeVendorCostRecognition,
+  composeVendorForecastExposure,
+  consumeAmountForPostedPoBill,
+  shouldConsumeCommitmentOnMatchAccept,
+  shouldReleaseRemainingCommitmentOnSettlement,
+  isVendorPaymentRecognizedActual,
+  netActualAfterVendorRecognition,
+} from './domain/vendor-cost-recognition';
+export type {
+  RecognizedVendorBillStatus,
+  VendorCostRecognitionInput,
+  VendorCostRecognitionResult,
+} from './domain/vendor-cost-recognition';
+
+export {
   createApBillSchema,
   proposeApMatchSchema,
   decideApMatchSchema,

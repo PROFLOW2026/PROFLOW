@@ -4,6 +4,9 @@ import { revalidatePath } from 'next/cache';
 import { getLocale, getTranslations } from 'next-intl/server';
 import {
   createExpense,
+  createExpenseAdjustment,
+  createExpenseAdjustmentSchema,
+  createExpenseReversal,
   createExpenseSchema,
   finalizeExpense,
   parseAllocationsFromForm,
@@ -57,6 +60,10 @@ function buildExpensePayload(formData: FormData) {
       | undefined,
     recurrenceCustomLabel: formValue(formData, 'recurrenceCustomLabel') ?? null,
     allocations: parseAllocationsFromForm(formData),
+    allocationPeriodStart: formValue(formData, 'allocationPeriodStart') ?? null,
+    allocationPeriodEnd: formValue(formData, 'allocationPeriodEnd') ?? null,
+    allocationDriverMethod: formValue(formData, 'allocationDriverMethod') ?? null,
+    allocationScheduleMode: formValue(formData, 'allocationScheduleMode') ?? null,
   };
 }
 
@@ -137,6 +144,62 @@ export async function voidExpenseAction(expenseId: string): Promise<ExpenseActio
     revalidatePath('/expenses');
     revalidatePath(`/expenses/${expenseId}`);
     return { ok: true, expenseId };
+  } catch (error) {
+    if (error instanceof AppError) {
+      return { error: tErrors('unexpected') };
+    }
+    throw error;
+  }
+}
+
+export async function reverseExpenseAction(expenseId: string): Promise<ExpenseActionState> {
+  const tErrors = await getTranslations('errors');
+  const locale = await getLocale();
+
+  try {
+    const reversal = await withOrgContext((context) => createExpenseReversal(context, expenseId));
+    revalidatePath('/expenses');
+    revalidatePath(`/expenses/${expenseId}`);
+    revalidatePath(`/expenses/${reversal.id}`);
+    redirect({ href: `/expenses/${reversal.id}`, locale });
+  } catch (error) {
+    if (error instanceof AppError) {
+      return { error: tErrors('unexpected') };
+    }
+    throw error;
+  }
+}
+
+/**
+ * Owner correction workflow: original → reversal → corrected replacement draft.
+ * Uses createExpenseAdjustment (which posts the reversing row by default).
+ */
+export async function correctExpenseAction(
+  _prev: ExpenseActionState,
+  formData: FormData,
+): Promise<ExpenseActionState> {
+  const tErrors = await getTranslations('errors');
+  const locale = await getLocale();
+
+  const parsed = createExpenseAdjustmentSchema.safeParse({
+    ...buildExpensePayload(formData),
+    adjustsExpenseId: formValue(formData, 'adjustsExpenseId'),
+    reverseOriginal: formValue(formData, 'reverseOriginal') !== 'false',
+  });
+
+  if (!parsed.success) {
+    return { error: tErrors('validationFailed') };
+  }
+
+  try {
+    const { replacement, reversal } = await withOrgContext((context) =>
+      createExpenseAdjustment(context, parsed.data),
+    );
+    revalidatePath('/expenses');
+    revalidatePath(`/expenses/${parsed.data.adjustsExpenseId}`);
+    if (reversal) revalidatePath(`/expenses/${reversal.id}`);
+    revalidatePath(`/expenses/${replacement.id}`);
+    redirect({ href: `/expenses/${replacement.id}`, locale });
   } catch (error) {
     if (error instanceof AppError) {
       return { error: tErrors('unexpected') };

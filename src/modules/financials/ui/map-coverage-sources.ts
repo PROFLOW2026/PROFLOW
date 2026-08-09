@@ -21,6 +21,7 @@ function partialNoteForSource(
 
     if (
       (partial.reason === 'foreign_currency_expenses_excluded' && source === 'direct_expenses') ||
+      (partial.reason === 'labor_category_excluded_for_workforce' && source === 'direct_expenses') ||
       (partial.reason === 'foreign_currency_labor_excluded' && source === 'workforce') ||
       (partial.reason === 'workforce_entries_missing_cost' && source === 'workforce')
     ) {
@@ -51,6 +52,8 @@ export function partialNote(
       return t('coverage.partials.foreignCurrencyAp', { count: count ?? 0 });
     case 'workforce_entries_missing_cost':
       return t('coverage.partials.workforceEntriesMissingCost', { count: count ?? 0 });
+    case 'labor_category_excluded_for_workforce':
+      return t('coverage.partials.laborCategoryExcludedForWorkforce', { count: count ?? 0 });
     default:
       return undefined;
   }

@@ -32,6 +32,7 @@ import {
   archiveCostCategory,
   createCostCategory,
   renameCostCategory,
+  setCostCategoryPolicy,
 } from './_lib/cost-categories';
 
 export interface SettingsActionState {
@@ -246,10 +247,14 @@ export async function createCostCategoryAction(
   const tErrors = await getTranslations('errors');
 
   try {
+    const methodRaw = formValue(formData, 'defaultAllocationMethod');
+    const periodRaw = formValue(formData, 'defaultPeriodBehavior');
     await withOrgContext((context) =>
       createCostCategory(context, {
         name: formValue(formData, 'name'),
         family: formValue(formData, 'family'),
+        defaultAllocationMethod: methodRaw === '__none__' ? null : (methodRaw ?? null),
+        defaultPeriodBehavior: periodRaw === '__none__' ? null : (periodRaw ?? null),
       }),
     );
     revalidatePath('/settings/cost-categories');
@@ -290,6 +295,30 @@ export async function archiveCostCategoryAction(categoryId: string): Promise<Set
     return { ok: true };
   } catch (error) {
     if (error instanceof AppError) return { error: tErrors('unexpected') };
+    throw error;
+  }
+}
+
+export async function setCostCategoryPolicyAction(
+  _prev: SettingsActionState,
+  formData: FormData,
+): Promise<SettingsActionState> {
+  const tErrors = await getTranslations('errors');
+
+  try {
+    const methodRaw = formValue(formData, 'defaultAllocationMethod');
+    const periodRaw = formValue(formData, 'defaultPeriodBehavior');
+    await withOrgContext((context) =>
+      setCostCategoryPolicy(context, {
+        categoryId: formValue(formData, 'categoryId'),
+        defaultAllocationMethod: methodRaw === '__none__' || !methodRaw ? null : methodRaw,
+        defaultPeriodBehavior: periodRaw === '__none__' || !periodRaw ? null : periodRaw,
+      }),
+    );
+    revalidatePath('/settings/cost-categories');
+    return { ok: true };
+  } catch (error) {
+    if (error instanceof AppError) return { error: tErrors('validationFailed') };
     throw error;
   }
 }

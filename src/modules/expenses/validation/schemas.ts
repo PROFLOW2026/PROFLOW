@@ -2,16 +2,26 @@ import { z } from 'zod';
 
 const costFamilySchema = z.enum(['direct_project', 'shared', 'business_overhead', 'asset_capital']);
 
+const allocationMethodSchema = z.enum([
+  'manual_amount',
+  'manual_percent',
+  'contract_weight',
+  'labor_hours_weight',
+  'direct_cost_weight',
+  'equal_split',
+]);
+
 const allocationLineSchema = z.object({
   targetType: z.enum(['project', 'overhead']),
   projectId: z.string().uuid().nullable().optional(),
   workPackageId: z.string().uuid().nullable().optional(),
   costCategoryId: z.string().uuid().nullable().optional(),
-  method: z.enum(['manual_amount', 'manual_percent']),
+  method: allocationMethodSchema,
   amount: z.string().trim().nullable().optional(),
   percent: z.string().trim().nullable().optional(),
   notes: z.string().trim().max(2000).nullable().optional(),
   sortOrder: z.number().int().min(0),
+  amountBasis: z.enum(['gross', 'net']).optional(),
 });
 
 const expenseFieldsSchema = z.object({
@@ -40,6 +50,26 @@ const expenseFieldsSchema = z.object({
   recurrenceCadence: z.enum(['one_time', 'monthly', 'quarterly', 'yearly', 'custom']).optional(),
   recurrenceCustomLabel: z.string().trim().max(200).nullable().optional(),
   allocations: z.array(allocationLineSchema).optional(),
+  /** Inclusive allocation period for automatic drivers. */
+  allocationPeriodStart: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .nullable()
+    .optional(),
+  allocationPeriodEnd: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .nullable()
+    .optional(),
+  /** Preferred driver; weight methods trigger automatic allocation when period is set. */
+  allocationDriverMethod: allocationMethodSchema.nullable().optional(),
+  /**
+   * How source NET is sliced before drivers: one_time (default), monthly, annual, custom.
+   * Annual/custom/monthly distribute evenly across overlapping calendar months.
+   */
+  allocationScheduleMode: z.enum(['one_time', 'monthly', 'annual', 'custom']).nullable().optional(),
+  /** Optional project filter for SHARED / explicit eligibility. */
+  allocationProjectIds: z.array(z.string().uuid()).optional(),
 });
 
 export const createExpenseSchema = expenseFieldsSchema;
@@ -50,6 +80,11 @@ export const updateExpenseSchema = expenseFieldsSchema.extend({
 
 export const expenseIdSchema = z.object({
   expenseId: z.string().uuid(),
+});
+
+export const createExpenseAdjustmentSchema = expenseFieldsSchema.extend({
+  adjustsExpenseId: z.string().uuid(),
+  reverseOriginal: z.boolean().optional(),
 });
 
 export const listExpensesSchema = z.object({
@@ -69,9 +104,20 @@ export const listExpensesSchema = z.object({
   offset: z.coerce.number().int().min(0).optional(),
 });
 
+export const runAllocationSchema = z.object({
+  expenseId: z.string().uuid(),
+  method: allocationMethodSchema.optional(),
+  periodStart: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  periodEnd: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  projectIds: z.array(z.string().uuid()).optional(),
+  scheduleMode: z.enum(['one_time', 'monthly', 'annual', 'custom']).optional(),
+});
+
 export type CreateExpenseInput = z.infer<typeof createExpenseSchema>;
+export type CreateExpenseAdjustmentInput = z.infer<typeof createExpenseAdjustmentSchema>;
 export type UpdateExpenseInput = z.infer<typeof updateExpenseSchema>;
 export type ListExpensesInput = z.infer<typeof listExpensesSchema>;
+export type RunAllocationInput = z.infer<typeof runAllocationSchema>;
 
 export function parseAllocationsFromForm(formData: FormData): z.infer<typeof allocationLineSchema>[] {
   const raw = formData.get('allocations');

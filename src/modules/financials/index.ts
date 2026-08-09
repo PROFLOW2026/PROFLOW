@@ -1,9 +1,11 @@
 /** Public API of the financials module (docs 04, 46, 51). */
 export { getProjectFinancials } from './application/get-project-financials';
+export { setProjectExpectedRemainingCost } from './application/set-project-expected-remaining-cost';
 export { getOrganizationFinancials } from './application/get-organization-financials';
 export { getOrganizationProjectRollup } from './application/get-organization-project-rollup';
 export type {
   OrganizationProjectRollup,
+  OrganizationProjectRollupOptions,
   OrganizationOpsSummary,
   ProjectRollupRow,
 } from './application/get-organization-project-rollup';
@@ -35,12 +37,31 @@ export {
   buildCashFlowOutlook,
 } from './domain/cash-flow';
 export { getHomeDashboard } from './application/get-home-dashboard';
-export type { HomeDashboardData, DashboardAttention } from './application/get-home-dashboard';
+export type {
+  HomeDashboardData,
+  DashboardAttention,
+  OrganizationForecastSummary,
+} from './application/get-home-dashboard';
 
 export { computeProfitPosition, computeMarginPercent } from './domain/profit';
 export { buildFinancialCoverage, ALL_COST_SOURCES } from './domain/coverage';
-export { aggregateProjectCosts, emptyCostPosition, withCommittedAndApPayable } from './domain/cost-aggregation';
-export type { ProjectExpenseContribution, LaborCostContribution } from './domain/cost-aggregation';
+export {
+  aggregateProjectCosts,
+  emptyCostPosition,
+  withCommittedAndApPayable,
+  withRecognizedVendorBills,
+  computeForecastFinalCost,
+} from './domain/cost-aggregation';
+export type {
+  ProjectExpenseContribution,
+  LaborCostContribution,
+  ForecastFinalCostInput,
+} from './domain/cost-aggregation';
+export {
+  sumProjectTouchingExpenseNets,
+  computeUnallocatedOrganizationCosts,
+  expenseTotalsReconcile,
+} from './domain/org-cost-reconciliation';
 
 export type {
   ProjectFinancials,

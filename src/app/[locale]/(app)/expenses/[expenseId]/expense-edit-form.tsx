@@ -32,6 +32,7 @@ export function ExpenseEditForm({
   workPackages,
   vendors = [],
 }: ExpenseEditFormProps) {
+  const t = useTranslations('expenses');
   const tCommon = useTranslations('common');
   const tOffline = useTranslations('offline');
   const serverUpdatedAt = toServerUpdatedAt(expense.updatedAt);
@@ -110,12 +111,16 @@ export function ExpenseEditForm({
           recurrenceCadence: recurrence.cadence,
           recurrenceCustomLabel: recurrence.customLabel ?? '',
           allocations,
+          allocationDriverMethod: expense.allocationDriverMethod ?? '',
+          allocationPeriodStart: expense.allocationPeriodStart ?? '',
+          allocationPeriodEnd: expense.allocationPeriodEnd ?? '',
+          allocationScheduleMode: expense.allocationScheduleMode ?? '',
         }}
         error={state.error ?? null}
       />
 
       <Button type="submit" loading={pending}>
-        {pending ? tCommon('states.saving') : tCommon('actions.save')}
+        {pending ? tCommon('states.saving') : t('actions.saveDraft')}
       </Button>
     </form>
   );

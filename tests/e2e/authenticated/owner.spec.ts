@@ -36,7 +36,10 @@ test.describe('signed-in owner', () => {
     await expect(page.getByText(contractValueFormatted).first()).toBeVisible();
 
     await page.getByRole('tab', { name: he.projects.workspace.tabs.financials }).click();
-    await expect(page.getByRole('heading', { name: he.financial.contractValue, level: 3 })).toBeVisible();
+    await expect(page.getByRole('heading', { name: he.financial.panelTitle, level: 3 })).toBeVisible();
+    await expect(
+      page.getByRole('button', { name: new RegExp(he.financial.kpis.currentContract) }),
+    ).toBeVisible();
     await expect(page.getByText(contractValueFormatted).first()).toBeVisible();
     await expect(page.getByText(seededExpenseFormatted).first()).toBeVisible();
 
@@ -74,7 +77,7 @@ test.describe('signed-in owner', () => {
     await page.goto(`/he-IL/expenses/new?projectId=${world.projectId}`);
     await page.getByLabel(he.expenses.fields.amount).fill(amount);
     await page.getByLabel(he.expenses.fields.description).fill(description);
-    await page.getByRole('button', { name: he.common.actions.save }).click();
+    await page.getByRole('button', { name: he.expenses.actions.saveDraft }).click();
 
     await expect(page).toHaveURL(new RegExp(`/he-IL/expenses/[0-9a-f-]+$`), { timeout: 30_000 });
     await expect(page.getByLabel(he.expenses.fields.description)).toHaveValue(description);

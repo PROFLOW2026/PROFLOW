@@ -11,6 +11,7 @@ import { getEntityDocumentPanelData } from '@/modules/documents';
 import { DocumentAttachments } from '@/modules/documents/ui';
 import {
   getExpense,
+  getExpenseCorrectionChain,
   listCostCategoriesForOrg,
   listProjectsForOrg,
   listWorkPackagesForOrg,
@@ -24,6 +25,7 @@ import { Link } from '@/shared/i18n/navigation';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { upsertEntityFieldValueAction } from '../../settings/custom-fields/actions';
+import { ExpenseCorrectionHistory } from './expense-correction-history';
 import { ExpenseDetailActions } from './expense-detail-actions';
 import { ExpenseEditForm } from './expense-edit-form';
 import { PromoteVendorPanel } from './promote-vendor-panel';
@@ -52,11 +54,12 @@ export default async function ExpenseDetailPage({
   const data = await withOrgContext(async (context) => {
     try {
       const expense = await getExpense(context, expenseId);
-      const [projects, categories, documentsPanel, customFields] = await Promise.all([
+      const [projects, categories, documentsPanel, customFields, correctionChain] = await Promise.all([
         listProjectsForOrg(context),
         listCostCategoriesForOrg(context),
         getEntityDocumentPanelData(context, 'expense', expenseId),
         listCustomFieldValuesForEntity(context, 'expense', expenseId).catch(() => []),
+        getExpenseCorrectionChain(context, expenseId).catch(() => null),
       ]);
       const workPackages = expense.projectId
         ? await listWorkPackagesForOrg(context, expense.projectId)
@@ -72,7 +75,10 @@ export default async function ExpenseDetailPage({
         vendors: vendors.map((vendor) => ({ id: vendor.id, name: vendor.name })),
         documentsPanel,
         customFields,
+        correctionChain,
         canPromoteVendor: hasPermission(context, PERMISSIONS.VENDORS_MANAGE),
+        canFinalizeExpense: hasPermission(context, PERMISSIONS.EXPENSES_FINALIZE),
+        canCreateExpense: hasPermission(context, PERMISSIONS.EXPENSES_CREATE),
       };
     } catch {
       return null;
@@ -89,12 +95,25 @@ export default async function ExpenseDetailPage({
     vendors,
     documentsPanel,
     customFields,
+    correctionChain,
     canPromoteVendor,
+    canFinalizeExpense,
+    canCreateExpense,
   } = data;
   const recurrence = decodeRecurrenceRule(expense.recurrenceRule);
   const readOnly = expense.status !== 'draft';
-  const canFinalize = expense.status === 'draft';
-  const canVoid = expense.status === 'finalized' && !expense.voidsExpenseId;
+  const canFinalize = expense.status === 'draft' && canFinalizeExpense;
+  const canVoid = expense.status === 'finalized' && !expense.voidsExpenseId && canFinalizeExpense;
+  const canReverse =
+    expense.status === 'finalized' &&
+    !expense.voidsExpenseId &&
+    !expense.adjustsExpenseId &&
+    canFinalizeExpense;
+  const canCorrect =
+    expense.status === 'finalized' &&
+    !expense.voidsExpenseId &&
+    canFinalizeExpense &&
+    canCreateExpense;
   const showPromoteVendor =
     canPromoteVendor && Boolean(expense.supplierName?.trim()) && !expense.vendorId;
 
@@ -110,6 +129,34 @@ export default async function ExpenseDetailPage({
         }
       />
 
+      {expense.status === 'draft' ? (
+        <div
+          role="status"
+          className="rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-muted)] px-4 py-3 text-sm text-[var(--pf-text-primary)]"
+        >
+          {t('detail.draftBanner')}
+        </div>
+      ) : null}
+
+      {expense.status === 'finalized' ? (
+        <div
+          role="status"
+          className="rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-muted)] px-4 py-3 text-sm text-[var(--pf-text-primary)]"
+        >
+          {t('detail.finalizedBanner')}
+        </div>
+      ) : null}
+
+      {!expense.projectId &&
+      expense.allocations.every((line) => line.targetType !== 'project') ? (
+        <div
+          role="status"
+          className="rounded-lg border border-[var(--pf-status-warning-border)] bg-[var(--pf-status-warning-bg)] px-4 py-3 text-sm text-[var(--pf-status-warning-fg)]"
+        >
+          {t('lifecycle.overheadUnallocatedWarning')}
+        </div>
+      ) : null}
+
       <div className="flex flex-wrap items-center gap-3">
         <StatusBadge shape={statusShape(expense.status)} label={tStatus(`expense.${expense.status}`)} />
         <MoneyText value={expense.grossAmount} className="text-xl font-semibold" />
@@ -118,6 +165,9 @@ export default async function ExpenseDetailPage({
           status={expense.status}
           canFinalize={canFinalize}
           canVoid={canVoid}
+          canReverse={canReverse}
+          canCorrect={canCorrect}
+          expense={expense}
           amount={expense.grossAmount}
           expenseDate={expense.expenseDate}
         />
@@ -156,7 +206,14 @@ export default async function ExpenseDetailPage({
             ) : null}
             {expense.notes ? <DetailRow label={t('fields.notes')} value={expense.notes} /> : null}
             {expense.voidsExpenseId ? (
-              <p className="text-[var(--pf-text-muted)]">{t('detail.reversalOf', { id: expense.voidsExpenseId })}</p>
+              <p className="text-[var(--pf-text-muted)]">
+                {t('detail.reversalOf', { id: expense.voidsExpenseId })}
+              </p>
+            ) : null}
+            {expense.adjustsExpenseId ? (
+              <p className="text-[var(--pf-text-muted)]">
+                {t('detail.adjustmentOf', { id: expense.adjustsExpenseId })}
+              </p>
             ) : null}
           </CardContent>
         </Card>
@@ -170,6 +227,10 @@ export default async function ExpenseDetailPage({
         />
       )}
 
+      {correctionChain ? (
+        <ExpenseCorrectionHistory chain={correctionChain} currentExpenseId={expense.id} />
+      ) : null}
+
       {showPromoteVendor && expense.supplierName ? (
         <PromoteVendorPanel expenseId={expense.id} supplierName={expense.supplierName} />
       ) : null}
@@ -179,7 +240,47 @@ export default async function ExpenseDetailPage({
           <CardHeader>
             <CardTitle className="text-start">{t('allocation.title')}</CardTitle>
           </CardHeader>
-          <CardContent className="flex min-w-0 flex-col gap-2 text-sm">
+          <CardContent className="flex min-w-0 flex-col gap-3 text-sm">
+            <dl className="grid gap-2 text-xs text-[var(--pf-text-secondary)] sm:grid-cols-3">
+              {expense.recurrenceRule ? (
+                <div>
+                  <dt className="text-[var(--pf-text-muted)]">{t('lifecycle.allocationPeriod')}</dt>
+                  <dd>
+                    {recurrence.cadence === 'custom'
+                      ? recurrence.customLabel
+                      : t(`recurrence.${recurrence.cadence}`)}
+                  </dd>
+                </div>
+              ) : null}
+              <div>
+                <dt className="text-[var(--pf-text-muted)]">{t('lifecycle.allocationMethodSummary')}</dt>
+                <dd>
+                  {[
+                    ...new Set(
+                      expense.allocations.map((line) => {
+                        if (line.method === 'manual_percent') return t('allocation.methods.percent');
+                        if (line.method === 'manual_amount') return t('allocation.methods.amount');
+                        return t(`allocation.methods.${line.method}`);
+                      }),
+                    ),
+                  ].join(', ')}
+                </dd>
+              </div>
+              <div className="min-w-0">
+                <dt className="text-[var(--pf-text-muted)]">{t('lifecycle.allocationProjects')}</dt>
+                <dd className="break-words">
+                  {expense.allocations
+                    .filter((line) => line.targetType === 'project')
+                    .map(
+                      (line) =>
+                        projects.find((project) => project.id === line.projectId)?.name ??
+                        line.projectId,
+                    )
+                    .filter(Boolean)
+                    .join(', ') || t('targeting.overhead')}
+                </dd>
+              </div>
+            </dl>
             {expense.allocations.map((line, index) => (
               <div
                 key={index}
@@ -189,6 +290,12 @@ export default async function ExpenseDetailPage({
                   {line.targetType === 'overhead'
                     ? t('targeting.overhead')
                     : projects.find((project) => project.id === line.projectId)?.name}
+                  {' · '}
+                  {line.method === 'manual_percent'
+                    ? t('allocation.methods.percent')
+                    : line.method === 'manual_amount'
+                      ? t('allocation.methods.amount')
+                      : t(`allocation.methods.${line.method}`)}
                   {line.method === 'manual_percent' && line.percent ? ` (${line.percent}%)` : null}
                 </span>
                 <MoneyText value={line.amount} className="shrink-0" />

@@ -75,7 +75,7 @@
   },
   "costCategories": {
     "title": "Cost categories",
-    "subtitle": "Optional. Categories help you group costs; you never have to use them.",
+    "subtitle": "Optional. Categories help you group costs and set default allocation policy. Policy is chosen by the business — nothing is hardcoded by category name.",
     "family": "Cost section",
     "addCategory": "Add category",
     "renameLabel": "Name for {name}",
@@ -83,7 +83,25 @@
     "emptyHint": "Add a category when you want to group costs. You can skip this entirely.",
     "archiveQuestion": "Archive category «{name}»?",
     "archiveConsequence": "Archived categories no longer appear in new selection lists.",
-    "archiveSuccess": "Category archived."
+    "archiveSuccess": "Category archived.",
+    "defaultMethod": "Default allocation method",
+    "defaultPeriod": "Default period behavior",
+    "noDefault": "No default (choose on each expense)",
+    "policyHint": "Applied when capturing a new expense; the operator can override.",
+    "savePolicy": "Save policy",
+    "methods": {
+      "manual_amount": "Fixed amount",
+      "manual_percent": "Percentage",
+      "contract_weight": "By contract weight",
+      "labor_hours_weight": "By labor hours",
+      "direct_cost_weight": "By direct cost",
+      "equal_split": "Equal split"
+    },
+    "periods": {
+      "one_time": "One-time",
+      "monthly": "Monthly",
+      "date_range": "Date range / annual period"
+    }
   },
   "catalog": {
     "title": "Domains & document types",

@@ -9,8 +9,10 @@ import { vendors } from './vendors';
 
 /**
  * Accounts payable / PO matching (Wave 3).
- * AP bills are payable obligations. Matching links bills to POs and/or Expenses
- * without treating the bill itself as Expense actual cost.
+ * AP bills are payable obligations (distinct from Expense rows).
+ * Posted/approved bills recognize Actual Vendor Cost in financials;
+ * matching links bills to POs and/or existing Expenses without inventing Expense rows.
+ * Vendor payments are cash-only and never stored as cost recognition here.
  */
 
 export const apBills = pgTable(

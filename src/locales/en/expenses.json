@@ -3,13 +3,42 @@
   "subtitle": "Record project costs and business expenses in one place.",
   "capture": {
     "title": "New expense",
-    "subtitle": "Enter an amount to save. Everything else is optional."
+    "subtitle": "Saving creates a draft only. The expense enters project costs after you approve it. For business overhead, add allocation lines so it is not left unallocated."
   },
   "detail": {
     "title": "Expense",
     "summary": "Summary",
+    "draftBanner": "This expense was saved as a draft and is not included in project costs yet.",
+    "finalizedBanner": "This expense was approved and is included in project costs.",
     "reversalOf": "Reversal of expense {id}",
-    "viewVendor": "Open linked vendor"
+    "adjustmentOf": "Corrected replacement for expense {id}",
+    "viewVendor": "Open linked vendor",
+    "correctionHistory": "Correction history",
+    "correctionHistoryHint": "Original, reversing, and replacement rows stay visible. Net Actual Cost uses the corrected amount.",
+    "correctionRole": {
+      "original": "Original",
+      "reversal": "Reversal",
+      "replacement": "Corrected replacement"
+    },
+    "correctionNet": "Net after correction"
+  },
+  "categoryPolicy": {
+    "title": "Category policy",
+    "family": "Cost section",
+    "method": "Default allocation method",
+    "period": "Default period",
+    "none": "No default",
+    "overrideHint": "You can change method and period below — this expense keeps your override.",
+    "fromPolicy": "From category policy",
+    "overridden": "Overridden for this expense"
+  },
+  "lifecycle": {
+    "draftHint": "Saving creates a draft only. Approve it into costs when the amount is ready.",
+    "overheadUnallocatedWarning": "This is business overhead with no project allocation. It will not appear in any project’s Actual Cost or Allocated Overhead until you add allocation lines.",
+    "overheadAllocatedHint": "Allocation lines determine which projects receive a share of this overhead.",
+    "allocationPeriod": "Period",
+    "allocationMethodSummary": "Method",
+    "allocationProjects": "Projects"
   },
   "promoteVendor": {
     "title": "Save as vendor",
@@ -19,18 +48,37 @@
   },
   "actions": {
     "add": "Add expense",
-    "finalize": "Finalize",
-    "void": "Void"
+    "saveDraft": "Save draft",
+    "finalize": "Approve into Actual Cost",
+    "void": "Void",
+    "reverse": "Reverse (offset)",
+    "correct": "Correct expense"
+  },
+  "correction": {
+    "title": "Correct expense",
+    "subtitle": "Creates a reversing entry for the original and a draft replacement with the corrected figures. History stays intact.",
+    "amountLabel": "Corrected amount",
+    "submit": "Create correction",
+    "success": "Correction draft created. Approve the replacement when ready.",
+    "exampleHint": "Example: 52,000 → 50,000 keeps +52,000 original, −52,000 reversal, +50,000 replacement (net 50,000)."
   },
   "confirm": {
-    "finalizeTitle": "Finalize expense",
-    "finalizeQuestion": "Finalize the expense of <amount></amount> from <date></date>?",
-    "finalizeConsequence": "Once finalized it cannot be edited.",
-    "finalizeSuccess": "Expense finalized.",
+    "finalizeTitle": "Approve expense into Actual Cost",
+    "finalizeQuestion": "Approve the expense of <amount></amount> from <date></date> and include it in Actual Cost?",
+    "finalizeConsequence": "Once approved it cannot be edited, and the net amount enters Actual Cost and profitability.",
+    "finalizeSuccess": "This expense was approved and is included in project costs.",
     "voidTitle": "Void expense",
     "voidQuestion": "Void the expense of <amount></amount> from <date></date>?",
     "voidConsequence": "It will be excluded from all cost figures.",
-    "voidSuccess": "Expense voided."
+    "voidSuccess": "Expense voided.",
+    "reverseTitle": "Reverse finalized expense",
+    "reverseQuestion": "Create a reversing entry for the expense of <amount></amount> from <date></date>?",
+    "reverseConsequence": "The original stays in history. A linked negative expense zeros its Actual Cost impact.",
+    "reverseSuccess": "Reversing entry created.",
+    "correctTitle": "Correct finalized expense",
+    "correctQuestion": "Create a reversal and a corrected draft for the expense of <amount></amount> from <date></date>?",
+    "correctConsequence": "The original stays in history. A reversing entry offsets it, and a new draft holds the corrected amount.",
+    "correctSuccess": "Correction created."
   },
   "fields": {
     "amount": "Amount",
@@ -102,7 +150,8 @@
     "monthly": "Monthly",
     "quarterly": "Quarterly",
     "yearly": "Yearly",
-    "custom": "Custom"
+    "custom": "Custom",
+    "date_range": "Date range / annual period"
   },
   "filters": {
     "dateFrom": "From date",
@@ -134,12 +183,15 @@
     }
   },
   "allocation": {
-    "title": "Split allocation",
+    "title": "Allocate to projects",
+    "subtitle": "Without allocation lines, general/shared overhead stays off every project’s cost.",
     "addLine": "Add line",
     "removeLine": "Remove",
-    "empty": "Split this expense across projects or overhead when one invoice covers multiple targets.",
+    "empty": "Add lines so contractors can see method, period, and which projects receive a share.",
     "target": "Target",
     "method": "Method",
+    "period": "Period (recurrence)",
+    "projectsLabel": "Projects in this allocation",
     "targetRow": "Target — row {row}",
     "methodRow": "Method — row {row}",
     "amountRow": "Amount — row {row}",
@@ -148,9 +200,19 @@
     "selectTarget": "Choose project or overhead",
     "methods": {
       "amount": "Fixed amount",
-      "percent": "Percentage"
+      "percent": "Percentage",
+      "contract_weight": "By contract weight",
+      "labor_hours_weight": "By labor hours",
+      "direct_cost_weight": "By direct cost",
+      "equal_split": "Equal split"
     },
-    "sumHintPrefix": "Lines must sum exactly to"
+    "driverLabel": "Automatic allocation method",
+    "driverManual": "Manual (allocation lines)",
+    "periodStart": "Allocation period start",
+    "periodEnd": "Allocation period end",
+    "autoDriverHint": "The system splits NET across eligible projects in the period and stores a historical snapshot.",
+    "sumHintPrefix": "Lines must sum exactly to",
+    "unallocatedCallout": "No projects selected yet — this overhead will not land on project Actual Cost."
   },
   "errors": {
     "workPackageRequiresProject": "A work area requires a project.",
@@ -166,6 +228,12 @@
     "notFinalizable": "Only draft expenses can be finalized.",
     "notVoidable": "Only finalized expenses can be voided.",
     "reversalNotVoidable": "Reversal entries cannot be voided again.",
+    "alreadyReversed": "This expense already has a reversing entry.",
+    "notReversible": "Only finalized expenses can be reversed.",
+    "reversalNotReversible": "Reversal entries cannot be reversed again.",
+    "adjustmentNotReversible": "Adjustment entries cannot be reversed this way.",
+    "notAdjustable": "Only finalized expenses can receive an adjustment.",
+    "reversalNotAdjustable": "Reversal entries cannot be adjusted.",
     "currencyMustMatchProject": "Expense currency must match the project currency.",
     "currencyMustMatchOrganization": "Overhead expense currency must match the organization currency.",
     "projectExpenseNoAllocations": "Project expenses cannot be split across allocation lines.",

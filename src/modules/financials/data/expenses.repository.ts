@@ -1,9 +1,20 @@
 import { and, eq, gte, isNotNull, isNull, lte, or, sql } from 'drizzle-orm';
-import { expenseAllocations, expenses, vendors } from '@drizzle/schema';
+import { alias } from 'drizzle-orm/pg-core';
+import { costCategories, expenseAllocations, expenses, vendors } from '@drizzle/schema';
 import type { BusinessDate } from '@/shared/dates';
-import { fromNumericString, sumMoney, zeroMoney, type MoneyValue } from '@/shared/money';
+import {
+  divideMoney,
+  fromNumericString,
+  isZeroMoney,
+  multiplyMoney,
+  roundMoney,
+  sumMoney,
+  zeroMoney,
+  type MoneyValue,
+} from '@/shared/money';
 import type { DbExecutor } from '@/shared/db/types';
 import type { DbCostFamily, ProjectExpenseContribution } from '../domain/cost-aggregation';
+import { isLaborCostCategoryKey } from '../domain/labor-expense-integrity';
 import { sqlFirstRow } from './sql-rows';
 
 export async function loadProjectExpenseContributions(
@@ -43,13 +54,17 @@ async function loadExpenseContributions(
 
   const directRows = await db
     .select({
-      grossAmount: expenses.grossAmount,
+      expenseId: expenses.id,
+      netAmount: expenses.netAmount,
       currency: expenses.currency,
       costFamily: expenses.costFamily,
       vendorType: vendors.type,
+      projectId: expenses.projectId,
+      categoryKey: costCategories.key,
     })
     .from(expenses)
     .leftJoin(vendors, eq(vendors.id, expenses.vendorId))
+    .leftJoin(costCategories, eq(costCategories.id, expenses.costCategoryId))
     .where(and(...directFilters));
 
   const allocationFilters = [
@@ -63,44 +78,91 @@ async function loadExpenseContributions(
     allocationFilters.push(isNotNull(expenseAllocations.projectId));
   }
 
+  const lineCategories = alias(costCategories, 'expense_alloc_line_cat');
+
   const allocationRows = await db
     .select({
+      expenseId: expenses.id,
       amount: expenseAllocations.amount,
       currency: expenseAllocations.currency,
+      amountBasis: expenseAllocations.amountBasis,
       costFamily: expenses.costFamily,
       vendorType: vendors.type,
-      targetType: expenseAllocations.targetType,
+      parentNetAmount: expenses.netAmount,
+      parentGrossAmount: expenses.grossAmount,
+      projectId: expenseAllocations.projectId,
+      parentCategoryKey: costCategories.key,
+      lineCategoryKey: lineCategories.key,
     })
     .from(expenseAllocations)
     .innerJoin(expenses, eq(expenses.id, expenseAllocations.expenseId))
     .leftJoin(vendors, eq(vendors.id, expenses.vendorId))
+    .leftJoin(costCategories, eq(costCategories.id, expenses.costCategoryId))
+    .leftJoin(lineCategories, eq(lineCategories.id, expenseAllocations.costCategoryId))
     .where(and(...allocationFilters));
 
   const contributions: ProjectExpenseContribution[] = [];
 
   for (const row of directRows) {
     contributions.push({
-      amount: row.grossAmount,
+      // Profitability uses NET — VAT must not inflate Actual Cost / margin.
+      amount: row.netAmount,
       currency: row.currency,
       costFamily: row.costFamily as DbCostFamily,
       isDirectOnProject: true,
       isAllocated: false,
       isSubcontractor: isSubcontractorVendor(row.vendorType),
+      projectId: row.projectId,
+      isLaborCategory: isLaborCostCategoryKey(row.categoryKey),
+      expenseId: row.expenseId,
     });
   }
 
   for (const row of allocationRows) {
+    const amountBasis = row.amountBasis === 'net' ? 'net' : 'gross';
     contributions.push({
-      amount: row.amount,
+      amount:
+        amountBasis === 'net'
+          ? row.amount
+          : netShareOfAllocationLine(
+              row.amount,
+              row.parentNetAmount,
+              row.parentGrossAmount,
+              row.currency,
+            ),
       currency: row.currency,
       costFamily: row.costFamily as DbCostFamily,
       isDirectOnProject: false,
       isAllocated: true,
       isSubcontractor: isSubcontractorVendor(row.vendorType),
+      projectId: row.projectId,
+      // Line category overrides parent when set; Mode B labor is usually on the parent.
+      isLaborCategory: isLaborCostCategoryKey(row.lineCategoryKey ?? row.parentCategoryKey),
+      expenseId: row.expenseId,
     });
   }
 
   return contributions;
+}
+
+/**
+ * Allocation lines may be captured against gross (invoice UX) or net (automatic
+ * weight engine). Project Actual / profit use NET: scale gross lines; pass
+ * net-basis lines through unchanged.
+ */
+function netShareOfAllocationLine(
+  lineAmount: string,
+  parentNetAmount: string,
+  parentGrossAmount: string,
+  currency: string,
+): string {
+  const line = fromNumericString(lineAmount, currency);
+  const net = fromNumericString(parentNetAmount, currency);
+  const gross = fromNumericString(parentGrossAmount, currency);
+  if (!line || !net || !gross) return '0';
+  if (isZeroMoney(gross)) return '0';
+  if (net.amount === gross.amount) return line.amount;
+  return roundMoney(divideMoney(multiplyMoney(line, net.amount), gross.amount)).amount;
 }
 
 function isSubcontractorVendor(type: string | null): boolean {
@@ -115,7 +177,7 @@ export async function sumOrganizationCostsInDateRange(
   toDate: BusinessDate,
 ): Promise<MoneyValue> {
   const directRows = await db
-    .select({ grossAmount: expenses.grossAmount, currency: expenses.currency })
+    .select({ netAmount: expenses.netAmount, currency: expenses.currency })
     .from(expenses)
     .where(
       and(
@@ -130,7 +192,7 @@ export async function sumOrganizationCostsInDateRange(
     );
 
   const values = directRows
-    .map((row) => fromNumericString(row.grossAmount, row.currency))
+    .map((row) => fromNumericString(row.netAmount, row.currency))
     .filter((value): value is MoneyValue => value !== null);
 
   if (values.length === 0) return zeroMoney(currency);
@@ -155,6 +217,10 @@ export async function hasAnyExpenseUsage(
   return (row?.count ?? 0) > 0;
 }
 
+/**
+ * Org-wide finalized expense NET total (includes unallocated overhead).
+ * Prefer project-loaded aggregation (`aggregateProjectCosts`) for home/project profit KPIs.
+ */
 export async function sumOrganizationActualCosts(
   db: DbExecutor,
   organizationId: string,
@@ -162,7 +228,7 @@ export async function sumOrganizationActualCosts(
 ): Promise<{ total: MoneyValue; hasExpenseData: boolean }> {
   const row = sqlFirstRow<{ total: string; count: number }>(
     await db.execute(sql`
-      select coalesce(sum(e.gross_amount), 0)::text as total, count(*)::int as count
+      select coalesce(sum(e.net_amount), 0)::text as total, count(*)::int as count
       from expenses e
       where e.organization_id = ${organizationId}
         and e.currency = ${currency}

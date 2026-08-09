@@ -5,6 +5,11 @@ import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { noteModuleUsage } from '@/modules/tenancy';
 import {
+  computeCommittedAfterConsumption,
+  findOpenCommittedCostForPo,
+  updateCommittedCostConsumption,
+} from '@/modules/procurement';
+import {
   assertAcceptMatchDoesNotCreateExpense,
   assertMatchCurrencyIntegrity,
   assertMatchDoesNotOverMatch,
@@ -13,6 +18,10 @@ import {
   isAcceptingMatchCreatingExpense,
   type ApBillStatus,
 } from '../domain/matching';
+import {
+  shouldConsumeCommitmentOnMatchAccept,
+  shouldReleaseRemainingCommitmentOnSettlement,
+} from '../domain/vendor-cost-recognition';
 import {
   findApBillById,
   findApPoMatchById,
@@ -231,7 +240,61 @@ export async function acceptApMatch(
     bill.totalAmount,
   );
 
-  await recordAuditEvent(context, {
+  const refreshedBill = await findApBillById(context.db, context.organizationId, bill.id);
+  const billStatusAfterAccept = (refreshedBill?.status ?? bill.status) as ApBillStatus;
+  const settlementPoId = accepted.purchaseOrderId ?? bill.purchaseOrderId;
+
+  // Consume open PO commitment when match introduces the PO link.
+  // Skip when bill header already linked the PO — createApBill consumed the bill total.
+  if (
+    shouldConsumeCommitmentOnMatchAccept({
+      billPurchaseOrderId: bill.purchaseOrderId,
+      matchPurchaseOrderId: accepted.purchaseOrderId,
+    })
+  ) {
+    const openCommitted = await findOpenCommittedCostForPo(
+      context.db,
+      context.organizationId,
+      accepted.purchaseOrderId!,
+    );
+    if (openCommitted) {
+      const next = computeCommittedAfterConsumption({
+        openAmount: openCommitted.amount,
+        consumeAmount: accepted.matchedAmount,
+        currency: openCommitted.currency,
+      });
+      await updateCommittedCostConsumption(context.db, context.organizationId, openCommitted.id, {
+        amount: next.remainingAmount,
+        status: next.status,
+      });
+    }
+  }
+
+  // Fully matched bill settles the PO: release under-bill commitment variance.
+  if (
+    shouldReleaseRemainingCommitmentOnSettlement({
+      billStatusAfterAccept,
+      purchaseOrderId: settlementPoId,
+    }) &&
+    settlementPoId
+  ) {
+    const openCommitted = await findOpenCommittedCostForPo(
+      context.db,
+      context.organizationId,
+      settlementPoId,
+    );
+    if (openCommitted) {
+      const next = computeCommittedAfterConsumption({
+        openAmount: openCommitted.amount,
+        consumeAmount: openCommitted.amount,
+        currency: openCommitted.currency,
+      });
+      await updateCommittedCostConsumption(context.db, context.organizationId, openCommitted.id, {
+        amount: next.remainingAmount,
+        status: next.status,
+      });
+    }
+  }  await recordAuditEvent(context, {
     action: AUDIT_ACTIONS.AP_MATCH_ACCEPTED,
     entityType: 'ap_po_match',
     entityId: accepted.id,

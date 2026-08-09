@@ -2,10 +2,13 @@
  * AP / PO matching domain rules (Wave 3).
  *
  * HARD RULES:
- * - AP bill != Expense (bills are payable obligations, not actual cost).
+ * - AP bill != Expense entity (matching never invents Expense rows).
+ * - Posted/approved vendor bills DO recognize Actual Vendor Cost
+ *   (see vendor-cost-recognition.ts) — distinct from the Expense table.
  * - Matching links a bill to a PO and/or an *existing* expense.
  * - Accepting a match never invents / auto-creates an Expense.
  * - Match != automatic posting; multiple partial matches are allowed.
+ * - Vendor payment is cash only — not handled here as cost recognition.
  */
 
 import { DomainRuleError } from '@/shared/errors';

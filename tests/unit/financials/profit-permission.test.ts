@@ -43,11 +43,14 @@ describe('project profit permission shape', () => {
       vendorActual: zero,
       overheadActual: zero,
       committedOpen: zero,
+      expectedRemainingCost: zero,
       openApPayable: zero,
     },
     profit: {
       estimatedProfit: { amount: '60000.000000', currency },
       marginPercent: '60.00',
+      actualProfit: { amount: '60000.000000', currency },
+      actualMarginPercent: '60.00',
     },
     coverage: buildFinancialCoverage([{ source: 'direct_expenses', hasData: true }], new Date()),
   };

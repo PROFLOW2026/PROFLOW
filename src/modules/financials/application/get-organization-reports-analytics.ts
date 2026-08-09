@@ -2,7 +2,7 @@ import { getOrganizationReceivablesAging } from '@/modules/billing';
 import type { ReceivablesAging } from '@/modules/billing';
 import type { OrgContext } from '@/shared/auth/context';
 import { todayInTimeZone } from '@/shared/dates';
-import { isZeroMoney } from '@/shared/money';
+import { isZeroMoney, zeroMoney } from '@/shared/money';
 import { assertPermission, hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import {
@@ -16,7 +16,15 @@ import {
   type OrgCostTotals,
   type OrgProfitTotals,
 } from '../domain/aggregate-org-report';
+import {
+  computeUnallocatedOrganizationCosts,
+  sumProjectTouchingExpenseNets,
+} from '../domain/org-cost-reconciliation';
 import { hasNonZeroMoney, type CountReportMetric } from '../domain/report-metric';
+import {
+  loadOrganizationExpenseContributions,
+  sumOrganizationActualCosts,
+} from '../data/expenses.repository';
 import { loadOperationsReportCounts } from '../data/operations-report.repository';
 import type { CashFlowOutlook } from '../domain/cash-flow';
 import { getOrganizationCashFlowOutlook } from './get-organization-cash-flow';
@@ -90,19 +98,22 @@ export async function getOrganizationReportsAnalytics(
   const currency = context.organization.baseCurrency;
   const asOf = todayInTimeZone(context.organization.timezone);
 
-  const [rollup, cashFlow, arAging] = await Promise.all([
+  const [rollup, cashFlow, arAging, unallocatedBusinessCosts] = await Promise.all([
     getOrganizationProjectRollup(context),
     getOrganizationCashFlowOutlook(context),
     hasPermission(context, PERMISSIONS.BILLING_READ)
       ? getOrganizationReceivablesAging(context)
       : Promise.resolve(null),
+    loadUnallocatedBusinessCosts(context, currency),
   ]);
 
+  // Rollup includes every base-currency active project (no correctness cap).
+  // Optional limit/offset on rollup pages rows only — aggregates always use the full set.
   const commercial = rollup.canReadCommercial
     ? aggregateOrgCommercial(rollup.rows, currency)
     : null;
   const cash = rollup.canReadBilling ? aggregateOrgCash(rollup.rows, currency) : null;
-  const cost = aggregateOrgCost(rollup.rows, currency);
+  const cost = aggregateOrgCost(rollup.rows, currency, { unallocatedBusinessCosts });
   const profitability = rollup.canReadProfit
     ? aggregateOrgProfit(rollup.rows, currency)
     : null;
@@ -254,6 +265,8 @@ export async function getOrganizationReportsAnalytics(
     'committedNeExpense',
     'apBillNeExpense',
     'forecastNeActual',
+    'projectPlusUnallocatedEqualsOrgExpense',
+    'unallocatedNotInProjectProfit',
   ] as const;
 
   // Progressive: hide zero commercial/cash when unused.
@@ -278,13 +291,16 @@ export async function getOrganizationReportsAnalytics(
   const costVisible =
     hasNonZeroMoney(cost.actual.value) ||
     hasNonZeroMoney(cost.committed.value) ||
-    hasNonZeroMoney(cost.openAp.value)
+    hasNonZeroMoney(cost.expectedRemaining.value) ||
+    hasNonZeroMoney(cost.openAp.value) ||
+    hasNonZeroMoney(cost.unallocatedBusinessCosts?.value)
       ? cost
       : null;
 
   const profitVisible =
     profitability &&
     (hasNonZeroMoney(profitability.estimatedProfit.value) ||
+      hasNonZeroMoney(profitability.actualProfit.value) ||
       rollup.ops.lossMakingCount != null ||
       rollup.ops.profitableCount != null)
       ? profitability
@@ -304,4 +320,23 @@ export async function getOrganizationReportsAnalytics(
     showArAging,
     disclosures: [...disclosures],
   };
+}
+
+async function loadUnallocatedBusinessCosts(
+  context: OrgContext,
+  currency: string,
+) {
+  if (!hasPermission(context, PERMISSIONS.EXPENSES_READ)) {
+    return zeroMoney(currency);
+  }
+
+  const [orgExpense, contributions] = await Promise.all([
+    sumOrganizationActualCosts(context.db, context.organizationId, currency),
+    loadOrganizationExpenseContributions(context.db, context.organizationId),
+  ]);
+
+  return computeUnallocatedOrganizationCosts({
+    orgFinalizedExpenseTotal: orgExpense.total,
+    projectTouchingExpenseTotal: sumProjectTouchingExpenseNets(contributions, currency),
+  });
 }

@@ -476,6 +476,29 @@ export async function findOpenCommittedCostForPo(
   return row ?? null;
 }
 
+export async function updateCommittedCostConsumption(
+  db: DbExecutor,
+  organizationId: string,
+  committedCostId: string,
+  values: { amount: string; status: string },
+): Promise<typeof committedCosts.$inferSelect | null> {
+  const [row] = await db
+    .update(committedCosts)
+    .set({
+      amount: values.amount,
+      status: values.status,
+      updatedAt: new Date(),
+    })
+    .where(
+      and(
+        eq(committedCosts.id, committedCostId),
+        eq(committedCosts.organizationId, organizationId),
+      ),
+    )
+    .returning();
+  return row ?? null;
+}
+
 export async function listCommittedCostsForPurchaseOrders(
   db: DbExecutor,
   organizationId: string,

@@ -120,6 +120,58 @@ export async function findProjectCurrency(
   return (row?.currency ?? fallbackCurrency).toUpperCase();
 }
 
+/**
+ * Project currency + uncovenanted expected remaining cost (ETC) for forecast.
+ * Null ETC amount means zero — never invent a budget from contract/actual.
+ */
+export async function findProjectForecastInputs(
+  db: DbExecutor,
+  organizationId: string,
+  projectId: string,
+  fallbackCurrency: string,
+): Promise<{ currency: string; expectedRemainingCostAmount: string | null }> {
+  const [row] = await db
+    .select({
+      currency: projects.currency,
+      expectedRemainingCostAmount: projects.expectedRemainingCostAmount,
+    })
+    .from(projects)
+    .where(and(eq(projects.organizationId, organizationId), eq(projects.id, projectId)))
+    .limit(1);
+
+  return {
+    currency: (row?.currency ?? fallbackCurrency).toUpperCase(),
+    expectedRemainingCostAmount: row?.expectedRemainingCostAmount ?? null,
+  };
+}
+
+/**
+ * Persist uncovenanted ETC. Amount must be non-negative project-currency decimal string, or null to clear.
+ */
+export async function updateProjectExpectedRemainingCost(
+  db: DbExecutor,
+  organizationId: string,
+  projectId: string,
+  expectedRemainingCostAmount: string | null,
+): Promise<boolean> {
+  const [row] = await db
+    .update(projects)
+    .set({
+      expectedRemainingCostAmount,
+      updatedAt: new Date(),
+    })
+    .where(
+      and(
+        eq(projects.organizationId, organizationId),
+        eq(projects.id, projectId),
+        isNull(projects.archivedAt),
+      ),
+    )
+    .returning({ id: projects.id });
+
+  return Boolean(row);
+}
+
 export async function assertProjectInOrg(
   db: DbExecutor,
   organizationId: string,

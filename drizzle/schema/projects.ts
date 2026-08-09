@@ -1,6 +1,6 @@
 import { relations, sql } from 'drizzle-orm';
 import { boolean, char, check, date, index, integer, pgTable, text, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
-import { archivedAt, percentAmount, primaryId, timestamps } from './_shared';
+import { archivedAt, moneyAmount, percentAmount, primaryId, timestamps } from './_shared';
 import { projectStatusEnum } from './enums';
 import { clients } from './clients';
 import { organizations } from './tenancy';
@@ -58,11 +58,17 @@ export const projects = pgTable(
     /** Optional 0–100 progress; unused scheduling must stay null (doc 22). */
     progressPercent: percentAmount('progress_percent'),
     progressStatus: text('progress_status'),
+    /**
+     * Uncovenanted expected remaining cost (ETC) in project currency.
+     * Used by forecast final cost; never folds open PO commitments (those are on committed_costs).
+     */
+    expectedRemainingCostAmount: moneyAmount('expected_remaining_cost_amount'),
     notes: text('notes'),
     archivedAt: archivedAt(),
     ...timestamps(),
   },
   (table) => [
+    uniqueIndex('projects_id_organization_id_uq').on(table.id, table.organizationId),
     index('projects_org_idx').on(table.organizationId),
     index('projects_org_status_idx').on(table.organizationId, table.status),
     index('projects_client_idx').on(table.clientId),
@@ -73,6 +79,10 @@ export const projects = pgTable(
     check(
       'projects_progress_status_known',
       sql`${table.progressStatus} IS NULL OR ${table.progressStatus} IN ('not_started', 'on_track', 'at_risk', 'delayed', 'completed')`,
+    ),
+    check(
+      'projects_expected_remaining_cost_non_negative',
+      sql`${table.expectedRemainingCostAmount} IS NULL OR ${table.expectedRemainingCostAmount} >= 0`,
     ),
   ],
 );

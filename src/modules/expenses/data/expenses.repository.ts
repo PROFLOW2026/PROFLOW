@@ -1,4 +1,4 @@
-import { and, desc, eq, gte, isNull, lte, sql } from 'drizzle-orm';
+import { and, desc, eq, exists, gte, isNull, lte, or, sql } from 'drizzle-orm';
 import {
   costCategories,
   expenseAllocations,
@@ -13,6 +13,8 @@ import type { DbExecutor } from '@/shared/db/types';
 import { fromNumericString, type MoneyValue } from '@/shared/money';
 import type {
   AllocationMethod,
+  AllocationScheduleMode,
+  CategoryPeriodBehavior,
   CostFamily,
   ExpenseDetail,
   ExpenseStatus,
@@ -58,6 +60,10 @@ export interface ExpenseInsertRow {
   readonly isRecurringTemplate: boolean;
   readonly recurrenceRule: string | null;
   readonly recurringTemplateId: string | null;
+  readonly allocationPeriodStart?: string | null;
+  readonly allocationPeriodEnd?: string | null;
+  readonly allocationDriverMethod?: AllocationMethod | null;
+  readonly allocationScheduleMode?: AllocationScheduleMode | null;
   readonly createdByUserId: string | null;
 }
 
@@ -72,6 +78,7 @@ export interface AllocationInsertRow {
   readonly percent: string | null;
   readonly notes: string | null;
   readonly sortOrder: number;
+  readonly amountBasis?: 'gross' | 'net';
 }
 
 function mapMoney(amount: string, currency: string): MoneyValue {
@@ -122,6 +129,65 @@ export async function insertExpense(
     .returning({ id: expenses.id });
 
   return inserted!.id;
+}
+
+/** Active (finalized) reversing row that voids the given expense, if any. */
+export async function findActiveReversalForExpense(
+  db: DbExecutor,
+  organizationId: string,
+  originalExpenseId: string,
+): Promise<{ id: string } | null> {
+  const [row] = await db
+    .select({ id: expenses.id })
+    .from(expenses)
+    .where(
+      and(
+        eq(expenses.organizationId, organizationId),
+        eq(expenses.voidsExpenseId, originalExpenseId),
+        eq(expenses.status, 'finalized'),
+        isNull(expenses.archivedAt),
+      ),
+    )
+    .limit(1);
+
+  return row ?? null;
+}
+
+/** Any reversing row (finalized or draft) linked to the original. */
+export async function findReversalRowsForExpense(
+  db: DbExecutor,
+  organizationId: string,
+  originalExpenseId: string,
+): Promise<Array<{ id: string; status: ExpenseStatus }>> {
+  return db
+    .select({ id: expenses.id, status: expenses.status })
+    .from(expenses)
+    .where(
+      and(
+        eq(expenses.organizationId, organizationId),
+        eq(expenses.voidsExpenseId, originalExpenseId),
+        isNull(expenses.archivedAt),
+      ),
+    )
+    .orderBy(expenses.createdAt);
+}
+
+export async function findAdjustmentRowsForExpense(
+  db: DbExecutor,
+  organizationId: string,
+  originalExpenseId: string,
+): Promise<Array<{ id: string; status: ExpenseStatus }>> {
+  return db
+    .select({ id: expenses.id, status: expenses.status })
+    .from(expenses)
+    .where(
+      and(
+        eq(expenses.organizationId, organizationId),
+        eq(expenses.adjustsExpenseId, originalExpenseId),
+        isNull(expenses.archivedAt),
+      ),
+    )
+    .orderBy(expenses.createdAt);
 }
 
 export async function updateExpenseRow(
@@ -189,6 +255,10 @@ export async function findExpenseById(
       isRecurringTemplate: expenses.isRecurringTemplate,
       recurrenceRule: expenses.recurrenceRule,
       recurringTemplateId: expenses.recurringTemplateId,
+      allocationPeriodStart: expenses.allocationPeriodStart,
+      allocationPeriodEnd: expenses.allocationPeriodEnd,
+      allocationDriverMethod: expenses.allocationDriverMethod,
+      allocationScheduleMode: expenses.allocationScheduleMode,
       createdByUserId: expenses.createdByUserId,
       createdAt: expenses.createdAt,
       updatedAt: expenses.updatedAt,
@@ -212,12 +282,18 @@ export async function findExpenseById(
       percent: expenseAllocations.percent,
       notes: expenseAllocations.notes,
       sortOrder: expenseAllocations.sortOrder,
+      amountBasis: expenseAllocations.amountBasis,
     })
     .from(expenseAllocations)
     .where(and(eq(expenseAllocations.expenseId, expenseId), eq(expenseAllocations.organizationId, organizationId)))
     .orderBy(expenseAllocations.sortOrder);
 
-  const allocations: ResolvedAllocationLine[] = allocationFromPersisted(allocationRows);
+  const allocations: ResolvedAllocationLine[] = allocationFromPersisted(
+    allocationRows.map((line) => ({
+      ...line,
+      amountBasis: (line.amountBasis === 'net' ? 'net' : 'gross') as 'gross' | 'net',
+    })),
+  );
 
   return {
     ...mapSummary({ ...row, projectName: row.projectName }),
@@ -233,6 +309,10 @@ export async function findExpenseById(
     recurrenceRule: row.recurrenceRule,
     recurringTemplateId: row.recurringTemplateId,
     createdByUserId: row.createdByUserId,
+    allocationPeriodStart: (row.allocationPeriodStart as BusinessDate | null) ?? null,
+    allocationPeriodEnd: (row.allocationPeriodEnd as BusinessDate | null) ?? null,
+    allocationDriverMethod: row.allocationDriverMethod,
+    allocationScheduleMode: row.allocationScheduleMode ?? null,
     allocations,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
@@ -248,7 +328,26 @@ export async function listExpenses(
 
   if (filters.dateFrom) conditions.push(gte(expenses.expenseDate, filters.dateFrom));
   if (filters.dateTo) conditions.push(lte(expenses.expenseDate, filters.dateTo));
-  if (filters.projectId) conditions.push(eq(expenses.projectId, filters.projectId));
+  if (filters.projectId) {
+    // Include direct project expenses and overhead/shared expenses allocated to this project.
+    conditions.push(
+      or(
+        eq(expenses.projectId, filters.projectId),
+        exists(
+          db
+            .select({ id: expenseAllocations.id })
+            .from(expenseAllocations)
+            .where(
+              and(
+                eq(expenseAllocations.expenseId, expenses.id),
+                eq(expenseAllocations.organizationId, organizationId),
+                eq(expenseAllocations.projectId, filters.projectId),
+              ),
+            ),
+        ),
+      )!,
+    );
+  }
   if (filters.costFamily) conditions.push(eq(expenses.costFamily, filters.costFamily));
   if (filters.costCategoryId) conditions.push(eq(expenses.costCategoryId, filters.costCategoryId));
   if (filters.status) conditions.push(eq(expenses.status, filters.status));
@@ -417,9 +516,19 @@ export async function findCostCategoryById(
   db: DbExecutor,
   organizationId: string,
   categoryId: string,
-): Promise<{ id: string; family: CostFamily } | null> {
+): Promise<{
+  id: string;
+  family: CostFamily;
+  defaultAllocationMethod: AllocationMethod | null;
+  defaultPeriodBehavior: CategoryPeriodBehavior | null;
+} | null> {
   const [row] = await db
-    .select({ id: costCategories.id, family: costCategories.family })
+    .select({
+      id: costCategories.id,
+      family: costCategories.family,
+      defaultAllocationMethod: costCategories.defaultAllocationMethod,
+      defaultPeriodBehavior: costCategories.defaultPeriodBehavior,
+    })
     .from(costCategories)
     .where(
       and(
@@ -430,7 +539,11 @@ export async function findCostCategoryById(
     )
     .limit(1);
 
-  return row ?? null;
+  if (!row) return null;
+  return {
+    ...row,
+    defaultPeriodBehavior: (row.defaultPeriodBehavior as CategoryPeriodBehavior | null) ?? null,
+  };
 }
 
 export async function hasOverheadExpenses(db: DbExecutor, organizationId: string): Promise<boolean> {
@@ -461,12 +574,14 @@ export async function listCostCategories(
     family: CostFamily;
     isSystem: boolean;
     sortOrder: number;
+    defaultAllocationMethod: AllocationMethod | null;
+    defaultPeriodBehavior: CategoryPeriodBehavior | null;
   }[]
 > {
   const conditions = [eq(costCategories.organizationId, organizationId), isNull(costCategories.archivedAt)];
   if (family) conditions.push(eq(costCategories.family, family));
 
-  return db
+  const rows = await db
     .select({
       id: costCategories.id,
       key: costCategories.key,
@@ -474,8 +589,15 @@ export async function listCostCategories(
       family: costCategories.family,
       isSystem: costCategories.isSystem,
       sortOrder: costCategories.sortOrder,
+      defaultAllocationMethod: costCategories.defaultAllocationMethod,
+      defaultPeriodBehavior: costCategories.defaultPeriodBehavior,
     })
     .from(costCategories)
     .where(and(...conditions))
     .orderBy(costCategories.sortOrder);
+
+  return rows.map((row) => ({
+    ...row,
+    defaultPeriodBehavior: (row.defaultPeriodBehavior as CategoryPeriodBehavior | null) ?? null,
+  }));
 }

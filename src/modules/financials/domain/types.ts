@@ -42,7 +42,9 @@ export type CoveragePartialReason =
   | 'foreign_currency_billing_excluded'
   | 'foreign_currency_committed_excluded'
   | 'foreign_currency_ap_excluded'
-  | 'workforce_entries_missing_cost';
+  | 'workforce_entries_missing_cost'
+  /** Mode B labor expenses omitted because Mode C time True Cost is present. */
+  | 'labor_category_excluded_for_workforce';
 
 export interface CoveragePartial {
   reason: CoveragePartialReason;
@@ -83,9 +85,15 @@ export interface BillingPosition {
 export type MetricNature = 'actual' | 'committed' | 'forecast';
 
 export interface CostPosition {
-  /** Actual — expenses + labor included in cost to date. Never includes open committed PO. */
+  /**
+   * Actual — finalized expenses + labor + recognized (posted) vendor bills.
+   * Never includes open committed PO. Bill-linked expenses are deduped.
+   */
   actualCostToDate: MoneyValue;
-  /** Actual / Forecast hybrid: actual plus remaining entered data (V1 often equals actual). */
+  /**
+   * Forecast Final Cost = Actual + Remaining Valid Commitments + Expected Remaining Cost.
+   * Must diverge from actual whenever open commitments or ETC exist (no double count).
+   */
   estimatedFinalCost: MoneyValue;
   byFamily: {
     directProject: MoneyValue;
@@ -95,27 +103,43 @@ export interface CostPosition {
   };
   /** Actual — workforce labor cost when present; otherwise zero. */
   laborActual: MoneyValue;
-  /** Actual — vendor/subcontractor expenses. Never open PO committed amounts. */
+  /**
+   * Actual — vendor/subcontractor expenses + recognized vendor bills.
+   * Never open PO committed amounts; never vendor payments.
+   */
   vendorActual: MoneyValue;
   /** Actual — business overhead family total. */
   overheadActual: MoneyValue;
   /**
-   * Committed — open / partially consumed PO committed costs.
+   * Committed — open / partially consumed PO remaining amounts.
    * Must never be summed into actualCostToDate (CommittedCost ≠ Expense).
+   * Included in Forecast Final Cost once (as remaining commitment).
    */
   committedOpen: MoneyValue;
   /**
-   * Forecast — unmatched open AP payable for the project.
-   * Not Expense actual; used for outgoing cash obligation disclosure.
+   * Uncovenanted expected remaining cost (ETC) entered on the project.
+   * Does not include PO commitments. Included in Forecast Final Cost once.
+   */
+  expectedRemainingCost: MoneyValue;
+  /**
+   * Unmatched open AP payable for the project — cash obligation disclosure only.
+   * Not folded into Forecast Final Cost (payments are cash-only).
    */
   openApPayable: MoneyValue;
 }
 
 export interface ProfitPosition {
-  /** currentContractValue − estimatedFinalCost, always labelled as an estimate. */
+  /**
+   * Forecast margin: currentContractValue − estimatedFinalCost (Forecast Final Cost).
+   * Kept as `estimatedProfit` for existing UI / exports; Agent 4 may relabel.
+   */
   estimatedProfit: MoneyValue;
-  /** Null when the contract value is zero: a margin would be meaningless. */
+  /** Forecast margin % — null when contract value is zero. */
   marginPercent: string | null;
+  /** Actual margin: currentContractValue − actualCostToDate. */
+  actualProfit: MoneyValue;
+  /** Actual margin % — null when contract value is zero. */
+  actualMarginPercent: string | null;
 }
 
 export interface ProjectFinancials {

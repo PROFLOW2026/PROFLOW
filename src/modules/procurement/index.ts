@@ -43,6 +43,7 @@ export {
   shouldCreateCommittedCostOnIssue,
   assertIssueCreatesCommittedNotExpense,
   assertCommittedAmountMatchesLines,
+  computeCommittedAfterConsumption,
   PURCHASE_ORDER_STATUSES,
   COMMITTED_COST_STATUSES,
 } from './domain/committed-cost';
@@ -77,3 +78,8 @@ export {
 
 /** Cross-module materials catalog FK guard. */
 export { findMaterialItemById } from './data/procurement.repository';
+
+export {
+  findOpenCommittedCostForPo,
+  updateCommittedCostConsumption,
+} from './data/procurement.repository';

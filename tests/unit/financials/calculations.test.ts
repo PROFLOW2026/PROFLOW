@@ -221,7 +221,9 @@ describe('profit and margin', () => {
   it('returns null margin when contract value is zero', () => {
     const profit = computeProfitPosition(zeroMoney(ILS), money('5000', ILS));
     expect(profit.marginPercent).toBeNull();
+    expect(profit.actualMarginPercent).toBeNull();
     expect(profit.estimatedProfit).toEqual(money('-5000', ILS));
+    expect(profit.actualProfit).toEqual(money('-5000', ILS));
   });
 
   it('computes margin as a percentage string', () => {
