@@ -15,14 +15,22 @@ export type TestLocale = keyof typeof MESSAGES;
 
 export function renderWithIntl(
   ui: ReactElement,
-  { locale = 'he-IL' as TestLocale, ...options }: RenderOptions & { locale?: TestLocale } = {},
+  {
+    locale = 'he-IL' as TestLocale,
+    messages,
+    ...options
+  }: RenderOptions & {
+    locale?: TestLocale;
+    messages?: Record<string, unknown>;
+  } = {},
 ): RenderResult {
   const dir = locale === 'he-IL' ? 'rtl' : 'ltr';
+  const merged = { ...MESSAGES[locale], ...(messages ?? {}) };
 
   function Wrapper({ children }: { children: ReactNode }) {
     return (
       <div dir={dir} lang={locale === 'he-IL' ? 'he' : 'en'}>
-        <NextIntlClientProvider locale={locale} messages={MESSAGES[locale]} timeZone="Asia/Jerusalem">
+        <NextIntlClientProvider locale={locale} messages={merged} timeZone="Asia/Jerusalem">
           {children}
         </NextIntlClientProvider>
       </div>

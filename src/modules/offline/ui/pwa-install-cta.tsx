@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/shared/ui/cn';
 import { usePwaInstall } from './use-pwa-install';
 
-export type PwaInstallCtaVariant = 'auth' | 'dashboard' | 'inline';
+export type PwaInstallCtaVariant = 'auth' | 'dashboard' | 'inline' | 'marketing';
 
 /**
  * Discoverable install CTA for public auth + authenticated home.
@@ -29,6 +29,12 @@ export function PwaInstallCta({
 
   if (capability === 'installed') return null;
 
+  const ctaLabel = installing
+    ? t('installing')
+    : variant === 'marketing'
+      ? t('shortCta')
+      : null;
+
   if (capability === 'prompt_available') {
     return (
       <div
@@ -41,8 +47,8 @@ export function PwaInstallCta({
         ) : null}
         <Button
           type="button"
-          variant={variant === 'auth' ? 'secondary' : 'primary'}
-          size="sm"
+          variant={variant === 'auth' || variant === 'marketing' ? 'secondary' : 'primary'}
+          size={variant === 'marketing' ? 'md' : 'sm'}
           className="min-h-11 w-full sm:w-auto"
           loading={installing}
           aria-busy={installing || undefined}
@@ -51,7 +57,7 @@ export function PwaInstallCta({
           }}
         >
           <Download className="size-4 shrink-0" aria-hidden />
-          {installing ? t('installing') : t('shortCta')}
+          {ctaLabel ?? (installing ? t('installing') : t('shortCta'))}
         </Button>
         {promptOutcome === 'dismissed' ? (
           <p className="w-full text-xs text-[var(--pf-text-secondary)]" role="status">
@@ -77,13 +83,13 @@ export function PwaInstallCta({
         <Button
           type="button"
           variant="secondary"
-          size="sm"
+          size={variant === 'marketing' ? 'md' : 'sm'}
           className="min-h-11 w-full sm:w-auto"
           aria-expanded={iosOpen}
           onClick={() => setIosOpen((open) => !open)}
         >
           <Share className="size-4 shrink-0" aria-hidden />
-          {t('iosCta')}
+          {variant === 'marketing' ? t('shortCta') : t('iosCta')}
         </Button>
         {iosOpen ? (
           <ol className="w-full list-decimal space-y-1 ps-5 text-start text-sm text-[var(--pf-text-primary)]">
@@ -109,6 +115,9 @@ function shellClass(variant: PwaInstallCtaVariant): string {
       'flex min-w-0 max-w-full flex-col gap-3 rounded-lg border border-[var(--pf-border-default)]',
       'bg-[var(--pf-bg-surface)] p-3 sm:flex-row sm:items-center sm:justify-between',
     );
+  }
+  if (variant === 'marketing') {
+    return 'flex min-w-0 w-full max-w-sm flex-col items-stretch gap-2';
   }
   return 'flex min-w-0 flex-col gap-2';
 }

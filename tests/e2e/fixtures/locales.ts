@@ -8,6 +8,7 @@ import type errors from '../../../src/locales/he-IL/errors.json';
 import type expenses from '../../../src/locales/he-IL/expenses.json';
 import type exportsNs from '../../../src/locales/he-IL/exports.json';
 import type financial from '../../../src/locales/he-IL/financial.json';
+import type marketing from '../../../src/locales/he-IL/marketing.json';
 import type nav from '../../../src/locales/he-IL/nav.json';
 import type organization from '../../../src/locales/he-IL/organization.json';
 import type projects from '../../../src/locales/he-IL/projects.json';
@@ -27,6 +28,7 @@ export const he = {
   expenses: loadLocale<typeof expenses>('expenses'),
   exports: loadLocale<typeof exportsNs>('exports'),
   financial: loadLocale<typeof financial>('financial'),
+  marketing: loadLocale<typeof marketing>('marketing'),
   nav: loadLocale<typeof nav>('nav'),
   organization: loadLocale<typeof organization>('organization'),
   projects: loadLocale<typeof projects>('projects'),

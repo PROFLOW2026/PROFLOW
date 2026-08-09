@@ -76,6 +76,7 @@ export const MESSAGE_NAMESPACES = [
   'ap',
   'offline',
   'exports',
+  'marketing',
 ] as const;
 
 export type MessageNamespace = (typeof MESSAGE_NAMESPACES)[number];

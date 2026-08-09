@@ -14,6 +14,7 @@ test.describe('public page overflow', () => {
   test.describe.configure({ timeout: 180_000 });
 
   const publicRoutes = [
+    { name: 'he-IL homepage', path: '/he-IL', heading: 'שליטה בפרויקט — מהחוזה ועד הרווח' },
     { name: 'he-IL sign-in', path: '/he-IL/sign-in', heading: 'כניסה' },
     { name: 'en sign-in', path: '/en/sign-in', heading: 'Sign in' },
     { name: 'he-IL sign-up', path: '/he-IL/sign-up', heading: 'יצירת חשבון' },
@@ -25,6 +26,9 @@ test.describe('public page overflow', () => {
       for (const width of CRITICAL_OVERFLOW_WIDTHS) {
         await withViewport(page, width, async () => {
           await page.goto(route.path);
+          if (route.path === '/he-IL' && page.url().includes('/setup')) {
+            test.skip(true, 'homepage requires configured app');
+          }
           await expect(page.getByRole('heading', { name: route.heading })).toBeVisible();
           await assertNoPageHorizontalOverflow(page, `${route.name}@${width}`);
         });

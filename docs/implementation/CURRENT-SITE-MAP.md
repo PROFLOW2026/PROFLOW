@@ -16,12 +16,29 @@
 
 ---
 
+## Public homepage
+
+### דף הבית הציבורי · Public homepage
+| | |
+|---|---|
+| **Route** | `/` when signed out |
+| **Opens from** | Direct visit; bare `/` locale redirect; marketing CTAs |
+| **For** | First public face of ProjectFlow — Hebrew RTL landing |
+| **Primary actions** | כניסה / הרשמה and התחילו עכשיו → `/sign-in`; ראו איך זה עובד → `#product-tour`; install CTA via shared PWA controller |
+| **Desktop / mobile** | Both (first-class) |
+| **Permission** | None (anonymous) |
+| **Status** | complete |
+
+Signed-in visitors at `/` still receive the authenticated **Dashboard** (same URL).
+
+---
+
 ## Dashboard
 
 ### לוח בקרה · Dashboard
 | | |
 |---|---|
-| **Route** | `/` |
+| **Route** | `/` when signed in (with organization) |
 | **Opens from** | Main nav (always) |
 | **For** | Business home: attention items, summary, links into work |
 | **Primary actions** | Open projects / expenses; glance at cash and ops summaries when data exists |
@@ -732,8 +749,8 @@ Covered on the same **Portal access** screen (`/settings/portal`): vendor-safe p
 ### התקנת ProjectFlow כאפליקציה · Install ProjectFlow as an app
 | | |
 |---|---|
-| **Route** | Public: auth shell (sign-in / sign-up); Authenticated: Dashboard `/`; Settings: `/settings/app` |
-| **Opens from** | Sign-in/sign-up area (**התקנת ProjectFlow**); Dashboard install banner; Settings → **אפליקציה** / App |
+| **Route** | Public: homepage `/` + auth shell (sign-in / sign-up); Authenticated: Dashboard `/`; Settings: `/settings/app` |
+| **Opens from** | Public homepage / sign-in/sign-up (**התקנת ProjectFlow**); Dashboard install banner; Settings → **אפליקציה** / App |
 | **For** | Install the Progressive Web App (home-screen / desktop app icon) — not a store binary. No account required for the public CTA. |
 | **Primary actions** | One-tap native install when Chromium provides `beforeinstallprompt`; iOS shows Share → Add to Home Screen instructions (not a fake prompt); hide when already installed / standalone |
 | **Desktop / mobile** | Both (capability-dependent) |

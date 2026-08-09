@@ -35,11 +35,29 @@ test.describe('locale routing and direction', () => {
 });
 
 test.describe('unauthenticated access', () => {
-  test('never renders the application shell', async ({ page }) => {
+  test('never renders the application shell on the public homepage', async ({ page }) => {
     await page.goto('/he-IL');
-    // Either the setup screen (no credentials) or sign-in (credentials, no session).
-    await expect(page).toHaveURL(/\/(he-IL)\/(setup|sign-in)/);
+
+    // Unconfigured environments still go to setup; otherwise the public homepage.
+    const url = page.url();
+    if (url.includes('/setup')) {
+      await expect(page).toHaveURL(/\/he-IL\/setup/);
+    } else {
+      await expect(page).toHaveURL(/\/he-IL\/?$/);
+      await expect(
+        page.getByRole('heading', { level: 1, name: 'שליטה בפרויקט — מהחוזה ועד הרווח' }),
+      ).toBeVisible();
+      await expect(page.locator('[data-pf-public-homepage]')).toBeVisible();
+      await expect(page.locator('[data-pf-shell="app"]')).toHaveCount(0);
+    }
+
     await expect(page.getByRole('navigation', { name: 'ניווט ראשי' })).toHaveCount(0);
+  });
+
+  test('product routes still redirect anonymous users to sign-in or setup', async ({ page }) => {
+    await page.goto('/he-IL/projects/new');
+    await expect(page).toHaveURL(/\/he-IL\/(sign-in|setup|onboarding)/);
+    await expect(page.locator('[data-pf-shell="app"]')).toHaveCount(0);
   });
 
   test('shows a clear, calm explanation when nothing is configured yet', async ({ page }) => {

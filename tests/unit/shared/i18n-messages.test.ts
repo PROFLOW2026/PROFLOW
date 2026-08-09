@@ -25,7 +25,21 @@ export function flattenLocaleCatalog(value: Catalog, prefix = ''): Map<string, s
   const result = new Map<string, string>();
   for (const [key, entry] of Object.entries(value)) {
     const path = prefix ? `${prefix}.${key}` : key;
-    if (entry !== null && typeof entry === 'object' && !Array.isArray(entry)) {
+    if (Array.isArray(entry)) {
+      entry.forEach((item, index) => {
+        const itemPath = `${path}.${index}`;
+        if (item !== null && typeof item === 'object' && !Array.isArray(item)) {
+          for (const [nested, nestedValue] of flattenLocaleCatalog(item as Catalog, itemPath)) {
+            result.set(nested, nestedValue);
+          }
+        } else if (Array.isArray(item)) {
+          // Nested arrays are uncommon in catalogs; stringify as a last resort.
+          result.set(itemPath, String(item));
+        } else {
+          result.set(itemPath, String(item));
+        }
+      });
+    } else if (entry !== null && typeof entry === 'object') {
       for (const [nested, nestedValue] of flattenLocaleCatalog(entry as Catalog, path)) {
         result.set(nested, nestedValue);
       }
@@ -91,6 +105,25 @@ const IDENTICAL_MESSAGE_ALLOWLIST = new Set([
   'api.events.api.key.revoked',
   'settings.activity.actions._fallback',
   'settings.activity.entities._fallback',
+  'marketing.hero.brand',
+  'marketing.footer.note',
+  'marketing.financial.neq',
+  // Shared screenshot asset paths (language-neutral).
+  'marketing.tour.tabs.0.src',
+  'marketing.tour.tabs.1.src',
+  'marketing.tour.tabs.2.src',
+  'marketing.tour.tabs.3.src',
+  'marketing.tour.tabs.4.src',
+  'marketing.tour.tabs.5.src',
+  'marketing.tour.tabs.6.src',
+  // Tour tab ids are code keys, not UI copy.
+  'marketing.tour.tabs.0.id',
+  'marketing.tour.tabs.1.id',
+  'marketing.tour.tabs.2.id',
+  'marketing.tour.tabs.3.id',
+  'marketing.tour.tabs.4.id',
+  'marketing.tour.tabs.5.id',
+  'marketing.tour.tabs.6.id',
 ]);
 
 function hasActivityAction(catalog: Catalog, action: string): boolean {

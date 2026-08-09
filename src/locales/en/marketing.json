@@ -1,0 +1,214 @@
+{
+  "meta": {
+    "title": "ProjectFlow | Project management and profitability for project-based businesses",
+    "description": "ProjectFlow connects projects, contracts, expenses, changes, billing, and payments in one place — so you know what is really happening and whether the project is profitable.",
+    "ogTitle": "Project control — from contract to profit | ProjectFlow",
+    "ogDescription": "Projects, costs, changes, billing, and payments in one place. Know if the work is truly profitable."
+  },
+  "header": {
+    "navLabel": "Marketing navigation",
+    "howItWorks": "How it works",
+    "capabilities": "Capabilities",
+    "faq": "FAQ",
+    "signIn": "Sign in / Sign up",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu"
+  },
+  "hero": {
+    "brand": "ProjectFlow",
+    "title": "Project control — from contract to profit",
+    "subtitle": "Projects, contracts, costs, changes, billing, and payments in one place — so you always know what is happening and how profitable the project really is.",
+    "primaryCta": "Get started",
+    "secondaryCta": "See how it works",
+    "shotCaption": "Project financials — contract, cost, commitment, and collections at a glance",
+    "shotAlt": "Preview of project financials in ProjectFlow",
+    "mobileShotCaption": "The project on your phone — the same system from the field",
+    "mobileShotAlt": "Preview of a project on mobile"
+  },
+  "questions": {
+    "title": "The questions every business owner asks",
+    "items": [
+      "What is the project worth right now?",
+      "How much has it already cost, and what am I still committed to?",
+      "How much was billed, and how much was actually paid?",
+      "How profitable is the project really?"
+    ]
+  },
+  "problem": {
+    "title": "The business is running. The money is scattered.",
+    "points": [
+      {
+        "title": "Scattered costs",
+        "body": "Expenses, hours, vendors, and orders live in different places."
+      },
+      {
+        "title": "Changes get lost",
+        "body": "A field agreement does not always reach the contract and billing in time."
+      },
+      {
+        "title": "Profit shows up too late",
+        "body": "What was billed, paid, and actually spent are not always in the same picture."
+      }
+    ]
+  },
+  "howItWorks": {
+    "title": "From client to profit — in one flow",
+    "steps": ["Client", "Project", "Contract", "Costs", "Changes", "Billing & payments", "Profitability"],
+    "support": "Start simple and add depth only when the business needs it."
+  },
+  "financial": {
+    "title": "The project and the money — in the same view",
+    "lead": "Every project is a work hub with a direct link to contract, costs, changes, and collections.",
+    "items": [
+      "Original contract",
+      "Approved changes",
+      "Actual cost",
+      "Commitments",
+      "Billing",
+      "Payments",
+      "Profitability"
+    ],
+    "principles": [
+      { "left": "Billed", "right": "Paid" },
+      { "left": "Committed", "right": "Expense" },
+      { "left": "VAT", "right": "Profit" },
+      { "left": "Pending", "right": "Approved" }
+    ],
+    "neq": "≠",
+    "cta": "Get started",
+    "shotCaption": "Project financials — contract, cost, commitment, and collections at a glance",
+    "shotAlt": "Preview of project financials"
+  },
+  "costs": {
+    "title": "All project costs — in one place",
+    "blocks": [
+      {
+        "title": "Expenses",
+        "body": "Record an expense quickly and assign it to a project or the business."
+      },
+      {
+        "title": "People & hours",
+        "body": "See what the work really costs from hours and employee rates."
+      },
+      {
+        "title": "Vendors & subcontractors",
+        "body": "Manage vendors when you need them — without a heavy setup first."
+      }
+    ],
+    "shotCaption": "Expenses — fast cost capture across projects",
+    "shotAlt": "Preview of expenses"
+  },
+  "commercial": {
+    "title": "What changed, what was billed, and what was really paid",
+    "blocks": [
+      {
+        "title": "Changes",
+        "body": "Additions and deductions stay pending until approved."
+      },
+      {
+        "title": "Billing",
+        "body": "See what the client was billed."
+      },
+      {
+        "title": "Payments",
+        "body": "See what was actually received and what is still open."
+      }
+    ],
+    "changesCaption": "Changes — pending stays separate until approval",
+    "billingCaption": "Billing and payments — know what is truly open",
+    "changesAlt": "Preview of changes",
+    "billingAlt": "Preview of billing"
+  },
+  "tour": {
+    "title": "How ProjectFlow looks in practice",
+    "cta": "Get started",
+    "tabs": [
+      { "id": "dashboard", "label": "Dashboard", "caption": "Dashboard — what needs attention today", "src": "/marketing/screenshots/pf-landing-sc-01-desktop.svg", "alt": "Dashboard preview" },
+      { "id": "project", "label": "Project", "caption": "Project workspace — work and money hub", "src": "/marketing/screenshots/pf-landing-sc-03-desktop.svg", "alt": "Project workspace preview" },
+      { "id": "financials", "label": "Financials", "caption": "Project financials — contract, cost, commitment, and collections", "src": "/marketing/screenshots/pf-landing-sc-02-desktop.svg", "alt": "Project financials preview" },
+      { "id": "expenses", "label": "Expenses", "caption": "Expenses — fast cost capture across projects", "src": "/marketing/screenshots/pf-landing-sc-04-desktop.svg", "alt": "Expenses preview" },
+      { "id": "changes", "label": "Changes", "caption": "Changes — pending stays separate until approval", "src": "/marketing/screenshots/pf-landing-sc-05-desktop.svg", "alt": "Changes preview" },
+      { "id": "billing", "label": "Collections", "caption": "Billing and payments — know what is truly open", "src": "/marketing/screenshots/pf-landing-sc-06-desktop.svg", "alt": "Billing preview" },
+      { "id": "reports", "label": "Reports", "caption": "Reports — profitability without mixing VAT and profit", "src": "/marketing/screenshots/pf-landing-sc-07-desktop.svg", "alt": "Reports preview" }
+    ]
+  },
+  "advanced": {
+    "title": "Go deeper — when you need it",
+    "support": "Turn on only what the business needs.",
+    "modules": [
+      "CRM & sales",
+      "Procurement & orders",
+      "Vendor bills",
+      "Materials & inventory",
+      "Field work",
+      "Assets & maintenance",
+      "Insurance & compliance"
+    ]
+  },
+  "mobile": {
+    "title": "From the office and the field — same system",
+    "body": "ProjectFlow works on desktop and phone, so the project, expenses, and important information stay available in the field.",
+    "installHeading": "Install ProjectFlow",
+    "shotCaption": "The project on your phone — the same system from the field",
+    "shotAlt": "ProjectFlow mobile preview"
+  },
+  "audience": {
+    "title": "Built for businesses that live on projects",
+    "chips": [
+      "Contractors & subcontractors",
+      "Electricians",
+      "HVAC",
+      "Plumbing",
+      "Finishing trades",
+      "Architects",
+      "Designers",
+      "Engineers",
+      "Consultants",
+      "Supervisors",
+      "Project managers"
+    ],
+    "teamTitle": "The team works together — each with the information they need",
+    "teamBody": "Invite workers and managers and define who manages projects, expenses, changes, and profitability."
+  },
+  "faq": {
+    "title": "Frequently asked questions",
+    "items": [
+      {
+        "q": "Who is ProjectFlow for?",
+        "a": "Project-based businesses: contractors, trades, architects, designers, consultants, and project managers."
+      },
+      {
+        "q": "Do I have to turn on every module?",
+        "a": "No. Enable only what you need. A small business can stay simple."
+      },
+      {
+        "q": "Can I work from a phone?",
+        "a": "Yes. The same system, adapted for mobile."
+      },
+      {
+        "q": "Can I install ProjectFlow as an app?",
+        "a": "Yes. Install from the browser to the home screen or desktop when the device supports it."
+      },
+      {
+        "q": "What is the difference between billing and payment?",
+        "a": "Billing is what was recorded toward the client. Payment is what was actually received."
+      },
+      {
+        "q": "What is the difference between commitment and expense?",
+        "a": "A commitment is what you agreed to spend. An expense is the cost that already happened."
+      },
+      {
+        "q": "Does ProjectFlow replace bookkeeping?",
+        "a": "No. ProjectFlow manages the project and business profitability, and lets you keep and export information for accounting follow-up."
+      }
+    ]
+  },
+  "finalCta": {
+    "title": "Want to see what is really happening in your projects?",
+    "body": "Start with ProjectFlow and connect the project, costs, changes, and collections in one place.",
+    "cta": "Get started"
+  },
+  "footer": {
+    "note": "ProjectFlow"
+  }
+}
