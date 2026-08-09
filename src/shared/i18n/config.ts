@@ -1,0 +1,69 @@
+/**
+ * Locale configuration (doc 10).
+ *
+ * English is the canonical key language; Hebrew is the first complete UI.
+ * Language and country are independent axes — an Israeli organization can run
+ * the English UI, and the country pack still drives tax and currency.
+ */
+
+export const LOCALES = ['he-IL', 'en'] as const;
+
+export type Locale = (typeof LOCALES)[number];
+
+export const DEFAULT_LOCALE: Locale = 'he-IL';
+
+export interface LocaleMetadata {
+  readonly code: Locale;
+  readonly dir: 'rtl' | 'ltr';
+  /** Endonym — shown in the language switcher in the language itself. */
+  readonly label: string;
+  readonly htmlLang: string;
+}
+
+export const LOCALE_METADATA: Readonly<Record<Locale, LocaleMetadata>> = {
+  'he-IL': { code: 'he-IL', dir: 'rtl', label: 'עברית', htmlLang: 'he' },
+  en: { code: 'en', dir: 'ltr', label: 'English', htmlLang: 'en' },
+};
+
+export function isLocale(value: string | undefined | null): value is Locale {
+  return typeof value === 'string' && (LOCALES as readonly string[]).includes(value);
+}
+
+export function localeDirection(locale: string): 'rtl' | 'ltr' {
+  return isLocale(locale) ? LOCALE_METADATA[locale].dir : 'ltr';
+}
+
+export function isRtl(locale: string): boolean {
+  return localeDirection(locale) === 'rtl';
+}
+
+/**
+ * Message namespaces (doc 76 §5).
+ *
+ * Feature agents own their own namespace file so parallel work does not collide
+ * in a single giant catalog. `common`, `nav` and `errors` are Lead-owned.
+ */
+export const MESSAGE_NAMESPACES = [
+  'common',
+  'nav',
+  'auth',
+  'errors',
+  'validation',
+  'organization',
+  'settings',
+  'dashboard',
+  'financial',
+  'status',
+  'projects',
+  'clients',
+  'expenses',
+  'changes',
+  'billing',
+  'vendors',
+  'workforce',
+  'documents',
+  'tax',
+  'onboarding',
+] as const;
+
+export type MessageNamespace = (typeof MESSAGE_NAMESPACES)[number];

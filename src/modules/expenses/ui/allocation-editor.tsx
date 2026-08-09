@@ -1,0 +1,244 @@
+'use client';
+
+import * as React from 'react';
+import { useTranslations } from 'next-intl';
+import { Plus, Trash2 } from 'lucide-react';
+import { MoneyText } from '@/components/patterns/money-text';
+import { Button } from '@/components/ui/button';
+import { Field } from '@/components/ui/field';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { MoneyInput } from '@/components/patterns/money-input';
+import { money } from '@/shared/money/money';
+import type { CostCategoryRow, ProjectOption } from '@/modules/expenses/domain/types';
+
+const OVERHEAD_VALUE = '__overhead__';
+
+export interface AllocationDraft {
+  lineId?: string;
+  targetType: 'project' | 'overhead';
+  projectId: string | null;
+  workPackageId: string | null;
+  costCategoryId: string | null;
+  method: 'manual_amount' | 'manual_percent';
+  amount: string;
+  percent: string;
+  notes: string;
+  sortOrder: number;
+}
+
+export interface AllocationEditorProps {
+  readonly currency: string;
+  readonly totalAmount: string;
+  readonly projects: readonly ProjectOption[];
+  readonly categories: readonly CostCategoryRow[];
+  readonly value: AllocationDraft[];
+  readonly onChange: (value: AllocationDraft[]) => void;
+  readonly disabled?: boolean;
+}
+
+function newLineId(): string {
+  return globalThis.crypto?.randomUUID?.() ?? `line-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
+
+function emptyLine(sortOrder: number): AllocationDraft {
+  return {
+    lineId: newLineId(),
+    targetType: 'project',
+    projectId: null,
+    workPackageId: null,
+    costCategoryId: null,
+    method: 'manual_amount',
+    amount: '',
+    percent: '',
+    notes: '',
+    sortOrder,
+  };
+}
+
+function withStableLineIds(lines: AllocationDraft[]): AllocationDraft[] {
+  return lines.map((line) => (line.lineId ? line : { ...line, lineId: newLineId() }));
+}
+
+export function AllocationEditor({
+  currency,
+  totalAmount,
+  projects,
+  categories,
+  value,
+  onChange,
+  disabled = false,
+}: AllocationEditorProps) {
+  const t = useTranslations('expenses');
+  const tCommon = useTranslations('common');
+
+  React.useEffect(() => {
+    if (value.some((line) => !line.lineId)) {
+      onChange(withStableLineIds(value));
+    }
+  }, [onChange, value]);
+
+  function updateLine(index: number, patch: Partial<AllocationDraft>) {
+    onChange(value.map((line, i) => (i === index ? { ...line, ...patch } : line)));
+  }
+
+  function addLine() {
+    onChange([...value, emptyLine(value.length)]);
+  }
+
+  function removeLine(index: number) {
+    onChange(value.filter((_, i) => i !== index).map((line, i) => ({ ...line, sortOrder: i })));
+  }
+
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="flex items-center justify-between gap-2">
+        <h4 className="text-sm font-medium">{t('allocation.title')}</h4>
+        <Button type="button" variant="secondary" size="sm" onClick={addLine} disabled={disabled}>
+          <Plus aria-hidden />
+          {t('allocation.addLine')}
+        </Button>
+      </div>
+
+      {value.length === 0 ? (
+        <p className="text-sm text-[var(--pf-text-muted)]">{t('allocation.empty')}</p>
+      ) : null}
+
+      {value.map((line, index) => {
+        const rowNumber = index + 1;
+
+        return (
+          <div
+            key={line.lineId ?? index}
+            className="grid gap-3 rounded-md border border-[var(--pf-border-default)] p-3 sm:grid-cols-2"
+          >
+            <Field label={t('allocation.targetRow', { row: rowNumber })}>
+              {(controlProps) => (
+                <Select
+                  value={line.targetType === 'overhead' ? OVERHEAD_VALUE : line.projectId ?? ''}
+                  onValueChange={(selected) => {
+                    if (selected === OVERHEAD_VALUE) {
+                      updateLine(index, { targetType: 'overhead', projectId: null, workPackageId: null });
+                    } else {
+                      updateLine(index, { targetType: 'project', projectId: selected });
+                    }
+                  }}
+                  disabled={disabled}
+                >
+                  <SelectTrigger {...controlProps}>
+                    <SelectValue placeholder={t('allocation.selectTarget')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={OVERHEAD_VALUE}>{t('targeting.overhead')}</SelectItem>
+                    {projects.map((project) => (
+                      <SelectItem key={project.id} value={project.id}>
+                        {project.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </Field>
+
+            <Field label={t('allocation.methodRow', { row: rowNumber })}>
+              {(controlProps) => (
+                <Select
+                  value={line.method}
+                  onValueChange={(method) =>
+                    updateLine(index, { method: method as AllocationDraft['method'] })
+                  }
+                  disabled={disabled}
+                >
+                  <SelectTrigger {...controlProps}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="manual_amount">{t('allocation.methods.amount')}</SelectItem>
+                    <SelectItem value="manual_percent">{t('allocation.methods.percent')}</SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
+            </Field>
+
+            {line.method === 'manual_amount' ? (
+              <Field label={t('allocation.amountRow', { row: rowNumber })}>
+                {(controlProps) => (
+                  <MoneyInput
+                    {...controlProps}
+                    value={line.amount}
+                    onValueChange={(amount) => updateLine(index, { amount })}
+                    disabled={disabled}
+                  />
+                )}
+              </Field>
+            ) : (
+              <Field label={t('allocation.percentRow', { row: rowNumber })}>
+                {(controlProps) => (
+                  <Input
+                    {...controlProps}
+                    inputMode="decimal"
+                    value={line.percent}
+                    onChange={(event) => updateLine(index, { percent: event.target.value })}
+                    disabled={disabled}
+                  />
+                )}
+              </Field>
+            )}
+
+            <Field
+              label={t('allocation.categoryRow', { row: rowNumber })}
+              optionalLabel={tCommon('labels.optional')}
+            >
+              {(controlProps) => (
+                <Select
+                  value={line.costCategoryId ?? ''}
+                  onValueChange={(categoryId) =>
+                    updateLine(index, { costCategoryId: categoryId || null })
+                  }
+                  disabled={disabled}
+                >
+                  <SelectTrigger {...controlProps}>
+                    <SelectValue placeholder={t('placeholders.category')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.map((category) => (
+                      <SelectItem key={category.id} value={category.id}>
+                        {category.isSystem ? t(`costCategories.${category.key}`) : category.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </Field>
+
+            <div className="flex min-h-11 items-end sm:col-span-2">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => removeLine(index)}
+                disabled={disabled}
+              >
+                <Trash2 aria-hidden />
+                {t('allocation.removeLine')}
+              </Button>
+            </div>
+          </div>
+        );
+      })}
+
+      {value.length > 0 ? (
+        <p className="text-xs text-[var(--pf-text-muted)]">
+          {t('allocation.sumHintPrefix')}{' '}
+          <MoneyText value={money(totalAmount, currency)} />
+        </p>
+      ) : null}
+    </div>
+  );
+}

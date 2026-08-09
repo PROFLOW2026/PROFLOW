@@ -1,0 +1,74 @@
+{
+  "title": "Clients",
+  "newClient": "New client",
+  "empty": {
+    "title": "No clients yet",
+    "body": "Clients are optional. Keep a simple directory of customers you work with and link them to projects when helpful.",
+    "action": "Add first client"
+  },
+  "list": {
+    "searchPlaceholder": "Search clients…",
+    "columns": {
+      "name": "Client",
+      "projects": "Projects",
+      "status": "Status"
+    }
+  },
+  "create": {
+    "title": "New client",
+    "description": "Only a name is required. Legal details can be added later for exports and billing.",
+    "nameLabel": "Client name",
+    "namePlaceholder": "Display name",
+    "moreDetails": "More details",
+    "legalNameLabel": "Legal name",
+    "emailLabel": "Email",
+    "phoneLabel": "Phone",
+    "websiteLabel": "Website",
+    "addressLabel": "Address",
+    "addressLine1Label": "Address line 1",
+    "addressLine2Label": "Address line 2",
+    "cityLabel": "City",
+    "regionLabel": "Region",
+    "postalCodeLabel": "Postal code",
+    "countryLabel": "Country",
+    "notesLabel": "Notes",
+    "submit": "Create client",
+    "success": "Client created"
+  },
+  "detail": {
+    "title": "Client profile",
+    "projectsSection": "Projects",
+    "projectsCount": "{count, plural, one {# project} other {# projects}}",
+    "noProjects": "No linked projects yet",
+    "contactsSection": "Contacts",
+    "contactsEmpty": "No contacts yet. Add one when you need a billing or site contact.",
+    "addContact": "Add contact",
+    "identifiersSection": "Tax & registration IDs",
+    "identifiersHint": "Used for legal exports and customer-facing documents — not required for everyday project work.",
+    "identifiersEmpty": "No identifiers yet",
+    "addIdentifier": "Add identifier",
+    "identifierTypes": {
+      "tax_id": "Tax ID",
+      "company_number": "Company number",
+      "vat_number": "VAT number",
+      "license_number": "License number",
+      "other": "Other"
+    },
+    "contactRoles": {
+      "primary": "Primary",
+      "billing": "Billing",
+      "site": "Site",
+      "other": "Other"
+    },
+    "archive": "Archive client",
+    "archiveConfirm": "Archive this client? Existing projects keep their link; the client is hidden from the directory.",
+    "save": "Save changes",
+    "saved": "Client saved",
+    "removeContactQuestion": "Remove contact {name}?",
+    "removeContactConsequence": "You can add a contact again at any time.",
+    "removeContactSuccess": "Contact removed.",
+    "removeIdentifierQuestion": "Remove {type} identifier {value}?",
+    "removeIdentifierConsequence": "You can add an identifier again at any time.",
+    "removeIdentifierSuccess": "Identifier removed."
+  }
+}

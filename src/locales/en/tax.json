@@ -1,0 +1,31 @@
+{
+  "title": "Tax",
+  "subtitle": "Effective-dated rates for new records. Issued documents keep the rate they were created with.",
+  "countryPackTitle": "Country pack defaults ({country})",
+  "countryPackHint": "Reference rules from the country pack. They apply unless your business adds its own rule for the same period.",
+  "orgRulesTitle": "Your business rules",
+  "addRule": "Add tax rule",
+  "saved": "Tax rule saved.",
+  "empty": "No tax rules configured yet.",
+  "openEnded": "Open-ended",
+  "currentRate": "Rate in effect today: {rate} (as of {date})",
+  "loadMore": "Load more",
+  "columns": {
+    "name": "Name",
+    "rate": "Rate",
+    "validFrom": "Effective from",
+    "validTo": "Effective until",
+    "scope": "Source"
+  },
+  "scope": {
+    "countryPack": "Country pack",
+    "organization": "Your business"
+  },
+  "fields": {
+    "name": "Display name",
+    "rate": "Rate (%)",
+    "validFrom": "Effective from",
+    "validTo": "Effective until",
+    "isDefault": "Use as the default tax rule"
+  }
+}

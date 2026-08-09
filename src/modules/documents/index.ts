@@ -1,0 +1,43 @@
+/** Public API of the documents module. */
+export {
+  prepareDocumentUpload,
+  listDocumentsForOrg,
+  listEntityDocuments,
+  isStorageConfigured,
+} from './application/upload-document';
+export {
+  finalizeDocumentUpload,
+  createDocumentDownloadUrl,
+  softDeleteDocument,
+} from './application/manage-document';
+export { linkDocumentToEntity, unlinkDocumentFromEntity } from './application/link-document';
+
+export {
+  DOCUMENT_STATUSES,
+  DOCUMENT_OWNER_TYPES,
+} from './domain/types';
+export type {
+  DocumentStatus,
+  DocumentOwnerType,
+  DocumentRecord,
+  DocumentListItem,
+  DocumentLinkRecord,
+  PrepareUploadResult,
+  DownloadUrlResult,
+} from './domain/types';
+
+export {
+  validateUploadConstraints,
+  isAllowedMimeType,
+  isAllowedFileSize,
+  MAX_DOCUMENT_SIZE_BYTES,
+} from './domain/file-rules';
+
+export { formatFileSize } from './domain/format-file-size';
+
+export {
+  prepareUploadSchema,
+  finalizeUploadSchema,
+  listEntityDocumentsSchema,
+} from './validation/schemas';
+export type { PrepareUploadInput, FinalizeUploadInput } from './validation/schemas';

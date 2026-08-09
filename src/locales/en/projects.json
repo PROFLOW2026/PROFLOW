@@ -1,0 +1,123 @@
+{
+  "title": "Projects",
+  "newProject": "New project",
+  "noContractValue": "Not set",
+  "empty": {
+    "title": "No projects yet",
+    "body": "Projects are where you track work, contract value, costs, and billing for each job.",
+    "action": "Create first project"
+  },
+  "list": {
+    "searchPlaceholder": "Search projects…",
+    "filterStatus": "Status",
+    "allStatuses": "All statuses",
+    "columns": {
+      "name": "Project",
+      "client": "Client",
+      "status": "Status",
+      "contractValue": "Contract value",
+      "noClient": "—"
+    }
+  },
+  "create": {
+    "title": "New project",
+    "description": "Enter a name to get started. Everything else is optional and can be added later.",
+    "nameLabel": "Project name",
+    "namePlaceholder": "e.g. Cohen residence",
+    "clientLabel": "Client",
+    "clientNone": "No client yet",
+    "clientNew": "New client name",
+    "clientSelect": "Choose existing client",
+    "clientNamePlaceholder": "Client name",
+    "clientNameExample": "e.g. Cohen family",
+    "contractValueLabel": "Original contract value",
+    "contractValuePlaceholder": "e.g. 150000",
+    "domainLabel": "Profession / domain",
+    "domainPlaceholder": "e.g. Electrical",
+    "locationLabel": "Location",
+    "locationPlaceholder": "Site or address",
+    "moreDetails": "More details",
+    "submit": "Create project",
+    "success": "Project created"
+  },
+  "workspace": {
+    "fallbackTitle": "Project",
+    "noClient": "No client yet",
+    "clientLinked": "{clientLabel}: <link>{clientName}</link>",
+    "tabs": {
+      "overview": "Overview",
+      "financials": "Financials",
+      "expenses": "Expenses",
+      "changes": "Changes",
+      "billing": "Billing",
+      "work": "Work areas",
+      "time": "Time & team",
+      "documents": "Documents",
+      "details": "Details"
+    },
+    "header": {
+      "currentContractValue": "Current contract value"
+    },
+    "archive": "Archive project",
+    "archiveConfirm": "Archive this project? It will be hidden from the active list but not deleted."
+  },
+  "overview": {
+    "contractSummary": "Contract summary",
+    "originalValue": "Original value",
+    "approvedChanges": "Approved changes",
+    "currentValue": "Current contract value",
+    "pendingChanges": "Pending changes",
+    "financialSnapshot": "Financial snapshot",
+    "noContractYet": "No contract value recorded yet",
+    "noContractHint": "Add an original contract value in project details when you are ready.",
+    "valueEvents": "Contract value history",
+    "eventKind": {
+      "original": "Original",
+      "change_order": "Change order",
+      "adjustment": "Adjustment"
+    }
+  },
+  "work": {
+    "areasPlaceholder": "Electrical\nPlumbing\nDrywall",
+    "contractHistory": {
+      "previousValue": "Previous value",
+      "newValue": "New value",
+      "reason": "Reason",
+      "changedAt": "Changed",
+      "changedBy": "Changed by",
+      "unknownActor": "—"
+    }
+  },
+  "details": {
+    "title": "Project details",
+    "statusLabel": "Status",
+    "clientLabel": "Client",
+    "domainLabel": "Domain",
+    "locationLabel": "Location",
+    "datesLabel": "Dates",
+    "startDate": "Start date",
+    "targetEndDate": "Target end date",
+    "actualEndDate": "Actual end date",
+    "roleLabel": "Your role",
+    "deliveryModeLabel": "Delivery mode",
+    "descriptionLabel": "Description",
+    "notesLabel": "Notes",
+    "save": "Save changes",
+    "saved": "Details saved"
+  },
+  "workPackages": {
+    "title": "Work areas",
+    "defaultName": "General",
+    "splitCta": "Split project into work areas / disciplines",
+    "splitDescription": "Existing costs and records stay on the general area until you move them.",
+    "add": "Add work area",
+    "renameDefault": "Rename general area",
+    "phases": "Phases",
+    "addPhase": "Add phase",
+    "emptyPhases": "No phases yet"
+  },
+  "errors": {
+    "defaultWorkPackageArchive": "The default work area cannot be archived.",
+    "lastWorkPackage": "A project must keep at least one work area."
+  }
+}

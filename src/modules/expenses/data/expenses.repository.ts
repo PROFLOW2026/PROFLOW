@@ -1,0 +1,481 @@
+import { and, desc, eq, gte, isNull, lte, sql } from 'drizzle-orm';
+import {
+  costCategories,
+  expenseAllocations,
+  expenses,
+  phases,
+  projects,
+  vendors,
+  workPackages,
+} from '@drizzle/schema';
+import type { BusinessDate } from '@/shared/dates';
+import type { DbExecutor } from '@/shared/db/types';
+import { fromNumericString, type MoneyValue } from '@/shared/money';
+import type {
+  AllocationMethod,
+  CostFamily,
+  ExpenseDetail,
+  ExpenseStatus,
+  ExpenseSummary,
+  ProjectOption,
+  ResolvedAllocationLine,
+  WorkPackageOption,
+} from '../domain/types';
+import { allocationFromPersisted } from '../domain/allocation';
+
+export interface ExpenseListFilters {
+  readonly dateFrom?: BusinessDate;
+  readonly dateTo?: BusinessDate;
+  readonly projectId?: string;
+  readonly costFamily?: CostFamily;
+  readonly costCategoryId?: string;
+  readonly status?: ExpenseStatus;
+  readonly limit?: number;
+  readonly offset?: number;
+}
+
+export interface ExpenseInsertRow {
+  readonly expenseDate: BusinessDate;
+  readonly description: string | null;
+  readonly supplierName: string | null;
+  readonly vendorId: string | null;
+  readonly projectId: string | null;
+  readonly workPackageId: string | null;
+  readonly phaseId: string | null;
+  readonly costFamily: CostFamily;
+  readonly costCategoryId: string | null;
+  readonly netAmount: string;
+  readonly taxAmount: string | null;
+  readonly grossAmount: string;
+  readonly currency: string;
+  readonly taxSnapshot: unknown | null;
+  readonly status: ExpenseStatus;
+  readonly finalizedAt: BusinessDate | null;
+  readonly paymentMethod: string | null;
+  readonly notes: string | null;
+  readonly voidsExpenseId: string | null;
+  readonly adjustsExpenseId: string | null;
+  readonly isRecurringTemplate: boolean;
+  readonly recurrenceRule: string | null;
+  readonly recurringTemplateId: string | null;
+  readonly createdByUserId: string | null;
+}
+
+export interface AllocationInsertRow {
+  readonly targetType: 'project' | 'overhead';
+  readonly projectId: string | null;
+  readonly workPackageId: string | null;
+  readonly costCategoryId: string | null;
+  readonly method: AllocationMethod;
+  readonly amount: string;
+  readonly currency: string;
+  readonly percent: string | null;
+  readonly notes: string | null;
+  readonly sortOrder: number;
+}
+
+function mapMoney(amount: string, currency: string): MoneyValue {
+  return fromNumericString(amount, currency)!;
+}
+
+function mapSummary(row: {
+  id: string;
+  expenseDate: string;
+  description: string | null;
+  supplierName: string | null;
+  vendorId: string | null;
+  projectId: string | null;
+  projectName: string | null;
+  workPackageId: string | null;
+  costFamily: CostFamily;
+  costCategoryId: string | null;
+  grossAmount: string;
+  currency: string;
+  status: ExpenseStatus;
+  voidsExpenseId: string | null;
+}): ExpenseSummary {
+  return {
+    id: row.id,
+    expenseDate: row.expenseDate as BusinessDate,
+    description: row.description,
+    supplierName: row.supplierName,
+    vendorId: row.vendorId,
+    projectId: row.projectId,
+    projectName: row.projectName,
+    workPackageId: row.workPackageId,
+    costFamily: row.costFamily,
+    costCategoryId: row.costCategoryId,
+    grossAmount: mapMoney(row.grossAmount, row.currency),
+    status: row.status,
+    voidsExpenseId: row.voidsExpenseId,
+  };
+}
+
+export async function insertExpense(
+  db: DbExecutor,
+  organizationId: string,
+  row: ExpenseInsertRow,
+): Promise<string> {
+  const [inserted] = await db
+    .insert(expenses)
+    .values({ organizationId, ...row })
+    .returning({ id: expenses.id });
+
+  return inserted!.id;
+}
+
+export async function updateExpenseRow(
+  db: DbExecutor,
+  organizationId: string,
+  expenseId: string,
+  patch: Partial<ExpenseInsertRow>,
+): Promise<void> {
+  await db
+    .update(expenses)
+    .set(patch)
+    .where(and(eq(expenses.id, expenseId), eq(expenses.organizationId, organizationId)));
+}
+
+export async function replaceExpenseAllocations(
+  db: DbExecutor,
+  organizationId: string,
+  expenseId: string,
+  lines: readonly AllocationInsertRow[],
+): Promise<void> {
+  await db
+    .delete(expenseAllocations)
+    .where(and(eq(expenseAllocations.expenseId, expenseId), eq(expenseAllocations.organizationId, organizationId)));
+
+  if (lines.length === 0) return;
+
+  await db.insert(expenseAllocations).values(
+    lines.map((line) => ({
+      organizationId,
+      expenseId,
+      ...line,
+    })),
+  );
+}
+
+export async function findExpenseById(
+  db: DbExecutor,
+  organizationId: string,
+  expenseId: string,
+): Promise<ExpenseDetail | null> {
+  const [row] = await db
+    .select({
+      id: expenses.id,
+      expenseDate: expenses.expenseDate,
+      description: expenses.description,
+      supplierName: expenses.supplierName,
+      vendorId: expenses.vendorId,
+      projectId: expenses.projectId,
+      projectName: projects.name,
+      workPackageId: expenses.workPackageId,
+      phaseId: expenses.phaseId,
+      costFamily: expenses.costFamily,
+      costCategoryId: expenses.costCategoryId,
+      netAmount: expenses.netAmount,
+      taxAmount: expenses.taxAmount,
+      grossAmount: expenses.grossAmount,
+      currency: expenses.currency,
+      taxSnapshot: expenses.taxSnapshot,
+      status: expenses.status,
+      finalizedAt: expenses.finalizedAt,
+      paymentMethod: expenses.paymentMethod,
+      notes: expenses.notes,
+      voidsExpenseId: expenses.voidsExpenseId,
+      adjustsExpenseId: expenses.adjustsExpenseId,
+      isRecurringTemplate: expenses.isRecurringTemplate,
+      recurrenceRule: expenses.recurrenceRule,
+      recurringTemplateId: expenses.recurringTemplateId,
+      createdByUserId: expenses.createdByUserId,
+      createdAt: expenses.createdAt,
+      updatedAt: expenses.updatedAt,
+    })
+    .from(expenses)
+    .leftJoin(projects, eq(expenses.projectId, projects.id))
+    .where(and(eq(expenses.id, expenseId), eq(expenses.organizationId, organizationId), isNull(expenses.archivedAt)))
+    .limit(1);
+
+  if (!row) return null;
+
+  const allocationRows = await db
+    .select({
+      targetType: expenseAllocations.targetType,
+      projectId: expenseAllocations.projectId,
+      workPackageId: expenseAllocations.workPackageId,
+      costCategoryId: expenseAllocations.costCategoryId,
+      method: expenseAllocations.method,
+      amount: expenseAllocations.amount,
+      currency: expenseAllocations.currency,
+      percent: expenseAllocations.percent,
+      notes: expenseAllocations.notes,
+      sortOrder: expenseAllocations.sortOrder,
+    })
+    .from(expenseAllocations)
+    .where(and(eq(expenseAllocations.expenseId, expenseId), eq(expenseAllocations.organizationId, organizationId)))
+    .orderBy(expenseAllocations.sortOrder);
+
+  const allocations: ResolvedAllocationLine[] = allocationFromPersisted(allocationRows);
+
+  return {
+    ...mapSummary({ ...row, projectName: row.projectName }),
+    phaseId: row.phaseId,
+    netAmount: mapMoney(row.netAmount, row.currency),
+    taxAmount: row.taxAmount ? mapMoney(row.taxAmount, row.currency) : null,
+    taxSnapshot: row.taxSnapshot as ExpenseDetail['taxSnapshot'],
+    finalizedAt: row.finalizedAt as BusinessDate | null,
+    paymentMethod: row.paymentMethod,
+    notes: row.notes,
+    adjustsExpenseId: row.adjustsExpenseId,
+    isRecurringTemplate: row.isRecurringTemplate,
+    recurrenceRule: row.recurrenceRule,
+    recurringTemplateId: row.recurringTemplateId,
+    createdByUserId: row.createdByUserId,
+    allocations,
+    createdAt: row.createdAt,
+    updatedAt: row.updatedAt,
+  };
+}
+
+export async function listExpenses(
+  db: DbExecutor,
+  organizationId: string,
+  filters: ExpenseListFilters = {},
+): Promise<{ items: ExpenseSummary[]; total: number }> {
+  const conditions = [eq(expenses.organizationId, organizationId), isNull(expenses.archivedAt)];
+
+  if (filters.dateFrom) conditions.push(gte(expenses.expenseDate, filters.dateFrom));
+  if (filters.dateTo) conditions.push(lte(expenses.expenseDate, filters.dateTo));
+  if (filters.projectId) conditions.push(eq(expenses.projectId, filters.projectId));
+  if (filters.costFamily) conditions.push(eq(expenses.costFamily, filters.costFamily));
+  if (filters.costCategoryId) conditions.push(eq(expenses.costCategoryId, filters.costCategoryId));
+  if (filters.status) conditions.push(eq(expenses.status, filters.status));
+
+  const where = and(...conditions);
+
+  const [countRow] = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(expenses)
+    .where(where);
+
+  const rows = await db
+    .select({
+      id: expenses.id,
+      expenseDate: expenses.expenseDate,
+      description: expenses.description,
+      supplierName: expenses.supplierName,
+      vendorId: expenses.vendorId,
+      projectId: expenses.projectId,
+      projectName: projects.name,
+      workPackageId: expenses.workPackageId,
+      costFamily: expenses.costFamily,
+      costCategoryId: expenses.costCategoryId,
+      grossAmount: expenses.grossAmount,
+      currency: expenses.currency,
+      status: expenses.status,
+      voidsExpenseId: expenses.voidsExpenseId,
+    })
+    .from(expenses)
+    .leftJoin(projects, eq(expenses.projectId, projects.id))
+    .where(where)
+    .orderBy(desc(expenses.expenseDate), desc(expenses.createdAt))
+    .limit(filters.limit ?? 50)
+    .offset(filters.offset ?? 0);
+
+  return { items: rows.map(mapSummary), total: countRow?.count ?? 0 };
+}
+
+export async function listProjectsForOrganization(
+  db: DbExecutor,
+  organizationId: string,
+): Promise<ProjectOption[]> {
+  return db
+    .select({ id: projects.id, name: projects.name, currency: projects.currency })
+    .from(projects)
+    .where(and(eq(projects.organizationId, organizationId), isNull(projects.archivedAt)))
+    .orderBy(projects.name);
+}
+
+export async function listWorkPackagesForProject(
+  db: DbExecutor,
+  organizationId: string,
+  projectId: string,
+): Promise<WorkPackageOption[]> {
+  return db
+    .select({
+      id: workPackages.id,
+      projectId: workPackages.projectId,
+      name: workPackages.name,
+      isDefault: workPackages.isDefault,
+    })
+    .from(workPackages)
+    .where(
+      and(
+        eq(workPackages.organizationId, organizationId),
+        eq(workPackages.projectId, projectId),
+        isNull(workPackages.archivedAt),
+      ),
+    )
+    .orderBy(workPackages.sortOrder);
+}
+
+export async function findDefaultWorkPackageId(
+  db: DbExecutor,
+  organizationId: string,
+  projectId: string,
+): Promise<string | null> {
+  const [row] = await db
+    .select({ id: workPackages.id })
+    .from(workPackages)
+    .where(
+      and(
+        eq(workPackages.organizationId, organizationId),
+        eq(workPackages.projectId, projectId),
+        eq(workPackages.isDefault, true),
+        isNull(workPackages.archivedAt),
+      ),
+    )
+    .limit(1);
+
+  return row?.id ?? null;
+}
+
+export async function findProjectInOrganization(
+  db: DbExecutor,
+  organizationId: string,
+  projectId: string,
+): Promise<ProjectOption | null> {
+  const [row] = await db
+    .select({ id: projects.id, name: projects.name, currency: projects.currency })
+    .from(projects)
+    .where(and(eq(projects.id, projectId), eq(projects.organizationId, organizationId), isNull(projects.archivedAt)))
+    .limit(1);
+
+  return row ?? null;
+}
+
+export async function findVendorInOrganization(
+  db: DbExecutor,
+  organizationId: string,
+  vendorId: string,
+): Promise<{ id: string } | null> {
+  const [row] = await db
+    .select({ id: vendors.id })
+    .from(vendors)
+    .where(and(eq(vendors.id, vendorId), eq(vendors.organizationId, organizationId), isNull(vendors.archivedAt)))
+    .limit(1);
+
+  return row ?? null;
+}
+
+export async function findPhaseInOrganization(
+  db: DbExecutor,
+  organizationId: string,
+  phaseId: string,
+): Promise<{ id: string; projectId: string; workPackageId: string } | null> {
+  const [row] = await db
+    .select({ id: phases.id, projectId: phases.projectId, workPackageId: phases.workPackageId })
+    .from(phases)
+    .where(
+      and(eq(phases.id, phaseId), eq(phases.organizationId, organizationId), isNull(phases.archivedAt)),
+    )
+    .limit(1);
+
+  return row ?? null;
+}
+
+export async function findWorkPackageInProject(
+  db: DbExecutor,
+  organizationId: string,
+  projectId: string,
+  workPackageId: string,
+): Promise<WorkPackageOption | null> {
+  const [row] = await db
+    .select({
+      id: workPackages.id,
+      projectId: workPackages.projectId,
+      name: workPackages.name,
+      isDefault: workPackages.isDefault,
+    })
+    .from(workPackages)
+    .where(
+      and(
+        eq(workPackages.id, workPackageId),
+        eq(workPackages.projectId, projectId),
+        eq(workPackages.organizationId, organizationId),
+        isNull(workPackages.archivedAt),
+      ),
+    )
+    .limit(1);
+
+  return row ?? null;
+}
+
+export async function findCostCategoryById(
+  db: DbExecutor,
+  organizationId: string,
+  categoryId: string,
+): Promise<{ id: string; family: CostFamily } | null> {
+  const [row] = await db
+    .select({ id: costCategories.id, family: costCategories.family })
+    .from(costCategories)
+    .where(
+      and(
+        eq(costCategories.id, categoryId),
+        eq(costCategories.organizationId, organizationId),
+        isNull(costCategories.archivedAt),
+      ),
+    )
+    .limit(1);
+
+  return row ?? null;
+}
+
+export async function hasOverheadExpenses(db: DbExecutor, organizationId: string): Promise<boolean> {
+  const [row] = await db
+    .select({ id: expenses.id })
+    .from(expenses)
+    .where(
+      and(
+        eq(expenses.organizationId, organizationId),
+        eq(expenses.costFamily, 'business_overhead'),
+        isNull(expenses.archivedAt),
+      ),
+    )
+    .limit(1);
+
+  return Boolean(row);
+}
+
+export async function listCostCategories(
+  db: DbExecutor,
+  organizationId: string,
+  family?: CostFamily,
+): Promise<
+  {
+    id: string;
+    key: string;
+    name: string;
+    family: CostFamily;
+    isSystem: boolean;
+    sortOrder: number;
+  }[]
+> {
+  const conditions = [eq(costCategories.organizationId, organizationId), isNull(costCategories.archivedAt)];
+  if (family) conditions.push(eq(costCategories.family, family));
+
+  return db
+    .select({
+      id: costCategories.id,
+      key: costCategories.key,
+      name: costCategories.name,
+      family: costCategories.family,
+      isSystem: costCategories.isSystem,
+      sortOrder: costCategories.sortOrder,
+    })
+    .from(costCategories)
+    .where(and(...conditions))
+    .orderBy(costCategories.sortOrder);
+}

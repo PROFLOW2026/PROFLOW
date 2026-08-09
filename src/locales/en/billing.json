@@ -1,0 +1,100 @@
+{
+  "title": "Billing and collections",
+  "subtitle": "Track what you billed, what was collected, and what is still outstanding. This is internal billing tracking — not statutory invoice issuance.",
+  "list": {
+    "project": "Project",
+    "reference": "Reference",
+    "issueDate": "Date",
+    "amount": "Amount",
+    "paid": "Paid",
+    "outstanding": "Outstanding",
+    "status": "Status",
+    "unknownProject": "Unknown project",
+    "filters": {
+      "all": "All billing",
+      "paid": "Paid",
+      "outstanding": "Outstanding",
+      "overdue": "Overdue"
+    },
+    "emptyTitle": "No billing records yet",
+    "emptyBody": "Record billing when you send an amount to a client — even if the legal invoice lives in another system.",
+    "emptyAction": "Add billing record"
+  },
+  "form": {
+    "title": "New billing record",
+    "project": "Project",
+    "projectPlaceholder": "Select a project",
+    "amount": "Amount",
+    "issueDate": "Billing date",
+    "dueDate": "Due date",
+    "reference": "Reference / number",
+    "notes": "Notes",
+    "moreDetails": "More details",
+    "moreDetailsHint": "External document links and linked approved changes can be added in a later step.",
+    "saveDraft": "Save draft",
+    "saveAndFinalize": "Save and finalize"
+  },
+  "paymentForm": {
+    "title": "Record payment",
+    "billingRecord": "Billing record",
+    "billingRecordPlaceholder": "Select a billing record",
+    "amount": "Amount received",
+    "partialAllowed": "Partial payments are allowed.",
+    "paymentDate": "Payment date",
+    "method": "Method",
+    "reference": "Reference",
+    "notes": "Notes",
+    "submit": "Save payment"
+  },
+  "detail": {
+    "title": "Billing record",
+    "finalize": "Finalize",
+    "void": "Void record",
+    "voidPayment": "Void payment",
+    "recordPayment": "Record payment",
+    "paymentsTitle": "Payments",
+    "noPayments": "No payments recorded yet.",
+    "linesTitle": "Lines",
+    "dueDate": "Due date",
+    "reference": "Reference",
+    "notes": "Notes",
+    "voidPaymentAriaLabel": "Void payment of {amount} from {date}"
+  },
+  "confirm": {
+    "finalizeTitle": "Finalize billing record",
+    "finalizeQuestion": "Finalize billing record {reference}?",
+    "finalizeConsequence": "Once finalized it cannot be edited.",
+    "finalizeSuccess": "Billing record finalized.",
+    "voidRecordTitle": "Void billing record",
+    "voidRecordQuestion": "Void billing record {reference}?",
+    "voidRecordConsequence": "It will be removed from Invoiced totals and cannot be restored.",
+    "voidRecordSuccess": "Billing record voided.",
+    "voidPaymentTitle": "Void payment",
+    "voidPaymentQuestion": "Void the payment of <amount></amount> from <date></date>?",
+    "voidPaymentConsequence": "This creates a reversal entry and cannot be undone.",
+    "voidPaymentSuccess": "Payment voided."
+  },
+  "panel": {
+    "positionTitle": "Billing position",
+    "unbilledChangesTitle": "Approved changes not yet billed",
+    "emptyTitle": "No billing on this project",
+    "emptyBody": "Record billing when you charge the client for work on this project.",
+    "emptyAction": "Add billing",
+    "recordsTitle": "Billing records",
+    "addBilling": "Add billing"
+  },
+  "errors": {
+    "notEditable": "Only draft billing records can be edited.",
+    "notFinalizable": "Only draft billing records can be finalized.",
+    "notVoidable": "Only finalized billing records can be voided.",
+    "correctionNotVoidable": "Correcting entries cannot be voided again.",
+    "paymentTargetNotFinalized": "Payments can only be recorded against finalized billing records.",
+    "paymentNotVoidable": "Only recorded payments can be voided.",
+    "currencyMismatch": "Billing currency must match the project currency.",
+    "hasRecordedPayments": "Void recorded payments before voiding this billing record."
+  },
+  "notAllowed": {
+    "title": "Not allowed",
+    "body": "You do not have permission to view billing and collections."
+  }
+}

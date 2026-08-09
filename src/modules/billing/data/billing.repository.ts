@@ -1,0 +1,610 @@
+import { and, desc, eq, inArray, isNull, notInArray } from 'drizzle-orm';
+import {
+  billingLines,
+  billingRecords,
+  changeOrders,
+  payments,
+  projects,
+} from '@drizzle/schema';
+import { todayInTimeZone, type BusinessDate } from '@/shared/dates';
+import type { DbExecutor } from '@/shared/db/types';
+import { addMoney, fromNumericString, zeroMoney, type MoneyValue } from '@/shared/money';
+import {
+  deriveCollectionStatus,
+  recordOutstanding,
+  signedBillingAmount,
+  sumPaidAmountsForRecord,
+} from '../domain/outstanding';
+import type {
+  BillingKind,
+  BillingLineRecord,
+  BillingListFilters,
+  BillingRecordDetail,
+  BillingRecordStatus,
+  BillingRecordSummary,
+  PaymentRecordStatus,
+  PaymentSummary,
+  ProjectOption,
+  TaxSnapshot,
+  UnbilledChangeOrder,
+} from '../domain/types';
+
+function mapMoney(amount: string, currency: string): MoneyValue {
+  return fromNumericString(amount, currency)!;
+}
+
+function mapTaxSnapshot(value: unknown): TaxSnapshot | null {
+  if (!value || typeof value !== 'object') return null;
+  const snapshot = value as TaxSnapshot;
+  if (
+    typeof snapshot.subtotalAmount !== 'string' ||
+    typeof snapshot.totalAmount !== 'string' ||
+    typeof snapshot.currency !== 'string'
+  ) {
+    return null;
+  }
+  return snapshot;
+}
+
+export interface BillingRecordInsertRow {
+  readonly projectId: string;
+  readonly clientId: string | null;
+  readonly kind: BillingKind;
+  readonly reference: string | null;
+  readonly issueDate: BusinessDate;
+  readonly dueDate: BusinessDate | null;
+  readonly subtotalAmount: string;
+  readonly taxAmount: string | null;
+  readonly totalAmount: string;
+  readonly currency: string;
+  readonly externalDocumentId: string | null;
+  readonly notes: string | null;
+  readonly voidsBillingRecordId: string | null;
+  readonly createdByUserId: string | null;
+}
+
+export interface BillingLineInsertRow {
+  readonly description: string;
+  readonly lineTotal: string;
+  readonly currency: string;
+  readonly changeOrderId: string | null;
+  readonly sortOrder: number;
+}
+
+export interface BillingRecordUpdateRow {
+  readonly projectId?: string;
+  readonly clientId?: string | null;
+  readonly reference?: string | null;
+  readonly issueDate?: BusinessDate;
+  readonly dueDate?: BusinessDate | null;
+  readonly subtotalAmount?: string;
+  readonly taxAmount?: string | null;
+  readonly totalAmount?: string;
+  readonly currency?: string;
+  readonly externalDocumentId?: string | null;
+  readonly notes?: string | null;
+  readonly status?: BillingRecordStatus;
+  readonly taxSnapshot?: TaxSnapshot | null;
+  readonly finalizedAt?: Date | null;
+  readonly voidedAt?: Date | null;
+}
+
+function mapPayment(row: {
+  id: string;
+  amount: string;
+  currency: string;
+  paymentDate: string;
+  method: string | null;
+  reference: string | null;
+  status: PaymentRecordStatus;
+  notes: string | null;
+}): PaymentSummary {
+  return {
+    id: row.id,
+    amount: mapMoney(row.amount, row.currency),
+    paymentDate: row.paymentDate as BusinessDate,
+    method: row.method,
+    reference: row.reference,
+    status: row.status,
+    notes: row.notes,
+  };
+}
+
+function buildSummary(
+  row: {
+    id: string;
+    projectId: string | null;
+    projectName: string | null;
+    reference: string | null;
+    issueDate: string;
+    dueDate: string | null;
+    status: BillingRecordStatus;
+    kind: BillingKind;
+    totalAmount: string;
+    currency: string;
+  },
+  paidAmount: MoneyValue,
+  today: BusinessDate,
+): BillingRecordSummary {
+  const totalAmount = mapMoney(row.totalAmount, row.currency);
+  const outstandingAmount = recordOutstanding(totalAmount, paidAmount, row.kind, row.status);
+  const collectionStatus = deriveCollectionStatus(
+    outstandingAmount,
+    paidAmount,
+    row.dueDate as BusinessDate | null,
+    today,
+    row.status,
+  );
+
+  return {
+    id: row.id,
+    projectId: row.projectId,
+    projectName: row.projectName,
+    reference: row.reference,
+    issueDate: row.issueDate as BusinessDate,
+    dueDate: row.dueDate as BusinessDate | null,
+    status: row.status,
+    kind: row.kind,
+    totalAmount,
+    paidAmount,
+    outstandingAmount,
+    collectionStatus,
+  };
+}
+
+export async function findProjectInOrganization(
+  db: DbExecutor,
+  organizationId: string,
+  projectId: string,
+): Promise<ProjectOption | null> {
+  const [row] = await db
+    .select({
+      id: projects.id,
+      name: projects.name,
+      currency: projects.currency,
+    })
+    .from(projects)
+    .where(
+      and(
+        eq(projects.organizationId, organizationId),
+        eq(projects.id, projectId),
+        isNull(projects.archivedAt),
+      ),
+    )
+    .limit(1);
+
+  return row ?? null;
+}
+
+export async function listProjectOptions(
+  db: DbExecutor,
+  organizationId: string,
+): Promise<ProjectOption[]> {
+  return db
+    .select({
+      id: projects.id,
+      name: projects.name,
+      currency: projects.currency,
+    })
+    .from(projects)
+    .where(and(eq(projects.organizationId, organizationId), isNull(projects.archivedAt)))
+    .orderBy(projects.name);
+}
+
+export async function insertBillingRecord(
+  db: DbExecutor,
+  organizationId: string,
+  row: BillingRecordInsertRow,
+): Promise<string> {
+  const [inserted] = await db
+    .insert(billingRecords)
+    .values({
+      organizationId,
+      status: 'draft',
+      taxSnapshot: null,
+      finalizedAt: null,
+      voidedAt: null,
+      ...row,
+    })
+    .returning({ id: billingRecords.id });
+
+  return inserted!.id;
+}
+
+export async function replaceBillingLines(
+  db: DbExecutor,
+  organizationId: string,
+  billingRecordId: string,
+  lines: readonly BillingLineInsertRow[],
+): Promise<void> {
+  await db
+    .delete(billingLines)
+    .where(
+      and(
+        eq(billingLines.organizationId, organizationId),
+        eq(billingLines.billingRecordId, billingRecordId),
+      ),
+    );
+
+  if (lines.length === 0) return;
+
+  await db.insert(billingLines).values(
+    lines.map((line) => ({
+      organizationId,
+      billingRecordId,
+      description: line.description,
+      lineTotal: line.lineTotal,
+      currency: line.currency,
+      changeOrderId: line.changeOrderId,
+      sortOrder: line.sortOrder,
+      taxSnapshot: null,
+    })),
+  );
+}
+
+export async function updateBillingRecordRow(
+  db: DbExecutor,
+  organizationId: string,
+  billingRecordId: string,
+  patch: BillingRecordUpdateRow,
+): Promise<void> {
+  await db
+    .update(billingRecords)
+    .set(patch)
+    .where(
+      and(eq(billingRecords.organizationId, organizationId), eq(billingRecords.id, billingRecordId)),
+    );
+}
+
+export async function findBillingRecordById(
+  db: DbExecutor,
+  organizationId: string,
+  billingRecordId: string,
+  timezone: string,
+): Promise<BillingRecordDetail | null> {
+  const today = todayInTimeZone(timezone);
+
+  const [row] = await db
+    .select({
+      id: billingRecords.id,
+      projectId: billingRecords.projectId,
+      projectName: projects.name,
+      clientId: billingRecords.clientId,
+      reference: billingRecords.reference,
+      issueDate: billingRecords.issueDate,
+      dueDate: billingRecords.dueDate,
+      status: billingRecords.status,
+      kind: billingRecords.kind,
+      subtotalAmount: billingRecords.subtotalAmount,
+      taxAmount: billingRecords.taxAmount,
+      totalAmount: billingRecords.totalAmount,
+      currency: billingRecords.currency,
+      taxSnapshot: billingRecords.taxSnapshot,
+      finalizedAt: billingRecords.finalizedAt,
+      voidedAt: billingRecords.voidedAt,
+      voidsBillingRecordId: billingRecords.voidsBillingRecordId,
+      externalDocumentId: billingRecords.externalDocumentId,
+      notes: billingRecords.notes,
+    })
+    .from(billingRecords)
+    .leftJoin(projects, eq(projects.id, billingRecords.projectId))
+    .where(
+      and(eq(billingRecords.organizationId, organizationId), eq(billingRecords.id, billingRecordId)),
+    )
+    .limit(1);
+
+  if (!row) return null;
+
+  const paymentRows = await db
+    .select({
+      id: payments.id,
+      amount: payments.amount,
+      currency: payments.currency,
+      paymentDate: payments.paymentDate,
+      method: payments.method,
+      reference: payments.reference,
+      status: payments.status,
+      notes: payments.notes,
+    })
+    .from(payments)
+    .where(
+      and(eq(payments.organizationId, organizationId), eq(payments.billingRecordId, billingRecordId)),
+    )
+    .orderBy(desc(payments.paymentDate), desc(payments.createdAt));
+
+  const lineRows = await db
+    .select({
+      id: billingLines.id,
+      description: billingLines.description,
+      lineTotal: billingLines.lineTotal,
+      currency: billingLines.currency,
+      changeOrderId: billingLines.changeOrderId,
+      sortOrder: billingLines.sortOrder,
+    })
+    .from(billingLines)
+    .where(
+      and(
+        eq(billingLines.organizationId, organizationId),
+        eq(billingLines.billingRecordId, billingRecordId),
+      ),
+    )
+    .orderBy(billingLines.sortOrder);
+
+  const paidAmount = sumPaidAmountsForRecord(
+    row.status,
+    paymentRows.map((payment) => ({
+      amount: mapMoney(payment.amount, payment.currency),
+      status: payment.status,
+    })),
+    row.currency,
+  );
+
+  const summary = buildSummary(
+    {
+      id: row.id,
+      projectId: row.projectId,
+      projectName: row.projectName,
+      reference: row.reference,
+      issueDate: row.issueDate,
+      dueDate: row.dueDate,
+      status: row.status,
+      kind: row.kind,
+      totalAmount: row.totalAmount,
+      currency: row.currency,
+    },
+    paidAmount,
+    today,
+  );
+
+  const lines: BillingLineRecord[] = lineRows.map((line) => ({
+    id: line.id,
+    description: line.description,
+    lineTotal: mapMoney(line.lineTotal, line.currency),
+    changeOrderId: line.changeOrderId,
+    sortOrder: line.sortOrder,
+  }));
+
+  const paymentSummaries = paymentRows.map(mapPayment);
+
+  return {
+    ...summary,
+    clientId: row.clientId,
+    subtotalAmount: mapMoney(row.subtotalAmount, row.currency),
+    taxAmount: row.taxAmount ? mapMoney(row.taxAmount, row.currency) : null,
+    taxSnapshot: mapTaxSnapshot(row.taxSnapshot),
+    finalizedAt: row.finalizedAt,
+    voidedAt: row.voidedAt,
+    voidsBillingRecordId: row.voidsBillingRecordId,
+    externalDocumentId: row.externalDocumentId,
+    notes: row.notes,
+    lines,
+    payments: paymentSummaries,
+  };
+}
+
+export async function listBillingRecords(
+  db: DbExecutor,
+  organizationId: string,
+  filters: BillingListFilters,
+  timezone: string,
+): Promise<BillingRecordSummary[]> {
+  const today = todayInTimeZone(timezone);
+  const limit = filters.limit ?? 100;
+  const offset = filters.offset ?? 0;
+
+  const rows = await db
+    .select({
+      id: billingRecords.id,
+      projectId: billingRecords.projectId,
+      projectName: projects.name,
+      reference: billingRecords.reference,
+      issueDate: billingRecords.issueDate,
+      dueDate: billingRecords.dueDate,
+      status: billingRecords.status,
+      kind: billingRecords.kind,
+      totalAmount: billingRecords.totalAmount,
+      currency: billingRecords.currency,
+    })
+    .from(billingRecords)
+    .leftJoin(projects, eq(projects.id, billingRecords.projectId))
+    .where(
+      and(
+        eq(billingRecords.organizationId, organizationId),
+        isNull(billingRecords.archivedAt),
+        filters.projectId ? eq(billingRecords.projectId, filters.projectId) : undefined,
+      ),
+    )
+    .orderBy(desc(billingRecords.issueDate), desc(billingRecords.createdAt))
+    .limit(limit)
+    .offset(offset);
+
+  const ids = rows.map((row) => row.id);
+  if (ids.length === 0) return [];
+
+  const paymentRows = await db
+    .select({
+      billingRecordId: payments.billingRecordId,
+      amount: payments.amount,
+      currency: payments.currency,
+      status: payments.status,
+    })
+    .from(payments)
+    .where(and(eq(payments.organizationId, organizationId), inArray(payments.billingRecordId, ids)));
+
+  const paidByRecord = new Map<string, MoneyValue>();
+  for (const row of rows) {
+    paidByRecord.set(row.id, zeroMoney(row.currency));
+  }
+
+  for (const payment of paymentRows) {
+    if (payment.status !== 'recorded') continue;
+    const current = paidByRecord.get(payment.billingRecordId);
+    if (!current) continue;
+    paidByRecord.set(
+      payment.billingRecordId,
+      addMoney(current, mapMoney(payment.amount, payment.currency)),
+    );
+  }
+
+  const summaries = rows.map((row) =>
+    buildSummary(
+      row,
+      paidByRecord.get(row.id) ?? zeroMoney(row.currency),
+      today,
+    ),
+  );
+
+  const filter = filters.filter ?? 'all';
+  if (filter === 'all') return summaries;
+
+  return summaries.filter((summary) => {
+    if (filter === 'paid') return summary.collectionStatus === 'paid';
+    if (filter === 'outstanding') {
+      return summary.collectionStatus === 'open' || summary.collectionStatus === 'partial';
+    }
+    return summary.collectionStatus === 'overdue';
+  });
+}
+
+export async function listBillingRecordsForProject(
+  db: DbExecutor,
+  organizationId: string,
+  projectId: string,
+  timezone: string,
+): Promise<BillingRecordSummary[]> {
+  return listBillingRecords(db, organizationId, { projectId, filter: 'all', limit: 50 }, timezone);
+}
+
+export async function listProjectBillingAmountRows(
+  db: DbExecutor,
+  organizationId: string,
+  projectId: string,
+): Promise<
+  {
+    kind: BillingKind;
+    status: BillingRecordStatus;
+    totalAmount: string;
+    currency: string;
+    payments: { amount: string; currency: string; status: PaymentRecordStatus }[];
+  }[]
+> {
+  const rows = await db
+    .select({
+      id: billingRecords.id,
+      kind: billingRecords.kind,
+      status: billingRecords.status,
+      totalAmount: billingRecords.totalAmount,
+      currency: billingRecords.currency,
+    })
+    .from(billingRecords)
+    .where(
+      and(
+        eq(billingRecords.organizationId, organizationId),
+        eq(billingRecords.projectId, projectId),
+        isNull(billingRecords.archivedAt),
+      ),
+    );
+
+  if (rows.length === 0) return [];
+
+  const ids = rows.map((row) => row.id);
+  const paymentRows = await db
+    .select({
+      billingRecordId: payments.billingRecordId,
+      amount: payments.amount,
+      currency: payments.currency,
+      status: payments.status,
+    })
+    .from(payments)
+    .where(and(eq(payments.organizationId, organizationId), inArray(payments.billingRecordId, ids)));
+
+  const paymentsByRecord = new Map<string, typeof paymentRows>();
+  for (const payment of paymentRows) {
+    const list = paymentsByRecord.get(payment.billingRecordId) ?? [];
+    list.push(payment);
+    paymentsByRecord.set(payment.billingRecordId, list);
+  }
+
+  return rows.map((row) => ({
+    kind: row.kind,
+    status: row.status,
+    totalAmount: row.totalAmount,
+    currency: row.currency,
+    payments: (paymentsByRecord.get(row.id) ?? []).map((payment) => ({
+      amount: payment.amount,
+      currency: payment.currency,
+      status: payment.status,
+    })),
+  }));
+}
+
+export async function listUnbilledChangeOrders(
+  db: DbExecutor,
+  organizationId: string,
+  projectId: string,
+): Promise<UnbilledChangeOrder[]> {
+  const billedRows = await db
+    .select({ changeOrderId: billingLines.changeOrderId })
+    .from(billingLines)
+    .innerJoin(billingRecords, eq(billingRecords.id, billingLines.billingRecordId))
+    .where(
+      and(
+        eq(billingLines.organizationId, organizationId),
+        eq(billingRecords.projectId, projectId),
+        eq(billingRecords.status, 'finalized'),
+      ),
+    );
+
+  const billedIds = billedRows
+    .map((row) => row.changeOrderId)
+    .filter((id): id is string => id !== null);
+
+  const rows = await db
+    .select({
+      id: changeOrders.id,
+      reference: changeOrders.reference,
+      direction: changeOrders.direction,
+      amount: changeOrders.amount,
+      currency: changeOrders.currency,
+      effectiveDate: changeOrders.effectiveDate,
+    })
+    .from(changeOrders)
+    .where(
+      and(
+        eq(changeOrders.organizationId, organizationId),
+        eq(changeOrders.projectId, projectId),
+        billedIds.length > 0 ? notInArray(changeOrders.id, billedIds) : undefined,
+      ),
+    )
+    .orderBy(desc(changeOrders.effectiveDate));
+
+  return rows.map((row) => ({
+    id: row.id,
+    reference: row.reference,
+    direction: row.direction,
+    amount: mapMoney(row.amount, row.currency),
+    effectiveDate: row.effectiveDate as BusinessDate,
+  }));
+}
+
+export async function findChangeOrdersInProject(
+  db: DbExecutor,
+  organizationId: string,
+  projectId: string,
+  changeOrderIds: readonly string[],
+): Promise<{ id: string; reference: string | null }[]> {
+  if (changeOrderIds.length === 0) return [];
+
+  return db
+    .select({ id: changeOrders.id, reference: changeOrders.reference })
+    .from(changeOrders)
+    .where(
+      and(
+        eq(changeOrders.organizationId, organizationId),
+        eq(changeOrders.projectId, projectId),
+        inArray(changeOrders.id, [...changeOrderIds]),
+      ),
+    );
+}
+
+export { signedBillingAmount };

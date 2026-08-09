@@ -1,0 +1,32 @@
+{
+  "authenticationRequired": "Please sign in to continue.",
+  "notAllowed": "You do not have permission for this action.",
+  "organizationContextRequired": "Choose a business to work in first.",
+  "notFound": "We could not find what you were looking for.",
+  "validationFailed": "Please check the highlighted fields.",
+  "conflict": "This conflicts with something that already exists.",
+  "serviceUnavailable": "This service is temporarily unavailable.",
+  "unexpected": "Something went wrong. Please try again.",
+  "databaseNotConfigured": "The database is not configured for this environment.",
+  "roles": {
+    "ownerRoleImmutable": "The owner role cannot be changed.",
+    "permissionNotToggleable": "This permission cannot be adjusted for this role."
+  },
+  "invitations": {
+    "alreadyPending": "An invitation is already waiting for this email address.",
+    "notPending": "This invitation is no longer active.",
+    "expired": "This invitation has expired. Ask for a new one.",
+    "emailMismatch": "This invitation was sent to a different email address.",
+    "cannotEscalate": "You cannot invite someone with more access than you have."
+  },
+  "notFoundPage": {
+    "title": "Page not found",
+    "body": "The page you are looking for does not exist or has moved.",
+    "backHome": "Back to dashboard"
+  },
+  "errorPage": {
+    "title": "Something went wrong",
+    "body": "We hit an unexpected problem. Nothing you entered was lost.",
+    "retry": "Try again"
+  }
+}

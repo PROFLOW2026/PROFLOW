@@ -1,0 +1,230 @@
+{
+  "title": "הגדרות",
+  "navLabel": "הגדרות",
+  "sections": {
+    "business": "העסק",
+    "people": "אנשים ותפקידים",
+    "roles": "תפקידים",
+    "features": "יכולות",
+    "costCategories": "קטגוריות עלות",
+    "tax": "מס",
+    "activity": "יומן פעילות",
+    "profile": "הפרופיל שלכם"
+  },
+  "people": {
+    "linkCopied": "הקישור הועתק"
+  },
+  "modules": {
+    "title": "יכולות",
+    "subtitle": "הצגה או הסתרה של אזורים בתפריט. הסתרה לעולם לא מוחקת מידע.",
+    "autoHint": "יופיע אוטומטית אחרי שימוש ראשון",
+    "visibilityLabel": "תצוגה עבור {module}",
+    "on": "מוצג",
+    "off": "מוסתר",
+    "auto": "אוטומטי",
+    "billing": "חיובים וגבייה",
+    "workforce": "עובדים ושעות",
+    "vendors": "ספקים וקבלני משנה",
+    "clients": "ספריית לקוחות",
+    "documents": "מרכז מסמכים",
+    "changes": "רשימת שינויים חוצת פרויקטים",
+    "overhead": "כלי תקורה עסקית",
+    "saved": "תצוגת היכולות עודכנה."
+  },
+  "roles": {
+    "title": "תפקידים",
+    "subtitle": "בגרסה הראשונה יש ארבעה תפקידים עם כמה הרשאות שניתן לשנות.",
+    "toggleTitle": "הרשאות שניתן לשנות",
+    "profitToggle": "לאפשר לתפקיד הזה לראות רווח ושיעור רווח",
+    "protectedHint": "לתפקיד הבעלים תמיד יש גישה מלאה.",
+    "saved": "התפקיד עודכן."
+  },
+  "costCategories": {
+    "title": "קטגוריות עלות",
+    "subtitle": "אופציונלי. הקטגוריות עוזרות לקבץ עלויות, ואין חובה להשתמש בהן.",
+    "family": "סעיף עלות",
+    "addCategory": "הוספת קטגוריה",
+    "renameLabel": "שם עבור {name}",
+    "emptyTitle": "עדיין אין קטגוריות",
+    "emptyHint": "אפשר להוסיף קטגוריה כשצריך לקבץ עלויות. אין חובה להגדיר את זה.",
+    "archiveQuestion": "להעביר את הקטגוריה «{name}» לארכיון?",
+    "archiveConsequence": "קטגוריות בארכיון לא יופיעו ברשימות בחירה חדשות.",
+    "archiveSuccess": "הקטגוריה הועברה לארכיון."
+  },
+  "activity": {
+    "title": "יומן פעילות",
+    "subtitle": "תיעוד של שינויים רגישים בכסף, בהרשאות ובהגדרות.",
+    "columnWhen": "מתי",
+    "columnWho": "מי",
+    "columnAction": "פעולה",
+    "columnEntity": "רשומה",
+    "empty": "עדיין לא נרשמה פעילות.",
+    "loadMore": "טעינת עוד",
+    "actions": {
+      "_fallback": "{value}",
+      "organization": {
+        "created": "יצירת עסק",
+        "updated": "עדכון עסק"
+      },
+      "membership": {
+        "created": "הוספת גישה",
+        "updated": "עדכון גישה",
+        "removed": "הסרת גישה"
+      },
+      "role": {
+        "assigned": "שיוך תפקיד",
+        "permission_changed": "שינוי הרשאה"
+      },
+      "invitation": {
+        "created": "שליחת הזמנה",
+        "accepted": "קבלת הזמנה",
+        "revoked": "ביטול הזמנה"
+      },
+      "settings": {
+        "updated": "עדכון הגדרות"
+      },
+      "project": {
+        "created": "יצירת פרויקט",
+        "updated": "עדכון פרויקט",
+        "archived": "העברת פרויקט לארכיון"
+      },
+      "work_package": {
+        "created": "יצירת תחום עבודה",
+        "updated": "עדכון תחום עבודה",
+        "archived": "העברת תחום עבודה לארכיון"
+      },
+      "phase": {
+        "created": "יצירת שלב",
+        "updated": "עדכון שלב",
+        "archived": "העברת שלב לארכיון"
+      },
+      "contract": {
+        "value_recorded": "רישום שווי חוזה"
+      },
+      "client": {
+        "created": "יצירת לקוח",
+        "updated": "עדכון לקוח",
+        "archived": "העברת לקוח לארכיון"
+      },
+      "client_contact": {
+        "created": "הוספת איש קשר ללקוח",
+        "updated": "עדכון איש קשר ללקוח",
+        "deleted": "הסרת איש קשר ללקוח"
+      },
+      "party_identifier": {
+        "upserted": "עדכון מזהה לקוח",
+        "deleted": "הסרת מזהה לקוח"
+      },
+      "vendor": {
+        "created": "יצירת ספק",
+        "updated": "עדכון ספק",
+        "archived": "העברת ספק לארכיון",
+        "linked_from_expense": "קישור ספק מהוצאה"
+      },
+      "vendor_contact": {
+        "created": "הוספת איש קשר לספק",
+        "updated": "עדכון איש קשר לספק",
+        "deleted": "הסרת איש קשר לספק"
+      },
+      "vendor_engagement": {
+        "created": "יצירת התקשרות עם ספק",
+        "archived": "סגירת התקשרות עם ספק"
+      },
+      "expense": {
+        "created": "יצירת הוצאה",
+        "updated": "עדכון הוצאה",
+        "finalized": "סגירת הוצאה",
+        "voided": "ביטול הוצאה"
+      },
+      "change_request": {
+        "created": "יצירת בקשת שינוי",
+        "updated": "עדכון בקשת שינוי",
+        "submitted": "שליחת בקשת שינוי",
+        "sent": "שליחת בקשת שינוי ללקוח",
+        "rejected": "דחיית בקשת שינוי",
+        "cancelled": "ביטול בקשת שינוי",
+        "approved": "אישור שינוי"
+      },
+      "quote_version": {
+        "created": "יצירת גרסת הצעה",
+        "issued": "הוצאת גרסת הצעה"
+      },
+      "change_order": {
+        "created": "יצירת שינוי מסחרי"
+      },
+      "billing_record": {
+        "created": "יצירת חשבון",
+        "updated": "עדכון חשבון",
+        "finalized": "סגירת חשבון",
+        "voided": "ביטול חשבון",
+        "adjustment_created": "הוספת התאמה לחשבון"
+      },
+      "payment": {
+        "recorded": "רישום תשלום",
+        "voided": "ביטול תשלום"
+      },
+      "employee": {
+        "created": "יצירת עובד",
+        "updated": "עדכון עובד",
+        "archived": "העברת עובד לארכיון"
+      },
+      "rate_version": {
+        "created": "יצירת תעריף"
+      },
+      "time_entry": {
+        "created": "רישום שעות"
+      },
+      "document": {
+        "uploaded": "העלאת מסמך",
+        "finalized": "סגירת מסמך",
+        "deleted": "מחיקת מסמך"
+      },
+      "tax_rule": {
+        "created": "יצירת כלל מס",
+        "updated": "עדכון כלל מס"
+      }
+    },
+    "entities": {
+      "_fallback": "{value}",
+      "organization": "עסק",
+      "organization_membership": "חברות בעסק",
+      "organization_module_preference": "העדפת יכולת",
+      "membership": "חברות",
+      "role": "תפקיד",
+      "invitation": "הזמנה",
+      "project": "פרויקט",
+      "work_package": "תחום עבודה",
+      "phase": "שלב",
+      "contract": "חוזה",
+      "client": "לקוח",
+      "client_contact": "איש קשר ללקוח",
+      "party_identifier": "מזהה לקוח",
+      "vendor": "ספק",
+      "vendor_contact": "איש קשר לספק",
+      "vendor_engagement": "התקשרות עם ספק",
+      "expense": "הוצאה",
+      "change_request": "בקשת שינוי",
+      "change_order": "שינוי מסחרי",
+      "quote_version": "גרסת הצעה",
+      "billing_record": "חשבון",
+      "payment": "תשלום",
+      "employee": "עובד",
+      "rate_version": "תעריף",
+      "time_entry": "רישום שעות",
+      "document": "מסמך",
+      "documents": "מסמכים",
+      "tax_rule": "כלל מס",
+      "cost_category": "קטגוריית עלות"
+    }
+  },
+  "profile": {
+    "title": "הפרופיל שלכם",
+    "displayName": "השם שלכם",
+    "language": "שפת הממשק",
+    "saved": "הפרופיל עודכן."
+  },
+  "notAllowed": {
+    "title": "אין הרשאה",
+    "body": "אין לכם הרשאה לצפות באזור ההגדרות הזה."
+  }
+}

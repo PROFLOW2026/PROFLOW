@@ -1,0 +1,100 @@
+{
+  "title": "חיובים וגבייה",
+  "subtitle": "מעקב אחר מה חייבתם, מה נגבה ומה נותר לתשלום. זהו מעקב חיובים פנימי — לא הנפקת חשבוניות מס.",
+  "list": {
+    "project": "פרויקט",
+    "reference": "אסמכתא",
+    "issueDate": "תאריך",
+    "amount": "סכום",
+    "paid": "שולם",
+    "outstanding": "יתרה לתשלום",
+    "status": "סטטוס",
+    "unknownProject": "פרויקט לא ידוע",
+    "filters": {
+      "all": "כל החיובים",
+      "paid": "שולם",
+      "outstanding": "יתרה לתשלום",
+      "overdue": "באיחור"
+    },
+    "emptyTitle": "אין עדיין רשומות חיוב",
+    "emptyBody": "רשמו חיוב כששלחתם סכום ללקוח — גם אם החשבונית החוקית נמצאת במערכת אחרת.",
+    "emptyAction": "חיוב חדש"
+  },
+  "form": {
+    "title": "חיוב חדש",
+    "project": "פרויקט",
+    "projectPlaceholder": "בחרו פרויקט",
+    "amount": "סכום",
+    "issueDate": "תאריך חיוב",
+    "dueDate": "תאריך לתשלום",
+    "reference": "אסמכתא / מספר",
+    "notes": "הערות",
+    "moreDetails": "פרטים נוספים",
+    "moreDetailsHint": "קישור למסמך חיצוני ושינויים מאושרים קשורים יתווספו בשלב מאוחר יותר.",
+    "saveDraft": "שמירה כטיוטה",
+    "saveAndFinalize": "שמירה וסגירה"
+  },
+  "paymentForm": {
+    "title": "תשלום חדש",
+    "billingRecord": "חיוב",
+    "billingRecordPlaceholder": "בחרו חיוב",
+    "amount": "סכום שהתקבל",
+    "partialAllowed": "תשלום חלקי מותר.",
+    "paymentDate": "תאריך תשלום",
+    "method": "אמצעי",
+    "reference": "אסמכתא",
+    "notes": "הערות",
+    "submit": "שמירת תשלום"
+  },
+  "detail": {
+    "title": "חיוב",
+    "finalize": "סגירת חיוב",
+    "void": "ביטול חיוב",
+    "voidPayment": "ביטול תשלום",
+    "recordPayment": "רישום תשלום",
+    "paymentsTitle": "תשלומים",
+    "noPayments": "טרם נרשמו תשלומים.",
+    "linesTitle": "שורות",
+    "dueDate": "תאריך לתשלום",
+    "reference": "אסמכתא",
+    "notes": "הערות",
+    "voidPaymentAriaLabel": "ביטול תשלום על סך {amount} מתאריך {date}"
+  },
+  "confirm": {
+    "finalizeTitle": "סגירת חיוב",
+    "finalizeQuestion": "לסגור את החיוב {reference}?",
+    "finalizeConsequence": "לאחר הסגירה לא ניתן לערוך את החיוב.",
+    "finalizeSuccess": "החיוב נסגר.",
+    "voidRecordTitle": "ביטול חיוב",
+    "voidRecordQuestion": "לבטל את החיוב {reference}?",
+    "voidRecordConsequence": "החיוב יוסר מסך החיובים ולא ניתן לשחזר אותו.",
+    "voidRecordSuccess": "החיוב בוטל.",
+    "voidPaymentTitle": "ביטול תשלום",
+    "voidPaymentQuestion": "לבטל את התשלום על סך <amount></amount> מתאריך <date></date>?",
+    "voidPaymentConsequence": "הפעולה תיצור רישום היפוך ולא ניתן לבטל אותה.",
+    "voidPaymentSuccess": "התשלום בוטל."
+  },
+  "panel": {
+    "positionTitle": "מצב חיוב וגבייה",
+    "unbilledChangesTitle": "שינויים מאושרים שטרם חויבו",
+    "emptyTitle": "אין חיובים בפרויקט",
+    "emptyBody": "רשמו חיוב כשגובים מהלקוח עבור עבודה בפרויקט.",
+    "emptyAction": "הוספת חיוב",
+    "recordsTitle": "רשומות חיוב",
+    "addBilling": "הוספת חיוב"
+  },
+  "errors": {
+    "notEditable": "ניתן לערוך רק חיובים בטיוטה.",
+    "notFinalizable": "ניתן לסגור רק חיובים בטיוטה.",
+    "notVoidable": "ניתן לבטל רק חיובים סגורים.",
+    "correctionNotVoidable": "לא ניתן לבטל שוב רשומת תיקון.",
+    "paymentTargetNotFinalized": "ניתן לרשום תשלום רק על חיוב סגור.",
+    "paymentNotVoidable": "ניתן לבטל רק תשלום שרשום.",
+    "currencyMismatch": "מטבע החיוב חייב להיות זהה למטבע הפרויקט.",
+    "hasRecordedPayments": "יש לבטל תשלומים רשומים לפני ביטול החיוב."
+  },
+  "notAllowed": {
+    "title": "אין הרשאה",
+    "body": "אין לכם הרשאה לצפות בחיובים וגבייה."
+  }
+}

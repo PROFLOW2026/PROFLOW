@@ -1,0 +1,44 @@
+{
+  "title": "Documents",
+  "description": "Files attached to projects, vendors, expenses, and other records.",
+  "storageNotConfigured": "File storage is not set up in this environment. You can keep working — attach files when storage is available.",
+  "empty": {
+    "title": "No documents yet",
+    "body": "Documents are optional. Attach receipts, contracts, and photos from any record — or browse them here once uploaded.",
+    "action": "Browse projects"
+  },
+  "list": {
+    "searchPlaceholder": "Search documents…",
+    "hint": "Documents are usually attached from a project, vendor, or expense. Browse vendors at",
+    "hintLink": "Vendors & subcontractors"
+  },
+  "status": {
+    "pending": "Upload pending",
+    "available": "Available",
+    "deleted": "Removed"
+  },
+  "errors": {
+    "storageNotConfigured": "File storage is not available right now.",
+    "mimeNotAllowed": "This file type is not supported.",
+    "fileTooLarge": "This file is too large.",
+    "uploadFailed": "Upload did not complete.",
+    "downloadFailed": "Download is not available.",
+    "notFound": "Document not found.",
+    "notPending": "This document is not awaiting upload."
+  },
+  "attachments": {
+    "title": "Documents",
+    "upload": "Upload",
+    "download": "Download",
+    "empty": "No documents attached yet.",
+    "storageNotConfigured": "File uploads are not available in this environment. Other work is unaffected.",
+    "uploadFailed": "Upload did not complete. Try again.",
+    "uploadSuccess": "File uploaded.",
+    "downloadFailed": "Download is not available."
+  },
+  "fileSize": {
+    "bytes": "{size} B",
+    "kilobytes": "{size} KB",
+    "megabytes": "{size} MB"
+  }
+}

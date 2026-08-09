@@ -1,0 +1,33 @@
+{
+  "dashboard": "Dashboard",
+  "projects": "Projects",
+  "expenses": "Expenses",
+  "changes": "Changes and extras",
+  "billing": "Billing and collections",
+  "clients": "Clients",
+  "vendors": "Vendors and subcontractors",
+  "workforce": "People and hours",
+  "documents": "Documents",
+  "settings": "Settings",
+  "more": "More",
+  "newMenu": {
+    "trigger": "New",
+    "project": "Project",
+    "expense": "Expense",
+    "change": "Change or extra",
+    "billingRecord": "Billing record",
+    "payment": "Payment",
+    "client": "Client",
+    "vendor": "Vendor",
+    "employee": "Employee",
+    "timeEntry": "Time entry"
+  },
+  "organizationSwitcher": {
+    "label": "Organization",
+    "createNew": "Create organization"
+  },
+  "user": {
+    "profile": "Profile",
+    "signOut": "Sign out"
+  }
+}

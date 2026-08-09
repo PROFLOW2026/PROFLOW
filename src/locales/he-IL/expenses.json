@@ -1,0 +1,164 @@
+{
+  "title": "הוצאות",
+  "subtitle": "רישום עלויות פרויקט והוצאות תפעול במקום אחד.",
+  "capture": {
+    "title": "הוצאה חדשה",
+    "subtitle": "מספיק להזין סכום ולשמור. כל השאר אופציונלי."
+  },
+  "detail": {
+    "title": "הוצאה",
+    "summary": "סיכום",
+    "reversalOf": "ביטול של הוצאה {id}"
+  },
+  "actions": {
+    "add": "הוספת הוצאה",
+    "finalize": "סגירה",
+    "void": "ביטול"
+  },
+  "confirm": {
+    "finalizeTitle": "סגירת הוצאה",
+    "finalizeQuestion": "לסגור את ההוצאה בסך <amount></amount> מתאריך <date></date>?",
+    "finalizeConsequence": "לאחר הסגירה לא ניתן לערוך את ההוצאה.",
+    "finalizeSuccess": "ההוצאה נסגרה.",
+    "voidTitle": "ביטול הוצאה",
+    "voidQuestion": "לבטל את ההוצאה בסך <amount></amount> מתאריך <date></date>?",
+    "voidConsequence": "ההוצאה תוצא מכל חישובי העלות.",
+    "voidSuccess": "ההוצאה בוטלה."
+  },
+  "fields": {
+    "amount": "סכום",
+    "description": "תיאור",
+    "date": "תאריך",
+    "supplier": "ספק",
+    "target": "פרויקט או תפעול",
+    "project": "פרויקט",
+    "workPackage": "תחום עבודה",
+    "costFamily": "סעיף עלות",
+    "category": "קטגוריה",
+    "status": "סטטוס",
+    "netAmount": "סכום לפני מע״מ",
+    "taxAmount": "מע״מ",
+    "paymentMethod": "אמצעי תשלום",
+    "notes": "הערות",
+    "recurrence": "תדירות",
+    "recurrenceCustom": "תדירות מותאמת",
+    "percent": "אחוז"
+  },
+  "placeholders": {
+    "description": "על מה ההוצאה?",
+    "supplier": "הקלד שם ספק",
+    "target": "השאר ריק או בחר פרויקט",
+    "workPackageDefault": "תחום עבודה ברירת מחדל",
+    "costFamily": "נקבע לפי היעד",
+    "category": "קטגוריה (אופציונלי)"
+  },
+  "targeting": {
+    "none": "ללא פרויקט (תפעול)",
+    "overhead": "הוצאות תפעול"
+  },
+  "costFamilies": {
+    "direct_project": "עלות ישירה לפרויקט",
+    "shared": "עלות משותפת",
+    "business_overhead": "הוצאות תפעול",
+    "asset_capital": "נכסים / הון"
+  },
+  "costCategories": {
+    "materials": "חומרים",
+    "subcontractor": "קבלן משנה",
+    "labor": "עבודה",
+    "equipment_rental": "השכרת ציוד",
+    "permits_fees": "היתרים ואגרות",
+    "project_travel": "נסיעות לפרויקט",
+    "other_direct": "עלות ישירה אחרת",
+    "shared_supervision": "פיקוח משותף",
+    "shared_equipment": "ציוד משותף",
+    "shared_logistics": "לוגיסטיקה משותפת",
+    "rent": "שכירות",
+    "utilities": "חשמל ומים",
+    "accounting_legal": "הנהלת חשבונות ומשפטים",
+    "insurance": "ביטוח",
+    "marketing": "שיווק",
+    "software": "תוכנה ומנויים",
+    "bank_fees": "עמלות בנק ומימון",
+    "office_supplies": "ציוד משרדי",
+    "vehicle_fuel": "רכב ודלק",
+    "other_overhead": "תפעול אחר",
+    "equipment_purchase": "רכישת ציוד",
+    "vehicle_purchase": "רכישת רכב",
+    "tools": "כלים"
+  },
+  "recurrence": {
+    "one_time": "חד-פעמי",
+    "monthly": "חודשי",
+    "quarterly": "רבעוני",
+    "yearly": "שנתי",
+    "custom": "מותאם"
+  },
+  "filters": {
+    "dateFrom": "מתאריך",
+    "dateTo": "עד תאריך",
+    "project": "פרויקט",
+    "family": "סעיף עלות",
+    "category": "קטגוריה",
+    "status": "סטטוס",
+    "allProjects": "כל הפרויקטים",
+    "allFamilies": "כל הסעיפים",
+    "allCategories": "כל הקטגוריות",
+    "allStatuses": "כל הסטטוסים"
+  },
+  "list": {
+    "empty": {
+      "title": "מעקב אחרי ההוצאות של העסק",
+      "description": "רשמו חומרים, קבלני משנה, שכירות ועוד. מתחילים בסכום — הפרטים יכולים לחכות.",
+      "action": "הוצאה ראשונה"
+    },
+    "noDescription": "ללא תיאור",
+    "count": "מוצגות {count} מתוך {total}"
+  },
+  "projectPanel": {
+    "title": "הוצאות אחרונות",
+    "empty": {
+      "title": "עדיין אין הוצאות בפרויקט",
+      "description": "רשמו חומרים, קבלני משנה ועלויות ישירות אחרות ככל שהן מתרחשות.",
+      "action": "הוספת הוצאה"
+    }
+  },
+  "allocation": {
+    "title": "פיצול הקצאה",
+    "addLine": "שורה חדשה",
+    "removeLine": "הסרה",
+    "empty": "פצלו הוצאה בין פרויקטים או תפעול כשחשבונית אחת מכסה כמה יעדים.",
+    "target": "יעד",
+    "method": "שיטה",
+    "targetRow": "יעד – שורה {row}",
+    "methodRow": "שיטה – שורה {row}",
+    "amountRow": "סכום – שורה {row}",
+    "percentRow": "אחוז – שורה {row}",
+    "categoryRow": "סעיף – שורה {row}",
+    "selectTarget": "בחרו פרויקט או תפעול",
+    "methods": {
+      "amount": "סכום קבוע",
+      "percent": "אחוז"
+    },
+    "sumHintPrefix": "השורות חייבות להסתכם בדיוק ב"
+  },
+  "errors": {
+    "workPackageRequiresProject": "תחום עבודה דורש פרויקט.",
+    "directFamilyRequiresProject": "עלות ישירה לפרויקט דורשת פרויקט.",
+    "overheadFamilyRequiresNoProject": "הוצאות תפעול לא מתאימות להוצאה עם פרויקט.",
+    "allocationAmountRequired": "יש להזין סכום לכל שורת סכום קבוע.",
+    "allocationPercentRequired": "יש להזין אחוז לכל שורת אחוזים.",
+    "allocationSumMismatch": "שורות ההקצאה חייבות להסתכם בדיוק לסכום ההוצאה.",
+    "allocationProjectRequired": "שורת הקצאה לפרויקט דורשת פרויקט.",
+    "allocationOverheadNoProject": "שורות תפעול לא יכולות לכלול פרויקט.",
+    "customRecurrenceRequired": "יש לתאר את התדירות המותאמת.",
+    "notEditable": "ניתן לערוך רק הוצאות בטיוטה.",
+    "notFinalizable": "ניתן לסגור רק הוצאות בטיוטה.",
+    "notVoidable": "ניתן לבטל רק הוצאות סגורות.",
+    "reversalNotVoidable": "לא ניתן לבטל שוב רשומת ביטול.",
+    "currencyMustMatchProject": "מטבע ההוצאה חייב להתאים למטבע הפרויקט.",
+    "currencyMustMatchOrganization": "מטבע הוצאת תפעול חייב להתאים למטבע הבסיס של העסק.",
+    "projectExpenseNoAllocations": "הוצאה לפרויקט לא ניתנת לפיצול בשורות הקצאה.",
+    "phaseProjectMismatch": "השלב שנבחר לא שייך לפרויקט הזה."
+  }
+}

@@ -1,0 +1,55 @@
+# dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# next.js
+.next/
+out/
+next-env.d.ts
+
+# production
+build/
+dist/
+
+# testing
+coverage/
+playwright-report/
+test-results/
+blob-report/
+.playwright/
+tests/e2e/.auth/
+
+# environment / secrets
+.env
+.env.local
+.env.*.local
+.env.development
+.env.production
+*.pem
+*.key
+
+# supabase local
+supabase/.branches
+supabase/.temp
+supabase/.env
+
+# logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+
+# editors / os
+.DS_Store
+Thumbs.db
+.idea/
+*.swp
+
+# caches
+.turbo/
+.vercel/
+*.tsbuildinfo
+.eslintcache
+.vitest/
+.pglite/

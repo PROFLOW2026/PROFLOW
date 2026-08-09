@@ -1,0 +1,25 @@
+{
+  "title": "Dashboard",
+  "greeting": "Hello {name}",
+  "greetingNoName": "Hello",
+  "quickActions": "Quick actions",
+  "activeProjects": "Active projects",
+  "recentExpenses": "Recent expenses",
+  "attention": {
+    "title": "Worth a look",
+    "approvedNotBilled": "{count, plural, =1 {# approved change is not billed yet} other {# approved changes are not billed yet}}",
+    "overdueBilling": "{count, plural, =1 {# billing record is overdue} other {# billing records are overdue}}",
+    "pendingChanges": "{count, plural, =1 {# change is waiting for approval} other {# changes are waiting for approval}}"
+  },
+  "empty": {
+    "title": "Start with your first project",
+    "body": "A name is all you need. Contract value, costs and billing can come later.",
+    "action": "Create a project"
+  },
+  "businessSummary": {
+    "title": "Business summary",
+    "outstanding": "Outstanding",
+    "invoicedThisMonth": "Invoiced this month",
+    "costsThisMonth": "Costs this month"
+  }
+}

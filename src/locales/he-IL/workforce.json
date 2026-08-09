@@ -1,0 +1,100 @@
+{
+  "title": "עובדים ושעות",
+  "description": "מעקב אחר עובדים, תעריפים ודיווחי שעות — רק כשבוחרים עלות עבודה ברמת עובד.",
+  "nav": {
+    "employees": "עובדים",
+    "time": "דיווחי שעות"
+  },
+  "rateUnits": {
+    "hourly": "שעתי",
+    "daily": "יומי",
+    "monthly": "חודשי"
+  },
+  "employeeStatus": {
+    "active": "פעיל",
+    "inactive": "לא פעיל"
+  },
+  "employees": {
+    "new": "עובד חדש",
+    "newDescription": "הוספת עובד עם שם, סוג העסקה ותעריף בסיס. כל השאר אופציונלי.",
+    "noRate": "ללא תעריף",
+    "columns": {
+      "name": "שם",
+      "employmentStyle": "סוג העסקה",
+      "currentRate": "תעריף נוכחי",
+      "status": "סטטוס"
+    },
+    "empty": {
+      "title": "עדיין אין עובדים",
+      "description": "כשמוסיפים עובדים, אפשר לדווח שעות לפרויקטים ולראות את עלות העבודה האמיתית בכל פרויקט.",
+      "action": "הוספת עובד"
+    },
+    "form": {
+      "name": "שם",
+      "employmentStyle": "סוג העסקה",
+      "baseRate": "תעריף בסיס",
+      "burdenPercent": "העמסת מעסיק %",
+      "burdenHint": "עלות נוספת מעל התעריף — מסים, הטבות וכדומה.",
+      "jobTitle": "תפקיד",
+      "email": "דוא״ל",
+      "phone": "טלפון",
+      "notes": "הערות",
+      "submit": "שמירת עובד"
+    },
+    "detail": {
+      "title": "עובד",
+      "profile": "פרופיל",
+      "currentRate": "תעריף נוכחי",
+      "burden": "העמסת מעסיק: {percent}%",
+      "rateHistory": "היסטוריית תעריפים",
+      "rateFrom": "בתוקף מ",
+      "rateTo": "בתוקף עד",
+      "openEnded": "ללא תאריך סיום",
+      "noRateHistory": "עדיין לא נרשמו גרסאות תעריף."
+    }
+  },
+  "time": {
+    "title": "דיווחי שעות",
+    "description": "שעות שדווחו לפרויקטים ולקודי זמן שאינם פרויקט.",
+    "new": "דיווח שעות",
+    "quickLog": "דיווח שעות מהיר",
+    "quickLogDescription": "דיווח בכמה הקשות — עובד, תאריך, שעות ופרויקט.",
+    "hoursAbbrev": "ש׳",
+    "nonProject": "לא פרויקט",
+    "unknownProject": "פרויקט לא ידוע",
+    "noCost": "אין תעריף לתאריך",
+    "columns": {
+      "date": "תאריך",
+      "employee": "עובד",
+      "target": "פרויקט / קוד",
+      "hours": "שעות",
+      "cost": "עלות עבודה"
+    },
+    "empty": {
+      "title": "עדיין לא דווחו שעות",
+      "description": "דיווח שעות בזמן אמת בונה עלות עבודה לפרויקט מנתונים אמיתיים, לא מהערכות.",
+      "action": "דיווח שעות"
+    },
+    "form": {
+      "employee": "עובד",
+      "employeePlaceholder": "בחירת עובד",
+      "date": "תאריך",
+      "hours": "שעות",
+      "project": "פרויקט",
+      "projectPlaceholder": "בחירת פרויקט",
+      "notes": "הערות",
+      "submit": "שמירת דיווח שעות",
+      "noEmployees": "יש להוסיף עובד לפני דיווח שעות."
+    }
+  },
+  "projectPanel": {
+    "title": "שעות בפרויקט זה",
+    "summary": "{hours} שעות ב-{count, plural, one {דיווח #} other {# דיווחים}}",
+    "logTime": "דיווח שעות",
+    "viewAll": "כל דיווחי השעות"
+  },
+  "errors": {
+    "invalidWorkPackage": "תחום העבודה אינו שייך לפרויקט זה.",
+    "invalidPhase": "השלב אינו שייך לפרויקט זה."
+  }
+}

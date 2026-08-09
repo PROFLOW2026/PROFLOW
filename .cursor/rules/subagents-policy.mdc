@@ -1,0 +1,29 @@
+---
+description: ProjectFlow subagent policy — only Auto/Composer; no subagent APIs
+alwaysApply: true
+---
+
+# Subagent Policy (mandatory before any work)
+
+Read and obey this before starting any task in ProjectFlow.
+
+## Allowed subagents
+
+Subagents may be launched **only** if they are:
+
+- **Auto**
+- **Composer**
+
+Do not launch any other subagent type.
+
+## Forbidden
+
+- Do **not** use or invoke **subagent APIs**
+- Do **not** request approval to enable/use subagent APIs
+- Do **not** work around this by calling external agent APIs, SDK agent runners, or equivalent subagent API surfaces
+
+## Default behavior
+
+- Prefer doing the work **in the current agent** without spawning subagents
+- If a subagent is truly needed, use **only Auto or Composer**
+- If a task seems to require another subagent type or a subagent API — **stop and ask the user** instead of proceeding

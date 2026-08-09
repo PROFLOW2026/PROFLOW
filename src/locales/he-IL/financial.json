@@ -1,0 +1,50 @@
+{
+  "originalContractValue": "שווי חוזה מקורי",
+  "approvedChanges": "שינויים מאושרים",
+  "approvedAdditions": "תוספות מאושרות",
+  "approvedReductions": "הפחתות מאושרות",
+  "currentContractValue": "שווי חוזה נוכחי",
+  "contractValue": "שווי חוזה",
+  "pendingChanges": "שינויים ממתינים",
+  "potentialIfApproved": "פוטנציאל אם יאושרו",
+  "invoiced": "חויב",
+  "paid": "שולם",
+  "outstanding": "יתרה לתשלום",
+  "actualCostToDate": "עלות בפועל עד היום",
+  "estimatedFinalCost": "עלות סופית משוערת",
+  "estimatedProfit": "רווח משוער",
+  "estimatedProfitBasedOnEnteredData": "רווח משוער על בסיס הנתונים שהוזנו",
+  "margin": "שיעור רווח",
+  "budget": "תקציב",
+  "coverage": {
+    "title": "מה כלול בחישוב",
+    "trigger": "מה כלול בחישוב",
+    "included": "כלול",
+    "notIncluded": "לא כלול / לא הוגדר",
+    "explanation": "המספר מבוסס רק על הנתונים שהזנתם. מקורות עלות שלא הוגדרו מופיעים כאן כדי שלא ייקרא כתמונה מלאה.",
+    "directExpenses": "הוצאות ישירות",
+    "allocatedOverhead": "עלויות תקורה שהוקצו",
+    "workforceCosts": "עלויות עובדים",
+    "sharedCosts": "עלויות משותפות",
+    "subcontractorCosts": "עלויות קבלני משנה",
+    "notConfiguredHint": "לא הוגדר — זה בסדר גמור אם העסק שלכם לא עוקב אחרי זה.",
+    "lastCalculated": "חושב {when}",
+    "partials": {
+      "foreignCurrencyContracts": "{count, plural, one {לפרויקט פעיל אחד יש שווי חוזה במטבע אחר — לא נכלל בסכום} two {לשני פרויקטים פעילים יש שווי חוזה במטבע אחר — לא נכלל בסכום} other {ל-{count} פרויקטים פעילים יש שווי חוזה במטבע אחר — לא נכלל בסכום}}",
+      "foreignCurrencyExpenses": "{count, plural, one {הוצאה אחת במטבע אחר — לא נכללה בסכום} two {שתי הוצאות במטבע אחר — לא נכללו בסכום} other {{count} הוצאות במטבע אחר — לא נכללו בסכום}}",
+      "foreignCurrencyLabor": "{count, plural, one {רישום שעות אחד עלה במטבע אחר — לא נכלל בסכום} two {שני רישומי שעות עלו במטבע אחר — לא נכללו בסכום} other {{count} רישומי שעות עלו במטבע אחר — לא נכללו בסכום}}",
+      "foreignCurrencyBilling": "{count, plural, one {רשומת חיוב אחת במטבע אחר — לא נכללה בסכום} two {שתי רשומות חיוב במטבע אחר — לא נכללו בסכום} other {{count} רשומות חיוב במטבע אחר — לא נכללו בסכום}}",
+      "workforceEntriesMissingCost": "{count, plural, one {לרישום שעות אחד לא היה תעריף בתאריך — עלות העובדים נמוכה מהמציאות} two {לשני רישומי שעות לא היה תעריף בתאריך — עלות העובדים נמוכה מהמציאות} other {ל-{count} רישומי שעות לא היה תעריף בתאריך — עלות העובדים נמוכה מהמציאות}}"
+    }
+  },
+  "costFamilies": {
+    "direct_project": "עלות ישירה לפרויקט",
+    "shared": "עלות משותפת",
+    "business_overhead": "תקורה עסקית",
+    "asset_capital": "רכוש והשקעות הון"
+  },
+  "basis": {
+    "directOnly": "מבוסס על עלויות ישירות בלבד",
+    "fullyLoaded": "עלות מלאה, כולל תקורה שהוקצתה"
+  }
+}

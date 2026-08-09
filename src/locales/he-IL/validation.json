@@ -1,0 +1,18 @@
+{
+  "required": "שדה חובה.",
+  "invalidEmail": "הזינו כתובת אימייל תקינה.",
+  "tooShort": "לפחות {min} תווים.",
+  "tooLong": "עד {max} תווים.",
+  "invalidNumber": "הזינו מספר תקין.",
+  "invalidAmount": "הזינו סכום תקין.",
+  "amountMustBePositive": "הסכום חייב להיות גדול מאפס.",
+  "invalidDate": "הזינו תאריך תקין.",
+  "endBeforeStart": "תאריך הסיום לא יכול להיות לפני תאריך ההתחלה.",
+  "currencyRequired": "בחרו מטבע.",
+  "currencyMismatch": "כל הסכומים ברשומה חייבים להיות באותו מטבע.",
+  "allocationMustTotal": "סכום שורות הפיצול חייב להתאים לסכום ההוצאה.",
+  "percentMustTotal": "סך האחוזים חייב להיות 100%.",
+  "passwordTooWeak": "השתמשו בלפחות 10 תווים.",
+  "passwordsDoNotMatch": "הסיסמאות אינן תואמות.",
+  "duplicateValue": "הערך הזה כבר קיים."
+}

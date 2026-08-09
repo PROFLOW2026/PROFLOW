@@ -1,0 +1,270 @@
+import { recordAuditEvent } from '@/shared/audit';
+import { businessDate, todayInTimeZone, type BusinessDate } from '@/shared/dates';
+import { NotFoundError, DomainRuleError } from '@/shared/errors';
+import type { OrgContext } from '@/shared/auth/context';
+import { assertPermission } from '@/shared/permissions/assert';
+import { PERMISSIONS } from '@/shared/permissions/catalog';
+import { toNumericString } from '@/shared/money';
+import { noteModuleUsage } from '@/modules/tenancy';
+import { resolveAllocationLines } from '../domain/allocation';
+import { resolveExpenseCurrency } from '../domain/currency';
+import { isOverheadTargeting, resolveExpenseTargeting, assertNoAllocationsOnProjectExpense } from '../domain/targeting';
+import { encodeRecurrenceRule } from '../domain/recurrence';
+import { resolveTaxAmounts } from '../domain/tax';
+import type { AllocationLineInput } from '../domain/types';
+import {
+  findCostCategoryById,
+  findDefaultWorkPackageId,
+  findExpenseById,
+  findPhaseInOrganization,
+  findProjectInOrganization,
+  findVendorInOrganization,
+  findWorkPackageInProject,
+  hasOverheadExpenses,
+  insertExpense,
+  replaceExpenseAllocations,
+  type AllocationInsertRow,
+} from '../data/expenses.repository';
+import type { CreateExpenseInput } from '../validation/schemas';
+
+const EXPENSE_AUDIT_CREATED = 'expense.created';
+
+function mapAllocationsToInsert(
+  lines: readonly ReturnType<typeof resolveAllocationLines>[number][],
+): AllocationInsertRow[] {
+  return lines.map((line) => ({
+    targetType: line.targetType,
+    projectId: line.projectId,
+    workPackageId: line.workPackageId,
+    costCategoryId: line.costCategoryId,
+    method: line.method,
+    amount: toNumericString(line.amount),
+    currency: line.amount.currency,
+    percent: line.percent,
+    notes: line.notes,
+    sortOrder: line.sortOrder,
+  }));
+}
+
+async function resolveWorkPackageId(
+  context: OrgContext,
+  projectId: string,
+  workPackageId: string | null | undefined,
+): Promise<string | null> {
+  if (workPackageId) {
+    const pkg = await findWorkPackageInProject(context.db, context.organizationId, projectId, workPackageId);
+    if (!pkg) throw new NotFoundError('Work package');
+    return pkg.id;
+  }
+  return findDefaultWorkPackageId(context.db, context.organizationId, projectId);
+}
+
+async function validateCategory(
+  context: OrgContext,
+  categoryId: string | null | undefined,
+): Promise<string | null> {
+  if (!categoryId) return null;
+  const category = await findCostCategoryById(context.db, context.organizationId, categoryId);
+  if (!category) throw new NotFoundError('Cost category');
+  return category.id;
+}
+
+async function validateVendor(
+  context: OrgContext,
+  vendorId: string | null | undefined,
+): Promise<string | null> {
+  if (!vendorId) return null;
+  const vendor = await findVendorInOrganization(context.db, context.organizationId, vendorId);
+  if (!vendor) throw new NotFoundError('Vendor');
+  return vendor.id;
+}
+
+async function validatePhase(
+  context: OrgContext,
+  phaseId: string | null | undefined,
+  projectId: string | null,
+): Promise<string | null> {
+  if (!phaseId) return null;
+  const phase = await findPhaseInOrganization(context.db, context.organizationId, phaseId);
+  if (!phase) throw new NotFoundError('Phase');
+  if (projectId && phase.projectId !== projectId) {
+    throw new DomainRuleError(
+      'Phase does not belong to the selected project',
+      'expenses.errors.phaseProjectMismatch',
+    );
+  }
+  return phase.id;
+}
+
+async function validateAllocationReferences(
+  context: OrgContext,
+  lines: readonly AllocationLineInput[],
+): Promise<void> {
+  for (const line of lines) {
+    if (line.targetType === 'project' && line.projectId) {
+      const project = await findProjectInOrganization(context.db, context.organizationId, line.projectId);
+      if (!project) throw new NotFoundError('Project');
+    }
+    if (line.workPackageId) {
+      if (!line.projectId) {
+        throw new DomainRuleError(
+          'Work package allocation requires a project',
+          'expenses.errors.allocationProjectRequired',
+        );
+      }
+      const pkg = await findWorkPackageInProject(
+        context.db,
+        context.organizationId,
+        line.projectId,
+        line.workPackageId,
+      );
+      if (!pkg) throw new NotFoundError('Work package');
+    }
+    if (line.costCategoryId) {
+      await validateCategory(context, line.costCategoryId);
+    }
+  }
+}
+
+async function persistAllocations(
+  context: OrgContext,
+  expenseId: string,
+  grossAmount: ReturnType<typeof resolveTaxAmounts>['grossAmount'],
+  allocationInputs: readonly AllocationLineInput[] | undefined,
+): Promise<void> {
+  if (!allocationInputs || allocationInputs.length === 0) {
+    await replaceExpenseAllocations(context.db, context.organizationId, expenseId, []);
+    return;
+  }
+
+  await validateAllocationReferences(context, allocationInputs);
+  const resolved = resolveAllocationLines(grossAmount, allocationInputs);
+  await replaceExpenseAllocations(
+    context.db,
+    context.organizationId,
+    expenseId,
+    mapAllocationsToInsert(resolved),
+  );
+}
+
+async function shouldNoteFirstOverheadUsage(
+  context: OrgContext,
+  targeting: ReturnType<typeof resolveExpenseTargeting>,
+): Promise<boolean> {
+  if (!isOverheadTargeting(targeting)) return false;
+  return !(await hasOverheadExpenses(context.db, context.organizationId));
+}
+
+export async function buildExpensePayload(
+  context: OrgContext,
+  input: CreateExpenseInput,
+): Promise<{
+  expenseDate: BusinessDate;
+  targeting: ReturnType<typeof resolveExpenseTargeting>;
+  amounts: ReturnType<typeof resolveTaxAmounts>;
+  row: Parameters<typeof insertExpense>[2];
+}> {
+  const expenseDate = input.expenseDate
+    ? businessDate(input.expenseDate)
+    : todayInTimeZone(context.organization.timezone);
+
+  let project: Awaited<ReturnType<typeof findProjectInOrganization>> = null;
+
+  if (input.projectId) {
+    project = await findProjectInOrganization(context.db, context.organizationId, input.projectId);
+    if (!project) throw new NotFoundError('Project');
+  }
+
+  const targeting = resolveExpenseTargeting({
+    projectId: input.projectId,
+    workPackageId: input.workPackageId,
+    costFamily: input.costFamily,
+  });
+
+  assertNoAllocationsOnProjectExpense(targeting.mode, input.allocations ?? []);
+
+  const currency = resolveExpenseCurrency(
+    context.organization,
+    targeting,
+    project?.currency,
+    input.currency,
+  );
+
+  const workPackageId = targeting.projectId
+    ? await resolveWorkPackageId(context, targeting.projectId, targeting.workPackageId)
+    : null;
+
+  const costCategoryId = await validateCategory(context, input.costCategoryId);
+  const vendorId = await validateVendor(context, input.vendorId);
+  const phaseId = await validatePhase(context, input.phaseId, targeting.projectId);
+  const amounts = resolveTaxAmounts({
+    grossAmount: input.amount,
+    netAmount: input.netAmount,
+    taxAmount: input.taxAmount,
+    currency,
+  });
+
+  const recurrenceRule =
+    targeting.mode === 'overhead'
+      ? encodeRecurrenceRule(input.recurrenceCadence ?? 'one_time', input.recurrenceCustomLabel)
+      : null;
+
+  return {
+    expenseDate,
+    targeting,
+    amounts,
+    row: {
+      expenseDate,
+      description: input.description?.trim() || null,
+      supplierName: input.supplierName?.trim() || null,
+      vendorId,
+      projectId: targeting.projectId,
+      workPackageId,
+      phaseId,
+      costFamily: targeting.costFamily,
+      costCategoryId,
+      netAmount: toNumericString(amounts.netAmount),
+      taxAmount: amounts.taxAmount ? toNumericString(amounts.taxAmount) : null,
+      grossAmount: toNumericString(amounts.grossAmount),
+      currency: amounts.grossAmount.currency,
+      taxSnapshot: null,
+      status: 'draft',
+      finalizedAt: null,
+      paymentMethod: input.paymentMethod?.trim() || null,
+      notes: input.notes?.trim() || null,
+      voidsExpenseId: null,
+      adjustsExpenseId: null,
+      isRecurringTemplate: false,
+      recurrenceRule,
+      recurringTemplateId: null,
+      createdByUserId: context.userId,
+    },
+  };
+}
+
+export async function createExpense(context: OrgContext, input: CreateExpenseInput) {
+  assertPermission(context, PERMISSIONS.EXPENSES_CREATE);
+
+  const payload = await buildExpensePayload(context, input);
+  const noteOverhead = await shouldNoteFirstOverheadUsage(context, payload.targeting);
+  const expenseId = await insertExpense(context.db, context.organizationId, payload.row);
+
+  await persistAllocations(context, expenseId, payload.amounts.grossAmount, input.allocations);
+  if (noteOverhead) {
+    await noteModuleUsage(context.db, context.organizationId, 'overhead');
+  }
+
+  const created = await findExpenseById(context.db, context.organizationId, expenseId);
+  if (!created) throw new NotFoundError('Expense');
+
+  await recordAuditEvent(context, {
+    action: EXPENSE_AUDIT_CREATED,
+    entityType: 'expense',
+    entityId: expenseId,
+    after: { status: 'draft', grossAmount: payload.row.grossAmount, currency: payload.row.currency },
+  });
+
+  return created;
+}
+
+export { persistAllocations, shouldNoteFirstOverheadUsage, resolveWorkPackageId, validateCategory, validateVendor, validatePhase, validateAllocationReferences };

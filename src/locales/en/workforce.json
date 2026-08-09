@@ -1,0 +1,100 @@
+{
+  "title": "Workforce",
+  "description": "Track employees, cost rates, and time when you choose employee-level labor costing.",
+  "nav": {
+    "employees": "Employees",
+    "time": "Time entries"
+  },
+  "rateUnits": {
+    "hourly": "Hourly",
+    "daily": "Daily",
+    "monthly": "Monthly"
+  },
+  "employeeStatus": {
+    "active": "Active",
+    "inactive": "Inactive"
+  },
+  "employees": {
+    "new": "New employee",
+    "newDescription": "Add a worker with a name, employment style, and base rate. Everything else is optional.",
+    "noRate": "No rate",
+    "columns": {
+      "name": "Name",
+      "employmentStyle": "Employment style",
+      "currentRate": "Current rate",
+      "status": "Status"
+    },
+    "empty": {
+      "title": "No employees yet",
+      "description": "When you add employees, you can log hours against projects and see true labor cost on each job.",
+      "action": "Add employee"
+    },
+    "form": {
+      "name": "Name",
+      "employmentStyle": "Employment style",
+      "baseRate": "Base rate",
+      "burdenPercent": "Employer burden %",
+      "burdenHint": "Loaded cost on top of the base rate, e.g. taxes and benefits.",
+      "jobTitle": "Job title",
+      "email": "Email",
+      "phone": "Phone",
+      "notes": "Notes",
+      "submit": "Save employee"
+    },
+    "detail": {
+      "title": "Employee",
+      "profile": "Profile",
+      "currentRate": "Current rate",
+      "burden": "Employer burden: {percent}%",
+      "rateHistory": "Rate history",
+      "rateFrom": "Effective from",
+      "rateTo": "Effective to",
+      "openEnded": "Open-ended",
+      "noRateHistory": "No rate versions recorded yet."
+    }
+  },
+  "time": {
+    "title": "Time entries",
+    "description": "Hours logged against projects and non-project codes.",
+    "new": "Log time",
+    "quickLog": "Quick time log",
+    "quickLogDescription": "Log hours in a few taps — employee, date, hours, and project.",
+    "hoursAbbrev": "h",
+    "nonProject": "Non-project",
+    "unknownProject": "Unknown project",
+    "noCost": "No rate on date",
+    "columns": {
+      "date": "Date",
+      "employee": "Employee",
+      "target": "Project / code",
+      "hours": "Hours",
+      "cost": "Labor cost"
+    },
+    "empty": {
+      "title": "No time logged yet",
+      "description": "Log hours when work happens to build project labor cost from real time, not guesses.",
+      "action": "Log time"
+    },
+    "form": {
+      "employee": "Employee",
+      "employeePlaceholder": "Choose employee",
+      "date": "Date",
+      "hours": "Hours",
+      "project": "Project",
+      "projectPlaceholder": "Choose project",
+      "notes": "Notes",
+      "submit": "Save time entry",
+      "noEmployees": "Add an employee before logging time."
+    }
+  },
+  "projectPanel": {
+    "title": "Time on this project",
+    "summary": "{hours} hours across {count, plural, one {# entry} other {# entries}}",
+    "logTime": "Log time",
+    "viewAll": "View all time entries"
+  },
+  "errors": {
+    "invalidWorkPackage": "The work package does not belong to this project.",
+    "invalidPhase": "The phase does not belong to this project."
+  }
+}

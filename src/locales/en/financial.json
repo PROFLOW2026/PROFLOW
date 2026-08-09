@@ -1,0 +1,50 @@
+{
+  "originalContractValue": "Original contract value",
+  "approvedChanges": "Approved changes",
+  "approvedAdditions": "Approved additions",
+  "approvedReductions": "Approved reductions",
+  "currentContractValue": "Current contract value",
+  "contractValue": "Contract value",
+  "pendingChanges": "Pending changes",
+  "potentialIfApproved": "Potential if approved",
+  "invoiced": "Invoiced",
+  "paid": "Paid",
+  "outstanding": "Outstanding",
+  "actualCostToDate": "Actual cost to date",
+  "estimatedFinalCost": "Estimated final cost",
+  "estimatedProfit": "Estimated profit",
+  "estimatedProfitBasedOnEnteredData": "Estimated profit based on entered data",
+  "margin": "Margin",
+  "budget": "Budget",
+  "coverage": {
+    "title": "What is included in this calculation",
+    "trigger": "What is included",
+    "included": "Included",
+    "notIncluded": "Not included / not configured",
+    "explanation": "This figure uses only the data you have entered. Sources you have not configured are listed so the number is not read as a complete picture.",
+    "directExpenses": "Direct expenses",
+    "allocatedOverhead": "Allocated overhead",
+    "workforceCosts": "Workforce costs",
+    "sharedCosts": "Shared costs",
+    "subcontractorCosts": "Subcontractor costs",
+    "notConfiguredHint": "Not configured — this is fine if your business does not track it.",
+    "lastCalculated": "Calculated {when}",
+    "partials": {
+      "foreignCurrencyContracts": "{count, plural, one {# active project has contract value in another currency — not included in this total} other {# active projects have contract value in another currency — not included in this total}}",
+      "foreignCurrencyExpenses": "{count, plural, one {# expense is in another currency — not included in this total} other {# expenses are in another currency — not included in this total}}",
+      "foreignCurrencyLabor": "{count, plural, one {# time entry is costed in another currency — not included in this total} other {# time entries are costed in another currency — not included in this total}}",
+      "foreignCurrencyBilling": "{count, plural, one {# billing record is in another currency — not included in this total} other {# billing records are in another currency — not included in this total}}",
+      "workforceEntriesMissingCost": "{count, plural, one {# time entry has no rate on its date — labor cost is understated} other {# time entries have no rate on their date — labor cost is understated}}"
+    }
+  },
+  "costFamilies": {
+    "direct_project": "Direct project cost",
+    "shared": "Shared cost",
+    "business_overhead": "Business overhead",
+    "asset_capital": "Asset and capital cost"
+  },
+  "basis": {
+    "directOnly": "Based on direct costs only",
+    "fullyLoaded": "Fully loaded, including allocated overhead"
+  }
+}

@@ -1,0 +1,65 @@
+{
+  "title": "רשימת ספקים",
+  "description": "רשימה אופציונלית של ספקים וקבלני משנה. הוצאות לא דורשות רשומת ספק.",
+  "newVendor": "ספק חדש",
+  "empty": {
+    "title": "עדיין אין ספקים",
+    "body": "ספקים הם אופציונליים. שמרו רשימה פשוטה וקשרו ספקים לפרויקטים כשזה מועיל — או שמרו אותם מהוצאה מאוחר יותר.",
+    "action": "הוספת ספק ראשון"
+  },
+  "list": {
+    "searchPlaceholder": "חיפוש ספק…",
+    "projectsCount": "{count, plural, one {פרויקט אחד} two {שני פרויקטים} other {# פרויקטים}}",
+    "columns": {
+      "name": "ספק",
+      "type": "סוג",
+      "projects": "פרויקטים",
+      "status": "סטטוס"
+    }
+  },
+  "types": {
+    "supplier": "ספק",
+    "subcontractor": "קבלן משנה",
+    "both": "ספק וקבלן משנה",
+    "other": "אחר"
+  },
+  "create": {
+    "title": "ספק חדש",
+    "description": "נדרש רק שם. הסוג עוזר לסווג את הקשר — ניתן לשנות בכל עת.",
+    "nameLabel": "שם ספק",
+    "namePlaceholder": "חברה או איש קשר",
+    "typeLabel": "סוג",
+    "typeHint": "תווית הקשרית בלבד — לא סיווג נוקשה.",
+    "moreDetails": "פרטים נוספים",
+    "emailLabel": "דוא״ל",
+    "phoneLabel": "טלפון",
+    "websiteLabel": "אתר",
+    "addressLine1Label": "כתובת",
+    "cityLabel": "עיר",
+    "countryLabel": "קוד מדינה",
+    "notesLabel": "הערות",
+    "submit": "יצירת ספק",
+    "success": "הספק נוצר"
+  },
+  "detail": {
+    "title": "פרופיל ספק",
+    "profileHint": "פרופיל בסיסי של ספק או קבלן משנה",
+    "profileSection": "פרופיל",
+    "parentVendor": "ספק אב: {name}",
+    "contactsSection": "אנשי קשר",
+    "contactsEmpty": "עדיין אין אנשי קשר. הוסיפו כשצריך איש קשר לשטח או לחיוב.",
+    "contactNameLabel": "שם איש קשר",
+    "contactRoleLabel": "תפקיד",
+    "addContact": "הוספת איש קשר",
+    "contactRoles": {
+      "primary": "ראשי",
+      "billing": "חיוב",
+      "site": "שטח",
+      "other": "אחר"
+    },
+    "engagementsSection": "פרויקטים והתקשרויות",
+    "engagementsEmpty": "עדיין אין קישור לפרויקטים. קשרו ספק זה כשהוא עובד בפרויקט.",
+    "archive": "העברה לארכיון",
+    "save": "שמירת שינויים"
+  }
+}

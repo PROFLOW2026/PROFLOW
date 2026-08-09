@@ -1,0 +1,69 @@
+import { recordAuditEvent } from '@/shared/audit';
+import { businessDate } from '@/shared/dates';
+import { NotFoundError, ValidationError } from '@/shared/errors';
+import type { OrgContext } from '@/shared/auth/context';
+import { money, toNumericString } from '@/shared/money';
+import { assertPermission } from '@/shared/permissions/assert';
+import { PERMISSIONS } from '@/shared/permissions/catalog';
+import { assertPaymentTarget } from '../domain/lifecycle';
+import { findBillingRecordById } from '../data/billing.repository';
+import { insertPayment } from '../data/payments.repository';
+import { createPaymentSchema, type CreatePaymentInput } from '../validation/schemas';
+
+const PAYMENT_AUDIT_RECORDED = 'payment.recorded';
+
+export async function recordPayment(context: OrgContext, rawInput: CreatePaymentInput) {
+  assertPermission(context, PERMISSIONS.BILLING_MANAGE);
+
+  const parsed = createPaymentSchema.safeParse(rawInput);
+  if (!parsed.success) {
+    throw new ValidationError(
+      parsed.error.issues.map((issue) => ({ path: issue.path.join('.'), message: issue.message })),
+    );
+  }
+
+  const input = parsed.data;
+  const billingRecord = await findBillingRecordById(
+    context.db,
+    context.organizationId,
+    input.billingRecordId,
+    context.organization.timezone,
+  );
+  if (!billingRecord) throw new NotFoundError('Billing record');
+  assertPaymentTarget(billingRecord.status);
+
+  const paymentAmount = money(input.amount, billingRecord.totalAmount.currency);
+  const paymentDate = businessDate(input.paymentDate);
+
+  const paymentId = await insertPayment(context.db, context.organizationId, {
+    billingRecordId: input.billingRecordId,
+    amount: toNumericString(paymentAmount),
+    currency: billingRecord.totalAmount.currency,
+    paymentDate,
+    method: input.method?.trim() || null,
+    reference: input.reference?.trim() || null,
+    notes: input.notes?.trim() || null,
+    createdByUserId: context.userId,
+  });
+
+  await recordAuditEvent(context, {
+    action: PAYMENT_AUDIT_RECORDED,
+    entityType: 'payment',
+    entityId: paymentId,
+    after: {
+      billingRecordId: input.billingRecordId,
+      amount: toNumericString(paymentAmount),
+      currency: billingRecord.totalAmount.currency,
+      paymentDate,
+    },
+  });
+
+  const updated = await findBillingRecordById(
+    context.db,
+    context.organizationId,
+    input.billingRecordId,
+    context.organization.timezone,
+  );
+  if (!updated) throw new NotFoundError('Billing record');
+  return { paymentId, billingRecord: updated };
+}

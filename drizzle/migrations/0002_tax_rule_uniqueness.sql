@@ -1,0 +1,2 @@
+CREATE UNIQUE INDEX "tax_rules_global_key_uq" ON "tax_rules" USING btree ("country_code","key") WHERE "tax_rules"."organization_id" is null;--> statement-breakpoint
+CREATE UNIQUE INDEX "tax_rules_org_key_uq" ON "tax_rules" USING btree ("organization_id","key") WHERE "tax_rules"."organization_id" is not null;

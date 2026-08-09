@@ -1,0 +1,32 @@
+{
+  "authenticationRequired": "יש להתחבר כדי להמשיך.",
+  "notAllowed": "אין לכם הרשאה לפעולה הזו.",
+  "organizationContextRequired": "בחרו קודם עסק לעבוד בו.",
+  "notFound": "לא מצאנו את מה שחיפשתם.",
+  "validationFailed": "בדקו את השדות המסומנים.",
+  "conflict": "יש התנגשות עם רשומה קיימת.",
+  "serviceUnavailable": "השירות אינו זמין כרגע.",
+  "unexpected": "משהו השתבש. נסו שוב.",
+  "databaseNotConfigured": "מסד הנתונים אינו מוגדר בסביבה הזו.",
+  "roles": {
+    "ownerRoleImmutable": "אי אפשר לשנות את תפקיד הבעלים.",
+    "permissionNotToggleable": "אי אפשר לשנות את ההרשאה הזו עבור התפקיד הזה."
+  },
+  "invitations": {
+    "alreadyPending": "כבר קיימת הזמנה ממתינה לכתובת הזו.",
+    "notPending": "ההזמנה כבר לא פעילה.",
+    "expired": "תוקף ההזמנה פג. בקשו הזמנה חדשה.",
+    "emailMismatch": "ההזמנה נשלחה לכתובת אימייל אחרת.",
+    "cannotEscalate": "אי אפשר להזמין משתמש עם הרשאות רחבות משלכם."
+  },
+  "notFoundPage": {
+    "title": "הדף לא נמצא",
+    "body": "הדף שחיפשתם אינו קיים או שהועבר.",
+    "backHome": "חזרה ללוח הבקרה"
+  },
+  "errorPage": {
+    "title": "משהו השתבש",
+    "body": "נתקלנו בתקלה לא צפויה. שום דבר שהזנתם לא אבד.",
+    "retry": "נסו שוב"
+  }
+}

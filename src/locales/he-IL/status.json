@@ -1,0 +1,60 @@
+{
+  "project": {
+    "draft": "טיוטה",
+    "active": "פעיל",
+    "on_hold": "בהשהיה",
+    "completed": "הושלם",
+    "cancelled": "בוטל",
+    "archived": "בארכיון"
+  },
+  "change": {
+    "draft": "טיוטה",
+    "awaiting_approval": "ממתין לאישור",
+    "approved": "מאושר",
+    "rejected": "נדחה",
+    "cancelled": "בוטל"
+  },
+  "changeDirection": {
+    "addition": "תוספת",
+    "reduction": "הפחתה"
+  },
+  "billing": {
+    "draft": "טיוטה",
+    "finalized": "סופי",
+    "void": "מבוטל"
+  },
+  "payment": {
+    "paid": "שולם",
+    "partial": "שולם חלקית",
+    "open": "פתוח",
+    "overdue": "באיחור",
+    "recorded": "נרשם",
+    "void": "מבוטל"
+  },
+  "expense": {
+    "draft": "טיוטה",
+    "finalized": "סופי",
+    "void": "מבוטל"
+  },
+  "quoteVersion": {
+    "draft": "טיוטה",
+    "issued": "נשלחה",
+    "superseded": "הוחלפה",
+    "accepted": "התקבלה",
+    "rejected": "נדחתה"
+  },
+  "membership": {
+    "active": "פעיל",
+    "invited": "הוזמן",
+    "suspended": "מושהה"
+  },
+  "generic": {
+    "active": "פעיל",
+    "inactive": "לא פעיל",
+    "archived": "בארכיון"
+  },
+  "events": {
+    "sentAt": "נשלח ב־{date}",
+    "notSent": "לא נשלח"
+  }
+}

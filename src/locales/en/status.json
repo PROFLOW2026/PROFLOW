@@ -1,0 +1,60 @@
+{
+  "project": {
+    "draft": "Draft",
+    "active": "Active",
+    "on_hold": "On hold",
+    "completed": "Completed",
+    "cancelled": "Cancelled",
+    "archived": "Archived"
+  },
+  "change": {
+    "draft": "Draft",
+    "awaiting_approval": "Awaiting approval",
+    "approved": "Approved",
+    "rejected": "Rejected",
+    "cancelled": "Cancelled"
+  },
+  "changeDirection": {
+    "addition": "Addition",
+    "reduction": "Reduction"
+  },
+  "billing": {
+    "draft": "Draft",
+    "finalized": "Finalized",
+    "void": "Void"
+  },
+  "payment": {
+    "paid": "Paid",
+    "partial": "Partially paid",
+    "open": "Open",
+    "overdue": "Overdue",
+    "recorded": "Recorded",
+    "void": "Void"
+  },
+  "expense": {
+    "draft": "Draft",
+    "finalized": "Finalized",
+    "void": "Void"
+  },
+  "quoteVersion": {
+    "draft": "Draft",
+    "issued": "Issued",
+    "superseded": "Superseded",
+    "accepted": "Accepted",
+    "rejected": "Rejected"
+  },
+  "membership": {
+    "active": "Active",
+    "invited": "Invited",
+    "suspended": "Suspended"
+  },
+  "generic": {
+    "active": "Active",
+    "inactive": "Inactive",
+    "archived": "Archived"
+  },
+  "events": {
+    "sentAt": "Sent {date}",
+    "notSent": "Not sent"
+  }
+}

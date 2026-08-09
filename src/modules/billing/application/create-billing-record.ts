@@ -1,0 +1,157 @@
+import { recordAuditEvent } from '@/shared/audit';
+import { businessDate } from '@/shared/dates';
+import { NotFoundError, ValidationError } from '@/shared/errors';
+import type { OrgContext } from '@/shared/auth/context';
+import { toNumericString } from '@/shared/money';
+import { assertPermission } from '@/shared/permissions/assert';
+import { PERMISSIONS } from '@/shared/permissions/catalog';
+import { noteModuleUsage } from '@/modules/tenancy';
+import { assertBillingCurrencyMatchesProject } from '../domain/currency';
+import { resolveTaxAmounts } from '../domain/tax';
+import {
+  findBillingRecordById,
+  findChangeOrdersInProject,
+  findProjectInOrganization,
+  insertBillingRecord,
+  replaceBillingLines,
+} from '../data/billing.repository';
+import { createBillingRecordSchema, type CreateBillingRecordInput } from '../validation/schemas';
+import { finalizeBillingRecord } from './finalize-billing-record';
+
+const BILLING_AUDIT_CREATED = 'billing_record.created';
+
+async function resolveCurrency(
+  context: OrgContext,
+  projectId: string,
+  inputCurrency: string | undefined,
+): Promise<string> {
+  const project = await findProjectInOrganization(context.db, context.organizationId, projectId);
+  if (!project) throw new NotFoundError('Project');
+  const projectCurrency = (project.currency ?? context.organization.baseCurrency).toUpperCase();
+  if (inputCurrency) {
+    assertBillingCurrencyMatchesProject(inputCurrency, projectCurrency);
+    return inputCurrency.toUpperCase();
+  }
+  return projectCurrency;
+}
+
+function buildLines(
+  amounts: ReturnType<typeof resolveTaxAmounts>,
+  changeOrders: readonly { id: string; reference: string | null }[],
+): {
+  description: string;
+  lineTotal: string;
+  currency: string;
+  changeOrderId: string | null;
+  sortOrder: number;
+}[] {
+  if (changeOrders.length === 0) {
+    return [
+      {
+        description: 'Billing amount',
+        lineTotal: toNumericString(amounts.totalAmount),
+        currency: amounts.totalAmount.currency,
+        changeOrderId: null,
+        sortOrder: 0,
+      },
+    ];
+  }
+
+  return changeOrders.map((changeOrder, index) => ({
+    description: changeOrder.reference?.trim() || `Change order ${index + 1}`,
+    lineTotal: toNumericString(amounts.totalAmount),
+    currency: amounts.totalAmount.currency,
+    changeOrderId: changeOrder.id,
+    sortOrder: index,
+  }));
+}
+
+export async function createBillingRecord(context: OrgContext, rawInput: CreateBillingRecordInput) {
+  assertPermission(context, PERMISSIONS.BILLING_MANAGE);
+
+  const parsed = createBillingRecordSchema.safeParse(rawInput);
+  if (!parsed.success) {
+    throw new ValidationError(
+      parsed.error.issues.map((issue) => ({ path: issue.path.join('.'), message: issue.message })),
+    );
+  }
+
+  const input = parsed.data;
+  const project = await findProjectInOrganization(context.db, context.organizationId, input.projectId);
+  if (!project) throw new NotFoundError('Project');
+
+  const currency = await resolveCurrency(context, input.projectId, input.currency);
+  const amounts = resolveTaxAmounts({
+    amount: input.amount,
+    netAmount: input.netAmount,
+    taxAmount: input.taxAmount,
+    currency,
+  });
+
+  const changeOrderIds = input.changeOrderIds ?? [];
+  const changeOrders = await findChangeOrdersInProject(
+    context.db,
+    context.organizationId,
+    input.projectId,
+    changeOrderIds,
+  );
+  if (changeOrderIds.length !== changeOrders.length) {
+    throw new NotFoundError('Change order');
+  }
+
+  const issueDate = businessDate(input.issueDate);
+  const dueDate = input.dueDate ? businessDate(input.dueDate) : null;
+
+  const billingRecordId = await insertBillingRecord(context.db, context.organizationId, {
+    projectId: input.projectId,
+    clientId: null,
+    kind: 'invoice',
+    reference: input.reference?.trim() || null,
+    issueDate,
+    dueDate,
+    subtotalAmount: toNumericString(amounts.subtotalAmount),
+    taxAmount: amounts.taxAmount ? toNumericString(amounts.taxAmount) : null,
+    totalAmount: toNumericString(amounts.totalAmount),
+    currency,
+    externalDocumentId: input.externalDocumentId ?? null,
+    notes: input.notes?.trim() || null,
+    voidsBillingRecordId: null,
+    createdByUserId: context.userId,
+  });
+
+  await replaceBillingLines(
+    context.db,
+    context.organizationId,
+    billingRecordId,
+    buildLines(amounts, changeOrders),
+  );
+
+  await noteModuleUsage(context.db, context.organizationId, 'billing');
+
+  await recordAuditEvent(context, {
+    action: BILLING_AUDIT_CREATED,
+    entityType: 'billing_record',
+    entityId: billingRecordId,
+    after: {
+      status: 'draft',
+      projectId: input.projectId,
+      totalAmount: toNumericString(amounts.totalAmount),
+      currency,
+    },
+  });
+
+  if (input.finalize) {
+    return finalizeBillingRecord(context, billingRecordId);
+  }
+
+  const created = await findBillingRecordById(
+    context.db,
+    context.organizationId,
+    billingRecordId,
+    context.organization.timezone,
+  );
+  if (!created) throw new NotFoundError('Billing record');
+  return created;
+}
+
+export { resolveCurrency };

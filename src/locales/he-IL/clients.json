@@ -1,0 +1,74 @@
+{
+  "title": "רשימת לקוחות",
+  "newClient": "לקוח חדש",
+  "empty": {
+    "title": "עדיין אין לקוחות",
+    "body": "לקוחות הם אופציונליים. שמרו רשימה פשוטה של לקוחות וקשרו אותם לפרויקטים כשזה מועיל.",
+    "action": "הוספת לקוח ראשון"
+  },
+  "list": {
+    "searchPlaceholder": "חיפוש לקוח…",
+    "columns": {
+      "name": "לקוח",
+      "projects": "פרויקטים",
+      "status": "סטטוס"
+    }
+  },
+  "create": {
+    "title": "לקוח חדש",
+    "description": "נדרש רק שם. פרטים משפטיים ניתן להוסיף מאוחר יותר לייצוא וחיוב.",
+    "nameLabel": "שם לקוח",
+    "namePlaceholder": "שם לתצוגה",
+    "moreDetails": "פרטים נוספים",
+    "legalNameLabel": "שם משפטי",
+    "emailLabel": "דוא״ל",
+    "phoneLabel": "טלפון",
+    "websiteLabel": "אתר",
+    "addressLabel": "כתובת",
+    "addressLine1Label": "שורת כתובת 1",
+    "addressLine2Label": "שורת כתובת 2",
+    "cityLabel": "עיר",
+    "regionLabel": "מחוז",
+    "postalCodeLabel": "מיקוד",
+    "countryLabel": "מדינה",
+    "notesLabel": "הערות",
+    "submit": "יצירת לקוח",
+    "success": "הלקוח נוצר"
+  },
+  "detail": {
+    "title": "פרופיל לקוח",
+    "projectsSection": "פרויקטים",
+    "projectsCount": "{count, plural, one {פרויקט אחד} two {שני פרויקטים} other {# פרויקטים}}",
+    "noProjects": "אין פרויקטים מקושרים עדיין",
+    "contactsSection": "אנשי קשר",
+    "contactsEmpty": "אין אנשי קשר עדיין. הוסיפו איש קשר לחיוב או לאתר כשצריך.",
+    "addContact": "הוספת איש קשר",
+    "identifiersSection": "מזהים מס ורישום",
+    "identifiersHint": "משמש לייצוא משפטי ומסמכים ללקוח — לא נדרש לעבודה יומיומית בפרויקטים.",
+    "identifiersEmpty": "אין מזהים עדיין",
+    "addIdentifier": "הוספת מזהה",
+    "identifierTypes": {
+      "tax_id": "מספר עוסק / ת.ז.",
+      "company_number": "מספר חברה",
+      "vat_number": "מספר עוסק מורשה",
+      "license_number": "מספר רישיון",
+      "other": "אחר"
+    },
+    "contactRoles": {
+      "primary": "ראשי",
+      "billing": "חיוב",
+      "site": "אתר",
+      "other": "אחר"
+    },
+    "archive": "העברה לארכיון",
+    "archiveConfirm": "להעביר את הלקוח לארכיון? פרויקטים קיימים ישמרו את הקישור; הלקוח יוסתר מהרשימה.",
+    "save": "שמירת שינויים",
+    "saved": "הלקוח נשמר",
+    "removeContactQuestion": "להסיר את איש הקשר {name}?",
+    "removeContactConsequence": "אפשר להוסיף איש קשר מחדש בכל עת.",
+    "removeContactSuccess": "איש הקשר הוסר.",
+    "removeIdentifierQuestion": "להסיר את המזהה {type} ({value})?",
+    "removeIdentifierConsequence": "אפשר להוסיף מזהה מחדש בכל עת.",
+    "removeIdentifierSuccess": "המזהה הוסר."
+  }
+}

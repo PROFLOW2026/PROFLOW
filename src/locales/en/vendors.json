@@ -1,0 +1,65 @@
+{
+  "title": "Vendors & subcontractors",
+  "description": "Optional directory of suppliers and subcontractors you work with. Expenses never require a vendor record.",
+  "newVendor": "New vendor",
+  "empty": {
+    "title": "No vendors yet",
+    "body": "Vendors are optional. Keep a simple directory and link suppliers to projects when helpful — or save them from an expense later.",
+    "action": "Add first vendor"
+  },
+  "list": {
+    "searchPlaceholder": "Search vendors…",
+    "projectsCount": "{count, plural, one {# project} other {# projects}}",
+    "columns": {
+      "name": "Vendor",
+      "type": "Type",
+      "projects": "Projects",
+      "status": "Status"
+    }
+  },
+  "types": {
+    "supplier": "Supplier",
+    "subcontractor": "Subcontractor",
+    "both": "Supplier & subcontractor",
+    "other": "Other"
+  },
+  "create": {
+    "title": "New vendor",
+    "description": "Only a name is required. Type helps classify the relationship — you can change it anytime.",
+    "nameLabel": "Vendor name",
+    "namePlaceholder": "Company or person",
+    "typeLabel": "Type",
+    "typeHint": "Contextual label only — not a rigid classification.",
+    "moreDetails": "More details",
+    "emailLabel": "Email",
+    "phoneLabel": "Phone",
+    "websiteLabel": "Website",
+    "addressLine1Label": "Address",
+    "cityLabel": "City",
+    "countryLabel": "Country code",
+    "notesLabel": "Notes",
+    "submit": "Create vendor",
+    "success": "Vendor created"
+  },
+  "detail": {
+    "title": "Vendor profile",
+    "profileHint": "Basic supplier or subcontractor profile",
+    "profileSection": "Profile",
+    "parentVendor": "Parent vendor: {name}",
+    "contactsSection": "Contacts",
+    "contactsEmpty": "No contacts yet. Add one when you need a site or billing contact.",
+    "contactNameLabel": "Contact name",
+    "contactRoleLabel": "Role",
+    "addContact": "Add contact",
+    "contactRoles": {
+      "primary": "Primary",
+      "billing": "Billing",
+      "site": "Site",
+      "other": "Other"
+    },
+    "engagementsSection": "Projects & engagements",
+    "engagementsEmpty": "No project links yet. Link this vendor when they work on a project.",
+    "archive": "Archive vendor",
+    "save": "Save changes"
+  }
+}

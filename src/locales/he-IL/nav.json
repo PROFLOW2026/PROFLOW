@@ -1,0 +1,33 @@
+{
+  "dashboard": "לוח בקרה",
+  "projects": "פרויקטים",
+  "expenses": "הוצאות",
+  "changes": "שינויים ותוספות",
+  "billing": "חיובים וגבייה",
+  "clients": "לקוחות",
+  "vendors": "ספקים וקבלני משנה",
+  "workforce": "עובדים ושעות",
+  "documents": "מסמכים",
+  "settings": "הגדרות",
+  "more": "עוד",
+  "newMenu": {
+    "trigger": "חדש",
+    "project": "פרויקט",
+    "expense": "הוצאה",
+    "change": "שינוי / תוספת",
+    "billingRecord": "חיוב",
+    "payment": "תשלום",
+    "client": "לקוח",
+    "vendor": "ספק",
+    "employee": "עובד",
+    "timeEntry": "דיווח שעות"
+  },
+  "organizationSwitcher": {
+    "label": "עסק",
+    "createNew": "יצירת עסק חדש"
+  },
+  "user": {
+    "profile": "פרופיל",
+    "signOut": "התנתקות"
+  }
+}

@@ -1,0 +1,230 @@
+{
+  "title": "Settings",
+  "navLabel": "Settings",
+  "sections": {
+    "business": "Business",
+    "people": "People and roles",
+    "roles": "Roles",
+    "features": "Features",
+    "costCategories": "Cost categories",
+    "tax": "Tax",
+    "activity": "Activity log",
+    "profile": "Your profile"
+  },
+  "people": {
+    "linkCopied": "Link copied"
+  },
+  "modules": {
+    "title": "Features",
+    "subtitle": "Show or hide areas in the navigation. Hiding never deletes anything.",
+    "autoHint": "Appears automatically once you use it",
+    "visibilityLabel": "Visibility for {module}",
+    "on": "Shown",
+    "off": "Hidden",
+    "auto": "Automatic",
+    "billing": "Billing and collections",
+    "workforce": "People and hours",
+    "vendors": "Vendors and subcontractors",
+    "clients": "Clients directory",
+    "documents": "Documents hub",
+    "changes": "Cross-project changes list",
+    "overhead": "Business overhead tools",
+    "saved": "Feature visibility updated."
+  },
+  "roles": {
+    "title": "Roles",
+    "subtitle": "V1 offers four roles with a few adjustable permissions.",
+    "toggleTitle": "Adjustable permissions",
+    "profitToggle": "Allow this role to see profit and margin",
+    "protectedHint": "The owner role always has full access.",
+    "saved": "Role updated."
+  },
+  "costCategories": {
+    "title": "Cost categories",
+    "subtitle": "Optional. Categories help you group costs; you never have to use them.",
+    "family": "Cost section",
+    "addCategory": "Add category",
+    "renameLabel": "Name for {name}",
+    "emptyTitle": "No categories yet",
+    "emptyHint": "Add a category when you want to group costs. You can skip this entirely.",
+    "archiveQuestion": "Archive category «{name}»?",
+    "archiveConsequence": "Archived categories no longer appear in new selection lists.",
+    "archiveSuccess": "Category archived."
+  },
+  "activity": {
+    "title": "Activity log",
+    "subtitle": "A record of sensitive changes to money, access and settings.",
+    "columnWhen": "When",
+    "columnWho": "Who",
+    "columnAction": "Action",
+    "columnEntity": "Record",
+    "empty": "No activity recorded yet.",
+    "loadMore": "Load more",
+    "actions": {
+      "_fallback": "{value}",
+      "organization": {
+        "created": "Business created",
+        "updated": "Business updated"
+      },
+      "membership": {
+        "created": "Access granted",
+        "updated": "Access updated",
+        "removed": "Access removed"
+      },
+      "role": {
+        "assigned": "Role assigned",
+        "permission_changed": "Permission changed"
+      },
+      "invitation": {
+        "created": "Invitation sent",
+        "accepted": "Invitation accepted",
+        "revoked": "Invitation revoked"
+      },
+      "settings": {
+        "updated": "Settings updated"
+      },
+      "project": {
+        "created": "Project created",
+        "updated": "Project updated",
+        "archived": "Project archived"
+      },
+      "work_package": {
+        "created": "Work area created",
+        "updated": "Work area updated",
+        "archived": "Work area archived"
+      },
+      "phase": {
+        "created": "Phase created",
+        "updated": "Phase updated",
+        "archived": "Phase archived"
+      },
+      "contract": {
+        "value_recorded": "Contract value recorded"
+      },
+      "client": {
+        "created": "Client created",
+        "updated": "Client updated",
+        "archived": "Client archived"
+      },
+      "client_contact": {
+        "created": "Client contact added",
+        "updated": "Client contact updated",
+        "deleted": "Client contact removed"
+      },
+      "party_identifier": {
+        "upserted": "Client identifier updated",
+        "deleted": "Client identifier removed"
+      },
+      "vendor": {
+        "created": "Vendor created",
+        "updated": "Vendor updated",
+        "archived": "Vendor archived",
+        "linked_from_expense": "Vendor linked from expense"
+      },
+      "vendor_contact": {
+        "created": "Vendor contact added",
+        "updated": "Vendor contact updated",
+        "deleted": "Vendor contact removed"
+      },
+      "vendor_engagement": {
+        "created": "Vendor engagement created",
+        "archived": "Vendor engagement closed"
+      },
+      "expense": {
+        "created": "Expense created",
+        "updated": "Expense updated",
+        "finalized": "Expense finalized",
+        "voided": "Expense voided"
+      },
+      "change_request": {
+        "created": "Change request created",
+        "updated": "Change request updated",
+        "submitted": "Change request submitted",
+        "sent": "Change request sent",
+        "rejected": "Change request rejected",
+        "cancelled": "Change request cancelled",
+        "approved": "Change approved"
+      },
+      "quote_version": {
+        "created": "Quote version created",
+        "issued": "Quote version issued"
+      },
+      "change_order": {
+        "created": "Change order created"
+      },
+      "billing_record": {
+        "created": "Billing record created",
+        "updated": "Billing record updated",
+        "finalized": "Billing record finalized",
+        "voided": "Billing record voided",
+        "adjustment_created": "Billing adjustment added"
+      },
+      "payment": {
+        "recorded": "Payment recorded",
+        "voided": "Payment voided"
+      },
+      "employee": {
+        "created": "Employee created",
+        "updated": "Employee updated",
+        "archived": "Employee archived"
+      },
+      "rate_version": {
+        "created": "Rate version created"
+      },
+      "time_entry": {
+        "created": "Time entry recorded"
+      },
+      "document": {
+        "uploaded": "Document uploaded",
+        "finalized": "Document finalized",
+        "deleted": "Document deleted"
+      },
+      "tax_rule": {
+        "created": "Tax rule created",
+        "updated": "Tax rule updated"
+      }
+    },
+    "entities": {
+      "_fallback": "{value}",
+      "organization": "Business",
+      "organization_membership": "Membership",
+      "organization_module_preference": "Feature preference",
+      "membership": "Membership",
+      "role": "Role",
+      "invitation": "Invitation",
+      "project": "Project",
+      "work_package": "Work area",
+      "phase": "Phase",
+      "contract": "Contract",
+      "client": "Client",
+      "client_contact": "Client contact",
+      "party_identifier": "Client identifier",
+      "vendor": "Vendor",
+      "vendor_contact": "Vendor contact",
+      "vendor_engagement": "Vendor engagement",
+      "expense": "Expense",
+      "change_request": "Change request",
+      "change_order": "Change order",
+      "quote_version": "Quote version",
+      "billing_record": "Billing record",
+      "payment": "Payment",
+      "employee": "Employee",
+      "rate_version": "Rate version",
+      "time_entry": "Time entry",
+      "document": "Document",
+      "documents": "Documents",
+      "tax_rule": "Tax rule",
+      "cost_category": "Cost category"
+    }
+  },
+  "profile": {
+    "title": "Your profile",
+    "displayName": "Your name",
+    "language": "Interface language",
+    "saved": "Profile updated."
+  },
+  "notAllowed": {
+    "title": "Not allowed",
+    "body": "You do not have permission to view this settings area."
+  }
+}

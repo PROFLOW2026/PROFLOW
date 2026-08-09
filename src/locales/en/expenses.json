@@ -1,0 +1,164 @@
+{
+  "title": "Expenses",
+  "subtitle": "Record project costs and business overhead in one place.",
+  "capture": {
+    "title": "New expense",
+    "subtitle": "Enter an amount to save. Everything else is optional."
+  },
+  "detail": {
+    "title": "Expense",
+    "summary": "Summary",
+    "reversalOf": "Reversal of expense {id}"
+  },
+  "actions": {
+    "add": "Add expense",
+    "finalize": "Finalize",
+    "void": "Void"
+  },
+  "confirm": {
+    "finalizeTitle": "Finalize expense",
+    "finalizeQuestion": "Finalize the expense of <amount></amount> from <date></date>?",
+    "finalizeConsequence": "Once finalized it cannot be edited.",
+    "finalizeSuccess": "Expense finalized.",
+    "voidTitle": "Void expense",
+    "voidQuestion": "Void the expense of <amount></amount> from <date></date>?",
+    "voidConsequence": "It will be excluded from all cost figures.",
+    "voidSuccess": "Expense voided."
+  },
+  "fields": {
+    "amount": "Amount",
+    "description": "Description",
+    "date": "Date",
+    "supplier": "Supplier",
+    "target": "Project or overhead",
+    "project": "Project",
+    "workPackage": "Work package",
+    "costFamily": "Cost section",
+    "category": "Category",
+    "status": "Status",
+    "netAmount": "Net amount",
+    "taxAmount": "Tax",
+    "paymentMethod": "Payment method",
+    "notes": "Notes",
+    "recurrence": "Recurrence",
+    "recurrenceCustom": "Custom cadence",
+    "percent": "Percentage"
+  },
+  "placeholders": {
+    "description": "What was this for?",
+    "supplier": "Type a supplier name",
+    "target": "Leave empty or choose a project",
+    "workPackageDefault": "Default work package",
+    "costFamily": "Inferred from targeting",
+    "category": "Optional category"
+  },
+  "targeting": {
+    "none": "No project (overhead)",
+    "overhead": "Business overhead"
+  },
+  "costFamilies": {
+    "direct_project": "Direct project cost",
+    "shared": "Shared cost",
+    "business_overhead": "Business overhead",
+    "asset_capital": "Asset / capital"
+  },
+  "costCategories": {
+    "materials": "Materials",
+    "subcontractor": "Subcontractor",
+    "labor": "Labor",
+    "equipment_rental": "Equipment rental",
+    "permits_fees": "Permits and fees",
+    "project_travel": "Project travel",
+    "other_direct": "Other direct cost",
+    "shared_supervision": "Shared supervision",
+    "shared_equipment": "Shared equipment",
+    "shared_logistics": "Shared logistics",
+    "rent": "Rent",
+    "utilities": "Utilities",
+    "accounting_legal": "Accounting and legal",
+    "insurance": "Insurance",
+    "marketing": "Marketing",
+    "software": "Software and subscriptions",
+    "bank_fees": "Bank and finance fees",
+    "office_supplies": "Office supplies",
+    "vehicle_fuel": "Vehicle and fuel",
+    "other_overhead": "Other overhead",
+    "equipment_purchase": "Equipment purchase",
+    "vehicle_purchase": "Vehicle purchase",
+    "tools": "Tools"
+  },
+  "recurrence": {
+    "one_time": "One-time",
+    "monthly": "Monthly",
+    "quarterly": "Quarterly",
+    "yearly": "Yearly",
+    "custom": "Custom"
+  },
+  "filters": {
+    "dateFrom": "From date",
+    "dateTo": "To date",
+    "project": "Project",
+    "family": "Cost section",
+    "category": "Category",
+    "status": "Status",
+    "allProjects": "All projects",
+    "allFamilies": "All sections",
+    "allCategories": "All categories",
+    "allStatuses": "All statuses"
+  },
+  "list": {
+    "empty": {
+      "title": "Track what the business spends",
+      "description": "Record materials, subcontractors, rent, and other costs. Start with an amount — details can wait.",
+      "action": "Add first expense"
+    },
+    "noDescription": "No description",
+    "count": "Showing {count} of {total}"
+  },
+  "projectPanel": {
+    "title": "Recent expenses",
+    "empty": {
+      "title": "No expenses on this project yet",
+      "description": "Record materials, subcontractors, and other direct costs as they happen.",
+      "action": "Add expense"
+    }
+  },
+  "allocation": {
+    "title": "Split allocation",
+    "addLine": "Add line",
+    "removeLine": "Remove",
+    "empty": "Split this expense across projects or overhead when one invoice covers multiple targets.",
+    "target": "Target",
+    "method": "Method",
+    "targetRow": "Target — row {row}",
+    "methodRow": "Method — row {row}",
+    "amountRow": "Amount — row {row}",
+    "percentRow": "Percentage — row {row}",
+    "categoryRow": "Section — row {row}",
+    "selectTarget": "Choose project or overhead",
+    "methods": {
+      "amount": "Fixed amount",
+      "percent": "Percentage"
+    },
+    "sumHintPrefix": "Lines must sum exactly to"
+  },
+  "errors": {
+    "workPackageRequiresProject": "A work package requires a project.",
+    "directFamilyRequiresProject": "Direct project cost requires a project.",
+    "overheadFamilyRequiresNoProject": "Business overhead cannot be used on a project expense.",
+    "allocationAmountRequired": "Enter an amount for each fixed-amount line.",
+    "allocationPercentRequired": "Enter a percentage for each percent line.",
+    "allocationSumMismatch": "Allocation lines must sum exactly to the expense amount.",
+    "allocationProjectRequired": "Project allocation lines require a project.",
+    "allocationOverheadNoProject": "Overhead lines cannot reference a project.",
+    "customRecurrenceRequired": "Describe the custom recurrence.",
+    "notEditable": "Only draft expenses can be edited.",
+    "notFinalizable": "Only draft expenses can be finalized.",
+    "notVoidable": "Only finalized expenses can be voided.",
+    "reversalNotVoidable": "Reversal entries cannot be voided again.",
+    "currencyMustMatchProject": "Expense currency must match the project currency.",
+    "currencyMustMatchOrganization": "Overhead expense currency must match the organization currency.",
+    "projectExpenseNoAllocations": "Project expenses cannot be split across allocation lines.",
+    "phaseProjectMismatch": "The selected phase does not belong to this project."
+  }
+}

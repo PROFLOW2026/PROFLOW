@@ -1,0 +1,325 @@
+@import 'tailwindcss';
+
+/*
+ * ProjectFlow design tokens — Direction B, Deep Teal (docs 56, 57, 59).
+ *
+ * Three layers, as specified: primitive palette → semantic role → component.
+ * Components must consume the semantic layer only, so a future dark mode is a
+ * variable swap rather than a rewrite. No module defines its own colours.
+ */
+
+@layer base {
+  :root {
+    /* ---- Primitive palette: Deep Teal brand -------------------------- */
+    --pf-teal-50: #f0fdfa;
+    --pf-teal-100: #ccfbf1;
+    --pf-teal-200: #99f6e4;
+    --pf-teal-300: #5eead4;
+    --pf-teal-400: #2dd4bf;
+    --pf-teal-500: #14b8a6;
+    --pf-teal-600: #0d9488;
+    --pf-teal-700: #0f766e;
+    --pf-teal-800: #115e59;
+    --pf-teal-900: #134e4a;
+    --pf-teal-950: #042f2e;
+
+    /* ---- Primitive palette: neutrals (doc 57 §3) --------------------- */
+    --pf-neutral-0: #ffffff;
+    --pf-neutral-25: #f8fafb;
+    --pf-neutral-50: #f4f6f8;
+    --pf-neutral-100: #eef1f4;
+    --pf-neutral-200: #e2e6eb;
+    --pf-neutral-300: #c9d0d8;
+    --pf-neutral-400: #9aa3af;
+    --pf-neutral-500: #656d7d;
+    --pf-neutral-600: #4a5563;
+    --pf-neutral-700: #374151;
+    --pf-neutral-800: #263140;
+    --pf-neutral-900: #1b2430;
+
+    /*
+     * Status hues are kept clearly distinct from brand teal so a teal button
+     * never reads as "success" (doc 56 §4, risk note on Direction B).
+     */
+    --pf-green-50: #ecfdf3;
+    --pf-green-100: #d1fadf;
+    --pf-green-600: #16a34a;
+    --pf-green-700: #15803d;
+    --pf-green-800: #166534;
+
+    --pf-amber-50: #fffaeb;
+    --pf-amber-100: #fef0c7;
+    --pf-amber-600: #d97706;
+    --pf-amber-700: #b45309;
+    --pf-amber-800: #92400e;
+
+    --pf-red-50: #fef3f2;
+    --pf-red-100: #fee4e2;
+    --pf-red-600: #dc2626;
+    --pf-red-700: #b91c1c;
+    --pf-red-800: #991b1b;
+
+    --pf-blue-50: #eff6ff;
+    --pf-blue-100: #dbeafe;
+    --pf-blue-600: #2563eb;
+    --pf-blue-700: #1d4ed8;
+
+    /* ---- Semantic: surfaces and text -------------------------------- */
+    --pf-bg-page: var(--pf-neutral-50);
+    --pf-bg-surface: var(--pf-neutral-0);
+    --pf-bg-elevated: var(--pf-neutral-0);
+    --pf-bg-muted: var(--pf-neutral-100);
+    --pf-bg-subtle: var(--pf-neutral-25);
+    --pf-bg-inverse: var(--pf-neutral-900);
+
+    --pf-border-default: var(--pf-neutral-200);
+    --pf-border-strong: var(--pf-neutral-300);
+    --pf-border-focus: var(--pf-teal-600);
+
+    --pf-text-primary: var(--pf-neutral-900);
+    --pf-text-secondary: var(--pf-neutral-600);
+    --pf-text-muted: var(--pf-neutral-500);
+    --pf-text-disabled: var(--pf-neutral-400);
+    --pf-text-inverse: var(--pf-neutral-0);
+    --pf-text-brand: var(--pf-teal-700);
+
+    /* ---- Semantic: actions ------------------------------------------ */
+    --pf-action-primary: var(--pf-teal-700);
+    --pf-action-primary-hover: var(--pf-teal-800);
+    --pf-action-primary-active: var(--pf-teal-900);
+    --pf-action-primary-fg: var(--pf-neutral-0);
+    --pf-action-secondary: var(--pf-neutral-0);
+    --pf-action-secondary-hover: var(--pf-neutral-100);
+    --pf-action-subtle-hover: var(--pf-teal-50);
+    --pf-action-danger: var(--pf-red-700);
+    --pf-action-danger-hover: var(--pf-red-800);
+
+    --pf-focus-ring: var(--pf-teal-600);
+
+    /* ---- Semantic: status ------------------------------------------- */
+    --pf-status-success-fg: var(--pf-green-800);
+    --pf-status-success-bg: var(--pf-green-50);
+    --pf-status-success-border: var(--pf-green-100);
+
+    --pf-status-warning-fg: var(--pf-amber-800);
+    --pf-status-warning-bg: var(--pf-amber-50);
+    --pf-status-warning-border: var(--pf-amber-100);
+
+    --pf-status-danger-fg: var(--pf-red-800);
+    --pf-status-danger-bg: var(--pf-red-50);
+    --pf-status-danger-border: var(--pf-red-100);
+
+    --pf-status-info-fg: var(--pf-blue-700);
+    --pf-status-info-bg: var(--pf-blue-50);
+    --pf-status-info-border: var(--pf-blue-100);
+
+    --pf-status-pending-fg: var(--pf-amber-700);
+    --pf-status-pending-bg: var(--pf-amber-50);
+    --pf-status-pending-border: var(--pf-amber-100);
+
+    --pf-status-neutral-fg: var(--pf-neutral-700);
+    --pf-status-neutral-bg: var(--pf-neutral-100);
+    --pf-status-neutral-border: var(--pf-neutral-200);
+
+    --pf-status-disabled-fg: var(--pf-neutral-500);
+    --pf-status-disabled-bg: var(--pf-neutral-100);
+    --pf-status-disabled-border: var(--pf-neutral-200);
+
+    /* ---- Elevation (doc 57 §7): borders first, shadows for overlays -- */
+    --pf-shadow-sm: 0 1px 2px 0 rgb(27 36 48 / 0.06), 0 1px 3px 0 rgb(27 36 48 / 0.08);
+    --pf-shadow-md: 0 4px 12px -2px rgb(27 36 48 / 0.10), 0 2px 6px -2px rgb(27 36 48 / 0.06);
+    --pf-shadow-lg: 0 12px 32px -8px rgb(27 36 48 / 0.16);
+
+    /* ---- Motion (doc 57 §8) ----------------------------------------- */
+    --pf-motion-fast: 140ms;
+    --pf-motion-normal: 220ms;
+    --pf-easing: cubic-bezier(0.2, 0, 0.2, 1);
+
+    /* ---- Layout ------------------------------------------------------ */
+    --pf-sidebar-width: 16rem;
+    --pf-sidebar-collapsed-width: 4.5rem;
+    --pf-topbar-height: 3.5rem;
+    --pf-bottomnav-height: 4rem;
+  }
+}
+
+/*
+ * `inline` keeps the generated utilities pointing at the CSS variables above,
+ * which is what allows a theme swap without recompiling components.
+ */
+@theme inline {
+  --color-page: var(--pf-bg-page);
+  --color-surface: var(--pf-bg-surface);
+  --color-elevated: var(--pf-bg-elevated);
+  --color-muted: var(--pf-bg-muted);
+  --color-subtle: var(--pf-bg-subtle);
+  --color-inverse: var(--pf-bg-inverse);
+
+  --color-border-default: var(--pf-border-default);
+  --color-border-strong: var(--pf-border-strong);
+
+  --color-content: var(--pf-text-primary);
+  --color-content-secondary: var(--pf-text-secondary);
+  --color-content-muted: var(--pf-text-muted);
+  --color-content-disabled: var(--pf-text-disabled);
+  --color-content-inverse: var(--pf-text-inverse);
+  --color-content-brand: var(--pf-text-brand);
+
+  --color-brand-50: var(--pf-teal-50);
+  --color-brand-100: var(--pf-teal-100);
+  --color-brand-200: var(--pf-teal-200);
+  --color-brand-300: var(--pf-teal-300);
+  --color-brand-400: var(--pf-teal-400);
+  --color-brand-500: var(--pf-teal-500);
+  --color-brand-600: var(--pf-teal-600);
+  --color-brand-700: var(--pf-teal-700);
+  --color-brand-800: var(--pf-teal-800);
+  --color-brand-900: var(--pf-teal-900);
+  --color-brand-950: var(--pf-teal-950);
+
+  --color-action: var(--pf-action-primary);
+  --color-action-hover: var(--pf-action-primary-hover);
+  --color-action-active: var(--pf-action-primary-active);
+  --color-action-fg: var(--pf-action-primary-fg);
+  --color-action-danger: var(--pf-action-danger);
+  --color-action-danger-hover: var(--pf-action-danger-hover);
+  --color-focus-ring: var(--pf-focus-ring);
+
+  --color-success-fg: var(--pf-status-success-fg);
+  --color-success-bg: var(--pf-status-success-bg);
+  --color-success-border: var(--pf-status-success-border);
+  --color-warning-fg: var(--pf-status-warning-fg);
+  --color-warning-bg: var(--pf-status-warning-bg);
+  --color-warning-border: var(--pf-status-warning-border);
+  --color-danger-fg: var(--pf-status-danger-fg);
+  --color-danger-bg: var(--pf-status-danger-bg);
+  --color-danger-border: var(--pf-status-danger-border);
+  --color-info-fg: var(--pf-status-info-fg);
+  --color-info-bg: var(--pf-status-info-bg);
+  --color-info-border: var(--pf-status-info-border);
+  --color-pending-fg: var(--pf-status-pending-fg);
+  --color-pending-bg: var(--pf-status-pending-bg);
+  --color-pending-border: var(--pf-status-pending-border);
+  --color-neutral-fg: var(--pf-status-neutral-fg);
+  --color-neutral-bg: var(--pf-status-neutral-bg);
+  --color-neutral-border: var(--pf-status-neutral-border);
+
+  --radius-sm: 0.3125rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+
+  --shadow-sm: var(--pf-shadow-sm);
+  --shadow-md: var(--pf-shadow-md);
+  --shadow-lg: var(--pf-shadow-lg);
+
+  /*
+   * A single UI family that covers Hebrew and Latin well. The production font
+   * is still open (V2); this system stack renders Hebrew natively on every
+   * target platform and costs nothing to load.
+   */
+  --font-sans:
+    'Assistant', 'Rubik', system-ui, -apple-system, 'Segoe UI', 'Noto Sans Hebrew', 'Arial Hebrew',
+    Arial, 'Helvetica Neue', sans-serif;
+  --font-mono: ui-monospace, 'SFMono-Regular', 'Cascadia Code', 'Consolas', monospace;
+
+  --z-index-sticky: 20;
+  --z-index-dropdown: 40;
+  --z-index-modal: 60;
+  --z-index-toast: 80;
+  --z-index-critical: 100;
+}
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    border-color: var(--pf-border-default);
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--pf-bg-page);
+    color: var(--pf-text-primary);
+    font-family: var(--font-sans);
+    font-size: 0.9375rem;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    color: var(--pf-text-primary);
+    font-weight: 600;
+    line-height: 1.3;
+    text-wrap: balance;
+  }
+
+  /* One visible focus treatment product-wide (doc 63). */
+  :focus-visible {
+    outline: 2px solid var(--pf-focus-ring);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+
+  ::selection {
+    background-color: var(--pf-teal-100);
+    color: var(--pf-teal-900);
+  }
+
+  [dir='rtl'] {
+    text-align: start;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer utilities {
+  /*
+   * Money and other figures that must line up vertically in a column. Also
+   * marks the run as LTR so digits and currency symbols keep their order
+   * inside a Hebrew sentence (doc 58 §5).
+   */
+  .pf-numeric {
+    font-variant-numeric: tabular-nums lining-nums;
+    font-feature-settings: 'tnum' 1, 'lnum' 1;
+  }
+
+  .pf-ltr-island {
+    direction: ltr;
+    unicode-bidi: isolate;
+  }
+
+  /* Latin entity strings — emails, references — inside Hebrew UI chrome. */
+  .pf-entity-string {
+    unicode-bidi: isolate;
+  }
+
+  /* Directional icons flip with the reading direction; logos and marks do not. */
+  [dir='rtl'] .pf-flip-rtl {
+    transform: scaleX(-1);
+  }
+
+  .pf-truncate-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+}

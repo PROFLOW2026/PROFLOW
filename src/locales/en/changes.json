@@ -1,0 +1,111 @@
+{
+  "pageTitle": "Changes",
+  "pageDescription": "Track extras, reductions, and approvals that affect contract value.",
+  "panel": {
+    "title": "Changes & extras",
+    "description": "Pending requests stay separate from the current contract value until approved.",
+    "new": "New change"
+  },
+  "empty": {
+    "title": "No change requests yet",
+    "description": "Record extras and reductions here so nothing is approved or billed by accident.",
+    "action": "Add a change"
+  },
+  "list": {
+    "reference": "Ref",
+    "title": "Title",
+    "project": "Project",
+    "amount": "Amount",
+    "status": "Status",
+    "date": "Date"
+  },
+  "summary": {
+    "title": "Contract value",
+    "original": "Original contract value",
+    "approvedAdditions": "Approved additions",
+    "approvedReductions": "Approved reductions",
+    "current": "Current contract value",
+    "pending": "Pending changes",
+    "potential": "Potential if approved",
+    "potentialHint": "Current value plus pending — not part of the contract until approved."
+  },
+  "status": {
+    "draft": "Draft",
+    "awaiting_approval": "Awaiting approval",
+    "awaitingApprovalSent": "Awaiting approval · sent",
+    "approved": "Approved",
+    "rejected": "Rejected",
+    "cancelled": "Cancelled"
+  },
+  "form": {
+    "createTitle": "New change request",
+    "createDescription": "Describe the extra or reduction. Pricing can come later.",
+    "title": "Title",
+    "description": "Description",
+    "direction": "Price impact",
+    "directionAddition": "Addition (+)",
+    "directionReduction": "Reduction (−)",
+    "requestedAmount": "Requested amount",
+    "requestedAmountHint": "Optional until you price a quote version.",
+    "project": "Project",
+    "projectPlaceholder": "Select a project",
+    "projectHint": "Choose the project this change applies to.",
+    "create": "Save draft",
+    "save": "Save changes"
+  },
+  "quote": {
+    "pageTitle": "Price change",
+    "pageDescription": "Create a new quote version. Issued versions cannot be edited.",
+    "lineDescription": "Line description",
+    "lineTotal": "Customer price",
+    "taxAmount": "Tax",
+    "validUntil": "Valid until",
+    "notes": "Notes",
+    "currencyHint": "Amounts in {currency}",
+    "saveVersion": "Save and issue version"
+  },
+  "approve": {
+    "pageTitle": "Approve change",
+    "pageDescription": "Approval creates an approved change order and updates current contract value.",
+    "amountLabel": "Amount to approve",
+    "versionLabel": "Quote version V{version}",
+    "noAmount": "Add a price or requested amount before approval.",
+    "approverName": "Approved by",
+    "approverNameHint": "Client contact or internal approver — optional.",
+    "effectiveDate": "Effective date",
+    "notes": "Notes",
+    "confirm": "Approve and create change order",
+    "noPermission": "You can view this request but approving requires the approve permission."
+  },
+  "detail": {
+    "amount": "Commercial amount",
+    "price": "Price / quote",
+    "approve": "Approve",
+    "versionsTitle": "Quote versions",
+    "version": "Version {number}",
+    "changeOrderTitle": "Approved change order",
+    "quoteVersionStatus": {
+      "draft": "Draft",
+      "issued": "Sent",
+      "accepted": "Accepted",
+      "superseded": "Superseded",
+      "rejected": "Rejected"
+    }
+  },
+  "actions": {
+    "submit": "Mark awaiting approval",
+    "submitAndSent": "Send & mark awaiting approval",
+    "reject": "Reject",
+    "cancel": "Cancel request"
+  },
+  "errors": {
+    "notDraft": "Only draft change requests can be edited.",
+    "cannotPrice": "This change request can no longer be priced.",
+    "quoteNotDraft": "Only draft quote versions can be issued.",
+    "quoteImmutable": "Issued quote versions are immutable. Create a new version instead.",
+    "quoteNotIssued": "Approval requires an issued quote version.",
+    "noContract": "Set an original contract value on the project before approving.",
+    "noAmount": "Provide a priced quote or requested amount before approval.",
+    "referenceConflict": "Could not assign a change order reference. Try again."
+  }
+}

@@ -1,0 +1,123 @@
+{
+  "title": "פרויקטים",
+  "newProject": "פרויקט חדש",
+  "noContractValue": "לא הוגדר",
+  "empty": {
+    "title": "עדיין אין פרויקטים",
+    "body": "פרויקטים הם המקום לעקוב אחר עבודה, סכום חוזה, עלויות וחיובים לכל עבודה.",
+    "action": "יצירת פרויקט ראשון"
+  },
+  "list": {
+    "searchPlaceholder": "חיפוש פרויקטים…",
+    "filterStatus": "סטטוס",
+    "allStatuses": "כל הסטטוסים",
+    "columns": {
+      "name": "פרויקט",
+      "client": "לקוח",
+      "status": "סטטוס",
+      "contractValue": "סכום חוזה",
+      "noClient": "—"
+    }
+  },
+  "create": {
+    "title": "פרויקט חדש",
+    "description": "הזינו שם כדי להתחיל. כל השאר אופציונלי וניתן להוסיף מאוחר יותר.",
+    "nameLabel": "שם הפרויקט",
+    "namePlaceholder": "לדוגמה: בית כהן",
+    "clientLabel": "לקוח",
+    "clientNone": "ללא לקוח",
+    "clientNew": "שם לקוח חדש",
+    "clientSelect": "בחירת לקוח קיים",
+    "clientNamePlaceholder": "שם הלקוח",
+    "clientNameExample": "לדוגמה: משפחת כהן",
+    "contractValueLabel": "סכום חוזה מקורי",
+    "contractValuePlaceholder": "לדוגמה: 150000",
+    "domainLabel": "תחום / מקצוע",
+    "domainPlaceholder": "לדוגמה: חשמל",
+    "locationLabel": "מיקום",
+    "locationPlaceholder": "אתר או כתובת",
+    "moreDetails": "פרטים נוספים",
+    "submit": "יצירת פרויקט",
+    "success": "הפרויקט נוצר"
+  },
+  "workspace": {
+    "fallbackTitle": "פרויקט",
+    "noClient": "ללא לקוח",
+    "clientLinked": "{clientLabel}: <link>{clientName}</link>",
+    "tabs": {
+      "overview": "סקירה",
+      "financials": "כספים",
+      "expenses": "הוצאות",
+      "changes": "שינויים ותוספות",
+      "billing": "חיובים וגבייה",
+      "work": "תחומי עבודה",
+      "time": "עובדים ושעות",
+      "documents": "מסמכים",
+      "details": "פרטים"
+    },
+    "header": {
+      "currentContractValue": "סכום חוזה נוכחי"
+    },
+    "archive": "העברה לארכיון",
+    "archiveConfirm": "להעביר את הפרויקט לארכיון? הוא יוסתר מהרשימה הפעילה ולא יימחק."
+  },
+  "overview": {
+    "contractSummary": "סיכום חוזה",
+    "originalValue": "סכום מקורי",
+    "approvedChanges": "שינויים מאושרים",
+    "currentValue": "סכום חוזה נוכחי",
+    "pendingChanges": "שינויים ממתינים",
+    "financialSnapshot": "תמונת מצב כספית",
+    "noContractYet": "טרם נרשם סכום חוזה",
+    "noContractHint": "ניתן להוסיף סכום חוזה מקורי בפרטי הפרויקט כשתהיו מוכנים.",
+    "valueEvents": "היסטוריית סכום חוזה",
+    "eventKind": {
+      "original": "מקורי",
+      "change_order": "שינוי מאושר",
+      "adjustment": "התאמה"
+    }
+  },
+  "work": {
+    "areasPlaceholder": "חשמל\nאינסטלציה\nגבס",
+    "contractHistory": {
+      "previousValue": "ערך קודם",
+      "newValue": "ערך חדש",
+      "reason": "סיבה",
+      "changedAt": "תאריך שינוי",
+      "changedBy": "שונה על ידי",
+      "unknownActor": "—"
+    }
+  },
+  "details": {
+    "title": "פרטי פרויקט",
+    "statusLabel": "סטטוס",
+    "clientLabel": "לקוח",
+    "domainLabel": "תחום",
+    "locationLabel": "מיקום",
+    "datesLabel": "תאריכים",
+    "startDate": "תאריך התחלה",
+    "targetEndDate": "תאריך יעד",
+    "actualEndDate": "תאריך סיום בפועל",
+    "roleLabel": "תפקידכם",
+    "deliveryModeLabel": "אופן ביצוע",
+    "descriptionLabel": "תיאור",
+    "notesLabel": "הערות",
+    "save": "שמירת שינויים",
+    "saved": "הפרטים נשמרו"
+  },
+  "workPackages": {
+    "title": "תחומי עבודה",
+    "defaultName": "כללי",
+    "splitCta": "פיצול לתחומי עבודה / דיסציפלינות",
+    "splitDescription": "עלויות ורשומות קיימות יישארו בתחום הכללי עד שתעבירו אותן.",
+    "add": "הוספת תחום עבודה",
+    "renameDefault": "שינוי שם תחום כללי",
+    "phases": "שלבים",
+    "addPhase": "הוספת שלב",
+    "emptyPhases": "אין שלבים עדיין"
+  },
+  "errors": {
+    "defaultWorkPackageArchive": "לא ניתן להעביר לארכיון את תחום העבודה הכללי.",
+    "lastWorkPackage": "לפרויקט חייב להישאר לפחות תחום עבודה אחד."
+  }
+}

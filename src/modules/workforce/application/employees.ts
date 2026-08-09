@@ -1,0 +1,191 @@
+import { AUDIT_ACTIONS, recordAuditEvent } from '@/shared/audit';
+import { todayInTimeZone } from '@/shared/dates';
+import { NotFoundError, ValidationError } from '@/shared/errors';
+import { assertPermission } from '@/shared/permissions/assert';
+import { PERMISSIONS } from '@/shared/permissions/catalog';
+import type { OrgContext } from '@/shared/auth/context';
+import { noteModuleUsage } from '@/modules/tenancy';
+import {
+  countEmployees,
+  findEmployeeById,
+  insertEmployee,
+  listEmployees,
+  updateEmployeeById,
+} from '../data/employees.repository';
+import {
+  insertLaborCostComponent,
+  insertRateVersion,
+  listRateVersionsByEmployee,
+} from '../data/rate-versions.repository';
+import type { EmployeeListItem, EmployeeRecord, RateVersionRecord } from '../domain/types';
+import {
+  createEmployeeSchema,
+  updateEmployeeSchema,
+  type CreateEmployeeInput,
+  type UpdateEmployeeInput,
+} from '../validation/schemas';
+
+export interface EmployeeDetail extends EmployeeRecord {
+  readonly rateVersions: readonly RateVersionRecord[];
+}
+
+export async function listEmployeesForOrg(
+  context: OrgContext,
+  filters: { search?: string; status?: EmployeeRecord['status'] | 'all' } = {},
+): Promise<EmployeeListItem[]> {
+  assertPermission(context, PERMISSIONS.WORKFORCE_READ);
+  return listEmployees(context.db, context.organizationId, filters);
+}
+
+export async function getEmployee(
+  context: OrgContext,
+  employeeId: string,
+): Promise<EmployeeDetail> {
+  assertPermission(context, PERMISSIONS.WORKFORCE_READ);
+
+  const employee = await findEmployeeById(context.db, context.organizationId, employeeId);
+  if (!employee) throw new NotFoundError('Employee');
+
+  const rateVersions = await listRateVersionsByEmployee(context.db, context.organizationId, employeeId);
+
+  return { ...employee, rateVersions };
+}
+
+export async function createEmployee(
+  context: OrgContext,
+  rawInput: CreateEmployeeInput,
+): Promise<EmployeeDetail> {
+  assertPermission(context, PERMISSIONS.WORKFORCE_MANAGE);
+
+  const parsed = createEmployeeSchema.safeParse(rawInput);
+  if (!parsed.success) {
+    throw new ValidationError(
+      parsed.error.issues.map((issue) => ({ path: issue.path.join('.'), message: issue.message })),
+    );
+  }
+
+  const input = parsed.data;
+  const currency = (input.currency ?? context.organization.baseCurrency).toUpperCase();
+  const validFrom = input.validFrom ?? todayInTimeZone(context.organization.timezone);
+
+  const employee = await insertEmployee(context.db, {
+    organizationId: context.organizationId,
+    name: input.name,
+    status: input.status,
+    userId: input.userId ?? null,
+    employeeNumber: input.employeeNumber ?? null,
+    jobTitle: input.jobTitle ?? null,
+    email: input.email || null,
+    phone: input.phone ?? null,
+    notes: input.notes ?? null,
+  });
+
+  if (input.baseRate) {
+    const rateVersion = await insertRateVersion(context.db, {
+      organizationId: context.organizationId,
+      employeeId: employee.id,
+      validFrom,
+      baseRate: input.baseRate,
+      rateUnit: input.rateUnit,
+      currency,
+      burdenPercent: input.burdenPercent ?? null,
+    });
+
+    for (const component of input.components ?? []) {
+      await insertLaborCostComponent(context.db, {
+        organizationId: context.organizationId,
+        rateVersionId: rateVersion.id,
+        key: component.key,
+        label: component.label,
+        basis: component.basis,
+        amount: component.amount ?? null,
+        percent: component.percent ?? null,
+        currency: component.currency?.toUpperCase() ?? currency,
+      });
+    }
+  }
+
+  const wasFirst = (await countEmployees(context.db, context.organizationId)) === 1;
+  if (wasFirst) {
+    await noteModuleUsage(context.db, context.organizationId, 'workforce');
+  }
+
+  await recordAuditEvent(context, {
+    action: AUDIT_ACTIONS.EMPLOYEE_CREATED,
+    entityType: 'employee',
+    entityId: employee.id,
+    after: {
+      name: employee.name,
+      rateUnit: input.rateUnit,
+      ...(input.baseRate ? { baseRate: input.baseRate, currency } : {}),
+    },
+  });
+
+  return getEmployee(context, employee.id);
+}
+
+export async function updateEmployee(
+  context: OrgContext,
+  employeeId: string,
+  rawInput: UpdateEmployeeInput,
+): Promise<EmployeeRecord> {
+  assertPermission(context, PERMISSIONS.WORKFORCE_MANAGE);
+
+  const parsed = updateEmployeeSchema.safeParse(rawInput);
+  if (!parsed.success) {
+    throw new ValidationError(
+      parsed.error.issues.map((issue) => ({ path: issue.path.join('.'), message: issue.message })),
+    );
+  }
+
+  const existing = await findEmployeeById(context.db, context.organizationId, employeeId);
+  if (!existing) throw new NotFoundError('Employee');
+
+  const input = parsed.data;
+  const updated = await updateEmployeeById(context.db, context.organizationId, employeeId, {
+    name: input.name,
+    status: input.status,
+    userId: input.userId,
+    employeeNumber: input.employeeNumber,
+    jobTitle: input.jobTitle,
+    email: input.email || null,
+    phone: input.phone,
+    notes: input.notes,
+  });
+
+  if (!updated) throw new NotFoundError('Employee');
+
+  await recordAuditEvent(context, {
+    action: AUDIT_ACTIONS.EMPLOYEE_UPDATED,
+    entityType: 'employee',
+    entityId: employeeId,
+    before: existing,
+    after: updated,
+  });
+
+  return updated;
+}
+
+export async function archiveEmployee(context: OrgContext, employeeId: string): Promise<EmployeeRecord> {
+  assertPermission(context, PERMISSIONS.WORKFORCE_MANAGE);
+
+  const existing = await findEmployeeById(context.db, context.organizationId, employeeId);
+  if (!existing) throw new NotFoundError('Employee');
+
+  const updated = await updateEmployeeById(context.db, context.organizationId, employeeId, {
+    archivedAt: new Date(),
+    status: 'inactive',
+  });
+
+  if (!updated) throw new NotFoundError('Employee');
+
+  await recordAuditEvent(context, {
+    action: AUDIT_ACTIONS.EMPLOYEE_ARCHIVED,
+    entityType: 'employee',
+    entityId: employeeId,
+    before: existing,
+    after: updated,
+  });
+
+  return updated;
+}
