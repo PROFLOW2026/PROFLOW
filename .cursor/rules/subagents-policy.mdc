@@ -1,5 +1,5 @@
 ---
-description: ProjectFlow subagent policy — only Auto/Composer; no subagent APIs
+description: ProjectFlow subagent policy — Auto/Composer allowed; subagent APIs forbidden
 alwaysApply: true
 ---
 
@@ -7,23 +7,41 @@ alwaysApply: true
 
 Read and obey this before starting any task in ProjectFlow.
 
-## Allowed subagents
+## Allowed — use these
 
-Subagents may be launched **only** if they are:
+Launch Cursor **Auto** and **Composer** subagents when useful, especially for large
+programs that request maximum safe parallelism.
 
-- **Auto**
-- **Composer**
+- **Auto** — allowed and expected for parallel feature/review/audit work
+- **Composer** — allowed
 
-Do not launch any other subagent type.
+When the user or an approved program asks for multi-agent execution, the Lead
+**must** fill available Auto/Composer slots with independent tasks rather than
+serializing everything in one agent.
 
-## Forbidden
+## Forbidden — only this class
 
-- Do **not** use or invoke **subagent APIs**
-- Do **not** request approval to enable/use subagent APIs
-- Do **not** work around this by calling external agent APIs, SDK agent runners, or equivalent subagent API surfaces
+The ban is on **subagent APIs / external agent runners**, not on Auto itself.
 
-## Default behavior
+Do **not**:
 
-- Prefer doing the work **in the current agent** without spawning subagents
-- If a subagent is truly needed, use **only Auto or Composer**
-- If a task seems to require another subagent type or a subagent API — **stop and ask the user** instead of proceeding
+- use or invoke **subagent APIs**
+- request approval to enable/use subagent APIs
+- call external agent APIs, SDK agent runners, or equivalent subagent API surfaces
+- work around the ban with Cursor SDK / REST `/v1/agents` / similar automation APIs
+
+## Other Cursor Task subagent types
+
+Do not launch non-Auto/Composer Task types (for example explore-only wrappers,
+bugbot, security-review APIs, or other specialized Task `subagent_type` values)
+unless the user explicitly overrides this rule for that session.
+
+If a requested capability seems to require a forbidden API rather than a normal
+Auto/Composer subagent — **stop and ask the user**.
+
+## Lead / Integrator duties when using Auto
+
+- Lead owns shared architecture, migration numbering, financial contracts, tenancy
+- Avoid multiple agents editing the same shared files at once
+- Agents must not invent overlapping schema or weaken tests
+- Integrate results; fix BLOCKER/HIGH/MEDIUM before closing a wave
