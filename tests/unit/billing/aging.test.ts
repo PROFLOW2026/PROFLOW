@@ -1,16 +1,18 @@
 import { describe, expect, it } from 'vitest';
 import { computeReceivablesAging } from '@/modules/billing/domain/aging';
 import type { BillingRecordSummary } from '@/modules/billing/domain/types';
+import { businessDate } from '@/shared/dates';
 import { money } from '@/shared/money';
 
 function record(
-  partial: Partial<BillingRecordSummary> & Pick<BillingRecordSummary, 'id' | 'dueDate' | 'outstandingAmount'>,
+  partial: Partial<BillingRecordSummary> &
+    Pick<BillingRecordSummary, 'id' | 'dueDate' | 'outstandingAmount'>,
 ): BillingRecordSummary {
   return {
     projectId: null,
     projectName: null,
     reference: null,
-    issueDate: '2026-01-01',
+    issueDate: businessDate('2026-01-01'),
     status: 'finalized',
     kind: 'invoice',
     totalAmount: partial.outstandingAmount,
@@ -26,12 +28,12 @@ describe('receivables aging', () => {
       [
         record({
           id: '1',
-          dueDate: '2026-08-01',
+          dueDate: businessDate('2026-08-01'),
           outstandingAmount: money('100', 'ILS'),
         }),
         record({
           id: '2',
-          dueDate: '2026-07-01',
+          dueDate: businessDate('2026-07-01'),
           outstandingAmount: money('50', 'ILS'),
         }),
         record({
@@ -41,7 +43,7 @@ describe('receivables aging', () => {
         }),
       ],
       'ILS',
-      '2026-08-09',
+      businessDate('2026-08-09'),
     );
 
     expect(aging.buckets.find((b) => b.key === 'current')?.total.amount).toBe('25.000000');
