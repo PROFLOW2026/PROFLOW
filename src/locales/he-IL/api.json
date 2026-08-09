@@ -1,7 +1,9 @@
 {
   "title": "API ו־webhooks",
-  "subtitle": "רישום לקוחות API, הנפקת מפתחות ורישום נקודות webhook. אין מחברים לצדדים שלישיים כאן.",
-  "versionNote": "משטח ציבורי: GET /api/v1/whoami ו־GET /api/v1/projects עם Authorization: Bearer <api_key>. אימות cookie של Next לא בשימוש בנתיבים אלה.",
+  "subtitle": "ניהול מפתחות גישה והתראות למערכות חיצוניות.",
+  "versionNote": "מפתחות אלה מיועדים למפתחים שמחברים מערכת חיצונית. התחברות רגילה באפליקציה אינה מחליפה מפתח.",
+  "moreInfo": "מידע נוסף",
+  "versionNoteDetails": "נתיבים ציבוריים בגרסת v1: whoami ו־projects. שלחו את מפתח ה־API בכותרת Authorization. התחברות דרך הדפדפן אינה חלה על נתיבים אלה.",
   "addClient": "יצירת לקוח",
   "clientSaved": "לקוח ה־API נוצר.",
   "addKey": "יצירת מפתח",
@@ -48,17 +50,17 @@
     "revoked": "מבוטל"
   },
   "scopes": {
-    "projects.read": "projects.read",
-    "clients.read": "clients.read",
-    "billing.read": "billing.read",
-    "webhooks.manage": "webhooks.manage"
+    "projects.read": "קריאת פרויקטים",
+    "clients.read": "קריאת לקוחות",
+    "billing.read": "קריאת חיובים",
+    "webhooks.manage": "ניהול התראות"
   },
   "events": {
-    "test.ping": "test.ping",
-    "project.created": "project.created",
-    "project.updated": "project.updated",
-    "client.updated": "client.updated",
-    "billing.invoice.issued": "billing.invoice.issued",
-    "api.key.revoked": "api.key.revoked"
+    "test.ping": "בדיקת חיבור",
+    "project.created": "נוצר פרויקט",
+    "project.updated": "עודכן פרויקט",
+    "client.updated": "עודכן לקוח",
+    "billing.invoice.issued": "הונפק חיוב",
+    "api.key.revoked": "בוטל מפתח גישה"
   }
 }

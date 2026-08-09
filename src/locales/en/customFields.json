@@ -1,10 +1,10 @@
 {
   "title": "Custom fields",
-  "subtitle": "Define optional attributes on allowed records. Custom fields never replace canonical financial or commercial fields.",
-  "reportingNote": "Reporting and exports may not include custom fields yet. Treat them as operational labels until reporting support lands.",
+  "subtitle": "Optional attributes on records — they never replace financial fields.",
+  "reportingNote": "Custom fields are operational labels; they may not appear in reports or exports yet.",
   "listTitle": "Field definitions",
   "empty": "No custom fields yet",
-  "emptyHint": "Optional operational labels — they never replace canonical financial fields.",
+  "emptyHint": "Add an optional field when you need an operational label.",
   "addDefinition": "Add field",
   "archive": "Archive",
   "saved": "Custom field saved.",

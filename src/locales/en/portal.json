@@ -4,8 +4,8 @@
   "externalNote": "External principals are not organization members. Public portal login is not enabled yet — grants are admin-managed only and never mutate financial truth.",
   "customerSection": "Customer portal",
   "vendorSection": "Vendor portal",
-  "vendorSubtitle": "Vendor grants require a vendor scope (portal_kind vendor + vendorId). External users cannot change bills, expenses, or payments.",
-  "vendorFoundationNote": "Public vendor login is still foundation-only. Scopes enable RFQ visibility, quote candidates, approved PO views, bill candidates, and compliance upload candidates. Candidates never post AP bills or expenses.",
+  "vendorSubtitle": "A vendor grant must be linked to a vendor. External users cannot change vendor bills, expenses, or payments.",
+  "vendorFoundationNote": "Public vendor login is still being set up. You can allow RFQ visibility, pending quotes, approved orders, vendor bill candidates, and compliance uploads. Candidates never create vendor bills or expenses.",
   "listTitle": "Customer access grants",
   "vendorListTitle": "Vendor access grants",
   "empty": "No customer portal grants yet.",
@@ -49,7 +49,7 @@
     "rfq.read": "View RFQs",
     "quote.submit": "Submit quote candidate",
     "po.view": "View purchase orders",
-    "bill.candidate": "Submit AP bill candidate"
+    "bill.candidate": "Submit vendor bill candidate"
   },
   "statuses": {
     "active": "Active",
@@ -117,10 +117,10 @@
     "rfqList": "RFQ access (vendor-associated only)",
     "poList": "Purchase orders (vendor-visible statuses)",
     "lines": "lines",
-    "apCandidates": "AP bill candidates",
+    "apCandidates": "Vendor bill candidates",
     "complianceCandidates": "Compliance candidates",
     "intakeNote": "Intake mode",
-    "candidatesOnly": "Candidates only — never mutates AP bills, expenses, or payments",
+    "candidatesOnly": "Candidates only — never mutates vendor bills, expenses, or payments",
     "rfqVisibilityNote": "RFQs appear only when this vendor already has a linked supplier quote. Org-wide RFQ browse is blocked (invite table deferred)."
   },
   "candidateQuote": {
@@ -130,11 +130,11 @@
     "saved": "Quote candidate stored as received (not finalized)."
   },
   "candidateAp": {
-    "title": "Submit AP bill candidate",
-    "hint": "Queues invoice candidate data for internal review. Does not create an AP bill or expense.",
+    "title": "Submit vendor bill candidate",
+    "hint": "Queues invoice candidate data for internal review. Does not create a vendor bill or expense.",
     "reference": "Invoice reference",
-    "submit": "Queue AP candidate",
-    "saved": "AP bill candidate queued (not posted)."
+    "submit": "Queue vendor bill candidate",
+    "saved": "Vendor bill candidate queued (not posted)."
   },
   "candidateCompliance": {
     "title": "Submit compliance candidate",
@@ -153,12 +153,12 @@
   },
   "candidateReview": {
     "title": "Internal candidate review",
-    "subtitle": "Accept or reject vendor portal candidates. Accepting only queues internal follow-up — it never posts AP bills, expenses, or compliance artifacts.",
+    "subtitle": "Accept or reject vendor portal candidates. Accepting only queues internal follow-up — it never posts vendor bills, expenses, or compliance artifacts.",
     "neverPosts": "Candidates ≠ ledger truth. Financial posting remains a separate internal action.",
     "accept": "Accept for review",
     "reject": "Reject",
     "saved": "Candidate review saved.",
-    "apLabel": "AP bill candidate",
+    "apLabel": "Vendor bill candidate",
     "complianceLabel": "Compliance candidate",
     "reviewedCount": "{count} already reviewed in this session store"
   }

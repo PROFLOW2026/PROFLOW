@@ -12,7 +12,11 @@ import {
 } from '@/components/ui/dialog';
 import { usePathname } from '@/shared/i18n/navigation';
 import { cn } from '@/shared/ui/cn';
-import { isNavItemActive, type NavItem } from './navigation';
+import {
+  isNavItemActive,
+  partitionNavItems,
+  type NavItem,
+} from './navigation';
 import { ShellNavLink } from './shell-nav-link';
 
 /**
@@ -29,6 +33,7 @@ export function MobileNav({ items }: { items: NavItem[] }) {
 
   const primary = items.filter((item) => item.primaryOnMobile).slice(0, 4);
   const overflow = items.filter((item) => !primary.includes(item));
+  const { groups, settings } = partitionNavItems(overflow);
 
   return (
     <>
@@ -85,25 +90,61 @@ export function MobileNav({ items }: { items: NavItem[] }) {
             <DialogTitle>{t('more')}</DialogTitle>
           </DialogHeader>
           <DialogBody>
-            <ul className="flex flex-col">
-              {overflow.map((item) => {
-                const active = isNavItemActive(pathname, item.href);
-                return (
-                  <li key={item.key}>
-                    <ShellNavLink
-                      href={item.href}
-                      label={t(item.labelKey)}
-                      iconKey={item.iconKey}
-                      active={active}
-                      variant="sidebar"
-                      muteIcon
-                      onNavigate={() => setMoreOpen(false)}
-                      className="min-h-11 py-3"
-                    />
-                  </li>
-                );
-              })}
-            </ul>
+            <div className="flex flex-col gap-4">
+              {groups.map(({ group, items: groupItems }) => (
+                <div key={group}>
+                  <p className="px-3 pb-1 text-xs font-semibold tracking-wide text-[var(--pf-text-secondary)] uppercase">
+                    {t(`moreGroups.${group}`)}
+                  </p>
+                  <ul className="flex flex-col">
+                    {groupItems.map((item) => {
+                      const active = isNavItemActive(pathname, item.href);
+                      return (
+                        <li key={item.key}>
+                          <ShellNavLink
+                            href={item.href}
+                            label={t(item.labelKey)}
+                            iconKey={item.iconKey}
+                            active={active}
+                            variant="sidebar"
+                            muteIcon
+                            onNavigate={() => setMoreOpen(false)}
+                            className="min-h-11 py-3"
+                          />
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              ))}
+
+              {settings.length > 0 ? (
+                <div>
+                  <p className="px-3 pb-1 text-xs font-semibold tracking-wide text-[var(--pf-text-secondary)] uppercase">
+                    {t('settings')}
+                  </p>
+                  <ul className="flex flex-col">
+                    {settings.map((item) => {
+                      const active = isNavItemActive(pathname, item.href);
+                      return (
+                        <li key={item.key}>
+                          <ShellNavLink
+                            href={item.href}
+                            label={t(item.labelKey)}
+                            iconKey={item.iconKey}
+                            active={active}
+                            variant="sidebar"
+                            muteIcon
+                            onNavigate={() => setMoreOpen(false)}
+                            className="min-h-11 py-3"
+                          />
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              ) : null}
+            </div>
           </DialogBody>
         </DialogContent>
       </Dialog>

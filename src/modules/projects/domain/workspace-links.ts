@@ -80,6 +80,8 @@ export function selectProjectWorkspaceLinks(input: WorkspaceLinkInput): ProjectW
     links.push({ key: 'billing', href: tab('billing'), inProject: true });
   }
 
+  links.push({ key: 'details', href: tab('details'), inProject: true });
+
   if (input.showWorkPackages) {
     links.push({ key: 'work', href: tab('work'), inProject: true });
   }
@@ -140,8 +142,6 @@ export function selectProjectWorkspaceLinks(input: WorkspaceLinkInput): ProjectW
   ) {
     links.push({ key: 'compliance', href: '/compliance', inProject: false });
   }
-
-  links.push({ key: 'details', href: tab('details'), inProject: true });
 
   return links;
 }

@@ -8,7 +8,7 @@
     "orders": "Purchase orders",
     "rfqs": "RFQs",
     "materials": "Materials",
-    "ap": "AP matching"
+    "ap": "Vendor bills"
   },
   "newOrder": "New purchase order",
   "newMaterial": "Add material",

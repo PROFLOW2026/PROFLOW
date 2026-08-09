@@ -64,20 +64,12 @@ export default async function ExpensesPage({
         title={t('title')}
         description={t('subtitle')}
         actions={
-          <div className="flex flex-wrap items-center gap-2">
-            <Link
-              href="/documents/ocr-review"
-              className="text-sm font-medium text-[var(--pf-text-brand)] underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
-            >
-              {t('actions.receiptPhoto')}
+          <Button asChild>
+            <Link href="/expenses/new">
+              <Plus aria-hidden />
+              {t('actions.add')}
             </Link>
-            <Button asChild>
-              <Link href="/expenses/new">
-                <Plus aria-hidden />
-                {t('actions.add')}
-              </Link>
-            </Button>
-          </div>
+          </Button>
         }
       />
 

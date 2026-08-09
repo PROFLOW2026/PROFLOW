@@ -15,7 +15,11 @@ export async function SettingsPageShell({
   children: ReactNode;
 }) {
   const navItems = await withOrgContext(async (context) =>
-    accessibleSections(context).map((section) => ({ key: section.key, href: section.href })),
+    accessibleSections(context).map((section) => ({
+      key: section.key,
+      href: section.href,
+      group: section.group,
+    })),
   );
 
   return (

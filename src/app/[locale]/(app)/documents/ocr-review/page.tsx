@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { getTranslations } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
 import { Alert } from '@/components/ui/alert';
 import { PageHeader } from '@/components/ui/page-header';
 import { listOcrCandidates, getOcrProviderStatus } from '@/modules/ocr';
@@ -8,19 +8,31 @@ import { withOrgContext } from '@/shared/auth/session';
 import { AuthorizationError } from '@/shared/errors';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
-import { Link } from '@/shared/i18n/navigation';
+import { Link, redirect } from '@/shared/i18n/navigation';
 
+/**
+ * OCR review is foundation-only (stub provider). In production, normal
+ * customers are redirected away — no permanent "unavailable" product screen.
+ * Non-production keeps the route for tests and local tooling.
+ */
 export async function generateMetadata({
   params,
 }: {
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const { locale } = await params;
+  if (process.env.NODE_ENV === 'production') {
+    return { title: 'Expenses' };
+  }
   const t = await getTranslations({ locale, namespace: 'documents' });
   return { title: t('ocr.title') };
 }
 
 export default async function OcrReviewPage() {
+  if (process.env.NODE_ENV === 'production') {
+    redirect({ href: '/expenses', locale: await getLocale() });
+  }
+
   const t = await getTranslations('documents');
   const tOcr = await getTranslations('documents.ocr');
 

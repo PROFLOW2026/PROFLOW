@@ -119,6 +119,7 @@ export default async function BillingListPage({
           ) : undefined
         }
       />
+      <p className="text-xs text-[var(--pf-text-muted)]">{t('statutoryDisclosure')}</p>
 
       {showSummary && summary ? <ReceivablesSummaryPanel summary={summary} /> : null}
       {showAging && aging ? <ReceivablesAgingPanel aging={aging} /> : null}

@@ -1,6 +1,12 @@
 {
   "title": "Settings",
   "navLabel": "Settings",
+  "groups": {
+    "basic": "Basic",
+    "business": "Business config",
+    "advanced": "Advanced",
+    "developers": "Developers"
+  },
   "sections": {
     "business": "Business",
     "people": "People and roles",
@@ -275,7 +281,7 @@
       "portal": {
         "grant_created": "Portal grant created",
         "grant_revoked": "Portal grant revoked",
-        "vendor_ap_candidate": "Vendor AP candidate submitted",
+        "vendor_ap_candidate": "Vendor bill candidate submitted",
         "vendor_compliance_candidate": "Vendor compliance candidate submitted",
         "vendor_candidate_reviewed": "Vendor portal candidate reviewed"
       },
@@ -338,10 +344,10 @@
         "supplier_quote_received": "Supplier quote received"
       },
       "ap": {
-        "bill_created": "AP bill created",
-        "match_proposed": "AP match proposed",
-        "match_accepted": "AP match accepted",
-        "match_rejected": "AP match rejected"
+        "bill_created": "Vendor bill created",
+        "match_proposed": "Vendor bill match proposed",
+        "match_accepted": "Vendor bill match accepted",
+        "match_rejected": "Vendor bill match rejected"
       },
       "daily_log": {
         "created": "Daily log created",
@@ -421,8 +427,8 @@
       "procurement_rfq": "RFQ",
       "supplier_quote": "Supplier quote",
       "purchase_order": "Purchase order",
-      "ap_bill": "AP bill",
-      "ap_match": "AP match",
+      "ap_bill": "Vendor bill",
+      "ap_match": "Vendor bill match",
       "daily_log": "Daily log",
       "punch_list_item": "Punch item",
       "inspection": "Inspection",

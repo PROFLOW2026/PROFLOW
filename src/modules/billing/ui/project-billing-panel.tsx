@@ -53,6 +53,7 @@ export async function ProjectBillingPanel({ projectId }: ProjectBillingPanelProp
 
   return (
     <div className="flex min-w-0 flex-col gap-4">
+      <p className="text-xs text-[var(--pf-text-muted)]">{t('statutoryDisclosure')}</p>
       <Card className="min-w-0">
         <CardHeader>
           <CardTitle className="text-start">{t('panel.positionTitle')}</CardTitle>

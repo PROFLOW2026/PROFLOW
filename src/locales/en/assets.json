@@ -1,6 +1,6 @@
 {
   "title": "Assets",
-  "description": "Equipment, fleet, maintenance and stock. Maintenance cost is metadata — not an expense. Inventory quantity is not GL.",
+  "description": "Equipment, fleet, maintenance, and operational stock.",
   "navLabel": "Assets sections",
   "nav": {
     "assets": "Assets",
@@ -79,9 +79,11 @@
   },
   "fleet": {
     "title": "Fleet",
-    "description": "Vehicles linked to assets of kind vehicle. Plate, VIN and odometer are operational fields.",
+    "description": "Plate, VIN, and odometer for linked vehicles.",
     "schemaLimitsTitle": "Ownership, lease and driver",
-    "schemaLimitsBody": "Migration 0011 has no ownership/rental, lease, or driver/employee columns. Project check-out uses the linked asset’s assigned project. Mileage is tracked as odometer only.",
+    "schemaLimitsBody": "Ownership, lease, and driver tracking are not available yet. Project assignment uses the linked asset. Mileage is odometer only.",
+    "moreInfo": "More information",
+    "schemaLimitsDetails": "Ownership/rental, lease, and driver/employee fields are not available yet. Project check-out uses the asset’s assigned project.",
     "createTitle": "Add fleet vehicle",
     "editTitle": "Edit fleet vehicle",
     "submit": "Save fleet vehicle",

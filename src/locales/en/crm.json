@@ -3,9 +3,9 @@
   "description": "Pre-project sales: prospects, leads, opportunities and sales quotes.",
   "navLabel": "CRM sections",
   "nav": {
-    "opportunities": "Opportunities",
     "prospects": "Prospects",
-    "leads": "Leads"
+    "leads": "Leads",
+    "opportunities": "Opportunities"
   },
   "empty": {
     "opportunities": {

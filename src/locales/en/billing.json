@@ -1,6 +1,7 @@
 {
   "title": "Billing and collections",
-  "subtitle": "Track what you billed, what was collected, and what is still outstanding. This is internal billing tracking — not statutory invoice issuance.",
+  "subtitle": "Track what you billed, what was collected, and what is still outstanding.",
+  "statutoryDisclosure": "Internal billing tracking only — not statutory invoice issuance.",
   "list": {
     "project": "Project",
     "reference": "Reference",

@@ -3,9 +3,9 @@ import { getTranslations } from 'next-intl/server';
 import { SectionNavLink } from '@/components/ui/section-nav-link';
 
 const SECTIONS = [
-  { href: '/crm', key: 'opportunities' as const },
   { href: '/crm/prospects', key: 'prospects' as const },
   { href: '/crm/leads', key: 'leads' as const },
+  { href: '/crm', key: 'opportunities' as const },
 ];
 
 export async function CrmSectionNav({ active }: { active: 'opportunities' | 'prospects' | 'leads' }) {

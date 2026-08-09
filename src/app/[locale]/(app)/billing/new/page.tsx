@@ -33,6 +33,7 @@ export default async function NewBillingRecordPage({
   return (
     <div className="flex min-w-0 flex-col gap-6">
       <PageHeader title={t('form.title')} description={t('subtitle')} />
+      <p className="text-xs text-[var(--pf-text-muted)]">{t('statutoryDisclosure')}</p>
       <BillingRecordForm
         projects={projects}
         defaultProjectId={projectId}

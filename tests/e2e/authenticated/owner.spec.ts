@@ -36,7 +36,7 @@ test.describe('signed-in owner', () => {
     await expect(page.getByText(contractValueFormatted).first()).toBeVisible();
 
     await page.getByRole('tab', { name: he.projects.workspace.tabs.financials }).click();
-    await expect(page.getByRole('heading', { name: he.financial.currentContractValue, level: 3 })).toBeVisible();
+    await expect(page.getByRole('heading', { name: he.financial.contractValue, level: 3 })).toBeVisible();
     await expect(page.getByText(contractValueFormatted).first()).toBeVisible();
     await expect(page.getByText(seededExpenseFormatted).first()).toBeVisible();
 

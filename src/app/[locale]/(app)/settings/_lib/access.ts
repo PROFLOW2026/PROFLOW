@@ -20,28 +20,55 @@ export type SettingsSectionKey =
   | 'offlineDrafts'
   | 'profile';
 
+export type SettingsNavGroup = 'basic' | 'business' | 'advanced' | 'developers';
+
 export interface SettingsSection {
   readonly key: SettingsSectionKey;
   readonly href: string;
   readonly permission: PermissionKey | null;
+  readonly group: SettingsNavGroup;
+  /** Hidden from normal Settings nav (route may still exist). */
+  readonly hideFromNav?: boolean;
 }
 
+/**
+ * Settings IA: BASIC → BUSINESS CONFIG → ADVANCED → DEVELOPERS.
+ * Portal foundation is not listed for normal customers.
+ */
 export const SETTINGS_SECTIONS: readonly SettingsSection[] = [
-  { key: 'business', href: '/settings/business', permission: PERMISSIONS.ORG_READ },
-  { key: 'people', href: '/settings/people', permission: PERMISSIONS.MEMBERS_READ },
-  { key: 'roles', href: '/settings/roles', permission: PERMISSIONS.ROLES_MANAGE },
-  { key: 'features', href: '/settings/features', permission: PERMISSIONS.SETTINGS_MANAGE },
-  { key: 'costCategories', href: '/settings/cost-categories', permission: PERMISSIONS.SETTINGS_MANAGE },
-  { key: 'catalog', href: '/settings/catalog', permission: PERMISSIONS.SETTINGS_MANAGE },
-  { key: 'templates', href: '/settings/templates', permission: PERMISSIONS.SETTINGS_MANAGE },
-  { key: 'tax', href: '/settings/tax', permission: PERMISSIONS.TAX_MANAGE },
-  { key: 'portal', href: '/settings/portal', permission: PERMISSIONS.PORTAL_MANAGE },
-  { key: 'customFields', href: '/settings/custom-fields', permission: PERMISSIONS.CUSTOM_FIELDS_MANAGE },
-  { key: 'api', href: '/settings/api', permission: PERMISSIONS.API_MANAGE },
-  { key: 'activity', href: '/settings/activity', permission: PERMISSIONS.AUDIT_READ },
-  { key: 'app', href: '/settings/app', permission: null },
-  { key: 'offlineDrafts', href: '/settings/offline-drafts', permission: null },
-  { key: 'profile', href: '/settings/profile', permission: null },
+  { key: 'business', href: '/settings/business', permission: PERMISSIONS.ORG_READ, group: 'basic' },
+  { key: 'people', href: '/settings/people', permission: PERMISSIONS.MEMBERS_READ, group: 'basic' },
+  { key: 'profile', href: '/settings/profile', permission: null, group: 'basic' },
+  { key: 'tax', href: '/settings/tax', permission: PERMISSIONS.TAX_MANAGE, group: 'basic' },
+  { key: 'app', href: '/settings/app', permission: null, group: 'basic' },
+
+  { key: 'features', href: '/settings/features', permission: PERMISSIONS.SETTINGS_MANAGE, group: 'business' },
+  { key: 'costCategories', href: '/settings/cost-categories', permission: PERMISSIONS.SETTINGS_MANAGE, group: 'business' },
+  { key: 'templates', href: '/settings/templates', permission: PERMISSIONS.SETTINGS_MANAGE, group: 'business' },
+  { key: 'catalog', href: '/settings/catalog', permission: PERMISSIONS.SETTINGS_MANAGE, group: 'business' },
+  { key: 'roles', href: '/settings/roles', permission: PERMISSIONS.ROLES_MANAGE, group: 'business' },
+
+  { key: 'customFields', href: '/settings/custom-fields', permission: PERMISSIONS.CUSTOM_FIELDS_MANAGE, group: 'advanced' },
+  { key: 'activity', href: '/settings/activity', permission: PERMISSIONS.AUDIT_READ, group: 'advanced' },
+  { key: 'offlineDrafts', href: '/settings/offline-drafts', permission: null, group: 'advanced' },
+
+  { key: 'api', href: '/settings/api', permission: PERMISSIONS.API_MANAGE, group: 'developers' },
+
+  // Foundation only — not in customer Settings nav
+  {
+    key: 'portal',
+    href: '/settings/portal',
+    permission: PERMISSIONS.PORTAL_MANAGE,
+    group: 'developers',
+    hideFromNav: true,
+  },
+];
+
+export const SETTINGS_NAV_GROUP_ORDER: readonly SettingsNavGroup[] = [
+  'basic',
+  'business',
+  'advanced',
+  'developers',
 ];
 
 export function canAccessSection(context: OrgContext, section: SettingsSection): boolean {
@@ -50,7 +77,20 @@ export function canAccessSection(context: OrgContext, section: SettingsSection):
 }
 
 export function accessibleSections(context: OrgContext): SettingsSection[] {
-  return SETTINGS_SECTIONS.filter((section) => canAccessSection(context, section));
+  return SETTINGS_SECTIONS.filter(
+    (section) => !section.hideFromNav && canAccessSection(context, section),
+  );
+}
+
+export function groupSettingsSections(
+  sections: readonly SettingsSection[],
+): { group: SettingsNavGroup; items: SettingsSection[] }[] {
+  const result: { group: SettingsNavGroup; items: SettingsSection[] }[] = [];
+  for (const group of SETTINGS_NAV_GROUP_ORDER) {
+    const items = sections.filter((section) => section.group === group);
+    if (items.length > 0) result.push({ group, items });
+  }
+  return result;
 }
 
 export function canManageSection(context: OrgContext, sectionKey: SettingsSectionKey): boolean {

@@ -3,9 +3,9 @@
   "description": "מכירות טרום־פרויקט: מתעניינים, לידים, הזדמנויות והצעות מחיר.",
   "navLabel": "אזורי CRM",
   "nav": {
-    "opportunities": "הזדמנויות",
     "prospects": "מתעניינים",
-    "leads": "לידים"
+    "leads": "לידים",
+    "opportunities": "הזדמנויות"
   },
   "empty": {
     "opportunities": {
@@ -39,14 +39,14 @@
     "estimate": "אומדן",
     "quote": "הצעת מחיר",
     "negotiation": "משא ומתן",
-    "won": "נצח",
-    "lost": "אבוד"
+    "won": "נסגר בהצלחה",
+    "lost": "לא נסגר"
   },
   "statuses": {
     "opportunity": {
       "open": "פתוח",
-      "won": "נצח",
-      "lost": "אבוד",
+      "won": "נסגר בהצלחה",
+      "lost": "לא נסגר",
       "cancelled": "בוטל"
     },
     "prospect": {
@@ -117,9 +117,9 @@
     "expectedStartLabel": "תחילה צפויה",
     "referralLabel": "מקור הפניה",
     "notesLabel": "הערות",
-    "lostReasonLabel": "סיבת אובדן",
+    "lostReasonLabel": "סיבת אי־סגירה",
     "submit": "יצירת הזדמנות",
-    "markLost": "סימון כאבוד",
+    "markLost": "סימון כלא נסגר",
     "notesSection": "הערות",
     "addNote": "הוספת הערה",
     "noteBody": "הערה",
@@ -143,7 +143,7 @@
     "contractLinked": "חוזה ראשי מקושר: {id}",
     "pipelineLinks": "קישורי משפך",
     "openLead": "פתיחת ליד מקושר",
-    "openProspect": "פרוספקט: {name}",
+    "openProspect": "מתעניין: {name}",
     "quoteNet": "נטו",
     "quoteTax": "מע״מ/מס",
     "quoteTotal": "סה״כ",
@@ -151,9 +151,9 @@
   },
   "convert": {
     "title": "המרה לפרויקט",
-    "description": "יוצר לקוח, פרויקט וערך חוזה מקורי מהצעת המחיר שהתקבלה. בטוח לנסות שוב — הזדמנות שכבר הומרה משתמשת באותם לקוח, פרויקט וחוזה.",
+    "description": "יוצר לקוח, פרויקט וסכום חוזה מקורי מהצעת המחיר שהתקבלה. בטוח לנסות שוב — הזדמנות שכבר הומרה משתמשת באותם לקוח, פרויקט וחוזה.",
     "projectNameLabel": "שם הפרויקט",
-    "submit": "המרת הזדמנות שנצחה",
+    "submit": "המרת הזדמנות שנסגרה בהצלחה",
     "requiresAcceptedQuote": "יש לקבל גרסת הצעת מחיר לפני המרה.",
     "alreadyConverted": "ההזדמנות כבר הומרה.",
     "cannotConvert": "לא ניתן להמיר הזדמנות זו.",
@@ -162,8 +162,8 @@
   },
   "errors": {
     "alreadyConverted": "ההזדמנות כבר הומרה",
-    "cannotConvertLost": "לא ניתן להמיר הזדמנות אבודה או מבוטלת",
-    "cannotLoseConverted": "לא ניתן לסמן הזדמנות שהומרה כאבודה",
+    "cannotConvertLost": "לא ניתן להמיר הזדמנות שלא נסגרה או שבוטלה",
+    "cannotLoseConverted": "לא ניתן לסמן הזדמנות שהומרה כלא נסגרה",
     "cannotConvert": "לא ניתן להמיר הזדמנות זו",
     "quoteNotAccepted": "רק גרסת הצעת מחיר שהתקבלה יכולה להזין את סכום החוזה נטו",
     "quoteOpportunityMismatch": "הצעת המחיר אינה שייכת להזדמנות זו",

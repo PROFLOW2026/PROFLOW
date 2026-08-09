@@ -165,7 +165,7 @@
       "changedBy": "שונה על ידי",
       "unknownActor": "—",
       "reasons": {
-        "originalContractValue": "שווי חוזה מקורי",
+        "originalContractValue": "סכום חוזה מקורי",
         "changeOrder": "שינוי מאושר {reference}"
       }
     }
@@ -212,7 +212,7 @@
     "save": "שמירת שינויים",
     "saved": "הפרטים נשמרו",
     "originalAmountLockedTitle": "סכום החוזה המקורי נעול",
-    "originalAmountLocked": "לא ניתן לשנות את סכום החוזה המקורי או את מצב המע״מ אחרי שינוי חוזה מאושר. שינויי סכום נוספים יש לבצע דרך שינוי חוזה (Change Order)."
+    "originalAmountLocked": "לא ניתן לשנות את סכום החוזה המקורי או את מצב המע״מ אחרי שינוי חוזה מאושר. שינויי סכום נוספים יש לבצע דרך שינוי חוזה."
   },
   "workPackages": {
     "title": "תחומי עבודה",

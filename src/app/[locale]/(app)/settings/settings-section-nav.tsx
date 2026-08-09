@@ -3,41 +3,65 @@
 import { useTranslations } from 'next-intl';
 import { Link, usePathname } from '@/shared/i18n/navigation';
 import { cn } from '@/shared/ui/cn';
-import type { SettingsSectionKey } from './_lib/access';
+import {
+  groupSettingsSections,
+  type SettingsNavGroup,
+  type SettingsSectionKey,
+} from './_lib/access';
 
 export interface SettingsNavItem {
   readonly key: SettingsSectionKey;
   readonly href: string;
+  readonly group: SettingsNavGroup;
 }
 
 export function SettingsSectionNav({ items }: { items: readonly SettingsNavItem[] }) {
   const tSections = useTranslations('settings.sections');
+  const tGroups = useTranslations('settings.groups');
   const tSettings = useTranslations('settings');
   const pathname = usePathname();
+
+  const groups = groupSettingsSections(
+    items.map((item) => ({
+      key: item.key,
+      href: item.href,
+      permission: null,
+      group: item.group,
+    })),
+  );
 
   return (
     <nav
       aria-label={tSettings('navLabel')}
       className="-mx-1 flex gap-1 overflow-x-auto overscroll-x-contain pb-1 [scrollbar-width:thin] lg:mx-0 lg:flex-col lg:overflow-visible lg:pb-0"
     >
-      {items.map((item) => {
-        const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
-        return (
-          <Link
-            key={item.key}
-            href={item.href}
-            aria-current={active ? 'page' : undefined}
-            className={cn(
-              'inline-flex min-h-11 shrink-0 items-center rounded-md px-3 py-2 text-start text-sm font-medium whitespace-nowrap transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]',
-              active
-                ? 'bg-[var(--pf-teal-50)] text-[var(--pf-text-brand)]'
-                : 'text-[var(--pf-text-secondary)] hover:bg-[var(--pf-bg-muted)] hover:text-[var(--pf-text-primary)]',
-            )}
-          >
-            {tSections(item.key)}
-          </Link>
-        );
-      })}
+      <div className="flex gap-1 lg:flex-col lg:gap-3">
+        {groups.map(({ group, items: groupItems }) => (
+          <div key={group} className="flex gap-1 lg:flex-col lg:gap-0.5">
+            <p className="hidden px-3 pb-1 text-xs font-semibold tracking-wide text-[var(--pf-text-secondary)] uppercase lg:block">
+              {tGroups(group)}
+            </p>
+            {groupItems.map((item) => {
+              const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
+              return (
+                <Link
+                  key={item.key}
+                  href={item.href}
+                  aria-current={active ? 'page' : undefined}
+                  className={cn(
+                    'inline-flex min-h-11 shrink-0 items-center rounded-md px-3 py-2 text-start text-sm font-medium whitespace-nowrap transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]',
+                    active
+                      ? 'bg-[var(--pf-teal-50)] text-[var(--pf-text-brand)]'
+                      : 'text-[var(--pf-text-secondary)] hover:bg-[var(--pf-bg-muted)] hover:text-[var(--pf-text-primary)]',
+                  )}
+                >
+                  {tSections(item.key)}
+                </Link>
+              );
+            })}
+          </div>
+        ))}
+      </div>
     </nav>
   );
 }

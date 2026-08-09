@@ -1,6 +1,6 @@
 {
   "title": "Insurance and compliance",
-  "description": "Track insurance policies, licenses, and certifications — and see what is expiring soon.",
+  "description": "Track insurance, licenses, certifications, and expiry dates.",
   "newArtifact": "New artifact",
   "empty": {
     "title": "No compliance artifacts yet",
@@ -62,7 +62,7 @@
   },
   "create": {
     "title": "New compliance artifact",
-    "description": "Record a policy, license, or certification. Status is derived from the expiry date unless you mark it pending or revoked.",
+    "description": "Record a policy, license, or certification. Status follows the expiry date unless set manually.",
     "submit": "Create artifact"
   },
   "form": {

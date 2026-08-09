@@ -36,6 +36,15 @@ export const NAV_ICON_KEYS = [
 
 export type NavIconKey = (typeof NAV_ICON_KEYS)[number];
 
+/** Overflow / sidebar section for non-core destinations. */
+export type MoreNavGroup = 'business' | 'operations' | 'advanced';
+
+export const MORE_GROUP_ORDER: readonly MoreNavGroup[] = [
+  'business',
+  'operations',
+  'advanced',
+] as const;
+
 export interface NavItem {
   key: string;
   href: string;
@@ -47,6 +56,11 @@ export interface NavItem {
   module?: OptionalModuleKey;
   /** Shown in the mobile bottom bar rather than behind "More". */
   primaryOnMobile?: boolean;
+  /**
+   * More-menu / sidebar section. Core (dashboard, projects, expenses) and
+   * settings omit this — they render ungrouped / last respectively.
+   */
+  moreGroup?: MoreNavGroup;
 }
 
 export const NAV_ITEMS: readonly NavItem[] = [
@@ -74,12 +88,13 @@ export const NAV_ITEMS: readonly NavItem[] = [
     primaryOnMobile: true,
   },
   {
-    key: 'billing',
-    href: '/billing',
-    labelKey: 'billing',
-    iconKey: 'billing',
-    permission: PERMISSIONS.BILLING_READ,
-    module: 'billing',
+    key: 'clients',
+    href: '/clients',
+    labelKey: 'clients',
+    iconKey: 'clients',
+    permission: PERMISSIONS.CLIENTS_READ,
+    module: 'clients',
+    moreGroup: 'business',
   },
   {
     key: 'changes',
@@ -88,38 +103,24 @@ export const NAV_ITEMS: readonly NavItem[] = [
     iconKey: 'changes',
     permission: PERMISSIONS.CHANGES_READ,
     module: 'changes',
+    moreGroup: 'business',
   },
   {
-    key: 'clients',
-    href: '/clients',
-    labelKey: 'clients',
-    iconKey: 'clients',
-    permission: PERMISSIONS.CLIENTS_READ,
-    module: 'clients',
+    key: 'billing',
+    href: '/billing',
+    labelKey: 'billing',
+    iconKey: 'billing',
+    permission: PERMISSIONS.BILLING_READ,
+    module: 'billing',
+    moreGroup: 'business',
   },
   {
-    key: 'vendors',
-    href: '/vendors',
-    labelKey: 'vendors',
-    iconKey: 'vendors',
-    permission: PERMISSIONS.VENDORS_READ,
-    module: 'vendors',
-  },
-  {
-    key: 'workforce',
-    href: '/workforce',
-    labelKey: 'workforce',
-    iconKey: 'workforce',
-    permission: PERMISSIONS.WORKFORCE_READ,
-    module: 'workforce',
-  },
-  {
-    key: 'documents',
-    href: '/documents',
-    labelKey: 'documents',
-    iconKey: 'documents',
-    permission: PERMISSIONS.DOCUMENTS_READ,
-    module: 'documents',
+    key: 'reports',
+    href: '/reports',
+    labelKey: 'reports',
+    iconKey: 'reports',
+    permission: PERMISSIONS.PROJECT_FINANCIALS_READ,
+    moreGroup: 'business',
   },
   {
     key: 'crm',
@@ -128,14 +129,25 @@ export const NAV_ITEMS: readonly NavItem[] = [
     iconKey: 'crm',
     permission: PERMISSIONS.CRM_READ,
     module: 'crm',
+    moreGroup: 'operations',
   },
   {
-    key: 'compliance',
-    href: '/compliance',
-    labelKey: 'compliance',
-    iconKey: 'compliance',
-    permission: PERMISSIONS.COMPLIANCE_READ,
-    module: 'compliance',
+    key: 'vendors',
+    href: '/vendors',
+    labelKey: 'vendors',
+    iconKey: 'vendors',
+    permission: PERMISSIONS.VENDORS_READ,
+    module: 'vendors',
+    moreGroup: 'operations',
+  },
+  {
+    key: 'workforce',
+    href: '/workforce',
+    labelKey: 'workforce',
+    iconKey: 'workforce',
+    permission: PERMISSIONS.WORKFORCE_READ,
+    module: 'workforce',
+    moreGroup: 'operations',
   },
   {
     key: 'procurement',
@@ -144,6 +156,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
     iconKey: 'procurement',
     permission: PERMISSIONS.PROCUREMENT_READ,
     module: 'procurement',
+    moreGroup: 'operations',
   },
   {
     key: 'materials',
@@ -152,6 +165,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
     iconKey: 'materials',
     permission: PERMISSIONS.MATERIALS_READ,
     module: 'materials',
+    moreGroup: 'operations',
   },
   {
     key: 'fieldOps',
@@ -160,6 +174,25 @@ export const NAV_ITEMS: readonly NavItem[] = [
     iconKey: 'fieldOps',
     permission: PERMISSIONS.FIELD_OPS_READ,
     module: 'field_ops',
+    moreGroup: 'operations',
+  },
+  {
+    key: 'documents',
+    href: '/documents',
+    labelKey: 'documents',
+    iconKey: 'documents',
+    permission: PERMISSIONS.DOCUMENTS_READ,
+    module: 'documents',
+    moreGroup: 'operations',
+  },
+  {
+    key: 'vendorBills',
+    href: '/procurement/ap',
+    labelKey: 'vendorBills',
+    iconKey: 'procurement',
+    permission: PERMISSIONS.AP_READ,
+    module: 'procurement',
+    moreGroup: 'advanced',
   },
   {
     key: 'assets',
@@ -168,13 +201,16 @@ export const NAV_ITEMS: readonly NavItem[] = [
     iconKey: 'assets',
     permission: PERMISSIONS.ASSETS_READ,
     module: 'assets',
+    moreGroup: 'advanced',
   },
   {
-    key: 'reports',
-    href: '/reports',
-    labelKey: 'reports',
-    iconKey: 'reports',
-    permission: PERMISSIONS.PROJECT_FINANCIALS_READ,
+    key: 'compliance',
+    href: '/compliance',
+    labelKey: 'compliance',
+    iconKey: 'compliance',
+    permission: PERMISSIONS.COMPLIANCE_READ,
+    module: 'compliance',
+    moreGroup: 'advanced',
   },
   {
     key: 'settings',
@@ -193,6 +229,30 @@ export function visibleNavItems(
     if (item.module && !modules[item.module]) return false;
     return true;
   });
+}
+
+export interface NavItemGroup {
+  readonly group: MoreNavGroup;
+  readonly items: NavItem[];
+}
+
+/**
+ * Partitions visible nav for sidebar / More sheet:
+ * core (no moreGroup, not settings) → business/operations/advanced → settings last.
+ */
+export function partitionNavItems(items: readonly NavItem[]): {
+  core: NavItem[];
+  groups: NavItemGroup[];
+  settings: NavItem[];
+} {
+  const settings = items.filter((item) => item.key === 'settings');
+  const core = items.filter((item) => !item.moreGroup && item.key !== 'settings');
+  const groups = MORE_GROUP_ORDER.map((group) => ({
+    group,
+    items: items.filter((item) => item.moreGroup === group),
+  })).filter((entry) => entry.items.length > 0);
+
+  return { core, groups, settings };
 }
 
 /** Marks a nav item active, treating `/projects/123` as inside Projects. */

@@ -1,5 +1,5 @@
 {
-  "title": "Accounts payable",
+  "title": "Vendor bills",
   "description": "Vendor bills are payable obligations. Matching links them to purchase orders and/or existing expenses — it never invents an expense.",
   "newBill": "New vendor bill",
   "empty": {
@@ -10,12 +10,12 @@
     },
     "vendorsRequired": {
       "title": "Add a vendor first",
-      "body": "AP bills need a vendor. Create one, then come back to record the bill.",
+      "body": "Vendor bills need a vendor. Create one, then come back to record the bill.",
       "action": "New vendor"
     },
     "noAccess": {
       "title": "No access",
-      "body": "You need AP permissions to view vendor bills."
+      "body": "You need vendor-bill permissions to view vendor bills."
     }
   },
   "list": {
@@ -41,7 +41,7 @@
     "linesTitle": "Bill lines",
     "matchesTitle": "Matches",
     "noMatches": "No matches proposed yet.",
-    "ruleNote": "AP bill ≠ Expense",
+    "ruleNote": "Vendor bill ≠ Expense",
     "matchPositionTitle": "Match position",
     "acceptedMatched": "Accepted matched",
     "remainingUnmatched": "Remaining unmatched",
@@ -103,7 +103,7 @@
   },
   "errors": {
     "targetRequired": "Match requires a purchase order and/or an existing expense.",
-    "expenseForbidden": "Accepting an AP match must not create an expense.",
+    "expenseForbidden": "Accepting a vendor-bill match must not create an expense.",
     "currencyMismatch": "Currencies must match the bill.",
     "totalMismatch": "Bill total must equal the sum of line totals.",
     "vendorMismatch": "Purchase order vendor must match the bill vendor.",

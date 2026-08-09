@@ -94,7 +94,13 @@ export function ApiSettingsPanel({
     <div className="flex flex-col gap-8">
       <div>
         <p className="text-sm text-[var(--pf-text-secondary)]">{t('subtitle')}</p>
-        <p className="mt-1 text-xs text-[var(--pf-text-muted)]">{t('versionNote')}</p>
+        <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">{t('versionNote')}</p>
+        <details className="mt-2 text-sm text-[var(--pf-text-muted)]">
+          <summary className="cursor-pointer select-none text-[var(--pf-text-secondary)]">
+            {t('moreInfo')}
+          </summary>
+          <p className="mt-2 max-w-2xl leading-relaxed">{t('versionNoteDetails')}</p>
+        </details>
       </div>
 
       {canEdit ? (

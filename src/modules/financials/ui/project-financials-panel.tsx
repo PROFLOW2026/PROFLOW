@@ -19,6 +19,7 @@ export interface ProjectFinancialsPanelProps {
 
 /**
  * Embeddable server component for a project workspace Financials tab (doc 45 §5).
+ * Primary truth metrics stay above the fold; coverage and long notes sit in disclosure.
  */
 export async function ProjectFinancialsPanel({ projectId }: ProjectFinancialsPanelProps) {
   const t = await getTranslations('financial');
@@ -40,74 +41,78 @@ export async function ProjectFinancialsPanel({ projectId }: ProjectFinancialsPan
 
   const coverageSources = mapCoverageToSources(financials.coverage, t);
   const hasCostPartials = (financials.coverage.partials?.length ?? 0) > 0;
-  const billingNotes = standalonePartialNotes(financials.coverage, t, ['foreign_currency_billing_excluded']);
+  const billingNotes = standalonePartialNotes(financials.coverage, t, [
+    'foreign_currency_billing_excluded',
+  ]);
 
   return (
     <div className="flex min-w-0 max-w-full flex-col gap-4">
-      {canReadCommercial && financials.commercial ? (
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('currentContractValue')}</CardTitle>
-            <CardDescription>{financials.currency}</CardDescription>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-3 text-sm">
-            <MetricRow
-              label={t('originalContractValue')}
-              value={financials.commercial.originalContractValue}
-            />
-            <MetricRow
-              label={t('approvedAdditions')}
-              value={financials.commercial.approvedAdditions}
-            />
-            <MetricRow
-              label={t('approvedReductions')}
-              value={negateMoney(financials.commercial.approvedReductions)}
-            />
-            <Separator />
+      <Card>
+        <CardHeader>
+          <CardTitle>{t('contractValue')}</CardTitle>
+          <CardDescription>{financials.currency}</CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-3 text-sm">
+          {canReadCommercial && financials.commercial ? (
             <MetricRow
               label={t('contractValue')}
               value={financials.commercial.currentContractValue}
               emphasis
             />
+          ) : null}
+          <MetricRow
+            label={t('actualCostToDate')}
+            value={financials.cost.actualCostToDate}
+            nature={t('metricNature.actual')}
+            emphasis
+          />
+          <MetricRow
+            label={t('committedOpen')}
+            value={financials.cost.committedOpen}
+            nature={t('metricNature.committed')}
+          />
+          {canReadBilling ? (
+            <>
+              <MetricRow
+                label={t('invoiced')}
+                value={financials.billing.invoiced}
+                nature={t('metricNature.actual')}
+              />
+              <MetricRow
+                label={t('paid')}
+                value={financials.billing.paid}
+                nature={t('metricNature.actual')}
+              />
+              <MetricRow
+                label={t('outstanding')}
+                value={financials.billing.outstanding}
+                nature={t('metricNature.forecast')}
+              />
+            </>
+          ) : (
             <MetricRow
-              label={t('pendingChanges')}
-              value={financials.commercial.pendingChanges}
-              muted
-            />
-          </CardContent>
-        </Card>
-      ) : null}
-
-      {canReadBilling ? (
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('invoiced')}</CardTitle>
-            <CardDescription>{financials.currency}</CardDescription>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-3 text-sm">
-            <MetricRow
-              label={t('invoiced')}
-              value={financials.billing.invoiced}
-              nature={t('metricNature.actual')}
-            />
-            <MetricRow
-              label={t('paid')}
-              value={financials.billing.paid}
-              nature={t('metricNature.actual')}
-            />
-            <MetricRow
-              label={t('outstanding')}
-              value={financials.billing.outstanding}
+              label={t('estimatedFinalCost')}
+              value={financials.cost.estimatedFinalCost}
               nature={t('metricNature.forecast')}
             />
-            {billingNotes.map((note) => (
-              <p key={note} className="text-xs text-[var(--pf-text-secondary)]">
-                {note}
-              </p>
-            ))}
-          </CardContent>
-        </Card>
-      ) : null}
+          )}
+          {canReadProfit && financials.profit ? (
+            <MetricRow
+              label={t('estimatedProfitBasedOnEnteredData')}
+              value={financials.profit.estimatedProfit}
+              nature={t('metricNature.forecast')}
+            />
+          ) : null}
+          {canReadProfit && financials.profit?.marginPercent !== null && financials.profit ? (
+            <p className="text-xs text-[var(--pf-text-secondary)]">
+              {t('margin')}:{' '}
+              <span dir="ltr" className="pf-numeric">
+                {financials.profit.marginPercent}%
+              </span>
+            </p>
+          ) : null}
+        </CardContent>
+      </Card>
 
       {canReadBilling && cashFlow ? (
         <CashFlowView
@@ -129,102 +134,113 @@ export async function ProjectFinancialsPanel({ projectId }: ProjectFinancialsPan
         />
       ) : null}
 
-      <Card>
-        <CardHeader>
-          <CardTitle>
-            {t('actualCostToDate')}{' '}
-            <span className="text-sm font-normal text-[var(--pf-text-secondary)]">
-              ({t('metricNature.actual')})
-            </span>
-          </CardTitle>
-          <CardDescription>
-            {financials.coverage.basis === 'fully_loaded'
-              ? t('basis.fullyLoaded')
-              : t('basis.directOnly')}{' '}
-            · {financials.currency}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-3 text-sm">
-          <MetricRow
-            label={t('costFamilies.direct_project')}
-            value={financials.cost.byFamily.directProject}
-            nature={t('metricNature.actual')}
-          />
-          <MetricRow
-            label={t('laborActual')}
-            value={financials.cost.laborActual}
-            nature={t('metricNature.actual')}
-          />
-          <MetricRow
-            label={t('vendorActual')}
-            value={financials.cost.vendorActual}
-            nature={t('metricNature.actual')}
-          />
-          <MetricRow
-            label={t('overheadActual')}
-            value={financials.cost.overheadActual}
-            nature={t('metricNature.actual')}
-          />
-          <MetricRow label={t('costFamilies.shared')} value={financials.cost.byFamily.shared} nature={t('metricNature.actual')} />
-          <MetricRow
-            label={t('costFamilies.asset_capital')}
-            value={financials.cost.byFamily.assetCapital}
-            nature={t('metricNature.actual')}
-          />
-          <Separator />
-          <MetricRow
-            label={t('actualCostToDate')}
-            value={financials.cost.actualCostToDate}
-            nature={t('metricNature.actual')}
-            emphasis
-          />
-          <MetricRow
-            label={t('estimatedFinalCost')}
-            value={financials.cost.estimatedFinalCost}
-            nature={t('metricNature.forecast')}
-          />
-          <p className="text-xs text-[var(--pf-text-muted)]">{t('estimatedFinalCostHint')}</p>
-          <Separator />
-          <MetricRow
-            label={t('committedOpen')}
-            value={financials.cost.committedOpen}
-            nature={t('metricNature.committed')}
-          />
-          <p className="text-xs text-[var(--pf-text-muted)]">{t('committedVsActual')}</p>
-          <MetricRow
-            label={t('openApPayable')}
-            value={financials.cost.openApPayable}
-            nature={t('metricNature.forecast')}
-          />
-          <p className="text-xs text-[var(--pf-text-muted)]">{t('openApPayableHint')}</p>
-          {hasCostPartials ? <CoverageDisclosure sources={coverageSources} /> : null}
-        </CardContent>
-      </Card>
-
-      {canReadProfit && financials.commercial && financials.profit ? (
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('estimatedProfitBasedOnEnteredData')}</CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-2 text-sm">
-            <div className="flex flex-wrap items-baseline justify-between gap-2">
-              <MoneyText
-                value={financials.profit.estimatedProfit}
-                className="text-lg font-semibold"
+      <details className="rounded-lg border border-[var(--pf-border-default)] p-4">
+        <summary className="cursor-pointer text-sm font-medium text-[var(--pf-text-brand)]">
+          {t('moreInfo')}
+        </summary>
+        <div className="mt-4 flex flex-col gap-4 text-sm">
+          {canReadCommercial && financials.commercial ? (
+            <section className="flex flex-col gap-3">
+              <MetricRow
+                label={t('originalContractValue')}
+                value={financials.commercial.originalContractValue}
               />
-              {financials.profit.marginPercent !== null ? (
-                <span className="text-[var(--pf-text-secondary)]">
-                  {t('margin')}:{' '}
-                  <span dir="ltr" className="pf-numeric">
-                    {financials.profit.marginPercent}%
-                  </span>
-                </span>
-              ) : null}
-            </div>
+              <MetricRow
+                label={t('approvedAdditions')}
+                value={financials.commercial.approvedAdditions}
+              />
+              <MetricRow
+                label={t('approvedReductions')}
+                value={negateMoney(financials.commercial.approvedReductions)}
+              />
+              <Separator />
+              <MetricRow
+                label={t('currentContractValue')}
+                value={financials.commercial.currentContractValue}
+                emphasis
+              />
+              <MetricRow
+                label={t('pendingChanges')}
+                value={financials.commercial.pendingChanges}
+                muted
+              />
+            </section>
+          ) : null}
+
+          <section className="flex flex-col gap-3">
+            <p className="text-xs text-[var(--pf-text-secondary)]">
+              {financials.coverage.basis === 'fully_loaded'
+                ? t('basis.fullyLoaded')
+                : t('basis.directOnly')}
+            </p>
+            <MetricRow
+              label={t('costFamilies.direct_project')}
+              value={financials.cost.byFamily.directProject}
+              nature={t('metricNature.actual')}
+            />
+            <MetricRow
+              label={t('laborActual')}
+              value={financials.cost.laborActual}
+              nature={t('metricNature.actual')}
+            />
+            <MetricRow
+              label={t('vendorActual')}
+              value={financials.cost.vendorActual}
+              nature={t('metricNature.actual')}
+            />
+            <MetricRow
+              label={t('overheadActual')}
+              value={financials.cost.overheadActual}
+              nature={t('metricNature.actual')}
+            />
+            <MetricRow
+              label={t('costFamilies.shared')}
+              value={financials.cost.byFamily.shared}
+              nature={t('metricNature.actual')}
+            />
+            <MetricRow
+              label={t('costFamilies.asset_capital')}
+              value={financials.cost.byFamily.assetCapital}
+              nature={t('metricNature.actual')}
+            />
+            <Separator />
+            <MetricRow
+              label={t('actualCostToDate')}
+              value={financials.cost.actualCostToDate}
+              nature={t('metricNature.actual')}
+              emphasis
+            />
+            <MetricRow
+              label={t('estimatedFinalCost')}
+              value={financials.cost.estimatedFinalCost}
+              nature={t('metricNature.forecast')}
+            />
+            <p className="text-xs text-[var(--pf-text-muted)]">{t('estimatedFinalCostHint')}</p>
+            <MetricRow
+              label={t('committedOpen')}
+              value={financials.cost.committedOpen}
+              nature={t('metricNature.committed')}
+            />
+            <p className="text-xs text-[var(--pf-text-muted)]">{t('committedVsActual')}</p>
+            <MetricRow
+              label={t('openApPayable')}
+              value={financials.cost.openApPayable}
+              nature={t('metricNature.forecast')}
+            />
+            <p className="text-xs text-[var(--pf-text-muted)]">{t('openApPayableHint')}</p>
+          </section>
+
+          {billingNotes.map((note) => (
+            <p key={note} className="text-xs text-[var(--pf-text-secondary)]">
+              {note}
+            </p>
+          ))}
+
+          {hasCostPartials || coverageSources.length > 0 ? (
             <CoverageDisclosure sources={coverageSources} />
-          </CardContent>
-        </Card>
-      ) : null}
+          ) : null}
+        </div>
+      </details>
     </div>
   );
 }

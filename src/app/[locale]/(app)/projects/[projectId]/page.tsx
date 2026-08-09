@@ -142,16 +142,17 @@ export default async function ProjectPage({ params, searchParams }: ProjectPageP
   const showTimeTab = Boolean(modules?.workforce) && can(PERMISSIONS.WORKFORCE_READ);
   const showDocumentsTab = Boolean(modules?.documents) && can(PERMISSIONS.DOCUMENTS_READ);
 
+  // CORE first, then optional modules (work / time / documents) after details.
   const tabs: ProjectTabKey[] = [
     'overview',
     ...(canReadFinancials ? (['financials'] as const) : []),
     ...(showExpensesTab ? (['expenses'] as const) : []),
     ...(showChangesTab ? (['changes'] as const) : []),
     ...(showBillingTab ? (['billing'] as const) : []),
+    'details',
     ...(showWorkTab ? (['work'] as const) : []),
     ...(showTimeTab ? (['time'] as const) : []),
     ...(showDocumentsTab ? (['documents'] as const) : []),
-    'details',
   ];
 
   const activeTab: ProjectTabKey = tabs.includes(tabParam as ProjectTabKey)

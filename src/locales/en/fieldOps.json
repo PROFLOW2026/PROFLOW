@@ -32,7 +32,7 @@
   },
   "photoCapture": {
     "title": "Photos after save",
-    "body": "Save the field record first, then attach photos and files from the detail page. Documents stay in private storage with signed access."
+    "body": "Save the record first, then attach photos from the detail page."
   },
   "filters": {
     "status": "Status",

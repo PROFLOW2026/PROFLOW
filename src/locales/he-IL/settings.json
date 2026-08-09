@@ -1,6 +1,12 @@
 {
   "title": "הגדרות",
   "navLabel": "הגדרות",
+  "groups": {
+    "basic": "בסיסי",
+    "business": "תצורת עסק",
+    "advanced": "מתקדם",
+    "developers": "מפתחים"
+  },
   "sections": {
     "business": "העסק",
     "people": "אנשים ותפקידים",
@@ -81,12 +87,12 @@
   },
   "catalog": {
     "title": "תחומים וסוגי מסמכים",
-    "subtitle": "קטלוגים מבוקרים לשירותים ותוויות מסמכים. לא מסד נתונים חופשי.",
+    "subtitle": "קטלוגים לשירותים ותוויות מסמכים.",
     "domainsTitle": "תחומי שירות / מקצוע",
-    "domainsHint": "משמשים כהצעות בפרויקטים. עדיין אפשר להקליד תחום חופשי בפרויקט.",
+    "domainsHint": "הצעות לפרויקטים; עדיין אפשר להקליד תחום חופשי.",
     "domainsEmpty": "עדיין אין תחומים",
     "documentTypesTitle": "סוגי מסמכים",
-    "documentTypesHint": "תוויות רשימת בדיקה אופציונליות לצילום מסמכים. תוויות חופשיות עדיין עובדות.",
+    "documentTypesHint": "תוויות אופציונליות לצילום מסמכים.",
     "documentTypesEmpty": "עדיין אין סוגי מסמכים",
     "addDomain": "הוספת תחום",
     "addDocumentType": "הוספת סוג מסמך",
@@ -188,7 +194,7 @@
         "archived": "העברת אבן דרך לארכיון"
       },
       "contract": {
-        "value_recorded": "רישום שווי חוזה"
+        "value_recorded": "רישום סכום חוזה"
       },
       "client": {
         "created": "יצירת לקוח",
@@ -275,7 +281,7 @@
       "portal": {
         "grant_created": "יצירת מענק פורטל",
         "grant_revoked": "ביטול מענק פורטל",
-        "vendor_ap_candidate": "הגשת מועמד חשבונית ספק",
+        "vendor_ap_candidate": "הגשת מועמד חשבון ספק",
         "vendor_compliance_candidate": "הגשת מועמד ציות ספק",
         "vendor_candidate_reviewed": "סקירת מועמד פורטל ספק"
       },
@@ -338,10 +344,10 @@
         "supplier_quote_received": "קבלת הצעת ספק"
       },
       "ap": {
-        "bill_created": "יצירת חשבונית ספק",
-        "match_proposed": "הצעת התאמת AP",
-        "match_accepted": "קבלת התאמת AP",
-        "match_rejected": "דחיית התאמת AP"
+        "bill_created": "יצירת חשבון ספק",
+        "match_proposed": "הצעת התאמת חשבון ספק",
+        "match_accepted": "קבלת התאמת חשבון ספק",
+        "match_rejected": "דחיית התאמת חשבון ספק"
       },
       "daily_log": {
         "created": "יצירת יומן יומי",
@@ -421,8 +427,8 @@
       "procurement_rfq": "בקשת הצעות",
       "supplier_quote": "הצעת ספק",
       "purchase_order": "הזמנת רכש",
-      "ap_bill": "חשבונית ספק",
-      "ap_match": "התאמת AP",
+      "ap_bill": "חשבון ספק",
+      "ap_match": "התאמת חשבון ספק",
       "daily_log": "יומן יומי",
       "punch_list_item": "פריט פאנץ׳",
       "inspection": "בדיקה",

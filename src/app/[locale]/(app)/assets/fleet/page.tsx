@@ -82,7 +82,11 @@ export default async function FleetPage({
       <AssetsSectionNav active="fleet" />
 
       <Alert tone="info" title={t('fleet.schemaLimitsTitle')}>
-        {t('fleet.schemaLimitsBody')}
+        <p>{t('fleet.schemaLimitsBody')}</p>
+        <details className="mt-2 text-sm">
+          <summary className="cursor-pointer select-none">{t('fleet.moreInfo')}</summary>
+          <p className="mt-2 leading-relaxed">{t('fleet.schemaLimitsDetails')}</p>
+        </details>
       </Alert>
 
       {canManage && showNew === '1' ? (

@@ -3,7 +3,11 @@
 import { useTranslations } from 'next-intl';
 import type * as React from 'react';
 import { usePathname } from '@/shared/i18n/navigation';
-import { isNavItemActive, type NavItem } from './navigation';
+import {
+  isNavItemActive,
+  partitionNavItems,
+  type NavItem,
+} from './navigation';
 import { ShellNavLink } from './shell-nav-link';
 
 export interface SidebarProps {
@@ -20,6 +24,7 @@ export function Sidebar({ items, organizationName, footer }: SidebarProps) {
   const t = useTranslations('nav');
   const tCommon = useTranslations('common');
   const pathname = usePathname();
+  const { core, groups, settings } = partitionNavItems(items);
 
   return (
     <nav
@@ -35,23 +40,71 @@ export function Sidebar({ items, organizationName, footer }: SidebarProps) {
         </span>
       </div>
 
-      <ul className="flex flex-1 flex-col gap-0.5 overflow-y-auto p-2">
-        {items.map((item) => {
-          const active = isNavItemActive(pathname, item.href);
+      <div className="flex flex-1 flex-col gap-3 overflow-y-auto p-2">
+        {core.length > 0 ? (
+          <ul className="flex flex-col gap-0.5">
+            {core.map((item) => {
+              const active = isNavItemActive(pathname, item.href);
+              return (
+                <li key={item.key}>
+                  <ShellNavLink
+                    href={item.href}
+                    label={t(item.labelKey)}
+                    iconKey={item.iconKey}
+                    active={active}
+                    variant="sidebar"
+                  />
+                </li>
+              );
+            })}
+          </ul>
+        ) : null}
 
-          return (
-            <li key={item.key}>
-              <ShellNavLink
-                href={item.href}
-                label={t(item.labelKey)}
-                iconKey={item.iconKey}
-                active={active}
-                variant="sidebar"
-              />
-            </li>
-          );
-        })}
-      </ul>
+        {groups.map(({ group, items: groupItems }) => (
+          <div key={group}>
+            <p className="px-3 pb-1 text-xs font-semibold tracking-wide text-[var(--pf-text-secondary)] uppercase">
+              {t(`moreGroups.${group}`)}
+            </p>
+            <ul className="flex flex-col gap-0.5">
+              {groupItems.map((item) => {
+                const active = isNavItemActive(pathname, item.href);
+                return (
+                  <li key={item.key}>
+                    <ShellNavLink
+                      href={item.href}
+                      label={t(item.labelKey)}
+                      iconKey={item.iconKey}
+                      active={active}
+                      variant="sidebar"
+                    />
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        ))}
+
+        {settings.length > 0 ? (
+          <div className="mt-auto">
+            <ul className="flex flex-col gap-0.5">
+              {settings.map((item) => {
+                const active = isNavItemActive(pathname, item.href);
+                return (
+                  <li key={item.key}>
+                    <ShellNavLink
+                      href={item.href}
+                      label={t(item.labelKey)}
+                      iconKey={item.iconKey}
+                      active={active}
+                      variant="sidebar"
+                    />
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        ) : null}
+      </div>
 
       {footer ? <div className="border-t border-[var(--pf-border-default)] p-2">{footer}</div> : null}
     </nav>

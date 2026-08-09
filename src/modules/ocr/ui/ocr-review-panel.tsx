@@ -16,10 +16,17 @@ import {
 import type {
   ExtractionJob,
   OcrCandidateFieldKey,
+  OcrFieldSource,
   OcrProviderStatus,
   ReceiptExtractionCandidates,
 } from '@/modules/ocr/domain/types';
 import { OCR_CANDIDATE_FIELD_KEYS } from '@/modules/ocr/domain/types';
+
+function provenanceSourceLabelKey(source: OcrFieldSource): 'ocr' | 'manual' | 'sample' {
+  if (source === 'user_override') return 'manual';
+  if (source === 'fixture') return 'sample';
+  return 'ocr';
+}
 
 function statusShape(
   status: ExtractionJob['status'],
@@ -347,14 +354,22 @@ export function OcrReviewPanel({
                         })}
                         {' · '}
                         {t('provenance', {
-                          source: selected.candidates![field].provenance.source,
+                          source: t(
+                            `sources.${provenanceSourceLabelKey(
+                              selected.candidates![field].provenance.source,
+                            )}`,
+                          ),
                         })}
                         {selected.extractedCandidates?.[field] &&
                         selected.candidates![field].provenance.source === 'user_override' ? (
                           <>
                             {' · '}
                             {t('extractedProvenance', {
-                              source: selected.extractedCandidates[field].provenance.source,
+                              source: t(
+                                `sources.${provenanceSourceLabelKey(
+                                  selected.extractedCandidates[field].provenance.source,
+                                )}`,
+                              ),
                             })}
                           </>
                         ) : null}

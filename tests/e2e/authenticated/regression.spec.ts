@@ -23,7 +23,7 @@ async function openHebrewFinancials(page: Page): Promise<void> {
     'data-state',
     'active',
   );
-  await expect(page.getByRole('heading', { name: he.financial.currentContractValue })).toBeVisible();
+  await expect(page.getByRole('heading', { name: he.financial.contractValue })).toBeVisible();
 }
 
 test.describe('authenticated page overflow', () => {
@@ -103,8 +103,8 @@ test.describe('Hebrew UI has no English residue on critical routes', () => {
   test('project financials show Hebrew headings and hide known English labels', async ({ page }) => {
     await openHebrewFinancials(page);
 
-    await expect(page.getByRole('heading', { name: he.financial.currentContractValue })).toBeVisible();
-    await expect(page.getByText(he.financial.originalContractValue, { exact: true }).first()).toBeVisible();
+    await expect(page.getByRole('heading', { name: he.financial.contractValue })).toBeVisible();
+    await expect(page.getByText(he.financial.contractValue, { exact: true }).first()).toBeVisible();
 
     for (const phrase of EN_UI_RESIDUE) {
       await expect(page.getByText(phrase, { exact: true })).toHaveCount(0);

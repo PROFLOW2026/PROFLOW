@@ -63,18 +63,7 @@ export default async function DocumentsPage({
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader
-        title={t('title')}
-        description={t('description')}
-        actions={
-          <Link
-            href="/documents/ocr-review"
-            className="text-sm font-medium text-[var(--pf-text-brand)] underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
-          >
-            {t('ocr.reviewLink')}
-          </Link>
-        }
-      />
+      <PageHeader title={t('title')} description={t('description')} />
 
       {!storageConfigured ? <Alert tone="info">{t('storageNotConfigured')}</Alert> : null}
 

@@ -19,6 +19,9 @@ export type ProjectTabKey =
   | 'documents'
   | 'details';
 
+/** Optional / module-gated tabs shown after core commercial tabs. */
+const SECONDARY_TABS = new Set<ProjectTabKey>(['work', 'time', 'documents']);
+
 interface ProjectTabsShellProps {
   /** Only the tabs this viewer can actually use, in display order. */
   tabs: readonly ProjectTabKey[];
@@ -56,13 +59,20 @@ export function ProjectTabsShell({ tabs, activeTab, children }: ProjectTabsShell
       <TabsList className="min-w-0 max-w-full" aria-busy={isPending || undefined}>
         {tabs.map((tab) => {
           const pendingThis = isPending && displayTab === tab;
+          const secondary = SECONDARY_TABS.has(tab);
           return (
             <TabsTrigger
               key={tab}
               value={tab}
               disabled={isPending && displayTab !== tab}
               data-pending={pendingThis ? '' : undefined}
-              className={pendingThis ? 'opacity-90' : undefined}
+              className={
+                pendingThis
+                  ? 'opacity-90'
+                  : secondary
+                    ? 'font-normal text-[var(--pf-text-muted)]'
+                    : undefined
+              }
             >
               <span className="inline-flex items-center gap-1.5">
                 {pendingThis ? (
