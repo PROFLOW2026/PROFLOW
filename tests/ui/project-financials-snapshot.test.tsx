@@ -29,6 +29,11 @@ function buildFinancials() {
         businessOverhead: zero,
         assetCapital: zero,
       },
+      laborActual: zero,
+      vendorActual: zero,
+      overheadActual: zero,
+      committedOpen: zero,
+      openApPayable: zero,
     },
     profit: {
       estimatedProfit: { amount: '75000.000000', currency },

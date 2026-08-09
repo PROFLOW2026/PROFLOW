@@ -10,6 +10,9 @@ describe('reserved custom field keys', () => {
     expect(isReservedCustomFieldKey('profit')).toBe(true);
     expect(isReservedCustomFieldKey('contract_amount')).toBe(true);
     expect(isReservedCustomFieldKey('burdenRate')).toBe(true);
+    expect(isReservedCustomFieldKey('vat')).toBe(true);
+    expect(isReservedCustomFieldKey('paymentStatus')).toBe(true);
+    expect(isReservedCustomFieldKey('project_status')).toBe(true);
     expect(isReservedCustomFieldKey('site_code')).toBe(false);
   });
 

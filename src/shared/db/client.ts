@@ -3,6 +3,7 @@ import { sql } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import * as schema from '@drizzle/schema';
+import { serverEnv } from '@/shared/env/server';
 import type { Database, DbExecutor, Transaction } from './types';
 
 /**
@@ -40,7 +41,7 @@ function createSqlClient(connectionString: string): postgres.Sql {
   return postgres(connectionString, {
     // Serverless functions get many short-lived instances; a small pool per
     // instance avoids exhausting the Supabase pooler.
-    max: Number(process.env.DATABASE_POOL_MAX ?? 5),
+    max: serverEnv().DATABASE_POOL_MAX,
     idle_timeout: 20,
     connect_timeout: 15,
     prepare: false,

@@ -5,7 +5,10 @@ import type { OrgContext } from '@/shared/auth/context';
 import { businessDate, todayInTimeZone } from '@/shared/dates';
 import { DomainRuleError, NotFoundError, ValidationError } from '@/shared/errors';
 import { fromNumericString, toNumericString } from '@/shared/money/money';
-import { changeOrderEventAmount } from '../domain/contract-value';
+import {
+  changeOrderApprovedNetAmount,
+  changeOrderEventAmount,
+} from '../domain/contract-value';
 import { canTransitionChangeRequest } from '../domain/change-request-lifecycle';
 import { canIssueQuoteVersion } from '../domain/quote-version-rules';
 import { COMMERCIAL_AUDIT_ACTIONS } from '../domain/types';
@@ -18,6 +21,7 @@ import {
 import {
   findQuoteForChangeRequest,
   findQuoteVersionById,
+  findQuoteVersionForChangeRequest,
   findSelectedQuoteVersionForChangeRequest,
   insertApproval,
   insertChangeOrderWithProjectReference,
@@ -229,14 +233,22 @@ export async function approveChangeRequest(
   }
 
   const quoteVersion = input.quoteVersionId
-    ? await findQuoteVersionById(context.db, context.organizationId, input.quoteVersionId)
+    ? await findQuoteVersionForChangeRequest(
+        context.db,
+        context.organizationId,
+        changeRequest.id,
+        input.quoteVersionId,
+      )
     : await findSelectedQuoteVersionForChangeRequest(
         context.db,
         context.organizationId,
         changeRequest.id,
       );
 
-  let approvedAmount: string;
+  if (input.quoteVersionId && !quoteVersion) {
+    throw new NotFoundError('Quote version');
+  }
+
   if (quoteVersion) {
     if (quoteVersion.status !== 'issued' && quoteVersion.status !== 'accepted') {
       throw new DomainRuleError(
@@ -244,10 +256,14 @@ export async function approveChangeRequest(
         'changes.errors.quoteNotIssued',
       );
     }
-    approvedAmount = quoteVersion.totalAmount;
-  } else if (changeRequest.requestedAmount) {
-    approvedAmount = changeRequest.requestedAmount;
-  } else {
+  }
+
+  // VAT ≠ profit: contract value events use quote net (subtotal), never tax-inclusive total.
+  const approvedAmount = changeOrderApprovedNetAmount({
+    quoteVersion,
+    requestedAmount: changeRequest.requestedAmount,
+  });
+  if (!approvedAmount) {
     throw new DomainRuleError(
       'Approval requires a priced quote or requested amount',
       'changes.errors.noAmount',
@@ -369,14 +385,6 @@ export async function updateDraftQuoteVersion(
   input: CreateQuoteVersionInput & { quoteVersionId: string },
 ): Promise<void> {
   assertPermission(context, PERMISSIONS.CHANGES_MANAGE);
-  await assertQuoteVersionEditable(context, input.quoteVersionId);
-
-  const version = await findQuoteVersionById(
-    context.db,
-    context.organizationId,
-    input.quoteVersionId,
-  );
-  if (!version) throw new NotFoundError('Quote version');
 
   const changeRequest = await findChangeRequestById(
     context.db,
@@ -384,6 +392,21 @@ export async function updateDraftQuoteVersion(
     input.changeRequestId,
   );
   if (!changeRequest) throw new NotFoundError('Change request');
+
+  const version = await findQuoteVersionForChangeRequest(
+    context.db,
+    context.organizationId,
+    changeRequest.id,
+    input.quoteVersionId,
+  );
+  if (!version) throw new NotFoundError('Quote version');
+
+  if (version.status !== 'draft') {
+    throw new DomainRuleError(
+      'Issued quote versions are immutable; create a new version instead',
+      'changes.errors.quoteImmutable',
+    );
+  }
 
   const lines = input.lines.map((line, index) => ({
     ...line,

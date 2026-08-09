@@ -8,18 +8,22 @@ import { assertAllPermissions } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import {
   findAcceptedVersionForOpportunity,
+  findLeadById,
   findOpportunityById,
   findProspectById,
   findSalesQuoteById,
   findSalesQuoteVersionById,
+  updateLeadById,
   updateOpportunityById,
   updateProspectById,
 } from '../data/crm.repository';
 import {
   assertCanConvertOpportunity,
   assertQuoteBelongsToOpportunity,
+  assertSalesQuoteIsNotBilling,
   contractEnteredAmountFromAcceptedQuote,
   contractNetAmountFromAcceptedQuote,
+  resolveCompletedConversion,
 } from '../domain/conversion';
 import { CRM_AUDIT_ACTIONS, type OpportunityRecord } from '../domain/types';
 import {
@@ -32,6 +36,8 @@ export interface ConvertWonOpportunityResult {
   readonly clientId: string;
   readonly projectId: string;
   readonly contractId: string;
+  /** True when an earlier conversion was reused (no new Client/Project/Contract). */
+  readonly idempotent?: boolean;
 }
 
 /**
@@ -66,7 +72,20 @@ export async function convertWonOpportunity(
   );
   if (!opportunity) throw new NotFoundError('Opportunity');
 
+  const completed = resolveCompletedConversion(opportunity);
+  if (completed) {
+    return {
+      opportunity,
+      clientId: completed.clientId,
+      projectId: completed.projectId,
+      contractId: completed.contractId,
+      idempotent: true,
+    };
+  }
+
   assertCanConvertOpportunity(opportunity);
+  // Sales quote ≠ billing — conversion creates Contract baseline, not AR invoice.
+  assertSalesQuoteIsNotBilling();
 
   const acceptedVersion = input.salesQuoteVersionId
     ? await findSalesQuoteVersionById(
@@ -157,6 +176,15 @@ export async function convertWonOpportunity(
     amountIncludesTax: inclusive,
   });
 
+  if (opportunity.leadId) {
+    const lead = await findLeadById(context.db, context.organizationId, opportunity.leadId);
+    if (lead && lead.status !== 'converted') {
+      await updateLeadById(context.db, context.organizationId, lead.id, {
+        status: 'converted',
+      });
+    }
+  }
+
   const convertedAt = new Date();
   const updated = await updateOpportunityById(
     context.db,
@@ -186,6 +214,9 @@ export async function convertWonOpportunity(
       netAmount,
       currency,
       amountIncludesTax: inclusive,
+      taxAmount: acceptedVersion.taxAmount,
+      totalAmount: acceptedVersion.totalAmount,
+      vatIsNotProfit: true,
     },
   });
 

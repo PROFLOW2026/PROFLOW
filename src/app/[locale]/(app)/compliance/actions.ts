@@ -9,6 +9,7 @@ import {
   type CreateComplianceArtifactInput,
   type UpdateComplianceArtifactInput,
 } from '@/modules/compliance';
+import { attachDocumentToComplianceArtifact } from '@/modules/compliance/application/attach-document';
 import { withOrgContext } from '@/shared/auth/session';
 import { AppError, ValidationError } from '@/shared/errors';
 import { redirect } from '@/shared/i18n/navigation';
@@ -48,7 +49,11 @@ export async function createComplianceArtifactAction(
     expiresOn: formValue(formData, 'expiresOn'),
     statusMode: formValue(formData, 'statusMode') as CreateComplianceArtifactInput['statusMode'],
     subjectType: formValue(formData, 'subjectType') as CreateComplianceArtifactInput['subjectType'],
-    subjectId: formValue(formData, 'subjectId'),
+    subjectId: (() => {
+      const value = formValue(formData, 'subjectId');
+      if (!value || value === 'none') return undefined;
+      return value;
+    })(),
     notes: formValue(formData, 'notes'),
   };
 
@@ -81,7 +86,11 @@ export async function updateComplianceArtifactAction(
     expiresOn: formValue(formData, 'expiresOn'),
     statusMode: formValue(formData, 'statusMode') as UpdateComplianceArtifactInput['statusMode'],
     subjectType: formValue(formData, 'subjectType') as UpdateComplianceArtifactInput['subjectType'],
-    subjectId: formValue(formData, 'subjectId'),
+    subjectId: (() => {
+      const value = formValue(formData, 'subjectId');
+      if (!value || value === 'none') return undefined;
+      return value;
+    })(),
     notes: formValue(formData, 'notes'),
   };
 
@@ -105,6 +114,23 @@ export async function archiveComplianceArtifactAction(
   try {
     await withOrgContext((context) => archiveComplianceArtifact(context, { artifactId }));
     revalidatePath('/compliance');
+    return {};
+  } catch (error) {
+    if (error instanceof AppError) return { error: tErrors('unexpected') };
+    throw error;
+  }
+}
+
+export async function attachComplianceDocumentAction(input: {
+  artifactId: string;
+  documentId: string;
+}): Promise<{ error?: string }> {
+  const tErrors = await getTranslations('errors');
+
+  try {
+    await withOrgContext((context) => attachDocumentToComplianceArtifact(context, input));
+    revalidatePath('/compliance');
+    revalidatePath(`/compliance/${input.artifactId}`);
     return {};
   } catch (error) {
     if (error instanceof AppError) return { error: tErrors('unexpected') };

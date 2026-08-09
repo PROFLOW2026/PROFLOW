@@ -1,6 +1,6 @@
-import { NextResponse } from 'next/server';
+import { apiSuccess } from '@/modules/api';
 
 /** Lightweight health probe for the versioned API surface. No auth required. */
 export async function GET() {
-  return NextResponse.json({ ok: true, apiVersion: 'v1' });
+  return apiSuccess({ ok: true });
 }

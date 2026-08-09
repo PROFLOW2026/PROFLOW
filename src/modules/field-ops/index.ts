@@ -1,15 +1,32 @@
 /** Public API of the field-ops module (Wave 3). */
-export { createDailyLog, listDailyLogsForOrg, updateDailyLog } from './application/daily-logs';
+export {
+  createDailyLog,
+  getDailyLogForOrg,
+  listDailyLogsForOrg,
+  updateDailyLog,
+} from './application/daily-logs';
 export {
   createPunchListItem,
+  getPunchListItemForOrg,
   listPunchListItemsForOrg,
   updatePunchListItem,
 } from './application/punch-list';
 export {
   createInspection,
+  getInspectionForOrg,
   listInspectionsForOrg,
   updateInspection,
 } from './application/inspections';
+export { getProjectFieldOpsSummary, countOpenPunchItems, selectUpcomingInspections } from './application/project-summary';
+export type { ProjectFieldOpsSummary } from './application/project-summary';
+export { listFieldOpsWorkPackages } from './application/work-packages';
+export type { FieldOpsWorkPackageOption } from './application/work-packages';
+
+export {
+  packWorkforceAndBlockers,
+  unpackWorkforceAndBlockers,
+  DAILY_LOG_BLOCKERS_MARKER,
+} from './domain/daily-log-notes';
 
 export {
   PUNCH_STATUSES,

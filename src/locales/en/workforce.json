@@ -94,7 +94,7 @@
     "viewAll": "View all time entries"
   },
   "errors": {
-    "invalidWorkPackage": "The work package does not belong to this project.",
+    "invalidWorkPackage": "The work area does not belong to this project.",
     "invalidPhase": "The phase does not belong to this project."
   }
 }

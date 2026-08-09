@@ -1,4 +1,4 @@
-import { and, asc, eq, isNull } from 'drizzle-orm';
+import { and, asc, eq, inArray, isNull } from 'drizzle-orm';
 import { workPackages } from '@drizzle/schema';
 import type { DbExecutor } from '@/shared/db/types';
 import type { WorkPackageRecord } from '../domain/types';
@@ -56,6 +56,33 @@ export async function listWorkPackagesByProject(
   const conditions = [
     eq(workPackages.organizationId, organizationId),
     eq(workPackages.projectId, projectId),
+  ];
+
+  if (!options.includeArchived) {
+    conditions.push(isNull(workPackages.archivedAt));
+  }
+
+  const rows = await db
+    .select()
+    .from(workPackages)
+    .where(and(...conditions))
+    .orderBy(asc(workPackages.sortOrder), asc(workPackages.name));
+
+  return rows.map(mapWorkPackage);
+}
+
+/** Org-scoped work packages for multiple projects in one query (field-ops forms). */
+export async function listWorkPackagesForProjects(
+  db: DbExecutor,
+  organizationId: string,
+  projectIds: readonly string[],
+  options: { includeArchived?: boolean } = {},
+): Promise<WorkPackageRecord[]> {
+  if (projectIds.length === 0) return [];
+
+  const conditions = [
+    eq(workPackages.organizationId, organizationId),
+    inArray(workPackages.projectId, [...projectIds]),
   ];
 
   if (!options.includeArchived) {

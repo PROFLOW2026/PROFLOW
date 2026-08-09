@@ -11,10 +11,14 @@ import { createOpportunityAction, type CrmFormState } from '../../actions';
 
 export function NewOpportunityForm({
   prospects,
+  leads,
   defaultCurrency,
+  defaultLeadId,
 }: {
   prospects: readonly { id: string; name: string }[];
+  leads: readonly { id: string; title: string }[];
   defaultCurrency: string;
+  defaultLeadId?: string;
 }) {
   const t = useTranslations('crm.opportunity');
   const tCommon = useTranslations('common');
@@ -47,12 +51,37 @@ export function NewOpportunityForm({
           )}
         </Field>
       ) : null}
+      {leads.length > 0 ? (
+        <Field label={t('leadLabel')} optionalLabel={tCommon('labels.optional')}>
+          {(control) => (
+            <select
+              {...control}
+              name="leadId"
+              defaultValue={defaultLeadId ?? ''}
+              className="h-11 rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] px-3"
+            >
+              <option value="">—</option>
+              {leads.map((lead) => (
+                <option key={lead.id} value={lead.id}>
+                  {lead.title}
+                </option>
+              ))}
+            </select>
+          )}
+        </Field>
+      ) : null}
       <Field label={t('expectedValueLabel')} optionalLabel={tCommon('labels.optional')}>
-        {(control) => <Input {...control} name="expectedValueAmount" inputMode="decimal" />}
+        {(control) => <Input {...control} name="expectedValueAmount" inputMode="decimal" numeric />}
       </Field>
       <Field label={t('currencyLabel')} optionalLabel={tCommon('labels.optional')}>
         {(control) => (
-          <Input {...control} name="currency" defaultValue={defaultCurrency} maxLength={3} />
+          <Input
+            {...control}
+            name="currency"
+            defaultValue={defaultCurrency}
+            maxLength={3}
+            dir="ltr"
+          />
         )}
       </Field>
       <Field label={t('expectedStartLabel')} optionalLabel={tCommon('labels.optional')}>

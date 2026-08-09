@@ -1,6 +1,13 @@
 import { and, desc, eq, isNull } from 'drizzle-orm';
 import { dailyLogs, inspections, punchListItems } from '@drizzle/schema';
+import {
+  ORG_LIST_EXPORT_CAP,
+  ORG_LIST_HARD_CAP,
+  resolveListLimit,
+  resolveListOffset,
+} from '@/shared/db/list-limits';
 import type { DbExecutor } from '@/shared/db/types';
+import { unpackWorkforceAndBlockers } from '../domain/daily-log-notes';
 import type {
   DailyLogRecord,
   InspectionRecord,
@@ -17,6 +24,7 @@ function asDateString(value: string | Date | null): string | null {
 }
 
 function mapDailyLog(row: typeof dailyLogs.$inferSelect): DailyLogRecord {
+  const notes = unpackWorkforceAndBlockers(row.workforceNotes);
   return {
     id: row.id,
     organizationId: row.organizationId,
@@ -25,7 +33,8 @@ function mapDailyLog(row: typeof dailyLogs.$inferSelect): DailyLogRecord {
     logDate: asDateString(row.logDate) ?? row.logDate,
     weather: row.weather,
     summary: row.summary,
-    workforceNotes: row.workforceNotes,
+    workforceNotes: notes.workforceNotes,
+    blockers: notes.blockers,
     createdBy: row.createdBy,
     archivedAt: row.archivedAt,
     createdAt: row.createdAt,
@@ -75,6 +84,7 @@ export async function listDailyLogs(
   db: DbExecutor,
   organizationId: string,
   projectId?: string,
+  options: { readonly limit?: number; readonly offset?: number } = {},
 ): Promise<DailyLogRecord[]> {
   const filters = [eq(dailyLogs.organizationId, organizationId), isNull(dailyLogs.archivedAt)];
   if (projectId) filters.push(eq(dailyLogs.projectId, projectId));
@@ -82,7 +92,16 @@ export async function listDailyLogs(
     .select()
     .from(dailyLogs)
     .where(and(...filters))
-    .orderBy(desc(dailyLogs.logDate), desc(dailyLogs.createdAt));
+    .orderBy(desc(dailyLogs.logDate), desc(dailyLogs.createdAt))
+    .limit(
+      resolveListLimit(options.limit, {
+        hardCap:
+          options.limit != null && options.limit > ORG_LIST_HARD_CAP
+            ? ORG_LIST_EXPORT_CAP
+            : ORG_LIST_HARD_CAP,
+      }),
+    )
+    .offset(resolveListOffset(options.offset));
   return rows.map(mapDailyLog);
 }
 
@@ -128,21 +147,42 @@ export async function findDailyLogById(
   return row ? mapDailyLog(row) : null;
 }
 
+export interface PunchListFilters {
+  readonly projectId?: string;
+  readonly status?: PunchStatus;
+  readonly priority?: PunchPriority;
+  readonly limit?: number;
+  readonly offset?: number;
+}
+
 export async function listPunchListItems(
   db: DbExecutor,
   organizationId: string,
-  projectId?: string,
+  filtersInput: string | PunchListFilters = {},
 ): Promise<PunchListItemRecord[]> {
+  const filtersObj: PunchListFilters =
+    typeof filtersInput === 'string' ? { projectId: filtersInput } : filtersInput;
   const filters = [
     eq(punchListItems.organizationId, organizationId),
     isNull(punchListItems.archivedAt),
   ];
-  if (projectId) filters.push(eq(punchListItems.projectId, projectId));
+  if (filtersObj.projectId) filters.push(eq(punchListItems.projectId, filtersObj.projectId));
+  if (filtersObj.status) filters.push(eq(punchListItems.status, filtersObj.status));
+  if (filtersObj.priority) filters.push(eq(punchListItems.priority, filtersObj.priority));
   const rows = await db
     .select()
     .from(punchListItems)
     .where(and(...filters))
-    .orderBy(desc(punchListItems.createdAt));
+    .orderBy(desc(punchListItems.createdAt))
+    .limit(
+      resolveListLimit(filtersObj.limit, {
+        hardCap:
+          filtersObj.limit != null && filtersObj.limit > ORG_LIST_HARD_CAP
+            ? ORG_LIST_EXPORT_CAP
+            : ORG_LIST_HARD_CAP,
+      }),
+    )
+    .offset(resolveListOffset(filtersObj.offset));
   return rows.map(mapPunch);
 }
 
@@ -191,18 +231,37 @@ export async function updatePunchListItemById(
   return row ? mapPunch(row) : null;
 }
 
+export interface InspectionListFilters {
+  readonly projectId?: string;
+  readonly status?: InspectionStatus;
+  readonly limit?: number;
+  readonly offset?: number;
+}
+
 export async function listInspections(
   db: DbExecutor,
   organizationId: string,
-  projectId?: string,
+  filtersInput: string | InspectionListFilters = {},
 ): Promise<InspectionRecord[]> {
+  const filtersObj: InspectionListFilters =
+    typeof filtersInput === 'string' ? { projectId: filtersInput } : filtersInput;
   const filters = [eq(inspections.organizationId, organizationId), isNull(inspections.archivedAt)];
-  if (projectId) filters.push(eq(inspections.projectId, projectId));
+  if (filtersObj.projectId) filters.push(eq(inspections.projectId, filtersObj.projectId));
+  if (filtersObj.status) filters.push(eq(inspections.status, filtersObj.status));
   const rows = await db
     .select()
     .from(inspections)
     .where(and(...filters))
-    .orderBy(desc(inspections.createdAt));
+    .orderBy(desc(inspections.createdAt))
+    .limit(
+      resolveListLimit(filtersObj.limit, {
+        hardCap:
+          filtersObj.limit != null && filtersObj.limit > ORG_LIST_HARD_CAP
+            ? ORG_LIST_EXPORT_CAP
+            : ORG_LIST_HARD_CAP,
+      }),
+    )
+    .offset(resolveListOffset(filtersObj.offset));
   return rows.map(mapInspection);
 }
 

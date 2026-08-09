@@ -1,6 +1,9 @@
-import { auditEvents } from '@drizzle/schema';
+import { and, desc, eq, lt } from 'drizzle-orm';
+import { auditEvents, profiles } from '@drizzle/schema';
 import type { DbExecutor } from '@/shared/db/types';
 import type { OrgContext } from '@/shared/auth/context';
+import { assertPermission } from '@/shared/permissions/assert';
+import { PERMISSIONS } from '@/shared/permissions/catalog';
 
 /**
  * Audit trail writer (docs 13, 65 I2).
@@ -35,6 +38,7 @@ export const AUDIT_ACTIONS = {
   PROJECT_CREATED: 'project.created',
   PROJECT_UPDATED: 'project.updated',
   PROJECT_ARCHIVED: 'project.archived',
+  PROJECT_TEMPLATE_APPLIED: 'project.template_applied',
   WORK_PACKAGE_CREATED: 'work_package.created',
   WORK_PACKAGE_UPDATED: 'work_package.updated',
   WORK_PACKAGE_ARCHIVED: 'work_package.archived',
@@ -119,6 +123,9 @@ export const AUDIT_ACTIONS = {
 
   PORTAL_GRANT_CREATED: 'portal.grant_created',
   PORTAL_GRANT_REVOKED: 'portal.grant_revoked',
+  PORTAL_VENDOR_AP_CANDIDATE: 'portal.vendor_ap_candidate',
+  PORTAL_VENDOR_COMPLIANCE_CANDIDATE: 'portal.vendor_compliance_candidate',
+  PORTAL_VENDOR_CANDIDATE_REVIEWED: 'portal.vendor_candidate_reviewed',
 
   CUSTOM_FIELD_DEFINITION_CREATED: 'custom_field.definition_created',
   CUSTOM_FIELD_DEFINITION_UPDATED: 'custom_field.definition_updated',
@@ -127,11 +134,23 @@ export const AUDIT_ACTIONS = {
   API_CLIENT_CREATED: 'api.client_created',
   API_KEY_CREATED: 'api.key_created',
   API_KEY_REVOKED: 'api.key_revoked',
+  API_KEY_ROTATED: 'api.key_rotated',
   WEBHOOK_ENDPOINT_CREATED: 'api.webhook_created',
+  WEBHOOK_ENDPOINT_REVOKED: 'api.webhook_revoked',
+  WEBHOOK_SECRET_ROTATED: 'api.webhook_secret_rotated',
+  WEBHOOK_DELIVERY_ENQUEUED: 'api.webhook_delivery_enqueued',
 
   MATERIAL_CREATED: 'material.created',
+  MATERIAL_VENDOR_PRICE_CREATED: 'material_vendor_price.created',
+  MATERIAL_VENDOR_PRICE_UPDATED: 'material_vendor_price.updated',
+  MATERIAL_VENDOR_PRICE_DELETED: 'material_vendor_price.deleted',
+  PROCUREMENT_RFQ_CREATED: 'procurement_rfq.created',
+  PROCUREMENT_RFQ_STATUS_UPDATED: 'procurement_rfq.status_updated',
+  SUPPLIER_QUOTE_CREATED: 'supplier_quote.created',
+  SUPPLIER_QUOTE_STATUS_UPDATED: 'supplier_quote.status_updated',
   PURCHASE_ORDER_CREATED: 'purchase_order.created',
   PURCHASE_ORDER_ISSUED: 'purchase_order.issued',
+  SUPPLIER_QUOTE_RECEIVED: 'procurement.supplier_quote_received',
 
   AP_BILL_CREATED: 'ap.bill_created',
   AP_MATCH_PROPOSED: 'ap.match_proposed',
@@ -146,7 +165,11 @@ export const AUDIT_ACTIONS = {
   INSPECTION_UPDATED: 'inspection.updated',
 
   ASSET_CREATED: 'asset.created',
+  ASSET_UPDATED: 'asset.updated',
+  FLEET_VEHICLE_CREATED: 'fleet_vehicle.created',
+  FLEET_VEHICLE_UPDATED: 'fleet_vehicle.updated',
   MAINTENANCE_RECORD_CREATED: 'maintenance_record.created',
+  MAINTENANCE_RECORD_UPDATED: 'maintenance_record.updated',
   INVENTORY_ITEM_CREATED: 'inventory_item.created',
   INVENTORY_MOVEMENT_RECORDED: 'inventory_movement.recorded',
 
@@ -172,8 +195,12 @@ const REDACTED_KEYS = new Set([
   'keyhash',
   'key_hash',
   'plaintext',
+  'plaintextsecret',
+  'plaintext_secret',
   'servicerolekey',
   'service_role_key',
+  'webhooksecretkek',
+  'webhook_secret_kek',
   'authorization',
 ]);
 
@@ -230,4 +257,74 @@ export async function writeAuditEvent(db: DbExecutor, input: RawAuditEventInput)
     after: input.after === undefined ? null : redactSnapshot(input.after),
     metadata: input.metadata === undefined ? null : (redactSnapshot(input.metadata) as Record<string, unknown>),
   });
+}
+
+/** Safe audit row for UI / CSV — never includes before/after payload content. */
+export interface AuditEventSummary {
+  readonly id: string;
+  readonly action: string;
+  readonly entityType: string;
+  readonly entityId: string | null;
+  readonly actorUserId: string | null;
+  readonly actorDisplayName: string | null;
+  readonly actorEmail: string | null;
+  readonly createdAt: Date;
+}
+
+export interface AuditListResult {
+  readonly items: readonly AuditEventSummary[];
+  readonly nextCursor: string | null;
+}
+
+/**
+ * Lists org audit events newest-first. Requires `audit.read`.
+ * Does not return before/after snapshots (same contract as the activity UI).
+ */
+export async function listAuditEventSummaries(
+  context: OrgContext,
+  options: { cursor?: string | null; limit?: number } = {},
+): Promise<AuditListResult> {
+  assertPermission(context, PERMISSIONS.AUDIT_READ);
+
+  const pageSize = Math.min(Math.max(options.limit ?? 25, 1), 5_000);
+  const cursorDate = options.cursor ? new Date(options.cursor) : null;
+
+  const rows = await context.db
+    .select({
+      id: auditEvents.id,
+      action: auditEvents.action,
+      entityType: auditEvents.entityType,
+      entityId: auditEvents.entityId,
+      actorUserId: auditEvents.actorUserId,
+      actorDisplayName: profiles.displayName,
+      actorEmail: profiles.email,
+      createdAt: auditEvents.createdAt,
+    })
+    .from(auditEvents)
+    .leftJoin(profiles, eq(profiles.id, auditEvents.actorUserId))
+    .where(
+      and(
+        eq(auditEvents.organizationId, context.organizationId),
+        cursorDate ? lt(auditEvents.createdAt, cursorDate) : undefined,
+      ),
+    )
+    .orderBy(desc(auditEvents.createdAt))
+    .limit(pageSize + 1);
+
+  const hasMore = rows.length > pageSize;
+  const items = (hasMore ? rows.slice(0, pageSize) : rows).map((row) => ({
+    id: row.id,
+    action: row.action,
+    entityType: row.entityType,
+    entityId: row.entityId,
+    actorUserId: row.actorUserId,
+    actorDisplayName: row.actorDisplayName,
+    actorEmail: row.actorEmail,
+    createdAt: row.createdAt,
+  }));
+
+  const nextCursor =
+    hasMore && items.length > 0 ? items[items.length - 1]!.createdAt.toISOString() : null;
+
+  return { items, nextCursor };
 }

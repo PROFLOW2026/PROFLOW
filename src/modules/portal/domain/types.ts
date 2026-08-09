@@ -18,10 +18,160 @@ export const CUSTOMER_PORTAL_SCOPES = [
 
 export type CustomerPortalScope = (typeof CUSTOMER_PORTAL_SCOPES)[number];
 
-/** Vendor portal scopes — read-only; grants never mutate financial truth. */
-export const VENDOR_PORTAL_SCOPES = ['vendor.summary', 'documents.read'] as const;
+/**
+ * Vendor portal scopes — external users never mutate financial truth.
+ * `quote.submit` / `bill.candidate` / `documents.upload` create candidates only.
+ */
+export const VENDOR_PORTAL_SCOPES = [
+  'vendor.summary',
+  'documents.read',
+  'documents.upload',
+  'rfq.read',
+  'quote.submit',
+  'po.view',
+  'bill.candidate',
+] as const;
 
 export type VendorPortalScope = (typeof VENDOR_PORTAL_SCOPES)[number];
+
+/**
+ * External portal session for a customer grant.
+ * ExternalPrincipal != OrganizationMembership — never treat as OrgContext.
+ */
+export interface CustomerPortalSession {
+  readonly kind: 'customer_portal';
+  readonly organizationId: string;
+  readonly principalId: string;
+  readonly principalEmail: string;
+  readonly grantId: string;
+  readonly clientId: string | null;
+  readonly projectId: string | null;
+  readonly scopes: readonly CustomerPortalScope[];
+}
+
+/**
+ * External portal session for a vendor grant.
+ * ExternalPrincipal != OrganizationMembership — never treat as OrgContext.
+ */
+export interface VendorPortalSession {
+  readonly kind: 'vendor_portal';
+  readonly organizationId: string;
+  readonly principalId: string;
+  readonly principalEmail: string;
+  readonly grantId: string;
+  readonly vendorId: string;
+  readonly scopes: readonly VendorPortalScope[];
+}
+
+/** Portal AP bill submission — candidate only; never an ap_bills / Expense row. */
+export interface VendorApBillCandidate {
+  readonly id: string;
+  readonly organizationId: string;
+  readonly vendorId: string;
+  readonly grantId: string;
+  readonly principalId: string;
+  readonly reference: string | null;
+  readonly currency: string;
+  readonly totalAmount: string;
+  readonly billDate: string | null;
+  readonly notes: string | null;
+  readonly lines: readonly {
+    readonly description: string;
+    readonly quantity: string;
+    readonly unitAmount: string;
+    readonly lineTotal: string;
+  }[];
+  readonly status: 'candidate' | 'accepted_for_review' | 'rejected';
+  readonly mutatesFinancialTruth: false;
+  readonly createdAt: string;
+  readonly reviewedAt?: string | null;
+  readonly reviewNote?: string | null;
+}
+
+/** Document / compliance upload candidate — pending internal review. */
+export interface VendorComplianceUploadCandidate {
+  readonly id: string;
+  readonly organizationId: string;
+  readonly vendorId: string;
+  readonly grantId: string;
+  readonly principalId: string;
+  readonly artifactKind: 'insurance' | 'license' | 'certification' | 'other';
+  readonly name: string;
+  readonly referenceNumber: string | null;
+  readonly expiresOn: string | null;
+  readonly notes: string | null;
+  readonly status: 'candidate' | 'accepted_for_review' | 'rejected';
+  readonly mutatesFinancialTruth: false;
+  readonly createdAt: string;
+  readonly reviewedAt?: string | null;
+  readonly reviewNote?: string | null;
+}
+
+/**
+ * Vendor-safe RFQ projection. No internal cost or profit fields.
+ * RFQ↔vendor invite linkage is not in V1 schema — visibility is grant-scoped
+ * to sent RFQs for the organization when `rfq.read` is granted.
+ */
+export interface VendorSafeRfqSummary {
+  readonly rfqId: string;
+  readonly title: string;
+  readonly status: string;
+  readonly dueDate: string | null;
+  readonly projectName: string | null;
+  readonly lines: readonly {
+    readonly description: string;
+    readonly quantity: string;
+    readonly unit: string | null;
+  }[];
+}
+
+/**
+ * Vendor-safe PO summary. Exposes order totals the vendor already knows;
+ * never includes internal committed-cost ledger status, profit, or margin.
+ */
+export interface VendorSafePoSummary {
+  readonly purchaseOrderId: string;
+  readonly reference: string | null;
+  readonly status: string;
+  readonly currency: string;
+  /** Vendor-facing order total (PO line sum / committed amount on the order). */
+  readonly orderTotal: string;
+  readonly orderedOn: string | null;
+  readonly projectName: string | null;
+  readonly lines: readonly {
+    readonly description: string;
+    readonly quantity: string;
+    readonly unitAmount: string;
+    readonly lineTotal: string;
+    readonly currency: string;
+  }[];
+}
+
+export interface VendorPortalPreview {
+  readonly vendorId: string;
+  readonly vendorName: string;
+  readonly scopes: readonly VendorPortalScope[];
+  readonly rfqs: readonly VendorSafeRfqSummary[];
+  readonly purchaseOrders: readonly VendorSafePoSummary[];
+  /** AP bill candidates queued for internal review (never ap_bills rows). */
+  readonly apBillCandidates: readonly VendorApBillCandidate[];
+  /** Compliance upload candidates queued for internal review. */
+  readonly complianceCandidates: readonly VendorComplianceUploadCandidate[];
+  /**
+   * Compliance / bill uploads are candidate-only when scoped.
+   * Canonical documents / AP require internal acceptance.
+   */
+  readonly candidateIntakeNote: 'candidates_only';
+  /**
+   * RFQ browse is limited to RFQs already associated with this vendor
+   * (via supplier_quote). Full invite table is deferred — no org-wide RFQ dump.
+   */
+  readonly rfqVisibility: 'vendor_associated_only';
+  /** Public vendor login is still foundation-only. */
+  readonly publicLoginStatus: 'foundation_only';
+  /** ExternalPrincipal ≠ OrganizationMembership. */
+  readonly identityModel: 'external_principal';
+}
 
 export interface ExternalPrincipalRecord {
   readonly id: string;
@@ -58,6 +208,18 @@ export interface ExternalAccessGrantListItem extends ExternalAccessGrantRecord {
 }
 
 /**
+ * Customer-visible document metadata. Never includes storage paths,
+ * checksums, uploader ids, or admin/audit fields.
+ */
+export interface CustomerSafeDocument {
+  readonly documentId: string;
+  readonly filename: string;
+  readonly label: string | null;
+  readonly mimeType: string;
+  readonly sizeBytes: number | null;
+}
+
+/**
  * Customer-visible project projection. Must never include costs, profit,
  * workforce rates, vendor confidential data, or overhead.
  */
@@ -77,4 +239,6 @@ export interface CustomerSafeProjectSummary {
     readonly amount: string;
     readonly currency: string;
   };
+  /** Present only when the grant includes `documents.read`. */
+  readonly documents?: readonly CustomerSafeDocument[];
 }

@@ -7,11 +7,14 @@
     "roles": "Roles",
     "features": "Features",
     "costCategories": "Cost categories",
+    "catalog": "Domains & types",
+    "templates": "Structure templates",
     "tax": "Tax",
     "portal": "Portal access",
     "customFields": "Custom fields",
     "api": "API and webhooks",
     "activity": "Activity log",
+    "offlineDrafts": "Offline drafts",
     "profile": "Your profile"
   },
   "people": {
@@ -47,7 +50,13 @@
     "subtitle": "Adds suggested domains and categories. Existing data is never deleted or overwritten.",
     "label": "Preset",
     "apply": "Apply preset",
-    "saved": "Preset applied. You can edit or remove anything it added."
+    "saved": "Preset applied. You can edit or remove anything it added.",
+    "previewTitle": "This preset will add",
+    "previewDomains": "Domains",
+    "previewChecklist": "Document checklist",
+    "previewCategories": "Expense categories",
+    "previewWorkAreas": "Suggested work areas (on split)",
+    "previewHint": "Work-area names are suggestions for projects; they are not locked to the organization."
   },
   "roles": {
     "title": "Roles",
@@ -69,6 +78,60 @@
     "archiveConsequence": "Archived categories no longer appear in new selection lists.",
     "archiveSuccess": "Category archived."
   },
+  "catalog": {
+    "title": "Domains & document types",
+    "subtitle": "Controlled catalogs for services and document labels. Not a free-form database.",
+    "domainsTitle": "Service / profession domains",
+    "domainsHint": "Used as suggestions on projects. You can still type an ad-hoc domain on a project.",
+    "domainsEmpty": "No domains yet",
+    "documentTypesTitle": "Document types",
+    "documentTypesHint": "Optional checklist labels for document capture. Free-text labels still work.",
+    "documentTypesEmpty": "No document types yet",
+    "addDomain": "Add domain",
+    "addDocumentType": "Add document type",
+    "copySemantics": "Applying presets or editing here never rewrites historical project rows.",
+    "disabled": "Disabled",
+    "archiveQuestion": "Archive «{name}»?",
+    "archiveSuccess": "Archived.",
+    "laborTitle": "Labor cost defaults",
+    "laborHint": "Copied onto new employees when a base rate is set. Existing rates are not changed.",
+    "burdenPercent": "Default employer burden %",
+    "components": "Default cost components",
+    "componentsPlaceholder": "pension=percent:6.5\ntravel=fixed:50",
+    "laborSaved": "Labor defaults saved.",
+    "burdenDisplay": "Default burden {percent}%",
+    "noLaborDefaults": "No labor defaults configured."
+  },
+  "templates": {
+    "title": "Structure templates",
+    "subtitle": "Reusable project, work-area, and phase packs. Applying always creates editable copies.",
+    "projectTemplates": "Project structure templates",
+    "projectTemplatesHint": "One line per work area. Optional phases after | and commas.",
+    "phasePacks": "Reusable phase packs",
+    "phasePacksHint": "Apply onto an existing work area as new phase copies.",
+    "wpPacks": "Work-area packs",
+    "wpPacksHint": "Add a set of work areas to a project.",
+    "emptyProject": "No project templates yet",
+    "emptyPhase": "No phase packs yet",
+    "emptyWp": "No work-area packs yet",
+    "name": "Name",
+    "description": "Description",
+    "workPackagesText": "Work areas",
+    "workPackagesPlaceholder": "Electrical | Rough-in, Finish\nPlumbing",
+    "milestonesText": "Milestones",
+    "milestonesPlaceholder": "Start on site @ 0\nHandover @ 30",
+    "phasesText": "Phases",
+    "phasesPlaceholder": "Brief\nOptions\nDocumentation",
+    "wpNamesText": "Work area names",
+    "wpNamesPlaceholder": "Structure\nFinishes\nMEP",
+    "addProjectTemplate": "Save project template",
+    "addPhasePack": "Save phase pack",
+    "addWpPack": "Save work-area pack",
+    "saved": "Template saved.",
+    "delete": "Delete",
+    "deleteConfirm": "Delete «{name}»? Projects that already used copies are unchanged.",
+    "deleted": "Deleted."
+  },
   "activity": {
     "title": "Activity log",
     "subtitle": "A record of sensitive changes to money, access and settings.",
@@ -78,6 +141,7 @@
     "columnEntity": "Record",
     "empty": "No activity recorded yet.",
     "loadMore": "Load more",
+    "exportCsv": "Export activity log (CSV)",
     "actions": {
       "_fallback": "{value}",
       "organization": {
@@ -104,7 +168,8 @@
       "project": {
         "created": "Project created",
         "updated": "Project updated",
-        "archived": "Project archived"
+        "archived": "Project archived",
+        "template_applied": "Project template applied"
       },
       "work_package": {
         "created": "Work area created",
@@ -115,6 +180,11 @@
         "created": "Phase created",
         "updated": "Phase updated",
         "archived": "Phase archived"
+      },
+      "milestone": {
+        "created": "Milestone created",
+        "updated": "Milestone updated",
+        "archived": "Milestone archived"
       },
       "contract": {
         "value_recorded": "Contract value recorded"
@@ -203,7 +273,10 @@
       },
       "portal": {
         "grant_created": "Portal grant created",
-        "grant_revoked": "Portal grant revoked"
+        "grant_revoked": "Portal grant revoked",
+        "vendor_ap_candidate": "Vendor AP candidate submitted",
+        "vendor_compliance_candidate": "Vendor compliance candidate submitted",
+        "vendor_candidate_reviewed": "Vendor portal candidate reviewed"
       },
       "custom_field": {
         "definition_created": "Custom field created",
@@ -214,7 +287,90 @@
         "client_created": "API client created",
         "key_created": "API key created",
         "key_revoked": "API key revoked",
-        "webhook_created": "Webhook endpoint registered"
+        "key_rotated": "API key rotated",
+        "webhook_created": "Webhook endpoint registered",
+        "webhook_revoked": "Webhook endpoint revoked",
+        "webhook_secret_rotated": "Webhook secret rotated",
+        "webhook_delivery_enqueued": "Webhook delivery enqueued"
+      },
+      "crm": {
+        "prospect_created": "Prospect created",
+        "prospect_updated": "Prospect updated",
+        "lead_created": "Lead created",
+        "lead_updated": "Lead updated",
+        "opportunity_created": "Opportunity created",
+        "opportunity_updated": "Opportunity updated",
+        "opportunity_note_created": "Opportunity note added",
+        "opportunity_converted": "Opportunity converted",
+        "estimate_created": "Estimate created",
+        "estimate_updated": "Estimate updated",
+        "sales_quote_created": "Sales quote created",
+        "sales_quote_version_created": "Sales quote version created",
+        "sales_quote_version_issued": "Sales quote version issued",
+        "quote_accepted": "Sales quote accepted"
+      },
+      "compliance": {
+        "artifact_created": "Compliance artifact created",
+        "artifact_updated": "Compliance artifact updated"
+      },
+      "material": {
+        "created": "Material created"
+      },
+      "material_vendor_price": {
+        "created": "Vendor price created",
+        "updated": "Vendor price updated",
+        "deleted": "Vendor price removed"
+      },
+      "procurement_rfq": {
+        "created": "RFQ created",
+        "status_updated": "RFQ status updated"
+      },
+      "supplier_quote": {
+        "created": "Supplier quote created",
+        "status_updated": "Supplier quote status updated"
+      },
+      "purchase_order": {
+        "created": "Purchase order created",
+        "issued": "Purchase order issued"
+      },
+      "procurement": {
+        "supplier_quote_received": "Supplier quote received"
+      },
+      "ap": {
+        "bill_created": "AP bill created",
+        "match_proposed": "AP match proposed",
+        "match_accepted": "AP match accepted",
+        "match_rejected": "AP match rejected"
+      },
+      "daily_log": {
+        "created": "Daily log created",
+        "updated": "Daily log updated"
+      },
+      "punch_list_item": {
+        "created": "Punch item created",
+        "updated": "Punch item updated"
+      },
+      "inspection": {
+        "created": "Inspection created",
+        "updated": "Inspection updated"
+      },
+      "asset": {
+        "created": "Asset created",
+        "updated": "Asset updated"
+      },
+      "fleet_vehicle": {
+        "created": "Fleet vehicle created",
+        "updated": "Fleet vehicle updated"
+      },
+      "maintenance_record": {
+        "created": "Maintenance record created",
+        "updated": "Maintenance record updated"
+      },
+      "inventory_item": {
+        "created": "Inventory item created"
+      },
+      "inventory_movement": {
+        "recorded": "Inventory movement recorded"
       }
     },
     "entities": {
@@ -228,6 +384,7 @@
       "project": "Project",
       "work_package": "Work area",
       "phase": "Phase",
+      "milestone": "Milestone",
       "contract": "Contract",
       "client": "Client",
       "client_contact": "Client contact",
@@ -252,7 +409,27 @@
       "custom_field_definition": "Custom field",
       "api_client": "API client",
       "api_key": "API key",
-      "webhook_endpoint": "Webhook endpoint"
+      "webhook_endpoint": "Webhook endpoint",
+      "webhook_delivery": "Webhook delivery",
+      "crm_prospect": "Prospect",
+      "crm_lead": "Lead",
+      "crm_opportunity": "Opportunity",
+      "compliance_artifact": "Compliance artifact",
+      "material": "Material",
+      "material_vendor_price": "Vendor price",
+      "procurement_rfq": "RFQ",
+      "supplier_quote": "Supplier quote",
+      "purchase_order": "Purchase order",
+      "ap_bill": "AP bill",
+      "ap_match": "AP match",
+      "daily_log": "Daily log",
+      "punch_list_item": "Punch item",
+      "inspection": "Inspection",
+      "asset": "Asset",
+      "fleet_vehicle": "Fleet vehicle",
+      "maintenance_record": "Maintenance record",
+      "inventory_item": "Inventory item",
+      "inventory_movement": "Inventory movement"
     }
   },
   "profile": {

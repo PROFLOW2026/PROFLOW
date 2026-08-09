@@ -58,6 +58,8 @@ export const listClientsSchema = z.object({
   search: z.string().trim().optional(),
   status: z.enum([...CLIENT_STATUSES, 'all'] as const).optional(),
   includeArchived: z.boolean().optional(),
+  limit: z.coerce.number().int().min(0).optional(),
+  offset: z.coerce.number().int().min(0).optional(),
 });
 
 export const createContactSchema = z.object({

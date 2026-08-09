@@ -9,32 +9,92 @@ import { z } from 'zod';
  * database URL out of the browser bundle (doc 74 §6).
  */
 
-const optionalUrl = z.union([z.string().url(), z.literal('')]).optional();
+const emptyToUndefined = (value: unknown) =>
+  value === '' || value === undefined || value === null ? undefined : value;
+
+const optionalNonEmpty = z.preprocess(emptyToUndefined, z.string().min(1).optional());
+const optionalUrl = z.preprocess(
+  emptyToUndefined,
+  z.union([z.string().url(), z.undefined()]).optional(),
+);
 
 const serverEnvSchema = z.object({
-  APP_ENV: z.enum(['local', 'preview', 'production']).default('local'),
-  APP_URL: z.string().url().default('http://localhost:3000'),
+  APP_ENV: z.preprocess(emptyToUndefined, z.enum(['local', 'preview', 'production']).default('local')),
+  APP_URL: z.preprocess(
+    emptyToUndefined,
+    z.string().url().default('http://localhost:3000'),
+  ),
 
-  DATABASE_URL: z.string().min(1).optional(),
-  DIRECT_DATABASE_URL: z.string().min(1).optional(),
-  TEST_DATABASE_URL: z.string().min(1).optional(),
+  DATABASE_URL: optionalNonEmpty,
+  DIRECT_DATABASE_URL: optionalNonEmpty,
+  TEST_DATABASE_URL: optionalNonEmpty,
+  DATABASE_POOL_MAX: z.preprocess(
+    emptyToUndefined,
+    z.coerce.number().int().positive().max(50).default(5),
+  ),
 
-  SUPABASE_SERVICE_ROLE_KEY: z.string().optional(),
+  SUPABASE_SERVICE_ROLE_KEY: optionalNonEmpty,
 
-  SUPABASE_STORAGE_BUCKET: z.string().min(1).default('documents'),
-  DOCUMENTS_MAX_UPLOAD_BYTES: z.coerce.number().int().positive().default(26_214_400),
+  SUPABASE_STORAGE_BUCKET: z.preprocess(
+    emptyToUndefined,
+    z.string().min(1).default('documents'),
+  ),
+  DOCUMENTS_MAX_UPLOAD_BYTES: z.preprocess(
+    emptyToUndefined,
+    z.coerce.number().int().positive().default(26_214_400),
+  ),
 
-  EMAIL_DRIVER: z.enum(['console', 'resend']).default('console'),
-  RESEND_API_KEY: z.string().optional(),
-  EMAIL_FROM: z.string().min(1).default('ProjectFlow <no-reply@example.com>'),
+  EMAIL_DRIVER: z.preprocess(
+    emptyToUndefined,
+    z.enum(['console', 'resend']).default('console'),
+  ),
+  RESEND_API_KEY: optionalNonEmpty,
+  EMAIL_FROM: z.preprocess(
+    emptyToUndefined,
+    z.string().min(1).default('ProjectFlow <no-reply@example.com>'),
+  ),
 
   SENTRY_DSN: optionalUrl,
-  LOG_LEVEL: z.enum(['debug', 'info', 'warn', 'error']).default('info'),
+  LOG_LEVEL: z.preprocess(
+    emptyToUndefined,
+    z.enum(['debug', 'info', 'warn', 'error']).default('info'),
+  ),
+
+  /** Present ⇒ OCR adapter may call a provider; unset keeps the stub inert. */
+  OCR_PROVIDER_API_KEY: optionalNonEmpty,
+
+  /**
+   * KEK for sealing webhook signing secrets at rest.
+   * Required in production — must not be derived from the service-role key.
+   */
+  WEBHOOK_SECRET_KEK: optionalNonEmpty,
 });
 
 export type ServerEnv = z.infer<typeof serverEnvSchema>;
 
 let cached: ServerEnv | null = null;
+
+function assertProductionGuards(env: ServerEnv): void {
+  const missing: string[] = [];
+  if (!env.DATABASE_URL) missing.push('DATABASE_URL');
+  if (!env.SUPABASE_SERVICE_ROLE_KEY) missing.push('SUPABASE_SERVICE_ROLE_KEY');
+  if (!env.WEBHOOK_SECRET_KEK) missing.push('WEBHOOK_SECRET_KEK');
+  if (missing.length > 0) {
+    throw new Error(`Missing required production environment variables: ${missing.join(', ')}`);
+  }
+
+  if (/localhost|127\.0\.0\.1/i.test(env.APP_URL)) {
+    throw new Error('APP_ENV=production forbids localhost APP_URL');
+  }
+
+  if (!/^https:\/\//i.test(env.APP_URL)) {
+    throw new Error('APP_ENV=production requires HTTPS APP_URL');
+  }
+
+  if (env.EMAIL_DRIVER === 'resend' && !env.RESEND_API_KEY) {
+    throw new Error('EMAIL_DRIVER=resend requires RESEND_API_KEY');
+  }
+}
 
 export function serverEnv(): ServerEnv {
   if (cached) return cached;
@@ -49,23 +109,40 @@ export function serverEnv(): ServerEnv {
   }
 
   const env = parsed.data;
-
   if (env.APP_ENV === 'production') {
-    const missing: string[] = [];
-    if (!env.DATABASE_URL) missing.push('DATABASE_URL');
-    if (missing.length > 0) {
-      throw new Error(`Missing required production environment variables: ${missing.join(', ')}`);
-    }
-    if (env.EMAIL_DRIVER === 'resend' && !env.RESEND_API_KEY) {
-      throw new Error('EMAIL_DRIVER=resend requires RESEND_API_KEY');
-    }
+    assertProductionGuards(env);
   }
 
   cached = env;
   return env;
 }
 
+/** Test seam — clears the memoized parse so env mutations are visible. */
+export function resetServerEnvCache(): void {
+  cached = null;
+}
+
 /** True when a database connection string is configured for this process. */
 export function hasDatabase(): boolean {
-  return Boolean(process.env.DATABASE_URL);
+  return Boolean(process.env.DATABASE_URL?.trim());
 }
+
+/** Keys documented in `.env.example` that belong to the server contract. */
+export const SERVER_ENV_EXAMPLE_KEYS = [
+  'APP_ENV',
+  'APP_URL',
+  'DATABASE_URL',
+  'DIRECT_DATABASE_URL',
+  'DATABASE_POOL_MAX',
+  'TEST_DATABASE_URL',
+  'SUPABASE_SERVICE_ROLE_KEY',
+  'SUPABASE_STORAGE_BUCKET',
+  'DOCUMENTS_MAX_UPLOAD_BYTES',
+  'EMAIL_DRIVER',
+  'RESEND_API_KEY',
+  'EMAIL_FROM',
+  'SENTRY_DSN',
+  'LOG_LEVEL',
+  'OCR_PROVIDER_API_KEY',
+  'WEBHOOK_SECRET_KEK',
+] as const;

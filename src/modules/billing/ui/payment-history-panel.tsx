@@ -7,7 +7,7 @@ import { StatusBadge } from '@/components/ui/status-badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Link } from '@/shared/i18n/navigation';
 import { formatBusinessDate } from '@/shared/dates/format';
-import type { PaymentApplicationRow } from '@/modules/billing';
+import type { PaymentApplicationRow } from '@/modules/billing/domain/types';
 
 interface PaymentHistoryTableProps {
   rows: readonly PaymentApplicationRow[];

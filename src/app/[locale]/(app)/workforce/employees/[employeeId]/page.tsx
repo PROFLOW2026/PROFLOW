@@ -5,11 +5,16 @@ import { Card } from '@/components/ui/card';
 import { PageHeader } from '@/components/ui/page-header';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { MoneyText } from '@/components/patterns/money-text';
+import { listCustomFieldValuesForEntity } from '@/modules/custom-fields';
+import { EntityCustomFieldsPanel } from '@/modules/custom-fields/ui';
+import { getEntityDocumentPanelData } from '@/modules/documents';
+import { DocumentAttachments } from '@/modules/documents/ui';
 import { getEmployee, listRateHistory, resolveRateVersionForDate } from '@/modules/workforce';
 import { RateHistoryTable } from '@/modules/workforce/ui/rate-history-table';
 import { withOrgContext } from '@/shared/auth/session';
 import { businessDate, todayInTimeZone } from '@/shared/dates';
 import { fromNumericString } from '@/shared/money';
+import { upsertEntityFieldValueAction } from '../../../settings/custom-fields/actions';
 
 export async function generateMetadata({
   params,
@@ -32,10 +37,14 @@ export default async function EmployeeDetailPage({
   const data = await withOrgContext(async (context) => {
     try {
       const employee = await getEmployee(context, employeeId);
-      const rateHistory = await listRateHistory(context, employeeId);
+      const [rateHistory, documentsPanel, customFields] = await Promise.all([
+        listRateHistory(context, employeeId),
+        getEntityDocumentPanelData(context, 'employee', employeeId),
+        listCustomFieldValuesForEntity(context, 'employee', employeeId).catch(() => []),
+      ]);
       const today = todayInTimeZone(context.organization.timezone);
       const currentRate = resolveRateVersionForDate(employee.rateVersions, businessDate(today));
-      return { employee, rateHistory, currentRate, today };
+      return { employee, rateHistory, currentRate, today, documentsPanel, customFields };
     } catch {
       return null;
     }
@@ -43,7 +52,7 @@ export default async function EmployeeDetailPage({
 
   if (!data) notFound();
 
-  const { employee, rateHistory, currentRate } = data;
+  const { employee, rateHistory, currentRate, documentsPanel, customFields } = data;
 
   return (
     <div className="flex flex-col gap-6">
@@ -94,10 +103,27 @@ export default async function EmployeeDetailPage({
         </Card>
       )}
 
+      <EntityCustomFieldsPanel
+        entityId={employee.id}
+        fields={customFields}
+        revalidatePath={`/workforce/employees/${employee.id}`}
+        saveAction={upsertEntityFieldValueAction}
+      />
+
       <Card className="flex flex-col gap-3 p-4 sm:p-6">
         <h2 className="text-base font-semibold">{t('employees.detail.rateHistory')}</h2>
         <RateHistoryTable versions={rateHistory} />
       </Card>
+
+      <DocumentAttachments
+        ownerType="employee"
+        ownerId={employee.id}
+        documents={documentsPanel.documents}
+        linkCandidates={documentsPanel.linkCandidates}
+        canRead={documentsPanel.canRead}
+        canManage={documentsPanel.canManage}
+        storageConfigured={documentsPanel.storageConfigured}
+      />
     </div>
   );
 }

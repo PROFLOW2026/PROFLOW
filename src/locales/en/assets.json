@@ -1,17 +1,30 @@
 {
   "title": "Assets",
   "description": "Equipment, fleet, maintenance and stock. Maintenance cost is metadata — not an expense. Inventory quantity is not GL.",
+  "navLabel": "Assets sections",
   "nav": {
     "assets": "Assets",
+    "fleet": "Fleet",
+    "maintenance": "Maintenance",
     "inventory": "Inventory"
   },
   "newAsset": "New asset",
+  "newFleetVehicle": "New fleet vehicle",
   "newInventoryItem": "New inventory item",
   "empty": {
     "assets": {
       "title": "No assets yet",
       "body": "Track equipment and vehicles, then log maintenance as operational notes.",
       "action": "New asset"
+    },
+    "fleet": {
+      "title": "No fleet vehicles yet",
+      "body": "Link plate, VIN and odometer to vehicle assets.",
+      "action": "New fleet vehicle"
+    },
+    "maintenance": {
+      "title": "No maintenance records yet",
+      "body": "Log planned and completed service on asset detail pages. Overdue and upcoming lists appear here."
     },
     "inventory": {
       "title": "No inventory items yet",
@@ -25,9 +38,17 @@
       "kind": "Kind",
       "status": "Status",
       "identifier": "ID",
+      "manufacturer": "Manufacturer",
+      "model": "Model",
+      "assignedProject": "Assigned project",
+      "plate": "Plate",
+      "vin": "VIN",
+      "odometer": "Odometer",
       "sku": "SKU",
       "unit": "Unit",
       "quantity": "On hand",
+      "reorderLevel": "Reorder level",
+      "reorderStatus": "Stock status",
       "actions": "Actions"
     }
   },
@@ -43,50 +64,143 @@
     "submit": "Save asset",
     "nameLabel": "Name",
     "kindLabel": "Kind",
+    "statusLabel": "Status",
     "identifierLabel": "Identifier",
     "manufacturerLabel": "Manufacturer",
     "modelLabel": "Model",
     "serialNumberLabel": "Serial number",
+    "assignedProjectLabel": "Assign to project (check-out)",
+    "assignedProjectNone": "Unassigned",
     "notesLabel": "Notes",
     "fleetTitle": "Fleet details (optional)",
     "plateNumberLabel": "Plate number",
     "vinLabel": "VIN",
     "odometerLabel": "Odometer"
   },
+  "fleet": {
+    "title": "Fleet",
+    "description": "Vehicles linked to assets of kind vehicle. Plate, VIN and odometer are operational fields.",
+    "schemaLimitsTitle": "Ownership, lease and driver",
+    "schemaLimitsBody": "Migration 0011 has no ownership/rental, lease, or driver/employee columns. Project check-out uses the linked asset’s assigned project. Mileage is tracked as odometer only.",
+    "createTitle": "Add fleet vehicle",
+    "editTitle": "Edit fleet vehicle",
+    "submit": "Save fleet vehicle",
+    "updateSubmit": "Update",
+    "assetLabel": "Existing vehicle asset",
+    "assetNone": "Create new vehicle asset",
+    "nameLabel": "New vehicle name",
+    "plateNumberLabel": "Plate number",
+    "vinLabel": "VIN",
+    "odometerLabel": "Odometer",
+    "notesLabel": "Notes"
+  },
+  "schedule": {
+    "title": "Maintenance schedule",
+    "overdue": "Overdue",
+    "upcoming": "Upcoming",
+    "emptyOverdue": "No overdue maintenance.",
+    "emptyUpcoming": "No upcoming maintenance in the next 30 days.",
+    "hint": "Derived from planned/in-progress status and performed-on date. No notifications are sent.",
+    "viewAll": "Full schedule"
+  },
   "detail": {
     "fleet": "Fleet",
     "noFleet": "No fleet record linked",
+    "registry": "Registry",
+    "identifier": "Identifier",
+    "manufacturer": "Manufacturer",
+    "model": "Model",
+    "serialNumber": "Serial number",
+    "assignment": "Assignment / check-out",
+    "assignmentHint": "Assign to a project to check out; clear to check in.",
+    "assignedProject": "Assigned project",
+    "unassigned": "Not assigned",
+    "checkOut": "Check out",
+    "checkIn": "Check in",
+    "saveAssignment": "Save assignment",
+    "statusLabel": "Status",
+    "saveStatus": "Update status",
+    "history": "Status / maintenance history",
+    "historyHint": "Chronological maintenance records for this asset.",
+    "documents": "Documents",
     "maintenance": "Maintenance",
     "maintenanceHint": "Cost here is operational metadata only and does not create an expense.",
+    "costNotExpense": "Not an Expense — cost is metadata only. No expense posting or ledger link.",
     "newMaintenance": "Add maintenance",
     "maintenanceTitle": "Title",
     "maintenanceStatus": "Status",
-    "performedOn": "Performed on",
+    "performedOn": "Performed / scheduled on",
     "costAmount": "Cost (metadata)",
     "currency": "Currency",
+    "vendor": "Vendor",
+    "vendorNone": "No vendor",
     "notes": "Notes",
     "submitMaintenance": "Save maintenance",
-    "emptyMaintenance": "No maintenance records yet."
+    "emptyMaintenance": "No maintenance records yet.",
+    "updateStatus": "Update status",
+    "updateStatusPending": "Saving…"
   },
   "inventory": {
     "title": "Inventory",
     "description": "On-hand quantities for materials and stock. Movements update quantity only — never GL or expense.",
+    "detailDescription": "Operational stock only. Recording a movement does not create an expense or ledger entry.",
     "createTitle": "New inventory item",
     "submitItem": "Save item",
     "nameLabel": "Name",
     "skuLabel": "SKU",
     "unitLabel": "Unit",
     "quantityLabel": "Starting quantity",
+    "reorderLevelLabel": "Reorder level",
+    "materialLabel": "Catalog material",
+    "materialNone": "No catalog link",
     "notesLabel": "Notes",
     "receive": "Receive",
     "issue": "Issue",
+    "return": "Return",
+    "adjust": "Adjust",
     "movementQuantity": "Quantity",
     "occurredOn": "Date",
     "movementNotes": "Notes",
-    "submitMovement": "Record",
-    "pending": "Saving…"
+    "movementTypeLabel": "Movement type",
+    "movementNotExpense": "Stock movements change on-hand quantity only. They are not expenses and do not post to the ledger.",
+    "adjustQuantityHint": "For adjustments, enter a signed delta (for example 2 or -1).",
+    "projectLabel": "Project",
+    "projectNone": "No project",
+    "submitMovement": "Record movement",
+    "recordMovement": "Record movement",
+    "pending": "Saving…",
+    "openDetail": "History & more…",
+    "linkedMaterial": "Open linked catalog material",
+    "historyTitle": "Movement history",
+    "historyHint": "Chronological stock movements for this item. Quantity changes only — no financial posting.",
+    "emptyHistory": "No movements recorded yet.",
+    "reorderStatus": {
+      "ok": "Above reorder",
+      "at_reorder": "At reorder level",
+      "below_reorder": "Below reorder",
+      "no_reorder_level": "No reorder level"
+    },
+    "movementTypes": {
+      "receive": "Receive",
+      "issue": "Issue",
+      "return": "Return",
+      "adjust": "Adjust"
+    },
+    "history": {
+      "columns": {
+        "date": "Date",
+        "type": "Type",
+        "quantity": "Quantity",
+        "project": "Project",
+        "notes": "Notes"
+      }
+    }
   },
   "errors": {
-    "insufficientQuantity": "Not enough quantity on hand for this issue."
+    "insufficientQuantity": "Not enough quantity on hand for this issue.",
+    "invalidMaintenanceTransition": "That maintenance status change is not allowed.",
+    "fleetRequiresVehicle": "Fleet records must link to a vehicle asset.",
+    "fleetAlreadyLinked": "This vehicle already has a fleet record.",
+    "fleetKindLocked": "Remove the fleet record before changing this asset away from vehicle."
   }
 }

@@ -123,6 +123,8 @@ export const timeEntryFiltersSchema = z.object({
   fromDate: businessDateSchema.optional(),
   toDate: businessDateSchema.optional(),
   kind: z.enum([...TIME_ENTRY_KINDS, 'all'] as const).optional(),
+  limit: z.coerce.number().int().min(0).optional(),
+  offset: z.coerce.number().int().min(0).optional(),
 });
 
 export type TimeEntryFiltersInput = z.infer<typeof timeEntryFiltersSchema>;

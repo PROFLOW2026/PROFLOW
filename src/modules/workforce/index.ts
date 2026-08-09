@@ -40,3 +40,9 @@ export type { EmployeeListItem, EmployeeRecord, RateUnit, TimeEntryListItem, Tim
 
 export { loadQuickLogFormData } from './application/quick-log';
 export type { QuickLogFormData } from './application/quick-log';
+
+/** Cross-module time-entry lookups (offline sync / dashboard labor). */
+export {
+  findTimeEntryById,
+  sumOrganizationProjectLaborCoverage,
+} from './data/time-entries.repository';

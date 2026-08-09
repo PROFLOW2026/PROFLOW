@@ -17,6 +17,15 @@ export const DOCUMENT_OWNER_TYPES = [
   'quote_version',
   'employee',
   'organization',
+  'procurement_rfq',
+  'purchase_order',
+  'ap_bill',
+  'daily_log',
+  'punch_list_item',
+  'inspection',
+  'compliance_artifact',
+  'asset',
+  'inventory_item',
 ] as const;
 export type DocumentOwnerType = (typeof DOCUMENT_OWNER_TYPES)[number];
 
@@ -49,17 +58,29 @@ export interface DocumentLinkRecord {
 
 export interface DocumentListItem extends DocumentRecord {
   readonly label: string | null;
+  /** Present when listed via an entity link (needed to unlink from that owner). */
+  readonly linkId?: string | null;
+}
+
+/** Candidate for "link existing document" without a new upload. */
+export interface DocumentLinkCandidate {
+  readonly id: string;
+  readonly originalFilename: string;
 }
 
 export interface DocumentListFilters {
   readonly search?: string;
   readonly ownerType?: DocumentOwnerType | 'all';
   readonly includeDeleted?: boolean;
+  readonly limit?: number;
+  readonly offset?: number;
 }
 
 export interface EntityDocumentFilters {
   readonly ownerType: DocumentOwnerType;
   readonly ownerId: string;
+  readonly limit?: number;
+  readonly offset?: number;
 }
 
 export interface PrepareUploadResult {

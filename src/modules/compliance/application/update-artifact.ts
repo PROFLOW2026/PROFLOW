@@ -69,6 +69,7 @@ export async function updateComplianceArtifact(
       status,
       subjectType: parsed.data.subjectType,
       subjectId: parsed.data.subjectId,
+      documentId: parsed.data.documentId,
       notes: parsed.data.notes,
     },
   );

@@ -3,6 +3,7 @@ import { getTranslations } from 'next-intl/server';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/ui/page-header';
+import { listFieldOpsWorkPackages } from '@/modules/field-ops';
 import { listProjectsForOrg } from '@/modules/projects';
 import { withOrgContext } from '@/shared/auth/session';
 import { Link } from '@/shared/i18n/navigation';
@@ -26,7 +27,14 @@ export default async function NewPunchPage({
   const t = await getTranslations('fieldOps');
   const { projectId } = await searchParams;
 
-  const projects = await withOrgContext((context) => listProjectsForOrg(context, {}));
+  const { projects, workPackages } = await withOrgContext(async (context) => {
+    const projectRows = await listProjectsForOrg(context, {});
+    const packages = await listFieldOpsWorkPackages(
+      context,
+      projectRows.map((p) => p.id),
+    );
+    return { projects: projectRows, workPackages: packages };
+  });
 
   if (projects.length === 0) {
     return (
@@ -58,6 +66,7 @@ export default async function NewPunchPage({
       />
       <PunchCreateForm
         projects={projects.map((p) => ({ id: p.id, name: p.name }))}
+        workPackages={workPackages}
         defaultProjectId={projectId}
       />
     </div>

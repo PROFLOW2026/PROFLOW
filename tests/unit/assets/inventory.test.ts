@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   applyInventoryMovement,
+  getReorderStatus,
   isInventoryQuantityGlOrExpense,
   isMaintenanceCostAnExpense,
 } from '@/modules/assets';
@@ -52,6 +53,55 @@ describe('applyInventoryMovement', () => {
         quantity: '-2',
       }).nextQuantityOnHand,
     ).toBe('8.000000');
+
+    expect(
+      applyInventoryMovement({
+        quantityOnHand: '10',
+        movementType: 'adjust',
+        quantity: '1.5',
+      }).nextQuantityOnHand,
+    ).toBe('11.500000');
+  });
+
+  it('rejects zero adjust and negative-going adjust', () => {
+    expect(() =>
+      applyInventoryMovement({
+        quantityOnHand: '10',
+        movementType: 'adjust',
+        quantity: '0',
+      }),
+    ).toThrow(/non-zero/);
+
+    expect(() =>
+      applyInventoryMovement({
+        quantityOnHand: '1',
+        movementType: 'adjust',
+        quantity: '-2',
+      }),
+    ).toThrow(/negative/);
+  });
+});
+
+describe('getReorderStatus', () => {
+  it('returns no_reorder_level when unset', () => {
+    expect(
+      getReorderStatus({ quantityOnHand: '5', reorderLevel: null }),
+    ).toBe('no_reorder_level');
+    expect(
+      getReorderStatus({ quantityOnHand: '5', reorderLevel: '' }),
+    ).toBe('no_reorder_level');
+  });
+
+  it('classifies ok / at / below', () => {
+    expect(
+      getReorderStatus({ quantityOnHand: '12', reorderLevel: '10' }),
+    ).toBe('ok');
+    expect(
+      getReorderStatus({ quantityOnHand: '10', reorderLevel: '10' }),
+    ).toBe('at_reorder');
+    expect(
+      getReorderStatus({ quantityOnHand: '9.5', reorderLevel: '10' }),
+    ).toBe('below_reorder');
   });
 });
 

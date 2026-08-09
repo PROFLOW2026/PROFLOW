@@ -32,6 +32,16 @@ export async function generateMetadata({
     title: { default: t('appName'), template: `%s · ${t('appName')}` },
     description: t('appName'),
     applicationName: t('appName'),
+    manifest: '/manifest.webmanifest',
+    appleWebApp: {
+      capable: true,
+      title: t('appName'),
+      statusBarStyle: 'default',
+    },
+    icons: [
+      { url: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
+      { url: '/icons/icon-512.png', sizes: '512x512', type: 'image/png' },
+    ],
   };
 }
 

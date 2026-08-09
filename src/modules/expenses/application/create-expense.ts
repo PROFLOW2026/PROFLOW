@@ -53,7 +53,7 @@ async function resolveWorkPackageId(
 ): Promise<string | null> {
   if (workPackageId) {
     const pkg = await findWorkPackageInProject(context.db, context.organizationId, projectId, workPackageId);
-    if (!pkg) throw new NotFoundError('Work package');
+    if (!pkg) throw new NotFoundError('Work area');
     return pkg.id;
   }
   return findDefaultWorkPackageId(context.db, context.organizationId, projectId);
@@ -108,7 +108,7 @@ async function validateAllocationReferences(
     if (line.workPackageId) {
       if (!line.projectId) {
         throw new DomainRuleError(
-          'Work package allocation requires a project',
+          'Work area allocation requires a project',
           'expenses.errors.allocationProjectRequired',
         );
       }
@@ -118,7 +118,7 @@ async function validateAllocationReferences(
         line.projectId,
         line.workPackageId,
       );
-      if (!pkg) throw new NotFoundError('Work package');
+      if (!pkg) throw new NotFoundError('Work area');
     }
     if (line.costCategoryId) {
       await validateCategory(context, line.costCategoryId);

@@ -57,7 +57,7 @@ export function UserMenu({
       <DropdownMenu>
         <DropdownMenuTrigger
           aria-label={tCommon('a11y.userMenu')}
-          className="flex items-center gap-2 rounded-full p-0.5 transition-colors hover:bg-[var(--pf-bg-muted)]"
+          className="flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-full p-1.5 transition-colors hover:bg-[var(--pf-bg-muted)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)] lg:min-h-8 lg:min-w-8 lg:p-0.5"
         >
         <span className="flex size-8 items-center justify-center rounded-full bg-[var(--pf-teal-100)] text-sm font-semibold text-[var(--pf-teal-800)]">
           {initials}

@@ -1,6 +1,8 @@
 import { getTranslations } from 'next-intl/server';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { ResponsiveTable } from '@/components/patterns/responsive-table';
 import { MoneyText } from '@/components/patterns/money-text';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { EmptyState } from '@/components/ui/empty-state';
 import type { RateVersionDetail } from '@/modules/workforce';
 import { fromNumericString } from '@/shared/money';
 
@@ -12,38 +14,79 @@ export async function RateHistoryTable({ versions }: RateHistoryTableProps) {
   const t = await getTranslations('workforce');
 
   if (versions.length === 0) {
-    return <p className="text-sm text-[var(--pf-text-secondary)]">{t('employees.detail.noRateHistory')}</p>;
+    return <EmptyState size="sm" title={t('employees.detail.noRateHistory')} className="py-6" />;
   }
 
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>{t('employees.detail.rateFrom')}</TableHead>
-          <TableHead>{t('employees.detail.rateTo')}</TableHead>
-          <TableHead>{t('employees.columns.employmentStyle')}</TableHead>
-          <TableHead numeric>{t('employees.columns.currentRate')}</TableHead>
-          <TableHead numeric>{t('employees.form.burdenPercent')}</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {versions.map((version) => (
-          <TableRow key={version.id}>
-            <TableCell>{version.validFrom}</TableCell>
-            <TableCell>{version.validTo ?? t('employees.detail.openEnded')}</TableCell>
-            <TableCell>{t(`rateUnits.${version.rateUnit}`)}</TableCell>
-            <TableCell numeric>
-              <MoneyText
-                value={fromNumericString(version.baseRate, version.currency) ?? {
-                  amount: version.baseRate,
-                  currency: version.currency,
-                }}
-              />
-            </TableCell>
-            <TableCell numeric>{version.burdenPercent ? `${version.burdenPercent}%` : '—'}</TableCell>
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+    <ResponsiveTable
+      items={versions}
+      getRowKey={(version) => version.id}
+      desktop={
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>{t('employees.detail.rateFrom')}</TableHead>
+              <TableHead>{t('employees.detail.rateTo')}</TableHead>
+              <TableHead>{t('employees.columns.employmentStyle')}</TableHead>
+              <TableHead numeric>{t('employees.columns.currentRate')}</TableHead>
+              <TableHead numeric>{t('employees.form.burdenPercent')}</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {versions.map((version) => (
+              <TableRow key={version.id}>
+                <TableCell>
+                  <span dir="ltr">{version.validFrom}</span>
+                </TableCell>
+                <TableCell>
+                  {version.validTo ? <span dir="ltr">{version.validTo}</span> : t('employees.detail.openEnded')}
+                </TableCell>
+                <TableCell>{t(`rateUnits.${version.rateUnit}`)}</TableCell>
+                <TableCell numeric>
+                  <MoneyText
+                    value={fromNumericString(version.baseRate, version.currency) ?? {
+                      amount: version.baseRate,
+                      currency: version.currency,
+                    }}
+                  />
+                </TableCell>
+                <TableCell numeric>
+                  {version.burdenPercent ? (
+                    <span dir="ltr" className="pf-numeric">
+                      {version.burdenPercent}%
+                    </span>
+                  ) : (
+                    '—'
+                  )}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      }
+      renderMobileCard={(version) => (
+        <div className="rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4">
+          <p className="text-sm font-medium">{t(`rateUnits.${version.rateUnit}`)}</p>
+          <p className="mt-1 text-xs text-[var(--pf-text-secondary)]" dir="ltr">
+            {version.validFrom}
+            {' → '}
+            {version.validTo ?? t('employees.detail.openEnded')}
+          </p>
+          <p className="mt-2 text-sm">
+            <MoneyText
+              value={fromNumericString(version.baseRate, version.currency) ?? {
+                amount: version.baseRate,
+                currency: version.currency,
+              }}
+            />
+            {version.burdenPercent ? (
+              <span className="ms-2 text-xs text-[var(--pf-text-secondary)]" dir="ltr">
+                +{version.burdenPercent}%
+              </span>
+            ) : null}
+          </p>
+        </div>
+      )}
+    />
   );
 }

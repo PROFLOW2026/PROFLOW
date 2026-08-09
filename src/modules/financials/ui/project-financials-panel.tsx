@@ -42,6 +42,7 @@ export async function ProjectFinancialsPanel({ projectId }: ProjectFinancialsPan
         <Card>
           <CardHeader>
             <CardTitle>{t('currentContractValue')}</CardTitle>
+            <CardDescription>{financials.currency}</CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-3 text-sm">
             <MetricRow
@@ -75,11 +76,24 @@ export async function ProjectFinancialsPanel({ projectId }: ProjectFinancialsPan
         <Card>
           <CardHeader>
             <CardTitle>{t('invoiced')}</CardTitle>
+            <CardDescription>{financials.currency}</CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-3 text-sm">
-            <MetricRow label={t('invoiced')} value={financials.billing.invoiced} />
-            <MetricRow label={t('paid')} value={financials.billing.paid} />
-            <MetricRow label={t('outstanding')} value={financials.billing.outstanding} />
+            <MetricRow
+              label={t('invoiced')}
+              value={financials.billing.invoiced}
+              nature={t('metricNature.actual')}
+            />
+            <MetricRow
+              label={t('paid')}
+              value={financials.billing.paid}
+              nature={t('metricNature.actual')}
+            />
+            <MetricRow
+              label={t('outstanding')}
+              value={financials.billing.outstanding}
+              nature={t('metricNature.forecast')}
+            />
             {billingNotes.map((note) => (
               <p key={note} className="text-xs text-[var(--pf-text-secondary)]">
                 {note}
@@ -100,48 +114,88 @@ export async function ProjectFinancialsPanel({ projectId }: ProjectFinancialsPan
             forecastHint: t('cashFlow.forecastHint'),
             outgoingTitle: t('cashFlow.outgoingTitle'),
             outgoingDisclosure: t('cashFlow.outgoingDisclosure'),
+            outgoingAvailableHint: t('cashFlow.outgoingAvailableHint'),
             undatedNote: t('cashFlow.undatedNote'),
             bucketLabel: (key) => t(`cashFlow.buckets.${key}`),
             paymentCount: (count) => t('cashFlow.paymentCount', { count }),
+            billCount: (count) => t('cashFlow.billCount', { count }),
           }}
         />
       ) : null}
 
       <Card>
         <CardHeader>
-          <CardTitle>{t('actualCostToDate')}</CardTitle>
+          <CardTitle>
+            {t('actualCostToDate')}{' '}
+            <span className="text-sm font-normal text-[var(--pf-text-secondary)]">
+              ({t('metricNature.actual')})
+            </span>
+          </CardTitle>
           <CardDescription>
             {financials.coverage.basis === 'fully_loaded'
               ? t('basis.fullyLoaded')
-              : t('basis.directOnly')}
+              : t('basis.directOnly')}{' '}
+            · {financials.currency}
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-3 text-sm">
           <MetricRow
             label={t('costFamilies.direct_project')}
             value={financials.cost.byFamily.directProject}
+            nature={t('metricNature.actual')}
           />
-          <MetricRow label={t('costFamilies.shared')} value={financials.cost.byFamily.shared} />
           <MetricRow
-            label={t('costFamilies.business_overhead')}
-            value={financials.cost.byFamily.businessOverhead}
+            label={t('laborActual')}
+            value={financials.cost.laborActual}
+            nature={t('metricNature.actual')}
           />
+          <MetricRow
+            label={t('vendorActual')}
+            value={financials.cost.vendorActual}
+            nature={t('metricNature.actual')}
+          />
+          <MetricRow
+            label={t('overheadActual')}
+            value={financials.cost.overheadActual}
+            nature={t('metricNature.actual')}
+          />
+          <MetricRow label={t('costFamilies.shared')} value={financials.cost.byFamily.shared} nature={t('metricNature.actual')} />
           <MetricRow
             label={t('costFamilies.asset_capital')}
             value={financials.cost.byFamily.assetCapital}
+            nature={t('metricNature.actual')}
           />
           <Separator />
           <MetricRow
             label={t('actualCostToDate')}
             value={financials.cost.actualCostToDate}
+            nature={t('metricNature.actual')}
             emphasis
           />
-          <MetricRow label={t('estimatedFinalCost')} value={financials.cost.estimatedFinalCost} />
+          <MetricRow
+            label={t('estimatedFinalCost')}
+            value={financials.cost.estimatedFinalCost}
+            nature={t('metricNature.forecast')}
+          />
+          <p className="text-xs text-[var(--pf-text-muted)]">{t('estimatedFinalCostHint')}</p>
+          <Separator />
+          <MetricRow
+            label={t('committedOpen')}
+            value={financials.cost.committedOpen}
+            nature={t('metricNature.committed')}
+          />
+          <p className="text-xs text-[var(--pf-text-muted)]">{t('committedVsActual')}</p>
+          <MetricRow
+            label={t('openApPayable')}
+            value={financials.cost.openApPayable}
+            nature={t('metricNature.forecast')}
+          />
+          <p className="text-xs text-[var(--pf-text-muted)]">{t('openApPayableHint')}</p>
           {hasCostPartials ? <CoverageDisclosure sources={coverageSources} /> : null}
         </CardContent>
       </Card>
 
-      {canReadProfit && financials.commercial ? (
+      {canReadProfit && financials.commercial && financials.profit ? (
         <Card>
           <CardHeader>
             <CardTitle>{t('estimatedProfitBasedOnEnteredData')}</CardTitle>
@@ -205,11 +259,13 @@ function MetricRow({
   value,
   emphasis = false,
   muted = false,
+  nature,
 }: {
   label: string;
   value: { amount: string; currency: string };
   emphasis?: boolean;
   muted?: boolean;
+  nature?: string;
 }) {
   return (
     <div className="flex items-center justify-between gap-2">
@@ -223,6 +279,9 @@ function MetricRow({
         }
       >
         {label}
+        {nature ? (
+          <span className="ms-1 text-xs text-[var(--pf-text-muted)]">· {nature}</span>
+        ) : null}
       </span>
       <MoneyText value={value} className={emphasis ? 'font-semibold' : undefined} />
     </div>

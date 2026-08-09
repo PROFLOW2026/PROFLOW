@@ -8,7 +8,7 @@ import { PageHeader } from '@/components/ui/page-header';
 import { StatusBadge, type StatusShape } from '@/components/ui/status-badge';
 import { ResponsiveTable } from '@/components/patterns/responsive-table';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { listPurchaseOrdersForOrg, type PurchaseOrderStatus } from '@/modules/procurement';
+import { listPurchaseOrdersWithCommittedForOrg, type PurchaseOrderStatus } from '@/modules/procurement';
 import { money } from '@/shared/money/money';
 import { withOrgContext } from '@/shared/auth/session';
 import { Link } from '@/shared/i18n/navigation';
@@ -49,7 +49,7 @@ export default async function ProcurementPage() {
   const locale = await getLocale();
 
   const { orders, canManage } = await withOrgContext(async (context) => ({
-    orders: await listPurchaseOrdersForOrg(context),
+    orders: await listPurchaseOrdersWithCommittedForOrg(context),
     canManage: hasPermission(context, PERMISSIONS.PROCUREMENT_MANAGE),
   }));
 
@@ -97,6 +97,7 @@ export default async function ProcurementPage() {
                     <TableHead>{t('list.columns.reference')}</TableHead>
                     <TableHead>{t('list.columns.status')}</TableHead>
                     <TableHead numeric>{t('list.columns.committed')}</TableHead>
+                    <TableHead>{t('list.columns.committedStatus')}</TableHead>
                     <TableHead>{t('list.columns.orderedOn')}</TableHead>
                     <TableHead>{t('list.columns.created')}</TableHead>
                     {canManage ? <TableHead>{t('list.columns.actions')}</TableHead> : null}
@@ -106,7 +107,12 @@ export default async function ProcurementPage() {
                   {orders.map((order) => (
                     <TableRow key={order.id}>
                       <TableCell className="font-medium">
-                        {order.reference?.trim() || t('list.noReference')}
+                        <Link
+                          href={`/procurement/${order.id}`}
+                          className="hover:underline"
+                        >
+                          {order.reference?.trim() || t('list.noReference')}
+                        </Link>
                       </TableCell>
                       <TableCell>
                         <StatusBadge
@@ -116,6 +122,30 @@ export default async function ProcurementPage() {
                       </TableCell>
                       <TableCell numeric>
                         <MoneyText value={money(order.committedAmount, order.currency)} />
+                      </TableCell>
+                      <TableCell>
+                        {order.committedCost ? (
+                          <StatusBadge
+                            shape={
+                              order.committedCost.status === 'open'
+                                ? 'active'
+                                : order.committedCost.status === 'cancelled'
+                                  ? 'cancelled'
+                                  : 'completed'
+                            }
+                            label={t(
+                              `committedStatuses.${order.committedCost.status}` as 'committedStatuses.open',
+                            )}
+                          />
+                        ) : order.status === 'issued' ||
+                          order.status === 'partially_received' ||
+                          order.status === 'closed' ? (
+                          <span className="text-sm text-[var(--pf-text-secondary)]">
+                            {t('committedStatuses.missing')}
+                          </span>
+                        ) : (
+                          <span className="text-sm text-[var(--pf-text-secondary)]">—</span>
+                        )}
                       </TableCell>
                       <TableCell>
                         {order.orderedOn
@@ -157,6 +187,9 @@ export default async function ProcurementPage() {
               </div>
               <p className="text-sm text-[var(--pf-text-secondary)]">
                 <MoneyText value={money(order.committedAmount, order.currency)} />
+                {order.committedCost
+                  ? ` · ${t(`committedStatuses.${order.committedCost.status}` as 'committedStatuses.open')}`
+                  : ''}
               </p>
               {canManage && order.status === 'draft' ? (
                 <IssuePurchaseOrderButton purchaseOrderId={order.id} />

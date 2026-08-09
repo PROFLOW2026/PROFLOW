@@ -7,11 +7,14 @@
     "roles": "תפקידים",
     "features": "יכולות",
     "costCategories": "קטגוריות עלות",
+    "catalog": "תחומים וסוגים",
+    "templates": "תבניות מבנה",
     "tax": "מס",
     "portal": "גישת פורטל",
     "customFields": "שדות מותאמים",
     "api": "API ו־webhooks",
     "activity": "יומן פעילות",
+    "offlineDrafts": "טיוטות לא מקוונות",
     "profile": "הפרופיל שלכם"
   },
   "people": {
@@ -47,7 +50,13 @@
     "subtitle": "מוסיפה תחומים וקטגוריות מוצעים. נתונים קיימים לא נמחקים ולא נדרסים.",
     "label": "תבנית",
     "apply": "החלת תבנית",
-    "saved": "התבנית הוחלה. אפשר לערוך או להסיר כל מה שהיא הוסיפה."
+    "saved": "התבנית הוחלה. אפשר לערוך או להסיר כל מה שהיא הוסיפה.",
+    "previewTitle": "תבנית זו תוסיף",
+    "previewDomains": "תחומים",
+    "previewChecklist": "רשימת מסמכים",
+    "previewCategories": "קטגוריות הוצאה",
+    "previewWorkAreas": "תחומי עבודה מוצעים (בפיצול)",
+    "previewHint": "שמות תחומי העבודה הם הצעות לפרויקטים; הם אינם ננעלים על הארגון."
   },
   "roles": {
     "title": "תפקידים",
@@ -69,6 +78,60 @@
     "archiveConsequence": "קטגוריות בארכיון לא יופיעו ברשימות בחירה חדשות.",
     "archiveSuccess": "הקטגוריה הועברה לארכיון."
   },
+  "catalog": {
+    "title": "תחומים וסוגי מסמכים",
+    "subtitle": "קטלוגים מבוקרים לשירותים ותוויות מסמכים. לא מסד נתונים חופשי.",
+    "domainsTitle": "תחומי שירות / מקצוע",
+    "domainsHint": "משמשים כהצעות בפרויקטים. עדיין אפשר להקליד תחום חופשי בפרויקט.",
+    "domainsEmpty": "עדיין אין תחומים",
+    "documentTypesTitle": "סוגי מסמכים",
+    "documentTypesHint": "תוויות רשימת בדיקה אופציונליות לצילום מסמכים. תוויות חופשיות עדיין עובדות.",
+    "documentTypesEmpty": "עדיין אין סוגי מסמכים",
+    "addDomain": "הוספת תחום",
+    "addDocumentType": "הוספת סוג מסמך",
+    "copySemantics": "החלת תבניות או עריכה כאן לא משכתבות שורות פרויקט היסטוריות.",
+    "disabled": "מושבת",
+    "archiveQuestion": "להעביר את «{name}» לארכיון?",
+    "archiveSuccess": "הועבר לארכיון.",
+    "laborTitle": "ברירות מחדל לעלות עבודה",
+    "laborHint": "מועתקות לעובדים חדשים כשמגדירים שכר בסיס. תעריפים קיימים לא משתנים.",
+    "burdenPercent": "אחוז נטל מעסיק ברירת מחדל",
+    "components": "רכיבי עלות ברירת מחדל",
+    "componentsPlaceholder": "pension=percent:6.5\ntravel=fixed:50",
+    "laborSaved": "ברירות המחדל נשמרו.",
+    "burdenDisplay": "נטל ברירת מחדל {percent}%",
+    "noLaborDefaults": "לא הוגדרו ברירות מחדל לעלות עבודה."
+  },
+  "templates": {
+    "title": "תבניות מבנה",
+    "subtitle": "חבילות פרויקט, תחומי עבודה ושלבים לשימוש חוזר. החלה תמיד יוצרת עותקים לעריכה.",
+    "projectTemplates": "תבניות מבנה לפרויקט",
+    "projectTemplatesHint": "שורה לכל תחום עבודה. שלבים אופציונליים אחרי | ופסיקים.",
+    "phasePacks": "חבילות שלבים לשימוש חוזר",
+    "phasePacksHint": "החלה על תחום עבודה קיים כעותקי שלבים חדשים.",
+    "wpPacks": "חבילות תחומי עבודה",
+    "wpPacksHint": "הוספת קבוצת תחומי עבודה לפרויקט.",
+    "emptyProject": "עדיין אין תבניות פרויקט",
+    "emptyPhase": "עדיין אין חבילות שלבים",
+    "emptyWp": "עדיין אין חבילות תחומי עבודה",
+    "name": "שם",
+    "description": "תיאור",
+    "workPackagesText": "תחומי עבודה",
+    "workPackagesPlaceholder": "חשמל | הכנות, סיום\nאינסטלציה",
+    "milestonesText": "אבני דרך",
+    "milestonesPlaceholder": "תחילת עבודה @ 0\nמסירה @ 30",
+    "phasesText": "שלבים",
+    "phasesPlaceholder": "בריף\nחלופות\nתיעוד",
+    "wpNamesText": "שמות תחומי עבודה",
+    "wpNamesPlaceholder": "שלד\nגמרים\nמערכות",
+    "addProjectTemplate": "שמירת תבנית פרויקט",
+    "addPhasePack": "שמירת חבילת שלבים",
+    "addWpPack": "שמירת חבילת תחומי עבודה",
+    "saved": "התבנית נשמרה.",
+    "delete": "מחיקה",
+    "deleteConfirm": "למחוק את «{name}»? פרויקטים שכבר השתמשו בעותקים לא יושפעו.",
+    "deleted": "נמחק."
+  },
   "activity": {
     "title": "יומן פעילות",
     "subtitle": "תיעוד של שינויים רגישים בכסף, בהרשאות ובהגדרות.",
@@ -78,6 +141,7 @@
     "columnEntity": "רשומה",
     "empty": "עדיין לא נרשמה פעילות.",
     "loadMore": "טעינת עוד",
+    "exportCsv": "ייצוא יומן פעילות (CSV)",
     "actions": {
       "_fallback": "{value}",
       "organization": {
@@ -104,7 +168,8 @@
       "project": {
         "created": "יצירת פרויקט",
         "updated": "עדכון פרויקט",
-        "archived": "העברת פרויקט לארכיון"
+        "archived": "העברת פרויקט לארכיון",
+        "template_applied": "החלת תבנית פרויקט"
       },
       "work_package": {
         "created": "יצירת תחום עבודה",
@@ -115,6 +180,11 @@
         "created": "יצירת שלב",
         "updated": "עדכון שלב",
         "archived": "העברת שלב לארכיון"
+      },
+      "milestone": {
+        "created": "יצירת אבן דרך",
+        "updated": "עדכון אבן דרך",
+        "archived": "העברת אבן דרך לארכיון"
       },
       "contract": {
         "value_recorded": "רישום שווי חוזה"
@@ -203,7 +273,10 @@
       },
       "portal": {
         "grant_created": "יצירת מענק פורטל",
-        "grant_revoked": "ביטול מענק פורטל"
+        "grant_revoked": "ביטול מענק פורטל",
+        "vendor_ap_candidate": "הגשת מועמד חשבונית ספק",
+        "vendor_compliance_candidate": "הגשת מועמד ציות ספק",
+        "vendor_candidate_reviewed": "סקירת מועמד פורטל ספק"
       },
       "custom_field": {
         "definition_created": "יצירת שדה מותאם",
@@ -214,7 +287,90 @@
         "client_created": "יצירת לקוח API",
         "key_created": "יצירת מפתח API",
         "key_revoked": "ביטול מפתח API",
-        "webhook_created": "רישום נקודת webhook"
+        "key_rotated": "החלפת מפתח API",
+        "webhook_created": "רישום נקודת webhook",
+        "webhook_revoked": "ביטול נקודת webhook",
+        "webhook_secret_rotated": "החלפת סוד webhook",
+        "webhook_delivery_enqueued": "הוספת משלוח webhook לתור"
+      },
+      "crm": {
+        "prospect_created": "יצירת לקוח פוטנציאלי",
+        "prospect_updated": "עדכון לקוח פוטנציאלי",
+        "lead_created": "יצירת ליד",
+        "lead_updated": "עדכון ליד",
+        "opportunity_created": "יצירת הזדמנות",
+        "opportunity_updated": "עדכון הזדמנות",
+        "opportunity_note_created": "הוספת הערה להזדמנות",
+        "opportunity_converted": "המרת הזדמנות",
+        "estimate_created": "יצירת אומדן",
+        "estimate_updated": "עדכון אומדן",
+        "sales_quote_created": "יצירת הצעת מחיר מכירות",
+        "sales_quote_version_created": "יצירת גרסת הצעת מחיר",
+        "sales_quote_version_issued": "הנפקת גרסת הצעת מחיר",
+        "quote_accepted": "קבלת הצעת מחיר"
+      },
+      "compliance": {
+        "artifact_created": "יצירת רשומת ציות",
+        "artifact_updated": "עדכון רשומת ציות"
+      },
+      "material": {
+        "created": "יצירת חומר"
+      },
+      "material_vendor_price": {
+        "created": "יצירת מחיר ספק",
+        "updated": "עדכון מחיר ספק",
+        "deleted": "הסרת מחיר ספק"
+      },
+      "procurement_rfq": {
+        "created": "יצירת בקשת הצעות",
+        "status_updated": "עדכון סטטוס בקשת הצעות"
+      },
+      "supplier_quote": {
+        "created": "יצירת הצעת ספק",
+        "status_updated": "עדכון סטטוס הצעת ספק"
+      },
+      "purchase_order": {
+        "created": "יצירת הזמנת רכש",
+        "issued": "הנפקת הזמנת רכש"
+      },
+      "procurement": {
+        "supplier_quote_received": "קבלת הצעת ספק"
+      },
+      "ap": {
+        "bill_created": "יצירת חשבונית ספק",
+        "match_proposed": "הצעת התאמת AP",
+        "match_accepted": "קבלת התאמת AP",
+        "match_rejected": "דחיית התאמת AP"
+      },
+      "daily_log": {
+        "created": "יצירת יומן יומי",
+        "updated": "עדכון יומן יומי"
+      },
+      "punch_list_item": {
+        "created": "יצירת פריט פאנץ׳",
+        "updated": "עדכון פריט פאנץ׳"
+      },
+      "inspection": {
+        "created": "יצירת בדיקה",
+        "updated": "עדכון בדיקה"
+      },
+      "asset": {
+        "created": "יצירת נכס",
+        "updated": "עדכון נכס"
+      },
+      "fleet_vehicle": {
+        "created": "יצירת רכב צי",
+        "updated": "עדכון רכב צי"
+      },
+      "maintenance_record": {
+        "created": "יצירת רשומת תחזוקה",
+        "updated": "עדכון רשומת תחזוקה"
+      },
+      "inventory_item": {
+        "created": "יצירת פריט מלאי"
+      },
+      "inventory_movement": {
+        "recorded": "רישום תנועת מלאי"
       }
     },
     "entities": {
@@ -228,6 +384,7 @@
       "project": "פרויקט",
       "work_package": "תחום עבודה",
       "phase": "שלב",
+      "milestone": "אבן דרך",
       "contract": "חוזה",
       "client": "לקוח",
       "client_contact": "איש קשר ללקוח",
@@ -252,7 +409,27 @@
       "custom_field_definition": "שדה מותאם",
       "api_client": "לקוח API",
       "api_key": "מפתח API",
-      "webhook_endpoint": "נקודת webhook"
+      "webhook_endpoint": "נקודת webhook",
+      "webhook_delivery": "משלוח webhook",
+      "crm_prospect": "לקוח פוטנציאלי",
+      "crm_lead": "ליד",
+      "crm_opportunity": "הזדמנות",
+      "compliance_artifact": "רשומת ציות",
+      "material": "חומר",
+      "material_vendor_price": "מחיר ספק",
+      "procurement_rfq": "בקשת הצעות",
+      "supplier_quote": "הצעת ספק",
+      "purchase_order": "הזמנת רכש",
+      "ap_bill": "חשבונית ספק",
+      "ap_match": "התאמת AP",
+      "daily_log": "יומן יומי",
+      "punch_list_item": "פריט פאנץ׳",
+      "inspection": "בדיקה",
+      "asset": "נכס",
+      "fleet_vehicle": "רכב צי",
+      "maintenance_record": "רשומת תחזוקה",
+      "inventory_item": "פריט מלאי",
+      "inventory_movement": "תנועת מלאי"
     }
   },
   "profile": {

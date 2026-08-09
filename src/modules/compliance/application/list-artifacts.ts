@@ -3,6 +3,7 @@ import { PERMISSIONS } from '@/shared/permissions/catalog';
 import type { OrgContext } from '@/shared/auth/context';
 import { NotFoundError, ValidationError } from '@/shared/errors';
 import { todayInTimeZone } from '@/shared/dates/dates';
+import { isMissingEvidence } from '../domain/evidence';
 import { resolveArtifactStatus } from '../domain/status';
 import type {
   ComplianceArtifactRecord,
@@ -42,14 +43,20 @@ export async function listComplianceArtifactsForOrg(
     );
   }
 
-  const { status: statusFilter, ...dbFilters } = parsed.data;
+  const { status: statusFilter, evidence: evidenceFilter, ...dbFilters } = parsed.data;
   const rows = await listComplianceArtifacts(context.db, context.organizationId, dbFilters);
   const today = todayInTimeZone(context.organization.timezone);
 
-  const resolved = rows.map((row) => withResolvedStatus(row, today));
+  let resolved = rows.map((row) => withResolvedStatus(row, today));
 
   if (statusFilter && statusFilter !== 'all') {
-    return resolved.filter((row) => row.status === statusFilter);
+    resolved = resolved.filter((row) => row.status === statusFilter);
+  }
+
+  if (evidenceFilter === 'missing') {
+    resolved = resolved.filter((row) => isMissingEvidence(row));
+  } else if (evidenceFilter === 'present') {
+    resolved = resolved.filter((row) => !isMissingEvidence(row));
   }
 
   return resolved;

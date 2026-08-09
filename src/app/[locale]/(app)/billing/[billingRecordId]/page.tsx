@@ -8,6 +8,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { getBillingRecord } from '@/modules/billing';
 import { BillingDetailActions } from '@/modules/billing/ui/billing-detail-actions';
 import { BillingStatusBadge } from '@/modules/billing/ui/billing-status-badge';
+import { getEntityDocumentPanelData } from '@/modules/documents';
+import { DocumentAttachments } from '@/modules/documents/ui';
 import { withOrgContext } from '@/shared/auth/session';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
@@ -38,14 +40,17 @@ export default async function BillingDetailPage({
 
   let record;
   let canManage = false;
+  let documentsPanel: Awaited<ReturnType<typeof getEntityDocumentPanelData>> | null = null;
 
   try {
     const result = await withOrgContext(async (context) => ({
       record: await getBillingRecord(context, billingRecordId),
       canManage: hasPermission(context, PERMISSIONS.BILLING_MANAGE),
+      documentsPanel: await getEntityDocumentPanelData(context, 'billing_record', billingRecordId),
     }));
     record = result.record;
     canManage = result.canManage;
+    documentsPanel = result.documentsPanel;
   } catch {
     notFound();
   }
@@ -185,6 +190,18 @@ export default async function BillingDetailPage({
           )}
         </CardContent>
       </Card>
+
+      {documentsPanel ? (
+        <DocumentAttachments
+          ownerType="billing_record"
+          ownerId={record.id}
+          documents={documentsPanel.documents}
+          linkCandidates={documentsPanel.linkCandidates}
+          canRead={documentsPanel.canRead}
+          canManage={documentsPanel.canManage}
+          storageConfigured={documentsPanel.storageConfigured}
+        />
+      ) : null}
     </div>
   );
 }

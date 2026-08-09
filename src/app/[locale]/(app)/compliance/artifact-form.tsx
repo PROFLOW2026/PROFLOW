@@ -11,11 +11,11 @@ import { Textarea } from '@/components/ui/textarea';
 import {
   ARTIFACT_KINDS,
   SUBJECT_TYPES,
-  STATUS_MODE_VALUES,
   type ArtifactKind,
   type ComplianceArtifactRecord,
   type SubjectType,
-} from '@/modules/compliance';
+} from '@/modules/compliance/domain/types';
+import { STATUS_MODE_VALUES } from '@/modules/compliance/validation/schemas';
 import {
   createComplianceArtifactAction,
   updateComplianceArtifactAction,
@@ -23,6 +23,17 @@ import {
 } from './actions';
 
 type StatusMode = (typeof STATUS_MODE_VALUES)[number];
+
+export interface SubjectOption {
+  readonly id: string;
+  readonly name: string;
+}
+
+export interface ComplianceSubjectOptions {
+  readonly projects: readonly SubjectOption[];
+  readonly vendors: readonly SubjectOption[];
+  readonly employees: readonly SubjectOption[];
+}
 
 function initialStatusMode(artifact?: ComplianceArtifactRecord): StatusMode {
   if (!artifact) return 'auto';
@@ -33,9 +44,14 @@ function initialStatusMode(artifact?: ComplianceArtifactRecord): StatusMode {
 interface ArtifactFormProps {
   mode: 'create' | 'edit';
   artifact?: ComplianceArtifactRecord;
+  subjects?: ComplianceSubjectOptions;
 }
 
-export function ArtifactForm({ mode, artifact }: ArtifactFormProps) {
+export function ArtifactForm({
+  mode,
+  artifact,
+  subjects = { projects: [], vendors: [], employees: [] },
+}: ArtifactFormProps) {
   const t = useTranslations('compliance');
   const tForm = useTranslations('compliance.form');
   const tCommon = useTranslations('common');
@@ -44,7 +60,17 @@ export function ArtifactForm({ mode, artifact }: ArtifactFormProps) {
 
   const [kind, setKind] = useState<ArtifactKind>(artifact?.artifactKind ?? 'insurance');
   const [subjectType, setSubjectType] = useState<SubjectType>(artifact?.subjectType ?? 'organization');
+  const [subjectId, setSubjectId] = useState<string>(artifact?.subjectId ?? 'none');
   const [statusMode, setStatusMode] = useState<StatusMode>(initialStatusMode(artifact));
+
+  const subjectOptions =
+    subjectType === 'project'
+      ? subjects.projects
+      : subjectType === 'vendor'
+        ? subjects.vendors
+        : subjectType === 'employee'
+          ? subjects.employees
+          : [];
 
   return (
     <form action={formAction} className="flex max-w-lg flex-col gap-4">
@@ -90,7 +116,10 @@ export function ArtifactForm({ mode, artifact }: ArtifactFormProps) {
             <input type="hidden" name="subjectType" value={subjectType} />
             <Select
               value={subjectType}
-              onValueChange={(value) => setSubjectType(value as SubjectType)}
+              onValueChange={(value) => {
+                setSubjectType(value as SubjectType);
+                setSubjectId('none');
+              }}
             >
               <SelectTrigger id={control.id} aria-describedby={control['aria-describedby']}>
                 <SelectValue />
@@ -107,16 +136,35 @@ export function ArtifactForm({ mode, artifact }: ArtifactFormProps) {
         )}
       </Field>
 
-      <Field
-        label={tForm('subjectIdLabel')}
-        description={tForm('subjectIdHint')}
-        optionalLabel={tCommon('labels.optional')}
-        error={state.fieldErrors?.subjectId}
-      >
-        {(control) => (
-          <Input {...control} name="subjectId" defaultValue={artifact?.subjectId ?? ''} />
-        )}
-      </Field>
+      {subjectType !== 'organization' ? (
+        <Field
+          label={tForm('subjectIdLabel')}
+          description={tForm('subjectIdHint')}
+          optionalLabel={tCommon('labels.optional')}
+          error={state.fieldErrors?.subjectId}
+        >
+          {(control) => (
+            <>
+              <input type="hidden" name="subjectId" value={subjectId === 'none' ? '' : subjectId} />
+              <Select value={subjectId} onValueChange={setSubjectId}>
+                <SelectTrigger id={control.id} aria-describedby={control['aria-describedby']}>
+                  <SelectValue placeholder={tForm('subjectNone')} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">{tForm('subjectNone')}</SelectItem>
+                  {subjectOptions.map((option) => (
+                    <SelectItem key={option.id} value={option.id}>
+                      {option.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </>
+          )}
+        </Field>
+      ) : (
+        <input type="hidden" name="subjectId" value="" />
+      )}
 
       <Field
         label={tForm('referenceLabel')}

@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { ConnectivityIndicator } from '@/modules/offline/ui/connectivity-banner';
 
 export function TopBar({
   organizationName,
@@ -20,6 +21,7 @@ export function TopBar({
 
       <div className="flex-1" />
 
+      <ConnectivityIndicator className="hidden sm:inline-flex" />
       {quickCreate}
       {userMenu}
     </header>

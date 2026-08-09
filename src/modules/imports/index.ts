@@ -26,9 +26,24 @@ export {
   normalizeHeader,
 } from './domain/column-mapping';
 export { fieldDefsForKind, requiredFieldKeys } from './domain/field-defs';
+export {
+  buildImportIssuesReportCsv,
+  buildImportConfirmFailuresCsv,
+} from './domain/error-report';
+export {
+  flagInFileDuplicates,
+  flagExpenseInFileDuplicates,
+  flagExistingNameDuplicates,
+  detectWithinFileDuplicates,
+  detectExistingDuplicates,
+  emptyExistingIndex,
+  mergeIssueMaps,
+} from './domain/duplicates';
+export type { ExistingImportIndex } from './domain/duplicates';
 
 export { previewImport, MAX_IMPORT_ROWS } from './application/preview-import';
 export type { PreviewImportInput } from './application/preview-import';
+export { enrichImportPreview } from './application/enrich-preview';
 export {
   confirmImport,
   confirmImportInBatches,

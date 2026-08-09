@@ -1,4 +1,4 @@
-import { and, eq, gte, isNull, lte, or, sql } from 'drizzle-orm';
+import { and, eq, gte, isNotNull, isNull, lte, or, sql } from 'drizzle-orm';
 import { expenseAllocations, expenses, vendors } from '@drizzle/schema';
 import type { BusinessDate } from '@/shared/dates';
 import { fromNumericString, sumMoney, zeroMoney, type MoneyValue } from '@/shared/money';
@@ -11,6 +11,36 @@ export async function loadProjectExpenseContributions(
   organizationId: string,
   projectId: string,
 ): Promise<ProjectExpenseContribution[]> {
+  return loadExpenseContributions(db, organizationId, projectId);
+}
+
+/**
+ * Org-scoped expense contributions for dashboard coverage (one pass, not per project).
+ * Only rows that touch a project (direct or allocated) are included.
+ */
+export async function loadOrganizationExpenseContributions(
+  db: DbExecutor,
+  organizationId: string,
+): Promise<ProjectExpenseContribution[]> {
+  return loadExpenseContributions(db, organizationId);
+}
+
+async function loadExpenseContributions(
+  db: DbExecutor,
+  organizationId: string,
+  projectId?: string,
+): Promise<ProjectExpenseContribution[]> {
+  const directFilters = [
+    eq(expenses.organizationId, organizationId),
+    eq(expenses.status, 'finalized'),
+    isNull(expenses.archivedAt),
+  ];
+  if (projectId) {
+    directFilters.push(eq(expenses.projectId, projectId));
+  } else {
+    directFilters.push(isNotNull(expenses.projectId));
+  }
+
   const directRows = await db
     .select({
       grossAmount: expenses.grossAmount,
@@ -20,14 +50,18 @@ export async function loadProjectExpenseContributions(
     })
     .from(expenses)
     .leftJoin(vendors, eq(vendors.id, expenses.vendorId))
-    .where(
-      and(
-        eq(expenses.organizationId, organizationId),
-        eq(expenses.projectId, projectId),
-        eq(expenses.status, 'finalized'),
-        isNull(expenses.archivedAt),
-      ),
-    );
+    .where(and(...directFilters));
+
+  const allocationFilters = [
+    eq(expenseAllocations.organizationId, organizationId),
+    eq(expenses.status, 'finalized'),
+    isNull(expenses.archivedAt),
+  ];
+  if (projectId) {
+    allocationFilters.push(eq(expenseAllocations.projectId, projectId));
+  } else {
+    allocationFilters.push(isNotNull(expenseAllocations.projectId));
+  }
 
   const allocationRows = await db
     .select({
@@ -40,14 +74,7 @@ export async function loadProjectExpenseContributions(
     .from(expenseAllocations)
     .innerJoin(expenses, eq(expenses.id, expenseAllocations.expenseId))
     .leftJoin(vendors, eq(vendors.id, expenses.vendorId))
-    .where(
-      and(
-        eq(expenseAllocations.organizationId, organizationId),
-        eq(expenseAllocations.projectId, projectId),
-        eq(expenses.status, 'finalized'),
-        isNull(expenses.archivedAt),
-      ),
-    );
+    .where(and(...allocationFilters));
 
   const contributions: ProjectExpenseContribution[] = [];
 

@@ -41,7 +41,7 @@ export async function createPhase(
     context.organizationId,
     parsed.data.workPackageId,
   );
-  if (!workPackage) throw new NotFoundError('Work package');
+  if (!workPackage) throw new NotFoundError('Work area');
 
   const project = await findProjectById(context.db, context.organizationId, workPackage.projectId);
   if (!project) throw new NotFoundError('Project');

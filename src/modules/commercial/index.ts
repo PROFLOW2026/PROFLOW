@@ -32,6 +32,7 @@ export {
   computeCurrentContractValue,
   computePendingChanges,
   changeOrderEventAmount,
+  changeOrderApprovedNetAmount,
   signedChangeAmount,
 } from './domain/contract-value';
 

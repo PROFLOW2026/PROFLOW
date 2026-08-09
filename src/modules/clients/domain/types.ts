@@ -70,6 +70,8 @@ export interface ClientListFilters {
   readonly search?: string;
   readonly status?: ClientStatus | 'all';
   readonly includeArchived?: boolean;
+  readonly limit?: number;
+  readonly offset?: number;
 }
 
 export interface ClientDetail extends ClientRecord {

@@ -3,8 +3,10 @@
   "description": "הזמנות רכש מתחייבות להוצאה מול ספקים. הנפקת הזמנה יוצרת עלות מתחייבת — לא הוצאה.",
   "materialsTitle": "קטלוג חומרים",
   "materialsDescription": "פריטי חומר לשימוש חוזר בשורות הזמנת רכש.",
+  "navLabel": "אזורי רכש",
   "nav": {
     "orders": "הזמנות רכש",
+    "rfqs": "בקשות הצעת מחיר",
     "materials": "חומרים",
     "ap": "התאמת AP"
   },
@@ -17,6 +19,11 @@
       "title": "אין עדיין הזמנות רכש",
       "body": "צרו הזמנת טיוטה עם שורות, ואז הנפיקו אותה כדי לפתוח עלות מתחייבת. הוצאות נרשמות בנפרד כשהכסף יוצא.",
       "action": "הזמנת רכש חדשה"
+    },
+    "rfqs": {
+      "title": "אין עדיין בקשות הצעת מחיר",
+      "body": "בקשו הצעות מספקים, השוו סכומים, ואז צרו הזמנת רכש מהצעה שהתקבלה.",
+      "action": "בקשת הצעת מחיר חדשה"
     },
     "materials": {
       "title": "אין עדיין חומרים",
@@ -34,6 +41,7 @@
       "reference": "אסמכתא",
       "status": "סטטוס",
       "committed": "מתחייב",
+      "committedStatus": "התחייבות",
       "orderedOn": "הוזמן",
       "created": "נוצר",
       "actions": "פעולות",
@@ -41,9 +49,14 @@
       "sku": "מק\"ט",
       "unit": "יחידה",
       "defaultPrice": "מחיר ברירת מחדל",
-      "manufacturer": "יצרן"
+      "manufacturer": "יצרן",
+      "model": "דגם"
     },
     "noReference": "הזמנה ללא אסמכתא"
+  },
+  "detail": {
+    "title": "הזמנת רכש",
+    "description": "התחייבות רכש מול ספק. ניתן לצרף מסמכים תומכים בלי להתייחס לכך כהוצאה."
   },
   "statuses": {
     "draft": "טיוטה",
@@ -51,6 +64,13 @@
     "partially_received": "התקבלה חלקית",
     "closed": "סגורה",
     "cancelled": "בוטלה"
+  },
+  "committedStatuses": {
+    "open": "התחייבות פתוחה",
+    "partially_consumed": "נוצלה חלקית",
+    "closed": "סגורה",
+    "cancelled": "בוטלה",
+    "missing": "אין שורת התחייבות"
   },
   "issue": {
     "action": "הנפקה",
@@ -90,7 +110,105 @@
     "unitLabel": "יחידה",
     "defaultPriceLabel": "מחיר יחידה ברירת מחדל",
     "currencyLabel": "מטבע",
-    "notesLabel": "הערות"
+    "notesLabel": "הערות",
+    "detailDescription": "זהות בקטלוג ומחירי יחידה לפי ספק. מחיר ברירת המחדל הוא לתכנון בלבד — לא הוצאה."
+  },
+  "rfq": {
+    "title": "בקשות הצעת מחיר",
+    "description": "בקשו הצעות מספקים, השוו זו לצד זו, ואז צרו הזמנת רכש.",
+    "detailTitle": "פרטי בקשת הצעת מחיר",
+    "detailDescription": "שורות, הצעות ספקים והשוואה. יצירת הזמנה מהצעה מתחייבת להוצאה — ואינה הוצאה בפועל.",
+    "new": "בקשת הצעת מחיר חדשה",
+    "linesTitle": "שורות מבוקשות",
+    "markSent": "סמן כנשלח",
+    "markClosed": "סגור בקשה",
+    "markCancelled": "בטל בקשה",
+    "noDueDate": "ללא תאריך יעד",
+    "dueDate": "יעד",
+    "comparisonHint": "ממוין לפי סכום להשוואה (הנמוך קודם) בתוך כל מטבע.",
+    "poCommittedHint": "קבלת הצעה יוצרת טיוטת הזמנת רכש. הנפקת ההזמנה פותחת עלות מתחייבת — זו אינה הוצאה.",
+    "linkedProject": "מקושר לפרויקט",
+    "linkedWorkPackage": "מקושר לתחום עבודה",
+    "statuses": {
+      "draft": "טיוטה",
+      "sent": "נשלח",
+      "closed": "סגור",
+      "cancelled": "בוטל"
+    },
+    "list": {
+      "columns": {
+        "title": "כותרת",
+        "status": "סטטוס",
+        "dueDate": "יעד",
+        "created": "נוצר",
+        "description": "תיאור",
+        "quantity": "כמות",
+        "unit": "יחידה",
+        "rank": "#",
+        "comparable": "סכום להשוואה",
+        "actions": "פעולות"
+      }
+    },
+    "create": {
+      "title": "בקשת הצעת מחיר חדשה",
+      "description": "תארו את הנדרש. הוסיפו הצעות ספקים אחרי יצירת הבקשה.",
+      "submit": "יצירת בקשה",
+      "titleLabel": "כותרת",
+      "projectLabel": "פרויקט",
+      "projectNone": "ללא פרויקט",
+      "dueDateLabel": "תאריך יעד",
+      "notesLabel": "הערות",
+      "linesTitle": "שורות",
+      "addLine": "הוספת שורה",
+      "removeLine": "הסרה",
+      "lineDescription": "תיאור",
+      "lineMaterial": "חומר",
+      "lineMaterialNone": "ללא",
+      "lineQuantity": "כמות",
+      "lineUnit": "יחידה"
+    }
+  },
+  "quote": {
+    "listTitle": "הצעות ספקים",
+    "comparisonTitle": "השוואת הצעות",
+    "empty": "אין עדיין הצעות ספקים.",
+    "emptyComparison": "הוסיפו הצעות כדי להשוות סכומים לפי ספק.",
+    "accept": "קבל",
+    "accepting": "מקבל…",
+    "shortlist": "לרשימה קצרה",
+    "reject": "דחה",
+    "createPo": "יצירת טיוטת הזמנה",
+    "creatingPo": "יוצר…",
+    "createPoHint": "מקבל את ההצעה במידת הצורך ויוצר טיוטת הזמנת רכש. ההנפקה תפתח עלות מתחייבת — לא הוצאה.",
+    "captureSuccess": "ההצעה נשמרה.",
+    "columns": {
+      "vendor": "ספק",
+      "status": "סטטוס",
+      "total": "סה\"כ",
+      "received": "התקבל"
+    },
+    "statuses": {
+      "received": "התקבלה",
+      "shortlisted": "ברשימה קצרה",
+      "accepted": "אושרה",
+      "rejected": "נדחתה"
+    },
+    "create": {
+      "title": "הוספת הצעת ספק",
+      "submit": "שמירת הצעה",
+      "vendorLabel": "ספק",
+      "vendorPlaceholder": "בחירת ספק",
+      "receivedOnLabel": "תאריך קבלה",
+      "notesLabel": "הערות",
+      "linesTitle": "שורות הצעה",
+      "addLine": "הוספת שורה",
+      "removeLine": "הסרה",
+      "lineDescription": "תיאור",
+      "lineQuantity": "כמות",
+      "lineUnitAmount": "מחיר יחידה",
+      "lineTotal": "סה\"כ שורה",
+      "totalLabel": "סה\"כ הצעה"
+    }
   },
   "errors": {
     "notDraft": "ניתן להנפיק רק הזמנות רכש בטיוטה.",
@@ -99,6 +217,34 @@
     "committedMismatch": "סכום ההתחייבות חייב להיות שווה לסכום שורות ההזמנה.",
     "currencyMismatch": "כל שורות הזמנת הרכש חייבות להיות באותו מטבע כמו ההזמנה.",
     "vendorRequired": "יש לבחור ספק.",
-    "linesRequired": "יש להוסיף לפחות שורה אחת עם תיאור וסכומים."
+    "linesRequired": "יש להוסיף לפחות שורה אחת עם תיאור וסכומים.",
+    "titleRequired": "יש להזין כותרת לבקשת הצעת מחיר.",
+    "rfqLinesRequired": "יש להוסיף לפחות שורת בקשה אחת עם תיאור.",
+    "quoteNotAccepted": "ניתן ליצור הזמנת רכש רק מהצעת ספק שהתקבלה.",
+    "quoteLinesRequired": "להצעה שהתקבלה חייבת להיות לפחות שורה אחת.",
+    "quoteTotalMismatch": "סה\"כ ההצעה חייב להיות שווה לסכום השורות."
+  },
+  "vendorPrice": {
+    "title": "מחירי ספק",
+    "description": "מחיר יחידה אופציונלי לפי ספק עם תאריך תחילה. אינו מלאי ואינו רישום הוצאה.",
+    "emptyTitle": "אין עדיין מחירי ספק",
+    "emptyBody": "הוסיפו מחיר יחידה לפי ספק כשהצעת הספק שונה ממחיר ברירת המחדל בקטלוג.",
+    "createTitle": "הוספת מחיר ספק",
+    "vendorLabel": "ספק",
+    "vendorPlaceholder": "בחירת ספק",
+    "unitPriceLabel": "מחיר יחידה",
+    "effectiveFromLabel": "בתוקף מ־",
+    "notesLabel": "הערות",
+    "submit": "שמירת מחיר ספק",
+    "saved": "מחיר הספק נשמר.",
+    "delete": "הסרה",
+    "deleting": "מסיר…",
+    "needVendor": "יש להוסיף ספק פעיל לפני רישום מחירי ספק.",
+    "columns": {
+      "vendor": "ספק",
+      "unitPrice": "מחיר יחידה",
+      "effectiveFrom": "בתוקף מ־",
+      "notes": "הערות"
+    }
   }
 }

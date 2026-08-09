@@ -1,9 +1,17 @@
-import { and, desc, eq, isNull, sql } from 'drizzle-orm';
+import { and, desc, eq, inArray, isNull, isNotNull, sql } from 'drizzle-orm';
 import {
   clients,
+  documentLinks,
+  documents,
   externalAccessGrants,
   externalPrincipals,
+  procurementRfqLines,
+  procurementRfqs,
   projects,
+  purchaseOrderLines,
+  purchaseOrders,
+  supplierQuoteLines,
+  supplierQuotes,
   vendors,
 } from '@drizzle/schema';
 import { getAdminDb } from '@/shared/db/client';
@@ -176,9 +184,27 @@ async function listGrantsForOrgByKind(
     })
     .from(externalAccessGrants)
     .innerJoin(externalPrincipals, eq(externalAccessGrants.principalId, externalPrincipals.id))
-    .leftJoin(clients, eq(externalAccessGrants.clientId, clients.id))
-    .leftJoin(projects, eq(externalAccessGrants.projectId, projects.id))
-    .leftJoin(vendors, eq(externalAccessGrants.vendorId, vendors.id))
+    .leftJoin(
+      clients,
+      and(
+        eq(externalAccessGrants.clientId, clients.id),
+        eq(clients.organizationId, organizationId),
+      ),
+    )
+    .leftJoin(
+      projects,
+      and(
+        eq(externalAccessGrants.projectId, projects.id),
+        eq(projects.organizationId, organizationId),
+      ),
+    )
+    .leftJoin(
+      vendors,
+      and(
+        eq(externalAccessGrants.vendorId, vendors.id),
+        eq(vendors.organizationId, organizationId),
+      ),
+    )
     .where(
       and(
         eq(externalAccessGrants.organizationId, organizationId),
@@ -244,7 +270,10 @@ export async function findProjectForPortal(
       archivedAt: projects.archivedAt,
     })
     .from(projects)
-    .leftJoin(clients, eq(projects.clientId, clients.id))
+    .leftJoin(
+      clients,
+      and(eq(projects.clientId, clients.id), eq(clients.organizationId, organizationId)),
+    )
     .where(and(eq(projects.id, projectId), eq(projects.organizationId, organizationId)))
     .limit(1);
 
@@ -298,4 +327,274 @@ export async function assertVendorInOrganization(
     )
     .limit(1);
   return Boolean(row);
+}
+
+export async function findVendorName(
+  db: DbExecutor,
+  organizationId: string,
+  vendorId: string,
+): Promise<string | null> {
+  const [row] = await db
+    .select({ name: vendors.name })
+    .from(vendors)
+    .where(
+      and(
+        eq(vendors.id, vendorId),
+        eq(vendors.organizationId, organizationId),
+        isNull(vendors.archivedAt),
+      ),
+    )
+    .limit(1);
+  return row?.name ?? null;
+}
+
+/**
+ * RFQs visible to a vendor with rfq.read.
+ * No RFQ↔vendor invite table yet — only RFQs already associated via
+ * supplier_quote for this vendor (never an org-wide sent-RFQ dump).
+ */
+export async function listVendorScopedRfqsForPortal(
+  db: DbExecutor,
+  organizationId: string,
+  vendorId: string,
+): Promise<
+  {
+    id: string;
+    title: string;
+    status: string;
+    dueDate: string | null;
+    projectName: string | null;
+    lines: { description: string; quantity: string; unit: string | null }[];
+  }[]
+> {
+  const associated = await db
+    .selectDistinct({ rfqId: supplierQuotes.rfqId })
+    .from(supplierQuotes)
+    .where(
+      and(
+        eq(supplierQuotes.organizationId, organizationId),
+        eq(supplierQuotes.vendorId, vendorId),
+        isNotNull(supplierQuotes.rfqId),
+      ),
+    );
+
+  const rfqIds = associated
+    .map((row) => row.rfqId)
+    .filter((id): id is string => typeof id === 'string' && id.length > 0);
+
+  if (rfqIds.length === 0) return [];
+
+  const rfqs = await db
+    .select({
+      id: procurementRfqs.id,
+      title: procurementRfqs.title,
+      status: procurementRfqs.status,
+      dueDate: procurementRfqs.dueDate,
+      projectName: projects.name,
+    })
+    .from(procurementRfqs)
+    .leftJoin(
+      projects,
+      and(
+        eq(procurementRfqs.projectId, projects.id),
+        eq(projects.organizationId, organizationId),
+      ),
+    )
+    .where(
+      and(
+        eq(procurementRfqs.organizationId, organizationId),
+        inArray(procurementRfqs.id, rfqIds),
+        inArray(procurementRfqs.status, ['sent', 'closed']),
+        isNull(procurementRfqs.archivedAt),
+      ),
+    )
+    .orderBy(desc(procurementRfqs.createdAt));
+
+  const result = [];
+  for (const rfq of rfqs) {
+    const lines = await db
+      .select({
+        description: procurementRfqLines.description,
+        quantity: procurementRfqLines.quantity,
+        unit: procurementRfqLines.unit,
+      })
+      .from(procurementRfqLines)
+      .where(
+        and(
+          eq(procurementRfqLines.organizationId, organizationId),
+          eq(procurementRfqLines.rfqId, rfq.id),
+        ),
+      )
+      .orderBy(procurementRfqLines.sortOrder);
+
+    result.push({
+      id: rfq.id,
+      title: rfq.title,
+      status: rfq.status,
+      dueDate: rfq.dueDate,
+      projectName: rfq.projectName,
+      lines,
+    });
+  }
+  return result;
+}
+
+/**
+ * Customer-safe project documents (metadata only). Never returns storage paths.
+ */
+export async function listCustomerSafeProjectDocuments(
+  db: DbExecutor,
+  organizationId: string,
+  projectId: string,
+): Promise<
+  {
+    id: string;
+    originalFilename: string;
+    label: string | null;
+    mimeType: string;
+    sizeBytes: number | null;
+  }[]
+> {
+  const rows = await db
+    .select({
+      id: documents.id,
+      originalFilename: documents.originalFilename,
+      label: documentLinks.label,
+      mimeType: documents.mimeType,
+      sizeBytes: documents.sizeBytes,
+    })
+    .from(documentLinks)
+    .innerJoin(documents, eq(documentLinks.documentId, documents.id))
+    .where(
+      and(
+        eq(documentLinks.organizationId, organizationId),
+        eq(documentLinks.ownerType, 'project'),
+        eq(documentLinks.ownerId, projectId),
+        isNull(documents.deletedAt),
+        sql`${documents.status} <> 'deleted'`,
+      ),
+    )
+    .orderBy(documents.createdAt)
+    .limit(100);
+
+  return rows;
+}
+
+export async function listVendorPurchaseOrdersForPortal(
+  db: DbExecutor,
+  organizationId: string,
+  vendorId: string,
+): Promise<
+  {
+    id: string;
+    reference: string | null;
+    status: string;
+    currency: string;
+    committedAmount: string;
+    orderedOn: string | null;
+    projectName: string | null;
+    lines: {
+      description: string;
+      quantity: string;
+      unitAmount: string;
+      lineTotal: string;
+      currency: string;
+    }[];
+  }[]
+> {
+  const orders = await db
+    .select({
+      id: purchaseOrders.id,
+      reference: purchaseOrders.reference,
+      status: purchaseOrders.status,
+      currency: purchaseOrders.currency,
+      committedAmount: purchaseOrders.committedAmount,
+      orderedOn: purchaseOrders.orderedOn,
+      projectName: projects.name,
+    })
+    .from(purchaseOrders)
+    .leftJoin(
+      projects,
+      and(
+        eq(purchaseOrders.projectId, projects.id),
+        eq(projects.organizationId, organizationId),
+      ),
+    )
+    .where(
+      and(
+        eq(purchaseOrders.organizationId, organizationId),
+        eq(purchaseOrders.vendorId, vendorId),
+        isNull(purchaseOrders.archivedAt),
+        inArray(purchaseOrders.status, ['issued', 'partially_received', 'closed']),
+      ),
+    )
+    .orderBy(desc(purchaseOrders.createdAt));
+
+  const result = [];
+  for (const order of orders) {
+    const lines = await db
+      .select({
+        description: purchaseOrderLines.description,
+        quantity: purchaseOrderLines.quantity,
+        unitAmount: purchaseOrderLines.unitAmount,
+        lineTotal: purchaseOrderLines.lineTotal,
+        currency: purchaseOrderLines.currency,
+      })
+      .from(purchaseOrderLines)
+      .where(
+        and(
+          eq(purchaseOrderLines.organizationId, organizationId),
+          eq(purchaseOrderLines.purchaseOrderId, order.id),
+        ),
+      )
+      .orderBy(purchaseOrderLines.sortOrder);
+
+    result.push({
+      id: order.id,
+      reference: order.reference,
+      status: order.status,
+      currency: order.currency,
+      committedAmount: order.committedAmount,
+      orderedOn: order.orderedOn,
+      projectName: order.projectName,
+      lines,
+    });
+  }
+  return result;
+}
+
+export async function findRfqInOrg(
+  db: DbExecutor,
+  organizationId: string,
+  rfqId: string,
+): Promise<{ id: string; status: string } | null> {
+  const [row] = await db
+    .select({ id: procurementRfqs.id, status: procurementRfqs.status })
+    .from(procurementRfqs)
+    .where(
+      and(
+        eq(procurementRfqs.id, rfqId),
+        eq(procurementRfqs.organizationId, organizationId),
+        isNull(procurementRfqs.archivedAt),
+      ),
+    )
+    .limit(1);
+  return row ?? null;
+}
+
+export async function insertSupplierQuoteCandidate(
+  db: DbExecutor,
+  values: typeof supplierQuotes.$inferInsert,
+): Promise<typeof supplierQuotes.$inferSelect> {
+  const [row] = await db.insert(supplierQuotes).values(values).returning();
+  if (!row) throw new Error('Failed to insert supplier quote');
+  return row;
+}
+
+export async function insertSupplierQuoteLines(
+  db: DbExecutor,
+  lines: (typeof supplierQuoteLines.$inferInsert)[],
+): Promise<void> {
+  if (lines.length === 0) return;
+  await db.insert(supplierQuoteLines).values(lines);
 }

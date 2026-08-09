@@ -40,6 +40,8 @@ export type CoveragePartialReason =
   | 'foreign_currency_expenses_excluded'
   | 'foreign_currency_labor_excluded'
   | 'foreign_currency_billing_excluded'
+  | 'foreign_currency_committed_excluded'
+  | 'foreign_currency_ap_excluded'
   | 'workforce_entries_missing_cost';
 
 export interface CoveragePartial {
@@ -74,9 +76,16 @@ export interface BillingPosition {
   outstanding: MoneyValue;
 }
 
+/**
+ * How a money figure should be labelled in reports (docs 04, 29).
+ * Committed ≠ Actual; Forecast ≠ Paid/Actual.
+ */
+export type MetricNature = 'actual' | 'committed' | 'forecast';
+
 export interface CostPosition {
+  /** Actual — expenses + labor included in cost to date. Never includes open committed PO. */
   actualCostToDate: MoneyValue;
-  /** Actual plus whatever remaining cost the entered data supports. */
+  /** Actual / Forecast hybrid: actual plus remaining entered data (V1 often equals actual). */
   estimatedFinalCost: MoneyValue;
   byFamily: {
     directProject: MoneyValue;
@@ -84,6 +93,22 @@ export interface CostPosition {
     businessOverhead: MoneyValue;
     assetCapital: MoneyValue;
   };
+  /** Actual — workforce labor cost when present; otherwise zero. */
+  laborActual: MoneyValue;
+  /** Actual — vendor/subcontractor expenses. Never open PO committed amounts. */
+  vendorActual: MoneyValue;
+  /** Actual — business overhead family total. */
+  overheadActual: MoneyValue;
+  /**
+   * Committed — open / partially consumed PO committed costs.
+   * Must never be summed into actualCostToDate (CommittedCost ≠ Expense).
+   */
+  committedOpen: MoneyValue;
+  /**
+   * Forecast — unmatched open AP payable for the project.
+   * Not Expense actual; used for outgoing cash obligation disclosure.
+   */
+  openApPayable: MoneyValue;
 }
 
 export interface ProfitPosition {
@@ -100,7 +125,11 @@ export interface ProjectFinancials {
   commercial: CommercialPosition | null;
   billing: BillingPosition;
   cost: CostPosition;
-  profit: ProfitPosition;
+  /**
+   * Null when the viewer lacks project_profit.read (or commercial is hidden).
+   * Never substitute zeros — that would look like break-even.
+   */
+  profit: ProfitPosition | null;
   coverage: FinancialCoverage;
 }
 

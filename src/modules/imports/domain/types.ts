@@ -1,5 +1,5 @@
 /**
- * Structured CSV import types (doc 37). Framework-free.
+ * Structured CSV/Excel import types (doc 37). Framework-free.
  */
 
 export const IMPORT_KINDS = [
@@ -12,12 +12,16 @@ export const IMPORT_KINDS = [
 
 export type ImportKind = (typeof IMPORT_KINDS)[number];
 
-/** Kinds that can be confirmed in this foundation wave. */
+/**
+ * Kinds confirmable via canonical create* APIs.
+ * Expenses create draft rows only — never finalize/bypass money rules.
+ */
 export const ENABLED_IMPORT_KINDS = [
   'clients',
   'vendors',
   'employees',
   'projects',
+  'expenses',
 ] as const satisfies readonly ImportKind[];
 
 export type EnabledImportKind = (typeof ENABLED_IMPORT_KINDS)[number];

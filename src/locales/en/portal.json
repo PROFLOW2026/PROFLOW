@@ -5,13 +5,19 @@
   "customerSection": "Customer portal",
   "vendorSection": "Vendor portal",
   "vendorSubtitle": "Vendor grants require a vendor scope (portal_kind vendor + vendorId). External users cannot change bills, expenses, or payments.",
+  "vendorFoundationNote": "Public vendor login is still foundation-only. Scopes enable RFQ visibility, quote candidates, approved PO views, bill candidates, and compliance upload candidates. Candidates never post AP bills or expenses.",
   "listTitle": "Customer access grants",
   "vendorListTitle": "Vendor access grants",
   "empty": "No customer portal grants yet.",
   "vendorEmpty": "No vendor portal grants yet.",
   "addGrant": "Create customer grant",
   "addVendorGrant": "Create vendor grant",
+  "recordQuoteTitle": "Record vendor quote on behalf",
+  "recordQuoteHint": "Stores a supplier quote as received for procurement review. Does not finalize financials. External principals cannot accept or shortlist quotes.",
+  "recordQuoteSubmit": "Record quote (received)",
+  "recordQuoteSaved": "Vendor quote recorded as received.",
   "revoke": "Revoke",
+  "revokeNamed": "Revoke access for {email}",
   "saved": "Customer portal grant created.",
   "vendorSaved": "Vendor portal grant created.",
   "fields": {
@@ -24,13 +30,26 @@
     "vendorPlaceholder": "Select vendor",
     "none": "None",
     "scopes": "Scopes",
-    "expiresAt": "Expires at"
+    "expiresAt": "Expires at",
+    "currency": "Currency",
+    "totalAmount": "Total amount",
+    "receivedOn": "Received on",
+    "quoteNotes": "Notes",
+    "lineDescription": "Line description",
+    "lineQuantity": "Qty",
+    "lineUnitAmount": "Unit amount",
+    "lineTotal": "Line total"
   },
   "scopes": {
     "project.summary": "Project summary",
     "billing.outstanding": "Outstanding balance",
     "documents.read": "Read documents",
-    "vendor.summary": "Vendor summary"
+    "documents.upload": "Upload compliance candidates",
+    "vendor.summary": "Vendor summary",
+    "rfq.read": "View RFQs",
+    "quote.submit": "Submit quote candidate",
+    "po.view": "View purchase orders",
+    "bill.candidate": "Submit AP bill candidate"
   },
   "statuses": {
     "active": "Active",
@@ -42,5 +61,93 @@
     "scope": "Scopes",
     "status": "Status",
     "actions": "Actions"
+  },
+  "preview": {
+    "title": "Preview customer-safe summary",
+    "subtitle": "See exactly what a customer grant would expose for a project. Costs, profit, rates and overhead never appear.",
+    "run": "Preview summary",
+    "needProject": "Select a project to preview.",
+    "notAllowed": "That grant does not cover this project, is inactive, or lacks summary scopes.",
+    "grantOptional": "Grant (optional)",
+    "grantHint": "Without a grant, preview uses project summary only. With a grant, scopes and coverage from that grant apply — including outstanding balance when allowed.",
+    "empty": "Run a preview to inspect the customer-safe projection.",
+    "scopesApplied": "Scopes applied",
+    "neverExposed": "Never exposed",
+    "foundationNote": "Public customer login is foundation-only. This preview is admin-mediated via ExternalPrincipal grants — not OrganizationMembership.",
+    "denials": {
+      "crossCustomer": "Cross-customer denial: this grant does not cover the selected project.",
+      "grantInactive": "Portal grant is inactive, revoked, or expired.",
+      "scopeDenied": "Grant scopes do not allow a customer project summary."
+    },
+    "fields": {
+      "name": "Name",
+      "status": "Status",
+      "client": "Client",
+      "progress": "Progress",
+      "dates": "Dates",
+      "location": "Location",
+      "description": "Description",
+      "outstanding": "Outstanding",
+      "documents": "Documents"
+    },
+    "noDocuments": "documents.read is granted, but no project documents are linked yet."
+  },
+  "vendorPreview": {
+    "title": "Preview vendor-safe portal",
+    "subtitle": "Inspect RFQs, approved POs, and candidate queues for a vendor grant. Profit, employee cost, overhead, and org admin never appear.",
+    "grant": "Vendor grant",
+    "run": "Preview vendor portal",
+    "needGrant": "Select an active vendor grant.",
+    "notAllowed": "That grant is inactive or not a vendor grant.",
+    "empty": "Run a preview to inspect the vendor-safe projection.",
+    "rfqCount": "Visible RFQs",
+    "poCount": "Visible purchase orders",
+    "rfqList": "RFQ access (vendor-associated only)",
+    "poList": "Purchase orders (vendor-visible statuses)",
+    "lines": "lines",
+    "apCandidates": "AP bill candidates",
+    "complianceCandidates": "Compliance candidates",
+    "intakeNote": "Intake mode",
+    "candidatesOnly": "Candidates only — never mutates AP bills, expenses, or payments",
+    "rfqVisibilityNote": "RFQs appear only when this vendor already has a linked supplier quote. Org-wide RFQ browse is blocked (invite table deferred)."
+  },
+  "candidateQuote": {
+    "title": "Submit quote candidate (grant-scoped)",
+    "hint": "Requires quote.submit on the grant. Stores supplier quote as received for internal review — never accepted/finalized by the external principal.",
+    "submit": "Queue quote candidate",
+    "saved": "Quote candidate stored as received (not finalized)."
+  },
+  "candidateAp": {
+    "title": "Submit AP bill candidate",
+    "hint": "Queues invoice candidate data for internal review. Does not create an AP bill or expense.",
+    "reference": "Invoice reference",
+    "submit": "Queue AP candidate",
+    "saved": "AP bill candidate queued (not posted)."
+  },
+  "candidateCompliance": {
+    "title": "Submit compliance candidate",
+    "hint": "Queues insurance/cert metadata for internal review. Does not create a valid compliance artifact.",
+    "kind": "Artifact kind",
+    "name": "Document name",
+    "reference": "Reference number",
+    "submit": "Queue compliance candidate",
+    "saved": "Compliance candidate queued (not posted).",
+    "kinds": {
+      "insurance": "Insurance",
+      "license": "License",
+      "certification": "Certification",
+      "other": "Other"
+    }
+  },
+  "candidateReview": {
+    "title": "Internal candidate review",
+    "subtitle": "Accept or reject vendor portal candidates. Accepting only queues internal follow-up — it never posts AP bills, expenses, or compliance artifacts.",
+    "neverPosts": "Candidates ≠ ledger truth. Financial posting remains a separate internal action.",
+    "accept": "Accept for review",
+    "reject": "Reject",
+    "saved": "Candidate review saved.",
+    "apLabel": "AP bill candidate",
+    "complianceLabel": "Compliance candidate",
+    "reviewedCount": "{count} already reviewed in this session store"
   }
 }

@@ -93,7 +93,7 @@ function ExpenseRows({
       </TableHeader>
       <TableBody>
         {items.map((expense) => (
-          <TableRow key={expense.id} className="cursor-pointer">
+          <TableRow key={expense.id}>
             <TableCell>
               <Link href={`/expenses/${expense.id}`} className="block">
                 {formatBusinessDate(expense.expenseDate, locale, 'short')}

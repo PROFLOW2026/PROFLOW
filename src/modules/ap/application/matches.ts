@@ -6,6 +6,8 @@ import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { noteModuleUsage } from '@/modules/tenancy';
 import {
   assertAcceptMatchDoesNotCreateExpense,
+  assertMatchCurrencyIntegrity,
+  assertMatchDoesNotOverMatch,
   assertMatchHasTarget,
   deriveBillStatusFromAcceptedMatches,
   isAcceptingMatchCreatingExpense,
@@ -18,6 +20,7 @@ import {
   findPurchaseOrderInOrg,
   insertApPoMatch,
   listAcceptedMatchAmountsForBill,
+  listReservedMatchAmountsForBill,
   updateApBillStatus,
   updateApPoMatchStatus,
   type ApPoMatchRow,
@@ -54,7 +57,7 @@ async function refreshBillMatchStatus(
 
 /**
  * Propose a match from an AP bill to a PO and/or an existing expense.
- * Does not create expenses.
+ * Supports partial matching (multiple matches per bill). Does not create expenses.
  */
 export async function proposeApMatch(
   context: OrgContext,
@@ -81,13 +84,7 @@ export async function proposeApMatch(
     throw new DomainRuleError('Cannot match a void bill', 'ap.errors.billVoid');
   }
 
-  if (input.currency.toUpperCase() !== bill.currency.toUpperCase()) {
-    throw new DomainRuleError(
-      'Match currency must match the bill currency',
-      'ap.errors.currencyMismatch',
-    );
-  }
-
+  let purchaseOrderCurrency: string | null = null;
   if (input.purchaseOrderId) {
     const po = await findPurchaseOrderInOrg(
       context.db,
@@ -95,12 +92,46 @@ export async function proposeApMatch(
       input.purchaseOrderId,
     );
     if (!po) throw new NotFoundError('Purchase order');
+    if (po.vendorId !== bill.vendorId) {
+      throw new DomainRuleError(
+        'Purchase order vendor must match the bill vendor',
+        'ap.errors.vendorMismatch',
+      );
+    }
+    purchaseOrderCurrency = po.currency;
   }
 
+  let expenseCurrency: string | null = null;
   if (input.expenseId) {
     const expense = await findExpenseInOrg(context.db, context.organizationId, input.expenseId);
     if (!expense) throw new NotFoundError('Expense');
+    if (expense.vendorId && expense.vendorId !== bill.vendorId) {
+      throw new DomainRuleError(
+        'Expense vendor must match the bill vendor',
+        'ap.errors.vendorMismatch',
+      );
+    }
+    expenseCurrency = expense.currency;
   }
+
+  assertMatchCurrencyIntegrity({
+    billCurrency: bill.currency,
+    matchCurrency: input.currency,
+    purchaseOrderCurrency,
+    expenseCurrency,
+  });
+
+  const reserved = await listReservedMatchAmountsForBill(
+    context.db,
+    context.organizationId,
+    bill.id,
+  );
+  assertMatchDoesNotOverMatch({
+    currency: bill.currency,
+    billTotal: bill.totalAmount,
+    reservedMatchedAmounts: reserved,
+    additionalMatchedAmount: input.matchedAmount,
+  });
 
   const match = await insertApPoMatch(context.db, {
     organizationId: context.organizationId,
@@ -165,6 +196,22 @@ export async function acceptApMatch(
     expenseId: existing.expenseId,
   });
 
+  const bill = await findApBillById(context.db, context.organizationId, existing.apBillId);
+  if (!bill || bill.archivedAt) throw new NotFoundError('AP bill');
+
+  // Capacity vs other accepted matches only (this proposed row is not yet accepted).
+  const otherAccepted = await listAcceptedMatchAmountsForBill(
+    context.db,
+    context.organizationId,
+    bill.id,
+  );
+  assertMatchDoesNotOverMatch({
+    currency: bill.currency,
+    billTotal: bill.totalAmount,
+    reservedMatchedAmounts: otherAccepted,
+    additionalMatchedAmount: existing.matchedAmount,
+  });
+
   const accepted = await updateApPoMatchStatus(
     context.db,
     context.organizationId,
@@ -176,16 +223,13 @@ export async function acceptApMatch(
   // Domain guard: acceptance must not invent expense rows.
   assertAcceptMatchDoesNotCreateExpense();
 
-  const bill = await findApBillById(context.db, context.organizationId, accepted.apBillId);
-  if (bill) {
-    await refreshBillMatchStatus(
-      context,
-      bill.id,
-      bill.status as ApBillStatus,
-      bill.currency,
-      bill.totalAmount,
-    );
-  }
+  await refreshBillMatchStatus(
+    context,
+    bill.id,
+    bill.status as ApBillStatus,
+    bill.currency,
+    bill.totalAmount,
+  );
 
   await recordAuditEvent(context, {
     action: AUDIT_ACTIONS.AP_MATCH_ACCEPTED,

@@ -11,11 +11,25 @@
   "paid": "שולם",
   "outstanding": "יתרה לתשלום",
   "actualCostToDate": "עלות בפועל עד היום",
-  "estimatedFinalCost": "עלות סופית משוערת",
+  "estimatedFinalCost": "עלות סופית משוערת (לפי נתונים שהוזנו)",
+  "estimatedFinalCostHint": "שווה לעלות בפועל עד היום כל עוד אין קלט לעלות נותרת. אין מנוע תחזית נפרד.",
   "estimatedProfit": "רווח משוער",
   "estimatedProfitBasedOnEnteredData": "רווח משוער על בסיס הנתונים שהוזנו",
   "margin": "שיעור רווח",
   "budget": "תקציב",
+  "exportCsv": "ייצוא כספי פרויקט (CSV)",
+  "metricNature": {
+    "actual": "בפועל",
+    "committed": "מחויב",
+    "forecast": "תחזית"
+  },
+  "laborActual": "עבודה (בפועל)",
+  "vendorActual": "ספקים / קבלני משנה (בפועל)",
+  "overheadActual": "תקורה (בפועל)",
+  "committedOpen": "עלות מחויבת (הזמנת רכש פתוחה)",
+  "committedVsActual": "מחויב נשאר נפרד מבפועל — אינו הוצאה",
+  "openApPayable": "AP לתשלום שלא הותאם (תחזית)",
+  "openApPayableHint": "התחייבות תזרים יוצאת מתחזית לפי חשבוניות AP פתוחות — לא עלות בפועל",
   "coverage": {
     "title": "מה כלול בחישוב",
     "trigger": "מה כלול בחישוב",
@@ -34,6 +48,8 @@
       "foreignCurrencyExpenses": "{count, plural, one {הוצאה אחת במטבע אחר — לא נכללה בסכום} two {שתי הוצאות במטבע אחר — לא נכללו בסכום} other {{count} הוצאות במטבע אחר — לא נכללו בסכום}}",
       "foreignCurrencyLabor": "{count, plural, one {רישום שעות אחד עלה במטבע אחר — לא נכלל בסכום} two {שני רישומי שעות עלו במטבע אחר — לא נכללו בסכום} other {{count} רישומי שעות עלו במטבע אחר — לא נכללו בסכום}}",
       "foreignCurrencyBilling": "{count, plural, one {רשומת חיוב אחת במטבע אחר — לא נכללה בסכום} two {שתי רשומות חיוב במטבע אחר — לא נכללו בסכום} other {{count} רשומות חיוב במטבע אחר — לא נכללו בסכום}}",
+      "foreignCurrencyCommitted": "{count, plural, one {עלות מחויבת אחת במטבע אחר — לא נכללה בסכום} two {שתי עלויות מחויבות במטבע אחר — לא נכללו בסכום} other {{count} עלויות מחויבות במטבע אחר — לא נכללו בסכום}}",
+      "foreignCurrencyAp": "{count, plural, one {חשבונית AP אחת במטבע אחר — לא נכללה בסכום} two {שתי חשבוניות AP במטבע אחר — לא נכללו בסכום} other {{count} חשבוניות AP במטבע אחר — לא נכללו בסכום}}",
       "workforceEntriesMissingCost": "{count, plural, one {לרישום שעות אחד לא היה תעריף בתאריך — עלות העובדים נמוכה מהמציאות} two {לשני רישומי שעות לא היה תעריף בתאריך — עלות העובדים נמוכה מהמציאות} other {ל-{count} רישומי שעות לא היה תעריף בתאריך — עלות העובדים נמוכה מהמציאות}}"
     }
   },
@@ -54,7 +70,9 @@
     "forecastTitle": "תחזית — צפי נכנס",
     "forecastHint": "יתרות חיוב פתוחות של הפרויקט לפי תאריך פירעון. לא שולם.",
     "outgoingTitle": "יוצא",
-    "outgoingDisclosure": "אין תחזית תזרים יוצא כאן: להוצאות אין תאריכי פירעון לספקים או סטטוס חשבונית ספק שלא שולמה.",
+    "outgoingDisclosure": "אין תחזית תזרים יוצא כאן: אין חשבוניות AP פתוחות עם תאריך פירעון בטווח. הוצאות לבדן אינן ממציאות חשבוניות ספק.",
+    "outgoingAvailableHint": "תחזית לפי חשבוניות AP פתוחות לפי תאריך פירעון — לא עלות בפועל (Expense).",
+    "billCount": "{count, plural, one {# חשבונית} other {# חשבוניות}}",
     "undatedNote": "יתרה בלי תאריך פירעון נשארת תחת \"ללא תאריך\" ואינה משויכת לדלי תחזית.",
     "paymentCount": "{count, plural, =0 {אין תשלומים בטווח} one {תשלום אחד} two {שני תשלומים} other {# תשלומים}}",
     "buckets": {

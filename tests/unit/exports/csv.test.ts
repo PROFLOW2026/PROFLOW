@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { escapeCsvCell, rowsToCsv } from '@/modules/exports/domain/csv';
+import { tablesToXlsx, workbookFirstSheetToMatrix } from '@/modules/exports/domain/xlsx';
+import { EXPORT_KINDS } from '@/modules/exports/application/build-csv-export';
 
 describe('csv helpers', () => {
   it('escapes commas quotes and newlines', () => {
@@ -14,5 +16,45 @@ describe('csv helpers', () => {
     expect(csv).toContain('name,amount\r\n');
     expect(csv).toContain('פרויקט,12.50\r\n');
     expect(csv).toContain('plain,\r\n');
+  });
+});
+
+describe('xlsx helpers', () => {
+  it('round-trips hebrew headers and rows', async () => {
+    const buffer = await tablesToXlsx([
+      {
+        sheetName: 'Clients',
+        headers: ['name', 'city'],
+        rows: [['פרויקט', 'תל אביב'], ['Acme', 'NYC']],
+      },
+    ]);
+    expect(buffer.byteLength).toBeGreaterThan(100);
+
+    const matrix = await workbookFirstSheetToMatrix(buffer);
+    expect(matrix.headers).toEqual(['name', 'city']);
+    expect(matrix.rows[0]).toEqual(['פרויקט', 'תל אביב']);
+    expect(matrix.rows[1]).toEqual(['Acme', 'NYC']);
+  });
+});
+
+describe('export kinds coverage', () => {
+  it('includes pre-launch business export kinds', () => {
+    expect(EXPORT_KINDS).toEqual(
+      expect.arrayContaining([
+        'projects',
+        'project-financials',
+        'expenses',
+        'clients',
+        'vendors',
+        'employees',
+        'time-entries',
+        'billing',
+        'payments',
+        'receivables-aging',
+        'purchase-orders',
+        'ap-bills',
+        'audit',
+      ]),
+    );
   });
 });

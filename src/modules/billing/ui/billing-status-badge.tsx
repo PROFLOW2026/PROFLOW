@@ -2,7 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { StatusBadge, type StatusShape } from '@/components/ui/status-badge';
-import type { BillingRecordStatus, CollectionStatus } from '@/modules/billing';
+import type { BillingRecordStatus, CollectionStatus } from '@/modules/billing/domain/types';
 
 interface BillingStatusBadgeProps {
   status: BillingRecordStatus;

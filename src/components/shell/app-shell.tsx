@@ -3,6 +3,9 @@ import type { ReactNode } from 'react';
 import { getShellContext } from '@/shared/auth/session';
 import { redirect } from '@/shared/i18n/navigation';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
+import { ConnectivityBanner } from '@/modules/offline/ui/connectivity-banner';
+import { OfflineSyncProvider } from '@/modules/offline/ui/offline-sync-provider';
+import { ServiceWorkerRegistrar } from '@/modules/offline/ui/service-worker-registrar';
 import { MobileNav } from './mobile-nav';
 import { visibleNavItems } from './navigation';
 import { QuickCreate, type QuickCreateAction } from './quick-create';
@@ -29,33 +32,38 @@ export async function AppShell({ children }: { children: ReactNode }) {
   const userMenu = <UserMenuSlot organizationName={shell.organization.name} />;
 
   return (
-    <div className="flex min-h-dvh" data-pf-shell="app">
-      <Sidebar items={items} organizationName={shell.organization.name} />
+    <OfflineSyncProvider organizationId={shell.organizationId}>
+      <div className="flex min-h-dvh" data-pf-shell="app">
+        <ServiceWorkerRegistrar />
+        <Sidebar items={items} organizationName={shell.organization.name} />
 
-      <div className="relative flex min-w-0 flex-1 flex-col">
-        <a
-          href="#main"
-          className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:start-2 focus:z-100 focus:rounded-md focus:bg-[var(--pf-bg-surface)] focus:px-3 focus:py-2 focus:text-sm"
-        >
-          {tCommon('a11y.skipToContent')}
-        </a>
+        <div className="relative flex min-w-0 flex-1 flex-col">
+          <a
+            href="#main"
+            className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:start-2 focus:z-100 focus:rounded-md focus:bg-[var(--pf-bg-surface)] focus:px-3 focus:py-2 focus:text-sm"
+          >
+            {tCommon('a11y.skipToContent')}
+          </a>
 
-        <TopBar
-          organizationName={shell.organization.name}
-          quickCreate={<QuickCreate actions={quickCreateActions} />}
-          userMenu={userMenu}
-        />
+          <ConnectivityBanner />
 
-        <main
-          id="main"
-          className="flex-1 px-4 pt-5 pb-[calc(var(--pf-bottomnav-height)+1.5rem+env(safe-area-inset-bottom))] sm:px-6 lg:pb-8"
-        >
-          <div className="mx-auto w-full max-w-6xl">{children}</div>
-        </main>
+          <TopBar
+            organizationName={shell.organization.name}
+            quickCreate={<QuickCreate actions={quickCreateActions} />}
+            userMenu={userMenu}
+          />
+
+          <main
+            id="main"
+            className="flex-1 px-4 pt-5 pb-[calc(var(--pf-bottomnav-height)+1.5rem+env(safe-area-inset-bottom))] sm:px-6 lg:pb-8"
+          >
+            <div className="mx-auto w-full max-w-6xl">{children}</div>
+          </main>
+        </div>
+
+        <MobileNav items={items} />
       </div>
-
-      <MobileNav items={items} />
-    </div>
+    </OfflineSyncProvider>
   );
 }
 

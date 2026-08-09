@@ -49,7 +49,11 @@ export default async function FieldOpsLogsPage({
         actions={
           canManage ? (
             <Button asChild>
-              <Link href={projectId ? `/field-ops/logs/new?projectId=${projectId}` : '/field-ops/logs/new'}>
+              <Link
+                href={
+                  projectId ? `/field-ops/logs/new?projectId=${projectId}` : '/field-ops/logs/new'
+                }
+              >
                 <Plus aria-hidden />
                 {t('newLog')}
               </Link>
@@ -85,19 +89,31 @@ export default async function FieldOpsLogsPage({
                     <TableHead>{t('list.columns.project')}</TableHead>
                     <TableHead>{t('list.columns.summary')}</TableHead>
                     <TableHead>{t('list.columns.weather')}</TableHead>
+                    <TableHead>{t('list.columns.workforce')}</TableHead>
+                    <TableHead>{t('list.columns.blockers')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {logs.map((log) => (
                     <TableRow key={log.id}>
                       <TableCell>
-                        {new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(
-                          new Date(log.logDate),
-                        )}
+                        <Link href={`/field-ops/logs/${log.id}`} className="hover:underline">
+                          {new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(
+                            new Date(log.logDate),
+                          )}
+                        </Link>
                       </TableCell>
                       <TableCell>{projectName.get(log.projectId) ?? '—'}</TableCell>
-                      <TableCell className="max-w-md truncate font-medium">{log.summary}</TableCell>
+                      <TableCell className="max-w-md truncate font-medium">
+                        <Link href={`/field-ops/logs/${log.id}`} className="hover:underline">
+                          {log.summary}
+                        </Link>
+                      </TableCell>
                       <TableCell>{log.weather ?? '—'}</TableCell>
+                      <TableCell className="max-w-xs truncate">
+                        {log.workforceNotes ?? '—'}
+                      </TableCell>
+                      <TableCell className="max-w-xs truncate">{log.blockers ?? '—'}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -105,13 +121,26 @@ export default async function FieldOpsLogsPage({
             </div>
           }
           renderMobileCard={(log) => (
-            <div className="rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4">
+            <Link
+              href={`/field-ops/logs/${log.id}`}
+              className="block rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4"
+            >
               <p className="font-semibold">{log.summary}</p>
               <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">
                 {log.logDate} · {projectName.get(log.projectId) ?? '—'}
                 {log.weather ? ` · ${log.weather}` : ''}
               </p>
-            </div>
+              {log.workforceNotes ? (
+                <p className="mt-2 line-clamp-2 text-sm text-[var(--pf-text-secondary)]">
+                  {log.workforceNotes}
+                </p>
+              ) : null}
+              {log.blockers ? (
+                <p className="mt-1 line-clamp-2 text-sm text-[var(--pf-status-danger-fg)]">
+                  {t('list.columns.blockers')}: {log.blockers}
+                </p>
+              ) : null}
+            </Link>
           )}
         />
       )}

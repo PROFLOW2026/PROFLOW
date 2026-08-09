@@ -4,9 +4,13 @@ import { revalidatePath } from 'next/cache';
 import { getLocale, getTranslations } from 'next-intl/server';
 import {
   createAsset,
+  createFleetVehicle,
   createInventoryItem,
   createMaintenanceRecord,
   recordInventoryMovement,
+  updateAsset,
+  updateFleetVehicle,
+  updateMaintenanceRecord,
 } from '@/modules/assets';
 import { withOrgContext } from '@/shared/auth/session';
 import { AppError, DomainRuleError, ValidationError } from '@/shared/errors';
@@ -27,6 +31,15 @@ function formValue(formData: FormData, key: string): string | undefined {
 
 function requiredFormValue(formData: FormData, key: string): string {
   return formValue(formData, key) ?? '';
+}
+
+/** Empty string / "__none__" clears optional UUID fields (check-in). */
+function optionalUuidOrNull(formData: FormData, key: string): string | null | undefined {
+  const raw = formData.get(key);
+  if (raw === null) return undefined;
+  const text = String(raw).trim();
+  if (text === '' || text === '__none__') return null;
+  return text;
 }
 
 function mapValidationError(error: ValidationError): AssetsFormState {
@@ -68,10 +81,17 @@ export async function createAssetAction(
           | 'tool'
           | 'other'
           | undefined,
+        status: formValue(formData, 'status') as
+          | 'active'
+          | 'in_maintenance'
+          | 'retired'
+          | 'disposed'
+          | undefined,
         identifier: formValue(formData, 'identifier'),
         manufacturer: formValue(formData, 'manufacturer'),
         model: formValue(formData, 'model'),
         serialNumber: formValue(formData, 'serialNumber'),
+        assignedProjectId: optionalUuidOrNull(formData, 'assignedProjectId') ?? undefined,
         notes: formValue(formData, 'notes'),
         plateNumber: formValue(formData, 'plateNumber'),
         vin: formValue(formData, 'vin'),
@@ -79,7 +99,34 @@ export async function createAssetAction(
       }),
     );
     revalidatePath('/assets');
+    revalidatePath('/assets/fleet');
     redirect({ href: `/assets/${created.asset.id}`, locale });
+  } catch (error) {
+    return mapAppError(error);
+  }
+}
+
+export async function updateAssetAction(
+  _prev: AssetsFormState,
+  formData: FormData,
+): Promise<AssetsFormState> {
+  try {
+    const assetId = requiredFormValue(formData, 'assetId');
+    await withOrgContext((context) =>
+      updateAsset(context, {
+        assetId,
+        status: formValue(formData, 'status') as
+          | 'active'
+          | 'in_maintenance'
+          | 'retired'
+          | 'disposed'
+          | undefined,
+        assignedProjectId: optionalUuidOrNull(formData, 'assignedProjectId'),
+      }),
+    );
+    revalidatePath('/assets');
+    revalidatePath(`/assets/${assetId}`);
+    return { success: true };
   } catch (error) {
     return mapAppError(error);
   }
@@ -104,10 +151,85 @@ export async function createMaintenanceAction(
         performedOn: formValue(formData, 'performedOn'),
         costAmount: formValue(formData, 'costAmount'),
         currency: formValue(formData, 'currency'),
+        vendorId: optionalUuidOrNull(formData, 'vendorId') ?? undefined,
         notes: formValue(formData, 'notes'),
       }),
     );
     revalidatePath(`/assets/${assetId}`);
+    revalidatePath('/assets');
+    revalidatePath('/assets/maintenance');
+    return { success: true };
+  } catch (error) {
+    return mapAppError(error);
+  }
+}
+
+export async function updateMaintenanceStatusAction(
+  _prev: AssetsFormState,
+  formData: FormData,
+): Promise<AssetsFormState> {
+  try {
+    const assetId = requiredFormValue(formData, 'assetId');
+    await withOrgContext((context) =>
+      updateMaintenanceRecord(context, {
+        maintenanceRecordId: requiredFormValue(formData, 'maintenanceRecordId'),
+        status: formValue(formData, 'status') as
+          | 'planned'
+          | 'in_progress'
+          | 'completed'
+          | 'cancelled'
+          | undefined,
+      }),
+    );
+    revalidatePath(`/assets/${assetId}`);
+    revalidatePath('/assets');
+    revalidatePath('/assets/maintenance');
+    return { success: true };
+  } catch (error) {
+    return mapAppError(error);
+  }
+}
+
+export async function createFleetVehicleAction(
+  _prev: AssetsFormState,
+  formData: FormData,
+): Promise<AssetsFormState> {
+  const locale = await getLocale();
+  try {
+    const assetId = optionalUuidOrNull(formData, 'assetId') ?? undefined;
+    await withOrgContext((context) =>
+      createFleetVehicle(context, {
+        assetId: assetId ?? undefined,
+        name: formValue(formData, 'name'),
+        plateNumber: formValue(formData, 'plateNumber'),
+        vin: formValue(formData, 'vin'),
+        odometer: formValue(formData, 'odometer'),
+        notes: formValue(formData, 'notes'),
+      }),
+    );
+    revalidatePath('/assets/fleet');
+    revalidatePath('/assets');
+    redirect({ href: '/assets/fleet', locale });
+  } catch (error) {
+    return mapAppError(error);
+  }
+}
+
+export async function updateFleetVehicleAction(
+  _prev: AssetsFormState,
+  formData: FormData,
+): Promise<AssetsFormState> {
+  try {
+    await withOrgContext((context) =>
+      updateFleetVehicle(context, {
+        fleetVehicleId: requiredFormValue(formData, 'fleetVehicleId'),
+        plateNumber: formValue(formData, 'plateNumber'),
+        vin: formValue(formData, 'vin'),
+        odometer: formValue(formData, 'odometer'),
+        notes: formValue(formData, 'notes'),
+      }),
+    );
+    revalidatePath('/assets/fleet');
     return { success: true };
   } catch (error) {
     return mapAppError(error);
@@ -120,17 +242,19 @@ export async function createInventoryItemAction(
 ): Promise<AssetsFormState> {
   const locale = await getLocale();
   try {
-    await withOrgContext((context) =>
+    const created = await withOrgContext((context) =>
       createInventoryItem(context, {
         name: requiredFormValue(formData, 'name'),
         sku: formValue(formData, 'sku'),
         unit: formValue(formData, 'unit') ?? 'ea',
         quantityOnHand: formValue(formData, 'quantityOnHand') ?? '0',
+        reorderLevel: formValue(formData, 'reorderLevel'),
+        materialItemId: optionalUuidOrNull(formData, 'materialItemId') ?? undefined,
         notes: formValue(formData, 'notes'),
       }),
     );
     revalidatePath('/assets/inventory');
-    redirect({ href: '/assets/inventory', locale });
+    redirect({ href: `/assets/inventory/${created.id}`, locale });
   } catch (error) {
     return mapAppError(error);
   }
@@ -141,16 +265,23 @@ export async function recordInventoryMovementAction(
   formData: FormData,
 ): Promise<AssetsFormState> {
   try {
+    const inventoryItemId = requiredFormValue(formData, 'inventoryItemId');
     await withOrgContext((context) =>
       recordInventoryMovement(context, {
-        inventoryItemId: requiredFormValue(formData, 'inventoryItemId'),
-        movementType: requiredFormValue(formData, 'movementType') as 'receive' | 'issue',
+        inventoryItemId,
+        movementType: requiredFormValue(formData, 'movementType') as
+          | 'receive'
+          | 'issue'
+          | 'return'
+          | 'adjust',
         quantity: requiredFormValue(formData, 'quantity'),
         occurredOn: requiredFormValue(formData, 'occurredOn'),
+        projectId: optionalUuidOrNull(formData, 'projectId') ?? undefined,
         notes: formValue(formData, 'notes'),
       }),
     );
     revalidatePath('/assets/inventory');
+    revalidatePath(`/assets/inventory/${inventoryItemId}`);
     return { success: true };
   } catch (error) {
     return mapAppError(error);

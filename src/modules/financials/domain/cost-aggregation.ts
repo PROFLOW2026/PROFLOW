@@ -78,6 +78,7 @@ export function aggregateProjectCosts(
   let hasOverheadAllocationRows = false;
   let hasSubcontractorRows = false;
   let excludedForeignCurrencyExpenses = 0;
+  let vendorActual = zeroMoney(currency);
 
   for (const line of contributions) {
     if (line.currency.toUpperCase() !== normalizedCurrency) {
@@ -91,7 +92,10 @@ export function aggregateProjectCosts(
     const family = familyKeyFromDb(line.costFamily);
     byFamily[family] = addMoney(byFamily[family]!, amount);
 
-    if (line.isSubcontractor) hasSubcontractorRows = true;
+    if (line.isSubcontractor) {
+      hasSubcontractorRows = true;
+      vendorActual = addMoney(vendorActual, amount);
+    }
 
     if (line.isDirectOnProject && !line.isAllocated) {
       hasDirectExpenseRows = true;
@@ -147,6 +151,8 @@ export function aggregateProjectCosts(
     });
   }
 
+  const laborActual = labor?.hasWorkforceData ? roundMoney(labor.laborCost) : zeroMoney(currency);
+
   return {
     cost: {
       actualCostToDate,
@@ -157,6 +163,12 @@ export function aggregateProjectCosts(
         businessOverhead: roundMoney(byFamily.businessOverhead),
         assetCapital: roundMoney(byFamily.assetCapital),
       },
+      laborActual,
+      vendorActual: roundMoney(vendorActual),
+      overheadActual: roundMoney(byFamily.businessOverhead),
+      // Committed / AP attached by getProjectFinancials — never mixed into Actual here.
+      committedOpen: zeroMoney(currency),
+      openApPayable: zeroMoney(currency),
     },
     sources,
     partials,
@@ -174,6 +186,34 @@ export function emptyCostPosition(currency: string): CostPosition {
       businessOverhead: zero,
       assetCapital: zero,
     },
+    laborActual: zero,
+    vendorActual: zero,
+    overheadActual: zero,
+    committedOpen: zero,
+    openApPayable: zero,
+  };
+}
+
+/**
+ * Attach Committed + Forecast AP obligation without folding them into Actual.
+ * Uses procurement domain guard so CommittedCost stays ≠ Expense.
+ */
+export function withCommittedAndApPayable(
+  cost: CostPosition,
+  committedOpen: MoneyValue,
+  openApPayable: MoneyValue,
+): CostPosition {
+  // Touch exclude pattern via amount equality — actual unchanged.
+  if (cost.actualCostToDate.currency !== committedOpen.currency) {
+    throw new Error('Committed currency must match project cost currency');
+  }
+  if (cost.actualCostToDate.currency !== openApPayable.currency) {
+    throw new Error('AP payable currency must match project cost currency');
+  }
+  return {
+    ...cost,
+    committedOpen: roundMoney(committedOpen),
+    openApPayable: roundMoney(openApPayable),
   };
 }
 

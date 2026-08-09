@@ -57,6 +57,8 @@ export const listVendorsSchema = z.object({
   status: z.enum([...VENDOR_STATUSES, 'all'] as const).optional(),
   type: z.enum([...VENDOR_TYPES, 'all'] as const).optional(),
   includeArchived: z.boolean().optional(),
+  limit: z.coerce.number().int().min(0).optional(),
+  offset: z.coerce.number().int().min(0).optional(),
 });
 
 export const createContactSchema = z.object({

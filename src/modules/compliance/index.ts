@@ -27,6 +27,14 @@ export type {
 export { deriveArtifactStatus, resolveArtifactStatus } from './domain/status';
 
 export {
+  COMPLIANCE_UI_BUCKETS,
+  hasDocumentEvidence,
+  isMissingEvidence,
+  resolveComplianceUiBucket,
+} from './domain/evidence';
+export type { ComplianceUiBucket } from './domain/evidence';
+
+export {
   createComplianceArtifactSchema,
   updateComplianceArtifactSchema,
   archiveComplianceArtifactSchema,

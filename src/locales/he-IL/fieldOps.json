@@ -1,6 +1,7 @@
 {
   "title": "עבודה בשטח",
   "description": "יומני עבודה, רשימות תיקונים ובדיקות לפי פרויקט.",
+  "navLabel": "אזורי עבודה בשטח",
   "nav": {
     "logs": "יומני עבודה",
     "punch": "רשימת תיקונים",
@@ -12,13 +13,47 @@
     "punch": "רשימת תיקונים",
     "inspections": "בדיקות"
   },
+  "projectSummary": {
+    "title": "עבודה בשטח",
+    "openPunch": "תיקונים פתוחים",
+    "latestLog": "יומן עבודה אחרון",
+    "upcomingInspections": "בדיקות קרובות",
+    "noLog": "אין עדיין יומני עבודה",
+    "noInspections": "אין בדיקות קרובות",
+    "unscheduled": "ללא תאריך",
+    "addLog": "יומן עבודה חדש",
+    "addPunch": "פריט תיקון חדש",
+    "addInspection": "בדיקה חדשה",
+    "links": {
+      "logs": "כל היומנים",
+      "punch": "רשימת תיקונים",
+      "inspections": "בדיקות"
+    }
+  },
+  "photoCapture": {
+    "title": "תמונות אחרי שמירה",
+    "body": "שמרו קודם את רשומת השטח, ואז צרפו תמונות וקבצים ממסך הפרטים. המסמכים נשארים באחסון פרטי עם גישה חתומה."
+  },
+  "filters": {
+    "status": "סטטוס",
+    "priority": "עדיפות",
+    "all": "הכול"
+  },
+  "detail": {
+    "logTitle": "יומן עבודה",
+    "punchTitle": "פריט תיקון",
+    "inspectionTitle": "בדיקה",
+    "unknownProject": "פרויקט",
+    "saveLog": "שמירת שינויים",
+    "saved": "נשמר."
+  },
   "newLog": "יומן עבודה חדש",
   "newPunch": "פריט תיקון חדש",
   "newInspection": "בדיקה חדשה",
   "empty": {
     "logs": {
       "title": "אין עדיין יומני עבודה",
-      "body": "רשמו מזג אוויר, כוח אדם והתקדמות באתר ליום עבודה בפרויקט.",
+      "body": "רשמו עבודה שבוצעה, הערות כוח אדם ומכשולים ליום עבודה בפרויקט.",
       "action": "יומן עבודה חדש"
     },
     "punch": {
@@ -41,15 +76,18 @@
     "columns": {
       "date": "תאריך",
       "project": "פרויקט",
-      "summary": "סיכום",
+      "summary": "עבודה שבוצעה",
       "weather": "מזג אוויר",
+      "workforce": "כוח אדם / אתר",
+      "blockers": "מכשולים",
       "title": "כותרת",
       "status": "סטטוס",
       "priority": "עדיפות",
       "dueDate": "יעד",
       "kind": "סוג",
       "scheduledOn": "מתוזמן",
-      "completedOn": "הושלם"
+      "completedOn": "הושלם",
+      "result": "תוצאה"
     }
   },
   "priorities": {
@@ -71,10 +109,22 @@
     "submit": "שמירת יומן",
     "projectLabel": "פרויקט",
     "projectPlaceholder": "בחרו פרויקט",
+    "workPackageLabel": "תחום עבודה",
+    "workPackagePlaceholder": "תחום עבודה (אופציונלי)",
+    "workPackageNone": "ללא תחום עבודה",
     "logDateLabel": "תאריך",
     "weatherLabel": "מזג אוויר",
-    "summaryLabel": "סיכום",
-    "workforceNotesLabel": "הערות כוח אדם"
+    "weatherHint": "תנאי אתר (אופציונלי).",
+    "weatherPlaceholder": "למשל בהיר, גשם קל",
+    "summaryLabel": "עבודה שבוצעה",
+    "summaryHint": "מה הושלם באתר היום.",
+    "summaryPlaceholder": "תארו את העבודה שבוצעה…",
+    "workforceNotesLabel": "הערות כוח אדם / אתר",
+    "workforceNotesHint": "מספר עובדים, מבקרים, תנאי אתר.",
+    "workforceNotesPlaceholder": "צוות, הערות אתר…",
+    "blockersLabel": "מכשולים",
+    "blockersHint": "בעיות שעיכבו או עצרו את העבודה.",
+    "blockersPlaceholder": "חומרים, גישה, עיכובי מזג אוויר…"
   },
   "createPunch": {
     "title": "פריט תיקון חדש",
@@ -82,6 +132,9 @@
     "submit": "שמירת פריט",
     "projectLabel": "פרויקט",
     "projectPlaceholder": "בחרו פרויקט",
+    "workPackageLabel": "תחום עבודה",
+    "workPackagePlaceholder": "תחום עבודה (אופציונלי)",
+    "workPackageNone": "ללא תחום עבודה",
     "titleLabel": "כותרת",
     "descriptionLabel": "תיאור",
     "priorityLabel": "עדיפות",
@@ -94,6 +147,9 @@
     "submit": "שמירת בדיקה",
     "projectLabel": "פרויקט",
     "projectPlaceholder": "בחרו פרויקט",
+    "workPackageLabel": "תחום עבודה",
+    "workPackagePlaceholder": "תחום עבודה (אופציונלי)",
+    "workPackageNone": "ללא תחום עבודה",
     "titleLabel": "כותרת",
     "kindLabel": "סוג",
     "scheduledOnLabel": "מתוזמן ל־",
@@ -102,6 +158,13 @@
   "updateStatus": {
     "label": "סטטוס",
     "submit": "עדכון",
+    "pending": "מעדכן…",
+    "resultLabel": "הערות תוצאה",
+    "resultPlaceholder": "מה נמצא / תוצאה…"
+  },
+  "updatePriority": {
+    "label": "עדיפות",
+    "submit": "עדכון עדיפות",
     "pending": "מעדכן…"
   },
   "errors": {

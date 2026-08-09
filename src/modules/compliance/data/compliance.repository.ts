@@ -1,5 +1,11 @@
 import { and, desc, eq, ilike, isNull, or } from 'drizzle-orm';
 import { complianceArtifacts } from '@drizzle/schema';
+import {
+  ORG_LIST_EXPORT_CAP,
+  ORG_LIST_HARD_CAP,
+  resolveListLimit,
+  resolveListOffset,
+} from '@/shared/db/list-limits';
 import type { DbExecutor } from '@/shared/db/types';
 import type {
   ArtifactKind,
@@ -87,6 +93,7 @@ export async function updateComplianceArtifactById(
     status: ArtifactStatus;
     subjectType: SubjectType;
     subjectId: string | null;
+    documentId: string | null;
     notes: string | null;
     archivedAt: Date | null;
   }>,
@@ -157,7 +164,16 @@ export async function listComplianceArtifacts(
     .select()
     .from(complianceArtifacts)
     .where(and(...conditions))
-    .orderBy(desc(complianceArtifacts.expiresOn), complianceArtifacts.name);
+    .orderBy(desc(complianceArtifacts.expiresOn), complianceArtifacts.name)
+    .limit(
+      resolveListLimit(filters.limit, {
+        hardCap:
+          filters.limit != null && filters.limit > ORG_LIST_HARD_CAP
+            ? ORG_LIST_EXPORT_CAP
+            : ORG_LIST_HARD_CAP,
+      }),
+    )
+    .offset(resolveListOffset(filters.offset));
 
   return rows.map(mapArtifact);
 }

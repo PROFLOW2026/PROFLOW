@@ -81,6 +81,27 @@ export async function createEmployee(
   });
 
   if (input.baseRate) {
+    const { getLaborCostDefaultsForApply } = await import(
+      '@/modules/tenancy/application/labor-cost-defaults'
+    );
+    const defaults = await getLaborCostDefaultsForApply(context).catch(() => null);
+    const burdenPercent =
+      input.burdenPercent ?? defaults?.burdenPercent ?? null;
+    const components =
+      input.components && input.components.length > 0
+        ? input.components
+        : (defaults?.components ?? []).map((component) => ({
+            key: component.key,
+            label: component.key,
+            // Org defaults use `fixed`; workforce components store fixed amounts as `amount`.
+            basis: (component.basis === 'fixed' ? 'amount' : component.basis) as
+              | 'amount'
+              | 'percent',
+            amount: component.amount,
+            percent: component.percent,
+            currency,
+          }));
+
     const rateVersion = await insertRateVersion(context.db, {
       organizationId: context.organizationId,
       employeeId: employee.id,
@@ -88,10 +109,10 @@ export async function createEmployee(
       baseRate: input.baseRate,
       rateUnit: input.rateUnit,
       currency,
-      burdenPercent: input.burdenPercent ?? null,
+      burdenPercent,
     });
 
-    for (const component of input.components ?? []) {
+    for (const component of components) {
       await insertLaborCostComponent(context.db, {
         organizationId: context.organizationId,
         rateVersionId: rateVersion.id,

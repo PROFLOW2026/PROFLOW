@@ -8,7 +8,14 @@
   "detail": {
     "title": "הוצאה",
     "summary": "סיכום",
-    "reversalOf": "ביטול של הוצאה {id}"
+    "reversalOf": "ביטול של הוצאה {id}",
+    "viewVendor": "פתיחת ספק מקושר"
+  },
+  "promoteVendor": {
+    "title": "שמירה כספק",
+    "description": "יצירה או קישור של ספק מ־“{name}”. שם הספק בהוצאה נשאר כפי שהוזן.",
+    "cta": "שמירה / קישור כספק",
+    "success": "הספק קושר. טקסט שם הספק בהוצאה נשמר."
   },
   "actions": {
     "add": "הוספת הוצאה",
@@ -30,6 +37,7 @@
     "description": "תיאור",
     "date": "תאריך",
     "supplier": "ספק",
+    "linkedVendor": "ספק מקושר",
     "target": "פרויקט או תפעול",
     "project": "פרויקט",
     "workPackage": "תחום עבודה",
@@ -49,6 +57,8 @@
     "supplier": "הקלד שם ספק",
     "target": "השאר ריק או בחר פרויקט",
     "workPackageDefault": "תחום עבודה ברירת מחדל",
+    "vendor": "קישור לספק קיים",
+    "vendorNone": "ללא ספק מקושר",
     "costFamily": "נקבע לפי היעד",
     "category": "קטגוריה (אופציונלי)"
   },

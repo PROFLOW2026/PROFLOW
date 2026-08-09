@@ -9,6 +9,8 @@ import { redirect } from '@/shared/i18n/navigation';
 
 export interface TimeEntryFormState {
   error?: string;
+  /** Local draft queued — not server truth. */
+  offlineQueued?: boolean;
 }
 
 export async function createTimeEntryAction(

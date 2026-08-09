@@ -27,12 +27,14 @@ export function ProposeMatchForm({
   billId,
   currency,
   defaultAmount,
+  remainingLabel,
   purchaseOrders,
   expenses,
 }: {
   billId: string;
   currency: string;
   defaultAmount: string;
+  remainingLabel: string;
   purchaseOrders: readonly { id: string; label: string }[];
   expenses: readonly { id: string; label: string }[];
 }) {
@@ -43,6 +45,9 @@ export function ProposeMatchForm({
     <form action={action} className="flex max-w-lg flex-col gap-3 rounded-lg border border-[var(--pf-border-default)] p-4">
       <h2 className="font-medium">{t('proposeTitle')}</h2>
       <p className="text-xs text-[var(--pf-text-muted)]">{t('hint')}</p>
+      <p className="text-xs text-[var(--pf-text-secondary)]">
+        {t('remainingHint', { amount: remainingLabel, currency })}
+      </p>
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
       {state.success ? (
         <Alert tone="success" role="status">
@@ -131,14 +136,14 @@ export function MatchDecisionButtons({
       <form action={acceptAction}>
         <input type="hidden" name="matchId" value={matchId} />
         <input type="hidden" name="apBillId" value={billId} />
-        <Button type="submit" size="sm" loading={acceptPending}>
+        <Button type="submit" size="sm" loading={acceptPending} className="min-h-11 md:min-h-8">
           {t('accept')}
         </Button>
       </form>
       <form action={rejectAction}>
         <input type="hidden" name="matchId" value={matchId} />
         <input type="hidden" name="apBillId" value={billId} />
-        <Button type="submit" size="sm" variant="secondary" loading={rejectPending}>
+        <Button type="submit" size="sm" variant="secondary" loading={rejectPending} className="min-h-11 md:min-h-8">
           {t('reject')}
         </Button>
       </form>

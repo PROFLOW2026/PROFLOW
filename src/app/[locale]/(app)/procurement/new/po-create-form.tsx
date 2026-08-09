@@ -258,6 +258,7 @@ export function PurchaseOrderCreateForm({
                   <Input
                     {...control}
                     inputMode="decimal"
+                    numeric
                     value={line.quantity}
                     onChange={(event) => updateLine(index, { quantity: event.target.value })}
                   />

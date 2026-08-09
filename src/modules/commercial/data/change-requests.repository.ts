@@ -1,10 +1,16 @@
-import { and, asc, desc, eq, isNull, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, inArray, isNull, sql } from 'drizzle-orm';
 import {
   changeRequestLines,
   changeRequests,
   projects,
   workPackages,
 } from '@drizzle/schema';
+import {
+  ORG_LIST_EXPORT_CAP,
+  ORG_LIST_HARD_CAP,
+  resolveListLimit,
+  resolveListOffset,
+} from '@/shared/db/list-limits';
 import type { DbExecutor } from '@/shared/db/types';
 import type {
   ChangeRequestLineRecord,
@@ -81,7 +87,11 @@ export async function listChangeRequestsForProject(
 export async function listChangeRequestsAcrossProjects(
   db: DbExecutor,
   organizationId: string,
-  options: { status?: ChangeRequestStatus | 'all' } = {},
+  options: {
+    status?: ChangeRequestStatus | 'all';
+    limit?: number;
+    offset?: number;
+  } = {},
 ): Promise<ChangeRequestListItem[]> {
   const conditions = [
     eq(changeRequests.organizationId, organizationId),
@@ -91,6 +101,11 @@ export async function listChangeRequestsAcrossProjects(
   if (options.status && options.status !== 'all') {
     conditions.push(eq(changeRequests.status, options.status));
   }
+
+  const hardCap =
+    options.limit != null && options.limit > ORG_LIST_HARD_CAP
+      ? ORG_LIST_EXPORT_CAP
+      : ORG_LIST_HARD_CAP;
 
   const rows = await db
     .select({
@@ -108,7 +123,9 @@ export async function listChangeRequestsAcrossProjects(
     .from(changeRequests)
     .innerJoin(projects, eq(projects.id, changeRequests.projectId))
     .where(and(...conditions))
-    .orderBy(desc(changeRequests.updatedAt));
+    .orderBy(desc(changeRequests.updatedAt))
+    .limit(resolveListLimit(options.limit, { hardCap }))
+    .offset(resolveListOffset(options.offset));
 
   return rows.map((row) => ({
     ...mapChangeRequest(row.changeRequest),
@@ -324,16 +341,42 @@ export async function listWorkPackageNamesForChangeRequest(
   organizationId: string,
   changeRequestId: string,
 ): Promise<string[]> {
+  const byId = await listWorkPackageNamesForChangeRequests(db, organizationId, [changeRequestId]);
+  return byId.get(changeRequestId) ?? [];
+}
+
+/** Batched work-package names for change-request list rows (avoids N+1). */
+export async function listWorkPackageNamesForChangeRequests(
+  db: DbExecutor,
+  organizationId: string,
+  changeRequestIds: readonly string[],
+): Promise<Map<string, string[]>> {
+  const result = new Map<string, string[]>();
+  if (changeRequestIds.length === 0) return result;
+
   const rows = await db
-    .select({ name: workPackages.name })
+    .select({
+      changeRequestId: changeRequestLines.changeRequestId,
+      name: workPackages.name,
+    })
     .from(changeRequestLines)
     .innerJoin(workPackages, eq(workPackages.id, changeRequestLines.workPackageId))
     .where(
       and(
-        eq(changeRequestLines.changeRequestId, changeRequestId),
         eq(changeRequestLines.organizationId, organizationId),
+        inArray(changeRequestLines.changeRequestId, [...changeRequestIds]),
       ),
     );
 
-  return [...new Set(rows.map((row) => row.name))];
+  for (const row of rows) {
+    const existing = result.get(row.changeRequestId) ?? [];
+    if (!existing.includes(row.name)) existing.push(row.name);
+    result.set(row.changeRequestId, existing);
+  }
+
+  for (const id of changeRequestIds) {
+    if (!result.has(id)) result.set(id, []);
+  }
+
+  return result;
 }

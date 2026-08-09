@@ -1,7 +1,6 @@
-import { getProjectLaborCost } from '@/modules/workforce/application/project-labor-cost';
+import { sumOrganizationProjectLaborCoverage } from '@/modules/workforce';
 import type { CostSourceKey, FinancialCoverage } from '@/modules/financials/domain/types';
 import type { OrgContext } from '@/shared/auth/context';
-import { NotFoundError } from '@/shared/errors';
 import { endOfMonth, startOfMonth, todayInTimeZone } from '@/shared/dates';
 import { fromNumericString, zeroMoney, type MoneyValue } from '@/shared/money';
 import { hasPermission } from '@/shared/permissions/assert';
@@ -24,14 +23,13 @@ import {
 } from '../data/commercial.repository';
 import {
   hasAnyExpenseUsage,
-  loadProjectExpenseContributions,
+  loadOrganizationExpenseContributions,
   sumOrganizationActualCosts,
   sumOrganizationCostsInDateRange,
 } from '../data/expenses.repository';
 import {
   countActiveProjects,
   hasAnyProject,
-  listActiveProjectIds,
   listRecentActiveProjects,
   type ActiveProjectSummary,
 } from '../data/projects.repository';
@@ -120,8 +118,7 @@ export async function getHomeDashboard(context: OrgContext): Promise<HomeDashboa
     const orgCosts = await sumOrganizationActualCosts(context.db, context.organizationId, currency);
     totalActualCost = orgCosts.total;
 
-    const activeProjectIds = await listActiveProjectIds(context.db, context.organizationId);
-    const costAggregation = await collectOrgCostSources(context, activeProjectIds, currency);
+    const costAggregation = await collectOrgCostSources(context, currency);
     const mergedSources = mergeSourcePresence(costAggregation.sources);
     const mergedPartials = mergeCoveragePartials(
       costAggregation.partials,
@@ -225,51 +222,47 @@ export async function getHomeDashboard(context: OrgContext): Promise<HomeDashboa
   };
 }
 
+/**
+ * Coverage sources for the home dashboard: two expense queries + optional one labor query.
+ * Avoids per-active-project N+1 that previously scaled with project count.
+ */
 async function collectOrgCostSources(
   context: OrgContext,
-  projectIds: readonly string[],
   currency: string,
 ): Promise<{
   sources: { source: CostSourceKey; hasData: boolean }[];
   partials: CoveragePartial[];
 }> {
-  const allSources: { source: CostSourceKey; hasData: boolean }[] = [];
-  const allPartials: CoveragePartial[] = [];
+  const contributions = await loadOrganizationExpenseContributions(
+    context.db,
+    context.organizationId,
+  );
 
-  for (const projectId of projectIds) {
-    const contributions = await loadProjectExpenseContributions(
+  let labor = null;
+  if (hasPermission(context, PERMISSIONS.WORKFORCE_READ)) {
+    const laborAgg = await sumOrganizationProjectLaborCoverage(
       context.db,
       context.organizationId,
-      projectId,
+      currency,
     );
-
-    let labor = null;
-    if (hasPermission(context, PERMISSIONS.WORKFORCE_READ)) {
-      try {
-        const laborCost = await getProjectLaborCost(context, projectId);
-        labor = {
-          laborCost: laborCost.laborCost,
-          hasWorkforceData: laborCost.hasWorkforceData,
-          entriesMissingCost: laborCost.entriesMissingCost,
-          excludedForeignCurrencyEntries: laborCost.excludedForeignCurrencyEntries,
-        };
-      } catch (error) {
-        if (error instanceof NotFoundError) {
-          labor = null;
-        } else {
-          throw error;
-        }
-      }
-    }
-
-    if (contributions.length > 0 || labor?.hasWorkforceData) {
-      const aggregated = aggregateProjectCosts(contributions, labor, currency);
-      allSources.push(...aggregated.sources);
-      allPartials.push(...aggregated.partials);
+    if (laborAgg.entryCount > 0) {
+      labor = {
+        laborCost:
+          fromNumericString(laborAgg.totalAmount ?? '0', laborAgg.currency) ??
+          zeroMoney(currency),
+        hasWorkforceData: true,
+        entriesMissingCost: laborAgg.entriesMissingCost,
+        excludedForeignCurrencyEntries: laborAgg.excludedForeignCurrencyEntries,
+      };
     }
   }
 
-  return { sources: allSources, partials: allPartials };
+  if (contributions.length === 0 && !labor?.hasWorkforceData) {
+    return { sources: [], partials: [] };
+  }
+
+  const aggregated = aggregateProjectCosts(contributions, labor, currency);
+  return { sources: [...aggregated.sources], partials: [...aggregated.partials] };
 }
 
 function mergeSourcePresence(

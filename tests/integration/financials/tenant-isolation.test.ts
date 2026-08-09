@@ -167,6 +167,6 @@ describe('financials tenant isolation', () => {
 
     expect(financials.commercial?.currentContractValue.amount).toBe('80000.000000');
     expect(financials.cost.actualCostToDate.amount).toBe('10000.000000');
-    expect(financials.profit.estimatedProfit.amount).toBe('70000.000000');
+    expect(financials.profit?.estimatedProfit.amount).toBe('70000.000000');
   });
 });

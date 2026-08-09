@@ -1,4 +1,4 @@
-import { and, desc, eq, ilike, isNull, or } from 'drizzle-orm';
+import { and, desc, eq, ilike, inArray, isNull, or } from 'drizzle-orm';
 import {
   crmEstimates,
   crmLeads,
@@ -10,6 +10,12 @@ import {
   crmSalesQuotes,
   crmSalesQuoteVersions,
 } from '@drizzle/schema';
+import {
+  ORG_LIST_EXPORT_CAP,
+  ORG_LIST_HARD_CAP,
+  resolveListLimit,
+  resolveListOffset,
+} from '@/shared/db/list-limits';
 import type { DbExecutor } from '@/shared/db/types';
 import type {
   EstimateRecord,
@@ -266,7 +272,16 @@ export async function listProspects(
     .select()
     .from(crmProspects)
     .where(and(...conditions))
-    .orderBy(desc(crmProspects.updatedAt));
+    .orderBy(desc(crmProspects.updatedAt))
+    .limit(
+      resolveListLimit(filters.limit, {
+        hardCap:
+          filters.limit != null && filters.limit > ORG_LIST_HARD_CAP
+            ? ORG_LIST_EXPORT_CAP
+            : ORG_LIST_HARD_CAP,
+      }),
+    )
+    .offset(resolveListOffset(filters.offset));
   return rows.map(mapProspect);
 }
 
@@ -397,7 +412,16 @@ export async function listLeads(
     .select()
     .from(crmLeads)
     .where(and(...conditions))
-    .orderBy(desc(crmLeads.updatedAt));
+    .orderBy(desc(crmLeads.updatedAt))
+    .limit(
+      resolveListLimit(filters.limit, {
+        hardCap:
+          filters.limit != null && filters.limit > ORG_LIST_HARD_CAP
+            ? ORG_LIST_EXPORT_CAP
+            : ORG_LIST_HARD_CAP,
+      }),
+    )
+    .offset(resolveListOffset(filters.offset));
   return rows.map(mapLead);
 }
 
@@ -504,7 +528,16 @@ export async function listOpportunities(
     .select()
     .from(crmOpportunities)
     .where(and(...conditions))
-    .orderBy(desc(crmOpportunities.updatedAt));
+    .orderBy(desc(crmOpportunities.updatedAt))
+    .limit(
+      resolveListLimit(filters.limit, {
+        hardCap:
+          filters.limit != null && filters.limit > ORG_LIST_HARD_CAP
+            ? ORG_LIST_EXPORT_CAP
+            : ORG_LIST_HARD_CAP,
+      }),
+    )
+    .offset(resolveListOffset(filters.offset));
   return rows.map(mapOpportunity);
 }
 
@@ -815,6 +848,25 @@ export async function listSalesQuoteVersions(
   return rows.map(mapVersion);
 }
 
+export async function listSalesQuoteVersionsForQuotes(
+  db: DbExecutor,
+  organizationId: string,
+  salesQuoteIds: readonly string[],
+): Promise<SalesQuoteVersionRecord[]> {
+  if (salesQuoteIds.length === 0) return [];
+  const rows = await db
+    .select()
+    .from(crmSalesQuoteVersions)
+    .where(
+      and(
+        eq(crmSalesQuoteVersions.organizationId, organizationId),
+        inArray(crmSalesQuoteVersions.salesQuoteId, [...salesQuoteIds]),
+      ),
+    )
+    .orderBy(desc(crmSalesQuoteVersions.versionNumber));
+  return rows.map(mapVersion);
+}
+
 export async function supersedeDraftAndIssuedVersions(
   db: DbExecutor,
   organizationId: string,
@@ -887,6 +939,25 @@ export async function listSalesQuoteLines(
       and(
         eq(crmSalesQuoteLines.organizationId, organizationId),
         eq(crmSalesQuoteLines.versionId, versionId),
+      ),
+    )
+    .orderBy(crmSalesQuoteLines.sortOrder);
+  return rows.map(mapLine);
+}
+
+export async function listSalesQuoteLinesForVersions(
+  db: DbExecutor,
+  organizationId: string,
+  versionIds: readonly string[],
+): Promise<SalesQuoteLineRecord[]> {
+  if (versionIds.length === 0) return [];
+  const rows = await db
+    .select()
+    .from(crmSalesQuoteLines)
+    .where(
+      and(
+        eq(crmSalesQuoteLines.organizationId, organizationId),
+        inArray(crmSalesQuoteLines.versionId, [...versionIds]),
       ),
     )
     .orderBy(crmSalesQuoteLines.sortOrder);

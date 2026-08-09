@@ -1,4 +1,4 @@
-import { DomainRuleError, NotFoundError, ValidationError } from '@/shared/errors';
+import { NotFoundError, ValidationError } from '@/shared/errors';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS, type PermissionKey } from '@/shared/permissions/catalog';
 import type { OrgContext } from '@/shared/auth/context';
@@ -7,6 +7,7 @@ import type {
   CustomFieldValueRecord,
   CustomFieldValueView,
 } from '../domain/types';
+import { assertCustomFieldValueValid } from '../domain/validate-value';
 import {
   entityExistsInOrganization,
   findDefinitionById,
@@ -79,19 +80,21 @@ export async function upsertCustomFieldValue(
   assertEntityWrite(context, definition.entityType);
   await assertEntityInOrg(context, definition.entityType, input.entityId);
 
-  if (definition.fieldType === 'boolean' && input.valueBool === undefined) {
-    throw new DomainRuleError('Boolean value required', 'errors.validationFailed');
-  }
-
-  return upsertValue(context.db, {
-    organizationId: context.organizationId,
-    definitionId: input.definitionId,
-    entityId: input.entityId,
+  const payload = {
     valueText: input.valueText ?? null,
     valueNumber: input.valueNumber ?? null,
     valueBool: input.valueBool ?? null,
     valueDate: input.valueDate ?? null,
     valueJson: input.valueJson ?? null,
+  };
+
+  assertCustomFieldValueValid(definition, payload);
+
+  return upsertValue(context.db, {
+    organizationId: context.organizationId,
+    definitionId: input.definitionId,
+    entityId: input.entityId,
+    ...payload,
   });
 }
 

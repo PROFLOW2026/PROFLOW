@@ -11,12 +11,13 @@ import {
   ARTIFACT_KINDS,
   ARTIFACT_STATUSES,
   SUBJECT_TYPES,
+  isMissingEvidence,
   listComplianceArtifactsForOrg,
   type ArtifactKind,
   type ArtifactStatus,
   type SubjectType,
 } from '@/modules/compliance';
-import { complianceStatusShape } from '@/modules/compliance/ui';
+import { complianceStatusShape, missingEvidenceShape } from '@/modules/compliance/ui';
 import { withOrgContext } from '@/shared/auth/session';
 import { Link } from '@/shared/i18n/navigation';
 import { hasPermission } from '@/shared/permissions/assert';
@@ -54,10 +55,21 @@ function parseSubject(value: string | undefined): SubjectType | 'all' {
   return 'all';
 }
 
+function parseEvidence(value: string | undefined): 'all' | 'present' | 'missing' {
+  if (value === 'present' || value === 'missing') return value;
+  return 'all';
+}
+
 export default async function CompliancePage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; kind?: string; status?: string; subject?: string }>;
+  searchParams: Promise<{
+    q?: string;
+    kind?: string;
+    status?: string;
+    subject?: string;
+    evidence?: string;
+  }>;
 }) {
   const t = await getTranslations('compliance');
   const tStatus = await getTranslations('status.compliance');
@@ -66,19 +78,42 @@ export default async function CompliancePage({
   const kind = parseKind(params.kind);
   const status = parseStatus(params.status);
   const subjectType = parseSubject(params.subject);
+  const evidence = parseEvidence(params.evidence);
   const filtersActive = Boolean(
-    params.q?.trim() || kind !== 'all' || status !== 'all' || subjectType !== 'all',
+    params.q?.trim() ||
+      kind !== 'all' ||
+      status !== 'all' ||
+      subjectType !== 'all' ||
+      evidence !== 'all',
   );
 
-  const { artifacts, canManage } = await withOrgContext(async (context) => ({
-    artifacts: await listComplianceArtifactsForOrg(context, {
+  const { artifacts, canManage, summary } = await withOrgContext(async (context) => {
+    // One capped load for both status tiles and the filtered table (avoid double fetch).
+    const base = await listComplianceArtifactsForOrg(context, {
       search: params.q,
       kind,
-      status,
       subjectType,
-    }),
-    canManage: hasPermission(context, PERMISSIONS.COMPLIANCE_MANAGE),
-  }));
+      limit: 5_000,
+    });
+    const filtered = base
+      .filter((row) => (status === 'all' ? true : row.status === status))
+      .filter((row) => {
+        if (evidence === 'missing') return isMissingEvidence(row);
+        if (evidence === 'present') return !isMissingEvidence(row);
+        return true;
+      })
+      .slice(0, 200);
+    return {
+      artifacts: filtered,
+      canManage: hasPermission(context, PERMISSIONS.COMPLIANCE_MANAGE),
+      summary: {
+        valid: base.filter((row) => row.status === 'valid' && !isMissingEvidence(row)).length,
+        expiring: base.filter((row) => row.status === 'expiring_soon').length,
+        expired: base.filter((row) => row.status === 'expired').length,
+        missing: base.filter((row) => isMissingEvidence(row)).length,
+      },
+    };
+  });
 
   return (
     <div className="flex flex-col gap-6">
@@ -97,11 +132,39 @@ export default async function CompliancePage({
         }
       />
 
+      <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4" aria-label={t('title')}>
+        {(
+          [
+            { key: 'valid', href: '/compliance?status=valid&evidence=present', count: summary.valid },
+            {
+              key: 'expiring',
+              href: '/compliance?status=expiring_soon',
+              count: summary.expiring,
+            },
+            { key: 'expired', href: '/compliance?status=expired', count: summary.expired },
+            { key: 'missing', href: '/compliance?evidence=missing', count: summary.missing },
+          ] as const
+        ).map((item) => (
+          <li key={item.key}>
+            <Link
+              href={item.href}
+              className="flex min-h-11 items-center justify-between gap-2 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] px-4 py-3 text-sm hover:bg-[var(--pf-bg-muted)]"
+            >
+              <span>{t(`summary.${item.key}`)}</span>
+              <span className="font-semibold tabular-nums" dir="ltr">
+                {item.count}
+              </span>
+            </Link>
+          </li>
+        ))}
+      </ul>
+
       <ComplianceListFilters
         initialQuery={params.q ?? ''}
         initialKind={kind}
         initialStatus={status}
         initialSubject={subjectType}
+        initialEvidence={evidence}
       />
 
       {artifacts.length === 0 ? (
@@ -143,6 +206,7 @@ export default async function CompliancePage({
                     <TableHead>{t('list.columns.subject')}</TableHead>
                     <TableHead>{t('list.columns.expiresOn')}</TableHead>
                     <TableHead>{t('list.columns.status')}</TableHead>
+                    <TableHead>{t('list.columns.evidence')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -171,6 +235,18 @@ export default async function CompliancePage({
                           label={tStatus(artifact.status)}
                         />
                       </TableCell>
+                      <TableCell>
+                        {isMissingEvidence(artifact) ? (
+                          <StatusBadge
+                            shape={missingEvidenceShape()}
+                            label={t('list.evidenceMissing')}
+                          />
+                        ) : (
+                          <span className="text-sm text-[var(--pf-text-secondary)]">
+                            {t('list.evidencePresent')}
+                          </span>
+                        )}
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -198,6 +274,14 @@ export default async function CompliancePage({
                   </>
                 ) : null}
               </p>
+              {isMissingEvidence(artifact) ? (
+                <p className="mt-2">
+                  <StatusBadge
+                    shape={missingEvidenceShape()}
+                    label={t('list.evidenceMissing')}
+                  />
+                </p>
+              ) : null}
             </Link>
           )}
         />

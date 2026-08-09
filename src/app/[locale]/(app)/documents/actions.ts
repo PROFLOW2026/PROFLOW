@@ -4,6 +4,9 @@ export {
   prepareDocumentUploadAction,
   finalizeDocumentUploadAction,
   downloadDocumentAction,
+  linkDocumentAction,
+  unlinkDocumentAction,
+  softDeleteDocumentAction,
 } from '@/modules/documents/application/document-actions';
 
 export type {

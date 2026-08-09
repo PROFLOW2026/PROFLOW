@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { ConfirmAction } from '@/components/patterns/confirm-action';
+import { ResponsiveTable } from '@/components/patterns/responsive-table';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Field } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
@@ -18,7 +19,7 @@ import {
   revokeInvitationAction,
   type SettingsActionState,
 } from '../actions';
-import type { OrganizationMember } from '@/modules/tenancy';
+import type { OrganizationMember } from '@/modules/tenancy/application/members';
 
 interface PendingInvitation {
   id: string;
@@ -88,57 +89,105 @@ export function PeopleSettingsPanel({
         {members.length === 0 ? (
           <EmptyState title={t('members.empty')} description={t('members.emptyHint')} className="mt-4" />
         ) : (
-          <div className="mt-4 overflow-x-auto rounded-lg border border-[var(--pf-border-default)]">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t('members.columnName')}</TableHead>
-                  <TableHead>{t('members.columnEmail')}</TableHead>
-                  <TableHead>{t('members.columnRole')}</TableHead>
-                  {canManage ? <TableHead>{tCommon('labels.status')}</TableHead> : null}
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {members.map((member) => (
-                  <TableRow key={member.membershipId}>
-                    <TableCell>
-                      {member.displayName ?? member.email}
-                      {member.userId === currentUserId ? (
-                        <span className="ms-2 text-xs text-[var(--pf-text-muted)]">({t('members.you')})</span>
-                      ) : null}
-                    </TableCell>
-                    <TableCell>
-                      <span dir="ltr">{member.email}</span>
-                    </TableCell>
-                    <TableCell>
-                      {member.roleKeys
-                        .map((key) => t(`roles.${key as RoleTemplateKey}.name`))
-                        .join(', ')}
-                    </TableCell>
-                    {canManage ? (
-                      <TableCell>
-                        {member.userId !== currentUserId ? (
-                          <ConfirmAction
-                            title={t('members.remove')}
-                            description={t('members.removeConfirm', {
-                              name: member.displayName ?? member.email,
-                            })}
-                            confirmLabel={t('members.remove')}
-                            successMessage={t('members.removeSuccess')}
-                            onConfirm={() => handleRemove(member.membershipId)}
-                            trigger={
-                              <Button type="button" variant="ghost" size="sm">
-                                {t('members.remove')}
-                              </Button>
-                            }
-                          />
-                        ) : null}
-                      </TableCell>
+          <div className="mt-4">
+            <ResponsiveTable
+              items={members}
+              getRowKey={(member) => member.membershipId}
+              desktop={
+                <div className="overflow-x-auto rounded-lg border border-[var(--pf-border-default)]">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>{t('members.columnName')}</TableHead>
+                        <TableHead>{t('members.columnEmail')}</TableHead>
+                        <TableHead>{t('members.columnRole')}</TableHead>
+                        {canManage ? <TableHead>{tCommon('labels.status')}</TableHead> : null}
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {members.map((member) => (
+                        <TableRow key={member.membershipId}>
+                          <TableCell>
+                            {member.displayName ?? member.email}
+                            {member.userId === currentUserId ? (
+                              <span className="ms-2 text-xs text-[var(--pf-text-muted)]">
+                                ({t('members.you')})
+                              </span>
+                            ) : null}
+                          </TableCell>
+                          <TableCell>
+                            <span dir="ltr">{member.email}</span>
+                          </TableCell>
+                          <TableCell>
+                            {member.roleKeys
+                              .map((key) => t(`roles.${key as RoleTemplateKey}.name`))
+                              .join(', ')}
+                          </TableCell>
+                          {canManage ? (
+                            <TableCell>
+                              {member.userId !== currentUserId ? (
+                                <ConfirmAction
+                                  title={t('members.remove')}
+                                  description={t('members.removeConfirm', {
+                                    name: member.displayName ?? member.email,
+                                  })}
+                                  confirmLabel={t('members.remove')}
+                                  successMessage={t('members.removeSuccess')}
+                                  onConfirm={() => handleRemove(member.membershipId)}
+                                  trigger={
+                                    <Button type="button" variant="ghost" size="sm">
+                                      {t('members.remove')}
+                                    </Button>
+                                  }
+                                />
+                              ) : null}
+                            </TableCell>
+                          ) : null}
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              }
+              renderMobileCard={(member) => (
+                <div className="rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4">
+                  <p className="text-sm font-medium">
+                    {member.displayName ?? member.email}
+                    {member.userId === currentUserId ? (
+                      <span className="ms-2 text-xs text-[var(--pf-text-muted)]">
+                        ({t('members.you')})
+                      </span>
                     ) : null}
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                  </p>
+                  <p className="mt-1 text-xs text-[var(--pf-text-secondary)]" dir="ltr">
+                    {member.email}
+                  </p>
+                  <p className="mt-1 text-xs text-[var(--pf-text-secondary)]">
+                    {member.roleKeys
+                      .map((key) => t(`roles.${key as RoleTemplateKey}.name`))
+                      .join(', ')}
+                  </p>
+                  {canManage && member.userId !== currentUserId ? (
+                    <div className="mt-3">
+                      <ConfirmAction
+                        title={t('members.remove')}
+                        description={t('members.removeConfirm', {
+                          name: member.displayName ?? member.email,
+                        })}
+                        confirmLabel={t('members.remove')}
+                        successMessage={t('members.removeSuccess')}
+                        onConfirm={() => handleRemove(member.membershipId)}
+                        trigger={
+                          <Button type="button" variant="ghost" size="sm">
+                            {t('members.remove')}
+                          </Button>
+                        }
+                      />
+                    </div>
+                  ) : null}
+                </div>
+              )}
+            />
           </div>
         )}
       </section>

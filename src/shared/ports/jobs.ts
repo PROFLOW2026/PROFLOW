@@ -1,4 +1,5 @@
 import 'server-only';
+import { logger } from '@/shared/observability';
 
 /**
  * Background work boundary (doc 71 §9).
@@ -36,6 +37,8 @@ export function registerJobHandler(name: JobName, handler: JobHandler): void {
  * Failures are logged and swallowed on purpose: a rollup that could not be
  * refreshed must never roll back the user's write. The figure is recomputed on
  * next read anyway.
+ *
+ * Payloads are never logged — they may contain PII or financial identifiers.
  */
 class InlineJobAdapter implements JobPort {
   async enqueue(name: JobName, payload: JobPayload): Promise<void> {
@@ -45,7 +48,11 @@ class InlineJobAdapter implements JobPort {
     try {
       await handler(payload);
     } catch (error) {
-      console.error(`[jobs] "${name}" failed`, error);
+      logger.error('jobs.failed', {
+        name,
+        organizationId: payload.organizationId,
+        error,
+      });
     }
   }
 }

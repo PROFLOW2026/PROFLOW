@@ -3,6 +3,7 @@ import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import type { OrgContext } from '@/shared/auth/context';
 import { isReservedCustomFieldKey } from '../domain/reserved-keys';
+import { assertSelectOptionsConfig } from '../domain/validate-value';
 import type { CustomFieldDefinitionRecord } from '../domain/types';
 import {
   archiveDefinition as archiveDefinitionRow,
@@ -39,6 +40,8 @@ export async function createCustomFieldDefinition(
       { key: input.key },
     );
   }
+
+  assertSelectOptionsConfig(input.fieldType, input.config);
 
   return insertDefinition(context.db, {
     organizationId: context.organizationId,

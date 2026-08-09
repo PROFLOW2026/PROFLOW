@@ -4,13 +4,25 @@ import { revalidatePath } from 'next/cache';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { createClient } from '@/modules/clients';
 import {
+  applyOrgPhasePack,
+  applyOrgProjectTemplate,
+  applyOrgWorkPackagePack,
+  applyProjectTemplate,
   archiveProject,
+  cloneProjectStructure,
   createMilestone,
+  createPhase,
   createProject,
   createWorkPackage,
+  DATE_ORDER_MESSAGE,
+  previewProjectStructureSnapshot,
   splitProjectIntoWorkPackages,
+  updateMilestone,
+  updatePhase,
   updateProject,
+  updateWorkPackage,
   archiveMilestone,
+  type ProjectStructureSnapshot,
 } from '@/modules/projects';
 import { withOrgContext } from '@/shared/auth/session';
 import {
@@ -25,6 +37,7 @@ import { ORIGINAL_AMOUNT_LOCKED_MESSAGE_KEY } from '@/modules/projects';
 export interface ProjectFormState {
   error?: string;
   fieldErrors?: Record<string, string>;
+  success?: boolean;
 }
 
 function formValue(formData: FormData, key: string): string | undefined {
@@ -37,10 +50,16 @@ function requiredFormValue(formData: FormData, key: string): string {
   return formValue(formData, key) ?? '';
 }
 
-function mapValidationError(error: ValidationError): ProjectFormState {
+async function mapValidationError(error: ValidationError): Promise<ProjectFormState> {
+  const tValidation = await getTranslations('validation');
   const fieldErrors: Record<string, string> = {};
   for (const issue of error.issues) {
-    if (issue.path) fieldErrors[issue.path] = issue.message;
+    if (!issue.path) continue;
+    const message =
+      issue.message === DATE_ORDER_MESSAGE || issue.message === 'validation.endBeforeStart'
+        ? tValidation('endBeforeStart')
+        : issue.message;
+    fieldErrors[issue.path] = message;
   }
   return { error: error.message, fieldErrors };
 }
@@ -86,7 +105,7 @@ export async function createProjectAction(
     revalidatePath('/projects');
     redirect({ href: `/projects/${result.projectId}`, locale });
   } catch (error) {
-    if (error instanceof ValidationError) return mapValidationError(error);
+    if (error instanceof ValidationError) return await mapValidationError(error);
     if (error instanceof AuthorizationError) return { error: tErrors('notAllowed') };
     if (error instanceof AppError) return { error: tErrors('unexpected') };
     throw error;
@@ -145,7 +164,7 @@ export async function updateProjectAction(
     revalidatePath(`/projects/${projectId}`);
     return {};
   } catch (error) {
-    if (error instanceof ValidationError) return mapValidationError(error);
+    if (error instanceof ValidationError) return await mapValidationError(error);
     if (
       error instanceof DomainRuleError &&
       error.messageKey === ORIGINAL_AMOUNT_LOCKED_MESSAGE_KEY
@@ -206,7 +225,7 @@ export async function splitProjectAction(
     revalidatePath(`/projects/${String(formData.get('projectId'))}`);
     return {};
   } catch (error) {
-    if (error instanceof ValidationError) return mapValidationError(error);
+    if (error instanceof ValidationError) return await mapValidationError(error);
     if (error instanceof AppError) return { error: tErrors('unexpected') };
     throw error;
   }
@@ -230,7 +249,59 @@ export async function addWorkPackageAction(
     revalidatePath(`/projects/${String(formData.get('projectId'))}`);
     return {};
   } catch (error) {
-    if (error instanceof ValidationError) return mapValidationError(error);
+    if (error instanceof ValidationError) return await mapValidationError(error);
+    if (error instanceof AppError) return { error: tErrors('unexpected') };
+    throw error;
+  }
+}
+
+export async function updateWorkPackageProgressAction(
+  _prev: ProjectFormState,
+  formData: FormData,
+): Promise<ProjectFormState> {
+  const tErrors = await getTranslations('errors');
+  const projectId = String(formData.get('projectId') ?? '');
+
+  try {
+    await withOrgContext(async (context) => {
+      await updateWorkPackage(context, {
+        workPackageId: String(formData.get('workPackageId') ?? ''),
+        startDate: formValue(formData, 'startDate') ?? null,
+        endDate: formValue(formData, 'endDate') ?? null,
+        progressPercent: formValue(formData, 'progressPercent') ?? null,
+      });
+    });
+
+    revalidatePath(`/projects/${projectId}`);
+    return {};
+  } catch (error) {
+    if (error instanceof ValidationError) return await mapValidationError(error);
+    if (error instanceof AppError) return { error: tErrors('unexpected') };
+    throw error;
+  }
+}
+
+export async function createPhaseAction(
+  _prev: ProjectFormState,
+  formData: FormData,
+): Promise<ProjectFormState> {
+  const tErrors = await getTranslations('errors');
+  const projectId = String(formData.get('projectId') ?? '');
+
+  try {
+    await withOrgContext(async (context) => {
+      await createPhase(context, {
+        workPackageId: String(formData.get('workPackageId') ?? ''),
+        name: String(formData.get('name') ?? ''),
+        startDate: formValue(formData, 'startDate'),
+        endDate: formValue(formData, 'endDate'),
+      });
+    });
+
+    revalidatePath(`/projects/${projectId}`);
+    return {};
+  } catch (error) {
+    if (error instanceof ValidationError) return await mapValidationError(error);
     if (error instanceof AppError) return { error: tErrors('unexpected') };
     throw error;
   }
@@ -259,7 +330,7 @@ export async function createMilestoneAction(
     revalidatePath(`/projects/${projectId}`);
     return {};
   } catch (error) {
-    if (error instanceof ValidationError) return mapValidationError(error);
+    if (error instanceof ValidationError) return await mapValidationError(error);
     if (error instanceof AppError) return { error: tErrors('unexpected') };
     throw error;
   }
@@ -277,6 +348,193 @@ export async function archiveMilestoneAction(
     revalidatePath(`/projects/${projectId}`);
     return {};
   } catch (error) {
+    if (error instanceof AppError) return { error: tErrors('unexpected') };
+    throw error;
+  }
+}
+
+export async function updateMilestoneStatusAction(
+  milestoneId: string,
+  projectId: string,
+  status: 'planned' | 'achieved' | 'missed' | 'cancelled',
+): Promise<{ error?: string }> {
+  const tErrors = await getTranslations('errors');
+  try {
+    await withOrgContext(async (context) => {
+      await updateMilestone(context, { milestoneId, status });
+    });
+    revalidatePath(`/projects/${projectId}`);
+    return {};
+  } catch (error) {
+    if (error instanceof AppError) return { error: tErrors('unexpected') };
+    throw error;
+  }
+}
+
+export async function applyProjectTemplateAction(
+  _prev: ProjectFormState,
+  formData: FormData,
+): Promise<ProjectFormState> {
+  const tErrors = await getTranslations('errors');
+  const locale = await getLocale();
+  const projectId = String(formData.get('projectId') ?? '');
+
+  try {
+    await withOrgContext(async (context) => {
+      await applyProjectTemplate(context, {
+        projectId,
+        templateKey: String(formData.get('templateKey') ?? ''),
+        locale: locale === 'he-IL' ? 'he-IL' : 'en',
+      });
+    });
+    revalidatePath(`/projects/${projectId}`);
+    return { success: true };
+  } catch (error) {
+    if (error instanceof ValidationError) return await mapValidationError(error);
+    if (error instanceof DomainRuleError) {
+      const tProjects = await getTranslations('projects');
+      return { error: tProjects('errors.templateRequiresSimpleProject') };
+    }
+    if (error instanceof AuthorizationError) return { error: tErrors('notAllowed') };
+    if (error instanceof AppError) return { error: tErrors('unexpected') };
+    throw error;
+  }
+}
+
+export async function applyOrgProjectTemplateAction(
+  _prev: ProjectFormState,
+  formData: FormData,
+): Promise<ProjectFormState> {
+  const tErrors = await getTranslations('errors');
+  const projectId = String(formData.get('projectId') ?? '');
+
+  try {
+    await withOrgContext(async (context) => {
+      await applyOrgProjectTemplate(context, {
+        projectId,
+        orgTemplateId: String(formData.get('orgTemplateId') ?? ''),
+      });
+    });
+    revalidatePath(`/projects/${projectId}`);
+    return { success: true };
+  } catch (error) {
+    if (error instanceof ValidationError) return await mapValidationError(error);
+    if (error instanceof DomainRuleError) {
+      const tProjects = await getTranslations('projects');
+      return { error: tProjects('errors.templateRequiresSimpleProject') };
+    }
+    if (error instanceof AppError) return { error: tErrors('unexpected') };
+    throw error;
+  }
+}
+
+export async function cloneProjectStructureAction(
+  _prev: ProjectFormState,
+  formData: FormData,
+): Promise<ProjectFormState> {
+  const tErrors = await getTranslations('errors');
+  const projectId = String(formData.get('projectId') ?? '');
+
+  try {
+    await withOrgContext(async (context) => {
+      await cloneProjectStructure(context, {
+        targetProjectId: projectId,
+        sourceProjectId: String(formData.get('sourceProjectId') ?? ''),
+      });
+    });
+    revalidatePath(`/projects/${projectId}`);
+    return { success: true };
+  } catch (error) {
+    if (error instanceof ValidationError) return await mapValidationError(error);
+    if (error instanceof DomainRuleError) {
+      const tProjects = await getTranslations('projects');
+      return { error: tProjects('errors.templateRequiresSimpleProject') };
+    }
+    if (error instanceof AppError) return { error: tErrors('unexpected') };
+    throw error;
+  }
+}
+
+export async function previewCloneStructureAction(
+  sourceProjectId: string,
+): Promise<{ snapshot?: ProjectStructureSnapshot; error?: string }> {
+  const tErrors = await getTranslations('errors');
+  try {
+    const snapshot = await withOrgContext((context) =>
+      previewProjectStructureSnapshot(context, sourceProjectId),
+    );
+    return { snapshot };
+  } catch (error) {
+    if (error instanceof AppError) return { error: tErrors('unexpected') };
+    throw error;
+  }
+}
+
+export async function applyOrgPhasePackAction(
+  _prev: ProjectFormState,
+  formData: FormData,
+): Promise<ProjectFormState> {
+  const tErrors = await getTranslations('errors');
+  const projectId = String(formData.get('projectId') ?? '');
+
+  try {
+    await withOrgContext(async (context) => {
+      await applyOrgPhasePack(context, {
+        workPackageId: String(formData.get('workPackageId') ?? ''),
+        phasePackId: String(formData.get('phasePackId') ?? ''),
+      });
+    });
+    revalidatePath(`/projects/${projectId}`);
+    return { success: true };
+  } catch (error) {
+    if (error instanceof ValidationError) return await mapValidationError(error);
+    if (error instanceof AppError) return { error: tErrors('unexpected') };
+    throw error;
+  }
+}
+
+export async function applyOrgWorkPackagePackAction(
+  _prev: ProjectFormState,
+  formData: FormData,
+): Promise<ProjectFormState> {
+  const tErrors = await getTranslations('errors');
+  const projectId = String(formData.get('projectId') ?? '');
+
+  try {
+    await withOrgContext(async (context) => {
+      await applyOrgWorkPackagePack(context, {
+        projectId,
+        workPackagePackId: String(formData.get('workPackagePackId') ?? ''),
+      });
+    });
+    revalidatePath(`/projects/${projectId}`);
+    return { success: true };
+  } catch (error) {
+    if (error instanceof ValidationError) return await mapValidationError(error);
+    if (error instanceof AppError) return { error: tErrors('unexpected') };
+    throw error;
+  }
+}
+
+export async function updatePhaseScheduleAction(
+  _prev: ProjectFormState,
+  formData: FormData,
+): Promise<ProjectFormState> {
+  const tErrors = await getTranslations('errors');
+  const projectId = String(formData.get('projectId') ?? '');
+
+  try {
+    await withOrgContext(async (context) => {
+      await updatePhase(context, {
+        phaseId: String(formData.get('phaseId') ?? ''),
+        startDate: formValue(formData, 'startDate') ?? null,
+        endDate: formValue(formData, 'endDate') ?? null,
+      });
+    });
+    revalidatePath(`/projects/${projectId}`);
+    return {};
+  } catch (error) {
+    if (error instanceof ValidationError) return await mapValidationError(error);
     if (error instanceof AppError) return { error: tErrors('unexpected') };
     throw error;
   }

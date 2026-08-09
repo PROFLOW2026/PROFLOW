@@ -25,7 +25,7 @@ export function ProjectFinancialsSnapshotView({
         <span className="text-[var(--pf-text-secondary)]">{t('actualCostToDate')}</span>
         <MoneyText value={financials.cost.actualCostToDate} />
       </div>
-      {canReadProfit && financials.commercial ? (
+      {canReadProfit && financials.commercial && financials.profit ? (
         <div className="flex justify-between gap-2">
           <span className="text-[var(--pf-text-secondary)]">{t('estimatedProfit')}</span>
           <MoneyText value={financials.profit.estimatedProfit} />

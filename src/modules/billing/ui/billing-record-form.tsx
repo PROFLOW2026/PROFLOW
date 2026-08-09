@@ -8,7 +8,7 @@ import { Field } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import type { ProjectOption } from '@/modules/billing';
+import type { ProjectOption } from '@/modules/billing/domain/types';
 import { createBillingRecordAction, type BillingFormState } from './actions';
 
 interface BillingRecordFormProps {

@@ -1,5 +1,11 @@
 import { and, asc, desc, eq, ilike, isNull, or, sql } from 'drizzle-orm';
 import { clients, contracts, projects } from '@drizzle/schema';
+import {
+  ORG_LIST_EXPORT_CAP,
+  ORG_LIST_HARD_CAP,
+  resolveListLimit,
+  resolveListOffset,
+} from '@/shared/db/list-limits';
 import type { DbExecutor } from '@/shared/db/types';
 import type {
   ProjectListFilters,
@@ -196,7 +202,16 @@ export async function listProjects(
       ),
     )
     .where(and(...conditions))
-    .orderBy(sortDirection(sortDir)(sortColumn(sortBy)));
+    .orderBy(sortDirection(sortDir)(sortColumn(sortBy)))
+    .limit(
+      resolveListLimit(filters.limit, {
+        hardCap:
+          filters.limit != null && filters.limit > ORG_LIST_HARD_CAP
+            ? ORG_LIST_EXPORT_CAP
+            : ORG_LIST_HARD_CAP,
+      }),
+    )
+    .offset(resolveListOffset(filters.offset));
 
   return rows.map((row) => ({
     ...mapProject(row.project),

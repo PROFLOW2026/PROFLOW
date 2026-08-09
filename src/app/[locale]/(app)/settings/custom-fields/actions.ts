@@ -46,6 +46,18 @@ export async function createDefinitionAction(
   }
 
   try {
+    const optionsRaw = formValue(formData, 'options');
+    const options = optionsRaw
+      ? optionsRaw
+          .split(',')
+          .map((part) => part.trim())
+          .filter(Boolean)
+      : [];
+    const config =
+      fieldType === 'select' || fieldType === 'multi_select'
+        ? { options }
+        : {};
+
     await withOrgContext((context) =>
       createCustomFieldDefinition(context, {
         entityType: entityType as (typeof CUSTOM_FIELD_ENTITY_TYPES)[number],
@@ -53,6 +65,7 @@ export async function createDefinitionAction(
         key,
         label,
         required: formData.get('required') === 'true' || formData.get('required') === 'on',
+        config,
       }),
     );
     revalidatePath('/settings/custom-fields');
@@ -93,7 +106,8 @@ export async function upsertEntityFieldValueAction(
   const fieldType = formValue(formData, 'fieldType');
   if (!definitionId || !entityId) return { error: tErrors('validationFailed') };
 
-  const valueText = formValue(formData, 'valueText');
+  const valueTextRaw = formValue(formData, 'valueText');
+  const valueText = valueTextRaw === '__none__' ? undefined : valueTextRaw;
   const valueNumber = formValue(formData, 'valueNumber');
   const valueDate = formValue(formData, 'valueDate');
   const valueBoolRaw = formValue(formData, 'valueBool');

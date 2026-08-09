@@ -1,6 +1,7 @@
-import { and, desc, eq, isNull } from 'drizzle-orm';
+import { and, desc, eq, isNull, lt, sql } from 'drizzle-orm';
 import { apiClients, apiKeys, organizations, webhookDeliveries, webhookEndpoints } from '@drizzle/schema';
 import type { DbExecutor } from '@/shared/db/types';
+import { parseDeliveryHttpStatus } from '../domain/delivery-state';
 import type {
   ApiClientRecord,
   ApiClientStatus,
@@ -77,6 +78,7 @@ function mapDelivery(row: typeof webhookDeliveries.$inferSelect): WebhookDeliver
     status: row.status as WebhookDeliveryStatus,
     attemptCount: row.attemptCount,
     lastError: row.lastError,
+    lastHttpStatus: parseDeliveryHttpStatus(row.lastError),
     deliveredAt: row.deliveredAt,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
@@ -150,6 +152,19 @@ export async function insertApiKey(
   return mapKey(row!);
 }
 
+export async function findApiKeyById(
+  db: DbExecutor,
+  organizationId: string,
+  keyId: string,
+): Promise<ApiKeyRecord | null> {
+  const [row] = await db
+    .select()
+    .from(apiKeys)
+    .where(and(eq(apiKeys.id, keyId), eq(apiKeys.organizationId, organizationId)))
+    .limit(1);
+  return row ? mapKey(row) : null;
+}
+
 export async function listApiKeysForOrg(
   db: DbExecutor,
   organizationId: string,
@@ -192,13 +207,17 @@ export async function findApiKeyByPrefix(
       clientName: apiClients.name,
       clientStatus: apiClients.status,
       clientArchivedAt: apiClients.archivedAt,
+      clientOrganizationId: apiClients.organizationId,
     })
     .from(apiKeys)
     .innerJoin(apiClients, eq(apiKeys.apiClientId, apiClients.id))
     .where(eq(apiKeys.keyPrefix, keyPrefix))
     .limit(1);
 
+  // Defense in depth: refuse cross-tenant key/client mismatches.
   if (!row || row.clientArchivedAt) return null;
+  if (row.key.organizationId !== row.clientOrganizationId) return null;
+
   return {
     ...mapKey(row.key),
     clientName: row.clientName,
@@ -206,10 +225,7 @@ export async function findApiKeyByPrefix(
   };
 }
 
-export async function touchApiKeyLastUsed(
-  db: DbExecutor,
-  keyId: string,
-): Promise<void> {
+export async function touchApiKeyLastUsed(db: DbExecutor, keyId: string): Promise<void> {
   await db
     .update(apiKeys)
     .set({ lastUsedAt: new Date(), updatedAt: new Date() })
@@ -270,6 +286,52 @@ export async function findWebhookEndpointById(
   return row ? mapEndpoint(row) : null;
 }
 
+export async function revokeWebhookEndpointById(
+  db: DbExecutor,
+  organizationId: string,
+  endpointId: string,
+): Promise<WebhookEndpointListItem | null> {
+  const now = new Date();
+  const [row] = await db
+    .update(webhookEndpoints)
+    .set({
+      status: 'disabled',
+      archivedAt: now,
+      updatedAt: now,
+    })
+    .where(
+      and(
+        eq(webhookEndpoints.id, endpointId),
+        eq(webhookEndpoints.organizationId, organizationId),
+        isNull(webhookEndpoints.archivedAt),
+      ),
+    )
+    .returning();
+  return row ? toEndpointListItem(mapEndpoint(row)) : null;
+}
+
+export async function updateWebhookEndpointSecret(
+  db: DbExecutor,
+  organizationId: string,
+  endpointId: string,
+  secretHash: string,
+): Promise<WebhookEndpointRecord | null> {
+  const now = new Date();
+  const [row] = await db
+    .update(webhookEndpoints)
+    .set({ secretHash, updatedAt: now })
+    .where(
+      and(
+        eq(webhookEndpoints.id, endpointId),
+        eq(webhookEndpoints.organizationId, organizationId),
+        eq(webhookEndpoints.status, 'active'),
+        isNull(webhookEndpoints.archivedAt),
+      ),
+    )
+    .returning();
+  return row ? mapEndpoint(row) : null;
+}
+
 export async function insertWebhookDelivery(
   db: DbExecutor,
   input: {
@@ -289,20 +351,98 @@ export async function insertWebhookDelivery(
       payload: input.payload as Record<string, unknown>,
       status: input.status ?? 'pending',
       attemptCount: 0,
+      lastError: null,
+      deliveredAt: null,
     })
     .returning();
   return mapDelivery(row!);
+}
+
+export async function findWebhookDeliveryByEventId(
+  db: DbExecutor,
+  organizationId: string,
+  eventId: string,
+): Promise<WebhookDeliveryRecord | null> {
+  const [row] = await db
+    .select()
+    .from(webhookDeliveries)
+    .where(
+      and(
+        eq(webhookDeliveries.organizationId, organizationId),
+        sql`${webhookDeliveries.payload}->>'eventId' = ${eventId}`,
+      ),
+    )
+    .limit(1);
+  return row ? mapDelivery(row) : null;
+}
+
+export async function findWebhookDeliveryById(
+  db: DbExecutor,
+  organizationId: string,
+  deliveryId: string,
+): Promise<WebhookDeliveryRecord | null> {
+  const [row] = await db
+    .select()
+    .from(webhookDeliveries)
+    .where(
+      and(
+        eq(webhookDeliveries.id, deliveryId),
+        eq(webhookDeliveries.organizationId, organizationId),
+      ),
+    )
+    .limit(1);
+  return row ? mapDelivery(row) : null;
+}
+
+export async function updateWebhookDeliveryAttempt(
+  db: DbExecutor,
+  organizationId: string,
+  deliveryId: string,
+  next: {
+    status: WebhookDeliveryStatus;
+    attemptCount: number;
+    lastError: string | null;
+    deliveredAt: Date | null;
+  },
+): Promise<WebhookDeliveryRecord | null> {
+  const now = new Date();
+  const [row] = await db
+    .update(webhookDeliveries)
+    .set({
+      status: next.status,
+      attemptCount: next.attemptCount,
+      lastError: next.lastError,
+      deliveredAt: next.deliveredAt,
+      updatedAt: now,
+    })
+    .where(
+      and(
+        eq(webhookDeliveries.id, deliveryId),
+        eq(webhookDeliveries.organizationId, organizationId),
+      ),
+    )
+    .returning();
+  return row ? mapDelivery(row) : null;
 }
 
 export async function listWebhookDeliveries(
   db: DbExecutor,
   organizationId: string,
   limit = 50,
+  cursor?: string | null,
 ): Promise<WebhookDeliveryRecord[]> {
+  const conditions = [eq(webhookDeliveries.organizationId, organizationId)];
+  if (cursor) {
+    const cursorDate = new Date(cursor);
+    if (!Number.isNaN(cursorDate.getTime())) {
+      conditions.push(lt(webhookDeliveries.createdAt, cursorDate));
+    }
+  }
+
   const rows = await db
     .select()
     .from(webhookDeliveries)
-    .where(eq(webhookDeliveries.organizationId, organizationId))
+    .where(and(...conditions))
     .orderBy(desc(webhookDeliveries.createdAt))
     .limit(limit);
   return rows.map(mapDelivery);

@@ -28,12 +28,24 @@ export interface CashFlowActualCollected {
 }
 
 /**
- * Outgoing coverage. V1 expenses are cost records — they do not carry AP due
- * dates or unpaid vendor-invoice status, so outgoing forecast is not invented.
+ * Outgoing coverage. When open AP bills with due dates exist, forecast expected
+ * payments. Expenses alone never invent AP. Matched/void/draft bills excluded.
  */
-export interface CashFlowOutgoingCoverage {
-  readonly available: false;
-  readonly disclosureKey: 'no_ap_due_dates';
+export type CashFlowOutgoingCoverage =
+  | {
+      readonly available: false;
+      readonly disclosureKey: 'no_ap_due_dates' | 'no_open_ap_bills';
+    }
+  | {
+      readonly available: true;
+      readonly forecastBuckets: readonly CashFlowOutgoingBucket[];
+    };
+
+export interface CashFlowOutgoingBucket {
+  readonly key: CashFlowBucketKey;
+  /** Forecast expected outgoing from open AP bill due dates — not Expense actual. */
+  readonly expectedOut: MoneyValue;
+  readonly count: number;
 }
 
 export interface CashFlowOutlook {
@@ -60,7 +72,78 @@ export interface CollectedPaymentInput {
 }
 
 export const OUTGOING_NO_AP_DISCLOSURE =
-  'Outgoing cash is not forecast here: finalized expenses are cost records without AP due dates or unpaid vendor-invoice status. Do not invent AP invoices.';
+  'Outgoing cash is not forecast here: no open AP bills with due dates are in scope. Finalized expenses alone are cost records — AP invoices are not invented from expenses.';
+
+export const OUTGOING_AP_FORECAST_NOTE =
+  'Forecast outgoing — open AP bills by due date. Not Expense actual cost. Draft/void/matched bills excluded.';
+
+export interface ApBillCashInput {
+  readonly status: string;
+  readonly dueDate: BusinessDate | null;
+  /**
+   * Amount expected to leave cash for this bill. For partial matches this must
+   * be the unmatched remainder — never the full bill total (avoids double-count
+   * vs already-matched portions / linked expenses).
+   */
+  readonly totalAmount: MoneyValue;
+}
+
+/**
+ * Expected outgoing from open / partially_matched AP bills with due dates.
+ * Never treats AP bill totals as Expense actuals.
+ */
+export function computeOutgoingCashOutlook(
+  bills: readonly ApBillCashInput[],
+  currency: string,
+  asOf: BusinessDate,
+): CashFlowOutgoingCoverage {
+  const horizonEnd = addDays(asOf, 30);
+  const weekEnd = addDays(asOf, 7);
+  const keys: CashFlowBucketKey[] = ['overdue', 'next_7', 'next_30', 'later', 'undated'];
+  const totals = new Map<CashFlowBucketKey, MoneyValue>();
+  const counts = new Map<CashFlowBucketKey, number>();
+  for (const key of keys) {
+    totals.set(key, zeroMoney(currency));
+    counts.set(key, 0);
+  }
+
+  let any = false;
+  for (const bill of bills) {
+    if (bill.status !== 'open' && bill.status !== 'partially_matched') continue;
+    if (bill.totalAmount.currency !== currency) continue;
+    if (!isPositiveMoney(bill.totalAmount)) continue;
+
+    any = true;
+    let key: CashFlowBucketKey;
+    if (!bill.dueDate) {
+      key = 'undated';
+    } else if (compareBusinessDates(bill.dueDate, asOf) < 0) {
+      key = 'overdue';
+    } else if (compareBusinessDates(bill.dueDate, weekEnd) <= 0) {
+      key = 'next_7';
+    } else if (compareBusinessDates(bill.dueDate, horizonEnd) <= 0) {
+      key = 'next_30';
+    } else {
+      key = 'later';
+    }
+
+    totals.set(key, addMoney(totals.get(key)!, bill.totalAmount));
+    counts.set(key, (counts.get(key) ?? 0) + 1);
+  }
+
+  if (!any) {
+    return { available: false, disclosureKey: 'no_open_ap_bills' };
+  }
+
+  return {
+    available: true,
+    forecastBuckets: keys.map((key) => ({
+      key,
+      expectedOut: totals.get(key)!,
+      count: counts.get(key) ?? 0,
+    })),
+  };
+}
 
 export const FORECAST_NOTE =
   'Forecast only — based on Outstanding billing due dates (credit notes net into undated). Not Paid. Undated Outstanding stays explicit. Does not invent collection precision.';
@@ -180,6 +263,7 @@ export function buildCashFlowOutlook(input: {
   readonly payments: readonly CollectedPaymentInput[];
   readonly actualRangeStart?: BusinessDate;
   readonly actualRangeEnd?: BusinessDate;
+  readonly openApBills?: readonly ApBillCashInput[];
 }): CashFlowOutlook {
   const range = {
     rangeStart: input.actualRangeStart ?? defaultActualCollectionRange(input.asOf).rangeStart,
@@ -199,6 +283,16 @@ export function buildCashFlowOutlook(input: {
     range.rangeEnd,
   );
 
+  const outgoing =
+    input.openApBills !== undefined
+      ? computeOutgoingCashOutlook(input.openApBills, input.currency, input.asOf)
+      : ({ available: false, disclosureKey: 'no_ap_due_dates' } as const);
+
+  const outgoingNote =
+    outgoing.available === false
+      ? OUTGOING_NO_AP_DISCLOSURE
+      : OUTGOING_AP_FORECAST_NOTE;
+
   return {
     currency: forecast.currency,
     asOf: forecast.asOf,
@@ -206,7 +300,7 @@ export function buildCashFlowOutlook(input: {
     actual,
     forecastBuckets: forecast.forecastBuckets,
     buckets: forecast.buckets,
-    outgoing: { available: false, disclosureKey: 'no_ap_due_dates' },
-    note: `${ACTUAL_NOTE} ${FORECAST_NOTE} ${OUTGOING_NO_AP_DISCLOSURE}`,
+    outgoing,
+    note: `${ACTUAL_NOTE} ${FORECAST_NOTE} ${outgoingNote}`,
   };
 }

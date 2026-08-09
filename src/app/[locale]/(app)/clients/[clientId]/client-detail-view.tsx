@@ -10,11 +10,9 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { IDENTIFIER_TYPES, type ClientDetail } from '@/modules/clients';
-import {
-  EntityCustomFieldsPanel,
-  type CustomFieldValueView,
-} from '@/modules/custom-fields';
+import { IDENTIFIER_TYPES, type ClientDetail } from '@/modules/clients/domain/types';
+import { type CustomFieldValueView } from '@/modules/custom-fields/domain/types';
+import { EntityCustomFieldsPanel } from '@/modules/custom-fields/ui';
 import { upsertEntityFieldValueAction } from '../../settings/custom-fields/actions';
 import {
   addClientContactAction,

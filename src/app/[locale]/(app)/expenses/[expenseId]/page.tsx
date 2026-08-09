@@ -5,19 +5,28 @@ import { MoneyText } from '@/components/patterns/money-text';
 import { PageHeader } from '@/components/ui/page-header';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { listCustomFieldValuesForEntity } from '@/modules/custom-fields';
+import { EntityCustomFieldsPanel } from '@/modules/custom-fields/ui';
+import { getEntityDocumentPanelData } from '@/modules/documents';
+import { DocumentAttachments } from '@/modules/documents/ui';
 import {
   getExpense,
   listCostCategoriesForOrg,
   listProjectsForOrg,
   listWorkPackagesForOrg,
 } from '@/modules/expenses';
+import { listVendorsForOrg } from '@/modules/vendors';
 import { statusShape } from '@/modules/expenses/domain/lifecycle';
 import { decodeRecurrenceRule } from '@/modules/expenses/domain/recurrence';
 import { withOrgContext } from '@/shared/auth/session';
 import { formatBusinessDate } from '@/shared/dates/format';
 import { Link } from '@/shared/i18n/navigation';
+import { hasPermission } from '@/shared/permissions/assert';
+import { PERMISSIONS } from '@/shared/permissions/catalog';
+import { upsertEntityFieldValueAction } from '../../settings/custom-fields/actions';
 import { ExpenseDetailActions } from './expense-detail-actions';
 import { ExpenseEditForm } from './expense-edit-form';
+import { PromoteVendorPanel } from './promote-vendor-panel';
 
 export async function generateMetadata({
   params,
@@ -43,14 +52,28 @@ export default async function ExpenseDetailPage({
   const data = await withOrgContext(async (context) => {
     try {
       const expense = await getExpense(context, expenseId);
-      const [projects, categories] = await Promise.all([
+      const [projects, categories, documentsPanel, customFields] = await Promise.all([
         listProjectsForOrg(context),
         listCostCategoriesForOrg(context),
+        getEntityDocumentPanelData(context, 'expense', expenseId),
+        listCustomFieldValuesForEntity(context, 'expense', expenseId).catch(() => []),
       ]);
       const workPackages = expense.projectId
         ? await listWorkPackagesForOrg(context, expense.projectId)
         : [];
-      return { expense, projects, categories, workPackages };
+      const vendors = hasPermission(context, PERMISSIONS.VENDORS_READ)
+        ? await listVendorsForOrg(context, { status: 'active' }).catch(() => [])
+        : [];
+      return {
+        expense,
+        projects,
+        categories,
+        workPackages,
+        vendors: vendors.map((vendor) => ({ id: vendor.id, name: vendor.name })),
+        documentsPanel,
+        customFields,
+        canPromoteVendor: hasPermission(context, PERMISSIONS.VENDORS_MANAGE),
+      };
     } catch {
       return null;
     }
@@ -58,11 +81,22 @@ export default async function ExpenseDetailPage({
 
   if (!data) notFound();
 
-  const { expense, projects, categories, workPackages } = data;
+  const {
+    expense,
+    projects,
+    categories,
+    workPackages,
+    vendors,
+    documentsPanel,
+    customFields,
+    canPromoteVendor,
+  } = data;
   const recurrence = decodeRecurrenceRule(expense.recurrenceRule);
   const readOnly = expense.status !== 'draft';
   const canFinalize = expense.status === 'draft';
   const canVoid = expense.status === 'finalized' && !expense.voidsExpenseId;
+  const showPromoteVendor =
+    canPromoteVendor && Boolean(expense.supplierName?.trim()) && !expense.vendorId;
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-6">
@@ -97,6 +131,14 @@ export default async function ExpenseDetailPage({
           <CardContent className="grid gap-3 text-sm">
             <DetailRow label={t('fields.description')} value={expense.description} />
             <DetailRow label={t('fields.supplier')} value={expense.supplierName} />
+            {expense.vendorId ? (
+              <div className="grid gap-0.5">
+                <span className="text-xs text-[var(--pf-text-muted)]">{t('fields.linkedVendor')}</span>
+                <Link href={`/vendors/${expense.vendorId}`} className="hover:underline">
+                  {t('detail.viewVendor')}
+                </Link>
+              </div>
+            ) : null}
             <DetailRow
               label={t('fields.project')}
               value={expense.projectName ?? t('targeting.overhead')}
@@ -124,8 +166,13 @@ export default async function ExpenseDetailPage({
           projects={projects}
           categories={categories}
           workPackages={workPackages}
+          vendors={vendors}
         />
       )}
+
+      {showPromoteVendor && expense.supplierName ? (
+        <PromoteVendorPanel expenseId={expense.id} supplierName={expense.supplierName} />
+      ) : null}
 
       {expense.allocations.length > 0 ? (
         <Card>
@@ -134,7 +181,10 @@ export default async function ExpenseDetailPage({
           </CardHeader>
           <CardContent className="flex flex-col gap-2 text-sm">
             {expense.allocations.map((line, index) => (
-              <div key={index} className="flex items-center justify-between gap-2 border-b border-[var(--pf-border-default)] py-2 last:border-0">
+              <div
+                key={index}
+                className="flex items-center justify-between gap-2 border-b border-[var(--pf-border-default)] py-2 last:border-0"
+              >
                 <span>
                   {line.targetType === 'overhead'
                     ? t('targeting.overhead')
@@ -147,6 +197,23 @@ export default async function ExpenseDetailPage({
           </CardContent>
         </Card>
       ) : null}
+
+      <EntityCustomFieldsPanel
+        entityId={expense.id}
+        fields={customFields}
+        revalidatePath={`/expenses/${expense.id}`}
+        saveAction={upsertEntityFieldValueAction}
+      />
+
+      <DocumentAttachments
+        ownerType="expense"
+        ownerId={expense.id}
+        documents={documentsPanel.documents}
+        linkCandidates={documentsPanel.linkCandidates}
+        canRead={documentsPanel.canRead}
+        canManage={documentsPanel.canManage}
+        storageConfigured={documentsPanel.storageConfigured}
+      />
     </div>
   );
 }

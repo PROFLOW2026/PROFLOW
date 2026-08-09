@@ -24,6 +24,7 @@ export async function generateMetadata({ params }: ProjectFinancialsPageProps): 
 export default async function ProjectFinancialsPage({ params }: ProjectFinancialsPageProps) {
   const { projectId } = await params;
   const tCommon = await getTranslations('common');
+  const tFinancial = await getTranslations('financial');
 
   const detail = await withOrgContext((context) => getProjectDetail(context, projectId));
 
@@ -34,6 +35,14 @@ export default async function ProjectFinancialsPage({ params }: ProjectFinancial
         description={
           <Link href={`/projects/${projectId}`} className="text-sm hover:underline">
             {tCommon('actions.back')}
+          </Link>
+        }
+        actions={
+          <Link
+            className="text-sm underline underline-offset-2"
+            href={`/exports/project-financials?projectId=${encodeURIComponent(projectId)}`}
+          >
+            {tFinancial('exportCsv')}
           </Link>
         }
       />

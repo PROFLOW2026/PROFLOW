@@ -4,8 +4,22 @@ export { getOrganizationFinancials } from './application/get-organization-financ
 export { getOrganizationProjectRollup } from './application/get-organization-project-rollup';
 export type {
   OrganizationProjectRollup,
+  OrganizationOpsSummary,
   ProjectRollupRow,
 } from './application/get-organization-project-rollup';
+export { getOrganizationReportsAnalytics } from './application/get-organization-reports-analytics';
+export type {
+  OrganizationReportsAnalytics,
+  OperationsReportSection,
+} from './application/get-organization-reports-analytics';
+export {
+  aggregateOrgCommercial,
+  aggregateOrgCash,
+  aggregateOrgCost,
+  aggregateOrgProfit,
+} from './domain/aggregate-org-report';
+export { moneyMetric, sumMoneyMetrics } from './domain/report-metric';
+export type { MoneyReportMetric, CountReportMetric, ReportMetricKind } from './domain/report-metric';
 export { getOrganizationCashFlowOutlook } from './application/get-organization-cash-flow';
 export { getProjectCashFlowOutlook } from './application/get-project-cash-flow';
 export type {
@@ -17,6 +31,7 @@ export type {
 export {
   computeIncomingCashOutlook,
   computeCollectedActual,
+  computeOutgoingCashOutlook,
   buildCashFlowOutlook,
 } from './domain/cash-flow';
 export { getHomeDashboard } from './application/get-home-dashboard';
@@ -24,7 +39,7 @@ export type { HomeDashboardData, DashboardAttention } from './application/get-ho
 
 export { computeProfitPosition, computeMarginPercent } from './domain/profit';
 export { buildFinancialCoverage, ALL_COST_SOURCES } from './domain/coverage';
-export { aggregateProjectCosts, emptyCostPosition } from './domain/cost-aggregation';
+export { aggregateProjectCosts, emptyCostPosition, withCommittedAndApPayable } from './domain/cost-aggregation';
 export type { ProjectExpenseContribution, LaborCostContribution } from './domain/cost-aggregation';
 
 export type {
@@ -37,5 +52,6 @@ export type {
   ProfitPosition,
   CostSourceKey,
   CalculationBasis,
+  MetricNature,
 } from './domain/types';
 export { isCovered } from './domain/types';

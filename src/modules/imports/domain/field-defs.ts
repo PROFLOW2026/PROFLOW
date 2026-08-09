@@ -43,6 +43,11 @@ const PROJECT_FIELDS: readonly ImportFieldDef[] = [
   { key: 'name', required: true, aliases: ['name', 'project_name', 'project', 'שם', 'שם_פרויקט'] },
   { key: 'status', required: false, aliases: ['status', 'סטטוס'] },
   { key: 'clientId', required: false, aliases: ['client_id', 'clientid'] },
+  {
+    key: 'clientName',
+    required: false,
+    aliases: ['client_name', 'client', 'customer', 'שם_לקוח', 'לקוח'],
+  },
   { key: 'location', required: false, aliases: ['location', 'מיקום'] },
   { key: 'startDate', required: false, aliases: ['start_date', 'start', 'תאריך_התחלה'] },
   { key: 'targetEndDate', required: false, aliases: ['target_end_date', 'end_date', 'תאריך_יעד'] },
@@ -50,14 +55,36 @@ const PROJECT_FIELDS: readonly ImportFieldDef[] = [
   { key: 'notes', required: false, aliases: ['notes', 'הערות'] },
 ];
 
-/** Expense fields documented but not enabled for confirm in this wave. */
+/**
+ * Safe expense import fields — maps to createExpenseSchema.
+ * Tax/VAT/net columns are intentionally not mapped (VAT ≠ profit).
+ */
 const EXPENSE_FIELDS: readonly ImportFieldDef[] = [
-  { key: 'expenseDate', required: true, aliases: ['expense_date', 'date', 'תאריך'] },
+  {
+    key: 'expenseDate',
+    required: true,
+    aliases: ['expense_date', 'date', 'תאריך', 'תאריך_הוצאה'],
+  },
   { key: 'description', required: true, aliases: ['description', 'תיאור'] },
-  { key: 'grossAmount', required: true, aliases: ['gross_amount', 'amount', 'סכום'] },
+  {
+    key: 'amount',
+    required: true,
+    aliases: ['amount', 'gross_amount', 'סכום', 'סכום_ברוטו'],
+  },
   { key: 'currency', required: false, aliases: ['currency', 'מטבע'] },
-  { key: 'projectId', required: false, aliases: ['project_id', 'project'] },
-  { key: 'supplierName', required: false, aliases: ['supplier_name', 'supplier', 'vendor'] },
+  { key: 'projectId', required: false, aliases: ['project_id', 'project', 'פרויקט'] },
+  { key: 'vendorId', required: false, aliases: ['vendor_id', 'vendorid'] },
+  {
+    key: 'supplierName',
+    required: false,
+    aliases: ['supplier_name', 'supplier', 'vendor', 'ספק'],
+  },
+  {
+    key: 'costFamily',
+    required: false,
+    aliases: ['cost_family', 'family', 'משפחת_עלות'],
+  },
+  { key: 'notes', required: false, aliases: ['notes', 'הערות'] },
 ];
 
 const FIELDS_BY_KIND: Record<ImportKind, readonly ImportFieldDef[]> = {

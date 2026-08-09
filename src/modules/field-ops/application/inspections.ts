@@ -24,9 +24,19 @@ import {
 } from '../validation/schemas';
 import { assertProjectRefsInOrg } from './assert-project-refs';
 
-export async function listInspectionsForOrg(context: OrgContext, projectId?: string) {
+export async function listInspectionsForOrg(
+  context: OrgContext,
+  filters: { projectId?: string; status?: InspectionStatus } = {},
+) {
   assertPermission(context, PERMISSIONS.FIELD_OPS_READ);
-  return listInspections(context.db, context.organizationId, projectId);
+  return listInspections(context.db, context.organizationId, filters);
+}
+
+export async function getInspectionForOrg(context: OrgContext, inspectionId: string) {
+  assertPermission(context, PERMISSIONS.FIELD_OPS_READ);
+  const item = await findInspectionById(context.db, context.organizationId, inspectionId);
+  if (!item) throw new NotFoundError('Inspection');
+  return item;
 }
 
 export async function createInspection(context: OrgContext, raw: CreateInspectionInput) {

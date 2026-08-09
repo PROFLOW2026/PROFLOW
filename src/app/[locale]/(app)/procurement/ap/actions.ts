@@ -61,12 +61,17 @@ function parseLines(formData: FormData) {
     if (!Array.isArray(parsed)) return [];
     return parsed.map((line) => {
       const row = line as Record<string, unknown>;
+      const purchaseOrderLineId =
+        typeof row.purchaseOrderLineId === 'string' && row.purchaseOrderLineId.trim()
+          ? row.purchaseOrderLineId.trim()
+          : null;
       return {
         description: String(row.description ?? ''),
         quantity: String(row.quantity ?? '1'),
         unitAmount: String(row.unitAmount ?? ''),
         lineTotal: String(row.lineTotal ?? ''),
         currency: String(row.currency ?? ''),
+        purchaseOrderLineId,
       };
     });
   } catch {

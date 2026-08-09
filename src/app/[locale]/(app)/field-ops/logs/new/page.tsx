@@ -3,6 +3,7 @@ import { getTranslations } from 'next-intl/server';
 import { PageHeader } from '@/components/ui/page-header';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Button } from '@/components/ui/button';
+import { listFieldOpsWorkPackages } from '@/modules/field-ops';
 import { listProjectsForOrg } from '@/modules/projects';
 import { withOrgContext } from '@/shared/auth/session';
 import { todayInTimeZone } from '@/shared/dates/dates';
@@ -27,10 +28,18 @@ export default async function NewDailyLogPage({
   const t = await getTranslations('fieldOps');
   const { projectId } = await searchParams;
 
-  const { projects, timezone } = await withOrgContext(async (context) => ({
-    projects: await listProjectsForOrg(context, {}),
-    timezone: context.organization.timezone,
-  }));
+  const { projects, workPackages, timezone } = await withOrgContext(async (context) => {
+    const projectRows = await listProjectsForOrg(context, {});
+    const packages = await listFieldOpsWorkPackages(
+      context,
+      projectRows.map((p) => p.id),
+    );
+    return {
+      projects: projectRows,
+      workPackages: packages,
+      timezone: context.organization.timezone,
+    };
+  });
 
   if (projects.length === 0) {
     return (
@@ -62,6 +71,7 @@ export default async function NewDailyLogPage({
       />
       <DailyLogCreateForm
         projects={projects.map((p) => ({ id: p.id, name: p.name }))}
+        workPackages={workPackages}
         defaultProjectId={projectId}
         defaultLogDate={todayInTimeZone(timezone)}
       />

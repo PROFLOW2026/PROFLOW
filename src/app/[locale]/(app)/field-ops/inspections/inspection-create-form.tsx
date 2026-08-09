@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState, useState } from 'react';
+import { useActionState, useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -14,14 +14,23 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { INSPECTION_KINDS, type InspectionKind } from '@/modules/field-ops';
+import {
+  INSPECTION_KINDS,
+  type FieldOpsWorkPackageOption,
+  type InspectionKind,
+} from '@/modules/field-ops/domain/types';
 import { createInspectionAction, type FieldOpsFormState } from '../actions';
+import { FieldOpsPhotoLimitationNote } from '../field-ops-photo-limitation-note';
+
+const NONE = '__none__';
 
 export function InspectionCreateForm({
   projects,
+  workPackages,
   defaultProjectId,
 }: {
   projects: readonly { id: string; name: string }[];
+  workPackages: readonly FieldOpsWorkPackageOption[];
   defaultProjectId?: string;
 }) {
   const t = useTranslations('fieldOps.createInspection');
@@ -32,7 +41,13 @@ export function InspectionCreateForm({
     {},
   );
   const [projectId, setProjectId] = useState(defaultProjectId ?? '');
+  const [workPackageId, setWorkPackageId] = useState(NONE);
   const [kind, setKind] = useState<InspectionKind>('general');
+
+  const projectPackages = useMemo(
+    () => workPackages.filter((pkg) => pkg.projectId === projectId),
+    [workPackages, projectId],
+  );
 
   return (
     <form action={formAction} className="flex max-w-lg flex-col gap-4">
@@ -42,7 +57,13 @@ export function InspectionCreateForm({
         {(control) => (
           <>
             <input type="hidden" name="projectId" value={projectId} />
-            <Select value={projectId} onValueChange={setProjectId}>
+            <Select
+              value={projectId}
+              onValueChange={(value) => {
+                setProjectId(value);
+                setWorkPackageId(NONE);
+              }}
+            >
               <SelectTrigger id={control.id}>
                 <SelectValue placeholder={t('projectPlaceholder')} />
               </SelectTrigger>
@@ -57,6 +78,33 @@ export function InspectionCreateForm({
           </>
         )}
       </Field>
+
+      {projectPackages.length > 0 ? (
+        <Field label={t('workPackageLabel')}>
+          {(control) => (
+            <>
+              <input
+                type="hidden"
+                name="workPackageId"
+                value={workPackageId === NONE ? '' : workPackageId}
+              />
+              <Select value={workPackageId} onValueChange={setWorkPackageId}>
+                <SelectTrigger id={control.id}>
+                  <SelectValue placeholder={t('workPackagePlaceholder')} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={NONE}>{t('workPackageNone')}</SelectItem>
+                  {projectPackages.map((pkg) => (
+                    <SelectItem key={pkg.id} value={pkg.id}>
+                      {pkg.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </>
+          )}
+        </Field>
+      ) : null}
 
       <Field label={t('titleLabel')} required error={state.fieldErrors?.title}>
         {(control) => <Input {...control} name="title" required autoFocus />}
@@ -90,7 +138,9 @@ export function InspectionCreateForm({
         {(control) => <Textarea {...control} name="notes" rows={3} />}
       </Field>
 
-      <Button type="submit" disabled={pending || !projectId}>
+      <FieldOpsPhotoLimitationNote />
+
+      <Button type="submit" className="h-11 w-full sm:w-auto" disabled={pending || !projectId}>
         {pending ? tCommon('states.saving') : t('submit')}
       </Button>
     </form>

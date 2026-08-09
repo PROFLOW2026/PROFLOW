@@ -11,6 +11,7 @@ import {
   updateExpenseSchema,
   voidExpense,
 } from '@/modules/expenses';
+import { promoteVendorFromTransaction } from '@/modules/vendors';
 import { withOrgContext } from '@/shared/auth/session';
 import { AppError, serializeError } from '@/shared/errors';
 import { redirect } from '@/shared/i18n/navigation';
@@ -20,6 +21,8 @@ export interface ExpenseActionState {
   error?: string;
   expenseId?: string;
   fieldErrors?: Record<string, string>;
+  /** Local draft queued — not server truth. */
+  offlineQueued?: boolean;
 }
 
 function formValue(formData: FormData, key: string): string | undefined {
@@ -133,6 +136,35 @@ export async function voidExpenseAction(expenseId: string): Promise<ExpenseActio
     await withOrgContext((context) => voidExpense(context, expenseId));
     revalidatePath('/expenses');
     revalidatePath(`/expenses/${expenseId}`);
+    return { ok: true, expenseId };
+  } catch (error) {
+    if (error instanceof AppError) {
+      return { error: tErrors('unexpected') };
+    }
+    throw error;
+  }
+}
+
+export async function promoteExpenseVendorAction(
+  _prev: ExpenseActionState,
+  formData: FormData,
+): Promise<ExpenseActionState> {
+  const tErrors = await getTranslations('errors');
+  const expenseId = formValue(formData, 'expenseId') ?? '';
+  const supplierName = formValue(formData, 'supplierName') ?? '';
+
+  try {
+    const result = await withOrgContext((context) =>
+      promoteVendorFromTransaction(context, {
+        expenseId,
+        supplierName,
+        linkToExisting: true,
+      }),
+    );
+    revalidatePath('/expenses');
+    revalidatePath(`/expenses/${expenseId}`);
+    revalidatePath('/vendors');
+    revalidatePath(`/vendors/${result.vendor.id}`);
     return { ok: true, expenseId };
   } catch (error) {
     if (error instanceof AppError) {

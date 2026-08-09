@@ -16,10 +16,15 @@ export {
   AP_MATCH_STATUSES,
   assertMatchHasTarget,
   assertAcceptMatchDoesNotCreateExpense,
+  assertMatchDoesNotOverMatch,
+  assertMatchCurrencyIntegrity,
   isAcceptingMatchCreatingExpense,
   deriveBillStatusFromAcceptedMatches,
+  remainingUnmatchedAmount,
+  computeMatchVariance,
+  sumMatchAmounts,
 } from './domain/matching';
-export type { ApBillStatus, ApMatchStatus } from './domain/matching';
+export type { ApBillStatus, ApMatchStatus, MatchVariance } from './domain/matching';
 
 export {
   createApBillSchema,
@@ -31,3 +36,9 @@ export type {
   ProposeApMatchInput,
   DecideApMatchInput,
 } from './validation/schemas';
+
+/** Cross-module AP rollups (cash flow / committed payable). AP bill ≠ Expense. */
+export {
+  listApBills,
+  listAcceptedMatchAmountsForBills,
+} from './data/ap.repository';

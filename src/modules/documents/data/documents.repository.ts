@@ -1,5 +1,11 @@
 import { and, eq, ilike, isNull, sql } from 'drizzle-orm';
 import { documentLinks, documents } from '@drizzle/schema';
+import {
+  ORG_LIST_EXPORT_CAP,
+  ORG_LIST_HARD_CAP,
+  resolveListLimit,
+  resolveListOffset,
+} from '@/shared/db/list-limits';
 import type { DbExecutor } from '@/shared/db/types';
 import type {
   DocumentLinkRecord,
@@ -175,11 +181,14 @@ export async function listDocumentsForEntity(
         sql`${documents.status} <> 'deleted'`,
       ),
     )
-    .orderBy(documents.createdAt);
+    .orderBy(documents.createdAt)
+    .limit(resolveListLimit(filters.limit, { hardCap: ORG_LIST_HARD_CAP }))
+    .offset(resolveListOffset(filters.offset));
 
   return rows.map((row) => ({
     ...mapDocument(row.document),
     label: row.link.label,
+    linkId: row.link.id,
   }));
 }
 
@@ -226,7 +235,16 @@ export async function listAllDocuments(
     })
     .from(documents)
     .where(and(...conditions))
-    .orderBy(sql`${documents.createdAt} desc`);
+    .orderBy(sql`${documents.createdAt} desc`)
+    .limit(
+      resolveListLimit(filters.limit, {
+        hardCap:
+          filters.limit != null && filters.limit > ORG_LIST_HARD_CAP
+            ? ORG_LIST_EXPORT_CAP
+            : ORG_LIST_HARD_CAP,
+      }),
+    )
+    .offset(resolveListOffset(filters.offset));
 
   return rows.map((row) => ({
     ...mapDocument(row.document),

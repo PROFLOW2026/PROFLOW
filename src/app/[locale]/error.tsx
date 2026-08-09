@@ -14,9 +14,14 @@ export default function LocaleError({
   const t = useTranslations('errors.errorPage');
 
   useEffect(() => {
-    // The digest is the only safe correlation handle; the message itself may
-    // contain internal detail and never reaches the user.
-    console.error('[app-error]', error.digest ?? error.message);
+    // Digest only — never echo stacks or internal messages into the browser console.
+    console.error(
+      JSON.stringify({
+        level: 'error',
+        event: 'app.error',
+        digest: error.digest ?? null,
+      }),
+    );
   }, [error]);
 
   return (

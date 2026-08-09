@@ -11,8 +11,13 @@ import { NotFoundError } from '@/shared/errors';
 import { zeroMoney } from '@/shared/money';
 import { hasPermission, assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
+import { excludeCommittedFromActualCost } from '@/modules/procurement';
 import { buildFinancialCoverage, defaultCostSourcePresence, mergeCoveragePartials } from '../domain/coverage';
-import { aggregateProjectCosts, emptyCostPosition } from '../domain/cost-aggregation';
+import {
+  aggregateProjectCosts,
+  emptyCostPosition,
+  withCommittedAndApPayable,
+} from '../domain/cost-aggregation';
 import { computeProfitPosition, roundProfitPosition } from '../domain/profit';
 import {
   computeBillingPositionFromRows,
@@ -22,6 +27,10 @@ import {
   emptyCommercialPosition,
   loadProjectCommercialData,
 } from '../data/commercial.repository';
+import {
+  sumOpenApPayableForProject,
+  sumOpenCommittedCostsForProject,
+} from '../data/committed-costs.repository';
 import { loadProjectExpenseContributions } from '../data/expenses.repository';
 import { assertProjectInOrg, findProjectCurrency } from '../data/projects.repository';
 
@@ -44,6 +53,9 @@ export async function getProjectFinancials(
   const canReadCommercial = hasPermission(context, PERMISSIONS.CONTRACTS_READ);
   const canReadBilling = hasPermission(context, PERMISSIONS.BILLING_READ);
   const canReadProfit = hasPermission(context, PERMISSIONS.PROJECT_PROFIT_READ);
+  const canReadProcurement = hasPermission(context, PERMISSIONS.PROCUREMENT_READ);
+  const canReadAp = hasPermission(context, PERMISSIONS.AP_READ);
+  const canReadExpenses = hasPermission(context, PERMISSIONS.EXPENSES_READ);
 
   const commercialData = canReadCommercial
     ? await loadProjectCommercialData(context.db, context.organizationId, projectId)
@@ -79,11 +91,10 @@ export async function getProjectFinancials(
     }
   }
 
-  const expenseContributions = await loadProjectExpenseContributions(
-    context.db,
-    context.organizationId,
-    projectId,
-  );
+  // Expense rollups require expenses:read — project_financials:read alone must not bypass.
+  const expenseContributions = canReadExpenses
+    ? await loadProjectExpenseContributions(context.db, context.organizationId, projectId)
+    : [];
 
   let laborInput: {
     laborCost: ReturnType<typeof zeroMoney>;
@@ -115,12 +126,56 @@ export async function getProjectFinancials(
       ? aggregateProjectCosts(expenseContributions, laborInput, currency)
       : { cost: emptyCostPosition(currency), sources: defaultCostSourcePresence(), partials: [] };
 
-  const { cost, sources, partials } = aggregated;
+  let { cost } = aggregated;
+  const { sources, partials } = aggregated;
+  const commitmentPartials: CoveragePartial[] = [];
+
+  let committedOpen = zeroMoney(currency);
+  if (canReadProcurement) {
+    const committed = await sumOpenCommittedCostsForProject(
+      context.db,
+      context.organizationId,
+      projectId,
+      currency,
+    );
+    committedOpen = committed.total;
+    if (committed.excludedForeignCurrencyCount > 0) {
+      commitmentPartials.push({
+        reason: 'foreign_currency_committed_excluded',
+        count: committed.excludedForeignCurrencyCount,
+      });
+    }
+  }
+
+  let openApPayable = zeroMoney(currency);
+  if (canReadAp) {
+    const ap = await sumOpenApPayableForProject(
+      context.db,
+      context.organizationId,
+      projectId,
+      currency,
+    );
+    openApPayable = ap.total;
+    if (ap.excludedForeignCurrencyCount > 0) {
+      commitmentPartials.push({
+        reason: 'foreign_currency_ap_excluded',
+        count: ap.excludedForeignCurrencyCount,
+      });
+    }
+  }
+
+  // Hard separation: committed is reported beside actual, never folded in.
+  excludeCommittedFromActualCost({
+    actualExpenseTotal: cost.actualCostToDate.amount,
+    committedOpenTotal: committedOpen.amount,
+    currency,
+  });
+  cost = withCommittedAndApPayable(cost, committedOpen, openApPayable);
 
   const coverage: FinancialCoverage = buildFinancialCoverage(
     sources,
     new Date(),
-    mergeCoveragePartials(partials, billingPartials),
+    mergeCoveragePartials(partials, billingPartials, commitmentPartials),
   );
 
   const profit =
@@ -128,10 +183,7 @@ export async function getProjectFinancials(
       ? roundProfitPosition(
           computeProfitPosition(commercial.currentContractValue, cost.estimatedFinalCost),
         )
-      : {
-          estimatedProfit: zeroMoney(currency),
-          marginPercent: null,
-        };
+      : null;
 
   return {
     projectId,

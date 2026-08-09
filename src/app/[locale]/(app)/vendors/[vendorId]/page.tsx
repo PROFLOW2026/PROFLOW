@@ -4,13 +4,14 @@ import { getTranslations } from 'next-intl/server';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PageHeader } from '@/components/ui/page-header';
 import { StatusBadge } from '@/components/ui/status-badge';
-import { isStorageConfigured, listEntityDocuments } from '@/modules/documents';
+import { listCustomFieldValuesForEntity } from '@/modules/custom-fields';
+import { EntityCustomFieldsPanel } from '@/modules/custom-fields/ui';
+import { getEntityDocumentPanelData } from '@/modules/documents';
 import { DocumentAttachments } from '@/modules/documents/ui';
 import { getVendorById } from '@/modules/vendors';
 import { withOrgContext } from '@/shared/auth/session';
 import { Link } from '@/shared/i18n/navigation';
-import { hasPermission } from '@/shared/permissions/assert';
-import { PERMISSIONS } from '@/shared/permissions/catalog';
+import { upsertEntityFieldValueAction } from '../../settings/custom-fields/actions';
 import { VendorContactForm } from './vendor-contact-form';
 
 export async function generateMetadata({
@@ -40,28 +41,21 @@ export default async function VendorDetailPage({
   const tTypes = await getTranslations('vendors.types');
 
   let vendor;
-  let documents;
-  let canManageDocuments = false;
-  let canReadDocuments = false;
+  let documentsPanel;
+  let customFields: Awaited<ReturnType<typeof listCustomFieldValuesForEntity>> = [];
 
   try {
     const result = await withOrgContext(async (context) => {
       const detail = await getVendorById(context, vendorId);
-      const attachments = await listEntityDocuments(context, {
-        ownerType: 'vendor',
-        ownerId: vendorId,
-      });
-      return {
-        vendor: detail,
-        documents: attachments,
-        canManageDocuments: hasPermission(context, PERMISSIONS.DOCUMENTS_MANAGE),
-        canReadDocuments: hasPermission(context, PERMISSIONS.DOCUMENTS_READ),
-      };
+      const [panel, fields] = await Promise.all([
+        getEntityDocumentPanelData(context, 'vendor', vendorId),
+        listCustomFieldValuesForEntity(context, 'vendor', vendorId).catch(() => []),
+      ]);
+      return { vendor: detail, documentsPanel: panel, customFields: fields };
     });
     vendor = result.vendor;
-    documents = result.documents;
-    canManageDocuments = result.canManageDocuments;
-    canReadDocuments = result.canReadDocuments;
+    documentsPanel = result.documentsPanel;
+    customFields = result.customFields;
   } catch {
     notFound();
   }
@@ -105,6 +99,13 @@ export default async function VendorDetailPage({
           </CardContent>
         </Card>
       )}
+
+      <EntityCustomFieldsPanel
+        entityId={vendor.id}
+        fields={customFields}
+        revalidatePath={`/vendors/${vendor.id}`}
+        saveAction={upsertEntityFieldValueAction}
+      />
 
       <Card>
         <CardHeader>
@@ -156,10 +157,11 @@ export default async function VendorDetailPage({
       <DocumentAttachments
         ownerType="vendor"
         ownerId={vendor.id}
-        documents={documents}
-        canRead={canReadDocuments}
-        canManage={canManageDocuments}
-        storageConfigured={isStorageConfigured()}
+        documents={documentsPanel.documents}
+        linkCandidates={documentsPanel.linkCandidates}
+        canRead={documentsPanel.canRead}
+        canManage={documentsPanel.canManage}
+        storageConfigured={documentsPanel.storageConfigured}
       />
     </div>
   );

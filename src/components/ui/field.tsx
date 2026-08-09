@@ -85,7 +85,11 @@ export function Field({
         ) : null}
 
         {error ? (
-          <p id={value.errorId} className="text-xs font-medium text-[var(--pf-status-danger-fg)]">
+          <p
+            id={value.errorId}
+            role="alert"
+            className="text-xs font-medium text-[var(--pf-status-danger-fg)]"
+          >
             {error}
           </p>
         ) : null}

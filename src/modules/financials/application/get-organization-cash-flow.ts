@@ -1,11 +1,40 @@
 import type { OrgContext } from '@/shared/auth/context';
-import { todayInTimeZone } from '@/shared/dates';
+import { todayInTimeZone, type BusinessDate } from '@/shared/dates';
+import { ORG_LIST_EXPORT_CAP } from '@/shared/db/list-limits';
 import { isZeroMoney } from '@/shared/money';
 import { assertPermission, hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { listBillingRecords } from '@/modules/billing';
+import { listApBills, listAcceptedMatchAmountsForBills } from '@/modules/ap';
+import { remainingUnmatchedAmount } from '@/modules/ap/domain/matching';
 import { loadCashFlowPayments } from '../data/billing.repository';
-import { buildCashFlowOutlook, type CashFlowOutlook } from '../domain/cash-flow';
+import {
+  buildCashFlowOutlook,
+  type ApBillCashInput,
+  type CashFlowOutlook,
+} from '../domain/cash-flow';
+
+function mapApBillsForCash(
+  rows: Awaited<ReturnType<typeof listApBills>>,
+  acceptedByBillId: ReadonlyMap<string, string[]>,
+  currency: string,
+): ApBillCashInput[] {
+  const mapped: ApBillCashInput[] = [];
+  for (const row of rows) {
+    if (row.currency.toUpperCase() !== currency.toUpperCase()) continue;
+    const unmatched = remainingUnmatchedAmount({
+      currency: row.currency,
+      billTotal: row.totalAmount,
+      reservedMatchedAmounts: acceptedByBillId.get(row.id) ?? [],
+    });
+    mapped.push({
+      status: row.status,
+      dueDate: (row.dueDate as BusinessDate | null) ?? null,
+      totalAmount: unmatched,
+    });
+  }
+  return mapped;
+}
 
 export async function getOrganizationCashFlowOutlook(
   context: OrgContext,
@@ -16,9 +45,12 @@ export async function getOrganizationCashFlowOutlook(
   const asOf = todayInTimeZone(context.organization.timezone);
   const currency = context.organization.baseCurrency;
 
-  const [records, paymentRows] = await Promise.all([
-    listBillingRecords(context, { filter: 'all', limit: 5_000 }),
+  const [records, paymentRows, apRows] = await Promise.all([
+    listBillingRecords(context, { filter: 'all', limit: ORG_LIST_EXPORT_CAP }),
     loadCashFlowPayments(context.db, context.organizationId),
+    hasPermission(context, PERMISSIONS.AP_READ)
+      ? listApBills(context.db, context.organizationId, { limit: ORG_LIST_EXPORT_CAP })
+      : Promise.resolve([]),
   ]);
 
   const outstandingRecords = records.filter(
@@ -28,10 +60,21 @@ export async function getOrganizationCashFlowOutlook(
 
   const payments = paymentRows.filter((row) => row.amount.currency === currency);
 
+  let openApBills: ApBillCashInput[] | undefined;
+  if (hasPermission(context, PERMISSIONS.AP_READ)) {
+    const acceptedByBillId = await listAcceptedMatchAmountsForBills(
+      context.db,
+      context.organizationId,
+      apRows.map((row) => row.id),
+    );
+    openApBills = mapApBillsForCash(apRows, acceptedByBillId, currency);
+  }
+
   return buildCashFlowOutlook({
     currency,
     asOf,
     outstandingRecords,
     payments,
+    openApBills,
   });
 }

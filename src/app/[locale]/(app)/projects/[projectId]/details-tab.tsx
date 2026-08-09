@@ -8,12 +8,11 @@ import { Field } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { PROJECT_STATUSES, type ProjectDetail } from '@/modules/projects';
+import { PROJECT_STATUSES } from '@/modules/projects/domain/types';
+import type { ProjectDetail } from '@/modules/projects/application/get-project-detail';
 import { ContractAmountFields } from '@/modules/projects/ui/contract-amount-fields';
-import {
-  EntityCustomFieldsPanel,
-  type CustomFieldValueView,
-} from '@/modules/custom-fields';
+import { type CustomFieldValueView } from '@/modules/custom-fields/domain/types';
+import { EntityCustomFieldsPanel } from '@/modules/custom-fields/ui';
 import { upsertEntityFieldValueAction } from '../../settings/custom-fields/actions';
 import { updateProjectAction, type ProjectFormState } from '../actions';
 

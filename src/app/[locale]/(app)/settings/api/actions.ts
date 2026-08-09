@@ -8,7 +8,12 @@ import {
   enqueueWebhookDelivery,
   registerWebhookEndpoint,
   revokeApiKey,
+  revokeWebhookEndpoint,
+  rotateApiKey,
+  rotateWebhookSecret,
+  recordWebhookDeliveryAttempt,
   API_KEY_SCOPES,
+  WEBHOOK_EVENT_TYPES,
 } from '@/modules/api';
 import { withOrgContext } from '@/shared/auth/session';
 import { AppError } from '@/shared/errors';
@@ -95,6 +100,24 @@ export async function revokeApiKeyAction(
   }
 }
 
+export async function rotateApiKeyAction(
+  _prev: ApiActionState,
+  formData: FormData,
+): Promise<ApiActionState> {
+  const tErrors = await getTranslations('errors');
+  const keyId = formValue(formData, 'keyId');
+  if (!keyId) return { error: tErrors('validationFailed') };
+
+  try {
+    const result = await withOrgContext((context) => rotateApiKey(context, { keyId }));
+    revalidatePath('/settings/api');
+    return { ok: true, plaintextKey: result.plaintext };
+  } catch (error) {
+    if (error instanceof AppError) return { error: tErrors('unexpected') };
+    throw error;
+  }
+}
+
 export async function registerWebhookAction(
   _prev: ApiActionState,
   formData: FormData,
@@ -103,20 +126,63 @@ export async function registerWebhookAction(
   const url = formValue(formData, 'url');
   const eventTypes = formData
     .getAll('eventTypes')
-    .flatMap((value) => String(value).split(','))
-    .map((value) => value.trim())
-    .filter(Boolean);
+    .map(String)
+    .filter((event) => (WEBHOOK_EVENT_TYPES as readonly string[]).includes(event));
 
   if (!url || eventTypes.length === 0) return { error: tErrors('validationFailed') };
 
   try {
     const result = await withOrgContext((context) =>
-      registerWebhookEndpoint(context, { url, eventTypes }),
+      registerWebhookEndpoint(context, {
+        url,
+        eventTypes: eventTypes as [
+          (typeof WEBHOOK_EVENT_TYPES)[number],
+          ...(typeof WEBHOOK_EVENT_TYPES)[number][],
+        ],
+      }),
     );
     revalidatePath('/settings/api');
     return { ok: true, plaintextSecret: result.plaintextSecret };
   } catch (error) {
     if (error instanceof AppError) return { error: tErrors('validationFailed') };
+    throw error;
+  }
+}
+
+export async function revokeWebhookAction(
+  _prev: ApiActionState,
+  formData: FormData,
+): Promise<ApiActionState> {
+  const tErrors = await getTranslations('errors');
+  const endpointId = formValue(formData, 'endpointId');
+  if (!endpointId) return { error: tErrors('validationFailed') };
+
+  try {
+    await withOrgContext((context) => revokeWebhookEndpoint(context, { endpointId }));
+    revalidatePath('/settings/api');
+    return { ok: true };
+  } catch (error) {
+    if (error instanceof AppError) return { error: tErrors('unexpected') };
+    throw error;
+  }
+}
+
+export async function rotateWebhookSecretAction(
+  _prev: ApiActionState,
+  formData: FormData,
+): Promise<ApiActionState> {
+  const tErrors = await getTranslations('errors');
+  const endpointId = formValue(formData, 'endpointId');
+  if (!endpointId) return { error: tErrors('validationFailed') };
+
+  try {
+    const result = await withOrgContext((context) =>
+      rotateWebhookSecret(context, { endpointId }),
+    );
+    revalidatePath('/settings/api');
+    return { ok: true, plaintextSecret: result.plaintextSecret };
+  } catch (error) {
+    if (error instanceof AppError) return { error: tErrors('unexpected') };
     throw error;
   }
 }
@@ -129,13 +195,44 @@ export async function enqueueDeliveryAction(
   const endpointId = formValue(formData, 'endpointId');
   const eventType = formValue(formData, 'eventType') ?? 'test.ping';
   if (!endpointId) return { error: tErrors('validationFailed') };
+  if (!(WEBHOOK_EVENT_TYPES as readonly string[]).includes(eventType)) {
+    return { error: tErrors('validationFailed') };
+  }
 
   try {
     await withOrgContext((context) =>
       enqueueWebhookDelivery(context, {
         endpointId,
-        eventType,
+        eventType: eventType as (typeof WEBHOOK_EVENT_TYPES)[number],
         payload: { source: 'settings', at: new Date().toISOString() },
+      }),
+    );
+    revalidatePath('/settings/api');
+    return { ok: true };
+  } catch (error) {
+    if (error instanceof AppError) return { error: tErrors('unexpected') };
+    throw error;
+  }
+}
+
+export async function recordDeliveryAttemptAction(
+  _prev: ApiActionState,
+  formData: FormData,
+): Promise<ApiActionState> {
+  const tErrors = await getTranslations('errors');
+  const deliveryId = formValue(formData, 'deliveryId');
+  const outcome = formValue(formData, 'outcome');
+  if (!deliveryId || (outcome !== 'success' && outcome !== 'failure')) {
+    return { error: tErrors('validationFailed') };
+  }
+
+  try {
+    await withOrgContext((context) =>
+      recordWebhookDeliveryAttempt(context, {
+        deliveryId,
+        outcome,
+        httpStatus: outcome === 'success' ? 200 : 500,
+        error: outcome === 'failure' ? 'Manual debug attempt (no outbound HTTP)' : null,
       }),
     );
     revalidatePath('/settings/api');

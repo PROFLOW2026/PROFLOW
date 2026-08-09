@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { AppError, AuthorizationError, ValidationError } from '@/shared/errors';
 import { withOrgContext } from '@/shared/auth/session';
-import { buildCsvExport } from '@/modules/exports';
+import { buildExport } from '@/modules/exports';
 
 export async function GET(
   request: Request,
@@ -10,12 +10,18 @@ export async function GET(
   const { kind } = await context.params;
   const url = new URL(request.url);
   const projectId = url.searchParams.get('projectId');
+  const format = url.searchParams.get('format');
 
   try {
     const result = await withOrgContext((org) =>
-      buildCsvExport(org, kind, { projectId }),
+      buildExport(org, kind, { projectId, format }),
     );
-    return new NextResponse(result.body, { status: 200, headers: result.headers });
+    // CSV is text; XLSX is binary. Cast binary through BodyInit for DOM lib variance.
+    if (typeof result.body === 'string') {
+      return new NextResponse(result.body, { status: 200, headers: result.headers });
+    }
+    const bytes = Uint8Array.from(result.body);
+    return new NextResponse(bytes, { status: 200, headers: result.headers });
   } catch (error) {
     if (error instanceof AuthorizationError) {
       return NextResponse.json({ error: 'forbidden' }, { status: 403 });

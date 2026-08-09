@@ -1,7 +1,7 @@
 import type { OrgContext } from '@/shared/auth/context';
 import { DomainRuleError, NotFoundError } from '@/shared/errors';
-import { findProjectById } from '@/modules/projects/data/projects.repository';
-import { findWorkPackageById } from '@/modules/projects/data/work-packages.repository';
+import { findProjectById } from '@/modules/projects';
+import { findWorkPackageById } from '@/modules/projects';
 
 /** Ensures project / work-package FKs stay inside the active organization. */
 export async function assertProjectRefsInOrg(
@@ -18,10 +18,10 @@ export async function assertProjectRefsInOrg(
     context.organizationId,
     input.workPackageId,
   );
-  if (!workPackage || workPackage.archivedAt) throw new NotFoundError('Work package');
+  if (!workPackage || workPackage.archivedAt) throw new NotFoundError('Work area');
   if (workPackage.projectId !== input.projectId) {
     throw new DomainRuleError(
-      'Work package does not belong to the selected project',
+      'Work area does not belong to the selected project',
       'errors.validationFailed',
     );
   }

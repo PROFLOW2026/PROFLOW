@@ -1,5 +1,5 @@
 import { DomainRuleError } from '@/shared/errors';
-import type { BillingRecordStatus, PaymentRecordStatus } from './types';
+import type { BillingKind, BillingRecordStatus, PaymentRecordStatus } from './types';
 
 type PaymentPresence = { readonly status: PaymentRecordStatus };
 
@@ -49,12 +49,23 @@ export function assertVoidable(
   }
 }
 
-export function assertPaymentTarget(status: BillingRecordStatus): void {
+export function assertPaymentTarget(
+  status: BillingRecordStatus,
+  kind: BillingKind = 'invoice',
+): void {
   if (status !== 'finalized') {
     throw new DomainRuleError(
       'Payments can only be recorded against finalized billing records',
       'billing.errors.paymentTargetNotFinalized',
       { status },
+    );
+  }
+  // Credit notes reduce AR; cash applications belong on the original invoice/advance.
+  if (kind === 'credit_note') {
+    throw new DomainRuleError(
+      'Payments cannot be recorded against credit notes',
+      'billing.errors.paymentTargetCreditNote',
+      { kind },
     );
   }
 }

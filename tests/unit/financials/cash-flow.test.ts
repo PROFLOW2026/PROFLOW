@@ -209,10 +209,51 @@ describe('buildCashFlowOutlook', () => {
       '10.000000',
     );
     expect(view.outgoing.available).toBe(false);
+    if (view.outgoing.available) throw new Error('expected outgoing unavailable');
     expect(view.outgoing.disclosureKey).toBe('no_ap_due_dates');
     expect(view.note).toContain('Actual');
     expect(view.note).toContain('Forecast');
-    expect(view.note).toMatch(/AP due dates/i);
-    expect(view.note).toMatch(/Do not invent AP/i);
+    expect(view.note).toMatch(/no open AP bills/i);
+    expect(view.note).toMatch(/AP invoices are not invented/i);
+  });
+
+  it('forecasts outgoing from open AP bills without treating them as Expense', () => {
+    const view = buildCashFlowOutlook({
+      currency: 'ILS',
+      asOf: businessDate('2026-08-09'),
+      outstandingRecords: [],
+      payments: [],
+      openApBills: [
+        {
+          status: 'open',
+          dueDate: businessDate('2026-08-12'),
+          totalAmount: money('100', 'ILS'),
+        },
+        {
+          status: 'partially_matched',
+          dueDate: businessDate('2026-09-01'),
+          totalAmount: money('50', 'ILS'),
+        },
+        {
+          status: 'paid',
+          dueDate: businessDate('2026-08-10'),
+          totalAmount: money('999', 'ILS'),
+        },
+      ],
+    });
+
+    expect(view.outgoing.available).toBe(true);
+    if (!view.outgoing.available) return;
+    expect(view.outgoing.forecastBuckets.find((b) => b.key === 'next_7')?.expectedOut.amount).toBe(
+      '100.000000',
+    );
+    expect(view.outgoing.forecastBuckets.find((b) => b.key === 'next_30')?.expectedOut.amount).toBe(
+      '50.000000',
+    );
+    expect(
+      view.outgoing.forecastBuckets.reduce((sum, b) => sum + b.count, 0),
+    ).toBe(2);
+    expect(view.note).toMatch(/AP bills/i);
+    expect(view.note).toMatch(/Not Expense actual/i);
   });
 });

@@ -144,7 +144,7 @@ export async function createTimeEntry(
     if (input.workPackageId) {
       const workPackage = await findWorkPackageById(context.db, context.organizationId, input.workPackageId);
       if (!workPackage || workPackage.projectId !== projectId) {
-        throw new DomainRuleError('Work package does not belong to the project', 'workforce.errors.invalidWorkPackage');
+        throw new DomainRuleError('Work area does not belong to the project', 'workforce.errors.invalidWorkPackage');
       }
       workPackageId = workPackage.id;
     } else {
@@ -158,7 +158,7 @@ export async function createTimeEntry(
         throw new DomainRuleError('Phase does not belong to the project', 'workforce.errors.invalidPhase');
       }
       if (workPackageId && phase.workPackageId !== workPackageId) {
-        throw new DomainRuleError('Phase does not belong to the work package', 'workforce.errors.invalidPhase');
+        throw new DomainRuleError('Phase does not belong to the work area', 'workforce.errors.invalidPhase');
       }
       phaseId = phase.id;
     }

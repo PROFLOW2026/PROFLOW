@@ -30,6 +30,7 @@ export function listImportableKinds(context: OrgContext): EnabledImportKind[] {
   if (canImportKind(context, 'vendors')) kinds.push('vendors');
   if (canImportKind(context, 'employees')) kinds.push('employees');
   if (canImportKind(context, 'projects')) kinds.push('projects');
+  if (canImportKind(context, 'expenses')) kinds.push('expenses');
   return kinds;
 }
 

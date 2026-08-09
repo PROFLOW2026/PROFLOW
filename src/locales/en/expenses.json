@@ -8,7 +8,14 @@
   "detail": {
     "title": "Expense",
     "summary": "Summary",
-    "reversalOf": "Reversal of expense {id}"
+    "reversalOf": "Reversal of expense {id}",
+    "viewVendor": "Open linked vendor"
+  },
+  "promoteVendor": {
+    "title": "Save as vendor",
+    "description": "Create or link a vendor from “{name}”. The supplier name on this expense stays as entered.",
+    "cta": "Save / link as vendor",
+    "success": "Vendor linked. Supplier text on this expense was kept."
   },
   "actions": {
     "add": "Add expense",
@@ -30,9 +37,10 @@
     "description": "Description",
     "date": "Date",
     "supplier": "Supplier",
+    "linkedVendor": "Linked vendor",
     "target": "Project or overhead",
     "project": "Project",
-    "workPackage": "Work package",
+    "workPackage": "Work area",
     "costFamily": "Cost section",
     "category": "Category",
     "status": "Status",
@@ -48,7 +56,9 @@
     "description": "What was this for?",
     "supplier": "Type a supplier name",
     "target": "Leave empty or choose a project",
-    "workPackageDefault": "Default work package",
+    "workPackageDefault": "Default work area",
+    "vendor": "Link an existing vendor",
+    "vendorNone": "No linked vendor",
     "costFamily": "Inferred from targeting",
     "category": "Optional category"
   },
@@ -143,7 +153,7 @@
     "sumHintPrefix": "Lines must sum exactly to"
   },
   "errors": {
-    "workPackageRequiresProject": "A work package requires a project.",
+    "workPackageRequiresProject": "A work area requires a project.",
     "directFamilyRequiresProject": "Direct project cost requires a project.",
     "overheadFamilyRequiresNoProject": "Business overhead cannot be used on a project expense.",
     "allocationAmountRequired": "Enter an amount for each fixed-amount line.",

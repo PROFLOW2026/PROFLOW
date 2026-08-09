@@ -1,12 +1,15 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PageHeader } from '@/components/ui/page-header';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { getLeadById } from '@/modules/crm';
 import { withOrgContext } from '@/shared/auth/session';
 import { Link } from '@/shared/i18n/navigation';
+import { hasPermission } from '@/shared/permissions/assert';
+import { PERMISSIONS } from '@/shared/permissions/catalog';
+import { LeadStatusForm } from './lead-status-form';
 
 export async function generateMetadata({
   params,
@@ -32,8 +35,14 @@ export default async function LeadDetailPage({
   const t = await getTranslations('crm');
 
   let lead;
+  let canManage = false;
   try {
-    lead = await withOrgContext((context) => getLeadById(context, leadId));
+    const result = await withOrgContext(async (context) => ({
+      lead: await getLeadById(context, leadId),
+      canManage: hasPermission(context, PERMISSIONS.CRM_MANAGE),
+    }));
+    lead = result.lead;
+    canManage = result.canManage;
   } catch {
     notFound();
   }
@@ -60,8 +69,26 @@ export default async function LeadDetailPage({
           {lead.email ? <p>{lead.email}</p> : null}
           {lead.phone ? <p>{lead.phone}</p> : null}
           {lead.notes ? <p className="text-[var(--pf-text-secondary)]">{lead.notes}</p> : null}
+          {canManage ? (
+            <Link
+              href={`/crm/opportunities/new?leadId=${lead.id}`}
+              className="mt-3 self-start text-sm hover:underline"
+            >
+              {t('lead.createOpportunity')}
+            </Link>
+          ) : null}
         </CardContent>
       </Card>
+      {canManage ? (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">{t('lead.statusSection')}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <LeadStatusForm lead={lead} />
+          </CardContent>
+        </Card>
+      ) : null}
     </div>
   );
 }

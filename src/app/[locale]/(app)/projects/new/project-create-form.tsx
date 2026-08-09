@@ -1,5 +1,6 @@
 'use client';
 
+import { ChevronRight } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useActionState, useState } from 'react';
 import { Alert } from '@/components/ui/alert';
@@ -123,8 +124,12 @@ export function ProjectCreateForm({ baseCurrency, currencySymbol, clients }: Pro
         )}
       </Field>
 
-      <Button type="button" variant="ghost" onClick={() => setShowMore((open) => !open)}>
-        {t('create.moreDetails')}
+      <Button type="button" variant="ghost" className="self-start" onClick={() => setShowMore((open) => !open)}>
+        {showMore ? tCommon('actions.showLess') : t('create.moreDetails')}
+        <ChevronRight
+          className={`size-4 rtl:rotate-180 ${showMore ? 'rotate-90 rtl:-rotate-90' : ''}`}
+          aria-hidden
+        />
       </Button>
 
       {showMore ? (
@@ -141,14 +146,14 @@ export function ProjectCreateForm({ baseCurrency, currencySymbol, clients }: Pro
             optionalLabel={tCommon('labels.optional')}
             error={state.fieldErrors?.startDate}
           >
-            {(control) => <Input {...control} name="startDate" type="date" />}
+            {(control) => <Input {...control} name="startDate" type="date" dir="ltr" />}
           </Field>
           <Field
             label={t('details.targetEndDate')}
             optionalLabel={tCommon('labels.optional')}
             error={state.fieldErrors?.targetEndDate}
           >
-            {(control) => <Input {...control} name="targetEndDate" type="date" />}
+            {(control) => <Input {...control} name="targetEndDate" type="date" dir="ltr" />}
           </Field>
           <Field
             label={t('details.notesLabel')}

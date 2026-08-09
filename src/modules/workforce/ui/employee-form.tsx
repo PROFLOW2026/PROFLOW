@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { MoneyInput } from '@/components/patterns/money-input';
-import { RATE_UNITS } from '@/modules/workforce';
+import { RATE_UNITS } from '@/modules/workforce/domain/types';
 import type { createEmployeeAction } from '@/app/[locale]/(app)/workforce/employees/actions';
 
 export interface EmployeeFormProps {

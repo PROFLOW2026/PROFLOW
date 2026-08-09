@@ -1,6 +1,7 @@
 {
   "title": "CRM",
   "description": "מכירות טרום־פרויקט: מתעניינים, לידים, הזדמנויות והצעות מחיר.",
+  "navLabel": "אזורי CRM",
   "nav": {
     "opportunities": "הזדמנויות",
     "prospects": "מתעניינים",
@@ -100,12 +101,17 @@
     "emailLabel": "אימייל",
     "phoneLabel": "טלפון",
     "notesLabel": "הערות",
-    "submit": "יצירת ליד"
+    "submit": "יצירת ליד",
+    "statusSection": "סטטוס ליד",
+    "statusLabel": "סטטוס",
+    "updateStatus": "עדכון סטטוס",
+    "createOpportunity": "יצירת הזדמנות מהליד"
   },
   "opportunity": {
     "new": "הזדמנות חדשה",
     "nameLabel": "שם ההזדמנות",
     "prospectLabel": "מתעניין",
+    "leadLabel": "ליד",
     "expectedValueLabel": "ערך צפוי",
     "currencyLabel": "מטבע",
     "expectedStartLabel": "תחילה צפויה",
@@ -133,22 +139,34 @@
     "versionLabel": "גרסה {number}",
     "converted": "הומר לפרויקט",
     "openProject": "פתיחת פרויקט",
-    "openClient": "פתיחת לקוח"
+    "openClient": "פתיחת לקוח",
+    "contractLinked": "חוזה ראשי מקושר: {id}",
+    "pipelineLinks": "קישורי משפך",
+    "openLead": "פתיחת ליד מקושר",
+    "openProspect": "פרוספקט: {name}",
+    "quoteNet": "נטו",
+    "quoteTax": "מע״מ/מס",
+    "quoteTotal": "סה״כ",
+    "quoteNotBilling": "הצעות מחיר הן הצעות מסחריות בלבד — הן לעולם אינן יוצרות חשבוניות או רשומות חיוב."
   },
   "convert": {
     "title": "המרה לפרויקט",
-    "description": "יוצר לקוח, פרויקט וערך חוזה מקורי מהצעת המחיר שהתקבלה. לא ניתן לבטל.",
+    "description": "יוצר לקוח, פרויקט וערך חוזה מקורי מהצעת המחיר שהתקבלה. בטוח לנסות שוב — הזדמנות שכבר הומרה משתמשת באותם לקוח, פרויקט וחוזה.",
     "projectNameLabel": "שם הפרויקט",
     "submit": "המרת הזדמנות שנצחה",
     "requiresAcceptedQuote": "יש לקבל גרסת הצעת מחיר לפני המרה.",
     "alreadyConverted": "ההזדמנות כבר הומרה.",
-    "cannotConvert": "לא ניתן להמיר הזדמנות זו."
+    "cannotConvert": "לא ניתן להמיר הזדמנות זו.",
+    "netBaseline": "בסיס החוזה הוא נטו {net} {currency} (מס {tax}, סה״כ {total}).",
+    "vatNote": "מע״מ/מס אינו נחשב רווח. החוזה שומר את הסכום המסחרי נטו."
   },
   "errors": {
     "alreadyConverted": "ההזדמנות כבר הומרה",
     "cannotConvertLost": "לא ניתן להמיר הזדמנות אבודה או מבוטלת",
+    "cannotLoseConverted": "לא ניתן לסמן הזדמנות שהומרה כאבודה",
     "cannotConvert": "לא ניתן להמיר הזדמנות זו",
     "quoteNotAccepted": "רק גרסת הצעת מחיר שהתקבלה יכולה להזין את סכום החוזה נטו",
+    "quoteOpportunityMismatch": "הצעת המחיר אינה שייכת להזדמנות זו",
     "acceptedQuoteRequired": "נדרשת גרסת הצעת מחיר שהתקבלה להמרה",
     "quoteFinalized": "לא ניתן להוסיף גרסאות להצעת מחיר סופית",
     "cannotIssueVersion": "ניתן להנפיק רק גרסאות טיוטה",

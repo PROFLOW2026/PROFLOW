@@ -1,5 +1,11 @@
 import { and, eq, ilike, isNull, or, sql } from 'drizzle-orm';
 import { clientContacts, clients, partyIdentifiers, projects } from '@drizzle/schema';
+import {
+  ORG_LIST_EXPORT_CAP,
+  ORG_LIST_HARD_CAP,
+  resolveListLimit,
+  resolveListOffset,
+} from '@/shared/db/list-limits';
 import type { DbExecutor } from '@/shared/db/types';
 import type {
   ClientContactRecord,
@@ -167,6 +173,13 @@ export async function listClients(
     conditions.push(or(ilike(clients.name, term), ilike(clients.legalName, term))!);
   }
 
+  const hardCap =
+    filters.limit != null && filters.limit > ORG_LIST_HARD_CAP
+      ? ORG_LIST_EXPORT_CAP
+      : ORG_LIST_HARD_CAP;
+  const limit = resolveListLimit(filters.limit, { hardCap });
+  const offset = resolveListOffset(filters.offset);
+
   const rows = await db
     .select({
       client: clients,
@@ -179,7 +192,9 @@ export async function listClients(
     })
     .from(clients)
     .where(and(...conditions))
-    .orderBy(clients.name);
+    .orderBy(clients.name)
+    .limit(limit)
+    .offset(offset);
 
   return rows.map((row) => ({
     ...mapClient(row.client),

@@ -15,7 +15,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { MoneyInput } from '@/components/patterns/money-input';
-import type { CostCategoryRow, CostFamily, ProjectOption, WorkPackageOption } from '@/modules/expenses/domain/types';
+import type { CostCategoryRow, CostFamily, ProjectOption, VendorOption, WorkPackageOption } from '@/modules/expenses/domain/types';
 import type { RecurrenceCadence } from '@/modules/expenses/domain/types';
 import { AllocationEditor, type AllocationDraft } from './allocation-editor';
 
@@ -50,6 +50,7 @@ export interface ExpenseFormProps {
   readonly projects: readonly ProjectOption[];
   readonly categories: readonly CostCategoryRow[];
   readonly workPackages: readonly WorkPackageOption[];
+  readonly vendors?: readonly VendorOption[];
   readonly readOnly?: boolean;
   readonly onProjectChange?: (projectId: string) => void;
   readonly error?: string | null;
@@ -64,6 +65,7 @@ export function ExpenseForm({
   projects,
   categories,
   workPackages,
+  vendors = [],
   readOnly = false,
   onProjectChange,
   error,
@@ -72,7 +74,9 @@ export function ExpenseForm({
 }: ExpenseFormProps) {
   const t = useTranslations('expenses');
   const tCommon = useTranslations('common');
-  const [showMore, setShowMore] = React.useState(false);
+  const [showMore, setShowMore] = React.useState(
+    Boolean(initialValues?.vendorId || initialValues?.allocations?.length || initialValues?.taxAmount),
+  );
   const [showAdvanced, setShowAdvanced] = React.useState(
     Boolean(initialValues?.allocations?.length || initialValues?.taxAmount),
   );
@@ -82,6 +86,7 @@ export function ExpenseForm({
   const [description, setDescription] = React.useState(initialValues?.description ?? '');
   const [expenseDate, setExpenseDate] = React.useState(initialValues?.expenseDate ?? '');
   const [supplierName, setSupplierName] = React.useState(initialValues?.supplierName ?? '');
+  const [vendorId, setVendorId] = React.useState(initialValues?.vendorId ?? '');
   const [targeting, setTargeting] = React.useState(
     initialValues?.targeting ??
       (initialValues?.projectId ? initialValues.projectId : initialValues?.targeting === OVERHEAD_VALUE ? OVERHEAD_VALUE : NONE_VALUE),
@@ -203,6 +208,7 @@ export function ExpenseForm({
         ) : null}
 
         <input type="hidden" name="workPackageId" value={workPackageId} />
+        <input type="hidden" name="vendorId" value={vendorId} />
 
         <Field label={t('fields.supplier')} optionalLabel={tCommon('labels.optional')}>
           {(controlProps) => (
@@ -226,6 +232,30 @@ export function ExpenseForm({
       ) : (
         <section className="flex flex-col gap-4 rounded-lg border border-[var(--pf-border-default)] p-4">
           <h2 className="text-sm font-semibold">{tCommon('actions.showMore')}</h2>
+
+          {vendors.length > 0 ? (
+            <Field label={t('fields.linkedVendor')} optionalLabel={tCommon('labels.optional')}>
+              {(controlProps) => (
+                <Select
+                  value={vendorId || NONE_VALUE}
+                  onValueChange={(value) => setVendorId(value === NONE_VALUE ? '' : value)}
+                  disabled={readOnly}
+                >
+                  <SelectTrigger {...controlProps}>
+                    <SelectValue placeholder={t('placeholders.vendor')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={NONE_VALUE}>{t('placeholders.vendorNone')}</SelectItem>
+                    {vendors.map((vendor) => (
+                      <SelectItem key={vendor.id} value={vendor.id}>
+                        {vendor.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </Field>
+          ) : null}
 
           <Field label={t('fields.date')} optionalLabel={tCommon('labels.optional')}>
             {(controlProps) => (
@@ -347,12 +377,12 @@ export function ExpenseForm({
 
           {!showAdvanced ? (
             <Button type="button" variant="ghost" className="self-start" onClick={() => setShowAdvanced(true)}>
-              {tCommon('actions.showAdvanced')}
+              {tCommon('actions.showMore')}
               <ChevronRight className="size-4 rtl:rotate-180" aria-hidden />
             </Button>
           ) : (
             <div className="flex flex-col gap-4 border-t border-[var(--pf-border-default)] pt-4">
-              <h3 className="text-sm font-semibold">{tCommon('actions.showAdvanced')}</h3>
+              <h3 className="text-sm font-semibold">{tCommon('actions.showMore')}</h3>
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <Field label={t('fields.netAmount')} optionalLabel={tCommon('labels.optional')}>

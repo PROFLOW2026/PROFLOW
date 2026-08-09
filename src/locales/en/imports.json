@@ -1,6 +1,6 @@
 {
   "title": "Import data",
-  "description": "Upload a CSV, map columns, preview row issues, then confirm. Creates go through the same rules as the normal forms.",
+  "description": "Upload a CSV or Excel file, map columns, preview row issues, then confirm. Creates go through the same rules as the normal forms.",
   "notAllowed": "You do not have permission to import any of the supported record types.",
   "stepsLabel": "Import steps",
   "steps": {
@@ -11,14 +11,15 @@
   },
   "kindLabel": "What to import",
   "kindPlaceholder": "Choose a type",
-  "fileLabel": "CSV file",
-  "expensesNotEnabled": "Expense import is not enabled in this release — financial rows need stronger validation first.",
+  "fileLabel": "CSV or Excel file",
+  "expensesSafeHint": "Expense import creates drafts only through the normal expense rules. Tax/VAT columns are ignored. Currency must match the project or organization base currency.",
+  "nonFinancialHint": "Financial contract amounts are not imported with projects. Duplicate names are flagged as warnings.",
   "kinds": {
     "clients": "Clients",
     "vendors": "Vendors",
     "employees": "Employees",
     "projects": "Projects",
-    "expenses": "Expenses (not enabled)"
+    "expenses": "Expenses (draft)"
   },
   "fields": {
     "name": "Name",
@@ -35,10 +36,18 @@
     "baseRate": "Base rate",
     "status": "Status",
     "clientId": "Client ID",
+    "clientName": "Client name",
     "location": "Location",
     "startDate": "Start date",
     "targetEndDate": "Target end date",
-    "description": "Description"
+    "description": "Description",
+    "currency": "Currency",
+    "expenseDate": "Expense date",
+    "amount": "Amount",
+    "projectId": "Project ID",
+    "vendorId": "Vendor ID",
+    "supplierName": "Supplier name",
+    "costFamily": "Cost family"
   },
   "mapping": {
     "title": "Column mapping",
@@ -66,12 +75,16 @@
     "back": "Back",
     "validate": "Validate and preview",
     "confirm": "Confirm import ({count})",
-    "another": "Import another file"
+    "another": "Import another file",
+    "downloadIssues": "Download row issues CSV",
+    "downloadFailures": "Download failures CSV"
   },
   "errors": {
     "readFile": "Could not read the file.",
     "chooseKind": "Choose what to import.",
-    "needFile": "Choose a CSV file.",
+    "needFile": "Choose a CSV or Excel file.",
+    "emptySheet": "The spreadsheet has no usable rows.",
+    "fileTooLarge": "The file is too large to import (max about 2 MB).",
     "previewFailed": "Could not preview the import.",
     "confirmFailed": "Could not complete the import."
   }

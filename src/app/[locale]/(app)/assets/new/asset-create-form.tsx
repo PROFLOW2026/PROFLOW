@@ -14,18 +14,25 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { ASSET_KINDS, type AssetKind } from '@/modules/assets';
+import { ASSET_KINDS, ASSET_STATUSES, type AssetKind, type AssetStatus } from '@/modules/assets/domain/types';
 import { createAssetAction, type AssetsFormState } from '../actions';
 
-export function AssetCreateForm() {
+export function AssetCreateForm({
+  projects,
+}: {
+  projects: readonly { id: string; name: string }[];
+}) {
   const t = useTranslations('assets.createAsset');
   const tKinds = useTranslations('assets.kinds');
+  const tStatus = useTranslations('status.asset');
   const tCommon = useTranslations('common');
   const [state, formAction, pending] = useActionState<AssetsFormState, FormData>(
     createAssetAction,
     {},
   );
   const [kind, setKind] = useState<AssetKind>('equipment');
+  const [status, setStatus] = useState<AssetStatus>('active');
+  const [projectId, setProjectId] = useState('__none__');
 
   return (
     <form action={formAction} className="flex max-w-lg flex-col gap-4">
@@ -55,6 +62,26 @@ export function AssetCreateForm() {
         )}
       </Field>
 
+      <Field label={t('statusLabel')}>
+        {(control) => (
+          <>
+            <input type="hidden" name="status" value={status} />
+            <Select value={status} onValueChange={(v) => setStatus(v as AssetStatus)}>
+              <SelectTrigger id={control.id}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {ASSET_STATUSES.map((value) => (
+                  <SelectItem key={value} value={value}>
+                    {tStatus(value)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </>
+        )}
+      </Field>
+
       <Field label={t('identifierLabel')}>
         {(control) => <Input {...control} name="identifier" />}
       </Field>
@@ -71,6 +98,27 @@ export function AssetCreateForm() {
         {(control) => <Input {...control} name="serialNumber" />}
       </Field>
 
+      <Field label={t('assignedProjectLabel')}>
+        {(control) => (
+          <>
+            <input type="hidden" name="assignedProjectId" value={projectId} />
+            <Select value={projectId} onValueChange={setProjectId}>
+              <SelectTrigger id={control.id}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none__">{t('assignedProjectNone')}</SelectItem>
+                {projects.map((project) => (
+                  <SelectItem key={project.id} value={project.id}>
+                    {project.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </>
+        )}
+      </Field>
+
       <Field label={t('notesLabel')}>
         {(control) => <Textarea {...control} name="notes" rows={3} />}
       </Field>
@@ -84,7 +132,7 @@ export function AssetCreateForm() {
           {(control) => <Input {...control} name="vin" />}
         </Field>
         <Field label={t('odometerLabel')}>
-          {(control) => <Input {...control} name="odometer" inputMode="decimal" />}
+          {(control) => <Input {...control} name="odometer" inputMode="decimal" numeric />}
         </Field>
       </fieldset>
 

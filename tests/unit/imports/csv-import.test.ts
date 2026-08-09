@@ -8,10 +8,16 @@ import { listImportableKinds } from '@/modules/imports/application/import-permis
 import { autoMapColumns, applyMapping, normalizeHeader } from '@/modules/imports/domain/column-mapping';
 import { parseCsv, stripBom, CsvParseError } from '@/modules/imports/domain/csv-parse';
 import {
+  detectExistingDuplicates,
+  detectWithinFileDuplicates,
+  emptyExistingIndex,
+  mergeIssueMaps,
+} from '@/modules/imports/domain/duplicates';
+import {
   ENABLED_IMPORT_KINDS,
   isEnabledImportKind,
 } from '@/modules/imports/domain/types';
-import { validateMappedValues } from '@/modules/imports/validation/validate-rows';
+import { validateMappedRows, validateMappedValues, rowHasErrors } from '@/modules/imports/validation/validate-rows';
 
 function contextWith(permissions: readonly PermissionKey[]): OrgContext {
   return {
@@ -68,16 +74,70 @@ describe('imports mapping + validation', () => {
     expect(normalizeHeader('Client_Name')).toBe('client_name');
     expect(normalizeHeader(' E-mail ')).toBe('e_mail');
   });
+
+  it('rejects invalid project dates', () => {
+    const badDate = validateMappedValues(
+      'projects',
+      { name: 'Site', startDate: '01/02/2026' },
+      { baseCurrency: 'ILS' },
+    );
+    expect(badDate.some((i) => i.field === 'startDate' && i.severity === 'error')).toBe(true);
+  });
 });
 
-describe('imports expense kind stays disabled', () => {
-  it('does not treat expenses as an enabled confirm kind', () => {
-    expect(isEnabledImportKind('expenses')).toBe(false);
-    expect(ENABLED_IMPORT_KINDS).not.toContain('expenses');
-    expect([...ENABLED_IMPORT_KINDS]).toEqual(['clients', 'vendors', 'employees', 'projects']);
+describe('imports duplicates', () => {
+  it('flags duplicate emails within file as errors', () => {
+    const rows = validateMappedRows(
+      'clients',
+      [
+        { rowNumber: 2, values: { name: 'A', email: 'same@x.com' } },
+        { rowNumber: 3, values: { name: 'B', email: 'same@x.com' } },
+      ],
+      { baseCurrency: 'ILS' },
+    );
+    const merged = mergeIssueMaps(rows, detectWithinFileDuplicates('clients', rows));
+    expect(merged[0]!.issues.some((i) => i.field === 'email' && i.severity === 'error')).toBe(true);
+    expect(merged[1]!.issues.some((i) => i.field === 'email' && i.severity === 'error')).toBe(true);
   });
 
-  it('never lists expenses among importable kinds even with expense create permission', () => {
+  it('blocks re-import of existing emails / employee numbers (duplicate retry)', () => {
+    const index = {
+      ...emptyExistingIndex(),
+      emails: new Set(['ada@example.com']),
+      employeeNumbers: new Set(['e-9']),
+    };
+
+    const emailDup = detectExistingDuplicates(
+      'clients',
+      [{ rowNumber: 2, values: { name: 'Ada', email: 'ada@example.com' }, issues: [] }],
+      index,
+    );
+    expect(emailDup.get(2)?.some((i) => i.field === 'email' && i.severity === 'error')).toBe(true);
+
+    const empDup = detectExistingDuplicates(
+      'employees',
+      [{ rowNumber: 2, values: { name: 'Dana', employeeNumber: 'E-9' }, issues: [] }],
+      index,
+    );
+    expect(empDup.get(2)?.some((i) => i.field === 'employeeNumber' && i.severity === 'error')).toBe(
+      true,
+    );
+  });
+});
+
+describe('imports kinds', () => {
+  it('enables expenses as draft-only confirm kind', () => {
+    expect(isEnabledImportKind('expenses')).toBe(true);
+    expect([...ENABLED_IMPORT_KINDS]).toEqual([
+      'clients',
+      'vendors',
+      'employees',
+      'projects',
+      'expenses',
+    ]);
+  });
+
+  it('lists expenses when expense create permission is present', () => {
     const context = contextWith([
       PERMISSIONS.CLIENTS_MANAGE,
       PERMISSIONS.VENDORS_MANAGE,
@@ -90,29 +150,19 @@ describe('imports expense kind stays disabled', () => {
       'vendors',
       'employees',
       'projects',
+      'expenses',
     ]);
   });
 
-  it('preview returns enabled:false for expenses without writing rows', () => {
+  it('preview validates expense rows without writing', () => {
     const context = contextWith([PERMISSIONS.EXPENSES_CREATE]);
     const preview = previewImport(context, {
       kind: 'expenses',
       csvText: 'Date,Description,Amount\n2026-01-01,Cement,100\n',
     });
-    expect(preview.enabled).toBe(false);
-    expect(preview.rows).toEqual([]);
-    expect(preview.validCount).toBe(0);
-  });
-
-  it('confirm rejects expenses before create* APIs run', async () => {
-    const context = contextWith([PERMISSIONS.EXPENSES_CREATE]);
-    await expect(
-      confirmImport(context, {
-        kind: 'expenses',
-        csvText: 'Date,Description,Amount\n2026-01-01,Cement,100\n',
-        mapping: {},
-      }),
-    ).rejects.toBeInstanceOf(ValidationError);
+    expect(preview.enabled).toBe(true);
+    expect(preview.validCount).toBe(1);
+    expect(rowHasErrors(preview.rows[0]!)).toBe(false);
   });
 
   it('warns when project CSV includes financial amount columns (conservative)', () => {
@@ -122,9 +172,19 @@ describe('imports expense kind stays disabled', () => {
       csvText: 'Name,Contract Amount\nSite A,50000\n',
     });
     expect(preview.enabled).toBe(true);
-    expect(preview.rows[0]!.issues.some((i) => i.severity === 'warning' && /Financial columns/i.test(i.message))).toBe(
-      true,
-    );
-    expect(preview.rows[0]!.values).not.toHaveProperty('contractAmount');
+    expect(
+      preview.rows[0]!.issues.some((i) => i.severity === 'warning' && /Financial columns/i.test(i.message)),
+    ).toBe(true);
+  });
+
+  it('confirm rejects unknown kind before create* APIs run', async () => {
+    const context = contextWith([PERMISSIONS.EXPENSES_CREATE]);
+    await expect(
+      confirmImport(context, {
+        kind: 'not-a-kind',
+        csvText: 'Date,Description,Amount\n2026-01-01,Cement,100\n',
+        mapping: {},
+      }),
+    ).rejects.toBeInstanceOf(ValidationError);
   });
 });

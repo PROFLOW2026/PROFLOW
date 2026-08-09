@@ -1,6 +1,7 @@
 {
   "title": "Field operations",
   "description": "Daily logs, punch lists and inspections for projects.",
+  "navLabel": "Field operations sections",
   "nav": {
     "logs": "Daily logs",
     "punch": "Punch list",
@@ -12,13 +13,47 @@
     "punch": "Punch list",
     "inspections": "Inspections"
   },
+  "projectSummary": {
+    "title": "Field operations",
+    "openPunch": "Open punch items",
+    "latestLog": "Latest daily log",
+    "upcomingInspections": "Upcoming inspections",
+    "noLog": "No daily logs yet",
+    "noInspections": "No upcoming inspections",
+    "unscheduled": "Unscheduled",
+    "addLog": "New daily log",
+    "addPunch": "New punch item",
+    "addInspection": "New inspection",
+    "links": {
+      "logs": "All logs",
+      "punch": "Punch list",
+      "inspections": "Inspections"
+    }
+  },
+  "photoCapture": {
+    "title": "Photos after save",
+    "body": "Save the field record first, then attach photos and files from the detail page. Documents stay in private storage with signed access."
+  },
+  "filters": {
+    "status": "Status",
+    "priority": "Priority",
+    "all": "All"
+  },
+  "detail": {
+    "logTitle": "Daily log",
+    "punchTitle": "Punch item",
+    "inspectionTitle": "Inspection",
+    "unknownProject": "Project",
+    "saveLog": "Save changes",
+    "saved": "Saved."
+  },
   "newLog": "New daily log",
   "newPunch": "New punch item",
   "newInspection": "New inspection",
   "empty": {
     "logs": {
       "title": "No daily logs yet",
-      "body": "Record weather, workforce and site progress for a project day.",
+      "body": "Record work performed, workforce notes and blockers for a project day.",
       "action": "New daily log"
     },
     "punch": {
@@ -41,15 +76,18 @@
     "columns": {
       "date": "Date",
       "project": "Project",
-      "summary": "Summary",
+      "summary": "Work performed",
       "weather": "Weather",
+      "workforce": "Workforce / site",
+      "blockers": "Blockers",
       "title": "Title",
       "status": "Status",
       "priority": "Priority",
       "dueDate": "Due",
       "kind": "Kind",
       "scheduledOn": "Scheduled",
-      "completedOn": "Completed"
+      "completedOn": "Completed",
+      "result": "Result"
     }
   },
   "priorities": {
@@ -71,10 +109,22 @@
     "submit": "Save log",
     "projectLabel": "Project",
     "projectPlaceholder": "Select project",
+    "workPackageLabel": "Work area",
+    "workPackagePlaceholder": "Optional work area",
+    "workPackageNone": "No work area",
     "logDateLabel": "Log date",
     "weatherLabel": "Weather",
-    "summaryLabel": "Summary",
-    "workforceNotesLabel": "Workforce notes"
+    "weatherHint": "Optional site conditions.",
+    "weatherPlaceholder": "e.g. clear, light rain",
+    "summaryLabel": "Work performed",
+    "summaryHint": "What was completed on site today.",
+    "summaryPlaceholder": "Describe the work performed…",
+    "workforceNotesLabel": "Workforce / site notes",
+    "workforceNotesHint": "Crew counts, visitors, site conditions.",
+    "workforceNotesPlaceholder": "Crew, site notes…",
+    "blockersLabel": "Blockers",
+    "blockersHint": "Issues that slowed or stopped work.",
+    "blockersPlaceholder": "Materials, access, weather delays…"
   },
   "createPunch": {
     "title": "New punch item",
@@ -82,6 +132,9 @@
     "submit": "Save item",
     "projectLabel": "Project",
     "projectPlaceholder": "Select project",
+    "workPackageLabel": "Work area",
+    "workPackagePlaceholder": "Optional work area",
+    "workPackageNone": "No work area",
     "titleLabel": "Title",
     "descriptionLabel": "Description",
     "priorityLabel": "Priority",
@@ -94,6 +147,9 @@
     "submit": "Save inspection",
     "projectLabel": "Project",
     "projectPlaceholder": "Select project",
+    "workPackageLabel": "Work area",
+    "workPackagePlaceholder": "Optional work area",
+    "workPackageNone": "No work area",
     "titleLabel": "Title",
     "kindLabel": "Kind",
     "scheduledOnLabel": "Scheduled on",
@@ -102,6 +158,13 @@
   "updateStatus": {
     "label": "Status",
     "submit": "Update",
+    "pending": "Updating…",
+    "resultLabel": "Result notes",
+    "resultPlaceholder": "What was found / outcome…"
+  },
+  "updatePriority": {
+    "label": "Priority",
+    "submit": "Update priority",
     "pending": "Updating…"
   },
   "errors": {

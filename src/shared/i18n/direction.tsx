@@ -36,5 +36,16 @@ export function shouldForceLtrInput(
   explicitDir: React.HTMLAttributes<HTMLElement>['dir'] | undefined,
 ): boolean {
   if (explicitDir) return false;
-  return type === 'email' || type === 'url' || type === 'tel' || type === 'date' || type === 'password';
+  return (
+    type === 'email' ||
+    type === 'url' ||
+    type === 'tel' ||
+    type === 'date' ||
+    type === 'datetime-local' ||
+    type === 'time' ||
+    type === 'month' ||
+    type === 'week' ||
+    type === 'number' ||
+    type === 'password'
+  );
 }

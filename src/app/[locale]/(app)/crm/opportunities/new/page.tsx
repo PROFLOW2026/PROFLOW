@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { PageHeader } from '@/components/ui/page-header';
-import { listProspectsForOrg } from '@/modules/crm';
+import { listLeadsForOrg, listProspectsForOrg } from '@/modules/crm';
 import { withOrgContext } from '@/shared/auth/session';
 import { Link } from '@/shared/i18n/navigation';
 import { NewOpportunityForm } from './new-opportunity-form';
@@ -16,12 +16,21 @@ export async function generateMetadata({
   return { title: t('opportunity.new') };
 }
 
-export default async function NewOpportunityPage() {
+export default async function NewOpportunityPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ leadId?: string }>;
+}) {
   const t = await getTranslations('crm');
-  const { prospects, currency } = await withOrgContext(async (context) => ({
+  const params = await searchParams;
+  const { prospects, leads, currency } = await withOrgContext(async (context) => ({
     prospects: await listProspectsForOrg(context),
+    leads: await listLeadsForOrg(context, { includeArchived: false }),
     currency: context.organization.baseCurrency,
   }));
+
+  const defaultLeadId =
+    params.leadId && leads.some((lead) => lead.id === params.leadId) ? params.leadId : undefined;
 
   return (
     <div className="flex flex-col gap-6">
@@ -35,7 +44,9 @@ export default async function NewOpportunityPage() {
       />
       <NewOpportunityForm
         prospects={prospects.map((p) => ({ id: p.id, name: p.name }))}
+        leads={leads.map((lead) => ({ id: lead.id, title: lead.title }))}
         defaultCurrency={currency}
+        defaultLeadId={defaultLeadId}
       />
     </div>
   );

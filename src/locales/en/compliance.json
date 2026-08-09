@@ -7,12 +7,21 @@
     "body": "Add insurance policies, licenses, or certifications so you can track expiry without digging through files.",
     "action": "Add first artifact"
   },
+  "summary": {
+    "valid": "Valid",
+    "expiring": "Expiring",
+    "expired": "Expired",
+    "missing": "Missing evidence"
+  },
   "list": {
     "searchPlaceholder": "Search by name, reference, or issuer…",
     "filters": {
       "kind": "Kind",
       "status": "Status",
       "subject": "Applies to",
+      "evidence": "Evidence",
+      "evidenceMissing": "Missing document",
+      "evidencePresent": "Document attached",
       "all": "All"
     },
     "columns": {
@@ -20,9 +29,12 @@
       "kind": "Kind",
       "subject": "Applies to",
       "expiresOn": "Expires",
-      "status": "Status"
+      "status": "Status",
+      "evidence": "Evidence"
     },
-    "noExpiry": "No expiry"
+    "noExpiry": "No expiry",
+    "evidenceMissing": "Missing",
+    "evidencePresent": "Attached"
   },
   "kinds": {
     "insurance": "Insurance",
@@ -64,8 +76,9 @@
     "statusModeLabel": "Status",
     "statusModeHint": "Leave on auto to keep status in sync with the expiry date.",
     "subjectTypeLabel": "Applies to",
-    "subjectIdLabel": "Subject ID",
-    "subjectIdHint": "Optional UUID of the employee, vendor, or project when the artifact is not org-wide.",
+    "subjectIdLabel": "Linked record",
+    "subjectIdHint": "Select the employee, vendor, or project this artifact applies to.",
+    "subjectNone": "Not linked",
     "notesLabel": "Notes"
   },
   "detail": {
@@ -74,6 +87,8 @@
     "archive": "Archive",
     "archiveTitle": "Archive this artifact?",
     "archiveBody": "It will leave the active list. You can still find it later if archived records are shown.",
-    "archiveSuccess": "Artifact archived"
+    "archiveSuccess": "Artifact archived",
+    "documentsNeedSubject": "Set the subject (and subject ID for employee, vendor, or project) to attach evidence documents securely.",
+    "missingEvidence": "No evidence document attached yet."
   }
 }

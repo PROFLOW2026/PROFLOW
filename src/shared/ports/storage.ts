@@ -1,4 +1,6 @@
 import 'server-only';
+import { publicEnv } from '@/shared/env/public';
+import { serverEnv } from '@/shared/env/server';
 
 /**
  * File storage boundary (docs 71 §9, 74 §7).
@@ -125,9 +127,10 @@ let instance: StoragePort | undefined;
 export function getStoragePort(): StoragePort {
   if (instance) return instance;
 
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  const bucket = process.env.SUPABASE_STORAGE_BUCKET ?? 'documents';
+  const env = serverEnv();
+  const url = publicEnv.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceRoleKey = env.SUPABASE_SERVICE_ROLE_KEY;
+  const bucket = env.SUPABASE_STORAGE_BUCKET;
 
   instance =
     url && serviceRoleKey

@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { CONTACT_ROLES } from '@/modules/vendors';
+import { CONTACT_ROLES } from '@/modules/vendors/domain/types';
 import { addVendorContactAction, type VendorFormState } from '../actions';
 
 export function VendorContactForm({ vendorId }: { vendorId: string }) {

@@ -13,6 +13,7 @@ import {
   createProspectContact,
   createSalesQuote,
   issueSalesQuoteVersion,
+  updateLead,
   updateOpportunity,
 } from '@/modules/crm';
 import { withOrgContext } from '@/shared/auth/session';
@@ -128,6 +129,7 @@ export async function createOpportunityAction(
       createOpportunity(context, {
         name: formValue(formData, 'name') ?? '',
         prospectId: formValue(formData, 'prospectId'),
+        leadId: formValue(formData, 'leadId'),
         expectedValueAmount: formValue(formData, 'expectedValueAmount'),
         currency: formValue(formData, 'currency'),
         expectedStartDate: formValue(formData, 'expectedStartDate'),
@@ -137,6 +139,33 @@ export async function createOpportunityAction(
     );
     revalidatePath('/crm');
     redirect({ href: `/crm/opportunities/${opportunity.id}`, locale });
+  } catch (error) {
+    return mapError(error, tErrors);
+  }
+}
+
+export async function updateLeadStatusAction(
+  _prev: CrmFormState,
+  formData: FormData,
+): Promise<CrmFormState> {
+  const tErrors = await getTranslations('errors');
+  const leadId = formValue(formData, 'leadId') ?? '';
+  try {
+    await withOrgContext((context) =>
+      updateLead(context, {
+        leadId,
+        status: formValue(formData, 'status') as
+          | 'new'
+          | 'contacted'
+          | 'qualified'
+          | 'disqualified'
+          | 'converted'
+          | undefined,
+      }),
+    );
+    revalidatePath('/crm');
+    revalidatePath(`/crm/leads/${leadId}`);
+    return {};
   } catch (error) {
     return mapError(error, tErrors);
   }

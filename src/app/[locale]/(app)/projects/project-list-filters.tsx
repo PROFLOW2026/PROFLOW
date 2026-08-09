@@ -12,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { PROJECT_STATUSES } from '@/modules/projects';
+import { PROJECT_STATUSES } from '@/modules/projects/domain/types';
 
 interface ProjectListFiltersProps {
   initialQuery: string;

@@ -1,13 +1,22 @@
 import { and, eq } from 'drizzle-orm';
 import {
   approvals,
+  apBills,
+  assets,
   billingRecords,
   changeOrders,
   changeRequests,
   clients,
+  complianceArtifacts,
+  dailyLogs,
   employees,
   expenses,
+  inspections,
+  inventoryItems,
+  procurementRfqs,
   projects,
+  punchListItems,
+  purchaseOrders,
   quoteVersions,
   vendors,
 } from '@drizzle/schema';
@@ -35,6 +44,15 @@ export async function documentOwnerExistsInOrganization(
     billing_record: billingRecords,
     quote_version: quoteVersions,
     employee: employees,
+    procurement_rfq: procurementRfqs,
+    purchase_order: purchaseOrders,
+    ap_bill: apBills,
+    daily_log: dailyLogs,
+    punch_list_item: punchListItems,
+    inspection: inspections,
+    compliance_artifact: complianceArtifacts,
+    asset: assets,
+    inventory_item: inventoryItems,
   } as const;
 
   const table = tableByOwnerType[ownerType];

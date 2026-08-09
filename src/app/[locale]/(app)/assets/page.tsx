@@ -7,7 +7,12 @@ import { PageHeader } from '@/components/ui/page-header';
 import { StatusBadge, type StatusShape } from '@/components/ui/status-badge';
 import { ResponsiveTable } from '@/components/patterns/responsive-table';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { listAssetsForOrg, type AssetStatus } from '@/modules/assets';
+import {
+  listAssetsForOrg,
+  listMaintenanceScheduleForOrg,
+  type AssetStatus,
+  type MaintenanceStatus,
+} from '@/modules/assets';
 import { withOrgContext } from '@/shared/auth/session';
 import { Link } from '@/shared/i18n/navigation';
 import { hasPermission } from '@/shared/permissions/assert';
@@ -39,12 +44,29 @@ function assetShape(status: AssetStatus): StatusShape {
   }
 }
 
+function maintenanceShape(status: MaintenanceStatus): StatusShape {
+  switch (status) {
+    case 'planned':
+      return 'pending';
+    case 'in_progress':
+      return 'active';
+    case 'completed':
+      return 'completed';
+    case 'cancelled':
+      return 'cancelled';
+    default:
+      return 'archived';
+  }
+}
+
 export default async function AssetsPage() {
   const t = await getTranslations('assets');
   const tStatus = await getTranslations('status.asset');
+  const tMaintStatus = await getTranslations('status.maintenance');
 
-  const { items, canManage } = await withOrgContext(async (context) => ({
+  const { items, schedule, canManage } = await withOrgContext(async (context) => ({
     items: await listAssetsForOrg(context),
+    schedule: await listMaintenanceScheduleForOrg(context),
     canManage: hasPermission(context, PERMISSIONS.ASSETS_MANAGE),
   }));
 
@@ -65,6 +87,75 @@ export default async function AssetsPage() {
         }
       />
       <AssetsSectionNav active="assets" />
+
+      <section className="flex flex-col gap-3">
+        <div className="flex flex-wrap items-end justify-between gap-2">
+          <div>
+            <h2 className="font-semibold">{t('schedule.title')}</h2>
+            <p className="text-sm text-[var(--pf-text-secondary)]">{t('schedule.hint')}</p>
+          </div>
+          <Link
+            href="/assets/maintenance"
+            className="text-sm text-[var(--pf-text-secondary)] hover:underline"
+          >
+            {t('schedule.viewAll')}
+          </Link>
+        </div>
+        <div className="grid gap-4 lg:grid-cols-2">
+          <div className="rounded-lg border border-[var(--pf-border-default)] p-4">
+            <h3 className="text-sm font-medium">{t('schedule.overdue')}</h3>
+            {schedule.overdue.length === 0 ? (
+              <p className="mt-2 text-sm text-[var(--pf-text-secondary)]">
+                {t('schedule.emptyOverdue')}
+              </p>
+            ) : (
+              <ul className="mt-2 space-y-2 text-sm">
+                {schedule.overdue.map((row) => (
+                  <li key={row.id} className="flex flex-wrap items-center justify-between gap-2">
+                    <Link href={`/assets/${row.assetId}`} className="font-medium hover:underline">
+                      {row.title}
+                      <span className="font-normal text-[var(--pf-text-secondary)]">
+                        {' '}
+                        · {row.assetName}
+                      </span>
+                    </Link>
+                    <span className="flex items-center gap-2">
+                      <StatusBadge
+                        shape={maintenanceShape(row.status)}
+                        label={tMaintStatus(row.status)}
+                      />
+                      <span className="text-[var(--pf-text-secondary)]">{row.performedOn}</span>
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+          <div className="rounded-lg border border-[var(--pf-border-default)] p-4">
+            <h3 className="text-sm font-medium">{t('schedule.upcoming')}</h3>
+            {schedule.upcoming.length === 0 ? (
+              <p className="mt-2 text-sm text-[var(--pf-text-secondary)]">
+                {t('schedule.emptyUpcoming')}
+              </p>
+            ) : (
+              <ul className="mt-2 space-y-2 text-sm">
+                {schedule.upcoming.map((row) => (
+                  <li key={row.id} className="flex flex-wrap items-center justify-between gap-2">
+                    <Link href={`/assets/${row.assetId}`} className="font-medium hover:underline">
+                      {row.title}
+                      <span className="font-normal text-[var(--pf-text-secondary)]">
+                        {' '}
+                        · {row.assetName}
+                      </span>
+                    </Link>
+                    <span className="text-[var(--pf-text-secondary)]">{row.performedOn}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
+      </section>
 
       {items.length === 0 ? (
         <EmptyState
@@ -92,6 +183,9 @@ export default async function AssetsPage() {
                     <TableHead>{t('list.columns.kind')}</TableHead>
                     <TableHead>{t('list.columns.status')}</TableHead>
                     <TableHead>{t('list.columns.identifier')}</TableHead>
+                    <TableHead>{t('list.columns.manufacturer')}</TableHead>
+                    <TableHead>{t('list.columns.model')}</TableHead>
+                    <TableHead>{t('list.columns.assignedProject')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -107,6 +201,9 @@ export default async function AssetsPage() {
                         <StatusBadge shape={assetShape(item.status)} label={tStatus(item.status)} />
                       </TableCell>
                       <TableCell>{item.identifier ?? '—'}</TableCell>
+                      <TableCell>{item.manufacturer ?? '—'}</TableCell>
+                      <TableCell>{item.model ?? '—'}</TableCell>
+                      <TableCell>{item.assignedProjectName ?? '—'}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -125,6 +222,10 @@ export default async function AssetsPage() {
               <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">
                 {t(`kinds.${item.assetKind}`)}
                 {item.identifier ? ` · ${item.identifier}` : ''}
+                {item.manufacturer || item.model
+                  ? ` · ${[item.manufacturer, item.model].filter(Boolean).join(' ')}`
+                  : ''}
+                {item.assignedProjectName ? ` · ${item.assignedProjectName}` : ''}
               </p>
             </Link>
           )}

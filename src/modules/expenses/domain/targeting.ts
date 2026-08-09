@@ -8,7 +8,7 @@ export interface TargetingInput {
 }
 
 /**
- * An expense targets exactly one of: a project (optionally with a work package)
+ * An expense targets exactly one of: a project (optionally with a work area)
  * or business overhead — never both (doc 04 §7).
  */
 export function resolveExpenseTargeting(input: TargetingInput): ExpenseTargeting {
@@ -17,7 +17,7 @@ export function resolveExpenseTargeting(input: TargetingInput): ExpenseTargeting
 
   if (workPackageId && !projectId) {
     throw new DomainRuleError(
-      'A work package requires a project',
+      'A work area requires a project',
       'expenses.errors.workPackageRequiresProject',
     );
   }

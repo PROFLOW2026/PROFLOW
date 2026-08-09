@@ -8,7 +8,7 @@ import { Field } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { VENDOR_TYPES } from '@/modules/vendors';
+import { VENDOR_TYPES } from '@/modules/vendors/domain/types';
 import { createVendorAction, type VendorFormState } from '../actions';
 
 export function NewVendorForm() {

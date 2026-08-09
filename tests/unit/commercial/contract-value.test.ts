@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   changeOrderEventAmount,
+  changeOrderApprovedNetAmount,
   computeApprovedAdditions,
   computeApprovedReductions,
   computeCommercialPosition,
@@ -118,6 +119,26 @@ describe('contract value arithmetic', () => {
     expect(
       changeOrderEventAmount('reduction', money('8000', CURRENCY)),
     ).toEqual(money('-8000', CURRENCY));
+  });
+
+  it('uses quote subtotal (net) for CO approval — VAT is never contract value', () => {
+    expect(
+      changeOrderApprovedNetAmount({
+        quoteVersion: {
+          subtotalAmount: '10000.000000',
+          taxAmount: '1700.000000',
+          totalAmount: '11700.000000',
+        },
+        requestedAmount: '99999.000000',
+      }),
+    ).toBe('10000.000000');
+
+    expect(
+      changeOrderApprovedNetAmount({
+        quoteVersion: null,
+        requestedAmount: '5000.000000',
+      }),
+    ).toBe('5000.000000');
   });
 
   it('ignores approved change requests when computing pending', () => {

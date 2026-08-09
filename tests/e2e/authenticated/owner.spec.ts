@@ -98,8 +98,8 @@ test.describe('signed-in owner', () => {
     await page.goto('/he-IL/settings/people');
 
     await expect(page.getByRole('heading', { name: he.organization.members.title, level: 1 })).toBeVisible();
-    await expect(page.getByText('דנה כהן')).toBeVisible();
-    await expect(page.getByText('אבי מזרחי')).toBeVisible();
+    await expect(page.getByRole('cell', { name: /דנה כהן/ })).toBeVisible();
+    await expect(page.getByRole('cell', { name: /אבי מזרחי/ })).toBeVisible();
 
     await page.goto('/he-IL/settings/activity');
     await expect(page.getByRole('heading', { name: he.settings.activity.title, level: 1 })).toBeVisible();

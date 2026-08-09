@@ -10,3 +10,5 @@ export { ProjectFinancialsPanel, ProjectFinancialsSnapshot } from './ui/project-
 export { HomeDashboardContent } from './ui/home-dashboard-content';
 export { CashFlowView } from './ui/cash-flow-view';
 export type { CashFlowViewCopy } from './ui/cash-flow-view';
+export { ReportsAnalyticsView } from './ui/reports-analytics-view';
+export { MoneyReportMetricTile, CountReportMetricTile } from './ui/report-metric-tile';

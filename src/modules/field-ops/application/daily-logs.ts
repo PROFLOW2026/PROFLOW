@@ -4,6 +4,7 @@ import { NotFoundError, ValidationError } from '@/shared/errors';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { noteModuleUsage } from '@/modules/tenancy';
+import { packWorkforceAndBlockers } from '../domain/daily-log-notes';
 import {
   findDailyLogById,
   insertDailyLog,
@@ -21,6 +22,13 @@ import { assertProjectRefsInOrg } from './assert-project-refs';
 export async function listDailyLogsForOrg(context: OrgContext, projectId?: string) {
   assertPermission(context, PERMISSIONS.FIELD_OPS_READ);
   return listDailyLogs(context.db, context.organizationId, projectId);
+}
+
+export async function getDailyLogForOrg(context: OrgContext, dailyLogId: string) {
+  assertPermission(context, PERMISSIONS.FIELD_OPS_READ);
+  const log = await findDailyLogById(context.db, context.organizationId, dailyLogId);
+  if (!log) throw new NotFoundError('Daily log');
+  return log;
 }
 
 export async function createDailyLog(context: OrgContext, raw: CreateDailyLogInput) {
@@ -45,7 +53,7 @@ export async function createDailyLog(context: OrgContext, raw: CreateDailyLogInp
     logDate: input.logDate,
     weather: input.weather ?? null,
     summary: input.summary,
-    workforceNotes: input.workforceNotes ?? null,
+    workforceNotes: packWorkforceAndBlockers(input.workforceNotes, input.blockers),
     createdBy: context.userId,
   });
 
@@ -79,12 +87,20 @@ export async function updateDailyLog(context: OrgContext, raw: UpdateDailyLogInp
     });
   }
 
+  const notesTouched = input.workforceNotes !== undefined || input.blockers !== undefined;
+  const packedNotes = notesTouched
+    ? packWorkforceAndBlockers(
+        input.workforceNotes !== undefined ? input.workforceNotes : existing.workforceNotes,
+        input.blockers !== undefined ? input.blockers : existing.blockers,
+      )
+    : undefined;
+
   const updated = await updateDailyLogById(context.db, context.organizationId, input.dailyLogId, {
     workPackageId: input.workPackageId === undefined ? undefined : input.workPackageId,
     logDate: input.logDate,
     weather: input.weather === undefined ? undefined : input.weather,
     summary: input.summary,
-    workforceNotes: input.workforceNotes === undefined ? undefined : input.workforceNotes,
+    workforceNotes: packedNotes,
   });
   if (!updated) throw new NotFoundError('Daily log');
 

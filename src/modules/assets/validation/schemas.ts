@@ -59,6 +59,52 @@ export const createAssetSchema = z.object({
 
 export type CreateAssetInput = z.input<typeof createAssetSchema>;
 
+export const updateAssetSchema = z.object({
+  assetId: z.string().uuid(),
+  name: z.string().trim().min(1).max(200).optional(),
+  assetKind: z.enum(ASSET_KINDS).optional(),
+  status: z.enum(ASSET_STATUSES).optional(),
+  identifier: optionalText,
+  manufacturer: optionalText,
+  model: optionalText,
+  serialNumber: optionalText,
+  /** Project check-out; null / empty clears assignment (check-in). */
+  assignedProjectId: optionalUuid,
+  notes: optionalText,
+});
+
+export type UpdateAssetInput = z.input<typeof updateAssetSchema>;
+
+export const createFleetVehicleSchema = z.object({
+  assetId: z.string().uuid().optional(),
+  /** When creating a new vehicle asset alongside the fleet row. */
+  name: z.string().trim().min(1).max(200).optional(),
+  plateNumber: optionalText,
+  vin: optionalText,
+  odometer: optionalText,
+  notes: optionalText,
+}).superRefine((value, ctx) => {
+  if (!value.assetId && !value.name?.trim()) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Provide an existing vehicle asset or a new vehicle name',
+      path: ['assetId'],
+    });
+  }
+});
+
+export type CreateFleetVehicleInput = z.input<typeof createFleetVehicleSchema>;
+
+export const updateFleetVehicleSchema = z.object({
+  fleetVehicleId: z.string().uuid(),
+  plateNumber: optionalText,
+  vin: optionalText,
+  odometer: optionalText,
+  notes: optionalText,
+});
+
+export type UpdateFleetVehicleInput = z.input<typeof updateFleetVehicleSchema>;
+
 export const createMaintenanceRecordSchema = z.object({
   assetId: z.string().uuid(),
   title: z.string().trim().min(1, 'Title is required').max(200),
@@ -73,6 +119,20 @@ export const createMaintenanceRecordSchema = z.object({
 
 export type CreateMaintenanceRecordInput = z.input<typeof createMaintenanceRecordSchema>;
 
+export const updateMaintenanceRecordSchema = z.object({
+  maintenanceRecordId: z.string().uuid(),
+  title: z.string().trim().min(1).max(200).optional(),
+  status: z.enum(MAINTENANCE_STATUSES).optional(),
+  performedOn: optionalDate,
+  /** Metadata only — does not post Expense. */
+  costAmount: optionalMoney,
+  currency: z.preprocess(emptyToNull, z.string().trim().length(3).nullable().optional()),
+  vendorId: optionalUuid,
+  notes: optionalText,
+});
+
+export type UpdateMaintenanceRecordInput = z.input<typeof updateMaintenanceRecordSchema>;
+
 export const createInventoryItemSchema = z.object({
   name: z.string().trim().min(1, 'Name is required').max(200),
   sku: optionalText,
@@ -83,23 +143,58 @@ export const createInventoryItemSchema = z.object({
     .regex(/^\d+(\.\d+)?$/)
     .optional()
     .default('0'),
-  reorderLevel: optionalText,
+  reorderLevel: z.preprocess(
+    emptyToNull,
+    z
+      .string()
+      .trim()
+      .regex(/^\d+(\.\d+)?$/, 'Reorder level must be a non-negative number')
+      .nullable()
+      .optional(),
+  ),
   materialItemId: optionalUuid,
   notes: optionalText,
 });
 
 export type CreateInventoryItemInput = z.input<typeof createInventoryItemSchema>;
 
-export const recordInventoryMovementSchema = z.object({
-  inventoryItemId: z.string().uuid(),
-  movementType: z.enum(['receive', 'issue'] as const),
-  quantity: requiredQuantity,
-  occurredOn: requiredDate,
-  projectId: optionalUuid,
-  notes: optionalText,
-});
+const signedAdjustQuantity = z
+  .string()
+  .trim()
+  .regex(/^-?\d+(\.\d+)?$/, 'Quantity must be a number')
+  .refine((value) => Number(value) !== 0, 'Adjustment quantity must be non-zero');
+
+export const recordInventoryMovementSchema = z
+  .object({
+    inventoryItemId: z.string().uuid(),
+    movementType: z.enum(INVENTORY_MOVEMENT_TYPES),
+    quantity: z.string().trim().min(1),
+    occurredOn: requiredDate,
+    projectId: optionalUuid,
+    notes: optionalText,
+  })
+  .superRefine((data, ctx) => {
+    if (data.movementType === 'adjust') {
+      const parsed = signedAdjustQuantity.safeParse(data.quantity);
+      if (!parsed.success) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['quantity'],
+          message: parsed.error.issues[0]?.message ?? 'Invalid adjustment quantity',
+        });
+      }
+      return;
+    }
+    const parsed = requiredQuantity.safeParse(data.quantity);
+    if (!parsed.success) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['quantity'],
+        message: parsed.error.issues[0]?.message ?? 'Invalid quantity',
+      });
+    }
+  });
 
 export type RecordInventoryMovementInput = z.input<typeof recordInventoryMovementSchema>;
 
-// Keep adjust/return in the type union for domain helpers even if UI only offers receive/issue.
 export const inventoryMovementTypeSchema = z.enum(INVENTORY_MOVEMENT_TYPES);

@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0f766e" />
+    <title>ProjectFlow — Offline</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f8fafc;
+        --fg: #0f172a;
+        --muted: #475569;
+        --brand: #0f766e;
+      }
+      body {
+        margin: 0;
+        min-height: 100dvh;
+        display: grid;
+        place-items: center;
+        padding: 1.5rem;
+        font-family: "Segoe UI", Tahoma, sans-serif;
+        background: radial-gradient(circle at top, #ecfeff, var(--bg) 55%);
+        color: var(--fg);
+      }
+      main {
+        max-width: 28rem;
+        text-align: center;
+      }
+      h1 {
+        margin: 0 0 0.75rem;
+        font-size: 1.5rem;
+      }
+      p {
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.5;
+      }
+      button {
+        margin-top: 1.25rem;
+        min-height: 2.75rem;
+        padding: 0.6rem 1.1rem;
+        border: 0;
+        border-radius: 0.5rem;
+        background: var(--brand);
+        color: #fff;
+        font: inherit;
+        font-weight: 600;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>ProjectFlow</h1>
+      <p>
+        You appear offline. Drafts stay on this device. Reconnect to sync —
+        server records are never overwritten automatically.
+      </p>
+      <button type="button" onclick="location.reload()">Try again</button>
+    </main>
+  </body>
+</html>

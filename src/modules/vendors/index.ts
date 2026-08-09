@@ -39,3 +39,6 @@ export {
   promoteVendorFromTransactionSchema,
 } from './validation/schemas';
 export type { PromoteVendorFromTransactionInput, CreateVendorInput, UpdateVendorInput } from './validation/schemas';
+
+/** Cross-module org-scoped vendor FK guard. */
+export { findVendorById } from './data/vendors.repository';

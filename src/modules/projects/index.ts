@@ -20,6 +20,8 @@ export {
   updateMilestone,
   archiveMilestone,
 } from './application/milestones';
+export { applyProjectTemplate } from './application/apply-project-template';
+export type { ApplyProjectTemplateResult } from './application/apply-project-template';
 
 export { projectStatusShape, isArchivedStatus } from './domain/status';
 export type { ProjectStatusShape } from './domain/status';
@@ -31,6 +33,52 @@ export {
 } from './domain/contract-value';
 export { ORIGINAL_AMOUNT_LOCKED_MESSAGE_KEY } from './application/contract-amount';
 export { shouldShowWorkPackages, countActiveWorkPackages } from './domain/work-package-visibility';
+export {
+  buildScheduleSummary,
+  isEndBeforeStart,
+  isMilestoneOverdue,
+  isPhaseOverdue,
+  isProjectTargetOverdue,
+  isWorkPackageOverdue,
+  parseProgressPercent,
+  resolveProjectProgressPercent,
+  rollupWorkPackageProgress,
+  toProgressReportLine,
+  DATE_ORDER_MESSAGE,
+} from './domain/scheduling';
+export type { ScheduleSummary, ProgressReportLine } from './domain/scheduling';
+export {
+  PROJECT_TEMPLATE_KEYS,
+  PROJECT_TEMPLATES,
+  getProjectTemplate,
+  previewProjectTemplate,
+  cloneProjectTemplateForApply,
+  offsetBusinessDate,
+} from './domain/templates';
+export type {
+  ProjectTemplate,
+  ProjectTemplateKey,
+  ProjectTemplatePreview,
+  ProjectTemplateApplyCopy,
+  TemplateLocale,
+} from './domain/templates';
+export { selectProjectWorkspaceLinks } from './domain/workspace-links';
+export type {
+  ProjectWorkspaceLink,
+  ProjectWorkspaceLinkKey,
+  WorkspaceLinkInput,
+} from './domain/workspace-links';
+export {
+  applyOrgProjectTemplate,
+  applyOrgPhasePack,
+  applyOrgWorkPackagePack,
+} from './application/apply-org-template';
+export type { ApplyOrgProjectTemplateResult } from './application/apply-org-template';
+export {
+  cloneProjectStructure,
+  previewProjectStructureSnapshot,
+} from './application/clone-project-structure';
+export type { ProjectStructureSnapshot } from './application/clone-project-structure';
 export {
   PROJECT_STATUSES,
   PROGRESS_STATUSES,
@@ -65,4 +113,12 @@ export {
   createMilestoneSchema,
   updateMilestoneSchema,
   archiveMilestoneSchema,
+  applyProjectTemplateSchema,
 } from './validation/schemas';
+
+/** Cross-module org-scoped lookups (FK / tenancy guards). */
+export { findProjectById } from './data/projects.repository';
+export {
+  findWorkPackageById,
+  listWorkPackagesForProjects,
+} from './data/work-packages.repository';

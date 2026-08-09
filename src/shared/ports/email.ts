@@ -1,4 +1,6 @@
 import 'server-only';
+import { serverEnv } from '@/shared/env/server';
+import { logger, redactEmail } from '@/shared/observability';
 
 /**
  * Outbound email boundary (docs 71 §9, 75).
@@ -6,6 +8,9 @@ import 'server-only';
  * Modules depend on this interface, never on Resend. That keeps the provider
  * swappable and, more importantly, lets every test and every un-configured
  * environment run the full flow without sending real mail.
+ *
+ * `EMAIL_DRIVER=console` always uses the no-op adapter, even if a Resend key
+ * is present — preview/local must not accidentally send.
  */
 
 export interface EmailMessage {
@@ -31,9 +36,10 @@ class NoopEmailAdapter implements EmailPort {
   readonly configured = false;
 
   async send(message: EmailMessage): Promise<EmailResult> {
-    if (process.env.NODE_ENV !== 'production') {
-      console.info(`[email:noop] would send "${message.subject}" to ${message.to}`);
-    }
+    logger.info('email.noop', {
+      subject: message.subject,
+      to: redactEmail(message.to),
+    });
     return { delivered: false, reason: 'not-configured' };
   }
 }
@@ -63,6 +69,10 @@ class ResendEmailAdapter implements EmailPort {
       return { delivered: true, providerId: data?.id ?? null };
     } catch (error) {
       // Email is never allowed to fail a business transaction (doc 75 §4).
+      logger.error('email.send_failed', {
+        to: redactEmail(message.to),
+        error,
+      });
       return {
         delivered: false,
         reason: 'failed',
@@ -77,9 +87,11 @@ let instance: EmailPort | undefined;
 export function getEmailPort(): EmailPort {
   if (instance) return instance;
 
-  const apiKey = process.env.RESEND_API_KEY;
-  const from = process.env.EMAIL_FROM;
-  instance = apiKey && from ? new ResendEmailAdapter(apiKey, from) : new NoopEmailAdapter();
+  const env = serverEnv();
+  instance =
+    env.EMAIL_DRIVER === 'resend' && env.RESEND_API_KEY && env.EMAIL_FROM
+      ? new ResendEmailAdapter(env.RESEND_API_KEY, env.EMAIL_FROM)
+      : new NoopEmailAdapter();
   return instance;
 }
 

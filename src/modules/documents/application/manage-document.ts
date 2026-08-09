@@ -63,6 +63,14 @@ export async function finalizeDocumentUpload(
   return updated;
 }
 
+export async function getDocumentById(
+  context: OrgContext,
+  documentId: string,
+): Promise<DocumentRecord | null> {
+  assertPermission(context, PERMISSIONS.DOCUMENTS_READ);
+  return findDocumentById(context.db, context.organizationId, documentId);
+}
+
 export async function createDocumentDownloadUrl(
   context: OrgContext,
   rawInput: { documentId: string },

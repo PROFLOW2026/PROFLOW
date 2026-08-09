@@ -69,7 +69,7 @@ export const DialogContent = React.forwardRef<
       >
         {children}
         <DialogPrimitive.Close
-          className="absolute end-3 top-3 rounded-md p-2 -m-2 text-[var(--pf-text-muted)] transition-colors hover:bg-[var(--pf-bg-muted)] hover:text-[var(--pf-text-primary)]"
+          className="absolute end-3 top-3 inline-flex min-h-11 min-w-11 items-center justify-center rounded-md text-[var(--pf-text-muted)] transition-colors hover:bg-[var(--pf-bg-muted)] hover:text-[var(--pf-text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
           aria-label={closeLabel}
         >
           <X className="size-4" aria-hidden />

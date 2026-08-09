@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { PROJECT_STATUSES, PROGRESS_STATUSES, MILESTONE_STATUSES } from '../domain/types';
+import { DATE_ORDER_MESSAGE, isEndBeforeStart } from '../domain/scheduling';
 
 const emptyToNull = (value: unknown) => {
   if (value === '' || value === null || value === undefined) return null;
@@ -26,6 +27,30 @@ const optionalProgressStatus = z.preprocess(
   z.enum(PROGRESS_STATUSES).nullable().optional(),
 );
 
+function refineDateOrder<
+  T extends {
+    startDate?: string | null;
+    targetEndDate?: string | null;
+    endDate?: string | null;
+    actualEndDate?: string | null;
+  },
+>(
+  value: T,
+  ctx: z.RefinementCtx,
+  startKey: 'startDate',
+  endKey: 'targetEndDate' | 'endDate' | 'actualEndDate',
+) {
+  const start = value[startKey];
+  const end = value[endKey];
+  if (isEndBeforeStart(start, end)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: DATE_ORDER_MESSAGE,
+      path: [endKey],
+    });
+  }
+}
+
 export const projectNameSchema = z
   .string()
   .trim()
@@ -40,48 +65,61 @@ const amountIncludesTaxSchema = z.preprocess((value) => {
   return value;
 }, z.boolean());
 
-export const createProjectSchema = z.object({
-  name: projectNameSchema,
-  clientId: z.preprocess(emptyToNull, z.string().uuid().nullable().optional()),
-  clientName: z.preprocess(emptyToNull, z.string().trim().min(1).max(200).nullable().optional()),
-  contractValueAmount: z.preprocess(emptyToNull, z.string().trim().nullable().optional()),
-  contractValueCurrency: z.preprocess(emptyToNull, z.string().trim().length(3).nullable().optional()),
-  /** false = excluding VAT (לא כולל מע״מ); true = including VAT (כולל מע״מ). */
-  amountIncludesTax: amountIncludesTaxSchema.optional(),
-  domainName: z.preprocess(emptyToNull, z.string().trim().min(1).max(120).nullable().optional()),
-  location: z.preprocess(emptyToNull, z.string().trim().max(500).nullable().optional()),
-  description: optionalText,
-  status: z.enum(PROJECT_STATUSES).optional(),
-  projectRole: optionalText,
-  deliveryMode: optionalText,
-  startDate: z.preprocess(emptyToNull, z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable().optional()),
-  targetEndDate: z.preprocess(emptyToNull, z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable().optional()),
-  notes: optionalText,
-});
+export const createProjectSchema = z
+  .object({
+    name: projectNameSchema,
+    clientId: z.preprocess(emptyToNull, z.string().uuid().nullable().optional()),
+    clientName: z.preprocess(emptyToNull, z.string().trim().min(1).max(200).nullable().optional()),
+    contractValueAmount: z.preprocess(emptyToNull, z.string().trim().nullable().optional()),
+    contractValueCurrency: z.preprocess(emptyToNull, z.string().trim().length(3).nullable().optional()),
+    /** false = excluding VAT (לא כולל מע״מ); true = including VAT (כולל מע״מ). */
+    amountIncludesTax: amountIncludesTaxSchema.optional(),
+    domainName: z.preprocess(emptyToNull, z.string().trim().min(1).max(120).nullable().optional()),
+    location: z.preprocess(emptyToNull, z.string().trim().max(500).nullable().optional()),
+    description: optionalText,
+    status: z.enum(PROJECT_STATUSES).optional(),
+    projectRole: optionalText,
+    deliveryMode: optionalText,
+    startDate: z.preprocess(emptyToNull, z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable().optional()),
+    targetEndDate: z.preprocess(emptyToNull, z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable().optional()),
+    notes: optionalText,
+  })
+  .superRefine((value, ctx) => refineDateOrder(value, ctx, 'startDate', 'targetEndDate'));
 
 export type CreateProjectInput = z.input<typeof createProjectSchema>;
 export type CreateProjectValues = z.output<typeof createProjectSchema>;
 
-export const updateProjectSchema = z.object({
-  projectId: z.string().uuid(),
-  name: projectNameSchema.optional(),
-  clientId: z.preprocess(emptyToNull, z.string().uuid().nullable().optional()),
-  location: z.preprocess(emptyToNull, z.string().trim().max(500).nullable().optional()),
-  description: optionalText,
-  status: z.enum(PROJECT_STATUSES).optional(),
-  projectRole: optionalText,
-  deliveryMode: optionalText,
-  startDate: optionalDate,
-  targetEndDate: optionalDate,
-  actualEndDate: optionalDate,
-  progressPercent: optionalPercent,
-  progressStatus: optionalProgressStatus,
-  notes: optionalText,
-  domainName: z.preprocess(emptyToNull, z.string().trim().min(1).max(120).nullable().optional()),
-  contractValueAmount: z.preprocess(emptyToNull, z.string().trim().nullable().optional()),
-  contractValueCurrency: z.preprocess(emptyToNull, z.string().trim().length(3).nullable().optional()),
-  amountIncludesTax: amountIncludesTaxSchema.optional(),
-});
+export const updateProjectSchema = z
+  .object({
+    projectId: z.string().uuid(),
+    name: projectNameSchema.optional(),
+    clientId: z.preprocess(emptyToNull, z.string().uuid().nullable().optional()),
+    location: z.preprocess(emptyToNull, z.string().trim().max(500).nullable().optional()),
+    description: optionalText,
+    status: z.enum(PROJECT_STATUSES).optional(),
+    projectRole: optionalText,
+    deliveryMode: optionalText,
+    startDate: optionalDate,
+    targetEndDate: optionalDate,
+    actualEndDate: optionalDate,
+    progressPercent: optionalPercent,
+    progressStatus: optionalProgressStatus,
+    notes: optionalText,
+    domainName: z.preprocess(emptyToNull, z.string().trim().min(1).max(120).nullable().optional()),
+    contractValueAmount: z.preprocess(emptyToNull, z.string().trim().nullable().optional()),
+    contractValueCurrency: z.preprocess(emptyToNull, z.string().trim().length(3).nullable().optional()),
+    amountIncludesTax: amountIncludesTaxSchema.optional(),
+  })
+  .superRefine((value, ctx) => {
+    refineDateOrder(value, ctx, 'startDate', 'targetEndDate');
+    if (isEndBeforeStart(value.startDate, value.actualEndDate)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: DATE_ORDER_MESSAGE,
+        path: ['actualEndDate'],
+      });
+    }
+  });
 
 export type UpdateProjectInput = z.input<typeof updateProjectSchema>;
 
@@ -96,6 +134,8 @@ export const listProjectsSchema = z.object({
   includeArchived: z.boolean().optional(),
   sortBy: z.enum(['name', 'status', 'created_at', 'updated_at']).optional(),
   sortDirection: z.enum(['asc', 'desc']).optional(),
+  limit: z.coerce.number().int().min(0).optional(),
+  offset: z.coerce.number().int().min(0).optional(),
 });
 
 export const createWorkPackageSchema = z.object({
@@ -104,14 +144,24 @@ export const createWorkPackageSchema = z.object({
   description: optionalText,
 });
 
-export const updateWorkPackageSchema = z.object({
-  workPackageId: z.string().uuid(),
-  name: z.string().trim().min(1).max(120).optional(),
-  description: optionalText,
-  startDate: optionalDate,
-  endDate: optionalDate,
-  progressPercent: optionalPercent,
-});
+export const updateWorkPackageSchema = z
+  .object({
+    workPackageId: z.string().uuid(),
+    name: z.string().trim().min(1).max(120).optional(),
+    description: optionalText,
+    startDate: optionalDate,
+    endDate: optionalDate,
+    progressPercent: optionalPercent,
+  })
+  .superRefine((value, ctx) => {
+    if (isEndBeforeStart(value.startDate, value.endDate)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: DATE_ORDER_MESSAGE,
+        path: ['endDate'],
+      });
+    }
+  });
 
 export const archiveWorkPackageSchema = z.object({
   workPackageId: z.string().uuid(),
@@ -143,19 +193,39 @@ export const archiveMilestoneSchema = z.object({
   milestoneId: z.string().uuid(),
 });
 
-export const createPhaseSchema = z.object({
-  workPackageId: z.string().uuid(),
-  name: z.string().trim().min(1).max(120),
-  startDate: optionalDate,
-  endDate: optionalDate,
-});
+export const createPhaseSchema = z
+  .object({
+    workPackageId: z.string().uuid(),
+    name: z.string().trim().min(1).max(120),
+    startDate: optionalDate,
+    endDate: optionalDate,
+  })
+  .superRefine((value, ctx) => {
+    if (isEndBeforeStart(value.startDate, value.endDate)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: DATE_ORDER_MESSAGE,
+        path: ['endDate'],
+      });
+    }
+  });
 
-export const updatePhaseSchema = z.object({
-  phaseId: z.string().uuid(),
-  name: z.string().trim().min(1).max(120).optional(),
-  startDate: optionalDate,
-  endDate: optionalDate,
-});
+export const updatePhaseSchema = z
+  .object({
+    phaseId: z.string().uuid(),
+    name: z.string().trim().min(1).max(120).optional(),
+    startDate: optionalDate,
+    endDate: optionalDate,
+  })
+  .superRefine((value, ctx) => {
+    if (isEndBeforeStart(value.startDate, value.endDate)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: DATE_ORDER_MESSAGE,
+        path: ['endDate'],
+      });
+    }
+  });
 
 export const archivePhaseSchema = z.object({
   phaseId: z.string().uuid(),
@@ -165,4 +235,14 @@ export const splitProjectSchema = z.object({
   projectId: z.string().uuid(),
   defaultPackageName: z.string().trim().min(1).max(120).optional(),
   additionalPackages: z.array(z.string().trim().min(1).max(120)).min(1).optional(),
+});
+
+export const applyProjectTemplateSchema = z.object({
+  projectId: z.string().uuid(),
+  templateKey: z.enum([
+    'simple_finish',
+    'residential_mep',
+    'design_studio',
+    'main_contractor',
+  ] as const),
 });

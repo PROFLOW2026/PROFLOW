@@ -1,9 +1,9 @@
+import { noteModuleUsage } from '@/modules/tenancy';
 import { recordAuditEvent } from '@/shared/audit';
 import type { OrgContext } from '@/shared/auth/context';
 import { NotFoundError, ValidationError } from '@/shared/errors';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
-import { noteModuleUsage } from '@/modules/tenancy';
 import {
   findLeadById,
   findOpportunityById,
@@ -13,11 +13,13 @@ import {
   listEstimatesForOpportunity,
   listOpportunities,
   listOpportunityNotes,
-  listSalesQuoteLines,
+  listSalesQuoteLinesForVersions,
   listSalesQuotesForOpportunity,
-  listSalesQuoteVersions,
+  listSalesQuoteVersionsForQuotes,
+  updateLeadById,
   updateOpportunityById,
 } from '../data/crm.repository';
+import { assertLostCreatesNoProject } from '../domain/conversion';
 import {
   CRM_AUDIT_ACTIONS,
   type OpportunityDetail,
@@ -75,16 +77,40 @@ export async function getOpportunityById(
     opportunityId,
   );
 
-  const salesQuotes = [];
-  for (const quote of quotes) {
-    const versions = await listSalesQuoteVersions(context.db, context.organizationId, quote.id);
-    const versionsWithLines = [];
-    for (const version of versions) {
-      const lines = await listSalesQuoteLines(context.db, context.organizationId, version.id);
-      versionsWithLines.push({ ...version, lines });
-    }
-    salesQuotes.push({ ...quote, versions: versionsWithLines });
+  const allVersions = await listSalesQuoteVersionsForQuotes(
+    context.db,
+    context.organizationId,
+    quotes.map((quote) => quote.id),
+  );
+  const allLines = await listSalesQuoteLinesForVersions(
+    context.db,
+    context.organizationId,
+    allVersions.map((version) => version.id),
+  );
+
+  const versionsByQuote = new Map<string, typeof allVersions>();
+  for (const version of allVersions) {
+    const bucket = versionsByQuote.get(version.salesQuoteId) ?? [];
+    bucket.push(version);
+    versionsByQuote.set(version.salesQuoteId, bucket);
   }
+  const linesByVersion = new Map<string, typeof allLines>();
+  for (const line of allLines) {
+    const bucket = linesByVersion.get(line.versionId) ?? [];
+    bucket.push(line);
+    linesByVersion.set(line.versionId, bucket);
+  }
+
+  const salesQuotes = quotes.map((quote) => {
+    const versions = versionsByQuote.get(quote.id) ?? [];
+    return {
+      ...quote,
+      versions: versions.map((version) => ({
+        ...version,
+        lines: linesByVersion.get(version.id) ?? [],
+      })),
+    };
+  });
 
   return {
     ...opportunity,
@@ -132,6 +158,16 @@ export async function createOpportunity(
     notes: input.notes ?? null,
   });
 
+  // Lead → opportunity is the conversion step; mark the lead so lists stay coherent.
+  if (input.leadId) {
+    const lead = await findLeadById(context.db, context.organizationId, input.leadId);
+    if (lead && lead.status !== 'converted' && lead.status !== 'disqualified') {
+      await updateLeadById(context.db, context.organizationId, lead.id, {
+        status: 'converted',
+      });
+    }
+  }
+
   await noteModuleUsage(context.db, context.organizationId, 'crm');
   await recordAuditEvent(context, {
     action: CRM_AUDIT_ACTIONS.OPPORTUNITY_CREATED,
@@ -164,6 +200,11 @@ export async function updateOpportunity(
   );
   if (!existing) throw new NotFoundError('Opportunity');
 
+  const markingLost = input.status === 'lost' || input.stage === 'lost';
+  if (markingLost) {
+    assertLostCreatesNoProject(existing);
+  }
+
   if (existing.status === 'won' && existing.convertedAt) {
     // Converted opportunities stay historical; allow notes/lostReason tweaks only via status guards elsewhere.
   }
@@ -190,6 +231,22 @@ export async function updateOpportunity(
   if (!updated) throw new NotFoundError('Opportunity');
 
   await noteModuleUsage(context.db, context.organizationId, 'crm');
+
+  if (markingLost && existing.status !== 'lost') {
+    await recordAuditEvent(context, {
+      action: CRM_AUDIT_ACTIONS.OPPORTUNITY_UPDATED,
+      entityType: 'crm_opportunity',
+      entityId: updated.id,
+      before: { status: existing.status, stage: existing.stage },
+      after: {
+        status: updated.status,
+        stage: updated.stage,
+        lostReason: updated.lostReason,
+        convertedProjectId: null,
+        noProjectCreated: true,
+      },
+    });
+  }
 
   return updated;
 }

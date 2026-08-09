@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState, useState } from 'react';
+import { useActionState, useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -14,34 +14,75 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import type { FieldOpsWorkPackageOption } from '@/modules/field-ops/domain/types';
+import { dailyLogPayloadFromFormData } from '@/modules/offline/domain/payloads';
+import { useOfflineAwareFormAction } from '@/modules/offline/ui/use-offline-aware-form-action';
+import { Link } from '@/shared/i18n/navigation';
 import { createDailyLogAction, type FieldOpsFormState } from '../actions';
+import { FieldOpsPhotoLimitationNote } from '../field-ops-photo-limitation-note';
+
+const NONE = '__none__';
 
 export function DailyLogCreateForm({
   projects,
+  workPackages,
   defaultProjectId,
   defaultLogDate,
 }: {
   projects: readonly { id: string; name: string }[];
+  workPackages: readonly FieldOpsWorkPackageOption[];
   defaultProjectId?: string;
   defaultLogDate: string;
 }) {
   const t = useTranslations('fieldOps.createLog');
   const tCommon = useTranslations('common');
+  const tOffline = useTranslations('offline');
+
+  const offlineSuccessState = useMemo<FieldOpsFormState>(() => ({ offlineQueued: true }), []);
+
+  const wrappedAction = useOfflineAwareFormAction<FieldOpsFormState>({
+    kind: 'daily_log',
+    onlineAction: createDailyLogAction,
+    buildPayload: dailyLogPayloadFromFormData,
+    offlineSuccessState,
+    missingOrgError: tOffline('errors.missingOrganization'),
+  });
+
   const [state, formAction, pending] = useActionState<FieldOpsFormState, FormData>(
-    createDailyLogAction,
+    wrappedAction,
     {},
   );
   const [projectId, setProjectId] = useState(defaultProjectId ?? '');
+  const [workPackageId, setWorkPackageId] = useState(NONE);
+
+  const projectPackages = useMemo(
+    () => workPackages.filter((pkg) => pkg.projectId === projectId),
+    [workPackages, projectId],
+  );
 
   return (
     <form action={formAction} className="flex max-w-lg flex-col gap-4">
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
+      {state.offlineQueued ? (
+        <Alert tone="info" role="status">
+          {tOffline('forms.draftSaved')}{' '}
+          <Link href="/settings/offline-drafts" className="font-medium underline">
+            {tOffline('banner.viewDrafts')}
+          </Link>
+        </Alert>
+      ) : null}
 
       <Field label={t('projectLabel')} required error={state.fieldErrors?.projectId}>
         {(control) => (
           <>
             <input type="hidden" name="projectId" value={projectId} />
-            <Select value={projectId} onValueChange={setProjectId}>
+            <Select
+              value={projectId}
+              onValueChange={(value) => {
+                setProjectId(value);
+                setWorkPackageId(NONE);
+              }}
+            >
               <SelectTrigger id={control.id}>
                 <SelectValue placeholder={t('projectPlaceholder')} />
               </SelectTrigger>
@@ -57,25 +98,100 @@ export function DailyLogCreateForm({
         )}
       </Field>
 
+      {projectPackages.length > 0 ? (
+        <Field label={t('workPackageLabel')} error={state.fieldErrors?.workPackageId}>
+          {(control) => (
+            <>
+              <input
+                type="hidden"
+                name="workPackageId"
+                value={workPackageId === NONE ? '' : workPackageId}
+              />
+              <Select value={workPackageId} onValueChange={setWorkPackageId}>
+                <SelectTrigger id={control.id}>
+                  <SelectValue placeholder={t('workPackagePlaceholder')} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={NONE}>{t('workPackageNone')}</SelectItem>
+                  {projectPackages.map((pkg) => (
+                    <SelectItem key={pkg.id} value={pkg.id}>
+                      {pkg.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </>
+          )}
+        </Field>
+      ) : null}
+
       <Field label={t('logDateLabel')} required error={state.fieldErrors?.logDate}>
         {(control) => (
           <Input {...control} type="date" name="logDate" defaultValue={defaultLogDate} required />
         )}
       </Field>
 
-      <Field label={t('weatherLabel')} error={state.fieldErrors?.weather}>
-        {(control) => <Input {...control} name="weather" />}
+      <Field
+        label={t('weatherLabel')}
+        description={t('weatherHint')}
+        error={state.fieldErrors?.weather}
+      >
+        {(control) => <Input {...control} name="weather" placeholder={t('weatherPlaceholder')} />}
       </Field>
 
-      <Field label={t('summaryLabel')} required error={state.fieldErrors?.summary}>
-        {(control) => <Textarea {...control} name="summary" rows={4} required />}
+      <Field
+        label={t('summaryLabel')}
+        description={t('summaryHint')}
+        required
+        error={state.fieldErrors?.summary}
+      >
+        {(control) => (
+          <Textarea
+            {...control}
+            name="summary"
+            rows={4}
+            required
+            placeholder={t('summaryPlaceholder')}
+            className="min-h-24 text-base"
+          />
+        )}
       </Field>
 
-      <Field label={t('workforceNotesLabel')} error={state.fieldErrors?.workforceNotes}>
-        {(control) => <Textarea {...control} name="workforceNotes" rows={3} />}
+      <Field
+        label={t('workforceNotesLabel')}
+        description={t('workforceNotesHint')}
+        error={state.fieldErrors?.workforceNotes}
+      >
+        {(control) => (
+          <Textarea
+            {...control}
+            name="workforceNotes"
+            rows={3}
+            placeholder={t('workforceNotesPlaceholder')}
+            className="min-h-20 text-base"
+          />
+        )}
       </Field>
 
-      <Button type="submit" disabled={pending || !projectId}>
+      <Field
+        label={t('blockersLabel')}
+        description={t('blockersHint')}
+        error={state.fieldErrors?.blockers}
+      >
+        {(control) => (
+          <Textarea
+            {...control}
+            name="blockers"
+            rows={3}
+            placeholder={t('blockersPlaceholder')}
+            className="min-h-20 text-base"
+          />
+        )}
+      </Field>
+
+      <FieldOpsPhotoLimitationNote />
+
+      <Button type="submit" className="h-11 w-full sm:w-auto" disabled={pending || !projectId}>
         {pending ? tCommon('states.saving') : t('submit')}
       </Button>
     </form>

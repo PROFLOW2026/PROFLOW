@@ -2,9 +2,11 @@ import { createClient } from '@/modules/clients';
 import { createVendor } from '@/modules/vendors';
 import { createEmployee } from '@/modules/workforce';
 import { createProject } from '@/modules/projects';
+import { createExpense } from '@/modules/expenses';
 import type { OrgContext } from '@/shared/auth/context';
 import { AppError, ValidationError } from '@/shared/errors';
 import { previewImport } from './preview-import';
+import { enrichImportPreview } from './enrich-preview';
 import { assertCanImportKind } from './import-permissions';
 import {
   isEnabledImportKind,
@@ -107,6 +109,27 @@ async function createFromRow(
       });
       return result.projectId;
     }
+    case 'expenses': {
+      // Canonical createExpense only — draft status, money/tax rules unchanged.
+      const created = await createExpense(context, {
+        amount: v.amount ?? '',
+        currency: (emptyToUndefined(v.currency) ?? context.organization.baseCurrency).toUpperCase(),
+        description: emptyToUndefined(v.description) ?? null,
+        expenseDate: emptyToUndefined(v.expenseDate),
+        supplierName: emptyToUndefined(v.supplierName) ?? null,
+        vendorId: emptyToUndefined(v.vendorId) ?? null,
+        projectId: emptyToUndefined(v.projectId) ?? null,
+        costFamily: emptyToUndefined(v.costFamily)?.toLowerCase() as
+          | 'direct_project'
+          | 'shared'
+          | 'business_overhead'
+          | 'asset_capital'
+          | null
+          | undefined,
+        notes: emptyToUndefined(v.notes) ?? null,
+      });
+      return created.id;
+    }
     default: {
       const _exhaustive: never = kind;
       throw new ValidationError([
@@ -125,32 +148,26 @@ function errorMessage(error: unknown): string {
 /**
  * Confirm a previously previewed import: create via existing module APIs
  * inside transactional batches (each batch = one withOrgContext transaction).
- *
- * Caller must invoke this from within `withOrgContext` for permission/tenant
- * binding; batches that need separate commits should call `confirmImportInBatches`
- * from the server action instead.
  */
 export async function confirmImport(
   context: OrgContext,
   input: ConfirmImportInput,
 ): Promise<ImportConfirmResult> {
   if (!isEnabledImportKind(input.kind)) {
-    throw new ValidationError([
-      {
-        path: 'kind',
-        message: 'Expense import is not enabled; use clients, vendors, employees, or projects',
-      },
-    ]);
+    throw new ValidationError([{ path: 'kind', message: 'Unknown or disabled import kind' }]);
   }
 
   const kind = input.kind;
   assertCanImportKind(context, kind);
 
-  const preview = previewImport(context, {
-    kind,
-    csvText: input.csvText,
-    mapping: input.mapping,
-  });
+  const preview = await enrichImportPreview(
+    context,
+    previewImport(context, {
+      kind,
+      csvText: input.csvText,
+      mapping: input.mapping,
+    }),
+  );
 
   if (!preview.enabled) {
     throw new ValidationError([{ path: 'kind', message: 'Import kind is not enabled' }]);
@@ -172,7 +189,6 @@ export async function confirmImport(
     }
   }
 
-  // Also record skipped error rows that were requested.
   for (const row of preview.rows) {
     if (!selected.has(row.rowNumber)) continue;
     if (!rowHasErrors(row)) continue;
@@ -206,19 +222,15 @@ export async function confirmImportInBatches(
   input: ConfirmImportInput,
 ): Promise<ImportConfirmResult> {
   if (!isEnabledImportKind(input.kind)) {
-    throw new ValidationError([
-      {
-        path: 'kind',
-        message: 'Expense import is not enabled; use clients, vendors, employees, or projects',
-      },
-    ]);
+    throw new ValidationError([{ path: 'kind', message: 'Unknown or disabled import kind' }]);
   }
 
   const kind = input.kind;
 
-  const preview = await runInOrg((context) => {
+  const preview = await runInOrg(async (context) => {
     assertCanImportKind(context, kind);
-    return Promise.resolve(
+    return enrichImportPreview(
+      context,
       previewImport(context, {
         kind,
         csvText: input.csvText,

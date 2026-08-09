@@ -40,6 +40,8 @@ export const listDocumentsSchema = z.object({
   search: z.string().trim().optional(),
   ownerType: z.enum([...DOCUMENT_OWNER_TYPES, 'all'] as const).optional(),
   includeDeleted: z.boolean().optional(),
+  limit: z.coerce.number().int().min(0).optional(),
+  offset: z.coerce.number().int().min(0).optional(),
 });
 
 export const linkDocumentSchema = z.object({

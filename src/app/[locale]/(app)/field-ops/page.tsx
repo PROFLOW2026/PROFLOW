@@ -26,7 +26,7 @@ export default async function FieldOpsIndexPage() {
       <div className="grid gap-4 sm:grid-cols-3">
         <Link
           href="/field-ops/logs"
-          className="rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4 hover:border-[var(--pf-border-strong)]"
+          className="min-h-11 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4 hover:border-[var(--pf-border-strong)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
         >
           <HardHat className="mb-2 size-5 text-[var(--pf-text-secondary)]" aria-hidden />
           <h2 className="font-semibold">{t('nav.logs')}</h2>
@@ -34,14 +34,14 @@ export default async function FieldOpsIndexPage() {
         </Link>
         <Link
           href="/field-ops/punch"
-          className="rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4 hover:border-[var(--pf-border-strong)]"
+          className="min-h-11 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4 hover:border-[var(--pf-border-strong)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
         >
           <h2 className="font-semibold">{t('nav.punch')}</h2>
           <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">{t('empty.punch.body')}</p>
         </Link>
         <Link
           href="/field-ops/inspections"
-          className="rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4 hover:border-[var(--pf-border-strong)]"
+          className="min-h-11 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4 hover:border-[var(--pf-border-strong)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
         >
           <h2 className="font-semibold">{t('nav.inspections')}</h2>
           <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">{t('empty.inspections.body')}</p>

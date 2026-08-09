@@ -306,6 +306,33 @@ export async function findSelectedQuoteVersionForChangeRequest(
   return row ? mapQuoteVersion(row.version) : null;
 }
 
+/**
+ * Loads a quote version only when it belongs to the given change request.
+ * Prevents intra-org IDOR: approving/editing CR A with a version from CR B.
+ */
+export async function findQuoteVersionForChangeRequest(
+  db: DbExecutor,
+  organizationId: string,
+  changeRequestId: string,
+  quoteVersionId: string,
+): Promise<QuoteVersionRecord | null> {
+  const [row] = await db
+    .select({ version: quoteVersions })
+    .from(quotes)
+    .innerJoin(quoteVersions, eq(quoteVersions.quoteId, quotes.id))
+    .where(
+      and(
+        eq(quotes.organizationId, organizationId),
+        eq(quotes.changeRequestId, changeRequestId),
+        eq(quoteVersions.organizationId, organizationId),
+        eq(quoteVersions.id, quoteVersionId),
+      ),
+    )
+    .limit(1);
+
+  return row ? mapQuoteVersion(row.version) : null;
+}
+
 export async function insertApproval(
   db: DbExecutor,
   input: {

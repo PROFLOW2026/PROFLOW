@@ -99,6 +99,15 @@ export const documentOwnerTypeEnum = pgEnum('document_owner_type', [
   'quote_version',
   'employee',
   'organization',
+  'procurement_rfq',
+  'purchase_order',
+  'ap_bill',
+  'daily_log',
+  'punch_list_item',
+  'inspection',
+  'compliance_artifact',
+  'asset',
+  'inventory_item',
 ]);
 
 export const taxMethodEnum = pgEnum('tax_method', ['percentage', 'exempt', 'zero_rated']);

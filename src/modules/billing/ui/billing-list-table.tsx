@@ -6,7 +6,7 @@ import { ResponsiveTable } from '@/components/patterns/responsive-table';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Link } from '@/shared/i18n/navigation';
 import { formatBusinessDate } from '@/shared/dates/format';
-import type { BillingRecordSummary } from '@/modules/billing';
+import type { BillingRecordSummary } from '@/modules/billing/domain/types';
 import { BillingStatusBadge } from './billing-status-badge';
 
 interface BillingListTableProps {

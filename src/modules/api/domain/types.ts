@@ -22,6 +22,8 @@ export const API_KEY_SCOPES = [
 
 export type ApiKeyScope = (typeof API_KEY_SCOPES)[number];
 
+export { WEBHOOK_EVENT_TYPES, type WebhookEventType } from './webhook-events';
+
 export interface ApiClientRecord {
   readonly id: string;
   readonly organizationId: string;
@@ -94,6 +96,8 @@ export interface WebhookDeliveryRecord {
   readonly status: WebhookDeliveryStatus;
   readonly attemptCount: number;
   readonly lastError: string | null;
+  /** Parsed from lastError (`HTTP NNN:`) until dedicated column exists. */
+  readonly lastHttpStatus: number | null;
   readonly deliveredAt: Date | null;
   readonly createdAt: Date;
   readonly updatedAt: Date;

@@ -28,6 +28,13 @@ export {
 } from './domain/reserved-keys';
 
 export {
+  assertCustomFieldValueValid,
+  assertSelectOptionsConfig,
+  parseSelectOptions,
+} from './domain/validate-value';
+export type { CustomFieldValuePayload } from './domain/validate-value';
+
+export {
   createDefinitionSchema,
   archiveDefinitionSchema,
   upsertValueSchema,
@@ -37,6 +44,3 @@ export type {
   ArchiveDefinitionInput,
   UpsertValueInput,
 } from './validation/schemas';
-
-export { EntityCustomFieldsPanel } from './ui/entity-custom-fields-panel';
-export type { EntityFieldActionState } from './ui/entity-custom-fields-panel';

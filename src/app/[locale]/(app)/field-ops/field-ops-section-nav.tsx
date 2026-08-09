@@ -2,6 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { Link } from '@/shared/i18n/navigation';
+import { cn } from '@/shared/ui/cn';
 
 const SECTIONS = [
   { key: 'logs' as const, href: '/field-ops/logs' },
@@ -9,29 +10,36 @@ const SECTIONS = [
   { key: 'inspections' as const, href: '/field-ops/inspections' },
 ];
 
+const tabClassName =
+  'inline-flex min-h-11 items-center rounded-md px-3 py-1.5 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]';
+
 export function FieldOpsSectionNav({
   active,
 }: {
   active: 'logs' | 'punch' | 'inspections';
 }) {
-  const t = useTranslations('fieldOps.nav');
+  const t = useTranslations('fieldOps');
 
   return (
-    <nav className="flex flex-wrap gap-2 border-b border-[var(--pf-border-default)] pb-3" aria-label={t('logs')}>
+    <nav
+      className="flex flex-wrap gap-2 border-b border-[var(--pf-border-default)] pb-3"
+      aria-label={t('navLabel')}
+    >
       {SECTIONS.map((section) => {
         const isActive = section.key === active;
         return (
           <Link
             key={section.key}
             href={section.href}
-            className={
+            className={cn(
+              tabClassName,
               isActive
-                ? 'rounded-md bg-[var(--pf-bg-muted)] px-3 py-1.5 text-sm font-medium'
-                : 'rounded-md px-3 py-1.5 text-sm text-[var(--pf-text-secondary)] hover:bg-[var(--pf-bg-muted)]'
-            }
+                ? 'bg-[var(--pf-bg-muted)] font-medium'
+                : 'text-[var(--pf-text-secondary)] hover:bg-[var(--pf-bg-muted)]',
+            )}
             aria-current={isActive ? 'page' : undefined}
           >
-            {t(section.key)}
+            {t(`nav.${section.key}`)}
           </Link>
         );
       })}

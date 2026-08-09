@@ -68,3 +68,6 @@ export type {
   ListPaymentApplicationsInput,
   CreateAdjustmentInput,
 } from './validation/schemas';
+
+/** Cross-module billing amount rows for safe portal outstanding (not payment write). */
+export { listProjectBillingAmountRows } from './data/billing.repository';

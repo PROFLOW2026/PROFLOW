@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { businessDate } from '@/shared/dates/dates';
-import { deriveArtifactStatus, resolveArtifactStatus } from '@/modules/compliance';
+import { deriveArtifactStatus, resolveArtifactStatus } from '@/modules/compliance/domain/status';
 
 const today = businessDate('2026-08-09');
 

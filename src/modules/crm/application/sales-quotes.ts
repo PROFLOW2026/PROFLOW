@@ -114,6 +114,20 @@ export async function createSalesQuote(
   await replaceSalesQuoteLines(context.db, context.organizationId, version.id, lines);
 
   await noteModuleUsage(context.db, context.organizationId, 'crm');
+  await recordAuditEvent(context, {
+    action: CRM_AUDIT_ACTIONS.SALES_QUOTE_CREATED,
+    entityType: 'crm_sales_quote',
+    entityId: quote.id,
+    after: {
+      opportunityId: quote.opportunityId,
+      versionId: version.id,
+      currency,
+      subtotalAmount: version.subtotalAmount,
+      taxAmount: version.taxAmount,
+      totalAmount: version.totalAmount,
+      isNotBilling: true,
+    },
+  });
 
   return { quote, version };
 }

@@ -3,7 +3,7 @@ import { getTranslations } from 'next-intl/server';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/ui/page-header';
 import { Button } from '@/components/ui/button';
-import { listPurchaseOrdersForOrg } from '@/modules/procurement';
+import { listPurchaseOrderLinesForOrg, listPurchaseOrdersForOrg } from '@/modules/procurement';
 import { listProjectsForOrg } from '@/modules/projects';
 import { listVendorsForOrg } from '@/modules/vendors';
 import { withOrgContext } from '@/shared/auth/session';
@@ -25,8 +25,8 @@ export async function generateMetadata({
 export default async function NewApBillPage() {
   const t = await getTranslations('ap');
 
-  const { vendors, projects, purchaseOrders, defaultCurrency, canManage } = await withOrgContext(
-    async (context) => {
+  const { vendors, projects, purchaseOrders, poLinesByPoId, defaultCurrency, canManage } =
+    await withOrgContext(async (context) => {
       const canReadVendors = hasPermission(context, PERMISSIONS.VENDORS_READ);
       const canReadProjects = hasPermission(context, PERMISSIONS.PROJECTS_READ);
       const canReadPo = hasPermission(context, PERMISSIONS.PROCUREMENT_READ);
@@ -37,6 +37,23 @@ export default async function NewApBillPage() {
         canReadPo ? listPurchaseOrdersForOrg(context) : Promise.resolve([]),
       ]);
 
+      const lineEntries = canReadPo
+        ? await Promise.all(
+            poRows.map(async (po) => {
+              const lines = await listPurchaseOrderLinesForOrg(context, po.id);
+              return [
+                po.id,
+                lines.map((line) => ({
+                  id: line.id,
+                  description: line.description,
+                  lineTotal: line.lineTotal,
+                  currency: line.currency,
+                })),
+              ] as const;
+            }),
+          )
+        : [];
+
       return {
         vendors: vendorRows.map((vendor) => ({ id: vendor.id, name: vendor.name })),
         projects: projectRows.map((project) => ({ id: project.id, name: project.name })),
@@ -45,11 +62,14 @@ export default async function NewApBillPage() {
           reference: po.reference,
           vendorId: po.vendorId,
         })),
+        poLinesByPoId: Object.fromEntries(lineEntries) as Record<
+          string,
+          { id: string; description: string; lineTotal: string; currency: string }[]
+        >,
         defaultCurrency: context.organization.baseCurrency,
         canManage: hasPermission(context, PERMISSIONS.AP_MANAGE),
       };
-    },
-  );
+    });
 
   return (
     <div className="flex flex-col gap-6">
@@ -84,6 +104,7 @@ export default async function NewApBillPage() {
           vendors={vendors}
           projects={projects}
           purchaseOrders={purchaseOrders}
+          poLinesByPoId={poLinesByPoId}
         />
       )}
     </div>

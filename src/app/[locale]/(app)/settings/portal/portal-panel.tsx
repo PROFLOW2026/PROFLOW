@@ -14,13 +14,24 @@ import {
   CUSTOMER_PORTAL_SCOPES,
   VENDOR_PORTAL_SCOPES,
   type ExternalAccessGrantListItem,
-} from '@/modules/portal';
+  type VendorApBillCandidate,
+  type VendorComplianceUploadCandidate,
+} from '@/modules/portal/domain/types';
 import {
   createCustomerGrantAction,
   createVendorGrantAction,
+  previewCustomerSafeSummaryAction,
+  previewVendorPortalAction,
+  recordVendorQuoteOnBehalfAction,
+  reviewVendorCandidateAction,
   revokeCustomerGrantAction,
   revokeVendorGrantAction,
+  submitVendorApBillCandidateAction,
+  submitVendorComplianceCandidateAction,
+  submitVendorQuoteCandidateAction,
   type PortalActionState,
+  type PortalPreviewState,
+  type VendorPortalPreviewState,
 } from './actions';
 
 function GrantTable({
@@ -96,6 +107,7 @@ function GrantTable({
                             size="sm"
                             loading={revokePending}
                             className="min-h-11 md:min-h-8"
+                            aria-label={t('revokeNamed', { email: grant.principalEmail })}
                           >
                             {t('revoke')}
                           </Button>
@@ -138,6 +150,7 @@ function GrantTable({
                   size="sm"
                   loading={revokePending}
                   className="min-h-11"
+                  aria-label={t('revokeNamed', { email: grant.principalEmail })}
                 >
                   {t('revoke')}
                 </Button>
@@ -150,20 +163,681 @@ function GrantTable({
   );
 }
 
+function CustomerSafePreview({
+  projects,
+  customerGrants,
+}: {
+  projects: { id: string; name: string }[];
+  customerGrants: ExternalAccessGrantListItem[];
+}) {
+  const t = useTranslations('portal');
+  const [state, action, pending] = useActionState(
+    previewCustomerSafeSummaryAction,
+    {} as PortalPreviewState,
+  );
+  const activeGrants = customerGrants.filter((grant) => grant.status === 'active');
+  const summary = state.summary;
+
+  return (
+    <section className="rounded-lg border border-[var(--pf-border-default)] p-4">
+      <h3 className="font-medium">{t('preview.title')}</h3>
+      <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">{t('preview.subtitle')}</p>
+      <p className="mt-1 text-xs text-[var(--pf-text-muted)]">{t('preview.grantHint')}</p>
+
+      <form action={action} className="mt-3 flex max-w-lg flex-col gap-3">
+        {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
+
+        <Field label={t('fields.project')} required>
+          {(props) => (
+            <Select name="projectId" defaultValue="none" required>
+              <SelectTrigger id={props.id}>
+                <SelectValue placeholder={t('fields.none')} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">{t('fields.none')}</SelectItem>
+                {projects.map((project) => (
+                  <SelectItem key={project.id} value={project.id}>
+                    {project.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+        </Field>
+
+        <Field label={t('preview.grantOptional')}>
+          {(props) => (
+            <Select name="grantId" defaultValue="none">
+              <SelectTrigger id={props.id}>
+                <SelectValue placeholder={t('fields.none')} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">{t('fields.none')}</SelectItem>
+                {activeGrants.map((grant) => (
+                  <SelectItem key={grant.id} value={grant.id}>
+                    {grant.principalEmail}
+                    {grant.projectName || grant.clientName
+                      ? ` · ${[grant.projectName, grant.clientName].filter(Boolean).join(' / ')}`
+                      : ''}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+        </Field>
+
+        <Button type="submit" variant="secondary" loading={pending}>
+          {t('preview.run')}
+        </Button>
+      </form>
+
+      {summary ? (
+        <dl className="mt-4 grid gap-2 text-sm sm:grid-cols-2">
+          <div>
+            <dt className="text-[var(--pf-text-secondary)]">{t('preview.fields.name')}</dt>
+            <dd className="font-medium">{summary.name}</dd>
+          </div>
+          <div>
+            <dt className="text-[var(--pf-text-secondary)]">{t('preview.fields.status')}</dt>
+            <dd>{summary.status}</dd>
+          </div>
+          <div>
+            <dt className="text-[var(--pf-text-secondary)]">{t('preview.fields.client')}</dt>
+            <dd>{summary.clientName ?? '—'}</dd>
+          </div>
+          <div>
+            <dt className="text-[var(--pf-text-secondary)]">{t('preview.fields.progress')}</dt>
+            <dd>
+              {summary.progressPercent != null ? `${summary.progressPercent}%` : '—'}
+              {summary.progressStatus ? ` · ${summary.progressStatus}` : ''}
+            </dd>
+          </div>
+          <div>
+            <dt className="text-[var(--pf-text-secondary)]">{t('preview.fields.dates')}</dt>
+            <dd dir="ltr">
+              {[summary.startDate, summary.targetEndDate].filter(Boolean).join(' → ') || '—'}
+            </dd>
+          </div>
+          <div>
+            <dt className="text-[var(--pf-text-secondary)]">{t('preview.fields.location')}</dt>
+            <dd>{summary.location ?? '—'}</dd>
+          </div>
+          <div className="sm:col-span-2">
+            <dt className="text-[var(--pf-text-secondary)]">{t('preview.fields.description')}</dt>
+            <dd>{summary.description ?? '—'}</dd>
+          </div>
+          {summary.outstanding ? (
+            <div>
+              <dt className="text-[var(--pf-text-secondary)]">{t('preview.fields.outstanding')}</dt>
+              <dd dir="ltr">
+                {summary.outstanding.amount} {summary.outstanding.currency}
+              </dd>
+            </div>
+          ) : null}
+          {(summary.documents ?? state.documents)?.length ? (
+            <div className="sm:col-span-2">
+              <dt className="text-[var(--pf-text-secondary)]">{t('preview.fields.documents')}</dt>
+              <dd>
+                <ul className="mt-1 flex flex-col gap-1">
+                  {(summary.documents ?? state.documents ?? []).map((doc) => (
+                    <li key={doc.documentId} className="text-sm" dir="ltr">
+                      {doc.filename}
+                      {doc.label ? ` · ${doc.label}` : ''}
+                    </li>
+                  ))}
+                </ul>
+              </dd>
+            </div>
+          ) : state.scopesApplied?.includes('documents.read') ? (
+            <div className="sm:col-span-2 text-xs text-[var(--pf-text-muted)]">
+              {t('preview.noDocuments')}
+            </div>
+          ) : null}
+          {state.scopesApplied && state.scopesApplied.length > 0 ? (
+            <div className="sm:col-span-2">
+              <dt className="text-[var(--pf-text-secondary)]">{t('preview.scopesApplied')}</dt>
+              <dd className="mt-1 flex flex-wrap gap-1">
+                {state.scopesApplied.map((scope) => (
+                  <Badge key={scope} tone="neutral">
+                    {t(`scopes.${scope}` as 'scopes.project.summary')}
+                  </Badge>
+                ))}
+              </dd>
+            </div>
+          ) : null}
+          <div className="sm:col-span-2">
+            <dt className="text-[var(--pf-text-secondary)]">{t('preview.neverExposed')}</dt>
+            <dd className="text-xs text-[var(--pf-text-muted)]">
+              {(state.neverExposed ?? ['profit', 'employeeCost', 'overhead', 'admin']).join(' · ')}
+            </dd>
+          </div>
+          <div className="sm:col-span-2 text-xs text-[var(--pf-text-muted)]">
+            {t('preview.foundationNote')}
+          </div>
+        </dl>
+      ) : !state.error ? (
+        <p className="mt-3 text-sm text-[var(--pf-text-muted)]">{t('preview.empty')}</p>
+      ) : (
+        <p className="mt-3 text-xs text-[var(--pf-text-muted)]">{t('preview.foundationNote')}</p>
+      )}
+    </section>
+  );
+}
+
+function VendorSafePreview({
+  vendorGrants,
+}: {
+  vendorGrants: ExternalAccessGrantListItem[];
+}) {
+  const t = useTranslations('portal');
+  const [state, action, pending] = useActionState(
+    previewVendorPortalAction,
+    {} as VendorPortalPreviewState,
+  );
+  const activeGrants = vendorGrants.filter((grant) => grant.status === 'active');
+  const preview = state.preview;
+
+  return (
+    <section className="rounded-lg border border-[var(--pf-border-default)] p-4">
+      <h3 className="font-medium">{t('vendorPreview.title')}</h3>
+      <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">{t('vendorPreview.subtitle')}</p>
+
+      <form action={action} className="mt-3 flex max-w-lg flex-col gap-3">
+        {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
+        <Field label={t('vendorPreview.grant')} required>
+          {(props) => (
+            <Select name="grantId" defaultValue="none" required>
+              <SelectTrigger id={props.id}>
+                <SelectValue placeholder={t('fields.none')} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">{t('fields.none')}</SelectItem>
+                {activeGrants.map((grant) => (
+                  <SelectItem key={grant.id} value={grant.id}>
+                    {grant.principalEmail}
+                    {grant.vendorName ? ` · ${grant.vendorName}` : ''}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+        </Field>
+        <Button type="submit" loading={pending}>
+          {t('vendorPreview.run')}
+        </Button>
+      </form>
+
+      {preview ? (
+        <dl className="mt-4 grid gap-2 text-sm sm:grid-cols-2">
+          <div>
+            <dt className="text-[var(--pf-text-secondary)]">{t('fields.vendor')}</dt>
+            <dd>{preview.vendorName}</dd>
+          </div>
+          <div>
+            <dt className="text-[var(--pf-text-secondary)]">{t('fields.scopes')}</dt>
+            <dd>
+              {preview.scopes.length > 0 ? (
+                <ul className="flex flex-wrap gap-1">
+                  {preview.scopes.map((scope) => (
+                    <li key={scope}>
+                      <Badge tone="neutral">{t(`scopes.${scope}` as 'scopes.vendor.summary')}</Badge>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                '—'
+              )}
+            </dd>
+          </div>
+          <div>
+            <dt className="text-[var(--pf-text-secondary)]">{t('vendorPreview.rfqCount')}</dt>
+            <dd>{preview.rfqs.length}</dd>
+          </div>
+          <div>
+            <dt className="text-[var(--pf-text-secondary)]">{t('vendorPreview.poCount')}</dt>
+            <dd>{preview.purchaseOrders.length}</dd>
+          </div>
+          <div>
+            <dt className="text-[var(--pf-text-secondary)]">{t('vendorPreview.apCandidates')}</dt>
+            <dd>{preview.apBillCandidates.length}</dd>
+          </div>
+          <div>
+            <dt className="text-[var(--pf-text-secondary)]">{t('vendorPreview.complianceCandidates')}</dt>
+            <dd>{preview.complianceCandidates.length}</dd>
+          </div>
+          <div className="sm:col-span-2">
+            <dt className="text-[var(--pf-text-secondary)]">{t('vendorPreview.intakeNote')}</dt>
+            <dd>{t('vendorPreview.candidatesOnly')}</dd>
+          </div>
+          <div className="sm:col-span-2 text-xs text-[var(--pf-text-muted)]">
+            {t('vendorPreview.rfqVisibilityNote')}
+          </div>
+          {preview.rfqs.length > 0 ? (
+            <div className="sm:col-span-2">
+              <dt className="mb-1 text-[var(--pf-text-secondary)]">{t('vendorPreview.rfqList')}</dt>
+              <dd>
+                <ul className="flex flex-col gap-2">
+                  {preview.rfqs.slice(0, 5).map((rfq) => (
+                    <li
+                      key={rfq.rfqId}
+                      className="rounded-md border border-[var(--pf-border-default)] p-2 text-xs"
+                    >
+                      <span className="font-medium">{rfq.title}</span>
+                      <span className="text-[var(--pf-text-muted)]">
+                        {' · '}
+                        {rfq.status}
+                        {rfq.projectName ? ` · ${rfq.projectName}` : ''}
+                        {rfq.dueDate ? (
+                          <>
+                            {' · '}
+                            <span dir="ltr">{rfq.dueDate}</span>
+                          </>
+                        ) : null}
+                        {` · ${rfq.lines.length} ${t('vendorPreview.lines')}`}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </dd>
+            </div>
+          ) : null}
+          {preview.purchaseOrders.length > 0 ? (
+            <div className="sm:col-span-2">
+              <dt className="mb-1 text-[var(--pf-text-secondary)]">{t('vendorPreview.poList')}</dt>
+              <dd>
+                <ul className="flex flex-col gap-2">
+                  {preview.purchaseOrders.slice(0, 5).map((po) => (
+                    <li
+                      key={po.purchaseOrderId}
+                      className="rounded-md border border-[var(--pf-border-default)] p-2 text-xs"
+                    >
+                      <span className="font-medium">{po.reference ?? po.purchaseOrderId}</span>
+                      <span className="text-[var(--pf-text-muted)]">
+                        {' · '}
+                        {po.status}
+                        {' · '}
+                        <span dir="ltr">
+                          {po.orderTotal} {po.currency}
+                        </span>
+                        {po.projectName ? ` · ${po.projectName}` : ''}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </dd>
+            </div>
+          ) : null}
+        </dl>
+      ) : !state.error ? (
+        <p className="mt-3 text-sm text-[var(--pf-text-muted)]">{t('vendorPreview.empty')}</p>
+      ) : null}
+    </section>
+  );
+}
+
+function VendorCandidateForms({
+  vendorGrants,
+  defaultCurrency,
+}: {
+  vendorGrants: ExternalAccessGrantListItem[];
+  defaultCurrency: string;
+}) {
+  const t = useTranslations('portal');
+  const activeGrants = vendorGrants.filter((grant) => grant.status === 'active');
+  const [apState, apAction, apPending] = useActionState(
+    submitVendorApBillCandidateAction,
+    {} as PortalActionState,
+  );
+  const [docState, docAction, docPending] = useActionState(
+    submitVendorComplianceCandidateAction,
+    {} as PortalActionState,
+  );
+  const [quoteState, quoteAction, quotePending] = useActionState(
+    submitVendorQuoteCandidateAction,
+    {} as PortalActionState,
+  );
+
+  if (activeGrants.length === 0) return null;
+
+  return (
+    <div className="grid gap-4 lg:grid-cols-2">
+      <section className="rounded-lg border border-[var(--pf-border-default)] p-4 lg:col-span-2">
+        <h3 className="font-medium">{t('candidateQuote.title')}</h3>
+        <p className="mt-1 text-xs text-[var(--pf-text-muted)]">{t('candidateQuote.hint')}</p>
+        <form action={quoteAction} className="mt-3 grid max-w-2xl gap-3 sm:grid-cols-2">
+          {quoteState.error ? (
+            <Alert tone="danger" className="sm:col-span-2">
+              {quoteState.error}
+            </Alert>
+          ) : null}
+          {quoteState.ok ? (
+            <Alert tone="success" role="status" className="sm:col-span-2">
+              {t('candidateQuote.saved')}
+            </Alert>
+          ) : null}
+          <Field label={t('vendorPreview.grant')} required>
+            {(props) => (
+              <Select name="grantId" required>
+                <SelectTrigger id={props.id}>
+                  <SelectValue placeholder={t('fields.none')} />
+                </SelectTrigger>
+                <SelectContent>
+                  {activeGrants.map((grant) => (
+                    <SelectItem key={grant.id} value={grant.id}>
+                      {grant.principalEmail}
+                      {grant.vendorName ? ` · ${grant.vendorName}` : ''}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          </Field>
+          <Field label={t('fields.vendor')} required>
+            {(props) => (
+              <Select name="vendorId" required defaultValue={activeGrants[0]?.vendorId ?? undefined}>
+                <SelectTrigger id={props.id}>
+                  <SelectValue placeholder={t('fields.vendorPlaceholder')} />
+                </SelectTrigger>
+                <SelectContent>
+                  {[...new Map(activeGrants.map((g) => [g.vendorId, g])).values()].map((grant) =>
+                    grant.vendorId ? (
+                      <SelectItem key={grant.vendorId} value={grant.vendorId}>
+                        {grant.vendorName || grant.vendorId}
+                      </SelectItem>
+                    ) : null,
+                  )}
+                </SelectContent>
+              </Select>
+            )}
+          </Field>
+          <input type="hidden" name="currency" value={defaultCurrency} />
+          <Field label={t('fields.totalAmount')} required>
+            {(props) => <Input {...props} name="totalAmount" dir="ltr" required />}
+          </Field>
+          <Field label={t('fields.lineDescription')} required>
+            {(props) => <Input {...props} name="lineDescription" required />}
+          </Field>
+          <div className="sm:col-span-2">
+            <Button type="submit" loading={quotePending}>
+              {t('candidateQuote.submit')}
+            </Button>
+          </div>
+        </form>
+      </section>
+      <section className="rounded-lg border border-[var(--pf-border-default)] p-4">
+        <h3 className="font-medium">{t('candidateAp.title')}</h3>
+        <p className="mt-1 text-xs text-[var(--pf-text-muted)]">{t('candidateAp.hint')}</p>
+        <form action={apAction} className="mt-3 flex flex-col gap-3">
+          {apState.error ? <Alert tone="danger">{apState.error}</Alert> : null}
+          {apState.ok ? (
+            <Alert tone="success" role="status">
+              {t('candidateAp.saved')}
+            </Alert>
+          ) : null}
+          <Field label={t('vendorPreview.grant')} required>
+            {(props) => (
+              <Select name="grantId" required>
+                <SelectTrigger id={props.id}>
+                  <SelectValue placeholder={t('fields.none')} />
+                </SelectTrigger>
+                <SelectContent>
+                  {activeGrants.map((grant) => (
+                    <SelectItem key={grant.id} value={grant.id}>
+                      {grant.principalEmail}
+                      {grant.vendorName ? ` · ${grant.vendorName}` : ''}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          </Field>
+          <Field label={t('fields.vendor')} required>
+            {(props) => (
+              <Select name="vendorId" required defaultValue={activeGrants[0]?.vendorId ?? undefined}>
+                <SelectTrigger id={props.id}>
+                  <SelectValue placeholder={t('fields.vendorPlaceholder')} />
+                </SelectTrigger>
+                <SelectContent>
+                  {[...new Map(activeGrants.map((g) => [g.vendorId, g])).values()].map((grant) =>
+                    grant.vendorId ? (
+                      <SelectItem key={grant.vendorId} value={grant.vendorId}>
+                        {grant.vendorName || grant.vendorId}
+                      </SelectItem>
+                    ) : null,
+                  )}
+                </SelectContent>
+              </Select>
+            )}
+          </Field>
+          <input type="hidden" name="currency" value={defaultCurrency} />
+          <Field label={t('fields.totalAmount')} required>
+            {(props) => <Input {...props} name="totalAmount" dir="ltr" required />}
+          </Field>
+          <Field label={t('fields.lineDescription')} required>
+            {(props) => <Input {...props} name="lineDescription" required />}
+          </Field>
+          <Field label={t('candidateAp.reference')}>
+            {(props) => <Input {...props} name="reference" />}
+          </Field>
+          <Button type="submit" loading={apPending}>
+            {t('candidateAp.submit')}
+          </Button>
+        </form>
+      </section>
+      <section className="rounded-lg border border-[var(--pf-border-default)] p-4">
+        <h3 className="font-medium">{t('candidateCompliance.title')}</h3>
+        <p className="mt-1 text-xs text-[var(--pf-text-muted)]">{t('candidateCompliance.hint')}</p>
+        <form action={docAction} className="mt-3 flex flex-col gap-3">
+          {docState.error ? <Alert tone="danger">{docState.error}</Alert> : null}
+          {docState.ok ? (
+            <Alert tone="success" role="status">
+              {t('candidateCompliance.saved')}
+            </Alert>
+          ) : null}
+          <Field label={t('vendorPreview.grant')} required>
+            {(props) => (
+              <Select name="grantId" required>
+                <SelectTrigger id={props.id}>
+                  <SelectValue placeholder={t('fields.none')} />
+                </SelectTrigger>
+                <SelectContent>
+                  {activeGrants.map((grant) => (
+                    <SelectItem key={grant.id} value={grant.id}>
+                      {grant.principalEmail}
+                      {grant.vendorName ? ` · ${grant.vendorName}` : ''}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          </Field>
+          <Field label={t('fields.vendor')} required>
+            {(props) => (
+              <Select name="vendorId" required defaultValue={activeGrants[0]?.vendorId ?? undefined}>
+                <SelectTrigger id={props.id}>
+                  <SelectValue placeholder={t('fields.vendorPlaceholder')} />
+                </SelectTrigger>
+                <SelectContent>
+                  {[...new Map(activeGrants.map((g) => [g.vendorId, g])).values()].map((grant) =>
+                    grant.vendorId ? (
+                      <SelectItem key={grant.vendorId} value={grant.vendorId}>
+                        {grant.vendorName || grant.vendorId}
+                      </SelectItem>
+                    ) : null,
+                  )}
+                </SelectContent>
+              </Select>
+            )}
+          </Field>
+          <Field label={t('candidateCompliance.kind')} required>
+            {(props) => (
+              <Select name="artifactKind" defaultValue="insurance" required>
+                <SelectTrigger id={props.id}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="insurance">{t('candidateCompliance.kinds.insurance')}</SelectItem>
+                  <SelectItem value="license">{t('candidateCompliance.kinds.license')}</SelectItem>
+                  <SelectItem value="certification">
+                    {t('candidateCompliance.kinds.certification')}
+                  </SelectItem>
+                  <SelectItem value="other">{t('candidateCompliance.kinds.other')}</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
+          </Field>
+          <Field label={t('candidateCompliance.name')} required>
+            {(props) => <Input {...props} name="name" required />}
+          </Field>
+          <Field label={t('candidateCompliance.reference')}>
+            {(props) => <Input {...props} name="referenceNumber" />}
+          </Field>
+          <Button type="submit" loading={docPending}>
+            {t('candidateCompliance.submit')}
+          </Button>
+        </form>
+      </section>
+    </div>
+  );
+}
+
+function VendorCandidateReviewQueue({
+  apBillCandidates,
+  complianceCandidates,
+  canEdit,
+}: {
+  apBillCandidates: readonly VendorApBillCandidate[];
+  complianceCandidates: readonly VendorComplianceUploadCandidate[];
+  canEdit: boolean;
+}) {
+  const t = useTranslations('portal');
+  const [state, action, pending] = useActionState(
+    reviewVendorCandidateAction,
+    {} as PortalActionState,
+  );
+
+  const pendingAp = apBillCandidates.filter((row) => row.status === 'candidate');
+  const pendingCompliance = complianceCandidates.filter((row) => row.status === 'candidate');
+  const reviewed = [
+    ...apBillCandidates.filter((row) => row.status !== 'candidate'),
+    ...complianceCandidates.filter((row) => row.status !== 'candidate'),
+  ];
+
+  if (pendingAp.length === 0 && pendingCompliance.length === 0 && reviewed.length === 0) {
+    return null;
+  }
+
+  return (
+    <section className="rounded-lg border border-[var(--pf-border-default)] p-4">
+      <h3 className="font-medium">{t('candidateReview.title')}</h3>
+      <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">{t('candidateReview.subtitle')}</p>
+      <p className="mt-1 text-xs text-[var(--pf-text-muted)]">{t('candidateReview.neverPosts')}</p>
+
+      {state.error ? <Alert tone="danger" className="mt-3">{state.error}</Alert> : null}
+      {state.ok ? (
+        <Alert tone="success" className="mt-3" role="status">
+          {t('candidateReview.saved')}
+        </Alert>
+      ) : null}
+
+      <ul className="mt-3 flex flex-col gap-3">
+        {pendingAp.map((candidate) => (
+          <li
+            key={candidate.id}
+            className="rounded-md border border-[var(--pf-border-default)] p-3 text-sm"
+          >
+            <p className="font-medium">
+              {t('candidateReview.apLabel')} · {candidate.totalAmount} {candidate.currency}
+            </p>
+            <p className="text-[var(--pf-text-secondary)]">
+              {candidate.reference || t('fields.none')}
+            </p>
+            {canEdit ? (
+              <div className="mt-2 flex flex-wrap gap-2">
+                <form action={action}>
+                  <input type="hidden" name="candidateId" value={candidate.id} />
+                  <input type="hidden" name="kind" value="ap_bill" />
+                  <input type="hidden" name="decision" value="accepted_for_review" />
+                  <Button type="submit" size="sm" loading={pending}>
+                    {t('candidateReview.accept')}
+                  </Button>
+                </form>
+                <form action={action}>
+                  <input type="hidden" name="candidateId" value={candidate.id} />
+                  <input type="hidden" name="kind" value="ap_bill" />
+                  <input type="hidden" name="decision" value="rejected" />
+                  <Button type="submit" size="sm" variant="secondary" loading={pending}>
+                    {t('candidateReview.reject')}
+                  </Button>
+                </form>
+              </div>
+            ) : null}
+          </li>
+        ))}
+        {pendingCompliance.map((candidate) => (
+          <li
+            key={candidate.id}
+            className="rounded-md border border-[var(--pf-border-default)] p-3 text-sm"
+          >
+            <p className="font-medium">
+              {t('candidateReview.complianceLabel')} · {candidate.name}
+            </p>
+            <p className="text-[var(--pf-text-secondary)]">{candidate.artifactKind}</p>
+            {canEdit ? (
+              <div className="mt-2 flex flex-wrap gap-2">
+                <form action={action}>
+                  <input type="hidden" name="candidateId" value={candidate.id} />
+                  <input type="hidden" name="kind" value="compliance" />
+                  <input type="hidden" name="decision" value="accepted_for_review" />
+                  <Button type="submit" size="sm" loading={pending}>
+                    {t('candidateReview.accept')}
+                  </Button>
+                </form>
+                <form action={action}>
+                  <input type="hidden" name="candidateId" value={candidate.id} />
+                  <input type="hidden" name="kind" value="compliance" />
+                  <input type="hidden" name="decision" value="rejected" />
+                  <Button type="submit" size="sm" variant="secondary" loading={pending}>
+                    {t('candidateReview.reject')}
+                  </Button>
+                </form>
+              </div>
+            ) : null}
+          </li>
+        ))}
+      </ul>
+
+      {reviewed.length > 0 ? (
+        <p className="mt-3 text-xs text-[var(--pf-text-muted)]">
+          {t('candidateReview.reviewedCount', { count: reviewed.length })}
+        </p>
+      ) : null}
+    </section>
+  );
+}
+
 export function PortalGrantsPanel({
   customerGrants,
   vendorGrants,
   clients,
   projects,
   vendors,
+  apBillCandidates = [],
+  complianceCandidates = [],
   canEdit,
+  canRecordQuote,
+  defaultCurrency,
 }: {
   customerGrants: ExternalAccessGrantListItem[];
   vendorGrants: ExternalAccessGrantListItem[];
   clients: { id: string; name: string }[];
   projects: { id: string; name: string }[];
   vendors: { id: string; name: string }[];
+  apBillCandidates?: readonly VendorApBillCandidate[];
+  complianceCandidates?: readonly VendorComplianceUploadCandidate[];
   canEdit: boolean;
+  canRecordQuote: boolean;
+  defaultCurrency: string;
 }) {
   const t = useTranslations('portal');
   const [createState, createAction, createPending] = useActionState(
@@ -172,6 +846,10 @@ export function PortalGrantsPanel({
   );
   const [vendorCreateState, vendorCreateAction, vendorCreatePending] = useActionState(
     createVendorGrantAction,
+    {} as PortalActionState,
+  );
+  const [quoteState, quoteAction, quotePending] = useActionState(
+    recordVendorQuoteOnBehalfAction,
     {} as PortalActionState,
   );
   const [revokeState, revokeAction, revokePending] = useActionState(
@@ -274,6 +952,8 @@ export function PortalGrantsPanel({
           </section>
         ) : null}
 
+        <CustomerSafePreview projects={projects} customerGrants={customerGrants} />
+
         <section>
           <h3 className="text-sm font-semibold">{t('listTitle')}</h3>
           {revokeState.error ? <Alert tone="danger">{revokeState.error}</Alert> : null}
@@ -291,6 +971,7 @@ export function PortalGrantsPanel({
         <div>
           <h2 className="text-base font-semibold">{t('vendorSection')}</h2>
           <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">{t('vendorSubtitle')}</p>
+          <p className="mt-2 text-xs text-[var(--pf-text-muted)]">{t('vendorFoundationNote')}</p>
         </div>
 
         {canEdit ? (
@@ -356,6 +1037,81 @@ export function PortalGrantsPanel({
             </form>
           </section>
         ) : null}
+
+        {canRecordQuote && vendors.length > 0 ? (
+          <section className="rounded-lg border border-[var(--pf-border-default)] p-4">
+            <h3 className="font-medium">{t('recordQuoteTitle')}</h3>
+            <p className="mt-1 text-xs text-[var(--pf-text-muted)]">{t('recordQuoteHint')}</p>
+            <form action={quoteAction} className="mt-3 flex max-w-lg flex-col gap-3">
+              {quoteState.error ? <Alert tone="danger">{quoteState.error}</Alert> : null}
+              {quoteState.ok ? (
+                <Alert tone="success" role="status">
+                  {t('recordQuoteSaved')}
+                </Alert>
+              ) : null}
+
+              <Field label={t('fields.vendor')} required>
+                {(props) => (
+                  <Select name="vendorId" required>
+                    <SelectTrigger id={props.id}>
+                      <SelectValue placeholder={t('fields.vendorPlaceholder')} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {vendors.map((vendor) => (
+                        <SelectItem key={vendor.id} value={vendor.id}>
+                          {vendor.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              </Field>
+
+              <input type="hidden" name="currency" value={defaultCurrency} />
+              <Field label={t('fields.totalAmount')} required>
+                {(props) => (
+                  <Input {...props} name="totalAmount" dir="ltr" required defaultValue="0" />
+                )}
+              </Field>
+              <Field label={t('fields.lineDescription')} required>
+                {(props) => <Input {...props} name="lineDescription" required />}
+              </Field>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Field label={t('fields.lineQuantity')}>
+                  {(props) => (
+                    <Input {...props} name="lineQuantity" dir="ltr" defaultValue="1" />
+                  )}
+                </Field>
+                <Field label={t('fields.lineUnitAmount')}>
+                  {(props) => <Input {...props} name="lineUnitAmount" dir="ltr" />}
+                </Field>
+              </div>
+              <Field label={t('fields.lineTotal')}>
+                {(props) => <Input {...props} name="lineTotal" dir="ltr" />}
+              </Field>
+              <Field label={t('fields.receivedOn')}>
+                {(props) => <Input {...props} name="receivedOn" type="date" dir="ltr" />}
+              </Field>
+              <Field label={t('fields.quoteNotes')}>
+                {(props) => <Input {...props} name="notes" />}
+              </Field>
+
+              <Button type="submit" loading={quotePending}>
+                {t('recordQuoteSubmit')}
+              </Button>
+            </form>
+          </section>
+        ) : null}
+
+        <VendorSafePreview vendorGrants={vendorGrants} />
+        {canEdit ? (
+          <VendorCandidateForms vendorGrants={vendorGrants} defaultCurrency={defaultCurrency} />
+        ) : null}
+        <VendorCandidateReviewQueue
+          apBillCandidates={apBillCandidates}
+          complianceCandidates={complianceCandidates}
+          canEdit={canEdit}
+        />
 
         <section>
           <h3 className="text-sm font-semibold">{t('vendorListTitle')}</h3>

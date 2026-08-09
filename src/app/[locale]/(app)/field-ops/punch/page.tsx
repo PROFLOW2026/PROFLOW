@@ -7,13 +7,21 @@ import { PageHeader } from '@/components/ui/page-header';
 import { StatusBadge, type StatusShape } from '@/components/ui/status-badge';
 import { ResponsiveTable } from '@/components/patterns/responsive-table';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { listPunchListItemsForOrg, type PunchStatus } from '@/modules/field-ops';
+import {
+  PUNCH_PRIORITIES,
+  PUNCH_STATUSES,
+  listPunchListItemsForOrg,
+  type PunchPriority,
+  type PunchStatus,
+} from '@/modules/field-ops';
 import { listProjectsForOrg } from '@/modules/projects';
 import { withOrgContext } from '@/shared/auth/session';
 import { Link } from '@/shared/i18n/navigation';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
+import { PunchListFilters } from '../field-ops-list-filters';
 import { FieldOpsSectionNav } from '../field-ops-section-nav';
+import { PunchPriorityForm } from './punch-priority-form';
 import { PunchStatusForm } from './punch-status-form';
 
 export async function generateMetadata({
@@ -41,17 +49,33 @@ function punchShape(status: PunchStatus): StatusShape {
   }
 }
 
+function parseStatus(value?: string): PunchStatus | undefined {
+  if (!value || value === 'all') return undefined;
+  return (PUNCH_STATUSES as readonly string[]).includes(value)
+    ? (value as PunchStatus)
+    : undefined;
+}
+
+function parsePriority(value?: string): PunchPriority | undefined {
+  if (!value || value === 'all') return undefined;
+  return (PUNCH_PRIORITIES as readonly string[]).includes(value)
+    ? (value as PunchPriority)
+    : undefined;
+}
+
 export default async function FieldOpsPunchPage({
   searchParams,
 }: {
-  searchParams: Promise<{ projectId?: string }>;
+  searchParams: Promise<{ projectId?: string; status?: string; priority?: string }>;
 }) {
   const t = await getTranslations('fieldOps');
   const tStatus = await getTranslations('status.punch');
-  const { projectId } = await searchParams;
+  const { projectId, status: statusParam, priority: priorityParam } = await searchParams;
+  const status = parseStatus(statusParam);
+  const priority = parsePriority(priorityParam);
 
   const { items, projects, canManage } = await withOrgContext(async (context) => ({
-    items: await listPunchListItemsForOrg(context, projectId),
+    items: await listPunchListItemsForOrg(context, { projectId, status, priority }),
     projects: await listProjectsForOrg(context, {}),
     canManage: hasPermission(context, PERMISSIONS.FIELD_OPS_MANAGE),
   }));
@@ -66,7 +90,11 @@ export default async function FieldOpsPunchPage({
         actions={
           canManage ? (
             <Button asChild>
-              <Link href={projectId ? `/field-ops/punch/new?projectId=${projectId}` : '/field-ops/punch/new'}>
+              <Link
+                href={
+                  projectId ? `/field-ops/punch/new?projectId=${projectId}` : '/field-ops/punch/new'
+                }
+              >
                 <Plus aria-hidden />
                 {t('newPunch')}
               </Link>
@@ -75,6 +103,11 @@ export default async function FieldOpsPunchPage({
         }
       />
       <FieldOpsSectionNav active="punch" />
+      <PunchListFilters
+        projectId={projectId}
+        initialStatus={statusParam ?? 'all'}
+        initialPriority={priorityParam ?? 'all'}
+      />
 
       {items.length === 0 ? (
         <EmptyState
@@ -109,9 +142,22 @@ export default async function FieldOpsPunchPage({
                 <TableBody>
                   {items.map((item) => (
                     <TableRow key={item.id}>
-                      <TableCell className="font-medium">{item.title}</TableCell>
+                      <TableCell className="font-medium">
+                        <Link href={`/field-ops/punch/${item.id}`} className="hover:underline">
+                          {item.title}
+                        </Link>
+                      </TableCell>
                       <TableCell>{projectName.get(item.projectId) ?? '—'}</TableCell>
-                      <TableCell>{t(`priorities.${item.priority}`)}</TableCell>
+                      <TableCell>
+                        {canManage ? (
+                          <PunchPriorityForm
+                            punchListItemId={item.id}
+                            currentPriority={item.priority}
+                          />
+                        ) : (
+                          t(`priorities.${item.priority}`)
+                        )}
+                      </TableCell>
                       <TableCell>
                         <StatusBadge shape={punchShape(item.status)} label={tStatus(item.status)} />
                       </TableCell>
@@ -130,14 +176,19 @@ export default async function FieldOpsPunchPage({
           renderMobileCard={(item) => (
             <div className="flex flex-col gap-2 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4">
               <div className="flex items-start justify-between gap-2">
-                <span className="font-semibold">{item.title}</span>
+                <Link href={`/field-ops/punch/${item.id}`} className="font-semibold hover:underline">
+                  {item.title}
+                </Link>
                 <StatusBadge shape={punchShape(item.status)} label={tStatus(item.status)} />
               </div>
               <p className="text-sm text-[var(--pf-text-secondary)]">
                 {projectName.get(item.projectId) ?? '—'} · {t(`priorities.${item.priority}`)}
               </p>
               {canManage ? (
-                <PunchStatusForm punchListItemId={item.id} currentStatus={item.status} />
+                <div className="flex flex-col gap-2">
+                  <PunchPriorityForm punchListItemId={item.id} currentPriority={item.priority} />
+                  <PunchStatusForm punchListItemId={item.id} currentStatus={item.status} />
+                </div>
               ) : null}
             </div>
           )}

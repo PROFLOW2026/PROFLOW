@@ -13,9 +13,20 @@ import { describe, expect, it } from 'vitest';
  */
 
 const MIGRATIONS_DIR = path.resolve(process.cwd(), 'drizzle/migrations');
+const TAG_PATTERN = /^\d{4}_[a-z0-9_]+$/;
 
 interface Journal {
-  readonly entries: readonly { readonly idx: number; readonly tag: string }[];
+  readonly entries: readonly {
+    readonly idx: number;
+    readonly tag: string;
+    readonly when: number;
+  }[];
+}
+
+async function loadJournal(): Promise<Journal> {
+  return JSON.parse(
+    await readFile(path.join(MIGRATIONS_DIR, 'meta/_journal.json'), 'utf8'),
+  ) as Journal;
 }
 
 describe('migration journal', () => {
@@ -26,20 +37,49 @@ describe('migration journal', () => {
       .map((entry) => entry.replace(/\.sql$/, ''))
       .sort();
 
-    const journal = JSON.parse(
-      await readFile(path.join(MIGRATIONS_DIR, 'meta/_journal.json'), 'utf8'),
-    ) as Journal;
+    const journal = await loadJournal();
 
     expect(journal.entries.map((entry) => entry.tag)).toEqual(files);
   });
 
   it('numbers entries consecutively from zero', async () => {
-    const journal = JSON.parse(
-      await readFile(path.join(MIGRATIONS_DIR, 'meta/_journal.json'), 'utf8'),
-    ) as Journal;
+    const journal = await loadJournal();
 
     expect(journal.entries.map((entry) => entry.idx)).toEqual(
       journal.entries.map((_, index) => index),
     );
+  });
+
+  it('uses stable tag shape, unique numeric prefixes, and increasing when', async () => {
+    const journal = await loadJournal();
+    const prefixes = new Set<string>();
+    let previousWhen = -Infinity;
+
+    for (const entry of journal.entries) {
+      expect(entry.tag).toMatch(TAG_PATTERN);
+      const prefix = entry.tag.slice(0, 4);
+      expect(prefixes.has(prefix)).toBe(false);
+      prefixes.add(prefix);
+      expect(entry.when).toBeGreaterThan(previousWhen);
+      previousWhen = entry.when;
+    }
+  });
+
+  it('keeps frozen 0012 content-present and local wave tags through 0013', async () => {
+    const journal = await loadJournal();
+    const tags = journal.entries.map((entry) => entry.tag);
+
+    expect(tags).toContain('0012_ap_vendor_portal');
+    expect(tags).toContain('0013_document_owner_types');
+    expect(tags.some((tag) => tag.startsWith('0014_'))).toBe(false);
+
+    const sql = await readFile(
+      path.join(MIGRATIONS_DIR, '0012_ap_vendor_portal.sql'),
+      'utf8',
+    );
+    // Content freeze markers — must remain; do not weaken AP/portal integrity.
+    expect(sql).toContain('ap_bills');
+    expect(sql).toContain('ap_po_matches');
+    expect(sql).toContain('external_access_grants_scope_present');
   });
 });

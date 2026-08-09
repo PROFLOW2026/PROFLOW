@@ -85,6 +85,13 @@
       "when": 1786233100000,
       "tag": "0012_ap_vendor_portal",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1786233200000,
+      "tag": "0013_document_owner_types",
+      "breakpoints": true
     }
   ]
 }

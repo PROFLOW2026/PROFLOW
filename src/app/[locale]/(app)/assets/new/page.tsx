@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { PageHeader } from '@/components/ui/page-header';
+import { listProjectsForOrg } from '@/modules/projects';
+import { withOrgContext } from '@/shared/auth/session';
 import { Link } from '@/shared/i18n/navigation';
 import { AssetCreateForm } from './asset-create-form';
 
@@ -17,6 +19,14 @@ export async function generateMetadata({
 export default async function NewAssetPage() {
   const t = await getTranslations('assets');
 
+  const projects = await withOrgContext(async (context) => {
+    try {
+      return await listProjectsForOrg(context, { status: 'active' });
+    } catch {
+      return [];
+    }
+  });
+
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
@@ -28,7 +38,7 @@ export default async function NewAssetPage() {
           </Link>
         }
       />
-      <AssetCreateForm />
+      <AssetCreateForm projects={projects.map((p) => ({ id: p.id, name: p.name }))} />
     </div>
   );
 }

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   isAllowedFileSize,
   isAllowedMimeType,
+  isBrowserPreviewableImageMime,
   MAX_DOCUMENT_SIZE_BYTES,
   validateUploadConstraints,
 } from '@/modules/documents/domain/file-rules';
@@ -28,5 +29,13 @@ describe('document upload constraints', () => {
       valid: false,
       reason: 'mime',
     });
+  });
+
+  it('allows browser-safe image preview mimes only', () => {
+    expect(isBrowserPreviewableImageMime('image/jpeg')).toBe(true);
+    expect(isBrowserPreviewableImageMime('image/png')).toBe(true);
+    expect(isBrowserPreviewableImageMime('image/webp')).toBe(true);
+    expect(isBrowserPreviewableImageMime('image/heic')).toBe(false);
+    expect(isBrowserPreviewableImageMime('application/pdf')).toBe(false);
   });
 });

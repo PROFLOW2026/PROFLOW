@@ -60,11 +60,84 @@
       "documents": "מסמכים",
       "details": "פרטים"
     },
+    "links": {
+      "navLabel": "סביבת עבודה של הפרויקט",
+      "title": "סביבת עבודה",
+      "subtitle": "מעבר לאזורים הפעילים בארגון זה.",
+      "overview": "סקירה",
+      "financials": "כספים",
+      "expenses": "הוצאות",
+      "changes": "שינויים",
+      "billing": "חיובים",
+      "work": "תחומי עבודה",
+      "time": "עובדים ושעות",
+      "documents": "מסמכים",
+      "details": "פרטים",
+      "schedule": "לוח זמנים",
+      "procurement": "רכש",
+      "ap": "חשבונות ספקים",
+      "field_ops": "פעילות שטח",
+      "workforce": "כוח אדם",
+      "vendors": "ספקים",
+      "assets": "נכסים",
+      "compliance": "ציות וביטוח"
+    },
     "header": {
       "currentContractValue": "סכום חוזה נוכחי"
     },
     "archive": "העברה לארכיון",
     "archiveConfirm": "להעביר את הפרויקט לארכיון? הוא יוסתר מהרשימה הפעילה ולא יימחק."
+  },
+  "schedule": {
+    "title": "לוח זמנים",
+    "empty": "עדיין אין תאריכים, התקדמות או אבני דרך — אופציונלי לעבודות פשוטות.",
+    "addDates": "הוספת תאריכים בפרטים",
+    "dates": "תאריכים",
+    "milestones": "אבני דרך",
+    "milestoneProgress": "{achieved} מתוך {total} הושגו",
+    "overdueMilestones": "{count} באיחור",
+    "overdueWorkPackages": "{count} תחומי עבודה שעברו את תאריך הסיום",
+    "overduePhases": "{count} שלבים שעברו את תאריך הסיום",
+    "nextMilestone": "אבן הדרך הבאה",
+    "noNextMilestone": "אין מתוכנן",
+    "projectOverdue": "עבר תאריך היעד",
+    "overdue": "באיחור"
+  },
+  "templates": {
+    "title": "החלת תבנית מבנה",
+    "copySemantics": "יוצר עותקים הניתנים לעריכה בפרויקט זה. שינוי התבנית בהמשך לא יעדכן פרויקטים קודמים.",
+    "choose": "תבנית",
+    "source": "מקור תבנית",
+    "sourceSystem": "תבניות התחלה",
+    "sourceOrg": "תבניות הארגון",
+    "previewPackages": "תחומי עבודה",
+    "previewMilestones": "אבני דרך",
+    "apply": "החלה כעותקים",
+    "applied": "התבנית הוחלה כעותקים הניתנים לעריכה.",
+    "phasePack": "חבילת שלבים",
+    "applyPhasePack": "הוספת שלבים מחבילה",
+    "wpPack": "חבילת תחומי עבודה",
+    "applyWpPack": "הוספת תחומי עבודה מחבילה",
+    "keys": {
+      "simple_finish": "עבודת גמר פשוטה",
+      "residential_mep": "MEP למגורים",
+      "design_studio": "סטודיו תכנון",
+      "main_contractor": "קבלן ראשי"
+    }
+  },
+  "clone": {
+    "title": "שכפול מבנה מפרויקט אחר",
+    "subtitle": "מעתיק תחומי עבודה, שלבים ואבני דרך בלבד — לא כסף, הוצאות או מסמכים.",
+    "source": "פרויקט מקור",
+    "chooseSource": "בחירת פרויקט",
+    "preview": "תצוגה מקדימה",
+    "loadingPreview": "טוען תצוגה מקדימה…",
+    "previewTitle": "ייווצרו עותקים של",
+    "previewPackages": "תחומי עבודה",
+    "previewMilestones": "אבני דרך",
+    "none": "אין",
+    "apply": "שכפול כעותקים",
+    "applied": "המבנה שוכפל כעותקים הניתנים לעריכה."
   },
   "overview": {
     "contractSummary": "סיכום חוזה",
@@ -117,6 +190,10 @@
     "milestoneTarget": "תאריך יעד",
     "milestoneStatus": "סטטוס",
     "addMilestone": "הוספת אבן דרך",
+    "markMilestoneAchieved": "סימון כהושלם",
+    "markMilestoneMissed": "סימון כהוחמץ",
+    "markMilestoneCancelled": "סימון כבוטל",
+    "reopenMilestone": "פתיחה מחדש",
     "emptyMilestones": "אין אבני דרך עדיין — אופציונלי.",
     "milestoneStatuses": {
       "planned": "מתוכנן",
@@ -136,16 +213,24 @@
   "workPackages": {
     "title": "תחומי עבודה",
     "defaultName": "כללי",
+    "progressPercent": "התקדמות %",
+    "saveProgress": "שמירת התקדמות",
     "splitCta": "פיצול לתחומי עבודה / דיסציפלינות",
     "splitDescription": "עלויות ורשומות קיימות יישארו בתחום הכללי עד שתעבירו אותן.",
     "add": "הוספת תחום עבודה",
     "renameDefault": "שינוי שם תחום כללי",
     "phases": "שלבים",
     "addPhase": "הוספת שלב",
-    "emptyPhases": "אין שלבים עדיין"
+    "emptyPhases": "אין שלבים עדיין",
+    "endDate": "תאריך סיום",
+    "saveSchedule": "שמירת לוח זמנים",
+    "phaseName": "שם שלב",
+    "phaseNamePlaceholder": "לדוגמה: הכנות",
+    "savePhaseDates": "שמירת תאריכי שלב"
   },
   "errors": {
     "defaultWorkPackageArchive": "לא ניתן להעביר לארכיון את תחום העבודה הכללי.",
-    "lastWorkPackage": "לפרויקט חייב להישאר לפחות תחום עבודה אחד."
+    "lastWorkPackage": "לפרויקט חייב להישאר לפחות תחום עבודה אחד.",
+    "templateRequiresSimpleProject": "יש להחיל תבניות מבנה לפני פיצול הפרויקט למספר תחומי עבודה."
   }
 }

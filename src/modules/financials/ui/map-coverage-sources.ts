@@ -45,6 +45,10 @@ export function partialNote(
       return t('coverage.partials.foreignCurrencyLabor', { count: count ?? 0 });
     case 'foreign_currency_billing_excluded':
       return t('coverage.partials.foreignCurrencyBilling', { count: count ?? 0 });
+    case 'foreign_currency_committed_excluded':
+      return t('coverage.partials.foreignCurrencyCommitted', { count: count ?? 0 });
+    case 'foreign_currency_ap_excluded':
+      return t('coverage.partials.foreignCurrencyAp', { count: count ?? 0 });
     case 'workforce_entries_missing_cost':
       return t('coverage.partials.workforceEntriesMissingCost', { count: count ?? 0 });
     default:

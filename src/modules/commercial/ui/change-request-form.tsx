@@ -1,12 +1,15 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { useActionState, useState } from 'react';
+import { useActionState, useMemo, useState } from 'react';
+import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { changeRequestPayloadFromFormData } from '@/modules/offline/domain/payloads';
+import { useOfflineAwareFormAction } from '@/modules/offline/ui/use-offline-aware-form-action';
 import { Link } from '@/shared/i18n/navigation';
 import type { FormActionState } from '@/app/[locale]/(app)/changes/actions';
 
@@ -26,6 +29,8 @@ export interface ChangeRequestFormProps {
     requestedAmount?: string | null;
   };
   changeRequestId?: string;
+  /** ISO server baseline for conflict detection on edit drafts. */
+  serverUpdatedAt?: string | null;
 }
 
 export function ChangeRequestForm({
@@ -34,12 +39,32 @@ export function ChangeRequestForm({
   projects = [],
   initial,
   changeRequestId,
+  serverUpdatedAt = null,
 }: ChangeRequestFormProps) {
   const t = useTranslations('changes.form');
   const tCommon = useTranslations('common.actions');
+  const tOffline = useTranslations('offline');
   const [direction, setDirection] = useState<'addition' | 'reduction'>(initial?.direction ?? 'addition');
   const [selectedProjectId, setSelectedProjectId] = useState(projectId ?? '');
-  const [state, formAction, pending] = useActionState(action, {});
+
+  const offlineSuccessState = useMemo<FormActionState>(() => ({ offlineQueued: true }), []);
+
+  const wrappedAction = useOfflineAwareFormAction<FormActionState>({
+    kind: 'change_request',
+    onlineAction: action,
+    buildPayload: changeRequestPayloadFromFormData,
+    resolveServerMeta: (_formData, payload) => ({
+      serverId:
+        typeof payload.changeRequestId === 'string'
+          ? payload.changeRequestId
+          : (changeRequestId ?? null),
+      serverUpdatedAt: changeRequestId ? serverUpdatedAt : null,
+    }),
+    offlineSuccessState,
+    missingOrgError: tOffline('errors.missingOrganization'),
+  });
+
+  const [state, formAction, pending] = useActionState(wrappedAction, {});
 
   const resolvedProjectId = projectId ?? selectedProjectId;
 
@@ -50,6 +75,15 @@ export function ChangeRequestForm({
       ) : null}
       {changeRequestId ? <input type="hidden" name="changeRequestId" value={changeRequestId} /> : null}
       <input type="hidden" name="direction" value={direction} />
+
+      {state.offlineQueued ? (
+        <Alert tone="info" role="status">
+          {tOffline('forms.draftSaved')}{' '}
+          <Link href="/settings/offline-drafts" className="font-medium underline">
+            {tOffline('banner.viewDrafts')}
+          </Link>
+        </Alert>
+      ) : null}
 
       {!projectId ? (
         <Field label={t('project')} required description={t('projectHint')}>

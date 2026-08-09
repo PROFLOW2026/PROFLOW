@@ -7,12 +7,21 @@
     "body": "הוסיפו פוליסות ביטוח, רישיונות או הסמכות כדי לעקוב אחר תאריכי תפוגה בלי לחפש במסמכים.",
     "action": "הוספת רשומה ראשונה"
   },
+  "summary": {
+    "valid": "בתוקף",
+    "expiring": "עומד לפוג",
+    "expired": "פג תוקף",
+    "missing": "חסר מסמך"
+  },
   "list": {
     "searchPlaceholder": "חיפוש לפי שם, מספר אסמכתא או מנפיק…",
     "filters": {
       "kind": "סוג",
       "status": "סטטוס",
       "subject": "חל על",
+      "evidence": "ראיה",
+      "evidenceMissing": "חסר מסמך",
+      "evidencePresent": "מסמך מצורף",
       "all": "הכל"
     },
     "columns": {
@@ -20,9 +29,12 @@
       "kind": "סוג",
       "subject": "חל על",
       "expiresOn": "תוקף עד",
-      "status": "סטטוס"
+      "status": "סטטוס",
+      "evidence": "ראיה"
     },
-    "noExpiry": "ללא תפוגה"
+    "noExpiry": "ללא תפוגה",
+    "evidenceMissing": "חסר",
+    "evidencePresent": "מצורף"
   },
   "kinds": {
     "insurance": "ביטוח",
@@ -64,8 +76,9 @@
     "statusModeLabel": "סטטוס",
     "statusModeHint": "השאירו על אוטומטי כדי שהסטטוס יישאר מסונכרן עם תאריך התפוגה.",
     "subjectTypeLabel": "חל על",
-    "subjectIdLabel": "מזהה נושא",
-    "subjectIdHint": "UUID אופציונלי של עובד, ספק או פרויקט כאשר הרשומה אינה ברמת הארגון.",
+    "subjectIdLabel": "רשומה מקושרת",
+    "subjectIdHint": "בחרו עובד, ספק או פרויקט שעליו חלה הרשומה.",
+    "subjectNone": "ללא קישור",
     "notesLabel": "הערות"
   },
   "detail": {
@@ -74,6 +87,8 @@
     "archive": "העברה לארכיון",
     "archiveTitle": "להעביר את הרשומה לארכיון?",
     "archiveBody": "היא תוסר מהרשימה הפעילה. אפשר יהיה למצוא אותה מאוחר יותר אם מציגים רשומות בארכיון.",
-    "archiveSuccess": "הרשומה הועברה לארכיון"
+    "archiveSuccess": "הרשומה הועברה לארכיון",
+    "documentsNeedSubject": "יש להגדיר את הנושא (ומזהה נושא לעובד, ספק או פרויקט) כדי לצרף מסמכי ראיה באופן מאובטח.",
+    "missingEvidence": "עדיין לא צורף מסמך ראיה."
   }
 }

@@ -1,9 +1,11 @@
 'use client';
 
 import { useLocale, useTranslations } from 'next-intl';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ConfirmAction } from '@/components/patterns/confirm-action';
 import { MoneyText } from '@/components/patterns/money-text';
+import { isBrowserOnline } from '@/modules/offline';
 import type { BusinessDate } from '@/shared/dates/dates';
 import { formatBusinessDate } from '@/shared/dates/format';
 import type { MoneyValue } from '@/shared/money/money';
@@ -35,7 +37,9 @@ export function ExpenseDetailActions({
   expenseDate,
 }: ExpenseDetailActionsProps) {
   const t = useTranslations('expenses');
+  const tOffline = useTranslations('offline');
   const locale = useLocale();
+  const [offlineFinalizeError, setOfflineFinalizeError] = useState<string | null>(null);
 
   if (status !== 'draft' && !canVoid) return null;
 
@@ -45,46 +49,61 @@ export function ExpenseDetailActions({
   };
 
   return (
-    <div className="flex flex-wrap gap-2">
-      {canFinalize ? (
-        <ConfirmAction
-          title={t('confirm.finalizeTitle')}
-          description={
-            <>
-              <p>{t.rich('confirm.finalizeQuestion', moneyAndDate)}</p>
-              <p>{t('confirm.finalizeConsequence')}</p>
-            </>
-          }
-          confirmLabel={t('actions.finalize')}
-          successMessage={t('confirm.finalizeSuccess')}
-          onConfirm={() => finalizeExpenseAction(expenseId)}
-          trigger={
-            <Button type="button">
-              {t('actions.finalize')}
-            </Button>
-          }
-        />
+    <div className="flex flex-col gap-2">
+      {offlineFinalizeError ? (
+        <p role="alert" className="text-sm text-[var(--pf-status-warning-fg)]">
+          {offlineFinalizeError}
+        </p>
       ) : null}
 
-      {canVoid ? (
-        <ConfirmAction
-          title={t('confirm.voidTitle')}
-          description={
-            <>
-              <p>{t.rich('confirm.voidQuestion', moneyAndDate)}</p>
-              <p>{t('confirm.voidConsequence')}</p>
-            </>
-          }
-          confirmLabel={t('actions.void')}
-          successMessage={t('confirm.voidSuccess')}
-          onConfirm={() => voidExpenseAction(expenseId)}
-          trigger={
-            <Button type="button" variant="secondary">
-              {t('actions.void')}
-            </Button>
-          }
-        />
-      ) : null}
+      <div className="flex flex-wrap gap-2">
+        {canFinalize ? (
+          <ConfirmAction
+            title={t('confirm.finalizeTitle')}
+            description={
+              <>
+                <p>{t.rich('confirm.finalizeQuestion', moneyAndDate)}</p>
+                <p>{t('confirm.finalizeConsequence')}</p>
+              </>
+            }
+            confirmLabel={t('actions.finalize')}
+            successMessage={t('confirm.finalizeSuccess')}
+            onConfirm={async () => {
+              if (!isBrowserOnline()) {
+                setOfflineFinalizeError(tOffline('forms.finalizeRequiresOnline'));
+                return { error: tOffline('forms.finalizeRequiresOnline') };
+              }
+              setOfflineFinalizeError(null);
+              return finalizeExpenseAction(expenseId);
+            }}
+            trigger={
+              <Button type="button">
+                {t('actions.finalize')}
+              </Button>
+            }
+          />
+        ) : null}
+
+        {canVoid ? (
+          <ConfirmAction
+            title={t('confirm.voidTitle')}
+            description={
+              <>
+                <p>{t.rich('confirm.voidQuestion', moneyAndDate)}</p>
+                <p>{t('confirm.voidConsequence')}</p>
+              </>
+            }
+            confirmLabel={t('actions.void')}
+            successMessage={t('confirm.voidSuccess')}
+            onConfirm={() => voidExpenseAction(expenseId)}
+            trigger={
+              <Button type="button" variant="secondary">
+                {t('actions.void')}
+              </Button>
+            }
+          />
+        ) : null}
+      </div>
     </div>
   );
 }

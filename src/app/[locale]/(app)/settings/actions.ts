@@ -8,6 +8,17 @@ import {
   setModuleVisibility,
   isOptionalModuleKey,
   applyOrganizationProfessionPreset,
+  createServiceDomain,
+  createDocumentType,
+  renameCatalogItem,
+  archiveCatalogItem,
+  upsertOrgProjectTemplate,
+  deleteOrgProjectTemplate,
+  upsertOrgPhasePack,
+  deleteOrgPhasePack,
+  upsertOrgWorkPackagePack,
+  deleteOrgWorkPackagePack,
+  saveLaborCostDefaults,
 } from '@/modules/tenancy';
 import { setRolePermissionToggle } from '@/modules/rbac';
 import { updateProfile } from '@/modules/identity';
@@ -356,6 +367,230 @@ export async function updateProfileAction(
     return { ok: true };
   } catch (error) {
     if (error instanceof AppError) return { error: tErrors('validationFailed') };
+    throw error;
+  }
+}
+
+export async function createServiceDomainAction(
+  _prev: SettingsActionState,
+  formData: FormData,
+): Promise<SettingsActionState> {
+  const tErrors = await getTranslations('errors');
+  const name = formValue(formData, 'name');
+  if (!name) return { error: tErrors('validationFailed') };
+
+  try {
+    await withOrgContext((context) => createServiceDomain(context, { name }));
+    revalidatePath('/settings/catalog');
+    return { ok: true };
+  } catch (error) {
+    if (error instanceof AppError) return { error: error.message || tErrors('unexpected') };
+    throw error;
+  }
+}
+
+export async function createDocumentTypeAction(
+  _prev: SettingsActionState,
+  formData: FormData,
+): Promise<SettingsActionState> {
+  const tErrors = await getTranslations('errors');
+  const name = formValue(formData, 'name');
+  if (!name) return { error: tErrors('validationFailed') };
+
+  try {
+    await withOrgContext((context) => createDocumentType(context, { name }));
+    revalidatePath('/settings/catalog');
+    return { ok: true };
+  } catch (error) {
+    if (error instanceof AppError) return { error: error.message || tErrors('unexpected') };
+    throw error;
+  }
+}
+
+export async function renameCatalogItemAction(
+  _prev: SettingsActionState,
+  formData: FormData,
+): Promise<SettingsActionState> {
+  const tErrors = await getTranslations('errors');
+  const id = formValue(formData, 'id');
+  const name = formValue(formData, 'name');
+  if (!id || !name) return { error: tErrors('validationFailed') };
+
+  try {
+    await withOrgContext((context) => renameCatalogItem(context, { id, name }));
+    revalidatePath('/settings/catalog');
+    return { ok: true };
+  } catch (error) {
+    if (error instanceof AppError) return { error: error.message || tErrors('unexpected') };
+    throw error;
+  }
+}
+
+export async function archiveCatalogItemAction(id: string): Promise<SettingsActionState> {
+  const tErrors = await getTranslations('errors');
+  if (!id) return { error: tErrors('validationFailed') };
+
+  try {
+    await withOrgContext((context) => archiveCatalogItem(context, id));
+    revalidatePath('/settings/catalog');
+    return { ok: true };
+  } catch (error) {
+    if (error instanceof AppError) return { error: error.message || tErrors('unexpected') };
+    throw error;
+  }
+}
+
+function parseLaborComponentsText(raw: string | undefined): Array<{
+  key: string;
+  basis: 'percent' | 'fixed';
+  percent: string | null;
+  amount: string | null;
+}> {
+  if (!raw?.trim()) return [];
+  const components: Array<{
+    key: string;
+    basis: 'percent' | 'fixed';
+    percent: string | null;
+    amount: string | null;
+  }> = [];
+
+  for (const line of raw.split(/\r?\n/)) {
+    const trimmed = line.trim();
+    if (!trimmed) continue;
+    const match = /^([^=]+)=(percent|fixed):(.+)$/i.exec(trimmed);
+    if (!match) continue;
+    const key = match[1]!.trim();
+    const basis = match[2]!.toLowerCase() as 'percent' | 'fixed';
+    const value = match[3]!.trim();
+    components.push({
+      key,
+      basis,
+      percent: basis === 'percent' ? value || null : null,
+      amount: basis === 'fixed' ? value || null : null,
+    });
+  }
+  return components;
+}
+
+export async function saveLaborCostDefaultsAction(
+  _prev: SettingsActionState,
+  formData: FormData,
+): Promise<SettingsActionState> {
+  const tErrors = await getTranslations('errors');
+  const burdenRaw = formValue(formData, 'burdenPercent');
+  const components = parseLaborComponentsText(formValue(formData, 'componentsText') ?? undefined);
+
+  try {
+    await withOrgContext((context) =>
+      saveLaborCostDefaults(context, {
+        burdenPercent: burdenRaw ?? null,
+        components,
+      }),
+    );
+    revalidatePath('/settings/catalog');
+    return { ok: true };
+  } catch (error) {
+    if (error instanceof AppError) return { error: error.message || tErrors('unexpected') };
+    throw error;
+  }
+}
+
+export async function upsertOrgProjectTemplateAction(
+  _prev: SettingsActionState,
+  formData: FormData,
+): Promise<SettingsActionState> {
+  const tErrors = await getTranslations('errors');
+  try {
+    await withOrgContext((context) =>
+      upsertOrgProjectTemplate(context, {
+        name: formValue(formData, 'name'),
+        description: formValue(formData, 'description') ?? null,
+        workPackagesText: formValue(formData, 'workPackagesText'),
+        milestonesText: formValue(formData, 'milestonesText'),
+      }),
+    );
+    revalidatePath('/settings/templates');
+    return { ok: true };
+  } catch (error) {
+    if (error instanceof AppError) return { error: tErrors('validationFailed') };
+    throw error;
+  }
+}
+
+export async function deleteOrgProjectTemplateAction(
+  templateId: string,
+): Promise<SettingsActionState> {
+  const tErrors = await getTranslations('errors');
+  try {
+    await withOrgContext((context) => deleteOrgProjectTemplate(context, templateId));
+    revalidatePath('/settings/templates');
+    return { ok: true };
+  } catch (error) {
+    if (error instanceof AppError) return { error: tErrors('unexpected') };
+    throw error;
+  }
+}
+
+export async function upsertOrgPhasePackAction(
+  _prev: SettingsActionState,
+  formData: FormData,
+): Promise<SettingsActionState> {
+  const tErrors = await getTranslations('errors');
+  try {
+    await withOrgContext((context) =>
+      upsertOrgPhasePack(context, {
+        name: formValue(formData, 'name'),
+        phasesText: formValue(formData, 'phasesText'),
+      }),
+    );
+    revalidatePath('/settings/templates');
+    return { ok: true };
+  } catch (error) {
+    if (error instanceof AppError) return { error: tErrors('validationFailed') };
+    throw error;
+  }
+}
+
+export async function deleteOrgPhasePackAction(packId: string): Promise<SettingsActionState> {
+  const tErrors = await getTranslations('errors');
+  try {
+    await withOrgContext((context) => deleteOrgPhasePack(context, packId));
+    revalidatePath('/settings/templates');
+    return { ok: true };
+  } catch (error) {
+    if (error instanceof AppError) return { error: tErrors('unexpected') };
+    throw error;
+  }
+}
+
+export async function upsertOrgWorkPackagePackAction(
+  _prev: SettingsActionState,
+  formData: FormData,
+): Promise<SettingsActionState> {
+  const tErrors = await getTranslations('errors');
+  try {
+    await withOrgContext((context) =>
+      upsertOrgWorkPackagePack(context, {
+        name: formValue(formData, 'name'),
+        workPackagesText: formValue(formData, 'workPackagesText'),
+      }),
+    );
+    revalidatePath('/settings/templates');
+    return { ok: true };
+  } catch (error) {
+    if (error instanceof AppError) return { error: tErrors('validationFailed') };
+    throw error;
+  }
+}
+
+export async function deleteOrgWorkPackagePackAction(packId: string): Promise<SettingsActionState> {
+  const tErrors = await getTranslations('errors');
+  try {
+    await withOrgContext((context) => deleteOrgWorkPackagePack(context, packId));
+    revalidatePath('/settings/templates');
+    return { ok: true };
+  } catch (error) {
+    if (error instanceof AppError) return { error: tErrors('unexpected') };
     throw error;
   }
 }

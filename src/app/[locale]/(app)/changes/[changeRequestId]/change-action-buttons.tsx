@@ -3,7 +3,7 @@
 import { useTranslations } from 'next-intl';
 import { useActionState, type ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
-import type { ChangeRequestStatus } from '@/modules/commercial';
+import type { ChangeRequestStatus } from '@/modules/commercial/domain/types';
 import type { FormActionState } from '../actions';
 
 export interface ChangeActionButtonsProps {

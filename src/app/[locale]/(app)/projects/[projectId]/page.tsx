@@ -6,7 +6,16 @@ import { PageHeader } from '@/components/ui/page-header';
 import { TabsContent } from '@/components/ui/tabs';
 import { listClientsForOrg } from '@/modules/clients';
 import { listCustomFieldValuesForEntity } from '@/modules/custom-fields';
-import { getProjectDetail } from '@/modules/projects';
+import {
+  getProjectDetail,
+  listProjectsForOrg,
+  selectProjectWorkspaceLinks,
+} from '@/modules/projects';
+import {
+  listOrgPhasePacks,
+  listOrgProjectTemplatesForApply,
+  listOrgWorkPackagePacks,
+} from '@/modules/tenancy';
 import { getShellContext, withOrgContext } from '@/shared/auth/session';
 import { formatMoney } from '@/shared/money/format';
 import { zeroMoney } from '@/shared/money';
@@ -24,7 +33,7 @@ import { OverviewTab } from './overview-tab';
 import { ProjectHeaderMetrics } from './project-header-metrics';
 import { ProjectStatusBadge } from '../project-status-badge';
 import { ProjectTabsShell, type ProjectTabKey } from './project-tabs-shell';
-import { ProjectFieldOpsLinks } from './project-field-ops-links';
+import { ProjectFieldOpsSummaryPanel } from './project-field-ops-summary';
 import { TabPanelSkeleton } from './tab-panel-skeleton';
 import { WorkTab } from './work-tab';
 
@@ -51,16 +60,37 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
 
   let detail;
   let customFields: Awaited<ReturnType<typeof listCustomFieldValuesForEntity>> = [];
+  let orgTemplates: Awaited<ReturnType<typeof listOrgProjectTemplatesForApply>> = [];
+  let phasePacks: Awaited<ReturnType<typeof listOrgPhasePacks>> = [];
+  let workPackagePacks: Awaited<ReturnType<typeof listOrgWorkPackagePacks>> = [];
+  let cloneCandidates: { id: string; name: string }[] = [];
   try {
     const loaded = await withOrgContext(async (context) => {
       const projectDetail = await getProjectDetail(context, projectId);
       const fields = await listCustomFieldValuesForEntity(context, 'project', projectId).catch(
         () => [],
       );
-      return { projectDetail, fields };
+      const templates = await listOrgProjectTemplatesForApply(context).catch(() => []);
+      const phases = await listOrgPhasePacks(context).catch(() => []);
+      const wpPacks = await listOrgWorkPackagePacks(context).catch(() => []);
+      const projects = await listProjectsForOrg(context, {}).catch(() => []);
+      return {
+        projectDetail,
+        fields,
+        templates,
+        phases,
+        wpPacks,
+        cloneCandidates: projects
+          .filter((row) => row.id !== projectId)
+          .map((row) => ({ id: row.id, name: row.name })),
+      };
     });
     detail = loaded.projectDetail;
     customFields = loaded.fields;
+    orgTemplates = loaded.templates;
+    phasePacks = loaded.phases;
+    workPackagePacks = loaded.wpPacks;
+    cloneCandidates = loaded.cloneCandidates;
   } catch {
     notFound();
   }
@@ -78,7 +108,17 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
     clients = [];
   }
 
+  const can = (permission: PermissionKey) => shell?.permissions.has(permission) ?? false;
+  const modules = shell?.modules;
   const showWorkTab = detail.showWorkPackages;
+  const uiLocale = locale === 'he-IL' ? 'he-IL' : 'en';
+  const workspaceLinks = selectProjectWorkspaceLinks({
+    projectId,
+    modules: modules ?? {},
+    permissions: shell?.permissions ?? new Set(),
+    showWorkPackages: showWorkTab,
+    canReadFinancials,
+  });
 
   const canArchive = shell?.permissions.has(PERMISSIONS.PROJECTS_ARCHIVE) ?? false;
   const canManageContract = shell?.permissions.has(PERMISSIONS.CONTRACTS_MANAGE) ?? false;
@@ -91,11 +131,6 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
     currencyDisplay: 'narrowSymbol',
   });
   const currencySymbol = sample.replace(/[\d\s.,\u2212+-]/g, '').trim() || '₪';
-
-  // Tabs follow Progressive Complexity: a capability the organization has not
-  // turned on, or that this person cannot see, leaves no empty shelf behind.
-  const can = (permission: PermissionKey) => shell?.permissions.has(permission) ?? false;
-  const modules = shell?.modules;
 
   const showExpensesTab = can(PERMISSIONS.EXPENSES_READ);
   const showChangesTab = Boolean(modules?.changes) && can(PERMISSIONS.CHANGES_READ);
@@ -147,91 +182,109 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
 
       {!showWorkTab ? (
         <div className="rounded-lg border border-dashed border-[var(--pf-border-default)] p-4">
-          <WorkTab detail={detail} />
+          <WorkTab
+            detail={detail}
+            canEdit={can(PERMISSIONS.PROJECTS_UPDATE)}
+            locale={uiLocale}
+            orgTemplates={orgTemplates}
+            phasePacks={phasePacks}
+            workPackagePacks={workPackagePacks}
+            cloneCandidates={cloneCandidates}
+          />
         </div>
       ) : null}
 
       <Suspense fallback={<TabPanelSkeleton />}>
         <ProjectTabsShell tabs={tabs}>
-        <TabsContent value="overview">
-          <div className="flex flex-col gap-4">
-            {Boolean(modules?.field_ops) && can(PERMISSIONS.FIELD_OPS_READ) ? (
-              <ProjectFieldOpsLinks projectId={projectId} />
-            ) : null}
-            <OverviewTab
-              detail={detail}
-              locale={locale}
-              canReadFinancials={canReadFinancials}
-              canEdit={can(PERMISSIONS.PROJECTS_UPDATE)}
-            />
-          </div>
-        </TabsContent>
-
-        {canReadFinancials ? (
-          <TabsContent value="financials">
-            <Suspense fallback={<TabPanelSkeleton />}>
-              <ProjectFinancialsPanel projectId={projectId} />
-            </Suspense>
+          <TabsContent value="overview">
+            <div className="flex flex-col gap-4">
+              {Boolean(modules?.field_ops) && can(PERMISSIONS.FIELD_OPS_READ) ? (
+                <ProjectFieldOpsSummaryPanel projectId={projectId} />
+              ) : null}
+              <OverviewTab
+                detail={detail}
+                locale={locale}
+                canReadFinancials={canReadFinancials}
+                canEdit={can(PERMISSIONS.PROJECTS_UPDATE)}
+                workspaceLinks={workspaceLinks}
+                organizationTimezone={shell?.organization.timezone ?? 'Asia/Jerusalem'}
+              />
+            </div>
           </TabsContent>
-        ) : null}
 
-        {showExpensesTab ? (
-          <TabsContent value="expenses">
-            <Suspense fallback={<TabPanelSkeleton />}>
-              <ProjectExpensesPanel projectId={projectId} />
-            </Suspense>
-          </TabsContent>
-        ) : null}
+          {canReadFinancials ? (
+            <TabsContent value="financials">
+              <Suspense fallback={<TabPanelSkeleton />}>
+                <ProjectFinancialsPanel projectId={projectId} />
+              </Suspense>
+            </TabsContent>
+          ) : null}
 
-        {showChangesTab ? (
-          <TabsContent value="changes">
-            <Suspense fallback={<TabPanelSkeleton />}>
-              <ProjectChangesPanel projectId={projectId} />
-            </Suspense>
-          </TabsContent>
-        ) : null}
+          {showExpensesTab ? (
+            <TabsContent value="expenses">
+              <Suspense fallback={<TabPanelSkeleton />}>
+                <ProjectExpensesPanel projectId={projectId} />
+              </Suspense>
+            </TabsContent>
+          ) : null}
 
-        {showBillingTab ? (
-          <TabsContent value="billing">
-            <Suspense fallback={<TabPanelSkeleton />}>
-              <ProjectBillingPanel projectId={projectId} />
-            </Suspense>
-          </TabsContent>
-        ) : null}
+          {showChangesTab ? (
+            <TabsContent value="changes">
+              <Suspense fallback={<TabPanelSkeleton />}>
+                <ProjectChangesPanel projectId={projectId} />
+              </Suspense>
+            </TabsContent>
+          ) : null}
 
-        {showWorkTab ? (
-          <TabsContent value="work">
-            <WorkTab detail={detail} />
-          </TabsContent>
-        ) : null}
+          {showBillingTab ? (
+            <TabsContent value="billing">
+              <Suspense fallback={<TabPanelSkeleton />}>
+                <ProjectBillingPanel projectId={projectId} />
+              </Suspense>
+            </TabsContent>
+          ) : null}
 
-        {showTimeTab ? (
-          <TabsContent value="time">
-            <Suspense fallback={<TabPanelSkeleton />}>
-              <ProjectTimePanel projectId={projectId} />
-            </Suspense>
-          </TabsContent>
-        ) : null}
-
-        {showDocumentsTab ? (
-          <TabsContent value="documents">
-            <Suspense fallback={<TabPanelSkeleton />}>
-              <DocumentsTab projectId={projectId} />
-            </Suspense>
-          </TabsContent>
-        ) : null}
-
-        <TabsContent value="details">
-          <DetailsTab
+          {showWorkTab ? (
+            <TabsContent value="work">
+              <WorkTab
             detail={detail}
-            clients={clients}
-            baseCurrency={baseCurrency}
-            currencySymbol={currencySymbol}
-            canManageContract={canManageContract}
-            customFields={customFields}
+            canEdit={can(PERMISSIONS.PROJECTS_UPDATE)}
+            locale={uiLocale}
+            orgTemplates={orgTemplates}
+            phasePacks={phasePacks}
+            workPackagePacks={workPackagePacks}
+            cloneCandidates={cloneCandidates}
           />
-        </TabsContent>
-      </ProjectTabsShell>
+            </TabsContent>
+          ) : null}
+
+          {showTimeTab ? (
+            <TabsContent value="time">
+              <Suspense fallback={<TabPanelSkeleton />}>
+                <ProjectTimePanel projectId={projectId} />
+              </Suspense>
+            </TabsContent>
+          ) : null}
+
+          {showDocumentsTab ? (
+            <TabsContent value="documents">
+              <Suspense fallback={<TabPanelSkeleton />}>
+                <DocumentsTab projectId={projectId} hasContract={Boolean(detail.contract)} />
+              </Suspense>
+            </TabsContent>
+          ) : null}
+
+          <TabsContent value="details">
+            <DetailsTab
+              detail={detail}
+              clients={clients}
+              baseCurrency={baseCurrency}
+              currencySymbol={currencySymbol}
+              canManageContract={canManageContract}
+              customFields={customFields}
+            />
+          </TabsContent>
+        </ProjectTabsShell>
       </Suspense>
     </div>
   );

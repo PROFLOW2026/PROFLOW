@@ -20,9 +20,22 @@ CREATE INDEX IF NOT EXISTS "external_access_grants_vendor_idx"
 ALTER TABLE "external_access_grants"
   DROP CONSTRAINT IF EXISTS "external_access_grants_scope_present";
 
+-- Kind-scoped targets: vendor grants require vendor_id only; customer grants
+-- require client/project and must not carry vendor_id. Prevents cross-kind
+-- scope smuggling that could blur ExternalPrincipal vs Membership boundaries.
 ALTER TABLE "external_access_grants"
   ADD CONSTRAINT "external_access_grants_scope_present" CHECK (
-    num_nonnulls("client_id", "project_id", "vendor_id") >= 1
+    (
+      "portal_kind" = 'vendor'
+      AND "vendor_id" IS NOT NULL
+      AND "client_id" IS NULL
+      AND "project_id" IS NULL
+    )
+    OR (
+      "portal_kind" = 'customer'
+      AND "vendor_id" IS NULL
+      AND num_nonnulls("client_id", "project_id") >= 1
+    )
   );
 
 --------------------------------------------------------------------------------

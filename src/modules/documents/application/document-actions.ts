@@ -4,7 +4,11 @@ import { getTranslations } from 'next-intl/server';
 import {
   createDocumentDownloadUrl,
   finalizeDocumentUpload,
+  linkDocumentToEntity,
   prepareDocumentUpload,
+  softDeleteDocument,
+  unlinkDocumentFromEntity,
+  type DocumentOwnerType,
   type FinalizeUploadInput,
   type PrepareUploadInput,
 } from '@/modules/documents';
@@ -22,6 +26,7 @@ export interface PrepareUploadActionResult extends ActionResult {
 
 export interface DownloadActionResult extends ActionResult {
   url?: string;
+  filename?: string;
 }
 
 async function mapDocumentError(error: unknown): Promise<string> {
@@ -68,9 +73,66 @@ export async function downloadDocumentAction(input: {
 
   try {
     const result = await withOrgContext((context) => createDocumentDownloadUrl(context, input));
-    return { url: result.url };
+    return { url: result.url, filename: result.filename };
   } catch (error) {
-    if (error instanceof AppError) return { error: t('downloadFailed') };
+    if (error instanceof AppError) {
+      if (error.messageKey === 'documents.errors.storageNotConfigured') {
+        return { error: t('storageNotConfigured') };
+      }
+      return { error: t('downloadFailed') };
+    }
+    throw error;
+  }
+}
+
+export async function linkDocumentAction(input: {
+  documentId: string;
+  ownerType: DocumentOwnerType;
+  ownerId: string;
+  label?: string | null;
+}): Promise<ActionResult> {
+  const t = await getTranslations('documents.errors');
+
+  try {
+    await withOrgContext((context) => linkDocumentToEntity(context, input));
+    return {};
+  } catch (error) {
+    if (error instanceof AppError) {
+      if (error.messageKey === 'errors.notFound') return { error: t('notFound') };
+      return { error: t('linkFailed') };
+    }
+    throw error;
+  }
+}
+
+export async function unlinkDocumentAction(input: { linkId: string }): Promise<ActionResult> {
+  const t = await getTranslations('documents.errors');
+
+  try {
+    await withOrgContext((context) => unlinkDocumentFromEntity(context, input));
+    return {};
+  } catch (error) {
+    if (error instanceof AppError) {
+      if (error.messageKey === 'errors.notFound') return { error: t('notFound') };
+      return { error: t('unlinkFailed') };
+    }
+    throw error;
+  }
+}
+
+export async function softDeleteDocumentAction(input: {
+  documentId: string;
+}): Promise<ActionResult> {
+  const t = await getTranslations('documents.errors');
+
+  try {
+    await withOrgContext((context) => softDeleteDocument(context, input));
+    return {};
+  } catch (error) {
+    if (error instanceof AppError) {
+      if (error.messageKey === 'errors.notFound') return { error: t('notFound') };
+      return { error: t('deleteFailed') };
+    }
     throw error;
   }
 }

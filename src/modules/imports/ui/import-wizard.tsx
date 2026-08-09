@@ -27,9 +27,14 @@ import type {
   EnabledImportKind,
   ImportConfirmResult,
   ImportPreview,
-} from '@/modules/imports';
+} from '@/modules/imports/domain/types';
+import {
+  buildImportConfirmFailuresCsv,
+  buildImportIssuesReportCsv,
+} from '@/modules/imports/domain/error-report';
 import {
   confirmImportAction,
+  parseImportFileAction,
   previewImportAction,
 } from '@/modules/imports/application/import-actions';
 
@@ -39,6 +44,29 @@ const STEPS: readonly Step[] = ['upload', 'mapping', 'preview', 'result'];
 
 export interface ImportWizardProps {
   readonly allowedKinds: readonly EnabledImportKind[];
+}
+
+function downloadText(fileName: string, contents: string) {
+  const blob = new Blob([contents], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = fileName;
+  anchor.click();
+  URL.revokeObjectURL(url);
+}
+
+function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = typeof reader.result === 'string' ? reader.result : '';
+      const comma = result.indexOf(',');
+      resolve(comma >= 0 ? result.slice(comma + 1) : result);
+    };
+    reader.onerror = () => reject(new Error('read failed'));
+    reader.readAsDataURL(file);
+  });
 }
 
 export function ImportWizard({ allowedKinds }: ImportWizardProps) {
@@ -65,13 +93,21 @@ export function ImportWizard({ allowedKinds }: ImportWizardProps) {
       return;
     }
     setFileName(file.name);
-    const reader = new FileReader();
-    reader.onload = () => {
-      const text = typeof reader.result === 'string' ? reader.result : '';
-      setCsvText(text);
-    };
-    reader.onerror = () => setError(t('errors.readFile'));
-    reader.readAsText(file, 'UTF-8');
+    startTransition(async () => {
+      try {
+        const base64 = await fileToBase64(file);
+        const parsed = await parseImportFileAction({ fileName: file.name, base64 });
+        if (!parsed.ok) {
+          setError(parsed.error);
+          setCsvText('');
+          return;
+        }
+        setCsvText(parsed.csvText);
+      } catch {
+        setError(t('errors.readFile'));
+        setCsvText('');
+      }
+    });
   }
 
   function runPreview(nextMapping?: ColumnMapping) {
@@ -190,7 +226,7 @@ export function ImportWizard({ allowedKinds }: ImportWizardProps) {
             <input
               id="import-file"
               type="file"
-              accept=".csv,text/csv"
+              accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
               className="block w-full max-w-md text-sm file:me-3 file:min-h-11 file:cursor-pointer file:rounded-md file:border file:border-[var(--pf-border-strong)] file:bg-[var(--pf-action-secondary)] file:px-3 file:text-sm file:font-medium"
               onChange={(event) => onFile(event.target.files?.[0] ?? null)}
             />
@@ -201,7 +237,11 @@ export function ImportWizard({ allowedKinds }: ImportWizardProps) {
             ) : null}
           </div>
 
-          <p className="text-sm text-[var(--pf-text-secondary)]">{t('expensesNotEnabled')}</p>
+          {kind === 'expenses' ? (
+            <p className="text-sm text-[var(--pf-text-secondary)]">{t('expensesSafeHint')}</p>
+          ) : (
+            <p className="text-sm text-[var(--pf-text-secondary)]">{t('nonFinancialHint')}</p>
+          )}
 
           <div className="flex flex-wrap gap-2">
             <Button
@@ -374,6 +414,18 @@ export function ImportWizard({ allowedKinds }: ImportWizardProps) {
             <Button type="button" variant="secondary" disabled={pending} onClick={() => setStep('mapping')}>
               {t('actions.back')}
             </Button>
+            {preview.errorCount > 0 || preview.warningCount > 0 ? (
+              <Button
+                type="button"
+                variant="secondary"
+                disabled={pending}
+                onClick={() =>
+                  downloadText(`import-issues-${kind}.csv`, buildImportIssuesReportCsv(preview))
+                }
+              >
+                {t('actions.downloadIssues')}
+              </Button>
+            ) : null}
             <Button
               type="button"
               variant="primary"
@@ -393,16 +445,30 @@ export function ImportWizard({ allowedKinds }: ImportWizardProps) {
             {t('result.summary', { created: result.created, failed: result.failed })}
           </p>
           {result.failed > 0 ? (
-            <ul className="list-inside list-disc text-sm text-[var(--pf-action-danger)]">
-              {result.results
-                .filter((r) => !r.ok)
-                .slice(0, 50)
-                .map((r) => (
-                  <li key={r.rowNumber}>
-                    {t('result.rowFailed', { row: r.rowNumber, error: r.error ?? '' })}
-                  </li>
-                ))}
-            </ul>
+            <>
+              <ul className="list-inside list-disc text-sm text-[var(--pf-action-danger)]">
+                {result.results
+                  .filter((r) => !r.ok)
+                  .slice(0, 50)
+                  .map((r) => (
+                    <li key={r.rowNumber}>
+                      {t('result.rowFailed', { row: r.rowNumber, error: r.error ?? '' })}
+                    </li>
+                  ))}
+              </ul>
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() =>
+                  downloadText(
+                    `import-failures-${result.kind}.csv`,
+                    buildImportConfirmFailuresCsv(result),
+                  )
+                }
+              >
+                {t('actions.downloadFailures')}
+              </Button>
+            </>
           ) : null}
           <Button type="button" variant="secondary" onClick={reset}>
             {t('actions.another')}

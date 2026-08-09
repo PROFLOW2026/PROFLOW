@@ -7,6 +7,12 @@ import {
   sanitizeMapping,
 } from '../domain/column-mapping';
 import {
+  detectWithinFileDuplicates,
+  flagExpenseInFileDuplicates,
+  flagInFileDuplicates,
+  mergeIssueMaps,
+} from '../domain/duplicates';
+import {
   isEnabledImportKind,
   isImportKind,
   type ColumnMapping,
@@ -28,6 +34,7 @@ export interface PreviewImportInput {
 
 /**
  * Parse CSV → map columns → validate rows (session/in-memory; no DB writes).
+ * Call `enrichImportPreview` afterward for tenant refs / org duplicate names.
  */
 export function previewImport(
   context: OrgContext,
@@ -83,7 +90,19 @@ export function previewImport(
     values: applyMapping(parsed.headers, row, mapping),
   }));
 
-  let rows: MappedImportRow[] = validateMappedRows(kind, mapped);
+  let rows: MappedImportRow[] = validateMappedRows(kind, mapped, {
+    baseCurrency: context.organization.baseCurrency,
+  });
+
+  if (kind === 'projects') {
+    rows = flagInFileDuplicates(rows, 'name', 'project');
+  }
+  if (kind === 'clients' || kind === 'vendors' || kind === 'employees') {
+    rows = mergeIssueMaps(rows, detectWithinFileDuplicates(kind, rows));
+  }
+  if (kind === 'expenses') {
+    rows = flagExpenseInFileDuplicates(rows);
+  }
 
   if (kind === 'projects') {
     const financialHeaders = parsed.headers.filter((header) =>
@@ -93,6 +112,22 @@ export function previewImport(
       const warning = {
         severity: 'warning' as const,
         message: `Financial columns ignored (${financialHeaders.join(', ')}); contract amounts are not imported`,
+      };
+      rows = rows.map((row) => ({
+        ...row,
+        issues: [...row.issues, warning],
+      }));
+    }
+  }
+
+  if (kind === 'expenses') {
+    const taxHeaders = parsed.headers.filter((header) =>
+      /tax|vat|מע["״']?מ|net_amount|net amount/i.test(header),
+    );
+    if (taxHeaders.length > 0) {
+      const warning = {
+        severity: 'warning' as const,
+        message: `Tax/VAT columns ignored (${taxHeaders.join(', ')}); VAT is not profit and is not imported`,
       };
       rows = rows.map((row) => ({
         ...row,

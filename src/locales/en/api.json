@@ -1,7 +1,7 @@
 {
   "title": "API and webhooks",
   "subtitle": "Register API clients, issue keys, and record webhook endpoints. No third-party connectors are activated here.",
-  "versionNote": "Public surface: GET /api/v1/whoami with Authorization: Bearer <api_key>. Cookie session auth is not used on this route.",
+  "versionNote": "Public surface: GET /api/v1/whoami and GET /api/v1/projects with Authorization: Bearer <api_key>. Cookie session auth is not used on these routes.",
   "addClient": "Create client",
   "clientSaved": "API client created.",
   "addKey": "Generate key",
@@ -10,14 +10,21 @@
   "keyOnce": "Copy this key now. It is shown only once.",
   "secretOnce": "Copy this webhook secret now. It is shown only once.",
   "revoke": "Revoke",
+  "rotate": "Rotate",
+  "rotateSecret": "Rotate secret",
+  "neverUsed": "Never",
+  "attempts": "{count} attempts",
   "addWebhook": "Register endpoint",
   "webhooksTitle": "Webhook endpoints",
   "webhooksEmpty": "No webhook endpoints yet.",
-  "eventTypesHint": "Comma-separated event types, e.g. project.updated",
+  "eventTypesHint": "HTTPS endpoints only (http allowed for localhost). Choose from the allowlisted event types.",
   "enqueueTest": "Enqueue test",
   "deliveriesTitle": "Recent deliveries",
   "deliveriesEmpty": "No deliveries recorded yet.",
   "deliveryQueued": "Delivery recorded as pending.",
+  "deliveryAttemptRecorded": "Delivery attempt recorded (no outbound HTTP).",
+  "markDeliverySuccess": "Record success",
+  "markDeliveryFailure": "Record failure",
   "fields": {
     "clientName": "Client name",
     "keyName": "Key name",
@@ -29,6 +36,8 @@
   "columns": {
     "name": "Name",
     "prefix": "Prefix",
+    "scopes": "Scopes",
+    "lastUsed": "Last used",
     "status": "Status",
     "actions": "Actions",
     "url": "URL",
@@ -43,5 +52,13 @@
     "clients.read": "clients.read",
     "billing.read": "billing.read",
     "webhooks.manage": "webhooks.manage"
+  },
+  "events": {
+    "test.ping": "test.ping",
+    "project.created": "project.created",
+    "project.updated": "project.updated",
+    "client.updated": "client.updated",
+    "billing.invoice.issued": "billing.invoice.issued",
+    "api.key.revoked": "api.key.revoked"
   }
 }

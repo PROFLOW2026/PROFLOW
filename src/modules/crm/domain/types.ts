@@ -176,12 +176,16 @@ export interface ProspectListFilters {
   readonly search?: string;
   readonly status?: ProspectStatus | 'all';
   readonly includeArchived?: boolean;
+  readonly limit?: number;
+  readonly offset?: number;
 }
 
 export interface LeadListFilters {
   readonly search?: string;
   readonly status?: LeadStatus | 'all';
   readonly includeArchived?: boolean;
+  readonly limit?: number;
+  readonly offset?: number;
 }
 
 export interface OpportunityListFilters {
@@ -189,6 +193,8 @@ export interface OpportunityListFilters {
   readonly status?: OpportunityStatus | 'all';
   readonly stage?: OpportunityStage | 'all';
   readonly includeArchived?: boolean;
+  readonly limit?: number;
+  readonly offset?: number;
 }
 
 export interface OpportunityDetail extends Omit<OpportunityRecord, 'notes'> {

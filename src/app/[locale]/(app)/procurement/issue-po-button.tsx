@@ -25,7 +25,9 @@ export function IssuePurchaseOrderButton({ purchaseOrderId }: { purchaseOrderId:
         {pending ? t('pending') : t('action')}
       </Button>
       {state.error ? (
-        <span className="text-xs text-[var(--pf-status-danger-fg)]">{state.error}</span>
+        <span role="alert" className="text-xs text-[var(--pf-status-danger-fg)]">
+          {state.error}
+        </span>
       ) : null}
     </form>
   );

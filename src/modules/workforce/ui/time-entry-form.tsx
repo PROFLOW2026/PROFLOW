@@ -8,7 +8,10 @@ import { Field } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import type { createTimeEntryAction } from '@/app/[locale]/(app)/workforce/time/actions';
+import { timeEntryPayloadFromFormData } from '@/modules/offline/domain/payloads';
+import { useOfflineAwareFormAction } from '@/modules/offline/ui/use-offline-aware-form-action';
+import { Link } from '@/shared/i18n/navigation';
+import type { createTimeEntryAction, TimeEntryFormState } from '@/app/[locale]/(app)/workforce/time/actions';
 
 export interface TimeEntryFormOption {
   readonly id: string;
@@ -34,10 +37,22 @@ export function TimeEntryForm({
 }: TimeEntryFormProps) {
   const t = useTranslations('workforce');
   const tCommon = useTranslations('common');
+  const tOffline = useTranslations('offline');
   const [employeeId, setEmployeeId] = useState(defaultEmployeeId ?? employees[0]?.id ?? '');
   const [projectId, setProjectId] = useState(recentProjectId ?? projects[0]?.id ?? '');
   const [showMore, setShowMore] = useState(false);
-  const [state, formAction, pending] = useActionState(action, {});
+
+  const offlineSuccessState = useMemo<TimeEntryFormState>(() => ({ offlineQueued: true }), []);
+
+  const wrappedAction = useOfflineAwareFormAction<TimeEntryFormState>({
+    kind: 'time_entry',
+    onlineAction: action,
+    buildPayload: timeEntryPayloadFromFormData,
+    offlineSuccessState,
+    missingOrgError: tOffline('errors.missingOrganization'),
+  });
+
+  const [state, formAction, pending] = useActionState(wrappedAction, {});
 
   const sortedProjects = useMemo(() => {
     if (!recentProjectId) return projects;
@@ -55,6 +70,14 @@ export function TimeEntryForm({
   return (
     <form action={formAction} className="mx-auto flex max-w-lg flex-col gap-4">
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
+      {state.offlineQueued ? (
+        <Alert tone="info" role="status">
+          {tOffline('forms.draftSaved')}{' '}
+          <Link href="/settings/offline-drafts" className="font-medium underline">
+            {tOffline('banner.viewDrafts')}
+          </Link>
+        </Alert>
+      ) : null}
 
       <input type="hidden" name="kind" value="project" />
 
@@ -91,6 +114,7 @@ export function TimeEntryForm({
             name="hours"
             type="text"
             inputMode="decimal"
+            numeric
             placeholder="8"
             required
             className="text-lg"

@@ -56,7 +56,10 @@ export const externalAccessGrants = pgTable(
     ),
     check(
       'external_access_grants_scope_present',
-      sql`num_nonnulls(${table.clientId}, ${table.projectId}, ${table.vendorId}) >= 1`,
+      sql`(
+        (${table.portalKind} = 'vendor' AND ${table.vendorId} IS NOT NULL AND ${table.clientId} IS NULL AND ${table.projectId} IS NULL)
+        OR (${table.portalKind} = 'customer' AND ${table.vendorId} IS NULL AND num_nonnulls(${table.clientId}, ${table.projectId}) >= 1)
+      )`,
     ),
   ],
 );

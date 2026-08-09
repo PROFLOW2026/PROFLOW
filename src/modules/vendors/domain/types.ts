@@ -61,6 +61,8 @@ export interface VendorListFilters {
   readonly status?: VendorStatus | 'all';
   readonly type?: VendorType | 'all';
   readonly includeArchived?: boolean;
+  readonly limit?: number;
+  readonly offset?: number;
 }
 
 export interface VendorListItem extends VendorRecord {

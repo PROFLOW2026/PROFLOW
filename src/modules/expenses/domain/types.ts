@@ -110,3 +110,9 @@ export interface WorkPackageOption {
   readonly name: string;
   readonly isDefault: boolean;
 }
+
+/** Lightweight vendor pick list for expense capture (doc 07 mode 3). */
+export interface VendorOption {
+  readonly id: string;
+  readonly name: string;
+}

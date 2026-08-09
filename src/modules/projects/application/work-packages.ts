@@ -63,7 +63,14 @@ export async function createWorkPackage(
 
 export async function updateWorkPackage(
   context: OrgContext,
-  rawInput: { workPackageId: string; name?: string; description?: string | null },
+  rawInput: {
+    workPackageId: string;
+    name?: string;
+    description?: string | null;
+    startDate?: string | null;
+    endDate?: string | null;
+    progressPercent?: string | null;
+  },
 ): Promise<WorkPackageRecord> {
   assertPermission(context, PERMISSIONS.PROJECTS_UPDATE);
 
@@ -79,7 +86,7 @@ export async function updateWorkPackage(
     context.organizationId,
     parsed.data.workPackageId,
   );
-  if (!existing) throw new NotFoundError('Work package');
+  if (!existing) throw new NotFoundError('Work area');
 
   const updated = await updateWorkPackageById(
     context.db,
@@ -93,7 +100,7 @@ export async function updateWorkPackage(
       progressPercent: parsed.data.progressPercent,
     },
   );
-  if (!updated) throw new NotFoundError('Work package');
+  if (!updated) throw new NotFoundError('Work area');
 
   await recordAuditEvent(context, {
     action: 'work_package.updated',
@@ -124,10 +131,10 @@ export async function archiveWorkPackage(
     context.organizationId,
     parsed.data.workPackageId,
   );
-  if (!existing) throw new NotFoundError('Work package');
+  if (!existing) throw new NotFoundError('Work area');
   if (existing.isDefault) {
     throw new DomainRuleError(
-      'The default work package cannot be archived',
+      'The default work area cannot be archived',
       'projects.errors.defaultWorkPackageArchive',
     );
   }
@@ -139,7 +146,7 @@ export async function archiveWorkPackage(
   );
   if (activePackages.length <= 1) {
     throw new DomainRuleError(
-      'A project must keep at least one work package',
+      'A project must keep at least one work area',
       'projects.errors.lastWorkPackage',
     );
   }
@@ -150,7 +157,7 @@ export async function archiveWorkPackage(
     parsed.data.workPackageId,
     { archivedAt: new Date() },
   );
-  if (!updated) throw new NotFoundError('Work package');
+  if (!updated) throw new NotFoundError('Work area');
 
   await recordAuditEvent(context, {
     action: 'work_package.archived',
@@ -192,7 +199,7 @@ export async function splitProjectIntoWorkPackages(
     context.organizationId,
     parsed.data.projectId,
   );
-  if (!defaultPackage) throw new NotFoundError('Work package');
+  if (!defaultPackage) throw new NotFoundError('Work area');
 
   if (parsed.data.defaultPackageName) {
     await updateWorkPackageById(

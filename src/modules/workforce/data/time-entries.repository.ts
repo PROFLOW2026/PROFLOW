@@ -1,5 +1,11 @@
-import { and, desc, eq, gte, isNull, lte, sql } from 'drizzle-orm';
+import { and, desc, eq, gte, isNotNull, isNull, lte, sql } from 'drizzle-orm';
 import { employees, nonProjectTimeCodes, projects, timeEntries, workPackages } from '@drizzle/schema';
+import {
+  ORG_LIST_EXPORT_CAP,
+  ORG_LIST_HARD_CAP,
+  resolveListLimit,
+  resolveListOffset,
+} from '@/shared/db/list-limits';
 import type { DbExecutor } from '@/shared/db/types';
 import type { NonProjectTimeCodeRecord, TimeEntryKind, TimeEntryListItem, TimeEntryRecord } from '../domain/types';
 
@@ -87,6 +93,8 @@ export interface TimeEntryFilters {
   readonly toDate?: string;
   readonly kind?: TimeEntryKind | 'all';
   readonly includeArchived?: boolean;
+  readonly limit?: number;
+  readonly offset?: number;
 }
 
 export async function listTimeEntries(
@@ -120,6 +128,11 @@ export async function listTimeEntries(
     conditions.push(eq(timeEntries.kind, filters.kind));
   }
 
+  const hardCap =
+    filters.limit != null && filters.limit > ORG_LIST_HARD_CAP
+      ? ORG_LIST_EXPORT_CAP
+      : ORG_LIST_HARD_CAP;
+
   const rows = await db
     .select({
       entry: timeEntries,
@@ -134,7 +147,9 @@ export async function listTimeEntries(
     .leftJoin(workPackages, eq(timeEntries.workPackageId, workPackages.id))
     .leftJoin(nonProjectTimeCodes, eq(timeEntries.timeCodeId, nonProjectTimeCodes.id))
     .where(and(...conditions))
-    .orderBy(desc(timeEntries.workDate), desc(timeEntries.createdAt));
+    .orderBy(desc(timeEntries.workDate), desc(timeEntries.createdAt))
+    .limit(resolveListLimit(filters.limit, { hardCap }))
+    .offset(resolveListOffset(filters.offset));
 
   return rows.map((row) => ({
     ...mapTimeEntry(row.entry),
@@ -200,6 +215,52 @@ export async function sumProjectLaborCost(
   return {
     totalAmount: row?.totalAmount ?? null,
     currency: row?.currency ?? null,
+    entryCount: row?.entryCount ?? 0,
+    entriesMissingCost: row?.entriesMissingCost ?? 0,
+    excludedForeignCurrencyEntries: row?.excludedForeignCurrencyEntries ?? 0,
+  };
+}
+
+/** Org-wide project labor coverage flags for home dashboard (single query). */
+export async function sumOrganizationProjectLaborCoverage(
+  db: DbExecutor,
+  organizationId: string,
+  baseCurrency: string,
+): Promise<{
+  totalAmount: string | null;
+  currency: string;
+  entryCount: number;
+  entriesMissingCost: number;
+  excludedForeignCurrencyEntries: number;
+}> {
+  const [row] = await db
+    .select({
+      totalAmount: sql<string | null>`coalesce(
+        sum(${timeEntries.costAmount}) filter (
+          where upper(${timeEntries.costCurrency}) = upper(${baseCurrency})
+        ),
+        0
+      )::text`,
+      entryCount: sql<number>`count(*)::int`,
+      entriesMissingCost: sql<number>`count(*) filter (where ${timeEntries.costAmount} is null)::int`,
+      excludedForeignCurrencyEntries: sql<number>`count(*) filter (
+        where ${timeEntries.costAmount} is not null
+          and upper(${timeEntries.costCurrency}) <> upper(${baseCurrency})
+      )::int`,
+    })
+    .from(timeEntries)
+    .where(
+      and(
+        eq(timeEntries.organizationId, organizationId),
+        eq(timeEntries.kind, 'project'),
+        isNull(timeEntries.archivedAt),
+        isNotNull(timeEntries.projectId),
+      ),
+    );
+
+  return {
+    totalAmount: row?.totalAmount ?? null,
+    currency: baseCurrency.toUpperCase(),
     entryCount: row?.entryCount ?? 0,
     entriesMissingCost: row?.entriesMissingCost ?? 0,
     excludedForeignCurrencyEntries: row?.excludedForeignCurrencyEntries ?? 0,

@@ -9,14 +9,16 @@ export interface CashFlowViewCopy {
   readonly forecastHint: string;
   readonly outgoingTitle: string;
   readonly outgoingDisclosure: string;
+  readonly outgoingAvailableHint?: string;
   readonly undatedNote: string;
   readonly bucketLabel: (key: CashFlowOutlook['forecastBuckets'][number]['key']) => string;
   readonly paymentCount: (count: number) => string;
+  readonly billCount?: (count: number) => string;
 }
 
 /**
  * Actual (Paid collected) vs Forecast (Outstanding due dates) cash panel.
- * Never labels Forecast amounts as Paid or Revenue.
+ * Outgoing uses open AP bills when available — never Expense invent.
  */
 export function CashFlowView({
   cashFlow,
@@ -28,9 +30,13 @@ export function CashFlowView({
   const undated = cashFlow.forecastBuckets.find((bucket) => bucket.key === 'undated');
 
   return (
-    <section className="flex flex-col gap-4 rounded-lg border border-[var(--pf-border-default)] p-4">
-      {/* Localized Actual/Forecast/outgoing copy lives in `copy`; do not render English domain notes. */}
-      <h2 className="text-sm font-semibold">{copy.title}</h2>
+    <section
+      className="flex flex-col gap-4 rounded-lg border border-[var(--pf-border-default)] p-4"
+      aria-labelledby="cash-flow-heading"
+    >
+      <h2 id="cash-flow-heading" className="text-sm font-semibold">
+        {copy.title}
+      </h2>
 
       <div className="flex flex-col gap-2">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
@@ -82,7 +88,34 @@ export function CashFlowView({
         <p className="text-xs font-medium uppercase tracking-wide text-[var(--pf-text-secondary)]">
           {copy.outgoingTitle}
         </p>
-        <p className="mt-1 text-xs text-[var(--pf-text-secondary)]">{copy.outgoingDisclosure}</p>
+        {cashFlow.outgoing.available ? (
+          <>
+            {copy.outgoingAvailableHint ? (
+              <p className="mt-1 text-xs text-[var(--pf-text-secondary)]">
+                {copy.outgoingAvailableHint}
+              </p>
+            ) : null}
+            <ul className="mt-2 grid list-none gap-3 p-0 sm:grid-cols-2 lg:grid-cols-5">
+              {cashFlow.outgoing.forecastBuckets.map((bucket) => (
+                <li key={`out-${bucket.key}`} className="rounded-md bg-[var(--pf-bg-muted)] p-3">
+                  <p className="text-xs text-[var(--pf-text-secondary)]">
+                    {copy.bucketLabel(bucket.key)}
+                  </p>
+                  <p className="mt-1 text-base font-semibold">
+                    <MoneyText value={bucket.expectedOut} />
+                  </p>
+                  {copy.billCount ? (
+                    <p className="text-xs text-[var(--pf-text-secondary)]">
+                      {copy.billCount(bucket.count)}
+                    </p>
+                  ) : null}
+                </li>
+              ))}
+            </ul>
+          </>
+        ) : (
+          <p className="mt-1 text-xs text-[var(--pf-text-secondary)]">{copy.outgoingDisclosure}</p>
+        )}
       </div>
     </section>
   );

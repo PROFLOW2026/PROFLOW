@@ -33,6 +33,8 @@ export const createDailyLogSchema = z.object({
   weather: optionalText,
   summary: z.string().trim().min(1, 'Summary is required').max(4000),
   workforceNotes: optionalText,
+  /** Packed into workforce_notes — no dedicated DB column. */
+  blockers: optionalText,
 });
 
 export type CreateDailyLogInput = z.input<typeof createDailyLogSchema>;
@@ -44,6 +46,7 @@ export const updateDailyLogSchema = z.object({
   weather: optionalText,
   summary: z.string().trim().min(1).max(4000).optional(),
   workforceNotes: optionalText,
+  blockers: optionalText,
 });
 
 export type UpdateDailyLogInput = z.input<typeof updateDailyLogSchema>;

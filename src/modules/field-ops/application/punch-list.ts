@@ -8,7 +8,7 @@ import {
   canTransitionPunchStatus,
   closedAtForPunchStatus,
 } from '../domain/punch-status';
-import type { PunchStatus } from '../domain/types';
+import type { PunchPriority, PunchStatus } from '../domain/types';
 import {
   findPunchListItemById,
   insertPunchListItem,
@@ -23,9 +23,19 @@ import {
 } from '../validation/schemas';
 import { assertProjectRefsInOrg } from './assert-project-refs';
 
-export async function listPunchListItemsForOrg(context: OrgContext, projectId?: string) {
+export async function listPunchListItemsForOrg(
+  context: OrgContext,
+  filters: { projectId?: string; status?: PunchStatus; priority?: PunchPriority } = {},
+) {
   assertPermission(context, PERMISSIONS.FIELD_OPS_READ);
-  return listPunchListItems(context.db, context.organizationId, projectId);
+  return listPunchListItems(context.db, context.organizationId, filters);
+}
+
+export async function getPunchListItemForOrg(context: OrgContext, punchListItemId: string) {
+  assertPermission(context, PERMISSIONS.FIELD_OPS_READ);
+  const item = await findPunchListItemById(context.db, context.organizationId, punchListItemId);
+  if (!item) throw new NotFoundError('Punch list item');
+  return item;
 }
 
 export async function createPunchListItem(context: OrgContext, raw: CreatePunchListItemInput) {

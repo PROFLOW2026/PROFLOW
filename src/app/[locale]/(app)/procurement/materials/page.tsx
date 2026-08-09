@@ -8,7 +8,7 @@ import { PageHeader } from '@/components/ui/page-header';
 import { ResponsiveTable } from '@/components/patterns/responsive-table';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { listMaterialsForOrg } from '@/modules/procurement';
-import { money } from '@/shared/money/money';
+import { money } from '@/shared/money';
 import { withOrgContext } from '@/shared/auth/session';
 import { Link } from '@/shared/i18n/navigation';
 import { hasPermission } from '@/shared/permissions/assert';
@@ -16,6 +16,10 @@ import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { ProcurementSectionNav } from '../procurement-section-nav';
 import { MaterialCreateForm } from './material-create-form';
 
+/**
+ * UX: materials catalog + vendor prices stay under /procurement/materials.
+ * Operational inventory stock is under /assets/inventory.
+ */
 export async function generateMetadata({
   params,
 }: {
@@ -66,18 +70,27 @@ export default async function MaterialsCatalogPage() {
                   <TableRow>
                     <TableHead>{t('list.columns.name')}</TableHead>
                     <TableHead>{t('list.columns.sku')}</TableHead>
-                    <TableHead>{t('list.columns.unit')}</TableHead>
                     <TableHead>{t('list.columns.manufacturer')}</TableHead>
+                    <TableHead>{t('list.columns.model')}</TableHead>
+                    <TableHead>{t('list.columns.unit')}</TableHead>
                     <TableHead numeric>{t('list.columns.defaultPrice')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {materials.map((item) => (
                     <TableRow key={item.id}>
-                      <TableCell className="font-medium">{item.name}</TableCell>
+                      <TableCell className="font-medium">
+                        <Link
+                          href={`/procurement/materials/${item.id}`}
+                          className="hover:underline"
+                        >
+                          {item.name}
+                        </Link>
+                      </TableCell>
                       <TableCell>{item.sku ?? '—'}</TableCell>
-                      <TableCell>{item.unit}</TableCell>
                       <TableCell>{item.manufacturer ?? '—'}</TableCell>
+                      <TableCell>{item.model ?? '—'}</TableCell>
+                      <TableCell>{item.unit}</TableCell>
                       <TableCell numeric>
                         {item.defaultUnitPrice && item.currency ? (
                           <MoneyText value={money(item.defaultUnitPrice, item.currency)} />
@@ -92,17 +105,21 @@ export default async function MaterialsCatalogPage() {
             </div>
           }
           renderMobileCard={(item) => (
-            <div className="rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4">
+            <Link
+              href={`/procurement/materials/${item.id}`}
+              className="block rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4"
+            >
               <p className="font-semibold">{item.name}</p>
               <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">
-                {[item.sku, item.unit, item.manufacturer].filter(Boolean).join(' · ') || '—'}
+                {[item.sku, item.manufacturer, item.model, item.unit].filter(Boolean).join(' · ') ||
+                  '—'}
               </p>
               {item.defaultUnitPrice && item.currency ? (
                 <p className="mt-2 text-sm">
                   <MoneyText value={money(item.defaultUnitPrice, item.currency)} />
                 </p>
               ) : null}
-            </div>
+            </Link>
           )}
         />
       )}

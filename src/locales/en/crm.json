@@ -101,12 +101,17 @@
     "emailLabel": "Email",
     "phoneLabel": "Phone",
     "notesLabel": "Notes",
-    "submit": "Create lead"
+    "submit": "Create lead",
+    "statusSection": "Lead status",
+    "statusLabel": "Status",
+    "updateStatus": "Update status",
+    "createOpportunity": "Create opportunity from lead"
   },
   "opportunity": {
     "new": "New opportunity",
     "nameLabel": "Opportunity name",
     "prospectLabel": "Prospect",
+    "leadLabel": "Lead",
     "expectedValueLabel": "Expected value",
     "currencyLabel": "Currency",
     "expectedStartLabel": "Expected start",
@@ -134,20 +139,31 @@
     "versionLabel": "Version {number}",
     "converted": "Converted to project",
     "openProject": "Open project",
-    "openClient": "Open client"
+    "openClient": "Open client",
+    "contractLinked": "Primary contract linked: {id}",
+    "pipelineLinks": "Pipeline links",
+    "openLead": "Open linked lead",
+    "openProspect": "Prospect: {name}",
+    "quoteNet": "Net",
+    "quoteTax": "VAT/tax",
+    "quoteTotal": "Total",
+    "quoteNotBilling": "Sales quotes are commercial offers only — they never create invoices or billing records."
   },
   "convert": {
     "title": "Convert to project",
-    "description": "Creates a client, project and original contract value from the accepted sales quote. This cannot be undone.",
+    "description": "Creates a client, project and original contract value from the accepted sales quote. Safe to retry — already-converted opportunities reuse the same Client, Project and Contract.",
     "projectNameLabel": "Project name",
     "submit": "Convert won opportunity",
     "requiresAcceptedQuote": "Accept a sales quote version before converting.",
     "alreadyConverted": "This opportunity was already converted.",
-    "cannotConvert": "This opportunity cannot be converted."
+    "cannotConvert": "This opportunity cannot be converted.",
+    "netBaseline": "Contract baseline uses net {net} {currency} (tax {tax}, total {total}).",
+    "vatNote": "VAT/tax is never treated as profit. The contract stores the commercial net amount."
   },
   "errors": {
     "alreadyConverted": "Opportunity has already been converted",
     "cannotConvertLost": "Lost or cancelled opportunities cannot be converted",
+    "cannotLoseConverted": "Converted opportunities cannot be marked lost",
     "cannotConvert": "This opportunity cannot be converted",
     "quoteNotAccepted": "Only an accepted sales quote version can feed contract net amount",
     "quoteOpportunityMismatch": "Sales quote does not belong to this opportunity",

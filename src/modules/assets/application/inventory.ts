@@ -4,18 +4,21 @@ import { DomainRuleError, NotFoundError, ValidationError } from '@/shared/errors
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { noteModuleUsage } from '@/modules/tenancy';
-import { findProjectById } from '@/modules/projects/data/projects.repository';
-import { findMaterialItemById } from '@/modules/procurement/data/procurement.repository';
+import { findProjectById } from '@/modules/projects';
+import { findMaterialItemById } from '@/modules/procurement';
 import {
   applyInventoryMovement,
+  getReorderStatus,
   isInventoryQuantityGlOrExpense,
   normalizeQuantity,
+  type ReorderStatus,
 } from '../domain/inventory';
 import {
   findInventoryItemById,
   insertInventoryItem,
   insertInventoryMovement,
   listInventoryItems,
+  listInventoryMovementsForItem,
   updateInventoryQuantity,
 } from '../data/assets.repository';
 import {
@@ -24,10 +27,56 @@ import {
   type CreateInventoryItemInput,
   type RecordInventoryMovementInput,
 } from '../validation/schemas';
+import type { InventoryItemRecord, InventoryMovementRecord } from '../domain/types';
 
-export async function listInventoryItemsForOrg(context: OrgContext) {
+/**
+ * UX split (Wave 3): operational stock + movements live under /assets/inventory.
+ * Materials catalog + vendor prices live under /procurement/materials.
+ * Inventory movements update quantity_on_hand only — never Expense / GL.
+ */
+
+export type InventoryItemWithReorder = InventoryItemRecord & {
+  readonly reorderStatus: ReorderStatus;
+};
+
+export async function listInventoryItemsForOrg(
+  context: OrgContext,
+): Promise<InventoryItemWithReorder[]> {
   assertPermission(context, PERMISSIONS.ASSETS_READ);
-  return listInventoryItems(context.db, context.organizationId);
+  const items = await listInventoryItems(context.db, context.organizationId);
+  return items.map((item) => ({
+    ...item,
+    reorderStatus: getReorderStatus({
+      quantityOnHand: item.quantityOnHand,
+      reorderLevel: item.reorderLevel,
+    }),
+  }));
+}
+
+export async function getInventoryItemById(
+  context: OrgContext,
+  inventoryItemId: string,
+): Promise<InventoryItemWithReorder | null> {
+  assertPermission(context, PERMISSIONS.ASSETS_READ);
+  const item = await findInventoryItemById(context.db, context.organizationId, inventoryItemId);
+  if (!item || item.archivedAt) return null;
+  return {
+    ...item,
+    reorderStatus: getReorderStatus({
+      quantityOnHand: item.quantityOnHand,
+      reorderLevel: item.reorderLevel,
+    }),
+  };
+}
+
+export async function listMovementsForInventoryItem(
+  context: OrgContext,
+  inventoryItemId: string,
+): Promise<InventoryMovementRecord[]> {
+  assertPermission(context, PERMISSIONS.ASSETS_READ);
+  const item = await findInventoryItemById(context.db, context.organizationId, inventoryItemId);
+  if (!item || item.archivedAt) throw new NotFoundError('Inventory item');
+  return listInventoryMovementsForItem(context.db, context.organizationId, inventoryItemId);
 }
 
 export async function createInventoryItem(context: OrgContext, raw: CreateInventoryItemInput) {
@@ -55,7 +104,7 @@ export async function createInventoryItem(context: OrgContext, raw: CreateInvent
     sku: input.sku ?? null,
     unit: input.unit ?? 'ea',
     quantityOnHand: normalizeQuantity(input.quantityOnHand ?? '0'),
-    reorderLevel: input.reorderLevel ?? null,
+    reorderLevel: input.reorderLevel ? normalizeQuantity(input.reorderLevel) : null,
     materialItemId: input.materialItemId ?? null,
     notes: input.notes ?? null,
   });
@@ -76,7 +125,8 @@ export async function createInventoryItem(context: OrgContext, raw: CreateInvent
 }
 
 /**
- * Receive or issue stock. Updates quantity_on_hand only — never GL / Expense.
+ * Record stock movement. Updates quantity_on_hand only — never GL / Expense.
+ * Types: receive, issue, return, adjust (signed delta).
  */
 export async function recordInventoryMovement(
   context: OrgContext,
@@ -96,7 +146,7 @@ export async function recordInventoryMovement(
     context.organizationId,
     input.inventoryItemId,
   );
-  if (!item) throw new NotFoundError('Inventory item');
+  if (!item || item.archivedAt) throw new NotFoundError('Inventory item');
 
   if (input.projectId) {
     const project = await findProjectById(context.db, context.organizationId, input.projectId);
@@ -147,6 +197,7 @@ export async function recordInventoryMovement(
       inventoryItemId: item.id,
       movementType: movement.movementType,
       quantity: movement.quantity,
+      projectId: movement.projectId,
       quantityOnHand: updated.quantityOnHand,
       glPosted: false,
       expensePosted: false,

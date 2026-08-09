@@ -60,11 +60,84 @@
       "documents": "Documents",
       "details": "Details"
     },
+    "links": {
+      "navLabel": "Project workspace",
+      "title": "Workspace",
+      "subtitle": "Jump to areas that are active for this organization.",
+      "overview": "Overview",
+      "financials": "Financials",
+      "expenses": "Expenses",
+      "changes": "Changes",
+      "billing": "Billing",
+      "work": "Work areas",
+      "time": "Time & team",
+      "documents": "Documents",
+      "details": "Details",
+      "schedule": "Schedule",
+      "procurement": "Procurement",
+      "ap": "Accounts payable",
+      "field_ops": "Field operations",
+      "workforce": "Workforce",
+      "vendors": "Vendors",
+      "assets": "Assets",
+      "compliance": "Compliance"
+    },
     "header": {
       "currentContractValue": "Current contract value"
     },
     "archive": "Archive project",
     "archiveConfirm": "Archive this project? It will be hidden from the active list but not deleted."
+  },
+  "schedule": {
+    "title": "Schedule",
+    "empty": "No dates, progress, or milestones yet — optional for simple jobs.",
+    "addDates": "Add dates in details",
+    "dates": "Dates",
+    "milestones": "Milestones",
+    "milestoneProgress": "{achieved} of {total} achieved",
+    "overdueMilestones": "{count} overdue",
+    "overdueWorkPackages": "{count} work areas past their end date",
+    "overduePhases": "{count} phases past their end date",
+    "nextMilestone": "Next milestone",
+    "noNextMilestone": "None planned",
+    "projectOverdue": "Past target end date",
+    "overdue": "Overdue"
+  },
+  "templates": {
+    "title": "Apply structure template",
+    "copySemantics": "Creates editable copies on this project. Changing the template later will not update past projects.",
+    "choose": "Template",
+    "source": "Template source",
+    "sourceSystem": "Starter templates",
+    "sourceOrg": "Organization templates",
+    "previewPackages": "Work areas",
+    "previewMilestones": "Milestones",
+    "apply": "Apply as copies",
+    "applied": "Template applied as editable copies.",
+    "phasePack": "Phase pack",
+    "applyPhasePack": "Add phases from pack",
+    "wpPack": "Work-area pack",
+    "applyWpPack": "Add work areas from pack",
+    "keys": {
+      "simple_finish": "Simple finish job",
+      "residential_mep": "Residential MEP",
+      "design_studio": "Design studio",
+      "main_contractor": "Main contractor"
+    }
+  },
+  "clone": {
+    "title": "Clone structure from another project",
+    "subtitle": "Copies work areas, phases, and milestones only — not money, expenses, or documents.",
+    "source": "Source project",
+    "chooseSource": "Choose a project",
+    "preview": "Preview",
+    "loadingPreview": "Loading preview…",
+    "previewTitle": "Will create copies of",
+    "previewPackages": "Work areas",
+    "previewMilestones": "Milestones",
+    "none": "None",
+    "apply": "Clone as copies",
+    "applied": "Structure cloned as editable copies."
   },
   "overview": {
     "contractSummary": "Contract summary",
@@ -117,6 +190,10 @@
     "milestoneTarget": "Target date",
     "milestoneStatus": "Status",
     "addMilestone": "Add milestone",
+    "markMilestoneAchieved": "Mark achieved",
+    "markMilestoneMissed": "Mark missed",
+    "markMilestoneCancelled": "Mark cancelled",
+    "reopenMilestone": "Reopen",
     "emptyMilestones": "No milestones yet — optional.",
     "milestoneStatuses": {
       "planned": "Planned",
@@ -142,10 +219,18 @@
     "renameDefault": "Rename general area",
     "phases": "Phases",
     "addPhase": "Add phase",
-    "emptyPhases": "No phases yet"
+    "emptyPhases": "No phases yet",
+    "progressPercent": "Progress %",
+    "saveProgress": "Save progress",
+    "endDate": "End date",
+    "saveSchedule": "Save schedule",
+    "phaseName": "Phase name",
+    "phaseNamePlaceholder": "e.g. Rough-in",
+    "savePhaseDates": "Save phase dates"
   },
   "errors": {
     "defaultWorkPackageArchive": "The default work area cannot be archived.",
-    "lastWorkPackage": "A project must keep at least one work area."
+    "lastWorkPackage": "A project must keep at least one work area.",
+    "templateRequiresSimpleProject": "Apply structure templates before the project is split into multiple work areas."
   }
 }

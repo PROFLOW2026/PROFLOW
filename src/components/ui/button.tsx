@@ -29,12 +29,13 @@ const buttonVariants = cva(
         link: 'border border-transparent text-[var(--pf-text-brand)] underline-offset-4 hover:underline disabled:bg-transparent disabled:border-transparent',
       },
       size: {
-        sm: 'h-8 px-3 text-[0.8125rem]',
-        md: 'h-10 px-4 text-sm',
+        // Mobile first: ≥44px touch (docs 62–63); denser on md+.
+        sm: 'min-h-11 px-3 text-[0.8125rem] md:h-8 md:min-h-8',
+        md: 'min-h-11 h-11 px-4 text-sm',
         // Comfortable touch target for the mobile surface (doc 62).
-        lg: 'h-12 px-6 text-base',
-        icon: 'size-10',
-        iconSm: 'size-8',
+        lg: 'h-12 min-h-12 px-6 text-base',
+        icon: 'size-11',
+        iconSm: 'size-11 md:size-8',
       },
       block: {
         true: 'w-full',

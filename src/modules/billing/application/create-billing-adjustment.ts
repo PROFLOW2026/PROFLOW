@@ -42,6 +42,11 @@ export async function createBillingAdjustment(context: OrgContext, rawInput: Cre
   if (original.status !== 'finalized') {
     throw new ValidationError([{ path: 'billingRecordId', message: 'Only finalized records can be adjusted' }]);
   }
+  if (original.kind === 'credit_note') {
+    throw new ValidationError([
+      { path: 'billingRecordId', message: 'Credit notes cannot be adjusted with another credit note' },
+    ]);
+  }
 
   const currency = original.totalAmount.currency;
   const amounts = resolveTaxAmounts({

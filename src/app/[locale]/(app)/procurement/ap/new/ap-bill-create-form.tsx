@@ -27,6 +27,7 @@ interface LineDraft {
   quantity: string;
   unitAmount: string;
   lineTotal: string;
+  purchaseOrderLineId: string;
 }
 
 function newKey(): string {
@@ -40,6 +41,7 @@ function emptyLine(): LineDraft {
     quantity: '1',
     unitAmount: '',
     lineTotal: '',
+    purchaseOrderLineId: '',
   };
 }
 
@@ -57,11 +59,16 @@ export function ApBillCreateForm({
   vendors,
   projects,
   purchaseOrders,
+  poLinesByPoId,
 }: {
   defaultCurrency: string;
   vendors: readonly { id: string; name: string }[];
   projects: readonly { id: string; name: string }[];
   purchaseOrders: readonly { id: string; reference: string | null; vendorId: string }[];
+  poLinesByPoId: Record<
+    string,
+    readonly { id: string; description: string; lineTotal: string; currency: string }[]
+  >;
 }) {
   const t = useTranslations('ap.create');
   const tCommon = useTranslations('common');
@@ -77,6 +84,11 @@ export function ApBillCreateForm({
     () => purchaseOrders.filter((po) => !vendorId || po.vendorId === vendorId),
     [purchaseOrders, vendorId],
   );
+
+  const availablePoLines = useMemo(() => {
+    if (!purchaseOrderId || purchaseOrderId === NONE) return [];
+    return poLinesByPoId[purchaseOrderId] ?? [];
+  }, [poLinesByPoId, purchaseOrderId]);
 
   const totalAmount = useMemo(() => {
     try {
@@ -102,6 +114,7 @@ export function ApBillCreateForm({
             unitAmount: line.unitAmount.trim(),
             lineTotal: line.lineTotal.trim(),
             currency,
+            purchaseOrderLineId: line.purchaseOrderLineId.trim() || null,
           })),
       ),
     [currency, lines],
@@ -131,7 +144,7 @@ export function ApBillCreateForm({
               setPurchaseOrderId('');
             }}
           >
-            <SelectTrigger id={props.id}>
+            <SelectTrigger {...props}>
               <SelectValue placeholder={t('vendorPlaceholder')} />
             </SelectTrigger>
             <SelectContent>
@@ -148,7 +161,7 @@ export function ApBillCreateForm({
       <Field label={t('projectLabel')}>
         {(props) => (
           <Select value={projectId || NONE} onValueChange={setProjectId}>
-            <SelectTrigger id={props.id}>
+            <SelectTrigger {...props}>
               <SelectValue placeholder={t('projectNone')} />
             </SelectTrigger>
             <SelectContent>
@@ -165,8 +178,14 @@ export function ApBillCreateForm({
 
       <Field label={t('poLabel')}>
         {(props) => (
-          <Select value={purchaseOrderId || NONE} onValueChange={setPurchaseOrderId}>
-            <SelectTrigger id={props.id}>
+          <Select
+            value={purchaseOrderId || NONE}
+            onValueChange={(value) => {
+              setPurchaseOrderId(value);
+              setLines((prev) => prev.map((row) => ({ ...row, purchaseOrderLineId: '' })));
+            }}
+          >
+            <SelectTrigger {...props}>
               <SelectValue placeholder={t('poNone')} />
             </SelectTrigger>
             <SelectContent>
@@ -216,7 +235,7 @@ export function ApBillCreateForm({
           {lines.map((line, index) => (
             <div
               key={line.key}
-              className="grid gap-3 rounded-md border border-[var(--pf-border-subtle)] p-3 sm:grid-cols-2"
+              className="grid gap-3 rounded-md border border-[var(--pf-border-default)] p-3 sm:grid-cols-2"
             >
               <Field label={t('lineDescription')} className="sm:col-span-2">
                 {(props) => (
@@ -256,8 +275,9 @@ export function ApBillCreateForm({
                 )}
               </Field>
               <Field label={t('lineUnitAmount')}>
-                {() => (
+                {(props) => (
                   <MoneyInput
+                    {...props}
                     value={line.unitAmount}
                     onValueChange={(unitAmount) => {
                       setLines((prev) =>
@@ -275,6 +295,43 @@ export function ApBillCreateForm({
                   />
                 )}
               </Field>
+              {availablePoLines.length > 0 ? (
+                <Field label={t('linePoLine')} className="sm:col-span-2">
+                  {(props) => (
+                    <Select
+                      value={line.purchaseOrderLineId || NONE}
+                      onValueChange={(value) => {
+                        const nextId = value === NONE ? '' : value;
+                        const poLine = availablePoLines.find((item) => item.id === nextId);
+                        setLines((prev) =>
+                          prev.map((row, i) =>
+                            i === index
+                              ? {
+                                  ...row,
+                                  purchaseOrderLineId: nextId,
+                                  description:
+                                    row.description.trim() || poLine?.description || row.description,
+                                }
+                              : row,
+                          ),
+                        );
+                      }}
+                    >
+                      <SelectTrigger {...props}>
+                        <SelectValue placeholder={t('linePoLineNone')} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value={NONE}>{t('linePoLineNone')}</SelectItem>
+                        {availablePoLines.map((poLine) => (
+                          <SelectItem key={poLine.id} value={poLine.id}>
+                            {poLine.description} · {poLine.lineTotal} {poLine.currency}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                </Field>
+              ) : null}
               <div className="flex items-end justify-between gap-2 sm:col-span-2">
                 <p className="text-sm text-[var(--pf-text-secondary)]">
                   {t('lineTotal')}: {line.lineTotal || '—'} {currency}

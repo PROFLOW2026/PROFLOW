@@ -4,13 +4,14 @@ import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
-import { ARTIFACT_KINDS, ARTIFACT_STATUSES, SUBJECT_TYPES } from '@/modules/compliance';
+import { ARTIFACT_KINDS, ARTIFACT_STATUSES, SUBJECT_TYPES } from '@/modules/compliance/domain/types';
 
 interface ComplianceListFiltersProps {
   initialQuery: string;
   initialKind: string;
   initialStatus: string;
   initialSubject: string;
+  initialEvidence: string;
 }
 
 export function ComplianceListFilters({
@@ -18,6 +19,7 @@ export function ComplianceListFilters({
   initialKind,
   initialStatus,
   initialSubject,
+  initialEvidence,
 }: ComplianceListFiltersProps) {
   const t = useTranslations('compliance');
   const tCommon = useTranslations('common');
@@ -68,6 +70,21 @@ export function ComplianceListFilters({
                 {t(`statuses.${status}`)}
               </option>
             ))}
+          </select>
+        )}
+      </Field>
+
+      <Field label={t('list.filters.evidence')} className="sm:w-44">
+        {(control) => (
+          <select
+            {...control}
+            name="evidence"
+            defaultValue={initialEvidence || 'all'}
+            className="flex h-11 w-full rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] px-3 text-sm"
+          >
+            <option value="all">{t('list.filters.all')}</option>
+            <option value="missing">{t('list.filters.evidenceMissing')}</option>
+            <option value="present">{t('list.filters.evidencePresent')}</option>
           </select>
         )}
       </Field>

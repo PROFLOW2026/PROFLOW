@@ -163,6 +163,8 @@ export interface ProjectListFilters {
   readonly includeArchived?: boolean;
   readonly sortBy?: ProjectSortField;
   readonly sortDirection?: SortDirection;
+  readonly limit?: number;
+  readonly offset?: number;
 }
 
 export interface ProjectListItem extends ProjectRecord {

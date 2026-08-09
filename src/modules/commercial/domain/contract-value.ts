@@ -40,6 +40,25 @@ export function changeOrderEventAmount(
   return signedChangeAmount(direction, amount);
 }
 
+/**
+ * Commercial magnitude for an approved change order (VAT ≠ profit).
+ * Issued quote totals include tax for customer-facing display; contract value
+ * events must use the net subtotal. Fallback requestedAmount is already net.
+ */
+export function changeOrderApprovedNetAmount(input: {
+  readonly quoteVersion?: {
+    readonly subtotalAmount: string;
+    readonly totalAmount: string;
+    readonly taxAmount: string | null;
+  } | null;
+  readonly requestedAmount: string | null;
+}): string | null {
+  if (input.quoteVersion) {
+    return input.quoteVersion.subtotalAmount;
+  }
+  return input.requestedAmount;
+}
+
 export function effectivePendingAmount(
   input: PendingChangeInput,
   _currency: string,

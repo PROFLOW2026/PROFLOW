@@ -2,8 +2,20 @@ import { createClientSchema } from '@/modules/clients';
 import { createVendorSchema, VENDOR_TYPES } from '@/modules/vendors';
 import { createEmployeeSchema, RATE_UNITS } from '@/modules/workforce';
 import { createProjectSchema, PROJECT_STATUSES } from '@/modules/projects';
+import { createExpenseSchema } from '@/modules/expenses';
 import type { EnabledImportKind, ImportIssue, MappedImportRow } from '../domain/types';
 import { fieldDefsForKind } from '../domain/field-defs';
+
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+const AMOUNT_RE = /^[+]?\d+(\.\d+)?$/;
+const COST_FAMILIES = [
+  'direct_project',
+  'shared',
+  'business_overhead',
+  'asset_capital',
+] as const;
 
 function emptyToUndefined(value: string | undefined): string | undefined {
   if (value === undefined || value.trim() === '') return undefined;
@@ -78,7 +90,7 @@ function validateEmployees(values: Readonly<Record<string, string>>): ImportIssu
   }
 
   const baseRate = emptyToUndefined(values.baseRate);
-  if (baseRate && !/^[+]?\d+(\.\d+)?$/.test(baseRate)) {
+  if (baseRate && !AMOUNT_RE.test(baseRate)) {
     issues.push({ severity: 'error', field: 'baseRate', message: 'Invalid amount' });
   }
 
@@ -118,6 +130,22 @@ function validateProjects(values: Readonly<Record<string, string>>): ImportIssue
     });
   }
 
+  const clientId = emptyToUndefined(values.clientId);
+  if (clientId && !UUID_RE.test(clientId)) {
+    issues.push({ severity: 'error', field: 'clientId', message: 'clientId must be a UUID' });
+  }
+
+  for (const dateField of ['startDate', 'targetEndDate'] as const) {
+    const raw = emptyToUndefined(values[dateField]);
+    if (raw && !DATE_RE.test(raw)) {
+      issues.push({
+        severity: 'error',
+        field: dateField,
+        message: 'Date must be YYYY-MM-DD',
+      });
+    }
+  }
+
   // Contract amounts / billing / expenses are intentionally omitted — financial import is conservative.
   const financialKeys = [
     'contractAmount',
@@ -143,7 +171,7 @@ function validateProjects(values: Readonly<Record<string, string>>): ImportIssue
   const parsed = createProjectSchema.safeParse({
     name: values.name ?? '',
     status: statusRaw,
-    clientId: emptyToUndefined(values.clientId),
+    clientId,
     location: emptyToUndefined(values.location),
     startDate: emptyToUndefined(values.startDate),
     targetEndDate: emptyToUndefined(values.targetEndDate),
@@ -156,9 +184,99 @@ function validateProjects(values: Readonly<Record<string, string>>): ImportIssue
   return issues;
 }
 
+/**
+ * Expense rows validate through createExpenseSchema — never invents money rules.
+ * Creates drafts only; tax/VAT columns are rejected as warnings (not mapped).
+ */
+export function validateExpenses(
+  values: Readonly<Record<string, string>>,
+  baseCurrency: string,
+): ImportIssue[] {
+  const issues: ImportIssue[] = [];
+
+  const expenseDate = emptyToUndefined(values.expenseDate);
+  if (expenseDate && !DATE_RE.test(expenseDate)) {
+    issues.push({
+      severity: 'error',
+      field: 'expenseDate',
+      message: 'Date must be YYYY-MM-DD',
+    });
+  }
+
+  const amount = emptyToUndefined(values.amount);
+  if (amount && !AMOUNT_RE.test(amount)) {
+    issues.push({ severity: 'error', field: 'amount', message: 'Invalid amount' });
+  }
+
+  const currency = (emptyToUndefined(values.currency) ?? baseCurrency).toUpperCase();
+  if (!/^[A-Z]{3}$/.test(currency)) {
+    issues.push({
+      severity: 'error',
+      field: 'currency',
+      message: 'Currency must be a 3-letter ISO code',
+    });
+  }
+
+  for (const refField of ['projectId', 'vendorId'] as const) {
+    const raw = emptyToUndefined(values[refField]);
+    if (raw && !UUID_RE.test(raw)) {
+      issues.push({
+        severity: 'error',
+        field: refField,
+        message: `${refField} must be a UUID in this organization`,
+      });
+    }
+  }
+
+  const costFamily = emptyToUndefined(values.costFamily)?.toLowerCase();
+  if (costFamily && !(COST_FAMILIES as readonly string[]).includes(costFamily)) {
+    issues.push({
+      severity: 'error',
+      field: 'costFamily',
+      message: `Invalid cost family (expected: ${COST_FAMILIES.join(', ')})`,
+    });
+  }
+
+  for (const banned of ['taxAmount', 'netAmount', 'vat', 'tax'] as const) {
+    if (emptyToUndefined(values[banned])) {
+      issues.push({
+        severity: 'warning',
+        field: banned,
+        message: 'Tax/VAT fields are not imported (VAT is not profit); enter tax on the expense form if needed',
+      });
+    }
+  }
+
+  const parsed = createExpenseSchema.safeParse({
+    amount: amount ?? '',
+    currency,
+    description: emptyToUndefined(values.description) ?? null,
+    expenseDate,
+    supplierName: emptyToUndefined(values.supplierName) ?? null,
+    vendorId: emptyToUndefined(values.vendorId) ?? null,
+    projectId: emptyToUndefined(values.projectId) ?? null,
+    costFamily: costFamily ?? null,
+    notes: emptyToUndefined(values.notes) ?? null,
+  });
+  if (!parsed.success) {
+    pushZodIssues(issues, parsed.error.issues);
+  }
+
+  if (!emptyToUndefined(values.projectId)) {
+    issues.push({
+      severity: 'warning',
+      field: 'projectId',
+      message: 'No project — expense will be created as business overhead (draft)',
+    });
+  }
+
+  return issues;
+}
+
 export function validateMappedValues(
   kind: EnabledImportKind,
   values: Readonly<Record<string, string>>,
+  options: { baseCurrency?: string } = {},
 ): ImportIssue[] {
   switch (kind) {
     case 'clients':
@@ -169,12 +287,15 @@ export function validateMappedValues(
       return validateEmployees(values);
     case 'projects':
       return validateProjects(values);
+    case 'expenses':
+      return validateExpenses(values, options.baseCurrency ?? 'ILS');
   }
 }
 
 export function validateMappedRows(
   kind: EnabledImportKind,
   rows: readonly { rowNumber: number; values: Readonly<Record<string, string>> }[],
+  options: { baseCurrency?: string } = {},
 ): MappedImportRow[] {
   const fields = fieldDefsForKind(kind);
   return rows.map((row) => {
@@ -188,8 +309,7 @@ export function validateMappedRows(
         });
       }
     }
-    issues.push(...validateMappedValues(kind, row.values));
-    // Dedupe identical messages on the same field.
+    issues.push(...validateMappedValues(kind, row.values, options));
     const seen = new Set<string>();
     const unique = issues.filter((issue) => {
       const key = `${issue.severity}:${issue.field ?? ''}:${issue.message}`;

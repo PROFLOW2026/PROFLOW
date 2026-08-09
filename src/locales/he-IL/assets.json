@@ -1,17 +1,30 @@
 {
   "title": "נכסים וציוד",
   "description": "ציוד, צי רכב, תחזוקה ומלאי. עלות תחזוקה היא מטא־דאטה בלבד — לא הוצאה. כמות מלאי אינה חלק מהנהלת חשבונות.",
+  "navLabel": "אזורי נכסים",
   "nav": {
     "assets": "נכסים",
+    "fleet": "צי רכב",
+    "maintenance": "תחזוקה",
     "inventory": "מלאי"
   },
   "newAsset": "נכס חדש",
+  "newFleetVehicle": "רכב צי חדש",
   "newInventoryItem": "פריט מלאי חדש",
   "empty": {
     "assets": {
       "title": "אין עדיין נכסים",
       "body": "עקבו אחרי ציוד ורכבים, ואז תעדו תחזוקה כהערות תפעוליות.",
       "action": "נכס חדש"
+    },
+    "fleet": {
+      "title": "אין עדיין רכבי צי",
+      "body": "קשרו מספר לוחית, מספר שלדה ומד אוץ לנכסי רכב.",
+      "action": "רכב צי חדש"
+    },
+    "maintenance": {
+      "title": "אין עדיין רשומות תחזוקה",
+      "body": "תעדו שירות מתוכנן ובוצע בדפי פרטי הנכס. רשימות באיחור ובקרוב יופיעו כאן."
     },
     "inventory": {
       "title": "אין עדיין פריטי מלאי",
@@ -25,9 +38,17 @@
       "kind": "סוג",
       "status": "סטטוס",
       "identifier": "מזהה",
+      "manufacturer": "יצרן",
+      "model": "דגם",
+      "assignedProject": "פרויקט משויך",
+      "plate": "לוחית",
+      "vin": "שלדה",
+      "odometer": "מד אוץ",
       "sku": "מק״ט",
       "unit": "יחידה",
       "quantity": "במלאי",
+      "reorderLevel": "רמת הזמנה מחדש",
+      "reorderStatus": "סטטוס מלאי",
       "actions": "פעולות"
     }
   },
@@ -43,50 +64,143 @@
     "submit": "שמירת נכס",
     "nameLabel": "שם",
     "kindLabel": "סוג",
+    "statusLabel": "סטטוס",
     "identifierLabel": "מזהה",
     "manufacturerLabel": "יצרן",
     "modelLabel": "דגם",
     "serialNumberLabel": "מספר סידורי",
+    "assignedProjectLabel": "שיוך לפרויקט (מסירה)",
+    "assignedProjectNone": "ללא שיוך",
     "notesLabel": "הערות",
     "fleetTitle": "פרטי צי (אופציונלי)",
     "plateNumberLabel": "מספר לוחית",
     "vinLabel": "מספר שלדה",
     "odometerLabel": "מד אוץ"
   },
+  "fleet": {
+    "title": "צי רכב",
+    "description": "רכבים המקושרים לנכסים מסוג רכב. לוחית, שלדה ומד אוץ הם שדות תפעוליים.",
+    "schemaLimitsTitle": "בעלות, ליסינג ונהג",
+    "schemaLimitsBody": "במיגרציה 0011 אין עמודות בעלות/השכרה, ליסינג או נהג/עובד. שיוך לפרויקט נעשה דרך הנכס המקושר. קילומטראז׳ נמדד במד אוץ בלבד.",
+    "createTitle": "הוספת רכב לצי",
+    "editTitle": "עריכת רכב בצי",
+    "submit": "שמירת רכב צי",
+    "updateSubmit": "עדכון",
+    "assetLabel": "נכס רכב קיים",
+    "assetNone": "יצירת נכס רכב חדש",
+    "nameLabel": "שם רכב חדש",
+    "plateNumberLabel": "מספר לוחית",
+    "vinLabel": "מספר שלדה",
+    "odometerLabel": "מד אוץ",
+    "notesLabel": "הערות"
+  },
+  "schedule": {
+    "title": "לוח תחזוקה",
+    "overdue": "באיחור",
+    "upcoming": "בקרוב",
+    "emptyOverdue": "אין תחזוקה באיחור.",
+    "emptyUpcoming": "אין תחזוקה מתוכננת ב־30 הימים הקרובים.",
+    "hint": "נגזר מסטטוס מתוכנן/בתהליך ומתאריך הביצוע. לא נשלחות התראות.",
+    "viewAll": "לוח מלא"
+  },
   "detail": {
     "fleet": "צי רכב",
     "noFleet": "אין רשומת צי מקושרת",
+    "registry": "רישום",
+    "identifier": "מזהה",
+    "manufacturer": "יצרן",
+    "model": "דגם",
+    "serialNumber": "מספר סידורי",
+    "assignment": "שיוך / מסירה",
+    "assignmentHint": "שייכו לפרויקט כדי למסור; נקו כדי להחזיר.",
+    "assignedProject": "פרויקט משויך",
+    "unassigned": "לא משויך",
+    "checkOut": "מסירה",
+    "checkIn": "החזרה",
+    "saveAssignment": "שמירת שיוך",
+    "statusLabel": "סטטוס",
+    "saveStatus": "עדכון סטטוס",
+    "history": "היסטוריית סטטוס / תחזוקה",
+    "historyHint": "רשומות תחזוקה כרונולוגיות לנכס זה.",
+    "documents": "מסמכים",
     "maintenance": "תחזוקה",
     "maintenanceHint": "העלות כאן היא מטא־דאטה תפעולית בלבד ואינה יוצרת הוצאה.",
+    "costNotExpense": "לא הוצאה — העלות היא מטא־דאטה בלבד. אין רישום הוצאה או קישור להנהלת חשבונות.",
     "newMaintenance": "הוספת תחזוקה",
     "maintenanceTitle": "כותרת",
     "maintenanceStatus": "סטטוס",
-    "performedOn": "בוצע ב־",
+    "performedOn": "בוצע / מתוכנן ל־",
     "costAmount": "עלות (מטא־דאטה)",
     "currency": "מטבע",
+    "vendor": "ספק",
+    "vendorNone": "ללא ספק",
     "notes": "הערות",
     "submitMaintenance": "שמירת תחזוקה",
-    "emptyMaintenance": "אין עדיין רשומות תחזוקה."
+    "emptyMaintenance": "אין עדיין רשומות תחזוקה.",
+    "updateStatus": "עדכון סטטוס",
+    "updateStatusPending": "שומר…"
   },
   "inventory": {
     "title": "מלאי",
     "description": "כמויות במלאי לחומרים ופריטים. תנועות מעדכנות כמות בלבד — לא הנהלת חשבונות ולא הוצאה.",
+    "detailDescription": "מלאי תפעולי בלבד. רישום תנועה אינו יוצר הוצאה ואינו נרשם בספרים.",
     "createTitle": "פריט מלאי חדש",
     "submitItem": "שמירת פריט",
     "nameLabel": "שם",
     "skuLabel": "מק״ט",
     "unitLabel": "יחידה",
     "quantityLabel": "כמות התחלתית",
+    "reorderLevelLabel": "רמת הזמנה מחדש",
+    "materialLabel": "חומר בקטלוג",
+    "materialNone": "ללא קישור לקטלוג",
     "notesLabel": "הערות",
     "receive": "קבלה",
     "issue": "ניפוק",
+    "return": "החזרה",
+    "adjust": "התאמה",
     "movementQuantity": "כמות",
     "occurredOn": "תאריך",
     "movementNotes": "הערות",
-    "submitMovement": "רישום",
-    "pending": "שומר…"
+    "movementTypeLabel": "סוג תנועה",
+    "movementNotExpense": "תנועות מלאי משנות את הכמות במלאי בלבד. הן אינן הוצאות ואינן נרשמות בספרים.",
+    "adjustQuantityHint": "בהתאמה הזינו דלתא מסומנת (למשל 2 או ‎-1).",
+    "projectLabel": "פרויקט",
+    "projectNone": "ללא פרויקט",
+    "submitMovement": "רישום תנועה",
+    "recordMovement": "רישום תנועה",
+    "pending": "שומר…",
+    "openDetail": "היסטוריה ועוד…",
+    "linkedMaterial": "פתיחת חומר מקושר בקטלוג",
+    "historyTitle": "היסטוריית תנועות",
+    "historyHint": "תנועות מלאי לפי סדר כרונולוגי. שינוי כמות בלבד — ללא רישום פיננסי.",
+    "emptyHistory": "עדיין אין תנועות רשומות.",
+    "reorderStatus": {
+      "ok": "מעל רמת הזמנה",
+      "at_reorder": "ברמת הזמנה מחדש",
+      "below_reorder": "מתחת לרמת הזמנה",
+      "no_reorder_level": "ללא רמת הזמנה"
+    },
+    "movementTypes": {
+      "receive": "קבלה",
+      "issue": "ניפוק",
+      "return": "החזרה",
+      "adjust": "התאמה"
+    },
+    "history": {
+      "columns": {
+        "date": "תאריך",
+        "type": "סוג",
+        "quantity": "כמות",
+        "project": "פרויקט",
+        "notes": "הערות"
+      }
+    }
   },
   "errors": {
-    "insufficientQuantity": "אין מספיק כמות במלאי לניפוק זה."
+    "insufficientQuantity": "אין מספיק כמות במלאי לניפוק זה.",
+    "invalidMaintenanceTransition": "שינוי סטטוס התחזוקה אינו מותר.",
+    "fleetRequiresVehicle": "רשומות צי חייבות להיות מקושרות לנכס מסוג רכב.",
+    "fleetAlreadyLinked": "לרכב זה כבר יש רשומת צי.",
+    "fleetKindLocked": "יש להסיר את רשומת הצי לפני שינוי סוג הנכס מרכב."
   }
 }

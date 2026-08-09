@@ -5,10 +5,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PageHeader } from '@/components/ui/page-header';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { canConvertOpportunity, getOpportunityById } from '@/modules/crm';
+import { listCustomFieldValuesForEntity } from '@/modules/custom-fields';
+import { EntityCustomFieldsPanel } from '@/modules/custom-fields/ui';
 import { withOrgContext } from '@/shared/auth/session';
 import { Link } from '@/shared/i18n/navigation';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
+import { upsertEntityFieldValueAction } from '../../../settings/custom-fields/actions';
 import {
   AcceptVersionButton,
   ConvertWonForm,
@@ -45,24 +48,30 @@ export default async function OpportunityDetailPage({
   let detail;
   let canManage = false;
   let defaultCurrency = 'ILS';
+  let customFields: Awaited<ReturnType<typeof listCustomFieldValuesForEntity>> = [];
   try {
     const result = await withOrgContext(async (context) => ({
       detail: await getOpportunityById(context, opportunityId),
       canManage: hasPermission(context, PERMISSIONS.CRM_MANAGE),
       defaultCurrency: context.organization.baseCurrency,
+      customFields: await listCustomFieldValuesForEntity(context, 'opportunity', opportunityId).catch(
+        () => [],
+      ),
     }));
     detail = result.detail;
     canManage = result.canManage;
     defaultCurrency = result.defaultCurrency;
+    customFields = result.customFields;
   } catch {
     notFound();
   }
 
   const currency = detail.currency ?? defaultCurrency;
-  const acceptedVersionId =
+  const acceptedVersion =
     detail.salesQuotes
       .flatMap((quote) => quote.versions)
-      .find((version) => version.status === 'accepted')?.id ?? null;
+      .find((version) => version.status === 'accepted') ?? null;
+  const acceptedVersionId = acceptedVersion?.id ?? null;
   const convertible = canConvertOpportunity(detail);
 
   return (
@@ -87,19 +96,46 @@ export default async function OpportunityDetailPage({
         }
       />
 
+      {detail.leadId || detail.prospect ? (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">{t('opportunity.pipelineLinks')}</CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-wrap gap-3 text-sm">
+            {detail.leadId ? (
+              <Link href={`/crm/leads/${detail.leadId}`} className="hover:underline">
+                {t('opportunity.openLead')}
+              </Link>
+            ) : null}
+            {detail.prospect ? (
+              <Link href={`/crm/prospects/${detail.prospect.id}`} className="hover:underline">
+                {t('opportunity.openProspect', { name: detail.prospect.name })}
+              </Link>
+            ) : null}
+          </CardContent>
+        </Card>
+      ) : null}
+
       {detail.convertedProjectId ? (
         <Card>
           <CardHeader>
             <CardTitle className="text-base">{t('opportunity.converted')}</CardTitle>
           </CardHeader>
-          <CardContent className="flex flex-wrap gap-3 text-sm">
-            <Link href={`/projects/${detail.convertedProjectId}`} className="hover:underline">
-              {t('opportunity.openProject')}
-            </Link>
-            {detail.convertedClientId ? (
-              <Link href={`/clients/${detail.convertedClientId}`} className="hover:underline">
-                {t('opportunity.openClient')}
+          <CardContent className="flex flex-col gap-2 text-sm">
+            <div className="flex flex-wrap gap-3">
+              <Link href={`/projects/${detail.convertedProjectId}`} className="hover:underline">
+                {t('opportunity.openProject')}
               </Link>
+              {detail.convertedClientId ? (
+                <Link href={`/clients/${detail.convertedClientId}`} className="hover:underline">
+                  {t('opportunity.openClient')}
+                </Link>
+              ) : null}
+            </div>
+            {detail.convertedContractId ? (
+              <p className="text-xs text-[var(--pf-text-muted)]" dir="ltr">
+                {t('opportunity.contractLinked', { id: detail.convertedContractId })}
+              </p>
             ) : null}
           </CardContent>
         </Card>
@@ -115,10 +151,21 @@ export default async function OpportunityDetailPage({
               opportunityId={detail.id}
               defaultProjectName={detail.name}
               acceptedVersionId={acceptedVersionId}
+              netAmount={acceptedVersion?.subtotalAmount ?? null}
+              taxAmount={acceptedVersion?.taxAmount ?? null}
+              totalAmount={acceptedVersion?.totalAmount ?? null}
+              currency={acceptedVersion?.currency ?? currency}
             />
           </CardContent>
         </Card>
       ) : null}
+
+      <EntityCustomFieldsPanel
+        entityId={detail.id}
+        fields={customFields}
+        revalidatePath={`/crm/opportunities/${detail.id}`}
+        saveAction={upsertEntityFieldValueAction}
+      />
 
       <Card>
         <CardHeader>
@@ -192,7 +239,11 @@ export default async function OpportunityDetailPage({
                   >
                     <span>
                       {t('opportunity.versionLabel', { number: version.versionNumber })} ·{' '}
-                      {version.totalAmount} {version.currency} ·{' '}
+                      {t('opportunity.quoteNet')}: {version.subtotalAmount} {version.currency}
+                      {version.taxAmount && version.taxAmount !== '0'
+                        ? ` · ${t('opportunity.quoteTax')}: ${version.taxAmount}`
+                        : ''}{' '}
+                      · {t('opportunity.quoteTotal')}: {version.totalAmount} {version.currency} ·{' '}
                       {t(`statuses.version.${version.status}`)}
                     </span>
                     {canManage && detail.status === 'open' ? (

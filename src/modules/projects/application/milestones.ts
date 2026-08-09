@@ -54,7 +54,7 @@ export async function createMilestone(
       input.workPackageId,
     );
     if (!workPackage || workPackage.projectId !== input.projectId) {
-      throw new NotFoundError('Work package');
+      throw new NotFoundError('Work area');
     }
   }
 
@@ -101,7 +101,7 @@ export async function updateMilestone(
       input.workPackageId,
     );
     if (!workPackage || workPackage.projectId !== existing.projectId) {
-      throw new NotFoundError('Work package');
+      throw new NotFoundError('Work area');
     }
   }
 

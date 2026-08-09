@@ -1,7 +1,7 @@
 {
   "title": "API ו־webhooks",
   "subtitle": "רישום לקוחות API, הנפקת מפתחות ורישום נקודות webhook. אין מחברים לצדדים שלישיים כאן.",
-  "versionNote": "משטח ציבורי: GET /api/v1/whoami עם Authorization: Bearer <api_key>. אימות cookie של Next לא בשימוש בנתיב זה.",
+  "versionNote": "משטח ציבורי: GET /api/v1/whoami ו־GET /api/v1/projects עם Authorization: Bearer <api_key>. אימות cookie של Next לא בשימוש בנתיבים אלה.",
   "addClient": "יצירת לקוח",
   "clientSaved": "לקוח ה־API נוצר.",
   "addKey": "יצירת מפתח",
@@ -10,14 +10,21 @@
   "keyOnce": "העתיקו את המפתח עכשיו. הוא מוצג פעם אחת בלבד.",
   "secretOnce": "העתיקו את סוד ה־webhook עכשיו. הוא מוצג פעם אחת בלבד.",
   "revoke": "ביטול",
+  "rotate": "החלפה",
+  "rotateSecret": "החלפת סוד",
+  "neverUsed": "מעולם לא",
+  "attempts": "{count} ניסיונות",
   "addWebhook": "רישום נקודה",
   "webhooksTitle": "נקודות webhook",
   "webhooksEmpty": "עדיין אין נקודות webhook.",
-  "eventTypesHint": "סוגי אירועים מופרדים בפסיק, למשל project.updated",
+  "eventTypesHint": "רק HTTPS (http מותר ל־localhost). בחרו מסוגי האירועים המורשים.",
   "enqueueTest": "הוספת בדיקה לתור",
   "deliveriesTitle": "משלוחים אחרונים",
   "deliveriesEmpty": "עדיין לא נרשמו משלוחים.",
   "deliveryQueued": "המשלוח נרשם כממתין.",
+  "deliveryAttemptRecorded": "ניסיון משלוח נרשם (ללא HTTP יוצא).",
+  "markDeliverySuccess": "רישום הצלחה",
+  "markDeliveryFailure": "רישום כשל",
   "fields": {
     "clientName": "שם הלקוח",
     "keyName": "שם המפתח",
@@ -29,6 +36,8 @@
   "columns": {
     "name": "שם",
     "prefix": "קידומת",
+    "scopes": "היקפים",
+    "lastUsed": "שימוש אחרון",
     "status": "סטטוס",
     "actions": "פעולות",
     "url": "כתובת",
@@ -43,5 +52,13 @@
     "clients.read": "clients.read",
     "billing.read": "billing.read",
     "webhooks.manage": "webhooks.manage"
+  },
+  "events": {
+    "test.ping": "test.ping",
+    "project.created": "project.created",
+    "project.updated": "project.updated",
+    "client.updated": "client.updated",
+    "billing.invoice.issued": "billing.invoice.issued",
+    "api.key.revoked": "api.key.revoked"
   }
 }

@@ -11,7 +11,7 @@ import {
   listChangeRequestsForProject,
   listChangeRequestLines,
   listPendingChangesForProject,
-  listWorkPackageNamesForChangeRequest,
+  listWorkPackageNamesForChangeRequests,
 } from '../data/change-requests.repository';
 import {
   findPrimaryContractForProject,
@@ -31,19 +31,18 @@ export async function listProjectChangeRequests(
   assertPermission(context, PERMISSIONS.CHANGES_READ);
 
   const rows = await listChangeRequestsForProject(context.db, context.organizationId, projectId);
-
-  return Promise.all(
-    rows.map(async (row) => ({
-      ...row,
-      projectName: '',
-      pricedAmount: null,
-      workPackageNames: await listWorkPackageNamesForChangeRequest(
-        context.db,
-        context.organizationId,
-        row.id,
-      ),
-    })),
+  const namesById = await listWorkPackageNamesForChangeRequests(
+    context.db,
+    context.organizationId,
+    rows.map((row) => row.id),
   );
+
+  return rows.map((row) => ({
+    ...row,
+    projectName: '',
+    pricedAmount: null,
+    workPackageNames: namesById.get(row.id) ?? [],
+  }));
 }
 
 export async function listAllChangeRequests(
@@ -55,17 +54,16 @@ export async function listAllChangeRequests(
   const items = await listChangeRequestsAcrossProjects(context.db, context.organizationId, {
     status: filters.status,
   });
-
-  return Promise.all(
-    items.map(async (item) => ({
-      ...item,
-      workPackageNames: await listWorkPackageNamesForChangeRequest(
-        context.db,
-        context.organizationId,
-        item.id,
-      ),
-    })),
+  const namesById = await listWorkPackageNamesForChangeRequests(
+    context.db,
+    context.organizationId,
+    items.map((item) => item.id),
   );
+
+  return items.map((item) => ({
+    ...item,
+    workPackageNames: namesById.get(item.id) ?? [],
+  }));
 }
 
 export async function getChangeRequestDetail(

@@ -30,7 +30,7 @@ export async function recordPayment(context: OrgContext, rawInput: CreatePayment
     context.organization.timezone,
   );
   if (!billingRecord) throw new NotFoundError('Billing record');
-  assertPaymentTarget(billingRecord.status);
+  assertPaymentTarget(billingRecord.status, billingRecord.kind);
 
   const paymentAmount = money(input.amount, billingRecord.totalAmount.currency);
   const paymentDate = businessDate(input.paymentDate);

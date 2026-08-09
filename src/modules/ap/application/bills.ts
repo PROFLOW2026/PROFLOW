@@ -5,15 +5,24 @@ import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { noteModuleUsage } from '@/modules/tenancy';
 import { addMoney, money, moneyEquals, zeroMoney } from '@/shared/money';
+import { findProjectById } from '@/modules/projects';
+import {
+  computeMatchVariance,
+  remainingUnmatchedAmount,
+  type MatchVariance,
+} from '../domain/matching';
 import {
   assertVendorInOrganization,
   findApBillById,
   findPurchaseOrderInOrg,
+  findPurchaseOrderLineInOrg,
   insertApBill,
   insertApBillLines,
+  listAcceptedMatchAmountsForBill,
   listApBillLines,
   listApBills,
   listApPoMatchesForBill,
+  listReservedMatchAmountsForBill,
   type ApBillListItem,
   type ApBillLineRow,
   type ApBillRow,
@@ -45,9 +54,12 @@ function assertBillTotalMatchesLines(input: {
   }
 }
 
-export async function listApBillsForOrg(context: OrgContext): Promise<ApBillListItem[]> {
+export async function listApBillsForOrg(
+  context: OrgContext,
+  options: { readonly limit?: number; readonly offset?: number } = {},
+): Promise<ApBillListItem[]> {
   assertPermission(context, PERMISSIONS.AP_READ);
-  return listApBills(context.db, context.organizationId);
+  return listApBills(context.db, context.organizationId, options);
 }
 
 export async function getApBillDetail(
@@ -57,17 +69,40 @@ export async function getApBillDetail(
   bill: ApBillRow;
   lines: ApBillLineRow[];
   matches: ApPoMatchRow[];
+  matchPosition: MatchVariance & { remainingIncludingProposed: string };
 } | null> {
   assertPermission(context, PERMISSIONS.AP_READ);
   const bill = await findApBillById(context.db, context.organizationId, billId);
   if (!bill || bill.archivedAt) return null;
 
-  const [lines, matches] = await Promise.all([
+  const [lines, matches, acceptedAmounts, reservedAmounts] = await Promise.all([
     listApBillLines(context.db, context.organizationId, bill.id),
     listApPoMatchesForBill(context.db, context.organizationId, bill.id),
+    listAcceptedMatchAmountsForBill(context.db, context.organizationId, bill.id),
+    listReservedMatchAmountsForBill(context.db, context.organizationId, bill.id),
   ]);
 
-  return { bill, lines, matches };
+  const variance = computeMatchVariance({
+    currency: bill.currency,
+    billTotal: bill.totalAmount,
+    acceptedMatchedAmounts: acceptedAmounts,
+  });
+
+  const remainingIncludingProposed = remainingUnmatchedAmount({
+    currency: bill.currency,
+    billTotal: bill.totalAmount,
+    reservedMatchedAmounts: reservedAmounts,
+  });
+
+  return {
+    bill,
+    lines,
+    matches,
+    matchPosition: {
+      ...variance,
+      remainingIncludingProposed: remainingIncludingProposed.amount,
+    },
+  };
 }
 
 /**
@@ -98,6 +133,11 @@ export async function createApBill(context: OrgContext, raw: CreateApBillInput) 
   );
   if (!vendorOk) throw new NotFoundError('Vendor');
 
+  if (input.projectId) {
+    const project = await findProjectById(context.db, context.organizationId, input.projectId);
+    if (!project || project.archivedAt) throw new NotFoundError('Project');
+  }
+
   if (input.purchaseOrderId) {
     const po = await findPurchaseOrderInOrg(
       context.db,
@@ -109,6 +149,46 @@ export async function createApBill(context: OrgContext, raw: CreateApBillInput) 
       throw new DomainRuleError(
         'Purchase order vendor must match the bill vendor',
         'ap.errors.vendorMismatch',
+      );
+    }
+    if (po.currency.toUpperCase() !== input.currency.toUpperCase()) {
+      throw new DomainRuleError(
+        'Purchase order currency must match the bill currency',
+        'ap.errors.currencyMismatch',
+      );
+    }
+  }
+
+  for (const line of input.lines) {
+    if (!line.purchaseOrderLineId) continue;
+    const poLine = await findPurchaseOrderLineInOrg(
+      context.db,
+      context.organizationId,
+      line.purchaseOrderLineId,
+    );
+    if (!poLine) throw new NotFoundError('Purchase order line');
+    if (input.purchaseOrderId && poLine.purchaseOrderId !== input.purchaseOrderId) {
+      throw new DomainRuleError(
+        'Bill line purchase order line must belong to the selected purchase order',
+        'ap.errors.poLineMismatch',
+      );
+    }
+    const linePo = await findPurchaseOrderInOrg(
+      context.db,
+      context.organizationId,
+      poLine.purchaseOrderId,
+    );
+    if (!linePo) throw new NotFoundError('Purchase order');
+    if (linePo.vendorId !== input.vendorId) {
+      throw new DomainRuleError(
+        'Purchase order line vendor must match the bill vendor',
+        'ap.errors.vendorMismatch',
+      );
+    }
+    if (poLine.currency.toUpperCase() !== input.currency.toUpperCase()) {
+      throw new DomainRuleError(
+        'Purchase order line currency must match the bill currency',
+        'ap.errors.currencyMismatch',
       );
     }
   }

@@ -6,6 +6,7 @@ import {
   createDailyLog,
   createInspection,
   createPunchListItem,
+  updateDailyLog,
   updateInspection,
   updatePunchListItem,
 } from '@/modules/field-ops';
@@ -17,6 +18,8 @@ export interface FieldOpsFormState {
   error?: string;
   fieldErrors?: Record<string, string>;
   success?: boolean;
+  /** Local draft queued — not server truth. */
+  offlineQueued?: boolean;
 }
 
 function formValue(formData: FormData, key: string): string | undefined {
@@ -24,6 +27,13 @@ function formValue(formData: FormData, key: string): string | undefined {
   if (value === null) return undefined;
   const text = String(value).trim();
   return text === '' ? undefined : text;
+}
+
+/** Present keys may be cleared to null; missing keys stay undefined (no patch). */
+function formNullableText(formData: FormData, key: string): string | null | undefined {
+  if (!formData.has(key)) return undefined;
+  const text = String(formData.get(key) ?? '').trim();
+  return text === '' ? null : text;
 }
 
 function requiredFormValue(formData: FormData, key: string): string {
@@ -54,6 +64,14 @@ async function mapAppError(error: unknown): Promise<FieldOpsFormState> {
   throw error;
 }
 
+function revalidateFieldOps(projectId?: string) {
+  revalidatePath('/field-ops');
+  revalidatePath('/field-ops/logs');
+  revalidatePath('/field-ops/punch');
+  revalidatePath('/field-ops/inspections');
+  if (projectId) revalidatePath(`/projects/${projectId}`);
+}
+
 export async function createDailyLogAction(
   _prev: FieldOpsFormState,
   formData: FormData,
@@ -64,18 +82,43 @@ export async function createDailyLogAction(
   if (!projectId) return { error: t('errors.projectRequired') };
 
   try {
-    await withOrgContext((context) =>
+    const log = await withOrgContext((context) =>
       createDailyLog(context, {
         projectId,
+        workPackageId: formValue(formData, 'workPackageId'),
         logDate: requiredFormValue(formData, 'logDate'),
         weather: formValue(formData, 'weather'),
         summary: requiredFormValue(formData, 'summary'),
         workforceNotes: formValue(formData, 'workforceNotes'),
+        blockers: formValue(formData, 'blockers'),
       }),
     );
-    revalidatePath('/field-ops');
-    revalidatePath('/field-ops/logs');
-    redirect({ href: '/field-ops/logs', locale });
+    revalidateFieldOps(projectId);
+    redirect({ href: `/field-ops/logs/${log.id}`, locale });
+  } catch (error) {
+    return mapAppError(error);
+  }
+}
+
+export async function updateDailyLogAction(
+  _prev: FieldOpsFormState,
+  formData: FormData,
+): Promise<FieldOpsFormState> {
+  try {
+    const log = await withOrgContext((context) =>
+      updateDailyLog(context, {
+        dailyLogId: requiredFormValue(formData, 'dailyLogId'),
+        logDate: formValue(formData, 'logDate'),
+        weather: formNullableText(formData, 'weather'),
+        summary: formValue(formData, 'summary'),
+        workforceNotes: formNullableText(formData, 'workforceNotes'),
+        blockers: formNullableText(formData, 'blockers'),
+        workPackageId: formNullableText(formData, 'workPackageId'),
+      }),
+    );
+    revalidateFieldOps(log.projectId);
+    revalidatePath(`/field-ops/logs/${log.id}`);
+    return { success: true };
   } catch (error) {
     return mapAppError(error);
   }
@@ -91,19 +134,24 @@ export async function createPunchListItemAction(
   if (!projectId) return { error: t('errors.projectRequired') };
 
   try {
-    await withOrgContext((context) =>
+    const item = await withOrgContext((context) =>
       createPunchListItem(context, {
         projectId,
+        workPackageId: formValue(formData, 'workPackageId'),
         title: requiredFormValue(formData, 'title'),
         description: formValue(formData, 'description'),
-        priority: formValue(formData, 'priority') as 'low' | 'normal' | 'high' | 'critical' | undefined,
+        priority: formValue(formData, 'priority') as
+          | 'low'
+          | 'normal'
+          | 'high'
+          | 'critical'
+          | undefined,
         location: formValue(formData, 'location'),
         dueDate: formValue(formData, 'dueDate'),
       }),
     );
-    revalidatePath('/field-ops');
-    revalidatePath('/field-ops/punch');
-    redirect({ href: '/field-ops/punch', locale });
+    revalidateFieldOps(projectId);
+    redirect({ href: `/field-ops/punch/${item.id}`, locale });
   } catch (error) {
     return mapAppError(error);
   }
@@ -114,13 +162,41 @@ export async function updatePunchStatusAction(
   formData: FormData,
 ): Promise<FieldOpsFormState> {
   try {
-    await withOrgContext((context) =>
+    const item = await withOrgContext((context) =>
       updatePunchListItem(context, {
         punchListItemId: requiredFormValue(formData, 'punchListItemId'),
-        status: requiredFormValue(formData, 'status') as 'open' | 'in_progress' | 'done' | 'cancelled',
+        status: requiredFormValue(formData, 'status') as
+          | 'open'
+          | 'in_progress'
+          | 'done'
+          | 'cancelled',
       }),
     );
-    revalidatePath('/field-ops/punch');
+    revalidateFieldOps(item.projectId);
+    revalidatePath(`/field-ops/punch/${item.id}`);
+    return { success: true };
+  } catch (error) {
+    return mapAppError(error);
+  }
+}
+
+export async function updatePunchPriorityAction(
+  _prev: FieldOpsFormState,
+  formData: FormData,
+): Promise<FieldOpsFormState> {
+  try {
+    const item = await withOrgContext((context) =>
+      updatePunchListItem(context, {
+        punchListItemId: requiredFormValue(formData, 'punchListItemId'),
+        priority: requiredFormValue(formData, 'priority') as
+          | 'low'
+          | 'normal'
+          | 'high'
+          | 'critical',
+      }),
+    );
+    revalidateFieldOps(item.projectId);
+    revalidatePath(`/field-ops/punch/${item.id}`);
     return { success: true };
   } catch (error) {
     return mapAppError(error);
@@ -137,9 +213,10 @@ export async function createInspectionAction(
   if (!projectId) return { error: t('errors.projectRequired') };
 
   try {
-    await withOrgContext((context) =>
+    const inspection = await withOrgContext((context) =>
       createInspection(context, {
         projectId,
+        workPackageId: formValue(formData, 'workPackageId'),
         title: requiredFormValue(formData, 'title'),
         kind: formValue(formData, 'kind') as
           | 'general'
@@ -152,9 +229,8 @@ export async function createInspectionAction(
         notes: formValue(formData, 'notes'),
       }),
     );
-    revalidatePath('/field-ops');
-    revalidatePath('/field-ops/inspections');
-    redirect({ href: '/field-ops/inspections', locale });
+    revalidateFieldOps(projectId);
+    redirect({ href: `/field-ops/inspections/${inspection.id}`, locale });
   } catch (error) {
     return mapAppError(error);
   }
@@ -165,18 +241,22 @@ export async function updateInspectionStatusAction(
   formData: FormData,
 ): Promise<FieldOpsFormState> {
   try {
-    await withOrgContext((context) =>
+    const status = requiredFormValue(formData, 'status') as
+      | 'scheduled'
+      | 'in_progress'
+      | 'passed'
+      | 'failed'
+      | 'cancelled';
+    const result = formValue(formData, 'result');
+    const inspection = await withOrgContext((context) =>
       updateInspection(context, {
         inspectionId: requiredFormValue(formData, 'inspectionId'),
-        status: requiredFormValue(formData, 'status') as
-          | 'scheduled'
-          | 'in_progress'
-          | 'passed'
-          | 'failed'
-          | 'cancelled',
+        status,
+        result,
       }),
     );
-    revalidatePath('/field-ops/inspections');
+    revalidateFieldOps(inspection.projectId);
+    revalidatePath(`/field-ops/inspections/${inspection.id}`);
     return { success: true };
   } catch (error) {
     return mapAppError(error);

@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import { ResponsiveTable } from '@/components/patterns/responsive-table';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
+import { EmptyState } from '@/components/ui/empty-state';
 import { Field } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -13,7 +14,7 @@ import {
   CUSTOM_FIELD_ENTITY_TYPES,
   CUSTOM_FIELD_TYPES,
   type CustomFieldDefinitionRecord,
-} from '@/modules/custom-fields';
+} from '@/modules/custom-fields/domain/types';
 import {
   archiveDefinitionAction,
   createDefinitionAction,
@@ -108,6 +109,17 @@ export function CustomFieldsPanel({
               )}
             </Field>
 
+            <Field label={t('fields.options')} optionalLabel={t('fields.optionsOptional')}>
+              {(props) => (
+                <Input
+                  {...props}
+                  name="options"
+                  placeholder={t('fields.optionsPlaceholder')}
+                />
+              )}
+            </Field>
+            <p className="text-xs text-[var(--pf-text-muted)]">{t('fields.optionsHint')}</p>
+
             <label className="flex min-h-11 items-center gap-3 text-sm">
               <input
                 type="checkbox"
@@ -129,7 +141,7 @@ export function CustomFieldsPanel({
         <h2 className="text-sm font-semibold">{t('listTitle')}</h2>
         {archiveState.error ? <Alert tone="danger">{archiveState.error}</Alert> : null}
         {definitions.length === 0 ? (
-          <p className="mt-2 text-sm text-[var(--pf-text-muted)]">{t('empty')}</p>
+          <EmptyState size="sm" title={t('empty')} description={t('emptyHint')} className="mt-2" />
         ) : (
           <div className="mt-3">
             <ResponsiveTable

@@ -1,4 +1,10 @@
-import type { CustomerSafeProjectSummary, ExternalAccessGrantRecord } from './types';
+import { DomainRuleError } from '@/shared/errors';
+import type {
+  CustomerPortalSession,
+  CustomerSafeDocument,
+  CustomerSafeProjectSummary,
+  ExternalAccessGrantRecord,
+} from './types';
 import { CUSTOMER_PORTAL_SCOPES, type CustomerPortalScope } from './types';
 
 const CUSTOMER_SCOPE_SET = new Set<string>(CUSTOMER_PORTAL_SCOPES);
@@ -34,6 +40,45 @@ export function grantCoversProject(
   return false;
 }
 
+/**
+ * Build a CustomerPortalSession from an ExternalAccessGrant + principal.
+ * ExternalPrincipal ≠ Membership — never returns OrgContext.
+ */
+export function buildCustomerPortalSession(input: {
+  readonly grant: ExternalAccessGrantRecord;
+  readonly principalEmail: string;
+  readonly principalId?: string;
+}): CustomerPortalSession {
+  if (input.grant.portalKind !== 'customer') {
+    throw new DomainRuleError('Grant is not a customer portal grant', 'errors.notAllowed');
+  }
+  if (!grantIsActive(input.grant)) {
+    throw new DomainRuleError('Portal grant is not active', 'errors.notAllowed');
+  }
+  const scopes = normalizeCustomerScopes(input.grant.scopes);
+  if (scopes.length === 0) {
+    throw new DomainRuleError('Customer grant has no valid scopes', 'errors.notAllowed');
+  }
+  return {
+    kind: 'customer_portal',
+    organizationId: input.grant.organizationId,
+    principalId: input.principalId ?? input.grant.principalId,
+    principalEmail: input.principalEmail,
+    grantId: input.grant.id,
+    clientId: input.grant.clientId,
+    projectId: input.grant.projectId,
+    scopes,
+  };
+}
+
+export function isCustomerPortalSession(value: unknown): value is CustomerPortalSession {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    (value as CustomerPortalSession).kind === 'customer_portal'
+  );
+}
+
 export interface SafeProjectSummaryInput {
   readonly projectId: string;
   readonly name: string;
@@ -46,7 +91,44 @@ export interface SafeProjectSummaryInput {
   readonly description: string | null;
   readonly clientName: string | null;
   readonly outstanding?: { amount: string; currency: string } | null;
+  readonly documents?: readonly CustomerSafeDocument[] | null;
   readonly scopes: readonly string[];
+}
+
+export const CUSTOMER_PORTAL_NEVER_EXPOSED = [
+  'profit',
+  'margin',
+  'trueCost',
+  'employeeCost',
+  'overhead',
+  'laborRate',
+  'vendorConfidential',
+  'admin',
+  'audit',
+  'storagePath',
+] as const;
+
+/** Strip internal storage / admin fields from project document rows. */
+export function buildCustomerSafeDocuments(
+  rows: readonly {
+    id: string;
+    originalFilename: string;
+    label: string | null;
+    mimeType: string;
+    sizeBytes: number | null;
+  }[],
+): CustomerSafeDocument[] {
+  return rows.map((row) => {
+    const doc: CustomerSafeDocument = {
+      documentId: row.id,
+      filename: row.originalFilename,
+      label: row.label,
+      mimeType: row.mimeType,
+      sizeBytes: row.sizeBytes,
+    };
+    assertNoSensitiveCustomerFields(doc as unknown as Record<string, unknown>);
+    return doc;
+  });
 }
 
 /**
@@ -70,17 +152,29 @@ export function buildCustomerSafeProjectSummary(
     clientName: input.clientName,
   };
 
+  let result = summary;
   if (scopes.includes('billing.outstanding') && input.outstanding) {
-    return {
-      ...summary,
+    result = {
+      ...result,
       outstanding: {
         amount: input.outstanding.amount,
         currency: input.outstanding.currency,
       },
     };
   }
-
-  return summary;
+  if (scopes.includes('documents.read') && input.documents && input.documents.length > 0) {
+    result = {
+      ...result,
+      documents: input.documents.map((doc) => ({
+        documentId: doc.documentId,
+        filename: doc.filename,
+        label: doc.label,
+        mimeType: doc.mimeType,
+        sizeBytes: doc.sizeBytes,
+      })),
+    };
+  }
+  return result;
 }
 
 /** Runtime guard: reject objects that look like they carry internal financials. */
@@ -96,11 +190,23 @@ export function assertNoSensitiveCustomerFields(value: Record<string, unknown>):
     'overhead',
     'workforce',
     'vendorCost',
+    'vendorConfidential',
     'trueCost',
     'laborCost',
+    'storagePath',
+    'storageBucket',
+    'checksum',
+    'uploadedBy',
+    'audit',
+    'membership',
+    'roleKey',
   ];
   for (const key of Object.keys(value)) {
-    if (forbidden.some((item) => key.toLowerCase().includes(item.toLowerCase()) && key !== 'outstanding')) {
+    if (
+      forbidden.some(
+        (item) => key.toLowerCase().includes(item.toLowerCase()) && key !== 'outstanding',
+      )
+    ) {
       throw new Error(`Customer summary must not include sensitive field: ${key}`);
     }
   }

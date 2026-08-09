@@ -4,7 +4,7 @@ import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import type { OrgContext } from '@/shared/auth/context';
 import { noteModuleUsage } from '@/modules/tenancy';
-import { normalizeVendorScopes } from '../domain/vendor-scopes';
+import { normalizeVendorScopes, assertVendorScopesAreReadOnly } from '../domain/vendor-scopes';
 import {
   assertVendorInOrganization,
   findOrCreateExternalPrincipal,
@@ -34,6 +34,7 @@ export async function createVendorGrant(
   }
 
   const input = parsed.data;
+  assertVendorScopesAreReadOnly(input.scopes ?? ['vendor.summary']);
   const scopes = normalizeVendorScopes(input.scopes ?? ['vendor.summary']);
   if (scopes.length === 0) {
     throw new DomainRuleError('At least one valid vendor scope is required', 'errors.validationFailed');

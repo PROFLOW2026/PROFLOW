@@ -3,14 +3,17 @@ import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import { PageHeader } from '@/components/ui/page-header';
 import { StatusBadge } from '@/components/ui/status-badge';
-import { getComplianceArtifactById } from '@/modules/compliance';
-import { complianceStatusShape } from '@/modules/compliance/ui';
+import { Alert } from '@/components/ui/alert';
+import { getComplianceArtifactById, isMissingEvidence } from '@/modules/compliance';
+import { complianceStatusShape, missingEvidenceShape } from '@/modules/compliance/ui';
+import { getEntityDocumentPanelData } from '@/modules/documents';
 import { withOrgContext } from '@/shared/auth/session';
 import { Link } from '@/shared/i18n/navigation';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { ArchiveArtifactButton } from '../archive-artifact-button';
 import { ArtifactForm } from '../artifact-form';
+import { ComplianceDocumentAttachments } from './compliance-document-attachments';
 
 export async function generateMetadata({
   params,
@@ -37,19 +40,27 @@ export default async function ComplianceArtifactPage({
   const t = await getTranslations('compliance');
   const tStatus = await getTranslations('status.compliance');
 
-  let artifact;
-  let canManage = false;
+  const loaded = await withOrgContext(async (context) => {
+    try {
+      const artifact = await getComplianceArtifactById(context, artifactId);
+      const documentsPanel = await getEntityDocumentPanelData(
+        context,
+        'compliance_artifact',
+        artifactId,
+      );
+      return {
+        artifact,
+        documentsPanel,
+        canManage: hasPermission(context, PERMISSIONS.COMPLIANCE_MANAGE),
+      };
+    } catch {
+      return null;
+    }
+  });
 
-  try {
-    const result = await withOrgContext(async (context) => ({
-      artifact: await getComplianceArtifactById(context, artifactId),
-      canManage: hasPermission(context, PERMISSIONS.COMPLIANCE_MANAGE),
-    }));
-    artifact = result.artifact;
-    canManage = result.canManage;
-  } catch {
-    notFound();
-  }
+  if (!loaded) notFound();
+
+  const { artifact, documentsPanel, canManage } = loaded;
 
   return (
     <div className="flex flex-col gap-6">
@@ -62,6 +73,12 @@ export default async function ComplianceArtifactPage({
               shape={complianceStatusShape(artifact.status)}
               label={tStatus(artifact.status)}
             />
+            {isMissingEvidence(artifact) ? (
+              <StatusBadge
+                shape={missingEvidenceShape()}
+                label={t('list.evidenceMissing')}
+              />
+            ) : null}
             <span className="text-sm text-[var(--pf-text-secondary)]">
               {t(`kinds.${artifact.artifactKind}`)}
             </span>
@@ -74,6 +91,10 @@ export default async function ComplianceArtifactPage({
         }
         actions={canManage && !artifact.archivedAt ? <ArchiveArtifactButton artifactId={artifact.id} /> : null}
       />
+
+      {isMissingEvidence(artifact) ? (
+        <Alert tone="warning">{t('detail.missingEvidence')}</Alert>
+      ) : null}
 
       {canManage ? (
         <ArtifactForm mode="edit" artifact={artifact} />
@@ -111,6 +132,17 @@ export default async function ComplianceArtifactPage({
           ) : null}
         </dl>
       )}
+
+      <ComplianceDocumentAttachments
+        artifactId={artifact.id}
+        ownerType="compliance_artifact"
+        ownerId={artifact.id}
+        documents={documentsPanel.documents}
+        linkCandidates={documentsPanel.linkCandidates}
+        canRead={documentsPanel.canRead}
+        canManage={documentsPanel.canManage && canManage}
+        storageConfigured={documentsPanel.storageConfigured}
+      />
     </div>
   );
 }

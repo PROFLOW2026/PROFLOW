@@ -79,6 +79,7 @@ export function OpportunityQuoteForm({
   currency: string;
 }) {
   const t = useTranslations('crm.opportunity');
+  const tCommon = useTranslations('common');
   const [state, formAction, pending] = useActionState<CrmFormState, FormData>(
     createSalesQuoteAction,
     {},
@@ -97,15 +98,27 @@ export function OpportunityQuoteForm({
       </Field>
       <div className="grid gap-3 sm:grid-cols-3">
         <Field label={t('lineQuantity')}>
-          {(control) => <Input {...control} name="quantity" defaultValue="1" inputMode="decimal" />}
+          {(control) => (
+            <Input {...control} name="quantity" defaultValue="1" inputMode="decimal" numeric />
+          )}
         </Field>
         <Field label={t('lineUnit')} required>
-          {(control) => <Input {...control} name="unitAmount" required inputMode="decimal" />}
+          {(control) => (
+            <Input {...control} name="unitAmount" required inputMode="decimal" numeric />
+          )}
         </Field>
         <Field label={t('lineTotal')} required>
-          {(control) => <Input {...control} name="lineTotal" required inputMode="decimal" />}
+          {(control) => (
+            <Input {...control} name="lineTotal" required inputMode="decimal" numeric />
+          )}
         </Field>
       </div>
+      <Field label={t('quoteTax')} optionalLabel={tCommon('labels.optional')}>
+        {(control) => (
+          <Input {...control} name="taxAmount" inputMode="decimal" numeric placeholder={currency} />
+        )}
+      </Field>
+      <p className="text-xs text-[var(--pf-text-muted)]">{t('quoteNotBilling')}</p>
       <Button type="submit" disabled={pending} className="self-start">
         {t('addQuote')}
       </Button>
@@ -172,10 +185,18 @@ export function ConvertWonForm({
   opportunityId,
   defaultProjectName,
   acceptedVersionId,
+  netAmount,
+  taxAmount,
+  totalAmount,
+  currency,
 }: {
   opportunityId: string;
   defaultProjectName: string;
   acceptedVersionId: string | null;
+  netAmount?: string | null;
+  taxAmount?: string | null;
+  totalAmount?: string | null;
+  currency?: string;
 }) {
   const t = useTranslations('crm.convert');
   const [state, formAction, pending] = useActionState<CrmFormState, FormData>(
@@ -193,6 +214,17 @@ export function ConvertWonForm({
       <input type="hidden" name="salesQuoteVersionId" value={acceptedVersionId} />
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
       <p className="text-sm text-[var(--pf-text-secondary)]">{t('description')}</p>
+      {netAmount && currency ? (
+        <p className="text-sm text-[var(--pf-text-secondary)]" dir="ltr">
+          {t('netBaseline', {
+            net: netAmount,
+            tax: taxAmount ?? '0',
+            total: totalAmount ?? netAmount,
+            currency,
+          })}
+        </p>
+      ) : null}
+      <p className="text-xs text-[var(--pf-text-muted)]">{t('vatNote')}</p>
       <Field label={t('projectNameLabel')}>
         {(control) => <Input {...control} name="projectName" defaultValue={defaultProjectName} />}
       </Field>

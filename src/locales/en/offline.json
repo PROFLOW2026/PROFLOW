@@ -1,0 +1,68 @@
+{
+  "banner": {
+    "offline": "You are offline. Drafts stay on this device until you reconnect.",
+    "viewDrafts": "View offline drafts"
+  },
+  "indicator": {
+    "online": "Online",
+    "offline": "Offline"
+  },
+  "page": {
+    "title": "Offline drafts",
+    "subtitle": "Local drafts waiting to sync. Server records are never overwritten automatically.",
+    "hint": "These drafts live only on this device. Resolve conflicts before syncing again.",
+    "statusHeading": "By sync status",
+    "listHeading": "Pending drafts",
+    "empty": "No offline drafts on this device.",
+    "emptyCta": "Capture an expense",
+    "updated": "Updated {when}"
+  },
+  "kinds": {
+    "expense": "Expense",
+    "time_entry": "Time entry",
+    "change_request": "Change request",
+    "daily_log": "Daily log",
+    "capture": "Photo / document"
+  },
+  "status": {
+    "draft": "Draft",
+    "queued": "Queued",
+    "syncing": "Syncing",
+    "synced": "Synced",
+    "conflict": "Conflict",
+    "rejected": "Rejected"
+  },
+  "actions": {
+    "refresh": "Refresh",
+    "keepLocal": "Keep as new candidate",
+    "discardLocal": "Discard local (keep server)",
+    "syncNow": "Sync now"
+  },
+  "forms": {
+    "draftSaved": "Saved as an offline draft on this device. It is not on the server yet.",
+    "saveAnotherDraft": "Save another draft",
+    "finalizeRequiresOnline": "Finalizing an expense requires a connection. Keep editing as a draft until you are online.",
+    "captureDraftSaved": "Photo/document saved as an offline draft on this device. It will upload when you reconnect.",
+    "captureFinalizeRequiresOnline": "This attachment needs an online connection because it updates a linked record after upload."
+  },
+  "save": {
+    "saveDraft": "Save offline draft",
+    "saving": "Saving draft…",
+    "saved": "Draft saved on this device. Sync happens when you reconnect.",
+    "failed": "Could not save the offline draft.",
+    "noForm": "Could not find the form to save.",
+    "offlineHint": "You are offline. Use Save, or Save offline draft, to keep work on this device.",
+    "viewDrafts": "View offline drafts"
+  },
+  "capture": {
+    "queued": "Photo saved offline. It will upload when you reconnect.",
+    "queueFailed": "Could not save the photo offline on this device."
+  },
+  "errors": {
+    "loadFailed": "Could not read local drafts on this device.",
+    "resolveFailed": "Could not resolve this conflict on this device.",
+    "missingOrganization": "Could not save an offline draft because the organization context is missing.",
+    "syncRequiresOnline": "Reconnect to sync offline drafts.",
+    "syncFailed": "Sync could not finish. Resolve conflicts or try again when online."
+  }
+}

@@ -3,6 +3,7 @@ import { Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { StatusBadge } from '@/components/ui/status-badge';
+import { ResponsiveTable } from '@/components/patterns/responsive-table';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { MoneyText } from '@/components/patterns/money-text';
 import type { EmployeeListItem } from '@/modules/workforce';
@@ -38,8 +39,10 @@ export async function EmployeesTable({ employees, canManage }: EmployeesTablePro
   }
 
   return (
-    <>
-      <div className="hidden md:block">
+    <ResponsiveTable
+      items={employees}
+      getRowKey={(employee) => employee.id}
+      desktop={
         <Table>
           <TableHeader>
             <TableRow>
@@ -55,7 +58,7 @@ export async function EmployeesTable({ employees, canManage }: EmployeesTablePro
                 <TableCell>
                   <Link
                     href={`/workforce/employees/${employee.id}`}
-                    className="font-medium text-[var(--pf-text-brand)] hover:underline"
+                    className="rounded-sm font-medium text-[var(--pf-text-brand)] hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
                   >
                     {employee.name}
                   </Link>
@@ -92,50 +95,45 @@ export async function EmployeesTable({ employees, canManage }: EmployeesTablePro
             ))}
           </TableBody>
         </Table>
-      </div>
-
-      <ul className="flex flex-col gap-3 md:hidden">
-        {employees.map((employee) => (
-          <li key={employee.id}>
-            <Link
-              href={`/workforce/employees/${employee.id}`}
-              className="block rounded-lg border border-[var(--pf-border-default)] p-4 hover:bg-[var(--pf-bg-subtle)]"
-            >
-              <div className="flex items-start justify-between gap-2">
-                <div className="min-w-0">
-                  <p className="truncate font-medium">{employee.name}</p>
-                  {employee.jobTitle ? (
-                    <p className="text-xs text-[var(--pf-text-muted)]">{employee.jobTitle}</p>
-                  ) : null}
-                </div>
-                <StatusBadge
-                  shape={employee.status === 'active' ? 'active' : 'archived'}
-                  label={t(`employeeStatus.${employee.status}`)}
+      }
+      renderMobileCard={(employee) => (
+        <Link
+          href={`/workforce/employees/${employee.id}`}
+          className="block min-h-11 rounded-lg border border-[var(--pf-border-default)] p-4 hover:bg-[var(--pf-bg-subtle)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
+        >
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0">
+              <p className="truncate font-medium">{employee.name}</p>
+              {employee.jobTitle ? (
+                <p className="text-xs text-[var(--pf-text-muted)]">{employee.jobTitle}</p>
+              ) : null}
+            </div>
+            <StatusBadge
+              shape={employee.status === 'active' ? 'active' : 'archived'}
+              label={t(`employeeStatus.${employee.status}`)}
+            />
+          </div>
+          <p className="mt-2 text-sm text-[var(--pf-text-secondary)]">
+            {employee.currentRate && employee.currentRateCurrency ? (
+              <>
+                <MoneyText
+                  value={
+                    fromNumericString(employee.currentRate, employee.currentRateCurrency) ?? {
+                      amount: employee.currentRate,
+                      currency: employee.currentRateCurrency,
+                    }
+                  }
                 />
-              </div>
-              <p className="mt-2 text-sm text-[var(--pf-text-secondary)]">
-                {employee.currentRate && employee.currentRateCurrency ? (
-                  <>
-                    <MoneyText
-                      value={
-                        fromNumericString(employee.currentRate, employee.currentRateCurrency) ?? {
-                          amount: employee.currentRate,
-                          currency: employee.currentRateCurrency,
-                        }
-                      }
-                    />
-                    {' · '}
-                    {employee.currentRateUnit ? t(`rateUnits.${employee.currentRateUnit}`) : null}
-                  </>
-                ) : (
-                  t('employees.noRate')
-                )}
-              </p>
-            </Link>
-          </li>
-        ))}
-      </ul>
-    </>
+                {' · '}
+                {employee.currentRateUnit ? t(`rateUnits.${employee.currentRateUnit}`) : null}
+              </>
+            ) : (
+              t('employees.noRate')
+            )}
+          </p>
+        </Link>
+      )}
+    />
   );
 }
 

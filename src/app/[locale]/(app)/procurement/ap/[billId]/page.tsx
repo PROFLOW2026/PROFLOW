@@ -2,10 +2,13 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { MoneyText } from '@/components/patterns/money-text';
+import { Alert } from '@/components/ui/alert';
 import { PageHeader } from '@/components/ui/page-header';
 import { StatusBadge, type StatusShape } from '@/components/ui/status-badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { getApBillDetail, type ApBillStatus } from '@/modules/ap';
+import { getEntityDocumentPanelData } from '@/modules/documents';
+import { DocumentAttachments } from '@/modules/documents/ui';
 import { listExpensesForOrg } from '@/modules/expenses';
 import { listPurchaseOrdersForOrg } from '@/modules/procurement';
 import { money } from '@/shared/money/money';
@@ -61,16 +64,18 @@ export default async function ApBillDetailPage({
     const canReadPo = hasPermission(context, PERMISSIONS.PROCUREMENT_READ);
     const canReadExpenses = hasPermission(context, PERMISSIONS.EXPENSES_READ);
 
-    const [orders, expensesResult] = await Promise.all([
+    const [orders, expensesResult, documentsPanel] = await Promise.all([
       canReadPo ? listPurchaseOrdersForOrg(context) : Promise.resolve([]),
       canReadExpenses
         ? listExpensesForOrg(context, { limit: 50 })
         : Promise.resolve({ items: [], total: 0 }),
+      getEntityDocumentPanelData(context, 'ap_bill', billId),
     ]);
 
     return {
       ...detail,
       canManage,
+      documentsPanel,
       purchaseOrders: orders
         .filter((po) => po.vendorId === detail.bill.vendorId)
         .map((po) => ({
@@ -86,7 +91,8 @@ export default async function ApBillDetailPage({
 
   if (!data) notFound();
 
-  const { bill, lines, matches, canManage, purchaseOrders, expenses } = data;
+  const { bill, lines, matches, matchPosition, canManage, purchaseOrders, expenses, documentsPanel } =
+    data;
 
   return (
     <div className="flex flex-col gap-6">
@@ -129,6 +135,40 @@ export default async function ApBillDetailPage({
         </div>
       </div>
 
+      <section className="rounded-lg border border-[var(--pf-border-default)] p-4">
+        <h2 className="mb-2 text-sm font-semibold">{t('detail.matchPositionTitle')}</h2>
+        <div className="grid gap-3 sm:grid-cols-3">
+          <div>
+            <p className="text-xs text-[var(--pf-text-muted)]">{t('detail.acceptedMatched')}</p>
+            <MoneyText
+              value={money(matchPosition.acceptedMatchedTotal, matchPosition.currency)}
+            />
+          </div>
+          <div>
+            <p className="text-xs text-[var(--pf-text-muted)]">{t('detail.remainingUnmatched')}</p>
+            <MoneyText
+              value={money(matchPosition.remainingUnmatched, matchPosition.currency)}
+            />
+          </div>
+          <div>
+            <p className="text-xs text-[var(--pf-text-muted)]">{t('detail.remainingIncludingProposed')}</p>
+            <MoneyText
+              value={money(matchPosition.remainingIncludingProposed, matchPosition.currency)}
+            />
+          </div>
+        </div>
+        {matchPosition.hasOverMatchVariance ? (
+          <Alert tone="warning" className="mt-3">
+            {t('detail.varianceWarning', {
+              variance: matchPosition.overMatchVariance,
+              currency: matchPosition.currency,
+            })}
+          </Alert>
+        ) : (
+          <p className="mt-3 text-xs text-[var(--pf-text-muted)]">{t('detail.partialMatchHint')}</p>
+        )}
+      </section>
+
       <section>
         <h2 className="mb-2 text-sm font-semibold">{t('detail.linesTitle')}</h2>
         <div className="overflow-x-auto rounded-lg border border-[var(--pf-border-default)]">
@@ -136,6 +176,7 @@ export default async function ApBillDetailPage({
             <TableHeader>
               <TableRow>
                 <TableHead>{t('create.lineDescription')}</TableHead>
+                <TableHead>{t('create.linePoLine')}</TableHead>
                 <TableHead numeric>{t('create.lineQuantity')}</TableHead>
                 <TableHead numeric>{t('create.lineUnitAmount')}</TableHead>
                 <TableHead numeric>{t('create.lineTotal')}</TableHead>
@@ -145,6 +186,11 @@ export default async function ApBillDetailPage({
               {lines.map((line) => (
                 <TableRow key={line.id}>
                   <TableCell>{line.description}</TableCell>
+                  <TableCell className="text-sm text-[var(--pf-text-secondary)]" dir="ltr">
+                    {line.purchaseOrderLineId
+                      ? line.purchaseOrderLineId.slice(0, 8)
+                      : '—'}
+                  </TableCell>
                   <TableCell numeric>{line.quantity}</TableCell>
                   <TableCell numeric>
                     <MoneyText value={money(line.unitAmount, line.currency)} />
@@ -193,7 +239,9 @@ export default async function ApBillDetailPage({
                     <TableCell numeric>
                       <MoneyText value={money(match.matchedAmount, match.currency)} />
                     </TableCell>
-                    <TableCell>{t(`match.statuses.${match.status}` as 'match.statuses.proposed')}</TableCell>
+                    <TableCell>
+                      {t(`match.statuses.${match.status}` as 'match.statuses.proposed')}
+                    </TableCell>
                     <TableCell>
                       {canManage && match.status === 'proposed' ? (
                         <MatchDecisionButtons matchId={match.id} billId={bill.id} />
@@ -212,12 +260,23 @@ export default async function ApBillDetailPage({
           <ProposeMatchForm
             billId={bill.id}
             currency={bill.currency}
-            defaultAmount={bill.totalAmount}
+            defaultAmount={matchPosition.remainingIncludingProposed}
+            remainingLabel={matchPosition.remainingIncludingProposed}
             purchaseOrders={purchaseOrders}
             expenses={expenses}
           />
         ) : null}
       </section>
+
+      <DocumentAttachments
+        ownerType="ap_bill"
+        ownerId={bill.id}
+        documents={documentsPanel.documents}
+        linkCandidates={documentsPanel.linkCandidates}
+        canRead={documentsPanel.canRead}
+        canManage={documentsPanel.canManage}
+        storageConfigured={documentsPanel.storageConfigured}
+      />
     </div>
   );
 }

@@ -18,3 +18,8 @@ export function complianceStatusShape(status: ArtifactStatus): StatusShape {
       return 'draft';
   }
 }
+
+/** Evidence badge when document is missing (UI-only; not a DB status). */
+export function missingEvidenceShape(): StatusShape {
+  return 'pending';
+}

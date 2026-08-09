@@ -75,6 +75,9 @@ const config = [
       // Tests render primitives in isolation; there are no Next.js pages behind
       // the hrefs they use as fixtures.
       '@next/next/no-html-link-for-pages': 'off',
+      // Unit tests may exercise data-layer helpers without loading module barrels
+      // that pull `server-only` into the Vitest graph.
+      'no-restricted-imports': 'off',
     },
   },
   {

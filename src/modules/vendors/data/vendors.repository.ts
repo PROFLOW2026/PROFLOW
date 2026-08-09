@@ -1,5 +1,11 @@
 import { and, eq, ilike, isNull, or, sql } from 'drizzle-orm';
 import { expenses, projects, vendorContacts, vendorEngagements, vendors } from '@drizzle/schema';
+import {
+  ORG_LIST_EXPORT_CAP,
+  ORG_LIST_HARD_CAP,
+  resolveListLimit,
+  resolveListOffset,
+} from '@/shared/db/list-limits';
 import type { DbExecutor } from '@/shared/db/types';
 import { normalizeVendorName } from '../domain/name-matching';
 import type {
@@ -205,7 +211,16 @@ export async function listVendors(
     })
     .from(vendors)
     .where(and(...conditions))
-    .orderBy(vendors.name);
+    .orderBy(vendors.name)
+    .limit(
+      resolveListLimit(filters.limit, {
+        hardCap:
+          filters.limit != null && filters.limit > ORG_LIST_HARD_CAP
+            ? ORG_LIST_EXPORT_CAP
+            : ORG_LIST_HARD_CAP,
+      }),
+    )
+    .offset(resolveListOffset(filters.offset));
 
   return rows.map((row) => ({
     ...mapVendor(row.vendor),

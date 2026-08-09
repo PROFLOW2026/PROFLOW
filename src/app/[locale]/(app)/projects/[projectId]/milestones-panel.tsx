@@ -6,10 +6,13 @@ import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
-import type { MilestoneRecord } from '@/modules/projects';
+import { StatusBadge, type StatusShape } from '@/components/ui/status-badge';
+import { isMilestoneOverdue } from '@/modules/projects/domain/scheduling';
+import type { MilestoneRecord, MilestoneStatus } from '@/modules/projects/domain/types';
 import {
   archiveMilestoneAction,
   createMilestoneAction,
+  updateMilestoneStatusAction,
   type MilestoneFormState,
 } from '../actions';
 
@@ -17,10 +20,25 @@ interface MilestonesPanelProps {
   projectId: string;
   milestones: readonly MilestoneRecord[];
   canEdit: boolean;
+  today: string;
 }
 
-export function MilestonesPanel({ projectId, milestones, canEdit }: MilestonesPanelProps) {
+function milestoneShape(status: MilestoneStatus): StatusShape {
+  switch (status) {
+    case 'achieved':
+      return 'completed';
+    case 'missed':
+      return 'overdue';
+    case 'cancelled':
+      return 'cancelled';
+    default:
+      return 'pending';
+  }
+}
+
+export function MilestonesPanel({ projectId, milestones, canEdit, today }: MilestonesPanelProps) {
   const t = useTranslations('projects.details');
+  const tSchedule = useTranslations('projects.schedule');
   const tCommon = useTranslations('common');
   const [state, formAction, pending] = useActionState<MilestoneFormState, FormData>(
     createMilestoneAction,
@@ -28,6 +46,14 @@ export function MilestonesPanel({ projectId, milestones, canEdit }: MilestonesPa
   );
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+
+  function runMilestoneAction(action: () => Promise<{ error?: string }>) {
+    setError(null);
+    startTransition(async () => {
+      const result = await action();
+      if (result.error) setError(result.error);
+    });
+  }
 
   return (
     <section className="flex flex-col gap-3">
@@ -37,37 +63,102 @@ export function MilestonesPanel({ projectId, milestones, canEdit }: MilestonesPa
         <p className="text-sm text-[var(--pf-text-secondary)]">{t('emptyMilestones')}</p>
       ) : (
         <ul className="flex flex-col gap-2">
-          {milestones.map((milestone) => (
-            <li
-              key={milestone.id}
-              className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-[var(--pf-border-default)] px-3 py-2 text-sm"
-            >
-              <div>
-                <div className="font-medium">{milestone.name}</div>
-                <div className="text-[var(--pf-text-secondary)]">
-                  {milestone.targetDate ? milestone.targetDate : '—'} ·{' '}
-                  {t(`milestoneStatuses.${milestone.status}`)}
+          {milestones.map((milestone) => {
+            const overdue = isMilestoneOverdue(milestone, today);
+            return (
+              <li
+                key={milestone.id}
+                className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-[var(--pf-border-default)] px-3 py-2 text-sm"
+              >
+                <div className="flex flex-col gap-1">
+                  <div className="font-medium">{milestone.name}</div>
+                  <div className="flex flex-wrap items-center gap-2 text-[var(--pf-text-secondary)]">
+                    <span>{milestone.targetDate ? milestone.targetDate : '—'}</span>
+                    <StatusBadge
+                      shape={milestoneShape(milestone.status)}
+                      label={t(`milestoneStatuses.${milestone.status}`)}
+                    />
+                    {overdue ? (
+                      <span className="text-[var(--pf-status-danger-fg)]">{tSchedule('overdue')}</span>
+                    ) : null}
+                  </div>
                 </div>
-              </div>
-              {canEdit ? (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  loading={isPending}
-                  onClick={() => {
-                    setError(null);
-                    startTransition(async () => {
-                      const result = await archiveMilestoneAction(milestone.id, projectId);
-                      if (result.error) setError(result.error);
-                    });
-                  }}
-                >
-                  {tCommon('actions.archive')}
-                </Button>
-              ) : null}
-            </li>
-          ))}
+                {canEdit ? (
+                  <div className="flex flex-wrap gap-2">
+                    {milestone.status === 'planned' ? (
+                      <>
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          size="sm"
+                          loading={isPending}
+                          onClick={() =>
+                            runMilestoneAction(() =>
+                              updateMilestoneStatusAction(milestone.id, projectId, 'achieved'),
+                            )
+                          }
+                        >
+                          {t('markMilestoneAchieved')}
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          loading={isPending}
+                          onClick={() =>
+                            runMilestoneAction(() =>
+                              updateMilestoneStatusAction(milestone.id, projectId, 'missed'),
+                            )
+                          }
+                        >
+                          {t('markMilestoneMissed')}
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          loading={isPending}
+                          onClick={() =>
+                            runMilestoneAction(() =>
+                              updateMilestoneStatusAction(milestone.id, projectId, 'cancelled'),
+                            )
+                          }
+                        >
+                          {t('markMilestoneCancelled')}
+                        </Button>
+                      </>
+                    ) : null}
+                    {milestone.status !== 'planned' ? (
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        size="sm"
+                        loading={isPending}
+                        onClick={() =>
+                          runMilestoneAction(() =>
+                            updateMilestoneStatusAction(milestone.id, projectId, 'planned'),
+                          )
+                        }
+                      >
+                        {t('reopenMilestone')}
+                      </Button>
+                    ) : null}
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      loading={isPending}
+                      onClick={() =>
+                        runMilestoneAction(() => archiveMilestoneAction(milestone.id, projectId))
+                      }
+                    >
+                      {tCommon('actions.archive')}
+                    </Button>
+                  </div>
+                ) : null}
+              </li>
+            );
+          })}
         </ul>
       )}
 

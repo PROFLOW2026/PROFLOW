@@ -13,8 +13,8 @@ import {
 import {
   PUNCH_STATUSES,
   type PunchStatus,
-  canTransitionPunchStatus,
-} from '@/modules/field-ops';
+} from '@/modules/field-ops/domain/types';
+import { canTransitionPunchStatus } from '@/modules/field-ops/domain/punch-status';
 import { updatePunchStatusAction, type FieldOpsFormState } from '../actions';
 
 export function PunchStatusForm({
@@ -41,7 +41,7 @@ export function PunchStatusForm({
       <input type="hidden" name="punchListItemId" value={punchListItemId} />
       <input type="hidden" name="status" value={status} />
       <Select value={status} onValueChange={(value) => setStatus(value as PunchStatus)}>
-        <SelectTrigger className="h-9 w-[10rem]" aria-label={t('updateStatus.label')}>
+        <SelectTrigger className="min-h-11 w-full sm:w-[10rem] md:h-9 md:min-h-9" aria-label={t('updateStatus.label')}>
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
@@ -52,11 +52,13 @@ export function PunchStatusForm({
           ))}
         </SelectContent>
       </Select>
-      <Button type="submit" size="sm" variant="secondary" disabled={pending || status === currentStatus}>
+      <Button type="submit" size="sm" variant="secondary" disabled={pending || status === currentStatus} className="min-h-11 md:min-h-8">
         {pending ? t('updateStatus.pending') : t('updateStatus.submit')}
       </Button>
       {state.error ? (
-        <span className="text-sm text-[var(--pf-status-danger-fg)]">{state.error}</span>
+        <span role="alert" className="text-sm text-[var(--pf-status-danger-fg)]">
+          {state.error}
+        </span>
       ) : null}
     </form>
   );
