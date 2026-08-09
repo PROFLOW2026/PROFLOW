@@ -33,6 +33,8 @@
     "compliance": "Insurance and compliance",
     "portal": "Customer portal access",
     "api": "API and webhooks",
+    "procurement": "Procurement and purchase orders",
+    "materials": "Materials catalog",
     "saved": "Feature visibility updated."
   },
   "presets": {

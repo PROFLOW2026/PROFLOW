@@ -32,6 +32,8 @@ export const OPTIONAL_MODULE_KEYS = [
   'compliance',
   'portal',
   'api',
+  'procurement',
+  'materials',
 ] as const;
 
 export type OptionalModuleKey = (typeof OPTIONAL_MODULE_KEYS)[number];

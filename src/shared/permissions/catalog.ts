@@ -78,6 +78,11 @@ export const PERMISSIONS = {
   PORTAL_MANAGE: 'portal.manage',
   API_MANAGE: 'api.manage',
 
+  PROCUREMENT_READ: 'procurement.read',
+  PROCUREMENT_MANAGE: 'procurement.manage',
+  MATERIALS_READ: 'materials.read',
+  MATERIALS_MANAGE: 'materials.manage',
+
   SETTINGS_MANAGE: 'settings.manage',
   TAX_MANAGE: 'tax.manage',
   AUDIT_READ: 'audit.read',
@@ -171,6 +176,27 @@ export const PERMISSION_CATALOG: readonly PermissionDefinition[] = [
     key: PERMISSIONS.API_MANAGE,
     category: 'administration',
     description: 'Manage API clients, keys and webhooks',
+  },
+
+  {
+    key: PERMISSIONS.PROCUREMENT_READ,
+    category: 'expenses',
+    description: 'View RFQs, supplier quotes and purchase orders',
+  },
+  {
+    key: PERMISSIONS.PROCUREMENT_MANAGE,
+    category: 'expenses',
+    description: 'Manage procurement and purchase orders',
+  },
+  {
+    key: PERMISSIONS.MATERIALS_READ,
+    category: 'expenses',
+    description: 'View material catalog',
+  },
+  {
+    key: PERMISSIONS.MATERIALS_MANAGE,
+    category: 'expenses',
+    description: 'Manage material catalog and prices',
   },
 
   { key: PERMISSIONS.SETTINGS_MANAGE, category: 'administration', description: 'Change organization settings' },

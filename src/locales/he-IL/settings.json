@@ -33,6 +33,8 @@
     "compliance": "ביטוחים וציות",
     "portal": "גישת פורטל לקוח",
     "api": "API ו־webhooks",
+    "procurement": "רכש והזמנות רכש",
+    "materials": "קטלוג חומרים",
     "saved": "תצוגת היכולות עודכנה."
   },
   "presets": {
