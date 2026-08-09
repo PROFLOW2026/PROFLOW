@@ -14,6 +14,12 @@ export {
   splitProjectIntoWorkPackages,
 } from './application/work-packages';
 export { createPhase, updatePhase, archivePhase } from './application/phases';
+export {
+  listProjectMilestones,
+  createMilestone,
+  updateMilestone,
+  archiveMilestone,
+} from './application/milestones';
 
 export { projectStatusShape, isArchivedStatus } from './domain/status';
 export type { ProjectStatusShape } from './domain/status';
@@ -27,15 +33,20 @@ export { ORIGINAL_AMOUNT_LOCKED_MESSAGE_KEY } from './application/contract-amoun
 export { shouldShowWorkPackages, countActiveWorkPackages } from './domain/work-package-visibility';
 export {
   PROJECT_STATUSES,
+  PROGRESS_STATUSES,
+  MILESTONE_STATUSES,
   DEFAULT_WORK_PACKAGE_NAME,
 } from './domain/types';
 export type {
   ProjectStatus,
+  ProgressStatus,
+  MilestoneStatus,
   ProjectRecord,
   ProjectListItem,
   ProjectListFilters,
   WorkPackageRecord,
   PhaseRecord,
+  MilestoneRecord,
   ContractRecord,
   ContractTaxSnapshotRecord,
   ContractValueEventRecord,
@@ -51,4 +62,7 @@ export {
   splitProjectSchema,
   createPhaseSchema,
   updatePhaseSchema,
+  createMilestoneSchema,
+  updateMilestoneSchema,
+  archiveMilestoneSchema,
 } from './validation/schemas';

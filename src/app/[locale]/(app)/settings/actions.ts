@@ -7,6 +7,7 @@ import {
   revokeInvitation,
   setModuleVisibility,
   isOptionalModuleKey,
+  applyOrganizationProfessionPreset,
 } from '@/modules/tenancy';
 import { setRolePermissionToggle } from '@/modules/rbac';
 import { updateProfile } from '@/modules/identity';
@@ -59,6 +60,27 @@ function formNullableBool(formData: FormData, key: string): boolean | null {
   if (value === 'true') return true;
   if (value === 'false') return false;
   return null;
+}
+
+export async function applyProfessionPresetAction(
+  _prev: SettingsActionState,
+  formData: FormData,
+): Promise<SettingsActionState> {
+  const tErrors = await getTranslations('errors');
+  const preset = formValue(formData, 'professionPreset');
+  if (!preset) return { error: tErrors('validationFailed') };
+
+  try {
+    await withOrgContext((context) =>
+      applyOrganizationProfessionPreset(context, { professionPreset: preset }),
+    );
+    revalidatePath('/settings/business');
+    revalidatePath('/settings/cost-categories');
+    return { ok: true };
+  } catch (error) {
+    if (error instanceof AppError) return { error: tErrors('validationFailed') };
+    throw error;
+  }
 }
 
 export async function updateBusinessProfileAction(

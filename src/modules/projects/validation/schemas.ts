@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { PROJECT_STATUSES } from '../domain/types';
+import { PROJECT_STATUSES, PROGRESS_STATUSES, MILESTONE_STATUSES } from '../domain/types';
 
 const emptyToNull = (value: unknown) => {
   if (value === '' || value === null || value === undefined) return null;
@@ -7,6 +7,15 @@ const emptyToNull = (value: unknown) => {
 };
 
 const optionalText = z.preprocess(emptyToNull, z.string().trim().max(2000).nullable().optional());
+const optionalDate = z.preprocess(
+  emptyToNull,
+  z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable().optional(),
+);
+const optionalPercent = z.preprocess(emptyToNull, z.string().trim().regex(/^\d+(\.\d+)?$/).nullable().optional());
+const optionalProgressStatus = z.preprocess(
+  emptyToNull,
+  z.enum(PROGRESS_STATUSES).nullable().optional(),
+);
 
 export const projectNameSchema = z
   .string()
@@ -53,9 +62,11 @@ export const updateProjectSchema = z.object({
   status: z.enum(PROJECT_STATUSES).optional(),
   projectRole: optionalText,
   deliveryMode: optionalText,
-  startDate: z.preprocess(emptyToNull, z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable().optional()),
-  targetEndDate: z.preprocess(emptyToNull, z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable().optional()),
-  actualEndDate: z.preprocess(emptyToNull, z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable().optional()),
+  startDate: optionalDate,
+  targetEndDate: optionalDate,
+  actualEndDate: optionalDate,
+  progressPercent: optionalPercent,
+  progressStatus: optionalProgressStatus,
   notes: optionalText,
   domainName: z.preprocess(emptyToNull, z.string().trim().min(1).max(120).nullable().optional()),
   contractValueAmount: z.preprocess(emptyToNull, z.string().trim().nullable().optional()),
@@ -88,24 +99,53 @@ export const updateWorkPackageSchema = z.object({
   workPackageId: z.string().uuid(),
   name: z.string().trim().min(1).max(120).optional(),
   description: optionalText,
+  startDate: optionalDate,
+  endDate: optionalDate,
+  progressPercent: optionalPercent,
 });
 
 export const archiveWorkPackageSchema = z.object({
   workPackageId: z.string().uuid(),
 });
 
+export const createMilestoneSchema = z.object({
+  projectId: z.string().uuid(),
+  name: z.string().trim().min(1).max(200),
+  workPackageId: z.preprocess(emptyToNull, z.string().uuid().nullable().optional()),
+  targetDate: optionalDate,
+  notes: optionalText,
+});
+
+export type CreateMilestoneInput = z.input<typeof createMilestoneSchema>;
+
+export const updateMilestoneSchema = z.object({
+  milestoneId: z.string().uuid(),
+  name: z.string().trim().min(1).max(200).optional(),
+  workPackageId: z.preprocess(emptyToNull, z.string().uuid().nullable().optional()),
+  targetDate: optionalDate,
+  completedAt: optionalDate,
+  status: z.enum(MILESTONE_STATUSES).optional(),
+  notes: optionalText,
+});
+
+export type UpdateMilestoneInput = z.input<typeof updateMilestoneSchema>;
+
+export const archiveMilestoneSchema = z.object({
+  milestoneId: z.string().uuid(),
+});
+
 export const createPhaseSchema = z.object({
   workPackageId: z.string().uuid(),
   name: z.string().trim().min(1).max(120),
-  startDate: z.preprocess(emptyToNull, z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable().optional()),
-  endDate: z.preprocess(emptyToNull, z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable().optional()),
+  startDate: optionalDate,
+  endDate: optionalDate,
 });
 
 export const updatePhaseSchema = z.object({
   phaseId: z.string().uuid(),
   name: z.string().trim().min(1).max(120).optional(),
-  startDate: z.preprocess(emptyToNull, z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable().optional()),
-  endDate: z.preprocess(emptyToNull, z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable().optional()),
+  startDate: optionalDate,
+  endDate: optionalDate,
 });
 
 export const archivePhaseSchema = z.object({

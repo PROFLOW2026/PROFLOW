@@ -49,10 +49,7 @@ export function DocumentAttachments({
   const [uploadPending, startUploadTransition] = useTransition();
   const [downloadingIds, setDownloadingIds] = useState<ReadonlySet<string>>(() => new Set());
 
-  const handleUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
+  const uploadFile = (file: File) => {
     setError(null);
     setUploadSuccess(null);
     startUploadTransition(async () => {
@@ -98,9 +95,16 @@ export function DocumentAttachments({
       setUploadSuccess(t('uploadSuccess'));
       router.refresh();
     });
+  };
 
+  const handleUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    uploadFile(file);
     event.target.value = '';
   };
+
+  const [dragActive, setDragActive] = useState(false);
 
   const handleDownload = (documentId: string) => {
     setError(null);
@@ -142,7 +146,8 @@ export function DocumentAttachments({
               ref={fileInputRef}
               type="file"
               className="sr-only"
-              accept=".pdf,.png,.jpg,.jpeg,.webp,.heic,.doc,.docx,.xls,.xlsx"
+              accept=".pdf,.png,.jpg,.jpeg,.webp,.heic,.doc,.docx,.xls,.xlsx,image/*"
+              capture="environment"
               onChange={handleUpload}
               disabled={uploadPending}
             />
@@ -161,6 +166,44 @@ export function DocumentAttachments({
       </CardHeader>
 
       <CardContent className="flex flex-col gap-3">
+        {canManage && storageConfigured ? (
+          <div
+            role="button"
+            tabIndex={0}
+            aria-label={t('dropzone')}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                fileInputRef.current?.click();
+              }
+            }}
+            onDragEnter={(event) => {
+              event.preventDefault();
+              setDragActive(true);
+            }}
+            onDragOver={(event) => {
+              event.preventDefault();
+              setDragActive(true);
+            }}
+            onDragLeave={(event) => {
+              event.preventDefault();
+              setDragActive(false);
+            }}
+            onDrop={(event) => {
+              event.preventDefault();
+              setDragActive(false);
+              const file = event.dataTransfer.files?.[0];
+              if (file) uploadFile(file);
+            }}
+            className={`rounded-md border border-dashed px-3 py-6 text-center text-sm transition-colors ${
+              dragActive
+                ? 'border-[var(--pf-text-brand)] bg-[var(--pf-teal-50)]'
+                : 'border-[var(--pf-border-default)] text-[var(--pf-text-secondary)]'
+            }`}
+          >
+            {t('dropzone')}
+          </div>
+        ) : null}
         {!storageConfigured ? (
           <Alert tone="info">{t('storageNotConfigured')}</Alert>
         ) : null}

@@ -103,6 +103,27 @@
     "startDate": "תאריך התחלה",
     "targetEndDate": "תאריך יעד",
     "actualEndDate": "תאריך סיום בפועל",
+    "progressPercent": "התקדמות %",
+    "progressStatus": "סטטוס התקדמות",
+    "progressStatuses": {
+      "not_started": "טרם התחיל",
+      "on_track": "במסלול",
+      "at_risk": "בסיכון",
+      "delayed": "באיחור",
+      "completed": "הושלם"
+    },
+    "milestonesTitle": "אבני דרך",
+    "milestoneName": "אבן דרך",
+    "milestoneTarget": "תאריך יעד",
+    "milestoneStatus": "סטטוס",
+    "addMilestone": "הוספת אבן דרך",
+    "emptyMilestones": "אין אבני דרך עדיין — אופציונלי.",
+    "milestoneStatuses": {
+      "planned": "מתוכנן",
+      "achieved": "הושג",
+      "missed": "הוחמץ",
+      "cancelled": "בוטל"
+    },
     "roleLabel": "תפקידכם",
     "deliveryModeLabel": "אופן ביצוע",
     "descriptionLabel": "תיאור",

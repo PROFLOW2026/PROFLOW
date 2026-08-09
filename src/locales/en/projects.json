@@ -103,6 +103,27 @@
     "startDate": "Start date",
     "targetEndDate": "Target end date",
     "actualEndDate": "Actual end date",
+    "progressPercent": "Progress %",
+    "progressStatus": "Progress status",
+    "progressStatuses": {
+      "not_started": "Not started",
+      "on_track": "On track",
+      "at_risk": "At risk",
+      "delayed": "Delayed",
+      "completed": "Completed"
+    },
+    "milestonesTitle": "Milestones",
+    "milestoneName": "Milestone",
+    "milestoneTarget": "Target date",
+    "milestoneStatus": "Status",
+    "addMilestone": "Add milestone",
+    "emptyMilestones": "No milestones yet — optional.",
+    "milestoneStatuses": {
+      "planned": "Planned",
+      "achieved": "Achieved",
+      "missed": "Missed",
+      "cancelled": "Cancelled"
+    },
     "roleLabel": "Your role",
     "deliveryModeLabel": "Delivery mode",
     "descriptionLabel": "Description",

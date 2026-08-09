@@ -50,6 +50,13 @@
       "when": 1786232600000,
       "tag": "0007_contract_amount_tax",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1786232700000,
+      "tag": "0008_light_scheduling",
+      "breakpoints": true
     }
   ]
 }

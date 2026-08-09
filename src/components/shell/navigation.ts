@@ -24,6 +24,7 @@ export const NAV_ICON_KEYS = [
   'vendors',
   'workforce',
   'documents',
+  'reports',
   'settings',
 ] as const;
 
@@ -113,6 +114,13 @@ export const NAV_ITEMS: readonly NavItem[] = [
     iconKey: 'documents',
     permission: PERMISSIONS.DOCUMENTS_READ,
     module: 'documents',
+  },
+  {
+    key: 'reports',
+    href: '/reports',
+    labelKey: 'reports',
+    iconKey: 'reports',
+    permission: PERMISSIONS.PROJECT_FINANCIALS_READ,
   },
   {
     key: 'settings',

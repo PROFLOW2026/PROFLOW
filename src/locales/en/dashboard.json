@@ -21,5 +21,17 @@
     "outstanding": "Outstanding",
     "invoicedThisMonth": "Invoiced this month",
     "costsThisMonth": "Costs this month"
+  },
+  "reports": {
+    "title": "Project comparison",
+    "description": "Active projects in the organization base currency. VAT is not profit. Incomplete coverage stays disclosed on each project.",
+    "exportProjects": "Export projects CSV",
+    "exportExpenses": "Export expenses CSV",
+    "exportBilling": "Export billing CSV",
+    "excludedForeign": "{count, plural, =1 {# project excluded (other currency)} other {# projects excluded (other currency)}}",
+    "columns": {
+      "project": "Project",
+      "progress": "Progress"
+    }
   }
 }

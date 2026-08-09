@@ -1,6 +1,11 @@
 /** Public API of the financials module (docs 04, 46, 51). */
 export { getProjectFinancials } from './application/get-project-financials';
 export { getOrganizationFinancials } from './application/get-organization-financials';
+export { getOrganizationProjectRollup } from './application/get-organization-project-rollup';
+export type {
+  OrganizationProjectRollup,
+  ProjectRollupRow,
+} from './application/get-organization-project-rollup';
 export { getHomeDashboard } from './application/get-home-dashboard';
 export type { HomeDashboardData, DashboardAttention } from './application/get-home-dashboard';
 

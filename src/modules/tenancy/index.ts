@@ -34,6 +34,17 @@ export { OPTIONAL_MODULE_KEYS, isOptionalModuleKey } from './domain/types';
 export type { OptionalModuleKey } from './domain/types';
 export { DEFAULT_COST_CATEGORIES, defaultsForCountry } from './domain/organization-defaults';
 export {
+  PROFESSION_PRESET_KEYS,
+  PROFESSION_PRESETS,
+  getProfessionPreset,
+} from './domain/profession-presets';
+export type { ProfessionPresetKey, ProfessionPreset } from './domain/profession-presets';
+export {
+  applyProfessionPreset,
+  suggestedWorkPackageNames,
+} from './application/apply-profession-preset';
+export { applyOrganizationProfessionPreset } from './application/apply-organization-profession-preset';
+export {
   createOrganizationSchema,
   updateOrganizationSchema,
   inviteMemberSchema,

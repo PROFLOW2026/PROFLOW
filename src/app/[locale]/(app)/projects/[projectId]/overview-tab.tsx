@@ -7,44 +7,33 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 import { ProjectFinancialsSnapshot } from '@/modules/financials/ui';
-
 import {
-
   computeApprovedChangesTotal,
-
   findOriginalValueEvent,
-
   type ProjectDetail,
-
 } from '@/modules/projects';
-
 import { formatBusinessDate } from '@/shared/dates/format';
-
 import type { BusinessDate } from '@/shared/dates';
-
 import { addMoney, fromNumericString, zeroMoney } from '@/shared/money';
-
-
+import { MilestonesPanel } from './milestones-panel';
 
 interface OverviewTabProps {
-
   detail: ProjectDetail;
-
   locale: string;
-
   canReadFinancials: boolean;
-
+  canEdit: boolean;
 }
 
-
-
-export async function OverviewTab({ detail, locale, canReadFinancials }: OverviewTabProps) {
-
+export async function OverviewTab({
+  detail,
+  locale,
+  canReadFinancials,
+  canEdit,
+}: OverviewTabProps) {
   const t = await getTranslations('projects.overview');
-
   const tHistory = await getTranslations('projects.work.contractHistory');
-
   const tEvent = await getTranslations('projects.overview.eventKind');
+  const tDetails = await getTranslations('projects.details');
 
 
 
@@ -83,8 +72,18 @@ export async function OverviewTab({ detail, locale, canReadFinancials }: Overvie
 
 
   return (
-
     <div className="flex flex-col gap-4">
+      {(detail.project.progressPercent || detail.project.progressStatus) && (
+        <p className="text-sm text-[var(--pf-text-secondary)]">
+          {detail.project.progressPercent
+            ? `${tDetails('progressPercent')}: ${detail.project.progressPercent}%`
+            : null}
+          {detail.project.progressPercent && detail.project.progressStatus ? ' · ' : null}
+          {detail.project.progressStatus
+            ? tDetails(`progressStatuses.${detail.project.progressStatus}`)
+            : null}
+        </p>
+      )}
 
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
 
@@ -177,7 +176,11 @@ export async function OverviewTab({ detail, locale, canReadFinancials }: Overvie
 
       </section>
 
-
+      <MilestonesPanel
+        projectId={detail.project.id}
+        milestones={detail.milestones}
+        canEdit={canEdit}
+      />
 
       {canReadFinancials && detail.contractValueEvents.length > 0 ? (
 

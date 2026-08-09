@@ -12,6 +12,7 @@ import { countActiveWorkPackages, shouldShowWorkPackages } from '../domain/work-
 import type {
   ContractRecord,
   ContractValueEventRecord,
+  MilestoneRecord,
   PhaseRecord,
   ProjectRecord,
   WorkPackageRecord,
@@ -22,6 +23,7 @@ import {
 } from '../data/contracts.repository';
 import { findProjectById } from '../data/projects.repository';
 import { listPhasesByProject } from '../data/phases.repository';
+import { listMilestonesByProject } from '../data/milestones.repository';
 import { listWorkPackagesByProject } from '../data/work-packages.repository';
 import { fromNumericString, type MoneyValue } from '@/shared/money';
 
@@ -31,6 +33,7 @@ export interface ProjectDetail {
   readonly domainName: string | null;
   readonly workPackages: readonly WorkPackageRecord[];
   readonly phases: readonly PhaseRecord[];
+  readonly milestones: readonly MilestoneRecord[];
   readonly showWorkPackages: boolean;
   readonly contract: ContractRecord | null;
   readonly contractValueEvents: readonly ContractValueEventRecord[];
@@ -71,6 +74,7 @@ export async function getProjectDetail(
     projectId,
   );
   const phases = await listPhasesByProject(context.db, context.organizationId, projectId);
+  const milestones = await listMilestonesByProject(context.db, context.organizationId, projectId);
 
   let contract: ContractRecord | null = null;
   let contractValueEvents: ContractValueEventRecord[] = [];
@@ -98,6 +102,7 @@ export async function getProjectDetail(
     domainName: domain?.adHocName ?? null,
     workPackages,
     phases,
+    milestones,
     showWorkPackages: shouldShowWorkPackages(countActiveWorkPackages(workPackages)),
     contract,
     contractValueEvents,

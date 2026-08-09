@@ -41,6 +41,9 @@ export const AUDIT_ACTIONS = {
   PHASE_CREATED: 'phase.created',
   PHASE_UPDATED: 'phase.updated',
   PHASE_ARCHIVED: 'phase.archived',
+  MILESTONE_CREATED: 'milestone.created',
+  MILESTONE_UPDATED: 'milestone.updated',
+  MILESTONE_ARCHIVED: 'milestone.archived',
   CONTRACT_VALUE_RECORDED: 'contract.value_recorded',
 
   CLIENT_CREATED: 'client.created',

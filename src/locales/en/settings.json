@@ -31,6 +31,13 @@
     "overhead": "Business overhead tools",
     "saved": "Feature visibility updated."
   },
+  "presets": {
+    "title": "Starter preset",
+    "subtitle": "Adds suggested domains and categories. Existing data is never deleted or overwritten.",
+    "label": "Preset",
+    "apply": "Apply preset",
+    "saved": "Preset applied. You can edit or remove anything it added."
+  },
   "roles": {
     "title": "Roles",
     "subtitle": "V1 offers four roles with a few adjustable permissions.",

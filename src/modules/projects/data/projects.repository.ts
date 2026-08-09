@@ -24,6 +24,8 @@ function mapProject(row: typeof projects.$inferSelect): ProjectRecord {
     startDate: row.startDate,
     targetEndDate: row.targetEndDate,
     actualEndDate: row.actualEndDate,
+    progressPercent: row.progressPercent,
+    progressStatus: (row.progressStatus as ProjectRecord['progressStatus']) ?? null,
     notes: row.notes,
     archivedAt: row.archivedAt,
     createdAt: row.createdAt,
@@ -105,6 +107,8 @@ export async function updateProjectById(
     startDate: string | null;
     targetEndDate: string | null;
     actualEndDate: string | null;
+    progressPercent: string | null;
+    progressStatus: ProjectRecord['progressStatus'];
     notes: string | null;
     archivedAt: Date | null;
   }>,

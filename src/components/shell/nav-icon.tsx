@@ -11,6 +11,7 @@ import {
   Truck,
   Users,
   Wallet,
+  ChartColumn,
   type LucideIcon,
 } from 'lucide-react';
 import type { NavIconKey } from './navigation';
@@ -25,6 +26,7 @@ const NAV_ICONS: Record<NavIconKey, LucideIcon> = {
   vendors: Truck,
   workforce: Users,
   documents: FileText,
+  reports: ChartColumn,
   settings: Settings,
 };
 

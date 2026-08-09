@@ -143,7 +143,12 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
       <Suspense fallback={<TabPanelSkeleton />}>
         <ProjectTabsShell tabs={tabs}>
         <TabsContent value="overview">
-          <OverviewTab detail={detail} locale={locale} canReadFinancials={canReadFinancials} />
+          <OverviewTab
+            detail={detail}
+            locale={locale}
+            canReadFinancials={canReadFinancials}
+            canEdit={can(PERMISSIONS.PROJECTS_UPDATE)}
+          />
         </TabsContent>
 
         {canReadFinancials ? (

@@ -13,6 +13,19 @@ export const PROJECT_STATUSES = [
 
 export type ProjectStatus = (typeof PROJECT_STATUSES)[number];
 
+export const PROGRESS_STATUSES = [
+  'not_started',
+  'on_track',
+  'at_risk',
+  'delayed',
+  'completed',
+] as const;
+
+export type ProgressStatus = (typeof PROGRESS_STATUSES)[number];
+
+export const MILESTONE_STATUSES = ['planned', 'achieved', 'missed', 'cancelled'] as const;
+export type MilestoneStatus = (typeof MILESTONE_STATUSES)[number];
+
 /** Internal canonical name for the auto-created package (doc 39 §2). */
 export const DEFAULT_WORK_PACKAGE_NAME = 'General';
 
@@ -30,6 +43,8 @@ export interface ProjectRecord {
   readonly startDate: string | null;
   readonly targetEndDate: string | null;
   readonly actualEndDate: string | null;
+  readonly progressPercent: string | null;
+  readonly progressStatus: ProgressStatus | null;
   readonly notes: string | null;
   readonly archivedAt: Date | null;
   readonly createdAt: Date;
@@ -44,6 +59,9 @@ export interface WorkPackageRecord {
   readonly isDefault: boolean;
   readonly sortOrder: number;
   readonly description: string | null;
+  readonly startDate: string | null;
+  readonly endDate: string | null;
+  readonly progressPercent: string | null;
   readonly archivedAt: Date | null;
   readonly createdAt: Date;
   readonly updatedAt: Date;
@@ -58,6 +76,22 @@ export interface PhaseRecord {
   readonly startDate: string | null;
   readonly endDate: string | null;
   readonly sortOrder: number;
+  readonly archivedAt: Date | null;
+  readonly createdAt: Date;
+  readonly updatedAt: Date;
+}
+
+export interface MilestoneRecord {
+  readonly id: string;
+  readonly organizationId: string;
+  readonly projectId: string;
+  readonly workPackageId: string | null;
+  readonly name: string;
+  readonly targetDate: string | null;
+  readonly completedAt: string | null;
+  readonly status: MilestoneStatus;
+  readonly sortOrder: number;
+  readonly notes: string | null;
   readonly archivedAt: Date | null;
   readonly createdAt: Date;
   readonly updatedAt: Date;

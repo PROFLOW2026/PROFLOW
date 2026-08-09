@@ -85,7 +85,13 @@ export async function updateWorkPackage(
     context.db,
     context.organizationId,
     parsed.data.workPackageId,
-    { name: parsed.data.name, description: parsed.data.description },
+    {
+      name: parsed.data.name,
+      description: parsed.data.description,
+      startDate: parsed.data.startDate,
+      endDate: parsed.data.endDate,
+      progressPercent: parsed.data.progressPercent,
+    },
   );
   if (!updated) throw new NotFoundError('Work package');
 

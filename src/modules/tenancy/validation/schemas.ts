@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { PROFESSION_PRESET_KEYS } from '../domain/profession-presets';
 
 /**
  * Server-authoritative validation (doc 67). The browser may run the same
@@ -27,6 +28,12 @@ export const createOrganizationSchema = z.object({
     .optional(),
   timezone: z.string().trim().min(1).optional(),
   defaultLocale: z.enum(['he-IL', 'en']).optional(),
+  /** Optional starter preset — never required (docs 35–36). */
+  professionPreset: z
+    .preprocess(
+      (value) => (value === '' || value === 'none' || value == null ? undefined : value),
+      z.enum(PROFESSION_PRESET_KEYS).optional(),
+    ),
 });
 
 export type CreateOrganizationInput = z.input<typeof createOrganizationSchema>;

@@ -4,6 +4,7 @@ import type { OrganizationSummary } from '@/shared/auth/context';
 import type { DbExecutor } from '@/shared/db/types';
 import { assignRole, provisionOrganizationRoles } from '@/modules/rbac';
 import { defaultsForCountry } from '../domain/organization-defaults';
+import { applyProfessionPreset } from './apply-profession-preset';
 import { createOrganizationSchema, type CreateOrganizationInput } from '../validation/schemas';
 import {
   findOrganizationById,
@@ -11,7 +12,7 @@ import {
   insertOrganization,
   seedDefaultCostCategories,
 } from '../data/organizations.repository';
-
+import type { ProfessionPresetKey } from '../domain/profession-presets';
 /**
  * Founds an organization (doc 73 §3).
  *
@@ -73,6 +74,15 @@ export async function createOrganization(
   });
 
   await seedDefaultCostCategories(db, organization.id);
+
+  if (input.professionPreset) {
+    await applyProfessionPreset(
+      db,
+      organization.id,
+      input.professionPreset as ProfessionPresetKey,
+      organization.defaultLocale === 'en' ? 'en' : 'he-IL',
+    );
+  }
 
   await writeAuditEvent(db, {
     organizationId: organization.id,

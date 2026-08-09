@@ -12,6 +12,9 @@ function mapWorkPackage(row: typeof workPackages.$inferSelect): WorkPackageRecor
     isDefault: row.isDefault,
     sortOrder: row.sortOrder,
     description: row.description,
+    startDate: row.startDate,
+    endDate: row.endDate,
+    progressPercent: row.progressPercent,
     archivedAt: row.archivedAt,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
@@ -111,6 +114,9 @@ export async function updateWorkPackageById(
     name: string;
     sortOrder: number;
     description: string | null;
+    startDate: string | null;
+    endDate: string | null;
+    progressPercent: string | null;
     archivedAt: Date | null;
   }>,
 ): Promise<WorkPackageRecord | null> {

@@ -5,10 +5,12 @@ import { getLocale, getTranslations } from 'next-intl/server';
 import { createClient } from '@/modules/clients';
 import {
   archiveProject,
+  createMilestone,
   createProject,
   createWorkPackage,
   splitProjectIntoWorkPackages,
   updateProject,
+  archiveMilestone,
 } from '@/modules/projects';
 import { withOrgContext } from '@/shared/auth/session';
 import {
@@ -131,6 +133,11 @@ export async function updateProjectAction(
         contractValueAmount: formValue(formData, 'contractValueAmount'),
         contractValueCurrency: formValue(formData, 'contractValueCurrency'),
         amountIncludesTax: formValue(formData, 'amountIncludesTax'),
+        progressPercent: formValue(formData, 'progressPercent'),
+        progressStatus:
+          formValue(formData, 'progressStatus') === 'none'
+            ? null
+            : formValue(formData, 'progressStatus'),
       });
     });
 
@@ -224,6 +231,52 @@ export async function addWorkPackageAction(
     return {};
   } catch (error) {
     if (error instanceof ValidationError) return mapValidationError(error);
+    if (error instanceof AppError) return { error: tErrors('unexpected') };
+    throw error;
+  }
+}
+
+export interface MilestoneFormState {
+  error?: string;
+  fieldErrors?: Record<string, string>;
+}
+
+export async function createMilestoneAction(
+  _prev: MilestoneFormState,
+  formData: FormData,
+): Promise<MilestoneFormState> {
+  const tErrors = await getTranslations('errors');
+
+  try {
+    const projectId = String(formData.get('projectId'));
+    await withOrgContext(async (context) => {
+      await createMilestone(context, {
+        projectId,
+        name: String(formData.get('name') ?? ''),
+        targetDate: formValue(formData, 'targetDate'),
+      });
+    });
+    revalidatePath(`/projects/${projectId}`);
+    return {};
+  } catch (error) {
+    if (error instanceof ValidationError) return mapValidationError(error);
+    if (error instanceof AppError) return { error: tErrors('unexpected') };
+    throw error;
+  }
+}
+
+export async function archiveMilestoneAction(
+  milestoneId: string,
+  projectId: string,
+): Promise<{ error?: string }> {
+  const tErrors = await getTranslations('errors');
+  try {
+    await withOrgContext(async (context) => {
+      await archiveMilestone(context, milestoneId);
+    });
+    revalidatePath(`/projects/${projectId}`);
+    return {};
+  } catch (error) {
     if (error instanceof AppError) return { error: tErrors('unexpected') };
     throw error;
   }

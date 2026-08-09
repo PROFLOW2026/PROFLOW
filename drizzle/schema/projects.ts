@@ -1,6 +1,6 @@
 import { relations, sql } from 'drizzle-orm';
 import { boolean, char, check, date, index, integer, pgTable, text, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
-import { archivedAt, primaryId, timestamps } from './_shared';
+import { archivedAt, percentAmount, primaryId, timestamps } from './_shared';
 import { projectStatusEnum } from './enums';
 import { clients } from './clients';
 import { organizations } from './tenancy';
@@ -55,6 +55,9 @@ export const projects = pgTable(
     startDate: date('start_date'),
     targetEndDate: date('target_end_date'),
     actualEndDate: date('actual_end_date'),
+    /** Optional 0–100 progress; unused scheduling must stay null (doc 22). */
+    progressPercent: percentAmount('progress_percent'),
+    progressStatus: text('progress_status'),
     notes: text('notes'),
     archivedAt: archivedAt(),
     ...timestamps(),
@@ -63,6 +66,14 @@ export const projects = pgTable(
     index('projects_org_idx').on(table.organizationId),
     index('projects_org_status_idx').on(table.organizationId, table.status),
     index('projects_client_idx').on(table.clientId),
+    check(
+      'projects_progress_percent_range',
+      sql`${table.progressPercent} IS NULL OR (${table.progressPercent} >= 0 AND ${table.progressPercent} <= 100)`,
+    ),
+    check(
+      'projects_progress_status_known',
+      sql`${table.progressStatus} IS NULL OR ${table.progressStatus} IN ('not_started', 'on_track', 'at_risk', 'delayed', 'completed')`,
+    ),
   ],
 );
 
@@ -111,6 +122,9 @@ export const workPackages = pgTable(
     isDefault: boolean('is_default').notNull().default(false),
     sortOrder: integer('sort_order').notNull().default(0),
     description: text('description'),
+    startDate: date('start_date'),
+    endDate: date('end_date'),
+    progressPercent: percentAmount('progress_percent'),
     archivedAt: archivedAt(),
     ...timestamps(),
   },
@@ -120,6 +134,41 @@ export const workPackages = pgTable(
     uniqueIndex('work_packages_project_default_uq')
       .on(table.projectId)
       .where(sql`${table.isDefault}`),
+    check(
+      'work_packages_progress_percent_range',
+      sql`${table.progressPercent} IS NULL OR (${table.progressPercent} >= 0 AND ${table.progressPercent} <= 100)`,
+    ),
+  ],
+);
+
+/** Optional milestones — never required to use a project (doc 22 Layer A). */
+export const projectMilestones = pgTable(
+  'project_milestones',
+  {
+    id: primaryId(),
+    organizationId: uuid('organization_id')
+      .notNull()
+      .references(() => organizations.id, { onDelete: 'cascade' }),
+    projectId: uuid('project_id')
+      .notNull()
+      .references(() => projects.id, { onDelete: 'cascade' }),
+    workPackageId: uuid('work_package_id').references(() => workPackages.id, { onDelete: 'set null' }),
+    name: text('name').notNull(),
+    targetDate: date('target_date'),
+    completedAt: date('completed_at'),
+    status: text('status').notNull().default('planned'),
+    sortOrder: integer('sort_order').notNull().default(0),
+    notes: text('notes'),
+    archivedAt: archivedAt(),
+    ...timestamps(),
+  },
+  (table) => [
+    index('project_milestones_project_idx').on(table.projectId),
+    index('project_milestones_org_idx').on(table.organizationId),
+    check(
+      'project_milestones_status_known',
+      sql`${table.status} IN ('planned', 'achieved', 'missed', 'cancelled')`,
+    ),
   ],
 );
 
@@ -156,6 +205,15 @@ export const projectsRelations = relations(projects, ({ many, one }) => ({
   workPackages: many(workPackages),
   domains: many(projectDomains),
   phases: many(phases),
+  milestones: many(projectMilestones),
+}));
+
+export const projectMilestonesRelations = relations(projectMilestones, ({ one }) => ({
+  project: one(projects, { fields: [projectMilestones.projectId], references: [projects.id] }),
+  workPackage: one(workPackages, {
+    fields: [projectMilestones.workPackageId],
+    references: [workPackages.id],
+  }),
 }));
 
 export const workPackagesRelations = relations(workPackages, ({ many, one }) => ({

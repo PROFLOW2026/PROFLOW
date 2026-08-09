@@ -61,6 +61,8 @@ export async function updateProject(
     startDate: input.startDate,
     targetEndDate: input.targetEndDate,
     actualEndDate: input.actualEndDate,
+    progressPercent: input.progressPercent,
+    progressStatus: input.progressStatus,
     notes: input.notes,
   });
 

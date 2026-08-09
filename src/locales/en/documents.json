@@ -30,6 +30,7 @@
     "title": "Documents",
     "upload": "Upload",
     "download": "Download",
+    "dropzone": "Drop a file here, or use Upload. On phones you can also capture a photo.",
     "empty": "No documents attached yet.",
     "storageNotConfigured": "File uploads are not available in this environment. Other work is unaffected.",
     "uploadFailed": "Upload did not complete. Try again.",

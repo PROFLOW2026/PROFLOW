@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: Typecheck · Lint · Test · Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Migration journal parity
+        run: node --input-type=module -e "import { readFileSync, readdirSync } from 'node:fs'; const journal = JSON.parse(readFileSync('drizzle/migrations/meta/_journal.json','utf8')); const tags = new Set(journal.entries.map(e => e.tag)); const files = readdirSync('drizzle/migrations').filter(f => f.endsWith('.sql')).map(f => f.replace(/\\.sql$/,'')); const missing = files.filter(f => !tags.has(f)); const orphan = [...tags].filter(t => !files.includes(t)); if (missing.length || orphan.length) { console.error({ missing, orphan }); process.exit(1); } console.log('journal parity ok', files.length);"
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Unit + UI + Integration (Vitest)
+        run: npm test
+
+      - name: Production build
+        run: npm run build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: public-anon-key-for-ci

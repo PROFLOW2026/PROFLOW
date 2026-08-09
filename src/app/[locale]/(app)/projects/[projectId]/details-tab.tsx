@@ -140,6 +140,38 @@ export function DetailsTab({
         )}
       </Field>
 
+      <Field label={t('progressPercent')} optionalLabel={tCommon('labels.optional')}>
+        {(control) => (
+          <Input
+            {...control}
+            name="progressPercent"
+            inputMode="decimal"
+            defaultValue={project.progressPercent ?? ''}
+            placeholder="0–100"
+          />
+        )}
+      </Field>
+
+      <Field label={t('progressStatus')} optionalLabel={tCommon('labels.optional')}>
+        {(control) => (
+          <Select name="progressStatus" defaultValue={project.progressStatus ?? 'none'}>
+            <SelectTrigger id={control.id}>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">{tCommon('labels.none')}</SelectItem>
+              {(
+                ['not_started', 'on_track', 'at_risk', 'delayed', 'completed'] as const
+              ).map((status) => (
+                <SelectItem key={status} value={status}>
+                  {t(`progressStatuses.${status}`)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+      </Field>
+
       <Field label={t('roleLabel')} optionalLabel={tCommon('labels.optional')}>
         {(control) => (
           <Input {...control} name="projectRole" defaultValue={project.projectRole ?? ''} />

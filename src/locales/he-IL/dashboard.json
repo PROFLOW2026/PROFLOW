@@ -21,5 +21,17 @@
     "outstanding": "יתרה לתשלום",
     "invoicedThisMonth": "חויב החודש",
     "costsThisMonth": "עלויות החודש"
+  },
+  "reports": {
+    "title": "השוואת פרויקטים",
+    "description": "פרויקטים פעילים במטבע הבסיס של הארגון. מע״מ אינו רווח. כיסוי חלקי נשאר גלוי בכל פרויקט.",
+    "exportProjects": "ייצוא פרויקטים (CSV)",
+    "exportExpenses": "ייצוא הוצאות (CSV)",
+    "exportBilling": "ייצוא חיובים (CSV)",
+    "excludedForeign": "{count, plural, one {פרויקט אחד הוחרג (מטבע אחר)} two {שני פרויקטים הוחרגו (מטבע אחר)} other {# פרויקטים הוחרגו (מטבע אחר)}}",
+    "columns": {
+      "project": "פרויקט",
+      "progress": "התקדמות"
+    }
   }
 }

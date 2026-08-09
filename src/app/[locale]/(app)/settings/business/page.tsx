@@ -6,6 +6,7 @@ import { canAccessSection, canManageSection, SETTINGS_SECTIONS } from '../_lib/a
 import { SettingsNotAllowed } from '../settings-not-allowed';
 import { SettingsPageShell, settingsMetadata } from '../settings-shell';
 import { BusinessProfileForm } from './business-profile-form';
+import { ProfessionPresetForm } from './profession-preset-form';
 
 export async function generateMetadata(): Promise<Metadata> {
   return settingsMetadata('business');
@@ -31,8 +32,9 @@ export default async function BusinessSettingsPage() {
 
   return (
     <SettingsPageShell title={tOrg('title')}>
-      <Card className="p-5">
+      <Card className="flex flex-col gap-6 p-5">
         <BusinessProfileForm organization={organization} canEdit={canEdit} />
+        <ProfessionPresetForm canEdit={canEdit} />
       </Card>
     </SettingsPageShell>
   );
