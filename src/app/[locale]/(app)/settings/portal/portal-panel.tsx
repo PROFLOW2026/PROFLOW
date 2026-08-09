@@ -34,6 +34,49 @@ import {
   type VendorPortalPreviewState,
 } from './actions';
 
+const PROJECT_STATUS_KEYS = [
+  'draft',
+  'active',
+  'on_hold',
+  'completed',
+  'cancelled',
+  'archived',
+] as const;
+
+const PROGRESS_STATUS_KEYS = [
+  'not_started',
+  'on_track',
+  'at_risk',
+  'delayed',
+  'completed',
+] as const;
+
+const RFQ_STATUS_KEYS = ['draft', 'sent', 'closed', 'cancelled'] as const;
+const PO_STATUS_KEYS = ['draft', 'issued', 'partially_received', 'closed', 'cancelled'] as const;
+const ARTIFACT_KIND_KEYS = ['insurance', 'license', 'certification', 'other'] as const;
+
+const NEVER_EXPOSED_KEYS = [
+  'profit',
+  'margin',
+  'trueCost',
+  'employeeCost',
+  'overhead',
+  'laborRate',
+  'vendorConfidential',
+  'admin',
+  'audit',
+  'storagePath',
+] as const;
+
+function translateKnown(
+  t: ReturnType<typeof useTranslations>,
+  prefix: string,
+  value: string,
+  known: readonly string[],
+): string {
+  return known.includes(value) ? t(`${prefix}.${value}` as never) : value;
+}
+
 function GrantTable({
   grants,
   canEdit,
@@ -76,11 +119,11 @@ function GrantTable({
               <TableBody>
                 {grants.map((grant) => (
                   <TableRow key={grant.id}>
-                    <TableCell>
-                      <div className="font-medium" dir="ltr">
+                    <TableCell className="min-w-0 max-w-[16rem]">
+                      <div className="break-all font-medium pf-ltr-island" dir="ltr">
                         {grant.principalEmail}
                       </div>
-                      <div className="text-xs text-[var(--pf-text-muted)]">
+                      <div className="truncate text-xs text-[var(--pf-text-muted)]">
                         {kind === 'customer'
                           ? [grant.clientName, grant.projectName].filter(Boolean).join(' · ') ||
                             t('fields.none')
@@ -121,12 +164,12 @@ function GrantTable({
           </div>
         }
         renderMobileCard={(grant) => (
-          <div className="flex min-h-11 flex-col gap-3 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4">
-            <div>
-              <p className="font-semibold" dir="ltr">
+          <div className="flex min-h-11 min-w-0 flex-col gap-3 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4">
+            <div className="min-w-0">
+              <p className="break-all font-semibold pf-ltr-island" dir="ltr">
                 {grant.principalEmail}
               </p>
-              <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">
+              <p className="mt-1 break-words text-sm text-[var(--pf-text-secondary)]">
                 {kind === 'customer'
                   ? [grant.clientName, grant.projectName].filter(Boolean).join(' · ') ||
                     t('fields.none')
@@ -171,6 +214,8 @@ function CustomerSafePreview({
   customerGrants: ExternalAccessGrantListItem[];
 }) {
   const t = useTranslations('portal');
+  const tStatus = useTranslations('status');
+  const tProgress = useTranslations('projects.details');
   const [state, action, pending] = useActionState(
     previewCustomerSafeSummaryAction,
     {} as PortalPreviewState,
@@ -179,12 +224,12 @@ function CustomerSafePreview({
   const summary = state.summary;
 
   return (
-    <section className="rounded-lg border border-[var(--pf-border-default)] p-4">
+    <section className="min-w-0 rounded-lg border border-[var(--pf-border-default)] p-4">
       <h3 className="font-medium">{t('preview.title')}</h3>
       <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">{t('preview.subtitle')}</p>
       <p className="mt-1 text-xs text-[var(--pf-text-muted)]">{t('preview.grantHint')}</p>
 
-      <form action={action} className="mt-3 flex max-w-lg flex-col gap-3">
+      <form action={action} className="mt-3 flex w-full max-w-lg flex-col gap-3">
         {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
 
         <Field label={t('fields.project')} required>
@@ -215,7 +260,9 @@ function CustomerSafePreview({
                 <SelectItem value="none">{t('fields.none')}</SelectItem>
                 {activeGrants.map((grant) => (
                   <SelectItem key={grant.id} value={grant.id}>
-                    {grant.principalEmail}
+                    <span dir="ltr" className="pf-ltr-island">
+                      {grant.principalEmail}
+                    </span>
                     {grant.projectName || grant.clientName
                       ? ` · ${[grant.projectName, grant.clientName].filter(Boolean).join(' / ')}`
                       : ''}
@@ -226,61 +273,81 @@ function CustomerSafePreview({
           )}
         </Field>
 
-        <Button type="submit" variant="secondary" loading={pending}>
+        <Button type="submit" variant="secondary" loading={pending} className="min-h-11 w-full sm:w-auto">
           {t('preview.run')}
         </Button>
       </form>
 
       {summary ? (
-        <dl className="mt-4 grid gap-2 text-sm sm:grid-cols-2">
-          <div>
+        <dl className="mt-4 grid min-w-0 gap-3 text-sm sm:grid-cols-2">
+          <div className="min-w-0">
             <dt className="text-[var(--pf-text-secondary)]">{t('preview.fields.name')}</dt>
-            <dd className="font-medium">{summary.name}</dd>
+            <dd className="break-words font-medium">{summary.name}</dd>
           </div>
-          <div>
+          <div className="min-w-0">
             <dt className="text-[var(--pf-text-secondary)]">{t('preview.fields.status')}</dt>
-            <dd>{summary.status}</dd>
-          </div>
-          <div>
-            <dt className="text-[var(--pf-text-secondary)]">{t('preview.fields.client')}</dt>
-            <dd>{summary.clientName ?? '—'}</dd>
-          </div>
-          <div>
-            <dt className="text-[var(--pf-text-secondary)]">{t('preview.fields.progress')}</dt>
             <dd>
-              {summary.progressPercent != null ? `${summary.progressPercent}%` : '—'}
-              {summary.progressStatus ? ` · ${summary.progressStatus}` : ''}
+              {translateKnown(tStatus, 'project', summary.status, PROJECT_STATUS_KEYS)}
             </dd>
           </div>
-          <div>
+          <div className="min-w-0">
+            <dt className="text-[var(--pf-text-secondary)]">{t('preview.fields.client')}</dt>
+            <dd className="break-words">{summary.clientName ?? '—'}</dd>
+          </div>
+          <div className="min-w-0">
+            <dt className="text-[var(--pf-text-secondary)]">{t('preview.fields.progress')}</dt>
+            <dd>
+              {summary.progressPercent != null ? (
+                <span dir="ltr" className="pf-numeric">
+                  {summary.progressPercent}%
+                </span>
+              ) : (
+                '—'
+              )}
+              {summary.progressStatus ? (
+                <>
+                  {' · '}
+                  <span>
+                    {translateKnown(
+                      tProgress,
+                      'progressStatuses',
+                      summary.progressStatus,
+                      PROGRESS_STATUS_KEYS,
+                    )}
+                  </span>
+                </>
+              ) : null}
+            </dd>
+          </div>
+          <div className="min-w-0">
             <dt className="text-[var(--pf-text-secondary)]">{t('preview.fields.dates')}</dt>
-            <dd dir="ltr">
+            <dd dir="ltr" className="pf-ltr-island">
               {[summary.startDate, summary.targetEndDate].filter(Boolean).join(' → ') || '—'}
             </dd>
           </div>
-          <div>
+          <div className="min-w-0">
             <dt className="text-[var(--pf-text-secondary)]">{t('preview.fields.location')}</dt>
-            <dd>{summary.location ?? '—'}</dd>
+            <dd className="break-words">{summary.location ?? '—'}</dd>
           </div>
-          <div className="sm:col-span-2">
+          <div className="min-w-0 sm:col-span-2">
             <dt className="text-[var(--pf-text-secondary)]">{t('preview.fields.description')}</dt>
-            <dd>{summary.description ?? '—'}</dd>
+            <dd className="break-words">{summary.description ?? '—'}</dd>
           </div>
           {summary.outstanding ? (
-            <div>
+            <div className="min-w-0">
               <dt className="text-[var(--pf-text-secondary)]">{t('preview.fields.outstanding')}</dt>
-              <dd dir="ltr">
+              <dd dir="ltr" className="pf-numeric">
                 {summary.outstanding.amount} {summary.outstanding.currency}
               </dd>
             </div>
           ) : null}
           {(summary.documents ?? state.documents)?.length ? (
-            <div className="sm:col-span-2">
+            <div className="min-w-0 sm:col-span-2">
               <dt className="text-[var(--pf-text-secondary)]">{t('preview.fields.documents')}</dt>
               <dd>
                 <ul className="mt-1 flex flex-col gap-1">
                   {(summary.documents ?? state.documents ?? []).map((doc) => (
-                    <li key={doc.documentId} className="text-sm" dir="ltr">
+                    <li key={doc.documentId} className="break-all text-sm pf-ltr-island" dir="ltr">
                       {doc.filename}
                       {doc.label ? ` · ${doc.label}` : ''}
                     </li>
@@ -294,7 +361,7 @@ function CustomerSafePreview({
             </div>
           ) : null}
           {state.scopesApplied && state.scopesApplied.length > 0 ? (
-            <div className="sm:col-span-2">
+            <div className="min-w-0 sm:col-span-2">
               <dt className="text-[var(--pf-text-secondary)]">{t('preview.scopesApplied')}</dt>
               <dd className="mt-1 flex flex-wrap gap-1">
                 {state.scopesApplied.map((scope) => (
@@ -305,10 +372,12 @@ function CustomerSafePreview({
               </dd>
             </div>
           ) : null}
-          <div className="sm:col-span-2">
+          <div className="min-w-0 sm:col-span-2">
             <dt className="text-[var(--pf-text-secondary)]">{t('preview.neverExposed')}</dt>
             <dd className="text-xs text-[var(--pf-text-muted)]">
-              {(state.neverExposed ?? ['profit', 'employeeCost', 'overhead', 'admin']).join(' · ')}
+              {(state.neverExposed ?? NEVER_EXPOSED_KEYS).map((key) =>
+                translateKnown(t, 'preview.neverExposedItems', key, NEVER_EXPOSED_KEYS),
+              ).join(' · ')}
             </dd>
           </div>
           <div className="sm:col-span-2 text-xs text-[var(--pf-text-muted)]">
@@ -330,6 +399,7 @@ function VendorSafePreview({
   vendorGrants: ExternalAccessGrantListItem[];
 }) {
   const t = useTranslations('portal');
+  const tProcurement = useTranslations('procurement');
   const [state, action, pending] = useActionState(
     previewVendorPortalAction,
     {} as VendorPortalPreviewState,
@@ -338,11 +408,11 @@ function VendorSafePreview({
   const preview = state.preview;
 
   return (
-    <section className="rounded-lg border border-[var(--pf-border-default)] p-4">
+    <section className="min-w-0 rounded-lg border border-[var(--pf-border-default)] p-4">
       <h3 className="font-medium">{t('vendorPreview.title')}</h3>
       <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">{t('vendorPreview.subtitle')}</p>
 
-      <form action={action} className="mt-3 flex max-w-lg flex-col gap-3">
+      <form action={action} className="mt-3 flex w-full max-w-lg flex-col gap-3">
         {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
         <Field label={t('vendorPreview.grant')} required>
           {(props) => (
@@ -354,7 +424,9 @@ function VendorSafePreview({
                 <SelectItem value="none">{t('fields.none')}</SelectItem>
                 {activeGrants.map((grant) => (
                   <SelectItem key={grant.id} value={grant.id}>
-                    {grant.principalEmail}
+                    <span dir="ltr" className="pf-ltr-island">
+                      {grant.principalEmail}
+                    </span>
                     {grant.vendorName ? ` · ${grant.vendorName}` : ''}
                   </SelectItem>
                 ))}
@@ -362,18 +434,18 @@ function VendorSafePreview({
             </Select>
           )}
         </Field>
-        <Button type="submit" loading={pending}>
+        <Button type="submit" loading={pending} className="min-h-11 w-full sm:w-auto">
           {t('vendorPreview.run')}
         </Button>
       </form>
 
       {preview ? (
-        <dl className="mt-4 grid gap-2 text-sm sm:grid-cols-2">
-          <div>
+        <dl className="mt-4 grid min-w-0 gap-3 text-sm sm:grid-cols-2">
+          <div className="min-w-0">
             <dt className="text-[var(--pf-text-secondary)]">{t('fields.vendor')}</dt>
-            <dd>{preview.vendorName}</dd>
+            <dd className="break-words">{preview.vendorName}</dd>
           </div>
-          <div>
+          <div className="min-w-0">
             <dt className="text-[var(--pf-text-secondary)]">{t('fields.scopes')}</dt>
             <dd>
               {preview.scopes.length > 0 ? (
@@ -389,23 +461,31 @@ function VendorSafePreview({
               )}
             </dd>
           </div>
-          <div>
+          <div className="min-w-0">
             <dt className="text-[var(--pf-text-secondary)]">{t('vendorPreview.rfqCount')}</dt>
-            <dd>{preview.rfqs.length}</dd>
+            <dd dir="ltr" className="pf-numeric">
+              {preview.rfqs.length}
+            </dd>
           </div>
-          <div>
+          <div className="min-w-0">
             <dt className="text-[var(--pf-text-secondary)]">{t('vendorPreview.poCount')}</dt>
-            <dd>{preview.purchaseOrders.length}</dd>
+            <dd dir="ltr" className="pf-numeric">
+              {preview.purchaseOrders.length}
+            </dd>
           </div>
-          <div>
+          <div className="min-w-0">
             <dt className="text-[var(--pf-text-secondary)]">{t('vendorPreview.apCandidates')}</dt>
-            <dd>{preview.apBillCandidates.length}</dd>
+            <dd dir="ltr" className="pf-numeric">
+              {preview.apBillCandidates.length}
+            </dd>
           </div>
-          <div>
+          <div className="min-w-0">
             <dt className="text-[var(--pf-text-secondary)]">{t('vendorPreview.complianceCandidates')}</dt>
-            <dd>{preview.complianceCandidates.length}</dd>
+            <dd dir="ltr" className="pf-numeric">
+              {preview.complianceCandidates.length}
+            </dd>
           </div>
-          <div className="sm:col-span-2">
+          <div className="min-w-0 sm:col-span-2">
             <dt className="text-[var(--pf-text-secondary)]">{t('vendorPreview.intakeNote')}</dt>
             <dd>{t('vendorPreview.candidatesOnly')}</dd>
           </div>
@@ -413,27 +493,38 @@ function VendorSafePreview({
             {t('vendorPreview.rfqVisibilityNote')}
           </div>
           {preview.rfqs.length > 0 ? (
-            <div className="sm:col-span-2">
+            <div className="min-w-0 sm:col-span-2">
               <dt className="mb-1 text-[var(--pf-text-secondary)]">{t('vendorPreview.rfqList')}</dt>
               <dd>
                 <ul className="flex flex-col gap-2">
                   {preview.rfqs.slice(0, 5).map((rfq) => (
                     <li
                       key={rfq.rfqId}
-                      className="rounded-md border border-[var(--pf-border-default)] p-2 text-xs"
+                      className="min-w-0 break-words rounded-md border border-[var(--pf-border-default)] p-2 text-xs"
                     >
                       <span className="font-medium">{rfq.title}</span>
                       <span className="text-[var(--pf-text-muted)]">
                         {' · '}
-                        {rfq.status}
+                        {translateKnown(
+                          tProcurement,
+                          'rfq.statuses',
+                          rfq.status,
+                          RFQ_STATUS_KEYS,
+                        )}
                         {rfq.projectName ? ` · ${rfq.projectName}` : ''}
                         {rfq.dueDate ? (
                           <>
                             {' · '}
-                            <span dir="ltr">{rfq.dueDate}</span>
+                            <span dir="ltr" className="pf-ltr-island">
+                              {rfq.dueDate}
+                            </span>
                           </>
                         ) : null}
-                        {` · ${rfq.lines.length} ${t('vendorPreview.lines')}`}
+                        {' · '}
+                        <span dir="ltr" className="pf-numeric">
+                          {rfq.lines.length}
+                        </span>{' '}
+                        {t('vendorPreview.lines')}
                       </span>
                     </li>
                   ))}
@@ -442,21 +533,23 @@ function VendorSafePreview({
             </div>
           ) : null}
           {preview.purchaseOrders.length > 0 ? (
-            <div className="sm:col-span-2">
+            <div className="min-w-0 sm:col-span-2">
               <dt className="mb-1 text-[var(--pf-text-secondary)]">{t('vendorPreview.poList')}</dt>
               <dd>
                 <ul className="flex flex-col gap-2">
                   {preview.purchaseOrders.slice(0, 5).map((po) => (
                     <li
                       key={po.purchaseOrderId}
-                      className="rounded-md border border-[var(--pf-border-default)] p-2 text-xs"
+                      className="min-w-0 break-words rounded-md border border-[var(--pf-border-default)] p-2 text-xs"
                     >
-                      <span className="font-medium">{po.reference ?? po.purchaseOrderId}</span>
+                      <span className="font-medium pf-ltr-island" dir="ltr">
+                        {po.reference ?? po.purchaseOrderId}
+                      </span>
                       <span className="text-[var(--pf-text-muted)]">
                         {' · '}
-                        {po.status}
+                        {translateKnown(tProcurement, 'statuses', po.status, PO_STATUS_KEYS)}
                         {' · '}
-                        <span dir="ltr">
+                        <span dir="ltr" className="pf-numeric">
                           {po.orderTotal} {po.currency}
                         </span>
                         {po.projectName ? ` · ${po.projectName}` : ''}
@@ -500,11 +593,11 @@ function VendorCandidateForms({
   if (activeGrants.length === 0) return null;
 
   return (
-    <div className="grid gap-4 lg:grid-cols-2">
-      <section className="rounded-lg border border-[var(--pf-border-default)] p-4 lg:col-span-2">
+    <div className="grid min-w-0 gap-4 lg:grid-cols-2">
+      <section className="min-w-0 rounded-lg border border-[var(--pf-border-default)] p-4 lg:col-span-2">
         <h3 className="font-medium">{t('candidateQuote.title')}</h3>
         <p className="mt-1 text-xs text-[var(--pf-text-muted)]">{t('candidateQuote.hint')}</p>
-        <form action={quoteAction} className="mt-3 grid max-w-2xl gap-3 sm:grid-cols-2">
+        <form action={quoteAction} className="mt-3 grid w-full max-w-2xl gap-3 sm:grid-cols-2">
           {quoteState.error ? (
             <Alert tone="danger" className="sm:col-span-2">
               {quoteState.error}
@@ -524,7 +617,9 @@ function VendorCandidateForms({
                 <SelectContent>
                   {activeGrants.map((grant) => (
                     <SelectItem key={grant.id} value={grant.id}>
-                      {grant.principalEmail}
+                      <span dir="ltr" className="pf-ltr-island">
+                        {grant.principalEmail}
+                      </span>
                       {grant.vendorName ? ` · ${grant.vendorName}` : ''}
                     </SelectItem>
                   ))}
@@ -552,19 +647,19 @@ function VendorCandidateForms({
           </Field>
           <input type="hidden" name="currency" value={defaultCurrency} />
           <Field label={t('fields.totalAmount')} required>
-            {(props) => <Input {...props} name="totalAmount" dir="ltr" required />}
+            {(props) => <Input {...props} name="totalAmount" numeric required />}
           </Field>
           <Field label={t('fields.lineDescription')} required>
             {(props) => <Input {...props} name="lineDescription" required />}
           </Field>
           <div className="sm:col-span-2">
-            <Button type="submit" loading={quotePending}>
+            <Button type="submit" loading={quotePending} className="min-h-11 w-full sm:w-auto">
               {t('candidateQuote.submit')}
             </Button>
           </div>
         </form>
       </section>
-      <section className="rounded-lg border border-[var(--pf-border-default)] p-4">
+      <section className="min-w-0 rounded-lg border border-[var(--pf-border-default)] p-4">
         <h3 className="font-medium">{t('candidateAp.title')}</h3>
         <p className="mt-1 text-xs text-[var(--pf-text-muted)]">{t('candidateAp.hint')}</p>
         <form action={apAction} className="mt-3 flex flex-col gap-3">
@@ -583,7 +678,9 @@ function VendorCandidateForms({
                 <SelectContent>
                   {activeGrants.map((grant) => (
                     <SelectItem key={grant.id} value={grant.id}>
-                      {grant.principalEmail}
+                      <span dir="ltr" className="pf-ltr-island">
+                        {grant.principalEmail}
+                      </span>
                       {grant.vendorName ? ` · ${grant.vendorName}` : ''}
                     </SelectItem>
                   ))}
@@ -611,20 +708,20 @@ function VendorCandidateForms({
           </Field>
           <input type="hidden" name="currency" value={defaultCurrency} />
           <Field label={t('fields.totalAmount')} required>
-            {(props) => <Input {...props} name="totalAmount" dir="ltr" required />}
+            {(props) => <Input {...props} name="totalAmount" numeric required />}
           </Field>
           <Field label={t('fields.lineDescription')} required>
             {(props) => <Input {...props} name="lineDescription" required />}
           </Field>
           <Field label={t('candidateAp.reference')}>
-            {(props) => <Input {...props} name="reference" />}
+            {(props) => <Input {...props} name="reference" dir="ltr" className="pf-ltr-island" />}
           </Field>
-          <Button type="submit" loading={apPending}>
+          <Button type="submit" loading={apPending} className="min-h-11 w-full sm:w-auto">
             {t('candidateAp.submit')}
           </Button>
         </form>
       </section>
-      <section className="rounded-lg border border-[var(--pf-border-default)] p-4">
+      <section className="min-w-0 rounded-lg border border-[var(--pf-border-default)] p-4">
         <h3 className="font-medium">{t('candidateCompliance.title')}</h3>
         <p className="mt-1 text-xs text-[var(--pf-text-muted)]">{t('candidateCompliance.hint')}</p>
         <form action={docAction} className="mt-3 flex flex-col gap-3">
@@ -643,7 +740,9 @@ function VendorCandidateForms({
                 <SelectContent>
                   {activeGrants.map((grant) => (
                     <SelectItem key={grant.id} value={grant.id}>
-                      {grant.principalEmail}
+                      <span dir="ltr" className="pf-ltr-island">
+                        {grant.principalEmail}
+                      </span>
                       {grant.vendorName ? ` · ${grant.vendorName}` : ''}
                     </SelectItem>
                   ))}
@@ -690,9 +789,11 @@ function VendorCandidateForms({
             {(props) => <Input {...props} name="name" required />}
           </Field>
           <Field label={t('candidateCompliance.reference')}>
-            {(props) => <Input {...props} name="referenceNumber" />}
+            {(props) => (
+              <Input {...props} name="referenceNumber" dir="ltr" className="pf-ltr-island" />
+            )}
           </Field>
-          <Button type="submit" loading={docPending}>
+          <Button type="submit" loading={docPending} className="min-h-11 w-full sm:w-auto">
             {t('candidateCompliance.submit')}
           </Button>
         </form>
@@ -728,7 +829,7 @@ function VendorCandidateReviewQueue({
   }
 
   return (
-    <section className="rounded-lg border border-[var(--pf-border-default)] p-4">
+    <section className="min-w-0 rounded-lg border border-[var(--pf-border-default)] p-4">
       <h3 className="font-medium">{t('candidateReview.title')}</h3>
       <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">{t('candidateReview.subtitle')}</p>
       <p className="mt-1 text-xs text-[var(--pf-text-muted)]">{t('candidateReview.neverPosts')}</p>
@@ -744,13 +845,22 @@ function VendorCandidateReviewQueue({
         {pendingAp.map((candidate) => (
           <li
             key={candidate.id}
-            className="rounded-md border border-[var(--pf-border-default)] p-3 text-sm"
+            className="min-w-0 break-words rounded-md border border-[var(--pf-border-default)] p-3 text-sm"
           >
             <p className="font-medium">
-              {t('candidateReview.apLabel')} · {candidate.totalAmount} {candidate.currency}
+              {t('candidateReview.apLabel')} ·{' '}
+              <span dir="ltr" className="pf-numeric">
+                {candidate.totalAmount} {candidate.currency}
+              </span>
             </p>
             <p className="text-[var(--pf-text-secondary)]">
-              {candidate.reference || t('fields.none')}
+              {candidate.reference ? (
+                <span dir="ltr" className="break-all pf-ltr-island">
+                  {candidate.reference}
+                </span>
+              ) : (
+                t('fields.none')
+              )}
             </p>
             {canEdit ? (
               <div className="mt-2 flex flex-wrap gap-2">
@@ -758,7 +868,7 @@ function VendorCandidateReviewQueue({
                   <input type="hidden" name="candidateId" value={candidate.id} />
                   <input type="hidden" name="kind" value="ap_bill" />
                   <input type="hidden" name="decision" value="accepted_for_review" />
-                  <Button type="submit" size="sm" loading={pending}>
+                  <Button type="submit" size="sm" loading={pending} className="min-h-11 md:min-h-8">
                     {t('candidateReview.accept')}
                   </Button>
                 </form>
@@ -766,7 +876,13 @@ function VendorCandidateReviewQueue({
                   <input type="hidden" name="candidateId" value={candidate.id} />
                   <input type="hidden" name="kind" value="ap_bill" />
                   <input type="hidden" name="decision" value="rejected" />
-                  <Button type="submit" size="sm" variant="secondary" loading={pending}>
+                  <Button
+                    type="submit"
+                    size="sm"
+                    variant="secondary"
+                    loading={pending}
+                    className="min-h-11 md:min-h-8"
+                  >
                     {t('candidateReview.reject')}
                   </Button>
                 </form>
@@ -777,19 +893,23 @@ function VendorCandidateReviewQueue({
         {pendingCompliance.map((candidate) => (
           <li
             key={candidate.id}
-            className="rounded-md border border-[var(--pf-border-default)] p-3 text-sm"
+            className="min-w-0 break-words rounded-md border border-[var(--pf-border-default)] p-3 text-sm"
           >
-            <p className="font-medium">
-              {t('candidateReview.complianceLabel')} · {candidate.name}
+            <p className="font-medium">{t('candidateReview.complianceLabel')} · {candidate.name}</p>
+            <p className="text-[var(--pf-text-secondary)]">
+              {ARTIFACT_KIND_KEYS.includes(
+                candidate.artifactKind as (typeof ARTIFACT_KIND_KEYS)[number],
+              )
+                ? t(`candidateCompliance.kinds.${candidate.artifactKind}` as 'candidateCompliance.kinds.insurance')
+                : candidate.artifactKind}
             </p>
-            <p className="text-[var(--pf-text-secondary)]">{candidate.artifactKind}</p>
             {canEdit ? (
               <div className="mt-2 flex flex-wrap gap-2">
                 <form action={action}>
                   <input type="hidden" name="candidateId" value={candidate.id} />
                   <input type="hidden" name="kind" value="compliance" />
                   <input type="hidden" name="decision" value="accepted_for_review" />
-                  <Button type="submit" size="sm" loading={pending}>
+                  <Button type="submit" size="sm" loading={pending} className="min-h-11 md:min-h-8">
                     {t('candidateReview.accept')}
                   </Button>
                 </form>
@@ -797,7 +917,13 @@ function VendorCandidateReviewQueue({
                   <input type="hidden" name="candidateId" value={candidate.id} />
                   <input type="hidden" name="kind" value="compliance" />
                   <input type="hidden" name="decision" value="rejected" />
-                  <Button type="submit" size="sm" variant="secondary" loading={pending}>
+                  <Button
+                    type="submit"
+                    size="sm"
+                    variant="secondary"
+                    loading={pending}
+                    className="min-h-11 md:min-h-8"
+                  >
                     {t('candidateReview.reject')}
                   </Button>
                 </form>
@@ -862,19 +988,19 @@ export function PortalGrantsPanel({
   );
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex min-w-0 flex-col gap-8">
       <div>
         <p className="text-sm text-[var(--pf-text-secondary)]">{t('subtitle')}</p>
         <p className="mt-1 text-xs text-[var(--pf-text-muted)]">{t('externalNote')}</p>
       </div>
 
-      <section className="flex flex-col gap-6">
+      <section className="flex min-w-0 flex-col gap-6">
         <h2 className="text-base font-semibold">{t('customerSection')}</h2>
 
         {canEdit ? (
-          <section className="rounded-lg border border-[var(--pf-border-default)] p-4">
+          <section className="min-w-0 rounded-lg border border-[var(--pf-border-default)] p-4">
             <h3 className="font-medium">{t('addGrant')}</h3>
-            <form action={createAction} className="mt-3 flex max-w-lg flex-col gap-3">
+            <form action={createAction} className="mt-3 flex w-full max-w-lg flex-col gap-3">
               {createState.error ? <Alert tone="danger">{createState.error}</Alert> : null}
               {createState.ok ? (
                 <Alert tone="success" role="status">
@@ -883,7 +1009,17 @@ export function PortalGrantsPanel({
               ) : null}
 
               <Field label={t('fields.email')} required>
-                {(props) => <Input {...props} name="email" type="email" dir="ltr" required />}
+                {(props) => (
+                  <Input
+                    {...props}
+                    name="email"
+                    type="email"
+                    required
+                    dir="ltr"
+                    className="pf-ltr-island"
+                    autoComplete="email"
+                  />
+                )}
               </Field>
               <Field label={t('fields.displayName')}>
                 {(props) => <Input {...props} name="displayName" />}
@@ -928,7 +1064,7 @@ export function PortalGrantsPanel({
               <fieldset className="flex flex-col gap-1">
                 <legend className="text-sm font-medium">{t('fields.scopes')}</legend>
                 {CUSTOMER_PORTAL_SCOPES.map((scope) => (
-                  <label key={scope} className="flex min-h-11 items-center gap-3 text-sm">
+                  <label key={scope} className="flex min-h-11 min-w-0 items-center gap-3 text-sm">
                     <input
                       type="checkbox"
                       name="scopes"
@@ -936,16 +1072,24 @@ export function PortalGrantsPanel({
                       defaultChecked={scope === 'project.summary'}
                       className="size-5 shrink-0 rounded border-[var(--pf-border-strong)]"
                     />
-                    {t(`scopes.${scope}`)}
+                    <span className="min-w-0 break-words">{t(`scopes.${scope}`)}</span>
                   </label>
                 ))}
               </fieldset>
 
               <Field label={t('fields.expiresAt')}>
-                {(props) => <Input {...props} name="expiresAt" type="datetime-local" dir="ltr" />}
+                {(props) => (
+                  <Input
+                    {...props}
+                    name="expiresAt"
+                    type="datetime-local"
+                    dir="ltr"
+                    className="pf-ltr-island"
+                  />
+                )}
               </Field>
 
-              <Button type="submit" loading={createPending}>
+              <Button type="submit" loading={createPending} className="min-h-11 w-full sm:w-auto">
                 {t('addGrant')}
               </Button>
             </form>
@@ -967,7 +1111,7 @@ export function PortalGrantsPanel({
         </section>
       </section>
 
-      <section className="flex flex-col gap-6 border-t border-[var(--pf-border-default)] pt-8">
+      <section className="flex min-w-0 flex-col gap-6 border-t border-[var(--pf-border-default)] pt-8">
         <div>
           <h2 className="text-base font-semibold">{t('vendorSection')}</h2>
           <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">{t('vendorSubtitle')}</p>
@@ -975,9 +1119,9 @@ export function PortalGrantsPanel({
         </div>
 
         {canEdit ? (
-          <section className="rounded-lg border border-[var(--pf-border-default)] p-4">
+          <section className="min-w-0 rounded-lg border border-[var(--pf-border-default)] p-4">
             <h3 className="font-medium">{t('addVendorGrant')}</h3>
-            <form action={vendorCreateAction} className="mt-3 flex max-w-lg flex-col gap-3">
+            <form action={vendorCreateAction} className="mt-3 flex w-full max-w-lg flex-col gap-3">
               {vendorCreateState.error ? (
                 <Alert tone="danger">{vendorCreateState.error}</Alert>
               ) : null}
@@ -988,7 +1132,17 @@ export function PortalGrantsPanel({
               ) : null}
 
               <Field label={t('fields.vendorEmail')} required>
-                {(props) => <Input {...props} name="email" type="email" dir="ltr" required />}
+                {(props) => (
+                  <Input
+                    {...props}
+                    name="email"
+                    type="email"
+                    required
+                    dir="ltr"
+                    className="pf-ltr-island"
+                    autoComplete="email"
+                  />
+                )}
               </Field>
               <Field label={t('fields.displayName')}>
                 {(props) => <Input {...props} name="displayName" />}
@@ -1014,7 +1168,7 @@ export function PortalGrantsPanel({
               <fieldset className="flex flex-col gap-1">
                 <legend className="text-sm font-medium">{t('fields.scopes')}</legend>
                 {VENDOR_PORTAL_SCOPES.map((scope) => (
-                  <label key={scope} className="flex min-h-11 items-center gap-3 text-sm">
+                  <label key={scope} className="flex min-h-11 min-w-0 items-center gap-3 text-sm">
                     <input
                       type="checkbox"
                       name="vendorScopes"
@@ -1022,16 +1176,28 @@ export function PortalGrantsPanel({
                       defaultChecked={scope === 'vendor.summary'}
                       className="size-5 shrink-0 rounded border-[var(--pf-border-strong)]"
                     />
-                    {t(`scopes.${scope}`)}
+                    <span className="min-w-0 break-words">{t(`scopes.${scope}`)}</span>
                   </label>
                 ))}
               </fieldset>
 
               <Field label={t('fields.expiresAt')}>
-                {(props) => <Input {...props} name="expiresAt" type="datetime-local" dir="ltr" />}
+                {(props) => (
+                  <Input
+                    {...props}
+                    name="expiresAt"
+                    type="datetime-local"
+                    dir="ltr"
+                    className="pf-ltr-island"
+                  />
+                )}
               </Field>
 
-              <Button type="submit" loading={vendorCreatePending}>
+              <Button
+                type="submit"
+                loading={vendorCreatePending}
+                className="min-h-11 w-full sm:w-auto"
+              >
                 {t('addVendorGrant')}
               </Button>
             </form>
@@ -1039,10 +1205,10 @@ export function PortalGrantsPanel({
         ) : null}
 
         {canRecordQuote && vendors.length > 0 ? (
-          <section className="rounded-lg border border-[var(--pf-border-default)] p-4">
+          <section className="min-w-0 rounded-lg border border-[var(--pf-border-default)] p-4">
             <h3 className="font-medium">{t('recordQuoteTitle')}</h3>
             <p className="mt-1 text-xs text-[var(--pf-text-muted)]">{t('recordQuoteHint')}</p>
-            <form action={quoteAction} className="mt-3 flex max-w-lg flex-col gap-3">
+            <form action={quoteAction} className="mt-3 flex w-full max-w-lg flex-col gap-3">
               {quoteState.error ? <Alert tone="danger">{quoteState.error}</Alert> : null}
               {quoteState.ok ? (
                 <Alert tone="success" role="status">
@@ -1070,7 +1236,7 @@ export function PortalGrantsPanel({
               <input type="hidden" name="currency" value={defaultCurrency} />
               <Field label={t('fields.totalAmount')} required>
                 {(props) => (
-                  <Input {...props} name="totalAmount" dir="ltr" required defaultValue="0" />
+                  <Input {...props} name="totalAmount" numeric required defaultValue="0" />
                 )}
               </Field>
               <Field label={t('fields.lineDescription')} required>
@@ -1079,24 +1245,26 @@ export function PortalGrantsPanel({
               <div className="grid gap-3 sm:grid-cols-2">
                 <Field label={t('fields.lineQuantity')}>
                   {(props) => (
-                    <Input {...props} name="lineQuantity" dir="ltr" defaultValue="1" />
+                    <Input {...props} name="lineQuantity" numeric defaultValue="1" />
                   )}
                 </Field>
                 <Field label={t('fields.lineUnitAmount')}>
-                  {(props) => <Input {...props} name="lineUnitAmount" dir="ltr" />}
+                  {(props) => <Input {...props} name="lineUnitAmount" numeric />}
                 </Field>
               </div>
               <Field label={t('fields.lineTotal')}>
-                {(props) => <Input {...props} name="lineTotal" dir="ltr" />}
+                {(props) => <Input {...props} name="lineTotal" numeric />}
               </Field>
               <Field label={t('fields.receivedOn')}>
-                {(props) => <Input {...props} name="receivedOn" type="date" dir="ltr" />}
+                {(props) => (
+                  <Input {...props} name="receivedOn" type="date" dir="ltr" className="pf-ltr-island" />
+                )}
               </Field>
               <Field label={t('fields.quoteNotes')}>
                 {(props) => <Input {...props} name="notes" />}
               </Field>
 
-              <Button type="submit" loading={quotePending}>
+              <Button type="submit" loading={quotePending} className="min-h-11 w-full sm:w-auto">
                 {t('recordQuoteSubmit')}
               </Button>
             </form>

@@ -24,10 +24,10 @@ export function ProspectContactForm({ prospectId }: { prospectId: string }) {
         {(control) => <Input {...control} name="name" required />}
       </Field>
       <Field label={t('emailLabel')} optionalLabel={tCommon('labels.optional')}>
-        {(control) => <Input {...control} name="email" type="email" />}
+        {(control) => <Input {...control} name="email" type="email" dir="ltr" />}
       </Field>
       <Field label={t('phoneLabel')} optionalLabel={tCommon('labels.optional')}>
-        {(control) => <Input {...control} name="phone" type="tel" />}
+        {(control) => <Input {...control} name="phone" type="tel" dir="ltr" />}
       </Field>
       <Field label={t('contactRole')} optionalLabel={tCommon('labels.optional')}>
         {(control) => <Input {...control} name="role" />}

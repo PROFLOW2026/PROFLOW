@@ -14,8 +14,8 @@ export function VendorListFilters({ initialQuery }: VendorListFiltersProps) {
   const tCommon = useTranslations('common');
 
   return (
-    <form method="get" role="search" className="flex max-w-md flex-col gap-3 sm:flex-row sm:items-end">
-      <Field label={tCommon('actions.search')} className="flex-1">
+    <form method="get" role="search" className="flex w-full flex-col gap-3 sm:max-w-md sm:flex-row sm:items-end">
+      <Field label={tCommon('actions.search')} className="min-w-0 flex-1">
         {(control) => (
           <Input
             {...control}

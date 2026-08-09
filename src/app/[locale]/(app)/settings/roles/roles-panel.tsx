@@ -34,14 +34,19 @@ function RolePermissionToggle({
   }, [state, onFeedback]);
 
   return (
-    <form ref={formRef} action={action} className="flex items-center justify-between gap-4">
+    <form
+      ref={formRef}
+      action={action}
+      className="flex min-h-11 items-center justify-between gap-3"
+    >
       <input type="hidden" name="roleKey" value={roleKey} />
       <input type="hidden" name="permission" value={permission} />
       <input ref={enabledRef} type="hidden" name="enabled" defaultValue={String(!enabled)} />
-      <Label className="text-sm">{label}</Label>
+      <Label className="min-w-0 flex-1 text-start text-sm leading-snug break-words">{label}</Label>
       <Switch
         checked={enabled}
         disabled={pending}
+        className="shrink-0"
         onCheckedChange={(checked) => {
           if (enabledRef.current) enabledRef.current.value = String(checked);
           formRef.current?.requestSubmit();

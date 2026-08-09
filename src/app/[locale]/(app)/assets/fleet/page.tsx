@@ -121,7 +121,7 @@ export default async function FleetPage({
                     <TableHead>{t('list.columns.assignedProject')}</TableHead>
                     <TableHead>{t('list.columns.plate')}</TableHead>
                     <TableHead>{t('list.columns.vin')}</TableHead>
-                    <TableHead>{t('list.columns.odometer')}</TableHead>
+                    <TableHead numeric>{t('list.columns.odometer')}</TableHead>
                     {canManage ? <TableHead>{t('list.columns.actions')}</TableHead> : null}
                   </TableRow>
                 </TableHeader>
@@ -143,9 +143,31 @@ export default async function FleetPage({
                         />
                       </TableCell>
                       <TableCell>{item.assignedProjectName ?? '—'}</TableCell>
-                      <TableCell>{item.plateNumber ?? '—'}</TableCell>
-                      <TableCell>{item.vin ?? '—'}</TableCell>
-                      <TableCell>{item.odometer ?? '—'}</TableCell>
+                      <TableCell>
+                        {item.plateNumber ? (
+                          <span className="pf-ltr-island pf-entity-string" dir="ltr">
+                            {item.plateNumber}
+                          </span>
+                        ) : (
+                          '—'
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {item.vin ? (
+                          <span className="pf-ltr-island pf-entity-string" dir="ltr">
+                            {item.vin}
+                          </span>
+                        ) : (
+                          '—'
+                        )}
+                      </TableCell>
+                      <TableCell numeric>
+                        {item.odometer ? (
+                          <span dir="ltr">{item.odometer}</span>
+                        ) : (
+                          '—'
+                        )}
+                      </TableCell>
                       {canManage ? (
                         <TableCell>
                           <FleetVehicleEditForm
@@ -164,9 +186,12 @@ export default async function FleetPage({
             </div>
           }
           renderMobileCard={(item) => (
-            <div className="rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4">
+            <div className="min-h-11 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4">
               <div className="flex items-start justify-between gap-2">
-                <Link href={`/assets/${item.assetId}`} className="font-semibold hover:underline">
+                <Link
+                  href={`/assets/${item.assetId}`}
+                  className="min-w-0 flex-1 font-semibold hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
+                >
                   {item.assetName}
                 </Link>
                 <StatusBadge
@@ -175,9 +200,31 @@ export default async function FleetPage({
                 />
               </div>
               <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">
-                {[item.assignedProjectName, item.plateNumber, item.vin, item.odometer]
-                  .filter(Boolean)
-                  .join(' · ') || '—'}
+                {item.assignedProjectName ? `${item.assignedProjectName} · ` : null}
+                {item.plateNumber ? (
+                  <span className="pf-ltr-island pf-entity-string" dir="ltr">
+                    {item.plateNumber}
+                  </span>
+                ) : null}
+                {item.vin ? (
+                  <>
+                    {item.plateNumber ? ' · ' : null}
+                    <span className="pf-ltr-island pf-entity-string" dir="ltr">
+                      {item.vin}
+                    </span>
+                  </>
+                ) : null}
+                {item.odometer ? (
+                  <>
+                    {item.plateNumber || item.vin ? ' · ' : null}
+                    <span className="pf-numeric" dir="ltr">
+                      {item.odometer}
+                    </span>
+                  </>
+                ) : null}
+                {!item.assignedProjectName && !item.plateNumber && !item.vin && !item.odometer
+                  ? '—'
+                  : null}
               </p>
               {canManage ? (
                 <div className="mt-3">

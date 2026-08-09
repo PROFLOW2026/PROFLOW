@@ -54,13 +54,13 @@ export default async function ProcurementPage() {
   }));
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex min-w-0 flex-col gap-6">
       <PageHeader
         title={t('title')}
         description={t('description')}
         actions={
           canManage ? (
-            <Button asChild>
+            <Button asChild className="max-w-full">
               <Link href="/procurement/new">
                 <Plus aria-hidden />
                 {t('newOrder')}
@@ -90,7 +90,7 @@ export default async function ProcurementPage() {
           items={orders}
           getRowKey={(order) => order.id}
           desktop={
-            <div className="overflow-x-auto rounded-lg border border-[var(--pf-border-default)]">
+            <div className="min-w-0 rounded-lg border border-[var(--pf-border-default)]">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -106,10 +106,10 @@ export default async function ProcurementPage() {
                 <TableBody>
                   {orders.map((order) => (
                     <TableRow key={order.id}>
-                      <TableCell className="font-medium">
+                      <TableCell className="max-w-[12rem] truncate font-medium">
                         <Link
                           href={`/procurement/${order.id}`}
-                          className="hover:underline"
+                          className="rounded-sm hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
                         >
                           {order.reference?.trim() || t('list.noReference')}
                         </Link>
@@ -148,16 +148,22 @@ export default async function ProcurementPage() {
                         )}
                       </TableCell>
                       <TableCell>
-                        {order.orderedOn
-                          ? new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(
+                        {order.orderedOn ? (
+                          <span dir="ltr">
+                            {new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(
                               new Date(order.orderedOn),
-                            )
-                          : '—'}
+                            )}
+                          </span>
+                        ) : (
+                          '—'
+                        )}
                       </TableCell>
                       <TableCell>
-                        {new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(
-                          order.createdAt,
-                        )}
+                        <span dir="ltr">
+                          {new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(
+                            order.createdAt,
+                          )}
+                        </span>
                       </TableCell>
                       {canManage ? (
                         <TableCell>
@@ -175,11 +181,14 @@ export default async function ProcurementPage() {
             </div>
           }
           renderMobileCard={(order) => (
-            <div className="flex flex-col gap-2 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4">
-              <div className="flex items-start justify-between gap-2">
-                <span className="font-semibold">
+            <div className="flex min-w-0 flex-col gap-2 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4">
+              <div className="flex min-w-0 items-start justify-between gap-2">
+                <Link
+                  href={`/procurement/${order.id}`}
+                  className="min-w-0 break-words rounded-sm font-semibold hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
+                >
                   {order.reference?.trim() || t('list.noReference')}
-                </span>
+                </Link>
                 <StatusBadge
                   shape={purchaseOrderStatusShape(order.status)}
                   label={t(`statuses.${order.status}` as 'statuses.draft')}
@@ -191,8 +200,17 @@ export default async function ProcurementPage() {
                   ? ` · ${t(`committedStatuses.${order.committedCost.status}` as 'committedStatuses.open')}`
                   : ''}
               </p>
+              {order.orderedOn ? (
+                <p className="text-xs text-[var(--pf-text-muted)]" dir="ltr">
+                  {new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(
+                    new Date(order.orderedOn),
+                  )}
+                </p>
+              ) : null}
               {canManage && order.status === 'draft' ? (
-                <IssuePurchaseOrderButton purchaseOrderId={order.id} />
+                <div className="flex flex-wrap gap-2">
+                  <IssuePurchaseOrderButton purchaseOrderId={order.id} />
+                </div>
               ) : null}
             </div>
           )}

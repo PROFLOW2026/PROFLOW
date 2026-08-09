@@ -68,7 +68,7 @@ export default async function PortalSettingsPage() {
 
   return (
     <SettingsPageShell title={t('title')}>
-      <Card className="p-5">
+      <Card className="min-w-0 p-4 sm:p-5">
         <PortalGrantsPanel
           customerGrants={data.customerGrants}
           vendorGrants={data.vendorGrants}

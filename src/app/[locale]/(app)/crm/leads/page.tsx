@@ -101,8 +101,9 @@ export default async function CrmLeadsPage() {
               className="block min-h-11 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4"
             >
               <div className="flex items-start justify-between gap-2">
-                <span className="font-semibold">{row.title}</span>
+                <span className="min-w-0 flex-1 truncate text-start font-semibold">{row.title}</span>
                 <StatusBadge
+                  className="shrink-0"
                   shape={row.status === 'new' || row.status === 'qualified' ? 'active' : 'archived'}
                   label={t(`statuses.lead.${row.status}`)}
                 />

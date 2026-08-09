@@ -35,11 +35,11 @@ export default async function OnboardingPage({ params }: { params: Promise<{ loc
   const t = await getTranslations('auth.onboarding');
 
   return (
-    <div className="mx-auto flex min-h-dvh max-w-md flex-col justify-center px-4 py-10">
+    <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col justify-center px-4 py-10 text-start">
       <h1 className="text-2xl font-semibold">{t('title')}</h1>
       <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">{t('subtitle')}</p>
 
-      <div className="mt-6 rounded-xl border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-5">
+      <div className="mt-6 w-full min-w-0 rounded-xl border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-5">
         <OnboardingForm />
       </div>
 

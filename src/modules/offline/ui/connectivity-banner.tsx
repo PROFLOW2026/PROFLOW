@@ -43,7 +43,7 @@ export function ConnectivityBanner() {
         'border-b border-[var(--pf-border-default)] bg-[var(--pf-bg-muted)] px-4 py-2 text-sm text-[var(--pf-text-primary)]',
       )}
     >
-      <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-2">
+      <div className="mx-auto flex w-full min-w-0 max-w-6xl flex-wrap items-center justify-between gap-2">
         <p>{t('banner.offline')}</p>
         <Link
           href="/settings/offline-drafts"

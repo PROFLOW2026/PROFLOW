@@ -43,58 +43,60 @@ export async function EmployeesTable({ employees, canManage }: EmployeesTablePro
       items={employees}
       getRowKey={(employee) => employee.id}
       desktop={
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>{t('employees.columns.name')}</TableHead>
-              <TableHead>{t('employees.columns.employmentStyle')}</TableHead>
-              <TableHead numeric>{t('employees.columns.currentRate')}</TableHead>
-              <TableHead>{t('employees.columns.status')}</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {employees.map((employee) => (
-              <TableRow key={employee.id}>
-                <TableCell>
-                  <Link
-                    href={`/workforce/employees/${employee.id}`}
-                    className="rounded-sm font-medium text-[var(--pf-text-brand)] hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
-                  >
-                    {employee.name}
-                  </Link>
-                  {employee.jobTitle ? (
-                    <p className="text-xs text-[var(--pf-text-muted)]">{employee.jobTitle}</p>
-                  ) : null}
-                </TableCell>
-                <TableCell>
-                  {employee.currentRateUnit
-                    ? t(`rateUnits.${employee.currentRateUnit}`)
-                    : t('employees.noRate')}
-                </TableCell>
-                <TableCell numeric>
-                  {employee.currentRate && employee.currentRateCurrency ? (
-                    <MoneyText
-                      value={
-                        fromNumericString(employee.currentRate, employee.currentRateCurrency) ?? {
-                          amount: employee.currentRate,
-                          currency: employee.currentRateCurrency,
-                        }
-                      }
-                    />
-                  ) : (
-                    <span className="text-[var(--pf-text-muted)]">{t('employees.noRate')}</span>
-                  )}
-                </TableCell>
-                <TableCell>
-                  <StatusBadge
-                    shape={employee.status === 'active' ? 'active' : 'archived'}
-                    label={t(`employeeStatus.${employee.status}`)}
-                  />
-                </TableCell>
+        <div className="overflow-x-auto rounded-lg border border-[var(--pf-border-default)]">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>{t('employees.columns.name')}</TableHead>
+                <TableHead>{t('employees.columns.employmentStyle')}</TableHead>
+                <TableHead numeric>{t('employees.columns.currentRate')}</TableHead>
+                <TableHead>{t('employees.columns.status')}</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {employees.map((employee) => (
+                <TableRow key={employee.id}>
+                  <TableCell>
+                    <Link
+                      href={`/workforce/employees/${employee.id}`}
+                      className="rounded-sm font-medium text-[var(--pf-text-brand)] hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
+                    >
+                      {employee.name}
+                    </Link>
+                    {employee.jobTitle ? (
+                      <p className="text-xs text-[var(--pf-text-muted)]">{employee.jobTitle}</p>
+                    ) : null}
+                  </TableCell>
+                  <TableCell>
+                    {employee.currentRateUnit
+                      ? t(`rateUnits.${employee.currentRateUnit}`)
+                      : t('employees.noRate')}
+                  </TableCell>
+                  <TableCell numeric>
+                    {employee.currentRate && employee.currentRateCurrency ? (
+                      <MoneyText
+                        value={
+                          fromNumericString(employee.currentRate, employee.currentRateCurrency) ?? {
+                            amount: employee.currentRate,
+                            currency: employee.currentRateCurrency,
+                          }
+                        }
+                      />
+                    ) : (
+                      <span className="text-[var(--pf-text-muted)]">{t('employees.noRate')}</span>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    <StatusBadge
+                      shape={employee.status === 'active' ? 'active' : 'archived'}
+                      label={t(`employeeStatus.${employee.status}`)}
+                    />
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       }
       renderMobileCard={(employee) => (
         <Link
@@ -102,18 +104,19 @@ export async function EmployeesTable({ employees, canManage }: EmployeesTablePro
           className="block min-h-11 rounded-lg border border-[var(--pf-border-default)] p-4 hover:bg-[var(--pf-bg-subtle)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
         >
           <div className="flex items-start justify-between gap-2">
-            <div className="min-w-0">
+            <div className="min-w-0 flex-1 text-start">
               <p className="truncate font-medium">{employee.name}</p>
               {employee.jobTitle ? (
-                <p className="text-xs text-[var(--pf-text-muted)]">{employee.jobTitle}</p>
+                <p className="truncate text-xs text-[var(--pf-text-muted)]">{employee.jobTitle}</p>
               ) : null}
             </div>
             <StatusBadge
+              className="shrink-0"
               shape={employee.status === 'active' ? 'active' : 'archived'}
               label={t(`employeeStatus.${employee.status}`)}
             />
           </div>
-          <p className="mt-2 text-sm text-[var(--pf-text-secondary)]">
+          <p className="mt-2 text-start text-sm text-[var(--pf-text-secondary)]">
             {employee.currentRate && employee.currentRateCurrency ? (
               <>
                 <MoneyText

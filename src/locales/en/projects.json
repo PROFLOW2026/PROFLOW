@@ -163,7 +163,11 @@
       "reason": "Reason",
       "changedAt": "Changed",
       "changedBy": "Changed by",
-      "unknownActor": "—"
+      "unknownActor": "—",
+      "reasons": {
+        "originalContractValue": "Original contract value",
+        "changeOrder": "Change order {reference}"
+      }
     }
   },
   "details": {

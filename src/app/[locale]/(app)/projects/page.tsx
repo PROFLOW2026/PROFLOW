@@ -56,7 +56,7 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
   const noResultsQuery = params.q?.trim() || t('list.filterStatus');
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex min-w-0 max-w-full flex-col gap-6">
       <PageHeader
         title={t('title')}
         actions={
@@ -155,17 +155,17 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
             return (
               <Link
                 href={`/projects/${project.id}`}
-                className="block min-h-11 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
+                className="block min-h-11 min-w-0 max-w-full rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
               >
-                <div className="flex items-start justify-between gap-2">
-                  <span className="font-semibold">{project.name}</span>
+                <div className="flex min-w-0 items-start justify-between gap-2">
+                  <span className="min-w-0 flex-1 break-words font-semibold">{project.name}</span>
                   <ProjectStatusBadge status={project.status} label={tStatus(project.status)} />
                 </div>
-                <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">
+                <p className="mt-1 min-w-0 break-words text-sm text-[var(--pf-text-secondary)]">
                   {project.clientName ?? t('list.columns.noClient')}
                 </p>
                 {money ? (
-                  <p className="mt-2 text-sm">
+                  <p className="mt-2 min-w-0 max-w-full overflow-x-auto text-sm">
                     <MoneyText value={money} />
                   </p>
                 ) : (

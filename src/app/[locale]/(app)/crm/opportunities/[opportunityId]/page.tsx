@@ -200,9 +200,9 @@ export default async function OpportunityDetailPage({
           ) : (
             <ul className="flex flex-col gap-2 text-sm">
               {detail.estimates.map((estimate) => (
-                <li key={estimate.id} className="flex justify-between gap-2">
-                  <span>{estimate.name}</span>
-                  <span className="text-[var(--pf-text-secondary)]">
+                <li key={estimate.id} className="flex flex-wrap items-start justify-between gap-2">
+                  <span className="min-w-0 flex-1 text-start">{estimate.name}</span>
+                  <span className="shrink-0 text-[var(--pf-text-secondary)]" dir={estimate.internalAmount ? 'ltr' : undefined}>
                     {estimate.internalAmount
                       ? `${estimate.internalAmount} ${estimate.currency}`
                       : t(`statuses.estimate.${estimate.status}`)}
@@ -225,8 +225,9 @@ export default async function OpportunityDetailPage({
           {detail.salesQuotes.map((quote) => (
             <div key={quote.id} className="rounded-md border border-[var(--pf-border-default)] p-3">
               <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-                <p className="font-medium">{quote.title}</p>
+                <p className="min-w-0 flex-1 text-start font-medium">{quote.title}</p>
                 <StatusBadge
+                  className="shrink-0"
                   shape={quote.status === 'accepted' ? 'active' : 'archived'}
                   label={t(`statuses.quote.${quote.status}`)}
                 />
@@ -237,17 +238,19 @@ export default async function OpportunityDetailPage({
                     key={version.id}
                     className="flex flex-wrap items-center justify-between gap-2 text-sm"
                   >
-                    <span>
+                    <span className="min-w-0 flex-1 text-start">
                       {t('opportunity.versionLabel', { number: version.versionNumber })} ·{' '}
-                      {t('opportunity.quoteNet')}: {version.subtotalAmount} {version.currency}
-                      {version.taxAmount && version.taxAmount !== '0'
-                        ? ` · ${t('opportunity.quoteTax')}: ${version.taxAmount}`
-                        : ''}{' '}
-                      · {t('opportunity.quoteTotal')}: {version.totalAmount} {version.currency} ·{' '}
-                      {t(`statuses.version.${version.status}`)}
+                      <span dir="ltr">
+                        {t('opportunity.quoteNet')}: {version.subtotalAmount} {version.currency}
+                        {version.taxAmount && version.taxAmount !== '0'
+                          ? ` · ${t('opportunity.quoteTax')}: ${version.taxAmount}`
+                          : ''}{' '}
+                        · {t('opportunity.quoteTotal')}: {version.totalAmount} {version.currency}
+                      </span>{' '}
+                      · {t(`statuses.version.${version.status}`)}
                     </span>
                     {canManage && detail.status === 'open' ? (
-                      <div className="flex gap-2">
+                      <div className="flex flex-wrap gap-2">
                         {version.status === 'draft' ? (
                           <IssueVersionButton versionId={version.id} />
                         ) : null}

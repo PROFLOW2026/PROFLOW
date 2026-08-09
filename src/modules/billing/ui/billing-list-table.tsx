@@ -27,63 +27,69 @@ export function BillingListTable({ records, locale }: BillingListTableProps) {
       items={records}
       getRowKey={(record) => record.id}
       desktop={
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>{t('list.project')}</TableHead>
-              <TableHead>{t('list.reference')}</TableHead>
-              <TableHead>{t('list.kind')}</TableHead>
-              <TableHead>{t('list.issueDate')}</TableHead>
-              <TableHead numeric>{t('list.amount')}</TableHead>
-              <TableHead numeric>{t('list.paid')}</TableHead>
-              <TableHead numeric>{t('list.outstanding')}</TableHead>
-              <TableHead>{t('list.status')}</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {records.map((record) => (
-              <TableRow key={record.id}>
-                <TableCell>
-                  <Link href={`/billing/${record.id}`} className="font-medium text-[var(--pf-text-brand)]">
-                    {record.projectName ?? t('list.unknownProject')}
-                  </Link>
-                </TableCell>
-                <TableCell>{record.reference ?? '—'}</TableCell>
-                <TableCell>
-                  <span className="text-sm">{tKind(record.kind)}</span>
-                </TableCell>
-                <TableCell>
-                  <span dir="ltr">{formatBusinessDate(record.issueDate, locale, 'short')}</span>
-                </TableCell>
-                <TableCell numeric>
-                  <MoneyText value={record.totalAmount} />
-                </TableCell>
-                <TableCell numeric>
-                  <MoneyText value={record.paidAmount} />
-                </TableCell>
-                <TableCell numeric>
-                  <MoneyText value={record.outstandingAmount} colorizeNegative />
-                </TableCell>
-                <TableCell>
-                  <BillingStatusBadge status={record.status} collectionStatus={record.collectionStatus} />
-                </TableCell>
+        <div className="min-w-0 rounded-lg border border-[var(--pf-border-default)]">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>{t('list.project')}</TableHead>
+                <TableHead>{t('list.reference')}</TableHead>
+                <TableHead>{t('list.kind')}</TableHead>
+                <TableHead>{t('list.issueDate')}</TableHead>
+                <TableHead numeric>{t('list.amount')}</TableHead>
+                <TableHead numeric>{t('list.paid')}</TableHead>
+                <TableHead numeric>{t('list.outstanding')}</TableHead>
+                <TableHead>{t('list.status')}</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {records.map((record) => (
+                <TableRow key={record.id}>
+                  <TableCell className="max-w-[12rem] truncate">
+                    <Link href={`/billing/${record.id}`} className="font-medium text-[var(--pf-text-brand)]">
+                      {record.projectName ?? t('list.unknownProject')}
+                    </Link>
+                  </TableCell>
+                  <TableCell className="max-w-[8rem] truncate">{record.reference ?? '—'}</TableCell>
+                  <TableCell>
+                    <span className="text-sm">{tKind(record.kind)}</span>
+                  </TableCell>
+                  <TableCell>
+                    <span dir="ltr">{formatBusinessDate(record.issueDate, locale, 'short')}</span>
+                  </TableCell>
+                  <TableCell numeric>
+                    <MoneyText value={record.totalAmount} />
+                  </TableCell>
+                  <TableCell numeric>
+                    <MoneyText value={record.paidAmount} />
+                  </TableCell>
+                  <TableCell numeric>
+                    <MoneyText value={record.outstandingAmount} colorizeNegative />
+                  </TableCell>
+                  <TableCell>
+                    <BillingStatusBadge status={record.status} collectionStatus={record.collectionStatus} />
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       }
       renderMobileCard={(record) => (
         <Link
           href={`/billing/${record.id}`}
-          className="block min-h-11 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4"
+          className="block min-h-11 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4 text-start"
         >
           <div className="flex items-start justify-between gap-2">
-            <span className="font-semibold">
+            <span className="min-w-0 flex-1 truncate font-semibold">
               {record.projectName ?? t('list.unknownProject')}
             </span>
-            <BillingStatusBadge status={record.status} collectionStatus={record.collectionStatus} />
+            <BillingStatusBadge
+              className="shrink-0"
+              status={record.status}
+              collectionStatus={record.collectionStatus}
+            />
           </div>
-          <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">
+          <p className="mt-1 text-start text-sm text-[var(--pf-text-secondary)]">
             {record.reference ?? '—'}
             {' · '}
             {tKind(record.kind)}

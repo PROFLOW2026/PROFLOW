@@ -2,9 +2,10 @@
 
 import { getLocale, getTranslations } from 'next-intl/server';
 import { z } from 'zod';
+import { buildAuthCallbackUrl, safeAppPath } from '@/shared/i18n/auth-locale';
+import { isLocale, type Locale } from '@/shared/i18n/config';
 import { redirect } from '@/shared/i18n/navigation';
 import { createSupabaseServerClient, isSupabaseConfigured } from '@/shared/supabase/server';
-
 /**
  * Credential flows (doc 72 §4).
  *
@@ -43,18 +44,8 @@ export async function signInAction(
   const { error } = await supabase.auth.signInWithPassword(parsed.data);
   if (error) return { error: t('signIn.invalidCredentials'), email: parsed.data.email };
 
-  redirect({ href: safeReturnPath(formData.get('next')) ?? '/', locale: await getLocale() });
-}
-
-/**
- * Only same-site, path-relative destinations survive. Anything else — an
- * absolute URL, a protocol-relative `//host` — is dropped, so a crafted sign-in
- * link cannot bounce a freshly authenticated user off to another origin.
- */
-function safeReturnPath(value: FormDataEntryValue | null): string | null {
-  if (typeof value !== 'string') return null;
-  if (!value.startsWith('/') || value.startsWith('//')) return null;
-  return value;
+  const locale = await activeLocale();
+  redirect({ href: safeAppPath(stringField(formData.get('next'))) ?? '/', locale });
 }
 
 export async function signUpAction(
@@ -74,13 +65,14 @@ export async function signUpAction(
     });
   if (!parsed.success) return { error: tErrors('validationFailed') };
 
+  const locale = await activeLocale();
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase.auth.signUp({
     email: parsed.data.email,
     password: parsed.data.password,
     options: {
-      data: { display_name: parsed.data.displayName },
-      emailRedirectTo: `${await originUrl()}/auth/callback`,
+      data: { display_name: parsed.data.displayName, locale_preference: locale },
+      emailRedirectTo: buildAuthCallbackUrl(await originUrl(), locale),
     },
   });
 
@@ -90,7 +82,7 @@ export async function signUpAction(
   // their inbox rather than dropping them on a sign-in screen with no context.
   if (!data.session) return { notice: 'check-email', email: parsed.data.email };
 
-  redirect({ href: '/onboarding', locale: await getLocale() });
+  redirect({ href: '/onboarding', locale });
 }
 
 export async function requestPasswordResetAction(
@@ -103,9 +95,10 @@ export async function requestPasswordResetAction(
   const parsed = emailSchema.safeParse({ email: formData.get('email') });
   if (!parsed.success) return { error: t('signIn.invalidCredentials') };
 
+  const locale = await activeLocale();
   const supabase = await createSupabaseServerClient();
   await supabase.auth.resetPasswordForEmail(parsed.data.email, {
-    redirectTo: `${await originUrl()}/auth/callback?next=/reset-password`,
+    redirectTo: buildAuthCallbackUrl(await originUrl(), locale, '/reset-password'),
   });
 
   // Always the same answer, whether or not the address is registered.
@@ -130,7 +123,16 @@ export async function updatePasswordAction(
   const { error } = await supabase.auth.updateUser({ password });
   if (error) return { error: t('resetPassword.linkExpired') };
 
-  redirect({ href: '/', locale: await getLocale() });
+  redirect({ href: '/', locale: await activeLocale() });
+}
+
+async function activeLocale(): Promise<Locale> {
+  const locale = await getLocale();
+  return isLocale(locale) ? locale : 'he-IL';
+}
+
+function stringField(value: FormDataEntryValue | null): string | null {
+  return typeof value === 'string' ? value : null;
 }
 
 async function originUrl(): Promise<string> {

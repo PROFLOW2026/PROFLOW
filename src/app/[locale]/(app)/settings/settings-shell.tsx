@@ -19,14 +19,14 @@ export async function SettingsPageShell({
   );
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex w-full min-w-0 flex-col gap-6">
       <PageHeader title={title} description={description} />
 
-      <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
-        <aside className="w-full shrink-0 lg:w-52">
+      <div className="flex w-full min-w-0 flex-col gap-6 lg:flex-row lg:items-start">
+        <aside className="w-full min-w-0 shrink-0 lg:w-52">
           <SettingsSectionNav items={navItems} />
         </aside>
-        <div className="min-w-0 flex-1">{children}</div>
+        <div className="min-w-0 max-w-full flex-1">{children}</div>
       </div>
     </div>
   );

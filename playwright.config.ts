@@ -32,12 +32,13 @@ export default defineConfig({
     { name: 'setup-worker', testMatch: /auth\/worker\.setup\.ts/ },
     {
       name: 'desktop-he',
+      // Public shell + regression (overflow/locale). Authenticated specs run below.
       testIgnore: [/auth\//, /authenticated\//, /mobile\.spec\.ts/],
       use: { ...devices['Desktop Chrome'], viewport: { width: 1440, height: 900 } },
     },
     {
       name: 'desktop-he-authenticated',
-      testMatch: /authenticated\/owner\.spec\.ts/,
+      testMatch: /authenticated\/(owner|regression)\.spec\.ts/,
       dependencies: ['setup-owner'],
       use: {
         ...devices['Desktop Chrome'],

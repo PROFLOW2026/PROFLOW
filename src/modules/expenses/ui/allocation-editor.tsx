@@ -97,17 +97,24 @@ export function AllocationEditor({
   }
 
   return (
-    <div className="flex flex-col gap-3">
-      <div className="flex items-center justify-between gap-2">
-        <h4 className="text-sm font-medium">{t('allocation.title')}</h4>
-        <Button type="button" variant="secondary" size="sm" onClick={addLine} disabled={disabled}>
+    <div className="flex min-w-0 flex-col gap-3">
+      <div className="flex min-w-0 flex-wrap items-center justify-between gap-2">
+        <h4 className="min-w-0 text-start text-sm font-medium">{t('allocation.title')}</h4>
+        <Button
+          type="button"
+          variant="secondary"
+          size="sm"
+          className="max-w-full shrink-0"
+          onClick={addLine}
+          disabled={disabled}
+        >
           <Plus aria-hidden />
           {t('allocation.addLine')}
         </Button>
       </div>
 
       {value.length === 0 ? (
-        <p className="text-sm text-[var(--pf-text-muted)]">{t('allocation.empty')}</p>
+        <p className="text-start text-sm text-[var(--pf-text-muted)]">{t('allocation.empty')}</p>
       ) : null}
 
       {value.map((line, index) => {
@@ -116,7 +123,7 @@ export function AllocationEditor({
         return (
           <div
             key={line.lineId ?? index}
-            className="grid gap-3 rounded-md border border-[var(--pf-border-default)] p-3 sm:grid-cols-2"
+            className="grid min-w-0 gap-3 rounded-md border border-[var(--pf-border-default)] p-3 sm:grid-cols-2"
           >
             <Field label={t('allocation.targetRow', { row: rowNumber })}>
               {(controlProps) => (

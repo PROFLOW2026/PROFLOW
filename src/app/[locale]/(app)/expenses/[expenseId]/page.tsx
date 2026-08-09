@@ -99,7 +99,7 @@ export default async function ExpenseDetailPage({
     canPromoteVendor && Boolean(expense.supplierName?.trim()) && !expense.vendorId;
 
   return (
-    <div className="mx-auto flex w-full max-w-2xl flex-col gap-6">
+    <div className="mx-auto flex min-w-0 w-full max-w-2xl flex-col gap-6">
       <PageHeader
         title={t('detail.title')}
         description={formatBusinessDate(expense.expenseDate, locale)}
@@ -175,23 +175,23 @@ export default async function ExpenseDetailPage({
       ) : null}
 
       {expense.allocations.length > 0 ? (
-        <Card>
+        <Card className="min-w-0">
           <CardHeader>
-            <CardTitle>{t('allocation.title')}</CardTitle>
+            <CardTitle className="text-start">{t('allocation.title')}</CardTitle>
           </CardHeader>
-          <CardContent className="flex flex-col gap-2 text-sm">
+          <CardContent className="flex min-w-0 flex-col gap-2 text-sm">
             {expense.allocations.map((line, index) => (
               <div
                 key={index}
-                className="flex items-center justify-between gap-2 border-b border-[var(--pf-border-default)] py-2 last:border-0"
+                className="flex min-w-0 items-center justify-between gap-2 border-b border-[var(--pf-border-default)] py-2 text-start last:border-0"
               >
-                <span>
+                <span className="min-w-0 truncate">
                   {line.targetType === 'overhead'
                     ? t('targeting.overhead')
                     : projects.find((project) => project.id === line.projectId)?.name}
                   {line.method === 'manual_percent' && line.percent ? ` (${line.percent}%)` : null}
                 </span>
-                <MoneyText value={line.amount} />
+                <MoneyText value={line.amount} className="shrink-0" />
               </div>
             ))}
           </CardContent>
@@ -221,9 +221,9 @@ export default async function ExpenseDetailPage({
 function DetailRow({ label, value }: { label: string; value: string | null | undefined }) {
   if (!value) return null;
   return (
-    <div className="grid gap-0.5">
+    <div className="grid min-w-0 gap-0.5 text-start">
       <span className="text-xs text-[var(--pf-text-muted)]">{label}</span>
-      <span>{value}</span>
+      <span className="break-words">{value}</span>
     </div>
   );
 }

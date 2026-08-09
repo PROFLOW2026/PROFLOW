@@ -33,7 +33,7 @@ export function MoneyText({
     <span
       dir="ltr"
       className={cn(
-        'pf-numeric inline-block',
+        'pf-numeric inline-block max-w-full',
         colorizeNegative && negative && 'text-[var(--pf-status-danger-fg)]',
         className,
       )}

@@ -34,23 +34,25 @@ export function MobileNav({ items }: { items: NavItem[] }) {
     <>
       <nav
         aria-label={tCommon('a11y.mainNavigation')}
-        className="fixed inset-x-0 bottom-0 z-20 border-t border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] pb-[env(safe-area-inset-bottom)] lg:hidden"
+        data-pf-mobile-nav=""
+        className="fixed inset-x-0 bottom-0 z-20 flex w-full max-w-full border-t border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] pb-[env(safe-area-inset-bottom,0px)] lg:hidden"
       >
-        <ul className="flex items-stretch">
+        <ul className="flex w-full min-w-0 items-stretch">
           {primary.map((item) => {
             const active = isNavItemActive(pathname, item.href);
 
             return (
-              <li key={item.key} className="flex-1">
+              <li key={item.key} className="min-w-0 flex-1">
                 <Link
                   href={item.href}
                   aria-current={active ? 'page' : undefined}
                   className={cn(
-                    'flex h-16 flex-col items-center justify-center gap-1 px-1 text-[0.6875rem] font-medium',
+                    'flex h-[var(--pf-bottomnav-height)] w-full min-w-0 flex-col items-center justify-center gap-1 px-1 text-[0.6875rem] font-medium',
+                    'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]',
                     active ? 'text-[var(--pf-text-brand)]' : 'text-[var(--pf-text-secondary)]',
                   )}
                 >
-                  <NavIcon iconKey={item.iconKey} className="size-5" />
+                  <NavIcon iconKey={item.iconKey} className="size-5 shrink-0" />
                   <span className="max-w-full truncate">{t(item.labelKey)}</span>
                 </Link>
               </li>
@@ -58,14 +60,20 @@ export function MobileNav({ items }: { items: NavItem[] }) {
           })}
 
           {overflow.length > 0 ? (
-            <li className="flex-1">
+            <li className="min-w-0 flex-1">
               <button
                 type="button"
                 onClick={() => setMoreOpen(true)}
-                className="flex h-16 w-full flex-col items-center justify-center gap-1 px-1 text-[0.6875rem] font-medium text-[var(--pf-text-secondary)]"
+                aria-expanded={moreOpen}
+                aria-haspopup="dialog"
+                aria-controls="pf-mobile-nav-more"
+                className={cn(
+                  'flex h-[var(--pf-bottomnav-height)] w-full min-w-0 flex-col items-center justify-center gap-1 px-1 text-[0.6875rem] font-medium text-[var(--pf-text-secondary)]',
+                  'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]',
+                )}
               >
-                <MoreHorizontal className="size-5" aria-hidden />
-                <span>{t('more')}</span>
+                <MoreHorizontal className="size-5 shrink-0" aria-hidden />
+                <span className="max-w-full truncate">{t('more')}</span>
               </button>
             </li>
           ) : null}
@@ -73,7 +81,11 @@ export function MobileNav({ items }: { items: NavItem[] }) {
       </nav>
 
       <Dialog open={moreOpen} onOpenChange={setMoreOpen}>
-        <DialogContent closeLabel={tCommon('actions.close')}>
+        <DialogContent
+          id="pf-mobile-nav-more"
+          closeLabel={tCommon('actions.close')}
+          aria-describedby={undefined}
+        >
           <DialogHeader>
             <DialogTitle>{t('more')}</DialogTitle>
           </DialogHeader>
@@ -85,9 +97,12 @@ export function MobileNav({ items }: { items: NavItem[] }) {
                     <Link
                       href={item.href}
                       onClick={() => setMoreOpen(false)}
-                      className="flex items-center gap-3 rounded-md px-2 py-3 text-sm hover:bg-[var(--pf-bg-muted)]"
+                      className="flex min-h-11 items-center gap-3 rounded-md px-2 py-3 text-sm hover:bg-[var(--pf-bg-muted)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
                     >
-                      <NavIcon iconKey={item.iconKey} className="size-5 text-[var(--pf-text-muted)]" />
+                      <NavIcon
+                        iconKey={item.iconKey}
+                        className="size-5 text-[var(--pf-text-muted)]"
+                      />
                       {t(item.labelKey)}
                     </Link>
                   </li>

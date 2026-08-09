@@ -69,6 +69,17 @@ export type {
   WorkspaceLinkInput,
 } from './domain/workspace-links';
 export {
+  CONTRACT_VALUE_REASON_ORIGINAL,
+  CONTRACT_VALUE_REASON_CHANGE_ORDER_PREFIX,
+  formatChangeOrderContractReason,
+  contractValueReasonPresentation,
+  contractValueReasonMessageKey,
+} from './domain/contract-value-reason';
+export type {
+  ContractValueReasonMessageKey,
+  ContractValueReasonPresentation,
+} from './domain/contract-value-reason';
+export {
   applyOrgProjectTemplate,
   applyOrgPhasePack,
   applyOrgWorkPackagePack,

@@ -9,8 +9,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Link } from '@/shared/i18n/navigation';
+import { Link, usePathname } from '@/shared/i18n/navigation';
 import { cn } from '@/shared/ui/cn';
+import { isFocusedComposerPath } from './navigation';
 
 export interface QuickCreateAction {
   key: string;
@@ -24,6 +25,8 @@ export interface QuickCreateAction {
  */
 export function QuickCreate({ actions }: { actions: QuickCreateAction[] }) {
   const t = useTranslations('nav.newMenu');
+  const pathname = usePathname();
+  const demoteFab = isFocusedComposerPath(pathname);
 
   if (actions.length === 0) return null;
 
@@ -33,25 +36,26 @@ export function QuickCreate({ actions }: { actions: QuickCreateAction[] }) {
         <button
           type="button"
           aria-label={t('trigger')}
+          data-pf-quick-create={demoteFab ? 'toolbar' : 'fab'}
           className={cn(
-            'fixed z-20 flex items-center justify-center gap-2 rounded-full font-medium transition-colors duration-[var(--pf-motion-fast)]',
-            'bottom-[calc(var(--pf-bottomnav-height)+1rem+env(safe-area-inset-bottom))] end-4 size-14',
-            'bg-[var(--pf-action-primary)] text-[var(--pf-action-primary-fg)] shadow-[var(--pf-shadow-lg)]',
+            'z-30 flex items-center justify-center gap-2 rounded-full font-medium transition-colors duration-[var(--pf-motion-fast)]',
+            'bg-[var(--pf-action-primary)] text-[var(--pf-action-primary-fg)]',
             'active:bg-[var(--pf-action-primary-active)]',
             'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]',
-            'lg:static lg:bottom-auto lg:end-auto lg:size-auto lg:h-8 lg:rounded-md lg:px-3 lg:text-[0.8125rem] lg:shadow-none',
-            'lg:hover:bg-[var(--pf-action-primary-hover)]',
+            demoteFab
+              ? 'static size-auto h-9 shrink-0 rounded-md px-3 text-[0.8125rem] shadow-none hover:bg-[var(--pf-action-primary-hover)]'
+              : cn(
+                  'fixed bottom-[calc(var(--pf-bottomnav-height)+var(--pf-fab-gap)+env(safe-area-inset-bottom,0px))] end-4 size-[var(--pf-fab-size)] shadow-[var(--pf-shadow-lg)]',
+                  'lg:static lg:bottom-auto lg:end-auto lg:size-auto lg:h-8 lg:rounded-md lg:px-3 lg:text-[0.8125rem] lg:shadow-none',
+                  'lg:hover:bg-[var(--pf-action-primary-hover)]',
+                ),
           )}
         >
-          <Plus className="size-6 lg:size-4" aria-hidden />
-          <span className="hidden lg:inline">{t('trigger')}</span>
+          <Plus className={cn(demoteFab ? 'size-4' : 'size-6 lg:size-4')} aria-hidden />
+          <span className={cn(demoteFab ? 'inline' : 'hidden lg:inline')}>{t('trigger')}</span>
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent
-        align="end"
-        side="bottom"
-        className="max-lg:mb-[calc(var(--pf-bottomnav-height)+env(safe-area-inset-bottom))]"
-      >
+      <DropdownMenuContent align="end" side={demoteFab ? 'bottom' : 'top'}>
         {actions.map((action) => (
           <DropdownMenuItem key={action.key} asChild>
             <Link href={action.href}>{t(action.labelKey)}</Link>

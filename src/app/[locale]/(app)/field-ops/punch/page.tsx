@@ -161,7 +161,15 @@ export default async function FieldOpsPunchPage({
                       <TableCell>
                         <StatusBadge shape={punchShape(item.status)} label={tStatus(item.status)} />
                       </TableCell>
-                      <TableCell>{item.dueDate ?? '—'}</TableCell>
+                      <TableCell>
+                        {item.dueDate ? (
+                          <span className="pf-ltr-island" dir="ltr">
+                            {item.dueDate}
+                          </span>
+                        ) : (
+                          '—'
+                        )}
+                      </TableCell>
                       {canManage ? (
                         <TableCell>
                           <PunchStatusForm punchListItemId={item.id} currentStatus={item.status} />
@@ -174,15 +182,26 @@ export default async function FieldOpsPunchPage({
             </div>
           }
           renderMobileCard={(item) => (
-            <div className="flex flex-col gap-2 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4">
+            <div className="flex min-h-11 flex-col gap-2 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4">
               <div className="flex items-start justify-between gap-2">
-                <Link href={`/field-ops/punch/${item.id}`} className="font-semibold hover:underline">
+                <Link
+                  href={`/field-ops/punch/${item.id}`}
+                  className="min-w-0 flex-1 font-semibold hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
+                >
                   {item.title}
                 </Link>
                 <StatusBadge shape={punchShape(item.status)} label={tStatus(item.status)} />
               </div>
               <p className="text-sm text-[var(--pf-text-secondary)]">
                 {projectName.get(item.projectId) ?? '—'} · {t(`priorities.${item.priority}`)}
+                {item.dueDate ? (
+                  <>
+                    {' · '}
+                    <span className="pf-ltr-island" dir="ltr">
+                      {item.dueDate}
+                    </span>
+                  </>
+                ) : null}
               </p>
               {canManage ? (
                 <div className="flex flex-col gap-2">

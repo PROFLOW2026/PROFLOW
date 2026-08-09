@@ -20,7 +20,8 @@
   "actions": {
     "add": "הוספת הוצאה",
     "finalize": "סגירה",
-    "void": "ביטול"
+    "void": "ביטול",
+    "receiptPhoto": "צילום קבלה לחילוץ"
   },
   "confirm": {
     "finalizeTitle": "סגירת הוצאה",

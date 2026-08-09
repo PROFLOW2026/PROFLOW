@@ -86,7 +86,7 @@ export default async function PunchDetailPage({
         breadcrumb={
           <Link
             href="/field-ops/punch"
-            className="text-sm text-[var(--pf-text-secondary)] hover:underline"
+            className="text-sm text-[var(--pf-text-secondary)] hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
           >
             {tCommon('actions.back')}
           </Link>
@@ -117,7 +117,14 @@ export default async function PunchDetailPage({
           <DetailRow label={t('createPunch.locationLabel')} value={item.location} />
         ) : null}
         {item.dueDate ? (
-          <DetailRow label={t('createPunch.dueDateLabel')} value={item.dueDate} />
+          <DetailRow
+            label={t('createPunch.dueDateLabel')}
+            value={
+              <span className="pf-ltr-island" dir="ltr">
+                {item.dueDate}
+              </span>
+            }
+          />
         ) : null}
         {item.description ? (
           <DetailRow label={t('createPunch.descriptionLabel')} value={item.description} />

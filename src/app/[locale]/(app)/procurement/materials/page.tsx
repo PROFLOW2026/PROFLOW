@@ -40,12 +40,12 @@ export default async function MaterialsCatalogPage() {
   }));
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex min-w-0 flex-col gap-6">
       <PageHeader
         title={t('materialsTitle')}
         description={t('materialsDescription')}
         actions={
-          <Button asChild variant="secondary">
+          <Button asChild variant="secondary" className="max-w-full">
             <Link href="/procurement">{t('title')}</Link>
           </Button>
         }
@@ -64,7 +64,7 @@ export default async function MaterialsCatalogPage() {
           items={materials}
           getRowKey={(item) => item.id}
           desktop={
-            <div className="overflow-x-auto rounded-lg border border-[var(--pf-border-default)]">
+            <div className="min-w-0 rounded-lg border border-[var(--pf-border-default)]">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -79,17 +79,27 @@ export default async function MaterialsCatalogPage() {
                 <TableBody>
                   {materials.map((item) => (
                     <TableRow key={item.id}>
-                      <TableCell className="font-medium">
+                      <TableCell className="max-w-[14rem] truncate font-medium">
                         <Link
                           href={`/procurement/materials/${item.id}`}
-                          className="hover:underline"
+                          className="rounded-sm hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
                         >
                           {item.name}
                         </Link>
                       </TableCell>
-                      <TableCell>{item.sku ?? '—'}</TableCell>
-                      <TableCell>{item.manufacturer ?? '—'}</TableCell>
-                      <TableCell>{item.model ?? '—'}</TableCell>
+                      <TableCell>
+                        {item.sku ? (
+                          <span dir="ltr" className="pf-numeric">
+                            {item.sku}
+                          </span>
+                        ) : (
+                          '—'
+                        )}
+                      </TableCell>
+                      <TableCell className="max-w-[10rem] truncate">
+                        {item.manufacturer ?? '—'}
+                      </TableCell>
+                      <TableCell className="max-w-[8rem] truncate">{item.model ?? '—'}</TableCell>
                       <TableCell>{item.unit}</TableCell>
                       <TableCell numeric>
                         {item.defaultUnitPrice && item.currency ? (
@@ -107,10 +117,10 @@ export default async function MaterialsCatalogPage() {
           renderMobileCard={(item) => (
             <Link
               href={`/procurement/materials/${item.id}`}
-              className="block rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4"
+              className="block min-h-11 min-w-0 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
             >
-              <p className="font-semibold">{item.name}</p>
-              <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">
+              <p className="break-words font-semibold">{item.name}</p>
+              <p className="mt-1 break-words text-sm text-[var(--pf-text-secondary)]">
                 {[item.sku, item.manufacturer, item.model, item.unit].filter(Boolean).join(' · ') ||
                   '—'}
               </p>
@@ -125,9 +135,9 @@ export default async function MaterialsCatalogPage() {
       )}
 
       {canManage ? (
-        <div className="flex flex-col gap-2">
-          <p className="flex items-center gap-2 text-sm font-medium text-[var(--pf-text-secondary)]">
-            <Plus aria-hidden className="size-4" />
+        <div className="flex min-w-0 flex-col gap-2">
+          <p className="flex flex-wrap items-center gap-2 text-sm font-medium text-[var(--pf-text-secondary)]">
+            <Plus aria-hidden className="size-4 shrink-0" />
             {t('newMaterial')}
           </p>
           <MaterialCreateForm defaultCurrency={defaultCurrency} />

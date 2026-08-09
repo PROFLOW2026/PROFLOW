@@ -7,6 +7,7 @@ import { setActiveOrganizationPreference } from '@/modules/identity';
 import { requireSession } from '@/shared/auth/session';
 import { withUserContext } from '@/shared/db/client';
 import { AppError } from '@/shared/errors';
+import { isLocale } from '@/shared/i18n/config';
 import { redirect } from '@/shared/i18n/navigation';
 
 export interface OnboardingFormState {
@@ -19,7 +20,8 @@ export async function createOrganizationAction(
 ): Promise<OnboardingFormState> {
   const tErrors = await getTranslations('errors');
   const session = await requireSession();
-  const locale = await getLocale();
+  const rawLocale = await getLocale();
+  const locale = isLocale(rawLocale) ? rawLocale : 'he-IL';
 
   const parsed = createOrganizationSchema.safeParse({
     name: formData.get('name'),

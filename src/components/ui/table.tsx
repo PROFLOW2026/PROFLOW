@@ -3,7 +3,7 @@ import { cn } from '@/shared/ui/cn';
 
 export function Table({ className, ...props }: React.TableHTMLAttributes<HTMLTableElement>) {
   return (
-    <div className="w-full overflow-x-auto">
+    <div className="min-w-0 max-w-full w-full overflow-x-auto overscroll-x-contain">
       <table className={cn('w-full caption-bottom border-collapse text-sm', className)} {...props} />
     </div>
   );
@@ -56,7 +56,11 @@ export function TableHead({
 export function TableCell({ className, numeric, ...props }: TableCellProps) {
   return (
     <td
-      className={cn('px-3 py-2.5 align-middle', numeric && 'pf-numeric text-end', className)}
+      className={cn(
+        'px-3 py-2.5 align-middle text-start',
+        numeric && 'pf-numeric text-end',
+        className,
+      )}
       {...props}
     />
   );

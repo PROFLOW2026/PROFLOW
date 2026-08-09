@@ -73,38 +73,40 @@ export default async function ClientsPage({ searchParams }: ClientsPageProps) {
           items={clients}
           getRowKey={(client) => client.id}
           desktop={
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t('list.columns.name')}</TableHead>
-                  <TableHead numeric>{t('list.columns.projects')}</TableHead>
-                  <TableHead>{t('list.columns.status')}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {clients.map((client) => (
-                  <TableRow key={client.id}>
-                    <TableCell>
-                      <Link
-                        href={`/clients/${client.id}`}
-                        className="rounded-sm font-medium hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
-                      >
-                        {client.name}
-                      </Link>
-                    </TableCell>
-                    <TableCell numeric>
-                      <span dir="ltr">{client.projectCount}</span>
-                    </TableCell>
-                    <TableCell>
-                      <StatusBadge
-                        shape={client.status === 'active' ? 'active' : 'archived'}
-                        label={tStatus(client.status)}
-                      />
-                    </TableCell>
+            <div className="overflow-x-auto rounded-lg border border-[var(--pf-border-default)]">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>{t('list.columns.name')}</TableHead>
+                    <TableHead numeric>{t('list.columns.projects')}</TableHead>
+                    <TableHead>{t('list.columns.status')}</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {clients.map((client) => (
+                    <TableRow key={client.id}>
+                      <TableCell>
+                        <Link
+                          href={`/clients/${client.id}`}
+                          className="rounded-sm font-medium hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
+                        >
+                          {client.name}
+                        </Link>
+                      </TableCell>
+                      <TableCell numeric>
+                        <span dir="ltr">{client.projectCount}</span>
+                      </TableCell>
+                      <TableCell>
+                        <StatusBadge
+                          shape={client.status === 'active' ? 'active' : 'archived'}
+                          label={tStatus(client.status)}
+                        />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           }
           renderMobileCard={(client) => (
             <Link
@@ -112,13 +114,14 @@ export default async function ClientsPage({ searchParams }: ClientsPageProps) {
               className="block min-h-11 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
             >
               <div className="flex items-start justify-between gap-2">
-                <span className="font-semibold">{client.name}</span>
+                <span className="min-w-0 flex-1 truncate text-start font-semibold">{client.name}</span>
                 <StatusBadge
+                  className="shrink-0"
                   shape={client.status === 'active' ? 'active' : 'archived'}
                   label={tStatus(client.status)}
                 />
               </div>
-              <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">
+              <p className="mt-1 text-start text-sm text-[var(--pf-text-secondary)]">
                 {t('list.columns.projects')}: <span dir="ltr">{client.projectCount}</span>
               </p>
             </Link>

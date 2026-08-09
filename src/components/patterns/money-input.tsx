@@ -29,8 +29,10 @@ export const MoneyInput = React.forwardRef<HTMLInputElement, MoneyInputProps>(fu
     }
   }
 
+  // Whole control is an LTR island so the currency glyph and inline-start
+  // padding share one direction (avoids RTL start + LTR input mismatch).
   return (
-    <div className="relative">
+    <div className="relative pf-ltr-island" dir="ltr">
       {currencySymbol ? (
         <span
           className="pointer-events-none absolute inset-y-0 start-3 flex items-center text-sm text-[var(--pf-text-muted)]"

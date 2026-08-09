@@ -87,15 +87,30 @@ export default async function VendorDetailPage({
             <CardTitle className="text-base">{t('detail.profileSection')}</CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col gap-1 text-sm">
-            {vendor.email ? <p>{vendor.email}</p> : null}
-            {vendor.phone ? <p>{vendor.phone}</p> : null}
-            {vendor.addressLine1 ? <p>{vendor.addressLine1}{vendor.city ? `, ${vendor.city}` : ''}</p> : null}
+            {vendor.email ? (
+              <p className="text-start" dir="ltr">
+                {vendor.email}
+              </p>
+            ) : null}
+            {vendor.phone ? (
+              <p className="text-start" dir="ltr">
+                {vendor.phone}
+              </p>
+            ) : null}
+            {vendor.addressLine1 ? (
+              <p className="text-start">
+                {vendor.addressLine1}
+                {vendor.city ? `, ${vendor.city}` : ''}
+              </p>
+            ) : null}
             {vendor.parentVendorName ? (
-              <p className="text-[var(--pf-text-secondary)]">
+              <p className="text-start text-[var(--pf-text-secondary)]">
                 {t('detail.parentVendor', { name: vendor.parentVendorName })}
               </p>
             ) : null}
-            {vendor.notes ? <p className="text-[var(--pf-text-secondary)]">{vendor.notes}</p> : null}
+            {vendor.notes ? (
+              <p className="text-start text-[var(--pf-text-secondary)]">{vendor.notes}</p>
+            ) : null}
           </CardContent>
         </Card>
       )}
@@ -118,11 +133,21 @@ export default async function VendorDetailPage({
             <ul className="flex flex-col gap-2">
               {vendor.contacts.map((contact) => (
                 <li key={contact.id} className="rounded-md border border-[var(--pf-border-default)] p-3 text-sm">
-                  <p className="font-medium">{contact.name}</p>
-                  <p className="text-[var(--pf-text-secondary)]">
+                  <p className="text-start font-medium">{contact.name}</p>
+                  <p className="text-start text-[var(--pf-text-secondary)]">
                     {t(`detail.contactRoles.${contact.role}`)}
-                    {contact.email ? ` · ${contact.email}` : ''}
-                    {contact.phone ? ` · ${contact.phone}` : ''}
+                    {contact.email ? (
+                      <>
+                        {' · '}
+                        <span dir="ltr">{contact.email}</span>
+                      </>
+                    ) : null}
+                    {contact.phone ? (
+                      <>
+                        {' · '}
+                        <span dir="ltr">{contact.phone}</span>
+                      </>
+                    ) : null}
                   </p>
                 </li>
               ))}
@@ -143,9 +168,9 @@ export default async function VendorDetailPage({
             <ul className="flex flex-col gap-2">
               {vendor.engagements.map((engagement) => (
                 <li key={engagement.id} className="flex flex-wrap items-center justify-between gap-2 text-sm">
-                  <span>{engagement.projectName}</span>
+                  <span className="min-w-0 flex-1 text-start">{engagement.projectName}</span>
                   {engagement.role ? (
-                    <span className="text-[var(--pf-text-secondary)]">{engagement.role}</span>
+                    <span className="shrink-0 text-[var(--pf-text-secondary)]">{engagement.role}</span>
                   ) : null}
                 </li>
               ))}

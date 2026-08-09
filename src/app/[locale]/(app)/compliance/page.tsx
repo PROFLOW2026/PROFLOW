@@ -148,7 +148,7 @@ export default async function CompliancePage({
           <li key={item.key}>
             <Link
               href={item.href}
-              className="flex min-h-11 items-center justify-between gap-2 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] px-4 py-3 text-sm hover:bg-[var(--pf-bg-muted)]"
+              className="flex min-h-11 items-center justify-between gap-2 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] px-4 py-3 text-sm hover:bg-[var(--pf-bg-muted)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
             >
               <span>{t(`summary.${item.key}`)}</span>
               <span className="font-semibold tabular-nums" dir="ltr">
@@ -224,7 +224,9 @@ export default async function CompliancePage({
                       <TableCell>{t(`subjects.${artifact.subjectType}`)}</TableCell>
                       <TableCell>
                         {artifact.expiresOn ? (
-                          <span dir="ltr">{artifact.expiresOn}</span>
+                          <span className="pf-ltr-island" dir="ltr">
+                            {artifact.expiresOn}
+                          </span>
                         ) : (
                           t('list.noExpiry')
                         )}
@@ -256,10 +258,10 @@ export default async function CompliancePage({
           renderMobileCard={(artifact) => (
             <Link
               href={`/compliance/${artifact.id}`}
-              className="block min-h-11 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4"
+              className="block min-h-11 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
             >
               <div className="flex items-start justify-between gap-2">
-                <span className="font-semibold">{artifact.name}</span>
+                <span className="min-w-0 flex-1 font-semibold">{artifact.name}</span>
                 <StatusBadge
                   shape={complianceStatusShape(artifact.status)}
                   label={tStatus(artifact.status)}
@@ -270,7 +272,9 @@ export default async function CompliancePage({
                 {artifact.expiresOn ? (
                   <>
                     {' · '}
-                    <span dir="ltr">{artifact.expiresOn}</span>
+                    <span className="pf-ltr-island" dir="ltr">
+                      {artifact.expiresOn}
+                    </span>
                   </>
                 ) : null}
               </p>

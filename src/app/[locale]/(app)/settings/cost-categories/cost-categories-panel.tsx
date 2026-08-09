@@ -87,7 +87,7 @@ function CreateCategoryForm({
   const [family, setFamily] = useState<string>(COST_FAMILIES[0] ?? '');
 
   return (
-    <form action={createAction} className="mt-3 flex max-w-md flex-col gap-3">
+    <form action={createAction} className="mt-3 flex w-full max-w-md flex-col gap-3">
       {createState.error ? <Alert tone="danger">{createState.error}</Alert> : null}
       {createState.ok ? (
         <Alert tone="success" role="status" aria-live="polite">
@@ -151,7 +151,7 @@ function CategoryRow({ category, canEdit }: { category: CostCategoryRow; canEdit
           <Input
             name="name"
             defaultValue={category.name}
-            className="max-w-xs"
+            className="min-w-0 w-full max-w-xs flex-1"
             aria-label={renameLabel}
           />
           <Button type="submit" size="sm" variant="secondary" loading={renamePending}>

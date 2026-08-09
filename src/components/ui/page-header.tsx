@@ -20,17 +20,21 @@ export function PageHeader({
   className,
 }: PageHeaderProps) {
   return (
-    <header className={cn('flex flex-col gap-3', className)}>
+    <header className={cn('flex min-w-0 max-w-full flex-col gap-3', className)}>
       {breadcrumb}
-      <div className="flex flex-wrap items-start justify-between gap-3">
+      <div className="flex min-w-0 max-w-full flex-wrap items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
-          <h1 className="truncate text-xl font-semibold sm:text-2xl">{title}</h1>
+          <h1 className="break-words text-xl font-semibold sm:text-2xl">{title}</h1>
           {description ? (
-            <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">{description}</p>
+            <p className="mt-1 break-words text-sm text-[var(--pf-text-secondary)]">{description}</p>
           ) : null}
-          {meta ? <div className="mt-2 flex flex-wrap items-center gap-2">{meta}</div> : null}
+          {meta ? <div className="mt-2 flex min-w-0 flex-wrap items-center gap-2">{meta}</div> : null}
         </div>
-        {actions ? <div className="flex shrink-0 items-center gap-2">{actions}</div> : null}
+        {actions ? (
+          <div className="flex min-w-0 w-full max-w-full flex-wrap items-center gap-2 sm:w-auto sm:max-w-[min(100%,28rem)] sm:justify-end lg:max-w-none">
+            {actions}
+          </div>
+        ) : null}
       </div>
     </header>
   );

@@ -19,7 +19,7 @@ export function ClientCreateForm() {
   const [showMore, setShowMore] = useState(false);
 
   return (
-    <form action={formAction} className="mx-auto flex max-w-lg flex-col gap-4">
+    <form action={formAction} className="mx-auto flex w-full max-w-lg flex-col gap-4">
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
 
       <Field label={t('create.nameLabel')} required error={state.fieldErrors?.name}>
@@ -34,7 +34,7 @@ export function ClientCreateForm() {
         )}
       </Field>
 
-      <Button type="button" variant="ghost" onClick={() => setShowMore((open) => !open)}>
+      <Button type="button" variant="ghost" className="self-start" onClick={() => setShowMore((open) => !open)}>
         {t('create.moreDetails')}
       </Button>
 
@@ -44,13 +44,13 @@ export function ClientCreateForm() {
             {(control) => <Input {...control} name="legalName" />}
           </Field>
           <Field label={t('create.emailLabel')} optionalLabel={tCommon('labels.optional')}>
-            {(control) => <Input {...control} name="email" type="email" />}
+            {(control) => <Input {...control} name="email" type="email" dir="ltr" />}
           </Field>
           <Field label={t('create.phoneLabel')} optionalLabel={tCommon('labels.optional')}>
-            {(control) => <Input {...control} name="phone" type="tel" />}
+            {(control) => <Input {...control} name="phone" type="tel" dir="ltr" />}
           </Field>
           <Field label={t('create.websiteLabel')} optionalLabel={tCommon('labels.optional')}>
-            {(control) => <Input {...control} name="website" type="url" />}
+            {(control) => <Input {...control} name="website" type="url" dir="ltr" />}
           </Field>
           <Field label={t('create.addressLine1Label')} optionalLabel={tCommon('labels.optional')}>
             {(control) => <Input {...control} name="addressLine1" />}

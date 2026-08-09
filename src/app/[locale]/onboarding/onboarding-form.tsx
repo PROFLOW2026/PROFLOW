@@ -36,7 +36,7 @@ export function OnboardingForm() {
   );
 
   return (
-    <form action={formAction} className="flex flex-col gap-4">
+    <form action={formAction} className="flex w-full min-w-0 flex-col gap-4">
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
 
       <Field label={t('organizationName')} required>

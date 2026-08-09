@@ -39,14 +39,14 @@ export async function ProjectChangesPanel({ projectId }: ProjectChangesPanelProp
   const listItems = items.map((item) => ({ ...item, projectName: '' }));
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
+    <div className="flex min-w-0 flex-col gap-6">
+      <div className="flex min-w-0 flex-wrap items-center justify-between gap-3">
+        <div className="min-w-0 text-start">
           <h2 className="text-lg font-semibold">{t('panel.title')}</h2>
           <p className="text-sm text-[var(--pf-text-secondary)]">{t('panel.description')}</p>
         </div>
         {canManage ? (
-          <Button asChild size="sm">
+          <Button asChild size="sm" className="max-w-full shrink-0">
             <Link href={`/changes/new?projectId=${projectId}`}>
               <Plus aria-hidden />
               {t('panel.new')}

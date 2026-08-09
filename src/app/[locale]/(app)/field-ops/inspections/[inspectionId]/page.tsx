@@ -89,7 +89,7 @@ export default async function InspectionDetailPage({
         breadcrumb={
           <Link
             href="/field-ops/inspections"
-            className="text-sm text-[var(--pf-text-secondary)] hover:underline"
+            className="text-sm text-[var(--pf-text-secondary)] hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
           >
             {tCommon('actions.back')}
           </Link>
@@ -117,10 +117,24 @@ export default async function InspectionDetailPage({
           <DetailRow label={t('createInspection.workPackageLabel')} value={workPackageName} />
         ) : null}
         {item.scheduledOn ? (
-          <DetailRow label={t('createInspection.scheduledOnLabel')} value={item.scheduledOn} />
+          <DetailRow
+            label={t('createInspection.scheduledOnLabel')}
+            value={
+              <span className="pf-ltr-island" dir="ltr">
+                {item.scheduledOn}
+              </span>
+            }
+          />
         ) : null}
         {item.completedOn ? (
-          <DetailRow label={t('list.columns.completedOn')} value={item.completedOn} />
+          <DetailRow
+            label={t('list.columns.completedOn')}
+            value={
+              <span className="pf-ltr-island" dir="ltr">
+                {item.completedOn}
+              </span>
+            }
+          />
         ) : null}
         {item.result ? <DetailRow label={t('list.columns.result')} value={item.result} /> : null}
         {item.notes ? (

@@ -29,13 +29,15 @@ export function PromoteVendorPanel({ expenseId, supplierName }: PromoteVendorPan
   }
 
   return (
-    <Card>
+    <Card className="min-w-0">
       <CardHeader>
-        <CardTitle>{t('title')}</CardTitle>
-        <CardDescription>{t('description', { name: supplierName })}</CardDescription>
+        <CardTitle className="text-start">{t('title')}</CardTitle>
+        <CardDescription className="break-words text-start">
+          {t('description', { name: supplierName })}
+        </CardDescription>
       </CardHeader>
       <CardContent>
-        <form action={formAction} className="flex flex-col gap-3">
+        <form action={formAction} className="flex min-w-0 flex-col gap-3">
           <input type="hidden" name="expenseId" value={expenseId} />
           <input type="hidden" name="supplierName" value={supplierName} />
           {state.error ? <Alert tone="danger">{state.error}</Alert> : null}

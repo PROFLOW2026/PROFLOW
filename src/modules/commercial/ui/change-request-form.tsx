@@ -69,7 +69,7 @@ export function ChangeRequestForm({
   const resolvedProjectId = projectId ?? selectedProjectId;
 
   return (
-    <form action={formAction} className="flex max-w-xl flex-col gap-4">
+    <form action={formAction} className="mx-auto flex w-full max-w-xl flex-col gap-4">
       {resolvedProjectId ? (
         <input type="hidden" name="projectId" value={resolvedProjectId} />
       ) : null}
@@ -150,6 +150,7 @@ export function ChangeRequestForm({
             name="requestedAmount"
             inputMode="decimal"
             defaultValue={initial?.requestedAmount ?? ''}
+            dir="ltr"
           />
         )}
       </Field>

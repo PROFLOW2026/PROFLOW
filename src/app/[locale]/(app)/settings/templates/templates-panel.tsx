@@ -29,12 +29,12 @@ export function TemplatesSettingsPanel({
   const t = useTranslations('settings.templates');
 
   return (
-    <div className="flex flex-col gap-8">
-      <p className="text-sm text-[var(--pf-text-secondary)]">{t('subtitle')}</p>
+    <div className="flex w-full min-w-0 flex-col gap-8">
+      <p className="text-start text-sm text-[var(--pf-text-secondary)]">{t('subtitle')}</p>
 
-      <section className="flex flex-col gap-3">
-        <h2 className="text-base font-semibold">{t('projectTemplates')}</h2>
-        <p className="text-sm text-[var(--pf-text-secondary)]">{t('projectTemplatesHint')}</p>
+      <section className="flex min-w-0 flex-col gap-3">
+        <h2 className="text-start text-base font-semibold">{t('projectTemplates')}</h2>
+        <p className="text-start text-sm text-[var(--pf-text-secondary)]">{t('projectTemplatesHint')}</p>
         {bag.projectTemplates.length === 0 ? (
           <EmptyState title={t('emptyProject')} description={t('projectTemplatesHint')} />
         ) : (
@@ -42,15 +42,15 @@ export function TemplatesSettingsPanel({
             {bag.projectTemplates.map((template) => (
               <li
                 key={template.id}
-                className="rounded-md border border-[var(--pf-border-default)] px-3 py-2 text-sm"
+                className="min-w-0 rounded-md border border-[var(--pf-border-default)] px-3 py-2 text-sm"
               >
                 <div className="flex flex-wrap items-start justify-between gap-2">
-                  <div>
-                    <p className="font-medium">{template.name}</p>
+                  <div className="min-w-0 flex-1 text-start">
+                    <p className="font-medium break-words">{template.name}</p>
                     {template.description ? (
-                      <p className="text-[var(--pf-text-secondary)]">{template.description}</p>
+                      <p className="break-words text-[var(--pf-text-secondary)]">{template.description}</p>
                     ) : null}
-                    <p className="mt-1 text-[var(--pf-text-secondary)]">
+                    <p className="mt-1 break-words text-[var(--pf-text-secondary)]">
                       {template.workPackages.map((pkg) => pkg.name).join(', ')}
                     </p>
                   </div>
@@ -80,9 +80,9 @@ export function TemplatesSettingsPanel({
         {canEdit ? <UpsertProjectTemplateForm /> : null}
       </section>
 
-      <section className="flex flex-col gap-3 border-t border-[var(--pf-border-default)] pt-6">
-        <h2 className="text-base font-semibold">{t('phasePacks')}</h2>
-        <p className="text-sm text-[var(--pf-text-secondary)]">{t('phasePacksHint')}</p>
+      <section className="flex min-w-0 flex-col gap-3 border-t border-[var(--pf-border-default)] pt-6">
+        <h2 className="text-start text-base font-semibold">{t('phasePacks')}</h2>
+        <p className="text-start text-sm text-[var(--pf-text-secondary)]">{t('phasePacksHint')}</p>
         {bag.phasePacks.length === 0 ? (
           <EmptyState title={t('emptyPhase')} description={t('phasePacksHint')} />
         ) : (
@@ -90,11 +90,11 @@ export function TemplatesSettingsPanel({
             {bag.phasePacks.map((pack) => (
               <li
                 key={pack.id}
-                className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-[var(--pf-border-default)] px-3 py-2 text-sm"
+                className="flex min-w-0 flex-wrap items-center justify-between gap-2 rounded-md border border-[var(--pf-border-default)] px-3 py-2 text-sm"
               >
-                <div>
-                  <p className="font-medium">{pack.name}</p>
-                  <p className="text-[var(--pf-text-secondary)]">{pack.phases.join(', ')}</p>
+                <div className="min-w-0 flex-1 text-start">
+                  <p className="font-medium break-words">{pack.name}</p>
+                  <p className="break-words text-[var(--pf-text-secondary)]">{pack.phases.join(', ')}</p>
                 </div>
                 {canEdit ? (
                   <ConfirmAction
@@ -121,9 +121,9 @@ export function TemplatesSettingsPanel({
         {canEdit ? <UpsertPhasePackForm /> : null}
       </section>
 
-      <section className="flex flex-col gap-3 border-t border-[var(--pf-border-default)] pt-6">
-        <h2 className="text-base font-semibold">{t('wpPacks')}</h2>
-        <p className="text-sm text-[var(--pf-text-secondary)]">{t('wpPacksHint')}</p>
+      <section className="flex min-w-0 flex-col gap-3 border-t border-[var(--pf-border-default)] pt-6">
+        <h2 className="text-start text-base font-semibold">{t('wpPacks')}</h2>
+        <p className="text-start text-sm text-[var(--pf-text-secondary)]">{t('wpPacksHint')}</p>
         {bag.workPackagePacks.length === 0 ? (
           <EmptyState title={t('emptyWp')} description={t('wpPacksHint')} />
         ) : (
@@ -131,11 +131,11 @@ export function TemplatesSettingsPanel({
             {bag.workPackagePacks.map((pack) => (
               <li
                 key={pack.id}
-                className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-[var(--pf-border-default)] px-3 py-2 text-sm"
+                className="flex min-w-0 flex-wrap items-center justify-between gap-2 rounded-md border border-[var(--pf-border-default)] px-3 py-2 text-sm"
               >
-                <div>
-                  <p className="font-medium">{pack.name}</p>
-                  <p className="text-[var(--pf-text-secondary)]">
+                <div className="min-w-0 flex-1 text-start">
+                  <p className="font-medium break-words">{pack.name}</p>
+                  <p className="break-words text-[var(--pf-text-secondary)]">
                     {pack.workPackageNames.join(', ')}
                   </p>
                 </div>
@@ -176,7 +176,7 @@ function UpsertProjectTemplateForm() {
   );
 
   return (
-    <form action={action} className="flex max-w-lg flex-col gap-3 rounded-md border border-dashed border-[var(--pf-border-default)] p-3">
+    <form action={action} className="flex w-full max-w-lg flex-col gap-3 rounded-md border border-dashed border-[var(--pf-border-default)] p-3">
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
       {state.ok ? (
         <Alert tone="success" role="status" aria-live="polite">
@@ -196,7 +196,7 @@ function UpsertProjectTemplateForm() {
             name="workPackagesText"
             required
             rows={4}
-            className="w-full rounded-md border border-[var(--pf-border-default)] bg-transparent px-3 py-2 text-sm"
+            className="w-full rounded-md border border-[var(--pf-border-default)] bg-transparent px-3 py-2 text-start text-sm"
             placeholder={t('workPackagesPlaceholder')}
           />
         )}
@@ -207,7 +207,7 @@ function UpsertProjectTemplateForm() {
             {...props}
             name="milestonesText"
             rows={3}
-            className="w-full rounded-md border border-[var(--pf-border-default)] bg-transparent px-3 py-2 text-sm"
+            className="w-full rounded-md border border-[var(--pf-border-default)] bg-transparent px-3 py-2 text-start text-sm"
             placeholder={t('milestonesPlaceholder')}
           />
         )}
@@ -227,7 +227,7 @@ function UpsertPhasePackForm() {
   );
 
   return (
-    <form action={action} className="flex max-w-lg flex-col gap-3 rounded-md border border-dashed border-[var(--pf-border-default)] p-3">
+    <form action={action} className="flex w-full max-w-lg flex-col gap-3 rounded-md border border-dashed border-[var(--pf-border-default)] p-3">
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
       {state.ok ? (
         <Alert tone="success" role="status" aria-live="polite">
@@ -244,7 +244,7 @@ function UpsertPhasePackForm() {
             name="phasesText"
             required
             rows={3}
-            className="w-full rounded-md border border-[var(--pf-border-default)] bg-transparent px-3 py-2 text-sm"
+            className="w-full rounded-md border border-[var(--pf-border-default)] bg-transparent px-3 py-2 text-start text-sm"
             placeholder={t('phasesPlaceholder')}
           />
         )}
@@ -264,7 +264,7 @@ function UpsertWpPackForm() {
   );
 
   return (
-    <form action={action} className="flex max-w-lg flex-col gap-3 rounded-md border border-dashed border-[var(--pf-border-default)] p-3">
+    <form action={action} className="flex w-full max-w-lg flex-col gap-3 rounded-md border border-dashed border-[var(--pf-border-default)] p-3">
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
       {state.ok ? (
         <Alert tone="success" role="status" aria-live="polite">
@@ -281,7 +281,7 @@ function UpsertWpPackForm() {
             name="workPackagesText"
             required
             rows={3}
-            className="w-full rounded-md border border-[var(--pf-border-default)] bg-transparent px-3 py-2 text-sm"
+            className="w-full rounded-md border border-[var(--pf-border-default)] bg-transparent px-3 py-2 text-start text-sm"
             placeholder={t('wpNamesPlaceholder')}
           />
         )}

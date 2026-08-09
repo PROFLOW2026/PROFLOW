@@ -4,6 +4,7 @@ import { getTranslations } from 'next-intl/server';
 import { PageHeader } from '@/components/ui/page-header';
 import { EmptyState } from '@/components/ui/empty-state';
 import { StatusBadge, type StatusShape } from '@/components/ui/status-badge';
+import { ResponsiveTable } from '@/components/patterns/responsive-table';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import {
   getAssetById,
@@ -110,7 +111,7 @@ export default async function AssetDetailPage({
         title={asset.name}
         description={t(`kinds.${asset.assetKind}`)}
         breadcrumb={
-          <Link href="/assets" className="text-sm text-[var(--pf-text-secondary)] hover:underline">
+          <Link href="/assets" className="text-sm text-[var(--pf-text-secondary)] hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]">
             {t('title')}
           </Link>
         }
@@ -124,7 +125,15 @@ export default async function AssetDetailPage({
         <dl className="mt-2 grid gap-2 text-sm sm:grid-cols-2 lg:grid-cols-3">
           <div>
             <dt className="text-[var(--pf-text-secondary)]">{t('detail.identifier')}</dt>
-            <dd>{asset.identifier ?? '—'}</dd>
+            <dd>
+              {asset.identifier ? (
+                <span className="pf-ltr-island pf-entity-string" dir="ltr">
+                  {asset.identifier}
+                </span>
+              ) : (
+                '—'
+              )}
+            </dd>
           </div>
           <div>
             <dt className="text-[var(--pf-text-secondary)]">{t('detail.manufacturer')}</dt>
@@ -136,7 +145,15 @@ export default async function AssetDetailPage({
           </div>
           <div>
             <dt className="text-[var(--pf-text-secondary)]">{t('detail.serialNumber')}</dt>
-            <dd>{asset.serialNumber ?? '—'}</dd>
+            <dd>
+              {asset.serialNumber ? (
+                <span className="pf-ltr-island pf-entity-string" dir="ltr">
+                  {asset.serialNumber}
+                </span>
+              ) : (
+                '—'
+              )}
+            </dd>
           </div>
           <div>
             <dt className="text-[var(--pf-text-secondary)]">{t('detail.assignedProject')}</dt>
@@ -175,15 +192,39 @@ export default async function AssetDetailPage({
           <dl className="mt-2 grid gap-2 text-sm sm:grid-cols-3">
             <div>
               <dt className="text-[var(--pf-text-secondary)]">{t('createAsset.plateNumberLabel')}</dt>
-              <dd>{fleet.plateNumber ?? '—'}</dd>
+              <dd>
+                {fleet.plateNumber ? (
+                  <span className="pf-ltr-island pf-entity-string" dir="ltr">
+                    {fleet.plateNumber}
+                  </span>
+                ) : (
+                  '—'
+                )}
+              </dd>
             </div>
             <div>
               <dt className="text-[var(--pf-text-secondary)]">{t('createAsset.vinLabel')}</dt>
-              <dd>{fleet.vin ?? '—'}</dd>
+              <dd>
+                {fleet.vin ? (
+                  <span className="pf-ltr-island pf-entity-string" dir="ltr">
+                    {fleet.vin}
+                  </span>
+                ) : (
+                  '—'
+                )}
+              </dd>
             </div>
             <div>
               <dt className="text-[var(--pf-text-secondary)]">{t('createAsset.odometerLabel')}</dt>
-              <dd>{fleet.odometer ?? '—'}</dd>
+              <dd>
+                {fleet.odometer ? (
+                  <span className="pf-numeric" dir="ltr">
+                    {fleet.odometer}
+                  </span>
+                ) : (
+                  '—'
+                )}
+              </dd>
             </div>
             {fleet.notes ? (
               <div className="sm:col-span-3">
@@ -217,54 +258,114 @@ export default async function AssetDetailPage({
         {loaded.maintenance.length === 0 ? (
           <EmptyState size="sm" title={t('detail.emptyMaintenance')} description={t('detail.maintenanceHint')} className="py-6" />
         ) : (
-          <div className="overflow-x-auto rounded-lg border border-[var(--pf-border-default)]">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t('detail.maintenanceTitle')}</TableHead>
-                  <TableHead>{t('detail.maintenanceStatus')}</TableHead>
-                  <TableHead>{t('detail.performedOn')}</TableHead>
-                  <TableHead>{t('detail.vendor')}</TableHead>
-                  <TableHead>{t('detail.costAmount')}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {loaded.maintenance.map((row) => (
-                  <TableRow key={row.id}>
-                    <TableCell className="font-medium">{row.title}</TableCell>
-                    <TableCell>
-                      {loaded.canManage ? (
-                        <MaintenanceStatusForm
-                          assetId={asset.id}
-                          maintenanceRecordId={row.id}
-                          currentStatus={row.status}
-                        />
-                      ) : (
-                        <StatusBadge
-                          shape={maintenanceShape(row.status)}
-                          label={tMaintStatus(row.status)}
-                        />
-                      )}
-                    </TableCell>
-                    <TableCell>{row.performedOn ?? '—'}</TableCell>
-                    <TableCell>
-                      {row.vendorId ? (vendorNameById.get(row.vendorId) ?? '—') : '—'}
-                    </TableCell>
-                    <TableCell>
-                      {row.costAmount
-                        ? `${row.costAmount}${row.currency ? ` ${row.currency}` : ''}`
-                        : '—'}
-                      {row.costAmount ? (
-                        <span className="mt-0.5 block text-xs text-[var(--pf-text-secondary)]">
-                          {t('detail.costNotExpense')}
-                        </span>
-                      ) : null}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+          <ResponsiveTable
+            items={loaded.maintenance}
+            getRowKey={(row) => row.id}
+            desktop={
+              <div className="overflow-x-auto rounded-lg border border-[var(--pf-border-default)]">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>{t('detail.maintenanceTitle')}</TableHead>
+                      <TableHead>{t('detail.maintenanceStatus')}</TableHead>
+                      <TableHead>{t('detail.performedOn')}</TableHead>
+                      <TableHead>{t('detail.vendor')}</TableHead>
+                      <TableHead numeric>{t('detail.costAmount')}</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {loaded.maintenance.map((row) => (
+                      <TableRow key={row.id}>
+                        <TableCell className="font-medium">{row.title}</TableCell>
+                        <TableCell>
+                          {loaded.canManage ? (
+                            <MaintenanceStatusForm
+                              assetId={asset.id}
+                              maintenanceRecordId={row.id}
+                              currentStatus={row.status}
+                            />
+                          ) : (
+                            <StatusBadge
+                              shape={maintenanceShape(row.status)}
+                              label={tMaintStatus(row.status)}
+                            />
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {row.performedOn ? (
+                            <span className="pf-ltr-island" dir="ltr">
+                              {row.performedOn}
+                            </span>
+                          ) : (
+                            '—'
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {row.vendorId ? (vendorNameById.get(row.vendorId) ?? '—') : '—'}
+                        </TableCell>
+                        <TableCell numeric>
+                          {row.costAmount ? (
+                            <>
+                              <span dir="ltr">
+                                {`${row.costAmount}${row.currency ? ` ${row.currency}` : ''}`}
+                              </span>
+                              <span className="mt-0.5 block text-xs text-[var(--pf-text-secondary)]">
+                                {t('detail.costNotExpense')}
+                              </span>
+                            </>
+                          ) : (
+                            '—'
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            }
+            renderMobileCard={(row) => (
+              <div className="flex min-h-11 flex-col gap-2 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4">
+                <div className="flex items-start justify-between gap-2">
+                  <p className="min-w-0 flex-1 font-semibold">{row.title}</p>
+                  {loaded.canManage ? null : (
+                    <StatusBadge
+                      shape={maintenanceShape(row.status)}
+                      label={tMaintStatus(row.status)}
+                    />
+                  )}
+                </div>
+                <p className="text-sm text-[var(--pf-text-secondary)]">
+                  {row.vendorId ? (vendorNameById.get(row.vendorId) ?? '—') : '—'}
+                  {row.performedOn ? (
+                    <>
+                      {' · '}
+                      <span className="pf-ltr-island" dir="ltr">
+                        {row.performedOn}
+                      </span>
+                    </>
+                  ) : null}
+                  {row.costAmount ? (
+                    <>
+                      {' · '}
+                      <span className="pf-numeric" dir="ltr">
+                        {`${row.costAmount}${row.currency ? ` ${row.currency}` : ''}`}
+                      </span>
+                    </>
+                  ) : null}
+                </p>
+                {row.costAmount ? (
+                  <p className="text-xs text-[var(--pf-text-secondary)]">{t('detail.costNotExpense')}</p>
+                ) : null}
+                {loaded.canManage ? (
+                  <MaintenanceStatusForm
+                    assetId={asset.id}
+                    maintenanceRecordId={row.id}
+                    currentStatus={row.status}
+                  />
+                ) : null}
+              </div>
+            )}
+          />
         )}
 
         {loaded.canManage ? (

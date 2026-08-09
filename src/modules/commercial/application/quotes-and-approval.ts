@@ -41,6 +41,7 @@ import {
   type CreateQuoteVersionInput,
 } from '../validation/schemas';
 import { computeQuoteTotals } from './change-requests';
+import { formatChangeOrderContractReason } from '@/modules/projects/domain/contract-value-reason';
 
 export async function createQuoteVersion(
   context: OrgContext,
@@ -330,7 +331,7 @@ export async function approveChangeRequest(
     currency: changeRequest.currency,
     changeOrderId: changeOrder.id,
     effectiveDate,
-    reason: `Change order ${reference}`,
+    reason: formatChangeOrderContractReason(reference),
     actorUserId: context.userId,
   });
 

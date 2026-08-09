@@ -25,8 +25,8 @@ export function ComplianceListFilters({
   const tCommon = useTranslations('common');
 
   return (
-    <form method="get" role="search" className="flex flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-end">
-      <Field label={tCommon('actions.search')} className="sm:max-w-xs sm:flex-1">
+    <form method="get" role="search" className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
+      <Field label={tCommon('actions.search')} className="w-full sm:max-w-xs sm:flex-1">
         {(control) => (
           <Input
             {...control}
@@ -38,13 +38,13 @@ export function ComplianceListFilters({
         )}
       </Field>
 
-      <Field label={t('list.filters.kind')} className="sm:w-44">
+      <Field label={t('list.filters.kind')} className="w-full sm:w-44">
         {(control) => (
           <select
             {...control}
             name="kind"
             defaultValue={initialKind || 'all'}
-            className="flex h-11 w-full rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] px-3 text-sm"
+            className="flex h-11 w-full rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] px-3 text-sm focus:border-[var(--pf-border-focus)] focus:outline-2 focus:outline-offset-0 focus:outline-[var(--pf-focus-ring)]"
           >
             <option value="all">{t('list.filters.all')}</option>
             {ARTIFACT_KINDS.map((kind) => (
@@ -56,13 +56,13 @@ export function ComplianceListFilters({
         )}
       </Field>
 
-      <Field label={t('list.filters.status')} className="sm:w-44">
+      <Field label={t('list.filters.status')} className="w-full sm:w-44">
         {(control) => (
           <select
             {...control}
             name="status"
             defaultValue={initialStatus || 'all'}
-            className="flex h-11 w-full rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] px-3 text-sm"
+            className="flex h-11 w-full rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] px-3 text-sm focus:border-[var(--pf-border-focus)] focus:outline-2 focus:outline-offset-0 focus:outline-[var(--pf-focus-ring)]"
           >
             <option value="all">{t('list.filters.all')}</option>
             {ARTIFACT_STATUSES.map((status) => (
@@ -74,13 +74,13 @@ export function ComplianceListFilters({
         )}
       </Field>
 
-      <Field label={t('list.filters.evidence')} className="sm:w-44">
+      <Field label={t('list.filters.evidence')} className="w-full sm:w-44">
         {(control) => (
           <select
             {...control}
             name="evidence"
             defaultValue={initialEvidence || 'all'}
-            className="flex h-11 w-full rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] px-3 text-sm"
+            className="flex h-11 w-full rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] px-3 text-sm focus:border-[var(--pf-border-focus)] focus:outline-2 focus:outline-offset-0 focus:outline-[var(--pf-focus-ring)]"
           >
             <option value="all">{t('list.filters.all')}</option>
             <option value="missing">{t('list.filters.evidenceMissing')}</option>
@@ -89,13 +89,13 @@ export function ComplianceListFilters({
         )}
       </Field>
 
-      <Field label={t('list.filters.subject')} className="sm:w-44">
+      <Field label={t('list.filters.subject')} className="w-full sm:w-44">
         {(control) => (
           <select
             {...control}
             name="subject"
             defaultValue={initialSubject || 'all'}
-            className="flex h-11 w-full rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] px-3 text-sm"
+            className="flex h-11 w-full rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] px-3 text-sm focus:border-[var(--pf-border-focus)] focus:outline-2 focus:outline-offset-0 focus:outline-[var(--pf-focus-ring)]"
           >
             <option value="all">{t('list.filters.all')}</option>
             {SUBJECT_TYPES.map((subject) => (
@@ -107,7 +107,7 @@ export function ComplianceListFilters({
         )}
       </Field>
 
-      <Button type="submit" variant="secondary">
+      <Button type="submit" variant="secondary" className="min-h-11 w-full sm:w-auto">
         {tCommon('actions.search')}
       </Button>
     </form>

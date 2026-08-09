@@ -54,69 +54,71 @@ export async function TimeEntriesTable({ entries, showCosts, canLogTime }: TimeE
       items={entries}
       getRowKey={(entry) => entry.id}
       desktop={
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>{t('time.columns.date')}</TableHead>
-              <TableHead>{t('time.columns.employee')}</TableHead>
-              <TableHead>{t('time.columns.target')}</TableHead>
-              <TableHead numeric>{t('time.columns.hours')}</TableHead>
-              {showCosts ? <TableHead numeric>{t('time.columns.cost')}</TableHead> : null}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {entries.map((entry) => (
-              <TableRow key={entry.id}>
-                <TableCell>
-                  <span dir="ltr">{formatBusinessDate(businessDate(entry.workDate), locale, 'short')}</span>
-                </TableCell>
-                <TableCell>{entry.employeeName}</TableCell>
-                <TableCell>
-                  {entry.kind === 'project'
-                    ? entry.projectName ?? t('time.unknownProject')
-                    : entry.timeCodeName ?? t('time.nonProject')}
-                  {entry.workPackageName ? (
-                    <p className="text-xs text-[var(--pf-text-muted)]">{entry.workPackageName}</p>
-                  ) : null}
-                </TableCell>
-                <TableCell numeric>{entry.hours}</TableCell>
-                {showCosts ? (
-                  <TableCell numeric>
-                    {entry.costAmount && entry.costCurrency ? (
-                      <MoneyText
-                        value={
-                          fromNumericString(entry.costAmount, entry.costCurrency) ?? {
-                            amount: entry.costAmount,
-                            currency: entry.costCurrency,
-                          }
-                        }
-                      />
-                    ) : (
-                      <span className="text-[var(--pf-text-muted)]">{t('time.noCost')}</span>
-                    )}
-                  </TableCell>
-                ) : null}
+        <div className="overflow-x-auto rounded-lg border border-[var(--pf-border-default)]">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>{t('time.columns.date')}</TableHead>
+                <TableHead>{t('time.columns.employee')}</TableHead>
+                <TableHead>{t('time.columns.target')}</TableHead>
+                <TableHead numeric>{t('time.columns.hours')}</TableHead>
+                {showCosts ? <TableHead numeric>{t('time.columns.cost')}</TableHead> : null}
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {entries.map((entry) => (
+                <TableRow key={entry.id}>
+                  <TableCell>
+                    <span dir="ltr">{formatBusinessDate(businessDate(entry.workDate), locale, 'short')}</span>
+                  </TableCell>
+                  <TableCell>{entry.employeeName}</TableCell>
+                  <TableCell>
+                    {entry.kind === 'project'
+                      ? entry.projectName ?? t('time.unknownProject')
+                      : entry.timeCodeName ?? t('time.nonProject')}
+                    {entry.workPackageName ? (
+                      <p className="text-xs text-[var(--pf-text-muted)]">{entry.workPackageName}</p>
+                    ) : null}
+                  </TableCell>
+                  <TableCell numeric>{entry.hours}</TableCell>
+                  {showCosts ? (
+                    <TableCell numeric>
+                      {entry.costAmount && entry.costCurrency ? (
+                        <MoneyText
+                          value={
+                            fromNumericString(entry.costAmount, entry.costCurrency) ?? {
+                              amount: entry.costAmount,
+                              currency: entry.costCurrency,
+                            }
+                          }
+                        />
+                      ) : (
+                        <span className="text-[var(--pf-text-muted)]">{t('time.noCost')}</span>
+                      )}
+                    </TableCell>
+                  ) : null}
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       }
       renderMobileCard={(entry) => (
         <div className="min-h-11 rounded-lg border border-[var(--pf-border-default)] p-4">
           <div className="flex items-start justify-between gap-2">
-            <div>
-              <p className="font-medium">{entry.employeeName}</p>
+            <div className="min-w-0 flex-1 text-start">
+              <p className="truncate font-medium">{entry.employeeName}</p>
               <p className="text-xs text-[var(--pf-text-muted)]" dir="ltr">
                 {formatBusinessDate(businessDate(entry.workDate), locale, 'short')}
               </p>
             </div>
-            <span className="pf-numeric text-sm font-semibold">
+            <span className="shrink-0 pf-numeric text-sm font-semibold">
               {entry.hours} {t('time.hoursAbbrev')}
             </span>
           </div>
-          <p className="mt-2 text-sm text-[var(--pf-text-secondary)]">{entryTarget(entry, t)}</p>
+          <p className="mt-2 text-start text-sm text-[var(--pf-text-secondary)]">{entryTarget(entry, t)}</p>
           {showCosts && entry.costAmount && entry.costCurrency ? (
-            <p className="mt-1 text-sm">
+            <p className="mt-1 text-start text-sm">
               <MoneyText
                 value={
                   fromNumericString(entry.costAmount, entry.costCurrency) ?? {

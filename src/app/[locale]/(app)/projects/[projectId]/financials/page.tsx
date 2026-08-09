@@ -29,7 +29,7 @@ export default async function ProjectFinancialsPage({ params }: ProjectFinancial
   const detail = await withOrgContext((context) => getProjectDetail(context, projectId));
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex min-w-0 max-w-full flex-col gap-6">
       <PageHeader
         title={detail.project.name}
         description={

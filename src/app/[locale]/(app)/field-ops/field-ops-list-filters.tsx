@@ -58,7 +58,7 @@ export function PunchListFilters({
         )}
       </Field>
 
-      <Button type="submit" variant="secondary">
+      <Button type="submit" variant="secondary" className="min-h-11 w-full sm:w-auto">
         {tCommon('actions.filter')}
       </Button>
     </form>
@@ -98,7 +98,7 @@ export function InspectionListFilters({
         )}
       </Field>
 
-      <Button type="submit" variant="secondary">
+      <Button type="submit" variant="secondary" className="min-h-11 w-full sm:w-auto">
         {tCommon('actions.filter')}
       </Button>
     </form>

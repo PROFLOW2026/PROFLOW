@@ -57,7 +57,7 @@ export default async function ApBillsPage() {
 
   if (!canRead) {
     return (
-      <div className="flex flex-col gap-6">
+      <div className="flex min-w-0 flex-col gap-6">
         <PageHeader title={t('title')} description={t('description')} />
         <ProcurementSectionNav active="ap" />
         <EmptyState title={t('empty.noAccess.title')} description={t('empty.noAccess.body')} />
@@ -66,13 +66,13 @@ export default async function ApBillsPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex min-w-0 flex-col gap-6">
       <PageHeader
         title={t('title')}
         description={t('description')}
         actions={
           canManage ? (
-            <Button asChild>
+            <Button asChild className="max-w-full">
               <Link href="/procurement/ap/new">
                 <Plus aria-hidden />
                 {t('newBill')}
@@ -102,7 +102,7 @@ export default async function ApBillsPage() {
           items={bills}
           getRowKey={(bill) => bill.id}
           desktop={
-            <div className="overflow-x-auto rounded-lg border border-[var(--pf-border-default)]">
+            <div className="min-w-0 rounded-lg border border-[var(--pf-border-default)]">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -116,15 +116,15 @@ export default async function ApBillsPage() {
                 <TableBody>
                   {bills.map((bill) => (
                     <TableRow key={bill.id}>
-                      <TableCell className="font-medium">
+                      <TableCell className="max-w-[12rem] truncate font-medium">
                         <Link
                           href={`/procurement/ap/${bill.id}`}
-                          className="text-[var(--pf-text-brand)] hover:underline"
+                          className="rounded-sm text-[var(--pf-text-brand)] hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
                         >
                           {bill.reference?.trim() || t('list.noReference')}
                         </Link>
                       </TableCell>
-                      <TableCell>{bill.vendorName ?? '—'}</TableCell>
+                      <TableCell className="max-w-[10rem] truncate">{bill.vendorName ?? '—'}</TableCell>
                       <TableCell>
                         <StatusBadge
                           shape={billStatusShape(bill.status)}
@@ -135,11 +135,15 @@ export default async function ApBillsPage() {
                         <MoneyText value={money(bill.totalAmount, bill.currency)} />
                       </TableCell>
                       <TableCell>
-                        {bill.billDate
-                          ? new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(
+                        {bill.billDate ? (
+                          <span dir="ltr">
+                            {new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(
                               new Date(bill.billDate),
-                            )
-                          : '—'}
+                            )}
+                          </span>
+                        ) : (
+                          '—'
+                        )}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -150,10 +154,10 @@ export default async function ApBillsPage() {
           renderMobileCard={(bill) => (
             <Link
               href={`/procurement/ap/${bill.id}`}
-              className="flex flex-col gap-2 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4"
+              className="flex min-h-11 min-w-0 flex-col gap-2 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
             >
-              <div className="flex items-start justify-between gap-2">
-                <span className="font-semibold">
+              <div className="flex min-w-0 items-start justify-between gap-2">
+                <span className="min-w-0 break-words font-semibold">
                   {bill.reference?.trim() || t('list.noReference')}
                 </span>
                 <StatusBadge
@@ -161,8 +165,17 @@ export default async function ApBillsPage() {
                   label={t(`statuses.${bill.status}` as 'statuses.open')}
                 />
               </div>
-              <p className="text-sm text-[var(--pf-text-secondary)]">{bill.vendorName}</p>
+              <p className="break-words text-sm text-[var(--pf-text-secondary)]">
+                {bill.vendorName ?? '—'}
+              </p>
               <MoneyText value={money(bill.totalAmount, bill.currency)} />
+              {bill.billDate ? (
+                <p className="text-xs text-[var(--pf-text-muted)]" dir="ltr">
+                  {new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(
+                    new Date(bill.billDate),
+                  )}
+                </p>
+              ) : null}
             </Link>
           )}
         />

@@ -52,7 +52,7 @@ export function ChangeActionButtons({
 
   if (status === 'draft') {
     return (
-      <div className="flex flex-wrap gap-2">
+      <div className="flex max-w-full flex-wrap gap-2">
         <ActionForm changeRequestId={changeRequestId} action={submitAction}>
           {t('submit')}
         </ActionForm>
@@ -68,7 +68,7 @@ export function ChangeActionButtons({
 
   if (status === 'awaiting_approval') {
     return (
-      <div className="flex flex-wrap gap-2">
+      <div className="flex max-w-full flex-wrap gap-2">
         <ActionForm changeRequestId={changeRequestId} action={rejectAction}>
           {t('reject')}
         </ActionForm>

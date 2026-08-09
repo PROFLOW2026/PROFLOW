@@ -29,7 +29,7 @@ export function ApproveChangeForm({ detail, action, canApprove }: ApproveChangeF
   const signed = magnitude ? signedChangeAmount(detail.direction, magnitude) : null;
 
   return (
-    <div className="flex max-w-xl flex-col gap-6">
+    <div className="mx-auto flex w-full max-w-xl flex-col gap-6">
       {signed ? (
         <div className="rounded-lg border border-[var(--pf-border-default)] p-4">
           <p className="text-sm text-[var(--pf-text-secondary)]">{t('amountLabel')}</p>
@@ -56,7 +56,7 @@ export function ApproveChangeForm({ detail, action, canApprove }: ApproveChangeF
           </Field>
 
           <Field label={t('effectiveDate')} required>
-            {(control) => <Input {...control} name="effectiveDate" type="date" required />}
+            {(control) => <Input {...control} name="effectiveDate" type="date" required dir="ltr" />}
           </Field>
 
           <Field label={t('notes')}>

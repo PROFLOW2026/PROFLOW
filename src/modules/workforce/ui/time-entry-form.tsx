@@ -68,7 +68,7 @@ export function TimeEntryForm({
   }
 
   return (
-    <form action={formAction} className="mx-auto flex max-w-lg flex-col gap-4">
+    <form action={formAction} className="mx-auto flex w-full max-w-lg flex-col gap-4">
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
       {state.offlineQueued ? (
         <Alert tone="info" role="status">

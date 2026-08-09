@@ -22,13 +22,13 @@ export default async function ChangesPage() {
   const items = await withOrgContext(async (context) => listAllChangeRequests(context));
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex min-w-0 flex-col gap-6">
       <PageHeader
         title={t('pageTitle')}
         description={t('pageDescription')}
         actions={
           canManage ? (
-            <Button asChild>
+            <Button asChild className="max-w-full">
               <Link href="/changes/new">
                 <Plus aria-hidden />
                 {t('panel.new')}

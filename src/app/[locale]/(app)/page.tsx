@@ -23,7 +23,7 @@ export default async function DashboardPage() {
   const data = await withOrgContext((context) => getHomeDashboard(context));
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex min-w-0 max-w-full flex-col gap-6">
       <PageHeader title={name ? t('greeting', { name }) : t('greetingNoName')} />
       <HomeDashboardContent data={data} />
     </div>

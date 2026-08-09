@@ -41,20 +41,20 @@ function ModuleRow({
   const visibilityLabel = t('visibilityLabel', { module: moduleLabel });
 
   return (
-    <form action={action} className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--pf-border-default)] py-3 last:border-0">
+    <form action={action} className="flex flex-col gap-3 border-b border-[var(--pf-border-default)] py-3 last:border-0 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
       <div className="min-w-0 flex-1">
-        <p className="font-medium">{moduleLabel}</p>
+        <p className="text-start font-medium">{moduleLabel}</p>
         {defaultMode === 'auto' && !isActive ? (
-          <p className="text-xs text-[var(--pf-text-muted)]">{t('autoHint')}</p>
+          <p className="text-start text-xs text-[var(--pf-text-muted)]">{t('autoHint')}</p>
         ) : null}
       </div>
 
       {canEdit ? (
-        <div className="flex items-center gap-2">
+        <div className="flex w-full min-w-0 flex-wrap items-center gap-2 sm:w-auto">
           <input type="hidden" name="enabled" value={mode} />
           <input type="hidden" name="moduleKey" value={moduleKey} />
           <Select value={mode} onValueChange={(value) => setMode(value as VisibilityMode)}>
-            <SelectTrigger aria-label={visibilityLabel} className="w-36">
+            <SelectTrigger aria-label={visibilityLabel} className="min-w-0 flex-1 sm:w-40 sm:flex-none">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>

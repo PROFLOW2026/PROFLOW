@@ -14,8 +14,8 @@ export function ClientListFilters({ initialQuery }: ClientListFiltersProps) {
   const tCommon = useTranslations('common');
 
   return (
-    <form method="get" role="search" className="flex flex-col gap-3 sm:flex-row sm:items-end">
-      <Field label={tCommon('actions.search')} className="sm:max-w-xs sm:flex-1">
+    <form method="get" role="search" className="flex w-full flex-col gap-3 sm:flex-row sm:items-end">
+      <Field label={tCommon('actions.search')} className="min-w-0 w-full sm:max-w-xs sm:flex-1">
         {(control) => (
           <Input
             {...control}

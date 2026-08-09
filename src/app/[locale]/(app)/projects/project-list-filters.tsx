@@ -26,8 +26,8 @@ export function ProjectListFilters({ initialQuery, initialStatus }: ProjectListF
   const [status, setStatus] = useState(initialStatus);
 
   return (
-    <form method="get" role="search" className="flex flex-col gap-3 sm:flex-row sm:items-end">
-      <Field label={tCommon('actions.search')} className="sm:max-w-xs sm:flex-1">
+    <form method="get" role="search" className="flex min-w-0 max-w-full flex-col gap-3 sm:flex-row sm:items-end">
+      <Field label={tCommon('actions.search')} className="min-w-0 sm:max-w-xs sm:flex-1">
         {(control) => (
           <Input
             {...control}
@@ -35,10 +35,11 @@ export function ProjectListFilters({ initialQuery, initialStatus }: ProjectListF
             name="q"
             defaultValue={initialQuery}
             placeholder={t('list.searchPlaceholder')}
+            className="min-w-0"
           />
         )}
       </Field>
-      <Field label={t('list.filterStatus')} className="sm:w-44">
+      <Field label={t('list.filterStatus')} className="min-w-0 sm:w-44">
         {(control) => (
           <>
             <input type="hidden" name="status" value={status} />
@@ -58,7 +59,7 @@ export function ProjectListFilters({ initialQuery, initialStatus }: ProjectListF
           </>
         )}
       </Field>
-      <Button type="submit" variant="secondary">
+      <Button type="submit" variant="secondary" className="shrink-0">
         {tCommon('actions.search')}
       </Button>
     </form>

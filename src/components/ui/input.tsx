@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { shouldForceLtrInput } from '@/shared/i18n/direction';
+import { shouldForceLtrInput } from '@/shared/i18n/ltr-island';
 import { cn } from '@/shared/ui/cn';
 
 export const inputClassName = cn(

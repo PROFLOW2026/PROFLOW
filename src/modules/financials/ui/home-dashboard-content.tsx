@@ -69,16 +69,16 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
     data.attention.overdueBillingCount > 0;
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex min-w-0 max-w-full flex-col gap-6">
       {(data.totalContractValue ||
         data.totalActualCost ||
         data.estimatedProfit ||
         data.showBilling) && (
-        <section>
+        <section className="min-w-0 max-w-full">
           <h2 className="mb-3 text-sm font-semibold text-[var(--pf-text-secondary)]">
             {t('businessSummary.title')}
           </h2>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {data.activeProjectCount > 0 ? (
               <KpiCard title={t('activeProjects')} value={String(data.activeProjectCount)} />
             ) : null}
@@ -88,7 +88,7 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
                 money={data.totalContractValue}
                 footer={
                   contractValueNote ? (
-                    <p className="text-xs text-[var(--pf-text-secondary)]">{contractValueNote}</p>
+                    <p className="break-words text-xs text-[var(--pf-text-secondary)]">{contractValueNote}</p>
                   ) : null
                 }
               />
@@ -114,7 +114,7 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
           </div>
 
           {data.showBilling && data.billing ? (
-            <div className="mt-3 grid gap-3 sm:grid-cols-3">
+            <div className="mt-3 grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-3">
               <KpiCard
                 title={tFinancial('invoiced')}
                 money={data.billing.invoiced}
@@ -125,7 +125,7 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
                   ]);
                   if (notes.length === 0) return null;
                   return notes.map((note) => (
-                    <p key={note} className="text-xs text-[var(--pf-text-secondary)]">
+                    <p key={note} className="break-words text-xs text-[var(--pf-text-secondary)]">
                       {note}
                     </p>
                   ));
@@ -139,8 +139,8 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
       )}
 
       {data.organizationSummary ? (
-        <section>
-          <div className="grid gap-3 sm:grid-cols-3">
+        <section className="min-w-0 max-w-full">
+          <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-3">
             {data.showBilling ? (
               <KpiCard
                 title={t('businessSummary.outstanding')}
@@ -162,24 +162,24 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
       ) : null}
 
       {hasAttention ? (
-        <section>
+        <section className="min-w-0 max-w-full">
           <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold">
-            <AlertCircle className="size-4" aria-hidden />
+            <AlertCircle className="size-4 shrink-0" aria-hidden />
             {t('attention.title')}
           </h2>
-          <ul className="flex flex-col gap-2 text-sm">
+          <ul className="flex min-w-0 flex-col gap-2 text-sm">
             {data.attention.pendingChangesCount > 0 ? (
-              <li className="rounded-md border border-[var(--pf-border-default)] px-3 py-2">
+              <li className="min-w-0 break-words rounded-md border border-[var(--pf-border-default)] px-3 py-2">
                 {t('attention.pendingChanges', { count: data.attention.pendingChangesCount })}
               </li>
             ) : null}
             {data.attention.unbilledApprovedCount > 0 ? (
-              <li className="rounded-md border border-[var(--pf-border-default)] px-3 py-2">
+              <li className="min-w-0 break-words rounded-md border border-[var(--pf-border-default)] px-3 py-2">
                 {t('attention.approvedNotBilled', { count: data.attention.unbilledApprovedCount })}
               </li>
             ) : null}
             {data.attention.overdueBillingCount > 0 ? (
-              <li className="rounded-md border border-[var(--pf-border-default)] px-3 py-2">
+              <li className="min-w-0 break-words rounded-md border border-[var(--pf-border-default)] px-3 py-2">
                 {t('attention.overdueBilling', { count: data.attention.overdueBillingCount })}
               </li>
             ) : null}
@@ -188,22 +188,22 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
       ) : null}
 
       {data.recentProjects.length > 0 ? (
-        <section>
+        <section className="min-w-0 max-w-full">
           <h2 className="mb-3 text-sm font-semibold">{t('activeProjects')}</h2>
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2">
             {data.recentProjects.map((project) => (
-              <Card key={project.id}>
+              <Card key={project.id} className="min-w-0 max-w-full">
                 <CardHeader className="py-3">
-                  <CardTitle className="text-base">
+                  <CardTitle className="min-w-0 break-words text-base">
                     <Link href={`/projects/${project.id}`} className="hover:underline">
                       {project.name}
                     </Link>
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="pb-3 text-sm text-[var(--pf-text-secondary)]">
+                <CardContent className="min-w-0 pb-3 text-sm text-[var(--pf-text-secondary)]">
                   {project.clientName ?? '—'}
                   {project.currentContractValue && project.currency ? (
-                    <p className="mt-1">
+                    <p className="mt-1 min-w-0 max-w-full overflow-x-auto">
                       <MoneyText
                         value={{
                           amount: project.currentContractValue,
@@ -221,9 +221,9 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
       ) : null}
 
       {(data.canCreateProject || data.canCreateExpense) && (
-        <section>
+        <section className="min-w-0 max-w-full">
           <h2 className="mb-3 text-sm font-semibold">{t('quickActions')}</h2>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex min-w-0 max-w-full flex-wrap gap-2">
             {data.canCreateProject ? (
               <Button asChild size="sm" variant="secondary">
                 <Link href="/projects/new">{tNav('newMenu.project')}</Link>
@@ -253,15 +253,17 @@ function KpiCard({
   footer?: ReactNode;
 }) {
   return (
-    <Card>
+    <Card className="min-w-0 max-w-full">
       <CardHeader className="pb-1">
-        <CardTitle className="text-xs font-medium text-[var(--pf-text-secondary)]">
+        <CardTitle className="break-words text-xs font-medium text-[var(--pf-text-secondary)]">
           {title}
         </CardTitle>
       </CardHeader>
-      <CardContent className="flex flex-col gap-1">
+      <CardContent className="flex min-w-0 flex-col gap-1">
         {money ? (
-          <MoneyText value={money} className="text-lg font-semibold" />
+          <div className="min-w-0 max-w-full overflow-x-auto">
+            <MoneyText value={money} className="text-lg font-semibold" />
+          </div>
         ) : (
           <span className="text-lg font-semibold">{value}</span>
         )}

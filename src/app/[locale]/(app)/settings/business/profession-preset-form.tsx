@@ -28,10 +28,10 @@ export function ProfessionPresetForm({ canEdit }: { canEdit: boolean }) {
   if (!canEdit) return null;
 
   return (
-    <form action={action} className="flex max-w-lg flex-col gap-3 border-t border-[var(--pf-border-default)] pt-6">
+    <form action={action} className="flex w-full max-w-lg flex-col gap-3 border-t border-[var(--pf-border-default)] pt-6">
       <div>
-        <h2 className="text-base font-semibold">{t('title')}</h2>
-        <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">{t('subtitle')}</p>
+        <h2 className="text-start text-base font-semibold">{t('title')}</h2>
+        <p className="mt-1 text-start text-sm text-[var(--pf-text-secondary)]">{t('subtitle')}</p>
       </div>
 
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
@@ -58,21 +58,21 @@ export function ProfessionPresetForm({ canEdit }: { canEdit: boolean }) {
       </Field>
 
       {preview ? (
-        <div className="rounded-md border border-[var(--pf-border-default)] p-3 text-sm text-[var(--pf-text-secondary)]">
+        <div className="min-w-0 rounded-md border border-[var(--pf-border-default)] p-3 text-start text-sm text-[var(--pf-text-secondary)]">
           <p className="font-medium text-[var(--pf-text-primary)]">{t('previewTitle')}</p>
-          <p className="mt-2">
+          <p className="mt-2 break-words">
             <span className="font-medium text-[var(--pf-text-primary)]">{t('previewDomains')}: </span>
             {preview.domains.map((d) => (he ? d.nameHe : d.nameEn)).join(', ')}
           </p>
-          <p className="mt-1">
+          <p className="mt-1 break-words">
             <span className="font-medium text-[var(--pf-text-primary)]">{t('previewChecklist')}: </span>
             {preview.documentChecklist.map((d) => (he ? d.nameHe : d.nameEn)).join(', ')}
           </p>
-          <p className="mt-1">
+          <p className="mt-1 break-words">
             <span className="font-medium text-[var(--pf-text-primary)]">{t('previewCategories')}: </span>
             {preview.extraExpenseCategories.map((c) => (he ? c.nameHe : c.nameEn)).join(', ')}
           </p>
-          <p className="mt-1">
+          <p className="mt-1 break-words">
             <span className="font-medium text-[var(--pf-text-primary)]">{t('previewWorkAreas')}: </span>
             {preview.workPackageNames.map((w) => (he ? w.nameHe : w.nameEn)).join(', ')}
           </p>

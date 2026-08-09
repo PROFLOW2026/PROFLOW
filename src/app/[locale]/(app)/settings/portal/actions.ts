@@ -353,7 +353,14 @@ export async function previewCustomerSafeSummaryAction(
       identityModel: preview.identityModel,
     };
   } catch (error) {
-    if (error instanceof DomainRuleError) return { error: error.message };
+    if (error instanceof DomainRuleError) {
+      const key = error.messageKey.replace(/^errors\./, '');
+      try {
+        return { error: tErrors(key as 'notAllowed') };
+      } catch {
+        return { error: tErrors('unexpected') };
+      }
+    }
     if (error instanceof AppError) return { error: tErrors('validationFailed') };
     throw error;
   }

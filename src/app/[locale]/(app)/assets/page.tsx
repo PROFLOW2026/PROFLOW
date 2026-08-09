@@ -96,7 +96,7 @@ export default async function AssetsPage() {
           </div>
           <Link
             href="/assets/maintenance"
-            className="text-sm text-[var(--pf-text-secondary)] hover:underline"
+            className="text-sm text-[var(--pf-text-secondary)] hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
           >
             {t('schedule.viewAll')}
           </Link>
@@ -112,19 +112,21 @@ export default async function AssetsPage() {
               <ul className="mt-2 space-y-2 text-sm">
                 {schedule.overdue.map((row) => (
                   <li key={row.id} className="flex flex-wrap items-center justify-between gap-2">
-                    <Link href={`/assets/${row.assetId}`} className="font-medium hover:underline">
+                    <Link href={`/assets/${row.assetId}`} className="min-w-0 font-medium hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]">
                       {row.title}
                       <span className="font-normal text-[var(--pf-text-secondary)]">
                         {' '}
                         · {row.assetName}
                       </span>
                     </Link>
-                    <span className="flex items-center gap-2">
+                    <span className="flex shrink-0 items-center gap-2">
                       <StatusBadge
                         shape={maintenanceShape(row.status)}
                         label={tMaintStatus(row.status)}
                       />
-                      <span className="text-[var(--pf-text-secondary)]">{row.performedOn}</span>
+                      <span className="pf-ltr-island text-[var(--pf-text-secondary)]" dir="ltr">
+                        {row.performedOn}
+                      </span>
                     </span>
                   </li>
                 ))}
@@ -141,14 +143,16 @@ export default async function AssetsPage() {
               <ul className="mt-2 space-y-2 text-sm">
                 {schedule.upcoming.map((row) => (
                   <li key={row.id} className="flex flex-wrap items-center justify-between gap-2">
-                    <Link href={`/assets/${row.assetId}`} className="font-medium hover:underline">
+                    <Link href={`/assets/${row.assetId}`} className="min-w-0 font-medium hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]">
                       {row.title}
                       <span className="font-normal text-[var(--pf-text-secondary)]">
                         {' '}
                         · {row.assetName}
                       </span>
                     </Link>
-                    <span className="text-[var(--pf-text-secondary)]">{row.performedOn}</span>
+                    <span className="pf-ltr-island shrink-0 text-[var(--pf-text-secondary)]" dir="ltr">
+                      {row.performedOn}
+                    </span>
                   </li>
                 ))}
               </ul>
@@ -200,7 +204,15 @@ export default async function AssetsPage() {
                       <TableCell>
                         <StatusBadge shape={assetShape(item.status)} label={tStatus(item.status)} />
                       </TableCell>
-                      <TableCell>{item.identifier ?? '—'}</TableCell>
+                      <TableCell>
+                        {item.identifier ? (
+                          <span className="pf-ltr-island pf-entity-string" dir="ltr">
+                            {item.identifier}
+                          </span>
+                        ) : (
+                          '—'
+                        )}
+                      </TableCell>
                       <TableCell>{item.manufacturer ?? '—'}</TableCell>
                       <TableCell>{item.model ?? '—'}</TableCell>
                       <TableCell>{item.assignedProjectName ?? '—'}</TableCell>
@@ -213,15 +225,22 @@ export default async function AssetsPage() {
           renderMobileCard={(item) => (
             <Link
               href={`/assets/${item.id}`}
-              className="block rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4"
+              className="block min-h-11 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
             >
               <div className="flex items-start justify-between gap-2">
-                <span className="font-semibold">{item.name}</span>
+                <span className="min-w-0 flex-1 font-semibold">{item.name}</span>
                 <StatusBadge shape={assetShape(item.status)} label={tStatus(item.status)} />
               </div>
               <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">
                 {t(`kinds.${item.assetKind}`)}
-                {item.identifier ? ` · ${item.identifier}` : ''}
+                {item.identifier ? (
+                  <>
+                    {' · '}
+                    <span className="pf-ltr-island pf-entity-string" dir="ltr">
+                      {item.identifier}
+                    </span>
+                  </>
+                ) : null}
                 {item.manufacturer || item.model
                   ? ` · ${[item.manufacturer, item.model].filter(Boolean).join(' ')}`
                   : ''}

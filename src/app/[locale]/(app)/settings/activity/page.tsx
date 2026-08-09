@@ -46,7 +46,7 @@ export default async function ActivitySettingsPage({
       <div className="mb-4 flex flex-wrap items-center justify-end gap-2">
         <Link
           href="/exports/audit?format=csv"
-          className="inline-flex min-h-11 items-center text-sm font-medium text-[var(--pf-text-brand)] underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
+          className="inline-flex min-h-11 items-center text-start text-sm font-medium text-[var(--pf-text-brand)] underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
         >
           {t('exportCsv')}
         </Link>

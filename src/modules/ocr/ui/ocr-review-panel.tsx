@@ -237,6 +237,20 @@ export function OcrReviewPanel({
               {t('seedFixture')}
             </Button>
             <Label className="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-md border border-[var(--pf-border-default)] px-3 text-sm">
+              <span>{t('extractCapture')}</span>
+              <input
+                type="file"
+                accept="image/*"
+                capture="environment"
+                className="sr-only"
+                disabled={pending}
+                onChange={(event) => {
+                  onExtractImage(event.target.files?.[0] ?? null);
+                  event.target.value = '';
+                }}
+              />
+            </Label>
+            <Label className="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-md border border-[var(--pf-border-default)] px-3 text-sm">
               <span>{t('extractImage')}</span>
               <input
                 type="file"

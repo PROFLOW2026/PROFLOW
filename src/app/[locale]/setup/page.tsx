@@ -11,10 +11,10 @@ export default async function SetupPage({ params }: { params: Promise<{ locale: 
   const t = await getTranslations('auth.setup');
 
   return (
-    <div className="mx-auto flex min-h-dvh max-w-lg flex-col justify-center px-4">
+    <div className="mx-auto flex min-h-dvh w-full max-w-lg flex-col justify-center px-4 py-10 text-start">
       <Alert tone="warning" title={t('title')}>
-        <p>{t('body')}</p>
-        <p className="mt-2 text-xs">{t('docsHint')}</p>
+        <p className="break-words">{t('body')}</p>
+        <p className="mt-2 break-words text-xs">{t('docsHint')}</p>
       </Alert>
     </div>
   );

@@ -31,23 +31,25 @@ export function CashFlowView({
 
   return (
     <section
-      className="flex flex-col gap-4 rounded-lg border border-[var(--pf-border-default)] p-4"
+      className="flex min-w-0 max-w-full flex-col gap-4 rounded-lg border border-[var(--pf-border-default)] p-4 text-start"
       aria-labelledby="cash-flow-heading"
     >
       <h2 id="cash-flow-heading" className="text-sm font-semibold">
         {copy.title}
       </h2>
 
-      <div className="flex flex-col gap-2">
-        <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <div>
+      <div className="flex min-w-0 flex-col gap-2">
+        <div className="flex min-w-0 flex-wrap items-baseline justify-between gap-2">
+          <div className="min-w-0">
             <p className="text-xs font-medium uppercase tracking-wide text-[var(--pf-text-secondary)]">
               {copy.actualTitle}
             </p>
-            <p className="mt-0.5 text-xs text-[var(--pf-text-secondary)]">{copy.actualHint}</p>
+            <p className="mt-0.5 break-words text-xs text-[var(--pf-text-secondary)]">
+              {copy.actualHint}
+            </p>
           </div>
-          <div className="text-end">
-            <p className="text-base font-semibold">
+          <div className="min-w-0 text-end">
+            <p className="max-w-full overflow-x-auto text-base font-semibold">
               <MoneyText value={cashFlow.actual.collected} />
             </p>
             <p className="text-xs text-[var(--pf-text-secondary)]">
@@ -55,53 +57,63 @@ export function CashFlowView({
             </p>
           </div>
         </div>
-        <p className="text-xs text-[var(--pf-text-muted)]" dir="ltr">
+        <p className="break-all text-xs text-[var(--pf-text-muted)]" dir="ltr">
           <time dateTime={cashFlow.actual.rangeStart}>{cashFlow.actual.rangeStart}</time>
           {' – '}
           <time dateTime={cashFlow.actual.rangeEnd}>{cashFlow.actual.rangeEnd}</time>
         </p>
       </div>
 
-      <div className="flex flex-col gap-2">
-        <div>
+      <div className="flex min-w-0 flex-col gap-2">
+        <div className="min-w-0">
           <p className="text-xs font-medium uppercase tracking-wide text-[var(--pf-text-secondary)]">
             {copy.forecastTitle}
           </p>
-          <p className="mt-0.5 text-xs text-[var(--pf-text-secondary)]">{copy.forecastHint}</p>
+          <p className="mt-0.5 break-words text-xs text-[var(--pf-text-secondary)]">
+            {copy.forecastHint}
+          </p>
         </div>
-        <ul className="grid list-none gap-3 p-0 sm:grid-cols-2 lg:grid-cols-5">
+        <ul className="grid min-w-0 list-none grid-cols-1 gap-3 p-0 sm:grid-cols-2 lg:grid-cols-5">
           {cashFlow.forecastBuckets.map((bucket) => (
-            <li key={bucket.key} className="rounded-md bg-[var(--pf-bg-muted)] p-3">
-              <p className="text-xs text-[var(--pf-text-secondary)]">{copy.bucketLabel(bucket.key)}</p>
-              <p className="mt-1 text-base font-semibold">
+            <li
+              key={bucket.key}
+              className="min-w-0 max-w-full rounded-md bg-[var(--pf-bg-muted)] p-3"
+            >
+              <p className="break-words text-xs text-[var(--pf-text-secondary)]">
+                {copy.bucketLabel(bucket.key)}
+              </p>
+              <p className="mt-1 max-w-full overflow-x-auto text-base font-semibold">
                 <MoneyText value={bucket.expectedIn} />
               </p>
             </li>
           ))}
         </ul>
         {undated && undated.count > 0 ? (
-          <p className="text-xs text-[var(--pf-text-secondary)]">{copy.undatedNote}</p>
+          <p className="break-words text-xs text-[var(--pf-text-secondary)]">{copy.undatedNote}</p>
         ) : null}
       </div>
 
-      <div className="border-t border-[var(--pf-border-default)] pt-3">
+      <div className="min-w-0 border-t border-[var(--pf-border-default)] pt-3">
         <p className="text-xs font-medium uppercase tracking-wide text-[var(--pf-text-secondary)]">
           {copy.outgoingTitle}
         </p>
         {cashFlow.outgoing.available ? (
           <>
             {copy.outgoingAvailableHint ? (
-              <p className="mt-1 text-xs text-[var(--pf-text-secondary)]">
+              <p className="mt-1 break-words text-xs text-[var(--pf-text-secondary)]">
                 {copy.outgoingAvailableHint}
               </p>
             ) : null}
-            <ul className="mt-2 grid list-none gap-3 p-0 sm:grid-cols-2 lg:grid-cols-5">
+            <ul className="mt-2 grid min-w-0 list-none grid-cols-1 gap-3 p-0 sm:grid-cols-2 lg:grid-cols-5">
               {cashFlow.outgoing.forecastBuckets.map((bucket) => (
-                <li key={`out-${bucket.key}`} className="rounded-md bg-[var(--pf-bg-muted)] p-3">
-                  <p className="text-xs text-[var(--pf-text-secondary)]">
+                <li
+                  key={`out-${bucket.key}`}
+                  className="min-w-0 max-w-full rounded-md bg-[var(--pf-bg-muted)] p-3"
+                >
+                  <p className="break-words text-xs text-[var(--pf-text-secondary)]">
                     {copy.bucketLabel(bucket.key)}
                   </p>
-                  <p className="mt-1 text-base font-semibold">
+                  <p className="mt-1 max-w-full overflow-x-auto text-base font-semibold">
                     <MoneyText value={bucket.expectedOut} />
                   </p>
                   {copy.billCount ? (
@@ -114,7 +126,9 @@ export function CashFlowView({
             </ul>
           </>
         ) : (
-          <p className="mt-1 text-xs text-[var(--pf-text-secondary)]">{copy.outgoingDisclosure}</p>
+          <p className="mt-1 break-words text-xs text-[var(--pf-text-secondary)]">
+            {copy.outgoingDisclosure}
+          </p>
         )}
       </div>
     </section>

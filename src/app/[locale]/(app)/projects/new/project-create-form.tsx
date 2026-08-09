@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { ContractAmountFields } from '@/modules/projects/ui/contract-amount-fields';
+import { rtlFlipClassName } from '@/shared/i18n/ltr-island';
 import { createProjectAction, type ProjectFormState } from '../actions';
 
 type ClientMode = 'none' | 'new' | 'existing';
@@ -127,7 +128,9 @@ export function ProjectCreateForm({ baseCurrency, currencySymbol, clients }: Pro
       <Button type="button" variant="ghost" className="self-start" onClick={() => setShowMore((open) => !open)}>
         {showMore ? tCommon('actions.showLess') : t('create.moreDetails')}
         <ChevronRight
-          className={`size-4 rtl:rotate-180 ${showMore ? 'rotate-90 rtl:-rotate-90' : ''}`}
+          className={
+            showMore ? 'size-4 rotate-90' : rtlFlipClassName('size-4')
+          }
           aria-hidden
         />
       </Button>

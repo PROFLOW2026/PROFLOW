@@ -20,7 +20,8 @@
   "actions": {
     "add": "Add expense",
     "finalize": "Finalize",
-    "void": "Void"
+    "void": "Void",
+    "receiptPhoto": "Photograph receipt (OCR)"
   },
   "confirm": {
     "finalizeTitle": "Finalize expense",

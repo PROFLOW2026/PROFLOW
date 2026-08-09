@@ -3,6 +3,7 @@ import { getLocale, getTranslations } from 'next-intl/server';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Button } from '@/components/ui/button';
 import { MoneyText } from '@/components/patterns/money-text';
+import { ResponsiveTable } from '@/components/patterns/responsive-table';
 import { StatusBadge } from '@/components/ui/status-badge';
 import {
   Table,
@@ -17,7 +18,6 @@ import { Link } from '@/shared/i18n/navigation';
 import { formatBusinessDate } from '@/shared/dates/format';
 import { listExpensesForOrg } from '../application/queries';
 import { statusShape } from '../domain/lifecycle';
-import type { ExpenseSummary } from '../domain/types';
 
 export interface ProjectExpensesPanelProps {
   readonly projectId: string;
@@ -53,71 +53,88 @@ export async function ProjectExpensesPanel({ projectId, limit = 10 }: ProjectExp
   }
 
   return (
-    <div className="flex flex-col gap-3">
-      <div className="flex items-center justify-between gap-2">
-        <h3 className="text-sm font-semibold text-[var(--pf-text-primary)]">{t('projectPanel.title')}</h3>
-        <Button asChild variant="secondary" size="sm">
+    <div className="flex min-w-0 flex-col gap-3">
+      <div className="flex min-w-0 flex-wrap items-center justify-between gap-2">
+        <h3 className="min-w-0 text-start text-sm font-semibold text-[var(--pf-text-primary)]">
+          {t('projectPanel.title')}
+        </h3>
+        <Button asChild variant="secondary" size="sm" className="max-w-full shrink-0">
           <Link href={`/expenses/new?projectId=${projectId}`}>{t('actions.add')}</Link>
         </Button>
       </div>
 
-      <ExpenseRows items={items} locale={locale} t={t} tStatus={tStatus} />
+      <ResponsiveTable
+        items={items}
+        getRowKey={(expense) => expense.id}
+        desktop={
+          <div className="min-w-0 rounded-lg border border-[var(--pf-border-default)]">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>{t('fields.date')}</TableHead>
+                  <TableHead className="hidden sm:table-cell">{t('fields.description')}</TableHead>
+                  <TableHead numeric>{t('fields.amount')}</TableHead>
+                  <TableHead>{t('fields.status')}</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {items.map((expense) => (
+                  <TableRow key={expense.id}>
+                    <TableCell>
+                      <Link href={`/expenses/${expense.id}`} className="block" dir="ltr">
+                        {formatBusinessDate(expense.expenseDate, locale, 'short')}
+                      </Link>
+                    </TableCell>
+                    <TableCell className="hidden max-w-[12rem] truncate text-start sm:table-cell">
+                      <Link href={`/expenses/${expense.id}`} className="block">
+                        {expense.description || expense.supplierName || t('list.noDescription')}
+                      </Link>
+                    </TableCell>
+                    <TableCell numeric>
+                      <Link href={`/expenses/${expense.id}`} className="block">
+                        <MoneyText value={expense.grossAmount} />
+                      </Link>
+                    </TableCell>
+                    <TableCell>
+                      <StatusBadge
+                        shape={statusShape(expense.status)}
+                        label={tStatus(`expense.${expense.status}`)}
+                      />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        }
+        renderMobileCard={(expense) => (
+          <Link
+            href={`/expenses/${expense.id}`}
+            className="block min-h-11 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4 text-start"
+          >
+            <div className="flex items-start justify-between gap-2">
+              <span className="min-w-0 flex-1 font-semibold" dir="ltr">
+                {formatBusinessDate(expense.expenseDate, locale, 'short')}
+              </span>
+              <StatusBadge
+                className="shrink-0"
+                shape={statusShape(expense.status)}
+                label={tStatus(`expense.${expense.status}`)}
+              />
+            </div>
+            <p className="mt-1 truncate text-sm text-[var(--pf-text-secondary)]">
+              {expense.description || expense.supplierName || t('list.noDescription')}
+            </p>
+            <p className="mt-2 text-sm">
+              <MoneyText value={expense.grossAmount} />
+            </p>
+          </Link>
+        )}
+      />
 
       <Button asChild variant="ghost" size="sm" className="self-start">
         <Link href={`/expenses?projectId=${projectId}`}>{tCommon('actions.viewAll')}</Link>
       </Button>
     </div>
-  );
-}
-
-function ExpenseRows({
-  items,
-  locale,
-  t,
-  tStatus,
-}: {
-  items: ExpenseSummary[];
-  locale: string;
-  t: Awaited<ReturnType<typeof getTranslations<'expenses'>>>;
-  tStatus: Awaited<ReturnType<typeof getTranslations<'status'>>>;
-}) {
-  return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>{t('fields.date')}</TableHead>
-          <TableHead className="hidden sm:table-cell">{t('fields.description')}</TableHead>
-          <TableHead numeric>{t('fields.amount')}</TableHead>
-          <TableHead>{t('fields.status')}</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {items.map((expense) => (
-          <TableRow key={expense.id}>
-            <TableCell>
-              <Link href={`/expenses/${expense.id}`} className="block">
-                {formatBusinessDate(expense.expenseDate, locale, 'short')}
-              </Link>
-            </TableCell>
-            <TableCell className="hidden max-w-[12rem] truncate sm:table-cell">
-              <Link href={`/expenses/${expense.id}`} className="block">
-                {expense.description || expense.supplierName || t('list.noDescription')}
-              </Link>
-            </TableCell>
-            <TableCell numeric>
-              <Link href={`/expenses/${expense.id}`} className="block">
-                <MoneyText value={expense.grossAmount} />
-              </Link>
-            </TableCell>
-            <TableCell>
-              <StatusBadge
-                shape={statusShape(expense.status)}
-                label={tStatus(`expense.${expense.status}`)}
-              />
-            </TableCell>
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
   );
 }

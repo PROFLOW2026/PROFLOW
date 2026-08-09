@@ -70,11 +70,19 @@ export default async function ProspectDetailPage({
       {(prospect.companyName || prospect.email || prospect.phone || prospect.notes) && (
         <Card>
           <CardContent className="flex flex-col gap-1 pt-6 text-sm">
-            {prospect.companyName ? <p>{prospect.companyName}</p> : null}
-            {prospect.email ? <p>{prospect.email}</p> : null}
-            {prospect.phone ? <p>{prospect.phone}</p> : null}
+            {prospect.companyName ? <p className="text-start">{prospect.companyName}</p> : null}
+            {prospect.email ? (
+              <p className="text-start" dir="ltr">
+                {prospect.email}
+              </p>
+            ) : null}
+            {prospect.phone ? (
+              <p className="text-start" dir="ltr">
+                {prospect.phone}
+              </p>
+            ) : null}
             {prospect.notes ? (
-              <p className="text-[var(--pf-text-secondary)]">{prospect.notes}</p>
+              <p className="text-start text-[var(--pf-text-secondary)]">{prospect.notes}</p>
             ) : null}
             {prospect.convertedClientId ? (
               <Link
@@ -102,9 +110,21 @@ export default async function ProspectDetailPage({
                   key={contact.id}
                   className="rounded-md border border-[var(--pf-border-default)] p-3 text-sm"
                 >
-                  <p className="font-medium">{contact.name}</p>
-                  <p className="text-[var(--pf-text-secondary)]">
-                    {[contact.role, contact.email, contact.phone].filter(Boolean).join(' · ')}
+                  <p className="font-medium text-start">{contact.name}</p>
+                  <p className="text-start text-[var(--pf-text-secondary)]">
+                    {contact.role}
+                    {contact.email ? (
+                      <>
+                        {' · '}
+                        <span dir="ltr">{contact.email}</span>
+                      </>
+                    ) : null}
+                    {contact.phone ? (
+                      <>
+                        {' · '}
+                        <span dir="ltr">{contact.phone}</span>
+                      </>
+                    ) : null}
                   </p>
                 </li>
               ))}

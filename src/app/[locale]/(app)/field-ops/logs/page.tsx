@@ -97,7 +97,11 @@ export default async function FieldOpsLogsPage({
                   {logs.map((log) => (
                     <TableRow key={log.id}>
                       <TableCell>
-                        <Link href={`/field-ops/logs/${log.id}`} className="hover:underline">
+                        <Link
+                          href={`/field-ops/logs/${log.id}`}
+                          className="pf-ltr-island hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
+                          dir="ltr"
+                        >
                           {new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(
                             new Date(log.logDate),
                           )}
@@ -123,11 +127,15 @@ export default async function FieldOpsLogsPage({
           renderMobileCard={(log) => (
             <Link
               href={`/field-ops/logs/${log.id}`}
-              className="block rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4"
+              className="block min-h-11 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
             >
-              <p className="font-semibold">{log.summary}</p>
+              <p className="min-w-0 font-semibold">{log.summary}</p>
               <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">
-                {log.logDate} · {projectName.get(log.projectId) ?? '—'}
+                <span className="pf-ltr-island" dir="ltr">
+                  {log.logDate}
+                </span>
+                {' · '}
+                {projectName.get(log.projectId) ?? '—'}
                 {log.weather ? ` · ${log.weather}` : ''}
               </p>
               {log.workforceNotes ? (

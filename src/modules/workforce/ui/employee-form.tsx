@@ -28,7 +28,7 @@ export function EmployeeForm({ action, defaultCurrency, defaultValidFrom }: Empl
   const [state, formAction, pending] = useActionState(action, {});
 
   return (
-    <form action={formAction} className="mx-auto flex max-w-lg flex-col gap-4">
+    <form action={formAction} className="mx-auto flex w-full max-w-lg flex-col gap-4">
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
 
       <Field label={t('employees.form.name')} required>
@@ -102,11 +102,11 @@ export function EmployeeForm({ action, defaultCurrency, defaultValidFrom }: Empl
           </Field>
 
           <Field label={t('employees.form.email')} optionalLabel={tCommon('labels.optional')}>
-            {(control) => <Input {...control} name="email" type="email" autoComplete="off" />}
+            {(control) => <Input {...control} name="email" type="email" autoComplete="off" dir="ltr" />}
           </Field>
 
           <Field label={t('employees.form.phone')} optionalLabel={tCommon('labels.optional')}>
-            {(control) => <Input {...control} name="phone" type="tel" autoComplete="off" />}
+            {(control) => <Input {...control} name="phone" type="tel" autoComplete="off" dir="ltr" />}
           </Field>
 
           <Field label={t('employees.form.notes')} optionalLabel={tCommon('labels.optional')}>

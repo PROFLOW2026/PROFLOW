@@ -25,6 +25,7 @@
   "reports": {
     "title": "Reports & analytics",
     "description": "Organization visibility in the base currency. Every figure is labelled Actual, Committed, Forecast, Commercial, or Estimate. VAT is never profit. Currencies are never mixed.",
+    "exportMenu": "Export & import",
     "exportProjects": "Export projects",
     "exportClients": "Export clients",
     "exportVendors": "Export vendors",

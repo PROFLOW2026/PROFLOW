@@ -214,13 +214,14 @@ export default async function VendorsPage({
               className="block min-h-11 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4"
             >
               <div className="flex items-start justify-between gap-2">
-                <span className="font-semibold">{vendor.name}</span>
+                <span className="min-w-0 flex-1 truncate text-start font-semibold">{vendor.name}</span>
                 <StatusBadge
+                  className="shrink-0"
                   shape={vendor.status === 'active' ? 'active' : 'archived'}
                   label={tStatus(vendor.status)}
                 />
               </div>
-              <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">
+              <p className="mt-1 text-start text-sm text-[var(--pf-text-secondary)]">
                 {t(`types.${vendor.type}`)} · {t('list.projectsCount', { count: vendor.projectCount })}
               </p>
             </Link>

@@ -62,19 +62,26 @@ export default async function DailyLogDetailPage({
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
-        title={dateLabel}
+        title={
+          <span className="pf-ltr-island" dir="ltr">
+            {dateLabel}
+          </span>
+        }
         description={projectName ?? t('detail.unknownProject')}
         breadcrumb={
           <Link
             href="/field-ops/logs"
-            className="text-sm text-[var(--pf-text-secondary)] hover:underline"
+            className="text-sm text-[var(--pf-text-secondary)] hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
           >
             {tCommon('actions.back')}
           </Link>
         }
         meta={
           <div className="flex flex-wrap gap-2 text-sm text-[var(--pf-text-secondary)]">
-            <Link href={`/projects/${log.projectId}`} className="hover:underline">
+            <Link
+              href={`/projects/${log.projectId}`}
+              className="hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
+            >
               {projectName ?? t('detail.unknownProject')}
             </Link>
             {workPackageName ? <span>· {workPackageName}</span> : null}

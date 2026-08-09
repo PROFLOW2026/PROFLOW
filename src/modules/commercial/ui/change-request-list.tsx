@@ -58,7 +58,7 @@ export async function ChangeRequestList({ items, projectId, canManage }: ChangeR
       items={items}
       getRowKey={(item) => item.id}
       desktop={
-        <div className="overflow-x-auto rounded-lg border border-[var(--pf-border-default)]">
+        <div className="min-w-0 rounded-lg border border-[var(--pf-border-default)]">
           <Table>
             <TableHeader>
               <TableRow>
@@ -79,8 +79,10 @@ export async function ChangeRequestList({ items, projectId, canManage }: ChangeR
 
                 return (
                   <TableRow key={item.id}>
-                    <TableCell className="font-mono text-xs">{item.reference ?? '—'}</TableCell>
-                    <TableCell>
+                    <TableCell className="max-w-[8rem] truncate font-mono text-xs" dir="ltr">
+                      {item.reference ?? '—'}
+                    </TableCell>
+                    <TableCell className="max-w-[14rem] truncate text-start">
                       <Link
                         href={`/changes/${item.id}`}
                         className="font-medium text-[var(--pf-text-brand)] hover:underline"
@@ -88,7 +90,9 @@ export async function ChangeRequestList({ items, projectId, canManage }: ChangeR
                         {item.title}
                       </Link>
                     </TableCell>
-                    {!projectId ? <TableCell>{item.projectName}</TableCell> : null}
+                    {!projectId ? (
+                      <TableCell className="max-w-[12rem] truncate">{item.projectName}</TableCell>
+                    ) : null}
                     <TableCell numeric>
                       {signed ? <MoneyText value={signed} colorizeNegative /> : '—'}
                     </TableCell>
@@ -114,14 +118,14 @@ export async function ChangeRequestList({ items, projectId, canManage }: ChangeR
         return (
           <Link
             href={`/changes/${item.id}`}
-            className="block min-h-11 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4"
+            className="block min-h-11 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4 text-start"
           >
             <div className="flex items-start justify-between gap-2">
-              <span className="font-semibold">{item.title}</span>
-              <ChangeStatusBadge status={item.status} sentAt={item.sentAt} />
+              <span className="min-w-0 flex-1 truncate font-semibold">{item.title}</span>
+              <ChangeStatusBadge className="shrink-0" status={item.status} sentAt={item.sentAt} />
             </div>
-            <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">
-              {item.reference ?? '—'}
+            <p className="mt-1 truncate text-start text-sm text-[var(--pf-text-secondary)]">
+              <span dir="ltr">{item.reference ?? '—'}</span>
               {!projectId && item.projectName ? ` · ${item.projectName}` : null}
             </p>
             <div className="mt-2 flex flex-wrap items-baseline justify-between gap-2 text-sm">

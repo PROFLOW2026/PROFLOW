@@ -121,7 +121,7 @@ export function MaintenanceCreateForm({
         {(control) => <Textarea {...control} name="notes" rows={2} />}
       </Field>
 
-      <Button type="submit" disabled={pending}>
+      <Button type="submit" className="h-11 w-full sm:w-auto" disabled={pending}>
         {pending ? tCommon('states.saving') : t('submitMaintenance')}
       </Button>
     </form>

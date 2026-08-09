@@ -33,14 +33,14 @@ export async function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <OfflineSyncProvider organizationId={shell.organizationId}>
-      <div className="flex min-h-dvh" data-pf-shell="app">
+      <div className="flex min-h-dvh w-full max-w-full" data-pf-shell="app">
         <ServiceWorkerRegistrar />
         <Sidebar items={items} organizationName={shell.organization.name} />
 
-        <div className="relative flex min-w-0 flex-1 flex-col">
+        <div className="relative flex min-w-0 max-w-full flex-1 flex-col">
           <a
             href="#main"
-            className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:start-2 focus:z-100 focus:rounded-md focus:bg-[var(--pf-bg-surface)] focus:px-3 focus:py-2 focus:text-sm"
+            className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:start-2 focus:z-100 focus:rounded-md focus:bg-[var(--pf-bg-surface)] focus:px-3 focus:py-2 focus:text-sm focus:outline-2 focus:outline-offset-2 focus:outline-[var(--pf-focus-ring)] focus:shadow-[var(--pf-shadow-md)]"
           >
             {tCommon('a11y.skipToContent')}
           </a>
@@ -55,9 +55,9 @@ export async function AppShell({ children }: { children: ReactNode }) {
 
           <main
             id="main"
-            className="flex-1 px-4 pt-5 pb-[calc(var(--pf-bottomnav-height)+1.5rem+env(safe-area-inset-bottom))] sm:px-6 lg:pb-8"
+            className="min-w-0 w-full flex-1 px-4 pt-5 pb-[var(--pf-mobile-content-bottom)] sm:px-6 lg:pb-8"
           >
-            <div className="mx-auto w-full max-w-6xl">{children}</div>
+            <div className="mx-auto w-full min-w-0 max-w-6xl">{children}</div>
           </main>
         </div>
 

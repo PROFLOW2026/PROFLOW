@@ -3,8 +3,8 @@ import { getTranslations } from 'next-intl/server';
 import { PageHeader } from '@/components/ui/page-header';
 import { getOrganizationReportsAnalytics } from '@/modules/financials';
 import { ReportsAnalyticsView } from '@/modules/financials/ui';
-import { Link } from '@/shared/i18n/navigation';
 import { withOrgContext } from '@/shared/auth/session';
+import { ReportsExportActions } from './reports-export-actions';
 
 export async function generateMetadata({
   params,
@@ -24,86 +24,11 @@ export default async function ReportsPage() {
   );
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex min-w-0 max-w-full flex-col gap-6">
       <PageHeader
         title={t('title')}
         description={t('description')}
-        actions={
-          <div className="flex flex-wrap gap-2 text-sm">
-            <Link
-              className="inline-flex min-h-11 items-center px-2 underline underline-offset-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
-              href="/exports/projects"
-            >
-              {t('exportProjects')}
-            </Link>
-            <Link
-              className="inline-flex min-h-11 items-center px-2 underline underline-offset-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
-              href="/exports/clients"
-            >
-              {t('exportClients')}
-            </Link>
-            <Link
-              className="inline-flex min-h-11 items-center px-2 underline underline-offset-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
-              href="/exports/vendors"
-            >
-              {t('exportVendors')}
-            </Link>
-            <Link
-              className="inline-flex min-h-11 items-center px-2 underline underline-offset-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
-              href="/exports/expenses"
-            >
-              {t('exportExpenses')}
-            </Link>
-            <Link
-              className="inline-flex min-h-11 items-center px-2 underline underline-offset-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
-              href="/exports/billing"
-            >
-              {t('exportBilling')}
-            </Link>
-            <Link
-              className="inline-flex min-h-11 items-center px-2 underline underline-offset-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
-              href="/exports/payments"
-            >
-              {t('exportPayments')}
-            </Link>
-            <Link
-              className="inline-flex min-h-11 items-center px-2 underline underline-offset-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
-              href="/exports/receivables-aging"
-            >
-              {t('exportReceivables')}
-            </Link>
-            <Link
-              className="inline-flex min-h-11 items-center px-2 underline underline-offset-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
-              href="/exports/employees"
-            >
-              {t('exportEmployees')}
-            </Link>
-            <Link
-              className="inline-flex min-h-11 items-center px-2 underline underline-offset-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
-              href="/exports/time-entries"
-            >
-              {t('exportTimeEntries')}
-            </Link>
-            <Link
-              className="inline-flex min-h-11 items-center px-2 underline underline-offset-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
-              href="/exports/purchase-orders"
-            >
-              {t('exportPurchaseOrders')}
-            </Link>
-            <Link
-              className="inline-flex min-h-11 items-center px-2 underline underline-offset-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
-              href="/exports/ap-bills"
-            >
-              {t('exportApBills')}
-            </Link>
-            <Link
-              className="inline-flex min-h-11 items-center px-2 underline underline-offset-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
-              href="/imports"
-            >
-              {t('importData')}
-            </Link>
-          </div>
-        }
+        actions={<ReportsExportActions />}
       />
 
       <ReportsAnalyticsView analytics={analytics} />

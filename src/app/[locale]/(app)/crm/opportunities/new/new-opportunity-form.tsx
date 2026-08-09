@@ -28,7 +28,7 @@ export function NewOpportunityForm({
   );
 
   return (
-    <form action={formAction} className="flex max-w-lg flex-col gap-4">
+    <form action={formAction} className="mx-auto flex w-full max-w-lg flex-col gap-4">
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
       <Field label={t('nameLabel')} required>
         {(control) => <Input {...control} name="name" required autoFocus />}
@@ -39,7 +39,7 @@ export function NewOpportunityForm({
             <select
               {...control}
               name="prospectId"
-              className="h-11 rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] px-3"
+              className="h-11 w-full rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] px-3 text-start"
             >
               <option value="">—</option>
               {prospects.map((prospect) => (
@@ -58,7 +58,7 @@ export function NewOpportunityForm({
               {...control}
               name="leadId"
               defaultValue={defaultLeadId ?? ''}
-              className="h-11 rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] px-3"
+              className="h-11 w-full rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] px-3 text-start"
             >
               <option value="">—</option>
               {leads.map((lead) => (
@@ -93,7 +93,7 @@ export function NewOpportunityForm({
       <Field label={t('notesLabel')} optionalLabel={tCommon('labels.optional')}>
         {(control) => <Textarea {...control} name="notes" rows={3} />}
       </Field>
-      <Button type="submit" disabled={pending}>
+      <Button type="submit" disabled={pending} block>
         {t('submit')}
       </Button>
     </form>

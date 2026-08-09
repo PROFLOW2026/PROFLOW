@@ -30,3 +30,12 @@ export const he = {
   projects: loadLocale<typeof projects>('projects'),
   settings: loadLocale<typeof settings>('settings'),
 };
+
+/** Known English UI strings that must not appear on he-IL critical surfaces. */
+export const EN_UI_RESIDUE = [
+  'Original contract value',
+  'Current contract value',
+  'Approved changes',
+  'Actual cost to date',
+  'Estimated profit',
+] as const;

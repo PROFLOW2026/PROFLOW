@@ -50,10 +50,10 @@ export function ClientDetailView({ client, customFields = [] }: ClientDetailView
           {(control) => <Input {...control} name="legalName" defaultValue={client.legalName ?? ''} />}
         </Field>
         <Field label={tCommon('labels.email')} optionalLabel={tCommon('labels.optional')}>
-          {(control) => <Input {...control} name="email" type="email" defaultValue={client.email ?? ''} />}
+          {(control) => <Input {...control} name="email" type="email" defaultValue={client.email ?? ''} dir="ltr" />}
         </Field>
         <Field label={tCommon('labels.phone')} optionalLabel={tCommon('labels.optional')}>
-          {(control) => <Input {...control} name="phone" defaultValue={client.phone ?? ''} />}
+          {(control) => <Input {...control} name="phone" defaultValue={client.phone ?? ''} dir="ltr" />}
         </Field>
         <Field label={tCommon('labels.notes')} optionalLabel={tCommon('labels.optional')}>
           {(control) => <Textarea {...control} name="notes" rows={2} defaultValue={client.notes ?? ''} />}
@@ -80,38 +80,50 @@ export function ClientDetailView({ client, customFields = [] }: ClientDetailView
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
           {client.contacts.map((contact) => (
-            <div key={contact.id} className="flex items-start justify-between gap-2 border-b pb-3 last:border-0">
-              <div>
+            <div
+              key={contact.id}
+              className="flex flex-wrap items-start justify-between gap-2 border-b pb-3 last:border-0"
+            >
+              <div className="min-w-0 flex-1 text-start">
                 <p className="font-medium">{contact.name}</p>
                 <p className="text-sm text-[var(--pf-text-secondary)]">
                   {t(`contactRoles.${contact.role}`)}
-                  {contact.email ? ` · ${contact.email}` : ''}
+                  {contact.email ? (
+                    <>
+                      {' · '}
+                      <span dir="ltr">{contact.email}</span>
+                    </>
+                  ) : (
+                    ''
+                  )}
                 </p>
               </div>
-              <ConfirmAction
-                title={tCommon('actions.remove')}
-                description={
-                  <>
-                    <p>{t('removeContactQuestion', { name: contact.name })}</p>
-                    <p>{t('removeContactConsequence')}</p>
-                  </>
-                }
-                confirmLabel={tCommon('actions.remove')}
-                successMessage={t('removeContactSuccess')}
-                onConfirm={async () => {
-                  try {
-                    await deleteContactAction(contact.id, client.id);
-                    return { ok: true };
-                  } catch {
-                    return { error: tCommon('states.errorHint') };
+              <div className="shrink-0">
+                <ConfirmAction
+                  title={tCommon('actions.remove')}
+                  description={
+                    <>
+                      <p>{t('removeContactQuestion', { name: contact.name })}</p>
+                      <p>{t('removeContactConsequence')}</p>
+                    </>
                   }
-                }}
-                trigger={
-                  <Button type="button" variant="ghost" size="sm">
-                    {tCommon('actions.remove')}
-                  </Button>
-                }
-              />
+                  confirmLabel={tCommon('actions.remove')}
+                  successMessage={t('removeContactSuccess')}
+                  onConfirm={async () => {
+                    try {
+                      await deleteContactAction(contact.id, client.id);
+                      return { ok: true };
+                    } catch {
+                      return { error: tCommon('states.errorHint') };
+                    }
+                  }}
+                  trigger={
+                    <Button type="button" variant="ghost" size="sm">
+                      {tCommon('actions.remove')}
+                    </Button>
+                  }
+                />
+              </div>
             </div>
           ))}
           <AddContactForm clientId={client.id} />
@@ -125,40 +137,47 @@ export function ClientDetailView({ client, customFields = [] }: ClientDetailView
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
           {client.identifiers.map((identifier) => (
-            <div key={identifier.id} className="flex items-start justify-between gap-2 border-b pb-3 last:border-0">
-              <div>
+            <div
+              key={identifier.id}
+              className="flex flex-wrap items-start justify-between gap-2 border-b pb-3 last:border-0"
+            >
+              <div className="min-w-0 flex-1 text-start">
                 <p className="font-medium">{t(`identifierTypes.${identifier.type}`)}</p>
-                <p className="text-sm">{identifier.value}</p>
+                <p className="text-sm" dir="ltr">
+                  {identifier.value}
+                </p>
               </div>
-              <ConfirmAction
-                title={tCommon('actions.remove')}
-                description={
-                  <>
-                    <p>
-                      {t('removeIdentifierQuestion', {
-                        type: t(`identifierTypes.${identifier.type}`),
-                        value: identifier.value,
-                      })}
-                    </p>
-                    <p>{t('removeIdentifierConsequence')}</p>
-                  </>
-                }
-                confirmLabel={tCommon('actions.remove')}
-                successMessage={t('removeIdentifierSuccess')}
-                onConfirm={async () => {
-                  try {
-                    await deleteIdentifierAction(identifier.id, client.id);
-                    return { ok: true };
-                  } catch {
-                    return { error: tCommon('states.errorHint') };
+              <div className="shrink-0">
+                <ConfirmAction
+                  title={tCommon('actions.remove')}
+                  description={
+                    <>
+                      <p>
+                        {t('removeIdentifierQuestion', {
+                          type: t(`identifierTypes.${identifier.type}`),
+                          value: identifier.value,
+                        })}
+                      </p>
+                      <p>{t('removeIdentifierConsequence')}</p>
+                    </>
                   }
-                }}
-                trigger={
-                  <Button type="button" variant="ghost" size="sm">
-                    {tCommon('actions.remove')}
-                  </Button>
-                }
-              />
+                  confirmLabel={tCommon('actions.remove')}
+                  successMessage={t('removeIdentifierSuccess')}
+                  onConfirm={async () => {
+                    try {
+                      await deleteIdentifierAction(identifier.id, client.id);
+                      return { ok: true };
+                    } catch {
+                      return { error: tCommon('states.errorHint') };
+                    }
+                  }}
+                  trigger={
+                    <Button type="button" variant="ghost" size="sm">
+                      {tCommon('actions.remove')}
+                    </Button>
+                  }
+                />
+              </div>
             </div>
           ))}
           <AddIdentifierForm clientId={client.id} />
@@ -197,7 +216,7 @@ function AddContactForm({ clientId }: { clientId: string }) {
         {(control) => <Input {...control} name="name" required />}
       </Field>
       <Field label={tCommon('labels.email')} optionalLabel={tCommon('labels.optional')}>
-        {(control) => <Input {...control} name="email" type="email" />}
+        {(control) => <Input {...control} name="email" type="email" dir="ltr" />}
       </Field>
       <Button type="submit" loading={pending} variant="secondary" size="sm">
         {t('addContact')}

@@ -31,7 +31,7 @@ export default async function ApproveChangePage({
   const canApprove = shell?.permissions.has(PERMISSIONS.CHANGES_APPROVE) ?? false;
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex min-w-0 flex-col gap-6">
       <PageHeader title={t('approve.pageTitle')} description={t('approve.pageDescription')} />
       <ApproveChangeForm detail={detail} action={approveChangeAction} canApprove={canApprove} />
     </div>

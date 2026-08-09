@@ -39,18 +39,18 @@ export function CustomFieldsPanel({
   );
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex w-full min-w-0 flex-col gap-6">
       <div>
-        <p className="text-sm text-[var(--pf-text-secondary)]">{t('subtitle')}</p>
+        <p className="text-start text-sm text-[var(--pf-text-secondary)]">{t('subtitle')}</p>
         <Alert tone="info" className="mt-3">
           {t('reportingNote')}
         </Alert>
       </div>
 
       {canEdit ? (
-        <section className="rounded-lg border border-[var(--pf-border-default)] p-4">
-          <h2 className="font-medium">{t('addDefinition')}</h2>
-          <form action={createAction} className="mt-3 flex max-w-lg flex-col gap-3">
+        <section className="min-w-0 rounded-lg border border-[var(--pf-border-default)] p-4">
+          <h2 className="text-start font-medium">{t('addDefinition')}</h2>
+          <form action={createAction} className="mt-3 flex w-full max-w-lg flex-col gap-3">
             {createState.error ? <Alert tone="danger">{createState.error}</Alert> : null}
             {createState.ok ? (
               <Alert tone="success" role="status">
@@ -84,6 +84,7 @@ export function CustomFieldsPanel({
                   required
                   pattern="[a-z][a-z0-9_]*"
                   dir="ltr"
+                  className="font-mono text-sm"
                 />
               )}
             </Field>
@@ -118,9 +119,9 @@ export function CustomFieldsPanel({
                 />
               )}
             </Field>
-            <p className="text-xs text-[var(--pf-text-muted)]">{t('fields.optionsHint')}</p>
+            <p className="text-start text-xs text-[var(--pf-text-muted)]">{t('fields.optionsHint')}</p>
 
-            <label className="flex min-h-11 items-center gap-3 text-sm">
+            <label className="flex min-h-11 items-center gap-3 text-start text-sm">
               <input
                 type="checkbox"
                 name="required"
@@ -137,13 +138,13 @@ export function CustomFieldsPanel({
         </section>
       ) : null}
 
-      <section>
-        <h2 className="text-sm font-semibold">{t('listTitle')}</h2>
+      <section className="min-w-0">
+        <h2 className="text-start text-sm font-semibold">{t('listTitle')}</h2>
         {archiveState.error ? <Alert tone="danger">{archiveState.error}</Alert> : null}
         {definitions.length === 0 ? (
           <EmptyState size="sm" title={t('empty')} description={t('emptyHint')} className="mt-2" />
         ) : (
-          <div className="mt-3">
+          <div className="mt-3 min-w-0">
             <ResponsiveTable
               items={definitions}
               getRowKey={(definition) => definition.id}
@@ -162,9 +163,11 @@ export function CustomFieldsPanel({
                     <TableBody>
                       {definitions.map((definition) => (
                         <TableRow key={definition.id}>
-                          <TableCell>{definition.label}</TableCell>
+                          <TableCell className="max-w-[12rem] break-words">{definition.label}</TableCell>
                           <TableCell>
-                            <code dir="ltr">{definition.key}</code>
+                            <code dir="ltr" className="break-all text-xs">
+                              {definition.key}
+                            </code>
                           </TableCell>
                           <TableCell>{t(`entityTypes.${definition.entityType}`)}</TableCell>
                           <TableCell>{t(`fieldTypes.${definition.fieldType}`)}</TableCell>
@@ -191,11 +194,13 @@ export function CustomFieldsPanel({
                 </div>
               }
               renderMobileCard={(definition) => (
-                <div className="flex min-h-11 flex-col gap-3 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4">
-                  <div>
-                    <p className="font-semibold">{definition.label}</p>
+                <div className="flex min-h-11 min-w-0 flex-col gap-3 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4">
+                  <div className="min-w-0 text-start">
+                    <p className="font-semibold break-words">{definition.label}</p>
                     <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">
-                      <code dir="ltr">{definition.key}</code>
+                      <code dir="ltr" className="break-all text-xs">
+                        {definition.key}
+                      </code>
                       {' · '}
                       {t(`entityTypes.${definition.entityType}`)}
                       {' · '}
@@ -203,14 +208,14 @@ export function CustomFieldsPanel({
                     </p>
                   </div>
                   {canEdit && !definition.archivedAt ? (
-                    <form action={archiveAction}>
+                    <form action={archiveAction} className="w-full">
                       <input type="hidden" name="definitionId" value={definition.id} />
                       <Button
                         type="submit"
                         variant="secondary"
                         size="sm"
                         loading={archivePending}
-                        className="min-h-11"
+                        className="min-h-11 w-full sm:w-auto"
                       >
                         {t('archive')}
                       </Button>

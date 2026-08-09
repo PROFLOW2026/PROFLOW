@@ -111,19 +111,23 @@ export function ExpensesList({
   }
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="grid gap-3 rounded-lg border border-[var(--pf-border-default)] p-3 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="flex min-w-0 flex-col gap-4">
+      <div className="grid min-w-0 gap-3 rounded-lg border border-[var(--pf-border-default)] p-3 sm:grid-cols-2 lg:grid-cols-3">
         <Input
           type="date"
           value={dateFrom}
           onChange={(event) => setDateFrom(event.target.value)}
           aria-label={t('filters.dateFrom')}
+          className="min-w-0"
+          dir="ltr"
         />
         <Input
           type="date"
           value={dateTo}
           onChange={(event) => setDateTo(event.target.value)}
           aria-label={t('filters.dateTo')}
+          className="min-w-0"
+          dir="ltr"
         />
 
         <Field label={t('filters.project')}>
@@ -212,69 +216,72 @@ export function ExpensesList({
             items={items}
             getRowKey={(expense) => expense.id}
             desktop={
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>{t('fields.date')}</TableHead>
-                    <TableHead>{t('fields.description')}</TableHead>
-                    <TableHead className="hidden md:table-cell">{t('fields.project')}</TableHead>
-                    <TableHead className="hidden lg:table-cell">{t('fields.costFamily')}</TableHead>
-                    <TableHead numeric>{t('fields.amount')}</TableHead>
-                    <TableHead>{t('fields.status')}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {items.map((expense) => (
-                    <TableRow key={expense.id}>
-                      <TableCell>
-                        <Link href={`/expenses/${expense.id}`} className="font-medium hover:underline">
-                          <span dir="ltr">
-                            {formatBusinessDate(expense.expenseDate, locale, 'short')}
-                          </span>
-                        </Link>
-                      </TableCell>
-                      <TableCell className="max-w-[14rem] truncate">
-                        {expense.description || expense.supplierName || t('list.noDescription')}
-                      </TableCell>
-                      <TableCell className="hidden md:table-cell">
-                        {expense.projectName ?? t('targeting.overhead')}
-                      </TableCell>
-                      <TableCell className="hidden lg:table-cell">
-                        {t(`costFamilies.${expense.costFamily}`)}
-                      </TableCell>
-                      <TableCell numeric>
-                        <MoneyText value={expense.grossAmount} />
-                      </TableCell>
-                      <TableCell>
-                        <StatusBadge
-                          shape={statusShape(expense.status)}
-                          label={tStatus(`expense.${expense.status}`)}
-                        />
-                      </TableCell>
+              <div className="min-w-0 rounded-lg border border-[var(--pf-border-default)]">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>{t('fields.date')}</TableHead>
+                      <TableHead>{t('fields.description')}</TableHead>
+                      <TableHead className="hidden md:table-cell">{t('fields.project')}</TableHead>
+                      <TableHead className="hidden lg:table-cell">{t('fields.costFamily')}</TableHead>
+                      <TableHead numeric>{t('fields.amount')}</TableHead>
+                      <TableHead>{t('fields.status')}</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {items.map((expense) => (
+                      <TableRow key={expense.id}>
+                        <TableCell>
+                          <Link href={`/expenses/${expense.id}`} className="font-medium hover:underline">
+                            <span dir="ltr">
+                              {formatBusinessDate(expense.expenseDate, locale, 'short')}
+                            </span>
+                          </Link>
+                        </TableCell>
+                        <TableCell className="max-w-[14rem] truncate text-start">
+                          {expense.description || expense.supplierName || t('list.noDescription')}
+                        </TableCell>
+                        <TableCell className="hidden max-w-[12rem] truncate md:table-cell">
+                          {expense.projectName ?? t('targeting.overhead')}
+                        </TableCell>
+                        <TableCell className="hidden lg:table-cell">
+                          {t(`costFamilies.${expense.costFamily}`)}
+                        </TableCell>
+                        <TableCell numeric>
+                          <MoneyText value={expense.grossAmount} />
+                        </TableCell>
+                        <TableCell>
+                          <StatusBadge
+                            shape={statusShape(expense.status)}
+                            label={tStatus(`expense.${expense.status}`)}
+                          />
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
             }
             renderMobileCard={(expense) => (
               <Link
                 href={`/expenses/${expense.id}`}
-                className="block min-h-11 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4"
+                className="block min-h-11 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4 text-start"
               >
                 <div className="flex items-start justify-between gap-2">
-                  <span className="font-semibold" dir="ltr">
+                  <span className="min-w-0 flex-1 font-semibold" dir="ltr">
                     {formatBusinessDate(expense.expenseDate, locale, 'short')}
                   </span>
                   <StatusBadge
+                    className="shrink-0"
                     shape={statusShape(expense.status)}
                     label={tStatus(`expense.${expense.status}`)}
                   />
                 </div>
-                <p className="mt-1 truncate text-sm text-[var(--pf-text-secondary)]">
+                <p className="mt-1 truncate text-start text-sm text-[var(--pf-text-secondary)]">
                   {expense.description || expense.supplierName || t('list.noDescription')}
                 </p>
                 <div className="mt-2 flex flex-wrap items-baseline justify-between gap-2 text-sm">
-                  <span className="text-[var(--pf-text-secondary)]">
+                  <span className="min-w-0 truncate text-[var(--pf-text-secondary)]">
                     {expense.projectName ?? t('targeting.overhead')}
                   </span>
                   <MoneyText value={expense.grossAmount} />

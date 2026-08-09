@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
+import { ResponsiveTable } from '@/components/patterns/responsive-table';
 import { Badge } from '@/components/ui/badge';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/ui/page-header';
@@ -87,7 +88,7 @@ export default async function InventoryItemDetailPage({
   const { item, movements, documentsPanel, projects, canManage, today, projectNames } = loaded;
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex min-w-0 flex-col gap-6">
       <PageHeader
         title={item.name}
         description={t('inventory.detailDescription')}
@@ -106,36 +107,46 @@ export default async function InventoryItemDetailPage({
         }
       />
 
-      <dl className="grid gap-3 rounded-lg border border-[var(--pf-border-default)] p-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div>
+      <dl className="grid min-w-0 gap-3 rounded-lg border border-[var(--pf-border-default)] p-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="min-w-0">
           <dt className="text-xs text-[var(--pf-text-secondary)]">{t('list.columns.sku')}</dt>
-          <dd className="font-medium">{item.sku ?? '—'}</dd>
+          <dd className="break-words font-medium">
+            {item.sku ? (
+              <span dir="ltr" className="pf-numeric">
+                {item.sku}
+              </span>
+            ) : (
+              '—'
+            )}
+          </dd>
         </div>
-        <div>
+        <div className="min-w-0">
           <dt className="text-xs text-[var(--pf-text-secondary)]">{t('list.columns.unit')}</dt>
           <dd className="font-medium">{item.unit}</dd>
         </div>
-        <div>
+        <div className="min-w-0">
           <dt className="text-xs text-[var(--pf-text-secondary)]">{t('list.columns.quantity')}</dt>
           <dd className="font-medium tabular-nums" dir="ltr">
             {item.quantityOnHand}
           </dd>
         </div>
-        <div>
+        <div className="min-w-0">
           <dt className="text-xs text-[var(--pf-text-secondary)]">{t('list.columns.reorderLevel')}</dt>
-          <dd className="font-medium">{item.reorderLevel ?? '—'}</dd>
+          <dd className="font-medium">
+            {item.reorderLevel ? <span dir="ltr">{item.reorderLevel}</span> : '—'}
+          </dd>
         </div>
       </dl>
 
       {item.notes ? (
-        <p className="text-sm text-[var(--pf-text-secondary)]">{item.notes}</p>
+        <p className="break-words text-sm text-[var(--pf-text-secondary)]">{item.notes}</p>
       ) : null}
 
       {item.materialItemId ? (
         <p className="text-sm">
           <Link
             href={`/procurement/materials/${item.materialItemId}`}
-            className="text-[var(--pf-text-secondary)] hover:underline"
+            className="rounded-sm text-[var(--pf-text-secondary)] hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
           >
             {t('inventory.linkedMaterial')}
           </Link>
@@ -155,9 +166,9 @@ export default async function InventoryItemDetailPage({
       />
 
       {canManage ? (
-        <section className="flex flex-col gap-3">
+        <section className="flex min-w-0 flex-col gap-3">
           <h2 className="text-lg font-semibold">{t('inventory.recordMovement')}</h2>
-          <div className="grid gap-3 lg:grid-cols-2">
+          <div className="grid min-w-0 gap-3 sm:grid-cols-1 lg:grid-cols-2">
             {MOVEMENT_TYPES.map((type) => (
               <InventoryMovementForm
                 key={type}
@@ -171,7 +182,7 @@ export default async function InventoryItemDetailPage({
         </section>
       ) : null}
 
-      <section className="flex flex-col gap-3">
+      <section className="flex min-w-0 flex-col gap-3">
         <h2 className="text-lg font-semibold">{t('inventory.historyTitle')}</h2>
         {movements.length === 0 ? (
           <EmptyState
@@ -179,34 +190,71 @@ export default async function InventoryItemDetailPage({
             description={t('inventory.historyHint')}
           />
         ) : (
-          <div className="overflow-x-auto rounded-lg border border-[var(--pf-border-default)]">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t('inventory.history.columns.date')}</TableHead>
-                  <TableHead>{t('inventory.history.columns.type')}</TableHead>
-                  <TableHead>{t('inventory.history.columns.quantity')}</TableHead>
-                  <TableHead>{t('inventory.history.columns.project')}</TableHead>
-                  <TableHead>{t('inventory.history.columns.notes')}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {movements.map((movement) => (
-                  <TableRow key={movement.id}>
-                    <TableCell>{movement.occurredOn}</TableCell>
-                    <TableCell>{t(`inventory.movementTypes.${movement.movementType}`)}</TableCell>
-                    <TableCell>{movement.quantity}</TableCell>
-                    <TableCell>
-                      {movement.projectId
-                        ? (projectNames.get(movement.projectId) ?? movement.projectId)
-                        : '—'}
-                    </TableCell>
-                    <TableCell>{movement.notes ?? '—'}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+          <ResponsiveTable
+            items={movements}
+            getRowKey={(movement) => movement.id}
+            desktop={
+              <div className="min-w-0 rounded-lg border border-[var(--pf-border-default)]">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>{t('inventory.history.columns.date')}</TableHead>
+                      <TableHead>{t('inventory.history.columns.type')}</TableHead>
+                      <TableHead numeric>{t('inventory.history.columns.quantity')}</TableHead>
+                      <TableHead>{t('inventory.history.columns.project')}</TableHead>
+                      <TableHead>{t('inventory.history.columns.notes')}</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {movements.map((movement) => (
+                      <TableRow key={movement.id}>
+                        <TableCell>
+                          <span dir="ltr">{movement.occurredOn}</span>
+                        </TableCell>
+                        <TableCell>{t(`inventory.movementTypes.${movement.movementType}`)}</TableCell>
+                        <TableCell numeric>
+                          <span dir="ltr">{movement.quantity}</span>
+                        </TableCell>
+                        <TableCell className="max-w-[12rem] truncate">
+                          {movement.projectId
+                            ? (projectNames.get(movement.projectId) ?? movement.projectId)
+                            : '—'}
+                        </TableCell>
+                        <TableCell className="max-w-[12rem] truncate">
+                          {movement.notes ?? '—'}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            }
+            renderMobileCard={(movement) => (
+              <div className="flex min-w-0 flex-col gap-1 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <span className="font-medium">
+                    {t(`inventory.movementTypes.${movement.movementType}`)}
+                  </span>
+                  <span className="tabular-nums" dir="ltr">
+                    {movement.quantity}
+                  </span>
+                </div>
+                <p className="text-xs text-[var(--pf-text-secondary)]" dir="ltr">
+                  {movement.occurredOn}
+                </p>
+                {movement.projectId ? (
+                  <p className="break-words text-sm text-[var(--pf-text-secondary)]">
+                    {projectNames.get(movement.projectId) ?? movement.projectId}
+                  </p>
+                ) : null}
+                {movement.notes ? (
+                  <p className="break-words text-sm text-[var(--pf-text-secondary)]">
+                    {movement.notes}
+                  </p>
+                ) : null}
+              </div>
+            )}
+          />
         )}
       </section>
     </div>

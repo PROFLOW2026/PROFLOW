@@ -34,11 +34,12 @@ export async function generateMetadata({
 }: {
   params: Promise<{ changeRequestId: string }>;
 }): Promise<Metadata> {
+  const t = await getTranslations('changes');
   const { changeRequestId } = await params;
   const detail = await withOrgContext(async (context) =>
     getChangeRequestDetail(context, changeRequestId).catch(() => null),
   );
-  return { title: detail?.title ?? 'Change request' };
+  return { title: detail?.title ?? t('pageTitle') };
 }
 
 export default async function ChangeDetailPage({
@@ -97,7 +98,7 @@ export default async function ChangeDetailPage({
   const signed = magnitude ? signedChangeAmount(detail.direction, magnitude) : null;
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex min-w-0 flex-col gap-6">
       <PageHeader
         title={detail.title}
         description={detail.description}
@@ -105,21 +106,21 @@ export default async function ChangeDetailPage({
           <>
             <ChangeStatusBadge status={detail.status} sentAt={detail.sentAt} />
             {detail.reference ? (
-              <span className="font-mono text-xs text-[var(--pf-text-secondary)]">
+              <span className="font-mono text-xs text-[var(--pf-text-secondary)]" dir="ltr">
                 {detail.reference}
               </span>
             ) : null}
           </>
         }
         actions={
-          <div className="flex flex-wrap gap-2">
+          <div className="flex max-w-full flex-wrap gap-2">
             {canManage && detail.status === 'draft' ? (
-              <Button asChild variant="secondary" size="sm">
+              <Button asChild variant="secondary" size="sm" className="max-w-full">
                 <Link href={`/changes/${changeRequestId}/price`}>{t('detail.price')}</Link>
               </Button>
             ) : null}
             {canApprove && detail.status === 'awaiting_approval' ? (
-              <Button asChild size="sm">
+              <Button asChild size="sm" className="max-w-full">
                 <Link href={`/changes/${changeRequestId}/approve`}>{t('detail.approve')}</Link>
               </Button>
             ) : null}
@@ -128,24 +129,25 @@ export default async function ChangeDetailPage({
       />
 
       {signed ? (
-        <div>
+        <div className="min-w-0 text-start">
           <p className="text-sm text-[var(--pf-text-secondary)]">{t('detail.amount')}</p>
           <MoneyText value={signed} className="text-lg font-semibold" colorizeNegative />
         </div>
       ) : null}
 
       {detail.quoteVersions.length > 0 ? (
-        <section className="flex flex-col gap-2">
-          <h2 className="text-base font-semibold">{t('detail.versionsTitle')}</h2>
+        <section className="flex min-w-0 flex-col gap-2">
+          <h2 className="text-start text-base font-semibold">{t('detail.versionsTitle')}</h2>
           <ul className="flex flex-col gap-2 text-sm">
             {detail.quoteVersions.map((version) => (
               <li
                 key={version.id}
-                className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-[var(--pf-border-default)] p-3"
+                className="flex min-w-0 flex-wrap items-center justify-between gap-2 rounded-md border border-[var(--pf-border-default)] p-3 text-start"
               >
-                <div className="flex flex-wrap items-center gap-2">
-                  <span>{t('detail.version', { number: version.versionNumber })}</span>
+                <div className="flex min-w-0 flex-wrap items-center gap-2">
+                  <span className="min-w-0">{t('detail.version', { number: version.versionNumber })}</span>
                   <StatusBadge
+                    className="shrink-0"
                     shape={QUOTE_VERSION_SHAPES[version.status]}
                     label={t(`detail.quoteVersionStatus.${version.status}`)}
                   />

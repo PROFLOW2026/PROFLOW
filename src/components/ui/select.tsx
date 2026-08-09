@@ -6,7 +6,14 @@ import * as React from 'react';
 import { useLocaleDir } from '@/shared/i18n/direction';
 import { cn } from '@/shared/ui/cn';
 
-export const Select = SelectPrimitive.Root;
+export function Select({
+  dir,
+  ...props
+}: React.ComponentPropsWithoutRef<typeof SelectPrimitive.Root>) {
+  const localeDir = useLocaleDir();
+  return <SelectPrimitive.Root dir={dir ?? localeDir} {...props} />;
+}
+
 export const SelectGroup = SelectPrimitive.Group;
 export const SelectValue = SelectPrimitive.Value;
 

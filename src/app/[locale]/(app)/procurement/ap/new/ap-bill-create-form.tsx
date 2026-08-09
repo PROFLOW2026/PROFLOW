@@ -121,7 +121,7 @@ export function ApBillCreateForm({
   );
 
   return (
-    <form action={formAction} className="flex max-w-2xl flex-col gap-4">
+    <form action={formAction} className="flex w-full min-w-0 max-w-2xl flex-col gap-4">
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
 
       <input type="hidden" name="currency" value={currency} />
@@ -218,7 +218,7 @@ export function ApBillCreateForm({
       </Field>
 
       <div className="rounded-lg border border-[var(--pf-border-default)] p-4">
-        <div className="flex items-center justify-between gap-2">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 className="font-medium">{t('linesTitle')}</h2>
           <Button
             type="button"
@@ -332,9 +332,12 @@ export function ApBillCreateForm({
                   )}
                 </Field>
               ) : null}
-              <div className="flex items-end justify-between gap-2 sm:col-span-2">
+              <div className="flex flex-wrap items-end justify-between gap-2 sm:col-span-2">
                 <p className="text-sm text-[var(--pf-text-secondary)]">
-                  {t('lineTotal')}: {line.lineTotal || '—'} {currency}
+                  {t('lineTotal')}:{' '}
+                  <span dir="ltr" className="pf-numeric">
+                    {line.lineTotal || '—'} {currency}
+                  </span>
                 </p>
                 {lines.length > 1 ? (
                   <Button
@@ -353,7 +356,10 @@ export function ApBillCreateForm({
         </div>
 
         <p className="mt-3 text-sm font-medium">
-          {t('totalLabel')}: {totalAmount} {currency}
+          {t('totalLabel')}:{' '}
+          <span dir="ltr" className="pf-numeric">
+            {totalAmount} {currency}
+          </span>
         </p>
       </div>
 

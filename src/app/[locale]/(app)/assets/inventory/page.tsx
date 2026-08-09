@@ -67,13 +67,13 @@ export default async function InventoryPage({
   });
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex min-w-0 flex-col gap-6">
       <PageHeader
         title={t('inventory.title')}
         description={t('inventory.description')}
         actions={
           canManage ? (
-            <Button asChild>
+            <Button asChild className="max-w-full">
               <Link href="/assets/inventory?new=1">
                 <Plus aria-hidden />
                 {t('newInventoryItem')}
@@ -85,7 +85,7 @@ export default async function InventoryPage({
       <AssetsSectionNav active="inventory" />
 
       {canManage && showNew === '1' ? (
-        <div className="rounded-lg border border-[var(--pf-border-default)] p-4">
+        <div className="min-w-0 rounded-lg border border-[var(--pf-border-default)] p-4">
           <h2 className="mb-3 font-semibold">{t('inventory.createTitle')}</h2>
           <InventoryItemCreateForm materials={materials} />
         </div>
@@ -109,30 +109,45 @@ export default async function InventoryPage({
           items={items}
           getRowKey={(item) => item.id}
           desktop={
-            <div className="overflow-x-auto rounded-lg border border-[var(--pf-border-default)]">
+            <div className="min-w-0 rounded-lg border border-[var(--pf-border-default)]">
               <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead>{t('list.columns.name')}</TableHead>
                     <TableHead>{t('list.columns.sku')}</TableHead>
                     <TableHead>{t('list.columns.unit')}</TableHead>
-                    <TableHead>{t('list.columns.quantity')}</TableHead>
-                    <TableHead>{t('list.columns.reorderLevel')}</TableHead>
+                    <TableHead numeric>{t('list.columns.quantity')}</TableHead>
+                    <TableHead numeric>{t('list.columns.reorderLevel')}</TableHead>
                     <TableHead>{t('list.columns.reorderStatus')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {items.map((item) => (
                     <TableRow key={item.id}>
-                      <TableCell className="font-medium">
-                        <Link href={`/assets/inventory/${item.id}`} className="hover:underline">
+                      <TableCell className="max-w-[14rem] truncate font-medium">
+                        <Link
+                          href={`/assets/inventory/${item.id}`}
+                          className="rounded-sm hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
+                        >
                           {item.name}
                         </Link>
                       </TableCell>
-                      <TableCell>{item.sku ?? '—'}</TableCell>
+                      <TableCell>
+                        {item.sku ? (
+                          <span dir="ltr" className="pf-numeric">
+                            {item.sku}
+                          </span>
+                        ) : (
+                          '—'
+                        )}
+                      </TableCell>
                       <TableCell>{item.unit}</TableCell>
-                      <TableCell>{item.quantityOnHand}</TableCell>
-                      <TableCell>{item.reorderLevel ?? '—'}</TableCell>
+                      <TableCell numeric>
+                        <span dir="ltr">{item.quantityOnHand}</span>
+                      </TableCell>
+                      <TableCell numeric>
+                        {item.reorderLevel ? <span dir="ltr">{item.reorderLevel}</span> : '—'}
+                      </TableCell>
                       <TableCell>
                         <Badge tone={reorderTone(item.reorderStatus)}>
                           {t(`inventory.reorderStatus.${item.reorderStatus}`)}
@@ -147,18 +162,28 @@ export default async function InventoryPage({
           renderMobileCard={(item) => (
             <Link
               href={`/assets/inventory/${item.id}`}
-              className="flex flex-col gap-2 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4"
+              className="flex min-h-11 min-w-0 flex-col gap-2 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
             >
-              <div className="flex items-start justify-between gap-2">
-                <p className="font-semibold">{item.name}</p>
+              <div className="flex min-w-0 items-start justify-between gap-2">
+                <p className="min-w-0 break-words font-semibold">{item.name}</p>
                 <Badge tone={reorderTone(item.reorderStatus)}>
                   {t(`inventory.reorderStatus.${item.reorderStatus}`)}
                 </Badge>
               </div>
-              <p className="text-sm text-[var(--pf-text-secondary)]">
-                {item.quantityOnHand} {item.unit}
-                {item.sku ? ` · ${item.sku}` : ''}
-                {item.reorderLevel ? ` · ${t('list.columns.reorderLevel')}: ${item.reorderLevel}` : ''}
+              <p className="break-words text-sm text-[var(--pf-text-secondary)]">
+                <span dir="ltr">{item.quantityOnHand}</span> {item.unit}
+                {item.sku ? (
+                  <>
+                    {' · '}
+                    <span dir="ltr">{item.sku}</span>
+                  </>
+                ) : null}
+                {item.reorderLevel ? (
+                  <>
+                    {' · '}
+                    {t('list.columns.reorderLevel')}: <span dir="ltr">{item.reorderLevel}</span>
+                  </>
+                ) : null}
               </p>
             </Link>
           )}

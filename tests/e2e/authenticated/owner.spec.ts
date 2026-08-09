@@ -41,7 +41,7 @@ test.describe('signed-in owner', () => {
     await expect(page.getByText(seededExpenseFormatted).first()).toBeVisible();
 
     await page.getByRole('tab', { name: he.projects.workspace.tabs.expenses }).click();
-    await expect(page.getByText(seededExpenseDescription)).toBeVisible();
+    await expect(page.getByText(seededExpenseDescription).first()).toBeVisible();
     await expect(page.getByText(seededExpenseFormatted).first()).toBeVisible();
 
     await page.getByRole('tab', { name: he.projects.workspace.tabs.details }).click();
@@ -82,7 +82,7 @@ test.describe('signed-in owner', () => {
 
     await page.goto(`/he-IL/projects/${world.projectId}`);
     await page.getByRole('tab', { name: he.projects.workspace.tabs.expenses }).click();
-    await expect(page.getByText(description)).toBeVisible();
+    await expect(page.getByText(description).first()).toBeVisible();
     await expect(page.getByText(amountFormatted).first()).toBeVisible();
   });
 

@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { MoneyText } from '@/components/patterns/money-text';
+import { ResponsiveTable } from '@/components/patterns/responsive-table';
 import { Alert } from '@/components/ui/alert';
 import { PageHeader } from '@/components/ui/page-header';
 import { StatusBadge, type StatusShape } from '@/components/ui/status-badge';
@@ -95,19 +96,19 @@ export default async function ApBillDetailPage({
     data;
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex min-w-0 flex-col gap-6">
       <PageHeader
         title={bill.reference?.trim() || t('list.noReference')}
         description={t('detail.description')}
         breadcrumb={
           <Link
             href="/procurement/ap"
-            className="text-sm text-[var(--pf-text-secondary)] hover:underline"
+            className="rounded-sm text-sm text-[var(--pf-text-secondary)] hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
           >
             {t('title')}
           </Link>
         }
-        actions={
+        meta={
           <StatusBadge
             shape={billStatusShape(bill.status)}
             label={t(`statuses.${bill.status}` as 'statuses.open')}
@@ -115,42 +116,46 @@ export default async function ApBillDetailPage({
         }
       />
 
-      <div className="grid gap-4 sm:grid-cols-3">
-        <div>
+      <div className="grid min-w-0 gap-4 sm:grid-cols-3">
+        <div className="min-w-0">
           <p className="text-xs text-[var(--pf-text-muted)]">{t('list.columns.total')}</p>
           <MoneyText value={money(bill.totalAmount, bill.currency)} />
         </div>
-        <div>
+        <div className="min-w-0">
           <p className="text-xs text-[var(--pf-text-muted)]">{t('list.columns.billDate')}</p>
           <p>
-            {bill.billDate
-              ? new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(
+            {bill.billDate ? (
+              <span dir="ltr">
+                {new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(
                   new Date(bill.billDate),
-                )
-              : '—'}
+                )}
+              </span>
+            ) : (
+              '—'
+            )}
           </p>
         </div>
-        <div>
+        <div className="min-w-0">
           <p className="text-xs text-[var(--pf-text-muted)]">{t('detail.ruleNote')}</p>
         </div>
       </div>
 
-      <section className="rounded-lg border border-[var(--pf-border-default)] p-4">
+      <section className="min-w-0 rounded-lg border border-[var(--pf-border-default)] p-4">
         <h2 className="mb-2 text-sm font-semibold">{t('detail.matchPositionTitle')}</h2>
         <div className="grid gap-3 sm:grid-cols-3">
-          <div>
+          <div className="min-w-0">
             <p className="text-xs text-[var(--pf-text-muted)]">{t('detail.acceptedMatched')}</p>
             <MoneyText
               value={money(matchPosition.acceptedMatchedTotal, matchPosition.currency)}
             />
           </div>
-          <div>
+          <div className="min-w-0">
             <p className="text-xs text-[var(--pf-text-muted)]">{t('detail.remainingUnmatched')}</p>
             <MoneyText
               value={money(matchPosition.remainingUnmatched, matchPosition.currency)}
             />
           </div>
-          <div>
+          <div className="min-w-0">
             <p className="text-xs text-[var(--pf-text-muted)]">{t('detail.remainingIncludingProposed')}</p>
             <MoneyText
               value={money(matchPosition.remainingIncludingProposed, matchPosition.currency)}
@@ -169,91 +174,141 @@ export default async function ApBillDetailPage({
         )}
       </section>
 
-      <section>
+      <section className="min-w-0">
         <h2 className="mb-2 text-sm font-semibold">{t('detail.linesTitle')}</h2>
-        <div className="overflow-x-auto rounded-lg border border-[var(--pf-border-default)]">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{t('create.lineDescription')}</TableHead>
-                <TableHead>{t('create.linePoLine')}</TableHead>
-                <TableHead numeric>{t('create.lineQuantity')}</TableHead>
-                <TableHead numeric>{t('create.lineUnitAmount')}</TableHead>
-                <TableHead numeric>{t('create.lineTotal')}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {lines.map((line) => (
-                <TableRow key={line.id}>
-                  <TableCell>{line.description}</TableCell>
-                  <TableCell className="text-sm text-[var(--pf-text-secondary)]" dir="ltr">
-                    {line.purchaseOrderLineId
-                      ? line.purchaseOrderLineId.slice(0, 8)
-                      : '—'}
-                  </TableCell>
-                  <TableCell numeric>{line.quantity}</TableCell>
-                  <TableCell numeric>
-                    <MoneyText value={money(line.unitAmount, line.currency)} />
-                  </TableCell>
-                  <TableCell numeric>
-                    <MoneyText value={money(line.lineTotal, line.currency)} />
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+        <ResponsiveTable
+          items={lines}
+          getRowKey={(line) => line.id}
+          desktop={
+            <div className="min-w-0 rounded-lg border border-[var(--pf-border-default)]">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>{t('create.lineDescription')}</TableHead>
+                    <TableHead>{t('create.linePoLine')}</TableHead>
+                    <TableHead numeric>{t('create.lineQuantity')}</TableHead>
+                    <TableHead numeric>{t('create.lineUnitAmount')}</TableHead>
+                    <TableHead numeric>{t('create.lineTotal')}</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {lines.map((line) => (
+                    <TableRow key={line.id}>
+                      <TableCell className="max-w-[16rem] truncate">{line.description}</TableCell>
+                      <TableCell className="text-sm text-[var(--pf-text-secondary)]" dir="ltr">
+                        {line.purchaseOrderLineId
+                          ? line.purchaseOrderLineId.slice(0, 8)
+                          : '—'}
+                      </TableCell>
+                      <TableCell numeric>
+                        <span dir="ltr">{line.quantity}</span>
+                      </TableCell>
+                      <TableCell numeric>
+                        <MoneyText value={money(line.unitAmount, line.currency)} />
+                      </TableCell>
+                      <TableCell numeric>
+                        <MoneyText value={money(line.lineTotal, line.currency)} />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          }
+          renderMobileCard={(line) => (
+            <div className="flex min-w-0 flex-col gap-1 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4">
+              <p className="break-words font-medium">{line.description}</p>
+              <p className="text-sm text-[var(--pf-text-secondary)]">
+                <span dir="ltr">{line.quantity}</span>
+                {' · '}
+                <MoneyText value={money(line.unitAmount, line.currency)} />
+              </p>
+              <MoneyText value={money(line.lineTotal, line.currency)} />
+            </div>
+          )}
+        />
       </section>
 
-      <section className="flex flex-col gap-4">
+      <section className="flex min-w-0 flex-col gap-4">
         <h2 className="text-sm font-semibold">{t('detail.matchesTitle')}</h2>
 
         {matches.length === 0 ? (
           <p className="text-sm text-[var(--pf-text-muted)]">{t('detail.noMatches')}</p>
         ) : (
-          <div className="overflow-x-auto rounded-lg border border-[var(--pf-border-default)]">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t('match.columns.target')}</TableHead>
-                  <TableHead numeric>{t('match.columns.amount')}</TableHead>
-                  <TableHead>{t('match.columns.status')}</TableHead>
-                  {canManage ? <TableHead>{t('match.columns.actions')}</TableHead> : null}
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {matches.map((match) => (
-                  <TableRow key={match.id}>
-                    <TableCell className="text-sm">
-                      {[
-                        match.purchaseOrderId
-                          ? `${t('match.poShort')}: ${match.purchaseOrderId.slice(0, 8)}`
-                          : null,
-                        match.expenseId
-                          ? `${t('match.expenseShort')}: ${match.expenseId.slice(0, 8)}`
-                          : null,
-                      ]
-                        .filter(Boolean)
-                        .join(' · ')}
-                    </TableCell>
-                    <TableCell numeric>
-                      <MoneyText value={money(match.matchedAmount, match.currency)} />
-                    </TableCell>
-                    <TableCell>
-                      {t(`match.statuses.${match.status}` as 'match.statuses.proposed')}
-                    </TableCell>
-                    <TableCell>
-                      {canManage && match.status === 'proposed' ? (
-                        <MatchDecisionButtons matchId={match.id} billId={bill.id} />
-                      ) : (
-                        '—'
-                      )}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+          <ResponsiveTable
+            items={matches}
+            getRowKey={(match) => match.id}
+            desktop={
+              <div className="min-w-0 rounded-lg border border-[var(--pf-border-default)]">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>{t('match.columns.target')}</TableHead>
+                      <TableHead numeric>{t('match.columns.amount')}</TableHead>
+                      <TableHead>{t('match.columns.status')}</TableHead>
+                      {canManage ? <TableHead>{t('match.columns.actions')}</TableHead> : null}
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {matches.map((match) => (
+                      <TableRow key={match.id}>
+                        <TableCell className="max-w-[16rem] truncate text-sm">
+                          {[
+                            match.purchaseOrderId
+                              ? `${t('match.poShort')}: ${match.purchaseOrderId.slice(0, 8)}`
+                              : null,
+                            match.expenseId
+                              ? `${t('match.expenseShort')}: ${match.expenseId.slice(0, 8)}`
+                              : null,
+                          ]
+                            .filter(Boolean)
+                            .join(' · ')}
+                        </TableCell>
+                        <TableCell numeric>
+                          <MoneyText value={money(match.matchedAmount, match.currency)} />
+                        </TableCell>
+                        <TableCell>
+                          {t(`match.statuses.${match.status}` as 'match.statuses.proposed')}
+                        </TableCell>
+                        <TableCell>
+                          {canManage && match.status === 'proposed' ? (
+                            <MatchDecisionButtons matchId={match.id} billId={bill.id} />
+                          ) : (
+                            '—'
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            }
+            renderMobileCard={(match) => (
+              <div className="flex min-w-0 flex-col gap-2 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4">
+                <p className="break-words text-sm font-medium">
+                  {[
+                    match.purchaseOrderId
+                      ? `${t('match.poShort')}: ${match.purchaseOrderId.slice(0, 8)}`
+                      : null,
+                    match.expenseId
+                      ? `${t('match.expenseShort')}: ${match.expenseId.slice(0, 8)}`
+                      : null,
+                  ]
+                    .filter(Boolean)
+                    .join(' · ')}
+                </p>
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <MoneyText value={money(match.matchedAmount, match.currency)} />
+                  <span className="text-sm text-[var(--pf-text-secondary)]">
+                    {t(`match.statuses.${match.status}` as 'match.statuses.proposed')}
+                  </span>
+                </div>
+                {canManage && match.status === 'proposed' ? (
+                  <MatchDecisionButtons matchId={match.id} billId={bill.id} />
+                ) : null}
+              </div>
+            )}
+          />
         )}
 
         {canManage && bill.status !== 'void' ? (

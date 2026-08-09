@@ -53,19 +53,24 @@ export default async function NewPurchaseOrderPage() {
   );
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex min-w-0 flex-col gap-6">
       <PageHeader
         title={t('create.title')}
         description={t('create.description')}
         breadcrumb={
-          <Link href="/procurement" className="text-sm text-[var(--pf-text-secondary)] hover:underline">
+          <Link
+            href="/procurement"
+            className="rounded-sm text-sm text-[var(--pf-text-secondary)] hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
+          >
             {t('title')}
           </Link>
         }
         actions={
-          <Button asChild variant="ghost" size="sm">
-            <Link href="/procurement/materials">{t('linkMaterials')}</Link>
-          </Button>
+          <div className="flex max-w-full flex-wrap gap-2">
+            <Button asChild variant="ghost" size="sm">
+              <Link href="/procurement/materials">{t('linkMaterials')}</Link>
+            </Button>
+          </div>
         }
       />
 

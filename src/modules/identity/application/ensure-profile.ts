@@ -28,6 +28,7 @@ export async function ensureProfile(
         email: sql`excluded.email`,
         // A display name already chosen in ProjectFlow wins over the auth value.
         displayName: sql`coalesce(${profiles.displayName}, excluded.display_name)`,
+        localePreference: sql`coalesce(${profiles.localePreference}, excluded.locale_preference)`,
       },
     })
     .returning({

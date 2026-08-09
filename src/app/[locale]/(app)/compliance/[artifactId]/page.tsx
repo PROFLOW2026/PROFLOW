@@ -85,7 +85,7 @@ export default async function ComplianceArtifactPage({
           </>
         }
         breadcrumb={
-          <Link href="/compliance" className="text-sm text-[var(--pf-text-secondary)] hover:underline">
+          <Link href="/compliance" className="text-sm text-[var(--pf-text-secondary)] hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]">
             {t('title')}
           </Link>
         }
@@ -111,7 +111,11 @@ export default async function ComplianceArtifactPage({
           {artifact.referenceNumber ? (
             <div>
               <dt className="text-[var(--pf-text-secondary)]">{t('form.referenceLabel')}</dt>
-              <dd>{artifact.referenceNumber}</dd>
+              <dd>
+                <span className="pf-ltr-island pf-entity-string" dir="ltr">
+                  {artifact.referenceNumber}
+                </span>
+              </dd>
             </div>
           ) : null}
           {artifact.issuer ? (
@@ -122,7 +126,15 @@ export default async function ComplianceArtifactPage({
           ) : null}
           <div>
             <dt className="text-[var(--pf-text-secondary)]">{t('form.expiresOnLabel')}</dt>
-            <dd>{artifact.expiresOn ?? t('list.noExpiry')}</dd>
+            <dd>
+              {artifact.expiresOn ? (
+                <span className="pf-ltr-island" dir="ltr">
+                  {artifact.expiresOn}
+                </span>
+              ) : (
+                t('list.noExpiry')
+              )}
+            </dd>
           </div>
           {artifact.notes ? (
             <div>

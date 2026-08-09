@@ -7,15 +7,16 @@ import type { BillingRecordStatus, CollectionStatus } from '@/modules/billing/do
 interface BillingStatusBadgeProps {
   status: BillingRecordStatus;
   collectionStatus?: CollectionStatus | null;
+  className?: string;
 }
 
-export function BillingStatusBadge({ status, collectionStatus }: BillingStatusBadgeProps) {
+export function BillingStatusBadge({ status, collectionStatus, className }: BillingStatusBadgeProps) {
   const tBilling = useTranslations('status.billing');
   const tPayment = useTranslations('status.payment');
 
   if (status === 'draft' || status === 'void') {
     const shape: StatusShape = status === 'draft' ? 'draft' : 'void';
-    return <StatusBadge shape={shape} label={tBilling(status)} />;
+    return <StatusBadge className={className} shape={shape} label={tBilling(status)} />;
   }
 
   if (collectionStatus) {
@@ -25,8 +26,14 @@ export function BillingStatusBadge({ status, collectionStatus }: BillingStatusBa
       paid: 'approved',
       overdue: 'overdue',
     };
-    return <StatusBadge shape={shapeMap[collectionStatus]} label={tPayment(collectionStatus)} />;
+    return (
+      <StatusBadge
+        className={className}
+        shape={shapeMap[collectionStatus]}
+        label={tPayment(collectionStatus)}
+      />
+    );
   }
 
-  return <StatusBadge shape="approved" label={tBilling('finalized')} />;
+  return <StatusBadge className={className} shape="approved" label={tBilling('finalized')} />;
 }

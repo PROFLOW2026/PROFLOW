@@ -80,7 +80,7 @@ export default async function BillingListPage({
 
   if (!canRead) {
     return (
-      <div className="flex flex-col gap-6">
+      <div className="flex min-w-0 flex-col gap-6">
         <PageHeader title={t('title')} description={t('subtitle')} />
         <EmptyState
           icon={ShieldX}
@@ -102,17 +102,17 @@ export default async function BillingListPage({
       records.length > 0);
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex min-w-0 flex-col gap-6">
       <PageHeader
         title={t('title')}
         description={t('subtitle')}
         actions={
           canManage ? (
-            <div className="flex flex-wrap gap-2">
-              <Button asChild variant="secondary">
+            <div className="flex max-w-full flex-wrap gap-2">
+              <Button asChild variant="secondary" className="max-w-full">
                 <Link href="/billing/payments/new">{t('paymentForm.title')}</Link>
               </Button>
-              <Button asChild>
+              <Button asChild className="max-w-full">
                 <Link href="/billing/new">{t('panel.addBilling')}</Link>
               </Button>
             </div>
@@ -123,8 +123,8 @@ export default async function BillingListPage({
       {showSummary && summary ? <ReceivablesSummaryPanel summary={summary} /> : null}
       {showAging && aging ? <ReceivablesAgingPanel aging={aging} /> : null}
 
-      <Tabs value={filter}>
-        <TabsList aria-label={t('list.filtersLabel')}>
+      <Tabs value={filter} className="min-w-0">
+        <TabsList aria-label={t('list.filtersLabel')} className="min-w-0 max-w-full">
           {FILTERS.map((value) => (
             <TabsTrigger key={value} value={value} asChild className="min-h-11">
               <Link href={value === 'all' ? '/billing' : `/billing?filter=${value}`}>
@@ -133,7 +133,7 @@ export default async function BillingListPage({
             </TabsTrigger>
           ))}
         </TabsList>
-        <TabsContent value={filter} className="mt-4">
+        <TabsContent value={filter} className="mt-4 min-w-0">
           {records.length === 0 ? (
             <EmptyState
               icon={Receipt}

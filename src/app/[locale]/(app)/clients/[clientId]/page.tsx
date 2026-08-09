@@ -14,12 +14,13 @@ interface ClientPageProps {
 }
 
 export async function generateMetadata({ params }: ClientPageProps): Promise<Metadata> {
-  const { clientId } = await params;
+  const { clientId, locale } = await params;
+  const t = await getTranslations({ locale, namespace: 'clients' });
   try {
     const client = await withOrgContext((context) => getClientById(context, clientId));
     return { title: client.name };
   } catch {
-    return { title: 'Client' };
+    return { title: t('detail.title') };
   }
 }
 

@@ -97,17 +97,17 @@ export function OpportunityQuoteForm({
         {(control) => <Input {...control} name="lineDescription" required />}
       </Field>
       <div className="grid gap-3 sm:grid-cols-3">
-        <Field label={t('lineQuantity')}>
+        <Field label={t('lineQuantity')} className="min-w-0">
           {(control) => (
             <Input {...control} name="quantity" defaultValue="1" inputMode="decimal" numeric />
           )}
         </Field>
-        <Field label={t('lineUnit')} required>
+        <Field label={t('lineUnit')} required className="min-w-0">
           {(control) => (
             <Input {...control} name="unitAmount" required inputMode="decimal" numeric />
           )}
         </Field>
-        <Field label={t('lineTotal')} required>
+        <Field label={t('lineTotal')} required className="min-w-0">
           {(control) => (
             <Input {...control} name="lineTotal" required inputMode="decimal" numeric />
           )}

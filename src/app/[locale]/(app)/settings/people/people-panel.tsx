@@ -218,7 +218,7 @@ export function PeopleSettingsPanel({
             </ul>
           ) : null}
 
-          <form action={inviteAction} className="mt-4 flex max-w-md flex-col gap-3">
+          <form action={inviteAction} className="mt-4 flex w-full max-w-md flex-col gap-3">
             {inviteState.error ? <Alert tone="danger">{inviteState.error}</Alert> : null}
             {inviteState.ok && !inviteState.invitationLink ? (
               <Alert tone="success" role="status" aria-live="polite">
@@ -266,9 +266,19 @@ export function PeopleSettingsPanel({
                     : '',
                 })}
               </p>
-              <div className="mt-3 flex flex-wrap gap-2">
-                <Input readOnly value={inviteState.invitationLink} className="font-mono text-xs" dir="ltr" />
-                <Button type="button" variant="secondary" onClick={() => copyLink(inviteState.invitationLink!)}>
+              <div className="mt-3 flex min-w-0 flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+                <Input
+                  readOnly
+                  value={inviteState.invitationLink}
+                  className="min-w-0 flex-1 font-mono text-xs"
+                  dir="ltr"
+                />
+                <Button
+                  type="button"
+                  variant="secondary"
+                  className="w-full shrink-0 sm:w-auto"
+                  onClick={() => copyLink(inviteState.invitationLink!)}
+                >
                   {copied ? tPeople('linkCopied') : tCommon('actions.copyLink')}
                 </Button>
               </div>

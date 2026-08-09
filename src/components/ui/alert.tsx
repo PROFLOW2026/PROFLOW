@@ -44,7 +44,7 @@ export function Alert({ tone = 'info', title, icon, className, children, ...prop
   return (
     <div
       role={config.role}
-      className={cn('flex gap-3 rounded-md border p-3 text-sm', config.className, className)}
+      className={cn('flex gap-3 rounded-md border p-3 text-sm text-start', config.className, className)}
       {...props}
     >
       {Icon ? <Icon className="mt-0.5 size-4 shrink-0" aria-hidden /> : null}

@@ -44,46 +44,51 @@ export async function ProjectBillingPanel({ projectId }: ProjectBillingPanelProp
   );
 
   return (
-    <div className="flex flex-col gap-4">
-      <Card>
+    <div className="flex min-w-0 flex-col gap-4">
+      <Card className="min-w-0">
         <CardHeader>
-          <CardTitle>{t('panel.positionTitle')}</CardTitle>
+          <CardTitle className="text-start">{t('panel.positionTitle')}</CardTitle>
         </CardHeader>
-        <CardContent className="grid gap-3 sm:grid-cols-3">
-          <div>
+        <CardContent className="grid min-w-0 gap-3 sm:grid-cols-3">
+          <div className="min-w-0 text-start">
             <p className="text-xs text-[var(--pf-text-muted)]">{tFinancial('invoiced')}</p>
             <p className="text-lg font-semibold">
               <MoneyText value={position.invoiced} />
             </p>
           </div>
-          <div>
+          <div className="min-w-0 text-start">
             <p className="text-xs text-[var(--pf-text-muted)]">{tFinancial('paid')}</p>
             <p className="text-lg font-semibold">
               <MoneyText value={position.paid} />
             </p>
           </div>
-          <div>
+          <div className="min-w-0 text-start">
             <p className="text-xs text-[var(--pf-text-muted)]">{tFinancial('outstanding')}</p>
             <p className="text-lg font-semibold">
               <MoneyText value={position.outstanding} colorizeNegative />
             </p>
           </div>
-          <p className="sm:col-span-3 text-xs text-[var(--pf-text-secondary)]">
+          <p className="sm:col-span-3 text-start text-xs text-[var(--pf-text-secondary)]">
             {t('panel.integrityHint')}
           </p>
         </CardContent>
       </Card>
 
       {unbilledChanges.length > 0 ? (
-        <Card>
+        <Card className="min-w-0">
           <CardHeader>
-            <CardTitle>{t('panel.unbilledChangesTitle')}</CardTitle>
+            <CardTitle className="text-start">{t('panel.unbilledChangesTitle')}</CardTitle>
           </CardHeader>
           <CardContent>
             <ul className="flex flex-col gap-2 text-sm">
               {unbilledChanges.map((change) => (
-                <li key={change.id} className="flex min-h-11 items-center justify-between gap-2">
-                  <span>{change.reference ?? change.id.slice(0, 8)}</span>
+                <li
+                  key={change.id}
+                  className="flex min-h-11 min-w-0 items-center justify-between gap-2 text-start"
+                >
+                  <span className="min-w-0 truncate" dir="ltr">
+                    {change.reference ?? change.id.slice(0, 8)}
+                  </span>
                   <MoneyText value={change.amount} />
                 </li>
               ))}
@@ -106,66 +111,69 @@ export async function ProjectBillingPanel({ projectId }: ProjectBillingPanelProp
           }
         />
       ) : (
-        <Card>
-          <CardHeader className="flex-row items-center justify-between gap-2">
-            <CardTitle>{t('panel.recordsTitle')}</CardTitle>
+        <Card className="min-w-0">
+          <CardHeader className="flex-row flex-wrap items-center justify-between gap-2">
+            <CardTitle className="text-start">{t('panel.recordsTitle')}</CardTitle>
             {canManage ? (
-              <Button asChild size="sm" variant="secondary" className="min-h-11 md:min-h-8">
+              <Button asChild size="sm" variant="secondary" className="min-h-11 max-w-full md:min-h-8">
                 <Link href={`/billing/new?projectId=${projectId}`}>{t('panel.addBilling')}</Link>
               </Button>
             ) : null}
           </CardHeader>
-          <CardContent className="px-0 pb-0 sm:px-0">
+          <CardContent className="min-w-0 px-0 pb-0 sm:px-0">
             <ResponsiveTable
               items={records}
               getRowKey={(record) => record.id}
               desktop={
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>{t('list.issueDate')}</TableHead>
-                      <TableHead>{t('list.kind')}</TableHead>
-                      <TableHead numeric>{t('list.amount')}</TableHead>
-                      <TableHead numeric>{t('list.outstanding')}</TableHead>
-                      <TableHead>{t('list.status')}</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {records.map((record) => (
-                      <TableRow key={record.id}>
-                        <TableCell>
-                          <Link href={`/billing/${record.id}`} className="text-[var(--pf-text-brand)]">
-                            <span dir="ltr">{formatBusinessDate(record.issueDate, locale)}</span>
-                          </Link>
-                        </TableCell>
-                        <TableCell>{t(`kinds.${record.kind}`)}</TableCell>
-                        <TableCell numeric>
-                          <MoneyText value={record.totalAmount} />
-                        </TableCell>
-                        <TableCell numeric>
-                          <MoneyText value={record.outstandingAmount} colorizeNegative />
-                        </TableCell>
-                        <TableCell>
-                          <BillingStatusBadge
-                            status={record.status}
-                            collectionStatus={record.collectionStatus}
-                          />
-                        </TableCell>
+                <div className="min-w-0">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>{t('list.issueDate')}</TableHead>
+                        <TableHead>{t('list.kind')}</TableHead>
+                        <TableHead numeric>{t('list.amount')}</TableHead>
+                        <TableHead numeric>{t('list.outstanding')}</TableHead>
+                        <TableHead>{t('list.status')}</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {records.map((record) => (
+                        <TableRow key={record.id}>
+                          <TableCell>
+                            <Link href={`/billing/${record.id}`} className="text-[var(--pf-text-brand)]">
+                              <span dir="ltr">{formatBusinessDate(record.issueDate, locale)}</span>
+                            </Link>
+                          </TableCell>
+                          <TableCell>{t(`kinds.${record.kind}`)}</TableCell>
+                          <TableCell numeric>
+                            <MoneyText value={record.totalAmount} />
+                          </TableCell>
+                          <TableCell numeric>
+                            <MoneyText value={record.outstandingAmount} colorizeNegative />
+                          </TableCell>
+                          <TableCell>
+                            <BillingStatusBadge
+                              status={record.status}
+                              collectionStatus={record.collectionStatus}
+                            />
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
               }
               renderMobileCard={(record) => (
                 <Link
                   href={`/billing/${record.id}`}
-                  className="block min-h-11 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4"
+                  className="block min-h-11 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4 text-start"
                 >
                   <div className="flex items-start justify-between gap-2">
-                    <span className="font-semibold" dir="ltr">
+                    <span className="min-w-0 flex-1 font-semibold" dir="ltr">
                       {formatBusinessDate(record.issueDate, locale)}
                     </span>
                     <BillingStatusBadge
+                      className="shrink-0"
                       status={record.status}
                       collectionStatus={record.collectionStatus}
                     />
@@ -191,12 +199,12 @@ export async function ProjectBillingPanel({ projectId }: ProjectBillingPanelProp
       )}
 
       {payments.length > 0 ? (
-        <Card>
+        <Card className="min-w-0">
           <CardHeader>
-            <CardTitle>{t('paymentHistory.title')}</CardTitle>
+            <CardTitle className="text-start">{t('paymentHistory.title')}</CardTitle>
           </CardHeader>
-          <CardContent className="flex flex-col gap-2 px-0 pb-0 sm:px-0">
-            <p className="px-6 text-xs text-[var(--pf-text-secondary)]">
+          <CardContent className="flex min-w-0 flex-col gap-2 px-0 pb-0 sm:px-0">
+            <p className="px-6 text-start text-xs text-[var(--pf-text-secondary)]">
               {t('paymentHistory.subtitle')}
             </p>
             <PaymentHistoryTable rows={payments} locale={locale} hideProject />

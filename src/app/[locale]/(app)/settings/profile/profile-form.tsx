@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { LOCALES } from '@/shared/i18n/config';
+import { LOCALES, LOCALE_METADATA, isLocale } from '@/shared/i18n/config';
 import { updateProfileAction, type SettingsActionState } from '../actions';
 
 export function ProfileSettingsForm({
@@ -25,12 +25,12 @@ export function ProfileSettingsForm({
   const [state, action, pending] = useActionState(updateProfileAction, {} as SettingsActionState);
 
   return (
-    <form action={action} className="flex max-w-lg flex-col gap-4">
+    <form action={action} className="flex w-full max-w-lg flex-col gap-4">
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
       {state.ok ? <Alert tone="success">{t('saved')}</Alert> : null}
 
       <Field label={tCommon('labels.email')}>
-        {(props) => <Input {...props} value={email} disabled readOnly />}
+        {(props) => <Input {...props} value={email} disabled readOnly dir="ltr" />}
       </Field>
 
       <Field label={t('displayName')}>
@@ -48,9 +48,14 @@ export function ProfileSettingsForm({
               <SelectContent>
                 {LOCALES.map((code) => (
                   <SelectItem key={code} value={code}>
-                    {code}
+                    {LOCALE_METADATA[code].label}
                   </SelectItem>
                 ))}
+                {localePreference && !isLocale(localePreference) ? (
+                  <SelectItem value={localePreference}>
+                    <span dir="ltr">{localePreference}</span>
+                  </SelectItem>
+                ) : null}
               </SelectContent>
             </Select>
           </>

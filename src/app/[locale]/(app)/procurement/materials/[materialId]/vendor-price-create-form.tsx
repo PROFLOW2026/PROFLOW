@@ -39,7 +39,7 @@ export function VendorPriceCreateForm({
   const [vendorId, setVendorId] = useState('');
 
   return (
-    <form action={formAction} className="flex max-w-lg flex-col gap-4">
+    <form action={formAction} className="flex w-full min-w-0 max-w-lg flex-col gap-4">
       <input type="hidden" name="materialItemId" value={materialItemId} />
       <input type="hidden" name="currency" value={defaultCurrency} />
       <input type="hidden" name="unitPrice" value={unitPrice} />
@@ -72,7 +72,7 @@ export function VendorPriceCreateForm({
       </Field>
 
       <Field label={t('effectiveFromLabel')} optionalLabel={tCommon('labels.optional')}>
-        {(control) => <Input {...control} type="date" name="effectiveFrom" />}
+        {(control) => <Input {...control} type="date" name="effectiveFrom" dir="ltr" />}
       </Field>
 
       <Field label={t('notesLabel')} optionalLabel={tCommon('labels.optional')}>

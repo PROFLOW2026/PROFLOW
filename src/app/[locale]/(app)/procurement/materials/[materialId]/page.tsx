@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { MoneyText } from '@/components/patterns/money-text';
+import { ResponsiveTable } from '@/components/patterns/responsive-table';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/ui/page-header';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -63,38 +64,46 @@ export default async function MaterialDetailPage({
   const { material, prices, vendors, canManage, defaultCurrency } = loaded;
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex min-w-0 flex-col gap-6">
       <PageHeader
         title={material.name}
         description={t('material.detailDescription')}
         breadcrumb={
           <Link
             href="/procurement/materials"
-            className="text-sm text-[var(--pf-text-secondary)] hover:underline"
+            className="rounded-sm text-sm text-[var(--pf-text-secondary)] hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
           >
             {t('materialsTitle')}
           </Link>
         }
       />
 
-      <dl className="grid gap-3 rounded-lg border border-[var(--pf-border-default)] p-4 sm:grid-cols-2 lg:grid-cols-3">
-        <div>
+      <dl className="grid min-w-0 gap-3 rounded-lg border border-[var(--pf-border-default)] p-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="min-w-0">
           <dt className="text-xs text-[var(--pf-text-secondary)]">{t('list.columns.sku')}</dt>
-          <dd className="font-medium">{material.sku ?? '—'}</dd>
+          <dd className="break-words font-medium">
+            {material.sku ? (
+              <span dir="ltr" className="pf-numeric">
+                {material.sku}
+              </span>
+            ) : (
+              '—'
+            )}
+          </dd>
         </div>
-        <div>
+        <div className="min-w-0">
           <dt className="text-xs text-[var(--pf-text-secondary)]">{t('list.columns.manufacturer')}</dt>
-          <dd className="font-medium">{material.manufacturer ?? '—'}</dd>
+          <dd className="break-words font-medium">{material.manufacturer ?? '—'}</dd>
         </div>
-        <div>
+        <div className="min-w-0">
           <dt className="text-xs text-[var(--pf-text-secondary)]">{t('list.columns.model')}</dt>
-          <dd className="font-medium">{material.model ?? '—'}</dd>
+          <dd className="break-words font-medium">{material.model ?? '—'}</dd>
         </div>
-        <div>
+        <div className="min-w-0">
           <dt className="text-xs text-[var(--pf-text-secondary)]">{t('list.columns.unit')}</dt>
           <dd className="font-medium">{material.unit}</dd>
         </div>
-        <div>
+        <div className="min-w-0">
           <dt className="text-xs text-[var(--pf-text-secondary)]">{t('list.columns.defaultPrice')}</dt>
           <dd className="font-medium">
             {material.defaultUnitPrice && material.currency ? (
@@ -106,47 +115,82 @@ export default async function MaterialDetailPage({
         </div>
       </dl>
 
-      <section className="flex flex-col gap-3">
+      <section className="flex min-w-0 flex-col gap-3">
         <h2 className="text-lg font-semibold">{t('vendorPrice.title')}</h2>
         <p className="text-sm text-[var(--pf-text-secondary)]">{t('vendorPrice.description')}</p>
 
         {prices.length === 0 ? (
           <EmptyState title={t('vendorPrice.emptyTitle')} description={t('vendorPrice.emptyBody')} />
         ) : (
-          <div className="overflow-x-auto rounded-lg border border-[var(--pf-border-default)]">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t('vendorPrice.columns.vendor')}</TableHead>
-                  <TableHead numeric>{t('vendorPrice.columns.unitPrice')}</TableHead>
-                  <TableHead>{t('vendorPrice.columns.effectiveFrom')}</TableHead>
-                  <TableHead>{t('vendorPrice.columns.notes')}</TableHead>
-                  {canManage ? <TableHead>{t('list.columns.actions')}</TableHead> : null}
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {prices.map((price) => (
-                  <TableRow key={price.id}>
-                    <TableCell className="font-medium">{price.vendorName}</TableCell>
-                    <TableCell numeric>
-                      <MoneyText value={money(price.unitPrice, price.currency)} />
-                    </TableCell>
-                    <TableCell>{price.effectiveFrom ?? '—'}</TableCell>
-                    <TableCell>{price.notes ?? '—'}</TableCell>
-                    {canManage ? (
-                      <TableCell>
-                        <VendorPriceDeleteButton id={price.id} materialItemId={material.id} />
-                      </TableCell>
-                    ) : null}
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+          <ResponsiveTable
+            items={prices}
+            getRowKey={(price) => price.id}
+            desktop={
+              <div className="min-w-0 rounded-lg border border-[var(--pf-border-default)]">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>{t('vendorPrice.columns.vendor')}</TableHead>
+                      <TableHead numeric>{t('vendorPrice.columns.unitPrice')}</TableHead>
+                      <TableHead>{t('vendorPrice.columns.effectiveFrom')}</TableHead>
+                      <TableHead>{t('vendorPrice.columns.notes')}</TableHead>
+                      {canManage ? <TableHead>{t('list.columns.actions')}</TableHead> : null}
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {prices.map((price) => (
+                      <TableRow key={price.id}>
+                        <TableCell className="max-w-[12rem] truncate font-medium">
+                          {price.vendorName}
+                        </TableCell>
+                        <TableCell numeric>
+                          <MoneyText value={money(price.unitPrice, price.currency)} />
+                        </TableCell>
+                        <TableCell>
+                          {price.effectiveFrom ? (
+                            <span dir="ltr">{price.effectiveFrom}</span>
+                          ) : (
+                            '—'
+                          )}
+                        </TableCell>
+                        <TableCell className="max-w-[12rem] truncate">{price.notes ?? '—'}</TableCell>
+                        {canManage ? (
+                          <TableCell>
+                            <VendorPriceDeleteButton id={price.id} materialItemId={material.id} />
+                          </TableCell>
+                        ) : null}
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            }
+            renderMobileCard={(price) => (
+              <div className="flex min-w-0 flex-col gap-2 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4">
+                <div className="flex min-w-0 items-start justify-between gap-2">
+                  <p className="min-w-0 break-words font-semibold">{price.vendorName}</p>
+                  <MoneyText value={money(price.unitPrice, price.currency)} />
+                </div>
+                {price.effectiveFrom ? (
+                  <p className="text-xs text-[var(--pf-text-secondary)]" dir="ltr">
+                    {price.effectiveFrom}
+                  </p>
+                ) : null}
+                {price.notes ? (
+                  <p className="break-words text-sm text-[var(--pf-text-secondary)]">{price.notes}</p>
+                ) : null}
+                {canManage ? (
+                  <div className="flex flex-wrap gap-2">
+                    <VendorPriceDeleteButton id={price.id} materialItemId={material.id} />
+                  </div>
+                ) : null}
+              </div>
+            )}
+          />
         )}
 
         {canManage ? (
-          <div className="rounded-lg border border-[var(--pf-border-default)] p-4">
+          <div className="min-w-0 rounded-lg border border-[var(--pf-border-default)] p-4">
             <h3 className="mb-3 text-sm font-semibold">{t('vendorPrice.createTitle')}</h3>
             {vendors.length === 0 ? (
               <p className="text-sm text-[var(--pf-text-secondary)]">{t('vendorPrice.needVendor')}</p>

@@ -24,6 +24,7 @@ import {
   findOriginalValueEvent,
   isOriginalContractAmountLocked,
 } from '../domain/contract-value';
+import { CONTRACT_VALUE_REASON_ORIGINAL } from '../domain/contract-value-reason';
 import type { ContractRecord } from '../domain/types';
 import { updateProjectById } from '../data/projects.repository';
 
@@ -123,7 +124,7 @@ export async function upsertPrimaryContractAmount(
       amount: netAmount,
       currency,
       effectiveDate,
-      reason: 'Original contract value',
+      reason: CONTRACT_VALUE_REASON_ORIGINAL,
       actorUserId: context.userId,
     });
 
@@ -190,7 +191,7 @@ export async function upsertPrimaryContractAmount(
     // place (audited). Change-order events remain untouched.
     await updateContractValueEventAmount(context.db, context.organizationId, originalEvent.id, {
       amount: netAmount,
-      reason: 'Original contract value',
+      reason: CONTRACT_VALUE_REASON_ORIGINAL,
     });
   } else {
     await insertContractValueEvent(context.db, {
@@ -201,7 +202,7 @@ export async function upsertPrimaryContractAmount(
       amount: netAmount,
       currency,
       effectiveDate,
-      reason: 'Original contract value',
+      reason: CONTRACT_VALUE_REASON_ORIGINAL,
       actorUserId: context.userId,
     });
   }

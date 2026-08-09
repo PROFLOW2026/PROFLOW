@@ -83,7 +83,7 @@ export function AssetCreateForm({
       </Field>
 
       <Field label={t('identifierLabel')}>
-        {(control) => <Input {...control} name="identifier" />}
+        {(control) => <Input {...control} name="identifier" dir="ltr" />}
       </Field>
 
       <Field label={t('manufacturerLabel')}>
@@ -95,7 +95,7 @@ export function AssetCreateForm({
       </Field>
 
       <Field label={t('serialNumberLabel')}>
-        {(control) => <Input {...control} name="serialNumber" />}
+        {(control) => <Input {...control} name="serialNumber" dir="ltr" />}
       </Field>
 
       <Field label={t('assignedProjectLabel')}>
@@ -126,17 +126,17 @@ export function AssetCreateForm({
       <fieldset className="flex flex-col gap-4 rounded-lg border border-[var(--pf-border-default)] p-4">
         <legend className="px-1 text-sm font-medium">{t('fleetTitle')}</legend>
         <Field label={t('plateNumberLabel')}>
-          {(control) => <Input {...control} name="plateNumber" />}
+          {(control) => <Input {...control} name="plateNumber" dir="ltr" />}
         </Field>
         <Field label={t('vinLabel')}>
-          {(control) => <Input {...control} name="vin" />}
+          {(control) => <Input {...control} name="vin" dir="ltr" />}
         </Field>
         <Field label={t('odometerLabel')}>
           {(control) => <Input {...control} name="odometer" inputMode="decimal" numeric />}
         </Field>
       </fieldset>
 
-      <Button type="submit" disabled={pending}>
+      <Button type="submit" className="h-11 w-full sm:w-auto" disabled={pending}>
         {pending ? tCommon('states.saving') : t('submit')}
       </Button>
     </form>

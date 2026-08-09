@@ -17,6 +17,7 @@ import {
 import { MoneyInput } from '@/components/patterns/money-input';
 import type { CostCategoryRow, CostFamily, ProjectOption, VendorOption, WorkPackageOption } from '@/modules/expenses/domain/types';
 import type { RecurrenceCadence } from '@/modules/expenses/domain/types';
+import { rtlFlipClassName } from '@/shared/i18n/ltr-island';
 import { AllocationEditor, type AllocationDraft } from './allocation-editor';
 
 const OVERHEAD_VALUE = '__overhead__';
@@ -121,14 +122,14 @@ export function ExpenseForm({
     : categories;
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex min-w-0 w-full flex-col gap-6">
       {error ? (
-        <p className="rounded-md border border-[var(--pf-action-danger)] bg-[var(--pf-status-danger-bg)] px-3 py-2 text-sm text-[var(--pf-status-danger-fg)]">
+        <p className="rounded-md border border-[var(--pf-action-danger)] bg-[var(--pf-status-danger-bg)] px-3 py-2 text-start text-sm text-[var(--pf-status-danger-fg)]">
           {error}
         </p>
       ) : null}
 
-      <section className="flex flex-col gap-4">
+      <section className="flex min-w-0 flex-col gap-4">
         <Field
           label={t('fields.amount')}
           required
@@ -227,7 +228,7 @@ export function ExpenseForm({
       {!showMore ? (
         <Button type="button" variant="ghost" className="self-start" onClick={() => setShowMore(true)}>
           {tCommon('actions.showMore')}
-          <ChevronRight className="size-4 rtl:rotate-180" aria-hidden />
+          <ChevronRight className={rtlFlipClassName('size-4')} aria-hidden />
         </Button>
       ) : (
         <section className="flex flex-col gap-4 rounded-lg border border-[var(--pf-border-default)] p-4">
@@ -266,6 +267,7 @@ export function ExpenseForm({
                 value={expenseDate}
                 onChange={(event) => setExpenseDate(event.target.value)}
                 disabled={readOnly}
+                dir="ltr"
               />
             )}
           </Field>
@@ -378,13 +380,13 @@ export function ExpenseForm({
           {!showAdvanced ? (
             <Button type="button" variant="ghost" className="self-start" onClick={() => setShowAdvanced(true)}>
               {tCommon('actions.showMore')}
-              <ChevronRight className="size-4 rtl:rotate-180" aria-hidden />
+              <ChevronRight className={rtlFlipClassName('size-4')} aria-hidden />
             </Button>
           ) : (
             <div className="flex flex-col gap-4 border-t border-[var(--pf-border-default)] pt-4">
               <h3 className="text-sm font-semibold">{tCommon('actions.showMore')}</h3>
 
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className="grid min-w-0 gap-4 sm:grid-cols-2">
                 <Field label={t('fields.netAmount')} optionalLabel={tCommon('labels.optional')}>
                   {(controlProps) => (
                     <MoneyInput

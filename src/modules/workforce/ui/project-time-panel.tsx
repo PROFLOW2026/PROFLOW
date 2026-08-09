@@ -41,14 +41,14 @@ export async function ProjectTimePanel({ projectId }: ProjectTimePanelProps) {
   return (
     <Card className="flex flex-col gap-4 p-4 sm:p-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
+        <div className="min-w-0 flex-1 text-start">
           <h2 className="text-lg font-semibold">{t('projectPanel.title')}</h2>
           <p className="text-sm text-[var(--pf-text-secondary)]">
             {t('projectPanel.summary', { hours: totalHours.toFixed(2), count: entries.length })}
           </p>
         </div>
         {allowLog ? (
-          <Button asChild size="sm">
+          <Button asChild size="sm" className="shrink-0">
             <Link href={`/workforce/time/new?projectId=${projectId}`}>{t('projectPanel.logTime')}</Link>
           </Button>
         ) : null}

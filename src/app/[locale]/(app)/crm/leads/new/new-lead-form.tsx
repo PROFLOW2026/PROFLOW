@@ -15,7 +15,7 @@ export function NewLeadForm() {
   const [state, formAction, pending] = useActionState<CrmFormState, FormData>(createLeadAction, {});
 
   return (
-    <form action={formAction} className="flex max-w-lg flex-col gap-4">
+    <form action={formAction} className="mx-auto flex w-full max-w-lg flex-col gap-4">
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
       <Field label={t('titleLabel')} required>
         {(control) => <Input {...control} name="title" required autoFocus />}
@@ -24,15 +24,15 @@ export function NewLeadForm() {
         {(control) => <Input {...control} name="source" />}
       </Field>
       <Field label={t('emailLabel')} optionalLabel={tCommon('labels.optional')}>
-        {(control) => <Input {...control} name="email" type="email" />}
+        {(control) => <Input {...control} name="email" type="email" dir="ltr" />}
       </Field>
       <Field label={t('phoneLabel')} optionalLabel={tCommon('labels.optional')}>
-        {(control) => <Input {...control} name="phone" type="tel" />}
+        {(control) => <Input {...control} name="phone" type="tel" dir="ltr" />}
       </Field>
       <Field label={t('notesLabel')} optionalLabel={tCommon('labels.optional')}>
         {(control) => <Textarea {...control} name="notes" rows={3} />}
       </Field>
-      <Button type="submit" disabled={pending}>
+      <Button type="submit" disabled={pending} block>
         {t('submit')}
       </Button>
     </form>

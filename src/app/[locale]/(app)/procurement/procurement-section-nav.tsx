@@ -22,7 +22,7 @@ export function ProcurementSectionNav({
   return (
     <nav
       aria-label={t('navLabel')}
-      className="flex flex-wrap gap-2 border-b border-[var(--pf-border-default)] pb-3"
+      className="flex min-w-0 flex-wrap gap-2 border-b border-[var(--pf-border-default)] pb-3"
     >
       {TABS.map((tab) => {
         const isActive = active === tab.key;

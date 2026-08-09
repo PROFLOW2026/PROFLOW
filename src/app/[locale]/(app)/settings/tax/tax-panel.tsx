@@ -32,19 +32,24 @@ export function TaxSettingsPanel({
 }) {
   const t = useTranslations('tax');
   const tCommon = useTranslations('common');
+  const tCountries = useTranslations('onboarding.countries');
   const locale = useLocale();
   const [isDefault, setIsDefault] = useState(false);
   const [state, action, pending] = useActionState(createTaxRuleAction, {} as SettingsActionState);
 
   const packRules = rules.filter((rule) => rule.organizationId === null);
   const orgRules = rules.filter((rule) => rule.organizationId !== null);
+  const countryLabel =
+    countryCode === 'IL' || countryCode === 'US' || countryCode === 'GB'
+      ? tCountries(countryCode)
+      : countryCode;
 
   return (
-    <div className="flex flex-col gap-6">
-      <p className="text-sm text-[var(--pf-text-secondary)]">{t('subtitle')}</p>
+    <div className="flex w-full min-w-0 flex-col gap-6">
+      <p className="text-start text-sm text-[var(--pf-text-secondary)]">{t('subtitle')}</p>
 
       {currentRateLabel ? (
-        <p className="text-sm">
+        <p className="text-start text-sm">
           {t('currentRate', {
             rate: `\u2066${currentRateLabel}\u2069`,
             date: `\u2066${formatBusinessDate(todayInTimeZone(timezone), locale)}\u2069`,
@@ -52,21 +57,23 @@ export function TaxSettingsPanel({
         </p>
       ) : null}
 
-      <section>
-        <h2 className="text-sm font-semibold">{t('countryPackTitle', { country: countryCode })}</h2>
-        <p className="text-xs text-[var(--pf-text-muted)]">{t('countryPackHint')}</p>
+      <section className="min-w-0">
+        <h2 className="text-start text-sm font-semibold">
+          {t('countryPackTitle', { country: countryLabel })}
+        </h2>
+        <p className="text-start text-xs text-[var(--pf-text-muted)]">{t('countryPackHint')}</p>
         <TaxRulesTable rules={packRules} t={t} locale={locale} />
       </section>
 
-      <section>
-        <h2 className="text-sm font-semibold">{t('orgRulesTitle')}</h2>
+      <section className="min-w-0">
+        <h2 className="text-start text-sm font-semibold">{t('orgRulesTitle')}</h2>
         <TaxRulesTable rules={orgRules} t={t} locale={locale} />
       </section>
 
       {canEdit ? (
-        <section className="rounded-lg border border-[var(--pf-border-default)] p-4">
-          <h2 className="font-medium">{t('addRule')}</h2>
-          <form action={action} className="mt-3 flex max-w-lg flex-col gap-3">
+        <section className="min-w-0 rounded-lg border border-[var(--pf-border-default)] p-4">
+          <h2 className="text-start font-medium">{t('addRule')}</h2>
+          <form action={action} className="mt-3 flex w-full max-w-lg flex-col gap-3">
             {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
             {state.ok ? (
               <Alert tone="success" role="status" aria-live="polite">
@@ -95,11 +102,11 @@ export function TaxSettingsPanel({
             <input type="hidden" name="method" value="percentage" />
 
             <Field label={t('fields.validFrom')} required>
-              {(props) => <Input {...props} name="validFrom" type="date" required />}
+              {(props) => <Input {...props} name="validFrom" type="date" required dir="ltr" />}
             </Field>
 
             <Field label={t('fields.validTo')} optionalLabel={tCommon('labels.optional')}>
-              {(props) => <Input {...props} name="validTo" type="date" />}
+              {(props) => <Input {...props} name="validTo" type="date" dir="ltr" />}
             </Field>
 
             <div className="flex items-center gap-2">
@@ -109,7 +116,7 @@ export function TaxSettingsPanel({
                 onCheckedChange={(checked) => setIsDefault(checked === true)}
               />
               <input type="hidden" name="isDefault" value={isDefault ? 'true' : 'false'} />
-              <Label htmlFor="tax-is-default" className="text-sm font-normal">
+              <Label htmlFor="tax-is-default" className="text-start text-sm font-normal">
                 {t('fields.isDefault')}
               </Label>
             </div>

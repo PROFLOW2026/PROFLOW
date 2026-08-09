@@ -77,7 +77,7 @@ export function FleetVehicleCreateForm({
         {(control) => <Textarea {...control} name="notes" rows={2} />}
       </Field>
 
-      <Button type="submit" disabled={pending}>
+      <Button type="submit" className="h-11 w-full sm:w-auto" disabled={pending}>
         {pending ? tCommon('states.saving') : t('submit')}
       </Button>
     </form>
@@ -109,7 +109,7 @@ export function FleetVehicleEditForm({
       <input type="hidden" name="fleetVehicleId" value={fleetVehicleId} />
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
       {state.success ? <Alert tone="success">{tCommon('states.saved')}</Alert> : null}
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className="grid gap-3 md:grid-cols-3">
         <Field label={t('plateNumberLabel')}>
           {(control) => (
             <Input {...control} name="plateNumber" defaultValue={plateNumber ?? ''} dir="ltr" />

@@ -37,7 +37,7 @@ export async function ProjectFinancialsPanel({ projectId }: ProjectFinancialsPan
   const billingNotes = standalonePartialNotes(financials.coverage, t, ['foreign_currency_billing_excluded']);
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex min-w-0 max-w-full flex-col gap-4">
       {canReadCommercial && financials.commercial ? (
         <Card>
           <CardHeader>
@@ -268,14 +268,14 @@ function MetricRow({
   nature?: string;
 }) {
   return (
-    <div className="flex items-center justify-between gap-2">
+    <div className="flex min-w-0 items-start justify-between gap-3">
       <span
         className={
           muted
-            ? 'text-[var(--pf-text-muted)]'
+            ? 'min-w-0 flex-1 break-words text-[var(--pf-text-muted)]'
             : emphasis
-              ? 'font-medium'
-              : 'text-[var(--pf-text-secondary)]'
+              ? 'min-w-0 flex-1 break-words font-medium'
+              : 'min-w-0 flex-1 break-words text-[var(--pf-text-secondary)]'
         }
       >
         {label}
@@ -283,7 +283,10 @@ function MetricRow({
           <span className="ms-1 text-xs text-[var(--pf-text-muted)]">· {nature}</span>
         ) : null}
       </span>
-      <MoneyText value={value} className={emphasis ? 'font-semibold' : undefined} />
+      <MoneyText
+        value={value}
+        className={emphasis ? 'shrink-0 font-semibold' : 'shrink-0'}
+      />
     </div>
   );
 }

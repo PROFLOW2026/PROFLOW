@@ -65,7 +65,7 @@ function MaintenanceTable({
                 <TableHead>{t('detail.maintenanceTitle')}</TableHead>
                 <TableHead>{t('detail.maintenanceStatus')}</TableHead>
                 <TableHead>{t('detail.performedOn')}</TableHead>
-                <TableHead>{t('detail.costAmount')}</TableHead>
+                <TableHead numeric>{t('detail.costAmount')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -83,11 +83,23 @@ function MaintenanceTable({
                       label={tStatus(row.status)}
                     />
                   </TableCell>
-                  <TableCell>{row.performedOn ?? '—'}</TableCell>
                   <TableCell>
-                    {row.costAmount
-                      ? `${row.costAmount}${row.currency ? ` ${row.currency}` : ''}`
-                      : '—'}
+                    {row.performedOn ? (
+                      <span className="pf-ltr-island" dir="ltr">
+                        {row.performedOn}
+                      </span>
+                    ) : (
+                      '—'
+                    )}
+                  </TableCell>
+                  <TableCell numeric>
+                    {row.costAmount ? (
+                      <span dir="ltr">
+                        {`${row.costAmount}${row.currency ? ` ${row.currency}` : ''}`}
+                      </span>
+                    ) : (
+                      '—'
+                    )}
                   </TableCell>
                 </TableRow>
               ))}
@@ -98,7 +110,7 @@ function MaintenanceTable({
       renderMobileCard={(row) => (
         <Link
           href={`/assets/${row.assetId}`}
-          className="block min-h-11 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4"
+          className="block min-h-11 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
         >
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
@@ -107,11 +119,18 @@ function MaintenanceTable({
             </div>
             <StatusBadge shape={maintenanceShape(row.status)} label={tStatus(row.status)} />
           </div>
-          <p className="mt-2 text-xs text-[var(--pf-text-muted)]" dir="ltr">
-            {row.performedOn ?? '—'}
-            {row.costAmount
-              ? ` · ${row.costAmount}${row.currency ? ` ${row.currency}` : ''}`
-              : ''}
+          <p className="mt-2 text-xs text-[var(--pf-text-muted)]">
+            <span className="pf-ltr-island" dir="ltr">
+              {row.performedOn ?? '—'}
+            </span>
+            {row.costAmount ? (
+              <>
+                {' · '}
+                <span className="pf-numeric" dir="ltr">
+                  {`${row.costAmount}${row.currency ? ` ${row.currency}` : ''}`}
+                </span>
+              </>
+            ) : null}
           </p>
         </Link>
       )}

@@ -73,6 +73,18 @@
     "empty": "Run a preview to inspect the customer-safe projection.",
     "scopesApplied": "Scopes applied",
     "neverExposed": "Never exposed",
+    "neverExposedItems": {
+      "profit": "Profit",
+      "margin": "Margin",
+      "trueCost": "True cost",
+      "employeeCost": "Employee cost",
+      "overhead": "Overhead",
+      "laborRate": "Labor rate",
+      "vendorConfidential": "Vendor confidential",
+      "admin": "Admin",
+      "audit": "Audit",
+      "storagePath": "Storage path"
+    },
     "foundationNote": "Public customer login is foundation-only. This preview is admin-mediated via ExternalPrincipal grants — not OrganizationMembership.",
     "denials": {
       "crossCustomer": "Cross-customer denial: this grant does not cover the selected project.",

@@ -34,7 +34,7 @@ export function BillingRecordForm({
   );
 
   return (
-    <form action={formAction} className="flex max-w-xl flex-col gap-5">
+    <form action={formAction} className="mx-auto flex w-full max-w-xl flex-col gap-5">
       {state.error ? (
         <p className="text-sm text-[var(--pf-status-danger-fg)]">{tCommon('actions.retry')}</p>
       ) : null}
@@ -77,12 +77,12 @@ export function BillingRecordForm({
 
       <Field label={t('form.issueDate')} required>
         {(controlProps) => (
-          <Input {...controlProps} name="issueDate" type="date" required defaultValue={defaultIssueDate} />
+          <Input {...controlProps} name="issueDate" type="date" required defaultValue={defaultIssueDate} dir="ltr" />
         )}
       </Field>
 
       <Field label={t('form.dueDate')} optionalLabel={tCommon('labels.optional')}>
-        {(controlProps) => <Input {...controlProps} name="dueDate" type="date" />}
+        {(controlProps) => <Input {...controlProps} name="dueDate" type="date" dir="ltr" />}
       </Field>
 
       <Field label={t('form.reference')} optionalLabel={tCommon('labels.optional')}>

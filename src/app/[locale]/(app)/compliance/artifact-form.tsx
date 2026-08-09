@@ -176,6 +176,7 @@ export function ArtifactForm({
             {...control}
             name="referenceNumber"
             defaultValue={artifact?.referenceNumber ?? ''}
+            dir="ltr"
           />
         )}
       </Field>
@@ -245,7 +246,7 @@ export function ArtifactForm({
         )}
       </Field>
 
-      <Button type="submit" loading={pending}>
+      <Button type="submit" loading={pending} className="h-11 w-full sm:w-auto">
         {mode === 'create' ? t('create.submit') : t('detail.save')}
       </Button>
     </form>

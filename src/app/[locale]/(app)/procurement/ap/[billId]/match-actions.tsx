@@ -42,10 +42,10 @@ export function ProposeMatchForm({
   const [state, action, pending] = useActionState<ApFormState, FormData>(proposeApMatchAction, {});
 
   return (
-    <form action={action} className="flex max-w-lg flex-col gap-3 rounded-lg border border-[var(--pf-border-default)] p-4">
+    <form action={action} className="flex w-full min-w-0 max-w-lg flex-col gap-3 rounded-lg border border-[var(--pf-border-default)] p-4">
       <h2 className="font-medium">{t('proposeTitle')}</h2>
       <p className="text-xs text-[var(--pf-text-muted)]">{t('hint')}</p>
-      <p className="text-xs text-[var(--pf-text-secondary)]">
+      <p className="break-words text-xs text-[var(--pf-text-secondary)]">
         {t('remainingHint', { amount: remainingLabel, currency })}
       </p>
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}

@@ -12,6 +12,7 @@ import {
 } from '@/modules/identity';
 import { getModuleVisibility, listMembershipsForUser, resolveOrgContext } from '@/modules/tenancy';
 import { AuthenticationRequiredError, AppError } from '@/shared/errors';
+import { localeFromAuthMetadata } from '@/shared/i18n/auth-locale';
 
 /**
  * Server-side session and tenant resolution (docs 72 §5, 73 §4).
@@ -49,6 +50,7 @@ export const getSessionState = cache(async (): Promise<SessionState> => {
         (authUser.user_metadata?.display_name as string | undefined) ??
         (authUser.user_metadata?.full_name as string | undefined) ??
         null,
+      localePreference: localeFromAuthMetadata(authUser.user_metadata),
     });
 
     const memberships = await listMembershipsForUser(tx, authUser.id);

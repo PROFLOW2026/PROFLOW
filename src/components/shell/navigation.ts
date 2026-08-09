@@ -210,3 +210,12 @@ export function isNavItemActive(pathname: string, href: string): boolean {
   );
   return !hasMoreSpecificMatch;
 }
+
+/**
+ * True on focused create/edit routes where a corner FAB would cover Save/Create.
+ * Quick-create stays available as a compact top-bar control instead.
+ */
+export function isFocusedComposerPath(pathname: string): boolean {
+  const normalized = pathname.replace(/^\/[a-z]{2}(-[A-Z]{2})?(?=\/|$)/, '') || '/';
+  return normalized.split('/').some((segment) => segment === 'new' || segment === 'edit');
+}

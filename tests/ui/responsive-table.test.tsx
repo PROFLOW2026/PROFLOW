@@ -42,8 +42,8 @@ describe('ResponsiveTable', () => {
       />,
     );
 
-    expect(container.querySelector('.hidden.md\\:block')).not.toBeNull();
-    expect(container.querySelector('.md\\:hidden')).not.toBeNull();
+    expect(container.querySelector('.hidden.lg\\:block')).not.toBeNull();
+    expect(container.querySelector('.lg\\:hidden')).not.toBeNull();
     expect(screen.getByRole('table')).toBeInTheDocument();
     expect(screen.getByTestId('card-a')).toHaveTextContent('Alpha');
     expect(screen.getByTestId('card-b')).toHaveTextContent('Beta');

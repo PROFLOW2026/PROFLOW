@@ -68,12 +68,15 @@ export default async function PurchaseOrderDetailPage({
   const { order, lines, documentsPanel } = data;
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex min-w-0 flex-col gap-6">
       <PageHeader
         title={order.reference?.trim() || t('list.noReference')}
         description={t('detail.description')}
         breadcrumb={
-          <Link href="/procurement" className="text-sm text-[var(--pf-text-secondary)] hover:underline">
+          <Link
+            href="/procurement"
+            className="rounded-sm text-sm text-[var(--pf-text-secondary)] hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
+          >
             {t('title')}
           </Link>
         }
@@ -85,14 +88,14 @@ export default async function PurchaseOrderDetailPage({
         }
       />
 
-      <div className="grid gap-3 text-sm sm:grid-cols-2">
-        <div>
+      <div className="grid min-w-0 gap-3 text-sm sm:grid-cols-2">
+        <div className="min-w-0">
           <p className="text-xs text-[var(--pf-text-muted)]">{t('list.columns.committed')}</p>
           <MoneyText value={money(order.committedAmount, order.currency)} />
         </div>
-        <div>
+        <div className="min-w-0">
           <p className="text-xs text-[var(--pf-text-muted)]">{t('list.columns.actions')}</p>
-          <p>{lines.length}</p>
+          <p dir="ltr">{lines.length}</p>
         </div>
       </div>
 

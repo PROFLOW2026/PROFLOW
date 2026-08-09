@@ -103,7 +103,7 @@ function CatalogList({
       )}
 
       {canEdit ? (
-        <form action={action} className="flex max-w-md flex-col gap-2 rounded-md border border-[var(--pf-border-default)] p-3">
+        <form action={action} className="flex w-full max-w-md flex-col gap-2 rounded-md border border-[var(--pf-border-default)] p-3">
           {createState.error ? <Alert tone="danger">{createState.error}</Alert> : null}
           {createState.ok ? (
             <Alert tone="success" role="status" aria-live="polite">
@@ -148,7 +148,7 @@ function CatalogRow({
       {canEdit ? (
         <form action={renameAction} className="flex flex-1 flex-wrap items-center gap-2">
           <input type="hidden" name="id" value={item.id} />
-          <Input name="name" defaultValue={item.name} className="max-w-xs" aria-label={item.name} />
+          <Input name="name" defaultValue={item.name} className="min-w-0 w-full max-w-xs flex-1" aria-label={item.name} />
           <Button type="submit" size="sm" variant="secondary" loading={renamePending}>
             {tCommon('actions.save')}
           </Button>
@@ -212,7 +212,7 @@ function LaborDefaultsForm({
       </div>
 
       {canEdit ? (
-        <form action={action} className="flex max-w-lg flex-col gap-3">
+        <form action={action} className="flex w-full max-w-lg flex-col gap-3">
           {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
           {state.ok ? (
             <Alert tone="success" role="status" aria-live="polite">
@@ -236,7 +236,8 @@ function LaborDefaultsForm({
                 {...props}
                 name="componentsText"
                 rows={4}
-                className="w-full rounded-md border border-[var(--pf-border-default)] bg-transparent px-3 py-2 text-sm"
+                dir="ltr"
+                className="w-full rounded-md border border-[var(--pf-border-default)] bg-transparent px-3 py-2 font-mono text-sm"
                 defaultValue={componentsText}
                 placeholder={t('componentsPlaceholder')}
               />

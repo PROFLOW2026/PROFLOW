@@ -103,14 +103,17 @@ export default async function CrmProspectsPage() {
               className="block min-h-11 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4"
             >
               <div className="flex items-start justify-between gap-2">
-                <span className="font-semibold">{row.name}</span>
+                <span className="min-w-0 flex-1 truncate text-start font-semibold">{row.name}</span>
                 <StatusBadge
+                  className="shrink-0"
                   shape={row.status === 'active' ? 'active' : 'archived'}
                   label={t(`statuses.prospect.${row.status}`)}
                 />
               </div>
               {row.companyName ? (
-                <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">{row.companyName}</p>
+                <p className="mt-1 truncate text-start text-sm text-[var(--pf-text-secondary)]">
+                  {row.companyName}
+                </p>
               ) : null}
             </Link>
           )}

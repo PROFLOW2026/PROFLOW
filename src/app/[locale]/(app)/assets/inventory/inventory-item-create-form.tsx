@@ -32,7 +32,7 @@ export function InventoryItemCreateForm({
   const [materialItemId, setMaterialItemId] = useState(NONE);
 
   return (
-    <form action={formAction} className="flex max-w-lg flex-col gap-4">
+    <form action={formAction} className="flex w-full min-w-0 max-w-lg flex-col gap-4">
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
 
       <Field label={t('nameLabel')} required error={state.fieldErrors?.name}>

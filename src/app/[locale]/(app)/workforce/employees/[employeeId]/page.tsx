@@ -95,10 +95,18 @@ export default async function EmployeeDetailPage({
       {(employee.email || employee.phone || employee.notes) && (
         <Card className="flex flex-col gap-2 p-4 sm:p-6">
           <h2 className="text-base font-semibold">{t('employees.detail.profile')}</h2>
-          {employee.email ? <p className="text-sm">{employee.email}</p> : null}
-          {employee.phone ? <p className="text-sm">{employee.phone}</p> : null}
+          {employee.email ? (
+            <p className="text-start text-sm" dir="ltr">
+              {employee.email}
+            </p>
+          ) : null}
+          {employee.phone ? (
+            <p className="text-start text-sm" dir="ltr">
+              {employee.phone}
+            </p>
+          ) : null}
           {employee.notes ? (
-            <p className="text-sm text-[var(--pf-text-secondary)]">{employee.notes}</p>
+            <p className="text-start text-sm text-[var(--pf-text-secondary)]">{employee.notes}</p>
           ) : null}
         </Card>
       )}

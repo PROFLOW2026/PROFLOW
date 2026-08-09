@@ -34,7 +34,7 @@ export function PaymentForm({
   const payableRecords = billingRecords.filter((record) => record.status === 'finalized');
 
   return (
-    <form action={formAction} className="flex max-w-xl flex-col gap-5">
+    <form action={formAction} className="mx-auto flex w-full max-w-xl flex-col gap-5">
       {state.error ? (
         <p className="text-sm text-[var(--pf-status-danger-fg)]">{tCommon('actions.retry')}</p>
       ) : null}
@@ -81,6 +81,7 @@ export function PaymentForm({
             type="date"
             required
             defaultValue={defaultPaymentDate}
+            dir="ltr"
           />
         )}
       </Field>

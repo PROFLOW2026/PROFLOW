@@ -15,11 +15,12 @@ const STATUS_SHAPES: Record<ChangeRequestStatus, StatusShape> = {
 export interface ChangeStatusBadgeProps {
   status: ChangeRequestStatus;
   sentAt?: Date | string | null;
+  className?: string;
 }
 
-export function ChangeStatusBadge({ status, sentAt }: ChangeStatusBadgeProps) {
+export function ChangeStatusBadge({ status, sentAt, className }: ChangeStatusBadgeProps) {
   const t = useTranslations('changes.status');
   const label = sentAt && status === 'awaiting_approval' ? t('awaitingApprovalSent') : t(status);
 
-  return <StatusBadge shape={STATUS_SHAPES[status]} label={label} />;
+  return <StatusBadge className={className} shape={STATUS_SHAPES[status]} label={label} />;
 }

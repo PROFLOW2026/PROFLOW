@@ -19,24 +19,24 @@ export function QuoteVersionForm({ changeRequestId, action, currency }: QuoteVer
   const [state, formAction, pending] = useActionState(action, {});
 
   return (
-    <form action={formAction} className="flex max-w-xl flex-col gap-4">
+    <form action={formAction} className="mx-auto flex w-full max-w-xl flex-col gap-4">
       <input type="hidden" name="changeRequestId" value={changeRequestId} />
 
       <Field label={t('lineDescription')} required>
         {(control) => <Input {...control} name="lineDescription" required />}
       </Field>
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid min-w-0 gap-4 sm:grid-cols-2">
         <Field label={t('lineTotal')} required description={t('currencyHint', { currency })}>
-          {(control) => <Input {...control} name="lineTotal" inputMode="decimal" required />}
+          {(control) => <Input {...control} name="lineTotal" inputMode="decimal" required dir="ltr" />}
         </Field>
         <Field label={t('taxAmount')}>
-          {(control) => <Input {...control} name="taxAmount" inputMode="decimal" />}
+          {(control) => <Input {...control} name="taxAmount" inputMode="decimal" dir="ltr" />}
         </Field>
       </div>
 
       <Field label={t('validUntil')}>
-        {(control) => <Input {...control} name="validUntil" type="date" />}
+        {(control) => <Input {...control} name="validUntil" type="date" dir="ltr" />}
       </Field>
 
       <Field label={t('notes')}>

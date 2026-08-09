@@ -48,26 +48,34 @@ export async function ReportsAnalyticsView({
   });
 
   return (
-    <div className="flex flex-col gap-8">
-      <ul className="flex flex-col gap-1 text-xs text-[var(--pf-text-secondary)]">
+    <div className="flex min-w-0 w-full max-w-full flex-col gap-8 text-start">
+      <ul className="flex min-w-0 flex-col gap-1 text-xs text-[var(--pf-text-secondary)]">
         {analytics.disclosures.map((key) => (
-          <li key={key}>{t(`disclosures.${key}` as 'disclosures.baseCurrencyOnly')}</li>
+          <li key={key} className="break-words">
+            {t(`disclosures.${key}` as 'disclosures.baseCurrencyOnly')}
+          </li>
         ))}
         {rollup.excludedForeignCurrencyCount > 0 ? (
-          <li>{t('excludedForeign', { count: rollup.excludedForeignCurrencyCount })}</li>
+          <li className="break-words">
+            {t('excludedForeign', { count: rollup.excludedForeignCurrencyCount })}
+          </li>
         ) : null}
         {rollup.truncatedActiveProjectCount > 0 ? (
-          <li>{t('truncatedRollup', { count: rollup.truncatedActiveProjectCount })}</li>
+          <li className="break-words">
+            {t('truncatedRollup', { count: rollup.truncatedActiveProjectCount })}
+          </li>
         ) : null}
       </ul>
 
       {analytics.commercial ? (
-        <section className="flex flex-col gap-3">
-          <div>
+        <section className="flex min-w-0 flex-col gap-3">
+          <div className="min-w-0">
             <h2 className="text-sm font-semibold">{t('sections.commercial')}</h2>
-            <p className="text-xs text-[var(--pf-text-secondary)]">{t('sections.commercialHint')}</p>
+            <p className="break-words text-xs text-[var(--pf-text-secondary)]">
+              {t('sections.commercialHint')}
+            </p>
           </div>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+          <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
             <MoneyReportMetricTile
               metric={analytics.commercial.original}
               copy={moneyCopy(analytics.commercial.original, tFinancial('originalContractValue'))}
@@ -96,13 +104,15 @@ export async function ReportsAnalyticsView({
       ) : null}
 
       {analytics.cash || analytics.showArAging || cashFlow ? (
-        <section className="flex flex-col gap-4">
-          <div>
+        <section className="flex min-w-0 flex-col gap-4">
+          <div className="min-w-0">
             <h2 className="text-sm font-semibold">{t('sections.cash')}</h2>
-            <p className="text-xs text-[var(--pf-text-secondary)]">{t('sections.cashHint')}</p>
+            <p className="break-words text-xs text-[var(--pf-text-secondary)]">
+              {t('sections.cashHint')}
+            </p>
           </div>
           {analytics.cash ? (
-            <div className="grid gap-3 sm:grid-cols-3">
+            <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-3">
               <MoneyReportMetricTile
                 metric={analytics.cash.invoiced}
                 copy={moneyCopy(analytics.cash.invoiced, tFinancial('invoiced'))}
@@ -119,37 +129,43 @@ export async function ReportsAnalyticsView({
             </div>
           ) : null}
           {analytics.showArAging && analytics.arAging ? (
-            <ReceivablesAgingPanel aging={analytics.arAging} />
+            <div className="min-w-0 max-w-full">
+              <ReceivablesAgingPanel aging={analytics.arAging} />
+            </div>
           ) : null}
           {cashFlow ? (
-            <CashFlowView
-              cashFlow={cashFlow}
-              copy={{
-                title: t('cashFlow.title'),
-                actualTitle: t('cashFlow.actualTitle'),
-                actualHint: t('cashFlow.actualHint'),
-                forecastTitle: t('cashFlow.forecastTitle'),
-                forecastHint: t('cashFlow.forecastHint'),
-                outgoingTitle: t('cashFlow.outgoingTitle'),
-                outgoingDisclosure: t('cashFlow.outgoingDisclosure'),
-                outgoingAvailableHint: t('cashFlow.outgoingAvailableHint'),
-                undatedNote: t('cashFlow.undatedNote'),
-                bucketLabel: (key) => t(`cashFlow.buckets.${key}`),
-                paymentCount: (count) => t('cashFlow.paymentCount', { count }),
-                billCount: (count) => t('cashFlow.billCount', { count }),
-              }}
-            />
+            <div className="min-w-0 max-w-full">
+              <CashFlowView
+                cashFlow={cashFlow}
+                copy={{
+                  title: t('cashFlow.title'),
+                  actualTitle: t('cashFlow.actualTitle'),
+                  actualHint: t('cashFlow.actualHint'),
+                  forecastTitle: t('cashFlow.forecastTitle'),
+                  forecastHint: t('cashFlow.forecastHint'),
+                  outgoingTitle: t('cashFlow.outgoingTitle'),
+                  outgoingDisclosure: t('cashFlow.outgoingDisclosure'),
+                  outgoingAvailableHint: t('cashFlow.outgoingAvailableHint'),
+                  undatedNote: t('cashFlow.undatedNote'),
+                  bucketLabel: (key) => t(`cashFlow.buckets.${key}`),
+                  paymentCount: (count) => t('cashFlow.paymentCount', { count }),
+                  billCount: (count) => t('cashFlow.billCount', { count }),
+                }}
+              />
+            </div>
           ) : null}
         </section>
       ) : null}
 
       {analytics.cost ? (
-        <section className="flex flex-col gap-3">
-          <div>
+        <section className="flex min-w-0 flex-col gap-3">
+          <div className="min-w-0">
             <h2 className="text-sm font-semibold">{t('sections.cost')}</h2>
-            <p className="text-xs text-[var(--pf-text-secondary)]">{t('sections.costHint')}</p>
+            <p className="break-words text-xs text-[var(--pf-text-secondary)]">
+              {t('sections.costHint')}
+            </p>
           </div>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             <MoneyReportMetricTile
               metric={analytics.cost.actual}
               copy={moneyCopy(analytics.cost.actual, tFinancial('actualCostToDate'))}
@@ -184,14 +200,14 @@ export async function ReportsAnalyticsView({
       ) : null}
 
       {analytics.profitability ? (
-        <section className="flex flex-col gap-3">
-          <div>
+        <section className="flex min-w-0 flex-col gap-3">
+          <div className="min-w-0">
             <h2 className="text-sm font-semibold">{t('sections.profitability')}</h2>
-            <p className="text-xs text-[var(--pf-text-secondary)]">
+            <p className="break-words text-xs text-[var(--pf-text-secondary)]">
               {t('sections.profitabilityHint')}
             </p>
           </div>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
             <MoneyReportMetricTile
               metric={analytics.profitability.estimatedProfit}
               copy={moneyCopy(
@@ -201,16 +217,20 @@ export async function ReportsAnalyticsView({
               colorizeNegative
             />
             {rollup.ops.profitableCount != null ? (
-              <div className="rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-3">
-                <p className="text-xs text-[var(--pf-text-secondary)]">{t('profitability.profitable')}</p>
+              <div className="min-w-0 max-w-full rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-3 text-start">
+                <p className="break-words text-xs text-[var(--pf-text-secondary)]">
+                  {t('profitability.profitable')}
+                </p>
                 <p className="mt-1 text-base font-semibold pf-numeric" dir="ltr">
                   {rollup.ops.profitableCount}
                 </p>
               </div>
             ) : null}
             {rollup.ops.lossMakingCount != null ? (
-              <div className="rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-3">
-                <p className="text-xs text-[var(--pf-text-secondary)]">{t('profitability.lossMaking')}</p>
+              <div className="min-w-0 max-w-full rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-3 text-start">
+                <p className="break-words text-xs text-[var(--pf-text-secondary)]">
+                  {t('profitability.lossMaking')}
+                </p>
                 <p className="mt-1 text-base font-semibold pf-numeric" dir="ltr">
                   {rollup.ops.lossMakingCount}
                 </p>
@@ -220,21 +240,27 @@ export async function ReportsAnalyticsView({
         </section>
       ) : null}
 
-      <section className="flex flex-col gap-3">
-        <div>
+      <section className="flex min-w-0 flex-col gap-3">
+        <div className="min-w-0">
           <h2 className="text-sm font-semibold">{t('sections.operations')}</h2>
-          <p className="text-xs text-[var(--pf-text-secondary)]">{t('sections.operationsHint')}</p>
+          <p className="break-words text-xs text-[var(--pf-text-secondary)]">
+            {t('sections.operationsHint')}
+          </p>
         </div>
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          <div className="rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-3">
-            <p className="text-xs text-[var(--pf-text-secondary)]">{t('operations.activeProjects')}</p>
+        <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="min-w-0 max-w-full rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-3 text-start">
+            <p className="break-words text-xs text-[var(--pf-text-secondary)]">
+              {t('operations.activeProjects')}
+            </p>
             <p className="mt-1 text-base font-semibold pf-numeric" dir="ltr">
               {analytics.operations.activeProjectCount}
             </p>
           </div>
           {analytics.operations.progressAveragePercent != null ? (
-            <div className="rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-3">
-              <p className="text-xs text-[var(--pf-text-secondary)]">{t('operations.avgProgress')}</p>
+            <div className="min-w-0 max-w-full rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-3 text-start">
+              <p className="break-words text-xs text-[var(--pf-text-secondary)]">
+                {t('operations.avgProgress')}
+              </p>
               <p className="mt-1 text-base font-semibold pf-numeric" dir="ltr">
                 {analytics.operations.progressAveragePercent}%
               </p>
@@ -353,10 +379,12 @@ export async function ReportsAnalyticsView({
         </div>
       </section>
 
-      <section className="flex flex-col gap-3">
-        <div>
+      <section className="flex min-w-0 flex-col gap-3">
+        <div className="min-w-0">
           <h2 className="text-sm font-semibold">{t('sections.comparison')}</h2>
-          <p className="text-xs text-[var(--pf-text-secondary)]">{t('sections.comparisonHint')}</p>
+          <p className="break-words text-xs text-[var(--pf-text-secondary)]">
+            {t('sections.comparisonHint')}
+          </p>
         </div>
         <ResponsiveTable
           items={rollup.rows}
@@ -426,29 +454,31 @@ export async function ReportsAnalyticsView({
           renderMobileCard={(row) => (
             <Link
               href={`/projects/${row.projectId}`}
-              className="block min-h-11 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4"
+              className="block min-h-11 min-w-0 max-w-full rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4 text-start"
             >
               <div className="flex items-start justify-between gap-2">
-                <span className="font-semibold">{row.name}</span>
-                <span className="text-sm text-[var(--pf-text-secondary)]">
+                <span className="min-w-0 flex-1 break-words font-semibold">{row.name}</span>
+                <span className="shrink-0 text-sm text-[var(--pf-text-secondary)]">
                   {row.progressPercent ? `${row.progressPercent}%` : '—'}
                 </span>
               </div>
-              <dl className="mt-3 grid grid-cols-2 gap-2 text-sm">
+              <dl className="mt-3 grid min-w-0 grid-cols-1 gap-2 text-sm sm:grid-cols-2">
                 {rollup.canReadCommercial ? (
-                  <div>
-                    <dt className="text-[var(--pf-text-secondary)]">
+                  <div className="min-w-0">
+                    <dt className="break-words text-[var(--pf-text-secondary)]">
                       {tFinancial('currentContractValue')}
                     </dt>
-                    <dd>
+                    <dd className="min-w-0 max-w-full overflow-x-auto">
                       {row.currentContract ? <MoneyText value={row.currentContract} /> : '—'}
                     </dd>
                   </div>
                 ) : null}
                 {rollup.canReadBilling ? (
-                  <div>
-                    <dt className="text-[var(--pf-text-secondary)]">{tFinancial('outstanding')}</dt>
-                    <dd>
+                  <div className="min-w-0">
+                    <dt className="break-words text-[var(--pf-text-secondary)]">
+                      {tFinancial('outstanding')}
+                    </dt>
+                    <dd className="min-w-0 max-w-full overflow-x-auto">
                       {row.outstanding ? (
                         <MoneyText value={row.outstanding} colorizeNegative />
                       ) : (
@@ -457,22 +487,28 @@ export async function ReportsAnalyticsView({
                     </dd>
                   </div>
                 ) : null}
-                <div>
-                  <dt className="text-[var(--pf-text-secondary)]">
+                <div className="min-w-0">
+                  <dt className="break-words text-[var(--pf-text-secondary)]">
                     {tFinancial('actualCostToDate')}
                   </dt>
-                  <dd>{row.actualCost ? <MoneyText value={row.actualCost} /> : '—'}</dd>
+                  <dd className="min-w-0 max-w-full overflow-x-auto">
+                    {row.actualCost ? <MoneyText value={row.actualCost} /> : '—'}
+                  </dd>
                 </div>
-                <div>
-                  <dt className="text-[var(--pf-text-secondary)]">{tFinancial('committedOpen')}</dt>
-                  <dd>{row.committedOpen ? <MoneyText value={row.committedOpen} /> : '—'}</dd>
+                <div className="min-w-0">
+                  <dt className="break-words text-[var(--pf-text-secondary)]">
+                    {tFinancial('committedOpen')}
+                  </dt>
+                  <dd className="min-w-0 max-w-full overflow-x-auto">
+                    {row.committedOpen ? <MoneyText value={row.committedOpen} /> : '—'}
+                  </dd>
                 </div>
                 {rollup.canReadProfit ? (
-                  <div>
-                    <dt className="text-[var(--pf-text-secondary)]">
+                  <div className="min-w-0">
+                    <dt className="break-words text-[var(--pf-text-secondary)]">
                       {tFinancial('estimatedProfit')}
                     </dt>
-                    <dd>
+                    <dd className="min-w-0 max-w-full overflow-x-auto">
                       {row.estimatedProfit ? (
                         <MoneyText value={row.estimatedProfit} colorizeNegative />
                       ) : (

@@ -22,7 +22,7 @@ export function MaterialCreateForm({ defaultCurrency }: { defaultCurrency: strin
   return (
     <form
       action={formAction}
-      className="mx-auto flex w-full max-w-lg flex-col gap-4 rounded-lg border border-[var(--pf-border-default)] p-4"
+      className="mx-auto flex w-full min-w-0 max-w-lg flex-col gap-4 rounded-lg border border-[var(--pf-border-default)] p-4"
     >
       <h2 className="text-sm font-semibold">{t('createTitle')}</h2>
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}

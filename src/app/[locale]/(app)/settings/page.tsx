@@ -1,11 +1,12 @@
 import type { Metadata } from 'next';
+import { getLocale, getTranslations } from 'next-intl/server';
 import { redirect } from '@/shared/i18n/navigation';
-import { getLocale } from 'next-intl/server';
 import { withOrgContext } from '@/shared/auth/session';
 import { accessibleSections } from './_lib/access';
 
 export async function generateMetadata(): Promise<Metadata> {
-  return { title: 'Settings' };
+  const t = await getTranslations('settings');
+  return { title: t('title') };
 }
 
 export default async function SettingsIndexPage() {

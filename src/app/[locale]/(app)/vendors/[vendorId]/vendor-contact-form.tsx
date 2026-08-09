@@ -46,10 +46,10 @@ export function VendorContactForm({ vendorId }: { vendorId: string }) {
           )}
         </Field>
         <Field label={tCommon('labels.email')} optionalLabel={tCommon('labels.optional')}>
-          {(control) => <Input {...control} name="email" type="email" />}
+          {(control) => <Input {...control} name="email" type="email" dir="ltr" />}
         </Field>
         <Field label={tCommon('labels.phone')} optionalLabel={tCommon('labels.optional')}>
-          {(control) => <Input {...control} name="phone" type="tel" />}
+          {(control) => <Input {...control} name="phone" type="tel" dir="ltr" />}
         </Field>
       </div>
 

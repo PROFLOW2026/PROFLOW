@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { MoneyText } from '@/components/patterns/money-text';
+import { ResponsiveTable } from '@/components/patterns/responsive-table';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PageHeader } from '@/components/ui/page-header';
@@ -56,7 +57,7 @@ export default async function BillingDetailPage({
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex min-w-0 flex-col gap-6">
       <PageHeader
         title={record.reference ?? t('detail.title')}
         description={record.projectName ?? undefined}
@@ -64,9 +65,9 @@ export default async function BillingDetailPage({
           <BillingStatusBadge status={record.status} collectionStatus={record.collectionStatus} />
         }
         actions={
-          <div className="flex flex-wrap gap-2">
+          <div className="flex max-w-full flex-wrap gap-2">
             {canManage && record.status === 'finalized' ? (
-              <Button asChild variant="secondary">
+              <Button asChild variant="secondary" className="max-w-full">
                 <Link href={`/billing/payments/new?billingRecordId=${record.id}`}>
                   {t('detail.recordPayment')}
                 </Link>
@@ -88,12 +89,12 @@ export default async function BillingDetailPage({
         }
       />
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card>
+      <div className="grid min-w-0 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <Card className="min-w-0">
           <CardHeader>
-            <CardTitle className="text-sm">{t('list.amount')}</CardTitle>
+            <CardTitle className="text-sm text-start">{t('list.amount')}</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="min-w-0 text-start">
             <MoneyText value={record.totalAmount} className="text-lg font-semibold" />
             <p className="mt-2 text-xs text-[var(--pf-text-secondary)]">
               {t('detail.kind')}: {tKind(record.kind)}
@@ -110,33 +111,35 @@ export default async function BillingDetailPage({
             ) : null}
           </CardContent>
         </Card>
-        <Card>
+        <Card className="min-w-0">
           <CardHeader>
-            <CardTitle className="text-sm">{t('list.paid')}</CardTitle>
+            <CardTitle className="text-sm text-start">{t('list.paid')}</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="min-w-0 text-start">
             <MoneyText value={record.paidAmount} className="text-lg font-semibold" />
           </CardContent>
         </Card>
-        <Card>
+        <Card className="min-w-0">
           <CardHeader>
-            <CardTitle className="text-sm">{t('list.outstanding')}</CardTitle>
+            <CardTitle className="text-sm text-start">{t('list.outstanding')}</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="min-w-0 text-start">
             <MoneyText value={record.outstandingAmount} className="text-lg font-semibold" colorizeNegative />
           </CardContent>
         </Card>
-        <Card>
+        <Card className="min-w-0">
           <CardHeader>
-            <CardTitle className="text-sm">{tStatus(record.status)}</CardTitle>
+            <CardTitle className="text-sm text-start">{tStatus(record.status)}</CardTitle>
           </CardHeader>
-          <CardContent className="text-sm text-[var(--pf-text-secondary)]">
+          <CardContent className="min-w-0 text-start text-sm text-[var(--pf-text-secondary)]">
             <p>
-              {t('list.issueDate')}: {formatBusinessDate(record.issueDate, locale)}
+              {t('list.issueDate')}:{' '}
+              <span dir="ltr">{formatBusinessDate(record.issueDate, locale)}</span>
             </p>
             {record.dueDate ? (
               <p>
-                {t('detail.dueDate')}: {formatBusinessDate(record.dueDate, locale)}
+                {t('detail.dueDate')}:{' '}
+                <span dir="ltr">{formatBusinessDate(record.dueDate, locale)}</span>
               </p>
             ) : null}
           </CardContent>
@@ -144,49 +147,81 @@ export default async function BillingDetailPage({
       </div>
 
       {record.notes ? (
-        <Card>
+        <Card className="min-w-0">
           <CardHeader>
-            <CardTitle>{t('detail.notes')}</CardTitle>
+            <CardTitle className="text-start">{t('detail.notes')}</CardTitle>
           </CardHeader>
-          <CardContent className="whitespace-pre-wrap text-sm">{record.notes}</CardContent>
+          <CardContent className="whitespace-pre-wrap break-words text-start text-sm">
+            {record.notes}
+          </CardContent>
         </Card>
       ) : null}
 
-      <Card>
+      <Card className="min-w-0">
         <CardHeader>
-          <CardTitle>{t('detail.paymentsTitle')}</CardTitle>
+          <CardTitle className="text-start">{t('detail.paymentsTitle')}</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="min-w-0">
           {record.payments.length === 0 ? (
-            <p className="text-sm text-[var(--pf-text-secondary)]">{t('detail.noPayments')}</p>
+            <p className="text-start text-sm text-[var(--pf-text-secondary)]">{t('detail.noPayments')}</p>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t('paymentForm.paymentDate')}</TableHead>
-                  <TableHead numeric>{t('paymentForm.amount')}</TableHead>
-                  <TableHead>{t('paymentForm.method')}</TableHead>
-                  <TableHead>{t('paymentForm.reference')}</TableHead>
-                  <TableHead>{t('list.status')}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {record.payments.map((payment) => (
-                  <TableRow key={payment.id}>
-                    <TableCell>{formatBusinessDate(payment.paymentDate, locale)}</TableCell>
-                    <TableCell numeric>
-                      <MoneyText value={payment.amount} />
-                    </TableCell>
-                    <TableCell>{payment.method ?? '—'}</TableCell>
-                    <TableCell>{payment.reference ?? '—'}</TableCell>
-                    <TableCell>
-                      <span className="text-sm text-[var(--pf-text-secondary)]">
-                        {tPayment(payment.status)}
-                      </span>
-                    </TableCell>                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <ResponsiveTable
+              items={record.payments}
+              getRowKey={(payment) => payment.id}
+              desktop={
+                <div className="min-w-0 rounded-lg border border-[var(--pf-border-default)]">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>{t('paymentForm.paymentDate')}</TableHead>
+                        <TableHead numeric>{t('paymentForm.amount')}</TableHead>
+                        <TableHead>{t('paymentForm.method')}</TableHead>
+                        <TableHead>{t('paymentForm.reference')}</TableHead>
+                        <TableHead>{t('list.status')}</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {record.payments.map((payment) => (
+                        <TableRow key={payment.id}>
+                          <TableCell>
+                            <span dir="ltr">{formatBusinessDate(payment.paymentDate, locale)}</span>
+                          </TableCell>
+                          <TableCell numeric>
+                            <MoneyText value={payment.amount} />
+                          </TableCell>
+                          <TableCell className="max-w-[8rem] truncate">{payment.method ?? '—'}</TableCell>
+                          <TableCell className="max-w-[8rem] truncate">{payment.reference ?? '—'}</TableCell>
+                          <TableCell>
+                            <span className="text-sm text-[var(--pf-text-secondary)]">
+                              {tPayment(payment.status)}
+                            </span>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              }
+              renderMobileCard={(payment) => (
+                <div className="min-h-11 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4 text-start">
+                  <div className="flex items-start justify-between gap-2">
+                    <span className="min-w-0 flex-1 font-semibold" dir="ltr">
+                      {formatBusinessDate(payment.paymentDate, locale)}
+                    </span>
+                    <span className="shrink-0 text-sm text-[var(--pf-text-secondary)]">
+                      {tPayment(payment.status)}
+                    </span>
+                  </div>
+                  <p className="mt-2 text-sm">
+                    <MoneyText value={payment.amount} />
+                  </p>
+                  <p className="mt-1 truncate text-sm text-[var(--pf-text-secondary)]">
+                    {payment.method ?? '—'}
+                    {payment.reference ? ` · ${payment.reference}` : null}
+                  </p>
+                </div>
+              )}
+            />
           )}
         </CardContent>
       </Card>

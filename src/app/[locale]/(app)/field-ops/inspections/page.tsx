@@ -149,7 +149,15 @@ export default async function FieldOpsInspectionsPage({
                         />
                       </TableCell>
                       <TableCell className="max-w-xs truncate">{item.result ?? '—'}</TableCell>
-                      <TableCell>{item.scheduledOn ?? '—'}</TableCell>
+                      <TableCell>
+                        {item.scheduledOn ? (
+                          <span className="pf-ltr-island" dir="ltr">
+                            {item.scheduledOn}
+                          </span>
+                        ) : (
+                          '—'
+                        )}
+                      </TableCell>
                       {canManage ? (
                         <TableCell>
                           <InspectionStatusForm
@@ -167,11 +175,11 @@ export default async function FieldOpsInspectionsPage({
             </div>
           }
           renderMobileCard={(item) => (
-            <div className="flex flex-col gap-2 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4">
+            <div className="flex min-h-11 flex-col gap-2 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4">
               <div className="flex items-start justify-between gap-2">
                 <Link
                   href={`/field-ops/inspections/${item.id}`}
-                  className="font-semibold hover:underline"
+                  className="min-w-0 flex-1 font-semibold hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
                 >
                   {item.title}
                 </Link>
@@ -180,6 +188,14 @@ export default async function FieldOpsInspectionsPage({
               <p className="text-sm text-[var(--pf-text-secondary)]">
                 {projectName.get(item.projectId) ?? '—'} ·{' '}
                 {t(`kinds.${item.kind}` as 'kinds.general')}
+                {item.scheduledOn ? (
+                  <>
+                    {' · '}
+                    <span className="pf-ltr-island" dir="ltr">
+                      {item.scheduledOn}
+                    </span>
+                  </>
+                ) : null}
               </p>
               {item.result ? (
                 <p className="text-sm text-[var(--pf-text-secondary)]">{item.result}</p>

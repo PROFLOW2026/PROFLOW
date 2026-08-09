@@ -163,7 +163,11 @@
       "reason": "סיבה",
       "changedAt": "תאריך שינוי",
       "changedBy": "שונה על ידי",
-      "unknownActor": "—"
+      "unknownActor": "—",
+      "reasons": {
+        "originalContractValue": "שווי חוזה מקורי",
+        "changeOrder": "שינוי מאושר {reference}"
+      }
     }
   },
   "details": {

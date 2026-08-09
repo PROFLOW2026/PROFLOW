@@ -54,8 +54,8 @@ export function InventoryMovementForm({
       action={formAction}
       className={
         compact
-          ? 'flex flex-wrap items-end gap-2'
-          : 'flex max-w-xl flex-col gap-3 rounded-lg border border-[var(--pf-border-default)] p-3'
+          ? 'flex min-w-0 flex-wrap items-end gap-2'
+          : 'flex w-full min-w-0 max-w-xl flex-col gap-3 rounded-lg border border-[var(--pf-border-default)] p-3'
       }
     >
       <input type="hidden" name="inventoryItemId" value={inventoryItemId} />
@@ -77,9 +77,16 @@ export function InventoryMovementForm({
             />
           )}
         </Field>
-        <Field label={t('occurredOn')} className={compact ? 'w-40' : undefined}>
+        <Field label={t('occurredOn')} className={compact ? 'w-40 min-w-0' : undefined}>
           {(control) => (
-            <Input {...control} type="date" name="occurredOn" required defaultValue={defaultDate} />
+            <Input
+              {...control}
+              type="date"
+              name="occurredOn"
+              required
+              defaultValue={defaultDate}
+              dir="ltr"
+            />
           )}
         </Field>
       </div>

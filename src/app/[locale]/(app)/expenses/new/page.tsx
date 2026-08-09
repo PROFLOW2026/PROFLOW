@@ -47,7 +47,7 @@ export default async function NewExpensePage({
   const defaultCurrency = shell?.organization.baseCurrency ?? 'ILS';
 
   return (
-    <div className="mx-auto flex w-full max-w-lg flex-col gap-6">
+    <div className="mx-auto flex min-w-0 w-full max-w-lg flex-col gap-6">
       <PageHeader
         title={t('capture.title')}
         description={t('capture.subtitle')}

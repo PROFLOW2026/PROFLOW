@@ -17,16 +17,16 @@ export function LeadStatusForm({ lead }: { lead: LeadRecord }) {
   );
 
   return (
-    <form action={formAction} className="flex flex-col gap-3 sm:flex-row sm:items-end">
+    <form action={formAction} className="flex w-full flex-col gap-3 sm:flex-row sm:items-end">
       <input type="hidden" name="leadId" value={lead.id} />
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
-      <Field label={t('statusLabel')} className="min-w-[12rem] flex-1">
+      <Field label={t('statusLabel')} className="min-w-0 w-full flex-1 sm:min-w-[12rem]">
         {(control) => (
           <select
             {...control}
             name="status"
             defaultValue={lead.status}
-            className="h-11 w-full rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] px-3"
+            className="h-11 w-full rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] px-3 text-start"
           >
             {LEAD_STATUSES.map((status) => (
               <option key={status} value={status}>
@@ -36,7 +36,7 @@ export function LeadStatusForm({ lead }: { lead: LeadRecord }) {
           </select>
         )}
       </Field>
-      <Button type="submit" disabled={pending} className="self-start sm:self-auto">
+      <Button type="submit" disabled={pending} className="w-full shrink-0 self-stretch sm:w-auto sm:self-auto">
         {t('updateStatus')}
       </Button>
     </form>

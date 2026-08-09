@@ -58,8 +58,8 @@ export const DialogContent = React.forwardRef<
         dir={dir ?? localeDir}
         className={cn(
           'fixed z-60 flex max-h-[90dvh] flex-col overflow-hidden bg-[var(--pf-bg-elevated)] shadow-[var(--pf-shadow-lg)] text-start',
-          // Centring stays physical (left/-translate-x) so it is identical in
-          // both directions; only the content inside flips.
+          // Horizontal centre uses physical left/-translate-x (symmetric in RTL).
+          // Close control and header padding use logical end (end-3 / pe-12).
           mobileSheet
             ? 'inset-x-0 bottom-0 rounded-t-xl sm:inset-x-auto sm:bottom-auto sm:left-1/2 sm:top-1/2 sm:w-full sm:max-w-lg sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-lg'
             : 'left-1/2 top-1/2 w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-lg',
@@ -96,6 +96,8 @@ export function DialogFooter({ className, ...props }: React.HTMLAttributes<HTMLD
   return (
     <div
       className={cn(
+        // flex-end follows the writing direction (inline end), so primary
+        // actions sit on the right in LTR and on the left in RTL.
         'flex flex-col-reverse gap-2 border-t border-[var(--pf-border-default)] px-5 pt-4 pb-[calc(1rem+env(safe-area-inset-bottom))] sm:flex-row sm:justify-end sm:pb-4',
         className,
       )}

@@ -65,10 +65,18 @@ export default async function LeadDetailPage({
       />
       <Card>
         <CardContent className="flex flex-col gap-1 pt-6 text-sm">
-          {lead.source ? <p>{lead.source}</p> : null}
-          {lead.email ? <p>{lead.email}</p> : null}
-          {lead.phone ? <p>{lead.phone}</p> : null}
-          {lead.notes ? <p className="text-[var(--pf-text-secondary)]">{lead.notes}</p> : null}
+          {lead.source ? <p className="text-start">{lead.source}</p> : null}
+          {lead.email ? (
+            <p className="text-start" dir="ltr">
+              {lead.email}
+            </p>
+          ) : null}
+          {lead.phone ? (
+            <p className="text-start" dir="ltr">
+              {lead.phone}
+            </p>
+          ) : null}
+          {lead.notes ? <p className="text-start text-[var(--pf-text-secondary)]">{lead.notes}</p> : null}
           {canManage ? (
             <Link
               href={`/crm/opportunities/new?leadId=${lead.id}`}

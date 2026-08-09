@@ -147,7 +147,7 @@ export function PurchaseOrderCreateForm({
   }
 
   return (
-    <form action={formAction} className="mx-auto flex w-full max-w-2xl flex-col gap-6">
+    <form action={formAction} className="mx-auto flex w-full min-w-0 max-w-2xl flex-col gap-6">
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
 
       <input type="hidden" name="currency" value={currency} />
@@ -202,11 +202,11 @@ export function PurchaseOrderCreateForm({
       </Field>
 
       <Field label={t('orderedOnLabel')} optionalLabel={tCommon('labels.optional')}>
-        {(control) => <Input {...control} name="orderedOn" type="date" />}
+        {(control) => <Input {...control} name="orderedOn" type="date" dir="ltr" />}
       </Field>
 
       <section className="flex flex-col gap-3">
-        <div className="flex items-center justify-between gap-2">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 className="text-sm font-semibold">{t('linesTitle')}</h2>
           <Button type="button" variant="ghost" size="sm" onClick={() => setLines((prev) => [...prev, emptyLine()])}>
             <Plus aria-hidden />
