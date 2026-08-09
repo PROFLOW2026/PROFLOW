@@ -110,10 +110,18 @@ export const AUDIT_ACTIONS = {
   PORTAL_GRANT_CREATED: 'portal.grant_created',
   PORTAL_GRANT_REVOKED: 'portal.grant_revoked',
 
+  CUSTOM_FIELD_DEFINITION_CREATED: 'custom_field.definition_created',
+  CUSTOM_FIELD_DEFINITION_UPDATED: 'custom_field.definition_updated',
+  CUSTOM_FIELD_DEFINITION_ARCHIVED: 'custom_field.definition_archived',
+
   API_CLIENT_CREATED: 'api.client_created',
   API_KEY_CREATED: 'api.key_created',
   API_KEY_REVOKED: 'api.key_revoked',
   WEBHOOK_ENDPOINT_CREATED: 'api.webhook_created',
+
+  MATERIAL_CREATED: 'material.created',
+  PURCHASE_ORDER_CREATED: 'purchase_order.created',
+  PURCHASE_ORDER_ISSUED: 'purchase_order.issued',
 
   TAX_RULE_CREATED: 'tax_rule.created',
   TAX_RULE_UPDATED: 'tax_rule.updated',
@@ -130,8 +138,13 @@ const REDACTED_KEYS = new Set([
   'tokenhash',
   'token_hash',
   'secret',
+  'secrethash',
+  'secret_hash',
   'apikey',
   'api_key',
+  'keyhash',
+  'key_hash',
+  'plaintext',
   'servicerolekey',
   'service_role_key',
   'authorization',
