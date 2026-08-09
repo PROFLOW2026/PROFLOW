@@ -1,0 +1,79 @@
+{
+  "title": "ביטוחים וציות",
+  "description": "מעקב אחר פוליסות ביטוח, רישיונות והסמכות — כולל מה שעומד לפוג בקרוב.",
+  "newArtifact": "רשומה חדשה",
+  "empty": {
+    "title": "אין עדיין רשומות ציות",
+    "body": "הוסיפו פוליסות ביטוח, רישיונות או הסמכות כדי לעקוב אחר תאריכי תפוגה בלי לחפש במסמכים.",
+    "action": "הוספת רשומה ראשונה"
+  },
+  "list": {
+    "searchPlaceholder": "חיפוש לפי שם, מספר אסמכתא או מנפיק…",
+    "filters": {
+      "kind": "סוג",
+      "status": "סטטוס",
+      "subject": "חל על",
+      "all": "הכל"
+    },
+    "columns": {
+      "name": "שם",
+      "kind": "סוג",
+      "subject": "חל על",
+      "expiresOn": "תוקף עד",
+      "status": "סטטוס"
+    },
+    "noExpiry": "ללא תפוגה"
+  },
+  "kinds": {
+    "insurance": "ביטוח",
+    "license": "רישיון",
+    "certification": "הסמכה",
+    "other": "אחר"
+  },
+  "subjects": {
+    "organization": "ארגון",
+    "employee": "עובד",
+    "vendor": "ספק",
+    "project": "פרויקט"
+  },
+  "statuses": {
+    "valid": "בתוקף",
+    "expiring_soon": "עומד לפוג",
+    "expired": "פג תוקף",
+    "revoked": "בוטל",
+    "pending": "ממתין"
+  },
+  "statusModes": {
+    "auto": "נגזר מתאריך התפוגה",
+    "pending": "ממתין (ידני)",
+    "revoked": "בוטל (ידני)"
+  },
+  "create": {
+    "title": "רשומת ציות חדשה",
+    "description": "תיעוד פוליסה, רישיון או הסמכה. הסטטוס נגזר מתאריך התפוגה אלא אם מסמנים ידנית כממתין או בוטל.",
+    "submit": "יצירת רשומה"
+  },
+  "form": {
+    "nameLabel": "שם",
+    "namePlaceholder": "למשל פוליסת אחריות מקצועית",
+    "kindLabel": "סוג",
+    "referenceLabel": "מספר אסמכתא / פוליסה",
+    "issuerLabel": "מנפיק",
+    "issuedOnLabel": "תאריך הנפקה",
+    "expiresOnLabel": "תוקף עד",
+    "statusModeLabel": "סטטוס",
+    "statusModeHint": "השאירו על אוטומטי כדי שהסטטוס יישאר מסונכרן עם תאריך התפוגה.",
+    "subjectTypeLabel": "חל על",
+    "subjectIdLabel": "מזהה נושא",
+    "subjectIdHint": "UUID אופציונלי של עובד, ספק או פרויקט כאשר הרשומה אינה ברמת הארגון.",
+    "notesLabel": "הערות"
+  },
+  "detail": {
+    "title": "רשומת ציות",
+    "save": "שמירת שינויים",
+    "archive": "העברה לארכיון",
+    "archiveTitle": "להעביר את הרשומה לארכיון?",
+    "archiveBody": "היא תוסר מהרשימה הפעילה. אפשר יהיה למצוא אותה מאוחר יותר אם מציגים רשומות בארכיון.",
+    "archiveSuccess": "הרשומה הועברה לארכיון"
+  }
+}

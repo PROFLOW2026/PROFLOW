@@ -5,6 +5,7 @@ import { getTranslations } from 'next-intl/server';
 import { PageHeader } from '@/components/ui/page-header';
 import { TabsContent } from '@/components/ui/tabs';
 import { listClientsForOrg } from '@/modules/clients';
+import { listCustomFieldValuesForEntity } from '@/modules/custom-fields';
 import { getProjectDetail } from '@/modules/projects';
 import { getShellContext, withOrgContext } from '@/shared/auth/session';
 import { formatMoney } from '@/shared/money/format';
@@ -48,8 +49,17 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
   const shell = await getShellContext();
 
   let detail;
+  let customFields: Awaited<ReturnType<typeof listCustomFieldValuesForEntity>> = [];
   try {
-    detail = await withOrgContext((context) => getProjectDetail(context, projectId));
+    const loaded = await withOrgContext(async (context) => {
+      const projectDetail = await getProjectDetail(context, projectId);
+      const fields = await listCustomFieldValuesForEntity(context, 'project', projectId).catch(
+        () => [],
+      );
+      return { projectDetail, fields };
+    });
+    detail = loaded.projectDetail;
+    customFields = loaded.fields;
   } catch {
     notFound();
   }
@@ -212,6 +222,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
             baseCurrency={baseCurrency}
             currencySymbol={currencySymbol}
             canManageContract={canManageContract}
+            customFields={customFields}
           />
         </TabsContent>
       </ProjectTabsShell>

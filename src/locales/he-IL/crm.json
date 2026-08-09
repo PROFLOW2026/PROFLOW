@@ -1,0 +1,157 @@
+{
+  "title": "CRM",
+  "description": "מכירות טרום־פרויקט: מתעניינים, לידים, הזדמנויות והצעות מחיר.",
+  "nav": {
+    "opportunities": "הזדמנויות",
+    "prospects": "מתעניינים",
+    "leads": "לידים"
+  },
+  "empty": {
+    "opportunities": {
+      "title": "אין עדיין הזדמנויות",
+      "body": "כאן מנהלים הזדמנויות מכירה מוסמכות. המרה לפרויקט היא פעולה מפורשת אחרי קבלת הצעת מחיר.",
+      "action": "הזדמנות חדשה"
+    },
+    "prospects": {
+      "title": "אין עדיין מתעניינים",
+      "body": "מתעניינים הם לקוחות פוטנציאליים לפני שהם הופכים ללקוחות.",
+      "action": "מתעניין חדש"
+    },
+    "leads": {
+      "title": "אין עדיין לידים",
+      "body": "תיעוד עניין מוקדם לפני הסמכת הזדמנות.",
+      "action": "ליד חדש"
+    }
+  },
+  "list": {
+    "columns": {
+      "name": "שם",
+      "title": "כותרת",
+      "stage": "שלב",
+      "status": "סטטוס",
+      "value": "ערך צפוי",
+      "company": "חברה"
+    }
+  },
+  "stages": {
+    "qualify": "הסמכה",
+    "estimate": "אומדן",
+    "quote": "הצעת מחיר",
+    "negotiation": "משא ומתן",
+    "won": "נצח",
+    "lost": "אבוד"
+  },
+  "statuses": {
+    "opportunity": {
+      "open": "פתוח",
+      "won": "נצח",
+      "lost": "אבוד",
+      "cancelled": "בוטל"
+    },
+    "prospect": {
+      "active": "פעיל",
+      "converted": "הומר",
+      "inactive": "לא פעיל"
+    },
+    "lead": {
+      "new": "חדש",
+      "contacted": "נוצר קשר",
+      "qualified": "מוסמך",
+      "disqualified": "נפסל",
+      "converted": "הומר"
+    },
+    "quote": {
+      "draft": "טיוטה",
+      "issued": "הונפקה",
+      "accepted": "התקבלה",
+      "rejected": "נדחתה",
+      "cancelled": "בוטלה"
+    },
+    "version": {
+      "draft": "טיוטה",
+      "issued": "הונפקה",
+      "superseded": "הוחלפה",
+      "accepted": "התקבלה",
+      "rejected": "נדחתה"
+    },
+    "estimate": {
+      "draft": "טיוטה",
+      "final": "סופי",
+      "superseded": "הוחלף"
+    }
+  },
+  "prospect": {
+    "new": "מתעניין חדש",
+    "nameLabel": "שם",
+    "companyLabel": "חברה",
+    "emailLabel": "אימייל",
+    "phoneLabel": "טלפון",
+    "notesLabel": "הערות",
+    "submit": "יצירת מתעניין",
+    "contacts": "אנשי קשר",
+    "addContact": "הוספת איש קשר",
+    "contactName": "שם איש קשר",
+    "contactRole": "תפקיד"
+  },
+  "lead": {
+    "new": "ליד חדש",
+    "titleLabel": "כותרת",
+    "sourceLabel": "מקור",
+    "emailLabel": "אימייל",
+    "phoneLabel": "טלפון",
+    "notesLabel": "הערות",
+    "submit": "יצירת ליד"
+  },
+  "opportunity": {
+    "new": "הזדמנות חדשה",
+    "nameLabel": "שם ההזדמנות",
+    "prospectLabel": "מתעניין",
+    "expectedValueLabel": "ערך צפוי",
+    "currencyLabel": "מטבע",
+    "expectedStartLabel": "תחילה צפויה",
+    "referralLabel": "מקור הפניה",
+    "notesLabel": "הערות",
+    "lostReasonLabel": "סיבת אובדן",
+    "submit": "יצירת הזדמנות",
+    "markLost": "סימון כאבוד",
+    "notesSection": "הערות",
+    "addNote": "הוספת הערה",
+    "noteBody": "הערה",
+    "estimatesSection": "אומדנים",
+    "addEstimate": "הוספת אומדן",
+    "estimateName": "שם האומדן",
+    "estimateAmount": "סכום פנימי",
+    "quotesSection": "הצעות מחיר",
+    "addQuote": "הוספת הצעת מחיר",
+    "quoteTitle": "כותרת ההצעה",
+    "lineDescription": "תיאור שורה",
+    "lineQuantity": "כמות",
+    "lineUnit": "מחיר יחידה",
+    "lineTotal": "סה״כ שורה",
+    "issueVersion": "הנפקה",
+    "acceptVersion": "קבלה",
+    "versionLabel": "גרסה {number}",
+    "converted": "הומר לפרויקט",
+    "openProject": "פתיחת פרויקט",
+    "openClient": "פתיחת לקוח"
+  },
+  "convert": {
+    "title": "המרה לפרויקט",
+    "description": "יוצר לקוח, פרויקט וערך חוזה מקורי מהצעת המחיר שהתקבלה. לא ניתן לבטל.",
+    "projectNameLabel": "שם הפרויקט",
+    "submit": "המרת הזדמנות שנצחה",
+    "requiresAcceptedQuote": "יש לקבל גרסת הצעת מחיר לפני המרה.",
+    "alreadyConverted": "ההזדמנות כבר הומרה.",
+    "cannotConvert": "לא ניתן להמיר הזדמנות זו."
+  },
+  "errors": {
+    "alreadyConverted": "ההזדמנות כבר הומרה",
+    "cannotConvertLost": "לא ניתן להמיר הזדמנות אבודה או מבוטלת",
+    "cannotConvert": "לא ניתן להמיר הזדמנות זו",
+    "quoteNotAccepted": "רק גרסת הצעת מחיר שהתקבלה יכולה להזין את סכום החוזה נטו",
+    "acceptedQuoteRequired": "נדרשת גרסת הצעת מחיר שהתקבלה להמרה",
+    "quoteFinalized": "לא ניתן להוסיף גרסאות להצעת מחיר סופית",
+    "cannotIssueVersion": "ניתן להנפיק רק גרסאות טיוטה",
+    "cannotAcceptVersion": "ניתן לקבל רק גרסאות טיוטה או שהונפקו"
+  }
+}

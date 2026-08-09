@@ -53,6 +53,13 @@
     "inactive": "Inactive",
     "archived": "Archived"
   },
+  "compliance": {
+    "valid": "Valid",
+    "expiring_soon": "Expiring soon",
+    "expired": "Expired",
+    "revoked": "Revoked",
+    "pending": "Pending"
+  },
   "events": {
     "sentAt": "Sent {date}",
     "notSent": "Not sent"

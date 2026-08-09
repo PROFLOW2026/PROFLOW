@@ -87,6 +87,13 @@
     "billing.manage": "ניהול חיובים ותשלומים",
     "documents.read": "צפייה במסמכים",
     "documents.manage": "העלאה והסרה של מסמכים",
+    "crm.read": "צפייה בצינור CRM",
+    "crm.manage": "ניהול צינור CRM",
+    "compliance.read": "צפייה בפריטי ציות",
+    "compliance.manage": "ניהול פריטי ציות",
+    "custom_fields.manage": "הגדרת שדות מותאמים",
+    "portal.manage": "ניהול מענקי גישה לפורטל",
+    "api.manage": "ניהול לקוחות API ו־webhooks",
     "settings.manage": "שינוי הגדרות",
     "tax.manage": "ניהול כללי מס",
     "audit.read": "צפייה ביומן הפעילות"

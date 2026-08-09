@@ -10,6 +10,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { PROJECT_STATUSES, type ProjectDetail } from '@/modules/projects';
 import { ContractAmountFields } from '@/modules/projects/ui/contract-amount-fields';
+import {
+  EntityCustomFieldsPanel,
+  type CustomFieldValueView,
+} from '@/modules/custom-fields';
+import { upsertEntityFieldValueAction } from '../../settings/custom-fields/actions';
 import { updateProjectAction, type ProjectFormState } from '../actions';
 
 interface DetailsTabProps {
@@ -18,6 +23,7 @@ interface DetailsTabProps {
   baseCurrency: string;
   currencySymbol: string;
   canManageContract: boolean;
+  customFields?: CustomFieldValueView[];
 }
 
 function displayEnteredAmount(detail: ProjectDetail): string {
@@ -34,6 +40,7 @@ export function DetailsTab({
   baseCurrency,
   currencySymbol,
   canManageContract,
+  customFields = [],
 }: DetailsTabProps) {
   const t = useTranslations('projects.details');
   const tStatus = useTranslations('status.project');
@@ -47,6 +54,7 @@ export function DetailsTab({
   const currency = detail.contract?.currency ?? project.currency ?? baseCurrency;
 
   return (
+    <>
     <form action={formAction} className="mx-auto flex max-w-xl flex-col gap-4">
       <input type="hidden" name="projectId" value={project.id} />
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
@@ -200,5 +208,15 @@ export function DetailsTab({
         {t('save')}
       </Button>
     </form>
+
+    <div className="mx-auto mt-6 max-w-xl">
+      <EntityCustomFieldsPanel
+        entityId={project.id}
+        fields={customFields}
+        revalidatePath={`/projects/${project.id}`}
+        saveAction={upsertEntityFieldValueAction}
+      />
+    </div>
+    </>
   );
 }

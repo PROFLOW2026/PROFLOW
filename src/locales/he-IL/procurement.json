@@ -1,0 +1,100 @@
+{
+  "title": "רכש",
+  "description": "הזמנות רכש מתחייבות להוצאה מול ספקים. הנפקת הזמנה יוצרת עלות מתחייבת — לא הוצאה.",
+  "materialsTitle": "קטלוג חומרים",
+  "materialsDescription": "פריטי חומר לשימוש חוזר בשורות הזמנת רכש.",
+  "nav": {
+    "orders": "הזמנות רכש",
+    "materials": "חומרים"
+  },
+  "newOrder": "הזמנת רכש חדשה",
+  "newMaterial": "הוספת חומר",
+  "linkMaterials": "קטלוג חומרים",
+  "linkVendors": "הוספת ספק",
+  "empty": {
+    "orders": {
+      "title": "אין עדיין הזמנות רכש",
+      "body": "צרו הזמנת טיוטה עם שורות, ואז הנפיקו אותה כדי לפתוח עלות מתחייבת. הוצאות נרשמות בנפרד כשהכסף יוצא.",
+      "action": "הזמנת רכש חדשה"
+    },
+    "materials": {
+      "title": "אין עדיין חומרים",
+      "body": "הוסיפו פריטים לקטלוג כדי שאפשר יהיה לשייך אותם לשורות הזמנה.",
+      "action": "הוספת חומר"
+    },
+    "vendorsRequired": {
+      "title": "קודם צריך ספק",
+      "body": "להזמנת רכש נדרש ספק. צרו ספק ואז חזרו להתחיל הזמנה.",
+      "action": "ספק חדש"
+    }
+  },
+  "list": {
+    "columns": {
+      "reference": "אסמכתא",
+      "status": "סטטוס",
+      "committed": "מתחייב",
+      "orderedOn": "הוזמן",
+      "created": "נוצר",
+      "actions": "פעולות",
+      "name": "שם",
+      "sku": "מק\"ט",
+      "unit": "יחידה",
+      "defaultPrice": "מחיר ברירת מחדל",
+      "manufacturer": "יצרן"
+    },
+    "noReference": "הזמנה ללא אסמכתא"
+  },
+  "statuses": {
+    "draft": "טיוטה",
+    "issued": "הונפקה",
+    "partially_received": "התקבלה חלקית",
+    "closed": "סגורה",
+    "cancelled": "בוטלה"
+  },
+  "issue": {
+    "action": "הנפקה",
+    "pending": "מנפיק…",
+    "hint": "מנפיק את ההזמנה ופותח עלות מתחייבת. לא יוצר הוצאה."
+  },
+  "create": {
+    "title": "הזמנת רכש חדשה",
+    "description": "צרו טיוטת הזמנה עם שורה אחת לפחות. ההנפקה תבוא אחר כך ותתחייב על הסכום.",
+    "submit": "יצירת טיוטת הזמנה",
+    "vendorLabel": "ספק",
+    "vendorPlaceholder": "בחירת ספק",
+    "projectLabel": "פרויקט",
+    "projectNone": "ללא פרויקט",
+    "referenceLabel": "אסמכתא",
+    "orderedOnLabel": "תאריך הזמנה",
+    "notesLabel": "הערות",
+    "currencyLabel": "מטבע",
+    "committedLabel": "סה\"כ מתחייב",
+    "linesTitle": "שורות",
+    "addLine": "הוספת שורה",
+    "removeLine": "הסרה",
+    "lineDescription": "תיאור",
+    "lineMaterial": "חומר",
+    "lineMaterialNone": "ללא",
+    "lineQuantity": "כמות",
+    "lineUnitAmount": "מחיר יחידה",
+    "lineTotal": "סה\"כ שורה"
+  },
+  "material": {
+    "createTitle": "הוספת חומר",
+    "submit": "שמירת חומר",
+    "nameLabel": "שם",
+    "skuLabel": "מק\"ט",
+    "manufacturerLabel": "יצרן",
+    "modelLabel": "דגם",
+    "unitLabel": "יחידה",
+    "defaultPriceLabel": "מחיר יחידה ברירת מחדל",
+    "currencyLabel": "מטבע",
+    "notesLabel": "הערות"
+  },
+  "errors": {
+    "notDraft": "ניתן להנפיק רק הזמנות רכש בטיוטה.",
+    "committedRequired": "הנפקת הזמנת רכש חייבת ליצור עלות מתחייבת.",
+    "vendorRequired": "יש לבחור ספק.",
+    "linesRequired": "יש להוסיף לפחות שורה אחת עם תיאור וסכומים."
+  }
+}

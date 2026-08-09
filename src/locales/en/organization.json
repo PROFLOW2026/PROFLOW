@@ -87,6 +87,13 @@
     "billing.manage": "Manage billing and payments",
     "documents.read": "View documents",
     "documents.manage": "Upload and remove documents",
+    "crm.read": "View CRM pipeline",
+    "crm.manage": "Manage CRM pipeline",
+    "compliance.read": "View compliance artifacts",
+    "compliance.manage": "Manage compliance artifacts",
+    "custom_fields.manage": "Define custom fields",
+    "portal.manage": "Manage portal access grants",
+    "api.manage": "Manage API clients and webhooks",
     "settings.manage": "Change settings",
     "tax.manage": "Manage tax rules",
     "audit.read": "Read the activity log"

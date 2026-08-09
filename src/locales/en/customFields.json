@@ -1,0 +1,45 @@
+{
+  "title": "Custom fields",
+  "subtitle": "Define optional attributes on allowed records. Custom fields never replace canonical financial or commercial fields.",
+  "reportingNote": "Reporting and exports may not include custom fields yet. Treat them as operational labels until reporting support lands.",
+  "listTitle": "Field definitions",
+  "empty": "No custom fields defined yet.",
+  "addDefinition": "Add field",
+  "archive": "Archive",
+  "saved": "Custom field saved.",
+  "entityTitle": "Custom fields",
+  "valueSaved": "Custom field saved.",
+  "saveValue": "Save",
+  "fields": {
+    "entityType": "Entity",
+    "key": "Key",
+    "label": "Label",
+    "fieldType": "Type",
+    "required": "Required"
+  },
+  "columns": {
+    "label": "Label",
+    "entity": "Entity",
+    "key": "Key",
+    "type": "Type",
+    "actions": "Actions"
+  },
+  "entityTypes": {
+    "client": "Client",
+    "project": "Project",
+    "vendor": "Vendor",
+    "employee": "Employee",
+    "opportunity": "Opportunity",
+    "expense": "Expense"
+  },
+  "fieldTypes": {
+    "text": "Text",
+    "number": "Number",
+    "money": "Money",
+    "date": "Date",
+    "select": "Select",
+    "multi_select": "Multi-select",
+    "boolean": "Yes / No",
+    "reference": "Reference"
+  }
+}

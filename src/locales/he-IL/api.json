@@ -1,0 +1,47 @@
+{
+  "title": "API ו־webhooks",
+  "subtitle": "רישום לקוחות API, הנפקת מפתחות ורישום נקודות webhook. אין מחברים לצדדים שלישיים כאן.",
+  "versionNote": "משטח ציבורי: GET /api/v1/whoami עם Authorization: Bearer <api_key>. אימות cookie של Next לא בשימוש בנתיב זה.",
+  "addClient": "יצירת לקוח",
+  "clientSaved": "לקוח ה־API נוצר.",
+  "addKey": "יצירת מפתח",
+  "keysTitle": "מפתחות API",
+  "keysEmpty": "עדיין אין מפתחות API.",
+  "keyOnce": "העתיקו את המפתח עכשיו. הוא מוצג פעם אחת בלבד.",
+  "secretOnce": "העתיקו את סוד ה־webhook עכשיו. הוא מוצג פעם אחת בלבד.",
+  "revoke": "ביטול",
+  "addWebhook": "רישום נקודה",
+  "webhooksTitle": "נקודות webhook",
+  "webhooksEmpty": "עדיין אין נקודות webhook.",
+  "eventTypesHint": "סוגי אירועים מופרדים בפסיק, למשל project.updated",
+  "enqueueTest": "הוספת בדיקה לתור",
+  "deliveriesTitle": "משלוחים אחרונים",
+  "deliveriesEmpty": "עדיין לא נרשמו משלוחים.",
+  "deliveryQueued": "המשלוח נרשם כממתין.",
+  "fields": {
+    "clientName": "שם הלקוח",
+    "keyName": "שם המפתח",
+    "apiClient": "לקוח API",
+    "scopes": "היקפים",
+    "url": "כתובת נקודה",
+    "eventTypes": "סוגי אירועים"
+  },
+  "columns": {
+    "name": "שם",
+    "prefix": "קידומת",
+    "status": "סטטוס",
+    "actions": "פעולות",
+    "url": "כתובת",
+    "events": "אירועים"
+  },
+  "status": {
+    "active": "פעיל",
+    "revoked": "מבוטל"
+  },
+  "scopes": {
+    "projects.read": "projects.read",
+    "clients.read": "clients.read",
+    "billing.read": "billing.read",
+    "webhooks.manage": "webhooks.manage"
+  }
+}

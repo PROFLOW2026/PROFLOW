@@ -1,0 +1,47 @@
+{
+  "title": "API and webhooks",
+  "subtitle": "Register API clients, issue keys, and record webhook endpoints. No third-party connectors are activated here.",
+  "versionNote": "Public surface: GET /api/v1/whoami with Authorization: Bearer <api_key>. Cookie session auth is not used on this route.",
+  "addClient": "Create client",
+  "clientSaved": "API client created.",
+  "addKey": "Generate key",
+  "keysTitle": "API keys",
+  "keysEmpty": "No API keys yet.",
+  "keyOnce": "Copy this key now. It is shown only once.",
+  "secretOnce": "Copy this webhook secret now. It is shown only once.",
+  "revoke": "Revoke",
+  "addWebhook": "Register endpoint",
+  "webhooksTitle": "Webhook endpoints",
+  "webhooksEmpty": "No webhook endpoints yet.",
+  "eventTypesHint": "Comma-separated event types, e.g. project.updated",
+  "enqueueTest": "Enqueue test",
+  "deliveriesTitle": "Recent deliveries",
+  "deliveriesEmpty": "No deliveries recorded yet.",
+  "deliveryQueued": "Delivery recorded as pending.",
+  "fields": {
+    "clientName": "Client name",
+    "keyName": "Key name",
+    "apiClient": "API client",
+    "scopes": "Scopes",
+    "url": "Endpoint URL",
+    "eventTypes": "Event types"
+  },
+  "columns": {
+    "name": "Name",
+    "prefix": "Prefix",
+    "status": "Status",
+    "actions": "Actions",
+    "url": "URL",
+    "events": "Events"
+  },
+  "status": {
+    "active": "Active",
+    "revoked": "Revoked"
+  },
+  "scopes": {
+    "projects.read": "projects.read",
+    "clients.read": "clients.read",
+    "billing.read": "billing.read",
+    "webhooks.manage": "webhooks.manage"
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "title": "Customer portal",
+  "subtitle": "Grant customers scoped access to project summaries, outstanding balances, and documents.",
+  "externalNote": "External principals are not organization members. Public portal login is not enabled yet — grants and the customer-safe summary API are ready.",
+  "listTitle": "Access grants",
+  "empty": "No customer portal grants yet.",
+  "addGrant": "Create grant",
+  "revoke": "Revoke",
+  "saved": "Portal grant created.",
+  "fields": {
+    "email": "Customer email",
+    "displayName": "Display name",
+    "client": "Client",
+    "project": "Project",
+    "none": "None",
+    "scopes": "Scopes",
+    "expiresAt": "Expires at"
+  },
+  "scopes": {
+    "project.summary": "Project summary",
+    "billing.outstanding": "Outstanding balance",
+    "documents.read": "Read documents"
+  },
+  "statuses": {
+    "active": "Active",
+    "revoked": "Revoked",
+    "expired": "Expired"
+  },
+  "columns": {
+    "principal": "Principal",
+    "scope": "Scopes",
+    "status": "Status",
+    "actions": "Actions"
+  }
+}

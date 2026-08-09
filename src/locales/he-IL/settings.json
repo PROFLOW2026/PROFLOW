@@ -8,6 +8,9 @@
     "features": "יכולות",
     "costCategories": "קטגוריות עלות",
     "tax": "מס",
+    "portal": "פורטל לקוח",
+    "customFields": "שדות מותאמים",
+    "api": "API ו־webhooks",
     "activity": "יומן פעילות",
     "profile": "הפרופיל שלכם"
   },
@@ -197,6 +200,21 @@
       "tax_rule": {
         "created": "יצירת כלל מס",
         "updated": "עדכון כלל מס"
+      },
+      "portal": {
+        "grant_created": "יצירת מענק פורטל",
+        "grant_revoked": "ביטול מענק פורטל"
+      },
+      "custom_field": {
+        "definition_created": "יצירת שדה מותאם",
+        "definition_updated": "עדכון שדה מותאם",
+        "definition_archived": "העברת שדה מותאם לארכיון"
+      },
+      "api": {
+        "client_created": "יצירת לקוח API",
+        "key_created": "יצירת מפתח API",
+        "key_revoked": "ביטול מפתח API",
+        "webhook_created": "רישום נקודת webhook"
       }
     },
     "entities": {
@@ -229,7 +247,12 @@
       "document": "מסמך",
       "documents": "מסמכים",
       "tax_rule": "כלל מס",
-      "cost_category": "קטגוריית עלות"
+      "cost_category": "קטגוריית עלות",
+      "external_access_grant": "מענק פורטל",
+      "custom_field_definition": "שדה מותאם",
+      "api_client": "לקוח API",
+      "api_key": "מפתח API",
+      "webhook_endpoint": "נקודת webhook"
     }
   },
   "profile": {

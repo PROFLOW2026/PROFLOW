@@ -4,13 +4,18 @@ import { useTranslations } from 'next-intl';
 import { useActionState } from 'react';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ConfirmAction } from '@/components/patterns/confirm-action';
 import { Field } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { IDENTIFIER_TYPES, type ClientDetail } from '@/modules/clients';
+import {
+  EntityCustomFieldsPanel,
+  type CustomFieldValueView,
+} from '@/modules/custom-fields';
+import { upsertEntityFieldValueAction } from '../../settings/custom-fields/actions';
 import {
   addClientContactAction,
   deleteContactAction,
@@ -22,9 +27,10 @@ import {
 
 interface ClientDetailViewProps {
   client: ClientDetail;
+  customFields?: CustomFieldValueView[];
 }
 
-export function ClientDetailView({ client }: ClientDetailViewProps) {
+export function ClientDetailView({ client, customFields = [] }: ClientDetailViewProps) {
   const t = useTranslations('clients.detail');
   const tClients = useTranslations('clients');
   const tCommon = useTranslations('common');
@@ -59,6 +65,13 @@ export function ClientDetailView({ client }: ClientDetailViewProps) {
           {t('save')}
         </Button>
       </form>
+
+      <EntityCustomFieldsPanel
+        entityId={client.id}
+        fields={customFields}
+        revalidatePath={`/clients/${client.id}`}
+        saveAction={upsertEntityFieldValueAction}
+      />
 
       <Card>
         <CardHeader>

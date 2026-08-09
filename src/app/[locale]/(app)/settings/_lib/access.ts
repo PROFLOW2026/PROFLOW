@@ -10,6 +10,9 @@ export type SettingsSectionKey =
   | 'features'
   | 'costCategories'
   | 'tax'
+  | 'portal'
+  | 'customFields'
+  | 'api'
   | 'activity'
   | 'profile';
 
@@ -26,6 +29,9 @@ export const SETTINGS_SECTIONS: readonly SettingsSection[] = [
   { key: 'features', href: '/settings/features', permission: PERMISSIONS.SETTINGS_MANAGE },
   { key: 'costCategories', href: '/settings/cost-categories', permission: PERMISSIONS.SETTINGS_MANAGE },
   { key: 'tax', href: '/settings/tax', permission: PERMISSIONS.TAX_MANAGE },
+  { key: 'portal', href: '/settings/portal', permission: PERMISSIONS.PORTAL_MANAGE },
+  { key: 'customFields', href: '/settings/custom-fields', permission: PERMISSIONS.CUSTOM_FIELDS_MANAGE },
+  { key: 'api', href: '/settings/api', permission: PERMISSIONS.API_MANAGE },
   { key: 'activity', href: '/settings/activity', permission: PERMISSIONS.AUDIT_READ },
   { key: 'profile', href: '/settings/profile', permission: null },
 ];
@@ -52,6 +58,12 @@ export function canManageSection(context: OrgContext, sectionKey: SettingsSectio
       return hasPermission(context, PERMISSIONS.SETTINGS_MANAGE);
     case 'tax':
       return hasPermission(context, PERMISSIONS.TAX_MANAGE);
+    case 'portal':
+      return hasPermission(context, PERMISSIONS.PORTAL_MANAGE);
+    case 'customFields':
+      return hasPermission(context, PERMISSIONS.CUSTOM_FIELDS_MANAGE);
+    case 'api':
+      return hasPermission(context, PERMISSIONS.API_MANAGE);
     case 'activity':
     case 'profile':
       return false;

@@ -100,8 +100,18 @@ export const AUDIT_ACTIONS = {
   DOCUMENT_DELETED: 'document.deleted',
 
   CRM_PROSPECT_CREATED: 'crm.prospect_created',
+  CRM_PROSPECT_UPDATED: 'crm.prospect_updated',
+  CRM_LEAD_CREATED: 'crm.lead_created',
+  CRM_LEAD_UPDATED: 'crm.lead_updated',
   CRM_OPPORTUNITY_CREATED: 'crm.opportunity_created',
+  CRM_OPPORTUNITY_UPDATED: 'crm.opportunity_updated',
+  CRM_OPPORTUNITY_NOTE_CREATED: 'crm.opportunity_note_created',
   CRM_OPPORTUNITY_CONVERTED: 'crm.opportunity_converted',
+  CRM_ESTIMATE_CREATED: 'crm.estimate_created',
+  CRM_ESTIMATE_UPDATED: 'crm.estimate_updated',
+  CRM_SALES_QUOTE_CREATED: 'crm.sales_quote_created',
+  CRM_SALES_QUOTE_VERSION_CREATED: 'crm.sales_quote_version_created',
+  CRM_SALES_QUOTE_VERSION_ISSUED: 'crm.sales_quote_version_issued',
   CRM_QUOTE_ACCEPTED: 'crm.quote_accepted',
 
   COMPLIANCE_ARTIFACT_CREATED: 'compliance.artifact_created',

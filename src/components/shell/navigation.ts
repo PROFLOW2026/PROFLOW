@@ -24,6 +24,10 @@ export const NAV_ICON_KEYS = [
   'vendors',
   'workforce',
   'documents',
+  'crm',
+  'compliance',
+  'procurement',
+  'materials',
   'reports',
   'settings',
 ] as const;
@@ -116,6 +120,38 @@ export const NAV_ITEMS: readonly NavItem[] = [
     module: 'documents',
   },
   {
+    key: 'crm',
+    href: '/crm',
+    labelKey: 'crm',
+    iconKey: 'crm',
+    permission: PERMISSIONS.CRM_READ,
+    module: 'crm',
+  },
+  {
+    key: 'compliance',
+    href: '/compliance',
+    labelKey: 'compliance',
+    iconKey: 'compliance',
+    permission: PERMISSIONS.COMPLIANCE_READ,
+    module: 'compliance',
+  },
+  {
+    key: 'procurement',
+    href: '/procurement',
+    labelKey: 'procurement',
+    iconKey: 'procurement',
+    permission: PERMISSIONS.PROCUREMENT_READ,
+    module: 'procurement',
+  },
+  {
+    key: 'materials',
+    href: '/procurement/materials',
+    labelKey: 'materials',
+    iconKey: 'materials',
+    permission: PERMISSIONS.MATERIALS_READ,
+    module: 'materials',
+  },
+  {
     key: 'reports',
     href: '/reports',
     labelKey: 'reports',
@@ -145,5 +181,14 @@ export function visibleNavItems(
 export function isNavItemActive(pathname: string, href: string): boolean {
   const normalized = pathname.replace(/^\/[a-z]{2}(-[A-Z]{2})?(?=\/|$)/, '') || '/';
   if (href === '/') return normalized === '/';
-  return normalized === href || normalized.startsWith(`${href}/`);
+  if (normalized === href) return true;
+  if (!normalized.startsWith(`${href}/`)) return false;
+  // Prefer a more specific sibling (e.g. `/procurement/materials` over `/procurement`).
+  const hasMoreSpecificMatch = NAV_ITEMS.some(
+    (item) =>
+      item.href !== href &&
+      item.href.startsWith(`${href}/`) &&
+      (normalized === item.href || normalized.startsWith(`${item.href}/`)),
+  );
+  return !hasMoreSpecificMatch;
 }

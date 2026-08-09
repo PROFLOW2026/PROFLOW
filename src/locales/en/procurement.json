@@ -1,0 +1,100 @@
+{
+  "title": "Procurement",
+  "description": "Purchase orders commit spend with vendors. Issuing a PO creates a committed cost — not an expense.",
+  "materialsTitle": "Materials catalog",
+  "materialsDescription": "Reusable material items for purchase order lines.",
+  "nav": {
+    "orders": "Purchase orders",
+    "materials": "Materials"
+  },
+  "newOrder": "New purchase order",
+  "newMaterial": "Add material",
+  "linkMaterials": "Materials catalog",
+  "linkVendors": "Add a vendor",
+  "empty": {
+    "orders": {
+      "title": "No purchase orders yet",
+      "body": "Create a draft PO with line items, then issue it to open a committed cost. Expenses are recorded separately when money is spent.",
+      "action": "New purchase order"
+    },
+    "materials": {
+      "title": "No materials yet",
+      "body": "Add catalog items so purchase order lines can reference them.",
+      "action": "Add material"
+    },
+    "vendorsRequired": {
+      "title": "Add a vendor first",
+      "body": "Purchase orders need a vendor. Create one, then come back to start a PO.",
+      "action": "New vendor"
+    }
+  },
+  "list": {
+    "columns": {
+      "reference": "Reference",
+      "status": "Status",
+      "committed": "Committed",
+      "orderedOn": "Ordered",
+      "created": "Created",
+      "actions": "Actions",
+      "name": "Name",
+      "sku": "SKU",
+      "unit": "Unit",
+      "defaultPrice": "Default price",
+      "manufacturer": "Manufacturer"
+    },
+    "noReference": "Untitled PO"
+  },
+  "statuses": {
+    "draft": "Draft",
+    "issued": "Issued",
+    "partially_received": "Partially received",
+    "closed": "Closed",
+    "cancelled": "Cancelled"
+  },
+  "issue": {
+    "action": "Issue",
+    "pending": "Issuing…",
+    "hint": "Issues the PO and opens a committed cost. Does not create an expense."
+  },
+  "create": {
+    "title": "New purchase order",
+    "description": "Draft a PO with at least one line. Issue later to commit the amount.",
+    "submit": "Create draft PO",
+    "vendorLabel": "Vendor",
+    "vendorPlaceholder": "Select vendor",
+    "projectLabel": "Project",
+    "projectNone": "No project",
+    "referenceLabel": "Reference",
+    "orderedOnLabel": "Ordered on",
+    "notesLabel": "Notes",
+    "currencyLabel": "Currency",
+    "committedLabel": "Committed total",
+    "linesTitle": "Lines",
+    "addLine": "Add line",
+    "removeLine": "Remove",
+    "lineDescription": "Description",
+    "lineMaterial": "Material",
+    "lineMaterialNone": "None",
+    "lineQuantity": "Qty",
+    "lineUnitAmount": "Unit price",
+    "lineTotal": "Line total"
+  },
+  "material": {
+    "createTitle": "Add material",
+    "submit": "Save material",
+    "nameLabel": "Name",
+    "skuLabel": "SKU",
+    "manufacturerLabel": "Manufacturer",
+    "modelLabel": "Model",
+    "unitLabel": "Unit",
+    "defaultPriceLabel": "Default unit price",
+    "currencyLabel": "Currency",
+    "notesLabel": "Notes"
+  },
+  "errors": {
+    "notDraft": "Only draft purchase orders can be issued.",
+    "committedRequired": "Issuing a purchase order must create a committed cost.",
+    "vendorRequired": "Select a vendor.",
+    "linesRequired": "Add at least one line with a description and amounts."
+  }
+}

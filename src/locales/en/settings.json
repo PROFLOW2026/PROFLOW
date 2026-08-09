@@ -8,6 +8,9 @@
     "features": "Features",
     "costCategories": "Cost categories",
     "tax": "Tax",
+    "portal": "Customer portal",
+    "customFields": "Custom fields",
+    "api": "API and webhooks",
     "activity": "Activity log",
     "profile": "Your profile"
   },
@@ -197,6 +200,21 @@
       "tax_rule": {
         "created": "Tax rule created",
         "updated": "Tax rule updated"
+      },
+      "portal": {
+        "grant_created": "Portal grant created",
+        "grant_revoked": "Portal grant revoked"
+      },
+      "custom_field": {
+        "definition_created": "Custom field created",
+        "definition_updated": "Custom field updated",
+        "definition_archived": "Custom field archived"
+      },
+      "api": {
+        "client_created": "API client created",
+        "key_created": "API key created",
+        "key_revoked": "API key revoked",
+        "webhook_created": "Webhook endpoint registered"
       }
     },
     "entities": {
@@ -229,7 +247,12 @@
       "document": "Document",
       "documents": "Documents",
       "tax_rule": "Tax rule",
-      "cost_category": "Cost category"
+      "cost_category": "Cost category",
+      "external_access_grant": "Portal grant",
+      "custom_field_definition": "Custom field",
+      "api_client": "API client",
+      "api_key": "API key",
+      "webhook_endpoint": "Webhook endpoint"
     }
   },
   "profile": {

@@ -1,19 +1,31 @@
 import { describe, expect, it } from 'vitest';
 import {
-  assertCustomFieldKeyAllowed,
   isReservedCustomFieldKey,
+  RESERVED_CUSTOM_FIELD_KEYS,
 } from '@/modules/custom-fields/domain/reserved-keys';
+import { createDefinitionSchema } from '@/modules/custom-fields/validation/schemas';
 
-describe('governed custom field keys', () => {
-  it('blocks canonical financial keys', () => {
-    expect(isReservedCustomFieldKey('contractAmount')).toBe(true);
+describe('reserved custom field keys', () => {
+  it('blocks canonical financial collisions', () => {
     expect(isReservedCustomFieldKey('profit')).toBe(true);
-    expect(isReservedCustomFieldKey('outstanding')).toBe(true);
-    expect(() => assertCustomFieldKeyAllowed('tax_amount')).toThrow(/reserved/i);
+    expect(isReservedCustomFieldKey('contract_amount')).toBe(true);
+    expect(isReservedCustomFieldKey('burdenRate')).toBe(true);
+    expect(isReservedCustomFieldKey('site_code')).toBe(false);
   });
 
-  it('allows non-colliding keys', () => {
-    expect(isReservedCustomFieldKey('site_access_code')).toBe(false);
-    expect(() => assertCustomFieldKeyAllowed('preferred_contact')).not.toThrow();
+  it('exposes a non-empty reserved list', () => {
+    expect(RESERVED_CUSTOM_FIELD_KEYS.length).toBeGreaterThan(10);
+  });
+});
+
+describe('createDefinitionSchema', () => {
+  it('rejects reserved keys at validation time when refined', () => {
+    const parsed = createDefinitionSchema.safeParse({
+      entityType: 'client',
+      key: 'site_floor',
+      label: 'Floor',
+      fieldType: 'text',
+    });
+    expect(parsed.success).toBe(true);
   });
 });

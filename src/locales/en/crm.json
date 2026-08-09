@@ -1,0 +1,157 @@
+{
+  "title": "CRM",
+  "description": "Pre-project sales: prospects, leads, opportunities and sales quotes.",
+  "nav": {
+    "opportunities": "Opportunities",
+    "prospects": "Prospects",
+    "leads": "Leads"
+  },
+  "empty": {
+    "opportunities": {
+      "title": "No opportunities yet",
+      "body": "Track qualified sales pursuits here. Conversion to a project is an explicit step after a quote is accepted.",
+      "action": "New opportunity"
+    },
+    "prospects": {
+      "title": "No prospects yet",
+      "body": "Prospects are potential customers before they become clients.",
+      "action": "New prospect"
+    },
+    "leads": {
+      "title": "No leads yet",
+      "body": "Capture early interest before qualifying an opportunity.",
+      "action": "New lead"
+    }
+  },
+  "list": {
+    "columns": {
+      "name": "Name",
+      "title": "Title",
+      "stage": "Stage",
+      "status": "Status",
+      "value": "Expected value",
+      "company": "Company"
+    }
+  },
+  "stages": {
+    "qualify": "Qualify",
+    "estimate": "Estimate",
+    "quote": "Quote",
+    "negotiation": "Negotiation",
+    "won": "Won",
+    "lost": "Lost"
+  },
+  "statuses": {
+    "opportunity": {
+      "open": "Open",
+      "won": "Won",
+      "lost": "Lost",
+      "cancelled": "Cancelled"
+    },
+    "prospect": {
+      "active": "Active",
+      "converted": "Converted",
+      "inactive": "Inactive"
+    },
+    "lead": {
+      "new": "New",
+      "contacted": "Contacted",
+      "qualified": "Qualified",
+      "disqualified": "Disqualified",
+      "converted": "Converted"
+    },
+    "quote": {
+      "draft": "Draft",
+      "issued": "Issued",
+      "accepted": "Accepted",
+      "rejected": "Rejected",
+      "cancelled": "Cancelled"
+    },
+    "version": {
+      "draft": "Draft",
+      "issued": "Issued",
+      "superseded": "Superseded",
+      "accepted": "Accepted",
+      "rejected": "Rejected"
+    },
+    "estimate": {
+      "draft": "Draft",
+      "final": "Final",
+      "superseded": "Superseded"
+    }
+  },
+  "prospect": {
+    "new": "New prospect",
+    "nameLabel": "Name",
+    "companyLabel": "Company",
+    "emailLabel": "Email",
+    "phoneLabel": "Phone",
+    "notesLabel": "Notes",
+    "submit": "Create prospect",
+    "contacts": "Contacts",
+    "addContact": "Add contact",
+    "contactName": "Contact name",
+    "contactRole": "Role"
+  },
+  "lead": {
+    "new": "New lead",
+    "titleLabel": "Title",
+    "sourceLabel": "Source",
+    "emailLabel": "Email",
+    "phoneLabel": "Phone",
+    "notesLabel": "Notes",
+    "submit": "Create lead"
+  },
+  "opportunity": {
+    "new": "New opportunity",
+    "nameLabel": "Opportunity name",
+    "prospectLabel": "Prospect",
+    "expectedValueLabel": "Expected value",
+    "currencyLabel": "Currency",
+    "expectedStartLabel": "Expected start",
+    "referralLabel": "Referral source",
+    "notesLabel": "Notes",
+    "lostReasonLabel": "Lost reason",
+    "submit": "Create opportunity",
+    "markLost": "Mark as lost",
+    "notesSection": "Notes",
+    "addNote": "Add note",
+    "noteBody": "Note",
+    "estimatesSection": "Estimates",
+    "addEstimate": "Add estimate",
+    "estimateName": "Estimate name",
+    "estimateAmount": "Internal amount",
+    "quotesSection": "Sales quotes",
+    "addQuote": "Add sales quote",
+    "quoteTitle": "Quote title",
+    "lineDescription": "Line description",
+    "lineQuantity": "Qty",
+    "lineUnit": "Unit amount",
+    "lineTotal": "Line total",
+    "issueVersion": "Issue",
+    "acceptVersion": "Accept",
+    "versionLabel": "Version {number}",
+    "converted": "Converted to project",
+    "openProject": "Open project",
+    "openClient": "Open client"
+  },
+  "convert": {
+    "title": "Convert to project",
+    "description": "Creates a client, project and original contract value from the accepted sales quote. This cannot be undone.",
+    "projectNameLabel": "Project name",
+    "submit": "Convert won opportunity",
+    "requiresAcceptedQuote": "Accept a sales quote version before converting.",
+    "alreadyConverted": "This opportunity was already converted.",
+    "cannotConvert": "This opportunity cannot be converted."
+  },
+  "errors": {
+    "alreadyConverted": "Opportunity has already been converted",
+    "cannotConvertLost": "Lost or cancelled opportunities cannot be converted",
+    "cannotConvert": "This opportunity cannot be converted",
+    "quoteNotAccepted": "Only an accepted sales quote version can feed contract net amount",
+    "acceptedQuoteRequired": "An accepted sales quote version is required to convert",
+    "quoteFinalized": "Cannot add versions to a finalized sales quote",
+    "cannotIssueVersion": "Only draft sales quote versions can be issued",
+    "cannotAcceptVersion": "Only draft or issued sales quote versions can be accepted"
+  }
+}

@@ -1,0 +1,79 @@
+{
+  "title": "Insurance and compliance",
+  "description": "Track insurance policies, licenses, and certifications — and see what is expiring soon.",
+  "newArtifact": "New artifact",
+  "empty": {
+    "title": "No compliance artifacts yet",
+    "body": "Add insurance policies, licenses, or certifications so you can track expiry without digging through files.",
+    "action": "Add first artifact"
+  },
+  "list": {
+    "searchPlaceholder": "Search by name, reference, or issuer…",
+    "filters": {
+      "kind": "Kind",
+      "status": "Status",
+      "subject": "Applies to",
+      "all": "All"
+    },
+    "columns": {
+      "name": "Name",
+      "kind": "Kind",
+      "subject": "Applies to",
+      "expiresOn": "Expires",
+      "status": "Status"
+    },
+    "noExpiry": "No expiry"
+  },
+  "kinds": {
+    "insurance": "Insurance",
+    "license": "License",
+    "certification": "Certification",
+    "other": "Other"
+  },
+  "subjects": {
+    "organization": "Organization",
+    "employee": "Employee",
+    "vendor": "Vendor",
+    "project": "Project"
+  },
+  "statuses": {
+    "valid": "Valid",
+    "expiring_soon": "Expiring soon",
+    "expired": "Expired",
+    "revoked": "Revoked",
+    "pending": "Pending"
+  },
+  "statusModes": {
+    "auto": "Derive from expiry date",
+    "pending": "Pending (manual)",
+    "revoked": "Revoked (manual)"
+  },
+  "create": {
+    "title": "New compliance artifact",
+    "description": "Record a policy, license, or certification. Status is derived from the expiry date unless you mark it pending or revoked.",
+    "submit": "Create artifact"
+  },
+  "form": {
+    "nameLabel": "Name",
+    "namePlaceholder": "e.g. Professional liability policy",
+    "kindLabel": "Kind",
+    "referenceLabel": "Reference / policy number",
+    "issuerLabel": "Issuer",
+    "issuedOnLabel": "Issued on",
+    "expiresOnLabel": "Expires on",
+    "statusModeLabel": "Status",
+    "statusModeHint": "Leave on auto to keep status in sync with the expiry date.",
+    "subjectTypeLabel": "Applies to",
+    "subjectIdLabel": "Subject ID",
+    "subjectIdHint": "Optional UUID of the employee, vendor, or project when the artifact is not org-wide.",
+    "notesLabel": "Notes"
+  },
+  "detail": {
+    "title": "Compliance artifact",
+    "save": "Save changes",
+    "archive": "Archive",
+    "archiveTitle": "Archive this artifact?",
+    "archiveBody": "It will leave the active list. You can still find it later if archived records are shown.",
+    "archiveSuccess": "Artifact archived"
+  }
+}

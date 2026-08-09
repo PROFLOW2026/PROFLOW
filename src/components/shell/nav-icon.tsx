@@ -2,12 +2,16 @@
 
 import {
   Building2,
+  ClipboardList,
   FileText,
   FolderKanban,
+  Handshake,
   LayoutDashboard,
+  Package,
   Receipt,
   Repeat2,
   Settings,
+  ShieldCheck,
   Truck,
   Users,
   Wallet,
@@ -26,6 +30,10 @@ const NAV_ICONS: Record<NavIconKey, LucideIcon> = {
   vendors: Truck,
   workforce: Users,
   documents: FileText,
+  crm: Handshake,
+  compliance: ShieldCheck,
+  procurement: ClipboardList,
+  materials: Package,
   reports: ChartColumn,
   settings: Settings,
 };

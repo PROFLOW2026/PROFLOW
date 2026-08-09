@@ -53,6 +53,13 @@
     "inactive": "לא פעיל",
     "archived": "בארכיון"
   },
+  "compliance": {
+    "valid": "בתוקף",
+    "expiring_soon": "עומד לפוג",
+    "expired": "פג תוקף",
+    "revoked": "בוטל",
+    "pending": "ממתין"
+  },
   "events": {
     "sentAt": "נשלח ב־{date}",
     "notSent": "לא נשלח"
