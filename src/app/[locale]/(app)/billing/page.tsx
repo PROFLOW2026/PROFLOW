@@ -5,8 +5,9 @@ import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/ui/page-header';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { listBillingRecords } from '@/modules/billing';
+import { listBillingRecords, getOrganizationReceivablesAging } from '@/modules/billing';
 import { BillingListTable } from '@/modules/billing/ui/billing-list-table';
+import { ReceivablesAgingPanel } from '@/modules/billing/ui/receivables-aging-panel';
 import { withOrgContext } from '@/shared/auth/session';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
@@ -37,12 +38,13 @@ export default async function BillingListPage({
   const filter = (FILTERS.includes(rawFilter as BillingListFilter) ? rawFilter : 'all') as BillingListFilter;
 
   const t = await getTranslations('billing');
-  const { canRead, records, canManage } = await withOrgContext(async (context) => {
+  const { canRead, records, canManage, aging } = await withOrgContext(async (context) => {
     const allowed = hasPermission(context, PERMISSIONS.BILLING_READ);
     return {
       canRead: allowed,
       records: allowed ? await listBillingRecords(context, { filter }) : [],
       canManage: hasPermission(context, PERMISSIONS.BILLING_MANAGE),
+      aging: allowed ? await getOrganizationReceivablesAging(context) : null,
     };
   });
 
@@ -78,6 +80,10 @@ export default async function BillingListPage({
           ) : undefined
         }
       />
+
+      {aging && (aging.totalOutstanding.amount !== '0.000000') ? (
+        <ReceivablesAgingPanel aging={aging} />
+      ) : null}
 
       <Tabs value={filter}>
         <TabsList aria-label={t('title')}>

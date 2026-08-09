@@ -11,7 +11,16 @@ const optionalDate = z.preprocess(
   emptyToNull,
   z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable().optional(),
 );
-const optionalPercent = z.preprocess(emptyToNull, z.string().trim().regex(/^\d+(\.\d+)?$/).nullable().optional());
+const optionalPercent = z.preprocess(emptyToNull, z
+  .string()
+  .trim()
+  .regex(/^\d+(\.\d+)?$/)
+  .refine((value) => {
+    const n = Number(value);
+    return Number.isFinite(n) && n >= 0 && n <= 100;
+  }, 'Progress must be between 0 and 100')
+  .nullable()
+  .optional());
 const optionalProgressStatus = z.preprocess(
   emptyToNull,
   z.enum(PROGRESS_STATUSES).nullable().optional(),

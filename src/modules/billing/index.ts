@@ -15,6 +15,10 @@ export {
   listBillingProjectOptions,
 } from './application/project-billing';
 
+export { getOrganizationReceivablesAging } from './application/get-receivables-aging';
+export { computeReceivablesAging } from './domain/aging';
+export type { AgingBucket, AgingBucketKey, ReceivablesAging } from './domain/aging';
+
 export {
   aggregateBillingPosition,
   aggregateBillingPositionInCurrency,

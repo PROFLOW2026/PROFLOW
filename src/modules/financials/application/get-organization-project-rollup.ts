@@ -2,7 +2,7 @@ import { and, eq, isNull } from 'drizzle-orm';
 import { projects } from '@drizzle/schema';
 import type { OrgContext } from '@/shared/auth/context';
 import type { MoneyValue } from '@/shared/money';
-import { zeroMoney } from '@/shared/money';
+import { compareMoney, zeroMoney } from '@/shared/money';
 import { assertPermission, hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { getProjectFinancials } from './get-project-financials';
@@ -78,9 +78,9 @@ export async function getOrganizationProjectRollup(
     const profitable =
       estimatedProfit == null
         ? null
-        : Number(estimatedProfit.amount) > 0
+        : compareMoney(estimatedProfit, zeroMoney(currency)) > 0
           ? true
-          : Number(estimatedProfit.amount) < 0
+          : compareMoney(estimatedProfit, zeroMoney(currency)) < 0
             ? false
             : null;
 
