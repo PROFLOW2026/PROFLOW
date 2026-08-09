@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ProjectFlow | ניהול פרויקטים ורווחיות לעסקים מבוססי פרויקט</title>
+  <meta name="description" content="ProjectFlow מחברת פרויקט, חוזה, הוצאות, שינויים, חיובים ותשלומים במקום אחד — כדי לדעת אם הפרויקט באמת מרוויח. לעסקי קבלנות, מקצוע, עיצוב וייעוץ." />
+  <meta name="robots" content="noindex, nofollow" />
+  <meta property="og:title" content="שליטה בפרויקט — מהחוזה ועד הרווח | ProjectFlow" />
+  <meta property="og:description" content="פרויקט, עלויות, שינויים, חיובים ותשלומים במקום אחד. לדעת אם העבודה באמת מרוויחה." />
+  <meta property="og:locale" content="he_IL" />
+  <meta property="og:type" content="website" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;500;600;700&amp;display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <a class="skip-link" href="#main">דלגו לתוכן</a>
+
+  <header class="site-header">
+    <div class="container site-header__inner">
+      <a class="brand" href="#hero" aria-label="ProjectFlow — לדף הבית">
+        <span class="brand__mark" aria-hidden="true"></span>
+        <span class="brand__name">ProjectFlow</span>
+      </a>
+      <nav aria-label="ניווט בדף">
+        <ul class="nav-links">
+          <li><a href="#how-it-works">איך זה עובד</a></li>
+          <li><a href="#product-tour">יכולות</a></li>
+          <li><a href="#faq">שאלות</a></li>
+        </ul>
+      </nav>
+      <div class="header-actions">
+        <a class="link-signin" href="/he-IL/sign-in">כניסה</a>
+        <a class="btn btn--primary" href="/he-IL/sign-up">התחילו עכשיו</a>
+      </div>
+    </div>
+  </header>
+
+  <main id="main">
+    <!-- S01 Hero -->
+    <section
+      id="hero"
+      class="hero section"
+      data-section-id="S01"
+      data-section-name="Hero"
+      aria-labelledby="hero-heading"
+    >
+      <div class="container hero__grid">
+        <div class="hero__copy">
+          <p class="hero__brand"><span class="brand__name">ProjectFlow</span></p>
+          <h1 id="hero-heading">שליטה בפרויקט — מהחוזה ועד הרווח</h1>
+          <p class="hero__sub">
+            מחברים פרויקט, חוזה, עלויות, שינויים, חיובים ותשלומים —
+            כדי שתדעו מה באמת קורה.
+          </p>
+          <div class="btn-group">
+            <a class="btn btn--primary btn--block" href="/he-IL/sign-up">התחילו עכשיו</a>
+            <a class="btn btn--secondary btn--block" href="#product-tour">ראו איך זה עובד</a>
+          </div>
+          <p class="hero__trust">
+            לא תוכנת הנהלת חשבונות.
+            פשוטה בהתחלה — עמוקה כשצריך.
+          </p>
+        </div>
+        <div class="hero__visual">
+          <figure class="shot shot--desktop" data-sc="SC-02">
+            <div class="shot__frame">
+              <img
+                src="assets/pf-landing-sc-02-desktop.svg"
+                width="1280"
+                height="800"
+                alt="תצוגה מקדימה: כספי הפרויקט — חוזה, עלות, התחייבות וגבייה במבט אחד"
+              />
+              <span class="shot__dev-id" aria-hidden="true">SC-02</span>
+            </div>
+            <figcaption>כספי הפרויקט — חוזה, עלות, התחייבות וגבייה במבט אחד</figcaption>
+          </figure>
+          <figure class="shot shot--mobile" data-sc="SC-08">
+            <div class="shot__frame">
+              <img
+                src="assets/pf-landing-sc-08-mobile.svg"
+                width="390"
+                height="844"
+                alt="תצוגה מקדימה: הפרויקט בטלפון — אותה מערכת מהשטח"
+              />
+              <span class="shot__dev-id" aria-hidden="true">SC-08</span>
+            </div>
+            <figcaption>הפרויקט בטלפון — אותה מערכת מהשטח</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <!-- S02 Owner questions -->
+    <section
+      id="owner-questions"
+      class="section section--white reveal"
+      data-section-id="S02"
+      data-section-name="Owner questions"
+      aria-labelledby="questions-heading"
+    >
+      <div class="container">
+        <h2 id="questions-heading" class="section__title">השאלות שכל בעל עסק שואל</h2>
+        <p class="section__lead">
+          <span class="ltr">ProjectFlow</span> בנויה כדי שתוכלו לענות — בכל רגע:
+        </p>
+        <ul class="q-grid">
+          <li class="q-card">
+            <svg class="q-card__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path d="M4 19V5M4 19h16M8 15v4M12 11v8M16 7v12"/></svg>
+            <p>כמה שווה הפרויקט?</p>
+          </li>
+          <li class="q-card">
+            <svg class="q-card__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l2.5 2.5"/></svg>
+            <p>כמה כבר הוצאתי?</p>
+          </li>
+          <li class="q-card">
+            <svg class="q-card__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path d="M8 7h8M8 12h8M8 17h5"/><rect x="4" y="4" width="16" height="16" rx="2"/></svg>
+            <p>למה התחייבתי?</p>
+          </li>
+          <li class="q-card">
+            <svg class="q-card__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path d="M12 8v4M12 16h.01"/><circle cx="12" cy="12" r="8"/></svg>
+            <p>אילו שינויים עדיין ממתינים?</p>
+          </li>
+          <li class="q-card">
+            <svg class="q-card__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path d="M7 8h10M7 12h10M7 16h6"/><path d="M5 4h14v16H5z"/></svg>
+            <p>כמה חויב הלקוח?</p>
+          </li>
+          <li class="q-card">
+            <svg class="q-card__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M3 10h18"/></svg>
+            <p>כמה באמת שולם?</p>
+          </li>
+          <li class="q-card">
+            <svg class="q-card__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><circle cx="9" cy="8" r="3"/><circle cx="16" cy="9" r="2.5"/><path d="M3 19c1.5-3 3.5-4.5 6-4.5S13.5 16 15 19M14 14.5c1.5-.5 3-.3 4.5 1.5"/></svg>
+            <p>כמה עולה כוח האדם?</p>
+          </li>
+          <li class="q-card">
+            <svg class="q-card__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path d="M4 16l5-5 3 3 7-7"/><path d="M14 7h5v5"/></svg>
+            <p>האם הפרויקט באמת מרוויח?</p>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- S03 Problem -->
+    <section
+      id="problem"
+      class="section section--stone reveal"
+      data-section-id="S03"
+      data-section-name="Problem"
+      aria-labelledby="problem-heading"
+    >
+      <div class="container">
+        <h2 id="problem-heading" class="section__title">העסק רץ. הכסף מפוזר.</h2>
+        <p class="section__lead">
+          רוב העסקים מנהלים פרויקטים ב־Excel, בוואטסאפ ובתיקיות. זה עובד — עד שזה לא.
+        </p>
+        <ul class="pain-grid">
+          <li class="pain-card">
+            <h3>עלויות מפוזרות</h3>
+            <p>קבלות, ספקים ושעות בכל מקום.</p>
+          </li>
+          <li class="pain-card">
+            <h3>שינויים נעלמים</h3>
+            <p>תוספת בעל־פה שלא נכנסת לחוזה בזמן.</p>
+          </li>
+          <li class="pain-card">
+            <h3>חיוב מתבלבל עם תשלום</h3>
+            <p>שלחתם חשבון, ולא ברור מה שולם.</p>
+          </li>
+          <li class="pain-card">
+            <h3>רווחיות מאוחרת</h3>
+            <p>מגלים הפסד בסוף — או בכלל לא.</p>
+          </li>
+        </ul>
+        <p class="problem-outro">התוצאה: החלטות על תחושה, לא על מספרים.</p>
+      </div>
+    </section>
+
+    <!-- S04 How it works -->
+    <section
+      id="how-it-works"
+      class="section section--white reveal"
+      data-section-id="S04"
+      data-section-name="How it works"
+      aria-labelledby="how-heading"
+    >
+      <div class="container">
+        <h2 id="how-heading" class="section__title">מהלקוח עד הרווח — בזרימה אחת</h2>
+        <ol class="flow" aria-label="זרימת העבודה ב־ProjectFlow">
+          <li class="flow__step"><span class="flow__label">לקוח</span></li>
+          <li class="flow__arrow" aria-hidden="true"><span>→</span></li>
+          <li class="flow__step"><span class="flow__label">פרויקט</span></li>
+          <li class="flow__arrow" aria-hidden="true"><span>→</span></li>
+          <li class="flow__step"><span class="flow__label">חוזה</span></li>
+          <li class="flow__arrow" aria-hidden="true"><span>→</span></li>
+          <li class="flow__step"><span class="flow__label">הוצאות ועלויות</span></li>
+          <li class="flow__arrow" aria-hidden="true"><span>→</span></li>
+          <li class="flow__step"><span class="flow__label">שינויים</span></li>
+          <li class="flow__arrow" aria-hidden="true"><span>→</span></li>
+          <li class="flow__step"><span class="flow__label">חיובים ותשלומים</span></li>
+          <li class="flow__arrow" aria-hidden="true"><span>→</span></li>
+          <li class="flow__step"><span class="flow__label">רווחיות</span></li>
+        </ol>
+        <p class="section__note">
+          אפשר להתחיל רק עם פרויקט והוצאות — ולהוסיף עומק כשהעסק גדל.
+        </p>
+        <p class="cta-inline">
+          <a href="#product-tour">ראו במערכת</a>
+        </p>
+      </div>
+    </section>
+
+    <!-- S05 Core financial control -->
+    <section
+      id="financial-control"
+      class="section section--stone reveal"
+      data-section-id="S05"
+      data-section-name="Core financial control"
+      aria-labelledby="financial-heading"
+    >
+      <div class="container">
+        <div class="split">
+          <div>
+            <h2 id="financial-heading" class="section__title">הפרויקט והכסף — באותה תמונה</h2>
+            <p class="section__lead">
+              כל פרויקט הוא מרכז עבודה: פרטים, מבנה ומסמכים — וקישור ישיר לחוזה, לעלויות, לשינויים ולגבייה.
+            </p>
+            <ul>
+              <li>חוזה מקורי + שינויים מאושרים = <strong>חוזה נוכחי</strong></li>
+              <li>שינויים ממתינים נשארים בצד</li>
+              <li>עלות בפועל מול התחייבויות</li>
+              <li>חיובים ותשלומים בלי לערבב</li>
+            </ul>
+          </div>
+          <figure class="shot" data-sc="SC-02">
+            <div class="shot__frame">
+              <img
+                src="assets/pf-landing-sc-02-desktop.svg"
+                width="1280"
+                height="800"
+                alt="תצוגה מקדימה: כספי הפרויקט"
+                loading="lazy"
+              />
+              <span class="shot__dev-id" aria-hidden="true">SC-02</span>
+            </div>
+            <figcaption>כספי הפרויקט — חוזה, עלות, התחייבות וגבייה במבט אחד</figcaption>
+          </figure>
+        </div>
+
+        <div class="gold-strip" role="group" aria-label="עקרונות האמת הפיננסית">
+          <div class="gold-rule"><span>חיוב</span> <span class="gold-rule__neq" aria-hidden="true">≠</span> <span>תשלום</span></div>
+          <div class="gold-rule"><span>התחייבות</span> <span class="gold-rule__neq" aria-hidden="true">≠</span> <span>הוצאה</span></div>
+          <div class="gold-rule"><span>מע״מ</span> <span class="gold-rule__neq" aria-hidden="true">≠</span> <span>רווח</span></div>
+          <div class="gold-rule"><span>ממתין</span> <span class="gold-rule__neq" aria-hidden="true">≠</span> <span>מאושר</span></div>
+        </div>
+
+        <div class="split">
+          <figure class="shot" data-sc="SC-03">
+            <div class="shot__frame">
+              <img
+                src="assets/pf-landing-sc-03-desktop.svg"
+                width="1280"
+                height="800"
+                alt="תצוגה מקדימה: סביבת הפרויקט"
+                loading="lazy"
+              />
+              <span class="shot__dev-id" aria-hidden="true">SC-03</span>
+            </div>
+            <figcaption>סביבת הפרויקט — מרכז העבודה והכסף</figcaption>
+          </figure>
+          <div class="cta-inline">
+            <a class="btn btn--primary" href="/he-IL/sign-up">התחילו עכשיו</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- S06 Expenses / workforce / suppliers -->
+    <section
+      id="costs"
+      class="section section--white reveal"
+      data-section-id="S06"
+      data-section-name="Expenses workforce suppliers"
+      aria-labelledby="costs-heading"
+    >
+      <div class="container">
+        <h2 id="costs-heading" class="section__title">מאיפה באמת באה העלות</h2>
+        <div class="feature-cols">
+          <article class="feature-col">
+            <h3>הוצאות</h3>
+            <p>רישום מהיר: סכום קודם, השאר לפי הצורך. לפרויקט או להוצאה כללית. צירוף קבצים ותמונות.</p>
+          </article>
+          <article class="feature-col">
+            <h3>כוח אדם</h3>
+            <p>עובדים, תעריפי עלות ודיווחי שעות לפרויקט.</p>
+          </article>
+          <article class="feature-col">
+            <h3>ספקים</h3>
+            <p>מדריך אופציונלי; אפשר הוצאה גם בלי כרטיס ספק.</p>
+          </article>
+        </div>
+        <div class="split">
+          <figure class="shot" data-sc="SC-04">
+            <div class="shot__frame">
+              <img
+                src="assets/pf-landing-sc-04-desktop.svg"
+                width="1280"
+                height="800"
+                alt="תצוגה מקדימה: הוצאות"
+                loading="lazy"
+              />
+              <span class="shot__dev-id" aria-hidden="true">SC-04</span>
+            </div>
+            <figcaption>הוצאות — תיעוד עלות מהיר לכל הפרויקטים</figcaption>
+          </figure>
+          <figure class="shot shot--mobile" data-sc="SC-09">
+            <div class="shot__frame">
+              <img
+                src="assets/pf-landing-sc-09-mobile.svg"
+                width="390"
+                height="844"
+                alt="תצוגה מקדימה: הוצאה חדשה במובייל"
+                loading="lazy"
+              />
+              <span class="shot__dev-id" aria-hidden="true">SC-09</span>
+            </div>
+            <figcaption>הוצאה חדשה במובייל — סכום קודם, השאר אחר כך</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <!-- S07 Changes / billing / payments -->
+    <section
+      id="changes-billing"
+      class="section section--stone reveal"
+      data-section-id="S07"
+      data-section-name="Changes billing payments"
+      aria-labelledby="changes-heading"
+    >
+      <div class="container">
+        <h2 id="changes-heading" class="section__title">מה שהשתנה — ומה שבאמת נגבה</h2>
+        <div class="two-col-story">
+          <div class="story-block">
+            <h3>שינויים</h3>
+            <p>תוספות והפחתות עם תמחור ואישור. שינוי ממתין לא נכנס לחוזה עד אישור.</p>
+            <figure class="shot" data-sc="SC-05">
+              <div class="shot__frame">
+                <img
+                  src="assets/pf-landing-sc-05-desktop.svg"
+                  width="1280"
+                  height="800"
+                  alt="תצוגה מקדימה: שינויים"
+                  loading="lazy"
+                />
+                <span class="shot__dev-id" aria-hidden="true">SC-05</span>
+              </div>
+              <figcaption>שינויים — ממתין בנפרד עד לאישור</figcaption>
+            </figure>
+          </div>
+          <div class="story-block">
+            <h3>חיובים ותשלומים</h3>
+            <p>
+              <strong>חיובים</strong> — מה שנרשם כלפי הלקוח.
+              <strong>תשלומים</strong> — מה שבאמת התקבל. יודעים מה פתוח.
+            </p>
+            <figure class="shot" data-sc="SC-06">
+              <div class="shot__frame">
+                <img
+                  src="assets/pf-landing-sc-06-desktop.svg"
+                  width="1280"
+                  height="800"
+                  alt="תצוגה מקדימה: חיובים ותשלומים"
+                  loading="lazy"
+                />
+                <span class="shot__dev-id" aria-hidden="true">SC-06</span>
+              </div>
+              <figcaption>חיובים ותשלומים — יודעים מה פתוח באמת</figcaption>
+            </figure>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- S08 Reports -->
+    <section
+      id="reports"
+      class="section section--white reveal"
+      data-section-id="S08"
+      data-section-name="Reports profitability"
+      aria-labelledby="reports-heading"
+    >
+      <div class="container">
+        <div class="split split--text-wide">
+          <div>
+            <h2 id="reports-heading" class="section__title">האם הפרויקט באמת מרוויח?</h2>
+            <p class="section__lead">
+              דוחות ותצוגות כסף ברמת פרויקט ועסק — בפועל, התחייבות, תחזית ומסחרי. מע״מ לא מתערבב עם רווח. אפשר לייצא <span class="ltr">CSV</span> לרו״ח או לניתוח.
+            </p>
+            <p class="section__note">
+              התמונה כנה לפי מה שהזנתם — בלי «רווח אמיתי מלא» מזויף כשחלק מהמודולים לא בשימוש.
+            </p>
+            <p class="cta-inline">
+              <a class="btn btn--secondary" href="#product-tour">ראו איך זה עובד</a>
+            </p>
+          </div>
+          <figure class="shot" data-sc="SC-07">
+            <div class="shot__frame">
+              <img
+                src="assets/pf-landing-sc-07-desktop.svg"
+                width="1280"
+                height="800"
+                alt="תצוגה מקדימה: דוחות"
+                loading="lazy"
+              />
+              <span class="shot__dev-id" aria-hidden="true">SC-07</span>
+            </div>
+            <figcaption>דוחות — רווחיות בלי לערבב מע״מ עם רווח</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <!-- S09 Product tour -->
+    <section
+      id="product-tour"
+      class="section section--stone reveal"
+      data-section-id="S09"
+      data-section-name="Product tour"
+      aria-labelledby="tour-heading"
+    >
+      <div class="container">
+        <h2 id="tour-heading" class="section__title">ככה זה נראה במערכת</h2>
+        <p class="section__lead">
+          מבט מהיר על לוח הבקרה, הפרויקט, ההוצאות, השינויים, הגבייה והדוחות.
+        </p>
+
+        <!-- Desktop tabs -->
+        <div class="tour-tabs" role="tablist" aria-label="סיור מוצר">
+          <button type="button" class="tour-tab" role="tab" id="tab-financials" data-tour-tab="financials" aria-controls="panel-financials" aria-selected="true">כספי פרויקט</button>
+          <button type="button" class="tour-tab" role="tab" id="tab-workspace" data-tour-tab="workspace" aria-controls="panel-workspace" aria-selected="false" tabindex="-1">סביבת פרויקט</button>
+          <button type="button" class="tour-tab" role="tab" id="tab-expenses" data-tour-tab="expenses" aria-controls="panel-expenses" aria-selected="false" tabindex="-1">הוצאות</button>
+          <button type="button" class="tour-tab" role="tab" id="tab-changes" data-tour-tab="changes" aria-controls="panel-changes" aria-selected="false" tabindex="-1">שינויים</button>
+          <button type="button" class="tour-tab" role="tab" id="tab-billing" data-tour-tab="billing" aria-controls="panel-billing" aria-selected="false" tabindex="-1">חיובים</button>
+          <button type="button" class="tour-tab" role="tab" id="tab-reports" data-tour-tab="reports" aria-controls="panel-reports" aria-selected="false" tabindex="-1">דוחות</button>
+        </div>
+
+        <div class="tour-panels-desktop">
+          <div class="tour-panel is-active" role="tabpanel" id="panel-financials" data-tour-panel="financials" aria-labelledby="tab-financials">
+            <figure class="shot" data-sc="SC-02">
+              <div class="shot__frame">
+                <img src="assets/pf-landing-sc-02-desktop.svg" width="1280" height="800" alt="תצוגה מקדימה: כספי פרויקט" loading="lazy" />
+                <span class="shot__dev-id" aria-hidden="true">SC-02</span>
+              </div>
+              <figcaption>כספי הפרויקט — חוזה, עלות, התחייבות וגבייה במבט אחד</figcaption>
+            </figure>
+          </div>
+          <div class="tour-panel" role="tabpanel" id="panel-workspace" data-tour-panel="workspace" aria-labelledby="tab-workspace" hidden>
+            <figure class="shot" data-sc="SC-03">
+              <div class="shot__frame">
+                <img src="assets/pf-landing-sc-03-desktop.svg" width="1280" height="800" alt="תצוגה מקדימה: סביבת פרויקט" loading="lazy" />
+                <span class="shot__dev-id" aria-hidden="true">SC-03</span>
+              </div>
+              <figcaption>סביבת הפרויקט — מרכז העבודה והכסף</figcaption>
+            </figure>
+          </div>
+          <div class="tour-panel" role="tabpanel" id="panel-expenses" data-tour-panel="expenses" aria-labelledby="tab-expenses" hidden>
+            <figure class="shot" data-sc="SC-04">
+              <div class="shot__frame">
+                <img src="assets/pf-landing-sc-04-desktop.svg" width="1280" height="800" alt="תצוגה מקדימה: הוצאות" loading="lazy" />
+                <span class="shot__dev-id" aria-hidden="true">SC-04</span>
+              </div>
+              <figcaption>הוצאות — תיעוד עלות מהיר לכל הפרויקטים</figcaption>
+            </figure>
+          </div>
+          <div class="tour-panel" role="tabpanel" id="panel-changes" data-tour-panel="changes" aria-labelledby="tab-changes" hidden>
+            <figure class="shot" data-sc="SC-05">
+              <div class="shot__frame">
+                <img src="assets/pf-landing-sc-05-desktop.svg" width="1280" height="800" alt="תצוגה מקדימה: שינויים" loading="lazy" />
+                <span class="shot__dev-id" aria-hidden="true">SC-05</span>
+              </div>
+              <figcaption>שינויים — ממתין בנפרד עד לאישור</figcaption>
+            </figure>
+          </div>
+          <div class="tour-panel" role="tabpanel" id="panel-billing" data-tour-panel="billing" aria-labelledby="tab-billing" hidden>
+            <figure class="shot" data-sc="SC-06">
+              <div class="shot__frame">
+                <img src="assets/pf-landing-sc-06-desktop.svg" width="1280" height="800" alt="תצוגה מקדימה: חיובים" loading="lazy" />
+                <span class="shot__dev-id" aria-hidden="true">SC-06</span>
+              </div>
+              <figcaption>חיובים ותשלומים — יודעים מה פתוח באמת</figcaption>
+            </figure>
+          </div>
+          <div class="tour-panel" role="tabpanel" id="panel-reports" data-tour-panel="reports" aria-labelledby="tab-reports" hidden>
+            <figure class="shot" data-sc="SC-07">
+              <div class="shot__frame">
+                <img src="assets/pf-landing-sc-07-desktop.svg" width="1280" height="800" alt="תצוגה מקדימה: דוחות" loading="lazy" />
+                <span class="shot__dev-id" aria-hidden="true">SC-07</span>
+              </div>
+              <figcaption>דוחות — רווחיות בלי לערבב מע״מ עם רווח</figcaption>
+            </figure>
+          </div>
+        </div>
+
+        <!-- Mobile stacked cards -->
+        <div class="tour-mobile-stack" aria-label="סיור מוצר במובייל">
+          <figure class="shot shot--mobile" data-sc="SC-08">
+            <div class="shot__frame">
+              <img src="assets/pf-landing-sc-08-mobile.svg" width="390" height="844" alt="תצוגה מקדימה: פרויקט במובייל" loading="lazy" />
+              <span class="shot__dev-id" aria-hidden="true">SC-08</span>
+            </div>
+            <figcaption>הפרויקט בטלפון — אותה מערכת מהשטח</figcaption>
+          </figure>
+          <figure class="shot shot--mobile" data-sc="SC-09">
+            <div class="shot__frame">
+              <img src="assets/pf-landing-sc-09-mobile.svg" width="390" height="844" alt="תצוגה מקדימה: הוצאה חדשה" loading="lazy" />
+              <span class="shot__dev-id" aria-hidden="true">SC-09</span>
+            </div>
+            <figcaption>הוצאה חדשה במובייל — סכום קודם, השאר אחר כך</figcaption>
+          </figure>
+          <figure class="shot" data-sc="SC-01">
+            <div class="shot__frame">
+              <img src="assets/pf-landing-sc-01-desktop.svg" width="1280" height="800" alt="תצוגה מקדימה: לוח בקרה" loading="lazy" />
+              <span class="shot__dev-id" aria-hidden="true">SC-01</span>
+            </div>
+            <figcaption>לוח הבקרה — מה דורש תשומת לב היום</figcaption>
+          </figure>
+          <figure class="shot" data-sc="SC-02">
+            <div class="shot__frame">
+              <img src="assets/pf-landing-sc-02-desktop.svg" width="1280" height="800" alt="תצוגה מקדימה: כספי פרויקט" loading="lazy" />
+              <span class="shot__dev-id" aria-hidden="true">SC-02</span>
+            </div>
+            <figcaption>כספי הפרויקט — חוזה, עלות, התחייבות וגבייה במבט אחד</figcaption>
+          </figure>
+          <figure class="shot" data-sc="SC-05">
+            <div class="shot__frame">
+              <img src="assets/pf-landing-sc-05-desktop.svg" width="1280" height="800" alt="תצוגה מקדימה: שינויים" loading="lazy" />
+              <span class="shot__dev-id" aria-hidden="true">SC-05</span>
+            </div>
+            <figcaption>שינויים — ממתין בנפרד עד לאישור</figcaption>
+          </figure>
+          <figure class="shot" data-sc="SC-06">
+            <div class="shot__frame">
+              <img src="assets/pf-landing-sc-06-desktop.svg" width="1280" height="800" alt="תצוגה מקדימה: חיובים" loading="lazy" />
+              <span class="shot__dev-id" aria-hidden="true">SC-06</span>
+            </div>
+            <figcaption>חיובים ותשלומים — יודעים מה פתוח באמת</figcaption>
+          </figure>
+        </div>
+
+        <p class="cta-inline text-center">
+          <a class="btn btn--primary" href="/he-IL/sign-up">התחילו עכשיו</a>
+        </p>
+      </div>
+    </section>
+
+    <!-- S10 Advanced -->
+    <section
+      id="advanced"
+      class="section section--white section--advanced reveal"
+      data-section-id="S10"
+      data-section-name="Advanced modules"
+      aria-labelledby="advanced-heading"
+    >
+      <div class="container">
+        <h2 id="advanced-heading" class="section__title">עמוק יותר — כשאתם מוכנים</h2>
+        <p class="section__lead">מדליקים מודולים בהגדרות. לא חובה ביום הראשון.</p>
+        <ul class="adv-grid">
+          <li class="adv-card">
+            <h3>CRM</h3>
+            <p>ממתעניין עד פרויקט.</p>
+          </li>
+          <li class="adv-card">
+            <h3>רכש</h3>
+            <p>הזמנות כהתחייבות (לא הוצאה).</p>
+          </li>
+          <li class="adv-card">
+            <h3>חשבונות ספקים</h3>
+            <p>מעקב והתאמה להזמנה/הוצאה.</p>
+          </li>
+          <li class="adv-card">
+            <h3>חומרים ומלאי</h3>
+            <p>קטלוג וכמויות (לא הנה״ח מלאי).</p>
+          </li>
+          <li class="adv-card">
+            <h3>עבודה בשטח</h3>
+            <p>יומנים, פאנץ׳, בדיקות.</p>
+          </li>
+          <li class="adv-card">
+            <h3>נכסים ותחזוקה</h3>
+            <p>ציוד ורכבים.</p>
+          </li>
+          <li class="adv-card">
+            <h3>ביטוחים וציות</h3>
+            <p>פוליסות ורישיונות עם תאריכי פקיעה.</p>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- S11 Mobile / PWA -->
+    <section
+      id="mobile-app"
+      class="section section--stone reveal"
+      data-section-id="S11"
+      data-section-name="Mobile installable app"
+      aria-labelledby="mobile-heading"
+    >
+      <div class="container">
+        <div class="split">
+          <div>
+            <h2 id="mobile-heading" class="section__title">מהמשרד ומהשטח — באותה מערכת</h2>
+            <p class="section__lead">
+              אותה מערכת בדסקטופ ובטלפון. במובייל: לוח בקרה, פרויקטים והוצאות בהישג יד.
+            </p>
+            <div class="install-note" id="install-info">
+              <h3>התקינו את <span class="ltr">ProjectFlow</span> כאפליקציה</h3>
+              <p>
+                מהדפדפן — מסך בית או אייקון בשולחן העבודה.
+                באנדרואיד (כשנתמך): התקנה ישירה מהדפדפן.
+                ב־iOS: שיתוף → הוספה למסך הבית.
+              </p>
+              <p><strong>זו לא אפליקציה מחנות App Store / Google Play.</strong></p>
+            </div>
+            <div class="btn-group">
+              <a class="btn btn--primary" href="/he-IL/sign-up">התחילו עכשיו</a>
+              <a class="btn btn--secondary" href="#install-info">התקינו את ProjectFlow כאפליקציה</a>
+            </div>
+          </div>
+          <div class="phone-pair">
+            <figure class="shot shot--mobile" data-sc="SC-08">
+              <div class="shot__frame">
+                <img src="assets/pf-landing-sc-08-mobile.svg" width="390" height="844" alt="תצוגה מקדימה: פרויקט במובייל" loading="lazy" />
+                <span class="shot__dev-id" aria-hidden="true">SC-08</span>
+              </div>
+              <figcaption>הפרויקט בטלפון</figcaption>
+            </figure>
+            <figure class="shot shot--mobile" data-sc="SC-10">
+              <div class="shot__frame">
+                <img src="assets/pf-landing-sc-10-mobile.svg" width="390" height="844" alt="תצוגה מקדימה: התקנה כאפליקציה" loading="lazy" />
+                <span class="shot__dev-id" aria-hidden="true">SC-10</span>
+              </div>
+              <figcaption>התקינו כאפליקציה — מהדפדפן, לא מהחנות</figcaption>
+            </figure>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- S12 Team / permissions -->
+    <section
+      id="team"
+      class="section section--white reveal"
+      data-section-id="S12"
+      data-section-name="Team permissions"
+      aria-labelledby="team-heading"
+    >
+      <div class="container">
+        <div class="team-block">
+          <svg class="team-icon" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <circle cx="18" cy="16" r="6"/>
+            <circle cx="32" cy="18" r="5"/>
+            <path d="M6 38c2-7 6-10 12-10s10 3 12 10"/>
+            <path d="M28 30c4-1 7-.5 10 4"/>
+          </svg>
+          <h2 id="team-heading" class="section__title">כל אחד רואה מה שמותר לו</h2>
+          <p class="section__lead">
+            מזמינים אנשים לתפקידים. מגדירים מי רואה פרויקטים, מי מנהל הוצאות, מי מאשר שינויים, ומי רואה רווחיות. כל עסק בסביבה נפרדת.
+          </p>
+          <figure class="shot" data-sc="SC-11" style="max-width: 640px; margin-inline: auto;">
+            <div class="shot__frame">
+              <img src="assets/pf-landing-sc-11-desktop.svg" width="1280" height="800" alt="תצוגה מקדימה: אנשים ותפקידים" loading="lazy" />
+              <span class="shot__dev-id" aria-hidden="true">SC-11</span>
+            </div>
+            <figcaption>צוות עם הרשאות — כל אחד רואה מה שמותר לו</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <!-- S13 Who it is for -->
+    <section
+      id="audience"
+      class="section section--stone reveal"
+      data-section-id="S13"
+      data-section-name="Who it is for"
+      aria-labelledby="audience-heading"
+    >
+      <div class="container">
+        <h2 id="audience-heading" class="section__title">לעסקים שחיים מפרויקטים — לא רק לקבלן ראשי</h2>
+        <ul class="chip-list">
+          <li class="chip">קבלנים וקבלני משנה</li>
+          <li class="chip">חשמלאים, מיזוג, אינסטלציה וגמר</li>
+          <li class="chip">אדריכלים ומעצבי פנים</li>
+          <li class="chip">מהנדסים ויועצים</li>
+          <li class="chip">מפקחים ומנהלי פרויקטים</li>
+          <li class="chip">עסקי שירות מבוססי פרויקט</li>
+        </ul>
+        <p class="section__note">
+          מתחילים פשוט — פרויקט, חוזה, הוצאות, חיובים ורווחיות — ומרחיבים כשצריך.
+        </p>
+      </div>
+    </section>
+
+    <!-- S14 FAQ -->
+    <section
+      id="faq"
+      class="section section--white reveal"
+      data-section-id="S14"
+      data-section-name="FAQ"
+      aria-labelledby="faq-heading"
+    >
+      <div class="container">
+        <div class="faq">
+          <h2 id="faq-heading" class="section__title text-center" style="margin-inline: auto;">שאלות נפוצות</h2>
+          <ul class="faq-list">
+            <li class="faq-item">
+              <button type="button" class="faq-item__trigger">
+                האם זו הנהלת חשבונות?
+                <span class="faq-item__icon" aria-hidden="true">+</span>
+              </button>
+              <div class="faq-item__panel">
+                לא. <span class="ltr">ProjectFlow</span> מנהלת את האמת העסקית של הפרויקט — חוזים, עלויות, שינויים, חיובים ותשלומים. רואה החשבון נשאר במקומו.
+              </div>
+            </li>
+            <li class="faq-item">
+              <button type="button" class="faq-item__trigger">
+                האם חייבים להשתמש בכל המודולים?
+                <span class="faq-item__icon" aria-hidden="true">+</span>
+              </button>
+              <div class="faq-item__panel">
+                לא. מדליקים רק מה שצריך. עסק קטן יכול לעבוד בפשטות.
+              </div>
+            </li>
+            <li class="faq-item">
+              <button type="button" class="faq-item__trigger">
+                למי ProjectFlow מתאימה?
+                <span class="faq-item__icon" aria-hidden="true">+</span>
+              </button>
+              <div class="faq-item__panel">
+                לעסקים מבוססי פרויקט: קבלנים, בעלי מקצוע, אדריכלים, מעצבים, יועצים ומנהלי פרויקטים — לא רק לקבלן ראשי.
+              </div>
+            </li>
+            <li class="faq-item">
+              <button type="button" class="faq-item__trigger">
+                האם אפשר לעבוד מהטלפון?
+                <span class="faq-item__icon" aria-hidden="true">+</span>
+              </button>
+              <div class="faq-item__panel">
+                כן. אותה מערכת ווב, מותאמת למובייל.
+              </div>
+            </li>
+            <li class="faq-item">
+              <button type="button" class="faq-item__trigger">
+                האם אפשר להתקין כאפליקציה?
+                <span class="faq-item__icon" aria-hidden="true">+</span>
+              </button>
+              <div class="faq-item__panel">
+                כן — מהדפדפן (מסך בית / אייקון). באנדרואיד לעיתים התקנה ישירה; ב־iOS דרך «הוסף למסך הבית». לא מחנות האפליקציות.
+              </div>
+            </li>
+            <li class="faq-item">
+              <button type="button" class="faq-item__trigger">
+                מה ההבדל בין חיוב לתשלום?
+                <span class="faq-item__icon" aria-hidden="true">+</span>
+              </button>
+              <div class="faq-item__panel">
+                חיוב = מה שנרשם כלפי הלקוח. תשלום = מה שבאמת התקבל.
+              </div>
+            </li>
+            <li class="faq-item">
+              <button type="button" class="faq-item__trigger">
+                מה ההבדל בין התחייבות להוצאה?
+                <span class="faq-item__icon" aria-hidden="true">+</span>
+              </button>
+              <div class="faq-item__panel">
+                התחייבות (למשל הזמנת רכש) = התחייבתם להוציא. הוצאה = העלות כבר קרתה.
+              </div>
+            </li>
+            <li class="faq-item">
+              <button type="button" class="faq-item__trigger">
+                האם יש OCR שקורא חשבוניות אוטומטית?
+                <span class="faq-item__icon" aria-hidden="true">+</span>
+              </button>
+              <div class="faq-item__panel">
+                לא כרגע. אפשר לצלם ולצרף מסמכים לרשומות. חילוץ אוטומטי חי עדיין אינו פעיל.
+              </div>
+            </li>
+            <li class="faq-item">
+              <button type="button" class="faq-item__trigger">
+                האם יש פורטל לקוחות?
+                <span class="faq-item__icon" aria-hidden="true">+</span>
+              </button>
+              <div class="faq-item__panel">
+                פורטל ציבורי עם התחברות ללקוח עדיין לא זמין.
+              </div>
+            </li>
+            <li class="faq-item">
+              <button type="button" class="faq-item__trigger">
+                האם יש Gantt / נתיב קריטי?
+                <span class="faq-item__icon" aria-hidden="true">+</span>
+              </button>
+              <div class="faq-item__panel">
+                יש תאריכים ואבני דרך בפרויקט — תזמון קל. לא Gantt מלא.
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- S15 Final CTA -->
+    <section
+      id="final-cta"
+      class="final-cta section"
+      data-section-id="S15"
+      data-section-name="Final CTA"
+      aria-labelledby="final-heading"
+    >
+      <div class="container">
+        <h2 id="final-heading" class="section__title">תדעו מה קורה בפרויקט — לפני שזה מאוחר מדי</h2>
+        <p class="section__lead">
+          חברו פרויקט, עלויות, שינויים, חיובים ותשלומים במקום אחד. התחילו פשוט. העמיקו כשצריך.
+        </p>
+        <div class="btn-group">
+          <a class="btn btn--on-teal btn--block" href="/he-IL/sign-up">התחילו עכשיו</a>
+          <a class="btn btn--ghost-light btn--block" href="mailto:hello@projectflow.example?subject=בקשת%20הדגמה%20ProjectFlow">בקשו הדגמה</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container site-footer__inner">
+      <a class="brand" href="#hero">
+        <span class="brand__mark" aria-hidden="true"></span>
+        <span class="brand__name">ProjectFlow</span>
+      </a>
+      <p class="mt-0">אבטיפוס ויזואלי לסקירת בעלים · לא מחובר לאפליקציה</p>
+    </div>
+  </footer>
+
+  <!-- Sticky mobile CTA (off-screen until past hero; CSS + IntersectionObserver) -->
+  <div class="sticky-cta" id="sticky-cta" aria-hidden="true">
+    <a class="btn btn--primary btn--block" href="/he-IL/sign-up">התחילו עכשיו</a>
+  </div>
+
+  <!-- Owner review helper (off by default; tap or ?review=1 to show section IDs) -->
+  <button
+    type="button"
+    class="review-toggle"
+    id="review-toggle"
+    aria-pressed="false"
+    title="הצגת מזהי סקציות לסקירת בעלים"
+  >
+    Review
+  </button>
+
+  <script src="script.js" defer></script>
+</body>
+</html>
