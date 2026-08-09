@@ -4,7 +4,7 @@ import { MoneyText } from '@/components/patterns/money-text';
 import { ResponsiveTable } from '@/components/patterns/responsive-table';
 import { PageHeader } from '@/components/ui/page-header';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { getOrganizationProjectRollup } from '@/modules/financials';
+import { getOrganizationProjectRollup, getOrganizationCashFlowOutlook } from '@/modules/financials';
 import { Link } from '@/shared/i18n/navigation';
 import { withOrgContext } from '@/shared/auth/session';
 
@@ -22,7 +22,10 @@ export default async function ReportsPage() {
   const t = await getTranslations('dashboard.reports');
   const tFinancial = await getTranslations('financial');
 
-  const rollup = await withOrgContext((context) => getOrganizationProjectRollup(context));
+  const { rollup, cashFlow } = await withOrgContext(async (context) => ({
+    rollup: await getOrganizationProjectRollup(context),
+    cashFlow: await getOrganizationCashFlowOutlook(context),
+  }));
 
   return (
     <div className="flex flex-col gap-6">
@@ -49,6 +52,27 @@ export default async function ReportsPage() {
         <p className="text-sm text-[var(--pf-text-secondary)]">
           {t('excludedForeign', { count: rollup.excludedForeignCurrencyCount })}
         </p>
+      ) : null}
+
+      {cashFlow ? (
+        <section className="flex flex-col gap-3 rounded-lg border border-[var(--pf-border-default)] p-4">
+          <div>
+            <h2 className="text-sm font-semibold">{t('cashFlow.title')}</h2>
+            <p className="mt-1 text-xs text-[var(--pf-text-secondary)]">{cashFlow.note}</p>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+            {cashFlow.buckets.map((bucket) => (
+              <div key={bucket.key} className="rounded-md bg-[var(--pf-bg-muted)] p-3">
+                <p className="text-xs text-[var(--pf-text-secondary)]">
+                  {t(`cashFlow.buckets.${bucket.key}`)}
+                </p>
+                <p className="mt-1 text-base font-semibold">
+                  <MoneyText value={bucket.expectedIn} />
+                </p>
+              </div>
+            ))}
+          </div>
+        </section>
       ) : null}
 
       <ResponsiveTable

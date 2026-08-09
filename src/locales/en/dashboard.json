@@ -32,6 +32,16 @@
     "columns": {
       "project": "Project",
       "progress": "Progress"
+    },
+    "cashFlow": {
+      "title": "Expected incoming (forecast)",
+      "buckets": {
+        "overdue": "Overdue",
+        "next_7": "Next 7 days",
+        "next_30": "8–30 days",
+        "later": "Later",
+        "undated": "No due date"
+      }
     }
   }
 }
