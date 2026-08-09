@@ -22,7 +22,8 @@ test.describe('worker permission gating', () => {
     await expect(nav.getByRole('link', { name: he.nav.clients })).toHaveCount(0);
     await expect(nav.getByRole('link', { name: he.nav.vendors })).toHaveCount(0);
     await expect(nav.getByRole('link', { name: he.nav.workforce })).toHaveCount(0);
-    await expect(nav.getByRole('link', { name: he.nav.documents })).toHaveCount(0);
+    // Documents module is enabled in the e2e seed; workers keep DOCUMENTS_READ.
+    await expect(nav.getByRole('link', { name: he.nav.documents })).toBeVisible();
   });
 
   test('project workspace omits financial tabs and contract totals', async ({ page }) => {

@@ -115,7 +115,7 @@ export async function listChangeRequestsAcrossProjects(
         select qv.subtotal_amount
         from quote_versions qv
         inner join quotes q on q.id = qv.quote_id
-        where q.change_request_id = ${changeRequests.id}
+        where q.change_request_id = change_requests.id
           and qv.is_selected = true
         limit 1
       )`,
@@ -318,7 +318,7 @@ export async function listPendingChangesForProject(
         select qv.subtotal_amount
         from quote_versions qv
         inner join quotes q on q.id = qv.quote_id
-        where q.change_request_id = ${changeRequests.id}
+        where q.change_request_id = change_requests.id
           and qv.is_selected = true
         limit 1
       )`,

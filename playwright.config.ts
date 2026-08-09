@@ -38,7 +38,7 @@ export default defineConfig({
     },
     {
       name: 'desktop-he-authenticated',
-      testMatch: /authenticated\/(owner|regression)\.spec\.ts/,
+      testMatch: /authenticated\/(owner|regression|performance-verify)\.spec\.ts/,
       dependencies: ['setup-owner'],
       use: {
         ...devices['Desktop Chrome'],
@@ -70,7 +70,7 @@ export default defineConfig({
     ? undefined
     : [
         {
-          command: 'npx tsx tests/e2e/harness/server.ts',
+          command: 'node --import ./tests/e2e/harness/alias-server-only.mjs --import tsx tests/e2e/harness/server.ts',
           url: `${AUTH_URL}/health`,
           reuseExistingServer: !process.env.CI,
           timeout: 240_000,

@@ -200,3 +200,28 @@ export async function listRolePermissions(db: DbExecutor, roleId: string): Promi
 
   return rows.map((row) => row.permissionKey).filter(isPermissionKey);
 }
+
+/** Permissions for many roles in one query (settings roles page). */
+export async function listPermissionsByRoleIds(
+  db: DbExecutor,
+  roleIds: readonly string[],
+): Promise<Map<string, PermissionKey[]>> {
+  const result = new Map<string, PermissionKey[]>();
+  if (roleIds.length === 0) return result;
+
+  const rows = await db
+    .select({
+      roleId: rolePermissions.roleId,
+      permissionKey: rolePermissions.permissionKey,
+    })
+    .from(rolePermissions)
+    .where(inArray(rolePermissions.roleId, [...roleIds]));
+
+  for (const row of rows) {
+    if (!isPermissionKey(row.permissionKey)) continue;
+    const list = result.get(row.roleId) ?? [];
+    list.push(row.permissionKey);
+    result.set(row.roleId, list);
+  }
+  return result;
+}

@@ -1,7 +1,6 @@
 import type { PermissionKey } from '@/shared/permissions/catalog';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
-import type { ModuleVisibility } from '@/modules/tenancy';
-import type { OptionalModuleKey } from '@/modules/tenancy';
+import type { ModuleVisibility, OptionalModuleKey } from '@/modules/tenancy/domain/types';
 
 /**
  * Adaptive navigation model (docs 40 §4, 41, 48 U1).

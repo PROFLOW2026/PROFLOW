@@ -43,3 +43,37 @@ export type OptionalModuleKey = (typeof OPTIONAL_MODULE_KEYS)[number];
 export function isOptionalModuleKey(value: string): value is OptionalModuleKey {
   return (OPTIONAL_MODULE_KEYS as readonly string[]).includes(value);
 }
+
+/** Which optional modules appear in navigation for this organization. */
+export type ModuleVisibility = Record<OptionalModuleKey, boolean>;
+
+/**
+ * Map features-panel form tokens (`on` / `off` / `auto`) and boolean strings
+ * to the nullable preference stored for module visibility.
+ */
+export function parseModuleVisibilityMode(value: string | null | undefined): boolean | null {
+  if (value === 'auto') return null;
+  if (value === 'true' || value === 'on') return true;
+  if (value === 'false' || value === 'off') return false;
+  return null;
+}
+
+/**
+ * Pure visibility resolution (doc 41 §2, option C).
+ * Explicit owner choice wins; otherwise first real usage decides.
+ */
+export function resolveModuleVisibility(
+  preferences: readonly { moduleKey: string; enabled: boolean | null; firstUsedAt: Date | null }[],
+): ModuleVisibility {
+  const byKey = new Map(preferences.map((preference) => [preference.moduleKey, preference]));
+
+  return Object.fromEntries(
+    OPTIONAL_MODULE_KEYS.map((key) => {
+      const preference = byKey.get(key);
+      if (preference?.enabled !== null && preference?.enabled !== undefined) {
+        return [key, preference.enabled];
+      }
+      return [key, preference?.firstUsedAt != null];
+    }),
+  ) as ModuleVisibility;
+}

@@ -5,7 +5,7 @@ import { createClient } from '@/modules/clients';
 import { createExpense, finalizeExpense } from '@/modules/expenses';
 import { createProject } from '@/modules/projects';
 import { assignRole, findRoleByKey } from '@/modules/rbac';
-import { createOrganization, resolveOrgContext } from '@/modules/tenancy';
+import { createOrganization, resolveOrgContext, setModuleVisibility } from '@/modules/tenancy';
 import type { Database, Transaction } from '@/shared/db/types';
 import { OTHER_OWNER, OWNER, WORKER } from './config';
 
@@ -110,6 +110,11 @@ export async function seedWorld(db: Database): Promise<SeededWorld> {
       supplierName: 'אלקטרו ספקים',
     });
     await finalizeExpense(context, expense.id);
+
+    // Enable optional workspace tabs used by authenticated product flows / perf verification.
+    for (const moduleKey of ['changes', 'billing', 'documents'] as const) {
+      await setModuleVisibility(context, { moduleKey, enabled: true });
+    }
 
     return project.projectId;
   });

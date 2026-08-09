@@ -19,7 +19,7 @@ import {
 } from '../domain/org-cost-reconciliation';
 import {
   computeBillingPositionFromRows,
-  countOverdueBillingRecords,
+  countOverdueFromBillingRows,
   hasAnyBillingUsage,
   loadOrganizationBillingRows,
   sumInvoicedInDateRange,
@@ -166,41 +166,37 @@ export async function getHomeDashboard(context: OrgContext): Promise<HomeDashboa
   const wantMonthInvoiced = canReadFinancials && wantBilling;
   const wantMonthCosts = canReadFinancials && (wantBilling || hasExpenses);
 
-  const [
-    rollup,
-    expenseLayer,
-    billingRows,
-    overdueBillingCount,
-    invoicedThisMonth,
-    costsThisMonth,
-  ] = await Promise.all([
-    wantForecast ? getOrganizationProjectRollup(context) : Promise.resolve(null),
-    wantForecast ? collectOrgExpenseLayer(context, currency) : Promise.resolve(null),
-    wantBilling
-      ? loadOrganizationBillingRows(context.db, context.organizationId)
-      : Promise.resolve(null),
-    wantBilling
-      ? countOverdueBillingRecords(context.db, context.organizationId, today)
-      : Promise.resolve(0),
-    wantMonthInvoiced
-      ? sumInvoicedInDateRange(
-          context.db,
-          context.organizationId,
-          currency,
-          monthStart,
-          monthEnd,
-        )
-      : Promise.resolve(null),
-    wantMonthCosts
-      ? sumOrganizationCostsInDateRange(
-          context.db,
-          context.organizationId,
-          currency,
-          monthStart,
-          monthEnd,
-        )
-      : Promise.resolve(null),
-  ]);
+  const [rollup, expenseLayer, billingRows, invoicedThisMonth, costsThisMonth] =
+    await Promise.all([
+      wantForecast ? getOrganizationProjectRollup(context) : Promise.resolve(null),
+      wantForecast ? collectOrgExpenseLayer(context, currency) : Promise.resolve(null),
+      wantBilling
+        ? loadOrganizationBillingRows(context.db, context.organizationId)
+        : Promise.resolve(null),
+      wantMonthInvoiced
+        ? sumInvoicedInDateRange(
+            context.db,
+            context.organizationId,
+            currency,
+            monthStart,
+            monthEnd,
+          )
+        : Promise.resolve(null),
+      wantMonthCosts
+        ? sumOrganizationCostsInDateRange(
+            context.db,
+            context.organizationId,
+            currency,
+            monthStart,
+            monthEnd,
+          )
+        : Promise.resolve(null),
+    ]);
+
+  // Derive overdue from the billing rows already loaded — avoid a second full org load.
+  const overdueBillingCount = billingRows
+    ? countOverdueFromBillingRows(billingRows, today)
+    : 0;
 
   const costCoverageBundle = expenseLayer?.coverage ?? null;
   const unallocatedBusinessCosts = expenseLayer?.unallocatedBusinessCosts ?? null;

@@ -12,9 +12,9 @@ interface ProjectFinancialsPageProps {
   params: Promise<{ projectId: string; locale: string }>;
 }
 
-/** Dedupes metadata + page detail fetch within one request. */
+/** Dedupes metadata + page detail fetch; chrome-only (no structure rows). */
 const loadProjectDetail = cache(async (projectId: string) =>
-  withOrgContext((context) => getProjectDetail(context, projectId)),
+  withOrgContext((context) => getProjectDetail(context, projectId, { includeStructure: false })),
 );
 
 export async function generateMetadata({ params }: ProjectFinancialsPageProps): Promise<Metadata> {

@@ -1,6 +1,7 @@
 'use client';
 
 import { Camera, FileText, Upload } from 'lucide-react';
+import dynamic from 'next/dynamic';
 import { useTranslations } from 'next-intl';
 import { useRouter } from '@/shared/i18n/navigation';
 import { useRef, useState, useTransition } from 'react';
@@ -30,7 +31,11 @@ import {
   softDeleteDocumentAction,
   unlinkDocumentAction,
 } from '../application/document-actions';
-import { DocumentPreviewDialog } from './document-preview-dialog';
+
+const DocumentPreviewDialog = dynamic(
+  () => import('./document-preview-dialog').then((mod) => mod.DocumentPreviewDialog),
+  { ssr: false },
+);
 
 export interface DocumentAttachmentsProps {
   /** Closed enum — which entity owns these attachments. */

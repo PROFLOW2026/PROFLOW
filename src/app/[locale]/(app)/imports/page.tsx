@@ -6,7 +6,7 @@ import {
   assertCanAccessImports,
   listImportableKinds,
 } from '@/modules/imports';
-import { ImportWizard } from '@/modules/imports/ui/import-wizard';
+import { ImportWizardLazy } from '@/modules/imports/ui/import-wizard-lazy';
 import { withOrgContext } from '@/shared/auth/session';
 import { AuthorizationError } from '@/shared/errors';
 
@@ -42,7 +42,7 @@ export default async function ImportsPage() {
       {!data.allowed ? (
         <Alert tone="warning">{t('notAllowed')}</Alert>
       ) : (
-        <ImportWizard allowedKinds={data.kinds} />
+        <ImportWizardLazy allowedKinds={data.kinds} />
       )}
     </div>
   );

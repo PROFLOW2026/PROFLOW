@@ -4,6 +4,7 @@ export {
   loadEffectivePermissions,
   listOrganizationRoles,
   listRolePermissions,
+  listPermissionsByRoleIds,
   findRoleByKey,
   assignRole,
   ensureRoleAssigned,

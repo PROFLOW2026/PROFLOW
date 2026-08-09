@@ -3,7 +3,7 @@ import { getLocale, getTranslations } from 'next-intl/server';
 import { Alert } from '@/components/ui/alert';
 import { PageHeader } from '@/components/ui/page-header';
 import { listOcrCandidates, getOcrProviderStatus } from '@/modules/ocr';
-import { OcrReviewPanel } from '@/modules/ocr/ui';
+import { OcrReviewPanelLazy } from '@/modules/ocr/ui/ocr-review-panel-lazy';
 import { withOrgContext } from '@/shared/auth/session';
 import { AuthorizationError } from '@/shared/errors';
 import { hasPermission } from '@/shared/permissions/assert';
@@ -73,7 +73,7 @@ export default async function OcrReviewPage() {
       {!data.allowed ? (
         <Alert tone="warning">{tOcr('notAllowed')}</Alert>
       ) : (
-        <OcrReviewPanel
+        <OcrReviewPanelLazy
           initialStatus={data.status}
           initialJobs={data.jobs}
           canManageDocuments={data.canManageDocuments}

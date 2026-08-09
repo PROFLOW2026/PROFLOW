@@ -8,7 +8,11 @@ import {
   markModuleUsed,
   setModulePreference,
 } from '../data/organizations.repository';
-import { OPTIONAL_MODULE_KEYS, type OptionalModuleKey } from '../domain/types';
+import {
+  resolveModuleVisibility,
+  type ModuleVisibility,
+  type OptionalModuleKey,
+} from '../domain/types';
 
 /**
  * Adaptive navigation (doc 41 §2, option C).
@@ -18,24 +22,8 @@ import { OPTIONAL_MODULE_KEYS, type OptionalModuleKey } from '../domain/types';
  * nothing is deleted and no existing record becomes unreachable.
  */
 
-export type ModuleVisibility = Record<OptionalModuleKey, boolean>;
-
-export function resolveModuleVisibility(
-  preferences: readonly { moduleKey: string; enabled: boolean | null; firstUsedAt: Date | null }[],
-): ModuleVisibility {
-  const byKey = new Map(preferences.map((preference) => [preference.moduleKey, preference]));
-
-  return Object.fromEntries(
-    OPTIONAL_MODULE_KEYS.map((key) => {
-      const preference = byKey.get(key);
-      // Explicit owner choice always wins; otherwise usage decides.
-      if (preference?.enabled !== null && preference?.enabled !== undefined) {
-        return [key, preference.enabled];
-      }
-      return [key, preference?.firstUsedAt != null];
-    }),
-  ) as ModuleVisibility;
-}
+export type { ModuleVisibility } from '../domain/types';
+export { resolveModuleVisibility } from '../domain/types';
 
 export async function getModuleVisibility(context: OrgContext): Promise<ModuleVisibility> {
   const preferences = await listModulePreferences(context.db, context.organizationId);

@@ -193,3 +193,251 @@ export async function loadRecognizedVendorBillsForProject(
     billCount: billAmounts.length,
   };
 }
+
+export type ProjectMoneyRollup = {
+  readonly total: MoneyValue;
+  readonly excludedForeignCurrencyCount: number;
+};
+
+export type ProjectApPayableRollup = ProjectMoneyRollup & {
+  readonly billCount: number;
+};
+
+/**
+ * Open committed costs for many projects — one query, grouped in memory.
+ */
+export async function sumOpenCommittedCostsForProjects(
+  db: DbExecutor,
+  organizationId: string,
+  projectIds: readonly string[],
+  currency: string,
+): Promise<Map<string, ProjectMoneyRollup>> {
+  const result = new Map<string, ProjectMoneyRollup>();
+  if (projectIds.length === 0) return result;
+
+  const normalized = currency.toUpperCase();
+  const rows = await db
+    .select({
+      projectId: committedCosts.projectId,
+      amount: committedCosts.amount,
+      currency: committedCosts.currency,
+    })
+    .from(committedCosts)
+    .where(
+      and(
+        eq(committedCosts.organizationId, organizationId),
+        inArray(committedCosts.projectId, [...projectIds]),
+        inArray(committedCosts.status, [...OPEN_COMMITTED_STATUSES]),
+      ),
+    );
+
+  const totals = new Map<string, { total: MoneyValue; excluded: number }>();
+  for (const row of rows) {
+    if (!row.projectId) continue;
+    const bucket = totals.get(row.projectId) ?? {
+      total: zeroMoney(normalized),
+      excluded: 0,
+    };
+    if (row.currency.toUpperCase() !== normalized) {
+      bucket.excluded += 1;
+      totals.set(row.projectId, bucket);
+      continue;
+    }
+    const amount = fromNumericString(row.amount, row.currency);
+    if (amount) bucket.total = addMoney(bucket.total, amount);
+    totals.set(row.projectId, bucket);
+  }
+
+  for (const [projectId, bucket] of totals) {
+    result.set(projectId, {
+      total: roundMoney(bucket.total),
+      excludedForeignCurrencyCount: bucket.excluded,
+    });
+  }
+  return result;
+}
+
+/**
+ * Open AP payable for many projects — bills + one accepted-match query.
+ */
+export async function sumOpenApPayableForProjects(
+  db: DbExecutor,
+  organizationId: string,
+  projectIds: readonly string[],
+  currency: string,
+): Promise<Map<string, ProjectApPayableRollup>> {
+  const result = new Map<string, ProjectApPayableRollup>();
+  if (projectIds.length === 0) return result;
+
+  const normalized = currency.toUpperCase();
+  const rows = await db
+    .select({
+      id: apBills.id,
+      projectId: apBills.projectId,
+      status: apBills.status,
+      totalAmount: apBills.totalAmount,
+      currency: apBills.currency,
+    })
+    .from(apBills)
+    .where(
+      and(
+        eq(apBills.organizationId, organizationId),
+        inArray(apBills.projectId, [...projectIds]),
+        inArray(apBills.status, [...OPEN_AP_STATUSES]),
+        isNull(apBills.archivedAt),
+      ),
+    );
+
+  const acceptedByBillId = await listAcceptedMatchAmountsForBills(
+    db,
+    organizationId,
+    rows.map((row) => row.id),
+  );
+
+  const buckets = new Map<
+    string,
+    { total: MoneyValue; excluded: number; billCount: number }
+  >();
+  for (const row of rows) {
+    if (!row.projectId) continue;
+    const bucket = buckets.get(row.projectId) ?? {
+      total: zeroMoney(normalized),
+      excluded: 0,
+      billCount: 0,
+    };
+    if (row.currency.toUpperCase() !== normalized) {
+      bucket.excluded += 1;
+      buckets.set(row.projectId, bucket);
+      continue;
+    }
+    const unmatched = remainingUnmatchedAmount({
+      currency: row.currency,
+      billTotal: row.totalAmount,
+      reservedMatchedAmounts: acceptedByBillId.get(row.id) ?? [],
+    });
+    bucket.total = addMoney(bucket.total, unmatched);
+    bucket.billCount += 1;
+    buckets.set(row.projectId, bucket);
+  }
+
+  for (const [projectId, bucket] of buckets) {
+    result.set(projectId, {
+      total: roundMoney(bucket.total),
+      excludedForeignCurrencyCount: bucket.excluded,
+      billCount: bucket.billCount,
+    });
+  }
+  return result;
+}
+
+/**
+ * Recognized vendor bills for many projects — bills + linked expenses in two queries.
+ */
+export async function loadRecognizedVendorBillsForProjects(
+  db: DbExecutor,
+  organizationId: string,
+  projectIds: readonly string[],
+  currency: string,
+): Promise<Map<string, RecognizedVendorBillRollup>> {
+  const result = new Map<string, RecognizedVendorBillRollup>();
+  if (projectIds.length === 0) return result;
+
+  const normalized = currency.toUpperCase();
+  const billRows = await db
+    .select({
+      id: apBills.id,
+      projectId: apBills.projectId,
+      totalAmount: apBills.totalAmount,
+      currency: apBills.currency,
+    })
+    .from(apBills)
+    .where(
+      and(
+        eq(apBills.organizationId, organizationId),
+        inArray(apBills.projectId, [...projectIds]),
+        inArray(apBills.status, [...RECOGNIZED_VENDOR_BILL_STATUSES]),
+        isNull(apBills.archivedAt),
+      ),
+    );
+
+  const billAmountsByProject = new Map<
+    string,
+    { billAmounts: string[]; total: MoneyValue; excluded: number; recognizedBillIds: string[] }
+  >();
+
+  for (const row of billRows) {
+    if (!row.projectId) continue;
+    const bucket = billAmountsByProject.get(row.projectId) ?? {
+      billAmounts: [],
+      total: zeroMoney(normalized),
+      excluded: 0,
+      recognizedBillIds: [],
+    };
+    if (row.currency.toUpperCase() !== normalized) {
+      bucket.excluded += 1;
+      billAmountsByProject.set(row.projectId, bucket);
+      continue;
+    }
+    const amount = fromNumericString(row.totalAmount, row.currency);
+    if (!amount) {
+      billAmountsByProject.set(row.projectId, bucket);
+      continue;
+    }
+    bucket.billAmounts.push(row.totalAmount);
+    bucket.total = addMoney(bucket.total, amount);
+    bucket.recognizedBillIds.push(row.id);
+    billAmountsByProject.set(row.projectId, bucket);
+  }
+
+  const allRecognizedIds = [...billAmountsByProject.values()].flatMap(
+    (bucket) => bucket.recognizedBillIds,
+  );
+
+  const linkedByBill = new Map<string, string[]>();
+  if (allRecognizedIds.length > 0) {
+    const linkedRows = await db
+      .select({
+        apBillId: apPoMatches.apBillId,
+        expenseId: apPoMatches.expenseId,
+        expenseCurrency: expenses.currency,
+      })
+      .from(apPoMatches)
+      .innerJoin(expenses, eq(expenses.id, apPoMatches.expenseId))
+      .where(
+        and(
+          eq(apPoMatches.organizationId, organizationId),
+          inArray(apPoMatches.apBillId, allRecognizedIds),
+          eq(apPoMatches.status, 'accepted'),
+          isNotNull(apPoMatches.expenseId),
+          eq(expenses.status, 'finalized'),
+          isNull(expenses.archivedAt),
+        ),
+      );
+
+    for (const row of linkedRows) {
+      if (!row.expenseId) continue;
+      if (row.expenseCurrency.toUpperCase() !== normalized) continue;
+      const list = linkedByBill.get(row.apBillId) ?? [];
+      list.push(row.expenseId);
+      linkedByBill.set(row.apBillId, list);
+    }
+  }
+
+  for (const [projectId, bucket] of billAmountsByProject) {
+    const linkedExpenseIds = new Set<string>();
+    for (const billId of bucket.recognizedBillIds) {
+      for (const expenseId of linkedByBill.get(billId) ?? []) {
+        linkedExpenseIds.add(expenseId);
+      }
+    }
+    result.set(projectId, {
+      billAmounts: bucket.billAmounts,
+      total: roundMoney(bucket.total),
+      linkedExpenseIds,
+      excludedForeignCurrencyCount: bucket.excluded,
+      billCount: bucket.billAmounts.length,
+    });
+  }
+
+  return result;
+}

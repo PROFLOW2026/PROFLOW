@@ -1,4 +1,4 @@
-import { and, desc, eq, gte, isNotNull, isNull, lte, sql } from 'drizzle-orm';
+import { and, desc, eq, gte, inArray, isNotNull, isNull, lte, sql } from 'drizzle-orm';
 import { employees, nonProjectTimeCodes, projects, timeEntries, workPackages } from '@drizzle/schema';
 import {
   ORG_LIST_EXPORT_CAP,
@@ -219,6 +219,70 @@ export async function sumProjectLaborCost(
     entriesMissingCost: row?.entriesMissingCost ?? 0,
     excludedForeignCurrencyEntries: row?.excludedForeignCurrencyEntries ?? 0,
   };
+}
+
+export interface ProjectLaborCostAggregate {
+  readonly projectId: string;
+  readonly totalAmount: string | null;
+  readonly currency: string;
+  readonly entryCount: number;
+  readonly entriesMissingCost: number;
+  readonly excludedForeignCurrencyEntries: number;
+}
+
+/**
+ * Labor cost per project in one grouped query (org rollup / set-based financials).
+ * `projectCurrency` is the org base currency — callers only include matching projects.
+ */
+export async function sumLaborCostGroupedByProject(
+  db: DbExecutor,
+  organizationId: string,
+  projectIds: readonly string[],
+  projectCurrency: string,
+): Promise<Map<string, ProjectLaborCostAggregate>> {
+  const result = new Map<string, ProjectLaborCostAggregate>();
+  if (projectIds.length === 0) return result;
+
+  const rows = await db
+    .select({
+      projectId: timeEntries.projectId,
+      totalAmount: sql<string | null>`coalesce(
+        sum(${timeEntries.costAmount}) filter (
+          where upper(${timeEntries.costCurrency}) = upper(${projectCurrency})
+        ),
+        0
+      )::text`,
+      entryCount: sql<number>`count(*)::int`,
+      entriesMissingCost: sql<number>`count(*) filter (where ${timeEntries.costAmount} is null)::int`,
+      excludedForeignCurrencyEntries: sql<number>`count(*) filter (
+        where ${timeEntries.costAmount} is not null
+          and upper(${timeEntries.costCurrency}) <> upper(${projectCurrency})
+      )::int`,
+    })
+    .from(timeEntries)
+    .where(
+      and(
+        eq(timeEntries.organizationId, organizationId),
+        inArray(timeEntries.projectId, [...projectIds]),
+        eq(timeEntries.kind, 'project'),
+        isNull(timeEntries.archivedAt),
+      ),
+    )
+    .groupBy(timeEntries.projectId);
+
+  const currency = projectCurrency.toUpperCase();
+  for (const row of rows) {
+    if (!row.projectId) continue;
+    result.set(row.projectId, {
+      projectId: row.projectId,
+      totalAmount: row.totalAmount,
+      currency,
+      entryCount: row.entryCount,
+      entriesMissingCost: row.entriesMissingCost,
+      excludedForeignCurrencyEntries: row.excludedForeignCurrencyEntries,
+    });
+  }
+  return result;
 }
 
 /** Org-wide project labor coverage flags for home dashboard (single query). */

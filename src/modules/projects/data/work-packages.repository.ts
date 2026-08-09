@@ -1,4 +1,4 @@
-import { and, asc, eq, inArray, isNull } from 'drizzle-orm';
+import { and, asc, eq, inArray, isNull, sql } from 'drizzle-orm';
 import { workPackages } from '@drizzle/schema';
 import type { DbExecutor } from '@/shared/db/types';
 import type { WorkPackageRecord } from '../domain/types';
@@ -69,6 +69,26 @@ export async function listWorkPackagesByProject(
     .orderBy(asc(workPackages.sortOrder), asc(workPackages.name));
 
   return rows.map(mapWorkPackage);
+}
+
+/** Active (non-archived) package count — for workspace chrome without loading rows. */
+export async function countActiveWorkPackagesByProject(
+  db: DbExecutor,
+  organizationId: string,
+  projectId: string,
+): Promise<number> {
+  const [row] = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(workPackages)
+    .where(
+      and(
+        eq(workPackages.organizationId, organizationId),
+        eq(workPackages.projectId, projectId),
+        isNull(workPackages.archivedAt),
+      ),
+    );
+
+  return row?.count ?? 0;
 }
 
 /** Org-scoped work packages for multiple projects in one query (field-ops forms). */

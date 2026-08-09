@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { withOrgContext } from '@/shared/auth/session';
-import { OfflineDraftsPanel } from '@/modules/offline/ui/offline-drafts-panel';
+import { OfflineDraftsPanelLazy } from '@/modules/offline/ui/offline-drafts-panel-lazy';
 import { SettingsPageShell, settingsMetadata } from '../settings-shell';
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -14,7 +14,7 @@ export default async function OfflineDraftsSettingsPage() {
 
   return (
     <SettingsPageShell title={t('page.title')} description={t('page.subtitle')}>
-      <OfflineDraftsPanel organizationId={organizationId} />
+      <OfflineDraftsPanelLazy organizationId={organizationId} />
     </SettingsPageShell>
   );
 }

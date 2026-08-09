@@ -6,7 +6,8 @@ const withNextIntl = createNextIntlPlugin('./src/shared/i18n/request.ts');
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
-  serverExternalPackages: ['postgres'],
+  // exceljs is large and export/import only — keep it out of the client graph.
+  serverExternalPackages: ['postgres', 'exceljs'],
   typedRoutes: false,
   // package-lock.json lives beside this file, not at the drive root Next infers.
   turbopack: { root: import.meta.dirname },

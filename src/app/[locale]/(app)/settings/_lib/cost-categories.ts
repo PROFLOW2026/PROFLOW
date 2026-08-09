@@ -1,3 +1,5 @@
+import 'server-only';
+
 import { and, eq, isNull } from 'drizzle-orm';
 import { costCategories } from '@drizzle/schema';
 import { AUDIT_ACTIONS, recordAuditEvent } from '@/shared/audit';
@@ -6,20 +8,15 @@ import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import type { OrgContext } from '@/shared/auth/context';
 import type { AllocationMethod, CategoryPeriodBehavior, CostFamily } from '@/modules/expenses';
-import { CATEGORY_PERIOD_BEHAVIORS } from '@/modules/expenses';
 import { z } from 'zod';
+import type { CostCategoryRow } from './cost-category-options';
 
-export interface CostCategoryRow {
-  readonly id: string;
-  readonly key: string;
-  readonly name: string;
-  readonly family: CostFamily;
-  readonly isSystem: boolean;
-  readonly sortOrder: number;
-  readonly archivedAt: Date | null;
-  readonly defaultAllocationMethod: AllocationMethod | null;
-  readonly defaultPeriodBehavior: CategoryPeriodBehavior | null;
-}
+export type { CostCategoryRow } from './cost-category-options';
+export {
+  ALLOCATION_METHODS,
+  COST_FAMILIES,
+  PERIOD_BEHAVIORS,
+} from './cost-category-options';
 
 const costFamilySchema = z.enum(['direct_project', 'shared', 'business_overhead', 'asset_capital']);
 
@@ -314,20 +311,3 @@ export async function setCostCategoryDefaultAllocationMethod(
   });
 }
 
-export const COST_FAMILIES: readonly CostFamily[] = [
-  'direct_project',
-  'shared',
-  'business_overhead',
-  'asset_capital',
-];
-
-export const ALLOCATION_METHODS: readonly AllocationMethod[] = [
-  'manual_amount',
-  'manual_percent',
-  'contract_weight',
-  'labor_hours_weight',
-  'direct_cost_weight',
-  'equal_split',
-];
-
-export const PERIOD_BEHAVIORS: readonly CategoryPeriodBehavior[] = CATEGORY_PERIOD_BEHAVIORS;

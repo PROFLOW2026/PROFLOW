@@ -5,8 +5,11 @@ import { useTranslations } from 'next-intl';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { OPTIONAL_MODULE_KEYS, type OptionalModuleKey } from '@/modules/tenancy/domain/types';
-import type { ModuleVisibility } from '@/modules/tenancy/application/module-visibility';
+import {
+  OPTIONAL_MODULE_KEYS,
+  type ModuleVisibility,
+  type OptionalModuleKey,
+} from '@/modules/tenancy/domain/types';
 import { setModuleVisibilityAction, type SettingsActionState } from '../actions';
 
 type VisibilityMode = 'auto' | 'on' | 'off';

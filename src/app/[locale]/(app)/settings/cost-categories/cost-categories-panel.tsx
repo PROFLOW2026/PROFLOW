@@ -16,12 +16,12 @@ import {
   setCostCategoryPolicyAction,
   type SettingsActionState,
 } from '../actions';
-import type { CostCategoryRow } from '../_lib/cost-categories';
 import {
   ALLOCATION_METHODS,
   COST_FAMILIES,
   PERIOD_BEHAVIORS,
-} from '../_lib/cost-categories';
+  type CostCategoryRow,
+} from '../_lib/cost-category-options';
 
 const NONE_VALUE = '__none__';
 

@@ -1,3 +1,5 @@
+import 'server-only';
+
 import { eq } from 'drizzle-orm';
 import { organizationModulePreferences } from '@drizzle/schema';
 import type { OrgContext } from '@/shared/auth/context';

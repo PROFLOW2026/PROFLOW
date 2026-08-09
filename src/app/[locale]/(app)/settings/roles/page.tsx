@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { Card } from '@/components/ui/card';
-import { listOrganizationRoles, listRolePermissions } from '@/modules/rbac';
+import { listOrganizationRoles, listPermissionsByRoleIds } from '@/modules/rbac';
 import type { PermissionKey } from '@/shared/permissions/catalog';
 import { withOrgContext } from '@/shared/auth/session';
 import { canAccessSection, SETTINGS_SECTIONS } from '../_lib/access';
@@ -21,10 +21,13 @@ export default async function RolesSettingsPage() {
     if (!canAccessSection(context, section)) return { allowed: false as const };
 
     const roles = await listOrganizationRoles(context.db, context.organizationId);
+    const byRoleId = await listPermissionsByRoleIds(
+      context.db,
+      roles.map((role) => role.id),
+    );
     const rolePermissions: Record<string, PermissionKey[]> = {};
-
     for (const role of roles) {
-      rolePermissions[role.key] = await listRolePermissions(context.db, role.id);
+      rolePermissions[role.key] = byRoleId.get(role.id) ?? [];
     }
 
     return { allowed: true as const, rolePermissions };

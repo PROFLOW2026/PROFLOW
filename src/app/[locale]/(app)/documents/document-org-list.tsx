@@ -1,6 +1,7 @@
 'use client';
 
 import { FileText } from 'lucide-react';
+import dynamic from 'next/dynamic';
 import { useTranslations } from 'next-intl';
 import { useRouter } from '@/shared/i18n/navigation';
 import { useState } from 'react';
@@ -17,7 +18,12 @@ import {
   downloadDocumentAction,
   softDeleteDocumentAction,
 } from '@/modules/documents/application/document-actions';
-import { DocumentPreviewDialog } from '@/modules/documents/ui/document-preview-dialog';
+
+const DocumentPreviewDialog = dynamic(
+  () =>
+    import('@/modules/documents/ui/document-preview-dialog').then((mod) => mod.DocumentPreviewDialog),
+  { ssr: false },
+);
 
 function documentStatusShape(status: string): 'pending' | 'active' | 'void' {
   if (status === 'pending') return 'pending';

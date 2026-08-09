@@ -95,6 +95,107 @@ export async function loadOrganizationBillingRows(
   return mapBillingRecords(db, organizationId, records);
 }
 
+/**
+ * Billing rows grouped by project for set-based org rollup (2 queries total).
+ */
+export async function loadBillingRowsGroupedByProject(
+  db: DbExecutor,
+  organizationId: string,
+  projectIds: readonly string[],
+): Promise<Map<string, ProjectBillingRows>> {
+  const result = new Map<string, ProjectBillingRows>();
+  if (projectIds.length === 0) return result;
+
+  const records = await db
+    .select()
+    .from(billingRecords)
+    .where(
+      and(
+        eq(billingRecords.organizationId, organizationId),
+        inArray(billingRecords.projectId, [...projectIds]),
+        isNull(billingRecords.archivedAt),
+      ),
+    );
+
+  const byProject = new Map<string, (typeof billingRecords.$inferSelect)[]>();
+  for (const record of records) {
+    if (!record.projectId) continue;
+    const list = byProject.get(record.projectId) ?? [];
+    list.push(record);
+    byProject.set(record.projectId, list);
+  }
+
+  // One payments query for all record ids, then split per project.
+  const allRecordIds = records.map((record) => record.id);
+  const paymentRows =
+    allRecordIds.length === 0
+      ? []
+      : await db
+          .select()
+          .from(payments)
+          .where(
+            and(
+              eq(payments.organizationId, organizationId),
+              inArray(payments.billingRecordId, allRecordIds),
+            ),
+          );
+
+  const paymentsByRecord = new Map<string, PaymentAmountInput[]>();
+  for (const payment of paymentRows) {
+    const amount = fromNumericString(payment.amount, payment.currency);
+    if (!amount) continue;
+    const list = paymentsByRecord.get(payment.billingRecordId) ?? [];
+    list.push({ amount, status: payment.status });
+    paymentsByRecord.set(payment.billingRecordId, list);
+  }
+
+  for (const [projectId, projectRecords] of byProject) {
+    if (projectRecords.length === 0) continue;
+    const currency = projectRecords[0]!.currency;
+    result.set(projectId, {
+      currency,
+      records: projectRecords.map((record) => ({
+        id: record.id,
+        dueDate: record.dueDate ? businessDate(record.dueDate) : null,
+        kind: record.kind,
+        status: record.status,
+        totalAmount: fromNumericString(record.totalAmount, record.currency)!,
+        payments: paymentsByRecord.get(record.id) ?? [],
+      })),
+    });
+  }
+
+  return result;
+}
+
+/** Count overdue invoices from already-loaded billing rows (avoids a second full load). */
+export function countOverdueFromBillingRows(
+  rows: ProjectBillingRows,
+  today: BusinessDate,
+): number {
+  let overdueCount = 0;
+  for (const record of rows.records) {
+    if (record.status === 'draft' || record.status === 'void' || !record.dueDate) continue;
+
+    const paid = sumPaidAmountsForRecord(
+      record.status,
+      record.payments,
+      rows.currency || record.totalAmount.currency,
+    );
+    const outstanding = recordOutstanding(
+      record.totalAmount,
+      paid,
+      record.kind,
+      record.status,
+    );
+
+    if (isOverdueOn(outstanding, record.dueDate, today)) {
+      overdueCount += 1;
+    }
+  }
+  return overdueCount;
+}
+
 export function computeBillingPositionFromRows(
   rows: ProjectBillingRows,
   currency: string,
@@ -137,29 +238,7 @@ export async function countOverdueBillingRecords(
   today: BusinessDate,
 ): Promise<number> {
   const rows = await loadOrganizationBillingRows(db, organizationId);
-
-  let overdueCount = 0;
-  for (const record of rows.records) {
-    if (record.status === 'draft' || record.status === 'void' || !record.dueDate) continue;
-
-    const paid = sumPaidAmountsForRecord(
-      record.status,
-      record.payments,
-      rows.currency || record.totalAmount.currency,
-    );
-    const outstanding = recordOutstanding(
-      record.totalAmount,
-      paid,
-      record.kind,
-      record.status,
-    );
-
-    if (isOverdueOn(outstanding, record.dueDate, today)) {
-      overdueCount += 1;
-    }
-  }
-
-  return overdueCount;
+  return countOverdueFromBillingRows(rows, today);
 }
 
 export async function hasAnyBillingUsage(

@@ -1,3 +1,5 @@
+import 'server-only';
+
 import ExcelJS from 'exceljs';
 import type { Locale } from '@/shared/i18n/config';
 import { isRtl } from '@/shared/i18n/config';

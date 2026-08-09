@@ -45,12 +45,23 @@ export async function getOrganizationCashFlowOutlook(
   const asOf = todayInTimeZone(context.organization.timezone);
   const currency = context.organization.baseCurrency;
 
-  const [records, paymentRows, apRows] = await Promise.all([
+  const canReadAp = hasPermission(context, PERMISSIONS.AP_READ);
+
+  const [records, paymentRows, apBundle] = await Promise.all([
     listBillingRecords(context, { filter: 'all', limit: ORG_LIST_EXPORT_CAP }),
     loadCashFlowPayments(context.db, context.organizationId),
-    hasPermission(context, PERMISSIONS.AP_READ)
-      ? listApBills(context.db, context.organizationId, { limit: ORG_LIST_EXPORT_CAP })
-      : Promise.resolve([]),
+    canReadAp
+      ? listApBills(context.db, context.organizationId, {
+          limit: ORG_LIST_EXPORT_CAP,
+        }).then(async (apRows) => {
+          const acceptedByBillId = await listAcceptedMatchAmountsForBills(
+            context.db,
+            context.organizationId,
+            apRows.map((row) => row.id),
+          );
+          return { apRows, acceptedByBillId };
+        })
+      : Promise.resolve(null),
   ]);
 
   const outstandingRecords = records.filter(
@@ -60,15 +71,9 @@ export async function getOrganizationCashFlowOutlook(
 
   const payments = paymentRows.filter((row) => row.amount.currency === currency);
 
-  let openApBills: ApBillCashInput[] | undefined;
-  if (hasPermission(context, PERMISSIONS.AP_READ)) {
-    const acceptedByBillId = await listAcceptedMatchAmountsForBills(
-      context.db,
-      context.organizationId,
-      apRows.map((row) => row.id),
-    );
-    openApBills = mapApBillsForCash(apRows, acceptedByBillId, currency);
-  }
+  const openApBills = apBundle
+    ? mapApBillsForCash(apBundle.apRows, apBundle.acceptedByBillId, currency)
+    : undefined;
 
   return buildCashFlowOutlook({
     currency,

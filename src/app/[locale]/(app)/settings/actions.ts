@@ -7,6 +7,7 @@ import {
   revokeInvitation,
   setModuleVisibility,
   isOptionalModuleKey,
+  parseModuleVisibilityMode,
   applyOrganizationProfessionPreset,
   createServiceDomain,
   createDocumentType,
@@ -68,10 +69,7 @@ function deriveTaxRuleKey(name: string): string {
 
 function formNullableBool(formData: FormData, key: string): boolean | null {
   const value = formData.get(key);
-  if (value === 'auto') return null;
-  if (value === 'true') return true;
-  if (value === 'false') return false;
-  return null;
+  return parseModuleVisibilityMode(value == null ? null : String(value));
 }
 
 export async function applyProfessionPresetAction(

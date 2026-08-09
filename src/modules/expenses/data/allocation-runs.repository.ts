@@ -50,18 +50,16 @@ export async function supersedeOpenRunsForExpense(
     ? ['draft']
     : ['draft', 'applied'];
 
-  for (const status of statuses) {
-    await db
-      .update(allocationRuns)
-      .set({ status: 'superseded' })
-      .where(
-        and(
-          eq(allocationRuns.organizationId, organizationId),
-          eq(allocationRuns.expenseId, expenseId),
-          eq(allocationRuns.status, status),
-        ),
-      );
-  }
+  await db
+    .update(allocationRuns)
+    .set({ status: 'superseded' })
+    .where(
+      and(
+        eq(allocationRuns.organizationId, organizationId),
+        eq(allocationRuns.expenseId, expenseId),
+        inArray(allocationRuns.status, statuses),
+      ),
+    );
 }
 
 /** Supersede draft/applied runs whose slice_index is in the given set (recompute only pending). */

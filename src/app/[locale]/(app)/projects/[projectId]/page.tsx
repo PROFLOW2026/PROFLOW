@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { Suspense } from 'react';
+import { cache, Suspense } from 'react';
 import { getTranslations } from 'next-intl/server';
 import { PageHeader } from '@/components/ui/page-header';
 import { TabsContent } from '@/components/ui/tabs';
@@ -42,16 +42,32 @@ interface ProjectPageProps {
   searchParams: Promise<{ tab?: string | string[] }>;
 }
 
+/** Module panels that only need project chrome — not WP/phase/milestone rows. */
+const MODULE_PANEL_TABS = new Set<ProjectTabKey>([
+  'financials',
+  'expenses',
+  'changes',
+  'billing',
+  'time',
+  'documents',
+]);
+
 function tabFromSearchParams(raw: string | string[] | undefined): string {
   if (Array.isArray(raw)) return raw[0] ?? 'overview';
   return raw ?? 'overview';
 }
 
+/** Dedupes metadata + page detail fetch within one request (same includeStructure). */
+const loadProjectDetail = cache(async (projectId: string, includeStructure: boolean) =>
+  withOrgContext((context) => getProjectDetail(context, projectId, { includeStructure })),
+);
+
 export async function generateMetadata({ params }: ProjectPageProps): Promise<Metadata> {
   const { locale, projectId } = await params;
   const t = await getTranslations({ locale, namespace: 'projects' });
   try {
-    const detail = await withOrgContext((context) => getProjectDetail(context, projectId));
+    // Chrome-only is enough for the document title; shares cache with module tabs.
+    const detail = await loadProjectDetail(projectId, false);
     return { title: detail.project.name };
   } catch {
     return { title: t('workspace.fallbackTitle') };
@@ -59,61 +75,46 @@ export async function generateMetadata({ params }: ProjectPageProps): Promise<Me
 }
 
 export default async function ProjectPage({ params, searchParams }: ProjectPageProps) {
-  const { locale, projectId } = await params;
-  const tabParam = tabFromSearchParams((await searchParams).tab);
-  const t = await getTranslations('projects');
-  const tStatus = await getTranslations('status.project');
-  const shell = await getShellContext();
+  const [{ locale, projectId }, search, shell] = await Promise.all([
+    params,
+    searchParams,
+    getShellContext(),
+  ]);
+  const tabParam = tabFromSearchParams(search.tab);
 
-  let detail;
-  let customFields: Awaited<ReturnType<typeof listCustomFieldValuesForEntity>> = [];
-  let orgTemplates: Awaited<ReturnType<typeof listOrgProjectTemplatesForApply>> = [];
-  let phasePacks: Awaited<ReturnType<typeof listOrgPhasePacks>> = [];
-  let workPackagePacks: Awaited<ReturnType<typeof listOrgWorkPackagePacks>> = [];
-  let cloneCandidates: { id: string; name: string }[] = [];
-  let clients: { id: string; name: string }[] = [];
-
-  try {
-    const loaded = await withOrgContext(async (context) => {
-      const projectDetail = await getProjectDetail(context, projectId);
-      const [fields, templates, phases, wpPacks, projects, clientRows] = await Promise.all([
-        listCustomFieldValuesForEntity(context, 'project', projectId).catch(() => []),
-        listOrgProjectTemplatesForApply(context).catch(() => []),
-        listOrgPhasePacks(context).catch(() => []),
-        listOrgWorkPackagePacks(context).catch(() => []),
-        listProjectsForOrg(context, {}).catch(() => []),
-        listClientsForOrg(context, {}).catch(() => []),
-      ]);
-      return {
-        projectDetail,
-        fields,
-        templates,
-        phases,
-        wpPacks,
-        cloneCandidates: projects
-          .filter((row) => row.id !== projectId)
-          .map((row) => ({ id: row.id, name: row.name })),
-        clients: clientRows.map((client) => ({ id: client.id, name: client.name })),
-      };
-    });
-    detail = loaded.projectDetail;
-    customFields = loaded.fields;
-    orgTemplates = loaded.templates;
-    phasePacks = loaded.phases;
-    workPackagePacks = loaded.wpPacks;
-    cloneCandidates = loaded.cloneCandidates;
-    clients = loaded.clients;
-  } catch {
-    notFound();
-  }
+  const can = (permission: PermissionKey) => shell?.permissions.has(permission) ?? false;
+  const modules = shell?.modules;
 
   const canReadFinancials =
     (shell?.permissions.has(PERMISSIONS.PROJECT_FINANCIALS_READ) ||
       shell?.permissions.has(PERMISSIONS.CONTRACTS_READ)) ??
     false;
+  const showExpensesTab = can(PERMISSIONS.EXPENSES_READ);
+  const showChangesTab = Boolean(modules?.changes) && can(PERMISSIONS.CHANGES_READ);
+  const showBillingTab = Boolean(modules?.billing) && can(PERMISSIONS.BILLING_READ);
+  const showTimeTab = Boolean(modules?.workforce) && can(PERMISSIONS.WORKFORCE_READ);
+  const showDocumentsTab = Boolean(modules?.documents) && can(PERMISSIONS.DOCUMENTS_READ);
 
-  const can = (permission: PermissionKey) => shell?.permissions.has(permission) ?? false;
-  const modules = shell?.modules;
+  const visibleModuleTabs = new Set<string>();
+  if (canReadFinancials) visibleModuleTabs.add('financials');
+  if (showExpensesTab) visibleModuleTabs.add('expenses');
+  if (showChangesTab) visibleModuleTabs.add('changes');
+  if (showBillingTab) visibleModuleTabs.add('billing');
+  if (showTimeTab) visibleModuleTabs.add('time');
+  if (showDocumentsTab) visibleModuleTabs.add('documents');
+
+  // Unauthorized / unknown tabs fall back to overview — keep structure for that path.
+  const includeStructure = !(
+    MODULE_PANEL_TABS.has(tabParam as ProjectTabKey) && visibleModuleTabs.has(tabParam)
+  );
+
+  const [t, tStatus, detail] = await Promise.all([
+    getTranslations('projects'),
+    getTranslations('status.project'),
+    loadProjectDetail(projectId, includeStructure).catch(() => null),
+  ]);
+  if (!detail) notFound();
+
   const showWorkTab = detail.showWorkPackages;
   const uiLocale = locale === 'he-IL' ? 'he-IL' : 'en';
   const workspaceLinks = selectProjectWorkspaceLinks({
@@ -126,6 +127,7 @@ export default async function ProjectPage({ params, searchParams }: ProjectPageP
 
   const canArchive = shell?.permissions.has(PERMISSIONS.PROJECTS_ARCHIVE) ?? false;
   const canManageContract = shell?.permissions.has(PERMISSIONS.CONTRACTS_MANAGE) ?? false;
+  const canEditProjects = can(PERMISSIONS.PROJECTS_UPDATE);
   const baseCurrency =
     detail.contract?.currency ??
     detail.project.currency ??
@@ -135,12 +137,6 @@ export default async function ProjectPage({ params, searchParams }: ProjectPageP
     currencyDisplay: 'narrowSymbol',
   });
   const currencySymbol = sample.replace(/[\d\s.,\u2212+-]/g, '').trim() || '₪';
-
-  const showExpensesTab = can(PERMISSIONS.EXPENSES_READ);
-  const showChangesTab = Boolean(modules?.changes) && can(PERMISSIONS.CHANGES_READ);
-  const showBillingTab = Boolean(modules?.billing) && can(PERMISSIONS.BILLING_READ);
-  const showTimeTab = Boolean(modules?.workforce) && can(PERMISSIONS.WORKFORCE_READ);
-  const showDocumentsTab = Boolean(modules?.documents) && can(PERMISSIONS.DOCUMENTS_READ);
 
   // CORE first, then optional modules (work / time / documents) after details.
   const tabs: ProjectTabKey[] = [
@@ -158,6 +154,50 @@ export default async function ProjectPage({ params, searchParams }: ProjectPageP
   const activeTab: ProjectTabKey = tabs.includes(tabParam as ProjectTabKey)
     ? (tabParam as ProjectTabKey)
     : (tabs[0] ?? 'overview');
+
+  const needsDetailsExtras = activeTab === 'details';
+  const needsWorkExtras =
+    canEditProjects && (activeTab === 'work' || !detail.showWorkPackages);
+
+  let customFields: Awaited<ReturnType<typeof listCustomFieldValuesForEntity>> = [];
+  let orgTemplates: Awaited<ReturnType<typeof listOrgProjectTemplatesForApply>> = [];
+  let phasePacks: Awaited<ReturnType<typeof listOrgPhasePacks>> = [];
+  let workPackagePacks: Awaited<ReturnType<typeof listOrgWorkPackagePacks>> = [];
+  let cloneCandidates: { id: string; name: string }[] = [];
+  let clients: { id: string; name: string }[] = [];
+
+  if (needsDetailsExtras || needsWorkExtras) {
+    const extras = await withOrgContext(async (context) => {
+      const [fields, templates, phases, wpPacks, projects, clientRows] = await Promise.all([
+        needsDetailsExtras
+          ? listCustomFieldValuesForEntity(context, 'project', projectId).catch(() => [])
+          : Promise.resolve([]),
+        needsWorkExtras
+          ? listOrgProjectTemplatesForApply(context).catch(() => [])
+          : Promise.resolve([]),
+        needsWorkExtras ? listOrgPhasePacks(context).catch(() => []) : Promise.resolve([]),
+        needsWorkExtras ? listOrgWorkPackagePacks(context).catch(() => []) : Promise.resolve([]),
+        needsWorkExtras ? listProjectsForOrg(context, {}).catch(() => []) : Promise.resolve([]),
+        needsDetailsExtras ? listClientsForOrg(context, {}).catch(() => []) : Promise.resolve([]),
+      ]);
+      return {
+        fields,
+        templates,
+        phases,
+        wpPacks,
+        cloneCandidates: projects
+          .filter((row) => row.id !== projectId)
+          .map((row) => ({ id: row.id, name: row.name })),
+        clients: clientRows.map((client) => ({ id: client.id, name: client.name })),
+      };
+    });
+    customFields = extras.fields;
+    orgTemplates = extras.templates;
+    phasePacks = extras.phases;
+    workPackagePacks = extras.wpPacks;
+    cloneCandidates = extras.cloneCandidates;
+    clients = extras.clients;
+  }
 
   return (
     <div className="flex flex-col gap-6">
@@ -193,7 +233,7 @@ export default async function ProjectPage({ params, searchParams }: ProjectPageP
         <div className="rounded-lg border border-dashed border-[var(--pf-border-default)] p-4">
           <WorkTab
             detail={detail}
-            canEdit={can(PERMISSIONS.PROJECTS_UPDATE)}
+            canEdit={canEditProjects}
             locale={uiLocale}
             orgTemplates={orgTemplates}
             phasePacks={phasePacks}
@@ -214,7 +254,7 @@ export default async function ProjectPage({ params, searchParams }: ProjectPageP
                 detail={detail}
                 locale={locale}
                 canReadFinancials={canReadFinancials}
-                canEdit={can(PERMISSIONS.PROJECTS_UPDATE)}
+                canEdit={canEditProjects}
                 workspaceLinks={workspaceLinks}
                 organizationTimezone={shell?.organization.timezone ?? 'Asia/Jerusalem'}
               />
@@ -258,7 +298,7 @@ export default async function ProjectPage({ params, searchParams }: ProjectPageP
           <TabsContent value="work" forceMount>
             <WorkTab
               detail={detail}
-              canEdit={can(PERMISSIONS.PROJECTS_UPDATE)}
+              canEdit={canEditProjects}
               locale={uiLocale}
               orgTemplates={orgTemplates}
               phasePacks={phasePacks}

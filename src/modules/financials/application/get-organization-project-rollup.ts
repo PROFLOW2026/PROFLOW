@@ -5,10 +5,11 @@ import type { MoneyValue } from '@/shared/money';
 import { compareMoney, zeroMoney } from '@/shared/money';
 import { assertPermission, hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
-import { getProjectFinancials } from './get-project-financials';
 import { listActiveProjectIds } from '../data/projects.repository';
-
-const ROLLUP_CONCURRENCY = 8;
+import {
+  loadProjectFinancialsBatch,
+  type ProjectForecastMeta,
+} from './load-project-financials-batch';
 
 export interface ProjectRollupRow {
   readonly projectId: string;
@@ -75,28 +76,6 @@ export interface OrganizationProjectRollup {
   readonly canReadCommercial: boolean;
 }
 
-async function mapPool<T, R>(
-  items: readonly T[],
-  concurrency: number,
-  mapper: (item: T) => Promise<R>,
-): Promise<R[]> {
-  const results: R[] = new Array(items.length);
-  let next = 0;
-
-  async function worker() {
-    while (next < items.length) {
-      const index = next;
-      next += 1;
-      results[index] = await mapper(items[index]!);
-    }
-  }
-
-  if (items.length === 0) return results;
-  const workers = Array.from({ length: Math.min(concurrency, items.length) }, () => worker());
-  await Promise.all(workers);
-  return results;
-}
-
 /**
  * Org-level project comparison for reporting (docs 29, 46).
  * Never mixes currencies. Profit only when PROJECT_PROFIT_READ is held.
@@ -105,6 +84,9 @@ async function mapPool<T, R>(
  *
  * All base-currency active projects are included in financial totals.
  * Optional limit/offset only pages the returned `rows` array.
+ *
+ * Uses set-based batch loads (not per-project getProjectFinancials) while
+ * composing each row with the same financial formulas.
  */
 export async function getOrganizationProjectRollup(
   context: OrgContext,
@@ -117,18 +99,20 @@ export async function getOrganizationProjectRollup(
   const canBilling = hasPermission(context, PERMISSIONS.BILLING_READ);
   const canCommercial = hasPermission(context, PERMISSIONS.CONTRACTS_READ);
 
-  const activeIds = await listActiveProjectIds(context.db, context.organizationId);
-
-  const projectRows = await context.db
-    .select({
-      id: projects.id,
-      name: projects.name,
-      status: projects.status,
-      currency: projects.currency,
-      progressPercent: projects.progressPercent,
-    })
-    .from(projects)
-    .where(and(eq(projects.organizationId, context.organizationId), isNull(projects.archivedAt)));
+  const [activeIds, projectRows] = await Promise.all([
+    listActiveProjectIds(context.db, context.organizationId),
+    context.db
+      .select({
+        id: projects.id,
+        name: projects.name,
+        status: projects.status,
+        currency: projects.currency,
+        progressPercent: projects.progressPercent,
+        expectedRemainingCostAmount: projects.expectedRemainingCostAmount,
+      })
+      .from(projects)
+      .where(and(eq(projects.organizationId, context.organizationId), isNull(projects.archivedAt))),
+  ]);
 
   const byId = new Map(projectRows.map((row) => [row.id, row]));
   let excludedForeignCurrencyCount = 0;
@@ -136,6 +120,7 @@ export async function getOrganizationProjectRollup(
   let progressCount = 0;
 
   const eligibleIds: string[] = [];
+  const forecastByProject = new Map<string, ProjectForecastMeta>();
   for (const projectId of activeIds) {
     const meta = byId.get(projectId);
     if (!meta) continue;
@@ -145,12 +130,24 @@ export async function getOrganizationProjectRollup(
       continue;
     }
     eligibleIds.push(projectId);
+    forecastByProject.set(projectId, {
+      currency: projectCurrency,
+      expectedRemainingCostAmount: meta.expectedRemainingCostAmount,
+    });
   }
 
-  const allRows = await mapPool(eligibleIds, ROLLUP_CONCURRENCY, async (projectId) => {
+  const financialsByProject = await loadProjectFinancialsBatch(
+    context,
+    eligibleIds,
+    forecastByProject,
+  );
+
+  const allRows: ProjectRollupRow[] = [];
+  for (const projectId of eligibleIds) {
     const meta = byId.get(projectId)!;
     const projectCurrency = (meta.currency ?? currency).toUpperCase();
-    const financials = await getProjectFinancials(context, projectId);
+    const financials = financialsByProject.get(projectId);
+    if (!financials) continue;
 
     const originalContract = canCommercial
       ? (financials.commercial?.originalContractValue ?? null)
@@ -194,7 +191,7 @@ export async function getOrganizationProjectRollup(
             ? false
             : null;
 
-    return {
+    allRows.push({
       projectId,
       name: meta.name,
       status: meta.status,
@@ -222,8 +219,8 @@ export async function getOrganizationProjectRollup(
       actualMarginPercent,
       progressPercent: meta.progressPercent,
       profitable,
-    } satisfies ProjectRollupRow;
-  });
+    });
+  }
 
   for (const row of allRows) {
     if (row.progressPercent != null && row.progressPercent !== '') {

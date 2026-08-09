@@ -1,23 +1,36 @@
 'use client';
 
 import { MoreHorizontal } from 'lucide-react';
+import dynamic from 'next/dynamic';
 import { useTranslations } from 'next-intl';
 import * as React from 'react';
-import {
-  Dialog,
-  DialogBody,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { Spinner } from '@/components/ui/spinner';
 import { usePathname } from '@/shared/i18n/navigation';
 import { cn } from '@/shared/ui/cn';
 import {
   isNavItemActive,
-  partitionNavItems,
   type NavItem,
 } from './navigation';
 import { ShellNavLink } from './shell-nav-link';
+
+const MobileNavMore = dynamic(
+  () => import('./mobile-nav-more').then((mod) => mod.MobileNavMore),
+  {
+    ssr: false,
+    loading: () => (
+      <div
+        role="status"
+        aria-live="polite"
+        data-pf-mobile-nav-more-loading=""
+        className="fixed inset-0 z-60 flex items-end justify-center bg-[rgb(27_36_48/0.45)] sm:items-center"
+      >
+        <div className="flex w-full max-w-lg items-center justify-center gap-2 rounded-t-xl bg-[var(--pf-bg-elevated)] px-5 py-8 shadow-[var(--pf-shadow-lg)] sm:rounded-lg">
+          <Spinner className="size-5" />
+        </div>
+      </div>
+    ),
+  },
+);
 
 /**
  * Mobile bottom navigation (doc 62).
@@ -30,10 +43,16 @@ export function MobileNav({ items }: { items: NavItem[] }) {
   const tCommon = useTranslations('common');
   const pathname = usePathname();
   const [moreOpen, setMoreOpen] = React.useState(false);
+  /** Keep the lazy sheet mounted after first open so reopen is instant. */
+  const [moreMounted, setMoreMounted] = React.useState(false);
 
   const primary = items.filter((item) => item.primaryOnMobile).slice(0, 4);
   const overflow = items.filter((item) => !primary.includes(item));
-  const { groups, settings } = partitionNavItems(overflow);
+
+  function openMore() {
+    setMoreMounted(true);
+    setMoreOpen(true);
+  }
 
   return (
     <>
@@ -63,13 +82,17 @@ export function MobileNav({ items }: { items: NavItem[] }) {
             <li className="min-w-0 flex-1">
               <button
                 type="button"
-                onClick={() => setMoreOpen(true)}
+                onClick={openMore}
                 aria-expanded={moreOpen}
                 aria-haspopup="dialog"
                 aria-controls="pf-mobile-nav-more"
+                data-pf-mobile-nav-more=""
                 className={cn(
-                  'flex h-[var(--pf-bottomnav-height)] w-full min-w-0 flex-col items-center justify-center gap-1 px-1 text-[0.6875rem] font-medium text-[var(--pf-text-secondary)]',
+                  'flex h-[var(--pf-bottomnav-height)] w-full min-w-0 flex-col items-center justify-center gap-1 px-1 text-[0.6875rem] font-medium',
                   'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]',
+                  moreOpen
+                    ? 'text-[var(--pf-text-brand)]'
+                    : 'text-[var(--pf-text-secondary)] active:text-[var(--pf-text-primary)]',
                 )}
               >
                 <MoreHorizontal className="size-5 shrink-0" aria-hidden />
@@ -80,74 +103,14 @@ export function MobileNav({ items }: { items: NavItem[] }) {
         </ul>
       </nav>
 
-      <Dialog open={moreOpen} onOpenChange={setMoreOpen}>
-        <DialogContent
-          id="pf-mobile-nav-more"
-          closeLabel={tCommon('actions.close')}
-          aria-describedby={undefined}
-        >
-          <DialogHeader>
-            <DialogTitle>{t('more')}</DialogTitle>
-          </DialogHeader>
-          <DialogBody>
-            <div className="flex flex-col gap-4">
-              {groups.map(({ group, items: groupItems }) => (
-                <div key={group}>
-                  <p className="px-3 pb-1 text-xs font-semibold tracking-wide text-[var(--pf-text-secondary)] uppercase">
-                    {t(`moreGroups.${group}`)}
-                  </p>
-                  <ul className="flex flex-col">
-                    {groupItems.map((item) => {
-                      const active = isNavItemActive(pathname, item.href);
-                      return (
-                        <li key={item.key}>
-                          <ShellNavLink
-                            href={item.href}
-                            label={t(item.labelKey)}
-                            iconKey={item.iconKey}
-                            active={active}
-                            variant="sidebar"
-                            muteIcon
-                            onNavigate={() => setMoreOpen(false)}
-                            className="min-h-11 py-3"
-                          />
-                        </li>
-                      );
-                    })}
-                  </ul>
-                </div>
-              ))}
-
-              {settings.length > 0 ? (
-                <div>
-                  <p className="px-3 pb-1 text-xs font-semibold tracking-wide text-[var(--pf-text-secondary)] uppercase">
-                    {t('settings')}
-                  </p>
-                  <ul className="flex flex-col">
-                    {settings.map((item) => {
-                      const active = isNavItemActive(pathname, item.href);
-                      return (
-                        <li key={item.key}>
-                          <ShellNavLink
-                            href={item.href}
-                            label={t(item.labelKey)}
-                            iconKey={item.iconKey}
-                            active={active}
-                            variant="sidebar"
-                            muteIcon
-                            onNavigate={() => setMoreOpen(false)}
-                            className="min-h-11 py-3"
-                          />
-                        </li>
-                      );
-                    })}
-                  </ul>
-                </div>
-              ) : null}
-            </div>
-          </DialogBody>
-        </DialogContent>
-      </Dialog>
+      {moreMounted ? (
+        <MobileNavMore
+          open={moreOpen}
+          onOpenChange={setMoreOpen}
+          items={overflow}
+          pathname={pathname}
+        />
+      ) : null}
     </>
   );
 }

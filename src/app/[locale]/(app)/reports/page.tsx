@@ -4,7 +4,7 @@ import { PageHeader } from '@/components/ui/page-header';
 import { getOrganizationReportsAnalytics } from '@/modules/financials';
 import { ReportsAnalyticsView } from '@/modules/financials/ui';
 import { withOrgContext } from '@/shared/auth/session';
-import { ReportsExportActions } from './reports-export-actions';
+import { ReportsExportActionsLazy } from './reports-export-actions-lazy';
 
 export async function generateMetadata({
   params,
@@ -28,7 +28,7 @@ export default async function ReportsPage() {
       <PageHeader
         title={t('title')}
         description={t('description')}
-        actions={<ReportsExportActions />}
+        actions={<ReportsExportActionsLazy />}
       />
 
       <ReportsAnalyticsView analytics={analytics} />

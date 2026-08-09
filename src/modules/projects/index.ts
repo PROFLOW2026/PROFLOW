@@ -6,7 +6,7 @@ export { upsertPrimaryContractAmount } from './application/contract-amount';
 export { archiveProject } from './application/archive-project';
 export { listProjectsForOrg } from './application/list-projects';
 export { getProjectDetail } from './application/get-project-detail';
-export type { ProjectDetail } from './application/get-project-detail';
+export type { GetProjectDetailOptions, ProjectDetail } from './application/get-project-detail';
 export {
   createWorkPackage,
   updateWorkPackage,

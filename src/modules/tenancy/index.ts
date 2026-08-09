@@ -22,16 +22,19 @@ export {
   getModuleVisibility,
   setModuleVisibility,
   noteModuleUsage,
-  resolveModuleVisibility,
 } from './application/module-visibility';
-export type { ModuleVisibility } from './application/module-visibility';
 export {
   listMembershipsForUser,
   findActiveMembership,
   findOrganizationById,
 } from './data/organizations.repository';
-export { OPTIONAL_MODULE_KEYS, isOptionalModuleKey } from './domain/types';
-export type { OptionalModuleKey } from './domain/types';
+export {
+  OPTIONAL_MODULE_KEYS,
+  isOptionalModuleKey,
+  parseModuleVisibilityMode,
+  resolveModuleVisibility,
+} from './domain/types';
+export type { OptionalModuleKey, ModuleVisibility } from './domain/types';
 export { DEFAULT_COST_CATEGORIES, defaultsForCountry } from './domain/organization-defaults';
 export {
   PROFESSION_PRESET_KEYS,

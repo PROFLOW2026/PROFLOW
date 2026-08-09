@@ -6,6 +6,12 @@ import { getSupabaseUser, isSupabaseConfigured } from '@/shared/supabase/server'
 import { isDatabaseConfigured, withUserContext } from '@/shared/db/client';
 import type { OrgContext, AuthenticatedUser, OrganizationSummary } from '@/shared/auth/context';
 import {
+  getRequestOrgAuthzMemo,
+  orgAuthzMemoKey,
+  orgContextFromAuthzSnapshot,
+  toOrgAuthzSnapshot,
+} from '@/shared/auth/org-authz-memo';
+import {
   ensureProfile,
   getActiveOrganizationPreference,
   setActiveOrganizationPreference,
@@ -103,15 +109,33 @@ export async function withOrgContextFor<T>(
   return runInOrgContext(session.user.id, organizationId, fn);
 }
 
+/**
+ * Opens a fresh RLS-bound transaction for `fn`, but reuses membership /
+ * permission / organization rows already resolved earlier in this request.
+ *
+ * AppShell (`getShellContext`) and page bodies (`withOrgContext`) previously
+ * each re-ran `resolveOrgContext` (membership + org + effective permissions).
+ * That work is identical within one navigation and is safe to memoize per
+ * `(userId, organizationId, locale)` — never across requests or tenants, and
+ * never for financial payloads.
+ */
 async function runInOrgContext<T>(
   userId: string,
   organizationId: string,
   fn: (context: OrgContext) => Promise<T>,
 ): Promise<T> {
   const locale = await getLocale();
+  const memo = getRequestOrgAuthzMemo();
+  const key = orgAuthzMemoKey(userId, organizationId, locale);
 
   return withUserContext(userId, async (tx) => {
+    const cached = memo.get(key);
+    if (cached) {
+      return fn(orgContextFromAuthzSnapshot(cached, { userId, locale, db: tx }));
+    }
+
     const context = await resolveOrgContext(tx, { userId, organizationId, locale });
+    memo.set(key, toOrgAuthzSnapshot(context));
     return fn(context);
   });
 }

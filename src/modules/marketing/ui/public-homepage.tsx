@@ -1,11 +1,22 @@
+import dynamic from 'next/dynamic';
 import { getTranslations } from 'next-intl/server';
 import { Button } from '@/components/ui/button';
 import { Link } from '@/shared/i18n/navigation';
-import { LandingFaq } from './landing-faq';
 import { LandingHeader } from './landing-header';
-import { LandingInstallBlock } from './landing-install-block';
-import { ProductTour } from './product-tour';
 import { ScreenshotFrame } from './screenshot-frame';
+
+const ProductTour = dynamic(() => import('./product-tour').then((mod) => mod.ProductTour), {
+  loading: () => <div className="min-h-64" aria-hidden />,
+});
+
+const LandingInstallBlock = dynamic(
+  () => import('./landing-install-block').then((mod) => mod.LandingInstallBlock),
+  { loading: () => <div className="mt-6 min-h-24" aria-hidden /> },
+);
+
+const LandingFaq = dynamic(() => import('./landing-faq').then((mod) => mod.LandingFaq), {
+  loading: () => <div className="min-h-48" aria-hidden />,
+});
 
 /**
  * Public ProjectFlow homepage for signed-out visitors.

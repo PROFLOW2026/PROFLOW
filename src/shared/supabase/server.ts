@@ -1,4 +1,5 @@
 import 'server-only';
+import { cache } from 'react';
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 
@@ -38,8 +39,12 @@ export async function createSupabaseServerClient() {
  *
  * Always `getUser()` and never `getSession()`: only `getUser()` revalidates the
  * token with the auth server, so a tampered cookie cannot forge an identity.
+ *
+ * Wrapped in React `cache` so layout + page + metadata share one Auth round-trip
+ * per RSC request. Middleware still performs its own `getUser()` so cookies can
+ * be refreshed — that edge call cannot share this memo.
  */
-export async function getSupabaseUser() {
+export const getSupabaseUser = cache(async () => {
   if (!isSupabaseConfigured()) return null;
 
   const supabase = await createSupabaseServerClient();
@@ -50,7 +55,7 @@ export async function getSupabaseUser() {
 
   if (error) return null;
   return user;
-}
+});
 
 /**
  * Lets the app boot and render a helpful setup screen before anyone has wired
