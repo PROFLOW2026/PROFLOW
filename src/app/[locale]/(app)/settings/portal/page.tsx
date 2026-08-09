@@ -3,7 +3,8 @@ import { getTranslations } from 'next-intl/server';
 import { Card } from '@/components/ui/card';
 import { listClientsForOrg } from '@/modules/clients';
 import { listProjectsForOrg } from '@/modules/projects';
-import { listCustomerGrants } from '@/modules/portal';
+import { listCustomerGrants, listVendorGrants } from '@/modules/portal';
+import { listVendorsForOrg } from '@/modules/vendors';
 import { withOrgContext } from '@/shared/auth/session';
 import { canAccessSection, canManageSection, SETTINGS_SECTIONS } from '../_lib/access';
 import { SettingsNotAllowed } from '../settings-not-allowed';
@@ -21,17 +22,21 @@ export default async function PortalSettingsPage() {
   const data = await withOrgContext(async (context) => {
     if (!canAccessSection(context, section)) return { allowed: false as const };
 
-    const [grants, clients, projects] = await Promise.all([
+    const [customerGrants, vendorGrants, clients, projects, vendors] = await Promise.all([
       listCustomerGrants(context),
+      listVendorGrants(context),
       listClientsForOrg(context, {}).catch(() => []),
       listProjectsForOrg(context, {}).catch(() => []),
+      listVendorsForOrg(context, {}).catch(() => []),
     ]);
 
     return {
       allowed: true as const,
-      grants,
+      customerGrants,
+      vendorGrants,
       clients: clients.map((client) => ({ id: client.id, name: client.name })),
       projects: projects.map((project) => ({ id: project.id, name: project.name })),
+      vendors: vendors.map((vendor) => ({ id: vendor.id, name: vendor.name })),
       canEdit: canManageSection(context, 'portal'),
     };
   });
@@ -48,9 +53,11 @@ export default async function PortalSettingsPage() {
     <SettingsPageShell title={t('title')}>
       <Card className="p-5">
         <PortalGrantsPanel
-          grants={data.grants}
+          customerGrants={data.customerGrants}
+          vendorGrants={data.vendorGrants}
           clients={data.clients}
           projects={data.projects}
+          vendors={data.vendors}
           canEdit={data.canEdit}
         />
       </Card>

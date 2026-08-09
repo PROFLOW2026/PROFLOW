@@ -5,7 +5,8 @@
   "materialsDescription": "פריטי חומר לשימוש חוזר בשורות הזמנת רכש.",
   "nav": {
     "orders": "הזמנות רכש",
-    "materials": "חומרים"
+    "materials": "חומרים",
+    "ap": "התאמת AP"
   },
   "newOrder": "הזמנת רכש חדשה",
   "newMaterial": "הוספת חומר",

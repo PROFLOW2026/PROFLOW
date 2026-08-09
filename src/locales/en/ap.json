@@ -1,0 +1,106 @@
+{
+  "title": "Accounts payable",
+  "description": "Vendor bills are payable obligations. Matching links them to purchase orders and/or existing expenses — it never invents an expense.",
+  "newBill": "New vendor bill",
+  "empty": {
+    "bills": {
+      "title": "No vendor bills yet",
+      "body": "Record a vendor invoice, then propose matches to a PO and/or an existing expense. Accepting a match does not create an expense.",
+      "action": "New vendor bill"
+    },
+    "vendorsRequired": {
+      "title": "Add a vendor first",
+      "body": "AP bills need a vendor. Create one, then come back to record the bill.",
+      "action": "New vendor"
+    },
+    "noAccess": {
+      "title": "No access",
+      "body": "You need AP permissions to view vendor bills."
+    }
+  },
+  "list": {
+    "columns": {
+      "reference": "Reference",
+      "vendor": "Vendor",
+      "status": "Status",
+      "total": "Total",
+      "billDate": "Bill date"
+    },
+    "noReference": "Untitled bill"
+  },
+  "statuses": {
+    "draft": "Draft",
+    "open": "Open",
+    "partially_matched": "Partially matched",
+    "matched": "Matched",
+    "void": "Void"
+  },
+  "create": {
+    "title": "New vendor bill",
+    "description": "Create a payable bill. This is not an expense — matching links to PO commitment and/or existing expense actuals.",
+    "submit": "Create bill",
+    "vendorLabel": "Vendor",
+    "vendorPlaceholder": "Select vendor",
+    "projectLabel": "Project",
+    "projectNone": "No project",
+    "poLabel": "Related purchase order",
+    "poNone": "None",
+    "referenceLabel": "Reference / invoice #",
+    "billDateLabel": "Bill date",
+    "dueDateLabel": "Due date",
+    "notesLabel": "Notes",
+    "linesTitle": "Lines",
+    "addLine": "Add line",
+    "removeLine": "Remove",
+    "lineDescription": "Description",
+    "lineQuantity": "Qty",
+    "lineUnitAmount": "Unit price",
+    "lineTotal": "Line total",
+    "totalLabel": "Bill total"
+  },
+  "detail": {
+    "title": "Vendor bill",
+    "description": "Propose and accept matches to POs and existing expenses. Accept never creates an expense.",
+    "linesTitle": "Bill lines",
+    "matchesTitle": "Matches",
+    "noMatches": "No matches proposed yet.",
+    "ruleNote": "AP bill ≠ Expense"
+  },
+  "match": {
+    "proposeTitle": "Propose match",
+    "hint": "Select a purchase order and/or an existing expense. At least one target is required. Accepting will not create an expense.",
+    "propose": "Propose match",
+    "proposed": "Match proposed.",
+    "accept": "Accept",
+    "reject": "Reject",
+    "poLabel": "Purchase order",
+    "expenseLabel": "Existing expense",
+    "none": "None",
+    "amountLabel": "Matched amount",
+    "notesLabel": "Notes",
+    "poShort": "PO",
+    "expenseShort": "Expense",
+    "columns": {
+      "target": "Target",
+      "amount": "Amount",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "statuses": {
+      "proposed": "Proposed",
+      "accepted": "Accepted",
+      "rejected": "Rejected"
+    }
+  },
+  "errors": {
+    "targetRequired": "Match requires a purchase order and/or an existing expense.",
+    "expenseForbidden": "Accepting an AP match must not create an expense.",
+    "currencyMismatch": "Currencies must match the bill.",
+    "totalMismatch": "Bill total must equal the sum of line totals.",
+    "vendorMismatch": "Purchase order vendor must match the bill vendor.",
+    "billVoid": "Cannot match a void bill.",
+    "matchNotProposed": "Only proposed matches can be decided.",
+    "vendorRequired": "Select a vendor.",
+    "linesRequired": "Add at least one line with a description and amounts."
+  }
+}

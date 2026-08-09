@@ -1,0 +1,106 @@
+{
+  "title": "חשבונות ספקים",
+  "description": "חשבונות ספקים הם התחייבויות לתשלום. התאמה מקשרת אותם להזמנות רכש ו/או להוצאות קיימות — ואינה יוצרת הוצאה חדשה.",
+  "newBill": "חשבון ספק חדש",
+  "empty": {
+    "bills": {
+      "title": "עדיין אין חשבונות ספקים",
+      "body": "רשמו חשבונית ספק, ואז הציעו התאמה להזמנת רכש ו/או להוצאה קיימת. קבלת התאמה אינה יוצרת הוצאה.",
+      "action": "חשבון ספק חדש"
+    },
+    "vendorsRequired": {
+      "title": "הוסיפו ספק קודם",
+      "body": "חשבון ספק דורש ספק. צרו אחד ואז חזרו לרשום את החשבון.",
+      "action": "ספק חדש"
+    },
+    "noAccess": {
+      "title": "אין הרשאה",
+      "body": "נדרשות הרשאות AP לצפייה בחשבונות ספקים."
+    }
+  },
+  "list": {
+    "columns": {
+      "reference": "אסמכתא",
+      "vendor": "ספק",
+      "status": "סטטוס",
+      "total": "סה״כ",
+      "billDate": "תאריך חשבון"
+    },
+    "noReference": "חשבון ללא שם"
+  },
+  "statuses": {
+    "draft": "טיוטה",
+    "open": "פתוח",
+    "partially_matched": "התאמה חלקית",
+    "matched": "מותאם",
+    "void": "מבוטל"
+  },
+  "create": {
+    "title": "חשבון ספק חדש",
+    "description": "יצירת חשבון לתשלום. זה אינו הוצאה — התאמה מקשרת להתחייבות רכש ו/או להוצאה קיימת.",
+    "submit": "יצירת חשבון",
+    "vendorLabel": "ספק",
+    "vendorPlaceholder": "בחירת ספק",
+    "projectLabel": "פרויקט",
+    "projectNone": "ללא פרויקט",
+    "poLabel": "הזמנת רכש קשורה",
+    "poNone": "ללא",
+    "referenceLabel": "אסמכתא / מספר חשבונית",
+    "billDateLabel": "תאריך חשבון",
+    "dueDateLabel": "תאריך לתשלום",
+    "notesLabel": "הערות",
+    "linesTitle": "שורות",
+    "addLine": "הוספת שורה",
+    "removeLine": "הסרה",
+    "lineDescription": "תיאור",
+    "lineQuantity": "כמות",
+    "lineUnitAmount": "מחיר יחידה",
+    "lineTotal": "סה״כ שורה",
+    "totalLabel": "סה״כ חשבון"
+  },
+  "detail": {
+    "title": "חשבון ספק",
+    "description": "הציעו וקבלו התאמות להזמנות רכש ולהוצאות קיימות. קבלה לעולם אינה יוצרת הוצאה.",
+    "linesTitle": "שורות חשבון",
+    "matchesTitle": "התאמות",
+    "noMatches": "עדיין לא הוצעו התאמות.",
+    "ruleNote": "חשבון AP ≠ הוצאה"
+  },
+  "match": {
+    "proposeTitle": "הצעת התאמה",
+    "hint": "בחרו הזמנת רכש ו/או הוצאה קיימת. נדרש לפחות יעד אחד. קבלה לא תיצור הוצאה.",
+    "propose": "הצעת התאמה",
+    "proposed": "ההתאמה הוצעה.",
+    "accept": "קבלה",
+    "reject": "דחייה",
+    "poLabel": "הזמנת רכש",
+    "expenseLabel": "הוצאה קיימת",
+    "none": "ללא",
+    "amountLabel": "סכום מותאם",
+    "notesLabel": "הערות",
+    "poShort": "הזמנה",
+    "expenseShort": "הוצאה",
+    "columns": {
+      "target": "יעד",
+      "amount": "סכום",
+      "status": "סטטוס",
+      "actions": "פעולות"
+    },
+    "statuses": {
+      "proposed": "מוצע",
+      "accepted": "מאושר",
+      "rejected": "נדחה"
+    }
+  },
+  "errors": {
+    "targetRequired": "התאמה דורשת הזמנת רכש ו/או הוצאה קיימת.",
+    "expenseForbidden": "קבלת התאמת AP אינה רשאית ליצור הוצאה.",
+    "currencyMismatch": "המטבעות חייבים להתאים לחשבון.",
+    "totalMismatch": "סה״כ החשבון חייב להיות שווה לסכום השורות.",
+    "vendorMismatch": "ספק הזמנת הרכש חייב להתאים לספק החשבון.",
+    "billVoid": "לא ניתן להתאים חשבון מבוטל.",
+    "matchNotProposed": "ניתן להחליט רק על התאמות במצב מוצע.",
+    "vendorRequired": "בחרו ספק.",
+    "linesRequired": "הוסיפו לפחות שורה אחת עם תיאור וסכומים."
+  }
+}

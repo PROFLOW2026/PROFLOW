@@ -133,6 +133,11 @@ export const AUDIT_ACTIONS = {
   PURCHASE_ORDER_CREATED: 'purchase_order.created',
   PURCHASE_ORDER_ISSUED: 'purchase_order.issued',
 
+  AP_BILL_CREATED: 'ap.bill_created',
+  AP_MATCH_PROPOSED: 'ap.match_proposed',
+  AP_MATCH_ACCEPTED: 'ap.match_accepted',
+  AP_MATCH_REJECTED: 'ap.match_rejected',
+
   DAILY_LOG_CREATED: 'daily_log.created',
   DAILY_LOG_UPDATED: 'daily_log.updated',
   PUNCH_LIST_ITEM_CREATED: 'punch_list_item.created',

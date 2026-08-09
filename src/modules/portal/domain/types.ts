@@ -18,6 +18,11 @@ export const CUSTOMER_PORTAL_SCOPES = [
 
 export type CustomerPortalScope = (typeof CUSTOMER_PORTAL_SCOPES)[number];
 
+/** Vendor portal scopes — read-only; grants never mutate financial truth. */
+export const VENDOR_PORTAL_SCOPES = ['vendor.summary', 'documents.read'] as const;
+
+export type VendorPortalScope = (typeof VENDOR_PORTAL_SCOPES)[number];
+
 export interface ExternalPrincipalRecord {
   readonly id: string;
   readonly email: string;
@@ -35,6 +40,7 @@ export interface ExternalAccessGrantRecord {
   readonly portalKind: PortalKind;
   readonly clientId: string | null;
   readonly projectId: string | null;
+  readonly vendorId: string | null;
   readonly scopes: readonly string[];
   readonly status: GrantStatus;
   readonly expiresAt: Date | null;
@@ -48,6 +54,7 @@ export interface ExternalAccessGrantListItem extends ExternalAccessGrantRecord {
   readonly principalDisplayName: string | null;
   readonly clientName: string | null;
   readonly projectName: string | null;
+  readonly vendorName: string | null;
 }
 
 /**

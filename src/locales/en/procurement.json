@@ -5,7 +5,8 @@
   "materialsDescription": "Reusable material items for purchase order lines.",
   "nav": {
     "orders": "Purchase orders",
-    "materials": "Materials"
+    "materials": "Materials",
+    "ap": "AP matching"
   },
   "newOrder": "New purchase order",
   "newMaterial": "Add material",

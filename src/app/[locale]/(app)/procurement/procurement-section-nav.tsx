@@ -7,9 +7,14 @@ import { cn } from '@/shared/ui/cn';
 const TABS = [
   { key: 'orders', href: '/procurement' },
   { key: 'materials', href: '/procurement/materials' },
+  { key: 'ap', href: '/procurement/ap' },
 ] as const;
 
-export function ProcurementSectionNav({ active }: { active: 'orders' | 'materials' }) {
+export function ProcurementSectionNav({
+  active,
+}: {
+  active: 'orders' | 'materials' | 'ap';
+}) {
   const t = useTranslations('procurement.nav');
   const pathname = usePathname();
 

@@ -1,17 +1,27 @@
 {
-  "title": "Customer portal",
-  "subtitle": "Grant customers scoped access to project summaries, outstanding balances, and documents.",
-  "externalNote": "External principals are not organization members. Public portal login is not enabled yet — grants and the customer-safe summary API are ready.",
-  "listTitle": "Access grants",
+  "title": "Portal access",
+  "subtitle": "Grant customers and vendors scoped external access. External principals are not organization members.",
+  "externalNote": "External principals are not organization members. Public portal login is not enabled yet — grants are admin-managed only and never mutate financial truth.",
+  "customerSection": "Customer portal",
+  "vendorSection": "Vendor portal",
+  "vendorSubtitle": "Vendor grants require a vendor scope (portal_kind vendor + vendorId). External users cannot change bills, expenses, or payments.",
+  "listTitle": "Customer access grants",
+  "vendorListTitle": "Vendor access grants",
   "empty": "No customer portal grants yet.",
-  "addGrant": "Create grant",
+  "vendorEmpty": "No vendor portal grants yet.",
+  "addGrant": "Create customer grant",
+  "addVendorGrant": "Create vendor grant",
   "revoke": "Revoke",
-  "saved": "Portal grant created.",
+  "saved": "Customer portal grant created.",
+  "vendorSaved": "Vendor portal grant created.",
   "fields": {
     "email": "Customer email",
+    "vendorEmail": "Vendor contact email",
     "displayName": "Display name",
     "client": "Client",
     "project": "Project",
+    "vendor": "Vendor",
+    "vendorPlaceholder": "Select vendor",
     "none": "None",
     "scopes": "Scopes",
     "expiresAt": "Expires at"
@@ -19,7 +29,8 @@
   "scopes": {
     "project.summary": "Project summary",
     "billing.outstanding": "Outstanding balance",
-    "documents.read": "Read documents"
+    "documents.read": "Read documents",
+    "vendor.summary": "Vendor summary"
   },
   "statuses": {
     "active": "Active",

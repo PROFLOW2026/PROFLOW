@@ -1,5 +1,11 @@
 import { and, desc, eq, isNull, sql } from 'drizzle-orm';
-import { clients, externalAccessGrants, externalPrincipals, projects } from '@drizzle/schema';
+import {
+  clients,
+  externalAccessGrants,
+  externalPrincipals,
+  projects,
+  vendors,
+} from '@drizzle/schema';
 import { getAdminDb } from '@/shared/db/client';
 import type { DbExecutor } from '@/shared/db/types';
 import type {
@@ -36,6 +42,7 @@ function mapGrant(row: typeof externalAccessGrants.$inferSelect): ExternalAccess
     portalKind: row.portalKind as PortalKind,
     clientId: row.clientId,
     projectId: row.projectId,
+    vendorId: row.vendorId,
     scopes: Array.isArray(row.scopes) ? row.scopes : [],
     status: row.status as GrantStatus,
     expiresAt: row.expiresAt,
@@ -89,6 +96,7 @@ export async function insertAccessGrant(
     portalKind: PortalKind;
     clientId?: string | null;
     projectId?: string | null;
+    vendorId?: string | null;
     scopes: readonly string[];
     expiresAt?: Date | null;
   },
@@ -101,6 +109,7 @@ export async function insertAccessGrant(
       portalKind: input.portalKind,
       clientId: input.clientId ?? null,
       projectId: input.projectId ?? null,
+      vendorId: input.vendorId ?? null,
       scopes: [...input.scopes],
       status: 'active',
       expiresAt: input.expiresAt ?? null,
@@ -151,8 +160,9 @@ export async function revokeAccessGrant(
   return row ? mapGrant(row) : null;
 }
 
-export async function listCustomerGrantsForOrg(
+async function listGrantsForOrgByKind(
   organizationId: string,
+  portalKind: PortalKind,
 ): Promise<ExternalAccessGrantListItem[]> {
   const db = getAdminDb();
   const rows = await db
@@ -162,15 +172,17 @@ export async function listCustomerGrantsForOrg(
       principalDisplayName: externalPrincipals.displayName,
       clientName: clients.name,
       projectName: projects.name,
+      vendorName: vendors.name,
     })
     .from(externalAccessGrants)
     .innerJoin(externalPrincipals, eq(externalAccessGrants.principalId, externalPrincipals.id))
     .leftJoin(clients, eq(externalAccessGrants.clientId, clients.id))
     .leftJoin(projects, eq(externalAccessGrants.projectId, projects.id))
+    .leftJoin(vendors, eq(externalAccessGrants.vendorId, vendors.id))
     .where(
       and(
         eq(externalAccessGrants.organizationId, organizationId),
-        eq(externalAccessGrants.portalKind, 'customer'),
+        eq(externalAccessGrants.portalKind, portalKind),
       ),
     )
     .orderBy(desc(externalAccessGrants.createdAt));
@@ -181,7 +193,20 @@ export async function listCustomerGrantsForOrg(
     principalDisplayName: row.principalDisplayName,
     clientName: row.clientName,
     projectName: row.projectName,
+    vendorName: row.vendorName,
   }));
+}
+
+export async function listCustomerGrantsForOrg(
+  organizationId: string,
+): Promise<ExternalAccessGrantListItem[]> {
+  return listGrantsForOrgByKind(organizationId, 'customer');
+}
+
+export async function listVendorGrantsForOrg(
+  organizationId: string,
+): Promise<ExternalAccessGrantListItem[]> {
+  return listGrantsForOrgByKind(organizationId, 'vendor');
 }
 
 export async function findProjectForPortal(
@@ -251,6 +276,25 @@ export async function assertClientInOrganization(
     .from(clients)
     .where(
       and(eq(clients.id, clientId), eq(clients.organizationId, organizationId), isNull(clients.archivedAt)),
+    )
+    .limit(1);
+  return Boolean(row);
+}
+
+export async function assertVendorInOrganization(
+  db: DbExecutor,
+  organizationId: string,
+  vendorId: string,
+): Promise<boolean> {
+  const [row] = await db
+    .select({ id: vendors.id })
+    .from(vendors)
+    .where(
+      and(
+        eq(vendors.id, vendorId),
+        eq(vendors.organizationId, organizationId),
+        isNull(vendors.archivedAt),
+      ),
     )
     .limit(1);
   return Boolean(row);
