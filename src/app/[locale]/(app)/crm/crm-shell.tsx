@@ -1,11 +1,11 @@
 import type { ReactNode } from 'react';
 import { getTranslations } from 'next-intl/server';
-import { Link } from '@/shared/i18n/navigation';
+import { SectionNavLink } from '@/components/ui/section-nav-link';
 
 const SECTIONS = [
-  { href: '/crm', key: 'opportunities' as const, exact: true },
-  { href: '/crm/prospects', key: 'prospects' as const, exact: false },
-  { href: '/crm/leads', key: 'leads' as const, exact: false },
+  { href: '/crm', key: 'opportunities' as const },
+  { href: '/crm/prospects', key: 'prospects' as const },
+  { href: '/crm/leads', key: 'leads' as const },
 ];
 
 export async function CrmSectionNav({ active }: { active: 'opportunities' | 'prospects' | 'leads' }) {
@@ -16,23 +16,11 @@ export async function CrmSectionNav({ active }: { active: 'opportunities' | 'pro
       className="flex flex-wrap gap-2 border-b border-[var(--pf-border-default)] pb-3"
       aria-label={t('navLabel')}
     >
-      {SECTIONS.map((section) => {
-        const isActive = section.key === active;
-        return (
-          <Link
-            key={section.key}
-            href={section.href}
-            className={
-              isActive
-                ? 'inline-flex min-h-11 items-center rounded-md bg-[var(--pf-bg-muted)] px-3 py-2 text-sm font-medium'
-                : 'inline-flex min-h-11 items-center rounded-md px-3 py-2 text-sm text-[var(--pf-text-secondary)] hover:bg-[var(--pf-bg-muted)]'
-            }
-            aria-current={isActive ? 'page' : undefined}
-          >
-            {t(`nav.${section.key}`)}
-          </Link>
-        );
-      })}
+      {SECTIONS.map((section) => (
+        <SectionNavLink key={section.key} href={section.href} active={section.key === active}>
+          {t(`nav.${section.key}`)}
+        </SectionNavLink>
+      ))}
     </nav>
   );
 }

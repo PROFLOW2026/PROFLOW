@@ -233,7 +233,7 @@ export function OcrReviewPanel({
       <div className="flex flex-wrap gap-2">
         {canManageDocuments ? (
           <>
-            <Button type="button" variant="secondary" disabled={pending} onClick={onSeedFixture}>
+            <Button type="button" variant="secondary" loading={pending} onClick={onSeedFixture}>
               {t('seedFixture')}
             </Button>
             <Label className="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-md border border-[var(--pf-border-default)] px-3 text-sm">

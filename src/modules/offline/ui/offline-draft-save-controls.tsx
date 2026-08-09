@@ -67,7 +67,7 @@ export function OfflineDraftSaveControls({
         <Button
           type="button"
           variant="secondary"
-          disabled={pending}
+          loading={pending}
           onClick={(event) => {
             const form =
               (formId ? document.getElementById(formId) : null) ??

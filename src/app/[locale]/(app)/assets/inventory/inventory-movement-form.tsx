@@ -121,7 +121,7 @@ export function InventoryMovementForm({
         <p className="text-xs text-[var(--pf-text-secondary)]">{t('adjustQuantityHint')}</p>
       ) : null}
 
-      <Button type="submit" size="sm" variant="secondary" disabled={pending} className="min-h-11 md:min-h-8">
+      <Button type="submit" size="sm" variant="secondary" loading={pending} className="min-h-11 md:min-h-8">
         {pending ? t('pending') : compact ? t(labelKey) : t('submitMovement')}
       </Button>
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}

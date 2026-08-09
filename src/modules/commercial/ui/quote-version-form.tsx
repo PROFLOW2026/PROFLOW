@@ -49,7 +49,7 @@ export function QuoteVersionForm({ changeRequestId, action, currency }: QuoteVer
         </p>
       ) : null}
 
-      <Button type="submit" disabled={pending}>
+      <Button type="submit" loading={pending}>
         {t('saveVersion')}
       </Button>
     </form>

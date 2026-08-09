@@ -95,7 +95,7 @@ export function InventoryItemCreateForm({
         {(control) => <Textarea {...control} name="notes" rows={2} />}
       </Field>
 
-      <Button type="submit" disabled={pending}>
+      <Button type="submit" loading={pending}>
         {pending ? tCommon('states.saving') : t('submitItem')}
       </Button>
     </form>

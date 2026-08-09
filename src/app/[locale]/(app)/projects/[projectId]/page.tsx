@@ -39,6 +39,12 @@ import { WorkTab } from './work-tab';
 
 interface ProjectPageProps {
   params: Promise<{ locale: string; projectId: string }>;
+  searchParams: Promise<{ tab?: string | string[] }>;
+}
+
+function tabFromSearchParams(raw: string | string[] | undefined): string {
+  if (Array.isArray(raw)) return raw[0] ?? 'overview';
+  return raw ?? 'overview';
 }
 
 export async function generateMetadata({ params }: ProjectPageProps): Promise<Metadata> {
@@ -52,8 +58,9 @@ export async function generateMetadata({ params }: ProjectPageProps): Promise<Me
   }
 }
 
-export default async function ProjectPage({ params }: ProjectPageProps) {
+export default async function ProjectPage({ params, searchParams }: ProjectPageProps) {
   const { locale, projectId } = await params;
+  const tabParam = tabFromSearchParams((await searchParams).tab);
   const t = await getTranslations('projects');
   const tStatus = await getTranslations('status.project');
   const shell = await getShellContext();
@@ -64,16 +71,19 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
   let phasePacks: Awaited<ReturnType<typeof listOrgPhasePacks>> = [];
   let workPackagePacks: Awaited<ReturnType<typeof listOrgWorkPackagePacks>> = [];
   let cloneCandidates: { id: string; name: string }[] = [];
+  let clients: { id: string; name: string }[] = [];
+
   try {
     const loaded = await withOrgContext(async (context) => {
       const projectDetail = await getProjectDetail(context, projectId);
-      const fields = await listCustomFieldValuesForEntity(context, 'project', projectId).catch(
-        () => [],
-      );
-      const templates = await listOrgProjectTemplatesForApply(context).catch(() => []);
-      const phases = await listOrgPhasePacks(context).catch(() => []);
-      const wpPacks = await listOrgWorkPackagePacks(context).catch(() => []);
-      const projects = await listProjectsForOrg(context, {}).catch(() => []);
+      const [fields, templates, phases, wpPacks, projects, clientRows] = await Promise.all([
+        listCustomFieldValuesForEntity(context, 'project', projectId).catch(() => []),
+        listOrgProjectTemplatesForApply(context).catch(() => []),
+        listOrgPhasePacks(context).catch(() => []),
+        listOrgWorkPackagePacks(context).catch(() => []),
+        listProjectsForOrg(context, {}).catch(() => []),
+        listClientsForOrg(context, {}).catch(() => []),
+      ]);
       return {
         projectDetail,
         fields,
@@ -83,6 +93,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
         cloneCandidates: projects
           .filter((row) => row.id !== projectId)
           .map((row) => ({ id: row.id, name: row.name })),
+        clients: clientRows.map((client) => ({ id: client.id, name: client.name })),
       };
     });
     detail = loaded.projectDetail;
@@ -91,6 +102,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
     phasePacks = loaded.phases;
     workPackagePacks = loaded.wpPacks;
     cloneCandidates = loaded.cloneCandidates;
+    clients = loaded.clients;
   } catch {
     notFound();
   }
@@ -99,14 +111,6 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
     (shell?.permissions.has(PERMISSIONS.PROJECT_FINANCIALS_READ) ||
       shell?.permissions.has(PERMISSIONS.CONTRACTS_READ)) ??
     false;
-
-  let clients: { id: string; name: string }[] = [];
-  try {
-    const rows = await withOrgContext((context) => listClientsForOrg(context, {}));
-    clients = rows.map((client) => ({ id: client.id, name: client.name }));
-  } catch {
-    clients = [];
-  }
 
   const can = (permission: PermissionKey) => shell?.permissions.has(permission) ?? false;
   const modules = shell?.modules;
@@ -149,6 +153,10 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
     ...(showDocumentsTab ? (['documents'] as const) : []),
     'details',
   ];
+
+  const activeTab: ProjectTabKey = tabs.includes(tabParam as ProjectTabKey)
+    ? (tabParam as ProjectTabKey)
+    : (tabs[0] ?? 'overview');
 
   return (
     <div className="flex flex-col gap-6">
@@ -194,9 +202,9 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
         </div>
       ) : null}
 
-      <Suspense fallback={<TabPanelSkeleton />}>
-        <ProjectTabsShell tabs={tabs}>
-          <TabsContent value="overview">
+      <ProjectTabsShell tabs={tabs} activeTab={activeTab}>
+        {activeTab === 'overview' ? (
+          <TabsContent value="overview" forceMount>
             <div className="flex flex-col gap-4">
               {Boolean(modules?.field_ops) && can(PERMISSIONS.FIELD_OPS_READ) ? (
                 <ProjectFieldOpsSummaryPanel projectId={projectId} />
@@ -211,70 +219,72 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
               />
             </div>
           </TabsContent>
+        ) : null}
 
-          {canReadFinancials ? (
-            <TabsContent value="financials">
-              <Suspense fallback={<TabPanelSkeleton />}>
-                <ProjectFinancialsPanel projectId={projectId} />
-              </Suspense>
-            </TabsContent>
-          ) : null}
+        {activeTab === 'financials' && canReadFinancials ? (
+          <TabsContent value="financials" forceMount>
+            <Suspense fallback={<TabPanelSkeleton />}>
+              <ProjectFinancialsPanel projectId={projectId} />
+            </Suspense>
+          </TabsContent>
+        ) : null}
 
-          {showExpensesTab ? (
-            <TabsContent value="expenses">
-              <Suspense fallback={<TabPanelSkeleton />}>
-                <ProjectExpensesPanel projectId={projectId} />
-              </Suspense>
-            </TabsContent>
-          ) : null}
+        {activeTab === 'expenses' && showExpensesTab ? (
+          <TabsContent value="expenses" forceMount>
+            <Suspense fallback={<TabPanelSkeleton />}>
+              <ProjectExpensesPanel projectId={projectId} />
+            </Suspense>
+          </TabsContent>
+        ) : null}
 
-          {showChangesTab ? (
-            <TabsContent value="changes">
-              <Suspense fallback={<TabPanelSkeleton />}>
-                <ProjectChangesPanel projectId={projectId} />
-              </Suspense>
-            </TabsContent>
-          ) : null}
+        {activeTab === 'changes' && showChangesTab ? (
+          <TabsContent value="changes" forceMount>
+            <Suspense fallback={<TabPanelSkeleton />}>
+              <ProjectChangesPanel projectId={projectId} />
+            </Suspense>
+          </TabsContent>
+        ) : null}
 
-          {showBillingTab ? (
-            <TabsContent value="billing">
-              <Suspense fallback={<TabPanelSkeleton />}>
-                <ProjectBillingPanel projectId={projectId} />
-              </Suspense>
-            </TabsContent>
-          ) : null}
+        {activeTab === 'billing' && showBillingTab ? (
+          <TabsContent value="billing" forceMount>
+            <Suspense fallback={<TabPanelSkeleton />}>
+              <ProjectBillingPanel projectId={projectId} />
+            </Suspense>
+          </TabsContent>
+        ) : null}
 
-          {showWorkTab ? (
-            <TabsContent value="work">
-              <WorkTab
-            detail={detail}
-            canEdit={can(PERMISSIONS.PROJECTS_UPDATE)}
-            locale={uiLocale}
-            orgTemplates={orgTemplates}
-            phasePacks={phasePacks}
-            workPackagePacks={workPackagePacks}
-            cloneCandidates={cloneCandidates}
-          />
-            </TabsContent>
-          ) : null}
+        {activeTab === 'work' && showWorkTab ? (
+          <TabsContent value="work" forceMount>
+            <WorkTab
+              detail={detail}
+              canEdit={can(PERMISSIONS.PROJECTS_UPDATE)}
+              locale={uiLocale}
+              orgTemplates={orgTemplates}
+              phasePacks={phasePacks}
+              workPackagePacks={workPackagePacks}
+              cloneCandidates={cloneCandidates}
+            />
+          </TabsContent>
+        ) : null}
 
-          {showTimeTab ? (
-            <TabsContent value="time">
-              <Suspense fallback={<TabPanelSkeleton />}>
-                <ProjectTimePanel projectId={projectId} />
-              </Suspense>
-            </TabsContent>
-          ) : null}
+        {activeTab === 'time' && showTimeTab ? (
+          <TabsContent value="time" forceMount>
+            <Suspense fallback={<TabPanelSkeleton />}>
+              <ProjectTimePanel projectId={projectId} />
+            </Suspense>
+          </TabsContent>
+        ) : null}
 
-          {showDocumentsTab ? (
-            <TabsContent value="documents">
-              <Suspense fallback={<TabPanelSkeleton />}>
-                <DocumentsTab projectId={projectId} hasContract={Boolean(detail.contract)} />
-              </Suspense>
-            </TabsContent>
-          ) : null}
+        {activeTab === 'documents' && showDocumentsTab ? (
+          <TabsContent value="documents" forceMount>
+            <Suspense fallback={<TabPanelSkeleton />}>
+              <DocumentsTab projectId={projectId} hasContract={Boolean(detail.contract)} />
+            </Suspense>
+          </TabsContent>
+        ) : null}
 
-          <TabsContent value="details">
+        {activeTab === 'details' ? (
+          <TabsContent value="details" forceMount>
             <DetailsTab
               detail={detail}
               clients={clients}
@@ -284,8 +294,8 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
               customFields={customFields}
             />
           </TabsContent>
-        </ProjectTabsShell>
-      </Suspense>
+        ) : null}
+      </ProjectTabsShell>
     </div>
   );
 }

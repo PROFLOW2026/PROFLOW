@@ -1,10 +1,12 @@
 'use client';
 
+import { Loader2 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { useSearchParams } from 'next/navigation';
 import type { ReactNode } from 'react';
+import { useQueryTabPending } from '@/components/patterns/query-tab-pending';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { usePathname, useRouter } from '@/shared/i18n/navigation';
+import { TabPanelSkeleton } from './tab-panel-skeleton';
 
 export type ProjectTabKey =
   | 'overview'
@@ -20,40 +22,70 @@ export type ProjectTabKey =
 interface ProjectTabsShellProps {
   /** Only the tabs this viewer can actually use, in display order. */
   tabs: readonly ProjectTabKey[];
+  /** Active tab from the server (`?tab=`), so the shell does not need `useSearchParams`. */
+  activeTab: ProjectTabKey;
   children: ReactNode;
 }
 
-export function ProjectTabsShell({ tabs, children }: ProjectTabsShellProps) {
+/**
+ * Project workspace underline tabs.
+ *
+ * Soft-nav via `router.replace(?tab=)` — not separate Next routes — with
+ * immediate optimistic selection + panel skeleton via `useQueryTabPending`.
+ */
+export function ProjectTabsShell({ tabs, activeTab, children }: ProjectTabsShellProps) {
   const t = useTranslations('projects.workspace.tabs');
-  const searchParams = useSearchParams();
+  const tCommon = useTranslations('common');
   const pathname = usePathname();
   const router = useRouter();
-
-  const tabParam = searchParams.get('tab') ?? 'overview';
-  const active = tabs.includes(tabParam as ProjectTabKey) ? tabParam : (tabs[0] ?? 'overview');
+  const { displayTab, isPending, navigateTab } = useQueryTabPending(activeTab);
 
   function onTabChange(value: string) {
-    const params = new URLSearchParams(searchParams.toString());
-    if (value === 'overview') {
-      params.delete('tab');
-    } else {
-      params.set('tab', value);
-    }
-
-    const query = params.toString();
-    router.replace(query ? `${pathname}?${query}` : pathname);
+    navigateTab(value, () => {
+      const params = new URLSearchParams();
+      if (value !== 'overview') {
+        params.set('tab', value);
+      }
+      const query = params.toString();
+      router.replace(query ? `${pathname}?${query}` : pathname);
+    });
   }
 
   return (
-    <Tabs value={active} onValueChange={onTabChange} className="min-w-0 max-w-full">
-      <TabsList className="min-w-0 max-w-full">
-        {tabs.map((tab) => (
-          <TabsTrigger key={tab} value={tab}>
-            {t(tab)}
-          </TabsTrigger>
-        ))}
+    <Tabs value={displayTab} onValueChange={onTabChange} className="min-w-0 max-w-full">
+      <TabsList className="min-w-0 max-w-full" aria-busy={isPending || undefined}>
+        {tabs.map((tab) => {
+          const pendingThis = isPending && displayTab === tab;
+          return (
+            <TabsTrigger
+              key={tab}
+              value={tab}
+              disabled={isPending && displayTab !== tab}
+              data-pending={pendingThis ? '' : undefined}
+              className={pendingThis ? 'opacity-90' : undefined}
+            >
+              <span className="inline-flex items-center gap-1.5">
+                {pendingThis ? (
+                  <Loader2 className="size-3.5 shrink-0 animate-spin" aria-hidden />
+                ) : null}
+                {t(tab)}
+                {pendingThis ? (
+                  <span className="sr-only">{tCommon('a11y.navigating')}</span>
+                ) : null}
+              </span>
+            </TabsTrigger>
+          );
+        })}
       </TabsList>
-      <div className="min-w-0 max-w-full">{children}</div>
+      <div className="min-w-0 max-w-full" aria-busy={isPending || undefined}>
+        {isPending ? (
+          <div className="pt-4">
+            <TabPanelSkeleton />
+          </div>
+        ) : (
+          children
+        )}
+      </div>
     </Tabs>
   );
 }

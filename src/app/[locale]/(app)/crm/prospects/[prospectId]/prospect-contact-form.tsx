@@ -32,7 +32,7 @@ export function ProspectContactForm({ prospectId }: { prospectId: string }) {
       <Field label={t('contactRole')} optionalLabel={tCommon('labels.optional')}>
         {(control) => <Input {...control} name="role" />}
       </Field>
-      <Button type="submit" disabled={pending} className="self-start">
+      <Button type="submit" loading={pending} className="self-start">
         {t('addContact')}
       </Button>
     </form>

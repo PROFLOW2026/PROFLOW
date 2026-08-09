@@ -1,7 +1,9 @@
+import { Suspense } from 'react';
 import { getTranslations } from 'next-intl/server';
 import { MoneyText } from '@/components/patterns/money-text';
 import { ResponsiveTable } from '@/components/patterns/responsive-table';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { SkeletonText } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ProjectFinancialsSnapshot } from '@/modules/financials/ui';
 import {
@@ -135,7 +137,9 @@ export async function OverviewTab({
               <CardTitle>{t('financialSnapshot')}</CardTitle>
             </CardHeader>
             <CardContent className="flex min-w-0 flex-col gap-2 text-sm">
-              <ProjectFinancialsSnapshot projectId={detail.project.id} />
+              <Suspense fallback={<SkeletonText lines={3} />}>
+                <ProjectFinancialsSnapshot projectId={detail.project.id} />
+              </Suspense>
             </CardContent>
           </Card>
         ) : null}

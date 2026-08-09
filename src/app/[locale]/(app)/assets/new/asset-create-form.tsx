@@ -136,7 +136,7 @@ export function AssetCreateForm({
         </Field>
       </fieldset>
 
-      <Button type="submit" className="h-11 w-full sm:w-auto" disabled={pending}>
+      <Button type="submit" className="h-11 w-full sm:w-auto" loading={pending}>
         {pending ? tCommon('states.saving') : t('submit')}
       </Button>
     </form>

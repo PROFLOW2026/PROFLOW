@@ -52,37 +52,36 @@ export async function getProjectDetail(
   if (!project) throw new NotFoundError('Project');
   assertSameOrganization(context, project, 'Project');
 
-  let clientName: string | null = null;
-  if (project.clientId) {
-    const [client] = await context.db
-      .select({ name: clients.name })
-      .from(clients)
-      .where(eq(clients.id, project.clientId))
-      .limit(1);
-    clientName = client?.name ?? null;
-  }
+  const canReadContracts = context.permissions.has(PERMISSIONS.CONTRACTS_READ);
 
-  const [domain] = await context.db
-    .select({ adHocName: projectDomains.adHocName })
-    .from(projectDomains)
-    .where(eq(projectDomains.projectId, projectId))
-    .limit(1);
+  const [clientName, domainName, workPackages, phases, milestones, contract] = await Promise.all([
+    project.clientId
+      ? context.db
+          .select({ name: clients.name })
+          .from(clients)
+          .where(eq(clients.id, project.clientId))
+          .limit(1)
+          .then((rows) => rows[0]?.name ?? null)
+      : Promise.resolve(null),
+    context.db
+      .select({ adHocName: projectDomains.adHocName })
+      .from(projectDomains)
+      .where(eq(projectDomains.projectId, projectId))
+      .limit(1)
+      .then((rows) => rows[0]?.adHocName ?? null),
+    listWorkPackagesByProject(context.db, context.organizationId, projectId),
+    listPhasesByProject(context.db, context.organizationId, projectId),
+    listMilestonesByProject(context.db, context.organizationId, projectId),
+    canReadContracts
+      ? findPrimaryContractByProject(context.db, context.organizationId, projectId)
+      : Promise.resolve(null),
+  ]);
 
-  const workPackages = await listWorkPackagesByProject(
-    context.db,
-    context.organizationId,
-    projectId,
-  );
-  const phases = await listPhasesByProject(context.db, context.organizationId, projectId);
-  const milestones = await listMilestonesByProject(context.db, context.organizationId, projectId);
-
-  let contract: ContractRecord | null = null;
   let contractValueEvents: ContractValueEventRecord[] = [];
   let currentContractValue: MoneyValue | null = null;
   let originalContractAmountLocked = false;
 
-  if (context.permissions.has(PERMISSIONS.CONTRACTS_READ)) {
-    contract = await findPrimaryContractByProject(context.db, context.organizationId, projectId);
+  if (canReadContracts) {
     if (contract) {
       contractValueEvents = await listContractValueEvents(
         context.db,
@@ -99,7 +98,7 @@ export async function getProjectDetail(
   return {
     project,
     clientName,
-    domainName: domain?.adHocName ?? null,
+    domainName,
     workPackages,
     phases,
     milestones,

@@ -58,6 +58,7 @@
     --pf-red-600: #dc2626;
     --pf-red-700: #b91c1c;
     --pf-red-800: #991b1b;
+    --pf-red-900: #7f1d1d;
 
     --pf-blue-50: #eff6ff;
     --pf-blue-100: #dbeafe;
@@ -90,9 +91,12 @@
     --pf-action-primary-fg: var(--pf-neutral-0);
     --pf-action-secondary: var(--pf-neutral-0);
     --pf-action-secondary-hover: var(--pf-neutral-100);
+    --pf-action-secondary-active: var(--pf-neutral-200);
     --pf-action-subtle-hover: var(--pf-teal-50);
+    --pf-action-subtle-active: var(--pf-teal-100);
     --pf-action-danger: var(--pf-red-700);
     --pf-action-danger-hover: var(--pf-red-800);
+    --pf-action-danger-active: var(--pf-red-900);
 
     --pf-focus-ring: var(--pf-teal-600);
 
@@ -190,6 +194,7 @@
   --color-action-fg: var(--pf-action-primary-fg);
   --color-action-danger: var(--pf-action-danger);
   --color-action-danger-hover: var(--pf-action-danger-hover);
+  --color-action-danger-active: var(--pf-action-danger-active);
   --color-focus-ring: var(--pf-focus-ring);
 
   --color-success-fg: var(--pf-status-success-fg);

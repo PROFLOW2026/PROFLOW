@@ -36,7 +36,7 @@ export function LeadStatusForm({ lead }: { lead: LeadRecord }) {
           </select>
         )}
       </Field>
-      <Button type="submit" disabled={pending} className="w-full shrink-0 self-stretch sm:w-auto sm:self-auto">
+      <Button type="submit" loading={pending} className="w-full shrink-0 self-stretch sm:w-auto sm:self-auto">
         {t('updateStatus')}
       </Button>
     </form>

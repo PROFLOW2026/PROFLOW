@@ -35,7 +35,7 @@ export function NewProspectForm() {
       <Field label={t('notesLabel')} optionalLabel={tCommon('labels.optional')}>
         {(control) => <Textarea {...control} name="notes" rows={3} />}
       </Field>
-      <Button type="submit" disabled={pending} block>
+      <Button type="submit" loading={pending} block>
         {t('submit')}
       </Button>
     </form>

@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { cache } from 'react';
 import { getTranslations } from 'next-intl/server';
 import { PageHeader } from '@/components/ui/page-header';
 import { ProjectFinancialsPanel } from '@/modules/financials/ui';
@@ -11,11 +12,16 @@ interface ProjectFinancialsPageProps {
   params: Promise<{ projectId: string; locale: string }>;
 }
 
+/** Dedupes metadata + page detail fetch within one request. */
+const loadProjectDetail = cache(async (projectId: string) =>
+  withOrgContext((context) => getProjectDetail(context, projectId)),
+);
+
 export async function generateMetadata({ params }: ProjectFinancialsPageProps): Promise<Metadata> {
   const { locale, projectId } = await params;
   const t = await getTranslations({ locale, namespace: 'financial' });
 
-  const detail = await withOrgContext((context) => getProjectDetail(context, projectId));
+  const detail = await loadProjectDetail(projectId);
 
   return {
     title: `${t('currentContractValue')} — ${detail.project.name}`,
@@ -26,7 +32,7 @@ export default async function ProjectFinancialsPage({ params }: ProjectFinancial
   const { projectId } = await params;
   const tCommon = await getTranslations('common');
 
-  const detail = await withOrgContext((context) => getProjectDetail(context, projectId));
+  const detail = await loadProjectDetail(projectId);
 
   return (
     <div className="flex min-w-0 max-w-full flex-col gap-6">

@@ -56,10 +56,58 @@ export async function getProjectFinancials(
   const canReadProcurement = hasPermission(context, PERMISSIONS.PROCUREMENT_READ);
   const canReadAp = hasPermission(context, PERMISSIONS.AP_READ);
   const canReadExpenses = hasPermission(context, PERMISSIONS.EXPENSES_READ);
+  const canReadWorkforce = hasPermission(context, PERMISSIONS.WORKFORCE_READ);
 
-  const commercialData = canReadCommercial
-    ? await loadProjectCommercialData(context.db, context.organizationId, projectId)
-    : null;
+  // Independent permission-gated loads — same aggregation order as before.
+  const [
+    commercialData,
+    billingRows,
+    expenseContributions,
+    laborResult,
+    committedResult,
+    apResult,
+  ] = await Promise.all([
+    canReadCommercial
+      ? loadProjectCommercialData(context.db, context.organizationId, projectId)
+      : Promise.resolve(null),
+    canReadBilling
+      ? loadProjectBillingRows(context.db, context.organizationId, projectId)
+      : Promise.resolve(null),
+    // Expense rollups require expenses:read — project_financials:read alone must not bypass.
+    canReadExpenses
+      ? loadProjectExpenseContributions(context.db, context.organizationId, projectId)
+      : Promise.resolve([]),
+    canReadWorkforce
+      ? getProjectLaborCost(context, projectId).then(
+          (labor) =>
+            ({
+              ok: true as const,
+              laborInput: {
+                laborCost: labor.laborCost,
+                hasWorkforceData: labor.hasWorkforceData,
+                entriesMissingCost: labor.entriesMissingCost,
+                excludedForeignCurrencyEntries: labor.excludedForeignCurrencyEntries,
+              },
+            }) as const,
+        ).catch((error: unknown) => {
+          if (error instanceof NotFoundError) {
+            return { ok: false as const, laborInput: null };
+          }
+          throw error;
+        })
+      : Promise.resolve({ ok: false as const, laborInput: null }),
+    canReadProcurement
+      ? sumOpenCommittedCostsForProject(
+          context.db,
+          context.organizationId,
+          projectId,
+          currency,
+        )
+      : Promise.resolve(null),
+    canReadAp
+      ? sumOpenApPayableForProject(context.db, context.organizationId, projectId, currency)
+      : Promise.resolve(null),
+  ]);
 
   const commercial: CommercialPosition | null = canReadCommercial
     ? (commercialData?.position ?? emptyCommercialPosition(currency))
@@ -73,8 +121,7 @@ export async function getProjectFinancials(
 
   let billingPartials: CoveragePartial[] = [];
 
-  if (canReadBilling) {
-    const billingRows = await loadProjectBillingRows(context.db, context.organizationId, projectId);
+  if (canReadBilling && billingRows) {
     const position = computeBillingPositionFromRows(billingRows, currency);
     billing = {
       invoiced: position.invoiced,
@@ -91,35 +138,7 @@ export async function getProjectFinancials(
     }
   }
 
-  // Expense rollups require expenses:read — project_financials:read alone must not bypass.
-  const expenseContributions = canReadExpenses
-    ? await loadProjectExpenseContributions(context.db, context.organizationId, projectId)
-    : [];
-
-  let laborInput: {
-    laborCost: ReturnType<typeof zeroMoney>;
-    hasWorkforceData: boolean;
-    entriesMissingCost?: number;
-    excludedForeignCurrencyEntries?: number;
-  } | null = null;
-
-  if (hasPermission(context, PERMISSIONS.WORKFORCE_READ)) {
-    try {
-      const labor = await getProjectLaborCost(context, projectId);
-      laborInput = {
-        laborCost: labor.laborCost,
-        hasWorkforceData: labor.hasWorkforceData,
-        entriesMissingCost: labor.entriesMissingCost,
-        excludedForeignCurrencyEntries: labor.excludedForeignCurrencyEntries,
-      };
-    } catch (error) {
-      if (error instanceof NotFoundError) {
-        laborInput = null;
-      } else {
-        throw error;
-      }
-    }
-  }
+  const laborInput = laborResult.laborInput;
 
   const aggregated =
     expenseContributions.length > 0 || laborInput?.hasWorkforceData
@@ -131,35 +150,23 @@ export async function getProjectFinancials(
   const commitmentPartials: CoveragePartial[] = [];
 
   let committedOpen = zeroMoney(currency);
-  if (canReadProcurement) {
-    const committed = await sumOpenCommittedCostsForProject(
-      context.db,
-      context.organizationId,
-      projectId,
-      currency,
-    );
-    committedOpen = committed.total;
-    if (committed.excludedForeignCurrencyCount > 0) {
+  if (committedResult) {
+    committedOpen = committedResult.total;
+    if (committedResult.excludedForeignCurrencyCount > 0) {
       commitmentPartials.push({
         reason: 'foreign_currency_committed_excluded',
-        count: committed.excludedForeignCurrencyCount,
+        count: committedResult.excludedForeignCurrencyCount,
       });
     }
   }
 
   let openApPayable = zeroMoney(currency);
-  if (canReadAp) {
-    const ap = await sumOpenApPayableForProject(
-      context.db,
-      context.organizationId,
-      projectId,
-      currency,
-    );
-    openApPayable = ap.total;
-    if (ap.excludedForeignCurrencyCount > 0) {
+  if (apResult) {
+    openApPayable = apResult.total;
+    if (apResult.excludedForeignCurrencyCount > 0) {
       commitmentPartials.push({
         reason: 'foreign_currency_ap_excluded',
-        count: ap.excludedForeignCurrencyCount,
+        count: apResult.excludedForeignCurrencyCount,
       });
     }
   }

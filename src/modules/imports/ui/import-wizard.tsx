@@ -286,13 +286,13 @@ export function ImportWizard({ allowedKinds }: ImportWizardProps) {
             ))}
           </div>
           <div className="flex flex-wrap gap-2">
-            <Button type="button" variant="secondary" disabled={pending} onClick={() => setStep('upload')}>
+            <Button type="button" variant="secondary" loading={pending} onClick={() => setStep('upload')}>
               {t('actions.back')}
             </Button>
             <Button
               type="button"
               variant="primary"
-              disabled={pending}
+              loading={pending}
               onClick={() => runPreview(mapping)}
             >
               {t('actions.validate')}
@@ -411,14 +411,14 @@ export function ImportWizard({ allowedKinds }: ImportWizardProps) {
           ) : null}
 
           <div className="flex flex-wrap gap-2">
-            <Button type="button" variant="secondary" disabled={pending} onClick={() => setStep('mapping')}>
+            <Button type="button" variant="secondary" loading={pending} onClick={() => setStep('mapping')}>
               {t('actions.back')}
             </Button>
             {preview.errorCount > 0 || preview.warningCount > 0 ? (
               <Button
                 type="button"
                 variant="secondary"
-                disabled={pending}
+                loading={pending}
                 onClick={() =>
                   downloadText(`import-issues-${kind}.csv`, buildImportIssuesReportCsv(preview))
                 }

@@ -86,12 +86,14 @@ export function ShellNavLink({
               'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]',
               active || busy
                 ? 'bg-[var(--pf-teal-50)] text-[var(--pf-text-brand)]'
-                : 'text-[var(--pf-text-secondary)] hover:bg-[var(--pf-bg-muted)] hover:text-[var(--pf-text-primary)]',
+                : 'text-[var(--pf-text-secondary)] hover:bg-[var(--pf-bg-muted)] hover:text-[var(--pf-text-primary)] active:bg-[var(--pf-action-subtle-active)] active:text-[var(--pf-text-primary)]',
             )
           : cn(
               'flex h-[var(--pf-bottomnav-height)] w-full min-w-0 flex-col items-center justify-center gap-1 px-1 text-[0.6875rem] font-medium',
               'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]',
-              active || busy ? 'text-[var(--pf-text-brand)]' : 'text-[var(--pf-text-secondary)]',
+              active || busy
+                ? 'text-[var(--pf-text-brand)]'
+                : 'text-[var(--pf-text-secondary)] active:text-[var(--pf-text-primary)]',
             ),
         busy && 'pointer-events-none opacity-90',
         className,

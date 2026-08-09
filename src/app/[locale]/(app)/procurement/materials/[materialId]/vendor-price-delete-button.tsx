@@ -25,7 +25,7 @@ export function VendorPriceDeleteButton({
     <form action={formAction}>
       <input type="hidden" name="id" value={id} />
       <input type="hidden" name="materialItemId" value={materialItemId} />
-      <Button type="submit" size="sm" variant="ghost" disabled={pending}>
+      <Button type="submit" size="sm" variant="ghost" loading={pending}>
         {pending ? t('deleting') : t('delete')}
       </Button>
       {state.error ? <p className="mt-1 text-xs text-[var(--pf-status-danger-fg)]">{state.error}</p> : null}

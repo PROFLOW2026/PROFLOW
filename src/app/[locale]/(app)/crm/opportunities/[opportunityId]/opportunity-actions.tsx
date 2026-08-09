@@ -32,7 +32,7 @@ export function OpportunityNoteForm({ opportunityId }: { opportunityId: string }
       <Field label={t('noteBody')} required>
         {(control) => <Textarea {...control} name="body" rows={2} required />}
       </Field>
-      <Button type="submit" disabled={pending} className="self-start">
+      <Button type="submit" loading={pending} className="self-start">
         {t('addNote')}
       </Button>
     </form>
@@ -64,7 +64,7 @@ export function OpportunityEstimateForm({
       <Field label={t('estimateAmount')} optionalLabel={tCommon('labels.optional')}>
         {(control) => <Input {...control} name="internalAmount" inputMode="decimal" />}
       </Field>
-      <Button type="submit" disabled={pending} className="self-start">
+      <Button type="submit" loading={pending} className="self-start">
         {t('addEstimate')}
       </Button>
     </form>
@@ -119,7 +119,7 @@ export function OpportunityQuoteForm({
         )}
       </Field>
       <p className="text-xs text-[var(--pf-text-muted)]">{t('quoteNotBilling')}</p>
-      <Button type="submit" disabled={pending} className="self-start">
+      <Button type="submit" loading={pending} className="self-start">
         {t('addQuote')}
       </Button>
     </form>
@@ -136,7 +136,7 @@ export function IssueVersionButton({ versionId }: { versionId: string }) {
     <form action={formAction}>
       <input type="hidden" name="versionId" value={versionId} />
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
-      <Button type="submit" variant="secondary" size="sm" disabled={pending}>
+      <Button type="submit" variant="secondary" size="sm" loading={pending}>
         {t('issueVersion')}
       </Button>
     </form>
@@ -153,7 +153,7 @@ export function AcceptVersionButton({ versionId }: { versionId: string }) {
     <form action={formAction}>
       <input type="hidden" name="versionId" value={versionId} />
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
-      <Button type="submit" size="sm" disabled={pending}>
+      <Button type="submit" size="sm" loading={pending}>
         {t('acceptVersion')}
       </Button>
     </form>
@@ -174,7 +174,7 @@ export function MarkLostForm({ opportunityId }: { opportunityId: string }) {
       <Field label={t('lostReasonLabel')} optionalLabel={tCommon('labels.optional')}>
         {(control) => <Input {...control} name="lostReason" />}
       </Field>
-      <Button type="submit" variant="secondary" disabled={pending} className="self-start">
+      <Button type="submit" variant="secondary" loading={pending} className="self-start">
         {t('markLost')}
       </Button>
     </form>
@@ -228,7 +228,7 @@ export function ConvertWonForm({
       <Field label={t('projectNameLabel')}>
         {(control) => <Input {...control} name="projectName" defaultValue={defaultProjectName} />}
       </Field>
-      <Button type="submit" disabled={pending} className="self-start">
+      <Button type="submit" loading={pending} className="self-start">
         {t('submit')}
       </Button>
     </form>

@@ -74,7 +74,7 @@ export function ExpenseCaptureForm({
         error={state.error ?? null}
       />
 
-      <Button type="submit" size="lg" disabled={pending} className="w-full">
+      <Button type="submit" size="lg" loading={pending} className="w-full">
         {pending
           ? tCommon('states.saving')
           : state.offlineQueued

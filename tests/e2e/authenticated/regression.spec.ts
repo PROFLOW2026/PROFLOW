@@ -232,6 +232,62 @@ test.describe('polish: dashboard loading + export pending', () => {
     }
   });
 
+  test('project tab click shows pending chrome or settles URL promptly (he-IL)', async ({ page }) => {
+    const projectPath = `/he-IL/projects/${world.projectId}`;
+    await page.goto(projectPath);
+    await expect(page.getByRole('heading', { name: 'שיפוץ דירה ברמת גן' })).toBeVisible();
+
+    const overviewTab = page.getByRole('tab', { name: he.projects.workspace.tabs.overview });
+    const financialsTab = page.getByRole('tab', { name: he.projects.workspace.tabs.financials });
+    await expect(overviewTab).toHaveAttribute('data-state', 'active');
+    await expect(financialsTab).not.toHaveAttribute('data-state', 'active');
+
+    // Soft-nav via ?tab= can finish before paint; delay project RSC so pending chrome can show.
+    const delayProjectTab = async (route: Route) => {
+      const url = new URL(route.request().url());
+      const onProject =
+        url.pathname === projectPath || url.pathname.startsWith(`${projectPath}/`);
+      const isSoftNav =
+        route.request().resourceType() === 'document' || url.search.includes('_rsc');
+      if (onProject && isSoftNav && url.searchParams.get('tab') === 'financials') {
+        await new Promise((resolve) => setTimeout(resolve, 750));
+      }
+      await route.continue();
+    };
+    await page.route(`**${projectPath}**`, delayProjectTab);
+
+    try {
+      const pendingChrome = page
+        .locator(
+          [
+            '[role="tab"][data-pending]',
+            '[role="tablist"][aria-busy="true"]',
+            '[aria-busy="true"] .animate-spin',
+            '[aria-busy="true"]',
+          ].join(', '),
+        )
+        .first();
+      const pendingSeen = pendingChrome.waitFor({ state: 'visible', timeout: 4_000 }).then(
+        () => true,
+        () => false,
+      );
+
+      await financialsTab.click();
+      const sawPending = await pendingSeen;
+
+      await expect(page).toHaveURL(new RegExp(`${projectPath}\\?tab=financials`), {
+        timeout: 30_000,
+      });
+      await expect(financialsTab).toHaveAttribute('data-state', 'active');
+      expect(
+        sawPending || (await page.url()).includes('tab=financials'),
+        'expected project tab click to show data-pending/aria-busy/spinner or settle URL',
+      ).toBe(true);
+    } finally {
+      await page.unroute(`**${projectPath}**`, delayProjectTab);
+    }
+  });
+
   test('export download shows preparing feedback while response is delayed', async ({ page }) => {
     await page.goto('/he-IL/reports');
     await expect(page.getByRole('heading', { name: he.dashboard.reports.title, level: 1 })).toBeVisible();

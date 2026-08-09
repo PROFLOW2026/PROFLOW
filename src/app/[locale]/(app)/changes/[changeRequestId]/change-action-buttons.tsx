@@ -31,7 +31,7 @@ function ActionForm({
     <form action={formAction} className="inline">
       <input type="hidden" name="changeRequestId" value={changeRequestId} />
       {recordSent ? <input type="hidden" name="recordSent" value="true" /> : null}
-      <Button type="submit" variant="secondary" size="sm" disabled={pending}>
+      <Button type="submit" variant="secondary" size="sm" loading={pending}>
         {children}
       </Button>
       {state.error ? (

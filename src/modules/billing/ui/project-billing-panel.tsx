@@ -30,17 +30,25 @@ export async function ProjectBillingPanel({ projectId }: ProjectBillingPanelProp
   const locale = await getLocale();
 
   const { position, records, unbilledChanges, canManage, payments } = await withOrgContext(
-    async (context) => ({
-      position: await getProjectBillingPosition(context, projectId),
-      records: await listProjectBillingRecords(context, projectId),
-      unbilledChanges: await listUnbilledChangeOrders(context, projectId),
-      canManage: hasPermission(context, PERMISSIONS.BILLING_MANAGE),
-      payments: await listPaymentApplications(context, {
-        projectId,
-        limit: 25,
-        includeVoided: true,
-      }),
-    }),
+    async (context) => {
+      const [positionResult, recordsResult, unbilledResult, paymentsResult] = await Promise.all([
+        getProjectBillingPosition(context, projectId),
+        listProjectBillingRecords(context, projectId),
+        listUnbilledChangeOrders(context, projectId),
+        listPaymentApplications(context, {
+          projectId,
+          limit: 25,
+          includeVoided: true,
+        }),
+      ]);
+      return {
+        position: positionResult,
+        records: recordsResult,
+        unbilledChanges: unbilledResult,
+        canManage: hasPermission(context, PERMISSIONS.BILLING_MANAGE),
+        payments: paymentsResult,
+      };
+    },
   );
 
   return (

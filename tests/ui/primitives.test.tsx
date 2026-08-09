@@ -1,5 +1,7 @@
 import { screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import userEvent from '@testing-library/user-event';
+import { useState } from 'react';
+import { describe, expect, it, vi } from 'vitest';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -16,6 +18,48 @@ describe('Button', () => {
     const button = screen.getByRole('button', { name: 'שמירה' });
     expect(button).toBeDisabled();
     expect(button).toHaveAttribute('aria-busy', 'true');
+    expect(button).toHaveAttribute('data-loading', '');
+  });
+
+  it('loading prevents double submit while the first action is in flight', async () => {
+    const user = userEvent.setup();
+    const onSubmit = vi.fn();
+
+    function LoadingSubmitForm() {
+      const [loading, setLoading] = useState(false);
+      return (
+        <Button
+          type="button"
+          loading={loading}
+          onClick={() => {
+            onSubmit();
+            setLoading(true);
+          }}
+        >
+          שמירה
+        </Button>
+      );
+    }
+
+    renderWithIntl(<LoadingSubmitForm />);
+    const button = screen.getByRole('button', { name: 'שמירה' });
+
+    await user.click(button);
+    await user.click(button);
+    await user.click(button);
+
+    expect(onSubmit).toHaveBeenCalledTimes(1);
+    expect(button).toBeDisabled();
+    expect(button).toHaveAttribute('aria-busy', 'true');
+    expect(button).toHaveAttribute('data-loading', '');
+  });
+
+  it('keeps pressed (active) feedback classes on primary and secondary variants', () => {
+    const { rerender } = renderWithIntl(<Button variant="primary">שמירה</Button>);
+    expect(screen.getByRole('button')).toHaveClass('active:bg-[var(--pf-action-primary-active)]');
+
+    rerender(<Button variant="secondary">ביטול</Button>);
+    expect(screen.getByRole('button')).toHaveClass('active:bg-[var(--pf-action-secondary-active)]');
   });
 
   it('renders as its child element without injecting extra children', () => {

@@ -40,10 +40,17 @@ export const TabsTrigger = React.forwardRef<
       ref={ref}
       className={cn(
         'relative shrink-0 whitespace-nowrap border-b-2 border-transparent px-3 py-2.5 text-sm font-medium text-start',
-        'text-[var(--pf-text-secondary)] transition-colors duration-[var(--pf-motion-fast)]',
+        // ≥44px touch; underline tabs stay dense but pressable on mobile.
+        'min-h-11',
+        'text-[var(--pf-text-secondary)] transition-[color,background-color,border-color,opacity] duration-[var(--pf-motion-fast)] ease-[var(--pf-easing)]',
         'hover:text-[var(--pf-text-primary)]',
+        // Touch press (active), not hover-only.
+        'active:bg-[var(--pf-action-subtle-hover)] active:text-[var(--pf-text-primary)]',
         'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]',
         'data-[state=active]:border-[var(--pf-action-primary)] data-[state=active]:text-[var(--pf-text-brand)]',
+        'data-[state=active]:active:bg-[var(--pf-action-subtle-active)]',
+        // Optimistic / in-flight tab switch (set by ProjectTabsShell).
+        'data-[pending]:cursor-wait data-[pending]:opacity-90 data-[pending]:text-[var(--pf-text-brand)]',
         'disabled:pointer-events-none disabled:opacity-50',
         className,
       )}

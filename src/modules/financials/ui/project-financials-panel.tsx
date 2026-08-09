@@ -24,13 +24,19 @@ export async function ProjectFinancialsPanel({ projectId }: ProjectFinancialsPan
   const t = await getTranslations('financial');
 
   const { financials, cashFlow, canReadProfit, canReadBilling, canReadCommercial } =
-    await withOrgContext(async (context) => ({
-      financials: await getProjectFinancials(context, projectId),
-      cashFlow: await getProjectCashFlowOutlook(context, projectId),
-      canReadProfit: hasPermission(context, PERMISSIONS.PROJECT_PROFIT_READ),
-      canReadBilling: hasPermission(context, PERMISSIONS.BILLING_READ),
-      canReadCommercial: hasPermission(context, PERMISSIONS.CONTRACTS_READ),
-    }));
+    await withOrgContext(async (context) => {
+      const [financialsResult, cashFlowResult] = await Promise.all([
+        getProjectFinancials(context, projectId),
+        getProjectCashFlowOutlook(context, projectId),
+      ]);
+      return {
+        financials: financialsResult,
+        cashFlow: cashFlowResult,
+        canReadProfit: hasPermission(context, PERMISSIONS.PROJECT_PROFIT_READ),
+        canReadBilling: hasPermission(context, PERMISSIONS.BILLING_READ),
+        canReadCommercial: hasPermission(context, PERMISSIONS.CONTRACTS_READ),
+      };
+    });
 
   const coverageSources = mapCoverageToSources(financials.coverage, t);
   const hasCostPartials = (financials.coverage.partials?.length ?? 0) > 0;

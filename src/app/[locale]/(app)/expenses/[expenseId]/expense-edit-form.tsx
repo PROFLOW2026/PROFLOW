@@ -114,7 +114,7 @@ export function ExpenseEditForm({
         error={state.error ?? null}
       />
 
-      <Button type="submit" disabled={pending}>
+      <Button type="submit" loading={pending}>
         {pending ? tCommon('states.saving') : tCommon('actions.save')}
       </Button>
     </form>

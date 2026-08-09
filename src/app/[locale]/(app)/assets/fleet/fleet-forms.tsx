@@ -77,7 +77,7 @@ export function FleetVehicleCreateForm({
         {(control) => <Textarea {...control} name="notes" rows={2} />}
       </Field>
 
-      <Button type="submit" className="h-11 w-full sm:w-auto" disabled={pending}>
+      <Button type="submit" className="h-11 w-full sm:w-auto" loading={pending}>
         {pending ? tCommon('states.saving') : t('submit')}
       </Button>
     </form>
@@ -133,7 +133,7 @@ export function FleetVehicleEditForm({
       <Field label={t('notesLabel')}>
         {(control) => <Input {...control} name="notes" defaultValue={notes ?? ''} />}
       </Field>
-      <Button type="submit" size="sm" disabled={pending} className="min-h-11 self-start md:min-h-8">
+      <Button type="submit" size="sm" loading={pending} className="min-h-11 self-start md:min-h-8">
         {pending ? tCommon('states.saving') : t('updateSubmit')}
       </Button>
     </form>

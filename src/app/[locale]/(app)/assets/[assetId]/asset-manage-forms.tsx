@@ -56,7 +56,7 @@ export function AssetAssignmentForm({
           </Select>
         )}
       </Field>
-      <Button type="submit" disabled={pending} size="sm">
+      <Button type="submit" loading={pending} size="sm">
         {pending ? tCommon('states.saving') : t('saveAssignment')}
       </Button>
     </form>
