@@ -96,9 +96,13 @@ export default async function CrmOpportunitiesPage() {
                         />
                       </TableCell>
                       <TableCell numeric>
-                        {row.expectedValueAmount
-                          ? `${row.expectedValueAmount} ${row.currency ?? ''}`.trim()
-                          : '—'}
+                        {row.expectedValueAmount ? (
+                          <span dir="ltr">
+                            {`${row.expectedValueAmount} ${row.currency ?? ''}`.trim()}
+                          </span>
+                        ) : (
+                          '—'
+                        )}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -120,6 +124,14 @@ export default async function CrmOpportunitiesPage() {
               </div>
               <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">
                 {t(`stages.${row.stage}`)}
+                {row.expectedValueAmount ? (
+                  <>
+                    {' · '}
+                    <span dir="ltr">
+                      {`${row.expectedValueAmount} ${row.currency ?? ''}`.trim()}
+                    </span>
+                  </>
+                ) : null}
               </p>
             </Link>
           )}

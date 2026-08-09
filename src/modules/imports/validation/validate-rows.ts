@@ -118,7 +118,28 @@ function validateProjects(values: Readonly<Record<string, string>>): ImportIssue
     });
   }
 
-  // Contract amounts are intentionally omitted — financial import is conservative.
+  // Contract amounts / billing / expenses are intentionally omitted — financial import is conservative.
+  const financialKeys = [
+    'contractAmount',
+    'originalAmount',
+    'amount',
+    'grossAmount',
+    'netAmount',
+    'taxAmount',
+    'invoiced',
+    'paid',
+    'outstanding',
+  ] as const;
+  for (const key of financialKeys) {
+    if (emptyToUndefined(values[key])) {
+      issues.push({
+        severity: 'warning',
+        field: key,
+        message: 'Financial amounts are not imported; set contract value on the project after create',
+      });
+    }
+  }
+
   const parsed = createProjectSchema.safeParse({
     name: values.name ?? '',
     status: statusRaw,

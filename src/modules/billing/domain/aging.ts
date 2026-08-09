@@ -1,5 +1,11 @@
 import { daysBetween, type BusinessDate } from '@/shared/dates';
-import { addMoney, isPositiveMoney, zeroMoney, type MoneyValue } from '@/shared/money';
+import {
+  addMoney,
+  isPositiveMoney,
+  isZeroMoney,
+  zeroMoney,
+  type MoneyValue,
+} from '@/shared/money';
 import type { BillingRecordSummary } from './types';
 
 export type AgingBucketKey = 'current' | 'days_1_30' | 'days_31_60' | 'days_61_90' | 'days_90_plus';
@@ -28,7 +34,8 @@ function bucketForDaysPastDue(daysPastDue: number | null): AgingBucketKey {
 
 /**
  * Aging is derived from Outstanding (never Invoiced alone) and due dates.
- * Records without due dates sit in `current`. Draft/void already excluded by summaries.
+ * Credit notes / overpayments (negative outstanding) net into `current` so
+ * totalOutstanding matches org AR. Draft/void already have zero outstanding.
  */
 export function computeReceivablesAging(
   records: readonly BillingRecordSummary[],
@@ -53,7 +60,15 @@ export function computeReceivablesAging(
 
   for (const record of records) {
     if (record.totalAmount.currency !== currency) continue;
-    if (!isPositiveMoney(record.outstandingAmount)) continue;
+    if (isZeroMoney(record.outstandingAmount)) continue;
+
+    // Credits/overpayments reduce AR; they are not past-due collectibles.
+    if (!isPositiveMoney(record.outstandingAmount)) {
+      totals.set('current', addMoney(totals.get('current')!, record.outstandingAmount));
+      counts.set('current', (counts.get('current') ?? 0) + 1);
+      totalOutstanding = addMoney(totalOutstanding, record.outstandingAmount);
+      continue;
+    }
 
     const daysPastDue = record.dueDate ? daysBetween(record.dueDate, asOf) : null;
     const key = bucketForDaysPastDue(daysPastDue);
@@ -71,6 +86,6 @@ export function computeReceivablesAging(
       count: counts.get(key) ?? 0,
     })),
     totalOutstanding,
-    note: 'Aging uses Outstanding only. VAT is not treated as revenue. Foreign-currency records are excluded.',
+    note: 'Aging uses Outstanding only (credit notes net into current). VAT is not treated as revenue. Foreign-currency records are excluded.',
   };
 }

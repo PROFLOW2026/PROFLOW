@@ -1,6 +1,7 @@
 {
   "title": "CRM",
   "description": "Pre-project sales: prospects, leads, opportunities and sales quotes.",
+  "navLabel": "CRM sections",
   "nav": {
     "opportunities": "Opportunities",
     "prospects": "Prospects",
@@ -149,6 +150,7 @@
     "cannotConvertLost": "Lost or cancelled opportunities cannot be converted",
     "cannotConvert": "This opportunity cannot be converted",
     "quoteNotAccepted": "Only an accepted sales quote version can feed contract net amount",
+    "quoteOpportunityMismatch": "Sales quote does not belong to this opportunity",
     "acceptedQuoteRequired": "An accepted sales quote version is required to convert",
     "quoteFinalized": "Cannot add versions to a finalized sales quote",
     "cannotIssueVersion": "Only draft sales quote versions can be issued",

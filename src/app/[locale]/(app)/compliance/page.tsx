@@ -158,7 +158,13 @@ export default async function CompliancePage({
                       </TableCell>
                       <TableCell>{t(`kinds.${artifact.artifactKind}`)}</TableCell>
                       <TableCell>{t(`subjects.${artifact.subjectType}`)}</TableCell>
-                      <TableCell>{artifact.expiresOn ?? t('list.noExpiry')}</TableCell>
+                      <TableCell>
+                        {artifact.expiresOn ? (
+                          <span dir="ltr">{artifact.expiresOn}</span>
+                        ) : (
+                          t('list.noExpiry')
+                        )}
+                      </TableCell>
                       <TableCell>
                         <StatusBadge
                           shape={complianceStatusShape(artifact.status)}
@@ -185,7 +191,12 @@ export default async function CompliancePage({
               </div>
               <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">
                 {t(`kinds.${artifact.artifactKind}`)} · {t(`subjects.${artifact.subjectType}`)}
-                {artifact.expiresOn ? ` · ${artifact.expiresOn}` : ''}
+                {artifact.expiresOn ? (
+                  <>
+                    {' · '}
+                    <span dir="ltr">{artifact.expiresOn}</span>
+                  </>
+                ) : null}
               </p>
             </Link>
           )}

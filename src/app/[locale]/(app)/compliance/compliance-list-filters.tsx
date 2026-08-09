@@ -42,7 +42,7 @@ export function ComplianceListFilters({
             {...control}
             name="kind"
             defaultValue={initialKind || 'all'}
-            className="flex h-10 w-full rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] px-3 text-sm"
+            className="flex h-11 w-full rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] px-3 text-sm"
           >
             <option value="all">{t('list.filters.all')}</option>
             {ARTIFACT_KINDS.map((kind) => (
@@ -60,7 +60,7 @@ export function ComplianceListFilters({
             {...control}
             name="status"
             defaultValue={initialStatus || 'all'}
-            className="flex h-10 w-full rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] px-3 text-sm"
+            className="flex h-11 w-full rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] px-3 text-sm"
           >
             <option value="all">{t('list.filters.all')}</option>
             {ARTIFACT_STATUSES.map((status) => (
@@ -78,7 +78,7 @@ export function ComplianceListFilters({
             {...control}
             name="subject"
             defaultValue={initialSubject || 'all'}
-            className="flex h-10 w-full rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] px-3 text-sm"
+            className="flex h-11 w-full rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] px-3 text-sm"
           >
             <option value="all">{t('list.filters.all')}</option>
             {SUBJECT_TYPES.map((subject) => (

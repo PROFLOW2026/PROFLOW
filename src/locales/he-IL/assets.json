@@ -1,0 +1,92 @@
+{
+  "title": "נכסים וציוד",
+  "description": "ציוד, צי רכב, תחזוקה ומלאי. עלות תחזוקה היא מטא־דאטה בלבד — לא הוצאה. כמות מלאי אינה חלק מהנהלת חשבונות.",
+  "nav": {
+    "assets": "נכסים",
+    "inventory": "מלאי"
+  },
+  "newAsset": "נכס חדש",
+  "newInventoryItem": "פריט מלאי חדש",
+  "empty": {
+    "assets": {
+      "title": "אין עדיין נכסים",
+      "body": "עקבו אחרי ציוד ורכבים, ואז תעדו תחזוקה כהערות תפעוליות.",
+      "action": "נכס חדש"
+    },
+    "inventory": {
+      "title": "אין עדיין פריטי מלאי",
+      "body": "עקבו אחרי כמויות במלאי. קבלה וניפוק מעדכנים מלאי בלבד — לא את הנהלת החשבונות.",
+      "action": "פריט מלאי חדש"
+    }
+  },
+  "list": {
+    "columns": {
+      "name": "שם",
+      "kind": "סוג",
+      "status": "סטטוס",
+      "identifier": "מזהה",
+      "sku": "מק״ט",
+      "unit": "יחידה",
+      "quantity": "במלאי",
+      "actions": "פעולות"
+    }
+  },
+  "kinds": {
+    "equipment": "ציוד",
+    "vehicle": "רכב",
+    "tool": "כלי",
+    "other": "אחר"
+  },
+  "createAsset": {
+    "title": "נכס חדש",
+    "description": "הוסיפו ציוד או רכב. פרטי צי רשותיים.",
+    "submit": "שמירת נכס",
+    "nameLabel": "שם",
+    "kindLabel": "סוג",
+    "identifierLabel": "מזהה",
+    "manufacturerLabel": "יצרן",
+    "modelLabel": "דגם",
+    "serialNumberLabel": "מספר סידורי",
+    "notesLabel": "הערות",
+    "fleetTitle": "פרטי צי (אופציונלי)",
+    "plateNumberLabel": "מספר לוחית",
+    "vinLabel": "מספר שלדה",
+    "odometerLabel": "מד אוץ"
+  },
+  "detail": {
+    "fleet": "צי רכב",
+    "noFleet": "אין רשומת צי מקושרת",
+    "maintenance": "תחזוקה",
+    "maintenanceHint": "העלות כאן היא מטא־דאטה תפעולית בלבד ואינה יוצרת הוצאה.",
+    "newMaintenance": "הוספת תחזוקה",
+    "maintenanceTitle": "כותרת",
+    "maintenanceStatus": "סטטוס",
+    "performedOn": "בוצע ב־",
+    "costAmount": "עלות (מטא־דאטה)",
+    "currency": "מטבע",
+    "notes": "הערות",
+    "submitMaintenance": "שמירת תחזוקה",
+    "emptyMaintenance": "אין עדיין רשומות תחזוקה."
+  },
+  "inventory": {
+    "title": "מלאי",
+    "description": "כמויות במלאי לחומרים ופריטים. תנועות מעדכנות כמות בלבד — לא הנהלת חשבונות ולא הוצאה.",
+    "createTitle": "פריט מלאי חדש",
+    "submitItem": "שמירת פריט",
+    "nameLabel": "שם",
+    "skuLabel": "מק״ט",
+    "unitLabel": "יחידה",
+    "quantityLabel": "כמות התחלתית",
+    "notesLabel": "הערות",
+    "receive": "קבלה",
+    "issue": "ניפוק",
+    "movementQuantity": "כמות",
+    "occurredOn": "תאריך",
+    "movementNotes": "הערות",
+    "submitMovement": "רישום",
+    "pending": "שומר…"
+  },
+  "errors": {
+    "insufficientQuantity": "אין מספיק כמות במלאי לניפוק זה."
+  }
+}

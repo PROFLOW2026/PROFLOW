@@ -1,11 +1,17 @@
 import { NextResponse } from 'next/server';
 import { isAppError } from '@/shared/errors';
-import { resolveApiWhoami } from '@/modules/api';
+import {
+  API_KEY_SCOPES,
+  assertApiKeyHasAnyScope,
+  authenticateApiKey,
+  resolveApiWhoami,
+} from '@/modules/api';
 import { isDatabaseConfigured } from '@/shared/db/client';
 
 /**
  * Versioned API stub (doc 32). Validates API key hash via Authorization: Bearer.
  * Does not use Next.js session cookies — separate from browser auth.
+ * Scopes are checked on every authenticated route (whoami requires any issued scope).
  */
 export async function GET(request: Request) {
   if (!isDatabaseConfigured()) {
@@ -19,7 +25,9 @@ export async function GET(request: Request) {
   }
 
   try {
-    const whoami = await resolveApiWhoami(match[1]);
+    const auth = await authenticateApiKey(match[1]);
+    assertApiKeyHasAnyScope(auth, API_KEY_SCOPES);
+    const whoami = await resolveApiWhoami(auth);
     return NextResponse.json({
       apiVersion: 'v1',
       ...whoami,

@@ -47,7 +47,7 @@ export async function authenticateApiKey(plaintext: string): Promise<Authenticat
   };
 }
 
-export async function resolveApiWhoami(plaintext: string): Promise<{
+export async function resolveApiWhoami(input: string | AuthenticatedApiKey): Promise<{
   keyId: string;
   apiClientId: string;
   organizationId: string;
@@ -55,15 +55,16 @@ export async function resolveApiWhoami(plaintext: string): Promise<{
   clientName: string;
   scopes: readonly string[];
 }> {
-  const auth = await authenticateApiKey(plaintext);
+  const resolved = typeof input === 'string' ? await authenticateApiKey(input) : input;
   const db = getAdminDb();
-  const organizationName = await findOrganizationName(db, auth.organizationId);
+  const organizationName = await findOrganizationName(db, resolved.organizationId);
   return {
-    keyId: auth.keyId,
-    apiClientId: auth.apiClientId,
-    organizationId: auth.organizationId,
+    keyId: resolved.keyId,
+    apiClientId: resolved.apiClientId,
+    organizationId: resolved.organizationId,
     organizationName,
-    clientName: auth.clientName,
-    scopes: auth.scopes,
+    clientName: resolved.clientName,
+    scopes: resolved.scopes,
   };
 }
+

@@ -28,7 +28,7 @@ export function SettingsSectionNav({ items }: { items: readonly SettingsNavItem[
             href={item.href}
             aria-current={active ? 'page' : undefined}
             className={cn(
-              'shrink-0 rounded-md px-3 py-2 text-sm font-medium transition-colors',
+              'inline-flex min-h-11 shrink-0 items-center rounded-md px-3 py-2 text-sm font-medium transition-colors',
               active
                 ? 'bg-[var(--pf-teal-50)] text-[var(--pf-text-brand)]'
                 : 'text-[var(--pf-text-secondary)] hover:bg-[var(--pf-bg-muted)] hover:text-[var(--pf-text-primary)]',

@@ -62,16 +62,16 @@ export function EntityCustomFieldsPanel({
                 {(props) => {
                   if (definition.fieldType === 'boolean') {
                     return (
-                      <label className="flex items-center gap-2 text-sm">
+                      <div className="flex min-h-11 items-center">
                         <input
+                          {...props}
                           type="checkbox"
                           name="valueBool"
                           value="true"
                           defaultChecked={value?.valueBool === true}
-                          className="size-4 rounded border-[var(--pf-border-strong)]"
+                          className="size-5 rounded border-[var(--pf-border-strong)]"
                         />
-                        {definition.label}
-                      </label>
+                      </div>
                     );
                   }
                   if (definition.fieldType === 'date') {
@@ -90,6 +90,7 @@ export function EntityCustomFieldsPanel({
                         {...props}
                         name="valueNumber"
                         inputMode="decimal"
+                        dir="ltr"
                         defaultValue={value?.valueNumber ?? ''}
                       />
                     );
@@ -113,7 +114,13 @@ export function EntityCustomFieldsPanel({
                 }}
               </Field>
             </div>
-            <Button type="submit" variant="secondary" size="sm" loading={pending}>
+            <Button
+              type="submit"
+              variant="secondary"
+              size="sm"
+              loading={pending}
+              className="min-h-11 md:min-h-8"
+            >
               {t('saveValue')}
             </Button>
           </form>

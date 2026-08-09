@@ -83,7 +83,24 @@ export function previewImport(
     values: applyMapping(parsed.headers, row, mapping),
   }));
 
-  const rows: MappedImportRow[] = validateMappedRows(kind, mapped);
+  let rows: MappedImportRow[] = validateMappedRows(kind, mapped);
+
+  if (kind === 'projects') {
+    const financialHeaders = parsed.headers.filter((header) =>
+      /contract|amount|invoice|paid|outstanding|gross|tax|vat|revenue|billing/i.test(header),
+    );
+    if (financialHeaders.length > 0) {
+      const warning = {
+        severity: 'warning' as const,
+        message: `Financial columns ignored (${financialHeaders.join(', ')}); contract amounts are not imported`,
+      };
+      rows = rows.map((row) => ({
+        ...row,
+        issues: [...row.issues, warning],
+      }));
+    }
+  }
+
   const errorCount = rows.filter(rowHasErrors).length;
   const warningCount = rows.filter((r) => r.issues.some((i) => i.severity === 'warning')).length;
   const validCount = rows.length - errorCount;

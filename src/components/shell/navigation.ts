@@ -28,6 +28,8 @@ export const NAV_ICON_KEYS = [
   'compliance',
   'procurement',
   'materials',
+  'fieldOps',
+  'assets',
   'reports',
   'settings',
 ] as const;
@@ -150,6 +152,22 @@ export const NAV_ITEMS: readonly NavItem[] = [
     iconKey: 'materials',
     permission: PERMISSIONS.MATERIALS_READ,
     module: 'materials',
+  },
+  {
+    key: 'fieldOps',
+    href: '/field-ops',
+    labelKey: 'fieldOps',
+    iconKey: 'fieldOps',
+    permission: PERMISSIONS.FIELD_OPS_READ,
+    module: 'field_ops',
+  },
+  {
+    key: 'assets',
+    href: '/assets',
+    labelKey: 'assets',
+    iconKey: 'assets',
+    permission: PERMISSIONS.ASSETS_READ,
+    module: 'assets',
   },
   {
     key: 'reports',

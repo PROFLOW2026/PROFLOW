@@ -114,4 +114,17 @@ describe('imports expense kind stays disabled', () => {
       }),
     ).rejects.toBeInstanceOf(ValidationError);
   });
+
+  it('warns when project CSV includes financial amount columns (conservative)', () => {
+    const context = contextWith([PERMISSIONS.PROJECTS_CREATE]);
+    const preview = previewImport(context, {
+      kind: 'projects',
+      csvText: 'Name,Contract Amount\nSite A,50000\n',
+    });
+    expect(preview.enabled).toBe(true);
+    expect(preview.rows[0]!.issues.some((i) => i.severity === 'warning' && /Financial columns/i.test(i.message))).toBe(
+      true,
+    );
+    expect(preview.rows[0]!.values).not.toHaveProperty('contractAmount');
+  });
 });

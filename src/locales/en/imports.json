@@ -2,6 +2,13 @@
   "title": "Import data",
   "description": "Upload a CSV, map columns, preview row issues, then confirm. Creates go through the same rules as the normal forms.",
   "notAllowed": "You do not have permission to import any of the supported record types.",
+  "stepsLabel": "Import steps",
+  "steps": {
+    "upload": "Upload",
+    "mapping": "Mapping",
+    "preview": "Preview",
+    "result": "Result"
+  },
   "kindLabel": "What to import",
   "kindPlaceholder": "Choose a type",
   "fileLabel": "CSV file",

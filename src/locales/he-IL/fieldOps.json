@@ -1,0 +1,112 @@
+{
+  "title": "עבודה בשטח",
+  "description": "יומני עבודה, רשימות תיקונים ובדיקות לפי פרויקט.",
+  "nav": {
+    "logs": "יומני עבודה",
+    "punch": "רשימת תיקונים",
+    "inspections": "בדיקות"
+  },
+  "projectLinks": {
+    "title": "עבודה בשטח",
+    "logs": "יומני עבודה",
+    "punch": "רשימת תיקונים",
+    "inspections": "בדיקות"
+  },
+  "newLog": "יומן עבודה חדש",
+  "newPunch": "פריט תיקון חדש",
+  "newInspection": "בדיקה חדשה",
+  "empty": {
+    "logs": {
+      "title": "אין עדיין יומני עבודה",
+      "body": "רשמו מזג אוויר, כוח אדם והתקדמות באתר ליום עבודה בפרויקט.",
+      "action": "יומן עבודה חדש"
+    },
+    "punch": {
+      "title": "אין עדיין פריטי תיקון",
+      "body": "עקבו אחרי פריטים שצריך לסגור לפני מסירה.",
+      "action": "פריט תיקון חדש"
+    },
+    "inspections": {
+      "title": "אין עדיין בדיקות",
+      "body": "תזמנו ותעדו בדיקות בפרויקט.",
+      "action": "בדיקה חדשה"
+    },
+    "projectsRequired": {
+      "title": "צרו קודם פרויקט",
+      "body": "עבודה בשטח משויכת לפרויקט. צרו פרויקט ואז חזרו לכאן.",
+      "action": "פרויקטים"
+    }
+  },
+  "list": {
+    "columns": {
+      "date": "תאריך",
+      "project": "פרויקט",
+      "summary": "סיכום",
+      "weather": "מזג אוויר",
+      "title": "כותרת",
+      "status": "סטטוס",
+      "priority": "עדיפות",
+      "dueDate": "יעד",
+      "kind": "סוג",
+      "scheduledOn": "מתוזמן",
+      "completedOn": "הושלם"
+    }
+  },
+  "priorities": {
+    "low": "נמוכה",
+    "normal": "רגילה",
+    "high": "גבוהה",
+    "critical": "קריטית"
+  },
+  "kinds": {
+    "general": "כללי",
+    "safety": "בטיחות",
+    "quality": "איכות",
+    "handover": "מסירה",
+    "other": "אחר"
+  },
+  "createLog": {
+    "title": "יומן עבודה חדש",
+    "description": "תיעוד מה קרה באתר ביום עבודה אחד.",
+    "submit": "שמירת יומן",
+    "projectLabel": "פרויקט",
+    "projectPlaceholder": "בחרו פרויקט",
+    "logDateLabel": "תאריך",
+    "weatherLabel": "מזג אוויר",
+    "summaryLabel": "סיכום",
+    "workforceNotesLabel": "הערות כוח אדם"
+  },
+  "createPunch": {
+    "title": "פריט תיקון חדש",
+    "description": "הוסיפו פריט פתוח לסגירה לפני מסירה.",
+    "submit": "שמירת פריט",
+    "projectLabel": "פרויקט",
+    "projectPlaceholder": "בחרו פרויקט",
+    "titleLabel": "כותרת",
+    "descriptionLabel": "תיאור",
+    "priorityLabel": "עדיפות",
+    "locationLabel": "מיקום",
+    "dueDateLabel": "תאריך יעד"
+  },
+  "createInspection": {
+    "title": "בדיקה חדשה",
+    "description": "תזמון בדיקה לפרויקט.",
+    "submit": "שמירת בדיקה",
+    "projectLabel": "פרויקט",
+    "projectPlaceholder": "בחרו פרויקט",
+    "titleLabel": "כותרת",
+    "kindLabel": "סוג",
+    "scheduledOnLabel": "מתוזמן ל־",
+    "notesLabel": "הערות"
+  },
+  "updateStatus": {
+    "label": "סטטוס",
+    "submit": "עדכון",
+    "pending": "מעדכן…"
+  },
+  "errors": {
+    "invalidPunchTransition": "לא ניתן לשנות את סטטוס פריט התיקון כך.",
+    "invalidInspectionTransition": "לא ניתן לשנות את סטטוס הבדיקה כך.",
+    "projectRequired": "בחרו פרויקט."
+  }
+}

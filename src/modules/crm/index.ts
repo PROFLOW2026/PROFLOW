@@ -38,8 +38,10 @@ export type { ConvertWonOpportunityResult } from './application/convert-won-oppo
 export {
   canConvertOpportunity,
   assertCanConvertOpportunity,
+  assertQuoteBelongsToOpportunity,
   isOpportunityAlreadyConverted,
   contractNetAmountFromAcceptedQuote,
+  contractEnteredAmountFromAcceptedQuote,
   isAcceptedSalesQuoteVersion,
 } from './domain/conversion';
 

@@ -60,6 +60,31 @@
     "revoked": "Revoked",
     "pending": "Pending"
   },
+  "punch": {
+    "open": "Open",
+    "in_progress": "In progress",
+    "done": "Done",
+    "cancelled": "Cancelled"
+  },
+  "inspection": {
+    "scheduled": "Scheduled",
+    "in_progress": "In progress",
+    "passed": "Passed",
+    "failed": "Failed",
+    "cancelled": "Cancelled"
+  },
+  "asset": {
+    "active": "Active",
+    "in_maintenance": "In maintenance",
+    "retired": "Retired",
+    "disposed": "Disposed"
+  },
+  "maintenance": {
+    "planned": "Planned",
+    "in_progress": "In progress",
+    "completed": "Completed",
+    "cancelled": "Cancelled"
+  },
   "events": {
     "sentAt": "Sent {date}",
     "notSent": "Not sent"

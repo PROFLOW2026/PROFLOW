@@ -100,7 +100,13 @@ export default async function CrmLeadsPage() {
               href={`/crm/leads/${row.id}`}
               className="block min-h-11 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4"
             >
-              <span className="font-semibold">{row.title}</span>
+              <div className="flex items-start justify-between gap-2">
+                <span className="font-semibold">{row.title}</span>
+                <StatusBadge
+                  shape={row.status === 'new' || row.status === 'qualified' ? 'active' : 'archived'}
+                  label={t(`statuses.lead.${row.status}`)}
+                />
+              </div>
             </Link>
           )}
         />

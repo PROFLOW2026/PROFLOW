@@ -8,6 +8,10 @@ export {
   enqueueWebhookDelivery,
 } from './application/manage-api';
 export { authenticateApiKey, resolveApiWhoami } from './application/authenticate-api-key';
+export {
+  assertApiKeyHasScope,
+  assertApiKeyHasAnyScope,
+} from './application/assert-api-scope';
 
 export {
   API_CLIENT_STATUSES,

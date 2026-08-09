@@ -20,7 +20,7 @@ import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { Link } from '@/shared/i18n/navigation';
 import type { BillingListFilter } from '@/modules/billing';
-import { isPositiveMoney } from '@/shared/money';
+import { isZeroMoney } from '@/shared/money';
 
 export async function generateMetadata({
   params,
@@ -92,10 +92,10 @@ export default async function BillingListPage({
     );
   }
 
-  const showAging = aging && isPositiveMoney(aging.totalOutstanding);
+  const showAging = aging && !isZeroMoney(aging.totalOutstanding);
   const showSummary =
     summary &&
-    (isPositiveMoney(summary.totalOutstanding) ||
+    (!isZeroMoney(summary.totalOutstanding) ||
       summary.openCount > 0 ||
       summary.partialPaidCount > 0 ||
       summary.overdueCount > 0 ||
@@ -124,9 +124,9 @@ export default async function BillingListPage({
       {showAging && aging ? <ReceivablesAgingPanel aging={aging} /> : null}
 
       <Tabs value={filter}>
-        <TabsList aria-label={t('title')}>
+        <TabsList aria-label={t('list.filtersLabel')}>
           {FILTERS.map((value) => (
-            <TabsTrigger key={value} value={value} asChild>
+            <TabsTrigger key={value} value={value} asChild className="min-h-11">
               <Link href={value === 'all' ? '/billing' : `/billing?filter=${value}`}>
                 {t(`list.filters.${value}`)}
               </Link>

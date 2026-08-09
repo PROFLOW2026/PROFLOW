@@ -1,0 +1,112 @@
+{
+  "title": "Field operations",
+  "description": "Daily logs, punch lists and inspections for projects.",
+  "nav": {
+    "logs": "Daily logs",
+    "punch": "Punch list",
+    "inspections": "Inspections"
+  },
+  "projectLinks": {
+    "title": "Field operations",
+    "logs": "Daily logs",
+    "punch": "Punch list",
+    "inspections": "Inspections"
+  },
+  "newLog": "New daily log",
+  "newPunch": "New punch item",
+  "newInspection": "New inspection",
+  "empty": {
+    "logs": {
+      "title": "No daily logs yet",
+      "body": "Record weather, workforce and site progress for a project day.",
+      "action": "New daily log"
+    },
+    "punch": {
+      "title": "No punch items yet",
+      "body": "Track open items that need closing before handover.",
+      "action": "New punch item"
+    },
+    "inspections": {
+      "title": "No inspections yet",
+      "body": "Schedule and record project inspections.",
+      "action": "New inspection"
+    },
+    "projectsRequired": {
+      "title": "Add a project first",
+      "body": "Field operations are project-scoped. Create a project, then come back.",
+      "action": "Projects"
+    }
+  },
+  "list": {
+    "columns": {
+      "date": "Date",
+      "project": "Project",
+      "summary": "Summary",
+      "weather": "Weather",
+      "title": "Title",
+      "status": "Status",
+      "priority": "Priority",
+      "dueDate": "Due",
+      "kind": "Kind",
+      "scheduledOn": "Scheduled",
+      "completedOn": "Completed"
+    }
+  },
+  "priorities": {
+    "low": "Low",
+    "normal": "Normal",
+    "high": "High",
+    "critical": "Critical"
+  },
+  "kinds": {
+    "general": "General",
+    "safety": "Safety",
+    "quality": "Quality",
+    "handover": "Handover",
+    "other": "Other"
+  },
+  "createLog": {
+    "title": "New daily log",
+    "description": "Capture what happened on site for one project day.",
+    "submit": "Save log",
+    "projectLabel": "Project",
+    "projectPlaceholder": "Select project",
+    "logDateLabel": "Log date",
+    "weatherLabel": "Weather",
+    "summaryLabel": "Summary",
+    "workforceNotesLabel": "Workforce notes"
+  },
+  "createPunch": {
+    "title": "New punch item",
+    "description": "Add an open item to close before handover.",
+    "submit": "Save item",
+    "projectLabel": "Project",
+    "projectPlaceholder": "Select project",
+    "titleLabel": "Title",
+    "descriptionLabel": "Description",
+    "priorityLabel": "Priority",
+    "locationLabel": "Location",
+    "dueDateLabel": "Due date"
+  },
+  "createInspection": {
+    "title": "New inspection",
+    "description": "Schedule an inspection for a project.",
+    "submit": "Save inspection",
+    "projectLabel": "Project",
+    "projectPlaceholder": "Select project",
+    "titleLabel": "Title",
+    "kindLabel": "Kind",
+    "scheduledOnLabel": "Scheduled on",
+    "notesLabel": "Notes"
+  },
+  "updateStatus": {
+    "label": "Status",
+    "submit": "Update",
+    "pending": "Updating…"
+  },
+  "errors": {
+    "invalidPunchTransition": "That punch list status change is not allowed.",
+    "invalidInspectionTransition": "That inspection status change is not allowed.",
+    "projectRequired": "Select a project."
+  }
+}

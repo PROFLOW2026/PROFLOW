@@ -1,5 +1,11 @@
 import type { BusinessDate } from '@/shared/dates';
-import { addMoney, isPositiveMoney, zeroMoney, type MoneyValue } from '@/shared/money';
+import {
+  addMoney,
+  isPositiveMoney,
+  isZeroMoney,
+  zeroMoney,
+  type MoneyValue,
+} from '@/shared/money';
 import type { BillingRecordSummary } from './types';
 
 export interface ReceivablesSummary {
@@ -22,7 +28,8 @@ export interface ReceivablesSummary {
 
 /**
  * Org-level AR snapshot from BillingRecord summaries.
- * Outstanding is derived; draft/void excluded via collectionStatus; credit notes already reduce invoiced.
+ * Outstanding is signed Invoiced − Paid per record (credit notes reduce totals).
+ * Draft/void are excluded via zero outstanding + null collectionStatus.
  */
 export function computeReceivablesSummary(
   records: readonly BillingRecordSummary[],
@@ -40,7 +47,7 @@ export function computeReceivablesSummary(
 
   for (const record of records) {
     if (record.totalAmount.currency !== currency) {
-      if (record.status === 'finalized' && isPositiveMoney(record.outstandingAmount)) {
+      if (record.status === 'finalized' && !isZeroMoney(record.outstandingAmount)) {
         excludedForeignCurrencyCount += 1;
       }
       continue;
@@ -50,9 +57,12 @@ export function computeReceivablesSummary(
     if (record.collectionStatus === 'partial') partialPaidCount += 1;
     if (record.collectionStatus === 'overdue') overdueCount += 1;
 
-    if (!isPositiveMoney(record.outstandingAmount)) continue;
+    // Net credit notes / overpayments into AR (signed outstanding), not only positives.
+    if (!isZeroMoney(record.outstandingAmount)) {
+      totalOutstanding = addMoney(totalOutstanding, record.outstandingAmount);
+    }
 
-    totalOutstanding = addMoney(totalOutstanding, record.outstandingAmount);
+    if (!isPositiveMoney(record.outstandingAmount)) continue;
 
     if (record.collectionStatus === 'overdue') {
       overdueTotal = addMoney(overdueTotal, record.outstandingAmount);
@@ -76,6 +86,6 @@ export function computeReceivablesSummary(
       retentionReleaseOpenCount > 0 ? retentionReleaseOutstanding : null,
     retentionReleaseOpenCount,
     excludedForeignCurrencyCount,
-    note: 'Outstanding is derived (Invoiced − Paid). Credit notes reduce Invoiced; voided records and voided payments are excluded. VAT is not profit or revenue.',
+    note: 'Outstanding is derived (Invoiced − Paid). Credit notes reduce Outstanding; voided records and voided payments are excluded. VAT is not profit or revenue.',
   };
 }

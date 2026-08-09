@@ -1,0 +1,70 @@
+import type { Metadata } from 'next';
+import { getTranslations } from 'next-intl/server';
+import { PageHeader } from '@/components/ui/page-header';
+import { EmptyState } from '@/components/ui/empty-state';
+import { Button } from '@/components/ui/button';
+import { listProjectsForOrg } from '@/modules/projects';
+import { withOrgContext } from '@/shared/auth/session';
+import { todayInTimeZone } from '@/shared/dates/dates';
+import { Link } from '@/shared/i18n/navigation';
+import { DailyLogCreateForm } from '../daily-log-create-form';
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: 'fieldOps' });
+  return { title: t('createLog.title') };
+}
+
+export default async function NewDailyLogPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ projectId?: string }>;
+}) {
+  const t = await getTranslations('fieldOps');
+  const { projectId } = await searchParams;
+
+  const { projects, timezone } = await withOrgContext(async (context) => ({
+    projects: await listProjectsForOrg(context, {}),
+    timezone: context.organization.timezone,
+  }));
+
+  if (projects.length === 0) {
+    return (
+      <div className="flex flex-col gap-6">
+        <PageHeader title={t('createLog.title')} />
+        <EmptyState
+          title={t('empty.projectsRequired.title')}
+          description={t('empty.projectsRequired.body')}
+          action={
+            <Button asChild>
+              <Link href="/projects">{t('empty.projectsRequired.action')}</Link>
+            </Button>
+          }
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-6">
+      <PageHeader
+        title={t('createLog.title')}
+        description={t('createLog.description')}
+        breadcrumb={
+          <Link href="/field-ops/logs" className="text-sm text-[var(--pf-text-secondary)] hover:underline">
+            {t('nav.logs')}
+          </Link>
+        }
+      />
+      <DailyLogCreateForm
+        projects={projects.map((p) => ({ id: p.id, name: p.name }))}
+        defaultProjectId={projectId}
+        defaultLogDate={todayInTimeZone(timezone)}
+      />
+    </div>
+  );
+}

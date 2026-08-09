@@ -94,6 +94,7 @@ async function createFromRow(
         | 'cancelled'
         | 'archived'
         | undefined;
+      // Conservative: never set contract/billing/expense amounts from CSV.
       const result = await createProject(context, {
         name: v.name ?? '',
         status,
@@ -105,6 +106,12 @@ async function createFromRow(
         notes: emptyToUndefined(v.notes),
       });
       return result.projectId;
+    }
+    default: {
+      const _exhaustive: never = kind;
+      throw new ValidationError([
+        { path: 'kind', message: `Import kind is not enabled for create: ${String(_exhaustive)}` },
+      ]);
     }
   }
 }

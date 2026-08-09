@@ -1,0 +1,92 @@
+{
+  "title": "Assets",
+  "description": "Equipment, fleet, maintenance and stock. Maintenance cost is metadata — not an expense. Inventory quantity is not GL.",
+  "nav": {
+    "assets": "Assets",
+    "inventory": "Inventory"
+  },
+  "newAsset": "New asset",
+  "newInventoryItem": "New inventory item",
+  "empty": {
+    "assets": {
+      "title": "No assets yet",
+      "body": "Track equipment and vehicles, then log maintenance as operational notes.",
+      "action": "New asset"
+    },
+    "inventory": {
+      "title": "No inventory items yet",
+      "body": "Track on-hand quantities. Receive and issue movements update stock only — not the ledger.",
+      "action": "New inventory item"
+    }
+  },
+  "list": {
+    "columns": {
+      "name": "Name",
+      "kind": "Kind",
+      "status": "Status",
+      "identifier": "ID",
+      "sku": "SKU",
+      "unit": "Unit",
+      "quantity": "On hand",
+      "actions": "Actions"
+    }
+  },
+  "kinds": {
+    "equipment": "Equipment",
+    "vehicle": "Vehicle",
+    "tool": "Tool",
+    "other": "Other"
+  },
+  "createAsset": {
+    "title": "New asset",
+    "description": "Add equipment or a vehicle. Fleet details are optional.",
+    "submit": "Save asset",
+    "nameLabel": "Name",
+    "kindLabel": "Kind",
+    "identifierLabel": "Identifier",
+    "manufacturerLabel": "Manufacturer",
+    "modelLabel": "Model",
+    "serialNumberLabel": "Serial number",
+    "notesLabel": "Notes",
+    "fleetTitle": "Fleet details (optional)",
+    "plateNumberLabel": "Plate number",
+    "vinLabel": "VIN",
+    "odometerLabel": "Odometer"
+  },
+  "detail": {
+    "fleet": "Fleet",
+    "noFleet": "No fleet record linked",
+    "maintenance": "Maintenance",
+    "maintenanceHint": "Cost here is operational metadata only and does not create an expense.",
+    "newMaintenance": "Add maintenance",
+    "maintenanceTitle": "Title",
+    "maintenanceStatus": "Status",
+    "performedOn": "Performed on",
+    "costAmount": "Cost (metadata)",
+    "currency": "Currency",
+    "notes": "Notes",
+    "submitMaintenance": "Save maintenance",
+    "emptyMaintenance": "No maintenance records yet."
+  },
+  "inventory": {
+    "title": "Inventory",
+    "description": "On-hand quantities for materials and stock. Movements update quantity only — never GL or expense.",
+    "createTitle": "New inventory item",
+    "submitItem": "Save item",
+    "nameLabel": "Name",
+    "skuLabel": "SKU",
+    "unitLabel": "Unit",
+    "quantityLabel": "Starting quantity",
+    "notesLabel": "Notes",
+    "receive": "Receive",
+    "issue": "Issue",
+    "movementQuantity": "Quantity",
+    "occurredOn": "Date",
+    "movementNotes": "Notes",
+    "submitMovement": "Record",
+    "pending": "Saving…"
+  },
+  "errors": {
+    "insufficientQuantity": "Not enough quantity on hand for this issue."
+  }
+}

@@ -60,6 +60,31 @@
     "revoked": "בוטל",
     "pending": "ממתין"
   },
+  "punch": {
+    "open": "פתוח",
+    "in_progress": "בטיפול",
+    "done": "הושלם",
+    "cancelled": "בוטל"
+  },
+  "inspection": {
+    "scheduled": "מתוזמן",
+    "in_progress": "בתהליך",
+    "passed": "עבר",
+    "failed": "נכשל",
+    "cancelled": "בוטל"
+  },
+  "asset": {
+    "active": "פעיל",
+    "in_maintenance": "בתחזוקה",
+    "retired": "הוצא משימוש",
+    "disposed": "נמכר / הושמד"
+  },
+  "maintenance": {
+    "planned": "מתוכנן",
+    "in_progress": "בתהליך",
+    "completed": "הושלם",
+    "cancelled": "בוטל"
+  },
   "events": {
     "sentAt": "נשלח ב־{date}",
     "notSent": "לא נשלח"

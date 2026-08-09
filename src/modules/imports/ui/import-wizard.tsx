@@ -2,6 +2,7 @@
 
 import { useMemo, useState, useTransition } from 'react';
 import { useTranslations } from 'next-intl';
+import { ResponsiveTable } from '@/components/patterns/responsive-table';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -33,6 +34,8 @@ import {
 } from '@/modules/imports/application/import-actions';
 
 type Step = 'upload' | 'mapping' | 'preview' | 'result';
+
+const STEPS: readonly Step[] = ['upload', 'mapping', 'preview', 'result'];
 
 export interface ImportWizardProps {
   readonly allowedKinds: readonly EnabledImportKind[];
@@ -129,8 +132,32 @@ export function ImportWizard({ allowedKinds }: ImportWizardProps) {
     return <Alert tone="warning">{t('notAllowed')}</Alert>;
   }
 
+  const previewRows = preview?.rows.slice(0, 100) ?? [];
+
   return (
     <div className="flex flex-col gap-4">
+      <ol
+        className="flex flex-wrap gap-2 text-xs text-[var(--pf-text-secondary)]"
+        aria-label={t('stepsLabel')}
+      >
+        {STEPS.map((item) => {
+          const isCurrent = item === step;
+          return (
+            <li
+              key={item}
+              aria-current={isCurrent ? 'step' : undefined}
+              className={
+                isCurrent
+                  ? 'rounded-md bg-[var(--pf-bg-muted)] px-2.5 py-1.5 font-medium text-[var(--pf-text-primary)]'
+                  : 'rounded-md px-2.5 py-1.5'
+              }
+            >
+              {t(`steps.${item}`)}
+            </li>
+          );
+        })}
+      </ol>
+
       {error ? <Alert tone="danger">{error}</Alert> : null}
 
       {step === 'upload' || step === 'mapping' ? (
@@ -164,11 +191,13 @@ export function ImportWizard({ allowedKinds }: ImportWizardProps) {
               id="import-file"
               type="file"
               accept=".csv,text/csv"
-              className="text-sm"
+              className="block w-full max-w-md text-sm file:me-3 file:min-h-11 file:cursor-pointer file:rounded-md file:border file:border-[var(--pf-border-strong)] file:bg-[var(--pf-action-secondary)] file:px-3 file:text-sm file:font-medium"
               onChange={(event) => onFile(event.target.files?.[0] ?? null)}
             />
             {fileName ? (
-              <p className="text-xs text-[var(--pf-text-secondary)]">{fileName}</p>
+              <p className="text-xs text-[var(--pf-text-secondary)]" dir="ltr">
+                {fileName}
+              </p>
             ) : null}
           </div>
 
@@ -245,53 +274,95 @@ export function ImportWizard({ allowedKinds }: ImportWizardProps) {
             </p>
           </div>
 
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t('preview.row')}</TableHead>
-                  <TableHead>{t('preview.values')}</TableHead>
-                  <TableHead>{t('preview.issues')}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {preview.rows.slice(0, 100).map((row) => (
-                  <TableRow key={row.rowNumber}>
-                    <TableCell className="align-top tabular-nums">{row.rowNumber}</TableCell>
-                    <TableCell className="align-top text-xs">
-                      {Object.entries(row.values)
-                        .filter(([, value]) => value)
-                        .map(([key, value]) => (
-                          <div key={key}>
-                            <span className="text-[var(--pf-text-secondary)]">{key}: </span>
-                            {value}
-                          </div>
-                        ))}
-                    </TableCell>
-                    <TableCell className="align-top text-xs">
-                      {row.issues.length === 0 ? (
-                        <span className="text-[var(--pf-text-secondary)]">—</span>
-                      ) : (
-                        row.issues.map((issue, idx) => (
-                          <div
-                            key={`${issue.message}-${idx}`}
-                            className={
-                              issue.severity === 'error'
-                                ? 'text-[var(--pf-action-danger)]'
-                                : 'text-[var(--pf-text-secondary)]'
-                            }
-                          >
-                            {issue.severity === 'error' ? t('preview.error') : t('preview.warning')}:{' '}
-                            {issue.message}
-                          </div>
-                        ))
-                      )}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+          <ResponsiveTable
+            items={previewRows}
+            getRowKey={(row) => String(row.rowNumber)}
+            desktop={
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>{t('preview.row')}</TableHead>
+                      <TableHead>{t('preview.values')}</TableHead>
+                      <TableHead>{t('preview.issues')}</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {previewRows.map((row) => (
+                      <TableRow key={row.rowNumber}>
+                        <TableCell className="align-top tabular-nums" dir="ltr">
+                          {row.rowNumber}
+                        </TableCell>
+                        <TableCell className="align-top text-xs">
+                          {Object.entries(row.values)
+                            .filter(([, value]) => value)
+                            .map(([key, value]) => (
+                              <div key={key}>
+                                <span className="text-[var(--pf-text-secondary)]">{key}: </span>
+                                {value}
+                              </div>
+                            ))}
+                        </TableCell>
+                        <TableCell className="align-top text-xs">
+                          {row.issues.length === 0 ? (
+                            <span className="text-[var(--pf-text-secondary)]">—</span>
+                          ) : (
+                            row.issues.map((issue, idx) => (
+                              <div
+                                key={`${issue.message}-${idx}`}
+                                className={
+                                  issue.severity === 'error'
+                                    ? 'text-[var(--pf-action-danger)]'
+                                    : 'text-[var(--pf-text-secondary)]'
+                                }
+                              >
+                                {issue.severity === 'error' ? t('preview.error') : t('preview.warning')}
+                                : {issue.message}
+                              </div>
+                            ))
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            }
+            renderMobileCard={(row) => (
+              <div className="min-h-11 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4 text-sm">
+                <p className="font-semibold">
+                  {t('preview.row')} <span dir="ltr">{row.rowNumber}</span>
+                </p>
+                <div className="mt-2 space-y-1 text-xs">
+                  {Object.entries(row.values)
+                    .filter(([, value]) => value)
+                    .map(([key, value]) => (
+                      <div key={key}>
+                        <span className="text-[var(--pf-text-secondary)]">{key}: </span>
+                        {value}
+                      </div>
+                    ))}
+                </div>
+                {row.issues.length > 0 ? (
+                  <div className="mt-2 space-y-1 text-xs">
+                    {row.issues.map((issue, idx) => (
+                      <div
+                        key={`${issue.message}-${idx}`}
+                        className={
+                          issue.severity === 'error'
+                            ? 'text-[var(--pf-action-danger)]'
+                            : 'text-[var(--pf-text-secondary)]'
+                        }
+                      >
+                        {issue.severity === 'error' ? t('preview.error') : t('preview.warning')}:{' '}
+                        {issue.message}
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+            )}
+          />
 
           {preview.rows.length > 100 ? (
             <p className="text-xs text-[var(--pf-text-secondary)]">
@@ -318,7 +389,7 @@ export function ImportWizard({ allowedKinds }: ImportWizardProps) {
       {step === 'result' && result ? (
         <Card className="flex flex-col gap-4 p-5">
           <h2 className="text-sm font-semibold">{t('result.title')}</h2>
-          <p className="text-sm">
+          <p className="text-sm" role="status">
             {t('result.summary', { created: result.created, failed: result.failed })}
           </p>
           {result.failed > 0 ? (

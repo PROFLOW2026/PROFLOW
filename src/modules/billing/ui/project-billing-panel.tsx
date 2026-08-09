@@ -1,6 +1,7 @@
 import { getLocale, getTranslations } from 'next-intl/server';
 import { Receipt } from 'lucide-react';
 import { MoneyText } from '@/components/patterns/money-text';
+import { ResponsiveTable } from '@/components/patterns/responsive-table';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -81,7 +82,7 @@ export async function ProjectBillingPanel({ projectId }: ProjectBillingPanelProp
           <CardContent>
             <ul className="flex flex-col gap-2 text-sm">
               {unbilledChanges.map((change) => (
-                <li key={change.id} className="flex items-center justify-between gap-2">
+                <li key={change.id} className="flex min-h-11 items-center justify-between gap-2">
                   <span>{change.reference ?? change.id.slice(0, 8)}</span>
                   <MoneyText value={change.amount} />
                 </li>
@@ -109,47 +110,82 @@ export async function ProjectBillingPanel({ projectId }: ProjectBillingPanelProp
           <CardHeader className="flex-row items-center justify-between gap-2">
             <CardTitle>{t('panel.recordsTitle')}</CardTitle>
             {canManage ? (
-              <Button asChild size="sm" variant="secondary">
+              <Button asChild size="sm" variant="secondary" className="min-h-11 md:min-h-8">
                 <Link href={`/billing/new?projectId=${projectId}`}>{t('panel.addBilling')}</Link>
               </Button>
             ) : null}
           </CardHeader>
           <CardContent className="px-0 pb-0 sm:px-0">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t('list.issueDate')}</TableHead>
-                  <TableHead>{t('list.kind')}</TableHead>
-                  <TableHead numeric>{t('list.amount')}</TableHead>
-                  <TableHead numeric>{t('list.outstanding')}</TableHead>
-                  <TableHead>{t('list.status')}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {records.map((record) => (
-                  <TableRow key={record.id}>
-                    <TableCell>
-                      <Link href={`/billing/${record.id}`} className="text-[var(--pf-text-brand)]">
-                        {formatBusinessDate(record.issueDate, locale)}
-                      </Link>
-                    </TableCell>
-                    <TableCell>{t(`kinds.${record.kind}`)}</TableCell>
-                    <TableCell numeric>
-                      <MoneyText value={record.totalAmount} />
-                    </TableCell>
-                    <TableCell numeric>
+            <ResponsiveTable
+              items={records}
+              getRowKey={(record) => record.id}
+              desktop={
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>{t('list.issueDate')}</TableHead>
+                      <TableHead>{t('list.kind')}</TableHead>
+                      <TableHead numeric>{t('list.amount')}</TableHead>
+                      <TableHead numeric>{t('list.outstanding')}</TableHead>
+                      <TableHead>{t('list.status')}</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {records.map((record) => (
+                      <TableRow key={record.id}>
+                        <TableCell>
+                          <Link href={`/billing/${record.id}`} className="text-[var(--pf-text-brand)]">
+                            <span dir="ltr">{formatBusinessDate(record.issueDate, locale)}</span>
+                          </Link>
+                        </TableCell>
+                        <TableCell>{t(`kinds.${record.kind}`)}</TableCell>
+                        <TableCell numeric>
+                          <MoneyText value={record.totalAmount} />
+                        </TableCell>
+                        <TableCell numeric>
+                          <MoneyText value={record.outstandingAmount} colorizeNegative />
+                        </TableCell>
+                        <TableCell>
+                          <BillingStatusBadge
+                            status={record.status}
+                            collectionStatus={record.collectionStatus}
+                          />
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              }
+              renderMobileCard={(record) => (
+                <Link
+                  href={`/billing/${record.id}`}
+                  className="block min-h-11 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <span className="font-semibold" dir="ltr">
+                      {formatBusinessDate(record.issueDate, locale)}
+                    </span>
+                    <BillingStatusBadge
+                      status={record.status}
+                      collectionStatus={record.collectionStatus}
+                    />
+                  </div>
+                  <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">
+                    {t(`kinds.${record.kind}`)}
+                  </p>
+                  <div className="mt-2 flex flex-wrap items-baseline gap-x-3 gap-y-1 text-sm">
+                    <span>
+                      {t('list.amount')}: <MoneyText value={record.totalAmount} />
+                    </span>
+                    <span>
+                      {t('list.outstanding')}:{' '}
                       <MoneyText value={record.outstandingAmount} colorizeNegative />
-                    </TableCell>
-                    <TableCell>
-                      <BillingStatusBadge
-                        status={record.status}
-                        collectionStatus={record.collectionStatus}
-                      />
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                    </span>
+                  </div>
+                </Link>
+              )}
+              mobileListClassName="px-4 pb-4"
+            />
           </CardContent>
         </Card>
       )}

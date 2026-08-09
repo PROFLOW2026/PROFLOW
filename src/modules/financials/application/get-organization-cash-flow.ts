@@ -1,6 +1,6 @@
 import type { OrgContext } from '@/shared/auth/context';
 import { todayInTimeZone } from '@/shared/dates';
-import { isPositiveMoney } from '@/shared/money';
+import { isZeroMoney } from '@/shared/money';
 import { assertPermission, hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { listBillingRecords } from '@/modules/billing';
@@ -21,9 +21,9 @@ export async function getOrganizationCashFlowOutlook(
     loadCashFlowPayments(context.db, context.organizationId),
   ]);
 
-  const open = records.filter(
+  const outstandingRecords = records.filter(
     (record) =>
-      record.totalAmount.currency === currency && isPositiveMoney(record.outstandingAmount),
+      record.totalAmount.currency === currency && !isZeroMoney(record.outstandingAmount),
   );
 
   const payments = paymentRows.filter((row) => row.amount.currency === currency);
@@ -31,7 +31,7 @@ export async function getOrganizationCashFlowOutlook(
   return buildCashFlowOutlook({
     currency,
     asOf,
-    outstandingRecords: open,
+    outstandingRecords,
     payments,
   });
 }

@@ -24,6 +24,7 @@ import { OverviewTab } from './overview-tab';
 import { ProjectHeaderMetrics } from './project-header-metrics';
 import { ProjectStatusBadge } from '../project-status-badge';
 import { ProjectTabsShell, type ProjectTabKey } from './project-tabs-shell';
+import { ProjectFieldOpsLinks } from './project-field-ops-links';
 import { TabPanelSkeleton } from './tab-panel-skeleton';
 import { WorkTab } from './work-tab';
 
@@ -153,12 +154,17 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
       <Suspense fallback={<TabPanelSkeleton />}>
         <ProjectTabsShell tabs={tabs}>
         <TabsContent value="overview">
-          <OverviewTab
-            detail={detail}
-            locale={locale}
-            canReadFinancials={canReadFinancials}
-            canEdit={can(PERMISSIONS.PROJECTS_UPDATE)}
-          />
+          <div className="flex flex-col gap-4">
+            {Boolean(modules?.field_ops) && can(PERMISSIONS.FIELD_OPS_READ) ? (
+              <ProjectFieldOpsLinks projectId={projectId} />
+            ) : null}
+            <OverviewTab
+              detail={detail}
+              locale={locale}
+              canReadFinancials={canReadFinancials}
+              canEdit={can(PERMISSIONS.PROJECTS_UPDATE)}
+            />
+          </div>
         </TabsContent>
 
         {canReadFinancials ? (

@@ -71,6 +71,8 @@ export const MESSAGE_NAMESPACES = [
   'customFields',
   'api',
   'procurement',
+  'fieldOps',
+  'assets',
 ] as const;
 
 export type MessageNamespace = (typeof MESSAGE_NAMESPACES)[number];

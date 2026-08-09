@@ -11,6 +11,8 @@ export {
   excludeCommittedFromActualCost,
   isCommittedCostActualExpense,
   shouldCreateCommittedCostOnIssue,
+  assertIssueCreatesCommittedNotExpense,
+  assertCommittedAmountMatchesLines,
   PURCHASE_ORDER_STATUSES,
   COMMITTED_COST_STATUSES,
 } from './domain/committed-cost';

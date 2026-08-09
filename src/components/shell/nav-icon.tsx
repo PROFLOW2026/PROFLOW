@@ -6,6 +6,7 @@ import {
   FileText,
   FolderKanban,
   Handshake,
+  HardHat,
   LayoutDashboard,
   Package,
   Receipt,
@@ -15,6 +16,7 @@ import {
   Truck,
   Users,
   Wallet,
+  Wrench,
   ChartColumn,
   type LucideIcon,
 } from 'lucide-react';
@@ -34,6 +36,8 @@ const NAV_ICONS: Record<NavIconKey, LucideIcon> = {
   compliance: ShieldCheck,
   procurement: ClipboardList,
   materials: Package,
+  fieldOps: HardHat,
+  assets: Wrench,
   reports: ChartColumn,
   settings: Settings,
 };

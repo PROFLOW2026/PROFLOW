@@ -2,6 +2,7 @@
 
 import { useActionState } from 'react';
 import { useTranslations } from 'next-intl';
+import { ResponsiveTable } from '@/components/patterns/responsive-table';
 import { Alert } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -59,7 +60,7 @@ export function PortalGrantsPanel({
             ) : null}
 
             <Field label={t('fields.email')} required>
-              {(props) => <Input {...props} name="email" type="email" required />}
+              {(props) => <Input {...props} name="email" type="email" dir="ltr" required />}
             </Field>
             <Field label={t('fields.displayName')}>
               {(props) => <Input {...props} name="displayName" />}
@@ -101,16 +102,16 @@ export function PortalGrantsPanel({
               )}
             </Field>
 
-            <fieldset className="flex flex-col gap-2">
+            <fieldset className="flex flex-col gap-1">
               <legend className="text-sm font-medium">{t('fields.scopes')}</legend>
               {CUSTOMER_PORTAL_SCOPES.map((scope) => (
-                <label key={scope} className="flex items-center gap-2 text-sm">
+                <label key={scope} className="flex min-h-11 items-center gap-3 text-sm">
                   <input
                     type="checkbox"
                     name="scopes"
                     value={scope}
                     defaultChecked={scope === 'project.summary'}
-                    className="size-4 rounded border-[var(--pf-border-strong)]"
+                    className="size-5 shrink-0 rounded border-[var(--pf-border-strong)]"
                   />
                   {t(`scopes.${scope}`)}
                 </label>
@@ -118,7 +119,7 @@ export function PortalGrantsPanel({
             </fieldset>
 
             <Field label={t('fields.expiresAt')}>
-              {(props) => <Input {...props} name="expiresAt" type="datetime-local" />}
+              {(props) => <Input {...props} name="expiresAt" type="datetime-local" dir="ltr" />}
             </Field>
 
             <Button type="submit" loading={createPending}>
@@ -134,50 +135,101 @@ export function PortalGrantsPanel({
         {grants.length === 0 ? (
           <p className="mt-2 text-sm text-[var(--pf-text-muted)]">{t('empty')}</p>
         ) : (
-          <div className="mt-3 overflow-x-auto rounded-lg border border-[var(--pf-border-default)]">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t('columns.principal')}</TableHead>
-                  <TableHead>{t('columns.scope')}</TableHead>
-                  <TableHead>{t('columns.status')}</TableHead>
-                  <TableHead>{t('columns.actions')}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {grants.map((grant) => (
-                  <TableRow key={grant.id}>
-                    <TableCell>
-                      <div className="font-medium">{grant.principalEmail}</div>
-                      <div className="text-xs text-[var(--pf-text-muted)]">
-                        {[grant.clientName, grant.projectName].filter(Boolean).join(' · ') ||
-                          t('fields.none')}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex flex-wrap gap-1">
-                        {grant.scopes.map((scope) => (
-                          <Badge key={scope} tone="neutral">
-                            {t(`scopes.${scope}`)}
-                          </Badge>
-                        ))}
-                      </div>
-                    </TableCell>
-                    <TableCell>{t(`statuses.${grant.status}`)}</TableCell>
-                    <TableCell>
-                      {canEdit && grant.status === 'active' ? (
-                        <form action={revokeAction}>
-                          <input type="hidden" name="grantId" value={grant.id} />
-                          <Button type="submit" variant="secondary" size="sm" loading={revokePending}>
-                            {t('revoke')}
-                          </Button>
-                        </form>
-                      ) : null}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+          <div className="mt-3">
+            <ResponsiveTable
+              items={grants}
+              getRowKey={(grant) => grant.id}
+              desktop={
+                <div className="overflow-x-auto rounded-lg border border-[var(--pf-border-default)]">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>{t('columns.principal')}</TableHead>
+                        <TableHead>{t('columns.scope')}</TableHead>
+                        <TableHead>{t('columns.status')}</TableHead>
+                        <TableHead>{t('columns.actions')}</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {grants.map((grant) => (
+                        <TableRow key={grant.id}>
+                          <TableCell>
+                            <div className="font-medium" dir="ltr">
+                              {grant.principalEmail}
+                            </div>
+                            <div className="text-xs text-[var(--pf-text-muted)]">
+                              {[grant.clientName, grant.projectName].filter(Boolean).join(' · ') ||
+                                t('fields.none')}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex flex-wrap gap-1">
+                              {grant.scopes.map((scope) => (
+                                <Badge key={scope} tone="neutral">
+                                  {t(`scopes.${scope}`)}
+                                </Badge>
+                              ))}
+                            </div>
+                          </TableCell>
+                          <TableCell>{t(`statuses.${grant.status}`)}</TableCell>
+                          <TableCell>
+                            {canEdit && grant.status === 'active' ? (
+                              <form action={revokeAction}>
+                                <input type="hidden" name="grantId" value={grant.id} />
+                                <Button
+                                  type="submit"
+                                  variant="secondary"
+                                  size="sm"
+                                  loading={revokePending}
+                                  className="min-h-11 md:min-h-8"
+                                >
+                                  {t('revoke')}
+                                </Button>
+                              </form>
+                            ) : null}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              }
+              renderMobileCard={(grant) => (
+                <div className="flex min-h-11 flex-col gap-3 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4">
+                  <div>
+                    <p className="font-semibold" dir="ltr">
+                      {grant.principalEmail}
+                    </p>
+                    <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">
+                      {[grant.clientName, grant.projectName].filter(Boolean).join(' · ') ||
+                        t('fields.none')}
+                    </p>
+                    <p className="mt-1 text-sm">{t(`statuses.${grant.status}`)}</p>
+                  </div>
+                  <div className="flex flex-wrap gap-1">
+                    {grant.scopes.map((scope) => (
+                      <Badge key={scope} tone="neutral">
+                        {t(`scopes.${scope}`)}
+                      </Badge>
+                    ))}
+                  </div>
+                  {canEdit && grant.status === 'active' ? (
+                    <form action={revokeAction}>
+                      <input type="hidden" name="grantId" value={grant.id} />
+                      <Button
+                        type="submit"
+                        variant="secondary"
+                        size="sm"
+                        loading={revokePending}
+                        className="min-h-11"
+                      >
+                        {t('revoke')}
+                      </Button>
+                    </form>
+                  ) : null}
+                </div>
+              )}
+            />
           </div>
         )}
       </section>

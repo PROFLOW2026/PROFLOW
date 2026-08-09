@@ -231,7 +231,13 @@ export async function loadCashFlowPayments(
     })
     .from(payments)
     .innerJoin(billingRecords, eq(billingRecords.id, payments.billingRecordId))
-    .where(and(...conditions, eq(billingRecords.organizationId, organizationId)));
+    .where(
+      and(
+        ...conditions,
+        eq(billingRecords.organizationId, organizationId),
+        isNull(billingRecords.archivedAt),
+      ),
+    );
 
   return mapCashFlowPaymentRows(rows);
 }

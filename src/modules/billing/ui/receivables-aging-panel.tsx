@@ -9,7 +9,7 @@ export async function ReceivablesAgingPanel({ aging }: { aging: ReceivablesAging
     <section className="flex flex-col gap-3 rounded-lg border border-[var(--pf-border-default)] p-4">
       <div>
         <h2 className="text-sm font-semibold">{t('title')}</h2>
-        <p className="mt-1 text-xs text-[var(--pf-text-secondary)]">{aging.note}</p>
+        <p className="mt-1 text-xs text-[var(--pf-text-secondary)]">{t('note')}</p>
       </div>
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
         <div className="rounded-md bg-[var(--pf-bg-muted)] p-3">

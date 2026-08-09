@@ -50,7 +50,9 @@ export function CashFlowView({
           </div>
         </div>
         <p className="text-xs text-[var(--pf-text-muted)]" dir="ltr">
-          {cashFlow.actual.rangeStart} → {cashFlow.actual.rangeEnd}
+          <time dateTime={cashFlow.actual.rangeStart}>{cashFlow.actual.rangeStart}</time>
+          {' – '}
+          <time dateTime={cashFlow.actual.rangeEnd}>{cashFlow.actual.rangeEnd}</time>
         </p>
       </div>
 
@@ -61,16 +63,16 @@ export function CashFlowView({
           </p>
           <p className="mt-0.5 text-xs text-[var(--pf-text-secondary)]">{copy.forecastHint}</p>
         </div>
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+        <ul className="grid list-none gap-3 p-0 sm:grid-cols-2 lg:grid-cols-5">
           {cashFlow.forecastBuckets.map((bucket) => (
-            <div key={bucket.key} className="rounded-md bg-[var(--pf-bg-muted)] p-3">
+            <li key={bucket.key} className="rounded-md bg-[var(--pf-bg-muted)] p-3">
               <p className="text-xs text-[var(--pf-text-secondary)]">{copy.bucketLabel(bucket.key)}</p>
               <p className="mt-1 text-base font-semibold">
                 <MoneyText value={bucket.expectedIn} />
               </p>
-            </div>
+            </li>
           ))}
-        </div>
+        </ul>
         {undated && undated.count > 0 ? (
           <p className="text-xs text-[var(--pf-text-secondary)]">{copy.undatedNote}</p>
         ) : null}

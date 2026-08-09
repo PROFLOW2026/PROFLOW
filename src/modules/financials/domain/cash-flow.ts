@@ -1,6 +1,12 @@
 import type { BusinessDate } from '@/shared/dates';
 import { addDays, compareBusinessDates, startOfMonth } from '@/shared/dates';
-import { addMoney, isPositiveMoney, zeroMoney, type MoneyValue } from '@/shared/money';
+import {
+  addMoney,
+  isPositiveMoney,
+  isZeroMoney,
+  zeroMoney,
+  type MoneyValue,
+} from '@/shared/money';
 import type { BillingRecordSummary } from '@/modules/billing/domain/types';
 
 export type CashFlowBucketKey = 'overdue' | 'next_7' | 'next_30' | 'later' | 'undated';
@@ -57,7 +63,7 @@ export const OUTGOING_NO_AP_DISCLOSURE =
   'Outgoing cash is not forecast here: finalized expenses are cost records without AP due dates or unpaid vendor-invoice status. Do not invent AP invoices.';
 
 export const FORECAST_NOTE =
-  'Forecast only — based on Outstanding billing due dates. Not Paid. Undated Outstanding stays explicit. Does not invent collection precision.';
+  'Forecast only — based on Outstanding billing due dates (credit notes net into undated). Not Paid. Undated Outstanding stays explicit. Does not invent collection precision.';
 
 export const ACTUAL_NOTE =
   'Actual — Paid collected in the stated payment-date range. Not a Forecast.';
@@ -65,6 +71,7 @@ export const ACTUAL_NOTE =
 /**
  * Expected incoming cash from Outstanding billing with due dates.
  * Figures are Forecast collections, never Paid / Actual.
+ * Credit notes (negative outstanding) net into `undated` so forecast matches net AR.
  */
 export function computeIncomingCashOutlook(
   records: readonly BillingRecordSummary[],
@@ -84,7 +91,13 @@ export function computeIncomingCashOutlook(
 
   for (const record of records) {
     if (record.totalAmount.currency !== currency) continue;
-    if (!isPositiveMoney(record.outstandingAmount)) continue;
+    if (isZeroMoney(record.outstandingAmount)) continue;
+
+    if (!isPositiveMoney(record.outstandingAmount)) {
+      totals.set('undated', addMoney(totals.get('undated')!, record.outstandingAmount));
+      counts.set('undated', (counts.get('undated') ?? 0) + 1);
+      continue;
+    }
 
     let key: CashFlowBucketKey;
     if (!record.dueDate) {

@@ -4,18 +4,21 @@ import { noteModuleUsage } from '@/modules/tenancy';
 import { recordAuditEvent } from '@/shared/audit';
 import type { OrgContext } from '@/shared/auth/context';
 import { DomainRuleError, NotFoundError, ValidationError } from '@/shared/errors';
-import { assertPermission } from '@/shared/permissions/assert';
+import { assertAllPermissions } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import {
   findAcceptedVersionForOpportunity,
   findOpportunityById,
   findProspectById,
+  findSalesQuoteById,
   findSalesQuoteVersionById,
   updateOpportunityById,
   updateProspectById,
 } from '../data/crm.repository';
 import {
   assertCanConvertOpportunity,
+  assertQuoteBelongsToOpportunity,
+  contractEnteredAmountFromAcceptedQuote,
   contractNetAmountFromAcceptedQuote,
 } from '../domain/conversion';
 import { CRM_AUDIT_ACTIONS, type OpportunityRecord } from '../domain/types';
@@ -34,12 +37,19 @@ export interface ConvertWonOpportunityResult {
 /**
  * Explicit win conversion (doc 20 §6): create Client + Project + Contract
  * from the accepted sales quote. Does not invent a second Change Order path.
+ * Opportunity ≠ Project — conversion is an explicit action that links them.
  */
 export async function convertWonOpportunity(
   context: OrgContext,
   rawInput: ConvertWonOpportunityInput,
 ): Promise<ConvertWonOpportunityResult> {
-  assertPermission(context, PERMISSIONS.CRM_MANAGE);
+  // Fail fast before any Client/Project writes so partial conversion cannot orphan rows.
+  assertAllPermissions(context, [
+    PERMISSIONS.CRM_MANAGE,
+    PERMISSIONS.CLIENTS_MANAGE,
+    PERMISSIONS.PROJECTS_CREATE,
+    PERMISSIONS.CONTRACTS_MANAGE,
+  ]);
 
   const parsed = convertWonOpportunitySchema.safeParse(rawInput);
   if (!parsed.success) {
@@ -58,7 +68,7 @@ export async function convertWonOpportunity(
 
   assertCanConvertOpportunity(opportunity);
 
-  let acceptedVersion = input.salesQuoteVersionId
+  const acceptedVersion = input.salesQuoteVersionId
     ? await findSalesQuoteVersionById(
         context.db,
         context.organizationId,
@@ -84,9 +94,25 @@ export async function convertWonOpportunity(
     );
   }
 
+  const quote = await findSalesQuoteById(
+    context.db,
+    context.organizationId,
+    acceptedVersion.salesQuoteId,
+  );
+  if (!quote) throw new NotFoundError('Sales quote');
+
+  assertQuoteBelongsToOpportunity({
+    opportunityId: opportunity.id,
+    quoteOpportunityId: quote.opportunityId,
+  });
+
   const netAmount = contractNetAmountFromAcceptedQuote(acceptedVersion);
   const currency = acceptedVersion.currency.toUpperCase();
   const amountIncludesTax = input.amountIncludesTax ?? false;
+  const { enteredAmount, amountIncludesTax: inclusive } = contractEnteredAmountFromAcceptedQuote(
+    acceptedVersion,
+    amountIncludesTax,
+  );
 
   let clientId: string | null = null;
   const prospect = opportunity.prospectId
@@ -123,11 +149,12 @@ export async function convertWonOpportunity(
     notes: opportunity.notes ?? undefined,
   });
 
+  // Contract stores net; VAT is never profit. Upsert derives net from entered + tax flag.
   const { contract } = await upsertPrimaryContractAmount(context, {
     projectId,
-    enteredAmount: amountIncludesTax ? acceptedVersion.totalAmount : netAmount,
+    enteredAmount,
     currency,
-    amountIncludesTax,
+    amountIncludesTax: inclusive,
   });
 
   const convertedAt = new Date();
@@ -158,6 +185,7 @@ export async function convertWonOpportunity(
       salesQuoteVersionId: acceptedVersion.id,
       netAmount,
       currency,
+      amountIncludesTax: inclusive,
     },
   });
 
@@ -168,3 +196,4 @@ export async function convertWonOpportunity(
     contractId: contract.id,
   };
 }
+

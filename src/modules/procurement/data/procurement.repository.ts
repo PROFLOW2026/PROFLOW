@@ -4,6 +4,7 @@ import {
   materialItems,
   purchaseOrderLines,
   purchaseOrders,
+  supplierQuotes,
 } from '@drizzle/schema';
 import type { DbExecutor } from '@/shared/db/types';
 
@@ -25,6 +26,32 @@ export async function insertMaterialItem(
   const [row] = await db.insert(materialItems).values(values).returning();
   if (!row) throw new Error('Failed to insert material item');
   return row;
+}
+
+export async function findMaterialItemById(
+  db: DbExecutor,
+  organizationId: string,
+  id: string,
+): Promise<(typeof materialItems.$inferSelect) | null> {
+  const [row] = await db
+    .select()
+    .from(materialItems)
+    .where(and(eq(materialItems.id, id), eq(materialItems.organizationId, organizationId)))
+    .limit(1);
+  return row ?? null;
+}
+
+export async function findSupplierQuoteById(
+  db: DbExecutor,
+  organizationId: string,
+  id: string,
+): Promise<(typeof supplierQuotes.$inferSelect) | null> {
+  const [row] = await db
+    .select()
+    .from(supplierQuotes)
+    .where(and(eq(supplierQuotes.id, id), eq(supplierQuotes.organizationId, organizationId)))
+    .limit(1);
+  return row ?? null;
 }
 
 export async function listPurchaseOrders(

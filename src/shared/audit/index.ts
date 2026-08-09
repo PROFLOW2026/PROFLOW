@@ -133,6 +133,18 @@ export const AUDIT_ACTIONS = {
   PURCHASE_ORDER_CREATED: 'purchase_order.created',
   PURCHASE_ORDER_ISSUED: 'purchase_order.issued',
 
+  DAILY_LOG_CREATED: 'daily_log.created',
+  DAILY_LOG_UPDATED: 'daily_log.updated',
+  PUNCH_LIST_ITEM_CREATED: 'punch_list_item.created',
+  PUNCH_LIST_ITEM_UPDATED: 'punch_list_item.updated',
+  INSPECTION_CREATED: 'inspection.created',
+  INSPECTION_UPDATED: 'inspection.updated',
+
+  ASSET_CREATED: 'asset.created',
+  MAINTENANCE_RECORD_CREATED: 'maintenance_record.created',
+  INVENTORY_ITEM_CREATED: 'inventory_item.created',
+  INVENTORY_MOVEMENT_RECORDED: 'inventory_movement.recorded',
+
   TAX_RULE_CREATED: 'tax_rule.created',
   TAX_RULE_UPDATED: 'tax_rule.updated',
 } as const;

@@ -44,6 +44,12 @@ export async function createCustomerGrant(
   if (input.projectId) {
     const project = await findProjectForPortal(context.db, context.organizationId, input.projectId);
     if (!project) throw new NotFoundError('Project');
+    if (input.clientId && project.clientId && project.clientId !== input.clientId) {
+      throw new DomainRuleError(
+        'Project does not belong to the selected client',
+        'errors.validationFailed',
+      );
+    }
   }
 
   const principal = await findOrCreateExternalPrincipal({

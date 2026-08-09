@@ -104,6 +104,35 @@ describe('incoming cash outlook (Forecast)', () => {
       '75.000000',
     );
   });
+
+  it('nets credit notes into undated Forecast (not ignored)', () => {
+    const outlook = computeIncomingCashOutlook(
+      [
+        record({
+          id: '1',
+          dueDate: businessDate('2026-08-12'),
+          outstandingAmount: money('100', 'ILS'),
+        }),
+        record({
+          id: 'credit',
+          kind: 'credit_note',
+          dueDate: null,
+          outstandingAmount: money('-30', 'ILS'),
+          totalAmount: money('30', 'ILS'),
+          collectionStatus: 'paid',
+        }),
+      ],
+      'ILS',
+      businessDate('2026-08-09'),
+    );
+
+    expect(outlook.forecastBuckets.find((b) => b.key === 'next_7')?.expectedIn.amount).toBe(
+      '100.000000',
+    );
+    expect(outlook.forecastBuckets.find((b) => b.key === 'undated')?.expectedIn.amount).toBe(
+      '-30.000000',
+    );
+  });
 });
 
 describe('collected Actual (Paid in range)', () => {

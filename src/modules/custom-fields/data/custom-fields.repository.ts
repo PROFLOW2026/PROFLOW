@@ -1,5 +1,14 @@
 import { and, asc, eq, isNull } from 'drizzle-orm';
-import { customFieldDefinitions, customFieldValues } from '@drizzle/schema';
+import {
+  clients,
+  crmOpportunities,
+  customFieldDefinitions,
+  customFieldValues,
+  employees,
+  expenses,
+  projects,
+  vendors,
+} from '@drizzle/schema';
 import type { DbExecutor } from '@/shared/db/types';
 import type {
   CustomFieldDefinitionRecord,
@@ -192,4 +201,72 @@ export async function listValuesForEntity(
     );
 
   return rows.map(mapValue);
+}
+
+/** Tenant-scoped existence check so values cannot attach to foreign/orphan UUIDs. */
+export async function entityExistsInOrganization(
+  db: DbExecutor,
+  organizationId: string,
+  entityType: CustomFieldEntityType,
+  entityId: string,
+): Promise<boolean> {
+  switch (entityType) {
+    case 'client': {
+      const [row] = await db
+        .select({ id: clients.id })
+        .from(clients)
+        .where(and(eq(clients.id, entityId), eq(clients.organizationId, organizationId)))
+        .limit(1);
+      return Boolean(row);
+    }
+    case 'project': {
+      const [row] = await db
+        .select({ id: projects.id })
+        .from(projects)
+        .where(and(eq(projects.id, entityId), eq(projects.organizationId, organizationId)))
+        .limit(1);
+      return Boolean(row);
+    }
+    case 'vendor': {
+      const [row] = await db
+        .select({ id: vendors.id })
+        .from(vendors)
+        .where(and(eq(vendors.id, entityId), eq(vendors.organizationId, organizationId)))
+        .limit(1);
+      return Boolean(row);
+    }
+    case 'employee': {
+      const [row] = await db
+        .select({ id: employees.id })
+        .from(employees)
+        .where(and(eq(employees.id, entityId), eq(employees.organizationId, organizationId)))
+        .limit(1);
+      return Boolean(row);
+    }
+    case 'opportunity': {
+      const [row] = await db
+        .select({ id: crmOpportunities.id })
+        .from(crmOpportunities)
+        .where(
+          and(
+            eq(crmOpportunities.id, entityId),
+            eq(crmOpportunities.organizationId, organizationId),
+          ),
+        )
+        .limit(1);
+      return Boolean(row);
+    }
+    case 'expense': {
+      const [row] = await db
+        .select({ id: expenses.id })
+        .from(expenses)
+        .where(and(eq(expenses.id, entityId), eq(expenses.organizationId, organizationId)))
+        .limit(1);
+      return Boolean(row);
+    }
+    default: {
+      const _exhaustive: never = entityType;
+      return _exhaustive;
+    }
+  }
 }

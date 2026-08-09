@@ -8,6 +8,7 @@ import type {
   CustomFieldValueView,
 } from '../domain/types';
 import {
+  entityExistsInOrganization,
   findDefinitionById,
   listDefinitions,
   listValuesForEntity,
@@ -24,8 +25,36 @@ const ENTITY_READ_PERMISSION: Record<CustomFieldEntityType, PermissionKey> = {
   expense: PERMISSIONS.EXPENSES_READ,
 };
 
+/** Writes require entity manage/update — never read-only. */
+const ENTITY_WRITE_PERMISSION: Record<CustomFieldEntityType, PermissionKey> = {
+  client: PERMISSIONS.CLIENTS_MANAGE,
+  project: PERMISSIONS.PROJECTS_UPDATE,
+  vendor: PERMISSIONS.VENDORS_MANAGE,
+  employee: PERMISSIONS.WORKFORCE_MANAGE,
+  opportunity: PERMISSIONS.CRM_MANAGE,
+  expense: PERMISSIONS.EXPENSES_UPDATE,
+};
+
 function assertEntityRead(context: OrgContext, entityType: CustomFieldEntityType): void {
   assertPermission(context, ENTITY_READ_PERMISSION[entityType]);
+}
+
+function assertEntityWrite(context: OrgContext, entityType: CustomFieldEntityType): void {
+  assertPermission(context, ENTITY_WRITE_PERMISSION[entityType]);
+}
+
+async function assertEntityInOrg(
+  context: OrgContext,
+  entityType: CustomFieldEntityType,
+  entityId: string,
+): Promise<void> {
+  const exists = await entityExistsInOrganization(
+    context.db,
+    context.organizationId,
+    entityType,
+    entityId,
+  );
+  if (!exists) throw new NotFoundError('Entity');
 }
 
 export async function upsertCustomFieldValue(
@@ -47,11 +76,9 @@ export async function upsertCustomFieldValue(
   );
   if (!definition || definition.archivedAt) throw new NotFoundError('Custom field');
 
-  assertEntityRead(context, definition.entityType);
+  assertEntityWrite(context, definition.entityType);
+  await assertEntityInOrg(context, definition.entityType, input.entityId);
 
-  // Writing values requires the same read permission for the entity; definition
-  // management stays on CUSTOM_FIELDS_MANAGE. Entity manage is not required so
-  // forms can save optional attributes lightly.
   if (definition.fieldType === 'boolean' && input.valueBool === undefined) {
     throw new DomainRuleError('Boolean value required', 'errors.validationFailed');
   }
@@ -74,6 +101,7 @@ export async function listCustomFieldValuesForEntity(
   entityId: string,
 ): Promise<CustomFieldValueView[]> {
   assertEntityRead(context, entityType);
+  await assertEntityInOrg(context, entityType, entityId);
 
   const [definitions, values] = await Promise.all([
     listDefinitions(context.db, context.organizationId, entityType),
