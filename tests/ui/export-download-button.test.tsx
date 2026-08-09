@@ -115,7 +115,11 @@ describe('ExportDownloadButton pending / success feedback', () => {
       }),
     );
 
-    expect(await screen.findByRole('status')).toHaveTextContent(enExports.feedback.ready);
+    // Wait for the toast message to change — findByRole('status') alone matches the
+    // still-open preparing toast before the success update commits.
+    await waitFor(() => {
+      expect(screen.getByRole('status')).toHaveTextContent(enExports.feedback.ready);
+    });
   });
 
   it('surfaces forbidden feedback for HTTP 403', async () => {
