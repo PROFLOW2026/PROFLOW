@@ -4,9 +4,15 @@ import { revalidatePath } from 'next/cache';
 import { getLocale, getTranslations } from 'next-intl/server';
 import {
   applyMonthlyEmployerCostAllocation,
+  archiveEmployee,
   createEmployee,
   createEmployeeSchema,
+  createRateVersion,
+  createRateVersionSchema,
+  restoreEmployee,
   saveMonthlyEmployerCostDraft,
+  updateEmployee,
+  updateEmployeeSchema,
 } from '@/modules/workforce';
 import { withOrgContext } from '@/shared/auth/session';
 import { AppError, DomainRuleError, ValidationError } from '@/shared/errors';
@@ -51,6 +57,100 @@ export async function createEmployeeAction(
   }
 
   return {};
+}
+
+export async function updateEmployeeAction(
+  _prevState: WorkforceFormState,
+  formData: FormData,
+): Promise<WorkforceFormState> {
+  const tErrors = await getTranslations('errors');
+  const employeeId = String(formData.get('employeeId') ?? '');
+
+  const parsed = updateEmployeeSchema.safeParse({
+    name: formData.get('name') || undefined,
+    status: formData.get('status') || undefined,
+    jobTitle: formData.get('jobTitle') || null,
+    email: formData.get('email') || null,
+    phone: formData.get('phone') || null,
+    notes: formData.get('notes') || null,
+    employeeNumber: formData.get('employeeNumber') || null,
+  });
+
+  if (!parsed.success) {
+    return { error: tErrors('validationFailed') };
+  }
+
+  try {
+    await withOrgContext((context) => updateEmployee(context, employeeId, parsed.data));
+    revalidatePath(`/workforce/employees/${employeeId}`);
+    revalidatePath('/workforce', 'layout');
+    return { ok: true };
+  } catch (error) {
+    if (error instanceof AppError) return { error: tErrors('unexpected') };
+    throw error;
+  }
+}
+
+export async function archiveEmployeeAction(employeeId: string): Promise<WorkforceFormState> {
+  const tErrors = await getTranslations('errors');
+
+  try {
+    await withOrgContext((context) => archiveEmployee(context, employeeId));
+    revalidatePath(`/workforce/employees/${employeeId}`);
+    revalidatePath('/workforce', 'layout');
+    return { ok: true };
+  } catch (error) {
+    if (error instanceof AppError) return { error: tErrors('unexpected') };
+    throw error;
+  }
+}
+
+export async function restoreEmployeeAction(employeeId: string): Promise<WorkforceFormState> {
+  const tErrors = await getTranslations('errors');
+
+  try {
+    await withOrgContext((context) => restoreEmployee(context, employeeId));
+    revalidatePath(`/workforce/employees/${employeeId}`);
+    revalidatePath('/workforce', 'layout');
+    return { ok: true };
+  } catch (error) {
+    if (error instanceof AppError) return { error: tErrors('unexpected') };
+    throw error;
+  }
+}
+
+export async function createRateVersionAction(
+  _prevState: WorkforceFormState,
+  formData: FormData,
+): Promise<WorkforceFormState> {
+  const tErrors = await getTranslations('errors');
+
+  const parsed = createRateVersionSchema.safeParse({
+    employeeId: formData.get('employeeId'),
+    validFrom: formData.get('validFrom'),
+    baseRate: formData.get('baseRate'),
+    rateUnit: formData.get('rateUnit'),
+    currency: formData.get('currency') || undefined,
+    burdenPercent: formData.get('burdenPercent') || null,
+    notes: formData.get('notes') || null,
+  });
+
+  if (!parsed.success) {
+    return { error: tErrors('validationFailed') };
+  }
+
+  try {
+    await withOrgContext((context) => createRateVersion(context, parsed.data));
+    revalidatePath(`/workforce/employees/${parsed.data.employeeId}`);
+    revalidatePath('/workforce', 'layout');
+    return { ok: true };
+  } catch (error) {
+    if (error instanceof ValidationError || error instanceof DomainRuleError) {
+      return { error: error.message };
+    }
+    if (error instanceof AppError) return { error: tErrors('unexpected') };
+    throw error;
+  }
 }
 
 export interface MonthlyEmployerCostActionState {

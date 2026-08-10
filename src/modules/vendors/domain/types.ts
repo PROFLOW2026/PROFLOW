@@ -11,6 +11,10 @@ export type VendorStatus = (typeof VENDOR_STATUSES)[number];
 export const CONTACT_ROLES = ['primary', 'billing', 'site', 'other'] as const;
 export type ContactRole = (typeof CONTACT_ROLES)[number];
 
+/** Engagement lifecycle — not a cost / Actual signal. */
+export const ENGAGEMENT_STATUSES = ['active', 'ended', 'cancelled'] as const;
+export type EngagementStatus = (typeof ENGAGEMENT_STATUSES)[number];
+
 export interface VendorRecord {
   readonly id: string;
   readonly organizationId: string;
@@ -51,6 +55,10 @@ export interface VendorEngagementRecord {
   readonly projectId: string;
   readonly role: string | null;
   readonly notes: string | null;
+  /** Inclusive business date (YYYY-MM-DD); optional until dated engagements are used. */
+  readonly startDate: string | null;
+  readonly endDate: string | null;
+  readonly status: EngagementStatus;
   readonly archivedAt: Date | null;
   readonly createdAt: Date;
   readonly updatedAt: Date;
@@ -72,6 +80,12 @@ export interface VendorListItem extends VendorRecord {
 
 export interface VendorEngagementSummary extends VendorEngagementRecord {
   readonly projectName: string;
+}
+
+/** Project → contractors roster row (engagement ≠ cost). */
+export interface ProjectVendorEngagementSummary extends VendorEngagementRecord {
+  readonly vendorName: string;
+  readonly vendorType: VendorType;
 }
 
 export interface VendorDetail extends VendorRecord {

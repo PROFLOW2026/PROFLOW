@@ -8,6 +8,7 @@
   "clients": "לקוחות",
   "vendors": "ספקים",
   "workforce": "עובדים",
+  "attendance": "נוכחות",
   "documents": "מסמכים",
   "crm": "מכירות",
   "compliance": "ביטוחים וציות",
@@ -35,7 +36,11 @@
     "client": "לקוח",
     "vendor": "ספק",
     "employee": "עובד",
-    "timeEntry": "דיווח שעות"
+    "timeEntry": "דיווח שעות",
+    "fieldLog": "יומן שטח",
+    "maintenance": "ציוד / תחזוקה",
+    "vendorBill": "חשבון ספק",
+    "attendance": "נוכחות"
   },
   "organizationSwitcher": {
     "label": "עסק",

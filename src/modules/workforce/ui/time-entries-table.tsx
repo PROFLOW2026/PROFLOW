@@ -61,13 +61,18 @@ export async function TimeEntriesTable({ entries, showCosts, canLogTime }: TimeE
                 <TableHead>{t('time.columns.date')}</TableHead>
                 <TableHead>{t('time.columns.employee')}</TableHead>
                 <TableHead>{t('time.columns.target')}</TableHead>
+                <TableHead>{t('time.columns.status')}</TableHead>
                 <TableHead numeric>{t('time.columns.hours')}</TableHead>
                 {showCosts ? <TableHead numeric>{t('time.columns.cost')}</TableHead> : null}
+                {canLogTime ? <TableHead>{t('time.columns.actions')}</TableHead> : null}
               </TableRow>
             </TableHeader>
             <TableBody>
               {entries.map((entry) => (
-                <TableRow key={entry.id}>
+                <TableRow
+                  key={entry.id}
+                  className={entry.status === 'void' ? 'opacity-60' : undefined}
+                >
                   <TableCell>
                     <span dir="ltr">{formatBusinessDate(businessDate(entry.workDate), locale, 'short')}</span>
                   </TableCell>
@@ -78,6 +83,12 @@ export async function TimeEntriesTable({ entries, showCosts, canLogTime }: TimeE
                       : entry.timeCodeName ?? t('time.nonProject')}
                     {entry.workPackageName ? (
                       <p className="text-xs text-[var(--pf-text-muted)]">{entry.workPackageName}</p>
+                    ) : null}
+                  </TableCell>
+                  <TableCell>
+                    {entry.status === 'void' ? t('time.status.void') : t('time.status.recorded')}
+                    {entry.correctsEntryId ? (
+                      <p className="text-xs text-[var(--pf-text-muted)]">{t('time.status.correction')}</p>
                     ) : null}
                   </TableCell>
                   <TableCell numeric>{entry.hours}</TableCell>
@@ -95,6 +106,17 @@ export async function TimeEntriesTable({ entries, showCosts, canLogTime }: TimeE
                       ) : (
                         <span className="text-[var(--pf-text-muted)]">{t('time.noCost')}</span>
                       )}
+                    </TableCell>
+                  ) : null}
+                  {canLogTime ? (
+                    <TableCell>
+                      {entry.status === 'recorded' ? (
+                        <Button asChild variant="ghost" size="sm">
+                          <Link href={`/workforce/time/new?correctsEntryId=${entry.id}`}>
+                            {t('time.correct')}
+                          </Link>
+                        </Button>
+                      ) : null}
                     </TableCell>
                   ) : null}
                 </TableRow>
@@ -117,6 +139,9 @@ export async function TimeEntriesTable({ entries, showCosts, canLogTime }: TimeE
             </span>
           </div>
           <p className="mt-2 text-start text-sm text-[var(--pf-text-secondary)]">{entryTarget(entry, t)}</p>
+          <p className="mt-1 text-xs text-[var(--pf-text-muted)]">
+            {entry.status === 'void' ? t('time.status.void') : t('time.status.recorded')}
+          </p>
           {showCosts && entry.costAmount && entry.costCurrency ? (
             <p className="mt-1 text-start text-sm">
               <MoneyText
@@ -128,6 +153,13 @@ export async function TimeEntriesTable({ entries, showCosts, canLogTime }: TimeE
                 }
               />
             </p>
+          ) : null}
+          {canLogTime && entry.status === 'recorded' ? (
+            <div className="mt-3">
+              <Button asChild variant="secondary" size="sm">
+                <Link href={`/workforce/time/new?correctsEntryId=${entry.id}`}>{t('time.correct')}</Link>
+              </Button>
+            </div>
           ) : null}
         </div>
       )}

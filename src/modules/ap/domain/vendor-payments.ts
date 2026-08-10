@@ -51,10 +51,21 @@ export interface VendorPaymentApplicationInput {
   readonly paymentStatus: ApPaymentStatus;
 }
 
+export interface BillCreditApplicationInput {
+  readonly appliedAmount: MoneyValue;
+  /** Parent credit application status — void applications contribute zero. */
+  readonly status: 'applied' | 'void';
+}
+
 export interface BillPayableInput {
   readonly billStatus: string;
   readonly billTotal: MoneyValue;
   readonly applications: readonly VendorPaymentApplicationInput[];
+  /**
+   * Active vendor credit applications (≠ payments). Reduce outstanding and Actual;
+   * never counted in paid/cash.
+   */
+  readonly creditApplications?: readonly BillCreditApplicationInput[];
 }
 
 /**
@@ -142,16 +153,25 @@ export function computeBillRemainingOutstanding(input: {
   readonly billTotal: string;
   readonly billStatus: string;
   readonly priorAppliedAmounts: readonly string[];
+  /** Active credit applications already reducing outstanding (≠ payments). */
+  readonly priorCreditAmounts?: readonly string[];
 }): MoneyValue {
   const currency = input.currency.toUpperCase();
   if (!isBillPayable(input.billStatus)) {
     return zeroMoney(currency);
   }
-  const prior = sumMoney(
+  const priorPayments = sumMoney(
     input.priorAppliedAmounts.map((a) => money(a, currency)),
     currency,
   );
-  const outstanding = subtractMoney(money(input.billTotal, currency), prior);
+  const priorCredits = sumMoney(
+    (input.priorCreditAmounts ?? []).map((a) => money(a, currency)),
+    currency,
+  );
+  const outstanding = subtractMoney(
+    subtractMoney(money(input.billTotal, currency), priorPayments),
+    priorCredits,
+  );
   if (compareMoney(outstanding, zeroMoney(currency)) < 0) {
     return zeroMoney(currency);
   }
@@ -176,13 +196,30 @@ export function computePaymentRemaining(input: {
   return subtractMoney(money(input.paymentAmount, currency), applied);
 }
 
+function sumActiveCreditApplicationAmounts(
+  credits: readonly BillCreditApplicationInput[] | undefined,
+  currency: string,
+): MoneyValue {
+  const code = currency.toUpperCase();
+  if (!credits || credits.length === 0) return zeroMoney(code);
+  return sumMoney(
+    credits.filter((c) => c.status === 'applied').map((c) => c.appliedAmount),
+    code,
+  );
+}
+
+/**
+ * Remaining cash payable: bill − active payments − active credits.
+ * Credits are not “paid”; they still clear outstanding.
+ */
 export function computeBillOutstanding(input: BillPayableInput): MoneyValue {
   const currency = input.billTotal.currency;
   if (!isBillPayable(input.billStatus)) {
     return zeroMoney(currency);
   }
   const paid = sumActiveAppliedAmounts(input.applications, currency);
-  const outstanding = subtractMoney(input.billTotal, paid);
+  const credited = sumActiveCreditApplicationAmounts(input.creditApplications, currency);
+  const outstanding = subtractMoney(subtractMoney(input.billTotal, paid), credited);
   if (compareMoney(outstanding, zeroMoney(currency)) < 0) {
     return zeroMoney(currency);
   }
@@ -225,6 +262,7 @@ export function assertPaymentApplicationsValid(input: {
     readonly billStatus: string;
     readonly billTotal: string;
     readonly priorAppliedAmounts: readonly string[];
+    readonly priorCreditAmounts?: readonly string[];
   }[];
 }): void {
   assertVendorPaymentDoesNotAffectActual();
@@ -277,6 +315,7 @@ export function assertPaymentApplicationsValid(input: {
       billTotal: app.billTotal,
       billStatus: app.billStatus,
       priorAppliedAmounts: app.priorAppliedAmounts,
+      priorCreditAmounts: app.priorCreditAmounts,
     });
     if (compareMoney(applied, outstanding) > 0) {
       throw new DomainRuleError(
@@ -443,6 +482,7 @@ export function aggregateVendorOutstanding(input: {
   const currency = input.currency.toUpperCase();
   let billed = zeroMoney(currency);
   let paid = zeroMoney(currency);
+  let outstanding = zeroMoney(currency);
   let unpaidCount = 0;
   let partialCount = 0;
   let paidCount = 0;
@@ -454,6 +494,7 @@ export function aggregateVendorOutstanding(input: {
     billed = addMoney(billed, bill.billTotal);
     const applied = sumActiveAppliedAmounts(bill.applications, currency);
     paid = addMoney(paid, applied);
+    outstanding = addMoney(outstanding, computeBillOutstanding(bill));
 
     const status = derivePayableStatus(bill);
     if (status === 'unpaid') unpaidCount += 1;
@@ -464,7 +505,7 @@ export function aggregateVendorOutstanding(input: {
   return {
     billed,
     paid,
-    outstanding: subtractMoney(billed, paid),
+    outstanding,
     unpaidCount,
     partialCount,
     paidCount,

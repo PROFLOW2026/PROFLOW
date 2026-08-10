@@ -9,6 +9,7 @@ export { setJobFixedPrice } from './application/set-job-fixed-price';
 export type { SetJobFixedPriceResult } from './application/set-job-fixed-price';
 export { convertJobToProject } from './application/convert-job-to-project';
 export { archiveProject } from './application/archive-project';
+export { restoreProject } from './application/restore-project';
 export { listProjectsForOrg } from './application/list-projects';
 export { listJobsForOrg } from './application/list-jobs';
 export {
@@ -42,6 +43,12 @@ export { applyProjectTemplate } from './application/apply-project-template';
 export type { ApplyProjectTemplateResult } from './application/apply-project-template';
 
 export { projectStatusShape, isArchivedStatus } from './domain/status';
+export {
+  buildProjectArchivePatch,
+  buildProjectRestorePatch,
+  isProjectSoftArchived,
+  isProjectLifecycleClosed,
+} from './domain/soft-archive';
 export type { ProjectStatusShape } from './domain/status';
 export {
   computeCurrentContractValue,
@@ -170,6 +177,7 @@ export {
   convertJobToProjectSchema,
   updateProjectSchema,
   archiveProjectSchema,
+  restoreProjectSchema,
   listProjectsSchema,
   listJobsSchema,
   createWorkPackageSchema,

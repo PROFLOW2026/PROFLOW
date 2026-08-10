@@ -1,5 +1,5 @@
 /** Public API of the workforce module (doc 76 §3). */
-export { createEmployee, getEmployee, listEmployeesForOrg, updateEmployee, archiveEmployee } from './application/employees';
+export { createEmployee, getEmployee, listEmployeesForOrg, updateEmployee, archiveEmployee, restoreEmployee } from './application/employees';
 export type { EmployeeDetail } from './application/employees';
 
 export { createRateVersion, listRateHistory } from './application/rate-versions';
@@ -24,7 +24,9 @@ export {
 export type { MonthlyEmployerCostReview } from './application/employer-month-costs';
 
 export {
+  createBulkTimeEntries,
   createTimeEntry,
+  correctTimeEntry,
   listNonProjectCodes,
   listProjectTimeEntries,
   listTimeEntriesForOrg,
@@ -35,6 +37,7 @@ export type { CostSnapshot } from './application/time-entries';
 
 export {
   addProjectTeamMember,
+  cancelProjectTeamAssignment,
   listAssignableProjects,
   listAssignedEmployeeIdsForProject,
   listEmployeeAssignmentHistoryLinks,
@@ -42,38 +45,79 @@ export {
   listProjectTeamHistory,
   listProjectTeamMembers,
   removeProjectTeamMember,
+  updateProjectTeamAssignment,
 } from './application/project-team';
 
 export { getProjectLaborCost } from './application/project-labor-cost';
 export type { ProjectLaborCostSummary } from './application/project-labor-cost';
 
 export {
+  canClockAttendance,
+  canManageAttendanceRecords,
+  canViewAttendance,
+  clockAttendance,
+  getAttendanceClockSurface,
+  getAttendanceDayDetail,
+  listAttendanceDaysForOrg,
+  recordManualAttendanceEvent,
+  replaceAttendanceEvent,
+  voidAttendanceDay,
+  voidAttendanceEvent,
+} from './application/attendance';
+export type { AttendanceClockSurface } from './application/attendance';
+
+export {
   addProjectTeamMemberSchema,
   applyMonthlyEmployerCostAllocationSchema,
+  attendanceFiltersSchema,
+  cancelProjectTeamAssignmentSchema,
+  clockAttendanceSchema,
+  correctTimeEntrySchema,
+  createBulkTimeEntriesSchema,
   createEmployeeSchema,
   createRateVersionSchema,
   createTimeEntrySchema,
   loadMonthlyEmployerCostReviewSchema,
+  manualAttendanceEventSchema,
   removeProjectTeamMemberSchema,
+  replaceAttendanceEventSchema,
   saveMonthlyEmployerCostDraftSchema,
   timeEntryFiltersSchema,
   updateEmployeeSchema,
+  updateProjectTeamAssignmentSchema,
+  voidAttendanceDaySchema,
+  voidAttendanceEventSchema,
 } from './validation/schemas';
 export type {
   AddProjectTeamMemberInput,
   ApplyMonthlyEmployerCostAllocationInput,
+  AttendanceFiltersInput,
+  CancelProjectTeamAssignmentInput,
+  ClockAttendanceInput,
+  CorrectTimeEntryInput,
+  CreateBulkTimeEntriesInput,
   CreateEmployeeInput,
   CreateRateVersionInput,
   CreateTimeEntryInput,
   LoadMonthlyEmployerCostReviewInput,
+  ManualAttendanceEventInput,
   RemoveProjectTeamMemberInput,
+  ReplaceAttendanceEventInput,
   SaveMonthlyEmployerCostDraftInput,
   TimeEntryFiltersInput,
   UpdateEmployeeInput,
+  UpdateProjectTeamAssignmentInput,
+  VoidAttendanceDayInput,
+  VoidAttendanceEventInput,
 } from './validation/schemas';
 
 export { calculateLaborCost, calculateLaborCostTotal, hoursToRateUnits } from './domain/labor-cost';
 export { resolveRateVersionForDate } from './domain/rate-lookup';
+export {
+  buildEmployeeArchivePatch,
+  buildEmployeeRestorePatch,
+  isEmployeeSoftArchived,
+} from './domain/soft-archive';
 export {
   displacedEmployeeMonthKey,
   hasWorkforceLaborData,
@@ -101,8 +145,14 @@ export {
   DEFAULT_NON_PROJECT_TIME_CODES,
   EMPLOYEE_PROJECT_ASSIGNMENT_STATUSES,
   RATE_UNITS,
+  TIME_ENTRY_KINDS,
+  TIME_ENTRY_STATUSES,
 } from './domain/types';
 export type {
+  AttendanceDayDetail,
+  AttendanceDayListItem,
+  AttendanceDayRecord,
+  AttendanceEventRecord,
   EmployeeAssignmentLink,
   EmployeeListItem,
   EmployeeProjectAssignmentRecord,
@@ -113,9 +163,37 @@ export type {
   ProjectTeamMemberRecord,
   ProjectTeamMemberSummary,
   RateUnit,
+  TimeEntryKind,
   TimeEntryListItem,
   TimeEntryRecord,
+  TimeEntryStatus,
 } from './domain/types';
+
+export {
+  canClockIn,
+  canClockOut,
+  deriveAttendanceDayStatus,
+  listActiveAttendanceEvents,
+  resolveClockPresenceState,
+  ATTENDANCE_DAY_STATUSES,
+  ATTENDANCE_EVENT_SOURCES,
+  ATTENDANCE_EVENT_TYPES,
+  CLOCK_PRESENCE_STATES,
+} from './domain/attendance';
+export type {
+  AttendanceDayStatus,
+  AttendanceEventSource,
+  AttendanceEventType,
+  ClockPresenceState,
+} from './domain/attendance';
+
+export {
+  ALL_WEEKDAYS,
+  WEEKDAY_WORKDAYS,
+  expandBulkWorkDates,
+  previewBulkTimeEntries,
+} from './domain/bulk-time-expand';
+export type { BulkDayHours, WeekdayIndex } from './domain/bulk-time-expand';
 
 export {
   EMPLOYEE_MONTH_COSTS_READY,

@@ -208,6 +208,7 @@
         "created": "Project created",
         "updated": "Project updated",
         "archived": "Project archived",
+        "restored": "Project restored",
         "template_applied": "Project template applied"
       },
       "work_package": {
@@ -231,7 +232,8 @@
       "client": {
         "created": "Client created",
         "updated": "Client updated",
-        "archived": "Client archived"
+        "archived": "Client archived",
+        "restored": "Client restored"
       },
       "client_contact": {
         "created": "Client contact added",
@@ -247,6 +249,7 @@
         "created": "Vendor created",
         "updated": "Vendor updated",
         "archived": "Vendor archived",
+        "restored": "Vendor restored",
         "linked_from_expense": "Vendor linked from expense"
       },
       "vendor_contact": {
@@ -256,6 +259,8 @@
       },
       "vendor_engagement": {
         "created": "Vendor engagement created",
+        "ended": "Vendor engagement ended",
+        "cancelled": "Vendor engagement cancelled",
         "archived": "Vendor engagement closed"
       },
       "expense": {
@@ -294,17 +299,32 @@
       "employee": {
         "created": "Employee created",
         "updated": "Employee updated",
-        "archived": "Employee archived"
+        "archived": "Employee archived",
+        "restored": "Employee restored"
       },
       "rate_version": {
         "created": "Rate version created"
       },
       "time_entry": {
-        "created": "Time entry recorded"
+        "created": "Time entry recorded",
+        "voided": "Time entry voided",
+        "corrected": "Time entry corrected",
+        "bulk_created": "Bulk time entries created"
+      },
+      "attendance": {
+        "clocked": "Attendance clock event",
+        "event_recorded": "Attendance event recorded",
+        "event_voided": "Attendance event voided",
+        "event_replaced": "Attendance event replaced",
+        "day_voided": "Attendance day voided"
       },
       "project_team_member": {
         "added": "Employee added to project team",
         "removed": "Employee removed from project team"
+      },
+      "project_team_assignment": {
+        "updated": "Project team assignment updated",
+        "cancelled": "Project team assignment cancelled"
       },
       "document": {
         "uploaded": "Document uploaded",
@@ -375,18 +395,23 @@
       },
       "purchase_order": {
         "created": "Purchase order created",
-        "issued": "Purchase order issued"
+        "issued": "Purchase order issued",
+        "cancelled": "Purchase order cancelled",
+        "closed": "Purchase order closed"
       },
       "procurement": {
         "supplier_quote_received": "Supplier quote received"
       },
       "ap": {
         "bill_created": "Vendor bill created",
+        "bill_voided": "Vendor bill voided",
         "match_proposed": "Vendor bill match proposed",
         "match_accepted": "Vendor bill match accepted",
         "match_rejected": "Vendor bill match rejected",
         "payment_recorded": "Vendor payment recorded",
-        "payment_voided": "Vendor payment voided"
+        "payment_voided": "Vendor payment voided",
+        "credit_created": "Vendor credit created",
+        "credit_applied": "Vendor credit applied"
       },
       "daily_log": {
         "created": "Daily log created",

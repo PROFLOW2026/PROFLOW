@@ -81,8 +81,16 @@ export function selectProjectWorkspaceLinks(input: WorkspaceLinkInput): ProjectW
   }
 
   if (can(input.permissions, PERMISSIONS.WORKFORCE_READ)) {
+    links.push({ key: 'team', href: tab('team'), inProject: true });
+  }
+
+  // Permission-only (like workforce): `planning` is not in OPTIONAL_MODULE_KEYS.
+  if (can(input.permissions, PERMISSIONS.PLANNING_READ)) {
+    links.push({ key: 'schedule', href: tab('schedule'), inProject: true });
+  }
+
+  if (can(input.permissions, PERMISSIONS.WORKFORCE_READ)) {
     links.push(
-      { key: 'team', href: tab('team'), inProject: true },
       { key: 'time', href: tab('time'), inProject: true },
       {
         key: 'workforce',
@@ -100,10 +108,7 @@ export function selectProjectWorkspaceLinks(input: WorkspaceLinkInput): ProjectW
     links.push({ key: 'work', href: tab('work'), inProject: true });
   }
 
-  links.push(
-    { key: 'details', href: tab('details'), inProject: true },
-    { key: 'schedule', href: tab('details'), inProject: true },
-  );
+  links.push({ key: 'details', href: tab('details'), inProject: true });
 
   if (
     moduleOn(input.modules, 'procurement') &&

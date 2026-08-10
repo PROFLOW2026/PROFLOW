@@ -90,6 +90,8 @@ export const archiveClientSchema = z.object({
   clientId: z.string().uuid(),
 });
 
+export const restoreClientSchema = archiveClientSchema;
+
 export const listClientsSchema = z.object({
   search: z.string().trim().optional(),
   status: z.enum([...CLIENT_STATUSES, 'all'] as const).optional(),

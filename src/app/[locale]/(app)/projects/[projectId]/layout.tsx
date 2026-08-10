@@ -48,6 +48,8 @@ export default async function ProjectLayout({ children, params }: ProjectLayoutP
   // Team is permission-gated (not module) so owners can assign people before
   // the workforce module preference flips on from first create.
   const showTeamTab = can(PERMISSIONS.WORKFORCE_READ);
+  // Schedule is permission-gated (not module) — `planning` is not in OPTIONAL_MODULE_KEYS.
+  const showScheduleTab = can(PERMISSIONS.PLANNING_READ);
   const showTimeTab = can(PERMISSIONS.WORKFORCE_READ);
   const showDocumentsTab = Boolean(modules?.documents) && can(PERMISSIONS.DOCUMENTS_READ);
 
@@ -75,6 +77,7 @@ export default async function ProjectLayout({ children, params }: ProjectLayoutP
     changes: showChangesTab,
     billing: showBillingTab,
     team: showTeamTab,
+    schedule: showScheduleTab,
     time: showTimeTab,
     documents: showDocumentsTab,
     work: showWorkTab,
@@ -89,7 +92,15 @@ export default async function ProjectLayout({ children, params }: ProjectLayoutP
     <div className="flex flex-col gap-6">
       <PageHeader
         title={detail.project.name}
-        actions={canArchive ? <ArchiveProjectButton projectId={projectId} /> : null}
+        actions={
+          canArchive ? (
+            <ArchiveProjectButton
+              projectId={projectId}
+              status={detail.project.status}
+              archivedAt={detail.project.archivedAt}
+            />
+          ) : null
+        }
         meta={
           <div className="flex flex-wrap items-center gap-2">
             <ProjectStatusBadge status={detail.project.status} label={tStatus(detail.project.status)} />

@@ -1,5 +1,5 @@
 import { AUDIT_ACTIONS, recordAuditEvent } from '@/shared/audit';
-import { todayInTimeZone } from '@/shared/dates';
+import { businessDate, isBefore, todayInTimeZone } from '@/shared/dates';
 import { ConflictError, NotFoundError, ValidationError } from '@/shared/errors';
 import { assertAnyPermission, assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
@@ -7,6 +7,7 @@ import type { OrgContext } from '@/shared/auth/context';
 import { findEmployeeById } from '../data/employees.repository';
 import { findProjectById, listActiveProjects } from '../data/project-refs.repository';
 import {
+  cancelEmployeeProjectAssignmentById,
   endEmployeeProjectAssignmentById,
   findActiveAssignmentConflict,
   findEmployeeProjectAssignmentById,
@@ -16,6 +17,7 @@ import {
   listFormalEmployeeProjects,
   listFormalProjectTeam,
   listProjectAssignmentHistory,
+  updateEmployeeProjectAssignmentById,
 } from '../data/project-team.repository';
 import type {
   EmployeeProjectAssignmentRecord,
@@ -24,9 +26,13 @@ import type {
 } from '../domain/types';
 import {
   addProjectTeamMemberSchema,
+  cancelProjectTeamAssignmentSchema,
   removeProjectTeamMemberSchema,
+  updateProjectTeamAssignmentSchema,
   type AddProjectTeamMemberInput,
+  type CancelProjectTeamAssignmentInput,
   type RemoveProjectTeamMemberInput,
+  type UpdateProjectTeamAssignmentInput,
 } from '../validation/schemas';
 
 /**
@@ -177,6 +183,161 @@ export async function removeProjectTeamMember(
   });
 
   return removed;
+}
+
+/**
+ * Edit active assignment dates/role for current or future spans.
+ * Does not rewrite history of completed/cancelled rows; never touches Actual.
+ */
+export async function updateProjectTeamAssignment(
+  context: OrgContext,
+  rawInput: UpdateProjectTeamAssignmentInput,
+): Promise<EmployeeProjectAssignmentRecord> {
+  assertPermission(context, PERMISSIONS.WORKFORCE_MANAGE);
+
+  const parsed = updateProjectTeamAssignmentSchema.safeParse(rawInput);
+  if (!parsed.success) {
+    throw new ValidationError(
+      parsed.error.issues.map((issue) => ({ path: issue.path.join('.'), message: issue.message })),
+    );
+  }
+
+  const existing = await findEmployeeProjectAssignmentById(
+    context.db,
+    context.organizationId,
+    parsed.data.membershipId,
+  );
+  if (!existing || existing.status !== 'active') throw new NotFoundError('Team member');
+
+  const today = todayInTimeZone(context.organization.timezone);
+  const nextStart = parsed.data.startDate ?? existing.startDate;
+  const nextEnd =
+    parsed.data.endDate !== undefined ? parsed.data.endDate : existing.endDate;
+
+  if (parsed.data.startDate !== undefined) {
+    const existingStart = businessDate(existing.startDate);
+    // Past-started assignments: keep start immutable (safe current/future edits only).
+    if (isBefore(existingStart, businessDate(today)) && parsed.data.startDate !== existing.startDate) {
+      throw new ValidationError([
+        {
+          path: 'startDate',
+          message: 'Cannot change start date after the assignment has begun.',
+        },
+      ]);
+    }
+  }
+
+  if (nextEnd && isBefore(businessDate(nextEnd), businessDate(nextStart))) {
+    throw new ValidationError([
+      { path: 'endDate', message: 'End date must be on or after start date.' },
+    ]);
+  }
+
+  const conflict = await findActiveAssignmentConflict(
+    context.db,
+    context.organizationId,
+    existing.projectId,
+    existing.employeeId,
+    nextStart,
+    nextEnd,
+    existing.id,
+  );
+  if (conflict) {
+    throw new ConflictError(
+      'Employee is already on this project team',
+      'workforce.errors.duplicateTeamMember',
+    );
+  }
+
+  const updated = await updateEmployeeProjectAssignmentById(
+    context.db,
+    context.organizationId,
+    parsed.data.membershipId,
+    {
+      ...(parsed.data.startDate !== undefined ? { startDate: parsed.data.startDate } : {}),
+      ...(parsed.data.endDate !== undefined ? { endDate: parsed.data.endDate } : {}),
+      ...(parsed.data.role !== undefined ? { role: parsed.data.role } : {}),
+      ...(parsed.data.plannedAllocationPercent !== undefined
+        ? { plannedAllocationPercent: parsed.data.plannedAllocationPercent }
+        : {}),
+      ...(parsed.data.notes !== undefined ? { notes: parsed.data.notes } : {}),
+    },
+  );
+  if (!updated) throw new NotFoundError('Team member');
+
+  await recordAuditEvent(context, {
+    action: AUDIT_ACTIONS.PROJECT_TEAM_ASSIGNMENT_UPDATED,
+    entityType: 'employee_project_assignment',
+    entityId: updated.id,
+    before: {
+      startDate: existing.startDate,
+      endDate: existing.endDate,
+      role: existing.role,
+      plannedAllocationPercent: existing.plannedAllocationPercent,
+      notes: existing.notes,
+      status: existing.status,
+    },
+    after: {
+      startDate: updated.startDate,
+      endDate: updated.endDate,
+      role: updated.role,
+      plannedAllocationPercent: updated.plannedAllocationPercent,
+      notes: updated.notes,
+      status: updated.status,
+    },
+  });
+
+  return updated;
+}
+
+/**
+ * Cancel a mistaken active assignment (status cancelled).
+ * Does not delete time entries or change labor Actual.
+ */
+export async function cancelProjectTeamAssignment(
+  context: OrgContext,
+  rawInput: CancelProjectTeamAssignmentInput,
+): Promise<EmployeeProjectAssignmentRecord> {
+  assertPermission(context, PERMISSIONS.WORKFORCE_MANAGE);
+
+  const parsed = cancelProjectTeamAssignmentSchema.safeParse(rawInput);
+  if (!parsed.success) {
+    throw new ValidationError(
+      parsed.error.issues.map((issue) => ({ path: issue.path.join('.'), message: issue.message })),
+    );
+  }
+
+  const existing = await findEmployeeProjectAssignmentById(
+    context.db,
+    context.organizationId,
+    parsed.data.membershipId,
+  );
+  if (!existing || existing.status !== 'active') throw new NotFoundError('Team member');
+
+  const cancelled = await cancelEmployeeProjectAssignmentById(
+    context.db,
+    context.organizationId,
+    parsed.data.membershipId,
+  );
+  if (!cancelled) throw new NotFoundError('Team member');
+
+  await recordAuditEvent(context, {
+    action: AUDIT_ACTIONS.PROJECT_TEAM_ASSIGNMENT_CANCELLED,
+    entityType: 'employee_project_assignment',
+    entityId: cancelled.id,
+    before: {
+      projectId: existing.projectId,
+      employeeId: existing.employeeId,
+      status: existing.status,
+      startDate: existing.startDate,
+      endDate: existing.endDate,
+    },
+    after: {
+      status: cancelled.status,
+    },
+  });
+
+  return cancelled;
 }
 
 /** Employee IDs with active assignments on a project (for time-entry picker ordering). */

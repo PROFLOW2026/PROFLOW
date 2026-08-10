@@ -8,6 +8,7 @@
   "clients": "Clients",
   "vendors": "Vendors",
   "workforce": "Employees",
+  "attendance": "Attendance",
   "documents": "Documents",
   "crm": "Sales",
   "compliance": "Insurance and compliance",
@@ -35,7 +36,11 @@
     "client": "Client",
     "vendor": "Vendor",
     "employee": "Employee",
-    "timeEntry": "Time entry"
+    "timeEntry": "Time entry",
+    "fieldLog": "Field log",
+    "maintenance": "Asset / maintenance",
+    "vendorBill": "Vendor bill",
+    "attendance": "Attendance"
   },
   "organizationSwitcher": {
     "label": "Organization",

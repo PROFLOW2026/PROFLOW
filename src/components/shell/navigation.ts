@@ -32,6 +32,7 @@ export const NAV_ICON_KEYS = [
   'clients',
   'vendors',
   'workforce',
+  'attendance',
   'documents',
   'crm',
   'compliance',
@@ -61,6 +62,11 @@ export interface NavItem {
   iconKey: NavIconKey;
   /** Hidden entirely when the viewer lacks this permission. */
   permission?: PermissionKey;
+  /**
+   * Hidden unless the viewer has at least one of these (OR).
+   * When set, takes precedence over `permission`.
+   */
+  anyPermissions?: readonly PermissionKey[];
   /** `undefined` means always visible. */
   module?: OptionalModuleKey;
   /** Shown in the mobile bottom bar rather than behind "More". */
@@ -166,6 +172,19 @@ export const NAV_ITEMS: readonly NavItem[] = [
     labelKey: 'workforce',
     iconKey: 'workforce',
     permission: PERMISSIONS.WORKFORCE_READ,
+    moreGroup: 'operations',
+  },
+  {
+    key: 'attendance',
+    // Permission-only (read | self | manage). No global planning / aging here.
+    href: '/workforce/attendance',
+    labelKey: 'attendance',
+    iconKey: 'attendance',
+    anyPermissions: [
+      PERMISSIONS.ATTENDANCE_READ,
+      PERMISSIONS.ATTENDANCE_SELF,
+      PERMISSIONS.ATTENDANCE_MANAGE,
+    ],
     moreGroup: 'operations',
   },
   {
@@ -280,7 +299,11 @@ export function visibleNavItems(
   const forceJobs = workMixSurfacesJobs(workMix);
 
   const filtered = NAV_ITEMS.filter((item) => {
-    if (item.permission && !permissions.has(item.permission)) return false;
+    if (item.anyPermissions && item.anyPermissions.length > 0) {
+      if (!item.anyPermissions.some((key) => permissions.has(key))) return false;
+    } else if (item.permission && !permissions.has(item.permission)) {
+      return false;
+    }
     if (item.key === 'jobs') {
       if (forceJobs) return true;
       return Boolean(modules.jobs);

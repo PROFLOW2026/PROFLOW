@@ -67,6 +67,9 @@ export const PERMISSIONS = {
   WORKFORCE_COST_READ: 'workforce.cost.read',
   WORKFORCE_COST_MANAGE: 'workforce.cost.manage',
   TIME_MANAGE: 'time.manage',
+  ATTENDANCE_READ: 'attendance.read',
+  ATTENDANCE_MANAGE: 'attendance.manage',
+  ATTENDANCE_SELF: 'attendance.self',
 
   BILLING_READ: 'billing.read',
   BILLING_MANAGE: 'billing.manage',
@@ -176,6 +179,21 @@ export const PERMISSION_CATALOG: readonly PermissionDefinition[] = [
     description: 'Manage compensation terms, employer month costs and labor allocation runs',
   },
   { key: PERMISSIONS.TIME_MANAGE, category: 'workforce', description: 'Record and edit time entries' },
+  {
+    key: PERMISSIONS.ATTENDANCE_READ,
+    category: 'workforce',
+    description: 'View attendance records for the organization',
+  },
+  {
+    key: PERMISSIONS.ATTENDANCE_MANAGE,
+    category: 'workforce',
+    description: 'Enter and correct attendance for any employee',
+  },
+  {
+    key: PERMISSIONS.ATTENDANCE_SELF,
+    category: 'workforce',
+    description: 'Clock in/out and view own attendance only',
+  },
 
   { key: PERMISSIONS.BILLING_READ, category: 'billing', description: 'View billing records and payments' },
   { key: PERMISSIONS.BILLING_MANAGE, category: 'billing', description: 'Create billing records and record payments' },

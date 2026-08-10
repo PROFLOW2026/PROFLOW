@@ -77,6 +77,14 @@
     "pending": "Issuing…",
     "hint": "Issues the PO and opens a committed cost. Does not create an expense."
   },
+  "cancel": {
+    "action": "Cancel PO",
+    "pending": "Cancelling…"
+  },
+  "close": {
+    "action": "Close PO",
+    "pending": "Closing…"
+  },
   "create": {
     "title": "New purchase order",
     "description": "Draft a PO with at least one line. Issue later to commit the amount.",
@@ -222,7 +230,9 @@
     "rfqLinesRequired": "Add at least one RFQ line with a description.",
     "quoteNotAccepted": "Only accepted supplier quotes can become purchase orders.",
     "quoteLinesRequired": "Accepted quote must have at least one line.",
-    "quoteTotalMismatch": "Quote total must equal the sum of line totals."
+    "quoteTotalMismatch": "Quote total must equal the sum of line totals.",
+    "poNotCancellable": "Only draft, issued, or partially received purchase orders can be cancelled.",
+    "poNotCloseable": "Only issued or partially received purchase orders can be closed."
   },
   "vendorPrice": {
     "title": "Vendor prices",

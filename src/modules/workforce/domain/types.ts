@@ -2,6 +2,13 @@
  * Workforce domain types. Framework-free — no React, no Next.js, no persistence.
  */
 
+import type {
+  AttendanceDayStatus,
+  AttendanceEventSource,
+  AttendanceEventType,
+  ClockPresenceState,
+} from './attendance';
+
 export const EMPLOYEE_STATUSES = ['active', 'inactive'] as const;
 export type EmployeeStatus = (typeof EMPLOYEE_STATUSES)[number];
 
@@ -13,6 +20,10 @@ export type LaborComponentBasis = (typeof LABOR_COMPONENT_BASES)[number];
 
 export const TIME_ENTRY_KINDS = ['project', 'non_project'] as const;
 export type TimeEntryKind = (typeof TIME_ENTRY_KINDS)[number];
+
+/** recorded = counts toward Actual; void = corrected/cancelled (excluded). */
+export const TIME_ENTRY_STATUSES = ['recorded', 'void'] as const;
+export type TimeEntryStatus = (typeof TIME_ENTRY_STATUSES)[number];
 
 export interface EmployeeRecord {
   readonly id: string;
@@ -86,6 +97,10 @@ export interface TimeEntryRecord {
   readonly costCurrency: string | null;
   readonly description: string | null;
   readonly createdByUserId: string | null;
+  readonly status: TimeEntryStatus;
+  readonly voidedAt: Date | null;
+  readonly correctsEntryId: string | null;
+  readonly bulkBatchId: string | null;
   readonly archivedAt: Date | null;
   readonly createdAt: Date;
   readonly updatedAt: Date;
@@ -223,6 +238,47 @@ export interface EmployeeAssignmentLink {
   readonly totalHours: string;
   readonly entryCount: number;
   readonly lastWorkDate: string | null;
+}
+
+/** Attendance day row (presence only — never labor Actual). */
+export interface AttendanceDayRecord {
+  readonly id: string;
+  readonly organizationId: string;
+  readonly employeeId: string;
+  readonly workDate: string;
+  readonly status: AttendanceDayStatus;
+  readonly notes: string | null;
+  readonly createdByUserId: string | null;
+  readonly archivedAt: Date | null;
+  readonly createdAt: Date;
+  readonly updatedAt: Date;
+}
+
+export interface AttendanceEventRecord {
+  readonly id: string;
+  readonly organizationId: string;
+  readonly attendanceDayId: string;
+  readonly eventType: AttendanceEventType;
+  readonly occurredAt: Date;
+  readonly source: AttendanceEventSource;
+  readonly notes: string | null;
+  readonly createdByUserId: string | null;
+  readonly voidedAt: Date | null;
+  readonly createdAt: Date;
+  readonly updatedAt: Date;
+}
+
+export interface AttendanceDayListItem extends AttendanceDayRecord {
+  readonly employeeName: string;
+  readonly clockInAt: Date | null;
+  readonly clockOutAt: Date | null;
+  readonly eventCount: number;
+}
+
+export interface AttendanceDayDetail extends AttendanceDayRecord {
+  readonly employeeName: string;
+  readonly events: readonly AttendanceEventRecord[];
+  readonly presence: ClockPresenceState;
 }
 
 /** Preset non-project codes seeded on first workforce use. */

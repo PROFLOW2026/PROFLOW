@@ -476,6 +476,26 @@ export async function findOpenCommittedCostForPo(
   return row ?? null;
 }
 
+/** Any non-cancelled commitment row for a PO (including fully closed). */
+export async function findCommittedCostForPo(
+  db: DbExecutor,
+  organizationId: string,
+  purchaseOrderId: string,
+): Promise<typeof committedCosts.$inferSelect | null> {
+  const [row] = await db
+    .select()
+    .from(committedCosts)
+    .where(
+      and(
+        eq(committedCosts.organizationId, organizationId),
+        eq(committedCosts.purchaseOrderId, purchaseOrderId),
+        inArray(committedCosts.status, ['open', 'partially_consumed', 'closed']),
+      ),
+    )
+    .limit(1);
+  return row ?? null;
+}
+
 export async function updateCommittedCostConsumption(
   db: DbExecutor,
   organizationId: string,

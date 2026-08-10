@@ -19,7 +19,8 @@
       "new": "New",
       "active": "Active",
       "completed": "Completed",
-      "awaiting_payment": "Awaiting payment"
+      "awaiting_payment": "Awaiting payment",
+      "archived": "Archived"
     },
     "columns": {
       "client": "Client",

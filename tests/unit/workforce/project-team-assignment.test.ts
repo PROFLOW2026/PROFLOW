@@ -46,6 +46,8 @@ describe('project team assignment ≠ Actual', () => {
       expect(source, `must not reference ${pattern}`).not.toContain(pattern);
     }
     expect(source).toContain('insertEmployeeProjectAssignment');
+    expect(source).toContain('cancelProjectTeamAssignment');
+    expect(source).toContain('updateProjectTeamAssignment');
     expect(source).toContain('Assignment alone never creates labor Actual');
   });
 
@@ -53,6 +55,8 @@ describe('project team assignment ≠ Actual', () => {
     const source = readFileSync(projectTeamRepoPath, 'utf8');
     expect(source).toContain('employeeProjectAssignments');
     expect(source).toContain('insert(employeeProjectAssignments)');
+    expect(source).toContain("status: 'cancelled'");
+    expect(source).toContain('updateEmployeeProjectAssignmentById');
     expect(source).not.toContain('projectTeamMembers');
     for (const pattern of FORBIDDEN_REPO_PATTERNS) {
       // Hours are read for secondary UI display in list helpers — insert path must stay clean.

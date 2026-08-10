@@ -5,10 +5,11 @@
 
 import type { OrgContext } from '@/shared/auth/context';
 import { businessDate, type BusinessDate } from '@/shared/dates';
-import { isZeroMoney, money, subtractMoney } from '@/shared/money';
+import { isZeroMoney, money, subtractMoney, addMoney } from '@/shared/money';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { listApBills } from '../data/ap.repository';
+import { listActiveCreditAmountsForBills } from '../data/credits.repository';
 import { getVendorPaymentsRepository } from '../data/payments.repository';
 import {
   computePayablesAging,
@@ -34,6 +35,7 @@ export interface BillPayableSummary {
   readonly currency: string;
   readonly billTotal: string;
   readonly paid: string;
+  readonly credited: string;
   readonly outstanding: string;
   readonly payableStatus: ApPayableStatus | null;
 }
@@ -54,12 +56,16 @@ export interface OrgApPayablesSummary {
 function toAggregateBills(bills: readonly BillPayableSummary[]) {
   return bills.map((bill) => {
     const paid = money(bill.paid, bill.currency);
+    const credited = money(bill.credited, bill.currency);
     return {
       billStatus: bill.billStatus,
       billTotal: money(bill.billTotal, bill.currency),
       applications: isZeroMoney(paid)
         ? []
         : [{ appliedAmount: paid, paymentStatus: 'recorded' as const }],
+      creditApplications: isZeroMoney(credited)
+        ? []
+        : [{ appliedAmount: credited, status: 'applied' as const }],
     };
   });
 }
@@ -104,25 +110,35 @@ async function loadPayableBills(
   });
 
   const repo = getVendorPaymentsRepository();
-  const appliedByBill = await repo.listActiveAppliedAmountsForBills(
-    context.db,
-    context.organizationId,
-    filtered.map((b) => b.id),
-  );
+  const billIds = filtered.map((b) => b.id);
+  const [appliedByBill, creditsByBill] = await Promise.all([
+    repo.listActiveAppliedAmountsForBills(context.db, context.organizationId, billIds),
+    listActiveCreditAmountsForBills(context.db, context.organizationId, billIds),
+  ]);
 
   return filtered.map((bill) => {
     const applied = appliedByBill.get(bill.id) ?? [];
+    const credits = creditsByBill.get(bill.id) ?? [];
     const billTotal = money(bill.totalAmount, bill.currency);
     const applications = applied.map((amount) => ({
       appliedAmount: money(amount, bill.currency),
       paymentStatus: 'recorded' as const,
     }));
+    const creditApplications = credits.map((amount) => ({
+      appliedAmount: money(amount, bill.currency),
+      status: 'applied' as const,
+    }));
     const outstanding = computeBillOutstanding({
       billStatus: bill.status,
       billTotal,
       applications,
+      creditApplications,
     });
-    const paid = subtractMoney(billTotal, outstanding);
+    const creditedTotal = credits.reduce(
+      (sum, amount) => addMoney(sum, money(amount, bill.currency)),
+      money('0', bill.currency),
+    );
+    const paidCash = subtractMoney(subtractMoney(billTotal, outstanding), creditedTotal);
 
     return {
       billId: bill.id,
@@ -134,12 +150,14 @@ async function loadPayableBills(
       dueDate: (bill.dueDate as BusinessDate | null) ?? null,
       currency: bill.currency,
       billTotal: bill.totalAmount,
-      paid: paid.amount,
+      paid: paidCash.amount,
+      credited: creditedTotal.amount,
       outstanding: outstanding.amount,
       payableStatus: derivePayableStatus({
         billStatus: bill.status,
         billTotal,
         applications,
+        creditApplications,
       }),
     };
   });
@@ -200,6 +218,7 @@ export async function getOrganizationPayablesAging(
 
   const agingInputs: ApAgingBillInput[] = bills.map((bill) => {
     const paid = money(bill.paid, bill.currency);
+    const credited = money(bill.credited, bill.currency);
     return {
       billStatus: bill.billStatus,
       billTotal: money(bill.billTotal, bill.currency),
@@ -209,6 +228,9 @@ export async function getOrganizationPayablesAging(
       applications: isZeroMoney(paid)
         ? []
         : [{ appliedAmount: paid, paymentStatus: 'recorded' as const }],
+      creditApplications: isZeroMoney(credited)
+        ? []
+        : [{ appliedAmount: credited, status: 'applied' as const }],
     };
   });
 

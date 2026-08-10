@@ -20,6 +20,7 @@ import type {
   TimeEntryKind,
   TimeEntryListItem,
   TimeEntryRecord,
+  TimeEntryStatus,
 } from '../domain/types';
 
 /**
@@ -62,6 +63,10 @@ function mapTimeEntry(row: typeof timeEntries.$inferSelect): TimeEntryRecord {
     costCurrency: row.costCurrency,
     description: row.description,
     createdByUserId: row.createdByUserId,
+    status: (row.status as TimeEntryStatus) ?? 'recorded',
+    voidedAt: row.voidedAt ?? null,
+    correctsEntryId: row.correctsEntryId ?? null,
+    bulkBatchId: row.bulkBatchId ?? null,
     archivedAt: row.archivedAt,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
@@ -97,6 +102,10 @@ export async function insertTimeEntry(
     costCurrency?: string | null;
     description?: string | null;
     createdByUserId?: string | null;
+    status?: TimeEntryStatus;
+    voidedAt?: Date | null;
+    correctsEntryId?: string | null;
+    bulkBatchId?: string | null;
   },
 ): Promise<TimeEntryRecord> {
   const [row] = await db
@@ -116,10 +125,39 @@ export async function insertTimeEntry(
       costCurrency: input.costCurrency ?? null,
       description: input.description ?? null,
       createdByUserId: input.createdByUserId ?? null,
+      status: input.status ?? 'recorded',
+      voidedAt: input.voidedAt ?? null,
+      correctsEntryId: input.correctsEntryId ?? null,
+      bulkBatchId: input.bulkBatchId ?? null,
     })
     .returning();
 
   return mapTimeEntry(row!);
+}
+
+export async function voidTimeEntryRow(
+  db: DbExecutor,
+  organizationId: string,
+  timeEntryId: string,
+  voidedAt: Date,
+): Promise<TimeEntryRecord | null> {
+  const [row] = await db
+    .update(timeEntries)
+    .set({
+      status: 'void',
+      voidedAt,
+      updatedAt: voidedAt,
+    })
+    .where(
+      and(
+        eq(timeEntries.id, timeEntryId),
+        eq(timeEntries.organizationId, organizationId),
+        eq(timeEntries.status, 'recorded'),
+      ),
+    )
+    .returning();
+
+  return row ? mapTimeEntry(row) : null;
 }
 
 export interface TimeEntryFilters {
@@ -128,6 +166,8 @@ export interface TimeEntryFilters {
   readonly fromDate?: string;
   readonly toDate?: string;
   readonly kind?: TimeEntryKind | 'all';
+  /** Default `recorded` — void rows stay out of the working list unless requested. */
+  readonly status?: TimeEntryStatus | 'all';
   readonly includeArchived?: boolean;
   readonly limit?: number;
   readonly offset?: number;
@@ -162,6 +202,11 @@ export async function listTimeEntries(
 
   if (filters.kind && filters.kind !== 'all') {
     conditions.push(eq(timeEntries.kind, filters.kind));
+  }
+
+  const statusFilter = filters.status ?? 'recorded';
+  if (statusFilter !== 'all') {
+    conditions.push(eq(timeEntries.status, statusFilter));
   }
 
   const hardCap =
@@ -245,6 +290,7 @@ export async function sumProjectLaborCost(
         eq(timeEntries.organizationId, organizationId),
         eq(timeEntries.projectId, projectId),
         eq(timeEntries.kind, 'project'),
+        eq(timeEntries.status, 'recorded'),
         isNull(timeEntries.archivedAt),
         ...(displacement ? [displacement] : []),
       ),
@@ -304,6 +350,7 @@ export async function sumLaborCostGroupedByProject(
         eq(timeEntries.organizationId, organizationId),
         inArray(timeEntries.projectId, [...projectIds]),
         eq(timeEntries.kind, 'project'),
+        eq(timeEntries.status, 'recorded'),
         isNull(timeEntries.archivedAt),
         ...(displacement ? [displacement] : []),
       ),
@@ -343,6 +390,7 @@ export async function sumOrganizationProjectLaborCoverage(
   const laborConditions = and(
     eq(timeEntries.organizationId, organizationId),
     eq(timeEntries.kind, 'project'),
+    eq(timeEntries.status, 'recorded'),
     isNull(timeEntries.archivedAt),
     isNotNull(timeEntries.projectId),
     ...(displacement ? [displacement] : []),

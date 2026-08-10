@@ -19,7 +19,8 @@
       "new": "חדש",
       "active": "פעיל",
       "completed": "הושלם",
-      "awaiting_payment": "ממתין לתשלום"
+      "awaiting_payment": "ממתין לתשלום",
+      "archived": "בארכיון"
     },
     "columns": {
       "client": "לקוח",

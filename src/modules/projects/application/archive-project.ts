@@ -1,9 +1,10 @@
-import { recordAuditEvent } from '@/shared/audit';
+import { AUDIT_ACTIONS, recordAuditEvent } from '@/shared/audit';
 import { NotFoundError, ValidationError } from '@/shared/errors';
 import { assertPermission, assertSameOrganization } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import type { OrgContext } from '@/shared/auth/context';
 import type { ProjectRecord } from '../domain/types';
+import { buildProjectArchivePatch } from '../domain/soft-archive';
 import { findProjectById, updateProjectById } from '../data/projects.repository';
 import { archiveProjectSchema } from '../validation/schemas';
 
@@ -28,18 +29,17 @@ export async function archiveProject(
   if (!existing) throw new NotFoundError('Project');
   assertSameOrganization(context, existing, 'Project');
 
-  const archivedAt = new Date();
   const updated = await updateProjectById(
     context.db,
     context.organizationId,
     parsed.data.projectId,
-    { status: 'archived', archivedAt },
+    buildProjectArchivePatch(),
   );
 
   if (!updated) throw new NotFoundError('Project');
 
   await recordAuditEvent(context, {
-    action: 'project.archived',
+    action: AUDIT_ACTIONS.PROJECT_ARCHIVED,
     entityType: 'project',
     entityId: updated.id,
     before: existing,

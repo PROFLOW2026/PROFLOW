@@ -8,11 +8,20 @@ import { listCustomFieldValuesForEntity } from '@/modules/custom-fields';
 import { EntityCustomFieldsPanel } from '@/modules/custom-fields/ui';
 import { getEntityDocumentPanelData } from '@/modules/documents';
 import { DocumentAttachments } from '@/modules/documents/ui';
-import { getVendorById } from '@/modules/vendors';
+import { listProjectsForOrg } from '@/modules/projects';
+import {
+  getVendorById,
+  listVendorEngagementHistory,
+} from '@/modules/vendors';
+import { VendorEngagementsPanel } from '@/modules/vendors/ui';
 import { withOrgContext } from '@/shared/auth/session';
+import { todayInTimeZone } from '@/shared/dates';
 import { Link } from '@/shared/i18n/navigation';
+import { hasPermission } from '@/shared/permissions/assert';
+import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { upsertEntityFieldValueAction } from '../../settings/custom-fields/actions';
 import { VendorContactForm } from './vendor-contact-form';
+import { VendorEditForm } from './vendor-edit-form';
 import { textNavLinkMutedClassName } from '@/components/ui/pressable';
 
 export async function generateMetadata({
@@ -44,19 +53,43 @@ export default async function VendorDetailPage({
   let vendor;
   let documentsPanel;
   let customFields: Awaited<ReturnType<typeof listCustomFieldValuesForEntity>> = [];
+  let engagementHistory: Awaited<ReturnType<typeof listVendorEngagementHistory>> = [];
+  let candidateProjects: { id: string; name: string }[] = [];
+  let canManage = false;
+  let defaultStartDate = '';
 
   try {
     const result = await withOrgContext(async (context) => {
       const detail = await getVendorById(context, vendorId);
-      const [panel, fields] = await Promise.all([
+      const allowManage = hasPermission(context, PERMISSIONS.VENDORS_MANAGE);
+      const [panel, fields, history, projects] = await Promise.all([
         getEntityDocumentPanelData(context, 'vendor', vendorId),
         listCustomFieldValuesForEntity(context, 'vendor', vendorId).catch(() => []),
+        listVendorEngagementHistory(context, vendorId).catch(() => []),
+        allowManage
+          ? listProjectsForOrg(context, {}).catch(() => [])
+          : Promise.resolve([]),
       ]);
-      return { vendor: detail, documentsPanel: panel, customFields: fields };
+      return {
+        vendor: detail,
+        documentsPanel: panel,
+        customFields: fields,
+        engagementHistory: history,
+        candidateProjects: projects.map((project) => ({
+          id: project.id,
+          name: project.name,
+        })),
+        canManage: allowManage,
+        defaultStartDate: todayInTimeZone(context.organization.timezone),
+      };
     });
     vendor = result.vendor;
     documentsPanel = result.documentsPanel;
     customFields = result.customFields;
+    engagementHistory = result.engagementHistory;
+    candidateProjects = result.candidateProjects;
+    canManage = result.canManage;
+    defaultStartDate = result.defaultStartDate;
   } catch {
     notFound();
   }
@@ -69,8 +102,8 @@ export default async function VendorDetailPage({
         meta={
           <>
             <StatusBadge
-              shape={vendor.status === 'active' ? 'active' : 'archived'}
-              label={tStatus(vendor.status)}
+              shape={vendor.archivedAt || vendor.status === 'inactive' ? 'archived' : 'active'}
+              label={vendor.archivedAt ? t('detail.archivedBadge') : tStatus(vendor.status)}
             />
             <span className="text-sm text-[var(--pf-text-secondary)]">{tTypes(vendor.type)}</span>
           </>
@@ -82,7 +115,9 @@ export default async function VendorDetailPage({
         }
       />
 
-      {(vendor.email || vendor.phone || vendor.addressLine1 || vendor.notes) && (
+      {canManage ? <VendorEditForm vendor={vendor} /> : null}
+
+      {!canManage && (vendor.email || vendor.phone || vendor.addressLine1 || vendor.notes) ? (
         <Card>
           <CardHeader>
             <CardTitle className="text-base">{t('detail.profileSection')}</CardTitle>
@@ -114,7 +149,7 @@ export default async function VendorDetailPage({
             ) : null}
           </CardContent>
         </Card>
-      )}
+      ) : null}
 
       <EntityCustomFieldsPanel
         entityId={vendor.id}
@@ -154,31 +189,18 @@ export default async function VendorDetailPage({
               ))}
             </ul>
           )}
-          <VendorContactForm vendorId={vendor.id} />
+          {canManage ? <VendorContactForm vendorId={vendor.id} /> : null}
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">{t('detail.engagementsSection')}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {vendor.engagements.length === 0 ? (
-            <p className="text-sm text-[var(--pf-text-secondary)]">{t('detail.engagementsEmpty')}</p>
-          ) : (
-            <ul className="flex flex-col gap-2">
-              {vendor.engagements.map((engagement) => (
-                <li key={engagement.id} className="flex flex-wrap items-center justify-between gap-2 text-sm">
-                  <span className="min-w-0 flex-1 text-start">{engagement.projectName}</span>
-                  {engagement.role ? (
-                    <span className="shrink-0 text-[var(--pf-text-secondary)]">{engagement.role}</span>
-                  ) : null}
-                </li>
-              ))}
-            </ul>
-          )}
-        </CardContent>
-      </Card>
+      <VendorEngagementsPanel
+        vendorId={vendor.id}
+        engagements={vendor.engagements}
+        history={engagementHistory}
+        candidateProjects={candidateProjects}
+        canManage={canManage}
+        defaultStartDate={defaultStartDate}
+      />
 
       <DocumentAttachments
         ownerType="vendor"

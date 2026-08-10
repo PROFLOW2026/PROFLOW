@@ -137,3 +137,30 @@ export const applyBillProjectAllocationsSchema = z.object({
 });
 
 export type ApplyBillProjectAllocationsInput = z.input<typeof applyBillProjectAllocationsSchema>;
+
+export const voidApBillSchema = z.object({
+  billId: z.string().uuid(),
+});
+
+export type VoidApBillInput = z.input<typeof voidApBillSchema>;
+
+export const createVendorCreditSchema = z.object({
+  vendorId: z.string().uuid(),
+  apBillId: z.string().uuid().optional().nullable(),
+  projectId: z.string().uuid().optional().nullable(),
+  reference: z.string().trim().max(120).optional().nullable(),
+  creditDate: z.string().trim().min(10).max(10),
+  currency: z.string().trim().length(3),
+  amount: moneyString,
+  notes: z.string().trim().max(2000).optional().nullable(),
+});
+
+export type CreateVendorCreditInput = z.input<typeof createVendorCreditSchema>;
+
+export const applyVendorCreditSchema = z.object({
+  creditId: z.string().uuid(),
+  apBillId: z.string().uuid(),
+  amount: moneyString,
+});
+
+export type ApplyVendorCreditInput = z.input<typeof applyVendorCreditSchema>;

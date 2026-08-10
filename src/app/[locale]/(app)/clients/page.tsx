@@ -26,7 +26,7 @@ export async function generateMetadata({
 }
 
 interface ClientsPageProps {
-  searchParams: Promise<{ q?: string }>;
+  searchParams: Promise<{ q?: string; includeArchived?: string }>;
 }
 
 export default async function ClientsPage({ searchParams }: ClientsPageProps) {
@@ -37,9 +37,10 @@ export default async function ClientsPage({ searchParams }: ClientsPageProps) {
     getShellContext(),
   ]);
   const canManage = shell?.permissions.has(PERMISSIONS.CLIENTS_MANAGE) ?? false;
+  const includeArchived = params.includeArchived === '1';
 
   const clients = await withOrgContext((context) =>
-    listClientsForOrg(context, { search: params.q }),
+    listClientsForOrg(context, { search: params.q, includeArchived }),
   );
 
   return (
@@ -58,7 +59,7 @@ export default async function ClientsPage({ searchParams }: ClientsPageProps) {
         }
       />
 
-      <ClientListFilters initialQuery={params.q ?? ''} />
+      <ClientListFilters initialQuery={params.q ?? ''} includeArchived={includeArchived} />
 
       {clients.length === 0 ? (
         <EmptyState
@@ -102,8 +103,14 @@ export default async function ClientsPage({ searchParams }: ClientsPageProps) {
                       </TableCell>
                       <TableCell>
                         <StatusBadge
-                          shape={client.status === 'active' ? 'active' : 'archived'}
-                          label={tStatus(client.status)}
+                          shape={
+                            client.archivedAt || client.status === 'inactive' ? 'archived' : 'active'
+                          }
+                          label={
+                            client.archivedAt
+                              ? t('detail.archivedBadge')
+                              : tStatus(client.status)
+                          }
                         />
                       </TableCell>
                     </TableRow>
@@ -121,8 +128,12 @@ export default async function ClientsPage({ searchParams }: ClientsPageProps) {
                 <span className="min-w-0 flex-1 truncate text-start font-semibold">{client.name}</span>
                 <StatusBadge
                   className="shrink-0"
-                  shape={client.status === 'active' ? 'active' : 'archived'}
-                  label={tStatus(client.status)}
+                  shape={
+                    client.archivedAt || client.status === 'inactive' ? 'archived' : 'active'
+                  }
+                  label={
+                    client.archivedAt ? t('detail.archivedBadge') : tStatus(client.status)
+                  }
                 />
               </div>
               <p className="mt-1 text-start text-sm text-[var(--pf-text-secondary)]">

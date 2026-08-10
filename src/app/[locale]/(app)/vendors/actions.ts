@@ -4,9 +4,15 @@ import { revalidatePath } from 'next/cache';
 import { getLocale, getTranslations } from 'next-intl/server';
 import {
   archiveVendor,
+  cancelVendorEngagement,
   createVendor,
   createVendorContact,
   createVendorEngagement,
+  createEngagementSchema,
+  cancelEngagementSchema,
+  endEngagementSchema,
+  endVendorEngagement,
+  restoreVendor,
   updateVendor,
   type CreateVendorInput,
   type UpdateVendorInput,
@@ -17,6 +23,7 @@ import { redirect } from '@/shared/i18n/navigation';
 
 export interface VendorFormState {
   error?: string;
+  ok?: boolean;
 }
 
 export async function createVendorAction(
@@ -95,6 +102,20 @@ export async function archiveVendorAction(vendorId: string): Promise<VendorFormS
   return {};
 }
 
+export async function restoreVendorAction(vendorId: string): Promise<VendorFormState> {
+  const t = await getTranslations('errors');
+
+  try {
+    await withOrgContext((context) => restoreVendor(context, { vendorId }));
+    revalidatePath('/vendors');
+    revalidatePath(`/vendors/${vendorId}`);
+    return { ok: true };
+  } catch (error) {
+    if (error instanceof AppError) return { error: t('unexpected') };
+    throw error;
+  }
+}
+
 export async function addVendorContactAction(
   _prev: VendorFormState,
   formData: FormData,
@@ -125,18 +146,83 @@ export async function addVendorEngagementAction(
 ): Promise<VendorFormState> {
   const t = await getTranslations('errors');
 
+  const parsed = createEngagementSchema.safeParse({
+    vendorId: formData.get('vendorId'),
+    projectId: formData.get('projectId'),
+    role: formData.get('role') || null,
+    notes: formData.get('notes') || null,
+    startDate: formData.get('startDate') || null,
+    endDate: formData.get('endDate') || null,
+  });
+
+  if (!parsed.success) {
+    return { error: t('validationFailed') };
+  }
+
   try {
-    await withOrgContext((context) =>
-      createVendorEngagement(context, {
-        vendorId: String(formData.get('vendorId') ?? ''),
-        projectId: String(formData.get('projectId') ?? ''),
-        role: String(formData.get('role') ?? '') || undefined,
-      }),
-    );
+    await withOrgContext((context) => createVendorEngagement(context, parsed.data));
     revalidatePath('/vendors');
-    return {};
+    revalidatePath(`/vendors/${parsed.data.vendorId}`);
+    revalidatePath(`/projects/${parsed.data.projectId}`);
+    return { ok: true };
   } catch (error) {
     if (error instanceof AppError) return { error: t('validationFailed') };
+    throw error;
+  }
+}
+
+export async function endVendorEngagementAction(input: {
+  engagementId: string;
+  projectId: string;
+  vendorId: string;
+  endDate?: string | null;
+}): Promise<VendorFormState> {
+  const t = await getTranslations('errors');
+
+  const parsed = endEngagementSchema.safeParse({
+    engagementId: input.engagementId,
+    endDate: input.endDate ?? null,
+  });
+  if (!parsed.success) {
+    return { error: t('validationFailed') };
+  }
+
+  try {
+    await withOrgContext((context) => endVendorEngagement(context, parsed.data));
+    revalidatePath('/vendors');
+    revalidatePath(`/vendors/${input.vendorId}`);
+    revalidatePath(`/projects/${input.projectId}`);
+    return { ok: true };
+  } catch (error) {
+    if (error instanceof AppError) return { error: t('unexpected') };
+    throw error;
+  }
+}
+
+export async function cancelVendorEngagementAction(input: {
+  engagementId: string;
+  projectId: string;
+  vendorId: string;
+  endDate?: string | null;
+}): Promise<VendorFormState> {
+  const t = await getTranslations('errors');
+
+  const parsed = cancelEngagementSchema.safeParse({
+    engagementId: input.engagementId,
+    endDate: input.endDate ?? null,
+  });
+  if (!parsed.success) {
+    return { error: t('validationFailed') };
+  }
+
+  try {
+    await withOrgContext((context) => cancelVendorEngagement(context, parsed.data));
+    revalidatePath('/vendors');
+    revalidatePath(`/vendors/${input.vendorId}`);
+    revalidatePath(`/projects/${input.projectId}`);
+    return { ok: true };
+  } catch (error) {
+    if (error instanceof AppError) return { error: t('unexpected') };
     throw error;
   }
 }

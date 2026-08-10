@@ -148,6 +148,11 @@ describe('authenticated product simplification', () => {
     expect(heNav.get('vendorBills')).toBe('חשבונות ספקים');
     expect(heNav.get('jobs')).toBe('עבודות');
     expect(heNav.get('newMenu.job')).toBe('עבודה');
+    expect(heNav.get('attendance')).toBe('נוכחות');
+    expect(heNav.get('newMenu.fieldLog')).toBe('יומן שטח');
+    expect(heNav.get('newMenu.vendorBill')).toBe('חשבון ספק');
+    expect(heNav.get('newMenu.attendance')).toBe('נוכחות');
+    expect(heNav.get('newMenu.maintenance')).toBe('ציוד / תחזוקה');
   });
 
   it('settings locale catalogs include group labels', () => {

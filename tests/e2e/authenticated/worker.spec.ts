@@ -16,14 +16,26 @@ test.describe('worker permission gating', () => {
     await expect(nav.getByRole('link', { name: he.nav.projects })).toBeVisible();
     await expect(nav.getByRole('link', { name: he.nav.expenses })).toBeVisible();
     await expect(nav.getByRole('link', { name: he.nav.settings })).toBeVisible();
+    // Attendance-only self clock is allowed for workers.
+    await expect(nav.getByRole('link', { name: he.nav.attendance })).toBeVisible();
 
     await expect(nav.getByRole('link', { name: he.nav.billing })).toHaveCount(0);
     await expect(nav.getByRole('link', { name: he.nav.changes })).toHaveCount(0);
     await expect(nav.getByRole('link', { name: he.nav.clients })).toHaveCount(0);
     await expect(nav.getByRole('link', { name: he.nav.vendors })).toHaveCount(0);
     await expect(nav.getByRole('link', { name: he.nav.workforce })).toHaveCount(0);
+    await expect(nav.getByRole('link', { name: he.nav.vendorBills })).toHaveCount(0);
     // Documents module is enabled in the e2e seed; workers keep DOCUMENTS_READ.
     await expect(nav.getByRole('link', { name: he.nav.documents })).toBeVisible();
+  });
+
+  test('attendance page is reachable without financial surfaces', async ({ page }) => {
+    await page.goto('/he-IL/workforce/attendance');
+    await expect(page.getByRole('heading', { name: /נוכחות/ }).first()).toBeVisible();
+    // Unlinked worker still sees the page (empty / link required) — not a crash.
+    await expect(page.getByText(/עלות בפועל|רווח|חשבונות ספקים/).first()).toHaveCount(0);
+    await page.goto('/he-IL/procurement/ap');
+    await expect(page.getByRole('heading', { name: 'אין הרשאה' })).toBeVisible();
   });
 
   test('project workspace omits financial tabs and contract totals', async ({ page }) => {

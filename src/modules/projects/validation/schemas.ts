@@ -262,6 +262,8 @@ export const archiveProjectSchema = z.object({
   projectId: z.string().uuid(),
 });
 
+export const restoreProjectSchema = archiveProjectSchema;
+
 export const listProjectsSchema = z.object({
   search: z.string().trim().optional(),
   status: z.enum([...PROJECT_STATUSES, 'all'] as const).optional(),

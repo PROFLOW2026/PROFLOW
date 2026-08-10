@@ -20,7 +20,7 @@ import { localeDirection } from '@/shared/i18n/config';
 import { ProjectBillingPanel } from '@/modules/billing/ui';
 import { ProjectExpensesPanel } from '@/modules/expenses/ui';
 import { ProjectFinancialsPanel } from '@/modules/financials/ui';
-import { ProjectTimePanel } from '@/modules/workforce/ui';
+import { ProjectTeamPanel, ProjectTimePanel } from '@/modules/workforce/ui';
 import { ArchiveProjectButton } from '../../projects/[projectId]/archive-project-button';
 import { DetailsTab } from '../../projects/[projectId]/details-tab';
 import { DocumentsTab } from '../../projects/[projectId]/documents-tab';
@@ -43,6 +43,7 @@ const MODULE_PANEL_TABS = new Set<ProjectTabKey>([
   'financials',
   'expenses',
   'billing',
+  'team',
   'time',
   'documents',
 ]);
@@ -84,6 +85,8 @@ export default async function JobPage({ params, searchParams }: JobPageProps) {
     false;
   const showExpensesTab = can(PERMISSIONS.EXPENSES_READ);
   const showBillingTab = Boolean(modules?.billing) && can(PERMISSIONS.BILLING_READ);
+  // Team is permission-gated (not module) — parity with projects.
+  const showTeamTab = can(PERMISSIONS.WORKFORCE_READ);
   const showTimeTab = Boolean(modules?.workforce) && can(PERMISSIONS.WORKFORCE_READ);
   const showDocumentsTab = Boolean(modules?.documents) && can(PERMISSIONS.DOCUMENTS_READ);
 
@@ -91,6 +94,7 @@ export default async function JobPage({ params, searchParams }: JobPageProps) {
   if (canReadFinancials) visibleModuleTabs.add('financials');
   if (showExpensesTab) visibleModuleTabs.add('expenses');
   if (showBillingTab) visibleModuleTabs.add('billing');
+  if (showTeamTab) visibleModuleTabs.add('team');
   if (showTimeTab) visibleModuleTabs.add('time');
   if (showDocumentsTab) visibleModuleTabs.add('documents');
 
@@ -162,6 +166,7 @@ export default async function JobPage({ params, searchParams }: JobPageProps) {
 
   const tabs: ProjectTabKey[] = resolveJobTabs({
     expenses: showExpensesTab,
+    team: showTeamTab,
     time: showTimeTab,
     billing: showBillingTab,
     documents: showDocumentsTab,
@@ -234,7 +239,13 @@ export default async function JobPage({ params, searchParams }: JobPageProps) {
                 blockedReason={tJobs('convert.requiresRevenueBasis')}
               />
             ) : null}
-            {canArchive ? <ArchiveProjectButton projectId={jobId} /> : null}
+            {canArchive ? (
+              <ArchiveProjectButton
+                projectId={jobId}
+                status={detail.project.status}
+                archivedAt={detail.project.archivedAt}
+              />
+            ) : null}
           </div>
         }
         meta={
@@ -309,6 +320,14 @@ export default async function JobPage({ params, searchParams }: JobPageProps) {
           <div className="pt-4">
             <Suspense fallback={<TabPanelSkeleton />}>
               <ProjectExpensesPanel projectId={jobId} />
+            </Suspense>
+          </div>
+        ) : null}
+
+        {activeTab === 'team' && showTeamTab ? (
+          <div className="pt-4">
+            <Suspense fallback={<TabPanelSkeleton />}>
+              <ProjectTeamPanel projectId={jobId} />
             </Suspense>
           </div>
         ) : null}

@@ -17,6 +17,8 @@ export {
   createPurchaseOrder,
   getPurchaseOrderById,
   issuePurchaseOrder,
+  cancelPurchaseOrder,
+  closePurchaseOrder,
   listPurchaseOrderLinesForOrg,
   listPurchaseOrdersForOrg,
   listPurchaseOrdersWithCommittedForOrg,
@@ -46,6 +48,8 @@ export {
   computeCommittedAfterConsumption,
   PURCHASE_ORDER_STATUSES,
   COMMITTED_COST_STATUSES,
+  isPurchaseOrderCancellable,
+  isPurchaseOrderCloseable,
 } from './domain/committed-cost';
 export type { PurchaseOrderStatus, CommittedCostStatus } from './domain/committed-cost';
 
@@ -80,6 +84,8 @@ export {
 export { findMaterialItemById } from './data/procurement.repository';
 
 export {
+  findCommittedCostForPo,
   findOpenCommittedCostForPo,
+  findPurchaseOrderById,
   updateCommittedCostConsumption,
 } from './data/procurement.repository';

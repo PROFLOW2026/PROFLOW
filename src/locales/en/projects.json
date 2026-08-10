@@ -18,7 +18,8 @@
       "new": "New",
       "active": "Active",
       "completed": "Completed",
-      "awaiting_payment": "Awaiting payment"
+      "awaiting_payment": "Awaiting payment",
+      "archived": "Archived"
     },
     "columns": {
       "name": "Project",
@@ -86,6 +87,7 @@
       "billing": "Billing",
       "work": "Work areas",
       "team": "Team",
+      "schedule": "Schedule",
       "time": "Time",
       "documents": "Documents",
       "details": "Details"
@@ -119,12 +121,13 @@
       "managedOpeningValue": "What you manage here"
     },
     "archive": "Archive project",
-    "archiveConfirm": "Archive this project? It will be hidden from the active list but not deleted."
+    "archiveConfirm": "Archive this project? It will be hidden from the active list but not deleted. Completed or cancelled work stays distinct from archive.",
+    "restore": "Restore project"
   },
   "schedule": {
-    "title": "Schedule",
-    "empty": "No dates, progress, or milestones yet — optional for simple jobs.",
-    "addDates": "Add dates in details",
+    "title": "Dates & milestones",
+    "empty": "No dates, progress, or milestones yet — optional for simple jobs. Work planning (Gantt) lives under the Schedule tab.",
+    "addDates": "Add dates in Details",
     "dates": "Dates",
     "milestones": "Milestones",
     "milestoneProgress": "{achieved} of {total} achieved",

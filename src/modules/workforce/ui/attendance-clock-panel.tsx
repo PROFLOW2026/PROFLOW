@@ -1,0 +1,89 @@
+'use client';
+
+import { useTranslations } from 'next-intl';
+import { useActionState } from 'react';
+import { Alert } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import type {
+  clockInAction,
+  clockOutAction,
+  AttendanceActionState,
+} from '@/app/[locale]/(app)/workforce/attendance/actions';
+import type { ClockPresenceState } from '@/modules/workforce/domain/attendance';
+
+interface AttendanceClockPanelProps {
+  readonly employeeName: string | null;
+  readonly workDate: string;
+  readonly presence: ClockPresenceState;
+  readonly canClockIn: boolean;
+  readonly canClockOut: boolean;
+  readonly clockInAction: typeof clockInAction;
+  readonly clockOutAction: typeof clockOutAction;
+  readonly linked: boolean;
+}
+
+export function AttendanceClockPanel({
+  employeeName,
+  workDate,
+  presence,
+  canClockIn,
+  canClockOut,
+  clockInAction,
+  clockOutAction,
+  linked,
+}: AttendanceClockPanelProps) {
+  const t = useTranslations('workforce.attendance');
+  const [inState, inFormAction, inPending] = useActionState(clockInAction, {} as AttendanceActionState);
+  const [outState, outFormAction, outPending] = useActionState(
+    clockOutAction,
+    {} as AttendanceActionState,
+  );
+
+  const error = inState.error ?? outState.error;
+  const pending = inPending || outPending;
+
+  return (
+    <section className="mx-auto flex w-full max-w-lg flex-col gap-4 rounded-xl border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4 sm:p-6">
+      <div className="text-center">
+        <p className="text-sm text-[var(--pf-text-muted)]">{t('clock.today', { date: workDate })}</p>
+        <h2 className="mt-1 text-xl font-semibold text-[var(--pf-text-primary)]">
+          {employeeName ?? t('clock.noLinkedEmployee')}
+        </h2>
+        <p className="mt-2 text-sm text-[var(--pf-text-secondary)]">
+          {t(`presence.${presence}`)}
+        </p>
+        <p className="mt-1 text-xs text-[var(--pf-text-muted)]">{t('disclaimer')}</p>
+      </div>
+
+      {error ? <Alert tone="danger">{error}</Alert> : null}
+
+      {!linked ? (
+        <Alert tone="info">{t('clock.linkRequired')}</Alert>
+      ) : (
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <form action={inFormAction}>
+            <Button
+              type="submit"
+              disabled={!canClockIn || pending}
+              className="h-20 w-full text-xl font-semibold"
+              size="lg"
+            >
+              {t('clock.in')}
+            </Button>
+          </form>
+          <form action={outFormAction}>
+            <Button
+              type="submit"
+              disabled={!canClockOut || pending}
+              variant="secondary"
+              className="h-20 w-full text-xl font-semibold"
+              size="lg"
+            >
+              {t('clock.out')}
+            </Button>
+          </form>
+        </div>
+      )}
+    </section>
+  );
+}

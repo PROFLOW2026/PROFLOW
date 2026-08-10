@@ -24,7 +24,9 @@ import {
 } from '@/modules/workforce/ui/employees-table';
 import { canManageWorkforceCost, canReadWorkforceCost } from '@/modules/workforce/application/workforce-cost-authz';
 import { EmployeeProjectsPanel } from '@/modules/workforce/ui/employee-projects-panel';
+import { EmployeeEditPanel } from '@/modules/workforce/ui/employee-edit-panel';
 import { MonthlyEmployerCostReview } from '@/modules/workforce/ui/monthly-employer-cost-review';
+import { AddRateVersionForm } from '@/modules/workforce/ui/add-rate-version-form';
 import { RateHistoryTable } from '@/modules/workforce/ui/rate-history-table';
 import { withOrgContext } from '@/shared/auth/session';
 import { businessDate, todayInTimeZone } from '@/shared/dates';
@@ -121,8 +123,12 @@ export default async function EmployeeDetailPage({
         title={employee.name}
         meta={
           <StatusBadge
-            shape={employee.status === 'active' ? 'active' : 'archived'}
-            label={t(`employeeStatus.${employee.status}`)}
+            shape={employee.status === 'active' && !employee.archivedAt ? 'active' : 'archived'}
+            label={
+              employee.archivedAt
+                ? t('employees.detail.archivedBadge')
+                : t(`employeeStatus.${employee.status}`)
+            }
           />
         }
         description={employee.jobTitle ?? undefined}
@@ -138,6 +144,7 @@ export default async function EmployeeDetailPage({
         defaultStartDate={today}
       />
 
+      {allowManage ? <EmployeeEditPanel employee={employee} /> : (
       <Card className="flex flex-col gap-2 p-4 sm:p-6">
         <h2 className="text-base font-semibold">{t('employees.detail.profile')}</h2>
         {employee.email ? (
@@ -157,6 +164,7 @@ export default async function EmployeeDetailPage({
           <p className="text-sm text-[var(--pf-text-secondary)]">{employee.jobTitle ?? employee.name}</p>
         ) : null}
       </Card>
+      )}
 
       {allowLog ? (
         <Card className="flex flex-col gap-2 p-4 sm:p-6">
@@ -179,7 +187,7 @@ export default async function EmployeeDetailPage({
       {canReadRates ? (
         <details className="rounded-lg border border-[var(--pf-border-default)] p-4 sm:p-6">
           <summary className="cursor-pointer text-base font-semibold">
-            {t('employees.detail.compensationAdvanced')}
+            {t('employees.detail.compensationSection')}
           </summary>
           <div className="mt-4 flex flex-col gap-4">
             <div className="flex flex-col gap-3">
@@ -206,6 +214,14 @@ export default async function EmployeeDetailPage({
                 <p className="text-sm text-[var(--pf-text-secondary)]">{t('employees.noRate')}</p>
               )}
             </div>
+            {canManageCosts ? (
+              <AddRateVersionForm
+                employeeId={employee.id}
+                defaultCurrency={currency}
+                defaultValidFrom={today}
+                defaultRateUnit={currentRate?.rateUnit ?? 'hourly'}
+              />
+            ) : null}
             <div className="flex flex-col gap-3">
               <h3 className="text-sm font-medium">{t('employees.detail.rateHistory')}</h3>
               <RateHistoryTable versions={rateHistory} />

@@ -3,7 +3,8 @@
   "description": "Manage employees, project assignments, and time entries.",
   "nav": {
     "employees": "Employees",
-    "time": "Time entries"
+    "time": "Time entries",
+    "attendance": "Attendance"
   },
   "rateUnits": {
     "hourly": "Hourly",
@@ -57,9 +58,21 @@
       "rateTo": "Effective to",
       "openEnded": "Open-ended",
       "noRateHistory": "No rate versions recorded yet.",
+      "compensationSection": "Cost / employment terms",
       "compensationAdvanced": "Employee cost / pay (advanced)",
+      "addRate": "Add rate from date",
+      "addRateHint": "Creates a new rate version from the chosen date. Past versions stay unchanged.",
+      "addRateSave": "Save rate version",
+      "addRateSuccess": "Rate version saved. History was not rewritten.",
       "hoursSection": "Hours",
-      "hoursLink": "Employee time entries"
+      "hoursLink": "Employee time entries",
+      "editTitle": "Edit employee",
+      "save": "Save changes",
+      "saved": "Employee saved",
+      "archive": "Deactivate / archive",
+      "archiveConfirm": "Archive this employee? History and time entries are kept. There is no hard delete.",
+      "restore": "Restore to active",
+      "archivedBadge": "Archived"
     },
     "projects": {
       "title": "Assignments / projects",
@@ -83,18 +96,46 @@
     "description": "Hours logged against projects and non-project codes.",
     "new": "Log time",
     "quickLog": "Quick time log",
-    "quickLogDescription": "Log hours in a few taps — employee, date, hours, and project.",
+    "quickLogDescription": "Log hours in a few taps — employee, date, hours, project, and notes.",
     "quickLogProjectDescription": "Log hours on this project. Team members appear first; you can still pick any org employee. Hours create labor Actual when a rate applies — team assignment alone does not.",
+    "correctionTitle": "Correct time entry",
+    "correctionDescription": "Voids the original entry and saves a replacement. Past Actual is not silently overwritten.",
+    "correct": "Correct",
     "hoursAbbrev": "h",
     "nonProject": "Non-project",
     "unknownProject": "Unknown project",
     "noCost": "No rate on date",
+    "status": {
+      "recorded": "Recorded",
+      "void": "Void",
+      "correction": "Correction"
+    },
+    "weekdays": {
+      "sun": "Sun",
+      "mon": "Mon",
+      "tue": "Tue",
+      "wed": "Wed",
+      "thu": "Thu",
+      "fri": "Fri",
+      "sat": "Sat"
+    },
+    "filters": {
+      "all": "All",
+      "employee": "Employee",
+      "project": "Project",
+      "from": "From",
+      "to": "To",
+      "status": "Status",
+      "kind": "Type"
+    },
     "columns": {
       "date": "Date",
       "employee": "Employee",
       "target": "Project / code",
+      "status": "Status",
       "hours": "Hours",
-      "cost": "Labor cost"
+      "cost": "Labor cost",
+      "actions": "Actions"
     },
     "empty": {
       "title": "No time logged yet",
@@ -110,8 +151,24 @@
       "hours": "Hours",
       "project": "Project",
       "projectPlaceholder": "Choose project",
+      "timeCode": "Non-project code",
+      "timeCodePlaceholder": "Choose code",
       "notes": "Notes",
+      "kind": "Time type",
+      "kindProject": "Project time",
+      "kindNonProject": "Non-project time",
+      "advancedOptions": "Date range / bulk entry",
+      "fromDate": "From date",
+      "toDate": "To date",
+      "weekdays": "Weekdays",
+      "weekdaysHint": "Only selected days in the range are saved.",
+      "differentHoursByDay": "Different hours by day",
+      "bulkPreview": "Bulk preview",
+      "bulkPreviewSummary": "{count, plural, one {# day} other {# days}} · {hours} hours total",
+      "correctionNotice": "Saving will void the original entry and insert this replacement.",
       "submit": "Save time entry",
+      "submitBulk": "Save bulk entries",
+      "submitCorrection": "Save correction",
       "noEmployees": "Add an employee first (Employees → New employee), then come back to log time."
     }
   },
@@ -130,6 +187,13 @@
     "endAssignmentTitle": "End assignment?",
     "endAssignmentDescription": "End {name}'s assignment on this project. Historical time entries stay; this does not change Actual cost.",
     "endAssignmentSuccess": "Assignment ended.",
+    "editAssignment": "Edit",
+    "editAssignmentSave": "Save changes",
+    "editAssignmentSuccess": "Assignment updated. No labor Actual was changed.",
+    "cancelAssignment": "Cancel assignment",
+    "cancelAssignmentTitle": "Cancel mistaken assignment?",
+    "cancelAssignmentDescription": "Mark {name}'s assignment as cancelled. Time entries stay; this does not change Actual cost.",
+    "cancelAssignmentSuccess": "Assignment cancelled.",
     "startDate": "From",
     "startDateHint": "Defaults to today. Leave as-is for the simple path.",
     "endDate": "To",
@@ -184,9 +248,107 @@
     "applied": "Month allocation applied. Project labor Actual now uses monthly lines (displacement).",
     "disclaimer": "Monthly cost recognition is separate from assignment and from time snapshots until applied."
   },
+  "attendance": {
+    "title": "Attendance",
+    "description": "Clock in and out for presence. Attendance is not project time and never creates labor Actual by itself.",
+    "disclaimer": "Presence only — not project hours and not cost.",
+    "clock": {
+      "today": "Today · {date}",
+      "in": "Clock in",
+      "out": "Clock out",
+      "noLinkedEmployee": "No linked employee",
+      "linkRequired": "Link your user to an employee record to use the clock."
+    },
+    "presence": {
+      "absent": "Not clocked in",
+      "clocked_in": "Clocked in",
+      "on_break": "On break"
+    },
+    "dayStatus": {
+      "open": "Open",
+      "complete": "Complete",
+      "void": "Void"
+    },
+    "eventTypes": {
+      "clock_in": "Clock in",
+      "clock_out": "Clock out",
+      "break_start": "Break start",
+      "break_end": "Break end"
+    },
+    "sources": {
+      "self": "Self",
+      "manager": "Manager",
+      "manual": "Manual",
+      "system": "System"
+    },
+    "list": {
+      "title": "Attendance days",
+      "hint": "Filter by date or status. Open a day for events and corrections.",
+      "empty": {
+        "title": "No attendance yet",
+        "description": "Optional — use the clock or a manager manual entry when you need presence tracking. Nothing is required to set up."
+      },
+      "columns": {
+        "date": "Date",
+        "employee": "Employee",
+        "clockIn": "Clock in",
+        "clockOut": "Clock out",
+        "status": "Status",
+        "events": "Events"
+      }
+    },
+    "filters": {
+      "from": "From",
+      "to": "To",
+      "status": "Status",
+      "allStatuses": "All statuses",
+      "apply": "Apply filters"
+    },
+    "manual": {
+      "title": "Manual entry",
+      "description": "Managers can record presence retrospectively. Still not project time or cost.",
+      "employee": "Employee",
+      "employeePlaceholder": "Choose employee",
+      "workDate": "Work date",
+      "eventType": "Event",
+      "occurredAt": "Occurred at",
+      "notes": "Notes",
+      "submit": "Save attendance event",
+      "saved": "Attendance event saved.",
+      "noEmployees": "Add an employee first, then return to enter attendance."
+    },
+    "events": {
+      "columns": {
+        "time": "Time",
+        "type": "Type",
+        "source": "Source",
+        "notes": "Notes",
+        "actions": "Actions"
+      },
+      "voided": "voided"
+    },
+    "corrections": {
+      "voidEvent": "Void event",
+      "voidDay": "Void day",
+      "replace": "Replace…",
+      "replaceNotes": "Correction notes",
+      "saveReplace": "Save replacement",
+      "cancel": "Cancel"
+    }
+  },
   "errors": {
     "invalidWorkPackage": "The work area does not belong to this project.",
     "invalidPhase": "The phase does not belong to this project.",
-    "duplicateTeamMember": "This employee is already on the project team."
+    "duplicateTeamMember": "This employee is already on the project team.",
+    "invalidBulkRange": "The bulk date range or weekday filter is invalid.",
+    "emptyBulk": "No days matched the selected range and weekdays.",
+    "timeEntryAlreadyVoid": "This time entry is already void.",
+    "timeEntryArchived": "Cannot correct an archived time entry.",
+    "alreadyClockedIn": "Already clocked in.",
+    "notClockedIn": "Not clocked in.",
+    "noLinkedEmployee": "Your login is not linked to an employee record.",
+    "attendanceSelfScope": "You can only view or clock your own attendance.",
+    "attendanceDayVoid": "This attendance day is void.",
+    "attendanceEventVoided": "This attendance event is already void."
   }
 }

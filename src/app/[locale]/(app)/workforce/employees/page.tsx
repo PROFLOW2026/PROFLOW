@@ -12,6 +12,8 @@ import {
 import { withOrgContext } from '@/shared/auth/session';
 import { AuthorizationError } from '@/shared/errors';
 import { Link } from '@/shared/i18n/navigation';
+import { hasAnyPermission } from '@/shared/permissions/assert';
+import { PERMISSIONS } from '@/shared/permissions/catalog';
 
 export async function generateMetadata({
   params,
@@ -26,19 +28,26 @@ export async function generateMetadata({
 export default async function EmployeesPage() {
   const t = await getTranslations('workforce');
 
-  const { employees, canManage, showCosts } = await withOrgContext(async (context) => {
-    try {
-      const rows = await listEmployeesForOrg(context);
-      return {
-        employees: rows,
-        canManage: canManageWorkforce(context),
-        showCosts: canViewWorkforceCosts(context),
-      };
-    } catch (error) {
-      if (error instanceof AuthorizationError) throw error;
-      throw error;
-    }
-  });
+  const { employees, canManage, showCosts, showAttendance } = await withOrgContext(
+    async (context) => {
+      try {
+        const rows = await listEmployeesForOrg(context);
+        return {
+          employees: rows,
+          canManage: canManageWorkforce(context),
+          showCosts: canViewWorkforceCosts(context),
+          showAttendance: hasAnyPermission(context, [
+            PERMISSIONS.ATTENDANCE_READ,
+            PERMISSIONS.ATTENDANCE_SELF,
+            PERMISSIONS.ATTENDANCE_MANAGE,
+          ]),
+        };
+      } catch (error) {
+        if (error instanceof AuthorizationError) throw error;
+        throw error;
+      }
+    },
+  );
 
   return (
     <div className="flex flex-col gap-6">
@@ -62,6 +71,11 @@ export default async function EmployeesPage() {
           <TabsTrigger value="time" asChild>
             <Link href="/workforce/time">{t('nav.time')}</Link>
           </TabsTrigger>
+          {showAttendance ? (
+            <TabsTrigger value="attendance" asChild>
+              <Link href="/workforce/attendance">{t('nav.attendance')}</Link>
+            </TabsTrigger>
+          ) : null}
         </TabsList>
         <TabsContent value="employees" className="mt-4">
           <EmployeesTable employees={employees} canManage={canManage} showCosts={showCosts} />

@@ -6,13 +6,14 @@ import { PageHeader } from '@/components/ui/page-header';
 import { StatusBadge, type StatusShape } from '@/components/ui/status-badge';
 import { getEntityDocumentPanelData } from '@/modules/documents';
 import { DocumentAttachments } from '@/modules/documents/ui';
-import { getPurchaseOrderById, type PurchaseOrderStatus } from '@/modules/procurement';
+import { getPurchaseOrderById, isPurchaseOrderCancellable, isPurchaseOrderCloseable, type PurchaseOrderStatus } from '@/modules/procurement';
 import { money } from '@/shared/money/money';
 import { withOrgContext } from '@/shared/auth/session';
 import { Link } from '@/shared/i18n/navigation';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { textNavLinkMutedClassName } from '@/components/ui/pressable';
+import { CancelPurchaseOrderButton, ClosePurchaseOrderButton } from '../po-lifecycle-buttons';
 
 export async function generateMetadata({
   params,
@@ -58,7 +59,11 @@ export default async function PurchaseOrderDetailPage({
         'purchase_order',
         purchaseOrderId,
       );
-      return { ...detail, documentsPanel };
+      return {
+        ...detail,
+        documentsPanel,
+        canManage: hasPermission(context, PERMISSIONS.PROCUREMENT_MANAGE),
+      };
     } catch {
       return null;
     }
@@ -66,7 +71,10 @@ export default async function PurchaseOrderDetailPage({
 
   if (!data) notFound();
 
-  const { order, lines, documentsPanel } = data;
+  const { order, lines, documentsPanel, canManage } = data;
+  const status = order.status as PurchaseOrderStatus;
+  const showCancel = canManage && isPurchaseOrderCancellable(status);
+  const showClose = canManage && isPurchaseOrderCloseable(status);
 
   return (
     <div className="flex min-w-0 flex-col gap-6">
@@ -99,6 +107,13 @@ export default async function PurchaseOrderDetailPage({
           <p dir="ltr">{lines.length}</p>
         </div>
       </div>
+
+      {showCancel || showClose ? (
+        <div className="flex flex-wrap gap-2">
+          {showClose ? <ClosePurchaseOrderButton purchaseOrderId={order.id} /> : null}
+          {showCancel ? <CancelPurchaseOrderButton purchaseOrderId={order.id} /> : null}
+        </div>
+      ) : null}
 
       <DocumentAttachments
         ownerType="purchase_order"

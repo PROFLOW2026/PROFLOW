@@ -5,6 +5,7 @@ import {
   addMoney,
   fromNumericString,
   isPositiveMoney,
+  isZeroMoney,
   money,
   roundMoney,
   zeroMoney,
@@ -14,10 +15,11 @@ import {
   areApBillProjectAllocationsAvailable,
   computeBillOutstanding,
   getVendorPaymentsRepository,
+  listActiveCreditAmountsForBills,
   RECOGNIZED_VENDOR_BILL_STATUSES,
   resolveVendorBillProjectAmounts,
+  scaleBillSliceAfterCredits,
 } from '@/modules/ap';
-
 const OPEN_COMMITTED_STATUSES = ['open', 'partially_consumed'] as const;
 /** Recognized bills may still owe cash after PO match — include `matched`. */
 const OPEN_AP_CASH_STATUSES = RECOGNIZED_VENDOR_BILL_STATUSES;
@@ -93,11 +95,11 @@ export async function sumOpenApPayableForProject(
       ),
     );
 
-  const appliedByBillId = await getVendorPaymentsRepository().listActiveAppliedAmountsForBills(
-    db,
-    organizationId,
-    rows.map((row) => row.id),
-  );
+  const billIds = rows.map((row) => row.id);
+  const [appliedByBillId, creditsByBillId] = await Promise.all([
+    getVendorPaymentsRepository().listActiveAppliedAmountsForBills(db, organizationId, billIds),
+    listActiveCreditAmountsForBills(db, organizationId, billIds),
+  ]);
 
   let total = zeroMoney(normalized);
   let excludedForeignCurrencyCount = 0;
@@ -113,6 +115,10 @@ export async function sumOpenApPayableForProject(
       applications: (appliedByBillId.get(row.id) ?? []).map((amount) => ({
         appliedAmount: money(amount, row.currency),
         paymentStatus: 'recorded' as const,
+      })),
+      creditApplications: (creditsByBillId.get(row.id) ?? []).map((amount) => ({
+        appliedAmount: money(amount, row.currency),
+        status: 'applied' as const,
       })),
     });
     if (!isPositiveMoney(outstanding)) continue;
@@ -243,13 +249,26 @@ export async function loadRecognizedVendorBillsForProject(
     }
   }
 
+  const billTotalById = new Map(billRows.map((row) => [row.id, row.totalAmount]));
+  const creditsByBill = await listActiveCreditAmountsForBills(
+    db,
+    organizationId,
+    resolved.billIds,
+  );
+
   for (let i = 0; i < resolved.amounts.length; i += 1) {
     const amountStr = resolved.amounts[i]!;
     const billId = resolved.billIds[i]!;
-    const amount = fromNumericString(amountStr, normalized);
-    if (!amount) continue;
-    billAmounts.push(amountStr);
-    total = addMoney(total, amount);
+    const billTotal = billTotalById.get(billId) ?? amountStr;
+    const netted = scaleBillSliceAfterCredits({
+      currency: normalized,
+      billTotal,
+      sliceAmount: amountStr,
+      appliedCreditAmounts: creditsByBill.get(billId) ?? [],
+    });
+    if (isZeroMoney(netted) || !isPositiveMoney(netted)) continue;
+    billAmounts.push(netted.amount);
+    total = addMoney(total, netted);
     recognizedBillIds.push(billId);
   }
 
@@ -384,11 +403,11 @@ export async function sumOpenApPayableForProjects(
       ),
     );
 
-  const appliedByBillId = await getVendorPaymentsRepository().listActiveAppliedAmountsForBills(
-    db,
-    organizationId,
-    rows.map((row) => row.id),
-  );
+  const billIds = rows.map((row) => row.id);
+  const [appliedByBillId, creditsByBillId] = await Promise.all([
+    getVendorPaymentsRepository().listActiveAppliedAmountsForBills(db, organizationId, billIds),
+    listActiveCreditAmountsForBills(db, organizationId, billIds),
+  ]);
 
   const buckets = new Map<
     string,
@@ -412,6 +431,10 @@ export async function sumOpenApPayableForProjects(
       applications: (appliedByBillId.get(row.id) ?? []).map((amount) => ({
         appliedAmount: money(amount, row.currency),
         paymentStatus: 'recorded' as const,
+      })),
+      creditApplications: (creditsByBillId.get(row.id) ?? []).map((amount) => ({
+        appliedAmount: money(amount, row.currency),
+        status: 'applied' as const,
       })),
     });
     if (!isPositiveMoney(outstanding)) {
@@ -468,7 +491,13 @@ export async function loadRecognizedVendorBillsForProjects(
 
     const billAmountsByProject = new Map<
       string,
-      { billAmounts: string[]; total: MoneyValue; excluded: number; recognizedBillIds: string[] }
+      {
+        billAmounts: string[];
+        total: MoneyValue;
+        excluded: number;
+        recognizedBillIds: string[];
+        billTotals: Map<string, string>;
+      }
     >();
 
     for (const row of billRows) {
@@ -478,6 +507,7 @@ export async function loadRecognizedVendorBillsForProjects(
         total: zeroMoney(normalized),
         excluded: 0,
         recognizedBillIds: [],
+        billTotals: new Map<string, string>(),
       };
       if (row.currency.toUpperCase() !== normalized) {
         bucket.excluded += 1;
@@ -492,7 +522,38 @@ export async function loadRecognizedVendorBillsForProjects(
       bucket.billAmounts.push(row.totalAmount);
       bucket.total = addMoney(bucket.total, amount);
       bucket.recognizedBillIds.push(row.id);
+      bucket.billTotals.set(row.id, row.totalAmount);
       billAmountsByProject.set(row.projectId, bucket);
+    }
+
+    const creditsByBill = await listActiveCreditAmountsForBills(
+      db,
+      organizationId,
+      [...billAmountsByProject.values()].flatMap((bucket) => bucket.recognizedBillIds),
+    );
+
+    // Re-net amounts after credits.
+    for (const [, bucket] of billAmountsByProject) {
+      const netAmounts: string[] = [];
+      const netIds: string[] = [];
+      let netTotal = zeroMoney(normalized);
+      for (let i = 0; i < bucket.billAmounts.length; i += 1) {
+        const billId = bucket.recognizedBillIds[i]!;
+        const slice = bucket.billAmounts[i]!;
+        const netted = scaleBillSliceAfterCredits({
+          currency: normalized,
+          billTotal: bucket.billTotals.get(billId) ?? slice,
+          sliceAmount: slice,
+          appliedCreditAmounts: creditsByBill.get(billId) ?? [],
+        });
+        if (isZeroMoney(netted) || !isPositiveMoney(netted)) continue;
+        netAmounts.push(netted.amount);
+        netIds.push(billId);
+        netTotal = addMoney(netTotal, netted);
+      }
+      bucket.billAmounts = netAmounts;
+      bucket.recognizedBillIds = netIds;
+      bucket.total = netTotal;
     }
 
     const allRecognizedIds = [...billAmountsByProject.values()].flatMap(

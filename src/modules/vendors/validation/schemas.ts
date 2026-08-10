@@ -1,5 +1,6 @@
 import { z } from 'zod';
-import { CONTACT_ROLES, VENDOR_STATUSES, VENDOR_TYPES } from '../domain/types';
+import { isBusinessDate } from '@/shared/dates';
+import { CONTACT_ROLES, ENGAGEMENT_STATUSES, VENDOR_STATUSES, VENDOR_TYPES } from '../domain/types';
 
 const emptyToNull = (value: unknown) => {
   if (value === '' || value === null || value === undefined) return null;
@@ -7,6 +8,16 @@ const emptyToNull = (value: unknown) => {
 };
 
 const optionalText = z.preprocess(emptyToNull, z.string().trim().max(500).nullable().optional());
+
+const businessDateSchema = z
+  .string()
+  .trim()
+  .refine(isBusinessDate, { message: 'Invalid date' });
+
+const optionalBusinessDate = z.preprocess(
+  emptyToNull,
+  businessDateSchema.nullable().optional(),
+);
 
 export const vendorNameSchema = z
   .string()
@@ -52,6 +63,8 @@ export const archiveVendorSchema = z.object({
   vendorId: z.string().uuid(),
 });
 
+export const restoreVendorSchema = archiveVendorSchema;
+
 export const listVendorsSchema = z.object({
   search: z.string().trim().optional(),
   status: z.enum([...VENDOR_STATUSES, 'all'] as const).optional(),
@@ -83,16 +96,52 @@ export const deleteContactSchema = z.object({
   contactId: z.string().uuid(),
 });
 
-export const createEngagementSchema = z.object({
-  vendorId: z.string().uuid(),
-  projectId: z.string().uuid(),
-  role: optionalText,
-  notes: optionalText,
+export const createEngagementSchema = z
+  .object({
+    vendorId: z.string().uuid(),
+    projectId: z.string().uuid(),
+    role: optionalText,
+    notes: optionalText,
+    startDate: optionalBusinessDate,
+    endDate: optionalBusinessDate,
+  })
+  .superRefine((value, ctx) => {
+    if (value.startDate && value.endDate && value.endDate < value.startDate) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['endDate'],
+        message: 'End date must be on or after start date',
+      });
+    }
+  });
+
+export type CreateEngagementInput = z.infer<typeof createEngagementSchema>;
+
+export const endEngagementSchema = z.object({
+  engagementId: z.string().uuid(),
+  endDate: optionalBusinessDate,
 });
+
+export type EndEngagementInput = z.infer<typeof endEngagementSchema>;
+
+export const cancelEngagementSchema = z.object({
+  engagementId: z.string().uuid(),
+  endDate: optionalBusinessDate,
+});
+
+export type CancelEngagementInput = z.infer<typeof cancelEngagementSchema>;
 
 export const archiveEngagementSchema = z.object({
   engagementId: z.string().uuid(),
 });
+
+export const listEngagementsSchema = z.object({
+  vendorId: z.string().uuid().optional(),
+  projectId: z.string().uuid().optional(),
+  status: z.enum([...ENGAGEMENT_STATUSES, 'history', 'all'] as const).optional(),
+});
+
+export type ListEngagementsInput = z.infer<typeof listEngagementsSchema>;
 
 export const promoteVendorFromTransactionSchema = z.object({
   supplierName: vendorNameSchema,

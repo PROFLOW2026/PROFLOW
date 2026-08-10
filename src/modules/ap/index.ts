@@ -14,6 +14,8 @@ export {
   createApBill,
 } from './application/bills';
 
+export { voidApBill, rejectSilentRecognizedBillEdit } from './application/void-bill';
+
 export {
   proposeApMatch,
   acceptApMatch,
@@ -29,6 +31,14 @@ export {
   deleteVendorPayment,
   rejectPaymentApplicationMutation,
 } from './application/payments';
+
+export {
+  createVendorCredit,
+  applyVendorCredit,
+  listVendorCredits,
+  listCreditsForBill,
+  getVendorCredit,
+} from './application/credits';
 
 export {
   getOrganizationApPayables,
@@ -72,6 +82,32 @@ export type {
 } from './domain/vendor-cost-recognition';
 
 export {
+  assertApBillVoidable,
+  assertRecognizedBillNotSilentlyEditable,
+  assertVoidRemovesFromActual,
+} from './domain/bill-lifecycle';
+
+export {
+  AP_CREDIT_STATUSES,
+  AP_CREDIT_APPLICATION_STATUSES,
+  AP_CREDITS_PERSISTENCE_READY,
+  areApCreditsAvailable,
+  setApCreditsPersistenceReadyForTests,
+  assertCreditIsNotPayment,
+  assertCreditCreatable,
+  assertCreditApplicable,
+  netRecognizedBillAfterCredits,
+  scaleBillSliceAfterCredits,
+  creditRemaining,
+  deriveCreditStatusAfterApplication,
+  sumActiveCreditAmounts,
+} from './domain/vendor-credits';
+export type {
+  ApCreditStatus,
+  ApCreditApplicationStatus,
+} from './domain/vendor-credits';
+
+export {
   AP_BILL_PROJECT_ALLOCATIONS_READY,
   areApBillProjectAllocationsAvailable,
   setApBillProjectAllocationsReadyForTests,
@@ -112,6 +148,7 @@ export type {
   VendorPaymentAmountInput,
   VendorPaymentApplicationInput,
   BillPayableInput,
+  BillCreditApplicationInput,
 } from './domain/vendor-payments';
 
 export { computePayablesAging } from './domain/payables-aging';
@@ -131,6 +168,9 @@ export {
   updateVendorPaymentMetadataSchema,
   saveBillProjectAllocationsSchema,
   applyBillProjectAllocationsSchema,
+  voidApBillSchema,
+  createVendorCreditSchema,
+  applyVendorCreditSchema,
 } from './validation/schemas';
 export type {
   CreateApBillInput,
@@ -141,6 +181,9 @@ export type {
   UpdateVendorPaymentMetadataInput,
   SaveBillProjectAllocationsInput,
   ApplyBillProjectAllocationsInput,
+  VoidApBillInput,
+  CreateVendorCreditInput,
+  ApplyVendorCreditInput,
 } from './validation/schemas';
 
 export {
@@ -165,6 +208,11 @@ export {
   assertVendorInOrganization,
   findApBillById,
 } from './data/ap.repository';
+
+export {
+  listActiveCreditAmountsForBill,
+  listActiveCreditAmountsForBills,
+} from './data/credits.repository';
 
 export {
   getVendorPaymentsRepository,

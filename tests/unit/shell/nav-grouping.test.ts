@@ -41,6 +41,7 @@ describe('nav grouping', () => {
 
     expect(byKey.vendors?.moreGroup).toBe('operations');
     expect(byKey.workforce?.moreGroup).toBe('operations');
+    expect(byKey.attendance?.moreGroup).toBe('operations');
     expect(byKey.procurement?.moreGroup).toBe('operations');
     expect(byKey.materials?.moreGroup).toBe('operations');
     expect(byKey.fieldOps?.moreGroup).toBe('operations');
@@ -57,6 +58,30 @@ describe('nav grouping', () => {
     expect(vendorBills?.href).toBe('/procurement/ap');
     expect(vendorBills?.moreGroup).toBe('advanced');
     expect(vendorBills?.permission).toBe(PERMISSIONS.AP_READ);
+  });
+
+  it('lists attendance under operations for any attendance permission', () => {
+    const attendance = NAV_ITEMS.find((item) => item.key === 'attendance');
+    expect(attendance?.href).toBe('/workforce/attendance');
+    expect(attendance?.moreGroup).toBe('operations');
+    expect(attendance?.module).toBeUndefined();
+    expect(attendance?.anyPermissions).toEqual([
+      PERMISSIONS.ATTENDANCE_READ,
+      PERMISSIONS.ATTENDANCE_SELF,
+      PERMISSIONS.ATTENDANCE_MANAGE,
+    ]);
+
+    const selfOnly = visibleNavItems(
+      new Set([PERMISSIONS.ATTENDANCE_SELF]),
+      allModulesOn(),
+      { workMix: 'projects' },
+    );
+    expect(selfOnly.some((item) => item.key === 'attendance')).toBe(true);
+
+    const none = visibleNavItems(new Set([PERMISSIONS.WORKFORCE_READ]), allModulesOn(), {
+      workMix: 'projects',
+    });
+    expect(none.some((item) => item.key === 'attendance')).toBe(false);
   });
 
   it('partitions core → group order → settings last', () => {

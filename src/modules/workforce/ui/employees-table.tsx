@@ -12,6 +12,7 @@ import { fromNumericString } from '@/shared/money';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import type { OrgContext } from '@/shared/auth/context';
+import { canReadWorkforceCost } from '@/modules/workforce/application/workforce-cost-authz';
 import { Link } from '@/shared/i18n/navigation';
 import { cn } from '@/shared/ui/cn';
 
@@ -166,9 +167,7 @@ export function canLogTime(context: OrgContext): boolean {
 }
 
 export function canViewWorkforceCosts(context: OrgContext): boolean {
-  // Rates / employer cost — not unlocked by workforce.read alone.
-  return (
-    hasPermission(context, PERMISSIONS.WORKFORCE_COST_READ) ||
-    hasPermission(context, PERMISSIONS.PROJECT_FINANCIALS_READ)
-  );
+  // List rate columns must match list redaction — never show empty "no rate" cells
+  // when the user cannot read workforce cost (rates stay redacted).
+  return canReadWorkforceCost(context);
 }

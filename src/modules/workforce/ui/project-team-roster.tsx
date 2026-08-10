@@ -14,7 +14,9 @@ import { textNavLinkClassName } from '@/components/ui/pressable';
 import type { ProjectTeamMemberSummary } from '@/modules/workforce';
 import {
   addProjectTeamMemberAction,
+  cancelProjectTeamAssignmentAction,
   removeProjectTeamMemberAction,
+  updateProjectTeamAssignmentAction,
   type ProjectTeamFormState,
 } from '@/app/[locale]/(app)/workforce/team/actions';
 
@@ -59,9 +61,14 @@ export function ProjectTeamRoster({
   const tCommon = useTranslations('common');
   const [employeeId, setEmployeeId] = useState<string | null>(null);
   const [showHistory, setShowHistory] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [plannedShare, setPlannedShare] = useState('');
   const [state, formAction, pending] = useActionState<ProjectTeamFormState, FormData>(
     addProjectTeamMemberAction,
+    {},
+  );
+  const [editState, editAction, editPending] = useActionState<ProjectTeamFormState, FormData>(
+    updateProjectTeamAssignmentAction,
     {},
   );
 
@@ -190,52 +197,146 @@ export function ProjectTeamRoster({
       ) : (
         <ul className="divide-y divide-[var(--pf-border-default)] rounded-lg border border-[var(--pf-border-default)]">
           {team.map((member) => (
-            <li key={member.membershipId} className="flex flex-wrap items-center justify-between gap-2 px-3 py-3">
-              <div className="min-w-0 text-start">
-                <Link
-                  href={`/workforce/employees/${member.employeeId}`}
-                  className={cn(textNavLinkClassName, 'font-medium')}
-                >
-                  {member.employeeName}
-                </Link>
-                <p className="text-xs text-[var(--pf-text-secondary)]" dir="ltr">
-                  {formatSpan(member.startDate, member.endDate, t('projectPanel.ongoing'))}
-                </p>
-                {member.role || member.jobTitle ? (
-                  <p className="text-xs text-[var(--pf-text-muted)]">
-                    {[member.role, member.jobTitle].filter(Boolean).join(' · ')}
+            <li key={member.membershipId} className="flex flex-col gap-3 px-3 py-3">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="min-w-0 text-start">
+                  <Link
+                    href={`/workforce/employees/${member.employeeId}`}
+                    className={cn(textNavLinkClassName, 'font-medium')}
+                  >
+                    {member.employeeName}
+                  </Link>
+                  <p className="text-xs text-[var(--pf-text-secondary)]" dir="ltr">
+                    {formatSpan(member.startDate, member.endDate, t('projectPanel.ongoing'))}
                   </p>
-                ) : null}
-                {member.entryCount > 0 ? (
-                  <p className="text-xs text-[var(--pf-text-secondary)]">
-                    {t('projectPanel.memberHours', {
-                      hours: Number(member.totalHours).toFixed(2),
-                      count: member.entryCount,
-                    })}
-                  </p>
-                ) : (
-                  <p className="text-xs text-[var(--pf-text-muted)]">{t('projectPanel.noHoursYet')}</p>
-                )}
-              </div>
-              {canManage ? (
-                <ConfirmAction
-                  trigger={
-                    <Button type="button" size="sm" variant="ghost">
-                      {t('projectPanel.endAssignment')}
+                  {member.role || member.jobTitle ? (
+                    <p className="text-xs text-[var(--pf-text-muted)]">
+                      {[member.role, member.jobTitle].filter(Boolean).join(' · ')}
+                    </p>
+                  ) : null}
+                  {member.entryCount > 0 ? (
+                    <p className="text-xs text-[var(--pf-text-secondary)]">
+                      {t('projectPanel.memberHours', {
+                        hours: Number(member.totalHours).toFixed(2),
+                        count: member.entryCount,
+                      })}
+                    </p>
+                  ) : (
+                    <p className="text-xs text-[var(--pf-text-muted)]">{t('projectPanel.noHoursYet')}</p>
+                  )}
+                </div>
+                {canManage ? (
+                  <div className="flex flex-wrap gap-1">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      onClick={() =>
+                        setEditingId((value) =>
+                          value === member.membershipId ? null : member.membershipId,
+                        )
+                      }
+                    >
+                      {t('projectPanel.editAssignment')}
                     </Button>
-                  }
-                  title={t('projectPanel.endAssignmentTitle')}
-                  description={t('projectPanel.endAssignmentDescription', { name: member.employeeName })}
-                  confirmLabel={t('projectPanel.endAssignment')}
-                  successMessage={t('projectPanel.endAssignmentSuccess')}
-                  onConfirm={() =>
-                    removeProjectTeamMemberAction({
-                      membershipId: member.membershipId,
-                      projectId,
-                      employeeId: member.employeeId,
-                    })
-                  }
-                />
+                    <ConfirmAction
+                      trigger={
+                        <Button type="button" size="sm" variant="ghost">
+                          {t('projectPanel.endAssignment')}
+                        </Button>
+                      }
+                      title={t('projectPanel.endAssignmentTitle')}
+                      description={t('projectPanel.endAssignmentDescription', {
+                        name: member.employeeName,
+                      })}
+                      confirmLabel={t('projectPanel.endAssignment')}
+                      successMessage={t('projectPanel.endAssignmentSuccess')}
+                      onConfirm={() =>
+                        removeProjectTeamMemberAction({
+                          membershipId: member.membershipId,
+                          projectId,
+                          employeeId: member.employeeId,
+                        })
+                      }
+                    />
+                    <ConfirmAction
+                      trigger={
+                        <Button type="button" size="sm" variant="ghost">
+                          {t('projectPanel.cancelAssignment')}
+                        </Button>
+                      }
+                      title={t('projectPanel.cancelAssignmentTitle')}
+                      description={t('projectPanel.cancelAssignmentDescription', {
+                        name: member.employeeName,
+                      })}
+                      confirmLabel={t('projectPanel.cancelAssignment')}
+                      successMessage={t('projectPanel.cancelAssignmentSuccess')}
+                      onConfirm={() =>
+                        cancelProjectTeamAssignmentAction({
+                          membershipId: member.membershipId,
+                          projectId,
+                          employeeId: member.employeeId,
+                        })
+                      }
+                    />
+                  </div>
+                ) : null}
+              </div>
+              {canManage && editingId === member.membershipId ? (
+                <form
+                  action={editAction}
+                  className="flex flex-col gap-3 rounded-md border border-[var(--pf-border-default)] p-3"
+                >
+                  <input type="hidden" name="membershipId" value={member.membershipId} />
+                  <input type="hidden" name="projectId" value={projectId} />
+                  <input type="hidden" name="employeeId" value={member.employeeId} />
+                  {editState.error ? <Alert tone="danger">{editState.error}</Alert> : null}
+                  {editState.ok ? (
+                    <Alert tone="success">{t('projectPanel.editAssignmentSuccess')}</Alert>
+                  ) : null}
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <Field label={t('projectPanel.startDate')}>
+                      {(control) => (
+                        <Input
+                          {...control}
+                          type="date"
+                          name="startDate"
+                          defaultValue={member.startDate}
+                          dir="ltr"
+                        />
+                      )}
+                    </Field>
+                    <Field
+                      label={t('projectPanel.endDate')}
+                      optionalLabel={tCommon('labels.optional')}
+                      description={t('projectPanel.endDateHint')}
+                    >
+                      {(control) => (
+                        <Input
+                          {...control}
+                          type="date"
+                          name="endDate"
+                          defaultValue={member.endDate ?? ''}
+                          dir="ltr"
+                        />
+                      )}
+                    </Field>
+                  </div>
+                  <Field label={t('projectPanel.roleLabel')} optionalLabel={tCommon('labels.optional')}>
+                    {(control) => (
+                      <Input
+                        {...control}
+                        name="role"
+                        maxLength={200}
+                        defaultValue={member.role ?? ''}
+                        placeholder={t('projectPanel.rolePlaceholder')}
+                      />
+                    )}
+                  </Field>
+                  <Button type="submit" size="sm" loading={editPending}>
+                    {t('projectPanel.editAssignmentSave')}
+                  </Button>
+                </form>
               ) : null}
             </li>
           ))}

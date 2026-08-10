@@ -140,7 +140,10 @@ describe('migration journal', () => {
     expect(tags.indexOf('0020_overnight_foundations')).toBeLessThan(
       tags.indexOf('0021_workforce_contacts_and_allocations'),
     );
-    expect(tags.at(-1)).toBe('0021_workforce_contacts_and_allocations');
+    expect(tags.indexOf('0021_workforce_contacts_and_allocations')).toBeLessThan(
+      tags.indexOf('0022_master_completion_foundations'),
+    );
+    expect(tags.at(-1)).toBe('0023_attendance_rls_and_role_backfill');
 
     const sql = await readFile(
       path.join(MIGRATIONS_DIR, '0021_workforce_contacts_and_allocations.sql'),
@@ -157,6 +160,51 @@ describe('migration journal', () => {
     expect(sql).toContain('labor_allocation_run_lines');
     expect(sql).toContain('ap_bill_project_allocations');
     expect(sql).toContain('labor_allocation_runs_conservation_guard');
+  });
+
+  it('places master completion foundations 0022 after 0021', async () => {
+    const journal = await loadJournal();
+    const tags = journal.entries.map((entry) => entry.tag);
+    expect(tags.indexOf('0021_workforce_contacts_and_allocations')).toBeLessThan(
+      tags.indexOf('0022_master_completion_foundations'),
+    );
+    expect(tags.indexOf('0022_master_completion_foundations')).toBeLessThan(
+      tags.indexOf('0023_attendance_rls_and_role_backfill'),
+    );
+    expect(tags.at(-1)).toBe('0023_attendance_rls_and_role_backfill');
+
+    const sql = await readFile(
+      path.join(MIGRATIONS_DIR, '0022_master_completion_foundations.sql'),
+      'utf8',
+    );
+    expect(sql).toContain('attendance_days');
+    expect(sql).toContain('attendance_events');
+    expect(sql).toContain('ap_vendor_credits');
+    expect(sql).toContain('ap_credit_applications');
+    expect(sql).toContain('corrects_entry_id');
+    expect(sql).toContain('bulk_batch_id');
+    expect(sql).toContain('vendor_engagements');
+    expect(sql).toContain('time_entries_corrects_entry_org_fk');
+    expect(sql).toContain('ap_vendor_credits_project_org_fk');
+    expect(sql).toContain('ap_vendor_credits_guard');
+  });
+
+  it('places attendance RLS hardening 0023 after 0022', async () => {
+    const journal = await loadJournal();
+    const tags = journal.entries.map((entry) => entry.tag);
+    expect(tags.indexOf('0022_master_completion_foundations')).toBeLessThan(
+      tags.indexOf('0023_attendance_rls_and_role_backfill'),
+    );
+    expect(tags.at(-1)).toBe('0023_attendance_rls_and_role_backfill');
+
+    const sql = await readFile(
+      path.join(MIGRATIONS_DIR, '0023_attendance_rls_and_role_backfill.sql'),
+      'utf8',
+    );
+    expect(sql).toContain('linked_employee_id');
+    expect(sql).toContain('attendance.self');
+    expect(sql).toContain('role_permissions');
+    expect(sql).not.toMatch(/VARIADIC ARRAY\[[^\]]*workforce\.read/);
   });
 });
 

@@ -445,18 +445,91 @@ export const timeEntries = pgTable(
 
     description: text('description'),
     createdByUserId: uuid('created_by_user_id').references(() => profiles.id, { onDelete: 'set null' }),
+    /** recorded | void — corrections void the original and insert a replacement. */
+    status: text('status').notNull().default('recorded'),
+    voidedAt: timestamp('voided_at', { withTimezone: true }),
+    correctsEntryId: uuid('corrects_entry_id'),
+    bulkBatchId: uuid('bulk_batch_id'),
     archivedAt: archivedAt(),
     ...timestamps(),
   },
   (table) => [
+    uniqueIndex('time_entries_id_organization_id_uq').on(table.id, table.organizationId),
     index('time_entries_org_date_idx').on(table.organizationId, table.workDate),
     index('time_entries_employee_date_idx').on(table.employeeId, table.workDate),
     index('time_entries_project_idx').on(table.projectId),
+    index('time_entries_org_status_idx').on(table.organizationId, table.status),
     check('time_entries_hours_positive', sql`${table.hours} > 0`),
+    check('time_entries_status_known', sql`${table.status} IN ('recorded', 'void')`),
     check(
       'time_entries_kind_target',
       sql`(${table.kind} = 'project' and ${table.projectId} is not null)
           or (${table.kind} = 'non_project' and ${table.projectId} is null)`,
+    ),
+    foreignKey({
+      columns: [table.correctsEntryId, table.organizationId],
+      foreignColumns: [table.id, table.organizationId],
+      name: 'time_entries_corrects_entry_org_fk',
+    }).onDelete('set null'),
+  ],
+);
+
+/**
+ * Optional attendance layer (0022). Attendance ≠ project time ≠ Actual.
+ * One day may later have separate time allocations that sum toward presence.
+ */
+export const attendanceDays = pgTable(
+  'attendance_days',
+  {
+    id: primaryId(),
+    organizationId: uuid('organization_id')
+      .notNull()
+      .references(() => organizations.id, { onDelete: 'cascade' }),
+    employeeId: uuid('employee_id')
+      .notNull()
+      .references(() => employees.id, { onDelete: 'cascade' }),
+    workDate: date('work_date').notNull(),
+    status: text('status').notNull().default('open'),
+    notes: text('notes'),
+    createdByUserId: uuid('created_by_user_id').references(() => profiles.id, { onDelete: 'set null' }),
+    archivedAt: archivedAt(),
+    ...timestamps(),
+  },
+  (table) => [
+    uniqueIndex('attendance_days_id_organization_id_uq').on(table.id, table.organizationId),
+    index('attendance_days_org_date_idx').on(table.organizationId, table.workDate),
+    check('attendance_days_status_known', sql`${table.status} IN ('open', 'complete', 'void')`),
+  ],
+);
+
+export const attendanceEvents = pgTable(
+  'attendance_events',
+  {
+    id: primaryId(),
+    organizationId: uuid('organization_id')
+      .notNull()
+      .references(() => organizations.id, { onDelete: 'cascade' }),
+    attendanceDayId: uuid('attendance_day_id')
+      .notNull()
+      .references(() => attendanceDays.id, { onDelete: 'cascade' }),
+    eventType: text('event_type').notNull(),
+    occurredAt: timestamp('occurred_at', { withTimezone: true }).notNull(),
+    source: text('source').notNull().default('manual'),
+    notes: text('notes'),
+    createdByUserId: uuid('created_by_user_id').references(() => profiles.id, { onDelete: 'set null' }),
+    voidedAt: timestamp('voided_at', { withTimezone: true }),
+    ...timestamps(),
+  },
+  (table) => [
+    index('attendance_events_day_idx').on(table.attendanceDayId, table.occurredAt),
+    index('attendance_events_org_idx').on(table.organizationId),
+    check(
+      'attendance_events_type_known',
+      sql`${table.eventType} IN ('clock_in', 'clock_out', 'break_start', 'break_end')`,
+    ),
+    check(
+      'attendance_events_source_known',
+      sql`${table.source} IN ('self', 'manager', 'manual', 'system')`,
     ),
   ],
 );

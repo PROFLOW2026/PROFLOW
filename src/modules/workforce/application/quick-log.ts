@@ -4,12 +4,14 @@ import type { OrgContext } from '@/shared/auth/context';
 import { listActiveProjects } from '../data/project-refs.repository';
 import { listProjectTeamMemberIds } from '../data/project-team.repository';
 import { listTimeEntries } from '../data/time-entries.repository';
+import type { NonProjectTimeCodeRecord } from '../domain/types';
 import { listEmployeesForOrg } from './employees';
-import { suggestDefaultEmployee } from './time-entries';
+import { listNonProjectCodes, suggestDefaultEmployee } from './time-entries';
 
 export interface QuickLogFormData {
   readonly employees: readonly { id: string; name: string; assignedToProject?: boolean }[];
   readonly projects: readonly { id: string; name: string }[];
+  readonly timeCodes: readonly NonProjectTimeCodeRecord[];
   readonly defaultEmployeeId: string | null;
   readonly recentProjectId: string | null;
   readonly assignedEmployeeIds: readonly string[];
@@ -21,10 +23,11 @@ export async function loadQuickLogFormData(
 ): Promise<QuickLogFormData> {
   assertPermission(context, PERMISSIONS.TIME_MANAGE);
 
-  const [employeeRows, projects, suggestedEmployeeId] = await Promise.all([
+  const [employeeRows, projects, suggestedEmployeeId, timeCodes] = await Promise.all([
     listEmployeesForOrg(context, { status: 'active' }),
     listActiveProjects(context.db, context.organizationId),
     suggestDefaultEmployee(context),
+    listNonProjectCodes(context),
   ]);
 
   const assignedEmployeeIds = options.projectId
@@ -54,6 +57,7 @@ export async function loadQuickLogFormData(
 
   const recentEntries = await listTimeEntries(context.db, context.organizationId, {
     employeeId: defaultEmployeeId ?? undefined,
+    status: 'recorded',
   });
   const recentProjectId =
     options.projectId ?? recentEntries.find((entry) => entry.projectId)?.projectId ?? null;
@@ -61,6 +65,7 @@ export async function loadQuickLogFormData(
   return {
     employees,
     projects,
+    timeCodes,
     defaultEmployeeId,
     recentProjectId,
     assignedEmployeeIds,

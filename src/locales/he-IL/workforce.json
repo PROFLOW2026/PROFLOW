@@ -3,7 +3,8 @@
   "description": "ניהול עובדים, שיוכים לפרויקטים ודיווחי שעות.",
   "nav": {
     "employees": "עובדים",
-    "time": "דיווחי שעות"
+    "time": "דיווחי שעות",
+    "attendance": "נוכחות"
   },
   "rateUnits": {
     "hourly": "שעתי",
@@ -57,9 +58,21 @@
       "rateTo": "בתוקף עד",
       "openEnded": "ללא תאריך סיום",
       "noRateHistory": "עדיין לא נרשמו גרסאות תעריף.",
+      "compensationSection": "עלות / תנאי העסקה",
       "compensationAdvanced": "עלות עובד / שכר (מתקדם)",
+      "addRate": "הוסף תעריף מתאריך",
+      "addRateHint": "יוצר גרסת תעריף חדשה מהתאריך שנבחר. גרסאות קודמות אינן משתנות.",
+      "addRateSave": "שמירת גרסת תעריף",
+      "addRateSuccess": "גרסת התעריף נשמרה. ההיסטוריה לא נכתבה מחדש.",
       "hoursSection": "שעות",
-      "hoursLink": "דיווחי שעות של העובד"
+      "hoursLink": "דיווחי שעות של העובד",
+      "editTitle": "עריכת עובד",
+      "save": "שמירת שינויים",
+      "saved": "העובד נשמר",
+      "archive": "השבת/ארכיון",
+      "archiveConfirm": "להעביר את העובד לארכיון? היסטוריה ודיווחי שעות נשמרים. אין מחיקה קשיחה.",
+      "restore": "החזר לפעיל",
+      "archivedBadge": "בארכיון"
     },
     "projects": {
       "title": "שיוכים / פרויקטים",
@@ -83,18 +96,46 @@
     "description": "שעות שדווחו לפרויקטים ולקודי זמן שאינם פרויקט.",
     "new": "דיווח שעות",
     "quickLog": "דיווח שעות מהיר",
-    "quickLogDescription": "דיווח בכמה הקשות — עובד, תאריך, שעות ופרויקט.",
+    "quickLogDescription": "דיווח בכמה הקשות — עובד, תאריך, שעות, פרויקט והערות.",
     "quickLogProjectDescription": "דיווח שעות לפרויקט זה. חברי הצוות מופיעים ראשונים; אפשר גם לבחור עובד אחר בארגון. השעות יוצרות עלות עבודה בפועל כשיש תעריף — שיוך לצוות לבדו לא.",
+    "correctionTitle": "תיקון דיווח שעות",
+    "correctionDescription": "מבטל את הדיווח המקורי ושומר החלפה. עלות בפועל מהעבר לא נדרסת בשקט.",
+    "correct": "תיקון",
     "hoursAbbrev": "ש׳",
     "nonProject": "לא פרויקט",
     "unknownProject": "פרויקט לא ידוע",
     "noCost": "אין תעריף לתאריך",
+    "status": {
+      "recorded": "רשום",
+      "void": "מבוטל",
+      "correction": "תיקון"
+    },
+    "weekdays": {
+      "sun": "א׳",
+      "mon": "ב׳",
+      "tue": "ג׳",
+      "wed": "ד׳",
+      "thu": "ה׳",
+      "fri": "ו׳",
+      "sat": "ש׳"
+    },
+    "filters": {
+      "all": "הכל",
+      "employee": "עובד",
+      "project": "פרויקט",
+      "from": "מתאריך",
+      "to": "עד תאריך",
+      "status": "סטטוס",
+      "kind": "סוג"
+    },
     "columns": {
       "date": "תאריך",
       "employee": "עובד",
       "target": "פרויקט / קוד",
+      "status": "סטטוס",
       "hours": "שעות",
-      "cost": "עלות עבודה"
+      "cost": "עלות עבודה",
+      "actions": "פעולות"
     },
     "empty": {
       "title": "עדיין לא דווחו שעות",
@@ -110,8 +151,24 @@
       "hours": "שעות",
       "project": "פרויקט",
       "projectPlaceholder": "בחירת פרויקט",
+      "timeCode": "קוד לא־פרויקט",
+      "timeCodePlaceholder": "בחירת קוד",
       "notes": "הערות",
+      "kind": "סוג זמן",
+      "kindProject": "זמן פרויקט",
+      "kindNonProject": "זמן לא־פרויקט",
+      "advancedOptions": "טווח תאריכים / דיווח מרובה",
+      "fromDate": "מתאריך",
+      "toDate": "עד תאריך",
+      "weekdays": "ימי שבוע",
+      "weekdaysHint": "רק הימים שנבחרו בטווח יישמרו.",
+      "differentHoursByDay": "שעות שונות לפי יום",
+      "bulkPreview": "תצוגה מקדימה לפני שמירה",
+      "bulkPreviewSummary": "{count, plural, one {יום #} other {# ימים}} · {hours} שעות בסך הכל",
+      "correctionNotice": "השמירה תבטל את הדיווח המקורי ותכניס את ההחלפה הזו.",
       "submit": "שמירת דיווח שעות",
+      "submitBulk": "שמירת דיווחים מרובים",
+      "submitCorrection": "שמירת תיקון",
       "noEmployees": "קודם הוסיפו עובד (עובדים → עובד חדש), ואז חזרו לדווח שעות."
     }
   },
@@ -130,6 +187,13 @@
     "endAssignmentTitle": "לסיים שיוך?",
     "endAssignmentDescription": "מסיימים את השיוך של {name} לפרויקט זה. דיווחי שעות היסטוריים נשארים; זה אינו משנה עלות בפועל.",
     "endAssignmentSuccess": "השיוך הסתיים.",
+    "editAssignment": "עריכה",
+    "editAssignmentSave": "שמירת שינויים",
+    "editAssignmentSuccess": "השיוך עודכן. עלות עבודה בפועל לא השתנתה.",
+    "cancelAssignment": "בטל שיוך",
+    "cancelAssignmentTitle": "לבטל שיוך בטעות?",
+    "cancelAssignmentDescription": "מסמנים את השיוך של {name} כמבוטל. דיווחי שעות נשארים; זה אינו משנה עלות בפועל.",
+    "cancelAssignmentSuccess": "השיוך בוטל.",
     "startDate": "מתאריך",
     "startDateHint": "ברירת מחדל: היום. אפשר להשאיר למסלול הפשוט.",
     "endDate": "עד תאריך",
@@ -184,9 +248,107 @@
     "applied": "הקצאה חודשית הוחלה. עלות עבודה בפועל לפרויקט מגיעה מקווי ההקצאה (החלפה).",
     "disclaimer": "הכרת עלות חודשית נפרדת משיוך ומדיווחי שעות עד להחלה."
   },
+  "attendance": {
+    "title": "נוכחות",
+    "description": "כניסה ויציאה לנוכחות. נוכחות אינה דיווח שעות לפרויקט ואינה יוצרת עלות עבודה בפועל לבדה.",
+    "disclaimer": "נוכחות בלבד — לא שעות פרויקט ולא עלות.",
+    "clock": {
+      "today": "היום · {date}",
+      "in": "כניסה",
+      "out": "יציאה",
+      "noLinkedEmployee": "אין עובד מקושר",
+      "linkRequired": "יש לקשר את המשתמש לרשומת עובד כדי להשתמש בשעון."
+    },
+    "presence": {
+      "absent": "לא בכניסה",
+      "clocked_in": "בכניסה",
+      "on_break": "בהפסקה"
+    },
+    "dayStatus": {
+      "open": "פתוח",
+      "complete": "הושלם",
+      "void": "בוטל"
+    },
+    "eventTypes": {
+      "clock_in": "כניסה",
+      "clock_out": "יציאה",
+      "break_start": "תחילת הפסקה",
+      "break_end": "סיום הפסקה"
+    },
+    "sources": {
+      "self": "עצמי",
+      "manager": "מנהל",
+      "manual": "ידני",
+      "system": "מערכת"
+    },
+    "list": {
+      "title": "ימי נוכחות",
+      "hint": "סינון לפי תאריך או סטטוס. פתיחת יום מציגה אירועים ותיקונים.",
+      "empty": {
+        "title": "עדיין אין נוכחות",
+        "description": "אופציונלי — השתמשו בשעון או בהזנה ידנית של מנהל כשצריך מעקב נוכחות. אין הגדרה חובה."
+      },
+      "columns": {
+        "date": "תאריך",
+        "employee": "עובד",
+        "clockIn": "כניסה",
+        "clockOut": "יציאה",
+        "status": "סטטוס",
+        "events": "אירועים"
+      }
+    },
+    "filters": {
+      "from": "מתאריך",
+      "to": "עד תאריך",
+      "status": "סטטוס",
+      "allStatuses": "כל הסטטוסים",
+      "apply": "החלת מסננים"
+    },
+    "manual": {
+      "title": "הזנה ידנית",
+      "description": "מנהלים יכולים לרשום נוכחות רטרואקטיבית. עדיין לא דיווח שעות ולא עלות.",
+      "employee": "עובד",
+      "employeePlaceholder": "בחירת עובד",
+      "workDate": "תאריך עבודה",
+      "eventType": "אירוע",
+      "occurredAt": "מועד",
+      "notes": "הערות",
+      "submit": "שמירת אירוע נוכחות",
+      "saved": "אירוע הנוכחות נשמר.",
+      "noEmployees": "קודם הוסיפו עובד, ואז חזרו להזין נוכחות."
+    },
+    "events": {
+      "columns": {
+        "time": "שעה",
+        "type": "סוג",
+        "source": "מקור",
+        "notes": "הערות",
+        "actions": "פעולות"
+      },
+      "voided": "בוטל"
+    },
+    "corrections": {
+      "voidEvent": "ביטול אירוע",
+      "voidDay": "ביטול יום",
+      "replace": "החלפה…",
+      "replaceNotes": "הערות תיקון",
+      "saveReplace": "שמירת החלפה",
+      "cancel": "ביטול"
+    }
+  },
   "errors": {
     "invalidWorkPackage": "תחום העבודה אינו שייך לפרויקט זה.",
     "invalidPhase": "השלב אינו שייך לפרויקט זה.",
-    "duplicateTeamMember": "העובד כבר משויך לצוות הפרויקט."
+    "duplicateTeamMember": "העובד כבר משויך לצוות הפרויקט.",
+    "invalidBulkRange": "טווח התאריכים או סינון ימי השבוע אינו תקין.",
+    "emptyBulk": "אין ימים שתואמים לטווח ולימי השבוע שנבחרו.",
+    "timeEntryAlreadyVoid": "דיווח השעות כבר מבוטל.",
+    "timeEntryArchived": "לא ניתן לתקן דיווח שעות בארכיון.",
+    "alreadyClockedIn": "כבר בוצעה כניסה.",
+    "notClockedIn": "לא בוצעה כניסה.",
+    "noLinkedEmployee": "המשתמש אינו מקושר לרשומת עובד.",
+    "attendanceSelfScope": "ניתן לצפות או לבצע נוכחות רק עבור העובד המקושר.",
+    "attendanceDayVoid": "יום הנוכחות בוטל.",
+    "attendanceEventVoided": "אירוע הנוכחות כבר בוטל."
   }
 }

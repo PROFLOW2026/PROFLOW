@@ -1,5 +1,5 @@
-import { relations } from 'drizzle-orm';
-import { type AnyPgColumn, index, pgTable, text, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
+import { relations, sql } from 'drizzle-orm';
+import { type AnyPgColumn, check, date, index, pgTable, text, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
 import { archivedAt, primaryId, timestamps } from './_shared';
 import { contactRoleEnum, vendorStatusEnum, vendorTypeEnum } from './enums';
 import { projects } from './projects';
@@ -62,7 +62,7 @@ export const vendorContacts = pgTable(
   (table) => [index('vendor_contacts_vendor_idx').on(table.vendorId)],
 );
 
-/** Which vendors work on which project, and in what capacity. */
+/** Which vendors work on which project, and in what capacity. Engagement ≠ Actual. */
 export const vendorEngagements = pgTable(
   'vendor_engagements',
   {
@@ -78,6 +78,10 @@ export const vendorEngagements = pgTable(
       .references(() => projects.id, { onDelete: 'cascade' }),
     role: text('role'),
     notes: text('notes'),
+    /** Inclusive business dates — optional until dated engagements are used. */
+    startDate: date('start_date', { mode: 'string' }),
+    endDate: date('end_date', { mode: 'string' }),
+    status: text('status').notNull().default('active'),
     archivedAt: archivedAt(),
     ...timestamps(),
   },
@@ -85,6 +89,12 @@ export const vendorEngagements = pgTable(
     index('vendor_engagements_org_idx').on(table.organizationId),
     index('vendor_engagements_project_idx').on(table.projectId),
     index('vendor_engagements_vendor_idx').on(table.vendorId),
+    index('vendor_engagements_org_dates_idx').on(table.organizationId, table.startDate, table.endDate),
+    check('vendor_engagements_status_known', sql`${table.status} IN ('active', 'ended', 'cancelled')`),
+    check(
+      'vendor_engagements_date_order',
+      sql`${table.endDate} IS NULL OR ${table.startDate} IS NULL OR ${table.endDate} >= ${table.startDate}`,
+    ),
   ],
 );
 

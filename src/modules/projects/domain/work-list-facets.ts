@@ -12,6 +12,7 @@ export const WORK_LIST_FACETS = [
   'active',
   'completed',
   'awaiting_payment',
+  'archived',
 ] as const;
 
 export type WorkListFacet = (typeof WORK_LIST_FACETS)[number];
@@ -23,6 +24,7 @@ export function isWorkListFacet(value: string | undefined | null): value is Work
 export interface ResolvedWorkListFacet {
   readonly status?: ProjectStatus | 'all';
   readonly awaitingPayment?: boolean;
+  readonly includeArchived?: boolean;
 }
 
 export function resolveWorkListFacet(facet: string | undefined | null): ResolvedWorkListFacet {
@@ -32,9 +34,12 @@ export function resolveWorkListFacet(facet: string | undefined | null): Resolved
     case 'active':
       return { status: 'active' };
     case 'completed':
+      // Completed is a lifecycle outcome — distinct from soft-archive.
       return { status: 'completed' };
     case 'awaiting_payment':
       return { awaitingPayment: true };
+    case 'archived':
+      return { status: 'archived', includeArchived: true };
     case 'all':
     default:
       return { status: 'all' };

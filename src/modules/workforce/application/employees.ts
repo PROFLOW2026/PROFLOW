@@ -19,6 +19,10 @@ import {
 } from '../data/rate-versions.repository';
 import type { EmployeeListItem, EmployeeRecord, RateVersionRecord } from '../domain/types';
 import {
+  buildEmployeeArchivePatch,
+  buildEmployeeRestorePatch,
+} from '../domain/soft-archive';
+import {
   createEmployeeSchema,
   updateEmployeeSchema,
   type CreateEmployeeInput,
@@ -47,7 +51,11 @@ export async function listEmployeesForOrg(
   filters: { search?: string; status?: EmployeeRecord['status'] | 'all' } = {},
 ): Promise<EmployeeListItem[]> {
   assertPermission(context, PERMISSIONS.WORKFORCE_READ);
-  const items = await listEmployees(context.db, context.organizationId, filters);
+  const asOfDate = todayInTimeZone(context.organization.timezone);
+  const items = await listEmployees(context.db, context.organizationId, {
+    ...filters,
+    asOfDate,
+  });
   return canReadWorkforceCost(context) ? items : redactListRates(items);
 }
 
@@ -213,15 +221,46 @@ export async function archiveEmployee(context: OrgContext, employeeId: string): 
   const existing = await findEmployeeById(context.db, context.organizationId, employeeId);
   if (!existing) throw new NotFoundError('Employee');
 
-  const updated = await updateEmployeeById(context.db, context.organizationId, employeeId, {
-    archivedAt: new Date(),
-    status: 'inactive',
-  });
+  const updated = await updateEmployeeById(
+    context.db,
+    context.organizationId,
+    employeeId,
+    buildEmployeeArchivePatch(),
+  );
 
   if (!updated) throw new NotFoundError('Employee');
 
   await recordAuditEvent(context, {
     action: AUDIT_ACTIONS.EMPLOYEE_ARCHIVED,
+    entityType: 'employee',
+    entityId: employeeId,
+    before: existing,
+    after: updated,
+  });
+
+  return updated;
+}
+
+export async function restoreEmployee(
+  context: OrgContext,
+  employeeId: string,
+): Promise<EmployeeRecord> {
+  assertPermission(context, PERMISSIONS.WORKFORCE_MANAGE);
+
+  const existing = await findEmployeeById(context.db, context.organizationId, employeeId);
+  if (!existing) throw new NotFoundError('Employee');
+
+  const updated = await updateEmployeeById(
+    context.db,
+    context.organizationId,
+    employeeId,
+    buildEmployeeRestorePatch(),
+  );
+
+  if (!updated) throw new NotFoundError('Employee');
+
+  await recordAuditEvent(context, {
+    action: AUDIT_ACTIONS.EMPLOYEE_RESTORED,
     entityType: 'employee',
     entityId: employeeId,
     before: existing,

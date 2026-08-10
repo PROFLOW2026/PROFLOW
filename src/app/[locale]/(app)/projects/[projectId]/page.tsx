@@ -22,6 +22,8 @@ import { ProjectBillingPanel } from '@/modules/billing/ui';
 import { ProjectChangesPanel } from '@/modules/commercial/ui';
 import { ProjectExpensesPanel } from '@/modules/expenses/ui';
 import { ProjectFinancialsPanel } from '@/modules/financials/ui';
+import { ProjectSchedulePanel } from '@/modules/planning/ui';
+import { ProjectContractorsPanel } from '@/modules/vendors/ui';
 import { ProjectTeamPanel, ProjectTimePanel } from '@/modules/workforce/ui';
 import { DetailsTab } from './details-tab';
 import { DocumentsTab } from './documents-tab';
@@ -46,6 +48,7 @@ const MODULE_PANEL_TABS = new Set<ProjectTabKey>([
   'changes',
   'billing',
   'team',
+  'schedule',
   'time',
   'documents',
 ]);
@@ -94,6 +97,8 @@ export default async function ProjectPage({ params, searchParams }: ProjectPageP
   const showChangesTab = Boolean(modules?.changes) && can(PERMISSIONS.CHANGES_READ);
   const showBillingTab = Boolean(modules?.billing) && can(PERMISSIONS.BILLING_READ);
   const showTeamTab = can(PERMISSIONS.WORKFORCE_READ);
+  // Schedule is permission-gated (not module) — `planning` is not in OPTIONAL_MODULE_KEYS.
+  const showScheduleTab = can(PERMISSIONS.PLANNING_READ);
   const showTimeTab = can(PERMISSIONS.WORKFORCE_READ);
   const showDocumentsTab = Boolean(modules?.documents) && can(PERMISSIONS.DOCUMENTS_READ);
 
@@ -103,6 +108,7 @@ export default async function ProjectPage({ params, searchParams }: ProjectPageP
   if (showChangesTab) visibleModuleTabs.add('changes');
   if (showBillingTab) visibleModuleTabs.add('billing');
   if (showTeamTab) visibleModuleTabs.add('team');
+  if (showScheduleTab) visibleModuleTabs.add('schedule');
   if (showTimeTab) visibleModuleTabs.add('time');
   if (showDocumentsTab) visibleModuleTabs.add('documents');
 
@@ -128,6 +134,7 @@ export default async function ProjectPage({ params, searchParams }: ProjectPageP
     changes: showChangesTab,
     billing: showBillingTab,
     team: showTeamTab,
+    schedule: showScheduleTab,
     time: showTimeTab,
     documents: showDocumentsTab,
     work: showWorkTab,
@@ -145,6 +152,7 @@ export default async function ProjectPage({ params, searchParams }: ProjectPageP
       showChangesTab,
       showBillingTab,
       showTeamTab,
+      showScheduleTab,
       showTimeTab,
       showDocumentsTab,
       canReadFinancials,
@@ -190,6 +198,8 @@ async function ProjectStructuredTabPanel({
 
   const uiLocale = locale === 'he-IL' ? 'he-IL' : 'en';
   const modules = shell?.modules;
+  /** Optional contractors panel on overview — no `contractors` tab (avoids schedule conflict). */
+  const showContractorsPanel = shell?.permissions.has(PERMISSIONS.VENDORS_READ) ?? false;
   const workspaceLinks = selectProjectWorkspaceLinks({
     projectId,
     modules: modules ?? {},
@@ -299,6 +309,11 @@ async function ProjectStructuredTabPanel({
               workspaceLinks={workspaceLinks}
               organizationTimezone={shell?.organization.timezone ?? 'Asia/Jerusalem'}
             />
+            {showContractorsPanel ? (
+              <Suspense fallback={<TabPanelSkeleton />}>
+                <ProjectContractorsPanel projectId={projectId} />
+              </Suspense>
+            ) : null}
           </div>
         </div>
       ) : null}
@@ -350,6 +365,7 @@ function renderModuleTab(input: {
   showChangesTab: boolean;
   showBillingTab: boolean;
   showTeamTab: boolean;
+  showScheduleTab: boolean;
   showTimeTab: boolean;
   showDocumentsTab: boolean;
   canReadFinancials: boolean;
@@ -362,6 +378,7 @@ function renderModuleTab(input: {
     showChangesTab,
     showBillingTab,
     showTeamTab,
+    showScheduleTab,
     showTimeTab,
     showDocumentsTab,
     canReadFinancials,
@@ -406,6 +423,14 @@ function renderModuleTab(input: {
         <div className="pt-4">
           <Suspense fallback={<TabPanelSkeleton />}>
             <ProjectTeamPanel projectId={projectId} />
+          </Suspense>
+        </div>
+      ) : null}
+
+      {activeTab === 'schedule' && showScheduleTab ? (
+        <div className="pt-4">
+          <Suspense fallback={<TabPanelSkeleton />}>
+            <ProjectSchedulePanel projectId={projectId} />
           </Suspense>
         </div>
       ) : null}

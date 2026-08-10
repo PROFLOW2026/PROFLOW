@@ -5,11 +5,14 @@ import { getLocale, getTranslations } from 'next-intl/server';
 import {
   acceptApMatch,
   applyBillProjectAllocations,
+  applyVendorCredit,
   createApBill,
+  createVendorCredit,
   proposeApMatch,
   recordVendorPayment,
   rejectApMatch,
   saveBillProjectAllocations,
+  voidApBill,
   voidVendorPayment,
 } from '@/modules/ap';
 import { withOrgContext } from '@/shared/auth/session';
@@ -281,6 +284,81 @@ export async function applyBillProjectAllocationsAction(input: {
     );
     revalidatePath(`/procurement/ap/${input.apBillId}`);
     revalidatePath('/procurement/ap');
+    return { success: true };
+  } catch (error) {
+    return mapAppError(error);
+  }
+}
+
+export async function voidApBillAction(
+  _prev: ApFormState,
+  formData: FormData,
+): Promise<ApFormState> {
+  const billId = requiredFormValue(formData, 'apBillId');
+  try {
+    await withOrgContext((context) => voidApBill(context, { billId }));
+    revalidatePath(`/procurement/ap/${billId}`);
+    revalidatePath('/procurement/ap');
+    revalidatePath('/procurement/ap/aging');
+    return { success: true };
+  } catch (error) {
+    return mapAppError(error);
+  }
+}
+
+export async function createVendorCreditAction(
+  _prev: ApFormState,
+  formData: FormData,
+): Promise<ApFormState> {
+  const billId = formValue(formData, 'apBillId');
+  try {
+    const credit = await withOrgContext((context) =>
+      createVendorCredit(context, {
+        vendorId: requiredFormValue(formData, 'vendorId'),
+        apBillId: billId,
+        projectId: formValue(formData, 'projectId'),
+        reference: formValue(formData, 'reference'),
+        creditDate: requiredFormValue(formData, 'creditDate'),
+        currency: requiredFormValue(formData, 'currency'),
+        amount: requiredFormValue(formData, 'amount'),
+        notes: formValue(formData, 'notes'),
+      }),
+    );
+    const applyAmount = formValue(formData, 'applyAmount');
+    if (billId && applyAmount) {
+      await withOrgContext((context) =>
+        applyVendorCredit(context, {
+          creditId: credit.id,
+          apBillId: billId,
+          amount: applyAmount,
+        }),
+      );
+    }
+    if (billId) revalidatePath(`/procurement/ap/${billId}`);
+    revalidatePath('/procurement/ap');
+    revalidatePath('/procurement/ap/aging');
+    return { success: true };
+  } catch (error) {
+    return mapAppError(error);
+  }
+}
+
+export async function applyVendorCreditAction(
+  _prev: ApFormState,
+  formData: FormData,
+): Promise<ApFormState> {
+  const billId = requiredFormValue(formData, 'apBillId');
+  try {
+    await withOrgContext((context) =>
+      applyVendorCredit(context, {
+        creditId: requiredFormValue(formData, 'creditId'),
+        apBillId: billId,
+        amount: requiredFormValue(formData, 'amount'),
+      }),
+    );
+    revalidatePath(`/procurement/ap/${billId}`);
+    revalidatePath('/procurement/ap');
+    revalidatePath('/procurement/ap/aging');
     return { success: true };
   } catch (error) {
     return mapAppError(error);

@@ -14,7 +14,7 @@ import type { OrgContext } from '@/shared/auth/context';
 import { withTransaction } from '@/shared/db';
 import { businessDate } from '@/shared/dates';
 import { DomainRuleError, NotFoundError, ValidationError } from '@/shared/errors';
-import { money, subtractMoney, toNumericString } from '@/shared/money';
+import { money, subtractMoney, toNumericString, addMoney } from '@/shared/money';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { noteModuleUsage } from '@/modules/tenancy';
@@ -22,6 +22,7 @@ import {
   assertVendorInOrganization,
   findApBillById,
 } from '../data/ap.repository';
+import { listActiveCreditAmountsForBill } from '../data/credits.repository';
 import {
   getVendorPaymentsRepository,
   type ApPaymentApplicationRow,
@@ -67,6 +68,7 @@ export async function getBillPayablePosition(
   currency: string;
   billTotal: string;
   paid: string;
+  credited: string;
   outstanding: string;
   payableStatus: ApPayableStatus | null;
   paymentsAvailable: boolean;
@@ -77,35 +79,45 @@ export async function getBillPayablePosition(
   if (!bill || bill.archivedAt) return null;
 
   const repo = getVendorPaymentsRepository();
-  const applied = await repo.listActiveAppliedAmountsForBill(
-    context.db,
-    context.organizationId,
-    bill.id,
-  );
+  const [applied, credits] = await Promise.all([
+    repo.listActiveAppliedAmountsForBill(context.db, context.organizationId, bill.id),
+    listActiveCreditAmountsForBill(context.db, context.organizationId, bill.id),
+  ]);
 
   const billTotal = money(bill.totalAmount, bill.currency);
   const applications = applied.map((amount) => ({
     appliedAmount: money(amount, bill.currency),
     paymentStatus: 'recorded' as const,
   }));
+  const creditApplications = credits.map((amount) => ({
+    appliedAmount: money(amount, bill.currency),
+    status: 'applied' as const,
+  }));
 
   const outstanding = computeBillOutstanding({
     billStatus: bill.status,
     billTotal,
     applications,
+    creditApplications,
   });
-  const paid = subtractMoney(billTotal, outstanding);
+  const creditedTotal = credits.reduce(
+    (sum, amount) => addMoney(sum, money(amount, bill.currency)),
+    money('0', bill.currency),
+  );
+  const paid = subtractMoney(subtractMoney(billTotal, outstanding), creditedTotal);
 
   return {
     billId: bill.id,
     currency: bill.currency,
     billTotal: bill.totalAmount,
     paid: paid.amount,
+    credited: creditedTotal.amount,
     outstanding: outstanding.amount,
     payableStatus: derivePayableStatus({
       billStatus: bill.status,
       billTotal,
       applications,
+      creditApplications,
     }),
     paymentsAvailable: areApPaymentsAvailable(),
   };
@@ -164,6 +176,7 @@ export async function recordVendorPayment(
         billStatus: string;
         billTotal: string;
         priorAppliedAmounts: readonly string[];
+        priorCreditAmounts: readonly string[];
         projectId: string | null;
       }[] = [];
 
@@ -197,6 +210,11 @@ export async function recordVendorPayment(
           context.organizationId,
           bill.id,
         );
+        const priorCredits = await listActiveCreditAmountsForBill(
+          tx,
+          context.organizationId,
+          bill.id,
+        );
 
         applicationDetails.push({
           apBillId: bill.id,
@@ -204,6 +222,7 @@ export async function recordVendorPayment(
           billStatus: bill.status,
           billTotal: bill.totalAmount,
           priorAppliedAmounts: prior,
+          priorCreditAmounts: priorCredits,
           projectId: bill.projectId,
         });
       }

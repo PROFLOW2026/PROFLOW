@@ -268,4 +268,32 @@ export function computeCommittedAfterConsumption(input: {
 
 }
 
+/** Active PO statuses that still hold open commitment risk. */
+export function isPurchaseOrderCancellable(status: PurchaseOrderStatus): boolean {
+  return status === 'draft' || status === 'issued' || status === 'partially_received';
+}
+
+/** Issued / partially received POs may be closed (commitment must not stay open). */
+export function isPurchaseOrderCloseable(status: PurchaseOrderStatus): boolean {
+  return status === 'issued' || status === 'partially_received';
+}
+
+export function assertPurchaseOrderCancellable(status: PurchaseOrderStatus): void {
+  if (!isPurchaseOrderCancellable(status)) {
+    throw new DomainRuleError(
+      'Only draft, issued, or partially received purchase orders can be cancelled',
+      'procurement.errors.poNotCancellable',
+    );
+  }
+}
+
+export function assertPurchaseOrderCloseable(status: PurchaseOrderStatus): void {
+  if (!isPurchaseOrderCloseable(status)) {
+    throw new DomainRuleError(
+      'Only issued or partially received purchase orders can be closed',
+      'procurement.errors.poNotCloseable',
+    );
+  }
+}
+
 

@@ -3,11 +3,19 @@ import { getTranslations } from 'next-intl/server';
 import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/ui/page-header';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { listTimeEntriesForOrg } from '@/modules/workforce';
+import {
+  listEmployeesForOrg,
+  listAssignableProjects,
+  listTimeEntriesForOrg,
+  timeEntryFiltersSchema,
+} from '@/modules/workforce';
 import { canLogTime, canViewWorkforceCosts } from '@/modules/workforce/ui/employees-table';
 import { TimeEntriesTable } from '@/modules/workforce/ui/time-entries-table';
+import { TimeEntryListFilters } from '@/modules/workforce/ui/time-entry-list-filters';
 import { withOrgContext } from '@/shared/auth/session';
 import { Link } from '@/shared/i18n/navigation';
+import { hasAnyPermission } from '@/shared/permissions/assert';
+import { PERMISSIONS } from '@/shared/permissions/catalog';
 
 export async function generateMetadata({
   params,
@@ -22,21 +30,41 @@ export async function generateMetadata({
 export default async function TimeEntriesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ projectId?: string; employeeId?: string }>;
+  searchParams: Promise<{
+    projectId?: string;
+    employeeId?: string;
+    fromDate?: string;
+    toDate?: string;
+    status?: string;
+    kind?: string;
+  }>;
 }) {
-  const [t, filters] = await Promise.all([
-    getTranslations('workforce'),
-    searchParams,
-  ]);
+  const [t, rawFilters] = await Promise.all([getTranslations('workforce'), searchParams]);
 
-  const { entries, showCosts, allowLog } = await withOrgContext(async (context) => ({
-    entries: await listTimeEntriesForOrg(context, {
-      projectId: filters.projectId,
-      employeeId: filters.employeeId,
+  const parsedFilters = timeEntryFiltersSchema.safeParse({
+    employeeId: rawFilters.employeeId || undefined,
+    projectId: rawFilters.projectId || undefined,
+    fromDate: rawFilters.fromDate || undefined,
+    toDate: rawFilters.toDate || undefined,
+    status: rawFilters.status || undefined,
+    kind: rawFilters.kind || undefined,
+  });
+  const filters = parsedFilters.success ? parsedFilters.data : {};
+
+  const { entries, showCosts, allowLog, employees, projects, showAttendance } = await withOrgContext(
+    async (context) => ({
+      entries: await listTimeEntriesForOrg(context, filters),
+      showCosts: canViewWorkforceCosts(context),
+      allowLog: canLogTime(context),
+      employees: await listEmployeesForOrg(context, { status: 'active' }),
+      projects: await listAssignableProjects(context),
+      showAttendance: hasAnyPermission(context, [
+        PERMISSIONS.ATTENDANCE_READ,
+        PERMISSIONS.ATTENDANCE_SELF,
+        PERMISSIONS.ATTENDANCE_MANAGE,
+      ]),
     }),
-    showCosts: canViewWorkforceCosts(context),
-    allowLog: canLogTime(context),
-  }));
+  );
 
   return (
     <div className="flex flex-col gap-6">
@@ -60,8 +88,25 @@ export default async function TimeEntriesPage({
           <TabsTrigger value="time" asChild>
             <Link href="/workforce/time">{t('nav.time')}</Link>
           </TabsTrigger>
+          {showAttendance ? (
+            <TabsTrigger value="attendance" asChild>
+              <Link href="/workforce/attendance">{t('nav.attendance')}</Link>
+            </TabsTrigger>
+          ) : null}
         </TabsList>
-        <TabsContent value="time" className="mt-4">
+        <TabsContent value="time" className="mt-4 flex flex-col gap-4">
+          <TimeEntryListFilters
+            employees={employees.map((employee) => ({ id: employee.id, name: employee.name }))}
+            projects={projects}
+            initial={{
+              employeeId: filters.employeeId,
+              projectId: filters.projectId,
+              fromDate: filters.fromDate,
+              toDate: filters.toDate,
+              status: filters.status ?? 'recorded',
+              kind: filters.kind ?? 'all',
+            }}
+          />
           <TimeEntriesTable entries={entries} showCosts={showCosts} canLogTime={allowLog} />
         </TabsContent>
       </Tabs>

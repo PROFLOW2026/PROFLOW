@@ -6,9 +6,12 @@ import {
   archiveClient,
   createClient,
   createClientContact,
+  markClientContactAsPrimary,
   removeClientContact,
   removeClientPartyIdentifier,
+  restoreClient,
   updateClient,
+  updateClientContact,
   upsertClientPartyIdentifier,
 } from '@/modules/clients';
 import { withOrgContext } from '@/shared/auth/session';
@@ -18,6 +21,8 @@ import { redirect } from '@/shared/i18n/navigation';
 export interface ClientFormState {
   error?: string;
   fieldErrors?: Record<string, string>;
+  /** Set on successful contact/client mutations that keep the user on-page. */
+  ok?: boolean;
 }
 
 function formValue(formData: FormData, key: string): string | undefined {
@@ -139,6 +144,22 @@ export async function archiveClientAction(clientId: string): Promise<{ error?: s
   return {};
 }
 
+export async function restoreClientAction(clientId: string): Promise<{ error?: string }> {
+  const tErrors = await getTranslations('errors');
+
+  try {
+    await withOrgContext(async (context) => {
+      await restoreClient(context, { clientId });
+    });
+    revalidatePath('/clients');
+    revalidatePath(`/clients/${clientId}`);
+    return {};
+  } catch (error) {
+    if (error instanceof AppError) return { error: tErrors('unexpected') };
+    throw error;
+  }
+}
+
 export async function addClientContactAction(
   _prev: ClientFormState,
   formData: FormData,
@@ -195,6 +216,53 @@ export async function deleteContactAction(contactId: string, clientId: string): 
     await removeClientContact(context, { contactId });
   });
   revalidatePath(`/clients/${clientId}`);
+}
+
+export async function updateClientContactAction(
+  _prev: ClientFormState,
+  formData: FormData,
+): Promise<ClientFormState> {
+  const tErrors = await getTranslations('errors');
+  const clientId = String(formData.get('clientId') ?? '');
+
+  try {
+    await withOrgContext(async (context) => {
+      await updateClientContact(context, {
+        contactId: String(formData.get('contactId')),
+        name: formValue(formData, 'name'),
+        role: (formData.get('role') as 'primary' | 'billing' | 'site' | 'other') || undefined,
+        email: formValue(formData, 'email'),
+        phone: formValue(formData, 'phone'),
+        notes: formValue(formData, 'notes'),
+      });
+    });
+
+    revalidatePath(`/clients/${clientId}`);
+    return { ok: true };
+  } catch (error) {
+    if (error instanceof ValidationError) return mapValidationError(error);
+    if (error instanceof AppError) return { error: tErrors('unexpected') };
+    throw error;
+  }
+}
+
+export async function markClientContactPrimaryAction(
+  contactId: string,
+  clientId: string,
+): Promise<{ error?: string }> {
+  const tErrors = await getTranslations('errors');
+
+  try {
+    await withOrgContext(async (context) => {
+      // Client-wide practical primary only — does not mutate projects.primary_contact_id.
+      await markClientContactAsPrimary(context, { contactId });
+    });
+    revalidatePath(`/clients/${clientId}`);
+    return {};
+  } catch (error) {
+    if (error instanceof AppError) return { error: tErrors('unexpected') };
+    throw error;
+  }
 }
 
 export async function deleteIdentifierAction(identifierId: string, clientId: string): Promise<void> {

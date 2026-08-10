@@ -272,3 +272,81 @@ export const apBillProjectAllocations = pgTable(
     ),
   ],
 );
+
+/**
+ * Supplier credit notes (0022). Credits ≠ payments; they reduce economic cost / outstanding.
+ */
+export const apVendorCredits = pgTable(
+  'ap_vendor_credits',
+  {
+    id: primaryId(),
+    organizationId: uuid('organization_id')
+      .notNull()
+      .references(() => organizations.id, { onDelete: 'cascade' }),
+    vendorId: uuid('vendor_id').notNull(),
+    apBillId: uuid('ap_bill_id'),
+    projectId: uuid('project_id'),
+    reference: text('reference'),
+    creditDate: date('credit_date', { mode: 'string' }).notNull(),
+    currency: currencyCode().notNull(),
+    amount: moneyAmount('amount').notNull(),
+    status: text('status').notNull().default('open'),
+    notes: text('notes'),
+    voidedAt: timestamp('voided_at', { withTimezone: true }),
+    createdByUserId: uuid('created_by_user_id').references(() => profiles.id, { onDelete: 'set null' }),
+    archivedAt: archivedAt(),
+    ...timestamps(),
+  },
+  (table) => [
+    uniqueIndex('ap_vendor_credits_id_organization_id_uq').on(table.id, table.organizationId),
+    index('ap_vendor_credits_vendor_idx').on(table.organizationId, table.vendorId),
+    check('ap_vendor_credits_amount_positive', sql`${table.amount} > 0`),
+    check(
+      'ap_vendor_credits_status_known',
+      sql`${table.status} IN ('draft', 'open', 'applied', 'void')`,
+    ),
+    foreignKey({
+      columns: [table.vendorId, table.organizationId],
+      foreignColumns: [vendors.id, vendors.organizationId],
+      name: 'ap_vendor_credits_vendor_org_fk',
+    }).onDelete('restrict'),
+    foreignKey({
+      columns: [table.apBillId, table.organizationId],
+      foreignColumns: [apBills.id, apBills.organizationId],
+      name: 'ap_vendor_credits_bill_org_fk',
+    }).onDelete('set null'),
+    foreignKey({
+      columns: [table.projectId, table.organizationId],
+      foreignColumns: [projects.id, projects.organizationId],
+      name: 'ap_vendor_credits_project_org_fk',
+    }).onDelete('set null'),
+  ],
+);
+
+export const apCreditApplications = pgTable(
+  'ap_credit_applications',
+  {
+    id: primaryId(),
+    organizationId: uuid('organization_id')
+      .notNull()
+      .references(() => organizations.id, { onDelete: 'cascade' }),
+    creditId: uuid('credit_id')
+      .notNull()
+      .references(() => apVendorCredits.id, { onDelete: 'cascade' }),
+    apBillId: uuid('ap_bill_id')
+      .notNull()
+      .references(() => apBills.id, { onDelete: 'restrict' }),
+    amount: moneyAmount('amount').notNull(),
+    currency: currencyCode().notNull(),
+    status: text('status').notNull().default('applied'),
+    createdByUserId: uuid('created_by_user_id').references(() => profiles.id, { onDelete: 'set null' }),
+    voidedAt: timestamp('voided_at', { withTimezone: true }),
+    ...timestamps(),
+  },
+  (table) => [
+    index('ap_credit_applications_credit_idx').on(table.creditId),
+    index('ap_credit_applications_bill_idx').on(table.apBillId),
+    check('ap_credit_applications_amount_positive', sql`${table.amount} > 0`),
+    check('ap_credit_applications_status_known', sql`${table.status} IN ('applied', 'void')`),
+  ],
+);

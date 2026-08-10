@@ -8,6 +8,7 @@
   },
   "list": {
     "searchPlaceholder": "Search clients…",
+    "includeArchived": "Include archived",
     "columns": {
       "name": "Client",
       "projects": "Projects",
@@ -78,10 +79,14 @@
     },
     "archive": "Archive client",
     "archiveConfirm": "Archive this client? Existing projects keep their link; the client is hidden from the directory.",
+    "restore": "Restore to active",
+    "archivedBadge": "Archived",
     "save": "Save changes",
     "saved": "Client saved",
+    "saveContact": "Save contact",
+    "markPrimary": "Mark primary",
     "removeContactQuestion": "Remove contact {name}?",
-    "removeContactConsequence": "You can add a contact again at any time.",
+    "removeContactConsequence": "You can add a contact again at any time. Project-specific contacts are cleared only if they pointed at this person.",
     "removeContactSuccess": "Contact removed.",
     "removeIdentifierQuestion": "Remove {type} identifier {value}?",
     "removeIdentifierConsequence": "You can add an identifier again at any time.",

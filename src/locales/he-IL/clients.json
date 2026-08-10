@@ -8,6 +8,7 @@
   },
   "list": {
     "searchPlaceholder": "חיפוש לקוח…",
+    "includeArchived": "כולל בארכיון",
     "columns": {
       "name": "לקוח",
       "projects": "פרויקטים",
@@ -78,10 +79,14 @@
     },
     "archive": "העברה לארכיון",
     "archiveConfirm": "להעביר את הלקוח לארכיון? פרויקטים קיימים ישמרו את הקישור; הלקוח יוסתר מהרשימה.",
+    "restore": "החזר לפעיל",
+    "archivedBadge": "בארכיון",
     "save": "שמירת שינויים",
     "saved": "הלקוח נשמר",
+    "saveContact": "שמירת איש קשר",
+    "markPrimary": "סמן כראשי",
     "removeContactQuestion": "להסיר את איש הקשר {name}?",
-    "removeContactConsequence": "אפשר להוסיף איש קשר מחדש בכל עת.",
+    "removeContactConsequence": "אפשר להוסיף איש קשר מחדש בכל עת. אנשי קשר ספציפיים לפרויקט ינוקו רק אם הצביעו על אדם זה.",
     "removeContactSuccess": "איש הקשר הוסר.",
     "removeIdentifierQuestion": "להסיר את המזהה {type} ({value})?",
     "removeIdentifierConsequence": "אפשר להוסיף מזהה מחדש בכל עת.",

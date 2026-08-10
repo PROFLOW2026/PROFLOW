@@ -73,14 +73,19 @@ export default async function ApBillsPage() {
         title={t('title')}
         description={t('description')}
         actions={
-          canManage ? (
-            <Button asChild className="max-w-full">
-              <Link href="/procurement/ap/new">
-                <Plus aria-hidden />
-                {t('newBill')}
-              </Link>
+          <div className="flex max-w-full flex-wrap gap-2">
+            <Button asChild variant="secondary" className="max-w-full">
+              <Link href="/procurement/ap/aging">{t('aging.navLink')}</Link>
             </Button>
-          ) : null
+            {canManage ? (
+              <Button asChild className="max-w-full">
+                <Link href="/procurement/ap/new">
+                  <Plus aria-hidden />
+                  {t('newBill')}
+                </Link>
+              </Button>
+            ) : null}
+          </div>
         }
       />
 

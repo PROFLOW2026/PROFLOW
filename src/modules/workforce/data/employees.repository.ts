@@ -95,9 +95,16 @@ export async function findEmployeeById(
 export async function listEmployees(
   db: DbExecutor,
   organizationId: string,
-  filters: { search?: string; includeArchived?: boolean; status?: EmployeeRecord['status'] | 'all' } = {},
+  filters: {
+    search?: string;
+    includeArchived?: boolean;
+    status?: EmployeeRecord['status'] | 'all';
+    /** Org-timezone business date — must match detail (`todayInTimeZone`), never DB `current_date`. */
+    asOfDate: string;
+  },
 ): Promise<EmployeeListItem[]> {
   const conditions = [eq(employees.organizationId, organizationId)];
+  const asOfDate = filters.asOfDate;
 
   if (!filters.includeArchived) {
     conditions.push(isNull(employees.archivedAt));
@@ -120,8 +127,8 @@ export async function listEmployees(
         from rate_versions rv
         where rv.employee_id = ${employees.id}
           and rv.organization_id = ${organizationId}
-          and rv.valid_from <= current_date
-          and (rv.valid_to is null or rv.valid_to >= current_date)
+          and rv.valid_from <= ${asOfDate}::date
+          and (rv.valid_to is null or rv.valid_to >= ${asOfDate}::date)
         order by rv.valid_from desc
         limit 1
       )`,
@@ -130,8 +137,8 @@ export async function listEmployees(
         from rate_versions rv
         where rv.employee_id = ${employees.id}
           and rv.organization_id = ${organizationId}
-          and rv.valid_from <= current_date
-          and (rv.valid_to is null or rv.valid_to >= current_date)
+          and rv.valid_from <= ${asOfDate}::date
+          and (rv.valid_to is null or rv.valid_to >= ${asOfDate}::date)
         order by rv.valid_from desc
         limit 1
       )`,
@@ -140,8 +147,8 @@ export async function listEmployees(
         from rate_versions rv
         where rv.employee_id = ${employees.id}
           and rv.organization_id = ${organizationId}
-          and rv.valid_from <= current_date
-          and (rv.valid_to is null or rv.valid_to >= current_date)
+          and rv.valid_from <= ${asOfDate}::date
+          and (rv.valid_to is null or rv.valid_to >= ${asOfDate}::date)
         order by rv.valid_from desc
         limit 1
       )`,

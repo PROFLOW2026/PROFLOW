@@ -7,10 +7,13 @@ import { noteModuleUsage } from '@/modules/tenancy';
 import {
   assertCommittedAmountMatchesLines,
   assertIssueCreatesCommittedNotExpense,
+  assertPurchaseOrderCancellable,
+  assertPurchaseOrderCloseable,
   isCommittedCostActualExpense,
 } from '../domain/committed-cost';
 import {
   assertVendorInOrganization,
+  findCommittedCostForPo,
   findOpenCommittedCostForPo,
   findPurchaseOrderById,
   insertCommittedCost,
@@ -19,6 +22,7 @@ import {
   listCommittedCostsForPurchaseOrders,
   listPurchaseOrderLines,
   listPurchaseOrders,
+  updateCommittedCostConsumption,
   updatePurchaseOrderStatus,
 } from '../data/procurement.repository';
 import {
@@ -191,4 +195,96 @@ export async function issuePurchaseOrder(context: OrgContext, raw: { purchaseOrd
     },
   });
   return issued;
+}
+
+/**
+ * Cancel a PO — commitment must not stay active.
+ * Draft: status only. Issued/partial: cancel open commitment row.
+ */
+export async function cancelPurchaseOrder(
+  context: OrgContext,
+  raw: { purchaseOrderId: string },
+) {
+  assertPermission(context, PERMISSIONS.PROCUREMENT_MANAGE);
+  const purchaseOrderId = raw.purchaseOrderId;
+  const existing = await findPurchaseOrderById(
+    context.db,
+    context.organizationId,
+    purchaseOrderId,
+  );
+  if (!existing) throw new NotFoundError('Purchase order');
+  assertPurchaseOrderCancellable(existing.status as 'draft' | 'issued' | 'partially_received');
+
+  const cancelled = await updatePurchaseOrderStatus(
+    context.db,
+    context.organizationId,
+    existing.id,
+    'cancelled',
+  );
+  if (!cancelled) throw new NotFoundError('Purchase order');
+
+  const committed =
+    (await findOpenCommittedCostForPo(context.db, context.organizationId, existing.id)) ??
+    (await findCommittedCostForPo(context.db, context.organizationId, existing.id));
+  if (committed && committed.status !== 'cancelled') {
+    await updateCommittedCostConsumption(context.db, context.organizationId, committed.id, {
+      amount: '0',
+      status: 'cancelled',
+    });
+  }
+
+  await recordAuditEvent(context, {
+    action: AUDIT_ACTIONS.PURCHASE_ORDER_CANCELLED,
+    entityType: 'purchase_order',
+    entityId: cancelled.id,
+    before: { status: existing.status },
+    after: { status: cancelled.status, commitmentCancelled: true },
+  });
+  return cancelled;
+}
+
+/**
+ * Close a PO — remaining open commitment is zeroed (closed), not left active.
+ */
+export async function closePurchaseOrder(
+  context: OrgContext,
+  raw: { purchaseOrderId: string },
+) {
+  assertPermission(context, PERMISSIONS.PROCUREMENT_MANAGE);
+  const existing = await findPurchaseOrderById(
+    context.db,
+    context.organizationId,
+    raw.purchaseOrderId,
+  );
+  if (!existing) throw new NotFoundError('Purchase order');
+  assertPurchaseOrderCloseable(existing.status as 'issued' | 'partially_received');
+
+  const closed = await updatePurchaseOrderStatus(
+    context.db,
+    context.organizationId,
+    existing.id,
+    'closed',
+  );
+  if (!closed) throw new NotFoundError('Purchase order');
+
+  const openCommitted = await findOpenCommittedCostForPo(
+    context.db,
+    context.organizationId,
+    existing.id,
+  );
+  if (openCommitted) {
+    await updateCommittedCostConsumption(context.db, context.organizationId, openCommitted.id, {
+      amount: '0',
+      status: 'closed',
+    });
+  }
+
+  await recordAuditEvent(context, {
+    action: AUDIT_ACTIONS.PURCHASE_ORDER_CLOSED,
+    entityType: 'purchase_order',
+    entityId: closed.id,
+    before: { status: existing.status },
+    after: { status: closed.status, commitmentClosed: true },
+  });
+  return closed;
 }

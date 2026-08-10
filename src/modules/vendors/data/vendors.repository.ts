@@ -9,6 +9,8 @@ import {
 import type { DbExecutor } from '@/shared/db/types';
 import { normalizeVendorName } from '../domain/name-matching';
 import type {
+  EngagementStatus,
+  ProjectVendorEngagementSummary,
   VendorContactRecord,
   VendorDetail,
   VendorEngagementRecord,
@@ -63,6 +65,9 @@ function mapEngagement(row: typeof vendorEngagements.$inferSelect): VendorEngage
     projectId: row.projectId,
     role: row.role,
     notes: row.notes,
+    startDate: row.startDate,
+    endDate: row.endDate,
+    status: row.status as EngagementStatus,
     archivedAt: row.archivedAt,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
@@ -201,12 +206,14 @@ export async function listVendors(
         where ve.vendor_id = ${vendors.id}
           and ve.organization_id = ${organizationId}
           and ve.archived_at is null
+          and ve.status = 'active'
       )`,
       projectCount: sql<number>`(
         select count(distinct ve.project_id)::int from vendor_engagements ve
         where ve.vendor_id = ${vendors.id}
           and ve.organization_id = ${organizationId}
           and ve.archived_at is null
+          and ve.status = 'active'
       )`,
     })
     .from(vendors)
@@ -256,7 +263,7 @@ export async function getVendorDetail(
         isNull(vendorEngagements.archivedAt),
       ),
     )
-    .orderBy(projects.name);
+    .orderBy(vendorEngagements.status, projects.name, vendorEngagements.startDate);
 
   let parentVendorName: string | null = null;
   if (vendor.parentVendorId) {
@@ -269,12 +276,16 @@ export async function getVendorDetail(
     projectName: row.projectName,
   }));
 
+  const activeProjectIds = engagements
+    .filter((engagement) => engagement.status === 'active')
+    .map((engagement) => engagement.projectId);
+
   return {
     ...vendor,
     contacts: contacts.map(mapContact),
     engagements,
     parentVendorName,
-    projectCount: new Set(engagements.map((engagement) => engagement.projectId)).size,
+    projectCount: new Set(activeProjectIds).size,
   };
 }
 
@@ -368,6 +379,9 @@ export async function insertVendorEngagement(
     projectId: string;
     role?: string | null;
     notes?: string | null;
+    startDate?: string | null;
+    endDate?: string | null;
+    status?: EngagementStatus;
   },
 ): Promise<VendorEngagementRecord> {
   const [row] = await db
@@ -378,20 +392,31 @@ export async function insertVendorEngagement(
       projectId: input.projectId,
       role: input.role ?? null,
       notes: input.notes ?? null,
+      startDate: input.startDate ?? null,
+      endDate: input.endDate ?? null,
+      status: input.status ?? 'active',
     })
     .returning();
 
   return mapEngagement(row!);
 }
 
-export async function archiveVendorEngagementById(
+export async function updateVendorEngagementById(
   db: DbExecutor,
   organizationId: string,
   engagementId: string,
+  patch: Partial<{
+    role: string | null;
+    notes: string | null;
+    startDate: string | null;
+    endDate: string | null;
+    status: EngagementStatus;
+    archivedAt: Date | null;
+  }>,
 ): Promise<VendorEngagementRecord | null> {
   const [row] = await db
     .update(vendorEngagements)
-    .set({ archivedAt: new Date(), updatedAt: new Date() })
+    .set({ ...patch, updatedAt: new Date() })
     .where(
       and(
         eq(vendorEngagements.id, engagementId),
@@ -401,6 +426,16 @@ export async function archiveVendorEngagementById(
     .returning();
 
   return row ? mapEngagement(row) : null;
+}
+
+export async function archiveVendorEngagementById(
+  db: DbExecutor,
+  organizationId: string,
+  engagementId: string,
+): Promise<VendorEngagementRecord | null> {
+  return updateVendorEngagementById(db, organizationId, engagementId, {
+    archivedAt: new Date(),
+  });
 }
 
 export async function findVendorEngagementById(
@@ -420,6 +455,84 @@ export async function findVendorEngagementById(
     .limit(1);
 
   return row ? mapEngagement(row) : null;
+}
+
+/**
+ * List engagements for a vendor. Overlapping / multi-project spans are allowed.
+ * Does not join expenses or labor — engagement is not Actual.
+ */
+export async function listEngagementsForVendor(
+  db: DbExecutor,
+  organizationId: string,
+  vendorId: string,
+  options: { status?: EngagementStatus | 'history' | 'all' } = {},
+): Promise<VendorEngagementSummary[]> {
+  const conditions = [
+    eq(vendorEngagements.organizationId, organizationId),
+    eq(vendorEngagements.vendorId, vendorId),
+    isNull(vendorEngagements.archivedAt),
+  ];
+
+  if (options.status === 'history') {
+    conditions.push(
+      or(eq(vendorEngagements.status, 'ended'), eq(vendorEngagements.status, 'cancelled'))!,
+    );
+  } else if (options.status && options.status !== 'all') {
+    conditions.push(eq(vendorEngagements.status, options.status));
+  }
+
+  const rows = await db
+    .select({ engagement: vendorEngagements, projectName: projects.name })
+    .from(vendorEngagements)
+    .innerJoin(projects, eq(vendorEngagements.projectId, projects.id))
+    .where(and(...conditions))
+    .orderBy(vendorEngagements.status, projects.name, vendorEngagements.startDate);
+
+  return rows.map((row) => ({
+    ...mapEngagement(row.engagement),
+    projectName: row.projectName,
+  }));
+}
+
+/**
+ * List engagements for a project (contractors panel). Engagement ≠ cost.
+ */
+export async function listEngagementsForProject(
+  db: DbExecutor,
+  organizationId: string,
+  projectId: string,
+  options: { status?: EngagementStatus | 'history' | 'all' } = {},
+): Promise<ProjectVendorEngagementSummary[]> {
+  const conditions = [
+    eq(vendorEngagements.organizationId, organizationId),
+    eq(vendorEngagements.projectId, projectId),
+    isNull(vendorEngagements.archivedAt),
+  ];
+
+  if (options.status === 'history') {
+    conditions.push(
+      or(eq(vendorEngagements.status, 'ended'), eq(vendorEngagements.status, 'cancelled'))!,
+    );
+  } else if (options.status && options.status !== 'all') {
+    conditions.push(eq(vendorEngagements.status, options.status));
+  }
+
+  const rows = await db
+    .select({
+      engagement: vendorEngagements,
+      vendorName: vendors.name,
+      vendorType: vendors.type,
+    })
+    .from(vendorEngagements)
+    .innerJoin(vendors, eq(vendorEngagements.vendorId, vendors.id))
+    .where(and(...conditions))
+    .orderBy(vendorEngagements.status, vendors.name, vendorEngagements.startDate);
+
+  return rows.map((row) => ({
+    ...mapEngagement(row.engagement),
+    vendorName: row.vendorName,
+    vendorType: row.vendorType,
+  }));
 }
 
 /** Links an expense to a vendor while preserving the original supplier name. */

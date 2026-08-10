@@ -208,6 +208,7 @@
         "created": "יצירת פרויקט",
         "updated": "עדכון פרויקט",
         "archived": "העברת פרויקט לארכיון",
+        "restored": "שחזור פרויקט מארכיון",
         "template_applied": "החלת תבנית פרויקט"
       },
       "work_package": {
@@ -231,7 +232,8 @@
       "client": {
         "created": "יצירת לקוח",
         "updated": "עדכון לקוח",
-        "archived": "העברת לקוח לארכיון"
+        "archived": "העברת לקוח לארכיון",
+        "restored": "שחזור לקוח מארכיון"
       },
       "client_contact": {
         "created": "הוספת איש קשר ללקוח",
@@ -247,6 +249,7 @@
         "created": "יצירת ספק",
         "updated": "עדכון ספק",
         "archived": "העברת ספק לארכיון",
+        "restored": "שחזור ספק מארכיון",
         "linked_from_expense": "קישור ספק מהוצאה"
       },
       "vendor_contact": {
@@ -256,6 +259,8 @@
       },
       "vendor_engagement": {
         "created": "יצירת התקשרות עם ספק",
+        "ended": "סיום התקשרות עם ספק",
+        "cancelled": "ביטול התקשרות עם ספק",
         "archived": "סגירת התקשרות עם ספק"
       },
       "expense": {
@@ -294,17 +299,32 @@
       "employee": {
         "created": "יצירת עובד",
         "updated": "עדכון עובד",
-        "archived": "העברת עובד לארכיון"
+        "archived": "העברת עובד לארכיון",
+        "restored": "שחזור עובד מארכיון"
       },
       "rate_version": {
         "created": "יצירת תעריף"
       },
       "time_entry": {
-        "created": "רישום שעות"
+        "created": "רישום שעות",
+        "voided": "ביטול רישום שעות",
+        "corrected": "תיקון רישום שעות",
+        "bulk_created": "יצירת רישומי שעות מרובים"
+      },
+      "attendance": {
+        "clocked": "דיווח נוכחות",
+        "event_recorded": "רישום אירוע נוכחות",
+        "event_voided": "ביטול אירוע נוכחות",
+        "event_replaced": "החלפת אירוע נוכחות",
+        "day_voided": "ביטול יום נוכחות"
       },
       "project_team_member": {
         "added": "הוספת עובד לצוות הפרויקט",
         "removed": "הסרת עובד מצוות הפרויקט"
+      },
+      "project_team_assignment": {
+        "updated": "עדכון שיבוץ לצוות פרויקט",
+        "cancelled": "ביטול שיבוץ לצוות פרויקט"
       },
       "document": {
         "uploaded": "העלאת מסמך",
@@ -375,18 +395,23 @@
       },
       "purchase_order": {
         "created": "יצירת הזמנת רכש",
-        "issued": "הנפקת הזמנת רכש"
+        "issued": "הנפקת הזמנת רכש",
+        "cancelled": "ביטול הזמנת רכש",
+        "closed": "סגירת הזמנת רכש"
       },
       "procurement": {
         "supplier_quote_received": "קבלת הצעת ספק"
       },
       "ap": {
         "bill_created": "יצירת חשבון ספק",
+        "bill_voided": "ביטול חשבון ספק",
         "match_proposed": "הצעת התאמת חשבון ספק",
         "match_accepted": "קבלת התאמת חשבון ספק",
         "match_rejected": "דחיית התאמת חשבון ספק",
         "payment_recorded": "רישום תשלום ספק",
-        "payment_voided": "ביטול תשלום ספק"
+        "payment_voided": "ביטול תשלום ספק",
+        "credit_created": "יצירת זיכוי ספק",
+        "credit_applied": "החלת זיכוי ספק"
       },
       "daily_log": {
         "created": "יצירת יומן יומי",

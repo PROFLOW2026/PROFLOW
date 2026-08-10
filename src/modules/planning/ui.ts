@@ -5,6 +5,8 @@
 
 export { ProjectPlanningPanel } from './ui/project-planning-panel';
 export type { ProjectPlanningPanelProps } from './ui/project-planning-panel';
+export { ProjectSchedulePanel } from './ui/project-schedule-panel';
+export type { ProjectSchedulePanelProps } from './ui/project-schedule-panel';
 export { GanttChart } from './ui/gantt-chart';
 export type { GanttChartProps } from './ui/gantt-chart';
 export {

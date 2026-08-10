@@ -11,6 +11,8 @@ import {
   createSupplierQuote,
   deleteMaterialVendorPriceForOrg,
   issuePurchaseOrder,
+  cancelPurchaseOrder,
+  closePurchaseOrder,
   setSupplierQuoteStatus,
   updateMaterialVendorPriceForOrg,
   updateRfqStatus,
@@ -127,6 +129,36 @@ export async function issuePurchaseOrderAction(
       }),
     );
     revalidatePath('/procurement');
+    return { success: true };
+  } catch (error) {
+    return mapAppError(error);
+  }
+}
+
+export async function cancelPurchaseOrderAction(
+  _prev: ProcurementFormState,
+  formData: FormData,
+): Promise<ProcurementFormState> {
+  try {
+    const purchaseOrderId = requiredFormValue(formData, 'purchaseOrderId');
+    await withOrgContext((context) => cancelPurchaseOrder(context, { purchaseOrderId }));
+    revalidatePath('/procurement');
+    revalidatePath(`/procurement/${purchaseOrderId}`);
+    return { success: true };
+  } catch (error) {
+    return mapAppError(error);
+  }
+}
+
+export async function closePurchaseOrderAction(
+  _prev: ProcurementFormState,
+  formData: FormData,
+): Promise<ProcurementFormState> {
+  try {
+    const purchaseOrderId = requiredFormValue(formData, 'purchaseOrderId');
+    await withOrgContext((context) => closePurchaseOrder(context, { purchaseOrderId }));
+    revalidatePath('/procurement');
+    revalidatePath(`/procurement/${purchaseOrderId}`);
     return { success: true };
   } catch (error) {
     return mapAppError(error);

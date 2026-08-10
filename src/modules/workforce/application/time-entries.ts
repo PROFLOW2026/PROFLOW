@@ -1,11 +1,14 @@
+import { randomUUID } from 'node:crypto';
 import { AUDIT_ACTIONS, recordAuditEvent } from '@/shared/audit';
 import { businessDate } from '@/shared/dates';
+import { withTransaction } from '@/shared/db';
 import { toNumericString } from '@/shared/money';
 import { DomainRuleError, NotFoundError, ValidationError } from '@/shared/errors';
 import { assertAnyPermission, assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import type { OrgContext } from '@/shared/auth/context';
 import { noteModuleUsage } from '@/modules/tenancy';
+import { expandBulkWorkDates } from '../domain/bulk-time-expand';
 import { calculateLaborCostTotal } from '../domain/labor-cost';
 import { resolveRateVersionForDate } from '../domain/rate-lookup';
 import { DEFAULT_NON_PROJECT_TIME_CODES } from '../domain/types';
@@ -23,18 +26,29 @@ import {
 import {
   countNonProjectTimeCodes,
   findNonProjectTimeCodeById,
+  findTimeEntryById,
   insertNonProjectTimeCode,
   insertTimeEntry,
   listNonProjectTimeCodes,
   listTimeEntries,
   sumProjectLaborCost,
+  voidTimeEntryRow,
 } from '../data/time-entries.repository';
 import type {
   NonProjectTimeCodeRecord,
+  TimeEntryKind,
   TimeEntryListItem,
   TimeEntryRecord,
 } from '../domain/types';
-import { createTimeEntrySchema, type CreateTimeEntryInput, type TimeEntryFiltersInput } from '../validation/schemas';
+import {
+  correctTimeEntrySchema,
+  createBulkTimeEntriesSchema,
+  createTimeEntrySchema,
+  type CorrectTimeEntryInput,
+  type CreateBulkTimeEntriesInput,
+  type CreateTimeEntryInput,
+  type TimeEntryFiltersInput,
+} from '../validation/schemas';
 
 export interface CostSnapshot {
   readonly rateVersionId: string | null;
@@ -105,6 +119,7 @@ export async function listTimeEntriesForOrg(
     fromDate: filters.fromDate,
     toDate: filters.toDate,
     kind: filters.kind ?? 'all',
+    status: filters.status ?? 'recorded',
   });
 }
 
@@ -113,7 +128,131 @@ export async function listProjectTimeEntries(
   projectId: string,
 ): Promise<TimeEntryListItem[]> {
   assertAnyPermission(context, [PERMISSIONS.WORKFORCE_READ, PERMISSIONS.PROJECTS_READ]);
-  return listTimeEntries(context.db, context.organizationId, { projectId, kind: 'project' });
+  return listTimeEntries(context.db, context.organizationId, {
+    projectId,
+    kind: 'project',
+    status: 'recorded',
+  });
+}
+
+interface ResolvedTimeTargets {
+  readonly projectId: string | null;
+  readonly workPackageId: string | null;
+  readonly phaseId: string | null;
+  readonly timeCodeId: string | null;
+}
+
+async function resolveTimeTargets(
+  context: OrgContext,
+  input: {
+    kind: TimeEntryKind;
+    projectId?: string | null;
+    workPackageId?: string | null;
+    phaseId?: string | null;
+    timeCodeId?: string | null;
+  },
+): Promise<ResolvedTimeTargets> {
+  let projectId: string | null = null;
+  let workPackageId: string | null = null;
+  let phaseId: string | null = null;
+  let timeCodeId: string | null = null;
+
+  if (input.kind === 'project') {
+    const project = await findProjectById(context.db, context.organizationId, input.projectId!);
+    if (!project) throw new NotFoundError('Project');
+
+    projectId = project.id;
+
+    if (input.workPackageId) {
+      const workPackage = await findWorkPackageById(
+        context.db,
+        context.organizationId,
+        input.workPackageId,
+      );
+      if (!workPackage || workPackage.projectId !== projectId) {
+        throw new DomainRuleError(
+          'Work area does not belong to the project',
+          'workforce.errors.invalidWorkPackage',
+        );
+      }
+      workPackageId = workPackage.id;
+    } else {
+      const defaultPackage = await findDefaultWorkPackage(
+        context.db,
+        context.organizationId,
+        projectId,
+      );
+      workPackageId = defaultPackage?.id ?? null;
+    }
+
+    if (input.phaseId) {
+      const phase = await findPhaseById(context.db, context.organizationId, input.phaseId);
+      if (!phase || phase.projectId !== projectId) {
+        throw new DomainRuleError(
+          'Phase does not belong to the project',
+          'workforce.errors.invalidPhase',
+        );
+      }
+      if (workPackageId && phase.workPackageId !== workPackageId) {
+        throw new DomainRuleError(
+          'Phase does not belong to the work area',
+          'workforce.errors.invalidPhase',
+        );
+      }
+      phaseId = phase.id;
+    }
+  } else {
+    await ensureDefaultTimeCodes(context.db, context.organizationId);
+    const code = await findNonProjectTimeCodeById(
+      context.db,
+      context.organizationId,
+      input.timeCodeId!,
+    );
+    if (!code) throw new NotFoundError('Time code');
+    timeCodeId = code.id;
+  }
+
+  return { projectId, workPackageId, phaseId, timeCodeId };
+}
+
+async function insertRecordedTimeEntry(
+  context: OrgContext,
+  input: {
+    employeeId: string;
+    workDate: string;
+    hours: string;
+    kind: TimeEntryKind;
+    targets: ResolvedTimeTargets;
+    description?: string | null;
+    correctsEntryId?: string | null;
+    bulkBatchId?: string | null;
+  },
+): Promise<TimeEntryRecord> {
+  const snapshot = await resolveTimeEntryCostSnapshot(context.db, context.organizationId, {
+    employeeId: input.employeeId,
+    workDate: input.workDate,
+    hours: input.hours,
+  });
+
+  return insertTimeEntry(context.db, {
+    organizationId: context.organizationId,
+    employeeId: input.employeeId,
+    workDate: input.workDate,
+    hours: input.hours,
+    kind: input.kind,
+    projectId: input.targets.projectId,
+    workPackageId: input.targets.workPackageId,
+    phaseId: input.targets.phaseId,
+    timeCodeId: input.targets.timeCodeId,
+    rateVersionId: snapshot.rateVersionId,
+    costAmount: snapshot.costAmount,
+    costCurrency: snapshot.costCurrency,
+    description: input.description ?? null,
+    createdByUserId: context.userId,
+    status: 'recorded',
+    correctsEntryId: input.correctsEntryId ?? null,
+    bulkBatchId: input.bulkBatchId ?? null,
+  });
 }
 
 export async function createTimeEntry(
@@ -134,66 +273,14 @@ export async function createTimeEntry(
   const employee = await findEmployeeById(context.db, context.organizationId, input.employeeId);
   if (!employee || employee.archivedAt) throw new NotFoundError('Employee');
 
-  let projectId: string | null = null;
-  let workPackageId: string | null = null;
-  let phaseId: string | null = null;
-  let timeCodeId: string | null = null;
-
-  if (input.kind === 'project') {
-    const project = await findProjectById(context.db, context.organizationId, input.projectId!);
-    if (!project) throw new NotFoundError('Project');
-
-    projectId = project.id;
-
-    if (input.workPackageId) {
-      const workPackage = await findWorkPackageById(context.db, context.organizationId, input.workPackageId);
-      if (!workPackage || workPackage.projectId !== projectId) {
-        throw new DomainRuleError('Work area does not belong to the project', 'workforce.errors.invalidWorkPackage');
-      }
-      workPackageId = workPackage.id;
-    } else {
-      const defaultPackage = await findDefaultWorkPackage(context.db, context.organizationId, projectId);
-      workPackageId = defaultPackage?.id ?? null;
-    }
-
-    if (input.phaseId) {
-      const phase = await findPhaseById(context.db, context.organizationId, input.phaseId);
-      if (!phase || phase.projectId !== projectId) {
-        throw new DomainRuleError('Phase does not belong to the project', 'workforce.errors.invalidPhase');
-      }
-      if (workPackageId && phase.workPackageId !== workPackageId) {
-        throw new DomainRuleError('Phase does not belong to the work area', 'workforce.errors.invalidPhase');
-      }
-      phaseId = phase.id;
-    }
-  } else {
-    await ensureDefaultTimeCodes(context.db, context.organizationId);
-    const code = await findNonProjectTimeCodeById(context.db, context.organizationId, input.timeCodeId!);
-    if (!code) throw new NotFoundError('Time code');
-    timeCodeId = code.id;
-  }
-
-  const snapshot = await resolveTimeEntryCostSnapshot(context.db, context.organizationId, {
-    employeeId: input.employeeId,
-    workDate: input.workDate,
-    hours: input.hours,
-  });
-
-  const entry = await insertTimeEntry(context.db, {
-    organizationId: context.organizationId,
+  const targets = await resolveTimeTargets(context, input);
+  const entry = await insertRecordedTimeEntry(context, {
     employeeId: input.employeeId,
     workDate: input.workDate,
     hours: input.hours,
     kind: input.kind,
-    projectId,
-    workPackageId,
-    phaseId,
-    timeCodeId,
-    rateVersionId: snapshot.rateVersionId,
-    costAmount: snapshot.costAmount,
-    costCurrency: snapshot.costCurrency,
-    description: input.description ?? null,
-    createdByUserId: context.userId,
+    targets,
+    description: input.description,
   });
 
   await noteModuleUsage(context.db, context.organizationId, 'workforce');
@@ -208,13 +295,193 @@ export async function createTimeEntry(
       hours: entry.hours,
       kind: entry.kind,
       projectId: entry.projectId,
+      timeCodeId: entry.timeCodeId,
       costAmount: entry.costAmount,
       costCurrency: entry.costCurrency,
       rateVersionId: entry.rateVersionId,
+      status: entry.status,
     },
   });
 
   return entry;
+}
+
+/**
+ * Insert many day rows sharing one `bulk_batch_id`.
+ * Expansion is pure (weekdays / per-day hours); each row snapshots cost independently.
+ */
+export async function createBulkTimeEntries(
+  context: OrgContext,
+  rawInput: CreateBulkTimeEntriesInput,
+): Promise<{ readonly batchId: string; readonly entries: readonly TimeEntryRecord[] }> {
+  assertPermission(context, PERMISSIONS.TIME_MANAGE);
+
+  const parsed = createBulkTimeEntriesSchema.safeParse(rawInput);
+  if (!parsed.success) {
+    throw new ValidationError(
+      parsed.error.issues.map((issue) => ({ path: issue.path.join('.'), message: issue.message })),
+    );
+  }
+
+  const input = parsed.data;
+  let days;
+  try {
+    days = expandBulkWorkDates({
+      fromDate: input.fromDate,
+      toDate: input.toDate,
+      hours: input.hours,
+      weekdays: input.weekdays,
+      dayHours: input.dayHours,
+    });
+  } catch (error) {
+    throw new DomainRuleError(
+      error instanceof Error ? error.message : 'Invalid bulk range',
+      'workforce.errors.invalidBulkRange',
+    );
+  }
+
+  if (days.length === 0) {
+    throw new DomainRuleError('No days matched the bulk filters', 'workforce.errors.emptyBulk');
+  }
+
+  const employee = await findEmployeeById(context.db, context.organizationId, input.employeeId);
+  if (!employee || employee.archivedAt) throw new NotFoundError('Employee');
+
+  const targets = await resolveTimeTargets(context, input);
+  const batchId = randomUUID();
+
+  const entries = await withTransaction(context.db, async (tx) => {
+    const txContext = { ...context, db: tx };
+    const created: TimeEntryRecord[] = [];
+    for (const day of days) {
+      const entry = await insertRecordedTimeEntry(txContext, {
+        employeeId: input.employeeId,
+        workDate: day.workDate,
+        hours: day.hours,
+        kind: input.kind,
+        targets,
+        description: input.description,
+        bulkBatchId: batchId,
+      });
+      created.push(entry);
+    }
+    return created;
+  });
+
+  await noteModuleUsage(context.db, context.organizationId, 'workforce');
+
+  await recordAuditEvent(context, {
+    action: AUDIT_ACTIONS.TIME_ENTRY_BULK_CREATED,
+    entityType: 'time_entry_batch',
+    entityId: batchId,
+    after: {
+      bulkBatchId: batchId,
+      employeeId: input.employeeId,
+      fromDate: input.fromDate,
+      toDate: input.toDate,
+      entryCount: entries.length,
+      kind: input.kind,
+      projectId: targets.projectId,
+      timeCodeId: targets.timeCodeId,
+      entryIds: entries.map((entry) => entry.id),
+    },
+  });
+
+  return { batchId, entries };
+}
+
+/**
+ * Correction: void the original (no silent overwrite) and insert a replacement
+ * row with `corrects_entry_id` pointing at the voided original.
+ */
+export async function correctTimeEntry(
+  context: OrgContext,
+  rawInput: CorrectTimeEntryInput,
+): Promise<{ readonly voided: TimeEntryRecord; readonly replacement: TimeEntryRecord }> {
+  assertPermission(context, PERMISSIONS.TIME_MANAGE);
+
+  const parsed = correctTimeEntrySchema.safeParse(rawInput);
+  if (!parsed.success) {
+    throw new ValidationError(
+      parsed.error.issues.map((issue) => ({ path: issue.path.join('.'), message: issue.message })),
+    );
+  }
+
+  const input = parsed.data;
+  const original = await findTimeEntryById(
+    context.db,
+    context.organizationId,
+    input.correctsEntryId,
+  );
+  if (!original) throw new NotFoundError('Time entry');
+  if (original.status === 'void') {
+    throw new DomainRuleError(
+      'Time entry is already void',
+      'workforce.errors.timeEntryAlreadyVoid',
+    );
+  }
+  if (original.archivedAt) {
+    throw new DomainRuleError(
+      'Cannot correct an archived time entry',
+      'workforce.errors.timeEntryArchived',
+    );
+  }
+
+  const employee = await findEmployeeById(context.db, context.organizationId, input.employeeId);
+  if (!employee || employee.archivedAt) throw new NotFoundError('Employee');
+
+  const targets = await resolveTimeTargets(context, input);
+  const voidedAt = new Date();
+
+  const result = await withTransaction(context.db, async (tx) => {
+    const voided = await voidTimeEntryRow(tx, context.organizationId, original.id, voidedAt);
+    if (!voided) {
+      throw new DomainRuleError(
+        'Time entry could not be voided',
+        'workforce.errors.timeEntryAlreadyVoid',
+      );
+    }
+
+    const txContext = { ...context, db: tx };
+    const replacement = await insertRecordedTimeEntry(txContext, {
+      employeeId: input.employeeId,
+      workDate: input.workDate,
+      hours: input.hours,
+      kind: input.kind,
+      targets,
+      description: input.description,
+      correctsEntryId: original.id,
+    });
+
+    return { voided, replacement };
+  });
+
+  await recordAuditEvent(context, {
+    action: AUDIT_ACTIONS.TIME_ENTRY_VOIDED,
+    entityType: 'time_entry',
+    entityId: result.voided.id,
+    before: { status: 'recorded', hours: original.hours, workDate: original.workDate },
+    after: { status: 'void', voidedAt: voidedAt.toISOString() },
+  });
+
+  await recordAuditEvent(context, {
+    action: AUDIT_ACTIONS.TIME_ENTRY_CORRECTED,
+    entityType: 'time_entry',
+    entityId: result.replacement.id,
+    after: {
+      correctsEntryId: original.id,
+      employeeId: result.replacement.employeeId,
+      workDate: result.replacement.workDate,
+      hours: result.replacement.hours,
+      kind: result.replacement.kind,
+      projectId: result.replacement.projectId,
+      timeCodeId: result.replacement.timeCodeId,
+      costAmount: result.replacement.costAmount,
+      costCurrency: result.replacement.costCurrency,
+    },
+  });
+
+  return result;
 }
 
 /** Suggested default employee when the signed-in user is linked to one. */

@@ -6,12 +6,13 @@ import {
 import { localeDirection } from '@/shared/i18n/config';
 
 describe('project tab business priority', () => {
-  it('places team early among daily ops, before time/docs/setup', () => {
+  it('places schedule after team among daily ops, before time/docs/setup', () => {
     expect(PROJECT_TAB_PRIORITY).toEqual([
       'overview',
       'financials',
       'expenses',
       'team',
+      'schedule',
       'changes',
       'billing',
       'time',
@@ -19,6 +20,9 @@ describe('project tab business priority', () => {
       'work',
       'details',
     ]);
+    expect(PROJECT_TAB_PRIORITY.indexOf('team')).toBeLessThan(
+      PROJECT_TAB_PRIORITY.indexOf('schedule'),
+    );
   });
 
   it('filters by visibility without reordering or RTL-reversing', () => {
@@ -28,6 +32,7 @@ describe('project tab business priority', () => {
       changes: true,
       billing: true,
       team: true,
+      schedule: true,
       time: true,
       documents: true,
       work: true,
@@ -35,7 +40,8 @@ describe('project tab business priority', () => {
 
     expect(tabs).toEqual([...PROJECT_TAB_PRIORITY]);
     expect(tabs.indexOf('expenses')).toBeLessThan(tabs.indexOf('team'));
-    expect(tabs.indexOf('team')).toBeLessThan(tabs.indexOf('time'));
+    expect(tabs.indexOf('team')).toBeLessThan(tabs.indexOf('schedule'));
+    expect(tabs.indexOf('schedule')).toBeLessThan(tabs.indexOf('time'));
     expect(tabs.indexOf('billing')).toBeLessThan(tabs.indexOf('time'));
     expect(tabs.indexOf('documents')).toBeLessThan(tabs.indexOf('work'));
     expect(tabs.indexOf('work')).toBeLessThan(tabs.indexOf('details'));
@@ -49,6 +55,7 @@ describe('project tab business priority', () => {
         changes: false,
         billing: false,
         team: false,
+        schedule: false,
         time: false,
         documents: false,
         work: false,
@@ -66,6 +73,7 @@ describe('project tab business priority', () => {
       changes: false,
       billing: false,
       team: false,
+      schedule: false,
       time: false,
       documents: false,
       work: false,

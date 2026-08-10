@@ -10,6 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import {
   getApBillDetail,
   getBillPayablePosition,
+  listCreditsForBill,
   listVendorPaymentsForBill,
   type ApBillStatus,
 } from '@/modules/ap';
@@ -26,6 +27,8 @@ import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { MatchDecisionButtons, ProposeMatchForm } from './match-actions';
 import { VendorPaymentPanel } from './payment-actions';
+import { VendorCreditPanel } from './credit-actions';
+import { VoidApBillPanel } from './void-actions';
 import { textNavLinkMutedClassName } from '@/components/ui/pressable';
 
 export async function generateMetadata({
@@ -76,7 +79,7 @@ export default async function ApBillDetailPage({
 
     const canReadProjects = hasPermission(context, PERMISSIONS.PROJECTS_READ);
 
-    const [orders, expensesResult, documentsPanel, payablePosition, paymentRows, projects] =
+    const [orders, expensesResult, documentsPanel, payablePosition, paymentRows, creditRows, projects] =
       await Promise.all([
         canReadPo ? listPurchaseOrdersForOrg(context) : Promise.resolve([]),
         canReadExpenses
@@ -85,16 +88,22 @@ export default async function ApBillDetailPage({
         getEntityDocumentPanelData(context, 'ap_bill', billId),
         getBillPayablePosition(context, billId),
         listVendorPaymentsForBill(context, billId).catch(() => []),
+        listCreditsForBill(context, billId).catch(() => []),
         canReadProjects
           ? listProjectsForOrg(context, {}).catch(() => [])
           : Promise.resolve([]),
       ]);
+
+    const hasActivePayments = paymentRows.some((row) => row.payment.status === 'recorded');
+    const hasActiveCredits = creditRows.some((row) => row.application.status === 'applied');
 
     return {
       ...detail,
       canManage,
       documentsPanel,
       payablePosition,
+      hasActivePayments,
+      hasActiveCredits,
       projects: projects.map((project) => ({ id: project.id, name: project.name })),
       payments: paymentRows.map((row) => ({
         id: row.payment.id,
@@ -105,6 +114,15 @@ export default async function ApBillDetailPage({
         reference: row.payment.reference,
         status: row.payment.status,
         notes: row.payment.notes,
+      })),
+      credits: creditRows.map((row) => ({
+        applicationId: row.application.id,
+        creditId: row.credit.id,
+        amount: row.application.amount,
+        currency: row.application.currency,
+        status: row.application.status,
+        creditReference: row.credit.reference,
+        creditDate: row.credit.creditDate,
       })),
       purchaseOrders: orders
         .filter((po) => po.vendorId === detail.bill.vendorId)
@@ -132,6 +150,9 @@ export default async function ApBillDetailPage({
     documentsPanel,
     payablePosition,
     payments,
+    credits,
+    hasActivePayments,
+    hasActiveCredits,
     projects,
   } = data;
 
@@ -294,6 +315,27 @@ export default async function ApBillDetailPage({
           locale={locale}
         />
       ) : null}
+
+      {payablePosition && bill.status !== 'void' ? (
+        <VendorCreditPanel
+          billId={bill.id}
+          vendorId={bill.vendorId}
+          currency={payablePosition.currency}
+          outstanding={payablePosition.outstanding}
+          canManage={canManage}
+          defaultCreditDate={new Date().toISOString().slice(0, 10)}
+          credits={credits}
+          locale={locale}
+        />
+      ) : null}
+
+      <VoidApBillPanel
+        billId={bill.id}
+        canManage={canManage}
+        billStatus={bill.status}
+        hasActivePayments={hasActivePayments}
+        hasActiveCredits={hasActiveCredits}
+      />
 
       <section className="flex min-w-0 flex-col gap-4">
         <h2 className="text-sm font-semibold">{t('detail.matchesTitle')}</h2>

@@ -11,4 +11,5 @@ export { ProjectTeamPanel } from './ui/project-team-panel';
 export { ProjectTeamRoster } from './ui/project-team-roster';
 export { EmployeeProjectsPanel } from './ui/employee-projects-panel';
 export { EmployeeForm } from './ui/employee-form';
+export { AddRateVersionForm } from './ui/add-rate-version-form';
 export { MonthlyEmployerCostReview } from './ui/monthly-employer-cost-review';

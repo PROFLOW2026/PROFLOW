@@ -87,15 +87,57 @@ export async function endEmployeeProjectAssignmentById(
   return row ? mapAssignment(row) : null;
 }
 
-/** @deprecated Prefer endEmployeeProjectAssignmentById */
+/**
+ * Cancel a mistaken assignment. Does not delete time entries or change Actual.
+ */
 export async function cancelEmployeeProjectAssignmentById(
   db: DbExecutor,
   organizationId: string,
   assignmentId: string,
-  endDate?: string | null,
 ): Promise<EmployeeProjectAssignmentRecord | null> {
-  if (!endDate) return null;
-  return endEmployeeProjectAssignmentById(db, organizationId, assignmentId, endDate);
+  const [row] = await db
+    .update(employeeProjectAssignments)
+    .set({
+      status: 'cancelled',
+      updatedAt: new Date(),
+    })
+    .where(
+      and(
+        eq(employeeProjectAssignments.id, assignmentId),
+        eq(employeeProjectAssignments.organizationId, organizationId),
+        eq(employeeProjectAssignments.status, 'active'),
+      ),
+    )
+    .returning();
+
+  return row ? mapAssignment(row) : null;
+}
+
+export async function updateEmployeeProjectAssignmentById(
+  db: DbExecutor,
+  organizationId: string,
+  assignmentId: string,
+  patch: Partial<{
+    startDate: string;
+    endDate: string | null;
+    role: string | null;
+    plannedAllocationPercent: string | null;
+    notes: string | null;
+  }>,
+): Promise<EmployeeProjectAssignmentRecord | null> {
+  const [row] = await db
+    .update(employeeProjectAssignments)
+    .set({ ...patch, updatedAt: new Date() })
+    .where(
+      and(
+        eq(employeeProjectAssignments.id, assignmentId),
+        eq(employeeProjectAssignments.organizationId, organizationId),
+        eq(employeeProjectAssignments.status, 'active'),
+      ),
+    )
+    .returning();
+
+  return row ? mapAssignment(row) : null;
 }
 
 export async function findEmployeeProjectAssignmentById(
@@ -128,21 +170,24 @@ export async function findActiveAssignmentConflict(
   employeeId: string,
   startDate: string,
   endDate?: string | null,
+  excludeAssignmentId?: string,
 ): Promise<EmployeeProjectAssignmentRecord | null> {
   const endBound = endDate ?? 'infinity';
+  const conditions = [
+    eq(employeeProjectAssignments.organizationId, organizationId),
+    eq(employeeProjectAssignments.projectId, projectId),
+    eq(employeeProjectAssignments.employeeId, employeeId),
+    ne(employeeProjectAssignments.status, 'cancelled'),
+    sql`daterange(${employeeProjectAssignments.startDate}, coalesce(${employeeProjectAssignments.endDate}, 'infinity'::date), '[]')
+            && daterange(${startDate}::date, ${endBound}::date, '[]')`,
+  ];
+  if (excludeAssignmentId) {
+    conditions.push(ne(employeeProjectAssignments.id, excludeAssignmentId));
+  }
   const [row] = await db
     .select()
     .from(employeeProjectAssignments)
-    .where(
-      and(
-        eq(employeeProjectAssignments.organizationId, organizationId),
-        eq(employeeProjectAssignments.projectId, projectId),
-        eq(employeeProjectAssignments.employeeId, employeeId),
-        ne(employeeProjectAssignments.status, 'cancelled'),
-        sql`daterange(${employeeProjectAssignments.startDate}, coalesce(${employeeProjectAssignments.endDate}, 'infinity'::date), '[]')
-            && daterange(${startDate}::date, ${endBound}::date, '[]')`,
-      ),
-    )
+    .where(and(...conditions))
     .limit(1);
 
   return row ? mapAssignment(row) : null;

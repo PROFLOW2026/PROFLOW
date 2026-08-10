@@ -148,6 +148,20 @@
       "when": 1786368000000,
       "tag": "0021_workforce_contacts_and_allocations",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1786400000000,
+      "tag": "0022_master_completion_foundations",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1786401000000,
+      "tag": "0023_attendance_rls_and_role_backfill",
+      "breakpoints": true
     }
   ]
 }

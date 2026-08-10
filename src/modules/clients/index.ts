@@ -1,7 +1,7 @@
 /** Public API of the clients module. */
 export { createClient } from './application/create-client';
 export { updateClient } from './application/update-client';
-export { archiveClient } from './application/archive-client';
+export { archiveClient, restoreClient } from './application/archive-client';
 export {
   listClientsForOrg,
   getClientById,
@@ -30,6 +30,11 @@ export {
   resolveProjectDisplayContact,
   contactBelongsToClient,
 } from './domain/practical-contact';
+export {
+  buildClientArchivePatch,
+  buildClientRestorePatch,
+  isClientSoftArchived,
+} from './domain/soft-archive';
 export type {
   ClientStatus,
   ClientRecord,
@@ -44,6 +49,9 @@ export {
   createClientSchema,
   updateClientSchema,
   archiveClientSchema,
+  restoreClientSchema,
   createContactSchema,
+  updateContactSchema,
+  markContactPrimarySchema,
   upsertIdentifierSchema,
 } from './validation/schemas';

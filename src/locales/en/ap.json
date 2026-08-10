@@ -135,6 +135,46 @@
       "paid": "Paid"
     }
   },
+  "credits": {
+    "title": "Vendor credits",
+    "notPaymentNote": "Credits are not payments. Applying a credit reduces outstanding and Actual Cost.",
+    "empty": "No credits applied yet.",
+    "createTitle": "Create and apply credit",
+    "createHint": "Creates an open credit note and applies it to this bill in one step.",
+    "amountLabel": "Credit amount",
+    "creditDateLabel": "Credit date",
+    "referenceLabel": "Reference",
+    "submit": "Apply credit",
+    "pending": "Applying…",
+    "success": "Credit applied. Outstanding and Actual reduced.",
+    "outstandingHint": "Current outstanding: {amount} {currency}"
+  },
+  "void": {
+    "title": "Void bill",
+    "note": "Void removes the bill from Actual recognition and supersedes allocations. History is preserved. Correction path is void + replace, or credit — never silent edit.",
+    "paymentsFirst": "Void recorded payments on this bill before voiding the bill.",
+    "creditsFirst": "Reverse applied vendor credits on this bill before voiding the bill.",
+    "action": "Void bill",
+    "pending": "Voiding…",
+    "success": "Bill voided. It no longer contributes to Actual Cost."
+  },
+  "aging": {
+    "title": "AP aging",
+    "navLink": "Aging",
+    "description": "Payables aging by due date using outstanding (bill − payments − credits). Cash view — not Actual Cost.",
+    "note": "Buckets use outstanding only. Payments never increase Actual; credits reduce both outstanding and Actual.",
+    "asOf": "As of {date}",
+    "total": "Total outstanding",
+    "count": "{count, plural, one {# bill} other {# bills}}",
+    "filterNote": "Vendor/project query filters are reserved for a later pass; buckets show org-wide aging in the base currency.",
+    "buckets": {
+      "current": "Current",
+      "days_1_30": "1–30 days",
+      "days_31_60": "31–60 days",
+      "days_61_90": "61–90 days",
+      "days_90_plus": "90+ days"
+    }
+  },
   "allocation": {
     "title": "Project cost allocation",
     "subtitle": "Send 100% to one project, or split by amount / % / days. Remainder stays visible as unallocated. Payment is separate.",
@@ -186,6 +226,18 @@
     "paymentApplicationMismatch": "Payment amount must equal the sum of applications.",
     "paymentNotVoidable": "Only recorded payments can be voided.",
     "paymentVendorMismatch": "All bill applications must share the same vendor.",
-    "paymentAffectsActual": "Vendor payment must never recognize Actual Cost."
+    "paymentAffectsActual": "Vendor payment must never recognize Actual Cost.",
+    "voidPaymentsFirst": "Void recorded payments before voiding the vendor bill.",
+    "voidCreditsFirst": "Reverse applied vendor credits before voiding the vendor bill.",
+    "billAlreadyVoid": "Bill is already void.",
+    "billNotSilentlyEditable": "Recognized bills cannot be silently edited; void and replace, or apply a credit.",
+    "creditAmountInvalid": "Credit amount must be positive.",
+    "creditNotApplicable": "Only open credits can be applied.",
+    "creditBillNotPayable": "Cannot apply credit to a draft or void bill.",
+    "creditOverApplied": "Credit application exceeds remaining credit or bill outstanding.",
+    "creditsSchemaPending": "Vendor credits are not available until the database schema is applied.",
+    "voidBill": "Cannot allocate a void bill.",
+    "billNotRecognized": "Bill must be recognized before applying allocations.",
+    "noDraftAllocations": "No draft allocations to apply."
   }
 }

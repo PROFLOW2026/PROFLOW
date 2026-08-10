@@ -47,6 +47,7 @@ function resolveFacet(params: { facet?: string; status?: string }): WorkListFace
   if (params.status === 'draft') return 'new';
   if (params.status === 'active') return 'active';
   if (params.status === 'completed') return 'completed';
+  if (params.status === 'archived') return 'archived';
   return 'all';
 }
 
@@ -74,6 +75,7 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
       workKind: 'project',
       status: resolved.status,
       awaitingPayment: resolved.awaitingPayment,
+      includeArchived: resolved.includeArchived,
     }),
   );
 
