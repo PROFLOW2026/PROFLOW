@@ -94,6 +94,7 @@ export async function createProjectAction(
         contractValueAmount: formValue(formData, 'contractValueAmount'),
         contractValueCurrency: formValue(formData, 'contractValueCurrency'),
         amountIncludesTax: formValue(formData, 'amountIncludesTax'),
+        openingReductionAmount: formValue(formData, 'openingReductionAmount'),
         domainName: formValue(formData, 'domainName'),
         location: formValue(formData, 'location'),
         description: formValue(formData, 'description'),
@@ -153,6 +154,7 @@ export async function updateProjectAction(
         contractValueAmount: formValue(formData, 'contractValueAmount'),
         contractValueCurrency: formValue(formData, 'contractValueCurrency'),
         amountIncludesTax: formValue(formData, 'amountIncludesTax'),
+        openingReductionAmount: formValue(formData, 'openingReductionAmount'),
         progressPercent: formValue(formData, 'progressPercent'),
         progressStatus:
           formValue(formData, 'progressStatus') === 'none'
@@ -176,6 +178,7 @@ export async function updateProjectAction(
         fieldErrors: {
           contractValueAmount: tProjects('details.originalAmountLocked'),
           amountIncludesTax: tProjects('details.originalAmountLocked'),
+          openingReductionAmount: tProjects('details.originalAmountLocked'),
         },
       };
     }

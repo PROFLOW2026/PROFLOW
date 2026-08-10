@@ -1,3 +1,4 @@
+import { attachEntryBaselineContext } from '@/modules/financials';
 import type { CommercialPosition } from '@/modules/financials/domain/types';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
@@ -124,5 +125,8 @@ export async function getProjectCommercialSummary(
     originalValueFallback: contract.originalValueAmount,
   });
 
-  return { position, currency: contract.currency };
+  return {
+    position: attachEntryBaselineContext(position, contract),
+    currency: contract.currency,
+  };
 }

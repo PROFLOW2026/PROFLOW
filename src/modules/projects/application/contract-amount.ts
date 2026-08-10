@@ -2,15 +2,15 @@ import { recordAuditEvent } from '@/shared/audit';
 import type { OrgContext } from '@/shared/auth/context';
 import { todayInTimeZone, toIsoInstant } from '@/shared/dates';
 import { DomainRuleError, ValidationError } from '@/shared/errors';
-import { toNumericString } from '@/shared/money';
+import { money } from '@/shared/money';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import {
   assertInclusiveTaxRateAvailable,
   buildContractTaxSnapshot,
-  computeTaxAmountBreakdown,
   resolveApplicableDefaultTax,
   type ContractTaxSnapshot,
+  type TaxAmountBreakdown,
 } from '@/modules/tax';
 import {
   findPrimaryContractByProject,
@@ -20,6 +20,11 @@ import {
   updateContractAmounts,
   updateContractValueEventAmount,
 } from '../data/contracts.repository';
+import {
+  computeEntryBaselineAmounts,
+  isZeroOpeningReductionAmount,
+  normalizeOpeningReductionInput,
+} from '../domain/entry-baseline';
 import {
   findOriginalValueEvent,
   isOriginalContractAmountLocked,
@@ -32,9 +37,15 @@ export const ORIGINAL_AMOUNT_LOCKED_MESSAGE_KEY = 'projects.details.originalAmou
 
 export interface UpsertContractAmountInput {
   readonly projectId: string;
+  /** Real-world / display original amount the user typed (same tax mode as reduction). */
   readonly enteredAmount: string;
   readonly currency: string;
   readonly amountIncludesTax: boolean;
+  /**
+   * Optional amount already economically behind before ProjectFlow management.
+   * Not a payment, bill, or expense. Empty / 0 ⇒ today's behavior.
+   */
+  readonly openingReductionAmount?: string | null;
 }
 
 export interface UpsertContractAmountResult {
@@ -43,10 +54,20 @@ export interface UpsertContractAmountResult {
   readonly netAmount: string;
 }
 
+function baselineFieldError(message: string): ValidationError {
+  const path = message.toLowerCase().includes('reduction')
+    ? 'openingReductionAmount'
+    : 'contractValueAmount';
+  return new ValidationError([{ path, message }]);
+}
+
 /**
- * Creates or corrects the primary contract original amount using the org's
- * applicable tax rule. Value events store **net** amounts so profitability
- * never counts VAT as revenue.
+ * Creates or corrects the primary contract managed opening using the org's
+ * applicable tax rule.
+ *
+ * DISPLAY_ORIGINAL_NET − OPENING_REDUCTION_NET = MANAGED_OPENING_NET
+ * Managed opening is stored in contracts.original_* + value event kind=original.
+ * Display / reduction columns are context + audit only.
  */
 export async function upsertPrimaryContractAmount(
   context: OrgContext,
@@ -69,32 +90,65 @@ export async function upsertPrimaryContractAmount(
     ]);
   }
 
-  let breakdown;
+  const reductionNormalized = normalizeOpeningReductionInput(input.openingReductionAmount);
+  if (reductionNormalized !== null) {
+    try {
+      money(reductionNormalized, currency);
+    } catch (error) {
+      throw new ValidationError([
+        {
+          path: 'openingReductionAmount',
+          message: error instanceof Error ? error.message : 'Invalid opening reduction amount',
+        },
+      ]);
+    }
+  }
+
+  let baseline;
   try {
-    breakdown = computeTaxAmountBreakdown({
-      enteredAmount: input.enteredAmount,
+    baseline = computeEntryBaselineAmounts({
+      displayEnteredAmount: input.enteredAmount,
+      openingReductionAmount: reductionNormalized,
       currency,
       amountIncludesTax: input.amountIncludesTax,
       resolved: resolution.resolved,
     });
   } catch (error) {
-    throw new ValidationError([
-      {
-        path: 'contractValueAmount',
-        message: error instanceof Error ? error.message : 'Invalid contract amount',
-      },
-    ]);
+    throw baselineFieldError(
+      error instanceof Error ? error.message : 'Invalid contract amount',
+    );
   }
 
+  // Tax snapshot describes the managed opening (profitability / CCV basis).
+  const managedBreakdown: TaxAmountBreakdown = {
+    entered: money(baseline.managedEntered, currency),
+    amountIncludesTax: input.amountIncludesTax,
+    net: money(baseline.managedNet, currency),
+    tax: money(baseline.managedTax, currency),
+    gross: money(baseline.managedGross, currency),
+    ratePercent: resolution.resolved?.ratePercent ?? null,
+    method: resolution.resolved?.method ?? null,
+  };
   const snapshot = buildContractTaxSnapshot(
-    breakdown,
+    managedBreakdown,
     resolution.resolved,
     toIsoInstant(new Date()),
   );
-  const netAmount = toNumericString(breakdown.net);
-  const taxAmount = toNumericString(breakdown.tax);
-  const grossAmount = toNumericString(breakdown.gross);
-  const enteredAmount = toNumericString(breakdown.entered);
+
+  const netAmount = baseline.managedNet;
+  const taxAmount = baseline.managedTax;
+  const grossAmount = baseline.managedGross;
+  const enteredAmount = baseline.managedEntered;
+
+  const storeDisplay = baseline.hasOpeningReduction;
+  const displayOriginalEnteredAmount = storeDisplay ? baseline.displayEntered : null;
+  const displayOriginalNetAmount = storeDisplay ? baseline.displayNet : null;
+  const displayOriginalTaxAmount = storeDisplay ? baseline.displayTax : null;
+  const displayOriginalGrossAmount = storeDisplay ? baseline.displayGross : null;
+  const openingReductionEnteredAmount = storeDisplay ? baseline.reductionEntered : null;
+  const openingReductionNetAmount = storeDisplay ? baseline.reductionNet : null;
+  const openingReductionTaxAmount = storeDisplay ? baseline.reductionTax : null;
+  const openingReductionGrossAmount = storeDisplay ? baseline.reductionGross : null;
 
   const existing = await findPrimaryContractByProject(
     context.db,
@@ -112,6 +166,14 @@ export async function upsertPrimaryContractAmount(
       originalValueAmount: netAmount,
       originalTaxAmount: taxAmount,
       originalGrossAmount: grossAmount,
+      displayOriginalEnteredAmount,
+      displayOriginalNetAmount,
+      displayOriginalTaxAmount,
+      displayOriginalGrossAmount,
+      openingReductionEnteredAmount,
+      openingReductionNetAmount,
+      openingReductionTaxAmount,
+      openingReductionGrossAmount,
       taxSnapshot: snapshot,
       currency,
     });
@@ -144,6 +206,10 @@ export async function upsertPrimaryContractAmount(
         netAmount,
         taxAmount,
         grossAmount,
+        displayOriginalEnteredAmount,
+        displayOriginalNetAmount,
+        openingReductionEnteredAmount,
+        openingReductionNetAmount,
         currency,
         taxSnapshot: snapshot,
       },
@@ -168,6 +234,10 @@ export async function upsertPrimaryContractAmount(
     originalValueAmount: existing.originalValueAmount,
     originalTaxAmount: existing.originalTaxAmount,
     originalGrossAmount: existing.originalGrossAmount,
+    displayOriginalEnteredAmount: existing.displayOriginalEnteredAmount,
+    displayOriginalNetAmount: existing.displayOriginalNetAmount,
+    openingReductionEnteredAmount: existing.openingReductionEnteredAmount,
+    openingReductionNetAmount: existing.openingReductionNetAmount,
     taxSnapshot: existing.taxSnapshot,
     currency: existing.currency,
   };
@@ -178,6 +248,14 @@ export async function upsertPrimaryContractAmount(
     originalValueAmount: netAmount,
     originalTaxAmount: taxAmount,
     originalGrossAmount: grossAmount,
+    displayOriginalEnteredAmount,
+    displayOriginalNetAmount,
+    displayOriginalTaxAmount,
+    displayOriginalGrossAmount,
+    openingReductionEnteredAmount,
+    openingReductionNetAmount,
+    openingReductionTaxAmount,
+    openingReductionGrossAmount,
     taxSnapshot: snapshot,
     currency,
   });
@@ -187,8 +265,8 @@ export async function upsertPrimaryContractAmount(
   }
 
   if (originalEvent) {
-    // Correcting the original commercial figure: update the original event in
-    // place (audited). Change-order events remain untouched.
+    // Correcting the managed opening: update the original event in place (audited).
+    // Change-order events remain untouched.
     await updateContractValueEventAmount(context.db, context.organizationId, originalEvent.id, {
       amount: netAmount,
       reason: CONTRACT_VALUE_REASON_ORIGINAL,
@@ -224,10 +302,34 @@ export async function upsertPrimaryContractAmount(
       netAmount,
       taxAmount,
       grossAmount,
+      displayOriginalEnteredAmount,
+      displayOriginalNetAmount,
+      openingReductionEnteredAmount,
+      openingReductionNetAmount,
       currency,
       taxSnapshot: snapshot,
     },
   });
 
   return { contract: updated, snapshot, netAmount };
+}
+
+/** Exported for update-project change detection. */
+export function openingReductionInputsDiffer(
+  existingEntered: string | null | undefined,
+  nextRaw: string | null | undefined,
+  currency: string,
+): boolean {
+  const existingZero = isZeroOpeningReductionAmount(existingEntered, currency);
+  const nextZero = isZeroOpeningReductionAmount(nextRaw, currency);
+  if (existingZero && nextZero) return false;
+  if (existingZero !== nextZero) return true;
+  try {
+    return (
+      money(normalizeOpeningReductionInput(existingEntered) ?? '0', currency).amount !==
+      money(normalizeOpeningReductionInput(nextRaw) ?? '0', currency).amount
+    );
+  } catch {
+    return true;
+  }
 }

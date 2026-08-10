@@ -21,8 +21,23 @@ export function ProjectFinancialsSnapshotView({
     (financials.coverage.partials?.length ?? 0) > 0;
   const kpis = resolveProjectKpiDisplay(financials);
 
+  const displayOriginal = financials.commercial?.displayOriginalContractValue ?? null;
+  const openingReduction = financials.commercial?.openingReductionValue ?? null;
+
   return (
     <>
+      {displayOriginal ? (
+        <div className="flex justify-between gap-2" data-testid="display-original-snapshot">
+          <span className="text-[var(--pf-text-muted)]">{t('displayOriginalContractValue')}</span>
+          <MoneyText value={displayOriginal} className="text-[var(--pf-text-muted)]" />
+        </div>
+      ) : null}
+      {openingReduction ? (
+        <div className="flex justify-between gap-2" data-testid="opening-reduction-snapshot">
+          <span className="text-[var(--pf-text-muted)]">{t('openingReductionValue')}</span>
+          <MoneyText value={openingReduction} className="text-[var(--pf-text-muted)]" />
+        </div>
+      ) : null}
       {kpis.currentContract ? (
         <div className="flex justify-between gap-2">
           <span className="text-[var(--pf-text-secondary)]">{t('kpis.currentContract')}</span>
@@ -41,13 +56,18 @@ export function ProjectFinancialsSnapshotView({
         <span className="text-[var(--pf-text-secondary)]">{t('kpis.committed')}</span>
         <MoneyText value={kpis.committed} />
       </div>
-      {canReadProfit && kpis.actualMargin ? (
+      {canReadProfit && kpis.priceNotSet ? (
+        <p className="text-[var(--pf-text-secondary)]" data-testid="price-not-set-snapshot">
+          {t('kpis.priceNotSet')}
+        </p>
+      ) : null}
+      {canReadProfit && !kpis.priceNotSet && kpis.actualMargin ? (
         <div className="flex justify-between gap-2">
           <span className="text-[var(--pf-text-secondary)]">{t('kpis.actualMargin')}</span>
           <MoneyText value={kpis.actualMargin} />
         </div>
       ) : null}
-      {canReadProfit && kpis.forecastMargin ? (
+      {canReadProfit && !kpis.priceNotSet && kpis.forecastMargin ? (
         <div className="flex justify-between gap-2">
           <span className="text-[var(--pf-text-secondary)]">{t('kpis.forecastMargin')}</span>
           <MoneyText value={kpis.forecastMargin} />

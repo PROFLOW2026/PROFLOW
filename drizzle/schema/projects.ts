@@ -43,6 +43,16 @@ export const projects = pgTable(
     /** The only field required at creation time (doc 39 §5). */
     name: text('name').notNull(),
     status: projectStatusEnum('status').notNull().default('active'),
+    /**
+     * `project` = large/normal project UX; `job` = short/daily work UX.
+     * Same financial entity — mode changes UX/required fields, not the engine.
+     */
+    workKind: text('work_kind').notNull().default('project'),
+    /**
+     * Revenue pricing mode. Jobs: `fixed` | `open`. Classic projects: null
+     * (treated as fixed once a managed contract exists).
+     */
+    pricingMode: text('pricing_mode'),
     clientId: uuid('client_id').references(() => clients.id, { onDelete: 'set null' }),
     /** Falls back to the organization base currency when null. */
     currency: char('currency', { length: 3 }),
@@ -83,6 +93,17 @@ export const projects = pgTable(
     check(
       'projects_expected_remaining_cost_non_negative',
       sql`${table.expectedRemainingCostAmount} IS NULL OR ${table.expectedRemainingCostAmount} >= 0`,
+    ),
+    check('projects_work_kind_known', sql`${table.workKind} IN ('project', 'job')`),
+    check(
+      'projects_pricing_mode_known',
+      sql`${table.pricingMode} IS NULL OR ${table.pricingMode} IN ('fixed', 'open')`,
+    ),
+    index('projects_org_work_kind_idx').on(table.organizationId, table.workKind),
+    index('projects_org_work_kind_status_idx').on(
+      table.organizationId,
+      table.workKind,
+      table.status,
     ),
   ],
 );

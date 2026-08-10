@@ -35,6 +35,7 @@ const CUSTOMER_NAMESPACES = [
   'common',
   'dashboard',
   'projects',
+  'jobs',
   'expenses',
   'financial',
   'billing',
@@ -133,17 +134,20 @@ describe('authenticated product simplification', () => {
     expect(listed.some((s) => s.key === 'api')).toBe(true);
   });
 
-  it('nav locale catalogs include moreGroups and vendorBills', () => {
+  it('nav locale catalogs include moreGroups, vendorBills, and jobs', () => {
     for (const locale of ['he-IL', 'en'] as const) {
       const nav = flattenLocaleCatalog(readLocaleCatalog(locale, 'nav'));
       expect(nav.has('moreGroups.business')).toBe(true);
       expect(nav.has('moreGroups.operations')).toBe(true);
       expect(nav.has('moreGroups.advanced')).toBe(true);
       expect(nav.has('vendorBills')).toBe(true);
+      expect(nav.has('jobs')).toBe(true);
+      expect(nav.has('newMenu.job')).toBe(true);
     }
-    expect(flattenLocaleCatalog(readLocaleCatalog('he-IL', 'nav')).get('vendorBills')).toBe(
-      'חשבונות ספקים',
-    );
+    const heNav = flattenLocaleCatalog(readLocaleCatalog('he-IL', 'nav'));
+    expect(heNav.get('vendorBills')).toBe('חשבונות ספקים');
+    expect(heNav.get('jobs')).toBe('עבודות');
+    expect(heNav.get('newMenu.job')).toBe('עבודה');
   });
 
   it('settings locale catalogs include group labels', () => {

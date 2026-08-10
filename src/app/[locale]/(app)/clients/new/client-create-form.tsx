@@ -22,6 +22,8 @@ export function ClientCreateForm() {
     <form action={formAction} className="mx-auto flex w-full max-w-lg flex-col gap-4">
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
 
+      <p className="text-sm text-[var(--pf-text-secondary)]">{t('create.walkInHint')}</p>
+
       <Field label={t('create.nameLabel')} required error={state.fieldErrors?.name}>
         {(control) => (
           <Input
@@ -30,8 +32,13 @@ export function ClientCreateForm() {
             placeholder={t('create.namePlaceholder')}
             autoFocus
             required
+            autoComplete="organization"
           />
         )}
+      </Field>
+
+      <Field label={t('create.phoneQuickLabel')} optionalLabel={tCommon('labels.optional')}>
+        {(control) => <Input {...control} name="phone" type="tel" dir="ltr" autoComplete="tel" />}
       </Field>
 
       <Button type="button" variant="ghost" className="self-start" onClick={() => setShowMore((open) => !open)}>
@@ -45,9 +52,6 @@ export function ClientCreateForm() {
           </Field>
           <Field label={t('create.emailLabel')} optionalLabel={tCommon('labels.optional')}>
             {(control) => <Input {...control} name="email" type="email" dir="ltr" />}
-          </Field>
-          <Field label={t('create.phoneLabel')} optionalLabel={tCommon('labels.optional')}>
-            {(control) => <Input {...control} name="phone" type="tel" dir="ltr" />}
           </Field>
           <Field label={t('create.websiteLabel')} optionalLabel={tCommon('labels.optional')}>
             {(control) => <Input {...control} name="website" type="url" dir="ltr" />}

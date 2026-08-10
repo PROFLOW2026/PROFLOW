@@ -55,6 +55,7 @@ export const MESSAGE_NAMESPACES = [
   'financial',
   'status',
   'projects',
+  'jobs',
   'clients',
   'expenses',
   'changes',

@@ -7,7 +7,12 @@ import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/ui/page-header';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { listProjectsForOrg, type PROJECT_STATUSES } from '@/modules/projects';
+import { listProjectsForOrg } from '@/modules/projects';
+import {
+  isWorkListFacet,
+  resolveWorkListFacet,
+  type WorkListFacet,
+} from '@/modules/projects/domain/work-list-facets';
 import { getShellContext, withOrgContext } from '@/shared/auth/session';
 import { fromNumericString } from '@/shared/money';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
@@ -28,12 +33,22 @@ export async function generateMetadata({
 interface ProjectsPageProps {
   searchParams: Promise<{
     q?: string;
+    facet?: string;
+    /** @deprecated Prefer `facet`; kept for old bookmarks. */
     status?: string;
   }>;
 }
 
-function hasActiveFilters(params: { q?: string; status?: string }): boolean {
-  return Boolean(params.q?.trim() || (params.status && params.status !== 'all'));
+function resolveFacet(params: { facet?: string; status?: string }): WorkListFacet {
+  if (isWorkListFacet(params.facet)) return params.facet;
+  if (params.status === 'draft') return 'new';
+  if (params.status === 'active') return 'active';
+  if (params.status === 'completed') return 'completed';
+  return 'all';
+}
+
+function hasActiveFilters(params: { q?: string; facet: WorkListFacet }): boolean {
+  return Boolean(params.q?.trim() || params.facet !== 'all');
 }
 
 export default async function ProjectsPage({ searchParams }: ProjectsPageProps) {
@@ -42,18 +57,22 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
   const tCommon = await getTranslations('common');
   const params = await searchParams;
   const shell = await getShellContext();
+  const facet = resolveFacet(params);
+  const resolved = resolveWorkListFacet(facet);
 
   const canCreate = shell?.permissions.has(PERMISSIONS.PROJECTS_CREATE) ?? false;
-  const filtersActive = hasActiveFilters(params);
+  const filtersActive = hasActiveFilters({ q: params.q, facet });
 
   const projects = await withOrgContext((context) =>
     listProjectsForOrg(context, {
       search: params.q,
-      status: (params.status as (typeof PROJECT_STATUSES)[number] | 'all') ?? 'all',
+      workKind: 'project',
+      status: resolved.status,
+      awaitingPayment: resolved.awaitingPayment,
     }),
   );
 
-  const noResultsQuery = params.q?.trim() || t('list.filterStatus');
+  const noResultsQuery = params.q?.trim() || t(`list.facets.${facet}`);
 
   return (
     <div className="flex min-w-0 max-w-full flex-col gap-6">
@@ -71,10 +90,7 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
         }
       />
 
-      <ProjectListFilters
-        initialQuery={params.q ?? ''}
-        initialStatus={params.status ?? 'all'}
-      />
+      <ProjectListFilters initialQuery={params.q ?? ''} initialFacet={facet} namespace="projects" />
 
       {projects.length === 0 ? (
         filtersActive ? (
@@ -97,6 +113,11 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
                   <Link href="/projects/new">{t('empty.action')}</Link>
                 </Button>
               ) : undefined
+            }
+            secondaryAction={
+              <Button asChild variant="secondary">
+                <Link href={canCreate ? '/jobs/new' : '/jobs'}>{t('empty.jobsAffordance')}</Link>
+              </Button>
             }
           />
         )

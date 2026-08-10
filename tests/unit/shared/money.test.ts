@@ -100,4 +100,24 @@ describe('formatting', () => {
     expect(formatMoney(money('1000', 'ILS'), 'he-IL')).toContain('₪');
     expect(formatMoney(money('1000', 'USD'), 'en')).toContain('$');
   });
+
+  it('renders he-IL whole amounts as amount then shekel without bare .00', () => {
+    expect(formatMoney(money('52000', 'ILS'), 'he-IL')).toBe('52,000 ₪');
+    expect(formatMoney(money('470000', 'ILS'), 'he-IL')).toBe('470,000 ₪');
+    expect(formatMoney(money('1250500', 'ILS'), 'he-IL')).toBe('1,250,500 ₪');
+    expect(formatMoney(money('52000', 'ILS'), 'he-IL')).not.toContain('.00');
+  });
+
+  it('preserves meaningful ILS decimals and keeps LTR locales conventional', () => {
+    expect(formatMoney(money('52.5', 'ILS'), 'he-IL')).toBe('52.50 ₪');
+    expect(formatMoney(money('1000', 'USD'), 'en')).toBe('$1,000');
+    expect(formatMoney(money('12.5', 'USD'), 'en')).toBe('$12.50');
+  });
+
+  it('does not emit bidi marks that flip the shekel inside an LTR isolate', () => {
+    const formatted = formatMoney(money('52000', 'ILS'), 'he-IL');
+    expect(formatted).not.toMatch(/[\u200E\u200F]/);
+    expect(formatted.endsWith('₪')).toBe(true);
+    expect(formatted.startsWith('₪')).toBe(false);
+  });
 });

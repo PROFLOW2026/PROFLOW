@@ -54,14 +54,13 @@ function moduleOn(
 
 /**
  * Ordered workspace shortcuts for the project overview.
- * Always includes overview + details; everything else is progressive.
+ * Mirrors project-tab business priority: daily ops → time/docs → setup.
  */
 export function selectProjectWorkspaceLinks(input: WorkspaceLinkInput): ProjectWorkspaceLink[] {
   const { projectId } = input;
   const tab = (key: string) => `/projects/${projectId}?tab=${key}`;
   const links: ProjectWorkspaceLink[] = [
     { key: 'overview', href: `/projects/${projectId}`, inProject: true },
-    { key: 'schedule', href: `/projects/${projectId}?tab=details`, inProject: true },
   ];
 
   if (input.canReadFinancials) {
@@ -80,12 +79,6 @@ export function selectProjectWorkspaceLinks(input: WorkspaceLinkInput): ProjectW
     links.push({ key: 'billing', href: tab('billing'), inProject: true });
   }
 
-  links.push({ key: 'details', href: tab('details'), inProject: true });
-
-  if (input.showWorkPackages) {
-    links.push({ key: 'work', href: tab('work'), inProject: true });
-  }
-
   if (moduleOn(input.modules, 'workforce') && can(input.permissions, PERMISSIONS.WORKFORCE_READ)) {
     links.push(
       { key: 'time', href: tab('time'), inProject: true },
@@ -100,6 +93,15 @@ export function selectProjectWorkspaceLinks(input: WorkspaceLinkInput): ProjectW
   if (moduleOn(input.modules, 'documents') && can(input.permissions, PERMISSIONS.DOCUMENTS_READ)) {
     links.push({ key: 'documents', href: tab('documents'), inProject: true });
   }
+
+  if (input.showWorkPackages) {
+    links.push({ key: 'work', href: tab('work'), inProject: true });
+  }
+
+  links.push(
+    { key: 'details', href: tab('details'), inProject: true },
+    { key: 'schedule', href: tab('details'), inProject: true },
+  );
 
   if (
     moduleOn(input.modules, 'procurement') &&

@@ -85,6 +85,14 @@ function countMetric(
   return { key, kind, count, inclusions, exclusions };
 }
 
+export interface OrganizationReportsAnalyticsOptions {
+  /**
+   * All | Projects | Jobs. Unallocated business costs remain visible beside
+   * project/job totals regardless of filter (never double-counted into profit).
+   */
+  readonly workKindFilter?: string | null;
+}
+
 /**
  * Wave 4 org reports / analytics projection (docs 29, 46).
  * Reuses project financials, cash-flow, AR aging, procurement/AP committed figures.
@@ -92,6 +100,7 @@ function countMetric(
  */
 export async function getOrganizationReportsAnalytics(
   context: OrgContext,
+  options: OrganizationReportsAnalyticsOptions = {},
 ): Promise<OrganizationReportsAnalytics> {
   assertPermission(context, PERMISSIONS.PROJECT_FINANCIALS_READ);
 
@@ -99,7 +108,9 @@ export async function getOrganizationReportsAnalytics(
   const asOf = todayInTimeZone(context.organization.timezone);
 
   const [rollup, cashFlow, arAging, unallocatedBusinessCosts] = await Promise.all([
-    getOrganizationProjectRollup(context),
+    getOrganizationProjectRollup(context, {
+      workKindFilter: options.workKindFilter,
+    }),
     getOrganizationCashFlowOutlook(context),
     hasPermission(context, PERMISSIONS.BILLING_READ)
       ? getOrganizationReceivablesAging(context)

@@ -12,8 +12,20 @@ export type {
 export { getOrganizationReportsAnalytics } from './application/get-organization-reports-analytics';
 export type {
   OrganizationReportsAnalytics,
+  OrganizationReportsAnalyticsOptions,
   OperationsReportSection,
 } from './application/get-organization-reports-analytics';
+export {
+  isOpenPriceJob,
+  hasRevenueBasisForProfitability,
+  isEligibleForContractWeightAllocation,
+  matchesWorkKindFilter,
+  parseWorkKindFilter,
+  normalizeWorkKind,
+  normalizePricingMode,
+} from './domain/work-pricing';
+export type { WorkKind, PricingMode, WorkKindFilter } from './domain/work-pricing';
+export { filterRowsByWorkKind, partitionWorkKindCounts } from './domain/work-kind-filter';
 export {
   aggregateOrgCommercial,
   aggregateOrgCash,
@@ -39,10 +51,12 @@ export {
 export { getHomeDashboard } from './application/get-home-dashboard';
 export type {
   HomeDashboardData,
+  HomeDashboardOptions,
   DashboardAttention,
   OrganizationForecastSummary,
 } from './application/get-home-dashboard';
 
+export { attachEntryBaselineContext } from './domain/entry-baseline-context';
 export { computeProfitPosition, computeMarginPercent } from './domain/profit';
 export { buildFinancialCoverage, ALL_COST_SOURCES } from './domain/coverage';
 export {

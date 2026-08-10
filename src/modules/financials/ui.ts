@@ -8,6 +8,7 @@
 
 export { ProjectFinancialsPanel, ProjectFinancialsSnapshot } from './ui/project-financials-panel';
 export { HomeDashboardContent } from './ui/home-dashboard-content';
+export { WorkKindFilterChrome } from './ui/work-kind-filter-chrome';
 export { CashFlowView } from './ui/cash-flow-view';
 export type { CashFlowViewCopy } from './ui/cash-flow-view';
 export { ReportsAnalyticsView } from './ui/reports-analytics-view';

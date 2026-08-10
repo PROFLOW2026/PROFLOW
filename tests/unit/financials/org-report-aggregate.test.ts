@@ -19,6 +19,9 @@ const ILS = 'ILS';
 function row(partial: Partial<ProjectRollupRow> & Pick<ProjectRollupRow, 'projectId' | 'name'>): ProjectRollupRow {
   return {
     status: 'active',
+    workKind: 'project',
+    pricingMode: null,
+    priceNotSet: false,
     currency: ILS,
     originalContract: null,
     approvedAdditions: null,

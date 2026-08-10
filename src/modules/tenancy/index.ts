@@ -35,6 +35,18 @@ export {
   resolveModuleVisibility,
 } from './domain/types';
 export type { OptionalModuleKey, ModuleVisibility } from './domain/types';
+export {
+  WORK_MIX_SETTING_KEY,
+  WORK_MIXES,
+  DEFAULT_WORK_MIX,
+  isWorkMix,
+  parseWorkMix,
+  workMixSurfacesJobs,
+  workMixProjectsPrimary,
+  workMixJobsPrimary,
+} from './domain/work-mix';
+export type { WorkMix } from './domain/work-mix';
+export { getWorkMixForOrg, saveWorkMix } from './application/work-mix';
 export { DEFAULT_COST_CATEGORIES, defaultsForCountry } from './domain/organization-defaults';
 export {
   PROFESSION_PRESET_KEYS,

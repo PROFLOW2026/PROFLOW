@@ -1,5 +1,5 @@
 import { relations, sql } from 'drizzle-orm';
-import { boolean, date, index, jsonb, pgTable, text, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
+import { boolean, check, date, index, jsonb, pgTable, text, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
 import { archivedAt, currencyCode, moneyAmount, primaryId, timestamps } from './_shared';
 import { contractStatusEnum } from './enums';
 import { profiles } from './identity';
@@ -41,9 +41,30 @@ export const contracts = pgTable(
      * Net original contract value. Never treated as VAT-inclusive revenue;
      * commercial / profitability math uses this (and value events) as net.
      */
+    /**
+     * Managed opening NET — ProjectFlow commercial / profitability base.
+     * When an opening reduction exists, this is display_original_net − reduction_net,
+     * not the real-world original contract.
+     */
     originalValueAmount: moneyAmount('original_value_amount'),
     originalTaxAmount: moneyAmount('original_tax_amount'),
     originalGrossAmount: moneyAmount('original_gross_amount'),
+    /**
+     * Real-world original contract (display/context only). Never summed into CCV
+     * or profitability. Null means display original equals managed original.
+     */
+    displayOriginalEnteredAmount: moneyAmount('display_original_entered_amount'),
+    displayOriginalNetAmount: moneyAmount('display_original_net_amount'),
+    displayOriginalTaxAmount: moneyAmount('display_original_tax_amount'),
+    displayOriginalGrossAmount: moneyAmount('display_original_gross_amount'),
+    /**
+     * Portion already economically behind the business before ProjectFlow
+     * management began. Not a payment, bill, or expense.
+     */
+    openingReductionEnteredAmount: moneyAmount('opening_reduction_entered_amount'),
+    openingReductionNetAmount: moneyAmount('opening_reduction_net_amount'),
+    openingReductionTaxAmount: moneyAmount('opening_reduction_tax_amount'),
+    openingReductionGrossAmount: moneyAmount('opening_reduction_gross_amount'),
     taxSnapshot: jsonb('tax_snapshot').$type<Record<string, unknown>>(),
     currency: currencyCode().notNull(),
     signedDate: date('signed_date'),
@@ -57,6 +78,16 @@ export const contracts = pgTable(
     uniqueIndex('contracts_project_primary_uq')
       .on(table.projectId)
       .where(sql`${table.isPrimary} and ${table.archivedAt} is null`),
+    check(
+      'contracts_opening_reduction_non_negative',
+      sql`${table.openingReductionNetAmount} IS NULL OR ${table.openingReductionNetAmount} >= 0`,
+    ),
+    check(
+      'contracts_opening_reduction_lte_display',
+      sql`${table.displayOriginalNetAmount} IS NULL
+        OR ${table.openingReductionNetAmount} IS NULL
+        OR ${table.openingReductionNetAmount} <= ${table.displayOriginalNetAmount}`,
+    ),
   ],
 );
 

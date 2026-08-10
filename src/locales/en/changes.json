@@ -22,6 +22,10 @@
   "summary": {
     "title": "Contract value",
     "original": "Original contract value",
+    "displayOriginal": "Real-world original contract",
+    "openingReduction": "Reduction before management started",
+    "managedOpening": "Managed opening basis",
+    "entryBaselineHint": "Approved changes apply to the managed opening basis — not the full real-world original.",
     "approvedAdditions": "Approved additions",
     "approvedReductions": "Approved reductions",
     "current": "Current contract value",

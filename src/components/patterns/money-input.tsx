@@ -26,6 +26,22 @@ export function normalizeMoneyInputText(raw: string): string | null {
 }
 
 /**
+ * Present stored `numeric(18,6)` amounts without six trailing zeros.
+ * Only rewrites exact storage-scale strings so in-progress typing is untouched.
+ *
+ * `52000.000000` → `52000`, `52.500000` → `52.5`, `12.340000` → `12.34`
+ */
+export function formatMoneyAmountForInput(raw: string): string {
+  const trimmed = raw.trim();
+  const match = /^(-?)(\d+)\.(\d{6})$/.exec(trimmed);
+  if (!match) return raw;
+
+  const [, sign = '', integer = '', fraction = ''] = match;
+  const significantFraction = fraction.replace(/0+$/, '');
+  return significantFraction ? `${sign}${integer}.${significantFraction}` : `${sign}${integer}`;
+}
+
+/**
  * Money entry keeps the user's text as a decimal string all the way to the
  * server. Parsing to a JS number here is exactly how float drift enters
  * persisted amounts, so the field never does it.
@@ -58,7 +74,7 @@ export const MoneyInput = React.forwardRef<HTMLInputElement, MoneyInputProps>(fu
         numeric
         inputMode="decimal"
         autoComplete="off"
-        value={value}
+        value={formatMoneyAmountForInput(value)}
         onChange={handleChange}
         className={cn(currencySymbol && 'ps-8', className)}
         {...props}

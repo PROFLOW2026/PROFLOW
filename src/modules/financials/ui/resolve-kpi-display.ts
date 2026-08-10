@@ -37,6 +37,11 @@ export interface ResolvedProjectKpis {
   readonly forecastMarginPercent: string | null;
   /** True when Forecast Final Cost equals Actual (no remaining commitments / ETC). */
   readonly forecastEqualsActual: boolean;
+  /**
+   * Open-price job: cost forecast OK; margins null — show price-not-set copy.
+   * Never derive a fake −loss from revenue = 0.
+   */
+  readonly priceNotSet: boolean;
 }
 
 /**
@@ -49,6 +54,7 @@ export function resolveProjectKpiDisplay(
   const cost = financials.cost;
   const commercial = financials.commercial;
   const profit = financials.profit;
+  const priceNotSet = financials.priceNotSet === true;
 
   const allocatedOverhead = cost.allocatedOverhead ?? cost.overheadActual;
   const forecastCost = cost.forecastCost ?? cost.estimatedFinalCost;
@@ -59,7 +65,11 @@ export function resolveProjectKpiDisplay(
   let forecastMargin: MoneyValue | null =
     profit?.forecastMargin ?? profit?.estimatedProfit ?? null;
 
-  if (commercial) {
+  if (priceNotSet) {
+    // Do not fall back to contract(0) − cost (= fake loss).
+    actualMargin = null;
+    forecastMargin = null;
+  } else if (commercial) {
     if (!actualMargin) {
       actualMargin = subtractMoney(commercial.currentContractValue, cost.actualCostToDate);
     }
@@ -73,7 +83,7 @@ export function resolveProjectKpiDisplay(
     cost.actualCostToDate.currency === forecastCost.currency;
 
   return {
-    currentContract: commercial?.currentContractValue ?? null,
+    currentContract: priceNotSet ? null : (commercial?.currentContractValue ?? null),
     actualCost: cost.actualCostToDate,
     allocatedOverhead,
     committed: cost.committedOpen,
@@ -84,9 +94,12 @@ export function resolveProjectKpiDisplay(
     outstanding: financials.billing.outstanding,
     actualMargin,
     forecastMargin,
-    actualMarginPercent: profit?.actualMarginPercent ?? null,
-    forecastMarginPercent: profit?.forecastMarginPercent ?? profit?.marginPercent ?? null,
+    actualMarginPercent: priceNotSet ? null : (profit?.actualMarginPercent ?? null),
+    forecastMarginPercent: priceNotSet
+      ? null
+      : (profit?.forecastMarginPercent ?? profit?.marginPercent ?? null),
     forecastEqualsActual,
+    priceNotSet,
   };
 }
 

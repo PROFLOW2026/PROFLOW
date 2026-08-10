@@ -32,7 +32,9 @@ describe('ContractAmountFields locked UI', () => {
 
     expect(screen.getByText(heProjects.details.originalAmountLockedTitle)).toBeVisible();
     expect(screen.getByText(heProjects.details.originalAmountLocked)).toBeVisible();
-    expect(screen.getByRole('textbox')).toBeDisabled();
+    for (const box of screen.getAllByRole('textbox')) {
+      expect(box).toBeDisabled();
+    }
     expect(screen.getByRole('combobox')).toBeDisabled();
     expect(document.querySelector('input[name="contractValueAmount"]')).toBeNull();
     expect(document.querySelector('input[name="amountIncludesTax"]')).toBeNull();
@@ -60,7 +62,9 @@ describe('ContractAmountFields locked UI', () => {
     );
 
     expect(screen.queryByText(enProjects.details.originalAmountLockedTitle)).toBeNull();
-    expect(screen.getByRole('textbox')).not.toBeDisabled();
+    for (const box of screen.getAllByRole('textbox')) {
+      expect(box).not.toBeDisabled();
+    }
     expect(screen.getByRole('combobox')).not.toBeDisabled();
     expect(document.querySelector('input[name="contractValueAmount"]')).not.toBeNull();
     expect(enProjects.details.originalAmountLocked).toContain('Change Orders');

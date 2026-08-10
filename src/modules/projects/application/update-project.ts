@@ -12,10 +12,12 @@ import {
   listContractValueEvents,
 } from '../data/contracts.repository';
 import { findProjectById, updateProjectById } from '../data/projects.repository';
+import { resolveDisplayOriginalEntered } from '../domain/entry-baseline';
 import { isOriginalContractAmountLocked } from '../domain/contract-value';
 import { updateProjectSchema, type UpdateProjectInput } from '../validation/schemas';
 import {
   ORIGINAL_AMOUNT_LOCKED_MESSAGE_KEY,
+  openingReductionInputsDiffer,
   upsertPrimaryContractAmount,
 } from './contract-amount';
 
@@ -107,14 +109,19 @@ export async function updateProject(
         existingContract.id,
       );
       const locked = isOriginalContractAmountLocked(events);
-      const amountChanged = amountsDiffer(
-        existingContract.enteredValueAmount ?? existingContract.originalValueAmount,
-        input.contractValueAmount,
+      const displayEntered =
+        resolveDisplayOriginalEntered(existingContract) ??
+        existingContract.enteredValueAmount ??
+        existingContract.originalValueAmount;
+      const amountChanged = amountsDiffer(displayEntered, input.contractValueAmount, currency);
+      const modeChanged = existingContract.amountIncludesTax !== includesTax;
+      const reductionChanged = openingReductionInputsDiffer(
+        existingContract.openingReductionEnteredAmount,
+        input.openingReductionAmount,
         currency,
       );
-      const modeChanged = existingContract.amountIncludesTax !== includesTax;
 
-      if (locked && (amountChanged || modeChanged)) {
+      if (locked && (amountChanged || modeChanged || reductionChanged)) {
         throw new DomainRuleError(
           'Original contract amount cannot be changed after an approved contract-value change',
           ORIGINAL_AMOUNT_LOCKED_MESSAGE_KEY,
@@ -122,12 +129,13 @@ export async function updateProject(
         );
       }
 
-      if (!locked && (amountChanged || modeChanged)) {
+      if (!locked && (amountChanged || modeChanged || reductionChanged)) {
         await upsertPrimaryContractAmount(context, {
           projectId: input.projectId,
           enteredAmount: input.contractValueAmount,
           currency,
           amountIncludesTax: includesTax,
+          openingReductionAmount: input.openingReductionAmount,
         });
       }
     } else {
@@ -136,6 +144,7 @@ export async function updateProject(
         enteredAmount: input.contractValueAmount,
         currency,
         amountIncludesTax: includesTax,
+        openingReductionAmount: input.openingReductionAmount,
       });
     }
   }

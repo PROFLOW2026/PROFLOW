@@ -123,17 +123,25 @@ export async function findProjectCurrency(
 /**
  * Project currency + uncovenanted expected remaining cost (ETC) for forecast.
  * Null ETC amount means zero — never invent a budget from contract/actual.
+ * Includes work_kind / pricing_mode for open-price profit gating.
  */
 export async function findProjectForecastInputs(
   db: DbExecutor,
   organizationId: string,
   projectId: string,
   fallbackCurrency: string,
-): Promise<{ currency: string; expectedRemainingCostAmount: string | null }> {
+): Promise<{
+  currency: string;
+  expectedRemainingCostAmount: string | null;
+  workKind: string;
+  pricingMode: string | null;
+}> {
   const [row] = await db
     .select({
       currency: projects.currency,
       expectedRemainingCostAmount: projects.expectedRemainingCostAmount,
+      workKind: projects.workKind,
+      pricingMode: projects.pricingMode,
     })
     .from(projects)
     .where(and(eq(projects.organizationId, organizationId), eq(projects.id, projectId)))
@@ -142,6 +150,8 @@ export async function findProjectForecastInputs(
   return {
     currency: (row?.currency ?? fallbackCurrency).toUpperCase(),
     expectedRemainingCostAmount: row?.expectedRemainingCostAmount ?? null,
+    workKind: row?.workKind ?? 'project',
+    pricingMode: row?.pricingMode ?? null,
   };
 }
 

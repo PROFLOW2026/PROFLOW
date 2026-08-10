@@ -16,7 +16,12 @@ import {
   getActiveOrganizationPreference,
   setActiveOrganizationPreference,
 } from '@/modules/identity';
-import { getModuleVisibility, listMembershipsForUser, resolveOrgContext } from '@/modules/tenancy';
+import {
+  getModuleVisibility,
+  getWorkMixForOrg,
+  listMembershipsForUser,
+  resolveOrgContext,
+} from '@/modules/tenancy';
 import { AuthenticationRequiredError, AppError } from '@/shared/errors';
 import { localeFromAuthMetadata } from '@/shared/i18n/auth-locale';
 
@@ -163,15 +168,22 @@ export const getShellContext = cache(async () => {
   if (session.status !== 'authenticated' || !session.activeOrganizationId) return null;
 
   try {
-    return await runInOrgContext(session.user.id, session.activeOrganizationId, async (context) => ({
-      user: session.user,
-      memberships: session.memberships,
-      organization: context.organization,
-      organizationId: context.organizationId,
-      permissions: context.permissions,
-      roleKeys: context.roleKeys,
-      modules: await getModuleVisibility(context),
-    }));
+    return await runInOrgContext(session.user.id, session.activeOrganizationId, async (context) => {
+      const [modules, workMix] = await Promise.all([
+        getModuleVisibility(context),
+        getWorkMixForOrg(context),
+      ]);
+      return {
+        user: session.user,
+        memberships: session.memberships,
+        organization: context.organization,
+        organizationId: context.organizationId,
+        permissions: context.permissions,
+        roleKeys: context.roleKeys,
+        modules,
+        workMix,
+      };
+    });
   } catch (error) {
     // A revoked membership should show the org picker, not an error page.
     if (error instanceof AppError) return null;

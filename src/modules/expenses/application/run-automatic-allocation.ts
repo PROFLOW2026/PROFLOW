@@ -6,7 +6,7 @@ import { allocateByProjectWeights } from '../domain/allocation';
 import {
   applyActiveDayExposureToBases,
   assertValidAllocationPeriod,
-  selectEligibleProjects,
+  selectEligibleProjectsForMethod,
   type AllocationPeriod,
 } from '../domain/allocation-eligibility';
 import {
@@ -128,9 +128,10 @@ async function allocateOneSlice(
     end: input.slice.periodEnd,
   };
 
-  const eligible = selectEligibleProjects(
+  const eligible = selectEligibleProjectsForMethod(
     input.allProjects,
     period,
+    input.weightMethod,
     input.eligibleProjectIds,
   );
 

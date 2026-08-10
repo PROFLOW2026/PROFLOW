@@ -55,10 +55,15 @@ export async function createProject(
     if (!client) throw new NotFoundError('Client');
   }
 
+  const workKind = input.workKind ?? 'project';
+  const pricingMode = workKind === 'job' ? (input.pricingMode ?? null) : null;
+
   const project = await insertProject(context.db, {
     organizationId: context.organizationId,
     name: input.name,
     status: input.status,
+    workKind,
+    pricingMode,
     clientId,
     currency: input.contractValueAmount ? currency : null,
     description: input.description ?? null,
@@ -86,12 +91,18 @@ export async function createProject(
     });
   }
 
-  if (input.contractValueAmount) {
+  // Open-price jobs must not invent a zero-revenue contract.
+  const shouldUpsertContract =
+    Boolean(input.contractValueAmount) &&
+    !(workKind === 'job' && pricingMode === 'open');
+
+  if (shouldUpsertContract && input.contractValueAmount) {
     await upsertPrimaryContractAmount(context, {
       projectId: project.id,
       enteredAmount: input.contractValueAmount,
       currency,
       amountIncludesTax: input.amountIncludesTax ?? false,
+      openingReductionAmount: input.openingReductionAmount,
     });
   }
 
@@ -99,7 +110,13 @@ export async function createProject(
     action: 'project.created',
     entityType: 'project',
     entityId: project.id,
-    after: { name: project.name, status: project.status, clientId },
+    after: {
+      name: project.name,
+      status: project.status,
+      clientId,
+      workKind,
+      pricingMode: project.pricingMode,
+    },
   });
 
   return { projectId: project.id, clientId };

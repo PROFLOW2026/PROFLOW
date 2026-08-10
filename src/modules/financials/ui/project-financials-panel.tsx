@@ -94,6 +94,20 @@ export async function ProjectFinancialsPanel({ projectId }: ProjectFinancialsPan
         <div className="mt-4 flex flex-col gap-4 text-sm">
           {canReadCommercial && financials.commercial ? (
             <section className="flex flex-col gap-3">
+              {financials.commercial.displayOriginalContractValue ? (
+                <MetricRow
+                  label={t('displayOriginalContractValue')}
+                  value={financials.commercial.displayOriginalContractValue}
+                  muted
+                />
+              ) : null}
+              {financials.commercial.openingReductionValue ? (
+                <MetricRow
+                  label={t('openingReductionValue')}
+                  value={financials.commercial.openingReductionValue}
+                  muted
+                />
+              ) : null}
               <MetricRow
                 label={t('originalContractValue')}
                 value={financials.commercial.originalContractValue}

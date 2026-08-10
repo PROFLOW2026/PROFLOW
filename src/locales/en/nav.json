@@ -1,6 +1,7 @@
 {
   "dashboard": "Dashboard",
   "projects": "Projects",
+  "jobs": "Jobs",
   "expenses": "Expenses",
   "changes": "Changes and extras",
   "billing": "Billing and collections",
@@ -26,6 +27,7 @@
   "newMenu": {
     "trigger": "New",
     "project": "Project",
+    "job": "Job",
     "expense": "Expense",
     "change": "Change or extra",
     "billingRecord": "Billing record",

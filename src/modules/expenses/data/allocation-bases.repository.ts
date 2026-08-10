@@ -32,6 +32,8 @@ export async function listProjectsForAllocationEligibility(
       actualEndDate: projects.actualEndDate,
       targetEndDate: projects.targetEndDate,
       archivedAt: projects.archivedAt,
+      workKind: projects.workKind,
+      pricingMode: projects.pricingMode,
     })
     .from(projects)
     .where(eq(projects.organizationId, organizationId));
@@ -43,6 +45,8 @@ export async function listProjectsForAllocationEligibility(
     actualEndDate: row.actualEndDate as BusinessDate | null,
     targetEndDate: row.targetEndDate as BusinessDate | null,
     archivedAt: row.archivedAt,
+    workKind: row.workKind,
+    pricingMode: row.pricingMode,
   }));
 }
 

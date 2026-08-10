@@ -1,0 +1,92 @@
+{
+  "title": "עבודות",
+  "newJob": "עבודה חדשה",
+  "noContractValue": "לא הוגדר",
+  "priceNotSet": "המחיר טרם נקבע",
+  "empty": {
+    "title": "עדיין אין עבודות",
+    "body": "עבודה קצרה: לקוח, מחיר קבוע או פתוח, עלויות וחיוב — בלי הגדרת פרויקט כבדה.",
+    "action": "יצירת עבודה ראשונה",
+    "workMixLink": "הצגת עבודות בניווט (הגדרות)"
+  },
+  "list": {
+    "searchPlaceholder": "חיפוש עבודות…",
+    "filterStatus": "סטטוס",
+    "filterFacet": "סינון",
+    "allStatuses": "כל הסטטוסים",
+    "facets": {
+      "all": "הכל",
+      "new": "חדש",
+      "active": "פעיל",
+      "completed": "הושלם",
+      "awaiting_payment": "ממתין לתשלום"
+    },
+    "columns": {
+      "client": "לקוח",
+      "name": "עבודה",
+      "date": "תאריך",
+      "status": "סטטוס",
+      "price": "מחיר",
+      "actualCost": "עלות בפועל",
+      "profit": "רווח",
+      "billing": "חיוב / תשלום",
+      "noClient": "—"
+    },
+    "billingStatus": {
+      "none": "אין חשבונית",
+      "unpaid": "לא שולם",
+      "partial": "חלקי",
+      "paid": "שולם"
+    }
+  },
+  "pricing": {
+    "fixed": "מחיר קבוע",
+    "open": "מחיר פתוח",
+    "priceNotSet": "המחיר טרם נקבע",
+    "priceLabel": "מחיר",
+    "priceHint": "מחיר העבודה. החישוב המסחרי משתמש בסכום נטו (ללא מע״מ).",
+    "pricePlaceholder": "לדוגמה: 2500",
+    "taxModeHint": "האם המחיר כולל מע״מ או לא. שיעור המע״מ נלקח מהגדרות הארגון.",
+    "setPrice": "קביעת מחיר",
+    "setPriceSubmit": "שמירת מחיר"
+  },
+  "create": {
+    "title": "עבודה חדשה",
+    "description": "קליטה מהירה לעבודה קצרה. בלי חבילות עבודה, שלבים או הגדרת חוזה כבדה.",
+    "nameLabel": "שם / תיאור העבודה",
+    "namePlaceholder": "לדוגמה: תיקון מזגן אצל כהן",
+    "clientLabel": "לקוח",
+    "clientNew": "לקוח מזדמן / חדש",
+    "clientSelect": "לקוח קיים",
+    "clientNamePlaceholder": "שם הלקוח",
+    "clientNameExample": "לדוגמה: מזדמן — דנה",
+    "pricingModeLabel": "תמחור",
+    "startDateLabel": "תאריך התחלה",
+    "endDateLabel": "תאריך סיום",
+    "notesLabel": "הערות",
+    "workersLabel": "עובדים",
+    "workersPlaceholder": "הערת צוות (אופציונלי)",
+    "workersHint": "הערה חופשית לעת עתה. שיוך פורמלי נעשה בלשונית זמן וצוות.",
+    "moreDetails": "פרטים נוספים",
+    "submit": "יצירת עבודה",
+    "success": "העבודה נוצרה"
+  },
+  "overview": {
+    "datesTitle": "תאריכים",
+    "editDates": "עריכת תאריכים בפרטים",
+    "priceSummary": "סיכום מחיר",
+    "noPriceHint": "אפשר להמשיך לרשום עלויות; רווח יוצג אחרי קביעת מחיר."
+  },
+  "workspace": {
+    "fallbackTitle": "עבודה",
+    "convertToProject": "המרה לפרויקט",
+    "convertHint": "פותח את כל לשוניות הפרויקט. ההיסטוריה הכספית נשארת על אותה עבודה.",
+    "convertConfirm": "להמיר את העבודה לפרויקט? תופיע סביבת הפרויקט המלאה; הנתונים הכספיים לא יימחקו.",
+    "openPriceBanner": "המחיר טרם נקבע — אפשר להמשיך לרשום עלויות; רווח יוצג רק אחרי קביעת מחיר."
+  },
+  "convert": {
+    "success": "הומר לפרויקט",
+    "notAJob": "ניתן להמיר רק עבודות לפרויקטים",
+    "requiresRevenueBasis": "יש לקבוע מחיר לפני המרה לפרויקט"
+  }
+}

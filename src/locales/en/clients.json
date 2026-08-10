@@ -16,9 +16,11 @@
   },
   "create": {
     "title": "New client",
-    "description": "Only a name is required. Legal details can be added later for exports and billing.",
+    "description": "Walk-in friendly: a name is enough (add phone if you have it). Legal details can wait.",
+    "walkInHint": "For a walk-in client — save the name now and continue to the job.",
     "nameLabel": "Client name",
     "namePlaceholder": "Display name",
+    "phoneQuickLabel": "Phone (optional)",
     "moreDetails": "More details",
     "legalNameLabel": "Legal name",
     "emailLabel": "Email",

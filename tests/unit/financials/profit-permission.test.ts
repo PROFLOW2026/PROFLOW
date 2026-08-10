@@ -22,6 +22,9 @@ describe('project profit permission shape', () => {
   const base: ProjectFinancials = {
     projectId: 'p1',
     currency,
+    workKind: 'project',
+    pricingMode: null,
+    priceNotSet: false,
     commercial: {
       originalContractValue: { amount: '100000.000000', currency },
       approvedAdditions: zero,

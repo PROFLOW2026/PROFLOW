@@ -1,6 +1,8 @@
 {
   "panelTitle": "Project financials",
   "originalContractValue": "Original contract value",
+  "displayOriginalContractValue": "Per original contract",
+  "openingReductionValue": "Opening reduction",
   "approvedChanges": "Approved changes",
   "approvedAdditions": "Approved additions",
   "approvedReductions": "Approved reductions",
@@ -54,7 +56,9 @@
     "actualMarginHint": "Current Contract − Actual Cost (net). Not a cash figure.",
     "forecastMargin": "Forecast Margin",
     "forecastMarginHint": "Current Contract − Forecast Cost (net).",
-    "forecastMarginEqualsActualHint": "Same as Actual Margin while Forecast Cost equals Actual Cost."
+    "forecastMarginEqualsActualHint": "Same as Actual Margin while Forecast Cost equals Actual Cost.",
+    "priceNotSet": "Price not set yet",
+    "priceNotSetHint": "Open-price job: costs and cost forecast still accumulate. Profit and margin are not claimed until a revenue basis is set."
   },
   "drillLinks": {
     "viewChanges": "Open project changes",

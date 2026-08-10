@@ -1,6 +1,7 @@
 'use client';
 
 import {
+  Briefcase,
   Building2,
   ClipboardList,
   FileText,
@@ -25,6 +26,7 @@ import type { NavIconKey } from './navigation';
 const NAV_ICONS: Record<NavIconKey, LucideIcon> = {
   dashboard: LayoutDashboard,
   projects: FolderKanban,
+  jobs: Briefcase,
   expenses: Receipt,
   billing: Wallet,
   changes: Repeat2,

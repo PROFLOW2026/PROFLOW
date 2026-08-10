@@ -143,6 +143,9 @@ export interface ContractRecord {
   readonly originalValueAmount: string | null;
   readonly originalTaxAmount?: string | null;
   readonly originalGrossAmount?: string | null;
+  /** Context-only mid-project entry fields (not CCV event sums). */
+  readonly displayOriginalNetAmount?: string | null;
+  readonly openingReductionNetAmount?: string | null;
   readonly currency: string;
 }
 

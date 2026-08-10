@@ -86,7 +86,7 @@ describe('migration journal', () => {
     const journal = await loadJournal();
     const tags = journal.entries.map((entry) => entry.tag);
     const from13 = tags.slice(tags.indexOf('0013_document_owner_types'));
-    expect(from13).toEqual([
+    expect(from13.slice(0, 6)).toEqual([
       '0013_document_owner_types',
       '0014_allocation_engine',
       '0015_project_expected_remaining_cost',
@@ -94,5 +94,14 @@ describe('migration journal', () => {
       '0017_periodic_allocation',
       '0018_allocation_run_integrity',
     ]);
+  });
+
+  it('places project/job entry baseline 0019 after 0018', async () => {
+    const journal = await loadJournal();
+    const tags = journal.entries.map((entry) => entry.tag);
+    expect(tags.indexOf('0018_allocation_run_integrity')).toBeLessThan(
+      tags.indexOf('0019_project_job_modes_and_entry_baseline'),
+    );
+    expect(tags.at(-1)).toBe('0019_project_job_modes_and_entry_baseline');
   });
 });

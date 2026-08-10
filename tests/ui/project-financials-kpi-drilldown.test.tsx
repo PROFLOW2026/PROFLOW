@@ -50,6 +50,9 @@ function buildFinancials(overrides?: {
   const financials: ProjectFinancialsWithOptionalKpis = {
     projectId: 'project-1',
     currency,
+    workKind: 'project',
+    pricingMode: null,
+    priceNotSet: false,
     commercial: {
       originalContractValue: { amount: '100000.000000', currency },
       approvedAdditions: zero,

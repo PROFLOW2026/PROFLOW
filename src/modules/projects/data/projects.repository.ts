@@ -21,6 +21,8 @@ function mapProject(row: typeof projects.$inferSelect): ProjectRecord {
     organizationId: row.organizationId,
     name: row.name,
     status: row.status,
+    workKind: (row.workKind as ProjectRecord['workKind']) ?? 'project',
+    pricingMode: (row.pricingMode as ProjectRecord['pricingMode']) ?? null,
     clientId: row.clientId,
     currency: row.currency,
     description: row.description,
@@ -63,6 +65,8 @@ export async function insertProject(
     organizationId: string;
     name: string;
     status?: ProjectRecord['status'];
+    workKind?: ProjectRecord['workKind'];
+    pricingMode?: ProjectRecord['pricingMode'];
     clientId?: string | null;
     currency?: string | null;
     description?: string | null;
@@ -81,6 +85,8 @@ export async function insertProject(
       organizationId: input.organizationId,
       name: input.name,
       status: input.status ?? 'active',
+      workKind: input.workKind ?? 'project',
+      pricingMode: input.pricingMode ?? null,
       clientId: input.clientId ?? null,
       currency: input.currency ?? null,
       description: input.description ?? null,
@@ -104,6 +110,8 @@ export async function updateProjectById(
   patch: Partial<{
     name: string;
     status: ProjectRecord['status'];
+    workKind: ProjectRecord['workKind'];
+    pricingMode: ProjectRecord['pricingMode'];
     clientId: string | null;
     currency: string | null;
     description: string | null;
@@ -160,6 +168,34 @@ export async function listProjects(
 
   if (filters.clientId) {
     conditions.push(eq(projects.clientId, filters.clientId));
+  }
+
+  if (filters.workKind) {
+    conditions.push(eq(projects.workKind, filters.workKind));
+  }
+
+  if (filters.awaitingPayment) {
+    // Outstanding = signed finalized billing − recorded payments (never a stored balance).
+    conditions.push(sql`(
+      coalesce((
+        select sum(case when br.kind = 'credit_note' then -br.total_amount else br.total_amount end)
+        from billing_records br
+        where br.project_id = ${projects.id}
+          and br.organization_id = ${organizationId}
+          and br.archived_at is null
+          and br.status not in ('draft', 'void')
+      ), 0)
+      - coalesce((
+        select sum(p.amount)
+        from payments p
+        join billing_records br on br.id = p.billing_record_id
+        where br.project_id = ${projects.id}
+          and br.organization_id = ${organizationId}
+          and br.archived_at is null
+          and br.status not in ('draft', 'void')
+          and p.status = 'recorded'
+      ), 0)
+    ) > 0`);
   }
 
   if (filters.search?.trim()) {

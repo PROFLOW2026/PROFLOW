@@ -41,6 +41,14 @@ function mapContract(row: typeof contracts.$inferSelect): ContractRecord {
     originalValueAmount: row.originalValueAmount,
     originalTaxAmount: row.originalTaxAmount,
     originalGrossAmount: row.originalGrossAmount,
+    displayOriginalEnteredAmount: row.displayOriginalEnteredAmount,
+    displayOriginalNetAmount: row.displayOriginalNetAmount,
+    displayOriginalTaxAmount: row.displayOriginalTaxAmount,
+    displayOriginalGrossAmount: row.displayOriginalGrossAmount,
+    openingReductionEnteredAmount: row.openingReductionEnteredAmount,
+    openingReductionNetAmount: row.openingReductionNetAmount,
+    openingReductionTaxAmount: row.openingReductionTaxAmount,
+    openingReductionGrossAmount: row.openingReductionGrossAmount,
     taxSnapshot: mapTaxSnapshot(row.taxSnapshot),
     currency: row.currency,
     signedDate: row.signedDate,
@@ -87,6 +95,14 @@ export async function insertContract(
     originalValueAmount?: string | null;
     originalTaxAmount?: string | null;
     originalGrossAmount?: string | null;
+    displayOriginalEnteredAmount?: string | null;
+    displayOriginalNetAmount?: string | null;
+    displayOriginalTaxAmount?: string | null;
+    displayOriginalGrossAmount?: string | null;
+    openingReductionEnteredAmount?: string | null;
+    openingReductionNetAmount?: string | null;
+    openingReductionTaxAmount?: string | null;
+    openingReductionGrossAmount?: string | null;
     taxSnapshot?: ContractTaxSnapshotRecord | null;
     currency: string;
     signedDate?: string | null;
@@ -107,6 +123,14 @@ export async function insertContract(
       originalValueAmount: input.originalValueAmount ?? null,
       originalTaxAmount: input.originalTaxAmount ?? null,
       originalGrossAmount: input.originalGrossAmount ?? null,
+      displayOriginalEnteredAmount: input.displayOriginalEnteredAmount ?? null,
+      displayOriginalNetAmount: input.displayOriginalNetAmount ?? null,
+      displayOriginalTaxAmount: input.displayOriginalTaxAmount ?? null,
+      displayOriginalGrossAmount: input.displayOriginalGrossAmount ?? null,
+      openingReductionEnteredAmount: input.openingReductionEnteredAmount ?? null,
+      openingReductionNetAmount: input.openingReductionNetAmount ?? null,
+      openingReductionTaxAmount: input.openingReductionTaxAmount ?? null,
+      openingReductionGrossAmount: input.openingReductionGrossAmount ?? null,
       taxSnapshot: (input.taxSnapshot as unknown as Record<string, unknown> | null) ?? null,
       currency: input.currency,
       signedDate: input.signedDate ?? null,
@@ -127,6 +151,14 @@ export async function updateContractAmounts(
     originalValueAmount: string;
     originalTaxAmount: string;
     originalGrossAmount: string;
+    displayOriginalEnteredAmount: string | null;
+    displayOriginalNetAmount: string | null;
+    displayOriginalTaxAmount: string | null;
+    displayOriginalGrossAmount: string | null;
+    openingReductionEnteredAmount: string | null;
+    openingReductionNetAmount: string | null;
+    openingReductionTaxAmount: string | null;
+    openingReductionGrossAmount: string | null;
     taxSnapshot: ContractTaxSnapshotRecord;
     currency: string;
   },
@@ -139,6 +171,14 @@ export async function updateContractAmounts(
       originalValueAmount: patch.originalValueAmount,
       originalTaxAmount: patch.originalTaxAmount,
       originalGrossAmount: patch.originalGrossAmount,
+      displayOriginalEnteredAmount: patch.displayOriginalEnteredAmount,
+      displayOriginalNetAmount: patch.displayOriginalNetAmount,
+      displayOriginalTaxAmount: patch.displayOriginalTaxAmount,
+      displayOriginalGrossAmount: patch.displayOriginalGrossAmount,
+      openingReductionEnteredAmount: patch.openingReductionEnteredAmount,
+      openingReductionNetAmount: patch.openingReductionNetAmount,
+      openingReductionTaxAmount: patch.openingReductionTaxAmount,
+      openingReductionGrossAmount: patch.openingReductionGrossAmount,
       taxSnapshot: patch.taxSnapshot as unknown as Record<string, unknown>,
       currency: patch.currency,
       updatedAt: new Date(),

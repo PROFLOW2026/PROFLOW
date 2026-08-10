@@ -14,6 +14,8 @@ function mapContract(row: typeof contracts.$inferSelect): ContractRecord {
     originalValueAmount: row.originalValueAmount,
     originalTaxAmount: row.originalTaxAmount,
     originalGrossAmount: row.originalGrossAmount,
+    displayOriginalNetAmount: row.displayOriginalNetAmount,
+    openingReductionNetAmount: row.openingReductionNetAmount,
     currency: row.currency,
   };
 }

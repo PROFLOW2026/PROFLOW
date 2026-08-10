@@ -22,6 +22,10 @@
   "summary": {
     "title": "סכום חוזה",
     "original": "סכום חוזה מקורי",
+    "displayOriginal": "לפי החוזה המקורי",
+    "openingReduction": "הפחתה לפני תחילת הניהול",
+    "managedOpening": "מה שמנהלים מכאן",
+    "entryBaselineHint": "שינויים מאושרים מתווספים למה שמנהלים מכאן — לא לסכום החוזה המקורי המלא.",
     "approvedAdditions": "תוספות מאושרות",
     "approvedReductions": "הפחתות מאושרות",
     "current": "סכום חוזה נוכחי",

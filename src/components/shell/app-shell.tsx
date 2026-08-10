@@ -5,6 +5,8 @@ import { redirect } from '@/shared/i18n/navigation';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { ConnectivityBanner } from '@/modules/offline/ui/connectivity-banner';
 import { OfflineSyncProvider } from '@/modules/offline/ui/offline-sync-provider';
+import type { WorkMix } from '@/modules/tenancy';
+import { workMixSurfacesJobs } from '@/modules/tenancy';
 import { MobileNav } from './mobile-nav';
 import { visibleNavItems } from './navigation';
 import { QuickCreate, type QuickCreateAction } from './quick-create';
@@ -25,8 +27,9 @@ export async function AppShell({ children }: { children: ReactNode }) {
   const shell = await getShellContext();
   if (!shell) redirect({ href: '/onboarding', locale: await getLocale() });
 
-  const items = visibleNavItems(shell.permissions, shell.modules);
-  const quickCreateActions = buildQuickCreateActions(shell.permissions, shell.modules);
+  const workMix = shell.workMix ?? 'projects';
+  const items = visibleNavItems(shell.permissions, shell.modules, { workMix });
+  const quickCreateActions = buildQuickCreateActions(shell.permissions, shell.modules, workMix);
 
   const userMenu = <UserMenuSlot organizationName={shell.organization.name} />;
 
@@ -86,12 +89,27 @@ async function UserMenuSlot({ organizationName }: { organizationName: string }) 
 function buildQuickCreateActions(
   permissions: ReadonlySet<string>,
   modules: Record<string, boolean>,
+  workMix: WorkMix,
 ): QuickCreateAction[] {
   const actions: QuickCreateAction[] = [];
+  const canCreateWork = permissions.has(PERMISSIONS.PROJECTS_CREATE);
+  const jobsVisible = Boolean(modules.jobs) || workMixSurfacesJobs(workMix);
 
-  if (permissions.has(PERMISSIONS.PROJECTS_CREATE)) {
-    actions.push({ key: 'project', href: '/projects/new', labelKey: 'project' });
+  if (canCreateWork) {
+    const jobAction = { key: 'job', href: '/jobs/new', labelKey: 'job' } as const;
+    const projectAction = { key: 'project', href: '/projects/new', labelKey: 'project' } as const;
+    if (workMix === 'jobs') {
+      if (jobsVisible) actions.push(jobAction);
+      actions.push(projectAction);
+    } else if (workMix === 'mixed') {
+      if (jobsVisible) actions.push(jobAction);
+      actions.push(projectAction);
+    } else {
+      actions.push(projectAction);
+      if (jobsVisible) actions.push(jobAction);
+    }
   }
+
   if (permissions.has(PERMISSIONS.EXPENSES_CREATE)) {
     actions.push({ key: 'expense', href: '/expenses/new', labelKey: 'expense' });
   }

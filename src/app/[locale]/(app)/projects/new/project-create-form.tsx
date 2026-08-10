@@ -19,9 +19,15 @@ interface ProjectCreateFormProps {
   baseCurrency: string;
   currencySymbol: string;
   clients: { id: string; name: string }[];
+  taxRatePercent?: string | null;
 }
 
-export function ProjectCreateForm({ baseCurrency, currencySymbol, clients }: ProjectCreateFormProps) {
+export function ProjectCreateForm({
+  baseCurrency,
+  currencySymbol,
+  clients,
+  taxRatePercent = null,
+}: ProjectCreateFormProps) {
   const t = useTranslations('projects');
   const tCommon = useTranslations('common');
   const [state, formAction, pending] = useActionState<ProjectFormState, FormData>(
@@ -103,6 +109,8 @@ export function ProjectCreateForm({ baseCurrency, currencySymbol, clients }: Pro
         currencySymbol={currencySymbol}
         amountError={state.fieldErrors?.contractValueAmount}
         taxModeError={state.fieldErrors?.amountIncludesTax}
+        reductionError={state.fieldErrors?.openingReductionAmount}
+        taxRatePercent={taxRatePercent}
       />
 
       <Field

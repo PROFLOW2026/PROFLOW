@@ -14,9 +14,16 @@ function allModulesOn(): ModuleVisibility {
 }
 
 describe('nav grouping', () => {
-  it('keeps only dashboard, projects, and expenses as primaryOnMobile', () => {
+  it('keeps dashboard, projects, and expenses as primaryOnMobile in the base catalog', () => {
     const primary = NAV_ITEMS.filter((item) => item.primaryOnMobile).map((item) => item.key);
     expect(primary).toEqual(['dashboard', 'projects', 'expenses']);
+  });
+
+  it('includes jobs as a projects-permission destination under the jobs module', () => {
+    const jobs = NAV_ITEMS.find((item) => item.key === 'jobs');
+    expect(jobs?.href).toBe('/jobs');
+    expect(jobs?.permission).toBe(PERMISSIONS.PROJECTS_READ);
+    expect(jobs?.module).toBe('jobs');
   });
 
   it('assigns moreGroup to overflow destinations and leaves core/settings ungrouped', () => {
@@ -62,7 +69,7 @@ describe('nav grouping', () => {
       PERMISSIONS.AP_READ,
       PERMISSIONS.PROJECT_FINANCIALS_READ,
     ]);
-    const items = visibleNavItems(permissions, allModulesOn());
+    const items = visibleNavItems(permissions, allModulesOn(), { workMix: 'projects' });
     const { core, groups, settings } = partitionNavItems(items);
 
     expect(core.map((item) => item.key)).toEqual(['dashboard', 'projects', 'expenses']);
@@ -70,6 +77,7 @@ describe('nav grouping', () => {
       MORE_GROUP_ORDER.filter((group) => groups.some((entry) => entry.group === group)),
     );
     expect(groups.find((entry) => entry.group === 'business')?.items.map((i) => i.key)).toEqual([
+      'jobs',
       'clients',
       'reports',
     ]);

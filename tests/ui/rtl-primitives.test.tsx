@@ -149,6 +149,19 @@ describe('RTL primitives', () => {
     expect(screen.getByLabelText('סכום')).toHaveAttribute('dir', 'ltr');
   });
 
+  it('does not show numeric(18,6) storage zeros in money inputs', () => {
+    renderWithIntl(
+      <MoneyInput
+        value="52000.000000"
+        onValueChange={() => undefined}
+        currencySymbol="₪"
+        aria-label="סכום"
+      />,
+      { locale: 'he-IL' },
+    );
+    expect(screen.getByLabelText('סכום')).toHaveValue('52000');
+  });
+
   it('flips directional chevrons via rtlFlipClassName', () => {
     expect(rtlFlipClassName('size-4')).toContain('rtl:rotate-180');
   });

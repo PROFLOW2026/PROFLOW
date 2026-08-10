@@ -5,6 +5,15 @@ import type { MoneyValue } from '@/shared/money';
 import { compareMoney, zeroMoney } from '@/shared/money';
 import { assertPermission, hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
+import { filterRowsByWorkKind } from '../domain/work-kind-filter';
+import {
+  normalizePricingMode,
+  normalizeWorkKind,
+  parseWorkKindFilter,
+  type PricingMode,
+  type WorkKind,
+  type WorkKindFilter,
+} from '../domain/work-pricing';
 import { listActiveProjectIds } from '../data/projects.repository';
 import {
   loadProjectFinancialsBatch,
@@ -15,6 +24,10 @@ export interface ProjectRollupRow {
   readonly projectId: string;
   readonly name: string;
   readonly status: string;
+  readonly workKind: WorkKind;
+  readonly pricingMode: PricingMode;
+  /** Open-price job — costs in rollup; profit fields stay null. */
+  readonly priceNotSet: boolean;
   readonly currency: string;
   readonly originalContract: MoneyValue | null;
   readonly approvedAdditions: MoneyValue | null;
@@ -55,10 +68,16 @@ export interface OrganizationProjectRollupOptions {
    */
   readonly limit?: number;
   readonly offset?: number;
+  /**
+   * All | Projects | Jobs. Defaults to all (projects + jobs, no double count).
+   * Unallocated org costs are reported beside rollup — not affected by this filter.
+   */
+  readonly workKindFilter?: WorkKindFilter | string | null;
 }
 
 export interface OrganizationProjectRollup {
   readonly currency: string;
+  readonly workKindFilter: WorkKindFilter;
   readonly rows: readonly ProjectRollupRow[];
   readonly ops: OrganizationOpsSummary;
   /** Projects excluded because their currency differs from org base. */
@@ -68,7 +87,7 @@ export interface OrganizationProjectRollup {
    * Kept for UI compatibility; prefer totalEligibleProjectCount.
    */
   readonly truncatedActiveProjectCount: number;
-  /** Base-currency active projects included in financial totals (before row pagination). */
+  /** Base-currency active projects/jobs included in financial totals (before row pagination). */
   readonly totalEligibleProjectCount: number;
   readonly note: string;
   readonly canReadProfit: boolean;
@@ -77,12 +96,12 @@ export interface OrganizationProjectRollup {
 }
 
 /**
- * Org-level project comparison for reporting (docs 29, 46).
+ * Org-level project/job comparison for reporting (docs 29, 46).
  * Never mixes currencies. Profit only when PROJECT_PROFIT_READ is held.
  * Does not label anything as Revenue. VAT is not profit.
  * Actual / Committed / Forecast stay separate on cost fields.
  *
- * All base-currency active projects are included in financial totals.
+ * All base-currency active projects and jobs are included (filterable).
  * Optional limit/offset only pages the returned `rows` array.
  *
  * Uses set-based batch loads (not per-project getProjectFinancials) while
@@ -98,6 +117,7 @@ export async function getOrganizationProjectRollup(
   const canProfit = hasPermission(context, PERMISSIONS.PROJECT_PROFIT_READ);
   const canBilling = hasPermission(context, PERMISSIONS.BILLING_READ);
   const canCommercial = hasPermission(context, PERMISSIONS.CONTRACTS_READ);
+  const workKindFilter = parseWorkKindFilter(options.workKindFilter);
 
   const [activeIds, projectRows] = await Promise.all([
     listActiveProjectIds(context.db, context.organizationId),
@@ -109,6 +129,8 @@ export async function getOrganizationProjectRollup(
         currency: projects.currency,
         progressPercent: projects.progressPercent,
         expectedRemainingCostAmount: projects.expectedRemainingCostAmount,
+        workKind: projects.workKind,
+        pricingMode: projects.pricingMode,
       })
       .from(projects)
       .where(and(eq(projects.organizationId, context.organizationId), isNull(projects.archivedAt))),
@@ -133,6 +155,8 @@ export async function getOrganizationProjectRollup(
     forecastByProject.set(projectId, {
       currency: projectCurrency,
       expectedRemainingCostAmount: meta.expectedRemainingCostAmount,
+      workKind: meta.workKind,
+      pricingMode: meta.pricingMode,
     });
   }
 
@@ -142,12 +166,18 @@ export async function getOrganizationProjectRollup(
     forecastByProject,
   );
 
-  const allRows: ProjectRollupRow[] = [];
+  const builtRows: ProjectRollupRow[] = [];
   for (const projectId of eligibleIds) {
     const meta = byId.get(projectId)!;
     const projectCurrency = (meta.currency ?? currency).toUpperCase();
     const financials = financialsByProject.get(projectId);
     if (!financials) continue;
+
+    const workKind = normalizeWorkKind(financials.workKind ?? meta.workKind);
+    const pricingMode = normalizePricingMode(
+      financials.pricingMode ?? meta.pricingMode ?? null,
+    );
+    const priceNotSet = financials.priceNotSet;
 
     const originalContract = canCommercial
       ? (financials.commercial?.originalContractValue ?? null)
@@ -158,9 +188,11 @@ export async function getOrganizationProjectRollup(
     const approvedReductions = canCommercial
       ? (financials.commercial?.approvedReductions ?? null)
       : null;
-    const currentContract = canCommercial
-      ? (financials.commercial?.currentContractValue ?? null)
-      : null;
+    // Open-price: do not surface a fake zero contract as revenue basis.
+    const currentContract =
+      canCommercial && !priceNotSet
+        ? (financials.commercial?.currentContractValue ?? null)
+        : null;
     const pendingChanges = canCommercial
       ? (financials.commercial?.pendingChanges ?? null)
       : null;
@@ -176,12 +208,15 @@ export async function getOrganizationProjectRollup(
     const expectedRemainingCost = financials.cost.expectedRemainingCost;
     const estimatedFinalCost = financials.cost.estimatedFinalCost;
     const assetCapitalActual = financials.cost.byFamily.assetCapital;
-    const estimatedProfit = canProfit ? (financials.profit?.estimatedProfit ?? null) : null;
-    const marginPercent = canProfit ? (financials.profit?.marginPercent ?? null) : null;
-    const actualProfit = canProfit ? (financials.profit?.actualProfit ?? null) : null;
-    const actualMarginPercent = canProfit
-      ? (financials.profit?.actualMarginPercent ?? null)
-      : null;
+    // Open-price rows keep null profit — never count as loss-making.
+    const estimatedProfit =
+      canProfit && !priceNotSet ? (financials.profit?.estimatedProfit ?? null) : null;
+    const marginPercent =
+      canProfit && !priceNotSet ? (financials.profit?.marginPercent ?? null) : null;
+    const actualProfit =
+      canProfit && !priceNotSet ? (financials.profit?.actualProfit ?? null) : null;
+    const actualMarginPercent =
+      canProfit && !priceNotSet ? (financials.profit?.actualMarginPercent ?? null) : null;
     const profitable =
       estimatedProfit == null
         ? null
@@ -191,16 +226,19 @@ export async function getOrganizationProjectRollup(
             ? false
             : null;
 
-    allRows.push({
+    builtRows.push({
       projectId,
       name: meta.name,
       status: meta.status,
+      workKind,
+      pricingMode,
+      priceNotSet,
       currency: projectCurrency,
-      originalContract,
-      approvedAdditions,
-      approvedReductions,
+      originalContract: priceNotSet ? null : originalContract,
+      approvedAdditions: priceNotSet ? null : approvedAdditions,
+      approvedReductions: priceNotSet ? null : approvedReductions,
       currentContract,
-      pendingChanges,
+      pendingChanges: priceNotSet ? null : pendingChanges,
       invoiced,
       paid,
       outstanding,
@@ -221,6 +259,8 @@ export async function getOrganizationProjectRollup(
       profitable,
     });
   }
+
+  const allRows = filterRowsByWorkKind(builtRows, workKindFilter);
 
   for (const row of allRows) {
     if (row.progressPercent != null && row.progressPercent !== '') {
@@ -253,9 +293,10 @@ export async function getOrganizationProjectRollup(
 
   return {
     currency,
+    workKindFilter,
     rows,
     ops: {
-      /** Full base-currency eligible set — never reduced by row pagination. */
+      /** Full base-currency eligible set for the active work-kind filter. */
       activeProjectCount: allRows.length,
       averageProgressPercent:
         progressCount > 0 ? (progressSum / progressCount).toFixed(1) : null,
@@ -265,7 +306,7 @@ export async function getOrganizationProjectRollup(
     excludedForeignCurrencyCount,
     truncatedActiveProjectCount: 0,
     totalEligibleProjectCount: allRows.length,
-    note: 'Amounts use organization base currency only. VAT is not treated as profit. Actual, Committed and Forecast stay labelled separately. Incomplete cost coverage is disclosed per project financials. Org totals include every base-currency active project (limit/offset page rows only). Unallocated organization costs are reported beside rollup totals, never inside project profit.',
+    note: 'Amounts use organization base currency only. VAT is not treated as profit. Actual, Committed and Forecast stay labelled separately. Incomplete cost coverage is disclosed per project financials. Org totals include every base-currency active project and job in the selected All/Projects/Jobs filter (limit/offset page rows only). Open-price jobs contribute costs but not profit. Unallocated organization costs are reported beside rollup totals, never inside project profit.',
     canReadProfit: canProfit,
     canReadBilling: canBilling,
     canReadCommercial: canCommercial,

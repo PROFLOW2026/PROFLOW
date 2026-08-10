@@ -4,8 +4,9 @@ import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { AppShell } from '@/components/shell/app-shell';
 import { PageHeader } from '@/components/ui/page-header';
 import { PublicHomepage } from '@/modules/marketing/ui';
-import { getHomeDashboard } from '@/modules/financials';
+import { getHomeDashboard, parseWorkKindFilter } from '@/modules/financials';
 import { HomeDashboardContent } from '@/modules/financials/ui';
+import { WorkKindFilterChrome } from '@/modules/financials/ui/work-kind-filter-chrome';
 import { PwaInstallCta } from '@/modules/offline/ui/pwa-install-cta';
 import { getSessionState, getShellContext, withOrgContext } from '@/shared/auth/session';
 import { redirect } from '@/shared/i18n/navigation';
@@ -64,10 +65,13 @@ export async function generateMetadata({
  */
 export default async function LocaleRootPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string }>;
+  searchParams: Promise<{ workKind?: string }>;
 }) {
   const { locale } = await params;
+  const query = await searchParams;
   setRequestLocale(locale);
 
   const session = await getSessionState();
@@ -86,33 +90,41 @@ export default async function LocaleRootPage({
 
   return (
     <AppShell>
-      <AuthenticatedDashboardHome />
+      <AuthenticatedDashboardHome workKind={query.workKind} />
     </AppShell>
   );
 }
 
-async function AuthenticatedDashboardHome() {
+async function AuthenticatedDashboardHome({ workKind }: { workKind?: string }) {
   const [t, tCommon, shell] = await Promise.all([
     getTranslations('dashboard'),
     getTranslations('common'),
     getShellContext(),
   ]);
   const name = shell?.user.displayName;
+  const workKindFilter = parseWorkKindFilter(workKind);
 
   return (
     <div className="flex min-w-0 max-w-full flex-col gap-6" data-pf-dashboard-home>
       <PageHeader title={name ? t('greeting', { name }) : t('greetingNoName')} />
       <PwaInstallCta variant="dashboard" />
+      <WorkKindFilterChrome active={workKindFilter} pathname="/" />
       <Suspense
         fallback={<DashboardSkeleton showTitle={false} label={tCommon('states.loading')} />}
       >
-        <HomeDashboardSection />
+        <HomeDashboardSection workKindFilter={workKindFilter} />
       </Suspense>
     </div>
   );
 }
 
-async function HomeDashboardSection() {
-  const data = await withOrgContext((context) => getHomeDashboard(context));
+async function HomeDashboardSection({
+  workKindFilter,
+}: {
+  workKindFilter: string;
+}) {
+  const data = await withOrgContext((context) =>
+    getHomeDashboard(context, { workKindFilter }),
+  );
   return <HomeDashboardContent data={data} />;
 }

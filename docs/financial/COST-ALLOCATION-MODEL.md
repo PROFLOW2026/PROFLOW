@@ -75,9 +75,14 @@ No ambiguous mapping: every category value maps to exactly one schedule mode; `a
 
 `0014` allocation engine · `0015` ETC · `0016` category period policy · `0017` periodic schedule/slices · `0018` run integrity
 
+## Project / job parity (entry-baseline wave)
+
+Eligible set includes **projects and jobs** with overlapping active days.  
+`contract_weight` **excludes** open-price jobs (`work_kind=job` + `pricing_mode=open`) — no invented contract. See `PROJECT-JOB-FINANCIAL-PARITY.md`.
+
 ## Simple owner summary
 
 1. Annual/periodic costs are sliced by economic period (usually months).  
-2. Projects active for only part of a slice receive only that time exposure (for calendar drivers).  
+2. Projects/jobs active for only part of a slice receive only that time exposure (for calendar drivers).  
 3. The selected allocation driver still determines relative distribution.  
 4. Historical applied allocations remain frozen.

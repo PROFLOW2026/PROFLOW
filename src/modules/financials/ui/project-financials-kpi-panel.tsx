@@ -226,7 +226,17 @@ export function ProjectFinancialsKpiPanel({
         </>
       ) : null}
 
-      {canReadProfit && kpis.actualMargin ? (
+      {canReadProfit && kpis.priceNotSet ? (
+        <div
+          className="rounded-md border border-border/60 bg-muted/30 px-3 py-2 text-sm"
+          data-testid="price-not-set-banner"
+        >
+          <p className="font-medium">{t('kpis.priceNotSet')}</p>
+          <p className="mt-1 text-muted-foreground">{t('kpis.priceNotSetHint')}</p>
+        </div>
+      ) : null}
+
+      {canReadProfit && !kpis.priceNotSet && kpis.actualMargin ? (
         <MetricDrilldown
           label={t('kpis.actualMargin')}
           value={kpis.actualMargin}
@@ -254,7 +264,7 @@ export function ProjectFinancialsKpiPanel({
         />
       ) : null}
 
-      {canReadProfit && kpis.forecastMargin ? (
+      {canReadProfit && !kpis.priceNotSet && kpis.forecastMargin ? (
         <MetricDrilldown
           label={t('kpis.forecastMargin')}
           value={kpis.forecastMargin}

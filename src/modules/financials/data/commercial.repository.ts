@@ -7,6 +7,7 @@ import type {
 } from '@/modules/commercial/domain/types';
 import type { CommercialPosition } from '@/modules/financials/domain/types';
 import type { DbExecutor } from '@/shared/db/types';
+import { attachEntryBaselineContext } from '../domain/entry-baseline-context';
 import { sqlFirstRow, sqlRows } from './sql-rows';
 
 export interface ProjectCommercialData {
@@ -86,12 +87,15 @@ export async function loadProjectCommercialData(
     effectiveDate: event.effectiveDate,
   }));
 
-  const position = computeCommercialPosition({
-    valueEvents,
-    pendingChanges,
-    currency: contract.currency,
-    originalValueFallback: contract.originalValueAmount,
-  });
+  const position = attachEntryBaselineContext(
+    computeCommercialPosition({
+      valueEvents,
+      pendingChanges,
+      currency: contract.currency,
+      originalValueFallback: contract.originalValueAmount,
+    }),
+    contract,
+  );
 
   return { currency: contract.currency, position };
 }
@@ -200,12 +204,15 @@ export async function loadCommercialDataForProjects(
       effectiveDate: event.effectiveDate,
     }));
 
-    const position = computeCommercialPosition({
-      valueEvents,
-      pendingChanges: pendingByProject.get(projectId) ?? [],
-      currency: contract.currency,
-      originalValueFallback: contract.originalValueAmount,
-    });
+    const position = attachEntryBaselineContext(
+      computeCommercialPosition({
+        valueEvents,
+        pendingChanges: pendingByProject.get(projectId) ?? [],
+        currency: contract.currency,
+        originalValueFallback: contract.originalValueAmount,
+      }),
+      contract,
+    );
 
     result.set(projectId, { currency: contract.currency, position });
   }

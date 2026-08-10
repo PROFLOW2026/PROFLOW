@@ -1,6 +1,12 @@
 import type { PermissionKey } from '@/shared/permissions/catalog';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import type { ModuleVisibility, OptionalModuleKey } from '@/modules/tenancy/domain/types';
+import type { WorkMix } from '@/modules/tenancy/domain/work-mix';
+import {
+  workMixJobsPrimary,
+  workMixProjectsPrimary,
+  workMixSurfacesJobs,
+} from '@/modules/tenancy/domain/work-mix';
 
 /**
  * Adaptive navigation model (docs 40 §4, 41, 48 U1).
@@ -9,6 +15,9 @@ import type { ModuleVisibility, OptionalModuleKey } from '@/modules/tenancy/doma
  * appears only once the organization turns it on or starts using it, so a
  * one-person business never sees chrome for capabilities it does not have.
  *
+ * Jobs share the projects domain but are a separate destination. Org
+ * `work_mix` adjusts which of Projects / Jobs dominates mobile chrome.
+ *
  * Icons are referenced by key so nav items stay serializable across the
  * server/client boundary — Lucide components cannot be passed as props.
  */
@@ -16,6 +25,7 @@ import type { ModuleVisibility, OptionalModuleKey } from '@/modules/tenancy/doma
 export const NAV_ICON_KEYS = [
   'dashboard',
   'projects',
+  'jobs',
   'expenses',
   'billing',
   'changes',
@@ -77,6 +87,14 @@ export const NAV_ITEMS: readonly NavItem[] = [
     iconKey: 'projects',
     permission: PERMISSIONS.PROJECTS_READ,
     primaryOnMobile: true,
+  },
+  {
+    key: 'jobs',
+    href: '/jobs',
+    labelKey: 'jobs',
+    iconKey: 'jobs',
+    permission: PERMISSIONS.PROJECTS_READ,
+    module: 'jobs',
   },
   {
     key: 'expenses',
@@ -219,15 +237,57 @@ export const NAV_ITEMS: readonly NavItem[] = [
   },
 ];
 
+export interface VisibleNavOptions {
+  readonly workMix?: WorkMix;
+}
+
+/**
+ * Applies org work mix to Projects / Jobs prominence without inventing a
+ * second app shell. Jobs-only orgs keep Projects reachable but not primary.
+ */
+export function applyWorkMixToNavItems(
+  items: readonly NavItem[],
+  workMix: WorkMix = 'projects',
+): NavItem[] {
+  const projectsPrimary = workMixProjectsPrimary(workMix);
+  const jobsPrimary = workMixJobsPrimary(workMix);
+
+  return items.map((item) => {
+    if (item.key === 'projects') {
+      if (projectsPrimary) {
+        return { ...item, primaryOnMobile: true, moreGroup: undefined };
+      }
+      return { ...item, primaryOnMobile: false, moreGroup: 'business' as const };
+    }
+    if (item.key === 'jobs') {
+      if (jobsPrimary) {
+        return { ...item, primaryOnMobile: true, moreGroup: undefined };
+      }
+      return { ...item, primaryOnMobile: false, moreGroup: 'business' as const };
+    }
+    return { ...item };
+  });
+}
+
 export function visibleNavItems(
   permissions: ReadonlySet<string>,
   modules: ModuleVisibility,
+  options: VisibleNavOptions = {},
 ): NavItem[] {
-  return NAV_ITEMS.filter((item) => {
+  const workMix = options.workMix ?? 'projects';
+  const forceJobs = workMixSurfacesJobs(workMix);
+
+  const filtered = NAV_ITEMS.filter((item) => {
     if (item.permission && !permissions.has(item.permission)) return false;
+    if (item.key === 'jobs') {
+      if (forceJobs) return true;
+      return Boolean(modules.jobs);
+    }
     if (item.module && !modules[item.module]) return false;
     return true;
   });
+
+  return applyWorkMixToNavItems(filtered, workMix);
 }
 
 export interface NavItemGroup {

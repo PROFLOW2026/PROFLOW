@@ -36,6 +36,8 @@ export const OPTIONAL_MODULE_KEYS = [
   'materials',
   'field_ops',
   'assets',
+  /** Short / daily work UX; shares `projects` rows + PROJECTS_* permissions. */
+  'jobs',
 ] as const;
 
 export type OptionalModuleKey = (typeof OPTIONAL_MODULE_KEYS)[number];

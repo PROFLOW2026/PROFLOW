@@ -4,13 +4,22 @@
   "noContractValue": "Not set",
   "empty": {
     "title": "No projects yet",
-    "body": "Projects are where you track work, contract value, costs, and billing for each job.",
-    "action": "Create first project"
+    "body": "Projects are where you track work, contract value, costs, and billing for each engagement.",
+    "action": "Create first project",
+    "jobsAffordance": "Short work? New job"
   },
   "list": {
     "searchPlaceholder": "Search projects…",
     "filterStatus": "Status",
+    "filterFacet": "Filter",
     "allStatuses": "All statuses",
+    "facets": {
+      "all": "All",
+      "new": "New",
+      "active": "Active",
+      "completed": "Completed",
+      "awaiting_payment": "Awaiting payment"
+    },
     "columns": {
       "name": "Project",
       "client": "Client",
@@ -32,9 +41,15 @@
     "clientNameExample": "e.g. Cohen family",
     "contractValueLabel": "Original contract value",
     "contractValuePlaceholder": "e.g. 150000",
-    "contractValueHint": "Commercial and profitability calculations use the net amount (excluding VAT).",
+    "contractValueHint": "Real-world original contract. Commercial and profitability use what you manage here (net after any opening reduction, excluding VAT).",
+    "openingReductionLabel": "Reduction before management started",
+    "openingReductionPlaceholder": "e.g. 150000",
+    "openingReductionHint": "Optional. Amount already economically behind before you started managing here — not a payment, bill, or expense.",
+    "managedOpeningPreviewLabel": "What you manage here (net)",
+    "managedOpeningPreviewHint": "Profitability and current contract start from what you manage here, not the original contract figure.",
+    "managedOpeningPreviewApprox": "entered units",
     "amountTaxModeLabel": "Entered amount is",
-    "amountTaxModeHint": "Choose whether the amount includes VAT. The rate comes from the organization’s active tax rule.",
+    "amountTaxModeHint": "Choose whether the amount includes VAT. The rate comes from the organization’s active tax rule. Original and reduction use the same mode.",
     "amountExcludingTax": "Excluding VAT",
     "amountIncludingTax": "Including VAT",
     "domainLabel": "Profession / domain",
@@ -83,7 +98,9 @@
       "compliance": "Compliance"
     },
     "header": {
-      "currentContractValue": "Current contract value"
+      "currentContractValue": "Current contract value",
+      "displayOriginalValue": "Per original contract",
+      "managedOpeningValue": "What you manage here"
     },
     "archive": "Archive project",
     "archiveConfirm": "Archive this project? It will be hidden from the active list but not deleted."
@@ -141,7 +158,9 @@
   },
   "overview": {
     "contractSummary": "Contract summary",
-    "originalValue": "Original value",
+    "originalValue": "What you manage here",
+    "displayOriginalValue": "Per original contract",
+    "openingReductionValue": "Opening reduction",
     "approvedChanges": "Approved changes",
     "currentValue": "Current contract value",
     "pendingChanges": "Pending changes",

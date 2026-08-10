@@ -12,18 +12,23 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { PROJECT_STATUSES } from '@/modules/projects/domain/types';
+import { WORK_LIST_FACETS, type WorkListFacet } from '@/modules/projects/domain/work-list-facets';
 
 interface ProjectListFiltersProps {
   initialQuery: string;
-  initialStatus: string;
+  initialFacet: WorkListFacet;
+  /** Locale namespace for facet labels — `projects` or `jobs`. */
+  namespace?: 'projects' | 'jobs';
 }
 
-export function ProjectListFilters({ initialQuery, initialStatus }: ProjectListFiltersProps) {
-  const t = useTranslations('projects');
-  const tStatus = useTranslations('status.project');
+export function ProjectListFilters({
+  initialQuery,
+  initialFacet,
+  namespace = 'projects',
+}: ProjectListFiltersProps) {
+  const t = useTranslations(namespace);
   const tCommon = useTranslations('common');
-  const [status, setStatus] = useState(initialStatus);
+  const [facet, setFacet] = useState<WorkListFacet>(initialFacet);
 
   return (
     <form method="get" role="search" className="flex min-w-0 max-w-full flex-col gap-3 sm:flex-row sm:items-end">
@@ -39,19 +44,18 @@ export function ProjectListFilters({ initialQuery, initialStatus }: ProjectListF
           />
         )}
       </Field>
-      <Field label={t('list.filterStatus')} className="min-w-0 sm:w-44">
+      <Field label={t('list.filterFacet')} className="min-w-0 sm:w-52">
         {(control) => (
           <>
-            <input type="hidden" name="status" value={status} />
-            <Select value={status} onValueChange={setStatus}>
+            <input type="hidden" name="facet" value={facet} />
+            <Select value={facet} onValueChange={(value) => setFacet(value as WorkListFacet)}>
               <SelectTrigger id={control.id} aria-describedby={control['aria-describedby']}>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">{t('list.allStatuses')}</SelectItem>
-                {PROJECT_STATUSES.filter((value) => value !== 'archived').map((value) => (
+                {WORK_LIST_FACETS.map((value) => (
                   <SelectItem key={value} value={value}>
-                    {tStatus(value)}
+                    {t(`list.facets.${value}`)}
                   </SelectItem>
                 ))}
               </SelectContent>

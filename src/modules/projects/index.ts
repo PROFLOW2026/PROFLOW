@@ -1,10 +1,16 @@
 /** Public API of the projects module. */
 export { createProject } from './application/create-project';
 export type { CreateProjectResult } from './application/create-project';
+export { createJob } from './application/create-job';
+export type { CreateJobResult } from './application/create-job';
 export { updateProject } from './application/update-project';
 export { upsertPrimaryContractAmount } from './application/contract-amount';
+export { setJobFixedPrice } from './application/set-job-fixed-price';
+export type { SetJobFixedPriceResult } from './application/set-job-fixed-price';
+export { convertJobToProject } from './application/convert-job-to-project';
 export { archiveProject } from './application/archive-project';
 export { listProjectsForOrg } from './application/list-projects';
+export { listJobsForOrg } from './application/list-jobs';
 export { getProjectDetail } from './application/get-project-detail';
 export type { GetProjectDetailOptions, ProjectDetail } from './application/get-project-detail';
 export {
@@ -31,6 +37,17 @@ export {
   findOriginalValueEvent,
   isOriginalContractAmountLocked,
 } from './domain/contract-value';
+export {
+  computeEntryBaselineAmounts,
+  computeManagedOpeningNet,
+  hasStoredOpeningReduction,
+  isZeroOpeningReductionAmount,
+  normalizeOpeningReductionInput,
+  resolveDisplayOriginalEntered,
+  resolveDisplayOriginalNet,
+  resolveOpeningReductionNet,
+} from './domain/entry-baseline';
+export type { EntryBaselineAmounts } from './domain/entry-baseline';
 export { ORIGINAL_AMOUNT_LOCKED_MESSAGE_KEY } from './application/contract-amount';
 export { shouldShowWorkPackages, countActiveWorkPackages } from './domain/work-package-visibility';
 export {
@@ -94,15 +111,21 @@ export {
   PROJECT_STATUSES,
   PROGRESS_STATUSES,
   MILESTONE_STATUSES,
+  WORK_KINDS,
+  PRICING_MODES,
   DEFAULT_WORK_PACKAGE_NAME,
 } from './domain/types';
 export type {
   ProjectStatus,
   ProgressStatus,
   MilestoneStatus,
+  WorkKind,
+  PricingMode,
   ProjectRecord,
   ProjectListItem,
   ProjectListFilters,
+  JobListItem,
+  JobBillingPaymentStatus,
   WorkPackageRecord,
   PhaseRecord,
   MilestoneRecord,
@@ -110,12 +133,33 @@ export type {
   ContractTaxSnapshotRecord,
   ContractValueEventRecord,
 } from './domain/types';
+export {
+  PRICE_NOT_SET_HE,
+  PRICE_NOT_SET_MESSAGE_KEY,
+  CONVERT_REQUIRES_REVENUE_BASIS_MESSAGE_KEY,
+  isOpenPriceJob,
+  isJobProfitDefined,
+  canConvertJobToProject,
+  resolveJobProfitDisplay,
+  jobListMissingProfitKind,
+} from './domain/job-pricing';
+export type { JobProfitDisplay, WorkKindPricingFields } from './domain/job-pricing';
+export {
+  WORK_LIST_FACETS,
+  isWorkListFacet,
+  resolveWorkListFacet,
+} from './domain/work-list-facets';
+export type { WorkListFacet, ResolvedWorkListFacet } from './domain/work-list-facets';
 
 export {
   createProjectSchema,
+  createJobSchema,
+  setJobFixedPriceSchema,
+  convertJobToProjectSchema,
   updateProjectSchema,
   archiveProjectSchema,
   listProjectsSchema,
+  listJobsSchema,
   createWorkPackageSchema,
   updateWorkPackageSchema,
   splitProjectSchema,
@@ -125,6 +169,11 @@ export {
   updateMilestoneSchema,
   archiveMilestoneSchema,
   applyProjectTemplateSchema,
+} from './validation/schemas';
+export type {
+  CreateJobInput,
+  SetJobFixedPriceInput,
+  ConvertJobToProjectInput,
 } from './validation/schemas';
 
 /** Cross-module org-scoped lookups (FK / tenancy guards). */

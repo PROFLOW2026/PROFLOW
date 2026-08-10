@@ -1,0 +1,92 @@
+{
+  "title": "Jobs",
+  "newJob": "New job",
+  "noContractValue": "Not set",
+  "priceNotSet": "Price not set yet",
+  "empty": {
+    "title": "No jobs yet",
+    "body": "Short work: client, fixed or open price, costs and billing — without heavy project setup.",
+    "action": "Create first job",
+    "workMixLink": "Show jobs in navigation (Settings)"
+  },
+  "list": {
+    "searchPlaceholder": "Search jobs…",
+    "filterStatus": "Status",
+    "filterFacet": "Filter",
+    "allStatuses": "All statuses",
+    "facets": {
+      "all": "All",
+      "new": "New",
+      "active": "Active",
+      "completed": "Completed",
+      "awaiting_payment": "Awaiting payment"
+    },
+    "columns": {
+      "client": "Client",
+      "name": "Job",
+      "date": "Date",
+      "status": "Status",
+      "price": "Price",
+      "actualCost": "Actual cost",
+      "profit": "Profit",
+      "billing": "Billing / payment",
+      "noClient": "—"
+    },
+    "billingStatus": {
+      "none": "No invoice",
+      "unpaid": "Unpaid",
+      "partial": "Partial",
+      "paid": "Paid"
+    }
+  },
+  "pricing": {
+    "fixed": "Fixed price",
+    "open": "Open price",
+    "priceNotSet": "Price not set yet",
+    "priceLabel": "Price",
+    "priceHint": "Job price. Commercial math uses the net amount (excluding VAT).",
+    "pricePlaceholder": "e.g. 2500",
+    "taxModeHint": "Whether the price includes VAT. The rate comes from the organization tax settings.",
+    "setPrice": "Set price",
+    "setPriceSubmit": "Save price"
+  },
+  "create": {
+    "title": "New job",
+    "description": "Quick intake for short work. No work packages, phases, or heavy contract setup.",
+    "nameLabel": "Job name / description",
+    "namePlaceholder": "e.g. AC repair at Cohen",
+    "clientLabel": "Client",
+    "clientNew": "Walk-in / new client",
+    "clientSelect": "Existing client",
+    "clientNamePlaceholder": "Client name",
+    "clientNameExample": "e.g. Walk-in — Dana",
+    "pricingModeLabel": "Pricing",
+    "startDateLabel": "Start date",
+    "endDateLabel": "End date",
+    "notesLabel": "Notes",
+    "workersLabel": "Workers",
+    "workersPlaceholder": "Crew note (optional)",
+    "workersHint": "Free-text note for now. Formal assignment is on the Time tab.",
+    "moreDetails": "More details",
+    "submit": "Create job",
+    "success": "Job created"
+  },
+  "overview": {
+    "datesTitle": "Dates",
+    "editDates": "Edit dates in details",
+    "priceSummary": "Price summary",
+    "noPriceHint": "You can keep logging costs; profit appears after a price is set."
+  },
+  "workspace": {
+    "fallbackTitle": "Job",
+    "convertToProject": "Convert to project",
+    "convertHint": "Opens full project tabs. Financial history stays on the same job.",
+    "convertConfirm": "Convert this job to a project? Full project workspace appears; financial data is kept.",
+    "openPriceBanner": "Price not set yet — you can keep logging costs; profit appears after a price is set."
+  },
+  "convert": {
+    "success": "Converted to project",
+    "notAJob": "Only jobs can be converted to projects",
+    "requiresRevenueBasis": "Set a price before converting to a project"
+  }
+}

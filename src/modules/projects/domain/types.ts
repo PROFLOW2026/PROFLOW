@@ -13,6 +13,17 @@ export const PROJECT_STATUSES = [
 
 export type ProjectStatus = (typeof PROJECT_STATUSES)[number];
 
+/** UX mode on the shared `projects` row (financial engine is identical). */
+export const WORK_KINDS = ['project', 'job'] as const;
+export type WorkKind = (typeof WORK_KINDS)[number];
+
+/**
+ * Revenue pricing mode. Jobs require `fixed` or `open`. Classic projects use
+ * null (treated as fixed once a managed contract exists).
+ */
+export const PRICING_MODES = ['fixed', 'open'] as const;
+export type PricingMode = (typeof PRICING_MODES)[number];
+
 export const PROGRESS_STATUSES = [
   'not_started',
   'on_track',
@@ -34,6 +45,8 @@ export interface ProjectRecord {
   readonly organizationId: string;
   readonly name: string;
   readonly status: ProjectStatus;
+  readonly workKind: WorkKind;
+  readonly pricingMode: PricingMode | null;
   readonly clientId: string | null;
   readonly currency: string | null;
   readonly description: string | null;
@@ -120,13 +133,26 @@ export interface ContractRecord {
   readonly name: string | null;
   readonly reference: string | null;
   readonly status: string;
-  /** User-entered amount before applying VAT mode. */
+  /**
+   * Managed-opening entered amount (after tax mode). When an opening reduction
+   * exists this is the managed figure, not the real-world display original.
+   */
   readonly enteredValueAmount: string | null;
   readonly amountIncludesTax: boolean;
-  /** Net commercial original value (profitability / CCV basis). */
+  /** Managed opening NET — profitability / CCV basis (not display original). */
   readonly originalValueAmount: string | null;
   readonly originalTaxAmount: string | null;
   readonly originalGrossAmount: string | null;
+  /** Real-world original (context). Null ⇒ equals managed opening. */
+  readonly displayOriginalEnteredAmount: string | null;
+  readonly displayOriginalNetAmount: string | null;
+  readonly displayOriginalTaxAmount: string | null;
+  readonly displayOriginalGrossAmount: string | null;
+  /** Already-behind portion before ProjectFlow; not a payment/bill/expense. */
+  readonly openingReductionEnteredAmount: string | null;
+  readonly openingReductionNetAmount: string | null;
+  readonly openingReductionTaxAmount: string | null;
+  readonly openingReductionGrossAmount: string | null;
   readonly taxSnapshot: ContractTaxSnapshotRecord | null;
   readonly currency: string;
   readonly signedDate: string | null;
@@ -160,6 +186,13 @@ export interface ProjectListFilters {
   readonly search?: string;
   readonly status?: ProjectStatus | 'all';
   readonly clientId?: string;
+  /** When set, restricts to that work kind; omit to include both. */
+  readonly workKind?: WorkKind;
+  /**
+   * Derived financial filter: outstanding billing (invoiced − paid) > 0.
+   * Not a `project_status` value.
+   */
+  readonly awaitingPayment?: boolean;
   readonly includeArchived?: boolean;
   readonly sortBy?: ProjectSortField;
   readonly sortDirection?: SortDirection;
@@ -172,4 +205,17 @@ export interface ProjectListItem extends ProjectRecord {
   readonly workPackageCount: number;
   readonly currentContractValue: string | null;
   readonly contractCurrency: string | null;
+}
+
+/** Billing/payment rollup for job list rows (coarse UI status). */
+export type JobBillingPaymentStatus = 'none' | 'unpaid' | 'partial' | 'paid';
+
+export interface JobListItem extends ProjectListItem {
+  readonly actualCostAmount: string | null;
+  readonly profitAmount: string | null;
+  /** False when open-price / no revenue basis — UI must not invent a margin. */
+  readonly profitDefined: boolean;
+  readonly billingPaymentStatus: JobBillingPaymentStatus;
+  readonly invoicedAmount: string | null;
+  readonly paidAmount: string | null;
 }

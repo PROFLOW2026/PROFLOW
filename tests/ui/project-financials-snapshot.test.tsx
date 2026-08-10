@@ -13,6 +13,9 @@ function buildFinancials(): ProjectFinancials {
   return {
     projectId: 'project-1',
     currency,
+    workKind: 'project',
+    pricingMode: null,
+    priceNotSet: false,
     commercial: {
       originalContractValue: { amount: '100000.000000', currency },
       approvedAdditions: zero,

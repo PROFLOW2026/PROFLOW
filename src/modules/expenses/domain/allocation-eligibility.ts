@@ -1,5 +1,12 @@
 import Decimal from 'decimal.js';
 import {
+  isEligibleForContractWeightAllocation,
+  normalizePricingMode,
+  normalizeWorkKind,
+  type PricingMode,
+  type WorkKind,
+} from '@/modules/financials/domain/work-pricing';
+import {
   businessDate,
   daysBetween,
   maxBusinessDate,
@@ -24,6 +31,16 @@ export interface ProjectEligibilityFacts {
   readonly actualEndDate: BusinessDate | null;
   readonly targetEndDate: BusinessDate | null;
   readonly archivedAt: Date | string | null;
+  /**
+   * `project` | `job` — both are eligible for overhead when period-overlapping.
+   * Defaults to `project` when unset (legacy fixtures / pre-0019 rows).
+   */
+  readonly workKind?: WorkKind | string | null;
+  /**
+   * Jobs: `fixed` | `open`. Classic projects: null.
+   * Open-price jobs are excluded from `contract_weight` only.
+   */
+  readonly pricingMode?: PricingMode | string | null;
 }
 
 /**
@@ -184,6 +201,30 @@ export function selectEligibleProjects(
     .filter((project) => isProjectEligibleInPeriod(project, period))
     .slice()
     .sort((a, b) => a.id.localeCompare(b.id));
+}
+
+/**
+ * Period-eligible projects/jobs, then method-specific revenue-basis gate.
+ *
+ * - Jobs and projects share the same eligibility calendar (active-day overlap).
+ * - `contract_weight`: EXCLUDE open-price jobs (no invented contract value).
+ * - Other weight drivers: open-price jobs stay eligible (cost/labor/equal basis).
+ */
+export function selectEligibleProjectsForMethod(
+  projects: readonly ProjectEligibilityFacts[],
+  period: AllocationPeriod,
+  method: WeightAllocationMethod,
+  explicitProjectIds?: readonly string[] | null,
+): ProjectEligibilityFacts[] {
+  const periodEligible = selectEligibleProjects(projects, period, explicitProjectIds);
+  if (method !== 'contract_weight') return periodEligible;
+
+  return periodEligible.filter((project) =>
+    isEligibleForContractWeightAllocation(
+      normalizeWorkKind(project.workKind),
+      normalizePricingMode(project.pricingMode ?? null),
+    ),
+  );
 }
 
 export function assertValidAllocationPeriod(period: AllocationPeriod): void {

@@ -6,21 +6,13 @@ import type { ReactNode } from 'react';
 import { useQueryTabPending } from '@/components/patterns/query-tab-pending';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { usePathname, useRouter } from '@/shared/i18n/navigation';
+import { type ProjectTabKey } from './project-tab-order';
 import { TabPanelSkeleton } from './tab-panel-skeleton';
 
-export type ProjectTabKey =
-  | 'overview'
-  | 'financials'
-  | 'expenses'
-  | 'changes'
-  | 'billing'
-  | 'work'
-  | 'time'
-  | 'documents'
-  | 'details';
+export type { ProjectTabKey } from './project-tab-order';
 
-/** Optional / module-gated tabs shown after core commercial tabs. */
-const SECONDARY_TABS = new Set<ProjectTabKey>(['work', 'time', 'documents']);
+/** Setup / configuration tabs — visually quieter than day-to-day ops. */
+const SECONDARY_TABS = new Set<ProjectTabKey>(['work', 'details']);
 
 interface ProjectTabsShellProps {
   /** Only the tabs this viewer can actually use, in display order. */

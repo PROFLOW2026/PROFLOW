@@ -13,25 +13,35 @@ function SummaryRow({
   label,
   value,
   emphasize,
+  muted,
 }: {
   label: string;
   value: MoneyValue;
   emphasize?: boolean;
+  muted?: boolean;
 }) {
   return (
     <div className="flex items-baseline justify-between gap-3 text-start">
       <span
         className={
-          emphasize
-            ? 'min-w-0 flex-1 font-medium'
-            : 'min-w-0 flex-1 text-sm text-[var(--pf-text-secondary)]'
+          muted
+            ? 'min-w-0 flex-1 text-sm text-[var(--pf-text-muted)]'
+            : emphasize
+              ? 'min-w-0 flex-1 font-medium'
+              : 'min-w-0 flex-1 text-sm text-[var(--pf-text-secondary)]'
         }
       >
         {label}
       </span>
       <MoneyText
         value={value}
-        className={emphasize ? 'shrink-0 text-base font-semibold' : 'shrink-0 text-sm'}
+        className={
+          muted
+            ? 'shrink-0 text-sm text-[var(--pf-text-muted)]'
+            : emphasize
+              ? 'shrink-0 text-base font-semibold'
+              : 'shrink-0 text-sm'
+        }
       />
     </div>
   );
@@ -41,6 +51,9 @@ export async function CommercialSummaryCard({ position }: CommercialSummaryCardP
   const t = await getTranslations('changes.summary');
 
   const potential = addMoney(position.currentContractValue, position.pendingChanges);
+  const displayOriginal = position.displayOriginalContractValue ?? null;
+  const openingReduction = position.openingReductionValue ?? null;
+  const showEntryBaseline = Boolean(displayOriginal && openingReduction);
 
   return (
     <Card className="min-w-0">
@@ -48,7 +61,16 @@ export async function CommercialSummaryCard({ position }: CommercialSummaryCardP
         <CardTitle className="text-start text-base">{t('title')}</CardTitle>
       </CardHeader>
       <CardContent className="flex min-w-0 flex-col gap-2">
-        <SummaryRow label={t('original')} value={position.originalContractValue} />
+        {showEntryBaseline && displayOriginal && openingReduction ? (
+          <>
+            <SummaryRow label={t('displayOriginal')} value={displayOriginal} muted />
+            <SummaryRow label={t('openingReduction')} value={openingReduction} muted />
+            <p className="text-start text-xs text-[var(--pf-text-muted)]">{t('entryBaselineHint')}</p>
+            <SummaryRow label={t('managedOpening')} value={position.originalContractValue} />
+          </>
+        ) : (
+          <SummaryRow label={t('original')} value={position.originalContractValue} />
+        )}
         <SummaryRow label={t('approvedAdditions')} value={position.approvedAdditions} />
         <SummaryRow label={t('approvedReductions')} value={position.approvedReductions} />
         <SummaryRow label={t('current')} value={position.currentContractValue} emphasize />

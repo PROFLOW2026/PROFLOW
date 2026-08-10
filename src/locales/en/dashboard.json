@@ -22,6 +22,12 @@
     "invoicedThisMonth": "Invoiced this month",
     "costsThisMonth": "Costs this month"
   },
+  "workKindFilter": {
+    "label": "Show",
+    "all": "All",
+    "project": "Projects",
+    "job": "Jobs"
+  },
   "reports": {
     "title": "Reports & analytics",
     "description": "Organization visibility in the base currency. Every figure is labelled Actual, Committed, Forecast, Commercial, or Estimate. VAT is never profit. Currencies are never mixed.",

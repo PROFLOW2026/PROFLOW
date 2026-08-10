@@ -1,6 +1,7 @@
 {
   "dashboard": "לוח בקרה",
   "projects": "פרויקטים",
+  "jobs": "עבודות",
   "expenses": "הוצאות",
   "changes": "שינויים ותוספות",
   "billing": "חיובים וגבייה",
@@ -26,6 +27,7 @@
   "newMenu": {
     "trigger": "חדש",
     "project": "פרויקט",
+    "job": "עבודה",
     "expense": "הוצאה",
     "change": "שינוי / תוספת",
     "billingRecord": "חיוב",

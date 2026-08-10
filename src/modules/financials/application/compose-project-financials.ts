@@ -4,7 +4,9 @@ import type {
   BillingPosition,
   CommercialPosition,
   CoveragePartial,
+  PricingMode,
   ProjectFinancials,
+  WorkKind,
 } from '@/modules/financials/domain/types';
 import { fromNumericString, zeroMoney, type MoneyValue } from '@/shared/money';
 import {
@@ -21,6 +23,11 @@ import {
   type ProjectExpenseContribution,
 } from '../domain/cost-aggregation';
 import { computeProfitPosition, roundProfitPosition } from '../domain/profit';
+import {
+  hasRevenueBasisForProfitability,
+  normalizePricingMode,
+  normalizeWorkKind,
+} from '../domain/work-pricing';
 import {
   computeBillingPositionFromRows,
   type ProjectBillingRows,
@@ -39,6 +46,8 @@ export interface ProjectFinancialsLoadedSlices {
   readonly projectId: string;
   readonly currency: string;
   readonly expectedRemainingCostAmount: string | null;
+  readonly workKind?: WorkKind | string | null;
+  readonly pricingMode?: PricingMode | string | null;
   readonly canReadCommercial: boolean;
   readonly canReadBilling: boolean;
   readonly canReadProfit: boolean;
@@ -164,8 +173,18 @@ export function composeProjectFinancials(
     mergeCoveragePartials(partials, billingPartials, commitmentPartials),
   );
 
+  const workKind = normalizeWorkKind(input.workKind);
+  const pricingMode = normalizePricingMode(input.pricingMode ?? null);
+  // commercialData null ⇒ no primary contract loaded. For jobs that means no
+  // managed revenue basis (open or broken fixed). Classic projects omit this gate.
+  const hasManagedContract = input.commercialData != null;
+  const priceNotSet = !hasRevenueBasisForProfitability(workKind, pricingMode, {
+    hasManagedContract,
+  });
+
+  // No revenue basis: cost forecast stays; never claim profit from revenue=0.
   const profit =
-    input.canReadProfit && commercial
+    input.canReadProfit && commercial && !priceNotSet
       ? roundProfitPosition(
           computeProfitPosition(
             commercial.currentContractValue,
@@ -178,6 +197,9 @@ export function composeProjectFinancials(
   return {
     projectId: input.projectId,
     currency: input.commercialData?.currency ?? currency,
+    workKind,
+    pricingMode,
+    priceNotSet,
     commercial,
     billing,
     cost,

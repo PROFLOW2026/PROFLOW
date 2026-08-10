@@ -41,6 +41,7 @@ export {
 } from './domain/allocation';
 export {
   selectEligibleProjects,
+  selectEligibleProjectsForMethod,
   isProjectEligibleInPeriod,
   countInclusiveDays,
   projectActiveDaysInSlice,

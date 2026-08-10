@@ -22,6 +22,12 @@
     "invoicedThisMonth": "חויב החודש",
     "costsThisMonth": "עלויות החודש"
   },
+  "workKindFilter": {
+    "label": "הצג",
+    "all": "הכל",
+    "project": "פרויקטים",
+    "job": "עבודות"
+  },
   "reports": {
     "title": "דוחות וניתוחים",
     "description": "תמונת מצב במטבע הבסיס. בפועל, התחייבויות ותחזית נשארים נפרדים. מע״מ אינו רווח.",

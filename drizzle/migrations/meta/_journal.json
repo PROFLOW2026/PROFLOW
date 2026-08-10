@@ -127,6 +127,13 @@
       "when": 1786233600000,
       "tag": "0018_allocation_run_integrity",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1786233700000,
+      "tag": "0019_project_job_modes_and_entry_baseline",
+      "breakpoints": true
     }
   ]
 }

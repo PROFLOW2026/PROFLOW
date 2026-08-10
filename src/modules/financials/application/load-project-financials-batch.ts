@@ -14,13 +14,15 @@ import {
   sumOpenApPayableForProjects,
   sumOpenCommittedCostsForProjects,
 } from '../data/committed-costs.repository';
-import { loadOrganizationExpenseContributions } from '../data/expenses.repository';
+import { loadExpenseContributionsForProjects } from '../data/expenses.repository';
 import type { ProjectExpenseContribution } from '../domain/cost-aggregation';
 import { composeProjectFinancials } from './compose-project-financials';
 
 export interface ProjectForecastMeta {
   readonly currency: string;
   readonly expectedRemainingCostAmount: string | null;
+  readonly workKind?: string | null;
+  readonly pricingMode?: string | null;
 }
 
 /**
@@ -60,8 +62,8 @@ export async function loadProjectFinancialsBatch(
       ? loadBillingRowsGroupedByProject(context.db, context.organizationId, projectIds)
       : Promise.resolve(new Map<string, ProjectBillingRows>()),
     canReadExpenses
-      ? loadOrganizationExpenseContributions(context.db, context.organizationId)
-      : Promise.resolve([] as ProjectExpenseContribution[]),
+      ? loadExpenseContributionsForProjects(context.db, context.organizationId, projectIds)
+      : Promise.resolve([]),
     canReadWorkforce
       ? sumLaborCostGroupedByProject(
           context.db,
@@ -126,6 +128,8 @@ export async function loadProjectFinancialsBatch(
         projectId,
         currency: projectCurrency,
         expectedRemainingCostAmount: meta?.expectedRemainingCostAmount ?? null,
+        workKind: meta?.workKind ?? 'project',
+        pricingMode: meta?.pricingMode ?? null,
         canReadCommercial,
         canReadBilling,
         canReadProfit,

@@ -13,9 +13,9 @@ describe('project workspace links', () => {
     });
     expect(links.map((link) => link.key)).toEqual([
       'overview',
-      'schedule',
       'expenses',
       'details',
+      'schedule',
     ]);
   });
 
@@ -50,7 +50,8 @@ describe('project workspace links', () => {
     expect(keys).toContain('field_ops');
     expect(keys).toContain('compliance');
     expect(keys).not.toContain('vendors');
-    expect(keys.indexOf('details')).toBeLessThan(keys.indexOf('work'));
-    expect(keys.indexOf('billing')).toBeLessThan(keys.indexOf('details'));
+    expect(keys.indexOf('billing')).toBeLessThan(keys.indexOf('work'));
+    expect(keys.indexOf('work')).toBeLessThan(keys.indexOf('details'));
+    expect(keys.indexOf('details')).toBeLessThan(keys.indexOf('schedule'));
   });
 });

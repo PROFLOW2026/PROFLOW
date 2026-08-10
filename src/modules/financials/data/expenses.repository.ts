@@ -1,4 +1,4 @@
-import { and, eq, gte, isNotNull, isNull, lte, or, sql } from 'drizzle-orm';
+import { and, eq, gte, inArray, isNotNull, isNull, lte, or, sql } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/pg-core';
 import { costCategories, expenseAllocations, expenses, vendors } from '@drizzle/schema';
 import type { BusinessDate } from '@/shared/dates';
@@ -22,7 +22,7 @@ export async function loadProjectExpenseContributions(
   organizationId: string,
   projectId: string,
 ): Promise<ProjectExpenseContribution[]> {
-  return loadExpenseContributions(db, organizationId, projectId);
+  return loadExpenseContributions(db, organizationId, { projectId });
 }
 
 /**
@@ -33,21 +33,37 @@ export async function loadOrganizationExpenseContributions(
   db: DbExecutor,
   organizationId: string,
 ): Promise<ProjectExpenseContribution[]> {
-  return loadExpenseContributions(db, organizationId);
+  return loadExpenseContributions(db, organizationId, {});
+}
+
+/**
+ * Set-scoped contributions for batch financial compose (jobs list / rollup subset).
+ * Same recognition rules as org-wide load — filtered to the requested project ids
+ * so list requests do not pull every org expense contribution.
+ */
+export async function loadExpenseContributionsForProjects(
+  db: DbExecutor,
+  organizationId: string,
+  projectIds: readonly string[],
+): Promise<ProjectExpenseContribution[]> {
+  if (projectIds.length === 0) return [];
+  return loadExpenseContributions(db, organizationId, { projectIds });
 }
 
 async function loadExpenseContributions(
   db: DbExecutor,
   organizationId: string,
-  projectId?: string,
+  scope: { readonly projectId?: string; readonly projectIds?: readonly string[] },
 ): Promise<ProjectExpenseContribution[]> {
   const directFilters = [
     eq(expenses.organizationId, organizationId),
     eq(expenses.status, 'finalized'),
     isNull(expenses.archivedAt),
   ];
-  if (projectId) {
-    directFilters.push(eq(expenses.projectId, projectId));
+  if (scope.projectId) {
+    directFilters.push(eq(expenses.projectId, scope.projectId));
+  } else if (scope.projectIds && scope.projectIds.length > 0) {
+    directFilters.push(inArray(expenses.projectId, [...scope.projectIds]));
   } else {
     directFilters.push(isNotNull(expenses.projectId));
   }
@@ -72,8 +88,10 @@ async function loadExpenseContributions(
     eq(expenses.status, 'finalized'),
     isNull(expenses.archivedAt),
   ];
-  if (projectId) {
-    allocationFilters.push(eq(expenseAllocations.projectId, projectId));
+  if (scope.projectId) {
+    allocationFilters.push(eq(expenseAllocations.projectId, scope.projectId));
+  } else if (scope.projectIds && scope.projectIds.length > 0) {
+    allocationFilters.push(inArray(expenseAllocations.projectId, [...scope.projectIds]));
   } else {
     allocationFilters.push(isNotNull(expenseAllocations.projectId));
   }

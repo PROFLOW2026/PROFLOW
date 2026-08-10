@@ -5,12 +5,21 @@
   "empty": {
     "title": "עדיין אין פרויקטים",
     "body": "פרויקטים הם המקום לעקוב אחר עבודה, סכום חוזה, עלויות וחיובים לכל עבודה.",
-    "action": "יצירת פרויקט ראשון"
+    "action": "יצירת פרויקט ראשון",
+    "jobsAffordance": "עבודה קצרה? עבודה חדשה"
   },
   "list": {
     "searchPlaceholder": "חיפוש פרויקטים…",
     "filterStatus": "סטטוס",
+    "filterFacet": "סינון",
     "allStatuses": "כל הסטטוסים",
+    "facets": {
+      "all": "הכל",
+      "new": "חדש",
+      "active": "פעיל",
+      "completed": "הושלם",
+      "awaiting_payment": "ממתין לתשלום"
+    },
     "columns": {
       "name": "פרויקט",
       "client": "לקוח",
@@ -32,9 +41,15 @@
     "clientNameExample": "לדוגמה: משפחת כהן",
     "contractValueLabel": "סכום חוזה מקורי",
     "contractValuePlaceholder": "לדוגמה: 150000",
-    "contractValueHint": "הסכום שישמש לחישוב מסחרי ורווחיות הוא נטו (ללא מע״מ).",
+    "contractValueHint": "סכום החוזה המקורי בעולם האמיתי. חישוב מסחרי ורווחיות משתמשים במה שמנהלים מכאן נטו (אחרי הפחתה לפני שהתחלתם לנהל כאן, ללא מע״מ).",
+    "openingReductionLabel": "הפחתה לפני תחילת הניהול",
+    "openingReductionPlaceholder": "לדוגמה: 150000",
+    "openingReductionHint": "אופציונלי. חלק שכבר מאחורי העסק כלכלית לפני שהתחלתם לנהל כאן — לא תשלום, לא חיוב ולא הוצאה.",
+    "managedOpeningPreviewLabel": "מה שמנהלים מכאן (נטו)",
+    "managedOpeningPreviewHint": "רווחיות וסכום החוזה הנוכחי מתחילים ממה שמנהלים מכאן, לא לפי החוזה המקורי.",
+    "managedOpeningPreviewApprox": "ביחידות שהוזנו",
     "amountTaxModeLabel": "הסכום שהוזן",
-    "amountTaxModeHint": "בחרו האם הסכום כולל מע״מ או לא. שיעור המע״מ נלקח מכלל המס הפעיל בארגון.",
+    "amountTaxModeHint": "בחרו האם הסכום כולל מע״מ או לא. שיעור המע״מ נלקח מכלל המס הפעיל בארגון. המקור וההפחתה משתמשים באותו מצב.",
     "amountExcludingTax": "לא כולל מע״מ",
     "amountIncludingTax": "כולל מע״מ",
     "domainLabel": "תחום / מקצוע",
@@ -83,7 +98,9 @@
       "compliance": "ציות וביטוח"
     },
     "header": {
-      "currentContractValue": "סכום חוזה נוכחי"
+      "currentContractValue": "סכום חוזה נוכחי",
+      "displayOriginalValue": "לפי החוזה המקורי",
+      "managedOpeningValue": "מה שמנהלים מכאן"
     },
     "archive": "העברה לארכיון",
     "archiveConfirm": "להעביר את הפרויקט לארכיון? הוא יוסתר מהרשימה הפעילה ולא יימחק."
@@ -141,7 +158,9 @@
   },
   "overview": {
     "contractSummary": "סיכום חוזה",
-    "originalValue": "סכום מקורי",
+    "originalValue": "מה שמנהלים מכאן",
+    "displayOriginalValue": "לפי החוזה המקורי",
+    "openingReductionValue": "הפחתה לפני תחילת הניהול",
     "approvedChanges": "שינויים מאושרים",
     "currentValue": "סכום חוזה נוכחי",
     "pendingChanges": "שינויים ממתינים",

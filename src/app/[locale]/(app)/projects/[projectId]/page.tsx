@@ -7,8 +7,11 @@ import { TabsContent } from '@/components/ui/tabs';
 import { listClientsForOrg } from '@/modules/clients';
 import { listCustomFieldValuesForEntity } from '@/modules/custom-fields';
 import {
+  findOriginalValueEvent,
   getProjectDetail,
+  hasStoredOpeningReduction,
   listProjectsForOrg,
+  resolveDisplayOriginalNet,
   selectProjectWorkspaceLinks,
 } from '@/modules/projects';
 import {
@@ -18,9 +21,9 @@ import {
 } from '@/modules/tenancy';
 import { getShellContext, withOrgContext } from '@/shared/auth/session';
 import { formatMoney } from '@/shared/money/format';
-import { zeroMoney } from '@/shared/money';
+import { fromNumericString, zeroMoney } from '@/shared/money';
 import { PERMISSIONS, type PermissionKey } from '@/shared/permissions/catalog';
-import { Link } from '@/shared/i18n/navigation';
+import { Link, redirect } from '@/shared/i18n/navigation';
 import { ProjectBillingPanel } from '@/modules/billing/ui';
 import { ProjectChangesPanel } from '@/modules/commercial/ui';
 import { ProjectExpensesPanel } from '@/modules/expenses/ui';
@@ -32,6 +35,7 @@ import { DocumentsTab } from './documents-tab';
 import { OverviewTab } from './overview-tab';
 import { ProjectHeaderMetrics } from './project-header-metrics';
 import { ProjectStatusBadge } from '../project-status-badge';
+import { resolveProjectTabs } from './project-tab-order';
 import { ProjectTabsShell, type ProjectTabKey } from './project-tabs-shell';
 import { ProjectFieldOpsSummaryPanel } from './project-field-ops-summary';
 import { TabPanelSkeleton } from './tab-panel-skeleton';
@@ -115,6 +119,13 @@ export default async function ProjectPage({ params, searchParams }: ProjectPageP
   ]);
   if (!detail) notFound();
 
+  // Jobs use the simplified /jobs workspace; keep one chrome entry point.
+  if (detail.project.workKind === 'job') {
+    const tabSuffix =
+      tabParam && tabParam !== 'overview' ? `?tab=${encodeURIComponent(tabParam)}` : '';
+    redirect({ href: `/jobs/${projectId}${tabSuffix}`, locale });
+  }
+
   const showWorkTab = detail.showWorkPackages;
   const uiLocale = locale === 'he-IL' ? 'he-IL' : 'en';
   const workspaceLinks = selectProjectWorkspaceLinks({
@@ -138,18 +149,17 @@ export default async function ProjectPage({ params, searchParams }: ProjectPageP
   });
   const currencySymbol = sample.replace(/[\d\s.,\u2212+-]/g, '').trim() || '₪';
 
-  // CORE first, then optional modules (work / time / documents) after details.
-  const tabs: ProjectTabKey[] = [
-    'overview',
-    ...(canReadFinancials ? (['financials'] as const) : []),
-    ...(showExpensesTab ? (['expenses'] as const) : []),
-    ...(showChangesTab ? (['changes'] as const) : []),
-    ...(showBillingTab ? (['billing'] as const) : []),
-    'details',
-    ...(showWorkTab ? (['work'] as const) : []),
-    ...(showTimeTab ? (['time'] as const) : []),
-    ...(showDocumentsTab ? (['documents'] as const) : []),
-  ];
+  // Business priority: daily ops first, then time/docs, then setup (work/details).
+  // Do not reverse for RTL — Tabs `dir` places index 0 at the reading-start edge.
+  const tabs: ProjectTabKey[] = resolveProjectTabs({
+    financials: canReadFinancials,
+    expenses: showExpensesTab,
+    changes: showChangesTab,
+    billing: showBillingTab,
+    time: showTimeTab,
+    documents: showDocumentsTab,
+    work: showWorkTab,
+  });
 
   const activeTab: ProjectTabKey = tabs.includes(tabParam as ProjectTabKey)
     ? (tabParam as ProjectTabKey)
@@ -227,7 +237,24 @@ export default async function ProjectPage({ params, searchParams }: ProjectPageP
         }
       />
 
-      <ProjectHeaderMetrics currentContractValue={canReadFinancials ? detail.currentContractValue : null} />
+      <ProjectHeaderMetrics
+        currentContractValue={canReadFinancials ? detail.currentContractValue : null}
+        displayOriginalValue={
+          canReadFinancials && detail.contract && hasStoredOpeningReduction(detail.contract)
+            ? resolveDisplayOriginalNet(detail.contract)
+            : null
+        }
+        managedOpeningValue={
+          canReadFinancials && detail.contract && hasStoredOpeningReduction(detail.contract)
+            ? (() => {
+                const original = findOriginalValueEvent(detail.contractValueEvents);
+                return original
+                  ? fromNumericString(original.amount, original.currency)
+                  : fromNumericString(detail.contract.originalValueAmount, detail.contract.currency);
+              })()
+            : null
+        }
+      />
 
       {!showWorkTab ? (
         <div className="rounded-lg border border-dashed border-[var(--pf-border-default)] p-4">
@@ -333,6 +360,7 @@ export default async function ProjectPage({ params, searchParams }: ProjectPageP
               currencySymbol={currencySymbol}
               canManageContract={canManageContract}
               customFields={customFields}
+              taxRatePercent={detail.contract?.taxSnapshot?.ratePercent ?? null}
             />
           </TabsContent>
         ) : null}

@@ -50,7 +50,20 @@
     "materials": "Materials catalog",
     "field_ops": "Field operations",
     "assets": "Assets and fleet",
+    "jobs": "Jobs (short / daily work)",
     "saved": "Feature visibility updated."
+  },
+  "workMix": {
+    "title": "Business focus",
+    "subtitle": "Controls whether Projects or Jobs dominate navigation. Both share the same money math.",
+    "label": "Navigation focus",
+    "projects": "Mostly projects",
+    "jobs": "Mostly jobs",
+    "mixed": "Projects and jobs",
+    "hintProjects": "Projects stay in the bottom bar; Jobs appear after first use or when turned on.",
+    "hintJobs": "Jobs stay in the bottom bar; Projects remain available under More.",
+    "hintMixed": "Both Projects and Jobs in the bottom bar (up to four destinations).",
+    "saved": "Business focus updated."
   },
   "presets": {
     "title": "Starter preset",

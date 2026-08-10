@@ -97,7 +97,15 @@ export interface HomeDashboardData {
   readonly canCreateExpense: boolean;
 }
 
-export async function getHomeDashboard(context: OrgContext): Promise<HomeDashboardData> {
+export interface HomeDashboardOptions {
+  /** All | Projects | Jobs for forecast / rollup scope. Default: all. */
+  readonly workKindFilter?: string | null;
+}
+
+export async function getHomeDashboard(
+  context: OrgContext,
+  options: HomeDashboardOptions = {},
+): Promise<HomeDashboardData> {
   const currency = context.organization.baseCurrency;
   const today = todayInTimeZone(context.organization.timezone);
   const monthStart = startOfMonth(today);
@@ -168,7 +176,11 @@ export async function getHomeDashboard(context: OrgContext): Promise<HomeDashboa
 
   const [rollup, expenseLayer, billingRows, invoicedThisMonth, costsThisMonth] =
     await Promise.all([
-      wantForecast ? getOrganizationProjectRollup(context) : Promise.resolve(null),
+      wantForecast
+        ? getOrganizationProjectRollup(context, {
+            workKindFilter: options.workKindFilter,
+          })
+        : Promise.resolve(null),
       wantForecast ? collectOrgExpenseLayer(context, currency) : Promise.resolve(null),
       wantBilling
         ? loadOrganizationBillingRows(context.db, context.organizationId)

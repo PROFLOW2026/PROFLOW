@@ -6,7 +6,9 @@ import {
   createInvitation,
   revokeInvitation,
   setModuleVisibility,
+  saveWorkMix,
   isOptionalModuleKey,
+  isWorkMix,
   parseModuleVisibilityMode,
   applyOrganizationProfessionPreset,
   createServiceDomain,
@@ -229,6 +231,27 @@ export async function setModuleVisibilityAction(
     await withOrgContext((context) =>
       setModuleVisibility(context, { moduleKey, enabled }),
     );
+    revalidatePath('/settings/features');
+    revalidatePath('/', 'layout');
+    return { ok: true };
+  } catch (error) {
+    if (error instanceof AppError) return { error: tErrors('unexpected') };
+    throw error;
+  }
+}
+
+export async function setWorkMixAction(
+  _prev: SettingsActionState,
+  formData: FormData,
+): Promise<SettingsActionState> {
+  const tErrors = await getTranslations('errors');
+  const workMix = formValue(formData, 'workMix');
+  if (!workMix || !isWorkMix(workMix)) {
+    return { error: tErrors('validationFailed') };
+  }
+
+  try {
+    await withOrgContext((context) => saveWorkMix(context, workMix));
     revalidatePath('/settings/features');
     revalidatePath('/', 'layout');
     return { ok: true };

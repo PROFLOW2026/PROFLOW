@@ -8,6 +8,7 @@ import { Field } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { resolveDisplayOriginalEntered } from '@/modules/projects/domain/entry-baseline';
 import { PROJECT_STATUSES } from '@/modules/projects/domain/types';
 import type { ProjectDetail } from '@/modules/projects/application/get-project-detail';
 import { ContractAmountFields } from '@/modules/projects/ui/contract-amount-fields';
@@ -23,14 +24,37 @@ interface DetailsTabProps {
   currencySymbol: string;
   canManageContract: boolean;
   customFields?: CustomFieldValueView[];
+  taxRatePercent?: string | null;
+  /** Jobs omit mid-project opening-reduction capture. */
+  showOpeningReduction?: boolean;
+  /** Path to revalidate after custom-field saves (job vs project workspace). */
+  customFieldsRevalidatePath?: string;
+  /** Override contract amount labels for jobs (price language). */
+  amountLabel?: string;
+  amountDescription?: string;
+  amountPlaceholder?: string;
+  taxModeDescription?: string;
+}
+
+function stripStorageScale(raw: string): string {
+  if (!raw) return '';
+  return raw.replace(/\.?0+$/, '') === '' ? raw : raw.replace(/(\.\d*?)0+$/, '$1').replace(/\.$/, '');
 }
 
 function displayEnteredAmount(detail: ProjectDetail): string {
   const contract = detail.contract;
   if (!contract) return '';
-  const raw = contract.enteredValueAmount ?? contract.originalValueAmount ?? '';
-  if (!raw) return '';
-  return raw.replace(/\.?0+$/, '') === '' ? raw : raw.replace(/(\.\d*?)0+$/, '$1').replace(/\.$/, '');
+  const raw =
+    resolveDisplayOriginalEntered(contract) ??
+    contract.enteredValueAmount ??
+    contract.originalValueAmount ??
+    '';
+  return stripStorageScale(raw);
+}
+
+function displayOpeningReduction(detail: ProjectDetail): string {
+  const raw = detail.contract?.openingReductionEnteredAmount ?? '';
+  return stripStorageScale(raw);
 }
 
 export function DetailsTab({
@@ -40,6 +64,13 @@ export function DetailsTab({
   currencySymbol,
   canManageContract,
   customFields = [],
+  taxRatePercent = null,
+  showOpeningReduction = true,
+  customFieldsRevalidatePath,
+  amountLabel,
+  amountDescription,
+  amountPlaceholder,
+  taxModeDescription,
 }: DetailsTabProps) {
   const t = useTranslations('projects.details');
   const tStatus = useTranslations('status.project');
@@ -51,6 +82,8 @@ export function DetailsTab({
 
   const { project } = detail;
   const currency = detail.contract?.currency ?? project.currency ?? baseCurrency;
+  const fieldsRevalidatePath =
+    customFieldsRevalidatePath ?? `/projects/${project.id}`;
 
   return (
     <>
@@ -103,9 +136,19 @@ export function DetailsTab({
           currencySymbol={currencySymbol}
           initialAmount={displayEnteredAmount(detail)}
           initialIncludesTax={detail.contract?.amountIncludesTax ?? false}
+          initialOpeningReduction={
+            showOpeningReduction ? displayOpeningReduction(detail) : ''
+          }
           amountError={state.fieldErrors?.contractValueAmount}
           taxModeError={state.fieldErrors?.amountIncludesTax}
+          reductionError={state.fieldErrors?.openingReductionAmount}
           locked={detail.originalContractAmountLocked}
+          taxRatePercent={taxRatePercent}
+          showOpeningReduction={showOpeningReduction}
+          amountLabel={amountLabel}
+          amountDescription={amountDescription}
+          amountPlaceholder={amountPlaceholder}
+          taxModeDescription={taxModeDescription}
         />
       ) : null}
 
@@ -212,7 +255,7 @@ export function DetailsTab({
       <EntityCustomFieldsPanel
         entityId={project.id}
         fields={customFields}
-        revalidatePath={`/projects/${project.id}`}
+        revalidatePath={fieldsRevalidatePath}
         saveAction={upsertEntityFieldValueAction}
       />
     </div>

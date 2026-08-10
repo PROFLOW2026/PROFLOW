@@ -109,6 +109,8 @@ export async function getProjectFinancials(
     projectId,
     currency,
     expectedRemainingCostAmount: forecastInputs.expectedRemainingCostAmount,
+    workKind: forecastInputs.workKind,
+    pricingMode: forecastInputs.pricingMode,
     canReadCommercial,
     canReadBilling,
     canReadProfit,

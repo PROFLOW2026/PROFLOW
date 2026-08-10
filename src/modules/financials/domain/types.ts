@@ -1,4 +1,5 @@
 import type { MoneyValue } from '@/shared/money/money';
+import type { PricingMode, WorkKind } from './work-pricing';
 
 /**
  * The financial contract every module reads from and none may redefine
@@ -13,6 +14,8 @@ import type { MoneyValue } from '@/shared/money/money';
  * Lead-owned. Feature modules consume these types; the calculation lives in
  * `modules/financials/application`.
  */
+
+export type { PricingMode, WorkKind } from './work-pricing';
 
 /** Cost inputs a project may or may not have configured. */
 export type CostSourceKey =
@@ -62,6 +65,10 @@ export interface FinancialCoverage {
 
 /** Commercial value: what was agreed, and what is still being negotiated. */
 export interface CommercialPosition {
+  /**
+   * Managed opening (engine) — `contracts.original_*` / original value event.
+   * Profitability and KPI math use this path via current contract, never display original.
+   */
   originalContractValue: MoneyValue;
   approvedAdditions: MoneyValue;
   approvedReductions: MoneyValue;
@@ -69,6 +76,13 @@ export interface CommercialPosition {
   currentContractValue: MoneyValue;
   /** Priced change requests not yet approved; shown separately, never added in. */
   pendingChanges: MoneyValue;
+  /**
+   * Context only when an opening reduction exists. Real-world display original net.
+   * Must not enter profitability, billing target, or forecast margin KPIs.
+   */
+  displayOriginalContractValue?: MoneyValue | null;
+  /** Context only — opening reduction audit net. Never a payment / bill / expense. */
+  openingReductionValue?: MoneyValue | null;
 }
 
 /** Billing and cash, kept apart from commercial value. */
@@ -145,13 +159,26 @@ export interface ProfitPosition {
 export interface ProjectFinancials {
   projectId: string;
   currency: string;
+  /** `project` | `job` — same financial engine; filterable at org level. */
+  workKind: WorkKind;
+  /**
+   * Jobs: `fixed` | `open`. Classic projects: null (= fixed when contracted).
+   */
+  pricingMode: PricingMode;
+  /**
+   * No managed revenue basis yet: open-price job, or job without primary
+   * contract. Costs/forecast OK; profit/margin not claimed.
+   * UI should show price-not-set (Hebrew: המחיר טרם נקבע) — never fake −loss.
+   */
+  priceNotSet: boolean;
   /** Null when the viewer lacks contracts.read — never substitute zeros. */
   commercial: CommercialPosition | null;
   billing: BillingPosition;
   cost: CostPosition;
   /**
-   * Null when the viewer lacks project_profit.read (or commercial is hidden).
-   * Never substitute zeros — that would look like break-even.
+   * Null when the viewer lacks project_profit.read, commercial is hidden,
+   * or `priceNotSet` (open-price — no revenue basis yet).
+   * Never substitute zeros — that would look like break-even or fake loss.
    */
   profit: ProfitPosition | null;
   coverage: FinancialCoverage;

@@ -1,5 +1,11 @@
 import { z } from 'zod';
-import { PROJECT_STATUSES, PROGRESS_STATUSES, MILESTONE_STATUSES } from '../domain/types';
+import {
+  PROJECT_STATUSES,
+  PROGRESS_STATUSES,
+  MILESTONE_STATUSES,
+  PRICING_MODES,
+  WORK_KINDS,
+} from '../domain/types';
 import { DATE_ORDER_MESSAGE, isEndBeforeStart } from '../domain/scheduling';
 
 const emptyToNull = (value: unknown) => {
@@ -65,15 +71,29 @@ const amountIncludesTaxSchema = z.preprocess((value) => {
   return value;
 }, z.boolean());
 
+const optionalMoneyAmount = z.preprocess(
+  emptyToNull,
+  z
+    .string()
+    .trim()
+    .regex(/^\d+(\.\d+)?$/, 'Amount must be a non-negative number')
+    .nullable()
+    .optional(),
+);
+
 export const createProjectSchema = z
   .object({
     name: projectNameSchema,
     clientId: z.preprocess(emptyToNull, z.string().uuid().nullable().optional()),
     clientName: z.preprocess(emptyToNull, z.string().trim().min(1).max(200).nullable().optional()),
+    workKind: z.enum(WORK_KINDS).optional(),
+    pricingMode: z.preprocess(emptyToNull, z.enum(PRICING_MODES).nullable().optional()),
     contractValueAmount: z.preprocess(emptyToNull, z.string().trim().nullable().optional()),
     contractValueCurrency: z.preprocess(emptyToNull, z.string().trim().length(3).nullable().optional()),
     /** false = excluding VAT (לא כולל מע״מ); true = including VAT (כולל מע״מ). */
     amountIncludesTax: amountIncludesTaxSchema.optional(),
+    /** Optional mid-project entry reduction (same tax mode as contract value). */
+    openingReductionAmount: optionalMoneyAmount,
     domainName: z.preprocess(emptyToNull, z.string().trim().min(1).max(120).nullable().optional()),
     location: z.preprocess(emptyToNull, z.string().trim().max(500).nullable().optional()),
     description: optionalText,
@@ -84,10 +104,91 @@ export const createProjectSchema = z
     targetEndDate: z.preprocess(emptyToNull, z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable().optional()),
     notes: optionalText,
   })
-  .superRefine((value, ctx) => refineDateOrder(value, ctx, 'startDate', 'targetEndDate'));
+  .superRefine((value, ctx) => {
+    refineDateOrder(value, ctx, 'startDate', 'targetEndDate');
+    if (value.openingReductionAmount && !value.contractValueAmount) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Opening reduction requires an original contract amount',
+        path: ['openingReductionAmount'],
+      });
+    }
+  });
 
 export type CreateProjectInput = z.input<typeof createProjectSchema>;
 export type CreateProjectValues = z.output<typeof createProjectSchema>;
+
+const jobNameSchema = z
+  .string()
+  .trim()
+  .min(1, 'Job name is required')
+  .max(200, 'Job name must be at most 200 characters');
+
+/**
+ * Quick job creation — client + name + pricing mode + start date required.
+ * Fixed pricing requires an amount; open pricing forbids inventing a zero contract.
+ */
+export const createJobSchema = z
+  .object({
+    name: jobNameSchema,
+    description: optionalText,
+    clientId: z.preprocess(emptyToNull, z.string().uuid().nullable().optional()),
+    clientName: z.preprocess(emptyToNull, z.string().trim().min(1).max(200).nullable().optional()),
+    pricingMode: z.enum(PRICING_MODES),
+    priceAmount: z.preprocess(emptyToNull, z.string().trim().nullable().optional()),
+    priceCurrency: z.preprocess(emptyToNull, z.string().trim().length(3).nullable().optional()),
+    amountIncludesTax: amountIncludesTaxSchema.optional(),
+    startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Start date is required'),
+    targetEndDate: optionalDate,
+    notes: optionalText,
+    /** Free-text crew note; formal assignment stays on the Time tab. */
+    workersNote: z.preprocess(emptyToNull, z.string().trim().max(500).nullable().optional()),
+    status: z.enum(PROJECT_STATUSES).optional(),
+  })
+  .superRefine((value, ctx) => {
+    refineDateOrder(value, ctx, 'startDate', 'targetEndDate');
+    if (!value.clientId && !value.clientName) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Client is required',
+        path: ['clientId'],
+      });
+    }
+    if (value.pricingMode === 'fixed') {
+      if (!value.priceAmount?.trim()) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Price is required for fixed pricing',
+          path: ['priceAmount'],
+        });
+      }
+    }
+    if (value.pricingMode === 'open' && value.priceAmount?.trim()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Open pricing cannot set a contract amount at create',
+        path: ['priceAmount'],
+      });
+    }
+  });
+
+export type CreateJobInput = z.input<typeof createJobSchema>;
+export type CreateJobValues = z.output<typeof createJobSchema>;
+
+export const setJobFixedPriceSchema = z.object({
+  jobId: z.string().uuid(),
+  priceAmount: z.string().trim().min(1, 'Price is required'),
+  priceCurrency: z.preprocess(emptyToNull, z.string().trim().length(3).nullable().optional()),
+  amountIncludesTax: amountIncludesTaxSchema.optional(),
+});
+
+export type SetJobFixedPriceInput = z.input<typeof setJobFixedPriceSchema>;
+
+export const convertJobToProjectSchema = z.object({
+  jobId: z.string().uuid(),
+});
+
+export type ConvertJobToProjectInput = z.input<typeof convertJobToProjectSchema>;
 
 export const updateProjectSchema = z
   .object({
@@ -109,6 +210,7 @@ export const updateProjectSchema = z
     contractValueAmount: z.preprocess(emptyToNull, z.string().trim().nullable().optional()),
     contractValueCurrency: z.preprocess(emptyToNull, z.string().trim().length(3).nullable().optional()),
     amountIncludesTax: amountIncludesTaxSchema.optional(),
+    openingReductionAmount: optionalMoneyAmount,
   })
   .superRefine((value, ctx) => {
     refineDateOrder(value, ctx, 'startDate', 'targetEndDate');
@@ -117,6 +219,13 @@ export const updateProjectSchema = z
         code: z.ZodIssueCode.custom,
         message: DATE_ORDER_MESSAGE,
         path: ['actualEndDate'],
+      });
+    }
+    if (value.openingReductionAmount && !value.contractValueAmount) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Opening reduction requires an original contract amount',
+        path: ['openingReductionAmount'],
       });
     }
   });
@@ -131,12 +240,16 @@ export const listProjectsSchema = z.object({
   search: z.string().trim().optional(),
   status: z.enum([...PROJECT_STATUSES, 'all'] as const).optional(),
   clientId: z.string().uuid().optional(),
+  workKind: z.enum(WORK_KINDS).optional(),
+  awaitingPayment: z.boolean().optional(),
   includeArchived: z.boolean().optional(),
   sortBy: z.enum(['name', 'status', 'created_at', 'updated_at']).optional(),
   sortDirection: z.enum(['asc', 'desc']).optional(),
   limit: z.coerce.number().int().min(0).optional(),
   offset: z.coerce.number().int().min(0).optional(),
 });
+
+export const listJobsSchema = listProjectsSchema.omit({ workKind: true });
 
 export const createWorkPackageSchema = z.object({
   projectId: z.string().uuid(),

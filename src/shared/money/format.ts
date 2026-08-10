@@ -5,10 +5,16 @@ import { displayScaleFor, isNegativeMoney, isZeroMoney, toDecimalValue, type Mon
  *
  * Signs are rendered as text so profit/loss never depends on colour alone,
  * and the true minus sign (U+2212) is used instead of a hyphen.
+ *
+ * he-IL business amounts render as `52,000 ₪` (symbol after, no bare `.00`),
+ * assembled from `formatToParts` so bidi marks cannot flip the glyph inside
+ * an LTR isolate.
  */
 
 const MINUS_SIGN = '\u2212';
 const PLUS_SIGN = '+';
+/** LRM / RLM / isolates / embeddings that Intl may inject into currency strings. */
+const BIDI_MARKS = /[\u200E\u200F\u061C\u202A-\u202E\u2066-\u2069]/g;
 
 export type MoneyDecimalsMode = 'minor-units' | 'whole' | 'auto';
 
@@ -34,6 +40,15 @@ function getFormatter(locale: string, options: Intl.NumberFormatOptions): Intl.N
   return formatter;
 }
 
+function isHebrewLocale(locale: string): boolean {
+  const base = locale.toLowerCase().split('-')[0];
+  return base === 'he' || base === 'iw';
+}
+
+function stripBidiMarks(value: string): string {
+  return value.replace(BIDI_MARKS, '');
+}
+
 function resolveFractionDigits(value: MoneyValue, mode: MoneyDecimalsMode): number {
   const scale = displayScaleFor(value.currency);
   if (mode === 'whole') return 0;
@@ -41,13 +56,49 @@ function resolveFractionDigits(value: MoneyValue, mode: MoneyDecimalsMode): numb
   return toDecimalValue(value).decimalPlaces() === 0 ? 0 : scale;
 }
 
+/**
+ * Build a bidi-safe currency string from Intl parts.
+ * Hebrew ProjectFlow presentation: `52,000 ₪` (amount, space, symbol).
+ */
+function formatCurrencyFromParts(
+  locale: string,
+  absoluteAmount: number,
+  intlOptions: Intl.NumberFormatOptions,
+): string {
+  const parts = getFormatter(locale, intlOptions).formatToParts(absoluteAmount);
+  const currency = stripBidiMarks(parts.find((part) => part.type === 'currency')?.value ?? '').trim();
+  const amount = parts
+    .filter((part) =>
+      part.type === 'integer' ||
+      part.type === 'group' ||
+      part.type === 'decimal' ||
+      part.type === 'fraction' ||
+      part.type === 'compact',
+    )
+    .map((part) => part.value)
+    .join('');
+
+  if (isHebrewLocale(locale) && currency) {
+    return `${amount} ${currency}`;
+  }
+
+  return stripBidiMarks(
+    parts
+      .map((part) => part.value)
+      .join('')
+      .replace(/\u00A0/g, ' '),
+  )
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 export function formatMoney(value: MoneyValue, locale: string, options: FormatMoneyOptions = {}): string {
-  const { decimals = 'minor-units', compact = false, signDisplay = 'auto', currencyDisplay = 'narrowSymbol' } = options;
+  const { decimals = 'auto', compact = false, signDisplay = 'auto', currencyDisplay = 'narrowSymbol' } = options;
 
   const fractionDigits = resolveFractionDigits(value, decimals);
   const decimal = toDecimalValue(value);
 
-  const formatted = getFormatter(locale, {
+  const formatted = formatCurrencyFromParts(locale, Math.abs(decimal.toNumber()), {
     style: 'currency',
     currency: value.currency,
     currencyDisplay,
@@ -55,7 +106,7 @@ export function formatMoney(value: MoneyValue, locale: string, options: FormatMo
     minimumFractionDigits: compact ? 0 : fractionDigits,
     maximumFractionDigits: compact ? 1 : fractionDigits,
     signDisplay: 'never',
-  }).format(Math.abs(decimal.toNumber()));
+  });
 
   if (isZeroMoney(value)) return formatted;
   if (isNegativeMoney(value)) return `${MINUS_SIGN}${formatted}`;

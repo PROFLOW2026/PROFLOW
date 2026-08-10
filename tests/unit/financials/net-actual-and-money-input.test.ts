@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { normalizeMoneyInputText } from '@/components/patterns/money-input';
+import {
+  formatMoneyAmountForInput,
+  normalizeMoneyInputText,
+} from '@/components/patterns/money-input';
 import { aggregateProjectCosts } from '@/modules/financials/domain/cost-aggregation';
 import { computeProfitPosition } from '@/modules/financials/domain/profit';
 import { money } from '@/shared/money';
@@ -16,6 +19,20 @@ describe('money input thousands separators', () => {
 
   it('rejects invalid characters', () => {
     expect(normalizeMoneyInputText('12a')).toBeNull();
+  });
+});
+
+describe('money input storage-scale display', () => {
+  it('hides six trailing zeros from numeric(18,6) stored values', () => {
+    expect(formatMoneyAmountForInput('52000.000000')).toBe('52000');
+    expect(formatMoneyAmountForInput('52.500000')).toBe('52.5');
+    expect(formatMoneyAmountForInput('12.340000')).toBe('12.34');
+  });
+
+  it('leaves in-progress or already-friendly values untouched', () => {
+    expect(formatMoneyAmountForInput('52000')).toBe('52000');
+    expect(formatMoneyAmountForInput('52.50')).toBe('52.50');
+    expect(formatMoneyAmountForInput('1.')).toBe('1.');
   });
 });
 

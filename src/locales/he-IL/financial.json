@@ -1,6 +1,8 @@
 {
   "panelTitle": "כספים של הפרויקט",
   "originalContractValue": "סכום חוזה מקורי",
+  "displayOriginalContractValue": "לפי החוזה המקורי",
+  "openingReductionValue": "הפחתה לפני תחילת הניהול",
   "approvedChanges": "שינויים מאושרים",
   "approvedAdditions": "תוספות מאושרות",
   "approvedReductions": "הפחתות מאושרות",
@@ -54,7 +56,9 @@
     "actualMarginHint": "חוזה נוכחי − עלות בפועל (נטו). לא נתון מזומן.",
     "forecastMargin": "מרווח תחזית",
     "forecastMarginHint": "חוזה נוכחי − תחזית עלות (נטו).",
-    "forecastMarginEqualsActualHint": "זהה למרווח בפועל כל עוד תחזית העלות שווה לעלות בפועל."
+    "forecastMarginEqualsActualHint": "זהה למרווח בפועל כל עוד תחזית העלות שווה לעלות בפועל.",
+    "priceNotSet": "המחיר טרם נקבע",
+    "priceNotSetHint": "עבודה במחיר פתוח: עלויות ותחזית עלות ממשיכות להצטבר. רווח ומרווח אינם מוצגים עד שנקבע בסיס הכנסה."
   },
   "drillLinks": {
     "viewChanges": "פתיחת שינויים בפרויקט",
