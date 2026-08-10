@@ -19,6 +19,9 @@ import {
   type FieldOpsWorkPackageOption,
   type InspectionKind,
 } from '@/modules/field-ops/domain/types';
+import { inspectionPayloadFromFormData } from '@/modules/offline/domain/payloads';
+import { useOfflineAwareFormAction } from '@/modules/offline/ui/use-offline-aware-form-action';
+import { Link } from '@/shared/i18n/navigation';
 import { createInspectionAction, type FieldOpsFormState } from '../actions';
 import { FieldOpsPhotoLimitationNote } from '../field-ops-photo-limitation-note';
 
@@ -36,8 +39,17 @@ export function InspectionCreateForm({
   const t = useTranslations('fieldOps.createInspection');
   const tKinds = useTranslations('fieldOps.kinds');
   const tCommon = useTranslations('common');
+  const tOffline = useTranslations('offline');
+  const offlineSuccessState = useMemo<FieldOpsFormState>(() => ({ offlineQueued: true }), []);
+  const wrappedAction = useOfflineAwareFormAction<FieldOpsFormState>({
+    kind: 'inspection',
+    onlineAction: createInspectionAction,
+    buildPayload: inspectionPayloadFromFormData,
+    offlineSuccessState,
+    missingOrgError: tOffline('errors.missingOrganization'),
+  });
   const [state, formAction, pending] = useActionState<FieldOpsFormState, FormData>(
-    createInspectionAction,
+    wrappedAction,
     {},
   );
   const [projectId, setProjectId] = useState(defaultProjectId ?? '');
@@ -52,6 +64,14 @@ export function InspectionCreateForm({
   return (
     <form action={formAction} className="flex max-w-lg flex-col gap-4">
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
+      {state.offlineQueued ? (
+        <Alert tone="info" role="status">
+          {tOffline('forms.draftSaved')}{' '}
+          <Link href="/settings/offline-drafts" className="font-medium underline">
+            {tOffline('banner.viewDrafts')}
+          </Link>
+        </Alert>
+      ) : null}
 
       <Field label={t('projectLabel')} required>
         {(control) => (

@@ -4,6 +4,7 @@ import {
   buildFixtureCandidates,
   confirmReceiptExtraction,
   mapConfirmedFieldsToExpenseDraft,
+  mapConfirmedFieldsToVendorBillDraft,
   StubOcrProvider,
 } from '@/modules/ocr';
 
@@ -34,9 +35,29 @@ describe('OCR confirmation gate', () => {
 
     const draft = mapConfirmedFieldsToExpenseDraft(confirmed);
     expect(draft.isLedgerTruth).toBe(false);
+    expect(draft.status).toBe('draft');
     expect(draft.grossAmount).toBe('120');
     expect(draft.projectId).toBeNull();
     expect(draft.costCategoryId).toBeNull();
+  });
+
+  it('maps vendor bill draft as draft-only without recognized actual', () => {
+    const confirmed = confirmReceiptExtraction({
+      candidates: buildFixtureCandidates(),
+      acceptedFields: ['vendor', 'gross', 'currency', 'date', 'description'],
+      overrides: { gross: '250.00' },
+    });
+    const billDraft = mapConfirmedFieldsToVendorBillDraft(
+      confirmed,
+      '01900000-0000-7000-8000-0000000000aa',
+    );
+    expect(billDraft.status).toBe('draft');
+    expect(billDraft.recognizedVendorActual).toBe(false);
+    expect(billDraft.isLedgerTruth).toBe(false);
+    expect(billDraft.totalAmount).toBe('250.00');
+    expect(billDraft.projectId).toBeNull();
+    expect(billDraft.purchaseOrderId).toBeNull();
+    expect(billDraft.lines).toHaveLength(1);
   });
 
   it('stub provider without credentials does not invent extraction', async () => {

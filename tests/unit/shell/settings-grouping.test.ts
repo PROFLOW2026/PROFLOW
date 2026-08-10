@@ -46,6 +46,7 @@ describe('settings section grouping', () => {
       'customFields',
       'activity',
       'offlineDrafts',
+      'banking',
       'api',
     ]);
 

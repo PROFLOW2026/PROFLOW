@@ -60,6 +60,13 @@ export {
 } from './domain/maintenance';
 export type { MaintenanceScheduleBucket } from './domain/maintenance';
 
+/** Cross-module read helpers (ops→finance bridges). Prefer application getters when available. */
+export {
+  findAssetById,
+  findFleetById,
+  findMaintenanceById,
+} from './data/assets.repository';
+
 export {
   createAssetSchema,
   updateAssetSchema,

@@ -5,12 +5,14 @@ import type { OrgContext } from '@/shared/auth/context';
 import {
   assertNoSensitiveVendorFields,
   buildVendorPortalSession,
+  buildVendorSafePaymentOutstanding,
   buildVendorSafePoSummary,
   buildVendorSafeRfqSummary,
   grantHasVendorScope,
   isVendorPortalSession,
 } from '../domain/safe-vendor-projection';
 import { grantIsActive } from '../domain/safe-project-summary';
+import { assertGrantBelongsToOrganization } from '../domain/tenant-isolation';
 import { normalizeVendorScopes } from '../domain/vendor-scopes';
 import type { VendorPortalPreview } from '../domain/types';
 import {
@@ -28,7 +30,7 @@ import {
 
 /**
  * Admin / foundation preview of vendor-safe portal projections.
- * Public vendor login remains foundation-only; this path uses PORTAL_MANAGE.
+ * Public vendor login is DISABLED; this path uses PORTAL_MANAGE only.
  * ExternalPrincipal session is built from the grant — never Membership.
  */
 export async function getVendorPortalPreview(
@@ -48,6 +50,7 @@ export async function getVendorPortalPreview(
   if (!grant || grant.portalKind !== 'vendor' || !grant.vendorId) {
     throw new NotFoundError('Vendor portal grant');
   }
+  assertGrantBelongsToOrganization(grant, context.organizationId);
   if (!grantIsActive(grant)) {
     throw new DomainRuleError('Portal grant is not active', 'errors.notAllowed');
   }
@@ -61,6 +64,9 @@ export async function getVendorPortalPreview(
       'ExternalPrincipal session must not be treated as membership',
       'errors.notAllowed',
     );
+  }
+  if (session.organizationId !== context.organizationId) {
+    throw new DomainRuleError('Cross-tenant portal access denied', 'portal.errors.crossTenant');
   }
 
   const scopes = normalizeVendorScopes(grant.scopes);
@@ -108,12 +114,16 @@ export async function getVendorPortalPreview(
     : [];
 
   const apBillCandidates = grantHasVendorScope(grant, 'bill.candidate')
-    ? listApBillCandidatesForVendorGrant(context.organizationId, grant.vendorId)
+    ? await listApBillCandidatesForVendorGrant(context, grant.vendorId)
     : [];
 
   const complianceCandidates = grantHasVendorScope(grant, 'documents.upload')
-    ? listComplianceCandidatesForVendorGrant(context.organizationId, grant.vendorId)
+    ? await listComplianceCandidatesForVendorGrant(context, grant.vendorId)
     : [];
+
+  const paymentOutstanding = grantHasVendorScope(grant, 'payment.outstanding')
+    ? buildVendorSafePaymentOutstanding()
+    : undefined;
 
   const preview: VendorPortalPreview = {
     vendorId: grant.vendorId,
@@ -123,9 +133,10 @@ export async function getVendorPortalPreview(
     purchaseOrders,
     apBillCandidates,
     complianceCandidates,
+    paymentOutstanding,
     candidateIntakeNote: 'candidates_only',
     rfqVisibility: 'vendor_associated_only',
-    publicLoginStatus: 'foundation_only',
+    publicLoginStatus: 'disabled',
     identityModel: 'external_principal',
   };
 

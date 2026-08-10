@@ -22,6 +22,7 @@
     "activity": "Activity log",
     "app": "App",
     "offlineDrafts": "Offline drafts",
+    "banking": "Banking",
     "profile": "Your profile"
   },
   "people": {
@@ -378,7 +379,9 @@
         "bill_created": "Vendor bill created",
         "match_proposed": "Vendor bill match proposed",
         "match_accepted": "Vendor bill match accepted",
-        "match_rejected": "Vendor bill match rejected"
+        "match_rejected": "Vendor bill match rejected",
+        "payment_recorded": "Vendor payment recorded",
+        "payment_voided": "Vendor payment voided"
       },
       "daily_log": {
         "created": "Daily log created",
@@ -460,6 +463,7 @@
       "purchase_order": "Purchase order",
       "ap_bill": "Vendor bill",
       "ap_match": "Vendor bill match",
+      "ap_payment": "Vendor payment",
       "daily_log": "Daily log",
       "punch_list_item": "Punch item",
       "inspection": "Inspection",

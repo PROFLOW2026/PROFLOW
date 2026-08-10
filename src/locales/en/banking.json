@@ -1,0 +1,99 @@
+{
+  "title": "Bank import & reconciliation",
+  "description": "Import bank statements (CSV/XLSX), review suggested matches, then Approve, Change, or Ignore. Nothing posts to payments, bills, or project cost until you act elsewhere.",
+  "ruleNote": "Bank match ≠ payment ≠ project cost",
+  "liveFeed": {
+    "title": "Live bank feed",
+    "body": "Live bank connections are not configured. Use CSV or XLSX import for now.",
+    "notConfigured": "Live feed not configured"
+  },
+  "accounts": {
+    "title": "Bank accounts",
+    "empty": "No bank accounts yet. Add one to start importing statements.",
+    "nameLabel": "Account name",
+    "currencyLabel": "Currency",
+    "maskLabel": "Account mask (optional)",
+    "create": "Add account",
+    "created": "Bank account created.",
+    "archived": "Archived"
+  },
+  "import": {
+    "title": "Import statement",
+    "hint": "Upload a CSV or paste CSV text. XLSX can be converted to CSV before paste. Duplicates are skipped.",
+    "fileLabel": "Statement file",
+    "csvLabel": "CSV text",
+    "submit": "Import",
+    "success": "Imported {imported} rows. Skipped {duplicates} duplicates. Invalid rows: {invalid}.",
+    "noFinancialWrite": "Import never creates payments, bills, or expenses."
+  },
+  "transactions": {
+    "title": "Transactions",
+    "empty": "No transactions yet. Import a statement to begin reconciliation.",
+    "columns": {
+      "date": "Date",
+      "valueDate": "Value date",
+      "description": "Description",
+      "amount": "Amount",
+      "direction": "Direction",
+      "reference": "Reference",
+      "source": "Source",
+      "status": "Status"
+    },
+    "directions": {
+      "credit": "Credit (in)",
+      "debit": "Debit (out)"
+    },
+    "sources": {
+      "csv_import": "CSV import",
+      "xlsx_import": "XLSX import",
+      "live_feed": "Live feed"
+    }
+  },
+  "statuses": {
+    "unmatched": "Unmatched",
+    "partially_matched": "Partially matched",
+    "matched": "Matched",
+    "ignored": "Ignored"
+  },
+  "suggestions": {
+    "title": "Suggested matches",
+    "empty": "No suggestions for this line.",
+    "incomingHint": "Incoming lines suggest customer payments or billing records.",
+    "outgoingHint": "Outgoing lines suggest vendor payments or vendor bills.",
+    "score": "Score {score}",
+    "target": {
+      "customer_payment": "Customer payment",
+      "billing_record": "Billing record",
+      "vendor_payment": "Vendor payment",
+      "vendor_bill": "Vendor bill"
+    },
+    "costGuard": "Matching a vendor payment for an already-recognized bill is cash only — it does not add project cost."
+  },
+  "actions": {
+    "approve": "Approve",
+    "change": "Change",
+    "ignore": "Ignore",
+    "approved": "Match approved (reconciliation only — no ledger write).",
+    "changed": "Match changed (reconciliation only — no ledger write).",
+    "ignored": "Transaction ignored.",
+    "selectTarget": "Select a suggestion or enter a target before Approve / Change."
+  },
+  "errors": {
+    "incomingTarget": "Incoming bank lines can only match customer payment or billing.",
+    "outgoingTarget": "Outgoing bank lines can only match vendor payment or bill.",
+    "targetRequired": "Approve / Change requires a match target.",
+    "currencyMismatch": "Match currency must match the bank transaction.",
+    "amountRequired": "Applied amount must be positive.",
+    "overApply": "Applied amount cannot exceed the bank transaction amount.",
+    "mappingRequired": "Map date, description, and amount (or debit/credit) columns.",
+    "accountArchived": "Cannot import into an archived bank account.",
+    "needAccount": "Select or create a bank account first.",
+    "needCsv": "Provide CSV text to import.",
+    "importFailed": "Import failed.",
+    "decideFailed": "Could not save the decision.",
+    "schemaPending": "Banking persistence is not enabled yet (schema pending migrate).",
+    "crossOrgTarget": "Match target must belong to the same organization.",
+    "crossOrgAccount": "Bank account must belong to the same organization.",
+    "crossOrgImport": "Import batch must belong to the same organization and account."
+  }
+}

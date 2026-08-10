@@ -45,7 +45,9 @@ export function createProductSyncTransport(): OfflineSyncTransport {
         action.kind === 'expense' ||
         action.kind === 'time_entry' ||
         action.kind === 'change_request' ||
-        action.kind === 'daily_log'
+        action.kind === 'daily_log' ||
+        action.kind === 'punch' ||
+        action.kind === 'inspection'
       ) {
         return submitOfflineDraftAction({
           kind: action.kind,
@@ -53,9 +55,11 @@ export function createProductSyncTransport(): OfflineSyncTransport {
           payload: action.payload,
           localId: action.localId,
           organizationId: action.organizationId,
+          userId: action.userId,
           updatedAt: action.updatedAt,
           syncStatus: action.syncStatus,
           serverUpdatedAt: action.serverUpdatedAt,
+          dedupeKey: action.dedupeKey,
         });
       }
 

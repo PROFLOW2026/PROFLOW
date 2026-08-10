@@ -61,3 +61,48 @@ export type DecideApMatchInput = z.input<typeof decideApMatchSchema>;
 
 export const apBillStatusSchema = z.enum(AP_BILL_STATUSES);
 export const apMatchStatusSchema = z.enum(AP_MATCH_STATUSES);
+
+export const recordVendorPaymentSchema = z.object({
+  vendorId: z.string().uuid().optional().nullable(),
+  amount: moneyString,
+  currency: z.string().trim().length(3),
+  paymentDate: z.string().trim().min(10).max(10),
+  method: z.string().trim().max(80).optional().nullable(),
+  reference: z.string().trim().max(120).optional().nullable(),
+  notes: z.string().trim().max(2000).optional().nullable(),
+  applications: z
+    .array(
+      z.object({
+        apBillId: z.string().uuid(),
+        appliedAmount: moneyString,
+      }),
+    )
+    .min(1),
+});
+
+export type RecordVendorPaymentInput = z.input<typeof recordVendorPaymentSchema>;
+
+export const voidVendorPaymentSchema = z.object({
+  paymentId: z.string().uuid(),
+});
+
+export type VoidVendorPaymentInput = z.input<typeof voidVendorPaymentSchema>;
+
+/**
+ * Non-financial metadata only. Amount / currency / paymentDate / vendorId are
+ * intentionally omitted — correction requires void + new payment.
+ */
+export const updateVendorPaymentMetadataSchema = z
+  .object({
+    paymentId: z.string().uuid(),
+    method: z.string().trim().max(80).optional().nullable(),
+    reference: z.string().trim().max(120).optional().nullable(),
+    notes: z.string().trim().max(2000).optional().nullable(),
+  })
+  .refine(
+    (data) =>
+      data.method !== undefined || data.reference !== undefined || data.notes !== undefined,
+    { message: 'At least one metadata field is required' },
+  );
+
+export type UpdateVendorPaymentMetadataInput = z.input<typeof updateVendorPaymentMetadataSchema>;

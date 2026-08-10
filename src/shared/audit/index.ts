@@ -156,6 +156,8 @@ export const AUDIT_ACTIONS = {
   AP_MATCH_PROPOSED: 'ap.match_proposed',
   AP_MATCH_ACCEPTED: 'ap.match_accepted',
   AP_MATCH_REJECTED: 'ap.match_rejected',
+  AP_PAYMENT_RECORDED: 'ap.payment_recorded',
+  AP_PAYMENT_VOIDED: 'ap.payment_voided',
 
   DAILY_LOG_CREATED: 'daily_log.created',
   DAILY_LOG_UPDATED: 'daily_log.updated',

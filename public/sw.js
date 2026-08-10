@@ -12,6 +12,25 @@ const PRECACHE = [
   '/offline.html',
 ];
 const NETWORK_FIRST = ['/manifest.webmanifest'];
+/** Never cache sensitive financial app routes (field offline is draft-queue only). */
+const SENSITIVE_MARKERS = [
+  '/billing',
+  '/financials',
+  '/receivables',
+  '/payables',
+  '/procurement/ap',
+  '/bank',
+  '/banking',
+  '/invoices',
+  '/profit',
+  '/cashflow',
+  '/tax',
+];
+
+function isSensitiveFinancialPath(pathname) {
+  const lower = pathname.toLowerCase();
+  return SENSITIVE_MARKERS.some((marker) => lower.includes(marker));
+}
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -47,6 +66,11 @@ self.addEventListener('fetch', (event) => {
 
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
+
+  // Sensitive financial pages: network only, never write into SW caches.
+  if (isSensitiveFinancialPath(url.pathname)) {
+    return;
+  }
 
   // Never cache-first App Router / RSC / API traffic.
   if (request.mode === 'navigate') {

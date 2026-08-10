@@ -78,3 +78,6 @@ export type {
   ListExpensesInput,
   RunAllocationInput,
 } from './validation/schemas';
+
+/** Cross-module org-scoped lookups (FK / tenancy guards). */
+export { findExpenseById } from './data/expenses.repository';

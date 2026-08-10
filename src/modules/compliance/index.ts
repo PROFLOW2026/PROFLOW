@@ -7,6 +7,9 @@ export {
   getComplianceArtifactById,
 } from './application/list-artifacts';
 
+/** Cross-module read helper (ops→finance bridges). */
+export { findComplianceArtifactById } from './data/compliance.repository';
+
 export {
   ARTIFACT_KINDS,
   ARTIFACT_STATUSES,

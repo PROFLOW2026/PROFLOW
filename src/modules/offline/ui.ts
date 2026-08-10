@@ -6,9 +6,13 @@
 
 export {
   OfflineOrgProvider,
+  OfflineScopeProvider,
   useOfflineAwareFormAction,
   useOfflineOrganizationId,
+  useOfflineScope,
+  useOfflineUserId,
   type OfflineDraftFormState,
+  type OfflineScopeContextValue,
 } from './ui/use-offline-aware-form-action';
 export { OfflineDraftSaveControls } from './ui/offline-draft-save-controls';
 export { ConnectivityBanner, ConnectivityIndicator } from './ui/connectivity-banner';

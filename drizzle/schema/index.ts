@@ -29,3 +29,8 @@ export * from './api-platform';
 export * from './procurement';
 export * from './field-ops';
 export * from './ap';
+export * from './banking';
+export * from './planning';
+export * from './ocr';
+export * from './ops-finance';
+export * from './invoicing-integration';

@@ -3,11 +3,28 @@ import type {
   ExternalAccessGrantRecord,
   VendorPortalScope,
   VendorPortalSession,
+  VendorSafePaymentOutstanding,
   VendorSafePoSummary,
   VendorSafeRfqSummary,
 } from './types';
 import { grantIsActive } from './safe-project-summary';
 import { normalizeVendorScopes } from './vendor-scopes';
+
+/**
+ * Vendor payment/outstanding exposure policy.
+ * Disabled until AP vendor payments can be projected without leaking cost
+ * recognition, match variance, or internal settlement math (Agent 1 surface).
+ */
+export type VendorPaymentOutstandingPolicy = 'disabled' | 'enabled';
+
+export const VENDOR_PAYMENT_OUTSTANDING_POLICY: VendorPaymentOutstandingPolicy = 'disabled';
+
+export const VENDOR_PAYMENT_OUTSTANDING_DISABLED_NOTE =
+  'Vendor payment/outstanding is policy-disabled until AP payments can be exposed safely. Candidates and PO totals remain available under their own scopes.';
+
+export function isVendorPaymentOutstandingPolicyEnabled(): boolean {
+  return VENDOR_PAYMENT_OUTSTANDING_POLICY === 'enabled';
+}
 
 /** Approved / issued commercial POs visible to the granted vendor. Drafts stay internal. */
 export const VENDOR_VISIBLE_PO_STATUSES = [
@@ -202,4 +219,39 @@ export function buildVendorSafePoSummary(input: {
   };
   assertNoSensitiveVendorFields(summary as unknown as Record<string, unknown>);
   return summary;
+}
+
+/**
+ * Vendor payment/outstanding projection. While policy is disabled, returns an
+ * empty disabled payload even when the grant includes `payment.outstanding`.
+ */
+export function buildVendorSafePaymentOutstanding(input?: {
+  readonly currency?: string | null;
+  readonly billedAmount?: string | null;
+  readonly paidAmount?: string | null;
+  readonly outstandingAmount?: string | null;
+}): VendorSafePaymentOutstanding {
+  if (isVendorPaymentOutstandingPolicyEnabled()) {
+    const projection: VendorSafePaymentOutstanding = {
+      policyStatus: 'enabled',
+      currency: input?.currency ?? null,
+      billedAmount: input?.billedAmount ?? null,
+      paidAmount: input?.paidAmount ?? null,
+      outstandingAmount: input?.outstandingAmount ?? null,
+      note: 'Vendor-facing payment position only — never cost recognition.',
+    };
+    assertNoSensitiveVendorFields(projection as unknown as Record<string, unknown>);
+    return projection;
+  }
+
+  const disabled: VendorSafePaymentOutstanding = {
+    policyStatus: 'disabled',
+    currency: null,
+    billedAmount: null,
+    paidAmount: null,
+    outstandingAmount: null,
+    note: VENDOR_PAYMENT_OUTSTANDING_DISABLED_NOTE,
+  };
+  assertNoSensitiveVendorFields(disabled as unknown as Record<string, unknown>);
+  return disabled;
 }

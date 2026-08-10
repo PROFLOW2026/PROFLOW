@@ -11,9 +11,9 @@ import {
 } from '../domain/safe-vendor-projection';
 import { findGrantById } from '../data/portal.repository';
 import {
-  insertVendorComplianceUploadCandidate,
-  listVendorComplianceCandidatesForVendor,
-} from '../data/vendor-portal-candidates.store';
+  insertVendorComplianceCandidateRow,
+  listVendorComplianceCandidatesForVendorRow,
+} from '../data/vendor-portal-candidates';
 import {
   submitVendorComplianceCandidateSchema,
   type SubmitVendorComplianceCandidateInput,
@@ -45,8 +45,7 @@ export async function submitVendorComplianceCandidate(
   assertVendorGrantActive(grant, input.vendorId);
   assertVendorGrantHasScope(grant, 'documents.upload');
 
-  const candidate = insertVendorComplianceUploadCandidate({
-    organizationId: context.organizationId,
+  const candidate = await insertVendorComplianceCandidateRow(context, {
     vendorId: input.vendorId,
     grantId: grant.id,
     principalId: grant.principalId,
@@ -77,9 +76,9 @@ export async function submitVendorComplianceCandidate(
   return candidate;
 }
 
-export function listComplianceCandidatesForVendorGrant(
-  organizationId: string,
+export async function listComplianceCandidatesForVendorGrant(
+  context: Pick<OrgContext, 'db' | 'organizationId'>,
   vendorId: string,
-): VendorComplianceUploadCandidate[] {
-  return listVendorComplianceCandidatesForVendor(organizationId, vendorId);
+): Promise<VendorComplianceUploadCandidate[]> {
+  return listVendorComplianceCandidatesForVendorRow(context, vendorId);
 }

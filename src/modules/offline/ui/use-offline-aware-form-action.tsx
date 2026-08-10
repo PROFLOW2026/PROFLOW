@@ -1,29 +1,45 @@
 'use client';
 
 import { useCallback, useContext, createContext, useMemo, type ReactNode } from 'react';
-import type { DraftKind } from '../domain/types';
+import type { DraftKind, DraftScope } from '../domain/types';
 import { isBrowserOnline } from '../data/browser-online';
 import { enqueueProductDraft } from '../data/enqueue-product-draft';
 
-export interface OfflineOrgContextValue {
+export interface OfflineScopeContextValue {
   readonly organizationId: string;
+  readonly userId: string;
 }
 
-const OfflineOrgContext = createContext<OfflineOrgContextValue | null>(null);
+const OfflineScopeContext = createContext<OfflineScopeContextValue | null>(null);
 
 export function OfflineOrgProvider({
   organizationId,
+  userId,
   children,
 }: {
   organizationId: string;
+  userId: string;
   children: ReactNode;
 }) {
-  const value = useMemo(() => ({ organizationId }), [organizationId]);
-  return <OfflineOrgContext.Provider value={value}>{children}</OfflineOrgContext.Provider>;
+  const value = useMemo(() => ({ organizationId, userId }), [organizationId, userId]);
+  return <OfflineScopeContext.Provider value={value}>{children}</OfflineScopeContext.Provider>;
 }
 
+/** @deprecated Prefer OfflineOrgProvider with userId — alias kept for call-site clarity. */
+export const OfflineScopeProvider = OfflineOrgProvider;
+
 export function useOfflineOrganizationId(): string | null {
-  return useContext(OfflineOrgContext)?.organizationId ?? null;
+  return useContext(OfflineScopeContext)?.organizationId ?? null;
+}
+
+export function useOfflineUserId(): string | null {
+  return useContext(OfflineScopeContext)?.userId ?? null;
+}
+
+export function useOfflineScope(): DraftScope | null {
+  const ctx = useContext(OfflineScopeContext);
+  if (!ctx?.organizationId || !ctx.userId) return null;
+  return { organizationId: ctx.organizationId, userId: ctx.userId };
 }
 
 export type OfflineDraftFormState = {
@@ -53,10 +69,12 @@ export function useOfflineAwareFormAction<S extends OfflineDraftFormState>(optio
   };
   readonly offlineSuccessState: S;
   readonly organizationId?: string | null;
+  readonly userId?: string | null;
   readonly missingOrgError?: string;
 }): (prev: S, formData: FormData) => Promise<S> {
-  const contextOrgId = useOfflineOrganizationId();
-  const organizationId = options.organizationId ?? contextOrgId;
+  const contextScope = useOfflineScope();
+  const organizationId = options.organizationId ?? contextScope?.organizationId ?? null;
+  const userId = options.userId ?? contextScope?.userId ?? null;
   const {
     kind,
     onlineAction,
@@ -69,13 +87,14 @@ export function useOfflineAwareFormAction<S extends OfflineDraftFormState>(optio
   return useCallback(
     async (prev: S, formData: FormData): Promise<S> => {
       if (!isBrowserOnline()) {
-        if (!organizationId) {
+        if (!organizationId || !userId) {
           return { ...prev, error: missingOrgError, offlineQueued: false } as S;
         }
         const payload = buildPayload(formData);
         const meta = resolveServerMeta?.(formData, payload) ?? {};
         await enqueueProductDraft({
           organizationId,
+          userId,
           kind,
           payload,
           localId: meta.localId,
@@ -88,6 +107,7 @@ export function useOfflineAwareFormAction<S extends OfflineDraftFormState>(optio
     },
     [
       organizationId,
+      userId,
       kind,
       onlineAction,
       buildPayload,

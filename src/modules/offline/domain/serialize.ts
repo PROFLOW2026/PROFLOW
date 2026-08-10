@@ -24,12 +24,14 @@ export function toQueuedAction(record: OfflineDraftRecord): QueuedAction {
   return {
     localId: record.localId,
     organizationId: record.organizationId,
+    userId: record.userId,
     kind: record.kind,
     payload: { ...record.payload },
     updatedAt: record.updatedAt,
     syncStatus: record.syncStatus,
     serverId: record.serverId,
     serverUpdatedAt: record.serverUpdatedAt,
+    dedupeKey: record.dedupeKey,
   };
 }
 
@@ -53,12 +55,14 @@ export function parseQueuedAction(raw: string): QueuedAction {
   const {
     localId,
     organizationId,
+    userId,
     kind,
     payload,
     updatedAt,
     syncStatus,
     serverId,
     serverUpdatedAt,
+    dedupeKey,
   } = parsed;
 
   if (typeof localId !== 'string' || localId.length === 0) {
@@ -66,6 +70,9 @@ export function parseQueuedAction(raw: string): QueuedAction {
   }
   if (typeof organizationId !== 'string' || organizationId.length === 0) {
     throw new OfflineSerializeError('Queued action organizationId is required.');
+  }
+  if (userId !== undefined && userId !== null && typeof userId !== 'string') {
+    throw new OfflineSerializeError('Queued action userId must be a string when present.');
   }
   if (!isDraftKind(kind)) {
     throw new OfflineSerializeError(`Unknown draft kind: ${String(kind)}`);
@@ -85,16 +92,21 @@ export function parseQueuedAction(raw: string): QueuedAction {
   if (serverUpdatedAt !== null && typeof serverUpdatedAt !== 'string') {
     throw new OfflineSerializeError('Queued action serverUpdatedAt must be string or null.');
   }
+  if (dedupeKey !== undefined && dedupeKey !== null && typeof dedupeKey !== 'string') {
+    throw new OfflineSerializeError('Queued action dedupeKey must be string or null.');
+  }
 
   return {
     localId,
     organizationId,
+    userId: typeof userId === 'string' ? userId : '',
     kind,
     payload,
     updatedAt,
     syncStatus,
     serverId: serverId ?? null,
     serverUpdatedAt: serverUpdatedAt ?? null,
+    dedupeKey: typeof dedupeKey === 'string' ? dedupeKey : null,
   };
 }
 
@@ -108,13 +120,15 @@ export function mergeDeserializedWithExisting(
   incoming: QueuedAction,
 ): QueuedAction {
   if (!existing) return incoming;
-  if (existing.syncStatus === 'conflict') {
+  if (existing.syncStatus === 'conflict' || existing.syncStatus === 'rejected') {
     return {
       ...incoming,
-      syncStatus: 'conflict',
+      syncStatus: existing.syncStatus,
       serverId: existing.serverId,
       serverUpdatedAt: existing.serverUpdatedAt,
-      // Prefer the conflicted local payload; server truth stays on the record.
+      userId: existing.userId || incoming.userId,
+      dedupeKey: existing.dedupeKey ?? incoming.dedupeKey,
+      // Prefer the conflicted/rejected local payload; server truth stays on the record.
       payload: { ...existing.payload },
       updatedAt: existing.updatedAt,
     };

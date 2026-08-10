@@ -1,5 +1,7 @@
 import { createExpense } from '@/modules/expenses';
 import type { CreateExpenseInput } from '@/modules/expenses';
+import { findExpenseById } from '@/modules/expenses';
+import { findApBillById } from '@/modules/ap';
 import type { OrgContext } from '@/shared/auth/context';
 import { DomainRuleError, NotFoundError } from '@/shared/errors';
 import { assertPermission } from '@/shared/permissions/assert';
@@ -7,6 +9,7 @@ import { PERMISSIONS } from '@/shared/permissions/catalog';
 import {
   confirmReceiptExtraction,
   mapConfirmedFieldsToExpenseDraft,
+  mapConfirmedFieldsToVendorBillDraft,
   type ConfirmedReceiptFields,
 } from '../domain/confirm';
 import {
@@ -16,15 +19,27 @@ import {
   mapCandidatesToExpenseInput,
   type CandidateFieldOverrides,
 } from '../domain/field-mapping';
+import {
+  assertOcrConfirmedTargetShape,
+  expenseConfirmTargetShape,
+  vendorBillConfirmTargetShape,
+} from '../domain/target-shape';
 import type {
   ExtractionJob,
+  OcrDraftTarget,
   OcrFieldCandidate,
   OcrReviewOverrides,
   ReceiptExtractionCandidates,
 } from '../domain/types';
-import { findJob, updateJob } from '../data/in-memory-ocr.store';
+import type { OcrRepository } from '../data/ocr.repository';
+import { getOcrRepository } from '../data/resolve-repository';
 import type { ConfirmOcrCandidateInput } from '../validation/schemas';
 import { confirmOcrCandidateSchema } from '../validation/schemas';
+import {
+  createVendorBillDraftFromOcr,
+  type CreateVendorBillDraftFn,
+  type VendorBillDraftPayload,
+} from './create-vendor-bill-draft';
 
 export type CreateExpenseFn = (
   context: OrgContext,
@@ -35,15 +50,30 @@ export type ConfirmOcrCandidateResult =
   | {
       readonly kind: 'mapped';
       readonly job: ExtractionJob;
+      readonly draftTarget: OcrDraftTarget;
       /** Present when accepted fields already form a valid draft expense payload. */
       readonly expenseInput: CreateExpenseInput | null;
+      readonly expenseDraft: ReturnType<typeof mapConfirmedFieldsToExpenseDraft>;
+      readonly vendorBillDraft: VendorBillDraftPayload | null;
+      /** @deprecated Prefer expenseDraft — kept for existing callers. */
       readonly draft: ReturnType<typeof mapConfirmedFieldsToExpenseDraft>;
     }
   | {
       readonly kind: 'created';
+      readonly draftTarget: 'expense';
       readonly job: ExtractionJob;
       readonly expenseId: string;
       readonly expenseInput: CreateExpenseInput;
+      readonly expenseDraft: ReturnType<typeof mapConfirmedFieldsToExpenseDraft>;
+      readonly draft: ReturnType<typeof mapConfirmedFieldsToExpenseDraft>;
+    }
+  | {
+      readonly kind: 'created';
+      readonly draftTarget: 'vendor_bill';
+      readonly job: ExtractionJob;
+      readonly vendorBillId: string;
+      readonly vendorBillDraft: VendorBillDraftPayload;
+      readonly expenseDraft: ReturnType<typeof mapConfirmedFieldsToExpenseDraft>;
       readonly draft: ReturnType<typeof mapConfirmedFieldsToExpenseDraft>;
     };
 
@@ -65,7 +95,6 @@ function candidatesFromConfirmed(fields: ConfirmedReceiptFields): ReceiptExtract
     tax: mk(fields.tax),
     gross: mk(fields.gross),
     currency: mk(fields.currency),
-    // Suggestions never become confirmed ledger inputs.
     lineDescriptions: [],
     suggestions: { projectLabel: null, categoryLabel: null },
   };
@@ -79,23 +108,64 @@ function mergeReviewOverrides(
   return { ...(existing ?? {}), ...incoming };
 }
 
+function assertDraftPermission(context: OrgContext, draftTarget: OcrDraftTarget): void {
+  if (draftTarget === 'vendor_bill') {
+    assertPermission(context, PERMISSIONS.AP_MANAGE);
+    return;
+  }
+  assertPermission(context, PERMISSIONS.EXPENSES_CREATE);
+}
+
+async function assertExpenseSameOrg(
+  context: OrgContext,
+  expenseId: string,
+): Promise<void> {
+  // Skip when unit tests inject a stub db without repository methods.
+  if (!context.db || typeof (context.db as { select?: unknown }).select !== 'function') {
+    return;
+  }
+  const expense = await findExpenseById(context.db, context.organizationId, expenseId);
+  if (!expense) {
+    throw new NotFoundError('Expense');
+  }
+}
+
+async function assertVendorBillSameOrg(
+  context: OrgContext,
+  billId: string,
+): Promise<void> {
+  if (!context.db || typeof (context.db as { select?: unknown }).select !== 'function') {
+    return;
+  }
+  const bill = await findApBillById(context.db, context.organizationId, billId);
+  if (!bill) {
+    throw new NotFoundError('Vendor bill');
+  }
+}
+
 /**
- * Review workflow: map OCR candidates → expense draft payload.
+ * Review workflow: map OCR candidates → draft Expense or draft Vendor Bill.
  *
- * Expense creation happens ONLY when `confirm: true`. With `confirm: false`,
- * retains user corrections on the job and returns the mapped payload — no ledger write.
+ * Draft creation happens ONLY when `confirm: true`. With `confirm: false`,
+ * retains user corrections on the job and returns the mapped payload — no write.
  *
- * createExpense always inserts status `draft` — never finalized from OCR.
+ * NEVER finalizes expenses or posts open/recognized vendor bills.
  */
 export async function confirmOcrCandidate(
   context: OrgContext,
   rawInput: ConfirmOcrCandidateInput,
-  deps: { createExpense?: CreateExpenseFn } = {},
+  deps: {
+    createExpense?: CreateExpenseFn;
+    createVendorBillDraft?: CreateVendorBillDraftFn;
+    repo?: OcrRepository;
+  } = {},
 ): Promise<ConfirmOcrCandidateResult> {
-  assertPermission(context, PERMISSIONS.EXPENSES_CREATE);
   const input = confirmOcrCandidateSchema.parse(rawInput);
+  const draftTarget: OcrDraftTarget = input.draftTarget ?? 'expense';
+  assertDraftPermission(context, draftTarget);
+  const repo = deps.repo ?? getOcrRepository(context.db);
 
-  const job = findJob(context.organizationId, input.jobId);
+  const job = await repo.findJob(context.organizationId, input.jobId);
   if (!job) throw new NotFoundError('OCR extraction job');
 
   if (job.status !== 'needs_review' && job.status !== 'succeeded') {
@@ -105,9 +175,9 @@ export async function confirmOcrCandidate(
     );
   }
 
-  if (job.confirmedExpenseId) {
+  if (job.confirmedExpenseId || job.confirmedVendorBillId) {
     throw new DomainRuleError(
-      'Extraction was already confirmed into an expense',
+      'Extraction was already confirmed into a draft',
       'ocr.errors.alreadyConfirmed',
     );
   }
@@ -118,11 +188,12 @@ export async function confirmOcrCandidate(
   const workingCandidates = applyFieldOverrides(job.candidates, overrides);
   const retainedOverrides = mergeReviewOverrides(job.reviewOverrides, overrides);
 
-  // Retain corrections + working candidates; never overwrite extracted snapshot.
-  const retained = updateJob(context.organizationId, job.id, {
+  const retained = await repo.updateJob(context.organizationId, job.id, {
     candidates: workingCandidates,
     reviewOverrides: retainedOverrides,
     extractedCandidates: job.extractedCandidates ?? job.candidates,
+    acceptedFields: input.acceptedFields,
+    rejectedFields: input.rejectedFields ?? null,
   });
   if (!retained) throw new NotFoundError('OCR extraction job');
 
@@ -132,29 +203,96 @@ export async function confirmOcrCandidate(
     acceptedFields: input.acceptedFields,
   });
 
-  const draft = mapConfirmedFieldsToExpenseDraft(confirmed);
-  // Draft mapping is always available; CreateExpenseInput validation runs when
-  // confirming, and optionally on preview when fields are complete enough.
-  let expenseInput: CreateExpenseInput | null = null;
-  try {
-    expenseInput = mapCandidatesToExpenseInput(candidatesFromConfirmed(confirmed)).input;
-  } catch (error) {
-    if (input.confirm) throw error;
-  }
+  const expenseDraft = mapConfirmedFieldsToExpenseDraft(confirmed);
 
-  // Explicit: OCR confirm never invents project/category targeting.
-  if (
-    expenseInput &&
-    (expenseInput.projectId != null || expenseInput.costCategoryId != null)
-  ) {
-    throw new DomainRuleError(
-      'OCR confirm must not set project or category IDs',
-      'ocr.errors.nonCanonicalSuggestion',
-    );
+  let expenseInput: CreateExpenseInput | null = null;
+  if (draftTarget === 'expense') {
+    try {
+      expenseInput = mapCandidatesToExpenseInput(candidatesFromConfirmed(confirmed)).input;
+    } catch (error) {
+      if (input.confirm) throw error;
+    }
+
+    if (
+      expenseInput &&
+      (expenseInput.projectId != null || expenseInput.costCategoryId != null)
+    ) {
+      throw new DomainRuleError(
+        'OCR confirm must not set project or category IDs',
+        'ocr.errors.nonCanonicalSuggestion',
+      );
+    }
   }
 
   if (!input.confirm) {
-    return { kind: 'mapped', job: retained, expenseInput, draft };
+    return {
+      kind: 'mapped',
+      job: retained,
+      draftTarget,
+      expenseInput,
+      expenseDraft,
+      vendorBillDraft:
+        input.vendorId != null
+          ? mapConfirmedFieldsToVendorBillDraft(confirmed, input.vendorId)
+          : null,
+      draft: expenseDraft,
+    };
+  }
+
+  if (draftTarget === 'vendor_bill') {
+    if (!input.vendorId) {
+      throw new DomainRuleError(
+        'Vendor is required to create a draft vendor bill',
+        'ocr.errors.vendorRequired',
+      );
+    }
+    const billDraft = mapConfirmedFieldsToVendorBillDraft(confirmed, input.vendorId);
+    if (!billDraft.totalAmount || !billDraft.currency || billDraft.lines.length === 0) {
+      throw new DomainRuleError(
+        'Accepted OCR fields are incomplete for a vendor bill draft',
+        'ocr.errors.incompleteVendorBillMapping',
+      );
+    }
+    if (billDraft.status !== 'draft' || billDraft.recognizedVendorActual !== false) {
+      throw new DomainRuleError(
+        'OCR may only create draft vendor bills',
+        'ocr.errors.vendorBillMustBeDraft',
+      );
+    }
+
+    const createBill = deps.createVendorBillDraft ?? createVendorBillDraftFromOcr;
+    const created = await createBill(context, billDraft);
+    if (created.status !== 'draft') {
+      throw new DomainRuleError(
+        'Vendor bill creator must return draft status',
+        'ocr.errors.vendorBillMustBeDraft',
+      );
+    }
+
+    await assertVendorBillSameOrg(context, created.id);
+    const targetShape = vendorBillConfirmTargetShape(created.id);
+    assertOcrConfirmedTargetShape(targetShape);
+
+    const updated = await repo.updateJob(context.organizationId, job.id, {
+      status: 'succeeded',
+      reviewStatus: 'accepted',
+      ...targetShape,
+      candidates: workingCandidates,
+      reviewOverrides: retainedOverrides,
+      extractedCandidates: retained.extractedCandidates,
+      acceptedFields: input.acceptedFields,
+      rejectedFields: input.rejectedFields ?? null,
+    });
+
+    return {
+      kind: 'created',
+      draftTarget: 'vendor_bill',
+      job: updated!,
+      vendorBillId: created.id,
+      vendorBillDraft: billDraft,
+      expenseDraft,
+      draft: expenseDraft,
+    };
   }
 
   if (!expenseInput) {
@@ -168,19 +306,28 @@ export async function confirmOcrCandidate(
   // createExpense always inserts status `draft` — never finalized from OCR.
   const created = await create(context, expenseInput);
 
-  const updated = updateJob(context.organizationId, job.id, {
+  await assertExpenseSameOrg(context, created.id);
+  const targetShape = expenseConfirmTargetShape(created.id);
+  assertOcrConfirmedTargetShape(targetShape);
+
+  const updated = await repo.updateJob(context.organizationId, job.id, {
     status: 'succeeded',
-    confirmedExpenseId: created.id,
+    reviewStatus: 'accepted',
+    ...targetShape,
     candidates: workingCandidates,
     reviewOverrides: retainedOverrides,
     extractedCandidates: retained.extractedCandidates,
+    acceptedFields: input.acceptedFields,
+    rejectedFields: input.rejectedFields ?? null,
   });
 
   return {
     kind: 'created',
+    draftTarget: 'expense',
     job: updated!,
     expenseId: created.id,
     expenseInput,
-    draft,
+    expenseDraft,
+    draft: expenseDraft,
   };
 }

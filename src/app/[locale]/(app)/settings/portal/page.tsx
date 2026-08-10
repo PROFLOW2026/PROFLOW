@@ -36,7 +36,7 @@ export default async function PortalSettingsPage() {
         listProjectsForOrg(context, {}).catch(() => []),
         listVendorsForOrg(context, {}).catch(() => []),
         canManageSection(context, 'portal')
-          ? Promise.resolve(listVendorPortalCandidatesForOrg(context)).catch(() => ({
+          ? listVendorPortalCandidatesForOrg(context).catch(() => ({
               apBillCandidates: [],
               complianceCandidates: [],
             }))

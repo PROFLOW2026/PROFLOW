@@ -1,7 +1,7 @@
 import type { OfflineDraftRecord } from '../domain/types';
 
 const DB_NAME = 'projectflow-offline';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 const STORE_NAME = 'drafts';
 
 export interface DraftStore {
@@ -12,18 +12,31 @@ export interface DraftStore {
   clear(organizationId?: string): Promise<void>;
 }
 
+/** Normalize legacy rows written before user scoping / dedupe keys existed. */
+export function normalizeDraftRecord(raw: OfflineDraftRecord): OfflineDraftRecord {
+  return {
+    ...raw,
+    userId: typeof raw.userId === 'string' ? raw.userId : '',
+    dedupeKey: typeof raw.dedupeKey === 'string' ? raw.dedupeKey : raw.dedupeKey ?? null,
+    conflictReason: raw.conflictReason ?? null,
+    serverSnapshot: raw.serverSnapshot ?? null,
+    serverId: raw.serverId ?? null,
+    serverUpdatedAt: raw.serverUpdatedAt ?? null,
+  };
+}
+
 /** In-memory store for unit tests and non-browser environments. */
 export function createMemoryDraftStore(
   seed: readonly OfflineDraftRecord[] = [],
 ): DraftStore {
   const map = new Map<string, OfflineDraftRecord>();
   for (const record of seed) {
-    map.set(record.localId, structuredClone(record));
+    map.set(record.localId, structuredClone(normalizeDraftRecord(record)));
   }
 
   return {
     async put(record) {
-      map.set(record.localId, structuredClone(record));
+      map.set(record.localId, structuredClone(normalizeDraftRecord(record)));
     },
     async get(localId) {
       const found = map.get(localId);
@@ -61,11 +74,19 @@ function openDb(): Promise<IDBDatabase> {
     request.onerror = () => reject(request.error ?? new Error('Failed to open offline DB.'));
     request.onupgradeneeded = () => {
       const db = request.result;
+      const tx = request.transaction;
+      let store: IDBObjectStore;
       if (!db.objectStoreNames.contains(STORE_NAME)) {
-        const store = db.createObjectStore(STORE_NAME, { keyPath: 'localId' });
+        store = db.createObjectStore(STORE_NAME, { keyPath: 'localId' });
         store.createIndex('organizationId', 'organizationId', { unique: false });
         store.createIndex('syncStatus', 'syncStatus', { unique: false });
         store.createIndex('kind', 'kind', { unique: false });
+        store.createIndex('userId', 'userId', { unique: false });
+      } else if (tx) {
+        store = tx.objectStore(STORE_NAME);
+        if (!store.indexNames.contains('userId')) {
+          store.createIndex('userId', 'userId', { unique: false });
+        }
       }
     };
     request.onsuccess = () => resolve(request.result);
@@ -86,7 +107,9 @@ export function createIndexedDbDraftStore(): DraftStore {
       const db = await openDb();
       try {
         const tx = db.transaction(STORE_NAME, 'readwrite');
-        await idbRequest(tx.objectStore(STORE_NAME).put(structuredClone(record)));
+        await idbRequest(
+          tx.objectStore(STORE_NAME).put(structuredClone(normalizeDraftRecord(record))),
+        );
       } finally {
         db.close();
       }
@@ -98,7 +121,7 @@ export function createIndexedDbDraftStore(): DraftStore {
         const result = await idbRequest(
           tx.objectStore(STORE_NAME).get(localId) as IDBRequest<OfflineDraftRecord | undefined>,
         );
-        return result ? structuredClone(result) : undefined;
+        return result ? structuredClone(normalizeDraftRecord(result)) : undefined;
       } finally {
         db.close();
       }
@@ -118,7 +141,7 @@ export function createIndexedDbDraftStore(): DraftStore {
           rows = await idbRequest(store.getAll() as IDBRequest<OfflineDraftRecord[]>);
         }
         return rows
-          .map((r) => structuredClone(r))
+          .map((r) => structuredClone(normalizeDraftRecord(r)))
           .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
       } finally {
         db.close();

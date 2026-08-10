@@ -48,6 +48,10 @@ export class StubOcrProvider implements OcrProvider {
         ok: false,
         errorCode: 'not_configured',
         message: 'OCR provider credentials are not configured',
+        rawMetadata: {
+          providerId: this.id,
+          providerStatus: 'not_configured',
+        },
       };
     }
 
@@ -55,6 +59,11 @@ export class StubOcrProvider implements OcrProvider {
       ok: false,
       errorCode: 'empty_result',
       message: 'Stub OCR provider does not extract fields; wire a real adapter when credentials exist',
+      rawMetadata: {
+        providerId: this.id,
+        providerStatus: 'stub_empty',
+        extractedAt: new Date().toISOString(),
+      },
     };
   }
 
@@ -64,6 +73,12 @@ export class StubOcrProvider implements OcrProvider {
       ok: true,
       needsReview: true,
       candidates: emptyCandidates(this.id),
+      overallConfidence: null,
+      rawMetadata: {
+        providerId: this.id,
+        providerStatus: 'stub_empty_review',
+        overallConfidence: null,
+      },
     };
   }
 }
@@ -82,28 +97,30 @@ export class ScriptedOcrProvider implements OcrProvider {
   }
 
   async extractReceipt(_input: ExtractReceiptInput): Promise<ExtractReceiptResult> {
+    const fieldConfidences = {
+      vendor: this.candidates.vendor.confidence,
+      date: this.candidates.date.confidence,
+      dueDate: this.candidates.dueDate.confidence,
+      reference: this.candidates.reference.confidence,
+      description: this.candidates.description.confidence,
+      net: this.candidates.net.confidence,
+      tax: this.candidates.tax.confidence,
+      gross: this.candidates.gross.confidence,
+      currency: this.candidates.currency.confidence,
+    };
     return {
       ok: true,
       needsReview: true,
       candidates: this.candidates,
+      overallConfidence: 0.9,
+      rawMetadata: {
+        providerId: this.id,
+        model: 'scripted-fixture',
+        overallConfidence: 0.9,
+        fieldConfidences,
+        extractedAt: new Date().toISOString(),
+        providerStatus: 'scripted_ok',
+      },
     };
   }
-}
-
-export function createDefaultOcrProvider(): OcrProvider {
-  return new StubOcrProvider(readOcrApiKey());
-}
-
-let defaultProvider: OcrProvider | null = null;
-
-export function getOcrProvider(): OcrProvider {
-  if (!defaultProvider) {
-    defaultProvider = createDefaultOcrProvider();
-  }
-  return defaultProvider;
-}
-
-/** Test / DI hook — swap the process-wide provider instance. */
-export function setOcrProviderForTests(provider: OcrProvider | null): void {
-  defaultProvider = provider;
 }

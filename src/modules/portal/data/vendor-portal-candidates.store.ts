@@ -1,14 +1,17 @@
+/**
+ * TEST DOUBLE ONLY — process-local vendor portal candidate store.
+ *
+ * Candidates are never written to ap_bills / expenses / payments.
+ * Not durable across instances. Production default when
+ * `PORTAL_CANDIDATES_PERSISTENCE_READY` is true uses Drizzle.
+ * Public portal login remains DISABLED.
+ */
+
 import { randomUUID } from 'node:crypto';
 import type {
   VendorApBillCandidate,
   VendorComplianceUploadCandidate,
 } from '../domain/types';
-
-/**
- * Process-local candidate store for vendor portal submissions.
- * Candidates are never written to ap_bills / expenses / payments.
- * Persistence can land later without changing portal semantics.
- */
 
 const apCandidatesByOrg = new Map<string, Map<string, VendorApBillCandidate>>();
 const complianceCandidatesByOrg = new Map<

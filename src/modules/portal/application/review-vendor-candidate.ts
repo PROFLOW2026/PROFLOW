@@ -5,11 +5,11 @@ import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { z } from 'zod';
 import {
-  listAllVendorApBillCandidates,
-  listAllVendorComplianceCandidates,
-  reviewVendorApBillCandidate,
-  reviewVendorComplianceCandidate,
-} from '../data/vendor-portal-candidates.store';
+  listAllVendorApBillCandidatesRow,
+  listAllVendorComplianceCandidatesRow,
+  reviewVendorApBillCandidateRow,
+  reviewVendorComplianceCandidateRow,
+} from '../data/vendor-portal-candidates';
 import { portalCandidateMutatesFinancialTruth } from '../domain/safe-vendor-projection';
 import type {
   VendorApBillCandidate,
@@ -52,14 +52,12 @@ export async function reviewVendorPortalCandidate(
   const input = parsed.data;
   const updated =
     input.kind === 'ap_bill'
-      ? reviewVendorApBillCandidate({
-          organizationId: context.organizationId,
+      ? await reviewVendorApBillCandidateRow(context, {
           candidateId: input.candidateId,
           decision: input.decision,
           reviewNote: input.reviewNote,
         })
-      : reviewVendorComplianceCandidate({
-          organizationId: context.organizationId,
+      : await reviewVendorComplianceCandidateRow(context, {
           candidateId: input.candidateId,
           decision: input.decision,
           reviewNote: input.reviewNote,
@@ -81,14 +79,14 @@ export async function reviewVendorPortalCandidate(
   return updated;
 }
 
-export function listVendorPortalCandidatesForOrg(context: OrgContext): {
+export async function listVendorPortalCandidatesForOrg(context: OrgContext): Promise<{
   readonly apBillCandidates: VendorApBillCandidate[];
   readonly complianceCandidates: VendorComplianceUploadCandidate[];
-} {
+}> {
   assertPermission(context, PERMISSIONS.PORTAL_MANAGE);
 
   return {
-    apBillCandidates: listAllVendorApBillCandidates(context.organizationId),
-    complianceCandidates: listAllVendorComplianceCandidates(context.organizationId),
+    apBillCandidates: await listAllVendorApBillCandidatesRow(context),
+    complianceCandidates: await listAllVendorComplianceCandidatesRow(context),
   };
 }

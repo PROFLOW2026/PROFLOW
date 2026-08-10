@@ -128,6 +128,7 @@
     "maintenance": "Maintenance",
     "maintenanceHint": "Cost here is operational metadata only and does not create an expense.",
     "costNotExpense": "Not an Expense — cost is metadata only. No expense posting or ledger link.",
+    "createLinkedExpenseHint": "To affect Actual, explicitly create a linked expense draft — then finalize it in Expenses.",
     "newMaintenance": "Add maintenance",
     "maintenanceTitle": "Title",
     "maintenanceStatus": "Status",
@@ -204,5 +205,28 @@
     "fleetRequiresVehicle": "Fleet records must link to a vehicle asset.",
     "fleetAlreadyLinked": "This vehicle already has a fleet record.",
     "fleetKindLocked": "Remove the fleet record before changing this asset away from vehicle."
+  },
+  "financeLink": {
+    "create": "Create linked expense",
+    "pending": "Creating…",
+    "hint": "Creates an Expense draft only. Actual changes after you finalize the expense — not from this operational record alone.",
+    "linkedDraft": "Linked expense draft",
+    "openExpense": "Open expense",
+    "amountLabel": "Amount",
+    "currencyLabel": "Currency",
+    "allocationTitle": "Optional overhead period",
+    "periodStartLabel": "Allocation period start",
+    "periodEndLabel": "Allocation period end",
+    "allocationHint": "When set, uses the existing overhead allocation engine (contract weight / annual). Still draft until finalized.",
+    "success": "Linked expense draft created.",
+    "errors": {
+      "alreadyLinked": "This record already has a linked expense.",
+      "amountRequired": "Amount is required to create a linked expense.",
+      "currencyRequired": "Currency is required to create a linked expense.",
+      "inventoryNotExpense": "Inventory movements cannot create linked expenses.",
+      "unsupportedKind": "This operational record type cannot link to expenses.",
+      "mustBeDraft": "Linked expenses must be created as drafts.",
+      "notLinked": "Expense is not linked to an operational record."
+    }
   }
 }

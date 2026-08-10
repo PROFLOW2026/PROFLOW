@@ -14,6 +14,7 @@ import { mirrorDraftsToLocalStorage } from './queue-index';
 
 export interface EnqueueCaptureInput {
   readonly organizationId: string;
+  readonly userId: string;
   readonly file: File | Blob;
   readonly fileName: string;
   readonly mimeType?: string;
@@ -21,6 +22,7 @@ export interface EnqueueCaptureInput {
   readonly ownerId?: string | null;
   readonly note?: string | null;
   readonly localId?: string;
+  readonly allowDuplicate?: boolean;
 }
 
 /**
@@ -49,6 +51,7 @@ export async function enqueueCaptureDraft(
 
   const enqueueInput = buildCaptureEnqueueInput({
     organizationId: input.organizationId,
+    userId: input.userId,
     attachmentLocalId,
     localId: draftLocalId,
     file: {
@@ -61,7 +64,10 @@ export async function enqueueCaptureDraft(
     note: input.note,
   });
 
-  const draft = await queue.enqueue(enqueueInput);
+  const draft = await queue.enqueue({
+    ...enqueueInput,
+    allowDuplicate: input.allowDuplicate,
+  });
 
   const attachment: OfflineAttachmentRecord = {
     localId: attachmentLocalId,
@@ -75,7 +81,11 @@ export async function enqueueCaptureDraft(
   };
   await attachments.put(attachment);
 
-  const all = await queue.list({ organizationId: input.organizationId, pendingOnly: false });
+  const all = await queue.list({
+    organizationId: input.organizationId,
+    userId: input.userId,
+    pendingOnly: false,
+  });
   mirrorDraftsToLocalStorage(all);
 
   return {

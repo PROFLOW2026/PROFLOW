@@ -1,0 +1,31 @@
+{
+  "title": "תכנון ולוח זמנים",
+  "subtitle": "ציר זמן, תלויות, התקדמות ואבני דרך לפרויקט — לא שכפול של MS Project.",
+  "jobsOptOut": "תכנון מפורט זמין לפרויקטים בלבד. עבודות קצרות נשארות עם תאריכים פשוטים.",
+  "empty": "עדיין אין פריטי תכנון עם תאריכים.",
+  "emptyHint": "הוסיפו משימות או אבני דרך עם תאריך יעד כדי לראות את הגאנט.",
+  "timeline": "ציר זמן",
+  "overdue": "באיחור",
+  "overdueCount": "{count} באיחור",
+  "progress": "התקדמות",
+  "milestone": "אבן דרך",
+  "task": "משימה",
+  "dependency": "תלות",
+  "predecessors": "קודמים",
+  "start": "התחלה",
+  "targetEnd": "יעד סיום",
+  "actualEnd": "סיום בפועל",
+  "workArea": "תחום עבודה",
+  "phase": "שלב",
+  "today": "היום",
+  "criticalPathLimitation": "נתיב קריטי אינו מוצג בגרסה זו — חסרים לוחות עבודה, השהיות וחישוב מרווח (ראו LIMITATION).",
+  "legendPlanned": "מתוכנן",
+  "legendOverdue": "באיחור",
+  "legendProgress": "התקדמות",
+  "legendMilestone": "אבן דרך",
+  "noDates": "ללא תאריכים",
+  "tab": "תכנון",
+  "criticalPath": {
+    "unsafe": "נתיב קריטי אינו נתמך בבטחה בגרסה זו."
+  }
+}

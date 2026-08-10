@@ -28,6 +28,7 @@ describe('offline capture drafts', () => {
     expect(() =>
       buildCaptureEnqueueInput({
         organizationId: 'org-1',
+        userId: 'user-1',
         attachmentLocalId: 'att-1',
         file: {
           fileName: 'x.exe',
@@ -46,6 +47,7 @@ describe('offline capture drafts', () => {
     const result = await enqueueCaptureDraft(
       {
         organizationId: 'org-1',
+        userId: 'user-1',
         file: blob,
         fileName: 'site.jpg',
         mimeType: 'image/jpeg',
@@ -70,6 +72,7 @@ describe('offline product enqueue', () => {
     const draft = await enqueueProductDraft(
       {
         organizationId: 'org-1',
+        userId: 'user-1',
         kind: 'expense',
         payload: { amount: '12.50', currency: 'ILS' },
       },
@@ -112,6 +115,7 @@ describe('offline reconnect sync', () => {
     const queue = createDraftQueue(store);
     const created = await queue.enqueue({
       organizationId: 'org-1',
+      userId: 'user-1',
       kind: 'expense',
       payload: { amount: '5.00' },
       serverId: 'exp-1',
@@ -133,6 +137,7 @@ describe('offline reconnect sync', () => {
 
     const run = await runQueuedSync({
       organizationId: 'org-1',
+      userId: 'user-1',
       transport,
       queue,
       attachments: createMemoryAttachmentStore(),
@@ -149,12 +154,14 @@ describe('offline reconnect sync', () => {
     const queue = createDraftQueue(createMemoryDraftStore());
     await queue.enqueue({
       organizationId: 'org-1',
+      userId: 'user-1',
       kind: 'daily_log',
       payload: { notes: 'rain' },
     });
 
     const run = await runQueuedSync({
       organizationId: 'org-1',
+      userId: 'user-1',
       transport: createNoopSyncTransport(),
       queue,
       attachments: createMemoryAttachmentStore(),
@@ -162,7 +169,7 @@ describe('offline reconnect sync', () => {
 
     expect(run.results[0]?.status).toBe('skipped');
     expect(run.results[0]?.reason).toMatch(/not wired/i);
-    const pending = await queue.list({ organizationId: 'org-1', pendingOnly: true });
+    const pending = await queue.list({ organizationId: 'org-1', userId: 'user-1', pendingOnly: true });
     expect(pending).toHaveLength(1);
     expect(pending[0]?.syncStatus).toBe('queued');
   });
@@ -173,6 +180,7 @@ describe('offline reconnect sync', () => {
     const { draft } = await enqueueCaptureDraft(
       {
         organizationId: 'org-1',
+        userId: 'user-1',
         file: new Blob(['img'], { type: 'image/png' }),
         fileName: 'a.png',
         mimeType: 'image/png',
@@ -192,7 +200,13 @@ describe('offline reconnect sync', () => {
       },
     };
 
-    const run = await runQueuedSync({ organizationId: 'org-1', transport, queue, attachments });
+    const run = await runQueuedSync({
+      organizationId: 'org-1',
+      userId: 'user-1',
+      transport,
+      queue,
+      attachments,
+    });
     expect(run.results[0]?.status).toBe('synced');
     expect(await attachments.listByDraft(draft.localId)).toHaveLength(0);
     expect((await queue.get(draft.localId))?.syncStatus).toBe('synced');
@@ -202,6 +216,7 @@ describe('offline reconnect sync', () => {
     const queue = createDraftQueue(createMemoryDraftStore());
     const created = await queue.enqueue({
       organizationId: 'org-1',
+      userId: 'user-1',
       kind: 'time_entry',
       payload: { hours: '2', employeeId: 'e1', workDate: '2026-08-09', kind: 'project' },
     });
@@ -217,6 +232,7 @@ describe('offline reconnect sync', () => {
 
     const run = await runQueuedSync({
       organizationId: 'org-1',
+      userId: 'user-1',
       transport,
       queue,
       attachments: createMemoryAttachmentStore(),
@@ -227,13 +243,14 @@ describe('offline reconnect sync', () => {
       status: 'rejected',
       reason: 'Server validation failed',
     });
-    expect((await queue.get(created.localId))?.syncStatus).toBe('conflict');
+    expect((await queue.get(created.localId))?.syncStatus).toBe('rejected');
   });
 
   it('does not duplicate-create after a successful sync on the next pass', async () => {
     const queue = createDraftQueue(createMemoryDraftStore());
     await queue.enqueue({
       organizationId: 'org-1',
+      userId: 'user-1',
       kind: 'change_request',
       payload: { title: 'Extra slab', projectId: 'p1', direction: 'addition' },
     });
@@ -252,6 +269,7 @@ describe('offline reconnect sync', () => {
 
     const first = await runQueuedSync({
       organizationId: 'org-1',
+      userId: 'user-1',
       transport,
       queue,
       attachments: createMemoryAttachmentStore(),
@@ -261,6 +279,7 @@ describe('offline reconnect sync', () => {
 
     const second = await runQueuedSync({
       organizationId: 'org-1',
+      userId: 'user-1',
       transport,
       queue,
       attachments: createMemoryAttachmentStore(),

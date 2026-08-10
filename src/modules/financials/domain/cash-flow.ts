@@ -28,8 +28,10 @@ export interface CashFlowActualCollected {
 }
 
 /**
- * Outgoing coverage. When open AP bills with due dates exist, forecast expected
- * payments. Expenses alone never invent AP. Matched/void/draft bills excluded.
+ * Outgoing coverage. When recognized AP bills with cash outstanding exist,
+ * forecast expected payments. Expenses alone never invent AP.
+ * Draft/void and fully paid (zero outstanding) bills excluded.
+ * Amounts must already be cash outstanding (bill − active vendor payments).
  */
 export type CashFlowOutgoingCoverage =
   | {
@@ -75,22 +77,21 @@ export const OUTGOING_NO_AP_DISCLOSURE =
   'Outgoing cash is not forecast here: no open AP bills with due dates are in scope. Finalized expenses alone are cost records — AP invoices are not invented from expenses.';
 
 export const OUTGOING_AP_FORECAST_NOTE =
-  'Forecast outgoing — open AP bills by due date. Not Expense actual cost. Draft/void/matched bills excluded.';
+  'Forecast outgoing — recognized AP bills by due date using cash outstanding after vendor payments. Not Expense actual cost. Draft/void and fully paid bills excluded.';
 
 export interface ApBillCashInput {
   readonly status: string;
   readonly dueDate: BusinessDate | null;
   /**
-   * Amount expected to leave cash for this bill. For partial matches this must
-   * be the unmatched remainder — never the full bill total (avoids double-count
-   * vs already-matched portions / linked expenses).
+   * Cash expected to leave for this bill: bill total − active (non-void) vendor
+   * payment applications. Never PO-match remainder and never Actual Cost.
    */
   readonly totalAmount: MoneyValue;
 }
 
 /**
- * Expected outgoing from open / partially_matched AP bills with due dates.
- * Never treats AP bill totals as Expense actuals.
+ * Expected outgoing from recognized AP bills with positive cash outstanding.
+ * Never treats AP bill totals as Expense actuals; payments reduce cash only.
  */
 export function computeOutgoingCashOutlook(
   bills: readonly ApBillCashInput[],
@@ -109,7 +110,13 @@ export function computeOutgoingCashOutlook(
 
   let any = false;
   for (const bill of bills) {
-    if (bill.status !== 'open' && bill.status !== 'partially_matched') continue;
+    if (
+      bill.status !== 'open' &&
+      bill.status !== 'partially_matched' &&
+      bill.status !== 'matched'
+    ) {
+      continue;
+    }
     if (bill.totalAmount.currency !== currency) continue;
     if (!isPositiveMoney(bill.totalAmount)) continue;
 

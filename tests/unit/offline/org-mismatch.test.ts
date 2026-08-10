@@ -34,6 +34,17 @@ vi.mock('@/modules/field-ops', () => ({
   createDailyLog: vi.fn(),
   getDailyLogForOrg: vi.fn(),
   updateDailyLog: vi.fn(),
+  createPunchListItem: vi.fn(),
+  getPunchListItemForOrg: vi.fn(),
+  updatePunchListItem: vi.fn(),
+  createInspection: vi.fn(),
+  getInspectionForOrg: vi.fn(),
+  updateInspection: vi.fn(),
+}));
+
+vi.mock('@/modules/field-ops/validation/schemas', () => ({
+  createPunchListItemSchema: { safeParse: () => ({ success: false }) },
+  createInspectionSchema: { safeParse: () => ({ success: false }) },
 }));
 
 vi.mock('@/modules/documents', () => ({
@@ -54,6 +65,7 @@ describe('offline draft tenancy', () => {
         payload: {},
         localId: 'local-1',
         organizationId: 'org-other',
+        userId: 'user-session',
         updatedAt: new Date().toISOString(),
         syncStatus: 'queued',
         serverUpdatedAt: null,
@@ -67,6 +79,7 @@ describe('offline draft tenancy', () => {
         payload: {},
         localId: 'local-1',
         organizationId: 'org-other',
+        userId: 'user-session',
         updatedAt: new Date().toISOString(),
         syncStatus: 'queued',
         serverUpdatedAt: null,

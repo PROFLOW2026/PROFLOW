@@ -103,6 +103,8 @@ describe('customer portal IDOR / cross-customer', () => {
         'admin',
         'audit',
         'storagePath',
+        'internalNotes',
+        'supplierPricing',
       ]),
     );
 
@@ -138,20 +140,28 @@ describe('customer portal IDOR / cross-customer', () => {
     ).not.toThrow();
   });
 
-  it('strips storage internals from document projections', () => {
+  it('strips storage internals and keeps only portal-shared documents', () => {
     const docs = buildCustomerSafeDocuments([
       {
         id: 'doc-1',
         originalFilename: 'spec.pdf',
-        label: null,
+        label: 'portal-shared',
         mimeType: 'application/pdf',
         sizeBytes: 99,
       },
+      {
+        id: 'doc-2',
+        originalFilename: 'internal.pdf',
+        label: null,
+        mimeType: 'application/pdf',
+        sizeBytes: 10,
+      },
     ]);
+    expect(docs).toHaveLength(1);
     expect(docs[0]).toEqual({
       documentId: 'doc-1',
       filename: 'spec.pdf',
-      label: null,
+      label: 'portal-shared',
       mimeType: 'application/pdf',
       sizeBytes: 99,
     });
@@ -175,7 +185,7 @@ describe('customer portal IDOR / cross-customer', () => {
         {
           documentId: 'd1',
           filename: 'hidden.pdf',
-          label: null,
+          label: 'portal-shared',
           mimeType: 'application/pdf',
           sizeBytes: 1,
         },

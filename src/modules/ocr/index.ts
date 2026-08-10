@@ -8,12 +8,20 @@ export type {
   OcrNonCanonicalSuggestions,
   OcrSourceDocumentRef,
   OcrReviewOverrides,
+  OcrSafeRawMetadata,
   ReceiptExtractionCandidates,
   ExtractionJobStatus,
   ExtractionJob,
   OcrProviderStatus,
+  OcrReviewStatus,
+  OcrDraftTarget,
 } from './domain/types';
-export { OCR_CANDIDATE_FIELD_KEYS, EXTRACTION_JOB_STATUSES } from './domain/types';
+export {
+  OCR_CANDIDATE_FIELD_KEYS,
+  EXTRACTION_JOB_STATUSES,
+  OCR_REVIEW_STATUSES,
+  OCR_DRAFT_TARGETS,
+} from './domain/types';
 
 export type {
   OcrProvider,
@@ -27,6 +35,7 @@ export {
   assertOcrIsNotCanonicalLedgerTruth,
   confirmReceiptExtraction,
   mapConfirmedFieldsToExpenseDraft,
+  mapConfirmedFieldsToVendorBillDraft,
 } from './domain/confirm';
 
 export {
@@ -43,17 +52,52 @@ export type { FieldMappingIssue, CandidateFieldOverrides } from './domain/field-
 export {
   StubOcrProvider,
   ScriptedOcrProvider,
+} from './domain/stub-provider';
+export { AzureDocumentIntelligenceProvider } from './domain/azure-provider';
+export {
   createDefaultOcrProvider,
+  createOcrProviderFromEnv,
   getOcrProvider,
   setOcrProviderForTests,
-} from './domain/stub-provider';
+} from './domain/provider-registry';
+
+export {
+  AZURE_OCR_LIVE_HTTP_READY,
+  getOcrFeatureMode,
+  isOcrIngestionEnabled,
+  isOcrIngestionFlagOn,
+  isOcrFixtureAllowed,
+  isOcrReviewUiAllowed,
+  isLiveOcrProviderConfigured,
+  isOcrProviderCredentialsPresent,
+} from './domain/feature-gate';
+export type { OcrFeatureMode } from './domain/feature-gate';
+
+export {
+  OCR_PERSISTENCE_READY,
+  areOcrJobsDurable,
+  setOcrPersistenceReadyForTests,
+} from './domain/persistence';
+
+export {
+  assertOcrConfirmedTargetShape,
+  expenseConfirmTargetShape,
+  vendorBillConfirmTargetShape,
+  OCR_TARGET_SHAPE_MESSAGE,
+} from './domain/target-shape';
 
 export {
   resetOcrStoreForTests,
   seedFixtureJob,
   findJob,
   listJobsForOrg,
+  updateJob,
+  createQueuedJob,
+  createInMemoryOcrRepository,
 } from './data/in-memory-ocr.store';
+export type { OcrRepository } from './data/ocr.repository';
+export { createDrizzleOcrRepository } from './data/drizzle-ocr.repository';
+export { getOcrRepository, setOcrRepositoryForTests } from './data/resolve-repository';
 
 export { getOcrProviderStatus } from './application/provider-status';
 export { extractReceiptJob } from './application/extract-receipt';
@@ -63,14 +107,24 @@ export type {
   ConfirmOcrCandidateResult,
   CreateExpenseFn,
 } from './application/confirm-candidate';
+export { rejectOcrCandidate } from './application/reject-candidate';
+export {
+  createVendorBillDraftFromOcr,
+} from './application/create-vendor-bill-draft';
+export type {
+  CreateVendorBillDraftFn,
+  VendorBillDraftPayload,
+} from './application/create-vendor-bill-draft';
 
 export {
   extractReceiptSchema,
   listOcrCandidatesSchema,
   confirmOcrCandidateSchema,
+  rejectOcrCandidateSchema,
 } from './validation/schemas';
 export type {
   ExtractReceiptAppInput,
   ListOcrCandidatesInput,
   ConfirmOcrCandidateInput,
+  RejectOcrCandidateInput,
 } from './validation/schemas';

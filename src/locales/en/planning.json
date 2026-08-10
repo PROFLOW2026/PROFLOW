@@ -1,0 +1,31 @@
+{
+  "title": "Planning & timeline",
+  "subtitle": "Timeline, dependencies, progress, and milestones — not an MS Project clone.",
+  "jobsOptOut": "Detailed planning is for projects only. Short jobs keep simple dates.",
+  "empty": "No dated planning items yet.",
+  "emptyHint": "Add tasks or milestones with a target date to see the Gantt.",
+  "timeline": "Timeline",
+  "overdue": "Overdue",
+  "overdueCount": "{count} overdue",
+  "progress": "Progress",
+  "milestone": "Milestone",
+  "task": "Task",
+  "dependency": "Dependency",
+  "predecessors": "Predecessors",
+  "start": "Start",
+  "targetEnd": "Target end",
+  "actualEnd": "Actual end",
+  "workArea": "Work area",
+  "phase": "Phase",
+  "today": "Today",
+  "criticalPathLimitation": "Critical Path is not shown in this version — calendars, lag, and float are missing (see LIMITATION).",
+  "legendPlanned": "Planned",
+  "legendOverdue": "Overdue",
+  "legendProgress": "Progress",
+  "legendMilestone": "Milestone",
+  "noDates": "No dates",
+  "tab": "Planning",
+  "criticalPath": {
+    "unsafe": "Critical Path is not safely supported in this version."
+  }
+}

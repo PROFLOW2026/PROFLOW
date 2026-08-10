@@ -1,7 +1,19 @@
 import { sql } from 'drizzle-orm';
-import { check, date, index, integer, pgTable, text, uuid } from 'drizzle-orm/pg-core';
+import {
+  check,
+  date,
+  foreignKey,
+  index,
+  integer,
+  pgTable,
+  text,
+  timestamp,
+  uniqueIndex,
+  uuid,
+} from 'drizzle-orm/pg-core';
 import { archivedAt, currencyCode, moneyAmount, primaryId, quantityAmount, timestamps } from './_shared';
 import { expenses } from './expenses';
+import { profiles } from './identity';
 import { organizations } from './tenancy';
 import { projects } from './projects';
 import { purchaseOrderLines, purchaseOrders } from './procurement';
@@ -40,6 +52,7 @@ export const apBills = pgTable(
     ...timestamps(),
   },
   (table) => [
+    uniqueIndex('ap_bills_id_organization_id_uq').on(table.id, table.organizationId),
     index('ap_bills_org_idx').on(table.organizationId),
     index('ap_bills_vendor_idx').on(table.vendorId),
     index('ap_bills_po_idx').on(table.purchaseOrderId),
@@ -101,5 +114,77 @@ export const apPoMatches = pgTable(
       'ap_po_matches_target_present',
       sql`num_nonnulls(${table.purchaseOrderId}, ${table.expenseId}) >= 1`,
     ),
+  ],
+);
+
+/**
+ * Vendor cash payments — never Actual Cost.
+ * Outstanding is derived: bill.total − Σ(active applications).
+ */
+export const apPayments = pgTable(
+  'ap_payments',
+  {
+    id: primaryId(),
+    organizationId: uuid('organization_id')
+      .notNull()
+      .references(() => organizations.id, { onDelete: 'cascade' }),
+    vendorId: uuid('vendor_id').notNull(),
+    amount: moneyAmount('amount').notNull(),
+    currency: currencyCode().notNull(),
+    paymentDate: date('payment_date', { mode: 'string' }).notNull(),
+    method: text('method'),
+    reference: text('reference'),
+    notes: text('notes'),
+    status: text('status').notNull().default('recorded'),
+    voidedAt: timestamp('voided_at', { withTimezone: true, mode: 'date' }),
+    createdByUserId: uuid('created_by_user_id').references(() => profiles.id, {
+      onDelete: 'set null',
+    }),
+    ...timestamps(),
+  },
+  (table) => [
+    uniqueIndex('ap_payments_id_organization_id_uq').on(table.id, table.organizationId),
+    index('ap_payments_org_idx').on(table.organizationId),
+    index('ap_payments_vendor_idx').on(table.vendorId),
+    index('ap_payments_org_date_idx').on(table.organizationId, table.paymentDate),
+    check('ap_payments_amount_positive', sql`${table.amount} > 0`),
+    check('ap_payments_status_known', sql`${table.status} IN ('recorded', 'void')`),
+    foreignKey({
+      name: 'ap_payments_vendor_org_fk',
+      columns: [table.vendorId, table.organizationId],
+      foreignColumns: [vendors.id, vendors.organizationId],
+    }).onDelete('restrict'),
+  ],
+);
+
+export const apPaymentApplications = pgTable(
+  'ap_payment_applications',
+  {
+    id: primaryId(),
+    organizationId: uuid('organization_id')
+      .notNull()
+      .references(() => organizations.id, { onDelete: 'cascade' }),
+    apPaymentId: uuid('ap_payment_id').notNull(),
+    apBillId: uuid('ap_bill_id').notNull(),
+    appliedAmount: moneyAmount('applied_amount').notNull(),
+    currency: currencyCode().notNull(),
+    ...timestamps(),
+  },
+  (table) => [
+    index('ap_payment_applications_payment_idx').on(table.apPaymentId),
+    index('ap_payment_applications_bill_idx').on(table.apBillId),
+    index('ap_payment_applications_org_idx').on(table.organizationId),
+    uniqueIndex('ap_payment_applications_payment_bill_uq').on(table.apPaymentId, table.apBillId),
+    check('ap_payment_applications_amount_positive', sql`${table.appliedAmount} > 0`),
+    foreignKey({
+      name: 'ap_payment_applications_payment_org_fk',
+      columns: [table.apPaymentId, table.organizationId],
+      foreignColumns: [apPayments.id, apPayments.organizationId],
+    }).onDelete('cascade'),
+    foreignKey({
+      name: 'ap_payment_applications_bill_org_fk',
+      columns: [table.apBillId, table.organizationId],
+      foreignColumns: [apBills.id, apBills.organizationId],
+    }).onDelete('restrict'),
   ],
 );

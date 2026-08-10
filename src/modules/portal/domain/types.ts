@@ -14,6 +14,7 @@ export const CUSTOMER_PORTAL_SCOPES = [
   'project.summary',
   'billing.outstanding',
   'documents.read',
+  'milestones.read',
 ] as const;
 
 export type CustomerPortalScope = (typeof CUSTOMER_PORTAL_SCOPES)[number];
@@ -21,6 +22,7 @@ export type CustomerPortalScope = (typeof CUSTOMER_PORTAL_SCOPES)[number];
 /**
  * Vendor portal scopes — external users never mutate financial truth.
  * `quote.submit` / `bill.candidate` / `documents.upload` create candidates only.
+ * `payment.outstanding` is grantable but policy-gated until AP payments are safe.
  */
 export const VENDOR_PORTAL_SCOPES = [
   'vendor.summary',
@@ -30,6 +32,7 @@ export const VENDOR_PORTAL_SCOPES = [
   'quote.submit',
   'po.view',
   'bill.candidate',
+  'payment.outstanding',
 ] as const;
 
 export type VendorPortalScope = (typeof VENDOR_PORTAL_SCOPES)[number];
@@ -108,6 +111,20 @@ export interface VendorComplianceUploadCandidate {
 }
 
 /**
+ * Vendor-facing AP payment / outstanding position.
+ * Never includes cost recognition, profit, or internal match variance.
+ * Empty while vendor payment policy is disabled.
+ */
+export interface VendorSafePaymentOutstanding {
+  readonly policyStatus: 'disabled' | 'enabled';
+  readonly currency: string | null;
+  readonly billedAmount: string | null;
+  readonly paidAmount: string | null;
+  readonly outstandingAmount: string | null;
+  readonly note: string;
+}
+
+/**
  * Vendor-safe RFQ projection. No internal cost or profit fields.
  * RFQ↔vendor invite linkage is not in V1 schema — visibility is grant-scoped
  * to sent RFQs for the organization when `rfq.read` is granted.
@@ -158,6 +175,11 @@ export interface VendorPortalPreview {
   /** Compliance upload candidates queued for internal review. */
   readonly complianceCandidates: readonly VendorComplianceUploadCandidate[];
   /**
+   * Present only when grant includes `payment.outstanding`.
+   * Policy may still return disabled until AP payments are safe to expose.
+   */
+  readonly paymentOutstanding?: VendorSafePaymentOutstanding;
+  /**
    * Compliance / bill uploads are candidate-only when scoped.
    * Canonical documents / AP require internal acceptance.
    */
@@ -167,8 +189,8 @@ export interface VendorPortalPreview {
    * (via supplier_quote). Full invite table is deferred — no org-wide RFQ dump.
    */
   readonly rfqVisibility: 'vendor_associated_only';
-  /** Public vendor login is still foundation-only. */
-  readonly publicLoginStatus: 'foundation_only';
+  /** Public vendor login remains disabled (not merely foundation-only). */
+  readonly publicLoginStatus: 'disabled';
   /** ExternalPrincipal ≠ OrganizationMembership. */
   readonly identityModel: 'external_principal';
 }
@@ -220,8 +242,43 @@ export interface CustomerSafeDocument {
 }
 
 /**
+ * Customer-visible milestone. Never includes internal notes or cost links.
+ */
+export interface CustomerSafeMilestone {
+  readonly milestoneId: string;
+  readonly name: string;
+  readonly status: string;
+  readonly targetDate: string | null;
+  readonly completedAt: string | null;
+}
+
+/**
+ * Customer-visible billing/payment row. Never includes cost, margin, or
+ * internal notes. Draft/void records are excluded by the builder.
+ */
+export interface CustomerSafeBillingItem {
+  readonly billingRecordId: string;
+  readonly reference: string | null;
+  readonly kind: string;
+  readonly status: string;
+  readonly issueDate: string | null;
+  readonly dueDate: string | null;
+  readonly totalAmount: string;
+  readonly paidAmount: string;
+  readonly outstandingAmount: string;
+  readonly currency: string;
+  readonly payments: readonly {
+    readonly amount: string;
+    readonly currency: string;
+    readonly status: string;
+    readonly paymentDate: string | null;
+    readonly reference: string | null;
+  }[];
+}
+
+/**
  * Customer-visible project projection. Must never include costs, profit,
- * workforce rates, vendor confidential data, or overhead.
+ * workforce rates, vendor confidential data, overhead, or internal notes.
  */
 export interface CustomerSafeProjectSummary {
   readonly projectId: string;
@@ -239,6 +296,15 @@ export interface CustomerSafeProjectSummary {
     readonly amount: string;
     readonly currency: string;
   };
-  /** Present only when the grant includes `documents.read`. */
+  /** Present only when the grant includes `billing.outstanding`. */
+  readonly billing?: {
+    readonly invoicedAmount: string;
+    readonly paidAmount: string;
+    readonly currency: string;
+    readonly items: readonly CustomerSafeBillingItem[];
+  };
+  /** Present only when the grant includes `documents.read` (shared docs only). */
   readonly documents?: readonly CustomerSafeDocument[];
+  /** Present only when the grant includes `milestones.read`. */
+  readonly milestones?: readonly CustomerSafeMilestone[];
 }

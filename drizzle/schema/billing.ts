@@ -72,6 +72,7 @@ export const billingRecords = pgTable(
     ...timestamps(),
   },
   (table) => [
+    uniqueIndex('billing_records_id_organization_id_uq').on(table.id, table.organizationId),
     index('billing_records_org_idx').on(table.organizationId),
     index('billing_records_project_idx').on(table.projectId),
     index('billing_records_org_status_idx').on(table.organizationId, table.status),

@@ -2,6 +2,7 @@
 
 import { useMemo, useState, useTransition } from 'react';
 import { useTranslations } from 'next-intl';
+import { MoneyText } from '@/components/patterns/money-text';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -11,16 +12,19 @@ import { StatusBadge } from '@/components/ui/status-badge';
 import {
   confirmOcrCandidateAction,
   extractReceiptAction,
+  rejectOcrCandidateAction,
   seedFixtureOcrJobAction,
 } from '@/modules/ocr/application/ocr-actions';
 import type {
   ExtractionJob,
   OcrCandidateFieldKey,
+  OcrDraftTarget,
   OcrFieldSource,
   OcrProviderStatus,
   ReceiptExtractionCandidates,
 } from '@/modules/ocr/domain/types';
 import { OCR_CANDIDATE_FIELD_KEYS } from '@/modules/ocr/domain/types';
+import { money } from '@/shared/money/money';
 
 function provenanceSourceLabelKey(source: OcrFieldSource): 'ocr' | 'manual' | 'sample' {
   if (source === 'user_override') return 'manual';
@@ -32,13 +36,14 @@ function statusShape(
   status: ExtractionJob['status'],
 ): 'pending' | 'onHold' | 'completed' | 'rejected' {
   if (status === 'needs_review') return 'onHold';
-  if (status === 'failed') return 'rejected';
+  if (status === 'failed' || status === 'rejected') return 'rejected';
   if (status === 'succeeded') return 'completed';
   return 'pending';
 }
 
-const MONEY_FIELDS = new Set<OcrCandidateFieldKey>(['net', 'tax', 'gross', 'currency']);
+const MONEY_FIELDS = new Set<OcrCandidateFieldKey>(['net', 'tax', 'gross']);
 const DATE_FIELDS = new Set<OcrCandidateFieldKey>(['date', 'dueDate']);
+const MONEY_PATTERN = /^-?\d+(\.\d+)?$/;
 
 function hydrateOverrides(
   job: ExtractionJob | null | undefined,
@@ -58,6 +63,7 @@ export interface OcrReviewPanelProps {
   readonly initialJobs: readonly ExtractionJob[];
   readonly canManageDocuments: boolean;
   readonly canCreateExpenses: boolean;
+  readonly canManageAp: boolean;
 }
 
 export function OcrReviewPanel({
@@ -65,6 +71,7 @@ export function OcrReviewPanel({
   initialJobs,
   canManageDocuments,
   canCreateExpenses,
+  canManageAp,
 }: OcrReviewPanelProps) {
   const t = useTranslations('documents.ocr');
   const [jobs, setJobs] = useState<ExtractionJob[]>([...initialJobs]);
@@ -72,6 +79,11 @@ export function OcrReviewPanel({
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  const [draftTarget, setDraftTarget] = useState<OcrDraftTarget>('expense');
+  const [vendorId, setVendorId] = useState('');
+
+  const liveExtract = initialStatus.ingestionEnabled && initialStatus.featureMode === 'live';
+  const fixtureTools = initialStatus.featureMode === 'fixture_only';
 
   const selected = useMemo(
     () => jobs.find((job) => job.id === selectedId) ?? null,
@@ -170,6 +182,8 @@ export function OcrReviewPanel({
       const result = await confirmOcrCandidateAction({
         jobId: selected.id,
         confirm: false,
+        draftTarget,
+        vendorId: vendorId.trim() || null,
         acceptedFields,
         fieldOverrides: overrides,
       });
@@ -183,7 +197,7 @@ export function OcrReviewPanel({
     });
   }
 
-  function onConfirmExpense() {
+  function onConfirmDraft() {
     if (!selected) return;
     setError(null);
     setInfo(null);
@@ -191,10 +205,16 @@ export function OcrReviewPanel({
       setError(t('acceptRequired'));
       return;
     }
+    if (draftTarget === 'vendor_bill' && !vendorId.trim()) {
+      setError(t('vendorRequired'));
+      return;
+    }
     startTransition(async () => {
       const result = await confirmOcrCandidateAction({
         jobId: selected.id,
         confirm: true,
+        draftTarget,
+        vendorId: vendorId.trim() || null,
         acceptedFields,
         fieldOverrides: overrides,
       });
@@ -207,20 +227,50 @@ export function OcrReviewPanel({
           prev.map((job) => (job.id === result.data.job.id ? result.data.job : job)),
         );
         setOverrides(hydrateOverrides(result.data.job));
-        setInfo(t('expenseCreated', { id: result.data.expenseId ?? '' }));
+        if (result.data.draftTarget === 'vendor_bill') {
+          setInfo(t('vendorBillCreated', { id: result.data.vendorBillId ?? '' }));
+        } else {
+          setInfo(t('expenseCreated', { id: result.data.expenseId ?? '' }));
+        }
       }
     });
   }
 
+  function onReject() {
+    if (!selected) return;
+    setError(null);
+    setInfo(null);
+    startTransition(async () => {
+      const result = await rejectOcrCandidateAction({ jobId: selected.id });
+      if (!result.ok) {
+        setError(result.error);
+        return;
+      }
+      setJobs((prev) => prev.map((job) => (job.id === result.data.id ? result.data : job)));
+      setInfo(t('rejected'));
+    });
+  }
+
+  const canConfirmTarget =
+    draftTarget === 'expense' ? canCreateExpenses : canManageAp;
+
   const reviewLocked =
-    !canCreateExpenses ||
+    !canConfirmTarget ||
     selected?.status === 'succeeded' ||
+    selected?.status === 'rejected' ||
     Boolean(selected?.confirmedExpenseId) ||
+    Boolean(selected?.confirmedVendorBillId) ||
     !selected?.candidates;
 
+  const currencyCode = selected?.candidates
+    ? candidateValue(selected.candidates, 'currency').trim().toUpperCase() || 'ILS'
+    : 'ILS';
+
   return (
-    <div className="flex flex-col gap-6">
-      <Alert tone={initialStatus.configured ? 'info' : 'warning'}>
+    <div className="flex flex-col gap-6" dir="auto">
+      <Alert
+        tone={initialStatus.featureMode === 'live' ? 'info' : 'warning'}
+      >
         {t(initialStatus.messageKey)}
       </Alert>
 
@@ -238,11 +288,13 @@ export function OcrReviewPanel({
       ) : null}
 
       <div className="flex flex-wrap gap-2">
-        {canManageDocuments ? (
+        {canManageDocuments && fixtureTools ? (
+          <Button type="button" variant="secondary" loading={pending} onClick={onSeedFixture}>
+            {t('seedFixture')}
+          </Button>
+        ) : null}
+        {canManageDocuments && liveExtract ? (
           <>
-            <Button type="button" variant="secondary" loading={pending} onClick={onSeedFixture}>
-              {t('seedFixture')}
-            </Button>
             <Label className="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-md border border-[var(--pf-border-default)] px-3 text-sm">
               <span>{t('extractCapture')}</span>
               <input
@@ -288,7 +340,9 @@ export function OcrReviewPanel({
                   className="flex w-full min-h-11 items-center justify-between gap-2 rounded-md border border-[var(--pf-border-default)] px-3 py-2 text-start text-sm hover:bg-[var(--pf-bg-muted)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
                   onClick={() => selectJob(job)}
                 >
-                  <span className="truncate font-mono text-xs">{job.id.slice(0, 8)}</span>
+                  <span className="truncate font-mono text-xs" dir="ltr">
+                    {job.id.slice(0, 8)}
+                  </span>
                   <StatusBadge shape={statusShape(job.status)} label={t(`status.${job.status}`)} />
                 </button>
               </li>
@@ -309,73 +363,107 @@ export function OcrReviewPanel({
                     : ''}
                 </p>
                 <p className="mt-1 text-xs text-[var(--pf-text-secondary)]">{t('sourceRetained')}</p>
+                {selected.providerId ? (
+                  <p className="mt-1 text-xs text-[var(--pf-text-secondary)]" dir="ltr">
+                    {t('providerLabel', { id: selected.providerId })}
+                    {selected.overallConfidence != null
+                      ? ` · ${t('confidence', {
+                          value: String(Math.round(selected.overallConfidence * 100)),
+                        })}`
+                      : ''}
+                  </p>
+                ) : null}
+                <p className="mt-1 text-xs text-[var(--pf-text-secondary)]">
+                  {t('reviewStatusLabel', {
+                    status: t(`reviewStatus.${selected.reviewStatus}`),
+                  })}
+                </p>
               </div>
 
               {selected.candidates ? (
                 <>
-                  {OCR_CANDIDATE_FIELD_KEYS.map((field) => (
-                    <div key={field} className="flex flex-col gap-1.5">
-                      <div className="flex items-center justify-between gap-3">
-                        <Label htmlFor={`ocr-${field}`}>{t(`fields.${field}`)}</Label>
-                        <label className="flex min-h-11 items-center gap-2 text-xs text-[var(--pf-text-secondary)]">
-                          <Checkbox
-                            checked={Boolean(accepted[field])}
-                            disabled={reviewLocked || pending}
-                            onCheckedChange={(value) => toggleAccepted(field, value === true)}
-                            aria-label={t('acceptField', { field: t(`fields.${field}`) })}
-                          />
-                          {t('accept')}
-                        </label>
-                      </div>
-                      <Input
-                        id={`ocr-${field}`}
-                        value={candidateValue(selected.candidates!, field)}
-                        disabled={reviewLocked}
-                        numeric={MONEY_FIELDS.has(field)}
-                        type={DATE_FIELDS.has(field) ? 'date' : 'text'}
-                        dir={
-                          field === 'currency' || field === 'reference' || field === 'description'
-                            ? 'ltr'
-                            : undefined
-                        }
-                        aria-describedby={`ocr-${field}-meta`}
-                        onChange={(event) =>
-                          setOverrides((prev) => ({ ...prev, [field]: event.target.value }))
-                        }
-                      />
-                      <p id={`ocr-${field}-meta`} className="text-xs text-[var(--pf-text-secondary)]">
-                        {t('confidence', {
-                          value:
-                            selected.candidates![field].confidence == null
-                              ? '—'
-                              : String(
-                                  Math.round((selected.candidates![field].confidence ?? 0) * 100),
-                                ),
-                        })}
-                        {' · '}
-                        {t('provenance', {
-                          source: t(
-                            `sources.${provenanceSourceLabelKey(
-                              selected.candidates![field].provenance.source,
-                            )}`,
-                          ),
-                        })}
-                        {selected.extractedCandidates?.[field] &&
-                        selected.candidates![field].provenance.source === 'user_override' ? (
-                          <>
-                            {' · '}
-                            {t('extractedProvenance', {
-                              source: t(
-                                `sources.${provenanceSourceLabelKey(
-                                  selected.extractedCandidates[field].provenance.source,
-                                )}`,
-                              ),
-                            })}
-                          </>
+                  {OCR_CANDIDATE_FIELD_KEYS.map((field) => {
+                    const value = candidateValue(selected.candidates!, field);
+                    const showMoneyPreview =
+                      MONEY_FIELDS.has(field) && MONEY_PATTERN.test(value.trim());
+                    return (
+                      <div key={field} className="flex flex-col gap-1.5">
+                        <div className="flex items-center justify-between gap-3">
+                          <Label htmlFor={`ocr-${field}`}>{t(`fields.${field}`)}</Label>
+                          <label className="flex min-h-11 items-center gap-2 text-xs text-[var(--pf-text-secondary)]">
+                            <Checkbox
+                              checked={Boolean(accepted[field])}
+                              disabled={reviewLocked || pending}
+                              onCheckedChange={(checked) =>
+                                toggleAccepted(field, checked === true)
+                              }
+                              aria-label={t('acceptField', { field: t(`fields.${field}`) })}
+                            />
+                            {t('accept')}
+                          </label>
+                        </div>
+                        <Input
+                          id={`ocr-${field}`}
+                          value={value}
+                          disabled={reviewLocked}
+                          numeric={MONEY_FIELDS.has(field) || field === 'currency'}
+                          type={DATE_FIELDS.has(field) ? 'date' : 'text'}
+                          dir={
+                            field === 'currency' ||
+                            field === 'reference' ||
+                            MONEY_FIELDS.has(field)
+                              ? 'ltr'
+                              : undefined
+                          }
+                          aria-describedby={`ocr-${field}-meta`}
+                          onChange={(event) =>
+                            setOverrides((prev) => ({ ...prev, [field]: event.target.value }))
+                          }
+                        />
+                        {showMoneyPreview ? (
+                          <p className="text-sm" dir="ltr">
+                            <MoneyText value={money(value.trim(), currencyCode)} />
+                          </p>
                         ) : null}
-                      </p>
-                    </div>
-                  ))}
+                        <p
+                          id={`ocr-${field}-meta`}
+                          className="text-xs text-[var(--pf-text-secondary)]"
+                        >
+                          {t('confidence', {
+                            value:
+                              selected.candidates![field].confidence == null
+                                ? '—'
+                                : String(
+                                    Math.round(
+                                      (selected.candidates![field].confidence ?? 0) * 100,
+                                    ),
+                                  ),
+                          })}
+                          {' · '}
+                          {t('provenance', {
+                            source: t(
+                              `sources.${provenanceSourceLabelKey(
+                                selected.candidates![field].provenance.source,
+                              )}`,
+                            ),
+                          })}
+                          {selected.extractedCandidates?.[field] &&
+                          selected.candidates![field].provenance.source === 'user_override' ? (
+                            <>
+                              {' · '}
+                              {t('extractedProvenance', {
+                                source: t(
+                                  `sources.${provenanceSourceLabelKey(
+                                    selected.extractedCandidates[field].provenance.source,
+                                  )}`,
+                                ),
+                              })}
+                            </>
+                          ) : null}
+                        </p>
+                      </div>
+                    );
+                  })}
 
                   {selected.candidates.lineDescriptions.length > 0 ? (
                     <div className="flex flex-col gap-2">
@@ -409,6 +497,46 @@ export function OcrReviewPanel({
                     </p>
                   </div>
 
+                  <fieldset className="flex flex-col gap-2">
+                    <legend className="text-sm font-medium">{t('draftTargetTitle')}</legend>
+                    <p className="text-xs text-[var(--pf-text-secondary)]">{t('draftTargetHint')}</p>
+                    <div className="flex flex-wrap gap-3">
+                      <label className="flex min-h-11 items-center gap-2 text-sm">
+                        <input
+                          type="radio"
+                          name="ocr-draft-target"
+                          checked={draftTarget === 'expense'}
+                          disabled={reviewLocked || pending || !canCreateExpenses}
+                          onChange={() => setDraftTarget('expense')}
+                        />
+                        {t('draftTargetExpense')}
+                      </label>
+                      <label className="flex min-h-11 items-center gap-2 text-sm">
+                        <input
+                          type="radio"
+                          name="ocr-draft-target"
+                          checked={draftTarget === 'vendor_bill'}
+                          disabled={reviewLocked || pending || !canManageAp}
+                          onChange={() => setDraftTarget('vendor_bill')}
+                        />
+                        {t('draftTargetVendorBill')}
+                      </label>
+                    </div>
+                    {draftTarget === 'vendor_bill' ? (
+                      <div className="flex flex-col gap-1.5">
+                        <Label htmlFor="ocr-vendor-entity">{t('vendorEntity')}</Label>
+                        <Input
+                          id="ocr-vendor-entity"
+                          value={vendorId}
+                          disabled={reviewLocked || pending}
+                          dir="ltr"
+                          placeholder={t('vendorEntityPlaceholder')}
+                          onChange={(event) => setVendorId(event.target.value)}
+                        />
+                      </div>
+                    ) : null}
+                  </fieldset>
+
                   <div className="flex flex-wrap gap-2">
                     <Button
                       type="button"
@@ -423,16 +551,32 @@ export function OcrReviewPanel({
                       type="button"
                       className="min-h-11"
                       disabled={pending || reviewLocked || acceptedFields.length === 0}
-                      onClick={onConfirmExpense}
+                      onClick={onConfirmDraft}
                     >
-                      {t('confirmExpense')}
+                      {draftTarget === 'vendor_bill'
+                        ? t('confirmVendorBill')
+                        : t('confirmExpense')}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      className="min-h-11"
+                      disabled={
+                        pending ||
+                        !canManageDocuments ||
+                        selected.status === 'succeeded' ||
+                        selected.status === 'rejected' ||
+                        Boolean(selected.confirmedExpenseId) ||
+                        Boolean(selected.confirmedVendorBillId)
+                      }
+                      onClick={onReject}
+                    >
+                      {t('rejectReview')}
                     </Button>
                   </div>
                 </>
               ) : (
-                <Alert tone="warning">
-                  {selected.errorMessage ?? t('noCandidates')}
-                </Alert>
+                <Alert tone="warning">{selected.errorMessage ?? t('noCandidates')}</Alert>
               )}
             </div>
           ) : null}
@@ -441,4 +585,3 @@ export function OcrReviewPanel({
     </div>
   );
 }
-

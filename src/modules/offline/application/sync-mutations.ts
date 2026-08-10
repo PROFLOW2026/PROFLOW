@@ -13,7 +13,21 @@ import {
   updateExpense,
   updateExpenseSchema,
 } from '@/modules/expenses';
-import { createDailyLog, getDailyLogForOrg, updateDailyLog } from '@/modules/field-ops';
+import {
+  createDailyLog,
+  createInspection,
+  createPunchListItem,
+  getDailyLogForOrg,
+  getInspectionForOrg,
+  getPunchListItemForOrg,
+  updateDailyLog,
+  updateInspection,
+  updatePunchListItem,
+} from '@/modules/field-ops';
+import {
+  createInspectionSchema,
+  createPunchListItemSchema,
+} from '@/modules/field-ops/validation/schemas';
 import { createTimeEntry, createTimeEntrySchema } from '@/modules/workforce';
 import { findTimeEntryById } from '@/modules/workforce';
 import { withOrgContext } from '@/shared/auth/session';
@@ -24,13 +38,22 @@ import type {
   ChangeRequestDraftPayload,
   DailyLogDraftPayload,
   ExpenseDraftPayload,
+  InspectionDraftPayload,
+  PunchDraftPayload,
   TimeEntryDraftPayload,
 } from '../domain/payloads';
 import type { DraftKind, QueuedAction, ServerTruthHint } from '../domain/types';
 import { DRAFT_KINDS } from '../domain/types';
 import { appendOfflineMarker, likePatternForOfflineMarker } from '../domain/offline-marker';
 import { and, eq, isNull, like } from 'drizzle-orm';
-import { changeRequests, dailyLogs, expenses, timeEntries } from '@drizzle/schema';
+import {
+  changeRequests,
+  dailyLogs,
+  expenses,
+  inspections,
+  punchListItems,
+  timeEntries,
+} from '@drizzle/schema';
 import { OfflineSyncSubmitError } from '../domain/sync-submit-error';
 
 export { OfflineSyncSubmitError };
@@ -143,6 +166,28 @@ export async function fetchOfflineServerTruthAction(input: {
             snapshot: {
               status: doc.status,
               fileName: doc.originalFilename,
+            },
+          };
+        }
+        case 'punch': {
+          const item = await getPunchListItemForOrg(context, input.serverId!);
+          return {
+            serverId: item.id,
+            serverUpdatedAt: toIso(item.updatedAt),
+            snapshot: {
+              status: item.status,
+              title: item.title,
+            },
+          };
+        }
+        case 'inspection': {
+          const item = await getInspectionForOrg(context, input.serverId!);
+          return {
+            serverId: item.id,
+            serverUpdatedAt: toIso(item.updatedAt),
+            snapshot: {
+              status: item.status,
+              title: item.title,
             },
           };
         }
@@ -361,6 +406,129 @@ async function submitDailyLog(
   return { serverId: created.id, serverUpdatedAt: toIso(created.updatedAt) };
 }
 
+async function submitPunch(
+  action: QueuedAction,
+): Promise<{ serverId: string; serverUpdatedAt: string }> {
+  const payload = asRecord(action.payload) as PunchDraftPayload;
+  const punchListItemId = action.serverId ?? optionalString(payload, 'punchListItemId');
+
+  if (punchListItemId) {
+    const priority = optionalString(payload, 'priority');
+    const updated = await withOrgContext((context) =>
+      updatePunchListItem(context, {
+        punchListItemId,
+        title: optionalString(payload, 'title') ?? undefined,
+        description: optionalString(payload, 'description'),
+        priority:
+          priority === 'low' ||
+          priority === 'normal' ||
+          priority === 'high' ||
+          priority === 'critical'
+            ? priority
+            : undefined,
+        location: optionalString(payload, 'location'),
+        dueDate: optionalString(payload, 'dueDate'),
+        workPackageId: optionalString(payload, 'workPackageId'),
+      }),
+    );
+    return { serverId: updated.id, serverUpdatedAt: toIso(updated.updatedAt) };
+  }
+
+  const parsed = createPunchListItemSchema.safeParse({
+    projectId: requireString(payload, 'projectId'),
+    workPackageId: optionalString(payload, 'workPackageId'),
+    title: requireString(payload, 'title'),
+    description: appendOfflineMarker(optionalString(payload, 'description'), action.localId),
+    priority: optionalString(payload, 'priority') ?? undefined,
+    location: optionalString(payload, 'location'),
+    dueDate: optionalString(payload, 'dueDate'),
+  });
+  if (!parsed.success) {
+    throw new OfflineSyncSubmitError('Punch draft failed validation.');
+  }
+
+  const created = await withOrgContext(async (context) => {
+    const markerPattern = likePatternForOfflineMarker(action.localId);
+    const [existing] = await context.db
+      .select({ id: punchListItems.id, updatedAt: punchListItems.updatedAt })
+      .from(punchListItems)
+      .where(
+        and(
+          eq(punchListItems.organizationId, context.organizationId),
+          like(punchListItems.description, markerPattern),
+          isNull(punchListItems.archivedAt),
+        ),
+      )
+      .limit(1);
+    if (existing) {
+      return { id: existing.id, updatedAt: existing.updatedAt };
+    }
+    return createPunchListItem(context, parsed.data);
+  });
+  return { serverId: created.id, serverUpdatedAt: toIso(created.updatedAt) };
+}
+
+async function submitInspection(
+  action: QueuedAction,
+): Promise<{ serverId: string; serverUpdatedAt: string }> {
+  const payload = asRecord(action.payload) as InspectionDraftPayload;
+  const inspectionId = action.serverId ?? optionalString(payload, 'inspectionId');
+
+  if (inspectionId) {
+    const kind = optionalString(payload, 'kind');
+    const updated = await withOrgContext((context) =>
+      updateInspection(context, {
+        inspectionId,
+        title: optionalString(payload, 'title') ?? undefined,
+        kind:
+          kind === 'general' ||
+          kind === 'safety' ||
+          kind === 'quality' ||
+          kind === 'handover' ||
+          kind === 'other'
+            ? kind
+            : undefined,
+        scheduledOn: optionalString(payload, 'scheduledOn'),
+        notes: optionalString(payload, 'notes'),
+        workPackageId: optionalString(payload, 'workPackageId'),
+      }),
+    );
+    return { serverId: updated.id, serverUpdatedAt: toIso(updated.updatedAt) };
+  }
+
+  const parsed = createInspectionSchema.safeParse({
+    projectId: requireString(payload, 'projectId'),
+    workPackageId: optionalString(payload, 'workPackageId'),
+    title: requireString(payload, 'title'),
+    kind: optionalString(payload, 'kind') ?? undefined,
+    scheduledOn: optionalString(payload, 'scheduledOn'),
+    notes: appendOfflineMarker(optionalString(payload, 'notes'), action.localId),
+  });
+  if (!parsed.success) {
+    throw new OfflineSyncSubmitError('Inspection draft failed validation.');
+  }
+
+  const created = await withOrgContext(async (context) => {
+    const markerPattern = likePatternForOfflineMarker(action.localId);
+    const [existing] = await context.db
+      .select({ id: inspections.id, updatedAt: inspections.updatedAt })
+      .from(inspections)
+      .where(
+        and(
+          eq(inspections.organizationId, context.organizationId),
+          like(inspections.notes, markerPattern),
+          isNull(inspections.archivedAt),
+        ),
+      )
+      .limit(1);
+    if (existing) {
+      return { id: existing.id, updatedAt: existing.updatedAt };
+    }
+    return createInspection(context, parsed.data);
+  });
+  return { serverId: created.id, serverUpdatedAt: toIso(created.updatedAt) };
+}
+
 /**
  * Apply a queued offline draft via existing application modules.
  * Capture blobs are uploaded by the client transport before/alongside this.
@@ -371,27 +539,36 @@ export async function submitOfflineDraftAction(input: {
   readonly payload: Record<string, unknown>;
   readonly localId: string;
   readonly organizationId: string;
+  readonly userId?: string;
   readonly updatedAt: string;
   readonly syncStatus: QueuedAction['syncStatus'];
   readonly serverUpdatedAt: string | null;
+  readonly dedupeKey?: string | null;
 }): Promise<{ serverId: string; serverUpdatedAt: string }> {
   const action: QueuedAction = {
     localId: input.localId,
     organizationId: input.organizationId,
+    userId: input.userId ?? '',
     kind: input.kind,
     payload: input.payload,
     updatedAt: input.updatedAt,
     syncStatus: input.syncStatus,
     serverId: input.serverId,
     serverUpdatedAt: input.serverUpdatedAt,
+    dedupeKey: input.dedupeKey ?? null,
   };
 
   try {
-    // Never apply a draft queued for org A while the session is bound to org B.
+    // Never apply a draft queued for org A / user B while the session differs.
     await withOrgContext(async (context) => {
       if (input.organizationId !== context.organizationId) {
         throw new OfflineSyncSubmitError(
           'Offline draft organization does not match the active organization.',
+        );
+      }
+      if (input.userId && input.userId !== context.userId) {
+        throw new OfflineSyncSubmitError(
+          'Offline draft user does not match the active user.',
         );
       }
     });
@@ -405,6 +582,10 @@ export async function submitOfflineDraftAction(input: {
         return await submitChangeRequest(action);
       case 'daily_log':
         return await submitDailyLog(action);
+      case 'punch':
+        return await submitPunch(action);
+      case 'inspection':
+        return await submitInspection(action);
       case 'capture':
         throw new OfflineSyncSubmitError(
           'Capture drafts must be submitted by the client transport with the blob.',

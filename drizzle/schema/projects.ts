@@ -160,6 +160,11 @@ export const workPackages = pgTable(
     ...timestamps(),
   },
   (table) => [
+    uniqueIndex('work_packages_id_organization_id_project_id_uq').on(
+      table.id,
+      table.organizationId,
+      table.projectId,
+    ),
     index('work_packages_project_idx').on(table.projectId),
     index('work_packages_org_idx').on(table.organizationId),
     uniqueIndex('work_packages_project_default_uq')
@@ -190,6 +195,8 @@ export const projectMilestones = pgTable(
     status: text('status').notNull().default('planned'),
     sortOrder: integer('sort_order').notNull().default(0),
     notes: text('notes'),
+    /** Explicit customer-portal share marker (default hidden). */
+    portalVisible: boolean('portal_visible').notNull().default(false),
     archivedAt: archivedAt(),
     ...timestamps(),
   },
@@ -225,6 +232,11 @@ export const phases = pgTable(
     ...timestamps(),
   },
   (table) => [
+    uniqueIndex('phases_id_organization_id_project_id_uq').on(
+      table.id,
+      table.organizationId,
+      table.projectId,
+    ),
     index('phases_work_package_idx').on(table.workPackageId),
     index('phases_project_idx').on(table.projectId),
   ],

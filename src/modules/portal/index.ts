@@ -28,6 +28,8 @@ export type { ReviewVendorCandidateInput } from './application/review-vendor-can
 export {
   buildCustomerSafeProjectSummary,
   buildCustomerSafeDocuments,
+  buildCustomerSafeMilestones,
+  buildCustomerSafeBillingItems,
   buildCustomerPortalSession,
   isCustomerPortalSession,
   grantCoversProject,
@@ -51,13 +53,66 @@ export {
   assertVendorGrantActive,
   assertVendorGrantHasScope,
   buildVendorPortalSession,
+  buildVendorSafePaymentOutstanding,
   buildVendorSafePoSummary,
   buildVendorSafeRfqSummary,
   grantHasVendorScope,
   isVendorPortalSession,
   isVendorVisiblePoStatus,
+  isVendorPaymentOutstandingPolicyEnabled,
   portalCandidateMutatesFinancialTruth,
+  VENDOR_PAYMENT_OUTSTANDING_POLICY,
 } from './domain/safe-vendor-projection';
+
+export {
+  getExternalPublicAccessStatus,
+  isExternalPublicAccessEnabled,
+  assertExternalPublicAccessEnabled,
+  EXTERNAL_PUBLIC_ACCESS_STATUS,
+  EXTERNAL_PUBLIC_ACCESS_LIMITATION,
+} from './domain/external-access-policy';
+
+export {
+  PORTAL_CANDIDATES_PERSISTENCE_READY,
+  arePortalCandidatesAvailable,
+  setPortalCandidatesPersistenceReadyForTests,
+} from './domain/candidates-persistence';
+
+export {
+  assertVendorSameOrg,
+  assertGrantSameOrgAndPrincipal,
+} from './data/candidate-same-org-guards';
+
+export {
+  drizzleVendorPortalCandidatesRepository,
+  type VendorPortalCandidatesRepository,
+} from './data/vendor-portal-candidates.repository';
+
+export {
+  resetVendorPortalCandidateStoreForTests,
+  insertVendorApBillCandidate,
+  reviewVendorApBillCandidate,
+} from './data/vendor-portal-candidates.store';
+
+export {
+  getVendorPortalCandidatesRepository,
+  setVendorPortalCandidatesRepositoryForTests,
+  insertVendorApBillCandidateRow,
+  insertVendorComplianceCandidateRow,
+} from './data/vendor-portal-candidates';
+
+export {
+  assertGrantBelongsToOrganization,
+  assertSameOrganization,
+  grantMatchesOrganization,
+} from './domain/tenant-isolation';
+
+export {
+  CUSTOMER_PORTAL_SHARED_LABEL,
+  isCustomerPortalSharedLabel,
+  isCustomerPortalSharedDocument,
+  filterCustomerPortalSharedDocuments,
+} from './domain/shared-documents';
 
 export {
   PORTAL_KINDS,
@@ -77,8 +132,11 @@ export type {
   ExternalAccessGrantListItem,
   CustomerSafeProjectSummary,
   CustomerSafeDocument,
+  CustomerSafeMilestone,
+  CustomerSafeBillingItem,
   VendorSafeRfqSummary,
   VendorSafePoSummary,
+  VendorSafePaymentOutstanding,
   VendorPortalPreview,
   VendorApBillCandidate,
   VendorComplianceUploadCandidate,

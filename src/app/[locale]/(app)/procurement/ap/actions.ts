@@ -6,7 +6,9 @@ import {
   acceptApMatch,
   createApBill,
   proposeApMatch,
+  recordVendorPayment,
   rejectApMatch,
+  voidVendorPayment,
 } from '@/modules/ap';
 import { withOrgContext } from '@/shared/auth/session';
 import { AppError, DomainRuleError, ValidationError } from '@/shared/errors';
@@ -170,6 +172,49 @@ export async function rejectApMatchAction(
     const billId = formValue(formData, 'apBillId');
     await withOrgContext((context) =>
       rejectApMatch(context, { matchId: requiredFormValue(formData, 'matchId') }),
+    );
+    if (billId) revalidatePath(`/procurement/ap/${billId}`);
+    revalidatePath('/procurement/ap');
+    return { success: true };
+  } catch (error) {
+    return mapAppError(error);
+  }
+}
+
+export async function recordVendorPaymentAction(
+  _prev: ApFormState,
+  formData: FormData,
+): Promise<ApFormState> {
+  const billId = requiredFormValue(formData, 'apBillId');
+  const amount = requiredFormValue(formData, 'amount');
+  try {
+    await withOrgContext((context) =>
+      recordVendorPayment(context, {
+        amount,
+        currency: requiredFormValue(formData, 'currency'),
+        paymentDate: requiredFormValue(formData, 'paymentDate'),
+        method: formValue(formData, 'method'),
+        reference: formValue(formData, 'reference'),
+        notes: formValue(formData, 'notes'),
+        applications: [{ apBillId: billId, appliedAmount: amount }],
+      }),
+    );
+    revalidatePath(`/procurement/ap/${billId}`);
+    revalidatePath('/procurement/ap');
+    return { success: true };
+  } catch (error) {
+    return mapAppError(error);
+  }
+}
+
+export async function voidVendorPaymentAction(
+  _prev: ApFormState,
+  formData: FormData,
+): Promise<ApFormState> {
+  const billId = formValue(formData, 'apBillId');
+  try {
+    await withOrgContext((context) =>
+      voidVendorPayment(context, requiredFormValue(formData, 'paymentId')),
     );
     if (billId) revalidatePath(`/procurement/ap/${billId}`);
     revalidatePath('/procurement/ap');

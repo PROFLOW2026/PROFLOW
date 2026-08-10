@@ -76,6 +76,9 @@ export const MESSAGE_NAMESPACES = [
   'assets',
   'ap',
   'offline',
+  'banking',
+  'planning',
+  'invoicingIntegration',
   'exports',
   'marketing',
 ] as const;

@@ -15,6 +15,24 @@ export const SHELL_PRECACHE_URLS = [
 /** Always try the network first so install metadata is not trapped on an old SW cache. */
 export const SHELL_NETWORK_FIRST_URLS = ['/manifest.webmanifest'] as const;
 
+/**
+ * Path fragments that must never be SW-cached (sensitive financial surfaces).
+ * Field offline is queue/draft based — not full-app financial page cache.
+ */
+export const SENSITIVE_FINANCIAL_PATH_MARKERS = [
+  '/billing',
+  '/financials',
+  '/receivables',
+  '/payables',
+  '/procurement/ap',
+  '/bank',
+  '/banking',
+  '/invoices',
+  '/profit',
+  '/cashflow',
+  '/tax',
+] as const;
+
 export function isShellAssetUrl(pathname: string): boolean {
   return (SHELL_PRECACHE_URLS as readonly string[]).includes(pathname);
 }
@@ -23,9 +41,16 @@ export function isNetworkFirstShellUrl(pathname: string): boolean {
   return (SHELL_NETWORK_FIRST_URLS as readonly string[]).includes(pathname);
 }
 
+/** True when the pathname looks like a sensitive financial app route. */
+export function isSensitiveFinancialPath(pathname: string): boolean {
+  const lower = pathname.toLowerCase();
+  return SENSITIVE_FINANCIAL_PATH_MARKERS.some((marker) => lower.includes(marker));
+}
+
 /**
  * Navigations and Next.js RSC payloads must hit the network.
  * Only static shell assets use cache-first. Manifest uses network-first.
+ * Sensitive financial paths are never cache-eligible.
  */
 export function shouldUseCacheFirst(request: {
   readonly method: string;
@@ -34,6 +59,7 @@ export function shouldUseCacheFirst(request: {
 }): boolean {
   if (request.method !== 'GET') return false;
   if (request.mode === 'navigate') return false;
+  if (isSensitiveFinancialPath(request.pathname)) return false;
   if (isNetworkFirstShellUrl(request.pathname)) return false;
   return isShellAssetUrl(request.pathname);
 }

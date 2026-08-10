@@ -89,6 +89,22 @@
     "archiveBody": "It will leave the active list. You can still find it later if archived records are shown.",
     "archiveSuccess": "Artifact archived",
     "documentsNeedSubject": "Set the subject (and subject ID for employee, vendor, or project) to attach evidence documents securely.",
-    "missingEvidence": "No evidence document attached yet."
+    "missingEvidence": "No evidence document attached yet.",
+    "financeSection": "Linked expense",
+    "financeHint": "Insurance and compliance records do not post Actual. Create a linked expense draft when a premium or fee should enter finance."
+  },
+  "financeLink": {
+    "create": "Create linked expense",
+    "pending": "Creating…",
+    "hint": "Creates an Expense draft only. Actual changes after you finalize the expense — not from this compliance record alone.",
+    "linkedDraft": "Linked expense draft",
+    "openExpense": "Open expense",
+    "amountLabel": "Premium / fee amount",
+    "currencyLabel": "Currency",
+    "allocationTitle": "Optional overhead period",
+    "periodStartLabel": "Allocation period start",
+    "periodEndLabel": "Allocation period end",
+    "allocationHint": "For insurance-like costs, set a period to use the existing overhead allocation engine. Still draft until finalized.",
+    "success": "Linked expense draft created."
   }
 }

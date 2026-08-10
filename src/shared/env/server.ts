@@ -60,8 +60,18 @@ const serverEnvSchema = z.object({
     z.enum(['debug', 'info', 'warn', 'error']).default('info'),
   ),
 
+  /**
+   * OCR ingestion feature gate (OFF by default). Live OCR also needs a non-stub
+   * OCR_PROVIDER plus credentials — see src/modules/ocr/SCHEMA_REQUEST.md.
+   */
+  OCR_INGESTION_ENABLED: z.preprocess(emptyToUndefined, z.string().optional()),
+  OCR_PROVIDER: z.preprocess(emptyToUndefined, z.string().optional()),
   /** Present ⇒ OCR adapter may call a provider; unset keeps the stub inert. */
   OCR_PROVIDER_API_KEY: optionalNonEmpty,
+  OCR_PROVIDER_ENDPOINT: optionalUrl,
+  OCR_PROVIDER_MODEL: z.preprocess(emptyToUndefined, z.string().optional()),
+  OCR_ALLOW_FIXTURE: z.preprocess(emptyToUndefined, z.string().optional()),
+
 
   /**
    * KEK for sealing webhook signing secrets at rest.
@@ -143,6 +153,11 @@ export const SERVER_ENV_EXAMPLE_KEYS = [
   'EMAIL_FROM',
   'SENTRY_DSN',
   'LOG_LEVEL',
+  'OCR_INGESTION_ENABLED',
+  'OCR_PROVIDER',
   'OCR_PROVIDER_API_KEY',
+  'OCR_PROVIDER_ENDPOINT',
+  'OCR_PROVIDER_MODEL',
+  'OCR_ALLOW_FIXTURE',
   'WEBHOOK_SECRET_KEK',
 ] as const;

@@ -22,7 +22,7 @@ import { isBrowserPreviewableMime } from '@/modules/documents/domain/file-rules'
 import { OfflineCaptureError } from '@/modules/offline/domain/capture';
 import { enqueueCaptureDraft } from '@/modules/offline';
 import { isBrowserOnline } from '@/modules/offline';
-import { useOfflineOrganizationId } from '@/modules/offline/ui/use-offline-aware-form-action';
+import { useOfflineScope } from '@/modules/offline/ui/use-offline-aware-form-action';
 import {
   downloadDocumentAction,
   finalizeDocumentUploadAction,
@@ -86,7 +86,9 @@ export function DocumentAttachments({
   const tCommon = useTranslations('common');
   const tOffline = useTranslations('offline');
   const router = useRouter();
-  const organizationId = useOfflineOrganizationId();
+  const offlineScope = useOfflineScope();
+  const organizationId = offlineScope?.organizationId ?? null;
+  const userId = offlineScope?.userId ?? null;
   const fileInputRef = useRef<HTMLInputElement>(null);
   const captureInputRef = useRef<HTMLInputElement>(null);
   const [error, setError] = useState<string | null>(null);
@@ -116,7 +118,7 @@ export function DocumentAttachments({
     setUploadSuccess(null);
     startUploadTransition(async () => {
       if (!isBrowserOnline()) {
-        if (!organizationId) {
+        if (!organizationId || !userId) {
           setError(tOffline('errors.missingOrganization'));
           return;
         }
@@ -128,6 +130,7 @@ export function DocumentAttachments({
         try {
           await enqueueCaptureDraft({
             organizationId,
+            userId,
             file,
             fileName: file.name,
             mimeType: file.type || 'application/octet-stream',

@@ -12,6 +12,24 @@ export {
 } from './application/matches';
 
 export {
+  getBillPayablePosition,
+  listVendorPaymentsForBill,
+  recordVendorPayment,
+  voidVendorPayment,
+  updateVendorPaymentMetadata,
+  deleteVendorPayment,
+  rejectPaymentApplicationMutation,
+} from './application/payments';
+
+export {
+  getOrganizationApPayables,
+  getVendorApOutstanding,
+  getProjectApOutstanding,
+  getOrganizationPayablesAging,
+} from './application/payables';
+export type { BillPayableSummary, OrgApPayablesSummary } from './application/payables';
+
+export {
   AP_BILL_STATUSES,
   AP_MATCH_STATUSES,
   assertMatchHasTarget,
@@ -45,18 +63,85 @@ export type {
 } from './domain/vendor-cost-recognition';
 
 export {
+  AP_PAYMENT_STATUSES,
+  AP_PAYABLE_STATUSES,
+  AP_PAYMENTS_PERSISTENCE_READY,
+  areApPaymentsAvailable,
+  setApPaymentsPersistenceReadyForTests,
+  assertVendorPaymentDoesNotAffectActual,
+  assertPaymentApplicationsValid,
+  assertPaymentVoidable,
+  assertPaymentNotDeletable,
+  assertPaymentApplicationNotMutable,
+  assertPaymentFinancialFieldsImmutable,
+  assertPaymentMetadataEditable,
+  assertApPaymentCurrencyMatch,
+  computeBillRemainingOutstanding,
+  computePaymentRemaining,
+  sumActivePaymentAmounts,
+  sumActiveAppliedAmounts,
+  isBillPayable,
+  computeBillOutstanding,
+  derivePayableStatus,
+  applySequentialBillPayments,
+  aggregateVendorOutstanding,
+} from './domain/vendor-payments';
+export type {
+  ApPaymentStatus,
+  ApPayableStatus,
+  VendorPaymentAmountInput,
+  VendorPaymentApplicationInput,
+  BillPayableInput,
+} from './domain/vendor-payments';
+
+export { computePayablesAging } from './domain/payables-aging';
+export type {
+  ApAgingBucketKey,
+  ApAgingBucket,
+  PayablesAging,
+  ApAgingBillInput,
+} from './domain/payables-aging';
+
+export {
   createApBillSchema,
   proposeApMatchSchema,
   decideApMatchSchema,
+  recordVendorPaymentSchema,
+  voidVendorPaymentSchema,
+  updateVendorPaymentMetadataSchema,
 } from './validation/schemas';
 export type {
   CreateApBillInput,
   ProposeApMatchInput,
   DecideApMatchInput,
+  RecordVendorPaymentInput,
+  VoidVendorPaymentInput,
+  UpdateVendorPaymentMetadataInput,
 } from './validation/schemas';
 
 /** Cross-module AP rollups (cash flow / committed payable). AP bill ≠ Expense. */
 export {
   listApBills,
   listAcceptedMatchAmountsForBills,
+  insertApBill,
+  insertApBillLines,
+  assertVendorInOrganization,
+  findApBillById,
 } from './data/ap.repository';
+
+export {
+  getVendorPaymentsRepository,
+  setVendorPaymentsRepository,
+  resetVendorPaymentsRepository,
+  enableApPaymentsPersistenceForTests,
+  disableApPaymentsPersistenceForTests,
+  createInMemoryVendorPaymentsRepository,
+  gatedVendorPaymentsRepository,
+  drizzleVendorPaymentsRepository,
+} from './data/payments.repository';
+export type {
+  ApPaymentRow,
+  ApPaymentApplicationRow,
+  ApPaymentWithApplications,
+  VendorPaymentsRepository,
+} from './data/payments.repository';

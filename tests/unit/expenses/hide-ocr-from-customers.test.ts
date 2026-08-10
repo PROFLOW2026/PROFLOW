@@ -59,12 +59,12 @@ describe('hide OCR extraction from customers', () => {
     expect(source).not.toMatch(/OCR_PROVIDER/);
   });
 
-  it('production OCR review route redirects away from stub UI', () => {
+  it('OCR review route redirects when feature gate disallows review UI', () => {
     const source = readFileSync(
       join(ROOT, 'src/app/[locale]/(app)/documents/ocr-review/page.tsx'),
       'utf8',
     );
-    expect(source).toMatch(/NODE_ENV === ['"]production['"]/);
+    expect(source).toMatch(/isOcrReviewUiAllowed/);
     expect(source).toMatch(/redirect\(\{\s*href:\s*['"]\/expenses['"]/);
   });
 

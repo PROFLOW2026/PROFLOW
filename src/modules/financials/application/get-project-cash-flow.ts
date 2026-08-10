@@ -2,12 +2,16 @@ import type { OrgContext } from '@/shared/auth/context';
 import { todayInTimeZone, type BusinessDate } from '@/shared/dates';
 import { ORG_LIST_EXPORT_CAP } from '@/shared/db/list-limits';
 import { NotFoundError } from '@/shared/errors';
-import { isZeroMoney } from '@/shared/money';
+import { isPositiveMoney, isZeroMoney, money } from '@/shared/money';
 import { assertPermission, hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { listBillingRecords } from '@/modules/billing';
-import { listApBills, listAcceptedMatchAmountsForBills } from '@/modules/ap';
-import { remainingUnmatchedAmount } from '@/modules/ap/domain/matching';
+import {
+  computeBillOutstanding,
+  getVendorPaymentsRepository,
+  isRecognizedVendorBillStatus,
+  listApBills,
+} from '@/modules/ap';
 import { loadCashFlowPayments } from '../data/billing.repository';
 import {
   buildCashFlowOutlook,
@@ -19,8 +23,9 @@ import { assertProjectInOrg, findProjectCurrency } from '../data/projects.reposi
 /**
  * Per-project expected incoming (Forecast from Outstanding due dates) plus
  * Actual Paid collected this month for that project's billing. Requires
- * PROJECT_FINANCIALS_READ and BILLING_READ. Outgoing uses unmatched open AP
- * amounts for the project when AP_READ is present (never full bill when partial).
+ * PROJECT_FINANCIALS_READ and BILLING_READ. Outgoing uses cash outstanding
+ * (bill total − active vendor payment applications) when AP_READ is present.
+ * Payments never enter Actual Cost.
  */
 export async function getProjectCashFlowOutlook(
   context: OrgContext,
@@ -57,8 +62,10 @@ export async function getProjectCashFlowOutlook(
 
   let openApBills: ApBillCashInput[] | undefined;
   if (hasPermission(context, PERMISSIONS.AP_READ)) {
-    const projectBills = apRows.filter((row) => row.projectId === projectId);
-    const acceptedByBillId = await listAcceptedMatchAmountsForBills(
+    const projectBills = apRows.filter(
+      (row) => row.projectId === projectId && isRecognizedVendorBillStatus(row.status),
+    );
+    const appliedByBillId = await getVendorPaymentsRepository().listActiveAppliedAmountsForBills(
       context.db,
       context.organizationId,
       projectBills.map((row) => row.id),
@@ -66,15 +73,19 @@ export async function getProjectCashFlowOutlook(
     openApBills = [];
     for (const row of projectBills) {
       if (row.currency.toUpperCase() !== currency.toUpperCase()) continue;
-      const unmatched = remainingUnmatchedAmount({
-        currency: row.currency,
-        billTotal: row.totalAmount,
-        reservedMatchedAmounts: acceptedByBillId.get(row.id) ?? [],
+      const outstanding = computeBillOutstanding({
+        billStatus: row.status,
+        billTotal: money(row.totalAmount, row.currency),
+        applications: (appliedByBillId.get(row.id) ?? []).map((amount) => ({
+          appliedAmount: money(amount, row.currency),
+          paymentStatus: 'recorded' as const,
+        })),
       });
+      if (!isPositiveMoney(outstanding)) continue;
       openApBills.push({
         status: row.status,
         dueDate: (row.dueDate as BusinessDate | null) ?? null,
-        totalAmount: unmatched,
+        totalAmount: outstanding,
       });
     }
   }

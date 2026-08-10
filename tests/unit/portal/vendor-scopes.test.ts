@@ -64,9 +64,11 @@ describe('vendor portal scopes', () => {
       assertVendorScopesAreReadOnly(['vendor.summary', 'quote.submit', 'bill.candidate']),
     ).not.toThrow();
     expect(() => assertVendorScopesAreReadOnly(['documents.upload'])).not.toThrow();
+    expect(() => assertVendorScopesAreReadOnly(['payment.outstanding'])).not.toThrow();
     expect(() => assertVendorScopesAreReadOnly(['expense.write'])).toThrow(DomainRuleError);
     expect(() => assertVendorScopesAreReadOnly(['ap.manage'])).toThrow(DomainRuleError);
     expect(() => assertVendorScopesAreReadOnly(['cost.write'])).toThrow(DomainRuleError);
+    expect(() => assertVendorScopesAreReadOnly(['payment.write'])).toThrow(DomainRuleError);
     expect(() => assertVendorScopesAreReadOnly(['mystery.scope'])).toThrow(DomainRuleError);
   });
 });

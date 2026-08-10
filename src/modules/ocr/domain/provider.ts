@@ -1,4 +1,4 @@
-import type { ReceiptExtractionCandidates } from './types';
+import type { OcrSafeRawMetadata, ReceiptExtractionCandidates } from './types';
 
 /**
  * Pluggable OCR provider (doc 27 §4 / doc 32 adapter style).
@@ -16,7 +16,11 @@ export interface ExtractReceiptInput {
   readonly filename?: string;
 }
 
-export type ExtractReceiptErrorCode = 'not_configured' | 'provider_error' | 'empty_result';
+export type ExtractReceiptErrorCode =
+  | 'not_configured'
+  | 'provider_error'
+  | 'empty_result'
+  | 'feature_disabled';
 
 export type ExtractReceiptResult =
   | {
@@ -24,11 +28,14 @@ export type ExtractReceiptResult =
       readonly candidates: ReceiptExtractionCandidates;
       /** Always true for financial fields — caller must route to review. */
       readonly needsReview: true;
+      readonly rawMetadata?: OcrSafeRawMetadata;
+      readonly overallConfidence?: number | null;
     }
   | {
       readonly ok: false;
       readonly errorCode: ExtractReceiptErrorCode;
       readonly message: string;
+      readonly rawMetadata?: OcrSafeRawMetadata;
     };
 
 export interface OcrProvider {

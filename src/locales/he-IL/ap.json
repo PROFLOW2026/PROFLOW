@@ -101,6 +101,40 @@
       "rejected": "נדחה"
     }
   },
+  "payments": {
+    "title": "תשלומי ספק",
+    "cashOnlyNote": "תשלומים הם מזומן / יתרת ספקים בלבד. הם לעולם אינם מגדילים עלות בפועל — חשבון הספק כבר הכיר בעלות.",
+    "schemaPending": "רישום תשלומים מושהה עד להחלת סכמת ap_payments. היתרה למטה מניחה שאין תשלומים רשומים עדיין.",
+    "paid": "שולם",
+    "outstanding": "יתרה לתשלום",
+    "empty": "עדיין לא נרשמו תשלומים.",
+    "recordTitle": "רישום תשלום",
+    "partialHint": "תשלומים חלקיים מותרים. ניתן לסלק חשבון בכמה תשלומים.",
+    "amountLabel": "סכום",
+    "paymentDateLabel": "תאריך תשלום",
+    "methodLabel": "אמצעי תשלום",
+    "referenceLabel": "אסמכתא",
+    "notesLabel": "הערות",
+    "submit": "רישום תשלום",
+    "recorded": "התשלום נרשם.",
+    "void": "ביטול",
+    "columns": {
+      "date": "תאריך",
+      "amount": "סכום",
+      "method": "אמצעי / אסמכתא",
+      "status": "סטטוס",
+      "actions": "פעולות"
+    },
+    "statuses": {
+      "recorded": "רשום",
+      "void": "מבוטל"
+    },
+    "payableStatuses": {
+      "unpaid": "לא שולם",
+      "partial": "שולם חלקית",
+      "paid": "שולם"
+    }
+  },
   "errors": {
     "targetRequired": "התאמה דורשת הזמנת רכש ו/או הוצאה קיימת.",
     "expenseForbidden": "קבלת התאמת חשבון ספק אינה רשאית ליצור הוצאה.",
@@ -112,6 +146,16 @@
     "billVoid": "לא ניתן להתאים חשבון מבוטל.",
     "matchNotProposed": "ניתן להחליט רק על התאמות במצב מוצע.",
     "vendorRequired": "בחרו ספק.",
-    "linesRequired": "הוסיפו לפחות שורה אחת עם תיאור וסכומים."
+    "linesRequired": "הוסיפו לפחות שורה אחת עם תיאור וסכומים.",
+    "paymentsSchemaPending": "תשלומי ספק אינם זמינים עד להחלת סכמת מסד הנתונים.",
+    "paymentAmountInvalid": "סכום התשלום חייב להיות חיובי.",
+    "paymentApplicationRequired": "תשלום דורש לפחות הקצאה אחת לחשבון.",
+    "paymentDuplicateBill": "לא ניתן להקצות תשלום לאותו חשבון פעמיים.",
+    "paymentBillNotPayable": "לא ניתן לשלם חשבון בטיוטה או מבוטל.",
+    "paymentOverApplied": "התשלום יחרוג מיתרת החשבון לתשלום.",
+    "paymentApplicationMismatch": "סכום התשלום חייב להיות שווה לסכום ההקצאות.",
+    "paymentNotVoidable": "ניתן לבטל רק תשלומים רשומים.",
+    "paymentVendorMismatch": "כל ההקצאות חייבות להיות לאותו ספק.",
+    "paymentAffectsActual": "תשלום ספק אינו רשאי להכיר בעלות בפועל."
   }
 }

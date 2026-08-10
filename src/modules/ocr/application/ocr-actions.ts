@@ -3,21 +3,31 @@
 import { getTranslations } from 'next-intl/server';
 import { createExpense } from '@/modules/expenses';
 import { withOrgContext } from '@/shared/auth/session';
-import { AppError, AuthorizationError } from '@/shared/errors';
+import { AppError, AuthorizationError, DomainRuleError } from '@/shared/errors';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { confirmOcrCandidate } from './confirm-candidate';
+import { createVendorBillDraftFromOcr } from './create-vendor-bill-draft';
 import { extractReceiptJob } from './extract-receipt';
 import { listOcrCandidates } from './list-candidates';
 import { getOcrProviderStatus } from './provider-status';
-import { seedFixtureJob } from '../data/in-memory-ocr.store';
+import { rejectOcrCandidate } from './reject-candidate';
+import { getOcrRepository } from '../data/resolve-repository';
+import {
+  getOcrFeatureMode,
+  isOcrFixtureAllowed,
+  isOcrIngestionEnabled,
+  isOcrReviewUiAllowed,
+} from '../domain/feature-gate';
 import { buildFixtureCandidates } from '../domain/field-mapping';
 import type { ExtractionJob, OcrProviderStatus } from '../domain/types';
 import {
   confirmOcrCandidateSchema,
   extractReceiptSchema,
+  rejectOcrCandidateSchema,
   type ConfirmOcrCandidateInput,
   type ExtractReceiptAppInput,
+  type RejectOcrCandidateInput,
 } from '../validation/schemas';
 
 export type OcrActionResult<T> =
@@ -36,13 +46,25 @@ async function failMessage(error: unknown): Promise<string> {
   return t('unexpected');
 }
 
+function assertReviewSurfaceAllowed(): void {
+  if (!isOcrReviewUiAllowed()) {
+    throw new DomainRuleError(
+      'OCR review is disabled',
+      'ocr.errors.featureDisabled',
+    );
+  }
+}
+
 export async function getOcrReviewPageDataAction(): Promise<
   OcrActionResult<{ status: OcrProviderStatus; jobs: ExtractionJob[] }>
 > {
   try {
     const data = await withOrgContext(async (context) => {
+      assertReviewSurfaceAllowed();
       const status = getOcrProviderStatus(context);
-      const jobs = listOcrCandidates(context, { status: ['needs_review', 'failed'] });
+      const jobs = await listOcrCandidates(context, {
+        status: ['needs_review', 'failed', 'rejected'],
+      });
       return { status, jobs };
     });
     return { ok: true, data };
@@ -60,6 +82,12 @@ export async function extractReceiptAction(
     return { ok: false, error: parsed.error.issues[0]?.message ?? t('validationFailed') };
   }
   try {
+    if (!isOcrIngestionEnabled()) {
+      throw new DomainRuleError(
+        'OCR ingestion is disabled',
+        'ocr.errors.featureDisabled',
+      );
+    }
     const job = await withOrgContext((context) => extractReceiptJob(context, parsed.data));
     return { ok: true, data: job };
   } catch (error) {
@@ -72,7 +100,9 @@ export async function confirmOcrCandidateAction(
 ): Promise<
   OcrActionResult<{
     kind: 'mapped' | 'created';
+    draftTarget: 'expense' | 'vendor_bill';
     expenseId?: string;
+    vendorBillId?: string;
     expenseInput: unknown;
     job: ExtractionJob;
   }>
@@ -83,15 +113,32 @@ export async function confirmOcrCandidateAction(
     return { ok: false, error: parsed.error.issues[0]?.message ?? t('validationFailed') };
   }
   try {
+    assertReviewSurfaceAllowed();
     const result = await withOrgContext((context) =>
-      confirmOcrCandidate(context, parsed.data, { createExpense }),
+      confirmOcrCandidate(context, parsed.data, {
+        createExpense,
+        createVendorBillDraft: createVendorBillDraftFromOcr,
+      }),
     );
     if (result.kind === 'mapped') {
       return {
         ok: true,
         data: {
           kind: 'mapped',
+          draftTarget: result.draftTarget,
           expenseInput: result.expenseInput,
+          job: result.job,
+        },
+      };
+    }
+    if (result.draftTarget === 'vendor_bill') {
+      return {
+        ok: true,
+        data: {
+          kind: 'created',
+          draftTarget: 'vendor_bill',
+          vendorBillId: result.vendorBillId,
+          expenseInput: null,
           job: result.job,
         },
       };
@@ -100,6 +147,7 @@ export async function confirmOcrCandidateAction(
       ok: true,
       data: {
         kind: 'created',
+        draftTarget: 'expense',
         expenseId: result.expenseId,
         expenseInput: result.expenseInput,
         job: result.job,
@@ -110,15 +158,39 @@ export async function confirmOcrCandidateAction(
   }
 }
 
+export async function rejectOcrCandidateAction(
+  raw: RejectOcrCandidateInput,
+): Promise<OcrActionResult<ExtractionJob>> {
+  const parsed = rejectOcrCandidateSchema.safeParse(raw);
+  if (!parsed.success) {
+    const t = await getTranslations('errors');
+    return { ok: false, error: parsed.error.issues[0]?.message ?? t('validationFailed') };
+  }
+  try {
+    assertReviewSurfaceAllowed();
+    const job = await withOrgContext((context) => rejectOcrCandidate(context, parsed.data));
+    return { ok: true, data: job };
+  } catch (error) {
+    return { ok: false, error: await failMessage(error) };
+  }
+}
+
 /**
- * Seeds a fixture review job for demos/tests. Not OCR provider output.
- * Requires documents.manage.
+ * Seeds a sample review job for local tooling/tests. Not OCR provider output.
+ * Requires documents.manage + OCR_ALLOW_FIXTURE (never production).
  */
 export async function seedFixtureOcrJobAction(): Promise<OcrActionResult<ExtractionJob>> {
   try {
+    if (!isOcrFixtureAllowed() || getOcrFeatureMode() === 'disabled') {
+      throw new DomainRuleError(
+        'Sample review seeding is disabled',
+        'ocr.errors.featureDisabled',
+      );
+    }
     const job = await withOrgContext(async (context) => {
       assertPermission(context, PERMISSIONS.DOCUMENTS_MANAGE);
-      return seedFixtureJob({
+      const repo = getOcrRepository(context.db);
+      return repo.seedFixtureJob({
         organizationId: context.organizationId,
         candidates: buildFixtureCandidates(),
       });

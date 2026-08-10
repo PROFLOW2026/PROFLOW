@@ -1,5 +1,5 @@
 import { relations } from 'drizzle-orm';
-import { type AnyPgColumn, index, pgTable, text, uuid } from 'drizzle-orm/pg-core';
+import { type AnyPgColumn, index, pgTable, text, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
 import { archivedAt, primaryId, timestamps } from './_shared';
 import { contactRoleEnum, vendorStatusEnum, vendorTypeEnum } from './enums';
 import { projects } from './projects';
@@ -36,6 +36,7 @@ export const vendors = pgTable(
     ...timestamps(),
   },
   (table) => [
+    uniqueIndex('vendors_id_organization_id_uq').on(table.id, table.organizationId),
     index('vendors_org_idx').on(table.organizationId),
     index('vendors_org_name_idx').on(table.organizationId, table.name),
   ],

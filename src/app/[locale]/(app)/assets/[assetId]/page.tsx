@@ -14,6 +14,8 @@ import {
 } from '@/modules/assets';
 import { getEntityDocumentPanelData } from '@/modules/documents';
 import { DocumentAttachments } from '@/modules/documents/ui';
+import { peekOpsExpenseLinksForRecords } from '@/modules/ops-finance';
+import { CreateLinkedExpenseForm } from '@/modules/ops-finance/ui/create-linked-expense-form';
 import { listProjectsForOrg } from '@/modules/projects';
 import { listVendorsForOrg } from '@/modules/vendors';
 import { withOrgContext } from '@/shared/auth/session';
@@ -87,13 +89,23 @@ export default async function AssetDetailPage({
       listVendorsForOrg(context, { status: 'active' }).catch(() => []),
       getEntityDocumentPanelData(context, detail.documentsOwnerType, assetId),
     ]);
+    const expenseLinks = await peekOpsExpenseLinksForRecords(
+      context,
+      'maintenance_record',
+      maintenance.map((row) => row.id),
+    );
+    const linkedExpenseByMaintenanceId = new Map(
+      expenseLinks.map((link) => [link.opsRecordId, link.expenseId] as const),
+    );
     return {
       detail,
       maintenance,
       projects,
       vendors,
       documentsPanel,
+      linkedExpenseByMaintenanceId,
       canManage: hasPermission(context, PERMISSIONS.ASSETS_MANAGE),
+      canCreateExpense: hasPermission(context, PERMISSIONS.EXPENSES_CREATE),
       baseCurrency: context.organization.baseCurrency,
     };
   });
@@ -253,6 +265,7 @@ export default async function AssetDetailPage({
           <h2 className="font-semibold">{t('detail.history')}</h2>
           <p className="text-sm text-[var(--pf-text-secondary)]">{t('detail.historyHint')}</p>
           <p className="text-sm text-[var(--pf-text-secondary)]">{t('detail.maintenanceHint')}</p>
+          <p className="text-sm text-[var(--pf-text-secondary)]">{t('detail.createLinkedExpenseHint')}</p>
         </div>
 
         {loaded.maintenance.length === 0 ? (
@@ -271,6 +284,7 @@ export default async function AssetDetailPage({
                       <TableHead>{t('detail.performedOn')}</TableHead>
                       <TableHead>{t('detail.vendor')}</TableHead>
                       <TableHead numeric>{t('detail.costAmount')}</TableHead>
+                      <TableHead>{t('financeLink.create')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -313,6 +327,33 @@ export default async function AssetDetailPage({
                                 {t('detail.costNotExpense')}
                               </span>
                             </>
+                          ) : (
+                            '—'
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {loaded.canCreateExpense && row.costAmount && row.currency ? (
+                            <CreateLinkedExpenseForm
+                              namespace="assets"
+                              opsRecordKind="maintenance_record"
+                              opsRecordId={row.id}
+                              assetId={asset.id}
+                              defaultAmount={row.costAmount}
+                              defaultCurrency={row.currency}
+                              defaultDescription={row.title}
+                              existingExpenseId={
+                                loaded.linkedExpenseByMaintenanceId.get(row.id) ?? null
+                              }
+                              compact
+                            />
+                          ) : loaded.linkedExpenseByMaintenanceId.get(row.id) ? (
+                            <CreateLinkedExpenseForm
+                              namespace="assets"
+                              opsRecordKind="maintenance_record"
+                              opsRecordId={row.id}
+                              existingExpenseId={loaded.linkedExpenseByMaintenanceId.get(row.id)}
+                              compact
+                            />
                           ) : (
                             '—'
                           )}
@@ -361,6 +402,27 @@ export default async function AssetDetailPage({
                     assetId={asset.id}
                     maintenanceRecordId={row.id}
                     currentStatus={row.status}
+                  />
+                ) : null}
+                {loaded.canCreateExpense && row.costAmount && row.currency ? (
+                  <CreateLinkedExpenseForm
+                    namespace="assets"
+                    opsRecordKind="maintenance_record"
+                    opsRecordId={row.id}
+                    assetId={asset.id}
+                    defaultAmount={row.costAmount}
+                    defaultCurrency={row.currency}
+                    defaultDescription={row.title}
+                    existingExpenseId={loaded.linkedExpenseByMaintenanceId.get(row.id) ?? null}
+                    compact
+                  />
+                ) : loaded.linkedExpenseByMaintenanceId.get(row.id) ? (
+                  <CreateLinkedExpenseForm
+                    namespace="assets"
+                    opsRecordKind="maintenance_record"
+                    opsRecordId={row.id}
+                    existingExpenseId={loaded.linkedExpenseByMaintenanceId.get(row.id)}
+                    compact
                   />
                 ) : null}
               </div>

@@ -13,9 +13,9 @@ import {
 } from '../domain/safe-vendor-projection';
 import { findGrantById } from '../data/portal.repository';
 import {
-  insertVendorApBillCandidate,
-  listVendorApBillCandidatesForVendor,
-} from '../data/vendor-portal-candidates.store';
+  insertVendorApBillCandidateRow,
+  listVendorApBillCandidatesForVendorRow,
+} from '../data/vendor-portal-candidates';
 import {
   submitVendorApBillCandidateSchema,
   type SubmitVendorApBillCandidateInput,
@@ -71,8 +71,7 @@ export async function submitVendorApBillCandidate(
     lines: input.lines,
   });
 
-  const candidate = insertVendorApBillCandidate({
-    organizationId: context.organizationId,
+  const candidate = await insertVendorApBillCandidateRow(context, {
     vendorId: input.vendorId,
     grantId: grant.id,
     principalId: grant.principalId,
@@ -113,9 +112,9 @@ export async function submitVendorApBillCandidate(
   return candidate;
 }
 
-export function listApBillCandidatesForVendorGrant(
-  organizationId: string,
+export async function listApBillCandidatesForVendorGrant(
+  context: Pick<OrgContext, 'db' | 'organizationId'>,
   vendorId: string,
-): VendorApBillCandidate[] {
-  return listVendorApBillCandidatesForVendor(organizationId, vendorId);
+): Promise<VendorApBillCandidate[]> {
+  return listVendorApBillCandidatesForVendorRow(context, vendorId);
 }

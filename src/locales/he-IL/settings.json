@@ -22,6 +22,7 @@
     "activity": "יומן פעילות",
     "app": "אפליקציה",
     "offlineDrafts": "טיוטות לא מקוונות",
+    "banking": "בנקאות",
     "profile": "הפרופיל שלכם"
   },
   "people": {
@@ -378,7 +379,9 @@
         "bill_created": "יצירת חשבון ספק",
         "match_proposed": "הצעת התאמת חשבון ספק",
         "match_accepted": "קבלת התאמת חשבון ספק",
-        "match_rejected": "דחיית התאמת חשבון ספק"
+        "match_rejected": "דחיית התאמת חשבון ספק",
+        "payment_recorded": "רישום תשלום ספק",
+        "payment_voided": "ביטול תשלום ספק"
       },
       "daily_log": {
         "created": "יצירת יומן יומי",
@@ -460,6 +463,7 @@
       "purchase_order": "הזמנת רכש",
       "ap_bill": "חשבון ספק",
       "ap_match": "התאמת חשבון ספק",
+      "ap_payment": "תשלום ספק",
       "daily_log": "יומן יומי",
       "punch_list_item": "פריט פאנץ׳",
       "inspection": "בדיקה",

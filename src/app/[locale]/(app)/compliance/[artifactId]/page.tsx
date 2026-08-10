@@ -7,6 +7,8 @@ import { Alert } from '@/components/ui/alert';
 import { getComplianceArtifactById, isMissingEvidence } from '@/modules/compliance';
 import { complianceStatusShape, missingEvidenceShape } from '@/modules/compliance/ui';
 import { getEntityDocumentPanelData } from '@/modules/documents';
+import { peekOpsExpenseLinksForRecords } from '@/modules/ops-finance';
+import { CreateLinkedExpenseForm } from '@/modules/ops-finance/ui/create-linked-expense-form';
 import { withOrgContext } from '@/shared/auth/session';
 import { Link } from '@/shared/i18n/navigation';
 import { hasPermission } from '@/shared/permissions/assert';
@@ -48,10 +50,16 @@ export default async function ComplianceArtifactPage({
         'compliance_artifact',
         artifactId,
       );
+      const links = await peekOpsExpenseLinksForRecords(context, 'compliance_artifact', [
+        artifactId,
+      ]);
       return {
         artifact,
         documentsPanel,
+        linkedExpenseId: links[0]?.expenseId ?? null,
         canManage: hasPermission(context, PERMISSIONS.COMPLIANCE_MANAGE),
+        canCreateExpense: hasPermission(context, PERMISSIONS.EXPENSES_CREATE),
+        baseCurrency: context.organization.baseCurrency,
       };
     } catch {
       return null;
@@ -60,7 +68,8 @@ export default async function ComplianceArtifactPage({
 
   if (!loaded) notFound();
 
-  const { artifact, documentsPanel, canManage } = loaded;
+  const { artifact, documentsPanel, canManage, canCreateExpense, linkedExpenseId, baseCurrency } =
+    loaded;
 
   return (
     <div className="flex flex-col gap-6">
@@ -144,6 +153,25 @@ export default async function ComplianceArtifactPage({
           ) : null}
         </dl>
       )}
+
+      {(canCreateExpense || linkedExpenseId) && !artifact.archivedAt ? (
+        <section className="rounded-lg border border-[var(--pf-border-default)] p-4">
+          <h2 className="font-semibold">{t('detail.financeSection')}</h2>
+          <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">{t('detail.financeHint')}</p>
+          <div className="mt-3">
+            <CreateLinkedExpenseForm
+              namespace="compliance"
+              opsRecordKind="compliance_artifact"
+              opsRecordId={artifact.id}
+              defaultCurrency={baseCurrency}
+              defaultDescription={artifact.name}
+              showAllocationFields={artifact.artifactKind === 'insurance'}
+              existingExpenseId={linkedExpenseId}
+              revalidatePath={`/compliance/${artifact.id}`}
+            />
+          </div>
+        </section>
+      ) : null}
 
       <ComplianceDocumentAttachments
         artifactId={artifact.id}

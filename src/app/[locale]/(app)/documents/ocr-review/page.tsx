@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { Alert } from '@/components/ui/alert';
 import { PageHeader } from '@/components/ui/page-header';
-import { listOcrCandidates, getOcrProviderStatus } from '@/modules/ocr';
+import { listOcrCandidates, getOcrProviderStatus, isOcrReviewUiAllowed } from '@/modules/ocr';
 import { OcrReviewPanelLazy } from '@/modules/ocr/ui/ocr-review-panel-lazy';
 import { withOrgContext } from '@/shared/auth/session';
 import { AuthorizationError } from '@/shared/errors';
@@ -11,9 +11,8 @@ import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { Link, redirect } from '@/shared/i18n/navigation';
 
 /**
- * OCR review is foundation-only (stub provider). In production, normal
- * customers are redirected away — no permanent "unavailable" product screen.
- * Non-production keeps the route for tests and local tooling.
+ * OCR review — gated OFF by default.
+ * Stub / disabled modes never present “working OCR” to customers.
  */
 export async function generateMetadata({
   params,
@@ -21,7 +20,7 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const { locale } = await params;
-  if (process.env.NODE_ENV === 'production') {
+  if (!isOcrReviewUiAllowed()) {
     return { title: 'Expenses' };
   }
   const t = await getTranslations({ locale, namespace: 'documents' });
@@ -29,7 +28,7 @@ export async function generateMetadata({
 }
 
 export default async function OcrReviewPage() {
-  if (process.env.NODE_ENV === 'production') {
+  if (!isOcrReviewUiAllowed()) {
     redirect({ href: '/expenses', locale: await getLocale() });
   }
 
@@ -39,13 +38,16 @@ export default async function OcrReviewPage() {
   const data = await withOrgContext(async (context) => {
     try {
       const status = getOcrProviderStatus(context);
-      const jobs = listOcrCandidates(context, { status: ['needs_review', 'failed'] });
+      const jobs = await listOcrCandidates(context, {
+        status: ['needs_review', 'failed', 'rejected'],
+      });
       return {
         allowed: true as const,
         status,
         jobs,
         canManageDocuments: hasPermission(context, PERMISSIONS.DOCUMENTS_MANAGE),
         canCreateExpenses: hasPermission(context, PERMISSIONS.EXPENSES_CREATE),
+        canManageAp: hasPermission(context, PERMISSIONS.AP_MANAGE),
       };
     } catch (error) {
       if (error instanceof AuthorizationError) {
@@ -78,6 +80,7 @@ export default async function OcrReviewPage() {
           initialJobs={data.jobs}
           canManageDocuments={data.canManageDocuments}
           canCreateExpenses={data.canCreateExpenses}
+          canManageAp={data.canManageAp}
         />
       )}
     </div>

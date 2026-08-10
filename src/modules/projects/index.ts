@@ -182,3 +182,4 @@ export {
   findWorkPackageById,
   listWorkPackagesForProjects,
 } from './data/work-packages.repository';
+export { findPhaseById } from './data/phases.repository';

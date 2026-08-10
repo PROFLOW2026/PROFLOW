@@ -91,6 +91,12 @@ export const PERMISSIONS = {
   AP_READ: 'ap.read',
   AP_MANAGE: 'ap.manage',
 
+  BANKING_READ: 'banking.read',
+  BANKING_MANAGE: 'banking.manage',
+
+  PLANNING_READ: 'planning.read',
+  PLANNING_WRITE: 'planning.write',
+
   SETTINGS_MANAGE: 'settings.manage',
   TAX_MANAGE: 'tax.manage',
   AUDIT_READ: 'audit.read',
@@ -237,6 +243,28 @@ export const PERMISSION_CATALOG: readonly PermissionDefinition[] = [
     key: PERMISSIONS.AP_MANAGE,
     category: 'expenses',
     description: 'Manage vendor bills and PO matching',
+  },
+
+  {
+    key: PERMISSIONS.BANKING_READ,
+    category: 'financials',
+    description: 'View bank accounts, transactions and match suggestions',
+  },
+  {
+    key: PERMISSIONS.BANKING_MANAGE,
+    category: 'financials',
+    description: 'Manage bank accounts, imports and match decisions',
+  },
+
+  {
+    key: PERMISSIONS.PLANNING_READ,
+    category: 'projects',
+    description: 'View project planning work items and dependencies',
+  },
+  {
+    key: PERMISSIONS.PLANNING_WRITE,
+    category: 'projects',
+    description: 'Create and update project planning work items and dependencies',
   },
 
   { key: PERMISSIONS.SETTINGS_MANAGE, category: 'administration', description: 'Change organization settings' },

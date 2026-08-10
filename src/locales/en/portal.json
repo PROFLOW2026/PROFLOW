@@ -1,11 +1,15 @@
 {
   "title": "Portal access",
   "subtitle": "Grant customers and vendors scoped external access. External principals are not organization members.",
-  "externalNote": "External principals are not organization members. Public portal login is not enabled yet — grants are admin-managed only and never mutate financial truth.",
+  "externalNote": "External principals are not organization members. Public portal login is DISABLED — grants are admin-managed only and never mutate financial truth.",
+  "publicDisabled": {
+    "title": "External portal unavailable",
+    "body": "Public customer and vendor login is disabled. Access is grant-scoped and admin-mediated until external authentication is ready."
+  },
   "customerSection": "Customer portal",
   "vendorSection": "Vendor portal",
   "vendorSubtitle": "A vendor grant must be linked to a vendor. External users cannot change vendor bills, expenses, or payments.",
-  "vendorFoundationNote": "Public vendor login is still being set up. You can allow RFQ visibility, pending quotes, approved orders, vendor bill candidates, and compliance uploads. Candidates never create vendor bills or expenses.",
+  "vendorFoundationNote": "Public vendor login is DISABLED. You can allow RFQ visibility, pending quotes, approved orders, vendor bill candidates, compliance uploads, and (policy-gated) payment outstanding. Candidates never create vendor bills or expenses.",
   "listTitle": "Customer access grants",
   "vendorListTitle": "Vendor access grants",
   "empty": "No customer portal grants yet.",
@@ -42,14 +46,16 @@
   },
   "scopes": {
     "project.summary": "Project summary",
-    "billing.outstanding": "Outstanding balance",
-    "documents.read": "Read documents",
+    "billing.outstanding": "Billing, payments & outstanding",
+    "documents.read": "Read shared documents",
+    "milestones.read": "Selected milestones",
     "documents.upload": "Upload compliance candidates",
     "vendor.summary": "Vendor summary",
     "rfq.read": "View RFQs",
     "quote.submit": "Submit quote candidate",
     "po.view": "View purchase orders",
-    "bill.candidate": "Submit vendor bill candidate"
+    "bill.candidate": "Submit vendor bill candidate",
+    "payment.outstanding": "Payment / outstanding (policy-gated)"
   },
   "statuses": {
     "active": "Active",
@@ -83,9 +89,11 @@
       "vendorConfidential": "Vendor confidential",
       "admin": "Admin",
       "audit": "Audit",
-      "storagePath": "Storage path"
+      "storagePath": "Storage path",
+      "internalNotes": "Internal notes",
+      "supplierPricing": "Supplier pricing"
     },
-    "foundationNote": "Public customer login is foundation-only. This preview is admin-mediated via ExternalPrincipal grants — not OrganizationMembership.",
+    "foundationNote": "Public customer login is DISABLED. This preview is admin-mediated via ExternalPrincipal grants — not OrganizationMembership.",
     "denials": {
       "crossCustomer": "Cross-customer denial: this grant does not cover the selected project.",
       "grantInactive": "Portal grant is inactive, revoked, or expired.",
@@ -100,9 +108,12 @@
       "location": "Location",
       "description": "Description",
       "outstanding": "Outstanding",
-      "documents": "Documents"
+      "billing": "Billing & payments",
+      "documents": "Shared documents",
+      "milestones": "Milestones"
     },
-    "noDocuments": "documents.read is granted, but no project documents are linked yet."
+    "noDocuments": "documents.read is granted, but no documents are labeled portal-shared yet.",
+    "noMilestones": "milestones.read is granted, but no milestones are available."
   },
   "vendorPreview": {
     "title": "Preview vendor-safe portal",

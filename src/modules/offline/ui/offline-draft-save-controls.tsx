@@ -8,7 +8,7 @@ import { Link } from '@/shared/i18n/navigation';
 import { enqueueProductDraft } from '../data/enqueue-product-draft';
 import { payloadBuilderForKind } from '../domain/payloads';
 import type { DraftKind } from '../domain/types';
-import { useOfflineOrganizationId } from './use-offline-aware-form-action';
+import { useOfflineScope } from './use-offline-aware-form-action';
 
 /**
  * Explicit "Save offline draft" control. Prefer useOfflineAwareFormAction for
@@ -16,16 +16,19 @@ import { useOfflineOrganizationId } from './use-offline-aware-form-action';
  */
 export function OfflineDraftSaveControls({
   organizationId: organizationIdProp,
+  userId: userIdProp,
   kind,
   formId,
 }: {
   readonly organizationId?: string;
+  readonly userId?: string;
   readonly kind: Exclude<DraftKind, 'capture'>;
   readonly formId?: string;
 }) {
   const t = useTranslations('offline.save');
-  const contextOrgId = useOfflineOrganizationId();
-  const organizationId = organizationIdProp ?? contextOrgId;
+  const scope = useOfflineScope();
+  const organizationId = organizationIdProp ?? scope?.organizationId ?? null;
+  const userId = userIdProp ?? scope?.userId ?? null;
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -36,7 +39,7 @@ export function OfflineDraftSaveControls({
       setError(t('noForm'));
       return;
     }
-    if (!organizationId) {
+    if (!organizationId || !userId) {
       setError(t('failed'));
       return;
     }
@@ -46,6 +49,7 @@ export function OfflineDraftSaveControls({
         const buildPayload = payloadBuilderForKind(kind);
         await enqueueProductDraft({
           organizationId,
+          userId,
           kind,
           payload: buildPayload(formData),
         });

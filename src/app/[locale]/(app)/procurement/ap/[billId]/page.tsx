@@ -7,7 +7,12 @@ import { Alert } from '@/components/ui/alert';
 import { PageHeader } from '@/components/ui/page-header';
 import { StatusBadge, type StatusShape } from '@/components/ui/status-badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { getApBillDetail, type ApBillStatus } from '@/modules/ap';
+import {
+  getApBillDetail,
+  getBillPayablePosition,
+  listVendorPaymentsForBill,
+  type ApBillStatus,
+} from '@/modules/ap';
 import { getEntityDocumentPanelData } from '@/modules/documents';
 import { DocumentAttachments } from '@/modules/documents/ui';
 import { listExpensesForOrg } from '@/modules/expenses';
@@ -18,6 +23,7 @@ import { Link } from '@/shared/i18n/navigation';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { MatchDecisionButtons, ProposeMatchForm } from './match-actions';
+import { VendorPaymentPanel } from './payment-actions';
 
 export async function generateMetadata({
   params,
@@ -65,18 +71,32 @@ export default async function ApBillDetailPage({
     const canReadPo = hasPermission(context, PERMISSIONS.PROCUREMENT_READ);
     const canReadExpenses = hasPermission(context, PERMISSIONS.EXPENSES_READ);
 
-    const [orders, expensesResult, documentsPanel] = await Promise.all([
-      canReadPo ? listPurchaseOrdersForOrg(context) : Promise.resolve([]),
-      canReadExpenses
-        ? listExpensesForOrg(context, { limit: 50 })
-        : Promise.resolve({ items: [], total: 0 }),
-      getEntityDocumentPanelData(context, 'ap_bill', billId),
-    ]);
+    const [orders, expensesResult, documentsPanel, payablePosition, paymentRows] =
+      await Promise.all([
+        canReadPo ? listPurchaseOrdersForOrg(context) : Promise.resolve([]),
+        canReadExpenses
+          ? listExpensesForOrg(context, { limit: 50 })
+          : Promise.resolve({ items: [], total: 0 }),
+        getEntityDocumentPanelData(context, 'ap_bill', billId),
+        getBillPayablePosition(context, billId),
+        listVendorPaymentsForBill(context, billId).catch(() => []),
+      ]);
 
     return {
       ...detail,
       canManage,
       documentsPanel,
+      payablePosition,
+      payments: paymentRows.map((row) => ({
+        id: row.payment.id,
+        amount: row.payment.amount,
+        currency: row.payment.currency,
+        paymentDate: row.payment.paymentDate,
+        method: row.payment.method,
+        reference: row.payment.reference,
+        status: row.payment.status,
+        notes: row.payment.notes,
+      })),
       purchaseOrders: orders
         .filter((po) => po.vendorId === detail.bill.vendorId)
         .map((po) => ({
@@ -92,8 +112,18 @@ export default async function ApBillDetailPage({
 
   if (!data) notFound();
 
-  const { bill, lines, matches, matchPosition, canManage, purchaseOrders, expenses, documentsPanel } =
-    data;
+  const {
+    bill,
+    lines,
+    matches,
+    matchPosition,
+    canManage,
+    purchaseOrders,
+    expenses,
+    documentsPanel,
+    payablePosition,
+    payments,
+  } = data;
 
   return (
     <div className="flex min-w-0 flex-col gap-6">
@@ -228,6 +258,21 @@ export default async function ApBillDetailPage({
           )}
         />
       </section>
+
+      {payablePosition ? (
+        <VendorPaymentPanel
+          billId={bill.id}
+          currency={payablePosition.currency}
+          outstanding={payablePosition.outstanding}
+          paid={payablePosition.paid}
+          payableStatus={payablePosition.payableStatus}
+          paymentsAvailable={payablePosition.paymentsAvailable}
+          canManage={canManage}
+          defaultPaymentDate={new Date().toISOString().slice(0, 10)}
+          payments={payments}
+          locale={locale}
+        />
+      ) : null}
 
       <section className="flex min-w-0 flex-col gap-4">
         <h2 className="text-sm font-semibold">{t('detail.matchesTitle')}</h2>

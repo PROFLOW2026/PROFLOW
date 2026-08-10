@@ -1,5 +1,14 @@
-import { relations } from 'drizzle-orm';
-import { bigint, index, pgTable, text, timestamp, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
+import { relations, sql } from 'drizzle-orm';
+import {
+  bigint,
+  boolean,
+  index,
+  pgTable,
+  text,
+  timestamp,
+  uniqueIndex,
+  uuid,
+} from 'drizzle-orm/pg-core';
 import { primaryId, timestamps } from './_shared';
 import { documentOwnerTypeEnum, documentStatusEnum } from './enums';
 import { profiles } from './identity';
@@ -33,6 +42,7 @@ export const documents = pgTable(
     ...timestamps(),
   },
   (table) => [
+    uniqueIndex('documents_id_organization_id_uq').on(table.id, table.organizationId),
     uniqueIndex('documents_storage_path_uq').on(table.storageBucket, table.storagePath),
     index('documents_org_idx').on(table.organizationId),
   ],
@@ -56,12 +66,17 @@ export const documentLinks = pgTable(
     ownerType: documentOwnerTypeEnum('owner_type').notNull(),
     ownerId: uuid('owner_id').notNull(),
     label: text('label'),
+    /** Explicit customer-portal share marker (default hidden). */
+    portalVisible: boolean('portal_visible').notNull().default(false),
     ...timestamps(),
   },
   (table) => [
     uniqueIndex('document_links_document_owner_uq').on(table.documentId, table.ownerType, table.ownerId),
     index('document_links_owner_idx').on(table.ownerType, table.ownerId),
     index('document_links_org_idx').on(table.organizationId),
+    index('document_links_portal_visible_idx')
+      .on(table.organizationId, table.ownerType, table.ownerId)
+      .where(sql`${table.portalVisible}`),
   ],
 );
 

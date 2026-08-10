@@ -40,6 +40,7 @@ export function assertCaptureFileAllowed(meta: CaptureFileMeta): void {
 
 export function buildCaptureEnqueueInput(input: {
   readonly organizationId: string;
+  readonly userId: string;
   readonly attachmentLocalId: string;
   readonly file: CaptureFileMeta;
   readonly ownerType?: string | null;
@@ -51,6 +52,7 @@ export function buildCaptureEnqueueInput(input: {
 
   return {
     organizationId: input.organizationId,
+    userId: input.userId,
     kind: 'capture',
     localId: input.localId,
     payload: {

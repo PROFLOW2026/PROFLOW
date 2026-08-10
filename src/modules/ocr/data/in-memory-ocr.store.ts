@@ -1,18 +1,28 @@
 import { randomUUID } from 'node:crypto';
+import { assertOcrConfirmedTargetShape } from '../domain/target-shape';
 import type {
   ExtractionJob,
   ExtractionJobStatus,
+  OcrCandidateFieldKey,
+  OcrDraftTarget,
   OcrReviewOverrides,
+  OcrReviewStatus,
+  OcrSafeRawMetadata,
   OcrSourceDocumentRef,
   ReceiptExtractionCandidates,
 } from '../domain/types';
+import type {
+  CreateOcrJobInput,
+  OcrJobPatch,
+  OcrRepository,
+  SeedOcrFixtureInput,
+} from './ocr.repository';
 
 /**
- * Process-local job store for OCR product flow.
+ * Process-local OCR job store — **TEST DOUBLE ONLY**.
  *
- * Persistence is NOT required for review → confirm → draft expense.
- * If Lead later wants multi-instance durability, propose `0014_ocr_foundations`
- * (see docs/implementation/0014-OCR-FOUNDATIONS-PROPOSAL.md) — do not invent migrations here.
+ * Not durable across restarts. Production uses Drizzle when
+ * `OCR_PERSISTENCE_READY` is true.
  */
 
 type JobRow = ExtractionJob;
@@ -48,13 +58,29 @@ export function resetOcrStoreForTests(): void {
   jobsByOrg.clear();
 }
 
-export function createQueuedJob(input: {
-  organizationId: string;
-  documentId?: string | null;
-  filename?: string | null;
-  mimeType?: string | null;
-  providerId: string;
-}): ExtractionJob {
+export function createInMemoryOcrRepository(): OcrRepository {
+  return {
+    async createQueuedJob(input: CreateOcrJobInput): Promise<ExtractionJob> {
+      return createQueuedJob(input);
+    },
+    async updateJob(organizationId, jobId, patch) {
+      return updateJob(organizationId, jobId, patch);
+    },
+    async findJob(organizationId, jobId) {
+      return findJob(organizationId, jobId);
+    },
+    async listJobsForOrg(organizationId, options) {
+      return listJobsForOrg(organizationId, options);
+    },
+    async seedFixtureJob(input) {
+      return seedFixtureJob(input);
+    },
+  };
+}
+
+/** Sync helpers retained for unit tests that call the process-local bucket directly. */
+
+export function createQueuedJob(input: CreateOcrJobInput): ExtractionJob {
   const createdAt = nowIso();
   const sourceDocument = sourceRef(input);
   const job: JobRow = {
@@ -63,13 +89,20 @@ export function createQueuedJob(input: {
     documentId: sourceDocument.documentId,
     sourceDocument,
     status: 'queued',
+    reviewStatus: 'awaiting_review',
     candidates: null,
     extractedCandidates: null,
     reviewOverrides: null,
+    acceptedFields: null,
+    rejectedFields: null,
+    rawMetadata: null,
+    overallConfidence: null,
     errorCode: null,
     errorMessage: null,
     providerId: input.providerId,
     confirmedExpenseId: null,
+    confirmedVendorBillId: null,
+    confirmedDraftTarget: null,
     createdAt,
     updatedAt: createdAt,
   };
@@ -80,24 +113,32 @@ export function createQueuedJob(input: {
 export function updateJob(
   organizationId: string,
   jobId: string,
-  patch: Partial<{
-    status: ExtractionJobStatus;
-    candidates: ReceiptExtractionCandidates | null;
-    extractedCandidates: ReceiptExtractionCandidates | null;
-    reviewOverrides: OcrReviewOverrides | null;
-    errorCode: string | null;
-    errorMessage: string | null;
-    confirmedExpenseId: string | null;
-    sourceDocument: OcrSourceDocumentRef;
-  }>,
+  patch: OcrJobPatch,
 ): ExtractionJob | null {
   const bucket = orgBucket(organizationId);
   const existing = bucket.get(jobId);
   if (!existing) return null;
   const sourceDocument = patch.sourceDocument ?? existing.sourceDocument;
+  const nextShape = {
+    confirmedDraftTarget:
+      patch.confirmedDraftTarget !== undefined
+        ? patch.confirmedDraftTarget
+        : existing.confirmedDraftTarget,
+    confirmedExpenseId:
+      patch.confirmedExpenseId !== undefined
+        ? patch.confirmedExpenseId
+        : existing.confirmedExpenseId,
+    confirmedVendorBillId:
+      patch.confirmedVendorBillId !== undefined
+        ? patch.confirmedVendorBillId
+        : existing.confirmedVendorBillId,
+  };
+  assertOcrConfirmedTargetShape(nextShape);
+
   const next: JobRow = {
     ...existing,
     ...patch,
+    ...nextShape,
     sourceDocument,
     documentId: sourceDocument.documentId,
     updatedAt: nowIso(),
@@ -122,13 +163,7 @@ export function listJobsForOrg(
   return filtered.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
 }
 
-export function seedFixtureJob(input: {
-  organizationId: string;
-  candidates: ReceiptExtractionCandidates;
-  documentId?: string | null;
-  filename?: string | null;
-  mimeType?: string | null;
-}): ExtractionJob {
+export function seedFixtureJob(input: SeedOcrFixtureInput): ExtractionJob {
   const createdAt = nowIso();
   const sourceDocument = sourceRef({
     documentId: input.documentId,
@@ -141,16 +176,40 @@ export function seedFixtureJob(input: {
     documentId: sourceDocument.documentId,
     sourceDocument,
     status: 'needs_review',
+    reviewStatus: 'awaiting_review',
     candidates: input.candidates,
     extractedCandidates: input.candidates,
     reviewOverrides: null,
+    acceptedFields: null,
+    rejectedFields: null,
+    rawMetadata: {
+      providerId: 'fixture',
+      model: 'fixture',
+      overallConfidence: 0.9,
+      providerStatus: 'fixture_seed',
+      extractedAt: createdAt,
+    },
+    overallConfidence: 0.9,
     errorCode: null,
     errorMessage: null,
     providerId: 'fixture',
     confirmedExpenseId: null,
+    confirmedVendorBillId: null,
+    confirmedDraftTarget: null,
     createdAt,
     updatedAt: createdAt,
   };
   orgBucket(input.organizationId).set(job.id, job);
   return job;
 }
+
+// Re-export patch field types used by callers that previously imported from this file.
+export type {
+  OcrCandidateFieldKey,
+  OcrDraftTarget,
+  OcrReviewOverrides,
+  OcrReviewStatus,
+  OcrSafeRawMetadata,
+  OcrSourceDocumentRef,
+  ReceiptExtractionCandidates,
+};

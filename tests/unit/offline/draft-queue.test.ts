@@ -24,6 +24,7 @@ function sampleDraft(
   return {
     localId: 'local-1',
     organizationId: 'org-1',
+    userId: 'user-1',
     kind: 'expense',
     payload: { amount: '10.00', currency: 'ILS' },
     updatedAt: '2026-08-09T10:00:00.000Z',
@@ -32,6 +33,7 @@ function sampleDraft(
     serverUpdatedAt: '2026-08-09T09:00:00.000Z',
     conflictReason: null,
     serverSnapshot: null,
+    dedupeKey: null,
     ...overrides,
   };
 }
@@ -52,12 +54,14 @@ describe('offline queue serialize', () => {
         JSON.stringify({
           localId: 'x',
           organizationId: 'o',
+          userId: 'u',
           kind: 'invoice',
           payload: {},
           updatedAt: '2026-08-09T10:00:00.000Z',
           syncStatus: 'queued',
           serverId: null,
           serverUpdatedAt: null,
+          dedupeKey: null,
         }),
       ),
     ).toThrow(OfflineSerializeError);
@@ -159,6 +163,7 @@ describe('offline draft queue', () => {
 
     const created = await queue.enqueue({
       organizationId: 'org-1',
+      userId: 'user-1',
       kind: 'time_entry',
       payload: { hours: '2' },
       serverId: 'te-1',
@@ -166,7 +171,7 @@ describe('offline draft queue', () => {
     });
     expect(created.syncStatus).toBe('queued');
 
-    const listed = await queue.list({ organizationId: 'org-1' });
+    const listed = await queue.list({ organizationId: 'org-1', userId: 'user-1' });
     expect(listed).toHaveLength(1);
 
     const prepared = await queue.prepareForSync(created.localId, {
@@ -193,7 +198,7 @@ describe('offline draft queue', () => {
     });
     expect(synced.syncStatus).toBe('synced');
 
-    const pending = await queue.list({ organizationId: 'org-1', pendingOnly: true });
+    const pending = await queue.list({ organizationId: 'org-1', userId: 'user-1', pendingOnly: true });
     expect(pending).toHaveLength(0);
   });
 
@@ -206,6 +211,7 @@ describe('offline draft queue', () => {
     const updated = await queue.enqueue({
       localId: 'local-1',
       organizationId: 'org-1',
+      userId: 'user-1',
       kind: 'expense',
       payload: { amount: '20.00', currency: 'ILS' },
     });
@@ -228,7 +234,7 @@ describe('offline draft queue', () => {
       ]),
     );
 
-    const counts = await queue.countsByStatus('org-1');
+    const counts = await queue.countsByStatus({ organizationId: 'org-1', userId: 'user-1' });
     expect(counts.queued).toBe(1);
     expect(counts.conflict).toBe(1);
     expect(counts.synced).toBe(1);

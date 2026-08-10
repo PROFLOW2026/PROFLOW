@@ -256,4 +256,34 @@ describe('buildCashFlowOutlook', () => {
     expect(view.note).toMatch(/AP bills/i);
     expect(view.note).toMatch(/Not Expense actual/i);
   });
+
+  it('includes matched bills when cash outstanding remains after vendor payments', () => {
+    const view = buildCashFlowOutlook({
+      currency: 'ILS',
+      asOf: businessDate('2026-08-09'),
+      outstandingRecords: [],
+      payments: [],
+      openApBills: [
+        {
+          status: 'matched',
+          dueDate: businessDate('2026-08-11'),
+          // Caller supplies cash outstanding (bill − active applications), not PO remainder.
+          totalAmount: money('42000', 'ILS'),
+        },
+        {
+          status: 'matched',
+          dueDate: businessDate('2026-08-12'),
+          totalAmount: money('0', 'ILS'),
+        },
+      ],
+    });
+
+    expect(view.outgoing.available).toBe(true);
+    if (!view.outgoing.available) return;
+    expect(view.outgoing.forecastBuckets.find((b) => b.key === 'next_7')?.expectedOut.amount).toBe(
+      '42000.000000',
+    );
+    expect(view.outgoing.forecastBuckets.reduce((sum, b) => sum + b.count, 0)).toBe(1);
+    expect(view.note).toMatch(/vendor payments|cash outstanding/i);
+  });
 });

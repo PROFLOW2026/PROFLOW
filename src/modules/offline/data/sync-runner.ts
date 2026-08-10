@@ -1,4 +1,5 @@
 import type { OfflineDraftRecord, QueuedAction, ServerTruthHint } from '../domain/types';
+import { assertDraftMatchesScope } from '../domain/scope';
 import { toQueuedAction } from '../domain/serialize';
 import type { AttachmentStore, OfflineAttachmentRecord } from './attachment-store';
 import { getDefaultAttachmentStore } from './attachment-store';
@@ -50,6 +51,7 @@ export interface OfflineSyncTransport {
 
 export interface RunQueuedSyncOptions {
   readonly organizationId: string;
+  readonly userId: string;
   readonly transport: OfflineSyncTransport;
   readonly queue?: DraftQueue;
   readonly attachments?: AttachmentStore;
@@ -65,9 +67,11 @@ export async function runQueuedSync(options: RunQueuedSyncOptions): Promise<Sync
   const queue = options.queue ?? getDraftQueue();
   const attachments = options.attachments ?? getDefaultAttachmentStore();
   const limit = options.limit ?? 25;
+  const scope = { organizationId: options.organizationId, userId: options.userId };
 
   const pending = await queue.list({
     organizationId: options.organizationId,
+    userId: options.userId,
     syncStatus: ['queued', 'draft'],
     pendingOnly: false,
   });
@@ -78,13 +82,14 @@ export async function runQueuedSync(options: RunQueuedSyncOptions): Promise<Sync
   for (const draft of pending.slice(0, limit)) {
     attempted += 1;
     try {
+      assertDraftMatchesScope(draft, scope);
       const action = toQueuedAction(draft);
       const serverTruth = await options.transport.fetchServerTruth(action);
       const prepared = await queue.prepareForSync(draft.localId, serverTruth);
       if (prepared.blocked) {
         results.push({
           localId: draft.localId,
-          status: 'conflict',
+          status: prepared.draft.syncStatus === 'rejected' ? 'rejected' : 'conflict',
           reason: prepared.draft.conflictReason ?? 'Server truth advanced; awaiting user choice.',
         });
         continue;
@@ -108,6 +113,7 @@ export async function runQueuedSync(options: RunQueuedSyncOptions): Promise<Sync
           await queue.enqueue({
             localId: prepared.draft.localId,
             organizationId: prepared.draft.organizationId,
+            userId: prepared.draft.userId,
             kind: prepared.draft.kind,
             payload: prepared.draft.payload,
             serverId: prepared.draft.serverId,
@@ -121,7 +127,7 @@ export async function runQueuedSync(options: RunQueuedSyncOptions): Promise<Sync
           continue;
         }
         const message = error instanceof Error ? error.message : 'Sync submit failed.';
-        await queue.markConflict(draft.localId, message, serverTruth);
+        await queue.markRejected(draft.localId, message);
         results.push({ localId: draft.localId, status: 'rejected', reason: message });
       }
     } catch (error) {
@@ -131,6 +137,7 @@ export async function runQueuedSync(options: RunQueuedSyncOptions): Promise<Sync
         await queue.enqueue({
           localId: current.localId,
           organizationId: current.organizationId,
+          userId: current.userId,
           kind: current.kind,
           payload: current.payload,
           serverId: current.serverId,
@@ -141,7 +148,11 @@ export async function runQueuedSync(options: RunQueuedSyncOptions): Promise<Sync
     }
   }
 
-  const all = await queue.list({ organizationId: options.organizationId, pendingOnly: false });
+  const all = await queue.list({
+    organizationId: options.organizationId,
+    userId: options.userId,
+    pendingOnly: false,
+  });
   mirrorDraftsToLocalStorage(all);
 
   return { attempted, results };
@@ -160,6 +171,7 @@ export interface ReconnectSyncController {
  */
 export function startReconnectSync(options: {
   readonly organizationId: string;
+  readonly userId: string;
   readonly transport: OfflineSyncTransport;
   readonly queue?: DraftQueue;
   readonly attachments?: AttachmentStore;

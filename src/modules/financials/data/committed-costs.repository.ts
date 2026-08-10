@@ -1,13 +1,24 @@
 import { and, eq, inArray, isNotNull, isNull } from 'drizzle-orm';
 import { apBills, apPoMatches, committedCosts, expenses } from '@drizzle/schema';
 import type { DbExecutor } from '@/shared/db/types';
-import { addMoney, fromNumericString, roundMoney, zeroMoney, type MoneyValue } from '@/shared/money';
-import { remainingUnmatchedAmount } from '@/modules/ap/domain/matching';
-import { RECOGNIZED_VENDOR_BILL_STATUSES } from '@/modules/ap/domain/vendor-cost-recognition';
-import { listAcceptedMatchAmountsForBills } from '@/modules/ap';
+import {
+  addMoney,
+  fromNumericString,
+  isPositiveMoney,
+  money,
+  roundMoney,
+  zeroMoney,
+  type MoneyValue,
+} from '@/shared/money';
+import {
+  computeBillOutstanding,
+  getVendorPaymentsRepository,
+  RECOGNIZED_VENDOR_BILL_STATUSES,
+} from '@/modules/ap';
 
 const OPEN_COMMITTED_STATUSES = ['open', 'partially_consumed'] as const;
-const OPEN_AP_STATUSES = ['open', 'partially_matched'] as const;
+/** Recognized bills may still owe cash after PO match — include `matched`. */
+const OPEN_AP_CASH_STATUSES = RECOGNIZED_VENDOR_BILL_STATUSES;
 
 /**
  * Sum open committed costs for a project in a single currency.
@@ -51,8 +62,10 @@ export async function sumOpenCommittedCostsForProject(
 }
 
 /**
- * Sum unmatched open AP bills for a project — cash payable disclosure only.
- * Not Actual cost (recognized bill totals enter Actual separately).
+ * Sum cash outstanding on recognized AP bills for a project.
+ * Outstanding = bill total − active (non-void) vendor payment applications.
+ * Not Actual cost (recognized bill totals enter Actual separately; payments ignored there).
+ * PO match remainder is a separate matching metric — never used as open AP cash.
  */
 export async function sumOpenApPayableForProject(
   db: DbExecutor,
@@ -73,12 +86,12 @@ export async function sumOpenApPayableForProject(
       and(
         eq(apBills.organizationId, organizationId),
         eq(apBills.projectId, projectId),
-        inArray(apBills.status, [...OPEN_AP_STATUSES]),
+        inArray(apBills.status, [...OPEN_AP_CASH_STATUSES]),
         isNull(apBills.archivedAt),
       ),
     );
 
-  const acceptedByBillId = await listAcceptedMatchAmountsForBills(
+  const appliedByBillId = await getVendorPaymentsRepository().listActiveAppliedAmountsForBills(
     db,
     organizationId,
     rows.map((row) => row.id),
@@ -92,12 +105,16 @@ export async function sumOpenApPayableForProject(
       excludedForeignCurrencyCount += 1;
       continue;
     }
-    const unmatched = remainingUnmatchedAmount({
-      currency: row.currency,
-      billTotal: row.totalAmount,
-      reservedMatchedAmounts: acceptedByBillId.get(row.id) ?? [],
+    const outstanding = computeBillOutstanding({
+      billStatus: row.status,
+      billTotal: money(row.totalAmount, row.currency),
+      applications: (appliedByBillId.get(row.id) ?? []).map((amount) => ({
+        appliedAmount: money(amount, row.currency),
+        paymentStatus: 'recorded' as const,
+      })),
     });
-    total = addMoney(total, unmatched);
+    if (!isPositiveMoney(outstanding)) continue;
+    total = addMoney(total, outstanding);
     billCount += 1;
   }
 
@@ -258,7 +275,7 @@ export async function sumOpenCommittedCostsForProjects(
 }
 
 /**
- * Open AP payable for many projects — bills + one accepted-match query.
+ * Open AP cash payable for many projects — bills + one active-payment-applications query.
  */
 export async function sumOpenApPayableForProjects(
   db: DbExecutor,
@@ -283,12 +300,12 @@ export async function sumOpenApPayableForProjects(
       and(
         eq(apBills.organizationId, organizationId),
         inArray(apBills.projectId, [...projectIds]),
-        inArray(apBills.status, [...OPEN_AP_STATUSES]),
+        inArray(apBills.status, [...OPEN_AP_CASH_STATUSES]),
         isNull(apBills.archivedAt),
       ),
     );
 
-  const acceptedByBillId = await listAcceptedMatchAmountsForBills(
+  const appliedByBillId = await getVendorPaymentsRepository().listActiveAppliedAmountsForBills(
     db,
     organizationId,
     rows.map((row) => row.id),
@@ -310,12 +327,19 @@ export async function sumOpenApPayableForProjects(
       buckets.set(row.projectId, bucket);
       continue;
     }
-    const unmatched = remainingUnmatchedAmount({
-      currency: row.currency,
-      billTotal: row.totalAmount,
-      reservedMatchedAmounts: acceptedByBillId.get(row.id) ?? [],
+    const outstanding = computeBillOutstanding({
+      billStatus: row.status,
+      billTotal: money(row.totalAmount, row.currency),
+      applications: (appliedByBillId.get(row.id) ?? []).map((amount) => ({
+        appliedAmount: money(amount, row.currency),
+        paymentStatus: 'recorded' as const,
+      })),
     });
-    bucket.total = addMoney(bucket.total, unmatched);
+    if (!isPositiveMoney(outstanding)) {
+      buckets.set(row.projectId, bucket);
+      continue;
+    }
+    bucket.total = addMoney(bucket.total, outstanding);
     bucket.billCount += 1;
     buckets.set(row.projectId, bucket);
   }

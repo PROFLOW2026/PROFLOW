@@ -66,6 +66,8 @@ const NEVER_EXPOSED_KEYS = [
   'admin',
   'audit',
   'storagePath',
+  'internalNotes',
+  'supplierPricing',
 ] as const;
 
 function translateKnown(
@@ -339,6 +341,46 @@ function CustomerSafePreview({
               <dd dir="ltr" className="pf-numeric">
                 {summary.outstanding.amount} {summary.outstanding.currency}
               </dd>
+            </div>
+          ) : null}
+          {summary.billing ? (
+            <div className="min-w-0 sm:col-span-2">
+              <dt className="text-[var(--pf-text-secondary)]">{t('preview.fields.billing')}</dt>
+              <dd className="mt-1 text-sm">
+                <span dir="ltr" className="pf-numeric">
+                  {summary.billing.invoicedAmount} / {summary.billing.paidAmount}{' '}
+                  {summary.billing.currency}
+                </span>
+                {summary.billing.items.length > 0 ? (
+                  <ul className="mt-1 flex flex-col gap-1 text-xs text-[var(--pf-text-muted)]">
+                    {summary.billing.items.slice(0, 5).map((item) => (
+                      <li key={item.billingRecordId} dir="ltr" className="pf-ltr-island">
+                        {item.reference ?? item.billingRecordId.slice(0, 8)} · {item.totalAmount}{' '}
+                        {item.currency}
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
+              </dd>
+            </div>
+          ) : null}
+          {summary.milestones?.length ? (
+            <div className="min-w-0 sm:col-span-2">
+              <dt className="text-[var(--pf-text-secondary)]">{t('preview.fields.milestones')}</dt>
+              <dd>
+                <ul className="mt-1 flex flex-col gap-1">
+                  {summary.milestones.map((milestone) => (
+                    <li key={milestone.milestoneId} className="break-words text-sm">
+                      {milestone.name} · {milestone.status}
+                      {milestone.targetDate ? ` · ${milestone.targetDate}` : ''}
+                    </li>
+                  ))}
+                </ul>
+              </dd>
+            </div>
+          ) : state.scopesApplied?.includes('milestones.read') ? (
+            <div className="sm:col-span-2 text-xs text-[var(--pf-text-muted)]">
+              {t('preview.noMilestones')}
             </div>
           ) : null}
           {(summary.documents ?? state.documents)?.length ? (

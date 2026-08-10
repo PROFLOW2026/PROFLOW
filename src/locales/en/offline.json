@@ -1,11 +1,16 @@
 {
   "banner": {
     "offline": "You are offline. Drafts stay on this device until you reconnect.",
+    "offlineWithCount": "You are offline. {count, plural, =0 {No drafts waiting.} one {# draft waiting on this device.} other {# drafts waiting on this device.}}",
+    "pendingSync": "{count, plural, one {# draft} other {# drafts}} waiting to sync.",
+    "failedSync": "{count, plural, one {# draft failed to sync} other {# drafts failed to sync}}. Open drafts to retry or edit.",
     "viewDrafts": "View offline drafts"
   },
   "indicator": {
     "online": "Online",
-    "offline": "Offline"
+    "offline": "Offline",
+    "pending": "{count} pending",
+    "failed": "{count} failed"
   },
   "page": {
     "title": "Offline drafts",
@@ -15,13 +20,20 @@
     "listHeading": "Pending drafts",
     "empty": "No offline drafts on this device.",
     "emptyCta": "Capture an expense",
-    "updated": "Updated {when}"
+    "updated": "Updated {when}",
+    "visibilitySummary": "Sync state: {pending} waiting, {failed} need attention.",
+    "syncSummary": "Sync finished: {synced} synced, {rejected} rejected, {conflicted} conflicts (attempted {attempted}).",
+    "retryQueued": "Draft re-queued for sync.",
+    "deletedLocal": "Local draft deleted. Server data was not changed.",
+    "editedLocal": "Local draft updated on this device."
   },
   "kinds": {
     "expense": "Expense",
     "time_entry": "Time entry",
     "change_request": "Change request",
     "daily_log": "Daily log",
+    "punch": "Punch item",
+    "inspection": "Inspection",
     "capture": "Photo / document"
   },
   "status": {
@@ -36,7 +48,12 @@
     "refresh": "Refresh",
     "keepLocal": "Keep as new candidate",
     "discardLocal": "Discard local (keep server)",
-    "syncNow": "Sync now"
+    "syncNow": "Sync now",
+    "retry": "Retry sync",
+    "edit": "Edit",
+    "delete": "Delete local",
+    "saveEdit": "Save local edit",
+    "cancelEdit": "Cancel"
   },
   "forms": {
     "draftSaved": "Saved as an offline draft on this device. It is not on the server yet.",
@@ -63,7 +80,10 @@
     "resolveFailed": "Could not resolve this conflict on this device.",
     "missingOrganization": "Could not save an offline draft because the organization context is missing.",
     "syncRequiresOnline": "Reconnect to sync offline drafts.",
-    "syncFailed": "Sync could not finish. Resolve conflicts or try again when online."
+    "syncFailed": "Sync could not finish. Resolve conflicts or try again when online.",
+    "retryFailed": "Could not re-queue this draft for sync.",
+    "deleteFailed": "Could not delete this local draft.",
+    "editFailed": "Could not update this local draft."
   },
   "install": {
     "pageTitle": "App",

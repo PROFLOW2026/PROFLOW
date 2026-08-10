@@ -1,0 +1,52 @@
+{
+  "title": "External statutory documents",
+  "subtitle": "Request and track legal invoices in a connected accounting system. ProjectFlow billing stays your management record.",
+  "separation": {
+    "billingRecord": "Billing record (management)",
+    "externalDocument": "External statutory document",
+    "disclosure": "ProjectFlow does not issue tax invoices. External numbers come only from a connected provider."
+  },
+  "status": {
+    "connectionRequired": "Connect an external invoicing provider to request statutory documents.",
+    "providerConnected": "External invoicing provider is connected.",
+    "featureDisabled": "External statutory invoicing is turned off until a provider is configured."
+  },
+  "actions": {
+    "requestDocument": "Request external document",
+    "refreshStatus": "Refresh status",
+    "credit": "Request credit note",
+    "cancel": "Cancel external document",
+    "allocate": "Save allocation reference"
+  },
+  "fields": {
+    "externalNumber": "External number",
+    "externalUrl": "External link",
+    "allocationReference": "Allocation / payment reference",
+    "provider": "Provider",
+    "status": "External status",
+    "pdf": "PDF"
+  },
+  "documentStatus": {
+    "requested": "Requested",
+    "pending": "Pending at provider",
+    "issued": "Issued",
+    "allocated": "Allocated",
+    "credited": "Credited",
+    "cancelled": "Cancelled",
+    "failed": "Failed"
+  },
+  "empty": {
+    "title": "No external statutory document",
+    "body": "After the provider is connected, you can request a legal document for a finalized billing record."
+  },
+  "errors": {
+    "connectionRequired": "Connect an external invoicing provider before requesting a statutory document.",
+    "billingNotFinalized": "Only finalized billing records can request an external statutory document.",
+    "localIssuanceForbidden": "Local statutory invoice issuance is not allowed.",
+    "orgMismatch": "Billing record does not belong to this organization.",
+    "providerFailed": "The external invoicing provider could not complete the request.",
+    "missingExternalId": "This record has no external provider id yet.",
+    "creditUnsupported": "This provider does not support credit notes.",
+    "cancelUnsupported": "This provider does not support cancellation."
+  }
+}

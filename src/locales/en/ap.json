@@ -101,6 +101,40 @@
     "linePoLineNone": "No PO line",
     "totalLabel": "Bill total"
   },
+  "payments": {
+    "title": "Vendor payments",
+    "cashOnlyNote": "Payments are cash / AP only. They never increase Actual Cost — the vendor bill already recognized cost.",
+    "schemaPending": "Recording payments is gated until the ap_payments schema is applied. Outstanding below assumes no recorded payments yet.",
+    "paid": "Paid",
+    "outstanding": "Outstanding",
+    "empty": "No payments recorded yet.",
+    "recordTitle": "Record payment",
+    "partialHint": "Partial payments are allowed. Multiple payments can settle one bill.",
+    "amountLabel": "Amount",
+    "paymentDateLabel": "Payment date",
+    "methodLabel": "Method",
+    "referenceLabel": "Reference",
+    "notesLabel": "Notes",
+    "submit": "Record payment",
+    "recorded": "Payment recorded.",
+    "void": "Void",
+    "columns": {
+      "date": "Date",
+      "amount": "Amount",
+      "method": "Method / ref",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "statuses": {
+      "recorded": "Recorded",
+      "void": "Void"
+    },
+    "payableStatuses": {
+      "unpaid": "Unpaid",
+      "partial": "Partially paid",
+      "paid": "Paid"
+    }
+  },
   "errors": {
     "targetRequired": "Match requires a purchase order and/or an existing expense.",
     "expenseForbidden": "Accepting a vendor-bill match must not create an expense.",
@@ -112,6 +146,16 @@
     "billVoid": "Cannot match a void bill.",
     "matchNotProposed": "Only proposed matches can be decided.",
     "vendorRequired": "Select a vendor.",
-    "linesRequired": "Add at least one line with a description and amounts."
+    "linesRequired": "Add at least one line with a description and amounts.",
+    "paymentsSchemaPending": "Vendor payments are not available until the database schema is applied.",
+    "paymentAmountInvalid": "Payment amount must be positive.",
+    "paymentApplicationRequired": "Payment requires at least one bill application.",
+    "paymentDuplicateBill": "A payment cannot apply to the same bill twice.",
+    "paymentBillNotPayable": "Cannot pay a draft or void bill.",
+    "paymentOverApplied": "Payment would exceed the bill outstanding.",
+    "paymentApplicationMismatch": "Payment amount must equal the sum of applications.",
+    "paymentNotVoidable": "Only recorded payments can be voided.",
+    "paymentVendorMismatch": "All bill applications must share the same vendor.",
+    "paymentAffectsActual": "Vendor payment must never recognize Actual Cost."
   }
 }

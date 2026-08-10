@@ -104,6 +104,10 @@
     "assets.manage": "Manage assets, fleet and maintenance",
     "ap.read": "View vendor bills and PO matches",
     "ap.manage": "Manage vendor bills and PO matching",
+    "banking.read": "View bank accounts and reconciliation",
+    "banking.manage": "Manage bank accounts and match decisions",
+    "planning.read": "View project planning",
+    "planning.write": "Edit project planning",
     "settings.manage": "Change settings",
     "tax.manage": "Manage tax rules",
     "audit.read": "Read the activity log"

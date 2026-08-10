@@ -102,6 +102,37 @@ describe('migration journal', () => {
     expect(tags.indexOf('0018_allocation_run_integrity')).toBeLessThan(
       tags.indexOf('0019_project_job_modes_and_entry_baseline'),
     );
-    expect(tags.at(-1)).toBe('0019_project_job_modes_and_entry_baseline');
+  });
+
+  it('places overnight foundations 0020 after 0019', async () => {
+    const journal = await loadJournal();
+    const tags = journal.entries.map((entry) => entry.tag);
+    expect(tags.indexOf('0019_project_job_modes_and_entry_baseline')).toBeLessThan(
+      tags.indexOf('0020_overnight_foundations'),
+    );
+    expect(tags.at(-1)).toBe('0020_overnight_foundations');
+
+    const sql = await readFile(
+      path.join(MIGRATIONS_DIR, '0020_overnight_foundations.sql'),
+      'utf8',
+    );
+    expect(sql).toContain('ap_payments');
+    expect(sql).toContain('ap_payment_applications');
+    expect(sql).toContain('ap_bills_id_organization_id_uq');
+    expect(sql).toContain('ap_payments_id_organization_id_uq');
+    expect(sql).toContain('ap_payment_applications_payment_org_fk');
+    expect(sql).toContain('ap_payment_applications_bill_org_fk');
+    expect(sql).toContain('ap_payment_applications_vendor_guard');
+    expect(sql).toContain('planning_work_items_id_org_project_uq');
+    expect(sql).toContain('planning_dependencies_predecessor_org_project_fk');
+    expect(sql).toContain('planning_dependencies_successor_org_project_fk');
+    expect(sql).toContain('DROP POLICY IF EXISTS');
+    expect(sql).toContain('bank_accounts');
+    expect(sql).toContain('planning_work_items');
+    expect(sql).toContain('ocr_extraction_jobs');
+    expect(sql).toContain('ops_expense_links');
+    expect(sql).toContain('external_statutory_documents');
+    expect(sql).toContain('vendor_portal_ap_candidates');
   });
 });
+

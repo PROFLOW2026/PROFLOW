@@ -1,12 +1,15 @@
-import { and, desc, eq, inArray, isNull, isNotNull, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, inArray, isNull, isNotNull, sql } from 'drizzle-orm';
 import {
+  billingRecords,
   clients,
   documentLinks,
   documents,
   externalAccessGrants,
   externalPrincipals,
+  payments,
   procurementRfqLines,
   procurementRfqs,
+  projectMilestones,
   projects,
   purchaseOrderLines,
   purchaseOrders,
@@ -23,6 +26,7 @@ import type {
   GrantStatus,
   PortalKind,
 } from '../domain/types';
+import { assertGrantBelongsToOrganization } from '../domain/tenant-isolation';
 
 /**
  * Principals are global identities; RLS only allows service_role mutations and
@@ -140,7 +144,11 @@ export async function findGrantById(
     )
     .limit(1);
 
-  return row ? mapGrant(row) : null;
+  if (!row) return null;
+  const grant = mapGrant(row);
+  // Defense in depth — repository already filters by org; assert traps misuse.
+  assertGrantBelongsToOrganization(grant, organizationId);
+  return grant;
 }
 
 export async function revokeAccessGrant(
@@ -441,6 +449,8 @@ export async function listVendorScopedRfqsForPortal(
 
 /**
  * Customer-safe project documents (metadata only). Never returns storage paths.
+ * Prefer `document_links.portal_visible`; callers still apply shared-label
+ * interim filter via buildCustomerSafeDocuments.
  */
 export async function listCustomerSafeProjectDocuments(
   db: DbExecutor,
@@ -451,6 +461,7 @@ export async function listCustomerSafeProjectDocuments(
     id: string;
     originalFilename: string;
     label: string | null;
+    portalVisible: boolean;
     mimeType: string;
     sizeBytes: number | null;
   }[]
@@ -460,6 +471,7 @@ export async function listCustomerSafeProjectDocuments(
       id: documents.id,
       originalFilename: documents.originalFilename,
       label: documentLinks.label,
+      portalVisible: documentLinks.portalVisible,
       mimeType: documents.mimeType,
       sizeBytes: documents.sizeBytes,
     })
@@ -468,6 +480,7 @@ export async function listCustomerSafeProjectDocuments(
     .where(
       and(
         eq(documentLinks.organizationId, organizationId),
+        eq(documents.organizationId, organizationId),
         eq(documentLinks.ownerType, 'project'),
         eq(documentLinks.ownerId, projectId),
         isNull(documents.deletedAt),
@@ -478,6 +491,145 @@ export async function listCustomerSafeProjectDocuments(
     .limit(100);
 
   return rows;
+}
+
+/**
+ * Customer-visible milestones for a project (org-scoped).
+ * Only rows with portal_visible = true (default false → share nothing).
+ * Notes are selected only so callers can drop them — never expose in DTO.
+ */
+export async function listCustomerSafeProjectMilestones(
+  db: DbExecutor,
+  organizationId: string,
+  projectId: string,
+): Promise<
+  {
+    id: string;
+    name: string;
+    status: string;
+    targetDate: string | null;
+    completedAt: string | null;
+    notes: string | null;
+  }[]
+> {
+  return db
+    .select({
+      id: projectMilestones.id,
+      name: projectMilestones.name,
+      status: projectMilestones.status,
+      targetDate: projectMilestones.targetDate,
+      completedAt: projectMilestones.completedAt,
+      notes: projectMilestones.notes,
+    })
+    .from(projectMilestones)
+    .where(
+      and(
+        eq(projectMilestones.organizationId, organizationId),
+        eq(projectMilestones.projectId, projectId),
+        eq(projectMilestones.portalVisible, true),
+        isNull(projectMilestones.archivedAt),
+        sql`${projectMilestones.status} <> 'cancelled'`,
+      ),
+    )
+    .orderBy(asc(projectMilestones.sortOrder), asc(projectMilestones.targetDate))
+    .limit(100);
+}
+
+/**
+ * Customer-facing billing + payment rows for portal (org + project scoped).
+ * Excludes draft/void at the query layer; notes are never selected.
+ */
+export async function listCustomerSafeBillingRows(
+  db: DbExecutor,
+  organizationId: string,
+  projectId: string,
+): Promise<
+  {
+    id: string;
+    reference: string | null;
+    kind: string;
+    status: string;
+    issueDate: string | null;
+    dueDate: string | null;
+    totalAmount: string;
+    currency: string;
+    payments: {
+      amount: string;
+      currency: string;
+      status: string;
+      paymentDate: string | null;
+      reference: string | null;
+    }[];
+  }[]
+> {
+  const rows = await db
+    .select({
+      id: billingRecords.id,
+      reference: billingRecords.reference,
+      kind: billingRecords.kind,
+      status: billingRecords.status,
+      issueDate: billingRecords.issueDate,
+      dueDate: billingRecords.dueDate,
+      totalAmount: billingRecords.totalAmount,
+      currency: billingRecords.currency,
+    })
+    .from(billingRecords)
+    .where(
+      and(
+        eq(billingRecords.organizationId, organizationId),
+        eq(billingRecords.projectId, projectId),
+        isNull(billingRecords.archivedAt),
+        inArray(billingRecords.status, ['finalized']),
+      ),
+    )
+    .orderBy(desc(billingRecords.issueDate))
+    .limit(100);
+
+  if (rows.length === 0) return [];
+
+  const ids = rows.map((row) => row.id);
+  const paymentRows = await db
+    .select({
+      billingRecordId: payments.billingRecordId,
+      amount: payments.amount,
+      currency: payments.currency,
+      status: payments.status,
+      paymentDate: payments.paymentDate,
+      reference: payments.reference,
+    })
+    .from(payments)
+    .where(
+      and(
+        eq(payments.organizationId, organizationId),
+        inArray(payments.billingRecordId, ids),
+        eq(payments.status, 'recorded'),
+      ),
+    );
+
+  const paymentsByRecord = new Map<string, typeof paymentRows>();
+  for (const payment of paymentRows) {
+    const list = paymentsByRecord.get(payment.billingRecordId) ?? [];
+    list.push(payment);
+    paymentsByRecord.set(payment.billingRecordId, list);
+  }
+
+  return rows.map((row) => ({
+    id: row.id,
+    reference: row.reference,
+    kind: row.kind,
+    status: row.status,
+    issueDate: row.issueDate,
+    dueDate: row.dueDate,
+    totalAmount: row.totalAmount,
+    currency: row.currency,
+    payments: (paymentsByRecord.get(row.id) ?? []).map((payment) => ({
+      amount: payment.amount,
+      currency: payment.currency,
+      status: payment.status,
+      paymentDate: payment.paymentDate,
+      reference: payment.reference,
+    })),
+  }));
 }
 
 export async function listVendorPurchaseOrdersForPortal(

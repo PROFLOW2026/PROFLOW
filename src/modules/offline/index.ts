@@ -1,14 +1,15 @@
 /**
- * Offline / PWA foundations (Wave 4).
+ * Offline / PWA foundations (field hardening).
  *
  * Client-side only: IndexedDB draft store + blob attachments + queued sync.
  * Service worker caches installable shell assets only (production).
- * No Drizzle tables. No push notifications.
+ * No Drizzle tables. No push notifications. No full-app financial cache.
  */
 
 export type {
   ConflictResolutionChoice,
   DraftKind,
+  DraftScope,
   EnqueueDraftInput,
   OfflineDraftRecord,
   QueuedAction,
@@ -17,6 +18,7 @@ export type {
 } from './domain/types';
 export {
   DRAFT_KINDS,
+  FAILED_SYNC_STATUSES,
   PENDING_SYNC_STATUSES,
   SYNC_STATUSES,
 } from './domain/types';
@@ -30,6 +32,21 @@ export {
   OfflineConflictError,
   shouldBlockAutoSync,
 } from './domain/conflict';
+
+export {
+  assertDraftMatchesScope,
+  assertValidScope,
+  isUnscopedDraft,
+  matchesDraftScope,
+  OfflineScopeError,
+} from './domain/scope';
+
+export {
+  buildDedupeKey,
+  findDuplicatePending,
+  normalizeForDedupe,
+  shouldBlockDuplicateWhileSyncing,
+} from './domain/dedupe';
 
 export {
   assertCaptureFileAllowed,
@@ -48,11 +65,14 @@ export {
 } from './domain/serialize';
 
 export {
+  isSensitiveFinancialPath,
   isShellAssetUrl,
+  SENSITIVE_FINANCIAL_PATH_MARKERS,
   SHELL_CACHE_NAME,
   SHELL_PRECACHE_URLS,
   shouldServeOfflineFallback,
   shouldUseCacheFirst,
+  shouldUseNetworkFirst,
 } from './domain/sw-policy';
 
 export {
@@ -67,6 +87,7 @@ export {
   createIndexedDbDraftStore,
   createMemoryDraftStore,
   getDefaultDraftStore,
+  normalizeDraftRecord,
   resetDefaultDraftStoreForTests,
   type DraftStore,
 } from './data/draft-store';
@@ -83,6 +104,7 @@ export {
 
 export {
   clearQueueIndex,
+  countFailedInQueueIndex,
   countPendingInQueueIndex,
   mirrorDraftsToLocalStorage,
   readQueueIndex,
@@ -119,9 +141,13 @@ export {
   timeEntryPayloadFromFormData,
   changeRequestPayloadFromFormData,
   dailyLogPayloadFromFormData,
+  punchPayloadFromFormData,
+  inspectionPayloadFromFormData,
   payloadBuilderForKind,
   type ExpenseDraftPayload,
   type TimeEntryDraftPayload,
   type ChangeRequestDraftPayload,
   type DailyLogDraftPayload,
+  type PunchDraftPayload,
+  type InspectionDraftPayload,
 } from './domain/payloads';

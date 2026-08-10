@@ -1,12 +1,16 @@
 import type { OrgContext } from '@/shared/auth/context';
 import { todayInTimeZone, type BusinessDate } from '@/shared/dates';
 import { ORG_LIST_EXPORT_CAP } from '@/shared/db/list-limits';
-import { isZeroMoney } from '@/shared/money';
+import { isPositiveMoney, isZeroMoney, money } from '@/shared/money';
 import { assertPermission, hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { listBillingRecords } from '@/modules/billing';
-import { listApBills, listAcceptedMatchAmountsForBills } from '@/modules/ap';
-import { remainingUnmatchedAmount } from '@/modules/ap/domain/matching';
+import {
+  computeBillOutstanding,
+  getVendorPaymentsRepository,
+  isRecognizedVendorBillStatus,
+  listApBills,
+} from '@/modules/ap';
 import { loadCashFlowPayments } from '../data/billing.repository';
 import {
   buildCashFlowOutlook,
@@ -16,21 +20,26 @@ import {
 
 function mapApBillsForCash(
   rows: Awaited<ReturnType<typeof listApBills>>,
-  acceptedByBillId: ReadonlyMap<string, string[]>,
+  appliedByBillId: ReadonlyMap<string, string[]>,
   currency: string,
 ): ApBillCashInput[] {
   const mapped: ApBillCashInput[] = [];
   for (const row of rows) {
+    if (!isRecognizedVendorBillStatus(row.status)) continue;
     if (row.currency.toUpperCase() !== currency.toUpperCase()) continue;
-    const unmatched = remainingUnmatchedAmount({
-      currency: row.currency,
-      billTotal: row.totalAmount,
-      reservedMatchedAmounts: acceptedByBillId.get(row.id) ?? [],
+    const outstanding = computeBillOutstanding({
+      billStatus: row.status,
+      billTotal: money(row.totalAmount, row.currency),
+      applications: (appliedByBillId.get(row.id) ?? []).map((amount) => ({
+        appliedAmount: money(amount, row.currency),
+        paymentStatus: 'recorded' as const,
+      })),
     });
+    if (!isPositiveMoney(outstanding)) continue;
     mapped.push({
       status: row.status,
       dueDate: (row.dueDate as BusinessDate | null) ?? null,
-      totalAmount: unmatched,
+      totalAmount: outstanding,
     });
   }
   return mapped;
@@ -54,12 +63,13 @@ export async function getOrganizationCashFlowOutlook(
       ? listApBills(context.db, context.organizationId, {
           limit: ORG_LIST_EXPORT_CAP,
         }).then(async (apRows) => {
-          const acceptedByBillId = await listAcceptedMatchAmountsForBills(
-            context.db,
-            context.organizationId,
-            apRows.map((row) => row.id),
-          );
-          return { apRows, acceptedByBillId };
+          const appliedByBillId =
+            await getVendorPaymentsRepository().listActiveAppliedAmountsForBills(
+              context.db,
+              context.organizationId,
+              apRows.map((row) => row.id),
+            );
+          return { apRows, appliedByBillId };
         })
       : Promise.resolve(null),
   ]);
@@ -72,7 +82,7 @@ export async function getOrganizationCashFlowOutlook(
   const payments = paymentRows.filter((row) => row.amount.currency === currency);
 
   const openApBills = apBundle
-    ? mapApBillsForCash(apBundle.apRows, apBundle.acceptedByBillId, currency)
+    ? mapApBillsForCash(apBundle.apRows, apBundle.appliedByBillId, currency)
     : undefined;
 
   return buildCashFlowOutlook({

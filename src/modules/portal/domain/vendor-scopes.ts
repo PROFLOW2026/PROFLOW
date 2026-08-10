@@ -14,7 +14,9 @@ const FORBIDDEN_VENDOR_SCOPE_PATTERNS = [
   /billing\.write/i,
   /ap\./i,
   /cost/i,
-  /payment/i,
+  /** Allow read-only `payment.outstanding`; block payment mutation scopes. */
+  /payment\.(write|manage|create|record|void)/i,
+  /^payments$/i,
 ];
 
 export function isVendorPortalScope(value: string): value is VendorPortalScope {

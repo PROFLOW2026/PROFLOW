@@ -72,11 +72,34 @@ export interface DailyLogDraftPayload extends Record<string, unknown> {
   readonly dailyLogId?: string | null;
 }
 
+export interface PunchDraftPayload extends Record<string, unknown> {
+  readonly projectId: string;
+  readonly workPackageId: string | null;
+  readonly title: string;
+  readonly description: string | null;
+  readonly priority: string | null;
+  readonly location: string | null;
+  readonly dueDate: string | null;
+  readonly punchListItemId?: string | null;
+}
+
+export interface InspectionDraftPayload extends Record<string, unknown> {
+  readonly projectId: string;
+  readonly workPackageId: string | null;
+  readonly title: string;
+  readonly kind: string | null;
+  readonly scheduledOn: string | null;
+  readonly notes: string | null;
+  readonly inspectionId?: string | null;
+}
+
 export type ProductDraftPayload =
   | ExpenseDraftPayload
   | TimeEntryDraftPayload
   | ChangeRequestDraftPayload
   | DailyLogDraftPayload
+  | PunchDraftPayload
+  | InspectionDraftPayload
   | CaptureDraftPayload;
 
 export function expensePayloadFromFormData(formData: FormData): ExpenseDraftPayload {
@@ -142,6 +165,31 @@ export function dailyLogPayloadFromFormData(formData: FormData): DailyLogDraftPa
   };
 }
 
+export function punchPayloadFromFormData(formData: FormData): PunchDraftPayload {
+  return {
+    projectId: formTextRequired(formData, 'projectId'),
+    workPackageId: formText(formData, 'workPackageId'),
+    title: formTextRequired(formData, 'title'),
+    description: formText(formData, 'description'),
+    priority: formText(formData, 'priority'),
+    location: formText(formData, 'location'),
+    dueDate: formText(formData, 'dueDate'),
+    punchListItemId: formText(formData, 'punchListItemId'),
+  };
+}
+
+export function inspectionPayloadFromFormData(formData: FormData): InspectionDraftPayload {
+  return {
+    projectId: formTextRequired(formData, 'projectId'),
+    workPackageId: formText(formData, 'workPackageId'),
+    title: formTextRequired(formData, 'title'),
+    kind: formText(formData, 'kind'),
+    scheduledOn: formText(formData, 'scheduledOn'),
+    notes: formText(formData, 'notes'),
+    inspectionId: formText(formData, 'inspectionId'),
+  };
+}
+
 export function payloadBuilderForKind(
   kind: Exclude<DraftKind, 'capture'>,
 ): (formData: FormData) => Record<string, unknown> {
@@ -154,6 +202,10 @@ export function payloadBuilderForKind(
       return changeRequestPayloadFromFormData;
     case 'daily_log':
       return dailyLogPayloadFromFormData;
+    case 'punch':
+      return punchPayloadFromFormData;
+    case 'inspection':
+      return inspectionPayloadFromFormData;
     default: {
       const _exhaustive: never = kind;
       return _exhaustive;
@@ -177,4 +229,16 @@ export function serverMetaFromDailyLogPayload(payload: DailyLogDraftPayload): {
   serverId: string | null;
 } {
   return { serverId: payload.dailyLogId ?? null };
+}
+
+export function serverMetaFromPunchPayload(payload: PunchDraftPayload): {
+  serverId: string | null;
+} {
+  return { serverId: payload.punchListItemId ?? null };
+}
+
+export function serverMetaFromInspectionPayload(payload: InspectionDraftPayload): {
+  serverId: string | null;
+} {
+  return { serverId: payload.inspectionId ?? null };
 }
