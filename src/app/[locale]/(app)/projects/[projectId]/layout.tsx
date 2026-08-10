@@ -45,7 +45,10 @@ export default async function ProjectLayout({ children, params }: ProjectLayoutP
   const showExpensesTab = can(PERMISSIONS.EXPENSES_READ);
   const showChangesTab = Boolean(modules?.changes) && can(PERMISSIONS.CHANGES_READ);
   const showBillingTab = Boolean(modules?.billing) && can(PERMISSIONS.BILLING_READ);
-  const showTimeTab = Boolean(modules?.workforce) && can(PERMISSIONS.WORKFORCE_READ);
+  // Team is permission-gated (not module) so owners can assign people before
+  // the workforce module preference flips on from first create.
+  const showTeamTab = can(PERMISSIONS.WORKFORCE_READ);
+  const showTimeTab = can(PERMISSIONS.WORKFORCE_READ);
   const showDocumentsTab = Boolean(modules?.documents) && can(PERMISSIONS.DOCUMENTS_READ);
 
   const [t, tTabs, tStatus, detail, locale] = await Promise.all([
@@ -71,6 +74,7 @@ export default async function ProjectLayout({ children, params }: ProjectLayoutP
     expenses: showExpensesTab,
     changes: showChangesTab,
     billing: showBillingTab,
+    team: showTeamTab,
     time: showTimeTab,
     documents: showDocumentsTab,
     work: showWorkTab,

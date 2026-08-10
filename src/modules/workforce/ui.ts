@@ -7,6 +7,7 @@
  */
 
 export { ProjectTimePanel } from './ui/project-time-panel';
+export { ProjectTeamPanel } from './ui/project-team-panel';
 export { ProjectTeamRoster } from './ui/project-team-roster';
 export { EmployeeProjectsPanel } from './ui/employee-projects-panel';
 export { EmployeeForm } from './ui/employee-form';

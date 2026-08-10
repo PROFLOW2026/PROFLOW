@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
+import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { PageHeader } from '@/components/ui/page-header';
 import { StatusBadge } from '@/components/ui/status-badge';
@@ -28,6 +29,7 @@ import { RateHistoryTable } from '@/modules/workforce/ui/rate-history-table';
 import { withOrgContext } from '@/shared/auth/session';
 import { businessDate, todayInTimeZone } from '@/shared/dates';
 import { fromNumericString } from '@/shared/money';
+import { Link } from '@/shared/i18n/navigation';
 import { upsertEntityFieldValueAction } from '../../../settings/custom-fields/actions';
 
 export async function generateMetadata({
@@ -136,24 +138,36 @@ export default async function EmployeeDetailPage({
         defaultStartDate={today}
       />
 
-      {(employee.email || employee.phone || employee.notes) && (
+      <Card className="flex flex-col gap-2 p-4 sm:p-6">
+        <h2 className="text-base font-semibold">{t('employees.detail.profile')}</h2>
+        {employee.email ? (
+          <p className="text-start text-sm" dir="ltr">
+            {employee.email}
+          </p>
+        ) : null}
+        {employee.phone ? (
+          <p className="text-start text-sm" dir="ltr">
+            {employee.phone}
+          </p>
+        ) : null}
+        {employee.notes ? (
+          <p className="text-start text-sm text-[var(--pf-text-secondary)]">{employee.notes}</p>
+        ) : null}
+        {!employee.email && !employee.phone && !employee.notes ? (
+          <p className="text-sm text-[var(--pf-text-secondary)]">{employee.jobTitle ?? employee.name}</p>
+        ) : null}
+      </Card>
+
+      {allowLog ? (
         <Card className="flex flex-col gap-2 p-4 sm:p-6">
-          <h2 className="text-base font-semibold">{t('employees.detail.profile')}</h2>
-          {employee.email ? (
-            <p className="text-start text-sm" dir="ltr">
-              {employee.email}
-            </p>
-          ) : null}
-          {employee.phone ? (
-            <p className="text-start text-sm" dir="ltr">
-              {employee.phone}
-            </p>
-          ) : null}
-          {employee.notes ? (
-            <p className="text-start text-sm text-[var(--pf-text-secondary)]">{employee.notes}</p>
-          ) : null}
+          <h2 className="text-base font-semibold">{t('employees.detail.hoursSection')}</h2>
+          <Button asChild variant="secondary" className="self-start">
+            <Link href={`/workforce/time?employeeId=${employee.id}`}>
+              {t('employees.detail.hoursLink')}
+            </Link>
+          </Button>
         </Card>
-      )}
+      ) : null}
 
       <EntityCustomFieldsPanel
         entityId={employee.id}

@@ -54,4 +54,19 @@ describe('project workspace links', () => {
     expect(keys.indexOf('work')).toBeLessThan(keys.indexOf('details'));
     expect(keys.indexOf('details')).toBeLessThan(keys.indexOf('schedule'));
   });
+
+  it('surfaces team and employees when workforce.read is granted (module optional)', () => {
+    const links = selectProjectWorkspaceLinks({
+      projectId: 'p1',
+      modules: {},
+      permissions: new Set([PERMISSIONS.WORKFORCE_READ]),
+      showWorkPackages: false,
+      canReadFinancials: false,
+    });
+    const keys = links.map((link) => link.key);
+    expect(keys).toContain('team');
+    expect(keys).toContain('time');
+    expect(keys).toContain('workforce');
+    expect(keys.indexOf('team')).toBeLessThan(keys.indexOf('time'));
+  });
 });

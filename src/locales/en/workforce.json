@@ -1,6 +1,6 @@
 {
-  "title": "Workforce",
-  "description": "Employees, rates, and time — add people under Employees, then assign them to a project team or log time.",
+  "title": "Employees",
+  "description": "Manage employees, project assignments, and time entries.",
   "nav": {
     "employees": "Employees",
     "time": "Time entries"
@@ -15,7 +15,7 @@
     "inactive": "Inactive"
   },
   "employees": {
-    "new": "New employee",
+    "new": "+ New employee",
     "newDescription": "Name and role first. Add compensation under Advanced when you know cost — rates alone do not create project labor Actual.",
     "noRate": "No rate",
     "columns": {
@@ -27,7 +27,7 @@
     "empty": {
       "title": "No employees yet",
       "description": "Path: Employees → New employee. After creating people, assign them here or on a project (Team → Add employee), or log time.",
-      "action": "New employee"
+      "action": "+ New employee"
     },
     "form": {
       "name": "Name",
@@ -49,7 +49,7 @@
     },
     "detail": {
       "title": "Employee",
-      "profile": "Profile",
+      "profile": "Details",
       "currentRate": "Current rate",
       "burden": "Employer burden: {percent}%",
       "rateHistory": "Rate history",
@@ -57,11 +57,13 @@
       "rateTo": "Effective to",
       "openEnded": "Open-ended",
       "noRateHistory": "No rate versions recorded yet.",
-      "compensationAdvanced": "Compensation (advanced)"
+      "compensationAdvanced": "Employee cost / pay (advanced)",
+      "hoursSection": "Hours",
+      "hoursLink": "Employee time entries"
     },
     "projects": {
-      "title": "Assignments",
-      "description": "Projects this person is assigned to. Hours below are from time entries only — assignment itself is not a cost.",
+      "title": "Assignments / projects",
+      "description": "Projects this person is assigned to. Assignment itself is not a cost — labor Actual comes from time entries.",
       "logTime": "Log time",
       "assign": "Add assignment",
       "assignSave": "Save assignment",
@@ -72,7 +74,8 @@
       "assignedNoHours": "Assigned · no hours logged yet",
       "assignmentNote": "Assignment ≠ labor Actual.",
       "showHistory": "Show history",
-      "hideHistory": "Hide history"
+      "hideHistory": "Hide history",
+      "historyTitle": "History"
     }
   },
   "time": {
@@ -122,7 +125,7 @@
     "teamEmpty": "No one assigned yet. Use Add employee to put someone on this team.",
     "addEmployee": "Add employee",
     "addSuccess": "Employee added to the team. No labor Actual was created.",
-    "newEmployee": "New employee",
+    "newEmployee": "+ New employee",
     "endAssignment": "End assignment",
     "endAssignmentTitle": "End assignment?",
     "endAssignmentDescription": "End {name}'s assignment on this project. Historical time entries stay; this does not change Actual cost.",

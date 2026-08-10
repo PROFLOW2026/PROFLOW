@@ -24,6 +24,16 @@ test.describe('signed-in owner', () => {
     await expect(page.getByRole('link', { name: he.nav.dashboard })).toBeVisible();
   });
 
+  test('desktop navigation exposes Employees without module preference', async ({ page }) => {
+    await page.goto('/he-IL');
+    const nav = page.getByRole('navigation', { name: he.common.a11y.mainNavigation });
+    await expect(nav.getByRole('link', { name: he.nav.workforce })).toBeVisible();
+    await nav.getByRole('link', { name: he.nav.workforce }).click();
+    await expect(page).toHaveURL(/\/he-IL\/workforce\/employees/);
+    await expect(page.getByRole('heading', { name: he.nav.workforce, level: 1 })).toBeVisible();
+    await expect(page.getByRole('link', { name: '+ עובד חדש' }).first()).toBeVisible();
+  });
+
   test('project workspace shows seeded financial, expense and detail content', async ({ page }) => {
     await page.goto(`/he-IL/projects/${world.projectId}`);
 

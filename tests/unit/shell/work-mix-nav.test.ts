@@ -64,4 +64,18 @@ describe('work mix nav IA', () => {
     expect(resolveWorkListFacet('awaiting_payment')).toEqual({ awaitingPayment: true });
     expect(resolveWorkListFacet('active')).toEqual({ status: 'active' });
   });
+
+  it('shows employees in More when workforce.read is granted even if module is off', () => {
+    const permissions = new Set([
+      PERMISSIONS.PROJECTS_READ,
+      PERMISSIONS.EXPENSES_READ,
+      PERMISSIONS.WORKFORCE_READ,
+    ]);
+    const items = visibleNavItems(permissions, allModulesOff(), { workMix: 'projects' });
+    const workforce = items.find((item) => item.key === 'workforce');
+    expect(workforce).toBeDefined();
+    expect(workforce?.href).toBe('/workforce/employees');
+    expect(workforce?.moreGroup).toBe('operations');
+    expect(workforce?.module).toBeUndefined();
+  });
 });

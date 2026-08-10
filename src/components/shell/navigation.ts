@@ -159,11 +159,13 @@ export const NAV_ITEMS: readonly NavItem[] = [
   },
   {
     key: 'workforce',
-    href: '/workforce',
+    // Always discoverable when the viewer can read workforce — do not hide
+    // behind adaptive module prefs (chicken/egg: first employee cannot be
+    // created if Owners never see Employees in More).
+    href: '/workforce/employees',
     labelKey: 'workforce',
     iconKey: 'workforce',
     permission: PERMISSIONS.WORKFORCE_READ,
-    module: 'workforce',
     moreGroup: 'operations',
   },
   {
@@ -204,11 +206,11 @@ export const NAV_ITEMS: readonly NavItem[] = [
   },
   {
     key: 'vendorBills',
+    // Permission-only: owners with AP must find bills without enabling Procurement first.
     href: '/procurement/ap',
     labelKey: 'vendorBills',
     iconKey: 'procurement',
     permission: PERMISSIONS.AP_READ,
-    module: 'procurement',
     moreGroup: 'advanced',
   },
   {

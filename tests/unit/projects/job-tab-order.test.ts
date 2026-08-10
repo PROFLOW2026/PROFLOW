@@ -46,6 +46,7 @@ describe('job tab priority', () => {
         expenses: true,
         changes: true,
         billing: true,
+        team: true,
         time: true,
         documents: true,
         work: true,

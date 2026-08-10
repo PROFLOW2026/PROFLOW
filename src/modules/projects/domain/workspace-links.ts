@@ -13,6 +13,7 @@ export type ProjectWorkspaceLinkKey =
   | 'changes'
   | 'billing'
   | 'work'
+  | 'team'
   | 'time'
   | 'documents'
   | 'details'
@@ -79,12 +80,13 @@ export function selectProjectWorkspaceLinks(input: WorkspaceLinkInput): ProjectW
     links.push({ key: 'billing', href: tab('billing'), inProject: true });
   }
 
-  if (moduleOn(input.modules, 'workforce') && can(input.permissions, PERMISSIONS.WORKFORCE_READ)) {
+  if (can(input.permissions, PERMISSIONS.WORKFORCE_READ)) {
     links.push(
+      { key: 'team', href: tab('team'), inProject: true },
       { key: 'time', href: tab('time'), inProject: true },
       {
         key: 'workforce',
-        href: `/workforce?projectId=${projectId}`,
+        href: `/workforce/employees`,
         inProject: false,
       },
     );

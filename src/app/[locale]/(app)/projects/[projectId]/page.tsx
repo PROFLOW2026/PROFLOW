@@ -22,7 +22,7 @@ import { ProjectBillingPanel } from '@/modules/billing/ui';
 import { ProjectChangesPanel } from '@/modules/commercial/ui';
 import { ProjectExpensesPanel } from '@/modules/expenses/ui';
 import { ProjectFinancialsPanel } from '@/modules/financials/ui';
-import { ProjectTimePanel } from '@/modules/workforce/ui';
+import { ProjectTeamPanel, ProjectTimePanel } from '@/modules/workforce/ui';
 import { DetailsTab } from './details-tab';
 import { DocumentsTab } from './documents-tab';
 import { OverviewTab } from './overview-tab';
@@ -45,6 +45,7 @@ const MODULE_PANEL_TABS = new Set<ProjectTabKey>([
   'expenses',
   'changes',
   'billing',
+  'team',
   'time',
   'documents',
 ]);
@@ -92,7 +93,8 @@ export default async function ProjectPage({ params, searchParams }: ProjectPageP
   const showExpensesTab = can(PERMISSIONS.EXPENSES_READ);
   const showChangesTab = Boolean(modules?.changes) && can(PERMISSIONS.CHANGES_READ);
   const showBillingTab = Boolean(modules?.billing) && can(PERMISSIONS.BILLING_READ);
-  const showTimeTab = Boolean(modules?.workforce) && can(PERMISSIONS.WORKFORCE_READ);
+  const showTeamTab = can(PERMISSIONS.WORKFORCE_READ);
+  const showTimeTab = can(PERMISSIONS.WORKFORCE_READ);
   const showDocumentsTab = Boolean(modules?.documents) && can(PERMISSIONS.DOCUMENTS_READ);
 
   const visibleModuleTabs = new Set<string>();
@@ -100,6 +102,7 @@ export default async function ProjectPage({ params, searchParams }: ProjectPageP
   if (showExpensesTab) visibleModuleTabs.add('expenses');
   if (showChangesTab) visibleModuleTabs.add('changes');
   if (showBillingTab) visibleModuleTabs.add('billing');
+  if (showTeamTab) visibleModuleTabs.add('team');
   if (showTimeTab) visibleModuleTabs.add('time');
   if (showDocumentsTab) visibleModuleTabs.add('documents');
 
@@ -124,6 +127,7 @@ export default async function ProjectPage({ params, searchParams }: ProjectPageP
     expenses: showExpensesTab,
     changes: showChangesTab,
     billing: showBillingTab,
+    team: showTeamTab,
     time: showTimeTab,
     documents: showDocumentsTab,
     work: showWorkTab,
@@ -140,6 +144,7 @@ export default async function ProjectPage({ params, searchParams }: ProjectPageP
       showExpensesTab,
       showChangesTab,
       showBillingTab,
+      showTeamTab,
       showTimeTab,
       showDocumentsTab,
       canReadFinancials,
@@ -344,6 +349,7 @@ function renderModuleTab(input: {
   showExpensesTab: boolean;
   showChangesTab: boolean;
   showBillingTab: boolean;
+  showTeamTab: boolean;
   showTimeTab: boolean;
   showDocumentsTab: boolean;
   canReadFinancials: boolean;
@@ -355,6 +361,7 @@ function renderModuleTab(input: {
     showExpensesTab,
     showChangesTab,
     showBillingTab,
+    showTeamTab,
     showTimeTab,
     showDocumentsTab,
     canReadFinancials,
@@ -391,6 +398,14 @@ function renderModuleTab(input: {
         <div className="pt-4">
           <Suspense fallback={<TabPanelSkeleton />}>
             <ProjectBillingPanel projectId={projectId} />
+          </Suspense>
+        </div>
+      ) : null}
+
+      {activeTab === 'team' && showTeamTab ? (
+        <div className="pt-4">
+          <Suspense fallback={<TabPanelSkeleton />}>
+            <ProjectTeamPanel projectId={projectId} />
           </Suspense>
         </div>
       ) : null}

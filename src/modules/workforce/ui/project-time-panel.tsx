@@ -1,19 +1,12 @@
 import { getTranslations } from 'next-intl/server';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import {
-  listEmployeesForOrg,
-  listProjectTeamHistory,
-  listProjectTeamMembers,
-  listProjectTimeEntries,
-} from '@/modules/workforce';
+import { listProjectTimeEntries } from '@/modules/workforce';
 import { withOrgContext } from '@/shared/auth/session';
-import { todayInTimeZone } from '@/shared/dates';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { Link } from '@/shared/i18n/navigation';
-import { canLogTime, canManageWorkforce, canViewWorkforceCosts } from './employees-table';
-import { ProjectTeamRoster } from './project-team-roster';
+import { canLogTime, canViewWorkforceCosts } from './employees-table';
 import { TimeEntriesTable } from './time-entries-table';
 
 export interface ProjectTimePanelProps {
@@ -21,73 +14,39 @@ export interface ProjectTimePanelProps {
 }
 
 /**
- * Project Time & team tab: formal `employee_project_assignments` roster + time entries.
- * Assignment ≠ labor Actual — adding a member never creates cost.
+ * Project Time tab: logged hours only.
+ * Team roster lives on the dedicated Team tab (assignment ≠ Actual).
  */
 export async function ProjectTimePanel({ projectId }: ProjectTimePanelProps) {
   const t = await getTranslations('workforce');
 
   const data = await withOrgContext(async (context) => {
-    if (!hasPermission(context, PERMISSIONS.WORKFORCE_READ) && !hasPermission(context, PERMISSIONS.PROJECTS_READ)) {
+    if (
+      !hasPermission(context, PERMISSIONS.WORKFORCE_READ) &&
+      !hasPermission(context, PERMISSIONS.PROJECTS_READ)
+    ) {
       return null;
     }
 
-    const allowManage = canManageWorkforce(context);
-    const [entries, team, history, employees] = await Promise.all([
-      listProjectTimeEntries(context, projectId),
-      listProjectTeamMembers(context, projectId),
-      listProjectTeamHistory(context, projectId).catch(() => []),
-      allowManage ? listEmployeesForOrg(context, { status: 'active' }) : Promise.resolve([]),
-    ]);
+    const entries = await listProjectTimeEntries(context, projectId);
     const showCosts = canViewWorkforceCosts(context);
     const allowLog = canLogTime(context);
-
     const totalHours = entries.reduce((sum, entry) => sum + Number(entry.hours), 0);
 
     return {
       entries,
-      team,
-      history,
-      candidateEmployees: employees.map((employee) => ({
-        id: employee.id,
-        name: employee.name,
-        jobTitle: employee.jobTitle,
-      })),
       showCosts,
       allowLog,
-      allowManage,
       totalHours,
-      defaultStartDate: todayInTimeZone(context.organization.timezone),
     };
   });
 
   if (!data) return null;
 
-  const {
-    entries,
-    team,
-    history,
-    candidateEmployees,
-    showCosts,
-    allowLog,
-    allowManage,
-    totalHours,
-    defaultStartDate,
-  } = data;
+  const { entries, showCosts, allowLog, totalHours } = data;
 
   return (
     <div className="flex flex-col gap-4">
-      <Card className="flex flex-col gap-4 p-4 sm:p-6">
-        <ProjectTeamRoster
-          projectId={projectId}
-          team={team}
-          history={history}
-          candidateEmployees={candidateEmployees}
-          canManage={allowManage}
-          defaultStartDate={defaultStartDate}
-        />
-      </Card>
-
       <Card className="flex flex-col gap-4 p-4 sm:p-6">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0 flex-1 text-start">
@@ -102,6 +61,14 @@ export async function ProjectTimePanel({ projectId }: ProjectTimePanelProps) {
             </Button>
           ) : null}
         </div>
+
+        <p className="text-start text-sm text-[var(--pf-text-muted)]">
+          <Link href={`/projects/${projectId}?tab=team`} className="underline underline-offset-2">
+            {t('projectPanel.teamTitle')}
+          </Link>
+          {' — '}
+          {t('projectPanel.assignmentNote')}
+        </p>
 
         <TimeEntriesTable entries={entries.slice(0, 10)} showCosts={showCosts} canLogTime={allowLog} />
 

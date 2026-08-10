@@ -58,7 +58,7 @@ export default defineConfig({
     },
     {
       name: 'mobile-he',
-      testMatch: /mobile\.spec\.ts/,
+      testMatch: /mobile\.spec\.ts|authenticated\/workforce-discoverability\.spec\.ts/,
       dependencies: ['setup-owner'],
       use: {
         ...devices['Pixel 7'],
