@@ -236,7 +236,8 @@
       "client_contact": {
         "created": "Client contact added",
         "updated": "Client contact updated",
-        "deleted": "Client contact removed"
+        "deleted": "Client contact removed",
+        "marked_primary": "Client contact marked as primary"
       },
       "party_identifier": {
         "upserted": "Client identifier updated",
@@ -300,6 +301,10 @@
       },
       "time_entry": {
         "created": "Time entry recorded"
+      },
+      "project_team_member": {
+        "added": "Employee added to project team",
+        "removed": "Employee removed from project team"
       },
       "document": {
         "uploaded": "Document uploaded",

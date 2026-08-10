@@ -8,6 +8,8 @@ import type { OrganizationReportsAnalytics } from '../application/get-organizati
 import type { CountReportMetric, MoneyReportMetric, ReportMetricKind } from '../domain/report-metric';
 import { CashFlowView } from './cash-flow-view';
 import { CountReportMetricTile, MoneyReportMetricTile } from './report-metric-tile';
+import { pressableCardLinkClassName, textNavLinkClassName } from '@/components/ui/pressable';
+import { cn } from '@/shared/ui/cn';
 
 function natureKey(kind: ReportMetricKind | 'operational'): string {
   if (kind === 'commercial') return 'commercial';
@@ -439,7 +441,7 @@ export async function ReportsAnalyticsView({
                 {rollup.rows.map((row) => (
                   <TableRow key={row.projectId}>
                     <TableCell>
-                      <Link href={`/projects/${row.projectId}`} className="hover:underline">
+                      <Link href={`/projects/${row.projectId}`} className={textNavLinkClassName}>
                         {row.name}
                       </Link>
                     </TableCell>
@@ -481,7 +483,7 @@ export async function ReportsAnalyticsView({
           renderMobileCard={(row) => (
             <Link
               href={`/projects/${row.projectId}`}
-              className="block min-h-11 min-w-0 max-w-full rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4 text-start"
+              className={cn(pressableCardLinkClassName, 'min-w-0 max-w-full text-start')}
             >
               <div className="flex items-start justify-between gap-2">
                 <span className="min-w-0 flex-1 break-words font-semibold">{row.name}</span>

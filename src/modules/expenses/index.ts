@@ -12,6 +12,7 @@ export {
   sumCorrectionChainNet,
 } from './domain/corrections';
 export type { CorrectionChainEntry, CorrectionChainRole } from './domain/corrections';
+export { resolveTaxAmounts, inferExpenseTaxModeFromAmounts, captureTaxSnapshot } from './domain/tax';
 export { runAutomaticAllocation } from './application/run-automatic-allocation';
 export {
   getExpense,

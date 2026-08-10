@@ -7,10 +7,9 @@ import { clients, projectDomains } from '@drizzle/schema';
 import { and, eq } from 'drizzle-orm';
 import { DEFAULT_WORK_PACKAGE_NAME } from '../domain/types';
 import { insertProject } from '../data/projects.repository';
-import {
-  insertWorkPackage,
-} from '../data/work-packages.repository';
+import { insertWorkPackage } from '../data/work-packages.repository';
 import { createProjectSchema, type CreateProjectInput } from '../validation/schemas';
+import { resolvePrimaryContactIdForProject } from './assert-project-contact';
 import { upsertPrimaryContractAmount } from './contract-amount';
 
 export interface CreateProjectResult {
@@ -55,6 +54,12 @@ export async function createProject(
     if (!client) throw new NotFoundError('Client');
   }
 
+  const primaryContactId = await resolvePrimaryContactIdForProject(
+    context,
+    clientId,
+    input.primaryContactId ?? null,
+  );
+
   const workKind = input.workKind ?? 'project';
   const pricingMode = workKind === 'job' ? (input.pricingMode ?? null) : null;
 
@@ -65,6 +70,7 @@ export async function createProject(
     workKind,
     pricingMode,
     clientId,
+    primaryContactId,
     currency: input.contractValueAmount ? currency : null,
     description: input.description ?? null,
     location: input.location ?? null,
@@ -114,6 +120,7 @@ export async function createProject(
       name: project.name,
       status: project.status,
       clientId,
+      primaryContactId,
       workKind,
       pricingMode: project.pricingMode,
     },

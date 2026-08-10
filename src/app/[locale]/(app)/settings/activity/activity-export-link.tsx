@@ -2,6 +2,8 @@
 
 import { useTranslations } from 'next-intl';
 import { ExportDownloadButton } from '@/components/patterns/export-download-button';
+import { textNavLinkClassName } from '@/components/ui/pressable';
+import { cn } from '@/shared/ui/cn';
 
 export function ActivityExportLink() {
   const t = useTranslations('settings.activity');
@@ -11,7 +13,7 @@ export function ActivityExportLink() {
       href="/exports/audit?format=csv"
       variant="ghost"
       size="sm"
-      className="min-h-11 text-[var(--pf-text-brand)] underline-offset-2 hover:underline"
+      className={cn(textNavLinkClassName, 'min-h-11')}
     >
       {t('exportCsv')}
     </ExportDownloadButton>

@@ -1,5 +1,5 @@
-import { and, eq, inArray, isNotNull, isNull } from 'drizzle-orm';
-import { apBills, apPoMatches, committedCosts, expenses } from '@drizzle/schema';
+import { and, eq, inArray, isNotNull, isNull, sql } from 'drizzle-orm';
+import { apBillProjectAllocations, apBills, apPoMatches, committedCosts, expenses } from '@drizzle/schema';
 import type { DbExecutor } from '@/shared/db/types';
 import {
   addMoney,
@@ -11,9 +11,11 @@ import {
   type MoneyValue,
 } from '@/shared/money';
 import {
+  areApBillProjectAllocationsAvailable,
   computeBillOutstanding,
   getVendorPaymentsRepository,
   RECOGNIZED_VENDOR_BILL_STATUSES,
+  resolveVendorBillProjectAmounts,
 } from '@/modules/ap';
 
 const OPEN_COMMITTED_STATUSES = ['open', 'partially_consumed'] as const;
@@ -132,6 +134,10 @@ export interface RecognizedVendorBillRollup {
 /**
  * Posted/approved vendor bills for a project — recognized Actual Vendor Cost.
  * Also returns expense ids linked via accepted matches (exclude to avoid double-count).
+ *
+ * When `ap_bill_project_allocations` is available (0021 applied + gate on):
+ * bills with allocation rows attribute via lines only; header project_id is ignored
+ * for those bills. Otherwise header-only behavior (pre-0021) is preserved.
  */
 export async function loadRecognizedVendorBillsForProject(
   db: DbExecutor,
@@ -140,9 +146,12 @@ export async function loadRecognizedVendorBillsForProject(
   currency: string,
 ): Promise<RecognizedVendorBillRollup> {
   const normalized = currency.toUpperCase();
+  const useAllocations = areApBillProjectAllocationsAvailable();
+
   const billRows = await db
     .select({
       id: apBills.id,
+      projectId: apBills.projectId,
       totalAmount: apBills.totalAmount,
       currency: apBills.currency,
     })
@@ -150,27 +159,98 @@ export async function loadRecognizedVendorBillsForProject(
     .where(
       and(
         eq(apBills.organizationId, organizationId),
-        eq(apBills.projectId, projectId),
         inArray(apBills.status, [...RECOGNIZED_VENDOR_BILL_STATUSES]),
         isNull(apBills.archivedAt),
+        useAllocations
+          ? sql`(
+              ${apBills.projectId} = ${projectId}
+              OR EXISTS (
+                SELECT 1 FROM ${apBillProjectAllocations} a
+                WHERE a.ap_bill_id = ${apBills.id}
+                  AND a.organization_id = ${organizationId}
+                  AND a.target_type = 'project'
+                  AND a.project_id = ${projectId}
+                  AND a.status = 'applied'
+              )
+            )`
+          : eq(apBills.projectId, projectId),
       ),
     );
+
+  const allocationLines: { billId: string; projectId: string; amount: string; currency: string }[] =
+    [];
+  const billIdsWithAllocations = new Set<string>();
+
+  if (useAllocations && billRows.length > 0) {
+    const allIds = billRows.map((row) => row.id);
+    const anyAlloc = await db
+      .select({
+        apBillId: apBillProjectAllocations.apBillId,
+        projectId: apBillProjectAllocations.projectId,
+        amount: apBillProjectAllocations.amount,
+        currency: apBillProjectAllocations.currency,
+        targetType: apBillProjectAllocations.targetType,
+        status: apBillProjectAllocations.status,
+      })
+      .from(apBillProjectAllocations)
+      .where(
+        and(
+          eq(apBillProjectAllocations.organizationId, organizationId),
+          inArray(apBillProjectAllocations.apBillId, allIds),
+          eq(apBillProjectAllocations.status, 'applied'),
+        ),
+      );
+
+    for (const row of anyAlloc) {
+      billIdsWithAllocations.add(row.apBillId);
+      if (row.targetType === 'project' && row.projectId === projectId) {
+        allocationLines.push({
+          billId: row.apBillId,
+          projectId: row.projectId,
+          amount: row.amount,
+          currency: row.currency,
+        });
+      }
+    }
+  }
+
+  const resolved = resolveVendorBillProjectAmounts({
+    projectId,
+    currency: normalized,
+    headerBills: billRows.map((row) => ({
+      billId: row.id,
+      projectId: row.projectId,
+      totalAmount: row.totalAmount,
+      currency: row.currency,
+    })),
+    allocationLines,
+    billIdsWithAllocations: useAllocations ? billIdsWithAllocations : new Set(),
+  });
 
   const billAmounts: string[] = [];
   let total = zeroMoney(normalized);
   let excludedForeignCurrencyCount = 0;
   const recognizedBillIds: string[] = [];
 
+  // Count FX exclusions from header rows that were candidates but filtered.
   for (const row of billRows) {
-    if (row.currency.toUpperCase() !== normalized) {
-      excludedForeignCurrencyCount += 1;
-      continue;
+    if (row.currency.toUpperCase() === normalized) continue;
+    if (useAllocations && billIdsWithAllocations.has(row.id)) {
+      // Allocation path already currency-filters lines; still disclose FX header.
     }
-    const amount = fromNumericString(row.totalAmount, row.currency);
+    if (row.projectId === projectId || (useAllocations && billIdsWithAllocations.has(row.id))) {
+      excludedForeignCurrencyCount += 1;
+    }
+  }
+
+  for (let i = 0; i < resolved.amounts.length; i += 1) {
+    const amountStr = resolved.amounts[i]!;
+    const billId = resolved.billIds[i]!;
+    const amount = fromNumericString(amountStr, normalized);
     if (!amount) continue;
-    billAmounts.push(row.totalAmount);
+    billAmounts.push(amountStr);
     total = addMoney(total, amount);
-    recognizedBillIds.push(row.id);
+    recognizedBillIds.push(billId);
   }
 
   const linkedExpenseIds = new Set<string>();
@@ -196,7 +276,6 @@ export async function loadRecognizedVendorBillsForProject(
 
     for (const row of linkedRows) {
       if (!row.expenseId) continue;
-      // Only dedupe same-currency finalized expenses (FX excluded like other rollups).
       if (row.expenseCurrency.toUpperCase() !== normalized) continue;
       linkedExpenseIds.add(row.expenseId);
     }
@@ -356,6 +435,7 @@ export async function sumOpenApPayableForProjects(
 
 /**
  * Recognized vendor bills for many projects — bills + linked expenses in two queries.
+ * Honors allocation-line precedence when the 0021 allocations gate is on.
  */
 export async function loadRecognizedVendorBillsForProjects(
   db: DbExecutor,
@@ -366,102 +446,126 @@ export async function loadRecognizedVendorBillsForProjects(
   const result = new Map<string, RecognizedVendorBillRollup>();
   if (projectIds.length === 0) return result;
 
-  const normalized = currency.toUpperCase();
-  const billRows = await db
-    .select({
-      id: apBills.id,
-      projectId: apBills.projectId,
-      totalAmount: apBills.totalAmount,
-      currency: apBills.currency,
-    })
-    .from(apBills)
-    .where(
-      and(
-        eq(apBills.organizationId, organizationId),
-        inArray(apBills.projectId, [...projectIds]),
-        inArray(apBills.status, [...RECOGNIZED_VENDOR_BILL_STATUSES]),
-        isNull(apBills.archivedAt),
-      ),
-    );
-
-  const billAmountsByProject = new Map<
-    string,
-    { billAmounts: string[]; total: MoneyValue; excluded: number; recognizedBillIds: string[] }
-  >();
-
-  for (const row of billRows) {
-    if (!row.projectId) continue;
-    const bucket = billAmountsByProject.get(row.projectId) ?? {
-      billAmounts: [],
-      total: zeroMoney(normalized),
-      excluded: 0,
-      recognizedBillIds: [],
-    };
-    if (row.currency.toUpperCase() !== normalized) {
-      bucket.excluded += 1;
-      billAmountsByProject.set(row.projectId, bucket);
-      continue;
-    }
-    const amount = fromNumericString(row.totalAmount, row.currency);
-    if (!amount) {
-      billAmountsByProject.set(row.projectId, bucket);
-      continue;
-    }
-    bucket.billAmounts.push(row.totalAmount);
-    bucket.total = addMoney(bucket.total, amount);
-    bucket.recognizedBillIds.push(row.id);
-    billAmountsByProject.set(row.projectId, bucket);
-  }
-
-  const allRecognizedIds = [...billAmountsByProject.values()].flatMap(
-    (bucket) => bucket.recognizedBillIds,
-  );
-
-  const linkedByBill = new Map<string, string[]>();
-  if (allRecognizedIds.length > 0) {
-    const linkedRows = await db
+  if (!areApBillProjectAllocationsAvailable()) {
+    // Pre-0021 path: header project_id only.
+    const normalized = currency.toUpperCase();
+    const billRows = await db
       .select({
-        apBillId: apPoMatches.apBillId,
-        expenseId: apPoMatches.expenseId,
-        expenseCurrency: expenses.currency,
+        id: apBills.id,
+        projectId: apBills.projectId,
+        totalAmount: apBills.totalAmount,
+        currency: apBills.currency,
       })
-      .from(apPoMatches)
-      .innerJoin(expenses, eq(expenses.id, apPoMatches.expenseId))
+      .from(apBills)
       .where(
         and(
-          eq(apPoMatches.organizationId, organizationId),
-          inArray(apPoMatches.apBillId, allRecognizedIds),
-          eq(apPoMatches.status, 'accepted'),
-          isNotNull(apPoMatches.expenseId),
-          eq(expenses.status, 'finalized'),
-          isNull(expenses.archivedAt),
+          eq(apBills.organizationId, organizationId),
+          inArray(apBills.projectId, [...projectIds]),
+          inArray(apBills.status, [...RECOGNIZED_VENDOR_BILL_STATUSES]),
+          isNull(apBills.archivedAt),
         ),
       );
 
-    for (const row of linkedRows) {
-      if (!row.expenseId) continue;
-      if (row.expenseCurrency.toUpperCase() !== normalized) continue;
-      const list = linkedByBill.get(row.apBillId) ?? [];
-      list.push(row.expenseId);
-      linkedByBill.set(row.apBillId, list);
-    }
-  }
+    const billAmountsByProject = new Map<
+      string,
+      { billAmounts: string[]; total: MoneyValue; excluded: number; recognizedBillIds: string[] }
+    >();
 
-  for (const [projectId, bucket] of billAmountsByProject) {
-    const linkedExpenseIds = new Set<string>();
-    for (const billId of bucket.recognizedBillIds) {
-      for (const expenseId of linkedByBill.get(billId) ?? []) {
-        linkedExpenseIds.add(expenseId);
+    for (const row of billRows) {
+      if (!row.projectId) continue;
+      const bucket = billAmountsByProject.get(row.projectId) ?? {
+        billAmounts: [],
+        total: zeroMoney(normalized),
+        excluded: 0,
+        recognizedBillIds: [],
+      };
+      if (row.currency.toUpperCase() !== normalized) {
+        bucket.excluded += 1;
+        billAmountsByProject.set(row.projectId, bucket);
+        continue;
+      }
+      const amount = fromNumericString(row.totalAmount, row.currency);
+      if (!amount) {
+        billAmountsByProject.set(row.projectId, bucket);
+        continue;
+      }
+      bucket.billAmounts.push(row.totalAmount);
+      bucket.total = addMoney(bucket.total, amount);
+      bucket.recognizedBillIds.push(row.id);
+      billAmountsByProject.set(row.projectId, bucket);
+    }
+
+    const allRecognizedIds = [...billAmountsByProject.values()].flatMap(
+      (bucket) => bucket.recognizedBillIds,
+    );
+
+    const linkedByBill = new Map<string, string[]>();
+    if (allRecognizedIds.length > 0) {
+      const linkedRows = await db
+        .select({
+          apBillId: apPoMatches.apBillId,
+          expenseId: apPoMatches.expenseId,
+          expenseCurrency: expenses.currency,
+        })
+        .from(apPoMatches)
+        .innerJoin(expenses, eq(expenses.id, apPoMatches.expenseId))
+        .where(
+          and(
+            eq(apPoMatches.organizationId, organizationId),
+            inArray(apPoMatches.apBillId, allRecognizedIds),
+            eq(apPoMatches.status, 'accepted'),
+            isNotNull(apPoMatches.expenseId),
+            eq(expenses.status, 'finalized'),
+            isNull(expenses.archivedAt),
+          ),
+        );
+
+      for (const row of linkedRows) {
+        if (!row.expenseId) continue;
+        if (row.expenseCurrency.toUpperCase() !== normalized) continue;
+        const list = linkedByBill.get(row.apBillId) ?? [];
+        list.push(row.expenseId);
+        linkedByBill.set(row.apBillId, list);
       }
     }
-    result.set(projectId, {
-      billAmounts: bucket.billAmounts,
-      total: roundMoney(bucket.total),
-      linkedExpenseIds,
-      excludedForeignCurrencyCount: bucket.excluded,
-      billCount: bucket.billAmounts.length,
-    });
+
+    for (const projectId of projectIds) {
+      const bucket = billAmountsByProject.get(projectId);
+      if (!bucket) {
+        result.set(projectId, {
+          billAmounts: [],
+          total: zeroMoney(normalized),
+          linkedExpenseIds: new Set(),
+          excludedForeignCurrencyCount: 0,
+          billCount: 0,
+        });
+        continue;
+      }
+      const linkedExpenseIds = new Set<string>();
+      for (const billId of bucket.recognizedBillIds) {
+        for (const expenseId of linkedByBill.get(billId) ?? []) {
+          linkedExpenseIds.add(expenseId);
+        }
+      }
+      result.set(projectId, {
+        billAmounts: bucket.billAmounts,
+        total: roundMoney(bucket.total),
+        linkedExpenseIds,
+        excludedForeignCurrencyCount: bucket.excluded,
+        billCount: bucket.billAmounts.length,
+      });
+    }
+    return result;
   }
 
+  // Allocations-aware: resolve per project via shared helper (parallel single loads).
+  await Promise.all(
+    projectIds.map(async (projectId) => {
+      result.set(
+        projectId,
+        await loadRecognizedVendorBillsForProject(db, organizationId, projectId, currency),
+      );
+    }),
+  );
   return result;
 }

@@ -46,6 +46,15 @@ export async function createClientAction(
   const locale = await getLocale();
 
   try {
+    const primaryContactRoleRaw = formValue(formData, 'primaryContactRole');
+    const primaryContactRole =
+      primaryContactRoleRaw === 'primary' ||
+      primaryContactRoleRaw === 'billing' ||
+      primaryContactRoleRaw === 'site' ||
+      primaryContactRoleRaw === 'other'
+        ? primaryContactRoleRaw
+        : undefined;
+
     const client = await withOrgContext(async (context) =>
       createClient(context, {
         name: requiredFormValue(formData, 'name'),
@@ -60,6 +69,10 @@ export async function createClientAction(
         postalCode: formValue(formData, 'postalCode'),
         countryCode: formValue(formData, 'countryCode'),
         notes: formValue(formData, 'notes'),
+        primaryContactName: formValue(formData, 'primaryContactName'),
+        primaryContactPhone: formValue(formData, 'primaryContactPhone'),
+        primaryContactEmail: formValue(formData, 'primaryContactEmail'),
+        primaryContactRole,
       }),
     );
 

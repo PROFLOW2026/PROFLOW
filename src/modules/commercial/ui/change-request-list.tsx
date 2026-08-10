@@ -19,6 +19,8 @@ import { fromNumericString } from '@/shared/money/money';
 import { signedChangeAmount } from '../domain/contract-value';
 import type { ChangeRequestListItem } from '../domain/types';
 import { ChangeStatusBadge } from './change-status-badge';
+import { pressableCardLinkClassName, textNavLinkClassName } from '@/components/ui/pressable';
+import { cn } from '@/shared/ui/cn';
 
 export interface ChangeRequestListProps {
   items: readonly ChangeRequestListItem[];
@@ -85,7 +87,7 @@ export async function ChangeRequestList({ items, projectId, canManage }: ChangeR
                     <TableCell className="max-w-[14rem] truncate text-start">
                       <Link
                         href={`/changes/${item.id}`}
-                        className="font-medium text-[var(--pf-text-brand)] hover:underline"
+                        className={cn(textNavLinkClassName, 'font-medium')}
                       >
                         {item.title}
                       </Link>
@@ -118,7 +120,7 @@ export async function ChangeRequestList({ items, projectId, canManage }: ChangeR
         return (
           <Link
             href={`/changes/${item.id}`}
-            className="block min-h-11 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4 text-start"
+            className={cn(pressableCardLinkClassName, 'text-start')}
           >
             <div className="flex items-start justify-between gap-2">
               <span className="min-w-0 flex-1 truncate font-semibold">{item.title}</span>

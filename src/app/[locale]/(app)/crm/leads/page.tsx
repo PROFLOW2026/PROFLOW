@@ -13,6 +13,8 @@ import { Link } from '@/shared/i18n/navigation';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { CrmSectionNav, CrmShell } from '../crm-shell';
+import { pressableCardLinkClassName, textNavLinkClassName } from '@/components/ui/pressable';
+import { cn } from '@/shared/ui/cn';
 
 export async function generateMetadata({
   params,
@@ -79,7 +81,7 @@ export default async function CrmLeadsPage() {
                   {leads.map((row) => (
                     <TableRow key={row.id}>
                       <TableCell>
-                        <Link href={`/crm/leads/${row.id}`} className="font-medium hover:underline">
+                        <Link href={`/crm/leads/${row.id}`} className={cn(textNavLinkClassName, 'font-medium')}>
                           {row.title}
                         </Link>
                       </TableCell>
@@ -98,7 +100,7 @@ export default async function CrmLeadsPage() {
           renderMobileCard={(row) => (
             <Link
               href={`/crm/leads/${row.id}`}
-              className="block min-h-11 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4"
+              className={pressableCardLinkClassName}
             >
               <div className="flex items-start justify-between gap-2">
                 <span className="min-w-0 flex-1 truncate text-start font-semibold">{row.title}</span>

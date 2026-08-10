@@ -92,6 +92,14 @@
     "costFamily": "Cost section",
     "category": "Category",
     "status": "Status",
+    "amountTaxMode": "Entered amount",
+    "amountTaxModeHint": "Choose whether the amount includes VAT. The rate comes from the organization’s active tax rule. Actual Cost and profitability use net.",
+    "amountExcludingTax": "Excluding VAT",
+    "amountIncludingTax": "Including VAT",
+    "previewNet": "Net",
+    "previewTax": "VAT",
+    "previewGross": "Total",
+    "previewActualHint": "Actual Cost = net",
     "netAmount": "Net amount",
     "taxAmount": "Tax",
     "paymentMethod": "Payment method",
@@ -215,6 +223,7 @@
     "unallocatedCallout": "No projects selected yet — this overhead will not land on project Actual Cost."
   },
   "errors": {
+    "inclusiveTaxRateRequired": "An applicable percentage tax rule is required when the amount includes VAT.",
     "workPackageRequiresProject": "A work area requires a project.",
     "directFamilyRequiresProject": "Direct project cost requires a project.",
     "overheadFamilyRequiresNoProject": "Business overhead cannot be used on a project expense.",

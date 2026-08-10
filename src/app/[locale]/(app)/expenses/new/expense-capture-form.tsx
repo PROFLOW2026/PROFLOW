@@ -18,6 +18,8 @@ export interface ExpenseCaptureFormProps {
   readonly workPackages: readonly WorkPackageOption[];
   readonly vendors?: readonly VendorOption[];
   readonly initialProjectId?: string;
+  /** Org tax rule rate for live VAT preview — never hardcoded. */
+  readonly taxRatePercent?: string | null;
 }
 
 export function ExpenseCaptureForm({
@@ -27,6 +29,7 @@ export function ExpenseCaptureForm({
   workPackages,
   vendors = [],
   initialProjectId,
+  taxRatePercent = null,
 }: ExpenseCaptureFormProps) {
   const tCommon = useTranslations('common');
   const t = useTranslations('expenses');
@@ -68,11 +71,15 @@ export function ExpenseCaptureForm({
         categories={categories}
         workPackages={workPackages}
         vendors={vendors}
+        taxRatePercent={taxRatePercent}
         initialValues={{
           targeting: initialProjectId ?? '__overhead__',
           projectId: initialProjectId,
+          /** Gross-first capture: invoice totals are typically כולל מע״מ. */
+          amountIncludesTax: true,
         }}
         error={state.error ?? null}
+        fieldErrors={state.fieldErrors}
       />
 
       <Button type="submit" size="lg" loading={pending} className="w-full">

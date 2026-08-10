@@ -15,11 +15,8 @@ import { findProjectById, updateProjectById } from '../data/projects.repository'
 import { resolveDisplayOriginalEntered } from '../domain/entry-baseline';
 import { isOriginalContractAmountLocked } from '../domain/contract-value';
 import { updateProjectSchema, type UpdateProjectInput } from '../validation/schemas';
-import {
-  ORIGINAL_AMOUNT_LOCKED_MESSAGE_KEY,
-  openingReductionInputsDiffer,
-  upsertPrimaryContractAmount,
-} from './contract-amount';
+import { ORIGINAL_AMOUNT_LOCKED_MESSAGE_KEY, openingReductionInputsDiffer, upsertPrimaryContractAmount } from './contract-amount';
+import { resolvePrimaryContactIdForProject } from './assert-project-contact';
 
 function amountsDiffer(
   left: string | null | undefined,
@@ -52,9 +49,24 @@ export async function updateProject(
   if (!existing) throw new NotFoundError('Project');
   assertSameOrganization(context, existing, 'Project');
 
+  const nextClientId = input.clientId !== undefined ? input.clientId : existing.clientId;
+
+  let nextPrimaryContactId: string | null | undefined = undefined;
+  if (input.primaryContactId !== undefined) {
+    nextPrimaryContactId = await resolvePrimaryContactIdForProject(
+      context,
+      nextClientId,
+      input.primaryContactId,
+    );
+  } else if (input.clientId !== undefined && input.clientId !== existing.clientId) {
+    // Client changed without a new contact — clear project contact to satisfy FK/trigger.
+    nextPrimaryContactId = null;
+  }
+
   const updated = await updateProjectById(context.db, context.organizationId, input.projectId, {
     name: input.name,
     clientId: input.clientId,
+    ...(nextPrimaryContactId !== undefined ? { primaryContactId: nextPrimaryContactId } : {}),
     location: input.location,
     description: input.description,
     status: input.status,

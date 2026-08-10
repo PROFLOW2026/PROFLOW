@@ -6,6 +6,8 @@ import {
 } from '@/modules/field-ops';
 import { withOrgContext } from '@/shared/auth/session';
 import { Link } from '@/shared/i18n/navigation';
+import { textNavLinkClassName, textNavLinkMutedClassName } from '@/components/ui/pressable';
+import { cn } from '@/shared/ui/cn';
 
 function inspectionShape(status: InspectionStatus): StatusShape {
   switch (status) {
@@ -44,7 +46,7 @@ export async function ProjectFieldOpsSummaryPanel({ projectId }: { projectId: st
           <li>
             <Link
               href={`/field-ops/logs?projectId=${projectId}`}
-              className="text-[var(--pf-text-secondary)] hover:underline"
+              className={textNavLinkMutedClassName}
             >
               {t('links.logs')}
             </Link>
@@ -52,7 +54,7 @@ export async function ProjectFieldOpsSummaryPanel({ projectId }: { projectId: st
           <li>
             <Link
               href={`/field-ops/punch?projectId=${projectId}`}
-              className="text-[var(--pf-text-secondary)] hover:underline"
+              className={textNavLinkMutedClassName}
             >
               {t('links.punch')}
             </Link>
@@ -60,7 +62,7 @@ export async function ProjectFieldOpsSummaryPanel({ projectId }: { projectId: st
           <li>
             <Link
               href={`/field-ops/inspections?projectId=${projectId}`}
-              className="text-[var(--pf-text-secondary)] hover:underline"
+              className={textNavLinkMutedClassName}
             >
               {t('links.inspections')}
             </Link>
@@ -76,7 +78,7 @@ export async function ProjectFieldOpsSummaryPanel({ projectId }: { projectId: st
           <dd className="mt-1 text-2xl font-semibold tabular-nums">{summary.openPunchCount}</dd>
           <Link
             href={`/field-ops/punch/new?projectId=${projectId}`}
-            className="mt-1 inline-block text-sm hover:underline"
+            className={cn(textNavLinkClassName, 'mt-1 inline-block text-sm')}
           >
             {t('addPunch')}
           </Link>
@@ -90,7 +92,7 @@ export async function ProjectFieldOpsSummaryPanel({ projectId }: { projectId: st
             {summary.latestLog ? (
               <Link
                 href={`/field-ops/logs/${summary.latestLog.id}`}
-                className="hover:underline"
+                className={textNavLinkClassName}
               >
                 <span className="font-medium">
                   {new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(
@@ -107,7 +109,7 @@ export async function ProjectFieldOpsSummaryPanel({ projectId }: { projectId: st
           </dd>
           <Link
             href={`/field-ops/logs/new?projectId=${projectId}`}
-            className="mt-1 inline-block text-sm hover:underline"
+            className={cn(textNavLinkClassName, 'mt-1 inline-block text-sm')}
           >
             {t('addLog')}
           </Link>
@@ -126,7 +128,7 @@ export async function ProjectFieldOpsSummaryPanel({ projectId }: { projectId: st
               <li key={item.id} className="flex flex-wrap items-center justify-between gap-2 text-sm">
                 <Link
                   href={`/field-ops/inspections/${item.id}`}
-                  className="font-medium hover:underline"
+                  className={cn(textNavLinkClassName, 'font-medium')}
                 >
                   {item.title}
                 </Link>
@@ -143,7 +145,7 @@ export async function ProjectFieldOpsSummaryPanel({ projectId }: { projectId: st
         )}
         <Link
           href={`/field-ops/inspections/new?projectId=${projectId}`}
-          className="mt-2 inline-block text-sm hover:underline"
+          className={cn(textNavLinkClassName, 'mt-2 inline-block text-sm')}
         >
           {t('addInspection')}
         </Link>

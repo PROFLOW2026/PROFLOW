@@ -6,7 +6,15 @@ import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { timeEntryPayloadFromFormData } from '@/modules/offline/domain/payloads';
 import { useOfflineAwareFormAction } from '@/modules/offline/ui/use-offline-aware-form-action';
@@ -16,6 +24,7 @@ import type { createTimeEntryAction, TimeEntryFormState } from '@/app/[locale]/(
 export interface TimeEntryFormOption {
   readonly id: string;
   readonly name: string;
+  readonly assignedToProject?: boolean;
 }
 
 export interface TimeEntryFormProps {
@@ -25,6 +34,7 @@ export interface TimeEntryFormProps {
   readonly defaultEmployeeId: string | null;
   readonly defaultDate: string;
   readonly recentProjectId: string | null;
+  readonly assignedEmployeeIds?: readonly string[];
 }
 
 export function TimeEntryForm({
@@ -34,6 +44,7 @@ export function TimeEntryForm({
   defaultEmployeeId,
   defaultDate,
   recentProjectId,
+  assignedEmployeeIds = [],
 }: TimeEntryFormProps) {
   const t = useTranslations('workforce');
   const tCommon = useTranslations('common');
@@ -63,6 +74,23 @@ export function TimeEntryForm({
     });
   }, [projects, recentProjectId]);
 
+  const assignedSet = useMemo(() => new Set(assignedEmployeeIds), [assignedEmployeeIds]);
+  const teamEmployees = useMemo(
+    () =>
+      employees.filter(
+        (employee) => employee.assignedToProject === true || assignedSet.has(employee.id),
+      ),
+    [employees, assignedSet],
+  );
+  const otherEmployees = useMemo(
+    () =>
+      employees.filter(
+        (employee) => employee.assignedToProject !== true && !assignedSet.has(employee.id),
+      ),
+    [employees, assignedSet],
+  );
+  const showTeamGroups = teamEmployees.length > 0 && otherEmployees.length > 0;
+
   if (employees.length === 0) {
     return <Alert tone="info">{t('time.form.noEmployees')}</Alert>;
   }
@@ -90,11 +118,32 @@ export function TimeEntryForm({
                 <SelectValue placeholder={t('time.form.employeePlaceholder')} />
               </SelectTrigger>
               <SelectContent>
-                {employees.map((employee) => (
-                  <SelectItem key={employee.id} value={employee.id}>
-                    {employee.name}
-                  </SelectItem>
-                ))}
+                {showTeamGroups ? (
+                  <>
+                    <SelectGroup>
+                      <SelectLabel>{t('time.form.teamEmployees')}</SelectLabel>
+                      {teamEmployees.map((employee) => (
+                        <SelectItem key={employee.id} value={employee.id}>
+                          {employee.name}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                    <SelectGroup>
+                      <SelectLabel>{t('time.form.otherEmployees')}</SelectLabel>
+                      {otherEmployees.map((employee) => (
+                        <SelectItem key={employee.id} value={employee.id}>
+                          {employee.name}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  </>
+                ) : (
+                  employees.map((employee) => (
+                    <SelectItem key={employee.id} value={employee.id}>
+                      {employee.name}
+                    </SelectItem>
+                  ))
+                )}
               </SelectContent>
             </Select>
           </>

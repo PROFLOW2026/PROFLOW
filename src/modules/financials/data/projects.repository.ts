@@ -98,11 +98,12 @@ export async function hasAnyProject(
   organizationId: string,
 ): Promise<boolean> {
   const [row] = await db
-    .select({ count: sql<number>`count(*)::int` })
+    .select({ id: projects.id })
     .from(projects)
-    .where(and(eq(projects.organizationId, organizationId), isNull(projects.archivedAt)));
+    .where(and(eq(projects.organizationId, organizationId), isNull(projects.archivedAt)))
+    .limit(1);
 
-  return (row?.count ?? 0) > 0;
+  return Boolean(row);
 }
 
 export async function findProjectCurrency(

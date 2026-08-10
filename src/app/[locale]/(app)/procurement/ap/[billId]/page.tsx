@@ -13,10 +13,12 @@ import {
   listVendorPaymentsForBill,
   type ApBillStatus,
 } from '@/modules/ap';
+import { VendorBillAllocationPanel } from '@/modules/ap/ui/vendor-bill-allocation-panel';
 import { getEntityDocumentPanelData } from '@/modules/documents';
 import { DocumentAttachments } from '@/modules/documents/ui';
 import { listExpensesForOrg } from '@/modules/expenses';
 import { listPurchaseOrdersForOrg } from '@/modules/procurement';
+import { listProjectsForOrg } from '@/modules/projects';
 import { money } from '@/shared/money/money';
 import { withOrgContext } from '@/shared/auth/session';
 import { Link } from '@/shared/i18n/navigation';
@@ -24,6 +26,7 @@ import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { MatchDecisionButtons, ProposeMatchForm } from './match-actions';
 import { VendorPaymentPanel } from './payment-actions';
+import { textNavLinkMutedClassName } from '@/components/ui/pressable';
 
 export async function generateMetadata({
   params,
@@ -71,7 +74,9 @@ export default async function ApBillDetailPage({
     const canReadPo = hasPermission(context, PERMISSIONS.PROCUREMENT_READ);
     const canReadExpenses = hasPermission(context, PERMISSIONS.EXPENSES_READ);
 
-    const [orders, expensesResult, documentsPanel, payablePosition, paymentRows] =
+    const canReadProjects = hasPermission(context, PERMISSIONS.PROJECTS_READ);
+
+    const [orders, expensesResult, documentsPanel, payablePosition, paymentRows, projects] =
       await Promise.all([
         canReadPo ? listPurchaseOrdersForOrg(context) : Promise.resolve([]),
         canReadExpenses
@@ -80,6 +85,9 @@ export default async function ApBillDetailPage({
         getEntityDocumentPanelData(context, 'ap_bill', billId),
         getBillPayablePosition(context, billId),
         listVendorPaymentsForBill(context, billId).catch(() => []),
+        canReadProjects
+          ? listProjectsForOrg(context, {}).catch(() => [])
+          : Promise.resolve([]),
       ]);
 
     return {
@@ -87,6 +95,7 @@ export default async function ApBillDetailPage({
       canManage,
       documentsPanel,
       payablePosition,
+      projects: projects.map((project) => ({ id: project.id, name: project.name })),
       payments: paymentRows.map((row) => ({
         id: row.payment.id,
         amount: row.payment.amount,
@@ -123,6 +132,7 @@ export default async function ApBillDetailPage({
     documentsPanel,
     payablePosition,
     payments,
+    projects,
   } = data;
 
   return (
@@ -133,7 +143,7 @@ export default async function ApBillDetailPage({
         breadcrumb={
           <Link
             href="/procurement/ap"
-            className="rounded-sm text-sm text-[var(--pf-text-secondary)] hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
+            className={textNavLinkMutedClassName}
           >
             {t('title')}
           </Link>
@@ -258,6 +268,17 @@ export default async function ApBillDetailPage({
           )}
         />
       </section>
+
+      {projects.length > 0 ? (
+        <VendorBillAllocationPanel
+          billId={bill.id}
+          currency={bill.currency}
+          recognizedNet={bill.totalAmount}
+          headerProjectId={bill.projectId}
+          projects={projects}
+          canManage={canManage}
+        />
+      ) : null}
 
       {payablePosition ? (
         <VendorPaymentPanel

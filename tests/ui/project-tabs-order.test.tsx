@@ -3,7 +3,8 @@ import { NextIntlClientProvider } from 'next-intl';
 import type { ReactElement, ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { PROJECT_TAB_PRIORITY } from '@/app/[locale]/(app)/projects/[projectId]/project-tab-order';
-import { ProjectTabsShell } from '@/app/[locale]/(app)/projects/[projectId]/project-tabs-shell';
+import { ProjectTabsEnhancer } from '@/app/[locale]/(app)/projects/[projectId]/project-tabs-enhancer';
+import { ProjectTabsList } from '@/app/[locale]/(app)/projects/[projectId]/project-tabs-list';
 import enCommon from '@/locales/en/common.json';
 import enProjects from '@/locales/en/projects.json';
 import heCommon from '@/locales/he-IL/common.json';
@@ -18,11 +19,59 @@ const navState = vi.hoisted(() => ({
 vi.mock('@/shared/i18n/navigation', () => ({
   usePathname: () => navState.pathname,
   useRouter: () => ({ replace: navState.replace }),
+  Link: ({
+    href,
+    children,
+    ...props
+  }: {
+    href: string;
+    children: ReactNode;
+    [key: string]: unknown;
+  }) => (
+    <a href={href} {...props}>
+      {children}
+    </a>
+  ),
 }));
 
 vi.mock('@/shared/i18n/direction', () => ({
   useLocaleDir: () => navState.dir,
 }));
+
+function tabLabels(locale: 'he-IL' | 'en') {
+  const tabs =
+    locale === 'he-IL' ? heProjects.workspace.tabs : enProjects.workspace.tabs;
+  return tabs;
+}
+
+function Shell({
+  locale,
+  activeTab = 'overview',
+  children,
+}: {
+  locale: 'he-IL' | 'en';
+  activeTab?: 'overview';
+  children: ReactNode;
+}) {
+  return (
+    <div className="min-w-0 max-w-full" dir={navState.dir}>
+      <ProjectTabsList
+        tabs={PROJECT_TAB_PRIORITY}
+        activeTab={activeTab}
+        labels={tabLabels(locale)}
+        projectHref="/projects/proj-1"
+        dir={navState.dir}
+      />
+      <ProjectTabsEnhancer
+        tabs={PROJECT_TAB_PRIORITY}
+        serverActiveTab={activeTab}
+        activeTab={activeTab}
+      >
+        {children}
+      </ProjectTabsEnhancer>
+    </div>
+  );
+}
 
 function renderTabs(locale: 'he-IL' | 'en', ui: ReactElement) {
   const messages =
@@ -50,9 +99,9 @@ describe('ProjectTabsShell encounter order', () => {
     navState.dir = 'rtl';
     renderTabs(
       'he-IL',
-      <ProjectTabsShell tabs={PROJECT_TAB_PRIORITY} activeTab="overview">
+      <Shell locale="he-IL">
         <div>body</div>
-      </ProjectTabsShell>,
+      </Shell>,
     );
 
     const root = screen.getByRole('tablist').parentElement;
@@ -76,9 +125,9 @@ describe('ProjectTabsShell encounter order', () => {
     navState.dir = 'ltr';
     renderTabs(
       'en',
-      <ProjectTabsShell tabs={PROJECT_TAB_PRIORITY} activeTab="overview">
+      <Shell locale="en">
         <div>body</div>
-      </ProjectTabsShell>,
+      </Shell>,
     );
 
     const root = screen.getByRole('tablist').parentElement;

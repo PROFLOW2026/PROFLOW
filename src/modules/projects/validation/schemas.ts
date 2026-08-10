@@ -13,6 +13,13 @@ const emptyToNull = (value: unknown) => {
   return value;
 };
 
+/** Preserve undefined (omit) vs null (clear) for partial updates. */
+const emptyStringOrNullToNull = (value: unknown) => {
+  if (value === undefined) return undefined;
+  if (value === '' || value === null) return null;
+  return value;
+};
+
 const optionalText = z.preprocess(emptyToNull, z.string().trim().max(2000).nullable().optional());
 const optionalDate = z.preprocess(
   emptyToNull,
@@ -85,6 +92,7 @@ export const createProjectSchema = z
   .object({
     name: projectNameSchema,
     clientId: z.preprocess(emptyToNull, z.string().uuid().nullable().optional()),
+    primaryContactId: z.preprocess(emptyToNull, z.string().uuid().nullable().optional()),
     clientName: z.preprocess(emptyToNull, z.string().trim().min(1).max(200).nullable().optional()),
     workKind: z.enum(WORK_KINDS).optional(),
     pricingMode: z.preprocess(emptyToNull, z.enum(PRICING_MODES).nullable().optional()),
@@ -111,6 +119,13 @@ export const createProjectSchema = z
         code: z.ZodIssueCode.custom,
         message: 'Opening reduction requires an original contract amount',
         path: ['openingReductionAmount'],
+      });
+    }
+    if (value.primaryContactId && !value.clientId) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Project contact requires a client',
+        path: ['primaryContactId'],
       });
     }
   });
@@ -194,7 +209,11 @@ export const updateProjectSchema = z
   .object({
     projectId: z.string().uuid(),
     name: projectNameSchema.optional(),
-    clientId: z.preprocess(emptyToNull, z.string().uuid().nullable().optional()),
+    clientId: z.preprocess(emptyStringOrNullToNull, z.string().uuid().nullable().optional()),
+    primaryContactId: z.preprocess(
+      emptyStringOrNullToNull,
+      z.string().uuid().nullable().optional(),
+    ),
     location: z.preprocess(emptyToNull, z.string().trim().max(500).nullable().optional()),
     description: optionalText,
     status: z.enum(PROJECT_STATUSES).optional(),
@@ -226,6 +245,13 @@ export const updateProjectSchema = z
         code: z.ZodIssueCode.custom,
         message: 'Opening reduction requires an original contract amount',
         path: ['openingReductionAmount'],
+      });
+    }
+    if (value.primaryContactId && value.clientId === null) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Project contact requires a client',
+        path: ['primaryContactId'],
       });
     }
   });

@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic';
 import { useTranslations } from 'next-intl';
 import * as React from 'react';
 import { Spinner } from '@/components/ui/spinner';
+import { pressableChromeClassName } from '@/components/ui/pressable';
 import { usePathname } from '@/shared/i18n/navigation';
 import { cn } from '@/shared/ui/cn';
 import {
@@ -88,11 +89,12 @@ export function MobileNav({ items }: { items: NavItem[] }) {
                 aria-controls="pf-mobile-nav-more"
                 data-pf-mobile-nav-more=""
                 className={cn(
+                  pressableChromeClassName,
                   'flex h-[var(--pf-bottomnav-height)] w-full min-w-0 flex-col items-center justify-center gap-1 px-1 text-[0.6875rem] font-medium',
                   'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]',
                   moreOpen
                     ? 'text-[var(--pf-text-brand)]'
-                    : 'text-[var(--pf-text-secondary)] active:text-[var(--pf-text-primary)]',
+                    : 'text-[var(--pf-text-secondary)] active:bg-[var(--pf-action-subtle-active)] active:text-[var(--pf-text-primary)]',
                 )}
               >
                 <MoreHorizontal className="size-5 shrink-0" aria-hidden />

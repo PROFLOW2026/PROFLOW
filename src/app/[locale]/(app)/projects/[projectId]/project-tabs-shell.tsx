@@ -1,93 +1,62 @@
-'use client';
-
-import { Loader2 } from 'lucide-react';
-import { useTranslations } from 'next-intl';
 import type { ReactNode } from 'react';
-import { useQueryTabPending } from '@/components/patterns/query-tab-pending';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { usePathname, useRouter } from '@/shared/i18n/navigation';
 import { type ProjectTabKey } from './project-tab-order';
-import { TabPanelSkeleton } from './tab-panel-skeleton';
+import { ProjectTabsEnhancer } from './project-tabs-enhancer';
+import { ProjectTabsList } from './project-tabs-list';
 
 export type { ProjectTabKey } from './project-tab-order';
-
-/** Setup / configuration tabs — visually quieter than day-to-day ops. */
-const SECONDARY_TABS = new Set<ProjectTabKey>(['work', 'details']);
 
 interface ProjectTabsShellProps {
   /** Only the tabs this viewer can actually use, in display order. */
   tabs: readonly ProjectTabKey[];
-  /** Active tab from the server (`?tab=`), so the shell does not need `useSearchParams`. */
-  activeTab: ProjectTabKey;
+  /**
+   * Optional server hint for the active tab. Soft-nav truth still comes from
+   * the URL inside the client enhancer (`?tab=`). Layout defaults to overview
+   * so open-project RSC HTML can ship `aria-selected` without waiting on
+   * client JS.
+   */
+  activeTab?: ProjectTabKey;
+  /** App path for this project (`/projects/{id}`) — real hrefs before hydrate. */
+  projectHref: string;
+  /** Resolved tab labels from the server caller (`getTranslations`). */
+  labels: Readonly<Partial<Record<ProjectTabKey, string>>>;
+  dir: 'rtl' | 'ltr';
   children: ReactNode;
 }
 
 /**
  * Project workspace underline tabs.
  *
- * Soft-nav via `router.replace(?tab=)` — not separate Next routes — with
- * immediate optimistic selection + panel skeleton via `useQueryTabPending`.
+ * Tablist markup is a **Server Component** so soft-nav Flight includes
+ * `role="tab"` + `aria-selected` immediately (open-project ready signal).
+ * A lean client enhancer attaches soft-nav, optimistic pending, and URL sync —
+ * layout still ignores `searchParams` so header chrome survives `?tab=` hops.
  */
-export function ProjectTabsShell({ tabs, activeTab, children }: ProjectTabsShellProps) {
-  const t = useTranslations('projects.workspace.tabs');
-  const tCommon = useTranslations('common');
-  const pathname = usePathname();
-  const router = useRouter();
-  const { displayTab, isPending, navigateTab } = useQueryTabPending(activeTab);
-
-  function onTabChange(value: string) {
-    navigateTab(value, () => {
-      const params = new URLSearchParams();
-      if (value !== 'overview') {
-        params.set('tab', value);
-      }
-      const query = params.toString();
-      router.replace(query ? `${pathname}?${query}` : pathname);
-    });
-  }
+export function ProjectTabsShell({
+  tabs,
+  activeTab,
+  projectHref,
+  labels,
+  dir,
+  children,
+}: ProjectTabsShellProps) {
+  const resolvedActive =
+    activeTab && tabs.includes(activeTab) ? activeTab : (tabs[0] ?? 'overview');
 
   return (
-    <Tabs value={displayTab} onValueChange={onTabChange} className="min-w-0 max-w-full">
-      <TabsList className="min-w-0 max-w-full" aria-busy={isPending || undefined}>
-        {tabs.map((tab) => {
-          const pendingThis = isPending && displayTab === tab;
-          const secondary = SECONDARY_TABS.has(tab);
-          return (
-            <TabsTrigger
-              key={tab}
-              value={tab}
-              disabled={isPending && displayTab !== tab}
-              data-pending={pendingThis ? '' : undefined}
-              className={
-                pendingThis
-                  ? 'opacity-90'
-                  : secondary
-                    ? 'font-normal text-[var(--pf-text-muted)]'
-                    : undefined
-              }
-            >
-              <span className="inline-flex items-center gap-1.5">
-                {pendingThis ? (
-                  <Loader2 className="size-3.5 shrink-0 animate-spin" aria-hidden />
-                ) : null}
-                {t(tab)}
-                {pendingThis ? (
-                  <span className="sr-only">{tCommon('a11y.navigating')}</span>
-                ) : null}
-              </span>
-            </TabsTrigger>
-          );
-        })}
-      </TabsList>
-      <div className="min-w-0 max-w-full" aria-busy={isPending || undefined}>
-        {isPending ? (
-          <div className="pt-4">
-            <TabPanelSkeleton />
-          </div>
-        ) : (
-          children
-        )}
-      </div>
-    </Tabs>
+    <div className="min-w-0 max-w-full" dir={dir}>
+      <ProjectTabsList
+        tabs={tabs}
+        activeTab={resolvedActive}
+        labels={labels}
+        projectHref={projectHref}
+      />
+      <ProjectTabsEnhancer
+        tabs={tabs}
+        serverActiveTab={resolvedActive}
+        activeTab={activeTab && tabs.includes(activeTab) ? activeTab : undefined}
+      >
+        {children}
+      </ProjectTabsEnhancer>
+    </div>
   );
 }

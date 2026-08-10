@@ -1,3 +1,12 @@
+export {
+  assertCanReadBillProjectAllocations,
+  assertCanManageBillProjectAllocations,
+  applyBillProjectAllocations,
+  loadBillProjectAllocationReview,
+  saveBillProjectAllocations,
+} from './application/bill-project-allocations';
+export type { BillProjectAllocationReview } from './application/bill-project-allocations';
+
 /** Public API of the AP / PO matching module (Wave 3). AP bill != Expense. */
 export {
   listApBillsForOrg,
@@ -63,6 +72,17 @@ export type {
 } from './domain/vendor-cost-recognition';
 
 export {
+  AP_BILL_PROJECT_ALLOCATIONS_READY,
+  areApBillProjectAllocationsAvailable,
+  setApBillProjectAllocationsReadyForTests,
+  resolveVendorBillProjectAmounts,
+} from './domain/vendor-bill-project-attribution';
+export type {
+  VendorBillHeaderSlice,
+  VendorBillAllocationSlice,
+} from './domain/vendor-bill-project-attribution';
+
+export {
   AP_PAYMENT_STATUSES,
   AP_PAYABLE_STATUSES,
   AP_PAYMENTS_PERSISTENCE_READY,
@@ -109,6 +129,8 @@ export {
   recordVendorPaymentSchema,
   voidVendorPaymentSchema,
   updateVendorPaymentMetadataSchema,
+  saveBillProjectAllocationsSchema,
+  applyBillProjectAllocationsSchema,
 } from './validation/schemas';
 export type {
   CreateApBillInput,
@@ -117,7 +139,22 @@ export type {
   RecordVendorPaymentInput,
   VoidVendorPaymentInput,
   UpdateVendorPaymentMetadataInput,
+  SaveBillProjectAllocationsInput,
+  ApplyBillProjectAllocationsInput,
 } from './validation/schemas';
+
+export {
+  BILL_ALLOCATION_METHODS,
+  previewBillAllocationStrip,
+  resolveBillAllocationLineAmount,
+  resolveBillProjectAllocationLines,
+} from './domain/bill-project-allocation';
+export type {
+  BillAllocationLineDraft,
+  BillAllocationMethod,
+  BillAllocationPreview,
+  ResolvedBillAllocationLine,
+} from './domain/bill-project-allocation';
 
 /** Cross-module AP rollups (cash flow / committed payable). AP bill ≠ Expense. */
 export {

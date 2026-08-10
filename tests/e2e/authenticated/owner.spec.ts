@@ -75,12 +75,18 @@ test.describe('signed-in owner', () => {
     const amountFormatted = formatMoney({ amount, currency: 'ILS' }, 'he-IL');
 
     await page.goto(`/he-IL/expenses/new?projectId=${world.projectId}`);
-    await page.getByLabel(he.expenses.fields.amount).fill(amount);
-    await page.getByLabel(he.expenses.fields.description).fill(description);
+    await page.getByRole('textbox', { name: he.expenses.fields.amount }).fill(amount);
+    // Prefer role+name: getByLabel can strict-fail when SSR+client Field ids both remain briefly.
+    const descriptionField = page.locator('form').getByRole('textbox', {
+      name: he.expenses.fields.description,
+    });
+    await descriptionField.fill(description);
     await page.getByRole('button', { name: he.expenses.actions.saveDraft }).click();
 
     await expect(page).toHaveURL(new RegExp(`/he-IL/expenses/[0-9a-f-]+$`), { timeout: 30_000 });
-    await expect(page.getByLabel(he.expenses.fields.description)).toHaveValue(description);
+    await expect(
+      page.locator('form').getByRole('textbox', { name: he.expenses.fields.description }),
+    ).toHaveValue(description);
     await expect(page.getByText(amountFormatted).first()).toBeVisible();
 
     await page.goto(`/he-IL/projects/${world.projectId}`);

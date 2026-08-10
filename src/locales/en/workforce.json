@@ -1,6 +1,6 @@
 {
   "title": "Workforce",
-  "description": "Track employees, cost rates, and time when you choose employee-level labor costing.",
+  "description": "Employees, rates, and time — add people under Employees, then assign them to a project team or log time.",
   "nav": {
     "employees": "Employees",
     "time": "Time entries"
@@ -16,30 +16,36 @@
   },
   "employees": {
     "new": "New employee",
-    "newDescription": "Add a worker with a name, employment style, and base rate. Everything else is optional.",
+    "newDescription": "Name and role first. Add compensation under Advanced when you know cost — rates alone do not create project labor Actual.",
     "noRate": "No rate",
     "columns": {
       "name": "Name",
-      "employmentStyle": "Employment style",
+      "employmentStyle": "How rate is expressed",
       "currentRate": "Current rate",
       "status": "Status"
     },
     "empty": {
       "title": "No employees yet",
-      "description": "When you add employees, you can log hours against projects and see true labor cost on each job.",
-      "action": "Add employee"
+      "description": "Path: Employees → New employee. After creating people, assign them here or on a project (Team → Add employee), or log time.",
+      "action": "New employee"
     },
     "form": {
       "name": "Name",
-      "employmentStyle": "Employment style",
+      "employmentStyle": "How rate is expressed",
+      "employmentStyleHint": "Hourly, daily, or monthly — only needed if you enter a rate.",
       "baseRate": "Base rate",
+      "baseRateHint": "Optional. Labor Actual on a project only appears after time is logged. You can save with no salary.",
       "burdenPercent": "Employer burden %",
-      "burdenHint": "Loaded cost on top of the base rate, e.g. taxes and benefits.",
-      "jobTitle": "Job title",
+      "burdenHint": "Loaded cost on top of the base rate, e.g. taxes and benefits. Not net salary / payroll.",
+      "jobTitle": "Role / title",
+      "jobTitleHint": "What they do — e.g. site manager, electrician, admin.",
       "email": "Email",
       "phone": "Phone",
       "notes": "Notes",
-      "submit": "Save employee"
+      "submit": "Save employee",
+      "advancedTitle": "Advanced (optional)",
+      "advancedHint": "Compensation and contact details. Skip forever if you only need names for time logging.",
+      "assignmentHintMuted": "Assign later from this employee or Project → Team. Assignment ≠ labor Actual."
     },
     "detail": {
       "title": "Employee",
@@ -50,7 +56,23 @@
       "rateFrom": "Effective from",
       "rateTo": "Effective to",
       "openEnded": "Open-ended",
-      "noRateHistory": "No rate versions recorded yet."
+      "noRateHistory": "No rate versions recorded yet.",
+      "compensationAdvanced": "Compensation (advanced)"
+    },
+    "projects": {
+      "title": "Assignments",
+      "description": "Projects this person is assigned to. Hours below are from time entries only — assignment itself is not a cost.",
+      "logTime": "Log time",
+      "assign": "Add assignment",
+      "assignSave": "Save assignment",
+      "assignSuccess": "Assigned. No labor Actual was created.",
+      "empty": "Not assigned to any project yet. Use Add assignment, or open a project → Team → Add employee.",
+      "noProjects": "No available projects, or this person is already on every active project.",
+      "hoursSummary": "{hours} h · {count, plural, one {# entry} other {# entries}}",
+      "assignedNoHours": "Assigned · no hours logged yet",
+      "assignmentNote": "Assignment ≠ labor Actual.",
+      "showHistory": "Show history",
+      "hideHistory": "Hide history"
     }
   },
   "time": {
@@ -59,6 +81,7 @@
     "new": "Log time",
     "quickLog": "Quick time log",
     "quickLogDescription": "Log hours in a few taps — employee, date, hours, and project.",
+    "quickLogProjectDescription": "Log hours on this project. Team members appear first; you can still pick any org employee. Hours create labor Actual when a rate applies — team assignment alone does not.",
     "hoursAbbrev": "h",
     "nonProject": "Non-project",
     "unknownProject": "Unknown project",
@@ -78,23 +101,89 @@
     "form": {
       "employee": "Employee",
       "employeePlaceholder": "Choose employee",
+      "teamEmployees": "Project team",
+      "otherEmployees": "Other employees",
       "date": "Date",
       "hours": "Hours",
       "project": "Project",
       "projectPlaceholder": "Choose project",
       "notes": "Notes",
       "submit": "Save time entry",
-      "noEmployees": "Add an employee before logging time."
+      "noEmployees": "Add an employee first (Employees → New employee), then come back to log time."
     }
   },
   "projectPanel": {
     "title": "Time on this project",
     "summary": "{hours} hours across {count, plural, one {# entry} other {# entries}}",
     "logTime": "Log time",
-    "viewAll": "View all time entries"
+    "viewAll": "View all time entries",
+    "teamTitle": "Team",
+    "teamDescription": "Current assignments with dates. Adding someone does not create labor cost — Actual only comes from logged time.",
+    "teamEmpty": "No one assigned yet. Use Add employee to put someone on this team.",
+    "addEmployee": "Add employee",
+    "addSuccess": "Employee added to the team. No labor Actual was created.",
+    "newEmployee": "New employee",
+    "endAssignment": "End assignment",
+    "endAssignmentTitle": "End assignment?",
+    "endAssignmentDescription": "End {name}'s assignment on this project. Historical time entries stay; this does not change Actual cost.",
+    "endAssignmentSuccess": "Assignment ended.",
+    "startDate": "From",
+    "startDateHint": "Defaults to today. Leave as-is for the simple path.",
+    "endDate": "To",
+    "endDateHint": "Empty = ongoing.",
+    "ongoing": "Ongoing",
+    "roleLabel": "Role on project",
+    "rolePlaceholder": "e.g. site lead",
+    "plannedShareLabel": "Planned time share (optional)",
+    "plannedShareHint": "Planning hint only — not cost allocation and not Actual.",
+    "plannedSharePlaceholder": "e.g. 50",
+    "noCandidates": "Every active employee is already on this team, or create a new employee first.",
+    "noHoursYet": "Assigned · no hours logged yet",
+    "memberHours": "{hours} h · {count, plural, one {# entry} other {# entries}}",
+    "assignmentNote": "Assignment ≠ labor Actual.",
+    "showHistory": "Show history",
+    "hideHistory": "Hide history"
+  },
+  "monthReview": {
+    "title": "Monthly employer cost (optional)",
+    "description": "Review estimated vs actual employer cost for a month. Not on daily field nav.",
+    "gateOff": "Persistence is off until Lead enables monthly cost after migration. Preview and draft only — does not claim Actual.",
+    "yearMonth": "Month",
+    "cost": "Cost",
+    "allocated": "Allocated",
+    "unallocated": "Unallocated",
+    "status": "Status",
+    "statuses": {
+      "not_started": "Not started",
+      "partial": "Partial",
+      "balanced": "Balanced",
+      "over": "Over"
+    },
+    "simpleActualLine": "Employer cost this month = {amount} {currency}",
+    "estimated": "Estimated",
+    "estimatedHint": "Optional estimate from compensation / rates.",
+    "actual": "Actual employer cost",
+    "actualHint": "Known employer cost for the month — not net salary / payroll.",
+    "method": "Allocation method",
+    "methodHint": "How to weight projects when splitting known cost. Advanced only.",
+    "methods": {
+      "hours": "By hours",
+      "days": "By days",
+      "percent": "By percent",
+      "fixed_amount": "Fixed amounts"
+    },
+    "allocatedInput": "Allocated to projects",
+    "allocatedInputHint": "Sum already allocated. Remainder stays visible as unallocated.",
+    "saveDraft": "Save draft review",
+    "saveLater": "Save draft (set up later)",
+    "draftSaved": "Draft saved. Actual is unchanged until allocation is applied.",
+    "applyAllocation": "Apply month allocation",
+    "applied": "Month allocation applied. Project labor Actual now uses monthly lines (displacement).",
+    "disclaimer": "Monthly cost recognition is separate from assignment and from time snapshots until applied."
   },
   "errors": {
     "invalidWorkPackage": "The work area does not belong to this project.",
-    "invalidPhase": "The phase does not belong to this project."
+    "invalidPhase": "The phase does not belong to this project.",
+    "duplicateTeamMember": "This employee is already on the project team."
   }
 }

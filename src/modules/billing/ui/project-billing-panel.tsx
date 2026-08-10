@@ -19,6 +19,8 @@ import { Link } from '@/shared/i18n/navigation';
 import { formatBusinessDate } from '@/shared/dates/format';
 import { BillingStatusBadge } from './billing-status-badge';
 import { PaymentHistoryTable } from './payment-history-panel';
+import { pressableCardLinkClassName, textNavLinkClassName } from '@/components/ui/pressable';
+import { cn } from '@/shared/ui/cn';
 
 interface ProjectBillingPanelProps {
   projectId: string;
@@ -149,7 +151,7 @@ export async function ProjectBillingPanel({ projectId }: ProjectBillingPanelProp
                       {records.map((record) => (
                         <TableRow key={record.id}>
                           <TableCell>
-                            <Link href={`/billing/${record.id}`} className="text-[var(--pf-text-brand)]">
+                            <Link href={`/billing/${record.id}`} className={textNavLinkClassName}>
                               <span dir="ltr">{formatBusinessDate(record.issueDate, locale)}</span>
                             </Link>
                           </TableCell>
@@ -175,7 +177,7 @@ export async function ProjectBillingPanel({ projectId }: ProjectBillingPanelProp
               renderMobileCard={(record) => (
                 <Link
                   href={`/billing/${record.id}`}
-                  className="block min-h-11 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4 text-start"
+                  className={cn(pressableCardLinkClassName, 'text-start')}
                 >
                   <div className="flex items-start justify-between gap-2">
                     <span className="min-w-0 flex-1 font-semibold" dir="ltr">

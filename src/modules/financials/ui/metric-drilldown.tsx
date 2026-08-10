@@ -3,6 +3,7 @@
 import { ChevronDown } from 'lucide-react';
 import * as React from 'react';
 import { MoneyText } from '@/components/patterns/money-text';
+import { pressableClassName, textNavLinkClassName } from '@/components/ui/pressable';
 import { Link } from '@/shared/i18n/navigation';
 import { cn } from '@/shared/ui/cn';
 
@@ -61,7 +62,9 @@ export function MetricDrilldown({
             <button
               type="button"
               className={cn(
+                pressableClassName,
                 'inline-flex max-w-full items-start gap-1 rounded text-start',
+                'active:bg-[var(--pf-action-subtle-active)]',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--pf-border-focus)]',
                 muted
                   ? 'text-[var(--pf-text-muted)]'
@@ -154,7 +157,7 @@ export function MetricDrilldown({
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    className="font-medium text-[var(--pf-text-brand)] underline-offset-2 hover:underline"
+                    className={cn(textNavLinkClassName, 'font-medium')}
                   >
                     {link.label}
                   </Link>

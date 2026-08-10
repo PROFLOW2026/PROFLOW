@@ -28,6 +28,7 @@ export {
   aggregateBillingPositionInCurrency,
   computeOutstanding,
   deriveCollectionStatus,
+  matchesListFilter,
   signedBillingAmount,
   sumInvoicedAmounts,
   sumPaidAmounts,

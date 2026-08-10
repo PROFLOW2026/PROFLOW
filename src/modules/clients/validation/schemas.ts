@@ -14,20 +14,56 @@ export const clientNameSchema = z
   .min(1, 'Client name is required')
   .max(200, 'Client name must be at most 200 characters');
 
-export const createClientSchema = z.object({
-  name: clientNameSchema,
-  legalName: optionalText,
-  email: z.preprocess(emptyToNull, z.string().trim().email().nullable().optional()),
-  phone: optionalText,
-  website: optionalText,
-  addressLine1: optionalText,
-  addressLine2: optionalText,
-  city: optionalText,
-  region: optionalText,
-  postalCode: optionalText,
-  countryCode: z.preprocess(emptyToNull, z.string().trim().length(2).nullable().optional()),
-  notes: optionalText,
-});
+export const createClientSchema = z
+  .object({
+    name: clientNameSchema,
+    legalName: optionalText,
+    /** Company switchboard / office phone — not the contact person. */
+    email: z.preprocess(emptyToNull, z.string().trim().email().nullable().optional()),
+    phone: optionalText,
+    website: optionalText,
+    addressLine1: optionalText,
+    addressLine2: optionalText,
+    city: optionalText,
+    region: optionalText,
+    postalCode: optionalText,
+    countryCode: z.preprocess(emptyToNull, z.string().trim().length(2).nullable().optional()),
+    notes: optionalText,
+    /** Primary contact person created in the same flow (optional group). */
+    primaryContactName: z.preprocess(
+      emptyToNull,
+      z.string().trim().min(1).max(120).nullable().optional(),
+    ),
+    primaryContactPhone: optionalText,
+    primaryContactEmail: z.preprocess(
+      emptyToNull,
+      z.string().trim().email().nullable().optional(),
+    ),
+    primaryContactRole: z.enum(CONTACT_ROLES).optional(),
+  })
+  .superRefine((value, ctx) => {
+    const hasContactHint =
+      Boolean(value.primaryContactName) ||
+      Boolean(value.primaryContactPhone) ||
+      Boolean(value.primaryContactEmail);
+
+    if (!hasContactHint) return;
+
+    if (!value.primaryContactName) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['primaryContactName'],
+        message: 'Contact person name is required',
+      });
+    }
+    if (!value.primaryContactPhone) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['primaryContactPhone'],
+        message: 'Contact person phone is required',
+      });
+    }
+  });
 
 export type CreateClientInput = z.input<typeof createClientSchema>;
 
@@ -81,6 +117,10 @@ export const updateContactSchema = z.object({
 });
 
 export const deleteContactSchema = z.object({
+  contactId: z.string().uuid(),
+});
+
+export const markContactPrimarySchema = z.object({
   contactId: z.string().uuid(),
 });
 

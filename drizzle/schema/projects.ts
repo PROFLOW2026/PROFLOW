@@ -2,7 +2,7 @@ import { relations, sql } from 'drizzle-orm';
 import { boolean, char, check, date, index, integer, pgTable, text, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
 import { archivedAt, moneyAmount, percentAmount, primaryId, timestamps } from './_shared';
 import { projectStatusEnum } from './enums';
-import { clients } from './clients';
+import { clientContacts, clients } from './clients';
 import { organizations } from './tenancy';
 
 /**
@@ -54,6 +54,14 @@ export const projects = pgTable(
      */
     pricingMode: text('pricing_mode'),
     clientId: uuid('client_id').references(() => clients.id, { onDelete: 'set null' }),
+    /**
+     * Optional project-specific practical contact (reuses client_contacts).
+     * Does NOT mutate the client-wide primary contact role. DB enforces
+     * same-org + contact.client_id = project.client_id via 0021 trigger.
+     */
+    primaryContactId: uuid('primary_contact_id').references(() => clientContacts.id, {
+      onDelete: 'set null',
+    }),
     /** Falls back to the organization base currency when null. */
     currency: char('currency', { length: 3 }),
     description: text('description'),
@@ -82,6 +90,7 @@ export const projects = pgTable(
     index('projects_org_idx').on(table.organizationId),
     index('projects_org_status_idx').on(table.organizationId, table.status),
     index('projects_client_idx').on(table.clientId),
+    index('projects_primary_contact_idx').on(table.primaryContactId),
     check(
       'projects_progress_percent_range',
       sql`${table.progressPercent} IS NULL OR (${table.progressPercent} >= 0 AND ${table.progressPercent} <= 100)`,
@@ -245,6 +254,10 @@ export const phases = pgTable(
 export const projectsRelations = relations(projects, ({ many, one }) => ({
   organization: one(organizations, { fields: [projects.organizationId], references: [organizations.id] }),
   client: one(clients, { fields: [projects.clientId], references: [clients.id] }),
+  primaryContact: one(clientContacts, {
+    fields: [projects.primaryContactId],
+    references: [clientContacts.id],
+  }),
   workPackages: many(workPackages),
   domains: many(projectDomains),
   phases: many(phases),

@@ -127,7 +127,8 @@ test.describe('Hebrew UI has no English residue on critical routes', () => {
   test('settings profile shows Hebrew headings', async ({ page }) => {
     await page.goto('/he-IL/settings/profile');
     await expect(page.getByRole('heading', { name: he.settings.profile.title, level: 1 })).toBeVisible();
-    await expect(page.getByText(he.settings.profile.language)).toBeVisible();
+    // Prefer role+name: getByLabel can strict-fail when Radix briefly exposes a second unlabeled combobox.
+    await expect(page.getByRole('combobox', { name: he.settings.profile.language })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Sign in' })).toHaveCount(0);
   });
 });

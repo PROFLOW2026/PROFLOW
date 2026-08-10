@@ -8,6 +8,7 @@ import { listProjectsForOrg } from '@/modules/projects';
 import { withOrgContext } from '@/shared/auth/session';
 import { Link } from '@/shared/i18n/navigation';
 import { InspectionCreateForm } from '../inspection-create-form';
+import { textNavLinkMutedClassName } from '@/components/ui/pressable';
 
 export async function generateMetadata({
   params,
@@ -61,7 +62,7 @@ export default async function NewInspectionPage({
         breadcrumb={
           <Link
             href="/field-ops/inspections"
-            className="text-sm text-[var(--pf-text-secondary)] hover:underline"
+            className={textNavLinkMutedClassName}
           >
             {t('nav.inspections')}
           </Link>

@@ -8,6 +8,8 @@ import { Field } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Link } from '@/shared/i18n/navigation';
 import { requestPasswordResetAction, type AuthFormState } from '../actions';
+import { textNavLinkClassName } from '@/components/ui/pressable';
+import { cn } from '@/shared/ui/cn';
 
 export function ForgotPasswordForm() {
   const t = useTranslations('auth.forgotPassword');
@@ -23,7 +25,7 @@ export function ForgotPasswordForm() {
         <p className="text-sm text-[var(--pf-text-secondary)]">
           {t('sentBody', { email: state.email ?? '' })}
         </p>
-        <Link href="/sign-in" className="text-sm font-medium text-[var(--pf-text-brand)] hover:underline">
+        <Link href="/sign-in" className={cn(textNavLinkClassName, 'text-sm font-medium')}>
           {t('backToSignIn')}
         </Link>
       </div>
@@ -47,7 +49,7 @@ export function ForgotPasswordForm() {
         {t('submit')}
       </Button>
 
-      <Link href="/sign-in" className="text-sm text-[var(--pf-text-brand)] hover:underline">
+      <Link href="/sign-in" className={cn(textNavLinkClassName, 'text-sm font-medium')}>
         {t('backToSignIn')}
       </Link>
     </form>

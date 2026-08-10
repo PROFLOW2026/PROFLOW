@@ -6,8 +6,10 @@ import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { pressableClassName } from '@/components/ui/pressable';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { Textarea } from '@/components/ui/textarea';
+import { cn } from '@/shared/ui/cn';
 import type {
   BankAccount,
   BankMatchSuggestion,
@@ -309,10 +311,23 @@ export function BankingReconciliationPanel({
                 {visibleTxns.map((txn) => (
                   <tr
                     key={txn.id}
-                    className={`cursor-pointer border-b border-[var(--pf-border-default)] ${
-                      selectedTxnId === txn.id ? 'bg-[var(--pf-teal-50)]' : ''
-                    }`}
+                    role="button"
+                    tabIndex={0}
+                    className={cn(
+                      'cursor-pointer border-b border-[var(--pf-border-default)]',
+                      pressableClassName,
+                      'active:bg-[var(--pf-action-subtle-active)]',
+                      selectedTxnId === txn.id
+                        ? 'bg-[var(--pf-teal-50)]'
+                        : 'hover:bg-[var(--pf-bg-muted)]/60',
+                    )}
                     onClick={() => onSelectTxn(txn.id)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        onSelectTxn(txn.id);
+                      }
+                    }}
                   >
                     <td className="px-2 py-2 whitespace-nowrap">{txn.date}</td>
                     <td className="px-2 py-2">{txn.description}</td>
@@ -357,11 +372,14 @@ export function BankingReconciliationPanel({
                 <li key={sug.id}>
                   <button
                     type="button"
-                    className={`flex w-full flex-col gap-0.5 rounded-md border px-3 py-2 text-start text-sm ${
+                    className={cn(
+                      pressableClassName,
+                      'flex w-full flex-col gap-0.5 rounded-md border px-3 py-2 text-start text-sm',
+                      'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]',
                       selectedSuggestionId === sug.id
                         ? 'border-[var(--pf-text-brand)] bg-[var(--pf-teal-50)]'
-                        : 'border-[var(--pf-border-default)]'
-                    }`}
+                        : 'border-[var(--pf-border-default)] active:bg-[var(--pf-action-subtle-active)]',
+                    )}
                     onClick={() => setSelectedSuggestionId(sug.id)}
                   >
                     <span className="font-medium">

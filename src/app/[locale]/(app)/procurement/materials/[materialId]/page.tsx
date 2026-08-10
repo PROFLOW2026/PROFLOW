@@ -15,6 +15,7 @@ import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { VendorPriceCreateForm } from './vendor-price-create-form';
 import { VendorPriceDeleteButton } from './vendor-price-delete-button';
+import { textNavLinkMutedClassName } from '@/components/ui/pressable';
 
 export async function generateMetadata({
   params,
@@ -71,7 +72,7 @@ export default async function MaterialDetailPage({
         breadcrumb={
           <Link
             href="/procurement/materials"
-            className="rounded-sm text-sm text-[var(--pf-text-secondary)] hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
+            className={textNavLinkMutedClassName}
           >
             {t('materialsTitle')}
           </Link>

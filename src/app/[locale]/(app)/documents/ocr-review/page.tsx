@@ -9,6 +9,8 @@ import { AuthorizationError } from '@/shared/errors';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { Link, redirect } from '@/shared/i18n/navigation';
+import { textNavLinkClassName } from '@/components/ui/pressable';
+import { cn } from '@/shared/ui/cn';
 
 /**
  * OCR review — gated OFF by default.
@@ -65,7 +67,7 @@ export default async function OcrReviewPage() {
         actions={
           <Link
             href="/documents"
-            className="rounded-sm text-sm font-medium text-[var(--pf-text-brand)] underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
+            className={cn(textNavLinkClassName, 'rounded-sm text-sm font-medium')}
           >
             {t('title')}
           </Link>

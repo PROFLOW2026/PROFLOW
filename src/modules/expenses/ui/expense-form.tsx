@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { ChevronRight } from 'lucide-react';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
@@ -15,6 +15,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { MoneyInput } from '@/components/patterns/money-input';
+import { computeTaxAmountBreakdown } from '@/modules/tax/domain/amounts';
 import type {
   AllocationMethod,
   AllocationScheduleMode,
@@ -28,6 +29,7 @@ import type {
 } from '@/modules/expenses/domain/types';
 import { isWeightAllocationMethod } from '@/modules/expenses/domain/types';
 import { scheduleModeFromCategoryPeriodBehavior } from '@/modules/expenses/domain/allocation-schedule';
+import { formatMoney } from '@/shared/money/format';
 import { rtlFlipClassName } from '@/shared/i18n/ltr-island';
 import { AllocationEditor, type AllocationDraft } from './allocation-editor';
 
@@ -54,6 +56,8 @@ export interface ExpenseFormValues {
   workPackageId: string;
   costFamily: CostFamily | '';
   costCategoryId: string;
+  /** true = כולל מע״מ; false = לא כולל מע״מ */
+  amountIncludesTax: boolean;
   netAmount: string;
   taxAmount: string;
   paymentMethod: string;
@@ -75,6 +79,11 @@ export interface ExpenseFormProps {
   readonly categories: readonly CostCategoryRow[];
   readonly workPackages: readonly WorkPackageOption[];
   readonly vendors?: readonly VendorOption[];
+  /**
+   * Org default percentage tax rate for live נטו / מע״מ / סה״כ preview.
+   * From resolveApplicableDefaultTax — never a hardcoded Israeli rate.
+   */
+  readonly taxRatePercent?: string | null;
   readonly readOnly?: boolean;
   readonly onProjectChange?: (projectId: string) => void;
   readonly error?: string | null;
@@ -90,6 +99,7 @@ export function ExpenseForm({
   categories,
   workPackages,
   vendors = [],
+  taxRatePercent = null,
   readOnly = false,
   onProjectChange,
   error,
@@ -98,6 +108,7 @@ export function ExpenseForm({
 }: ExpenseFormProps) {
   const t = useTranslations('expenses');
   const tCommon = useTranslations('common');
+  const locale = useLocale();
   const [showMore, setShowMore] = React.useState(
     Boolean(
       initialValues?.vendorId ||
@@ -107,7 +118,7 @@ export function ExpenseForm({
     ),
   );
   const [showAdvanced, setShowAdvanced] = React.useState(
-    Boolean(initialValues?.taxAmount),
+    Boolean(initialValues?.taxAmount && initialValues?.netAmount),
   );
 
   const [amount, setAmount] = React.useState(initialValues?.amount ?? '');
@@ -129,6 +140,9 @@ export function ExpenseForm({
   const [workPackageId, setWorkPackageId] = React.useState(initialValues?.workPackageId ?? '');
   const [costFamily, setCostFamily] = React.useState<CostFamily | ''>(initialValues?.costFamily ?? '');
   const [costCategoryId, setCostCategoryId] = React.useState(initialValues?.costCategoryId ?? '');
+  const [includesTax, setIncludesTax] = React.useState(
+    initialValues?.amountIncludesTax ? 'including' : 'excluding',
+  );
   const [netAmount, setNetAmount] = React.useState(initialValues?.netAmount ?? '');
   const [taxAmount, setTaxAmount] = React.useState(initialValues?.taxAmount ?? '');
   const [paymentMethod, setPaymentMethod] = React.useState(initialValues?.paymentMethod ?? '');
@@ -168,6 +182,39 @@ export function ExpenseForm({
   const selectedCategory = costCategoryId
     ? categories.find((category) => category.id === costCategoryId) ?? null
     : null;
+
+  const hasManualTaxOverride = Boolean(netAmount.trim() || taxAmount.trim());
+
+  const taxPreview = React.useMemo(() => {
+    if (hasManualTaxOverride) return null;
+    const entered = amount.trim();
+    if (!entered) return null;
+    try {
+      const amountIncludesTax = includesTax === 'including';
+      const resolved =
+        taxRatePercent && taxRatePercent.trim() !== ''
+          ? ({ method: 'percentage' as const, ratePercent: taxRatePercent })
+          : null;
+      if (amountIncludesTax && !resolved) return null;
+      const breakdown = computeTaxAmountBreakdown({
+        enteredAmount: entered,
+        currency,
+        amountIncludesTax,
+        resolved,
+      });
+      return {
+        net: formatMoney(breakdown.net, locale, { currencyDisplay: 'narrowSymbol' }),
+        tax: formatMoney(breakdown.tax, locale, { currencyDisplay: 'narrowSymbol' }),
+        gross: formatMoney(breakdown.gross, locale, { currencyDisplay: 'narrowSymbol' }),
+        netAmountRaw: breakdown.net.amount,
+      };
+    } catch {
+      return null;
+    }
+  }, [amount, currency, hasManualTaxOverride, includesTax, locale, taxRatePercent]);
+
+  /** Manual allocation lines must sum to NET (Actual Cost basis). */
+  const allocationTotalAmount = taxPreview?.netAmountRaw ?? amount;
 
   function applyCategoryPolicy(category: CostCategoryRow | null | undefined) {
     if (!category) return;
@@ -261,6 +308,62 @@ export function ExpenseForm({
 
         <input type="hidden" name="currency" value={currency} />
         <input type="hidden" name="amount" value={amount} />
+        <input
+          type="hidden"
+          name="amountIncludesTax"
+          value={includesTax === 'including' ? 'true' : 'false'}
+        />
+
+        <Field
+          label={t('fields.amountTaxMode')}
+          error={fieldErrors.amountIncludesTax}
+          description={t('fields.amountTaxModeHint')}
+        >
+          {(controlProps) => (
+            <Select
+              value={includesTax}
+              onValueChange={setIncludesTax}
+              disabled={readOnly || hasManualTaxOverride}
+            >
+              <SelectTrigger {...controlProps}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="excluding">{t('fields.amountExcludingTax')}</SelectItem>
+                <SelectItem value="including">{t('fields.amountIncludingTax')}</SelectItem>
+              </SelectContent>
+            </Select>
+          )}
+        </Field>
+
+        {taxPreview ? (
+          <dl
+            className="grid gap-2 rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-muted)] px-3 py-2 text-sm sm:grid-cols-3"
+            aria-live="polite"
+          >
+            <div>
+              <dt className="text-xs text-[var(--pf-text-muted)]">{t('fields.previewNet')}</dt>
+              <dd className="pf-ltr-island font-medium tabular-nums" dir="ltr">
+                {taxPreview.net}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-xs text-[var(--pf-text-muted)]">{t('fields.previewTax')}</dt>
+              <dd className="pf-ltr-island font-medium tabular-nums" dir="ltr">
+                {taxPreview.tax}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-xs text-[var(--pf-text-muted)]">{t('fields.previewGross')}</dt>
+              <dd className="pf-ltr-island font-medium tabular-nums" dir="ltr">
+                {taxPreview.gross}
+              </dd>
+            </div>
+            <p className="text-xs text-[var(--pf-text-muted)] sm:col-span-3">
+              {t('fields.previewActualHint')}
+            </p>
+          </dl>
+        ) : null}
 
         <Field label={t('fields.description')} optionalLabel={tCommon('labels.optional')}>
           {(controlProps) => (
@@ -655,7 +758,7 @@ export function ExpenseForm({
                 <>
                   <AllocationEditor
                     currency={currency}
-                    totalAmount={amount}
+                    totalAmount={allocationTotalAmount}
                     projects={projects}
                     categories={categories}
                     value={allocations}

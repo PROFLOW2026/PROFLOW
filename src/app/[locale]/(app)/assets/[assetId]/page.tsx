@@ -24,6 +24,7 @@ import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { AssetAssignmentForm, AssetStatusForm } from './asset-manage-forms';
 import { MaintenanceCreateForm, MaintenanceStatusForm } from './maintenance-create-form';
+import { textNavLinkMutedClassName } from '@/components/ui/pressable';
 
 export async function generateMetadata({
   params,
@@ -123,7 +124,7 @@ export default async function AssetDetailPage({
         title={asset.name}
         description={t(`kinds.${asset.assetKind}`)}
         breadcrumb={
-          <Link href="/assets" className="text-sm text-[var(--pf-text-secondary)] hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]">
+          <Link href="/assets" className={textNavLinkMutedClassName}>
             {t('title')}
           </Link>
         }

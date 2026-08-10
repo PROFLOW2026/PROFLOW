@@ -9,7 +9,9 @@ import { Field } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { StatusBadge } from '@/components/ui/status-badge';
+import { pressableClassName } from '@/components/ui/pressable';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { cn } from '@/shared/ui/cn';
 import {
   API_KEY_SCOPES,
   WEBHOOK_EVENT_TYPES,
@@ -96,7 +98,12 @@ export function ApiSettingsPanel({
         <p className="text-sm text-[var(--pf-text-secondary)]">{t('subtitle')}</p>
         <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">{t('versionNote')}</p>
         <details className="mt-2 text-sm text-[var(--pf-text-muted)]">
-          <summary className="cursor-pointer select-none text-[var(--pf-text-secondary)]">
+          <summary
+            className={cn(
+              pressableClassName,
+              'cursor-pointer select-none text-[var(--pf-text-secondary)] active:scale-100 active:opacity-80',
+            )}
+          >
             {t('moreInfo')}
           </summary>
           <p className="mt-2 max-w-2xl leading-relaxed">{t('versionNoteDetails')}</p>

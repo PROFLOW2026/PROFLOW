@@ -4,6 +4,7 @@ import { assertPermission, assertSameOrganization } from '@/shared/permissions/a
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import type { OrgContext } from '@/shared/auth/context';
 import { NotFoundError } from '@/shared/errors';
+import { loadDisplayContactForProject } from '@/modules/clients';
 import {
   computeCurrentContractValue,
   isOriginalContractAmountLocked,
@@ -30,9 +31,23 @@ import {
 } from '../data/work-packages.repository';
 import { fromNumericString, type MoneyValue } from '@/shared/money';
 
+export interface ProjectClientContactSummary {
+  readonly id: string;
+  readonly name: string;
+  readonly phone: string | null;
+  readonly email: string | null;
+  readonly role: string;
+  /** True when sourced from projects.primary_contact_id (not client-wide fallback). */
+  readonly isProjectSpecific: boolean;
+}
+
 export interface ProjectDetail {
   readonly project: ProjectRecord;
   readonly clientName: string | null;
+  /**
+   * Display contact: project primary_contact_id when set, else client practical primary.
+   */
+  readonly clientContact: ProjectClientContactSummary | null;
   readonly domainName: string | null;
   readonly workPackages: readonly WorkPackageRecord[];
   readonly phases: readonly PhaseRecord[];
@@ -45,6 +60,19 @@ export interface ProjectDetail {
   readonly originalContractAmountLocked: boolean;
 }
 
+/** Header / tab chrome — no work-package, phase, or milestone rows. */
+export type ProjectDetailChrome = Omit<
+  ProjectDetail,
+  'workPackages' | 'phases' | 'milestones' | 'showWorkPackages'
+>;
+
+export interface ProjectDetailStructure {
+  readonly workPackages: readonly WorkPackageRecord[];
+  readonly phases: readonly PhaseRecord[];
+  readonly milestones: readonly MilestoneRecord[];
+  readonly activeCount: number;
+}
+
 export interface GetProjectDetailOptions {
   /**
    * When false, skip work-package / phase / milestone rows (empty arrays) and
@@ -54,12 +82,14 @@ export interface GetProjectDetailOptions {
   includeStructure?: boolean;
 }
 
-export async function getProjectDetail(
+/**
+ * Stable project header fields shared by layout chrome and tab panels.
+ * Request-scoped React `cache` in the route layer dedupes layout + page.
+ */
+export async function getProjectDetailChrome(
   context: OrgContext,
   projectId: string,
-  options: GetProjectDetailOptions = {},
-): Promise<ProjectDetail> {
-  const includeStructure = options.includeStructure !== false;
+): Promise<ProjectDetailChrome> {
   assertPermission(context, PERMISSIONS.PROJECTS_READ);
 
   const project = await findProjectById(context.db, context.organizationId, projectId);
@@ -68,13 +98,12 @@ export async function getProjectDetail(
 
   const canReadContracts = context.permissions.has(PERMISSIONS.CONTRACTS_READ);
 
-  // Resolve contract before the parallel batch so value events can run alongside
-  // structure / chrome lookups instead of waiting on them.
+  // Contract first so value events can overlap client / domain lookups.
   const contract = canReadContracts
     ? await findPrimaryContractByProject(context.db, context.organizationId, projectId)
     : null;
 
-  const [clientName, domainName, structure, contractValueEvents] = await Promise.all([
+  const [clientName, clientContact, domainName, contractValueEvents] = await Promise.all([
     project.clientId
       ? context.db
           .select({ name: clients.name })
@@ -83,31 +112,13 @@ export async function getProjectDetail(
           .limit(1)
           .then((rows) => rows[0]?.name ?? null)
       : Promise.resolve(null),
+    resolveDisplayContact(context, project),
     context.db
       .select({ adHocName: projectDomains.adHocName })
       .from(projectDomains)
       .where(eq(projectDomains.projectId, projectId))
       .limit(1)
       .then((rows) => rows[0]?.adHocName ?? null),
-    includeStructure
-      ? Promise.all([
-          listWorkPackagesByProject(context.db, context.organizationId, projectId),
-          listPhasesByProject(context.db, context.organizationId, projectId),
-          listMilestonesByProject(context.db, context.organizationId, projectId),
-        ]).then(([workPackages, phases, milestones]) => ({
-          workPackages,
-          phases,
-          milestones,
-          activeCount: countActiveWorkPackages(workPackages),
-        }))
-      : countActiveWorkPackagesByProject(context.db, context.organizationId, projectId).then(
-          (activeCount) => ({
-            workPackages: [] as WorkPackageRecord[],
-            phases: [] as PhaseRecord[],
-            milestones: [] as MilestoneRecord[],
-            activeCount,
-          }),
-        ),
     contract
       ? listContractValueEvents(context.db, context.organizationId, contract.id)
       : Promise.resolve([] as ContractValueEventRecord[]),
@@ -128,14 +139,109 @@ export async function getProjectDetail(
   return {
     project,
     clientName,
+    clientContact,
     domainName,
-    workPackages: structure.workPackages,
-    phases: structure.phases,
-    milestones: structure.milestones,
-    showWorkPackages: shouldShowWorkPackages(structure.activeCount),
     contract,
     contractValueEvents,
     currentContractValue,
     originalContractAmountLocked,
+  };
+}
+
+export async function getProjectDetailStructure(
+  context: OrgContext,
+  projectId: string,
+): Promise<ProjectDetailStructure> {
+  assertPermission(context, PERMISSIONS.PROJECTS_READ);
+
+  const [workPackages, phases, milestones] = await Promise.all([
+    listWorkPackagesByProject(context.db, context.organizationId, projectId),
+    listPhasesByProject(context.db, context.organizationId, projectId),
+    listMilestonesByProject(context.db, context.organizationId, projectId),
+  ]);
+
+  return {
+    workPackages,
+    phases,
+    milestones,
+    activeCount: countActiveWorkPackages(workPackages),
+  };
+}
+
+export async function countProjectActiveWorkPackages(
+  context: OrgContext,
+  projectId: string,
+): Promise<number> {
+  assertPermission(context, PERMISSIONS.PROJECTS_READ);
+  return countActiveWorkPackagesByProject(context.db, context.organizationId, projectId);
+}
+
+export function assembleProjectDetail(
+  chrome: ProjectDetailChrome,
+  structure: ProjectDetailStructure | null,
+): ProjectDetail {
+  if (structure) {
+    return {
+      ...chrome,
+      workPackages: structure.workPackages,
+      phases: structure.phases,
+      milestones: structure.milestones,
+      showWorkPackages: shouldShowWorkPackages(structure.activeCount),
+    };
+  }
+
+  return {
+    ...chrome,
+    workPackages: [],
+    phases: [],
+    milestones: [],
+    showWorkPackages: false,
+  };
+}
+
+export async function getProjectDetail(
+  context: OrgContext,
+  projectId: string,
+  options: GetProjectDetailOptions = {},
+): Promise<ProjectDetail> {
+  const includeStructure = options.includeStructure !== false;
+  const chrome = await getProjectDetailChrome(context, projectId);
+
+  if (includeStructure) {
+    const structure = await getProjectDetailStructure(context, projectId);
+    return assembleProjectDetail(chrome, structure);
+  }
+
+  const activeCount = await countProjectActiveWorkPackages(context, projectId);
+  return assembleProjectDetail(chrome, {
+    workPackages: [],
+    phases: [],
+    milestones: [],
+    activeCount,
+  });
+}
+
+async function resolveDisplayContact(
+  context: OrgContext,
+  project: ProjectRecord,
+): Promise<ProjectClientContactSummary | null> {
+  if (!project.clientId) return null;
+
+  // PROJECTS_READ already gates chrome; do not require CLIENTS_READ (workers).
+  const contact = await loadDisplayContactForProject(context, {
+    clientId: project.clientId,
+    primaryContactId: project.primaryContactId,
+  });
+  if (!contact) return null;
+
+  return {
+    id: contact.id,
+    name: contact.name,
+    phone: contact.phone,
+    email: contact.email,
+    role: contact.role,
+    isProjectSpecific: Boolean(
+      project.primaryContactId && contact.id === project.primaryContactId,
+    ),
   };
 }

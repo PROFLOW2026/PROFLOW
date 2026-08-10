@@ -106,3 +106,34 @@ export const updateVendorPaymentMetadataSchema = z
   );
 
 export type UpdateVendorPaymentMetadataInput = z.input<typeof updateVendorPaymentMetadataSchema>;
+
+const billAllocationMethodSchema = z.enum([
+  'manual_amount',
+  'manual_percent',
+  'active_days',
+  'equal_split',
+]);
+
+export const billProjectAllocationLineSchema = z.object({
+  projectId: z.string().uuid(),
+  method: billAllocationMethodSchema.default('manual_amount'),
+  amount: moneyString.optional().nullable(),
+  percent: moneyString.optional().nullable(),
+  days: moneyString.optional().nullable(),
+  notes: z.string().trim().max(2000).optional().nullable(),
+});
+
+export const saveBillProjectAllocationsSchema = z.object({
+  apBillId: z.string().uuid(),
+  lines: z.array(billProjectAllocationLineSchema).default([]),
+  /** When true, persist as applied (supersedes prior applied). Default: draft. */
+  apply: z.boolean().optional().default(false),
+});
+
+export type SaveBillProjectAllocationsInput = z.input<typeof saveBillProjectAllocationsSchema>;
+
+export const applyBillProjectAllocationsSchema = z.object({
+  apBillId: z.string().uuid(),
+});
+
+export type ApplyBillProjectAllocationsInput = z.input<typeof applyBillProjectAllocationsSchema>;

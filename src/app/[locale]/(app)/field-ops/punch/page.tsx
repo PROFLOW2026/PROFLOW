@@ -23,6 +23,8 @@ import { PunchListFilters } from '../field-ops-list-filters';
 import { FieldOpsSectionNav } from '../field-ops-section-nav';
 import { PunchPriorityForm } from './punch-priority-form';
 import { PunchStatusForm } from './punch-status-form';
+import { textNavLinkClassName } from '@/components/ui/pressable';
+import { cn } from '@/shared/ui/cn';
 
 export async function generateMetadata({
   params,
@@ -74,11 +76,17 @@ export default async function FieldOpsPunchPage({
   const status = parseStatus(statusParam);
   const priority = parsePriority(priorityParam);
 
-  const { items, projects, canManage } = await withOrgContext(async (context) => ({
-    items: await listPunchListItemsForOrg(context, { projectId, status, priority }),
-    projects: await listProjectsForOrg(context, {}),
-    canManage: hasPermission(context, PERMISSIONS.FIELD_OPS_MANAGE),
-  }));
+  const { items, projects, canManage } = await withOrgContext(async (context) => {
+    const [punchItems, projectRows] = await Promise.all([
+      listPunchListItemsForOrg(context, { projectId, status, priority }),
+      listProjectsForOrg(context, {}),
+    ]);
+    return {
+      items: punchItems,
+      projects: projectRows,
+      canManage: hasPermission(context, PERMISSIONS.FIELD_OPS_MANAGE),
+    };
+  });
 
   const projectName = new Map(projects.map((p) => [p.id, p.name]));
 
@@ -143,7 +151,7 @@ export default async function FieldOpsPunchPage({
                   {items.map((item) => (
                     <TableRow key={item.id}>
                       <TableCell className="font-medium">
-                        <Link href={`/field-ops/punch/${item.id}`} className="hover:underline">
+                        <Link href={`/field-ops/punch/${item.id}`} className={textNavLinkClassName}>
                           {item.title}
                         </Link>
                       </TableCell>
@@ -186,7 +194,7 @@ export default async function FieldOpsPunchPage({
               <div className="flex items-start justify-between gap-2">
                 <Link
                   href={`/field-ops/punch/${item.id}`}
-                  className="min-w-0 flex-1 font-semibold hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
+                  className={cn(textNavLinkClassName, 'min-w-0 flex-1 font-semibold')}
                 >
                   {item.title}
                 </Link>

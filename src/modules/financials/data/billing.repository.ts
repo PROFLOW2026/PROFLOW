@@ -246,7 +246,7 @@ export async function hasAnyBillingUsage(
   organizationId: string,
 ): Promise<boolean> {
   const [row] = await db
-    .select({ count: sql<number>`count(*)::int` })
+    .select({ id: billingRecords.id })
     .from(billingRecords)
     .where(
       and(
@@ -254,9 +254,10 @@ export async function hasAnyBillingUsage(
         isNull(billingRecords.archivedAt),
         sql`${billingRecords.status} <> 'draft'`,
       ),
-    );
+    )
+    .limit(1);
 
-  return (row?.count ?? 0) > 0;
+  return Boolean(row);
 }
 
 export interface CashFlowPaymentRow {

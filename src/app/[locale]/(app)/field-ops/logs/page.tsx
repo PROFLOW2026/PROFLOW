@@ -13,6 +13,8 @@ import { Link } from '@/shared/i18n/navigation';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { FieldOpsSectionNav } from '../field-ops-section-nav';
+import { pressableCardLinkClassName, textNavLinkClassName } from '@/components/ui/pressable';
+import { cn } from '@/shared/ui/cn';
 
 export async function generateMetadata({
   params,
@@ -33,11 +35,17 @@ export default async function FieldOpsLogsPage({
   const locale = await getLocale();
   const { projectId } = await searchParams;
 
-  const { logs, projects, canManage } = await withOrgContext(async (context) => ({
-    logs: await listDailyLogsForOrg(context, projectId),
-    projects: await listProjectsForOrg(context, {}),
-    canManage: hasPermission(context, PERMISSIONS.FIELD_OPS_MANAGE),
-  }));
+  const { logs, projects, canManage } = await withOrgContext(async (context) => {
+    const [logRows, projectRows] = await Promise.all([
+      listDailyLogsForOrg(context, projectId),
+      listProjectsForOrg(context, {}),
+    ]);
+    return {
+      logs: logRows,
+      projects: projectRows,
+      canManage: hasPermission(context, PERMISSIONS.FIELD_OPS_MANAGE),
+    };
+  });
 
   const projectName = new Map(projects.map((p) => [p.id, p.name]));
 
@@ -99,7 +107,7 @@ export default async function FieldOpsLogsPage({
                       <TableCell>
                         <Link
                           href={`/field-ops/logs/${log.id}`}
-                          className="pf-ltr-island hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
+                          className={cn(textNavLinkClassName, 'pf-ltr-island')}
                           dir="ltr"
                         >
                           {new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(
@@ -109,7 +117,7 @@ export default async function FieldOpsLogsPage({
                       </TableCell>
                       <TableCell>{projectName.get(log.projectId) ?? '—'}</TableCell>
                       <TableCell className="max-w-md truncate font-medium">
-                        <Link href={`/field-ops/logs/${log.id}`} className="hover:underline">
+                        <Link href={`/field-ops/logs/${log.id}`} className={textNavLinkClassName}>
                           {log.summary}
                         </Link>
                       </TableCell>
@@ -127,7 +135,7 @@ export default async function FieldOpsLogsPage({
           renderMobileCard={(log) => (
             <Link
               href={`/field-ops/logs/${log.id}`}
-              className="block min-h-11 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
+              className={pressableCardLinkClassName}
             >
               <p className="min-w-0 font-semibold">{log.summary}</p>
               <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">

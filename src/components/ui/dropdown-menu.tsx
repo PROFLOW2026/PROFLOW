@@ -3,6 +3,7 @@
 import * as DropdownMenuPrimitive from '@radix-ui/react-dropdown-menu';
 import { Check, ChevronRight } from 'lucide-react';
 import * as React from 'react';
+import { pressableClassName } from '@/components/ui/pressable';
 import { rtlFlipClassName, useLocaleDir } from '@/shared/i18n/direction';
 import { cn } from '@/shared/ui/cn';
 
@@ -54,11 +55,13 @@ export const DropdownMenuItem = React.forwardRef<
       ref={ref}
       className={cn(
         'flex cursor-default select-none items-center gap-2 rounded-sm px-2 py-2 text-sm outline-none',
+        pressableClassName,
         'data-[highlighted]:bg-[var(--pf-action-subtle-hover)]',
+        'active:bg-[var(--pf-action-subtle-active)]',
         'data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
         '[&_svg]:size-4 [&_svg]:shrink-0 [&_svg]:text-[var(--pf-text-muted)]',
         destructive &&
-          'text-[var(--pf-action-danger)] data-[highlighted]:bg-[var(--pf-status-danger-bg)] [&_svg]:text-[var(--pf-action-danger)]',
+          'text-[var(--pf-action-danger)] data-[highlighted]:bg-[var(--pf-status-danger-bg)] active:bg-[var(--pf-status-danger-border)] [&_svg]:text-[var(--pf-action-danger)]',
         className,
       )}
       {...props}
@@ -75,7 +78,9 @@ export const DropdownMenuCheckboxItem = React.forwardRef<
       ref={ref}
       className={cn(
         'relative flex cursor-default select-none items-center gap-2 rounded-sm py-2 pe-2 ps-8 text-sm outline-none',
+        pressableClassName,
         'data-[highlighted]:bg-[var(--pf-action-subtle-hover)]',
+        'active:bg-[var(--pf-action-subtle-active)]',
         className,
       )}
       {...props}
@@ -99,7 +104,9 @@ export const DropdownMenuRadioItem = React.forwardRef<
       ref={ref}
       className={cn(
         'relative flex cursor-default select-none items-center gap-2 rounded-sm py-2 pe-2 ps-8 text-sm outline-none',
+        pressableClassName,
         'data-[highlighted]:bg-[var(--pf-action-subtle-hover)]',
+        'active:bg-[var(--pf-action-subtle-active)]',
         className,
       )}
       {...props}
@@ -147,7 +154,9 @@ export const DropdownMenuSubTrigger = React.forwardRef<
       ref={ref}
       className={cn(
         'flex cursor-default select-none items-center gap-2 rounded-sm px-2 py-2 text-sm outline-none',
+        pressableClassName,
         'data-[highlighted]:bg-[var(--pf-action-subtle-hover)] data-[state=open]:bg-[var(--pf-action-subtle-hover)]',
+        'active:bg-[var(--pf-action-subtle-active)]',
         '[&_svg]:size-4 [&_svg]:shrink-0 [&_svg]:text-[var(--pf-text-muted)]',
         className,
       )}

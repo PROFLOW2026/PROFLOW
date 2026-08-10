@@ -10,6 +10,7 @@ import { WorkKindFilterChrome } from '@/modules/financials/ui/work-kind-filter-c
 import { PwaInstallCta } from '@/modules/offline/ui/pwa-install-cta';
 import { getSessionState, getShellContext, withOrgContext } from '@/shared/auth/session';
 import { redirect } from '@/shared/i18n/navigation';
+import { WithClientMessages } from '@/shared/i18n/with-client-messages';
 import { DashboardSkeleton } from './(app)/(home)/dashboard-skeleton';
 
 export async function generateMetadata({
@@ -70,19 +71,25 @@ export default async function LocaleRootPage({
   params: Promise<{ locale: string }>;
   searchParams: Promise<{ workKind?: string }>;
 }) {
-  const { locale } = await params;
-  const query = await searchParams;
+  const [{ locale }, query, session] = await Promise.all([
+    params,
+    searchParams,
+    getSessionState(),
+  ]);
   setRequestLocale(locale);
-
-  const session = await getSessionState();
 
   if (session.status === 'unconfigured') {
     redirect({ href: '/setup', locale });
   }
 
   if (session.status === 'anonymous') {
-    return <PublicHomepage />;
+    return (
+      <WithClientMessages extra={['marketing']}>
+        <PublicHomepage />
+      </WithClientMessages>
+    );
   }
+
 
   if (!session.activeOrganizationId) {
     redirect({ href: '/onboarding', locale });

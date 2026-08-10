@@ -2,11 +2,20 @@
 export { createClient } from './application/create-client';
 export { updateClient } from './application/update-client';
 export { archiveClient } from './application/archive-client';
-export { listClientsForOrg, getClientById } from './application/list-clients';
+export {
+  listClientsForOrg,
+  getClientById,
+  listContactsForClient,
+  listContactsForClients,
+  getPracticalContactForClient,
+  getClientContactById,
+  loadDisplayContactForProject,
+} from './application/list-clients';
 export {
   createClientContact,
   updateClientContact,
   removeClientContact,
+  markClientContactAsPrimary,
   upsertClientPartyIdentifier,
   removeClientPartyIdentifier,
 } from './application/manage-contacts';
@@ -16,6 +25,11 @@ export {
   CONTACT_ROLES,
   IDENTIFIER_TYPES,
 } from './domain/types';
+export {
+  pickPracticalClientContact,
+  resolveProjectDisplayContact,
+  contactBelongsToClient,
+} from './domain/practical-contact';
 export type {
   ClientStatus,
   ClientRecord,

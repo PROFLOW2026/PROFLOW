@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { getLocale, getTranslations } from 'next-intl/server';
-import { createClient } from '@/modules/clients';
+import { createClient, createClientContact } from '@/modules/clients';
 import {
   applyOrgPhasePack,
   applyOrgProjectTemplate,
@@ -73,24 +73,59 @@ export async function createProjectAction(
   const locale = await getLocale();
 
   const clientMode = String(formData.get('clientMode') ?? 'none');
+  const contactMode = String(formData.get('contactMode') ?? 'none');
   let clientId: string | null = null;
+  let primaryContactId: string | null = null;
 
   try {
     const result = await withOrgContext(async (context) => {
+      const contactName = formValue(formData, 'contactName')?.trim();
+      const contactPhone = formValue(formData, 'contactPhone')?.trim();
+      const contactEmail = formValue(formData, 'contactEmail');
+
       if (clientMode === 'existing') {
         const raw = formData.get('clientId');
         clientId = raw ? String(raw) : null;
       } else if (clientMode === 'new') {
         const clientName = String(formData.get('clientName') ?? '').trim();
         if (clientName) {
+          // New client: first contact may be client-wide primary; also link as project contact.
           const client = await createClient(context, { name: clientName });
           clientId = client.id;
+          if (contactName && contactPhone) {
+            const contact = await createClientContact(context, {
+              clientId,
+              name: contactName,
+              phone: contactPhone,
+              email: contactEmail,
+              role: 'primary',
+            });
+            primaryContactId = contact.id;
+          }
+        }
+      }
+
+      if (clientId && clientMode === 'existing') {
+        if (contactMode === 'new' && contactName && contactPhone) {
+          // Project quick-add must NOT flip client-wide primary role.
+          const contact = await createClientContact(context, {
+            clientId,
+            name: contactName,
+            phone: contactPhone,
+            email: contactEmail,
+            role: 'other',
+          });
+          primaryContactId = contact.id;
+        } else if (contactMode === 'existing') {
+          const contactId = formValue(formData, 'contactId');
+          if (contactId) primaryContactId = contactId;
         }
       }
 
       return createProject(context, {
         name: requiredFormValue(formData, 'name'),
         clientId,
+        primaryContactId,
         contractValueAmount: formValue(formData, 'contractValueAmount'),
         contractValueCurrency: formValue(formData, 'contractValueCurrency'),
         amountIncludesTax: formValue(formData, 'amountIncludesTax'),
@@ -130,10 +165,40 @@ export async function updateProjectAction(
           ? null
           : String(rawClientId);
 
+      const contactMode = String(formData.get('contactMode') ?? 'existing');
+      let primaryContactId: string | null | undefined = undefined;
+
+      if (clientId) {
+        if (contactMode === 'new') {
+          const contactName = formValue(formData, 'contactName')?.trim();
+          const contactPhone = formValue(formData, 'contactPhone')?.trim();
+          const contactEmail = formValue(formData, 'contactEmail');
+          if (contactName && contactPhone) {
+            const contact = await createClientContact(context, {
+              clientId,
+              name: contactName,
+              phone: contactPhone,
+              email: contactEmail,
+              role: 'other',
+            });
+            primaryContactId = contact.id;
+          }
+        } else if (contactMode === 'none') {
+          primaryContactId = null;
+        } else {
+          const rawContactId = formValue(formData, 'primaryContactId');
+          primaryContactId =
+            !rawContactId || rawContactId === 'none' ? null : rawContactId;
+        }
+      } else {
+        primaryContactId = null;
+      }
+
       await updateProject(context, {
         projectId: String(formData.get('projectId')),
         name: formValue(formData, 'name'),
         clientId,
+        primaryContactId,
         status: formValue(formData, 'status') as
           | 'draft'
           | 'active'

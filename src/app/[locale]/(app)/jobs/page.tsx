@@ -6,6 +6,7 @@ import { ResponsiveTable } from '@/components/patterns/responsive-table';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/ui/page-header';
+import { pressableCardLinkClassName, textNavLinkClassName } from '@/components/ui/pressable';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { jobListMissingProfitKind, listJobsForOrg } from '@/modules/projects';
 import {
@@ -17,6 +18,7 @@ import { getShellContext, withOrgContext } from '@/shared/auth/session';
 import { fromNumericString } from '@/shared/money';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { Link } from '@/shared/i18n/navigation';
+import { cn } from '@/shared/ui/cn';
 import { ProjectStatusBadge } from '../projects/project-status-badge';
 import { JobListFilters } from './job-list-filters';
 
@@ -52,11 +54,13 @@ function hasActiveFilters(params: { q?: string; facet: WorkListFacet }): boolean
 }
 
 export default async function JobsPage({ searchParams }: JobsPageProps) {
-  const t = await getTranslations('jobs');
-  const tStatus = await getTranslations('status.project');
-  const tCommon = await getTranslations('common');
-  const params = await searchParams;
-  const shell = await getShellContext();
+  const [t, tStatus, tCommon, params, shell] = await Promise.all([
+    getTranslations('jobs'),
+    getTranslations('status.project'),
+    getTranslations('common'),
+    searchParams,
+    getShellContext(),
+  ]);
   const facet = resolveFacet(params);
   const resolved = resolveWorkListFacet(facet);
 
@@ -164,7 +168,7 @@ export default async function JobsPage({ searchParams }: JobsPageProps) {
                     <TableRow key={job.id}>
                       <TableCell>{job.clientName ?? t('list.columns.noClient')}</TableCell>
                       <TableCell>
-                        <Link href={`/jobs/${job.id}`} className="font-medium hover:underline">
+                        <Link href={`/jobs/${job.id}`} className={cn(textNavLinkClassName, 'font-medium')}>
                           {job.name}
                         </Link>
                       </TableCell>
@@ -223,7 +227,7 @@ export default async function JobsPage({ searchParams }: JobsPageProps) {
             return (
               <Link
                 href={`/jobs/${job.id}`}
-                className="block min-h-11 min-w-0 max-w-full rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
+                className={cn(pressableCardLinkClassName, 'min-w-0 max-w-full')}
               >
                 <div className="flex min-w-0 items-start justify-between gap-2">
                   <span className="min-w-0 flex-1 break-words font-semibold">{job.name}</span>

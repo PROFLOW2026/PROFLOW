@@ -1,12 +1,13 @@
 import type { Metadata, Viewport } from 'next';
 import { hasLocale, NextIntlClientProvider } from 'next-intl';
-import { getTranslations, setRequestLocale } from 'next-intl/server';
+import { getMessages, getTranslations, setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import type { ReactNode } from 'react';
 import { ToastProvider } from '@/components/ui/toast';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { PwaBootstrap } from '@/modules/offline/ui/pwa-bootstrap';
 import { LOCALE_METADATA, type Locale } from '@/shared/i18n/config';
+import { pickClientMessages } from '@/shared/i18n/pick-client-messages';
 import { routing } from '@/shared/i18n/routing';
 import '../globals.css';
 
@@ -61,11 +62,14 @@ export default async function LocaleLayout({
   setRequestLocale(locale);
 
   const metadata = LOCALE_METADATA[locale as Locale];
+  // Server Components still see full catalogs via getRequestConfig.
+  // Client flights only carry the lean app set (~80KB vs ~237KB).
+  const clientMessages = pickClientMessages(await getMessages());
 
   return (
     <html lang={metadata.htmlLang} dir={metadata.dir} suppressHydrationWarning>
       <body className="min-h-dvh bg-page text-content antialiased" dir={metadata.dir}>
-        <NextIntlClientProvider>
+        <NextIntlClientProvider messages={clientMessages}>
           <PwaBootstrap />
           <TooltipProvider delayDuration={200}>
             <ToastProvider>{children}</ToastProvider>

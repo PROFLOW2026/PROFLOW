@@ -1,7 +1,9 @@
 ﻿'use client';
 
 import { useMemo, useState } from 'react';
+import { pressableClassName } from '@/components/ui/pressable';
 import { StatusBadge } from '@/components/ui/status-badge';
+import { cn } from '@/shared/ui/cn';
 import { collectPredecessorChain } from '../domain/dependencies';
 import type {
   CriticalPathFoundation,
@@ -124,9 +126,14 @@ export function ProjectPlanningPanel({
                 return (
                   <tr
                     key={item.id}
-                    className={`border-t border-[var(--pf-border-default)] ${
-                      focusId === item.id ? 'bg-[var(--pf-bg-muted)]' : ''
-                    }`}
+                    className={cn(
+                      'cursor-pointer border-t border-[var(--pf-border-default)]',
+                      pressableClassName,
+                      'active:bg-[var(--pf-action-subtle-active)]',
+                      focusId === item.id
+                        ? 'bg-[var(--pf-bg-muted)]'
+                        : 'hover:bg-[var(--pf-bg-muted)]/60',
+                    )}
                     onClick={() => setFocusId((prev) => (prev === item.id ? null : item.id))}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' || e.key === ' ') {

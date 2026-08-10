@@ -22,28 +22,29 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function BankingSettingsPage() {
-  const t = await getTranslations('banking');
+  const [t, data] = await Promise.all([
+    getTranslations('banking'),
+    withOrgContext(async (context) => {
+      const canRead = hasPermission(context, PERMISSIONS.BANKING_READ);
+      if (!canRead) {
+        return { allowed: false as const };
+      }
+      const [accounts, transactions] = await Promise.all([
+        listBankAccounts(context),
+        listBankTransactions(context, {}),
+      ]);
+      return {
+        allowed: true as const,
+        accounts,
+        transactions,
+        defaultCurrency: context.organization.baseCurrency,
+        canManage: hasPermission(context, PERMISSIONS.BANKING_MANAGE),
+        persistenceReady: areBankingPersistenceAvailable(),
+      };
+    }),
+  ]);
   const title = t('title');
   const description = t('description');
-
-  const data = await withOrgContext(async (context) => {
-    const canRead = hasPermission(context, PERMISSIONS.BANKING_READ);
-    if (!canRead) {
-      return { allowed: false as const };
-    }
-    const [accounts, transactions] = await Promise.all([
-      listBankAccounts(context),
-      listBankTransactions(context, {}),
-    ]);
-    return {
-      allowed: true as const,
-      accounts,
-      transactions,
-      defaultCurrency: context.organization.baseCurrency,
-      canManage: hasPermission(context, PERMISSIONS.BANKING_MANAGE),
-      persistenceReady: areBankingPersistenceAvailable(),
-    };
-  });
 
   if (!data.allowed) {
     return (

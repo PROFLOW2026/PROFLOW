@@ -39,7 +39,9 @@ test.describe('worker permission gating', () => {
   test('blocks direct navigation to forbidden settings sections', async ({ page }) => {
     await page.goto('/he-IL/settings/people');
     await expect(page.getByRole('heading', { name: he.settings.notAllowed.title, level: 3 })).toBeVisible();
-    await expect(page.getByText(he.settings.notAllowed.body)).toBeVisible();
+    await expect(
+      page.getByRole('heading', { name: he.settings.notAllowed.title, level: 3 }).locator('..').getByText(he.settings.notAllowed.body),
+    ).toBeVisible();
     await expect(page.getByText('דנה כהן')).toHaveCount(0);
 
     await page.goto('/he-IL/settings/activity');
@@ -63,7 +65,12 @@ test.describe('worker permission gating', () => {
     await expect(
       page.getByRole('heading', { name: he.billing.notAllowed.title, level: 3 }),
     ).toBeVisible();
-    await expect(page.getByText(he.billing.notAllowed.body)).toBeVisible();
+    await expect(
+      page
+        .getByRole('heading', { name: he.billing.notAllowed.title, level: 3 })
+        .locator('..')
+        .getByText(he.billing.notAllowed.body),
+    ).toBeVisible();
 
     // The refusal is rendered inside the ordinary page frame, so the page title
     // is present by design. Only the absence of billing data proves the gate.

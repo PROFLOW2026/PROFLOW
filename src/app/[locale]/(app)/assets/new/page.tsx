@@ -5,6 +5,7 @@ import { listProjectsForOrg } from '@/modules/projects';
 import { withOrgContext } from '@/shared/auth/session';
 import { Link } from '@/shared/i18n/navigation';
 import { AssetCreateForm } from './asset-create-form';
+import { textNavLinkMutedClassName } from '@/components/ui/pressable';
 
 export async function generateMetadata({
   params,
@@ -33,7 +34,7 @@ export default async function NewAssetPage() {
         title={t('createAsset.title')}
         description={t('createAsset.description')}
         breadcrumb={
-          <Link href="/assets" className="text-sm text-[var(--pf-text-secondary)] hover:underline">
+          <Link href="/assets" className={textNavLinkMutedClassName}>
             {t('title')}
           </Link>
         }

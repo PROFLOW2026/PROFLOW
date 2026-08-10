@@ -13,6 +13,7 @@ import { withOrgContext } from '@/shared/auth/session';
 import { Link } from '@/shared/i18n/navigation';
 import { upsertEntityFieldValueAction } from '../../settings/custom-fields/actions';
 import { VendorContactForm } from './vendor-contact-form';
+import { textNavLinkMutedClassName } from '@/components/ui/pressable';
 
 export async function generateMetadata({
   params,
@@ -75,7 +76,7 @@ export default async function VendorDetailPage({
           </>
         }
         breadcrumb={
-          <Link href="/vendors" className="text-sm text-[var(--pf-text-secondary)] hover:underline">
+          <Link href="/vendors" className={textNavLinkMutedClassName}>
             {t('title')}
           </Link>
         }

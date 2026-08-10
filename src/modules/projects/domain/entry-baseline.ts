@@ -7,7 +7,7 @@ import {
   zeroMoney,
   type MoneyValue,
 } from '@/shared/money';
-import { computeTaxAmountBreakdown } from '@/modules/tax';
+import { computeTaxAmountBreakdown } from '@/modules/tax/domain/amounts';
 import type { ContractRecord } from './types';
 
 type TaxResolved = Parameters<typeof computeTaxAmountBreakdown>[0]['resolved'];

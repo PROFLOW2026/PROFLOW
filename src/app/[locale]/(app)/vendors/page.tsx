@@ -27,6 +27,8 @@ import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 
 import { VendorListFilters } from './vendor-list-filters';
+import { pressableCardLinkClassName, textNavLinkClassName } from '@/components/ui/pressable';
+import { cn } from '@/shared/ui/cn';
 
 
 
@@ -190,7 +192,7 @@ export default async function VendorsPage({
                   {vendors.map((vendor) => (
                     <TableRow key={vendor.id}>
                       <TableCell>
-                        <Link href={`/vendors/${vendor.id}`} className="font-medium hover:underline">
+                        <Link href={`/vendors/${vendor.id}`} className={cn(textNavLinkClassName, 'font-medium')}>
                           {vendor.name}
                         </Link>
                       </TableCell>
@@ -211,7 +213,7 @@ export default async function VendorsPage({
           renderMobileCard={(vendor) => (
             <Link
               href={`/vendors/${vendor.id}`}
-              className="block min-h-11 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4"
+              className={pressableCardLinkClassName}
             >
               <div className="flex items-start justify-between gap-2">
                 <span className="min-w-0 flex-1 truncate text-start font-semibold">{vendor.name}</span>

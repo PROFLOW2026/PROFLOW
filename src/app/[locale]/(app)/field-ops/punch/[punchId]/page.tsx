@@ -18,6 +18,7 @@ import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { PunchPriorityForm } from '../punch-priority-form';
 import { PunchStatusForm } from '../punch-status-form';
+import { textNavLinkClassName, textNavLinkMutedClassName } from '@/components/ui/pressable';
 
 export async function generateMetadata({
   params,
@@ -86,7 +87,7 @@ export default async function PunchDetailPage({
         breadcrumb={
           <Link
             href="/field-ops/punch"
-            className="text-sm text-[var(--pf-text-secondary)] hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
+            className={textNavLinkMutedClassName}
           >
             {tCommon('actions.back')}
           </Link>
@@ -105,7 +106,7 @@ export default async function PunchDetailPage({
         <DetailRow
           label={t('list.columns.project')}
           value={
-            <Link href={`/projects/${item.projectId}`} className="hover:underline">
+            <Link href={`/projects/${item.projectId}`} className={textNavLinkClassName}>
               {projectName ?? t('detail.unknownProject')}
             </Link>
           }

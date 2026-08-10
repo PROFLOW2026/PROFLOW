@@ -3,8 +3,10 @@
 import { useTranslations } from 'next-intl';
 import { MoneyText } from '@/components/patterns/money-text';
 import { ResponsiveTable } from '@/components/patterns/responsive-table';
+import { pressableCardLinkClassName, textNavLinkClassName } from '@/components/ui/pressable';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Link } from '@/shared/i18n/navigation';
+import { cn } from '@/shared/ui/cn';
 import { formatBusinessDate } from '@/shared/dates/format';
 import type { BillingRecordSummary } from '@/modules/billing/domain/types';
 import { BillingStatusBadge } from './billing-status-badge';
@@ -45,7 +47,10 @@ export function BillingListTable({ records, locale }: BillingListTableProps) {
               {records.map((record) => (
                 <TableRow key={record.id}>
                   <TableCell className="max-w-[12rem] truncate">
-                    <Link href={`/billing/${record.id}`} className="font-medium text-[var(--pf-text-brand)]">
+                    <Link
+                      href={`/billing/${record.id}`}
+                      className={cn(textNavLinkClassName, 'font-medium')}
+                    >
                       {record.projectName ?? t('list.unknownProject')}
                     </Link>
                   </TableCell>
@@ -77,7 +82,7 @@ export function BillingListTable({ records, locale }: BillingListTableProps) {
       renderMobileCard={(record) => (
         <Link
           href={`/billing/${record.id}`}
-          className="block min-h-11 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4 text-start"
+          className={cn(pressableCardLinkClassName, 'text-start')}
         >
           <div className="flex items-start justify-between gap-2">
             <span className="min-w-0 flex-1 truncate font-semibold">

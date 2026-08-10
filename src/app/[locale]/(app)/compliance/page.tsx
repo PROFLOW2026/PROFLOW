@@ -23,6 +23,8 @@ import { Link } from '@/shared/i18n/navigation';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { ComplianceListFilters } from './compliance-list-filters';
+import { pressableCardLinkClassName, textNavLinkClassName } from '@/components/ui/pressable';
+import { cn } from '@/shared/ui/cn';
 
 export async function generateMetadata({
   params,
@@ -215,7 +217,7 @@ export default async function CompliancePage({
                       <TableCell>
                         <Link
                           href={`/compliance/${artifact.id}`}
-                          className="font-medium hover:underline"
+                          className={cn(textNavLinkClassName, 'font-medium')}
                         >
                           {artifact.name}
                         </Link>
@@ -258,7 +260,7 @@ export default async function CompliancePage({
           renderMobileCard={(artifact) => (
             <Link
               href={`/compliance/${artifact.id}`}
-              className="block min-h-11 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
+              className={pressableCardLinkClassName}
             >
               <div className="flex items-start justify-between gap-2">
                 <span className="min-w-0 flex-1 font-semibold">{artifact.name}</span>

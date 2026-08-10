@@ -21,6 +21,8 @@ import { Link } from '@/shared/i18n/navigation';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { InventoryMovementForm } from '../inventory-movement-form';
+import { textNavLinkMutedClassName } from '@/components/ui/pressable';
+import { cn } from '@/shared/ui/cn';
 
 export async function generateMetadata({
   params,
@@ -95,7 +97,7 @@ export default async function InventoryItemDetailPage({
         breadcrumb={
           <Link
             href="/assets/inventory"
-            className="rounded-sm text-sm text-[var(--pf-text-secondary)] hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
+            className={textNavLinkMutedClassName}
           >
             {t('inventory.title')}
           </Link>
@@ -146,7 +148,7 @@ export default async function InventoryItemDetailPage({
         <p className="text-sm">
           <Link
             href={`/procurement/materials/${item.materialItemId}`}
-            className="rounded-sm text-[var(--pf-text-secondary)] hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
+            className={cn(textNavLinkMutedClassName, 'rounded-sm')}
           >
             {t('inventory.linkedMaterial')}
           </Link>

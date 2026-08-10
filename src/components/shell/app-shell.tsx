@@ -126,6 +126,9 @@ function buildQuickCreateActions(
   if (modules.vendors && permissions.has(PERMISSIONS.VENDORS_MANAGE)) {
     actions.push({ key: 'vendor', href: '/vendors/new', labelKey: 'vendor' });
   }
+  if (modules.workforce && permissions.has(PERMISSIONS.WORKFORCE_MANAGE)) {
+    actions.push({ key: 'employee', href: '/workforce/employees/new', labelKey: 'employee' });
+  }
   if (modules.workforce && permissions.has(PERMISSIONS.TIME_MANAGE)) {
     actions.push({ key: 'timeEntry', href: '/workforce/time/new', labelKey: 'timeEntry' });
   }

@@ -4,6 +4,7 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { Button } from '@/components/ui/button';
 import { MoneyText } from '@/components/patterns/money-text';
 import { ResponsiveTable } from '@/components/patterns/responsive-table';
+import { pressableCardLinkClassName, textNavLinkClassName } from '@/components/ui/pressable';
 import { StatusBadge } from '@/components/ui/status-badge';
 import {
   Table,
@@ -15,6 +16,7 @@ import {
 } from '@/components/ui/table';
 import { withOrgContext } from '@/shared/auth/session';
 import { Link } from '@/shared/i18n/navigation';
+import { cn } from '@/shared/ui/cn';
 import { formatBusinessDate } from '@/shared/dates/format';
 import { listExpensesForOrg } from '../application/queries';
 import { statusShape } from '../domain/lifecycle';
@@ -81,17 +83,27 @@ export async function ProjectExpensesPanel({ projectId, limit = 10 }: ProjectExp
                 {items.map((expense) => (
                   <TableRow key={expense.id}>
                     <TableCell>
-                      <Link href={`/expenses/${expense.id}`} className="block" dir="ltr">
+                      <Link
+                        href={`/expenses/${expense.id}`}
+                        className={cn(textNavLinkClassName, 'block font-medium')}
+                        dir="ltr"
+                      >
                         {formatBusinessDate(expense.expenseDate, locale, 'short')}
                       </Link>
                     </TableCell>
                     <TableCell className="hidden max-w-[12rem] truncate text-start sm:table-cell">
-                      <Link href={`/expenses/${expense.id}`} className="block">
+                      <Link
+                        href={`/expenses/${expense.id}`}
+                        className={cn(textNavLinkClassName, 'block')}
+                      >
                         {expense.description || expense.supplierName || t('list.noDescription')}
                       </Link>
                     </TableCell>
                     <TableCell numeric>
-                      <Link href={`/expenses/${expense.id}`} className="block">
+                      <Link
+                        href={`/expenses/${expense.id}`}
+                        className={cn(textNavLinkClassName, 'block')}
+                      >
                         <MoneyText value={expense.grossAmount} />
                       </Link>
                     </TableCell>
@@ -110,7 +122,7 @@ export async function ProjectExpensesPanel({ projectId, limit = 10 }: ProjectExp
         renderMobileCard={(expense) => (
           <Link
             href={`/expenses/${expense.id}`}
-            className="block min-h-11 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4 text-start"
+            className={cn(pressableCardLinkClassName, 'text-start')}
           >
             <div className="flex items-start justify-between gap-2">
               <span className="min-w-0 flex-1 font-semibold" dir="ltr">

@@ -10,6 +10,8 @@ import { Link } from '@/shared/i18n/navigation';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { ProspectContactForm } from './prospect-contact-form';
+import { textNavLinkClassName, textNavLinkMutedClassName } from '@/components/ui/pressable';
+import { cn } from '@/shared/ui/cn';
 
 export async function generateMetadata({
   params,
@@ -60,7 +62,7 @@ export default async function ProspectDetailPage({
         breadcrumb={
           <Link
             href="/crm/prospects"
-            className="text-sm text-[var(--pf-text-secondary)] hover:underline"
+            className={textNavLinkMutedClassName}
           >
             {t('nav.prospects')}
           </Link>
@@ -87,7 +89,7 @@ export default async function ProspectDetailPage({
             {prospect.convertedClientId ? (
               <Link
                 href={`/clients/${prospect.convertedClientId}`}
-                className="mt-2 hover:underline"
+                className={cn(textNavLinkClassName, 'mt-2')}
               >
                 {t('opportunity.openClient')}
               </Link>

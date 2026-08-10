@@ -135,6 +135,36 @@
       "paid": "Paid"
     }
   },
+  "allocation": {
+    "title": "Project cost allocation",
+    "subtitle": "Send 100% to one project, or split by amount / % / days. Remainder stays visible as unallocated. Payment is separate.",
+    "gateOff": "Persistence is off until Lead enables ap_bill_project_allocations after migration. Live preview and draft only — does not change Actual yet.",
+    "recognizedNet": "Recognized bill NET",
+    "allocated": "Allocated",
+    "unallocated": "Unallocated vendor cost",
+    "exceedsNet": "Allocated total cannot exceed recognized bill NET.",
+    "mode": "Allocation mode",
+    "modeSingle": "100% one project",
+    "modeSplit": "Split across projects",
+    "lineProject": "Project (line {row})",
+    "amount": "Amount",
+    "percent": "Percent",
+    "days": "Days",
+    "method": "Method",
+    "methods": {
+      "amount": "By amount",
+      "percent": "By percent",
+      "days": "By days"
+    },
+    "addLine": "Add project line",
+    "removeLine": "Remove line",
+    "save": "Save allocation",
+    "saveDraft": "Save draft (set up later)",
+    "draftSaved": "Draft saved. Actual uses applied lines only — drafts do not claim Actual.",
+    "applied": "Allocation applied. Project Actual uses these slices of bill NET.",
+    "apply": "Apply allocation",
+    "paymentNote": "PAYMENT ≠ Actual. Recording a payment does not allocate bill cost."
+  },
   "errors": {
     "targetRequired": "Match requires a purchase order and/or an existing expense.",
     "expenseForbidden": "Accepting a vendor-bill match must not create an expense.",

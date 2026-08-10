@@ -4,6 +4,7 @@ import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { X } from 'lucide-react';
 import * as React from 'react';
 import { useLocaleDir } from '@/shared/i18n/direction';
+import { pressableClassName } from '@/components/ui/pressable';
 import { cn } from '@/shared/ui/cn';
 
 export const Dialog = DialogPrimitive.Root;
@@ -69,7 +70,12 @@ export const DialogContent = React.forwardRef<
       >
         {children}
         <DialogPrimitive.Close
-          className="absolute end-3 top-3 inline-flex min-h-11 min-w-11 items-center justify-center rounded-md text-[var(--pf-text-muted)] transition-colors hover:bg-[var(--pf-bg-muted)] hover:text-[var(--pf-text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
+          className={cn(
+            pressableClassName,
+            'absolute end-3 top-3 inline-flex min-h-11 min-w-11 items-center justify-center rounded-md text-[var(--pf-text-muted)]',
+            'hover:bg-[var(--pf-bg-muted)] hover:text-[var(--pf-text-primary)] active:bg-[var(--pf-action-subtle-active)]',
+            'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]',
+          )}
           aria-label={closeLabel}
         >
           <X className="size-4" aria-hidden />

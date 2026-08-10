@@ -1,4 +1,4 @@
-import { recordAuditEvent } from '@/shared/audit';
+import { AUDIT_ACTIONS, recordAuditEvent } from '@/shared/audit';
 import { NotFoundError, ValidationError } from '@/shared/errors';
 import { assertPermission, assertSameOrganization } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
@@ -11,6 +11,7 @@ import {
   findClientContactById,
   findClientIdentifierById,
   insertClientContact,
+  listClientContacts,
   updateClientContactById,
   upsertClientIdentifier,
 } from '../data/clients.repository';
@@ -18,6 +19,7 @@ import {
   createContactSchema,
   deleteContactSchema,
   deleteIdentifierSchema,
+  markContactPrimarySchema,
   updateContactSchema,
   upsertIdentifierSchema,
 } from '../validation/schemas';
@@ -109,6 +111,63 @@ export async function updateClientContact(
 
   await recordAuditEvent(context, {
     action: 'client_contact.updated',
+    entityType: 'client_contact',
+    entityId: updated.id,
+    before: existing,
+    after: updated,
+  });
+
+  return updated;
+}
+
+/**
+ * Marks one contact as the client's practical primary; demotes other primary roles to other.
+ * Project contact assignment uses projects.primary_contact_id and must NOT call this.
+ */
+export async function markClientContactAsPrimary(
+  context: OrgContext,
+  rawInput: { contactId: string },
+): Promise<ClientContactRecord> {
+  assertPermission(context, PERMISSIONS.CLIENTS_MANAGE);
+
+  const parsed = markContactPrimarySchema.safeParse(rawInput);
+  if (!parsed.success) {
+    throw new ValidationError(
+      parsed.error.issues.map((issue) => ({ path: issue.path.join('.'), message: issue.message })),
+    );
+  }
+
+  const existing = await findClientContactById(
+    context.db,
+    context.organizationId,
+    parsed.data.contactId,
+  );
+  if (!existing) throw new NotFoundError('Contact');
+
+  const siblings = await listClientContacts(
+    context.db,
+    context.organizationId,
+    existing.clientId,
+  );
+
+  for (const sibling of siblings) {
+    if (sibling.id === existing.id) continue;
+    if (sibling.role !== 'primary') continue;
+    await updateClientContactById(context.db, context.organizationId, sibling.id, {
+      role: 'other',
+    });
+  }
+
+  const updated =
+    existing.role === 'primary'
+      ? existing
+      : await updateClientContactById(context.db, context.organizationId, existing.id, {
+          role: 'primary',
+        });
+  if (!updated) throw new NotFoundError('Contact');
+
+  await recordAuditEvent(context, {
+    action: AUDIT_ACTIONS.CLIENT_CONTACT_MARKED_PRIMARY,
     entityType: 'client_contact',
     entityId: updated.id,
     before: existing,

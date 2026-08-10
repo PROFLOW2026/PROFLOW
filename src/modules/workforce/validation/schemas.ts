@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { isBusinessDate } from '@/shared/dates';
+import { MONTHLY_ALLOCATION_METHODS } from '../domain/monthly-cost-gates';
 import { EMPLOYEE_STATUSES, RATE_UNITS, TIME_ENTRY_KINDS } from '../domain/types';
 
 const businessDateSchema = z
@@ -128,3 +129,73 @@ export const timeEntryFiltersSchema = z.object({
 });
 
 export type TimeEntryFiltersInput = z.infer<typeof timeEntryFiltersSchema>;
+
+export const addProjectTeamMemberSchema = z.object({
+  projectId: z.string().uuid(),
+  employeeId: z.string().uuid(),
+  startDate: businessDateSchema.optional(),
+  endDate: businessDateSchema.optional().nullable(),
+  role: z.string().trim().max(200).optional().nullable(),
+  plannedAllocationPercent: percentSchema,
+  notes: z.string().trim().max(2000).optional().nullable(),
+});
+
+export type AddProjectTeamMemberInput = z.infer<typeof addProjectTeamMemberSchema>;
+
+export const removeProjectTeamMemberSchema = z.object({
+  membershipId: z.string().uuid(),
+});
+
+export type RemoveProjectTeamMemberInput = z.infer<typeof removeProjectTeamMemberSchema>;
+
+const yearMonthSchema = z
+  .string()
+  .trim()
+  .regex(/^\d{4}-(0[1-9]|1[0-2])$/, { message: 'Invalid year-month' });
+
+const optionalMoneySchema = z
+  .string()
+  .trim()
+  .regex(/^[+]?\d+(\.\d+)?$/, { message: 'Invalid amount' })
+  .optional()
+  .nullable()
+  .or(z.literal(''));
+
+export const monthlyAllocationLineSchema = z.object({
+  projectId: z.string().uuid(),
+  hours: optionalMoneySchema,
+  days: optionalMoneySchema,
+  percent: optionalMoneySchema,
+  amount: optionalMoneySchema,
+  notes: z.string().trim().max(2000).optional().nullable(),
+});
+
+export const saveMonthlyEmployerCostDraftSchema = z.object({
+  employeeId: z.string().uuid(),
+  yearMonth: yearMonthSchema,
+  estimatedAmount: optionalMoneySchema,
+  actualAmount: optionalMoneySchema,
+  notes: z.string().trim().max(4000).optional().nullable(),
+  method: z.enum(MONTHLY_ALLOCATION_METHODS).optional(),
+  allocationLines: z.array(monthlyAllocationLineSchema).optional(),
+});
+
+export type SaveMonthlyEmployerCostDraftInput = z.infer<typeof saveMonthlyEmployerCostDraftSchema>;
+
+export const applyMonthlyEmployerCostAllocationSchema = z.object({
+  employeeId: z.string().uuid(),
+  yearMonth: yearMonthSchema,
+  /** When omitted, applies the active draft run for the month. */
+  runId: z.string().uuid().optional(),
+});
+
+export type ApplyMonthlyEmployerCostAllocationInput = z.infer<
+  typeof applyMonthlyEmployerCostAllocationSchema
+>;
+
+export const loadMonthlyEmployerCostReviewSchema = z.object({
+  employeeId: z.string().uuid(),
+  yearMonth: yearMonthSchema.optional(),
+});
+
+export type LoadMonthlyEmployerCostReviewInput = z.infer<typeof loadMonthlyEmployerCostReviewSchema>;

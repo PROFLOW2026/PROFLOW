@@ -1,6 +1,6 @@
 import { AUDIT_ACTIONS, recordAuditEvent } from '@/shared/audit';
 import { ValidationError } from '@/shared/errors';
-import { assertPermission } from '@/shared/permissions/assert';
+import { assertAnyPermission, assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import type { OrgContext } from '@/shared/auth/context';
 import {
@@ -29,7 +29,7 @@ export async function getLaborCostDefaults(context: OrgContext): Promise<LaborCo
 export async function getLaborCostDefaultsForApply(
   context: OrgContext,
 ): Promise<LaborCostDefaults> {
-  assertPermission(context, PERMISSIONS.WORKFORCE_MANAGE);
+  assertAnyPermission(context, [PERMISSIONS.WORKFORCE_MANAGE, PERMISSIONS.WORKFORCE_COST_MANAGE]);
   const raw = await getOrganizationSettingValue<unknown>(
     context.db,
     context.organizationId,

@@ -15,6 +15,8 @@ import { Link } from '@/shared/i18n/navigation';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { ProcurementSectionNav } from '../procurement-section-nav';
+import { textNavLinkClassName } from '@/components/ui/pressable';
+import { cn } from '@/shared/ui/cn';
 
 export async function generateMetadata({
   params,
@@ -119,7 +121,7 @@ export default async function ApBillsPage() {
                       <TableCell className="max-w-[12rem] truncate font-medium">
                         <Link
                           href={`/procurement/ap/${bill.id}`}
-                          className="rounded-sm text-[var(--pf-text-brand)] hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
+                          className={cn(textNavLinkClassName, 'rounded-sm')}
                         >
                           {bill.reference?.trim() || t('list.noReference')}
                         </Link>

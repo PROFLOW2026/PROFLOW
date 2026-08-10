@@ -48,6 +48,8 @@ export interface ProjectRecord {
   readonly workKind: WorkKind;
   readonly pricingMode: PricingMode | null;
   readonly clientId: string | null;
+  /** Optional project-specific contact (client_contacts). Does not mutate client-wide primary. */
+  readonly primaryContactId: string | null;
   readonly currency: string | null;
   readonly description: string | null;
   readonly location: string | null;
@@ -205,6 +207,8 @@ export interface ProjectListItem extends ProjectRecord {
   readonly workPackageCount: number;
   readonly currentContractValue: string | null;
   readonly contractCurrency: string | null;
+  /** Manual forecast remaining (jobs list / batch financials). */
+  readonly expectedRemainingCostAmount: string | null;
 }
 
 /** Billing/payment rollup for job list rows (coarse UI status). */

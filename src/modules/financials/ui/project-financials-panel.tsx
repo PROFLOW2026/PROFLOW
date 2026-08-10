@@ -2,7 +2,9 @@ import { getTranslations } from 'next-intl/server';
 import { CoverageDisclosure } from '@/components/patterns/coverage-disclosure';
 import { MoneyText } from '@/components/patterns/money-text';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { pressableClassName } from '@/components/ui/pressable';
 import { Separator } from '@/components/ui/separator';
+import { cn } from '@/shared/ui/cn';
 import { withOrgContext } from '@/shared/auth/session';
 import { negateMoney } from '@/shared/money';
 import { hasPermission } from '@/shared/permissions/assert';
@@ -88,7 +90,12 @@ export async function ProjectFinancialsPanel({ projectId }: ProjectFinancialsPan
       ) : null}
 
       <details className="rounded-lg border border-[var(--pf-border-default)] p-4">
-        <summary className="cursor-pointer text-sm font-medium text-[var(--pf-text-brand)]">
+        <summary
+          className={cn(
+            pressableClassName,
+            'cursor-pointer text-sm font-medium text-[var(--pf-text-brand)] active:scale-100 active:opacity-80',
+          )}
+        >
           {t('moreInfo')}
         </summary>
         <div className="mt-4 flex flex-col gap-4 text-sm">

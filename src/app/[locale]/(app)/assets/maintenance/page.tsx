@@ -13,6 +13,8 @@ import {
 import { withOrgContext } from '@/shared/auth/session';
 import { Link } from '@/shared/i18n/navigation';
 import { AssetsSectionNav } from '../assets-section-nav';
+import { pressableCardLinkClassName, textNavLinkClassName } from '@/components/ui/pressable';
+import { cn } from '@/shared/ui/cn';
 
 export async function generateMetadata({
   params,
@@ -72,7 +74,7 @@ function MaintenanceTable({
               {items.map((row) => (
                 <TableRow key={row.id}>
                   <TableCell>
-                    <Link href={`/assets/${row.assetId}`} className="font-medium hover:underline">
+                    <Link href={`/assets/${row.assetId}`} className={cn(textNavLinkClassName, 'font-medium')}>
                       {row.assetName}
                     </Link>
                   </TableCell>
@@ -110,7 +112,7 @@ function MaintenanceTable({
       renderMobileCard={(row) => (
         <Link
           href={`/assets/${row.assetId}`}
-          className="block min-h-11 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
+          className={pressableCardLinkClassName}
         >
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">

@@ -6,6 +6,7 @@ import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { ExpenseForm } from '@/modules/expenses/ui/expense-form';
 import { decodeRecurrenceRule } from '@/modules/expenses/domain/recurrence';
+import { inferExpenseTaxModeFromAmounts } from '@/modules/expenses/domain/tax';
 import type { CostCategoryRow, ExpenseDetail, ProjectOption, VendorOption, WorkPackageOption } from '@/modules/expenses/domain/types';
 import type { AllocationDraft } from '@/modules/expenses/ui/allocation-editor';
 import { expensePayloadFromFormData } from '@/modules/offline/domain/payloads';
@@ -19,6 +20,7 @@ export interface ExpenseEditFormProps {
   readonly categories: readonly CostCategoryRow[];
   readonly workPackages: readonly WorkPackageOption[];
   readonly vendors?: readonly VendorOption[];
+  readonly taxRatePercent?: string | null;
 }
 
 function toServerUpdatedAt(value: Date | string): string {
@@ -31,6 +33,7 @@ export function ExpenseEditForm({
   categories,
   workPackages,
   vendors = [],
+  taxRatePercent = null,
 }: ExpenseEditFormProps) {
   const t = useTranslations('expenses');
   const tCommon = useTranslations('common');
@@ -60,6 +63,11 @@ export function ExpenseEditForm({
   );
 
   const recurrence = decodeRecurrenceRule(expense.recurrenceRule);
+  const taxMode = inferExpenseTaxModeFromAmounts({
+    netAmount: expense.netAmount.amount,
+    taxAmount: expense.taxAmount?.amount ?? null,
+    grossAmount: expense.grossAmount.amount,
+  });
   const allocations: AllocationDraft[] = expense.allocations.map((line) => ({
     targetType: line.targetType,
     projectId: line.projectId,
@@ -92,8 +100,9 @@ export function ExpenseEditForm({
         categories={categories}
         workPackages={workPackages}
         vendors={vendors}
+        taxRatePercent={taxRatePercent}
         initialValues={{
-          amount: expense.grossAmount.amount.replace(/^-/, ''),
+          amount: taxMode.amount,
           currency: expense.grossAmount.currency,
           description: expense.description ?? '',
           expenseDate: expense.expenseDate,
@@ -104,8 +113,10 @@ export function ExpenseEditForm({
           workPackageId: expense.workPackageId ?? '',
           costFamily: expense.costFamily,
           costCategoryId: expense.costCategoryId ?? '',
-          netAmount: expense.netAmount.amount.replace(/^-/, ''),
-          taxAmount: expense.taxAmount?.amount.replace(/^-/, '') ?? '',
+          amountIncludesTax: taxMode.amountIncludesTax,
+          // Leave advanced overrides empty so re-save uses the tax engine + mode.
+          netAmount: '',
+          taxAmount: '',
           paymentMethod: expense.paymentMethod ?? '',
           notes: expense.notes ?? '',
           recurrenceCadence: recurrence.cadence,
@@ -117,6 +128,7 @@ export function ExpenseEditForm({
           allocationScheduleMode: expense.allocationScheduleMode ?? '',
         }}
         error={state.error ?? null}
+        fieldErrors={state.fieldErrors}
       />
 
       <Button type="submit" loading={pending}>

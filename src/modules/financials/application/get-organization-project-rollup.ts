@@ -14,7 +14,7 @@ import {
   type WorkKind,
   type WorkKindFilter,
 } from '../domain/work-pricing';
-import { listActiveProjectIds } from '../data/projects.repository';
+import type { ProjectExpenseContribution } from '../domain/cost-aggregation';
 import {
   loadProjectFinancialsBatch,
   type ProjectForecastMeta,
@@ -73,6 +73,11 @@ export interface OrganizationProjectRollupOptions {
    * Unallocated org costs are reported beside rollup — not affected by this filter.
    */
   readonly workKindFilter?: WorkKindFilter | string | null;
+  /**
+   * Request-scoped reuse of org expense contributions (dashboard single-load).
+   * When set, batch financials skip a second expense query.
+   */
+  readonly expenseContributions?: readonly ProjectExpenseContribution[];
 }
 
 export interface OrganizationProjectRollup {
@@ -119,22 +124,26 @@ export async function getOrganizationProjectRollup(
   const canCommercial = hasPermission(context, PERMISSIONS.CONTRACTS_READ);
   const workKindFilter = parseWorkKindFilter(options.workKindFilter);
 
-  const [activeIds, projectRows] = await Promise.all([
-    listActiveProjectIds(context.db, context.organizationId),
-    context.db
-      .select({
-        id: projects.id,
-        name: projects.name,
-        status: projects.status,
-        currency: projects.currency,
-        progressPercent: projects.progressPercent,
-        expectedRemainingCostAmount: projects.expectedRemainingCostAmount,
-        workKind: projects.workKind,
-        pricingMode: projects.pricingMode,
-      })
-      .from(projects)
-      .where(and(eq(projects.organizationId, context.organizationId), isNull(projects.archivedAt))),
-  ]);
+  // One active-projects scan (was listActiveProjectIds + all non-archived rows).
+  const projectRows = await context.db
+    .select({
+      id: projects.id,
+      name: projects.name,
+      status: projects.status,
+      currency: projects.currency,
+      progressPercent: projects.progressPercent,
+      expectedRemainingCostAmount: projects.expectedRemainingCostAmount,
+      workKind: projects.workKind,
+      pricingMode: projects.pricingMode,
+    })
+    .from(projects)
+    .where(
+      and(
+        eq(projects.organizationId, context.organizationId),
+        eq(projects.status, 'active'),
+        isNull(projects.archivedAt),
+      ),
+    );
 
   const byId = new Map(projectRows.map((row) => [row.id, row]));
   let excludedForeignCurrencyCount = 0;
@@ -143,16 +152,14 @@ export async function getOrganizationProjectRollup(
 
   const eligibleIds: string[] = [];
   const forecastByProject = new Map<string, ProjectForecastMeta>();
-  for (const projectId of activeIds) {
-    const meta = byId.get(projectId);
-    if (!meta) continue;
+  for (const meta of projectRows) {
     const projectCurrency = (meta.currency ?? currency).toUpperCase();
     if (projectCurrency !== currency.toUpperCase()) {
       excludedForeignCurrencyCount += 1;
       continue;
     }
-    eligibleIds.push(projectId);
-    forecastByProject.set(projectId, {
+    eligibleIds.push(meta.id);
+    forecastByProject.set(meta.id, {
       currency: projectCurrency,
       expectedRemainingCostAmount: meta.expectedRemainingCostAmount,
       workKind: meta.workKind,
@@ -164,6 +171,7 @@ export async function getOrganizationProjectRollup(
     context,
     eligibleIds,
     forecastByProject,
+    { expenseContributions: options.expenseContributions },
   );
 
   const builtRows: ProjectRollupRow[] = [];

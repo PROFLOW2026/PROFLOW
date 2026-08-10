@@ -1,10 +1,11 @@
 import { recordAuditEvent } from '@/shared/audit';
 import { businessDate, todayInTimeZone, type BusinessDate } from '@/shared/dates';
-import { NotFoundError, DomainRuleError } from '@/shared/errors';
+import { NotFoundError, DomainRuleError, ValidationError } from '@/shared/errors';
 import type { OrgContext } from '@/shared/auth/context';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { toNumericString } from '@/shared/money';
+import { resolveApplicableDefaultTax } from '@/modules/tax';
 import { noteModuleUsage } from '@/modules/tenancy';
 import { resolveAllocationLines } from '../domain/allocation';
 import { resolveExpenseCurrency } from '../domain/currency';
@@ -132,7 +133,8 @@ async function validateAllocationReferences(
 async function persistAllocations(
   context: OrgContext,
   expenseId: string,
-  grossAmount: ReturnType<typeof resolveTaxAmounts>['grossAmount'],
+  /** Allocatable total — always NET so Actual Cost stays pre-VAT. */
+  netAmount: ReturnType<typeof resolveTaxAmounts>['netAmount'],
   allocationInputs: readonly AllocationLineInput[] | undefined,
 ): Promise<void> {
   if (!allocationInputs || allocationInputs.length === 0) {
@@ -141,8 +143,8 @@ async function persistAllocations(
   }
 
   await validateAllocationReferences(context, allocationInputs);
-  const resolved = resolveAllocationLines(grossAmount, allocationInputs, {
-    defaultAmountBasis: 'gross',
+  const resolved = resolveAllocationLines(netAmount, allocationInputs, {
+    defaultAmountBasis: 'net',
   });
   await replaceExpenseAllocations(
     context.db,
@@ -194,7 +196,7 @@ async function persistExpenseAllocations(
     return;
   }
 
-  await persistAllocations(context, expenseId, amounts.grossAmount, input.allocations);
+  await persistAllocations(context, expenseId, amounts.netAmount, input.allocations);
 }
 
 async function shouldNoteFirstOverheadUsage(
@@ -247,12 +249,33 @@ export async function buildExpensePayload(
   const costCategoryId = await validateCategory(context, input.costCategoryId);
   const vendorId = await validateVendor(context, input.vendorId);
   const phaseId = await validatePhase(context, input.phaseId, targeting.projectId);
-  const amounts = resolveTaxAmounts({
-    grossAmount: input.amount,
-    netAmount: input.netAmount,
-    taxAmount: input.taxAmount,
-    currency,
-  });
+
+  const taxResolution =
+    input.amountIncludesTax === true || input.amountIncludesTax === false
+      ? await resolveApplicableDefaultTax(context, expenseDate)
+      : null;
+
+  let amounts: ReturnType<typeof resolveTaxAmounts>;
+  try {
+    amounts = resolveTaxAmounts({
+      enteredAmount: input.amount,
+      currency,
+      amountIncludesTax: input.amountIncludesTax,
+      netAmount: input.netAmount,
+      taxAmount: input.taxAmount,
+      resolved: taxResolution?.resolved ?? null,
+    });
+  } catch (error) {
+    if (error instanceof Error && error.message === 'INCLUSIVE_TAX_RATE_REQUIRED') {
+      throw new ValidationError([
+        {
+          path: 'amountIncludesTax',
+          message: 'An applicable percentage tax rule is required when the amount includes tax',
+        },
+      ]);
+    }
+    throw error;
+  }
 
   const recurrenceRule =
     targeting.mode === 'overhead'

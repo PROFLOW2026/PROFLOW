@@ -11,6 +11,7 @@ import { Link } from '@/shared/i18n/navigation';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { DailyLogEditForm } from '../daily-log-edit-form';
+import { textNavLinkClassName, textNavLinkMutedClassName } from '@/components/ui/pressable';
 
 export async function generateMetadata({
   params,
@@ -71,7 +72,7 @@ export default async function DailyLogDetailPage({
         breadcrumb={
           <Link
             href="/field-ops/logs"
-            className="text-sm text-[var(--pf-text-secondary)] hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
+            className={textNavLinkMutedClassName}
           >
             {tCommon('actions.back')}
           </Link>
@@ -80,7 +81,7 @@ export default async function DailyLogDetailPage({
           <div className="flex flex-wrap gap-2 text-sm text-[var(--pf-text-secondary)]">
             <Link
               href={`/projects/${log.projectId}`}
-              className="hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
+              className={textNavLinkClassName}
             >
               {projectName ?? t('detail.unknownProject')}
             </Link>

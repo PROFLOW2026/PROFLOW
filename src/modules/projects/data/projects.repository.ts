@@ -24,6 +24,7 @@ function mapProject(row: typeof projects.$inferSelect): ProjectRecord {
     workKind: (row.workKind as ProjectRecord['workKind']) ?? 'project',
     pricingMode: (row.pricingMode as ProjectRecord['pricingMode']) ?? null,
     clientId: row.clientId,
+    primaryContactId: row.primaryContactId,
     currency: row.currency,
     description: row.description,
     location: row.location,
@@ -68,6 +69,7 @@ export async function insertProject(
     workKind?: ProjectRecord['workKind'];
     pricingMode?: ProjectRecord['pricingMode'];
     clientId?: string | null;
+    primaryContactId?: string | null;
     currency?: string | null;
     description?: string | null;
     location?: string | null;
@@ -88,6 +90,7 @@ export async function insertProject(
       workKind: input.workKind ?? 'project',
       pricingMode: input.pricingMode ?? null,
       clientId: input.clientId ?? null,
+      primaryContactId: input.primaryContactId ?? null,
       currency: input.currency ?? null,
       description: input.description ?? null,
       location: input.location ?? null,
@@ -113,6 +116,7 @@ export async function updateProjectById(
     workKind: ProjectRecord['workKind'];
     pricingMode: ProjectRecord['pricingMode'];
     clientId: string | null;
+    primaryContactId: string | null;
     currency: string | null;
     description: string | null;
     location: string | null;
@@ -255,6 +259,7 @@ export async function listProjects(
     workPackageCount: row.workPackageCount,
     currentContractValue: row.currentContractValue,
     contractCurrency: row.contractCurrency ?? row.project.currency,
+    expectedRemainingCostAmount: row.project.expectedRemainingCostAmount,
   }));
 }
 

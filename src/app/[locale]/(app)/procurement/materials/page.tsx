@@ -15,6 +15,8 @@ import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { ProcurementSectionNav } from '../procurement-section-nav';
 import { MaterialCreateForm } from './material-create-form';
+import { pressableCardLinkClassName, textNavLinkClassName } from '@/components/ui/pressable';
+import { cn } from '@/shared/ui/cn';
 
 /**
  * UX: materials catalog + vendor prices stay under /procurement/materials.
@@ -82,7 +84,7 @@ export default async function MaterialsCatalogPage() {
                       <TableCell className="max-w-[14rem] truncate font-medium">
                         <Link
                           href={`/procurement/materials/${item.id}`}
-                          className="rounded-sm hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
+                          className={cn(textNavLinkClassName, 'rounded-sm')}
                         >
                           {item.name}
                         </Link>
@@ -117,7 +119,7 @@ export default async function MaterialsCatalogPage() {
           renderMobileCard={(item) => (
             <Link
               href={`/procurement/materials/${item.id}`}
-              className="block min-h-11 min-w-0 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
+              className={cn(pressableCardLinkClassName, 'min-w-0')}
             >
               <p className="break-words font-semibold">{item.name}</p>
               <p className="mt-1 break-words text-sm text-[var(--pf-text-secondary)]">

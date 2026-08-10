@@ -1,6 +1,8 @@
 import { getTranslations } from 'next-intl/server';
 import type { ScheduleSummary } from '@/modules/projects';
 import { Link } from '@/shared/i18n/navigation';
+import { textNavLinkClassName } from '@/components/ui/pressable';
+import { cn } from '@/shared/ui/cn';
 
 interface ScheduleSummaryPanelProps {
   summary: ScheduleSummary;
@@ -26,7 +28,7 @@ export async function ScheduleSummaryPanel({ summary, projectId }: ScheduleSumma
         <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">{t('empty')}</p>
         <Link
           href={`/projects/${projectId}?tab=details`}
-          className="mt-2 inline-block text-sm hover:underline"
+          className={cn(textNavLinkClassName, 'mt-2 inline-block text-sm')}
         >
           {t('addDates')}
         </Link>

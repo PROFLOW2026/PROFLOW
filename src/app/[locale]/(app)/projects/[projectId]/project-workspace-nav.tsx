@@ -1,6 +1,6 @@
 import { getTranslations } from 'next-intl/server';
 import type { ProjectWorkspaceLink } from '@/modules/projects';
-import { Link } from '@/shared/i18n/navigation';
+import { SectionNavLink } from '@/components/ui/section-nav-link';
 
 interface ProjectWorkspaceNavProps {
   links: readonly ProjectWorkspaceLink[];
@@ -22,12 +22,12 @@ export async function ProjectWorkspaceNav({ links }: ProjectWorkspaceNavProps) {
       <ul className="mt-3 flex flex-wrap gap-2">
         {links.map((link) => (
           <li key={link.key}>
-            <Link
+            <SectionNavLink
               href={link.href}
-              className="inline-flex rounded-md border border-[var(--pf-border-default)] px-3 py-1.5 text-sm hover:bg-[var(--pf-bg-muted)]"
+              className="border border-[var(--pf-border-default)]"
             >
               {t(link.key)}
-            </Link>
+            </SectionNavLink>
           </li>
         ))}
       </ul>

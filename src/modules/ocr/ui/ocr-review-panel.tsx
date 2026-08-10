@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { pressableClassName } from '@/components/ui/pressable';
 import { StatusBadge } from '@/components/ui/status-badge';
 import {
   confirmOcrCandidateAction,
@@ -25,6 +26,7 @@ import type {
 } from '@/modules/ocr/domain/types';
 import { OCR_CANDIDATE_FIELD_KEYS } from '@/modules/ocr/domain/types';
 import { money } from '@/shared/money/money';
+import { cn } from '@/shared/ui/cn';
 
 function provenanceSourceLabelKey(source: OcrFieldSource): 'ocr' | 'manual' | 'sample' {
   if (source === 'user_override') return 'manual';
@@ -295,7 +297,12 @@ export function OcrReviewPanel({
         ) : null}
         {canManageDocuments && liveExtract ? (
           <>
-            <Label className="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-md border border-[var(--pf-border-default)] px-3 text-sm">
+            <Label
+              className={cn(
+                pressableClassName,
+                'inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-md border border-[var(--pf-border-default)] px-3 text-sm active:bg-[var(--pf-action-subtle-active)]',
+              )}
+            >
               <span>{t('extractCapture')}</span>
               <input
                 type="file"
@@ -309,7 +316,12 @@ export function OcrReviewPanel({
                 }}
               />
             </Label>
-            <Label className="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-md border border-[var(--pf-border-default)] px-3 text-sm">
+            <Label
+              className={cn(
+                pressableClassName,
+                'inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-md border border-[var(--pf-border-default)] px-3 text-sm active:bg-[var(--pf-action-subtle-active)]',
+              )}
+            >
               <span>{t('extractImage')}</span>
               <input
                 type="file"
@@ -337,7 +349,12 @@ export function OcrReviewPanel({
                   type="button"
                   role="option"
                   aria-selected={job.id === selectedId}
-                  className="flex w-full min-h-11 items-center justify-between gap-2 rounded-md border border-[var(--pf-border-default)] px-3 py-2 text-start text-sm hover:bg-[var(--pf-bg-muted)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
+                  className={cn(
+                    pressableClassName,
+                    'flex w-full min-h-11 items-center justify-between gap-2 rounded-md border border-[var(--pf-border-default)] px-3 py-2 text-start text-sm',
+                    'hover:bg-[var(--pf-bg-muted)] active:bg-[var(--pf-action-subtle-active)]',
+                    'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]',
+                  )}
                   onClick={() => selectJob(job)}
                 >
                   <span className="truncate font-mono text-xs" dir="ltr">

@@ -29,7 +29,11 @@ import {
   listTimeEntries,
   sumProjectLaborCost,
 } from '../data/time-entries.repository';
-import type { NonProjectTimeCodeRecord, TimeEntryListItem, TimeEntryRecord } from '../domain/types';
+import type {
+  NonProjectTimeCodeRecord,
+  TimeEntryListItem,
+  TimeEntryRecord,
+} from '../domain/types';
 import { createTimeEntrySchema, type CreateTimeEntryInput, type TimeEntryFiltersInput } from '../validation/schemas';
 
 export interface CostSnapshot {

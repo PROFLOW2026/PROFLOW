@@ -49,10 +49,10 @@ export function ClientDetailView({ client, customFields = [] }: ClientDetailView
         <Field label={tClients('create.legalNameLabel')} optionalLabel={tCommon('labels.optional')}>
           {(control) => <Input {...control} name="legalName" defaultValue={client.legalName ?? ''} />}
         </Field>
-        <Field label={tCommon('labels.email')} optionalLabel={tCommon('labels.optional')}>
+        <Field label={t('companyEmailLabel')} optionalLabel={tCommon('labels.optional')}>
           {(control) => <Input {...control} name="email" type="email" defaultValue={client.email ?? ''} dir="ltr" />}
         </Field>
-        <Field label={tCommon('labels.phone')} optionalLabel={tCommon('labels.optional')}>
+        <Field label={t('companyPhoneLabel')} optionalLabel={tCommon('labels.optional')}>
           {(control) => <Input {...control} name="phone" defaultValue={client.phone ?? ''} dir="ltr" />}
         </Field>
         <Field label={tCommon('labels.notes')} optionalLabel={tCommon('labels.optional')}>
@@ -88,14 +88,18 @@ export function ClientDetailView({ client, customFields = [] }: ClientDetailView
                 <p className="font-medium">{contact.name}</p>
                 <p className="text-sm text-[var(--pf-text-secondary)]">
                   {t(`contactRoles.${contact.role}`)}
+                  {contact.phone ? (
+                    <>
+                      {' · '}
+                      <span dir="ltr">{contact.phone}</span>
+                    </>
+                  ) : null}
                   {contact.email ? (
                     <>
                       {' · '}
                       <span dir="ltr">{contact.email}</span>
                     </>
-                  ) : (
-                    ''
-                  )}
+                  ) : null}
                 </p>
               </div>
               <div className="shrink-0">
@@ -214,6 +218,9 @@ function AddContactForm({ clientId }: { clientId: string }) {
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
       <Field label={tCommon('labels.name')} required>
         {(control) => <Input {...control} name="name" required />}
+      </Field>
+      <Field label={tCommon('labels.phone')} optionalLabel={tCommon('labels.optional')}>
+        {(control) => <Input {...control} name="phone" type="tel" dir="ltr" />}
       </Field>
       <Field label={tCommon('labels.email')} optionalLabel={tCommon('labels.optional')}>
         {(control) => <Input {...control} name="email" type="email" dir="ltr" />}

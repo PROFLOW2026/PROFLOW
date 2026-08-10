@@ -7,6 +7,8 @@ import { getProjectDetail } from '@/modules/projects';
 import { Link } from '@/shared/i18n/navigation';
 import { withOrgContext } from '@/shared/auth/session';
 import { ProjectFinancialsExportLink } from './project-financials-export-link';
+import { textNavLinkClassName } from '@/components/ui/pressable';
+import { cn } from '@/shared/ui/cn';
 
 interface ProjectFinancialsPageProps {
   params: Promise<{ projectId: string; locale: string }>;
@@ -39,7 +41,7 @@ export default async function ProjectFinancialsPage({ params }: ProjectFinancial
       <PageHeader
         title={detail.project.name}
         description={
-          <Link href={`/projects/${projectId}`} className="text-sm hover:underline">
+          <Link href={`/projects/${projectId}`} className={cn(textNavLinkClassName, 'text-sm')}>
             {tCommon('actions.back')}
           </Link>
         }

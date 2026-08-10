@@ -61,7 +61,10 @@ export const clientContacts = pgTable(
     notes: text('notes'),
     ...timestamps(),
   },
-  (table) => [index('client_contacts_client_idx').on(table.clientId)],
+  (table) => [
+    uniqueIndex('client_contacts_id_organization_id_uq').on(table.id, table.organizationId),
+    index('client_contacts_client_idx').on(table.clientId),
+  ],
 );
 
 /**

@@ -9,6 +9,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { pressableChromeClassName } from '@/components/ui/pressable';
 import { Link, usePathname } from '@/shared/i18n/navigation';
 import { cn } from '@/shared/ui/cn';
 import { isFocusedComposerPath } from './navigation';
@@ -38,7 +39,8 @@ export function QuickCreate({ actions }: { actions: QuickCreateAction[] }) {
           aria-label={t('trigger')}
           data-pf-quick-create={demoteFab ? 'toolbar' : 'fab'}
           className={cn(
-            'z-30 flex items-center justify-center gap-2 rounded-full font-medium transition-colors duration-[var(--pf-motion-fast)]',
+            pressableChromeClassName,
+            'z-30 flex items-center justify-center gap-2 rounded-full font-medium',
             'bg-[var(--pf-action-primary)] text-[var(--pf-action-primary-fg)]',
             'active:bg-[var(--pf-action-primary-active)]',
             'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]',
@@ -58,7 +60,9 @@ export function QuickCreate({ actions }: { actions: QuickCreateAction[] }) {
       <DropdownMenuContent align="end" side={demoteFab ? 'bottom' : 'top'}>
         {actions.map((action) => (
           <DropdownMenuItem key={action.key} asChild>
-            <Link href={action.href}>{t(action.labelKey)}</Link>
+            <Link href={action.href} prefetch={false}>
+              {t(action.labelKey)}
+            </Link>
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>

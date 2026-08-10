@@ -118,4 +118,30 @@ describe('clients tenant isolation', () => {
       }),
     ).rejects.toBeInstanceOf(AuthorizationError);
   });
+
+  it('creates a primary contact person in the same flow as the client', async () => {
+    const { orgA, userA } = await provisionTwoTenants(database);
+
+    const detail = await database.asUser(userA.id, async (tx) => {
+      const context = await resolveOrgContext(tx, {
+        userId: userA.id,
+        organizationId: orgA.organization.id,
+        locale: 'en',
+      });
+      const client = await createClient(context, {
+        name: 'Cohen Ltd',
+        phone: '03-1111111',
+        primaryContactName: 'Dana Cohen',
+        primaryContactPhone: '050-1111111',
+        primaryContactEmail: 'dana@example.com',
+      });
+      return getClientById(context, client.id);
+    });
+
+    expect(detail.phone).toBe('03-1111111');
+    expect(detail.contacts).toHaveLength(1);
+    expect(detail.contacts[0]?.name).toBe('Dana Cohen');
+    expect(detail.contacts[0]?.phone).toBe('050-1111111');
+    expect(detail.contacts[0]?.role).toBe('primary');
+  });
 });

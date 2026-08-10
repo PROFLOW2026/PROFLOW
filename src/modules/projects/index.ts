@@ -11,8 +11,20 @@ export { convertJobToProject } from './application/convert-job-to-project';
 export { archiveProject } from './application/archive-project';
 export { listProjectsForOrg } from './application/list-projects';
 export { listJobsForOrg } from './application/list-jobs';
-export { getProjectDetail } from './application/get-project-detail';
-export type { GetProjectDetailOptions, ProjectDetail } from './application/get-project-detail';
+export {
+  assembleProjectDetail,
+  countProjectActiveWorkPackages,
+  getProjectDetail,
+  getProjectDetailChrome,
+  getProjectDetailStructure,
+} from './application/get-project-detail';
+export type {
+  GetProjectDetailOptions,
+  ProjectClientContactSummary,
+  ProjectDetail,
+  ProjectDetailChrome,
+  ProjectDetailStructure,
+} from './application/get-project-detail';
 export {
   createWorkPackage,
   updateWorkPackage,

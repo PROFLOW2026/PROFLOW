@@ -1,7 +1,8 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { Link, usePathname } from '@/shared/i18n/navigation';
+import { SectionNavLink } from '@/components/ui/section-nav-link';
+import { usePathname } from '@/shared/i18n/navigation';
 import { cn } from '@/shared/ui/cn';
 import {
   groupSettingsSections,
@@ -44,19 +45,17 @@ export function SettingsSectionNav({ items }: { items: readonly SettingsNavItem[
             {groupItems.map((item) => {
               const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
               return (
-                <Link
+                <SectionNavLink
                   key={item.key}
                   href={item.href}
-                  aria-current={active ? 'page' : undefined}
+                  active={active}
                   className={cn(
-                    'inline-flex min-h-11 shrink-0 items-center rounded-md px-3 py-2 text-start text-sm font-medium whitespace-nowrap transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]',
-                    active
-                      ? 'bg-[var(--pf-teal-50)] text-[var(--pf-text-brand)]'
-                      : 'text-[var(--pf-text-secondary)] hover:bg-[var(--pf-bg-muted)] hover:text-[var(--pf-text-primary)]',
+                    'shrink-0 whitespace-nowrap py-2 text-start',
+                    'lg:w-full',
                   )}
                 >
                   {tSections(item.key)}
-                </Link>
+                </SectionNavLink>
               );
             })}
           </div>

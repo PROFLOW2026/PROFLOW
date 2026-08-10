@@ -10,6 +10,8 @@ import { Link } from '@/shared/i18n/navigation';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { LeadStatusForm } from './lead-status-form';
+import { textNavLinkClassName, textNavLinkMutedClassName } from '@/components/ui/pressable';
+import { cn } from '@/shared/ui/cn';
 
 export async function generateMetadata({
   params,
@@ -58,7 +60,7 @@ export default async function LeadDetailPage({
           />
         }
         breadcrumb={
-          <Link href="/crm/leads" className="text-sm text-[var(--pf-text-secondary)] hover:underline">
+          <Link href="/crm/leads" className={textNavLinkMutedClassName}>
             {t('nav.leads')}
           </Link>
         }
@@ -80,7 +82,7 @@ export default async function LeadDetailPage({
           {canManage ? (
             <Link
               href={`/crm/opportunities/new?leadId=${lead.id}`}
-              className="mt-3 self-start text-sm hover:underline"
+              className={cn(textNavLinkClassName, 'mt-3 self-start text-sm')}
             >
               {t('lead.createOpportunity')}
             </Link>

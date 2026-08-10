@@ -9,6 +9,7 @@ import {
   countPendingInQueueIndex,
 } from '../data/queue-index';
 import { useOfflineScope } from './use-offline-aware-form-action';
+import { textNavLinkClassName } from '@/components/ui/pressable';
 
 function readOnline(): boolean {
   if (typeof navigator === 'undefined') return true;
@@ -99,7 +100,7 @@ export function ConnectivityBanner() {
         </p>
         <Link
           href="/settings/offline-drafts"
-          className="rounded-sm font-medium text-[var(--pf-text-brand)] underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
+          className={cn(textNavLinkClassName, 'rounded-sm font-medium')}
         >
           {t('banner.viewDrafts')}
         </Link>

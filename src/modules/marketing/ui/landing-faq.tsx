@@ -2,6 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import * as React from 'react';
+import { pressableClassName } from '@/components/ui/pressable';
 import { cn } from '@/shared/ui/cn';
 
 type FaqItem = { q: string; a: string };
@@ -29,10 +30,20 @@ export function LandingFaq() {
               <button
                 type="button"
                 id={triggerId}
-                className="flex min-h-12 w-full items-center justify-between gap-3 py-3 text-start text-base font-semibold text-[var(--pf-text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
+                className={cn(
+                  pressableClassName,
+                  'flex min-h-12 w-full items-center justify-between gap-3 py-3 text-start text-base font-semibold text-[var(--pf-text-primary)]',
+                  'active:bg-[var(--pf-bg-muted)]',
+                  'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]',
+                )}
                 aria-expanded={open}
                 aria-controls={panelId}
                 onClick={() => setOpenIndex(open ? null : index)}
+                onKeyDown={(event) => {
+                  if (event.key !== 'Enter' && event.key !== ' ') return;
+                  event.preventDefault();
+                  setOpenIndex(open ? null : index);
+                }}
               >
                 <span>{item.q}</span>
                 <span

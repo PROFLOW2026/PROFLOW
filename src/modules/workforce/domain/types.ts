@@ -104,6 +104,127 @@ export interface TimeEntryListItem extends TimeEntryRecord {
   readonly timeCodeName: string | null;
 }
 
+/**
+ * Temporal assignment statuses (Master Wave).
+ * ASSIGNMENT ≠ TIME ENTRY ≠ Actual.
+ */
+export const EMPLOYEE_PROJECT_ASSIGNMENT_STATUSES = [
+  'active',
+  'completed',
+  'cancelled',
+] as const;
+
+export type EmployeeProjectAssignmentStatus =
+  (typeof EMPLOYEE_PROJECT_ASSIGNMENT_STATUSES)[number];
+
+/** Persisted formal project ↔ employee membership (assignment ≠ labor Actual). */
+export interface ProjectTeamMemberRecord {
+  readonly id: string;
+  readonly organizationId: string;
+  readonly projectId: string;
+  readonly employeeId: string;
+  readonly startDate: string;
+  readonly endDate: string | null;
+  readonly role: string | null;
+  readonly plannedAllocationPercent: string | null;
+  readonly notes: string | null;
+  readonly status: EmployeeProjectAssignmentStatus;
+  readonly createdAt: Date;
+  readonly updatedAt: Date;
+}
+
+/**
+ * Project team roster from active `employee_project_assignments`.
+ * `membershipId` is the assignment id (UI compatibility).
+ * `totalHours` / `entryCount` are secondary time evidence only — not membership cost.
+ */
+export interface ProjectTeamMemberSummary {
+  readonly membershipId: string;
+  readonly employeeId: string;
+  readonly employeeName: string;
+  readonly jobTitle: string | null;
+  readonly role: string | null;
+  readonly notes: string | null;
+  readonly startDate: string;
+  readonly endDate: string | null;
+  readonly status: EmployeeProjectAssignmentStatus;
+  readonly totalHours: string;
+  readonly entryCount: number;
+}
+
+/**
+ * Employee → project links from active formal assignments.
+ * Hours are secondary (time entries); assignment alone never creates Actual.
+ */
+export interface EmployeeProjectLink {
+  readonly membershipId: string;
+  readonly projectId: string;
+  readonly projectName: string;
+  readonly role: string | null;
+  readonly startDate: string;
+  readonly endDate: string | null;
+  readonly status: EmployeeProjectAssignmentStatus;
+  readonly totalHours: string;
+  readonly entryCount: number;
+  readonly lastWorkDate: string | null;
+}
+
+/** Persisted employee ↔ project span (`employee_project_assignments`). */
+export interface EmployeeProjectAssignmentRecord {
+  readonly id: string;
+  readonly organizationId: string;
+  readonly projectId: string;
+  readonly employeeId: string;
+  /** Inclusive ISO date `YYYY-MM-DD`. */
+  readonly startDate: string;
+  /** Inclusive ISO date; null = open-ended. */
+  readonly endDate: string | null;
+  readonly role: string | null;
+  /** Planning hint only (0–100); never a cost-allocation weight. */
+  readonly plannedAllocationPercent: string | null;
+  readonly notes: string | null;
+  readonly status: EmployeeProjectAssignmentStatus;
+  readonly createdAt: Date;
+  readonly updatedAt: Date;
+}
+
+/**
+ * Project → צוות row (current or historical).
+ * Hours/entryCount are secondary time evidence only — not assignment cost.
+ */
+export interface EmployeeProjectAssignmentSummary {
+  readonly assignmentId: string;
+  readonly employeeId: string;
+  readonly employeeName: string;
+  readonly jobTitle: string | null;
+  readonly role: string | null;
+  readonly startDate: string;
+  readonly endDate: string | null;
+  readonly plannedAllocationPercent: string | null;
+  readonly notes: string | null;
+  readonly status: EmployeeProjectAssignmentStatus;
+  readonly totalHours: string;
+  readonly entryCount: number;
+}
+
+/**
+ * Employee → שיוכים row.
+ * Hours are secondary (time entries); assignment alone never creates Actual.
+ */
+export interface EmployeeAssignmentLink {
+  readonly assignmentId: string;
+  readonly projectId: string;
+  readonly projectName: string;
+  readonly role: string | null;
+  readonly startDate: string;
+  readonly endDate: string | null;
+  readonly plannedAllocationPercent: string | null;
+  readonly status: EmployeeProjectAssignmentStatus;
+  readonly totalHours: string;
+  readonly entryCount: number;
+  readonly lastWorkDate: string | null;
+}
+
 /** Preset non-project codes seeded on first workforce use. */
 export const DEFAULT_NON_PROJECT_TIME_CODES = [
   { key: 'office', name: 'Office' },

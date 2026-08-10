@@ -4,6 +4,7 @@ import { getTranslations } from 'next-intl/server';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/ui/page-header';
+import { pressableCardLinkClassName, textNavLinkClassName } from '@/components/ui/pressable';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { ResponsiveTable } from '@/components/patterns/responsive-table';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -11,6 +12,7 @@ import { listClientsForOrg } from '@/modules/clients';
 import { getShellContext, withOrgContext } from '@/shared/auth/session';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { Link } from '@/shared/i18n/navigation';
+import { cn } from '@/shared/ui/cn';
 import { ClientListFilters } from './client-list-filters';
 
 export async function generateMetadata({
@@ -28,10 +30,12 @@ interface ClientsPageProps {
 }
 
 export default async function ClientsPage({ searchParams }: ClientsPageProps) {
-  const t = await getTranslations('clients');
-  const tStatus = await getTranslations('status.generic');
-  const params = await searchParams;
-  const shell = await getShellContext();
+  const [t, tStatus, params, shell] = await Promise.all([
+    getTranslations('clients'),
+    getTranslations('status.generic'),
+    searchParams,
+    getShellContext(),
+  ]);
   const canManage = shell?.permissions.has(PERMISSIONS.CLIENTS_MANAGE) ?? false;
 
   const clients = await withOrgContext((context) =>
@@ -88,7 +92,7 @@ export default async function ClientsPage({ searchParams }: ClientsPageProps) {
                       <TableCell>
                         <Link
                           href={`/clients/${client.id}`}
-                          className="rounded-sm font-medium hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
+                          className={cn(textNavLinkClassName, 'rounded-sm font-medium')}
                         >
                           {client.name}
                         </Link>
@@ -111,7 +115,7 @@ export default async function ClientsPage({ searchParams }: ClientsPageProps) {
           renderMobileCard={(client) => (
             <Link
               href={`/clients/${client.id}`}
-              className="block min-h-11 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
+              className={cn(pressableCardLinkClassName, 'text-start')}
             >
               <div className="flex items-start justify-between gap-2">
                 <span className="min-w-0 flex-1 truncate text-start font-semibold">{client.name}</span>

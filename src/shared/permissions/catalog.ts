@@ -60,6 +60,12 @@ export const PERMISSIONS = {
 
   WORKFORCE_READ: 'workforce.read',
   WORKFORCE_MANAGE: 'workforce.manage',
+  /**
+   * Employer / business cost only (compensation versions, month costs, allocation runs).
+   * Distinct from WORKFORCE_READ so ordinary roster/time viewers never see private rates.
+   */
+  WORKFORCE_COST_READ: 'workforce.cost.read',
+  WORKFORCE_COST_MANAGE: 'workforce.cost.manage',
   TIME_MANAGE: 'time.manage',
 
   BILLING_READ: 'billing.read',
@@ -157,8 +163,18 @@ export const PERMISSION_CATALOG: readonly PermissionDefinition[] = [
   { key: PERMISSIONS.VENDORS_READ, category: 'vendors', description: 'View vendors and subcontractors' },
   { key: PERMISSIONS.VENDORS_MANAGE, category: 'vendors', description: 'Create and update vendors' },
 
-  { key: PERMISSIONS.WORKFORCE_READ, category: 'workforce', description: 'View employees, rates and time entries' },
-  { key: PERMISSIONS.WORKFORCE_MANAGE, category: 'workforce', description: 'Manage employees and cost rates' },
+  { key: PERMISSIONS.WORKFORCE_READ, category: 'workforce', description: 'View employees and time entries (not employer cost)' },
+  { key: PERMISSIONS.WORKFORCE_MANAGE, category: 'workforce', description: 'Manage employee master records (not employer cost)' },
+  {
+    key: PERMISSIONS.WORKFORCE_COST_READ,
+    category: 'workforce',
+    description: 'View compensation terms, employer month costs and labor allocation runs',
+  },
+  {
+    key: PERMISSIONS.WORKFORCE_COST_MANAGE,
+    category: 'workforce',
+    description: 'Manage compensation terms, employer month costs and labor allocation runs',
+  },
   { key: PERMISSIONS.TIME_MANAGE, category: 'workforce', description: 'Record and edit time entries' },
 
   { key: PERMISSIONS.BILLING_READ, category: 'billing', description: 'View billing records and payments' },
@@ -289,4 +305,6 @@ export const FINANCIAL_PERMISSIONS: readonly PermissionKey[] = [
   PERMISSIONS.PROJECT_PROFIT_READ,
   PERMISSIONS.BILLING_READ,
   PERMISSIONS.BILLING_MANAGE,
+  PERMISSIONS.WORKFORCE_COST_READ,
+  PERMISSIONS.WORKFORCE_COST_MANAGE,
 ];

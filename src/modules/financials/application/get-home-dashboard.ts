@@ -1,8 +1,14 @@
-import { sumOrganizationProjectLaborCoverage } from '@/modules/workforce';
+import {
+  areEmployeeMonthCostsAvailable,
+  hasWorkforceLaborData,
+  mergeResidualTimeAndMonthlyAllocatedLabor,
+  sumMonthlyAllocatedLaborByProject,
+  sumOrganizationProjectLaborCoverage,
+} from '@/modules/workforce';
 import type { CostSourceKey, FinancialCoverage } from '@/modules/financials/domain/types';
 import type { OrgContext } from '@/shared/auth/context';
 import { endOfMonth, startOfMonth, todayInTimeZone } from '@/shared/dates';
-import { fromNumericString, isZeroMoney, zeroMoney, type MoneyValue } from '@/shared/money';
+import { addMoney, fromNumericString, isZeroMoney, zeroMoney, type MoneyValue } from '@/shared/money';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { buildFinancialCoverage, mergeCoveragePartials } from '../domain/coverage';
@@ -117,6 +123,29 @@ export async function getHomeDashboard(
   const canReadContracts = hasPermission(context, PERMISSIONS.CONTRACTS_READ);
   const canCreateProject = hasPermission(context, PERMISSIONS.PROJECTS_CREATE);
   const canCreateExpense = hasPermission(context, PERMISSIONS.EXPENSES_CREATE);
+  const canReadExpenses = hasPermission(context, PERMISSIONS.EXPENSES_READ);
+
+  // Kick off org financial rollup in parallel with existence probes.
+  // Brand-new orgs discard the result — empty rollup is cheap; warm path saves a full wave.
+  const orgExpenseContributionsPromise =
+    canReadFinancials && canReadExpenses
+      ? loadOrganizationExpenseContributions(context.db, context.organizationId)
+      : Promise.resolve(
+          [] as Awaited<ReturnType<typeof loadOrganizationExpenseContributions>>,
+        );
+
+  const rollupPromise = canReadFinancials
+    ? orgExpenseContributionsPromise.then((expenseContributions) =>
+        getOrganizationProjectRollup(context, {
+          workKindFilter: options.workKindFilter,
+          expenseContributions,
+        }),
+      )
+    : Promise.resolve(null);
+
+  const expenseLayerPromise = canReadFinancials
+    ? collectOrgExpenseLayer(context, currency, orgExpenseContributionsPromise)
+    : Promise.resolve(null);
 
   const [
     hasProjects,
@@ -126,6 +155,8 @@ export async function getHomeDashboard(
     recentProjects,
     pendingChangesCount,
     unbilledApprovedCount,
+    rollup,
+    expenseLayer,
   ] = await Promise.all([
     hasAnyProject(context.db, context.organizationId),
     hasAnyExpenseUsage(context.db, context.organizationId),
@@ -138,6 +169,8 @@ export async function getHomeDashboard(
     canReadContracts
       ? countUnbilledApprovedChanges(context.db, context.organizationId)
       : Promise.resolve(0),
+    rollupPromise,
+    expenseLayerPromise,
   ]);
 
   const isBrandNew = !hasProjects && !hasExpenses && !hasBilling;
@@ -169,41 +202,33 @@ export async function getHomeDashboard(
     };
   }
 
-  const wantForecast = canReadFinancials;
   const wantBilling = canReadBilling && hasBilling;
   const wantMonthInvoiced = canReadFinancials && wantBilling;
   const wantMonthCosts = canReadFinancials && (wantBilling || hasExpenses);
 
-  const [rollup, expenseLayer, billingRows, invoicedThisMonth, costsThisMonth] =
-    await Promise.all([
-      wantForecast
-        ? getOrganizationProjectRollup(context, {
-            workKindFilter: options.workKindFilter,
-          })
-        : Promise.resolve(null),
-      wantForecast ? collectOrgExpenseLayer(context, currency) : Promise.resolve(null),
-      wantBilling
-        ? loadOrganizationBillingRows(context.db, context.organizationId)
-        : Promise.resolve(null),
-      wantMonthInvoiced
-        ? sumInvoicedInDateRange(
-            context.db,
-            context.organizationId,
-            currency,
-            monthStart,
-            monthEnd,
-          )
-        : Promise.resolve(null),
-      wantMonthCosts
-        ? sumOrganizationCostsInDateRange(
-            context.db,
-            context.organizationId,
-            currency,
-            monthStart,
-            monthEnd,
-          )
-        : Promise.resolve(null),
-    ]);
+  const [billingRows, invoicedThisMonth, costsThisMonth] = await Promise.all([
+    wantBilling
+      ? loadOrganizationBillingRows(context.db, context.organizationId)
+      : Promise.resolve(null),
+    wantMonthInvoiced
+      ? sumInvoicedInDateRange(
+          context.db,
+          context.organizationId,
+          currency,
+          monthStart,
+          monthEnd,
+        )
+      : Promise.resolve(null),
+    wantMonthCosts
+      ? sumOrganizationCostsInDateRange(
+          context.db,
+          context.organizationId,
+          currency,
+          monthStart,
+          monthEnd,
+        )
+      : Promise.resolve(null),
+  ]);
 
   // Derive overdue from the billing rows already loaded — avoid a second full org load.
   const overdueBillingCount = billingRows
@@ -348,10 +373,16 @@ export async function getHomeDashboard(
 /**
  * Expense-layer coverage + unallocated org costs in one pass.
  * Unallocated = org finalized expense NET − project-touching expense NET.
+ *
+ * When `contributionsPromise` is provided, reuse that authoritative load
+ * instead of querying organization expense contributions again.
  */
 async function collectOrgExpenseLayer(
   context: OrgContext,
   currency: string,
+  contributionsPromise?: Promise<
+    Awaited<ReturnType<typeof loadOrganizationExpenseContributions>>
+  >,
 ): Promise<{
   coverage: {
     sources: { source: CostSourceKey; hasData: boolean }[];
@@ -362,14 +393,19 @@ async function collectOrgExpenseLayer(
 }> {
   const canReadWorkforce = hasPermission(context, PERMISSIONS.WORKFORCE_READ);
   const canReadExpenses = hasPermission(context, PERMISSIONS.EXPENSES_READ);
+  const monthCostsReady = canReadWorkforce && areEmployeeMonthCostsAvailable();
 
-  const [contributions, laborAgg, orgExpense] = await Promise.all([
+  const [contributions, laborAgg, monthlyLaborByProject, orgExpense] = await Promise.all([
     canReadExpenses
-      ? loadOrganizationExpenseContributions(context.db, context.organizationId)
+      ? (contributionsPromise ??
+        loadOrganizationExpenseContributions(context.db, context.organizationId))
       : Promise.resolve([]),
     canReadWorkforce
       ? sumOrganizationProjectLaborCoverage(context.db, context.organizationId, currency)
       : Promise.resolve(null),
+    monthCostsReady
+      ? sumMonthlyAllocatedLaborByProject(context.db, context.organizationId, null, currency)
+      : Promise.resolve(new Map()),
     canReadExpenses
       ? sumOrganizationActualCosts(context.db, context.organizationId, currency)
       : Promise.resolve({ total: zeroMoney(currency), hasExpenseData: false }),
@@ -381,15 +417,34 @@ async function collectOrgExpenseLayer(
     projectTouchingExpenseTotal: projectTouching,
   });
 
+  const residualTimeLabor =
+    fromNumericString(laborAgg?.totalAmount ?? '0', currency) ?? zeroMoney(currency);
+  let monthlyAllocatedLabor = zeroMoney(currency);
+  const projectIdsWithWorkforceLabor = new Set(laborAgg?.projectIdsWithLabor ?? []);
+  for (const [projectId, monthlyAgg] of monthlyLaborByProject) {
+    projectIdsWithWorkforceLabor.add(projectId);
+    const amount =
+      fromNumericString(monthlyAgg.totalAmount, currency) ?? zeroMoney(currency);
+    monthlyAllocatedLabor = addMoney(monthlyAllocatedLabor, amount);
+  }
+
+  const residualEntryCount = laborAgg?.entryCount ?? 0;
+  const hasWorkforce = hasWorkforceLaborData({
+    residualEntryCount,
+    monthlyAllocatedLabor,
+  });
+
   let labor = null;
-  if (laborAgg && laborAgg.entryCount > 0) {
+  if (hasWorkforce) {
     labor = {
-      laborCost:
-        fromNumericString(laborAgg.totalAmount ?? '0', laborAgg.currency) ?? zeroMoney(currency),
+      laborCost: mergeResidualTimeAndMonthlyAllocatedLabor({
+        residualTimeLabor,
+        monthlyAllocatedLabor,
+      }),
       hasWorkforceData: true,
-      entriesMissingCost: laborAgg.entriesMissingCost,
-      excludedForeignCurrencyEntries: laborAgg.excludedForeignCurrencyEntries,
-      projectIdsWithWorkforceLabor: new Set(laborAgg.projectIdsWithLabor),
+      entriesMissingCost: laborAgg?.entriesMissingCost ?? 0,
+      excludedForeignCurrencyEntries: laborAgg?.excludedForeignCurrencyEntries ?? 0,
+      projectIdsWithWorkforceLabor,
     };
   }
 

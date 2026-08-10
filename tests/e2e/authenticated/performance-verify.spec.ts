@@ -155,6 +155,15 @@ async function expectTabSelected(page: Page, tabName: string) {
     .toBe(true);
 }
 
+/** Wait until project tab soft-nav interceptors are attached (after SSR chrome). */
+async function expectProjectTabsInteractive(page: Page) {
+  await expect
+    .poll(async () => page.locator('[data-pf-project-tabs][data-pf-tabs-ready]').count(), {
+      timeout: 30_000,
+    })
+    .toBeGreaterThan(0);
+}
+
 async function clickMainNav(page: Page, name: string) {
   const nav = page.getByRole('navigation', { name: he.common.a11y.mainNavigation });
   const direct = nav.getByRole('link', { name, exact: true });
@@ -269,6 +278,9 @@ test('production navigation performance verification', async ({ page }) => {
   );
   await page.goto('/he-IL/projects');
   await expect(page.getByText(seededProjectName).first()).toBeVisible();
+  // Let list paint + router settle (closer to human list→open) so open-project
+  // soft-nav is not measured against a still-hydrating list document.
+  await page.waitForLoadState('networkidle').catch(() => undefined);
   const openRepeat = await measureClickNav(
     page,
     async () => {
@@ -296,6 +308,7 @@ test('production navigation performance verification', async ({ page }) => {
         : `/he-IL/projects/${world.projectId}?tab=${tabKey}`;
     await page.goto(url);
     await expect(page.getByRole('heading', { name: seededProjectName })).toBeVisible({ timeout: 30_000 });
+    await expectProjectTabsInteractive(page);
   }
 
   // Modules changes/billing/documents are enabled in e2e seed.
@@ -497,18 +510,43 @@ test('production navigation performance verification', async ({ page }) => {
     note: `per-tab: [${cycleSamples.map((s) => s.wallMs).join(', ')}] max=${cycleMax}`,
   });
 
-  // Client chunk check: drizzle on critical path?
+  // Client chunk check: real Drizzle ORM/schema leak (not loose "postgres" strings).
+  // Match Symbol.for("drizzle:entityKind") / schema builders — not incidental text.
   const chunkProbe = await page.evaluate(async () => {
     const scripts = [...document.querySelectorAll('script[src*="/_next/static/chunks/"]')].map(
       (el) => (el as HTMLScriptElement).src,
     );
-    const samples: { url: string; hasDrizzle: boolean; size: number }[] = [];
+    const samples: {
+      url: string;
+      hasDrizzleOrm: boolean;
+      hasPostgresDriver: boolean;
+      size: number;
+      evidence: string[];
+    }[] = [];
     for (const src of scripts.slice(0, 40)) {
       try {
         const res = await fetch(src);
         const text = await res.text();
-        if (text.includes('drizzle') || text.includes('postgres')) {
-          samples.push({ url: src.split('/').pop() ?? src, hasDrizzle: true, size: text.length });
+        const evidence: string[] = [];
+        if (text.includes('drizzle:entityKind')) evidence.push('drizzle:entityKind');
+        if (text.includes('drizzle:hasOwnEntityKind')) evidence.push('drizzle:hasOwnEntityKind');
+        if (text.includes('drizzle-orm/postgres')) evidence.push('drizzle-orm/postgres');
+        if (text.includes('idle_timeout') && text.includes('connect_timeout')) {
+          evidence.push('postgres-driver-pool-opts');
+        }
+        const hasDrizzleOrm =
+          evidence.includes('drizzle:entityKind') || evidence.includes('drizzle:hasOwnEntityKind');
+        const hasPostgresDriver =
+          evidence.includes('drizzle-orm/postgres') ||
+          evidence.includes('postgres-driver-pool-opts');
+        if (hasDrizzleOrm || hasPostgresDriver) {
+          samples.push({
+            url: src.split('/').pop() ?? src,
+            hasDrizzleOrm,
+            hasPostgresDriver,
+            size: text.length,
+            evidence,
+          });
         }
       } catch {
         /* ignore */

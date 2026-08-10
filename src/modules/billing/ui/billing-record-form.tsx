@@ -7,7 +7,9 @@ import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { pressableClassName } from '@/components/ui/pressable';
 import { Textarea } from '@/components/ui/textarea';
+import { cn } from '@/shared/ui/cn';
 import type { ProjectOption } from '@/modules/billing/domain/types';
 import { createBillingRecordAction, type BillingFormState } from './actions';
 
@@ -94,7 +96,14 @@ export function BillingRecordForm({
       </Field>
 
       <details className="rounded-md border border-[var(--pf-border-default)] p-3">
-        <summary className="cursor-pointer text-sm font-medium">{t('form.moreDetails')}</summary>
+        <summary
+          className={cn(
+            pressableClassName,
+            'cursor-pointer text-sm font-medium active:scale-100 active:opacity-80',
+          )}
+        >
+          {t('form.moreDetails')}
+        </summary>
         <p className="mt-2 text-xs text-[var(--pf-text-muted)]">{t('form.moreDetailsHint')}</p>
       </details>
 

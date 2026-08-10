@@ -9,7 +9,21 @@ import { listCustomFieldValuesForEntity } from '@/modules/custom-fields';
 import { EntityCustomFieldsPanel } from '@/modules/custom-fields/ui';
 import { getEntityDocumentPanelData } from '@/modules/documents';
 import { DocumentAttachments } from '@/modules/documents/ui';
-import { getEmployee, listRateHistory, resolveRateVersionForDate } from '@/modules/workforce';
+import {
+  getEmployee,
+  listAssignableProjects,
+  listEmployeeAssignmentHistoryLinks,
+  listEmployeeProjectLinks,
+  listRateHistory,
+  resolveRateVersionForDate,
+} from '@/modules/workforce';
+import {
+  canLogTime,
+  canManageWorkforce,
+} from '@/modules/workforce/ui/employees-table';
+import { canManageWorkforceCost, canReadWorkforceCost } from '@/modules/workforce/application/workforce-cost-authz';
+import { EmployeeProjectsPanel } from '@/modules/workforce/ui/employee-projects-panel';
+import { MonthlyEmployerCostReview } from '@/modules/workforce/ui/monthly-employer-cost-review';
 import { RateHistoryTable } from '@/modules/workforce/ui/rate-history-table';
 import { withOrgContext } from '@/shared/auth/session';
 import { businessDate, todayInTimeZone } from '@/shared/dates';
@@ -37,14 +51,43 @@ export default async function EmployeeDetailPage({
   const data = await withOrgContext(async (context) => {
     try {
       const employee = await getEmployee(context, employeeId);
-      const [rateHistory, documentsPanel, customFields] = await Promise.all([
-        listRateHistory(context, employeeId),
+      const allowManage = canManageWorkforce(context);
+      const canReadRates = canReadWorkforceCost(context);
+      const canManageCosts = canManageWorkforceCost(context);
+      const [
+        rateHistory,
+        documentsPanel,
+        customFields,
+        projectLinks,
+        history,
+        candidateProjects,
+      ] = await Promise.all([
+        canReadRates ? listRateHistory(context, employeeId) : Promise.resolve([]),
         getEntityDocumentPanelData(context, 'employee', employeeId),
         listCustomFieldValuesForEntity(context, 'employee', employeeId).catch(() => []),
+        listEmployeeProjectLinks(context, employeeId),
+        listEmployeeAssignmentHistoryLinks(context, employeeId).catch(() => []),
+        allowManage ? listAssignableProjects(context).catch(() => []) : Promise.resolve([]),
       ]);
       const today = todayInTimeZone(context.organization.timezone);
       const currentRate = resolveRateVersionForDate(employee.rateVersions, businessDate(today));
-      return { employee, rateHistory, currentRate, today, documentsPanel, customFields };
+      return {
+        employee,
+        rateHistory,
+        currentRate,
+        today,
+        documentsPanel,
+        customFields,
+        projectLinks,
+        history,
+        candidateProjects,
+        canReadRates,
+        canManageCosts,
+        allowLog: canLogTime(context),
+        allowManage,
+        currency: context.organization.baseCurrency,
+        defaultYearMonth: today.slice(0, 7),
+      };
     } catch {
       return null;
     }
@@ -52,7 +95,23 @@ export default async function EmployeeDetailPage({
 
   if (!data) notFound();
 
-  const { employee, rateHistory, currentRate, documentsPanel, customFields } = data;
+  const {
+    employee,
+    rateHistory,
+    currentRate,
+    documentsPanel,
+    customFields,
+    projectLinks,
+    history,
+    candidateProjects,
+    canReadRates,
+    canManageCosts,
+    allowLog,
+    allowManage,
+    currency,
+    defaultYearMonth,
+    today,
+  } = data;
 
   return (
     <div className="flex flex-col gap-6">
@@ -67,30 +126,15 @@ export default async function EmployeeDetailPage({
         description={employee.jobTitle ?? undefined}
       />
 
-      <Card className="flex flex-col gap-3 p-4 sm:p-6">
-        <h2 className="text-base font-semibold">{t('employees.detail.currentRate')}</h2>
-        {currentRate ? (
-          <div className="flex flex-col gap-1 text-sm">
-            <p>
-              <MoneyText
-                value={fromNumericString(currentRate.baseRate, currentRate.currency) ?? {
-                  amount: currentRate.baseRate,
-                  currency: currentRate.currency,
-                }}
-              />
-              {' · '}
-              {t(`rateUnits.${currentRate.rateUnit}`)}
-            </p>
-            {currentRate.burdenPercent ? (
-              <p className="text-[var(--pf-text-secondary)]">
-                {t('employees.detail.burden', { percent: currentRate.burdenPercent })}
-              </p>
-            ) : null}
-          </div>
-        ) : (
-          <p className="text-sm text-[var(--pf-text-secondary)]">{t('employees.noRate')}</p>
-        )}
-      </Card>
+      <EmployeeProjectsPanel
+        employeeId={employee.id}
+        projects={projectLinks}
+        history={history}
+        candidateProjects={candidateProjects}
+        canLogTime={allowLog}
+        canManage={allowManage}
+        defaultStartDate={today}
+      />
 
       {(employee.email || employee.phone || employee.notes) && (
         <Card className="flex flex-col gap-2 p-4 sm:p-6">
@@ -118,10 +162,54 @@ export default async function EmployeeDetailPage({
         saveAction={upsertEntityFieldValueAction}
       />
 
-      <Card className="flex flex-col gap-3 p-4 sm:p-6">
-        <h2 className="text-base font-semibold">{t('employees.detail.rateHistory')}</h2>
-        <RateHistoryTable versions={rateHistory} />
-      </Card>
+      {canReadRates ? (
+        <details className="rounded-lg border border-[var(--pf-border-default)] p-4 sm:p-6">
+          <summary className="cursor-pointer text-base font-semibold">
+            {t('employees.detail.compensationAdvanced')}
+          </summary>
+          <div className="mt-4 flex flex-col gap-4">
+            <div className="flex flex-col gap-3">
+              <h3 className="text-sm font-medium">{t('employees.detail.currentRate')}</h3>
+              {currentRate ? (
+                <div className="flex flex-col gap-1 text-sm">
+                  <p>
+                    <MoneyText
+                      value={fromNumericString(currentRate.baseRate, currentRate.currency) ?? {
+                        amount: currentRate.baseRate,
+                        currency: currentRate.currency,
+                      }}
+                    />
+                    {' · '}
+                    {t(`rateUnits.${currentRate.rateUnit}`)}
+                  </p>
+                  {currentRate.burdenPercent ? (
+                    <p className="text-[var(--pf-text-secondary)]">
+                      {t('employees.detail.burden', { percent: currentRate.burdenPercent })}
+                    </p>
+                  ) : null}
+                </div>
+              ) : (
+                <p className="text-sm text-[var(--pf-text-secondary)]">{t('employees.noRate')}</p>
+              )}
+            </div>
+            <div className="flex flex-col gap-3">
+              <h3 className="text-sm font-medium">{t('employees.detail.rateHistory')}</h3>
+              <RateHistoryTable versions={rateHistory} />
+            </div>
+          </div>
+        </details>
+      ) : null}
+
+      {canReadRates ? (
+        <MonthlyEmployerCostReview
+          employeeId={employee.id}
+          employeeName={employee.name}
+          currency={currency}
+          defaultYearMonth={defaultYearMonth}
+          canReview={canReadRates}
+          canManage={canManageCosts}
+        />
+      ) : null}
 
       <DocumentAttachments
         ownerType="employee"

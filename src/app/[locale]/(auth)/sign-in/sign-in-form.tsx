@@ -8,6 +8,8 @@ import { Field } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Link } from '@/shared/i18n/navigation';
 import { signInAction, type AuthFormState } from '../actions';
+import { textNavLinkClassName } from '@/components/ui/pressable';
+import { cn } from '@/shared/ui/cn';
 
 export function SignInForm({ next }: { next?: string }) {
   const t = useTranslations('auth.signIn');
@@ -49,12 +51,12 @@ export function SignInForm({ next }: { next?: string }) {
       </Button>
 
       <div className="flex flex-col gap-2 text-sm">
-        <Link href="/forgot-password" className="text-[var(--pf-text-brand)] hover:underline">
+        <Link href="/forgot-password" className={textNavLinkClassName}>
           {t('forgotPassword')}
         </Link>
         <p className="text-[var(--pf-text-secondary)]">
           {t('noAccount')}{' '}
-          <Link href="/sign-up" className="font-medium text-[var(--pf-text-brand)] hover:underline">
+          <Link href="/sign-up" className={cn(textNavLinkClassName, 'font-medium')}>
             {t('createAccount')}
           </Link>
         </p>

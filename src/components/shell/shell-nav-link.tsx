@@ -4,6 +4,7 @@ import { Loader2 } from 'lucide-react';
 import { useLinkStatus } from 'next/link';
 import { useTranslations } from 'next-intl';
 import * as React from 'react';
+import { pressableChromeClassName } from '@/components/ui/pressable';
 import { Link, usePathname } from '@/shared/i18n/navigation';
 import { cn } from '@/shared/ui/cn';
 import { NavIcon } from './nav-icon';
@@ -19,6 +20,11 @@ export interface ShellNavLinkProps {
   className?: string;
   /** Soften the icon color (overflow sheet idle rows). */
   muteIcon?: boolean;
+  /**
+   * Next.js Link prefetch. Default false — shell destinations must not
+   * storm RSC on dashboard mount. Opt in only for high-probability next hops.
+   */
+  prefetch?: boolean;
 }
 
 /**
@@ -37,6 +43,7 @@ export function ShellNavLink({
   onNavigate,
   className,
   muteIcon = false,
+  prefetch = false,
 }: ShellNavLinkProps) {
   const pathname = usePathname();
   const t = useTranslations('common');
@@ -63,6 +70,7 @@ export function ShellNavLink({
   return (
     <Link
       href={href}
+      prefetch={prefetch}
       aria-current={active ? 'page' : undefined}
       aria-busy={busy || undefined}
       aria-disabled={busy || undefined}
@@ -80,9 +88,10 @@ export function ShellNavLink({
         onNavigate?.();
       }}
       className={cn(
+        pressableChromeClassName,
         variant === 'sidebar'
           ? cn(
-              'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
+              'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium',
               'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]',
               active || busy
                 ? 'bg-[var(--pf-teal-50)] text-[var(--pf-text-brand)]'
@@ -93,7 +102,7 @@ export function ShellNavLink({
               'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]',
               active || busy
                 ? 'text-[var(--pf-text-brand)]'
-                : 'text-[var(--pf-text-secondary)] active:text-[var(--pf-text-primary)]',
+                : 'text-[var(--pf-text-secondary)] active:bg-[var(--pf-action-subtle-active)] active:text-[var(--pf-text-primary)]',
             ),
         busy && 'pointer-events-none opacity-90',
         className,

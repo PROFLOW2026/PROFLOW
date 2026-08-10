@@ -110,7 +110,6 @@ describe('migration journal', () => {
     expect(tags.indexOf('0019_project_job_modes_and_entry_baseline')).toBeLessThan(
       tags.indexOf('0020_overnight_foundations'),
     );
-    expect(tags.at(-1)).toBe('0020_overnight_foundations');
 
     const sql = await readFile(
       path.join(MIGRATIONS_DIR, '0020_overnight_foundations.sql'),
@@ -133,6 +132,31 @@ describe('migration journal', () => {
     expect(sql).toContain('ops_expense_links');
     expect(sql).toContain('external_statutory_documents');
     expect(sql).toContain('vendor_portal_ap_candidates');
+  });
+
+  it('places workforce contacts and allocations 0021 after 0020', async () => {
+    const journal = await loadJournal();
+    const tags = journal.entries.map((entry) => entry.tag);
+    expect(tags.indexOf('0020_overnight_foundations')).toBeLessThan(
+      tags.indexOf('0021_workforce_contacts_and_allocations'),
+    );
+    expect(tags.at(-1)).toBe('0021_workforce_contacts_and_allocations');
+
+    const sql = await readFile(
+      path.join(MIGRATIONS_DIR, '0021_workforce_contacts_and_allocations.sql'),
+      'utf8',
+    );
+    expect(sql).toContain('primary_contact_id');
+    expect(sql).toContain('projects_primary_contact_id_fk');
+    expect(sql).toContain('projects_primary_contact_client_guard');
+    expect(sql).toContain('employee_project_assignments');
+    expect(sql).toContain('employee_project_assignments_project_org_fk');
+    expect(sql).toContain('employee_project_assignments_employee_org_fk');
+    expect(sql).toContain('employee_month_costs');
+    expect(sql).toContain('labor_allocation_runs');
+    expect(sql).toContain('labor_allocation_run_lines');
+    expect(sql).toContain('ap_bill_project_allocations');
+    expect(sql).toContain('labor_allocation_runs_conservation_guard');
   });
 });
 

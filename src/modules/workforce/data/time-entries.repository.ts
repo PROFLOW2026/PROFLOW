@@ -1,5 +1,12 @@
-import { and, desc, eq, gte, inArray, isNotNull, isNull, lte, sql } from 'drizzle-orm';
-import { employees, nonProjectTimeCodes, projects, timeEntries, workPackages } from '@drizzle/schema';
+import { and, desc, eq, gte, inArray, isNotNull, isNull, lte, notExists, sql } from 'drizzle-orm';
+import {
+  employeeMonthCosts,
+  employees,
+  nonProjectTimeCodes,
+  projects,
+  timeEntries,
+  workPackages,
+} from '@drizzle/schema';
 import {
   ORG_LIST_EXPORT_CAP,
   ORG_LIST_HARD_CAP,
@@ -7,7 +14,36 @@ import {
   resolveListOffset,
 } from '@/shared/db/list-limits';
 import type { DbExecutor } from '@/shared/db/types';
-import type { NonProjectTimeCodeRecord, TimeEntryKind, TimeEntryListItem, TimeEntryRecord } from '../domain/types';
+import { areEmployeeMonthCostsAvailable } from '../domain/monthly-cost-gates';
+import type {
+  NonProjectTimeCodeRecord,
+  TimeEntryKind,
+  TimeEntryListItem,
+  TimeEntryRecord,
+} from '../domain/types';
+
+/**
+ * When monthly employer costs are live, exclude time entries whose
+ * (employee_id, YYYY-MM of work_date) matches an applied/closed
+ * monthly_allocated employee_month_costs row (Displacement).
+ */
+function notDisplacedByMonthlyAllocation(db: DbExecutor, organizationId: string) {
+  if (!areEmployeeMonthCostsAvailable()) return null;
+  return notExists(
+    db
+      .select({ id: employeeMonthCosts.id })
+      .from(employeeMonthCosts)
+      .where(
+        and(
+          eq(employeeMonthCosts.organizationId, organizationId),
+          eq(employeeMonthCosts.employeeId, timeEntries.employeeId),
+          sql`${employeeMonthCosts.yearMonth} = to_char(${timeEntries.workDate}, 'YYYY-MM')`,
+          inArray(employeeMonthCosts.status, ['applied', 'closed']),
+          eq(employeeMonthCosts.recognitionSource, 'monthly_allocated'),
+        ),
+      ),
+  );
+}
 
 function mapTimeEntry(row: typeof timeEntries.$inferSelect): TimeEntryRecord {
   return {
@@ -186,6 +222,7 @@ export async function sumProjectLaborCost(
   entriesMissingCost: number;
   excludedForeignCurrencyEntries: number;
 }> {
+  const displacement = notDisplacedByMonthlyAllocation(db, organizationId);
   const [row] = await db
     .select({
       totalAmount: sql<string | null>`coalesce(
@@ -209,6 +246,7 @@ export async function sumProjectLaborCost(
         eq(timeEntries.projectId, projectId),
         eq(timeEntries.kind, 'project'),
         isNull(timeEntries.archivedAt),
+        ...(displacement ? [displacement] : []),
       ),
     );
 
@@ -243,6 +281,7 @@ export async function sumLaborCostGroupedByProject(
   const result = new Map<string, ProjectLaborCostAggregate>();
   if (projectIds.length === 0) return result;
 
+  const displacement = notDisplacedByMonthlyAllocation(db, organizationId);
   const rows = await db
     .select({
       projectId: timeEntries.projectId,
@@ -266,6 +305,7 @@ export async function sumLaborCostGroupedByProject(
         inArray(timeEntries.projectId, [...projectIds]),
         eq(timeEntries.kind, 'project'),
         isNull(timeEntries.archivedAt),
+        ...(displacement ? [displacement] : []),
       ),
     )
     .groupBy(timeEntries.projectId);
@@ -299,6 +339,15 @@ export async function sumOrganizationProjectLaborCoverage(
   /** Projects with at least one project-kind time entry (Mode C present). */
   projectIdsWithLabor: readonly string[];
 }> {
+  const displacement = notDisplacedByMonthlyAllocation(db, organizationId);
+  const laborConditions = and(
+    eq(timeEntries.organizationId, organizationId),
+    eq(timeEntries.kind, 'project'),
+    isNull(timeEntries.archivedAt),
+    isNotNull(timeEntries.projectId),
+    ...(displacement ? [displacement] : []),
+  );
+
   const [row] = await db
     .select({
       totalAmount: sql<string | null>`coalesce(
@@ -315,26 +364,12 @@ export async function sumOrganizationProjectLaborCoverage(
       )::int`,
     })
     .from(timeEntries)
-    .where(
-      and(
-        eq(timeEntries.organizationId, organizationId),
-        eq(timeEntries.kind, 'project'),
-        isNull(timeEntries.archivedAt),
-        isNotNull(timeEntries.projectId),
-      ),
-    );
+    .where(laborConditions);
 
   const projectIdRows = await db
     .selectDistinct({ projectId: timeEntries.projectId })
     .from(timeEntries)
-    .where(
-      and(
-        eq(timeEntries.organizationId, organizationId),
-        eq(timeEntries.kind, 'project'),
-        isNull(timeEntries.archivedAt),
-        isNotNull(timeEntries.projectId),
-      ),
-    );
+    .where(laborConditions);
 
   return {
     totalAmount: row?.totalAmount ?? null,

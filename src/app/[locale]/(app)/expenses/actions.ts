@@ -16,7 +16,7 @@ import {
 } from '@/modules/expenses';
 import { promoteVendorFromTransaction } from '@/modules/vendors';
 import { withOrgContext } from '@/shared/auth/session';
-import { AppError, serializeError } from '@/shared/errors';
+import { AppError, ValidationError, serializeError } from '@/shared/errors';
 import { redirect } from '@/shared/i18n/navigation';
 
 export interface ExpenseActionState {
@@ -47,6 +47,7 @@ function buildExpensePayload(formData: FormData) {
     workPackageId: formValue(formData, 'workPackageId') ?? null,
     costFamily: formValue(formData, 'costFamily') ?? null,
     costCategoryId: formValue(formData, 'costCategoryId') ?? null,
+    amountIncludesTax: formValue(formData, 'amountIncludesTax'),
     netAmount: formValue(formData, 'netAmount') ?? null,
     taxAmount: formValue(formData, 'taxAmount') ?? null,
     paymentMethod: formValue(formData, 'paymentMethod') ?? null,
@@ -84,6 +85,17 @@ export async function createExpenseAction(
     revalidatePath('/expenses');
     redirect({ href: `/expenses/${expense.id}`, locale });
   } catch (error) {
+    if (error instanceof ValidationError) {
+      const taxIssue = error.issues.find((issue) => issue.path === 'amountIncludesTax');
+      if (taxIssue) {
+        const tExpenses = await getTranslations('expenses');
+        return {
+          error: tExpenses('errors.inclusiveTaxRateRequired'),
+          fieldErrors: { amountIncludesTax: tExpenses('errors.inclusiveTaxRateRequired') },
+        };
+      }
+      return { error: tErrors('validationFailed') };
+    }
     if (error instanceof AppError) {
       return { error: tErrors(serializeError(error).messageKey.replace('errors.', '') as 'validationFailed') };
     }
@@ -113,6 +125,17 @@ export async function updateExpenseAction(
     revalidatePath(`/expenses/${expense.id}`);
     redirect({ href: `/expenses/${expense.id}`, locale });
   } catch (error) {
+    if (error instanceof ValidationError) {
+      const taxIssue = error.issues.find((issue) => issue.path === 'amountIncludesTax');
+      if (taxIssue) {
+        const tExpenses = await getTranslations('expenses');
+        return {
+          error: tExpenses('errors.inclusiveTaxRateRequired'),
+          fieldErrors: { amountIncludesTax: tExpenses('errors.inclusiveTaxRateRequired') },
+        };
+      }
+      return { error: tErrors('validationFailed') };
+    }
     if (error instanceof AppError) {
       return { error: tErrors('unexpected') };
     }

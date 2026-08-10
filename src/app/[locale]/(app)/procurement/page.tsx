@@ -16,6 +16,8 @@ import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { IssuePurchaseOrderButton } from './issue-po-button';
 import { ProcurementSectionNav } from './procurement-section-nav';
+import { textNavLinkClassName } from '@/components/ui/pressable';
+import { cn } from '@/shared/ui/cn';
 
 export async function generateMetadata({
   params,
@@ -109,7 +111,7 @@ export default async function ProcurementPage() {
                       <TableCell className="max-w-[12rem] truncate font-medium">
                         <Link
                           href={`/procurement/${order.id}`}
-                          className="rounded-sm hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
+                          className={cn(textNavLinkClassName, 'rounded-sm')}
                         >
                           {order.reference?.trim() || t('list.noReference')}
                         </Link>
@@ -185,7 +187,7 @@ export default async function ProcurementPage() {
               <div className="flex min-w-0 items-start justify-between gap-2">
                 <Link
                   href={`/procurement/${order.id}`}
-                  className="min-w-0 break-words rounded-sm font-semibold hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
+                  className={cn(textNavLinkClassName, 'min-w-0 break-words rounded-sm font-semibold')}
                 >
                   {order.reference?.trim() || t('list.noReference')}
                 </Link>

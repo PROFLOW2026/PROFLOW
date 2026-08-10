@@ -222,7 +222,7 @@ export async function hasAnyExpenseUsage(
   organizationId: string,
 ): Promise<boolean> {
   const [row] = await db
-    .select({ count: sql<number>`count(*)::int` })
+    .select({ id: expenses.id })
     .from(expenses)
     .where(
       and(
@@ -230,9 +230,10 @@ export async function hasAnyExpenseUsage(
         eq(expenses.status, 'finalized'),
         isNull(expenses.archivedAt),
       ),
-    );
+    )
+    .limit(1);
 
-  return (row?.count ?? 0) > 0;
+  return Boolean(row);
 }
 
 /**

@@ -13,6 +13,8 @@ import { Link } from '@/shared/i18n/navigation';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { ProcurementSectionNav } from '../procurement-section-nav';
+import { textNavLinkClassName } from '@/components/ui/pressable';
+import { cn } from '@/shared/ui/cn';
 
 export async function generateMetadata({
   params,
@@ -101,7 +103,7 @@ export default async function RfqsPage() {
                       <TableCell className="max-w-[16rem] truncate font-medium">
                         <Link
                           href={`/procurement/rfqs/${rfq.id}`}
-                          className="rounded-sm hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
+                          className={cn(textNavLinkClassName, 'rounded-sm')}
                         >
                           {rfq.title}
                         </Link>

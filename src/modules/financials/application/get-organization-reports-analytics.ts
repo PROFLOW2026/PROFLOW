@@ -1,7 +1,8 @@
-import { getOrganizationReceivablesAging } from '@/modules/billing';
+import { listBillingRecords, computeReceivablesAging } from '@/modules/billing';
 import type { ReceivablesAging } from '@/modules/billing';
 import type { OrgContext } from '@/shared/auth/context';
 import { todayInTimeZone } from '@/shared/dates';
+import { ORG_LIST_EXPORT_CAP } from '@/shared/db/list-limits';
 import { isZeroMoney, zeroMoney } from '@/shared/money';
 import { assertPermission, hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
@@ -107,16 +108,32 @@ export async function getOrganizationReportsAnalytics(
   const currency = context.organization.baseCurrency;
   const asOf = todayInTimeZone(context.organization.timezone);
 
-  const [rollup, cashFlow, arAging, unallocatedBusinessCosts] = await Promise.all([
+  const canReadBilling = hasPermission(context, PERMISSIONS.BILLING_READ);
+  const billingRecordsPromise = canReadBilling
+    ? listBillingRecords(context, { filter: 'all', limit: ORG_LIST_EXPORT_CAP })
+    : Promise.resolve(null);
+
+  // Shared org billing promise — cash flow + AR aging previously each re-listed all records.
+  const [rollup, billingRecords, unallocatedBusinessCosts, cashFlow] = await Promise.all([
     getOrganizationProjectRollup(context, {
       workKindFilter: options.workKindFilter,
     }),
-    getOrganizationCashFlowOutlook(context),
-    hasPermission(context, PERMISSIONS.BILLING_READ)
-      ? getOrganizationReceivablesAging(context)
-      : Promise.resolve(null),
+    billingRecordsPromise,
     loadUnallocatedBusinessCosts(context, currency),
+    canReadBilling
+      ? billingRecordsPromise.then((records) =>
+          getOrganizationCashFlowOutlook(context, { billingRecords: records }),
+        )
+      : Promise.resolve(null),
   ]);
+
+  const arAging = billingRecords
+    ? computeReceivablesAging(
+        billingRecords.filter((record) => !isZeroMoney(record.outstandingAmount)),
+        currency,
+        asOf,
+      )
+    : null;
 
   // Rollup includes every base-currency active project (no correctness cap).
   // Optional limit/offset on rollup pages rows only — aggregates always use the full set.

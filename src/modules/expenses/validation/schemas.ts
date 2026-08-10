@@ -2,6 +2,15 @@ import { z } from 'zod';
 
 const costFamilySchema = z.enum(['direct_project', 'shared', 'business_overhead', 'asset_capital']);
 
+/** false = excluding VAT (לא כולל מע״מ); true = including VAT (כולל מע״מ). */
+const amountIncludesTaxSchema = z.preprocess((value) => {
+  if (value === '' || value === null || value === undefined) return undefined;
+  if (typeof value === 'boolean') return value;
+  if (value === 'true' || value === 'including' || value === '1') return true;
+  if (value === 'false' || value === 'excluding' || value === '0') return false;
+  return value;
+}, z.boolean().optional());
+
 const allocationMethodSchema = z.enum([
   'manual_amount',
   'manual_percent',
@@ -43,6 +52,12 @@ const expenseFieldsSchema = z.object({
   phaseId: z.string().uuid().nullable().optional(),
   costFamily: costFamilySchema.nullable().optional(),
   costCategoryId: z.string().uuid().nullable().optional(),
+  /**
+   * When set, net/tax/gross are derived from the org tax rule via the shared
+   * tax engine. Omitted → legacy fast capture (entered = net = gross).
+   * Not persisted as its own column — reconstructed from stored amounts on edit.
+   */
+  amountIncludesTax: amountIncludesTaxSchema,
   netAmount: z.string().trim().nullable().optional(),
   taxAmount: z.string().trim().nullable().optional(),
   paymentMethod: z.string().trim().max(100).nullable().optional(),

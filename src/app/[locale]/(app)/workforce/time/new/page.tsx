@@ -23,7 +23,7 @@ export async function generateMetadata({
 export default async function QuickTimePage({
   searchParams,
 }: {
-  searchParams: Promise<{ projectId?: string }>;
+  searchParams: Promise<{ projectId?: string; employeeId?: string }>;
 }) {
   const t = await getTranslations('workforce');
   const query = await searchParams;
@@ -33,7 +33,10 @@ export default async function QuickTimePage({
       throw new AuthorizationError(PERMISSIONS.TIME_MANAGE);
     }
 
-    const loaded = await loadQuickLogFormData(context, { projectId: query.projectId });
+    const loaded = await loadQuickLogFormData(context, {
+      projectId: query.projectId,
+      employeeId: query.employeeId,
+    });
 
     return {
       ...loaded,
@@ -41,9 +44,13 @@ export default async function QuickTimePage({
     };
   });
 
+  const description = query.projectId
+    ? t('time.quickLogProjectDescription')
+    : t('time.quickLogDescription');
+
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title={t('time.quickLog')} description={t('time.quickLogDescription')} />
+      <PageHeader title={t('time.quickLog')} description={description} />
       <TimeEntryForm action={createTimeEntryAction} {...formData} />
     </div>
   );

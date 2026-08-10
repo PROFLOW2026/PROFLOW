@@ -92,6 +92,14 @@
     "costFamily": "סעיף עלות",
     "category": "קטגוריה",
     "status": "סטטוס",
+    "amountTaxMode": "הסכום שהוזן",
+    "amountTaxModeHint": "בחרו האם הסכום כולל מע״מ או לא. שיעור המע״מ נלקח מכלל המס הפעיל בארגון. עלות בפועל ורווחיות משתמשות בנטו.",
+    "amountExcludingTax": "לא כולל מע״מ",
+    "amountIncludingTax": "כולל מע״מ",
+    "previewNet": "נטו",
+    "previewTax": "מע״מ",
+    "previewGross": "סה״כ",
+    "previewActualHint": "עלות בפועל = נטו",
     "netAmount": "סכום לפני מע״מ",
     "taxAmount": "מע״מ",
     "paymentMethod": "אמצעי תשלום",
@@ -215,6 +223,7 @@
     "unallocatedCallout": "עדיין לא נבחרו פרויקטים — התקורה לא תיכנס לעלות בפועל של פרויקט."
   },
   "errors": {
+    "inclusiveTaxRateRequired": "כדי להזין סכום כולל מע״מ נדרש כלל מס באחוזים פעיל בארגון.",
     "workPackageRequiresProject": "תחום עבודה דורש פרויקט.",
     "directFamilyRequiresProject": "עלות ישירה לפרויקט דורשת פרויקט.",
     "overheadFamilyRequiresNoProject": "הוצאות תפעול לא מתאימות להוצאה עם פרויקט.",

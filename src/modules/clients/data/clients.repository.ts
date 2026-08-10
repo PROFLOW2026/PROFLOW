@@ -1,4 +1,4 @@
-import { and, eq, ilike, isNull, or, sql } from 'drizzle-orm';
+import { and, asc, eq, ilike, inArray, isNull, or, sql } from 'drizzle-orm';
 import { clientContacts, clients, partyIdentifiers, projects } from '@drizzle/schema';
 import {
   ORG_LIST_EXPORT_CAP,
@@ -210,13 +210,7 @@ export async function getClientDetail(
   const client = await findClientById(db, organizationId, clientId);
   if (!client) return null;
 
-  const contacts = await db
-    .select()
-    .from(clientContacts)
-    .where(
-      and(eq(clientContacts.organizationId, organizationId), eq(clientContacts.clientId, clientId)),
-    )
-    .orderBy(clientContacts.name);
+  const contacts = await listClientContacts(db, organizationId, clientId);
 
   const identifiers = await db
     .select()
@@ -241,10 +235,55 @@ export async function getClientDetail(
 
   return {
     ...client,
-    contacts: contacts.map(mapContact),
+    contacts,
     identifiers: identifiers.map(mapIdentifier),
     projectCount: countRow?.count ?? 0,
   };
+}
+
+export async function listClientContacts(
+  db: DbExecutor,
+  organizationId: string,
+  clientId: string,
+): Promise<ClientContactRecord[]> {
+  const rows = await db
+    .select()
+    .from(clientContacts)
+    .where(
+      and(eq(clientContacts.organizationId, organizationId), eq(clientContacts.clientId, clientId)),
+    )
+    .orderBy(
+      sql`case when ${clientContacts.role} = 'primary' then 0 else 1 end`,
+      asc(clientContacts.createdAt),
+      asc(clientContacts.name),
+    );
+
+  return rows.map(mapContact);
+}
+
+export async function listClientContactsForClients(
+  db: DbExecutor,
+  organizationId: string,
+  clientIds: readonly string[],
+): Promise<ClientContactRecord[]> {
+  if (clientIds.length === 0) return [];
+
+  const rows = await db
+    .select()
+    .from(clientContacts)
+    .where(
+      and(
+        eq(clientContacts.organizationId, organizationId),
+        inArray(clientContacts.clientId, [...clientIds]),
+      ),
+    )
+    .orderBy(
+      sql`case when ${clientContacts.role} = 'primary' then 0 else 1 end`,
+      asc(clientContacts.createdAt),
+      asc(clientContacts.name),
+    );
+
+  return rows.map(mapContact);
 }
 
 export async function insertClientContact(

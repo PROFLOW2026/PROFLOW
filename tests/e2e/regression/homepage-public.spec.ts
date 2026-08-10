@@ -62,9 +62,11 @@ test.describe('public homepage', () => {
   });
 
   test('FAQ is keyboard operable and omits OCR/portal/Gantt questions', async ({ page }) => {
-    const firstTrigger = page.locator('[data-pf-landing-faq] button').first();
-    await firstTrigger.focus();
-    await page.keyboard.press('Enter');
+    const faq = page.locator('[data-pf-landing-faq]');
+    await expect(faq).toBeVisible();
+    const firstTrigger = faq.locator('button').first();
+    await firstTrigger.scrollIntoViewIfNeeded();
+    await firstTrigger.press('Enter');
     await expect(firstTrigger).toHaveAttribute('aria-expanded', 'true');
 
     await expect(page.getByText('OCR')).toHaveCount(0);

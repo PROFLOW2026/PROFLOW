@@ -8,6 +8,7 @@ import { listProjectsForOrg } from '@/modules/projects';
 import { withOrgContext } from '@/shared/auth/session';
 import { Link } from '@/shared/i18n/navigation';
 import { PunchCreateForm } from '../punch-create-form';
+import { textNavLinkMutedClassName } from '@/components/ui/pressable';
 
 export async function generateMetadata({
   params,
@@ -59,7 +60,7 @@ export default async function NewPunchPage({
         title={t('createPunch.title')}
         description={t('createPunch.description')}
         breadcrumb={
-          <Link href="/field-ops/punch" className="text-sm text-[var(--pf-text-secondary)] hover:underline">
+          <Link href="/field-ops/punch" className={textNavLinkMutedClassName}>
             {t('nav.punch')}
           </Link>
         }

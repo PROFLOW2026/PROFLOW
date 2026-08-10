@@ -236,7 +236,8 @@
       "client_contact": {
         "created": "הוספת איש קשר ללקוח",
         "updated": "עדכון איש קשר ללקוח",
-        "deleted": "הסרת איש קשר ללקוח"
+        "deleted": "הסרת איש קשר ללקוח",
+        "marked_primary": "סימון איש קשר ללקוח כראשי"
       },
       "party_identifier": {
         "upserted": "עדכון מזהה לקוח",
@@ -300,6 +301,10 @@
       },
       "time_entry": {
         "created": "רישום שעות"
+      },
+      "project_team_member": {
+        "added": "הוספת עובד לצוות הפרויקט",
+        "removed": "הסרת עובד מצוות הפרויקט"
       },
       "document": {
         "uploaded": "העלאת מסמך",

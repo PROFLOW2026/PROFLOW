@@ -29,9 +29,11 @@ export default async function ExpensesPage({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const t = await getTranslations('expenses');
-  const locale = await getLocale();
-  const rawParams = await searchParams;
+  const [t, locale, rawParams] = await Promise.all([
+    getTranslations('expenses'),
+    getLocale(),
+    searchParams,
+  ]);
 
   const parsedFilters = listExpensesSchema.safeParse({
     dateFrom: rawParams.dateFrom,

@@ -1,0 +1,70 @@
+{
+  "agent": 1,
+  "wave": "Owner QA — Site-wide Performance",
+  "measuredAt": "2026-08-10",
+  "method": "Code-path query-count delta (production wall timings: prior LIVE-VERIFICATION.json from 2026-08-09; no fresh next build in this wave)",
+  "priorLiveBaseline": "docs/performance/LIVE-VERIFICATION.json",
+  "routes": [
+    {
+      "route": "/billing",
+      "before": "3× listBillingRecords (list + summary + aging) + payments",
+      "after": "1× listBillingRecords(all, 5000) + payments; summary/aging/list derived in-memory",
+      "queryDelta": "−2 org billing list loads",
+      "wallClock": "qualitative HIGH — AR panels no longer triple-scan"
+    },
+    {
+      "route": "/reports",
+      "before": "cashFlow listBillingRecords + getOrganizationReceivablesAging listBillingRecords (duplicate)",
+      "after": "shared billingRecordsPromise reused by cash flow + aging",
+      "queryDelta": "−1 org billing list load",
+      "wallClock": "qualitative MEDIUM on reports"
+    },
+    {
+      "route": "/jobs",
+      "before": "listProjects + second projects meta select + financials batch",
+      "after": "listProjects (includes expectedRemainingCostAmount) + financials batch",
+      "queryDelta": "−1 projects round-trip",
+      "wallClock": "qualitative MEDIUM for large job lists"
+    },
+    {
+      "route": "/field-ops/{punch,inspections,logs}",
+      "before": "items then projects (object-literal await waterfall)",
+      "after": "Promise.all([items, projects])",
+      "queryDelta": "latency ~max(a,b) vs a+b",
+      "wallClock": "qualitative MEDIUM"
+    },
+    {
+      "route": "/expenses/new",
+      "before": "projects → categories → workPackages → vendors sequential",
+      "after": "Promise.all of independent lookups",
+      "queryDelta": "latency ~max vs sum",
+      "wallClock": "qualitative MEDIUM"
+    },
+    {
+      "route": "/projects/[id]?tab=overview",
+      "before": "field-ops summary blocked overview paint",
+      "after": "Suspense around ProjectFieldOpsSummaryPanel (inactive module tabs already gated)",
+      "queryDelta": "0 (streamed)",
+      "wallClock": "overview chrome paints without waiting on field-ops"
+    },
+    {
+      "route": "list bootstraps (projects/jobs/clients/documents/expenses/time/reports)",
+      "before": "sequential getTranslations × N → searchParams → getShellContext",
+      "after": "Promise.all bootstrap then data",
+      "queryDelta": "auth/i18n latency overlap only",
+      "wallClock": "qualitative LOW–MEDIUM"
+    },
+    {
+      "route": "Dashboard / project module tabs",
+      "before": "already batched (prior wave)",
+      "after": "unchanged — loadProjectFinancialsBatch + inactive-tab gate retained",
+      "queryDelta": "0",
+      "wallClock": "see LIVE-VERIFICATION.json (Dashboard warm ~889ms, Projects list repeated ~159ms, tab soft-nav NOTICEABLE ~1s)"
+    }
+  ],
+  "limitations": [
+    "No .next production build present this session — did not re-run Playwright performance-verify",
+    "Dashboard still loads org expense contributions twice (rollup batch + expense layer) — deferred R4",
+    "Soft-nav still re-executes project page RSC (prior R1)"
+  ]
+}

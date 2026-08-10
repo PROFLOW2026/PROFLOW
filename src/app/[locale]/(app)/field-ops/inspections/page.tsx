@@ -20,6 +20,8 @@ import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { InspectionListFilters } from '../field-ops-list-filters';
 import { FieldOpsSectionNav } from '../field-ops-section-nav';
 import { InspectionStatusForm } from './inspection-status-form';
+import { textNavLinkClassName } from '@/components/ui/pressable';
+import { cn } from '@/shared/ui/cn';
 
 export async function generateMetadata({
   params,
@@ -65,11 +67,17 @@ export default async function FieldOpsInspectionsPage({
   const { projectId, status: statusParam } = await searchParams;
   const status = parseStatus(statusParam);
 
-  const { items, projects, canManage } = await withOrgContext(async (context) => ({
-    items: await listInspectionsForOrg(context, { projectId, status }),
-    projects: await listProjectsForOrg(context, {}),
-    canManage: hasPermission(context, PERMISSIONS.FIELD_OPS_MANAGE),
-  }));
+  const { items, projects, canManage } = await withOrgContext(async (context) => {
+    const [inspectionItems, projectRows] = await Promise.all([
+      listInspectionsForOrg(context, { projectId, status }),
+      listProjectsForOrg(context, {}),
+    ]);
+    return {
+      items: inspectionItems,
+      projects: projectRows,
+      canManage: hasPermission(context, PERMISSIONS.FIELD_OPS_MANAGE),
+    };
+  });
 
   const projectName = new Map(projects.map((p) => [p.id, p.name]));
 
@@ -135,7 +143,7 @@ export default async function FieldOpsInspectionsPage({
                       <TableCell className="font-medium">
                         <Link
                           href={`/field-ops/inspections/${item.id}`}
-                          className="hover:underline"
+                          className={textNavLinkClassName}
                         >
                           {item.title}
                         </Link>
@@ -179,7 +187,7 @@ export default async function FieldOpsInspectionsPage({
               <div className="flex items-start justify-between gap-2">
                 <Link
                   href={`/field-ops/inspections/${item.id}`}
-                  className="min-w-0 flex-1 font-semibold hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
+                  className={cn(textNavLinkClassName, 'min-w-0 flex-1 font-semibold')}
                 >
                   {item.title}
                 </Link>

@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import * as React from 'react';
 import { createPortal } from 'react-dom';
 import { Alert, type AlertTone } from '@/components/ui/alert';
+import { pressableClassName } from '@/components/ui/pressable';
 import { cn } from '@/shared/ui/cn';
 
 export type StatusToastTone = Extract<AlertTone, 'info' | 'success' | 'danger'>;
@@ -60,7 +61,11 @@ export function StatusToast({ open, tone, message, onDismiss, className }: Statu
             <button
               type="button"
               onClick={onDismiss}
-              className="shrink-0 rounded-md p-1 text-current opacity-70 hover:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
+              className={cn(
+                pressableClassName,
+                'shrink-0 rounded-md p-1 text-current opacity-70 hover:opacity-100 active:opacity-100 active:bg-[rgb(0_0_0/0.06)]',
+                'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]',
+              )}
               aria-label={t('actions.close')}
             >
               <X className="size-4" aria-hidden />

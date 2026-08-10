@@ -1,5 +1,5 @@
 import { getTranslations } from 'next-intl/server';
-import { Link } from '@/shared/i18n/navigation';
+import { SectionNavLink } from '@/components/ui/section-nav-link';
 import {
   parseWorkKindFilter,
   type WorkKindFilter,
@@ -38,19 +38,12 @@ export async function WorkKindFilterChrome({
       <ul className="flex min-w-0 flex-wrap gap-1">
         {FILTERS.map((value) => {
           const selected = current === value;
+          const href = value === 'all' ? pathname : `${pathname}?workKind=${value}`;
           return (
             <li key={value}>
-              <Link
-                href={{ pathname, query: value === 'all' ? {} : { workKind: value } }}
-                className={
-                  selected
-                    ? 'inline-flex rounded-md bg-[var(--pf-bg-muted)] px-2.5 py-1 text-sm font-medium text-[var(--pf-text-brand)]'
-                    : 'inline-flex rounded-md px-2.5 py-1 text-sm text-[var(--pf-text-secondary)] hover:bg-[var(--pf-bg-muted)] hover:text-[var(--pf-text-primary)]'
-                }
-                aria-current={selected ? 'page' : undefined}
-              >
+              <SectionNavLink href={href} active={selected} className="min-h-8 px-2.5 py-1">
                 {t(value)}
-              </Link>
+              </SectionNavLink>
             </li>
           );
         })}

@@ -12,6 +12,7 @@ import { Link } from '@/shared/i18n/navigation';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { upsertEntityFieldValueAction } from '../../../settings/custom-fields/actions';
+import { textNavLinkClassName, textNavLinkMutedClassName } from '@/components/ui/pressable';
 import {
   AcceptVersionButton,
   ConvertWonForm,
@@ -90,7 +91,7 @@ export default async function OpportunityDetailPage({
           </>
         }
         breadcrumb={
-          <Link href="/crm" className="text-sm text-[var(--pf-text-secondary)] hover:underline">
+          <Link href="/crm" className={textNavLinkMutedClassName}>
             {t('title')}
           </Link>
         }
@@ -103,12 +104,12 @@ export default async function OpportunityDetailPage({
           </CardHeader>
           <CardContent className="flex flex-wrap gap-3 text-sm">
             {detail.leadId ? (
-              <Link href={`/crm/leads/${detail.leadId}`} className="hover:underline">
+              <Link href={`/crm/leads/${detail.leadId}`} className={textNavLinkClassName}>
                 {t('opportunity.openLead')}
               </Link>
             ) : null}
             {detail.prospect ? (
-              <Link href={`/crm/prospects/${detail.prospect.id}`} className="hover:underline">
+              <Link href={`/crm/prospects/${detail.prospect.id}`} className={textNavLinkClassName}>
                 {t('opportunity.openProspect', { name: detail.prospect.name })}
               </Link>
             ) : null}
@@ -123,11 +124,11 @@ export default async function OpportunityDetailPage({
           </CardHeader>
           <CardContent className="flex flex-col gap-2 text-sm">
             <div className="flex flex-wrap gap-3">
-              <Link href={`/projects/${detail.convertedProjectId}`} className="hover:underline">
+              <Link href={`/projects/${detail.convertedProjectId}`} className={textNavLinkClassName}>
                 {t('opportunity.openProject')}
               </Link>
               {detail.convertedClientId ? (
-                <Link href={`/clients/${detail.convertedClientId}`} className="hover:underline">
+                <Link href={`/clients/${detail.convertedClientId}`} className={textNavLinkClassName}>
                   {t('opportunity.openClient')}
                 </Link>
               ) : null}

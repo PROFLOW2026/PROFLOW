@@ -22,8 +22,10 @@ export default async function ReportsPage({
 }: {
   searchParams: Promise<{ workKind?: string }>;
 }) {
-  const t = await getTranslations('dashboard.reports');
-  const params = await searchParams;
+  const [t, params] = await Promise.all([
+    getTranslations('dashboard.reports'),
+    searchParams,
+  ]);
   const workKindFilter = parseWorkKindFilter(params.workKind);
 
   const analytics = await withOrgContext(async (context) =>

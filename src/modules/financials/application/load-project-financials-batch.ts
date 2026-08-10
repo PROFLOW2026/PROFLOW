@@ -2,7 +2,13 @@ import { fromNumericString, zeroMoney } from '@/shared/money';
 import type { OrgContext } from '@/shared/auth/context';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
-import { sumLaborCostGroupedByProject } from '@/modules/workforce';
+import {
+  areEmployeeMonthCostsAvailable,
+  hasWorkforceLaborData,
+  mergeResidualTimeAndMonthlyAllocatedLabor,
+  sumLaborCostGroupedByProject,
+  sumMonthlyAllocatedLaborByProject,
+} from '@/modules/workforce';
 import type { ProjectFinancials } from '@/modules/financials/domain/types';
 import {
   loadBillingRowsGroupedByProject,
@@ -33,6 +39,14 @@ export async function loadProjectFinancialsBatch(
   context: OrgContext,
   projectIds: readonly string[],
   forecastByProject: ReadonlyMap<string, ProjectForecastMeta>,
+  options: {
+    /**
+     * When provided, skip `loadExpenseContributionsForProjects` and reuse this
+     * request-scoped result (filtered to `projectIds`). Dashboard uses one
+     * authoritative org expense load for rollup + unallocated layer.
+     */
+    readonly expenseContributions?: readonly ProjectExpenseContribution[];
+  } = {},
 ): Promise<Map<string, ProjectFinancials>> {
   const result = new Map<string, ProjectFinancials>();
   if (projectIds.length === 0) return result;
@@ -45,12 +59,15 @@ export async function loadProjectFinancialsBatch(
   const canReadAp = hasPermission(context, PERMISSIONS.AP_READ);
   const canReadExpenses = hasPermission(context, PERMISSIONS.EXPENSES_READ);
   const canReadWorkforce = hasPermission(context, PERMISSIONS.WORKFORCE_READ);
+  const monthCostsReady = canReadWorkforce && areEmployeeMonthCostsAvailable();
 
+  const projectIdSet = new Set(projectIds);
   const [
     commercialByProject,
     billingByProject,
     expenseContributions,
     laborByProject,
+    monthlyLaborByProject,
     committedByProject,
     apByProject,
     recognizedByProject,
@@ -62,10 +79,24 @@ export async function loadProjectFinancialsBatch(
       ? loadBillingRowsGroupedByProject(context.db, context.organizationId, projectIds)
       : Promise.resolve(new Map<string, ProjectBillingRows>()),
     canReadExpenses
-      ? loadExpenseContributionsForProjects(context.db, context.organizationId, projectIds)
+      ? options.expenseContributions
+        ? Promise.resolve(
+            options.expenseContributions.filter(
+              (row) => row.projectId != null && projectIdSet.has(row.projectId),
+            ),
+          )
+        : loadExpenseContributionsForProjects(context.db, context.organizationId, projectIds)
       : Promise.resolve([]),
     canReadWorkforce
       ? sumLaborCostGroupedByProject(
+          context.db,
+          context.organizationId,
+          projectIds,
+          currency,
+        )
+      : Promise.resolve(new Map()),
+    monthCostsReady
+      ? sumMonthlyAllocatedLaborByProject(
           context.db,
           context.organizationId,
           projectIds,
@@ -110,15 +141,30 @@ export async function loadProjectFinancialsBatch(
     const meta = forecastByProject.get(projectId);
     const projectCurrency = (meta?.currency ?? currency).toUpperCase();
     const laborAgg = laborByProject.get(projectId);
+    const monthlyAgg = monthlyLaborByProject.get(projectId);
+
+    const residualTimeLabor =
+      fromNumericString(laborAgg?.totalAmount ?? '0', projectCurrency) ??
+      zeroMoney(projectCurrency);
+    const monthlyAllocatedLabor =
+      fromNumericString(monthlyAgg?.totalAmount ?? '0', projectCurrency) ??
+      zeroMoney(projectCurrency);
+    const residualEntryCount = laborAgg?.entryCount ?? 0;
+    const hasWorkforce = hasWorkforceLaborData({
+      residualEntryCount,
+      monthlyAllocatedLabor,
+    });
+
     let laborInput = null;
-    if (laborAgg && laborAgg.entryCount > 0) {
+    if (hasWorkforce) {
       laborInput = {
-        laborCost:
-          fromNumericString(laborAgg.totalAmount ?? '0', laborAgg.currency) ??
-          zeroMoney(projectCurrency),
+        laborCost: mergeResidualTimeAndMonthlyAllocatedLabor({
+          residualTimeLabor,
+          monthlyAllocatedLabor,
+        }),
         hasWorkforceData: true,
-        entriesMissingCost: laborAgg.entriesMissingCost,
-        excludedForeignCurrencyEntries: laborAgg.excludedForeignCurrencyEntries,
+        entriesMissingCost: laborAgg?.entriesMissingCost ?? 0,
+        excludedForeignCurrencyEntries: laborAgg?.excludedForeignCurrencyEntries ?? 0,
       };
     }
 

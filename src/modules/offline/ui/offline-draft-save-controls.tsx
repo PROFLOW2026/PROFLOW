@@ -4,7 +4,9 @@ import { useState, useTransition } from 'react';
 import { useTranslations } from 'next-intl';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
+import { textNavLinkClassName } from '@/components/ui/pressable';
 import { Link } from '@/shared/i18n/navigation';
+import { cn } from '@/shared/ui/cn';
 import { enqueueProductDraft } from '../data/enqueue-product-draft';
 import { payloadBuilderForKind } from '../domain/payloads';
 import type { DraftKind } from '../domain/types';
@@ -83,7 +85,7 @@ export function OfflineDraftSaveControls({
         </Button>
         <Link
           href="/settings/offline-drafts"
-          className="text-sm text-[var(--pf-text-muted)] underline-offset-2 hover:underline"
+          className={cn(textNavLinkClassName, 'text-sm text-[var(--pf-text-muted)]')}
         >
           {t('viewDrafts')}
         </Link>

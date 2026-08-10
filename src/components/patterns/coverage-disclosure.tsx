@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import * as React from 'react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/shared/ui/cn';
+import { pressableClassName } from '@/components/ui/pressable';
 
 export interface CoverageSource {
   /** Translated label for the cost source, for example "Allocated overhead". */
@@ -37,7 +38,7 @@ export function CoverageDisclosure({ sources, className, triggerClassName }: Cov
       <PopoverTrigger
         className={cn(
           'inline-flex items-center gap-1 rounded p-2 -m-2 text-xs font-medium text-[var(--pf-text-brand)]',
-          'underline-offset-2 hover:underline',
+          pressableClassName, 'underline-offset-2 hover:underline active:underline active:opacity-80 active:scale-100',
           triggerClassName,
         )}
       >

@@ -17,6 +17,7 @@ import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 
 import { RfqCreateForm } from './rfq-create-form';
+import { textNavLinkMutedClassName } from '@/components/ui/pressable';
 
 
 
@@ -102,7 +103,7 @@ export default async function NewRfqPage() {
 
             href="/procurement/rfqs"
 
-            className="rounded-sm text-sm text-[var(--pf-text-secondary)] hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
+            className={textNavLinkMutedClassName}
 
           >
 

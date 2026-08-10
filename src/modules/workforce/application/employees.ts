@@ -24,9 +24,22 @@ import {
   type CreateEmployeeInput,
   type UpdateEmployeeInput,
 } from '../validation/schemas';
+import {
+  assertCanManageWorkforceCost,
+  canReadWorkforceCost,
+} from './workforce-cost-authz';
 
 export interface EmployeeDetail extends EmployeeRecord {
   readonly rateVersions: readonly RateVersionRecord[];
+}
+
+function redactListRates(items: readonly EmployeeListItem[]): EmployeeListItem[] {
+  return items.map((item) => ({
+    ...item,
+    currentRate: null,
+    currentRateUnit: null,
+    currentRateCurrency: null,
+  }));
 }
 
 export async function listEmployeesForOrg(
@@ -34,7 +47,8 @@ export async function listEmployeesForOrg(
   filters: { search?: string; status?: EmployeeRecord['status'] | 'all' } = {},
 ): Promise<EmployeeListItem[]> {
   assertPermission(context, PERMISSIONS.WORKFORCE_READ);
-  return listEmployees(context.db, context.organizationId, filters);
+  const items = await listEmployees(context.db, context.organizationId, filters);
+  return canReadWorkforceCost(context) ? items : redactListRates(items);
 }
 
 export async function getEmployee(
@@ -46,7 +60,10 @@ export async function getEmployee(
   const employee = await findEmployeeById(context.db, context.organizationId, employeeId);
   if (!employee) throw new NotFoundError('Employee');
 
-  const rateVersions = await listRateVersionsByEmployee(context.db, context.organizationId, employeeId);
+  // Compensation history is private employer cost — not unlocked by workforce.read.
+  const rateVersions = canReadWorkforceCost(context)
+    ? await listRateVersionsByEmployee(context.db, context.organizationId, employeeId)
+    : [];
 
   return { ...employee, rateVersions };
 }
@@ -65,6 +82,9 @@ export async function createEmployee(
   }
 
   const input = parsed.data;
+  if (input.baseRate) {
+    assertCanManageWorkforceCost(context);
+  }
   const currency = (input.currency ?? context.organization.baseCurrency).toUpperCase();
   const validFrom = input.validFrom ?? todayInTimeZone(context.organization.timezone);
 

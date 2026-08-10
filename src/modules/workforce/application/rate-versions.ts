@@ -1,8 +1,6 @@
 import { addDays, businessDate, isBefore } from '@/shared/dates';
 import { AUDIT_ACTIONS, recordAuditEvent } from '@/shared/audit';
 import { NotFoundError, ValidationError } from '@/shared/errors';
-import { assertPermission } from '@/shared/permissions/assert';
-import { PERMISSIONS } from '@/shared/permissions/catalog';
 import type { OrgContext } from '@/shared/auth/context';
 import { findEmployeeById } from '../data/employees.repository';
 import {
@@ -14,6 +12,10 @@ import {
 } from '../data/rate-versions.repository';
 import type { LaborCostComponentRecord, RateVersionRecord } from '../domain/types';
 import { createRateVersionSchema, type CreateRateVersionInput } from '../validation/schemas';
+import {
+  assertCanManageWorkforceCost,
+  assertCanReadWorkforceCost,
+} from './workforce-cost-authz';
 
 export interface RateVersionDetail extends RateVersionRecord {
   readonly components: readonly LaborCostComponentRecord[];
@@ -23,7 +25,7 @@ export async function listRateHistory(
   context: OrgContext,
   employeeId: string,
 ): Promise<RateVersionDetail[]> {
-  assertPermission(context, PERMISSIONS.WORKFORCE_READ);
+  assertCanReadWorkforceCost(context);
 
   const employee = await findEmployeeById(context.db, context.organizationId, employeeId);
   if (!employee) throw new NotFoundError('Employee');
@@ -42,7 +44,7 @@ export async function createRateVersion(
   context: OrgContext,
   rawInput: CreateRateVersionInput,
 ): Promise<RateVersionDetail> {
-  assertPermission(context, PERMISSIONS.WORKFORCE_MANAGE);
+  assertCanManageWorkforceCost(context);
 
   const parsed = createRateVersionSchema.safeParse(rawInput);
   if (!parsed.success) {

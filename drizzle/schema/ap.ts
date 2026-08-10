@@ -5,13 +5,22 @@ import {
   foreignKey,
   index,
   integer,
+  numeric,
   pgTable,
   text,
   timestamp,
   uniqueIndex,
   uuid,
 } from 'drizzle-orm/pg-core';
-import { archivedAt, currencyCode, moneyAmount, primaryId, quantityAmount, timestamps } from './_shared';
+import {
+  archivedAt,
+  currencyCode,
+  moneyAmount,
+  percentAmount,
+  primaryId,
+  quantityAmount,
+  timestamps,
+} from './_shared';
 import { expenses } from './expenses';
 import { profiles } from './identity';
 import { organizations } from './tenancy';
@@ -186,5 +195,80 @@ export const apPaymentApplications = pgTable(
       columns: [table.apBillId, table.organizationId],
       foreignColumns: [apBills.id, apBills.organizationId],
     }).onDelete('restrict'),
+  ],
+);
+
+/**
+ * Slice recognized AP bill Actual across projects / overhead.
+ * Payment ≠ Actual — these rows allocate bill recognition only.
+ */
+export const apBillProjectAllocations = pgTable(
+  'ap_bill_project_allocations',
+  {
+    id: primaryId(),
+    organizationId: uuid('organization_id')
+      .notNull()
+      .references(() => organizations.id, { onDelete: 'cascade' }),
+    apBillId: uuid('ap_bill_id').notNull(),
+    targetType: text('target_type').notNull(),
+    projectId: uuid('project_id'),
+    method: text('method').notNull(),
+    amount: moneyAmount('amount').notNull(),
+    currency: currencyCode().notNull(),
+    percent: percentAmount('percent'),
+    basisDays: numeric('basis_days', { precision: 12, scale: 4, mode: 'string' }),
+    basisValue: moneyAmount('basis_value'),
+    notes: text('notes'),
+    sortOrder: integer('sort_order').notNull().default(0),
+    status: text('status').notNull().default('draft'),
+    supersedesAllocationId: uuid('supersedes_allocation_id'),
+    appliedAt: timestamp('applied_at', { withTimezone: true, mode: 'date' }),
+    ...timestamps(),
+  },
+  (table) => [
+    uniqueIndex('ap_bill_project_allocations_id_organization_id_uq').on(
+      table.id,
+      table.organizationId,
+    ),
+    index('ap_bill_project_allocations_bill_idx').on(table.apBillId),
+    index('ap_bill_project_allocations_project_idx').on(table.projectId),
+    uniqueIndex('ap_bill_project_allocations_bill_project_active_uq')
+      .on(table.apBillId, table.projectId)
+      .where(
+        sql`${table.targetType} = 'project' AND ${table.projectId} IS NOT NULL
+            AND ${table.status} IN ('draft', 'applied')`,
+      ),
+    foreignKey({
+      name: 'ap_bill_project_allocations_bill_org_fk',
+      columns: [table.apBillId, table.organizationId],
+      foreignColumns: [apBills.id, apBills.organizationId],
+    }).onDelete('cascade'),
+    foreignKey({
+      name: 'ap_bill_project_allocations_project_org_fk',
+      columns: [table.projectId, table.organizationId],
+      foreignColumns: [projects.id, projects.organizationId],
+    }).onDelete('restrict'),
+    check(
+      'ap_bill_project_allocations_target_known',
+      sql`${table.targetType} IN ('project', 'overhead')`,
+    ),
+    check(
+      'ap_bill_project_allocations_target_shape',
+      sql`(${table.targetType} = 'project' AND ${table.projectId} IS NOT NULL)
+          OR (${table.targetType} = 'overhead' AND ${table.projectId} IS NULL)`,
+    ),
+    check(
+      'ap_bill_project_allocations_method_known',
+      sql`${table.method} IN ('manual_amount', 'manual_percent', 'active_days', 'equal_split')`,
+    ),
+    check('ap_bill_project_allocations_amount_positive', sql`${table.amount} > 0`),
+    check(
+      'ap_bill_project_allocations_status_known',
+      sql`${table.status} IN ('draft', 'applied', 'superseded')`,
+    ),
+    check(
+      'ap_bill_project_allocations_percent_range',
+      sql`${table.percent} IS NULL OR (${table.percent} >= 0 AND ${table.percent} <= 100)`,
+    ),
   ],
 );

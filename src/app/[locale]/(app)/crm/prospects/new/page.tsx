@@ -3,6 +3,7 @@ import { getTranslations } from 'next-intl/server';
 import { PageHeader } from '@/components/ui/page-header';
 import { Link } from '@/shared/i18n/navigation';
 import { NewProspectForm } from './new-prospect-form';
+import { textNavLinkMutedClassName } from '@/components/ui/pressable';
 
 export async function generateMetadata({
   params,
@@ -22,7 +23,7 @@ export default async function NewProspectPage() {
       <PageHeader
         title={t('prospect.new')}
         breadcrumb={
-          <Link href="/crm/prospects" className="text-sm text-[var(--pf-text-secondary)] hover:underline">
+          <Link href="/crm/prospects" className={textNavLinkMutedClassName}>
             {t('nav.prospects')}
           </Link>
         }

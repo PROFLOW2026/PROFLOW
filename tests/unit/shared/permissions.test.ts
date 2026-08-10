@@ -101,6 +101,15 @@ describe('permission catalog integrity', () => {
     expect(roleTemplate('worker').permissions).not.toContain(PERMISSIONS.PROJECT_PROFIT_READ);
   });
 
+  it('hides employer cost from workers; grants cost read to manager and finance', () => {
+    expect(roleTemplate('worker').permissions).not.toContain(PERMISSIONS.WORKFORCE_COST_READ);
+    expect(roleTemplate('worker').permissions).not.toContain(PERMISSIONS.WORKFORCE_COST_MANAGE);
+    expect(roleTemplate('manager').permissions).toContain(PERMISSIONS.WORKFORCE_COST_READ);
+    expect(roleTemplate('manager').permissions).not.toContain(PERMISSIONS.WORKFORCE_COST_MANAGE);
+    expect(roleTemplate('finance').permissions).toContain(PERMISSIONS.WORKFORCE_COST_READ);
+    expect(roleTemplate('finance').permissions).toContain(PERMISSIONS.WORKFORCE_COST_MANAGE);
+  });
+
   it('keeps every toggleable permission inside the catalog', () => {
     for (const permissions of Object.values(TOGGLEABLE_PERMISSIONS)) {
       for (const permission of permissions) {

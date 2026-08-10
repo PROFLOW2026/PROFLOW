@@ -5,6 +5,7 @@ import { listLeadsForOrg, listProspectsForOrg } from '@/modules/crm';
 import { withOrgContext } from '@/shared/auth/session';
 import { Link } from '@/shared/i18n/navigation';
 import { NewOpportunityForm } from './new-opportunity-form';
+import { textNavLinkMutedClassName } from '@/components/ui/pressable';
 
 export async function generateMetadata({
   params,
@@ -23,11 +24,17 @@ export default async function NewOpportunityPage({
 }) {
   const t = await getTranslations('crm');
   const params = await searchParams;
-  const { prospects, leads, currency } = await withOrgContext(async (context) => ({
-    prospects: await listProspectsForOrg(context),
-    leads: await listLeadsForOrg(context, { includeArchived: false }),
-    currency: context.organization.baseCurrency,
-  }));
+  const { prospects, leads, currency } = await withOrgContext(async (context) => {
+    const [prospectRows, leadRows] = await Promise.all([
+      listProspectsForOrg(context),
+      listLeadsForOrg(context, { includeArchived: false }),
+    ]);
+    return {
+      prospects: prospectRows,
+      leads: leadRows,
+      currency: context.organization.baseCurrency,
+    };
+  });
 
   const defaultLeadId =
     params.leadId && leads.some((lead) => lead.id === params.leadId) ? params.leadId : undefined;
@@ -37,7 +44,7 @@ export default async function NewOpportunityPage({
       <PageHeader
         title={t('opportunity.new')}
         breadcrumb={
-          <Link href="/crm" className="text-sm text-[var(--pf-text-secondary)] hover:underline">
+          <Link href="/crm" className={textNavLinkMutedClassName}>
             {t('title')}
           </Link>
         }

@@ -84,3 +84,31 @@ export const MESSAGE_NAMESPACES = [
 ] as const;
 
 export type MessageNamespace = (typeof MESSAGE_NAMESPACES)[number];
+
+/**
+ * Namespaces serialized to the browser via `NextIntlClientProvider`.
+ *
+ * Full catalogs remain available to Server Components. Shipping every
+ * namespace (~237KB he-IL) dominated soft-nav RSC flights (~250KB sibling).
+ * Route layouts that need more nest a provider with `clientMessageNamespaces(...)`.
+ */
+export const APP_CLIENT_MESSAGE_NAMESPACES = [
+  'common',
+  'nav',
+  'errors',
+  'validation',
+  'status',
+  'offline',
+  'projects',
+  'jobs',
+  'financial',
+  'expenses',
+  'changes',
+  'billing',
+  'documents',
+  'workforce',
+  'clients',
+  'vendors',
+  'customFields',
+  'exports',
+] as const satisfies readonly MessageNamespace[];

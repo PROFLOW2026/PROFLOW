@@ -31,19 +31,19 @@ test.describe('jobs navigation and mobile path', () => {
 
     await expect(page.getByRole('heading', { name: he.jobs.create.title, level: 1 })).toBeVisible();
     await expect(page.getByLabel(he.jobs.create.clientLabel).first()).toBeVisible();
-    await expect(page.getByLabel(he.jobs.create.clientNew)).toBeVisible();
-    await expect(page.getByLabel(he.jobs.create.nameLabel)).toBeVisible();
-    await expect(page.getByLabel(he.jobs.create.pricingModeLabel)).toBeVisible();
+    await expect(page.getByLabel(he.jobs.create.clientNew).first()).toBeVisible();
+    await expect(page.getByLabel(he.jobs.create.nameLabel).first()).toBeVisible();
+    await expect(page.getByLabel(he.jobs.create.pricingModeLabel).first()).toBeVisible();
 
     // Fixed-price default: price language, not “original contract”.
-    await expect(page.getByLabel(he.jobs.pricing.priceLabel)).toBeVisible();
-    await expect(page.getByText(he.jobs.pricing.priceHint)).toBeVisible();
+    await expect(page.getByLabel(he.jobs.pricing.priceLabel).first()).toBeVisible();
+    await expect(page.getByText(he.jobs.pricing.priceHint).first()).toBeVisible();
     await expect(page.getByText(he.projects.create.contractValueLabel)).toHaveCount(0);
     await expect(page.getByText(he.projects.create.managedOpeningPreviewLabel)).toHaveCount(0);
 
-    await page.getByLabel(he.jobs.create.nameLabel).fill('תיקון מזגן בדיקה');
-    await page.getByLabel(he.jobs.create.clientNew).fill('מזדמן — בדיקה');
-    await page.getByLabel(he.jobs.pricing.priceLabel).fill('2500');
+    await page.getByLabel(he.jobs.create.nameLabel).first().fill('תיקון מזגן בדיקה');
+    await page.getByLabel(he.jobs.create.clientNew).first().fill('מזדמן — בדיקה');
+    await page.getByLabel(he.jobs.pricing.priceLabel).first().fill('2500');
 
     const sampleMoney = formatMoney({ amount: '52000', currency: 'ILS' }, 'he-IL');
     expect(sampleMoney).toMatch(/52[,.]000/);
@@ -56,10 +56,10 @@ test.describe('jobs navigation and mobile path', () => {
   test('settings work-mix copy is Hebrew and reachable', async ({ page }) => {
     await page.goto('/he-IL/settings/features');
 
-    await expect(page.getByText(he.settings.workMix.title)).toBeVisible();
-    await expect(page.getByText(he.settings.workMix.subtitle)).toBeVisible();
-    await expect(page.getByLabel(he.settings.workMix.label)).toBeVisible();
-    await expect(page.getByText(he.settings.modules.jobs)).toBeVisible();
+    await expect(page.locator('#main').getByText(he.settings.workMix.title)).toBeVisible();
+    await expect(page.locator('#main').getByText(he.settings.workMix.subtitle)).toBeVisible();
+    await expect(page.locator('#main').getByLabel(he.settings.workMix.label)).toBeVisible();
+    await expect(page.locator('#main').getByText(he.settings.modules.jobs)).toBeVisible();
     await expect(page.getByText(/מנוע פיננסי/)).toHaveCount(0);
   });
 

@@ -1,4 +1,5 @@
-import { AUDIT_ACTIONS, recordAuditEvent } from '@/shared/audit';
+import { AUDIT_ACTIONS } from '@/shared/audit/actions';
+import { recordAuditEvent } from '@/shared/audit';
 import { businessDate } from '@/shared/dates';
 import { DomainRuleError, NotFoundError, ValidationError } from '@/shared/errors';
 import { assertPermission } from '@/shared/permissions/assert';

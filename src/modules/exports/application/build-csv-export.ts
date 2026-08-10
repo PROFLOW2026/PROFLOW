@@ -2,7 +2,7 @@ import type { OrgContext } from '@/shared/auth/context';
 import { listAuditEventSummaries } from '@/shared/audit';
 import { ORG_LIST_EXPORT_CAP } from '@/shared/db/list-limits';
 import { ValidationError } from '@/shared/errors';
-import { assertPermission } from '@/shared/permissions/assert';
+import { assertPermission, hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { listApBillsForOrg } from '@/modules/ap';
 import {
@@ -16,7 +16,7 @@ import { getProjectFinancials } from '@/modules/financials';
 import { listPurchaseOrdersWithCommittedForOrg } from '@/modules/procurement';
 import { listProjectsForOrg } from '@/modules/projects';
 import { listVendorsForOrg } from '@/modules/vendors';
-import { listEmployeesForOrg, listTimeEntriesForOrg } from '@/modules/workforce';
+import { listEmployeesForOrg, listTimeEntriesForOrg, canReadWorkforceCost } from '@/modules/workforce';
 import { csvDownloadHeaders, rowsToCsv, type CsvCell } from '../domain/csv';
 import {
   enumLabel,
@@ -469,6 +469,7 @@ async function tableProjectFinancials(
 async function tableEmployees(context: OrgContext, copy: ExportCopy): Promise<ExportTable> {
   assertPermission(context, PERMISSIONS.WORKFORCE_READ);
   const items = await listEmployeesForOrg(context, {});
+  const includeRates = canReadWorkforceCost(context);
   return {
     sheetName: copy.sheets.employees,
     headers: [
@@ -479,9 +480,9 @@ async function tableEmployees(context: OrgContext, copy: ExportCopy): Promise<Ex
       h(copy, 'jobTitle'),
       h(copy, 'email'),
       h(copy, 'phone'),
-      h(copy, 'currentRate'),
-      h(copy, 'rateUnit'),
-      h(copy, 'rateCurrency'),
+      ...(includeRates
+        ? [h(copy, 'currentRate'), h(copy, 'rateUnit'), h(copy, 'rateCurrency')]
+        : []),
     ],
     rows: items.map((item) => [
       item.id,
@@ -491,9 +492,13 @@ async function tableEmployees(context: OrgContext, copy: ExportCopy): Promise<Ex
       item.jobTitle,
       item.email,
       item.phone,
-      toExcelNumber(item.currentRate),
-      enumLabel(copy, 'rateUnit', item.currentRateUnit),
-      item.currentRateCurrency,
+      ...(includeRates
+        ? [
+            toExcelNumber(item.currentRate),
+            enumLabel(copy, 'rateUnit', item.currentRateUnit),
+            item.currentRateCurrency,
+          ]
+        : []),
     ]),
   };
 }
@@ -504,6 +509,8 @@ async function tableTimeEntries(context: OrgContext, copy: ExportCopy): Promise<
     kind: 'all',
     limit: ORG_LIST_EXPORT_CAP,
   });
+  const includeCosts =
+    canReadWorkforceCost(context) || hasPermission(context, PERMISSIONS.PROJECT_FINANCIALS_READ);
   return {
     sheetName: copy.sheets.timeEntries,
     headers: [
@@ -517,8 +524,7 @@ async function tableTimeEntries(context: OrgContext, copy: ExportCopy): Promise<
       h(copy, 'projectName'),
       h(copy, 'workPackageName'),
       h(copy, 'timeCodeName'),
-      h(copy, 'costAmount'),
-      h(copy, 'costCurrency'),
+      ...(includeCosts ? [h(copy, 'costAmount'), h(copy, 'costCurrency')] : []),
       h(copy, 'description'),
     ],
     rows: items.map((item) => [
@@ -532,8 +538,7 @@ async function tableTimeEntries(context: OrgContext, copy: ExportCopy): Promise<
       item.projectName,
       item.workPackageName,
       item.timeCodeName,
-      toExcelNumber(item.costAmount),
-      item.costCurrency,
+      ...(includeCosts ? [toExcelNumber(item.costAmount), item.costCurrency] : []),
       item.description,
     ]),
     notes: [copy.notes.timeEntriesCurrency, copy.notes.timeEntriesCap],

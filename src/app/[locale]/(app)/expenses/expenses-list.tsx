@@ -18,6 +18,7 @@ import {
 import { EmptyState } from '@/components/ui/empty-state';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { pressableCardLinkClassName, textNavLinkClassName } from '@/components/ui/pressable';
 import {
   Select,
   SelectContent,
@@ -26,6 +27,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Link, useRouter } from '@/shared/i18n/navigation';
+import { cn } from '@/shared/ui/cn';
 import { formatBusinessDate } from '@/shared/dates/format';
 import type {
   CostCategoryRow,
@@ -232,7 +234,10 @@ export function ExpensesList({
                     {items.map((expense) => (
                       <TableRow key={expense.id}>
                         <TableCell>
-                          <Link href={`/expenses/${expense.id}`} className="font-medium hover:underline">
+                          <Link
+                            href={`/expenses/${expense.id}`}
+                            className={cn(textNavLinkClassName, 'font-medium')}
+                          >
                             <span dir="ltr">
                               {formatBusinessDate(expense.expenseDate, locale, 'short')}
                             </span>
@@ -265,7 +270,7 @@ export function ExpensesList({
             renderMobileCard={(expense) => (
               <Link
                 href={`/expenses/${expense.id}`}
-                className="block min-h-11 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4 text-start"
+                className={cn(pressableCardLinkClassName, 'text-start')}
               >
                 <div className="flex items-start justify-between gap-2">
                   <span className="min-w-0 flex-1 font-semibold" dir="ltr">

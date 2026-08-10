@@ -4,10 +4,12 @@ import { revalidatePath } from 'next/cache';
 import { getLocale, getTranslations } from 'next-intl/server';
 import {
   acceptApMatch,
+  applyBillProjectAllocations,
   createApBill,
   proposeApMatch,
   recordVendorPayment,
   rejectApMatch,
+  saveBillProjectAllocations,
   voidVendorPayment,
 } from '@/modules/ap';
 import { withOrgContext } from '@/shared/auth/session';
@@ -217,6 +219,67 @@ export async function voidVendorPaymentAction(
       voidVendorPayment(context, requiredFormValue(formData, 'paymentId')),
     );
     if (billId) revalidatePath(`/procurement/ap/${billId}`);
+    revalidatePath('/procurement/ap');
+    return { success: true };
+  } catch (error) {
+    return mapAppError(error);
+  }
+}
+
+function parseBillAllocationLines(raw: string | undefined) {
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw) as unknown;
+    if (!Array.isArray(parsed)) return [];
+    return parsed.map((line) => {
+      const row = line as Record<string, unknown>;
+      return {
+        projectId: String(row.projectId ?? ''),
+        method: String(row.method ?? 'manual_amount') as
+          | 'manual_amount'
+          | 'manual_percent'
+          | 'active_days'
+          | 'equal_split',
+        amount: row.amount != null ? String(row.amount) : null,
+        percent: row.percent != null ? String(row.percent) : null,
+        days: row.days != null ? String(row.days) : null,
+        notes: row.notes != null ? String(row.notes) : null,
+      };
+    });
+  } catch {
+    return [];
+  }
+}
+
+export async function saveBillProjectAllocationsAction(input: {
+  apBillId: string;
+  linesJson: string;
+  apply?: boolean;
+}): Promise<ApFormState> {
+  try {
+    await withOrgContext((context) =>
+      saveBillProjectAllocations(context, {
+        apBillId: input.apBillId,
+        lines: parseBillAllocationLines(input.linesJson),
+        apply: input.apply === true,
+      }),
+    );
+    revalidatePath(`/procurement/ap/${input.apBillId}`);
+    revalidatePath('/procurement/ap');
+    return { success: true };
+  } catch (error) {
+    return mapAppError(error);
+  }
+}
+
+export async function applyBillProjectAllocationsAction(input: {
+  apBillId: string;
+}): Promise<ApFormState> {
+  try {
+    await withOrgContext((context) =>
+      applyBillProjectAllocations(context, { apBillId: input.apBillId }),
+    );
+    revalidatePath(`/procurement/ap/${input.apBillId}`);
     revalidatePath('/procurement/ap');
     return { success: true };
   } catch (error) {

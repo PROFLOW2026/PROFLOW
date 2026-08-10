@@ -40,13 +40,16 @@ export default async function DocumentsPage({
 }: {
   searchParams: Promise<{ q?: string; ownerType?: string }>;
 }) {
-  const t = await getTranslations('documents');
-  const tCommon = await getTranslations('common');
-  const { q, ownerType: ownerTypeRaw } = await searchParams;
+  const [t, tCommon, search, shell] = await Promise.all([
+    getTranslations('documents'),
+    getTranslations('common'),
+    searchParams,
+    getShellContext(),
+  ]);
+  const { q, ownerType: ownerTypeRaw } = search;
   const ownerType = parseOwnerType(ownerTypeRaw);
   const filtersActive = Boolean(q?.trim()) || ownerType !== 'all';
   const storageConfigured = isStorageConfigured();
-  const shell = await getShellContext();
   const vendorsEnabled = Boolean(shell?.modules?.vendors);
 
   const loaded = await withOrgContext(async (context) => {

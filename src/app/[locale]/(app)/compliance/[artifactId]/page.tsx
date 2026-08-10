@@ -16,6 +16,7 @@ import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { ArchiveArtifactButton } from '../archive-artifact-button';
 import { ArtifactForm } from '../artifact-form';
 import { ComplianceDocumentAttachments } from './compliance-document-attachments';
+import { textNavLinkMutedClassName } from '@/components/ui/pressable';
 
 export async function generateMetadata({
   params,
@@ -94,7 +95,7 @@ export default async function ComplianceArtifactPage({
           </>
         }
         breadcrumb={
-          <Link href="/compliance" className="text-sm text-[var(--pf-text-secondary)] hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]">
+          <Link href="/compliance" className={textNavLinkMutedClassName}>
             {t('title')}
           </Link>
         }

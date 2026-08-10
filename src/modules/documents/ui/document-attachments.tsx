@@ -15,6 +15,8 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Spinner } from '@/components/ui/spinner';
 import { StatusBadge } from '@/components/ui/status-badge';
+import { pressableClassName } from '@/components/ui/pressable';
+import { cn } from '@/shared/ui/cn';
 import type { DocumentListItem, DocumentLinkCandidate, DocumentOwnerType } from '@/modules/documents/domain/types';
 import { DOCUMENT_CATEGORIES } from '@/modules/documents/domain/categories';
 import { formatFileSize } from '@/modules/documents/domain/format-file-size';
@@ -389,11 +391,14 @@ export function DocumentAttachments({
                 const file = event.dataTransfer.files?.[0];
                 if (file) uploadFile(file);
               }}
-              className={`rounded-md border border-dashed px-3 py-6 text-center text-sm transition-colors ${
+              className={cn(
+                pressableClassName,
+                'rounded-md border border-dashed px-3 py-6 text-center text-sm',
                 dragActive
                   ? 'border-[var(--pf-text-brand)] bg-[var(--pf-teal-50)]'
-                  : 'border-[var(--pf-border-default)] text-[var(--pf-text-secondary)]'
-              } ${uploadPending ? 'opacity-70' : ''}`}
+                  : 'border-[var(--pf-border-default)] text-[var(--pf-text-secondary)] active:bg-[var(--pf-bg-muted)]',
+                uploadPending && 'pointer-events-none opacity-70',
+              )}
             >
               {uploadPending ? (
                 <span className="inline-flex items-center gap-2">

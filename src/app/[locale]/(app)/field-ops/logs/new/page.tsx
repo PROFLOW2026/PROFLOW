@@ -9,6 +9,7 @@ import { withOrgContext } from '@/shared/auth/session';
 import { todayInTimeZone } from '@/shared/dates/dates';
 import { Link } from '@/shared/i18n/navigation';
 import { DailyLogCreateForm } from '../daily-log-create-form';
+import { textNavLinkMutedClassName } from '@/components/ui/pressable';
 
 export async function generateMetadata({
   params,
@@ -64,7 +65,7 @@ export default async function NewDailyLogPage({
         title={t('createLog.title')}
         description={t('createLog.description')}
         breadcrumb={
-          <Link href="/field-ops/logs" className="text-sm text-[var(--pf-text-secondary)] hover:underline">
+          <Link href="/field-ops/logs" className={textNavLinkMutedClassName}>
             {t('nav.logs')}
           </Link>
         }

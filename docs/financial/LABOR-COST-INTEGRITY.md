@@ -45,7 +45,24 @@ Code: `src/modules/financials/domain/labor-expense-integrity.ts`, `cost-aggregat
 
 ---
 
-## 4. Out of scope (V1)
+## 5. Monthly employer-cost Displacement (Master Wave — 0021 applied)
+
+**Status:** Schema LOCKED in `0021_workforce_contacts_and_allocations.sql` (APPLIED). App aggregation wiring LIVE (`EMPLOYEE_MONTH_COSTS_READY=true`): residual time + monthly allocation lines merge once; displaced employee-months exclude `time_entries.cost_amount`.
+
+| Recognition | When | Project labor Actual |
+|-------------|------|----------------------|
+| `TIME_SNAPSHOT` | Month draft / feature off | `Σ time_entries.cost_amount` (Mode C) |
+| `MONTHLY_ALLOCATED` | Month applied/closed with applied labor run | `Σ labor_allocation_run_lines` only |
+
+**Never both** for the same `(employee, calendar_month)`.  
+`known_employer_cost = Σ project lines + visible unallocated_amount`.  
+Assignment never creates Actual. Payment never creates Actual.
+
+SQL enforces: conservation (header + line sum), displacement flip on apply, applied immutability, one active run per month.
+
+---
+
+## 6. Out of scope (V1)
 
 - Auto-detecting free-text “salary” descriptions without category `labor`
 - Statutory payroll connectors

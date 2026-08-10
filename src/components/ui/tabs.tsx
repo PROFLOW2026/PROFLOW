@@ -2,6 +2,7 @@
 
 import * as TabsPrimitive from '@radix-ui/react-tabs';
 import * as React from 'react';
+import { pressableClassName } from '@/components/ui/pressable';
 import { useLocaleDir } from '@/shared/i18n/direction';
 import { cn } from '@/shared/ui/cn';
 
@@ -42,7 +43,8 @@ export const TabsTrigger = React.forwardRef<
         'relative shrink-0 whitespace-nowrap border-b-2 border-transparent px-3 py-2.5 text-sm font-medium text-start',
         // ≥44px touch; underline tabs stay dense but pressable on mobile.
         'min-h-11',
-        'text-[var(--pf-text-secondary)] transition-[color,background-color,border-color,opacity] duration-[var(--pf-motion-fast)] ease-[var(--pf-easing)]',
+        pressableClassName,
+        'text-[var(--pf-text-secondary)]',
         'hover:text-[var(--pf-text-primary)]',
         // Touch press (active), not hover-only.
         'active:bg-[var(--pf-action-subtle-hover)] active:text-[var(--pf-text-primary)]',

@@ -7,15 +7,17 @@ import { PageHeader } from '@/components/ui/page-header';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   listBillingRecords,
-  getOrganizationReceivablesAging,
-  getOrganizationReceivablesSummary,
   listPaymentApplications,
+  computeReceivablesAging,
+  computeReceivablesSummary,
+  matchesListFilter,
 } from '@/modules/billing';
 import { BillingListTable } from '@/modules/billing/ui/billing-list-table';
 import { PaymentHistoryTable } from '@/modules/billing/ui/payment-history-panel';
 import { ReceivablesAgingPanel } from '@/modules/billing/ui/receivables-aging-panel';
 import { ReceivablesSummaryPanel } from '@/modules/billing/ui/receivables-summary-panel';
 import { withOrgContext } from '@/shared/auth/session';
+import { todayInTimeZone } from '@/shared/dates';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { Link } from '@/shared/i18n/navigation';
@@ -41,11 +43,15 @@ export default async function BillingListPage({
   params: Promise<{ locale: string }>;
   searchParams: Promise<{ filter?: string }>;
 }) {
-  const { locale } = await params;
-  const { filter: rawFilter } = await searchParams;
+  const [{ locale }, search, t] = await Promise.all([
+    params,
+    searchParams,
+    getTranslations('billing'),
+  ]);
+  const rawFilter = search.filter;
   const filter = (FILTERS.includes(rawFilter as BillingListFilter) ? rawFilter : 'all') as BillingListFilter;
 
-  const t = await getTranslations('billing');
+  // One org billing load feeds the list filter + AR summary + aging (was 3× listBillingRecords).
   const { canRead, records, canManage, summary, aging, payments } = await withOrgContext(
     async (context) => {
       const allowed = hasPermission(context, PERMISSIONS.BILLING_READ);
@@ -60,12 +66,22 @@ export default async function BillingListPage({
         };
       }
 
-      const [listed, receivablesSummary, receivablesAging, paymentRows] = await Promise.all([
-        listBillingRecords(context, { filter }),
-        getOrganizationReceivablesSummary(context),
-        getOrganizationReceivablesAging(context),
+      const [allRecords, paymentRows] = await Promise.all([
+        listBillingRecords(context, { filter: 'all', limit: 5_000 }),
         listPaymentApplications(context, { limit: 25, includeVoided: true }),
       ]);
+
+      const asOf = todayInTimeZone(context.organization.timezone);
+      const currency = context.organization.baseCurrency;
+      const receivablesSummary = computeReceivablesSummary(allRecords, currency, asOf);
+      const receivablesAging = computeReceivablesAging(
+        allRecords.filter((record) => !isZeroMoney(record.outstandingAmount)),
+        currency,
+        asOf,
+      );
+      const listed = allRecords
+        .filter((record) => matchesListFilter(filter, record.collectionStatus))
+        .slice(0, 100);
 
       return {
         canRead: true,

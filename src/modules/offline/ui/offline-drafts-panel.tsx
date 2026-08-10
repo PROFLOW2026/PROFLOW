@@ -174,8 +174,12 @@ export function OfflineDraftsPanel({ organizationId }: { organizationId: string 
       <div className="flex flex-wrap items-center justify-between gap-2">
         <ConnectivityIndicator />
         <div className="flex flex-wrap gap-2">
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="sm"
+            loading={pending}
+            disabled={!userId}
             onClick={() => {
               if (!userId) {
                 setError(t('errors.missingOrganization'));
@@ -209,19 +213,12 @@ export function OfflineDraftsPanel({ organizationId }: { organizationId: string 
                 }
               });
             }}
-            disabled={pending || !userId}
-            className="min-h-11 rounded-md px-3 text-sm font-medium text-[var(--pf-text-brand)] hover:bg-[var(--pf-teal-50)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)] disabled:opacity-60"
           >
             {t('actions.syncNow')}
-          </button>
-          <button
-            type="button"
-            onClick={refresh}
-            disabled={pending}
-            className="min-h-11 rounded-md px-3 text-sm font-medium text-[var(--pf-text-brand)] hover:bg-[var(--pf-teal-50)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)] disabled:opacity-60"
-          >
+          </Button>
+          <Button type="button" variant="ghost" size="sm" loading={pending} onClick={refresh}>
             {t('actions.refresh')}
-          </button>
+          </Button>
         </div>
       </div>
 

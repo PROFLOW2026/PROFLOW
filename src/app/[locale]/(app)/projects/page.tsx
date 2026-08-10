@@ -6,6 +6,7 @@ import { ResponsiveTable } from '@/components/patterns/responsive-table';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/ui/page-header';
+import { pressableCardLinkClassName, textNavLinkClassName } from '@/components/ui/pressable';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { listProjectsForOrg } from '@/modules/projects';
 import {
@@ -17,6 +18,8 @@ import { getShellContext, withOrgContext } from '@/shared/auth/session';
 import { fromNumericString } from '@/shared/money';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { Link } from '@/shared/i18n/navigation';
+import { cn } from '@/shared/ui/cn';
+import { PrefetchOnIntentLink } from '@/components/ui/prefetch-on-intent-link';
 import { ProjectListFilters } from './project-list-filters';
 import { ProjectStatusBadge } from './project-status-badge';
 
@@ -52,11 +55,13 @@ function hasActiveFilters(params: { q?: string; facet: WorkListFacet }): boolean
 }
 
 export default async function ProjectsPage({ searchParams }: ProjectsPageProps) {
-  const t = await getTranslations('projects');
-  const tStatus = await getTranslations('status.project');
-  const tCommon = await getTranslations('common');
-  const params = await searchParams;
-  const shell = await getShellContext();
+  const [t, tStatus, tCommon, params, shell] = await Promise.all([
+    getTranslations('projects'),
+    getTranslations('status.project'),
+    getTranslations('common'),
+    searchParams,
+    getShellContext(),
+  ]);
   const facet = resolveFacet(params);
   const resolved = resolveWorkListFacet(facet);
 
@@ -81,7 +86,7 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
         actions={
           canCreate ? (
             <Button asChild>
-              <Link href="/projects/new">
+              <Link href="/projects/new" prefetch={false}>
                 <Plus aria-hidden />
                 {t('newProject')}
               </Link>
@@ -99,7 +104,7 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
             description={tCommon('states.noResultsHint')}
             action={
               <Button asChild variant="secondary">
-                <Link href="/projects">{tCommon('actions.clearSearch')}</Link>
+                <Link href="/projects" prefetch={false}>{tCommon('actions.clearSearch')}</Link>
               </Button>
             }
           />
@@ -110,13 +115,15 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
             action={
               canCreate ? (
                 <Button asChild>
-                  <Link href="/projects/new">{t('empty.action')}</Link>
+                  <Link href="/projects/new" prefetch={false}>{t('empty.action')}</Link>
                 </Button>
               ) : undefined
             }
             secondaryAction={
               <Button asChild variant="secondary">
-                <Link href={canCreate ? '/jobs/new' : '/jobs'}>{t('empty.jobsAffordance')}</Link>
+                <Link href={canCreate ? '/jobs/new' : '/jobs'} prefetch={false}>
+                  {t('empty.jobsAffordance')}
+                </Link>
               </Button>
             }
           />
@@ -145,12 +152,12 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
                   return (
                     <TableRow key={project.id}>
                       <TableCell>
-                        <Link
+                        <PrefetchOnIntentLink
                           href={`/projects/${project.id}`}
-                          className="rounded-sm font-medium hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
+                          className={cn(textNavLinkClassName, 'rounded-sm font-medium')}
                         >
                           {project.name}
-                        </Link>
+                        </PrefetchOnIntentLink>
                       </TableCell>
                       <TableCell className="text-[var(--pf-text-secondary)]">
                         {project.clientName ?? t('list.columns.noClient')}
@@ -174,9 +181,9 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
                 : null;
 
             return (
-              <Link
+              <PrefetchOnIntentLink
                 href={`/projects/${project.id}`}
-                className="block min-h-11 min-w-0 max-w-full rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
+                className={cn(pressableCardLinkClassName, 'min-w-0 max-w-full')}
               >
                 <div className="flex min-w-0 items-start justify-between gap-2">
                   <span className="min-w-0 flex-1 break-words font-semibold">{project.name}</span>
@@ -192,7 +199,7 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
                 ) : (
                   <p className="mt-2 text-sm text-[var(--pf-text-muted)]">{t('noContractValue')}</p>
                 )}
-              </Link>
+              </PrefetchOnIntentLink>
             );
           }}
         />

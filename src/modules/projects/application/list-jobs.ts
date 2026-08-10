@@ -1,5 +1,5 @@
 import { and, eq, inArray, isNull, sql } from 'drizzle-orm';
-import { billingRecords, payments, projects } from '@drizzle/schema';
+import { billingRecords, payments } from '@drizzle/schema';
 import { loadProjectFinancialsBatch } from '@/modules/financials/application/load-project-financials-batch';
 import type { BillingPosition } from '@/modules/financials/domain/types';
 import type { OrgContext } from '@/shared/auth/context';
@@ -81,45 +81,18 @@ export async function listJobsForOrg(
     hasPermission(context, PERMISSIONS.WORKFORCE_READ) ||
     hasPermission(context, PERMISSIONS.AP_READ);
 
-  const forecastMetaRows = await context.db
-    .select({
-      id: projects.id,
-      currency: projects.currency,
-      expectedRemainingCostAmount: projects.expectedRemainingCostAmount,
-      workKind: projects.workKind,
-      pricingMode: projects.pricingMode,
-    })
-    .from(projects)
-    .where(
-      and(eq(projects.organizationId, context.organizationId), inArray(projects.id, jobIds)),
-    );
-
+  // Forecast meta comes from the list select — no second projects round-trip.
   const forecastByProject = new Map(
-    forecastMetaRows.map((meta) => [
-      meta.id,
+    rows.map((row) => [
+      row.id,
       {
-        currency:
-          meta.currency ??
-          rows.find((row) => row.id === meta.id)?.contractCurrency ??
-          context.organization.baseCurrency,
-        expectedRemainingCostAmount: meta.expectedRemainingCostAmount,
-        workKind: meta.workKind,
-        pricingMode: meta.pricingMode,
+        currency: row.contractCurrency ?? row.currency ?? context.organization.baseCurrency,
+        expectedRemainingCostAmount: row.expectedRemainingCostAmount,
+        workKind: row.workKind,
+        pricingMode: row.pricingMode,
       },
     ]),
   );
-
-  // Fill any list rows missing from the meta select (should not happen).
-  for (const row of rows) {
-    if (!forecastByProject.has(row.id)) {
-      forecastByProject.set(row.id, {
-        currency: row.contractCurrency ?? row.currency ?? context.organization.baseCurrency,
-        expectedRemainingCostAmount: null,
-        workKind: row.workKind,
-        pricingMode: row.pricingMode,
-      });
-    }
-  }
 
   const [financialsByJob, invoiceRows, paymentRows] = await Promise.all([
     loadProjectFinancialsBatch(context, jobIds, forecastByProject),

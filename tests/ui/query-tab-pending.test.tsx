@@ -4,7 +4,8 @@ import { renderHook } from '@testing-library/react';
 import { NextIntlClientProvider } from 'next-intl';
 import type { ReactElement, ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { ProjectTabsShell } from '@/app/[locale]/(app)/projects/[projectId]/project-tabs-shell';
+import { ProjectTabsEnhancer } from '@/app/[locale]/(app)/projects/[projectId]/project-tabs-enhancer';
+import { ProjectTabsList } from '@/app/[locale]/(app)/projects/[projectId]/project-tabs-list';
 import { useQueryTabPending } from '@/components/patterns/query-tab-pending';
 import enCommon from '@/locales/en/common.json';
 import enProjects from '@/locales/en/projects.json';
@@ -17,11 +18,55 @@ const navState = vi.hoisted(() => ({
 vi.mock('@/shared/i18n/navigation', () => ({
   usePathname: () => navState.pathname,
   useRouter: () => ({ replace: navState.replace }),
+  Link: ({
+    href,
+    children,
+    ...props
+  }: {
+    href: string;
+    children: ReactNode;
+    [key: string]: unknown;
+  }) => (
+    <a href={href} {...props}>
+      {children}
+    </a>
+  ),
 }));
 
 vi.mock('@/shared/i18n/direction', () => ({
   useLocaleDir: () => 'ltr' as const,
 }));
+
+const TAB_LABELS = {
+  overview: 'Overview',
+  financials: 'Financials',
+  details: 'Details',
+  work: 'Work',
+} as const;
+
+function Shell({
+  tabs,
+  activeTab,
+  children,
+}: {
+  tabs: readonly ('overview' | 'financials' | 'details' | 'work')[];
+  activeTab: 'overview' | 'financials' | 'details' | 'work';
+  children: ReactNode;
+}) {
+  return (
+    <div className="min-w-0 max-w-full" dir="ltr">
+      <ProjectTabsList
+        tabs={tabs}
+        activeTab={activeTab}
+        labels={TAB_LABELS}
+        projectHref="/projects/proj-1"
+      />
+      <ProjectTabsEnhancer tabs={tabs} serverActiveTab={activeTab} activeTab={activeTab}>
+        {children}
+      </ProjectTabsEnhancer>
+    </div>
+  );
+}
 
 function renderWithMessages(ui: ReactElement) {
   function Wrapper({ children }: { children: ReactNode }) {
@@ -86,9 +131,9 @@ describe('ProjectTabsShell pending behavior', () => {
   it('shows a panel skeleton and pending tab chrome while soft-navigating', async () => {
     const user = userEvent.setup();
     const { rerender } = renderWithMessages(
-      <ProjectTabsShell tabs={['overview', 'financials', 'details']} activeTab="overview">
+      <Shell tabs={['overview', 'financials', 'details']} activeTab="overview">
         <div>Overview body</div>
-      </ProjectTabsShell>,
+      </Shell>,
     );
 
     expect(screen.getByText('Overview body')).toBeVisible();
@@ -104,9 +149,9 @@ describe('ProjectTabsShell pending behavior', () => {
     expect(financialsTab).toHaveAttribute('data-pending', '');
 
     rerender(
-      <ProjectTabsShell tabs={['overview', 'financials', 'details']} activeTab="financials">
+      <Shell tabs={['overview', 'financials', 'details']} activeTab="financials">
         <div>Financials body</div>
-      </ProjectTabsShell>,
+      </Shell>,
     );
 
     expect(screen.getByText('Financials body')).toBeVisible();
@@ -116,9 +161,9 @@ describe('ProjectTabsShell pending behavior', () => {
   it('clears the tab query when returning to overview', async () => {
     const user = userEvent.setup();
     renderWithMessages(
-      <ProjectTabsShell tabs={['overview', 'work']} activeTab="work">
+      <Shell tabs={['overview', 'work']} activeTab="work">
         <div>Work body</div>
-      </ProjectTabsShell>,
+      </Shell>,
     );
 
     await user.click(screen.getByRole('tab', { name: 'Overview' }));

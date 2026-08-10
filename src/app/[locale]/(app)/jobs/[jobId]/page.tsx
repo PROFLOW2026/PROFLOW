@@ -1,10 +1,9 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { cache, Suspense } from 'react';
-import { getTranslations } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
 import { PageHeader } from '@/components/ui/page-header';
-import { TabsContent } from '@/components/ui/tabs';
-import { listClientsForOrg } from '@/modules/clients';
+import { listClientsForOrg, listContactsForClients } from '@/modules/clients';
 import { listCustomFieldValuesForEntity } from '@/modules/custom-fields';
 import {
   canConvertJobToProject,
@@ -17,6 +16,7 @@ import { formatMoney } from '@/shared/money/format';
 import { zeroMoney } from '@/shared/money';
 import { PERMISSIONS, type PermissionKey } from '@/shared/permissions/catalog';
 import { Link, redirect } from '@/shared/i18n/navigation';
+import { localeDirection } from '@/shared/i18n/config';
 import { ProjectBillingPanel } from '@/modules/billing/ui';
 import { ProjectExpensesPanel } from '@/modules/expenses/ui';
 import { ProjectFinancialsPanel } from '@/modules/financials/ui';
@@ -32,6 +32,7 @@ import { ProjectStatusBadge } from '../../projects/project-status-badge';
 import { resolveJobTabs } from '../job-tab-order';
 import { ConvertJobButton } from './convert-job-button';
 import { JobOpenPricePanel } from './job-open-price-panel';
+import { textNavLinkClassName } from '@/components/ui/pressable';
 
 interface JobPageProps {
   params: Promise<{ locale: string; jobId: string }>;
@@ -97,11 +98,13 @@ export default async function JobPage({ params, searchParams }: JobPageProps) {
     MODULE_PANEL_TABS.has(tabParam as ProjectTabKey) && visibleModuleTabs.has(tabParam)
   );
 
-  const [t, tJobs, tStatus, detail] = await Promise.all([
+  const [t, tJobs, tStatus, tTabs, detail, resolvedLocale] = await Promise.all([
     getTranslations('projects'),
     getTranslations('jobs'),
     getTranslations('status.project'),
+    getTranslations('projects.workspace.tabs'),
     loadJobDetail(jobId, includeStructure).catch(() => null),
+    getLocale(),
   ]);
   if (!detail) notFound();
 
@@ -169,8 +172,17 @@ export default async function JobPage({ params, searchParams }: JobPageProps) {
     ? (tabParam as ProjectTabKey)
     : (tabs[0] ?? 'overview');
 
+  const tabLabels = Object.fromEntries(tabs.map((tab) => [tab, tTabs(tab)])) as Partial<
+    Record<ProjectTabKey, string>
+  >;
+  const dir = localeDirection(resolvedLocale);
+
   let customFields: Awaited<ReturnType<typeof listCustomFieldValuesForEntity>> = [];
-  let clients: { id: string; name: string }[] = [];
+  let clients: {
+    id: string;
+    name: string;
+    contacts: { id: string; name: string; phone: string | null; role: string }[];
+  }[] = [];
 
   if (activeTab === 'details') {
     const extras = await withOrgContext(async (context) => {
@@ -178,9 +190,31 @@ export default async function JobPage({ params, searchParams }: JobPageProps) {
         listCustomFieldValuesForEntity(context, 'project', jobId).catch(() => []),
         listClientsForOrg(context, {}).catch(() => []),
       ]);
+      const contacts = await listContactsForClients(
+        context,
+        clientRows.map((client) => client.id),
+      ).catch(() => []);
+      const contactsByClient = new Map<
+        string,
+        { id: string; name: string; phone: string | null; role: string }[]
+      >();
+      for (const contact of contacts) {
+        const list = contactsByClient.get(contact.clientId) ?? [];
+        list.push({
+          id: contact.id,
+          name: contact.name,
+          phone: contact.phone,
+          role: contact.role,
+        });
+        contactsByClient.set(contact.clientId, list);
+      }
       return {
         fields,
-        clients: clientRows.map((client) => ({ id: client.id, name: client.name })),
+        clients: clientRows.map((client) => ({
+          id: client.id,
+          name: client.name,
+          contacts: contactsByClient.get(client.id) ?? [],
+        })),
       };
     });
     customFields = extras.fields;
@@ -215,7 +249,7 @@ export default async function JobPage({ params, searchParams }: JobPageProps) {
                   clientLabel: t('details.clientLabel'),
                   clientName: detail.clientName,
                   link: (chunks) => (
-                    <Link href={`/clients/${detail.project.clientId}`} className="hover:underline">
+                    <Link href={`/clients/${detail.project.clientId}`} className={textNavLinkClassName}>
                       {chunks}
                     </Link>
                   ),
@@ -223,6 +257,15 @@ export default async function JobPage({ params, searchParams }: JobPageProps) {
               ) : (
                 t('workspace.noClient')
               )}
+              {detail.clientContact ? (
+                <>
+                  {' · '}
+                  {t('workspace.contactPerson', { name: detail.clientContact.name })}
+                  {detail.clientContact.phone
+                    ? t('workspace.contactPersonPhone', { phone: detail.clientContact.phone })
+                    : null}
+                </>
+              ) : null}
               {detail.project.startDate ? ` · ${detail.project.startDate}` : null}
             </span>
           </div>
@@ -242,9 +285,15 @@ export default async function JobPage({ params, searchParams }: JobPageProps) {
         />
       )}
 
-      <ProjectTabsShell tabs={tabs} activeTab={activeTab}>
+      <ProjectTabsShell
+        tabs={tabs}
+        activeTab={activeTab}
+        labels={tabLabels}
+        projectHref={`/jobs/${jobId}`}
+        dir={dir}
+      >
         {activeTab === 'overview' ? (
-          <TabsContent value="overview" forceMount>
+          <div className="pt-4">
             <OverviewTab
               detail={detail}
               locale={locale}
@@ -253,52 +302,52 @@ export default async function JobPage({ params, searchParams }: JobPageProps) {
               workspaceLinks={workspaceLinks}
               organizationTimezone={shell?.organization.timezone ?? 'Asia/Jerusalem'}
             />
-          </TabsContent>
+          </div>
         ) : null}
 
         {activeTab === 'expenses' && showExpensesTab ? (
-          <TabsContent value="expenses" forceMount>
+          <div className="pt-4">
             <Suspense fallback={<TabPanelSkeleton />}>
               <ProjectExpensesPanel projectId={jobId} />
             </Suspense>
-          </TabsContent>
+          </div>
         ) : null}
 
         {activeTab === 'time' && showTimeTab ? (
-          <TabsContent value="time" forceMount>
+          <div className="pt-4">
             <Suspense fallback={<TabPanelSkeleton />}>
               <ProjectTimePanel projectId={jobId} />
             </Suspense>
-          </TabsContent>
+          </div>
         ) : null}
 
         {activeTab === 'billing' && showBillingTab ? (
-          <TabsContent value="billing" forceMount>
+          <div className="pt-4">
             <Suspense fallback={<TabPanelSkeleton />}>
               <ProjectBillingPanel projectId={jobId} />
             </Suspense>
-          </TabsContent>
+          </div>
         ) : null}
 
         {activeTab === 'documents' && showDocumentsTab ? (
-          <TabsContent value="documents" forceMount>
+          <div className="pt-4">
             <Suspense fallback={<TabPanelSkeleton />}>
               <DocumentsTab projectId={jobId} hasContract={Boolean(detail.contract)} />
             </Suspense>
-          </TabsContent>
+          </div>
         ) : null}
 
         {activeTab === 'financials' && canReadFinancials ? (
-          <TabsContent value="financials" forceMount>
+          <div className="pt-4">
             <Suspense fallback={<TabPanelSkeleton />}>
               {/* Always mount real KPIs: open-price shows priceNotSet; costs still visible. */}
               <ProjectFinancialsPanel projectId={jobId} />
             </Suspense>
-          </TabsContent>
+          </div>
         ) : null}
 
         {activeTab === 'details' ? (
-          <TabsContent value="details" forceMount>
+          <div className="pt-4">
             <DetailsTab
               detail={detail}
               clients={clients}
@@ -313,7 +362,7 @@ export default async function JobPage({ params, searchParams }: JobPageProps) {
               amountPlaceholder={tJobs('pricing.pricePlaceholder')}
               taxModeDescription={tJobs('pricing.taxModeHint')}
             />
-          </TabsContent>
+          </div>
         ) : null}
       </ProjectTabsShell>
     </div>

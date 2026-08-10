@@ -1,10 +1,8 @@
-'use client';
-
-import { useTranslations } from 'next-intl';
+import { getTranslations } from 'next-intl/server';
 import { MoneyText } from '@/components/patterns/money-text';
 import type { MoneyValue } from '@/shared/money';
 
-export function ProjectHeaderMetrics({
+export async function ProjectHeaderMetrics({
   currentContractValue,
   displayOriginalValue,
   managedOpeningValue,
@@ -15,7 +13,7 @@ export function ProjectHeaderMetrics({
   /** Managed opening (original event) when an opening reduction exists. */
   managedOpeningValue?: MoneyValue | null;
 }) {
-  const t = useTranslations('projects.workspace.header');
+  const t = await getTranslations('projects.workspace.header');
 
   if (!currentContractValue) return null;
 

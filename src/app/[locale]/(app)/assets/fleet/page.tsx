@@ -5,9 +5,11 @@ import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/ui/page-header';
+import { pressableClassName, textNavLinkClassName } from '@/components/ui/pressable';
 import { StatusBadge, type StatusShape } from '@/components/ui/status-badge';
 import { ResponsiveTable } from '@/components/patterns/responsive-table';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { cn } from '@/shared/ui/cn';
 import {
   listFleetVehiclesForOrg,
   listLinkableVehicleAssets,
@@ -84,7 +86,14 @@ export default async function FleetPage({
       <Alert tone="info" title={t('fleet.schemaLimitsTitle')}>
         <p>{t('fleet.schemaLimitsBody')}</p>
         <details className="mt-2 text-sm">
-          <summary className="cursor-pointer select-none">{t('fleet.moreInfo')}</summary>
+          <summary
+            className={cn(
+              pressableClassName,
+              'cursor-pointer select-none active:scale-100 active:opacity-80',
+            )}
+          >
+            {t('fleet.moreInfo')}
+          </summary>
           <p className="mt-2 leading-relaxed">{t('fleet.schemaLimitsDetails')}</p>
         </details>
       </Alert>
@@ -135,7 +144,7 @@ export default async function FleetPage({
                       <TableCell>
                         <Link
                           href={`/assets/${item.assetId}`}
-                          className="font-medium hover:underline"
+                          className={cn(textNavLinkClassName, 'font-medium')}
                         >
                           {item.assetName}
                         </Link>
@@ -194,7 +203,7 @@ export default async function FleetPage({
               <div className="flex items-start justify-between gap-2">
                 <Link
                   href={`/assets/${item.assetId}`}
-                  className="min-w-0 flex-1 font-semibold hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
+                  className={cn(textNavLinkClassName, 'min-w-0 flex-1 font-semibold')}
                 >
                   {item.assetName}
                 </Link>

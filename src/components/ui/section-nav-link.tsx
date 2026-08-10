@@ -1,8 +1,10 @@
 'use client';
 
+import { Loader2 } from 'lucide-react';
 import { useLinkStatus } from 'next/link';
 import { useTranslations } from 'next-intl';
 import * as React from 'react';
+import { pressableClassName, textNavLinkClassName as textNavLinkClassNameBase } from '@/components/ui/pressable';
 import { Link, usePathname } from '@/shared/i18n/navigation';
 import { cn } from '@/shared/ui/cn';
 
@@ -11,8 +13,8 @@ import { cn } from '@/shared/ui/cn';
  * Idle · hover · active(touch) · focus · current · pending.
  */
 export const sectionNavLinkClassName = cn(
-  'inline-flex min-h-11 items-center rounded-md px-3 py-1.5 text-sm font-medium',
-  'transition-[color,background-color,opacity] duration-[var(--pf-motion-fast)] ease-[var(--pf-easing)]',
+  'inline-flex min-h-11 items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium',
+  pressableClassName,
   'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]',
   'text-[var(--pf-text-secondary)]',
   'hover:bg-[var(--pf-bg-muted)] hover:text-[var(--pf-text-primary)]',
@@ -23,14 +25,8 @@ export const sectionNavLinkClassName = cn(
   'data-[pending]:pointer-events-none',
 );
 
-/** Inline text links used for entity / back navigation (not shell chrome). */
-export const textNavLinkClassName = cn(
-  'text-[var(--pf-text-brand)] underline-offset-4',
-  'transition-[color,opacity] duration-[var(--pf-motion-fast)] ease-[var(--pf-easing)]',
-  'hover:underline active:underline active:opacity-80',
-  'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]',
-  'aria-[busy=true]:cursor-wait aria-[busy=true]:opacity-90',
-);
+/** Re-export — prefer importing from `@/components/ui/pressable` in Server Components. */
+export const textNavLinkClassName = textNavLinkClassNameBase;
 
 export interface SectionNavLinkProps {
   href: string;
@@ -38,6 +34,11 @@ export interface SectionNavLinkProps {
   active?: boolean;
   className?: string;
   onNavigate?: () => void;
+  /**
+   * Next.js Link prefetch. Default false — settings/section nav must not
+   * prefetch every sibling route on mount.
+   */
+  prefetch?: boolean;
 }
 
 /**
@@ -51,6 +52,7 @@ export function SectionNavLink({
   active = false,
   className,
   onNavigate,
+  prefetch = false,
 }: SectionNavLinkProps) {
   const pathname = usePathname();
   const t = useTranslations('common');
@@ -75,6 +77,7 @@ export function SectionNavLink({
   return (
     <Link
       href={href}
+      prefetch={prefetch}
       aria-current={active ? 'page' : undefined}
       aria-busy={busy || undefined}
       aria-disabled={busy || undefined}
@@ -115,7 +118,12 @@ function SectionNavLinkBody({
   return (
     <>
       {children}
-      {pending ? <span className="sr-only">{pendingLabel}</span> : null}
+      {pending ? (
+        <>
+          <Loader2 className="size-3.5 shrink-0 animate-spin text-current" aria-hidden />
+          <span className="sr-only">{pendingLabel}</span>
+        </>
+      ) : null}
     </>
   );
 }

@@ -15,6 +15,8 @@ import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { AssetsSectionNav } from '../assets-section-nav';
 import { InventoryItemCreateForm } from './inventory-item-create-form';
+import { textNavLinkClassName } from '@/components/ui/pressable';
+import { cn } from '@/shared/ui/cn';
 
 /**
  * UX: operational inventory under /assets/inventory.
@@ -127,7 +129,7 @@ export default async function InventoryPage({
                       <TableCell className="max-w-[14rem] truncate font-medium">
                         <Link
                           href={`/assets/inventory/${item.id}`}
-                          className="rounded-sm hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
+                          className={cn(textNavLinkClassName, 'rounded-sm')}
                         >
                           {item.name}
                         </Link>

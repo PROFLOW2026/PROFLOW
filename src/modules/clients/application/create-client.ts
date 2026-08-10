@@ -5,7 +5,7 @@ import { PERMISSIONS } from '@/shared/permissions/catalog';
 import type { OrgContext } from '@/shared/auth/context';
 import { noteModuleUsage } from '@/modules/tenancy';
 import type { ClientRecord } from '../domain/types';
-import { insertClient } from '../data/clients.repository';
+import { insertClient, insertClientContact } from '../data/clients.repository';
 import { createClientSchema, type CreateClientInput } from '../validation/schemas';
 
 export async function createClient(
@@ -38,6 +38,24 @@ export async function createClient(
     countryCode: input.countryCode ?? null,
     notes: input.notes ?? null,
   });
+
+  if (input.primaryContactName && input.primaryContactPhone) {
+    const contact = await insertClientContact(context.db, {
+      organizationId: context.organizationId,
+      clientId: client.id,
+      name: input.primaryContactName,
+      role: input.primaryContactRole ?? 'primary',
+      email: input.primaryContactEmail ?? null,
+      phone: input.primaryContactPhone,
+    });
+
+    await recordAuditEvent(context, {
+      action: 'client_contact.created',
+      entityType: 'client_contact',
+      entityId: contact.id,
+      after: contact,
+    });
+  }
 
   await noteModuleUsage(context.db, context.organizationId, 'clients');
 

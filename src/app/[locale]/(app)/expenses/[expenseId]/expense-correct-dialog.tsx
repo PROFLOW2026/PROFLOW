@@ -60,6 +60,7 @@ export function ExpenseCorrectDialog({
             <input type="hidden" name="reverseOriginal" value="true" />
             <input type="hidden" name="currency" value={expense.netAmount.currency} />
             <input type="hidden" name="amount" value={amount} />
+            <input type="hidden" name="amountIncludesTax" value="false" />
             <input type="hidden" name="netAmount" value={amount} />
             {expense.projectId ? <input type="hidden" name="projectId" value={expense.projectId} /> : null}
             {expense.workPackageId ? (

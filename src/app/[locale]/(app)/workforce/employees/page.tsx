@@ -4,7 +4,11 @@ import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/ui/page-header';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { listEmployeesForOrg } from '@/modules/workforce';
-import { EmployeesTable, canManageWorkforce } from '@/modules/workforce/ui/employees-table';
+import {
+  EmployeesTable,
+  canManageWorkforce,
+  canViewWorkforceCosts,
+} from '@/modules/workforce/ui/employees-table';
 import { withOrgContext } from '@/shared/auth/session';
 import { AuthorizationError } from '@/shared/errors';
 import { Link } from '@/shared/i18n/navigation';
@@ -22,10 +26,14 @@ export async function generateMetadata({
 export default async function EmployeesPage() {
   const t = await getTranslations('workforce');
 
-  const { employees, canManage } = await withOrgContext(async (context) => {
+  const { employees, canManage, showCosts } = await withOrgContext(async (context) => {
     try {
       const rows = await listEmployeesForOrg(context);
-      return { employees: rows, canManage: canManageWorkforce(context) };
+      return {
+        employees: rows,
+        canManage: canManageWorkforce(context),
+        showCosts: canViewWorkforceCosts(context),
+      };
     } catch (error) {
       if (error instanceof AuthorizationError) throw error;
       throw error;
@@ -56,7 +64,7 @@ export default async function EmployeesPage() {
           </TabsTrigger>
         </TabsList>
         <TabsContent value="employees" className="mt-4">
-          <EmployeesTable employees={employees} canManage={canManage} />
+          <EmployeesTable employees={employees} canManage={canManage} showCosts={showCosts} />
         </TabsContent>
       </Tabs>
     </div>

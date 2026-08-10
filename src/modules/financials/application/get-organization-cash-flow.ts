@@ -47,6 +47,13 @@ function mapApBillsForCash(
 
 export async function getOrganizationCashFlowOutlook(
   context: OrgContext,
+  options: {
+    /**
+     * Optional preloaded org billing summaries (same shape as listBillingRecords).
+     * Used by reports analytics to avoid a second identical org-wide load.
+     */
+    readonly billingRecords?: Awaited<ReturnType<typeof listBillingRecords>> | null;
+  } = {},
 ): Promise<CashFlowOutlook | null> {
   assertPermission(context, PERMISSIONS.PROJECT_FINANCIALS_READ);
   if (!hasPermission(context, PERMISSIONS.BILLING_READ)) return null;
@@ -57,7 +64,9 @@ export async function getOrganizationCashFlowOutlook(
   const canReadAp = hasPermission(context, PERMISSIONS.AP_READ);
 
   const [records, paymentRows, apBundle] = await Promise.all([
-    listBillingRecords(context, { filter: 'all', limit: ORG_LIST_EXPORT_CAP }),
+    options.billingRecords
+      ? Promise.resolve(options.billingRecords)
+      : listBillingRecords(context, { filter: 'all', limit: ORG_LIST_EXPORT_CAP }),
     loadCashFlowPayments(context.db, context.organizationId),
     canReadAp
       ? listApBills(context.db, context.organizationId, {

@@ -16,10 +16,12 @@ import {
   listProjectsForOrg,
   listWorkPackagesForOrg,
 } from '@/modules/expenses';
+import { resolveApplicableDefaultTax } from '@/modules/tax';
 import { listVendorsForOrg } from '@/modules/vendors';
 import { statusShape } from '@/modules/expenses/domain/lifecycle';
 import { decodeRecurrenceRule } from '@/modules/expenses/domain/recurrence';
 import { withOrgContext } from '@/shared/auth/session';
+import { todayInTimeZone } from '@/shared/dates';
 import { formatBusinessDate } from '@/shared/dates/format';
 import { Link } from '@/shared/i18n/navigation';
 import { hasPermission } from '@/shared/permissions/assert';
@@ -29,6 +31,7 @@ import { ExpenseCorrectionHistory } from './expense-correction-history';
 import { ExpenseDetailActions } from './expense-detail-actions';
 import { ExpenseEditForm } from './expense-edit-form';
 import { PromoteVendorPanel } from './promote-vendor-panel';
+import { textNavLinkClassName, textNavLinkMutedClassName } from '@/components/ui/pressable';
 
 export async function generateMetadata({
   params,
@@ -54,13 +57,18 @@ export default async function ExpenseDetailPage({
   const data = await withOrgContext(async (context) => {
     try {
       const expense = await getExpense(context, expenseId);
-      const [projects, categories, documentsPanel, customFields, correctionChain] = await Promise.all([
-        listProjectsForOrg(context),
-        listCostCategoriesForOrg(context),
-        getEntityDocumentPanelData(context, 'expense', expenseId),
-        listCustomFieldValuesForEntity(context, 'expense', expenseId).catch(() => []),
-        getExpenseCorrectionChain(context, expenseId).catch(() => null),
-      ]);
+      const [projects, categories, documentsPanel, customFields, correctionChain, tax] =
+        await Promise.all([
+          listProjectsForOrg(context),
+          listCostCategoriesForOrg(context),
+          getEntityDocumentPanelData(context, 'expense', expenseId),
+          listCustomFieldValuesForEntity(context, 'expense', expenseId).catch(() => []),
+          getExpenseCorrectionChain(context, expenseId).catch(() => null),
+          resolveApplicableDefaultTax(
+            context,
+            expense.expenseDate ?? todayInTimeZone(context.organization.timezone),
+          ),
+        ]);
       const workPackages = expense.projectId
         ? await listWorkPackagesForOrg(context, expense.projectId)
         : [];
@@ -76,6 +84,7 @@ export default async function ExpenseDetailPage({
         documentsPanel,
         customFields,
         correctionChain,
+        taxRatePercent: tax.resolved?.ratePercent ?? null,
         canPromoteVendor: hasPermission(context, PERMISSIONS.VENDORS_MANAGE),
         canFinalizeExpense: hasPermission(context, PERMISSIONS.EXPENSES_FINALIZE),
         canCreateExpense: hasPermission(context, PERMISSIONS.EXPENSES_CREATE),
@@ -96,6 +105,7 @@ export default async function ExpenseDetailPage({
     documentsPanel,
     customFields,
     correctionChain,
+    taxRatePercent,
     canPromoteVendor,
     canFinalizeExpense,
     canCreateExpense,
@@ -123,7 +133,7 @@ export default async function ExpenseDetailPage({
         title={t('detail.title')}
         description={formatBusinessDate(expense.expenseDate, locale)}
         actions={
-          <Link href="/expenses" className="text-sm text-[var(--pf-text-secondary)] hover:underline">
+          <Link href="/expenses" className={textNavLinkMutedClassName}>
             {tCommon('actions.back')}
           </Link>
         }
@@ -184,7 +194,7 @@ export default async function ExpenseDetailPage({
             {expense.vendorId ? (
               <div className="grid gap-0.5">
                 <span className="text-xs text-[var(--pf-text-muted)]">{t('fields.linkedVendor')}</span>
-                <Link href={`/vendors/${expense.vendorId}`} className="hover:underline">
+                <Link href={`/vendors/${expense.vendorId}`} className={textNavLinkClassName}>
                   {t('detail.viewVendor')}
                 </Link>
               </div>
@@ -193,6 +203,33 @@ export default async function ExpenseDetailPage({
               label={t('fields.project')}
               value={expense.projectName ?? t('targeting.overhead')}
             />
+            <div className="grid gap-2 rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-muted)] px-3 py-2 sm:grid-cols-3">
+              <div>
+                <span className="text-xs text-[var(--pf-text-muted)]">{t('fields.previewNet')}</span>
+                <div>
+                  <MoneyText value={expense.netAmount} className="font-medium" />
+                </div>
+              </div>
+              <div>
+                <span className="text-xs text-[var(--pf-text-muted)]">{t('fields.previewTax')}</span>
+                <div>
+                  {expense.taxAmount ? (
+                    <MoneyText value={expense.taxAmount} className="font-medium" />
+                  ) : (
+                    <span className="text-[var(--pf-text-muted)]">—</span>
+                  )}
+                </div>
+              </div>
+              <div>
+                <span className="text-xs text-[var(--pf-text-muted)]">{t('fields.previewGross')}</span>
+                <div>
+                  <MoneyText value={expense.grossAmount} className="font-medium" />
+                </div>
+              </div>
+              <p className="text-xs text-[var(--pf-text-muted)] sm:col-span-3">
+                {t('fields.previewActualHint')}
+              </p>
+            </div>
             <DetailRow label={t('fields.costFamily')} value={t(`costFamilies.${expense.costFamily}`)} />
             {expense.recurrenceRule ? (
               <DetailRow
@@ -224,6 +261,7 @@ export default async function ExpenseDetailPage({
           categories={categories}
           workPackages={workPackages}
           vendors={vendors}
+          taxRatePercent={taxRatePercent}
         />
       )}
 

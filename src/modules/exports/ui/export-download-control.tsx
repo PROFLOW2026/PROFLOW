@@ -2,6 +2,7 @@
 
 import { useLocale, useTranslations } from 'next-intl';
 import * as React from 'react';
+import { Button } from '@/components/ui/button';
 import { StatusToast, type StatusToastTone } from '@/components/ui/status-toast';
 import { cn } from '@/shared/ui/cn';
 
@@ -129,7 +130,7 @@ export function useExportDownload(): ExportDownloadFeedback {
 }
 
 export interface ExportDownloadControlProps
-  extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'onClick' | 'type'> {
+  extends Omit<React.ComponentPropsWithoutRef<typeof Button>, 'onClick' | 'type' | 'loading'> {
   href: string;
   feedback?: ExportDownloadFeedback;
   children: React.ReactNode;
@@ -145,6 +146,8 @@ export function ExportDownloadControl({
   children,
   className,
   disabled,
+  variant = 'secondary',
+  size = 'sm',
   ...props
 }: ExportDownloadControlProps) {
   const internal = useExportDownload();
@@ -153,18 +156,20 @@ export function ExportDownloadControl({
 
   return (
     <>
-      <button
+      <Button
         type="button"
+        variant={variant}
+        size={size}
         className={cn(className)}
-        disabled={disabled || feedback.busy}
-        aria-busy={feedback.busy || undefined}
+        disabled={disabled}
+        loading={feedback.busy}
         onClick={() => {
           void feedback.run(href);
         }}
         {...props}
       >
         {children}
-      </button>
+      </Button>
       {ownsToast ? (
         <StatusToast
           open={feedback.open}

@@ -7,6 +7,9 @@ import { MoneyText } from '@/components/patterns/money-text';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { EmptyState } from '@/components/ui/empty-state';
+import { PrefetchOnIntentLink } from '@/components/ui/prefetch-on-intent-link';
+import { textNavLinkClassName } from '@/components/ui/pressable';
+import { cn } from '@/shared/ui/cn';
 import type { HomeDashboardData } from '../application/get-home-dashboard';
 import { mapCoverageToSources, partialNote, standalonePartialNotes } from './map-coverage-sources';
 
@@ -29,7 +32,7 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
           <div className="flex flex-col gap-2 sm:flex-row">
             {data.canCreateProject ? (
               <Button asChild>
-                <Link href="/projects/new">
+                <Link href="/projects/new" prefetch={false}>
                   <Plus aria-hidden />
                   {t('empty.action')}
                 </Link>
@@ -37,7 +40,7 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
             ) : null}
             {data.canCreateExpense ? (
               <Button asChild variant="secondary">
-                <Link href="/expenses/new">
+                <Link href="/expenses/new" prefetch={false}>
                   <Receipt aria-hidden />
                   {tNav('newMenu.expense')}
                 </Link>
@@ -238,9 +241,12 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
               <Card key={project.id} className="min-w-0 max-w-full">
                 <CardHeader className="py-3">
                   <CardTitle className="min-w-0 break-words text-base">
-                    <Link href={`/projects/${project.id}`} className="hover:underline">
+                    <PrefetchOnIntentLink
+                      href={`/projects/${project.id}`}
+                      className={cn(textNavLinkClassName, 'font-medium')}
+                    >
                       {project.name}
-                    </Link>
+                    </PrefetchOnIntentLink>
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="min-w-0 pb-3 text-sm text-[var(--pf-text-secondary)]">
@@ -269,12 +275,16 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
           <div className="flex min-w-0 max-w-full flex-wrap gap-2">
             {data.canCreateProject ? (
               <Button asChild size="sm" variant="secondary">
-                <Link href="/projects/new">{tNav('newMenu.project')}</Link>
+                <Link href="/projects/new" prefetch={false}>
+                  {tNav('newMenu.project')}
+                </Link>
               </Button>
             ) : null}
             {data.canCreateExpense ? (
               <Button asChild size="sm" variant="secondary">
-                <Link href="/expenses/new">{tNav('newMenu.expense')}</Link>
+                <Link href="/expenses/new" prefetch={false}>
+                  {tNav('newMenu.expense')}
+                </Link>
               </Button>
             ) : null}
           </div>

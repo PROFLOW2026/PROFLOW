@@ -8,6 +8,8 @@ import { Field } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Link } from '@/shared/i18n/navigation';
 import { signUpAction, type AuthFormState } from '../actions';
+import { textNavLinkClassName } from '@/components/ui/pressable';
+import { cn } from '@/shared/ui/cn';
 
 export function SignUpForm() {
   const t = useTranslations('auth.signUp');
@@ -20,7 +22,7 @@ export function SignUpForm() {
         <p className="text-sm text-[var(--pf-text-secondary)]">
           {t('checkEmailBody', { email: state.email ?? '' })}
         </p>
-        <Link href="/sign-in" className="text-sm font-medium text-[var(--pf-text-brand)] hover:underline">
+        <Link href="/sign-in" className={cn(textNavLinkClassName, 'text-sm font-medium')}>
           {t('signInInstead')}
         </Link>
       </div>
@@ -66,7 +68,7 @@ export function SignUpForm() {
 
       <p className="text-sm text-[var(--pf-text-secondary)]">
         {t('haveAccount')}{' '}
-        <Link href="/sign-in" className="font-medium text-[var(--pf-text-brand)] hover:underline">
+        <Link href="/sign-in" className={cn(textNavLinkClassName, 'font-medium')}>
           {t('signInInstead')}
         </Link>
       </p>

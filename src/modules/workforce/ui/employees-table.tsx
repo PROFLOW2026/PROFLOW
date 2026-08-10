@@ -2,6 +2,7 @@ import { getTranslations } from 'next-intl/server';
 import { Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
+import { pressableCardLinkClassName, textNavLinkClassName } from '@/components/ui/pressable';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { ResponsiveTable } from '@/components/patterns/responsive-table';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -12,13 +13,19 @@ import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import type { OrgContext } from '@/shared/auth/context';
 import { Link } from '@/shared/i18n/navigation';
+import { cn } from '@/shared/ui/cn';
 
 interface EmployeesTableProps {
   readonly employees: readonly EmployeeListItem[];
   readonly canManage: boolean;
+  readonly showCosts?: boolean;
 }
 
-export async function EmployeesTable({ employees, canManage }: EmployeesTableProps) {
+export async function EmployeesTable({
+  employees,
+  canManage,
+  showCosts = true,
+}: EmployeesTableProps) {
   const t = await getTranslations('workforce');
 
   if (employees.length === 0) {
@@ -49,7 +56,7 @@ export async function EmployeesTable({ employees, canManage }: EmployeesTablePro
               <TableRow>
                 <TableHead>{t('employees.columns.name')}</TableHead>
                 <TableHead>{t('employees.columns.employmentStyle')}</TableHead>
-                <TableHead numeric>{t('employees.columns.currentRate')}</TableHead>
+                {showCosts ? <TableHead numeric>{t('employees.columns.currentRate')}</TableHead> : null}
                 <TableHead>{t('employees.columns.status')}</TableHead>
               </TableRow>
             </TableHeader>
@@ -59,7 +66,7 @@ export async function EmployeesTable({ employees, canManage }: EmployeesTablePro
                   <TableCell>
                     <Link
                       href={`/workforce/employees/${employee.id}`}
-                      className="rounded-sm font-medium text-[var(--pf-text-brand)] hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
+                      className={cn(textNavLinkClassName, 'rounded-sm font-medium')}
                     >
                       {employee.name}
                     </Link>
@@ -72,20 +79,22 @@ export async function EmployeesTable({ employees, canManage }: EmployeesTablePro
                       ? t(`rateUnits.${employee.currentRateUnit}`)
                       : t('employees.noRate')}
                   </TableCell>
-                  <TableCell numeric>
-                    {employee.currentRate && employee.currentRateCurrency ? (
-                      <MoneyText
-                        value={
-                          fromNumericString(employee.currentRate, employee.currentRateCurrency) ?? {
-                            amount: employee.currentRate,
-                            currency: employee.currentRateCurrency,
+                  {showCosts ? (
+                    <TableCell numeric>
+                      {employee.currentRate && employee.currentRateCurrency ? (
+                        <MoneyText
+                          value={
+                            fromNumericString(employee.currentRate, employee.currentRateCurrency) ?? {
+                              amount: employee.currentRate,
+                              currency: employee.currentRateCurrency,
+                            }
                           }
-                        }
-                      />
-                    ) : (
-                      <span className="text-[var(--pf-text-muted)]">{t('employees.noRate')}</span>
-                    )}
-                  </TableCell>
+                        />
+                      ) : (
+                        <span className="text-[var(--pf-text-muted)]">{t('employees.noRate')}</span>
+                      )}
+                    </TableCell>
+                  ) : null}
                   <TableCell>
                     <StatusBadge
                       shape={employee.status === 'active' ? 'active' : 'archived'}
@@ -101,7 +110,7 @@ export async function EmployeesTable({ employees, canManage }: EmployeesTablePro
       renderMobileCard={(employee) => (
         <Link
           href={`/workforce/employees/${employee.id}`}
-          className="block min-h-11 rounded-lg border border-[var(--pf-border-default)] p-4 hover:bg-[var(--pf-bg-subtle)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
+          className={cn(pressableCardLinkClassName, 'hover:bg-[var(--pf-bg-subtle)]')}
         >
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0 flex-1 text-start">
@@ -116,24 +125,32 @@ export async function EmployeesTable({ employees, canManage }: EmployeesTablePro
               label={t(`employeeStatus.${employee.status}`)}
             />
           </div>
-          <p className="mt-2 text-start text-sm text-[var(--pf-text-secondary)]">
-            {employee.currentRate && employee.currentRateCurrency ? (
-              <>
-                <MoneyText
-                  value={
-                    fromNumericString(employee.currentRate, employee.currentRateCurrency) ?? {
-                      amount: employee.currentRate,
-                      currency: employee.currentRateCurrency,
+          {showCosts ? (
+            <p className="mt-2 text-start text-sm text-[var(--pf-text-secondary)]">
+              {employee.currentRate && employee.currentRateCurrency ? (
+                <>
+                  <MoneyText
+                    value={
+                      fromNumericString(employee.currentRate, employee.currentRateCurrency) ?? {
+                        amount: employee.currentRate,
+                        currency: employee.currentRateCurrency,
+                      }
                     }
-                  }
-                />
-                {' · '}
-                {employee.currentRateUnit ? t(`rateUnits.${employee.currentRateUnit}`) : null}
-              </>
-            ) : (
-              t('employees.noRate')
-            )}
-          </p>
+                  />
+                  {' · '}
+                  {employee.currentRateUnit ? t(`rateUnits.${employee.currentRateUnit}`) : null}
+                </>
+              ) : (
+                t('employees.noRate')
+              )}
+            </p>
+          ) : employee.jobTitle ? null : (
+            <p className="mt-2 text-start text-sm text-[var(--pf-text-secondary)]">
+              {employee.currentRateUnit
+                ? t(`rateUnits.${employee.currentRateUnit}`)
+                : t('employees.noRate')}
+            </p>
+          )}
         </Link>
       )}
     />
@@ -149,8 +166,9 @@ export function canLogTime(context: OrgContext): boolean {
 }
 
 export function canViewWorkforceCosts(context: OrgContext): boolean {
+  // Rates / employer cost — not unlocked by workforce.read alone.
   return (
-    hasPermission(context, PERMISSIONS.WORKFORCE_READ) ||
+    hasPermission(context, PERMISSIONS.WORKFORCE_COST_READ) ||
     hasPermission(context, PERMISSIONS.PROJECT_FINANCIALS_READ)
   );
 }

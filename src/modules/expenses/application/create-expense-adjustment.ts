@@ -80,7 +80,7 @@ export async function createExpenseAdjustment(
     voidsExpenseId: null,
   });
 
-  await persistAllocations(context, expenseId, payload.amounts.grossAmount, createFields.allocations);
+  await persistAllocations(context, expenseId, payload.amounts.netAmount, createFields.allocations);
   if (noteOverhead) {
     await noteModuleUsage(context.db, context.organizationId, 'overhead');
   }

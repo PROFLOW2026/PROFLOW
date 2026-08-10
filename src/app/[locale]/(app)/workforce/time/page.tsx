@@ -24,8 +24,10 @@ export default async function TimeEntriesPage({
 }: {
   searchParams: Promise<{ projectId?: string; employeeId?: string }>;
 }) {
-  const t = await getTranslations('workforce');
-  const filters = await searchParams;
+  const [t, filters] = await Promise.all([
+    getTranslations('workforce'),
+    searchParams,
+  ]);
 
   const { entries, showCosts, allowLog } = await withOrgContext(async (context) => ({
     entries: await listTimeEntriesForOrg(context, {

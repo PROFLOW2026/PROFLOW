@@ -7,6 +7,7 @@ import { listEmployeesForOrg } from '@/modules/workforce';
 import { withOrgContext } from '@/shared/auth/session';
 import { Link } from '@/shared/i18n/navigation';
 import { ArtifactForm, type ComplianceSubjectOptions } from '../artifact-form';
+import { textNavLinkMutedClassName } from '@/components/ui/pressable';
 
 export async function generateMetadata({
   params,
@@ -46,7 +47,7 @@ export default async function NewComplianceArtifactPage() {
         title={t('create.title')}
         description={t('create.description')}
         breadcrumb={
-          <Link href="/compliance" className="text-sm text-[var(--pf-text-secondary)] hover:underline">
+          <Link href="/compliance" className={textNavLinkMutedClassName}>
             {t('title')}
           </Link>
         }

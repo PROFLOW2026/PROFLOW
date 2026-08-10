@@ -2,13 +2,19 @@
 
 import { revalidatePath } from 'next/cache';
 import { getLocale, getTranslations } from 'next-intl/server';
-import { createEmployee, createEmployeeSchema } from '@/modules/workforce';
+import {
+  applyMonthlyEmployerCostAllocation,
+  createEmployee,
+  createEmployeeSchema,
+  saveMonthlyEmployerCostDraft,
+} from '@/modules/workforce';
 import { withOrgContext } from '@/shared/auth/session';
-import { AppError } from '@/shared/errors';
+import { AppError, DomainRuleError, ValidationError } from '@/shared/errors';
 import { redirect } from '@/shared/i18n/navigation';
 
 export interface WorkforceFormState {
   error?: string;
+  ok?: boolean;
 }
 
 export async function createEmployeeAction(
@@ -45,4 +51,95 @@ export async function createEmployeeAction(
   }
 
   return {};
+}
+
+export interface MonthlyEmployerCostActionState {
+  error?: string;
+  ok?: boolean;
+}
+
+function parseAllocationLinesJson(raw: FormDataEntryValue | null) {
+  if (!raw || typeof raw !== 'string' || raw.trim() === '') return undefined;
+  try {
+    const parsed = JSON.parse(raw) as unknown;
+    if (!Array.isArray(parsed)) return undefined;
+    return parsed.map((line) => {
+      const row = line as Record<string, unknown>;
+      return {
+        projectId: String(row.projectId ?? ''),
+        hours: row.hours != null ? String(row.hours) : null,
+        days: row.days != null ? String(row.days) : null,
+        percent: row.percent != null ? String(row.percent) : null,
+        amount: row.amount != null ? String(row.amount) : null,
+        notes: row.notes != null ? String(row.notes) : null,
+      };
+    });
+  } catch {
+    return undefined;
+  }
+}
+
+export async function saveMonthlyEmployerCostDraftAction(input: {
+  employeeId: string;
+  yearMonth: string;
+  estimatedAmount?: string;
+  actualAmount?: string;
+  method?: string;
+  allocationLinesJson?: string;
+}): Promise<MonthlyEmployerCostActionState> {
+  const tErrors = await getTranslations('errors');
+
+  try {
+    await withOrgContext((context) =>
+      saveMonthlyEmployerCostDraft(context, {
+        employeeId: input.employeeId,
+        yearMonth: input.yearMonth,
+        estimatedAmount: input.estimatedAmount ?? null,
+        actualAmount: input.actualAmount ?? null,
+        method: input.method as
+          | 'hours'
+          | 'days'
+          | 'percent'
+          | 'fixed_amount'
+          | undefined,
+        allocationLines: parseAllocationLinesJson(input.allocationLinesJson ?? null),
+      }),
+    );
+    revalidatePath(`/workforce/employees/${input.employeeId}`);
+    revalidatePath('/workforce', 'layout');
+    return { ok: true };
+  } catch (error) {
+    if (error instanceof ValidationError || error instanceof DomainRuleError) {
+      return { error: error.message };
+    }
+    if (error instanceof AppError) return { error: tErrors('unexpected') };
+    throw error;
+  }
+}
+
+export async function applyMonthlyEmployerCostAllocationAction(input: {
+  employeeId: string;
+  yearMonth: string;
+  runId?: string;
+}): Promise<MonthlyEmployerCostActionState> {
+  const tErrors = await getTranslations('errors');
+
+  try {
+    await withOrgContext((context) =>
+      applyMonthlyEmployerCostAllocation(context, {
+        employeeId: input.employeeId,
+        yearMonth: input.yearMonth,
+        runId: input.runId,
+      }),
+    );
+    revalidatePath(`/workforce/employees/${input.employeeId}`);
+    revalidatePath('/workforce', 'layout');
+    return { ok: true };
+  } catch (error) {
+    if (error instanceof ValidationError || error instanceof DomainRuleError) {
+      return { error: error.message };
+    }
+    if (error instanceof AppError) return { error: tErrors('unexpected') };
+    throw error;
+  }
 }

@@ -6,6 +6,8 @@ import type { ExpenseCorrectionChain } from '@/modules/expenses';
 import { statusShape } from '@/modules/expenses/domain/lifecycle';
 import { formatBusinessDate } from '@/shared/dates/format';
 import { Link } from '@/shared/i18n/navigation';
+import { textNavLinkClassName } from '@/components/ui/pressable';
+import { cn } from '@/shared/ui/cn';
 
 export async function ExpenseCorrectionHistory({
   chain,
@@ -45,7 +47,7 @@ export async function ExpenseCorrectionHistory({
                     {isCurrent ? (
                       <span className="text-xs text-[var(--pf-text-muted)]">({t('detail.title')})</span>
                     ) : (
-                      <Link href={`/expenses/${entry.id}`} className="text-xs hover:underline">
+                      <Link href={`/expenses/${entry.id}`} className={cn(textNavLinkClassName, 'text-xs')}>
                         {entry.id.slice(0, 8)}…
                       </Link>
                     )}

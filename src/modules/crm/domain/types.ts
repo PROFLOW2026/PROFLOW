@@ -3,7 +3,7 @@
  * Opportunity is not a Project — conversion is an explicit action.
  */
 
-import { AUDIT_ACTIONS } from '@/shared/audit';
+import { AUDIT_ACTIONS } from '@/shared/audit/actions';
 
 export const PROSPECT_STATUSES = ['active', 'converted', 'inactive'] as const;
 export type ProspectStatus = (typeof PROSPECT_STATUSES)[number];

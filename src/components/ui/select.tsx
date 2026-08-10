@@ -4,6 +4,7 @@ import * as SelectPrimitive from '@radix-ui/react-select';
 import { Check, ChevronDown } from 'lucide-react';
 import * as React from 'react';
 import { useLocaleDir } from '@/shared/i18n/direction';
+import { pressableClassName } from '@/components/ui/pressable';
 import { cn } from '@/shared/ui/cn';
 
 export function Select({
@@ -26,8 +27,10 @@ export const SelectTrigger = React.forwardRef<
       ref={ref}
       className={cn(
         'flex h-10 w-full items-center justify-between gap-2 rounded-md border px-3 py-2 text-sm',
+        pressableClassName,
         'border-[var(--pf-border-strong)] bg-[var(--pf-bg-surface)] text-start',
         'data-[placeholder]:text-[var(--pf-text-muted)]',
+        'hover:bg-[var(--pf-action-secondary-hover)] active:bg-[var(--pf-action-secondary-active)]',
         'focus:border-[var(--pf-border-focus)] focus:outline-2 focus:outline-[var(--pf-focus-ring)]',
         'disabled:cursor-not-allowed disabled:bg-[var(--pf-bg-muted)] disabled:text-[var(--pf-text-disabled)]',
         'aria-[invalid=true]:border-[var(--pf-action-danger)]',

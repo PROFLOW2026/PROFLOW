@@ -2,16 +2,19 @@ import { Slot } from '@radix-ui/react-slot';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { Loader2 } from 'lucide-react';
 import * as React from 'react';
+import { pressableClassName } from '@/components/ui/pressable';
 import { cn } from '@/shared/ui/cn';
 
 const buttonVariants = cva(
   [
     'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md',
-    'font-medium transition-[color,background-color,border-color,opacity] duration-[var(--pf-motion-fast)] ease-[var(--pf-easing)]',
+    'font-medium',
+    pressableClassName,
     'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]',
     // Touch devices fire :active, not :hover — pressed feedback must not be hover-only.
     'disabled:pointer-events-none disabled:bg-[var(--pf-status-disabled-bg)] disabled:text-[var(--pf-status-disabled-fg)] disabled:border-[var(--pf-status-disabled-border)]',
     'aria-[busy=true]:cursor-wait aria-[busy=true]:opacity-90',
+    'data-[loading]:pointer-events-none',
     '[&_svg]:size-4 [&_svg]:shrink-0',
   ].join(' '),
   {
@@ -28,7 +31,7 @@ const buttonVariants = cva(
         // Destructive actions that still need to read as secondary weight.
         dangerGhost:
           'border border-transparent text-[var(--pf-action-danger)] hover:bg-[var(--pf-status-danger-bg)] active:bg-[var(--pf-status-danger-border)] disabled:bg-transparent disabled:border-transparent',
-        link: 'border border-transparent text-[var(--pf-text-brand)] underline-offset-4 hover:underline active:underline active:opacity-80 disabled:bg-transparent disabled:border-transparent',
+        link: 'border border-transparent text-[var(--pf-text-brand)] underline-offset-4 hover:underline active:underline active:opacity-80 active:scale-100 disabled:bg-transparent disabled:border-transparent',
       },
       size: {
         // Mobile first: ≥44px touch (docs 62–63); denser on md+.
@@ -51,6 +54,7 @@ export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {
   asChild?: boolean;
+  /** Shows spinner, sets aria-busy, and disables the control (double-submit guard). */
   loading?: boolean;
 }
 
@@ -72,11 +76,13 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(function 
     );
   }
 
+  const isDisabled = Boolean(disabled) || loading;
+
   return (
     <button
       ref={ref}
       className={cn(buttonVariants({ variant, size, block }), className)}
-      disabled={disabled ?? loading}
+      disabled={isDisabled}
       aria-busy={loading || undefined}
       data-loading={loading ? '' : undefined}
       {...props}
