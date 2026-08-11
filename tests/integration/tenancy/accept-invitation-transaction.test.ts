@@ -1,4 +1,4 @@
-import { beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { eq } from 'drizzle-orm';
 import { invitations, organizationMemberships, roleAssignments } from '@drizzle/schema';
 import {
@@ -21,6 +21,10 @@ describe('acceptInvitation transactional redemption', () => {
 
   beforeAll(async () => {
     database = await createTestDatabase();
+  });
+
+  afterAll(async () => {
+    await database.close();
   });
 
   beforeEach(async () => {

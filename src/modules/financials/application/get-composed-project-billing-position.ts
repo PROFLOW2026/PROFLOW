@@ -29,10 +29,17 @@ export async function getComposedProjectBillingPosition(
   );
   const currency = forecastInputs.currency;
 
-  const [billingRows, monthCloseEconomic] = await Promise.all([
-    loadProjectBillingRows(context.db, context.organizationId, projectId),
-    loadMonthCloseEconomicForProject(context.db, context.organizationId, projectId, currency),
-  ]);
+  const billingRows = await loadProjectBillingRows(
+    context.db,
+    context.organizationId,
+    projectId,
+  );
+  const monthCloseEconomic = await loadMonthCloseEconomicForProject(
+    context.db,
+    context.organizationId,
+    projectId,
+    currency,
+  );
 
   const composed = composeProjectFinancials({
     projectId,

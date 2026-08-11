@@ -1,4 +1,4 @@
-import { beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { sql } from 'drizzle-orm';
 import { roles } from '@drizzle/schema';
 import {
@@ -42,6 +42,10 @@ describe('authorization table RLS hardening', () => {
 
   beforeAll(async () => {
     database = await createTestDatabase();
+  });
+
+  afterAll(async () => {
+    await database.close();
   });
 
   beforeEach(async () => {
@@ -122,6 +126,10 @@ describe('audit_events insert policy', () => {
 
   beforeAll(async () => {
     database = await createTestDatabase();
+  });
+
+  afterAll(async () => {
+    await database.close();
   });
 
   beforeEach(async () => {

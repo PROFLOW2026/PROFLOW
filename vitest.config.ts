@@ -5,6 +5,8 @@ import react from '@vitejs/plugin-react';
 
 const rootDir = path.dirname(fileURLToPath(import.meta.url));
 const serverOnlyStub = path.resolve(rootDir, 'tests/setup/server-only-stub.ts');
+const fileTiming = path.resolve(rootDir, 'tests/setup/file-timing.ts');
+const pgliteLifecycle = path.resolve(rootDir, 'tests/setup/pglite-lifecycle.ts');
 
 const sharedResolve = {
   tsconfigPaths: true as const,
@@ -14,6 +16,8 @@ const sharedResolve = {
   },
 };
 
+const reporters = process.env.GITHUB_ACTIONS ? ['default', 'github-actions'] : ['default'];
+
 export default defineConfig({
   resolve: sharedResolve,
   test: {
@@ -21,6 +25,8 @@ export default defineConfig({
     // WebAssembly Postgres instances from running at once.
     pool: 'forks',
     maxWorkers: 2,
+    reporters,
+    slowTestThreshold: 5_000,
     projects: [
       {
         resolve: sharedResolve,
@@ -28,6 +34,7 @@ export default defineConfig({
           name: 'unit',
           environment: 'node',
           include: ['tests/unit/**/*.test.ts'],
+          setupFiles: [fileTiming],
         },
       },
       {
@@ -37,7 +44,7 @@ export default defineConfig({
           name: 'ui',
           environment: 'jsdom',
           include: ['tests/ui/**/*.test.{ts,tsx}'],
-          setupFiles: ['./tests/setup/ui.setup.ts'],
+          setupFiles: ['./tests/setup/ui.setup.ts', fileTiming],
         },
       },
       {
@@ -46,6 +53,21 @@ export default defineConfig({
           name: 'integration',
           environment: 'node',
           include: ['tests/integration/**/*.test.ts'],
+          exclude: ['tests/integration/migration/**'],
+          setupFiles: [fileTiming, pgliteLifecycle],
+          testTimeout: 120_000,
+          hookTimeout: 180_000,
+        },
+      },
+      {
+        resolve: sharedResolve,
+        test: {
+          name: 'migration',
+          environment: 'node',
+          include: ['tests/integration/migration/**/*.test.ts'],
+          setupFiles: [fileTiming, pgliteLifecycle],
+          fileParallelism: false,
+          maxWorkers: 1,
           testTimeout: 120_000,
           hookTimeout: 180_000,
         },

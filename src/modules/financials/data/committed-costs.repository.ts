@@ -16,10 +16,10 @@ import {
   computeBillOutstanding,
   getVendorPaymentsRepository,
   listActiveCreditAmountsForBills,
-  RECOGNIZED_VENDOR_BILL_STATUSES,
   resolveVendorBillProjectAmounts,
   scaleBillSliceAfterCredits,
 } from '@/modules/ap';
+import { RECOGNIZED_VENDOR_BILL_STATUSES } from '@/modules/ap/domain/vendor-cost-recognition';
 const OPEN_COMMITTED_STATUSES = ['open', 'partially_consumed'] as const;
 /** Recognized bills may still owe cash after PO match — include `matched`. */
 const OPEN_AP_CASH_STATUSES = RECOGNIZED_VENDOR_BILL_STATUSES;
@@ -97,10 +97,12 @@ export async function sumOpenApPayableForProject(
     );
 
   const billIds = rows.map((row) => row.id);
-  const [appliedByBillId, creditsByBillId] = await Promise.all([
-    getVendorPaymentsRepository().listActiveAppliedAmountsForBills(db, organizationId, billIds),
-    listActiveCreditAmountsForBills(db, organizationId, billIds),
-  ]);
+  const appliedByBillId = await getVendorPaymentsRepository().listActiveAppliedAmountsForBills(
+    db,
+    organizationId,
+    billIds,
+  );
+  const creditsByBillId = await listActiveCreditAmountsForBills(db, organizationId, billIds);
 
   let total = zeroMoney(normalized);
   let excludedForeignCurrencyCount = 0;
@@ -407,10 +409,12 @@ export async function sumOpenApPayableForProjects(
     );
 
   const billIds = rows.map((row) => row.id);
-  const [appliedByBillId, creditsByBillId] = await Promise.all([
-    getVendorPaymentsRepository().listActiveAppliedAmountsForBills(db, organizationId, billIds),
-    listActiveCreditAmountsForBills(db, organizationId, billIds),
-  ]);
+  const appliedByBillId = await getVendorPaymentsRepository().listActiveAppliedAmountsForBills(
+    db,
+    organizationId,
+    billIds,
+  );
+  const creditsByBillId = await listActiveCreditAmountsForBills(db, organizationId, billIds);
 
   const buckets = new Map<
     string,

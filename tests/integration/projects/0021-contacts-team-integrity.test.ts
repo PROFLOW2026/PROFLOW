@@ -3,9 +3,11 @@ import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { sql } from 'drizzle-orm';
 import {
+  applySqlMigrations,
   createTestDatabase,
   resultRows,
   splitSqlStatements,
+  withRawPglite,
   type TestDatabase,
 } from '@tests/setup/database';
 
@@ -348,54 +350,39 @@ describe('0021 workforce contacts and allocations integrity (PGlite)', () => {
 
 describe('0021 disposable upgrade from 0020 (PGlite)', () => {
   it('applies 0021 alone onto a DB that already has 0000–0020', async () => {
-    const { PGlite } = await import('@electric-sql/pglite');
-    const client = new PGlite();
-    const migrationsDir = path.resolve(process.cwd(), 'drizzle/migrations');
-    const { readdir } = await import('node:fs/promises');
-    const files = (await readdir(migrationsDir))
-      .filter((entry) => entry.endsWith('.sql'))
-      .sort()
-      .filter((entry) => entry < '0021_workforce_contacts_and_allocations.sql');
-
-    for (const file of files) {
-      const raw = await readFile(path.join(migrationsDir, file), 'utf8');
-      for (const statement of splitSqlStatements(raw.replaceAll('--> statement-breakpoint', ''))) {
+    await withRawPglite(async (client) => {
+      await applySqlMigrations(client, '0020_overnight_foundations');
+      const sql0021 = await readFile(
+        path.join(process.cwd(), 'drizzle/migrations', '0021_workforce_contacts_and_allocations.sql'),
+        'utf8',
+      );
+      for (const statement of splitSqlStatements(sql0021.replaceAll('--> statement-breakpoint', ''))) {
         await client.exec(statement);
       }
-    }
 
-    const sql0021 = await readFile(
-      path.join(migrationsDir, '0021_workforce_contacts_and_allocations.sql'),
-      'utf8',
-    );
-    for (const statement of splitSqlStatements(sql0021.replaceAll('--> statement-breakpoint', ''))) {
-      await client.exec(statement);
-    }
-
-    const check = await client.query<{ exists: boolean }>(`
+      const check = await client.query<{ exists: boolean }>(`
       SELECT EXISTS (
         SELECT 1 FROM information_schema.columns
         WHERE table_name = 'projects' AND column_name = 'primary_contact_id'
       ) AS exists
     `);
-    expect(check.rows[0]?.exists).toBe(true);
+      expect(check.rows[0]?.exists).toBe(true);
 
-    const assignments = await client.query<{ exists: boolean }>(`
+      const assignments = await client.query<{ exists: boolean }>(`
       SELECT EXISTS (
         SELECT 1 FROM information_schema.tables
         WHERE table_schema = 'public' AND table_name = 'employee_project_assignments'
       ) AS exists
     `);
-    expect(assignments.rows[0]?.exists).toBe(true);
+      expect(assignments.rows[0]?.exists).toBe(true);
 
-    const allocations = await client.query<{ exists: boolean }>(`
+      const allocations = await client.query<{ exists: boolean }>(`
       SELECT EXISTS (
         SELECT 1 FROM information_schema.tables
         WHERE table_schema = 'public' AND table_name = 'ap_bill_project_allocations'
       ) AS exists
     `);
-    expect(allocations.rows[0]?.exists).toBe(true);
-
-    await client.close();
+      expect(allocations.rows[0]?.exists).toBe(true);
+    });
   });
 });

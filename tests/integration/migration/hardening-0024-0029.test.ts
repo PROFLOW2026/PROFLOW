@@ -1,7 +1,6 @@
-import { readFile, readdir } from 'node:fs/promises';
+import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
-import { PGlite } from '@electric-sql/pglite';
 import { sql } from 'drizzle-orm';
 import {
   acceptInvitation,
@@ -12,27 +11,16 @@ import {
 import { createClient } from '@/modules/clients';
 import { createProject } from '@/modules/projects';
 import {
+  applySqlMigrations,
   createTestDatabase,
   resultRows,
   splitSqlStatements,
+  withRawPglite,
   type TestDatabase,
 } from '@tests/setup/database';
 import { createTestUser, seedSystem } from '@tests/setup/fixtures';
 
 const MIGRATIONS_DIR = path.resolve(process.cwd(), 'drizzle/migrations');
-
-async function applyMigrationFiles(client: PGlite, untilInclusive?: string): Promise<void> {
-  const files = (await readdir(MIGRATIONS_DIR)).filter((f) => f.endsWith('.sql')).sort();
-  for (const file of files) {
-    const tag = file.replace(/\.sql$/, '');
-    if (untilInclusive && tag > untilInclusive) break;
-    const raw = await readFile(path.join(MIGRATIONS_DIR, file), 'utf8');
-    for (const statement of splitSqlStatements(raw.replaceAll('--> statement-breakpoint', ''))) {
-      await client.exec(statement);
-    }
-    if (untilInclusive && tag === untilInclusive) break;
-  }
-}
 
 async function onboardRole(
   database: TestDatabase,
@@ -98,42 +86,40 @@ async function onboardCustomRole(
 describe('migration hardening 0024–0029', () => {
   describe('clean start and 0023→latest', () => {
     it('clean-starts through 0029', async () => {
-      const client = new PGlite();
-      await client.waitReady;
-      await applyMigrationFiles(client);
-      const tables = await client.query(
-        `SELECT tablename FROM pg_tables WHERE schemaname = 'public' AND tablename IN ('estimates','approval_requests','month_close_periods','form_submissions','project_budgets')`,
-      );
-      expect(tables.rows.length).toBe(5);
-      const helper = await client.query(
-        `SELECT 1 FROM pg_proc WHERE proname = 'is_month_closed'`,
-      );
-      expect(helper.rows.length).toBe(1);
-      await client.close();
+      await withRawPglite(async (client) => {
+        await applySqlMigrations(client);
+        const tables = await client.query(
+          `SELECT tablename FROM pg_tables WHERE schemaname = 'public' AND tablename IN ('estimates','approval_requests','month_close_periods','form_submissions','project_budgets')`,
+        );
+        expect(tables.rows.length).toBe(5);
+        const helper = await client.query(
+          `SELECT 1 FROM pg_proc WHERE proname = 'is_month_closed'`,
+        );
+        expect(helper.rows.length).toBe(1);
+      });
     });
 
     it('upgrades 0023 → 0024–0029', async () => {
-      const client = new PGlite();
-      await client.waitReady;
-      await applyMigrationFiles(client, '0023_attendance_rls_and_role_backfill');
-      for (const file of [
-        '0024_next_gen_permissions_modules_work_entity.sql',
-        '0025_quotes_estimates.sql',
-        '0026_service_dispatch_recurrence.sql',
-        '0027_approvals_month_close_budgets.sql',
-        '0028_forms_usage_command_recurring.sql',
-        '0029_next_gen_integration_hardening.sql',
-      ]) {
-        const raw = await readFile(path.join(MIGRATIONS_DIR, file), 'utf8');
-        for (const statement of splitSqlStatements(raw.replaceAll('--> statement-breakpoint', ''))) {
-          await client.exec(statement);
+      await withRawPglite(async (client) => {
+        await applySqlMigrations(client, '0023_attendance_rls_and_role_backfill');
+        for (const file of [
+          '0024_next_gen_permissions_modules_work_entity.sql',
+          '0025_quotes_estimates.sql',
+          '0026_service_dispatch_recurrence.sql',
+          '0027_approvals_month_close_budgets.sql',
+          '0028_forms_usage_command_recurring.sql',
+          '0029_next_gen_integration_hardening.sql',
+        ]) {
+          const raw = await readFile(path.join(MIGRATIONS_DIR, file), 'utf8');
+          for (const statement of splitSqlStatements(raw.replaceAll('--> statement-breakpoint', ''))) {
+            await client.exec(statement);
+          }
         }
-      }
-      const fk = await client.query(
-        `SELECT 1 FROM pg_constraint WHERE conname = 'estimates_converted_project_org_fk'`,
-      );
-      expect(fk.rows.length).toBe(1);
-      await client.close();
+        const fk = await client.query(
+          `SELECT 1 FROM pg_constraint WHERE conname = 'estimates_converted_project_org_fk'`,
+        );
+        expect(fk.rows.length).toBe(1);
+      });
     });
   });
 

@@ -1,4 +1,4 @@
-import { beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { organizationMemberships, organizations, roles } from '@drizzle/schema';
 import { eq } from 'drizzle-orm';
 import { createOrganization, listMembershipsForUser, resolveOrgContext } from '@/modules/tenancy';
@@ -17,6 +17,10 @@ describe('founding an organization as an authenticated user', () => {
   beforeAll(async () => {
     database = await createTestDatabase();
     await seedSystem(database);
+  });
+
+  afterAll(async () => {
+    await database.close();
   });
 
   it('succeeds end to end under row-level security', async () => {
@@ -104,24 +108,28 @@ describe('founding an organization as an authenticated user', () => {
 describe('two-tenant fixture', () => {
   it('provisions both tenants through the real authenticated path', async () => {
     const database = await createTestDatabase();
-    const scenario = await createTwoTenantScenario(database);
+    try {
+      const scenario = await createTwoTenantScenario(database);
 
-    expect(scenario.orgA.organization.id).not.toBe(scenario.orgB.organization.id);
+      expect(scenario.orgA.organization.id).not.toBe(scenario.orgB.organization.id);
 
-    // Each owner sees exactly their own organization and nothing else.
-    const aSees = await database.asUser(scenario.userA.id, async (tx) =>
-      listMembershipsForUser(tx, scenario.userA.id),
-    );
-    expect(aSees.map((row) => row.id)).toEqual([scenario.orgA.organization.id]);
+      // Each owner sees exactly their own organization and nothing else.
+      const aSees = await database.asUser(scenario.userA.id, async (tx) =>
+        listMembershipsForUser(tx, scenario.userA.id),
+      );
+      expect(aSees.map((row) => row.id)).toEqual([scenario.orgA.organization.id]);
 
-    await expect(
-      database.asUser(scenario.userA.id, async (tx) =>
-        resolveOrgContext(tx, {
-          userId: scenario.userA.id,
-          organizationId: scenario.orgB.organization.id,
-          locale: 'he-IL',
-        }),
-      ),
-    ).rejects.toThrow();
+      await expect(
+        database.asUser(scenario.userA.id, async (tx) =>
+          resolveOrgContext(tx, {
+            userId: scenario.userA.id,
+            organizationId: scenario.orgB.organization.id,
+            locale: 'he-IL',
+          }),
+        ),
+      ).rejects.toThrow();
+    } finally {
+      await database.close();
+    }
   });
 });

@@ -1,7 +1,6 @@
-import { readFile, readdir } from 'node:fs/promises';
+import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
-import { PGlite } from '@electric-sql/pglite';
 import { sql } from 'drizzle-orm';
 import { createOrganization, resolveOrgContext } from '@/modules/tenancy';
 import { createClient } from '@/modules/clients';
@@ -10,27 +9,16 @@ import { createVendor } from '@/modules/vendors';
 import { assignRole } from '@/modules/rbac';
 import { organizationMemberships, rolePermissions, roles } from '@drizzle/schema';
 import {
+  applySqlMigrations,
   createTestDatabase,
   resultRows,
   splitSqlStatements,
+  withRawPglite,
   type TestDatabase,
 } from '@tests/setup/database';
 import { createTestUser, seedSystem } from '@tests/setup/fixtures';
 
 const MIGRATIONS_DIR = path.resolve(process.cwd(), 'drizzle/migrations');
-
-async function applyMigrationFiles(client: PGlite, untilInclusive?: string): Promise<void> {
-  const files = (await readdir(MIGRATIONS_DIR)).filter((f) => f.endsWith('.sql')).sort();
-  for (const file of files) {
-    const tag = file.replace(/\.sql$/, '');
-    if (untilInclusive && tag > untilInclusive) break;
-    const raw = await readFile(path.join(MIGRATIONS_DIR, file), 'utf8');
-    for (const statement of splitSqlStatements(raw.replaceAll('--> statement-breakpoint', ''))) {
-      await client.exec(statement);
-    }
-    if (untilInclusive && tag === untilInclusive) break;
-  }
-}
 
 function errorBlob(error: unknown): string {
   if (!error) return '';
@@ -51,51 +39,49 @@ function errorBlob(error: unknown): string {
 describe('migration hardening 0030', () => {
   describe('clean start and 0029→0030', () => {
     it('clean-starts through 0030', async () => {
-      const client = new PGlite();
-      await client.waitReady;
-      await applyMigrationFiles(client);
-      const tables = await client.query(
-        `SELECT tablename FROM pg_tables
+      await withRawPglite(async (client) => {
+        await applySqlMigrations(client);
+        const tables = await client.query(
+          `SELECT tablename FROM pg_tables
          WHERE schemaname = 'public'
            AND tablename IN ('retention_releases','recurring_financial_draft_runs','month_close_adjustments')`,
-      );
-      expect(tables.rows.length).toBe(3);
-      const cols = await client.query(
-        `SELECT column_name FROM information_schema.columns
+        );
+        expect(tables.rows.length).toBe(3);
+        const cols = await client.query(
+          `SELECT column_name FROM information_schema.columns
          WHERE table_schema = 'public' AND table_name = 'ap_bills'
            AND column_name IN ('retention_amount','retention_held_remaining')`,
-      );
-      expect(cols.rows.length).toBe(2);
-      await client.close();
+        );
+        expect(cols.rows.length).toBe(2);
+      });
     });
 
     it('upgrades 0029 → 0030', async () => {
-      const client = new PGlite();
-      await client.waitReady;
-      await applyMigrationFiles(client, '0029_next_gen_integration_hardening');
-      const before = await client.query(
-        `SELECT 1 FROM information_schema.columns
+      await withRawPglite(async (client) => {
+        await applySqlMigrations(client, '0029_next_gen_integration_hardening');
+        const before = await client.query(
+          `SELECT 1 FROM information_schema.columns
          WHERE table_schema = 'public' AND table_name = 'ap_bills' AND column_name = 'retention_amount'`,
-      );
-      expect(before.rows.length).toBe(0);
-      const raw = await readFile(
-        path.join(MIGRATIONS_DIR, '0030_gap_closure_corrections_retention_recurring.sql'),
-        'utf8',
-      );
-      for (const statement of splitSqlStatements(raw.replaceAll('--> statement-breakpoint', ''))) {
-        await client.exec(statement);
-      }
-      const after = await client.query(
-        `SELECT 1 FROM pg_tables WHERE schemaname = 'public' AND tablename = 'retention_releases'`,
-      );
-      expect(after.rows.length).toBe(1);
-      const moneyCols = await client.query(
-        `SELECT column_name FROM information_schema.columns
+        );
+        expect(before.rows.length).toBe(0);
+        const raw = await readFile(
+          path.join(MIGRATIONS_DIR, '0030_gap_closure_corrections_retention_recurring.sql'),
+          'utf8',
+        );
+        for (const statement of splitSqlStatements(raw.replaceAll('--> statement-breakpoint', ''))) {
+          await client.exec(statement);
+        }
+        const after = await client.query(
+          `SELECT 1 FROM pg_tables WHERE schemaname = 'public' AND tablename = 'retention_releases'`,
+        );
+        expect(after.rows.length).toBe(1);
+        const moneyCols = await client.query(
+          `SELECT column_name FROM information_schema.columns
          WHERE table_schema = 'public' AND table_name = 'month_close_adjustments'
            AND column_name IN ('amount','currency','effect_side','project_id','supersedes_adjustment_id')`,
-      );
-      expect(moneyCols.rows.length).toBe(5);
-      await client.close();
+        );
+        expect(moneyCols.rows.length).toBe(5);
+      });
     });
   });
 

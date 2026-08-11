@@ -2,11 +2,10 @@ import { createServer } from 'node:net';
 import { PGlite } from '@electric-sql/pglite';
 import { PGLiteSocketServer } from '@electric-sql/pglite-socket';
 import postgres, { type Sql } from 'postgres';
-import { readFile, readdir } from 'node:fs/promises';
+import { readFile } from 'node:fs/promises';
 import path from 'node:path';
-import { splitSqlStatements } from '@tests/setup/database';
+import { applySqlMigrations, serializePglite, splitSqlStatements } from '@tests/setup/database';
 
-const MIGRATIONS_DIR = path.resolve(process.cwd(), 'drizzle/migrations');
 const PATCH_PATH = path.resolve(
   process.cwd(),
   'tests/integration/pre0021/agent1-integrity-patch.sql',
@@ -43,12 +42,9 @@ async function applySqlFile(client: PGlite, filePath: string): Promise<void> {
   }
 }
 
-/** Applies 0000–0021 then Agent 1 integrity patch onto a disposable PGlite. */
+/** Applies 0000–latest then Agent 1 integrity patch onto a disposable PGlite. */
 export async function applyMigrationsAndAgent1Patch(client: PGlite): Promise<void> {
-  const files = (await readdir(MIGRATIONS_DIR)).filter((entry) => entry.endsWith('.sql')).sort();
-  for (const file of files) {
-    await applySqlFile(client, path.join(MIGRATIONS_DIR, file));
-  }
+  await applySqlMigrations(client);
   await applySqlFile(client, PATCH_PATH);
 }
 
@@ -68,30 +64,45 @@ export async function openTwoConnectionHarness(
   prepare?: (client: PGlite) => Promise<void>,
 ): Promise<TwoConnectionHarness> {
   const port = await freePort();
-  const client = new PGlite();
-  await client.waitReady;
-  if (prepare) await prepare(client);
+  const client = serializePglite(new PGlite());
+  let socketServer: PGLiteSocketServer | undefined;
+  let pool: Sql | undefined;
+  try {
+    await client.waitReady;
+    if (prepare) await prepare(client);
 
-  const socketServer = new PGLiteSocketServer({ db: client, port, host: '127.0.0.1' });
-  await socketServer.start();
+    socketServer = new PGLiteSocketServer({ db: client, port, host: '127.0.0.1' });
+    await socketServer.start();
 
-  const pool = postgres({
-    host: '127.0.0.1',
-    port,
-    database: 'postgres',
-    max: 2,
-    prepare: false,
-    idle_timeout: 20,
-    connect_timeout: 10,
-  });
+    pool = postgres({
+      host: '127.0.0.1',
+      port,
+      database: 'postgres',
+      max: 2,
+      prepare: false,
+      idle_timeout: 20,
+      connect_timeout: 10,
+    });
 
-  // Force both pool slots open sequentially (avoids dual-handshake flake).
-  await pool.begin(async (tx) => {
-    await tx`select 1`;
-  });
-  await pool.begin(async (tx) => {
-    await tx`select 1`;
-  });
+    // Force both pool slots open sequentially (avoids dual-handshake flake).
+    await pool.begin(async (tx) => {
+      await tx`select 1`;
+    });
+    await pool.begin(async (tx) => {
+      await tx`select 1`;
+    });
+  } catch (error) {
+    await pool?.end({ timeout: 2 }).catch(() => undefined);
+    await socketServer?.stop().catch(() => undefined);
+    if (!client.closed) {
+      await client.close().catch(() => undefined);
+    }
+    throw error;
+  }
+
+  if (!pool || !socketServer) {
+    throw new Error('PGlite harness failed to start');
+  }
 
   return {
     port,
@@ -99,8 +110,10 @@ export async function openTwoConnectionHarness(
     sqlB: pool,
     close: async () => {
       await pool.end({ timeout: 2 }).catch(() => undefined);
-      await socketServer.stop();
-      await client.close();
+      await socketServer.stop().catch(() => undefined);
+      if (!client.closed) {
+        await client.close().catch(() => undefined);
+      }
     },
   };
 }

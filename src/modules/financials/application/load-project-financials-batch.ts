@@ -63,79 +63,66 @@ export async function loadProjectFinancialsBatch(
   const monthCostsReady = canReadWorkforce && areEmployeeMonthCostsAvailable();
 
   const projectIdSet = new Set(projectIds);
-  const [
-    commercialByProject,
-    billingByProject,
-    expenseContributions,
-    laborByProject,
-    monthlyLaborByProject,
-    committedByProject,
-    apByProject,
-    recognizedByProject,
-    monthCloseByProject,
-  ] = await Promise.all([
-    canReadCommercial
-      ? loadCommercialDataForProjects(context.db, context.organizationId, projectIds)
-      : Promise.resolve(new Map()),
-    canReadBilling
-      ? loadBillingRowsGroupedByProject(context.db, context.organizationId, projectIds)
-      : Promise.resolve(new Map<string, ProjectBillingRows>()),
-    canReadExpenses
-      ? options.expenseContributions
-        ? Promise.resolve(
-            options.expenseContributions.filter(
-              (row) => row.projectId != null && projectIdSet.has(row.projectId),
-            ),
-          )
-        : loadExpenseContributionsForProjects(context.db, context.organizationId, projectIds)
-      : Promise.resolve([]),
-    canReadWorkforce
-      ? sumLaborCostGroupedByProject(
-          context.db,
-          context.organizationId,
-          projectIds,
-          currency,
+  // Sequential on purpose: batch compose runs inside a single-connection tx.
+  const commercialByProject = canReadCommercial
+    ? await loadCommercialDataForProjects(context.db, context.organizationId, projectIds)
+    : new Map();
+  const billingByProject = canReadBilling
+    ? await loadBillingRowsGroupedByProject(context.db, context.organizationId, projectIds)
+    : new Map<string, ProjectBillingRows>();
+  const expenseContributions = canReadExpenses
+    ? options.expenseContributions
+      ? options.expenseContributions.filter(
+          (row) => row.projectId != null && projectIdSet.has(row.projectId),
         )
-      : Promise.resolve(new Map()),
-    monthCostsReady
-      ? sumMonthlyAllocatedLaborByProject(
-          context.db,
-          context.organizationId,
-          projectIds,
-          currency,
-        )
-      : Promise.resolve(new Map()),
-    canReadProcurement
-      ? sumOpenCommittedCostsForProjects(
-          context.db,
-          context.organizationId,
-          projectIds,
-          currency,
-        )
-      : Promise.resolve(new Map()),
-    canReadAp
-      ? sumOpenApPayableForProjects(
-          context.db,
-          context.organizationId,
-          projectIds,
-          currency,
-        )
-      : Promise.resolve(new Map()),
-    canReadAp
-      ? loadRecognizedVendorBillsForProjects(
-          context.db,
-          context.organizationId,
-          projectIds,
-          currency,
-        )
-      : Promise.resolve(new Map()),
-    loadMonthCloseEconomicForProjects(
-      context.db,
-      context.organizationId,
-      projectIds,
-      currency,
-    ),
-  ]);
+      : await loadExpenseContributionsForProjects(context.db, context.organizationId, projectIds)
+    : [];
+  const laborByProject = canReadWorkforce
+    ? await sumLaborCostGroupedByProject(
+        context.db,
+        context.organizationId,
+        projectIds,
+        currency,
+      )
+    : new Map();
+  const monthlyLaborByProject = monthCostsReady
+    ? await sumMonthlyAllocatedLaborByProject(
+        context.db,
+        context.organizationId,
+        projectIds,
+        currency,
+      )
+    : new Map();
+  const committedByProject = canReadProcurement
+    ? await sumOpenCommittedCostsForProjects(
+        context.db,
+        context.organizationId,
+        projectIds,
+        currency,
+      )
+    : new Map();
+  const apByProject = canReadAp
+    ? await sumOpenApPayableForProjects(
+        context.db,
+        context.organizationId,
+        projectIds,
+        currency,
+      )
+    : new Map();
+  const recognizedByProject = canReadAp
+    ? await loadRecognizedVendorBillsForProjects(
+        context.db,
+        context.organizationId,
+        projectIds,
+        currency,
+      )
+    : new Map();
+  const monthCloseByProject = await loadMonthCloseEconomicForProjects(
+    context.db,
+    context.organizationId,
+    projectIds,
+    currency,
+  );
 
   const expensesByProject = new Map<string, ProjectExpenseContribution[]>();
   for (const line of expenseContributions) {

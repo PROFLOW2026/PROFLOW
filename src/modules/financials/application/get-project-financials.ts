@@ -46,72 +46,63 @@ export async function getProjectFinancials(
   const canReadExpenses = hasPermission(context, PERMISSIONS.EXPENSES_READ);
   const canReadWorkforce = hasPermission(context, PERMISSIONS.WORKFORCE_READ);
 
-  const [
-    commercialData,
-    billingRows,
-    expenseContributions,
-    laborResult,
-    committedResult,
-    apResult,
-    recognizedVendorResult,
-    monthCloseEconomic,
-  ] = await Promise.all([
-    canReadCommercial
-      ? loadProjectCommercialData(context.db, context.organizationId, projectId)
-      : Promise.resolve(null),
-    canReadBilling
-      ? loadProjectBillingRows(context.db, context.organizationId, projectId)
-      : Promise.resolve(null),
-    canReadExpenses
-      ? loadProjectExpenseContributions(context.db, context.organizationId, projectId)
-      : Promise.resolve([]),
-    canReadWorkforce
-      ? getProjectLaborCost(context, projectId)
-          .then(
-            (labor) =>
-              ({
-                ok: true as const,
-                laborInput: {
-                  laborCost: labor.laborCost,
-                  hasWorkforceData: labor.hasWorkforceData,
-                  entriesMissingCost: labor.entriesMissingCost,
-                  excludedForeignCurrencyEntries: labor.excludedForeignCurrencyEntries,
-                },
-              }) as const,
-          )
-          .catch((error: unknown) => {
-            if (error instanceof NotFoundError) {
-              return { ok: false as const, laborInput: null };
-            }
-            throw error;
-          })
-      : Promise.resolve({ ok: false as const, laborInput: null }),
-    canReadProcurement
-      ? sumOpenCommittedCostsForProject(
-          context.db,
-          context.organizationId,
-          projectId,
-          currency,
+  // Sequential on purpose: this runs inside a single-connection transaction
+  // (PGlite in tests, one pooled client in production). Promise.all deadlocks.
+  const commercialData = canReadCommercial
+    ? await loadProjectCommercialData(context.db, context.organizationId, projectId)
+    : null;
+  const billingRows = canReadBilling
+    ? await loadProjectBillingRows(context.db, context.organizationId, projectId)
+    : null;
+  const expenseContributions = canReadExpenses
+    ? await loadProjectExpenseContributions(context.db, context.organizationId, projectId)
+    : [];
+  const laborResult = canReadWorkforce
+    ? await getProjectLaborCost(context, projectId)
+        .then(
+          (labor) =>
+            ({
+              ok: true as const,
+              laborInput: {
+                laborCost: labor.laborCost,
+                hasWorkforceData: labor.hasWorkforceData,
+                entriesMissingCost: labor.entriesMissingCost,
+                excludedForeignCurrencyEntries: labor.excludedForeignCurrencyEntries,
+              },
+            }) as const,
         )
-      : Promise.resolve(null),
-    canReadAp
-      ? sumOpenApPayableForProject(context.db, context.organizationId, projectId, currency)
-      : Promise.resolve(null),
-    canReadAp
-      ? loadRecognizedVendorBillsForProject(
-          context.db,
-          context.organizationId,
-          projectId,
-          currency,
-        )
-      : Promise.resolve(null),
-    loadMonthCloseEconomicForProject(
-      context.db,
-      context.organizationId,
-      projectId,
-      currency,
-    ),
-  ]);
+        .catch((error: unknown) => {
+          if (error instanceof NotFoundError) {
+            return { ok: false as const, laborInput: null };
+          }
+          throw error;
+        })
+    : { ok: false as const, laborInput: null };
+  const committedResult = canReadProcurement
+    ? await sumOpenCommittedCostsForProject(
+        context.db,
+        context.organizationId,
+        projectId,
+        currency,
+      )
+    : null;
+  const apResult = canReadAp
+    ? await sumOpenApPayableForProject(context.db, context.organizationId, projectId, currency)
+    : null;
+  const recognizedVendorResult = canReadAp
+    ? await loadRecognizedVendorBillsForProject(
+        context.db,
+        context.organizationId,
+        projectId,
+        currency,
+      )
+    : null;
+  const monthCloseEconomic = await loadMonthCloseEconomicForProject(
+    context.db,
+    context.organizationId,
+    projectId,
+    currency,
+  );
 
   return composeProjectFinancials({
     projectId,

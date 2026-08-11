@@ -1,4 +1,4 @@
-import { beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { eq } from 'drizzle-orm';
 import { invitations } from '@drizzle/schema';
 import {
@@ -22,6 +22,10 @@ describe('invitations', () => {
 
   beforeAll(async () => {
     database = await createTestDatabase();
+  });
+
+  afterAll(async () => {
+    await database.close();
   });
 
   beforeEach(async () => {

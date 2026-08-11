@@ -1,4 +1,7 @@
-import { readFile, readdir } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
+import { existsSync } from 'node:fs';
+import { mkdir, open, readFile, readdir, rename, unlink, writeFile } from 'node:fs/promises';
+import os from 'node:os';
 import path from 'node:path';
 import { PGlite } from '@electric-sql/pglite';
 import { sql } from 'drizzle-orm';
@@ -152,29 +155,44 @@ export function splitSqlStatements(source: string): string[] {
   });
 }
 
-async function readMigrations(): Promise<{ name: string; statements: string[] }[]> {
+type CachedMigration = { name: string; statements: string[] };
+
+let cachedMigrations: CachedMigration[] | null = null;
+let cachedSnapshotBlob: Blob | null = null;
+const openDatabases = new Set<TestDatabase>();
+
+async function readMigrations(): Promise<CachedMigration[]> {
+  if (cachedMigrations) return cachedMigrations;
   const entries = await readdir(MIGRATIONS_DIR);
   const files = entries.filter((entry) => entry.endsWith('.sql')).sort();
 
-  const migrations = [];
+  const migrations: CachedMigration[] = [];
   for (const file of files) {
     const raw = await readFile(path.join(MIGRATIONS_DIR, file), 'utf8');
     // drizzle-kit separates statements with this marker in generated files.
     const normalised = raw.replaceAll('--> statement-breakpoint', '');
     migrations.push({ name: file, statements: splitSqlStatements(normalised) });
   }
+  cachedMigrations = migrations;
   return migrations;
 }
 
-let cachedMigrations: { name: string; statements: string[] }[] | null = null;
+function migrationTag(fileName: string): string {
+  return fileName.replace(/\.sql$/, '');
+}
 
-export async function createTestDatabase(): Promise<TestDatabase> {
-  const client = new PGlite();
-  const db = drizzle(client, { schema, casing: 'snake_case' }) as unknown as Database;
-
-  cachedMigrations ??= await readMigrations();
-
-  for (const migration of cachedMigrations) {
+/**
+ * Applies committed SQL migrations onto a disposable PGlite.
+ * `untilInclusive` is the journal tag (filename without `.sql`).
+ */
+export async function applySqlMigrations(
+  client: PGlite,
+  untilInclusive?: string,
+): Promise<void> {
+  const migrations = await readMigrations();
+  for (const migration of migrations) {
+    const tag = migrationTag(migration.name);
+    if (untilInclusive && tag > untilInclusive) break;
     for (const statement of migration.statements) {
       try {
         await client.exec(statement);
@@ -184,7 +202,147 @@ export async function createTestDatabase(): Promise<TestDatabase> {
         );
       }
     }
+    if (untilInclusive && tag === untilInclusive) break;
   }
+}
+
+export async function withRawPglite<T>(fn: (client: PGlite) => Promise<T>): Promise<T> {
+  const client = serializePglite(new PGlite());
+  try {
+    await client.waitReady;
+    return await fn(client);
+  } finally {
+    if (!client.closed) {
+      await client.close().catch(() => undefined);
+    }
+  }
+}
+
+async function snapshotKey(): Promise<string> {
+  const migrations = await readMigrations();
+  const hash = createHash('sha1')
+    .update(migrations.map((migration) => migration.name).join('|'))
+    .digest('hex')
+    .slice(0, 12);
+  return `migrated-${hash}`;
+}
+
+function snapshotPaths(key: string): { file: string; lock: string } {
+  const dir = path.join(os.tmpdir(), 'projectflow-pglite-snapshots');
+  return {
+    file: path.join(dir, `${key}.tgz`),
+    lock: path.join(dir, `${key}.lock`),
+  };
+}
+
+async function acquireLock(lockPath: string): Promise<() => Promise<void>> {
+  await mkdir(path.dirname(lockPath), { recursive: true });
+  const deadline = Date.now() + 180_000;
+  while (Date.now() < deadline) {
+    try {
+      const handle = await open(lockPath, 'wx');
+      await handle.writeFile(String(process.pid));
+      return async () => {
+        await handle.close().catch(() => undefined);
+        await unlink(lockPath).catch(() => undefined);
+      };
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== 'EEXIST') throw error;
+      await new Promise((resolve) => setTimeout(resolve, 200));
+    }
+  }
+  throw new Error(`Timed out waiting for PGlite snapshot lock: ${lockPath}`);
+}
+
+async function blobFromDump(dump: Blob | File): Promise<Blob> {
+  const bytes = new Uint8Array(await dump.arrayBuffer());
+  return new Blob([bytes]);
+}
+
+async function buildSnapshotFile(snapshotFile: string): Promise<Blob> {
+  const started = Date.now();
+  const builder = serializePglite(new PGlite());
+  try {
+    await builder.waitReady;
+    await applySqlMigrations(builder);
+    const dump = await builder.dumpDataDir('gzip');
+    const blob = await blobFromDump(dump);
+    const tmp = `${snapshotFile}.${process.pid}.tmp`;
+    await mkdir(path.dirname(snapshotFile), { recursive: true });
+    await writeFile(tmp, Buffer.from(await blob.arrayBuffer()));
+    try {
+      await rename(tmp, snapshotFile);
+    } catch (error) {
+      await unlink(tmp).catch(() => undefined);
+      if (!existsSync(snapshotFile)) throw error;
+    }
+    console.info(
+      `[pglite] snapshot built in ${Date.now() - started}ms (${(await readMigrations()).length} migrations)`,
+    );
+    return blob;
+  } finally {
+    if (!builder.closed) {
+      await builder.close().catch(() => undefined);
+    }
+  }
+}
+
+async function loadOrBuildSnapshot(): Promise<Blob> {
+  if (cachedSnapshotBlob) return cachedSnapshotBlob;
+  const { file, lock } = snapshotPaths(await snapshotKey());
+  if (existsSync(file)) {
+    cachedSnapshotBlob = new Blob([await readFile(file)]);
+    return cachedSnapshotBlob;
+  }
+
+  const release = await acquireLock(lock);
+  try {
+    if (existsSync(file)) {
+      cachedSnapshotBlob = new Blob([await readFile(file)]);
+      return cachedSnapshotBlob;
+    }
+    cachedSnapshotBlob = await buildSnapshotFile(file);
+    return cachedSnapshotBlob;
+  } finally {
+    await release();
+  }
+}
+
+/**
+ * PGlite is a single-connection WASM Postgres. Concurrent `query`/`exec` on the
+ * same instance (e.g. `Promise.all` inside a transaction) deadlocks. Serialize
+ * every wire call, including queries issued on a transaction client.
+ */
+function attachSerializedQueries(
+  client: Pick<PGlite, 'query' | 'exec' | 'sql'>,
+  box: { tail: Promise<unknown> },
+): void {
+  const enqueue = <T>(work: () => Promise<T>): Promise<T> => {
+    const run = box.tail.then(work, work);
+    box.tail = run.then(
+      () => undefined,
+      () => undefined,
+    );
+    return run;
+  };
+  const exec = client.exec.bind(client);
+  const query = client.query.bind(client);
+  const sqlFn = client.sql.bind(client);
+  client.exec = ((...args: Parameters<PGlite['exec']>) =>
+    enqueue(() => exec(...args))) as PGlite['exec'];
+  client.query = ((...args: Parameters<PGlite['query']>) =>
+    enqueue(() => query(...args))) as PGlite['query'];
+  client.sql = ((...args: Parameters<PGlite['sql']>) =>
+    enqueue(() => sqlFn(...args))) as PGlite['sql'];
+}
+
+export function serializePglite(client: PGlite): PGlite {
+  attachSerializedQueries(client, { tail: Promise.resolve() });
+  return client;
+}
+
+function wrapClient(client: PGlite): TestDatabase {
+  const db = drizzle(client, { schema, casing: 'snake_case' }) as unknown as Database;
 
   const asUser = async <T>(userId: string, fn: (tx: Transaction) => Promise<T>): Promise<T> =>
     db.transaction(async (tx) => {
@@ -213,9 +371,49 @@ export async function createTestDatabase(): Promise<TestDatabase> {
     `);
   };
 
-  const close = async (): Promise<void> => {
-    await client.close();
+  let closing: Promise<void> | null = null;
+  const handle: TestDatabase = {
+    db,
+    asUser,
+    asService,
+    reset,
+    close: async () => {
+      openDatabases.delete(handle);
+      if (closing) {
+        await closing;
+        return;
+      }
+      if (client.closed) return;
+      closing = client.close();
+      await closing;
+    },
   };
+  openDatabases.add(handle);
+  return handle;
+}
 
-  return { db, asUser, asService, reset, close };
+export async function closeAllTestDatabases(): Promise<void> {
+  const pending = [...openDatabases];
+  openDatabases.clear();
+  await Promise.all(
+    pending.map(async (database) => {
+      await database.close().catch(() => undefined);
+    }),
+  );
+}
+
+export async function createTestDatabase(): Promise<TestDatabase> {
+  const started = Date.now();
+  const snapshot = await loadOrBuildSnapshot();
+  const client = serializePglite(new PGlite({ loadDataDir: snapshot }));
+  try {
+    await client.waitReady;
+    console.info(`[pglite] cloned in ${Date.now() - started}ms pid=${process.pid}`);
+    return wrapClient(client);
+  } catch (error) {
+    if (!client.closed) {
+      await client.close().catch(() => undefined);
+    }
+    throw error;
+  }
 }

@@ -38,8 +38,17 @@ jobs:
       - name: Lint
         run: npm run lint
 
-      - name: Unit + UI + Integration (Vitest)
-        run: npm test
+      - name: Unit tests
+        run: npm run test:unit
+
+      - name: UI tests
+        run: npm run test:ui
+
+      - name: Integration tests
+        run: npm run test:integration
+
+      - name: Migration hardening (serial, 1 worker)
+        run: npm run test:migration
 
       - name: Production build
         run: npm run build

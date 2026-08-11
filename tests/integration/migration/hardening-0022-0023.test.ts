@@ -1,7 +1,6 @@
-import { readFile, readdir } from 'node:fs/promises';
+import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
-import { PGlite } from '@electric-sql/pglite';
 import { sql } from 'drizzle-orm';
 import {
   applyVendorCredit,
@@ -19,7 +18,13 @@ import {
   acceptInvitation,
   createInvitation,
 } from '@/modules/tenancy';
-import { createTestDatabase, splitSqlStatements, type TestDatabase } from '@tests/setup/database';
+import {
+  applySqlMigrations,
+  createTestDatabase,
+  splitSqlStatements,
+  withRawPglite,
+  type TestDatabase,
+} from '@tests/setup/database';
 import { createTestUser, seedSystem } from '@tests/setup/fixtures';
 import { provisionTwoTenants } from '../billing/setup';
 import {
@@ -36,19 +41,6 @@ function errorBlob(error: unknown): string {
   if (!error || typeof error !== 'object') return String(error);
   const e = error as { message?: string; cause?: unknown; detail?: string };
   return [e.message, e.detail, errorBlob(e.cause)].filter(Boolean).join('\n');
-}
-
-async function applyMigrationFiles(client: PGlite, untilInclusive?: string): Promise<void> {
-  const files = (await readdir(MIGRATIONS_DIR)).filter((f) => f.endsWith('.sql')).sort();
-  for (const file of files) {
-    const tag = file.replace(/\.sql$/, '');
-    if (untilInclusive && tag > untilInclusive) break;
-    const raw = await readFile(path.join(MIGRATIONS_DIR, file), 'utf8');
-    for (const statement of splitSqlStatements(raw.replaceAll('--> statement-breakpoint', ''))) {
-      await client.exec(statement);
-    }
-    if (untilInclusive && tag === untilInclusive) break;
-  }
 }
 
 describe('migration hardening 0022+0023', () => {
@@ -84,46 +76,44 @@ describe('migration hardening 0022+0023', () => {
 
   describe('clean start and 0021→0022→0023 upgrade', () => {
     it('clean-starts through 0023', async () => {
-      const client = new PGlite();
-      await client.waitReady;
-      await applyMigrationFiles(client);
-      const credits = await client.query(
-        `SELECT 1 FROM information_schema.tables WHERE table_name = 'ap_vendor_credits'`,
-      );
-      const linked = await client.query(
-        `SELECT 1 FROM pg_proc WHERE proname = 'linked_employee_id'`,
-      );
-      expect(credits.rows.length).toBe(1);
-      expect(linked.rows.length).toBe(1);
-      await client.close();
+      await withRawPglite(async (client) => {
+        await applySqlMigrations(client);
+        const credits = await client.query(
+          `SELECT 1 FROM information_schema.tables WHERE table_name = 'ap_vendor_credits'`,
+        );
+        const linked = await client.query(
+          `SELECT 1 FROM pg_proc WHERE proname = 'linked_employee_id'`,
+        );
+        expect(credits.rows.length).toBe(1);
+        expect(linked.rows.length).toBe(1);
+      });
     });
 
     it('upgrades 0021 → 0022 → 0023', async () => {
-      const client = new PGlite();
-      await client.waitReady;
-      await applyMigrationFiles(client, '0021_workforce_contacts_and_allocations');
-      for (const file of [
-        '0022_master_completion_foundations.sql',
-        '0023_attendance_rls_and_role_backfill.sql',
-      ]) {
-        const raw = await readFile(path.join(MIGRATIONS_DIR, file), 'utf8');
-        for (const statement of splitSqlStatements(raw.replaceAll('--> statement-breakpoint', ''))) {
-          await client.exec(statement);
+      await withRawPglite(async (client) => {
+        await applySqlMigrations(client, '0021_workforce_contacts_and_allocations');
+        for (const file of [
+          '0022_master_completion_foundations.sql',
+          '0023_attendance_rls_and_role_backfill.sql',
+        ]) {
+          const raw = await readFile(path.join(MIGRATIONS_DIR, file), 'utf8');
+          for (const statement of splitSqlStatements(raw.replaceAll('--> statement-breakpoint', ''))) {
+            await client.exec(statement);
+          }
         }
-      }
-      const fk = await client.query(
-        `SELECT 1 FROM pg_constraint WHERE conname = 'time_entries_corrects_entry_org_fk'`,
-      );
-      const projectFk = await client.query(
-        `SELECT 1 FROM pg_constraint WHERE conname = 'ap_vendor_credits_project_org_fk'`,
-      );
-      const linked = await client.query(
-        `SELECT 1 FROM pg_proc WHERE proname = 'linked_employee_id'`,
-      );
-      expect(fk.rows.length).toBe(1);
-      expect(projectFk.rows.length).toBe(1);
-      expect(linked.rows.length).toBe(1);
-      await client.close();
+        const fk = await client.query(
+          `SELECT 1 FROM pg_constraint WHERE conname = 'time_entries_corrects_entry_org_fk'`,
+        );
+        const projectFk = await client.query(
+          `SELECT 1 FROM pg_constraint WHERE conname = 'ap_vendor_credits_project_org_fk'`,
+        );
+        const linked = await client.query(
+          `SELECT 1 FROM pg_proc WHERE proname = 'linked_employee_id'`,
+        );
+        expect(fk.rows.length).toBe(1);
+        expect(projectFk.rows.length).toBe(1);
+        expect(linked.rows.length).toBe(1);
+      });
     });
   });
 });
