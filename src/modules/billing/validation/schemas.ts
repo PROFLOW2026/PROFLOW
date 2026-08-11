@@ -29,6 +29,8 @@ export const createBillingRecordSchema = z.object({
   netAmount: moneyAmountSchema.optional().nullable(),
   taxAmount: moneyAmountSchema.optional().nullable(),
   notes: z.string().trim().max(4000).optional().nullable(),
+  retentionAmount: moneyAmountSchema.optional().nullable(),
+  retentionPercent: moneyAmountSchema.optional().nullable(),
   finalize: z.boolean().optional(),
 });
 

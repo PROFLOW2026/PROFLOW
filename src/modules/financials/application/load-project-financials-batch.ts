@@ -21,6 +21,7 @@ import {
   sumOpenCommittedCostsForProjects,
 } from '../data/committed-costs.repository';
 import { loadExpenseContributionsForProjects } from '../data/expenses.repository';
+import { loadMonthCloseEconomicForProjects } from '../data/month-close-economic.repository';
 import type { ProjectExpenseContribution } from '../domain/cost-aggregation';
 import { composeProjectFinancials } from './compose-project-financials';
 
@@ -71,6 +72,7 @@ export async function loadProjectFinancialsBatch(
     committedByProject,
     apByProject,
     recognizedByProject,
+    monthCloseByProject,
   ] = await Promise.all([
     canReadCommercial
       ? loadCommercialDataForProjects(context.db, context.organizationId, projectIds)
@@ -127,6 +129,12 @@ export async function loadProjectFinancialsBatch(
           currency,
         )
       : Promise.resolve(new Map()),
+    loadMonthCloseEconomicForProjects(
+      context.db,
+      context.organizationId,
+      projectIds,
+      currency,
+    ),
   ]);
 
   const expensesByProject = new Map<string, ProjectExpenseContribution[]>();
@@ -186,6 +194,7 @@ export async function loadProjectFinancialsBatch(
         committed: committedByProject.get(projectId) ?? null,
         openAp: apByProject.get(projectId) ?? null,
         recognizedVendor: recognizedByProject.get(projectId) ?? null,
+        monthCloseEconomic: monthCloseByProject.get(projectId),
       }),
     );
   }

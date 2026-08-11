@@ -86,6 +86,6 @@ export function computeReceivablesAging(
       count: counts.get(key) ?? 0,
     })),
     totalOutstanding,
-    note: 'Aging uses Outstanding only (credit notes net into current). VAT is not treated as revenue. Foreign-currency records are excluded.',
+    note: 'Aging uses Outstanding only (receivable now = invoiced − paid − held retention; credit notes net into current). VAT is not treated as revenue. Retention is cash timing, not a second invoice. Foreign-currency records are excluded.',
   };
 }

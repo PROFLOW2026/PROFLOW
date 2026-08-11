@@ -89,6 +89,7 @@ export const MESSAGE_NAMESPACES = [
   'monthClose',
   'forms',
   'commandCenter',
+  'recurringDrafts',
 ] as const;
 
 export type MessageNamespace = (typeof MESSAGE_NAMESPACES)[number];
@@ -123,5 +124,4 @@ export const APP_CLIENT_MESSAGE_NAMESPACES = [
   'budgets',
   'approvals',
   'search',
-  'service',
 ] as const satisfies readonly MessageNamespace[];

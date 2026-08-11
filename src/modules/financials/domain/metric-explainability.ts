@@ -6,7 +6,13 @@ import type {
   ProfitPosition,
   ProjectFinancials,
 } from '@/modules/financials/domain/types';
-import { isZeroMoney, type MoneyValue } from '@/shared/money';
+import {
+  isNegativeMoney,
+  isZeroMoney,
+  negateMoney,
+  subtractMoney,
+  type MoneyValue,
+} from '@/shared/money';
 import type { DataConfidence } from './data-confidence';
 
 /**
@@ -19,13 +25,13 @@ import type { DataConfidence } from './data-confidence';
  * Formulas (must match domain comments on CostPosition / ProfitPosition):
  *
  *   Actual            = cost.actualCostToDate
- *                       (families + laborActual + vendorActual already folded in)
+ *                       (families + laborActual + vendorActual + month-close cost net)
  *   Forecast          = Actual + committedOpen + expectedRemainingCost
  *   Current Contract  = original ± approved additions/reductions
  *   Actual Margin     = Current Contract − Actual
  *   Forecast Margin   = Current Contract − Forecast
  *   Unallocated Cost  = org disclosure remainder (not in project Actual)
- *   Outstanding AR    = billing.outstanding (invoiced − paid)
+ *   Outstanding AR    = billing.outstanding (invoiced − paid − held retainage)
  *   Outstanding AP    = cost.openApPayable (cash obligation, not Actual)
  */
 
@@ -46,6 +52,9 @@ export type ExplanationCategoryKey =
   | 'shared'
   | 'business_overhead'
   | 'asset_capital'
+  | 'recognized_original'
+  | 'month_close_cost'
+  | 'month_close_revenue'
   | 'labor_actual'
   | 'vendor_actual'
   | 'overhead_actual'
@@ -60,6 +69,7 @@ export type ExplanationCategoryKey =
   | 'forecast_cost'
   | 'invoiced'
   | 'paid'
+  | 'retention_held'
   | 'open_ap_payable'
   | 'unallocated_business'
   | 'actual_margin'
@@ -76,7 +86,8 @@ export type ExplanationSourceKind =
   | 'procurement_po'
   | 'procurement_ap'
   | 'expenses_overhead'
-  | 'org_expenses';
+  | 'org_expenses'
+  | 'month_close';
 
 export interface ExplanationCategoryLine {
   readonly key: ExplanationCategoryKey;
@@ -119,24 +130,37 @@ function line(
 }
 
 function buildActual(cost: CostPosition): MetricExplanation {
+  const closeNet = cost.monthCloseCostNet;
+  const originalRecognized = subtractMoney(cost.actualCostToDate, closeNet);
+  const closeLine = isZeroMoney(closeNet)
+    ? [line('month_close_cost', closeNet, 'info')]
+    : [
+        isNegativeMoney(closeNet)
+          ? line('month_close_cost', negateMoney(closeNet), 'subtract')
+          : line('month_close_cost', closeNet, 'add'),
+      ];
+
   return {
     metric: 'actual',
     total: cost.actualCostToDate,
     nature: 'actual',
     formulaKey: 'actual',
     categories: [
-      line('direct_project', cost.byFamily.directProject, 'add'),
-      line('shared', cost.byFamily.shared, 'add'),
-      line('business_overhead', cost.byFamily.businessOverhead, 'add'),
-      line('asset_capital', cost.byFamily.assetCapital, 'add'),
+      line('recognized_original', originalRecognized, 'add'),
+      ...closeLine,
+      line('actual_cost', cost.actualCostToDate, 'total'),
+      line('direct_project', cost.byFamily.directProject, 'info'),
+      line('shared', cost.byFamily.shared, 'info'),
+      line('business_overhead', cost.byFamily.businessOverhead, 'info'),
+      line('asset_capital', cost.byFamily.assetCapital, 'info'),
       line('labor_actual', cost.laborActual, 'info'),
       line('vendor_actual', cost.vendorActual, 'info'),
       line('overhead_actual', cost.overheadActual, 'info'),
-      line('actual_cost', cost.actualCostToDate, 'total'),
     ],
     sources: [
       { kind: 'expenses_finalized' },
       { kind: 'project_expenses_tab' },
+      { kind: 'month_close' },
     ],
     requires: 'project_financials',
   };
@@ -230,19 +254,35 @@ function buildForecastMargin(
 }
 
 function buildOutstandingAr(billing: BillingPosition): MetricExplanation {
+  const closeNet = billing.monthCloseRevenueNet;
+  const originalInvoiced = subtractMoney(billing.invoiced, closeNet);
+  const closeLine = isZeroMoney(closeNet)
+    ? [line('month_close_revenue', closeNet, 'info')]
+    : [
+        isNegativeMoney(closeNet)
+          ? line('month_close_revenue', negateMoney(closeNet), 'subtract')
+          : line('month_close_revenue', closeNet, 'add'),
+      ];
+  const heldRetainage = subtractMoney(
+    subtractMoney(billing.invoiced, billing.paid),
+    billing.outstanding,
+  );
   return {
     metric: 'outstanding_ar',
     total: billing.outstanding,
     nature: 'forecast',
     formulaKey: 'outstanding_ar',
     categories: [
-      line('invoiced', billing.invoiced, 'add'),
+      line('invoiced', originalInvoiced, 'add'),
+      ...closeLine,
       line('paid', billing.paid, 'subtract'),
+      ...(isZeroMoney(heldRetainage) ? [] : [line('retention_held', heldRetainage, 'subtract')]),
       line('outstanding_ar', billing.outstanding, 'total'),
     ],
     sources: [
       { kind: 'project_billing_tab' },
       { kind: 'billing_outstanding' },
+      { kind: 'month_close' },
     ],
     requires: 'billing',
   };

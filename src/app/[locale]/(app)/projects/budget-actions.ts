@@ -42,6 +42,15 @@ export async function createProjectBudgetAction(input: {
   totalBudgetAmount?: string | null;
   currency?: string;
   name?: string;
+  lines?: Array<{
+    lineType: 'total' | 'category' | 'work_package' | 'discipline' | 'cost_code';
+    label: string;
+    budgetAmount: string;
+    categoryKey?: string | null;
+    workPackageId?: string | null;
+    etcAmount?: string | null;
+    sortOrder?: number;
+  }>;
 }): Promise<BudgetActionState> {
   try {
     await withOrgContext(async (context) => {
@@ -50,6 +59,7 @@ export async function createProjectBudgetAction(input: {
         totalBudgetAmount: input.totalBudgetAmount,
         currency: input.currency,
         name: input.name,
+        lines: input.lines,
       });
     });
     revalidateBudgetSurfaces(input.projectId);
@@ -64,6 +74,15 @@ export async function reviseProjectBudgetAction(input: {
   reason: string;
   totalBudgetAmount?: string | null;
   projectId?: string;
+  lines?: Array<{
+    lineType: 'total' | 'category' | 'work_package' | 'discipline' | 'cost_code';
+    label: string;
+    budgetAmount: string;
+    categoryKey?: string | null;
+    workPackageId?: string | null;
+    etcAmount?: string | null;
+    sortOrder?: number;
+  }>;
 }): Promise<BudgetActionState> {
   try {
     const result = await withOrgContext(async (context) =>
@@ -71,6 +90,7 @@ export async function reviseProjectBudgetAction(input: {
         budgetId: input.budgetId,
         reason: input.reason,
         totalBudgetAmount: input.totalBudgetAmount,
+        lines: input.lines,
       }),
     );
     if (input.projectId) {

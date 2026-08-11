@@ -37,6 +37,12 @@ function categoryLabel(
       return t('costFamilies.business_overhead');
     case 'asset_capital':
       return t('costFamilies.asset_capital');
+    case 'recognized_original':
+      return t('kpis.recognizedOriginal');
+    case 'month_close_cost':
+      return t('kpis.monthCloseCost');
+    case 'month_close_revenue':
+      return t('kpis.monthCloseRevenue');
     case 'labor_actual':
       return t('laborActual');
     case 'vendor_actual':
@@ -65,6 +71,8 @@ function categoryLabel(
       return t('kpis.billed');
     case 'paid':
       return t('kpis.paid');
+    case 'retention_held':
+      return t('kpis.retentionHeld');
     case 'open_ap_payable':
       return t('openApPayable');
     case 'unallocated_business':
@@ -105,6 +113,8 @@ function sourceLinkLabel(
       return t('drillLinks.viewOverheadOnProject');
     case 'org_expenses':
       return t('drillLinks.viewAllExpenses');
+    case 'month_close':
+      return t('drillLinks.viewMonthClose');
     default:
       return t('drillLinks.viewAllExpenses');
   }
@@ -153,15 +163,14 @@ function drillFromMetric(
   const explanation = findMetricExplanation(explainability, metric);
   if (!explanation) return null;
 
-  const lines = explanation.categories
-    .filter((line) => line.role !== 'total')
-    .map((line) => ({
+  const lines = explanation.categories.map((line) => ({
       label: categoryLabel(t, line.key),
       value:
         line.role === 'subtract'
           ? negateMoney(line.amount)
           : line.amount,
       muted: line.role === 'info',
+      emphasis: line.role === 'total',
       hint:
         line.role === 'info'
           ? t('explain.infoLineHint')
@@ -299,28 +308,19 @@ export function ProjectFinancialsKpiPanel({
         lines={
           actualDrill?.lines ?? [
             {
-              label: t('costFamilies.direct_project'),
-              value: financials.cost.byFamily.directProject,
+              label: t('kpis.recognizedOriginal'),
+              value: financials.cost.actualCostToDate,
             },
             {
-              label: t('laborActual'),
-              value: financials.cost.laborActual,
+              label: t('kpis.monthCloseCost'),
+              value: financials.cost.monthCloseCostNet,
+              muted: true,
+              hint: t('explain.infoLineHint'),
             },
             {
-              label: t('vendorActual'),
-              value: financials.cost.vendorActual,
-            },
-            {
-              label: t('kpis.allocatedOverhead'),
-              value: kpis.allocatedOverhead,
-            },
-            {
-              label: t('costFamilies.shared'),
-              value: financials.cost.byFamily.shared,
-            },
-            {
-              label: t('costFamilies.asset_capital'),
-              value: financials.cost.byFamily.assetCapital,
+              label: t('kpis.actualCost'),
+              value: financials.cost.actualCostToDate,
+              emphasis: true,
             },
           ]
         }
@@ -378,7 +378,9 @@ export function ProjectFinancialsKpiPanel({
         ]}
         links={[
           { href: procurementHref, label: t('drillLinks.viewPurchaseOrders') },
-          { href: apHref, label: t('drillLinks.viewVendorBills') },
+          ...(canReadAp
+            ? [{ href: apHref, label: t('drillLinks.viewVendorBills') }]
+            : []),
         ]}
       />
 

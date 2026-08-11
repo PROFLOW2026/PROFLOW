@@ -13,6 +13,7 @@ export {
   getApBillDetail,
   createApBill,
   postApBill,
+  updateDraftApBillRetention,
 } from './application/bills';
 
 export { voidApBill, rejectSilentRecognizedBillEdit } from './application/void-bill';
@@ -36,11 +37,15 @@ export {
 export {
   createVendorCredit,
   postVendorCredit,
+  updateVendorCredit,
   applyVendorCredit,
+  voidVendorCredit,
   listVendorCredits,
   listCreditsForBill,
   getVendorCredit,
+  getVendorCreditDetail,
 } from './application/credits';
+export type { ApVendorCreditListView } from './application/credits';
 
 export {
   getOrganizationApPayables,
@@ -92,12 +97,17 @@ export {
 export {
   AP_CREDIT_STATUSES,
   AP_CREDIT_APPLICATION_STATUSES,
+  AP_CREDIT_LIFECYCLE_DISPLAY_STATUSES,
   AP_CREDITS_PERSISTENCE_READY,
   areApCreditsAvailable,
   setApCreditsPersistenceReadyForTests,
   assertCreditIsNotPayment,
   assertCreditCreatable,
   assertCreditApplicable,
+  assertCreditDraftEditable,
+  assertCreditVoidable,
+  assertCreditNotSilentlyEditable,
+  displayCreditLifecycleStatus,
   netRecognizedBillAfterCredits,
   scaleBillSliceAfterCredits,
   creditRemaining,
@@ -107,6 +117,7 @@ export {
 export type {
   ApCreditStatus,
   ApCreditApplicationStatus,
+  ApCreditLifecycleDisplayStatus,
 } from './domain/vendor-credits';
 
 export {
@@ -173,6 +184,8 @@ export {
   voidApBillSchema,
   createVendorCreditSchema,
   applyVendorCreditSchema,
+  updateVendorCreditDraftSchema,
+  voidVendorCreditSchema,
 } from './validation/schemas';
 export type {
   CreateApBillInput,
@@ -186,6 +199,8 @@ export type {
   VoidApBillInput,
   CreateVendorCreditInput,
   ApplyVendorCreditInput,
+  UpdateVendorCreditDraftInput,
+  VoidVendorCreditInput,
 } from './validation/schemas';
 
 export {

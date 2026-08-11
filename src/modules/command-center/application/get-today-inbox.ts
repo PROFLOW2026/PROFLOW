@@ -29,8 +29,8 @@ function isHiddenByState(
 }
 
 /**
- * Aggregates actionable Command Center items for owners/managers.
- * Requires `command_center.read`. Optional module must be on (nav + page).
+ * Aggregates actionable Today items for anyone with `command_center.read`.
+ * Optional module must be on (nav + page). Items are filtered by grants.
  */
 export async function getTodayInbox(context: OrgContext): Promise<CommandCenterInbox> {
   assertPermission(context, PERMISSIONS.COMMAND_CENTER_READ);

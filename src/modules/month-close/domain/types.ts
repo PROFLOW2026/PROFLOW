@@ -9,6 +9,14 @@ export type MonthCloseStatus = (typeof MONTH_CLOSE_STATUSES)[number];
 export const MONTH_CLOSE_ADJUSTMENT_TYPES = ['correction', 'supersede', 'adjustment'] as const;
 export type MonthCloseAdjustmentType = (typeof MONTH_CLOSE_ADJUSTMENT_TYPES)[number];
 
+export const MONTH_CLOSE_EFFECT_SIDES = ['cost', 'revenue'] as const;
+export type MonthCloseEffectSide = (typeof MONTH_CLOSE_EFFECT_SIDES)[number];
+
+export interface MonthCloseProjectOption {
+  readonly id: string;
+  readonly name: string;
+}
+
 export const COMPLETENESS_CHECK_KEYS = [
   'missing_employer_cost_actual',
   'unallocated_employee_cost',
@@ -63,6 +71,13 @@ export interface MonthCloseAdjustment {
   readonly reason: string;
   readonly entityType: string | null;
   readonly entityId: string | null;
+  /** Null = audit-only note. When set, currency, effectSide, and projectId are also set. */
+  readonly amount: string | null;
+  readonly currency: string | null;
+  readonly effectSide: MonthCloseEffectSide | null;
+  readonly projectId: string | null;
+  readonly projectName: string | null;
+  readonly supersedesAdjustmentId: string | null;
   readonly createdByUserId: string | null;
   readonly createdAt: Date;
   readonly updatedAt: Date;

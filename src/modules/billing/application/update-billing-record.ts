@@ -6,7 +6,8 @@ import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { assertEditable } from '../domain/lifecycle';
 import { assertBillingCurrencyMatchesProject } from '../domain/currency';
 import { resolveTaxAmounts } from '../domain/tax';
-import { toNumericString } from '@/shared/money';
+import { money, toNumericString } from '@/shared/money';
+import { assertRetentionFitsTotal, resolveRetentionCapture } from '@/modules/retention';
 import { businessDate } from '@/shared/dates';
 import {
   findBillingRecordById,
@@ -88,6 +89,19 @@ export async function updateBillingRecord(context: OrgContext, rawInput: UpdateB
     );
   }
 
+  const retentionTouched =
+    input.retentionAmount !== undefined || input.retentionPercent !== undefined;
+  const retention = retentionTouched
+    ? resolveRetentionCapture({
+        totalAmount: toNumericString(amounts.totalAmount),
+        currency,
+        retentionAmount: input.retentionAmount,
+        retentionPercent: input.retentionPercent,
+        side: 'ar',
+      })
+    : (existing.retentionAmount ?? money('0', currency));
+  assertRetentionFitsTotal(retention, amounts.totalAmount, 'ar');
+
   await updateBillingRecordRow(context.db, context.organizationId, input.billingRecordId, {
     projectId,
     reference: input.reference === undefined ? undefined : input.reference?.trim() || null,
@@ -98,6 +112,8 @@ export async function updateBillingRecord(context: OrgContext, rawInput: UpdateB
     taxAmount: amounts.taxAmount ? toNumericString(amounts.taxAmount) : null,
     totalAmount: toNumericString(amounts.totalAmount),
     currency,
+    retentionAmount: toNumericString(retention),
+    retentionHeldRemaining: toNumericString(money('0', currency)),
     externalDocumentId:
       input.externalDocumentId === undefined ? undefined : input.externalDocumentId ?? null,
     notes: input.notes === undefined ? undefined : input.notes?.trim() || null,

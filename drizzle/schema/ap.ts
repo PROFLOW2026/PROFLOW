@@ -56,6 +56,9 @@ export const apBills = pgTable(
     dueDate: date('due_date', { mode: 'string' }),
     currency: currencyCode().notNull(),
     totalAmount: moneyAmount('total_amount').notNull(),
+    /** Held cash timing — does NOT reduce recognized Actual. */
+    retentionAmount: moneyAmount('retention_amount').notNull().default('0'),
+    retentionHeldRemaining: moneyAmount('retention_held_remaining').notNull().default('0'),
     notes: text('notes'),
     archivedAt: archivedAt(),
     ...timestamps(),
@@ -68,6 +71,13 @@ export const apBills = pgTable(
     check(
       'ap_bills_status_known',
       sql`${table.status} IN ('draft', 'open', 'partially_matched', 'matched', 'void')`,
+    ),
+    check(
+      'ap_bills_retention_range',
+      sql`${table.retentionAmount} >= 0
+        AND ${table.retentionHeldRemaining} >= 0
+        AND ${table.retentionHeldRemaining} <= ${table.retentionAmount}
+        AND ${table.retentionAmount} <= ${table.totalAmount}`,
     ),
   ],
 );

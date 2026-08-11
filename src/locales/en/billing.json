@@ -84,6 +84,30 @@
     "saveDraft": "Save draft",
     "saveAndFinalize": "Save and finalize"
   },
+  "retention": {
+    "title": "Retention / holdback",
+    "disclosure": "Retention is cash timing, not a second revenue. Invoiced / recognized stays the full billing amount; only receivable now is reduced until release.",
+    "recognized": "Invoiced / recognized",
+    "payableNow": "Payable now",
+    "receivableNow": "Receivable now",
+    "held": "Still held",
+    "original": "Retention",
+    "released": "Released",
+    "amountLabel": "Retention amount",
+    "percentLabel": "Retention %",
+    "percentHint": "Optional. 10 means 10% of the billing total.",
+    "captureHint": "Set amount or percent on a draft. On finalize, held remaining equals retention. After finalize, increase only with a new billing record.",
+    "releaseTitle": "Release retention",
+    "releaseHint": "Partial release is allowed while held remaining is greater than zero. Releases are immutable history — not a second invoice.",
+    "releaseAmount": "Release amount",
+    "releaseDate": "Release date",
+    "releaseNotes": "Notes",
+    "releaseSubmit": "Release",
+    "historyTitle": "Retention release history",
+    "emptyHistory": "No releases yet.",
+    "noneHeld": "No retention is held on this billing record.",
+    "saveDraft": "Save retention"
+  },
   "paymentForm": {
     "title": "Record payment",
     "billingRecord": "Billing record",
@@ -143,7 +167,15 @@
     "paymentTargetNotFinalized": "Payments can only be recorded against finalized billing records.",
     "paymentNotVoidable": "Only recorded payments can be voided.",
     "currencyMismatch": "Billing currency must match the project currency.",
-    "hasRecordedPayments": "Void recorded payments before voiding this billing record."
+    "hasRecordedPayments": "Void recorded payments before voiding this billing record.",
+    "paymentOverApplied": "Payment would exceed receivable now (after retention held).",
+    "retentionInvalid": "Retention amount is invalid.",
+    "retentionExceedsTotal": "Retention cannot exceed the billing total.",
+    "retentionCannotIncrease": "Retention cannot be increased after finalize; record a new billing record.",
+    "retentionNotReleasable": "Retention can only be released after the billing record is finalized.",
+    "retentionReleaseExceedsHeld": "Release cannot exceed held remaining.",
+    "retentionReleaseAmountInvalid": "Release amount must be positive.",
+    "retentionReleaseDateFuture": "Release date cannot be in the future."
   },
   "notAllowed": {
     "title": "Not allowed",

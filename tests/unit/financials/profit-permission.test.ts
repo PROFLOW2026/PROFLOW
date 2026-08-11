@@ -32,7 +32,7 @@ describe('project profit permission shape', () => {
       currentContractValue: { amount: '100000.000000', currency },
       pendingChanges: zero,
     },
-    billing: { invoiced: zero, paid: zero, outstanding: zero },
+    billing: { invoiced: zero, paid: zero, outstanding: zero, monthCloseRevenueNet: zero },
     cost: {
       actualCostToDate: { amount: '40000.000000', currency },
       estimatedFinalCost: { amount: '40000.000000', currency },
@@ -48,6 +48,7 @@ describe('project profit permission shape', () => {
       committedOpen: zero,
       expectedRemainingCost: zero,
       openApPayable: zero,
+      monthCloseCostNet: zero,
     },
     profit: {
       estimatedProfit: { amount: '60000.000000', currency },

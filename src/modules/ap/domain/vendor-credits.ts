@@ -240,3 +240,57 @@ export function creditRemaining(input: {
   }
   return remaining;
 }
+
+/** UI lifecycle labels — pending approval is draft + submitted request, not a DB status. */
+export const AP_CREDIT_LIFECYCLE_DISPLAY_STATUSES = [
+  'draft',
+  'pending_approval',
+  'open',
+  'applied',
+  'void',
+] as const;
+export type ApCreditLifecycleDisplayStatus =
+  (typeof AP_CREDIT_LIFECYCLE_DISPLAY_STATUSES)[number];
+
+export function displayCreditLifecycleStatus(input: {
+  readonly creditStatus: ApCreditStatus;
+  readonly approvalRequestStatus?: string | null;
+}): ApCreditLifecycleDisplayStatus {
+  if (input.creditStatus === 'void') return 'void';
+  if (input.creditStatus === 'applied') return 'applied';
+  if (input.creditStatus === 'open') return 'open';
+  if (input.approvalRequestStatus === 'submitted') return 'pending_approval';
+  return 'draft';
+}
+
+/** Amount / date / notes / reference may change only while the credit is draft. */
+export function assertCreditDraftEditable(creditStatus: ApCreditStatus): void {
+  if (creditStatus !== 'draft') {
+    throw new DomainRuleError(
+      'Only draft vendor credits can be edited; post, apply, or void instead of silent rewrite',
+      'ap.errors.creditNotDraftEditable',
+    );
+  }
+}
+
+/**
+ * Void is the correction path. No hard delete.
+ * Active applications are unwound (voided) by the application layer, then the credit is voided.
+ */
+export function assertCreditVoidable(input: {
+  readonly creditStatus: ApCreditStatus;
+}): void {
+  if (input.creditStatus === 'void') {
+    throw new DomainRuleError('Vendor credit is already void', 'ap.errors.creditAlreadyVoid');
+  }
+}
+
+/** Posted / applied credits must not be silently rewritten. */
+export function assertCreditNotSilentlyEditable(creditStatus: ApCreditStatus): void {
+  if (creditStatus !== 'draft') {
+    throw new DomainRuleError(
+      'Posted vendor credits cannot be silently edited; void and replace, or apply remaining',
+      'ap.errors.creditNotSilentlyEditable',
+    );
+  }
+}

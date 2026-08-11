@@ -9,6 +9,8 @@ import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { money } from '@/shared/money/money';
+import { Link } from '@/shared/i18n/navigation';
+import { textNavLinkClassName } from '@/components/ui/pressable';
 import { createVendorCreditAction, type ApFormState } from '../actions';
 
 export interface CreditHistoryRow {
@@ -52,6 +54,11 @@ export function VendorCreditPanel({
       <div className="min-w-0">
         <h2 className="text-sm font-semibold">{t('title')}</h2>
         <p className="mt-1 text-xs text-[var(--pf-text-muted)]">{t('notPaymentNote')}</p>
+        <p className="mt-1 text-xs">
+          <Link href="/procurement/ap/credits" className={textNavLinkClassName}>
+            {t('openList')}
+          </Link>
+        </p>
       </div>
 
       {credits.length === 0 ? (
@@ -64,7 +71,12 @@ export function VendorCreditPanel({
               className="flex min-w-0 flex-wrap items-center justify-between gap-2 rounded-md border border-[var(--pf-border-default)] px-3 py-2 text-sm"
             >
               <span className="min-w-0 break-words">
-                {row.creditReference?.trim() || row.creditId.slice(0, 8)}
+                <Link
+                  href={`/procurement/ap/credits/${row.creditId}`}
+                  className={textNavLinkClassName}
+                >
+                  {row.creditReference?.trim() || row.creditId.slice(0, 8)}
+                </Link>
                 {' · '}
                 <span dir="ltr">
                   {new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(
@@ -93,7 +105,6 @@ export function VendorCreditPanel({
               </>
             )}
           </Field>
-          <input type="hidden" name="applyAmount" value={amount} />
           <Field label={t('creditDateLabel')}>
             {(controlProps) => (
               <Input

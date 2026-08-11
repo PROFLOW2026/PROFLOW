@@ -29,6 +29,7 @@ export {
   computeOutstanding,
   deriveCollectionStatus,
   matchesListFilter,
+  recordOutstanding,
   signedBillingAmount,
   sumInvoicedAmounts,
   sumPaidAmounts,

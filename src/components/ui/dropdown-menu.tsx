@@ -54,7 +54,7 @@ export const DropdownMenuItem = React.forwardRef<
     <DropdownMenuPrimitive.Item
       ref={ref}
       className={cn(
-        'flex cursor-default select-none items-center gap-2 rounded-sm px-2 py-2 text-sm outline-none',
+        'flex min-h-11 cursor-default select-none items-center gap-2 rounded-sm px-2 py-2 text-sm outline-none',
         pressableClassName,
         'data-[highlighted]:bg-[var(--pf-action-subtle-hover)]',
         'active:bg-[var(--pf-action-subtle-active)]',
@@ -77,7 +77,7 @@ export const DropdownMenuCheckboxItem = React.forwardRef<
     <DropdownMenuPrimitive.CheckboxItem
       ref={ref}
       className={cn(
-        'relative flex cursor-default select-none items-center gap-2 rounded-sm py-2 pe-2 ps-8 text-sm outline-none',
+        'relative flex min-h-11 cursor-default select-none items-center gap-2 rounded-sm py-2 pe-2 ps-8 text-sm outline-none',
         pressableClassName,
         'data-[highlighted]:bg-[var(--pf-action-subtle-hover)]',
         'active:bg-[var(--pf-action-subtle-active)]',
@@ -103,7 +103,7 @@ export const DropdownMenuRadioItem = React.forwardRef<
     <DropdownMenuPrimitive.RadioItem
       ref={ref}
       className={cn(
-        'relative flex cursor-default select-none items-center gap-2 rounded-sm py-2 pe-2 ps-8 text-sm outline-none',
+        'relative flex min-h-11 cursor-default select-none items-center gap-2 rounded-sm py-2 pe-2 ps-8 text-sm outline-none',
         pressableClassName,
         'data-[highlighted]:bg-[var(--pf-action-subtle-hover)]',
         'active:bg-[var(--pf-action-subtle-active)]',
@@ -153,7 +153,7 @@ export const DropdownMenuSubTrigger = React.forwardRef<
     <DropdownMenuPrimitive.SubTrigger
       ref={ref}
       className={cn(
-        'flex cursor-default select-none items-center gap-2 rounded-sm px-2 py-2 text-sm outline-none',
+        'flex min-h-11 cursor-default select-none items-center gap-2 rounded-sm px-2 py-2 text-sm outline-none',
         pressableClassName,
         'data-[highlighted]:bg-[var(--pf-action-subtle-hover)] data-[state=open]:bg-[var(--pf-action-subtle-hover)]',
         'active:bg-[var(--pf-action-subtle-active)]',

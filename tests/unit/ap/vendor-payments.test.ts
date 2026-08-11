@@ -308,7 +308,71 @@ describe('open AP cash outstanding vs Actual (payment applications)', () => {
     expect(recognized.netRecognizedVendorActual.amount).toBe(billTotal.amount);
     expect(isVendorPaymentRecognizedActual()).toBe(false);
   });
+
+  it('subtracts held retention from payable-now without changing recognized Actual', () => {
+    const billTotal = money('100000', ILS);
+    const held = money('10000', ILS);
+    const recognized = composeVendorCostRecognition({
+      currency: ILS,
+      recognizedBillAmounts: [billTotal.amount],
+      linkedExpenseAmounts: [],
+    });
+
+    const payableNow = computeBillOutstanding({
+      billStatus: 'open',
+      billTotal,
+      applications: [],
+      retentionHeldRemaining: held,
+    });
+    expect(payableNow.amount).toBe(money('90000', ILS).amount);
+    expect(recognized.netRecognizedVendorActual.amount).toBe(billTotal.amount);
+
+    const afterPartialReleaseAndPayment = computeBillOutstanding({
+      billStatus: 'open',
+      billTotal,
+      applications: [{ appliedAmount: money('20000', ILS), paymentStatus: 'recorded' }],
+      retentionHeldRemaining: money('4000', ILS),
+    });
+    expect(afterPartialReleaseAndPayment.amount).toBe(money('76000', ILS).amount);
+  });
+
+  it('rejects payment that exceeds payable-now after retention', () => {
+    expect(() =>
+      assertPaymentApplicationsValid({
+        currency: ILS,
+        paymentAmount: '90001',
+        applications: [
+          {
+            apBillId: '11111111-1111-4111-8111-111111111111',
+            appliedAmount: '90001',
+            billStatus: 'open',
+            billTotal: '100000',
+            priorAppliedAmounts: [],
+            priorRetentionHeldRemaining: '10000',
+          },
+        ],
+      }),
+    ).toThrow(DomainRuleError);
+
+    expect(() =>
+      assertPaymentApplicationsValid({
+        currency: ILS,
+        paymentAmount: '90000',
+        applications: [
+          {
+            apBillId: '11111111-1111-4111-8111-111111111111',
+            appliedAmount: '90000',
+            billStatus: 'open',
+            billTotal: '100000',
+            priorAppliedAmounts: [],
+            priorRetentionHeldRemaining: '10000',
+          },
+        ],
+      }),
+    ).not.toThrow();
+  });
 });
+
 
 describe('vendor payments repository tenant isolation (in-memory)', () => {
   it('never returns another organization payment or application', async () => {

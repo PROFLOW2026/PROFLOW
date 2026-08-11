@@ -348,7 +348,7 @@ export const PERMISSION_CATALOG: readonly PermissionDefinition[] = [
   {
     key: PERMISSIONS.COMMAND_CENTER_READ,
     category: 'organization',
-    description: 'View owner command center actionable items',
+    description: 'View Today actionable items',
   },
 
   { key: PERMISSIONS.SETTINGS_MANAGE, category: 'administration', description: 'Change organization settings' },

@@ -69,6 +69,10 @@ export interface BillingRecordSummary {
   readonly totalAmount: MoneyValue;
   readonly paidAmount: MoneyValue;
   readonly outstandingAmount: MoneyValue;
+  /** Original holdback — cash timing, not a second invoiced amount. */
+  readonly retentionAmount?: MoneyValue;
+  /** Still held; reduces receivable-now only. */
+  readonly retentionHeldRemaining?: MoneyValue;
   readonly collectionStatus: CollectionStatus | null;
 }
 

@@ -1,10 +1,19 @@
-import { getProjectFinancials } from '@/modules/financials';
-import type { CostPosition } from '@/modules/financials/domain/types';
+import {
+  getProjectFinancials,
+  loadProjectExpenseContributions,
+  loadRecognizedVendorBillsForProject,
+  type CostPosition,
+  type ProjectExpenseContribution,
+} from '@/modules/financials';
 import type { OrgContext } from '@/shared/auth/context';
 import { NotFoundError } from '@/shared/errors';
 import { assertPermission, hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
-import { fromNumericString, sumMoney, zeroMoney } from '@/shared/money/money';
+import { fromNumericString, isZeroMoney, sumMoney, zeroMoney } from '@/shared/money/money';
+import {
+  mapBudgetLineActuals,
+  type BudgetLineControlRow,
+} from '../domain/map-line-actuals';
 import {
   composeBudgetControlPosition,
   type BudgetControlPosition,
@@ -27,6 +36,7 @@ export interface ProjectBudgetWorkspace {
   readonly budget: ProjectBudgetRecord | null;
   readonly mode: BudgetMode | null;
   readonly lines: readonly ProjectBudgetLineRecord[];
+  readonly lineControls: readonly BudgetLineControlRow[];
   readonly revisions: readonly ProjectBudgetRevisionRecord[];
   readonly control: BudgetControlPosition | null;
   readonly cost: CostPosition | null;
@@ -47,6 +57,14 @@ function sumLineBudgets(
 export async function getProjectBudgetWorkspace(
   context: OrgContext,
   projectId: string,
+  options?: {
+    /**
+     * Request-cached engine cost (from `loadProjectFinancials`). When set,
+     * skip the in-function `getProjectFinancials` call. A Promise overlaps
+     * with budget/expense queries in the same tx.
+     */
+    costPromise?: Promise<CostPosition | null>;
+  },
 ): Promise<ProjectBudgetWorkspace> {
   assertPermission(context, PERMISSIONS.BUDGETS_READ);
 
@@ -62,11 +80,33 @@ export async function getProjectBudgetWorkspace(
 
   const canManage = hasPermission(context, PERMISSIONS.BUDGETS_MANAGE);
   const canReadFinancials = hasPermission(context, PERMISSIONS.PROJECT_FINANCIALS_READ);
+  const canReadExpenses = hasPermission(context, PERMISSIONS.EXPENSES_READ);
 
   let cost: CostPosition | null = null;
+  let contributions: readonly ProjectExpenseContribution[] | null = null;
+  let linkedExpenseIds: ReadonlySet<string> | undefined;
+  let excludeLaborCategory = false;
   if (canReadFinancials) {
-    const financials = await getProjectFinancials(context, projectId);
-    cost = financials.cost;
+    const canReadAp = hasPermission(context, PERMISSIONS.AP_READ);
+    const [engineCost, expenseSlices, recognizedVendor] = await Promise.all([
+      options?.costPromise ??
+        getProjectFinancials(context, projectId).then((financials) => financials.cost),
+      canReadExpenses
+        ? loadProjectExpenseContributions(context.db, context.organizationId, projectId)
+        : Promise.resolve(null),
+      canReadAp
+        ? loadRecognizedVendorBillsForProject(
+            context.db,
+            context.organizationId,
+            projectId,
+            context.organization.baseCurrency,
+          )
+        : Promise.resolve(null),
+    ]);
+    cost = engineCost;
+    contributions = expenseSlices;
+    linkedExpenseIds = recognizedVendor?.linkedExpenseIds;
+    excludeLaborCategory = Boolean(cost && !isZeroMoney(cost.laborActual));
   }
 
   if (!budget) {
@@ -74,6 +114,7 @@ export async function getProjectBudgetWorkspace(
       budget: null,
       mode: null,
       lines: [],
+      lineControls: [],
       revisions: [],
       control: null,
       cost,
@@ -103,10 +144,20 @@ export async function getProjectBudgetWorkspace(
     cost,
   });
 
+  const { rows: lineControls } = mapBudgetLineActuals({
+    currency,
+    lines,
+    cost,
+    contributions,
+    linkedExpenseIds,
+    excludeLaborCategory,
+  });
+
   return {
     budget,
     mode: resolveBudgetMode(lines),
     lines,
+    lineControls,
     revisions,
     control,
     cost,

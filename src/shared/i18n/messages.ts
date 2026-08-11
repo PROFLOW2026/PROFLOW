@@ -8,7 +8,25 @@ export type Messages = Record<string, Record<string, unknown>>;
  * Any key missing from a translation falls back to the English canonical entry,
  * so a partially translated namespace shows English text rather than a raw key.
  */
+const messagesByLocale = new Map<Locale, Promise<Messages>>();
+
+/**
+ * Catalogs are static per deploy. Cache the merge so cold requests in the
+ * same isolate do not re-import ~50 namespaces (twice for he-IL).
+ */
 export async function loadMessages(locale: Locale): Promise<Messages> {
+  const hit = messagesByLocale.get(locale);
+  if (hit) return hit;
+
+  const pending = loadMessagesUncached(locale).catch((error: unknown) => {
+    messagesByLocale.delete(locale);
+    throw error;
+  });
+  messagesByLocale.set(locale, pending);
+  return pending;
+}
+
+async function loadMessagesUncached(locale: Locale): Promise<Messages> {
   const [target, fallback] = await Promise.all([
     loadNamespaces(locale),
     locale === 'en' ? Promise.resolve<Messages>({}) : loadNamespaces('en'),

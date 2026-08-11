@@ -146,7 +146,6 @@ describe('migration journal', () => {
     expect(tags.indexOf('0023_attendance_rls_and_role_backfill')).toBeLessThan(
       tags.indexOf('0024_next_gen_permissions_modules_work_entity'),
     );
-    expect(tags.at(-1)).toBe('0029_next_gen_integration_hardening');
 
     const sql = await readFile(
       path.join(MIGRATIONS_DIR, '0021_workforce_contacts_and_allocations.sql'),
@@ -174,7 +173,6 @@ describe('migration journal', () => {
     expect(tags.indexOf('0022_master_completion_foundations')).toBeLessThan(
       tags.indexOf('0023_attendance_rls_and_role_backfill'),
     );
-    expect(tags.at(-1)).toBe('0029_next_gen_integration_hardening');
 
     const sql = await readFile(
       path.join(MIGRATIONS_DIR, '0022_master_completion_foundations.sql'),
@@ -201,7 +199,6 @@ describe('migration journal', () => {
     expect(tags.indexOf('0023_attendance_rls_and_role_backfill')).toBeLessThan(
       tags.indexOf('0024_next_gen_permissions_modules_work_entity'),
     );
-    expect(tags.at(-1)).toBe('0029_next_gen_integration_hardening');
 
     const sql = await readFile(
       path.join(MIGRATIONS_DIR, '0023_attendance_rls_and_role_backfill.sql'),
@@ -225,7 +222,38 @@ describe('migration journal', () => {
     expect(tags.indexOf('0028_forms_usage_command_recurring')).toBeLessThan(
       tags.indexOf('0029_next_gen_integration_hardening'),
     );
-    expect(tags.at(-1)).toBe('0029_next_gen_integration_hardening');
+  });
+
+  it('places gap-closure 0030 after immutable 0029', async () => {
+    const journal = await loadJournal();
+    const tags = journal.entries.map((entry) => entry.tag);
+    expect(tags.indexOf('0029_next_gen_integration_hardening')).toBeLessThan(
+      tags.indexOf('0030_gap_closure_corrections_retention_recurring'),
+    );
+    expect(tags.at(-1)).toBe('0030_gap_closure_corrections_retention_recurring');
+
+    const sql = await readFile(
+      path.join(MIGRATIONS_DIR, '0030_gap_closure_corrections_retention_recurring.sql'),
+      'utf8',
+    );
+    expect(sql).toContain('retention_releases');
+    expect(sql).toContain('recurring_financial_draft_runs');
+    expect(sql).toContain('retention_held_remaining');
+    expect(sql).toContain('expenses.create');
+    expect(sql).toContain('month_close_adjustments_supersedes_uq');
+    expect(sql).toContain('app.month_close_adjustments_supersede_guard');
+    expect(sql).toContain('app.month_close_adjustments_economic_currency_guard');
+    expect(sql).toContain('app.retention_source_invariants');
+    expect(sql).toContain('app.retention_release_in_progress');
+    expect(sql).toContain(
+      'organization_id, generated_entity_type, generated_entity_id',
+    );
+    expect(sql).toContain('timezone(o.timezone, now())');
+    expect(sql).toContain('SECURITY DEFINER');
+    expect(sql).not.toContain('app.retention_release_write');
+    expect(sql).not.toContain(
+      'GRANT EXECUTE ON FUNCTION app.retention_releases_guard() TO authenticated',
+    );
   });
 });
 

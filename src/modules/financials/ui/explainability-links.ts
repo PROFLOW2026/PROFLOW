@@ -29,6 +29,8 @@ export function resolveExplanationSourceHref(
       return `/expenses?projectId=${encodeURIComponent(projectId)}&costFamily=business_overhead&status=finalized`;
     case 'org_expenses':
       return '/expenses?status=finalized';
+    case 'month_close':
+      return '/month-close';
     default:
       return `/projects/${projectId}`;
   }

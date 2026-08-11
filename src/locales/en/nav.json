@@ -8,6 +8,7 @@
   "expenses": "Expenses",
   "changes": "Changes and extras",
   "billing": "Billing and collections",
+  "recurringDrafts": "Recurring drafts",
   "clients": "Clients",
   "vendors": "Vendors",
   "workforce": "Employees",
@@ -50,7 +51,8 @@
     "vendorBill": "Vendor bill",
     "attendance": "Attendance",
     "quote": "Estimate",
-    "service": "Service call"
+    "service": "Service call",
+    "recurringDrafts": "Recurring draft"
   },
   "organizationSwitcher": {
     "label": "Organization",

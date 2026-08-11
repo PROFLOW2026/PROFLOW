@@ -78,7 +78,7 @@ export function ProjectCreateForm({
   );
 
   return (
-    <form action={formAction} className="mx-auto flex max-w-lg flex-col gap-4">
+    <form action={formAction} className="mx-auto flex w-full min-w-0 max-w-lg flex-col gap-4">
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
 
       <Field label={t('create.nameLabel')} required error={state.fieldErrors?.name}>

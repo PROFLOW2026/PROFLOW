@@ -4,6 +4,7 @@ import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import {
   findApprovalRequestById,
+  findLatestRequestForEntityGate,
   listApprovalRequestsForOrg,
   listPendingApprovalItems,
 } from '../data/approvals.repository';
@@ -11,7 +12,7 @@ import {
   listApprovalRequestsSchema,
   type ListApprovalRequestsInput,
 } from '../validation/schemas';
-import type { PendingApprovalItem } from '../domain/types';
+import type { ApprovalEntityType, PendingApprovalItem } from '../domain/types';
 
 /**
  * Pending inbox for Command Center and Approvals UI.
@@ -43,4 +44,21 @@ export async function getApprovalRequest(context: OrgContext, requestId: string)
   const row = await findApprovalRequestById(context.db, context.organizationId, requestId);
   if (!row) throw new NotFoundError('Approval request');
   return row;
+}
+
+/**
+ * Gate-safe latest request for domain UIs (AP credit post, bill post).
+ * Does not require approvals.read — same helper as assertApprovalAllowsAction.
+ */
+export async function getLatestApprovalForEntity(
+  context: OrgContext,
+  entityType: ApprovalEntityType,
+  entityId: string,
+) {
+  return findLatestRequestForEntityGate(
+    context.db,
+    context.organizationId,
+    entityType,
+    entityId,
+  );
 }

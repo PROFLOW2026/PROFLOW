@@ -37,6 +37,7 @@ describe('nav grouping', () => {
     expect(byKey.clients?.moreGroup).toBe('business');
     expect(byKey.changes?.moreGroup).toBe('business');
     expect(byKey.billing?.moreGroup).toBe('business');
+    expect(byKey.recurringDrafts?.moreGroup).toBe('business');
     expect(byKey.reports?.moreGroup).toBe('business');
 
     expect(byKey.vendors?.moreGroup).toBe('operations');
@@ -51,6 +52,33 @@ describe('nav grouping', () => {
     expect(byKey.assets?.moreGroup).toBe('advanced');
     expect(byKey.compliance?.moreGroup).toBe('advanced');
     expect(byKey.vendorBills?.moreGroup).toBe('advanced');
+  });
+
+  it('lists recurring financial drafts under business, distinct from service recurrence', () => {
+    const item = NAV_ITEMS.find((entry) => entry.key === 'recurringDrafts');
+    expect(item?.href).toBe('/recurring-drafts');
+    expect(item?.moreGroup).toBe('business');
+    expect(item?.anyPermissions).toEqual([
+      PERMISSIONS.EXPENSES_READ,
+      PERMISSIONS.EXPENSES_CREATE,
+      PERMISSIONS.AP_READ,
+      PERMISSIONS.AP_MANAGE,
+      PERMISSIONS.BILLING_READ,
+      PERMISSIONS.BILLING_MANAGE,
+    ]);
+    const serviceRecurring = NAV_ITEMS.find((entry) => entry.key === 'serviceRecurring');
+    expect(serviceRecurring?.href).toBe('/service/recurring');
+    expect(item?.href).not.toBe(serviceRecurring?.href);
+  });
+
+  it('lists month close by permission even when the month_close module is off', () => {
+    const modules = allModulesOn();
+    modules.month_close = false;
+    const items = visibleNavItems(new Set([PERMISSIONS.MONTH_CLOSE_READ]), modules, {
+      workMix: 'projects',
+    });
+    expect(items.some((item) => item.key === 'monthClose')).toBe(true);
+    expect(NAV_ITEMS.find((item) => item.key === 'monthClose')?.module).toBeUndefined();
   });
 
   it('lists vendor bills under advanced (not competing with CORE procurement)', () => {
@@ -104,6 +132,7 @@ describe('nav grouping', () => {
     expect(groups.find((entry) => entry.group === 'business')?.items.map((i) => i.key)).toEqual([
       'jobs',
       'clients',
+      'recurringDrafts',
       'reports',
     ]);
     expect(groups.find((entry) => entry.group === 'operations')?.items.map((i) => i.key)).toEqual([

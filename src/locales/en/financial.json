@@ -33,7 +33,10 @@
     "currentContractHint": "Original contract ± approved changes. Pending changes stay out.",
     "pendingNotInContract": "Not included in Current Contract until approved.",
     "actualCost": "Actual Cost",
-    "actualCostHint": "Finalized direct cost, labor, vendors, shared, and allocated overhead on this project. Drafts excluded. VAT excluded.",
+    "actualCostHint": "Finalized direct cost, labor, vendors, shared, and allocated overhead on this project, plus surviving post-close corrections once. Drafts excluded. VAT excluded.",
+    "recognizedOriginal": "Original recognized",
+    "monthCloseCost": "Post-close correction",
+    "monthCloseRevenue": "Post-close revenue correction",
     "allocatedOverhead": "Allocated Overhead",
     "allocatedOverheadHint": "Share of business overhead allocated to this project. Unallocated overhead does not appear here.",
     "allocatedOverheadSourceHint": "From finalized allocation lines that target this project.",
@@ -51,7 +54,8 @@
     "paid": "Paid",
     "paidHint": "Cash collected against billing on this project.",
     "outstanding": "Outstanding",
-    "outstandingHint": "Billed minus Paid (net of credits). Forecast collection, not Paid.",
+    "outstandingHint": "Billed minus Paid minus held retainage (net of credits). Forecast collection, not Paid.",
+    "retentionHeld": "Held retainage",
     "actualMargin": "Actual Margin",
     "actualMarginHint": "Current Contract − Actual Cost (net). Not a cash figure.",
     "forecastMargin": "Forecast Margin",
@@ -72,7 +76,8 @@
     "projectBillingTab": "Open project Billing tab",
     "viewBilling": "Browse billing",
     "viewPaidBilling": "Browse paid billing",
-    "viewOutstandingBilling": "Browse outstanding billing"
+    "viewOutstandingBilling": "Browse outstanding billing",
+    "viewMonthClose": "Open month close"
   },
   "laborActual": "Labor (Actual)",
   "vendorActual": "Vendors / subcontractors (Actual)",
@@ -123,13 +128,13 @@
     "whyThisNumber": "Why this number?",
     "infoLineHint": "Shown for context — not added again into the total.",
     "formulas": {
-      "actual": "Actual = finalized project costs (expense families + recognized vendor bills + workforce labor when present). Drafts and open POs stay out.",
+      "actual": "Actual = original recognized project costs ± post-close month-close corrections (once). Families, vendor bills, and labor are the original recognized amount. Drafts and open POs stay out.",
       "forecast": "Forecast Final Cost = Actual + remaining PO commitments + expected remaining cost (ETC). Open AP payable is cash-only disclosure.",
       "current_contract": "Current Contract = original managed value ± approved additions/reductions. Pending changes stay out.",
       "actual_margin": "Actual Margin = Current Contract − Actual Cost.",
       "forecast_margin": "Forecast Margin = Current Contract − Forecast Final Cost.",
       "unallocated_cost": "Unallocated business costs await allocation — counted in organization expense totals, never forced into project Actual or profit.",
-      "outstanding_ar": "Outstanding AR = Billed − Paid (net of credits). Forecast collection, not cash received.",
+      "outstanding_ar": "Outstanding AR = Billed − Paid − held retainage (net of credits). Forecast collection, not cash received.",
       "outstanding_ap": "Outstanding AP = unmatched open vendor bills payable. Cash obligation disclosure — not Actual Cost."
     }
   },

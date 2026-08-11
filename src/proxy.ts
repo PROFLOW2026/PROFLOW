@@ -1,7 +1,13 @@
 import createIntlMiddleware from 'next-intl/middleware';
 import { type NextRequest, NextResponse } from 'next/server';
 import { LOCALE_COOKIE_NAME } from '@/shared/i18n/auth-locale';
-import { DEFAULT_LOCALE, isLocale, type Locale } from '@/shared/i18n/config';
+import {
+  barePathLocalization,
+  localeFromCookieValue,
+  prefixedPathname,
+  shouldRefreshSessionOnBarePath,
+} from '@/shared/i18n/bare-path';
+import { isLocale, type Locale } from '@/shared/i18n/config';
 import { routing } from '@/shared/i18n/routing';
 import { refreshSupabaseSession } from '@/shared/supabase/middleware';
 
@@ -27,26 +33,34 @@ function localeFromPathname(pathname: string): Locale | null {
  * NEXT_LOCALE cookie for bare paths — they always become the default locale.
  * We still need cookie persistence for English users who chose `/en/...`, and
  * we must never invent `/en` from the browser language alone.
+ *
+ * `/` is rewritten (not redirected) so installed-app start_url paints in one
+ * document request. Other bare paths redirect so shareable URLs stay prefixed.
  */
-function redirectBarePathWithCookieLocale(request: NextRequest): NextResponse | null {
+function localizeBarePath(request: NextRequest): NextResponse | null {
   const { pathname } = request.nextUrl;
-  if (localeFromPathname(pathname)) return null;
+  const kind = barePathLocalization(pathname);
+  if (kind === 'passthrough') return null;
 
-  const cookieLocale = request.cookies.get(LOCALE_COOKIE_NAME)?.value;
-  const locale: Locale = isLocale(cookieLocale) ? cookieLocale : DEFAULT_LOCALE;
-
+  const locale = localeFromCookieValue(request.cookies.get(LOCALE_COOKIE_NAME)?.value);
   const url = request.nextUrl.clone();
-  url.pathname = pathname === '/' ? `/${locale}` : `/${locale}${pathname}`;
-  const response = NextResponse.redirect(url);
+  url.pathname = prefixedPathname(pathname, locale);
+
+  const response =
+    kind === 'rewrite-root' ? NextResponse.rewrite(url) : NextResponse.redirect(url);
   persistLocaleCookie(response, locale);
   return response;
 }
 
 /** Next 16's replacement for the `middleware` file convention. */
 export default async function proxy(request: NextRequest) {
-  const bareRedirect = redirectBarePathWithCookieLocale(request);
-  if (bareRedirect) {
-    return refreshSupabaseSession(request, bareRedirect);
+  const bare = localizeBarePath(request);
+  if (bare) {
+    const kind = barePathLocalization(request.nextUrl.pathname);
+    if (!shouldRefreshSessionOnBarePath(kind)) {
+      return bare;
+    }
+    return refreshSupabaseSession(request, bare);
   }
 
   const response = handleIntl(request);

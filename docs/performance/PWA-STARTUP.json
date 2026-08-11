@@ -1,0 +1,42 @@
+{
+  "measuredAt": "2026-08-11T19:38:50.536Z",
+  "note": "Playwright Chromium on the e2e harness. Android SW-boot delay is larger; navigation preload + / rewrite are the installed-app fixes.",
+  "results": [
+    {
+      "label": "cold start_url / (rewrite)",
+      "hops": [
+        "200 /"
+      ],
+      "finalUrl": "/",
+      "shellMs": 260,
+      "chromeMs": 280,
+      "usableMs": 301,
+      "swControlled": false,
+      "navigationPreload": true
+    },
+    {
+      "label": "cold /he-IL with SW",
+      "hops": [
+        "200 /he-IL"
+      ],
+      "finalUrl": "/he-IL",
+      "shellMs": 136,
+      "chromeMs": 142,
+      "usableMs": 153,
+      "swControlled": true,
+      "navigationPreload": true
+    },
+    {
+      "label": "warm /he-IL with SW",
+      "hops": [
+        "200 /he-IL"
+      ],
+      "finalUrl": "/he-IL",
+      "shellMs": 146,
+      "chromeMs": 153,
+      "usableMs": 161,
+      "swControlled": true,
+      "navigationPreload": true
+    }
+  ]
+}

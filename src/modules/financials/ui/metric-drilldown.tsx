@@ -59,68 +59,69 @@ export function MetricDrilldown({
 
   return (
     <div className="min-w-0">
-      <div className="flex min-w-0 items-start justify-between gap-3">
-        <div className="min-w-0 flex-1">
-          {hasDetails ? (
-            <button
-              type="button"
-              className={cn(
-                pressableClassName,
-                'inline-flex max-w-full flex-col items-start gap-0.5 rounded text-start',
-                'active:bg-[var(--pf-action-subtle-active)]',
-                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--pf-border-focus)]',
-                muted
-                  ? 'text-[var(--pf-text-muted)]'
-                  : emphasis
-                    ? 'font-medium text-[var(--pf-text-primary)]'
-                    : 'text-[var(--pf-text-secondary)]',
-              )}
-              aria-expanded={open}
-              aria-controls={panelId}
-              onClick={() => setOpen((current) => !current)}
-            >
-              <span className="inline-flex max-w-full items-start gap-1">
-                <span className="min-w-0 break-words">
-                  {label}
-                  {nature ? (
-                    <span className="ms-1 text-xs font-normal text-[var(--pf-text-muted)]">
-                      · {nature}
-                    </span>
-                  ) : null}
-                </span>
-                <ChevronDown
-                  className={cn(
-                    'mt-0.5 size-4 shrink-0 text-[var(--pf-text-muted)] transition-transform',
-                    open ? 'rotate-180' : null,
-                  )}
-                  aria-hidden
-                />
-              </span>
-              {whyLabel ? (
-                <span className="text-xs font-normal text-[var(--pf-text-brand)] underline-offset-2 hover:underline">
-                  {whyLabel}
-                </span>
-              ) : null}
-            </button>
-          ) : (
-            <span
-              className={
-                muted
-                  ? 'min-w-0 break-words text-[var(--pf-text-muted)]'
-                  : emphasis
-                    ? 'min-w-0 break-words font-medium'
-                    : 'min-w-0 break-words text-[var(--pf-text-secondary)]'
-              }
-            >
-              {label}
-              {nature ? (
-                <span className="ms-1 text-xs text-[var(--pf-text-muted)]">· {nature}</span>
-              ) : null}
-            </span>
+      {hasDetails ? (
+        <button
+          type="button"
+          className={cn(
+            pressableClassName,
+            'flex min-h-11 w-full min-w-0 items-start justify-between gap-3 rounded py-2 text-start',
+            'active:bg-[var(--pf-action-subtle-active)]',
+            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--pf-border-focus)]',
+            muted
+              ? 'text-[var(--pf-text-muted)]'
+              : emphasis
+                ? 'font-medium text-[var(--pf-text-primary)]'
+                : 'text-[var(--pf-text-secondary)]',
           )}
+          aria-expanded={open}
+          aria-controls={panelId}
+          onClick={() => setOpen((current) => !current)}
+        >
+          <span className="min-w-0 flex-1">
+            <span className="inline-flex max-w-full items-start gap-1">
+              <span className="min-w-0 break-words">
+                {label}
+                {nature ? (
+                  <span className="ms-1 text-xs font-normal text-[var(--pf-text-muted)]">
+                    · {nature}
+                  </span>
+                ) : null}
+              </span>
+              <ChevronDown
+                className={cn(
+                  'mt-0.5 size-4 shrink-0 text-[var(--pf-text-muted)] transition-transform',
+                  open ? 'rotate-180' : null,
+                )}
+                aria-hidden
+              />
+            </span>
+            {whyLabel ? (
+              <span className="mt-0.5 block text-xs font-normal text-[var(--pf-text-brand)] underline-offset-2 hover:underline">
+                {whyLabel}
+              </span>
+            ) : null}
+          </span>
+          <MoneyText value={value} className={emphasis ? 'shrink-0 font-semibold' : 'shrink-0'} />
+        </button>
+      ) : (
+        <div className="flex min-h-11 min-w-0 items-start justify-between gap-3 py-2">
+          <span
+            className={
+              muted
+                ? 'min-w-0 break-words text-[var(--pf-text-muted)]'
+                : emphasis
+                  ? 'min-w-0 break-words font-medium'
+                  : 'min-w-0 break-words text-[var(--pf-text-secondary)]'
+            }
+          >
+            {label}
+            {nature ? (
+              <span className="ms-1 text-xs text-[var(--pf-text-muted)]">· {nature}</span>
+            ) : null}
+          </span>
+          <MoneyText value={value} className={emphasis ? 'shrink-0 font-semibold' : 'shrink-0'} />
         </div>
-        <MoneyText value={value} className={emphasis ? 'shrink-0 font-semibold' : 'shrink-0'} />
-      </div>
+      )}
 
       {hasDetails && open ? (
         <div
@@ -167,7 +168,7 @@ export function MetricDrilldown({
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    className={cn(textNavLinkClassName, 'font-medium')}
+                    className={cn(textNavLinkClassName, 'inline-flex min-h-11 items-center font-medium')}
                   >
                     {link.label}
                   </Link>

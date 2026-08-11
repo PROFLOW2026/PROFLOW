@@ -9,6 +9,7 @@ import {
   computeBillOutstanding,
   getVendorPaymentsRepository,
   isRecognizedVendorBillStatus,
+  listActiveCreditAmountsForBills,
   listApBills,
 } from '@/modules/ap';
 import { loadCashFlowPayments } from '../data/billing.repository';
@@ -21,6 +22,7 @@ import {
 function mapApBillsForCash(
   rows: Awaited<ReturnType<typeof listApBills>>,
   appliedByBillId: ReadonlyMap<string, string[]>,
+  creditsByBillId: ReadonlyMap<string, string[]>,
   currency: string,
 ): ApBillCashInput[] {
   const mapped: ApBillCashInput[] = [];
@@ -34,6 +36,11 @@ function mapApBillsForCash(
         appliedAmount: money(amount, row.currency),
         paymentStatus: 'recorded' as const,
       })),
+      creditApplications: (creditsByBillId.get(row.id) ?? []).map((amount) => ({
+        appliedAmount: money(amount, row.currency),
+        status: 'applied' as const,
+      })),
+      retentionHeldRemaining: money(row.retentionHeldRemaining, row.currency),
     });
     if (!isPositiveMoney(outstanding)) continue;
     mapped.push({
@@ -72,13 +79,16 @@ export async function getOrganizationCashFlowOutlook(
       ? listApBills(context.db, context.organizationId, {
           limit: ORG_LIST_EXPORT_CAP,
         }).then(async (apRows) => {
-          const appliedByBillId =
-            await getVendorPaymentsRepository().listActiveAppliedAmountsForBills(
+          const billIds = apRows.map((row) => row.id);
+          const [appliedByBillId, creditsByBillId] = await Promise.all([
+            getVendorPaymentsRepository().listActiveAppliedAmountsForBills(
               context.db,
               context.organizationId,
-              apRows.map((row) => row.id),
-            );
-          return { apRows, appliedByBillId };
+              billIds,
+            ),
+            listActiveCreditAmountsForBills(context.db, context.organizationId, billIds),
+          ]);
+          return { apRows, appliedByBillId, creditsByBillId };
         })
       : Promise.resolve(null),
   ]);
@@ -91,7 +101,12 @@ export async function getOrganizationCashFlowOutlook(
   const payments = paymentRows.filter((row) => row.amount.currency === currency);
 
   const openApBills = apBundle
-    ? mapApBillsForCash(apBundle.apRows, apBundle.appliedByBillId, currency)
+    ? mapApBillsForCash(
+        apBundle.apRows,
+        apBundle.appliedByBillId,
+        apBundle.creditsByBillId,
+        currency,
+      )
     : undefined;
 
   return buildCashFlowOutlook({

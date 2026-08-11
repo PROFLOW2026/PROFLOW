@@ -1,0 +1,127 @@
+{
+  "title": "Recurring drafts",
+  "subtitle": "Templates that create expense, vendor-bill, or billing drafts on a schedule. Generation never posts money — you still approve each draft.",
+  "navFromSource": "Recurring drafts",
+  "notAllowed": {
+    "title": "No access",
+    "body": "You need expense, vendor-bill, or billing permission to view recurring drafts."
+  },
+  "empty": {
+    "title": "No recurring drafts yet",
+    "body": "Save a template for rent, retainers, or regular vendor bills. Each run creates a draft only — nothing is approved or posted automatically.",
+    "action": "New recurring draft"
+  },
+  "list": {
+    "new": "New recurring draft",
+    "columns": {
+      "title": "Title",
+      "kind": "Type",
+      "frequency": "Frequency",
+      "next": "Next generation",
+      "status": "Status"
+    },
+    "filters": {
+      "allOpen": "Active and paused",
+      "active": "Active",
+      "paused": "Paused",
+      "ended": "Ended",
+      "allKinds": "All types"
+    }
+  },
+  "kind": {
+    "expense": "Expense",
+    "vendor_bill": "Vendor bill",
+    "billing_record": "Billing record"
+  },
+  "status": {
+    "active": "Active",
+    "paused": "Paused",
+    "ended": "Ended"
+  },
+  "frequency": {
+    "weekly": "Weekly",
+    "monthly": "Monthly",
+    "quarterly": "Quarterly",
+    "yearly": "Yearly"
+  },
+  "create": {
+    "title": "New recurring draft",
+    "description": "The schedule only creates drafts. Approve the expense, post the vendor bill, or finalize billing separately.",
+    "submit": "Save template"
+  },
+  "edit": {
+    "title": "Edit recurring draft",
+    "submit": "Save changes"
+  },
+  "detail": {
+    "title": "Recurring draft",
+    "schedule": "Schedule",
+    "payload": "Draft preview",
+    "history": "Generation history",
+    "noHistory": "No drafts generated yet.",
+    "openEntity": "Open draft",
+    "lastGenerated": "Last generated",
+    "neverGenerated": "Not generated yet",
+    "draftOnlyNote": "Generate now creates a draft only. It does not approve an expense, post a vendor bill, or finalize billing.",
+    "backToList": "All recurring drafts",
+    "edit": "Edit template",
+    "intervalLabel": "Every {count, plural, =1 {one cycle} other {# cycles}}"
+  },
+  "fields": {
+    "title": "Title",
+    "kind": "Type",
+    "frequency": "Frequency",
+    "intervalCount": "Every N periods",
+    "nextRunDate": "Next generation date",
+    "endDate": "End date",
+    "amount": "Amount",
+    "currency": "Currency",
+    "description": "Description",
+    "supplierName": "Supplier name",
+    "vendor": "Vendor",
+    "project": "Project",
+    "notes": "Notes",
+    "reference": "Reference",
+    "lineDescription": "Line description",
+    "dueDays": "Due days after generation",
+    "runDate": "Generation date",
+    "none": "None",
+    "overhead": "Business overhead (no project)",
+    "draftStatus": "Draft"
+  },
+  "actions": {
+    "pause": "Pause",
+    "resume": "Resume",
+    "end": "End template",
+    "generate": "Generate draft now",
+    "generateConfirm": "Create draft",
+    "generateTitle": "Create a draft now?",
+    "generateBody": "This creates one draft from the template. Money is not posted until you approve or finalize that draft yourself."
+  },
+  "success": {
+    "created": "Template saved.",
+    "updated": "Template updated.",
+    "paused": "Template paused.",
+    "resumed": "Template resumed.",
+    "ended": "Template ended.",
+    "generated": "Draft created. It is not posted."
+  },
+  "confirm": {
+    "endTitle": "End this template?",
+    "endBody": "Ended templates stop generating. Existing drafts are unchanged.",
+    "endConfirm": "End template"
+  },
+  "errors": {
+    "notActive": "Paused templates cannot generate drafts. Resume the template first.",
+    "ended": "Ended templates cannot generate drafts.",
+    "notPausable": "Only active templates can be paused.",
+    "notResumable": "Only paused templates can be resumed.",
+    "alreadyEnded": "This template is already ended.",
+    "notEditable": "Ended templates cannot be edited.",
+    "endBeforeNext": "The end date cannot be before the next generation date.",
+    "alreadyGeneratedToday": "A draft was already created from this template today.",
+    "mustRemainDraft": "Generation must stay a draft. Nothing was posted.",
+    "finalizeForbidden": "Recurring templates cannot auto-finalize.",
+    "kindMismatch": "The saved template type does not match the payload."
+  }
+}

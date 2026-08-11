@@ -51,10 +51,8 @@ vi.mock('@/modules/documents', () => ({
   getDocumentById: vi.fn(),
 }));
 
-import {
-  OfflineSyncSubmitError,
-  submitOfflineDraftAction,
-} from '@/modules/offline/application/sync-mutations';
+import { submitOfflineDraftAction } from '@/modules/offline/application/sync-mutations';
+import { OfflineSyncSubmitError } from '@/modules/offline/domain/sync-submit-error';
 
 describe('offline draft tenancy', () => {
   it('rejects drafts queued for a different organization than the session', async () => {

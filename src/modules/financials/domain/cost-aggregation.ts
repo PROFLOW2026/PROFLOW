@@ -32,6 +32,9 @@ export interface ProjectExpenseContribution {
   readonly isLaborCategory?: boolean;
   /** Source expense id — used to exclude bill-linked expenses from Actual. */
   readonly expenseId?: string | null;
+  /** Optional mapping for per-line budget Actual. Never guessed when absent. */
+  readonly categoryKey?: string | null;
+  readonly workPackageId?: string | null;
 }
 
 export interface LaborCostContribution {
@@ -233,6 +236,7 @@ export function aggregateProjectCosts(
       committedOpen: zeroMoney(currency),
       expectedRemainingCost: zeroMoney(currency),
       openApPayable: zeroMoney(currency),
+      monthCloseCostNet: zeroMoney(currency),
     },
     sources,
     partials,
@@ -256,6 +260,7 @@ export function emptyCostPosition(currency: string): CostPosition {
     committedOpen: zero,
     expectedRemainingCost: zero,
     openApPayable: zero,
+    monthCloseCostNet: zero,
   };
 }
 

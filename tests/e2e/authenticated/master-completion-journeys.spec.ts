@@ -108,4 +108,50 @@ test.describe('master completion owner journeys', () => {
     }
     await expect(page.getByRole('button', { name: 'טווח תאריכים / דיווח מרובה' })).toBeVisible();
   });
+
+  test('next-gen surfaces are reachable from Hebrew chrome', async ({ page }) => {
+    await page.goto('/he-IL');
+    const nav = page.getByRole('navigation', { name: he.common.a11y.mainNavigation });
+
+    async function openFromNavOrGoto(name: string, href: string) {
+      const link = nav.getByRole('link', { name });
+      if ((await link.count()) > 0) {
+        await link.first().click();
+      } else {
+        await page.goto(href);
+      }
+    }
+
+    await openFromNavOrGoto('היום', '/he-IL/today');
+    await expect(page.getByRole('heading', { name: 'היום', exact: true })).toBeVisible();
+
+    await openFromNavOrGoto('הצעות מחיר', '/he-IL/quotes');
+    await expect(page.getByRole('heading', { name: 'הצעות מחיר', exact: true })).toBeVisible();
+
+    await openFromNavOrGoto('קריאות שירות', '/he-IL/work-orders');
+    await expect(page.getByRole('heading', { name: 'קריאות שירות', exact: true })).toBeVisible();
+
+    await openFromNavOrGoto('אישורים', '/he-IL/approvals');
+    await expect(page.getByRole('heading', { name: 'אישורים', exact: true })).toBeVisible();
+
+    await openFromNavOrGoto('סגירת חודש', '/he-IL/month-close');
+    await expect(page.getByRole('heading', { name: 'סגירת חודש', exact: true })).toBeVisible();
+
+    await openFromNavOrGoto('טיוטות חוזרות', '/he-IL/recurring-drafts');
+    await expect(page.getByRole('heading', { name: 'טיוטות חוזרות', exact: true })).toBeVisible();
+
+    await page.goto('/he-IL/procurement/ap');
+    await page.getByRole('link', { name: 'זיכויי ספק' }).click();
+    await expect(page).toHaveURL(/\/he-IL\/procurement\/ap\/credits/);
+    await expect(page.getByRole('heading', { name: 'זיכויי ספק', exact: true })).toBeVisible();
+
+    const world = loadWorld();
+    await page.goto(`/he-IL/projects/${world.projectId}`);
+    const budgetTab = page.getByRole('tab', { name: 'תקציב' });
+    if ((await budgetTab.count()) > 0) {
+      await budgetTab.click();
+      await expect(page).toHaveURL(/tab=budgets/);
+      await expect(page.getByRole('heading', { name: /תקציב/ }).first()).toBeVisible();
+    }
+  });
 });

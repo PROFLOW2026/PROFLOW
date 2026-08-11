@@ -4,7 +4,7 @@ import { loadProjectFinancialsBatch } from '@/modules/financials/application/loa
 import type { BillingPosition } from '@/modules/financials/domain/types';
 import type { OrgContext } from '@/shared/auth/context';
 import { ValidationError } from '@/shared/errors';
-import { fromNumericString, zeroMoney } from '@/shared/money';
+import { fromNumericString, subtractMoney, zeroMoney } from '@/shared/money';
 import { assertPermission, hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import type { JobBillingPaymentStatus, JobListItem } from '../domain/types';
@@ -112,6 +112,14 @@ export async function listJobsForOrg(
                 else 0
               end
             ), 0)::text`,
+            held: sql<string>`coalesce(sum(
+              case
+                when ${billingRecords.status} = 'finalized'
+                  and ${billingRecords.kind} <> 'credit_note'
+                  then ${billingRecords.retentionHeldRemaining}
+                else 0
+              end
+            ), 0)::text`,
           })
           .from(billingRecords)
           .where(
@@ -122,7 +130,7 @@ export async function listJobsForOrg(
             ),
           )
           .groupBy(billingRecords.projectId)
-      : Promise.resolve([] as { projectId: string | null; invoiced: string }[]),
+      : Promise.resolve([] as { projectId: string | null; invoiced: string; held: string }[]),
     canReadBilling && !canReadFinancials
       ? context.db
           .select({
@@ -146,8 +154,17 @@ export async function listJobsForOrg(
 
   const invoicedByJob = new Map(
     invoiceRows
-      .filter((row): row is { projectId: string; invoiced: string } => Boolean(row.projectId))
+      .filter((row): row is { projectId: string; invoiced: string; held: string } =>
+        Boolean(row.projectId),
+      )
       .map((row) => [row.projectId, row.invoiced]),
+  );
+  const heldByJob = new Map(
+    invoiceRows
+      .filter((row): row is { projectId: string; invoiced: string; held: string } =>
+        Boolean(row.projectId),
+      )
+      .map((row) => [row.projectId, row.held]),
   );
   const paidByJob = new Map(
     paymentRows
@@ -183,8 +200,11 @@ export async function listJobsForOrg(
       } else {
         invoicedAmount = invoicedByJob.get(row.id) ?? null;
         paidAmount = paidByJob.get(row.id) ?? null;
+        const invoicedMoney = invoicedAmount ? fromNumericString(invoicedAmount, currency) : null;
+        const heldMoney =
+          fromNumericString(heldByJob.get(row.id) ?? '0', currency) ?? zeroMoney(currency);
         billingPaymentStatus = resolveBillingPaymentStatus({
-          invoiced: invoicedAmount,
+          invoiced: invoicedMoney ? subtractMoney(invoicedMoney, heldMoney).amount : null,
           paid: paidAmount,
           currency,
         });

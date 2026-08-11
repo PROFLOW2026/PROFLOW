@@ -121,19 +121,42 @@ export async function closeMonthClosePeriodAction(
   }
 }
 
+function optionalFormString(formData: FormData, key: string): string | null {
+  const raw = formData.get(key);
+  if (raw == null) return null;
+  const value = String(raw).trim();
+  return value.length === 0 ? null : value;
+}
+
 export async function createMonthCloseAdjustmentAction(
   _prev: MonthCloseActionState,
   formData: FormData,
 ): Promise<MonthCloseActionState> {
   try {
+    const amount = optionalFormString(formData, 'amount');
+    const supersedesAdjustmentId = amount
+      ? optionalFormString(formData, 'supersedesAdjustmentId')
+      : null;
     const typeRaw = String(formData.get('adjustmentType') ?? 'correction');
-    const adjustmentType =
-      typeRaw === 'supersede' || typeRaw === 'adjustment' ? typeRaw : 'correction';
+    const adjustmentType = supersedesAdjustmentId
+      ? 'supersede'
+      : typeRaw === 'supersede' || typeRaw === 'adjustment'
+        ? typeRaw
+        : 'correction';
     const adjustment = await withOrgContext((context) =>
       createMonthCloseAdjustment(context, {
         periodId: String(formData.get('periodId') ?? ''),
         adjustmentType,
         reason: String(formData.get('reason') ?? ''),
+        amount,
+        currency: amount
+          ? (optionalFormString(formData, 'currency') ?? context.organization.baseCurrency)
+          : null,
+        effectSide: amount
+          ? (optionalFormString(formData, 'effectSide') as 'cost' | 'revenue' | null)
+          : null,
+        projectId: amount ? optionalFormString(formData, 'projectId') : null,
+        supersedesAdjustmentId,
       }),
     );
     revalidatePath('/month-close');

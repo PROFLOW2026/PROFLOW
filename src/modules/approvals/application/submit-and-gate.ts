@@ -4,7 +4,7 @@ import { DomainRuleError, ValidationError } from '@/shared/errors';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { noteModuleUsage } from '@/modules/tenancy';
-import { selectMatchingRule } from '../domain/rules';
+import { approvalCoversAmount, selectMatchingRule } from '../domain/rules';
 import {
   findLatestRequestForEntityGate,
   findOpenRequestForEntity,
@@ -57,7 +57,15 @@ export async function submitApprovalRequest(
     input.entityType,
     input.entityId,
   );
-  if (latest?.status === 'approved') {
+  if (
+    latest?.status === 'approved' &&
+    approvalCoversAmount({
+      requestAmount: latest.amount,
+      requestCurrency: latest.currency,
+      currentAmount: input.amount,
+      currentCurrency: input.currency,
+    })
+  ) {
     return { kind: 'already_approved', request: latest };
   }
 
@@ -143,7 +151,17 @@ export async function assertApprovalAllowsAction(
     raw.entityType,
     raw.entityId,
   );
-  if (latest?.status === 'approved') return;
+  if (
+    latest?.status === 'approved' &&
+    approvalCoversAmount({
+      requestAmount: latest.amount,
+      requestCurrency: latest.currency,
+      currentAmount: raw.amount,
+      currentCurrency: raw.currency,
+    })
+  ) {
+    return;
+  }
 
   if (latest?.status === 'submitted') {
     throw new DomainRuleError(

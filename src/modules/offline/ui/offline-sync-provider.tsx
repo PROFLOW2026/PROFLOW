@@ -18,36 +18,40 @@ import { OfflineOrgProvider } from './use-offline-aware-form-action';
  * ordinary AppShell screens do not pay for that module graph at startup.
  */
 export function OfflineSyncProvider({
-  organizationId,
+  organizationId: organizationIdProp,
   userId: userIdProp,
   transport,
   children,
 }: {
-  organizationId: string;
+  /** Optional — resolved via getOfflineActorScopeAction so AppShell need not block on org. */
+  organizationId?: string;
   /** Optional — resolved via getOfflineActorScopeAction when omitted (AppShell is Lead-owned). */
   userId?: string;
   transport?: OfflineSyncTransport;
   children?: ReactNode;
 }) {
   const transportRef = useRef<OfflineSyncTransport | null>(transport ?? null);
-  const [resolvedUserId, setResolvedUserId] = useState<string | null>(null);
-  const userId = userIdProp ?? resolvedUserId;
+  const [resolvedScope, setResolvedScope] = useState<{
+    organizationId: string;
+    userId: string;
+  } | null>(null);
+  const organizationId = organizationIdProp ?? resolvedScope?.organizationId ?? '';
+  const userId = userIdProp ?? resolvedScope?.userId ?? null;
 
   useEffect(() => {
-    if (userIdProp) return;
+    if (organizationIdProp && userIdProp) return;
     let cancelled = false;
     void (async () => {
       const { getOfflineActorScopeAction } = await import('../application/offline-scope');
       const scope = await getOfflineActorScopeAction();
-      if (cancelled) return;
-      if (scope?.organizationId === organizationId) {
-        setResolvedUserId(scope.userId);
-      }
+      if (cancelled || !scope) return;
+      if (organizationIdProp && scope.organizationId !== organizationIdProp) return;
+      setResolvedScope(scope);
     })();
     return () => {
       cancelled = true;
     };
-  }, [organizationId, userIdProp]);
+  }, [organizationIdProp, userIdProp]);
 
   useEffect(() => {
     if (transport) {

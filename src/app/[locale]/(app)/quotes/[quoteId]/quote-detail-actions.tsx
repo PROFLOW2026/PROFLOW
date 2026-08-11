@@ -13,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import type { QuoteStatus } from '@/modules/quotes';
+import type { QuoteStatus } from '@/modules/quotes/domain/types';
 import { convertQuoteAction, transitionQuoteAction, type QuotesFormState } from '../actions';
 
 export function QuoteDetailActions({

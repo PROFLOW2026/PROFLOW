@@ -66,6 +66,11 @@ export interface BillPayableInput {
    * never counted in paid/cash.
    */
   readonly creditApplications?: readonly BillCreditApplicationInput[];
+  /**
+   * Retention still held (cash timing). Reduces payable-now only.
+   * Does NOT reduce recognized Actual. Defaults to zero when omitted.
+   */
+  readonly retentionHeldRemaining?: MoneyValue;
 }
 
 /**
@@ -155,6 +160,8 @@ export function computeBillRemainingOutstanding(input: {
   readonly priorAppliedAmounts: readonly string[];
   /** Active credit applications already reducing outstanding (≠ payments). */
   readonly priorCreditAmounts?: readonly string[];
+  /** Held retention (cash timing). Reduces payable-now only. */
+  readonly priorRetentionHeldRemaining?: string;
 }): MoneyValue {
   const currency = input.currency.toUpperCase();
   if (!isBillPayable(input.billStatus)) {
@@ -168,9 +175,10 @@ export function computeBillRemainingOutstanding(input: {
     (input.priorCreditAmounts ?? []).map((a) => money(a, currency)),
     currency,
   );
+  const held = money(input.priorRetentionHeldRemaining ?? '0', currency);
   const outstanding = subtractMoney(
-    subtractMoney(money(input.billTotal, currency), priorPayments),
-    priorCredits,
+    subtractMoney(subtractMoney(money(input.billTotal, currency), priorPayments), priorCredits),
+    held,
   );
   if (compareMoney(outstanding, zeroMoney(currency)) < 0) {
     return zeroMoney(currency);
@@ -209,8 +217,9 @@ function sumActiveCreditApplicationAmounts(
 }
 
 /**
- * Remaining cash payable: bill − active payments − active credits.
+ * Remaining cash payable: bill − active payments − active credits − held retention.
  * Credits are not “paid”; they still clear outstanding.
+ * Held retention is cash timing only — recognized Actual still uses bill total.
  */
 export function computeBillOutstanding(input: BillPayableInput): MoneyValue {
   const currency = input.billTotal.currency;
@@ -219,7 +228,11 @@ export function computeBillOutstanding(input: BillPayableInput): MoneyValue {
   }
   const paid = sumActiveAppliedAmounts(input.applications, currency);
   const credited = sumActiveCreditApplicationAmounts(input.creditApplications, currency);
-  const outstanding = subtractMoney(subtractMoney(input.billTotal, paid), credited);
+  const held =
+    input.retentionHeldRemaining && input.retentionHeldRemaining.currency === currency
+      ? input.retentionHeldRemaining
+      : zeroMoney(currency);
+  const outstanding = subtractMoney(subtractMoney(subtractMoney(input.billTotal, paid), credited), held);
   if (compareMoney(outstanding, zeroMoney(currency)) < 0) {
     return zeroMoney(currency);
   }
@@ -263,6 +276,7 @@ export function assertPaymentApplicationsValid(input: {
     readonly billTotal: string;
     readonly priorAppliedAmounts: readonly string[];
     readonly priorCreditAmounts?: readonly string[];
+    readonly priorRetentionHeldRemaining?: string;
   }[];
 }): void {
   assertVendorPaymentDoesNotAffectActual();
@@ -316,6 +330,7 @@ export function assertPaymentApplicationsValid(input: {
       billStatus: app.billStatus,
       priorAppliedAmounts: app.priorAppliedAmounts,
       priorCreditAmounts: app.priorCreditAmounts,
+      priorRetentionHeldRemaining: app.priorRetentionHeldRemaining,
     });
     if (compareMoney(applied, outstanding) > 0) {
       throw new DomainRuleError(

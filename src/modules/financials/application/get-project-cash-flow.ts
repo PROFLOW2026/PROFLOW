@@ -10,6 +10,7 @@ import {
   computeBillOutstanding,
   getVendorPaymentsRepository,
   isRecognizedVendorBillStatus,
+  listActiveCreditAmountsForBills,
   listApBills,
 } from '@/modules/ap';
 import { loadCashFlowPayments } from '../data/billing.repository';
@@ -65,11 +66,15 @@ export async function getProjectCashFlowOutlook(
     const projectBills = apRows.filter(
       (row) => row.projectId === projectId && isRecognizedVendorBillStatus(row.status),
     );
-    const appliedByBillId = await getVendorPaymentsRepository().listActiveAppliedAmountsForBills(
-      context.db,
-      context.organizationId,
-      projectBills.map((row) => row.id),
-    );
+    const billIds = projectBills.map((row) => row.id);
+    const [appliedByBillId, creditsByBillId] = await Promise.all([
+      getVendorPaymentsRepository().listActiveAppliedAmountsForBills(
+        context.db,
+        context.organizationId,
+        billIds,
+      ),
+      listActiveCreditAmountsForBills(context.db, context.organizationId, billIds),
+    ]);
     openApBills = [];
     for (const row of projectBills) {
       if (row.currency.toUpperCase() !== currency.toUpperCase()) continue;
@@ -80,6 +85,11 @@ export async function getProjectCashFlowOutlook(
           appliedAmount: money(amount, row.currency),
           paymentStatus: 'recorded' as const,
         })),
+        creditApplications: (creditsByBillId.get(row.id) ?? []).map((amount) => ({
+          appliedAmount: money(amount, row.currency),
+          status: 'applied' as const,
+        })),
+        retentionHeldRemaining: money(row.retentionHeldRemaining, row.currency),
       });
       if (!isPositiveMoney(outstanding)) continue;
       openApBills.push({

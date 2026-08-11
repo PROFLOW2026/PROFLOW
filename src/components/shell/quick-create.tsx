@@ -45,10 +45,10 @@ export function QuickCreate({ actions }: { actions: QuickCreateAction[] }) {
             'active:bg-[var(--pf-action-primary-active)]',
             'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]',
             demoteFab
-              ? 'static size-auto h-9 shrink-0 rounded-md px-3 text-[0.8125rem] shadow-none hover:bg-[var(--pf-action-primary-hover)]'
+              ? 'static size-auto h-11 min-h-11 shrink-0 rounded-md px-3 text-[0.8125rem] shadow-none hover:bg-[var(--pf-action-primary-hover)]'
               : cn(
                   'fixed bottom-[calc(var(--pf-bottomnav-height)+var(--pf-fab-gap)+env(safe-area-inset-bottom,0px))] end-4 size-[var(--pf-fab-size)] shadow-[var(--pf-shadow-lg)]',
-                  'lg:static lg:bottom-auto lg:end-auto lg:size-auto lg:h-8 lg:rounded-md lg:px-3 lg:text-[0.8125rem] lg:shadow-none',
+                  'lg:static lg:bottom-auto lg:end-auto lg:size-auto lg:h-11 lg:min-h-11 lg:rounded-md lg:px-3 lg:text-[0.8125rem] lg:shadow-none',
                   'lg:hover:bg-[var(--pf-action-primary-hover)]',
                 ),
           )}

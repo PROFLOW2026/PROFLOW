@@ -62,6 +62,25 @@ describe('billing outstanding arithmetic', () => {
     expect(deriveCollectionStatus(outstanding, paid, null, today, 'finalized')).toBe('partial');
   });
 
+  it('does not subtract held retention from a credit note', () => {
+    const total = money('10000', currency);
+    const paid = money('0', currency);
+    const held = money('10000', currency);
+    const outstanding = recordOutstanding(total, paid, 'credit_note', 'finalized', held);
+    expect(outstanding.amount).toBe('-10000.000000');
+  });
+
+  it('subtracts held retention from receivable-now without reducing invoiced', () => {
+    const total = money('100000', currency);
+    const paid = money('0', currency);
+    const held = money('10000', currency);
+    const outstanding = recordOutstanding(total, paid, 'invoice', 'finalized', held);
+    expect(outstanding.amount).toBe('90000.000000');
+    expect(signedBillingAmount({ kind: 'invoice', status: 'finalized', totalAmount: total })?.amount).toBe(
+      '100000.000000',
+    );
+  });
+
   it('marks fully paid and overpaid records as paid', () => {
     const total = money('500', currency);
     const paid = money('500', currency);
@@ -163,6 +182,25 @@ describe('billing outstanding arithmetic', () => {
     expect(position.invoiced.amount).toBe('0.000000');
     expect(position.paid.amount).toBe('3000.000000');
     expect(position.outstanding.amount).toBe('-3000.000000');
+  });
+
+  it('excludes held retainage from outstanding while invoiced stays recognized', () => {
+    const position = aggregateBillingPosition(
+      [
+        {
+          kind: 'invoice',
+          status: 'finalized',
+          totalAmount: money('100000', currency),
+          payments: [{ amount: money('0', currency), status: 'recorded' }],
+          retentionHeldRemaining: money('10000', currency),
+        },
+      ],
+      currency,
+    );
+
+    expect(position.invoiced.amount).toBe('100000.000000');
+    expect(position.paid.amount).toBe('0.000000');
+    expect(position.outstanding.amount).toBe('90000.000000');
   });
 
   it('derives open status when nothing was paid and not overdue', () => {

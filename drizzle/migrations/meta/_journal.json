@@ -204,6 +204,13 @@
                         "when":  1786500500000,
                         "tag":  "0029_next_gen_integration_hardening",
                         "breakpoints":  true
+                    },
+                    {
+                        "idx":  29,
+                        "version":  "7",
+                        "when":  1786501200000,
+                        "tag":  "0030_gap_closure_corrections_retention_recurring",
+                        "breakpoints":  true
                     }
                 ]
 }

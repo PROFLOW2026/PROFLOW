@@ -8,7 +8,14 @@ import type {
   ProjectFinancials,
   WorkKind,
 } from '@/modules/financials/domain/types';
-import { fromNumericString, zeroMoney, type MoneyValue } from '@/shared/money';
+import {
+  addMoney,
+  fromNumericString,
+  isZeroMoney,
+  roundMoney,
+  zeroMoney,
+  type MoneyValue,
+} from '@/shared/money';
 import {
   buildFinancialCoverage,
   defaultCostSourcePresence,
@@ -76,6 +83,14 @@ export interface ProjectFinancialsLoadedSlices {
     readonly openDraftDocumentCount?: number;
     readonly openAllocationCount?: number;
   };
+  /**
+   * Non-superseded month-close economic corrections for this project.
+   * Closed history is never rewritten — these rows add to composed totals once.
+   */
+  readonly monthCloseEconomic?: {
+    readonly costNet: MoneyValue;
+    readonly revenueNet: MoneyValue;
+  };
 }
 
 export function composeProjectFinancials(
@@ -91,6 +106,7 @@ export function composeProjectFinancials(
     invoiced: zeroMoney(currency),
     paid: zeroMoney(currency),
     outstanding: zeroMoney(currency),
+    monthCloseRevenueNet: zeroMoney(currency),
   };
 
   let billingPartials: CoveragePartial[] = [];
@@ -101,6 +117,7 @@ export function composeProjectFinancials(
       invoiced: position.invoiced,
       paid: position.paid,
       outstanding: position.outstanding,
+      monthCloseRevenueNet: zeroMoney(currency),
     };
     if (position.excludedForeignCurrencyRecordCount > 0) {
       billingPartials = [
@@ -143,6 +160,41 @@ export function composeProjectFinancials(
         count: input.recognizedVendor.excludedForeignCurrencyCount,
       });
     }
+  }
+
+  const costAdjustment = input.monthCloseEconomic?.costNet;
+  if (costAdjustment && !isZeroMoney(costAdjustment) && costAdjustment.currency !== currency) {
+    throw new Error('Month-close cost currency must match project cost currency');
+  }
+  if (costAdjustment && costAdjustment.currency === currency && !isZeroMoney(costAdjustment)) {
+    const actualCostToDate = roundMoney(addMoney(cost.actualCostToDate, costAdjustment));
+    cost = {
+      ...cost,
+      actualCostToDate,
+      estimatedFinalCost: actualCostToDate,
+      monthCloseCostNet: roundMoney(costAdjustment),
+    };
+  }
+
+  const revenueAdjustment = input.monthCloseEconomic?.revenueNet;
+  if (
+    revenueAdjustment &&
+    !isZeroMoney(revenueAdjustment) &&
+    revenueAdjustment.currency !== currency
+  ) {
+    throw new Error('Month-close revenue currency must match project billing currency');
+  }
+  if (
+    revenueAdjustment &&
+    revenueAdjustment.currency === currency &&
+    !isZeroMoney(revenueAdjustment)
+  ) {
+    billing = {
+      ...billing,
+      invoiced: roundMoney(addMoney(billing.invoiced, revenueAdjustment)),
+      outstanding: roundMoney(addMoney(billing.outstanding, revenueAdjustment)),
+      monthCloseRevenueNet: roundMoney(revenueAdjustment),
+    };
   }
 
   let committedOpen = zeroMoney(currency);

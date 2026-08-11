@@ -31,7 +31,7 @@
     "saved": "Saved."
   },
   "closed": {
-    "notice": "This month is closed. Silent rewrites are blocked — record an explicit adjustment for corrections."
+    "notice": "This month is closed. Silent rewrites are blocked — record an explicit adjustment or economic correction. Original records stay unchanged."
   },
   "completeness": {
     "empty": "Completeness has not been computed yet.",
@@ -56,9 +56,30 @@
   "adjustments": {
     "title": "Post-close adjustment",
     "hint": "Explain why operational history needs an explicit correction, supersede, or adjustment after close.",
+    "economicHint": "Amount is optional. Leave it empty for an audit-only note. When filled, this row folds into project Actual (cost) or invoiced (revenue) once through the financial compose engine — original expenses and bills are never rewritten.",
     "type": "Type",
     "reason": "Reason",
+    "amount": "Amount",
+    "currency": "Currency",
+    "effectSide": "Effect",
+    "sidePlaceholder": "Select cost or revenue",
+    "sides": {
+      "cost": "Cost (Actual)",
+      "revenue": "Revenue (invoiced)"
+    },
+    "project": "Project",
+    "projectPlaceholder": "Select a project",
+    "noProject": "No project",
+    "supersede": "Supersede existing correction",
+    "supersedeNone": "None — new correction",
+    "supersedeHint": "The original row stays on the ledger but is excluded from totals. This amount replaces it in compose.",
+    "original": "Original",
+    "correction": "Correction",
+    "auditOnly": "Audit only",
+    "activeInTotals": "Included in compose",
+    "superseded": "Superseded",
     "history": "Adjustment history",
+    "explainability": "Closed-month history is immutable. Amounts shown here are the correction rows themselves — project Actual and billing totals come from compose only, never a second engine on this page.",
     "types": {
       "correction": "Correction",
       "supersede": "Supersede",
@@ -67,8 +88,16 @@
   },
   "errors": {
     "invalidTransition": "That status change is not allowed.",
-    "monthClosed": "This month is closed — use an explicit post-close adjustment.",
+    "monthClosed": "This month is closed. Open Month close and record an explicit post-close adjustment instead of changing the original record.",
     "notClosed": "Post-close adjustments require a closed month.",
-    "notComplete": "Completeness must be 100% before ready/close."
+    "notComplete": "Completeness must be 100% before ready/close.",
+    "currencyMismatch": "Economic corrections must use the organization base currency.",
+    "supersedeWrongPeriod": "You can only supersede a correction in the same closed month.",
+    "supersedeNotEconomic": "You can only supersede an economic correction that has an amount.",
+    "alreadySuperseded": "That correction is already superseded. Supersede the current row instead.",
+    "supersedeWrongProject": "You can only supersede a correction on the same project.",
+    "supersedeWrongSide": "You can only supersede a correction on the same economic side.",
+    "supersedeWrongCurrency": "You can only supersede a correction in the same currency.",
+    "supersedeSelf": "A correction cannot supersede itself."
   }
 }

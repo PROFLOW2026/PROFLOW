@@ -91,6 +91,11 @@ export interface BillingPosition {
   invoiced: MoneyValue;
   paid: MoneyValue;
   outstanding: MoneyValue;
+  /**
+   * Closed-month economic revenue correction net (surviving rows only).
+   * Folded into invoiced / outstanding once — not a second billing engine.
+   */
+  monthCloseRevenueNet: MoneyValue;
 }
 
 /**
@@ -141,6 +146,11 @@ export interface CostPosition {
    * Not folded into Forecast Final Cost (payments are cash-only).
    */
   openApPayable: MoneyValue;
+  /**
+   * Closed-month economic cost correction net (surviving rows only).
+   * Folded into actualCostToDate once — never into byFamily, never a second engine.
+   */
+  monthCloseCostNet: MoneyValue;
 }
 
 export interface ProfitPosition {

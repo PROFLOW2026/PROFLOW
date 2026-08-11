@@ -18,7 +18,14 @@
     "mode": "Mode: {mode}",
     "modeLightweight": "Lightweight (total)",
     "modeAdvanced": "Advanced",
-    "revision": "Revision {number}"
+    "revision": "Revision {number}",
+    "mappingHint": "Actual comes from the shared financial engine only. Category and work-package lines show mapped expense Actual when the key matches. Remaining commitment and project ETC stay on the total line — they are not split across detail lines. Forecast on a detail line is Actual plus that line's ETC when you set one; otherwise it equals Actual. Discipline and cost-code lines stay unmapped because expenses and AP do not carry those keys.",
+    "unmappedRow": "Unmapped / unallocated",
+    "unmappedRowHint": "Engine Actual not matched to a category or work-package line. Includes labor, vendor bills, and expenses without those keys. Never guessed onto a line.",
+    "unmappedValue": "—",
+    "mappedStatus": "Mapped Actual",
+    "unmappedStatus": "Unmapped",
+    "engineTotalStatus": "Engine total"
   },
   "lineTypes": {
     "total": "Total",
@@ -34,7 +41,15 @@
   },
   "fields": {
     "totalBudget": "Total budget",
-    "revisionReason": "Reason for revision"
+    "revisionReason": "Reason for revision",
+    "addLines": "Add budget lines",
+    "lineType": "Line type",
+    "lineLabel": "Line label",
+    "lineAmount": "Line amount",
+    "categoryKey": "Category key",
+    "workPackageId": "Work package ID",
+    "etcAmount": "ETC (optional)",
+    "removeLine": "Remove line"
   },
   "actions": {
     "createTitle": "Create budget",
@@ -45,7 +60,7 @@
     "revised": "Budget revision saved.",
     "missingBudget": "No budget to revise.",
     "defaultRevisionReason": "Budget update",
-    "lightweightHint": "Lightweight mode stores a single total. Advanced category / work-package lines can be added via the API when needed."
+    "lightweightHint": "Leave lines empty for a single total. Add category or work-package lines here when you want per-line Actual mapping."
   },
   "errors": {
     "activeExists": "An active budget already exists. Use revise instead.",

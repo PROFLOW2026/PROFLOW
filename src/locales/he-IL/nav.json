@@ -8,6 +8,7 @@
   "expenses": "הוצאות",
   "changes": "שינויים ותוספות",
   "billing": "חיובים וגבייה",
+  "recurringDrafts": "טיוטות חוזרות",
   "clients": "לקוחות",
   "vendors": "ספקים",
   "workforce": "עובדים",
@@ -50,7 +51,8 @@
     "vendorBill": "חשבון ספק",
     "attendance": "נוכחות",
     "quote": "הצעת מחיר",
-    "service": "קריאת שירות"
+    "service": "קריאת שירות",
+    "recurringDrafts": "טיוטה חוזרת"
   },
   "organizationSwitcher": {
     "label": "עסק",

@@ -64,6 +64,7 @@ function buildFinancials(overrides?: {
       invoiced: { amount: '40000.000000', currency },
       paid: { amount: '10000.000000', currency },
       outstanding: { amount: '30000.000000', currency },
+      monthCloseRevenueNet: zero,
     },
     cost: {
       actualCostToDate: actual,
@@ -80,6 +81,7 @@ function buildFinancials(overrides?: {
       committedOpen: committed,
       expectedRemainingCost: etc,
       openApPayable: { amount: '2000.000000', currency },
+      monthCloseCostNet: zero,
       ...(overrides?.allocatedOverhead
         ? { allocatedOverhead: { amount: overrides.allocatedOverhead, currency } }
         : {}),
@@ -163,6 +165,36 @@ describe('MetricDrilldown', () => {
 
 describe('ProjectFinancialsKpiPanel', () => {
   const t = (key: string) => key;
+
+  it('drills Actual into original recognized + post-close correction + net', async () => {
+    const user = userEvent.setup();
+    renderWithIntl(
+      <ProjectFinancialsKpiPanel
+        projectId="project-1"
+        financials={
+          {
+            ...buildFinancials(),
+            cost: {
+              ...buildFinancials().cost,
+              actualCostToDate: { amount: '29000.000000', currency: 'ILS' },
+              monthCloseCostNet: { amount: '4000.000000', currency: 'ILS' },
+            },
+          } as ProjectFinancials
+        }
+        canReadProfit
+        canReadBilling
+        canReadCommercial
+        t={t}
+      />,
+      { locale: 'en' },
+    );
+
+    await user.click(screen.getByRole('button', { name: /kpis.actualCost/i }));
+    expect(screen.getAllByText('explain.whyThisNumber').length).toBeGreaterThan(0);
+    expect(screen.getByText('kpis.recognizedOriginal')).toBeInTheDocument();
+    expect(screen.getByText('kpis.monthCloseCost')).toBeInTheDocument();
+    expect(screen.getByText('explain.formulas.actual')).toBeInTheDocument();
+  });
 
   it('renders primary KPI labels', () => {
     renderWithIntl(

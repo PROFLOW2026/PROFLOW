@@ -5,6 +5,7 @@ import { DomainRuleError, NotFoundError, ValidationError } from '@/shared/errors
 import { assertPermission, hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import type { OrgContext } from '@/shared/auth/context';
+import { money, toNumericString } from '@/shared/money';
 import { noteModuleUsage } from '@/modules/tenancy/application/module-visibility';
 import {
   formatCompletenessPercent,
@@ -16,20 +17,26 @@ import {
   assertPeriodClosed,
   assertPeriodNotClosed,
 } from '../domain/period-state';
+import { isEconomicAdjustment } from '../domain/economic-corrections';
 import type {
   CompletenessSnapshot,
   MonthCloseAdjustment,
   MonthClosePeriod,
+  MonthCloseProjectOption,
 } from '../domain/types';
 import { assertYearMonth, currentYearMonth } from '../domain/year-month';
 import { gatherCompletenessSignals } from '../data/completeness.repository';
 import {
+  findAdjustmentById,
   findPeriodById,
   findPeriodByYearMonth,
+  findProjectInOrg,
+  findSupersedingAdjustment,
   insertMonthCloseAdjustment,
   insertMonthClosePeriod,
   listAdjustmentsForPeriod,
   listMonthClosePeriods,
+  listProjectOptionsForOrg,
   updatePeriodCompleteness,
   updatePeriodStatus,
 } from '../data/periods.repository';
@@ -83,18 +90,24 @@ export async function listMonthCloseWorkspace(
   readonly periods: readonly MonthClosePeriod[];
   readonly canManage: boolean;
   readonly suggestedYearMonth: string;
+  readonly projectOptions: readonly MonthCloseProjectOption[];
+  readonly baseCurrency: string;
 }> {
   assertPermission(context, PERMISSIONS.MONTH_CLOSE_READ);
   const input = parseOrThrow(listPeriodsSchema, rawInput);
-  const periods = await listMonthClosePeriods(
-    context.db,
-    context.organizationId,
-    input.limit ?? 18,
-  );
+  const canManage = hasPermission(context, PERMISSIONS.MONTH_CLOSE_MANAGE);
+  const [periods, projectOptions] = await Promise.all([
+    listMonthClosePeriods(context.db, context.organizationId, input.limit ?? 18),
+    canManage
+      ? listProjectOptionsForOrg(context.db, context.organizationId)
+      : Promise.resolve([] as MonthCloseProjectOption[]),
+  ]);
   return {
     periods,
-    canManage: hasPermission(context, PERMISSIONS.MONTH_CLOSE_MANAGE),
+    canManage,
     suggestedYearMonth: currentYearMonth(context.organization.timezone),
+    projectOptions,
+    baseCurrency: context.organization.baseCurrency,
   };
 }
 
@@ -301,13 +314,101 @@ export async function createMonthCloseAdjustment(
   if (!period) throw new NotFoundError('Month close period');
   assertPeriodClosed(period.status);
 
+  const isEconomic = input.amount != null;
+  let amount: string | null = null;
+  let currency: string | null = null;
+  const effectSide = isEconomic ? (input.effectSide ?? null) : null;
+  const projectId = isEconomic ? (input.projectId ?? null) : null;
+
+  if (isEconomic) {
+    if (!projectId) throw new NotFoundError('Project');
+    const project = await findProjectInOrg(context.db, context.organizationId, projectId);
+    if (!project) throw new NotFoundError('Project');
+    const projectCurrency = project.currency ?? context.organization.baseCurrency;
+    currency = input.currency ?? projectCurrency;
+    if (projectCurrency !== currency) {
+      throw new DomainRuleError(
+        'Economic corrections must use the project currency',
+        'monthClose.errors.currencyMismatch',
+        { currency, projectCurrency },
+      );
+    }
+    amount = toNumericString(money(input.amount!, currency));
+  }
+
+  let supersedesAdjustmentId = isEconomic ? (input.supersedesAdjustmentId ?? null) : null;
+  let adjustmentType = input.adjustmentType;
+  if (supersedesAdjustmentId) {
+    adjustmentType = 'supersede';
+    const target = await findAdjustmentById(
+      context.db,
+      context.organizationId,
+      supersedesAdjustmentId,
+    );
+    if (!target) throw new NotFoundError('Month close adjustment');
+    if (target.periodId !== period.id) {
+      throw new DomainRuleError(
+        'You can only supersede a correction in the same closed month',
+        'monthClose.errors.supersedeWrongPeriod',
+        { periodId: period.id, targetPeriodId: target.periodId },
+      );
+    }
+    if (!isEconomicAdjustment(target)) {
+      throw new DomainRuleError(
+        'You can only supersede an economic correction that has an amount',
+        'monthClose.errors.supersedeNotEconomic',
+        { targetId: target.id },
+      );
+    }
+    if (target.projectId !== projectId) {
+      throw new DomainRuleError(
+        'You can only supersede a correction on the same project',
+        'monthClose.errors.supersedeWrongProject',
+        { projectId, targetProjectId: target.projectId },
+      );
+    }
+    if (target.effectSide !== effectSide) {
+      throw new DomainRuleError(
+        'You can only supersede a correction on the same economic side',
+        'monthClose.errors.supersedeWrongSide',
+        { effectSide, targetSide: target.effectSide },
+      );
+    }
+    if (target.currency !== currency) {
+      throw new DomainRuleError(
+        'You can only supersede a correction in the same currency',
+        'monthClose.errors.supersedeWrongCurrency',
+        { currency, targetCurrency: target.currency },
+      );
+    }
+    const existingSupersede = await findSupersedingAdjustment(
+      context.db,
+      context.organizationId,
+      target.id,
+    );
+    if (existingSupersede) {
+      throw new DomainRuleError(
+        'That correction is already superseded',
+        'monthClose.errors.alreadySuperseded',
+        { targetId: target.id, existingId: existingSupersede.id },
+      );
+    }
+  } else {
+    supersedesAdjustmentId = null;
+  }
+
   const adjustment = await insertMonthCloseAdjustment(context.db, {
     organizationId: context.organizationId,
     periodId: period.id,
-    adjustmentType: input.adjustmentType,
+    adjustmentType,
     reason: input.reason,
     entityType: input.entityType ?? null,
     entityId: input.entityId ?? null,
+    amount,
+    currency,
+    effectSide,
+    projectId,
+    supersedesAdjustmentId,
     createdByUserId: context.userId,
   });
 
@@ -322,6 +423,11 @@ export async function createMonthCloseAdjustment(
       reason: adjustment.reason,
       entityType: adjustment.entityType,
       entityId: adjustment.entityId,
+      amount: adjustment.amount,
+      currency: adjustment.currency,
+      effectSide: adjustment.effectSide,
+      projectId: adjustment.projectId,
+      supersedesAdjustmentId: adjustment.supersedesAdjustmentId,
     },
   });
 

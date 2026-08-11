@@ -81,6 +81,41 @@ const config = [
     },
   },
   {
+    // Client and page TSX must never pull the Drizzle schema/ORM into a bundle.
+    files: ['src/**/*.tsx'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            {
+              name: '@drizzle/schema',
+              message:
+                'Do not import the Drizzle schema from TSX. Use a server module/repository so ORM table definitions stay out of the client bundle.',
+            },
+            {
+              name: 'drizzle-orm',
+              message:
+                'Do not import drizzle-orm from TSX. Keep database access behind server repositories.',
+            },
+            {
+              name: '@/modules/search',
+              message:
+                'Do not import the search module barrel from UI — it pulls the server search repository and Drizzle schema into the client graph. Import search-actions and domain types directly.',
+            },
+          ],
+          patterns: [
+            {
+              group: ['**/modules/*/data/*', '!@/modules/*/data/index'],
+              message:
+                'Cross-module data-layer imports are forbidden. Use the module public API (modules/<name>/index.ts).',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
     files: ['src/modules/*/domain/**/*.ts'],
     rules: {
       'no-restricted-imports': [

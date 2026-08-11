@@ -12,6 +12,20 @@ export {
 export type { BudgetControlPosition, ComposeBudgetControlInput } from './domain/variance';
 
 export {
+  mapBudgetLineActuals,
+  lineHasReliableActualMapping,
+  UNMAPPED_REMAINDER_ROW_ID,
+} from './domain/map-line-actuals';
+export type {
+  BudgetLineControlRow,
+  BudgetLineControlMetrics,
+  BudgetLineMappingStatus,
+  BudgetLineRowKind,
+  MapBudgetLineActualsInput,
+  MapBudgetLineActualsResult,
+} from './domain/map-line-actuals';
+
+export {
   BUDGET_STATUSES,
   BUDGET_LINE_TYPES,
   BUDGET_AUDIT_ACTIONS,

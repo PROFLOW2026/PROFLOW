@@ -6,7 +6,8 @@
  * import — into plain Node contexts such as unit tests.
  */
 
-export { ProjectFinancialsPanel, ProjectFinancialsSnapshot } from './ui/project-financials-panel';
+export { ProjectFinancialsPanel } from './ui/project-financials-panel';
+export { ProjectFinancialsSnapshot } from './ui/project-financials-snapshot';
 export { HomeDashboardContent } from './ui/home-dashboard-content';
 export { WorkKindFilterChrome } from './ui/work-kind-filter-chrome';
 export { CashFlowView } from './ui/cash-flow-view';

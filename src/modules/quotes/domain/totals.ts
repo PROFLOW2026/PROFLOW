@@ -8,8 +8,8 @@ import {
   zeroMoney,
   type MoneyValue,
 } from '@/shared/money';
-import { computeTaxAmountBreakdown } from '@/modules/tax';
-import type { ResolvedTaxRate } from '@/modules/tax';
+import { computeTaxAmountBreakdown } from '@/modules/tax/domain/amounts';
+import type { ResolvedTaxRate } from '@/modules/tax/domain/types';
 import type { QuoteTaxMode } from './types';
 
 export interface QuoteLineInput {

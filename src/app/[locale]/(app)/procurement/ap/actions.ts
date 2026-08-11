@@ -14,9 +14,13 @@ import {
   recordVendorPayment,
   rejectApMatch,
   saveBillProjectAllocations,
+  updateDraftApBillRetention,
+  updateVendorCredit,
   voidApBill,
+  voidVendorCredit,
   voidVendorPayment,
 } from '@/modules/ap';
+import { releaseVendorBillRetention } from '@/modules/retention';
 import { withOrgContext } from '@/shared/auth/session';
 import { AppError, DomainRuleError, ValidationError } from '@/shared/errors';
 import { redirect } from '@/shared/i18n/navigation';
@@ -51,6 +55,24 @@ async function mapAppError(error: unknown): Promise<ApFormState> {
   const tAp = await getTranslations('ap');
   if (error instanceof ValidationError) return mapValidationError(error);
   if (error instanceof DomainRuleError) {
+    if (error.messageKey.startsWith('monthClose.')) {
+      const tMonthClose = await getTranslations('monthClose');
+      const key = error.messageKey.replace(/^monthClose\./, '');
+      try {
+        return { error: tMonthClose(key as 'errors.monthClosed') };
+      } catch {
+        return { error: error.message };
+      }
+    }
+    if (error.messageKey.startsWith('approvals.')) {
+      const tApprovals = await getTranslations('approvals');
+      const key = error.messageKey.replace(/^approvals\./, '');
+      try {
+        return { error: tApprovals(key as 'errors.pending') };
+      } catch {
+        return { error: error.message };
+      }
+    }
     const key = error.messageKey.replace(/^ap\./, '');
     try {
       return { error: tAp(key as 'errors.targetRequired') };
@@ -60,6 +82,14 @@ async function mapAppError(error: unknown): Promise<ApFormState> {
   }
   if (error instanceof AppError) return { error: tErrors('unexpected') };
   throw error;
+}
+
+function revalidateCreditPaths(creditId?: string, billId?: string): void {
+  revalidatePath('/procurement/ap');
+  revalidatePath('/procurement/ap/credits');
+  revalidatePath('/procurement/ap/aging');
+  if (creditId) revalidatePath(`/procurement/ap/credits/${creditId}`);
+  if (billId) revalidatePath(`/procurement/ap/${billId}`);
 }
 
 function parseLines(formData: FormData) {
@@ -111,6 +141,8 @@ export async function createApBillAction(
         dueDate: formValue(formData, 'dueDate'),
         currency: requiredFormValue(formData, 'currency'),
         totalAmount: requiredFormValue(formData, 'totalAmount'),
+        retentionAmount: formValue(formData, 'retentionAmount'),
+        retentionPercent: formValue(formData, 'retentionPercent'),
         notes: formValue(formData, 'notes'),
         lines,
       }),
@@ -316,9 +348,44 @@ export async function postVendorCreditAction(
   const billId = formValue(formData, 'apBillId');
   try {
     await withOrgContext((context) => postVendorCredit(context, creditId));
-    if (billId) revalidatePath(`/procurement/ap/${billId}`);
-    revalidatePath('/procurement/ap');
-    revalidatePath('/procurement/ap/aging');
+    revalidateCreditPaths(creditId, billId);
+    return { success: true };
+  } catch (error) {
+    return mapAppError(error);
+  }
+}
+
+export async function updateVendorCreditAction(
+  _prev: ApFormState,
+  formData: FormData,
+): Promise<ApFormState> {
+  const creditId = requiredFormValue(formData, 'creditId');
+  try {
+    await withOrgContext((context) =>
+      updateVendorCredit(context, {
+        creditId,
+        amount: requiredFormValue(formData, 'amount'),
+        creditDate: requiredFormValue(formData, 'creditDate'),
+        reference: formValue(formData, 'reference'),
+        notes: formValue(formData, 'notes'),
+      }),
+    );
+    revalidateCreditPaths(creditId);
+    return { success: true };
+  } catch (error) {
+    return mapAppError(error);
+  }
+}
+
+export async function voidVendorCreditAction(
+  _prev: ApFormState,
+  formData: FormData,
+): Promise<ApFormState> {
+  const creditId = requiredFormValue(formData, 'creditId');
+  const billId = formValue(formData, 'apBillId');
+  try {
+    await withOrgContext((context) => voidVendorCredit(context, { creditId }));
+    revalidateCreditPaths(creditId, billId);
     return { success: true };
   } catch (error) {
     return mapAppError(error);
@@ -359,21 +426,9 @@ export async function createVendorCreditAction(
         notes: formValue(formData, 'notes'),
       }),
     );
-    const applyAmount = formValue(formData, 'applyAmount');
-    // Draft credits (awaiting approval) must not reduce Actual / apply to bills.
-    if (billId && applyAmount && credit.status === 'open') {
-      await withOrgContext((context) =>
-        applyVendorCredit(context, {
-          creditId: credit.id,
-          apBillId: billId,
-          amount: applyAmount,
-        }),
-      );
-    }
-    if (billId) revalidatePath(`/procurement/ap/${billId}`);
-    revalidatePath('/procurement/ap');
-    revalidatePath('/procurement/ap/aging');
-    return { success: true };
+    revalidateCreditPaths(credit.id, billId);
+    const locale = await getLocale();
+    redirect({ href: `/procurement/ap/credits/${credit.id}`, locale });
   } catch (error) {
     return mapAppError(error);
   }
@@ -385,11 +440,53 @@ export async function applyVendorCreditAction(
 ): Promise<ApFormState> {
   const billId = requiredFormValue(formData, 'apBillId');
   try {
+    const creditId = requiredFormValue(formData, 'creditId');
     await withOrgContext((context) =>
       applyVendorCredit(context, {
-        creditId: requiredFormValue(formData, 'creditId'),
+        creditId,
         apBillId: billId,
         amount: requiredFormValue(formData, 'amount'),
+      }),
+    );
+    revalidateCreditPaths(creditId, billId);
+    return { success: true };
+  } catch (error) {
+    return mapAppError(error);
+  }
+}
+
+export async function updateDraftApBillRetentionAction(
+  _prev: ApFormState,
+  formData: FormData,
+): Promise<ApFormState> {
+  const billId = requiredFormValue(formData, 'sourceId');
+  try {
+    await withOrgContext((context) =>
+      updateDraftApBillRetention(context, {
+        billId,
+        retentionAmount: formValue(formData, 'retentionAmount'),
+        retentionPercent: formValue(formData, 'retentionPercent'),
+      }),
+    );
+    revalidatePath(`/procurement/ap/${billId}`);
+    return { success: true };
+  } catch (error) {
+    return mapAppError(error);
+  }
+}
+
+export async function releaseVendorBillRetentionAction(
+  _prev: ApFormState,
+  formData: FormData,
+): Promise<ApFormState> {
+  const billId = requiredFormValue(formData, 'sourceId');
+  try {
+    await withOrgContext((context) =>
+      releaseVendorBillRetention(context, {
+        sourceId: billId,
+        amount: requiredFormValue(formData, 'amount'),
+        releasedOn: requiredFormValue(formData, 'releasedOn'),
+        notes: formValue(formData, 'notes'),
       }),
     );
     revalidatePath(`/procurement/ap/${billId}`);

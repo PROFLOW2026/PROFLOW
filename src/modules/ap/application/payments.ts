@@ -14,7 +14,7 @@ import type { OrgContext } from '@/shared/auth/context';
 import { withTransaction } from '@/shared/db';
 import { businessDate } from '@/shared/dates';
 import { DomainRuleError, NotFoundError, ValidationError } from '@/shared/errors';
-import { money, subtractMoney, toNumericString, addMoney } from '@/shared/money';
+import { addMoney, money, toNumericString } from '@/shared/money';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { noteModuleUsage } from '@/modules/tenancy';
@@ -41,6 +41,7 @@ import {
   assertVendorPaymentDoesNotAffectActual,
   computeBillOutstanding,
   derivePayableStatus,
+  sumActiveAppliedAmounts,
   type ApPayableStatus,
 } from '../domain/vendor-payments';
 import {
@@ -70,6 +71,8 @@ export async function getBillPayablePosition(
   paid: string;
   credited: string;
   outstanding: string;
+  retentionAmount: string;
+  retentionHeldRemaining: string;
   payableStatus: ApPayableStatus | null;
   paymentsAvailable: boolean;
 } | null> {
@@ -94,17 +97,19 @@ export async function getBillPayablePosition(
     status: 'applied' as const,
   }));
 
+  const retentionHeldRemaining = money(bill.retentionHeldRemaining, bill.currency);
   const outstanding = computeBillOutstanding({
     billStatus: bill.status,
     billTotal,
     applications,
     creditApplications,
+    retentionHeldRemaining,
   });
   const creditedTotal = credits.reduce(
     (sum, amount) => addMoney(sum, money(amount, bill.currency)),
     money('0', bill.currency),
   );
-  const paid = subtractMoney(subtractMoney(billTotal, outstanding), creditedTotal);
+  const paid = sumActiveAppliedAmounts(applications, bill.currency);
 
   return {
     billId: bill.id,
@@ -113,11 +118,14 @@ export async function getBillPayablePosition(
     paid: paid.amount,
     credited: creditedTotal.amount,
     outstanding: outstanding.amount,
+    retentionAmount: bill.retentionAmount,
+    retentionHeldRemaining: bill.retentionHeldRemaining,
     payableStatus: derivePayableStatus({
       billStatus: bill.status,
       billTotal,
       applications,
       creditApplications,
+      retentionHeldRemaining,
     }),
     paymentsAvailable: areApPaymentsAvailable(),
   };
@@ -177,6 +185,7 @@ export async function recordVendorPayment(
         billTotal: string;
         priorAppliedAmounts: readonly string[];
         priorCreditAmounts: readonly string[];
+        priorRetentionHeldRemaining: string;
         projectId: string | null;
       }[] = [];
 
@@ -223,6 +232,7 @@ export async function recordVendorPayment(
           billTotal: bill.totalAmount,
           priorAppliedAmounts: prior,
           priorCreditAmounts: priorCredits,
+          priorRetentionHeldRemaining: bill.retentionHeldRemaining,
           projectId: bill.projectId,
         });
       }

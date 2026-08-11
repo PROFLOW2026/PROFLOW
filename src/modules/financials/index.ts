@@ -92,6 +92,8 @@ export type {
   LaborCostContribution,
   ForecastFinalCostInput,
 } from './domain/cost-aggregation';
+export { loadProjectExpenseContributions } from './data/expenses.repository';
+export { loadRecognizedVendorBillsForProject } from './data/committed-costs.repository';
 export {
   sumProjectTouchingExpenseNets,
   computeUnallocatedOrganizationCosts,

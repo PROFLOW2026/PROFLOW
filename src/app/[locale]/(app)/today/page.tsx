@@ -29,13 +29,14 @@ export default async function TodayPage() {
 
   const result = await withOrgContext(async (context) => {
     const canRead = hasPermission(context, PERMISSIONS.COMMAND_CENTER_READ);
+    const canManageFeatures = hasPermission(context, PERMISSIONS.SETTINGS_MANAGE);
     if (!canRead) {
       return { kind: 'forbidden' as const };
     }
 
     const modules = await getModuleVisibility(context);
     if (!modules.command_center) {
-      return { kind: 'module_off' as const };
+      return { kind: 'module_off' as const, canManageFeatures };
     }
 
     try {
@@ -43,7 +44,7 @@ export default async function TodayPage() {
       return { kind: 'ok' as const, inbox };
     } catch (error) {
       if (error instanceof DomainRuleError) {
-        return { kind: 'module_off' as const };
+        return { kind: 'module_off' as const, canManageFeatures };
       }
       throw error;
     }
@@ -62,9 +63,11 @@ export default async function TodayPage() {
           title={t('moduleOff.title')}
           description={t('moduleOff.body')}
           action={
-            <Button asChild variant="secondary">
-              <Link href="/settings/features">{t('moduleOff.action')}</Link>
-            </Button>
+            result.canManageFeatures ? (
+              <Button asChild variant="secondary">
+                <Link href="/settings/features">{t('moduleOff.action')}</Link>
+              </Button>
+            ) : undefined
           }
         />
       </div>

@@ -316,6 +316,11 @@ export const monthCloseAdjustments = pgTable(
     reason: text('reason').notNull(),
     entityType: text('entity_type'),
     entityId: uuid('entity_id'),
+    amount: moneyAmount('amount'),
+    currency: currencyCode('currency'),
+    effectSide: text('effect_side'),
+    projectId: uuid('project_id'),
+    supersedesAdjustmentId: uuid('supersedes_adjustment_id'),
     createdByUserId: uuid('created_by_user_id').references(() => profiles.id, {
       onDelete: 'set null',
     }),
@@ -324,9 +329,22 @@ export const monthCloseAdjustments = pgTable(
   (table) => [
     index('month_close_adjustments_period_idx').on(table.periodId),
     uniqueIndex('month_close_adjustments_id_organization_id_uq').on(table.id, table.organizationId),
+    index('month_close_adjustments_org_project_idx').on(table.organizationId, table.projectId),
     check(
       'month_close_adjustments_type_known',
       sql`${table.adjustmentType} IN ('correction', 'supersede', 'adjustment')`,
+    ),
+    check(
+      'month_close_adjustments_economic_complete',
+      sql`(
+        (${table.amount} IS NULL AND ${table.currency} IS NULL AND ${table.effectSide} IS NULL)
+        OR (
+          ${table.amount} IS NOT NULL
+          AND ${table.currency} IS NOT NULL
+          AND ${table.effectSide} IN ('cost', 'revenue')
+          AND ${table.projectId} IS NOT NULL
+        )
+      )`,
     ),
   ],
 );

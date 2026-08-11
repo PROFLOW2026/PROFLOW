@@ -1,8 +1,9 @@
 import { recordAuditEvent } from '@/shared/audit';
 import { businessDate } from '@/shared/dates';
-import { NotFoundError, ValidationError } from '@/shared/errors';
+import { DomainRuleError, NotFoundError, ValidationError } from '@/shared/errors';
 import type { OrgContext } from '@/shared/auth/context';
-import { money, toNumericString } from '@/shared/money';
+import { compareMoney, money, toNumericString } from '@/shared/money';
+import { recordOutstanding } from '../domain/outstanding';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { assertPaymentTarget } from '../domain/lifecycle';
@@ -33,6 +34,19 @@ export async function recordPayment(context: OrgContext, rawInput: CreatePayment
   assertPaymentTarget(billingRecord.status, billingRecord.kind);
 
   const paymentAmount = money(input.amount, billingRecord.totalAmount.currency);
+  const receivableNow = recordOutstanding(
+    billingRecord.totalAmount,
+    billingRecord.paidAmount,
+    billingRecord.kind,
+    billingRecord.status,
+    billingRecord.retentionHeldRemaining,
+  );
+  if (compareMoney(paymentAmount, receivableNow) > 0) {
+    throw new DomainRuleError(
+      'Payment exceeds receivable now',
+      'billing.errors.paymentOverApplied',
+    );
+  }
   const paymentDate = businessDate(input.paymentDate);
 
   const paymentId = await insertPayment(context.db, context.organizationId, {

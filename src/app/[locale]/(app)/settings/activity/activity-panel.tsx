@@ -6,7 +6,7 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Link } from '@/shared/i18n/navigation';
 import { formatInstant } from '@/shared/dates/format';
-import type { AuditEventSummary } from '../_lib/audit';
+import type { AuditEventSummary } from '@/shared/audit/types';
 
 function translateAuditKey(
   t: ReturnType<typeof useTranslations<'settings.activity'>>,

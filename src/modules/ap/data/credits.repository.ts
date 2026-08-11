@@ -4,13 +4,24 @@
  */
 
 import { and, desc, eq, inArray, isNull, sql } from 'drizzle-orm';
-import { apCreditApplications, apVendorCredits } from '@drizzle/schema';
+import { apBills, apCreditApplications, apVendorCredits, vendors } from '@drizzle/schema';
 import type { BusinessDate } from '@/shared/dates';
 import type { DbExecutor } from '@/shared/db/types';
 import type { ApCreditApplicationStatus, ApCreditStatus } from '../domain/vendor-credits';
 
 export type ApVendorCreditRow = typeof apVendorCredits.$inferSelect;
 export type ApCreditApplicationRow = typeof apCreditApplications.$inferSelect;
+
+export interface ApVendorCreditListItem extends ApVendorCreditRow {
+  readonly vendorName: string | null;
+}
+
+export interface ApCreditApplicationWithBill {
+  readonly application: ApCreditApplicationRow;
+  readonly billReference: string | null;
+  readonly billTotal: string;
+  readonly billStatus: string;
+}
 
 export async function insertVendorCredit(
   db: DbExecutor,
@@ -106,6 +117,38 @@ function mapCreditRow(raw: Record<string, unknown>): ApVendorCreditRow {
     createdAt: (raw.created_at ?? raw.createdAt) as Date,
     updatedAt: (raw.updated_at ?? raw.updatedAt) as Date,
   };
+}
+
+export async function updateVendorCreditDraftFields(
+  db: DbExecutor,
+  organizationId: string,
+  creditId: string,
+  values: {
+    readonly amount: string;
+    readonly creditDate: BusinessDate;
+    readonly reference: string | null;
+    readonly notes: string | null;
+  },
+): Promise<ApVendorCreditRow | null> {
+  const [row] = await db
+    .update(apVendorCredits)
+    .set({
+      amount: values.amount,
+      creditDate: values.creditDate,
+      reference: values.reference,
+      notes: values.notes,
+      updatedAt: new Date(),
+    })
+    .where(
+      and(
+        eq(apVendorCredits.id, creditId),
+        eq(apVendorCredits.organizationId, organizationId),
+        eq(apVendorCredits.status, 'draft'),
+        isNull(apVendorCredits.archivedAt),
+      ),
+    )
+    .returning();
+  return row ?? null;
 }
 
 export async function updateVendorCreditStatus(
@@ -251,7 +294,7 @@ export async function listVendorCreditsForOrg(
   db: DbExecutor,
   organizationId: string,
   options: { readonly vendorId?: string; readonly limit?: number } = {},
-): Promise<ApVendorCreditRow[]> {
+): Promise<ApVendorCreditListItem[]> {
   const conditions = [
     eq(apVendorCredits.organizationId, organizationId),
     isNull(apVendorCredits.archivedAt),
@@ -259,12 +302,92 @@ export async function listVendorCreditsForOrg(
   if (options.vendorId) {
     conditions.push(eq(apVendorCredits.vendorId, options.vendorId));
   }
-  return db
-    .select()
+  const rows = await db
+    .select({
+      credit: apVendorCredits,
+      vendorName: vendors.name,
+    })
     .from(apVendorCredits)
+    .leftJoin(vendors, eq(vendors.id, apVendorCredits.vendorId))
     .where(and(...conditions))
     .orderBy(desc(apVendorCredits.createdAt))
     .limit(options.limit ?? 100);
+  return rows.map((row) => ({
+    ...row.credit,
+    vendorName: row.vendorName,
+  }));
+}
+
+export async function findVendorCreditWithVendor(
+  db: DbExecutor,
+  organizationId: string,
+  creditId: string,
+): Promise<ApVendorCreditListItem | null> {
+  const [row] = await db
+    .select({
+      credit: apVendorCredits,
+      vendorName: vendors.name,
+    })
+    .from(apVendorCredits)
+    .leftJoin(vendors, eq(vendors.id, apVendorCredits.vendorId))
+    .where(
+      and(
+        eq(apVendorCredits.id, creditId),
+        eq(apVendorCredits.organizationId, organizationId),
+        isNull(apVendorCredits.archivedAt),
+      ),
+    )
+    .limit(1);
+  if (!row) return null;
+  return { ...row.credit, vendorName: row.vendorName };
+}
+
+export async function listCreditApplicationsForCredit(
+  db: DbExecutor,
+  organizationId: string,
+  creditId: string,
+): Promise<readonly ApCreditApplicationWithBill[]> {
+  const rows = await db
+    .select({
+      application: apCreditApplications,
+      billReference: apBills.reference,
+      billTotal: apBills.totalAmount,
+      billStatus: apBills.status,
+    })
+    .from(apCreditApplications)
+    .innerJoin(apBills, eq(apBills.id, apCreditApplications.apBillId))
+    .where(
+      and(
+        eq(apCreditApplications.organizationId, organizationId),
+        eq(apCreditApplications.creditId, creditId),
+      ),
+    )
+    .orderBy(desc(apCreditApplications.createdAt));
+  return rows;
+}
+
+export async function voidCreditApplication(
+  db: DbExecutor,
+  organizationId: string,
+  applicationId: string,
+  voidedAt: Date,
+): Promise<ApCreditApplicationRow | null> {
+  const [row] = await db
+    .update(apCreditApplications)
+    .set({
+      status: 'void',
+      voidedAt,
+      updatedAt: new Date(),
+    })
+    .where(
+      and(
+        eq(apCreditApplications.id, applicationId),
+        eq(apCreditApplications.organizationId, organizationId),
+        eq(apCreditApplications.status, 'applied'),
+      ),
+    )
+    .returning();
+  return row ?? null;
 }
 
 export type { ApCreditApplicationStatus };

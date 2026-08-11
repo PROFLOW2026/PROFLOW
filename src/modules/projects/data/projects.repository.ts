@@ -199,6 +199,15 @@ export async function listProjects(
           and br.status not in ('draft', 'void')
           and p.status = 'recorded'
       ), 0)
+      - coalesce((
+        select sum(br.retention_held_remaining)
+        from billing_records br
+        where br.project_id = ${projects.id}
+          and br.organization_id = ${organizationId}
+          and br.archived_at is null
+          and br.status not in ('draft', 'void')
+          and br.kind <> 'credit_note'
+      ), 0)
     ) > 0`);
   }
 

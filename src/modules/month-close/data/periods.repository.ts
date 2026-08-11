@@ -1,11 +1,13 @@
-import { and, desc, eq, sql } from 'drizzle-orm';
-import { monthCloseAdjustments, monthClosePeriods } from '@drizzle/schema';
+import { and, asc, desc, eq, isNull, sql } from 'drizzle-orm';
+import { monthCloseAdjustments, monthClosePeriods, projects } from '@drizzle/schema';
 import type { DbExecutor } from '@/shared/db/types';
 import type {
   CompletenessSnapshot,
   MonthCloseAdjustment,
   MonthCloseAdjustmentType,
+  MonthCloseEffectSide,
   MonthClosePeriod,
+  MonthCloseProjectOption,
   MonthCloseStatus,
 } from '../domain/types';
 
@@ -26,7 +28,10 @@ function mapPeriod(row: typeof monthClosePeriods.$inferSelect): MonthClosePeriod
   };
 }
 
-function mapAdjustment(row: typeof monthCloseAdjustments.$inferSelect): MonthCloseAdjustment {
+function mapAdjustment(
+  row: typeof monthCloseAdjustments.$inferSelect,
+  projectName: string | null = null,
+): MonthCloseAdjustment {
   return {
     id: row.id,
     organizationId: row.organizationId,
@@ -35,6 +40,12 @@ function mapAdjustment(row: typeof monthCloseAdjustments.$inferSelect): MonthClo
     reason: row.reason,
     entityType: row.entityType,
     entityId: row.entityId,
+    amount: row.amount,
+    currency: row.currency ? row.currency.trim() : null,
+    effectSide: (row.effectSide as MonthCloseEffectSide | null) ?? null,
+    projectId: row.projectId,
+    projectName,
+    supersedesAdjustmentId: row.supersedesAdjustmentId,
     createdByUserId: row.createdByUserId,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
@@ -172,8 +183,18 @@ export async function listAdjustmentsForPeriod(
   periodId: string,
 ): Promise<MonthCloseAdjustment[]> {
   const rows = await db
-    .select()
+    .select({
+      adjustment: monthCloseAdjustments,
+      projectName: projects.name,
+    })
     .from(monthCloseAdjustments)
+    .leftJoin(
+      projects,
+      and(
+        eq(projects.id, monthCloseAdjustments.projectId),
+        eq(projects.organizationId, monthCloseAdjustments.organizationId),
+      ),
+    )
     .where(
       and(
         eq(monthCloseAdjustments.organizationId, organizationId),
@@ -181,7 +202,79 @@ export async function listAdjustmentsForPeriod(
       ),
     )
     .orderBy(desc(monthCloseAdjustments.createdAt));
-  return rows.map(mapAdjustment);
+  return rows.map((row) => mapAdjustment(row.adjustment, row.projectName ?? null));
+}
+
+export async function findAdjustmentById(
+  db: DbExecutor,
+  organizationId: string,
+  adjustmentId: string,
+): Promise<MonthCloseAdjustment | null> {
+  const rows = await db
+    .select({
+      adjustment: monthCloseAdjustments,
+      projectName: projects.name,
+    })
+    .from(monthCloseAdjustments)
+    .leftJoin(
+      projects,
+      and(
+        eq(projects.id, monthCloseAdjustments.projectId),
+        eq(projects.organizationId, monthCloseAdjustments.organizationId),
+      ),
+    )
+    .where(
+      and(
+        eq(monthCloseAdjustments.id, adjustmentId),
+        eq(monthCloseAdjustments.organizationId, organizationId),
+      ),
+    )
+    .limit(1);
+  const row = rows[0];
+  return row ? mapAdjustment(row.adjustment, row.projectName ?? null) : null;
+}
+
+export async function findSupersedingAdjustment(
+  db: DbExecutor,
+  organizationId: string,
+  targetAdjustmentId: string,
+): Promise<MonthCloseAdjustment | null> {
+  const rows = await db
+    .select()
+    .from(monthCloseAdjustments)
+    .where(
+      and(
+        eq(monthCloseAdjustments.organizationId, organizationId),
+        eq(monthCloseAdjustments.supersedesAdjustmentId, targetAdjustmentId),
+      ),
+    )
+    .limit(1);
+  return rows[0] ? mapAdjustment(rows[0]) : null;
+}
+
+export async function findProjectInOrg(
+  db: DbExecutor,
+  organizationId: string,
+  projectId: string,
+): Promise<{ id: string; currency: string | null } | null> {
+  const rows = await db
+    .select({ id: projects.id, currency: projects.currency })
+    .from(projects)
+    .where(and(eq(projects.id, projectId), eq(projects.organizationId, organizationId)))
+    .limit(1);
+  return rows[0] ?? null;
+}
+
+export async function listProjectOptionsForOrg(
+  db: DbExecutor,
+  organizationId: string,
+): Promise<MonthCloseProjectOption[]> {
+  return db
+    .select({ id: projects.id, name: projects.name })
+    .from(projects)
+    .where(and(eq(projects.organizationId, organizationId), isNull(projects.archivedAt)))
+    .orderBy(asc(projects.name))
+    .limit(500);
 }
 
 export async function insertMonthCloseAdjustment(
@@ -193,6 +286,11 @@ export async function insertMonthCloseAdjustment(
     reason: string;
     entityType?: string | null;
     entityId?: string | null;
+    amount?: string | null;
+    currency?: string | null;
+    effectSide?: MonthCloseEffectSide | null;
+    projectId?: string | null;
+    supersedesAdjustmentId?: string | null;
     createdByUserId?: string | null;
   },
 ): Promise<MonthCloseAdjustment> {
@@ -205,6 +303,11 @@ export async function insertMonthCloseAdjustment(
       reason: input.reason,
       entityType: input.entityType ?? null,
       entityId: input.entityId ?? null,
+      amount: input.amount ?? null,
+      currency: input.currency ?? null,
+      effectSide: input.effectSide ?? null,
+      projectId: input.projectId ?? null,
+      supersedesAdjustmentId: input.supersedesAdjustmentId ?? null,
       createdByUserId: input.createdByUserId ?? null,
     })
     .returning();

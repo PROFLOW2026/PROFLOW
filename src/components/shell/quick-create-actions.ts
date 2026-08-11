@@ -1,22 +1,102 @@
 import { PERMISSIONS } from '@/shared/permissions/catalog';
-import type { QuickCreateEmphasisKey, WorkMix } from '@/modules/tenancy';
+import type { QuickCreateEmphasisKey, SuggestedBusinessDefaults, WorkMix } from '@/modules/tenancy';
 import { orderQuickCreateActions, workMixSurfacesJobs } from '@/modules/tenancy';
 import type { QuickCreateAction } from './quick-create';
+
+export type CreateWorkKind = SuggestedBusinessDefaults['defaultWorkKind'];
+
+export interface CreateWorkKindOption {
+  readonly kind: CreateWorkKind;
+  readonly href: string;
+  readonly key: 'project' | 'job' | 'service';
+}
+
+const WORK_KIND_TO_ACTION_KEY = {
+  project: 'project',
+  job: 'job',
+  work_order: 'service',
+} as const;
+
+/** Quick Create action key for a business-profile default work kind. */
+export function quickCreateKeyForWorkKind(kind: CreateWorkKind): 'project' | 'job' | 'service' {
+  return WORK_KIND_TO_ACTION_KEY[kind];
+}
+
+/**
+ * Pin the profile default work-type action first when it is already in the list.
+ * Does not invent destinations the org cannot use.
+ */
+export function pinDefaultWorkKindFirst<T extends { key: string }>(
+  actions: readonly T[],
+  defaultWorkKind?: CreateWorkKind | null,
+): T[] {
+  if (!defaultWorkKind) return [...actions];
+  const key = quickCreateKeyForWorkKind(defaultWorkKind);
+  const index = actions.findIndex((action) => action.key === key);
+  if (index <= 0) return [...actions];
+  const next = [...actions];
+  const pinned = next.splice(index, 1)[0];
+  if (!pinned) return next;
+  next.unshift(pinned);
+  return next;
+}
+
+function jobsCreateVisible(
+  modules: Record<string, boolean>,
+  workMix: WorkMix,
+  defaultWorkKind?: CreateWorkKind | null,
+): boolean {
+  return (
+    Boolean(modules.jobs) ||
+    workMixSurfacesJobs(workMix) ||
+    defaultWorkKind === 'job'
+  );
+}
+
+/** Work-type create destinations this org can actually open. */
+export function listAvailableCreateWorkKinds(
+  permissions: ReadonlySet<string>,
+  modules: Record<string, boolean>,
+  workMix: WorkMix,
+  suggestedDefaults?: SuggestedBusinessDefaults | null,
+): CreateWorkKindOption[] {
+  const options: CreateWorkKindOption[] = [];
+  const canCreateWork = permissions.has(PERMISSIONS.PROJECTS_CREATE);
+  const defaultWorkKind = suggestedDefaults?.defaultWorkKind;
+
+  if (canCreateWork) {
+    options.push({ kind: 'project', href: '/projects/new', key: 'project' });
+    if (jobsCreateVisible(modules, workMix, defaultWorkKind)) {
+      options.push({ kind: 'job', href: '/jobs/new', key: 'job' });
+    }
+  }
+
+  if (modules.service && permissions.has(PERMISSIONS.SERVICE_MANAGE)) {
+    options.push({ kind: 'work_order', href: '/work-orders/new', key: 'service' });
+  }
+
+  return options;
+}
 
 /**
  * Permission- and module-aware Quick Create destinations.
  * Keep this short: daily field/office capture only — not compensation,
  * allocation, OCR, or every module's "new" page.
+ *
+ * `suggestedDefaults.defaultWorkKind` wins the first slot when that action
+ * is allowed. Emphasis still orders the rest. Manual override stays in the menu.
  */
 export function buildQuickCreateActions(
   permissions: ReadonlySet<string>,
   modules: Record<string, boolean>,
   workMix: WorkMix,
   emphasis?: readonly QuickCreateEmphasisKey[] | null,
+  suggestedDefaults?: SuggestedBusinessDefaults | null,
 ): QuickCreateAction[] {
   const actions: QuickCreateAction[] = [];
   const canCreateWork = permissions.has(PERMISSIONS.PROJECTS_CREATE);
-  const jobsVisible = Boolean(modules.jobs) || workMixSurfacesJobs(workMix);
+  const defaultWorkKind = suggestedDefaults?.defaultWorkKind;
+  const jobsVisible = jobsCreateVisible(modules, workMix, defaultWorkKind);
 
   if (canCreateWork) {
     const jobAction = { key: 'job', href: '/jobs/new', labelKey: 'job' } as const;
@@ -93,5 +173,18 @@ export function buildQuickCreateActions(
     actions.push({ key: 'service', href: '/work-orders/new', labelKey: 'service' });
   }
 
-  return orderQuickCreateActions(actions, emphasis);
+  if (
+    permissions.has(PERMISSIONS.EXPENSES_CREATE) ||
+    permissions.has(PERMISSIONS.AP_MANAGE) ||
+    permissions.has(PERMISSIONS.BILLING_MANAGE)
+  ) {
+    actions.push({
+      key: 'recurringDrafts',
+      href: '/recurring-drafts/new',
+      labelKey: 'recurringDrafts',
+    });
+  }
+
+  const ordered = orderQuickCreateActions(actions, emphasis);
+  return pinDefaultWorkKindFirst(ordered, defaultWorkKind);
 }

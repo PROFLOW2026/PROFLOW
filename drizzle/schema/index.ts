@@ -4,7 +4,11 @@
  * Ownership: Lead / Integrator only (doc 76 §1). Feature modules read these
  * tables through their own `data/` repositories but never add or alter tables
  * here without the migration going through the Lead.
+ *
+ * Server-only: a client import of this barrel is a bundle leak (ORM table
+ * definitions in the browser). Keep schema behind repositories / 'use server'.
  */
+import 'server-only';
 
 export * from './enums';
 export * from './identity';

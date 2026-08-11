@@ -1,5 +1,5 @@
 /**
- * Owner Command Center ("היום") — actionable inbox items only.
+ * Today ("היום") — one grant-aware inbox of actionable items.
  * Framework-free domain types.
  */
 

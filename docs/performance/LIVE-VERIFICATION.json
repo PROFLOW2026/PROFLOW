@@ -1,6 +1,6 @@
 {
   "mode": "PRODUCTION",
-  "measuredAt": "2026-08-11T05:29:57.802Z",
+  "measuredAt": "2026-08-11T19:38:34.669Z",
   "primaryMetric": "wallMs — click/goto until content ready (UX)",
   "classificationBands": {
     "FAST": "<500ms repeated",
@@ -14,32 +14,21 @@
     "hasWebpackHmr": false
   },
   "chunkProbe": {
-    "scriptCount": 29,
-    "drizzleRelated": [
-      {
-        "url": "3djbuw8r_vwh8.js",
-        "hasDrizzleOrm": true,
-        "hasPostgresDriver": false,
-        "size": 157678,
-        "evidence": [
-          "drizzle:entityKind",
-          "drizzle:hasOwnEntityKind"
-        ]
-      }
-    ]
+    "scriptCount": 28,
+    "drizzleRelated": []
   },
   "results": [
     {
       "flow": "A. Login/authenticated → Dashboard",
-      "firstMs": 862,
+      "firstMs": 761,
       "repeatedMs": null,
       "classification": "INITIAL_HEAVY",
       "first": {
-        "wallMs": 862,
-        "navDurationMs": 180,
-        "ttfbMs": 45,
-        "domContentLoadedMs": 136,
-        "loadEventMs": 180,
+        "wallMs": 761,
+        "navDurationMs": 194,
+        "ttfbMs": 42,
+        "domContentLoadedMs": 148,
+        "loadEventMs": 194,
         "rscCount": 0,
         "rscTotalDurationMs": 0,
         "rscMaxDurationMs": 0,
@@ -48,19 +37,19 @@
         "resources": []
       },
       "repeated": null,
-      "note": "nav=180ms ttfb=45ms dcl=136ms"
+      "note": "nav=194ms ttfb=42ms dcl=148ms"
     },
     {
       "flow": "A2. Dashboard document reload (warm)",
-      "firstMs": 862,
-      "repeatedMs": 764,
+      "firstMs": 761,
+      "repeatedMs": 666,
       "classification": "ACCEPTABLE",
       "first": {
-        "wallMs": 862,
-        "navDurationMs": 180,
-        "ttfbMs": 45,
-        "domContentLoadedMs": 136,
-        "loadEventMs": 180,
+        "wallMs": 761,
+        "navDurationMs": 194,
+        "ttfbMs": 42,
+        "domContentLoadedMs": 148,
+        "loadEventMs": 194,
         "rscCount": 0,
         "rscTotalDurationMs": 0,
         "rscMaxDurationMs": 0,
@@ -69,11 +58,11 @@
         "resources": []
       },
       "repeated": {
-        "wallMs": 764,
-        "navDurationMs": 124,
-        "ttfbMs": 81,
-        "domContentLoadedMs": 93,
-        "loadEventMs": 124,
+        "wallMs": 666,
+        "navDurationMs": 134,
+        "ttfbMs": 87,
+        "domContentLoadedMs": 101,
+        "loadEventMs": 134,
         "rscCount": 0,
         "rscTotalDurationMs": 0,
         "rscMaxDurationMs": 0,
@@ -81,638 +70,491 @@
         "rscMaxTtfbMs": 0,
         "resources": []
       },
-      "note": "ttfb=81ms nav=124ms"
+      "note": "ttfb=87ms nav=134ms"
     },
     {
       "flow": "B. Dashboard → Projects",
-      "firstMs": 262,
-      "repeatedMs": 149,
+      "firstMs": 258,
+      "repeatedMs": 161,
       "classification": "FAST",
       "first": {
-        "wallMs": 262,
+        "wallMs": 258,
         "navDurationMs": null,
         "ttfbMs": null,
         "domContentLoadedMs": null,
         "loadEventMs": null,
         "rscCount": 1,
-        "rscTotalDurationMs": 51,
-        "rscMaxDurationMs": 51,
-        "rscTotalTransferBytes": 28495,
-        "rscMaxTtfbMs": 16,
+        "rscTotalDurationMs": 50,
+        "rscMaxDurationMs": 50,
+        "rscTotalTransferBytes": 29115,
+        "rscMaxTtfbMs": 10,
         "resources": [
           {
             "name": "/he-IL/projects?_rsc=Yg9vO9rPk_BBeeM_",
-            "duration": 51,
-            "transferSize": 28495,
-            "encodedBodySize": 28195,
-            "ttfb": 16
+            "duration": 50,
+            "transferSize": 29115,
+            "encodedBodySize": 28815,
+            "ttfb": 10
           }
         ]
       },
       "repeated": {
-        "wallMs": 149,
+        "wallMs": 161,
         "navDurationMs": null,
         "ttfbMs": null,
         "domContentLoadedMs": null,
         "loadEventMs": null,
         "rscCount": 1,
-        "rscTotalDurationMs": 84,
-        "rscMaxDurationMs": 84,
-        "rscTotalTransferBytes": 28495,
-        "rscMaxTtfbMs": 15,
+        "rscTotalDurationMs": 41,
+        "rscMaxDurationMs": 41,
+        "rscTotalTransferBytes": 29115,
+        "rscMaxTtfbMs": 9,
         "resources": [
           {
             "name": "/he-IL/projects?_rsc=Yg9vO9rPk_BBeeM_",
-            "duration": 84,
-            "transferSize": 28495,
-            "encodedBodySize": 28195,
-            "ttfb": 15
+            "duration": 41,
+            "transferSize": 29115,
+            "encodedBodySize": 28815,
+            "ttfb": 9
           }
         ]
       },
-      "note": "rscMax=84ms rscBytes=28495"
+      "note": "rscMax=41ms rscBytes=29115"
     },
     {
       "flow": "C. Projects → open project",
-      "firstMs": 1025,
-      "repeatedMs": 1009,
-      "classification": "NOTICEABLE",
-      "first": {
-        "wallMs": 1025,
-        "navDurationMs": null,
-        "ttfbMs": null,
-        "domContentLoadedMs": null,
-        "loadEventMs": null,
-        "rscCount": 3,
-        "rscTotalDurationMs": 487,
-        "rscMaxDurationMs": 220,
-        "rscTotalTransferBytes": 278402,
-        "rscMaxTtfbMs": 18,
-        "resources": [
-          {
-            "name": "/he-IL/projects/f5074acb-f3fc-496d-ae1a-e226268b8030?_rsc=yJW0Z79r33dHdi9v",
-            "duration": 213,
-            "transferSize": 54743,
-            "encodedBodySize": 54443,
-            "ttfb": 15
-          },
-          {
-            "name": "/he-IL/projects/f5074acb-f3fc-496d-ae1a-e226268b8030?_rsc=Fem8bXrcbqXVRMIM",
-            "duration": 220,
-            "transferSize": 196743,
-            "encodedBodySize": 196443,
-            "ttfb": 18
-          },
-          {
-            "name": "/he-IL/projects/f5074acb-f3fc-496d-ae1a-e226268b8030?_rsc=sCvQsWLxy0ECPF6l",
-            "duration": 54,
-            "transferSize": 26916,
-            "encodedBodySize": 26616,
-            "ttfb": 16
-          }
-        ]
-      },
-      "repeated": {
-        "wallMs": 1009,
-        "navDurationMs": null,
-        "ttfbMs": null,
-        "domContentLoadedMs": null,
-        "loadEventMs": null,
-        "rscCount": 3,
-        "rscTotalDurationMs": 262,
-        "rscMaxDurationMs": 151,
-        "rscTotalTransferBytes": 82476,
-        "rscMaxTtfbMs": 25,
-        "resources": [
-          {
-            "name": "/he-IL/projects/f5074acb-f3fc-496d-ae1a-e226268b8030?_rsc=6QSLUzk5kSkhxudY",
-            "duration": 35,
-            "transferSize": 817,
-            "encodedBodySize": 517,
-            "ttfb": 11
-          },
-          {
-            "name": "/he-IL/projects/f5074acb-f3fc-496d-ae1a-e226268b8030?_rsc=yJW0Z79r33dHdi9v",
-            "duration": 151,
-            "transferSize": 54743,
-            "encodedBodySize": 54443,
-            "ttfb": 25
-          },
-          {
-            "name": "/he-IL/projects/f5074acb-f3fc-496d-ae1a-e226268b8030?_rsc=sCvQsWLxy0ECPF6l",
-            "duration": 76,
-            "transferSize": 26916,
-            "encodedBodySize": 26616,
-            "ttfb": 16
-          }
-        ]
-      },
-      "note": "rscMax=151ms rscBytes=82476"
-    },
-    {
-      "flow": "D. Project Overview → Financials",
-      "firstMs": 497,
-      "repeatedMs": 503,
+      "firstMs": 844,
+      "repeatedMs": 530,
       "classification": "ACCEPTABLE",
       "first": {
-        "wallMs": 497,
+        "wallMs": 844,
         "navDurationMs": null,
         "ttfbMs": null,
         "domContentLoadedMs": null,
         "loadEventMs": null,
-        "rscCount": 5,
-        "rscTotalDurationMs": 645,
-        "rscMaxDurationMs": 146,
-        "rscTotalTransferBytes": 42970,
-        "rscMaxTtfbMs": 39,
+        "rscCount": 3,
+        "rscTotalDurationMs": 343,
+        "rscMaxDurationMs": 165,
+        "rscTotalTransferBytes": 83832,
+        "rscMaxTtfbMs": 14,
         "resources": [
           {
-            "name": "/he-IL/projects/f5074acb-f3fc-496d-ae1a-e226268b8030?tab=financials&_rsc=42WVZrLTE8_LJV_e",
-            "duration": 78,
-            "transferSize": 33772,
-            "encodedBodySize": 33472,
-            "ttfb": 13
+            "name": "/he-IL/projects/e1ae7070-a6ad-462a-9905-e0bdfec681f9?_rsc=6QSLUzk5kSkhxudY",
+            "duration": 16,
+            "transferSize": 840,
+            "encodedBodySize": 540,
+            "ttfb": 10
           },
           {
-            "name": "/he-IL/projects/f5074acb-f3fc-496d-ae1a-e226268b8030?tab=expenses&_rsc=mNL5UpM2MOjU62r-",
-            "duration": 138,
-            "transferSize": 2303,
-            "encodedBodySize": 2003,
-            "ttfb": 15
+            "name": "/he-IL/projects/e1ae7070-a6ad-462a-9905-e0bdfec681f9?_rsc=yJW0Z79r33dHdi9v",
+            "duration": 162,
+            "transferSize": 55893,
+            "encodedBodySize": 55593,
+            "ttfb": 12
           },
           {
-            "name": "/he-IL/projects/f5074acb-f3fc-496d-ae1a-e226268b8030?tab=team&_rsc=mNL5UpM2MOjU62r-",
-            "duration": 141,
-            "transferSize": 2295,
-            "encodedBodySize": 1995,
-            "ttfb": 20
-          },
-          {
-            "name": "/he-IL/projects/f5074acb-f3fc-496d-ae1a-e226268b8030?tab=usage&_rsc=mNL5UpM2MOjU62r-",
-            "duration": 143,
-            "transferSize": 2297,
-            "encodedBodySize": 1997,
-            "ttfb": 39
-          },
-          {
-            "name": "/he-IL/projects/f5074acb-f3fc-496d-ae1a-e226268b8030?tab=schedule&_rsc=mNL5UpM2MOjU62r-",
-            "duration": 146,
-            "transferSize": 2303,
-            "encodedBodySize": 2003,
-            "ttfb": 27
+            "name": "/he-IL/projects/e1ae7070-a6ad-462a-9905-e0bdfec681f9?_rsc=dif-2HeqWlfbTyYu",
+            "duration": 165,
+            "transferSize": 27099,
+            "encodedBodySize": 26799,
+            "ttfb": 14
           }
         ]
       },
       "repeated": {
-        "wallMs": 503,
+        "wallMs": 530,
         "navDurationMs": null,
         "ttfbMs": null,
         "domContentLoadedMs": null,
         "loadEventMs": null,
-        "rscCount": 2,
-        "rscTotalDurationMs": 221,
-        "rscMaxDurationMs": 117,
-        "rscTotalTransferBytes": 65217,
+        "rscCount": 3,
+        "rscTotalDurationMs": 268,
+        "rscMaxDurationMs": 156,
+        "rscTotalTransferBytes": 83832,
         "rscMaxTtfbMs": 13,
         "resources": [
           {
-            "name": "/he-IL/projects/f5074acb-f3fc-496d-ae1a-e226268b8030?_rsc=42WVZrLTE8_LJV_e",
-            "duration": 117,
-            "transferSize": 31445,
-            "encodedBodySize": 31145,
-            "ttfb": 12
-          },
-          {
-            "name": "/he-IL/projects/f5074acb-f3fc-496d-ae1a-e226268b8030?tab=financials&_rsc=42WVZrLTE8_LJV_e",
-            "duration": 104,
-            "transferSize": 33772,
-            "encodedBodySize": 33472,
-            "ttfb": 13
-          }
-        ]
-      },
-      "note": "rscMax=117ms rscBytes=65217 rscTtfbMax=13ms"
-    },
-    {
-      "flow": "E. Financials → Expenses",
-      "firstMs": 490,
-      "repeatedMs": 493,
-      "classification": "FAST",
-      "first": {
-        "wallMs": 490,
-        "navDurationMs": null,
-        "ttfbMs": null,
-        "domContentLoadedMs": null,
-        "loadEventMs": null,
-        "rscCount": 18,
-        "rscTotalDurationMs": 918,
-        "rscMaxDurationMs": 146,
-        "rscTotalTransferBytes": 48018,
-        "rscMaxTtfbMs": 34,
-        "resources": [
-          {
-            "name": "/he-IL/projects/f5074acb-f3fc-496d-ae1a-e226268b8030?tab=expenses&_rsc=42WVZrLTE8_LJV_e",
-            "duration": 73,
-            "transferSize": 20854,
-            "encodedBodySize": 20554,
-            "ttfb": 12
-          },
-          {
-            "name": "/he-IL/projects/f5074acb-f3fc-496d-ae1a-e226268b8030?_rsc=mNL5UpM2MOjU62r-",
-            "duration": 135,
-            "transferSize": 2267,
-            "encodedBodySize": 1967,
-            "ttfb": 17
-          },
-          {
-            "name": "/he-IL/projects/f5074acb-f3fc-496d-ae1a-e226268b8030?tab=team&_rsc=mNL5UpM2MOjU62r-",
-            "duration": 146,
-            "transferSize": 2295,
-            "encodedBodySize": 1995,
-            "ttfb": 34
-          },
-          {
-            "name": "/he-IL/projects/f5074acb-f3fc-496d-ae1a-e226268b8030?tab=usage&_rsc=mNL5UpM2MOjU62r-",
-            "duration": 142,
-            "transferSize": 2297,
-            "encodedBodySize": 1997,
-            "ttfb": 27
-          },
-          {
-            "name": "/he-IL/projects/f5074acb-f3fc-496d-ae1a-e226268b8030?tab=schedule&_rsc=mNL5UpM2MOjU62r-",
-            "duration": 138,
-            "transferSize": 2303,
-            "encodedBodySize": 2003,
-            "ttfb": 21
-          },
-          {
-            "name": "/he-IL/expenses/new?projectId=f5074acb-f3fc-496d-ae1a-e226268b8030&_rsc=QO5EqUcC1iWun2wh",
-            "duration": 19,
-            "transferSize": 805,
-            "encodedBodySize": 505,
-            "ttfb": 13
-          },
-          {
-            "name": "/he-IL/expenses/59d6d0b1-f9a5-4bed-aa2f-e166a5ab3a8c?_rsc=QO5EqUcC1iWun2wh",
-            "duration": 19,
-            "transferSize": 817,
-            "encodedBodySize": 517,
-            "ttfb": 14
-          },
-          {
-            "name": "/he-IL/expenses/84bcbf3c-0651-47e6-ab5e-9569ddda3db9?_rsc=QO5EqUcC1iWun2wh",
-            "duration": 19,
-            "transferSize": 817,
-            "encodedBodySize": 517,
-            "ttfb": 15
-          }
-        ]
-      },
-      "repeated": {
-        "wallMs": 493,
-        "navDurationMs": null,
-        "ttfbMs": null,
-        "domContentLoadedMs": null,
-        "loadEventMs": null,
-        "rscCount": 2,
-        "rscTotalDurationMs": 154,
-        "rscMaxDurationMs": 92,
-        "rscTotalTransferBytes": 54626,
-        "rscMaxTtfbMs": 12,
-        "resources": [
-          {
-            "name": "/he-IL/projects/f5074acb-f3fc-496d-ae1a-e226268b8030?tab=financials&_rsc=42WVZrLTE8_LJV_e",
-            "duration": 92,
-            "transferSize": 33772,
-            "encodedBodySize": 33472,
+            "name": "/he-IL/projects/e1ae7070-a6ad-462a-9905-e0bdfec681f9?_rsc=6QSLUzk5kSkhxudY",
+            "duration": 17,
+            "transferSize": 840,
+            "encodedBodySize": 540,
             "ttfb": 11
           },
           {
-            "name": "/he-IL/projects/f5074acb-f3fc-496d-ae1a-e226268b8030?tab=expenses&_rsc=42WVZrLTE8_LJV_e",
-            "duration": 61,
-            "transferSize": 20854,
-            "encodedBodySize": 20554,
-            "ttfb": 12
-          }
-        ]
-      },
-      "note": "rscMax=92ms rscBytes=54626 rscTtfbMax=12ms"
-    },
-    {
-      "flow": "F. Expenses → Changes",
-      "firstMs": 501,
-      "repeatedMs": 489,
-      "classification": "FAST",
-      "first": {
-        "wallMs": 501,
-        "navDurationMs": null,
-        "ttfbMs": null,
-        "domContentLoadedMs": null,
-        "loadEventMs": null,
-        "rscCount": 8,
-        "rscTotalDurationMs": 774,
-        "rscMaxDurationMs": 174,
-        "rscTotalTransferBytes": 28945,
-        "rscMaxTtfbMs": 43,
-        "resources": [
-          {
-            "name": "/he-IL/projects/f5074acb-f3fc-496d-ae1a-e226268b8030?tab=changes&_rsc=42WVZrLTE8_LJV_e",
-            "duration": 69,
-            "transferSize": 13805,
-            "encodedBodySize": 13505,
+            "name": "/he-IL/projects/e1ae7070-a6ad-462a-9905-e0bdfec681f9?_rsc=yJW0Z79r33dHdi9v",
+            "duration": 156,
+            "transferSize": 55893,
+            "encodedBodySize": 55593,
             "ttfb": 13
           },
           {
-            "name": "/he-IL/projects/f5074acb-f3fc-496d-ae1a-e226268b8030?_rsc=mNL5UpM2MOjU62r-",
-            "duration": 162,
-            "transferSize": 2267,
-            "encodedBodySize": 1967,
-            "ttfb": 20
-          },
-          {
-            "name": "/he-IL/projects/f5074acb-f3fc-496d-ae1a-e226268b8030?tab=financials&_rsc=mNL5UpM2MOjU62r-",
-            "duration": 174,
-            "transferSize": 2307,
-            "encodedBodySize": 2007,
-            "ttfb": 43
-          },
-          {
-            "name": "/he-IL/projects/f5074acb-f3fc-496d-ae1a-e226268b8030?tab=team&_rsc=mNL5UpM2MOjU62r-",
-            "duration": 169,
-            "transferSize": 2295,
-            "encodedBodySize": 1995,
-            "ttfb": 36
-          },
-          {
-            "name": "/he-IL/projects/f5074acb-f3fc-496d-ae1a-e226268b8030?tab=usage&_rsc=mNL5UpM2MOjU62r-",
-            "duration": 165,
-            "transferSize": 2297,
-            "encodedBodySize": 1997,
-            "ttfb": 26
-          },
-          {
-            "name": "/he-IL/changes/new?projectId=f5074acb-f3fc-496d-ae1a-e226268b8030&_rsc=QO5EqUcC1iWun2wh",
-            "duration": 11,
-            "transferSize": 804,
-            "encodedBodySize": 504,
-            "ttfb": 9
-          },
-          {
-            "name": "/he-IL/changes/new?projectId=f5074acb-f3fc-496d-ae1a-e226268b8030&_rsc=lOsBhsk8TefiZb76",
-            "duration": 16,
-            "transferSize": 4413,
-            "encodedBodySize": 4113,
+            "name": "/he-IL/projects/e1ae7070-a6ad-462a-9905-e0bdfec681f9?_rsc=dif-2HeqWlfbTyYu",
+            "duration": 96,
+            "transferSize": 27099,
+            "encodedBodySize": 26799,
             "ttfb": 12
-          },
-          {
-            "name": "/he-IL/changes/new?_rsc=QO5EqUcC1iWun2wh",
-            "duration": 8,
-            "transferSize": 757,
-            "encodedBodySize": 457,
-            "ttfb": 7
           }
         ]
       },
-      "repeated": {
-        "wallMs": 489,
-        "navDurationMs": null,
-        "ttfbMs": null,
-        "domContentLoadedMs": null,
-        "loadEventMs": null,
-        "rscCount": 2,
-        "rscTotalDurationMs": 118,
-        "rscMaxDurationMs": 61,
-        "rscTotalTransferBytes": 34659,
-        "rscMaxTtfbMs": 15,
-        "resources": [
-          {
-            "name": "/he-IL/projects/f5074acb-f3fc-496d-ae1a-e226268b8030?tab=expenses&_rsc=42WVZrLTE8_LJV_e",
-            "duration": 57,
-            "transferSize": 20854,
-            "encodedBodySize": 20554,
-            "ttfb": 11
-          },
-          {
-            "name": "/he-IL/projects/f5074acb-f3fc-496d-ae1a-e226268b8030?tab=changes&_rsc=42WVZrLTE8_LJV_e",
-            "duration": 61,
-            "transferSize": 13805,
-            "encodedBodySize": 13505,
-            "ttfb": 15
-          }
-        ]
-      },
-      "note": "rscMax=61ms rscBytes=34659 rscTtfbMax=15ms"
+      "note": "rscMax=156ms rscBytes=83832"
     },
     {
-      "flow": "G. Changes → Billing",
-      "firstMs": 185,
-      "repeatedMs": 172,
-      "classification": "FAST",
+      "flow": "D. Project Overview → Financials",
+      "firstMs": 511,
+      "repeatedMs": 510,
+      "classification": "ACCEPTABLE",
       "first": {
-        "wallMs": 185,
+        "wallMs": 511,
         "navDurationMs": null,
         "ttfbMs": null,
         "domContentLoadedMs": null,
         "loadEventMs": null,
         "rscCount": 1,
-        "rscTotalDurationMs": 67,
-        "rscMaxDurationMs": 67,
-        "rscTotalTransferBytes": 11382,
+        "rscTotalDurationMs": 92,
+        "rscMaxDurationMs": 92,
+        "rscTotalTransferBytes": 35901,
         "rscMaxTtfbMs": 11,
         "resources": [
           {
-            "name": "/he-IL/projects/f5074acb-f3fc-496d-ae1a-e226268b8030?tab=billing&_rsc=42WVZrLTE8_LJV_e",
-            "duration": 67,
-            "transferSize": 11382,
-            "encodedBodySize": 11082,
+            "name": "/he-IL/projects/e1ae7070-a6ad-462a-9905-e0bdfec681f9?tab=financials&_rsc=XcU0jSWzddBc5sCs",
+            "duration": 92,
+            "transferSize": 35901,
+            "encodedBodySize": 35601,
             "ttfb": 11
           }
         ]
       },
       "repeated": {
-        "wallMs": 172,
+        "wallMs": 510,
+        "navDurationMs": null,
+        "ttfbMs": null,
+        "domContentLoadedMs": null,
+        "loadEventMs": null,
+        "rscCount": 2,
+        "rscTotalDurationMs": 226,
+        "rscMaxDurationMs": 117,
+        "rscTotalTransferBytes": 68416,
+        "rscMaxTtfbMs": 12,
+        "resources": [
+          {
+            "name": "/he-IL/projects/e1ae7070-a6ad-462a-9905-e0bdfec681f9?_rsc=XcU0jSWzddBc5sCs",
+            "duration": 117,
+            "transferSize": 32515,
+            "encodedBodySize": 32215,
+            "ttfb": 9
+          },
+          {
+            "name": "/he-IL/projects/e1ae7070-a6ad-462a-9905-e0bdfec681f9?tab=financials&_rsc=XcU0jSWzddBc5sCs",
+            "duration": 109,
+            "transferSize": 35901,
+            "encodedBodySize": 35601,
+            "ttfb": 12
+          }
+        ]
+      },
+      "note": "rscMax=117ms rscBytes=68416 rscTtfbMax=12ms"
+    },
+    {
+      "flow": "E. Financials → Expenses",
+      "firstMs": 500,
+      "repeatedMs": 509,
+      "classification": "ACCEPTABLE",
+      "first": {
+        "wallMs": 500,
+        "navDurationMs": null,
+        "ttfbMs": null,
+        "domContentLoadedMs": null,
+        "loadEventMs": null,
+        "rscCount": 14,
+        "rscTotalDurationMs": 339,
+        "rscMaxDurationMs": 71,
+        "rscTotalTransferBytes": 39501,
+        "rscMaxTtfbMs": 20,
+        "resources": [
+          {
+            "name": "/he-IL/projects/e1ae7070-a6ad-462a-9905-e0bdfec681f9?tab=expenses&_rsc=XcU0jSWzddBc5sCs",
+            "duration": 71,
+            "transferSize": 21190,
+            "encodedBodySize": 20890,
+            "ttfb": 10
+          },
+          {
+            "name": "/he-IL/expenses/new?projectId=e1ae7070-a6ad-462a-9905-e0bdfec681f9&_rsc=WAO-QUfUCxS-IcVK",
+            "duration": 23,
+            "transferSize": 828,
+            "encodedBodySize": 528,
+            "ttfb": 14
+          },
+          {
+            "name": "/he-IL/expenses/cdc95b38-b1ee-4880-8b83-0a784afc1c4c?_rsc=WAO-QUfUCxS-IcVK",
+            "duration": 24,
+            "transferSize": 840,
+            "encodedBodySize": 540,
+            "ttfb": 17
+          },
+          {
+            "name": "/he-IL/expenses/1d73a22f-32ff-4d5e-968c-58abe68cfe6e?_rsc=WAO-QUfUCxS-IcVK",
+            "duration": 23,
+            "transferSize": 840,
+            "encodedBodySize": 540,
+            "ttfb": 15
+          },
+          {
+            "name": "/he-IL/expenses?projectId=e1ae7070-a6ad-462a-9905-e0bdfec681f9&_rsc=WAO-QUfUCxS-IcVK",
+            "duration": 24,
+            "transferSize": 776,
+            "encodedBodySize": 476,
+            "ttfb": 20
+          },
+          {
+            "name": "/he-IL/expenses/new?projectId=e1ae7070-a6ad-462a-9905-e0bdfec681f9&_rsc=zYvnk_x0Ka50NiRS",
+            "duration": 22,
+            "transferSize": 4429,
+            "encodedBodySize": 4129,
+            "ttfb": 14
+          },
+          {
+            "name": "/he-IL/expenses/1d73a22f-32ff-4d5e-968c-58abe68cfe6e?_rsc=3UkyoJ8e8EmZHGFH",
+            "duration": 21,
+            "transferSize": 767,
+            "encodedBodySize": 467,
+            "ttfb": 14
+          },
+          {
+            "name": "/he-IL/expenses/cdc95b38-b1ee-4880-8b83-0a784afc1c4c?_rsc=GqdTCnoJypWaTsAj",
+            "duration": 20,
+            "transferSize": 767,
+            "encodedBodySize": 467,
+            "ttfb": 15
+          }
+        ]
+      },
+      "repeated": {
+        "wallMs": 509,
+        "navDurationMs": null,
+        "ttfbMs": null,
+        "domContentLoadedMs": null,
+        "loadEventMs": null,
+        "rscCount": 2,
+        "rscTotalDurationMs": 173,
+        "rscMaxDurationMs": 102,
+        "rscTotalTransferBytes": 57091,
+        "rscMaxTtfbMs": 10,
+        "resources": [
+          {
+            "name": "/he-IL/projects/e1ae7070-a6ad-462a-9905-e0bdfec681f9?tab=financials&_rsc=XcU0jSWzddBc5sCs",
+            "duration": 102,
+            "transferSize": 35901,
+            "encodedBodySize": 35601,
+            "ttfb": 9
+          },
+          {
+            "name": "/he-IL/projects/e1ae7070-a6ad-462a-9905-e0bdfec681f9?tab=expenses&_rsc=XcU0jSWzddBc5sCs",
+            "duration": 71,
+            "transferSize": 21190,
+            "encodedBodySize": 20890,
+            "ttfb": 10
+          }
+        ]
+      },
+      "note": "rscMax=102ms rscBytes=57091 rscTtfbMax=10ms"
+    },
+    {
+      "flow": "F. Expenses → Changes",
+      "firstMs": 500,
+      "repeatedMs": 504,
+      "classification": "ACCEPTABLE",
+      "first": {
+        "wallMs": 500,
         "navDurationMs": null,
         "ttfbMs": null,
         "domContentLoadedMs": null,
         "loadEventMs": null,
         "rscCount": 4,
-        "rscTotalDurationMs": 837,
-        "rscMaxDurationMs": 214,
-        "rscTotalTransferBytes": 9172,
-        "rscMaxTtfbMs": 35,
+        "rscTotalDurationMs": 100,
+        "rscMaxDurationMs": 65,
+        "rscTotalTransferBytes": 20052,
+        "rscMaxTtfbMs": 12,
         "resources": [
           {
-            "name": "/he-IL/projects/f5074acb-f3fc-496d-ae1a-e226268b8030?_rsc=mNL5UpM2MOjU62r-",
-            "duration": 205,
-            "transferSize": 2267,
-            "encodedBodySize": 1967,
-            "ttfb": 19
+            "name": "/he-IL/projects/e1ae7070-a6ad-462a-9905-e0bdfec681f9?tab=changes&_rsc=XcU0jSWzddBc5sCs",
+            "duration": 65,
+            "transferSize": 14009,
+            "encodedBodySize": 13709,
+            "ttfb": 11
           },
           {
-            "name": "/he-IL/projects/f5074acb-f3fc-496d-ae1a-e226268b8030?tab=financials&_rsc=mNL5UpM2MOjU62r-",
-            "duration": 211,
-            "transferSize": 2307,
-            "encodedBodySize": 2007,
-            "ttfb": 29
+            "name": "/he-IL/changes/new?projectId=e1ae7070-a6ad-462a-9905-e0bdfec681f9&_rsc=WAO-QUfUCxS-IcVK",
+            "duration": 14,
+            "transferSize": 827,
+            "encodedBodySize": 527,
+            "ttfb": 12
           },
           {
-            "name": "/he-IL/projects/f5074acb-f3fc-496d-ae1a-e226268b8030?tab=expenses&_rsc=mNL5UpM2MOjU62r-",
-            "duration": 208,
-            "transferSize": 2303,
-            "encodedBodySize": 2003,
-            "ttfb": 24
+            "name": "/he-IL/changes/new?projectId=e1ae7070-a6ad-462a-9905-e0bdfec681f9&_rsc=r-vvFLHadI_8HZ_R",
+            "duration": 10,
+            "transferSize": 4436,
+            "encodedBodySize": 4136,
+            "ttfb": 8
           },
           {
-            "name": "/he-IL/projects/f5074acb-f3fc-496d-ae1a-e226268b8030?tab=team&_rsc=mNL5UpM2MOjU62r-",
-            "duration": 214,
-            "transferSize": 2295,
-            "encodedBodySize": 1995,
-            "ttfb": 35
+            "name": "/he-IL/changes/new?_rsc=WAO-QUfUCxS-IcVK",
+            "duration": 11,
+            "transferSize": 780,
+            "encodedBodySize": 480,
+            "ttfb": 9
           }
         ]
       },
-      "note": "rscMax=214ms rscBytes=9172 rscTtfbMax=35ms"
+      "repeated": {
+        "wallMs": 504,
+        "navDurationMs": null,
+        "ttfbMs": null,
+        "domContentLoadedMs": null,
+        "loadEventMs": null,
+        "rscCount": 2,
+        "rscTotalDurationMs": 121,
+        "rscMaxDurationMs": 62,
+        "rscTotalTransferBytes": 35199,
+        "rscMaxTtfbMs": 10,
+        "resources": [
+          {
+            "name": "/he-IL/projects/e1ae7070-a6ad-462a-9905-e0bdfec681f9?tab=expenses&_rsc=XcU0jSWzddBc5sCs",
+            "duration": 59,
+            "transferSize": 21190,
+            "encodedBodySize": 20890,
+            "ttfb": 9
+          },
+          {
+            "name": "/he-IL/projects/e1ae7070-a6ad-462a-9905-e0bdfec681f9?tab=changes&_rsc=XcU0jSWzddBc5sCs",
+            "duration": 62,
+            "transferSize": 14009,
+            "encodedBodySize": 13709,
+            "ttfb": 10
+          }
+        ]
+      },
+      "note": "rscMax=62ms rscBytes=35199 rscTtfbMax=10ms"
+    },
+    {
+      "flow": "G. Changes → Billing",
+      "firstMs": 187,
+      "repeatedMs": 171,
+      "classification": "FAST",
+      "first": {
+        "wallMs": 187,
+        "navDurationMs": null,
+        "ttfbMs": null,
+        "domContentLoadedMs": null,
+        "loadEventMs": null,
+        "rscCount": 1,
+        "rscTotalDurationMs": 72,
+        "rscMaxDurationMs": 72,
+        "rscTotalTransferBytes": 11586,
+        "rscMaxTtfbMs": 10,
+        "resources": [
+          {
+            "name": "/he-IL/projects/e1ae7070-a6ad-462a-9905-e0bdfec681f9?tab=billing&_rsc=XcU0jSWzddBc5sCs",
+            "duration": 72,
+            "transferSize": 11586,
+            "encodedBodySize": 11286,
+            "ttfb": 10
+          }
+        ]
+      },
+      "repeated": {
+        "wallMs": 171,
+        "navDurationMs": null,
+        "ttfbMs": null,
+        "domContentLoadedMs": null,
+        "loadEventMs": null,
+        "rscCount": 2,
+        "rscTotalDurationMs": 124,
+        "rscMaxDurationMs": 66,
+        "rscTotalTransferBytes": 25595,
+        "rscMaxTtfbMs": 10,
+        "resources": [
+          {
+            "name": "/he-IL/projects/e1ae7070-a6ad-462a-9905-e0bdfec681f9?tab=changes&_rsc=XcU0jSWzddBc5sCs",
+            "duration": 58,
+            "transferSize": 14009,
+            "encodedBodySize": 13709,
+            "ttfb": 10
+          },
+          {
+            "name": "/he-IL/projects/e1ae7070-a6ad-462a-9905-e0bdfec681f9?tab=billing&_rsc=XcU0jSWzddBc5sCs",
+            "duration": 66,
+            "transferSize": 11586,
+            "encodedBodySize": 11286,
+            "ttfb": 10
+          }
+        ]
+      },
+      "note": "rscMax=66ms rscBytes=25595 rscTtfbMax=10ms"
     },
     {
       "flow": "H. Project → Documents",
-      "firstMs": 179,
-      "repeatedMs": 172,
+      "firstMs": 186,
+      "repeatedMs": 188,
       "classification": "FAST",
       "first": {
-        "wallMs": 179,
+        "wallMs": 186,
         "navDurationMs": null,
         "ttfbMs": null,
         "domContentLoadedMs": null,
         "loadEventMs": null,
         "rscCount": 1,
-        "rscTotalDurationMs": 64,
-        "rscMaxDurationMs": 64,
-        "rscTotalTransferBytes": 6045,
-        "rscMaxTtfbMs": 14,
+        "rscTotalDurationMs": 63,
+        "rscMaxDurationMs": 63,
+        "rscTotalTransferBytes": 6169,
+        "rscMaxTtfbMs": 10,
         "resources": [
           {
-            "name": "/he-IL/projects/f5074acb-f3fc-496d-ae1a-e226268b8030?tab=documents&_rsc=42WVZrLTE8_LJV_e",
-            "duration": 64,
-            "transferSize": 6045,
-            "encodedBodySize": 5745,
-            "ttfb": 14
+            "name": "/he-IL/projects/e1ae7070-a6ad-462a-9905-e0bdfec681f9?tab=documents&_rsc=XcU0jSWzddBc5sCs",
+            "duration": 63,
+            "transferSize": 6169,
+            "encodedBodySize": 5869,
+            "ttfb": 10
           }
         ]
       },
       "repeated": {
-        "wallMs": 172,
+        "wallMs": 188,
         "navDurationMs": null,
         "ttfbMs": null,
         "domContentLoadedMs": null,
         "loadEventMs": null,
         "rscCount": 2,
-        "rscTotalDurationMs": 400,
-        "rscMaxDurationMs": 202,
-        "rscTotalTransferBytes": 4610,
-        "rscMaxTtfbMs": 24,
+        "rscTotalDurationMs": 214,
+        "rscMaxDurationMs": 125,
+        "rscTotalTransferBytes": 38684,
+        "rscMaxTtfbMs": 11,
         "resources": [
           {
-            "name": "/he-IL/projects/f5074acb-f3fc-496d-ae1a-e226268b8030?tab=financials&_rsc=mNL5UpM2MOjU62r-",
-            "duration": 199,
-            "transferSize": 2307,
-            "encodedBodySize": 2007,
-            "ttfb": 19
+            "name": "/he-IL/projects/e1ae7070-a6ad-462a-9905-e0bdfec681f9?_rsc=XcU0jSWzddBc5sCs",
+            "duration": 125,
+            "transferSize": 32515,
+            "encodedBodySize": 32215,
+            "ttfb": 8
           },
           {
-            "name": "/he-IL/projects/f5074acb-f3fc-496d-ae1a-e226268b8030?tab=expenses&_rsc=mNL5UpM2MOjU62r-",
-            "duration": 202,
-            "transferSize": 2303,
-            "encodedBodySize": 2003,
-            "ttfb": 24
-          }
-        ]
-      },
-      "note": "rscMax=202ms rscBytes=4610 rscTtfbMax=24ms"
-    },
-    {
-      "flow": "I. Dashboard → Reports",
-      "firstMs": 355,
-      "repeatedMs": 361,
-      "classification": "FAST",
-      "first": {
-        "wallMs": 355,
-        "navDurationMs": null,
-        "ttfbMs": null,
-        "domContentLoadedMs": null,
-        "loadEventMs": null,
-        "rscCount": 1,
-        "rscTotalDurationMs": 129,
-        "rscMaxDurationMs": 129,
-        "rscTotalTransferBytes": 214994,
-        "rscMaxTtfbMs": 20,
-        "resources": [
-          {
-            "name": "/he-IL/reports?_rsc=Yg9vO9rPk_BBeeM_",
-            "duration": 129,
-            "transferSize": 214994,
-            "encodedBodySize": 214694,
-            "ttfb": 20
-          }
-        ]
-      },
-      "repeated": {
-        "wallMs": 361,
-        "navDurationMs": null,
-        "ttfbMs": null,
-        "domContentLoadedMs": null,
-        "loadEventMs": null,
-        "rscCount": 1,
-        "rscTotalDurationMs": 114,
-        "rscMaxDurationMs": 114,
-        "rscTotalTransferBytes": 214994,
-        "rscMaxTtfbMs": 18,
-        "resources": [
-          {
-            "name": "/he-IL/reports?_rsc=Yg9vO9rPk_BBeeM_",
-            "duration": 114,
-            "transferSize": 214994,
-            "encodedBodySize": 214694,
-            "ttfb": 18
-          }
-        ]
-      },
-      "note": "rscMax=114ms rscBytes=214994"
-    },
-    {
-      "flow": "J. Repeated project-tab cycle (avg after warm)",
-      "firstMs": 172,
-      "repeatedMs": 170,
-      "classification": "FAST",
-      "first": {
-        "wallMs": 172,
-        "navDurationMs": null,
-        "ttfbMs": null,
-        "domContentLoadedMs": null,
-        "loadEventMs": null,
-        "rscCount": 2,
-        "rscTotalDurationMs": 203,
-        "rscMaxDurationMs": 110,
-        "rscTotalTransferBytes": 65217,
-        "rscMaxTtfbMs": 14,
-        "resources": [
-          {
-            "name": "/he-IL/projects/f5074acb-f3fc-496d-ae1a-e226268b8030?_rsc=42WVZrLTE8_LJV_e",
-            "duration": 110,
-            "transferSize": 31445,
-            "encodedBodySize": 31145,
-            "ttfb": 14
-          },
-          {
-            "name": "/he-IL/projects/f5074acb-f3fc-496d-ae1a-e226268b8030?tab=financials&_rsc=42WVZrLTE8_LJV_e",
-            "duration": 94,
-            "transferSize": 33772,
-            "encodedBodySize": 33472,
+            "name": "/he-IL/projects/e1ae7070-a6ad-462a-9905-e0bdfec681f9?tab=documents&_rsc=XcU0jSWzddBc5sCs",
+            "duration": 89,
+            "transferSize": 6169,
+            "encodedBodySize": 5869,
             "ttfb": 11
           }
         ]
       },
-      "repeated": {
-        "wallMs": 170,
+      "note": "rscMax=125ms rscBytes=38684 rscTtfbMax=11ms"
+    },
+    {
+      "flow": "I. Dashboard → Reports",
+      "firstMs": 592,
+      "repeatedMs": 521,
+      "classification": "ACCEPTABLE",
+      "first": {
+        "wallMs": 592,
         "navDurationMs": null,
         "ttfbMs": null,
         "domContentLoadedMs": null,
@@ -720,19 +562,96 @@
         "rscCount": 1,
         "rscTotalDurationMs": 93,
         "rscMaxDurationMs": 93,
-        "rscTotalTransferBytes": 31445,
-        "rscMaxTtfbMs": 11,
+        "rscTotalTransferBytes": 221304,
+        "rscMaxTtfbMs": 16,
         "resources": [
           {
-            "name": "/he-IL/projects/f5074acb-f3fc-496d-ae1a-e226268b8030?_rsc=42WVZrLTE8_LJV_e",
+            "name": "/he-IL/reports?_rsc=Yg9vO9rPk_BBeeM_",
             "duration": 93,
-            "transferSize": 31445,
-            "encodedBodySize": 31145,
-            "ttfb": 11
+            "transferSize": 221304,
+            "encodedBodySize": 221004,
+            "ttfb": 16
           }
         ]
       },
-      "note": "per-tab: [172, 172, 171, 167, 169] max=172"
+      "repeated": {
+        "wallMs": 521,
+        "navDurationMs": null,
+        "ttfbMs": null,
+        "domContentLoadedMs": null,
+        "loadEventMs": null,
+        "rscCount": 1,
+        "rscTotalDurationMs": 76,
+        "rscMaxDurationMs": 76,
+        "rscTotalTransferBytes": 221304,
+        "rscMaxTtfbMs": 12,
+        "resources": [
+          {
+            "name": "/he-IL/reports?_rsc=Yg9vO9rPk_BBeeM_",
+            "duration": 76,
+            "transferSize": 221304,
+            "encodedBodySize": 221004,
+            "ttfb": 12
+          }
+        ]
+      },
+      "note": "rscMax=76ms rscBytes=221304"
+    },
+    {
+      "flow": "J. Repeated project-tab cycle (avg after warm)",
+      "firstMs": 174,
+      "repeatedMs": 171,
+      "classification": "FAST",
+      "first": {
+        "wallMs": 174,
+        "navDurationMs": null,
+        "ttfbMs": null,
+        "domContentLoadedMs": null,
+        "loadEventMs": null,
+        "rscCount": 2,
+        "rscTotalDurationMs": 222,
+        "rscMaxDurationMs": 112,
+        "rscTotalTransferBytes": 68416,
+        "rscMaxTtfbMs": 12,
+        "resources": [
+          {
+            "name": "/he-IL/projects/e1ae7070-a6ad-462a-9905-e0bdfec681f9?_rsc=XcU0jSWzddBc5sCs",
+            "duration": 110,
+            "transferSize": 32515,
+            "encodedBodySize": 32215,
+            "ttfb": 10
+          },
+          {
+            "name": "/he-IL/projects/e1ae7070-a6ad-462a-9905-e0bdfec681f9?tab=financials&_rsc=XcU0jSWzddBc5sCs",
+            "duration": 112,
+            "transferSize": 35901,
+            "encodedBodySize": 35601,
+            "ttfb": 12
+          }
+        ]
+      },
+      "repeated": {
+        "wallMs": 171,
+        "navDurationMs": null,
+        "ttfbMs": null,
+        "domContentLoadedMs": null,
+        "loadEventMs": null,
+        "rscCount": 1,
+        "rscTotalDurationMs": 114,
+        "rscMaxDurationMs": 114,
+        "rscTotalTransferBytes": 32515,
+        "rscMaxTtfbMs": 13,
+        "resources": [
+          {
+            "name": "/he-IL/projects/e1ae7070-a6ad-462a-9905-e0bdfec681f9?_rsc=XcU0jSWzddBc5sCs",
+            "duration": 114,
+            "transferSize": 32515,
+            "encodedBodySize": 32215,
+            "ttfb": 13
+          }
+        ]
+      },
+      "note": "per-tab: [174, 169, 170, 169, 171] max=174"
     }
   ]
 }

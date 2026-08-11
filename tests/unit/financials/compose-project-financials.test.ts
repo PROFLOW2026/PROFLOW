@@ -105,6 +105,71 @@ describe('composeProjectFinancials', () => {
     expect(result.cost.actualCostToDate.amount).toBe('100.000000');
     expect(result.cost.vendorActual.amount).toBe('80.000000');
   });
+
+  it('folds non-superseded month-close cost and revenue corrections once', () => {
+    const currency = 'ILS';
+    const result = composeProjectFinancials({
+      projectId: 'p1',
+      currency,
+      expectedRemainingCostAmount: null,
+      canReadCommercial: false,
+      canReadBilling: true,
+      canReadProfit: false,
+      commercialData: null,
+      billingRows: { currency, records: [] },
+      expenseContributions: [
+        {
+          amount: '200.00',
+          currency,
+          costFamily: 'direct_project',
+          isDirectOnProject: true,
+          isAllocated: false,
+          isSubcontractor: false,
+          projectId: 'p1',
+          expenseId: 'e1',
+        },
+      ],
+      laborInput: null,
+      committed: null,
+      openAp: null,
+      recognizedVendor: null,
+      monthCloseEconomic: {
+        costNet: money('50', currency),
+        revenueNet: money('30', currency),
+      },
+    });
+
+    expect(result.cost.actualCostToDate.amount).toBe('250.000000');
+    expect(result.cost.monthCloseCostNet.amount).toBe('50.000000');
+    expect(result.cost.byFamily.directProject.amount).toBe('200.000000');
+    expect(result.billing.invoiced.amount).toBe('30.000000');
+    expect(result.billing.outstanding.amount).toBe('30.000000');
+    expect(result.billing.monthCloseRevenueNet.amount).toBe('30.000000');
+  });
+
+  it('throws when a month-close net uses the wrong currency', () => {
+    expect(() =>
+      composeProjectFinancials({
+        projectId: 'p1',
+        currency: 'ILS',
+        expectedRemainingCostAmount: null,
+        canReadCommercial: false,
+        canReadBilling: false,
+        canReadProfit: false,
+        commercialData: null,
+        billingRows: null,
+        expenseContributions: [],
+        laborInput: null,
+        committed: null,
+        openAp: null,
+        recognizedVendor: null,
+        monthCloseEconomic: {
+          costNet: money('10', 'USD'),
+          revenueNet: zeroMoney('ILS'),
+        },
+      }),
+    ).toThrow(/Month-close cost currency/);
+  });
 });
 
 describe('org rollup query-shape contract', () => {

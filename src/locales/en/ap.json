@@ -101,6 +101,30 @@
     "linePoLineNone": "No PO line",
     "totalLabel": "Bill total"
   },
+  "retention": {
+    "title": "Retention / holdback",
+    "disclosure": "Retention is cash timing, not a second cost. Recognized Actual stays the full bill amount; only payable now is reduced until release.",
+    "recognized": "Recognized / Actual",
+    "payableNow": "Payable now",
+    "receivableNow": "Receivable now",
+    "held": "Still held",
+    "original": "Retention",
+    "released": "Released",
+    "amountLabel": "Retention amount",
+    "percentLabel": "Retention %",
+    "percentHint": "Optional. 10 means 10% of the bill total.",
+    "captureHint": "Set amount or percent on a draft. On post, held remaining equals retention. After post, increase only with a new bill.",
+    "releaseTitle": "Release retention",
+    "releaseHint": "Partial release is allowed while held remaining is greater than zero. Releases are immutable history.",
+    "releaseAmount": "Release amount",
+    "releaseDate": "Release date",
+    "releaseNotes": "Notes",
+    "releaseSubmit": "Release",
+    "historyTitle": "Retention release history",
+    "emptyHistory": "No releases yet.",
+    "noneHeld": "No retention is held on this bill.",
+    "saveDraft": "Save retention"
+  },
   "payments": {
     "title": "Vendor payments",
     "cashOnlyNote": "Payments are cash / AP only. They never increase Actual Cost — the vendor bill already recognized cost.",
@@ -137,17 +161,105 @@
   },
   "credits": {
     "title": "Vendor credits",
+    "navLink": "Credits",
+    "listTitle": "Vendor credits",
+    "listDescription": "Independent credit notes. Drafts stay off Actual until you post. Applying a credit reduces outstanding and Actual Cost — it is not a payment.",
+    "newCredit": "New vendor credit",
     "notPaymentNote": "Credits are not payments. Applying a credit reduces outstanding and Actual Cost.",
     "empty": "No credits applied yet.",
-    "createTitle": "Create and apply credit",
-    "createHint": "Creates an open credit note and applies it to this bill in one step.",
+    "createTitle": "Create draft credit",
+    "createHint": "Creates a draft credit note. Review it, post it, then apply it to this bill. Drafts do not reduce Actual.",
     "amountLabel": "Credit amount",
     "creditDateLabel": "Credit date",
     "referenceLabel": "Reference",
-    "submit": "Apply credit",
-    "pending": "Applying…",
-    "success": "Credit applied. Outstanding and Actual reduced.",
-    "outstandingHint": "Current outstanding: {amount} {currency}"
+    "notesLabel": "Notes",
+    "submit": "Create draft credit",
+    "pending": "Saving…",
+    "success": "Draft credit created. Open it to review, post, and apply.",
+    "outstandingHint": "Current outstanding: {amount} {currency}",
+    "openList": "All vendor credits",
+    "emptyList": {
+      "title": "No vendor credits yet",
+      "body": "Create a credit note, review it, and post it. Drafts do not reduce Actual until posted. Applying to a bill is a separate step.",
+      "action": "New vendor credit"
+    },
+    "list": {
+      "columns": {
+        "reference": "Reference",
+        "vendor": "Vendor",
+        "status": "Status",
+        "amount": "Amount",
+        "creditDate": "Credit date"
+      },
+      "noReference": "Untitled credit"
+    },
+    "statuses": {
+      "draft": "Draft",
+      "pending_approval": "Pending approval",
+      "open": "Open",
+      "applied": "Applied",
+      "void": "Void"
+    },
+    "createPage": {
+      "title": "New vendor credit",
+      "description": "Create a credit note. If approval is required it stays draft until you post after approval. It does not post silently and is not a payment.",
+      "submit": "Create credit",
+      "vendorLabel": "Vendor",
+      "vendorPlaceholder": "Select vendor",
+      "projectLabel": "Project",
+      "projectNone": "No project",
+      "relatedBillLabel": "Related bill (optional)",
+      "relatedBillNone": "No related bill"
+    },
+    "detail": {
+      "title": "Vendor credit",
+      "description": "Review, post, apply to a bill, or void. History is kept. Credits are not payments and must not double-count against the vendor bill.",
+      "amount": "Credit amount",
+      "remaining": "Remaining",
+      "applied": "Applied",
+      "creditDate": "Credit date",
+      "vendor": "Vendor",
+      "notes": "Notes",
+      "applicationsTitle": "Applications",
+      "applicationsEmpty": "Not applied to a bill yet. Remaining equals the credit amount.",
+      "applicationStatusApplied": "Applied",
+      "applicationStatusVoid": "Void",
+      "billLink": "Bill",
+      "pendingApproval": "Waiting for approval. This credit stays draft and does not reduce Actual until you post after approval.",
+      "draftHint": "Draft — not in Actual. Review the amount and date, then post. Posting is never silent.",
+      "openHint": "Open — recognized. Apply remaining to a payable bill to reduce outstanding and Actual.",
+      "appliedHint": "Fully applied. Outstanding and Actual already reflect this credit. Void to unwind.",
+      "voidHint": "Void. History is preserved. This credit no longer reduces Actual or outstanding."
+    },
+    "edit": {
+      "title": "Edit draft",
+      "note": "Amount, date, notes, and reference can change only while this credit is draft.",
+      "save": "Save draft",
+      "saved": "Draft saved. It is still not posted."
+    },
+    "post": {
+      "title": "Post credit",
+      "note": "Posting moves draft to open. If approval is still pending, posting is blocked — it will not post silently.",
+      "action": "Post credit",
+      "success": "Credit posted. It is open and can be applied to a bill."
+    },
+    "apply": {
+      "title": "Apply to bill",
+      "note": "Applies remaining credit to a payable vendor bill. Reduces outstanding and Actual. Not a payment.",
+      "billLabel": "Vendor bill",
+      "billPlaceholder": "Select a bill",
+      "amountLabel": "Apply amount",
+      "action": "Apply credit",
+      "success": "Credit applied. Outstanding and Actual reduced.",
+      "noBills": "No payable bills for this vendor. Post a vendor bill first.",
+      "remainingHint": "Remaining on this credit: {amount} {currency}"
+    },
+    "void": {
+      "title": "Void credit",
+      "note": "Void preserves history. Active applications are unwound so outstanding and Actual are restored. The credit is not hard-deleted.",
+      "action": "Void credit",
+      "success": "Credit voided. Applications were unwound. History remains."
+    }
   },
   "post": {
     "title": "Post draft bill",
@@ -242,8 +354,20 @@
     "creditBillNotPayable": "Cannot apply credit to a draft or void bill.",
     "creditOverApplied": "Credit application exceeds remaining credit or bill outstanding.",
     "creditsSchemaPending": "Vendor credits are not available until the database schema is applied.",
+    "creditNotDraft": "Only draft vendor credits can be posted.",
+    "creditNotDraftEditable": "Only draft vendor credits can be edited.",
+    "creditLockedPendingApproval": "Amount and date are locked while approval is pending. Cancel the request or wait for a decision.",
+    "creditNotSilentlyEditable": "Posted vendor credits cannot be silently edited; void and replace, or apply remaining.",
+    "creditAlreadyVoid": "Vendor credit is already void.",
     "voidBill": "Cannot allocate a void bill.",
     "billNotRecognized": "Bill must be recognized before applying allocations.",
-    "noDraftAllocations": "No draft allocations to apply."
+    "noDraftAllocations": "No draft allocations to apply.",
+    "retentionInvalid": "Retention amount is invalid.",
+    "retentionExceedsTotal": "Retention cannot exceed the bill total.",
+    "retentionCannotIncrease": "Retention cannot be increased after post; record a new bill.",
+    "retentionNotReleasable": "Retention can only be released after the bill is posted.",
+    "retentionReleaseExceedsHeld": "Release cannot exceed held remaining.",
+    "retentionReleaseAmountInvalid": "Release amount must be positive.",
+    "retentionReleaseDateFuture": "Release date cannot be in the future."
   }
 }

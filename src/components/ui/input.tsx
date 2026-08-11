@@ -3,7 +3,7 @@ import { shouldForceLtrInput } from '@/shared/i18n/ltr-island';
 import { cn } from '@/shared/ui/cn';
 
 export const inputClassName = cn(
-  'block w-full rounded-md border bg-[var(--pf-bg-surface)] px-3 py-2 text-sm text-start',
+  'block min-h-11 w-full rounded-md border bg-[var(--pf-bg-surface)] px-3 py-2 text-sm text-start',
   'border-[var(--pf-border-strong)] text-[var(--pf-text-primary)]',
   'placeholder:text-[var(--pf-text-muted)]',
   'transition-colors duration-[var(--pf-motion-fast)]',

@@ -11,6 +11,7 @@ import {
   voidBillingRecord,
   voidPayment,
 } from '@/modules/billing';
+import { releaseBillingRecordRetention } from '@/modules/retention';
 import { withOrgContext } from '@/shared/auth/session';
 import { AppError, serializeError } from '@/shared/errors';
 import { redirect } from '@/shared/i18n/navigation';
@@ -45,6 +46,12 @@ export async function createBillingRecordAction(
     dueDate: formData.get('dueDate') ? String(formData.get('dueDate')) : null,
     reference: formData.get('reference') ? String(formData.get('reference')) : null,
     notes: formData.get('notes') ? String(formData.get('notes')) : null,
+    retentionAmount: formData.get('retentionAmount')
+      ? String(formData.get('retentionAmount'))
+      : null,
+    retentionPercent: formData.get('retentionPercent')
+      ? String(formData.get('retentionPercent'))
+      : null,
     changeOrderIds: changeOrderIds.length > 0 ? changeOrderIds : undefined,
     finalize: formData.get('finalize') === 'true',
   };
@@ -83,6 +90,12 @@ export async function updateBillingRecordAction(
         dueDate: formData.get('dueDate') ? String(formData.get('dueDate')) : null,
         reference: formData.get('reference') ? String(formData.get('reference')) : null,
         notes: formData.get('notes') ? String(formData.get('notes')) : null,
+        retentionAmount: formData.get('retentionAmount')
+          ? String(formData.get('retentionAmount'))
+          : undefined,
+        retentionPercent: formData.get('retentionPercent')
+          ? String(formData.get('retentionPercent'))
+          : undefined,
       }),
     );
     revalidatePath(`/billing/${billingRecordId}`);
@@ -195,4 +208,57 @@ export async function createAdjustmentAction(
   }
 
   return {};
+}
+
+export async function updateBillingRetentionAction(
+  _prev: BillingFormState,
+  formData: FormData,
+): Promise<BillingFormState> {
+  const tErrors = await getTranslations('errors');
+  const billingRecordId = String(formData.get('sourceId') ?? '');
+
+  try {
+    await withOrgContext((context) =>
+      updateBillingRecord(context, {
+        billingRecordId,
+        retentionAmount: formData.get('retentionAmount')
+          ? String(formData.get('retentionAmount'))
+          : null,
+        retentionPercent: formData.get('retentionPercent')
+          ? String(formData.get('retentionPercent'))
+          : null,
+      }),
+    );
+    revalidatePath(`/billing/${billingRecordId}`);
+    revalidatePath('/billing');
+    return {};
+  } catch (error) {
+    if (error instanceof AppError) return mapError(error, tErrors('validationFailed'));
+    throw error;
+  }
+}
+
+export async function releaseBillingRetentionAction(
+  _prev: BillingFormState,
+  formData: FormData,
+): Promise<BillingFormState> {
+  const tErrors = await getTranslations('errors');
+  const billingRecordId = String(formData.get('sourceId') ?? '');
+
+  try {
+    await withOrgContext((context) =>
+      releaseBillingRecordRetention(context, {
+        sourceId: billingRecordId,
+        amount: String(formData.get('amount') ?? ''),
+        releasedOn: String(formData.get('releasedOn') ?? ''),
+        notes: formData.get('notes') ? String(formData.get('notes')) : null,
+      }),
+    );
+    revalidatePath(`/billing/${billingRecordId}`);
+    revalidatePath('/billing');
+    return {};
+  } catch (error) {
+    if (error instanceof AppError) return mapError(error, tErrors('validationFailed'));
+    throw error;
+  }
 }

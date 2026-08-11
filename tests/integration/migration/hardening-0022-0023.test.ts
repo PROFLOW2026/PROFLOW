@@ -7,6 +7,7 @@ import {
   applyVendorCredit,
   createApBill,
   createVendorCredit,
+  postVendorCredit,
   enableApPaymentsPersistenceForTests,
   disableApPaymentsPersistenceForTests,
 } from '@/modules/ap';
@@ -220,11 +221,12 @@ describe('AP credit hardening (tenant FK + immutability + concurrency)', () => {
         currency: ILS,
         creditDate: '2026-08-02',
       });
-      // Open edit allowed
+      // Draft edit allowed
       await tx.execute(sql`
         UPDATE ap_vendor_credits SET amount = 1500, notes = 'adjusted'
         WHERE id = ${credit.id}::uuid AND organization_id = ${orgA.organization.id}::uuid
       `);
+      await postVendorCredit(context, credit.id);
       await applyVendorCredit(context, {
         creditId: credit.id,
         apBillId: bill.id,

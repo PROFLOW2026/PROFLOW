@@ -16,9 +16,14 @@ import {
   type MilestoneFormState,
 } from '../actions';
 
+type MilestoneListRow = Pick<
+  MilestoneRecord,
+  'id' | 'name' | 'targetDate' | 'status' | 'archivedAt'
+>;
+
 interface MilestonesPanelProps {
   projectId: string;
-  milestones: readonly MilestoneRecord[];
+  milestones: readonly MilestoneListRow[];
   canEdit: boolean;
   today: string;
 }

@@ -69,6 +69,7 @@ export {
   isShellAssetUrl,
   SENSITIVE_FINANCIAL_PATH_MARKERS,
   SHELL_CACHE_NAME,
+  SHELL_NAVIGATION_PRELOAD,
   SHELL_PRECACHE_URLS,
   shouldServeOfflineFallback,
   shouldUseCacheFirst,

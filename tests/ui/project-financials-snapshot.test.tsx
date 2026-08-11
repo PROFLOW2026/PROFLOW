@@ -23,7 +23,7 @@ function buildFinancials(): ProjectFinancials {
       currentContractValue: { amount: '100000.000000', currency },
       pendingChanges: zero,
     },
-    billing: { invoiced: zero, paid: zero, outstanding: zero },
+    billing: { invoiced: zero, paid: zero, outstanding: zero, monthCloseRevenueNet: zero },
     cost: {
       actualCostToDate: { amount: '25000.000000', currency },
       estimatedFinalCost: { amount: '25000.000000', currency },
@@ -39,6 +39,7 @@ function buildFinancials(): ProjectFinancials {
       committedOpen: zero,
       expectedRemainingCost: zero,
       openApPayable: zero,
+      monthCloseCostNet: zero,
     },
     profit: {
       estimatedProfit: { amount: '75000.000000', currency },

@@ -15,6 +15,8 @@ export const createApBillSchema = z.object({
   dueDate: z.string().trim().optional().nullable(),
   currency: z.string().trim().length(3),
   totalAmount: moneyString,
+  retentionAmount: moneyString.optional().nullable(),
+  retentionPercent: moneyString.optional().nullable(),
   notes: z.string().trim().max(2000).optional().nullable(),
   lines: z
     .array(
@@ -164,3 +166,19 @@ export const applyVendorCreditSchema = z.object({
 });
 
 export type ApplyVendorCreditInput = z.input<typeof applyVendorCreditSchema>;
+
+export const updateVendorCreditDraftSchema = z.object({
+  creditId: z.string().uuid(),
+  reference: z.string().trim().max(120).optional().nullable(),
+  creditDate: z.string().trim().min(10).max(10),
+  amount: moneyString,
+  notes: z.string().trim().max(2000).optional().nullable(),
+});
+
+export type UpdateVendorCreditDraftInput = z.input<typeof updateVendorCreditDraftSchema>;
+
+export const voidVendorCreditSchema = z.object({
+  creditId: z.string().uuid(),
+});
+
+export type VoidVendorCreditInput = z.input<typeof voidVendorCreditSchema>;

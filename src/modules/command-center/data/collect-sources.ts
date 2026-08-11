@@ -26,6 +26,22 @@ import { addDays, daysBetween, type BusinessDate } from '@/shared/dates';
 import type { ModuleVisibility } from '@/modules/tenancy/domain/types';
 import { withItemDefaults } from '../domain/ranking';
 import type { CommandCenterItem } from '../domain/types';
+import {
+  creditVoidIssueCopy,
+  expiringComplianceCopy,
+  fallbackWhere,
+  monthCloseIncompleteCopy,
+  openApprovalCopy,
+  openAttendanceCopy,
+  overBudgetCopy,
+  overdueArCopy,
+  overdueMaintenanceCopy,
+  overduePlanningCopy,
+  staleProjectCopy,
+  unallocatedEmployeeCostCopy,
+  unallocatedVendorBillCopy,
+  vendorBillDueCopy,
+} from '../domain/item-copy';
 
 const PER_SOURCE_CAP = 15;
 const STALE_PROJECT_DAYS = 14;
@@ -40,6 +56,10 @@ function moduleOn(modules: ModuleVisibility, key: keyof ModuleVisibility): boole
   return Boolean(modules[key]);
 }
 
+function localeOf(ctx: CollectContext): string {
+  return ctx.context.locale || 'he-IL';
+}
+
 export async function collectOverdueAr(ctx: CollectContext): Promise<CommandCenterItem[]> {
   if (!hasPermission(ctx.context, PERMISSIONS.BILLING_READ)) return [];
   if (!moduleOn(ctx.modules, 'billing') && !hasPermission(ctx.context, PERMISSIONS.BILLING_READ)) {
@@ -51,14 +71,21 @@ export async function collectOverdueAr(ctx: CollectContext): Promise<CommandCent
     limit: PER_SOURCE_CAP,
   });
 
+  const locale = localeOf(ctx);
   return records.map((record) => {
     const days = record.dueDate ? daysBetween(record.dueDate, ctx.today) : 0;
+    const copy = overdueArCopy(locale, {
+      reference: record.reference,
+      dueDate: record.dueDate,
+      outstanding: record.outstandingAmount.amount,
+      currency: record.outstandingAmount.currency,
+    });
     return withItemDefaults({
       sourceType: 'overdue_ar',
       sourceId: record.id,
-      what: record.reference ? `Collect ${record.reference}` : 'Collect overdue billing',
-      why: `Past due${record.dueDate ? ` since ${record.dueDate}` : ''} · outstanding ${record.outstandingAmount.amount} ${record.outstandingAmount.currency}`,
-      where: record.projectName ?? 'Billing',
+      what: copy.what,
+      why: copy.why,
+      where: record.projectName ?? fallbackWhere(locale, 'billing'),
       href: `/billing/${record.id}`,
       urgencyBump: Math.min(99, Math.max(0, days)),
       meta: {
@@ -83,13 +110,19 @@ export async function collectVendorBillsDue(ctx: CollectContext): Promise<Comman
     if (bill.dueDate >= ctx.today) continue;
 
     const days = daysBetween(bill.dueDate, ctx.today);
+    const copy = vendorBillDueCopy(localeOf(ctx), {
+      reference: bill.reference,
+      dueDate: bill.dueDate,
+      outstanding: bill.outstanding,
+      currency: bill.currency,
+    });
     items.push(
       withItemDefaults({
         sourceType: 'vendor_bill_due',
         sourceId: bill.billId,
-        what: bill.reference ? `Pay vendor bill ${bill.reference}` : 'Pay overdue vendor bill',
-        why: `Due ${bill.dueDate} · outstanding ${bill.outstanding} ${bill.currency}`,
-        where: bill.vendorName ?? 'Vendor bills',
+        what: copy.what,
+        why: copy.why,
+        where: bill.vendorName ?? fallbackWhere(localeOf(ctx), 'vendorBills'),
         href: `/procurement/ap/${bill.billId}`,
         urgencyBump: Math.min(99, Math.max(0, days)),
         meta: { dueDate: bill.dueDate, outstanding: bill.outstanding },
@@ -116,17 +149,19 @@ export async function collectOpenAttendance(ctx: CollectContext): Promise<Comman
     toDate: yesterday,
   });
 
-  return days.slice(0, PER_SOURCE_CAP).map((day) =>
-    withItemDefaults({
+  const locale = localeOf(ctx);
+  return days.slice(0, PER_SOURCE_CAP).map((day) => {
+    const copy = openAttendanceCopy(locale, day.workDate);
+    return withItemDefaults({
       sourceType: 'attendance_open',
       sourceId: day.id,
-      what: 'Close open attendance day',
-      why: `Attendance for ${day.workDate} is still open (no clock-out / not closed)`,
+      what: copy.what,
+      why: copy.why,
       where: day.employeeName,
       href: '/workforce/attendance',
       meta: { workDate: day.workDate, employeeId: day.employeeId },
-    }),
-  );
+    });
+  });
 }
 
 export async function collectUnallocatedEmployeeCost(
@@ -152,20 +187,26 @@ export async function collectUnallocatedEmployeeCost(
     )
     .limit(PER_SOURCE_CAP);
 
-  return rows.map((row) =>
-    withItemDefaults({
+  const locale = localeOf(ctx);
+  return rows.map((row) => {
+    const copy = unallocatedEmployeeCostCopy(locale, {
+      amount: row.unallocatedAmount,
+      currency: row.currency,
+      status: row.status,
+    });
+    return withItemDefaults({
       sourceType: 'unallocated_employee_cost',
       sourceId: row.id,
-      what: 'Allocate employee cost remainder',
-      why: `Unallocated ${row.unallocatedAmount} ${row.currency} on labor allocation (${row.status})`,
-      where: 'Workforce · employer cost',
+      what: copy.what,
+      why: copy.why,
+      where: fallbackWhere(locale, 'workforce'),
       href: '/workforce/employees',
       meta: {
         unallocated: row.unallocatedAmount,
         employeeMonthCostId: row.employeeMonthCostId,
       },
-    }),
-  );
+    });
+  });
 }
 
 export async function collectUnallocatedVendorBills(
@@ -183,13 +224,17 @@ export async function collectUnallocatedVendorBills(
     const outstanding = fromNumericString(bill.outstanding, bill.currency);
     if (!outstanding || isZeroMoney(outstanding)) continue;
 
+    const copy = unallocatedVendorBillCopy(localeOf(ctx), {
+      outstanding: bill.outstanding,
+      currency: bill.currency,
+    });
     items.push(
       withItemDefaults({
         sourceType: 'unallocated_vendor_bill',
         sourceId: bill.billId,
-        what: 'Assign vendor bill to a project',
-        why: `Posted bill with no project · ${bill.outstanding} ${bill.currency}`,
-        where: bill.vendorName ?? 'Vendor bills',
+        what: copy.what,
+        why: copy.why,
+        where: bill.vendorName ?? fallbackWhere(localeOf(ctx), 'vendorBills'),
         href: `/procurement/ap/${bill.billId}`,
         meta: { outstanding: bill.outstanding },
       }),
@@ -247,12 +292,18 @@ export async function collectProjectOverBudget(
     if (actualNum <= budgetNum) continue;
 
     const overBy = (actualNum - budgetNum).toFixed(2);
+    const copy = overBudgetCopy(localeOf(ctx), {
+      actual: actual.amount,
+      budget: budget.totalBudgetAmount,
+      currency: budget.currency,
+      overBy,
+    });
     items.push(
       withItemDefaults({
         sourceType: 'project_over_budget',
         sourceId: budget.id,
-        what: 'Review over-budget project',
-        why: `Actual ${actual.amount} exceeds budget ${budget.totalBudgetAmount} ${budget.currency} (over by ${overBy})`,
+        what: copy.what,
+        why: copy.why,
         where: nameByProject.get(budget.projectId) ?? budget.name,
         href: `/projects/${budget.projectId}/financials`,
         urgencyBump: Math.min(99, Math.floor(((actualNum - budgetNum) / Math.max(budgetNum, 1)) * 50)),
@@ -290,17 +341,23 @@ export async function collectOpenApprovals(ctx: CollectContext): Promise<Command
     )
     .limit(PER_SOURCE_CAP);
 
-  return rows.map((row) =>
-    withItemDefaults({
+  const locale = localeOf(ctx);
+  return rows.map((row) => {
+    const copy = openApprovalCopy(locale, {
+      entityType: row.entityType,
+      amount: row.amount,
+      currency: row.currency,
+    });
+    return withItemDefaults({
       sourceType: 'open_approval',
       sourceId: row.id,
-      what: 'Decide pending approval',
-      why: `${row.entityType} awaits decision${row.amount ? ` · ${row.amount} ${row.currency ?? ''}`.trimEnd() : ''}`,
-      where: 'Approvals',
+      what: copy.what,
+      why: copy.why,
+      where: fallbackWhere(locale, 'approvals'),
       href: '/approvals',
       meta: { entityType: row.entityType, entityId: row.entityId },
-    }),
-  );
+    });
+  });
 }
 
 export async function collectOverduePlanning(ctx: CollectContext): Promise<CommandCenterItem[]> {
@@ -342,17 +399,24 @@ export async function collectOverduePlanning(ctx: CollectContext): Promise<Comma
     for (const p of projectRows) projectNameById.set(p.id, p.name);
   }
 
-  return rows.map((row) =>
-    withItemDefaults({
+  const locale = localeOf(ctx);
+  return rows.map((row) => {
+    const copy = overduePlanningCopy(locale, {
+      kind: row.kind,
+      targetEndDate: row.targetEndDate ?? '',
+      progressPercent: String(row.progressPercent),
+    });
+    const projectName = projectNameById.get(row.projectId) ?? fallbackWhere(locale, 'project');
+    return withItemDefaults({
       sourceType: 'overdue_planning',
       sourceId: row.id,
-      what: row.kind === 'milestone' ? 'Update overdue milestone' : 'Update overdue plan item',
-      why: `Target end ${row.targetEndDate} · progress ${row.progressPercent}%`,
-      where: `${projectNameById.get(row.projectId) ?? 'Project'} · ${row.name}`,
+      what: copy.what,
+      why: copy.why,
+      where: `${projectName} · ${row.name}`,
       href: `/projects/${row.projectId}`,
       meta: { projectId: row.projectId, targetEndDate: row.targetEndDate },
-    }),
-  );
+    });
+  });
 }
 
 export async function collectExpiringCompliance(
@@ -366,23 +430,23 @@ export async function collectExpiringCompliance(
     (a) => a.status === 'expiring_soon' || a.status === 'expired',
   );
 
-  return actionable.slice(0, PER_SOURCE_CAP).map((artifact) =>
-    withItemDefaults({
+  const locale = localeOf(ctx);
+  return actionable.slice(0, PER_SOURCE_CAP).map((artifact) => {
+    const copy = expiringComplianceCopy(locale, {
+      status: artifact.status,
+      expiresOn: artifact.expiresOn,
+    });
+    return withItemDefaults({
       sourceType: 'expiring_compliance',
       sourceId: artifact.id,
-      what:
-        artifact.status === 'expired'
-          ? 'Renew expired compliance'
-          : 'Review expiring compliance',
-      why: artifact.expiresOn
-        ? `Expires ${artifact.expiresOn} · ${artifact.status}`
-        : artifact.status,
+      what: copy.what,
+      why: copy.why,
       where: artifact.name,
       href: `/compliance/${artifact.id}`,
       severity: artifact.status === 'expired' ? 'high' : 'medium',
       urgencyBump: artifact.status === 'expired' ? 40 : 10,
-    }),
-  );
+    });
+  });
 }
 
 export async function collectOverdueMaintenance(
@@ -393,17 +457,22 @@ export async function collectOverdueMaintenance(
 
   const schedule = await listMaintenanceScheduleForOrg(ctx.context);
 
-  return schedule.overdue.slice(0, PER_SOURCE_CAP).map((record) =>
-    withItemDefaults({
+  const locale = localeOf(ctx);
+  return schedule.overdue.slice(0, PER_SOURCE_CAP).map((record) => {
+    const copy = overdueMaintenanceCopy(locale, {
+      performedOn: record.performedOn,
+      status: record.status,
+    });
+    return withItemDefaults({
       sourceType: 'overdue_maintenance',
       sourceId: record.id,
-      what: 'Complete overdue maintenance',
-      why: `Scheduled ${record.performedOn ?? 'without date'} · status ${record.status}`,
-      where: record.assetName || 'Assets',
+      what: copy.what,
+      why: copy.why,
+      where: record.assetName || fallbackWhere(locale, 'assets'),
       href: '/assets/maintenance',
       meta: { assetId: record.assetId },
-    }),
-  );
+    });
+  });
 }
 
 export async function collectStaleProjects(ctx: CollectContext): Promise<CommandCenterItem[]> {
@@ -431,12 +500,13 @@ export async function collectStaleProjects(ctx: CollectContext): Promise<Command
     .orderBy(asc(projects.updatedAt))
     .limit(PER_SOURCE_CAP);
 
+  const copy = staleProjectCopy(localeOf(ctx), STALE_PROJECT_DAYS);
   return rows.map((row) =>
     withItemDefaults({
       sourceType: 'stale_project',
       sourceId: row.id,
-      what: 'Check inactive work',
-      why: `No updates for ${STALE_PROJECT_DAYS}+ days`,
+      what: copy.what,
+      why: copy.why,
       where: row.name,
       href: row.workKind === 'job' ? `/jobs/${row.id}` : `/projects/${row.id}`,
       meta: { updatedAt: row.updatedAt.toISOString() },
@@ -460,13 +530,14 @@ export async function collectCreditVoidIssues(ctx: CollectContext): Promise<Comm
       record.collectionStatus &&
       record.collectionStatus !== 'paid'
     ) {
+      const copy = creditVoidIssueCopy(localeOf(ctx), record.collectionStatus);
       items.push(
         withItemDefaults({
           sourceType: 'credit_void_issue',
           sourceId: record.id,
-          what: 'Resolve open credit note',
-          why: `Credit note collection is ${record.collectionStatus}`,
-          where: record.projectName ?? record.reference ?? 'Billing',
+          what: copy.what,
+          why: copy.why,
+          where: record.projectName ?? record.reference ?? fallbackWhere(localeOf(ctx), 'billing'),
           href: `/billing/${record.id}`,
           meta: { kind: record.kind, status: record.status },
         }),
@@ -504,14 +575,20 @@ export async function collectMonthCloseIncomplete(
     )
     .limit(PER_SOURCE_CAP);
 
+  const locale = localeOf(ctx);
   return rows.map((row) => {
     const pct = row.completenessPercent ?? '0';
+    const copy = monthCloseIncompleteCopy(locale, {
+      yearMonth: row.yearMonth,
+      status: row.status,
+      completenessPercent: pct,
+    });
     return withItemDefaults({
       sourceType: 'month_close_incomplete',
       sourceId: row.id,
-      what: `Complete month close ${row.yearMonth}`,
-      why: `Status ${row.status} · completeness ${pct}%`,
-      where: 'Month close',
+      what: copy.what,
+      why: copy.why,
+      where: fallbackWhere(locale, 'monthClose'),
       href: '/month-close',
       meta: { yearMonth: row.yearMonth, status: row.status, completeness: pct },
     });

@@ -8,7 +8,7 @@ import { getHomeDashboard, parseWorkKindFilter } from '@/modules/financials';
 import { HomeDashboardContent } from '@/modules/financials/ui';
 import { WorkKindFilterChrome } from '@/modules/financials/ui/work-kind-filter-chrome';
 import { PwaInstallCta } from '@/modules/offline/ui/pwa-install-cta';
-import { getSessionState, getShellContext, withOrgContext } from '@/shared/auth/session';
+import { getSessionState, withOrgContext } from '@/shared/auth/session';
 import { redirect } from '@/shared/i18n/navigation';
 import { WithClientMessages } from '@/shared/i18n/with-client-messages';
 import { DashboardSkeleton } from './(app)/(home)/dashboard-skeleton';
@@ -19,13 +19,9 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const { locale } = await params;
-  const session = await getSessionState();
-
-  if (session.status === 'authenticated' && session.activeOrganizationId) {
-    const t = await getTranslations({ locale, namespace: 'dashboard' });
-    return { title: t('title') };
-  }
-
+  // Do not await the session here — it serializes first HTML (PWA splash)
+  // behind Auth. `/[locale]` is the public homepage URL; signed-in title
+  // is set by the dashboard heading itself.
   const t = await getTranslations({ locale, namespace: 'marketing' });
   const title = t('meta.title');
   const description = t('meta.description');
@@ -90,25 +86,32 @@ export default async function LocaleRootPage({
     );
   }
 
-
   if (!session.activeOrganizationId) {
     redirect({ href: '/onboarding', locale });
   }
 
   return (
     <AppShell>
-      <AuthenticatedDashboardHome workKind={query.workKind} />
+      <AuthenticatedDashboardHome
+        workKind={query.workKind}
+        displayName={session.user.displayName}
+      />
     </AppShell>
   );
 }
 
-async function AuthenticatedDashboardHome({ workKind }: { workKind?: string }) {
-  const [t, tCommon, shell] = await Promise.all([
+async function AuthenticatedDashboardHome({
+  workKind,
+  displayName,
+}: {
+  workKind?: string;
+  displayName: string | null;
+}) {
+  const [t, tCommon] = await Promise.all([
     getTranslations('dashboard'),
     getTranslations('common'),
-    getShellContext(),
   ]);
-  const name = shell?.user.displayName;
+  const name = displayName;
   const workKindFilter = parseWorkKindFilter(workKind);
 
   return (

@@ -16,6 +16,7 @@ export {
   isApprovalEntityType,
   isApprovalStatus,
   approvalStatusShape,
+  approvalCoversAmount,
 } from './domain/rules';
 
 export {
@@ -37,6 +38,7 @@ export {
   listPendingApprovals,
   listApprovalRequests,
   getApprovalRequest,
+  getLatestApprovalForEntity,
 } from './application/queries';
 
 export {

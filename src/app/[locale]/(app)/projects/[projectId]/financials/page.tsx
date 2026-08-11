@@ -1,11 +1,10 @@
 import type { Metadata } from 'next';
-import { cache } from 'react';
 import { getTranslations } from 'next-intl/server';
 import { PageHeader } from '@/components/ui/page-header';
 import { ProjectFinancialsPanel } from '@/modules/financials/ui';
-import { getProjectDetail } from '@/modules/projects';
 import { Link } from '@/shared/i18n/navigation';
-import { withOrgContext } from '@/shared/auth/session';
+import { loadProjectDetail } from '../load-project-detail';
+import { loadProjectFinancials } from '../load-project-financials';
 import { ProjectFinancialsExportLink } from './project-financials-export-link';
 import { textNavLinkClassName } from '@/components/ui/pressable';
 import { cn } from '@/shared/ui/cn';
@@ -14,16 +13,11 @@ interface ProjectFinancialsPageProps {
   params: Promise<{ projectId: string; locale: string }>;
 }
 
-/** Dedupes metadata + page detail fetch; chrome-only (no structure rows). */
-const loadProjectDetail = cache(async (projectId: string) =>
-  withOrgContext((context) => getProjectDetail(context, projectId, { includeStructure: false })),
-);
-
 export async function generateMetadata({ params }: ProjectFinancialsPageProps): Promise<Metadata> {
   const { locale, projectId } = await params;
   const t = await getTranslations({ locale, namespace: 'financial' });
 
-  const detail = await loadProjectDetail(projectId);
+  const detail = await loadProjectDetail(projectId, false);
 
   return {
     title: `${t('currentContractValue')} — ${detail.project.name}`,
@@ -34,7 +28,11 @@ export default async function ProjectFinancialsPage({ params }: ProjectFinancial
   const { projectId } = await params;
   const tCommon = await getTranslations('common');
 
-  const detail = await loadProjectDetail(projectId);
+  const [detail] = await Promise.all([
+    loadProjectDetail(projectId, false),
+    // Warm request-scoped financials so the panel does not start compose cold.
+    loadProjectFinancials(projectId).catch(() => null),
+  ]);
 
   return (
     <div className="flex min-w-0 max-w-full flex-col gap-6">

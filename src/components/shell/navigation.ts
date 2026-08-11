@@ -29,6 +29,7 @@ export const NAV_ICON_KEYS = [
   'jobs',
   'expenses',
   'billing',
+  'recurringDrafts',
   'changes',
   'clients',
   'vendors',
@@ -99,7 +100,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
     iconKey: 'today',
     permission: PERMISSIONS.COMMAND_CENTER_READ,
     module: 'command_center',
-    /** Owner inbox — promote when module on; mobile bar still caps at 4. */
+    /** Today inbox — promote when module on; mobile bar still caps at 4. */
     primaryOnMobile: true,
   },
   {
@@ -169,6 +170,21 @@ export const NAV_ITEMS: readonly NavItem[] = [
     iconKey: 'billing',
     permission: PERMISSIONS.BILLING_READ,
     module: 'billing',
+    moreGroup: 'business',
+  },
+  {
+    key: 'recurringDrafts',
+    href: '/recurring-drafts',
+    labelKey: 'recurringDrafts',
+    iconKey: 'recurringDrafts',
+    anyPermissions: [
+      PERMISSIONS.EXPENSES_READ,
+      PERMISSIONS.EXPENSES_CREATE,
+      PERMISSIONS.AP_READ,
+      PERMISSIONS.AP_MANAGE,
+      PERMISSIONS.BILLING_READ,
+      PERMISSIONS.BILLING_MANAGE,
+    ],
     moreGroup: 'business',
   },
   {
@@ -326,7 +342,6 @@ export const NAV_ITEMS: readonly NavItem[] = [
     labelKey: 'monthClose',
     iconKey: 'monthClose',
     permission: PERMISSIONS.MONTH_CLOSE_READ,
-    module: 'month_close',
     moreGroup: 'advanced',
   },
   {

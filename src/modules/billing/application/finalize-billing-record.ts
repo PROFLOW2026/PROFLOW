@@ -5,6 +5,8 @@ import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { assertFinalizable } from '../domain/lifecycle';
 import { captureTaxSnapshot } from '../domain/tax';
+import { money } from '@/shared/money';
+import { heldRemainingOnPost } from '@/modules/retention';
 import { findBillingRecordById, updateBillingRecordRow } from '../data/billing.repository';
 
 const BILLING_AUDIT_FINALIZED = 'billing_record.finalized';
@@ -32,6 +34,9 @@ export async function finalizeBillingRecord(context: OrgContext, billingRecordId
     status: 'finalized',
     finalizedAt,
     taxSnapshot,
+    retentionHeldRemaining: heldRemainingOnPost(
+      existing.retentionAmount ?? money('0', existing.totalAmount.currency),
+    ),
   });
 
   await recordAuditEvent(context, {

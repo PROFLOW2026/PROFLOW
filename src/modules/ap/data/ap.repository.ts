@@ -114,6 +114,24 @@ export async function updateApBillStatus(
   return row ?? null;
 }
 
+export async function updateApBillFields(
+  db: DbExecutor,
+  organizationId: string,
+  id: string,
+  patch: {
+    readonly status?: ApBillStatus;
+    readonly retentionAmount?: string;
+    readonly retentionHeldRemaining?: string;
+  },
+): Promise<ApBillRow | null> {
+  const [row] = await db
+    .update(apBills)
+    .set({ ...patch, updatedAt: new Date() })
+    .where(and(eq(apBills.id, id), eq(apBills.organizationId, organizationId)))
+    .returning();
+  return row ?? null;
+}
+
 export async function insertApPoMatch(
   db: DbExecutor,
   values: typeof apPoMatches.$inferInsert,

@@ -1,5 +1,7 @@
 'use server';
 
+import 'server-only';
+
 import {
   createChangeRequest,
   getChangeRequestDetail,
@@ -62,8 +64,6 @@ import {
   timeEntries,
 } from '@drizzle/schema';
 import { OfflineSyncSubmitError } from '../domain/sync-submit-error';
-
-export { OfflineSyncSubmitError };
 
 function toIso(value: Date | string): string {
   if (value instanceof Date) return value.toISOString();

@@ -1,8 +1,5 @@
-import {
-  listAuditEventSummaries,
-  type AuditEventSummary,
-  type AuditListResult,
-} from '@/shared/audit';
+import { listAuditEventSummaries } from '@/shared/audit';
+import type { AuditEventSummary, AuditListResult } from '@/shared/audit/types';
 import type { OrgContext } from '@/shared/auth/context';
 
 export type { AuditEventSummary, AuditListResult };

@@ -12,7 +12,7 @@ import {
   uniqueIndex,
   uuid,
 } from 'drizzle-orm/pg-core';
-import { archivedAt, primaryId, quantityAmount, timestamps } from './_shared';
+import { archivedAt, currencyCode, moneyAmount, primaryId, quantityAmount, timestamps } from './_shared';
 import { organizations } from './tenancy';
 import { profiles } from './identity';
 
@@ -214,6 +214,92 @@ export const recurringFinancialDrafts = pgTable(
     check(
       'recurring_financial_drafts_status_known',
       sql`${table.status} IN ('active', 'paused', 'ended')`,
+    ),
+  ],
+);
+
+/**
+ * Immutable generation history. Each run creates a DRAFT entity only.
+ */
+export const recurringFinancialDraftRuns = pgTable(
+  'recurring_financial_draft_runs',
+  {
+    id: primaryId(),
+    organizationId: uuid('organization_id')
+      .notNull()
+      .references(() => organizations.id, { onDelete: 'cascade' }),
+    draftId: uuid('draft_id').notNull(),
+    runDate: date('run_date').notNull(),
+    generatedEntityType: text('generated_entity_type').notNull(),
+    generatedEntityId: uuid('generated_entity_id').notNull(),
+    notes: text('notes'),
+    ...timestamps(),
+  },
+  (table) => [
+    uniqueIndex('recurring_financial_draft_runs_id_organization_id_uq').on(
+      table.id,
+      table.organizationId,
+    ),
+    uniqueIndex('recurring_financial_draft_runs_draft_date_uq').on(
+      table.organizationId,
+      table.draftId,
+      table.runDate,
+    ),
+    uniqueIndex('recurring_financial_draft_runs_entity_uq').on(
+      table.organizationId,
+      table.generatedEntityType,
+      table.generatedEntityId,
+    ),
+    index('recurring_financial_draft_runs_org_draft_idx').on(table.organizationId, table.draftId),
+    check(
+      'recurring_financial_draft_runs_type_known',
+      sql`${table.generatedEntityType} IN ('expense', 'vendor_bill', 'billing_record')`,
+    ),
+  ],
+);
+
+/**
+ * Immutable retention release events. Held remaining is decremented by trigger.
+ * Releases are cash-timing only — they do not change recognized Actual / invoiced.
+ */
+export const retentionReleases = pgTable(
+  'retention_releases',
+  {
+    id: primaryId(),
+    organizationId: uuid('organization_id')
+      .notNull()
+      .references(() => organizations.id, { onDelete: 'cascade' }),
+    side: text('side').notNull(),
+    sourceType: text('source_type').notNull(),
+    sourceId: uuid('source_id').notNull(),
+    amount: moneyAmount('amount').notNull(),
+    currency: currencyCode().notNull(),
+    releasedOn: date('released_on').notNull(),
+    notes: text('notes'),
+    createdByUserId: uuid('created_by_user_id').references(() => profiles.id, {
+      onDelete: 'set null',
+    }),
+    ...timestamps(),
+  },
+  (table) => [
+    uniqueIndex('retention_releases_id_organization_id_uq').on(table.id, table.organizationId),
+    index('retention_releases_org_source_idx').on(
+      table.organizationId,
+      table.sourceType,
+      table.sourceId,
+    ),
+    check('retention_releases_side_known', sql`${table.side} IN ('ap', 'ar')`),
+    check(
+      'retention_releases_source_known',
+      sql`${table.sourceType} IN ('vendor_bill', 'billing_record')`,
+    ),
+    check('retention_releases_amount_positive', sql`${table.amount} > 0`),
+    check(
+      'retention_releases_side_source_match',
+      sql`(
+        (${table.side} = 'ap' AND ${table.sourceType} = 'vendor_bill')
+        OR (${table.side} = 'ar' AND ${table.sourceType} = 'billing_record')
+      )`,
     ),
   ],
 );

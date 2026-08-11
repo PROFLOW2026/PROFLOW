@@ -29,8 +29,9 @@ export default async function ExpensesPage({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const [t, locale, rawParams] = await Promise.all([
+  const [t, tNavFrom, locale, rawParams] = await Promise.all([
     getTranslations('expenses'),
+    getTranslations('recurringDrafts').then((tr) => tr('navFromSource')),
     getLocale(),
     searchParams,
   ]);
@@ -66,12 +67,17 @@ export default async function ExpensesPage({
         title={t('title')}
         description={t('subtitle')}
         actions={
-          <Button asChild>
-            <Link href="/expenses/new">
-              <Plus aria-hidden />
-              {t('actions.add')}
-            </Link>
-          </Button>
+          <div className="flex max-w-full flex-wrap gap-2">
+            <Button asChild variant="secondary" className="max-w-full">
+              <Link href="/recurring-drafts?kind=expense">{tNavFrom}</Link>
+            </Button>
+            <Button asChild>
+              <Link href="/expenses/new">
+                <Plus aria-hidden />
+                {t('actions.add')}
+              </Link>
+            </Button>
+          </div>
         }
       />
 

@@ -10,11 +10,10 @@ import { negateMoney } from '@/shared/money';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { getProjectCashFlowOutlook } from '../application/get-project-cash-flow';
-import { getProjectFinancials } from '../application/get-project-financials';
+import { loadCachedProjectFinancials } from './load-cached-project-financials';
 import { CashFlowView } from './cash-flow-view';
 import { mapCoverageToSources, standalonePartialNotes } from './map-coverage-sources';
 import { ProjectFinancialsKpiPanel } from './project-financials-kpi-panel';
-import { ProjectFinancialsSnapshotView } from './project-financials-snapshot-view';
 import { ExpectedRemainingCostForm } from './expected-remaining-cost-form';
 
 export interface ProjectFinancialsPanelProps {
@@ -28,14 +27,11 @@ export interface ProjectFinancialsPanelProps {
 export async function ProjectFinancialsPanel({ projectId }: ProjectFinancialsPanelProps) {
   const t = await getTranslations('financial');
 
-  const { financials, cashFlow, canReadProfit, canReadBilling, canReadCommercial, canUpdateProject, canReadAp } =
-    await withOrgContext(async (context) => {
-      const [financialsResult, cashFlowResult] = await Promise.all([
-        getProjectFinancials(context, projectId),
-        getProjectCashFlowOutlook(context, projectId),
-      ]);
+  const [financials, extras] = await Promise.all([
+    loadCachedProjectFinancials(projectId),
+    withOrgContext(async (context) => {
+      const cashFlowResult = await getProjectCashFlowOutlook(context, projectId);
       return {
-        financials: financialsResult,
         cashFlow: cashFlowResult,
         canReadProfit: hasPermission(context, PERMISSIONS.PROJECT_PROFIT_READ),
         canReadBilling: hasPermission(context, PERMISSIONS.BILLING_READ),
@@ -43,7 +39,10 @@ export async function ProjectFinancialsPanel({ projectId }: ProjectFinancialsPan
         canUpdateProject: hasPermission(context, PERMISSIONS.PROJECTS_UPDATE),
         canReadAp: hasPermission(context, PERMISSIONS.AP_READ),
       };
-    });
+    }),
+  ]);
+  const { cashFlow, canReadProfit, canReadBilling, canReadCommercial, canUpdateProject, canReadAp } =
+    extras;
 
   const coverageSources = mapCoverageToSources(financials.coverage, t);
   const hasCostPartials = (financials.coverage.partials?.length ?? 0) > 0;
@@ -95,7 +94,7 @@ export async function ProjectFinancialsPanel({ projectId }: ProjectFinancialsPan
         <summary
           className={cn(
             pressableClassName,
-            'cursor-pointer text-sm font-medium text-[var(--pf-text-brand)] active:scale-100 active:opacity-80',
+            'inline-flex min-h-11 cursor-pointer items-center text-sm font-medium text-[var(--pf-text-brand)] active:scale-100 active:opacity-80',
           )}
         >
           {t('moreInfo')}
@@ -234,36 +233,7 @@ export async function ProjectFinancialsPanel({ projectId }: ProjectFinancialsPan
   );
 }
 
-/**
- * Compact financial snapshot for the project Overview tab.
- * Returns null when the viewer lacks project financials permission.
- */
-export async function ProjectFinancialsSnapshot({ projectId }: ProjectFinancialsPanelProps) {
-  const payload = await withOrgContext(async (context) => {
-    if (!hasPermission(context, PERMISSIONS.PROJECT_FINANCIALS_READ)) {
-      return null;
-    }
-
-    return {
-      financials: await getProjectFinancials(context, projectId),
-      canReadProfit: hasPermission(context, PERMISSIONS.PROJECT_PROFIT_READ),
-    };
-  });
-
-  if (!payload) {
-    return null;
-  }
-
-  const t = await getTranslations('financial');
-
-  return (
-    <ProjectFinancialsSnapshotView
-      financials={payload.financials}
-      canReadProfit={payload.canReadProfit}
-      t={t}
-    />
-  );
-}
+export { ProjectFinancialsSnapshot } from './project-financials-snapshot';
 
 function MetricRow({
   label,

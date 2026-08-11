@@ -16,8 +16,21 @@ import {
 } from '@/modules/expenses';
 import { promoteVendorFromTransaction } from '@/modules/vendors';
 import { withOrgContext } from '@/shared/auth/session';
-import { AppError, ValidationError, serializeError } from '@/shared/errors';
+import { AppError, DomainRuleError, ValidationError, serializeError } from '@/shared/errors';
 import { redirect } from '@/shared/i18n/navigation';
+
+async function mapMonthCloseError(error: unknown): Promise<ExpenseActionState | null> {
+  if (!(error instanceof DomainRuleError) || !error.messageKey.startsWith('monthClose.')) {
+    return null;
+  }
+  const tMonthClose = await getTranslations('monthClose');
+  const key = error.messageKey.replace(/^monthClose\./, '');
+  try {
+    return { error: tMonthClose(key as 'errors.monthClosed') };
+  } catch {
+    return { error: error.message };
+  }
+}
 
 export interface ExpenseActionState {
   ok?: boolean;
@@ -96,6 +109,8 @@ export async function createExpenseAction(
       }
       return { error: tErrors('validationFailed') };
     }
+    const closed = await mapMonthCloseError(error);
+    if (closed) return closed;
     if (error instanceof AppError) {
       return { error: tErrors(serializeError(error).messageKey.replace('errors.', '') as 'validationFailed') };
     }
@@ -136,6 +151,8 @@ export async function updateExpenseAction(
       }
       return { error: tErrors('validationFailed') };
     }
+    const closed = await mapMonthCloseError(error);
+    if (closed) return closed;
     if (error instanceof AppError) {
       return { error: tErrors('unexpected') };
     }
@@ -152,6 +169,8 @@ export async function finalizeExpenseAction(expenseId: string): Promise<ExpenseA
     revalidatePath(`/expenses/${expenseId}`);
     return { ok: true, expenseId };
   } catch (error) {
+    const closed = await mapMonthCloseError(error);
+    if (closed) return closed;
     if (error instanceof AppError) {
       return { error: tErrors('unexpected') };
     }
@@ -168,6 +187,8 @@ export async function voidExpenseAction(expenseId: string): Promise<ExpenseActio
     revalidatePath(`/expenses/${expenseId}`);
     return { ok: true, expenseId };
   } catch (error) {
+    const closed = await mapMonthCloseError(error);
+    if (closed) return closed;
     if (error instanceof AppError) {
       return { error: tErrors('unexpected') };
     }
@@ -186,6 +207,8 @@ export async function reverseExpenseAction(expenseId: string): Promise<ExpenseAc
     revalidatePath(`/expenses/${reversal.id}`);
     redirect({ href: `/expenses/${reversal.id}`, locale });
   } catch (error) {
+    const closed = await mapMonthCloseError(error);
+    if (closed) return closed;
     if (error instanceof AppError) {
       return { error: tErrors('unexpected') };
     }
@@ -224,6 +247,8 @@ export async function correctExpenseAction(
     revalidatePath(`/expenses/${replacement.id}`);
     redirect({ href: `/expenses/${replacement.id}`, locale });
   } catch (error) {
+    const closed = await mapMonthCloseError(error);
+    if (closed) return closed;
     if (error instanceof AppError) {
       return { error: tErrors('unexpected') };
     }
@@ -253,6 +278,8 @@ export async function promoteExpenseVendorAction(
     revalidatePath(`/vendors/${result.vendor.id}`);
     return { ok: true, expenseId };
   } catch (error) {
+    const closed = await mapMonthCloseError(error);
+    if (closed) return closed;
     if (error instanceof AppError) {
       return { error: tErrors('unexpected') };
     }

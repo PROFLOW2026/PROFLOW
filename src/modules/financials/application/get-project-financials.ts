@@ -14,6 +14,7 @@ import {
   sumOpenCommittedCostsForProject,
 } from '../data/committed-costs.repository';
 import { loadProjectExpenseContributions } from '../data/expenses.repository';
+import { loadMonthCloseEconomicForProject } from '../data/month-close-economic.repository';
 import {
   assertProjectInOrg,
   findProjectForecastInputs,
@@ -53,6 +54,7 @@ export async function getProjectFinancials(
     committedResult,
     apResult,
     recognizedVendorResult,
+    monthCloseEconomic,
   ] = await Promise.all([
     canReadCommercial
       ? loadProjectCommercialData(context.db, context.organizationId, projectId)
@@ -103,6 +105,12 @@ export async function getProjectFinancials(
           currency,
         )
       : Promise.resolve(null),
+    loadMonthCloseEconomicForProject(
+      context.db,
+      context.organizationId,
+      projectId,
+      currency,
+    ),
   ]);
 
   return composeProjectFinancials({
@@ -121,5 +129,6 @@ export async function getProjectFinancials(
     committed: committedResult,
     openAp: apResult,
     recognizedVendor: recognizedVendorResult,
+    monthCloseEconomic,
   });
 }

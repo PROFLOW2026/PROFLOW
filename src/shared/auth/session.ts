@@ -19,6 +19,7 @@ import {
 import {
   getModuleVisibility,
   getQuickCreateEmphasisForOrg,
+  getSuggestedDefaultsForOrg,
   getWorkMixForOrg,
   listMembershipsForUser,
   resolveOrgContext,
@@ -170,10 +171,11 @@ export const getShellContext = cache(async () => {
 
   try {
     return await runInOrgContext(session.user.id, session.activeOrganizationId, async (context) => {
-      const [modules, workMix, quickCreateEmphasis] = await Promise.all([
+      const [modules, workMix, quickCreateEmphasis, suggestedDefaults] = await Promise.all([
         getModuleVisibility(context),
         getWorkMixForOrg(context),
         getQuickCreateEmphasisForOrg(context.db, context.organizationId),
+        getSuggestedDefaultsForOrg(context.db, context.organizationId),
       ]);
       return {
         user: session.user,
@@ -185,6 +187,7 @@ export const getShellContext = cache(async () => {
         modules,
         workMix,
         quickCreateEmphasis,
+        suggestedDefaults,
       };
     });
   } catch (error) {

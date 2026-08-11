@@ -55,6 +55,9 @@ export const billingRecords = pgTable(
     subtotalAmount: moneyAmount('subtotal_amount').notNull(),
     taxAmount: moneyAmount('tax_amount'),
     totalAmount: moneyAmount('total_amount').notNull(),
+    /** Held cash timing — does NOT reduce recognized invoiced. */
+    retentionAmount: moneyAmount('retention_amount').notNull().default('0'),
+    retentionHeldRemaining: moneyAmount('retention_held_remaining').notNull().default('0'),
     currency: currencyCode().notNull(),
     /** Frozen at finalization (G1). */
     taxSnapshot: jsonb('tax_snapshot'),
@@ -80,6 +83,13 @@ export const billingRecords = pgTable(
     uniqueIndex('billing_records_org_reference_uq')
       .on(table.organizationId, table.reference)
       .where(sql`${table.reference} is not null`),
+    check(
+      'billing_records_retention_range',
+      sql`${table.retentionAmount} >= 0
+        AND ${table.retentionHeldRemaining} >= 0
+        AND ${table.retentionHeldRemaining} <= ${table.retentionAmount}
+        AND ${table.retentionAmount} <= ${table.totalAmount}`,
+    ),
   ],
 );
 

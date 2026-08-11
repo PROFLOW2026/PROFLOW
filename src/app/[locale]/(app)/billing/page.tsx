@@ -43,10 +43,11 @@ export default async function BillingListPage({
   params: Promise<{ locale: string }>;
   searchParams: Promise<{ filter?: string }>;
 }) {
-  const [{ locale }, search, t] = await Promise.all([
+  const [{ locale }, search, t, tRecurring] = await Promise.all([
     params,
     searchParams,
     getTranslations('billing'),
+    getTranslations('recurringDrafts').then((tr) => tr('navFromSource')),
   ]);
   const rawFilter = search.filter;
   const filter = (FILTERS.includes(rawFilter as BillingListFilter) ? rawFilter : 'all') as BillingListFilter;
@@ -123,16 +124,21 @@ export default async function BillingListPage({
         title={t('title')}
         description={t('subtitle')}
         actions={
-          canManage ? (
-            <div className="flex max-w-full flex-wrap gap-2">
-              <Button asChild variant="secondary" className="max-w-full">
-                <Link href="/billing/payments/new">{t('paymentForm.title')}</Link>
-              </Button>
-              <Button asChild className="max-w-full">
-                <Link href="/billing/new">{t('panel.addBilling')}</Link>
-              </Button>
-            </div>
-          ) : undefined
+          <div className="flex max-w-full flex-wrap gap-2">
+            <Button asChild variant="secondary" className="max-w-full">
+              <Link href="/recurring-drafts?kind=billing_record">{tRecurring}</Link>
+            </Button>
+            {canManage ? (
+              <>
+                <Button asChild variant="secondary" className="max-w-full">
+                  <Link href="/billing/payments/new">{t('paymentForm.title')}</Link>
+                </Button>
+                <Button asChild className="max-w-full">
+                  <Link href="/billing/new">{t('panel.addBilling')}</Link>
+                </Button>
+              </>
+            ) : null}
+          </div>
         }
       />
       <p className="text-xs text-[var(--pf-text-muted)]">{t('statutoryDisclosure')}</p>

@@ -14,10 +14,12 @@ Source baseline: `docs/performance/LIVE-VERIFICATION.json` (2026-08-10 productio
 - Prefetch-on-intent already on project list / dashboard recent
 
 **Still toward &lt;700ms (realistic next):**
-- Nested Suspense: schedule/contract first, milestones panel own fetch
-- Slimmer WP/phase rows for schedule-only overview (avoid full structure DTO)
-- Coalesce panel `withOrgContext` txs (R2 in PERFORMANCE-AUDIT)
-- Avoid re-shipping large layout Flight on soft-nav where possible
+- Nested Suspense: schedule/contract first, milestones panel own fetch — **done in Agent 6** (`docs/performance/AGENT6-OPEN-PROJECT.md`)
+- Slimmer WP/phase rows for schedule-only overview (avoid full structure DTO) — structure no longer blocks contract cards; WP rows stay server-side for schedule
+- Coalesce panel `withOrgContext` txs (R2 in PERFORMANCE-AUDIT) — chrome ∥ structure/count; request-cached financials wrapper
+- Avoid re-shipping large layout Flight on soft-nav where possible (shared `(app)` sibling still residual)
+
+**Agent 6 (2026-08-11):** code-path only; expected repeated open **~650–800ms** if chrome commits before structure/compose. Lead re-measure: `tests/e2e/authenticated/performance-verify.spec.ts` flow C.
 
 ## Other surfaces (baseline — not re-instrumented overnight)
 

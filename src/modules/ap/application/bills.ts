@@ -4,7 +4,7 @@ import { DomainRuleError, NotFoundError, ValidationError } from '@/shared/errors
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { noteModuleUsage } from '@/modules/tenancy';
-import { addMoney, money, moneyEquals, zeroMoney } from '@/shared/money';
+import { addMoney, money, moneyEquals, toNumericString, zeroMoney } from '@/shared/money';
 import { todayInTimeZone } from '@/shared/dates';
 import { findProjectById } from '@/modules/projects';
 import {
@@ -39,12 +39,17 @@ import {
   listApBills,
   listApPoMatchesForBill,
   listReservedMatchAmountsForBill,
-  updateApBillStatus,
+  updateApBillFields,
   type ApBillListItem,
   type ApBillLineRow,
   type ApBillRow,
   type ApPoMatchRow,
 } from '../data/ap.repository';
+import {
+  heldRemainingOnPost,
+  resolveRetentionCapture,
+  updateDraftRetentionSchema,
+} from '@/modules/retention';
 import { createApBillSchema, type CreateApBillInput } from '../validation/schemas';
 
 async function consumePoCommitmentForPostedBill(
@@ -257,6 +262,17 @@ export async function createApBill(context: OrgContext, raw: CreateApBillInput) 
   });
   const initialStatus = matchingApproval ? 'draft' : 'open';
 
+  const retention = resolveRetentionCapture({
+    totalAmount: input.totalAmount,
+    currency: input.currency,
+    retentionAmount: input.retentionAmount,
+    retentionPercent: input.retentionPercent,
+    side: 'ap',
+  });
+  const retentionAmount = toNumericString(retention);
+  const retentionHeldRemaining =
+    initialStatus === 'open' ? heldRemainingOnPost(retention) : toNumericString(money('0', input.currency));
+
   const bill = await insertApBill(context.db, {
     organizationId: context.organizationId,
     vendorId: input.vendorId,
@@ -268,6 +284,8 @@ export async function createApBill(context: OrgContext, raw: CreateApBillInput) 
     dueDate: input.dueDate ?? null,
     currency: input.currency.toUpperCase(),
     totalAmount: input.totalAmount,
+    retentionAmount,
+    retentionHeldRemaining,
     notes: input.notes ?? null,
   });
 
@@ -352,7 +370,10 @@ export async function postApBill(context: OrgContext, billId: string): Promise<A
     submitIfMissing: true,
   });
 
-  const updated = await updateApBillStatus(context.db, context.organizationId, bill.id, 'open');
+  const updated = await updateApBillFields(context.db, context.organizationId, bill.id, {
+    status: 'open',
+    retentionHeldRemaining: bill.retentionAmount,
+  });
   if (!updated) throw new NotFoundError('AP bill');
 
   if (updated.purchaseOrderId) {
@@ -372,5 +393,51 @@ export async function postApBill(context: OrgContext, billId: string): Promise<A
     },
   });
 
+  return updated;
+}
+
+/**
+ * Draft-only retention edit. Posted bills cannot increase retention;
+ * releases are the only post-post path that changes held remaining.
+ */
+export async function updateDraftApBillRetention(
+  context: OrgContext,
+  raw: { billId: string; retentionAmount?: string | null; retentionPercent?: string | null },
+): Promise<ApBillRow> {
+  assertPermission(context, PERMISSIONS.AP_MANAGE);
+
+  const parsed = updateDraftRetentionSchema.safeParse({
+    sourceId: raw.billId,
+    retentionAmount: raw.retentionAmount,
+    retentionPercent: raw.retentionPercent,
+  });
+  if (!parsed.success) {
+    throw new ValidationError(
+      parsed.error.issues.map((issue) => ({ path: issue.path.join('.'), message: issue.message })),
+    );
+  }
+
+  const bill = await findApBillById(context.db, context.organizationId, parsed.data.sourceId);
+  if (!bill || bill.archivedAt) throw new NotFoundError('AP bill');
+  if (bill.status !== 'draft') {
+    throw new DomainRuleError(
+      'Recognized vendor bills cannot be silently edited; void and replace, or apply a credit',
+      'ap.errors.billNotSilentlyEditable',
+    );
+  }
+
+  const retention = resolveRetentionCapture({
+    totalAmount: bill.totalAmount,
+    currency: bill.currency,
+    retentionAmount: parsed.data.retentionAmount,
+    retentionPercent: parsed.data.retentionPercent,
+    side: 'ap',
+  });
+
+  const updated = await updateApBillFields(context.db, context.organizationId, bill.id, {
+    retentionAmount: toNumericString(retention),
+    retentionHeldRemaining: toNumericString(money('0', bill.currency)),
+  });
+  if (!updated) throw new NotFoundError('AP bill');
   return updated;
 }

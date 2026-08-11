@@ -6,8 +6,10 @@ import type { OrgContext } from '@/shared/auth/context';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import type { AuditAction } from './actions';
+import type { AuditListResult } from './types';
 
 export { AUDIT_ACTIONS, AUDIT_ACTION_VALUES, type AuditAction } from './actions';
+export type { AuditEventSummary, AuditListResult } from './types';
 
 /**
  * Audit trail writer (docs 13, 65 I2).
@@ -98,23 +100,6 @@ export async function writeAuditEvent(db: DbExecutor, input: RawAuditEventInput)
     after: input.after === undefined ? null : redactSnapshot(input.after),
     metadata: input.metadata === undefined ? null : (redactSnapshot(input.metadata) as Record<string, unknown>),
   });
-}
-
-/** Safe audit row for UI / CSV — never includes before/after payload content. */
-export interface AuditEventSummary {
-  readonly id: string;
-  readonly action: string;
-  readonly entityType: string;
-  readonly entityId: string | null;
-  readonly actorUserId: string | null;
-  readonly actorDisplayName: string | null;
-  readonly actorEmail: string | null;
-  readonly createdAt: Date;
-}
-
-export interface AuditListResult {
-  readonly items: readonly AuditEventSummary[];
-  readonly nextCursor: string | null;
 }
 
 /**

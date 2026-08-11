@@ -38,7 +38,7 @@ export default defineConfig({
     },
     {
       name: 'desktop-he-authenticated',
-      testMatch: /authenticated\/(owner|regression|performance-verify|jobs-flows|master-completion-journeys)\.spec\.ts/,
+      testMatch: /authenticated\/(owner|regression|performance-verify|jobs-flows|master-completion-journeys|pwa-startup)\.spec\.ts/,
       dependencies: ['setup-owner'],
       use: {
         ...devices['Desktop Chrome'],
@@ -54,6 +54,14 @@ export default defineConfig({
         ...devices['Desktop Chrome'],
         viewport: { width: 1440, height: 900 },
         storageState: 'tests/e2e/.auth/worker.json',
+      },
+    },
+    {
+      name: 'desktop-he-personas',
+      testMatch: /authenticated\/persona-matrix\.spec\.ts/,
+      use: {
+        ...devices['Desktop Chrome'],
+        viewport: { width: 1440, height: 900 },
       },
     },
     {

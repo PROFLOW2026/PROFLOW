@@ -160,7 +160,10 @@ export const AUDIT_ACTIONS = {
   AP_PAYMENT_RECORDED: 'ap.payment_recorded',
   AP_PAYMENT_VOIDED: 'ap.payment_voided',
   AP_CREDIT_CREATED: 'ap.credit_created',
+  AP_CREDIT_UPDATED: 'ap.credit_updated',
+  AP_CREDIT_POSTED: 'ap.credit_posted',
   AP_CREDIT_APPLIED: 'ap.credit_applied',
+  AP_CREDIT_VOIDED: 'ap.credit_voided',
   PURCHASE_ORDER_CANCELLED: 'purchase_order.cancelled',
   PURCHASE_ORDER_CLOSED: 'purchase_order.closed',
 
@@ -226,6 +229,17 @@ export const AUDIT_ACTIONS = {
   SERVICE_RECURRENCE_ENDED: 'service_recurrence.ended',
   SERVICE_RECURRENCE_OCCURRENCE_SKIPPED: 'service_recurrence.occurrence_skipped',
   SERVICE_RECURRENCE_GENERATED: 'service_recurrence.generated',
+
+  /** Retention / holdback release — cash timing only, never a second Actual. */
+  RETENTION_RELEASED: 'retention.released',
+
+  /** Recurring financial DRAFT templates — generate never finalizes or posts money. */
+  RECURRING_FINANCIAL_DRAFT_CREATED: 'recurring_financial_draft.created',
+  RECURRING_FINANCIAL_DRAFT_UPDATED: 'recurring_financial_draft.updated',
+  RECURRING_FINANCIAL_DRAFT_PAUSED: 'recurring_financial_draft.paused',
+  RECURRING_FINANCIAL_DRAFT_RESUMED: 'recurring_financial_draft.resumed',
+  RECURRING_FINANCIAL_DRAFT_ENDED: 'recurring_financial_draft.ended',
+  RECURRING_FINANCIAL_DRAFT_GENERATED: 'recurring_financial_draft.generated',
 } as const;
 
 export type AuditAction = (typeof AUDIT_ACTIONS)[keyof typeof AUDIT_ACTIONS];

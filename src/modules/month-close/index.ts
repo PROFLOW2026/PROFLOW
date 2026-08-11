@@ -6,15 +6,30 @@ export type {
   CompletenessSnapshot,
   MonthCloseAdjustment,
   MonthCloseAdjustmentType,
+  MonthCloseEffectSide,
   MonthClosePeriod,
+  MonthCloseProjectOption,
   MonthCloseStatus,
 } from './domain/types';
 
 export {
   COMPLETENESS_CHECK_KEYS,
   MONTH_CLOSE_ADJUSTMENT_TYPES,
+  MONTH_CLOSE_EFFECT_SIDES,
   MONTH_CLOSE_STATUSES,
 } from './domain/types';
+
+export {
+  explainMonthCloseAdjustments,
+  isAdjustmentSuperseded,
+  isEconomicAdjustment,
+  netEconomicAdjustments,
+  supersededAdjustmentIds,
+} from './domain/economic-corrections';
+export type {
+  EconomicAdjustmentLike,
+  MonthCloseAdjustmentExplanation,
+} from './domain/economic-corrections';
 
 export {
   buildCompletenessItems,

@@ -70,6 +70,16 @@
     "locationLabel": "מיקום",
     "locationPlaceholder": "אתר או כתובת",
     "moreDetails": "פרטים נוספים",
+    "usualKind": {
+      "jobTitle": "בארגון שלכם בדרך כלל יוצרים עבודות",
+      "projectTitle": "בארגון שלכם בדרך כלל יוצרים פרויקטים",
+      "workOrderTitle": "בארגון שלכם בדרך כלל יוצרים קריאות שירות",
+      "goToJob": "יצירת עבודה",
+      "goToProject": "יצירת פרויקט",
+      "goToWorkOrder": "יצירת קריאת שירות",
+      "stayHint": "אפשר להמשיך עם הטופס הזה אם צריך פרויקט.",
+      "switcherLabel": "סוג עבודה"
+    },
     "submit": "יצירת פרויקט",
     "success": "הפרויקט נוצר"
   },

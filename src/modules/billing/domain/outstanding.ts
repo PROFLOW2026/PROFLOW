@@ -97,10 +97,17 @@ export function recordOutstanding(
   paidAmount: MoneyValue,
   kind: BillingKind,
   status: BillingRecordStatus,
+  retentionHeldRemaining?: MoneyValue,
 ): MoneyValue {
   const invoiced = signedBillingAmount({ kind, status, totalAmount });
   if (invoiced === null) return money('0', totalAmount.currency);
-  return subtractMoney(invoiced, paidAmount);
+  const held =
+    kind !== 'credit_note' &&
+    retentionHeldRemaining &&
+    retentionHeldRemaining.currency === totalAmount.currency
+      ? retentionHeldRemaining
+      : money('0', totalAmount.currency);
+  return subtractMoney(subtractMoney(invoiced, paidAmount), held);
 }
 
 export function isOverpaid(outstanding: MoneyValue): boolean {
@@ -122,7 +129,10 @@ export function isOverdueOn(
 }
 
 export function aggregateBillingPosition(
-  records: readonly (BillingAmountInput & { payments: readonly PaymentAmountInput[] })[],
+  records: readonly (BillingAmountInput & {
+    readonly payments: readonly PaymentAmountInput[];
+    readonly retentionHeldRemaining?: MoneyValue;
+  })[],
   currency: string,
 ): { invoiced: MoneyValue; paid: MoneyValue; outstanding: MoneyValue } {
   const invoiced = sumInvoicedAmounts(records, currency);
@@ -130,7 +140,18 @@ export function aggregateBillingPosition(
     records.map((record) => sumPaidAmountsForRecord(record.status, record.payments, currency)),
     currency,
   );
-  const outstanding = computeOutstanding(invoiced, paid);
+  const outstanding = sumMoney(
+    records.map((record) =>
+      recordOutstanding(
+        record.totalAmount,
+        sumPaidAmountsForRecord(record.status, record.payments, currency),
+        record.kind,
+        record.status,
+        record.retentionHeldRemaining,
+      ),
+    ),
+    currency,
+  );
   return { invoiced, paid, outstanding };
 }
 
@@ -138,6 +159,7 @@ export function aggregateBillingPositionInCurrency(
   records: readonly (BillingAmountInput & {
     readonly totalAmount: MoneyValue;
     readonly payments: readonly PaymentAmountInput[];
+    readonly retentionHeldRemaining?: MoneyValue;
   })[],
   currency: string,
 ): {

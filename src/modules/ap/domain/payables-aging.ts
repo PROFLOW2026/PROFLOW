@@ -91,6 +91,6 @@ export function computePayablesAging(
       count: counts.get(key) ?? 0,
     })),
     totalOutstanding,
-    note: 'Aging uses AP Outstanding (bill − payments − credits). Payments are cash only; credits reduce outstanding and Actual. Foreign-currency bills are excluded.',
+    note: 'Aging uses AP Outstanding (bill − payments − credits − held retention). Payments are cash only; credits reduce outstanding and Actual. Retention is cash timing, not a second cost. Foreign-currency bills are excluded.',
   };
 }

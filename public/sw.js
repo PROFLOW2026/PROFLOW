@@ -1,11 +1,12 @@
 /* ProjectFlow offline shell — no push notifications.
  * Cache-first only for installable shell assets (not the manifest).
- * Navigations stay network-first. Manifest is network-first so updates are not trapped.
+ * Navigations stay network-first with Navigation Preload so installed-app
+ * cold start does not wait for the worker to boot before the document fetch.
  *
- * start_url "/" is locale-safe via src/proxy.ts: bare paths honor NEXT_LOCALE,
- * otherwise default he-IL — Accept-Language alone never invents /en.
+ * start_url is locale-prefixed via the dynamic manifest. Bare "/" is still
+ * rewritten to the cookie locale in src/proxy.ts for already-installed shells.
  */
-const SHELL_CACHE = 'projectflow-shell-v2';
+const SHELL_CACHE = 'projectflow-shell-v3';
 const PRECACHE = [
   '/icons/icon-192.png',
   '/icons/icon-512.png',
@@ -44,6 +45,9 @@ self.addEventListener('install', (event) => {
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     (async () => {
+      if (self.registration.navigationPreload) {
+        await self.registration.navigationPreload.enable();
+      }
       const keys = await caches.keys();
       await Promise.all(
         keys
@@ -76,13 +80,21 @@ self.addEventListener('fetch', (event) => {
   }
 
   // Never cache-first App Router / RSC / API traffic.
+  // Use the preloaded navigation response when Chrome started the document
+  // fetch in parallel with worker startup (installed-app cold launch).
   if (request.mode === 'navigate') {
     event.respondWith(
-      fetch(request).catch(async () => {
-        const cache = await caches.open(SHELL_CACHE);
-        const fallback = await cache.match('/offline.html');
-        return fallback || Response.error();
-      }),
+      (async () => {
+        try {
+          const preload = await event.preloadResponse;
+          if (preload) return preload;
+          return await fetch(request);
+        } catch {
+          const cache = await caches.open(SHELL_CACHE);
+          const fallback = await cache.match('/offline.html');
+          return fallback || Response.error();
+        }
+      })(),
     );
     return;
   }

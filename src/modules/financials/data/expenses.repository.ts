@@ -77,6 +77,7 @@ async function loadExpenseContributions(
       vendorType: vendors.type,
       projectId: expenses.projectId,
       categoryKey: costCategories.key,
+      workPackageId: expenses.workPackageId,
     })
     .from(expenses)
     .leftJoin(vendors, eq(vendors.id, expenses.vendorId))
@@ -111,6 +112,7 @@ async function loadExpenseContributions(
       projectId: expenseAllocations.projectId,
       parentCategoryKey: costCategories.key,
       lineCategoryKey: lineCategories.key,
+      workPackageId: expenseAllocations.workPackageId,
     })
     .from(expenseAllocations)
     .innerJoin(expenses, eq(expenses.id, expenseAllocations.expenseId))
@@ -133,6 +135,8 @@ async function loadExpenseContributions(
       projectId: row.projectId,
       isLaborCategory: isLaborCostCategoryKey(row.categoryKey),
       expenseId: row.expenseId,
+      categoryKey: row.categoryKey,
+      workPackageId: row.workPackageId,
     });
   }
 
@@ -157,6 +161,8 @@ async function loadExpenseContributions(
       // Line category overrides parent when set; Mode B labor is usually on the parent.
       isLaborCategory: isLaborCostCategoryKey(row.lineCategoryKey ?? row.parentCategoryKey),
       expenseId: row.expenseId,
+      categoryKey: row.lineCategoryKey ?? row.parentCategoryKey,
+      workPackageId: row.workPackageId,
     });
   }
 

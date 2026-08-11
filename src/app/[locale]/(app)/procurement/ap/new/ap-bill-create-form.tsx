@@ -17,6 +17,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { addMoney, money, multiplyMoney, toNumericString, zeroMoney } from '@/shared/money/money';
+import { RetentionCaptureFields } from '@/modules/retention/ui/retention-capture-fields';
 import { createApBillAction, type ApFormState } from '../actions';
 
 const NONE = '__none__';
@@ -362,6 +363,12 @@ export function ApBillCreateForm({
           </span>
         </p>
       </div>
+
+      <RetentionCaptureFields
+        namespace="ap.retention"
+        currency={currency}
+        totalAmount={totalAmount}
+      />
 
       <Button type="submit" loading={pending} disabled={!vendorId}>
         {pending ? tCommon('states.saving') : t('submit')}

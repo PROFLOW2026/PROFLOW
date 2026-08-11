@@ -60,7 +60,7 @@
     "month_close": "Month close (optional period close)",
     "budgets": "Budgets on project / job (not a separate menu)",
     "forms": "Field forms",
-    "command_center": "Today inbox",
+    "command_center": "Today",
     "saved": "Feature visibility updated."
   },
   "workMix": {
@@ -439,7 +439,10 @@
         "payment_recorded": "Vendor payment recorded",
         "payment_voided": "Vendor payment voided",
         "credit_created": "Vendor credit created",
-        "credit_applied": "Vendor credit applied"
+        "credit_updated": "Vendor credit updated",
+        "credit_posted": "Vendor credit posted",
+        "credit_applied": "Vendor credit applied",
+        "credit_voided": "Vendor credit voided"
       },
       "daily_log": {
         "created": "Daily log created",
@@ -526,6 +529,17 @@
         "ended": "Recurring service ended",
         "occurrence_skipped": "Recurring occurrence skipped",
         "generated": "Recurring work order generated"
+      },
+      "recurring_financial_draft": {
+        "created": "Recurring draft template created",
+        "updated": "Recurring draft template updated",
+        "paused": "Recurring draft template paused",
+        "resumed": "Recurring draft template resumed",
+        "ended": "Recurring draft template ended",
+        "generated": "Recurring financial draft generated"
+      },
+      "retention": {
+        "released": "Retention released"
       }
     },
     "entities": {
@@ -585,7 +599,10 @@
       "fleet_vehicle": "Fleet vehicle",
       "maintenance_record": "Maintenance record",
       "inventory_item": "Inventory item",
-      "inventory_movement": "Inventory movement"
+      "inventory_movement": "Inventory movement",
+      "recurring_financial_draft": "Recurring draft template",
+      "recurring_financial_draft_run": "Recurring draft run",
+      "retention_release": "Retention release"
     }
   },
   "profile": {

@@ -84,6 +84,7 @@ export async function sumOpenApPayableForProject(
       status: apBills.status,
       totalAmount: apBills.totalAmount,
       currency: apBills.currency,
+      retentionHeldRemaining: apBills.retentionHeldRemaining,
     })
     .from(apBills)
     .where(
@@ -120,6 +121,7 @@ export async function sumOpenApPayableForProject(
         appliedAmount: money(amount, row.currency),
         status: 'applied' as const,
       })),
+      retentionHeldRemaining: money(row.retentionHeldRemaining, row.currency),
     });
     if (!isPositiveMoney(outstanding)) continue;
     total = addMoney(total, outstanding);
@@ -392,6 +394,7 @@ export async function sumOpenApPayableForProjects(
       status: apBills.status,
       totalAmount: apBills.totalAmount,
       currency: apBills.currency,
+      retentionHeldRemaining: apBills.retentionHeldRemaining,
     })
     .from(apBills)
     .where(
@@ -436,6 +439,7 @@ export async function sumOpenApPayableForProjects(
         appliedAmount: money(amount, row.currency),
         status: 'applied' as const,
       })),
+      retentionHeldRemaining: money(row.retentionHeldRemaining, row.currency),
     });
     if (!isPositiveMoney(outstanding)) {
       buckets.set(row.projectId, bucket);

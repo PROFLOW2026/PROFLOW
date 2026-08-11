@@ -1,6 +1,6 @@
-import { and, eq } from 'drizzle-orm';
+import 'server-only';
 import { getLocale } from 'next-intl/server';
-import { projects } from '@drizzle/schema';
+import { findProjectById } from '@/modules/projects';
 import { listPlanningPlan } from '../application/list-plan';
 import { buildCriticalPathFoundation } from '../domain/critical-path-foundation';
 import { PlanningEligibilityError } from '../domain/eligibility';
@@ -28,15 +28,10 @@ export async function ProjectSchedulePanel({ projectId }: ProjectSchedulePanelPr
       return null;
     }
 
-    const [row] = await context.db
-      .select({ workKind: projects.workKind })
-      .from(projects)
-      .where(and(eq(projects.id, projectId), eq(projects.organizationId, context.organizationId)))
-      .limit(1);
+    const project = await findProjectById(context.db, context.organizationId, projectId);
+    if (!project) return null;
 
-    if (!row) return null;
-
-    const workKind = row.workKind === 'job' ? ('job' as const) : ('project' as const);
+    const workKind = project.workKind === 'job' ? ('job' as const) : ('project' as const);
     if (workKind === 'job') {
       return {
         workKind,

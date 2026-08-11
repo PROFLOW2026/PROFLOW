@@ -1,3 +1,5 @@
+import 'server-only';
+
 import { ValidationError } from '@/shared/errors';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';

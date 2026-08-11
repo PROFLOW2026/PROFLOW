@@ -19,6 +19,7 @@ export const pressableChromeClassName = cn(pressableClassName, 'active:scale-[0.
  * Safe to import from Server Components (no `'use client'` in this module).
  */
 export const textNavLinkClassName = cn(
+  'inline-flex min-h-11 items-center',
   'text-[var(--pf-text-brand)] underline-offset-4',
   pressableClassName,
   'active:scale-100',

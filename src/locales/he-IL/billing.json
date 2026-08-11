@@ -84,6 +84,30 @@
     "saveDraft": "שמירה כטיוטה",
     "saveAndFinalize": "שמירה וסגירה"
   },
+  "retention": {
+    "title": "עיכבון",
+    "disclosure": "עיכבון הוא תזמון מזומן, לא הכנסה נוספת. הסכום שחויב נשאר מלא; רק היתרה לגבייה עכשיו מופחתת עד השחרור.",
+    "recognized": "חויב / מוכר",
+    "payableNow": "לתשלום עכשיו",
+    "receivableNow": "לגבייה עכשיו",
+    "held": "מוחזק",
+    "original": "עיכבון",
+    "released": "שוחרר",
+    "amountLabel": "סכום עיכבון",
+    "percentLabel": "אחוז עיכבון",
+    "percentHint": "אופציונלי. 10 פירושו 10% מסך החיוב.",
+    "captureHint": "קבעו סכום או אחוז בטיוטה. בסגירה, היתרה המוחזקת שווה לעיכבון. אחרי סגירה אפשר להגדיל רק בחיוב חדש.",
+    "releaseTitle": "שחרור עיכבון",
+    "releaseHint": "שחרור חלקי מותר כל עוד נותר סכום מוחזק. השחרורים הם היסטוריה בלתי ניתנת לשינוי — לא חשבונית שנייה.",
+    "releaseAmount": "סכום לשחרור",
+    "releaseDate": "תאריך שחרור",
+    "releaseNotes": "הערות",
+    "releaseSubmit": "שחרור",
+    "historyTitle": "היסטוריית שחרור עיכבון",
+    "emptyHistory": "עדיין לא בוצעו שחרורים.",
+    "noneHeld": "אין עיכבון מוחזק בחיוב זה.",
+    "saveDraft": "שמירת עיכבון"
+  },
   "paymentForm": {
     "title": "תשלום חדש",
     "billingRecord": "חיוב",
@@ -143,7 +167,15 @@
     "paymentTargetNotFinalized": "ניתן לרשום תשלום רק על חיוב סגור.",
     "paymentNotVoidable": "ניתן לבטל רק תשלום שרשום.",
     "currencyMismatch": "מטבע החיוב חייב להיות זהה למטבע הפרויקט.",
-    "hasRecordedPayments": "יש לבטל תשלומים רשומים לפני ביטול החיוב."
+    "hasRecordedPayments": "יש לבטל תשלומים רשומים לפני ביטול החיוב.",
+    "paymentOverApplied": "התשלום יחרוג מהיתרה לגבייה עכשיו (אחרי עיכבון מוחזק).",
+    "retentionInvalid": "סכום העיכבון אינו תקין.",
+    "retentionExceedsTotal": "עיכבון אינו יכול לחרוג מסך החיוב.",
+    "retentionCannotIncrease": "לא ניתן להגדיל עיכבון אחרי סגירה; רשמו חיוב חדש.",
+    "retentionNotReleasable": "ניתן לשחרר עיכבון רק אחרי סגירת החיוב.",
+    "retentionReleaseExceedsHeld": "השחרור אינו יכול לחרוג מהסכום המוחזק.",
+    "retentionReleaseAmountInvalid": "סכום השחרור חייב להיות חיובי.",
+    "retentionReleaseDateFuture": "תאריך השחרור לא יכול להיות בעתיד."
   },
   "notAllowed": {
     "title": "אין הרשאה",

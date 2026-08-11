@@ -60,7 +60,7 @@
     "month_close": "סגירת חודש (אופציונלי)",
     "budgets": "תקציבים בפרויקט / עבודה (לא תפריט נפרד)",
     "forms": "טפסי שטח",
-    "command_center": "תיבת היום",
+    "command_center": "היום",
     "saved": "תצוגת היכולות עודכנה."
   },
   "workMix": {
@@ -439,7 +439,10 @@
         "payment_recorded": "רישום תשלום ספק",
         "payment_voided": "ביטול תשלום ספק",
         "credit_created": "יצירת זיכוי ספק",
-        "credit_applied": "החלת זיכוי ספק"
+        "credit_updated": "עדכון זיכוי ספק",
+        "credit_posted": "פרסום זיכוי ספק",
+        "credit_applied": "החלת זיכוי ספק",
+        "credit_voided": "ביטול זיכוי ספק"
       },
       "daily_log": {
         "created": "יצירת יומן יומי",
@@ -526,6 +529,17 @@
         "ended": "שירות חוזר הסתיים",
         "occurrence_skipped": "מופע חוזר דולג",
         "generated": "נוצרה קריאת שירות מתוך תבנית חוזרת"
+      },
+      "recurring_financial_draft": {
+        "created": "נוצרה תבנית טיוטה חוזרת",
+        "updated": "תבנית טיוטה חוזרת עודכנה",
+        "paused": "תבנית טיוטה חוזרת הושהתה",
+        "resumed": "תבנית טיוטה חוזרת חודשה",
+        "ended": "תבנית טיוטה חוזרת הסתיימה",
+        "generated": "נוצרה טיוטה כספית מתבנית חוזרת"
+      },
+      "retention": {
+        "released": "עיכבון שוחרר"
       }
     },
     "entities": {
@@ -585,7 +599,10 @@
       "fleet_vehicle": "רכב צי",
       "maintenance_record": "רשומת תחזוקה",
       "inventory_item": "פריט מלאי",
-      "inventory_movement": "תנועת מלאי"
+      "inventory_movement": "תנועת מלאי",
+      "recurring_financial_draft": "תבנית טיוטה חוזרת",
+      "recurring_financial_draft_run": "הרצת טיוטה חוזרת",
+      "retention_release": "שחרור עיכבון"
     }
   },
   "profile": {

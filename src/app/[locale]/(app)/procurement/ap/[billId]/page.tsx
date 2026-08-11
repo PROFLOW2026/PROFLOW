@@ -10,10 +10,17 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import {
   getApBillDetail,
   getBillPayablePosition,
+  isRecognizedVendorBillStatus,
   listCreditsForBill,
   listVendorPaymentsForBill,
   type ApBillStatus,
 } from '@/modules/ap';
+import { listVendorBillRetentionReleases } from '@/modules/retention';
+import { RetentionPanel } from '@/modules/retention/ui/retention-panel';
+import {
+  releaseVendorBillRetentionAction,
+  updateDraftApBillRetentionAction,
+} from '../actions';
 import { VendorBillAllocationPanel } from '@/modules/ap/ui/vendor-bill-allocation-panel';
 import { getEntityDocumentPanelData } from '@/modules/documents';
 import { DocumentAttachments } from '@/modules/documents/ui';
@@ -22,6 +29,7 @@ import { listPurchaseOrdersForOrg } from '@/modules/procurement';
 import { listProjectsForOrg } from '@/modules/projects';
 import { money } from '@/shared/money/money';
 import { withOrgContext } from '@/shared/auth/session';
+import { todayInTimeZone } from '@/shared/dates';
 import { Link } from '@/shared/i18n/navigation';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
@@ -80,7 +88,7 @@ export default async function ApBillDetailPage({
 
     const canReadProjects = hasPermission(context, PERMISSIONS.PROJECTS_READ);
 
-    const [orders, expensesResult, documentsPanel, payablePosition, paymentRows, creditRows, projects] =
+    const [orders, expensesResult, documentsPanel, payablePosition, paymentRows, creditRows, projects, retentionReleases] =
       await Promise.all([
         canReadPo ? listPurchaseOrdersForOrg(context) : Promise.resolve([]),
         canReadExpenses
@@ -93,6 +101,7 @@ export default async function ApBillDetailPage({
         canReadProjects
           ? listProjectsForOrg(context, {}).catch(() => [])
           : Promise.resolve([]),
+        listVendorBillRetentionReleases(context, billId).catch(() => []),
       ]);
 
     const hasActivePayments = paymentRows.some((row) => row.payment.status === 'recorded');
@@ -105,6 +114,14 @@ export default async function ApBillDetailPage({
       payablePosition,
       hasActivePayments,
       hasActiveCredits,
+      retentionReleases: retentionReleases.map((row) => ({
+        id: row.id,
+        amount: row.amount,
+        currency: row.currency,
+        releasedOn: row.releasedOn,
+        notes: row.notes,
+      })),
+      orgToday: todayInTimeZone(context.organization.timezone),
       projects: projects.map((project) => ({ id: project.id, name: project.name })),
       payments: paymentRows.map((row) => ({
         id: row.payment.id,
@@ -154,7 +171,9 @@ export default async function ApBillDetailPage({
     credits,
     hasActivePayments,
     hasActiveCredits,
+    retentionReleases,
     projects,
+    orgToday,
   } = data;
 
   return (
@@ -302,6 +321,24 @@ export default async function ApBillDetailPage({
         />
       ) : null}
 
+      <RetentionPanel
+        side="ap"
+        sourceId={bill.id}
+        currency={bill.currency}
+        totalAmount={bill.totalAmount}
+        retentionAmount={bill.retentionAmount}
+        retentionHeldRemaining={bill.retentionHeldRemaining}
+        payableOrReceivableNow={payablePosition?.outstanding ?? '0'}
+        canManage={canManage}
+        canEditDraft={bill.status === 'draft'}
+        canRelease={isRecognizedVendorBillStatus(bill.status)}
+        defaultReleaseDate={orgToday}
+        releases={retentionReleases}
+        locale={locale}
+        captureAction={updateDraftApBillRetentionAction}
+        releaseAction={releaseVendorBillRetentionAction}
+      />
+
       {payablePosition ? (
         <VendorPaymentPanel
           billId={bill.id}
@@ -311,7 +348,7 @@ export default async function ApBillDetailPage({
           payableStatus={payablePosition.payableStatus}
           paymentsAvailable={payablePosition.paymentsAvailable}
           canManage={canManage}
-          defaultPaymentDate={new Date().toISOString().slice(0, 10)}
+          defaultPaymentDate={orgToday}
           payments={payments}
           locale={locale}
         />
@@ -324,7 +361,7 @@ export default async function ApBillDetailPage({
           currency={payablePosition.currency}
           outstanding={payablePosition.outstanding}
           canManage={canManage}
-          defaultCreditDate={new Date().toISOString().slice(0, 10)}
+          defaultCreditDate={orgToday}
           credits={credits}
           locale={locale}
         />

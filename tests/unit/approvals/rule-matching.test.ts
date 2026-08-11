@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { ruleMatchesAmount, selectMatchingRule } from '@/modules/approvals/domain/rules';
+import {
+  approvalCoversAmount,
+  ruleMatchesAmount,
+  selectMatchingRule,
+} from '@/modules/approvals/domain/rules';
 import type { ApprovalRuleRecord } from '@/modules/approvals/domain/types';
 
 function rule(partial: Partial<ApprovalRuleRecord> & Pick<ApprovalRuleRecord, 'entityType'>): ApprovalRuleRecord {
@@ -45,5 +49,51 @@ describe('approval rule matching', () => {
       { entityType: 'expense', amount: '2500', currency: 'ILS' },
     );
     expect(selected?.id).toBe('low');
+  });
+});
+
+describe('approvalCoversAmount', () => {
+  it('covers matching stored amount and currency', () => {
+    expect(
+      approvalCoversAmount({
+        requestAmount: '1000.00',
+        requestCurrency: 'ILS',
+        currentAmount: '1000',
+        currentCurrency: 'ils',
+      }),
+    ).toBe(true);
+  });
+
+  it('does not cover an approved amount after the entity amount changes', () => {
+    expect(
+      approvalCoversAmount({
+        requestAmount: '1000',
+        requestCurrency: 'ILS',
+        currentAmount: '50000',
+        currentCurrency: 'ILS',
+      }),
+    ).toBe(false);
+  });
+
+  it('does not treat a null stored amount as covering a later amount', () => {
+    expect(
+      approvalCoversAmount({
+        requestAmount: null,
+        requestCurrency: null,
+        currentAmount: '1000',
+        currentCurrency: 'ILS',
+      }),
+    ).toBe(false);
+  });
+
+  it('covers amount-less entities when both sides are empty', () => {
+    expect(
+      approvalCoversAmount({
+        requestAmount: null,
+        requestCurrency: null,
+        currentAmount: null,
+        currentCurrency: null,
+      }),
+    ).toBe(true);
   });
 });

@@ -18,26 +18,24 @@ import { formatMoney } from '@/shared/money/format';
 import { zeroMoney } from '@/shared/money';
 import { PERMISSIONS, type PermissionKey } from '@/shared/permissions/catalog';
 import { redirect } from '@/shared/i18n/navigation';
-import { ProjectBillingPanel } from '@/modules/billing/ui';
-import { ProjectBudgetPanel } from '@/modules/budgets/ui';
-import { ProjectChangesPanel } from '@/modules/commercial/ui';
-import { ProjectExpensesPanel } from '@/modules/expenses/ui';
-import { ProjectFinancialsPanel } from '@/modules/financials/ui';
-import { ProjectSchedulePanel } from '@/modules/planning/ui';
 import { ProjectContractorsPanel } from '@/modules/vendors/ui';
-import { ProjectTeamPanel, ProjectTimePanel } from '@/modules/workforce/ui';
-import { ProjectUsagePanel } from '@/modules/assets/ui';
 import { DetailsTab } from './details-tab';
-import { DocumentsTab } from './documents-tab';
 import { OverviewTab } from './overview-tab';
 import { OverviewWorkSetup } from './overview-work-setup';
 import { loadProjectDetail } from './load-project-detail';
+import { loadProjectFinancials } from './load-project-financials';
+import {
+  OverviewMilestonesPanel,
+  OverviewSchedulePanel,
+  OverviewStructureFallback,
+} from './overview-schedule-milestones';
 import { resolveProjectTabs } from './project-tab-order';
 import { type ProjectTabKey } from './project-tabs-shell';
 import { ProjectFieldOpsSummaryPanel } from './project-field-ops-summary';
 import { TabPanelSkeleton } from './tab-panel-skeleton';
 import { WorkTab } from './work-tab';
 import { ProjectFormsPanel } from '@/modules/forms/ui';
+import { SkeletonText } from '@/components/ui/skeleton';
 
 interface ProjectPageProps {
   params: Promise<{ locale: string; projectId: string }>;
@@ -125,6 +123,13 @@ export default async function ProjectPage({ params, searchParams }: ProjectPageP
     MODULE_PANEL_TABS.has(tabParam as ProjectTabKey) && visibleModuleTabs.has(tabParam);
 
   // Chrome-only — shares React cache with layout; job redirect without structure.
+  // Warm structure (and overview snapshot financials) in parallel with chrome.
+  if (!isModuleTab) {
+    void loadProjectDetail(projectId, true);
+    if (canReadFinancials && tabParam === 'overview') {
+      void loadProjectFinancials(projectId).catch(() => null);
+    }
+  }
   const chrome = await loadProjectDetail(projectId, false).catch(() => null);
   if (!chrome) notFound();
 
@@ -160,7 +165,7 @@ export default async function ProjectPage({ params, searchParams }: ProjectPageP
     : (tabs[0] ?? 'overview');
 
   if (isModuleTab) {
-    return renderModuleTab({
+    return await renderModuleTab({
       activeTab,
       projectId,
       showExpensesTab,
@@ -210,7 +215,8 @@ async function ProjectStructuredTabPanel({
   canEditProjects: boolean;
   showWorkTab: boolean;
 }) {
-  const detail = await loadProjectDetail(projectId, true).catch(() => null);
+  const includeStructure = activeTab !== 'overview';
+  const detail = await loadProjectDetail(projectId, includeStructure).catch(() => null);
   if (!detail) notFound();
 
   const uiLocale = locale === 'he-IL' ? 'he-IL' : 'en';
@@ -224,6 +230,7 @@ async function ProjectStructuredTabPanel({
     showWorkPackages: showWorkTab,
     canReadFinancials,
   });
+  const organizationTimezone = shell?.organization.timezone ?? 'Asia/Jerusalem';
 
   const canManageContract = shell?.permissions.has(PERMISSIONS.CONTRACTS_MANAGE) ?? false;
   const baseCurrency =
@@ -330,7 +337,24 @@ async function ProjectStructuredTabPanel({
               canReadFinancials={canReadFinancials}
               canEdit={canEditProjects}
               workspaceLinks={workspaceLinks}
-              organizationTimezone={shell?.organization.timezone ?? 'Asia/Jerusalem'}
+              organizationTimezone={organizationTimezone}
+              scheduleSlot={
+                <Suspense fallback={<OverviewStructureFallback />}>
+                  <OverviewSchedulePanel
+                    projectId={projectId}
+                    organizationTimezone={organizationTimezone}
+                  />
+                </Suspense>
+              }
+              milestonesSlot={
+                <Suspense fallback={<SkeletonText lines={3} />}>
+                  <OverviewMilestonesPanel
+                    projectId={projectId}
+                    canEdit={canEditProjects}
+                    organizationTimezone={organizationTimezone}
+                  />
+                </Suspense>
+              }
             />
             {showContractorsPanel ? (
               <Suspense fallback={<TabPanelSkeleton />}>
@@ -381,7 +405,7 @@ async function ProjectStructuredTabPanel({
   );
 }
 
-function renderModuleTab(input: {
+async function renderModuleTab(input: {
   activeTab: ProjectTabKey;
   projectId: string;
   showExpensesTab: boolean;
@@ -396,104 +420,90 @@ function renderModuleTab(input: {
   canReadFinancials: boolean;
   hasContract: boolean;
 }) {
-  const {
-    activeTab,
-    projectId,
-    showExpensesTab,
-    showChangesTab,
-    showBillingTab,
-    showBudgetsTab,
-    showTeamTab,
-    showScheduleTab,
-    showTimeTab,
-    showDocumentsTab,
-    showUsageTab,
-    canReadFinancials,
-    hasContract,
-  } = input;
+  // Import only the active module panel so overview / sibling tabs do not
+  // pull financials, expenses, billing, team, … client graphs into this Flight.
+  const panel = await loadActiveModulePanel(input);
+  if (!panel) return null;
 
   return (
-    <>
-      {activeTab === 'financials' && canReadFinancials ? (
-        <div className="pt-4">
-          <Suspense fallback={<TabPanelSkeleton />}>
-            <ProjectFinancialsPanel projectId={projectId} />
-          </Suspense>
-        </div>
-      ) : null}
-
-      {activeTab === 'expenses' && showExpensesTab ? (
-        <div className="pt-4">
-          <Suspense fallback={<TabPanelSkeleton />}>
-            <ProjectExpensesPanel projectId={projectId} />
-          </Suspense>
-        </div>
-      ) : null}
-
-      {activeTab === 'changes' && showChangesTab ? (
-        <div className="pt-4">
-          <Suspense fallback={<TabPanelSkeleton />}>
-            <ProjectChangesPanel projectId={projectId} />
-          </Suspense>
-        </div>
-      ) : null}
-
-      {activeTab === 'billing' && showBillingTab ? (
-        <div className="pt-4">
-          <Suspense fallback={<TabPanelSkeleton />}>
-            <ProjectBillingPanel projectId={projectId} />
-          </Suspense>
-        </div>
-      ) : null}
-
-      {activeTab === 'budgets' && showBudgetsTab ? (
-        <div className="pt-4">
-          <Suspense fallback={<TabPanelSkeleton />}>
-            <ProjectBudgetPanel projectId={projectId} />
-          </Suspense>
-        </div>
-      ) : null}
-
-      {activeTab === 'team' && showTeamTab ? (
-        <div className="pt-4">
-          <Suspense fallback={<TabPanelSkeleton />}>
-            <ProjectTeamPanel projectId={projectId} />
-          </Suspense>
-        </div>
-      ) : null}
-
-      {activeTab === 'usage' && showUsageTab ? (
-        <div className="pt-4">
-          <Suspense fallback={<TabPanelSkeleton />}>
-            <ProjectUsagePanel projectId={projectId} />
-          </Suspense>
-        </div>
-      ) : null}
-
-      {activeTab === 'schedule' && showScheduleTab ? (
-        <div className="pt-4">
-          <Suspense fallback={<TabPanelSkeleton />}>
-            <ProjectSchedulePanel projectId={projectId} />
-          </Suspense>
-        </div>
-      ) : null}
-
-      {activeTab === 'time' && showTimeTab ? (
-        <div className="pt-4">
-          <Suspense fallback={<TabPanelSkeleton />}>
-            <ProjectTimePanel projectId={projectId} />
-          </Suspense>
-        </div>
-      ) : null}
-
-      {activeTab === 'documents' && showDocumentsTab ? (
-        <div className="pt-4">
-          <Suspense fallback={<TabPanelSkeleton />}>
-            <DocumentsTab projectId={projectId} hasContract={hasContract} />
-          </Suspense>
-        </div>
-      ) : null}
-    </>
+    <div className="pt-4">
+      <Suspense fallback={<TabPanelSkeleton />}>{panel}</Suspense>
+    </div>
   );
+}
+
+async function loadActiveModulePanel(input: {
+  activeTab: ProjectTabKey;
+  projectId: string;
+  showExpensesTab: boolean;
+  showChangesTab: boolean;
+  showBillingTab: boolean;
+  showBudgetsTab: boolean;
+  showTeamTab: boolean;
+  showScheduleTab: boolean;
+  showTimeTab: boolean;
+  showDocumentsTab: boolean;
+  showUsageTab: boolean;
+  canReadFinancials: boolean;
+  hasContract: boolean;
+}) {
+  const { activeTab, projectId } = input;
+
+  switch (activeTab) {
+    case 'financials': {
+      if (!input.canReadFinancials) return null;
+      const { ProjectFinancialsPanel } = await import(
+        '@/modules/financials/ui/project-financials-panel'
+      );
+      return <ProjectFinancialsPanel projectId={projectId} />;
+    }
+    case 'expenses': {
+      if (!input.showExpensesTab) return null;
+      const { ProjectExpensesPanel } = await import('@/modules/expenses/ui/project-expenses-panel');
+      return <ProjectExpensesPanel projectId={projectId} />;
+    }
+    case 'changes': {
+      if (!input.showChangesTab) return null;
+      const { ProjectChangesPanel } = await import('@/modules/commercial/ui/project-changes-panel');
+      return <ProjectChangesPanel projectId={projectId} />;
+    }
+    case 'billing': {
+      if (!input.showBillingTab) return null;
+      const { ProjectBillingPanel } = await import('@/modules/billing/ui/project-billing-panel');
+      return <ProjectBillingPanel projectId={projectId} />;
+    }
+    case 'budgets': {
+      if (!input.showBudgetsTab) return null;
+      const { ProjectBudgetPanel } = await import('@/modules/budgets/ui/project-budget-panel');
+      return <ProjectBudgetPanel projectId={projectId} />;
+    }
+    case 'team': {
+      if (!input.showTeamTab) return null;
+      const { ProjectTeamPanel } = await import('@/modules/workforce/ui/project-team-panel');
+      return <ProjectTeamPanel projectId={projectId} />;
+    }
+    case 'usage': {
+      if (!input.showUsageTab) return null;
+      const { ProjectUsagePanel } = await import('@/modules/assets/ui/project-usage-panel');
+      return <ProjectUsagePanel projectId={projectId} />;
+    }
+    case 'schedule': {
+      if (!input.showScheduleTab) return null;
+      const { ProjectSchedulePanel } = await import('@/modules/planning/ui/project-schedule-panel');
+      return <ProjectSchedulePanel projectId={projectId} />;
+    }
+    case 'time': {
+      if (!input.showTimeTab) return null;
+      const { ProjectTimePanel } = await import('@/modules/workforce/ui/project-time-panel');
+      return <ProjectTimePanel projectId={projectId} />;
+    }
+    case 'documents': {
+      if (!input.showDocumentsTab) return null;
+      const { DocumentsTab } = await import('./documents-tab');
+      return <DocumentsTab projectId={projectId} hasContract={input.hasContract} />;
+    }
+    default:
+      return null;
+  }
 }
 

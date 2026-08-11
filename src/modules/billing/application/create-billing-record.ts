@@ -2,7 +2,8 @@ import { recordAuditEvent } from '@/shared/audit';
 import { businessDate } from '@/shared/dates';
 import { NotFoundError, ValidationError } from '@/shared/errors';
 import type { OrgContext } from '@/shared/auth/context';
-import { toNumericString } from '@/shared/money';
+import { money, toNumericString } from '@/shared/money';
+import { resolveRetentionCapture } from '@/modules/retention';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { noteModuleUsage } from '@/modules/tenancy';
@@ -102,6 +103,14 @@ export async function createBillingRecord(context: OrgContext, rawInput: CreateB
   const issueDate = businessDate(input.issueDate);
   const dueDate = input.dueDate ? businessDate(input.dueDate) : null;
 
+  const retention = resolveRetentionCapture({
+    totalAmount: toNumericString(amounts.totalAmount),
+    currency,
+    retentionAmount: input.retentionAmount,
+    retentionPercent: input.retentionPercent,
+    side: 'ar',
+  });
+
   const billingRecordId = await insertBillingRecord(context.db, context.organizationId, {
     projectId: input.projectId,
     clientId: null,
@@ -113,6 +122,8 @@ export async function createBillingRecord(context: OrgContext, rawInput: CreateB
     taxAmount: amounts.taxAmount ? toNumericString(amounts.taxAmount) : null,
     totalAmount: toNumericString(amounts.totalAmount),
     currency,
+    retentionAmount: toNumericString(retention),
+    retentionHeldRemaining: toNumericString(money('0', currency)),
     externalDocumentId: input.externalDocumentId ?? null,
     notes: input.notes?.trim() || null,
     voidsBillingRecordId: null,

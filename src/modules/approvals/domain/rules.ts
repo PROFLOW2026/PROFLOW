@@ -1,4 +1,4 @@
-import { compareMoney, money } from '@/shared/money';
+import { compareMoney, money, moneyEquals } from '@/shared/money';
 import type { ApprovalEntityType, ApprovalRuleRecord, ApprovalStatus } from './types';
 
 export function isApprovalEntityType(value: string): value is ApprovalEntityType {
@@ -81,4 +81,26 @@ export function approvalStatusShape(
 ): 'pending' | 'approved' | 'rejected' | 'cancelled' {
   if (status === 'submitted') return 'pending';
   return status;
+}
+
+/**
+ * An approved (or submitted) request only covers the current entity when
+ * amount + currency still match. Null/empty on both sides covers amount-less
+ * entities. A stored null amount does not authorize a later non-null amount.
+ */
+export function approvalCoversAmount(input: {
+  readonly requestAmount: string | null;
+  readonly requestCurrency: string | null;
+  readonly currentAmount?: string | null;
+  readonly currentCurrency?: string | null;
+}): boolean {
+  const current = input.currentAmount?.trim() || null;
+  const currentCurrency = input.currentCurrency?.trim().toUpperCase() || null;
+  const request = input.requestAmount?.trim() || null;
+  const requestCurrency = input.requestCurrency?.trim().toUpperCase() || null;
+
+  if (!current) return !request;
+  if (!request || !requestCurrency || !currentCurrency) return false;
+  if (requestCurrency !== currentCurrency) return false;
+  return moneyEquals(money(request, requestCurrency), money(current, currentCurrency));
 }

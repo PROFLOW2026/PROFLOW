@@ -1,9 +1,9 @@
-import { Suspense } from 'react';
+import { Suspense, type ReactNode } from 'react';
 import { getTranslations } from 'next-intl/server';
 import { MoneyText } from '@/components/patterns/money-text';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { SkeletonText } from '@/components/ui/skeleton';
-import { ProjectFinancialsSnapshot } from '@/modules/financials/ui';
+import { ProjectFinancialsSnapshot } from '@/modules/financials/ui/project-financials-snapshot';
 import {
   buildScheduleSummary,
   computeApprovedChangesTotal,
@@ -11,7 +11,6 @@ import {
   hasStoredOpeningReduction,
   resolveDisplayOriginalNet,
   resolveOpeningReductionNet,
-  type MilestoneRecord,
   type ProjectDetail,
   type ProjectWorkspaceLink,
 } from '@/modules/projects';
@@ -24,27 +23,6 @@ import { ScheduleSummaryPanel } from './schedule-summary-panel';
 import { textNavLinkClassName } from '@/components/ui/pressable';
 import { cn } from '@/shared/ui/cn';
 
-/** Client-bound milestone rows — strip notes + org timestamps from Flight props. */
-function slimMilestonesForClient(
-  milestones: readonly MilestoneRecord[],
-): MilestoneRecord[] {
-  return milestones.map((row) => ({
-    id: row.id,
-    organizationId: row.organizationId,
-    projectId: row.projectId,
-    workPackageId: row.workPackageId,
-    name: row.name,
-    targetDate: row.targetDate,
-    completedAt: row.completedAt,
-    status: row.status,
-    sortOrder: row.sortOrder,
-    notes: null,
-    archivedAt: null,
-    createdAt: row.createdAt,
-    updatedAt: row.updatedAt,
-  }));
-}
-
 interface OverviewTabProps {
   detail: ProjectDetail;
   locale: string;
@@ -54,6 +32,12 @@ interface OverviewTabProps {
   organizationTimezone: string;
   /** Jobs get a slim overview (dates + money links) without schedule/milestones chrome. */
   workKind?: 'project' | 'job';
+  /**
+   * When set, schedule / milestones render from these slots (own Suspense +
+   * cached structure fetch) so contract cards are not blocked on WP rows.
+   */
+  scheduleSlot?: ReactNode;
+  milestonesSlot?: ReactNode;
 }
 
 export async function OverviewTab({
@@ -64,6 +48,8 @@ export async function OverviewTab({
   workspaceLinks,
   organizationTimezone,
   workKind = 'project',
+  scheduleSlot,
+  milestonesSlot,
 }: OverviewTabProps) {
   const t = await getTranslations('projects.overview');
   const tJobs = await getTranslations('jobs');
@@ -72,15 +58,16 @@ export async function OverviewTab({
     ? `/jobs/${detail.project.id}?tab=details`
     : `/projects/${detail.project.id}?tab=details`;
 
-  const schedule = isJob
-    ? null
-    : buildScheduleSummary({
-        project: detail.project,
-        workPackages: detail.workPackages,
-        milestones: detail.milestones,
-        phases: detail.phases,
-        today: todayInTimeZone(organizationTimezone),
-      });
+  const schedule =
+    isJob || scheduleSlot
+      ? null
+      : buildScheduleSummary({
+          project: detail.project,
+          workPackages: detail.workPackages,
+          milestones: detail.milestones,
+          phases: detail.phases,
+          today: todayInTimeZone(organizationTimezone),
+        });
 
   const originalEvent = detail.contract
     ? findOriginalValueEvent(detail.contractValueEvents)
@@ -116,6 +103,8 @@ export async function OverviewTab({
             {dateRange}
           </p>
         </section>
+      ) : scheduleSlot ? (
+        scheduleSlot
       ) : schedule ? (
         <ScheduleSummaryPanel summary={schedule} projectId={detail.project.id} />
       ) : null}
@@ -207,14 +196,22 @@ export async function OverviewTab({
         ) : null}
       </section>
 
-      {!isJob ? (
-        <MilestonesPanel
-          projectId={detail.project.id}
-          milestones={slimMilestonesForClient(detail.milestones)}
-          canEdit={canEdit}
-          today={todayInTimeZone(organizationTimezone)}
-        />
-      ) : null}
+      {!isJob
+        ? (milestonesSlot ?? (
+            <MilestonesPanel
+              projectId={detail.project.id}
+              milestones={detail.milestones.map((row) => ({
+                id: row.id,
+                name: row.name,
+                targetDate: row.targetDate,
+                status: row.status,
+                archivedAt: row.archivedAt,
+              }))}
+              canEdit={canEdit}
+              today={todayInTimeZone(organizationTimezone)}
+            />
+          ))
+        : null}
 
       {canReadFinancials && !isJob ? (
         <OverviewContractHistorySuspense

@@ -4,8 +4,10 @@ import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { withOrgContext } from '@/shared/auth/session';
 import { fromNumericString, zeroMoney } from '@/shared/money/money';
+import { loadCachedProjectFinancials } from '@/modules/financials/ui/load-cached-project-financials';
 import { getProjectBudgetWorkspace } from '../application/queries';
 import { BudgetVarianceSummary } from './budget-variance-summary';
+import { BudgetLineControlList } from './budget-line-control-list';
 import { BudgetManageForms } from './budget-manage-forms';
 
 export interface ProjectBudgetPanelProps {
@@ -16,7 +18,12 @@ export async function ProjectBudgetPanel({ projectId }: ProjectBudgetPanelProps)
   const t = await getTranslations('budgets');
 
   const workspace = await withOrgContext(async (context) => {
-    const data = await getProjectBudgetWorkspace(context, projectId);
+    const canReadFinancials = hasPermission(context, PERMISSIONS.PROJECT_FINANCIALS_READ);
+    const data = await getProjectBudgetWorkspace(context, projectId, {
+      costPromise: canReadFinancials
+        ? loadCachedProjectFinancials(projectId).then((row) => row.cost)
+        : Promise.resolve(null),
+    });
     return {
       ...data,
       canManage: hasPermission(context, PERMISSIONS.BUDGETS_MANAGE),
@@ -51,44 +58,44 @@ export async function ProjectBudgetPanel({ projectId }: ProjectBudgetPanelProps)
         <p className="text-sm text-[var(--pf-text-secondary)]">{t('panel.empty')}</p>
       )}
 
-      {workspace.budget && workspace.lines.length > 0 ? (
+      {workspace.budget && workspace.lineControls.length > 0 ? (
         <div className="flex min-w-0 flex-col gap-2">
-          <div className="flex flex-wrap items-baseline justify-between gap-2">
-            <h3 className="text-sm font-semibold">{t('lines.title')}</h3>
-            <p className="text-xs text-[var(--pf-text-muted)]">
-              {t('lines.mode', {
-                mode:
-                  workspace.mode === 'advanced'
-                    ? t('lines.modeAdvanced')
-                    : t('lines.modeLightweight'),
-              })}
-              {' · '}
-              {t('lines.revision', { number: workspace.budget.currentRevisionNumber })}
-            </p>
-          </div>
-          <ul className="divide-y divide-[var(--pf-border-default)] rounded-md border border-[var(--pf-border-default)]">
-            {workspace.lines.map((line) => {
-              const amount =
-                fromNumericString(line.budgetAmount, currency) ?? zeroMoney(currency);
-              return (
-                <li
-                  key={line.id}
-                  className="flex items-baseline justify-between gap-3 px-3 py-2 text-start"
-                >
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium">{line.label}</p>
-                    <p className="text-xs text-[var(--pf-text-muted)]">
-                      {t(`lineTypes.${line.lineType}`)}
-                      {line.costCode ? ` · ${line.costCode}` : null}
-                      {line.categoryKey ? ` · ${line.categoryKey}` : null}
-                      {line.disciplineKey ? ` · ${line.disciplineKey}` : null}
-                    </p>
-                  </div>
-                  <MoneyText value={amount} className="shrink-0 text-sm" />
-                </li>
-              );
+          <p className="text-xs text-[var(--pf-text-muted)]">
+            {t('lines.mode', {
+              mode:
+                workspace.mode === 'advanced'
+                  ? t('lines.modeAdvanced')
+                  : t('lines.modeLightweight'),
             })}
-          </ul>
+            {' · '}
+            {t('lines.revision', { number: workspace.budget.currentRevisionNumber })}
+          </p>
+          <BudgetLineControlList
+            rows={workspace.lineControls}
+            labels={{
+              title: t('lines.title'),
+              mappingHint: t('lines.mappingHint'),
+              unmappedRow: t('lines.unmappedRow'),
+              unmappedRowHint: t('lines.unmappedRowHint'),
+              unmappedValue: t('lines.unmappedValue'),
+              mappedStatus: t('lines.mappedStatus'),
+              unmappedStatus: t('lines.unmappedStatus'),
+              engineTotalStatus: t('lines.engineTotalStatus'),
+              budget: t('metrics.budget'),
+              actual: t('metrics.actual'),
+              remainingCommitment: t('metrics.remainingCommitment'),
+              etc: t('metrics.etc'),
+              forecast: t('metrics.forecast'),
+              variance: t('metrics.variance'),
+              lineTypes: {
+                total: t('lineTypes.total'),
+                category: t('lineTypes.category'),
+                work_package: t('lineTypes.work_package'),
+                discipline: t('lineTypes.discipline'),
+                cost_code: t('lineTypes.cost_code'),
+              },
+            }}
+          />
         </div>
       ) : null}
 

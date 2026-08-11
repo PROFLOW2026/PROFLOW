@@ -128,7 +128,7 @@
     "forms.read": "View field forms",
     "forms.submit": "Fill and submit field forms",
     "forms.manage": "Manage form templates",
-    "command_center.read": "View Today (Command Center)",
+    "command_center.read": "View Today",
     "settings.manage": "Change settings",
     "tax.manage": "Manage tax rules",
     "audit.read": "Read the activity log"

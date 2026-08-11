@@ -29,14 +29,20 @@ const loadActiveWorkPackageCount = cache(async (projectId: string) =>
 
 export const loadProjectDetail = cache(
   async (projectId: string, includeStructure: boolean): Promise<ProjectDetail> => {
-    const chrome = await loadProjectChrome(projectId);
-
+    // Chrome is shared with layout; structure/count run in parallel with it
+    // so overview does not pay chrome-then-structure sequential txs.
     if (includeStructure) {
-      const structure = await loadProjectStructure(projectId);
+      const [chrome, structure] = await Promise.all([
+        loadProjectChrome(projectId),
+        loadProjectStructure(projectId),
+      ]);
       return assembleProjectDetail(chrome, structure);
     }
 
-    const activeCount = await loadActiveWorkPackageCount(projectId);
+    const [chrome, activeCount] = await Promise.all([
+      loadProjectChrome(projectId),
+      loadActiveWorkPackageCount(projectId),
+    ]);
     return assembleProjectDetail(chrome, {
       workPackages: [],
       phases: [],

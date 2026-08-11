@@ -1,6 +1,7 @@
 /**
- * Vendor credit notes — create + apply.
+ * Vendor credit notes — create, draft-edit, post, apply, void.
  * Credits ≠ payments: they reduce outstanding AND Actual recognition.
+ * No silent post. No hard delete after posting.
  */
 
 import { AUDIT_ACTIONS, recordAuditEvent } from '@/shared/audit';
@@ -8,7 +9,7 @@ import type { OrgContext } from '@/shared/auth/context';
 import { withTransaction } from '@/shared/db';
 import { businessDate } from '@/shared/dates';
 import { DomainRuleError, NotFoundError, ValidationError } from '@/shared/errors';
-import { money, toNumericString } from '@/shared/money';
+import { money, moneyEquals, subtractMoney, toNumericString } from '@/shared/money';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { noteModuleUsage } from '@/modules/tenancy';
@@ -20,6 +21,7 @@ import {
 import {
   assertApprovalAllowsAction,
   findMatchingApprovalRule,
+  getLatestApprovalForEntity,
   submitApprovalRequest,
 } from '@/modules/approvals';
 import {
@@ -29,30 +31,44 @@ import {
 import {
   creditRemaining,
   deriveCreditStatusAfterApplication,
+  displayCreditLifecycleStatus,
   assertCreditApplicable,
   assertCreditCreatable,
+  assertCreditDraftEditable,
+  assertCreditVoidable,
   areApCreditsAvailable,
+  type ApCreditLifecycleDisplayStatus,
 } from '../domain/vendor-credits';
 import { computeBillOutstanding } from '../domain/vendor-payments';
 import { getVendorPaymentsRepository } from '../data/payments.repository';
 import {
   findVendorCreditById,
+  findVendorCreditWithVendor,
   insertCreditApplication,
   insertVendorCredit,
   listActiveAppliedAmountsForCredit,
   listActiveCreditAmountsForBill,
   listCreditApplicationsForBill,
+  listCreditApplicationsForCredit,
   listVendorCreditsForOrg,
   lockVendorCreditForUpdate,
+  updateVendorCreditDraftFields,
   updateVendorCreditStatus,
+  voidCreditApplication,
   type ApCreditApplicationRow,
+  type ApCreditApplicationWithBill,
+  type ApVendorCreditListItem,
   type ApVendorCreditRow,
 } from '../data/credits.repository';
 import {
   applyVendorCreditSchema,
   createVendorCreditSchema,
+  updateVendorCreditDraftSchema,
+  voidVendorCreditSchema,
   type ApplyVendorCreditInput,
   type CreateVendorCreditInput,
+  type UpdateVendorCreditDraftInput,
+  type VoidVendorCreditInput,
 } from '../validation/schemas';
 
 function assertCreditsSchemaReady(): void {
@@ -64,13 +80,33 @@ function assertCreditsSchemaReady(): void {
   }
 }
 
+export type ApVendorCreditListView = ApVendorCreditListItem & {
+  readonly displayStatus: ApCreditLifecycleDisplayStatus;
+};
+
 export async function listVendorCredits(
   context: OrgContext,
   options: { readonly vendorId?: string } = {},
-): Promise<ApVendorCreditRow[]> {
+): Promise<ApVendorCreditListView[]> {
   assertPermission(context, PERMISSIONS.AP_READ);
   if (!areApCreditsAvailable()) return [];
-  return listVendorCreditsForOrg(context.db, context.organizationId, options);
+  const rows = await listVendorCreditsForOrg(context.db, context.organizationId, options);
+  const draftIds = rows.filter((row) => row.status === 'draft').map((row) => row.id);
+  const approvalByCreditId = new Map<string, string | null>();
+  await Promise.all(
+    draftIds.map(async (creditId) => {
+      const latest = await getLatestApprovalForEntity(context, 'vendor_credit', creditId);
+      approvalByCreditId.set(creditId, latest?.status ?? null);
+    }),
+  );
+
+  return rows.map((row) => ({
+    ...row,
+    displayStatus: displayCreditLifecycleStatus({
+      creditStatus: row.status as 'draft' | 'open' | 'applied' | 'void',
+      approvalRequestStatus: row.status === 'draft' ? (approvalByCreditId.get(row.id) ?? null) : null,
+    }),
+  }));
 }
 
 export async function listCreditsForBill(
@@ -139,7 +175,6 @@ export async function createVendorCredit(
     amount: toNumericString(money(input.amount, currency)),
     currency,
   });
-  const initialStatus = matchingApproval ? 'draft' : 'open';
 
   const credit = await insertVendorCredit(context.db, {
     organizationId: context.organizationId,
@@ -150,7 +185,7 @@ export async function createVendorCredit(
     creditDate: businessDate(input.creditDate),
     currency,
     amount: toNumericString(money(input.amount, currency)),
-    status: initialStatus,
+    status: 'draft',
     notes: input.notes ?? null,
     createdByUserId: context.userId,
   });
@@ -179,7 +214,7 @@ export async function createVendorCredit(
       amount: credit.amount,
       currency: credit.currency,
       isPayment: false,
-      reducesActual: initialStatus === 'open',
+      reducesActual: false,
       awaitingApproval: Boolean(matchingApproval),
     },
   });
@@ -223,19 +258,181 @@ export async function postVendorCredit(context: OrgContext, creditId: string) {
   if (!updated) throw new NotFoundError('Vendor credit');
 
   await recordAuditEvent(context, {
-    action: AUDIT_ACTIONS.AP_CREDIT_CREATED,
+    action: AUDIT_ACTIONS.AP_CREDIT_POSTED,
     entityType: 'ap_vendor_credit',
     entityId: updated.id,
     after: {
       id: updated.id,
       amount: updated.amount,
       currency: updated.currency,
+      status: updated.status,
       reducesActual: true,
       postedFromDraft: true,
     },
   });
 
   return updated;
+}
+
+/**
+ * Edit amount / date / notes / reference while the credit is still draft.
+ * Open / applied / void credits are immutable — void + replace is the correction path.
+ */
+export async function updateVendorCredit(
+  context: OrgContext,
+  raw: UpdateVendorCreditDraftInput,
+): Promise<ApVendorCreditRow> {
+  assertPermission(context, PERMISSIONS.AP_MANAGE);
+  assertCreditsSchemaReady();
+
+  const parsed = updateVendorCreditDraftSchema.safeParse(raw);
+  if (!parsed.success) {
+    throw new ValidationError(
+      parsed.error.issues.map((issue) => ({ path: issue.path.join('.'), message: issue.message })),
+    );
+  }
+
+  const input = parsed.data;
+  const existing = await findVendorCreditById(context.db, context.organizationId, input.creditId);
+  if (!existing || existing.archivedAt) throw new NotFoundError('Vendor credit');
+  assertCreditDraftEditable(existing.status as 'draft' | 'open' | 'applied' | 'void');
+  assertCreditCreatable({ amount: input.amount, currency: existing.currency });
+
+  const amountChanged = !moneyEquals(
+    money(existing.amount, existing.currency),
+    money(input.amount, existing.currency),
+  );
+  const dateChanged =
+    businessDate(input.creditDate) !== businessDate(existing.creditDate);
+  if (amountChanged || dateChanged) {
+    const latest = await getLatestApprovalForEntity(context, 'vendor_credit', existing.id);
+    if (latest?.status === 'submitted') {
+      throw new DomainRuleError(
+        'Amount and date are locked while approval is pending. Cancel the request or wait for a decision.',
+        'ap.errors.creditLockedPendingApproval',
+      );
+    }
+  }
+
+  await assertMonthOpenForRewrite(context, yearMonthFromBusinessDate(input.creditDate));
+
+  const updated = await updateVendorCreditDraftFields(
+    context.db,
+    context.organizationId,
+    existing.id,
+    {
+      amount: toNumericString(money(input.amount, existing.currency)),
+      creditDate: businessDate(input.creditDate),
+      reference: input.reference ?? null,
+      notes: input.notes ?? null,
+    },
+  );
+  if (!updated) throw new NotFoundError('Vendor credit');
+
+  await recordAuditEvent(context, {
+    action: AUDIT_ACTIONS.AP_CREDIT_UPDATED,
+    entityType: 'ap_vendor_credit',
+    entityId: updated.id,
+    before: {
+      amount: existing.amount,
+      creditDate: existing.creditDate,
+      reference: existing.reference,
+      notes: existing.notes,
+    },
+    after: {
+      amount: updated.amount,
+      creditDate: updated.creditDate,
+      reference: updated.reference,
+      notes: updated.notes,
+      status: updated.status,
+    },
+  });
+
+  return updated;
+}
+
+/**
+ * Void a vendor credit. No hard delete.
+ * Active applications are unwound first so outstanding and Actual are restored.
+ * Application rows remain with status void.
+ */
+export async function voidVendorCredit(
+  context: OrgContext,
+  raw: VoidVendorCreditInput,
+): Promise<ApVendorCreditRow> {
+  assertPermission(context, PERMISSIONS.AP_MANAGE);
+  assertCreditsSchemaReady();
+
+  const parsed = voidVendorCreditSchema.safeParse(raw);
+  if (!parsed.success) {
+    throw new ValidationError(
+      parsed.error.issues.map((issue) => ({ path: issue.path.join('.'), message: issue.message })),
+    );
+  }
+
+  const preview = await findVendorCreditById(
+    context.db,
+    context.organizationId,
+    parsed.data.creditId,
+  );
+  if (!preview || preview.archivedAt) throw new NotFoundError('Vendor credit');
+  assertCreditVoidable({ creditStatus: preview.status as 'draft' | 'open' | 'applied' | 'void' });
+  await assertMonthOpenForRewrite(context, yearMonthFromBusinessDate(preview.creditDate));
+
+  const voidedAt = new Date();
+  const voided = await withTransaction(context.db, async (tx) => {
+    const paymentRepo = getVendorPaymentsRepository();
+    const credit = await lockVendorCreditForUpdate(tx, context.organizationId, parsed.data.creditId);
+    if (!credit) throw new NotFoundError('Vendor credit');
+    assertCreditVoidable({ creditStatus: credit.status as 'draft' | 'open' | 'applied' | 'void' });
+
+    const applications = await listCreditApplicationsForCredit(
+      tx,
+      context.organizationId,
+      credit.id,
+    );
+    const active = applications.filter((row) => row.application.status === 'applied');
+    const billIds = [...new Set(active.map((row) => row.application.apBillId))];
+    if (billIds.length > 0) {
+      await paymentRepo.lockBillsForUpdate(tx, context.organizationId, billIds);
+    }
+
+    for (const row of active) {
+      const unwound = await voidCreditApplication(
+        tx,
+        context.organizationId,
+        row.application.id,
+        voidedAt,
+      );
+      if (!unwound) throw new NotFoundError('Credit application');
+    }
+
+    const updated = await updateVendorCreditStatus(
+      tx,
+      context.organizationId,
+      credit.id,
+      'void',
+      voidedAt,
+    );
+    if (!updated) throw new NotFoundError('Vendor credit');
+    return { before: credit, after: updated, unwoundCount: active.length };
+  });
+
+  await recordAuditEvent(context, {
+    action: AUDIT_ACTIONS.AP_CREDIT_VOIDED,
+    entityType: 'ap_vendor_credit',
+    entityId: voided.after.id,
+    before: { status: voided.before.status, amount: voided.before.amount },
+    after: {
+      status: voided.after.status,
+      voidedAt: voidedAt.toISOString(),
+      applicationsUnwound: voided.unwoundCount,
+      hardDeleted: false,
+      reducesActual: false,
+    },
+  });
+
+  return voided.after;
 }
 
 /**
@@ -314,6 +511,7 @@ export async function applyVendorCredit(
         appliedAmount: money(amount, bill.currency),
         status: 'applied' as const,
       })),
+      retentionHeldRemaining: money(bill.retentionHeldRemaining, bill.currency),
     });
 
     assertCreditApplicable({
@@ -375,4 +573,58 @@ export async function getVendorCredit(
   assertPermission(context, PERMISSIONS.AP_READ);
   if (!areApCreditsAvailable()) return null;
   return findVendorCreditById(context.db, context.organizationId, creditId);
+}
+
+export async function getVendorCreditDetail(
+  context: OrgContext,
+  creditId: string,
+): Promise<{
+  credit: ApVendorCreditListItem;
+  applications: readonly ApCreditApplicationWithBill[];
+  remaining: string;
+  appliedTotal: string;
+  displayStatus: ApCreditLifecycleDisplayStatus;
+  approvalRequestStatus: string | null;
+} | null> {
+  assertPermission(context, PERMISSIONS.AP_READ);
+  if (!areApCreditsAvailable()) return null;
+
+  const credit = await findVendorCreditWithVendor(context.db, context.organizationId, creditId);
+  if (!credit) return null;
+
+  const applications = await listCreditApplicationsForCredit(
+    context.db,
+    context.organizationId,
+    credit.id,
+  );
+  const activeAmounts = applications
+    .filter((row) => row.application.status === 'applied')
+    .map((row) => row.application.amount);
+  const remaining = creditRemaining({
+    creditAmount: credit.amount,
+    appliedAmounts: activeAmounts,
+    currency: credit.currency,
+  });
+  const appliedTotal = subtractMoney(
+    money(credit.amount, credit.currency),
+    remaining,
+  ).amount;
+
+  let approvalRequestStatus: string | null = null;
+  if (credit.status === 'draft') {
+    const latest = await getLatestApprovalForEntity(context, 'vendor_credit', credit.id);
+    approvalRequestStatus = latest?.status ?? null;
+  }
+
+  return {
+    credit,
+    applications,
+    remaining: remaining.amount,
+    appliedTotal,
+    displayStatus: displayCreditLifecycleStatus({
+      creditStatus: credit.status as 'draft' | 'open' | 'applied' | 'void',
+      approvalRequestStatus,
+    }),
+    approvalRequestStatus,
+  };
 }

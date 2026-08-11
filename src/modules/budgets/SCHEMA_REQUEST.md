@@ -8,8 +8,10 @@ Lead-owned migrations are not edited by this agent. Current `project_budgets` /
 1. **One active budget per project** — unique partial index on
    `(organization_id, project_id) WHERE status = 'active' AND archived_at IS NULL`
    would enforce what application code already rejects.
-2. **Line-level Actual allocation** — intentionally omitted. Category / WP /
-   discipline / cost-code lines are budget structure only; Actual remains the
-   shared financial engine total. Do not add a second Actual formula.
+2. **Line-level Actual** — display overlay only (`mapBudgetLineActuals`).
+   Category / WP lines receive expense contribution slices when the key
+   matches. Discipline / cost-code stay unmapped (expense/AP do not carry
+   those keys). Unmapped remainder = engine Actual − mapped line Actuals.
+   Do not add a second Actual formula.
 3. **`work_package_id` FK** — optional composite FK to `work_packages` if Lead
    wants referential integrity beyond UUID storage.

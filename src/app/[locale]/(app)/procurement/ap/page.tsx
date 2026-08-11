@@ -47,6 +47,7 @@ function billStatusShape(status: string): StatusShape {
 
 export default async function ApBillsPage() {
   const t = await getTranslations('ap');
+  const tRecurring = await getTranslations('recurringDrafts');
   const locale = await getLocale();
 
   const { bills, canManage, canRead } = await withOrgContext(async (context) => ({
@@ -74,6 +75,12 @@ export default async function ApBillsPage() {
         description={t('description')}
         actions={
           <div className="flex max-w-full flex-wrap gap-2">
+            <Button asChild variant="secondary" className="max-w-full">
+              <Link href="/recurring-drafts?kind=vendor_bill">{tRecurring('navFromSource')}</Link>
+            </Button>
+            <Button asChild variant="secondary" className="max-w-full">
+              <Link href="/procurement/ap/credits">{t('credits.navLink')}</Link>
+            </Button>
             <Button asChild variant="secondary" className="max-w-full">
               <Link href="/procurement/ap/aging">{t('aging.navLink')}</Link>
             </Button>

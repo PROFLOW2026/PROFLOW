@@ -13,8 +13,8 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { pressableChromeClassName } from '@/components/ui/pressable';
-import { globalSearchAction } from '@/modules/search';
-import type { GlobalSearchHit } from '@/modules/search';
+import { globalSearchAction } from '@/modules/search/application/search-actions';
+import type { GlobalSearchHit } from '@/modules/search/domain/types';
 import { cn } from '@/shared/ui/cn';
 
 /**

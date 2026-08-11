@@ -5,7 +5,7 @@
 
 import type { OrgContext } from '@/shared/auth/context';
 import { businessDate, type BusinessDate } from '@/shared/dates';
-import { isZeroMoney, money, subtractMoney, addMoney } from '@/shared/money';
+import { addMoney, isZeroMoney, money } from '@/shared/money';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { listApBills } from '../data/ap.repository';
@@ -22,6 +22,7 @@ import {
   type ApPayableStatus,
   computeBillOutstanding,
   derivePayableStatus,
+  sumActiveAppliedAmounts,
 } from '../domain/vendor-payments';
 
 export interface BillPayableSummary {
@@ -37,6 +38,8 @@ export interface BillPayableSummary {
   readonly paid: string;
   readonly credited: string;
   readonly outstanding: string;
+  readonly retentionAmount: string;
+  readonly retentionHeldRemaining: string;
   readonly payableStatus: ApPayableStatus | null;
 }
 
@@ -66,6 +69,7 @@ function toAggregateBills(bills: readonly BillPayableSummary[]) {
       creditApplications: isZeroMoney(credited)
         ? []
         : [{ appliedAmount: credited, status: 'applied' as const }],
+      retentionHeldRemaining: money(bill.retentionHeldRemaining, bill.currency),
     };
   });
 }
@@ -128,17 +132,19 @@ async function loadPayableBills(
       appliedAmount: money(amount, bill.currency),
       status: 'applied' as const,
     }));
+    const retentionHeldRemaining = money(bill.retentionHeldRemaining, bill.currency);
     const outstanding = computeBillOutstanding({
       billStatus: bill.status,
       billTotal,
       applications,
       creditApplications,
+      retentionHeldRemaining,
     });
     const creditedTotal = credits.reduce(
       (sum, amount) => addMoney(sum, money(amount, bill.currency)),
       money('0', bill.currency),
     );
-    const paidCash = subtractMoney(subtractMoney(billTotal, outstanding), creditedTotal);
+    const paidCash = sumActiveAppliedAmounts(applications, bill.currency);
 
     return {
       billId: bill.id,
@@ -153,11 +159,14 @@ async function loadPayableBills(
       paid: paidCash.amount,
       credited: creditedTotal.amount,
       outstanding: outstanding.amount,
+      retentionAmount: bill.retentionAmount,
+      retentionHeldRemaining: bill.retentionHeldRemaining,
       payableStatus: derivePayableStatus({
         billStatus: bill.status,
         billTotal,
         applications,
         creditApplications,
+        retentionHeldRemaining,
       }),
     };
   });
@@ -231,6 +240,7 @@ export async function getOrganizationPayablesAging(
       creditApplications: isZeroMoney(credited)
         ? []
         : [{ appliedAmount: credited, status: 'applied' as const }],
+      retentionHeldRemaining: money(bill.retentionHeldRemaining, bill.currency),
     };
   });
 

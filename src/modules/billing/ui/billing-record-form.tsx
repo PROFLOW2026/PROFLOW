@@ -11,6 +11,7 @@ import { pressableClassName } from '@/components/ui/pressable';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/shared/ui/cn';
 import type { ProjectOption } from '@/modules/billing/domain/types';
+import { RetentionCaptureFields } from '@/modules/retention/ui/retention-capture-fields';
 import { createBillingRecordAction, type BillingFormState } from './actions';
 
 interface BillingRecordFormProps {
@@ -94,6 +95,12 @@ export function BillingRecordForm({
       <Field label={t('form.notes')} optionalLabel={tCommon('labels.optional')}>
         {(controlProps) => <Textarea {...controlProps} name="notes" rows={3} />}
       </Field>
+
+      <RetentionCaptureFields
+        namespace="billing.retention"
+        currency={defaultCurrency ?? 'ILS'}
+        totalAmount={amount || '0'}
+      />
 
       <details className="rounded-md border border-[var(--pf-border-default)] p-3">
         <summary

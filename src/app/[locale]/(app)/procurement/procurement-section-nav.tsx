@@ -8,12 +8,13 @@ const TABS = [
   { key: 'rfqs', href: '/procurement/rfqs' },
   { key: 'materials', href: '/procurement/materials' },
   { key: 'ap', href: '/procurement/ap' },
+  { key: 'credits', href: '/procurement/ap/credits' },
 ] as const;
 
 export function ProcurementSectionNav({
   active,
 }: {
-  active: 'orders' | 'rfqs' | 'materials' | 'ap';
+  active: 'orders' | 'rfqs' | 'materials' | 'ap' | 'credits';
 }) {
   const t = useTranslations('procurement');
 

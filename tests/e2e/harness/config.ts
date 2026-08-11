@@ -42,4 +42,64 @@ export const WORKER = {
   displayName: 'אבי מזרחי',
 } as const;
 
-export const SEED_USERS = [OWNER, OTHER_OWNER, WORKER];
+export const MANAGER = {
+  id: '44444444-4444-4444-8444-444444444444',
+  email: 'manager@e2e.test',
+  displayName: 'מיכל לוי',
+} as const;
+
+export const FINANCE = {
+  id: '55555555-5555-4555-8555-555555555555',
+  email: 'finance@e2e.test',
+  displayName: 'רון כספי',
+} as const;
+
+export const GC_OWNER = {
+  id: '66666666-6666-4666-8666-666666666666',
+  email: 'gc@e2e.test',
+  displayName: 'קבלן ראשי',
+} as const;
+
+export const ELECTRICAL_OWNER = {
+  id: '77777777-7777-4777-8777-777777777777',
+  email: 'electrical@e2e.test',
+  displayName: 'חשמלאי',
+} as const;
+
+export const PLUMBING_OWNER = {
+  id: '88888888-8888-4888-8888-888888888888',
+  email: 'plumbing@e2e.test',
+  displayName: 'אינסטלטור',
+} as const;
+
+export const MAINTENANCE_OWNER = {
+  id: '99999999-9999-4999-8999-999999999999',
+  email: 'maintenance@e2e.test',
+  displayName: 'תחזוקה',
+} as const;
+
+export const FIELD_OWNER = {
+  id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+  email: 'field@e2e.test',
+  displayName: 'שירות שטח',
+} as const;
+
+export const MIXED_OWNER = {
+  id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+  email: 'mixed@e2e.test',
+  displayName: 'מעורב',
+} as const;
+
+export const SEED_USERS = [
+  OWNER,
+  OTHER_OWNER,
+  WORKER,
+  MANAGER,
+  FINANCE,
+  GC_OWNER,
+  ELECTRICAL_OWNER,
+  PLUMBING_OWNER,
+  MAINTENANCE_OWNER,
+  FIELD_OWNER,
+  MIXED_OWNER,
+];

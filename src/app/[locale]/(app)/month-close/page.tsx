@@ -37,6 +37,8 @@ type PageData =
       readonly adjustments: readonly MonthCloseAdjustment[];
       readonly canManage: boolean;
       readonly suggestedYearMonth: string;
+      readonly projectOptions: readonly { id: string; name: string }[];
+      readonly baseCurrency: string;
     };
 
 export default async function MonthClosePage({
@@ -76,6 +78,8 @@ export default async function MonthClosePage({
       adjustments: detail?.adjustments ?? [],
       canManage: workspace.canManage,
       suggestedYearMonth: workspace.suggestedYearMonth,
+      projectOptions: workspace.projectOptions,
+      baseCurrency: workspace.baseCurrency,
     };
   });
 
@@ -98,6 +102,8 @@ export default async function MonthClosePage({
           adjustments={data.adjustments}
           canManage={data.canManage}
           suggestedYearMonth={data.suggestedYearMonth}
+          projectOptions={data.projectOptions}
+          baseCurrency={data.baseCurrency}
           moduleEnabled={data.moduleEnabled}
           ensureAction={ensureMonthClosePeriodAction}
           refreshAction={refreshMonthCloseAction}

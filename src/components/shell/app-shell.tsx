@@ -18,6 +18,10 @@ import { UserMenu } from './user-menu';
  * Navigation and quick-create are derived from the viewer's permissions and
  * the organization's module visibility, so the chrome itself is the first
  * expression of Progressive Complexity rather than a filter applied later.
+ *
+ * Installed-app first paint is dominated by SW navigation preload and the `/`
+ * rewrite — not by splitting this chrome across Suspense (that duplicated
+ * Radix/client trees on hydrate).
  */
 export async function AppShell({ children }: { children: ReactNode }) {
   const tCommon = await getTranslations('common');
@@ -32,12 +36,11 @@ export async function AppShell({ children }: { children: ReactNode }) {
     shell.modules,
     workMix,
     shell.quickCreateEmphasis,
+    shell.suggestedDefaults,
   );
 
-  const userMenu = <UserMenuSlot organizationName={shell.organization.name} />;
-
   return (
-    <OfflineSyncProvider organizationId={shell.organizationId}>
+    <OfflineSyncProvider organizationId={shell.organizationId} userId={shell.user.id}>
       <div className="flex min-h-dvh w-full max-w-full" data-pf-shell="app">
         <Sidebar items={items} organizationName={shell.organization.name} />
 
@@ -54,7 +57,18 @@ export async function AppShell({ children }: { children: ReactNode }) {
           <TopBar
             organizationName={shell.organization.name}
             quickCreate={<QuickCreate actions={quickCreateActions} />}
-            userMenu={userMenu}
+            userMenu={
+              <UserMenu
+                displayName={shell.user.displayName}
+                email={shell.user.email}
+                organizationName={shell.organization.name}
+                organizations={shell.memberships.map((membership) => ({
+                  id: membership.id,
+                  name: membership.name,
+                }))}
+                activeOrganizationId={shell.organizationId}
+              />
+            }
           />
 
           <main
@@ -68,23 +82,5 @@ export async function AppShell({ children }: { children: ReactNode }) {
         <MobileNav items={items} />
       </div>
     </OfflineSyncProvider>
-  );
-}
-
-async function UserMenuSlot({ organizationName }: { organizationName: string }) {
-  const context = await getShellContext();
-  if (!context) return null;
-
-  return (
-    <UserMenu
-      displayName={context.user.displayName}
-      email={context.user.email}
-      organizationName={organizationName}
-      organizations={context.memberships.map((membership) => ({
-        id: membership.id,
-        name: membership.name,
-      }))}
-      activeOrganizationId={context.organizationId}
-    />
   );
 }

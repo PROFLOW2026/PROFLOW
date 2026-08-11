@@ -7,7 +7,20 @@ import { createProject } from '@/modules/projects';
 import { assignRole, findRoleByKey } from '@/modules/rbac';
 import { createOrganization, resolveOrgContext, setModuleVisibility } from '@/modules/tenancy';
 import type { Database, Transaction } from '@/shared/db/types';
-import { OTHER_OWNER, OWNER, WORKER } from './config';
+import {
+  ELECTRICAL_OWNER,
+  FIELD_OWNER,
+  FINANCE,
+  GC_OWNER,
+  MAINTENANCE_OWNER,
+  MANAGER,
+  MIXED_OWNER,
+  OTHER_OWNER,
+  OWNER,
+  PLUMBING_OWNER,
+  WORKER,
+} from './config';
+import type { BusinessProfileKey } from '@/modules/tenancy/domain/business-profiles';
 
 /**
  * Builds the world the end-to-end specs assert against.
@@ -40,7 +53,19 @@ export async function seedWorld(db: Database): Promise<SeededWorld> {
   await db
     .insert(profiles)
     .values(
-      [OWNER, OTHER_OWNER, WORKER].map((user) => ({
+      [
+        OWNER,
+        OTHER_OWNER,
+        WORKER,
+        MANAGER,
+        FINANCE,
+        GC_OWNER,
+        ELECTRICAL_OWNER,
+        PLUMBING_OWNER,
+        MAINTENANCE_OWNER,
+        FIELD_OWNER,
+        MIXED_OWNER,
+      ].map((user) => ({
         id: user.id,
         email: user.email,
         displayName: user.displayName,
@@ -77,6 +102,32 @@ export async function seedWorld(db: Database): Promise<SeededWorld> {
       membershipId: membership!.id,
       userId: WORKER.id,
       roleId: workerRole.id,
+    });
+
+    const managerRole = await findRoleByKey(tx, context.organizationId, 'manager');
+    if (!managerRole) throw new Error('manager role missing after provisioning');
+    const [managerMembership] = await tx
+      .insert(organizationMemberships)
+      .values({ organizationId: context.organizationId, userId: MANAGER.id, status: 'active' })
+      .returning({ id: organizationMemberships.id });
+    await assignRole(tx, {
+      organizationId: context.organizationId,
+      membershipId: managerMembership!.id,
+      userId: MANAGER.id,
+      roleId: managerRole.id,
+    });
+
+    const financeRole = await findRoleByKey(tx, context.organizationId, 'finance');
+    if (!financeRole) throw new Error('finance role missing after provisioning');
+    const [financeMembership] = await tx
+      .insert(organizationMemberships)
+      .values({ organizationId: context.organizationId, userId: FINANCE.id, status: 'active' })
+      .returning({ id: organizationMemberships.id });
+    await assignRole(tx, {
+      organizationId: context.organizationId,
+      membershipId: financeMembership!.id,
+      userId: FINANCE.id,
+      roleId: financeRole.id,
     });
   });
 
@@ -134,6 +185,28 @@ export async function seedWorld(db: Database): Promise<SeededWorld> {
 
     return project.projectId;
   });
+
+  const profileOrgs: ReadonlyArray<{
+    user: { id: string; email: string; displayName: string };
+    profile: BusinessProfileKey;
+    name: string;
+  }> = [
+    { user: GC_OWNER, profile: 'GENERAL_CONTRACTOR', name: 'קבלן ראשי בדיקה' },
+    { user: ELECTRICAL_OWNER, profile: 'ELECTRICAL', name: 'חשמל בדיקה' },
+    { user: PLUMBING_OWNER, profile: 'PLUMBING', name: 'אינסטלציה בדיקה' },
+    { user: MAINTENANCE_OWNER, profile: 'MAINTENANCE', name: 'תחזוקה בדיקה' },
+    { user: FIELD_OWNER, profile: 'FIELD_SERVICE', name: 'שירות שטח בדיקה' },
+    { user: MIXED_OWNER, profile: 'MIXED_PROJECT_SERVICE', name: 'מעורב בדיקה' },
+  ];
+  for (const row of profileOrgs) {
+    await asUser(db, row.user.id, (tx) =>
+      createOrganization(tx, row.user.id, {
+        name: row.name,
+        countryCode: 'IL',
+        businessProfile: row.profile,
+      }),
+    );
+  }
 
   return {
     organizationId: primary.organization.id,

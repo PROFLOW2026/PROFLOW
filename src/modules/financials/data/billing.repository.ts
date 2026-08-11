@@ -18,6 +18,7 @@ export interface ProjectBillingRows {
     readonly id: string;
     readonly dueDate: BusinessDate | null;
     readonly payments: readonly PaymentAmountInput[];
+    readonly retentionHeldRemaining?: MoneyValue;
   })[];
   readonly currency: string;
 }
@@ -57,6 +58,7 @@ async function mapBillingRecords(
     status: record.status,
     totalAmount: fromNumericString(record.totalAmount, record.currency)!,
     payments: paymentsByRecord.get(record.id) ?? [],
+    retentionHeldRemaining: fromNumericString(record.retentionHeldRemaining, record.currency) ?? undefined,
   }));
 
   return { records: mapped, currency };
@@ -161,6 +163,8 @@ export async function loadBillingRowsGroupedByProject(
         status: record.status,
         totalAmount: fromNumericString(record.totalAmount, record.currency)!,
         payments: paymentsByRecord.get(record.id) ?? [],
+        retentionHeldRemaining:
+          fromNumericString(record.retentionHeldRemaining, record.currency) ?? undefined,
       })),
     });
   }
@@ -187,6 +191,7 @@ export function countOverdueFromBillingRows(
       paid,
       record.kind,
       record.status,
+      record.retentionHeldRemaining,
     );
 
     if (isOverdueOn(outstanding, record.dueDate, today)) {

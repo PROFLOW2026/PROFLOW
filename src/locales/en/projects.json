@@ -70,6 +70,16 @@
     "locationLabel": "Location",
     "locationPlaceholder": "Site or address",
     "moreDetails": "More details",
+    "usualKind": {
+      "jobTitle": "Your organization usually creates jobs",
+      "projectTitle": "Your organization usually creates projects",
+      "workOrderTitle": "Your organization usually creates service calls",
+      "goToJob": "Create a job",
+      "goToProject": "Create a project",
+      "goToWorkOrder": "Create a service call",
+      "stayHint": "This form is still available if you need a project.",
+      "switcherLabel": "Work type"
+    },
     "submit": "Create project",
     "success": "Project created"
   },

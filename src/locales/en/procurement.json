@@ -8,7 +8,8 @@
     "orders": "Purchase orders",
     "rfqs": "RFQs",
     "materials": "Materials",
-    "ap": "Vendor bills"
+    "ap": "Vendor bills",
+    "credits": "Vendor credits"
   },
   "newOrder": "New purchase order",
   "newMaterial": "Add material",

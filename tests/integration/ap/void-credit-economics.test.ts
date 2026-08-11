@@ -4,6 +4,7 @@ import {
   composeVendorCostRecognition,
   createApBill,
   createVendorCredit,
+  postVendorCredit,
   enableApPaymentsPersistenceForTests,
   disableApPaymentsPersistenceForTests,
   getBillPayablePosition,
@@ -191,6 +192,7 @@ describe('AP void + credit economics (PGlite)', () => {
         amount: '15000',
         reference: 'CN-1',
       });
+      await postVendorCredit(context, credit.id);
       await applyVendorCredit(context, {
         creditId: credit.id,
         apBillId: seeded.bill.id,

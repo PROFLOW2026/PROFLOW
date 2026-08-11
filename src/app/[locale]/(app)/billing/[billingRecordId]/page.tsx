@@ -9,9 +9,16 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { getBillingRecord } from '@/modules/billing';
 import { BillingDetailActions } from '@/modules/billing/ui/billing-detail-actions';
 import { BillingStatusBadge } from '@/modules/billing/ui/billing-status-badge';
+import {
+  releaseBillingRetentionAction,
+  updateBillingRetentionAction,
+} from '@/modules/billing/ui/actions';
+import { listBillingRetentionReleases } from '@/modules/retention';
+import { RetentionPanel } from '@/modules/retention/ui/retention-panel';
 import { getEntityDocumentPanelData } from '@/modules/documents';
 import { DocumentAttachments } from '@/modules/documents/ui';
 import { withOrgContext } from '@/shared/auth/session';
+import { todayInTimeZone } from '@/shared/dates';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { Link } from '@/shared/i18n/navigation';
@@ -42,16 +49,24 @@ export default async function BillingDetailPage({
   let record;
   let canManage = false;
   let documentsPanel: Awaited<ReturnType<typeof getEntityDocumentPanelData>> | null = null;
+  let retentionReleases: Awaited<ReturnType<typeof listBillingRetentionReleases>> = [];
+  let orgToday = '';
 
   try {
     const result = await withOrgContext(async (context) => ({
       record: await getBillingRecord(context, billingRecordId),
       canManage: hasPermission(context, PERMISSIONS.BILLING_MANAGE),
       documentsPanel: await getEntityDocumentPanelData(context, 'billing_record', billingRecordId),
+      retentionReleases: await listBillingRetentionReleases(context, billingRecordId).catch(
+        () => [],
+      ),
+      orgToday: todayInTimeZone(context.organization.timezone),
     }));
     record = result.record;
     canManage = result.canManage;
     documentsPanel = result.documentsPanel;
+    retentionReleases = result.retentionReleases;
+    orgToday = result.orgToday;
   } catch {
     notFound();
   }
@@ -89,6 +104,30 @@ export default async function BillingDetailPage({
         }
       />
       <p className="text-xs text-[var(--pf-text-muted)]">{t('statutoryDisclosure')}</p>
+
+      <RetentionPanel
+        side="ar"
+        sourceId={record.id}
+        currency={record.totalAmount.currency}
+        totalAmount={record.totalAmount.amount}
+        retentionAmount={record.retentionAmount?.amount ?? '0'}
+        retentionHeldRemaining={record.retentionHeldRemaining?.amount ?? '0'}
+        payableOrReceivableNow={record.outstandingAmount.amount}
+        canManage={canManage}
+        canEditDraft={record.status === 'draft'}
+        canRelease={record.status === 'finalized' && record.kind !== 'credit_note'}
+        defaultReleaseDate={orgToday}
+        releases={retentionReleases.map((row) => ({
+          id: row.id,
+          amount: row.amount,
+          currency: row.currency,
+          releasedOn: row.releasedOn,
+          notes: row.notes,
+        }))}
+        locale={locale}
+        captureAction={updateBillingRetentionAction}
+        releaseAction={releaseBillingRetentionAction}
+      />
 
       <div className="grid min-w-0 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card className="min-w-0">

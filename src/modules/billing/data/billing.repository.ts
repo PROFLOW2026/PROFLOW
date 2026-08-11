@@ -57,6 +57,8 @@ export interface BillingRecordInsertRow {
   readonly taxAmount: string | null;
   readonly totalAmount: string;
   readonly currency: string;
+  readonly retentionAmount?: string;
+  readonly retentionHeldRemaining?: string;
   readonly externalDocumentId: string | null;
   readonly notes: string | null;
   readonly voidsBillingRecordId: string | null;
@@ -81,6 +83,8 @@ export interface BillingRecordUpdateRow {
   readonly taxAmount?: string | null;
   readonly totalAmount?: string;
   readonly currency?: string;
+  readonly retentionAmount?: string;
+  readonly retentionHeldRemaining?: string;
   readonly externalDocumentId?: string | null;
   readonly notes?: string | null;
   readonly status?: BillingRecordStatus;
@@ -122,12 +126,23 @@ function buildSummary(
     kind: BillingKind;
     totalAmount: string;
     currency: string;
+    retentionAmount?: string;
+    retentionHeldRemaining?: string;
   },
   paidAmount: MoneyValue,
   today: BusinessDate,
 ): BillingRecordSummary {
   const totalAmount = mapMoney(row.totalAmount, row.currency);
-  const outstandingAmount = recordOutstanding(totalAmount, paidAmount, row.kind, row.status);
+  const retentionHeldRemaining = row.retentionHeldRemaining
+    ? mapMoney(row.retentionHeldRemaining, row.currency)
+    : undefined;
+  const outstandingAmount = recordOutstanding(
+    totalAmount,
+    paidAmount,
+    row.kind,
+    row.status,
+    retentionHeldRemaining,
+  );
   const collectionStatus = deriveCollectionStatus(
     outstandingAmount,
     paidAmount,
@@ -148,6 +163,10 @@ function buildSummary(
     totalAmount,
     paidAmount,
     outstandingAmount,
+    retentionAmount: row.retentionAmount
+      ? mapMoney(row.retentionAmount, row.currency)
+      : mapMoney('0', row.currency),
+    retentionHeldRemaining: retentionHeldRemaining ?? mapMoney('0', row.currency),
     collectionStatus,
   };
 }
@@ -279,6 +298,8 @@ export async function findBillingRecordById(
       taxAmount: billingRecords.taxAmount,
       totalAmount: billingRecords.totalAmount,
       currency: billingRecords.currency,
+      retentionAmount: billingRecords.retentionAmount,
+      retentionHeldRemaining: billingRecords.retentionHeldRemaining,
       taxSnapshot: billingRecords.taxSnapshot,
       finalizedAt: billingRecords.finalizedAt,
       voidedAt: billingRecords.voidedAt,
@@ -351,6 +372,8 @@ export async function findBillingRecordById(
       kind: row.kind,
       totalAmount: row.totalAmount,
       currency: row.currency,
+      retentionAmount: row.retentionAmount,
+      retentionHeldRemaining: row.retentionHeldRemaining,
     },
     paidAmount,
     today,
@@ -404,6 +427,8 @@ export async function listBillingRecords(
       kind: billingRecords.kind,
       totalAmount: billingRecords.totalAmount,
       currency: billingRecords.currency,
+      retentionAmount: billingRecords.retentionAmount,
+      retentionHeldRemaining: billingRecords.retentionHeldRemaining,
     })
     .from(billingRecords)
     .leftJoin(projects, eq(projects.id, billingRecords.projectId))
