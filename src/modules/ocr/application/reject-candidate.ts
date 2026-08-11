@@ -22,7 +22,7 @@ export async function rejectOcrCandidate(
   const job = await repo.findJob(context.organizationId, input.jobId);
   if (!job) throw new NotFoundError('OCR extraction job');
 
-  if (job.confirmedExpenseId || job.confirmedVendorBillId) {
+  if (job.confirmedExpenseId || job.confirmedVendorBillId || job.confirmedVendorCreditId) {
     throw new DomainRuleError(
       'Extraction was already confirmed into a draft',
       'ocr.errors.alreadyConfirmed',

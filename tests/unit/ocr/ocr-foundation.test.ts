@@ -106,15 +106,15 @@ describe('OCR feature gate', () => {
     expect(getOcrFeatureMode()).toBe('disabled');
   });
 
-  it('keeps azure credentials in configured_pending until live HTTP is ready', () => {
+  it('treats azure credentials + enable flag as live once HTTP is ready', () => {
     process.env.OCR_INGESTION_ENABLED = 'true';
     process.env.OCR_PROVIDER = 'azure';
     process.env.OCR_PROVIDER_API_KEY = 'azure-key';
     process.env.OCR_PROVIDER_ENDPOINT = 'https://example.cognitiveservices.azure.com/';
-    expect(getOcrFeatureMode()).toBe('configured_pending');
+    expect(getOcrFeatureMode()).toBe('live');
   });
 
-  it('never reports providerLiveReady for azure skeleton extract', async () => {
+  it('reports providerLiveReady for configured azure without inventing fields when bytes are missing', async () => {
     process.env.OCR_INGESTION_ENABLED = 'true';
     process.env.OCR_PROVIDER = 'azure';
     process.env.OCR_PROVIDER_API_KEY = 'azure-key';
@@ -131,10 +131,9 @@ describe('OCR feature gate', () => {
       contextWith([PERMISSIONS.DOCUMENTS_READ]),
       provider,
     );
-    expect(status.featureMode).toBe('configured_pending');
-    expect(status.ingestionEnabled).toBe(false);
-    expect(status.messageKey).toBe('providerConfiguredPending');
-    expect(status.messageKey).not.toBe('providerLiveReady');
+    expect(status.featureMode).toBe('live');
+    expect(status.ingestionEnabled).toBe(true);
+    expect(status.messageKey).toBe('providerLiveReady');
   });
 });
 
@@ -478,6 +477,41 @@ describe('confirm path never creates expense without confirm', () => {
     }
   });
 
+  it('confirm→vendor credit draft only — never posted or applied', async () => {
+    const ctx = contextWith([PERMISSIONS.AP_MANAGE]);
+    const job = seedFixtureJob({
+      organizationId: ctx.organizationId,
+      candidates: buildFixtureCandidates(),
+    });
+    const createExpense = vi.fn(async () => ({ id: 'expense-should-not-exist' }));
+    const createVendorCreditDraft = vi.fn(async (_ctx, draft) => {
+      expect(draft.status).toBe('draft');
+      return { id: 'credit-draft-1', status: 'draft' as const };
+    });
+
+    const result = await confirmOcrCandidate(
+      ctx,
+      {
+        jobId: job.id,
+        confirm: true,
+        draftTarget: 'vendor_credit',
+        vendorId: VENDOR_UUID,
+        acceptedFields: ['vendor', 'gross', 'currency', 'date'],
+      },
+      { createExpense, createVendorCreditDraft },
+    );
+
+    expect(result.kind).toBe('created');
+    expect(createExpense).not.toHaveBeenCalled();
+    if (result.kind === 'created' && result.draftTarget === 'vendor_credit') {
+      expect(result.vendorCreditId).toBe('credit-draft-1');
+      expect(result.job.confirmedVendorCreditId).toBe('credit-draft-1');
+      expect(result.job.confirmedExpenseId).toBeNull();
+      expect(result.job.confirmedVendorBillId).toBeNull();
+      expect(result.job.confirmedDraftTarget).toBe('vendor_credit');
+    }
+  });
+
   it('refuses confirm:true when accepted fields cannot form an expense draft', async () => {
     const ctx = contextWith([PERMISSIONS.EXPENSES_CREATE]);
     const job = seedFixtureJob({
@@ -593,6 +627,25 @@ describe('extractReceiptJob with stub', () => {
     expect(job.confirmedExpenseId).toBeNull();
   });
 
+  it('reuses an existing needs_review job for the same document without a second provider call', async () => {
+    const ctx = contextWith([PERMISSIONS.DOCUMENTS_MANAGE]);
+    const provider = new ScriptedOcrProvider(buildFixtureCandidates());
+    const spy = vi.spyOn(provider, 'extractDocument');
+    const payload = {
+      documentId: '01900000-0000-7000-8000-000000000001',
+      filename: 'same.png',
+      mimeType: 'image/png',
+      contentBase64:
+        'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
+    };
+
+    const first = await extractReceiptJob(ctx, payload, provider);
+    const second = await extractReceiptJob(ctx, payload, provider);
+    expect(first.id).toBe(second.id);
+    expect(spy).toHaveBeenCalledTimes(1);
+    expect(second.rawMetadata?.reusedExistingJob).toBe(true);
+  });
+
   it('rejects documentId that does not belong to the active organization', async () => {
     const ctx = contextWith([PERMISSIONS.DOCUMENTS_MANAGE]);
     const provider = new ScriptedOcrProvider(buildFixtureCandidates());
@@ -632,6 +685,8 @@ describe('end-to-end extract → review → confirm draft', () => {
         documentId: '01900000-0000-7000-8000-000000000001',
         filename: 'scripted-receipt.png',
         mimeType: 'image/png',
+        contentBase64:
+          'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
       },
       provider,
     );

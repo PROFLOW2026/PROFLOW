@@ -71,6 +71,17 @@ const serverEnvSchema = z.object({
   OCR_PROVIDER_ENDPOINT: optionalUrl,
   OCR_PROVIDER_MODEL: z.preprocess(emptyToUndefined, z.string().optional()),
   OCR_ALLOW_FIXTURE: z.preprocess(emptyToUndefined, z.string().optional()),
+  /** Azure pricing tier — F0 (default) or S0. Controls effective OCR limits. */
+  OCR_AZURE_TIER: z.preprocess(emptyToUndefined, z.string().optional()),
+  /**
+   * Opt-in paid Azure Query Fields (S0 only). Never required for Hebrew.
+   * Default off — native prebuilt fields + free keyValuePairs.
+   */
+  OCR_AZURE_QUERY_FIELDS: z.preprocess(emptyToUndefined, z.string().optional()),
+  /** Playwright harness only — scripted OCR transport (never production secrets). */
+  OCR_E2E_MOCK_PROVIDER: z.preprocess(emptyToUndefined, z.string().optional()),
+  /** Playwright harness only — in-memory document storage via auth stub. */
+  E2E_INMEMORY_STORAGE: z.preprocess(emptyToUndefined, z.string().optional()),
 
 
   /**
@@ -159,5 +170,9 @@ export const SERVER_ENV_EXAMPLE_KEYS = [
   'OCR_PROVIDER_ENDPOINT',
   'OCR_PROVIDER_MODEL',
   'OCR_ALLOW_FIXTURE',
+  'OCR_AZURE_TIER',
+  'OCR_AZURE_QUERY_FIELDS',
+  'OCR_E2E_MOCK_PROVIDER',
+  'E2E_INMEMORY_STORAGE',
   'WEBHOOK_SECRET_KEK',
 ] as const;

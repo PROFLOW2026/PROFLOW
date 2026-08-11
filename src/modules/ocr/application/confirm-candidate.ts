@@ -6,12 +6,15 @@ import type { OrgContext } from '@/shared/auth/context';
 import { DomainRuleError, NotFoundError } from '@/shared/errors';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
+import { linkDocumentToEntity } from '@/modules/documents';
 import {
   confirmReceiptExtraction,
   mapConfirmedFieldsToExpenseDraft,
   mapConfirmedFieldsToVendorBillDraft,
+  mapStructuredBillLines,
   type ConfirmedReceiptFields,
 } from '../domain/confirm';
+import { lineItemsTrustworthy } from '../domain/totals-warnings';
 import {
   applyFieldOverrides,
   assertCandidatesPresent,
@@ -23,6 +26,7 @@ import {
   assertOcrConfirmedTargetShape,
   expenseConfirmTargetShape,
   vendorBillConfirmTargetShape,
+  vendorCreditConfirmTargetShape,
 } from '../domain/target-shape';
 import type {
   ExtractionJob,
@@ -40,6 +44,11 @@ import {
   type CreateVendorBillDraftFn,
   type VendorBillDraftPayload,
 } from './create-vendor-bill-draft';
+import {
+  createVendorCreditDraftFromOcr,
+  mapFieldsToVendorCreditDraft,
+  type CreateVendorCreditDraftFn,
+} from './create-vendor-credit-draft';
 
 export type CreateExpenseFn = (
   context: OrgContext,
@@ -75,6 +84,14 @@ export type ConfirmOcrCandidateResult =
       readonly vendorBillDraft: VendorBillDraftPayload;
       readonly expenseDraft: ReturnType<typeof mapConfirmedFieldsToExpenseDraft>;
       readonly draft: ReturnType<typeof mapConfirmedFieldsToExpenseDraft>;
+    }
+  | {
+      readonly kind: 'created';
+      readonly draftTarget: 'vendor_credit';
+      readonly job: ExtractionJob;
+      readonly vendorCreditId: string;
+      readonly expenseDraft: ReturnType<typeof mapConfirmedFieldsToExpenseDraft>;
+      readonly draft: ReturnType<typeof mapConfirmedFieldsToExpenseDraft>;
     };
 
 function candidatesFromConfirmed(fields: ConfirmedReceiptFields): ReceiptExtractionCandidates {
@@ -87,15 +104,20 @@ function candidatesFromConfirmed(fields: ConfirmedReceiptFields): ReceiptExtract
   return {
     ...blank,
     vendor: mk(fields.vendor),
+    companyNumber: mk(fields.companyNumber),
+    vatId: mk(fields.vatId),
     date: mk(fields.date),
     dueDate: mk(fields.dueDate),
     reference: mk(fields.reference),
+    orderNumber: mk(fields.orderNumber),
+    documentType: mk(fields.documentType),
     description: mk(fields.description),
     net: mk(fields.net),
     tax: mk(fields.tax),
     gross: mk(fields.gross),
     currency: mk(fields.currency),
     lineDescriptions: [],
+    lines: [],
     suggestions: { projectLabel: null, categoryLabel: null },
   };
 }
@@ -109,7 +131,7 @@ function mergeReviewOverrides(
 }
 
 function assertDraftPermission(context: OrgContext, draftTarget: OcrDraftTarget): void {
-  if (draftTarget === 'vendor_bill') {
+  if (draftTarget === 'vendor_bill' || draftTarget === 'vendor_credit') {
     assertPermission(context, PERMISSIONS.AP_MANAGE);
     return;
   }
@@ -157,6 +179,7 @@ export async function confirmOcrCandidate(
   deps: {
     createExpense?: CreateExpenseFn;
     createVendorBillDraft?: CreateVendorBillDraftFn;
+    createVendorCreditDraft?: CreateVendorCreditDraftFn;
     repo?: OcrRepository;
   } = {},
 ): Promise<ConfirmOcrCandidateResult> {
@@ -175,7 +198,7 @@ export async function confirmOcrCandidate(
     );
   }
 
-  if (job.confirmedExpenseId || job.confirmedVendorBillId) {
+  if (job.confirmedExpenseId || job.confirmedVendorBillId || job.confirmedVendorCreditId) {
     throw new DomainRuleError(
       'Extraction was already confirmed into a draft',
       'ocr.errors.alreadyConfirmed',
@@ -246,7 +269,15 @@ export async function confirmOcrCandidate(
         'ocr.errors.vendorRequired',
       );
     }
-    const billDraft = mapConfirmedFieldsToVendorBillDraft(confirmed, input.vendorId);
+    const currency = confirmed.currency?.trim().toUpperCase() || '';
+    const structured = lineItemsTrustworthy(workingCandidates)
+      ? mapStructuredBillLines(workingCandidates, currency)
+      : [];
+    const billDraft = mapConfirmedFieldsToVendorBillDraft(
+      confirmed,
+      input.vendorId,
+      structured.length > 0 ? structured : undefined,
+    );
     if (!billDraft.totalAmount || !billDraft.currency || billDraft.lines.length === 0) {
       throw new DomainRuleError(
         'Accepted OCR fields are incomplete for a vendor bill draft',
@@ -270,6 +301,7 @@ export async function confirmOcrCandidate(
     }
 
     await assertVendorBillSameOrg(context, created.id);
+    await linkSourceDocument(context, job.sourceDocument.documentId, 'ap_bill', created.id);
     const targetShape = vendorBillConfirmTargetShape(created.id);
     assertOcrConfirmedTargetShape(targetShape);
 
@@ -295,6 +327,52 @@ export async function confirmOcrCandidate(
     };
   }
 
+  if (draftTarget === 'vendor_credit') {
+    if (!input.vendorId) {
+      throw new DomainRuleError(
+        'Vendor is required to create a draft vendor credit',
+        'ocr.errors.vendorRequired',
+      );
+    }
+    const creditDraft = mapFieldsToVendorCreditDraft({
+      vendorId: input.vendorId,
+      reference: confirmed.reference,
+      date: confirmed.date,
+      currency: confirmed.currency,
+      amount: confirmed.gross ?? confirmed.net,
+      description: confirmed.description,
+    });
+    if (!creditDraft) {
+      throw new DomainRuleError(
+        'Accepted OCR fields are incomplete for a vendor credit draft',
+        'ocr.errors.incompleteVendorCreditMapping',
+      );
+    }
+    const createCredit = deps.createVendorCreditDraft ?? createVendorCreditDraftFromOcr;
+    const created = await createCredit(context, creditDraft);
+    await linkSourceDocument(context, job.sourceDocument.documentId, 'vendor', input.vendorId);
+    const targetShape = vendorCreditConfirmTargetShape(created.id);
+    assertOcrConfirmedTargetShape(targetShape);
+    const updated = await repo.updateJob(context.organizationId, job.id, {
+      status: 'succeeded',
+      reviewStatus: 'accepted',
+      ...targetShape,
+      candidates: workingCandidates,
+      reviewOverrides: retainedOverrides,
+      extractedCandidates: retained.extractedCandidates,
+      acceptedFields: input.acceptedFields,
+      rejectedFields: input.rejectedFields ?? null,
+    });
+    return {
+      kind: 'created',
+      draftTarget: 'vendor_credit',
+      job: updated!,
+      vendorCreditId: created.id,
+      expenseDraft,
+      draft: expenseDraft,
+    };
+  }
+
   if (!expenseInput) {
     throw new DomainRuleError(
       'Accepted OCR fields are incomplete for an expense draft',
@@ -307,6 +385,7 @@ export async function confirmOcrCandidate(
   const created = await create(context, expenseInput);
 
   await assertExpenseSameOrg(context, created.id);
+  await linkSourceDocument(context, job.sourceDocument.documentId, 'expense', created.id);
   const targetShape = expenseConfirmTargetShape(created.id);
   assertOcrConfirmedTargetShape(targetShape);
 
@@ -330,4 +409,19 @@ export async function confirmOcrCandidate(
     expenseDraft,
     draft: expenseDraft,
   };
+}
+
+async function linkSourceDocument(
+  context: OrgContext,
+  documentId: string | null,
+  ownerType: 'expense' | 'ap_bill' | 'vendor',
+  ownerId: string,
+): Promise<void> {
+  if (!documentId) return;
+  if (!context.db || typeof (context.db as { select?: unknown }).select !== 'function') return;
+  try {
+    await linkDocumentToEntity(context, { documentId, ownerType, ownerId });
+  } catch {
+    // Job retains documentId; entity link is best-effort.
+  }
 }

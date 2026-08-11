@@ -24,6 +24,7 @@ export type OcrJobPatch = Partial<{
   errorMessage: string | null;
   confirmedExpenseId: string | null;
   confirmedVendorBillId: string | null;
+  confirmedVendorCreditId: string | null;
   confirmedDraftTarget: OcrDraftTarget | null;
   sourceDocument: OcrSourceDocumentRef;
 }>;

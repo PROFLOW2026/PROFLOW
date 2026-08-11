@@ -1,6 +1,45 @@
+import type { CanonicalOcrDocument } from './canonical';
 import type { ExtractReceiptInput, ExtractReceiptResult, OcrProvider } from './provider';
 import type { ReceiptExtractionCandidates } from './types';
 import { emptyCandidates as domainEmptyCandidates } from './field-mapping';
+
+function canonicalFromCandidates(
+  candidates: ReceiptExtractionCandidates,
+  providerId: string,
+): CanonicalOcrDocument {
+  const blank = candidates.vendor;
+  return {
+    documentTypeKey: 'unknown',
+    documentTypeLabel: candidates.documentType,
+    supplier: {
+      name: candidates.vendor,
+      companyNumber: candidates.companyNumber,
+      vatId: candidates.vatId,
+      address: { value: null, confidence: null, provenance: blank.provenance },
+      phone: { value: null, confidence: null, provenance: blank.provenance },
+      email: { value: null, confidence: null, provenance: blank.provenance },
+    },
+    identity: {
+      documentNumber: candidates.reference,
+      issueDate: candidates.date,
+      dueDate: candidates.dueDate,
+      orderNumber: candidates.orderNumber,
+    },
+    money: {
+      currency: candidates.currency,
+      net: candidates.net,
+      tax: candidates.tax,
+      gross: candidates.gross,
+      vatRates: [],
+    },
+    lines: candidates.lines,
+    description: candidates.description,
+    languages: [],
+    pageCount: null,
+    overallConfidence: 0.9,
+    metadata: { providerId, model: 'scripted-fixture', providerStatus: 'scripted_ok' },
+  };
+}
 
 function emptyCandidates(providerId: string): ReceiptExtractionCandidates {
   return domainEmptyCandidates({
@@ -42,6 +81,10 @@ export class StubOcrProvider implements OcrProvider {
     return this.configured;
   }
 
+  async extractDocument(input: ExtractReceiptInput): Promise<ExtractReceiptResult> {
+    return this.extractReceipt(input);
+  }
+
   async extractReceipt(_input: ExtractReceiptInput): Promise<ExtractReceiptResult> {
     if (!this.configured) {
       return {
@@ -69,10 +112,12 @@ export class StubOcrProvider implements OcrProvider {
 
   /** Test helper: empty candidates that still require human review. */
   emptyReviewPayload(): ExtractReceiptResult {
+    const candidates = emptyCandidates(this.id);
     return {
       ok: true,
       needsReview: true,
-      candidates: emptyCandidates(this.id),
+      candidates,
+      canonical: canonicalFromCandidates(candidates, this.id),
       overallConfidence: null,
       rawMetadata: {
         providerId: this.id,
@@ -96,6 +141,10 @@ export class ScriptedOcrProvider implements OcrProvider {
     return true;
   }
 
+  async extractDocument(input: ExtractReceiptInput): Promise<ExtractReceiptResult> {
+    return this.extractReceipt(input);
+  }
+
   async extractReceipt(_input: ExtractReceiptInput): Promise<ExtractReceiptResult> {
     const fieldConfidences = {
       vendor: this.candidates.vendor.confidence,
@@ -112,6 +161,7 @@ export class ScriptedOcrProvider implements OcrProvider {
       ok: true,
       needsReview: true,
       candidates: this.candidates,
+      canonical: canonicalFromCandidates(this.candidates, this.id),
       overallConfidence: 0.9,
       rawMetadata: {
         providerId: this.id,

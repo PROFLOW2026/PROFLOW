@@ -3,6 +3,7 @@ import {
   EXTRACTION_JOB_STATUSES,
   OCR_CANDIDATE_FIELD_KEYS,
   OCR_DRAFT_TARGETS,
+  OCR_WORKFLOW_CONTEXTS,
 } from '../domain/types';
 
 const fieldOverrideSchema = z.string().trim().max(2000).nullable().optional();
@@ -14,6 +15,8 @@ export const extractReceiptSchema = z.object({
   contentBase64: z.string().max(20_000_000).optional(),
   mimeType: z.string().trim().max(200).optional(),
   filename: z.string().trim().max(500).optional(),
+  workflow: z.enum(OCR_WORKFLOW_CONTEXTS).optional(),
+  forceRetry: z.boolean().optional(),
 });
 
 export const listOcrCandidatesSchema = z.object({
@@ -43,9 +46,13 @@ export const confirmOcrCandidateSchema = z
     fieldOverrides: z
       .object({
         vendor: fieldOverrideSchema,
+        companyNumber: fieldOverrideSchema,
+        vatId: fieldOverrideSchema,
         date: fieldOverrideSchema,
         dueDate: fieldOverrideSchema,
         reference: fieldOverrideSchema,
+        orderNumber: fieldOverrideSchema,
+        documentType: fieldOverrideSchema,
         description: fieldOverrideSchema,
         net: fieldOverrideSchema,
         tax: fieldOverrideSchema,
@@ -55,11 +62,15 @@ export const confirmOcrCandidateSchema = z
       .optional(),
   })
   .superRefine((data, ctx) => {
-    if (data.confirm && data.draftTarget === 'vendor_bill' && !data.vendorId) {
+    if (
+      data.confirm &&
+      (data.draftTarget === 'vendor_bill' || data.draftTarget === 'vendor_credit') &&
+      !data.vendorId
+    ) {
       ctx.addIssue({
         code: 'custom',
         path: ['vendorId'],
-        message: 'Vendor is required to create a draft vendor bill',
+        message: 'Vendor is required to create a draft vendor bill or credit',
       });
     }
   });

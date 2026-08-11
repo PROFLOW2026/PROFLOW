@@ -34,6 +34,11 @@ class MockStoragePort implements StoragePort {
     return { url: `https://storage.test/download/${encodeURIComponent(key)}`, expiresAt: new Date() };
   }
 
+  async downloadBytes(): Promise<{ bytes: Uint8Array; contentType: string; size: number }> {
+    const bytes = new Uint8Array([0x25, 0x50, 0x44, 0x46]);
+    return { bytes, contentType: 'application/pdf', size: bytes.length };
+  }
+
   async remove(): Promise<void> {}
 }
 

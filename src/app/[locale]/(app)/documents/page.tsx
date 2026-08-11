@@ -15,6 +15,7 @@ import { getShellContext, withOrgContext } from '@/shared/auth/session';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { Link } from '@/shared/i18n/navigation';
+import { OcrEntryLink } from '@/modules/ocr/ui/ocr-entry-link';
 import { DocumentListFilters } from './document-list-filters';
 import { DocumentOrgList } from './document-org-list';
 
@@ -66,7 +67,11 @@ export default async function DocumentsPage({
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title={t('title')} description={t('description')} />
+      <PageHeader
+        title={t('title')}
+        description={t('description')}
+        actions={<OcrEntryLink workflow="general" />}
+      />
 
       {!storageConfigured ? <Alert tone="info">{t('storageNotConfigured')}</Alert> : null}
 

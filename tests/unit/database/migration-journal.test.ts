@@ -224,36 +224,50 @@ describe('migration journal', () => {
     );
   });
 
-  it('places gap-closure 0030 after immutable 0029', async () => {
+  it('places gap-closure 0030 after immutable 0029, then 0031 OCR vendor credit', async () => {
     const journal = await loadJournal();
     const tags = journal.entries.map((entry) => entry.tag);
     expect(tags.indexOf('0029_next_gen_integration_hardening')).toBeLessThan(
       tags.indexOf('0030_gap_closure_corrections_retention_recurring'),
     );
-    expect(tags.at(-1)).toBe('0030_gap_closure_corrections_retention_recurring');
+    expect(tags.indexOf('0030_gap_closure_corrections_retention_recurring')).toBeLessThan(
+      tags.indexOf('0031_ocr_vendor_credit_target'),
+    );
+    expect(tags.at(-1)).toBe('0031_ocr_vendor_credit_target');
 
-    const sql = await readFile(
+    const sql30 = await readFile(
       path.join(MIGRATIONS_DIR, '0030_gap_closure_corrections_retention_recurring.sql'),
       'utf8',
     );
-    expect(sql).toContain('retention_releases');
-    expect(sql).toContain('recurring_financial_draft_runs');
-    expect(sql).toContain('retention_held_remaining');
-    expect(sql).toContain('expenses.create');
-    expect(sql).toContain('month_close_adjustments_supersedes_uq');
-    expect(sql).toContain('app.month_close_adjustments_supersede_guard');
-    expect(sql).toContain('app.month_close_adjustments_economic_currency_guard');
-    expect(sql).toContain('app.retention_source_invariants');
-    expect(sql).toContain('app.retention_release_in_progress');
-    expect(sql).toContain(
+    expect(sql30).toContain('retention_releases');
+    expect(sql30).toContain('recurring_financial_draft_runs');
+    expect(sql30).toContain('retention_held_remaining');
+    expect(sql30).toContain('expenses.create');
+    expect(sql30).toContain('month_close_adjustments_supersedes_uq');
+    expect(sql30).toContain('app.month_close_adjustments_supersede_guard');
+    expect(sql30).toContain('app.month_close_adjustments_economic_currency_guard');
+    expect(sql30).toContain('app.retention_source_invariants');
+    expect(sql30).toContain('app.retention_release_in_progress');
+    expect(sql30).toContain(
       'organization_id, generated_entity_type, generated_entity_id',
     );
-    expect(sql).toContain('timezone(o.timezone, now())');
-    expect(sql).toContain('SECURITY DEFINER');
-    expect(sql).not.toContain('app.retention_release_write');
-    expect(sql).not.toContain(
+    expect(sql30).toContain('timezone(o.timezone, now())');
+    expect(sql30).toContain('SECURITY DEFINER');
+    expect(sql30).not.toContain('app.retention_release_write');
+    expect(sql30).not.toContain(
       'GRANT EXECUTE ON FUNCTION app.retention_releases_guard() TO authenticated',
     );
+
+    const sql31 = await readFile(
+      path.join(MIGRATIONS_DIR, '0031_ocr_vendor_credit_target.sql'),
+      'utf8',
+    );
+    expect(sql31).toContain('confirmed_vendor_credit_id');
+    expect(sql31).toContain('vendor_credit');
+    expect(sql31).toContain('ocr_extraction_jobs_vendor_credit_org_fk');
+    expect(sql31).toContain('IS NOT NULL');
+    expect(sql31).toContain('ON DELETE RESTRICT');
+    expect(sql31).toMatch(/\[0-9a-f\]\{8\}/);
   });
 });
 

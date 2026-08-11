@@ -220,11 +220,16 @@ export async function withRawPglite<T>(fn: (client: PGlite) => Promise<T>): Prom
 
 async function snapshotKey(): Promise<string> {
   const migrations = await readMigrations();
-  const hash = createHash('sha1')
-    .update(migrations.map((migration) => migration.name).join('|'))
-    .digest('hex')
-    .slice(0, 12);
-  return `migrated-${hash}`;
+  const hash = createHash('sha1');
+  for (const migration of migrations) {
+    hash.update(migration.name);
+    hash.update('\0');
+    for (const statement of migration.statements) {
+      hash.update(statement);
+      hash.update('\0');
+    }
+  }
+  return `migrated-${hash.digest('hex').slice(0, 12)}`;
 }
 
 function snapshotPaths(key: string): { file: string; lock: string } {

@@ -1,6 +1,10 @@
 import { DomainRuleError } from '@/shared/errors';
 
-import type { OcrCandidateFieldKey, OcrFieldCandidate, ReceiptExtractionCandidates } from './types';
+import type {
+  OcrCandidateFieldKey,
+  OcrFieldCandidate,
+  ReceiptExtractionCandidates,
+} from './types';
 import { OCR_CANDIDATE_FIELD_KEYS } from './types';
 
 /**
@@ -9,9 +13,13 @@ import { OCR_CANDIDATE_FIELD_KEYS } from './types';
  */
 export interface ConfirmedReceiptFields {
   readonly vendor: string | null;
+  readonly companyNumber: string | null;
+  readonly vatId: string | null;
   readonly date: string | null;
   readonly dueDate: string | null;
   readonly reference: string | null;
+  readonly orderNumber: string | null;
+  readonly documentType: string | null;
   readonly description: string | null;
   readonly net: string | null;
   readonly tax: string | null;
@@ -68,9 +76,13 @@ export function confirmReceiptExtraction(
 
   return {
     vendor: pick('vendor', input.candidates.vendor),
+    companyNumber: pick('companyNumber', input.candidates.companyNumber),
+    vatId: pick('vatId', input.candidates.vatId),
     date: pick('date', input.candidates.date),
     dueDate: pick('dueDate', input.candidates.dueDate),
     reference: pick('reference', input.candidates.reference),
+    orderNumber: pick('orderNumber', input.candidates.orderNumber),
+    documentType: pick('documentType', input.candidates.documentType),
     description: pick('description', input.candidates.description),
     net: pick('net', input.candidates.net),
     tax: pick('tax', input.candidates.tax),
@@ -124,6 +136,13 @@ export function mapConfirmedFieldsToExpenseDraft(fields: ConfirmedReceiptFields)
 export function mapConfirmedFieldsToVendorBillDraft(
   fields: ConfirmedReceiptFields,
   vendorId: string,
+  structuredLines?: readonly {
+    readonly description: string;
+    readonly quantity: string;
+    readonly unitAmount: string;
+    readonly lineTotal: string;
+    readonly currency: string;
+  }[],
 ): {
   readonly vendorId: string;
   readonly vendorNameHint: string | null;
@@ -170,16 +189,46 @@ export function mapConfirmedFieldsToVendorBillDraft(
     isLedgerTruth: false,
     recognizedVendorActual: false,
     lines:
-      totalAmount && currency
-        ? [
-            {
-              description: lineDescription.slice(0, 500),
-              quantity: '1',
-              unitAmount: totalAmount,
-              lineTotal: totalAmount,
-              currency,
-            },
-          ]
-        : [],
+      structuredLines && structuredLines.length > 0
+        ? structuredLines
+        : totalAmount && currency
+          ? [
+              {
+                description: lineDescription.slice(0, 500),
+                quantity: '1',
+                unitAmount: totalAmount,
+                lineTotal: totalAmount,
+                currency,
+              },
+            ]
+          : [],
   };
+}
+
+export function mapStructuredBillLines(
+  candidates: ReceiptExtractionCandidates,
+  currency: string,
+): readonly {
+  readonly description: string;
+  readonly quantity: string;
+  readonly unitAmount: string;
+  readonly lineTotal: string;
+  readonly currency: string;
+}[] {
+  return candidates.lines
+    .map((line) => {
+      const description = line.description.value?.trim();
+      const lineTotal = line.lineTotal.value?.trim() || line.netAmount.value?.trim();
+      const unitAmount = line.unitPrice.value?.trim() || lineTotal;
+      const quantity = line.quantity.value?.trim() || '1';
+      if (!description || !lineTotal) return null;
+      return {
+        description: description.slice(0, 500),
+        quantity,
+        unitAmount: unitAmount ?? lineTotal,
+        lineTotal,
+        currency,
+      };
+    })
+    .filter((line): line is NonNullable<typeof line> => line != null);
 }

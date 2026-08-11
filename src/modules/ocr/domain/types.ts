@@ -3,20 +3,28 @@
  *
  * AI output is never ledger truth — every field is a candidate with confidence
  * and provenance until a human explicitly confirms a mapping into a draft
- * Expense or draft Vendor Bill.
+ * Expense, draft Vendor Bill, or draft Vendor Credit.
+ *
+ * Provider-specific field names (Azure VendorName, InvoiceId, …) must not appear
+ * outside adapter mappers. This file is the canonical ProjectFlow contract.
  */
 
 import type { OcrFeatureMode } from './feature-gate';
 
 /**
  * Fields a reviewer may explicitly accept into a draft mapping.
- * `dueDate` is retained for review and may append to notes — Expense has no due_date.
+ * Extra identity fields persist in JSON on `ocr_extraction_jobs` (no migration).
+ * `dueDate` / `orderNumber` may append to expense notes — Expense has no those columns.
  */
 export const OCR_CANDIDATE_FIELD_KEYS = [
   'vendor',
+  'companyNumber',
+  'vatId',
   'date',
   'dueDate',
   'reference',
+  'orderNumber',
+  'documentType',
   'description',
   'net',
   'tax',
@@ -46,12 +54,43 @@ export const OCR_REVIEW_STATUSES = [
 
 export type OcrReviewStatus = (typeof OCR_REVIEW_STATUSES)[number];
 
-/** Explicit confirm target — draft only; never finalized ledger posts. */
-export const OCR_DRAFT_TARGETS = ['expense', 'vendor_bill'] as const;
+/**
+ * Explicit confirm target — draft only; never finalized ledger posts.
+ * `vendor_credit` is a first-class confirmed draft target (0031).
+ */
+export const OCR_DRAFT_TARGETS = ['expense', 'vendor_bill', 'vendor_credit'] as const;
 
 export type OcrDraftTarget = (typeof OCR_DRAFT_TARGETS)[number];
 
+/** Where the user started capture — drives default target + model strategy. */
+export const OCR_WORKFLOW_CONTEXTS = [
+  'expense',
+  'vendor_bill',
+  'vendor_credit',
+  'general',
+] as const;
+
+export type OcrWorkflowContext = (typeof OCR_WORKFLOW_CONTEXTS)[number];
+
+export const OCR_PROVIDER_IDS = ['azure', 'google', 'aws', 'stub', 'scripted', 'fixture'] as const;
+
+export type OcrProviderId = (typeof OCR_PROVIDER_IDS)[number];
+
+export const OCR_DOCUMENT_TYPE_KEYS = [
+  'tax_invoice',
+  'receipt',
+  'tax_invoice_receipt',
+  'transaction_invoice',
+  'vendor_invoice',
+  'credit_note',
+  'unknown',
+] as const;
+
+export type OcrDocumentTypeKey = (typeof OCR_DOCUMENT_TYPE_KEYS)[number];
+
 export type OcrFieldSource = 'ocr' | 'user_override' | 'fixture';
+
+export type OcrConfidenceState = 'high' | 'uncertain' | 'not_detected';
 
 export interface FieldProvenance {
   readonly source: OcrFieldSource;
@@ -70,6 +109,16 @@ export interface OcrFieldCandidate {
   readonly provenance: FieldProvenance;
 }
 
+export interface OcrLineItemCandidate {
+  readonly description: OcrFieldCandidate;
+  readonly quantity: OcrFieldCandidate;
+  readonly unit: OcrFieldCandidate;
+  readonly unitPrice: OcrFieldCandidate;
+  readonly netAmount: OcrFieldCandidate;
+  readonly taxAmount: OcrFieldCandidate;
+  readonly lineTotal: OcrFieldCandidate;
+}
+
 /**
  * Project / category suggestions are labels only — never invented UUIDs and
  * never written to Expense.projectId / costCategoryId by OCR confirm.
@@ -81,9 +130,13 @@ export interface OcrNonCanonicalSuggestions {
 
 export interface ReceiptExtractionCandidates {
   readonly vendor: OcrFieldCandidate;
+  readonly companyNumber: OcrFieldCandidate;
+  readonly vatId: OcrFieldCandidate;
   readonly date: OcrFieldCandidate;
   readonly dueDate: OcrFieldCandidate;
   readonly reference: OcrFieldCandidate;
+  readonly orderNumber: OcrFieldCandidate;
+  readonly documentType: OcrFieldCandidate;
   readonly description: OcrFieldCandidate;
   readonly net: OcrFieldCandidate;
   readonly tax: OcrFieldCandidate;
@@ -94,6 +147,8 @@ export interface ReceiptExtractionCandidates {
    * the reviewer copies them into the description field.
    */
   readonly lineDescriptions: readonly OcrFieldCandidate[];
+  /** Structured lines when the provider returned them. */
+  readonly lines: readonly OcrLineItemCandidate[];
   /** Non-canonical targeting hints — display only. */
   readonly suggestions: OcrNonCanonicalSuggestions;
 }
@@ -114,6 +169,56 @@ export interface OcrSafeRawMetadata {
   readonly fieldConfidences?: Partial<Record<OcrCandidateFieldKey, number | null>>;
   /** Opaque provider status codes / messages safe for operators. */
   readonly providerStatus?: string;
+  readonly workflow?: OcrWorkflowContext;
+  readonly modelStrategy?: 'receipt' | 'invoice';
+  readonly languages?: readonly string[];
+  readonly vatRates?: readonly string[];
+  readonly checksumSha256?: string;
+  readonly durationMs?: number;
+  readonly manualRetryCount?: number;
+  readonly reusedExistingJob?: boolean;
+  /** Legacy mirror only — prefer confirmed_vendor_credit_id column (0031). */
+  readonly confirmedVendorCreditId?: string;
+  readonly confirmedApplicationTarget?: OcrDraftTarget;
+  readonly documentTypeKey?: OcrDocumentTypeKey;
+  readonly errorCategory?: string;
+  readonly vendorMatches?: readonly OcrVendorMatch[];
+  readonly duplicateHits?: readonly OcrDuplicateHit[];
+  readonly azureTier?: 'F0' | 'S0' | 'unlimited' | 'unknown';
+  readonly maxPages?: number;
+  readonly maxFileBytes?: number;
+  readonly queryFieldsEnabled?: boolean;
+  readonly queryFieldsRequested?: boolean;
+  readonly keyValuePairsRequested?: boolean;
+  readonly hebrewNativePrebuilt?: boolean;
+  readonly providerCapabilities?: {
+    readonly tier: 'F0' | 'S0' | 'unlimited' | 'unknown';
+    readonly maxFileBytes: number;
+    readonly maxPages: number;
+    readonly queryFields: boolean;
+    readonly queryFieldsCostNote: string | null;
+  };
+}
+
+export interface OcrVendorMatch {
+  readonly vendorId: string;
+  readonly vendorName: string;
+  readonly strength: 'exact_identifier' | 'exact_name' | 'probable_name';
+  readonly reasonKey: 'identifier' | 'exactName' | 'probableName';
+}
+
+export interface OcrDuplicateHit {
+  readonly kind: 'exact_file' | 'probable_document';
+  readonly reasonKeys: readonly string[];
+  readonly expenseId?: string;
+  readonly vendorBillId?: string;
+  readonly documentId?: string;
+  readonly jobId?: string;
+}
+
+export interface OcrReviewWarning {
+  readonly code: string;
+  readonly messageKey: string;
 }
 
 /** Retained pointer to the original upload (document module row and/or file meta). */
@@ -162,7 +267,9 @@ export interface ExtractionJob {
   readonly confirmedExpenseId: string | null;
   /** Set only after an explicit confirm that created a draft Vendor Bill. */
   readonly confirmedVendorBillId: string | null;
-  /** Last confirmed draft target, when any. */
+  /** Set only after an explicit confirm that created a draft Vendor Credit. */
+  readonly confirmedVendorCreditId: string | null;
+  /** Last confirmed draft target, when any. Credit is application-only. */
   readonly confirmedDraftTarget: OcrDraftTarget | null;
   readonly createdAt: string;
   readonly updatedAt: string;

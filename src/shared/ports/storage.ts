@@ -22,6 +22,12 @@ export interface SignedUrl {
   expiresAt: Date;
 }
 
+export interface DownloadedObject {
+  bytes: Uint8Array;
+  contentType: string;
+  size: number;
+}
+
 export interface StoragePort {
   readonly configured: boolean;
   buildKey(input: {
@@ -32,6 +38,8 @@ export interface StoragePort {
   }): string;
   createUploadUrl(key: string, contentType: string): Promise<SignedUrl>;
   createDownloadUrl(key: string, expiresInSeconds?: number): Promise<SignedUrl>;
+  /** Server-side byte fetch for OCR and other private processing. */
+  downloadBytes(key: string): Promise<DownloadedObject>;
   remove(key: string): Promise<void>;
 }
 
@@ -69,6 +77,10 @@ class UnconfiguredStorageAdapter implements StoragePort {
   }
 
   async createDownloadUrl(): Promise<SignedUrl> {
+    throw new StorageNotConfiguredError();
+  }
+
+  async downloadBytes(): Promise<DownloadedObject> {
     throw new StorageNotConfiguredError();
   }
 
@@ -115,6 +127,18 @@ class SupabaseStorageAdapter implements StoragePort {
     return { url: data.signedUrl, expiresAt: new Date(Date.now() + expiresInSeconds * 1000) };
   }
 
+  async downloadBytes(key: string): Promise<DownloadedObject> {
+    const supabase = await this.client();
+    const { data, error } = await supabase.storage.from(this.bucket).download(key);
+    if (error || !data) throw new Error(`Could not download the file: ${error?.message}`);
+    const buffer = new Uint8Array(await data.arrayBuffer());
+    return {
+      bytes: buffer,
+      contentType: data.type || 'application/octet-stream',
+      size: buffer.length,
+    };
+  }
+
   async remove(key: string): Promise<void> {
     const supabase = await this.client();
     const { error } = await supabase.storage.from(this.bucket).remove([key]);
@@ -122,10 +146,65 @@ class SupabaseStorageAdapter implements StoragePort {
   }
 }
 
+class E2eHarnessStorageAdapter implements StoragePort {
+  readonly configured = true;
+  buildKey = buildStorageKey;
+
+  constructor(private readonly baseUrl: string) {}
+
+  private objectUrl(key: string): string {
+    return `${this.baseUrl.replace(/\/+$/, '')}/e2e-storage/${encodeURIComponent(key)}`;
+  }
+
+  async createUploadUrl(key: string): Promise<SignedUrl> {
+    return {
+      url: this.objectUrl(key),
+      expiresAt: new Date(Date.now() + 2 * 60 * 60 * 1000),
+    };
+  }
+
+  async createDownloadUrl(key: string, expiresInSeconds = DEFAULT_DOWNLOAD_TTL_SECONDS): Promise<SignedUrl> {
+    return {
+      url: this.objectUrl(key),
+      expiresAt: new Date(Date.now() + expiresInSeconds * 1000),
+    };
+  }
+
+  async downloadBytes(key: string): Promise<DownloadedObject> {
+    const response = await fetch(this.objectUrl(key));
+    if (!response.ok) throw new Error(`Could not download the file: ${response.status}`);
+    const buffer = new Uint8Array(await response.arrayBuffer());
+    return {
+      bytes: buffer,
+      contentType: response.headers.get('content-type') || 'application/octet-stream',
+      size: buffer.length,
+    };
+  }
+
+  async remove(key: string): Promise<void> {
+    await fetch(this.objectUrl(key), { method: 'DELETE' });
+  }
+}
+
+function envTruthy(value: string | undefined): boolean {
+  if (!value) return false;
+  const normalized = value.trim().toLowerCase();
+  return normalized === 'true' || normalized === '1' || normalized === 'yes';
+}
+
 let instance: StoragePort | undefined;
 
 export function getStoragePort(): StoragePort {
   if (instance) return instance;
+
+  if (envTruthy(process.env.E2E_INMEMORY_STORAGE)) {
+    const baseUrl = publicEnv.NEXT_PUBLIC_SUPABASE_URL;
+    if (!baseUrl) {
+      throw new Error('E2E_INMEMORY_STORAGE requires NEXT_PUBLIC_SUPABASE_URL (auth harness URL)');
+    }
+    instance = new E2eHarnessStorageAdapter(baseUrl);
+    return instance;
+  }
 
   const env = serverEnv();
   const url = publicEnv.NEXT_PUBLIC_SUPABASE_URL;

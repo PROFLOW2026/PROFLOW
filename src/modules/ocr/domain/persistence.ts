@@ -1,7 +1,7 @@
 /**
  * OCR job metadata / review-state persistence gate.
  * Owner applied `0020_overnight_foundations` — production uses Drizzle.
- * `AZURE_OCR_LIVE_HTTP_READY` stays false (no fake live extraction).
+ * Azure live HTTP is gated by `AZURE_OCR_LIVE_HTTP_READY` in feature-gate.ts.
  * Test override via `setOcrPersistenceReadyForTests`.
  */
 export let OCR_PERSISTENCE_READY = true;

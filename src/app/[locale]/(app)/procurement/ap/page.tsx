@@ -12,6 +12,7 @@ import { listApBillsForOrg, type ApBillStatus } from '@/modules/ap';
 import { money } from '@/shared/money/money';
 import { withOrgContext } from '@/shared/auth/session';
 import { Link } from '@/shared/i18n/navigation';
+import { OcrEntryLink } from '@/modules/ocr/ui/ocr-entry-link';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { ProcurementSectionNav } from '../procurement-section-nav';
@@ -84,6 +85,7 @@ export default async function ApBillsPage() {
             <Button asChild variant="secondary" className="max-w-full">
               <Link href="/procurement/ap/aging">{t('aging.navLink')}</Link>
             </Button>
+            {canManage ? <OcrEntryLink workflow="vendor_bill" /> : null}
             {canManage ? (
               <Button asChild className="max-w-full">
                 <Link href="/procurement/ap/new">

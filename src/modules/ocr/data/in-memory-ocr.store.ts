@@ -102,6 +102,7 @@ export function createQueuedJob(input: CreateOcrJobInput): ExtractionJob {
     providerId: input.providerId,
     confirmedExpenseId: null,
     confirmedVendorBillId: null,
+    confirmedVendorCreditId: null,
     confirmedDraftTarget: null,
     createdAt,
     updatedAt: createdAt,
@@ -132,6 +133,10 @@ export function updateJob(
       patch.confirmedVendorBillId !== undefined
         ? patch.confirmedVendorBillId
         : existing.confirmedVendorBillId,
+    confirmedVendorCreditId:
+      patch.confirmedVendorCreditId !== undefined
+        ? patch.confirmedVendorCreditId
+        : existing.confirmedVendorCreditId,
   };
   assertOcrConfirmedTargetShape(nextShape);
 
@@ -144,11 +149,22 @@ export function updateJob(
     updatedAt: nowIso(),
   };
   bucket.set(jobId, next);
-  return next;
+  return hydrateJob(next);
+}
+
+function hydrateJob(job: ExtractionJob): ExtractionJob {
+  return {
+    ...job,
+    confirmedVendorCreditId:
+      job.confirmedVendorCreditId ?? job.rawMetadata?.confirmedVendorCreditId ?? null,
+    confirmedDraftTarget:
+      job.confirmedDraftTarget ?? job.rawMetadata?.confirmedApplicationTarget ?? null,
+  };
 }
 
 export function findJob(organizationId: string, jobId: string): ExtractionJob | null {
-  return orgBucket(organizationId).get(jobId) ?? null;
+  const job = orgBucket(organizationId).get(jobId);
+  return job ? hydrateJob(job) : null;
 }
 
 export function listJobsForOrg(
@@ -160,7 +176,7 @@ export function listJobsForOrg(
     ? new Set(Array.isArray(options.status) ? options.status : [options.status])
     : null;
   const filtered = statuses ? all.filter((job) => statuses.has(job.status)) : all;
-  return filtered.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+  return filtered.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)).map(hydrateJob);
 }
 
 export function seedFixtureJob(input: SeedOcrFixtureInput): ExtractionJob {
@@ -195,6 +211,7 @@ export function seedFixtureJob(input: SeedOcrFixtureInput): ExtractionJob {
     providerId: 'fixture',
     confirmedExpenseId: null,
     confirmedVendorBillId: null,
+    confirmedVendorCreditId: null,
     confirmedDraftTarget: null,
     createdAt,
     updatedAt: createdAt,

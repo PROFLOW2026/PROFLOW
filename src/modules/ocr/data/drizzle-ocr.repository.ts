@@ -7,6 +7,7 @@ import { and, desc, eq, inArray } from 'drizzle-orm';
 import { ocrExtractionJobs } from '@drizzle/schema';
 import type { DbExecutor } from '@/shared/db/types';
 import { assertOcrConfirmedTargetShape } from '../domain/target-shape';
+import { hydrateCandidates } from '../domain/field-mapping';
 import type {
   ExtractionJob,
   ExtractionJobStatus,
@@ -30,12 +31,15 @@ function nowIso(): string {
 
 function mapJob(row: typeof ocrExtractionJobs.$inferSelect): ExtractionJob {
   const documentId = row.documentId ?? null;
-  const candidates = (row.extractedCandidates as ReceiptExtractionCandidates | null) ?? null;
+  const candidates = hydrateCandidates(
+    (row.extractedCandidates as ReceiptExtractionCandidates | null) ?? null,
+  );
   const reviewOverrides = (row.reviewOverrides as OcrReviewOverrides | null) ?? null;
   // Working candidates: apply overrides in app layer when loading if needed;
   // we store extracted snapshot in extracted_candidates and overrides separately.
   // For review UX, prefer candidates derived from extracted + overrides when present.
   const working = applyOverridesToCandidates(candidates, reviewOverrides);
+  const rawMetadata = (row.rawMetadata as OcrSafeRawMetadata | null) ?? null;
 
   return {
     id: row.id,
@@ -53,14 +57,19 @@ function mapJob(row: typeof ocrExtractionJobs.$inferSelect): ExtractionJob {
     reviewOverrides,
     acceptedFields: (row.acceptedFields as OcrCandidateFieldKey[] | null) ?? null,
     rejectedFields: (row.rejectedFields as OcrCandidateFieldKey[] | null) ?? null,
-    rawMetadata: (row.rawMetadata as OcrSafeRawMetadata | null) ?? null,
+    rawMetadata,
     overallConfidence: row.overallConfidence != null ? Number(row.overallConfidence) : null,
     errorCode: row.errorCode ?? null,
     errorMessage: row.errorMessage ?? null,
     providerId: row.providerId,
     confirmedExpenseId: row.confirmedExpenseId ?? null,
     confirmedVendorBillId: row.confirmedVendorBillId ?? null,
-    confirmedDraftTarget: (row.confirmedDraftTarget as OcrDraftTarget | null) ?? null,
+    confirmedVendorCreditId:
+      row.confirmedVendorCreditId ?? rawMetadata?.confirmedVendorCreditId ?? null,
+    confirmedDraftTarget:
+      (row.confirmedDraftTarget as OcrDraftTarget | null) ??
+      rawMetadata?.confirmedApplicationTarget ??
+      null,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
   };
@@ -117,6 +126,7 @@ export function createDrizzleOcrRepository(db: DbExecutor): OcrRepository {
           errorMessage: null,
           confirmedExpenseId: null,
           confirmedVendorBillId: null,
+          confirmedVendorCreditId: null,
           confirmedDraftTarget: null,
           createdAt: now,
           updatedAt: now,
@@ -143,6 +153,10 @@ export function createDrizzleOcrRepository(db: DbExecutor): OcrRepository {
           patch.confirmedVendorBillId !== undefined
             ? patch.confirmedVendorBillId
             : existing.confirmedVendorBillId,
+        confirmedVendorCreditId:
+          patch.confirmedVendorCreditId !== undefined
+            ? patch.confirmedVendorCreditId
+            : existing.confirmedVendorCreditId,
       };
       assertOcrConfirmedTargetShape(nextShape);
 
@@ -190,6 +204,7 @@ export function createDrizzleOcrRepository(db: DbExecutor): OcrRepository {
             patch.errorMessage !== undefined ? patch.errorMessage : existing.errorMessage,
           confirmedExpenseId: nextShape.confirmedExpenseId,
           confirmedVendorBillId: nextShape.confirmedVendorBillId,
+          confirmedVendorCreditId: nextShape.confirmedVendorCreditId,
           confirmedDraftTarget: nextShape.confirmedDraftTarget,
           updatedAt: new Date(),
         })
@@ -280,6 +295,7 @@ export function createDrizzleOcrRepository(db: DbExecutor): OcrRepository {
           errorMessage: null,
           confirmedExpenseId: null,
           confirmedVendorBillId: null,
+          confirmedVendorCreditId: null,
           confirmedDraftTarget: null,
           createdAt: now,
           updatedAt: now,

@@ -4,6 +4,7 @@ import { Alert } from '@/components/ui/alert';
 import { PageHeader } from '@/components/ui/page-header';
 import { listOcrCandidates, getOcrProviderStatus, isOcrReviewUiAllowed } from '@/modules/ocr';
 import { OcrReviewPanelLazy } from '@/modules/ocr/ui/ocr-review-panel-lazy';
+import { listVendorsForOrg } from '@/modules/vendors';
 import { withOrgContext } from '@/shared/auth/session';
 import { AuthorizationError } from '@/shared/errors';
 import { hasPermission } from '@/shared/permissions/assert';
@@ -11,11 +12,21 @@ import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { Link, redirect } from '@/shared/i18n/navigation';
 import { textNavLinkClassName } from '@/components/ui/pressable';
 import { cn } from '@/shared/ui/cn';
+import type { OcrDraftTarget, OcrWorkflowContext } from '@/modules/ocr/domain/types';
 
-/**
- * OCR review — gated OFF by default.
- * Stub / disabled modes never present “working OCR” to customers.
- */
+function parseWorkflow(raw: string | undefined): OcrWorkflowContext {
+  if (raw === 'expense' || raw === 'vendor_bill' || raw === 'vendor_credit' || raw === 'general') {
+    return raw;
+  }
+  return 'general';
+}
+
+function defaultTargetFor(workflow: OcrWorkflowContext): OcrDraftTarget {
+  if (workflow === 'vendor_bill') return 'vendor_bill';
+  if (workflow === 'vendor_credit') return 'vendor_credit';
+  return 'expense';
+}
+
 export async function generateMetadata({
   params,
 }: {
@@ -29,13 +40,21 @@ export async function generateMetadata({
   return { title: t('ocr.title') };
 }
 
-export default async function OcrReviewPage() {
+export default async function OcrReviewPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ target?: string }>;
+}) {
   if (!isOcrReviewUiAllowed()) {
     redirect({ href: '/expenses', locale: await getLocale() });
   }
 
-  const t = await getTranslations('documents');
-  const tOcr = await getTranslations('documents.ocr');
+  const [{ target }, t, tOcr] = await Promise.all([
+    searchParams,
+    getTranslations('documents'),
+    getTranslations('documents.ocr'),
+  ]);
+  const workflow = parseWorkflow(target);
 
   const data = await withOrgContext(async (context) => {
     try {
@@ -43,10 +62,21 @@ export default async function OcrReviewPage() {
       const jobs = await listOcrCandidates(context, {
         status: ['needs_review', 'failed', 'rejected'],
       });
+      let vendors: { id: string; name: string }[] = [];
+      try {
+        vendors = (await listVendorsForOrg(context, { status: 'active' })).map((vendor) => ({
+          id: vendor.id,
+          name: vendor.name,
+        }));
+      } catch {
+        vendors = [];
+      }
       return {
         allowed: true as const,
         status,
         jobs,
+        vendors,
+        organizationId: context.organizationId,
         canManageDocuments: hasPermission(context, PERMISSIONS.DOCUMENTS_MANAGE),
         canCreateExpenses: hasPermission(context, PERMISSIONS.EXPENSES_CREATE),
         canManageAp: hasPermission(context, PERMISSIONS.AP_MANAGE),
@@ -80,6 +110,10 @@ export default async function OcrReviewPage() {
         <OcrReviewPanelLazy
           initialStatus={data.status}
           initialJobs={data.jobs}
+          vendors={data.vendors}
+          organizationId={data.organizationId}
+          defaultTarget={defaultTargetFor(workflow)}
+          workflow={workflow}
           canManageDocuments={data.canManageDocuments}
           canCreateExpenses={data.canCreateExpenses}
           canManageAp={data.canManageAp}

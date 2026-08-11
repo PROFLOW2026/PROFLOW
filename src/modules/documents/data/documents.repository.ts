@@ -98,6 +98,24 @@ export async function updateDocumentById(
   return row ? mapDocument(row) : null;
 }
 
+export async function findDocumentsByChecksum(
+  db: DbExecutor,
+  organizationId: string,
+  checksum: string,
+): Promise<DocumentRecord[]> {
+  const rows = await db
+    .select()
+    .from(documents)
+    .where(
+      and(
+        eq(documents.organizationId, organizationId),
+        eq(documents.checksum, checksum),
+        isNull(documents.deletedAt),
+      ),
+    );
+  return rows.map(mapDocument);
+}
+
 export async function findDocumentById(
   db: DbExecutor,
   organizationId: string,

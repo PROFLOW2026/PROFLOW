@@ -2,6 +2,7 @@
 
 import { getTranslations } from 'next-intl/server';
 import { createExpense } from '@/modules/expenses';
+import { listVendorsForOrg } from '@/modules/vendors';
 import { withOrgContext } from '@/shared/auth/session';
 import { AppError, AuthorizationError, DomainRuleError } from '@/shared/errors';
 import { assertPermission } from '@/shared/permissions/assert';
@@ -56,7 +57,11 @@ function assertReviewSurfaceAllowed(): void {
 }
 
 export async function getOcrReviewPageDataAction(): Promise<
-  OcrActionResult<{ status: OcrProviderStatus; jobs: ExtractionJob[] }>
+  OcrActionResult<{
+    status: OcrProviderStatus;
+    jobs: ExtractionJob[];
+    vendors: readonly { id: string; name: string }[];
+  }>
 > {
   try {
     const data = await withOrgContext(async (context) => {
@@ -65,7 +70,16 @@ export async function getOcrReviewPageDataAction(): Promise<
       const jobs = await listOcrCandidates(context, {
         status: ['needs_review', 'failed', 'rejected'],
       });
-      return { status, jobs };
+      let vendors: { id: string; name: string }[] = [];
+      try {
+        vendors = (await listVendorsForOrg(context, { status: 'active' })).map((vendor) => ({
+          id: vendor.id,
+          name: vendor.name,
+        }));
+      } catch {
+        vendors = [];
+      }
+      return { status, jobs, vendors };
     });
     return { ok: true, data };
   } catch (error) {
@@ -100,9 +114,10 @@ export async function confirmOcrCandidateAction(
 ): Promise<
   OcrActionResult<{
     kind: 'mapped' | 'created';
-    draftTarget: 'expense' | 'vendor_bill';
+    draftTarget: 'expense' | 'vendor_bill' | 'vendor_credit';
     expenseId?: string;
     vendorBillId?: string;
+    vendorCreditId?: string;
     expenseInput: unknown;
     job: ExtractionJob;
   }>
@@ -138,6 +153,18 @@ export async function confirmOcrCandidateAction(
           kind: 'created',
           draftTarget: 'vendor_bill',
           vendorBillId: result.vendorBillId,
+          expenseInput: null,
+          job: result.job,
+        },
+      };
+    }
+    if (result.draftTarget === 'vendor_credit') {
+      return {
+        ok: true,
+        data: {
+          kind: 'created',
+          draftTarget: 'vendor_credit',
+          vendorCreditId: result.vendorCreditId,
           expenseInput: null,
           job: result.job,
         },

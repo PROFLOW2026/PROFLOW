@@ -17,13 +17,38 @@ OCR_PROVIDER_API_KEY=
 
 # Required when OCR_PROVIDER=azure
 OCR_PROVIDER_ENDPOINT=https://<resource>.cognitiveservices.azure.com/
-OCR_PROVIDER_MODEL=prebuilt-receipt
+# Optional. Default: prebuilt-receipt (expense) or prebuilt-invoice (AP/general).
+OCR_PROVIDER_MODEL=
+
+# Azure pricing tier: F0 (default) | S0 — drives effective size/page limits
+OCR_AZURE_TIER=F0
+# Paid Query Fields add-on — S0 only, OFF by default. Hebrew does NOT require this.
+OCR_AZURE_QUERY_FIELDS=false
 
 # Local tooling only (never production): sample review jobs, not real OCR
 OCR_ALLOW_FIXTURE=false
 ```
 
 Live mode requires `OCR_INGESTION_ENABLED=true` **and** a non-stub provider with credentials (`azure` needs key + endpoint).
+
+### Azure Hebrew (2024-11-30) — native first
+
+Official Microsoft language support lists Hebrew (`he`) for both `prebuilt-invoice`
+and `prebuilt-receipt`. The normal Hebrew path uses native prebuilt extraction.
+
+| Layer | What it provides |
+|-------|------------------|
+| Native `prebuilt-invoice` | VendorName, VendorTaxId, InvoiceId, dates, totals, Items, … |
+| Native `prebuilt-receipt` | MerchantName, TransactionDate, Total/Tax/Subtotal, Items, … |
+| Free `keyValuePairs` | Supplemental KVP text for Israeli labels when present |
+| Israeli normalize (app) | Company number cleanup, Hebrew doc-type labels, ILS default, review warnings |
+| Optional `queryFields` (S0 + opt-in) | Only for truly missing Israel-specific names — never required for Hebrew |
+
+### F0 vs S0 capability handling
+
+Effective limits = min(app abuse ceiling, Azure tier). F0 = 4 MB / 2 pages.
+Over-limit files fail **before** the provider call with a clear message — no silent
+2-page truncate while claiming the whole PDF was processed.
 
 ---
 
@@ -49,7 +74,8 @@ Live mode requires `OCR_INGESTION_ENABLED=true` **and** a non-stub provider with
 | `raw_metadata` | jsonb NULL | **safe** provider metadata only (no secrets / full binaries) |
 | `confirmed_expense_id` | uuid FK → expenses NULL | set **only** after explicit confirm → draft expense |
 | `confirmed_vendor_bill_id` | uuid FK → ap_bills NULL | set **only** after explicit confirm → **draft** bill |
-| `confirmed_draft_target` | text NULL | `expense` \| `vendor_bill` |
+| `confirmed_vendor_credit_id` | uuid FK → ap_vendor_credits NULL | set **only** after explicit confirm → **draft** credit (**0031**) |
+| `confirmed_draft_target` | text NULL | `expense` \| `vendor_bill` \| `vendor_credit` (**0031**) |
 | `created_at` / `updated_at` | timestamptz | |
 
 ### Why
@@ -101,25 +127,28 @@ Queryable confidence / provenance without large jsonb churn.
 - List / review UI: `documents.read`
 - Enqueue extraction / seed sample: `documents.manage`
 - Confirm → draft expense: `expenses.create`
-- Confirm → draft vendor bill: `ap.manage`
+- Confirm → draft vendor bill / draft vendor credit: `ap.manage`
+  (vendor credit is first-class via additive migration `0031_ocr_vendor_credit_target`)
 
 ## Persistence limitation (PRE-SQL)
 
-`0020` defines `ocr_extraction_jobs`. Drizzle repository is wired behind
-`OCR_PERSISTENCE_READY` (**default false** until owner applies 0020).
+`0020` defines `ocr_extraction_jobs`. Additive `0031` extends confirmed targets
+to include `vendor_credit` + `confirmed_vendor_credit_id`. **Owner must review
+and apply 0031** — do not treat raw_metadata as the permanent credit FK.
 
-While the flag is false, `in-memory-ocr.store` is a **test double only** — not durable.
-Feature remains gated OFF by default (`OCR_INGESTION_ENABLED`, `AZURE_OCR_LIVE_HTTP_READY`).
+While `OCR_PERSISTENCE_READY` is false, `in-memory-ocr.store` is a **test double only**.
+Feature remains gated OFF by default (`OCR_INGESTION_ENABLED`). Azure live HTTP is implemented; enable with credentials + `OCR_INGESTION_ENABLED=true`.
 
 ### Flip checklist
 1. Owner applies `0020_overnight_foundations`.
 2. Verify PGlite / staging OCR metadata round-trip.
 3. Set `OCR_PERSISTENCE_READY = true` in `src/modules/ocr/domain/persistence.ts`.
 
-### Schema note for Lead
-Prefer additive CHECK for confirmed target shape:
-- no target → both expense/bill IDs NULL
-- expense → vendor_bill id NULL
-- vendor_bill → expense id NULL
-(App already enforces; DB CHECK was pending Agent A.)
+Prefer additive CHECK for confirmed target shape (0031 strict):
+- no target → expense/bill/credit IDs all NULL
+- expense → expense id NOT NULL; bill/credit NULL
+- vendor_bill → bill id NOT NULL; expense/credit NULL
+- vendor_credit → credit id NOT NULL; expense/bill NULL
+Financial confirm FKs use ON DELETE RESTRICT (OCR audit provenance).
+(App enforces the same invariant.)
 

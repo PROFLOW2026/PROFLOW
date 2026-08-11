@@ -32,8 +32,39 @@ describe('scenario K — OCR confirmed target shape', () => {
         confirmedDraftTarget: null,
         confirmedExpenseId: null,
         confirmedVendorBillId: null,
+        confirmedVendorCreditId: null,
       }),
     ).not.toThrow();
+  });
+
+  it('allows vendor_credit target with credit id and null expense/bill', () => {
+    expect(() =>
+      assertOcrConfirmedTargetShape({
+        confirmedDraftTarget: 'vendor_credit',
+        confirmedExpenseId: null,
+        confirmedVendorBillId: null,
+        confirmedVendorCreditId: '018f0000-0000-7000-8000-0000000000c1',
+      }),
+    ).not.toThrow();
+  });
+
+  it('rejects target without matching ID', () => {
+    expect(() =>
+      assertOcrConfirmedTargetShape({
+        confirmedDraftTarget: 'expense',
+        confirmedExpenseId: null,
+        confirmedVendorBillId: null,
+        confirmedVendorCreditId: null,
+      }),
+    ).toThrow(DomainRuleError);
+    expect(() =>
+      assertOcrConfirmedTargetShape({
+        confirmedDraftTarget: 'vendor_credit',
+        confirmedExpenseId: null,
+        confirmedVendorBillId: null,
+        confirmedVendorCreditId: null,
+      }),
+    ).toThrow(DomainRuleError);
   });
 
   it('rejects expense target with vendor bill id set', () => {
@@ -42,6 +73,7 @@ describe('scenario K — OCR confirmed target shape', () => {
         confirmedDraftTarget: 'expense',
         confirmedExpenseId: EXPENSE,
         confirmedVendorBillId: BILL,
+        confirmedVendorCreditId: null,
       }),
     ).toThrow(DomainRuleError);
     try {
@@ -49,6 +81,7 @@ describe('scenario K — OCR confirmed target shape', () => {
         confirmedDraftTarget: 'expense',
         confirmedExpenseId: EXPENSE,
         confirmedVendorBillId: BILL,
+        confirmedVendorCreditId: null,
       });
     } catch (error) {
       expect((error as DomainRuleError).messageKey).toBe(OCR_TARGET_SHAPE_MESSAGE);
@@ -61,6 +94,7 @@ describe('scenario K — OCR confirmed target shape', () => {
         confirmedDraftTarget: 'vendor_bill',
         confirmedExpenseId: EXPENSE,
         confirmedVendorBillId: BILL,
+        confirmedVendorCreditId: null,
       }),
     ).toThrow(DomainRuleError);
   });
@@ -71,6 +105,7 @@ describe('scenario K — OCR confirmed target shape', () => {
         confirmedDraftTarget: null,
         confirmedExpenseId: EXPENSE,
         confirmedVendorBillId: null,
+        confirmedVendorCreditId: null,
       }),
     ).toThrow(DomainRuleError);
   });

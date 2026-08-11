@@ -45,6 +45,12 @@ class MockStoragePort implements StoragePort {
     };
   }
 
+  async downloadBytes(key: string): Promise<{ bytes: Uint8Array; contentType: string; size: number }> {
+    if (!this.keys.has(key)) throw new Error('missing object');
+    const bytes = new Uint8Array([0x25, 0x50, 0x44, 0x46]);
+    return { bytes, contentType: 'application/pdf', size: bytes.length };
+  }
+
   async remove(key: string): Promise<void> {
     this.keys.delete(key);
   }

@@ -6,6 +6,7 @@ import { createExpense, finalizeExpense } from '@/modules/expenses';
 import { createProject } from '@/modules/projects';
 import { assignRole, findRoleByKey } from '@/modules/rbac';
 import { createOrganization, resolveOrgContext, setModuleVisibility } from '@/modules/tenancy';
+import { createVendor } from '@/modules/vendors';
 import type { Database, Transaction } from '@/shared/db/types';
 import {
   ELECTRICAL_OWNER,
@@ -35,6 +36,7 @@ export interface SeededWorld {
   otherOrganizationId: string;
   projectId: string;
   otherProjectId: string;
+  vendorId: string;
 }
 
 async function asUser<T>(db: Database, userId: string, fn: (tx: Transaction) => Promise<T>): Promise<T> {
@@ -170,6 +172,18 @@ export async function seedWorld(db: Database): Promise<SeededWorld> {
     return project.projectId;
   });
 
+  const vendorId = await asUser(db, OWNER.id, async (tx) => {
+    const context = await resolveOrgContext(tx, {
+      userId: OWNER.id,
+      organizationId: primary.organization.id,
+      locale: 'he-IL',
+    });
+    const vendor = await createVendor(context, {
+      name: 'Fixture Supplies Ltd',
+    });
+    return vendor.id;
+  });
+
   const secondaryProject = await asUser(db, OTHER_OWNER.id, async (tx) => {
     const context = await resolveOrgContext(tx, {
       userId: OTHER_OWNER.id,
@@ -213,5 +227,6 @@ export async function seedWorld(db: Database): Promise<SeededWorld> {
     otherOrganizationId: secondary.organization.id,
     projectId: primaryProject,
     otherProjectId: secondaryProject,
+    vendorId,
   };
 }

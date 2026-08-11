@@ -10,14 +10,16 @@ import {
   uuid,
 } from 'drizzle-orm/pg-core';
 import { primaryId, timestamps } from './_shared';
-import { apBills } from './ap';
+import { apBills, apVendorCredits } from './ap';
 import { documents } from './documents';
 import { expenses } from './expenses';
 import { organizations } from './tenancy';
 
 /**
  * OCR extraction jobs — never ledger truth.
- * Confirm creates draft expense or draft vendor bill only.
+ * Confirm creates draft expense, draft vendor bill, or draft vendor credit only.
+ * Strict target shape (0031): every confirmed target requires its matching ID.
+ * Financial FKs use ON DELETE RESTRICT so OCR audit provenance is preserved.
  */
 
 export const ocrExtractionJobs = pgTable(
@@ -43,6 +45,7 @@ export const ocrExtractionJobs = pgTable(
     rawMetadata: jsonb('raw_metadata'),
     confirmedExpenseId: uuid('confirmed_expense_id'),
     confirmedVendorBillId: uuid('confirmed_vendor_bill_id'),
+    confirmedVendorCreditId: uuid('confirmed_vendor_credit_id'),
     confirmedDraftTarget: text('confirmed_draft_target'),
     ...timestamps(),
   },
@@ -56,6 +59,9 @@ export const ocrExtractionJobs = pgTable(
     index('ocr_extraction_jobs_org_document_idx')
       .on(table.organizationId, table.documentId)
       .where(sql`${table.documentId} is not null`),
+    index('ocr_extraction_jobs_org_credit_idx')
+      .on(table.organizationId, table.confirmedVendorCreditId)
+      .where(sql`${table.confirmedVendorCreditId} is not null`),
     check(
       'ocr_extraction_jobs_status_known',
       sql`${table.status} IN ('queued', 'running', 'succeeded', 'failed', 'needs_review', 'rejected')`,
@@ -66,7 +72,7 @@ export const ocrExtractionJobs = pgTable(
     ),
     check(
       'ocr_extraction_jobs_draft_target_known',
-      sql`${table.confirmedDraftTarget} IS NULL OR ${table.confirmedDraftTarget} IN ('expense', 'vendor_bill')`,
+      sql`${table.confirmedDraftTarget} IS NULL OR ${table.confirmedDraftTarget} IN ('expense', 'vendor_bill', 'vendor_credit')`,
     ),
     check(
       'ocr_extraction_jobs_confirmed_target_shape',
@@ -75,14 +81,25 @@ export const ocrExtractionJobs = pgTable(
           ${table.confirmedDraftTarget} IS NULL
           AND ${table.confirmedExpenseId} IS NULL
           AND ${table.confirmedVendorBillId} IS NULL
+          AND ${table.confirmedVendorCreditId} IS NULL
         )
         OR (
           ${table.confirmedDraftTarget} = 'expense'
+          AND ${table.confirmedExpenseId} IS NOT NULL
           AND ${table.confirmedVendorBillId} IS NULL
+          AND ${table.confirmedVendorCreditId} IS NULL
         )
         OR (
           ${table.confirmedDraftTarget} = 'vendor_bill'
+          AND ${table.confirmedVendorBillId} IS NOT NULL
           AND ${table.confirmedExpenseId} IS NULL
+          AND ${table.confirmedVendorCreditId} IS NULL
+        )
+        OR (
+          ${table.confirmedDraftTarget} = 'vendor_credit'
+          AND ${table.confirmedVendorCreditId} IS NOT NULL
+          AND ${table.confirmedExpenseId} IS NULL
+          AND ${table.confirmedVendorBillId} IS NULL
         )
       )`,
     ),
@@ -99,11 +116,16 @@ export const ocrExtractionJobs = pgTable(
       name: 'ocr_extraction_jobs_expense_org_fk',
       columns: [table.confirmedExpenseId, table.organizationId],
       foreignColumns: [expenses.id, expenses.organizationId],
-    }).onDelete('set null'),
+    }).onDelete('restrict'),
     foreignKey({
       name: 'ocr_extraction_jobs_vendor_bill_org_fk',
       columns: [table.confirmedVendorBillId, table.organizationId],
       foreignColumns: [apBills.id, apBills.organizationId],
-    }).onDelete('set null'),
+    }).onDelete('restrict'),
+    foreignKey({
+      name: 'ocr_extraction_jobs_vendor_credit_org_fk',
+      columns: [table.confirmedVendorCreditId, table.organizationId],
+      foreignColumns: [apVendorCredits.id, apVendorCredits.organizationId],
+    }).onDelete('restrict'),
   ],
 );

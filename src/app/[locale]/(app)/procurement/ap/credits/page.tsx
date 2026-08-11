@@ -12,6 +12,7 @@ import { listVendorCredits, type ApCreditLifecycleDisplayStatus } from '@/module
 import { money } from '@/shared/money/money';
 import { withOrgContext } from '@/shared/auth/session';
 import { Link } from '@/shared/i18n/navigation';
+import { OcrEntryLink } from '@/modules/ocr/ui/ocr-entry-link';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { ProcurementSectionNav } from '../../procurement-section-nav';
@@ -74,12 +75,15 @@ export default async function VendorCreditsPage() {
         description={t('credits.listDescription')}
         actions={
           canManage ? (
-            <Button asChild className="max-w-full">
-              <Link href="/procurement/ap/credits/new">
-                <Plus aria-hidden />
-                {t('credits.newCredit')}
-              </Link>
-            </Button>
+            <div className="flex max-w-full flex-wrap gap-2">
+              <OcrEntryLink workflow="vendor_credit" />
+              <Button asChild className="max-w-full">
+                <Link href="/procurement/ap/credits/new">
+                  <Plus aria-hidden />
+                  {t('credits.newCredit')}
+                </Link>
+              </Button>
+            </div>
           ) : null
         }
       />

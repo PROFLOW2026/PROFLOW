@@ -12,6 +12,7 @@ import {
 } from '@/modules/expenses';
 import { withOrgContext } from '@/shared/auth/session';
 import { Link } from '@/shared/i18n/navigation';
+import { OcrEntryLink } from '@/modules/ocr/ui/ocr-entry-link';
 import { ExpensesList } from './expenses-list';
 
 export async function generateMetadata({
@@ -71,6 +72,7 @@ export default async function ExpensesPage({
             <Button asChild variant="secondary" className="max-w-full">
               <Link href="/recurring-drafts?kind=expense">{tNavFrom}</Link>
             </Button>
+            <OcrEntryLink workflow="expense" />
             <Button asChild>
               <Link href="/expenses/new">
                 <Plus aria-hidden />

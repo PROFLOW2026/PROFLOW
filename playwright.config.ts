@@ -7,6 +7,14 @@ const harnessEnv = {
   NEXT_PUBLIC_SUPABASE_URL: AUTH_URL,
   NEXT_PUBLIC_SUPABASE_ANON_KEY: ANON_KEY,
   NEXT_PUBLIC_APP_URL: APP_URL,
+  OCR_INGESTION_ENABLED: 'true',
+  OCR_PROVIDER: 'azure',
+  OCR_PROVIDER_API_KEY: 'e2e-mock-key',
+  OCR_PROVIDER_ENDPOINT: 'https://example.cognitiveservices.azure.com/',
+  OCR_AZURE_TIER: 'F0',
+  OCR_AZURE_QUERY_FIELDS: 'false',
+  OCR_E2E_MOCK_PROVIDER: 'true',
+  E2E_INMEMORY_STORAGE: 'true',
 };
 
 const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? APP_URL;
@@ -38,7 +46,7 @@ export default defineConfig({
     },
     {
       name: 'desktop-he-authenticated',
-      testMatch: /authenticated\/(owner|regression|performance-verify|jobs-flows|master-completion-journeys|pwa-startup)\.spec\.ts/,
+      testMatch: /authenticated\/(owner|regression|performance-verify|jobs-flows|master-completion-journeys|pwa-startup|ocr-review)\.spec\.ts/,
       dependencies: ['setup-owner'],
       use: {
         ...devices['Desktop Chrome'],
@@ -66,7 +74,7 @@ export default defineConfig({
     },
     {
       name: 'mobile-he',
-      testMatch: /mobile\.spec\.ts|authenticated\/workforce-discoverability\.spec\.ts/,
+      testMatch: /mobile\.spec\.ts|authenticated\/workforce-discoverability\.spec\.ts|authenticated\/ocr-review\.spec\.ts/,
       dependencies: ['setup-owner'],
       use: {
         ...devices['Pixel 7'],

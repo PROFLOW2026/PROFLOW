@@ -85,6 +85,9 @@ function sessionPayload(user: StubUser) {
   };
 }
 
+/** In-process blob store for e2e document upload/OCR without cloud storage. */
+const e2eBlobs = new Map<string, { bytes: Buffer; contentType: string }>();
+
 function send(response: ServerResponse, status: number, body: unknown): void {
   const payload = body === null ? '' : JSON.stringify(body);
   response.writeHead(status, {
@@ -96,12 +99,33 @@ function send(response: ServerResponse, status: number, body: unknown): void {
   response.end(payload);
 }
 
-async function readBody(request: IncomingMessage): Promise<Record<string, unknown>> {
+function sendBinary(
+  response: ServerResponse,
+  status: number,
+  body: Buffer,
+  contentType: string,
+): void {
+  response.writeHead(status, {
+    'content-type': contentType,
+    'content-length': body.length,
+    'access-control-allow-origin': '*',
+    'access-control-allow-headers': '*',
+    'access-control-allow-methods': '*',
+  });
+  response.end(body);
+}
+
+async function readRawBody(request: IncomingMessage): Promise<Buffer> {
   const chunks: Buffer[] = [];
   for await (const chunk of request) chunks.push(chunk as Buffer);
-  if (chunks.length === 0) return {};
+  return Buffer.concat(chunks);
+}
+
+async function readBody(request: IncomingMessage): Promise<Record<string, unknown>> {
+  const raw = await readRawBody(request);
+  if (raw.length === 0) return {};
   try {
-    return JSON.parse(Buffer.concat(chunks).toString('utf8')) as Record<string, unknown>;
+    return JSON.parse(raw.toString('utf8')) as Record<string, unknown>;
   } catch {
     return {};
   }
@@ -119,6 +143,30 @@ export function startAuthStub(port: number): Promise<() => Promise<void>> {
   const server = createServer((request, response) => {
     void (async () => {
       const url = new URL(request.url ?? '/', 'http://127.0.0.1');
+
+      // E2E storage (browser PUT + server downloadBytes) — outside GoTrue paths.
+      if (url.pathname.startsWith('/e2e-storage/')) {
+        if (request.method === 'OPTIONS') return send(response, 204, null);
+        const key = decodeURIComponent(url.pathname.replace(/^\/e2e-storage\//, ''));
+        if (!key) return send(response, 400, { message: 'missing key' });
+        if (request.method === 'PUT') {
+          const bytes = await readRawBody(request);
+          const contentType = String(request.headers['content-type'] ?? 'application/octet-stream');
+          e2eBlobs.set(key, { bytes, contentType });
+          return send(response, 200, { ok: true, key, size: bytes.length });
+        }
+        if (request.method === 'GET') {
+          const blob = e2eBlobs.get(key);
+          if (!blob) return send(response, 404, { message: 'not found' });
+          return sendBinary(response, 200, blob.bytes, blob.contentType);
+        }
+        if (request.method === 'DELETE') {
+          e2eBlobs.delete(key);
+          return send(response, 204, null);
+        }
+        return send(response, 405, { message: 'method not allowed' });
+      }
+
       const path = url.pathname.replace(/^\/auth\/v1/, '');
 
       if (request.method === 'OPTIONS') return send(response, 204, null);

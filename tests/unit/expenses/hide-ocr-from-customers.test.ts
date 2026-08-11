@@ -29,17 +29,15 @@ function readLocaleCatalog(locale: Locale, namespace: string): Catalog {
   return JSON.parse(readFileSync(path, 'utf8')) as Catalog;
 }
 
-const CUSTOMER_SURFACE_FILES = [
-  'src/app/[locale]/(app)/expenses/page.tsx',
-  'src/app/[locale]/(app)/documents/page.tsx',
+const NAV_SURFACE_FILES = [
   'src/components/shell/navigation.ts',
   'src/components/shell/app-shell.tsx',
   'src/components/shell/quick-create.tsx',
 ] as const;
 
 describe('hide OCR extraction from customers', () => {
-  it('expenses, documents, and shell nav do not link to ocr-review', () => {
-    for (const relative of CUSTOMER_SURFACE_FILES) {
+  it('shell nav does not hard-link OCR review; pages use a gated entry component', () => {
+    for (const relative of NAV_SURFACE_FILES) {
       const source = readFileSync(join(ROOT, relative), 'utf8');
       expect({ file: relative, hasOcrReview: /ocr-review/.test(source) }).toEqual({
         file: relative,
@@ -50,9 +48,13 @@ describe('hide OCR extraction from customers', () => {
         hasLachilutz: false,
       });
     }
+    const expenses = readFileSync(join(ROOT, 'src/app/[locale]/(app)/expenses/page.tsx'), 'utf8');
+    expect(expenses).toMatch(/OcrEntryLink/);
+    expect(expenses).not.toMatch(/OCR_PROVIDER/);
+    expect(expenses).not.toMatch(/לחילוץ/);
   });
 
-  it('expenses page primary action is add-only (no OCR entry)', () => {
+  it('expenses page keeps add as the primary action and does not expose secrets', () => {
     const source = readFileSync(join(ROOT, 'src/app/[locale]/(app)/expenses/page.tsx'), 'utf8');
     expect(source).toMatch(/actions\.add/);
     expect(source).not.toMatch(/receiptPhoto/);

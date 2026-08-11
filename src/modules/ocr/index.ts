@@ -36,7 +36,28 @@ export {
   confirmReceiptExtraction,
   mapConfirmedFieldsToExpenseDraft,
   mapConfirmedFieldsToVendorBillDraft,
+  mapStructuredBillLines,
 } from './domain/confirm';
+export { canonicalToCandidates, suggestedDraftTarget } from './domain/canonical';
+export type { CanonicalOcrDocument } from './domain/canonical';
+export { mapAzureAnalyzeResult } from './domain/azure-mapper';
+export { matchVendors } from './domain/vendor-matching';
+export { detectDuplicateHits, shouldReuseExistingJob } from './domain/duplicates';
+export { collectReviewWarnings, lineItemsTrustworthy } from './domain/totals-warnings';
+export { confidenceState } from './domain/confidence';
+export {
+  suggestDocumentTypeFromText,
+  normalizeIsraeliIdentifier,
+  extractIsraeliCompanyNumber,
+} from './domain/israeli-normalize';
+export { resolveAzureModelId, AZURE_INVOICE_MODEL, AZURE_RECEIPT_MODEL } from './domain/model-strategy';
+export { isOcrSupportedMime, assertOcrFileLimits, resolveActiveOcrCapabilities } from './domain/cost-controls';
+export {
+  resolveAzureCapabilities,
+  readAzurePricingTier,
+  isAzureQueryFieldsEnabled,
+} from './domain/provider-capabilities';
+export type { OcrProviderCapabilities, AzurePricingTier } from './domain/provider-capabilities';
 
 export {
   applyFieldOverrides,
@@ -46,6 +67,7 @@ export {
   emptyCandidates,
   buildFixtureCandidates,
   joinLineDescriptions,
+  hydrateCandidates,
 } from './domain/field-mapping';
 export type { FieldMappingIssue, CandidateFieldOverrides } from './domain/field-mapping';
 
@@ -54,6 +76,7 @@ export {
   ScriptedOcrProvider,
 } from './domain/stub-provider';
 export { AzureDocumentIntelligenceProvider } from './domain/azure-provider';
+export { UnimplementedOcrProvider } from './domain/unimplemented-provider';
 export {
   createDefaultOcrProvider,
   createOcrProviderFromEnv,
@@ -83,6 +106,7 @@ export {
   assertOcrConfirmedTargetShape,
   expenseConfirmTargetShape,
   vendorBillConfirmTargetShape,
+  vendorCreditConfirmTargetShape,
   OCR_TARGET_SHAPE_MESSAGE,
 } from './domain/target-shape';
 
@@ -111,6 +135,7 @@ export { rejectOcrCandidate } from './application/reject-candidate';
 export {
   createVendorBillDraftFromOcr,
 } from './application/create-vendor-bill-draft';
+export { createVendorCreditDraftFromOcr } from './application/create-vendor-credit-draft';
 export type {
   CreateVendorBillDraftFn,
   VendorBillDraftPayload,
