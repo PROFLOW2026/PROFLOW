@@ -1,0 +1,74 @@
+{
+  "title": "סגירת חודש",
+  "description": "סגירה תפעולית אופציונלית לחודש קלנדרי. זו אינה סגירת חשבונאות חוקית — היא מקפיאה היסטוריה תפעולית כדי שתיקונים יישארו מפורשים.",
+  "moduleOff": {
+    "title": "סגירת חודש כבויה",
+    "body": "הפעילו סגירת חודש ב־הגדרות → יכולות, או פתחו תקופה פעם אחת כדי להפעיל אוטומטית."
+  },
+  "notAllowed": "נדרשת הרשאת סגירת חודש כדי לצפות בדף זה.",
+  "status": {
+    "open": "פתוח",
+    "ready": "מוכן",
+    "closed": "סגור"
+  },
+  "periods": {
+    "title": "תקופות",
+    "empty": "אין תקופות עדיין. פתחו חודש כדי להתחיל."
+  },
+  "detail": {
+    "select": "בחרו תקופה לבדיקת שלמות הנתונים."
+  },
+  "form": {
+    "yearMonth": "חודש (YYYY-MM)"
+  },
+  "actions": {
+    "openPeriod": "פתיחת חודש",
+    "refresh": "רענון רשימה",
+    "markReady": "סימון כמוכן",
+    "demote": "חזרה לפתוח",
+    "close": "סגירת חודש",
+    "recordAdjustment": "רישום התאמה",
+    "saved": "נשמר."
+  },
+  "closed": {
+    "notice": "החודש סגור. שכתוב שקט חסום — יש לרשום התאמה מפורשת לתיקונים."
+  },
+  "completeness": {
+    "empty": "שלמות הנתונים עדיין לא חושבה.",
+    "percent": "שלמות {percent}%",
+    "passed": "{passed} מתוך {applicable} בדיקות תקינות",
+    "issueCount": "{count, plural, one {פריט פתוח אחד} two {# פריטים פתוחים} many {# פריטים פתוחים} other {# פריטים פתוחים}}",
+    "stateOk": "תקין",
+    "stateIssue": "דורש טיפול",
+    "stateNa": "לא רלוונטי"
+  },
+  "checks": {
+    "missing_employer_cost_actual": "עובדים ללא עלות מעסיק בפועל",
+    "unallocated_employee_cost": "עלות עובדים לא מוקצית",
+    "vendor_bills_unallocated": "חשבונות ספק עם יתרה לא מוקצית",
+    "open_time_corrections": "תיקוני שעות פתוחים",
+    "ap_anomalies": "חריגות AP",
+    "missing_project_allocations": "הקצאות פרויקט חסרות",
+    "unresolved_expense_drafts": "טיוטות הוצאה פתוחות",
+    "incomplete_attendance": "נוכחות לא מלאה",
+    "open_overhead_allocation": "הקצאת תקורה פתוחה"
+  },
+  "adjustments": {
+    "title": "התאמה לאחר סגירה",
+    "hint": "הסבירו מדוע נדרשת תיקון, החלפה או התאמה מפורשת אחרי הסגירה.",
+    "type": "סוג",
+    "reason": "סיבה",
+    "history": "היסטוריית התאמות",
+    "types": {
+      "correction": "תיקון",
+      "supersede": "החלפה",
+      "adjustment": "התאמה"
+    }
+  },
+  "errors": {
+    "invalidTransition": "מעבר הסטטוס אינו מותר.",
+    "monthClosed": "החודש סגור — יש להשתמש בהתאמה מפורשת לאחר סגירה.",
+    "notClosed": "התאמות לאחר סגירה דורשות חודש סגור.",
+    "notComplete": "השלמות חייבת להיות 100% לפני מוכן/סגירה."
+  }
+}

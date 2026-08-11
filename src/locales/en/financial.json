@@ -119,6 +119,36 @@
     "directOnly": "Based on direct costs only",
     "fullyLoaded": "Fully loaded, including allocated overhead"
   },
+  "explain": {
+    "whyThisNumber": "Why this number?",
+    "infoLineHint": "Shown for context — not added again into the total.",
+    "formulas": {
+      "actual": "Actual = finalized project costs (expense families + recognized vendor bills + workforce labor when present). Drafts and open POs stay out.",
+      "forecast": "Forecast Final Cost = Actual + remaining PO commitments + expected remaining cost (ETC). Open AP payable is cash-only disclosure.",
+      "current_contract": "Current Contract = original managed value ± approved additions/reductions. Pending changes stay out.",
+      "actual_margin": "Actual Margin = Current Contract − Actual Cost.",
+      "forecast_margin": "Forecast Margin = Current Contract − Forecast Final Cost.",
+      "unallocated_cost": "Unallocated business costs await allocation — counted in organization expense totals, never forced into project Actual or profit.",
+      "outstanding_ar": "Outstanding AR = Billed − Paid (net of credits). Forecast collection, not cash received.",
+      "outstanding_ap": "Outstanding AP = unmatched open vendor bills payable. Cash obligation disclosure — not Actual Cost."
+    }
+  },
+  "confidence": {
+    "title": "Data confidence",
+    "levels": {
+      "high": "High",
+      "medium": "Medium",
+      "needs_data": "Needs data"
+    },
+    "highHint": "No known incompleteness signals for this scope.",
+    "reasons": {
+      "workforce_entries_missing_cost": "Some time entries are missing employer/labor cost — Actual labor may be understated.",
+      "unallocated_remainder": "Unallocated organization costs remain outside project Actual.",
+      "open_draft_documents": "Open draft expenses or purchase orders are not yet in Actual.",
+      "open_allocations": "Open allocation work has not been applied yet.",
+      "foreign_currency_excluded": "Some rows in another currency were excluded from this total."
+    }
+  },
   "cashFlow": {
     "title": "Project cash — Actual vs Forecast",
     "actualTitle": "Actual — Paid collected",

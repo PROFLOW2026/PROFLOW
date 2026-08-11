@@ -1,0 +1,91 @@
+{
+  "title": "הצעות מחיר",
+  "description": "הצעות לפני זכייה. לא חשבונית, לא שינוי חוזה, ולא הכנסה — עד המרה לפרויקט או עבודה.",
+  "disclaimer": "הצעת מחיר מסחרית בלבד. זו אינה חשבונית מס סטטוטורית.",
+  "newQuote": "הצעה חדשה",
+  "empty": {
+    "title": "אין הצעות עדיין",
+    "body": "צרו הצעה מתומחרת ללקוח לפני זכייה. קבלה יכולה ליצור פרויקט או עבודה — בלי לחייב.",
+    "action": "יצירת הצעה"
+  },
+  "list": {
+    "columns": {
+      "title": "כותרת",
+      "client": "לקוח",
+      "status": "סטטוס",
+      "total": "סה״כ",
+      "validUntil": "בתוקף עד"
+    }
+  },
+  "create": {
+    "title": "הצעת מחיר חדשה",
+    "description": "טופס נוח לנייד עם שורות, תצוגת עלות/מרווח אופציונלית, ומע״מ לפי הגדרות המס.",
+    "titleLabel": "כותרת",
+    "clientLabel": "לקוח",
+    "clientNone": "עדיין בלי לקוח",
+    "descriptionLabel": "תיאור",
+    "currencyLabel": "מטבע",
+    "taxModeLabel": "מצב מע״מ",
+    "validityLabel": "בתוקף עד",
+    "notesLabel": "הערות",
+    "linesTitle": "שורות",
+    "addLine": "הוספת שורה",
+    "removeLine": "הסרה",
+    "lineDescription": "תיאור",
+    "quantity": "כמות",
+    "unit": "יחידה",
+    "unitPrice": "מחיר יחידה",
+    "unitCost": "עלות יחידה משוערת",
+    "lineTotal": "סה״כ שורה",
+    "markup": "תוספת",
+    "margin": "מרווח",
+    "submit": "שמירת טיוטה",
+    "profitHint": "עלות ומרווח משוערים הם תצוגה לפני זכייה — לא Actual ולא הכנסה."
+  },
+  "taxModes": {
+    "exclusive": "לא כולל מע״מ",
+    "inclusive": "כולל מע״מ",
+    "none": "ללא מע״מ"
+  },
+  "detail": {
+    "title": "הצעת מחיר",
+    "subtotal": "ביניים (נטו)",
+    "tax": "מע״מ",
+    "total": "סה״כ",
+    "estimatedCost": "עלות משוערת",
+    "estimatedMargin": "מרווח משוער",
+    "profitPreview": "תצוגת רווח לפני זכייה",
+    "notRevenue": "לא הכנסה",
+    "convertedTo": "הומר לעבודה",
+    "openWork": "פתיחת פרויקט / עבודה",
+    "print": "הדפסה / שיתוף",
+    "markReady": "סימון כמוכן",
+    "markSent": "סימון כנשלח",
+    "accept": "סימון כהתקבל",
+    "reject": "דחייה",
+    "expire": "פג תוקף",
+    "cancel": "ביטול הצעה",
+    "backToDraft": "חזרה לטיוטה",
+    "convert": "המרה לעבודה",
+    "convertHint": "יוצר פרויקט או עבודה חדשים מההצעה שהתקבלה. שינויים בפרויקט קיים נשארים דרך שינויים ותוספות.",
+    "workKind": "ליצור כ",
+    "workKindProject": "פרויקט",
+    "workKindJob": "עבודה",
+    "projectName": "שם",
+    "pricingMode": "תמחור עבודה",
+    "pricingFixed": "מחיר קבוע (מנטו ההצעה)",
+    "pricingOpen": "מחיר פתוח (בלי חוזה עדיין)",
+    "convertSubmit": "יצירת עבודה"
+  },
+  "errors": {
+    "invalidTransition": "לא ניתן לשנות לסטטוס הזה",
+    "notEditable": "ניתן לערוך רק טיוטה או מוכן",
+    "useConvert": "יש להשתמש בהמרה ליצירת פרויקט או עבודה",
+    "alreadyConverted": "ההצעה כבר הומרה",
+    "notAccepted": "רק הצעה שהתקבלה ניתנת להמרה",
+    "noSubtotal": "יש להוסיף שורות מתומחרות לפני המרה",
+    "noTotal": "המרה כולל מע״מ דורשת סה״כ",
+    "clientRequiredForJob": "יש לבחור לקוח לפני המרה לעבודה",
+    "quoteIsNotBilling": "הצעות מחיר לא יוצרות רשומות חיוב"
+  }
+}

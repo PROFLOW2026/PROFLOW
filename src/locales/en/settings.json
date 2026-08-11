@@ -16,8 +16,10 @@
     "catalog": "Domains & types",
     "templates": "Structure templates",
     "tax": "Tax",
+    "approvals": "Approvals",
     "portal": "Portal access",
     "customFields": "Custom fields",
+    "forms": "Form templates",
     "api": "API and webhooks",
     "activity": "Activity log",
     "app": "App",
@@ -30,7 +32,7 @@
   },
   "modules": {
     "title": "Features",
-    "subtitle": "Show or hide areas in the navigation. Hiding never deletes anything.",
+    "subtitle": "Show or hide optional areas. Some open as project tabs rather than a main menu item. Hiding never deletes anything.",
     "autoHint": "Appears automatically once you use it",
     "visibilityLabel": "Visibility for {module}",
     "on": "Shown",
@@ -52,6 +54,13 @@
     "field_ops": "Field operations",
     "assets": "Assets and fleet",
     "jobs": "Jobs (short / daily work)",
+    "quotes": "Estimates (pre-sale — not billing)",
+    "service": "Service calls / work orders",
+    "approvals": "Approvals",
+    "month_close": "Month close (optional period close)",
+    "budgets": "Budgets on project / job (not a separate menu)",
+    "forms": "Field forms",
+    "command_center": "Today inbox",
     "saved": "Feature visibility updated."
   },
   "workMix": {
@@ -65,6 +74,25 @@
     "hintJobs": "Jobs stay in the bottom bar; Projects remain available under More.",
     "hintMixed": "Both Projects and Jobs in the bottom bar (up to four destinations).",
     "saved": "Business focus updated."
+  },
+  "businessProfiles": {
+    "title": "Business profile",
+    "subtitle": "Configuration preset only — same product and financial engine. Existing data is never deleted.",
+    "label": "Profile",
+    "apply": "Apply profile",
+    "saved": "Profile applied. You can change modules, labels, and categories anytime.",
+    "previewTitle": "This profile will configure",
+    "previewWorkMix": "Navigation focus",
+    "previewModules": "Suggested modules",
+    "previewTerminology": "Display labels",
+    "previewQuickCreate": "Quick Create emphasis",
+    "previewCategories": "Suggested cost categories",
+    "previewHint": "Labels are display-only. The underlying work entity stays the same.",
+    "workMix": {
+      "projects": "Mostly projects",
+      "jobs": "Mostly jobs",
+      "mixed": "Projects and jobs"
+    }
   },
   "presets": {
     "title": "Starter preset",
@@ -442,6 +470,62 @@
       },
       "inventory_movement": {
         "recorded": "Inventory movement recorded"
+      },
+      "material_usage": {
+        "recorded": "Material usage recorded",
+        "archived": "Material usage archived"
+      },
+      "equipment_usage": {
+        "recorded": "Equipment usage recorded",
+        "archived": "Equipment usage archived"
+      },
+      "estimate_quote": {
+        "created": "Estimate created",
+        "updated": "Estimate updated",
+        "status_changed": "Estimate status changed",
+        "converted": "Estimate converted to project/job"
+      },
+      "budget": {
+        "created": "Budget created",
+        "revised": "Budget revised",
+        "archived": "Budget archived"
+      },
+      "approval_rule": {
+        "created": "Approval rule created",
+        "updated": "Approval rule updated"
+      },
+      "approval_request": {
+        "submitted": "Approval requested",
+        "approved": "Approval approved",
+        "rejected": "Approval rejected",
+        "cancelled": "Approval cancelled"
+      },
+      "month_close": {
+        "period_opened": "Month period opened",
+        "period_ready": "Month marked ready to close",
+        "period_reopened": "Month reopened",
+        "period_closed": "Month closed",
+        "adjustment_created": "Month-close adjustment recorded"
+      },
+      "form_template": {
+        "created": "Form template created",
+        "updated": "Form template updated",
+        "archived": "Form template archived"
+      },
+      "form_submission": {
+        "created": "Form submission created",
+        "updated": "Form submission updated",
+        "submitted": "Form submitted",
+        "voided": "Form submission voided"
+      },
+      "service_recurrence": {
+        "created": "Recurring service created",
+        "updated": "Recurring service updated",
+        "paused": "Recurring service paused",
+        "resumed": "Recurring service resumed",
+        "ended": "Recurring service ended",
+        "occurrence_skipped": "Recurring occurrence skipped",
+        "generated": "Recurring work order generated"
       }
     },
     "entities": {

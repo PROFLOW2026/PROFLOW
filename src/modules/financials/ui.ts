@@ -16,3 +16,4 @@ export { MoneyReportMetricTile, CountReportMetricTile } from './ui/report-metric
 export { MetricDrilldown } from './ui/metric-drilldown';
 export { ProjectFinancialsKpiPanel } from './ui/project-financials-kpi-panel';
 export { resolveProjectKpiDisplay } from './ui/resolve-kpi-display';
+export { DataConfidenceBadge } from './ui/data-confidence-badge';

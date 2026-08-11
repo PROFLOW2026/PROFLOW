@@ -36,6 +36,14 @@ export async function enrichImportPreview(
     rows = await enrichProjectRefs(context, rows);
   }
 
+  if (kind === 'contacts') {
+    rows = await enrichContactRefs(context, rows);
+  }
+
+  if (kind === 'opening_values') {
+    rows = await enrichOpeningValueRefs(context, rows);
+  }
+
   if (kind === 'expenses') {
     rows = await enrichExpenseRefs(context, rows);
   }
@@ -136,6 +144,107 @@ async function enrichProjectRefs(
         });
       } else {
         values.clientId = resolved;
+      }
+    }
+
+    return { rowNumber: row.rowNumber, values, issues };
+  });
+}
+
+async function enrichContactRefs(
+  context: OrgContext,
+  rows: MappedImportRow[],
+): Promise<MappedImportRow[]> {
+  const found = await context.db
+    .select({ id: clients.id, name: clients.name })
+    .from(clients)
+    .where(and(eq(clients.organizationId, context.organizationId), isNull(clients.archivedAt)));
+  const allowed = new Set(found.map((r) => r.id));
+  const byName = new Map<string, string>();
+  for (const row of found) {
+    const key = normalizeName(row.name);
+    if (key && !byName.has(key)) byName.set(key, row.id);
+  }
+
+  return rows.map((row) => {
+    const issues: ImportIssue[] = [...row.issues];
+    const values: Record<string, string> = { ...row.values };
+    const clientId = values.clientId?.trim();
+    const clientName = values.clientName?.trim();
+
+    if (clientId) {
+      if (!allowed.has(clientId)) {
+        issues.push({
+          severity: 'error',
+          field: 'clientId',
+          message: 'clientId is not a client in this organization',
+        });
+      }
+    } else if (clientName) {
+      const resolved = byName.get(normalizeName(clientName));
+      if (!resolved) {
+        issues.push({
+          severity: 'error',
+          field: 'clientName',
+          message: 'Client name does not match a client in this organization',
+        });
+      } else {
+        values.clientId = resolved;
+      }
+    }
+
+    return { rowNumber: row.rowNumber, values, issues };
+  });
+}
+
+async function enrichOpeningValueRefs(
+  context: OrgContext,
+  rows: MappedImportRow[],
+): Promise<MappedImportRow[]> {
+  const found = await context.db
+    .select({ id: projects.id, name: projects.name })
+    .from(projects)
+    .where(and(eq(projects.organizationId, context.organizationId), isNull(projects.archivedAt)));
+  const allowed = new Set(found.map((r) => r.id));
+  const byName = new Map<string, string[]>();
+  for (const row of found) {
+    const key = normalizeName(row.name);
+    if (!key) continue;
+    const list = byName.get(key) ?? [];
+    list.push(row.id);
+    byName.set(key, list);
+  }
+
+  return rows.map((row) => {
+    const issues: ImportIssue[] = [...row.issues];
+    const values: Record<string, string> = { ...row.values };
+    const projectId = values.projectId?.trim();
+    const projectName = values.projectName?.trim();
+
+    if (projectId) {
+      if (!allowed.has(projectId)) {
+        issues.push({
+          severity: 'error',
+          field: 'projectId',
+          message: 'projectId is not a project/job in this organization',
+        });
+      }
+    } else if (projectName) {
+      const matches = byName.get(normalizeName(projectName)) ?? [];
+      if (matches.length === 0) {
+        issues.push({
+          severity: 'error',
+          field: 'projectName',
+          message: 'Project/job name does not match a record in this organization',
+        });
+      } else if (matches.length > 1) {
+        issues.push({
+          severity: 'error',
+          field: 'projectName',
+          message: 'Multiple projects match this name — use projectId',
+        });
+      } else {
+        values.projectId = matches[0]!;
       }
     }
 

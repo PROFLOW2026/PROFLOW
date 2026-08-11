@@ -112,7 +112,9 @@ export async function confirmImportAction(input: {
     revalidatePath('/vendors');
     revalidatePath('/workforce/employees');
     revalidatePath('/projects');
+    revalidatePath('/jobs');
     revalidatePath('/expenses');
+    revalidatePath('/settings/cost-categories');
     revalidatePath('/imports');
 
     return { ok: true, result };

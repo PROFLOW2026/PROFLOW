@@ -39,6 +39,7 @@ export const clients = pgTable(
     ...timestamps(),
   },
   (table) => [
+    uniqueIndex('clients_id_organization_id_uq').on(table.id, table.organizationId),
     index('clients_org_idx').on(table.organizationId),
     index('clients_org_name_idx').on(table.organizationId, table.name),
   ],

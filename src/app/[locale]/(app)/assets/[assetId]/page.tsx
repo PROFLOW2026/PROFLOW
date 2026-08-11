@@ -24,6 +24,7 @@ import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { AssetAssignmentForm, AssetStatusForm } from './asset-manage-forms';
 import { MaintenanceCreateForm, MaintenanceStatusForm } from './maintenance-create-form';
+import { AssetEquipmentUsagePanel } from '@/modules/assets/ui';
 import { textNavLinkMutedClassName } from '@/components/ui/pressable';
 
 export async function generateMetadata({
@@ -260,6 +261,8 @@ export default async function AssetDetailPage({
         canManage={documentsPanel.canManage}
         storageConfigured={documentsPanel.storageConfigured}
       />
+
+      <AssetEquipmentUsagePanel assetId={asset.id} />
 
       <section className="flex flex-col gap-4">
         <div>

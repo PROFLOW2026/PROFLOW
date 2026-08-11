@@ -133,7 +133,8 @@ export function assertCandidateQuoteStatus(status: string): void {
 
 /** Runtime guard: reject objects that look like they carry internal financials. */
 export function assertNoSensitiveVendorFields(value: Record<string, unknown>): void {
-  const forbidden = [
+  const exactForbidden = new Set(['actual', 'actuals', 'expense']);
+  const substringForbidden = [
     'profit',
     'margin',
     'burden',
@@ -141,17 +142,22 @@ export function assertNoSensitiveVendorFields(value: Record<string, unknown>): v
     'trueCost',
     'laborCost',
     'employeeCost',
+    'actualCost',
+    'actualAmount',
     'workforce',
     'salary',
     'committedCostStatus',
     'committedCosts',
-    'expense',
     'orgAdmin',
     'membership',
     'roleKey',
   ];
   for (const key of Object.keys(value)) {
-    if (forbidden.some((item) => key.toLowerCase().includes(item.toLowerCase()))) {
+    const lower = key.toLowerCase();
+    if (exactForbidden.has(lower)) {
+      throw new Error(`Vendor projection must not include sensitive field: ${key}`);
+    }
+    if (substringForbidden.some((item) => lower.includes(item.toLowerCase()))) {
       throw new Error(`Vendor projection must not include sensitive field: ${key}`);
     }
   }

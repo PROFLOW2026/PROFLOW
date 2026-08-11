@@ -5,7 +5,7 @@ export type JobTabKey = ProjectTabKey;
 /**
  * Job workspace tab priority — ops first; hide large-project setup by default.
  *
- * Contract priority: overview → expenses → team → time → billing → docs.
+ * Contract priority: overview → expenses → team → usage → time → billing → docs.
  * Financials stay available when permitted; work/changes stay off unless
  * explicitly revealed after conversion to a project.
  */
@@ -13,8 +13,10 @@ export const JOB_TAB_PRIORITY: readonly JobTabKey[] = [
   'overview',
   'expenses',
   'team',
+  'usage',
   'time',
   'billing',
+  'budgets',
   'documents',
   'financials',
   'details',
@@ -27,6 +29,8 @@ export interface JobTabVisibility {
   readonly billing: boolean;
   readonly documents: boolean;
   readonly financials: boolean;
+  readonly usage: boolean;
+  readonly budgets?: boolean;
   /** Large-project setup — off for jobs by default. */
   readonly changes?: boolean;
   readonly work?: boolean;
@@ -51,6 +55,10 @@ export function resolveJobTabs(visibility: JobTabVisibility): JobTabKey[] {
         return visibility.documents;
       case 'financials':
         return visibility.financials;
+      case 'usage':
+        return visibility.usage;
+      case 'budgets':
+        return Boolean(visibility.budgets);
       case 'changes':
         return Boolean(visibility.changes);
       case 'work':

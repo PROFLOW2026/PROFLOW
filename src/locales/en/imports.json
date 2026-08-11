@@ -1,6 +1,6 @@
 {
   "title": "Import data",
-  "description": "Upload a CSV or Excel file, map columns, preview row issues, then confirm. Creates go through the same rules as the normal forms.",
+  "description": "Upload a CSV or Excel file, map columns, preview row issues, then confirm. Creates go through the same rules as the normal forms. Invalid rows are never written; you can skip any row.",
   "notAllowed": "You do not have permission to import any of the supported record types.",
   "stepsLabel": "Import steps",
   "steps": {
@@ -12,13 +12,19 @@
   "kindLabel": "What to import",
   "kindPlaceholder": "Choose a type",
   "fileLabel": "CSV or Excel file",
+  "templateLabel": "Download template",
+  "templateHint": "CSV template with example row. Excel (.xlsx) uploads are also accepted.",
   "expensesSafeHint": "Expense import creates drafts only through the normal expense rules. Tax/VAT columns are ignored. Currency must match the project or organization base currency.",
-  "nonFinancialHint": "Financial contract amounts are not imported with projects. Duplicate names are flagged as warnings.",
+  "nonFinancialHint": "Project/job import does not set contract amounts. Use Opening values for managed openings. Duplicate names are flagged as warnings.",
+  "openingValuesHint": "Opening values use the same contract opening path as project edit. Quote amounts are never treated as revenue.",
   "kinds": {
     "clients": "Clients",
+    "contacts": "Contacts",
     "vendors": "Vendors",
     "employees": "Employees",
-    "projects": "Projects",
+    "projects": "Projects / jobs",
+    "opening_values": "Opening values",
+    "cost_categories": "Cost categories",
     "expenses": "Expenses (draft)"
   },
   "fields": {
@@ -30,11 +36,13 @@
     "countryCode": "Country code",
     "notes": "Notes",
     "type": "Vendor type",
+    "role": "Contact role",
     "jobTitle": "Job title",
     "employeeNumber": "Employee number",
     "rateUnit": "Rate unit",
     "baseRate": "Base rate",
     "status": "Status",
+    "workKind": "Work kind",
     "clientId": "Client ID",
     "clientName": "Client name",
     "location": "Location",
@@ -45,9 +53,15 @@
     "expenseDate": "Expense date",
     "amount": "Amount",
     "projectId": "Project ID",
+    "projectName": "Project / job name",
     "vendorId": "Vendor ID",
     "supplierName": "Supplier name",
-    "costFamily": "Cost family"
+    "costFamily": "Cost family",
+    "contractValueAmount": "Opening / contract amount",
+    "openingReductionAmount": "Opening reduction",
+    "amountIncludesTax": "Amount includes tax",
+    "key": "Category key",
+    "family": "Cost family"
   },
   "mapping": {
     "title": "Column mapping",
@@ -56,18 +70,22 @@
     "emptyHeader": "Column {index}"
   },
   "preview": {
-    "title": "Preview",
-    "summary": "{valid} ready · {errors} with errors · {warnings} with warnings",
+    "title": "Preview & validation",
+    "summary": "{valid} ready · {errors} with errors · {warnings} with warnings · {selected} selected",
     "row": "Row",
+    "include": "Include",
     "values": "Values",
     "issues": "Issues",
     "error": "Error",
     "warning": "Warning",
-    "truncated": "Showing first 100 of {count} rows."
+    "truncated": "Showing first 100 of {count} rows.",
+    "skipHint": "Uncheck rows to skip them. Rows with errors are never imported.",
+    "selectValid": "Select only valid rows",
+    "selectAll": "Select all rows"
   },
   "result": {
     "title": "Import result",
-    "summary": "Created {created}. Failed {failed}.",
+    "summary": "Created {created}. Failed {failed}. Skipped {skipped}.",
     "rowFailed": "Row {row}: {error}"
   },
   "actions": {
@@ -76,8 +94,9 @@
     "validate": "Validate and preview",
     "confirm": "Confirm import ({count})",
     "another": "Import another file",
-    "downloadIssues": "Download row issues CSV",
-    "downloadFailures": "Download failures CSV"
+    "downloadIssues": "Download validation report CSV",
+    "downloadFailures": "Download failures CSV",
+    "downloadTemplate": "Download CSV template"
   },
   "errors": {
     "readFile": "Could not read the file.",
@@ -86,6 +105,7 @@
     "emptySheet": "The spreadsheet has no usable rows.",
     "fileTooLarge": "The file is too large to import (max about 2 MB).",
     "previewFailed": "Could not preview the import.",
-    "confirmFailed": "Could not complete the import."
+    "confirmFailed": "Could not complete the import.",
+    "nothingSelected": "Select at least one valid row to import."
   }
 }

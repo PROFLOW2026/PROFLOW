@@ -26,12 +26,15 @@ export function partitionWorkKindCounts(rows: readonly WorkKindScopedRow[]): {
   readonly all: number;
   readonly project: number;
   readonly job: number;
+  readonly workOrder: number;
 } {
   let project = 0;
   let job = 0;
+  let workOrder = 0;
   for (const row of rows) {
     if (row.workKind === 'job') job += 1;
+    else if (row.workKind === 'work_order') workOrder += 1;
     else project += 1;
   }
-  return { all: rows.length, project, job };
+  return { all: rows.length, project, job, workOrder };
 }

@@ -11,6 +11,7 @@ import {
   dailyLogs,
   employees,
   expenses,
+  formSubmissions,
   inspections,
   inventoryItems,
   procurementRfqs,
@@ -53,6 +54,7 @@ export async function documentOwnerExistsInOrganization(
     compliance_artifact: complianceArtifacts,
     asset: assets,
     inventory_item: inventoryItems,
+    form_submission: formSubmissions,
   } as const;
 
   const table = tableByOwnerType[ownerType];

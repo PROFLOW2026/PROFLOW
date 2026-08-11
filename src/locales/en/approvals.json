@@ -1,0 +1,61 @@
+{
+  "title": "Approvals",
+  "description": "Review pending requests and set amount thresholds. Optional — off until you use it.",
+  "pendingTitle": "Pending approvals",
+  "pendingEmpty": {
+    "title": "Nothing waiting",
+    "body": "When a rule matches, requests appear here for approve or reject."
+  },
+  "rulesTitle": "Approval rules",
+  "rulesDescription": "Require a decision when an amount is at or above a threshold. Leave unused for no friction.",
+  "rulesEmpty": {
+    "title": "No rules yet",
+    "body": "Add a threshold for expenses, vendor bills, purchase orders, and similar."
+  },
+  "addRule": "Add rule",
+  "saved": "Saved.",
+  "approve": "Approve",
+  "reject": "Reject",
+  "cancel": "Cancel request",
+  "decisionNote": "Note (optional)",
+  "columns": {
+    "entity": "Type",
+    "amount": "Amount",
+    "status": "Status",
+    "submitted": "Submitted",
+    "name": "Rule name",
+    "threshold": "Threshold",
+    "enabled": "Enabled"
+  },
+  "entityTypes": {
+    "expense": "Expense",
+    "vendor_bill": "Vendor bill",
+    "purchase_order": "Purchase order",
+    "vendor_credit": "Vendor credit",
+    "time_correction": "Time correction",
+    "quote_discount": "Quote discount",
+    "budget_revision": "Budget revision"
+  },
+  "fields": {
+    "name": "Name",
+    "entityType": "Applies to",
+    "thresholdAmount": "Threshold amount",
+    "currency": "Currency",
+    "enabled": "Enabled",
+    "noThreshold": "Any amount"
+  },
+  "errors": {
+    "pending": "This action is waiting for approval.",
+    "rejected": "This action was rejected and cannot proceed.",
+    "required": "Approval is required before this action.",
+    "submittedPending": "Submitted for approval — waiting for a decision.",
+    "notSubmitted": "Only submitted requests can be updated."
+  },
+  "settingsLink": "Configure rules",
+  "openEntity": "Open related record",
+  "toggle": {
+    "enable": "Enable",
+    "disable": "Disable",
+    "off": "off"
+  }
+}

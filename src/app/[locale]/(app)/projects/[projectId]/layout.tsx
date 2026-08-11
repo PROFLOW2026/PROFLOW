@@ -45,6 +45,7 @@ export default async function ProjectLayout({ children, params }: ProjectLayoutP
   const showExpensesTab = can(PERMISSIONS.EXPENSES_READ);
   const showChangesTab = Boolean(modules?.changes) && can(PERMISSIONS.CHANGES_READ);
   const showBillingTab = Boolean(modules?.billing) && can(PERMISSIONS.BILLING_READ);
+  const showBudgetsTab = Boolean(modules?.budgets) && can(PERMISSIONS.BUDGETS_READ);
   // Team is permission-gated (not module) so owners can assign people before
   // the workforce module preference flips on from first create.
   const showTeamTab = can(PERMISSIONS.WORKFORCE_READ);
@@ -52,6 +53,7 @@ export default async function ProjectLayout({ children, params }: ProjectLayoutP
   const showScheduleTab = can(PERMISSIONS.PLANNING_READ);
   const showTimeTab = can(PERMISSIONS.WORKFORCE_READ);
   const showDocumentsTab = Boolean(modules?.documents) && can(PERMISSIONS.DOCUMENTS_READ);
+  const showUsageTab = can(PERMISSIONS.MATERIALS_READ) || can(PERMISSIONS.ASSETS_READ);
 
   const [t, tTabs, tStatus, detail, locale] = await Promise.all([
     getTranslations('projects'),
@@ -62,9 +64,8 @@ export default async function ProjectLayout({ children, params }: ProjectLayoutP
   ]);
   if (!detail) notFound();
 
-  // Jobs use `/jobs/[jobId]` — page owns the redirect (preserves `?tab=`).
-  // Pass children through without project chrome so we do not flash the wrong shell.
-  if (detail.project.workKind === 'job') {
+  // Jobs / work orders use dedicated routes — page owns redirect (preserves `?tab=`).
+  if (detail.project.workKind === 'job' || detail.project.workKind === 'work_order') {
     return <>{children}</>;
   }
 
@@ -76,10 +77,12 @@ export default async function ProjectLayout({ children, params }: ProjectLayoutP
     expenses: showExpensesTab,
     changes: showChangesTab,
     billing: showBillingTab,
+    budgets: showBudgetsTab,
     team: showTeamTab,
     schedule: showScheduleTab,
     time: showTimeTab,
     documents: showDocumentsTab,
+    usage: showUsageTab,
     work: showWorkTab,
   });
 

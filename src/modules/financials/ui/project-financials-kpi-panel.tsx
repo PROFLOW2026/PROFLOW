@@ -1,8 +1,17 @@
 import { MetricDrilldown } from './metric-drilldown';
+import { DataConfidenceBadge } from './data-confidence-badge';
+import { resolveExplanationSourceHref } from './explainability-links';
 import {
   resolveProjectKpiDisplay,
   type ProjectFinancialsWithOptionalKpis,
 } from './resolve-kpi-display';
+import {
+  buildProjectFinancialExplainability,
+  findMetricExplanation,
+  type ExplanationCategoryKey,
+  type ExplainableMetricKey,
+} from '../domain/metric-explainability';
+import type { DataConfidenceLevel, DataConfidenceReason } from '../domain/data-confidence';
 import { negateMoney } from '@/shared/money';
 
 export interface ProjectFinancialsKpiPanelProps {
@@ -11,11 +20,170 @@ export interface ProjectFinancialsKpiPanelProps {
   readonly canReadProfit: boolean;
   readonly canReadBilling: boolean;
   readonly canReadCommercial: boolean;
+  readonly canReadAp?: boolean;
   readonly t: (key: string, values?: Record<string, string | number | Date>) => string;
+}
+
+function categoryLabel(
+  t: ProjectFinancialsKpiPanelProps['t'],
+  key: ExplanationCategoryKey,
+): string {
+  switch (key) {
+    case 'direct_project':
+      return t('costFamilies.direct_project');
+    case 'shared':
+      return t('costFamilies.shared');
+    case 'business_overhead':
+      return t('costFamilies.business_overhead');
+    case 'asset_capital':
+      return t('costFamilies.asset_capital');
+    case 'labor_actual':
+      return t('laborActual');
+    case 'vendor_actual':
+      return t('vendorActual');
+    case 'overhead_actual':
+      return t('overheadActual');
+    case 'committed_open':
+      return t('committedOpen');
+    case 'expected_remaining':
+      return t('kpis.expectedRemaining');
+    case 'original_contract':
+      return t('originalContractValue');
+    case 'approved_additions':
+      return t('approvedAdditions');
+    case 'approved_reductions':
+      return t('approvedReductions');
+    case 'pending_changes':
+      return t('pendingChanges');
+    case 'current_contract':
+      return t('kpis.currentContract');
+    case 'actual_cost':
+      return t('kpis.actualCost');
+    case 'forecast_cost':
+      return t('kpis.forecast');
+    case 'invoiced':
+      return t('kpis.billed');
+    case 'paid':
+      return t('kpis.paid');
+    case 'open_ap_payable':
+      return t('openApPayable');
+    case 'unallocated_business':
+      return t('unallocatedBusinessCosts');
+    case 'actual_margin':
+      return t('kpis.actualMargin');
+    case 'forecast_margin':
+      return t('kpis.forecastMargin');
+    case 'outstanding_ar':
+      return t('kpis.outstanding');
+    default:
+      return key;
+  }
+}
+
+function sourceLinkLabel(
+  t: ProjectFinancialsKpiPanelProps['t'],
+  kind: string,
+): string {
+  switch (kind) {
+    case 'expenses_finalized':
+      return t('drillLinks.viewFinalizedExpenses');
+    case 'expenses_all':
+      return t('drillLinks.viewProjectExpenses');
+    case 'project_expenses_tab':
+      return t('drillLinks.projectExpensesTab');
+    case 'project_changes_tab':
+      return t('drillLinks.viewChanges');
+    case 'project_billing_tab':
+      return t('drillLinks.projectBillingTab');
+    case 'billing_outstanding':
+      return t('drillLinks.viewOutstandingBilling');
+    case 'procurement_po':
+      return t('drillLinks.viewPurchaseOrders');
+    case 'procurement_ap':
+      return t('drillLinks.viewVendorBills');
+    case 'expenses_overhead':
+      return t('drillLinks.viewOverheadOnProject');
+    case 'org_expenses':
+      return t('drillLinks.viewAllExpenses');
+    default:
+      return t('drillLinks.viewAllExpenses');
+  }
+}
+
+function confidenceLabel(
+  t: ProjectFinancialsKpiPanelProps['t'],
+  level: DataConfidenceLevel,
+): string {
+  return t(`confidence.levels.${level}`);
+}
+
+function confidenceTitle(
+  t: ProjectFinancialsKpiPanelProps['t'],
+  reasons: readonly string[],
+): string {
+  if (reasons.length === 0) return t('confidence.highHint');
+  return reasons
+    .map((reason) => t(`confidence.reasons.${reason as DataConfidenceReason}`))
+    .join(' · ');
+}
+
+function drillFromMetric(
+  projectId: string,
+  metric: ExplainableMetricKey,
+  financials: ProjectFinancialsWithOptionalKpis,
+  t: ProjectFinancialsKpiPanelProps['t'],
+  canReadAp: boolean,
+) {
+  const confidence =
+    financials.dataConfidence ??
+    ({ level: 'high' as const, reasons: [] as const });
+
+  const explainability = buildProjectFinancialExplainability({
+    financials,
+    dataConfidence: {
+      level: confidence.level as DataConfidenceLevel,
+      reasons: confidence.reasons as DataConfidenceReason[],
+    },
+    canReadCommercial: Boolean(financials.commercial),
+    canReadBilling: true,
+    canReadProfit: Boolean(financials.profit),
+    canReadAp,
+  });
+
+  const explanation = findMetricExplanation(explainability, metric);
+  if (!explanation) return null;
+
+  const lines = explanation.categories
+    .filter((line) => line.role !== 'total')
+    .map((line) => ({
+      label: categoryLabel(t, line.key),
+      value:
+        line.role === 'subtract'
+          ? negateMoney(line.amount)
+          : line.amount,
+      muted: line.role === 'info',
+      hint:
+        line.role === 'info'
+          ? t('explain.infoLineHint')
+          : undefined,
+    }));
+
+  const links = explanation.sources.map((source) => ({
+    href: resolveExplanationSourceHref(source.kind, projectId),
+    label: sourceLinkLabel(t, source.kind),
+  }));
+
+  return {
+    explanation: t(`explain.formulas.${explanation.formulaKey}`),
+    lines,
+    links,
+    whyLabel: t('explain.whyThisNumber'),
+  };
 }
 
 /**
  * Primary project financial KPIs with practical drill-downs and filtered-list links.
+ * "Why this number?" packs reuse the composed engine — no second Actual formula.
  */
 export function ProjectFinancialsKpiPanel({
   projectId,
@@ -23,9 +191,11 @@ export function ProjectFinancialsKpiPanel({
   canReadProfit,
   canReadBilling,
   canReadCommercial,
+  canReadAp = true,
   t,
 }: ProjectFinancialsKpiPanelProps) {
   const kpis = resolveProjectKpiDisplay(financials);
+  const confidence = financials.dataConfidence ?? { level: 'high' as const, reasons: [] };
   const expensesHref = `/expenses?projectId=${encodeURIComponent(projectId)}&status=finalized`;
   const expensesAllHref = `/expenses?projectId=${encodeURIComponent(projectId)}`;
   const projectExpensesTab = `/projects/${projectId}?tab=expenses`;
@@ -37,37 +207,85 @@ export function ProjectFinancialsKpiPanel({
   const billingAllHref = '/billing?filter=all';
   const changesTab = `/projects/${projectId}?tab=changes`;
 
+  const actualDrill = drillFromMetric(projectId, 'actual', financials, t, canReadAp);
+  const forecastDrill = drillFromMetric(projectId, 'forecast', financials, t, canReadAp);
+  const contractDrill = drillFromMetric(
+    projectId,
+    'current_contract',
+    financials,
+    t,
+    canReadAp,
+  );
+  const actualMarginDrill = drillFromMetric(
+    projectId,
+    'actual_margin',
+    financials,
+    t,
+    canReadAp,
+  );
+  const forecastMarginDrill = drillFromMetric(
+    projectId,
+    'forecast_margin',
+    financials,
+    t,
+    canReadAp,
+  );
+  const outstandingArDrill = drillFromMetric(
+    projectId,
+    'outstanding_ar',
+    financials,
+    t,
+    canReadAp,
+  );
+  const outstandingApDrill = canReadAp
+    ? drillFromMetric(projectId, 'outstanding_ap', financials, t, canReadAp)
+    : null;
+
   return (
     <div className="flex flex-col gap-3 text-sm">
+      <div className="flex min-w-0 flex-wrap items-center justify-between gap-2">
+        <p className="text-xs text-[var(--pf-text-muted)]">{t('confidence.title')}</p>
+        <DataConfidenceBadge
+          level={confidence.level as DataConfidenceLevel}
+          label={confidenceLabel(t, confidence.level as DataConfidenceLevel)}
+          title={confidenceTitle(t, confidence.reasons)}
+        />
+      </div>
+
       {canReadCommercial && financials.commercial && kpis.currentContract ? (
         <MetricDrilldown
           label={t('kpis.currentContract')}
           value={kpis.currentContract}
           nature={t('metricNature.commercial')}
-          explanation={t('kpis.currentContractHint')}
+          explanation={contractDrill?.explanation ?? t('kpis.currentContractHint')}
+          whyLabel={contractDrill?.whyLabel}
           emphasis
-          lines={[
-            {
-              label: t('originalContractValue'),
-              value: financials.commercial.originalContractValue,
-            },
-            {
-              label: t('approvedAdditions'),
-              value: financials.commercial.approvedAdditions,
-            },
-            {
-              label: t('approvedReductions'),
-              value: negateMoney(financials.commercial.approvedReductions),
-              muted: true,
-            },
-            {
-              label: t('pendingChanges'),
-              value: financials.commercial.pendingChanges,
-              hint: t('kpis.pendingNotInContract'),
-              muted: true,
-            },
-          ]}
-          links={[{ href: changesTab, label: t('drillLinks.viewChanges') }]}
+          lines={
+            contractDrill?.lines ?? [
+              {
+                label: t('originalContractValue'),
+                value: financials.commercial.originalContractValue,
+              },
+              {
+                label: t('approvedAdditions'),
+                value: financials.commercial.approvedAdditions,
+              },
+              {
+                label: t('approvedReductions'),
+                value: negateMoney(financials.commercial.approvedReductions),
+                muted: true,
+              },
+              {
+                label: t('pendingChanges'),
+                value: financials.commercial.pendingChanges,
+                hint: t('kpis.pendingNotInContract'),
+                muted: true,
+              },
+            ]
+          }
+          links={
+            contractDrill?.links ?? [{ href: changesTab, label: t('drillLinks.viewChanges') }]
+          }
         />
       ) : null}
 
@@ -75,38 +293,43 @@ export function ProjectFinancialsKpiPanel({
         label={t('kpis.actualCost')}
         value={kpis.actualCost}
         nature={t('metricNature.actual')}
-        explanation={t('kpis.actualCostHint')}
+        explanation={actualDrill?.explanation ?? t('kpis.actualCostHint')}
+        whyLabel={actualDrill?.whyLabel}
         emphasis
-        lines={[
-          {
-            label: t('costFamilies.direct_project'),
-            value: financials.cost.byFamily.directProject,
-          },
-          {
-            label: t('laborActual'),
-            value: financials.cost.laborActual,
-          },
-          {
-            label: t('vendorActual'),
-            value: financials.cost.vendorActual,
-          },
-          {
-            label: t('kpis.allocatedOverhead'),
-            value: kpis.allocatedOverhead,
-          },
-          {
-            label: t('costFamilies.shared'),
-            value: financials.cost.byFamily.shared,
-          },
-          {
-            label: t('costFamilies.asset_capital'),
-            value: financials.cost.byFamily.assetCapital,
-          },
-        ]}
-        links={[
-          { href: expensesHref, label: t('drillLinks.viewFinalizedExpenses') },
-          { href: projectExpensesTab, label: t('drillLinks.projectExpensesTab') },
-        ]}
+        lines={
+          actualDrill?.lines ?? [
+            {
+              label: t('costFamilies.direct_project'),
+              value: financials.cost.byFamily.directProject,
+            },
+            {
+              label: t('laborActual'),
+              value: financials.cost.laborActual,
+            },
+            {
+              label: t('vendorActual'),
+              value: financials.cost.vendorActual,
+            },
+            {
+              label: t('kpis.allocatedOverhead'),
+              value: kpis.allocatedOverhead,
+            },
+            {
+              label: t('costFamilies.shared'),
+              value: financials.cost.byFamily.shared,
+            },
+            {
+              label: t('costFamilies.asset_capital'),
+              value: financials.cost.byFamily.assetCapital,
+            },
+          ]
+        }
+        links={
+          actualDrill?.links ?? [
+            { href: expensesHref, label: t('drillLinks.viewFinalizedExpenses') },
+            { href: projectExpensesTab, label: t('drillLinks.projectExpensesTab') },
+          ]
+        }
       />
 
       <MetricDrilldown
@@ -114,6 +337,7 @@ export function ProjectFinancialsKpiPanel({
         value={kpis.allocatedOverhead}
         nature={t('metricNature.actual')}
         explanation={t('kpis.allocatedOverheadHint')}
+        whyLabel={t('explain.whyThisNumber')}
         lines={[
           {
             label: t('costFamilies.business_overhead'),
@@ -139,6 +363,7 @@ export function ProjectFinancialsKpiPanel({
         value={kpis.committed}
         nature={t('metricNature.committed')}
         explanation={t('kpis.committedHint')}
+        whyLabel={t('explain.whyThisNumber')}
         lines={[
           {
             label: t('committedOpen'),
@@ -162,33 +387,41 @@ export function ProjectFinancialsKpiPanel({
         value={kpis.forecastCost}
         nature={t('metricNature.forecast')}
         explanation={
-          kpis.forecastEqualsActual
+          forecastDrill?.explanation ??
+          (kpis.forecastEqualsActual
             ? t('kpis.forecastEqualsActualHint')
-            : t('kpis.forecastHint')
+            : t('kpis.forecastHint'))
         }
-        lines={[
-          {
-            label: t('kpis.actualCost'),
-            value: kpis.actualCost,
-          },
-          {
-            label: t('kpis.committed'),
-            value: kpis.committed,
-            hint: t('kpis.committedInForecastHint'),
-          },
-          {
-            label: t('kpis.expectedRemaining'),
-            value: kpis.expectedRemainingCost,
-            hint: t('kpis.expectedRemainingHint'),
-          },
-          {
-            label: t('estimatedFinalCost'),
-            value: financials.cost.estimatedFinalCost,
-            hint: t('estimatedFinalCostHint'),
-            emphasis: true,
-          },
-        ]}
-        links={[{ href: expensesAllHref, label: t('drillLinks.viewProjectExpenses') }]}
+        whyLabel={forecastDrill?.whyLabel}
+        lines={
+          forecastDrill?.lines ?? [
+            {
+              label: t('kpis.actualCost'),
+              value: kpis.actualCost,
+            },
+            {
+              label: t('kpis.committed'),
+              value: kpis.committed,
+              hint: t('kpis.committedInForecastHint'),
+            },
+            {
+              label: t('kpis.expectedRemaining'),
+              value: kpis.expectedRemainingCost,
+              hint: t('kpis.expectedRemainingHint'),
+            },
+            {
+              label: t('estimatedFinalCost'),
+              value: financials.cost.estimatedFinalCost,
+              hint: t('estimatedFinalCostHint'),
+              emphasis: true,
+            },
+          ]
+        }
+        links={
+          forecastDrill?.links ?? [
+            { href: expensesAllHref, label: t('drillLinks.viewProjectExpenses') },
+          ]
+        }
       />
 
       {canReadBilling ? (
@@ -198,6 +431,7 @@ export function ProjectFinancialsKpiPanel({
             value={kpis.billed}
             nature={t('metricNature.actual')}
             explanation={t('kpis.billedHint')}
+            whyLabel={t('explain.whyThisNumber')}
             links={[
               { href: projectBillingTab, label: t('drillLinks.projectBillingTab') },
               { href: billingAllHref, label: t('drillLinks.viewBilling') },
@@ -208,6 +442,7 @@ export function ProjectFinancialsKpiPanel({
             value={kpis.paid}
             nature={t('metricNature.actual')}
             explanation={t('kpis.paidHint')}
+            whyLabel={t('explain.whyThisNumber')}
             links={[
               { href: projectBillingTab, label: t('drillLinks.projectBillingTab') },
               { href: billingPaidHref, label: t('drillLinks.viewPaidBilling') },
@@ -217,13 +452,34 @@ export function ProjectFinancialsKpiPanel({
             label={t('kpis.outstanding')}
             value={kpis.outstanding}
             nature={t('metricNature.forecast')}
-            explanation={t('kpis.outstandingHint')}
-            links={[
-              { href: projectBillingTab, label: t('drillLinks.projectBillingTab') },
-              { href: billingOutstandingHref, label: t('drillLinks.viewOutstandingBilling') },
-            ]}
+            explanation={
+              outstandingArDrill?.explanation ?? t('kpis.outstandingHint')
+            }
+            whyLabel={outstandingArDrill?.whyLabel}
+            lines={outstandingArDrill?.lines}
+            links={
+              outstandingArDrill?.links ?? [
+                { href: projectBillingTab, label: t('drillLinks.projectBillingTab') },
+                {
+                  href: billingOutstandingHref,
+                  label: t('drillLinks.viewOutstandingBilling'),
+                },
+              ]
+            }
           />
         </>
+      ) : null}
+
+      {canReadAp && outstandingApDrill ? (
+        <MetricDrilldown
+          label={t('openApPayable')}
+          value={financials.cost.openApPayable}
+          nature={t('metricNature.forecast')}
+          explanation={outstandingApDrill.explanation}
+          whyLabel={outstandingApDrill.whyLabel}
+          lines={outstandingApDrill.lines}
+          links={outstandingApDrill.links}
+        />
       ) : null}
 
       {canReadProfit && kpis.priceNotSet ? (
@@ -241,26 +497,29 @@ export function ProjectFinancialsKpiPanel({
           label={t('kpis.actualMargin')}
           value={kpis.actualMargin}
           nature={t('metricNature.actual')}
-          explanation={t('kpis.actualMarginHint')}
+          explanation={actualMarginDrill?.explanation ?? t('kpis.actualMarginHint')}
+          whyLabel={actualMarginDrill?.whyLabel}
           emphasis
-          lines={[
-            ...(kpis.currentContract
-              ? [{ label: t('kpis.currentContract'), value: kpis.currentContract }]
-              : []),
-            {
-              label: t('kpis.actualCost'),
-              value: kpis.actualCost,
-            },
-            ...(kpis.actualMarginPercent != null
-              ? [
-                  {
-                    label: t('margin'),
-                    hint: `${kpis.actualMarginPercent}%`,
-                    muted: true as const,
-                  },
-                ]
-              : []),
-          ]}
+          lines={
+            actualMarginDrill?.lines ?? [
+              ...(kpis.currentContract
+                ? [{ label: t('kpis.currentContract'), value: kpis.currentContract }]
+                : []),
+              {
+                label: t('kpis.actualCost'),
+                value: kpis.actualCost,
+              },
+              ...(kpis.actualMarginPercent != null
+                ? [
+                    {
+                      label: t('margin'),
+                      hint: `${kpis.actualMarginPercent}%`,
+                      muted: true as const,
+                    },
+                  ]
+                : []),
+            ]
+          }
         />
       ) : null}
 
@@ -270,28 +529,32 @@ export function ProjectFinancialsKpiPanel({
           value={kpis.forecastMargin}
           nature={t('metricNature.forecast')}
           explanation={
-            kpis.forecastEqualsActual
+            forecastMarginDrill?.explanation ??
+            (kpis.forecastEqualsActual
               ? t('kpis.forecastMarginEqualsActualHint')
-              : t('kpis.forecastMarginHint')
+              : t('kpis.forecastMarginHint'))
           }
-          lines={[
-            ...(kpis.currentContract
-              ? [{ label: t('kpis.currentContract'), value: kpis.currentContract }]
-              : []),
-            {
-              label: t('kpis.forecast'),
-              value: kpis.forecastCost,
-            },
-            ...(kpis.forecastMarginPercent != null
-              ? [
-                  {
-                    label: t('margin'),
-                    hint: `${kpis.forecastMarginPercent}%`,
-                    muted: true as const,
-                  },
-                ]
-              : []),
-          ]}
+          whyLabel={forecastMarginDrill?.whyLabel}
+          lines={
+            forecastMarginDrill?.lines ?? [
+              ...(kpis.currentContract
+                ? [{ label: t('kpis.currentContract'), value: kpis.currentContract }]
+                : []),
+              {
+                label: t('kpis.forecast'),
+                value: kpis.forecastCost,
+              },
+              ...(kpis.forecastMarginPercent != null
+                ? [
+                    {
+                      label: t('margin'),
+                      hint: `${kpis.forecastMarginPercent}%`,
+                      muted: true as const,
+                    },
+                  ]
+                : []),
+            ]
+          }
         />
       ) : null}
     </div>

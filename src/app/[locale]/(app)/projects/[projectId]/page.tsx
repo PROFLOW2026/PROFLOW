@@ -19,12 +19,14 @@ import { zeroMoney } from '@/shared/money';
 import { PERMISSIONS, type PermissionKey } from '@/shared/permissions/catalog';
 import { redirect } from '@/shared/i18n/navigation';
 import { ProjectBillingPanel } from '@/modules/billing/ui';
+import { ProjectBudgetPanel } from '@/modules/budgets/ui';
 import { ProjectChangesPanel } from '@/modules/commercial/ui';
 import { ProjectExpensesPanel } from '@/modules/expenses/ui';
 import { ProjectFinancialsPanel } from '@/modules/financials/ui';
 import { ProjectSchedulePanel } from '@/modules/planning/ui';
 import { ProjectContractorsPanel } from '@/modules/vendors/ui';
 import { ProjectTeamPanel, ProjectTimePanel } from '@/modules/workforce/ui';
+import { ProjectUsagePanel } from '@/modules/assets/ui';
 import { DetailsTab } from './details-tab';
 import { DocumentsTab } from './documents-tab';
 import { OverviewTab } from './overview-tab';
@@ -35,6 +37,7 @@ import { type ProjectTabKey } from './project-tabs-shell';
 import { ProjectFieldOpsSummaryPanel } from './project-field-ops-summary';
 import { TabPanelSkeleton } from './tab-panel-skeleton';
 import { WorkTab } from './work-tab';
+import { ProjectFormsPanel } from '@/modules/forms/ui';
 
 interface ProjectPageProps {
   params: Promise<{ locale: string; projectId: string }>;
@@ -47,10 +50,12 @@ const MODULE_PANEL_TABS = new Set<ProjectTabKey>([
   'expenses',
   'changes',
   'billing',
+  'budgets',
   'team',
   'schedule',
   'time',
   'documents',
+  'usage',
 ]);
 
 function tabFromSearchParams(raw: string | string[] | undefined): string {
@@ -96,21 +101,25 @@ export default async function ProjectPage({ params, searchParams }: ProjectPageP
   const showExpensesTab = can(PERMISSIONS.EXPENSES_READ);
   const showChangesTab = Boolean(modules?.changes) && can(PERMISSIONS.CHANGES_READ);
   const showBillingTab = Boolean(modules?.billing) && can(PERMISSIONS.BILLING_READ);
+  const showBudgetsTab = Boolean(modules?.budgets) && can(PERMISSIONS.BUDGETS_READ);
   const showTeamTab = can(PERMISSIONS.WORKFORCE_READ);
   // Schedule is permission-gated (not module) — `planning` is not in OPTIONAL_MODULE_KEYS.
   const showScheduleTab = can(PERMISSIONS.PLANNING_READ);
   const showTimeTab = can(PERMISSIONS.WORKFORCE_READ);
   const showDocumentsTab = Boolean(modules?.documents) && can(PERMISSIONS.DOCUMENTS_READ);
+  const showUsageTab = can(PERMISSIONS.MATERIALS_READ) || can(PERMISSIONS.ASSETS_READ);
 
   const visibleModuleTabs = new Set<string>();
   if (canReadFinancials) visibleModuleTabs.add('financials');
   if (showExpensesTab) visibleModuleTabs.add('expenses');
   if (showChangesTab) visibleModuleTabs.add('changes');
   if (showBillingTab) visibleModuleTabs.add('billing');
+  if (showBudgetsTab) visibleModuleTabs.add('budgets');
   if (showTeamTab) visibleModuleTabs.add('team');
   if (showScheduleTab) visibleModuleTabs.add('schedule');
   if (showTimeTab) visibleModuleTabs.add('time');
   if (showDocumentsTab) visibleModuleTabs.add('documents');
+  if (showUsageTab) visibleModuleTabs.add('usage');
 
   const isModuleTab =
     MODULE_PANEL_TABS.has(tabParam as ProjectTabKey) && visibleModuleTabs.has(tabParam);
@@ -125,6 +134,10 @@ export default async function ProjectPage({ params, searchParams }: ProjectPageP
     redirect({ href: `/jobs/${projectId}${tabSuffix}`, locale });
   }
 
+  if (chrome.project.workKind === 'work_order') {
+    redirect({ href: `/work-orders/${projectId}`, locale });
+  }
+
   const showWorkTab = chrome.showWorkPackages;
   const canEditProjects = can(PERMISSIONS.PROJECTS_UPDATE);
 
@@ -133,10 +146,12 @@ export default async function ProjectPage({ params, searchParams }: ProjectPageP
     expenses: showExpensesTab,
     changes: showChangesTab,
     billing: showBillingTab,
+    budgets: showBudgetsTab,
     team: showTeamTab,
     schedule: showScheduleTab,
     time: showTimeTab,
     documents: showDocumentsTab,
+    usage: showUsageTab,
     work: showWorkTab,
   });
 
@@ -151,10 +166,12 @@ export default async function ProjectPage({ params, searchParams }: ProjectPageP
       showExpensesTab,
       showChangesTab,
       showBillingTab,
+      showBudgetsTab,
       showTeamTab,
       showScheduleTab,
       showTimeTab,
       showDocumentsTab,
+      showUsageTab,
       canReadFinancials,
       hasContract: Boolean(chrome.contract),
     });
@@ -301,6 +318,12 @@ async function ProjectStructuredTabPanel({
                 <ProjectFieldOpsSummaryPanel projectId={projectId} />
               </Suspense>
             ) : null}
+            {Boolean(modules?.forms) &&
+            (shell?.permissions.has(PERMISSIONS.FORMS_READ) ?? false) ? (
+              <Suspense fallback={<TabPanelSkeleton />}>
+                <ProjectFormsPanel ownerType="project" ownerId={projectId} />
+              </Suspense>
+            ) : null}
             <OverviewTab
               detail={detail}
               locale={locale}
@@ -364,10 +387,12 @@ function renderModuleTab(input: {
   showExpensesTab: boolean;
   showChangesTab: boolean;
   showBillingTab: boolean;
+  showBudgetsTab: boolean;
   showTeamTab: boolean;
   showScheduleTab: boolean;
   showTimeTab: boolean;
   showDocumentsTab: boolean;
+  showUsageTab: boolean;
   canReadFinancials: boolean;
   hasContract: boolean;
 }) {
@@ -377,10 +402,12 @@ function renderModuleTab(input: {
     showExpensesTab,
     showChangesTab,
     showBillingTab,
+    showBudgetsTab,
     showTeamTab,
     showScheduleTab,
     showTimeTab,
     showDocumentsTab,
+    showUsageTab,
     canReadFinancials,
     hasContract,
   } = input;
@@ -419,10 +446,26 @@ function renderModuleTab(input: {
         </div>
       ) : null}
 
+      {activeTab === 'budgets' && showBudgetsTab ? (
+        <div className="pt-4">
+          <Suspense fallback={<TabPanelSkeleton />}>
+            <ProjectBudgetPanel projectId={projectId} />
+          </Suspense>
+        </div>
+      ) : null}
+
       {activeTab === 'team' && showTeamTab ? (
         <div className="pt-4">
           <Suspense fallback={<TabPanelSkeleton />}>
             <ProjectTeamPanel projectId={projectId} />
+          </Suspense>
+        </div>
+      ) : null}
+
+      {activeTab === 'usage' && showUsageTab ? (
+        <div className="pt-4">
+          <Suspense fallback={<TabPanelSkeleton />}>
+            <ProjectUsagePanel projectId={projectId} />
           </Suspense>
         </div>
       ) : null}
@@ -453,3 +496,4 @@ function renderModuleTab(input: {
     </>
   );
 }
+

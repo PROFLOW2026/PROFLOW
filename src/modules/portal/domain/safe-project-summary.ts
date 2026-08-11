@@ -5,6 +5,7 @@ import type {
   CustomerSafeDocument,
   CustomerSafeMilestone,
   CustomerSafeProjectSummary,
+  CustomerSafeQuote,
   ExternalAccessGrantRecord,
 } from './types';
 import { CUSTOMER_PORTAL_SCOPES, type CustomerPortalScope } from './types';
@@ -102,10 +103,12 @@ export interface SafeProjectSummaryInput {
   } | null;
   readonly documents?: readonly CustomerSafeDocument[] | null;
   readonly milestones?: readonly CustomerSafeMilestone[] | null;
+  readonly quotes?: readonly CustomerSafeQuote[] | null;
   readonly scopes: readonly string[];
 }
 
 export const CUSTOMER_PORTAL_NEVER_EXPOSED = [
+  'actual',
   'profit',
   'margin',
   'trueCost',
@@ -118,6 +121,17 @@ export const CUSTOMER_PORTAL_NEVER_EXPOSED = [
   'storagePath',
   'internalNotes',
   'supplierPricing',
+  'estimatedCost',
+  'estimatedMargin',
+] as const;
+
+/** Statuses a customer may see once `quotes.read` is granted. */
+export const CUSTOMER_VISIBLE_QUOTE_STATUSES = [
+  'sent',
+  'accepted',
+  'rejected',
+  'expired',
+  'converted',
 ] as const;
 
 /** Strip internal storage / admin fields; keep only explicitly shared docs. */
@@ -169,6 +183,47 @@ export function buildCustomerSafeMilestones(
     assertNoSensitiveCustomerFields(milestone as unknown as Record<string, unknown>);
     return milestone;
   });
+}
+
+/**
+ * Customer-safe commercial quotes. Strips estimated cost/margin and notes.
+ * Draft/ready quotes stay internal until sent.
+ */
+export function buildCustomerSafeQuotes(
+  rows: readonly {
+    id: string;
+    title: string;
+    status: string;
+    currency: string;
+    totalAmount: string | null;
+    validityDate: string | null;
+    sentAt: Date | string | null;
+    estimatedCostAmount?: string | null;
+    estimatedMarginPercent?: string | null;
+    notes?: string | null;
+  }[],
+): CustomerSafeQuote[] {
+  const visible = new Set<string>(CUSTOMER_VISIBLE_QUOTE_STATUSES);
+  return rows
+    .filter((row) => visible.has(row.status))
+    .map((row) => {
+      const quote: CustomerSafeQuote = {
+        quoteId: row.id,
+        title: row.title,
+        status: row.status,
+        currency: row.currency,
+        totalAmount: row.totalAmount,
+        validityDate: row.validityDate,
+        sentAt:
+          row.sentAt instanceof Date
+            ? row.sentAt.toISOString()
+            : row.sentAt
+              ? String(row.sentAt)
+              : null,
+      };
+      assertNoSensitiveCustomerFields(quote as unknown as Record<string, unknown>);
+      return quote;
+    });
 }
 
 /**
@@ -308,18 +363,39 @@ export function buildCustomerSafeProjectSummary(
       })),
     };
   }
+  if (scopes.includes('quotes.read') && input.quotes && input.quotes.length > 0) {
+    result = {
+      ...result,
+      quotes: input.quotes.map((quote) => ({
+        quoteId: quote.quoteId,
+        title: quote.title,
+        status: quote.status,
+        currency: quote.currency,
+        totalAmount: quote.totalAmount,
+        validityDate: quote.validityDate,
+        sentAt: quote.sentAt,
+      })),
+    };
+  }
   return result;
 }
 
 /** Runtime guard: reject objects that look like they carry internal financials. */
 export function assertNoSensitiveCustomerFields(value: Record<string, unknown>): void {
-  const forbidden = [
+  /** Short tokens — exact match only (avoid `contractual` ⊃ `actual`). */
+  const exactForbidden = new Set([
+    'actual',
+    'actuals',
     'cost',
     'costs',
-    'profit',
-    'margin',
     'rate',
     'rates',
+    'notes',
+    'audit',
+  ]);
+  const substringForbidden = [
+    'profit',
+    'margin',
     'burden',
     'overhead',
     'workforce',
@@ -328,27 +404,32 @@ export function assertNoSensitiveCustomerFields(value: Record<string, unknown>):
     'trueCost',
     'laborCost',
     'employeeCost',
+    'actualCost',
+    'actualAmount',
     'supplierPricing',
     'storagePath',
     'storageBucket',
     'checksum',
     'uploadedBy',
-    'audit',
     'membership',
     'roleKey',
     'internalNotes',
-    'notes',
+    'estimatedCost',
+    'estimatedCostAmount',
+    'estimatedMargin',
+    'estimatedMarginPercent',
+    'estimatedUnitCost',
+    'estimatedUnitCostAmount',
   ];
   for (const key of Object.keys(value)) {
+    const lower = key.toLowerCase();
+    if (exactForbidden.has(lower)) {
+      throw new Error(`Customer summary must not include sensitive field: ${key}`);
+    }
     if (
-      forbidden.some(
-        (item) =>
-          key.toLowerCase() === item.toLowerCase() ||
-          (item !== 'notes' &&
-            key.toLowerCase().includes(item.toLowerCase()) &&
-            key !== 'outstanding' &&
-            key !== 'outstandingAmount'),
-      )
+      substringForbidden.some((item) => lower.includes(item.toLowerCase())) &&
+      key !== 'outstanding' &&
+      key !== 'outstandingAmount'
     ) {
       throw new Error(`Customer summary must not include sensitive field: ${key}`);
     }

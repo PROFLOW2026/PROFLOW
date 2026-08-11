@@ -6,6 +6,7 @@ import {
   integer,
   pgTable,
   text,
+  uniqueIndex,
   uuid,
 } from 'drizzle-orm/pg-core';
 import { archivedAt, currencyCode, moneyAmount, primaryId, quantityAmount, timestamps } from './_shared';
@@ -36,7 +37,10 @@ export const materialItems = pgTable(
     archivedAt: archivedAt(),
     ...timestamps(),
   },
-  (table) => [index('material_items_org_idx').on(table.organizationId)],
+  (table) => [
+    uniqueIndex('material_items_id_organization_id_uq').on(table.id, table.organizationId),
+    index('material_items_org_idx').on(table.organizationId),
+  ],
 );
 
 export const materialVendorPrices = pgTable(

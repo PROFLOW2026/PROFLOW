@@ -26,6 +26,7 @@ export const DOCUMENT_OWNER_TYPES = [
   'compliance_artifact',
   'asset',
   'inventory_item',
+  'form_submission',
 ] as const;
 export type DocumentOwnerType = (typeof DOCUMENT_OWNER_TYPES)[number];
 

@@ -6,8 +6,10 @@ import { ReceivablesAgingPanel } from '@/modules/billing/ui/receivables-aging-pa
 import { Link } from '@/shared/i18n/navigation';
 import type { OrganizationReportsAnalytics } from '../application/get-organization-reports-analytics';
 import type { CountReportMetric, MoneyReportMetric, ReportMetricKind } from '../domain/report-metric';
+import type { DataConfidenceLevel, DataConfidenceReason } from '../domain/data-confidence';
 import { CashFlowView } from './cash-flow-view';
 import { CountReportMetricTile, MoneyReportMetricTile } from './report-metric-tile';
+import { DataConfidenceBadge } from './data-confidence-badge';
 import { pressableCardLinkClassName, textNavLinkClassName } from '@/components/ui/pressable';
 import { cn } from '@/shared/ui/cn';
 
@@ -51,23 +53,38 @@ export async function ReportsAnalyticsView({
 
   return (
     <div className="flex min-w-0 w-full max-w-full flex-col gap-8 text-start">
-      <ul className="flex min-w-0 flex-col gap-1 text-xs text-[var(--pf-text-secondary)]">
-        {analytics.disclosures.map((key) => (
-          <li key={key} className="break-words">
-            {t(`disclosures.${key}` as 'disclosures.baseCurrencyOnly')}
-          </li>
-        ))}
-        {rollup.excludedForeignCurrencyCount > 0 ? (
-          <li className="break-words">
-            {t('excludedForeign', { count: rollup.excludedForeignCurrencyCount })}
-          </li>
-        ) : null}
-        {rollup.truncatedActiveProjectCount > 0 ? (
-          <li className="break-words">
-            {t('truncatedRollup', { count: rollup.truncatedActiveProjectCount })}
-          </li>
-        ) : null}
-      </ul>
+      <div className="flex min-w-0 flex-wrap items-center justify-between gap-2">
+        <ul className="flex min-w-0 flex-1 flex-col gap-1 text-xs text-[var(--pf-text-secondary)]">
+          {analytics.disclosures.map((key) => (
+            <li key={key} className="break-words">
+              {t(`disclosures.${key}` as 'disclosures.baseCurrencyOnly')}
+            </li>
+          ))}
+          {rollup.excludedForeignCurrencyCount > 0 ? (
+            <li className="break-words">
+              {t('excludedForeign', { count: rollup.excludedForeignCurrencyCount })}
+            </li>
+          ) : null}
+          {rollup.truncatedActiveProjectCount > 0 ? (
+            <li className="break-words">
+              {t('truncatedRollup', { count: rollup.truncatedActiveProjectCount })}
+            </li>
+          ) : null}
+        </ul>
+        <DataConfidenceBadge
+          level={rollup.dataConfidence.level as DataConfidenceLevel}
+          label={tFinancial(`confidence.levels.${rollup.dataConfidence.level}`)}
+          title={
+            rollup.dataConfidence.reasons.length === 0
+              ? tFinancial('confidence.highHint')
+              : rollup.dataConfidence.reasons
+                  .map((reason) =>
+                    tFinancial(`confidence.reasons.${reason as DataConfidenceReason}`),
+                  )
+                  .join(' · ')
+          }
+        />
+      </div>
 
       {analytics.commercial ? (
         <section className="flex min-w-0 flex-col gap-3">

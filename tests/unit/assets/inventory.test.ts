@@ -114,3 +114,23 @@ describe('financial hard rules', () => {
     expect(isMaintenanceCostAnExpense()).toBe(false);
   });
 });
+
+describe('usage non-Actual invariant', () => {
+  it('material and equipment usage never recognize Actual', async () => {
+    const {
+      doesUsageCreatePurchaseActual,
+      isEquipmentUsageRecognizedActual,
+      isMaterialUsageRecognizedActual,
+      hasEquipmentUsageMetric,
+      assertUsageDateRange,
+    } = await import('@/modules/assets');
+
+    expect(isMaterialUsageRecognizedActual()).toBe(false);
+    expect(isEquipmentUsageRecognizedActual()).toBe(false);
+    expect(doesUsageCreatePurchaseActual()).toBe(false);
+    expect(hasEquipmentUsageMetric({ hours: '2' })).toBe(true);
+    expect(hasEquipmentUsageMetric({})).toBe(false);
+    expect(() => assertUsageDateRange('2026-08-10', '2026-08-09')).toThrow(/end date/i);
+    expect(() => assertUsageDateRange('2026-08-10', '2026-08-11')).not.toThrow();
+  });
+});

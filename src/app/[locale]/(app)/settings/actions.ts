@@ -11,6 +11,7 @@ import {
   isWorkMix,
   parseModuleVisibilityMode,
   applyOrganizationProfessionPreset,
+  applyOrganizationBusinessProfile,
   createServiceDomain,
   createDocumentType,
   renameCatalogItem,
@@ -88,6 +89,31 @@ export async function applyProfessionPresetAction(
     );
     revalidatePath('/settings/business');
     revalidatePath('/settings/cost-categories');
+    revalidatePath('/settings/features');
+    revalidatePath('/', 'layout');
+    return { ok: true };
+  } catch (error) {
+    if (error instanceof AppError) return { error: tErrors('validationFailed') };
+    throw error;
+  }
+}
+
+export async function applyBusinessProfileAction(
+  _prev: SettingsActionState,
+  formData: FormData,
+): Promise<SettingsActionState> {
+  const tErrors = await getTranslations('errors');
+  const profile = formValue(formData, 'businessProfile');
+  if (!profile) return { error: tErrors('validationFailed') };
+
+  try {
+    await withOrgContext((context) =>
+      applyOrganizationBusinessProfile(context, { businessProfile: profile }),
+    );
+    revalidatePath('/settings/business');
+    revalidatePath('/settings/cost-categories');
+    revalidatePath('/settings/features');
+    revalidatePath('/', 'layout');
     return { ok: true };
   } catch (error) {
     if (error instanceof AppError) return { error: tErrors('validationFailed') };

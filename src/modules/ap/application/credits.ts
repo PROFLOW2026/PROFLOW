@@ -14,6 +14,15 @@ import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { noteModuleUsage } from '@/modules/tenancy';
 import { findProjectById } from '@/modules/projects';
 import {
+  assertMonthOpenForRewrite,
+  yearMonthFromBusinessDate,
+} from '@/modules/month-close';
+import {
+  assertApprovalAllowsAction,
+  findMatchingApprovalRule,
+  submitApprovalRequest,
+} from '@/modules/approvals';
+import {
   assertVendorInOrganization,
   findApBillById,
 } from '../data/ap.repository';
@@ -125,6 +134,13 @@ export async function createVendorCredit(
     }
   }
 
+  const matchingApproval = await findMatchingApprovalRule(context, {
+    entityType: 'vendor_credit',
+    amount: toNumericString(money(input.amount, currency)),
+    currency,
+  });
+  const initialStatus = matchingApproval ? 'draft' : 'open';
+
   const credit = await insertVendorCredit(context.db, {
     organizationId: context.organizationId,
     vendorId: input.vendorId,
@@ -134,10 +150,23 @@ export async function createVendorCredit(
     creditDate: businessDate(input.creditDate),
     currency,
     amount: toNumericString(money(input.amount, currency)),
-    status: 'open',
+    status: initialStatus,
     notes: input.notes ?? null,
     createdByUserId: context.userId,
   });
+
+  if (matchingApproval) {
+    try {
+      await submitApprovalRequest(context, {
+        entityType: 'vendor_credit',
+        entityId: credit.id,
+        amount: credit.amount,
+        currency: credit.currency,
+      });
+    } catch {
+      // Keep draft until postVendorCredit.
+    }
+  }
 
   await noteModuleUsage(context.db, context.organizationId, 'procurement');
 
@@ -150,11 +179,63 @@ export async function createVendorCredit(
       amount: credit.amount,
       currency: credit.currency,
       isPayment: false,
-      reducesActual: true,
+      reducesActual: initialStatus === 'open',
+      awaitingApproval: Boolean(matchingApproval),
     },
   });
 
   return credit;
+}
+
+/**
+ * Promote draft vendor credit to open (reduces Actual when applied).
+ * Open credits are recognized; draft credits are not.
+ */
+export async function postVendorCredit(context: OrgContext, creditId: string) {
+  assertPermission(context, PERMISSIONS.AP_MANAGE);
+  assertCreditsSchemaReady();
+
+  const credit = await findVendorCreditById(context.db, context.organizationId, creditId);
+  if (!credit || credit.archivedAt) throw new NotFoundError('Vendor credit');
+  if (credit.status !== 'draft') {
+    throw new DomainRuleError(
+      'Only draft vendor credits can be posted',
+      'ap.errors.creditNotDraft',
+    );
+  }
+
+  await assertMonthOpenForRewrite(context, yearMonthFromBusinessDate(credit.creditDate));
+
+  await assertApprovalAllowsAction(context, {
+    entityType: 'vendor_credit',
+    entityId: credit.id,
+    amount: credit.amount,
+    currency: credit.currency,
+    submitIfMissing: true,
+  });
+
+  const updated = await updateVendorCreditStatus(
+    context.db,
+    context.organizationId,
+    credit.id,
+    'open',
+  );
+  if (!updated) throw new NotFoundError('Vendor credit');
+
+  await recordAuditEvent(context, {
+    action: AUDIT_ACTIONS.AP_CREDIT_CREATED,
+    entityType: 'ap_vendor_credit',
+    entityId: updated.id,
+    after: {
+      id: updated.id,
+      amount: updated.amount,
+      currency: updated.currency,
+      reducesActual: true,
+      postedFromDraft: true,
+    },
+  });
+
+  return updated;
 }
 
 /**
@@ -179,6 +260,16 @@ export async function applyVendorCredit(
   }
 
   const input = parsed.data;
+
+  const billForFreeze = await findApBillById(
+    context.db,
+    context.organizationId,
+    input.apBillId,
+  );
+  if (!billForFreeze || billForFreeze.archivedAt) throw new NotFoundError('AP bill');
+  const freezeDate =
+    billForFreeze.billDate ?? billForFreeze.createdAt.toISOString().slice(0, 10);
+  await assertMonthOpenForRewrite(context, yearMonthFromBusinessDate(freezeDate));
 
   const result = await withTransaction(context.db, async (tx) => {
     const paymentRepo = getVendorPaymentsRepository();

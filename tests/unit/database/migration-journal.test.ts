@@ -143,7 +143,10 @@ describe('migration journal', () => {
     expect(tags.indexOf('0021_workforce_contacts_and_allocations')).toBeLessThan(
       tags.indexOf('0022_master_completion_foundations'),
     );
-    expect(tags.at(-1)).toBe('0023_attendance_rls_and_role_backfill');
+    expect(tags.indexOf('0023_attendance_rls_and_role_backfill')).toBeLessThan(
+      tags.indexOf('0024_next_gen_permissions_modules_work_entity'),
+    );
+    expect(tags.at(-1)).toBe('0029_next_gen_integration_hardening');
 
     const sql = await readFile(
       path.join(MIGRATIONS_DIR, '0021_workforce_contacts_and_allocations.sql'),
@@ -171,7 +174,7 @@ describe('migration journal', () => {
     expect(tags.indexOf('0022_master_completion_foundations')).toBeLessThan(
       tags.indexOf('0023_attendance_rls_and_role_backfill'),
     );
-    expect(tags.at(-1)).toBe('0023_attendance_rls_and_role_backfill');
+    expect(tags.at(-1)).toBe('0029_next_gen_integration_hardening');
 
     const sql = await readFile(
       path.join(MIGRATIONS_DIR, '0022_master_completion_foundations.sql'),
@@ -195,7 +198,10 @@ describe('migration journal', () => {
     expect(tags.indexOf('0022_master_completion_foundations')).toBeLessThan(
       tags.indexOf('0023_attendance_rls_and_role_backfill'),
     );
-    expect(tags.at(-1)).toBe('0023_attendance_rls_and_role_backfill');
+    expect(tags.indexOf('0023_attendance_rls_and_role_backfill')).toBeLessThan(
+      tags.indexOf('0024_next_gen_permissions_modules_work_entity'),
+    );
+    expect(tags.at(-1)).toBe('0029_next_gen_integration_hardening');
 
     const sql = await readFile(
       path.join(MIGRATIONS_DIR, '0023_attendance_rls_and_role_backfill.sql'),
@@ -205,6 +211,21 @@ describe('migration journal', () => {
     expect(sql).toContain('attendance.self');
     expect(sql).toContain('role_permissions');
     expect(sql).not.toMatch(/VARIADIC ARRAY\[[^\]]*workforce\.read/);
+  });
+
+  it('places next-gen migrations 0024–0029 after 0023', async () => {
+    const journal = await loadJournal();
+    const tags = journal.entries.map((entry) => entry.tag);
+    expect(tags.indexOf('0023_attendance_rls_and_role_backfill')).toBeLessThan(
+      tags.indexOf('0024_next_gen_permissions_modules_work_entity'),
+    );
+    expect(tags.indexOf('0024_next_gen_permissions_modules_work_entity')).toBeLessThan(
+      tags.indexOf('0025_quotes_estimates'),
+    );
+    expect(tags.indexOf('0028_forms_usage_command_recurring')).toBeLessThan(
+      tags.indexOf('0029_next_gen_integration_hardening'),
+    );
+    expect(tags.at(-1)).toBe('0029_next_gen_integration_hardening');
   });
 });
 

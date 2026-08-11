@@ -130,9 +130,12 @@ describe('imports kinds', () => {
     expect(isEnabledImportKind('expenses')).toBe(true);
     expect([...ENABLED_IMPORT_KINDS]).toEqual([
       'clients',
+      'contacts',
       'vendors',
       'employees',
       'projects',
+      'opening_values',
+      'cost_categories',
       'expenses',
     ]);
   });
@@ -147,6 +150,7 @@ describe('imports kinds', () => {
     ]);
     expect(listImportableKinds(context)).toEqual([
       'clients',
+      'contacts',
       'vendors',
       'employees',
       'projects',
@@ -165,16 +169,17 @@ describe('imports kinds', () => {
     expect(rowHasErrors(preview.rows[0]!)).toBe(false);
   });
 
-  it('warns when project CSV includes financial amount columns (conservative)', () => {
-    const context = contextWith([PERMISSIONS.PROJECTS_CREATE]);
-    const preview = previewImport(context, {
-      kind: 'projects',
-      csvText: 'Name,Contract Amount\nSite A,50000\n',
-    });
-    expect(preview.enabled).toBe(true);
-    expect(
-      preview.rows[0]!.issues.some((i) => i.severity === 'warning' && /Financial columns/i.test(i.message)),
-    ).toBe(true);
+  it('errors when project rows carry financial amounts (use opening_values)', () => {
+    const rows = validateMappedRows('projects', [
+      {
+        rowNumber: 2,
+        values: { name: 'Site A', contractValueAmount: '50000' },
+      },
+    ]);
+    expect(rowHasErrors(rows[0]!)).toBe(true);
+    expect(rows[0]!.issues.some((i) => i.severity === 'error' && /opening_values/i.test(i.message))).toBe(
+      true,
+    );
   });
 
   it('confirm rejects unknown kind before create* APIs run', async () => {

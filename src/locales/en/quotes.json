@@ -1,0 +1,91 @@
+{
+  "title": "Estimates and quotes",
+  "description": "Pre-sale offers. Not an invoice, not a change order, and not revenue until work is won and converted.",
+  "disclaimer": "This estimate is a commercial offer. It is not a statutory tax invoice.",
+  "newQuote": "New estimate",
+  "empty": {
+    "title": "No estimates yet",
+    "body": "Create a priced offer for a client before winning the work. Acceptance can create a project or job — it does not bill.",
+    "action": "Create estimate"
+  },
+  "list": {
+    "columns": {
+      "title": "Title",
+      "client": "Client",
+      "status": "Status",
+      "total": "Total",
+      "validUntil": "Valid until"
+    }
+  },
+  "create": {
+    "title": "New estimate",
+    "description": "Mobile-friendly offer with line items, optional cost/margin preview, and VAT from your tax settings.",
+    "titleLabel": "Title",
+    "clientLabel": "Client",
+    "clientNone": "No client yet",
+    "descriptionLabel": "Description",
+    "currencyLabel": "Currency",
+    "taxModeLabel": "VAT mode",
+    "validityLabel": "Valid until",
+    "notesLabel": "Notes",
+    "linesTitle": "Line items",
+    "addLine": "Add line",
+    "removeLine": "Remove",
+    "lineDescription": "Description",
+    "quantity": "Qty",
+    "unit": "Unit",
+    "unitPrice": "Unit price",
+    "unitCost": "Est. unit cost",
+    "lineTotal": "Line total",
+    "markup": "Markup",
+    "margin": "Margin",
+    "submit": "Save draft",
+    "profitHint": "Estimated cost and margin are a pre-win profitability preview — not Actual and not revenue."
+  },
+  "taxModes": {
+    "exclusive": "Excluding VAT",
+    "inclusive": "Including VAT",
+    "none": "No VAT"
+  },
+  "detail": {
+    "title": "Estimate",
+    "subtotal": "Subtotal (net)",
+    "tax": "VAT",
+    "total": "Total",
+    "estimatedCost": "Estimated cost",
+    "estimatedMargin": "Estimated margin",
+    "profitPreview": "Pre-win profit preview",
+    "notRevenue": "Not revenue",
+    "convertedTo": "Converted to work",
+    "openWork": "Open project / job",
+    "print": "Print / share",
+    "markReady": "Mark ready",
+    "markSent": "Mark sent",
+    "accept": "Mark accepted",
+    "reject": "Reject",
+    "expire": "Mark expired",
+    "cancel": "Cancel estimate",
+    "backToDraft": "Back to draft",
+    "convert": "Convert to work",
+    "convertHint": "Creates a new project or job from this accepted estimate. Existing project changes still use Change Orders.",
+    "workKind": "Create as",
+    "workKindProject": "Project",
+    "workKindJob": "Job",
+    "projectName": "Name",
+    "pricingMode": "Job pricing",
+    "pricingFixed": "Fixed price (from estimate net)",
+    "pricingOpen": "Open price (no contract yet)",
+    "convertSubmit": "Create work"
+  },
+  "errors": {
+    "invalidTransition": "This status change is not allowed",
+    "notEditable": "Only draft or ready estimates can be edited",
+    "useConvert": "Use Convert to create a project or job",
+    "alreadyConverted": "This estimate was already converted",
+    "notAccepted": "Only an accepted estimate can be converted",
+    "noSubtotal": "Add priced lines before converting",
+    "noTotal": "Tax-inclusive convert needs a total",
+    "clientRequiredForJob": "Choose a client before converting to a job",
+    "quoteIsNotBilling": "Estimates must not create billing records"
+  }
+}

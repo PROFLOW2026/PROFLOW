@@ -16,7 +16,7 @@ function allModulesOn(): ModuleVisibility {
 describe('nav grouping', () => {
   it('keeps dashboard, projects, and expenses as primaryOnMobile in the base catalog', () => {
     const primary = NAV_ITEMS.filter((item) => item.primaryOnMobile).map((item) => item.key);
-    expect(primary).toEqual(['dashboard', 'projects', 'expenses']);
+    expect(primary).toEqual(['dashboard', 'today', 'projects', 'expenses']);
   });
 
   it('includes jobs as a projects-permission destination under the jobs module', () => {

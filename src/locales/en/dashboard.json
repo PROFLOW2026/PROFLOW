@@ -14,7 +14,17 @@
   "empty": {
     "title": "Start with your first project",
     "body": "A name is all you need. Contract value, costs and billing can come later.",
-    "action": "Create a project"
+    "action": "Create a project",
+    "job": {
+      "title": "Start with your first job",
+      "body": "Short or daily work. A name is enough — costs and billing can come later.",
+      "action": "Create a job"
+    },
+    "workOrder": {
+      "title": "Start with your first service call",
+      "body": "Capture the customer and what needs fixing. Scheduling and costs can come later.",
+      "action": "Create a service call"
+    }
   },
   "businessSummary": {
     "title": "Business summary",

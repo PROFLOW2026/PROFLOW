@@ -100,6 +100,7 @@ function buildFinancials(overrides?: {
       actualMarginPercent: '75.00',
     },
     coverage: buildFinancialCoverage([{ source: 'direct_expenses', hasData: true }], new Date()),
+    dataConfidence: { level: 'high', reasons: [] },
   };
 
   return financials;

@@ -106,6 +106,29 @@ export const PERMISSIONS = {
   PLANNING_READ: 'planning.read',
   PLANNING_WRITE: 'planning.write',
 
+  QUOTES_READ: 'quotes.read',
+  QUOTES_MANAGE: 'quotes.manage',
+
+  SERVICE_READ: 'service.read',
+  SERVICE_MANAGE: 'service.manage',
+  DISPATCH_MANAGE: 'dispatch.manage',
+
+  APPROVALS_READ: 'approvals.read',
+  APPROVALS_MANAGE: 'approvals.manage',
+  APPROVALS_DECIDE: 'approvals.decide',
+
+  MONTH_CLOSE_READ: 'month_close.read',
+  MONTH_CLOSE_MANAGE: 'month_close.manage',
+
+  BUDGETS_READ: 'budgets.read',
+  BUDGETS_MANAGE: 'budgets.manage',
+
+  FORMS_READ: 'forms.read',
+  FORMS_SUBMIT: 'forms.submit',
+  FORMS_MANAGE: 'forms.manage',
+
+  COMMAND_CENTER_READ: 'command_center.read',
+
   SETTINGS_MANAGE: 'settings.manage',
   TAX_MANAGE: 'tax.manage',
   AUDIT_READ: 'audit.read',
@@ -299,6 +322,33 @@ export const PERMISSION_CATALOG: readonly PermissionDefinition[] = [
     key: PERMISSIONS.PLANNING_WRITE,
     category: 'projects',
     description: 'Create and update project planning work items and dependencies',
+  },
+
+  { key: PERMISSIONS.QUOTES_READ, category: 'commercial', description: 'View estimates and quotes' },
+  { key: PERMISSIONS.QUOTES_MANAGE, category: 'commercial', description: 'Create and manage estimates and quotes' },
+
+  { key: PERMISSIONS.SERVICE_READ, category: 'projects', description: 'View work orders and service jobs' },
+  { key: PERMISSIONS.SERVICE_MANAGE, category: 'projects', description: 'Create and manage work orders and service jobs' },
+  { key: PERMISSIONS.DISPATCH_MANAGE, category: 'projects', description: 'Assign and schedule daily dispatch' },
+
+  { key: PERMISSIONS.APPROVALS_READ, category: 'administration', description: 'View approval requests' },
+  { key: PERMISSIONS.APPROVALS_MANAGE, category: 'administration', description: 'Configure approval rules' },
+  { key: PERMISSIONS.APPROVALS_DECIDE, category: 'administration', description: 'Approve or reject pending requests' },
+
+  { key: PERMISSIONS.MONTH_CLOSE_READ, category: 'financials', description: 'View month-close status and completeness' },
+  { key: PERMISSIONS.MONTH_CLOSE_MANAGE, category: 'financials', description: 'Close months and record post-close corrections' },
+
+  { key: PERMISSIONS.BUDGETS_READ, category: 'financials', description: 'View project/job budgets and variance' },
+  { key: PERMISSIONS.BUDGETS_MANAGE, category: 'financials', description: 'Create and revise project/job budgets' },
+
+  { key: PERMISSIONS.FORMS_READ, category: 'projects', description: 'View field forms and submissions' },
+  { key: PERMISSIONS.FORMS_SUBMIT, category: 'projects', description: 'Fill and submit field forms' },
+  { key: PERMISSIONS.FORMS_MANAGE, category: 'projects', description: 'Manage form templates (not required to submit)' },
+
+  {
+    key: PERMISSIONS.COMMAND_CENTER_READ,
+    category: 'organization',
+    description: 'View owner command center actionable items',
   },
 
   { key: PERMISSIONS.SETTINGS_MANAGE, category: 'administration', description: 'Change organization settings' },

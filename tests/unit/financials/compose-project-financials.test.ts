@@ -53,6 +53,7 @@ describe('composeProjectFinancials', () => {
     expect(result.cost.expectedRemainingCost.amount).toBe('100.000000');
     expect(result.profit?.estimatedProfit.amount).toBe('650.000000');
     expect(result.profit?.actualProfit.amount).toBe('800.000000');
+    expect(result.dataConfidence.level).toBe('high');
   });
 
   it('excludes bill-linked expenses from Actual when recognized vendor bills exist', () => {

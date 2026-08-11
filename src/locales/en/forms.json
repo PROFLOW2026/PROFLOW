@@ -1,0 +1,111 @@
+{
+  "title": "Field forms",
+  "subtitle": "Reusable checklists and field forms. Optional module — photos use Documents; acknowledgement is not a legal e-signature.",
+  "navLabel": "Field forms",
+  "acknowledgementDisclaimer": "Acknowledgement captures a name and timestamp for operational sign-off. It is not a legally compliant electronic signature.",
+  "photoNote": {
+    "title": "Photos via Documents",
+    "body": "Save the draft first, then attach photos from the submission page. Photos use the existing Documents storage — not a separate gallery."
+  },
+  "settings": {
+    "title": "Form templates",
+    "subtitle": "Define reusable field forms (checklist, yes/no, text, number, date, photo, notes, acknowledgement).",
+    "addTemplate": "Add template",
+    "saved": "Template saved.",
+    "archived": "Template archived.",
+    "empty": "No form templates yet",
+    "emptyBody": "Create a template, then fill it on projects, jobs, work orders, planning tasks, maintenance, or field logs.",
+    "fields": {
+      "name": "Name",
+      "description": "Description",
+      "category": "Category",
+      "enabled": "Enabled",
+      "fieldKey": "Field key",
+      "fieldLabel": "Field label",
+      "fieldType": "Field type",
+      "required": "Required",
+      "checklistItems": "Checklist items (comma-separated)",
+      "addField": "Add field to template",
+      "schemaPreview": "Fields in template"
+    },
+    "archive": "Archive",
+    "enable": "Enable",
+    "disable": "Disable"
+  },
+  "fieldTypes": {
+    "checklist": "Checklist",
+    "yes_no": "Yes / No",
+    "text": "Text",
+    "number": "Number",
+    "date": "Date",
+    "photo": "Photo",
+    "notes": "Notes",
+    "signature": "Acknowledgement"
+  },
+  "ownerTypes": {
+    "project": "Project",
+    "job": "Job",
+    "work_order": "Work order",
+    "planning_task": "Planning task",
+    "maintenance": "Maintenance",
+    "field_log": "Field log"
+  },
+  "status": {
+    "draft": "Draft",
+    "submitted": "Submitted",
+    "void": "Void"
+  },
+  "list": {
+    "title": "Submissions",
+    "empty": {
+      "title": "No form submissions yet",
+      "body": "Start a form from a template and attach it to a project, job, or other owner.",
+      "action": "New submission"
+    },
+    "columns": {
+      "template": "Template",
+      "owner": "Owner",
+      "status": "Status",
+      "updated": "Updated"
+    },
+    "new": "New submission",
+    "templatesLink": "Manage templates"
+  },
+  "new": {
+    "title": "New form submission",
+    "template": "Template",
+    "ownerType": "Attach to",
+    "ownerId": "Owner ID",
+    "ownerIdHint": "UUID of the project, job, work order, planning task, maintenance record, or field log.",
+    "start": "Start draft",
+    "noTemplates": "No enabled templates. Create one in Settings → Form templates."
+  },
+  "fill": {
+    "title": "Fill form",
+    "saveDraft": "Save draft",
+    "submit": "Submit",
+    "void": "Void",
+    "saved": "Draft saved.",
+    "submitted": "Form submitted.",
+    "voided": "Form voided.",
+    "yes": "Yes",
+    "no": "No",
+    "acknowledgementName": "Acknowledgement name",
+    "acknowledgementNote": "Acknowledgement note",
+    "readOnly": "This submission can no longer be edited.",
+    "offlineQueued": "Saved offline — will sync when you are back online."
+  },
+  "ownerPanel": {
+    "title": "Field forms",
+    "empty": "No forms on this record yet.",
+    "start": "Start form",
+    "viewAll": "All forms",
+    "chooseTemplate": "Template"
+  },
+  "projectSummary": {
+    "title": "Field forms",
+    "count": "Submissions",
+    "open": "Open forms",
+    "add": "New form"
+  }
+}

@@ -6,9 +6,12 @@ import type { EnabledImportKind, ImportKind } from '../domain/types';
 
 const KIND_PERMISSION: Record<ImportKind, PermissionKey> = {
   clients: PERMISSIONS.CLIENTS_MANAGE,
+  contacts: PERMISSIONS.CLIENTS_MANAGE,
   vendors: PERMISSIONS.VENDORS_MANAGE,
   employees: PERMISSIONS.WORKFORCE_MANAGE,
   projects: PERMISSIONS.PROJECTS_CREATE,
+  opening_values: PERMISSIONS.CONTRACTS_MANAGE,
+  cost_categories: PERMISSIONS.SETTINGS_MANAGE,
   expenses: PERMISSIONS.EXPENSES_CREATE,
 };
 
@@ -26,11 +29,18 @@ export function canImportKind(context: OrgContext, kind: ImportKind): boolean {
 
 export function listImportableKinds(context: OrgContext): EnabledImportKind[] {
   const kinds: EnabledImportKind[] = [];
-  if (canImportKind(context, 'clients')) kinds.push('clients');
-  if (canImportKind(context, 'vendors')) kinds.push('vendors');
-  if (canImportKind(context, 'employees')) kinds.push('employees');
-  if (canImportKind(context, 'projects')) kinds.push('projects');
-  if (canImportKind(context, 'expenses')) kinds.push('expenses');
+  for (const kind of [
+    'clients',
+    'contacts',
+    'vendors',
+    'employees',
+    'projects',
+    'opening_values',
+    'cost_categories',
+    'expenses',
+  ] as const) {
+    if (canImportKind(context, kind)) kinds.push(kind);
+  }
   return kinds;
 }
 

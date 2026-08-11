@@ -3,13 +3,15 @@
  * Jobs reuse the same financial engine; open-price gates revenue / margin only.
  */
 
-export type WorkKind = 'project' | 'job';
+export type WorkKind = 'project' | 'job' | 'work_order';
 export type PricingMode = 'fixed' | 'open' | null;
 /** Org dashboard / reports scope — never double-counts across kinds. */
 export type WorkKindFilter = 'all' | 'project' | 'job';
 
 export function normalizeWorkKind(value: string | null | undefined): WorkKind {
-  return value === 'job' ? 'job' : 'project';
+  if (value === 'job') return 'job';
+  if (value === 'work_order') return 'work_order';
+  return 'project';
 }
 
 export function normalizePricingMode(value: string | null | undefined): PricingMode {
@@ -25,7 +27,10 @@ export function isOpenPriceJob(
   workKind: string | null | undefined,
   pricingMode: string | null | undefined,
 ): boolean {
-  return normalizeWorkKind(workKind) === 'job' && normalizePricingMode(pricingMode) === 'open';
+  const kind = normalizeWorkKind(workKind);
+  return (
+    (kind === 'job' || kind === 'work_order') && normalizePricingMode(pricingMode) === 'open'
+  );
 }
 
 export interface RevenueBasisOptions {
@@ -50,7 +55,11 @@ export function hasRevenueBasisForProfitability(
   options?: RevenueBasisOptions,
 ): boolean {
   if (isOpenPriceJob(workKind, pricingMode)) return false;
-  if (normalizeWorkKind(workKind) === 'job' && options?.hasManagedContract === false) {
+  const kind = normalizeWorkKind(workKind);
+  if (
+    (kind === 'job' || kind === 'work_order') &&
+    options?.hasManagedContract === false
+  ) {
     return false;
   }
   return true;
@@ -73,7 +82,10 @@ export function matchesWorkKindFilter(
   filter: WorkKindFilter,
 ): boolean {
   if (filter === 'all') return true;
-  return normalizeWorkKind(workKind) === filter;
+  const kind = normalizeWorkKind(workKind);
+  // Work orders are neither classic projects nor jobs in rollup facets.
+  if (kind === 'work_order') return false;
+  return kind === filter;
 }
 
 export function parseWorkKindFilter(

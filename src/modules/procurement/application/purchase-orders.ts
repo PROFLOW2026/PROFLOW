@@ -163,6 +163,16 @@ export async function issuePurchaseOrder(context: OrgContext, raw: { purchaseOrd
   if (existing.status !== 'draft') {
     throw new DomainRuleError('Only draft purchase orders can be issued', 'procurement.errors.notDraft');
   }
+
+  // Optional approvals: may block issue until approved (no-op when unused).
+  const { assertApprovalAllowsAction } = await import('@/modules/approvals');
+  await assertApprovalAllowsAction(context, {
+    entityType: 'purchase_order',
+    entityId: existing.id,
+    amount: existing.committedAmount,
+    currency: existing.currency,
+    submitIfMissing: true,
+  });
   const issued = await updatePurchaseOrderStatus(
     context.db,
     context.organizationId,

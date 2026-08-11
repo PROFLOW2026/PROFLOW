@@ -28,7 +28,7 @@ export interface ProjectFinancialsPanelProps {
 export async function ProjectFinancialsPanel({ projectId }: ProjectFinancialsPanelProps) {
   const t = await getTranslations('financial');
 
-  const { financials, cashFlow, canReadProfit, canReadBilling, canReadCommercial, canUpdateProject } =
+  const { financials, cashFlow, canReadProfit, canReadBilling, canReadCommercial, canUpdateProject, canReadAp } =
     await withOrgContext(async (context) => {
       const [financialsResult, cashFlowResult] = await Promise.all([
         getProjectFinancials(context, projectId),
@@ -41,6 +41,7 @@ export async function ProjectFinancialsPanel({ projectId }: ProjectFinancialsPan
         canReadBilling: hasPermission(context, PERMISSIONS.BILLING_READ),
         canReadCommercial: hasPermission(context, PERMISSIONS.CONTRACTS_READ),
         canUpdateProject: hasPermission(context, PERMISSIONS.PROJECTS_UPDATE),
+        canReadAp: hasPermission(context, PERMISSIONS.AP_READ),
       };
     });
 
@@ -64,6 +65,7 @@ export async function ProjectFinancialsPanel({ projectId }: ProjectFinancialsPan
             canReadProfit={canReadProfit}
             canReadBilling={canReadBilling}
             canReadCommercial={canReadCommercial}
+            canReadAp={canReadAp}
             t={t}
           />
         </CardContent>

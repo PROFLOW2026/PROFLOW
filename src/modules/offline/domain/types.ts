@@ -14,6 +14,8 @@ export const DRAFT_KINDS = [
   'punch',
   /** Inspection field capture (create candidate). */
   'inspection',
+  /** Field form draft / submission sync candidate. */
+  'form_submission',
   /** Photo / document capture waiting for upload (blob stored separately). */
   'capture',
 ] as const;

@@ -1,0 +1,216 @@
+{
+  "title": "קריאות שירות",
+  "newWorkOrder": "קריאת שירות חדשה",
+  "empty": {
+    "title": "אין עדיין קריאות שירות",
+    "body": "תזמון ושיבוץ לביקורים בשטח — באותן עלויות וחיובים כמו פרויקטים ועבודות, בלי מערכת כספים נפרדת.",
+    "action": "יצירת קריאה ראשונה",
+    "moduleLink": "הצגת שירות בניווט (הגדרות)"
+  },
+  "list": {
+    "searchPlaceholder": "חיפוש קריאות…",
+    "filterStatus": "סטטוס",
+    "allStatuses": "כל הסטטוסים",
+    "unassigned": "לא משובץ",
+    "columns": {
+      "customer": "לקוח",
+      "name": "קריאה",
+      "site": "אתר",
+      "window": "חלון",
+      "assignee": "משובץ",
+      "status": "סטטוס",
+      "priority": "עדיפות"
+    }
+  },
+  "status": {
+    "new": "חדש",
+    "scheduled": "מתוזמן",
+    "in_progress": "בביצוע",
+    "waiting": "ממתין",
+    "completed": "הושלם",
+    "cancelled": "בוטל"
+  },
+  "priority": {
+    "low": "נמוכה",
+    "normal": "רגילה",
+    "high": "גבוהה",
+    "urgent": "דחוף"
+  },
+  "pricing": {
+    "fixed": "מחיר קבוע",
+    "open": "מחיר פתוח",
+    "priceNotSet": "המחיר טרם נקבע",
+    "priceLabel": "מחיר",
+    "priceHint": "מחיר הקריאה. החישוב המסחרי משתמש בסכום נטו (לא כולל מע״מ).",
+    "pricePlaceholder": "לדוגמה 800",
+    "taxModeHint": "האם המחיר כולל מע״מ. השיעור מגיע מהגדרות המס של הארגון."
+  },
+  "create": {
+    "title": "קריאת שירות חדשה",
+    "description": "קליטת ביקור שטח — לקוח, אתר ותזמון. עלויות וחיובים נשארים על אותו רשומת עבודה כמו פרויקטים ועבודות.",
+    "customerLabel": "לקוח",
+    "customerNew": "מזדמן / לקוח חדש",
+    "customerSelect": "לקוח קיים",
+    "customerExample": "לדוגמה דירת כהן",
+    "nameLabel": "מה צריך לעשות",
+    "namePlaceholder": "לדוגמה מזגן לא מקרר — סלון",
+    "siteLabel": "אתר",
+    "contactNameLabel": "איש קשר באתר",
+    "contactPhoneLabel": "טלפון",
+    "categoryLabel": "קטגוריה",
+    "priorityLabel": "עדיפות",
+    "pricingModeLabel": "תמחור",
+    "requestedDateLabel": "תאריך מבוקש",
+    "windowStartLabel": "תחילת חלון",
+    "windowEndLabel": "סיום חלון",
+    "assigneeLabel": "משובץ",
+    "assigneeNone": "לא משובץ",
+    "assigneeHint": "מי יוצא — אפשר לשנות אחר כך משיבוץ.",
+    "notesLabel": "הערות שירות",
+    "statusLabel": "סטטוס",
+    "quickStatusLabel": "עדכון סטטוס",
+    "submit": "יצירת קריאה"
+  },
+  "fields": {
+    "site": "אתר",
+    "priority": "עדיפות",
+    "contact": "איש קשר",
+    "window": "חלון תזמון",
+    "notes": "הערות"
+  },
+  "workspace": {
+    "fallbackTitle": "קריאת שירות",
+    "backToList": "כל הקריאות",
+    "openDispatch": "שיבוץ יומי",
+    "sameEngineHint": "עלויות וחיובים משתמשים באותו מנוע פיננסי של פרויקטים ועבודות — בלי Actual כפול.",
+    "financialsTitle": "פיננסים",
+    "saved": "נשמר",
+    "updateStatus": "עדכון סטטוס"
+  },
+  "dispatch": {
+    "title": "שיבוץ",
+    "description": "לוח היום / מחר / שבוע לקריאות שירות. רשימה לנייד עם שיבוץ בטופס.",
+    "windowLabel": "חלון",
+    "assigneeFilter": "משובץ",
+    "allAssignees": "כל המשובצים",
+    "windows": {
+      "today": "היום",
+      "tomorrow": "מחר",
+      "week": "השבוע"
+    },
+    "reschedule": "תזמון / שיבוץ",
+    "hideReschedule": "הסתרה",
+    "saveReschedule": "שמירת תזמון",
+    "empty": {
+      "title": "אין שיבוצים בחלון זה",
+      "body": "קבעו לקריאה שעת התחלה כדי שתופיע כאן.",
+      "action": "לרשימת הקריאות"
+    }
+  },
+  "recurring": {
+    "title": "עבודה חוזרת",
+    "description": "חוזי שירות ותבניות מתוזמנות. הזמנות עבודה שנוצרות נשארות טיוטה עד שהעבודה בוצעה — בלי הכנסה שקטה.",
+    "new": "תבנית חוזרת חדשה",
+    "empty": {
+      "title": "אין עדיין תבניות חוזרות",
+      "body": "צרו לוח זמנים ללקוח/אתר. ProjectFlow יפתח הזמנות עבודה בטיוטה בכל מופע — אתם מאשרים עבודה לפני שכסף זז.",
+      "action": "תבנית חוזרת חדשה"
+    },
+    "list": {
+      "columns": {
+        "title": "כותרת",
+        "client": "לקוח",
+        "frequency": "תדירות",
+        "next": "הבא",
+        "status": "סטטוס",
+        "site": "אתר"
+      },
+      "filters": {
+        "allOpen": "פעיל ומושהה",
+        "active": "פעיל",
+        "paused": "מושהה",
+        "ended": "הסתיים",
+        "includeEnded": "כולל שהסתיימו"
+      }
+    },
+    "status": {
+      "active": "פעיל",
+      "paused": "מושהה",
+      "ended": "הסתיים"
+    },
+    "occurrenceStatus": {
+      "planned": "מתוכנן",
+      "generated": "נפתחה הזמנת עבודה",
+      "skipped": "דולג",
+      "cancelled": "בוטל"
+    },
+    "frequency": {
+      "daily": "יומי",
+      "weekly": "שבועי",
+      "monthly": "חודשי",
+      "quarterly": "רבעוני",
+      "yearly": "שנתי"
+    },
+    "create": {
+      "title": "תבנית חוזרת חדשה",
+      "description": "תבנית אופציונלית לחוזה שירות. המחיר כאן הוא רמז בלבד — יצירה לא סוגרת כספים.",
+      "submit": "יצירת תבנית"
+    },
+    "detail": {
+      "title": "תבנית חוזרת",
+      "history": "היסטוריית מופעים",
+      "generatedCount": "{count} הזמנות עבודה נפתחו",
+      "noHistory": "אין עדיין מופעים. צרו מועדים קרובים כדי לפתוח הזמנות עבודה בטיוטה.",
+      "openWorkOrder": "פתח הזמנת עבודה",
+      "templatePriceHint": "מחיר תבנית (לא הכנסה)",
+      "financialNote": "הזמנות שנוצרות הן טיוטה/מתוזמנות בלבד. עלות בפועל והכנסה דורשות השלמת עבודה וחיוב כרגיל."
+    },
+    "fields": {
+      "title": "כותרת",
+      "client": "לקוח",
+      "siteAddress": "אתר / כתובת",
+      "frequency": "תדירות",
+      "intervalCount": "כל N תקופות",
+      "startDate": "תאריך התחלה",
+      "endDate": "תאריך סיום",
+      "durationMinutes": "משך ברירת מחדל (דקות)",
+      "pricingMode": "תמחור ברירת מחדל",
+      "priceAmount": "מחיר ברירת מחדל",
+      "currency": "מטבע",
+      "assignee": "אחראי ברירת מחדל",
+      "checklistTemplateId": "מזהה תבנית צ׳ק־ליסט",
+      "notes": "הערות",
+      "noClient": "ללא לקוח",
+      "noAssignee": "ללא אחראי",
+      "pricing": {
+        "none": "ללא (רמז אחר כך)",
+        "fixed": "קבוע (תבנית בלבד)",
+        "open": "מחיר פתוח"
+      }
+    },
+    "actions": {
+      "generate": "צור הזמנות עבודה קרובות",
+      "generateHint": "פותח הזמנות עבודה בטיוטה/מתוזמנות ל־30 הימים הבאים. לא יוצר Actual או חשבוניות.",
+      "pause": "השהה",
+      "resume": "המשך",
+      "end": "סיים חוזרות",
+      "skipNext": "דלג על המופע הבא",
+      "skip": "דלג",
+      "skipReason": "סיבה (אופציונלי)",
+      "backToList": "כל התבניות החוזרות"
+    },
+    "errors": {
+      "recurrenceNotActive": "רק תבניות פעילות יכולות ליצור הזמנות עבודה.",
+      "recurrenceEnded": "החוזרות האלו הסתיימו.",
+      "occurrenceAlreadyGenerated": "למופע הזה כבר נפתחה הזמנת עבודה."
+    },
+    "success": {
+      "created": "התבנית החוזרת נוצרה.",
+      "generated": "נפתחו {count} הזמנות עבודה בטיוטה.",
+      "paused": "החוזרות הושהו.",
+      "resumed": "החוזרות חודשו.",
+      "ended": "החוזרות הסתיימו.",
+      "skipped": "המופע דולג."
+    }
+  }
+}

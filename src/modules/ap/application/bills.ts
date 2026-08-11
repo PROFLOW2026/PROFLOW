@@ -5,7 +5,17 @@ import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { noteModuleUsage } from '@/modules/tenancy';
 import { addMoney, money, moneyEquals, zeroMoney } from '@/shared/money';
+import { todayInTimeZone } from '@/shared/dates';
 import { findProjectById } from '@/modules/projects';
+import {
+  assertMonthOpenForRewrite,
+  yearMonthFromBusinessDate,
+} from '@/modules/month-close';
+import {
+  assertApprovalAllowsAction,
+  findMatchingApprovalRule,
+  submitApprovalRequest,
+} from '@/modules/approvals';
 import {
   computeCommittedAfterConsumption,
   findOpenCommittedCostForPo,
@@ -29,12 +39,40 @@ import {
   listApBills,
   listApPoMatchesForBill,
   listReservedMatchAmountsForBill,
+  updateApBillStatus,
   type ApBillListItem,
   type ApBillLineRow,
   type ApBillRow,
   type ApPoMatchRow,
 } from '../data/ap.repository';
 import { createApBillSchema, type CreateApBillInput } from '../validation/schemas';
+
+async function consumePoCommitmentForPostedBill(
+  context: OrgContext,
+  purchaseOrderId: string,
+  billTotal: string,
+): Promise<void> {
+  const openCommitted = await findOpenCommittedCostForPo(
+    context.db,
+    context.organizationId,
+    purchaseOrderId,
+  );
+  if (!openCommitted) return;
+  const { consumeAmount } = consumeAmountForPostedPoBill({
+    openCommitmentAmount: openCommitted.amount,
+    billTotal,
+    currency: openCommitted.currency,
+  });
+  const next = computeCommittedAfterConsumption({
+    openAmount: openCommitted.amount,
+    consumeAmount,
+    currency: openCommitted.currency,
+  });
+  await updateCommittedCostConsumption(context.db, context.organizationId, openCommitted.id, {
+    amount: next.remainingAmount,
+    status: next.status,
+  });
+}
 
 function assertBillTotalMatchesLines(input: {
   readonly currency: string;
@@ -134,6 +172,10 @@ export async function createApBill(context: OrgContext, raw: CreateApBillInput) 
     lines: input.lines,
   });
 
+  const billDate =
+    input.billDate ?? todayInTimeZone(context.organization.timezone);
+  await assertMonthOpenForRewrite(context, yearMonthFromBusinessDate(billDate));
+
   const vendorOk = await assertVendorInOrganization(
     context.db,
     context.organizationId,
@@ -208,14 +250,21 @@ export async function createApBill(context: OrgContext, raw: CreateApBillInput) 
     }
   }
 
+  const matchingApproval = await findMatchingApprovalRule(context, {
+    entityType: 'vendor_bill',
+    amount: input.totalAmount,
+    currency: input.currency.toUpperCase(),
+  });
+  const initialStatus = matchingApproval ? 'draft' : 'open';
+
   const bill = await insertApBill(context.db, {
     organizationId: context.organizationId,
     vendorId: input.vendorId,
     projectId,
     purchaseOrderId,
     reference: input.reference ?? null,
-    status: 'open',
-    billDate: input.billDate ?? null,
+    status: initialStatus,
+    billDate,
     dueDate: input.dueDate ?? null,
     currency: input.currency.toUpperCase(),
     totalAmount: input.totalAmount,
@@ -238,27 +287,21 @@ export async function createApBill(context: OrgContext, raw: CreateApBillInput) 
   );
 
   // Posted PO-linked bill → consume commitment by bill total (Actual recognition path).
-  if (purchaseOrderId) {
-    const openCommitted = await findOpenCommittedCostForPo(
-      context.db,
-      context.organizationId,
-      purchaseOrderId,
-    );
-    if (openCommitted) {
-      const { consumeAmount } = consumeAmountForPostedPoBill({
-        openCommitmentAmount: openCommitted.amount,
-        billTotal: bill.totalAmount,
-        currency: openCommitted.currency,
+  // Draft (awaiting approval) must NOT consume commitment or recognize Actual.
+  if (purchaseOrderId && initialStatus === 'open') {
+    await consumePoCommitmentForPostedBill(context, purchaseOrderId, bill.totalAmount);
+  }
+
+  if (matchingApproval) {
+    try {
+      await submitApprovalRequest(context, {
+        entityType: 'vendor_bill',
+        entityId: bill.id,
+        amount: bill.totalAmount,
+        currency: bill.currency,
       });
-      const next = computeCommittedAfterConsumption({
-        openAmount: openCommitted.amount,
-        consumeAmount,
-        currency: openCommitted.currency,
-      });
-      await updateCommittedCostConsumption(context.db, context.organizationId, openCommitted.id, {
-        amount: next.remainingAmount,
-        status: next.status,
-      });
+    } catch {
+      // Keep draft; poster uses postApBill → assertApprovalAllowsAction.
     }
   }
 
@@ -273,9 +316,61 @@ export async function createApBill(context: OrgContext, raw: CreateApBillInput) 
       status: bill.status,
       totalAmount: bill.totalAmount,
       expenseCreated: false,
-      recognizedVendorActual: true,
+      recognizedVendorActual: initialStatus === 'open',
+      awaitingApproval: Boolean(matchingApproval),
     },
   });
 
   return bill;
+}
+
+/**
+ * Promote a draft vendor bill to open (Actual recognition).
+ * Requires approval when an enabled vendor_bill rule matches.
+ */
+export async function postApBill(context: OrgContext, billId: string): Promise<ApBillRow> {
+  assertPermission(context, PERMISSIONS.AP_MANAGE);
+
+  const bill = await findApBillById(context.db, context.organizationId, billId);
+  if (!bill || bill.archivedAt) throw new NotFoundError('AP bill');
+  if (bill.status !== 'draft') {
+    throw new DomainRuleError(
+      'Only draft vendor bills can be posted',
+      'ap.errors.billNotDraft',
+    );
+  }
+
+  const freezeDate =
+    bill.billDate ?? bill.createdAt.toISOString().slice(0, 10);
+  await assertMonthOpenForRewrite(context, yearMonthFromBusinessDate(freezeDate));
+
+  await assertApprovalAllowsAction(context, {
+    entityType: 'vendor_bill',
+    entityId: bill.id,
+    amount: bill.totalAmount,
+    currency: bill.currency,
+    submitIfMissing: true,
+  });
+
+  const updated = await updateApBillStatus(context.db, context.organizationId, bill.id, 'open');
+  if (!updated) throw new NotFoundError('AP bill');
+
+  if (updated.purchaseOrderId) {
+    await consumePoCommitmentForPostedBill(context, updated.purchaseOrderId, updated.totalAmount);
+  }
+
+  await recordAuditEvent(context, {
+    action: AUDIT_ACTIONS.AP_BILL_CREATED,
+    entityType: 'ap_bill',
+    entityId: updated.id,
+    after: {
+      id: updated.id,
+      status: updated.status,
+      totalAmount: updated.totalAmount,
+      recognizedVendorActual: true,
+      postedFromDraft: true,
+    },
+  });
+
+  return updated;
 }

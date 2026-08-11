@@ -11,6 +11,7 @@ import {
   hasStoredOpeningReduction,
   resolveDisplayOriginalNet,
   resolveOpeningReductionNet,
+  type MilestoneRecord,
   type ProjectDetail,
   type ProjectWorkspaceLink,
 } from '@/modules/projects';
@@ -22,6 +23,27 @@ import { ProjectWorkspaceNav } from './project-workspace-nav';
 import { ScheduleSummaryPanel } from './schedule-summary-panel';
 import { textNavLinkClassName } from '@/components/ui/pressable';
 import { cn } from '@/shared/ui/cn';
+
+/** Client-bound milestone rows — strip notes + org timestamps from Flight props. */
+function slimMilestonesForClient(
+  milestones: readonly MilestoneRecord[],
+): MilestoneRecord[] {
+  return milestones.map((row) => ({
+    id: row.id,
+    organizationId: row.organizationId,
+    projectId: row.projectId,
+    workPackageId: row.workPackageId,
+    name: row.name,
+    targetDate: row.targetDate,
+    completedAt: row.completedAt,
+    status: row.status,
+    sortOrder: row.sortOrder,
+    notes: null,
+    archivedAt: null,
+    createdAt: row.createdAt,
+    updatedAt: row.updatedAt,
+  }));
+}
 
 interface OverviewTabProps {
   detail: ProjectDetail;
@@ -188,7 +210,7 @@ export async function OverviewTab({
       {!isJob ? (
         <MilestonesPanel
           projectId={detail.project.id}
-          milestones={detail.milestones}
+          milestones={slimMilestonesForClient(detail.milestones)}
           canEdit={canEdit}
           today={todayInTimeZone(organizationTimezone)}
         />

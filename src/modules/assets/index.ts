@@ -1,4 +1,4 @@
-/** Public API of the assets module (Wave 3). Maintenance ≠ Expense; inventory ≠ GL. */
+/** Public API of the assets module (Wave 3). Maintenance ≠ Expense; inventory ≠ GL; usage ≠ Actual. */
 export { createAsset, getAssetById, listAssetsForOrg, updateAsset } from './application/assets';
 export {
   createFleetVehicle,
@@ -20,6 +20,16 @@ export {
   recordInventoryMovement,
 } from './application/inventory';
 export type { InventoryItemWithReorder } from './application/inventory';
+export {
+  archiveEquipmentUsage,
+  archiveMaterialUsage,
+  listEquipmentUsageForAssetId,
+  listEquipmentUsageForProjectId,
+  listMaterialUsageForInventoryItemId,
+  listMaterialUsageForProjectId,
+  recordEquipmentUsage,
+  recordMaterialUsage,
+} from './application/usage';
 
 export {
   ASSET_KINDS,
@@ -37,6 +47,8 @@ export type {
   MaintenanceRecordRow,
   InventoryItemRecord,
   InventoryMovementRecord,
+  MaterialUsageRecord,
+  EquipmentUsageRecord,
 } from './domain/types';
 
 export {
@@ -48,6 +60,14 @@ export {
   REORDER_STATUSES,
 } from './domain/inventory';
 export type { ReorderStatus } from './domain/inventory';
+
+export {
+  assertUsageDateRange,
+  doesUsageCreatePurchaseActual,
+  hasEquipmentUsageMetric,
+  isEquipmentUsageRecognizedActual,
+  isMaterialUsageRecognizedActual,
+} from './domain/usage';
 
 export {
   allowedMaintenanceTransitions,
@@ -76,6 +96,10 @@ export {
   updateMaintenanceRecordSchema,
   createInventoryItemSchema,
   recordInventoryMovementSchema,
+  recordMaterialUsageSchema,
+  recordEquipmentUsageSchema,
+  archiveMaterialUsageSchema,
+  archiveEquipmentUsageSchema,
 } from './validation/schemas';
 export type {
   CreateAssetInput,
@@ -86,4 +110,8 @@ export type {
   UpdateMaintenanceRecordInput,
   CreateInventoryItemInput,
   RecordInventoryMovementInput,
+  RecordMaterialUsageInput,
+  RecordEquipmentUsageInput,
+  ArchiveMaterialUsageInput,
+  ArchiveEquipmentUsageInput,
 } from './validation/schemas';

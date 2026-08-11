@@ -10,6 +10,20 @@ const CLIENT_FIELDS: readonly ImportFieldDef[] = [
   { key: 'notes', required: false, aliases: ['notes', 'הערות'] },
 ];
 
+const CONTACT_FIELDS: readonly ImportFieldDef[] = [
+  {
+    key: 'clientName',
+    required: true,
+    aliases: ['client_name', 'client', 'customer', 'שם_לקוח', 'לקוח'],
+  },
+  { key: 'clientId', required: false, aliases: ['client_id', 'clientid'] },
+  { key: 'name', required: true, aliases: ['name', 'contact_name', 'contact', 'שם', 'שם_איש_קשר'] },
+  { key: 'role', required: false, aliases: ['role', 'contact_role', 'תפקיד'] },
+  { key: 'email', required: false, aliases: ['email', 'אימייל'] },
+  { key: 'phone', required: false, aliases: ['phone', 'טלפון'] },
+  { key: 'notes', required: false, aliases: ['notes', 'הערות'] },
+];
+
 const VENDOR_FIELDS: readonly ImportFieldDef[] = [
   { key: 'name', required: true, aliases: ['name', 'vendor_name', 'vendor', 'supplier', 'שם', 'שם_ספק'] },
   {
@@ -40,7 +54,12 @@ const EMPLOYEE_FIELDS: readonly ImportFieldDef[] = [
 ];
 
 const PROJECT_FIELDS: readonly ImportFieldDef[] = [
-  { key: 'name', required: true, aliases: ['name', 'project_name', 'project', 'שם', 'שם_פרויקט'] },
+  { key: 'name', required: true, aliases: ['name', 'project_name', 'project', 'job_name', 'שם', 'שם_פרויקט', 'שם_עבודה'] },
+  {
+    key: 'workKind',
+    required: false,
+    aliases: ['work_kind', 'kind', 'type', 'סוג_עבודה', 'סוג'],
+  },
   { key: 'status', required: false, aliases: ['status', 'סטטוס'] },
   { key: 'clientId', required: false, aliases: ['client_id', 'clientid'] },
   {
@@ -53,6 +72,50 @@ const PROJECT_FIELDS: readonly ImportFieldDef[] = [
   { key: 'targetEndDate', required: false, aliases: ['target_end_date', 'end_date', 'תאריך_יעד'] },
   { key: 'description', required: false, aliases: ['description', 'תיאור'] },
   { key: 'notes', required: false, aliases: ['notes', 'הערות'] },
+];
+
+/** Managed opening via existing contract APIs — never invents Actual. */
+const OPENING_VALUE_FIELDS: readonly ImportFieldDef[] = [
+  { key: 'projectId', required: false, aliases: ['project_id', 'projectid'] },
+  {
+    key: 'projectName',
+    required: false,
+    aliases: ['project_name', 'project', 'job_name', 'name', 'שם_פרויקט', 'שם_עבודה', 'שם'],
+  },
+  {
+    key: 'contractValueAmount',
+    required: true,
+    aliases: [
+      'contract_value_amount',
+      'opening_value',
+      'opening_amount',
+      'amount',
+      'סכום',
+      'ערך_פתיחה',
+      'סכום_חוזה',
+    ],
+  },
+  { key: 'currency', required: false, aliases: ['currency', 'מטבע'] },
+  {
+    key: 'openingReductionAmount',
+    required: false,
+    aliases: ['opening_reduction_amount', 'opening_reduction', 'הפחתת_פתיחה'],
+  },
+  {
+    key: 'amountIncludesTax',
+    required: false,
+    aliases: ['amount_includes_tax', 'includes_tax', 'כולל_מעמ'],
+  },
+];
+
+const COST_CATEGORY_FIELDS: readonly ImportFieldDef[] = [
+  { key: 'key', required: false, aliases: ['key', 'category_key', 'מפתח'] },
+  { key: 'name', required: true, aliases: ['name', 'category_name', 'category', 'שם', 'שם_קטגוריה'] },
+  {
+    key: 'family',
+    required: true,
+    aliases: ['family', 'cost_family', 'משפחה', 'משפחת_עלות'],
+  },
 ];
 
 /**
@@ -89,9 +152,12 @@ const EXPENSE_FIELDS: readonly ImportFieldDef[] = [
 
 const FIELDS_BY_KIND: Record<ImportKind, readonly ImportFieldDef[]> = {
   clients: CLIENT_FIELDS,
+  contacts: CONTACT_FIELDS,
   vendors: VENDOR_FIELDS,
   employees: EMPLOYEE_FIELDS,
   projects: PROJECT_FIELDS,
+  opening_values: OPENING_VALUE_FIELDS,
+  cost_categories: COST_CATEGORY_FIELDS,
   expenses: EXPENSE_FIELDS,
 };
 

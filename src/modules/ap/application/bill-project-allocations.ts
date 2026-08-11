@@ -3,6 +3,10 @@ import { withTransaction } from '@/shared/db';
 import type { OrgContext } from '@/shared/auth/context';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
+import {
+  assertMonthOpenForRewrite,
+  yearMonthFromBusinessDate,
+} from '@/modules/month-close';
 import { findApBillById } from '../data/ap.repository';
 import {
   applyDraftBillAllocations,
@@ -149,6 +153,11 @@ export async function saveBillProjectAllocations(
     );
   }
 
+  if (apply) {
+    const freezeDate = bill.billDate ?? bill.createdAt.toISOString().slice(0, 10);
+    await assertMonthOpenForRewrite(context, yearMonthFromBusinessDate(freezeDate));
+  }
+
   return withTransaction(context.db, async (tx) => {
     // Supersede applied + clear drafts so conservation cap does not double-count.
     await supersedeActiveBillAllocations(tx, context.organizationId, bill.id);
@@ -202,6 +211,9 @@ export async function applyBillProjectAllocations(
       'ap.errors.billNotRecognized',
     );
   }
+
+  const freezeDate = bill.billDate ?? bill.createdAt.toISOString().slice(0, 10);
+  await assertMonthOpenForRewrite(context, yearMonthFromBusinessDate(freezeDate));
 
   return withTransaction(context.db, async (tx) => {
     const existing = await listBillProjectAllocations(tx, context.organizationId, bill.id, [

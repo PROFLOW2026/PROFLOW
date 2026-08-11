@@ -7,22 +7,32 @@ import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
-  getProfessionPreset,
-  PROFESSION_PRESET_KEYS,
-} from '@/modules/tenancy/domain/profession-presets';
-import { applyProfessionPresetAction, type SettingsActionState } from '../actions';
+  BUSINESS_PROFILE_KEYS,
+  getBusinessProfile,
+} from '@/modules/tenancy/domain/business-profiles';
+import { applyBusinessProfileAction, type SettingsActionState } from '../actions';
 
-export function ProfessionPresetForm({ canEdit }: { canEdit: boolean }) {
-  const t = useTranslations('settings.presets');
+export function BusinessProfilePresetForm({
+  canEdit,
+  currentProfileKey,
+}: {
+  canEdit: boolean;
+  currentProfileKey?: string | null;
+}) {
+  const t = useTranslations('settings.businessProfiles');
   const tAuth = useTranslations('auth.onboarding');
   const locale = useLocale();
-  const [preset, setPreset] = useState<string>(PROFESSION_PRESET_KEYS[0]!);
+  const initial =
+    currentProfileKey && (BUSINESS_PROFILE_KEYS as readonly string[]).includes(currentProfileKey)
+      ? currentProfileKey
+      : BUSINESS_PROFILE_KEYS[0]!;
+  const [preset, setPreset] = useState<string>(initial);
   const [state, action, pending] = useActionState(
-    applyProfessionPresetAction,
+    applyBusinessProfileAction,
     {} as SettingsActionState,
   );
 
-  const preview = useMemo(() => getProfessionPreset(preset), [preset]);
+  const preview = useMemo(() => getBusinessProfile(preset), [preset]);
   const he = locale === 'he-IL';
 
   if (!canEdit) return null;
@@ -40,15 +50,15 @@ export function ProfessionPresetForm({ canEdit }: { canEdit: boolean }) {
       <Field label={t('label')}>
         {(control) => (
           <>
-            <input type="hidden" name="professionPreset" value={preset} />
+            <input type="hidden" name="businessProfile" value={preset} />
             <Select value={preset} onValueChange={setPreset}>
               <SelectTrigger id={control.id}>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {PROFESSION_PRESET_KEYS.map((key) => (
+                {BUSINESS_PROFILE_KEYS.map((key) => (
                   <SelectItem key={key} value={key}>
-                    {tAuth(`presets.${key}`)}
+                    {tAuth(`profiles.${key}`)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -61,20 +71,30 @@ export function ProfessionPresetForm({ canEdit }: { canEdit: boolean }) {
         <div className="min-w-0 rounded-md border border-[var(--pf-border-default)] p-3 text-start text-sm text-[var(--pf-text-secondary)]">
           <p className="font-medium text-[var(--pf-text-primary)]">{t('previewTitle')}</p>
           <p className="mt-2 break-words">
-            <span className="font-medium text-[var(--pf-text-primary)]">{t('previewDomains')}: </span>
-            {preview.domains.map((d) => (he ? d.nameHe : d.nameEn)).join(', ')}
+            <span className="font-medium text-[var(--pf-text-primary)]">{t('previewWorkMix')}: </span>
+            {t(`workMix.${preview.workMix}`)}
           </p>
           <p className="mt-1 break-words">
-            <span className="font-medium text-[var(--pf-text-primary)]">{t('previewChecklist')}: </span>
-            {preview.documentChecklist.map((d) => (he ? d.nameHe : d.nameEn)).join(', ')}
+            <span className="font-medium text-[var(--pf-text-primary)]">{t('previewModules')}: </span>
+            {preview.visibleModules.join(', ')}
+          </p>
+          <p className="mt-1 break-words">
+            <span className="font-medium text-[var(--pf-text-primary)]">{t('previewTerminology')}: </span>
+            {he ? preview.terminology.project.he : preview.terminology.project.en}
+            {' / '}
+            {he ? preview.terminology.job.he : preview.terminology.job.en}
+            {' / '}
+            {he ? preview.terminology.workOrder.he : preview.terminology.workOrder.en}
+            {' / '}
+            {he ? preview.terminology.serviceCall.he : preview.terminology.serviceCall.en}
+          </p>
+          <p className="mt-1 break-words">
+            <span className="font-medium text-[var(--pf-text-primary)]">{t('previewQuickCreate')}: </span>
+            {preview.quickCreateEmphasis.slice(0, 5).join(', ')}
           </p>
           <p className="mt-1 break-words">
             <span className="font-medium text-[var(--pf-text-primary)]">{t('previewCategories')}: </span>
-            {preview.extraExpenseCategories.map((c) => (he ? c.nameHe : c.nameEn)).join(', ')}
-          </p>
-          <p className="mt-1 break-words">
-            <span className="font-medium text-[var(--pf-text-primary)]">{t('previewWorkAreas')}: </span>
-            {preview.workPackageNames.map((w) => (he ? w.nameHe : w.nameEn)).join(', ')}
+            {preview.costCategories.map((c) => (he ? c.nameHe : c.nameEn)).join(', ')}
           </p>
           <p className="mt-2 text-xs">{t('previewHint')}</p>
         </div>

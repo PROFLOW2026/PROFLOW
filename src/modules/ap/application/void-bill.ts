@@ -11,6 +11,10 @@ import { addMoney, compareMoney, money } from '@/shared/money';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import {
+  assertMonthOpenForRewrite,
+  yearMonthFromBusinessDate,
+} from '@/modules/month-close';
+import {
   findCommittedCostForPo,
   findPurchaseOrderById,
   updateCommittedCostConsumption,
@@ -43,6 +47,17 @@ export async function voidApBill(context: OrgContext, raw: { billId: string }): 
       parsed.error.issues.map((issue) => ({ path: issue.path.join('.'), message: issue.message })),
     );
   }
+
+  const billPreview = await findApBillById(
+    context.db,
+    context.organizationId,
+    parsed.data.billId,
+  );
+  if (!billPreview || billPreview.archivedAt) throw new NotFoundError('AP bill');
+  const freezeDate =
+    billPreview.billDate ??
+    billPreview.createdAt.toISOString().slice(0, 10);
+  await assertMonthOpenForRewrite(context, yearMonthFromBusinessDate(freezeDate));
 
   const voided = await withTransaction(context.db, async (tx) => {
     const repo = getVendorPaymentsRepository();

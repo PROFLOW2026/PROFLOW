@@ -1,6 +1,6 @@
 import { PERMISSIONS } from '@/shared/permissions/catalog';
-import type { WorkMix } from '@/modules/tenancy';
-import { workMixSurfacesJobs } from '@/modules/tenancy';
+import type { QuickCreateEmphasisKey, WorkMix } from '@/modules/tenancy';
+import { orderQuickCreateActions, workMixSurfacesJobs } from '@/modules/tenancy';
 import type { QuickCreateAction } from './quick-create';
 
 /**
@@ -12,6 +12,7 @@ export function buildQuickCreateActions(
   permissions: ReadonlySet<string>,
   modules: Record<string, boolean>,
   workMix: WorkMix,
+  emphasis?: readonly QuickCreateEmphasisKey[] | null,
 ): QuickCreateAction[] {
   const actions: QuickCreateAction[] = [];
   const canCreateWork = permissions.has(PERMISSIONS.PROJECTS_CREATE);
@@ -37,6 +38,9 @@ export function buildQuickCreateActions(
   }
   if (modules.changes && permissions.has(PERMISSIONS.CHANGES_MANAGE)) {
     actions.push({ key: 'change', href: '/changes/new', labelKey: 'change' });
+  }
+  if (modules.quotes && permissions.has(PERMISSIONS.QUOTES_MANAGE)) {
+    actions.push({ key: 'quote', href: '/quotes/new', labelKey: 'quote' });
   }
   if (modules.billing && permissions.has(PERMISSIONS.BILLING_MANAGE)) {
     actions.push({ key: 'billingRecord', href: '/billing/new', labelKey: 'billingRecord' });
@@ -84,5 +88,10 @@ export function buildQuickCreateActions(
     });
   }
 
-  return actions;
+  // Next-gen surfaces — only when module is visible and permission exists.
+  if (modules.service && permissions.has(PERMISSIONS.SERVICE_MANAGE)) {
+    actions.push({ key: 'service', href: '/work-orders/new', labelKey: 'service' });
+  }
+
+  return orderQuickCreateActions(actions, emphasis);
 }

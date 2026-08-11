@@ -4,23 +4,30 @@
 
 export const IMPORT_KINDS = [
   'clients',
+  'contacts',
   'vendors',
   'employees',
   'projects',
+  'opening_values',
+  'cost_categories',
   'expenses',
 ] as const;
 
 export type ImportKind = (typeof IMPORT_KINDS)[number];
 
 /**
- * Kinds confirmable via canonical create* APIs.
+ * Kinds confirmable via canonical create* APIs (or additive catalog inserts).
  * Expenses create draft rows only — never finalize/bypass money rules.
+ * Opening values use the same contract opening path as project create/edit.
  */
 export const ENABLED_IMPORT_KINDS = [
   'clients',
+  'contacts',
   'vendors',
   'employees',
   'projects',
+  'opening_values',
+  'cost_categories',
   'expenses',
 ] as const satisfies readonly ImportKind[];
 
@@ -85,5 +92,6 @@ export interface ImportConfirmResult {
   readonly kind: EnabledImportKind;
   readonly created: number;
   readonly failed: number;
+  readonly skipped: number;
   readonly results: readonly ImportRowResult[];
 }

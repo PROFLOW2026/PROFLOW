@@ -3,6 +3,10 @@ import { NotFoundError } from '@/shared/errors';
 import type { OrgContext } from '@/shared/auth/context';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
+import {
+  assertMonthOpenForRewrite,
+  yearMonthFromBusinessDate,
+} from '@/modules/month-close';
 import { assertVoidable } from '../domain/lifecycle';
 import {
   findActiveReversalForExpense,
@@ -22,6 +26,11 @@ export async function voidExpense(context: OrgContext, expenseId: string): Promi
 
   const existing = await findExpenseById(context.db, context.organizationId, expenseId);
   if (!existing) throw new NotFoundError('Expense');
+
+  await assertMonthOpenForRewrite(
+    context,
+    yearMonthFromBusinessDate(existing.expenseDate),
+  );
 
   const activeReversal = await findActiveReversalForExpense(
     context.db,

@@ -25,6 +25,8 @@ export interface MetricDrilldownProps {
   readonly value: { amount: string; currency: string };
   readonly nature?: string;
   readonly explanation?: string;
+  /** Localized "Why this number?" affordance next to the expand control. */
+  readonly whyLabel?: string;
   readonly lines?: readonly MetricDrillLine[];
   readonly links?: readonly MetricDrillLink[];
   readonly emphasis?: boolean;
@@ -43,6 +45,7 @@ export function MetricDrilldown({
   value,
   nature,
   explanation,
+  whyLabel,
   lines = [],
   links = [],
   emphasis = false,
@@ -63,7 +66,7 @@ export function MetricDrilldown({
               type="button"
               className={cn(
                 pressableClassName,
-                'inline-flex max-w-full items-start gap-1 rounded text-start',
+                'inline-flex max-w-full flex-col items-start gap-0.5 rounded text-start',
                 'active:bg-[var(--pf-action-subtle-active)]',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--pf-border-focus)]',
                 muted
@@ -76,21 +79,28 @@ export function MetricDrilldown({
               aria-controls={panelId}
               onClick={() => setOpen((current) => !current)}
             >
-              <span className="min-w-0 break-words">
-                {label}
-                {nature ? (
-                  <span className="ms-1 text-xs font-normal text-[var(--pf-text-muted)]">
-                    · {nature}
-                  </span>
-                ) : null}
+              <span className="inline-flex max-w-full items-start gap-1">
+                <span className="min-w-0 break-words">
+                  {label}
+                  {nature ? (
+                    <span className="ms-1 text-xs font-normal text-[var(--pf-text-muted)]">
+                      · {nature}
+                    </span>
+                  ) : null}
+                </span>
+                <ChevronDown
+                  className={cn(
+                    'mt-0.5 size-4 shrink-0 text-[var(--pf-text-muted)] transition-transform',
+                    open ? 'rotate-180' : null,
+                  )}
+                  aria-hidden
+                />
               </span>
-              <ChevronDown
-                className={cn(
-                  'mt-0.5 size-4 shrink-0 text-[var(--pf-text-muted)] transition-transform',
-                  open ? 'rotate-180' : null,
-                )}
-                aria-hidden
-              />
+              {whyLabel ? (
+                <span className="text-xs font-normal text-[var(--pf-text-brand)] underline-offset-2 hover:underline">
+                  {whyLabel}
+                </span>
+              ) : null}
             </button>
           ) : (
             <span

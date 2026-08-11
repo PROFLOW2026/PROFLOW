@@ -143,6 +143,7 @@ export const assets = pgTable(
     ...timestamps(),
   },
   (table) => [
+    uniqueIndex('assets_id_organization_id_uq').on(table.id, table.organizationId),
     index('assets_org_idx').on(table.organizationId),
     check(
       'assets_kind_known',
@@ -226,7 +227,10 @@ export const inventoryItems = pgTable(
     archivedAt: archivedAt(),
     ...timestamps(),
   },
-  (table) => [index('inventory_items_org_idx').on(table.organizationId)],
+  (table) => [
+    uniqueIndex('inventory_items_id_organization_id_uq').on(table.id, table.organizationId),
+    index('inventory_items_org_idx').on(table.organizationId),
+  ],
 );
 
 export const inventoryMovements = pgTable(

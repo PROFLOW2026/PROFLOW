@@ -4,6 +4,11 @@ import { NotFoundError } from '@/shared/errors';
 import type { OrgContext } from '@/shared/auth/context';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
+import { assertApprovalAllowsAction } from '@/modules/approvals';
+import {
+  assertMonthOpenForRewrite,
+  yearMonthFromBusinessDate,
+} from '@/modules/month-close';
 import { assertFinalizable } from '../domain/lifecycle';
 import { captureTaxSnapshot } from '../domain/tax';
 import { isWeightAllocationMethod } from '../domain/types';
@@ -19,6 +24,21 @@ export async function finalizeExpense(context: OrgContext, expenseId: string) {
   const existing = await findExpenseById(context.db, context.organizationId, expenseId);
   if (!existing) throw new NotFoundError('Expense');
   assertFinalizable(existing.status);
+
+  // Refuse silent rewrite of a closed operational month.
+  await assertMonthOpenForRewrite(
+    context,
+    yearMonthFromBusinessDate(existing.expenseDate),
+  );
+
+  // Optional approvals: threshold rules may block until approved (no-op when unused).
+  await assertApprovalAllowsAction(context, {
+    entityType: 'expense',
+    entityId: expenseId,
+    amount: existing.netAmount.amount,
+    currency: existing.netAmount.currency,
+    submitIfMissing: true,
+  });
 
   const finalizedAt = todayInTimeZone(context.organization.timezone);
   const taxSnapshot = captureTaxSnapshot(existing.netAmount, existing.taxAmount, existing.grossAmount);

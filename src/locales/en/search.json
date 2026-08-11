@@ -1,0 +1,23 @@
+{
+  "title": "Search",
+  "open": "Search",
+  "placeholder": "Search projects, jobs, clients, vendors…",
+  "minChars": "Type at least 2 characters.",
+  "searching": "Searching…",
+  "empty": "No matches in areas you can access.",
+  "error": "Search could not run. Try again.",
+  "results": "Results",
+  "kinds": {
+    "project": "Project",
+    "job": "Job",
+    "work_order": "Work order",
+    "client": "Client",
+    "contact": "Contact",
+    "employee": "Employee",
+    "vendor": "Vendor",
+    "bill": "Vendor bill",
+    "billing": "Billing",
+    "document": "Document",
+    "asset": "Asset"
+  }
+}

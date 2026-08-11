@@ -131,7 +131,7 @@ describe('Scenario E — mixed 2 projects + 8 jobs filters', () => {
 
   it('partitions All = Projects + Jobs with no double count', () => {
     const counts = partitionWorkKindCounts(portfolio);
-    expect(counts).toEqual({ all: 10, project: 2, job: 8 });
+    expect(counts).toEqual({ all: 10, project: 2, job: 8, workOrder: 0 });
 
     const all = filterRowsByWorkKind(portfolio, 'all');
     const projectsOnly = filterRowsByWorkKind(portfolio, 'project');

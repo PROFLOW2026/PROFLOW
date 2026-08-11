@@ -17,6 +17,7 @@ import {
   supplierQuotes,
   vendors,
 } from '@drizzle/schema';
+import { estimates as estimateQuotes } from '@drizzle/schema/next-gen';
 import { getAdminDb } from '@/shared/db/client';
 import type { DbExecutor } from '@/shared/db/types';
 import type {
@@ -533,6 +534,55 @@ export async function listCustomerSafeProjectMilestones(
     )
     .orderBy(asc(projectMilestones.sortOrder), asc(projectMilestones.targetDate))
     .limit(100);
+}
+
+/**
+ * Customer-facing commercial quotes for a project client.
+ * Never selects estimated cost / margin / internal notes.
+ * Only statuses the customer would already know after send.
+ */
+export async function listCustomerSafeQuotesForClient(
+  db: DbExecutor,
+  organizationId: string,
+  clientId: string,
+): Promise<
+  {
+    id: string;
+    title: string;
+    status: string;
+    currency: string;
+    totalAmount: string | null;
+    validityDate: string | null;
+    sentAt: Date | null;
+  }[]
+> {
+  return db
+    .select({
+      id: estimateQuotes.id,
+      title: estimateQuotes.title,
+      status: estimateQuotes.status,
+      currency: estimateQuotes.currency,
+      totalAmount: estimateQuotes.totalAmount,
+      validityDate: estimateQuotes.validityDate,
+      sentAt: estimateQuotes.sentAt,
+    })
+    .from(estimateQuotes)
+    .where(
+      and(
+        eq(estimateQuotes.organizationId, organizationId),
+        eq(estimateQuotes.clientId, clientId),
+        isNull(estimateQuotes.archivedAt),
+        inArray(estimateQuotes.status, [
+          'sent',
+          'accepted',
+          'rejected',
+          'expired',
+          'converted',
+        ]),
+      ),
+    )
+    .orderBy(desc(estimateQuotes.sentAt), desc(estimateQuotes.updatedAt))
+    .limit(50);
 }
 
 /**

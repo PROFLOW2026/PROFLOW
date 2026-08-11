@@ -18,9 +18,11 @@ import { PERMISSIONS, type PermissionKey } from '@/shared/permissions/catalog';
 import { Link, redirect } from '@/shared/i18n/navigation';
 import { localeDirection } from '@/shared/i18n/config';
 import { ProjectBillingPanel } from '@/modules/billing/ui';
+import { ProjectBudgetPanel } from '@/modules/budgets/ui';
 import { ProjectExpensesPanel } from '@/modules/expenses/ui';
 import { ProjectFinancialsPanel } from '@/modules/financials/ui';
 import { ProjectTeamPanel, ProjectTimePanel } from '@/modules/workforce/ui';
+import { ProjectUsagePanel } from '@/modules/assets/ui';
 import { ArchiveProjectButton } from '../../projects/[projectId]/archive-project-button';
 import { DetailsTab } from '../../projects/[projectId]/details-tab';
 import { DocumentsTab } from '../../projects/[projectId]/documents-tab';
@@ -33,6 +35,7 @@ import { resolveJobTabs } from '../job-tab-order';
 import { ConvertJobButton } from './convert-job-button';
 import { JobOpenPricePanel } from './job-open-price-panel';
 import { textNavLinkClassName } from '@/components/ui/pressable';
+import { ProjectFormsPanel } from '@/modules/forms/ui';
 
 interface JobPageProps {
   params: Promise<{ locale: string; jobId: string }>;
@@ -43,7 +46,9 @@ const MODULE_PANEL_TABS = new Set<ProjectTabKey>([
   'financials',
   'expenses',
   'billing',
+  'budgets',
   'team',
+  'usage',
   'time',
   'documents',
 ]);
@@ -89,12 +94,16 @@ export default async function JobPage({ params, searchParams }: JobPageProps) {
   const showTeamTab = can(PERMISSIONS.WORKFORCE_READ);
   const showTimeTab = Boolean(modules?.workforce) && can(PERMISSIONS.WORKFORCE_READ);
   const showDocumentsTab = Boolean(modules?.documents) && can(PERMISSIONS.DOCUMENTS_READ);
+  const showBudgetsTab = Boolean(modules?.budgets) && can(PERMISSIONS.BUDGETS_READ);
+  const showUsageTab = can(PERMISSIONS.MATERIALS_READ) || can(PERMISSIONS.ASSETS_READ);
 
   const visibleModuleTabs = new Set<string>();
   if (canReadFinancials) visibleModuleTabs.add('financials');
   if (showExpensesTab) visibleModuleTabs.add('expenses');
   if (showBillingTab) visibleModuleTabs.add('billing');
+  if (showBudgetsTab) visibleModuleTabs.add('budgets');
   if (showTeamTab) visibleModuleTabs.add('team');
+  if (showUsageTab) visibleModuleTabs.add('usage');
   if (showTimeTab) visibleModuleTabs.add('time');
   if (showDocumentsTab) visibleModuleTabs.add('documents');
 
@@ -171,6 +180,8 @@ export default async function JobPage({ params, searchParams }: JobPageProps) {
     billing: showBillingTab,
     documents: showDocumentsTab,
     financials: canReadFinancials,
+    budgets: showBudgetsTab,
+    usage: showUsageTab,
   });
 
   const activeTab: ProjectTabKey = tabs.includes(tabParam as ProjectTabKey)
@@ -305,14 +316,22 @@ export default async function JobPage({ params, searchParams }: JobPageProps) {
       >
         {activeTab === 'overview' ? (
           <div className="pt-4">
-            <OverviewTab
-              detail={detail}
-              locale={locale}
-              canReadFinancials={canReadFinancials}
-              canEdit={canEditProjects}
-              workspaceLinks={workspaceLinks}
-              organizationTimezone={shell?.organization.timezone ?? 'Asia/Jerusalem'}
-            />
+            <div className="flex flex-col gap-4">
+              {Boolean(modules?.forms) &&
+              (shell?.permissions.has(PERMISSIONS.FORMS_READ) ?? false) ? (
+                <Suspense fallback={<TabPanelSkeleton />}>
+                  <ProjectFormsPanel ownerType="job" ownerId={jobId} />
+                </Suspense>
+              ) : null}
+              <OverviewTab
+                detail={detail}
+                locale={locale}
+                canReadFinancials={canReadFinancials}
+                canEdit={canEditProjects}
+                workspaceLinks={workspaceLinks}
+                organizationTimezone={shell?.organization.timezone ?? 'Asia/Jerusalem'}
+              />
+            </div>
           </div>
         ) : null}
 
@@ -328,6 +347,14 @@ export default async function JobPage({ params, searchParams }: JobPageProps) {
           <div className="pt-4">
             <Suspense fallback={<TabPanelSkeleton />}>
               <ProjectTeamPanel projectId={jobId} />
+            </Suspense>
+          </div>
+        ) : null}
+
+        {activeTab === 'usage' && showUsageTab ? (
+          <div className="pt-4">
+            <Suspense fallback={<TabPanelSkeleton />}>
+              <ProjectUsagePanel projectId={jobId} />
             </Suspense>
           </div>
         ) : null}
@@ -361,6 +388,14 @@ export default async function JobPage({ params, searchParams }: JobPageProps) {
             <Suspense fallback={<TabPanelSkeleton />}>
               {/* Always mount real KPIs: open-price shows priceNotSet; costs still visible. */}
               <ProjectFinancialsPanel projectId={jobId} />
+            </Suspense>
+          </div>
+        ) : null}
+
+        {activeTab === 'budgets' && showBudgetsTab ? (
+          <div className="pt-4">
+            <Suspense fallback={<TabPanelSkeleton />}>
+              <ProjectBudgetPanel projectId={jobId} />
             </Suspense>
           </div>
         ) : null}

@@ -266,6 +266,9 @@ describe('offline SW sensitive financial paths', () => {
   it('never cache-firsts billing/financial routes', () => {
     expect(isSensitiveFinancialPath('/he-IL/billing/invoices')).toBe(true);
     expect(isSensitiveFinancialPath('/en/procurement/ap/bills')).toBe(true);
+    expect(isSensitiveFinancialPath('/he-IL/reports')).toBe(true);
+    expect(isSensitiveFinancialPath('/en/month-close')).toBe(true);
+    expect(isSensitiveFinancialPath('/he-IL/quotes/abc')).toBe(true);
     expect(
       shouldUseCacheFirst({
         method: 'GET',

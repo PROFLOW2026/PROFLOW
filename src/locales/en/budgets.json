@@ -1,0 +1,54 @@
+{
+  "panel": {
+    "title": "Budget & cost control",
+    "description": "Compare budget to Actual, remaining commitment, ETC, and Forecast from the shared financial engine. Revisions never overwrite history.",
+    "empty": "No budget yet. Create a lightweight total budget when you are ready."
+  },
+  "metrics": {
+    "budget": "Budget",
+    "actual": "Actual",
+    "remainingCommitment": "Remaining commitment",
+    "etc": "ETC",
+    "forecast": "Forecast",
+    "variance": "Variance (Budget − Forecast)",
+    "engineMissing": "Actual and Forecast need project financials permission. Budget figures still show."
+  },
+  "lines": {
+    "title": "Budget lines",
+    "mode": "Mode: {mode}",
+    "modeLightweight": "Lightweight (total)",
+    "modeAdvanced": "Advanced",
+    "revision": "Revision {number}"
+  },
+  "lineTypes": {
+    "total": "Total",
+    "category": "Category",
+    "work_package": "Work package",
+    "discipline": "Discipline",
+    "cost_code": "Cost code"
+  },
+  "revisions": {
+    "title": "Revision history",
+    "item": "Revision {number}",
+    "historyHint": "Earlier revisions stay on record. New amounts append a revision — nothing is silently rewritten."
+  },
+  "fields": {
+    "totalBudget": "Total budget",
+    "revisionReason": "Reason for revision"
+  },
+  "actions": {
+    "createTitle": "Create budget",
+    "reviseTitle": "Revise budget",
+    "create": "Create budget",
+    "revise": "Save revision",
+    "created": "Budget created.",
+    "revised": "Budget revision saved.",
+    "missingBudget": "No budget to revise.",
+    "defaultRevisionReason": "Budget update",
+    "lightweightHint": "Lightweight mode stores a single total. Advanced category / work-package lines can be added via the API when needed."
+  },
+  "errors": {
+    "activeExists": "An active budget already exists. Use revise instead.",
+    "notActive": "Only an active budget can be revised."
+  }
+}

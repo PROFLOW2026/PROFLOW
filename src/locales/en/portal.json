@@ -49,6 +49,7 @@
     "billing.outstanding": "Billing, payments & outstanding",
     "documents.read": "Read shared documents",
     "milestones.read": "Selected milestones",
+    "quotes.read": "Shared quotes (status & totals)",
     "documents.upload": "Upload compliance candidates",
     "vendor.summary": "Vendor summary",
     "rfq.read": "View RFQs",
@@ -110,10 +111,12 @@
       "outstanding": "Outstanding",
       "billing": "Billing & payments",
       "documents": "Shared documents",
-      "milestones": "Milestones"
+      "milestones": "Milestones",
+      "quotes": "Quotes"
     },
     "noDocuments": "documents.read is granted, but no documents are labeled portal-shared yet.",
-    "noMilestones": "milestones.read is granted, but no milestones are available."
+    "noMilestones": "milestones.read is granted, but no milestones are marked portal-visible yet.",
+    "noQuotes": "quotes.read is granted, but no sent customer quotes are available for this client."
   },
   "vendorPreview": {
     "title": "Preview vendor-safe portal",

@@ -28,6 +28,13 @@ import {
   createInspectionSchema,
   createPunchListItemSchema,
 } from '@/modules/field-ops/validation/schemas';
+import {
+  createFormSubmission,
+  FORM_OWNER_TYPES,
+  getFormSubmissionForOrg,
+  getFormTemplateForOrg,
+  updateFormSubmissionDraft,
+} from '@/modules/forms';
 import { createTimeEntry, createTimeEntrySchema } from '@/modules/workforce';
 import { findTimeEntryById } from '@/modules/workforce';
 import { withOrgContext } from '@/shared/auth/session';
@@ -188,6 +195,17 @@ export async function fetchOfflineServerTruthAction(input: {
             snapshot: {
               status: item.status,
               title: item.title,
+            },
+          };
+        }
+        case 'form_submission': {
+          const submission = await getFormSubmissionForOrg(context, input.serverId!);
+          return {
+            serverId: submission.id,
+            serverUpdatedAt: toIso(submission.updatedAt),
+            snapshot: {
+              status: submission.status,
+              templateId: submission.templateId,
             },
           };
         }
@@ -529,6 +547,107 @@ async function submitInspection(
   return { serverId: created.id, serverUpdatedAt: toIso(created.updatedAt) };
 }
 
+async function submitFormSubmissionDraft(
+  action: QueuedAction,
+): Promise<{ serverId: string; serverUpdatedAt: string }> {
+  const payload = asRecord(action.payload);
+  const submissionId = action.serverId ?? optionalString(payload, 'submissionId');
+
+  if (submissionId) {
+    const updated = await withOrgContext(async (context) => {
+      const existing = await getFormSubmissionForOrg(context, submissionId);
+      const template = await getFormTemplateForOrg(context, existing.templateId);
+
+      const answersFromPayload =
+        payload.answers && typeof payload.answers === 'object' && !Array.isArray(payload.answers)
+          ? (payload.answers as Record<string, unknown>)
+          : parseFormAnswersFromFlatPayload(payload, template.schema.fields);
+
+      return updateFormSubmissionDraft(context, {
+        submissionId,
+        answers: answersFromPayload,
+        acknowledgementName: optionalString(payload, 'acknowledgementName'),
+        acknowledgementNote: optionalString(payload, 'acknowledgementNote'),
+      });
+    });
+    return { serverId: updated.id, serverUpdatedAt: toIso(updated.updatedAt) };
+  }
+
+  const templateId = requireString(payload, 'templateId');
+  const ownerType = requireString(payload, 'ownerType');
+  const ownerId = requireString(payload, 'ownerId');
+  if (!(FORM_OWNER_TYPES as readonly string[]).includes(ownerType)) {
+    throw new OfflineSyncSubmitError('Form draft has an invalid owner type.');
+  }
+
+  const created = await withOrgContext((context) =>
+    createFormSubmission(context, {
+      templateId,
+      ownerType: ownerType as (typeof FORM_OWNER_TYPES)[number],
+      ownerId,
+      offlineClientId: action.localId,
+      answers:
+        payload.answers && typeof payload.answers === 'object'
+          ? (payload.answers as Record<string, unknown>)
+          : undefined,
+    }),
+  );
+  return { serverId: created.id, serverUpdatedAt: toIso(created.updatedAt) };
+}
+
+function parseFormAnswersFromFlatPayload(
+  payload: Record<string, unknown>,
+  fields: readonly {
+    readonly key: string;
+    readonly type: string;
+    readonly items?: readonly { readonly key: string }[];
+  }[],
+): Record<string, unknown> {
+  const answers: Record<string, unknown> = {};
+  for (const field of fields) {
+    const name = `answer_${field.key}`;
+    switch (field.type) {
+      case 'checklist': {
+        const checked: Record<string, boolean> = {};
+        for (const item of field.items ?? []) {
+          const raw = payload[`${name}__${item.key}`];
+          checked[item.key] = raw === true || raw === 'true' || raw === 'on';
+        }
+        answers[field.key] = checked;
+        break;
+      }
+      case 'yes_no': {
+        const raw = optionalString(payload, name);
+        answers[field.key] = raw === 'yes' ? true : raw === 'no' ? false : null;
+        break;
+      }
+      case 'photo': {
+        const raw = optionalString(payload, name);
+        if (!raw) {
+          answers[field.key] = { documentIds: [] };
+          break;
+        }
+        try {
+          answers[field.key] = JSON.parse(raw);
+        } catch {
+          answers[field.key] = { documentIds: [] };
+        }
+        break;
+      }
+      case 'signature': {
+        const raw = payload[name];
+        answers[field.key] = {
+          acknowledged: raw === true || raw === 'true' || raw === 'on',
+        };
+        break;
+      }
+      default:
+        answers[field.key] = optionalString(payload, name);
+    }
+  }
+  return answers;
+}
+
 /**
  * Apply a queued offline draft via existing application modules.
  * Capture blobs are uploaded by the client transport before/alongside this.
@@ -586,6 +705,8 @@ export async function submitOfflineDraftAction(input: {
         return await submitPunch(action);
       case 'inspection':
         return await submitInspection(action);
+      case 'form_submission':
+        return await submitFormSubmissionDraft(action);
       case 'capture':
         throw new OfflineSyncSubmitError(
           'Capture drafts must be submitted by the client transport with the blob.',

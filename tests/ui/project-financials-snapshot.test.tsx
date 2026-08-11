@@ -51,6 +51,10 @@ function buildFinancials(): ProjectFinancials {
       new Date('2026-01-01'),
       [{ reason: 'foreign_currency_expenses_excluded', count: 1 }],
     ),
+    dataConfidence: {
+      level: 'medium',
+      reasons: ['foreign_currency_excluded'],
+    },
   };
 }
 
@@ -65,6 +69,12 @@ describe('ProjectFinancialsSnapshotView', () => {
       'kpis.forecastMargin': 'Forecast Margin',
       actualCostToDate: 'Actual cost to date',
       estimatedProfit: 'Estimated profit',
+      'confidence.title': 'Data confidence',
+      'confidence.levels.medium': 'Medium',
+      'confidence.levels.high': 'High',
+      'confidence.levels.needs_data': 'Needs data',
+      'confidence.highHint': 'No known incompleteness',
+      'confidence.reasons.foreign_currency_excluded': 'FX excluded',
     };
     return labels[key] ?? key;
   };

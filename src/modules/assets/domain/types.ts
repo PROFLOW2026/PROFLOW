@@ -91,3 +91,41 @@ export interface InventoryMovementRecord {
   readonly createdAt: Date;
   readonly updatedAt: Date;
 }
+
+/** Operational material consumption — not Actual cost. */
+export interface MaterialUsageRecord {
+  readonly id: string;
+  readonly organizationId: string;
+  readonly projectId: string;
+  readonly materialId: string | null;
+  readonly inventoryItemId: string | null;
+  readonly description: string;
+  readonly quantity: string;
+  readonly unit: string | null;
+  readonly usageDate: string;
+  readonly employeeId: string | null;
+  readonly notes: string | null;
+  readonly createdByUserId: string | null;
+  readonly archivedAt: Date | null;
+  readonly createdAt: Date;
+  readonly updatedAt: Date;
+}
+
+/** Equipment / vehicle usage — assignment itself does not create Actual. */
+export interface EquipmentUsageRecord {
+  readonly id: string;
+  readonly organizationId: string;
+  readonly projectId: string;
+  readonly assetId: string;
+  readonly usageDate: string;
+  readonly endDate: string | null;
+  readonly hours: string | null;
+  readonly days: string | null;
+  readonly mileage: string | null;
+  readonly employeeId: string | null;
+  readonly notes: string | null;
+  readonly createdByUserId: string | null;
+  readonly archivedAt: Date | null;
+  readonly createdAt: Date;
+  readonly updatedAt: Date;
+}

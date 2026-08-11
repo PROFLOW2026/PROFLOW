@@ -110,4 +110,35 @@ describe('row validation', () => {
     ]);
     expect(rowHasErrors(rows[0]!)).toBe(false);
   });
+
+  it('accepts contacts and rejects financial columns on projects', () => {
+    const contacts = validateMappedRows('contacts', [
+      { rowNumber: 2, values: { clientName: 'Acme', name: 'Dana' } },
+    ]);
+    expect(rowHasErrors(contacts[0]!)).toBe(false);
+
+    const projects = validateMappedRows('projects', [
+      {
+        rowNumber: 2,
+        values: { name: 'Site A', workKind: 'job', contractValueAmount: '1000' },
+      },
+    ]);
+    expect(rowHasErrors(projects[0]!)).toBe(true);
+    expect(projects[0]!.issues.some((i) => i.message.includes('opening_values'))).toBe(true);
+  });
+
+  it('validates opening values and cost categories', () => {
+    const opening = validateMappedRows('opening_values', [
+      {
+        rowNumber: 2,
+        values: { projectName: 'Site A', contractValueAmount: '50000' },
+      },
+    ]);
+    expect(rowHasErrors(opening[0]!)).toBe(false);
+
+    const categories = validateMappedRows('cost_categories', [
+      { rowNumber: 2, values: { name: 'Cable', family: 'direct_project' } },
+    ]);
+    expect(rowHasErrors(categories[0]!)).toBe(false);
+  });
 });

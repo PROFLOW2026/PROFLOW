@@ -11,7 +11,9 @@ import { PrefetchOnIntentLink } from '@/components/ui/prefetch-on-intent-link';
 import { textNavLinkClassName } from '@/components/ui/pressable';
 import { cn } from '@/shared/ui/cn';
 import type { HomeDashboardData } from '../application/get-home-dashboard';
+import type { DataConfidenceLevel, DataConfidenceReason } from '../domain/data-confidence';
 import { mapCoverageToSources, partialNote, standalonePartialNotes } from './map-coverage-sources';
+import { DataConfidenceBadge } from './data-confidence-badge';
 
 interface HomeDashboardContentProps {
   data: HomeDashboardData;
@@ -23,18 +25,44 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
   const tNav = await getTranslations('nav');
 
   if (data.isBrandNew) {
+    const startKind = data.emptyStartKind ?? 'project';
+    const emptyHref =
+      startKind === 'work_order'
+        ? '/work-orders/new'
+        : startKind === 'job'
+          ? '/jobs/new'
+          : '/projects/new';
+    const emptyCopy =
+      startKind === 'work_order'
+        ? {
+            title: t('empty.workOrder.title'),
+            body: t('empty.workOrder.body'),
+            action: t('empty.workOrder.action'),
+          }
+        : startKind === 'job'
+          ? {
+              title: t('empty.job.title'),
+              body: t('empty.job.body'),
+              action: t('empty.job.action'),
+            }
+          : {
+              title: t('empty.title'),
+              body: t('empty.body'),
+              action: t('empty.action'),
+            };
+
     return (
       <EmptyState
         icon={FolderKanban}
-        title={t('empty.title')}
-        description={t('empty.body')}
+        title={emptyCopy.title}
+        description={emptyCopy.body}
         action={
           <div className="flex flex-col gap-2 sm:flex-row">
             {data.canCreateProject ? (
               <Button asChild>
-                <Link href="/projects/new" prefetch={false}>
+                <Link href={emptyHref} prefetch={false}>
                   <Plus aria-hidden />
-                  {t('empty.action')}
+                  {emptyCopy.action}
                 </Link>
               </Button>
             ) : null}
@@ -79,9 +107,26 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
         data.forecast ||
         data.showBilling) && (
         <section className="min-w-0 max-w-full">
-          <h2 className="mb-3 text-sm font-semibold text-[var(--pf-text-secondary)]">
-            {t('businessSummary.title')}
-          </h2>
+          <div className="mb-3 flex min-w-0 flex-wrap items-center justify-between gap-2">
+            <h2 className="text-sm font-semibold text-[var(--pf-text-secondary)]">
+              {t('businessSummary.title')}
+            </h2>
+            {data.dataConfidence ? (
+              <DataConfidenceBadge
+                level={data.dataConfidence.level as DataConfidenceLevel}
+                label={tFinancial(`confidence.levels.${data.dataConfidence.level}`)}
+                title={
+                  data.dataConfidence.reasons.length === 0
+                    ? tFinancial('confidence.highHint')
+                    : data.dataConfidence.reasons
+                        .map((reason) =>
+                          tFinancial(`confidence.reasons.${reason as DataConfidenceReason}`),
+                        )
+                        .join(' · ')
+                }
+              />
+            ) : null}
+          </div>
           <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {data.activeProjectCount > 0 ? (
               <KpiCard title={t('activeProjects')} value={String(data.activeProjectCount)} />

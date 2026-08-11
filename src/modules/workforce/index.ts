@@ -51,6 +51,10 @@ export {
 export { getProjectLaborCost } from './application/project-labor-cost';
 export type { ProjectLaborCostSummary } from './application/project-labor-cost';
 
+/** Cross-module org-scoped lookups (FK / assignment seeds). */
+export { findEmployeeById } from './data/employees.repository';
+export { insertEmployeeProjectAssignment } from './data/project-team.repository';
+
 export {
   canClockAttendance,
   canManageAttendanceRecords,

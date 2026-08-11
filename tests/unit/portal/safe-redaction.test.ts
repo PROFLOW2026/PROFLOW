@@ -5,6 +5,7 @@ import {
   buildCustomerSafeDocuments,
   buildCustomerSafeMilestones,
   buildCustomerSafeProjectSummary,
+  buildCustomerSafeQuotes,
   CUSTOMER_PORTAL_NEVER_EXPOSED,
   normalizeCustomerScopes,
 } from '@/modules/portal/domain/safe-project-summary';
@@ -26,6 +27,7 @@ describe('customer safe-project-summary redaction', () => {
   it('documents never-exposed financial and internal fields', () => {
     expect(CUSTOMER_PORTAL_NEVER_EXPOSED).toEqual(
       expect.arrayContaining([
+        'actual',
         'profit',
         'margin',
         'trueCost',
@@ -33,8 +35,50 @@ describe('customer safe-project-summary redaction', () => {
         'overhead',
         'supplierPricing',
         'internalNotes',
+        'estimatedCost',
+        'estimatedMargin',
       ]),
     );
+  });
+
+  it('customer quotes strip cost/margin and hide drafts', () => {
+    const quotes = buildCustomerSafeQuotes([
+      {
+        id: 'q1',
+        title: 'Facade bid',
+        status: 'sent',
+        currency: 'ILS',
+        totalAmount: '12000.00',
+        validityDate: '2026-09-01',
+        sentAt: new Date('2026-08-01T10:00:00Z'),
+        estimatedCostAmount: '9000.00',
+        estimatedMarginPercent: '25',
+        notes: 'internal',
+      },
+      {
+        id: 'q2',
+        title: 'Draft only',
+        status: 'draft',
+        currency: 'ILS',
+        totalAmount: '1.00',
+        validityDate: null,
+        sentAt: null,
+        estimatedCostAmount: '1.00',
+      },
+    ]);
+    expect(quotes).toHaveLength(1);
+    expect(quotes[0]).toEqual({
+      quoteId: 'q1',
+      title: 'Facade bid',
+      status: 'sent',
+      currency: 'ILS',
+      totalAmount: '12000.00',
+      validityDate: '2026-09-01',
+      sentAt: '2026-08-01T10:00:00.000Z',
+    });
+    expect(() =>
+      assertNoSensitiveCustomerFields(quotes[0] as unknown as Record<string, unknown>),
+    ).not.toThrow();
   });
 
   it('redacts cost/margin and gates billing + milestones by scope', () => {

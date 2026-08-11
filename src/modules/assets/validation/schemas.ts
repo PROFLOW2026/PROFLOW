@@ -198,3 +198,82 @@ export const recordInventoryMovementSchema = z
 export type RecordInventoryMovementInput = z.input<typeof recordInventoryMovementSchema>;
 
 export const inventoryMovementTypeSchema = z.enum(INVENTORY_MOVEMENT_TYPES);
+
+const optionalNonNegativeQuantity = z.preprocess(
+  emptyToNull,
+  z
+    .string()
+    .trim()
+    .regex(/^\d+(\.\d+)?$/, 'Must be a non-negative number')
+    .refine((value) => Number(value) >= 0, 'Must be non-negative')
+    .nullable()
+    .optional(),
+);
+
+/**
+ * Operational material consumption. Never posts Actual / Expense / GL.
+ * Description is required; material and/or inventory item are optional refs.
+ */
+export const recordMaterialUsageSchema = z
+  .object({
+    projectId: z.string().uuid(),
+    description: z.string().trim().min(1, 'Description is required').max(500),
+    quantity: requiredQuantity,
+    unit: optionalText,
+    usageDate: requiredDate,
+    materialId: optionalUuid,
+    inventoryItemId: optionalUuid,
+    employeeId: optionalUuid,
+    notes: optionalText,
+  })
+  .superRefine((data, ctx) => {
+    if (!data.materialId && !data.inventoryItemId && !data.description.trim()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['description'],
+        message: 'Provide a description or link a material / inventory item',
+      });
+    }
+  });
+
+export type RecordMaterialUsageInput = z.input<typeof recordMaterialUsageSchema>;
+
+/**
+ * Equipment / vehicle usage on a project/job/WO.
+ * Does not create Actual; optional hours / days / mileage metrics.
+ */
+export const recordEquipmentUsageSchema = z
+  .object({
+    projectId: z.string().uuid(),
+    assetId: z.string().uuid(),
+    usageDate: requiredDate,
+    endDate: optionalDate,
+    hours: optionalNonNegativeQuantity,
+    days: optionalNonNegativeQuantity,
+    mileage: optionalNonNegativeQuantity,
+    employeeId: optionalUuid,
+    notes: optionalText,
+  })
+  .superRefine((data, ctx) => {
+    if (data.endDate && data.endDate < data.usageDate) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['endDate'],
+        message: 'End date must be on or after start date',
+      });
+    }
+  });
+
+export type RecordEquipmentUsageInput = z.input<typeof recordEquipmentUsageSchema>;
+
+export const archiveMaterialUsageSchema = z.object({
+  materialUsageId: z.string().uuid(),
+});
+
+export type ArchiveMaterialUsageInput = z.input<typeof archiveMaterialUsageSchema>;
+
+export const archiveEquipmentUsageSchema = z.object({
+  equipmentUsageId: z.string().uuid(),
+});
+
+export type ArchiveEquipmentUsageInput = z.input<typeof archiveEquipmentUsageSchema>;

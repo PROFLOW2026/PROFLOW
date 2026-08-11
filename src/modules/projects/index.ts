@@ -133,6 +133,7 @@ export {
   WORK_KINDS,
   PRICING_MODES,
   DEFAULT_WORK_PACKAGE_NAME,
+  usesJobStylePricing,
 } from './domain/types';
 export type {
   ProjectStatus,
@@ -201,5 +202,6 @@ export { findProjectById } from './data/projects.repository';
 export {
   findWorkPackageById,
   listWorkPackagesForProjects,
+  insertWorkPackage,
 } from './data/work-packages.repository';
 export { findPhaseById } from './data/phases.repository';

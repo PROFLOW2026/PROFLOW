@@ -44,8 +44,9 @@ export const projects = pgTable(
     name: text('name').notNull(),
     status: projectStatusEnum('status').notNull().default('active'),
     /**
-     * `project` = large/normal project UX; `job` = short/daily work UX.
-     * Same financial entity — mode changes UX/required fields, not the engine.
+     * `project` = large/normal project UX; `job` = short/daily work UX;
+     * `work_order` = service/dispatch UX. Same financial entity — mode changes
+     * UX/required fields, not the engine.
      */
     workKind: text('work_kind').notNull().default('project'),
     /**
@@ -103,7 +104,7 @@ export const projects = pgTable(
       'projects_expected_remaining_cost_non_negative',
       sql`${table.expectedRemainingCostAmount} IS NULL OR ${table.expectedRemainingCostAmount} >= 0`,
     ),
-    check('projects_work_kind_known', sql`${table.workKind} IN ('project', 'job')`),
+    check('projects_work_kind_known', sql`${table.workKind} IN ('project', 'job', 'work_order')`),
     check(
       'projects_pricing_mode_known',
       sql`${table.pricingMode} IS NULL OR ${table.pricingMode} IN ('fixed', 'open')`,
@@ -169,6 +170,7 @@ export const workPackages = pgTable(
     ...timestamps(),
   },
   (table) => [
+    uniqueIndex('work_packages_id_organization_id_uq').on(table.id, table.organizationId),
     uniqueIndex('work_packages_id_organization_id_project_id_uq').on(
       table.id,
       table.organizationId,

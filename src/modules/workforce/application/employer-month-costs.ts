@@ -345,6 +345,9 @@ export async function applyMonthlyEmployerCostAllocation(
 
   await assertEmployeeMonthCostWritable(context, parsed.data.employeeId);
 
+  const { assertMonthOpenForRewrite } = await import('@/modules/month-close');
+  await assertMonthOpenForRewrite(context, parsed.data.yearMonth);
+
   return withTransaction(context.db, async (tx) => {
     const month = await findEmployeeMonthCostByEmployeeMonth(
       tx,

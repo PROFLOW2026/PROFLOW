@@ -12,9 +12,11 @@ export interface WorkKindPricingFields {
   readonly pricingMode: PricingMode | null;
 }
 
-/** Open-price job: costs may accumulate; no revenue / margin basis yet. */
+/** Open-price job / work order: costs may accumulate; no revenue / margin basis yet. */
 export function isOpenPriceJob(input: WorkKindPricingFields): boolean {
-  return input.workKind === 'job' && input.pricingMode === 'open';
+  return (
+    (input.workKind === 'job' || input.workKind === 'work_order') && input.pricingMode === 'open'
+  );
 }
 
 /**
@@ -26,7 +28,12 @@ export function isJobProfitDefined(input: {
   readonly pricingMode: PricingMode | null;
   readonly currentContractNet: MoneyValue | null | undefined;
 }): boolean {
-  if (input.workKind === 'job' && input.pricingMode === 'open') return false;
+  if (
+    (input.workKind === 'job' || input.workKind === 'work_order') &&
+    input.pricingMode === 'open'
+  ) {
+    return false;
+  }
   if (!input.currentContractNet) return false;
   return true;
 }

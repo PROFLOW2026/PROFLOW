@@ -16,6 +16,10 @@ import {
 } from '../domain/work-pricing';
 import type { ProjectExpenseContribution } from '../domain/cost-aggregation';
 import {
+  mergeDataConfidence,
+  type DataConfidence,
+} from '../domain/data-confidence';
+import {
   loadProjectFinancialsBatch,
   type ProjectForecastMeta,
 } from './load-project-financials-batch';
@@ -98,7 +102,16 @@ export interface OrganizationProjectRollup {
   readonly canReadProfit: boolean;
   readonly canReadBilling: boolean;
   readonly canReadCommercial: boolean;
+  /**
+   * Worst-of project DATA CONFIDENCE across eligible rows (FX exclusions included).
+   * Unallocated org remainder is applied by callers that know the expense layer.
+   */
+  readonly dataConfidence: {
+    readonly level: 'high' | 'medium' | 'needs_data';
+    readonly reasons: readonly string[];
+  };
 }
+
 
 /**
  * Org-level project/job comparison for reporting (docs 29, 46).
@@ -270,6 +283,23 @@ export async function getOrganizationProjectRollup(
 
   const allRows = filterRowsByWorkKind(builtRows, workKindFilter);
 
+  const projectConfidences: DataConfidence[] = [];
+  for (const projectId of eligibleIds) {
+    const financials = financialsByProject.get(projectId);
+    if (!financials?.dataConfidence) continue;
+    projectConfidences.push({
+      level: financials.dataConfidence.level,
+      reasons: financials.dataConfidence.reasons as DataConfidence['reasons'],
+    });
+  }
+  if (excludedForeignCurrencyCount > 0) {
+    projectConfidences.push({
+      level: 'medium',
+      reasons: ['foreign_currency_excluded'],
+    });
+  }
+  const dataConfidence = mergeDataConfidence(projectConfidences);
+
   for (const row of allRows) {
     if (row.progressPercent != null && row.progressPercent !== '') {
       const parsed = Number(row.progressPercent);
@@ -318,5 +348,6 @@ export async function getOrganizationProjectRollup(
     canReadProfit: canProfit,
     canReadBilling: canBilling,
     canReadCommercial: canCommercial,
+    dataConfidence,
   };
 }

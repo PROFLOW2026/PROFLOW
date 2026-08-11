@@ -61,7 +61,8 @@ export async function createProject(
   );
 
   const workKind = input.workKind ?? 'project';
-  const pricingMode = workKind === 'job' ? (input.pricingMode ?? null) : null;
+  const pricingMode =
+    workKind === 'job' || workKind === 'work_order' ? (input.pricingMode ?? null) : null;
 
   const project = await insertProject(context.db, {
     organizationId: context.organizationId,
@@ -97,10 +98,10 @@ export async function createProject(
     });
   }
 
-  // Open-price jobs must not invent a zero-revenue contract.
+  // Open-price jobs / work orders must not invent a zero-revenue contract.
   const shouldUpsertContract =
     Boolean(input.contractValueAmount) &&
-    !(workKind === 'job' && pricingMode === 'open');
+    !((workKind === 'job' || workKind === 'work_order') && pricingMode === 'open');
 
   if (shouldUpsertContract && input.contractValueAmount) {
     await upsertPrimaryContractAmount(context, {

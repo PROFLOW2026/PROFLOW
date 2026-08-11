@@ -36,6 +36,7 @@ describe('project workspace links', () => {
       projectId: 'p1',
       modules: {
         billing: true,
+        budgets: true,
         procurement: true,
         field_ops: true,
         compliance: true,
@@ -43,6 +44,7 @@ describe('project workspace links', () => {
       },
       permissions: new Set([
         PERMISSIONS.BILLING_READ,
+        PERMISSIONS.BUDGETS_READ,
         PERMISSIONS.PROCUREMENT_READ,
         PERMISSIONS.AP_READ,
         PERMISSIONS.FIELD_OPS_READ,
@@ -57,6 +59,7 @@ describe('project workspace links', () => {
     const keys = links.map((link) => link.key);
     expect(keys).toContain('financials');
     expect(keys).toContain('billing');
+    expect(keys).toContain('budgets');
     expect(keys).toContain('work');
     expect(keys).toContain('schedule');
     expect(keys).toContain('procurement');

@@ -18,6 +18,7 @@ import {
 } from '@/modules/identity';
 import {
   getModuleVisibility,
+  getQuickCreateEmphasisForOrg,
   getWorkMixForOrg,
   listMembershipsForUser,
   resolveOrgContext,
@@ -169,9 +170,10 @@ export const getShellContext = cache(async () => {
 
   try {
     return await runInOrgContext(session.user.id, session.activeOrganizationId, async (context) => {
-      const [modules, workMix] = await Promise.all([
+      const [modules, workMix, quickCreateEmphasis] = await Promise.all([
         getModuleVisibility(context),
         getWorkMixForOrg(context),
+        getQuickCreateEmphasisForOrg(context.db, context.organizationId),
       ]);
       return {
         user: session.user,
@@ -182,6 +184,7 @@ export const getShellContext = cache(async () => {
         roleKeys: context.roleKeys,
         modules,
         workMix,
+        quickCreateEmphasis,
       };
     });
   } catch (error) {

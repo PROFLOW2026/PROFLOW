@@ -27,6 +27,12 @@ export {
 } from './domain/column-mapping';
 export { fieldDefsForKind, requiredFieldKeys } from './domain/field-defs';
 export {
+  buildImportTemplateCsv,
+  importTemplateFileName,
+  importTemplateHeaders,
+  importTemplateExampleRows,
+} from './domain/templates';
+export {
   buildImportIssuesReportCsv,
   buildImportConfirmFailuresCsv,
 } from './domain/error-report';

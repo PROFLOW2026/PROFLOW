@@ -19,6 +19,8 @@ export type ProjectFinancialsWithOptionalKpis = ProjectFinancials & {
     readonly forecastMargin?: MoneyValue;
     readonly forecastMarginPercent?: string | null;
   }) | null;
+  /** Transitional payloads may omit confidence until compose attaches it. */
+  readonly dataConfidence?: ProjectFinancials['dataConfidence'];
 };
 
 export interface ResolvedProjectKpis {

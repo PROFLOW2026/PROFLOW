@@ -55,10 +55,42 @@ export {
 } from './domain/profession-presets';
 export type { ProfessionPresetKey, ProfessionPreset } from './domain/profession-presets';
 export {
+  BUSINESS_PROFILE_KEYS,
+  BUSINESS_PROFILES,
+  BUSINESS_PROFILE_SETTING_KEY,
+  TERMINOLOGY_SETTING_KEY,
+  QUICK_CREATE_EMPHASIS_SETTING_KEY,
+  SUGGESTED_DEFAULTS_SETTING_KEY,
+  getBusinessProfile,
+  isBusinessProfileKey,
+  resolveBusinessProfileKey,
+  parseTerminology,
+  parseQuickCreateEmphasis,
+  parseSuggestedDefaults,
+  terminologyLabel,
+  LEGACY_PROFESSION_TO_BUSINESS_PROFILE,
+} from './domain/business-profiles';
+export type {
+  BusinessProfileKey,
+  BusinessProfile,
+  WorkTerminologyLabels,
+  QuickCreateEmphasisKey,
+  SuggestedBusinessDefaults,
+} from './domain/business-profiles';
+export {
   applyProfessionPreset,
   suggestedWorkPackageNames,
 } from './application/apply-profession-preset';
+export {
+  applyBusinessProfileConfig,
+  getBusinessProfileKeyForOrg,
+  getTerminologyForOrg,
+  getQuickCreateEmphasisForOrg,
+  getSuggestedDefaultsForOrg,
+  orderQuickCreateActions,
+} from './application/apply-business-profile';
 export { applyOrganizationProfessionPreset } from './application/apply-organization-profession-preset';
+export { applyOrganizationBusinessProfile } from './application/apply-organization-business-profile';
 export {
   listOrganizationServiceDomains,
   listOrganizationDocumentTypes,

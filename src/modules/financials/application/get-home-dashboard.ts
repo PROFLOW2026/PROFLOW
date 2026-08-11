@@ -5,12 +5,23 @@ import {
   sumMonthlyAllocatedLaborByProject,
   sumOrganizationProjectLaborCoverage,
 } from '@/modules/workforce';
+import {
+  getModuleVisibility,
+  getSuggestedDefaultsForOrg,
+  getWorkMixForOrg,
+  workMixSurfacesJobs,
+} from '@/modules/tenancy';
 import type { CostSourceKey, FinancialCoverage } from '@/modules/financials/domain/types';
 import type { OrgContext } from '@/shared/auth/context';
 import { endOfMonth, startOfMonth, todayInTimeZone } from '@/shared/dates';
 import { addMoney, fromNumericString, isZeroMoney, zeroMoney, type MoneyValue } from '@/shared/money';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
+import {
+  mergeDataConfidence,
+  dataConfidenceFromCoverage,
+  type DataConfidence,
+} from '../domain/data-confidence';
 import { buildFinancialCoverage, mergeCoveragePartials } from '../domain/coverage';
 import type { CoveragePartial } from '../domain/types';
 import { aggregateProjectCosts } from '../domain/cost-aggregation';
@@ -101,6 +112,13 @@ export interface HomeDashboardData {
   readonly showProfit: boolean;
   readonly canCreateProject: boolean;
   readonly canCreateExpense: boolean;
+  /**
+   * Brand-new empty CTA: which work surface to start with (profile / work mix).
+   * Always set so the dashboard empty state stays honest for jobs/service orgs.
+   */
+  readonly emptyStartKind: 'project' | 'job' | 'work_order';
+  /** Org-scope DATA CONFIDENCE (worst-of projects + unallocated / FX). */
+  readonly dataConfidence: DataConfidence | null;
 }
 
 export interface HomeDashboardOptions {
@@ -124,6 +142,33 @@ export async function getHomeDashboard(
   const canCreateProject = hasPermission(context, PERMISSIONS.PROJECTS_CREATE);
   const canCreateExpense = hasPermission(context, PERMISSIONS.EXPENSES_CREATE);
   const canReadExpenses = hasPermission(context, PERMISSIONS.EXPENSES_READ);
+  const canCreateService = hasPermission(context, PERMISSIONS.SERVICE_MANAGE);
+
+  const [workMix, suggestedDefaults, modules] = await Promise.all([
+    getWorkMixForOrg(context),
+    getSuggestedDefaultsForOrg(context.db, context.organizationId),
+    getModuleVisibility(context),
+  ]);
+
+  const jobsReachable = Boolean(modules.jobs) || workMixSurfacesJobs(workMix);
+  const serviceReachable = Boolean(modules.service) && canCreateService;
+  let emptyStartKind: 'project' | 'job' | 'work_order' = 'project';
+  if (
+    serviceReachable &&
+    canCreateProject &&
+    (suggestedDefaults?.preferServiceSurface ||
+      suggestedDefaults?.defaultWorkKind === 'work_order')
+  ) {
+    emptyStartKind = 'work_order';
+  } else if (
+    canCreateProject &&
+    jobsReachable &&
+    (workMix === 'jobs' ||
+      suggestedDefaults?.defaultWorkKind === 'job' ||
+      suggestedDefaults?.defaultWorkKind === 'work_order')
+  ) {
+    emptyStartKind = 'job';
+  }
 
   // Kick off org financial rollup in parallel with existence probes.
   // Brand-new orgs discard the result — empty rollup is cheap; warm path saves a full wave.
@@ -199,6 +244,8 @@ export async function getHomeDashboard(
       showProfit: false,
       canCreateProject,
       canCreateExpense,
+      emptyStartKind,
+      dataConfidence: null,
     };
   }
 
@@ -344,6 +391,36 @@ export async function getHomeDashboard(
     };
   }
 
+  const dataConfidencePieces: DataConfidence[] = [];
+  if (rollup?.dataConfidence) {
+    dataConfidencePieces.push({
+      level: rollup.dataConfidence.level,
+      reasons: rollup.dataConfidence.reasons as DataConfidence['reasons'],
+    });
+  }
+  if (costCoverage) {
+    dataConfidencePieces.push(
+      dataConfidenceFromCoverage(costCoverage, {
+        unallocatedRemainder: unallocatedBusinessCosts,
+      }),
+    );
+  } else if (unallocatedBusinessCosts && !isZeroMoney(unallocatedBusinessCosts)) {
+    dataConfidencePieces.push(
+      dataConfidenceFromCoverage(buildFinancialCoverage([], new Date()), {
+        unallocatedRemainder: unallocatedBusinessCosts,
+      }),
+    );
+  }
+  if (billingCoverage) {
+    dataConfidencePieces.push(dataConfidenceFromCoverage(billingCoverage));
+  }
+  const dataConfidence =
+    canReadFinancials && dataConfidencePieces.length > 0
+      ? mergeDataConfidence(dataConfidencePieces)
+      : canReadFinancials
+        ? ({ level: 'high', reasons: [] } satisfies DataConfidence)
+        : null;
+
   return {
     isBrandNew,
     activeProjectCount,
@@ -367,6 +444,8 @@ export async function getHomeDashboard(
     showProfit: canReadProfit && estimatedProfit !== null,
     canCreateProject,
     canCreateExpense,
+    emptyStartKind,
+    dataConfidence,
   };
 }
 

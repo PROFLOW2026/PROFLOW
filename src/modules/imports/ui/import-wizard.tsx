@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState, useTransition } from 'react';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { ResponsiveTable } from '@/components/patterns/responsive-table';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -32,6 +32,11 @@ import {
   buildImportConfirmFailuresCsv,
   buildImportIssuesReportCsv,
 } from '@/modules/imports/domain/error-report';
+import {
+  buildImportTemplateCsv,
+  importTemplateFileName,
+} from '@/modules/imports/domain/templates';
+import { rowHasErrors } from '@/modules/imports/domain/row-has-errors';
 import {
   confirmImportAction,
   parseImportFileAction,
@@ -71,22 +76,31 @@ function fileToBase64(file: File): Promise<string> {
 
 export function ImportWizard({ allowedKinds }: ImportWizardProps) {
   const t = useTranslations('imports');
+  const locale = useLocale();
   const [step, setStep] = useState<Step>('upload');
   const [kind, setKind] = useState<EnabledImportKind | ''>(allowedKinds[0] ?? '');
   const [csvText, setCsvText] = useState('');
   const [fileName, setFileName] = useState<string | null>(null);
   const [preview, setPreview] = useState<ImportPreview | null>(null);
   const [mapping, setMapping] = useState<ColumnMapping>({});
+  const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set());
   const [result, setResult] = useState<ImportConfirmResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
   const fieldKeys = useMemo(() => Object.keys(mapping), [mapping]);
 
+  const selectedValidCount = useMemo(() => {
+    if (!preview) return 0;
+    return preview.rows.filter((row) => selectedRows.has(row.rowNumber) && !rowHasErrors(row))
+      .length;
+  }, [preview, selectedRows]);
+
   function onFile(file: File | null) {
     setError(null);
     setResult(null);
     setPreview(null);
+    setSelectedRows(new Set());
     if (!file) {
       setCsvText('');
       setFileName(null);
@@ -132,18 +146,27 @@ export function ImportWizard({ allowedKinds }: ImportWizardProps) {
       }
       setPreview(response.preview);
       setMapping(response.preview.mapping);
+      const valid = response.preview.rows
+        .filter((row) => !rowHasErrors(row))
+        .map((row) => row.rowNumber);
+      setSelectedRows(new Set(valid));
       setStep(nextMapping ? 'preview' : 'mapping');
     });
   }
 
   function runConfirm() {
     if (!kind || !preview) return;
+    if (selectedValidCount === 0) {
+      setError(t('errors.nothingSelected'));
+      return;
+    }
     setError(null);
     startTransition(async () => {
       const response = await confirmImportAction({
         kind,
         csvText,
         mapping,
+        rowNumbers: [...selectedRows],
       });
       if (!response.ok) {
         setError(response.error);
@@ -160,8 +183,26 @@ export function ImportWizard({ allowedKinds }: ImportWizardProps) {
     setFileName(null);
     setPreview(null);
     setMapping({});
+    setSelectedRows(new Set());
     setResult(null);
     setError(null);
+  }
+
+  function toggleRow(rowNumber: number, checked: boolean) {
+    setSelectedRows((prev) => {
+      const next = new Set(prev);
+      if (checked) next.add(rowNumber);
+      else next.delete(rowNumber);
+      return next;
+    });
+  }
+
+  function downloadTemplate() {
+    if (!kind) {
+      setError(t('errors.chooseKind'));
+      return;
+    }
+    downloadText(importTemplateFileName(kind, locale), buildImportTemplateCsv(kind));
   }
 
   if (allowedKinds.length === 0) {
@@ -205,6 +246,7 @@ export function ImportWizard({ allowedKinds }: ImportWizardProps) {
               onValueChange={(value) => {
                 setKind(value as EnabledImportKind);
                 setPreview(null);
+                setSelectedRows(new Set());
                 setStep('upload');
               }}
             >
@@ -219,6 +261,14 @@ export function ImportWizard({ allowedKinds }: ImportWizardProps) {
                 ))}
               </SelectContent>
             </Select>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <Label>{t('templateLabel')}</Label>
+            <p className="text-sm text-[var(--pf-text-secondary)]">{t('templateHint')}</p>
+            <Button type="button" variant="secondary" disabled={!kind} onClick={downloadTemplate}>
+              {t('actions.downloadTemplate')}
+            </Button>
           </div>
 
           <div className="flex flex-col gap-2">
@@ -239,6 +289,8 @@ export function ImportWizard({ allowedKinds }: ImportWizardProps) {
 
           {kind === 'expenses' ? (
             <p className="text-sm text-[var(--pf-text-secondary)]">{t('expensesSafeHint')}</p>
+          ) : kind === 'opening_values' ? (
+            <p className="text-sm text-[var(--pf-text-secondary)]">{t('openingValuesHint')}</p>
           ) : (
             <p className="text-sm text-[var(--pf-text-secondary)]">{t('nonFinancialHint')}</p>
           )}
@@ -310,8 +362,34 @@ export function ImportWizard({ allowedKinds }: ImportWizardProps) {
                 valid: preview.validCount,
                 errors: preview.errorCount,
                 warnings: preview.warningCount,
+                selected: selectedValidCount,
               })}
             </p>
+          </div>
+          <p className="text-sm text-[var(--pf-text-secondary)]">{t('preview.skipHint')}</p>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              onClick={() =>
+                setSelectedRows(
+                  new Set(
+                    preview.rows.filter((row) => !rowHasErrors(row)).map((row) => row.rowNumber),
+                  ),
+                )
+              }
+            >
+              {t('preview.selectValid')}
+            </Button>
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              onClick={() => setSelectedRows(new Set(preview.rows.map((row) => row.rowNumber)))}
+            >
+              {t('preview.selectAll')}
+            </Button>
           </div>
 
           <ResponsiveTable
@@ -322,86 +400,108 @@ export function ImportWizard({ allowedKinds }: ImportWizardProps) {
                 <Table>
                   <TableHeader>
                     <TableRow>
+                      <TableHead>{t('preview.include')}</TableHead>
                       <TableHead>{t('preview.row')}</TableHead>
                       <TableHead>{t('preview.values')}</TableHead>
                       <TableHead>{t('preview.issues')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {previewRows.map((row) => (
-                      <TableRow key={row.rowNumber}>
-                        <TableCell className="align-top tabular-nums" dir="ltr">
-                          {row.rowNumber}
-                        </TableCell>
-                        <TableCell className="align-top text-xs">
-                          {Object.entries(row.values)
-                            .filter(([, value]) => value)
-                            .map(([key, value]) => (
-                              <div key={key}>
-                                <span className="text-[var(--pf-text-secondary)]">{key}: </span>
-                                {value}
-                              </div>
-                            ))}
-                        </TableCell>
-                        <TableCell className="align-top text-xs">
-                          {row.issues.length === 0 ? (
-                            <span className="text-[var(--pf-text-secondary)]">—</span>
-                          ) : (
-                            row.issues.map((issue, idx) => (
-                              <div
-                                key={`${issue.message}-${idx}`}
-                                className={
-                                  issue.severity === 'error'
-                                    ? 'text-[var(--pf-action-danger)]'
-                                    : 'text-[var(--pf-text-secondary)]'
-                                }
-                              >
-                                {issue.severity === 'error' ? t('preview.error') : t('preview.warning')}
-                                : {issue.message}
-                              </div>
-                            ))
-                          )}
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                    {previewRows.map((row) => {
+                      const hasError = rowHasErrors(row);
+                      return (
+                        <TableRow key={row.rowNumber}>
+                          <TableCell className="align-top">
+                            <input
+                              type="checkbox"
+                              checked={selectedRows.has(row.rowNumber)}
+                              disabled={hasError}
+                              aria-label={`${t('preview.include')} ${row.rowNumber}`}
+                              onChange={(event) => toggleRow(row.rowNumber, event.target.checked)}
+                            />
+                          </TableCell>
+                          <TableCell className="align-top tabular-nums" dir="ltr">
+                            {row.rowNumber}
+                          </TableCell>
+                          <TableCell className="align-top text-xs">
+                            {Object.entries(row.values)
+                              .filter(([, value]) => value)
+                              .map(([key, value]) => (
+                                <div key={key}>
+                                  <span className="text-[var(--pf-text-secondary)]">{key}: </span>
+                                  {value}
+                                </div>
+                              ))}
+                          </TableCell>
+                          <TableCell className="align-top text-xs">
+                            {row.issues.length === 0 ? (
+                              <span className="text-[var(--pf-text-secondary)]">—</span>
+                            ) : (
+                              row.issues.map((issue, idx) => (
+                                <div
+                                  key={`${issue.message}-${idx}`}
+                                  className={
+                                    issue.severity === 'error'
+                                      ? 'text-[var(--pf-action-danger)]'
+                                      : 'text-[var(--pf-text-secondary)]'
+                                  }
+                                >
+                                  {issue.severity === 'error' ? t('preview.error') : t('preview.warning')}
+                                  : {issue.message}
+                                </div>
+                              ))
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
                   </TableBody>
                 </Table>
               </div>
             }
-            renderMobileCard={(row) => (
-              <div className="min-h-11 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4 text-sm">
-                <p className="font-semibold">
-                  {t('preview.row')} <span dir="ltr">{row.rowNumber}</span>
-                </p>
-                <div className="mt-2 space-y-1 text-xs">
-                  {Object.entries(row.values)
-                    .filter(([, value]) => value)
-                    .map(([key, value]) => (
-                      <div key={key}>
-                        <span className="text-[var(--pf-text-secondary)]">{key}: </span>
-                        {value}
-                      </div>
-                    ))}
-                </div>
-                {row.issues.length > 0 ? (
+            renderMobileCard={(row) => {
+              const hasError = rowHasErrors(row);
+              return (
+                <div className="min-h-11 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4 text-sm">
+                  <label className="flex items-center gap-2 font-semibold">
+                    <input
+                      type="checkbox"
+                      checked={selectedRows.has(row.rowNumber)}
+                      disabled={hasError}
+                      onChange={(event) => toggleRow(row.rowNumber, event.target.checked)}
+                    />
+                    {t('preview.row')} <span dir="ltr">{row.rowNumber}</span>
+                  </label>
                   <div className="mt-2 space-y-1 text-xs">
-                    {row.issues.map((issue, idx) => (
-                      <div
-                        key={`${issue.message}-${idx}`}
-                        className={
-                          issue.severity === 'error'
-                            ? 'text-[var(--pf-action-danger)]'
-                            : 'text-[var(--pf-text-secondary)]'
-                        }
-                      >
-                        {issue.severity === 'error' ? t('preview.error') : t('preview.warning')}:{' '}
-                        {issue.message}
-                      </div>
-                    ))}
+                    {Object.entries(row.values)
+                      .filter(([, value]) => value)
+                      .map(([key, value]) => (
+                        <div key={key}>
+                          <span className="text-[var(--pf-text-secondary)]">{key}: </span>
+                          {value}
+                        </div>
+                      ))}
                   </div>
-                ) : null}
-              </div>
-            )}
+                  {row.issues.length > 0 ? (
+                    <div className="mt-2 space-y-1 text-xs">
+                      {row.issues.map((issue, idx) => (
+                        <div
+                          key={`${issue.message}-${idx}`}
+                          className={
+                            issue.severity === 'error'
+                              ? 'text-[var(--pf-action-danger)]'
+                              : 'text-[var(--pf-text-secondary)]'
+                          }
+                        >
+                          {issue.severity === 'error' ? t('preview.error') : t('preview.warning')}:{' '}
+                          {issue.message}
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
+              );
+            }}
           />
 
           {preview.rows.length > 100 ? (
@@ -420,7 +520,7 @@ export function ImportWizard({ allowedKinds }: ImportWizardProps) {
                 variant="secondary"
                 loading={pending}
                 onClick={() =>
-                  downloadText(`import-issues-${kind}.csv`, buildImportIssuesReportCsv(preview))
+                  downloadText(`import-validation-${kind}.csv`, buildImportIssuesReportCsv(preview))
                 }
               >
                 {t('actions.downloadIssues')}
@@ -429,10 +529,10 @@ export function ImportWizard({ allowedKinds }: ImportWizardProps) {
             <Button
               type="button"
               variant="primary"
-              disabled={pending || preview.validCount === 0}
+              disabled={pending || selectedValidCount === 0}
               onClick={runConfirm}
             >
-              {t('actions.confirm', { count: preview.validCount })}
+              {t('actions.confirm', { count: selectedValidCount })}
             </Button>
           </div>
         </Card>
@@ -442,7 +542,11 @@ export function ImportWizard({ allowedKinds }: ImportWizardProps) {
         <Card className="flex flex-col gap-4 p-5">
           <h2 className="text-sm font-semibold">{t('result.title')}</h2>
           <p className="text-sm" role="status">
-            {t('result.summary', { created: result.created, failed: result.failed })}
+            {t('result.summary', {
+              created: result.created,
+              failed: result.failed,
+              skipped: result.skipped,
+            })}
           </p>
           {result.failed > 0 ? (
             <>

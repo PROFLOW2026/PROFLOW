@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { ConnectivityIndicator } from '@/modules/offline/ui/connectivity-banner';
+import { GlobalSearchLazy } from '@/modules/search/ui/global-search-lazy';
 
 export function TopBar({
   organizationName,
@@ -22,6 +23,7 @@ export function TopBar({
       <div className="min-w-0 flex-1" />
 
       <div className="flex shrink-0 items-center gap-2">
+        <GlobalSearchLazy />
         <ConnectivityIndicator className="hidden sm:inline-flex" />
         {quickCreate}
         {userMenu}

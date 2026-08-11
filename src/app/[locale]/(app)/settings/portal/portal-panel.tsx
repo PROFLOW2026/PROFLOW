@@ -383,6 +383,30 @@ function CustomerSafePreview({
               {t('preview.noMilestones')}
             </div>
           ) : null}
+          {summary.quotes?.length ? (
+            <div className="min-w-0 sm:col-span-2">
+              <dt className="text-[var(--pf-text-secondary)]">{t('preview.fields.quotes')}</dt>
+              <dd>
+                <ul className="mt-1 flex flex-col gap-1">
+                  {summary.quotes.map((quote) => (
+                    <li key={quote.quoteId} className="break-words text-sm">
+                      {quote.title} · {quote.status}
+                      {quote.totalAmount ? (
+                        <span dir="ltr" className="pf-numeric">
+                          {' '}
+                          · {quote.totalAmount} {quote.currency}
+                        </span>
+                      ) : null}
+                    </li>
+                  ))}
+                </ul>
+              </dd>
+            </div>
+          ) : state.scopesApplied?.includes('quotes.read') ? (
+            <div className="sm:col-span-2 text-xs text-[var(--pf-text-muted)]">
+              {t('preview.noQuotes')}
+            </div>
+          ) : null}
           {(summary.documents ?? state.documents)?.length ? (
             <div className="min-w-0 sm:col-span-2">
               <dt className="text-[var(--pf-text-secondary)]">{t('preview.fields.documents')}</dt>

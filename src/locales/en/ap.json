@@ -149,6 +149,12 @@
     "success": "Credit applied. Outstanding and Actual reduced.",
     "outstandingHint": "Current outstanding: {amount} {currency}"
   },
+  "post": {
+    "title": "Post draft bill",
+    "note": "Draft bills do not recognize Actual Vendor Cost. Post after approval (when required) to open the bill.",
+    "action": "Post bill",
+    "success": "Bill posted. It now recognizes Actual Vendor Cost."
+  },
   "void": {
     "title": "Void bill",
     "note": "Void removes the bill from Actual recognition and supersedes allocations. History is preserved. Correction path is void + replace, or credit — never silent edit.",

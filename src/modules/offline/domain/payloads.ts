@@ -208,6 +208,8 @@ export function payloadBuilderForKind(
       return punchPayloadFromFormData;
     case 'inspection':
       return inspectionPayloadFromFormData;
+    case 'form_submission':
+      return (formData) => Object.fromEntries(formData.entries());
     default: {
       const _exhaustive: never = kind;
       return _exhaustive;

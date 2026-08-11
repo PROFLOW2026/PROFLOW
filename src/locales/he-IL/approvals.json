@@ -1,0 +1,61 @@
+{
+  "title": "אישורים",
+  "description": "סקירת בקשות ממתינות והגדרת ספי סכום. אופציונלי — לא פעיל עד שמשתמשים בו.",
+  "pendingTitle": "ממתינים לאישור",
+  "pendingEmpty": {
+    "title": "אין בקשות ממתינות",
+    "body": "כשכלל תואם, הבקשות יופיעו כאן לאישור או לדחייה."
+  },
+  "rulesTitle": "כללי אישור",
+  "rulesDescription": "דורשים החלטה כשהסכום מגיע לסף או עובר אותו. בלי כללים — אין חיכוך.",
+  "rulesEmpty": {
+    "title": "אין כללים עדיין",
+    "body": "הוסיפו סף להוצאות, חשבונות ספק, הזמנות רכש וכדומה."
+  },
+  "addRule": "הוספת כלל",
+  "saved": "נשמר.",
+  "approve": "אישור",
+  "reject": "דחייה",
+  "cancel": "ביטול בקשה",
+  "decisionNote": "הערה (אופציונלי)",
+  "columns": {
+    "entity": "סוג",
+    "amount": "סכום",
+    "status": "סטטוס",
+    "submitted": "הוגש",
+    "name": "שם הכלל",
+    "threshold": "סף",
+    "enabled": "פעיל"
+  },
+  "entityTypes": {
+    "expense": "הוצאה",
+    "vendor_bill": "חשבון ספק",
+    "purchase_order": "הזמנת רכש",
+    "vendor_credit": "זיכוי ספק",
+    "time_correction": "תיקון שעות",
+    "quote_discount": "הנחת הצעת מחיר",
+    "budget_revision": "עדכון תקציב"
+  },
+  "fields": {
+    "name": "שם",
+    "entityType": "חל על",
+    "thresholdAmount": "סכום סף",
+    "currency": "מטבע",
+    "enabled": "פעיל",
+    "noThreshold": "כל סכום"
+  },
+  "errors": {
+    "pending": "הפעולה ממתינה לאישור.",
+    "rejected": "הפעולה נדחתה ולא ניתן להמשיך.",
+    "required": "נדרש אישור לפני הפעולה.",
+    "submittedPending": "הוגש לאישור — ממתין להחלטה.",
+    "notSubmitted": "ניתן לעדכן רק בקשות שהוגשו."
+  },
+  "settingsLink": "הגדרת כללים",
+  "openEntity": "פתיחת הרשומה",
+  "toggle": {
+    "enable": "הפעלה",
+    "disable": "השבתה",
+    "off": "כבוי"
+  }
+}

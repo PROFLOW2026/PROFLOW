@@ -14,8 +14,10 @@ describe('job tab priority', () => {
       'overview',
       'expenses',
       'team',
+      'usage',
       'time',
       'billing',
+      'budgets',
       'documents',
       'financials',
       'details',
@@ -32,6 +34,7 @@ describe('job tab priority', () => {
       billing: true,
       documents: true,
       financials: true,
+      usage: false,
     });
     expect(tabs).not.toContain('work');
     expect(tabs).not.toContain('changes');
@@ -55,10 +58,12 @@ describe('job tab priority', () => {
         expenses: true,
         changes: true,
         billing: true,
+        budgets: true,
         team: true,
         schedule: true,
         time: true,
         documents: true,
+        usage: true,
         work: true,
       }),
     ).toEqual([...PROJECT_TAB_PRIORITY]);

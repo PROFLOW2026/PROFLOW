@@ -12,6 +12,7 @@ export {
   listApBillsForOrg,
   getApBillDetail,
   createApBill,
+  postApBill,
 } from './application/bills';
 
 export { voidApBill, rejectSilentRecognizedBillEdit } from './application/void-bill';
@@ -34,6 +35,7 @@ export {
 
 export {
   createVendorCredit,
+  postVendorCredit,
   applyVendorCredit,
   listVendorCredits,
   listCreditsForBill,

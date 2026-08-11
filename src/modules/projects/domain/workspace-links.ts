@@ -12,6 +12,7 @@ export type ProjectWorkspaceLinkKey =
   | 'expenses'
   | 'changes'
   | 'billing'
+  | 'budgets'
   | 'work'
   | 'team'
   | 'time'
@@ -78,6 +79,10 @@ export function selectProjectWorkspaceLinks(input: WorkspaceLinkInput): ProjectW
 
   if (moduleOn(input.modules, 'billing') && can(input.permissions, PERMISSIONS.BILLING_READ)) {
     links.push({ key: 'billing', href: tab('billing'), inProject: true });
+  }
+
+  if (moduleOn(input.modules, 'budgets') && can(input.permissions, PERMISSIONS.BUDGETS_READ)) {
+    links.push({ key: 'budgets', href: tab('budgets'), inProject: true });
   }
 
   if (can(input.permissions, PERMISSIONS.WORKFORCE_READ)) {

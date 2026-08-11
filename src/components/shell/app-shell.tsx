@@ -27,7 +27,12 @@ export async function AppShell({ children }: { children: ReactNode }) {
 
   const workMix = shell.workMix ?? 'projects';
   const items = visibleNavItems(shell.permissions, shell.modules, { workMix });
-  const quickCreateActions = buildQuickCreateActions(shell.permissions, shell.modules, workMix);
+  const quickCreateActions = buildQuickCreateActions(
+    shell.permissions,
+    shell.modules,
+    workMix,
+    shell.quickCreateEmphasis,
+  );
 
   const userMenu = <UserMenuSlot organizationName={shell.organization.name} />;
 

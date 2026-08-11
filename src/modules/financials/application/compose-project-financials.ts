@@ -22,6 +22,7 @@ import {
   type LaborCostContribution,
   type ProjectExpenseContribution,
 } from '../domain/cost-aggregation';
+import { dataConfidenceFromCoverage } from '../domain/data-confidence';
 import { computeProfitPosition, roundProfitPosition } from '../domain/profit';
 import {
   hasRevenueBasisForProfitability,
@@ -66,6 +67,15 @@ export interface ProjectFinancialsLoadedSlices {
       }
     | null;
   readonly recognizedVendor: RecognizedVendorBillRollup | null;
+  /**
+   * Optional incompleteness extras for DATA CONFIDENCE (Agent 3).
+   * Coverage partials (missing employer cost, FX) are always applied.
+   */
+  readonly incompleteness?: {
+    readonly unallocatedRemainder?: MoneyValue | null;
+    readonly openDraftDocumentCount?: number;
+    readonly openAllocationCount?: number;
+  };
 }
 
 export function composeProjectFinancials(
@@ -194,6 +204,13 @@ export function composeProjectFinancials(
         )
       : null;
 
+  // Same Actual / Forecast / margin engine — confidence only labels incompleteness.
+  const dataConfidence = dataConfidenceFromCoverage(coverage, {
+    unallocatedRemainder: input.incompleteness?.unallocatedRemainder,
+    openDraftDocumentCount: input.incompleteness?.openDraftDocumentCount,
+    openAllocationCount: input.incompleteness?.openAllocationCount,
+  });
+
   return {
     projectId: input.projectId,
     currency: input.commercialData?.currency ?? currency,
@@ -205,5 +222,6 @@ export function composeProjectFinancials(
     cost,
     profit,
     coverage,
+    dataConfidence,
   };
 }

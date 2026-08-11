@@ -43,6 +43,16 @@
     "accepted": "התקבלה",
     "rejected": "נדחתה"
   },
+  "estimateQuote": {
+    "draft": "טיוטה",
+    "ready": "מוכן",
+    "sent": "נשלח",
+    "accepted": "התקבל",
+    "rejected": "נדחה",
+    "expired": "פג תוקף",
+    "cancelled": "בוטל",
+    "converted": "הומר"
+  },
   "membership": {
     "active": "פעיל",
     "invited": "הוזמן",
@@ -83,6 +93,12 @@
     "planned": "מתוכנן",
     "in_progress": "בתהליך",
     "completed": "הושלם",
+    "cancelled": "בוטל"
+  },
+  "approval": {
+    "submitted": "ממתין",
+    "approved": "אושר",
+    "rejected": "נדחה",
     "cancelled": "בוטל"
   },
   "events": {

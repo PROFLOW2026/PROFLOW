@@ -3,11 +3,15 @@
 import { revalidatePath } from 'next/cache';
 import { getLocale, getTranslations } from 'next-intl/server';
 import {
+  archiveEquipmentUsage,
+  archiveMaterialUsage,
   createAsset,
   createFleetVehicle,
   createInventoryItem,
   createMaintenanceRecord,
+  recordEquipmentUsage,
   recordInventoryMovement,
+  recordMaterialUsage,
   updateAsset,
   updateFleetVehicle,
   updateMaintenanceRecord,
@@ -282,6 +286,104 @@ export async function recordInventoryMovementAction(
     );
     revalidatePath('/assets/inventory');
     revalidatePath(`/assets/inventory/${inventoryItemId}`);
+    return { success: true };
+  } catch (error) {
+    return mapAppError(error);
+  }
+}
+
+export async function recordMaterialUsageAction(
+  _prev: AssetsFormState,
+  formData: FormData,
+): Promise<AssetsFormState> {
+  try {
+    const projectId = requiredFormValue(formData, 'projectId');
+    await withOrgContext((context) =>
+      recordMaterialUsage(context, {
+        projectId,
+        description: requiredFormValue(formData, 'description'),
+        quantity: requiredFormValue(formData, 'quantity'),
+        unit: formValue(formData, 'unit'),
+        usageDate: requiredFormValue(formData, 'usageDate'),
+        materialId: optionalUuidOrNull(formData, 'materialId') ?? undefined,
+        inventoryItemId: optionalUuidOrNull(formData, 'inventoryItemId') ?? undefined,
+        employeeId: optionalUuidOrNull(formData, 'employeeId') ?? undefined,
+        notes: formValue(formData, 'notes'),
+      }),
+    );
+    revalidatePath(`/projects/${projectId}`);
+    revalidatePath(`/jobs/${projectId}`);
+    const inventoryItemId = optionalUuidOrNull(formData, 'inventoryItemId');
+    if (inventoryItemId) {
+      revalidatePath(`/assets/inventory/${inventoryItemId}`);
+    }
+    return { success: true };
+  } catch (error) {
+    return mapAppError(error);
+  }
+}
+
+export async function recordEquipmentUsageAction(
+  _prev: AssetsFormState,
+  formData: FormData,
+): Promise<AssetsFormState> {
+  try {
+    const projectId = requiredFormValue(formData, 'projectId');
+    const assetId = requiredFormValue(formData, 'assetId');
+    await withOrgContext((context) =>
+      recordEquipmentUsage(context, {
+        projectId,
+        assetId,
+        usageDate: requiredFormValue(formData, 'usageDate'),
+        endDate: formValue(formData, 'endDate'),
+        hours: formValue(formData, 'hours'),
+        days: formValue(formData, 'days'),
+        mileage: formValue(formData, 'mileage'),
+        employeeId: optionalUuidOrNull(formData, 'employeeId') ?? undefined,
+        notes: formValue(formData, 'notes'),
+      }),
+    );
+    revalidatePath(`/projects/${projectId}`);
+    revalidatePath(`/jobs/${projectId}`);
+    revalidatePath(`/assets/${assetId}`);
+    return { success: true };
+  } catch (error) {
+    return mapAppError(error);
+  }
+}
+
+export async function archiveMaterialUsageAction(
+  _prev: AssetsFormState,
+  formData: FormData,
+): Promise<AssetsFormState> {
+  try {
+    await withOrgContext((context) =>
+      archiveMaterialUsage(context, {
+        materialUsageId: requiredFormValue(formData, 'materialUsageId'),
+      }),
+    );
+    revalidatePath('/projects');
+    revalidatePath('/jobs');
+    revalidatePath('/assets/inventory');
+    return { success: true };
+  } catch (error) {
+    return mapAppError(error);
+  }
+}
+
+export async function archiveEquipmentUsageAction(
+  _prev: AssetsFormState,
+  formData: FormData,
+): Promise<AssetsFormState> {
+  try {
+    await withOrgContext((context) =>
+      archiveEquipmentUsage(context, {
+        equipmentUsageId: requiredFormValue(formData, 'equipmentUsageId'),
+      }),
+    );
+    revalidatePath('/projects');
+    revalidatePath('/jobs');
+    revalidatePath('/assets');
     return { success: true };
   } catch (error) {
     return mapAppError(error);

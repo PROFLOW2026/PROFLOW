@@ -14,8 +14,13 @@ export const PROJECT_STATUSES = [
 export type ProjectStatus = (typeof PROJECT_STATUSES)[number];
 
 /** UX mode on the shared `projects` row (financial engine is identical). */
-export const WORK_KINDS = ['project', 'job'] as const;
+export const WORK_KINDS = ['project', 'job', 'work_order'] as const;
 export type WorkKind = (typeof WORK_KINDS)[number];
+
+/** Job / work-order pricing UX (fixed | open); classic projects use null. */
+export function usesJobStylePricing(workKind: WorkKind | string | null | undefined): boolean {
+  return workKind === 'job' || workKind === 'work_order';
+}
 
 /**
  * Revenue pricing mode. Jobs require `fixed` or `open`. Classic projects use

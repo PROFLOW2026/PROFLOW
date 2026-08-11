@@ -30,6 +30,7 @@ export {
   buildCustomerSafeDocuments,
   buildCustomerSafeMilestones,
   buildCustomerSafeBillingItems,
+  buildCustomerSafeQuotes,
   buildCustomerPortalSession,
   isCustomerPortalSession,
   grantCoversProject,
@@ -38,6 +39,7 @@ export {
   normalizeCustomerScopes,
   assertNoSensitiveCustomerFields,
   CUSTOMER_PORTAL_NEVER_EXPOSED,
+  CUSTOMER_VISIBLE_QUOTE_STATUSES,
 } from './domain/safe-project-summary';
 
 export {
@@ -140,6 +142,7 @@ export type {
   VendorPortalPreview,
   VendorApBillCandidate,
   VendorComplianceUploadCandidate,
+  CustomerSafeQuote,
 } from './domain/types';
 
 export {

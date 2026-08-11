@@ -1,0 +1,216 @@
+{
+  "title": "Service calls",
+  "newWorkOrder": "New service call",
+  "empty": {
+    "title": "No service calls yet",
+    "body": "Schedule and dispatch field visits without a second money system — same costs and billing as projects and jobs.",
+    "action": "Create first service call",
+    "moduleLink": "Show Service in navigation (Settings)"
+  },
+  "list": {
+    "searchPlaceholder": "Search work orders…",
+    "filterStatus": "Status",
+    "allStatuses": "All statuses",
+    "unassigned": "Unassigned",
+    "columns": {
+      "customer": "Customer",
+      "name": "Service call",
+      "site": "Site",
+      "window": "Window",
+      "assignee": "Assignee",
+      "status": "Status",
+      "priority": "Priority"
+    }
+  },
+  "status": {
+    "new": "New",
+    "scheduled": "Scheduled",
+    "in_progress": "In progress",
+    "waiting": "Waiting",
+    "completed": "Completed",
+    "cancelled": "Cancelled"
+  },
+  "priority": {
+    "low": "Low",
+    "normal": "Normal",
+    "high": "High",
+    "urgent": "Urgent"
+  },
+  "pricing": {
+    "fixed": "Fixed price",
+    "open": "Open price",
+    "priceNotSet": "Price not set yet",
+    "priceLabel": "Price",
+    "priceHint": "Service-call price. Commercial math uses the net amount (excluding VAT).",
+    "pricePlaceholder": "e.g. 800",
+    "taxModeHint": "Whether the price includes VAT. The rate comes from organization tax settings."
+  },
+  "create": {
+    "title": "New service call",
+    "description": "Field visit intake — customer, site, and schedule. Costs and billing stay on the same work record as projects and jobs.",
+    "customerLabel": "Customer",
+    "customerNew": "Walk-in / new customer",
+    "customerSelect": "Existing customer",
+    "customerExample": "e.g. Cohen residence",
+    "nameLabel": "What needs doing",
+    "namePlaceholder": "e.g. AC not cooling — living room",
+    "siteLabel": "Site",
+    "contactNameLabel": "Site contact",
+    "contactPhoneLabel": "Contact phone",
+    "categoryLabel": "Category",
+    "priorityLabel": "Priority",
+    "pricingModeLabel": "Pricing",
+    "requestedDateLabel": "Requested date",
+    "windowStartLabel": "Schedule start",
+    "windowEndLabel": "Schedule end",
+    "assigneeLabel": "Assignee",
+    "assigneeNone": "Unassigned",
+    "assigneeHint": "Who is going — can change later from Dispatch.",
+    "notesLabel": "Service notes",
+    "statusLabel": "Status",
+    "quickStatusLabel": "Update status",
+    "submit": "Create service call"
+  },
+  "fields": {
+    "site": "Site",
+    "priority": "Priority",
+    "contact": "Contact",
+    "window": "Schedule window",
+    "notes": "Notes"
+  },
+  "workspace": {
+    "fallbackTitle": "Work order",
+    "backToList": "All work orders",
+    "openDispatch": "Daily dispatch",
+    "sameEngineHint": "Costs and billing use the same financial engine as projects and jobs — no duplicate Actual.",
+    "financialsTitle": "Financials",
+    "saved": "Saved",
+    "updateStatus": "Update status"
+  },
+  "dispatch": {
+    "title": "Dispatch",
+    "description": "Today / tomorrow / week schedule for work orders. Mobile list with form-based reassignment.",
+    "windowLabel": "Window",
+    "assigneeFilter": "Assignee",
+    "allAssignees": "All assignees",
+    "windows": {
+      "today": "Today",
+      "tomorrow": "Tomorrow",
+      "week": "This week"
+    },
+    "reschedule": "Reschedule / assign",
+    "hideReschedule": "Hide",
+    "saveReschedule": "Save schedule",
+    "empty": {
+      "title": "Nothing scheduled in this window",
+      "body": "Schedule a work order with a start time to see it here.",
+      "action": "Browse work orders"
+    }
+  },
+  "recurring": {
+    "title": "Recurring work",
+    "description": "Service contracts and scheduled templates. Generated work orders stay draft until work is done — never silent revenue.",
+    "new": "New recurring template",
+    "empty": {
+      "title": "No recurring templates yet",
+      "body": "Create a customer/site schedule. ProjectFlow will open draft work orders on each occurrence — you confirm work before money moves.",
+      "action": "New recurring template"
+    },
+    "list": {
+      "columns": {
+        "title": "Title",
+        "client": "Customer",
+        "frequency": "Frequency",
+        "next": "Next",
+        "status": "Status",
+        "site": "Site"
+      },
+      "filters": {
+        "allOpen": "Active & paused",
+        "active": "Active",
+        "paused": "Paused",
+        "ended": "Ended",
+        "includeEnded": "Include ended"
+      }
+    },
+    "status": {
+      "active": "Active",
+      "paused": "Paused",
+      "ended": "Ended"
+    },
+    "occurrenceStatus": {
+      "planned": "Planned",
+      "generated": "Work order opened",
+      "skipped": "Skipped",
+      "cancelled": "Cancelled"
+    },
+    "frequency": {
+      "daily": "Daily",
+      "weekly": "Weekly",
+      "monthly": "Monthly",
+      "quarterly": "Quarterly",
+      "yearly": "Yearly"
+    },
+    "create": {
+      "title": "New recurring template",
+      "description": "Optional service contract template. Pricing here is a hint only — generating never finalizes financials.",
+      "submit": "Create template"
+    },
+    "detail": {
+      "title": "Recurring template",
+      "history": "Occurrence history",
+      "generatedCount": "{count} work orders opened",
+      "noHistory": "No occurrences yet. Generate upcoming dates to open draft work orders.",
+      "openWorkOrder": "Open work order",
+      "templatePriceHint": "Template price (not revenue)",
+      "financialNote": "Generated work orders are draft/scheduled only. Actual cost and revenue still require normal work completion and billing."
+    },
+    "fields": {
+      "title": "Title",
+      "client": "Customer",
+      "siteAddress": "Site / address",
+      "frequency": "Frequency",
+      "intervalCount": "Every N periods",
+      "startDate": "Start date",
+      "endDate": "End date",
+      "durationMinutes": "Default duration (minutes)",
+      "pricingMode": "Default pricing",
+      "priceAmount": "Default price",
+      "currency": "Currency",
+      "assignee": "Default assignee",
+      "checklistTemplateId": "Checklist template ID",
+      "notes": "Notes",
+      "noClient": "No customer",
+      "noAssignee": "No default assignee",
+      "pricing": {
+        "none": "None (hint later)",
+        "fixed": "Fixed (template only)",
+        "open": "Open price"
+      }
+    },
+    "actions": {
+      "generate": "Generate upcoming work orders",
+      "generateHint": "Opens draft/scheduled work orders through the next 30 days. Does not create Actual or invoices.",
+      "pause": "Pause",
+      "resume": "Resume",
+      "end": "End recurrence",
+      "skipNext": "Skip next occurrence",
+      "skip": "Skip",
+      "skipReason": "Reason (optional)",
+      "backToList": "All recurring templates"
+    },
+    "errors": {
+      "recurrenceNotActive": "Only active templates can generate work orders.",
+      "recurrenceEnded": "This recurrence has ended.",
+      "occurrenceAlreadyGenerated": "This occurrence already opened a work order."
+    },
+    "success": {
+      "created": "Recurring template created.",
+      "generated": "Opened {count} draft work orders.",
+      "paused": "Recurrence paused.",
+      "resumed": "Recurrence resumed.",
+      "ended": "Recurrence ended.",
+      "skipped": "Occurrence skipped."
+    }
+  }
+}

@@ -1,6 +1,6 @@
 {
   "title": "ייבוא נתונים",
-  "description": "העלו CSV או Excel, התאימו עמודות, בדקו שגיאות בשורות ואשרו. היצירה עוברת באותם כללים כמו בטפסים הרגילים.",
+  "description": "העלו CSV או Excel, התאימו עמודות, בדקו שגיאות בשורות ואשרו. היצירה עוברת באותם כללים כמו בטפסים הרגילים. שורות שגויות לא נכתבות; אפשר לדלג על כל שורה.",
   "notAllowed": "אין לכם הרשאה לייבא אף אחד מסוגי הרשומות הנתמכים.",
   "stepsLabel": "שלבי ייבוא",
   "steps": {
@@ -12,13 +12,19 @@
   "kindLabel": "מה לייבא",
   "kindPlaceholder": "בחרו סוג",
   "fileLabel": "קובץ CSV או Excel",
+  "templateLabel": "הורדת תבנית",
+  "templateHint": "תבנית CSV עם שורת דוגמה. גם העלאת Excel (.xlsx) נתמכת.",
   "expensesSafeHint": "ייבוא הוצאות יוצר רק טיוטות דרך כללי ההוצאה הרגילים. עמודות מע״מ/מס מתעלמות. המטבע חייב להתאים לפרויקט או למטבע הבסיס של הארגון.",
-  "nonFinancialHint": "סכומי חוזה פיננסיים אינם מיובאים עם פרויקטים. שמות כפולים מסומנים כאזהרה.",
+  "nonFinancialHint": "ייבוא פרויקטים/עבודות אינו מגדיר סכומי חוזה. לערכי פתיחה השתמשו בייבוא «ערכי פתיחה». שמות כפולים מסומנים כאזהרה.",
+  "openingValuesHint": "ערכי פתיחה עוברים באותו מסלול חוזה כמו בעריכת פרויקט. סכומי הצעת מחיר אינם נחשבים להכנסה.",
   "kinds": {
     "clients": "לקוחות",
+    "contacts": "אנשי קשר",
     "vendors": "ספקים",
     "employees": "עובדים",
-    "projects": "פרויקטים",
+    "projects": "פרויקטים / עבודות",
+    "opening_values": "ערכי פתיחה",
+    "cost_categories": "קטגוריות עלות",
     "expenses": "הוצאות (טיוטה)"
   },
   "fields": {
@@ -30,11 +36,13 @@
     "countryCode": "קוד מדינה",
     "notes": "הערות",
     "type": "סוג ספק",
+    "role": "תפקיד איש קשר",
     "jobTitle": "תפקיד",
     "employeeNumber": "מספר עובד",
     "rateUnit": "יחידת תעריף",
     "baseRate": "תעריף בסיס",
     "status": "סטטוס",
+    "workKind": "סוג עבודה",
     "clientId": "מזהה לקוח",
     "clientName": "שם לקוח",
     "location": "מיקום",
@@ -45,9 +53,15 @@
     "amount": "סכום",
     "currency": "מטבע",
     "projectId": "מזהה פרויקט",
+    "projectName": "שם פרויקט / עבודה",
     "vendorId": "מזהה ספק",
     "supplierName": "שם ספק",
-    "costFamily": "משפחת עלות"
+    "costFamily": "משפחת עלות",
+    "contractValueAmount": "סכום פתיחה / חוזה",
+    "openingReductionAmount": "הפחתת פתיחה",
+    "amountIncludesTax": "הסכום כולל מע״מ",
+    "key": "מפתח קטגוריה",
+    "family": "משפחת עלות"
   },
   "mapping": {
     "title": "מיפוי עמודות",
@@ -56,18 +70,22 @@
     "emptyHeader": "עמודה {index}"
   },
   "preview": {
-    "title": "תצוגה מקדימה",
-    "summary": "{valid} מוכנים · {errors} עם שגיאות · {warnings} עם אזהרות",
+    "title": "תצוגה מקדימה ואימות",
+    "summary": "{valid} מוכנים · {errors} עם שגיאות · {warnings} עם אזהרות · {selected} נבחרו",
     "row": "שורה",
+    "include": "כלול",
     "values": "ערכים",
     "issues": "בעיות",
     "error": "שגיאה",
     "warning": "אזהרה",
-    "truncated": "מוצגות 100 השורות הראשונות מתוך {count}."
+    "truncated": "מוצגות 100 השורות הראשונות מתוך {count}.",
+    "skipHint": "בטלו סימון כדי לדלג. שורות עם שגיאות לעולם לא מיובאות.",
+    "selectValid": "בחרו רק שורות תקינות",
+    "selectAll": "בחרו את כל השורות"
   },
   "result": {
     "title": "תוצאת ייבוא",
-    "summary": "נוצרו {created}. נכשלו {failed}.",
+    "summary": "נוצרו {created}. נכשלו {failed}. דולגו {skipped}.",
     "rowFailed": "שורה {row}: {error}"
   },
   "actions": {
@@ -76,8 +94,9 @@
     "validate": "אימות ותצוגה מקדימה",
     "confirm": "אישור ייבוא ({count})",
     "another": "ייבוא קובץ נוסף",
-    "downloadIssues": "הורדת דוח בעיות",
-    "downloadFailures": "הורדת דוח כשלים"
+    "downloadIssues": "הורדת דוח אימות",
+    "downloadFailures": "הורדת דוח כשלים",
+    "downloadTemplate": "הורדת תבנית CSV"
   },
   "errors": {
     "readFile": "לא ניתן לקרוא את הקובץ.",
@@ -86,6 +105,7 @@
     "emptySheet": "בגיליון אין שורות לשימוש.",
     "fileTooLarge": "הקובץ גדול מדי לייבוא (עד כ־2 מגה־בייט).",
     "previewFailed": "לא ניתן להציג תצוגה מקדימה של הייבוא.",
-    "confirmFailed": "לא ניתן להשלים את הייבוא."
+    "confirmFailed": "לא ניתן להשלים את הייבוא.",
+    "nothingSelected": "בחרו לפחות שורה תקינה אחת לייבוא."
   }
 }

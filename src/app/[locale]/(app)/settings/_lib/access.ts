@@ -12,8 +12,10 @@ export type SettingsSectionKey =
   | 'catalog'
   | 'templates'
   | 'tax'
+  | 'approvals'
   | 'portal'
   | 'customFields'
+  | 'forms'
   | 'api'
   | 'activity'
   | 'app'
@@ -43,6 +45,7 @@ export const SETTINGS_SECTIONS: readonly SettingsSection[] = [
   { key: 'tax', href: '/settings/tax', permission: PERMISSIONS.TAX_MANAGE, group: 'basic' },
   { key: 'app', href: '/settings/app', permission: null, group: 'basic' },
 
+  { key: 'approvals', href: '/settings/approvals', permission: PERMISSIONS.APPROVALS_MANAGE, group: 'business' },
   { key: 'features', href: '/settings/features', permission: PERMISSIONS.SETTINGS_MANAGE, group: 'business' },
   { key: 'costCategories', href: '/settings/cost-categories', permission: PERMISSIONS.SETTINGS_MANAGE, group: 'business' },
   { key: 'templates', href: '/settings/templates', permission: PERMISSIONS.SETTINGS_MANAGE, group: 'business' },
@@ -50,6 +53,7 @@ export const SETTINGS_SECTIONS: readonly SettingsSection[] = [
   { key: 'roles', href: '/settings/roles', permission: PERMISSIONS.ROLES_MANAGE, group: 'business' },
 
   { key: 'customFields', href: '/settings/custom-fields', permission: PERMISSIONS.CUSTOM_FIELDS_MANAGE, group: 'advanced' },
+  { key: 'forms', href: '/settings/forms', permission: PERMISSIONS.FORMS_MANAGE, group: 'advanced' },
   { key: 'activity', href: '/settings/activity', permission: PERMISSIONS.AUDIT_READ, group: 'advanced' },
   { key: 'offlineDrafts', href: '/settings/offline-drafts', permission: null, group: 'advanced' },
   { key: 'banking', href: '/settings/banking', permission: PERMISSIONS.BANKING_READ, group: 'advanced' },
@@ -110,10 +114,14 @@ export function canManageSection(context: OrgContext, sectionKey: SettingsSectio
       return hasPermission(context, PERMISSIONS.SETTINGS_MANAGE);
     case 'tax':
       return hasPermission(context, PERMISSIONS.TAX_MANAGE);
+    case 'approvals':
+      return hasPermission(context, PERMISSIONS.APPROVALS_MANAGE);
     case 'portal':
       return hasPermission(context, PERMISSIONS.PORTAL_MANAGE);
     case 'customFields':
       return hasPermission(context, PERMISSIONS.CUSTOM_FIELDS_MANAGE);
+    case 'forms':
+      return hasPermission(context, PERMISSIONS.FORMS_MANAGE);
     case 'api':
       return hasPermission(context, PERMISSIONS.API_MANAGE);
     case 'banking':

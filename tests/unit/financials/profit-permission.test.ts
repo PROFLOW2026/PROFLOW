@@ -56,6 +56,7 @@ describe('project profit permission shape', () => {
       actualMarginPercent: '60.00',
     },
     coverage: buildFinancialCoverage([{ source: 'direct_expenses', hasData: true }], new Date()),
+    dataConfidence: { level: 'high', reasons: [] },
   };
 
   it('keeps profit when viewer may read it', () => {

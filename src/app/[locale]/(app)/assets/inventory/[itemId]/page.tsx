@@ -21,6 +21,7 @@ import { Link } from '@/shared/i18n/navigation';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { InventoryMovementForm } from '../inventory-movement-form';
+import { InventoryMaterialUsagePanel } from '@/modules/assets/ui';
 import { textNavLinkMutedClassName } from '@/components/ui/pressable';
 import { cn } from '@/shared/ui/cn';
 
@@ -166,6 +167,8 @@ export default async function InventoryItemDetailPage({
         canManage={documentsPanel.canManage}
         storageConfigured={documentsPanel.storageConfigured}
       />
+
+      <InventoryMaterialUsagePanel inventoryItemId={item.id} />
 
       {canManage ? (
         <section className="flex min-w-0 flex-col gap-3">

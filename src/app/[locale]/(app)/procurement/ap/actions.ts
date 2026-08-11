@@ -8,6 +8,8 @@ import {
   applyVendorCredit,
   createApBill,
   createVendorCredit,
+  postApBill,
+  postVendorCredit,
   proposeApMatch,
   recordVendorPayment,
   rejectApMatch,
@@ -290,6 +292,39 @@ export async function applyBillProjectAllocationsAction(input: {
   }
 }
 
+export async function postApBillAction(
+  _prev: ApFormState,
+  formData: FormData,
+): Promise<ApFormState> {
+  const billId = requiredFormValue(formData, 'apBillId');
+  try {
+    await withOrgContext((context) => postApBill(context, billId));
+    revalidatePath(`/procurement/ap/${billId}`);
+    revalidatePath('/procurement/ap');
+    revalidatePath('/procurement/ap/aging');
+    return { success: true };
+  } catch (error) {
+    return mapAppError(error);
+  }
+}
+
+export async function postVendorCreditAction(
+  _prev: ApFormState,
+  formData: FormData,
+): Promise<ApFormState> {
+  const creditId = requiredFormValue(formData, 'creditId');
+  const billId = formValue(formData, 'apBillId');
+  try {
+    await withOrgContext((context) => postVendorCredit(context, creditId));
+    if (billId) revalidatePath(`/procurement/ap/${billId}`);
+    revalidatePath('/procurement/ap');
+    revalidatePath('/procurement/ap/aging');
+    return { success: true };
+  } catch (error) {
+    return mapAppError(error);
+  }
+}
+
 export async function voidApBillAction(
   _prev: ApFormState,
   formData: FormData,
@@ -325,7 +360,8 @@ export async function createVendorCreditAction(
       }),
     );
     const applyAmount = formValue(formData, 'applyAmount');
-    if (billId && applyAmount) {
+    // Draft credits (awaiting approval) must not reduce Actual / apply to bills.
+    if (billId && applyAmount && credit.status === 'open') {
       await withOrgContext((context) =>
         applyVendorCredit(context, {
           creditId: credit.id,

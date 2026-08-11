@@ -5,6 +5,10 @@ import type { OrgContext } from '@/shared/auth/context';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import {
+  assertMonthOpenForRewrite,
+  yearMonthFromBusinessDate,
+} from '@/modules/month-close';
+import {
   buildReversalAmounts,
   negateAllocationLines,
   reversalDescription,
@@ -32,6 +36,11 @@ export async function createExpenseReversal(
 
   const original = await findExpenseById(context.db, context.organizationId, expenseId);
   if (!original) throw new NotFoundError('Expense');
+
+  await assertMonthOpenForRewrite(
+    context,
+    yearMonthFromBusinessDate(original.expenseDate),
+  );
 
   const existingReversal = await findActiveReversalForExpense(
     context.db,

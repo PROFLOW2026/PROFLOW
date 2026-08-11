@@ -1,0 +1,50 @@
+{
+  "title": "Today",
+  "description": "Actionable items that need attention — not a noisy dashboard.",
+  "listLabel": "Items for today",
+  "summary": "{count, plural, =0 {Nothing needs attention right now} =1 {1 item to handle} other {# items to handle}}",
+  "fields": {
+    "where": "Where"
+  },
+  "actions": {
+    "open": "Open",
+    "handle": "Mark handled",
+    "snooze1d": "Snooze 1 day",
+    "snooze7d": "Snooze 7 days"
+  },
+  "financialGuard": "Financial items can only be snoozed or opened — they stay visible until resolved.",
+  "severity": {
+    "critical": "Critical",
+    "high": "High",
+    "medium": "Medium",
+    "low": "Low"
+  },
+  "sources": {
+    "overdue_ar": "Overdue billing",
+    "vendor_bill_due": "Vendor bill due",
+    "attendance_open": "Attendance",
+    "unallocated_employee_cost": "Unallocated labor cost",
+    "unallocated_vendor_bill": "Unallocated vendor bill",
+    "project_over_budget": "Over budget",
+    "open_approval": "Approval",
+    "overdue_planning": "Planning",
+    "expiring_compliance": "Compliance",
+    "overdue_maintenance": "Maintenance",
+    "stale_project": "Inactive work",
+    "credit_void_issue": "Credit / void",
+    "month_close_incomplete": "Month close"
+  },
+  "empty": {
+    "title": "You're clear",
+    "body": "No actionable items from the sources you can see. Check back later."
+  },
+  "moduleOff": {
+    "title": "Today is turned off",
+    "body": "Turn on Today inbox under Settings → Features to show actionable items for owners and managers.",
+    "action": "Open features"
+  },
+  "errors": {
+    "unsafeState": "This item cannot be dismissed — open or snooze it instead.",
+    "moduleOff": "Today inbox is not enabled for this organization."
+  }
+}

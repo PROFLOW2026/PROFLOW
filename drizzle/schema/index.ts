@@ -34,3 +34,5 @@ export * from './planning';
 export * from './ocr';
 export * from './ops-finance';
 export * from './invoicing-integration';
+export * from './next-gen';
+export * from './next-gen-ops';

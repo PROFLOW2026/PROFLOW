@@ -43,6 +43,16 @@
     "accepted": "Accepted",
     "rejected": "Rejected"
   },
+  "estimateQuote": {
+    "draft": "Draft",
+    "ready": "Ready",
+    "sent": "Sent",
+    "accepted": "Accepted",
+    "rejected": "Rejected",
+    "expired": "Expired",
+    "cancelled": "Cancelled",
+    "converted": "Converted"
+  },
   "membership": {
     "active": "Active",
     "invited": "Invited",
@@ -83,6 +93,12 @@
     "planned": "Planned",
     "in_progress": "In progress",
     "completed": "Completed",
+    "cancelled": "Cancelled"
+  },
+  "approval": {
+    "submitted": "Pending",
+    "approved": "Approved",
+    "rejected": "Rejected",
     "cancelled": "Cancelled"
   },
   "events": {

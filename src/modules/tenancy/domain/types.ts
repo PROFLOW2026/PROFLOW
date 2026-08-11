@@ -38,6 +38,14 @@ export const OPTIONAL_MODULE_KEYS = [
   'assets',
   /** Short / daily work UX; shares `projects` rows + PROJECTS_* permissions. */
   'jobs',
+  /** Next-gen optional surfaces — off until use or business profile enables. */
+  'quotes',
+  'service',
+  'approvals',
+  'month_close',
+  'budgets',
+  'forms',
+  'command_center',
 ] as const;
 
 export type OptionalModuleKey = (typeof OPTIONAL_MODULE_KEYS)[number];

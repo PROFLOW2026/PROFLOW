@@ -1,8 +1,12 @@
-import { createClientSchema } from '@/modules/clients';
-import { createVendorSchema, VENDOR_TYPES } from '@/modules/vendors';
-import { createEmployeeSchema, RATE_UNITS } from '@/modules/workforce';
-import { createProjectSchema, PROJECT_STATUSES } from '@/modules/projects';
-import { createExpenseSchema } from '@/modules/expenses';
+import { createClientSchema } from '@/modules/clients/validation/schemas';
+import { CONTACT_ROLES } from '@/modules/clients/domain/types';
+import { createVendorSchema } from '@/modules/vendors/validation/schemas';
+import { VENDOR_TYPES } from '@/modules/vendors/domain/types';
+import { createEmployeeSchema } from '@/modules/workforce/validation/schemas';
+import { RATE_UNITS } from '@/modules/workforce/domain/types';
+import { createProjectSchema } from '@/modules/projects/validation/schemas';
+import { PROJECT_STATUSES, WORK_KINDS } from '@/modules/projects/domain/types';
+import { createExpenseSchema } from '@/modules/expenses/validation/schemas';
 import type { EnabledImportKind, ImportIssue, MappedImportRow } from '../domain/types';
 import { fieldDefsForKind } from '../domain/field-defs';
 
@@ -49,6 +53,43 @@ function validateClients(values: Readonly<Record<string, string>>): ImportIssue[
   if (!parsed.success) {
     pushZodIssues(issues, parsed.error.issues);
   }
+  return issues;
+}
+
+function validateContacts(values: Readonly<Record<string, string>>): ImportIssue[] {
+  const issues: ImportIssue[] = [];
+  const clientId = emptyToUndefined(values.clientId);
+  const clientName = emptyToUndefined(values.clientName);
+  if (!clientId && !clientName) {
+    issues.push({
+      severity: 'error',
+      field: 'clientName',
+      message: 'clientName or clientId is required',
+    });
+  }
+  if (clientId && !UUID_RE.test(clientId)) {
+    issues.push({ severity: 'error', field: 'clientId', message: 'clientId must be a UUID' });
+  }
+
+  const roleRaw = emptyToUndefined(values.role)?.toLowerCase();
+  if (roleRaw && !(CONTACT_ROLES as readonly string[]).includes(roleRaw)) {
+    issues.push({
+      severity: 'error',
+      field: 'role',
+      message: `Invalid contact role (expected: ${CONTACT_ROLES.join(', ')})`,
+    });
+  }
+
+  const name = emptyToUndefined(values.name);
+  if (!name) {
+    issues.push({ severity: 'error', field: 'name', message: 'name is required' });
+  }
+
+  const email = emptyToUndefined(values.email);
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    issues.push({ severity: 'error', field: 'email', message: 'Invalid email' });
+  }
+
   return issues;
 }
 
@@ -130,6 +171,15 @@ function validateProjects(values: Readonly<Record<string, string>>): ImportIssue
     });
   }
 
+  const workKindRaw = emptyToUndefined(values.workKind)?.toLowerCase();
+  if (workKindRaw && !(WORK_KINDS as readonly string[]).includes(workKindRaw)) {
+    issues.push({
+      severity: 'error',
+      field: 'workKind',
+      message: `Invalid work kind (expected: ${WORK_KINDS.join(', ')})`,
+    });
+  }
+
   const clientId = emptyToUndefined(values.clientId);
   if (clientId && !UUID_RE.test(clientId)) {
     issues.push({ severity: 'error', field: 'clientId', message: 'clientId must be a UUID' });
@@ -146,9 +196,11 @@ function validateProjects(values: Readonly<Record<string, string>>): ImportIssue
     }
   }
 
-  // Contract amounts / billing / expenses are intentionally omitted — financial import is conservative.
+  // Contract amounts belong in opening_values import — refuse silent money on projects.
   const financialKeys = [
     'contractAmount',
+    'contractValueAmount',
+    'opening_value',
     'originalAmount',
     'amount',
     'grossAmount',
@@ -161,9 +213,10 @@ function validateProjects(values: Readonly<Record<string, string>>): ImportIssue
   for (const key of financialKeys) {
     if (emptyToUndefined(values[key])) {
       issues.push({
-        severity: 'warning',
+        severity: 'error',
         field: key,
-        message: 'Financial amounts are not imported; set contract value on the project after create',
+        message:
+          'Financial amounts are not imported with projects; use the opening_values import kind',
       });
     }
   }
@@ -171,6 +224,7 @@ function validateProjects(values: Readonly<Record<string, string>>): ImportIssue
   const parsed = createProjectSchema.safeParse({
     name: values.name ?? '',
     status: statusRaw,
+    workKind: workKindRaw,
     clientId,
     location: emptyToUndefined(values.location),
     startDate: emptyToUndefined(values.startDate),
@@ -180,6 +234,80 @@ function validateProjects(values: Readonly<Record<string, string>>): ImportIssue
   });
   if (!parsed.success) {
     pushZodIssues(issues, parsed.error.issues);
+  }
+  return issues;
+}
+
+function validateOpeningValues(values: Readonly<Record<string, string>>): ImportIssue[] {
+  const issues: ImportIssue[] = [];
+  const projectId = emptyToUndefined(values.projectId);
+  const projectName = emptyToUndefined(values.projectName);
+  if (!projectId && !projectName) {
+    issues.push({
+      severity: 'error',
+      field: 'projectName',
+      message: 'projectName or projectId is required',
+    });
+  }
+  if (projectId && !UUID_RE.test(projectId)) {
+    issues.push({ severity: 'error', field: 'projectId', message: 'projectId must be a UUID' });
+  }
+
+  const amount = emptyToUndefined(values.contractValueAmount);
+  if (!amount || !AMOUNT_RE.test(amount)) {
+    issues.push({
+      severity: 'error',
+      field: 'contractValueAmount',
+      message: 'Valid contractValueAmount is required',
+    });
+  }
+
+  const reduction = emptyToUndefined(values.openingReductionAmount);
+  if (reduction && !AMOUNT_RE.test(reduction)) {
+    issues.push({
+      severity: 'error',
+      field: 'openingReductionAmount',
+      message: 'Invalid opening reduction amount',
+    });
+  }
+
+  const currency = emptyToUndefined(values.currency)?.toUpperCase();
+  if (currency && !/^[A-Z]{3}$/.test(currency)) {
+    issues.push({
+      severity: 'error',
+      field: 'currency',
+      message: 'Currency must be a 3-letter ISO code',
+    });
+  }
+
+  const includesTax = emptyToUndefined(values.amountIncludesTax)?.toLowerCase();
+  if (
+    includesTax &&
+    !['true', 'false', '1', '0', 'yes', 'no', 'כן', 'לא'].includes(includesTax)
+  ) {
+    issues.push({
+      severity: 'error',
+      field: 'amountIncludesTax',
+      message: 'amountIncludesTax must be true/false',
+    });
+  }
+
+  return issues;
+}
+
+function validateCostCategories(values: Readonly<Record<string, string>>): ImportIssue[] {
+  const issues: ImportIssue[] = [];
+  const name = emptyToUndefined(values.name);
+  if (!name || name.length < 2) {
+    issues.push({ severity: 'error', field: 'name', message: 'name is required (min 2 characters)' });
+  }
+  const family = emptyToUndefined(values.family)?.toLowerCase();
+  if (!family || !(COST_FAMILIES as readonly string[]).includes(family)) {
+    issues.push({
+      severity: 'error',
+      field: 'family',
+      message: `Invalid cost family (expected: ${COST_FAMILIES.join(', ')})`,
+    });
   }
   return issues;
 }
@@ -281,12 +409,18 @@ export function validateMappedValues(
   switch (kind) {
     case 'clients':
       return validateClients(values);
+    case 'contacts':
+      return validateContacts(values);
     case 'vendors':
       return validateVendors(values);
     case 'employees':
       return validateEmployees(values);
     case 'projects':
       return validateProjects(values);
+    case 'opening_values':
+      return validateOpeningValues(values);
+    case 'cost_categories':
+      return validateCostCategories(values);
     case 'expenses':
       return validateExpenses(values, options.baseCurrency ?? 'ILS');
   }
@@ -321,6 +455,4 @@ export function validateMappedRows(
   });
 }
 
-export function rowHasErrors(row: MappedImportRow): boolean {
-  return row.issues.some((i) => i.severity === 'error');
-}
+export { rowHasErrors } from '../domain/row-has-errors';

@@ -28,6 +28,7 @@ import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { MatchDecisionButtons, ProposeMatchForm } from './match-actions';
 import { VendorPaymentPanel } from './payment-actions';
 import { VendorCreditPanel } from './credit-actions';
+import { PostApBillPanel } from './post-actions';
 import { VoidApBillPanel } from './void-actions';
 import { textNavLinkMutedClassName } from '@/components/ui/pressable';
 
@@ -328,6 +329,8 @@ export default async function ApBillDetailPage({
           locale={locale}
         />
       ) : null}
+
+      <PostApBillPanel billId={bill.id} canManage={canManage} billStatus={bill.status} />
 
       <VoidApBillPanel
         billId={bill.id}

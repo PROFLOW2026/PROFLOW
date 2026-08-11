@@ -56,6 +56,7 @@ export const MESSAGE_NAMESPACES = [
   'status',
   'projects',
   'jobs',
+  'service',
   'clients',
   'expenses',
   'changes',
@@ -68,7 +69,9 @@ export const MESSAGE_NAMESPACES = [
   'onboarding',
   'imports',
   'crm',
+  'quotes',
   'portal',
+  'search',
   'customFields',
   'api',
   'procurement',
@@ -81,6 +84,11 @@ export const MESSAGE_NAMESPACES = [
   'invoicingIntegration',
   'exports',
   'marketing',
+  'budgets',
+  'approvals',
+  'monthClose',
+  'forms',
+  'commandCenter',
 ] as const;
 
 export type MessageNamespace = (typeof MESSAGE_NAMESPACES)[number];
@@ -101,6 +109,7 @@ export const APP_CLIENT_MESSAGE_NAMESPACES = [
   'offline',
   'projects',
   'jobs',
+  'service',
   'financial',
   'expenses',
   'changes',
@@ -111,4 +120,8 @@ export const APP_CLIENT_MESSAGE_NAMESPACES = [
   'vendors',
   'customFields',
   'exports',
+  'budgets',
+  'approvals',
+  'search',
+  'service',
 ] as const satisfies readonly MessageNamespace[];

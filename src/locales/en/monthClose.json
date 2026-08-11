@@ -1,0 +1,74 @@
+{
+  "title": "Month close",
+  "description": "Optional operational close for a calendar month. This is not statutory accounting — it freezes operational history so corrections stay explicit.",
+  "moduleOff": {
+    "title": "Month close is off",
+    "body": "Turn on Month close under Settings → Features, or open a period once to enable it automatically."
+  },
+  "notAllowed": "You need month-close access to view this page.",
+  "status": {
+    "open": "Open",
+    "ready": "Ready",
+    "closed": "Closed"
+  },
+  "periods": {
+    "title": "Periods",
+    "empty": "No periods yet. Open a month to begin."
+  },
+  "detail": {
+    "select": "Select a period to review completeness."
+  },
+  "form": {
+    "yearMonth": "Month (YYYY-MM)"
+  },
+  "actions": {
+    "openPeriod": "Open month",
+    "refresh": "Refresh checklist",
+    "markReady": "Mark ready",
+    "demote": "Back to open",
+    "close": "Close month",
+    "recordAdjustment": "Record adjustment",
+    "saved": "Saved."
+  },
+  "closed": {
+    "notice": "This month is closed. Silent rewrites are blocked — record an explicit adjustment for corrections."
+  },
+  "completeness": {
+    "empty": "Completeness has not been computed yet.",
+    "percent": "Completeness {percent}%",
+    "passed": "{passed} of {applicable} checks clear",
+    "issueCount": "{count, plural, one {# open item} other {# open items}}",
+    "stateOk": "Clear",
+    "stateIssue": "Needs attention",
+    "stateNa": "Not applicable"
+  },
+  "checks": {
+    "missing_employer_cost_actual": "Employees missing actual employer cost",
+    "unallocated_employee_cost": "Unallocated employee cost",
+    "vendor_bills_unallocated": "Vendor bills with unallocated remainder",
+    "open_time_corrections": "Open time corrections",
+    "ap_anomalies": "AP anomalies",
+    "missing_project_allocations": "Missing project allocations",
+    "unresolved_expense_drafts": "Unresolved expense drafts",
+    "incomplete_attendance": "Incomplete attendance",
+    "open_overhead_allocation": "Open overhead allocation"
+  },
+  "adjustments": {
+    "title": "Post-close adjustment",
+    "hint": "Explain why operational history needs an explicit correction, supersede, or adjustment after close.",
+    "type": "Type",
+    "reason": "Reason",
+    "history": "Adjustment history",
+    "types": {
+      "correction": "Correction",
+      "supersede": "Supersede",
+      "adjustment": "Adjustment"
+    }
+  },
+  "errors": {
+    "invalidTransition": "That status change is not allowed.",
+    "monthClosed": "This month is closed — use an explicit post-close adjustment.",
+    "notClosed": "Post-close adjustments require a closed month.",
+    "notComplete": "Completeness must be 100% before ready/close."
+  }
+}

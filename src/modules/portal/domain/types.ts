@@ -15,6 +15,8 @@ export const CUSTOMER_PORTAL_SCOPES = [
   'billing.outstanding',
   'documents.read',
   'milestones.read',
+  /** Customer-facing quote status/totals only — never estimated cost/margin. */
+  'quotes.read',
 ] as const;
 
 export type CustomerPortalScope = (typeof CUSTOMER_PORTAL_SCOPES)[number];
@@ -253,6 +255,20 @@ export interface CustomerSafeMilestone {
 }
 
 /**
+ * Customer-facing commercial quote (sent onward). Never includes estimated
+ * cost, margin, internal notes, or draft/ready-only internal quotes.
+ */
+export interface CustomerSafeQuote {
+  readonly quoteId: string;
+  readonly title: string;
+  readonly status: string;
+  readonly currency: string;
+  readonly totalAmount: string | null;
+  readonly validityDate: string | null;
+  readonly sentAt: string | null;
+}
+
+/**
  * Customer-visible billing/payment row. Never includes cost, margin, or
  * internal notes. Draft/void records are excluded by the builder.
  */
@@ -307,4 +323,6 @@ export interface CustomerSafeProjectSummary {
   readonly documents?: readonly CustomerSafeDocument[];
   /** Present only when the grant includes `milestones.read`. */
   readonly milestones?: readonly CustomerSafeMilestone[];
+  /** Present only when the grant includes `quotes.read`. */
+  readonly quotes?: readonly CustomerSafeQuote[];
 }

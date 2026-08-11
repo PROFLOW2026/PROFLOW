@@ -25,6 +25,9 @@ const SENSITIVE_MARKERS = [
   '/profit',
   '/cashflow',
   '/tax',
+  '/reports',
+  '/month-close',
+  '/quotes',
 ];
 
 function isSensitiveFinancialPath(pathname) {

@@ -1,10 +1,13 @@
-import { createClient } from '@/modules/clients';
+import { createClient, createClientContact } from '@/modules/clients';
 import { createVendor } from '@/modules/vendors';
 import { createEmployee } from '@/modules/workforce';
-import { createProject } from '@/modules/projects';
+import { createProject, upsertPrimaryContractAmount } from '@/modules/projects';
 import { createExpense } from '@/modules/expenses';
+import { costCategories } from '@drizzle/schema';
 import type { OrgContext } from '@/shared/auth/context';
 import { AppError, ValidationError } from '@/shared/errors';
+import { assertPermission } from '@/shared/permissions/assert';
+import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { previewImport } from './preview-import';
 import { enrichImportPreview } from './enrich-preview';
 import { assertCanImportKind } from './import-permissions';
@@ -24,13 +27,27 @@ export interface ConfirmImportInput {
   readonly kind: string;
   readonly csvText: string;
   readonly mapping: ColumnMapping;
-  /** When set, only these row numbers (file line numbers) are imported. */
+  /** When set, only these row numbers (file line numbers) are imported. Skipped rows are allowed. */
   readonly rowNumbers?: readonly number[];
 }
 
 function emptyToUndefined(value: string | undefined): string | undefined {
   if (value === undefined || value.trim() === '') return undefined;
   return value.trim();
+}
+
+function slugifyKey(name: string): string {
+  const base = name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '')
+    .slice(0, 48);
+  return base || 'category';
+}
+
+function parseIncludesTax(raw: string | undefined): boolean {
+  const v = emptyToUndefined(raw)?.toLowerCase();
+  return v === 'true' || v === '1' || v === 'yes' || v === 'כן';
 }
 
 async function createFromRow(
@@ -52,6 +69,22 @@ async function createFromRow(
         notes: emptyToUndefined(v.notes),
       });
       return client.id;
+    }
+    case 'contacts': {
+      const contact = await createClientContact(context, {
+        clientId: emptyToUndefined(v.clientId) ?? '',
+        name: v.name ?? '',
+        role: emptyToUndefined(v.role)?.toLowerCase() as
+          | 'primary'
+          | 'billing'
+          | 'site'
+          | 'other'
+          | undefined,
+        email: emptyToUndefined(v.email) ?? null,
+        phone: emptyToUndefined(v.phone) ?? null,
+        notes: emptyToUndefined(v.notes) ?? null,
+      });
+      return contact.id;
     }
     case 'vendors': {
       const vendor = await createVendor(context, {
@@ -96,10 +129,16 @@ async function createFromRow(
         | 'cancelled'
         | 'archived'
         | undefined;
-      // Conservative: never set contract/billing/expense amounts from CSV.
+      const workKind = emptyToUndefined(v.workKind)?.toLowerCase() as
+        | 'project'
+        | 'job'
+        | 'work_order'
+        | undefined;
+      // Conservative: never set contract/billing/expense amounts from projects CSV.
       const result = await createProject(context, {
         name: v.name ?? '',
         status,
+        workKind,
         clientId: emptyToUndefined(v.clientId),
         location: emptyToUndefined(v.location),
         startDate: emptyToUndefined(v.startDate),
@@ -108,6 +147,55 @@ async function createFromRow(
         notes: emptyToUndefined(v.notes),
       });
       return result.projectId;
+    }
+    case 'opening_values': {
+      const projectId = emptyToUndefined(v.projectId);
+      if (!projectId) {
+        throw new ValidationError([
+          { path: 'projectId', message: 'projectId must be resolved before import' },
+        ]);
+      }
+      const currency = (
+        emptyToUndefined(v.currency) ?? context.organization.baseCurrency
+      ).toUpperCase();
+      await upsertPrimaryContractAmount(context, {
+        projectId,
+        enteredAmount: emptyToUndefined(v.contractValueAmount) ?? '',
+        currency,
+        amountIncludesTax: parseIncludesTax(v.amountIncludesTax),
+        openingReductionAmount: emptyToUndefined(v.openingReductionAmount),
+      });
+      return projectId;
+    }
+    case 'cost_categories': {
+      assertPermission(context, PERMISSIONS.SETTINGS_MANAGE);
+      const name = emptyToUndefined(v.name) ?? '';
+      const family = (emptyToUndefined(v.family)?.toLowerCase() ?? 'direct_project') as
+        | 'direct_project'
+        | 'shared'
+        | 'business_overhead'
+        | 'asset_capital';
+      const key = emptyToUndefined(v.key) ?? slugifyKey(name);
+      const [inserted] = await context.db
+        .insert(costCategories)
+        .values({
+          organizationId: context.organizationId,
+          key,
+          name,
+          family,
+          isSystem: false,
+          sortOrder: 500,
+        })
+        .onConflictDoNothing({
+          target: [costCategories.organizationId, costCategories.key],
+        })
+        .returning({ id: costCategories.id });
+      if (!inserted) {
+        throw new ValidationError([
+          { path: 'key', message: 'Cost category key already exists — skipped to avoid overwrite' },
+        ]);
+      }
+      return inserted.id;
     }
     case 'expenses': {
       // Canonical createExpense only — draft status, money/tax rules unchanged.
@@ -145,9 +233,26 @@ function errorMessage(error: unknown): string {
   return 'Unknown error';
 }
 
+function buildResult(
+  kind: EnabledImportKind,
+  previewRowCount: number,
+  selected: Set<number>,
+  results: ImportRowResult[],
+): ImportConfirmResult {
+  const skipped = previewRowCount - selected.size;
+  return {
+    kind,
+    created: results.filter((r) => r.ok).length,
+    failed: results.filter((r) => !r.ok).length,
+    skipped: Math.max(0, skipped),
+    results,
+  };
+}
+
 /**
  * Confirm a previously previewed import: create via existing module APIs
  * inside transactional batches (each batch = one withOrgContext transaction).
+ * Error rows are never written. Unselected rows are skipped (allowed).
  */
 export async function confirmImport(
   context: OrgContext,
@@ -203,13 +308,7 @@ export async function confirmImport(
   }
 
   results.sort((a, b) => a.rowNumber - b.rowNumber);
-
-  return {
-    kind,
-    created: results.filter((r) => r.ok).length,
-    failed: results.filter((r) => !r.ok).length,
-    results,
-  };
+  return buildResult(kind, preview.rows.length, selected, results);
 }
 
 /**
@@ -276,13 +375,7 @@ export async function confirmImportInBatches(
   }
 
   results.sort((a, b) => a.rowNumber - b.rowNumber);
-
-  return {
-    kind,
-    created: results.filter((r) => r.ok).length,
-    failed: results.filter((r) => !r.ok).length,
-    results,
-  };
+  return buildResult(kind, preview.rows.length, selected, results);
 }
 
 export { BATCH_SIZE };

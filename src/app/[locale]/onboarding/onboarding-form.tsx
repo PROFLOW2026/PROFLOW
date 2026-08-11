@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { PROFESSION_PRESET_KEYS } from '@/modules/tenancy/domain/profession-presets';
+import { BUSINESS_PROFILE_KEYS } from '@/modules/tenancy/domain/business-profiles';
 import { createOrganizationAction, type OnboardingFormState } from './actions';
 
 const COUNTRY_CODES = ['IL', 'US', 'GB'] as const;
@@ -68,16 +68,16 @@ export function OnboardingForm() {
       <Field label={t('presetLabel')} optionalLabel={t('presetOptional')} description={t('presetHint')}>
         {(control) => (
           <>
-            <input type="hidden" name="professionPreset" value={preset} />
+            <input type="hidden" name="businessProfile" value={preset} />
             <Select value={preset} onValueChange={setPreset}>
               <SelectTrigger id={control.id} aria-describedby={control['aria-describedby']}>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="none">{t('presetNone')}</SelectItem>
-                {PROFESSION_PRESET_KEYS.map((key) => (
+                {BUSINESS_PROFILE_KEYS.map((key) => (
                   <SelectItem key={key} value={key}>
-                    {t(`presets.${key}`)}
+                    {t(`profiles.${key}`)}
                   </SelectItem>
                 ))}
               </SelectContent>

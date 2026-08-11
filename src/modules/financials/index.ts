@@ -60,6 +60,27 @@ export { attachEntryBaselineContext } from './domain/entry-baseline-context';
 export { computeProfitPosition, computeMarginPercent } from './domain/profit';
 export { buildFinancialCoverage, ALL_COST_SOURCES } from './domain/coverage';
 export {
+  resolveDataConfidence,
+  collectDataConfidenceSignals,
+  dataConfidenceFromCoverage,
+  mergeDataConfidence,
+} from './domain/data-confidence';
+export type {
+  DataConfidence,
+  DataConfidenceLevel,
+  DataConfidenceReason,
+  DataConfidenceSignals,
+} from './domain/data-confidence';
+export {
+  buildProjectFinancialExplainability,
+  findMetricExplanation,
+} from './domain/metric-explainability';
+export type {
+  ExplainableMetricKey,
+  MetricExplanation,
+  ProjectFinancialExplainability,
+} from './domain/metric-explainability';
+export {
   aggregateProjectCosts,
   emptyCostPosition,
   withCommittedAndApPayable,

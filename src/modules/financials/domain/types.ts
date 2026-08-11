@@ -1,5 +1,6 @@
 import type { MoneyValue } from '@/shared/money/money';
 import type { PricingMode, WorkKind } from './work-pricing';
+import type { DataConfidence } from './data-confidence';
 
 /**
  * The financial contract every module reads from and none may redefine
@@ -156,6 +157,12 @@ export interface ProfitPosition {
   actualMarginPercent: string | null;
 }
 
+/**
+ * Deterministic data-confidence level attached to composed financials.
+ * Formula lives in `domain/data-confidence.ts` — never an AI score.
+ */
+export type ProjectDataConfidenceLevel = DataConfidence['level'];
+
 export interface ProjectFinancials {
   projectId: string;
   currency: string;
@@ -182,6 +189,11 @@ export interface ProjectFinancials {
    */
   profit: ProfitPosition | null;
   coverage: FinancialCoverage;
+  /**
+   * High / Medium / Needs data — from known incompleteness only
+   * (missing employer cost, unallocated remainder, open drafts/allocations, FX gaps).
+   */
+  dataConfidence: DataConfidence;
 }
 
 /** Cross-project figures for the home dashboard. */

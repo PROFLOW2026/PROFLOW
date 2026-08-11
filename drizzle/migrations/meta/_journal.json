@@ -1,167 +1,209 @@
 {
-  "version": "7",
-  "dialect": "postgresql",
-  "entries": [
-    {
-      "idx": 0,
-      "version": "7",
-      "when": 1786231665535,
-      "tag": "0000_foundation",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1786231704546,
-      "tag": "0001_rls_security",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1786231946765,
-      "tag": "0002_tax_rule_uniqueness",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1786232400000,
-      "tag": "0004_billing_commercial_integrity",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1786232460000,
-      "tag": "0005_workforce_rate_integrity",
-      "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "7",
-      "when": 1786232520000,
-      "tag": "0006_rls_hardening",
-      "breakpoints": true
-    },
-    {
-      "idx": 6,
-      "version": "7",
-      "when": 1786232600000,
-      "tag": "0007_contract_amount_tax",
-      "breakpoints": true
-    },
-    {
-      "idx": 7,
-      "version": "7",
-      "when": 1786232700000,
-      "tag": "0008_light_scheduling",
-      "breakpoints": true
-    },
-    {
-      "idx": 8,
-      "version": "7",
-      "when": 1786232800000,
-      "tag": "0009_wave2_foundations",
-      "breakpoints": true
-    },
-    {
-      "idx": 9,
-      "version": "7",
-      "when": 1786232900000,
-      "tag": "0010_procurement_foundations",
-      "breakpoints": true
-    },
-    {
-      "idx": 10,
-      "version": "7",
-      "when": 1786233000000,
-      "tag": "0011_field_ops_assets",
-      "breakpoints": true
-    },
-    {
-      "idx": 11,
-      "version": "7",
-      "when": 1786233100000,
-      "tag": "0012_ap_vendor_portal",
-      "breakpoints": true
-    },
-    {
-      "idx": 12,
-      "version": "7",
-      "when": 1786233200000,
-      "tag": "0013_document_owner_types",
-      "breakpoints": true
-    },
-    {
-      "idx": 13,
-      "version": "7",
-      "when": 1786233250000,
-      "tag": "0014_allocation_engine",
-      "breakpoints": true
-    },
-    {
-      "idx": 14,
-      "version": "7",
-      "when": 1786233300000,
-      "tag": "0015_project_expected_remaining_cost",
-      "breakpoints": true
-    },
-    {
-      "idx": 15,
-      "version": "7",
-      "when": 1786233400000,
-      "tag": "0016_category_allocation_policy",
-      "breakpoints": true
-    },
-    {
-      "idx": 16,
-      "version": "7",
-      "when": 1786233500000,
-      "tag": "0017_periodic_allocation",
-      "breakpoints": true
-    },
-    {
-      "idx": 17,
-      "version": "7",
-      "when": 1786233600000,
-      "tag": "0018_allocation_run_integrity",
-      "breakpoints": true
-    },
-    {
-      "idx": 18,
-      "version": "7",
-      "when": 1786233700000,
-      "tag": "0019_project_job_modes_and_entry_baseline",
-      "breakpoints": true
-    },
-    {
-      "idx": 19,
-      "version": "7",
-      "when": 1786233800000,
-      "tag": "0020_overnight_foundations",
-      "breakpoints": true
-    },
-    {
-      "idx": 20,
-      "version": "7",
-      "when": 1786368000000,
-      "tag": "0021_workforce_contacts_and_allocations",
-      "breakpoints": true
-    },
-    {
-      "idx": 21,
-      "version": "7",
-      "when": 1786400000000,
-      "tag": "0022_master_completion_foundations",
-      "breakpoints": true
-    },
-    {
-      "idx": 22,
-      "version": "7",
-      "when": 1786401000000,
-      "tag": "0023_attendance_rls_and_role_backfill",
-      "breakpoints": true
-    }
-  ]
+    "version":  "7",
+    "dialect":  "postgresql",
+    "entries":  [
+                    {
+                        "idx":  0,
+                        "version":  "7",
+                        "when":  1786231665535,
+                        "tag":  "0000_foundation",
+                        "breakpoints":  true
+                    },
+                    {
+                        "idx":  1,
+                        "version":  "7",
+                        "when":  1786231704546,
+                        "tag":  "0001_rls_security",
+                        "breakpoints":  true
+                    },
+                    {
+                        "idx":  2,
+                        "version":  "7",
+                        "when":  1786231946765,
+                        "tag":  "0002_tax_rule_uniqueness",
+                        "breakpoints":  true
+                    },
+                    {
+                        "idx":  3,
+                        "version":  "7",
+                        "when":  1786232400000,
+                        "tag":  "0004_billing_commercial_integrity",
+                        "breakpoints":  true
+                    },
+                    {
+                        "idx":  4,
+                        "version":  "7",
+                        "when":  1786232460000,
+                        "tag":  "0005_workforce_rate_integrity",
+                        "breakpoints":  true
+                    },
+                    {
+                        "idx":  5,
+                        "version":  "7",
+                        "when":  1786232520000,
+                        "tag":  "0006_rls_hardening",
+                        "breakpoints":  true
+                    },
+                    {
+                        "idx":  6,
+                        "version":  "7",
+                        "when":  1786232600000,
+                        "tag":  "0007_contract_amount_tax",
+                        "breakpoints":  true
+                    },
+                    {
+                        "idx":  7,
+                        "version":  "7",
+                        "when":  1786232700000,
+                        "tag":  "0008_light_scheduling",
+                        "breakpoints":  true
+                    },
+                    {
+                        "idx":  8,
+                        "version":  "7",
+                        "when":  1786232800000,
+                        "tag":  "0009_wave2_foundations",
+                        "breakpoints":  true
+                    },
+                    {
+                        "idx":  9,
+                        "version":  "7",
+                        "when":  1786232900000,
+                        "tag":  "0010_procurement_foundations",
+                        "breakpoints":  true
+                    },
+                    {
+                        "idx":  10,
+                        "version":  "7",
+                        "when":  1786233000000,
+                        "tag":  "0011_field_ops_assets",
+                        "breakpoints":  true
+                    },
+                    {
+                        "idx":  11,
+                        "version":  "7",
+                        "when":  1786233100000,
+                        "tag":  "0012_ap_vendor_portal",
+                        "breakpoints":  true
+                    },
+                    {
+                        "idx":  12,
+                        "version":  "7",
+                        "when":  1786233200000,
+                        "tag":  "0013_document_owner_types",
+                        "breakpoints":  true
+                    },
+                    {
+                        "idx":  13,
+                        "version":  "7",
+                        "when":  1786233250000,
+                        "tag":  "0014_allocation_engine",
+                        "breakpoints":  true
+                    },
+                    {
+                        "idx":  14,
+                        "version":  "7",
+                        "when":  1786233300000,
+                        "tag":  "0015_project_expected_remaining_cost",
+                        "breakpoints":  true
+                    },
+                    {
+                        "idx":  15,
+                        "version":  "7",
+                        "when":  1786233400000,
+                        "tag":  "0016_category_allocation_policy",
+                        "breakpoints":  true
+                    },
+                    {
+                        "idx":  16,
+                        "version":  "7",
+                        "when":  1786233500000,
+                        "tag":  "0017_periodic_allocation",
+                        "breakpoints":  true
+                    },
+                    {
+                        "idx":  17,
+                        "version":  "7",
+                        "when":  1786233600000,
+                        "tag":  "0018_allocation_run_integrity",
+                        "breakpoints":  true
+                    },
+                    {
+                        "idx":  18,
+                        "version":  "7",
+                        "when":  1786233700000,
+                        "tag":  "0019_project_job_modes_and_entry_baseline",
+                        "breakpoints":  true
+                    },
+                    {
+                        "idx":  19,
+                        "version":  "7",
+                        "when":  1786233800000,
+                        "tag":  "0020_overnight_foundations",
+                        "breakpoints":  true
+                    },
+                    {
+                        "idx":  20,
+                        "version":  "7",
+                        "when":  1786368000000,
+                        "tag":  "0021_workforce_contacts_and_allocations",
+                        "breakpoints":  true
+                    },
+                    {
+                        "idx":  21,
+                        "version":  "7",
+                        "when":  1786400000000,
+                        "tag":  "0022_master_completion_foundations",
+                        "breakpoints":  true
+                    },
+                    {
+                        "idx":  22,
+                        "version":  "7",
+                        "when":  1786401000000,
+                        "tag":  "0023_attendance_rls_and_role_backfill",
+                        "breakpoints":  true
+                    },
+                    {
+                        "idx":  23,
+                        "version":  "7",
+                        "when":  1786500000000,
+                        "tag":  "0024_next_gen_permissions_modules_work_entity",
+                        "breakpoints":  true
+                    },
+                    {
+                        "idx":  24,
+                        "version":  "7",
+                        "when":  1786500100000,
+                        "tag":  "0025_quotes_estimates",
+                        "breakpoints":  true
+                    },
+                    {
+                        "idx":  25,
+                        "version":  "7",
+                        "when":  1786500200000,
+                        "tag":  "0026_service_dispatch_recurrence",
+                        "breakpoints":  true
+                    },
+                    {
+                        "idx":  26,
+                        "version":  "7",
+                        "when":  1786500300000,
+                        "tag":  "0027_approvals_month_close_budgets",
+                        "breakpoints":  true
+                    },
+                    {
+                        "idx":  27,
+                        "version":  "7",
+                        "when":  1786500400000,
+                        "tag":  "0028_forms_usage_command_recurring",
+                        "breakpoints":  true
+                    },
+                    {
+                        "idx":  28,
+                        "version":  "7",
+                        "when":  1786500500000,
+                        "tag":  "0029_next_gen_integration_hardening",
+                        "breakpoints":  true
+                    }
+                ]
 }

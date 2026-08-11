@@ -31,6 +31,9 @@ export const SENSITIVE_FINANCIAL_PATH_MARKERS = [
   '/profit',
   '/cashflow',
   '/tax',
+  '/reports',
+  '/month-close',
+  '/quotes',
 ] as const;
 
 export function isShellAssetUrl(pathname: string): boolean {

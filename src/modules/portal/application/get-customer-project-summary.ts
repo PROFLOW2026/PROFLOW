@@ -12,6 +12,7 @@ import {
   buildCustomerSafeDocuments,
   buildCustomerSafeMilestones,
   buildCustomerSafeProjectSummary,
+  buildCustomerSafeQuotes,
   grantCoversProject,
   grantIsActive,
   isCustomerPortalSession,
@@ -26,6 +27,7 @@ import type {
   CustomerSafeDocument,
   CustomerSafeMilestone,
   CustomerSafeProjectSummary,
+  CustomerSafeQuote,
 } from '../domain/types';
 import {
   findGrantById,
@@ -33,6 +35,7 @@ import {
   listCustomerSafeBillingRows,
   listCustomerSafeProjectDocuments,
   listCustomerSafeProjectMilestones,
+  listCustomerSafeQuotesForClient,
 } from '../data/portal.repository';
 import {
   customerProjectSummarySchema,
@@ -58,6 +61,7 @@ export interface CustomerPortalPreviewResult {
   readonly neverExposed: readonly (typeof CUSTOMER_PORTAL_NEVER_EXPOSED)[number][];
   readonly documents: readonly CustomerSafeDocument[];
   readonly milestones: readonly CustomerSafeMilestone[];
+  readonly quotes: readonly CustomerSafeQuote[];
   readonly publicLoginStatus: 'disabled';
   readonly publicAccessLimitation: string;
   /** ExternalPrincipal ≠ OrganizationMembership. */
@@ -102,6 +106,7 @@ export async function previewCustomerPortalAccess(
     neverExposed: [...CUSTOMER_PORTAL_NEVER_EXPOSED],
     documents: [] as CustomerSafeDocument[],
     milestones: [] as CustomerSafeMilestone[],
+    quotes: [] as CustomerSafeQuote[],
     publicLoginStatus: 'disabled' as const,
     publicAccessLimitation: publicAccess.limitation,
     identityModel: 'external_principal' as const,
@@ -297,6 +302,16 @@ export async function previewCustomerPortalAccess(
     milestones = buildCustomerSafeMilestones(rows);
   }
 
+  let quotes: CustomerSafeQuote[] = [];
+  if (scopes.includes('quotes.read') && project.clientId) {
+    const rows = await listCustomerSafeQuotesForClient(
+      context.db,
+      context.organizationId,
+      project.clientId,
+    );
+    quotes = buildCustomerSafeQuotes(rows);
+  }
+
   const summary = buildCustomerSafeProjectSummary({
     projectId: project.id,
     name: project.name,
@@ -312,6 +327,7 @@ export async function previewCustomerPortalAccess(
     billing,
     documents,
     milestones,
+    quotes,
     scopes,
   });
 
@@ -325,6 +341,9 @@ export async function previewCustomerPortalAccess(
       throw new Error('Customer milestone must not include notes');
     }
   }
+  for (const quote of summary.quotes ?? []) {
+    assertNoSensitiveCustomerFields(quote as unknown as Record<string, unknown>);
+  }
 
   return {
     ...base,
@@ -335,5 +354,6 @@ export async function previewCustomerPortalAccess(
     scopesApplied: scopes,
     documents: summary.documents ?? [],
     milestones: summary.milestones ?? [],
+    quotes: summary.quotes ?? [],
   };
 }

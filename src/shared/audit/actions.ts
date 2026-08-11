@@ -179,9 +179,53 @@ export const AUDIT_ACTIONS = {
   MAINTENANCE_RECORD_UPDATED: 'maintenance_record.updated',
   INVENTORY_ITEM_CREATED: 'inventory_item.created',
   INVENTORY_MOVEMENT_RECORDED: 'inventory_movement.recorded',
+  MATERIAL_USAGE_RECORDED: 'material_usage.recorded',
+  MATERIAL_USAGE_ARCHIVED: 'material_usage.archived',
+  EQUIPMENT_USAGE_RECORDED: 'equipment_usage.recorded',
+  EQUIPMENT_USAGE_ARCHIVED: 'equipment_usage.archived',
 
   TAX_RULE_CREATED: 'tax_rule.created',
   TAX_RULE_UPDATED: 'tax_rule.updated',
+
+  /** Pre-sale estimates (`src/modules/quotes`) — not change-order / CRM / supplier quotes. */
+  ESTIMATE_QUOTE_CREATED: 'estimate_quote.created',
+  ESTIMATE_QUOTE_UPDATED: 'estimate_quote.updated',
+  ESTIMATE_QUOTE_STATUS_CHANGED: 'estimate_quote.status_changed',
+  ESTIMATE_QUOTE_CONVERTED: 'estimate_quote.converted',
+
+  BUDGET_CREATED: 'budget.created',
+  BUDGET_REVISED: 'budget.revised',
+  BUDGET_ARCHIVED: 'budget.archived',
+
+  APPROVAL_RULE_CREATED: 'approval_rule.created',
+  APPROVAL_RULE_UPDATED: 'approval_rule.updated',
+  APPROVAL_REQUEST_SUBMITTED: 'approval_request.submitted',
+  APPROVAL_REQUEST_APPROVED: 'approval_request.approved',
+  APPROVAL_REQUEST_REJECTED: 'approval_request.rejected',
+  APPROVAL_REQUEST_CANCELLED: 'approval_request.cancelled',
+
+  MONTH_CLOSE_PERIOD_OPENED: 'month_close.period_opened',
+  MONTH_CLOSE_PERIOD_READY: 'month_close.period_ready',
+  MONTH_CLOSE_PERIOD_REOPENED: 'month_close.period_reopened',
+  MONTH_CLOSE_PERIOD_CLOSED: 'month_close.period_closed',
+  MONTH_CLOSE_ADJUSTMENT_CREATED: 'month_close.adjustment_created',
+
+  FORM_TEMPLATE_CREATED: 'form_template.created',
+  FORM_TEMPLATE_UPDATED: 'form_template.updated',
+  FORM_TEMPLATE_ARCHIVED: 'form_template.archived',
+  FORM_SUBMISSION_CREATED: 'form_submission.created',
+  FORM_SUBMISSION_UPDATED: 'form_submission.updated',
+  FORM_SUBMISSION_SUBMITTED: 'form_submission.submitted',
+  FORM_SUBMISSION_VOIDED: 'form_submission.voided',
+
+  /** Service recurrence templates (`src/modules/service/recurrence`) — generate never finalizes money. */
+  SERVICE_RECURRENCE_CREATED: 'service_recurrence.created',
+  SERVICE_RECURRENCE_UPDATED: 'service_recurrence.updated',
+  SERVICE_RECURRENCE_PAUSED: 'service_recurrence.paused',
+  SERVICE_RECURRENCE_RESUMED: 'service_recurrence.resumed',
+  SERVICE_RECURRENCE_ENDED: 'service_recurrence.ended',
+  SERVICE_RECURRENCE_OCCURRENCE_SKIPPED: 'service_recurrence.occurrence_skipped',
+  SERVICE_RECURRENCE_GENERATED: 'service_recurrence.generated',
 } as const;
 
 export type AuditAction = (typeof AUDIT_ACTIONS)[keyof typeof AUDIT_ACTIONS];

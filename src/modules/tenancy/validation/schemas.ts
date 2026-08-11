@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { BUSINESS_PROFILE_KEYS } from '../domain/business-profiles';
 import { PROFESSION_PRESET_KEYS } from '../domain/profession-presets';
 
 /**
@@ -11,6 +12,9 @@ export const organizationNameSchema = z
   .trim()
   .min(2, 'Organization name must be at least 2 characters')
   .max(120, 'Organization name must be at most 120 characters');
+
+const optionalPresetToken = (value: unknown) =>
+  value === '' || value === 'none' || value == null ? undefined : value;
 
 export const createOrganizationSchema = z.object({
   name: organizationNameSchema,
@@ -28,12 +32,12 @@ export const createOrganizationSchema = z.object({
     .optional(),
   timezone: z.string().trim().min(1).optional(),
   defaultLocale: z.enum(['he-IL', 'en']).optional(),
-  /** Optional starter preset — never required (docs 35–36). */
+  /** Preferred: business profile configuration preset (not a separate product). */
+  businessProfile: z
+    .preprocess(optionalPresetToken, z.enum(BUSINESS_PROFILE_KEYS).optional()),
+  /** Legacy profession catalog seed — mapped to a business profile when present. */
   professionPreset: z
-    .preprocess(
-      (value) => (value === '' || value === 'none' || value == null ? undefined : value),
-      z.enum(PROFESSION_PRESET_KEYS).optional(),
-    ),
+    .preprocess(optionalPresetToken, z.enum(PROFESSION_PRESET_KEYS).optional()),
 });
 
 export type CreateOrganizationInput = z.input<typeof createOrganizationSchema>;
