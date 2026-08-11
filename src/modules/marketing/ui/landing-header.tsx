@@ -10,7 +10,7 @@ import { cn } from '@/shared/ui/cn';
 
 const NAV = [
   { href: '#how-it-works', key: 'howItWorks' as const },
-  { href: '#product-tour', key: 'capabilities' as const },
+  { href: '#capabilities', key: 'capabilities' as const },
   { href: '#faq', key: 'faq' as const },
 ];
 

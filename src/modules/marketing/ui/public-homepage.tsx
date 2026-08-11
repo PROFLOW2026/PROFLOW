@@ -30,7 +30,7 @@ export async function PublicHomepage() {
   const steps = t.raw('howItWorks.steps') as string[];
   const financialItems = t.raw('financial.items') as string[];
   const principles = t.raw('financial.principles') as Array<{ left: string; right: string }>;
-  const costBlocks = t.raw('costs.blocks') as Array<{ title: string; body: string }>;
+  const capabilityBlocks = t.raw('capabilities.blocks') as Array<{ title: string; body: string }>;
   const commercialBlocks = t.raw('commercial.blocks') as Array<{ title: string; body: string }>;
   const advancedModules = t.raw('advanced.modules') as string[];
   const audienceChips = t.raw('audience.chips') as string[];
@@ -70,7 +70,7 @@ export async function PublicHomepage() {
                   <Link href="/sign-in">{t('hero.primaryCta')}</Link>
                 </Button>
                 <Button asChild variant="secondary" size="lg" className="min-h-12 w-full sm:w-auto">
-                  <a href="#product-tour">{t('hero.secondaryCta')}</a>
+                  <a href="#how-it-works">{t('hero.secondaryCta')}</a>
                 </Button>
               </div>
             </div>
@@ -142,7 +142,7 @@ export async function PublicHomepage() {
         {/* S03 How it works */}
         <section
           id="how-it-works"
-          className="border-t border-[var(--pf-border-default)] bg-[var(--pf-bg-page)]"
+          className="scroll-mt-20 border-t border-[var(--pf-border-default)] bg-[var(--pf-bg-page)]"
           aria-labelledby="landing-how-heading"
           data-pf-landing-section="how-it-works"
         >
@@ -178,10 +178,46 @@ export async function PublicHomepage() {
           </div>
         </section>
 
-        {/* S04 Financial control */}
+        {/* S04 Capabilities */}
+        <section
+          id="capabilities"
+          className="scroll-mt-20 border-t border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)]"
+          aria-labelledby="landing-capabilities-heading"
+          data-pf-landing-section="capabilities"
+        >
+          <div className="mx-auto w-full max-w-6xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
+            <h2
+              id="landing-capabilities-heading"
+              className="max-w-[20em] text-2xl font-bold tracking-tight text-[var(--pf-text-primary)] sm:text-[1.75rem]"
+            >
+              {t('capabilities.title')}
+            </h2>
+            <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {capabilityBlocks.map((block) => (
+                <article
+                  key={block.title}
+                  className="rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-page)] p-4"
+                >
+                  <h3 className="text-base font-bold text-[var(--pf-text-brand)]">{block.title}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-[var(--pf-text-secondary)]">{block.body}</p>
+                </article>
+              ))}
+            </div>
+            <div className="mt-8">
+              <ScreenshotFrame
+                src="/marketing/screenshots/pf-landing-sc-04-desktop.svg"
+                alt={t('capabilities.shotAlt')}
+                caption={t('capabilities.shotCaption')}
+                className="mx-auto max-w-4xl"
+              />
+            </div>
+          </div>
+        </section>
+
+        {/* S05 Financial control */}
         <section
           id="financial-control"
-          className="border-t border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)]"
+          className="border-t border-[var(--pf-border-default)] bg-[var(--pf-bg-page)]"
           aria-labelledby="landing-financial-heading"
           data-pf-landing-section="financial"
         >
@@ -201,7 +237,7 @@ export async function PublicHomepage() {
                   {financialItems.map((item) => (
                     <li
                       key={item}
-                      className="rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-page)] px-3 py-2 text-sm font-medium text-[var(--pf-text-primary)]"
+                      className="rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] px-3 py-2 text-sm font-medium text-[var(--pf-text-primary)]"
                     >
                       {item}
                     </li>
@@ -238,42 +274,6 @@ export async function PublicHomepage() {
               <Button asChild size="lg" className="min-h-12 w-full sm:w-auto">
                 <Link href="/sign-in">{t('financial.cta')}</Link>
               </Button>
-            </div>
-          </div>
-        </section>
-
-        {/* S05 Costs */}
-        <section
-          id="costs"
-          className="border-t border-[var(--pf-border-default)] bg-[var(--pf-bg-page)]"
-          aria-labelledby="landing-costs-heading"
-          data-pf-landing-section="costs"
-        >
-          <div className="mx-auto w-full max-w-6xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
-            <h2
-              id="landing-costs-heading"
-              className="max-w-[20em] text-2xl font-bold tracking-tight text-[var(--pf-text-primary)] sm:text-[1.75rem]"
-            >
-              {t('costs.title')}
-            </h2>
-            <div className="mt-6 grid gap-3 md:grid-cols-3">
-              {costBlocks.map((block) => (
-                <article
-                  key={block.title}
-                  className="rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4"
-                >
-                  <h3 className="text-base font-bold text-[var(--pf-text-brand)]">{block.title}</h3>
-                  <p className="mt-2 text-sm leading-relaxed text-[var(--pf-text-secondary)]">{block.body}</p>
-                </article>
-              ))}
-            </div>
-            <div className="mt-8">
-              <ScreenshotFrame
-                src="/marketing/screenshots/pf-landing-sc-04-desktop.svg"
-                alt={t('costs.shotAlt')}
-                caption={t('costs.shotCaption')}
-                className="mx-auto max-w-4xl"
-              />
             </div>
           </div>
         </section>

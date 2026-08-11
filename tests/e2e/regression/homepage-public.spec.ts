@@ -35,8 +35,8 @@ test.describe('public homepage', () => {
       'hero',
       'questions-problem',
       'how-it-works',
+      'capabilities',
       'financial',
-      'costs',
       'commercial',
       'product-tour',
       'advanced',
@@ -50,7 +50,7 @@ test.describe('public homepage', () => {
     }
   });
 
-  test('auth CTAs go to sign-in and secondary scrolls to product tour', async ({ page }) => {
+  test('auth CTAs go to sign-in and secondary scrolls to how-it-works', async ({ page }) => {
     const headerSignIn = page.getByRole('link', { name: he.marketing.header.signIn }).first();
     await expect(headerSignIn).toHaveAttribute('href', /\/he-IL\/sign-in/);
 
@@ -58,14 +58,17 @@ test.describe('public homepage', () => {
     await expect(primaryCtas.first()).toHaveAttribute('href', /\/he-IL\/sign-in/);
 
     await page.getByRole('link', { name: he.marketing.hero.secondaryCta }).first().click();
-    await expect(page.locator('#product-tour')).toBeInViewport();
+    await expect(page.locator('#how-it-works')).toBeInViewport();
   });
 
   test('FAQ is keyboard operable and omits OCR/portal/Gantt questions', async ({ page }) => {
     const faq = page.locator('[data-pf-landing-faq]');
     await expect(faq).toBeVisible();
-    const firstTrigger = faq.locator('button').first();
+    await expect(faq.getByRole('tab')).toHaveCount(4);
+
+    const firstTrigger = faq.locator('[data-pf-faq-question]').first();
     await firstTrigger.scrollIntoViewIfNeeded();
+    await expect(firstTrigger).toHaveAttribute('aria-expanded', 'false');
     await firstTrigger.press('Enter');
     await expect(firstTrigger).toHaveAttribute('aria-expanded', 'true');
 

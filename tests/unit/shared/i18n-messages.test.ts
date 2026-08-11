@@ -124,6 +124,11 @@ const IDENTICAL_MESSAGE_ALLOWLIST = new Set([
   'marketing.tour.tabs.4.id',
   'marketing.tour.tabs.5.id',
   'marketing.tour.tabs.6.id',
+  // FAQ group ids are code keys, not UI copy.
+  'marketing.faq.groups.0.id',
+  'marketing.faq.groups.1.id',
+  'marketing.faq.groups.2.id',
+  'marketing.faq.groups.3.id',
 ]);
 
 function hasActivityAction(catalog: Catalog, action: string): boolean {
