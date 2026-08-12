@@ -54,9 +54,13 @@ export const confirmOcrCandidateSchema = z
         orderNumber: fieldOverrideSchema,
         documentType: fieldOverrideSchema,
         description: fieldOverrideSchema,
+        subtotal: fieldOverrideSchema,
+        discount: fieldOverrideSchema,
         net: fieldOverrideSchema,
         tax: fieldOverrideSchema,
+        vatRate: fieldOverrideSchema,
         gross: fieldOverrideSchema,
+        amountDue: fieldOverrideSchema,
         currency: fieldOverrideSchema,
       })
       .optional(),

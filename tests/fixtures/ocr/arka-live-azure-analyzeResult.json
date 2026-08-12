@@ -1,0 +1,557 @@
+{
+  "modelId": "prebuilt-invoice",
+  "content": "ארכה בע״מ, סניף גבעת ברנר\nגבעת ברנר, צומת בילו\nארכה\nטלפון: 073-2020260 פקס: 073-2020280\nעוסק מורשה: 511022493\nהמקצוענים בחשמל ותאורה\nמספר תיק במע״מ: 511022493\nweb site: http://www.erco.co.il\nמס. תיק ניכויים: 930788880\nלכבוד:\nכתובת למשלוח:\nתאריך חשבונית: 26/07/26\nלקוח בדיקה בע\"מ\nפינס 16\nתאריך הדפסה: 03/08/26\nכתובת בדיקה\nטלפון: 050-6845405\nשעת הדפסה: 16:21\nעיר בדיקה ISRAEL\nספק משהב״ט: 83080215\nלידי: ערן יוסף - מיל נוסף\nשם אתר: פינס 16\nטלפון: 0506845405, פקס: 0775616557\nמספר תעודה: 25342606186\nמס׳ חברה: 514628903\nמס׳ תיק במע״מ: 514628903\nחשבונית מס מרכזת 25342606186 - מקור (מסמך ממוחשב)\nמחיר\nכמות\nמחיר נטו\nש.\nתעודה\nמק״ט\nתאור מוצר\nמס.\nקוד\nאריזות\nאריזה\nסוג אריזה\nכמות\nליחידה\nבאריזה\nהנחה\nליח׳\nסה״כ מחיר\n1\n44512610174\n5951021\nמטר כבל (בחבילה)\n1\n100\nחבילה\n100.00 מטר\n3.48 שח\n100.00\n3X1.5 N2XY\n100 מטר\nמטר\n18.00%\n2.85\n285.36\n2\n44512610174\n5951041\nמטר כבל (בחבילה)\n1\n100\nחבילה\n100.00 מטר\n5.55 שח\n100.00\n5X1.5 N2XY\n100 מטר\nמטר\n18.00%\n4.55\n455.10\n3\n44512610174\n5951081\nמטר כבל (בחבילה)\n1\n100\nחבילה\n5X2.5 N2XY\n100 מטר\n100.00 מטר\n8.55 שח\n100.00\nמטר\n18.00%\n7.01\n701.10\n4\n44512610174\n55027\nחוט 1.5 חום/שחור\nPVC קשיח\n1\n100\nחבילה\n100 מטר\n100.00 מטר\n0.89 שח\n100.00\n18.00%\n0.73\n72.98\nמטר\n5\n44512610174\n55024\nחוט 1.5 כחול PVC\nקשיח\n1\n100\nחבילה\n100.00\n100 מטר\n100.00 מטר\n0.89 שח\n18.00%\n0.73\n72.98\nמטר\n6\n44512610279\n210480\nג׳ל השחלה ירוק\n0\n2.00 יח׳\n11.94 שח\n25.00%\n8.96\n17.91\n7\n44512610279\n99761104\nקופסא D-1P פטמות\n100X100X50\n0\n20.00 יח׳\n8.46 שח\n25.00%\n6.35\n126.90\n8\nM5126038421\n5974030\nתוף קוטר 80 ס״מ\n0\n1.00 יח׳\n160.00 שח\n100.00%\n0.00\n0.00\n9\nM5126038421\n5952040\nכבל 5X10 N2XY\nממ״ר\n0\n200.00 מטר\n25.75 שח\n25.75\n5,150.00\n10\nM5126038421\n1000\nחיוב בגין חיתוך כבל\n0\n1.00 יח׳\n0.00 שח\n100.00%\n0.00\n0.00\nמחיר כולל\n6,882.33\nברקוד מספר חשבונית:\nהנחה כללית (0.00%)\n0.13\nלתשלום עד: 30/11/26\nתנאי תשלום: ש+120\nמחיר אחרי הנחה\n6,882.20\nמס. לקוח: 2500441\nמע״מ (18.00%)\n1,238.80\nמס. חברה לקוח: 514628903\nסה״כ מחיר\n8,121.00 שח\nתיק מע״מ לקוח: 514628903\nסוכן: ניר סאייג 052-3231171\nיתרה בהנח״ש: 73,288.00 שח\nשיקים נא לרשום לארכה בע״מ\nהסחורה הנ״ל תישאר בבעלות החברה עד לתשלום המלא בפועל\nמנהל פעיל: אליעזר דבדגר\nמספר הקצאה: 215088289 20260803121547497\nסניף: סניף גבעת ברנר\nבברכה,\nקרן ממויה\nKeren@erco.co.il\nטל׳: 073-2020276\nהנהח״ש לקוחות סניף גבעת ברנר\nארכה בע״מ\nט.ל.ח",
+  "documents": [
+    {
+      "docType": "invoice",
+      "fields": {
+        "CustomerAddress": {
+          "type": "address",
+          "content": "כתובת בדיקה\nעיר בדיקה ISRAEL",
+          "confidence": 0.885,
+          "valueAddress": {
+            "streetAddress": "Test St 1",
+            "city": "Test City",
+            "countryRegion": "IL"
+          }
+        },
+        "CustomerAddressRecipient": {
+          "type": "string",
+          "valueString": "לקוח בדיקה בע\"מ",
+          "content": "לקוח בדיקה בע\"מ",
+          "confidence": 0.886
+        },
+        "CustomerName": {
+          "type": "string",
+          "valueString": "לקוח בדיקה בע\"מ",
+          "content": "לקוח בדיקה בע\"מ",
+          "confidence": 0.886
+        },
+        "CustomerTaxId": {
+          "type": "string",
+          "valueString": "514628903",
+          "content": "514628903",
+          "confidence": 0.846
+        },
+        "DueDate": {
+          "type": "date",
+          "valueDate": "2026-11-30",
+          "content": "30/11/26",
+          "confidence": 0.848
+        },
+        "InvoiceDate": {
+          "type": "date",
+          "valueDate": "2026-07-26",
+          "content": "26/07/26",
+          "confidence": 0.945
+        },
+        "InvoiceId": {
+          "type": "string",
+          "valueString": "25342606186",
+          "content": "25342606186",
+          "confidence": 0.849
+        },
+        "InvoiceTotal": {
+          "type": "currency",
+          "valueCurrency": {
+            "amount": 8121,
+            "currencyCode": "ILS"
+          },
+          "content": "8,121.00 שח",
+          "confidence": 0.937
+        },
+        "Items": {
+          "type": "array",
+          "valueArray": [
+            {
+              "type": "object",
+              "content": "1",
+              "confidence": 0.295
+            },
+            {
+              "type": "object",
+              "valueObject": {
+                "Amount": {
+                  "type": "currency",
+                  "valueCurrency": {
+                    "amount": 285.36,
+                    "currencyCode": "ILS"
+                  },
+                  "content": "285.36",
+                  "confidence": 0.852
+                },
+                "Description": {
+                  "type": "string",
+                  "valueString": "מטר כבל (בחבילה)\n3X1.5 N2XY\nמטר כבל (בחבילה)\n5X1.5 N2XY",
+                  "content": "מטר כבל (בחבילה)\n3X1.5 N2XY\nמטר כבל (בחבילה)\n5X1.5 N2XY",
+                  "confidence": 0.853
+                },
+                "ProductCode": {
+                  "type": "string",
+                  "valueString": "44512610174\n5951041",
+                  "content": "44512610174\n5951041",
+                  "confidence": 0.668
+                },
+                "Quantity": {
+                  "type": "number",
+                  "valueNumber": 100,
+                  "content": "100.00",
+                  "confidence": 0.852
+                },
+                "Tax": {
+                  "type": "currency",
+                  "valueCurrency": {
+                    "amount": 4.55,
+                    "currencyCode": "ILS"
+                  },
+                  "content": "4.55",
+                  "confidence": 0.704
+                },
+                "TaxRate": {
+                  "type": "string",
+                  "valueString": "18.00%",
+                  "content": "18.00%",
+                  "confidence": 0.852
+                },
+                "Unit": {
+                  "type": "string",
+                  "valueString": "מטר",
+                  "content": "מטר",
+                  "confidence": 0.485
+                },
+                "UnitPrice": {
+                  "type": "currency",
+                  "valueCurrency": {
+                    "amount": 5.55,
+                    "currencyCode": "ILS"
+                  },
+                  "content": "5.55 שח",
+                  "confidence": 0.869
+                }
+              },
+              "content": "44512610174\n5951021\nמטר כבל (בחבילה)\n1\n100\nחבילה\n100.00 מטר\n3.48 שח\n100.00\n3X1.5 N2XY\n100 מטר\nמטר\n18.00%\n2.85\n285.36\n2\n44512610174\n5951041\nמטר כבל (בחבילה)\n1\n100\nחבילה\n100.00 מטר\n5.55 שח\n100.00\n5X1.5 N2XY\n100 מטר\nמטר\n18.00%\n4.55\n455.10\n3",
+              "confidence": 0.569
+            },
+            {
+              "type": "object",
+              "valueObject": {
+                "Amount": {
+                  "type": "currency",
+                  "valueCurrency": {
+                    "amount": 701.1,
+                    "currencyCode": "ILS"
+                  },
+                  "content": "701.10",
+                  "confidence": 0.857
+                },
+                "Description": {
+                  "type": "string",
+                  "valueString": "מטר כבל (בחבילה)\n5X2.5 N2XY",
+                  "content": "מטר כבל (בחבילה)\n5X2.5 N2XY",
+                  "confidence": 0.862
+                },
+                "ProductCode": {
+                  "type": "string",
+                  "valueString": "44512610174\n5951081",
+                  "content": "44512610174\n5951081",
+                  "confidence": 0.63
+                },
+                "Quantity": {
+                  "type": "number",
+                  "valueNumber": 100,
+                  "content": "100.00",
+                  "confidence": 0.852
+                },
+                "Tax": {
+                  "type": "currency",
+                  "valueCurrency": {
+                    "amount": 7.01,
+                    "currencyCode": "ILS"
+                  },
+                  "content": "7.01",
+                  "confidence": 0.667
+                },
+                "TaxRate": {
+                  "type": "string",
+                  "valueString": "18.00%",
+                  "content": "18.00%",
+                  "confidence": 0.852
+                },
+                "UnitPrice": {
+                  "type": "currency",
+                  "valueCurrency": {
+                    "amount": 8.55,
+                    "currencyCode": "ILS"
+                  },
+                  "content": "8.55 שח",
+                  "confidence": 0.878
+                }
+              },
+              "content": "44512610174\n5951081\nמטר כבל (בחבילה)\n1\n100\nחבילה\n5X2.5 N2XY\n100 מטר\n100.00 מטר\n8.55 שח\n100.00\nמטר\n18.00%\n7.01\n701.10\n4",
+              "confidence": 0.763
+            },
+            {
+              "type": "object",
+              "valueObject": {
+                "Amount": {
+                  "type": "currency",
+                  "valueCurrency": {
+                    "amount": 72.98,
+                    "currencyCode": "ILS"
+                  },
+                  "content": "72.98",
+                  "confidence": 0.852
+                },
+                "Description": {
+                  "type": "string",
+                  "valueString": "חוט 1.5 חום/שחור\nPVC קשיח",
+                  "content": "חוט 1.5 חום/שחור\nPVC קשיח",
+                  "confidence": 0.863
+                },
+                "ProductCode": {
+                  "type": "string",
+                  "valueString": "44512610174\n55027",
+                  "content": "44512610174\n55027",
+                  "confidence": 0.638
+                },
+                "Quantity": {
+                  "type": "number",
+                  "valueNumber": 100,
+                  "content": "100.00",
+                  "confidence": 0.827
+                },
+                "Tax": {
+                  "type": "currency",
+                  "valueCurrency": {
+                    "amount": 0.73,
+                    "currencyCode": "ILS"
+                  },
+                  "content": "0.73",
+                  "confidence": 0.681
+                },
+                "TaxRate": {
+                  "type": "string",
+                  "valueString": "18.00%",
+                  "content": "18.00%",
+                  "confidence": 0.852
+                },
+                "UnitPrice": {
+                  "type": "currency",
+                  "valueCurrency": {
+                    "amount": 0.89,
+                    "currencyCode": "ILS"
+                  },
+                  "content": "0.89 שח",
+                  "confidence": 0.874
+                }
+              },
+              "content": "44512610174\n55027\nחוט 1.5 חום/שחור\nPVC קשיח\n1\n100\nחבילה\n100 מטר\n100.00 מטר\n0.89 שח\n100.00\n18.00%\n0.73\n72.98\nמטר\n5",
+              "confidence": 0.803
+            },
+            {
+              "type": "object",
+              "valueObject": {
+                "Amount": {
+                  "type": "currency",
+                  "valueCurrency": {
+                    "amount": 72.98,
+                    "currencyCode": "ILS"
+                  },
+                  "content": "72.98",
+                  "confidence": 0.852
+                },
+                "Description": {
+                  "type": "string",
+                  "valueString": "חוט 1.5 כחול PVC\nקשיח",
+                  "content": "חוט 1.5 כחול PVC\nקשיח",
+                  "confidence": 0.864
+                },
+                "ProductCode": {
+                  "type": "string",
+                  "valueString": "44512610174\n55024",
+                  "content": "44512610174\n55024",
+                  "confidence": 0.653
+                },
+                "Quantity": {
+                  "type": "number",
+                  "valueNumber": 100,
+                  "content": "100.00",
+                  "confidence": 0.852
+                },
+                "Tax": {
+                  "type": "currency",
+                  "valueCurrency": {
+                    "amount": 0.73,
+                    "currencyCode": "ILS"
+                  },
+                  "content": "0.73",
+                  "confidence": 0.669
+                },
+                "TaxRate": {
+                  "type": "string",
+                  "valueString": "18.00%",
+                  "content": "18.00%",
+                  "confidence": 0.852
+                },
+                "UnitPrice": {
+                  "type": "currency",
+                  "valueCurrency": {
+                    "amount": 0.89,
+                    "currencyCode": "ILS"
+                  },
+                  "content": "0.89 שח",
+                  "confidence": 0.875
+                }
+              },
+              "content": "44512610174\n55024\nחוט 1.5 כחול PVC\nקשיח\n1\n100\nחבילה\n100.00\n100 מטר\n100.00 מטר\n0.89 שח\n18.00%\n0.73\n72.98\nמטר\n6",
+              "confidence": 0.808
+            },
+            {
+              "type": "object",
+              "valueObject": {
+                "Amount": {
+                  "type": "currency",
+                  "valueCurrency": {
+                    "amount": 17.91,
+                    "currencyCode": "ILS"
+                  },
+                  "content": "17.91",
+                  "confidence": 0.73
+                },
+                "Description": {
+                  "type": "string",
+                  "valueString": "ג׳ל השחלה ירוק",
+                  "content": "ג׳ל השחלה ירוק",
+                  "confidence": 0.903
+                },
+                "ProductCode": {
+                  "type": "string",
+                  "valueString": "44512610279\n210480",
+                  "content": "44512610279\n210480",
+                  "confidence": 0.544
+                },
+                "Quantity": {
+                  "type": "number",
+                  "valueNumber": 2,
+                  "content": "2.00",
+                  "confidence": 0.741
+                },
+                "Tax": {
+                  "type": "currency",
+                  "valueCurrency": {
+                    "amount": 8.96,
+                    "currencyCode": "ILS"
+                  },
+                  "content": "8.96",
+                  "confidence": 0.504
+                },
+                "TaxRate": {
+                  "type": "string",
+                  "valueString": "25.00%",
+                  "content": "25.00%",
+                  "confidence": 0.308
+                },
+                "Unit": {
+                  "type": "string",
+                  "valueString": "יח׳",
+                  "content": "יח׳",
+                  "confidence": 0.49
+                },
+                "UnitPrice": {
+                  "type": "currency",
+                  "valueCurrency": {
+                    "amount": 11.94,
+                    "currencyCode": "ILS"
+                  },
+                  "content": "11.94 שח",
+                  "confidence": 0.865
+                }
+              },
+              "content": "44512610279\n210480\nג׳ל השחלה ירוק\n0\n2.00 יח׳\n11.94 שח\n25.00%\n8.96\n17.91\n7",
+              "confidence": 0.744
+            },
+            {
+              "type": "object",
+              "valueObject": {
+                "Amount": {
+                  "type": "currency",
+                  "valueCurrency": {
+                    "amount": 126.9,
+                    "currencyCode": "ILS"
+                  },
+                  "content": "126.90",
+                  "confidence": 0.852
+                },
+                "Description": {
+                  "type": "string",
+                  "valueString": "קופסא D-1P פטמות\n100X100X50",
+                  "content": "קופסא D-1P פטמות\n100X100X50",
+                  "confidence": 0.878
+                },
+                "ProductCode": {
+                  "type": "string",
+                  "valueString": "44512610279\n99761104",
+                  "content": "44512610279\n99761104",
+                  "confidence": 0.551
+                },
+                "Quantity": {
+                  "type": "number",
+                  "valueNumber": 20,
+                  "content": "20.00",
+                  "confidence": 0.745
+                },
+                "Tax": {
+                  "type": "currency",
+                  "valueCurrency": {
+                    "amount": 6.35,
+                    "currencyCode": "ILS"
+                  },
+                  "content": "6.35",
+                  "confidence": 0.666
+                },
+                "TaxRate": {
+                  "type": "string",
+                  "valueString": "25.00%",
+                  "content": "25.00%",
+                  "confidence": 0.583
+                },
+                "Unit": {
+                  "type": "string",
+                  "valueString": "יח׳",
+                  "content": "יח׳",
+                  "confidence": 0.376
+                },
+                "UnitPrice": {
+                  "type": "currency",
+                  "valueCurrency": {
+                    "amount": 8.46,
+                    "currencyCode": "ILS"
+                  },
+                  "content": "8.46 שח",
+                  "confidence": 0.866
+                }
+              },
+              "content": "44512610279\n99761104\nקופסא D-1P פטמות\n100X100X50\n0\n20.00 יח׳\n8.46 שח\n25.00%\n6.35\n126.90\n8",
+              "confidence": 0.826
+            },
+            {
+              "type": "object",
+              "valueObject": {
+                "Amount": {
+                  "type": "currency",
+                  "valueCurrency": {
+                    "amount": 0,
+                    "currencyCode": "ILS"
+                  },
+                  "content": "0.00",
+                  "confidence": 0.852
+                },
+                "Description": {
+                  "type": "string",
+                  "valueString": "תוף קוטר 80 ס״מ\nכבל 5X10 N2XY\nממ״ר\nחיוב בגין חיתוך כבל",
+                  "content": "תוף קוטר 80 ס״מ\nכבל 5X10 N2XY\nממ״ר\nחיוב בגין חיתוך כבל",
+                  "confidence": 0.853
+                },
+                "ProductCode": {
+                  "type": "string",
+                  "valueString": "M5126038421\n5974030\nM5126038421\n5952040\nM5126038421",
+                  "content": "M5126038421\n5974030\nM5126038421\n5952040\nM5126038421",
+                  "confidence": 0.694
+                },
+                "Quantity": {
+                  "type": "number",
+                  "valueNumber": 1,
+                  "content": "1.00",
+                  "confidence": 0.737
+                },
+                "Tax": {
+                  "type": "currency",
+                  "valueCurrency": {
+                    "amount": 0,
+                    "currencyCode": "ILS"
+                  },
+                  "content": "0.00",
+                  "confidence": 0.515
+                },
+                "TaxRate": {
+                  "type": "string",
+                  "valueString": "100.00%",
+                  "content": "100.00%",
+                  "confidence": 0.505
+                },
+                "Unit": {
+                  "type": "string",
+                  "valueString": "יח׳",
+                  "content": "יח׳",
+                  "confidence": 0.5
+                },
+                "UnitPrice": {
+                  "type": "currency",
+                  "valueCurrency": {
+                    "amount": 25.75,
+                    "currencyCode": "ILS"
+                  },
+                  "content": "25.75 שח",
+                  "confidence": 0.874
+                }
+              },
+              "content": "M5126038421\n5974030\nתוף קוטר 80 ס״מ\n0\n1.00 יח׳\n160.00 שח\n100.00%\n0.00\n0.00\n9\nM5126038421\n5952040\nכבל 5X10 N2XY\nממ״ר\n0\n200.00 מטר\n25.75 שח\n25.75\n5,150.00\n10\nM5126038421\n1000\nחיוב בגין חיתוך כבל\n0\n1.00 יח׳\n0.00 שח\n100.00%\n0.00\n0.00",
+              "confidence": 0.64
+            }
+          ]
+        },
+        "PaymentTerm": {
+          "type": "string",
+          "valueString": "ש+120",
+          "content": "ש+120",
+          "confidence": 0.584
+        },
+        "SubTotal": {
+          "type": "currency",
+          "valueCurrency": {
+            "amount": 6882.33,
+            "currencyCode": "ILS"
+          },
+          "content": "6,882.33",
+          "confidence": 0.47
+        },
+        "TotalDiscount": {
+          "type": "currency",
+          "valueCurrency": {
+            "amount": 0.13,
+            "currencyCode": "ILS"
+          },
+          "content": "0.13",
+          "confidence": 0.865
+        },
+        "TotalTax": {
+          "type": "currency",
+          "valueCurrency": {
+            "amount": 1238.8,
+            "currencyCode": "ILS"
+          },
+          "content": "1,238.80",
+          "confidence": 0.944
+        },
+        "VendorAddressRecipient": {
+          "type": "string",
+          "valueString": "ארכה בע״מ, סניף גבעת ברנר",
+          "content": "ארכה בע״מ, סניף גבעת ברנר",
+          "confidence": 0.545
+        },
+        "VendorName": {
+          "type": "string",
+          "valueString": "ארכה\nהמקצוענים בחשמל ותאורה",
+          "content": "ארכה\nהמקצוענים בחשמל ותאורה",
+          "confidence": 0.445
+        },
+        "VendorTaxId": {
+          "type": "string",
+          "valueString": "511022493",
+          "content": "511022493",
+          "confidence": 0.662
+        }
+      }
+    }
+  ]
+}

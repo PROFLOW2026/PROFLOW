@@ -3,6 +3,9 @@ import {
   collectVatRateHints,
   documentTypeLabel,
   extractIsraeliCompanyNumber,
+  extractIsraeliCustomerCompanyNumber,
+  extractIsraeliInvoiceNumber,
+  extractIsraeliSupplierCompanyNumber,
   inferCurrencyFromText,
   normalizeIsraeliIdentifier,
   suggestDocumentTypeFromText,
@@ -33,6 +36,23 @@ describe('Israeli document normalization', () => {
     expect(inferCurrencyFromText(null, 'סה״כ 100 ₪')).toBe('ILS');
     expect(inferCurrencyFromText(null, 'Total 40 USD')).toBe('USD');
     expect(inferCurrencyFromText('eur', 'x')).toBe('EUR');
-    expect(collectVatRateHints('מע״מ 17% וגם 0%')).toEqual(expect.arrayContaining(['17', '0']));
+    expect(collectVatRateHints('מע״מ 17% ומע״מ 0%')).toEqual(expect.arrayContaining(['17', '0']));
+    expect(collectVatRateHints('הנחה 50% ללא מע״מ מפורש')).toEqual([]);
+  });
+
+  it('extracts labeled invoice numbers and rejects supplier IDs', () => {
+    expect(extractIsraeliInvoiceNumber('מספר חשבונית 25342606186')?.value).toBe('25342606186');
+    expect(extractIsraeliInvoiceNumber("מס' חשבונית 99887766")?.value).toBe('99887766');
+    expect(extractIsraeliInvoiceNumber('זיכוי מספר 11223344')?.value).toBe('11223344');
+    expect(
+      extractIsraeliInvoiceNumber('מספר חשבונית 511022493', { supplierIds: ['511022493'] }),
+    ).toBeNull();
+  });
+
+  it('separates supplier and customer company numbers by context', () => {
+    const text =
+      'ספק ארכה ח.פ. 511022493 לכבוד לקוח ח.פ. 514628903 מספר חשבונית 25342606186';
+    expect(extractIsraeliSupplierCompanyNumber(text)).toBe('511022493');
+    expect(extractIsraeliCustomerCompanyNumber(text)).toBe('514628903');
   });
 });

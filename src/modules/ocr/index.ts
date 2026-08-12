@@ -43,12 +43,15 @@ export type { CanonicalOcrDocument } from './domain/canonical';
 export { mapAzureAnalyzeResult } from './domain/azure-mapper';
 export { matchVendors } from './domain/vendor-matching';
 export { detectDuplicateHits, shouldReuseExistingJob } from './domain/duplicates';
-export { collectReviewWarnings, lineItemsTrustworthy } from './domain/totals-warnings';
+export { collectReviewWarnings, lineItemsTrustworthy, countTrustworthyLineRows } from './domain/totals-warnings';
 export { confidenceState } from './domain/confidence';
 export {
   suggestDocumentTypeFromText,
   normalizeIsraeliIdentifier,
   extractIsraeliCompanyNumber,
+  extractIsraeliInvoiceNumber,
+  extractIsraeliSupplierCompanyNumber,
+  extractIsraeliCustomerCompanyNumber,
 } from './domain/israeli-normalize';
 export { resolveAzureModelId, AZURE_INVOICE_MODEL, AZURE_RECEIPT_MODEL } from './domain/model-strategy';
 export { isOcrSupportedMime, assertOcrFileLimits, resolveActiveOcrCapabilities } from './domain/cost-controls';

@@ -33,9 +33,18 @@ export interface CanonicalOcrIdentity {
 
 export interface CanonicalOcrMoney {
   readonly currency: OcrFieldCandidate;
+  /** Subtotal before document-level discount. */
+  readonly subtotal: OcrFieldCandidate;
+  /** Document-level discount amount. */
+  readonly discount: OcrFieldCandidate;
+  /** Taxable amount before VAT (after discounts). */
   readonly net: OcrFieldCandidate;
   readonly tax: OcrFieldCandidate;
+  /** VAT rate percent string when known (e.g. "18"). */
+  readonly vatRate: OcrFieldCandidate;
+  /** Invoice total including VAT — never copied from subtotal. */
   readonly gross: OcrFieldCandidate;
+  readonly amountDue: OcrFieldCandidate;
   readonly vatRates: readonly string[];
 }
 
@@ -92,9 +101,13 @@ export function canonicalToCandidates(
     orderNumber: document.identity.orderNumber,
     documentType: document.documentTypeLabel,
     description: document.description,
+    subtotal: document.money.subtotal,
+    discount: document.money.discount,
     net: document.money.net,
     tax: document.money.tax,
+    vatRate: document.money.vatRate,
     gross: document.money.gross,
+    amountDue: document.money.amountDue,
     currency: document.money.currency,
     lineDescriptions,
     lines: document.lines,

@@ -26,9 +26,13 @@ export const OCR_CANDIDATE_FIELD_KEYS = [
   'orderNumber',
   'documentType',
   'description',
+  'subtotal',
+  'discount',
   'net',
   'tax',
+  'vatRate',
   'gross',
+  'amountDue',
   'currency',
 ] as const;
 
@@ -90,6 +94,14 @@ export type OcrDocumentTypeKey = (typeof OCR_DOCUMENT_TYPE_KEYS)[number];
 
 export type OcrFieldSource = 'ocr' | 'user_override' | 'fixture';
 
+/** How a value was obtained — used for trust hierarchy in review. */
+export type OcrExtractionMethod =
+  | 'structured'
+  | 'hebrew_labeled'
+  | 'kv'
+  | 'reconciled'
+  | 'heuristic';
+
 export type OcrConfidenceState = 'high' | 'uncertain' | 'not_detected';
 
 export interface FieldProvenance {
@@ -99,6 +111,8 @@ export interface FieldProvenance {
   /** ISO-8601 instant when the provider produced the value. */
   readonly extractedAt?: string;
   readonly rawTextSnippet?: string;
+  /** Trust signal: structured Azure > labeled Hebrew fallback > weak heuristic. */
+  readonly extractionMethod?: OcrExtractionMethod;
 }
 
 export interface OcrFieldCandidate {
@@ -114,9 +128,16 @@ export interface OcrLineItemCandidate {
   readonly quantity: OcrFieldCandidate;
   readonly unit: OcrFieldCandidate;
   readonly unitPrice: OcrFieldCandidate;
+  /** Line amount before tax when distinguishable; otherwise the provider Amount. */
   readonly netAmount: OcrFieldCandidate;
   readonly taxAmount: OcrFieldCandidate;
+  /**
+   * Inclusive line total when tax is known separately; otherwise null when it
+   * would only duplicate netAmount (never copy Amount into both blindly).
+   */
   readonly lineTotal: OcrFieldCandidate;
+  readonly productCode?: OcrFieldCandidate;
+  readonly taxRate?: OcrFieldCandidate;
 }
 
 /**
@@ -138,9 +159,19 @@ export interface ReceiptExtractionCandidates {
   readonly orderNumber: OcrFieldCandidate;
   readonly documentType: OcrFieldCandidate;
   readonly description: OcrFieldCandidate;
+  /** Subtotal before document-level discount (Azure SubTotal). */
+  readonly subtotal: OcrFieldCandidate;
+  /** Document-level discount amount (Azure TotalDiscount). */
+  readonly discount: OcrFieldCandidate;
+  /** Taxable amount before VAT (after discounts). */
   readonly net: OcrFieldCandidate;
   readonly tax: OcrFieldCandidate;
+  /** Explicit VAT rate from TaxDetails / labeled text (e.g. "18"). */
+  readonly vatRate: OcrFieldCandidate;
+  /** Invoice total including VAT — never copied from subtotal. */
   readonly gross: OcrFieldCandidate;
+  /** Amount due when distinct from invoice total. */
+  readonly amountDue: OcrFieldCandidate;
   readonly currency: OcrFieldCandidate;
   /**
    * Line-item text proposals. Never auto-posted; may inform description when
@@ -181,6 +212,19 @@ export interface OcrSafeRawMetadata {
   readonly confirmedVendorCreditId?: string;
   readonly confirmedApplicationTarget?: OcrDraftTarget;
   readonly documentTypeKey?: OcrDocumentTypeKey;
+  /** Customer party when distinct from supplier — review only, never auto-applied. */
+  readonly customer?: {
+    readonly name?: string | null;
+    readonly taxId?: string | null;
+    readonly customerId?: string | null;
+  };
+  readonly paymentTerm?: string | null;
+  /** Document-level TaxDetails from Azure when present. */
+  readonly taxDetails?: readonly {
+    readonly rate: string | null;
+    readonly amount: string | null;
+    readonly taxableAmount: string | null;
+  }[];
   readonly errorCategory?: string;
   readonly vendorMatches?: readonly OcrVendorMatch[];
   readonly duplicateHits?: readonly OcrDuplicateHit[];

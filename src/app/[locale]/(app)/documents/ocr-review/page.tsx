@@ -10,6 +10,7 @@ import {
 } from '@/modules/ocr';
 import { OcrReviewPanelLazy } from '@/modules/ocr/ui/ocr-review-panel-lazy';
 import { listVendorsForOrg } from '@/modules/vendors';
+import { getOrganizationTaxId } from '@/modules/tenancy';
 import { withOrgContext } from '@/shared/auth/session';
 import { AuthorizationError } from '@/shared/errors';
 import { hasPermission } from '@/shared/permissions/assert';
@@ -76,12 +77,14 @@ export default async function OcrReviewPage({
       } catch {
         vendors = [];
       }
+      const organizationTaxId = await getOrganizationTaxId(context.db, context.organizationId);
       return {
         allowed: true as const,
         status,
         jobs,
         vendors,
         organizationId: context.organizationId,
+        organizationTaxId,
         canManageDocuments: hasPermission(context, PERMISSIONS.DOCUMENTS_MANAGE),
         canCreateExpenses: hasPermission(context, PERMISSIONS.EXPENSES_CREATE),
         canManageAp: hasPermission(context, PERMISSIONS.AP_MANAGE),
@@ -125,6 +128,7 @@ export default async function OcrReviewPage({
           initialJobs={data.jobs}
           vendors={data.vendors}
           organizationId={data.organizationId}
+          organizationTaxId={data.organizationTaxId}
           defaultTarget={defaultTargetFor(workflow)}
           workflow={workflow}
           canManageDocuments={data.canManageDocuments}

@@ -428,4 +428,54 @@ describe('OCR review panel', () => {
     );
     expect(screen.getByText(enDocuments.ocr.offlineBlocked)).toBeVisible();
   });
+
+  it('shows wrong-customer warning when org tax id differs from customer tax id', () => {
+    const job: ExtractionJob = {
+      ...baseJob(),
+      rawMetadata: {
+        ...baseJob().rawMetadata!,
+        customer: { taxId: '514628903', name: 'Other Biz' },
+      },
+    };
+    renderPanel(
+      <OcrReviewPanel
+        initialStatus={liveStatus}
+        initialJobs={[job]}
+        vendors={[{ id: VENDOR_ID, name: 'Fixture Supplies Ltd' }]}
+        organizationId="org-1"
+        organizationTaxId="511022493"
+        defaultTarget="vendor_bill"
+        workflow="vendor_bill"
+        canManageDocuments
+        canCreateExpenses
+        canManageAp
+      />,
+    );
+    expect(screen.getByText(enDocuments.ocr.warnPossibleWrongCustomer)).toBeVisible();
+  });
+
+  it('does not show wrong-customer warning when customer tax id matches organization', () => {
+    const job: ExtractionJob = {
+      ...baseJob(),
+      rawMetadata: {
+        ...baseJob().rawMetadata!,
+        customer: { taxId: '511022493', name: 'Our Biz' },
+      },
+    };
+    renderPanel(
+      <OcrReviewPanel
+        initialStatus={liveStatus}
+        initialJobs={[job]}
+        vendors={[{ id: VENDOR_ID, name: 'Fixture Supplies Ltd' }]}
+        organizationId="org-1"
+        organizationTaxId="511022493"
+        defaultTarget="vendor_bill"
+        workflow="vendor_bill"
+        canManageDocuments
+        canCreateExpenses
+        canManageAp
+      />,
+    );
+    expect(screen.queryByText(enDocuments.ocr.warnPossibleWrongCustomer)).toBeNull();
+  });
 });

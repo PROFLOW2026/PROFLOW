@@ -3,16 +3,27 @@
  * document. Azure field names stay in this file.
  */
 
-import type { CanonicalOcrDocument } from './canonical';
+import type { CanonicalOcrDocument, CanonicalOcrMoney } from './canonical';
 import {
   collectVatRateHints,
   documentTypeLabel,
-  extractIsraeliCompanyNumber,
+  extractIsraeliCustomerCompanyNumber,
+  extractIsraeliInvoiceNumber,
+  extractIsraeliSupplierCompanyNumber,
+  extractLabeledMoneyAmount,
+  formatMoneyAmount,
+  HEBREW_DISCOUNT_LABELS,
+  HEBREW_GROSS_LABELS,
+  HEBREW_NET_LABELS,
   inferCurrencyFromText,
   mergeIdentifierCandidate,
+  moneyNearlyEqual,
+  normalizeVatRateToken,
+  parseMoneyToken,
   suggestDocumentTypeFromText,
 } from './israeli-normalize';
 import type {
+  OcrExtractionMethod,
   OcrFieldCandidate,
   OcrFieldSource,
   OcrLineItemCandidate,
@@ -50,14 +61,33 @@ interface AzureAnalyzeResult {
   }[];
 }
 
-function blank(provenance: OcrFieldCandidate['provenance']): OcrFieldCandidate {
-  return { value: null, confidence: null, provenance };
+function blank(
+  provenance: OcrFieldCandidate['provenance'],
+  method?: OcrExtractionMethod,
+): OcrFieldCandidate {
+  return {
+    value: null,
+    confidence: null,
+    provenance: method ? { ...provenance, extractionMethod: method } : provenance,
+  };
+}
+
+function withMethod(
+  provenance: OcrFieldCandidate['provenance'],
+  method: OcrExtractionMethod,
+  snippet?: string,
+): OcrFieldCandidate['provenance'] {
+  return {
+    ...provenance,
+    extractionMethod: method,
+    ...(snippet ? { rawTextSnippet: snippet.slice(0, 80) } : {}),
+  };
 }
 
 function fieldValue(field: AzureDocumentField | undefined): string | null {
   if (!field) return null;
   if (field.valueCurrency && typeof field.valueCurrency.amount === 'number') {
-    return String(field.valueCurrency.amount);
+    return formatMoneyAmount(field.valueCurrency.amount);
   }
   if (typeof field.valueNumber === 'number') return String(field.valueNumber);
   if (field.valueDate) {
@@ -76,11 +106,11 @@ function candidateFrom(
   field: AzureDocumentField | undefined,
   provenance: OcrFieldCandidate['provenance'],
 ): OcrFieldCandidate {
-  if (!field) return blank(provenance);
+  if (!field) return blank(provenance, 'structured');
   return {
     value: fieldValue(field),
     confidence: typeof field.confidence === 'number' ? field.confidence : null,
-    provenance,
+    provenance: withMethod(provenance, 'structured'),
   };
 }
 
@@ -94,20 +124,43 @@ function lineFromObject(
   object: Record<string, AzureDocumentField> | undefined,
   provenance: OcrFieldCandidate['provenance'],
 ): OcrLineItemCandidate {
+  const amount = candidateFrom(object?.Amount, provenance);
+  const tax = candidateFrom(object?.Tax, provenance);
+  const amountNum = parseMoneyToken(amount.value);
+  const taxNum = parseMoneyToken(tax.value);
+  const inclusive =
+    amountNum != null && taxNum != null
+      ? {
+          value: formatMoneyAmount(amountNum + taxNum),
+          confidence:
+            amount.confidence == null || tax.confidence == null
+              ? null
+              : Math.min(amount.confidence, tax.confidence),
+          provenance: withMethod(provenance, 'reconciled'),
+        }
+      : blank(provenance);
+
   return {
     description: candidateFrom(object?.Description, provenance),
     quantity: candidateFrom(object?.Quantity, provenance),
     unit: candidateFrom(object?.Unit, provenance),
     unitPrice: candidateFrom(object?.UnitPrice, provenance),
-    netAmount: candidateFrom(object?.Amount, provenance),
-    taxAmount: candidateFrom(object?.Tax, provenance),
-    lineTotal: candidateFrom(object?.Amount, provenance),
+    // Amount is the line amount; do not also copy it into lineTotal unless tax is separate.
+    netAmount: amount,
+    taxAmount: tax,
+    lineTotal: inclusive.value ? inclusive : blank(provenance),
+    productCode: candidateFrom(object?.ProductCode, provenance),
+    taxRate: (() => {
+      const rate = candidateFrom(object?.TaxRate, provenance);
+      const normalized = normalizeVatRateToken(rate.value);
+      return normalized
+        ? { ...rate, value: normalized }
+        : rate;
+    })(),
   };
 }
 
-function kvMap(
-  pairs: AzureAnalyzeResult['keyValuePairs'],
-): Map<string, string> {
+function kvMap(pairs: AzureAnalyzeResult['keyValuePairs']): Map<string, string> {
   const map = new Map<string, string>();
   for (const pair of pairs ?? []) {
     const key = pair.key?.content?.trim();
@@ -125,6 +178,171 @@ function pickKv(map: Map<string, string>, labels: readonly string[]): string | n
   return null;
 }
 
+function parseVatRateToken(raw: string | null | undefined): string | null {
+  return normalizeVatRateToken(raw);
+}
+
+export interface MappedTaxDetail {
+  readonly rate: string | null;
+  readonly amount: string | null;
+  readonly taxableAmount: string | null;
+}
+
+function extractTaxDetails(
+  fields: Record<string, AzureDocumentField>,
+): { details: MappedTaxDetail[]; rates: string[]; primaryRate: OcrFieldCandidate | null } {
+  const details: MappedTaxDetail[] = [];
+  const rates: string[] = [];
+  let primaryRate: OcrFieldCandidate | null = null;
+
+  for (const detail of fields.TaxDetails?.valueArray ?? []) {
+    const rateRaw = fieldValue(detail.valueObject?.Rate);
+    const rate = parseVatRateToken(rateRaw);
+    const amountRaw = fieldValue(detail.valueObject?.Amount);
+    const taxableRaw = fieldValue(
+      detail.valueObject?.TaxableAmount ?? detail.valueObject?.NetAmount,
+    );
+    const amount =
+      amountRaw && parseMoneyToken(amountRaw) != null
+        ? formatMoneyAmount(parseMoneyToken(amountRaw)!)
+        : null;
+    const taxableAmount =
+      taxableRaw && parseMoneyToken(taxableRaw) != null
+        ? formatMoneyAmount(parseMoneyToken(taxableRaw)!)
+        : null;
+    details.push({ rate, amount, taxableAmount });
+    if (rate && !rates.includes(rate)) rates.push(rate);
+    if (rate && !primaryRate) {
+      primaryRate = {
+        value: rate,
+        confidence:
+          typeof detail.valueObject?.Rate?.confidence === 'number'
+            ? detail.valueObject.Rate.confidence
+            : 0.8,
+        provenance: {
+          source: 'ocr',
+          extractionMethod: 'structured',
+          rawTextSnippet: rateRaw?.slice(0, 40),
+        },
+      };
+    }
+  }
+
+  if (rates.length !== 1) {
+    primaryRate = null;
+  }
+
+  return { details, rates, primaryRate };
+}
+
+function resolveMoneyFields(input: {
+  subTotal: OcrFieldCandidate;
+  discount: OcrFieldCandidate;
+  tax: OcrFieldCandidate;
+  total: OcrFieldCandidate;
+  amountDue: OcrFieldCandidate;
+  content: string;
+  provenance: OcrFieldCandidate['provenance'];
+  vatRateHints: readonly string[];
+}): CanonicalOcrMoney {
+  const provenance = input.provenance;
+  const subtotal = input.subTotal;
+  let discount = input.discount;
+  const tax = input.tax;
+  let gross = input.total.value ? input.total : blank(provenance, 'structured');
+  const amountDue = input.amountDue;
+  let net = blank(provenance, 'structured');
+
+  if (!discount.value) {
+    const fromText = extractLabeledMoneyAmount(input.content, HEBREW_DISCOUNT_LABELS);
+    if (fromText) {
+      discount = {
+        value: fromText.value,
+        confidence: 0.62,
+        provenance: withMethod(provenance, 'hebrew_labeled', fromText.snippet),
+      };
+    }
+  }
+
+  if (!gross.value) {
+    const fromText = extractLabeledMoneyAmount(input.content, HEBREW_GROSS_LABELS);
+    if (fromText) {
+      gross = {
+        value: fromText.value,
+        confidence: 0.64,
+        provenance: withMethod(provenance, 'hebrew_labeled', fromText.snippet),
+      };
+    }
+  }
+
+  const subtotalNum = parseMoneyToken(subtotal.value);
+  const discountNum = parseMoneyToken(discount.value) ?? 0;
+  const taxNum = parseMoneyToken(tax.value);
+  const grossNum = parseMoneyToken(gross.value);
+
+  if (subtotalNum != null && discount.value) {
+    const afterDiscount = subtotalNum - discountNum;
+    net = {
+      value: formatMoneyAmount(afterDiscount),
+      confidence:
+        grossNum != null &&
+        taxNum != null &&
+        moneyNearlyEqual(afterDiscount + taxNum, grossNum)
+          ? subtotal.confidence == null || discount.confidence == null
+            ? 0.7
+            : Math.min(subtotal.confidence, discount.confidence, 0.85)
+          : 0.65,
+      provenance: withMethod(provenance, 'reconciled'),
+    };
+  } else if (subtotalNum != null && !discount.value) {
+    net = { ...subtotal, provenance: withMethod(subtotal.provenance, 'structured') };
+  }
+
+  if (!net.value) {
+    const labeledNet = extractLabeledMoneyAmount(input.content, HEBREW_NET_LABELS);
+    if (labeledNet) {
+      net = {
+        value: labeledNet.value,
+        confidence: 0.6,
+        provenance: withMethod(provenance, 'hebrew_labeled', labeledNet.snippet),
+      };
+    }
+  }
+
+  if (!net.value && grossNum != null && taxNum != null) {
+    const derived = grossNum - taxNum;
+    if (derived >= 0) {
+      net = {
+        value: formatMoneyAmount(derived),
+        confidence: 0.55,
+        provenance: withMethod(provenance, 'reconciled'),
+      };
+    }
+  }
+
+  let vatRate = blank(provenance, 'structured');
+  if (input.vatRateHints.length === 1) {
+    const normalized = normalizeVatRateToken(input.vatRateHints[0]) ?? input.vatRateHints[0]!;
+    vatRate = {
+      value: normalized,
+      confidence: 0.7,
+      provenance: withMethod(provenance, 'hebrew_labeled'),
+    };
+  }
+
+  return {
+    currency: blank(provenance),
+    subtotal,
+    discount,
+    net,
+    tax,
+    vatRate,
+    gross,
+    amountDue,
+    vatRates: input.vatRateHints,
+  };
+}
+
 export function mapAzureAnalyzeResult(input: {
   analyzeResult: unknown;
   providerId: string;
@@ -138,6 +356,7 @@ export function mapAzureAnalyzeResult(input: {
     providerId: input.providerId,
     model: input.model,
     extractedAt: input.extractedAt,
+    extractionMethod: 'structured' as OcrExtractionMethod,
   };
   const document = result.documents?.[0];
   const fields = document?.fields ?? {};
@@ -152,30 +371,68 @@ export function mapAzureAnalyzeResult(input: {
           ...blank(provenance),
           value: pickKv(kv, ['שם העסק', 'שם עסק', 'ספק', 'Vendor']),
           confidence: 0.55,
+          provenance: withMethod(provenance, 'kv'),
         };
+
+  const customerTaxFromProvider = candidateFrom(fields.CustomerTaxId, provenance);
+  const customerTaxFromText = extractIsraeliCustomerCompanyNumber(content);
+  const customerTaxId =
+    customerTaxFromProvider.value ??
+    customerTaxFromText ??
+    pickKv(kv, ['מס לקוח', 'לכבוד ח.פ', 'Customer Tax']);
+
+  const supplierIds: string[] = [];
+  const customerIds = customerTaxId ? [customerTaxId.replace(/[^\d]/g, '')].filter(Boolean) : [];
 
   const companyFromProvider = candidateFrom(
     fields.VendorTaxId ?? fields.MerchantTaxId ?? fields.CompanyNumber ?? fields.AuthorizedDealerNumber,
     provenance,
   );
+  const supplierFromText = extractIsraeliSupplierCompanyNumber(content);
   const companyNumber = mergeIdentifierCandidate(
     companyFromProvider,
-    extractIsraeliCompanyNumber(content) ?? pickKv(kv, ['ח.פ', 'חפ', 'ע.מ', 'עוסק']),
+    supplierFromText && !customerIds.includes(supplierFromText)
+      ? supplierFromText
+      : pickKv(kv, ['ח.פ', 'חפ', 'ע.מ', 'עוסק']),
     provenance,
   );
+  if (companyNumber.value) supplierIds.push(companyNumber.value);
 
   const invoiceId = candidateFrom(
     fields.InvoiceId ?? fields.TransactionId ?? fields.InvoiceNumber ?? fields.DocumentNumber,
     provenance,
   );
-  const reference =
-    invoiceId.value != null
-      ? invoiceId
-      : {
-          ...blank(provenance),
-          value: pickKv(kv, ['מספר חשבונית', 'מספר מסמך', 'Invoice']),
-          confidence: 0.55,
-        };
+  let reference = invoiceId;
+  if (!reference.value) {
+    const fromKv = pickKv(kv, [
+      'מספר חשבונית',
+      'מס חשבונית',
+      "מס' חשבונית",
+      'מס. חשבונית',
+      'מספר מסמך',
+      'Invoice',
+    ]);
+    if (fromKv) {
+      reference = {
+        value: fromKv.replace(/[^\dA-Za-z\-_/]/g, '') || fromKv,
+        confidence: 0.55,
+        provenance: withMethod(provenance, 'kv', fromKv),
+      };
+    }
+  }
+  if (!reference.value) {
+    const hebrew = extractIsraeliInvoiceNumber(content, {
+      supplierIds,
+      customerIds,
+    });
+    if (hebrew) {
+      reference = {
+        value: hebrew.value,
+        confidence: 0.68,
+        provenance: withMethod(provenance, hebrew.method, hebrew.snippet),
+      };
+    }
+  }
 
   const issueDate = candidateFrom(
     fields.InvoiceDate ?? fields.TransactionDate ?? fields.Date,
@@ -185,18 +442,49 @@ export function mapAzureAnalyzeResult(input: {
   const orderNumber = candidateFrom(fields.PurchaseOrder, provenance);
 
   const subTotal = candidateFrom(
-    fields.SubTotal ?? fields.Subtotal ?? fields.NetAmount ?? fields.AmountBeforeVat,
+    fields.SubTotal ?? fields.Subtotal ?? fields.AmountBeforeVat,
     provenance,
   );
+  const discountField = candidateFrom(fields.TotalDiscount, provenance);
   const tax = candidateFrom(fields.TotalTax ?? fields.Tax ?? fields.VatAmount, provenance);
   const total = candidateFrom(
-    fields.InvoiceTotal ?? fields.Total ?? fields.TotalAmount ?? fields.Amount,
+    fields.InvoiceTotal ?? fields.Total ?? fields.TotalAmount,
     provenance,
   );
+  const amountDueField = candidateFrom(fields.AmountDue, provenance);
 
-  const currencyValue =
-    currencyCodeFrom(fields.InvoiceTotal ?? fields.Total ?? fields.TotalAmount ?? fields.SubTotal, content) ??
-    inferCurrencyFromText(null, content);
+  const taxDetails = extractTaxDetails(fields);
+  const vatHints = [...taxDetails.rates, ...collectVatRateHints(content)]
+    .map((rate) => normalizeVatRateToken(rate) ?? rate)
+    .filter((value, index, all) => Boolean(value) && all.indexOf(value) === index);
+
+  const moneyResolvedBase = resolveMoneyFields({
+    subTotal,
+    discount: discountField,
+    tax,
+    total,
+    amountDue: amountDueField,
+    content,
+    provenance,
+    vatRateHints: vatHints,
+  });
+  const moneyResolved: CanonicalOcrMoney = {
+    ...moneyResolvedBase,
+    // Structured TaxDetails wins only when unambiguous (single rate).
+    vatRate:
+      taxDetails.primaryRate?.value && vatHints.length === 1
+        ? taxDetails.primaryRate
+        : vatHints.length === 1
+          ? moneyResolvedBase.vatRate
+          : blank(provenance, 'structured'),
+    vatRates: vatHints,
+  };
+
+  const currencyFromField =
+    currencyCodeFrom(
+      fields.InvoiceTotal ?? fields.Total ?? fields.AmountDue ?? fields.SubTotal ?? fields.TotalTax,
+      content,
+    ) ?? inferCurrencyFromText(null, content);
 
   const documentTypeKey = suggestDocumentTypeFromText(
     `${document?.docType ?? ''} ${content} ${pickKv(kv, ['סוג מסמך']) ?? ''}`,
@@ -223,10 +511,16 @@ export function mapAzureAnalyzeResult(input: {
     companyNumber.confidence,
     reference.confidence,
     issueDate.confidence,
-    subTotal.confidence,
-    tax.confidence,
-    total.confidence,
+    moneyResolved.subtotal.confidence,
+    moneyResolved.discount.confidence,
+    moneyResolved.net.confidence,
+    moneyResolved.tax.confidence,
+    moneyResolved.gross.confidence,
   ];
+
+  const customerName =
+    candidateFrom(fields.CustomerName ?? fields.CustomerAddressRecipient, provenance).value ??
+    pickKv(kv, ['לכבוד', 'לקוח', 'Customer']);
 
   const metadata: OcrSafeRawMetadata = {
     providerId: input.providerId,
@@ -237,9 +531,21 @@ export function mapAzureAnalyzeResult(input: {
     overallConfidence: averageConfidence(fieldConfidences),
     textSnippets: content ? [content.slice(0, 200)] : [],
     providerStatus: 'succeeded',
-    languages: (result.languages ?? []).map((lang) => lang.locale).filter((value): value is string => Boolean(value)),
-    vatRates: collectVatRateHints(content),
+    languages: (result.languages ?? [])
+      .map((lang) => lang.locale)
+      .filter((value): value is string => Boolean(value)),
+    vatRates: vatHints,
     documentTypeKey,
+    customer:
+      customerName || customerTaxId
+        ? {
+            name: customerName,
+            taxId: customerTaxId,
+            customerId: candidateFrom(fields.CustomerId, provenance).value,
+          }
+        : undefined,
+    paymentTerm: candidateFrom(fields.PaymentTerm, provenance).value,
+    taxDetails: taxDetails.details.length > 0 ? taxDetails.details : undefined,
   };
 
   return {
@@ -269,14 +575,18 @@ export function mapAzureAnalyzeResult(input: {
     },
     money: {
       currency: {
-        value: currencyValue,
-        confidence: currencyValue ? 0.85 : null,
-        provenance,
+        value: currencyFromField,
+        confidence: currencyFromField ? 0.85 : null,
+        provenance: withMethod(provenance, 'structured'),
       },
-      net: subTotal.value ? subTotal : total,
-      tax,
-      gross: total.value ? total : subTotal,
-      vatRates: metadata.vatRates ?? [],
+      subtotal: moneyResolved.subtotal,
+      discount: moneyResolved.discount,
+      net: moneyResolved.net,
+      tax: moneyResolved.tax,
+      vatRate: moneyResolved.vatRate,
+      gross: moneyResolved.gross,
+      amountDue: moneyResolved.amountDue,
+      vatRates: vatHints,
     },
     lines,
     description: {

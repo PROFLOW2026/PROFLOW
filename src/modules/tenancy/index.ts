@@ -133,6 +133,17 @@ export {
 export type { LaborCostDefaults, LaborCostDefaultComponent } from './domain/labor-cost-defaults';
 export type { OrganizationDomainRow } from './domain/organization-domains';
 export {
+  getOrganizationLegalIdentity,
+  getOrganizationTaxId,
+  saveOrganizationLegalIdentity,
+} from './application/legal-identity';
+export {
+  parseOrganizationLegalIdentity,
+  resolveOrganizationTaxId,
+  LEGAL_IDENTITY_SETTING_KEY,
+} from './domain/legal-identity';
+export type { OrganizationLegalIdentity } from './domain/legal-identity';
+export {
   createOrganizationSchema,
   updateOrganizationSchema,
   inviteMemberSchema,

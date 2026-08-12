@@ -54,7 +54,15 @@ function statusShape(
   return 'pending';
 }
 
-const MONEY_FIELDS = new Set<OcrCandidateFieldKey>(['net', 'tax', 'gross']);
+const MONEY_FIELDS = new Set<OcrCandidateFieldKey>([
+  'subtotal',
+  'discount',
+  'net',
+  'tax',
+  'vatRate',
+  'gross',
+  'amountDue',
+]);
 const DATE_FIELDS = new Set<OcrCandidateFieldKey>(['date', 'dueDate']);
 const MONEY_PATTERN = /^-?\d+(\.\d+)?$/;
 const OCR_FILE_ACCEPT =
@@ -98,6 +106,8 @@ export interface OcrReviewPanelProps {
   readonly initialJobs: readonly ExtractionJob[];
   readonly vendors: readonly { id: string; name: string }[];
   readonly organizationId: string;
+  /** Organization tax/company ID from legal_identity settings — wrong-customer checks. */
+  readonly organizationTaxId?: string | null;
   readonly defaultTarget: OcrDraftTarget;
   readonly workflow: OcrWorkflowContext;
   readonly canManageDocuments: boolean;
@@ -111,6 +121,7 @@ export function OcrReviewPanel({
   initialJobs,
   vendors,
   organizationId,
+  organizationTaxId = null,
   defaultTarget,
   workflow,
   canManageDocuments,
@@ -506,6 +517,8 @@ export function OcrReviewPanel({
     ? collectReviewWarnings(selected.candidates, {
         vendorResolved: Boolean(vendorId.trim()),
         draftTarget,
+        organizationTaxId,
+        customerTaxId: selected.rawMetadata?.customer?.taxId ?? null,
       })
     : [];
   const vendorMatches = selected?.rawMetadata?.vendorMatches ?? [];
@@ -673,6 +686,14 @@ export function OcrReviewPanel({
                   {t(warning.messageKey)}
                 </Alert>
               ))}
+
+              {selected.rawMetadata?.vatRates && selected.rawMetadata.vatRates.length > 1 ? (
+                <Alert tone="info">
+                  {t('multiVatRates', {
+                    rates: selected.rawMetadata.vatRates.map((rate) => `${rate}%`).join(', '),
+                  })}
+                </Alert>
+              ) : null}
 
               {selected.candidates ? (
                 <>

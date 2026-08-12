@@ -35,6 +35,25 @@ describe('totals warnings', () => {
     expect(warnings.some((warning) => warning.code === 'vendor_unresolved')).toBe(true);
   });
 
+  it('warns when customer tax id differs from organization', () => {
+    const warnings = collectReviewWarnings(buildFixtureCandidates(), {
+      vendorResolved: true,
+      draftTarget: 'vendor_bill',
+      organizationTaxId: '511022493',
+      customerTaxId: '514628903',
+    });
+    expect(warnings.some((warning) => warning.code === 'possible_wrong_customer')).toBe(true);
+  });
+
+  it('does not warn about wrong customer when org tax id is unknown', () => {
+    const warnings = collectReviewWarnings(buildFixtureCandidates(), {
+      vendorResolved: true,
+      draftTarget: 'vendor_bill',
+      customerTaxId: '514628903',
+    });
+    expect(warnings.some((warning) => warning.code === 'possible_wrong_customer')).toBe(false);
+  });
+
   it('treats described lines as trustworthy for AP mapping', () => {
     expect(lineItemsTrustworthy(buildFixtureCandidates())).toBe(true);
     const blank = buildFixtureCandidates();

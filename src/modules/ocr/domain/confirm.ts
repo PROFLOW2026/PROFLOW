@@ -218,7 +218,8 @@ export function mapStructuredBillLines(
   return candidates.lines
     .map((line) => {
       const description = line.description.value?.trim();
-      const lineTotal = line.lineTotal.value?.trim() || line.netAmount.value?.trim();
+      // Prefer pre-VAT netAmount — never invent inclusive totals from Amount alone.
+      const lineTotal = line.netAmount.value?.trim() || line.lineTotal.value?.trim();
       const unitAmount = line.unitPrice.value?.trim() || lineTotal;
       const quantity = line.quantity.value?.trim() || '1';
       if (!description || !lineTotal) return null;
