@@ -198,6 +198,123 @@ describe('OCR review panel', () => {
     await user.click(acceptBoxes[0]!);
     await user.click(screen.getByRole('button', { name: enDocuments.ocr.confirmExpense }));
     expect(confirmOcrCandidateAction).toHaveBeenCalled();
+    await waitFor(() => {
+      expect(screen.getByText(enDocuments.ocr.empty)).toBeVisible();
+    });
+    expect(document.querySelector('[data-pf-ocr-original]')).toBeNull();
+  });
+
+  it('rejects A then auto-selects B; approve B clears the active queue', async () => {
+    const user = userEvent.setup();
+    const actions = await import('@/modules/ocr/application/ocr-actions');
+    const jobA = {
+      ...baseJob(),
+      id: '01900000-0000-7000-8000-0000000000a1',
+      sourceDocument: {
+        documentId: 'doc-a',
+        filename: 'alpha.jpg',
+        mimeType: 'image/jpeg',
+      },
+    };
+    const jobB = {
+      ...baseJob(),
+      id: '01900000-0000-7000-8000-0000000000b1',
+      sourceDocument: {
+        documentId: 'doc-b',
+        filename: 'bravo.jpg',
+        mimeType: 'image/jpeg',
+      },
+    };
+
+    vi.mocked(actions.rejectOcrCandidateAction).mockImplementation(async ({ jobId }) => ({
+      ok: true as const,
+      data: {
+        ...jobA,
+        id: jobId,
+        status: 'rejected' as const,
+        reviewStatus: 'rejected' as const,
+      },
+    }));
+    vi.mocked(actions.confirmOcrCandidateAction).mockImplementation(async ({ jobId }) => ({
+      ok: true as const,
+      data: {
+        kind: 'created' as const,
+        draftTarget: 'expense' as const,
+        expenseId: 'exp-draft-b',
+        expenseInput: {} as never,
+        job: {
+          ...jobB,
+          id: jobId,
+          status: 'succeeded' as const,
+          reviewStatus: 'accepted' as const,
+          confirmedExpenseId: 'exp-draft-b',
+        },
+      },
+    }));
+
+    renderPanel(
+      <OcrReviewPanel
+        initialStatus={liveStatus}
+        initialJobs={[jobA, jobB]}
+        vendors={[{ id: VENDOR_ID, name: 'Fixture Supplies Ltd' }]}
+        organizationId="org-lifecycle"
+        defaultTarget="expense"
+        workflow="expense"
+        canManageDocuments
+        canCreateExpenses
+        canManageAp
+      />,
+    );
+
+    expect(document.querySelector('[data-pf-ocr-job-id="01900000-0000-7000-8000-0000000000a1"]')).toBeTruthy();
+    await user.click(screen.getByRole('button', { name: enDocuments.ocr.rejectReview }));
+    await waitFor(() => {
+      expect(
+        document.querySelector('[data-pf-ocr-job-id="01900000-0000-7000-8000-0000000000a1"]'),
+      ).toBeNull();
+    });
+    expect(
+      document
+        .querySelector('[data-pf-ocr-job-id="01900000-0000-7000-8000-0000000000b1"]')
+        ?.getAttribute('aria-current'),
+    ).toBe('true');
+    expect(document.querySelector('[data-pf-preview-document-id="doc-b"]')).toBeTruthy();
+
+    const acceptBoxes = screen.getAllByRole('checkbox');
+    await user.click(acceptBoxes[0]!);
+    await user.click(screen.getByRole('button', { name: enDocuments.ocr.confirmExpense }));
+    await waitFor(() => {
+      expect(actions.confirmOcrCandidateAction).toHaveBeenCalled();
+    });
+    await waitFor(() => {
+      expect(screen.getByText(enDocuments.ocr.empty)).toBeVisible();
+    });
+    expect(document.querySelector('[data-pf-ocr-original]')).toBeNull();
+  });
+
+  it('ignores terminal jobs passed into the active review panel', () => {
+    const terminal = {
+      ...baseJob(),
+      id: '01900000-0000-7000-8000-0000000000t1',
+      status: 'succeeded' as const,
+      reviewStatus: 'accepted' as const,
+      confirmedExpenseId: 'exp-1',
+    };
+    renderPanel(
+      <OcrReviewPanel
+        initialStatus={liveStatus}
+        initialJobs={[terminal]}
+        vendors={[]}
+        organizationId="org-terminal-filter"
+        defaultTarget="expense"
+        workflow="expense"
+        canManageDocuments
+        canCreateExpenses
+        canManageAp
+      />,
+    );
+    expect(screen.getByText(enDocuments.ocr.empty)).toBeVisible();
+    expect(document.querySelector('[data-pf-ocr-original]')).toBeNull();
   });
 
   it('shows the selected job original, not a previous document', async () => {

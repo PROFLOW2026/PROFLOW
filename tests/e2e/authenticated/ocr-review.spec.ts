@@ -131,6 +131,25 @@ async function expectSelectedPreview(page: Page, documentId: string, checksum: s
   await expectPreviewChecksum(page, checksum);
 }
 
+async function drainActiveQueue(page: Page): Promise<void> {
+  for (let i = 0; i < 20; i += 1) {
+    const selected = page.locator('[data-pf-ocr-job-id][aria-current="true"]');
+    if ((await selected.count()) === 0) {
+      if ((await page.locator('[data-pf-ocr-job-id]').count()) === 0) return;
+      await page.locator('[data-pf-ocr-job-id]').first().click();
+    }
+    const reject = page.getByRole('button', { name: he.documents.ocr.rejectReview });
+    if ((await reject.count()) === 0 || (await reject.isDisabled())) return;
+    const before = await selectedJobId(page);
+    await reject.click();
+    await expect
+      .poll(async () => (await selectedJobId(page)) !== before || (await page.locator('[data-pf-ocr-job-id]').count()) === 0, {
+        timeout: 30_000,
+      })
+      .toBe(true);
+  }
+}
+
 async function confirmDraftTarget(
   page: Page,
   target: 'expense' | 'vendor_bill' | 'vendor_credit',
@@ -167,6 +186,7 @@ test.describe('OCR authenticated journey (mocked provider)', () => {
     await page.goto('/he-IL/documents/ocr-review');
     await expect(page).toHaveURL(/\/he-IL\/documents\/ocr-review/);
     await expect(page.locator('[data-pf-ocr-review]')).toBeVisible();
+    await drainActiveQueue(page);
     await expect(page.getByText(he.documents.ocr.providerLiveReady)).toBeVisible();
     await expect(page.getByText(he.documents.ocr.honesty)).toBeVisible();
 
@@ -174,6 +194,7 @@ test.describe('OCR authenticated journey (mocked provider)', () => {
     await expect(page.locator('input[capture="environment"]').first()).toBeAttached();
 
     await uploadReceipt(page, 'ocr-receipt.png');
+    const jobExpense = await selectedJobId(page);
     await expect(page.getByText(he.documents.ocr.sourceDocument)).toBeVisible();
     await expect(page.getByRole('button', { name: he.documents.ocr.viewOriginal })).toBeVisible();
 
@@ -181,8 +202,10 @@ test.describe('OCR authenticated journey (mocked provider)', () => {
     await expect(page.locator('#ocr-review-info')).toContainText(/נוצרה טיוטת הוצאה/i, {
       timeout: 30_000,
     });
+    await expect(page.locator(`[data-pf-ocr-job-id="${jobExpense}"]`)).toHaveCount(0);
 
     await uploadReceipt(page, 'ocr-invoice.png');
+    const jobBill = await selectedJobId(page);
     // Same bytes → exact-file duplicate warning when checksum index hits.
     await expect(page.getByText(he.documents.ocr.duplicateWarning)).toBeVisible({
       timeout: 15_000,
@@ -192,14 +215,19 @@ test.describe('OCR authenticated journey (mocked provider)', () => {
     await expect(page.locator('#ocr-review-info')).toContainText(/נוצרה טיוטת חשבונית ספק/i, {
       timeout: 30_000,
     });
+    await expect(page.locator(`[data-pf-ocr-job-id="${jobBill}"]`)).toHaveCount(0);
 
     await uploadReceipt(page, 'ocr-credit.png');
+    const jobCredit = await selectedJobId(page);
     await confirmDraftTarget(page, 'vendor_credit');
     await expect(page.locator('#ocr-review-info')).toContainText(/נוצרה טיוטת זיכוי ספק/i, {
       timeout: 30_000,
     });
+    await expect(page.locator(`[data-pf-ocr-job-id="${jobCredit}"]`)).toHaveCount(0);
 
-    await expect(page.getByRole('button', { name: he.documents.ocr.viewOriginal })).toBeVisible();
+    // Terminal jobs leave the active queue — no stale preview remains.
+    await expect(page.getByText(he.documents.ocr.empty)).toBeVisible({ timeout: 15_000 });
+    await expect(page.locator('[data-pf-ocr-original]')).toHaveCount(0);
     await expect(page.locator('#ocr-review-info')).not.toContainText(/סופי|finalized|posted/i);
 
     if (testInfo.project.name === 'mobile-he') {
@@ -208,11 +236,107 @@ test.describe('OCR authenticated journey (mocked provider)', () => {
     }
   });
 
+  test('active queue lifecycle: reject/approve remove jobs; refresh keeps them in history only', async ({
+    page,
+  }) => {
+    test.setTimeout(180_000);
+    await page.goto('/he-IL/documents/ocr-review');
+    await drainActiveQueue(page);
+
+    await uploadReceipt(page, 'queue-a.jpg', { mimeType: 'image/jpeg', buffer: JPEG_BYTES });
+    const jobA = await selectedJobId(page);
+    const docA = await selectedJobDocumentId(page);
+
+    await uploadReceipt(page, 'queue-b.png', { mimeType: 'image/png', buffer: PNG_BYTES });
+    const jobB = await selectedJobId(page);
+    expect(jobB).not.toBe(jobA);
+    await expect(page.locator('[data-pf-ocr-job-id]')).toHaveCount(2);
+
+    await page.locator(`[data-pf-ocr-job-id="${jobA}"]`).click();
+    await expect(page.locator('[data-pf-ocr-job-id][aria-current="true"]')).toHaveAttribute(
+      'data-pf-ocr-job-id',
+      jobA,
+    );
+    await page.getByRole('button', { name: he.documents.ocr.rejectReview }).click();
+    await expect(page.locator('#ocr-review-info')).toContainText(/נדחתה|נדחה/i, { timeout: 30_000 });
+    await expect(page.locator(`[data-pf-ocr-job-id="${jobA}"]`)).toHaveCount(0);
+    await expect(page.locator('[data-pf-ocr-job-id][aria-current="true"]')).toHaveAttribute(
+      'data-pf-ocr-job-id',
+      jobB,
+    );
+    await expect(page.locator('[data-pf-ocr-original]')).toHaveAttribute(
+      'data-pf-preview-document-id',
+      await selectedJobDocumentId(page),
+    );
+    expect(await selectedJobDocumentId(page)).not.toBe(docA);
+
+    await confirmDraftTarget(page, 'expense');
+    await expect(page.locator('#ocr-review-info')).toContainText(/נוצרה טיוטת הוצאה/i, {
+      timeout: 30_000,
+    });
+    await expect(page.locator(`[data-pf-ocr-job-id="${jobB}"]`)).toHaveCount(0);
+    await expect(page.getByText(he.documents.ocr.empty)).toBeVisible();
+    await expect(page.locator('[data-pf-ocr-original]')).toHaveCount(0);
+
+    await page.reload();
+    await expect(page.locator('[data-pf-ocr-review]')).toBeVisible();
+    await expect(page.locator(`[data-pf-ocr-job-id="${jobA}"]`)).toHaveCount(0);
+    await expect(page.locator(`[data-pf-ocr-job-id="${jobB}"]`)).toHaveCount(0);
+    await expect(page.getByText(he.documents.ocr.empty)).toBeVisible();
+
+    await uploadReceipt(page, 'queue-c.pdf', { mimeType: 'application/pdf', buffer: PDF_BYTES });
+    const jobC = await selectedJobId(page);
+    expect(jobC).not.toBe(jobA);
+    expect(jobC).not.toBe(jobB);
+    await expect(page.locator('[data-pf-ocr-job-id]')).toHaveCount(1);
+
+    await page.goto('/he-IL/documents/ocr-review/history');
+    await expect(page.locator('[data-pf-ocr-history-page]')).toBeVisible();
+    await expect(
+      page.locator(`[data-pf-ocr-history-job-id="${jobA}"][data-pf-ocr-history-status="rejected"]`),
+    ).toBeVisible();
+    await expect(
+      page.locator(`[data-pf-ocr-history-job-id="${jobB}"][data-pf-ocr-history-status="accepted"]`),
+    ).toBeVisible();
+    await expect(page.locator(`[data-pf-ocr-history-job-id="${jobC}"]`)).toHaveCount(0);
+
+    await page.goto('/he-IL/documents/ocr-review');
+    await page.locator(`[data-pf-ocr-job-id="${jobC}"]`).click();
+    await page.getByRole('button', { name: he.documents.ocr.rejectReview }).click();
+    await expect(page.getByText(he.documents.ocr.empty)).toBeVisible({ timeout: 30_000 });
+  });
+
+  test('one-item queue approve and reject clear preview', async ({ page }) => {
+    test.setTimeout(180_000);
+    await page.goto('/he-IL/documents/ocr-review');
+    await drainActiveQueue(page);
+    await expect(page.getByText(he.documents.ocr.empty)).toBeVisible();
+
+    await uploadReceipt(page, 'solo-approve.jpg', { mimeType: 'image/jpeg', buffer: JPEG_BYTES });
+    const approveId = await selectedJobId(page);
+    await confirmDraftTarget(page, 'expense');
+    await expect(page.locator(`[data-pf-ocr-job-id="${approveId}"]`)).toHaveCount(0, {
+      timeout: 30_000,
+    });
+    await expect(page.getByText(he.documents.ocr.empty)).toBeVisible();
+    await expect(page.locator('[data-pf-ocr-original]')).toHaveCount(0);
+
+    await uploadReceipt(page, 'solo-reject.png', { mimeType: 'image/png', buffer: PNG_BYTES });
+    const rejectId = await selectedJobId(page);
+    await page.getByRole('button', { name: he.documents.ocr.rejectReview }).click();
+    await expect(page.locator(`[data-pf-ocr-job-id="${rejectId}"]`)).toHaveCount(0, {
+      timeout: 30_000,
+    });
+    await expect(page.getByText(he.documents.ocr.empty)).toBeVisible();
+    await expect(page.locator('[data-pf-ocr-original]')).toHaveCount(0);
+  });
+
   test('desktop/mobile upload formats + preview stability (JPEG/PNG/PDF/camera)', async ({
     page,
   }, testInfo) => {
     test.setTimeout(180_000);
     await page.goto('/he-IL/documents/ocr-review');
+    await drainActiveQueue(page);
 
     await uploadReceipt(page, 'desk.jpg', { mimeType: 'image/jpeg', buffer: JPEG_BYTES });
     await expect(page.locator('[data-pf-ocr-original] img, [data-pf-ocr-original] iframe')).toBeVisible({

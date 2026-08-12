@@ -125,7 +125,13 @@ export { getOcrRepository, setOcrRepositoryForTests } from './data/resolve-repos
 
 export { getOcrProviderStatus } from './application/provider-status';
 export { extractReceiptJob } from './application/extract-receipt';
-export { listOcrCandidates, OCR_REVIEW_SURFACE_STATUSES } from './application/list-candidates';
+export {
+  OCR_REVIEW_SURFACE_STATUSES,
+  OCR_REVIEW_HISTORY_STATUSES,
+  isOcrActiveQueueStatus,
+  isOcrHistoryStatus,
+} from './domain/review-queue';
+export { listOcrCandidates } from './application/list-candidates';
 export { confirmOcrCandidate } from './application/confirm-candidate';
 export type {
   ConfirmOcrCandidateResult,

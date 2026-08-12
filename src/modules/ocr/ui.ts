@@ -6,3 +6,4 @@
 
 export { OcrReviewPanel } from './ui/ocr-review-panel';
 export type { OcrReviewPanelProps } from './ui/ocr-review-panel';
+export { OcrReviewHistory } from './ui/ocr-review-history';

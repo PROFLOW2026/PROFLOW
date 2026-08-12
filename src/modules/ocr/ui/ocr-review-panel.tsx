@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useRef, useState, useTransition } from 'react';
+import { useEffect, useMemo, useRef, useState, useTransition } from 'react';
 import { useTranslations } from 'next-intl';
 import { MoneyText } from '@/components/patterns/money-text';
 import { Alert } from '@/components/ui/alert';
@@ -27,6 +27,7 @@ import {
   rejectOcrCandidateAction,
   seedFixtureOcrJobAction,
 } from '@/modules/ocr/application/ocr-actions';
+import { isOcrActiveQueueStatus } from '@/modules/ocr/domain/review-queue';
 import { confidenceState } from '@/modules/ocr/domain/confidence';
 import { collectReviewWarnings } from '@/modules/ocr/domain/totals-warnings';
 import { suggestedDraftTarget } from '@/modules/ocr/domain/canonical';
@@ -118,13 +119,17 @@ export function OcrReviewPanel({
   offline = false,
 }: OcrReviewPanelProps) {
   const t = useTranslations('documents.ocr');
-  const [jobs, setJobs] = useState<ExtractionJob[]>([...initialJobs]);
+  const activeInitialJobs = useMemo(
+    () => initialJobs.filter((job) => isOcrActiveQueueStatus(job.status)),
+    [initialJobs],
+  );
+  const [jobs, setJobs] = useState<ExtractionJob[]>(() => [...activeInitialJobs]);
   const [selectedId, setSelectedId] = useState<string | null>(() => {
     const remembered = ocrSelectionMemory.get(organizationId);
-    if (remembered && initialJobs.some((job) => job.id === remembered)) {
+    if (remembered && activeInitialJobs.some((job) => job.id === remembered)) {
       return remembered;
     }
-    return initialJobs[0]?.id ?? null;
+    return activeInitialJobs[0]?.id ?? null;
   });
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
@@ -136,6 +141,11 @@ export function OcrReviewPanel({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const uploadGenerationRef = useRef(0);
   const activeUploadKeyRef = useRef<string | null>(null);
+  const jobsRef = useRef(jobs);
+
+  useEffect(() => {
+    jobsRef.current = jobs;
+  }, [jobs]);
 
   const liveExtract = initialStatus.ingestionEnabled && initialStatus.featureMode === 'live';
   const fixtureTools = initialStatus.featureMode === 'fixture_only';
@@ -148,8 +158,8 @@ export function OcrReviewPanel({
   const [overrides, setOverrides] = useState<Partial<Record<OcrCandidateFieldKey, string>>>(() => {
     const remembered = ocrSelectionMemory.get(organizationId);
     const initial =
-      (remembered ? initialJobs.find((job) => job.id === remembered) : undefined) ??
-      initialJobs[0] ??
+      (remembered ? activeInitialJobs.find((job) => job.id === remembered) : undefined) ??
+      activeInitialJobs[0] ??
       null;
     return hydrateOverrides(initial);
   });
@@ -174,14 +184,16 @@ export function OcrReviewPanel({
     setAccepted((prev) => ({ ...prev, [field]: next }));
   }
 
-  function selectJob(job: ExtractionJob) {
+  function applyJobSelection(job: ExtractionJob, options?: { clearMessages?: boolean }) {
     ocrSelectionMemory.set(organizationId, job.id);
     setPreviewOpen(false);
     setSelectedId(job.id);
     setOverrides(hydrateOverrides(job));
     setAccepted({});
-    setError(null);
-    setInfo(null);
+    if (options?.clearMessages !== false) {
+      setError(null);
+      setInfo(null);
+    }
     const matches = job.rawMetadata?.vendorMatches ?? [];
     const exact = matches.filter(
       (match) => match.strength === 'exact_identifier' || match.strength === 'exact_name',
@@ -193,6 +205,41 @@ export function OcrReviewPanel({
     setDraftTarget(suggestedDraftTarget(job.rawMetadata?.workflow ?? workflow, typeKey) || defaultTarget);
   }
 
+  function clearActiveSelection() {
+    ocrSelectionMemory.delete(organizationId);
+    setPreviewOpen(false);
+    setSelectedId(null);
+    setOverrides({});
+    setAccepted({});
+    setVendorId('');
+    setDraftTarget(defaultTarget);
+  }
+
+  function selectJob(job: ExtractionJob) {
+    applyJobSelection(job);
+  }
+
+  /** Terminal confirm/reject: drop from active queue and move to the next actionable job. */
+  function leaveTerminalJob(completedId: string, infoMessage: string) {
+    const prev = jobsRef.current;
+    const index = prev.findIndex((job) => job.id === completedId);
+    const remaining = prev.filter((job) => job.id !== completedId);
+    const next =
+      remaining.length === 0
+        ? null
+        : remaining[Math.min(Math.max(index, 0), remaining.length - 1)]!;
+
+    jobsRef.current = remaining;
+    setJobs(remaining);
+    if (next) {
+      applyJobSelection(next, { clearMessages: false });
+    } else {
+      clearActiveSelection();
+    }
+    setError(null);
+    setInfo(infoMessage);
+  }
+
   function onSeedFixture() {
     setError(null);
     setInfo(null);
@@ -202,7 +249,11 @@ export function OcrReviewPanel({
         setError(result.error);
         return;
       }
-      setJobs((prev) => prependJob(prev, result.data));
+      setJobs((prev) => {
+        const next = prependJob(prev, result.data);
+        jobsRef.current = next;
+        return next;
+      });
       selectJob(result.data);
       setInfo(t('fixtureSeeded'));
     });
@@ -294,7 +345,11 @@ export function OcrReviewPanel({
       setError(result.error);
       return;
     }
-    setJobs((prev) => prependJob(prev, result.data));
+    setJobs((prev) => {
+      const next = prependJob(prev, result.data);
+      jobsRef.current = next;
+      return next;
+    });
     selectJob(result.data);
     if (result.data.status === 'failed') {
       setInfo(t('extractFailed', { code: extractionStageCode(result.data) }));
@@ -342,7 +397,11 @@ export function OcrReviewPanel({
         setError(result.error);
         return;
       }
-      setJobs((prev) => prependJob(prev, result.data));
+      setJobs((prev) => {
+        const next = prependJob(prev, result.data);
+        jobsRef.current = next;
+        return next;
+      });
       selectJob(result.data);
     });
   }
@@ -376,6 +435,7 @@ export function OcrReviewPanel({
 
   function onConfirmDraft() {
     if (!selected) return;
+    const completingId = selected.id;
     setError(null);
     setInfo(null);
     if (acceptedFields.length === 0) {
@@ -388,7 +448,7 @@ export function OcrReviewPanel({
     }
     startTransition(async () => {
       const result = await confirmOcrCandidateAction({
-        jobId: selected.id,
+        jobId: completingId,
         confirm: true,
         draftTarget,
         vendorId: vendorId.trim() || null,
@@ -400,33 +460,29 @@ export function OcrReviewPanel({
         return;
       }
       if (result.data.kind === 'created') {
-        setJobs((prev) =>
-          prev.map((job) => (job.id === result.data.job.id ? result.data.job : job)),
-        );
-        setOverrides(hydrateOverrides(result.data.job));
-        if (result.data.draftTarget === 'vendor_bill') {
-          setInfo(t('vendorBillCreated', { id: result.data.vendorBillId ?? '' }));
-        } else if (result.data.draftTarget === 'vendor_credit') {
-          setInfo(t('vendorCreditCreated', { id: result.data.vendorCreditId ?? '' }));
-        } else {
-          setInfo(t('expenseCreated', { id: result.data.expenseId ?? '' }));
-        }
+        const createdInfo =
+          result.data.draftTarget === 'vendor_bill'
+            ? t('vendorBillCreated', { id: result.data.vendorBillId ?? '' })
+            : result.data.draftTarget === 'vendor_credit'
+              ? t('vendorCreditCreated', { id: result.data.vendorCreditId ?? '' })
+              : t('expenseCreated', { id: result.data.expenseId ?? '' });
+        leaveTerminalJob(completingId, createdInfo);
       }
     });
   }
 
   function onReject() {
     if (!selected) return;
+    const completingId = selected.id;
     setError(null);
     setInfo(null);
     startTransition(async () => {
-      const result = await rejectOcrCandidateAction({ jobId: selected.id });
+      const result = await rejectOcrCandidateAction({ jobId: completingId });
       if (!result.ok) {
         setError(result.error);
         return;
       }
-      setJobs((prev) => prev.map((job) => (job.id === result.data.id ? result.data : job)));
-      setInfo(t('rejected'));
+      leaveTerminalJob(completingId, t('rejected'));
     });
   }
 

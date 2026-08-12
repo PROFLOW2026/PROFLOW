@@ -100,12 +100,20 @@ export default async function OcrReviewPage({
         title={tOcr('title')}
         description={tOcr('description')}
         actions={
-          <Link
-            href="/documents"
-            className={cn(textNavLinkClassName, 'rounded-sm text-sm font-medium')}
-          >
-            {t('title')}
-          </Link>
+          <div className="flex flex-wrap items-center gap-3">
+            <Link
+              href="/documents/ocr-review/history"
+              className={cn(textNavLinkClassName, 'rounded-sm text-sm font-medium')}
+            >
+              {tOcr('historyLink')}
+            </Link>
+            <Link
+              href="/documents"
+              className={cn(textNavLinkClassName, 'rounded-sm text-sm font-medium')}
+            >
+              {t('title')}
+            </Link>
+          </div>
         }
       />
 
