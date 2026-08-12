@@ -10,6 +10,12 @@ import {
   isBrowserPreviewablePdfMime,
 } from '../domain/file-rules';
 
+type PreviewFetch = {
+  documentId: string;
+  url: string | null;
+  error: string | null;
+};
+
 export function DocumentInlinePreview({
   documentId,
   filename,
@@ -20,43 +26,48 @@ export function DocumentInlinePreview({
   mimeType?: string;
 }) {
   const t = useTranslations('documents.attachments');
-  const [url, setUrl] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [fetched, setFetched] = useState<PreviewFetch | null>(null);
 
   const showImage = isBrowserPreviewableImageMime(mimeType);
   const showPdf = isBrowserPreviewablePdfMime(mimeType);
+  const url = fetched?.documentId === documentId ? fetched.url : null;
+  const error = fetched?.documentId === documentId ? fetched.error : null;
+  const loading = !url && !error;
 
   useEffect(() => {
     let cancelled = false;
-    const frame = window.requestAnimationFrame(() => {
-      if (cancelled) return;
-      setLoading(true);
-      setError(null);
-      setUrl(null);
-    });
+
     void downloadDocumentAction({ documentId }).then((result) => {
       if (cancelled) return;
       if (result.error || !result.url) {
-        setError(result.error ?? t('previewFailed'));
-        setLoading(false);
+        setFetched({
+          documentId,
+          url: null,
+          error: result.error ?? t('previewFailed'),
+        });
         return;
       }
-      setUrl(result.url);
-      setLoading(false);
+      setFetched({ documentId, url: result.url, error: null });
     });
+
     return () => {
       cancelled = true;
-      window.cancelAnimationFrame(frame);
     };
-  }, [documentId, t]);
+    // Intentionally omit `t`: next-intl's translator identity changes on parent
+    // re-renders and was causing a signed-URL reload loop in production.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- documentId only
+  }, [documentId]);
 
   return (
     <div
       data-pf-ocr-original
       className="overflow-hidden rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)]"
     >
-      <p className="truncate border-b border-[var(--pf-border-default)] px-3 py-2 text-xs text-[var(--pf-text-secondary)]">
+      <p
+        dir="ltr"
+        className="truncate border-b border-[var(--pf-border-default)] px-3 py-2 text-xs text-[var(--pf-text-secondary)]"
+        style={{ unicodeBidi: 'isolate' }}
+      >
         {filename}
       </p>
       <div className="flex min-h-40 items-center justify-center p-2">
@@ -73,14 +84,13 @@ export function DocumentInlinePreview({
             src={url}
             alt={filename}
             className="max-h-80 w-auto max-w-full object-contain xl:max-h-[70vh]"
+            onError={() =>
+              setFetched({ documentId, url: null, error: t('previewFailed') })
+            }
           />
         ) : null}
         {!loading && url && showPdf ? (
-          <iframe
-            title={filename}
-            src={url}
-            className="h-64 w-full xl:h-[70vh]"
-          />
+          <iframe title={filename} src={url} className="h-64 w-full xl:h-[70vh]" />
         ) : null}
         {!loading && url && !showImage && !showPdf ? (
           <Alert tone="info">{t('previewUnsupported')}</Alert>

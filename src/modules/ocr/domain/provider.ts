@@ -30,6 +30,7 @@ export type ExtractReceiptInput = ExtractDocumentInput;
 export type ExtractReceiptErrorCode =
   | 'not_configured'
   | 'provider_error'
+  | 'storage_download'
   | 'empty_result'
   | 'feature_disabled'
   | 'unsupported_file'

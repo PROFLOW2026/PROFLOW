@@ -13,6 +13,7 @@ import {
   insertDocumentLink,
   listAllDocuments,
   listDocumentsForEntity,
+  updateDocumentById,
 } from '../data/documents.repository';
 import { documentOwnerExistsInOrganization } from '../data/verify-document-owner';
 import { listDocumentsSchema, listEntityDocumentsSchema, prepareUploadSchema, type PrepareUploadInput } from '../validation/schemas';
@@ -99,6 +100,10 @@ export async function prepareDocumentUpload(
   try {
     signed = await storage.createUploadUrl(storagePath, input.mimeType);
   } catch (error) {
+    await updateDocumentById(context.db, context.organizationId, document.id, {
+      status: 'deleted',
+      deletedAt: new Date(),
+    });
     if (error instanceof StorageNotConfiguredError) {
       throw new ServiceUnavailableError(
         'File storage is not configured',
@@ -118,6 +123,9 @@ export async function prepareDocumentUpload(
   return {
     document,
     uploadUrl: signed.url,
+    uploadToken: signed.token,
+    uploadPath: signed.path,
+    uploadBucket: document.storageBucket,
     uploadExpiresAt: signed.expiresAt,
   };
 }

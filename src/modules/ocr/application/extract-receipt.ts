@@ -99,14 +99,14 @@ export async function extractReceiptJob(
       const failed = await repo.updateJob(context.organizationId, queued.id, {
         status: 'failed',
         reviewStatus: 'awaiting_review',
-        errorCode: 'provider_error',
+        errorCode: 'storage_download',
         errorMessage: 'Could not load the document for reading',
         candidates: null,
         rawMetadata: {
           providerId: provider.id,
           providerStatus: 'document_load_failed',
           workflow,
-          errorCategory: 'document_load',
+          errorCategory: 'storage_download',
         },
         overallConfidence: null,
         sourceDocument: {

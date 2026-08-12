@@ -3,7 +3,9 @@
 import {
   finalizeDocumentUploadAction,
   prepareDocumentUploadAction,
+  softDeleteDocumentAction,
 } from '@/modules/documents/application/document-actions';
+import { uploadDocumentBytes } from '@/modules/documents/client/upload-document-bytes';
 import { DOCUMENT_OWNER_TYPES, type DocumentOwnerType } from '@/modules/documents/domain/types';
 import type { OfflineAttachmentRecord } from './attachment-store';
 import {
@@ -104,29 +106,40 @@ async function submitCapture(
     throw new Error(prepared.error ?? 'Document upload prepare failed');
   }
 
-  const uploadResponse = await fetch(prepared.uploadUrl, {
-    method: 'PUT',
-    headers: {
-      'Content-Type': String(action.payload.mimeType ?? attachment.mimeType),
+  const documentId = prepared.documentId;
+  const mimeType = String(action.payload.mimeType ?? attachment.mimeType);
+  const uploaded = await uploadDocumentBytes(
+    {
+      uploadUrl: prepared.uploadUrl,
+      uploadToken: prepared.uploadToken,
+      uploadPath: prepared.uploadPath,
+      uploadBucket: prepared.uploadBucket,
     },
-    body: attachment.blob,
-  });
-  if (!uploadResponse.ok) {
-    throw new Error(`Storage upload failed (${uploadResponse.status})`);
+    attachment.blob,
+    { contentType: mimeType },
+  );
+  if (!uploaded.ok) {
+    await softDeleteDocumentAction({ documentId });
+    throw new Error(
+      uploaded.status
+        ? `Storage upload failed (${uploaded.status})`
+        : 'Storage upload failed',
+    );
   }
 
   const sizeBytes = Number(action.payload.sizeBytes ?? attachment.sizeBytes);
   const finalized = await finalizeDocumentUploadAction({
-    documentId: prepared.documentId,
+    documentId,
     sizeBytes,
   });
   if (finalized.error) {
+    await softDeleteDocumentAction({ documentId });
     throw new Error(finalized.error);
   }
 
   const truth = await fetchOfflineServerTruthAction({
     kind: 'capture',
-    serverId: prepared.documentId,
+    serverId: documentId,
   });
 
   return {

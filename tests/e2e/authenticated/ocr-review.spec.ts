@@ -22,12 +22,30 @@ async function acceptCoreFields(page: Page): Promise<void> {
   }
 }
 
-async function uploadReceipt(page: Page, name: string): Promise<void> {
-  const fileInput = page.locator('input[type="file"][accept*="image/jpeg"]').first();
+const JPEG_BYTES = Buffer.from(
+  '/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAn/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIQAxAAAAGcP//EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEAAQUCf//EABQRAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQMBAT8Bf//EABQRAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQIBAT8Bf//EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEABj8Cf//EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEAAT8hf//Z',
+  'base64',
+);
+
+const PDF_BYTES = Buffer.from(
+  '%PDF-1.1\n1 0 obj<<>>endobj\n2 0 obj<< /Length 0 >>stream\nendstream\nendobj\n3 0 obj<< /Type /Page /Parent 4 0 R /MediaBox [0 0 3 3] /Contents 2 0 R >>endobj\n4 0 obj<< /Type /Pages /Kids [3 0 R] /Count 1 >>endobj\n5 0 obj<< /Type /Catalog /Pages 4 0 R >>endobj\nxref\n0 6\n0000000000 65535 f \n0000000009 00000 n \n0000000024 00000 n \n0000000073 00000 n \n0000000160 00000 n \n0000000227 00000 n \ntrailer<< /Size 6 /Root 5 0 R >>\nstartxref\n296\n%%EOF\n',
+  'utf8',
+);
+
+async function uploadReceipt(
+  page: Page,
+  name: string,
+  options?: { mimeType?: string; buffer?: Buffer; capture?: boolean },
+): Promise<void> {
+  const mimeType = options?.mimeType ?? 'image/png';
+  const buffer = options?.buffer ?? PNG_BYTES;
+  const fileInput = options?.capture
+    ? page.locator('input[type="file"][capture="environment"]').first()
+    : page.locator('input[type="file"][accept*="image/jpeg"]').first();
   await fileInput.setInputFiles({
     name,
-    mimeType: 'image/png',
-    buffer: PNG_BYTES,
+    mimeType,
+    buffer,
   });
   await expect(page.getByText(he.documents.ocr.extractQueuedReview)).toBeVisible({
     timeout: 60_000,
@@ -110,6 +128,43 @@ test.describe('OCR authenticated journey (mocked provider)', () => {
       await expect(page.locator('[data-pf-ocr-review]')).toBeVisible();
       await expect(page.locator('input[capture="environment"]').first()).toBeAttached();
     }
+  });
+
+  test('desktop/mobile upload formats + preview stability (JPEG/PNG/PDF/camera)', async ({
+    page,
+  }, testInfo) => {
+    test.setTimeout(180_000);
+    await page.goto('/he-IL/documents/ocr-review');
+
+    await uploadReceipt(page, 'desk.jpg', { mimeType: 'image/jpeg', buffer: JPEG_BYTES });
+    await expect(page.locator('[data-pf-ocr-original] img, [data-pf-ocr-original] iframe')).toBeVisible({
+      timeout: 30_000,
+    });
+
+    // Editing review fields must not tear down the original preview.
+    await page.locator('#ocr-vendor').fill('Fixture Supplies Ltd');
+    await page.locator('#ocr-reference').fill('REF-1');
+    await expect(page.locator('[data-pf-ocr-original] img, [data-pf-ocr-original] iframe')).toBeVisible();
+
+    await uploadReceipt(page, 'desk.png', { mimeType: 'image/png', buffer: PNG_BYTES });
+    await uploadReceipt(page, 'desk.pdf', { mimeType: 'application/pdf', buffer: PDF_BYTES });
+
+    if (testInfo.project.name === 'mobile-he') {
+      await uploadReceipt(page, 'camera.jpg', {
+        mimeType: 'image/jpeg',
+        buffer: JPEG_BYTES,
+        capture: true,
+      });
+    } else {
+      // Normal mobile-style file picker path uses the non-capture input.
+      await uploadReceipt(page, 'picker.jpg', { mimeType: 'image/jpeg', buffer: JPEG_BYTES });
+    }
+
+    await page.getByRole('button', { name: he.documents.ocr.viewOriginal }).click();
+    const dialog = page.getByRole('dialog');
+    await expect(dialog).toBeVisible();
+    await dialog.getByText(he.common.actions.close, { exact: true }).click();
+    await expect(dialog).toBeHidden();
   });
 
   test('expenses list exposes OCR scan entry when live OCR is enabled', async ({ page }) => {

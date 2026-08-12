@@ -28,6 +28,12 @@ export interface DocumentPreviewDialogProps {
   mimeType?: string;
 }
 
+type PreviewFetch = {
+  documentId: string;
+  url: string | null;
+  error: string | null;
+};
+
 /**
  * Loads a short-lived signed download URL for inline image/PDF preview.
  * Never stores or exposes a permanent public object URL.
@@ -41,40 +47,38 @@ export function DocumentPreviewDialog({
 }: DocumentPreviewDialogProps) {
   const t = useTranslations('documents.attachments');
   const tCommon = useTranslations('common');
-  const [url, setUrl] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [fetched, setFetched] = useState<PreviewFetch | null>(null);
 
   const showImage = isBrowserPreviewableImageMime(mimeType);
   const showPdf = isBrowserPreviewablePdfMime(mimeType);
+  const url = fetched?.documentId === documentId ? fetched.url : null;
+  const error = fetched?.documentId === documentId ? fetched.error : null;
+  const loading = open && !url && !error;
 
   useEffect(() => {
     if (!open) return;
+    if (fetched?.documentId === documentId && (fetched.url || fetched.error)) return;
 
     let cancelled = false;
-    const frame = window.requestAnimationFrame(() => {
-      if (cancelled) return;
-      setLoading(true);
-      setError(null);
-      setUrl(null);
-    });
-
     void downloadDocumentAction({ documentId }).then((result) => {
       if (cancelled) return;
       if (result.error || !result.url) {
-        setError(result.error ?? t('previewFailed'));
-        setLoading(false);
+        setFetched({
+          documentId,
+          url: null,
+          error: result.error ?? t('previewFailed'),
+        });
         return;
       }
-      setUrl(result.url);
-      setLoading(false);
+      setFetched({ documentId, url: result.url, error: null });
     });
 
     return () => {
       cancelled = true;
-      window.cancelAnimationFrame(frame);
     };
-  }, [open, documentId, t]);
+    // Intentionally omit `t` — unstable identity caused repeated signed-URL fetches.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- open + documentId + cached fetch
+  }, [open, documentId, fetched]);
 
   const activeUrl = open ? url : null;
   const activeError = open ? error : null;
@@ -85,7 +89,9 @@ export function DocumentPreviewDialog({
       <DialogContent closeLabel={tCommon('actions.close')} className="max-w-3xl">
         <DialogHeader>
           <DialogTitle>{t('preview')}</DialogTitle>
-          <DialogDescription>{filename}</DialogDescription>
+          <DialogDescription dir="ltr" style={{ unicodeBidi: 'isolate' }}>
+            {filename}
+          </DialogDescription>
         </DialogHeader>
         <DialogBody className="flex min-h-48 items-center justify-center">
           {activeLoading ? <Spinner className="size-6" /> : null}
@@ -101,7 +107,9 @@ export function DocumentPreviewDialog({
               src={activeUrl}
               alt={filename}
               className="max-h-[70vh] w-auto max-w-full rounded-md object-contain"
-              onError={() => setError(t('previewFailed'))}
+              onError={() =>
+                setFetched({ documentId, url: null, error: t('previewFailed') })
+              }
             />
           ) : null}
           {!activeLoading && activeUrl && showPdf ? (
@@ -124,4 +132,3 @@ export function DocumentPreviewDialog({
     </Dialog>
   );
 }
-

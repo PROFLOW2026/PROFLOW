@@ -22,6 +22,12 @@ export interface SignedUrl {
   expiresAt: Date;
 }
 
+/** Browser-facing signed upload target (token/path enable uploadToSignedUrl). */
+export interface SignedUploadUrl extends SignedUrl {
+  token: string | null;
+  path: string;
+}
+
 export interface DownloadedObject {
   bytes: Uint8Array;
   contentType: string;
@@ -36,7 +42,7 @@ export interface StoragePort {
     entityId: string;
     fileName: string;
   }): string;
-  createUploadUrl(key: string, contentType: string): Promise<SignedUrl>;
+  createUploadUrl(key: string, contentType: string): Promise<SignedUploadUrl>;
   createDownloadUrl(key: string, expiresInSeconds?: number): Promise<SignedUrl>;
   /** Server-side byte fetch for OCR and other private processing. */
   downloadBytes(key: string): Promise<DownloadedObject>;
@@ -72,7 +78,7 @@ class UnconfiguredStorageAdapter implements StoragePort {
   readonly configured = false;
   buildKey = buildStorageKey;
 
-  async createUploadUrl(): Promise<SignedUrl> {
+  async createUploadUrl(): Promise<SignedUploadUrl> {
     throw new StorageNotConfiguredError();
   }
 
@@ -111,11 +117,16 @@ class SupabaseStorageAdapter implements StoragePort {
     return createClient(this.url, this.serviceRoleKey, { auth: { persistSession: false } });
   }
 
-  async createUploadUrl(key: string): Promise<SignedUrl> {
+  async createUploadUrl(key: string): Promise<SignedUploadUrl> {
     const supabase = await this.client();
     const { data, error } = await supabase.storage.from(this.bucket).createSignedUploadUrl(key);
     if (error || !data) throw new Error(`Could not create an upload URL: ${error?.message}`);
-    return { url: data.signedUrl, expiresAt: new Date(Date.now() + 2 * 60 * 60 * 1000) };
+    return {
+      url: data.signedUrl,
+      token: data.token ?? null,
+      path: data.path || key,
+      expiresAt: new Date(Date.now() + 2 * 60 * 60 * 1000),
+    };
   }
 
   async createDownloadUrl(key: string, expiresInSeconds = DEFAULT_DOWNLOAD_TTL_SECONDS): Promise<SignedUrl> {
@@ -156,9 +167,11 @@ class E2eHarnessStorageAdapter implements StoragePort {
     return `${this.baseUrl.replace(/\/+$/, '')}/e2e-storage/${encodeURIComponent(key)}`;
   }
 
-  async createUploadUrl(key: string): Promise<SignedUrl> {
+  async createUploadUrl(key: string): Promise<SignedUploadUrl> {
     return {
       url: this.objectUrl(key),
+      token: null,
+      path: key,
       expiresAt: new Date(Date.now() + 2 * 60 * 60 * 1000),
     };
   }

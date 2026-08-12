@@ -87,6 +87,9 @@ export interface EntityDocumentFilters {
 export interface PrepareUploadResult {
   readonly document: DocumentRecord;
   readonly uploadUrl: string;
+  readonly uploadToken: string | null;
+  readonly uploadPath: string;
+  readonly uploadBucket: string;
   readonly uploadExpiresAt: Date;
 }
 

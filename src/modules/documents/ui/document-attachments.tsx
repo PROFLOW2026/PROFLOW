@@ -33,6 +33,7 @@ import {
   softDeleteDocumentAction,
   unlinkDocumentAction,
 } from '../application/document-actions';
+import { uploadDocumentBytes } from '../client/upload-document-bytes';
 
 const DocumentPreviewDialog = dynamic(
   () => import('./document-preview-dialog').then((mod) => mod.DocumentPreviewDialog),
@@ -171,29 +172,37 @@ export function DocumentAttachments({
         return;
       }
 
-      const uploadResponse = await fetch(prepared.uploadUrl, {
-        method: 'PUT',
-        headers: { 'Content-Type': file.type || 'application/octet-stream' },
-        body: file,
-      });
+      const documentId = prepared.documentId;
+      const uploaded = await uploadDocumentBytes(
+        {
+          uploadUrl: prepared.uploadUrl,
+          uploadToken: prepared.uploadToken,
+          uploadPath: prepared.uploadPath,
+          uploadBucket: prepared.uploadBucket,
+        },
+        file,
+        { contentType: file.type || 'application/octet-stream' },
+      );
 
-      if (!uploadResponse.ok) {
+      if (!uploaded.ok) {
+        await softDeleteDocumentAction({ documentId });
         setError(t('uploadFailed'));
         return;
       }
 
       const finalized = await finalizeDocumentUploadAction({
-        documentId: prepared.documentId,
+        documentId,
         sizeBytes: file.size,
       });
 
       if (finalized.error) {
+        await softDeleteDocumentAction({ documentId });
         setError(finalized.error);
         return;
       }
 
       if (afterFinalizeAction) {
-        const after = await afterFinalizeAction(prepared.documentId);
+        const after = await afterFinalizeAction(documentId);
         if (after.error) {
           setError(after.error);
           return;
@@ -476,7 +485,13 @@ export function DocumentAttachments({
                   <div className="flex min-w-0 items-start gap-2">
                     <FileText className="mt-0.5 size-4 shrink-0 text-[var(--pf-text-muted)]" aria-hidden />
                     <div className="min-w-0">
-                      <p className="truncate text-sm font-medium">{document.originalFilename}</p>
+                      <p
+                        dir="ltr"
+                        className="truncate text-sm font-medium"
+                        style={{ unicodeBidi: 'isolate' }}
+                      >
+                        {document.originalFilename}
+                      </p>
                       <p className="text-xs text-[var(--pf-text-muted)]">
                         <span dir="ltr" className="pf-numeric">
                           {formatFileSize(document.sizeBytes, tFileSize)}

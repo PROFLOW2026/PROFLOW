@@ -22,6 +22,11 @@ export interface ActionResult {
 export interface PrepareUploadActionResult extends ActionResult {
   documentId?: string;
   uploadUrl?: string;
+  uploadToken?: string | null;
+  uploadPath?: string;
+  uploadBucket?: string;
+  /** Stable machine code for diagnostics — never contains secrets. */
+  errorCode?: 'prepare' | 'storage_upload' | 'finalize' | 'storage_download' | 'azure';
 }
 
 export interface DownloadActionResult extends ActionResult {
@@ -49,20 +54,23 @@ export async function prepareDocumentUploadAction(
     return {
       documentId: result.document.id,
       uploadUrl: result.uploadUrl,
+      uploadToken: result.uploadToken,
+      uploadPath: result.uploadPath,
+      uploadBucket: result.uploadBucket,
     };
   } catch (error) {
-    return { error: await mapDocumentError(error) };
+    return { error: await mapDocumentError(error), errorCode: 'prepare' };
   }
 }
 
 export async function finalizeDocumentUploadAction(
   input: FinalizeUploadInput,
-): Promise<ActionResult> {
+): Promise<ActionResult & { errorCode?: 'finalize' }> {
   try {
     await withOrgContext((context) => finalizeDocumentUpload(context, input));
     return {};
   } catch (error) {
-    return { error: await mapDocumentError(error) };
+    return { error: await mapDocumentError(error), errorCode: 'finalize' };
   }
 }
 

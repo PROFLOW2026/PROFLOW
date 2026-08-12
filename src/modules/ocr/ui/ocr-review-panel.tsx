@@ -15,7 +15,9 @@ import { DocumentPreviewDialog } from '@/modules/documents/ui/document-preview-d
 import {
   finalizeDocumentUploadAction,
   prepareDocumentUploadAction,
+  softDeleteDocumentAction,
 } from '@/modules/documents/application/document-actions';
+import { uploadDocumentBytes } from '@/modules/documents/client/upload-document-bytes';
 import {
   confirmOcrCandidateAction,
   extractReceiptAction,
@@ -176,28 +178,43 @@ export function OcrReviewPanel({
       sizeBytes: file.size,
     });
     if (prepared.error || !prepared.documentId || !prepared.uploadUrl) {
-      setError(prepared.error ?? t('extractFailed', { code: 'upload' }));
+      setError(prepared.error ?? t('extractFailed', { code: prepared.errorCode ?? 'prepare' }));
       return;
     }
-    const put = await fetch(prepared.uploadUrl, {
-      method: 'PUT',
-      headers: { 'Content-Type': file.type || 'application/octet-stream' },
-      body: file,
-    });
-    if (!put.ok) {
-      setError(t('extractFailed', { code: 'upload' }));
+
+    const documentId = prepared.documentId;
+    const abandonPending = async () => {
+      await softDeleteDocumentAction({ documentId });
+    };
+
+    const uploaded = await uploadDocumentBytes(
+      {
+        uploadUrl: prepared.uploadUrl,
+        uploadToken: prepared.uploadToken,
+        uploadPath: prepared.uploadPath,
+        uploadBucket: prepared.uploadBucket,
+      },
+      file,
+      { contentType: file.type || 'application/octet-stream' },
+    );
+    if (!uploaded.ok) {
+      await abandonPending();
+      setError(t('extractFailed', { code: 'storage_upload' }));
       return;
     }
+
     const finalized = await finalizeDocumentUploadAction({
-      documentId: prepared.documentId,
+      documentId,
       sizeBytes: file.size,
     });
     if (finalized.error) {
-      setError(finalized.error);
+      await abandonPending();
+      setError(t('extractFailed', { code: finalized.errorCode ?? 'finalize' }));
       return;
     }
+
     const result = await extractReceiptAction({
-      documentId: prepared.documentId,
+      documentId,
       mimeType: file.type || undefined,
       filename: file.name,
       workflow,
@@ -209,7 +226,10 @@ export function OcrReviewPanel({
     setJobs((prev) => [result.data, ...prev]);
     selectJob(result.data);
     if (result.data.status === 'failed') {
-      setInfo(t('extractFailed', { code: result.data.errorCode ?? 'unknown' }));
+      const raw = result.data.errorCode ?? 'unknown';
+      const code =
+        raw === 'provider_error' || raw === 'timeout' || raw === 'empty_result' ? 'azure' : raw;
+      setInfo(t('extractFailed', { code }));
     } else {
       setInfo(t('extractQueuedReview'));
     }

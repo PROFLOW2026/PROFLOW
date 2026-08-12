@@ -33,10 +33,15 @@ vi.mock('@/modules/ocr/application/ocr-actions', () => ({
 vi.mock('@/modules/documents/application/document-actions', () => ({
   prepareDocumentUploadAction: vi.fn(),
   finalizeDocumentUploadAction: vi.fn(),
+  softDeleteDocumentAction: vi.fn(async () => ({})),
   downloadDocumentAction: vi.fn(async () => ({
     url: 'https://signed.example/receipt.png',
     filename: 'receipt.png',
   })),
+}));
+
+vi.mock('@/modules/documents/client/upload-document-bytes', () => ({
+  uploadDocumentBytes: vi.fn(async () => ({ ok: true })),
 }));
 
 const DOCUMENT_ID = '01900000-0000-7000-8000-0000000000d1';

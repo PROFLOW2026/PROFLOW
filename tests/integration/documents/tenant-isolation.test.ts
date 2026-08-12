@@ -29,10 +29,17 @@ class MockStoragePort implements StoragePort {
     return `${input.organizationId}/${input.entityType}/${input.entityId}/${input.fileName}`;
   }
 
-  async createUploadUrl(key: string): Promise<{ url: string; expiresAt: Date }> {
+  async createUploadUrl(key: string): Promise<{
+    url: string;
+    token: string | null;
+    path: string;
+    expiresAt: Date;
+  }> {
     this.keys.add(key);
     return {
       url: `https://storage.test/upload/${encodeURIComponent(key)}`,
+      token: 'test-upload-token',
+      path: key,
       expiresAt: new Date(Date.now() + 3600_000),
     };
   }
