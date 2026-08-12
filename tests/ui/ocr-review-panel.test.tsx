@@ -280,10 +280,14 @@ describe('OCR review panel', () => {
     ).toBe('true');
     expect(document.querySelector('[data-pf-preview-document-id="doc-b"]')).toBeTruthy();
 
-    const vendorAccept = screen.getByRole('checkbox', {
-      name: enDocuments.ocr.acceptField.replace('{field}', enDocuments.ocr.fields.vendor),
+    // Reject uses startTransition — job removal can paint before `pending` clears.
+    await waitFor(() => {
+      expect(screen.getAllByRole('checkbox')[0]).toBeEnabled();
+      expect(screen.getByRole('button', { name: enDocuments.ocr.rejectReview })).toBeEnabled();
     });
-    await user.click(vendorAccept);
+
+    const acceptBoxes = screen.getAllByRole('checkbox');
+    await user.click(acceptBoxes[0]!);
     const confirmBtn = screen.getByRole('button', { name: enDocuments.ocr.confirmExpense });
     await waitFor(() => {
       expect(confirmBtn).toBeEnabled();
