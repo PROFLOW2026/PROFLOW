@@ -36,18 +36,19 @@ export function DocumentInlinePreview({
 
   useEffect(() => {
     let cancelled = false;
+    const requestedId = documentId;
 
-    void downloadDocumentAction({ documentId }).then((result) => {
+    void downloadDocumentAction({ documentId: requestedId }).then((result) => {
       if (cancelled) return;
       if (result.error || !result.url) {
         setFetched({
-          documentId,
+          documentId: requestedId,
           url: null,
           error: result.error ?? t('previewFailed'),
         });
         return;
       }
-      setFetched({ documentId, url: result.url, error: null });
+      setFetched({ documentId: requestedId, url: result.url, error: null });
     });
 
     return () => {
@@ -61,6 +62,7 @@ export function DocumentInlinePreview({
   return (
     <div
       data-pf-ocr-original
+      data-pf-preview-document-id={documentId}
       className="overflow-hidden rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)]"
     >
       <p
@@ -81,6 +83,7 @@ export function DocumentInlinePreview({
           // Signed URL only — expires; no permanent public path.
           // eslint-disable-next-line @next/next/no-img-element -- ephemeral signed URL
           <img
+            key={`${documentId}:${url}`}
             src={url}
             alt={filename}
             className="max-h-80 w-auto max-w-full object-contain xl:max-h-[70vh]"
@@ -90,7 +93,12 @@ export function DocumentInlinePreview({
           />
         ) : null}
         {!loading && url && showPdf ? (
-          <iframe title={filename} src={url} className="h-64 w-full xl:h-[70vh]" />
+          <iframe
+            key={`${documentId}:${url}`}
+            title={filename}
+            src={url}
+            className="h-64 w-full xl:h-[70vh]"
+          />
         ) : null}
         {!loading && url && !showImage && !showPdf ? (
           <Alert tone="info">{t('previewUnsupported')}</Alert>

@@ -6,7 +6,8 @@
  * start_url is locale-prefixed via the dynamic manifest. Bare "/" is still
  * rewritten to the cookie locale in src/proxy.ts for already-installed shells.
  */
-const SHELL_CACHE = 'projectflow-shell-v3';
+/* pf-sw-release: ocr-runtime-2026-08-12 */
+const SHELL_CACHE = 'projectflow-shell-v4';
 const PRECACHE = [
   '/icons/icon-192.png',
   '/icons/icon-512.png',
@@ -29,6 +30,7 @@ const SENSITIVE_MARKERS = [
   '/reports',
   '/month-close',
   '/quotes',
+  '/documents',
 ];
 
 function isSensitiveFinancialPath(pathname) {
@@ -88,7 +90,7 @@ self.addEventListener('fetch', (event) => {
         try {
           const preload = await event.preloadResponse;
           if (preload) return preload;
-          return await fetch(request);
+          return await fetch(request, { cache: 'no-store' });
         } catch {
           const cache = await caches.open(SHELL_CACHE);
           const fallback = await cache.match('/offline.html');

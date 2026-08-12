@@ -21,6 +21,11 @@ type FieldControlProps = {
 
 export interface FieldProps {
   label: React.ReactNode;
+  /**
+   * Optional stable control id. Prefer this on auth / e2e-critical forms so
+   * SSR→client `useId()` remounts do not wipe filled values mid-interaction.
+   */
+  id?: string;
   /** Only genuinely required fields are marked — see the contextual matrix in doc 48. */
   required?: boolean;
   optionalLabel?: string;
@@ -32,6 +37,7 @@ export interface FieldProps {
 
 export function Field({
   label,
+  id,
   required = false,
   optionalLabel,
   description,
@@ -40,14 +46,15 @@ export function Field({
   children,
 }: FieldProps) {
   const reactId = React.useId();
+  const controlId = id?.trim() || `${reactId}-control`;
   const value = React.useMemo<FieldContextValue>(
     () => ({
-      id: `${reactId}-control`,
-      descriptionId: `${reactId}-description`,
-      errorId: `${reactId}-error`,
+      id: controlId,
+      descriptionId: `${controlId}-description`,
+      errorId: `${controlId}-error`,
       hasError: Boolean(error),
     }),
-    [reactId, error],
+    [controlId, error],
   );
 
   const controlProps = {

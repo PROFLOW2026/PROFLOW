@@ -110,7 +110,10 @@ export async function prepareDocumentUpload(
         'documents.errors.storageNotConfigured',
       );
     }
-    throw error;
+    throw new ServiceUnavailableError(
+      'Could not create a signed upload target',
+      'documents.errors.signedTargetFailed',
+    );
   }
 
   await recordAuditEvent(context, {

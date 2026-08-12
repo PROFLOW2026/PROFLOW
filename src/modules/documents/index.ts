@@ -41,8 +41,13 @@ export {
   isBrowserPreviewableImageMime,
   isBrowserPreviewablePdfMime,
   isBrowserPreviewableMime,
+  normalizeUploadMime,
+  storageObjectExtension,
   MAX_DOCUMENT_SIZE_BYTES,
 } from './domain/file-rules';
+export type { NormalizeUploadMimeResult } from './domain/file-rules';
+export type { DocumentRuntimeStage } from './domain/runtime-stage';
+export { DOCUMENT_RUNTIME_STAGES } from './domain/runtime-stage';
 
 export { DOCUMENT_CATEGORIES, isDocumentCategory } from './domain/categories';
 export type { DocumentCategory } from './domain/categories';

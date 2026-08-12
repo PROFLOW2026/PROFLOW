@@ -3,7 +3,7 @@
  * Kept free of browser globals so unit tests can lock the cache policy.
  */
 
-export const SHELL_CACHE_NAME = 'projectflow-shell-v3';
+export const SHELL_CACHE_NAME = 'projectflow-shell-v4';
 
 /** Installed-app cold start: document fetch must overlap worker boot. */
 export const SHELL_NAVIGATION_PRELOAD = true;
@@ -37,6 +37,7 @@ export const SENSITIVE_FINANCIAL_PATH_MARKERS = [
   '/reports',
   '/month-close',
   '/quotes',
+  '/documents',
 ] as const;
 
 export function isShellAssetUrl(pathname: string): boolean {

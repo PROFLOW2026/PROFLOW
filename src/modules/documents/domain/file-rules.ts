@@ -61,3 +61,72 @@ export function validateUploadConstraints(input: {
   if (!isAllowedFileSize(input.sizeBytes)) return { valid: false, reason: 'size' };
   return { valid: true };
 }
+
+const MIME_ALIASES: Record<string, string> = {
+  'image/jpg': 'image/jpeg',
+  'image/pjpeg': 'image/jpeg',
+  'image/x-png': 'image/png',
+  'image/tif': 'image/tiff',
+};
+
+const EXT_TO_MIME: Record<string, string> = {
+  jpg: 'image/jpeg',
+  jpeg: 'image/jpeg',
+  jfif: 'image/jpeg',
+  png: 'image/png',
+  webp: 'image/webp',
+  gif: 'image/gif',
+  bmp: 'image/bmp',
+  tif: 'image/tiff',
+  tiff: 'image/tiff',
+  heic: 'image/heic',
+  heif: 'image/heif',
+  pdf: 'application/pdf',
+  doc: 'application/msword',
+  docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  xls: 'application/vnd.ms-excel',
+  xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+};
+
+const GENERIC_OR_EMPTY_MIME = new Set([
+  '',
+  'application/octet-stream',
+  'binary/octet-stream',
+  'application/x-download',
+]);
+
+export type NormalizeUploadMimeResult =
+  | { ok: true; mimeType: string; inferredFromExtension: boolean }
+  | { ok: false; reason: 'mime' };
+
+/** Canonical MIME for upload. Infer from extension only when the browser type is empty/generic. */
+export function normalizeUploadMime(
+  reportedType: string | undefined | null,
+  fileName: string,
+): NormalizeUploadMimeResult {
+  const reported = (reportedType ?? '').trim().toLowerCase();
+  const aliased = MIME_ALIASES[reported] ?? reported;
+
+  if (aliased && !GENERIC_OR_EMPTY_MIME.has(aliased)) {
+    if (isAllowedMimeType(aliased)) {
+      return { ok: true, mimeType: aliased, inferredFromExtension: false };
+    }
+    return { ok: false, reason: 'mime' };
+  }
+
+  const ext = fileName.trim().toLowerCase().match(/\.([a-z0-9]+)$/)?.[1] ?? '';
+  const inferred = EXT_TO_MIME[ext];
+  if (inferred && isAllowedMimeType(inferred)) {
+    return { ok: true, mimeType: inferred, inferredFromExtension: true };
+  }
+  return { ok: false, reason: 'mime' };
+}
+
+/** ASCII-only object extension for storage keys. Original filename stays in DB metadata. */
+export function storageObjectExtension(fileName: string): string {
+  const ext = fileName.trim().toLowerCase().match(/\.([a-z0-9]+)$/)?.[1] ?? '';
+  if (ext === 'jpeg' || ext === 'jfif') return 'jpg';
+  if (ext === 'tif') return 'tiff';
+  if (EXT_TO_MIME[ext]) return ext === 'jpeg' ? 'jpg' : ext;
+  return 'bin';
+}

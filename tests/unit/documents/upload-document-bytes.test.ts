@@ -51,7 +51,7 @@ describe('uploadDocumentBytes', () => {
       'org/documents/id/file.jpg',
       'tok',
       file,
-      expect.objectContaining({ contentType: 'image/jpeg', cacheControl: '3600' }),
+      expect.objectContaining({ contentType: 'image/jpeg', cacheControl: '0' }),
     );
     expect(fetch).not.toHaveBeenCalled();
   });
@@ -84,8 +84,40 @@ describe('uploadDocumentBytes', () => {
     );
   });
 
-  it('returns storage_upload failure without throwing', async () => {
+  it('falls back to signed URL PUT when uploadToSignedUrl fails', async () => {
     uploadToSignedUrl.mockResolvedValue({ data: null, error: { message: 'denied' } });
+    const { uploadDocumentBytes } = await import(
+      '@/modules/documents/client/upload-document-bytes'
+    );
+    const file = new File([Uint8Array.from([1])], 'קבלה 1.jpg', { type: '' });
+
+    const result = await uploadDocumentBytes(
+      {
+        uploadUrl: 'https://example.test/u',
+        uploadToken: 'tok',
+        uploadPath: 'org/documents/id/uuid.jpg',
+        uploadBucket: 'documents',
+      },
+      file,
+      { contentType: 'image/jpeg' },
+    );
+
+    expect(result).toEqual({ ok: true });
+    expect(fetch).toHaveBeenCalledWith(
+      'https://example.test/u',
+      expect.objectContaining({
+        method: 'PUT',
+        headers: { 'Content-Type': 'image/jpeg' },
+      }),
+    );
+  });
+
+  it('returns storage_upload when SDK and PUT both fail', async () => {
+    uploadToSignedUrl.mockResolvedValue({ data: null, error: { message: 'denied' } });
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => new Response(null, { status: 403 })),
+    );
     const { uploadDocumentBytes } = await import(
       '@/modules/documents/client/upload-document-bytes'
     );
@@ -104,7 +136,7 @@ describe('uploadDocumentBytes', () => {
     expect(result.ok).toBe(false);
     if (!result.ok) {
       expect(result.stage).toBe('storage_upload');
-      expect(result.message).toBe('denied');
+      expect(result.status).toBe(403);
     }
   });
 });

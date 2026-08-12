@@ -102,7 +102,7 @@ describe('failed upload orphan cleanup', () => {
           mimeType: 'image/jpeg',
           sizeBytes: 128,
         }),
-      ).rejects.toThrow(/signed upload unavailable/);
+      ).rejects.toThrow(/Could not create a signed upload target/);
     });
 
     const rows = await database.asService(async (db) =>

@@ -83,6 +83,53 @@ describe('document preview signed-URL stability', () => {
     );
     await waitFor(() => expect(downloadDocumentAction).toHaveBeenCalledTimes(2));
     expect(downloadDocumentAction).toHaveBeenLastCalledWith({ documentId: 'doc-b' });
+    await waitFor(() =>
+      expect(screen.getByRole('img')).toHaveAttribute('src', 'https://signed.example/doc-b.jpg'),
+    );
+    expect(screen.queryByRole('img')?.getAttribute('src')).not.toContain('doc-a.jpg');
+  });
+
+  it('ignores a slow previous download after rapid A→B→C switches', async () => {
+    let resolveA: ((value: { url: string; filename: string }) => void) | undefined;
+    downloadDocumentAction.mockImplementation(async ({ documentId }: { documentId: string }) => {
+      if (documentId === 'doc-a') {
+        return new Promise((resolve) => {
+          resolveA = resolve;
+        });
+      }
+      return {
+        url: `https://signed.example/${documentId}.jpg`,
+        filename: `${documentId}.jpg`,
+      };
+    });
+
+    const { rerender } = render(
+      <Wrapper>
+        <DocumentInlinePreview documentId="doc-a" filename="a.jpg" mimeType="image/jpeg" />
+      </Wrapper>,
+    );
+    await waitFor(() => expect(downloadDocumentAction).toHaveBeenCalledTimes(1));
+
+    rerender(
+      <Wrapper>
+        <DocumentInlinePreview documentId="doc-b" filename="b.jpg" mimeType="image/jpeg" />
+      </Wrapper>,
+    );
+    rerender(
+      <Wrapper>
+        <DocumentInlinePreview documentId="doc-c" filename="c.jpg" mimeType="image/jpeg" />
+      </Wrapper>,
+    );
+
+    await waitFor(() =>
+      expect(screen.getByRole('img')).toHaveAttribute('src', 'https://signed.example/doc-c.jpg'),
+    );
+    resolveA?.({ url: 'https://signed.example/doc-a.jpg', filename: 'a.jpg' });
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(screen.getByRole('img')).toHaveAttribute('src', 'https://signed.example/doc-c.jpg');
+    expect(document.querySelector('[data-pf-preview-document-id="doc-c"]')).toBeTruthy();
   });
 
   it('keeps the image mounted under a mobile-sized viewport after re-renders', async () => {

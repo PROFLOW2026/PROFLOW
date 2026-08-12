@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState, useTransition } from 'react';
+import { useMemo, useRef, useState, useTransition } from 'react';
 import { useTranslations } from 'next-intl';
 import { MoneyText } from '@/components/patterns/money-text';
 import { Alert } from '@/components/ui/alert';
@@ -17,7 +17,10 @@ import {
   prepareDocumentUploadAction,
   softDeleteDocumentAction,
 } from '@/modules/documents/application/document-actions';
+import { openFilePicker } from '@/modules/documents/client/open-file-picker';
 import { uploadDocumentBytes } from '@/modules/documents/client/upload-document-bytes';
+import { normalizeUploadMime } from '@/modules/documents/domain/file-rules';
+import type { DocumentRuntimeStage } from '@/modules/documents/domain/runtime-stage';
 import {
   confirmOcrCandidateAction,
   extractReceiptAction,
@@ -27,6 +30,7 @@ import {
 import { confidenceState } from '@/modules/ocr/domain/confidence';
 import { collectReviewWarnings } from '@/modules/ocr/domain/totals-warnings';
 import { suggestedDraftTarget } from '@/modules/ocr/domain/canonical';
+import { isOcrSupportedMime } from '@/modules/ocr/domain/cost-controls';
 import type {
   ExtractionJob,
   OcrCandidateFieldKey,
@@ -52,6 +56,28 @@ function statusShape(
 const MONEY_FIELDS = new Set<OcrCandidateFieldKey>(['net', 'tax', 'gross']);
 const DATE_FIELDS = new Set<OcrCandidateFieldKey>(['date', 'dueDate']);
 const MONEY_PATTERN = /^-?\d+(\.\d+)?$/;
+const OCR_FILE_ACCEPT =
+  '.jpg,.jpeg,.jfif,.png,.bmp,.tif,.tiff,.pdf,.heic,.heif,image/jpeg,image/png,image/bmp,image/tiff,image/heic,image/heif,application/pdf';
+
+/** Survives `dynamic(..., { ssr:false })` remounts after server-action refresh. */
+const ocrSelectionMemory = new Map<string, string>();
+
+function prependJob(prev: ExtractionJob[], job: ExtractionJob): ExtractionJob[] {
+  return [job, ...prev.filter((item) => item.id !== job.id)];
+}
+
+function fileUploadKey(file: File): string {
+  return `${file.name}:${file.size}:${file.lastModified}`;
+}
+
+function extractionStageCode(job: ExtractionJob): string {
+  const raw = job.errorCode ?? 'unknown';
+  const category = job.rawMetadata?.errorCategory;
+  if (raw === 'storage_download') return 'storage_download';
+  if (raw === 'timeout' || category === 'timeout') return 'azure_poll';
+  if (raw === 'provider_error' || raw === 'empty_result') return 'azure_analyze';
+  return raw;
+}
 
 function hydrateOverrides(
   job: ExtractionJob | null | undefined,
@@ -93,13 +119,23 @@ export function OcrReviewPanel({
 }: OcrReviewPanelProps) {
   const t = useTranslations('documents.ocr');
   const [jobs, setJobs] = useState<ExtractionJob[]>([...initialJobs]);
-  const [selectedId, setSelectedId] = useState<string | null>(initialJobs[0]?.id ?? null);
+  const [selectedId, setSelectedId] = useState<string | null>(() => {
+    const remembered = ocrSelectionMemory.get(organizationId);
+    if (remembered && initialJobs.some((job) => job.id === remembered)) {
+      return remembered;
+    }
+    return initialJobs[0]?.id ?? null;
+  });
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const [draftTarget, setDraftTarget] = useState<OcrDraftTarget>(defaultTarget);
   const [vendorId, setVendorId] = useState('');
   const [previewOpen, setPreviewOpen] = useState(false);
+  const captureInputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const uploadGenerationRef = useRef(0);
+  const activeUploadKeyRef = useRef<string | null>(null);
 
   const liveExtract = initialStatus.ingestionEnabled && initialStatus.featureMode === 'live';
   const fixtureTools = initialStatus.featureMode === 'fixture_only';
@@ -109,9 +145,14 @@ export function OcrReviewPanel({
     [jobs, selectedId],
   );
 
-  const [overrides, setOverrides] = useState<Partial<Record<OcrCandidateFieldKey, string>>>(() =>
-    hydrateOverrides(initialJobs[0] ?? null),
-  );
+  const [overrides, setOverrides] = useState<Partial<Record<OcrCandidateFieldKey, string>>>(() => {
+    const remembered = ocrSelectionMemory.get(organizationId);
+    const initial =
+      (remembered ? initialJobs.find((job) => job.id === remembered) : undefined) ??
+      initialJobs[0] ??
+      null;
+    return hydrateOverrides(initial);
+  });
   const [accepted, setAccepted] = useState<Partial<Record<OcrCandidateFieldKey, boolean>>>({});
 
   const acceptedFields = useMemo(
@@ -134,6 +175,8 @@ export function OcrReviewPanel({
   }
 
   function selectJob(job: ExtractionJob) {
+    ocrSelectionMemory.set(organizationId, job.id);
+    setPreviewOpen(false);
     setSelectedId(job.id);
     setOverrides(hydrateOverrides(job));
     setAccepted({});
@@ -159,26 +202,45 @@ export function OcrReviewPanel({
         setError(result.error);
         return;
       }
-      setJobs((prev) => [result.data, ...prev]);
+      setJobs((prev) => prependJob(prev, result.data));
       selectJob(result.data);
       setInfo(t('fixtureSeeded'));
     });
   }
 
-  async function uploadThenExtract(file: File) {
+  async function uploadThenExtract(file: File, generation: number) {
     if (offline || !navigator.onLine) {
       setError(t('offlineBlocked'));
       return;
     }
+
+    const mime = normalizeUploadMime(file.type, file.name);
+    if (!mime.ok || !isOcrSupportedMime(mime.mimeType)) {
+      setError(t('extractFailed', { code: 'file_picker' }));
+      return;
+    }
+
     const prepared = await prepareDocumentUploadAction({
       ownerType: 'organization',
       ownerId: organizationId,
       fileName: file.name,
-      mimeType: file.type || 'application/octet-stream',
+      mimeType: mime.mimeType,
       sizeBytes: file.size,
     });
+    if (generation !== uploadGenerationRef.current) {
+      if (prepared.documentId) {
+        await softDeleteDocumentAction({ documentId: prepared.documentId });
+      }
+      return;
+    }
     if (prepared.error || !prepared.documentId || !prepared.uploadUrl) {
-      setError(prepared.error ?? t('extractFailed', { code: prepared.errorCode ?? 'prepare' }));
+      const stage: DocumentRuntimeStage = prepared.errorCode ?? 'prepare';
+      setError(prepared.error ?? t('extractFailed', { code: stage }));
+      return;
+    }
+    if (!prepared.uploadToken && !prepared.uploadUrl) {
+      await softDeleteDocumentAction({ documentId: prepared.documentId });
+      setError(t('extractFailed', { code: 'signed_target' }));
       return;
     }
 
@@ -195,8 +257,12 @@ export function OcrReviewPanel({
         uploadBucket: prepared.uploadBucket,
       },
       file,
-      { contentType: file.type || 'application/octet-stream' },
+      { contentType: mime.mimeType },
     );
+    if (generation !== uploadGenerationRef.current) {
+      await abandonPending();
+      return;
+    }
     if (!uploaded.ok) {
       await abandonPending();
       setError(t('extractFailed', { code: 'storage_upload' }));
@@ -207,6 +273,10 @@ export function OcrReviewPanel({
       documentId,
       sizeBytes: file.size,
     });
+    if (generation !== uploadGenerationRef.current) {
+      await abandonPending();
+      return;
+    }
     if (finalized.error) {
       await abandonPending();
       setError(t('extractFailed', { code: finalized.errorCode ?? 'finalize' }));
@@ -215,21 +285,19 @@ export function OcrReviewPanel({
 
     const result = await extractReceiptAction({
       documentId,
-      mimeType: file.type || undefined,
+      mimeType: mime.mimeType,
       filename: file.name,
       workflow,
     });
+    if (generation !== uploadGenerationRef.current) return;
     if (!result.ok) {
       setError(result.error);
       return;
     }
-    setJobs((prev) => [result.data, ...prev]);
+    setJobs((prev) => prependJob(prev, result.data));
     selectJob(result.data);
     if (result.data.status === 'failed') {
-      const raw = result.data.errorCode ?? 'unknown';
-      const code =
-        raw === 'provider_error' || raw === 'timeout' || raw === 'empty_result' ? 'azure' : raw;
-      setInfo(t('extractFailed', { code }));
+      setInfo(t('extractFailed', { code: extractionStageCode(result.data) }));
     } else {
       setInfo(t('extractQueuedReview'));
     }
@@ -237,10 +305,26 @@ export function OcrReviewPanel({
 
   function onExtractImage(file: File | null) {
     if (!file) return;
+    const key = fileUploadKey(file);
+    // Same-file `change` can fire twice (picker + clear); ignore the duplicate
+    // while that exact file is already uploading.
+    if (activeUploadKeyRef.current === key) return;
+    const generation = ++uploadGenerationRef.current;
+    activeUploadKeyRef.current = key;
     setError(null);
     setInfo(null);
     startTransition(async () => {
-      await uploadThenExtract(file);
+      try {
+        await uploadThenExtract(file, generation);
+      } catch {
+        if (generation === uploadGenerationRef.current) {
+          setError(t('extractFailed', { code: 'file_picker' }));
+        }
+      } finally {
+        if (generation === uploadGenerationRef.current) {
+          activeUploadKeyRef.current = null;
+        }
+      }
     });
   }
 
@@ -258,7 +342,7 @@ export function OcrReviewPanel({
         setError(result.error);
         return;
       }
-      setJobs((prev) => [result.data, ...prev.filter((job) => job.id !== selected.id)]);
+      setJobs((prev) => prependJob(prev, result.data));
       selectJob(result.data);
     });
   }
@@ -400,43 +484,55 @@ export function OcrReviewPanel({
         ) : null}
         {canManageDocuments && liveExtract ? (
           <>
-            <Label
-              className={cn(
-                pressableClassName,
-                'inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-md border border-[var(--pf-border-default)] px-3 text-sm',
-              )}
+            <input
+              ref={captureInputRef}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              className="sr-only"
+              aria-hidden="true"
+              tabIndex={-1}
+              data-pf-ocr-capture-input
+              disabled={pending}
+              onChange={(event) => {
+                onExtractImage(event.target.files?.[0] ?? null);
+                event.target.value = '';
+              }}
+            />
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept={OCR_FILE_ACCEPT}
+              className="sr-only"
+              aria-hidden="true"
+              tabIndex={-1}
+              data-pf-ocr-file-input
+              disabled={pending}
+              onChange={(event) => {
+                onExtractImage(event.target.files?.[0] ?? null);
+                event.target.value = '';
+              }}
+            />
+            <Button
+              type="button"
+              variant="secondary"
+              loading={pending}
+              data-pf-ocr-capture
+              aria-label={t('extractCapture')}
+              onClick={() => openFilePicker(captureInputRef.current)}
             >
-              <span>{t('extractCapture')}</span>
-              <input
-                type="file"
-                accept="image/*"
-                capture="environment"
-                className="sr-only"
-                disabled={pending}
-                onChange={(event) => {
-                  onExtractImage(event.target.files?.[0] ?? null);
-                  event.target.value = '';
-                }}
-              />
-            </Label>
-            <Label
-              className={cn(
-                pressableClassName,
-                'inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-md border border-[var(--pf-border-default)] px-3 text-sm',
-              )}
+              {t('extractCapture')}
+            </Button>
+            <Button
+              type="button"
+              variant="secondary"
+              loading={pending}
+              data-pf-ocr-attach
+              aria-label={t('extractImage')}
+              onClick={() => openFilePicker(fileInputRef.current)}
             >
-              <span>{t('extractImage')}</span>
-              <input
-                type="file"
-                accept="image/jpeg,image/png,image/bmp,image/tiff,application/pdf"
-                className="sr-only"
-                disabled={pending}
-                onChange={(event) => {
-                  onExtractImage(event.target.files?.[0] ?? null);
-                  event.target.value = '';
-                }}
-              />
-            </Label>
+              {t('extractImage')}
+            </Button>
           </>
         ) : null}
       </div>
@@ -445,16 +541,18 @@ export function OcrReviewPanel({
         <Alert tone="info">{t('empty')}</Alert>
       ) : (
         <div className="grid gap-6 lg:grid-cols-[minmax(0,14rem)_minmax(0,1fr)]">
-          <ul className="flex flex-col gap-2" role="listbox" aria-label={t('title')}>
+          <ul className="flex flex-col gap-2" aria-label={t('title')}>
             {jobs.map((job) => (
-              <li key={job.id} role="presentation">
+              <li key={job.id}>
                 <button
                   type="button"
-                  role="option"
-                  aria-selected={job.id === selectedId}
+                  aria-current={job.id === selectedId ? 'true' : undefined}
+                  data-pf-ocr-job-id={job.id}
+                  data-pf-ocr-job-document-id={job.sourceDocument.documentId ?? ''}
                   className={cn(
                     pressableClassName,
                     'flex w-full min-h-11 items-center justify-between gap-2 rounded-md border border-[var(--pf-border-default)] px-3 py-2 text-start text-sm',
+                    job.id === selectedId && 'border-[var(--pf-border-strong)] bg-[var(--pf-bg-muted)]',
                   )}
                   onClick={() => selectJob(job)}
                 >
@@ -473,6 +571,7 @@ export function OcrReviewPanel({
                 <p className="text-sm font-medium">{t('sourceDocument')}</p>
                 {sourceDocumentId ? (
                   <DocumentInlinePreview
+                    key={sourceDocumentId}
                     documentId={sourceDocumentId}
                     filename={selected.sourceDocument.filename ?? t('sourceDocumentUnknown')}
                     mimeType={selected.sourceDocument.mimeType ?? ''}
@@ -693,6 +792,7 @@ export function OcrReviewPanel({
 
       {sourceDocumentId && selected ? (
         <DocumentPreviewDialog
+          key={sourceDocumentId}
           open={previewOpen}
           onOpenChange={setPreviewOpen}
           documentId={sourceDocumentId}

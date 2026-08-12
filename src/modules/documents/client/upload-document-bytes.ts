@@ -4,7 +4,7 @@
  * Canonical browser upload for documents.
  *
  * Prefer Supabase `uploadToSignedUrl` when prepare returned token/path/bucket.
- * Fall back to opaque PUT only for harness/mock targets that lack token metadata.
+ * Fall back to opaque PUT for harness targets or when the SDK upload fails.
  */
 
 export type SignedUploadTarget = {
@@ -24,6 +24,25 @@ function resolveContentType(file: Blob, explicit?: string): string {
   return 'application/octet-stream';
 }
 
+async function putToSignedUrl(
+  uploadUrl: string,
+  file: Blob,
+  contentType: string,
+): Promise<UploadDocumentBytesResult> {
+  if (!uploadUrl.trim()) {
+    return { ok: false, stage: 'storage_upload', message: 'missing upload target' };
+  }
+  const response = await fetch(uploadUrl, {
+    method: 'PUT',
+    headers: { 'Content-Type': contentType },
+    body: file,
+  });
+  if (!response.ok) {
+    return { ok: false, stage: 'storage_upload', status: response.status };
+  }
+  return { ok: true };
+}
+
 export async function uploadDocumentBytes(
   target: SignedUploadTarget,
   file: Blob,
@@ -40,32 +59,14 @@ export async function uploadDocumentBytes(
       const supabase = getSupabaseBrowserClient();
       const { error } = await supabase.storage.from(bucket).uploadToSignedUrl(path, token, file, {
         contentType,
-        cacheControl: '3600',
+        cacheControl: '0',
       });
-      if (error) {
-        return { ok: false, stage: 'storage_upload', message: error.message };
-      }
-      return { ok: true };
-    } catch (error) {
-      return {
-        ok: false,
-        stage: 'storage_upload',
-        message: error instanceof Error ? error.message : 'storage upload failed',
-      };
+      if (!error) return { ok: true };
+    } catch {
+      // Fall through to the opaque signed URL PUT.
     }
+    return putToSignedUrl(target.uploadUrl, file, contentType);
   }
 
-  if (!target.uploadUrl.trim()) {
-    return { ok: false, stage: 'storage_upload', message: 'missing upload target' };
-  }
-
-  const response = await fetch(target.uploadUrl, {
-    method: 'PUT',
-    headers: { 'Content-Type': contentType },
-    body: file,
-  });
-  if (!response.ok) {
-    return { ok: false, stage: 'storage_upload', status: response.status };
-  }
-  return { ok: true };
+  return putToSignedUrl(target.uploadUrl, file, contentType);
 }

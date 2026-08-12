@@ -269,6 +269,7 @@ describe('offline SW sensitive financial paths', () => {
     expect(isSensitiveFinancialPath('/he-IL/reports')).toBe(true);
     expect(isSensitiveFinancialPath('/en/month-close')).toBe(true);
     expect(isSensitiveFinancialPath('/he-IL/quotes/abc')).toBe(true);
+    expect(isSensitiveFinancialPath('/he-IL/documents/ocr-review')).toBe(true);
     expect(
       shouldUseCacheFirst({
         method: 'GET',

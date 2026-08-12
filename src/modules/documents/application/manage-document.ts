@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { AUDIT_ACTIONS, recordAuditEvent } from '@/shared/audit';
 import { DomainRuleError, NotFoundError, ServiceUnavailableError, ValidationError } from '@/shared/errors';
 import { assertPermission } from '@/shared/permissions/assert';
@@ -44,10 +45,33 @@ export async function finalizeDocumentUpload(
     throw new DomainRuleError('File is too large', 'documents.errors.fileTooLarge');
   }
 
+  const storage = getStoragePort();
+  let verifiedSize = parsed.data.sizeBytes;
+  let checksum = parsed.data.checksum ?? null;
+  if (storage.configured) {
+    try {
+      const downloaded = await storage.downloadBytes(existing.storagePath);
+      if (downloaded.size <= 0) {
+        throw new ServiceUnavailableError(
+          'Uploaded file could not be verified',
+          'documents.errors.storageVerifyFailed',
+        );
+      }
+      verifiedSize = downloaded.size;
+      checksum = createHash('sha256').update(downloaded.bytes).digest('hex');
+    } catch (error) {
+      if (error instanceof ServiceUnavailableError) throw error;
+      throw new ServiceUnavailableError(
+        'Uploaded file could not be verified',
+        'documents.errors.storageVerifyFailed',
+      );
+    }
+  }
+
   const updated = await updateDocumentById(context.db, context.organizationId, parsed.data.documentId, {
     status: 'available',
-    sizeBytes: parsed.data.sizeBytes,
-    checksum: parsed.data.checksum ?? null,
+    sizeBytes: verifiedSize,
+    checksum,
   });
 
   if (!updated) throw new NotFoundError('Document');

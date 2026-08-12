@@ -14,9 +14,11 @@ import {
 } from '@/modules/documents';
 import { withOrgContext } from '@/shared/auth/session';
 import { AppError } from '@/shared/errors';
+import type { DocumentRuntimeStage } from '../domain/runtime-stage';
 
 export interface ActionResult {
   error?: string;
+  errorCode?: DocumentRuntimeStage;
 }
 
 export interface PrepareUploadActionResult extends ActionResult {
@@ -25,8 +27,6 @@ export interface PrepareUploadActionResult extends ActionResult {
   uploadToken?: string | null;
   uploadPath?: string;
   uploadBucket?: string;
-  /** Stable machine code for diagnostics — never contains secrets. */
-  errorCode?: 'prepare' | 'storage_upload' | 'finalize' | 'storage_download' | 'azure';
 }
 
 export interface DownloadActionResult extends ActionResult {
@@ -46,6 +46,21 @@ async function mapDocumentError(error: unknown): Promise<string> {
   return t('uploadFailed');
 }
 
+function prepareErrorCode(error: unknown): DocumentRuntimeStage {
+  if (error instanceof AppError) {
+    if (error.messageKey === 'documents.errors.signedTargetFailed') return 'signed_target';
+    if (error.messageKey === 'documents.errors.storageNotConfigured') return 'prepare';
+  }
+  return 'prepare';
+}
+
+function finalizeErrorCode(error: unknown): DocumentRuntimeStage {
+  if (error instanceof AppError && error.messageKey === 'documents.errors.storageVerifyFailed') {
+    return 'storage_verify';
+  }
+  return 'finalize';
+}
+
 export async function prepareDocumentUploadAction(
   input: PrepareUploadInput,
 ): Promise<PrepareUploadActionResult> {
@@ -59,18 +74,18 @@ export async function prepareDocumentUploadAction(
       uploadBucket: result.uploadBucket,
     };
   } catch (error) {
-    return { error: await mapDocumentError(error), errorCode: 'prepare' };
+    return { error: await mapDocumentError(error), errorCode: prepareErrorCode(error) };
   }
 }
 
 export async function finalizeDocumentUploadAction(
   input: FinalizeUploadInput,
-): Promise<ActionResult & { errorCode?: 'finalize' }> {
+): Promise<ActionResult> {
   try {
     await withOrgContext((context) => finalizeDocumentUpload(context, input));
     return {};
   } catch (error) {
-    return { error: await mapDocumentError(error), errorCode: 'finalize' };
+    return { error: await mapDocumentError(error), errorCode: finalizeErrorCode(error) };
   }
 }
 
@@ -85,9 +100,9 @@ export async function downloadDocumentAction(input: {
   } catch (error) {
     if (error instanceof AppError) {
       if (error.messageKey === 'documents.errors.storageNotConfigured') {
-        return { error: t('storageNotConfigured') };
+        return { error: t('storageNotConfigured'), errorCode: 'preview_download' };
       }
-      return { error: t('downloadFailed') };
+      return { error: t('downloadFailed'), errorCode: 'preview_download' };
     }
     throw error;
   }

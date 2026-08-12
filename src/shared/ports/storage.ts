@@ -64,6 +64,29 @@ export function sanitizeFileName(fileName: string): string {
   );
 }
 
+const STORAGE_KEY_EXTENSIONS = new Set([
+  'jpg',
+  'png',
+  'webp',
+  'gif',
+  'bmp',
+  'tiff',
+  'heic',
+  'heif',
+  'pdf',
+  'doc',
+  'docx',
+  'xls',
+  'xlsx',
+]);
+
+function asciiStorageExtension(fileName: string): string {
+  const ext = fileName.trim().toLowerCase().match(/\.([a-z0-9]+)$/)?.[1] ?? '';
+  if (ext === 'jpeg' || ext === 'jfif') return 'jpg';
+  if (ext === 'tif') return 'tiff';
+  return STORAGE_KEY_EXTENSIONS.has(ext) ? ext : 'bin';
+}
+
 export function buildStorageKey(input: {
   organizationId: string;
   entityType: string;
@@ -71,7 +94,7 @@ export function buildStorageKey(input: {
   fileName: string;
 }): string {
   const unique = crypto.randomUUID();
-  return `${input.organizationId}/${input.entityType}/${input.entityId}/${unique}-${sanitizeFileName(input.fileName)}`;
+  return `${input.organizationId}/${input.entityType}/${input.entityId}/${unique}.${asciiStorageExtension(input.fileName)}`;
 }
 
 class UnconfiguredStorageAdapter implements StoragePort {

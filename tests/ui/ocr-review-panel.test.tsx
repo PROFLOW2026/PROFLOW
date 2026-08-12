@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { NextIntlClientProvider } from 'next-intl';
 import type { ReactElement, ReactNode } from 'react';
@@ -34,9 +34,9 @@ vi.mock('@/modules/documents/application/document-actions', () => ({
   prepareDocumentUploadAction: vi.fn(),
   finalizeDocumentUploadAction: vi.fn(),
   softDeleteDocumentAction: vi.fn(async () => ({})),
-  downloadDocumentAction: vi.fn(async () => ({
-    url: 'https://signed.example/receipt.png',
-    filename: 'receipt.png',
+  downloadDocumentAction: vi.fn(async ({ documentId }: { documentId: string }) => ({
+    url: `https://signed.example/${documentId}.jpg`,
+    filename: `${documentId}.jpg`,
   })),
 }));
 
@@ -157,8 +157,13 @@ describe('OCR review panel', () => {
       />,
     );
 
-    const capture = screen.getByLabelText(enDocuments.ocr.extractCapture);
-    expect(capture).toHaveAttribute('capture', 'environment');
+    const captureInput = document.querySelector('[data-pf-ocr-capture-input]');
+    const fileInput = document.querySelector('[data-pf-ocr-file-input]');
+    expect(captureInput).toHaveAttribute('capture', 'environment');
+    expect(fileInput?.getAttribute('capture')).toBeNull();
+    expect(fileInput?.getAttribute('accept')).toMatch(/\.jpg/);
+    expect(screen.getByRole('button', { name: enDocuments.ocr.extractCapture })).toBeVisible();
+    expect(screen.getByRole('button', { name: enDocuments.ocr.extractImage })).toBeVisible();
     expect(screen.getByText(enDocuments.ocr.vendorExact)).toBeVisible();
     expect(screen.getByLabelText(enDocuments.ocr.vendorEntity)).toBeVisible();
     const original = document.querySelector('[data-pf-ocr-original]');
@@ -193,6 +198,100 @@ describe('OCR review panel', () => {
     await user.click(acceptBoxes[0]!);
     await user.click(screen.getByRole('button', { name: enDocuments.ocr.confirmExpense }));
     expect(confirmOcrCandidateAction).toHaveBeenCalled();
+  });
+
+  it('shows the selected job original, not a previous document', async () => {
+    const user = userEvent.setup();
+    const jobA = {
+      ...baseJob(),
+      id: 'job-a',
+      sourceDocument: {
+        documentId: 'doc-a',
+        filename: 'alpha-red.jpg',
+        mimeType: 'image/jpeg',
+      },
+    };
+    const jobB = {
+      ...baseJob(),
+      id: 'job-b',
+      sourceDocument: {
+        documentId: 'doc-b',
+        filename: 'bravo-blue.jpg',
+        mimeType: 'image/jpeg',
+      },
+    };
+
+    renderPanel(
+      <OcrReviewPanel
+        initialStatus={liveStatus}
+        initialJobs={[jobA, jobB]}
+        vendors={[{ id: VENDOR_ID, name: 'Fixture Supplies Ltd' }]}
+        organizationId="org-1"
+        defaultTarget="expense"
+        workflow="expense"
+        canManageDocuments
+        canCreateExpenses
+        canManageAp
+      />,
+    );
+
+    await screen.findByRole('img');
+    expect(document.querySelector('[data-pf-preview-document-id="doc-a"]')).toBeTruthy();
+    expect(screen.getByRole('img')).toHaveAttribute('src', 'https://signed.example/doc-a.jpg');
+
+    await user.click(screen.getByRole('button', { name: /bravo-blue/i }));
+    expect(document.querySelector('[data-pf-preview-document-id="doc-b"]')).toBeTruthy();
+    await waitFor(() =>
+      expect(screen.getByRole('img')).toHaveAttribute('src', 'https://signed.example/doc-b.jpg'),
+    );
+
+    await user.click(screen.getByRole('button', { name: /alpha-red/i }));
+    expect(document.querySelector('[data-pf-preview-document-id="doc-a"]')).toBeTruthy();
+    await waitFor(() =>
+      expect(screen.getByRole('img')).toHaveAttribute('src', 'https://signed.example/doc-a.jpg'),
+    );
+  });
+
+  it('opens the desktop file picker via the attach button, not a Radix label wrapper', async () => {
+    const user = userEvent.setup();
+    renderPanel(
+      <OcrReviewPanel
+        initialStatus={liveStatus}
+        initialJobs={[]}
+        vendors={[]}
+        organizationId="org-1"
+        defaultTarget="expense"
+        workflow="expense"
+        canManageDocuments
+        canCreateExpenses
+        canManageAp
+      />,
+    );
+
+    const fileInput = document.querySelector('[data-pf-ocr-file-input]') as HTMLInputElement;
+    const captureInput = document.querySelector('[data-pf-ocr-capture-input]') as HTMLInputElement;
+    expect(fileInput).toBeTruthy();
+    expect(captureInput).toBeTruthy();
+    expect(fileInput.getAttribute('capture')).toBeNull();
+    expect(captureInput.getAttribute('capture')).toBe('environment');
+
+    Object.defineProperty(fileInput, 'value', {
+      configurable: true,
+      writable: true,
+      value: 'C:\\fakepath\\same.jpg',
+    });
+    const fileClick = vi.spyOn(fileInput, 'click').mockImplementation(() => undefined);
+    const captureClick = vi.spyOn(captureInput, 'click').mockImplementation(() => undefined);
+
+    await user.click(screen.getByRole('button', { name: enDocuments.ocr.extractImage }));
+    expect(fileInput.value).toBe('');
+    expect(fileClick).toHaveBeenCalledTimes(1);
+    expect(captureClick).not.toHaveBeenCalled();
+
+    await user.click(screen.getByRole('button', { name: enDocuments.ocr.extractCapture }));
+    expect(captureClick).toHaveBeenCalledTimes(1);
+    fileClick.mockRestore();
+    captureClick.mockRestore();
   });
 
   it('shows offline messaging and does not pretend OCR ran', () => {

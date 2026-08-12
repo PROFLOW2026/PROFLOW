@@ -20,7 +20,7 @@ import { cn } from '@/shared/ui/cn';
 import type { DocumentListItem, DocumentLinkCandidate, DocumentOwnerType } from '@/modules/documents/domain/types';
 import { DOCUMENT_CATEGORIES } from '@/modules/documents/domain/categories';
 import { formatFileSize } from '@/modules/documents/domain/format-file-size';
-import { isBrowserPreviewableMime } from '@/modules/documents/domain/file-rules';
+import { isBrowserPreviewableMime, normalizeUploadMime } from '@/modules/documents/domain/file-rules';
 import { OfflineCaptureError } from '@/modules/offline/domain/capture';
 import { enqueueCaptureDraft } from '@/modules/offline';
 import { isBrowserOnline } from '@/modules/offline';
@@ -33,6 +33,7 @@ import {
   softDeleteDocumentAction,
   unlinkDocumentAction,
 } from '../application/document-actions';
+import { openFilePicker } from '../client/open-file-picker';
 import { uploadDocumentBytes } from '../client/upload-document-bytes';
 
 const DocumentPreviewDialog = dynamic(
@@ -83,6 +84,7 @@ export function DocumentAttachments({
   className,
 }: DocumentAttachmentsProps) {
   const t = useTranslations('documents.attachments');
+  const tErrors = useTranslations('documents.errors');
   const tStatus = useTranslations('documents.status');
   const tCategories = useTranslations('documents.categories');
   const tFileSize = useTranslations('documents.fileSize');
@@ -131,12 +133,17 @@ export function DocumentAttachments({
           return;
         }
         try {
+          const offlineMime = normalizeUploadMime(file.type, file.name);
+          if (!offlineMime.ok) {
+            setError(tErrors('mimeNotAllowed'));
+            return;
+          }
           await enqueueCaptureDraft({
             organizationId,
             userId,
             file,
             fileName: file.name,
-            mimeType: file.type || 'application/octet-stream',
+            mimeType: offlineMime.mimeType,
             ownerType,
             ownerId,
             note: resolveLinkLabel(),
@@ -153,9 +160,15 @@ export function DocumentAttachments({
         return;
       }
 
+      const mime = normalizeUploadMime(file.type, file.name);
+      if (!mime.ok) {
+        setError(tErrors('mimeNotAllowed'));
+        return;
+      }
+
       const prepared = await prepareDocumentUploadAction({
         fileName: file.name,
-        mimeType: file.type || 'application/octet-stream',
+        mimeType: mime.mimeType,
         sizeBytes: file.size,
         ownerType,
         ownerId,
@@ -181,7 +194,7 @@ export function DocumentAttachments({
           uploadBucket: prepared.uploadBucket,
         },
         file,
-        { contentType: file.type || 'application/octet-stream' },
+        { contentType: mime.mimeType },
       );
 
       if (!uploaded.ok) {
@@ -314,7 +327,7 @@ export function DocumentAttachments({
               variant="secondary"
               size="sm"
               loading={uploadPending}
-              onClick={() => fileInputRef.current?.click()}
+              onClick={() => openFilePicker(fileInputRef.current)}
             >
               <Upload aria-hidden />
               {t('upload')}
@@ -324,7 +337,7 @@ export function DocumentAttachments({
               variant="ghost"
               size="sm"
               disabled={uploadPending}
-              onClick={() => captureInputRef.current?.click()}
+              onClick={() => openFilePicker(captureInputRef.current)}
             >
               <Camera aria-hidden />
               {t('capture')}
@@ -379,7 +392,7 @@ export function DocumentAttachments({
               onKeyDown={(event) => {
                 if (event.key === 'Enter' || event.key === ' ') {
                   event.preventDefault();
-                  fileInputRef.current?.click();
+                  openFilePicker(fileInputRef.current);
                 }
               }}
               onDragEnter={(event) => {

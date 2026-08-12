@@ -6,6 +6,7 @@ import {
   softDeleteDocumentAction,
 } from '@/modules/documents/application/document-actions';
 import { uploadDocumentBytes } from '@/modules/documents/client/upload-document-bytes';
+import { normalizeUploadMime } from '@/modules/documents/domain/file-rules';
 import { DOCUMENT_OWNER_TYPES, type DocumentOwnerType } from '@/modules/documents/domain/types';
 import type { OfflineAttachmentRecord } from './attachment-store';
 import {
@@ -90,9 +91,18 @@ async function submitCapture(
     );
   }
 
+  const fileName = String(action.payload.fileName ?? attachment.fileName);
+  const mime = normalizeUploadMime(
+    String(action.payload.mimeType ?? attachment.mimeType),
+    fileName,
+  );
+  if (!mime.ok) {
+    throw new Error('Document mime type is not allowed');
+  }
+
   const prepared = await prepareDocumentUploadAction({
-    fileName: String(action.payload.fileName ?? attachment.fileName),
-    mimeType: String(action.payload.mimeType ?? attachment.mimeType),
+    fileName,
+    mimeType: mime.mimeType,
     sizeBytes: Number(action.payload.sizeBytes ?? attachment.sizeBytes),
     ownerType: ownerTypeRaw,
     ownerId,
@@ -107,7 +117,7 @@ async function submitCapture(
   }
 
   const documentId = prepared.documentId;
-  const mimeType = String(action.payload.mimeType ?? attachment.mimeType);
+  const mimeType = mime.mimeType;
   const uploaded = await uploadDocumentBytes(
     {
       uploadUrl: prepared.uploadUrl,

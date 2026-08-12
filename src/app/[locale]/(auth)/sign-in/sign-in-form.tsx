@@ -1,7 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { useActionState } from 'react';
+import { useActionState, useState } from 'react';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
@@ -14,6 +14,9 @@ import { cn } from '@/shared/ui/cn';
 export function SignInForm({ next }: { next?: string }) {
   const t = useTranslations('auth.signIn');
   const [state, formAction, pending] = useActionState<AuthFormState, FormData>(signInAction, {});
+  // Controlled fields survive SSR→client remounts and Playwright fills (defaultValue did not).
+  const [email, setEmail] = useState(state.email ?? '');
+  const [password, setPassword] = useState('');
 
   return (
     <form action={formAction} className="flex flex-col gap-4">
@@ -26,7 +29,7 @@ export function SignInForm({ next }: { next?: string }) {
 
       {next ? <input type="hidden" name="next" value={next} /> : null}
 
-      <Field label={t('email')} required>
+      <Field id="sign-in-email" label={t('email')} required>
         {(control) => (
           <Input
             {...control}
@@ -34,15 +37,24 @@ export function SignInForm({ next }: { next?: string }) {
             type="email"
             dir="ltr"
             autoComplete="email"
-            defaultValue={state.email}
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
             required
           />
         )}
       </Field>
 
-      <Field label={t('password')} required>
+      <Field id="sign-in-password" label={t('password')} required>
         {(control) => (
-          <Input {...control} name="password" type="password" autoComplete="current-password" required />
+          <Input
+            {...control}
+            name="password"
+            type="password"
+            autoComplete="current-password"
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            required
+          />
         )}
       </Field>
 

@@ -10,6 +10,10 @@ import { useEffect } from 'react';
  * Calls `registration.update()` on load and when the tab becomes visible so
  * clients pick up shell cache bumps (skipWaiting + clients.claim) without
  * staying trapped on a stale worker.
+ *
+ * `controllerchange` reloads only when replacing an existing controller.
+ * The first claim after register must not reload — that wiped in-flight
+ * sign-in forms and Playwright auth setup.
  */
 export function ServiceWorkerRegistrar() {
   useEffect(() => {
@@ -19,6 +23,8 @@ export function ServiceWorkerRegistrar() {
 
     let cancelled = false;
     let registration: ServiceWorkerRegistration | undefined;
+    let refreshing = false;
+    let hadController = Boolean(navigator.serviceWorker.controller);
 
     const refreshWorker = () => {
       if (cancelled || !registration) return;
@@ -27,12 +33,24 @@ export function ServiceWorkerRegistrar() {
       });
     };
 
+    const onControllerChange = () => {
+      if (refreshing) return;
+      if (!hadController) {
+        hadController = true;
+        return;
+      }
+      refreshing = true;
+      window.location.reload();
+    };
+    navigator.serviceWorker.addEventListener('controllerchange', onControllerChange);
+
     void navigator.serviceWorker
-      .register('/sw.js', { scope: '/' })
+      .register('/sw.js', { scope: '/', updateViaCache: 'none' })
       .then((reg) => {
         if (cancelled) return;
         registration = reg;
-        refreshWorker();
+        // Do not call update() immediately — first claim + update can interrupt
+        // in-flight auth and form edits. Visibility probes still refresh.
       })
       .catch(() => {
         // Registration failures must not break the app shell.
@@ -46,6 +64,7 @@ export function ServiceWorkerRegistrar() {
     return () => {
       cancelled = true;
       document.removeEventListener('visibilitychange', onVisibility);
+      navigator.serviceWorker.removeEventListener('controllerchange', onControllerChange);
     };
   }, []);
 

@@ -100,9 +100,12 @@ test.describe('installed-app / PWA startup', () => {
 
     const sw = await page.request.get('/sw.js');
     expect(sw.ok()).toBe(true);
+    expect(sw.headers()['cache-control'] ?? '').toMatch(/max-age=0/i);
     const source = await sw.text();
     expect(source).toContain('navigationPreload.enable');
     expect(source).toContain('preloadResponse');
+    expect(source).toContain('/documents');
+    expect(source).toContain('projectflow-shell-v4');
   });
 
   test('cold then warm launch from start_url paints a usable authenticated screen', async ({
@@ -116,11 +119,15 @@ test.describe('installed-app / PWA startup', () => {
     );
     expect(root.usableMs).toBeLessThan(8_000);
 
-    await page.evaluate(async () => {
-      if (!('serviceWorker' in navigator)) return;
-      await navigator.serviceWorker.register('/sw.js', { scope: '/' });
-      await navigator.serviceWorker.ready;
-    });
+    // Registering SW can trigger controllerchange → full reload (intentional).
+    await Promise.all([
+      page.waitForLoadState('domcontentloaded').catch(() => undefined),
+      page.evaluate(async () => {
+        if (!('serviceWorker' in navigator)) return;
+        await navigator.serviceWorker.register('/sw.js', { scope: '/', updateViaCache: 'none' });
+      }).catch(() => undefined),
+    ]);
+    await waitUsable(page);
 
     const prefixedCold = await measureLaunch(page, '/he-IL', 'cold /he-IL with SW');
     const prefixedWarm = await measureLaunch(page, '/he-IL', 'warm /he-IL with SW');

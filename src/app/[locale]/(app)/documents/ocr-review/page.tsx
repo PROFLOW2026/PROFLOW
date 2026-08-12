@@ -2,7 +2,12 @@ import type { Metadata } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { Alert } from '@/components/ui/alert';
 import { PageHeader } from '@/components/ui/page-header';
-import { listOcrCandidates, getOcrProviderStatus, isOcrReviewUiAllowed } from '@/modules/ocr';
+import {
+  listOcrCandidates,
+  getOcrProviderStatus,
+  isOcrReviewUiAllowed,
+  OCR_REVIEW_SURFACE_STATUSES,
+} from '@/modules/ocr';
 import { OcrReviewPanelLazy } from '@/modules/ocr/ui/ocr-review-panel-lazy';
 import { listVendorsForOrg } from '@/modules/vendors';
 import { withOrgContext } from '@/shared/auth/session';
@@ -60,7 +65,7 @@ export default async function OcrReviewPage({
     try {
       const status = getOcrProviderStatus(context);
       const jobs = await listOcrCandidates(context, {
-        status: ['needs_review', 'failed', 'rejected'],
+        status: [...OCR_REVIEW_SURFACE_STATUSES],
       });
       let vendors: { id: string; name: string }[] = [];
       try {

@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { createHash } from 'node:crypto';
 import type documents from '../../../src/locales/he-IL/documents.json';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
@@ -39,18 +40,95 @@ async function uploadReceipt(
 ): Promise<void> {
   const mimeType = options?.mimeType ?? 'image/png';
   const buffer = options?.buffer ?? PNG_BYTES;
-  const fileInput = options?.capture
-    ? page.locator('input[type="file"][capture="environment"]').first()
-    : page.locator('input[type="file"][accept*="image/jpeg"]').first();
-  await fileInput.setInputFiles({
+  const selectedLocator = page.locator('[data-pf-ocr-job-id][aria-current="true"]');
+  const previousJobId =
+    (await selectedLocator.count()) > 0
+      ? ((await selectedLocator.getAttribute('data-pf-ocr-job-id')) ?? '')
+      : '';
+
+  const chooserPromise = page.waitForEvent('filechooser');
+  await page
+    .locator(options?.capture ? '[data-pf-ocr-capture]' : '[data-pf-ocr-attach]')
+    .click();
+  const chooser = await chooserPromise;
+  await chooser.setFiles({
     name,
     mimeType,
     buffer,
   });
-  await expect(page.getByText(he.documents.ocr.extractQueuedReview)).toBeVisible({
+
+  // Require two consecutive identical ids so a late duplicate upload cannot
+  // flip selection after the first selectJob and before the test captures ids.
+  let seenJobId = '';
+  await expect
+    .poll(
+      async () => {
+        const id =
+          (await page
+            .locator('[data-pf-ocr-job-id][aria-current="true"]')
+            .getAttribute('data-pf-ocr-job-id')) ?? '';
+        if (!id || id === previousJobId) {
+          seenJobId = '';
+          return '';
+        }
+        if (id === seenJobId) return id;
+        seenJobId = id;
+        return '';
+      },
+      { timeout: 60_000, intervals: [300, 400, 500] },
+    )
+    .toMatch(/^[0-9a-f-]{36}$/i);
+
+  await expect(page.locator('#ocr-vendor')).toHaveValue(/Fixture Supplies/, { timeout: 60_000 });
+  await expect(page.locator('[data-pf-ocr-attach], [data-pf-ocr-capture]').first()).toBeEnabled({
     timeout: 60_000,
   });
-  await expect(page.locator('#ocr-vendor')).toHaveValue(/Fixture Supplies/);
+}
+
+async function selectedJobDocumentId(page: Page): Promise<string> {
+  const selected = page.locator('[data-pf-ocr-job-id][aria-current="true"]');
+  if ((await selected.count()) === 0) return '';
+  return (await selected.getAttribute('data-pf-ocr-job-document-id')) ?? '';
+}
+
+async function selectedJobId(page: Page): Promise<string> {
+  const selected = page.locator('[data-pf-ocr-job-id][aria-current="true"]');
+  if ((await selected.count()) === 0) return '';
+  return (await selected.getAttribute('data-pf-ocr-job-id')) ?? '';
+}
+
+function sha256(bytes: Buffer): string {
+  return createHash('sha256').update(bytes).digest('hex');
+}
+
+/** Wait until the rendered preview bytes match the uploaded file (covers async signed-URL swap). */
+async function expectPreviewChecksum(page: Page, expected: string): Promise<void> {
+  await expect
+    .poll(
+      async () => {
+        const media = page.locator('[data-pf-ocr-original] img, [data-pf-ocr-original] iframe');
+        if ((await media.count()) === 0) return '';
+        const src = await media.first().getAttribute('src');
+        if (!src) return '';
+        const response = await page.request.get(src);
+        if (!response.ok()) return '';
+        return sha256(Buffer.from(await response.body()));
+      },
+      { timeout: 30_000, intervals: [250, 500, 1_000] },
+    )
+    .toBe(expected);
+}
+
+async function expectSelectedPreview(page: Page, documentId: string, checksum: string): Promise<void> {
+  await expect(page.locator('[data-pf-ocr-job-id][aria-current="true"]')).toHaveAttribute(
+    'data-pf-ocr-job-document-id',
+    documentId,
+  );
+  await expect(page.locator('[data-pf-ocr-original]')).toHaveAttribute(
+    'data-pf-preview-document-id',
+    documentId,
+  );
+  await expectPreviewChecksum(page, checksum);
 }
 
 async function confirmDraftTarget(
@@ -140,14 +218,56 @@ test.describe('OCR authenticated journey (mocked provider)', () => {
     await expect(page.locator('[data-pf-ocr-original] img, [data-pf-ocr-original] iframe')).toBeVisible({
       timeout: 30_000,
     });
+    const jobA = await selectedJobId(page);
+    const docA = await selectedJobDocumentId(page);
+    expect(jobA).toMatch(/^[0-9a-f-]{36}$/i);
+    expect(docA).toMatch(/^[0-9a-f-]{36}$/i);
+    const checksumA = sha256(JPEG_BYTES);
+    await expectSelectedPreview(page, docA, checksumA);
 
-    // Editing review fields must not tear down the original preview.
+    // Editing review fields must not change the selected document.
     await page.locator('#ocr-vendor').fill('Fixture Supplies Ltd');
     await page.locator('#ocr-reference').fill('REF-1');
-    await expect(page.locator('[data-pf-ocr-original] img, [data-pf-ocr-original] iframe')).toBeVisible();
+    await expectSelectedPreview(page, docA, checksumA);
 
-    await uploadReceipt(page, 'desk.png', { mimeType: 'image/png', buffer: PNG_BYTES });
+    await uploadReceipt(page, 'קבלה 12.08.2026.png', {
+      mimeType: 'application/octet-stream',
+      buffer: PNG_BYTES,
+    });
+    const jobB = await selectedJobId(page);
+    const docB = await selectedJobDocumentId(page);
+    expect(docB).not.toBe(docA);
+    expect(jobB).not.toBe(jobA);
+    const checksumB = sha256(PNG_BYTES);
+    await expectSelectedPreview(page, docB, checksumB);
+    expect(checksumB).not.toBe(checksumA);
+
+    await page.locator(`[data-pf-ocr-job-id="${jobA}"]`).click();
+    await expectSelectedPreview(page, docA, checksumA);
+    await expect(page.locator('[data-pf-ocr-original] img')).toBeVisible();
+
+    await page.locator(`[data-pf-ocr-job-id="${jobB}"]`).click();
+    await expectSelectedPreview(page, docB, checksumB);
+
     await uploadReceipt(page, 'desk.pdf', { mimeType: 'application/pdf', buffer: PDF_BYTES });
+    const jobC = await selectedJobId(page);
+    const docC = await selectedJobDocumentId(page);
+    expect(docC).not.toBe(docA);
+    expect(docC).not.toBe(docB);
+    await expect(page.locator('[data-pf-ocr-original] iframe')).toBeVisible();
+    const checksumC = sha256(PDF_BYTES);
+    await expectSelectedPreview(page, docC, checksumC);
+    expect(checksumC).not.toBe(checksumA);
+
+    await page.locator(`[data-pf-ocr-job-id="${jobA}"]`).click();
+    await page.locator(`[data-pf-ocr-job-id="${jobB}"]`).click();
+    await page.locator(`[data-pf-ocr-job-id="${jobC}"]`).click();
+    await expectSelectedPreview(page, docC, checksumC);
+
+    await page.locator(`[data-pf-ocr-job-id="${jobA}"]`).click();
+    await expectSelectedPreview(page, docA, checksumA);
+    await expect(page.locator('[data-pf-ocr-original] img')).toBeVisible();
+    await expect(page.locator('[data-pf-ocr-original] iframe')).toHaveCount(0);
 
     if (testInfo.project.name === 'mobile-he') {
       await uploadReceipt(page, 'camera.jpg', {
@@ -156,8 +276,7 @@ test.describe('OCR authenticated journey (mocked provider)', () => {
         capture: true,
       });
     } else {
-      // Normal mobile-style file picker path uses the non-capture input.
-      await uploadReceipt(page, 'picker.jpg', { mimeType: 'image/jpeg', buffer: JPEG_BYTES });
+      await uploadReceipt(page, 'picker.jpg', { mimeType: '', buffer: JPEG_BYTES });
     }
 
     await page.getByRole('button', { name: he.documents.ocr.viewOriginal }).click();

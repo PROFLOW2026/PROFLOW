@@ -57,28 +57,31 @@ export function DocumentPreviewDialog({
 
   useEffect(() => {
     if (!open) return;
-    if (fetched?.documentId === documentId && (fetched.url || fetched.error)) return;
+
+    const requestedId = documentId;
+    if (fetched?.documentId === requestedId && (fetched.url || fetched.error)) return;
 
     let cancelled = false;
-    void downloadDocumentAction({ documentId }).then((result) => {
+    void downloadDocumentAction({ documentId: requestedId }).then((result) => {
       if (cancelled) return;
       if (result.error || !result.url) {
         setFetched({
-          documentId,
+          documentId: requestedId,
           url: null,
           error: result.error ?? t('previewFailed'),
         });
         return;
       }
-      setFetched({ documentId, url: result.url, error: null });
+      setFetched({ documentId: requestedId, url: result.url, error: null });
     });
 
     return () => {
       cancelled = true;
     };
-    // Intentionally omit `t` — unstable identity caused repeated signed-URL fetches.
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- open + documentId + cached fetch
-  }, [open, documentId, fetched]);
+    // Intentionally omit `t` and `fetched` — unstable t caused reload loops;
+    // fetched-in-deps cancelled in-flight downloads during rapid switches.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- open + documentId only
+  }, [open, documentId]);
 
   const activeUrl = open ? url : null;
   const activeError = open ? error : null;
@@ -93,7 +96,10 @@ export function DocumentPreviewDialog({
             {filename}
           </DialogDescription>
         </DialogHeader>
-        <DialogBody className="flex min-h-48 items-center justify-center">
+        <DialogBody
+          className="flex min-h-48 items-center justify-center"
+          data-pf-preview-document-id={documentId}
+        >
           {activeLoading ? <Spinner className="size-6" /> : null}
           {!activeLoading && activeError ? (
             <Alert tone="danger" role="alert">
@@ -104,6 +110,7 @@ export function DocumentPreviewDialog({
             // Signed URL only — expires; no permanent public path.
             // eslint-disable-next-line @next/next/no-img-element -- ephemeral signed URL
             <img
+              key={`${documentId}:${activeUrl}`}
               src={activeUrl}
               alt={filename}
               className="max-h-[70vh] w-auto max-w-full rounded-md object-contain"
@@ -114,6 +121,7 @@ export function DocumentPreviewDialog({
           ) : null}
           {!activeLoading && activeUrl && showPdf ? (
             <iframe
+              key={`${documentId}:${activeUrl}`}
               title={filename}
               src={activeUrl}
               className="h-[70vh] w-full rounded-md border border-[var(--pf-border-default)]"

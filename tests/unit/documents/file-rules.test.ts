@@ -4,6 +4,8 @@ import {
   isAllowedMimeType,
   isBrowserPreviewableImageMime,
   MAX_DOCUMENT_SIZE_BYTES,
+  normalizeUploadMime,
+  storageObjectExtension,
   validateUploadConstraints,
 } from '@/modules/documents/domain/file-rules';
 
@@ -29,6 +31,50 @@ describe('document upload constraints', () => {
       valid: false,
       reason: 'mime',
     });
+  });
+
+  it('normalizes empty, alias, and Hebrew/timestamp filenames to a supported MIME', () => {
+    expect(normalizeUploadMime('', 'receipt.jpg')).toEqual({
+      ok: true,
+      mimeType: 'image/jpeg',
+      inferredFromExtension: true,
+    });
+    expect(normalizeUploadMime('application/octet-stream', 'קבלה 12.08.2026.JPG')).toEqual({
+      ok: true,
+      mimeType: 'image/jpeg',
+      inferredFromExtension: true,
+    });
+    expect(normalizeUploadMime('image/jpg', 'photo.jpeg')).toEqual({
+      ok: true,
+      mimeType: 'image/jpeg',
+      inferredFromExtension: false,
+    });
+    expect(normalizeUploadMime('', 'invoice.PDF')).toEqual({
+      ok: true,
+      mimeType: 'application/pdf',
+      inferredFromExtension: true,
+    });
+    expect(normalizeUploadMime('', 'קבלה (מרכזת) 12.08.2026.jpg')).toEqual({
+      ok: true,
+      mimeType: 'image/jpeg',
+      inferredFromExtension: true,
+    });
+    expect(normalizeUploadMime('image/jpeg', 'scan.png')).toEqual({
+      ok: true,
+      mimeType: 'image/jpeg',
+      inferredFromExtension: false,
+    });
+    expect(normalizeUploadMime('application/x-msdownload', 'invoice.pdf')).toEqual({
+      ok: false,
+      reason: 'mime',
+    });
+    expect(normalizeUploadMime('', 'virus.exe')).toEqual({ ok: false, reason: 'mime' });
+  });
+
+  it('uses ASCII-only storage extensions even for Hebrew names', () => {
+    expect(storageObjectExtension('קבלה (1) 20240101_120000.jpeg')).toBe('jpg');
+    expect(storageObjectExtension('scan.PNG')).toBe('png');
+    expect(storageObjectExtension('file')).toBe('bin');
   });
 
   it('allows browser-safe image preview mimes only', () => {

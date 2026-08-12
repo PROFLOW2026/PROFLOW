@@ -10,7 +10,7 @@ import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { confirmOcrCandidate } from './confirm-candidate';
 import { createVendorBillDraftFromOcr } from './create-vendor-bill-draft';
 import { extractReceiptJob } from './extract-receipt';
-import { listOcrCandidates } from './list-candidates';
+import { listOcrCandidates, OCR_REVIEW_SURFACE_STATUSES } from './list-candidates';
 import { getOcrProviderStatus } from './provider-status';
 import { rejectOcrCandidate } from './reject-candidate';
 import { getOcrRepository } from '../data/resolve-repository';
@@ -68,7 +68,7 @@ export async function getOcrReviewPageDataAction(): Promise<
       assertReviewSurfaceAllowed();
       const status = getOcrProviderStatus(context);
       const jobs = await listOcrCandidates(context, {
-        status: ['needs_review', 'failed', 'rejected'],
+        status: [...OCR_REVIEW_SURFACE_STATUSES],
       });
       let vendors: { id: string; name: string }[] = [];
       try {
