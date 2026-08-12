@@ -282,13 +282,20 @@ describe('OCR review panel', () => {
 
     const acceptBoxes = screen.getAllByRole('checkbox');
     await user.click(acceptBoxes[0]!);
+    vi.mocked(actions.confirmOcrCandidateAction).mockClear();
     await user.click(screen.getByRole('button', { name: enDocuments.ocr.confirmExpense }));
     await waitFor(() => {
       expect(actions.confirmOcrCandidateAction).toHaveBeenCalled();
     });
-    await waitFor(() => {
-      expect(screen.getByText(enDocuments.ocr.empty)).toBeVisible();
-    });
+    await waitFor(
+      () => {
+        expect(
+          document.querySelector('[data-pf-ocr-job-id="01900000-0000-7000-8000-0000000000b1"]'),
+        ).toBeNull();
+        expect(screen.getByText(enDocuments.ocr.empty)).toBeVisible();
+      },
+      { timeout: 5000 },
+    );
     expect(document.querySelector('[data-pf-ocr-original]')).toBeNull();
   });
 
