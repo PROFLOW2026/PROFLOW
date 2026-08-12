@@ -280,13 +280,22 @@ describe('OCR review panel', () => {
     ).toBe('true');
     expect(document.querySelector('[data-pf-preview-document-id="doc-b"]')).toBeTruthy();
 
-    const acceptBoxes = screen.getAllByRole('checkbox');
-    await user.click(acceptBoxes[0]!);
-    vi.mocked(actions.confirmOcrCandidateAction).mockClear();
-    await user.click(screen.getByRole('button', { name: enDocuments.ocr.confirmExpense }));
-    await waitFor(() => {
-      expect(actions.confirmOcrCandidateAction).toHaveBeenCalled();
+    const vendorAccept = screen.getByRole('checkbox', {
+      name: enDocuments.ocr.acceptField.replace('{field}', enDocuments.ocr.fields.vendor),
     });
+    await user.click(vendorAccept);
+    const confirmBtn = screen.getByRole('button', { name: enDocuments.ocr.confirmExpense });
+    await waitFor(() => {
+      expect(confirmBtn).toBeEnabled();
+    });
+    vi.mocked(actions.confirmOcrCandidateAction).mockClear();
+    await user.click(confirmBtn);
+    await waitFor(
+      () => {
+        expect(actions.confirmOcrCandidateAction).toHaveBeenCalledTimes(1);
+      },
+      { timeout: 5000 },
+    );
     await waitFor(
       () => {
         expect(
