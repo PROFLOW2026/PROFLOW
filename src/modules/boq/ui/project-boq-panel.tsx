@@ -228,7 +228,7 @@ export async function ProjectBoqPanel({ projectId }: ProjectBoqPanelProps) {
         {boq && permissions.canManage ? (
           <Link
             href={`/exports/boq?projectId=${encodeURIComponent(projectId)}`}
-            className="text-sm font-medium text-[var(--pf-text-link)] underline-offset-2 hover:underline"
+            className="text-sm font-medium text-[var(--pf-text-brand)] underline-offset-2 hover:underline"
           >
             {t('export.downloadCsv')}
           </Link>

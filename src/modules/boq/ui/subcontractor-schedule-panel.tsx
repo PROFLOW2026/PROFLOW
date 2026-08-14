@@ -98,7 +98,7 @@ export function SubcontractorSchedulePanel({
   const isActive = selected?.status === 'active';
 
   return (
-    <section className="flex min-w-0 flex-col gap-4 border-t border-[var(--pf-border)] pt-6">
+    <section className="flex min-w-0 flex-col gap-4 border-t border-[var(--pf-border-default)] pt-6">
       <div className="min-w-0 text-start">
         <h3 className="text-base font-semibold">{t('subcontractor.title')}</h3>
         <p className="text-sm text-[var(--pf-text-secondary)]">{t('subcontractor.description')}</p>
@@ -116,7 +116,7 @@ export function SubcontractorSchedulePanel({
           <select
             value={selected?.id ?? ''}
             onChange={(e) => setSelectedScheduleId(e.target.value)}
-            className="w-full max-w-md rounded-md border border-[var(--pf-border)] bg-[var(--pf-surface)] px-2 py-2 text-sm"
+            className="w-full max-w-md rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] px-2 py-2 text-sm"
           >
             {schedules.map((s) => (
               <option key={s.id} value={s.id}>
@@ -167,7 +167,7 @@ export function SubcontractorSchedulePanel({
               <select
                 name="vendorEngagementId"
                 required
-                className="w-full rounded-md border border-[var(--pf-border)] bg-[var(--pf-surface)] px-2 py-2 text-sm"
+                className="w-full rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] px-2 py-2 text-sm"
               >
                 {engagements.map((e) => (
                   <option key={e.id} value={e.id}>
@@ -185,7 +185,7 @@ export function SubcontractorSchedulePanel({
                 {t('subcontractor.create')}
               </Button>
               {createState.error ? (
-                <p className="mt-2 text-xs text-[var(--pf-danger)]">{createState.error}</p>
+                <p className="mt-2 text-xs text-[var(--pf-status-danger-fg)]">{createState.error}</p>
               ) : null}
             </div>
           </form>
@@ -200,7 +200,7 @@ export function SubcontractorSchedulePanel({
                   <select
                     name="boqNodeId"
                     required
-                    className="w-full rounded-md border border-[var(--pf-border)] bg-[var(--pf-surface)] px-2 py-2 text-sm"
+                    className="w-full rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] px-2 py-2 text-sm"
                   >
                     {items.map((item) => (
                       <option key={item.id} value={item.id}>
@@ -222,7 +222,7 @@ export function SubcontractorSchedulePanel({
                     {t('subcontractor.addLine')}
                   </Button>
                   {lineState.error ? (
-                    <p className="mt-2 text-xs text-[var(--pf-danger)]">{lineState.error}</p>
+                    <p className="mt-2 text-xs text-[var(--pf-status-danger-fg)]">{lineState.error}</p>
                   ) : null}
                 </div>
               </form>
@@ -239,7 +239,7 @@ export function SubcontractorSchedulePanel({
                   {t('subcontractor.activate')}
                 </Button>
                 {activateState.error ? (
-                  <p className="text-xs text-[var(--pf-danger)]">{activateState.error}</p>
+                  <p className="text-xs text-[var(--pf-status-danger-fg)]">{activateState.error}</p>
                 ) : null}
                 {activateState.ok ? (
                   <p className="text-xs text-[var(--pf-text-secondary)]">{t('subcontractor.activated')}</p>
@@ -287,7 +287,7 @@ export function SubcontractorSchedulePanel({
                   </p>
                 ) : null}
                 {valState.error ? (
-                  <p className="sm:col-span-2 text-xs text-[var(--pf-danger)]">{valState.error}</p>
+                  <p className="sm:col-span-2 text-xs text-[var(--pf-status-danger-fg)]">{valState.error}</p>
                 ) : null}
               </form>
 
@@ -310,7 +310,7 @@ export function SubcontractorSchedulePanel({
                   </form>
                 ))}
               {approveValState.error ? (
-                <p className="text-xs text-[var(--pf-danger)]">{approveValState.error}</p>
+                <p className="text-xs text-[var(--pf-status-danger-fg)]">{approveValState.error}</p>
               ) : null}
               {approveValState.ok ? (
                 <p className="text-xs text-[var(--pf-text-secondary)]">

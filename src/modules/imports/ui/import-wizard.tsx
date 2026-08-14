@@ -288,7 +288,7 @@ export function ImportWizard({ allowedKinds, projectId: projectIdProp, boqId }: 
               <p className="text-sm text-[var(--pf-text-secondary)]">{t('boqItemsHint')}</p>
               <input
                 id="import-project-id"
-                className="max-w-sm rounded-md border border-[var(--pf-border)] bg-[var(--pf-bg)] px-3 py-2 text-sm"
+                className="max-w-sm rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] px-3 py-2 text-sm"
                 value={projectIdInput}
                 onChange={(event) => setProjectIdInput(event.target.value)}
                 placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"

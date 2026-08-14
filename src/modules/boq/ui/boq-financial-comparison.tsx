@@ -18,7 +18,7 @@ export async function BoqFinancialComparisonStrip({
   const t = await getTranslations('boq');
 
   return (
-    <section className="flex min-w-0 flex-col gap-2 border-t border-[var(--pf-border)] pt-4">
+    <section className="flex min-w-0 flex-col gap-2 border-t border-[var(--pf-border-default)] pt-4">
       <div className="min-w-0 text-start">
         <h3 className="text-sm font-semibold">{t('comparison.title')}</h3>
         {/* Progress ≠ Actual — engine figures only */}

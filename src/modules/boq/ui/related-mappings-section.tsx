@@ -44,7 +44,7 @@ export function RelatedMappingsSection({
   );
 
   return (
-    <section className="flex min-w-0 flex-col gap-3 border-t border-[var(--pf-border)] pt-4">
+    <section className="flex min-w-0 flex-col gap-3 border-t border-[var(--pf-border-default)] pt-4">
       <div className="min-w-0 text-start">
         <h3 className="text-sm font-semibold">{t('mappings.title')}</h3>
         <p className="text-xs text-[var(--pf-text-secondary)]">{t('mappings.description')}</p>
@@ -60,7 +60,7 @@ export function RelatedMappingsSection({
             name="workPackageId"
             defaultValue={workPackageId ?? ''}
             disabled={!canManage || pending}
-            className="w-full rounded-md border border-[var(--pf-border)] bg-[var(--pf-surface)] px-2 py-2 text-sm"
+            className="w-full rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] px-2 py-2 text-sm"
           >
             <option value="">{t('mappings.none')}</option>
             {workPackages.map((opt) => (
@@ -77,7 +77,7 @@ export function RelatedMappingsSection({
             name="costCategoryId"
             defaultValue={costCategoryId ?? ''}
             disabled={!canManage || pending}
-            className="w-full rounded-md border border-[var(--pf-border)] bg-[var(--pf-surface)] px-2 py-2 text-sm"
+            className="w-full rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] px-2 py-2 text-sm"
           >
             <option value="">{t('mappings.none')}</option>
             {costCategories.map((opt) => (
@@ -94,7 +94,7 @@ export function RelatedMappingsSection({
             name="budgetLineId"
             defaultValue={budgetLineId ?? ''}
             disabled={!canManage || pending}
-            className="w-full rounded-md border border-[var(--pf-border)] bg-[var(--pf-surface)] px-2 py-2 text-sm"
+            className="w-full rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] px-2 py-2 text-sm"
           >
             <option value="">{t('mappings.none')}</option>
             {budgetLines.map((opt) => (
@@ -114,7 +114,7 @@ export function RelatedMappingsSection({
               <p className="mt-2 text-xs text-[var(--pf-text-secondary)]">{t('mappings.saved')}</p>
             ) : null}
             {state.error ? (
-              <p className="mt-2 text-xs text-[var(--pf-danger)]">{state.error}</p>
+              <p className="mt-2 text-xs text-[var(--pf-status-danger-fg)]">{state.error}</p>
             ) : null}
           </div>
         ) : null}
