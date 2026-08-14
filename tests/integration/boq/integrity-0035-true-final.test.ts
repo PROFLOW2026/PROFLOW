@@ -662,7 +662,7 @@ describe('BOQ true-final integrity closure adversarial', () => {
 
   it('blocks cross-org and wrong-project BOQ node mappings', async () => {
     const { owner, other, orgId, orgBId, projectId, project2Id, projectB } = await provision();
-    const { boqId, nodeId } = await seedActiveBoq(owner.id, orgId, projectId);
+    const { nodeId } = await seedActiveBoq(owner.id, orgId, projectId);
     await seedActiveBoq(other.id, orgBId, projectB);
     const contract2 = await ensureContract(owner.id, orgId, project2Id);
 

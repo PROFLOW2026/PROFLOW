@@ -35,7 +35,6 @@ export function reconcileContractBoq(input: {
   readonly tolerance?: string;
 }): ContractBoqReconciliation {
   const tolerance = new Decimal(input.tolerance ?? '0.01');
-  const originalDifference = subtractMoney(input.originalContract, input.originalBoq);
   const currentDifference = subtractMoney(input.currentContract, input.currentBoq);
   const unallocatedApprovedChanges = subtractMoney(
     input.approvedChanges,

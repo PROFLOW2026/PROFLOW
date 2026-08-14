@@ -1,8 +1,6 @@
 import Decimal from 'decimal.js';
-import { and, desc, eq } from 'drizzle-orm';
 import { ClipboardList } from 'lucide-react';
 import { getTranslations } from 'next-intl/server';
-import { changeOrders } from '@drizzle/schema';
 import { EmptyState } from '@/components/ui/empty-state';
 import {
   computeNetApprovedChanges,
@@ -23,6 +21,7 @@ import {
   getBoqFinancialComparison,
   getProjectBoqWorkspace,
   listBoqProgress,
+  listProjectChangeOrdersForBoqPanel,
   listSubcontractorSchedulesForBoqWorkspace,
   reconcileContractBoq,
 } from '@/modules/boq';
@@ -103,22 +102,7 @@ export async function ProjectBoqPanel({ projectId }: ProjectBoqPanelProps) {
       : [];
 
     const approvedChangeOrders = hasPermission(context, PERMISSIONS.CHANGES_READ)
-      ? await context.db
-          .select({
-            id: changeOrders.id,
-            reference: changeOrders.reference,
-            direction: changeOrders.direction,
-            amount: changeOrders.amount,
-            currency: changeOrders.currency,
-          })
-          .from(changeOrders)
-          .where(
-            and(
-              eq(changeOrders.organizationId, context.organizationId),
-              eq(changeOrders.projectId, projectId),
-            ),
-          )
-          .orderBy(desc(changeOrders.createdAt))
+      ? await listProjectChangeOrdersForBoqPanel(context, projectId).catch(() => [])
       : [];
 
     const importKinds = canManage

@@ -26,6 +26,7 @@ import {
   listBoqNodes,
   listBoqsForProject,
   listChangeAllocationsForBoq,
+  listProjectChangeOrdersForBoq,
   nextBoqVersionNumber,
   nodeHasBillingLinkedProgress,
   nodeHasProgressHistory,
@@ -294,4 +295,9 @@ export async function getProjectBoqWorkspace(context: OrgContext, projectId: str
     },
     showMoney,
   };
+}
+
+export async function listProjectChangeOrdersForBoqPanel(context: OrgContext, projectId: string) {
+  assertPermission(context, PERMISSIONS.CHANGES_READ);
+  return listProjectChangeOrdersForBoq(context.db, context.organizationId, projectId);
 }

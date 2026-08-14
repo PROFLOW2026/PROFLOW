@@ -80,7 +80,7 @@ export type {
   CreateSubcontractorValuationInput,
 } from './validation/schemas';
 
-export { createProjectBoq, upsertBoqNode, activateBoq, removeBoqNode, getProjectBoqWorkspace } from './application/manage-boq';
+export { createProjectBoq, upsertBoqNode, activateBoq, removeBoqNode, getProjectBoqWorkspace, listProjectChangeOrdersForBoqPanel } from './application/manage-boq';
 export { createProgressBatch, approveProgressBatch, listBoqProgress, supersedeProgressBatch } from './application/manage-progress';
 export { createProgressBilling } from './application/create-progress-billing';
 export { allocateApprovedChangeToBoq, reverseBoqChangeAllocation } from './application/allocate-change';
@@ -99,4 +99,5 @@ export {
   listSubcontractorSchedulesForBoqWorkspace,
 } from './application/manage-subcontractor-schedule';
 export { getBoqFinancialComparison } from './application/compare-boq-financials';
+export { findBoqById, listBoqNodes, listBoqsForProject } from './data/boq.repository';
 export type { BoqFinancialComparison } from './application/compare-boq-financials';

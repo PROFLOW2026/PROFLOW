@@ -1,7 +1,7 @@
 import { and, desc, eq, inArray, isNull, or, sql } from 'drizzle-orm';
 import {
-  boqChangeAllocations,
   boqNodes,
+  changeOrders,
   boqProgressBatches,
   boqProgressBillingLinks,
   boqProgressLines,
@@ -76,6 +76,24 @@ export async function listBoqsForProject(db: DbExecutor, organizationId: string,
       and(eq(projectBoqs.organizationId, organizationId), eq(projectBoqs.projectId, projectId)),
     )
     .orderBy(desc(projectBoqs.versionNumber));
+}
+
+export async function listProjectChangeOrdersForBoq(
+  db: DbExecutor,
+  organizationId: string,
+  projectId: string,
+) {
+  return db
+    .select({
+      id: changeOrders.id,
+      reference: changeOrders.reference,
+      direction: changeOrders.direction,
+      amount: changeOrders.amount,
+      currency: changeOrders.currency,
+    })
+    .from(changeOrders)
+    .where(and(eq(changeOrders.organizationId, organizationId), eq(changeOrders.projectId, projectId)))
+    .orderBy(desc(changeOrders.createdAt));
 }
 
 export async function insertProjectBoq(

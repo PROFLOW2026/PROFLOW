@@ -6,13 +6,11 @@
 import Decimal from 'decimal.js';
 import {
   createProjectBoq,
-  upsertBoqNode,
-} from '@/modules/boq';
-import {
   findBoqById,
   listBoqNodes,
   listBoqsForProject,
-} from '@/modules/boq/data/boq.repository';
+  upsertBoqNode,
+} from '@/modules/boq';
 import type { OrgContext } from '@/shared/auth/context';
 import { AppError, NotFoundError, ValidationError } from '@/shared/errors';
 import { assertPermission } from '@/shared/permissions/assert';

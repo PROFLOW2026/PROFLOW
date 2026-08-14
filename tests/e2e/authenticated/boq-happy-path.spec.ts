@@ -1,11 +1,11 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 import { assertNoPageHorizontalOverflow } from '../fixtures/layout';
 
 const seededProjectName = 'שיפוץ דירה ברמת גן';
 const advancedProjectName = 'BOQ Advanced E2E';
 const changeProjectName = 'BOQ Change Sub E2E';
 
-async function openProjectBoqTab(page: import('@playwright/test').Page, projectName: string) {
+async function openProjectBoqTab(page: Page, projectName: string) {
   await page.goto('/he-IL/projects');
   await expect(page.getByText(projectName).first()).toBeVisible({ timeout: 30_000 });
   await page.getByRole('link', { name: new RegExp(projectName) }).first().click();

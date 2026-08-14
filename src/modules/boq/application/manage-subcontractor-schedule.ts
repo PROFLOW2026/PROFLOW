@@ -6,7 +6,7 @@ import { money, multiplyMoney, toNumericString } from '@/shared/money';
 import { assertPermission, hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { noteModuleUsage } from '@/modules/tenancy';
-import { findVendorEngagementById } from '@/modules/vendors/data/vendors.repository';
+import { findVendorEngagementById } from '@/modules/vendors';
 import { parseQuantity, quantityString } from '../domain/amounts';
 import { BOQ_AUDIT_ACTIONS } from '../domain/types';
 import {
