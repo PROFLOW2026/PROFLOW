@@ -541,6 +541,39 @@
       },
       "retention": {
         "released": "עיכבון שוחרר"
+      },
+      "boq": {
+        "created": "נוצר כתב כמויות",
+        "updated": "כתב כמויות עודכן",
+        "activated": "כתב כמויות הופעל",
+        "superseded": "כתב כמויות הוחלף",
+        "archived": "כתב כמויות הועבר לארכיון",
+        "imported": "כתב כמויות יובא"
+      },
+      "boq_node": {
+        "created": "נוסף סעיף לכתב כמויות",
+        "updated": "סעיף בכתב כמויות עודכן",
+        "archived": "סעיף בכתב כמויות הועבר לארכיון"
+      },
+      "boq_change": {
+        "allocated": "שינוי מאושר שויך לכתב כמויות"
+      },
+      "boq_progress": {
+        "created": "נשמרה מדידת התקדמות",
+        "updated": "מדידת התקדמות עודכנה",
+        "approved": "מדידת התקדמות אושרה",
+        "superseded": "מדידת התקדמות הוחלפה",
+        "billing_created": "נוצר חשבון התקדמות"
+      },
+      "boq_sub_schedule": {
+        "created": "נוצר לוח לקבלן משנה",
+        "activated": "לוח קבלן משנה הופעל"
+      },
+      "boq_sub_valuation": {
+        "created": "נוצרה הערכת קבלן משנה",
+        "approved": "הערכת קבלן משנה אושרה",
+        "proposed_ap": "הערכת קבלן משנה הוצעה לחשבון ספק",
+        "voided": "הערכת קבלן משנה בוטלה"
       }
     },
     "entities": {
@@ -603,7 +636,13 @@
       "inventory_movement": "תנועת מלאי",
       "recurring_financial_draft": "תבנית טיוטה חוזרת",
       "recurring_financial_draft_run": "הרצת טיוטה חוזרת",
-      "retention_release": "שחרור עיכבון"
+      "retention_release": "שחרור עיכבון",
+      "project_boq": "כתב כמויות",
+      "boq_node": "סעיף בכתב כמויות",
+      "boq_change_allocation": "שיוך שינוי לכתב כמויות",
+      "boq_progress_batch": "מדידת התקדמות",
+      "boq_subcontractor_schedule": "לוח לקבלן משנה",
+      "boq_subcontractor_valuation": "הערכת קבלן משנה"
     }
   },
   "profile": {

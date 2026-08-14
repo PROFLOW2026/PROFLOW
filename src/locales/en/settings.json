@@ -541,6 +541,39 @@
       },
       "retention": {
         "released": "Retention released"
+      },
+      "boq": {
+        "created": "BOQ created",
+        "updated": "BOQ updated",
+        "activated": "BOQ activated",
+        "superseded": "BOQ superseded",
+        "archived": "BOQ archived",
+        "imported": "BOQ imported"
+      },
+      "boq_node": {
+        "created": "BOQ item created",
+        "updated": "BOQ item updated",
+        "archived": "BOQ item archived"
+      },
+      "boq_change": {
+        "allocated": "Approved change allocated to BOQ"
+      },
+      "boq_progress": {
+        "created": "BOQ progress saved",
+        "updated": "BOQ progress updated",
+        "approved": "BOQ progress approved",
+        "superseded": "BOQ progress superseded",
+        "billing_created": "BOQ progress invoice created"
+      },
+      "boq_sub_schedule": {
+        "created": "Subcontractor schedule created",
+        "activated": "Subcontractor schedule activated"
+      },
+      "boq_sub_valuation": {
+        "created": "Subcontractor valuation created",
+        "approved": "Subcontractor valuation approved",
+        "proposed_ap": "Subcontractor valuation proposed to AP",
+        "voided": "Subcontractor valuation voided"
       }
     },
     "entities": {
@@ -603,7 +636,13 @@
       "inventory_movement": "Inventory movement",
       "recurring_financial_draft": "Recurring draft template",
       "recurring_financial_draft_run": "Recurring draft run",
-      "retention_release": "Retention release"
+      "retention_release": "Retention release",
+      "project_boq": "Bill of quantities",
+      "boq_node": "BOQ item",
+      "boq_change_allocation": "BOQ change allocation",
+      "boq_progress_batch": "BOQ progress batch",
+      "boq_subcontractor_schedule": "Subcontractor schedule",
+      "boq_subcontractor_valuation": "Subcontractor valuation"
     }
   },
   "profile": {
