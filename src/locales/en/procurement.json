@@ -2,7 +2,7 @@
   "title": "Procurement",
   "description": "Purchase orders commit spend with vendors. Issuing a PO creates a committed cost — not an expense.",
   "materialsTitle": "Materials catalog",
-  "materialsDescription": "Reusable material items for purchase order lines.",
+  "materialsDescription": "Reusable catalog items for purchase order lines. This is not inventory quantity and not cost/Actual. Operational stock lives under Assets → Inventory (qty). No FIFO or average costing.",
   "navLabel": "Procurement sections",
   "nav": {
     "orders": "Purchase orders",
@@ -57,7 +57,8 @@
   },
   "detail": {
     "title": "Purchase order",
-    "description": "Committed spend with a vendor. Attach supporting documents without treating this as an expense."
+    "description": "Committed spend with a vendor. Attach supporting documents without treating this as an expense.",
+    "linesTitle": "Lines"
   },
   "statuses": {
     "draft": "Draft",
@@ -85,6 +86,25 @@
   "close": {
     "action": "Close PO",
     "pending": "Closing…"
+  },
+  "receive": {
+    "title": "Receive goods",
+    "description": "Record quantities received. This does not create an expense, vendor bill, or inventory actual.",
+    "submit": "Record receipt",
+    "pending": "Recording…",
+    "receivedOn": "Received on",
+    "reference": "Reference",
+    "notes": "Notes",
+    "lineNotes": "Line notes",
+    "quantity": "Quantity to receive",
+    "ordered": "Ordered qty",
+    "received": "Received",
+    "remaining": "Remaining",
+    "fullyReceivedHint": "Fully received — close the purchase order",
+    "receiptsTitle": "Receipts",
+    "emptyReceipts": "No receipts yet.",
+    "receivedBy": "Received by",
+    "success": "Receipt recorded."
   },
   "create": {
     "title": "New purchase order",
@@ -120,7 +140,7 @@
     "defaultPriceLabel": "Default unit price",
     "currencyLabel": "Currency",
     "notesLabel": "Notes",
-    "detailDescription": "Catalog identity and vendor-specific unit prices. Default price is a planning reference, not an expense."
+    "detailDescription": "Catalog identity and vendor-specific unit prices. Default price is a planning reference, not an expense, not Actual, and not inventory costing (no FIFO/AVG)."
   },
   "rfq": {
     "title": "RFQs",
@@ -233,7 +253,12 @@
     "quoteLinesRequired": "Accepted quote must have at least one line.",
     "quoteTotalMismatch": "Quote total must equal the sum of line totals.",
     "poNotCancellable": "Only draft, issued, or partially received purchase orders can be cancelled.",
-    "poNotCloseable": "Only issued or partially received purchase orders can be closed."
+    "poNotCloseable": "Only issued or partially received purchase orders can be closed.",
+    "cannotReceiveStatus": "Only issued or partially received purchase orders can be received.",
+    "quantityExceedsRemaining": "Quantity is more than remaining on this line.",
+    "invalidReceiveQuantity": "Enter a quantity greater than zero.",
+    "duplicateReceiveLine": "Each purchase order line can appear once per receipt.",
+    "receiveLinesRequired": "Enter a quantity to receive on at least one line."
   },
   "vendorPrice": {
     "title": "Vendor prices",

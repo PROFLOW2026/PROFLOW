@@ -5,6 +5,7 @@ import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import {
   assertMonthOpenForRewrite,
+  rethrowClosedPeriodRewrite,
   yearMonthFromBusinessDate,
 } from '@/modules/month-close';
 import { assertVoidable } from '../domain/lifecycle';
@@ -27,19 +28,23 @@ export async function voidExpense(context: OrgContext, expenseId: string): Promi
   const existing = await findExpenseById(context.db, context.organizationId, expenseId);
   if (!existing) throw new NotFoundError('Expense');
 
-  await assertMonthOpenForRewrite(
-    context,
-    yearMonthFromBusinessDate(existing.expenseDate),
-  );
+  try {
+    await assertMonthOpenForRewrite(
+      context,
+      yearMonthFromBusinessDate(existing.expenseDate),
+    );
 
-  const activeReversal = await findActiveReversalForExpense(
-    context.db,
-    context.organizationId,
-    expenseId,
-  );
-  assertVoidable(existing.status, existing.voidsExpenseId, Boolean(activeReversal));
+    const activeReversal = await findActiveReversalForExpense(
+      context.db,
+      context.organizationId,
+      expenseId,
+    );
+    assertVoidable(existing.status, existing.voidsExpenseId, Boolean(activeReversal));
 
-  await updateExpenseRow(context.db, context.organizationId, expenseId, { status: 'void' });
+    await updateExpenseRow(context.db, context.organizationId, expenseId, { status: 'void' });
+  } catch (error) {
+    rethrowClosedPeriodRewrite(error);
+  }
 
   await recordAuditEvent(context, {
     action: EXPENSE_AUDIT_VOIDED,

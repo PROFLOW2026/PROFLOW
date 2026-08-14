@@ -59,6 +59,17 @@ export {
 } from './domain/sales-quote-version-rules';
 
 export {
+  groupOpportunitiesByStage,
+  isOpportunityStage,
+  nextActionUrgency,
+} from './domain/pipeline-board';
+export type {
+  OpportunityBoardCard,
+  PipelineColumn,
+  NextActionUrgency,
+} from './domain/pipeline-board';
+
+export {
   PROSPECT_STATUSES,
   LEAD_STATUSES,
   OPPORTUNITY_STAGES,

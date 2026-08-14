@@ -53,6 +53,14 @@ export const approveChangeRequestSchema = z.object({
 
 export type ApproveChangeRequestInput = z.infer<typeof approveChangeRequestSchema>;
 
+export const reverseChangeOrderSchema = z.object({
+  changeOrderId: z.string().uuid(),
+  reason: z.string().trim().min(1).max(5000),
+  effectiveDate: businessDateSchema,
+});
+
+export type ReverseChangeOrderInput = z.infer<typeof reverseChangeOrderSchema>;
+
 const quoteLineSchema = z.object({
   description: z.string().trim().min(1).max(500),
   quantityEntered: z.string().trim().optional().nullable(),

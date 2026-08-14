@@ -224,13 +224,22 @@ describe('migration journal', () => {
     );
   });
 
-  it('places gap-closure 0030 after immutable 0029, then 0031 OCR, then BOQ 0032–0035', async () => {
+  it('places gap-closure 0030 after 0029, BOQ 0032–0035 frozen, then overnight 0036–0045', async () => {
     const journal = await loadJournal();
     const tags = journal.entries.map((entry) => entry.tag);
     expect(tags.indexOf('0034_boq_lifecycle_hardening')).toBeLessThan(
       tags.indexOf('0035_boq_integrity_closure'),
     );
-    expect(tags.at(-1)).toBe('0035_boq_integrity_closure');
+    expect(tags.indexOf('0035_boq_integrity_closure')).toBeLessThan(
+      tags.indexOf('0036_ap_vat_net_tax_gross'),
+    );
+    expect(tags.indexOf('0036_ap_vat_net_tax_gross')).toBeLessThan(
+      tags.indexOf('0044_inventory_locations_qty'),
+    );
+    expect(tags.indexOf('0044_inventory_locations_qty')).toBeLessThan(
+      tags.indexOf('0045_boq_reverse_allocation_changes_approve'),
+    );
+    expect(tags.at(-1)).toBe('0045_boq_reverse_allocation_changes_approve');
 
     const sql35 = await readFile(
       path.join(MIGRATIONS_DIR, '0035_boq_integrity_closure.sql'),

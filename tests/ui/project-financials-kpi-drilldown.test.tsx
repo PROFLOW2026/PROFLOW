@@ -219,5 +219,9 @@ describe('ProjectFinancialsKpiPanel', () => {
     expect(screen.getByText('kpis.outstanding')).toBeInTheDocument();
     expect(screen.getByText('kpis.actualMargin')).toBeInTheDocument();
     expect(screen.getByText('kpis.forecastMargin')).toBeInTheDocument();
+    expect(screen.getAllByText('basis.billingCash').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('basis.profitNet').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('basis.netExVat').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('basis.outstandingCash').length).toBeGreaterThan(0);
   });
 });

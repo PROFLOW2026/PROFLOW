@@ -2,15 +2,23 @@ import { randomUUID } from 'node:crypto';
 import { AUDIT_ACTIONS, recordAuditEvent } from '@/shared/audit';
 import { businessDate } from '@/shared/dates';
 import { withTransaction } from '@/shared/db';
-import { toNumericString } from '@/shared/money';
-import { DomainRuleError, NotFoundError, ValidationError } from '@/shared/errors';
+import { fromNumericString, subtractMoney, toNumericString, zeroMoney } from '@/shared/money';
+import { ConflictError, DomainRuleError, NotFoundError, ValidationError } from '@/shared/errors';
 import { assertAnyPermission, assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import type { OrgContext } from '@/shared/auth/context';
+import { assertApprovalAllowsAction } from '@/modules/approvals';
+import {
+  assertMonthOpenForRewrite,
+  createClosedPeriodSourceCorrection,
+  isMonthClosed,
+  yearMonthFromBusinessDate,
+} from '@/modules/month-close';
 import { noteModuleUsage } from '@/modules/tenancy';
 import { expandBulkWorkDates } from '../domain/bulk-time-expand';
 import { calculateLaborCostTotal } from '../domain/labor-cost';
 import { resolveRateVersionForDate } from '../domain/rate-lookup';
+import { resolveTimeCorrectionApprovalAmount } from '../domain/time-correction-approval';
 import { DEFAULT_NON_PROJECT_TIME_CODES } from '../domain/types';
 import { findEmployeeById, findEmployeeByUserId } from '../data/employees.repository';
 import {
@@ -226,13 +234,16 @@ async function insertRecordedTimeEntry(
     description?: string | null;
     correctsEntryId?: string | null;
     bulkBatchId?: string | null;
+    snapshot?: CostSnapshot;
   },
 ): Promise<TimeEntryRecord> {
-  const snapshot = await resolveTimeEntryCostSnapshot(context.db, context.organizationId, {
-    employeeId: input.employeeId,
-    workDate: input.workDate,
-    hours: input.hours,
-  });
+  const snapshot =
+    input.snapshot ??
+    (await resolveTimeEntryCostSnapshot(context.db, context.organizationId, {
+      employeeId: input.employeeId,
+      workDate: input.workDate,
+      hours: input.hours,
+    }));
 
   return insertTimeEntry(context.db, {
     organizationId: context.organizationId,
@@ -272,6 +283,8 @@ export async function createTimeEntry(
 
   const employee = await findEmployeeById(context.db, context.organizationId, input.employeeId);
   if (!employee || employee.archivedAt) throw new NotFoundError('Employee');
+
+  await assertMonthOpenForRewrite(context, yearMonthFromBusinessDate(input.workDate));
 
   const targets = await resolveTimeTargets(context, input);
   const entry = await insertRecordedTimeEntry(context, {
@@ -347,6 +360,11 @@ export async function createBulkTimeEntries(
   const employee = await findEmployeeById(context.db, context.organizationId, input.employeeId);
   if (!employee || employee.archivedAt) throw new NotFoundError('Employee');
 
+  const months = new Set(days.map((day) => yearMonthFromBusinessDate(day.workDate)));
+  for (const yearMonth of months) {
+    await assertMonthOpenForRewrite(context, yearMonth);
+  }
+
   const targets = await resolveTimeTargets(context, input);
   const batchId = randomUUID();
 
@@ -391,13 +409,81 @@ export async function createBulkTimeEntries(
 }
 
 /**
+ * Optional `time_correction` gate. No matching rule → allow.
+ * Matching rule without an approved request → submit (if missing) and block.
+ * Labor Actual must not change until this returns.
+ */
+async function assertTimeCorrectionAllowed(
+  context: OrgContext,
+  input: {
+    readonly originalEntryId: string;
+    readonly hours: string;
+    readonly snapshot: CostSnapshot;
+  },
+): Promise<void> {
+  const approval = resolveTimeCorrectionApprovalAmount({
+    costAmount: input.snapshot.costAmount,
+    costCurrency: input.snapshot.costCurrency,
+    hours: input.hours,
+    orgBaseCurrency: context.organization.baseCurrency,
+  });
+
+  await assertApprovalAllowsAction(context, {
+    entityType: 'time_correction',
+    entityId: input.originalEntryId,
+    amount: approval.amount,
+    currency: approval.currency,
+    submitIfMissing: true,
+  });
+}
+
+export type CorrectTimeEntryResult =
+  | {
+      readonly mode: 'void_replace';
+      readonly voided: TimeEntryRecord;
+      readonly replacement: TimeEntryRecord;
+    }
+  | {
+      readonly mode: 'closed_period_adjustment';
+      readonly original: TimeEntryRecord;
+      readonly adjustmentId: string;
+    };
+
+function laborCostDelta(
+  original: TimeEntryRecord,
+  snapshot: CostSnapshot,
+  fallbackCurrency: string,
+): { amount: string; currency: string } {
+  const currency = snapshot.costCurrency ?? original.costCurrency ?? fallbackCurrency;
+  const previous =
+    fromNumericString(original.costAmount, original.costCurrency ?? currency) ??
+    zeroMoney(currency);
+  const next =
+    fromNumericString(snapshot.costAmount, snapshot.costCurrency ?? currency) ??
+    zeroMoney(currency);
+  if (previous.currency !== next.currency) {
+    throw new DomainRuleError(
+      'Closed-month time correction requires the same cost currency',
+      'workforce.errors.closedMonthCurrencyMismatch',
+      { from: previous.currency, to: next.currency },
+    );
+  }
+  const delta = subtractMoney(next, previous);
+  return { amount: toNumericString(delta), currency: delta.currency };
+}
+
+/**
  * Correction: void the original (no silent overwrite) and insert a replacement
  * row with `corrects_entry_id` pointing at the voided original.
+ * When a `time_correction` rule matches, Actual is unchanged until approved.
+ *
+ * Closed original month: the source row stays as historical truth. Economic
+ * truth is original + a month-close cost adjustment for (new cost − old cost).
  */
 export async function correctTimeEntry(
   context: OrgContext,
   rawInput: CorrectTimeEntryInput,
-): Promise<{ readonly voided: TimeEntryRecord; readonly replacement: TimeEntryRecord }> {
+): Promise<CorrectTimeEntryResult> {
   assertPermission(context, PERMISSIONS.TIME_MANAGE);
 
   const parsed = correctTimeEntrySchema.safeParse(rawInput);
@@ -431,6 +517,68 @@ export async function correctTimeEntry(
   if (!employee || employee.archivedAt) throw new NotFoundError('Employee');
 
   const targets = await resolveTimeTargets(context, input);
+  const snapshot = await resolveTimeEntryCostSnapshot(context.db, context.organizationId, {
+    employeeId: input.employeeId,
+    workDate: input.workDate,
+    hours: input.hours,
+  });
+
+  await assertTimeCorrectionAllowed(context, {
+    originalEntryId: original.id,
+    hours: input.hours,
+    snapshot,
+  });
+
+  const originalMonth = yearMonthFromBusinessDate(original.workDate);
+  if (await isMonthClosed(context, originalMonth)) {
+    const projectId = original.projectId ?? targets.projectId;
+    if (!projectId) {
+      throw new ConflictError(
+        'Cannot record a closed-month economic correction without a project. Date a reversing time entry in an open month, or assign the original entry to a project.',
+        'workforce.errors.closedMonthNeedsProject',
+        { timeEntryId: original.id, yearMonth: originalMonth },
+      );
+    }
+
+    const delta = laborCostDelta(original, snapshot, context.organization.baseCurrency);
+    const adjustment = await createClosedPeriodSourceCorrection(context, {
+      yearMonth: originalMonth,
+      adjustmentType: 'correction',
+      reason:
+        `תיקון שעות בחודש סגור. רשומת מקור ${original.id} נשארת היסטורית (לא בוטלה). ` +
+        `שעות ${original.hours}→${input.hours}.`,
+      amount: delta.amount,
+      currency: delta.currency,
+      effectSide: 'cost',
+      projectId,
+      entityType: 'time_entry',
+      entityId: original.id,
+    });
+
+    await recordAuditEvent(context, {
+      action: AUDIT_ACTIONS.TIME_ENTRY_CORRECTED,
+      entityType: 'time_entry',
+      entityId: original.id,
+      after: {
+        closedPeriod: true,
+        sourceRewritten: false,
+        monthCloseAdjustmentId: adjustment.id,
+        hoursFrom: original.hours,
+        hoursTo: input.hours,
+        costDelta: delta.amount,
+        costCurrency: delta.currency,
+      },
+    });
+
+    return {
+      mode: 'closed_period_adjustment',
+      original,
+      adjustmentId: adjustment.id,
+    };
+  }
+
+  await assertMonthOpenForRewrite(context, yearMonthFromBusinessDate(input.workDate));
+
   const voidedAt = new Date();
 
   const result = await withTransaction(context.db, async (tx) => {
@@ -451,6 +599,7 @@ export async function correctTimeEntry(
       targets,
       description: input.description,
       correctsEntryId: original.id,
+      snapshot,
     });
 
     return { voided, replacement };
@@ -481,7 +630,7 @@ export async function correctTimeEntry(
     },
   });
 
-  return result;
+  return { mode: 'void_replace', ...result };
 }
 
 /** Suggested default employee when the signed-in user is linked to one. */

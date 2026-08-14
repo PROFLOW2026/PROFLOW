@@ -21,6 +21,11 @@ export interface CaptureDraftPayload extends Record<string, unknown> {
   /** Optional link to an existing entity once known online. */
   readonly ownerType?: string | null;
   readonly ownerId?: string | null;
+  /**
+   * Local id of a product draft (daily log / punch / inspection) created in the
+   * same save. Sync fills `ownerId` from that draft's server id.
+   */
+  readonly pendingOwnerDraftLocalId?: string | null;
   readonly note?: string | null;
   /** Attachment blob id in the local blob store. */
   readonly attachmentLocalId: string;
@@ -45,6 +50,7 @@ export function buildCaptureEnqueueInput(input: {
   readonly file: CaptureFileMeta;
   readonly ownerType?: string | null;
   readonly ownerId?: string | null;
+  readonly pendingOwnerDraftLocalId?: string | null;
   readonly note?: string | null;
   readonly localId?: string;
 }): EnqueueDraftInput<CaptureDraftPayload> {
@@ -61,6 +67,7 @@ export function buildCaptureEnqueueInput(input: {
       sizeBytes: input.file.sizeBytes,
       ownerType: input.ownerType ?? null,
       ownerId: input.ownerId ?? null,
+      pendingOwnerDraftLocalId: input.pendingOwnerDraftLocalId ?? null,
       note: input.note ?? null,
       attachmentLocalId: input.attachmentLocalId,
     },

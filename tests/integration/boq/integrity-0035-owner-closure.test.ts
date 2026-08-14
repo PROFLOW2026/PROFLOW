@@ -5,6 +5,7 @@ import { createClient } from '@/modules/clients';
 import { resolveOrgContext, setModuleVisibility } from '@/modules/tenancy';
 import { createProgressBilling } from '@/modules/boq/application/create-progress-billing';
 import { createTestDatabase, resultRows, type TestDatabase } from '../../setup/database';
+import { insertDraftBoqNodeViaRpc } from '../../setup/boq-draft-node';
 import { createTestOrganization, createTestUser, seedSystem } from '../../setup/fixtures';
 import { readFile } from 'node:fs/promises';
 
@@ -66,20 +67,16 @@ describe('BOQ owner full-bundle closure', () => {
           RETURNING id
         `),
       );
-      const node = resultRows<{ id: string }>(
-        await tx.execute(sql`
-          INSERT INTO boq_nodes (
-            organization_id, boq_id, node_kind, description, pricing_type,
-            original_quantity, original_unit_price, original_amount,
-            current_quantity, current_unit_price, current_amount
-          ) VALUES (
-            ${orgId}::uuid, ${boq[0]!.id}::uuid, 'item', 'Item', 'quantity_unit_price',
-            ${qty}, ${price}, ${qty * price}, ${qty}, ${price}, ${qty * price}
-          ) RETURNING id
-        `),
-      );
+      const nodeId = await insertDraftBoqNodeViaRpc(tx, {
+        organizationId: orgId,
+        boqId: boq[0]!.id,
+        description: 'Item',
+        quantity: qty,
+        unitPrice: price,
+        amount: qty * price,
+      });
       await tx.execute(sql`SELECT app.activate_project_boq(${orgId}::uuid, ${boq[0]!.id}::uuid)`);
-      return { boqId: boq[0]!.id, nodeId: node[0]!.id };
+      return { boqId: boq[0]!.id, nodeId };
     });
   }
 
@@ -344,54 +341,49 @@ describe('BOQ owner full-bundle closure', () => {
           RETURNING id
         `),
       );
-      const chapter = resultRows<{ id: string }>(
-        await tx.execute(sql`
-          INSERT INTO boq_nodes (
-            organization_id, boq_id, node_kind, description, pricing_type,
-            original_quantity, original_unit_price, original_amount,
-            current_quantity, current_unit_price, current_amount
-          ) VALUES (
-            ${orgId}::uuid, ${boq[0]!.id}::uuid, 'chapter', 'Ch', 'quantity_unit_price',
-            0, 0, 0, 0, 0, 0
-          ) RETURNING id
-        `),
-      );
-      const item = resultRows<{ id: string }>(
-        await tx.execute(sql`
-          INSERT INTO boq_nodes (
-            organization_id, boq_id, parent_id, node_kind, description, pricing_type,
-            original_quantity, original_unit_price, original_amount,
-            current_quantity, current_unit_price, current_amount
-          ) VALUES (
-            ${orgId}::uuid, ${boq[0]!.id}::uuid, ${chapter[0]!.id}::uuid, 'item', 'It',
-            'quantity_unit_price', 1, 1, 1, 1, 1, 1
-          ) RETURNING id
-        `),
-      );
-      const childChapter = resultRows<{ id: string }>(
-        await tx.execute(sql`
-          INSERT INTO boq_nodes (
-            organization_id, boq_id, parent_id, node_kind, description, pricing_type,
-            original_quantity, original_unit_price, original_amount,
-            current_quantity, current_unit_price, current_amount
-          ) VALUES (
-            ${orgId}::uuid, ${boq[0]!.id}::uuid, ${chapter[0]!.id}::uuid, 'chapter', 'Sub',
-            'quantity_unit_price', 0, 0, 0, 0, 0, 0
-          ) RETURNING id
-        `),
-      );
+      const chapterId = await insertDraftBoqNodeViaRpc(tx, {
+        organizationId: orgId,
+        boqId: boq[0]!.id,
+        description: 'Ch',
+        nodeKind: 'chapter',
+        quantity: 0,
+        unitPrice: 0,
+        amount: 0,
+      });
+      const itemId = await insertDraftBoqNodeViaRpc(tx, {
+        organizationId: orgId,
+        boqId: boq[0]!.id,
+        description: 'It',
+        parentId: chapterId,
+        quantity: 1,
+        unitPrice: 1,
+        amount: 1,
+      });
+      const childChapterId = await insertDraftBoqNodeViaRpc(tx, {
+        organizationId: orgId,
+        boqId: boq[0]!.id,
+        description: 'Sub',
+        nodeKind: 'chapter',
+        parentId: chapterId,
+        quantity: 0,
+        unitPrice: 0,
+        amount: 0,
+      });
       return {
         boqId: boq[0]!.id,
-        chapterId: chapter[0]!.id,
-        itemId: item[0]!.id,
-        childChapterId: childChapter[0]!.id,
+        chapterId,
+        itemId,
+        childChapterId,
       };
     });
 
     await database.asUser(owner.id, async (tx) => {
       await expect(
         tx.execute(sql`
-          UPDATE boq_nodes SET parent_id = id WHERE id = ${ids.chapterId}::uuid
+          SELECT app.boq_mutate_draft_node(
+            ${orgId}::uuid, 'update', ${ids.chapterId}::uuid,
+            jsonb_build_object('parent_id', ${ids.chapterId}::uuid)
+          )
         `),
       ).rejects.toThrow();
     });
@@ -399,7 +391,10 @@ describe('BOQ owner full-bundle closure', () => {
     await database.asUser(owner.id, async (tx) => {
       await expect(
         tx.execute(sql`
-          UPDATE boq_nodes SET parent_id = ${ids.itemId}::uuid WHERE id = ${ids.chapterId}::uuid
+          SELECT app.boq_mutate_draft_node(
+            ${orgId}::uuid, 'update', ${ids.chapterId}::uuid,
+            jsonb_build_object('parent_id', ${ids.itemId}::uuid)
+          )
         `),
       ).rejects.toThrow();
     });
@@ -407,8 +402,10 @@ describe('BOQ owner full-bundle closure', () => {
     await database.asUser(owner.id, async (tx) => {
       await expect(
         tx.execute(sql`
-          UPDATE boq_nodes SET parent_id = ${ids.childChapterId}::uuid
-          WHERE id = ${ids.chapterId}::uuid
+          SELECT app.boq_mutate_draft_node(
+            ${orgId}::uuid, 'update', ${ids.chapterId}::uuid,
+            jsonb_build_object('parent_id', ${ids.childChapterId}::uuid)
+          )
         `),
       ).rejects.toThrow();
     });

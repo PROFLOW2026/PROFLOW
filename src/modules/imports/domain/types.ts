@@ -56,6 +56,11 @@ export interface ImportFieldDef {
   readonly required: boolean;
   /** Header aliases matched case-insensitively (spaces/underscores ignored). */
   readonly aliases: readonly string[];
+  /**
+   * Employer cost / compensation field. Preview errors unless the actor has
+   * `workforce.cost.manage`; confirm must not apply the value without that key.
+   */
+  readonly requiresCostManage?: boolean;
 }
 
 export interface ParsedCsv {

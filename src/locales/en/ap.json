@@ -24,6 +24,9 @@
       "vendor": "Vendor",
       "status": "Status",
       "total": "Total",
+      "net": "Net",
+      "vat": "VAT",
+      "gross": "Gross",
       "billDate": "Bill date"
     },
     "noReference": "Untitled bill"
@@ -47,8 +50,16 @@
     "remainingUnmatched": "Remaining unmatched",
     "remainingIncludingProposed": "Remaining (incl. proposed)",
     "partialMatchHint": "Partial matches are allowed. Status becomes partially matched until accepted amounts cover the bill total. Accepting a match never invents an expense.",
-    "varianceWarning": "Accepted matches exceed the bill by {variance} {currency}. Review variance before posting any separate expense."
+    "varianceWarning": "Accepted matches exceed the bill by {variance} {currency}. Review variance before posting any separate expense.",
+    "net": "Net (Actual cost)",
+    "tax": "VAT",
+    "gross": "Gross (payable)",
+    "taxBasisLegacy": "VAT was not split historically — cost = full amount",
+    "taxBasisZero": "Zero / exempt VAT — NET equals GROSS.",
+    "taxBasisCanonical": "VAT split — Actual uses NET, payable uses GROSS.",
+    "actualHint": "Actual / profit uses NET. Payable / aging uses GROSS. VAT is not profit."
   },
+  "reportsEntry": "Cost & payables report",
   "match": {
     "proposeTitle": "Propose match",
     "hint": "Select a purchase order and/or an existing expense. At least one target is required. Accepting will not create an expense. Multiple partial matches are allowed.",
@@ -99,7 +110,12 @@
     "lineTotal": "Line total",
     "linePoLine": "PO line",
     "linePoLineNone": "No PO line",
-    "totalLabel": "Bill total"
+    "totalLabel": "Entered amount",
+    "amountIncludesTax": "Amount includes VAT",
+    "taxSplitHint": "If checked, the entered amount is payable GROSS and VAT is split out. Actual cost uses NET. If unchecked, the entered amount is NET and VAT is added to payable using the organization tax rule.",
+    "saveAsDraft": "Save as draft only",
+    "saveAsDraftHint": "A draft does not recognize Actual and does not consume PO commitment until posted.",
+    "actualVsPayableHint": "Actual / profit = NET excluding VAT. Payable / aging = GROSS including VAT. VAT is not profit."
   },
   "retention": {
     "title": "Retention / holdback",
@@ -169,7 +185,8 @@
     "empty": "No credits applied yet.",
     "createTitle": "Create draft credit",
     "createHint": "Creates a draft credit note. Review it, post it, then apply it to this bill. Drafts do not reduce Actual.",
-    "amountLabel": "Credit amount",
+    "amountLabel": "Credit amount (entered)",
+    "amountIncludesTax": "Amount includes VAT",
     "creditDateLabel": "Credit date",
     "referenceLabel": "Reference",
     "notesLabel": "Notes",
@@ -209,7 +226,10 @@
       "projectLabel": "Project",
       "projectNone": "No project",
       "relatedBillLabel": "Related bill (optional)",
-      "relatedBillNone": "No related bill"
+      "relatedBillNone": "No related bill",
+      "amountIncludesTax": "Amount includes VAT",
+      "taxSplitHint": "If checked, the entered amount is payable GROSS and VAT is split out. Actual cost reduction uses NET. If unchecked, the entered amount is NET and VAT is added to the payable credit using the organization tax rule.",
+      "actualVsPayableHint": "Payable reduction = GROSS. Actual / cost reduction = NET. VAT is not profit. Historical undivided credits keep tax = 0."
     },
     "detail": {
       "title": "Vendor credit",

@@ -9,13 +9,29 @@ import { validateUploadConstraints } from '../domain/file-rules';
 import type { DocumentRecord, DownloadUrlResult } from '../domain/types';
 import {
   findDocumentById,
+  listDeletedDocumentsNeedingStorageCleanup,
   updateDocumentById,
 } from '../data/documents.repository';
+import {
+  isStorageOrphanChecksum,
+  removeStorageObjectWithRetry,
+  restoreChecksumIfOrphanEncoded,
+  truncateStorageCleanupError,
+  type StorageCleanupStatus,
+} from '../domain/storage-cleanup';
 import {
   documentIdSchema,
   finalizeUploadSchema,
   type FinalizeUploadInput,
 } from '../validation/schemas';
+
+export interface StorageCleanupRetryResult {
+  readonly attempted: number;
+  readonly succeeded: number;
+  readonly failed: number;
+  readonly succeededIds: readonly string[];
+  readonly failedIds: readonly string[];
+}
 
 export async function finalizeDocumentUpload(
   context: OrgContext,
@@ -157,28 +173,165 @@ export async function softDeleteDocument(
   const existing = await findDocumentById(context.db, context.organizationId, parsed.data.documentId);
   if (!existing) throw new NotFoundError('Document');
 
+  const storage = getStoragePort();
   const updated = await updateDocumentById(context.db, context.organizationId, parsed.data.documentId, {
     status: 'deleted',
     deletedAt: new Date(),
+    ...(storage.configured ? { storageCleanupStatus: 'pending' as const } : {}),
   });
   if (!updated) throw new NotFoundError('Document');
 
-  const storage = getStoragePort();
+  let result: DocumentRecord = updated;
   if (storage.configured) {
-    try {
-      await storage.remove(existing.storagePath);
-    } catch {
-      // Metadata deletion is authoritative; storage cleanup can be repaired later.
+    const removal = await removeStorageObjectWithRetry((key) => storage.remove(key), existing.storagePath);
+    const flagged = await updateDocumentById(
+      context.db,
+      context.organizationId,
+      parsed.data.documentId,
+      buildCleanupPatch(updated, removal, existing.checksum),
+    );
+    if (flagged) result = flagged;
+
+    if (!removal.ok) {
+      await recordAuditEvent(context, {
+        action: AUDIT_ACTIONS.DOCUMENT_STORAGE_CLEANUP_FAILED,
+        entityType: 'document',
+        entityId: result.id,
+        before: { status: existing.status, checksum: existing.checksum },
+        after: {
+          status: result.status,
+          checksum: result.checksum,
+          storageCleanupStatus: result.storageCleanupStatus,
+          storageCleanupFailed: true,
+        },
+        metadata: {
+          storagePath: existing.storagePath,
+          attempts: removal.attempts,
+          error: removal.error,
+        },
+      });
     }
   }
 
   await recordAuditEvent(context, {
     action: AUDIT_ACTIONS.DOCUMENT_DELETED,
     entityType: 'document',
-    entityId: updated.id,
+    entityId: result.id,
     before: existing,
-    after: updated,
+    after: result,
   });
 
-  return updated;
+  return result;
+}
+
+export async function retryFailedDocumentCleanups(
+  context: OrgContext,
+  options: { limit?: number } = {},
+): Promise<StorageCleanupRetryResult> {
+  assertPermission(context, PERMISSIONS.DOCUMENTS_MANAGE);
+
+  const storage = getStoragePort();
+  if (!storage.configured) {
+    return { attempted: 0, succeeded: 0, failed: 0, succeededIds: [], failedIds: [] };
+  }
+
+  const candidates = await listDeletedDocumentsNeedingStorageCleanup(
+    context.db,
+    context.organizationId,
+    { limit: options.limit },
+  );
+
+  const succeededIds: string[] = [];
+  const failedIds: string[] = [];
+
+  for (const document of candidates) {
+    const removal = await removeStorageObjectWithRetry((key) => storage.remove(key), document.storagePath);
+    const patch = buildCleanupPatch(document, removal, document.checksum);
+    await updateDocumentById(context.db, context.organizationId, document.id, patch);
+
+    if (removal.ok) {
+      const restoredChecksum = restoreChecksumIfOrphanEncoded(document.checksum);
+      await recordAuditEvent(context, {
+        action: AUDIT_ACTIONS.DOCUMENT_STORAGE_CLEANUP_COMPLETED,
+        entityType: 'document',
+        entityId: document.id,
+        before: {
+          checksum: document.checksum,
+          storageCleanupStatus: document.storageCleanupStatus,
+          storageCleanupFailed: true,
+        },
+        after: {
+          status: document.status,
+          checksum: restoredChecksum,
+          storageCleanupStatus: 'succeeded',
+          storageCleanupFailed: false,
+        },
+        metadata: { storagePath: document.storagePath, attempts: removal.attempts },
+      });
+      succeededIds.push(document.id);
+      continue;
+    }
+
+    await recordAuditEvent(context, {
+      action: AUDIT_ACTIONS.DOCUMENT_STORAGE_CLEANUP_FAILED,
+      entityType: 'document',
+      entityId: document.id,
+      before: {
+        checksum: document.checksum,
+        storageCleanupStatus: document.storageCleanupStatus,
+        storageCleanupFailed: true,
+      },
+      after: {
+        status: document.status,
+        checksum: restoreChecksumIfOrphanEncoded(document.checksum),
+        storageCleanupStatus: 'failed',
+        storageCleanupFailed: true,
+      },
+      metadata: {
+        storagePath: document.storagePath,
+        attempts: removal.attempts,
+        error: removal.error,
+      },
+    });
+    failedIds.push(document.id);
+  }
+
+  return {
+    attempted: candidates.length,
+    succeeded: succeededIds.length,
+    failed: failedIds.length,
+    succeededIds,
+    failedIds,
+  };
+}
+
+function buildCleanupPatch(
+  document: Pick<DocumentRecord, 'storageCleanupAttempts' | 'checksum'>,
+  removal: { ok: boolean; attempts: number; error?: string },
+  originalChecksum: string | null,
+): {
+  storageCleanupStatus: StorageCleanupStatus;
+  storageCleanupAttempts: number;
+  storageCleanupError: string | null;
+  storageCleanupLastAttemptedAt: Date;
+  checksum?: string | null;
+} {
+  const patch: {
+    storageCleanupStatus: StorageCleanupStatus;
+    storageCleanupAttempts: number;
+    storageCleanupError: string | null;
+    storageCleanupLastAttemptedAt: Date;
+    checksum?: string | null;
+  } = {
+    storageCleanupStatus: removal.ok ? 'succeeded' : 'failed',
+    storageCleanupAttempts: document.storageCleanupAttempts + removal.attempts,
+    storageCleanupError: removal.ok ? null : truncateStorageCleanupError(removal.error ?? 'unknown'),
+    storageCleanupLastAttemptedAt: new Date(),
+  };
+
+  if (isStorageOrphanChecksum(originalChecksum)) {
+    patch.checksum = restoreChecksumIfOrphanEncoded(originalChecksum);
+  }
+
+  return patch;
 }

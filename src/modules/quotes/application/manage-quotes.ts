@@ -1,7 +1,7 @@
 import { and, eq } from 'drizzle-orm';
 import { clients, clientContacts } from '@drizzle/schema';
 import { resolveApplicableDefaultTax, resolveTaxForDate } from '@/modules/tax';
-import { noteModuleUsage } from '@/modules/tenancy';
+import { noteModuleUsage, resolveAllocatedReference, titleWithDocumentNumber } from '@/modules/tenancy';
 import { recordAuditEvent } from '@/shared/audit';
 import type { OrgContext } from '@/shared/auth/context';
 import { todayInTimeZone } from '@/shared/dates';
@@ -103,6 +103,8 @@ export async function createQuote(
   const input = parsed.data;
   const currency = (input.currency ?? context.organization.baseCurrency).toUpperCase();
   const taxMode = input.taxMode ?? 'exclusive';
+  const documentNumber = await resolveAllocatedReference(context, 'estimate', input.reference);
+  const title = titleWithDocumentNumber(input.title, documentNumber);
 
   await assertClientInOrg(context, input.clientId);
   await assertContactInOrg(context, input.contactId, input.clientId ?? null);
@@ -119,7 +121,7 @@ export async function createQuote(
     organizationId: context.organizationId,
     clientId: input.clientId ?? null,
     contactId: input.contactId ?? null,
-    title: input.title,
+    title,
     description: input.description ?? null,
     status: 'draft',
     currency,
@@ -132,6 +134,9 @@ export async function createQuote(
     totalAmount: totals.totalAmount,
     estimatedCostAmount: totals.estimatedCostAmount,
     estimatedMarginPercent: totals.estimatedMarginPercent,
+    discountAmount: input.discountAmount ?? null,
+    listSubtotalAmount: input.listSubtotalAmount ?? null,
+    discountPercent: input.discountPercent ?? null,
     createdByUserId: context.userId,
   });
 
@@ -247,6 +252,9 @@ export async function updateQuote(
     taxMode,
     validityDate: input.validityDate === undefined ? undefined : input.validityDate,
     notes: input.notes === undefined ? undefined : input.notes,
+    discountAmount: input.discountAmount === undefined ? undefined : input.discountAmount,
+    listSubtotalAmount: input.listSubtotalAmount === undefined ? undefined : input.listSubtotalAmount,
+    discountPercent: input.discountPercent === undefined ? undefined : input.discountPercent,
     ...totalsPatch,
   });
   if (!updated) throw new NotFoundError('Quote');

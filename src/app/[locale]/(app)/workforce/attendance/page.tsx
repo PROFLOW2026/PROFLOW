@@ -128,6 +128,9 @@ export default async function AttendancePage({
           <div>
             <h2 className="text-base font-semibold">{t('attendance.list.title')}</h2>
             <p className="text-sm text-[var(--pf-text-muted)]">{t('attendance.list.hint')}</p>
+            <p className="mt-1 text-xs text-[var(--pf-text-secondary)]">
+              {t('attendance.completenessHint')}
+            </p>
           </div>
           <form className="flex flex-wrap items-end gap-3" method="get">
             <label className="flex flex-col gap-1 text-sm">

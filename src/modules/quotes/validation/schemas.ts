@@ -26,6 +26,27 @@ const moneyAmount = z
   .trim()
   .regex(/^\d+(\.\d+)?$/, 'Amount must be a non-negative number');
 
+const optionalDiscountMoney = z.preprocess((value) => {
+  if (value === undefined) return undefined;
+  if (value === '' || value === null) return null;
+  return value;
+}, moneyAmount.nullable().optional());
+
+const optionalDiscountPercent = z.preprocess((value) => {
+  if (value === undefined) return undefined;
+  if (value === '' || value === null) return null;
+  return value;
+}, z
+  .string()
+  .trim()
+  .regex(/^\d+(\.\d+)?$/, 'Percent must be a non-negative number')
+  .refine((value) => {
+    const n = Number(value);
+    return Number.isFinite(n) && n >= 0 && n <= 100;
+  }, 'Percent must be between 0 and 100')
+  .nullable()
+  .optional());
+
 const quantityAmount = z
   .string()
   .trim()
@@ -51,6 +72,10 @@ export const createQuoteSchema = z.object({
   taxRuleId: optionalUuid,
   validityDate: optionalDate,
   notes: optionalText,
+  reference: optionalText,
+  discountAmount: optionalDiscountMoney,
+  listSubtotalAmount: optionalDiscountMoney,
+  discountPercent: optionalDiscountPercent,
   lines: z.array(quoteLineSchema).min(1, 'At least one line item is required'),
 });
 
@@ -67,6 +92,9 @@ export const updateQuoteSchema = z.object({
   taxRuleId: optionalUuid,
   validityDate: optionalDate,
   notes: optionalText,
+  discountAmount: optionalDiscountMoney,
+  listSubtotalAmount: optionalDiscountMoney,
+  discountPercent: optionalDiscountPercent,
   lines: z.array(quoteLineSchema).min(1).optional(),
 });
 

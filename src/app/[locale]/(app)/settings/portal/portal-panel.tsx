@@ -1055,6 +1055,10 @@ export function PortalGrantsPanel({
 
   return (
     <div className="flex min-w-0 flex-col gap-8">
+      <Alert tone="warning">
+        <p className="font-medium">{t('publicDisabled.title')}</p>
+        <p>{t('publicDisabled.body')}</p>
+      </Alert>
       <div>
         <p className="text-sm text-[var(--pf-text-secondary)]">{t('subtitle')}</p>
         <p className="mt-1 text-xs text-[var(--pf-text-muted)]">{t('externalNote')}</p>

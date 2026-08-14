@@ -3,8 +3,11 @@ import {
   committedCosts,
   materialItems,
   materialVendorPrices,
+  poReceiptLines,
+  poReceipts,
   procurementRfqLines,
   procurementRfqs,
+  profiles,
   purchaseOrderLines,
   purchaseOrders,
   supplierQuoteLines,
@@ -432,6 +435,74 @@ export async function listPurchaseOrderLines(
       ),
     )
     .orderBy(purchaseOrderLines.sortOrder);
+}
+
+export async function insertPoReceipt(
+  db: DbExecutor,
+  values: typeof poReceipts.$inferInsert,
+): Promise<typeof poReceipts.$inferSelect> {
+  const [row] = await db.insert(poReceipts).values(values).returning();
+  if (!row) throw new Error('Failed to insert PO receipt');
+  return row;
+}
+
+export async function insertPoReceiptLines(
+  db: DbExecutor,
+  lines: (typeof poReceiptLines.$inferInsert)[],
+): Promise<(typeof poReceiptLines.$inferSelect)[]> {
+  if (lines.length === 0) return [];
+  return db.insert(poReceiptLines).values(lines).returning();
+}
+
+export type PoReceiptListRow = typeof poReceipts.$inferSelect & {
+  readonly receivedByDisplayName: string | null;
+};
+
+export async function listPoReceiptsForPurchaseOrder(
+  db: DbExecutor,
+  organizationId: string,
+  purchaseOrderId: string,
+): Promise<PoReceiptListRow[]> {
+  return db
+    .select({
+      id: poReceipts.id,
+      organizationId: poReceipts.organizationId,
+      purchaseOrderId: poReceipts.purchaseOrderId,
+      receivedOn: poReceipts.receivedOn,
+      receivedByUserId: poReceipts.receivedByUserId,
+      reference: poReceipts.reference,
+      notes: poReceipts.notes,
+      createdAt: poReceipts.createdAt,
+      updatedAt: poReceipts.updatedAt,
+      receivedByDisplayName: profiles.displayName,
+    })
+    .from(poReceipts)
+    .leftJoin(profiles, eq(profiles.id, poReceipts.receivedByUserId))
+    .where(
+      and(
+        eq(poReceipts.organizationId, organizationId),
+        eq(poReceipts.purchaseOrderId, purchaseOrderId),
+      ),
+    )
+    .orderBy(desc(poReceipts.receivedOn), desc(poReceipts.createdAt));
+}
+
+export async function listPoReceiptLinesForReceipts(
+  db: DbExecutor,
+  organizationId: string,
+  receiptIds: string[],
+): Promise<(typeof poReceiptLines.$inferSelect)[]> {
+  if (receiptIds.length === 0) return [];
+  return db
+    .select()
+    .from(poReceiptLines)
+    .where(
+      and(
+        eq(poReceiptLines.organizationId, organizationId),
+        inArray(poReceiptLines.receiptId, receiptIds),
+      ),
+    )
+    .orderBy(poReceiptLines.createdAt);
 }
 
 export async function updatePurchaseOrderStatus(

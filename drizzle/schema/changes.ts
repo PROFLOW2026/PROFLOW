@@ -252,6 +252,10 @@ export const changeOrders = pgTable(
     currency: currencyCode().notNull(),
     effectiveDate: date('effective_date').notNull(),
     notes: text('notes'),
+    /** Set only on the reversing Change Order. Original row is never rewritten. */
+    reversalOfChangeOrderId: uuid('reversal_of_change_order_id'),
+    reversalReason: text('reversal_reason'),
+    reversedByUserId: uuid('reversed_by_user_id').references(() => profiles.id, { onDelete: 'set null' }),
     ...timestamps(),
   },
   (table) => [
@@ -261,7 +265,14 @@ export const changeOrders = pgTable(
     uniqueIndex('change_orders_change_request_uq')
       .on(table.changeRequestId)
       .where(sql`${table.changeRequestId} is not null`),
+    uniqueIndex('change_orders_reversal_of_uq')
+      .on(table.organizationId, table.reversalOfChangeOrderId)
+      .where(sql`${table.reversalOfChangeOrderId} is not null`),
     check('change_orders_amount_non_negative', sql`${table.amount} >= 0`),
+    check(
+      'change_orders_reversal_not_self',
+      sql`${table.reversalOfChangeOrderId} IS DISTINCT FROM ${table.id}`,
+    ),
   ],
 );
 

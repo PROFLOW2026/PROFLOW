@@ -4,10 +4,12 @@ import { listAvailableCreateWorkKinds } from '@/components/shell/quick-create-ac
 import { PageHeader } from '@/components/ui/page-header';
 import { listClientsForOrg } from '@/modules/clients';
 import { resolveApplicableDefaultTax } from '@/modules/tax';
+import { listEmployeesForOrg } from '@/modules/workforce';
 import { getShellContext, withOrgContext } from '@/shared/auth/session';
 import { todayInTimeZone } from '@/shared/dates';
 import { formatMoney } from '@/shared/money/format';
 import { zeroMoney } from '@/shared/money';
+import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { WorkKindCreateHint } from '../../projects/new/work-kind-create-hint';
 import { JobCreateForm } from './job-create-form';
 
@@ -34,22 +36,36 @@ export default async function NewJobPage({
     ? todayInTimeZone(shell.organization.timezone)
     : todayInTimeZone('Asia/Jerusalem');
 
+  const canAssignEmployees = shell?.permissions.has(PERMISSIONS.WORKFORCE_MANAGE) ?? false;
+
   let clients: { id: string; name: string }[] = [];
   let taxRatePercent: string | null = null;
+  let employees: { id: string; name: string; jobTitle: string | null }[] = [];
   try {
     const loaded = await withOrgContext(async (context) => {
-      const rows = await listClientsForOrg(context, {});
-      const tax = await resolveApplicableDefaultTax(
-        context,
-        todayInTimeZone(context.organization.timezone),
-      );
+      const [rows, tax, employeeRows] = await Promise.all([
+        listClientsForOrg(context, {}),
+        resolveApplicableDefaultTax(
+          context,
+          todayInTimeZone(context.organization.timezone),
+        ),
+        canAssignEmployees
+          ? listEmployeesForOrg(context, { status: 'active' }).catch(() => [])
+          : Promise.resolve([]),
+      ]);
       return {
         clients: rows.map((client) => ({ id: client.id, name: client.name })),
         taxRatePercent: tax.resolved?.ratePercent ?? null,
+        employees: employeeRows.map((employee) => ({
+          id: employee.id,
+          name: employee.name,
+          jobTitle: employee.jobTitle,
+        })),
       };
     });
     clients = loaded.clients;
     taxRatePercent = loaded.taxRatePercent;
+    employees = loaded.employees;
   } catch {
     clients = [];
   }
@@ -80,6 +96,8 @@ export default async function NewJobPage({
         clients={clients}
         defaultStartDate={defaultStartDate}
         taxRatePercent={taxRatePercent}
+        employees={employees}
+        canAssignEmployees={canAssignEmployees}
       />
     </div>
   );

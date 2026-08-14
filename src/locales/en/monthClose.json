@@ -31,7 +31,17 @@
     "saved": "Saved."
   },
   "closed": {
-    "notice": "This month is closed. Silent rewrites are blocked — record an explicit adjustment or economic correction. Original records stay unchanged."
+    "notice": "This month is closed. Silent rewrites are blocked — record an explicit adjustment or economic correction. Original records stay unchanged.",
+    "sourceRewriteHint": "Do not void or rewrite expenses, vendor bills, or time in this month. Post a month-close correction instead. The source row remains historical truth."
+  },
+  "coherence": {
+    "title": "How closed-month money works",
+    "historicalTruth": "Historical truth",
+    "historicalTruthBody": "The original transaction is never rewritten after close. It stays on the ledger as history.",
+    "currentTruth": "Current economic truth",
+    "currentTruthBody": "Original amount plus surviving month-close adjustments (netted once in financial compose).",
+    "openPeriod": "Open period",
+    "openPeriodBody": "While the month is open, void-and-replace on the source is economic truth. Do not also post a month-close adjustment for the same change."
   },
   "completeness": {
     "empty": "Completeness has not been computed yet.",
@@ -74,7 +84,12 @@
     "supersedeNone": "None — new correction",
     "supersedeHint": "The original row stays on the ledger but is excluded from totals. This amount replaces it in compose.",
     "original": "Original",
-    "correction": "Correction",
+    "originalTransaction": "Original transaction",
+    "correction": "Correction / adjustment",
+    "currentTruth": "Current economic truth",
+    "historicalTruth": "Historical truth — the source row was not rewritten.",
+    "supersededFromTotals": "Excluded from compose (superseded)",
+    "sourceRewriteHint": "Closed-month expenses, vendor bills, and time cannot be voided or rewritten. Record the correction here so compose can net it.",
     "auditOnly": "Audit only",
     "activeInTotals": "Included in compose",
     "superseded": "Superseded",
@@ -89,6 +104,7 @@
   "errors": {
     "invalidTransition": "That status change is not allowed.",
     "monthClosed": "This month is closed. Open Month close and record an explicit post-close adjustment instead of changing the original record.",
+    "useCorrectionNotRewrite": "This month is closed. Do not void or rewrite the original expense, vendor bill, or time entry — record a month-close correction instead.",
     "notClosed": "Post-close adjustments require a closed month.",
     "notComplete": "Completeness must be 100% before ready/close.",
     "currencyMismatch": "Economic corrections must use the organization base currency.",

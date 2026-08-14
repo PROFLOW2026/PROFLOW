@@ -20,6 +20,7 @@ export interface EnqueueCaptureInput {
   readonly mimeType?: string;
   readonly ownerType?: string | null;
   readonly ownerId?: string | null;
+  readonly pendingOwnerDraftLocalId?: string | null;
   readonly note?: string | null;
   readonly localId?: string;
   readonly allowDuplicate?: boolean;
@@ -61,6 +62,7 @@ export async function enqueueCaptureDraft(
     },
     ownerType: input.ownerType,
     ownerId: input.ownerId,
+    pendingOwnerDraftLocalId: input.pendingOwnerDraftLocalId,
     note: input.note,
   });
 

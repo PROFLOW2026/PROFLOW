@@ -20,6 +20,24 @@ export function permissionForImportKind(kind: ImportKind): PermissionKey {
   return KIND_PERMISSION[kind];
 }
 
+/** Roster import (`workforce.manage`) never unlocks compensation / rate fields. */
+export function canImportEmployeeCostFields(context: OrgContext): boolean {
+  return hasPermission(context, PERMISSIONS.WORKFORCE_COST_MANAGE);
+}
+
+/**
+ * Defense in depth: only pass a rate into employee create when the actor has
+ * `workforce.cost.manage`. Callers must not apply the value otherwise.
+ */
+export function employeeImportBaseRate(
+  context: OrgContext,
+  raw: string | undefined,
+): string | undefined {
+  if (raw === undefined || raw.trim() === '') return undefined;
+  if (!canImportEmployeeCostFields(context)) return undefined;
+  return raw.trim();
+}
+
 export function assertCanImportKind(context: OrgContext, kind: ImportKind): void {
   assertPermission(context, KIND_PERMISSION[kind]);
 }

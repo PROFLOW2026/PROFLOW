@@ -6,6 +6,7 @@ import { resolveOrgContext, setModuleVisibility } from '@/modules/tenancy';
 import { assignRole, findRoleByKey } from '@/modules/rbac';
 import { organizationMemberships } from '@drizzle/schema';
 import { createTestDatabase, resultRows, type TestDatabase } from '../../setup/database';
+import { insertDraftBoqNodeViaRpc } from '../../setup/boq-draft-node';
 import { createTestOrganization, createTestUser, seedSystem } from '../../setup/fixtures';
 import { validateBoqItems } from '@/modules/imports/validation/validate-rows';
 
@@ -109,20 +110,16 @@ describe('BOQ final integrity correction adversarial', () => {
           RETURNING id
         `),
       );
-      const node = resultRows<{ id: string }>(
-        await tx.execute(sql`
-          INSERT INTO boq_nodes (
-            organization_id, boq_id, node_kind, description, pricing_type,
-            original_quantity, original_unit_price, original_amount,
-            current_quantity, current_unit_price, current_amount
-          ) VALUES (
-            ${orgId}::uuid, ${boq[0]!.id}::uuid, 'item', 'Point', 'quantity_unit_price',
-            10, 100, 1000, 10, 100, 1000
-          ) RETURNING id
-        `),
-      );
+      const nodeId = await insertDraftBoqNodeViaRpc(tx, {
+        organizationId: orgId,
+        boqId: boq[0]!.id,
+        description: 'Point',
+        quantity: 10,
+        unitPrice: 100,
+        amount: 1000,
+      });
       await tx.execute(sql`SELECT app.activate_project_boq(${orgId}::uuid, ${boq[0]!.id}::uuid)`);
-      return { boqId: boq[0]!.id, nodeId: node[0]!.id };
+      return { boqId: boq[0]!.id, nodeId };
     });
   }
 

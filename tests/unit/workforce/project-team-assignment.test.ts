@@ -16,6 +16,7 @@ const projectTeamRepoPath = path.resolve(
   process.cwd(),
   'src/modules/workforce/data/project-team.repository.ts',
 );
+const createJobPath = path.resolve(process.cwd(), 'src/modules/projects/application/create-job.ts');
 
 const FORBIDDEN_APP_PATTERNS = [
   'getProjectLaborCost',
@@ -89,5 +90,18 @@ describe('project team assignment ≠ Actual', () => {
     expenseSpy.mockRestore();
     timeSpy.mockRestore();
     snapshotSpy.mockRestore();
+  });
+
+  it('createJob assigns via addProjectTeamMember and never invents labor Actual', () => {
+    const source = readFileSync(createJobPath, 'utf8');
+    for (const pattern of FORBIDDEN_APP_PATTERNS) {
+      expect(source, `must not reference ${pattern}`).not.toContain(pattern);
+    }
+    expect(source).toContain('addProjectTeamMember');
+    expect(source).toContain('employee_project_assignments');
+    expect(source).toContain('Assignment alone never creates labor Actual');
+    expect(source).not.toContain('workersNote');
+    expect(source).not.toContain('Workers:');
+    expect(source).not.toContain('mergeWorkersNote');
   });
 });

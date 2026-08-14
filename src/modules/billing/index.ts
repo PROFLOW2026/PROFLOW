@@ -11,6 +11,7 @@ export { createBillingAdjustment } from './application/create-billing-adjustment
 export { listBillingRecords } from './application/list-billing-records';
 export { getBillingRecord } from './application/get-billing-record';
 export { recordPayment } from './application/record-payment';
+export { recordCustomerPayment } from './application/record-customer-payment';
 export { voidPayment } from './application/void-payment';
 export { getProjectBillingPosition } from './application/get-project-billing-position';
 export {
@@ -24,8 +25,10 @@ export { getOrganizationReceivablesSummary } from './application/get-receivables
 export { listPaymentApplications } from './application/list-payment-applications';
 export { computeReceivablesAging } from './domain/aging';
 export { computeReceivablesSummary } from './domain/receivables-summary';
+export { computeClientReceivablesSnapshot } from './domain/client-receivables';
 export type { AgingBucket, AgingBucketKey, ReceivablesAging } from './domain/aging';
 export type { ReceivablesSummary } from './domain/receivables-summary';
+export type { ClientReceivablesSnapshot } from './domain/client-receivables';
 
 export {
   aggregateBillingPosition,
@@ -40,6 +43,11 @@ export {
   sumPaidAmountsForRecord,
 } from './domain/outstanding';
 export { recordStatusShape } from './domain/lifecycle';
+export {
+  assertCustomerPaymentApplicationsValid,
+  computeCustomerPaymentUnapplied,
+  computeInvoiceRemainingOutstanding,
+} from './domain/payment-applications';
 
 export type {
   BillingRecordDetail,
@@ -60,6 +68,7 @@ export {
   createBillingRecordSchema,
   updateBillingRecordSchema,
   createPaymentSchema,
+  recordCustomerPaymentSchema,
   listBillingRecordsSchema,
   listPaymentApplicationsSchema,
   createAdjustmentSchema,
@@ -70,6 +79,7 @@ export type {
   CreateBillingRecordInput,
   UpdateBillingRecordInput,
   CreatePaymentInput,
+  RecordCustomerPaymentInput,
   ListBillingRecordsInput,
   ListPaymentApplicationsInput,
   CreateAdjustmentInput,
@@ -77,3 +87,4 @@ export type {
 
 /** Cross-module billing amount rows for safe portal outstanding (not payment write). */
 export { listProjectBillingAmountRows } from './data/billing.repository';
+export { listPaidAmountRowsByBillingRecordIds } from './data/payments.repository';

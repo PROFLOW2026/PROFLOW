@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   createChangeRequestSchema,
   createQuoteVersionSchema,
+  reverseChangeOrderSchema,
 } from '@/modules/commercial/validation/schemas';
 
 describe('commercial money validation', () => {
@@ -27,6 +28,14 @@ describe('commercial money validation', () => {
       ],
     });
 
+    expect(result.success).toBe(false);
+  });
+
+  it('rejects an empty reversal reason', () => {
+    const result = reverseChangeOrderSchema.safeParse({
+      changeOrderId: '00000000-0000-4000-8000-000000000003',
+      reason: '   ',
+    });
     expect(result.success).toBe(false);
   });
 });

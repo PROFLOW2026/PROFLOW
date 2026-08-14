@@ -57,6 +57,10 @@ export function EditDraftCreditForm({
             <MoneyInput {...controlProps} required value={value} onValueChange={setValue} />
           )}
         </Field>
+        <label className="flex items-start gap-2 text-sm">
+          <input type="checkbox" name="amountIncludesTax" defaultChecked className="mt-1" />
+          <span className="font-medium">{tFields('amountIncludesTax')}</span>
+        </label>
         <Field label={tFields('creditDateLabel')} required>
           {(controlProps) => (
             <Input

@@ -192,6 +192,36 @@ export default async function QuoteDetailPage({
             </div>
           </>
         ) : null}
+        {quote.discountAmount || quote.listSubtotalAmount || quote.discountPercent ? (
+          <>
+            {quote.listSubtotalAmount ? (
+              <div className="flex justify-between gap-2 sm:block">
+                <dt className="text-[var(--pf-text-secondary)]">{t('create.listSubtotalLabel')}</dt>
+                <dd>
+                  <MoneyText value={money(quote.listSubtotalAmount, quote.currency)} />
+                </dd>
+              </div>
+            ) : null}
+            {quote.discountAmount ? (
+              <div className="flex justify-between gap-2 sm:block">
+                <dt className="text-[var(--pf-text-secondary)]">{t('create.discountAmountLabel')}</dt>
+                <dd>
+                  <MoneyText value={money(quote.discountAmount, quote.currency)} />
+                </dd>
+              </div>
+            ) : null}
+            {quote.discountPercent ? (
+              <div className="flex justify-between gap-2 sm:block">
+                <dt className="text-[var(--pf-text-secondary)]">{t('create.discountPercentLabel')}</dt>
+                <dd>
+                  <span className="pf-ltr-island" dir="ltr">
+                    {quote.discountPercent}%
+                  </span>
+                </dd>
+              </div>
+            ) : null}
+          </>
+        ) : null}
         {quote.validityDate ? (
           <div className="flex justify-between gap-2 sm:block">
             <dt className="text-[var(--pf-text-secondary)]">{t('list.columns.validUntil')}</dt>

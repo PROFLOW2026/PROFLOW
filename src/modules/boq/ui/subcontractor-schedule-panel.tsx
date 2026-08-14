@@ -9,6 +9,7 @@ import {
   activateSubcontractorScheduleAction,
   addSubcontractorScheduleLineAction,
   approveSubcontractorValuationAction,
+  createDraftApFromSubcontractorValuationAction,
   createSubcontractorScheduleAction,
   createSubcontractorValuationDraftAction,
   type BoqFormState,
@@ -52,6 +53,7 @@ export interface SubcontractorSchedulePanelProps {
   readonly projectId: string;
   readonly boqId: string;
   readonly canManage: boolean;
+  readonly canProposeApDraft: boolean;
   readonly engagements: readonly SubEngagementOption[];
   readonly items: readonly SubBoqItemOption[];
   readonly schedules: readonly SubScheduleView[];
@@ -59,13 +61,14 @@ export interface SubcontractorSchedulePanelProps {
 
 /**
  * Subcontractor schedule of COST rates.
- * Flow: draft → lines → activate → valuation (period qty default 0) → approve.
- * AP proposal remains manual; proposed_vendor_bill_id only via approved→proposed_ap RPC.
+ * Flow: draft → lines → activate → valuation (period qty default 0) → approve
+ * → create draft vendor bill (not auto-post). proposed_vendor_bill_id via approved→proposed_ap.
  */
 export function SubcontractorSchedulePanel({
   projectId,
   boqId,
   canManage,
+  canProposeApDraft,
   engagements,
   items,
   schedules,
@@ -90,6 +93,10 @@ export function SubcontractorSchedulePanel({
   );
   const [approveValState, approveValAction, approveValPending] = useActionState(
     approveSubcontractorValuationAction,
+    {} as BoqFormState,
+  );
+  const [draftApState, draftApAction, draftApPending] = useActionState(
+    createDraftApFromSubcontractorValuationAction,
     {} as BoqFormState,
   );
 
@@ -315,6 +322,39 @@ export function SubcontractorSchedulePanel({
               {approveValState.ok ? (
                 <p className="text-xs text-[var(--pf-text-secondary)]">
                   {t('subcontractor.valuationApproved')}
+                </p>
+              ) : null}
+
+              {selected.valuations
+                .filter((v) => v.status === 'approved' && !v.proposedVendorBillId)
+                .map((valuation) => (
+                  <form
+                    key={`draft-ap-${valuation.id}`}
+                    action={draftApAction}
+                    className="flex min-w-0 flex-wrap items-center gap-2"
+                  >
+                    <input type="hidden" name="projectId" value={projectId} />
+                    <input type="hidden" name="valuationId" value={valuation.id} />
+                    <span className="text-sm">
+                      {valuation.periodLabel} · {valuation.status}
+                    </span>
+                    {canProposeApDraft ? (
+                      <Button type="submit" size="sm" disabled={draftApPending}>
+                        {t('subcontractor.createDraftAp')}
+                      </Button>
+                    ) : (
+                      <p className="text-xs text-[var(--pf-text-muted)]">
+                        {t('subcontractor.draftApNeedsPermission')}
+                      </p>
+                    )}
+                  </form>
+                ))}
+              {draftApState.error ? (
+                <p className="text-xs text-[var(--pf-status-danger-fg)]">{draftApState.error}</p>
+              ) : null}
+              {draftApState.ok ? (
+                <p className="text-xs text-[var(--pf-text-secondary)]">
+                  {t('subcontractor.draftApCreated')}
                 </p>
               ) : null}
             </>

@@ -60,6 +60,16 @@ export function QuoteCreateForm({
         {(control) => <Input {...control} name="title" required autoFocus />}
       </Field>
 
+      <Field
+        label={t('referenceLabel')}
+        optionalLabel={tCommon('labels.optional')}
+        description={t('referenceHint')}
+      >
+        {(control) => (
+          <Input {...control} name="reference" autoComplete="off" dir="ltr" className="pf-ltr-island" />
+        )}
+      </Field>
+
       <Field label={t('clientLabel')}>
         {(control) => (
           <>
@@ -115,6 +125,25 @@ export function QuoteCreateForm({
       <Field label={t('validityLabel')}>
         {(control) => <Input {...control} name="validityDate" type="date" dir="ltr" />}
       </Field>
+
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <Field label={t('discountAmountLabel')} optionalLabel={tCommon('labels.optional')}>
+          {(control) => (
+            <Input {...control} name="discountAmount" inputMode="decimal" dir="ltr" />
+          )}
+        </Field>
+        <Field label={t('listSubtotalLabel')} optionalLabel={tCommon('labels.optional')}>
+          {(control) => (
+            <Input {...control} name="listSubtotalAmount" inputMode="decimal" dir="ltr" />
+          )}
+        </Field>
+        <Field label={t('discountPercentLabel')} optionalLabel={tCommon('labels.optional')}>
+          {(control) => (
+            <Input {...control} name="discountPercent" inputMode="decimal" dir="ltr" />
+          )}
+        </Field>
+      </div>
+      <p className="text-xs text-[var(--pf-text-muted)]">{t('discountHint')}</p>
 
       <section className="flex flex-col gap-3 rounded-lg border border-[var(--pf-border-default)] p-3">
         <div className="flex items-center justify-between gap-2">

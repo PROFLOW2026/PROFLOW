@@ -132,5 +132,9 @@
     "settings.manage": "Change settings",
     "tax.manage": "Manage tax rules",
     "audit.read": "Read the activity log"
+  },
+  "errors": {
+    "unknownDocumentKind": "Unknown document number kind.",
+    "documentNumberFailed": "Could not allocate an internal document number."
   }
 }

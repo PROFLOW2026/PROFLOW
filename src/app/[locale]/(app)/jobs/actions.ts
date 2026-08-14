@@ -65,6 +65,10 @@ export async function createJobAction(
     clientName = String(formData.get('clientName') ?? '').trim() || null;
   }
 
+  const employeeIds = formData
+    .getAll('employeeIds')
+    .flatMap((value) => (typeof value === 'string' && value.trim() ? [value.trim()] : []));
+
   try {
     const result = await withOrgContext((context) =>
       createJob(context, {
@@ -79,13 +83,19 @@ export async function createJobAction(
         startDate: requiredFormValue(formData, 'startDate'),
         targetEndDate: formValue(formData, 'targetEndDate'),
         notes: formValue(formData, 'notes'),
-        workersNote: formValue(formData, 'workersNote'),
+        employeeIds,
       }),
     );
 
     revalidatePath('/jobs');
     revalidatePath('/projects');
-    redirect({ href: `/jobs/${result.projectId}`, locale });
+    revalidatePath(`/jobs/${result.projectId}`);
+    if (employeeIds.length > 0) {
+      revalidatePath('/workforce', 'layout');
+    }
+    const href =
+      employeeIds.length > 0 ? `/jobs/${result.projectId}?tab=team` : `/jobs/${result.projectId}`;
+    redirect({ href, locale });
   } catch (error) {
     if (error instanceof ValidationError) return await mapValidationError(error);
     if (error instanceof AuthorizationError) return { error: tErrors('notAllowed') };

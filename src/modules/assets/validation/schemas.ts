@@ -171,6 +171,10 @@ export const recordInventoryMovementSchema = z
     quantity: z.string().trim().min(1),
     occurredOn: requiredDate,
     projectId: optionalUuid,
+    fromLocationId: optionalUuid,
+    toLocationId: optionalUuid,
+    /** Single-location alias for receive / issue / adjust. */
+    locationId: optionalUuid,
     notes: optionalText,
   })
   .superRefine((data, ctx) => {
@@ -183,19 +187,64 @@ export const recordInventoryMovementSchema = z
           message: parsed.error.issues[0]?.message ?? 'Invalid adjustment quantity',
         });
       }
-      return;
+    } else {
+      const parsed = requiredQuantity.safeParse(data.quantity);
+      if (!parsed.success) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['quantity'],
+          message: parsed.error.issues[0]?.message ?? 'Invalid quantity',
+        });
+      }
     }
-    const parsed = requiredQuantity.safeParse(data.quantity);
-    if (!parsed.success) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ['quantity'],
-        message: parsed.error.issues[0]?.message ?? 'Invalid quantity',
-      });
+
+    if (data.movementType === 'transfer') {
+      if (!data.fromLocationId) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['fromLocationId'],
+          message: 'From location is required for transfer',
+        });
+      }
+      if (!data.toLocationId) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['toLocationId'],
+          message: 'To location is required for transfer',
+        });
+      }
+      if (data.fromLocationId && data.toLocationId && data.fromLocationId === data.toLocationId) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['toLocationId'],
+          message: 'Transfer locations must be different',
+        });
+      }
     }
   });
 
 export type RecordInventoryMovementInput = z.input<typeof recordInventoryMovementSchema>;
+
+export const createInventoryLocationSchema = z.object({
+  name: z.string().trim().min(1, 'Name is required').max(200),
+  code: optionalText,
+});
+
+export type CreateInventoryLocationInput = z.input<typeof createInventoryLocationSchema>;
+
+export const updateInventoryLocationSchema = z.object({
+  locationId: z.string().uuid(),
+  name: z.string().trim().min(1).max(200).optional(),
+  code: optionalText,
+});
+
+export type UpdateInventoryLocationInput = z.input<typeof updateInventoryLocationSchema>;
+
+export const archiveInventoryLocationSchema = z.object({
+  locationId: z.string().uuid(),
+});
+
+export type ArchiveInventoryLocationInput = z.input<typeof archiveInventoryLocationSchema>;
 
 export const inventoryMovementTypeSchema = z.enum(INVENTORY_MOVEMENT_TYPES);
 

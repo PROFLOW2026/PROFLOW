@@ -370,6 +370,24 @@ export function ApBillCreateForm({
         totalAmount={totalAmount}
       />
 
+      <label className="flex items-start gap-2 text-sm">
+        <input type="checkbox" name="amountIncludesTax" defaultChecked className="mt-1" />
+        <span>
+          <span className="font-medium">{t('amountIncludesTax')}</span>
+          <span className="mt-0.5 block text-[var(--pf-text-secondary)]">{t('taxSplitHint')}</span>
+        </span>
+      </label>
+
+      <label className="flex items-start gap-2 text-sm">
+        <input type="checkbox" name="asDraft" className="mt-1" />
+        <span>
+          <span className="font-medium">{t('saveAsDraft')}</span>
+          <span className="mt-0.5 block text-[var(--pf-text-secondary)]">{t('saveAsDraftHint')}</span>
+        </span>
+      </label>
+
+      <p className="text-sm text-[var(--pf-text-secondary)]">{t('actualVsPayableHint')}</p>
+
       <Button type="submit" loading={pending} disabled={!vendorId}>
         {pending ? tCommon('states.saving') : t('submit')}
       </Button>

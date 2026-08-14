@@ -107,6 +107,13 @@ describe('buildProjectFinancialExplainability', () => {
       'committed_open',
       'expected_remaining',
     ]);
+
+    expect(byMetric.actual?.basisKey).toBe('netExVat');
+    expect(byMetric.current_contract?.basisKey).toBe('netExVat');
+    expect(byMetric.actual_margin?.basisKey).toBe('profitNet');
+    expect(byMetric.forecast_margin?.basisKey).toBe('profitNet');
+    expect(byMetric.outstanding_ar?.basisKey).toBe('outstandingCash');
+    expect(byMetric.outstanding_ap?.basisKey).toBe('cashNotProfit');
   });
 
   it('hides profit / commercial / billing packs when permissions deny them', () => {

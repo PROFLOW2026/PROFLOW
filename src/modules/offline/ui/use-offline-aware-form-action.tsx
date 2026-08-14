@@ -1,8 +1,12 @@
 'use client';
 
 import { useCallback, useContext, createContext, useMemo, type ReactNode } from 'react';
+import { collectCreatePhotoFiles } from '@/modules/documents/domain/create-form-files';
+import { normalizeUploadMime } from '@/modules/documents/domain/file-rules';
 import type { DraftKind, DraftScope } from '../domain/types';
+import { captureOwnerTypeForProductKind } from '../domain/sync-order';
 import { isBrowserOnline } from '../data/browser-online';
+import { enqueueCaptureDraft } from '../data/enqueue-capture';
 import { enqueueProductDraft } from '../data/enqueue-product-draft';
 
 export interface OfflineScopeContextValue {
@@ -92,7 +96,7 @@ export function useOfflineAwareFormAction<S extends OfflineDraftFormState>(optio
         }
         const payload = buildPayload(formData);
         const meta = resolveServerMeta?.(formData, payload) ?? {};
-        await enqueueProductDraft({
+        const draft = await enqueueProductDraft({
           organizationId,
           userId,
           kind,
@@ -101,6 +105,23 @@ export function useOfflineAwareFormAction<S extends OfflineDraftFormState>(optio
           serverId: meta.serverId ?? null,
           serverUpdatedAt: meta.serverUpdatedAt ?? null,
         });
+        const captureOwnerType = captureOwnerTypeForProductKind(kind);
+        if (captureOwnerType) {
+          for (const file of collectCreatePhotoFiles(formData)) {
+            const mime = normalizeUploadMime(file.type, file.name);
+            if (!mime.ok) continue;
+            await enqueueCaptureDraft({
+              organizationId,
+              userId,
+              file,
+              fileName: file.name,
+              mimeType: mime.mimeType,
+              ownerType: captureOwnerType,
+              ownerId: null,
+              pendingOwnerDraftLocalId: draft.localId,
+            });
+          }
+        }
         return offlineSuccessState;
       }
       return onlineAction(prev, formData);

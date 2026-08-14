@@ -1,5 +1,6 @@
 'use server';
 
+import { revalidatePath } from 'next/cache';
 import { redirect } from '@/shared/i18n/navigation';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { createFormSubmission, FORM_OWNER_TYPES } from '@/modules/forms';
@@ -46,6 +47,10 @@ export async function startOwnerSubmissionAction(
         ownerId,
       }),
     );
+    revalidatePath('/forms');
+    if (ownerType === 'work_order') {
+      revalidatePath(`/work-orders/${ownerId}`);
+    }
     redirect({ href: `/forms/${submission.id}`, locale });
   } catch (error) {
     if (error instanceof AppError) return { error: tErrors('validationFailed') };

@@ -10,6 +10,7 @@ import {
   roles,
 } from '@drizzle/schema';
 import { createTestDatabase, resultRows, type TestDatabase } from '../../setup/database';
+import { insertDraftBoqNodeViaRpc } from '../../setup/boq-draft-node';
 import { createTestOrganization, createTestUser, seedSystem } from '../../setup/fixtures';
 
 /**
@@ -64,30 +65,23 @@ describe('BOQ owner v3 apply blockers', () => {
           ) RETURNING id
         `),
       );
-      const node = resultRows<{ id: string }>(
-        await tx.execute(sql`
-          INSERT INTO boq_nodes (
-            organization_id, boq_id, node_kind, description, pricing_type,
-            original_quantity, original_unit_price, original_amount,
-            current_quantity, current_unit_price, current_amount
-          ) VALUES (
-            ${orgId}::uuid, ${boq[0]!.id}::uuid, 'item', 'Base', 'quantity_unit_price',
-            10, 100, 1000, 10, 100, 1000
-          ) RETURNING id
-        `),
-      );
-      const lump = resultRows<{ id: string }>(
-        await tx.execute(sql`
-          INSERT INTO boq_nodes (
-            organization_id, boq_id, node_kind, description, pricing_type,
-            original_quantity, original_unit_price, original_amount,
-            current_quantity, current_unit_price, current_amount
-          ) VALUES (
-            ${orgId}::uuid, ${boq[0]!.id}::uuid, 'item', 'Lump', 'lump_sum',
-            1, 500, 500, 1, 500, 500
-          ) RETURNING id
-        `),
-      );
+      const nodeId = await insertDraftBoqNodeViaRpc(tx, {
+        organizationId: orgId,
+        boqId: boq[0]!.id,
+        description: 'Base',
+        quantity: 10,
+        unitPrice: 100,
+        amount: 1000,
+      });
+      const lumpId = await insertDraftBoqNodeViaRpc(tx, {
+        organizationId: orgId,
+        boqId: boq[0]!.id,
+        description: 'Lump',
+        pricingType: 'lump_sum',
+        quantity: 1,
+        unitPrice: 500,
+        amount: 500,
+      });
       await tx.execute(sql`
         SELECT app.activate_project_boq(${orgId}::uuid, ${boq[0]!.id}::uuid)
       `);
@@ -106,7 +100,7 @@ describe('BOQ owner v3 apply blockers', () => {
             organization_id, batch_id, boq_node_id, measured_quantity, approved_quantity,
             unit_price_snapshot, period_amount, currency
           ) VALUES (
-            ${orgId}::uuid, ${batch[0]!.id}::uuid, ${node[0]!.id}::uuid, 2, 0, 100, 0, 'ILS'
+            ${orgId}::uuid, ${batch[0]!.id}::uuid, ${nodeId}::uuid, 2, 0, 100, 0, 'ILS'
           ) RETURNING id
         `),
       );
@@ -130,7 +124,7 @@ describe('BOQ owner v3 apply blockers', () => {
         await tx.execute(sql`
           SELECT app.boq_allocate_change(
             ${orgId}::uuid, ${boq[0]!.id}::uuid, ${co[0]!.id}::uuid,
-            'quantity_change', ${node[0]!.id}::uuid, 1, 0, 0, 'seed alloc', NULL
+            'quantity_change', ${nodeId}::uuid, 1, 0, 0, 'seed alloc', NULL
           ) AS id
         `),
       );
@@ -160,7 +154,7 @@ describe('BOQ owner v3 apply blockers', () => {
           INSERT INTO boq_subcontractor_schedule_lines (
             organization_id, schedule_id, boq_node_id, agreed_quantity, unit_rate, amount, currency
           ) VALUES (
-            ${orgId}::uuid, ${sched[0]!.id}::uuid, ${node[0]!.id}::uuid, 2, 50, 100, 'ILS'
+            ${orgId}::uuid, ${sched[0]!.id}::uuid, ${nodeId}::uuid, 2, 50, 100, 'ILS'
           ) RETURNING id
         `),
       );
@@ -184,8 +178,8 @@ describe('BOQ owner v3 apply blockers', () => {
       );
       return {
         boqId: boq[0]!.id,
-        nodeId: node[0]!.id,
-        lumpNodeId: lump[0]!.id,
+        nodeId,
+        lumpNodeId: lumpId,
         progressLineId: pline[0]!.id,
         allocId: alloc[0]!.id,
         scheduleLineId: sline[0]!.id,

@@ -23,6 +23,10 @@ const optionalDate = z.preprocess(
 
 const optionalText = z.preprocess(emptyToNull, z.string().trim().max(2000).nullable().optional());
 
+const positiveQuantity = moneyString.refine((value) => !/^0+(\.0+)?$/.test(value), {
+  message: 'Quantity must be greater than zero',
+});
+
 export const createMaterialItemSchema = z.object({
   name: z.string().trim().min(1).max(200),
   sku: z.string().trim().max(80).optional(),
@@ -153,5 +157,26 @@ export type CreatePurchaseOrderInput = z.infer<typeof createPurchaseOrderSchema>
 export const issuePurchaseOrderSchema = z.object({
   purchaseOrderId: z.string().uuid(),
 });
+
+export const receivePurchaseOrderSchema = z.object({
+  purchaseOrderId: z.string().uuid(),
+  receivedOn: z
+    .string()
+    .trim()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be YYYY-MM-DD'),
+  reference: z.string().trim().max(80).optional(),
+  notes: optionalText,
+  lines: z
+    .array(
+      z.object({
+        purchaseOrderLineId: z.string().uuid(),
+        quantity: positiveQuantity,
+        notes: optionalText,
+      }),
+    )
+    .min(1),
+});
+
+export type ReceivePurchaseOrderInput = z.infer<typeof receivePurchaseOrderSchema>;
 
 export const purchaseOrderStatusSchema = z.enum(PURCHASE_ORDER_STATUSES);

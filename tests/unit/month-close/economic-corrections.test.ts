@@ -153,11 +153,14 @@ describe('economic correction netting', () => {
 
     expect(original?.isSuperseded).toBe(true);
     expect(original?.correctionAmount).toEqual(money('100', 'ILS'));
+    expect(original?.currentEconomicAmount).toBeNull();
     expect(replacement?.originalAmount).toEqual(money('100', 'ILS'));
     expect(replacement?.correctionAmount).toEqual(money('40', 'ILS'));
+    expect(replacement?.currentEconomicAmount).toEqual(money('40', 'ILS'));
     expect(replacement?.isSuperseded).toBe(false);
     expect(audit?.isEconomic).toBe(false);
     expect(audit?.correctionAmount).toBeNull();
+    expect(audit?.currentEconomicAmount).toBeNull();
   });
 
   it('passes the surviving net into compose once (not a second Actual engine)', () => {

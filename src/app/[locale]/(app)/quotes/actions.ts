@@ -48,6 +48,15 @@ async function mapAppError(error: unknown): Promise<QuotesFormState> {
   const t = await getTranslations('quotes');
   if (error instanceof ValidationError) return mapValidationError(error);
   if (error instanceof DomainRuleError) {
+    if (error.messageKey.startsWith('approvals.')) {
+      const tApprovals = await getTranslations('approvals');
+      const approvalsKey = error.messageKey.replace(/^approvals\./, '');
+      try {
+        return { error: tApprovals(approvalsKey as 'errors.submittedPending') };
+      } catch {
+        return { error: error.message };
+      }
+    }
     const key = error.messageKey.replace(/^quotes\./, '');
     try {
       return { error: t(key as 'errors.invalidTransition') };
@@ -101,6 +110,10 @@ export async function createQuoteAction(
         taxMode: (formValue(formData, 'taxMode') as QuoteTaxMode | undefined) ?? 'exclusive',
         validityDate: formValue(formData, 'validityDate') ?? null,
         notes: formValue(formData, 'notes') ?? null,
+        reference: formValue(formData, 'reference') ?? null,
+        discountAmount: formValue(formData, 'discountAmount') ?? null,
+        listSubtotalAmount: formValue(formData, 'listSubtotalAmount') ?? null,
+        discountPercent: formValue(formData, 'discountPercent') ?? null,
         lines: parseLines(formData),
       }),
     );
@@ -127,6 +140,9 @@ export async function updateQuoteAction(
         taxMode: formValue(formData, 'taxMode') as QuoteTaxMode | undefined,
         validityDate: formValue(formData, 'validityDate') ?? null,
         notes: formValue(formData, 'notes') ?? null,
+        discountAmount: formValue(formData, 'discountAmount') ?? null,
+        listSubtotalAmount: formValue(formData, 'listSubtotalAmount') ?? null,
+        discountPercent: formValue(formData, 'discountPercent') ?? null,
         lines: parseLines(formData),
       }),
     );

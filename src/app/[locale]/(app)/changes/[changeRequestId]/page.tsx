@@ -7,6 +7,7 @@ import { StatusBadge, type StatusShape } from '@/components/ui/status-badge';
 import { getChangeRequestDetail, signedChangeAmount } from '@/modules/commercial';
 import type { QuoteVersionStatus } from '@/modules/commercial/domain/types';
 import { ChangeStatusBadge } from '@/modules/commercial/ui/change-status-badge';
+import { ReverseChangeOrderForm } from '@/modules/commercial/ui/reverse-change-order-form';
 import { MoneyText } from '@/components/patterns/money-text';
 import { getEntityDocumentPanelData } from '@/modules/documents';
 import { DocumentAttachments } from '@/modules/documents/ui';
@@ -17,6 +18,7 @@ import { fromNumericString } from '@/shared/money/money';
 import {
   cancelChangeAction,
   rejectChangeAction,
+  reverseChangeOrderAction,
   submitForApprovalAction,
 } from '../actions';
 import { ChangeActionButtons } from './change-action-buttons';
@@ -160,9 +162,16 @@ export default async function ChangeDetailPage({
       ) : null}
 
       {detail.changeOrder ? (
-        <section className="rounded-lg border border-[var(--pf-border-default)] p-4">
+        <section className="flex min-w-0 flex-col gap-3 rounded-lg border border-[var(--pf-border-default)] p-4">
           <h2 className="text-base font-semibold">{t('detail.changeOrderTitle')}</h2>
           <p className="text-sm text-[var(--pf-text-secondary)]">{detail.changeOrder.reference}</p>
+          <ReverseChangeOrderForm
+            changeOrder={detail.changeOrder}
+            reversingChangeOrder={detail.reversingChangeOrder}
+            changeRequestId={changeRequestId}
+            action={reverseChangeOrderAction}
+            canReverse={canApprove}
+          />
         </section>
       ) : null}
 

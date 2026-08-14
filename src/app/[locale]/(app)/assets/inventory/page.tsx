@@ -7,7 +7,7 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/ui/page-header';
 import { ResponsiveTable } from '@/components/patterns/responsive-table';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { listInventoryItemsForOrg, type ReorderStatus } from '@/modules/assets';
+import { listInventoryItemsForOrg, listInventoryLocationsForOrg, type ReorderStatus } from '@/modules/assets';
 import { listMaterialsForOrg } from '@/modules/procurement';
 import { withOrgContext } from '@/shared/auth/session';
 import { Link } from '@/shared/i18n/navigation';
@@ -15,8 +15,10 @@ import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { AssetsSectionNav } from '../assets-section-nav';
 import { InventoryItemCreateForm } from './inventory-item-create-form';
+import { InventoryLocationsPanel } from './inventory-locations-panel';
 import { textNavLinkClassName } from '@/components/ui/pressable';
 import { cn } from '@/shared/ui/cn';
+import { Alert } from '@/components/ui/alert';
 
 /**
  * UX: operational inventory under /assets/inventory.
@@ -53,10 +55,11 @@ export default async function InventoryPage({
   const t = await getTranslations('assets');
   const { new: showNew } = await searchParams;
 
-  const { items, materials, canManage } = await withOrgContext(async (context) => {
+  const { items, materials, locations, canManage } = await withOrgContext(async (context) => {
     const canReadMaterials = hasPermission(context, PERMISSIONS.MATERIALS_READ);
     return {
       items: await listInventoryItemsForOrg(context),
+      locations: await listInventoryLocationsForOrg(context),
       materials: canReadMaterials
         ? (await listMaterialsForOrg(context)).map((m) => ({
             id: m.id,
@@ -85,6 +88,16 @@ export default async function InventoryPage({
         }
       />
       <AssetsSectionNav active="inventory" />
+
+      <Alert tone="info">
+        <span className="block font-medium">{t('inventory.qtyOnlyBannerHe')}</span>
+        <span className="block text-sm">{t('inventory.qtyOnlyBannerEn')}</span>
+      </Alert>
+
+      <InventoryLocationsPanel
+        locations={locations}
+        canManage={canManage}
+      />
 
       {canManage && showNew === '1' ? (
         <div className="min-w-0 rounded-lg border border-[var(--pf-border-default)] p-4">

@@ -139,4 +139,5 @@ export type MarkReadyInput = z.infer<typeof markReadySchema>;
 export type ClosePeriodInput = z.infer<typeof closePeriodSchema>;
 export type DemoteToOpenInput = z.infer<typeof demoteToOpenSchema>;
 export type CreateAdjustmentInput = z.input<typeof createAdjustmentSchema>;
+export type CreateAdjustmentParsed = z.output<typeof createAdjustmentSchema>;
 export type ListPeriodsInput = z.infer<typeof listPeriodsSchema>;

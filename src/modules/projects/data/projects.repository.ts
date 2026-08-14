@@ -1,5 +1,6 @@
 import { and, asc, desc, eq, ilike, isNull, or, sql } from 'drizzle-orm';
 import { clients, contracts, projects } from '@drizzle/schema';
+import { existsSearchableCustomFieldValueSql } from '@/modules/custom-fields';
 import {
   ORG_LIST_EXPORT_CAP,
   ORG_LIST_HARD_CAP,
@@ -213,7 +214,13 @@ export async function listProjects(
 
   if (filters.search?.trim()) {
     const term = `%${filters.search.trim()}%`;
-    conditions.push(or(ilike(projects.name, term), ilike(projects.location, term))!);
+    conditions.push(
+      or(
+        ilike(projects.name, term),
+        ilike(projects.location, term),
+        existsSearchableCustomFieldValueSql(organizationId, 'project', projects.id, term),
+      )!,
+    );
   }
 
   const sortBy = filters.sortBy ?? 'updated_at';

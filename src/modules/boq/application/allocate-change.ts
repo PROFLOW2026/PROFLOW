@@ -105,13 +105,11 @@ export async function allocateApprovedChangeToBoq(
   };
 }
 
-/** Append-only reversal of an effective allocation (never deletes history). */
-export async function reverseBoqChangeAllocation(
+async function executeReverseBoqChangeAllocation(
   context: OrgContext,
   allocationId: string,
   notes?: string,
 ) {
-  assertPermission(context, PERMISSIONS.BOQ_MANAGE);
   const id = await reverseChangeAllocationRpc(
     context.db,
     context.organizationId,
@@ -126,4 +124,29 @@ export async function reverseBoqChangeAllocation(
     after: { reversesAllocationId: allocationId, kind: 'reversal' },
   });
   return { allocationId: id };
+}
+
+/** Append-only reversal of an effective allocation (never deletes history). */
+export async function reverseBoqChangeAllocation(
+  context: OrgContext,
+  allocationId: string,
+  notes?: string,
+) {
+  assertPermission(context, PERMISSIONS.BOQ_MANAGE);
+  return executeReverseBoqChangeAllocation(context, allocationId, notes);
+}
+
+/**
+ * Standalone CO-scoped BOQ unwind is forbidden. Canonical path is
+ * `reverseChangeOrder` (changes.approve) which inserts the reversing CO first.
+ */
+export async function reverseOutstandingBoqAllocationsForChangeOrder(
+  _context: OrgContext,
+  _changeOrderId: string,
+  _notes?: string,
+): Promise<never> {
+  throw new ConflictError(
+    'BOQ allocations for a change order can only be reversed through commercial change-order reversal',
+    'changes.errors.boqUnwindRequiresCommercialReversal',
+  );
 }

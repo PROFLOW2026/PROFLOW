@@ -16,6 +16,7 @@
     "catalog": "תחומים וסוגים",
     "templates": "תבניות מבנה",
     "tax": "מס",
+    "numbering": "מספור מסמכים",
     "approvals": "אישורים",
     "portal": "גישת פורטל",
     "customFields": "שדות מותאמים",
@@ -48,13 +49,14 @@
     "crm": "CRM ומכירות טרום־פרויקט",
     "compliance": "ביטוחים וציות",
     "portal": "גישת פורטל",
+    "portalHint": "תשתית בלבד — כניסת פורטל ציבורית כבויה. שינוי התצוגה אינו פותח כניסה ללקוחות.",
     "api": "API ו־webhooks",
     "procurement": "רכש והזמנות רכש",
     "materials": "קטלוג חומרים",
     "field_ops": "תפעול שטח",
     "assets": "נכסים וצי רכב",
     "jobs": "עבודות (קצרות / יומיות)",
-    "quotes": "הצעות מחיר (לפני מכירה — לא חיוב)",
+    "quotes": "הצעות מחיר לפני פרויקט (לא חיוב)",
     "service": "קריאות שירות / הזמנות עבודה",
     "approvals": "אישורים",
     "month_close": "סגירת חודש (אופציונלי)",
@@ -312,7 +314,8 @@
         "issued": "הוצאת גרסת הצעה"
       },
       "change_order": {
-        "created": "יצירת שינוי מסחרי"
+        "created": "יצירת שינוי מסחרי",
+        "reversed": "ביטול הזמנת שינוי"
       },
       "billing_record": {
         "created": "יצירת חשבון",
@@ -358,7 +361,9 @@
       "document": {
         "uploaded": "העלאת מסמך",
         "finalized": "סגירת מסמך",
-        "deleted": "מחיקת מסמך"
+        "deleted": "מחיקת מסמך",
+        "storage_cleanup_failed": "ניקוי קובץ המסמך באחסון נכשל",
+        "storage_cleanup_completed": "ניקוי קובץ המסמך באחסון הושלם"
       },
       "tax_rule": {
         "created": "יצירת כלל מס",
@@ -426,7 +431,8 @@
         "created": "יצירת הזמנת רכש",
         "issued": "הנפקת הזמנת רכש",
         "cancelled": "ביטול הזמנת רכש",
-        "closed": "סגירת הזמנת רכש"
+        "closed": "סגירת הזמנת רכש",
+        "received": "קבלת הזמנת רכש"
       },
       "procurement": {
         "supplier_quote_received": "קבלת הצעת ספק"
@@ -474,6 +480,11 @@
       },
       "inventory_movement": {
         "recorded": "רישום תנועת מלאי"
+      },
+      "inventory_location": {
+        "created": "יצירת מיקום מלאי",
+        "updated": "עדכון מיקום מלאי",
+        "archived": "ארכוב מיקום מלאי"
       },
       "material_usage": {
         "recorded": "נרשם שימוש בחומר",
@@ -634,6 +645,7 @@
       "maintenance_record": "רשומת תחזוקה",
       "inventory_item": "פריט מלאי",
       "inventory_movement": "תנועת מלאי",
+      "inventory_location": "מיקום מלאי",
       "recurring_financial_draft": "תבנית טיוטה חוזרת",
       "recurring_financial_draft_run": "הרצת טיוטה חוזרת",
       "retention_release": "שחרור עיכבון",
@@ -650,6 +662,27 @@
     "displayName": "השם שלכם",
     "language": "שפת הממשק",
     "saved": "הפרופיל עודכן."
+  },
+  "numbering": {
+    "title": "מספור מסמכים",
+    "subtitle": "מספרים פנימיים למעקב שמוקצים כשמשאירים את שדה הייחוס ריק. בקשות שינוי וצווי שינוי נשארים עם המספור לפי פרויקט.",
+    "legalDisclaimer": "מספור פנימי למעקב. זה אינו מספור חשבוניות מס / חשבונית ישראל.",
+    "commercialNote": "המספרים האלה מיועדים למעקב בתוך ProjectFlow בלבד. הם אינם חשבוניות סטטוטוריות ואינם מנפיקים חשבונית מס.",
+    "perProjectNote": "לא מיושם ביצירה. בקשות שינוי וצווי שינוי נשארים עם מספור לפי פרויקט כגון CR-001 / CO-001.",
+    "prefix": "קידומת",
+    "padding": "ריפוד ספרות",
+    "nextNumber": "המספר הבא",
+    "save": "שמירת מספור",
+    "saving": "שומרים…",
+    "saved": "המספור עודכן.",
+    "kinds": {
+      "estimate": "הצעה לפני פרויקט",
+      "change_request": "בקשת שינוי",
+      "change_order": "צו שינוי",
+      "purchase_order": "הזמנת רכש",
+      "vendor_bill": "חשבון ספק",
+      "billing_record": "רשומת חיוב"
+    }
   },
   "notAllowed": {
     "title": "אין הרשאה",

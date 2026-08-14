@@ -4,8 +4,11 @@ import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/ui/page-header';
 import { listFieldOpsWorkPackages } from '@/modules/field-ops';
+import { isStorageConfigured } from '@/modules/documents';
 import { listProjectsForOrg } from '@/modules/projects';
 import { withOrgContext } from '@/shared/auth/session';
+import { hasPermission } from '@/shared/permissions/assert';
+import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { Link } from '@/shared/i18n/navigation';
 import { InspectionCreateForm } from '../inspection-create-form';
 import { textNavLinkMutedClassName } from '@/components/ui/pressable';
@@ -28,14 +31,21 @@ export default async function NewInspectionPage({
   const t = await getTranslations('fieldOps');
   const { projectId } = await searchParams;
 
-  const { projects, workPackages } = await withOrgContext(async (context) => {
-    const projectRows = await listProjectsForOrg(context, {});
-    const packages = await listFieldOpsWorkPackages(
-      context,
-      projectRows.map((p) => p.id),
-    );
-    return { projects: projectRows, workPackages: packages };
-  });
+  const { projects, workPackages, canManageDocuments, storageConfigured } = await withOrgContext(
+    async (context) => {
+      const projectRows = await listProjectsForOrg(context, {});
+      const packages = await listFieldOpsWorkPackages(
+        context,
+        projectRows.map((p) => p.id),
+      );
+      return {
+        projects: projectRows,
+        workPackages: packages,
+        canManageDocuments: hasPermission(context, PERMISSIONS.DOCUMENTS_MANAGE),
+        storageConfigured: isStorageConfigured(),
+      };
+    },
+  );
 
   if (projects.length === 0) {
     return (
@@ -72,6 +82,8 @@ export default async function NewInspectionPage({
         projects={projects.map((p) => ({ id: p.id, name: p.name }))}
         workPackages={workPackages}
         defaultProjectId={projectId}
+        canManageDocuments={canManageDocuments}
+        storageConfigured={storageConfigured}
       />
     </div>
   );

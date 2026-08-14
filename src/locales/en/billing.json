@@ -1,6 +1,7 @@
 {
   "title": "Billing and collections",
-  "subtitle": "Track what you billed, what was collected, and what is still outstanding.",
+  "subtitle": "Track invoice totals, what was collected, and cash still outstanding to collect. Billing is not a quote.",
+  "reportsEntry": "Cash & receivables report",
   "statutoryDisclosure": "Internal billing tracking only — not statutory invoice issuance.",
   "list": {
     "project": "Project",
@@ -9,14 +10,14 @@
     "issueDate": "Date",
     "amount": "Amount",
     "paid": "Paid",
-    "outstanding": "Outstanding",
+    "outstanding": "Outstanding to collect",
     "status": "Status",
     "unknownProject": "Unknown project",
     "filtersLabel": "Billing filters",
     "filters": {
       "all": "All billing",
       "paid": "Paid",
-      "outstanding": "Outstanding",
+      "outstanding": "Outstanding to collect",
       "overdue": "Overdue"
     },
     "emptyTitle": "No billing records yet",
@@ -25,7 +26,7 @@
   },
   "aging": {
     "title": "Receivables aging",
-    "note": "Aging uses Outstanding only. VAT is not treated as revenue. Foreign-currency records are excluded.",
+    "note": "Aging uses outstanding to collect only. Invoice totals include VAT if entered — VAT is not revenue for profit. Foreign-currency records are excluded.",
     "total": "Total outstanding",
     "count": "{count, plural, =0 {No records} =1 {# record} other {# records}}",
     "buckets": {
@@ -38,7 +39,7 @@
   },
   "receivables": {
     "title": "Receivables summary",
-    "integrityNote": "Outstanding is derived (Invoiced − Paid). Credit notes reduce Outstanding; voided records and voided payments are excluded. VAT is not profit or revenue.",
+    "integrityNote": "Outstanding to collect = Invoice total − Paid. Includes VAT if entered. Credit notes reduce outstanding; voided records and voided payments are excluded. VAT is not profit or revenue.",
     "totalOutstanding": "Total outstanding",
     "overdueTotal": "Overdue",
     "overdueCount": "{count, plural, =0 {No overdue records} =1 {# overdue record} other {# overdue records}}",
@@ -67,8 +68,8 @@
     "retention_release": "Retention release"
   },
   "integrity": {
-    "creditNoteReducesInvoiced": "Credit notes reduce Invoiced totals; they are not revenue.",
-    "voidExcluded": "Voided billing records and voided payments are excluded from Invoiced, Paid, and Outstanding."
+    "creditNoteReducesInvoiced": "Credit notes reduce invoice totals; they are not revenue for profit.",
+    "voidExcluded": "Voided billing records and voided payments are excluded from invoice total, Paid, and outstanding to collect."
   },
   "form": {
     "title": "New billing record",
@@ -114,6 +115,11 @@
     "billingRecordPlaceholder": "Select a billing record",
     "amount": "Amount received",
     "partialAllowed": "Partial payments are allowed.",
+    "allocateAcrossInvoices": "Allocate across invoices",
+    "singleInvoice": "Single invoice",
+    "allocations": "Invoice allocations",
+    "unappliedRemainder": "Unapplied remainder",
+    "splitHint": "One payment can be allocated across finalized invoices of the same client. Unapplied remainder is allowed.",
     "paymentDate": "Payment date",
     "method": "Method",
     "reference": "Reference",
@@ -157,7 +163,7 @@
     "emptyAction": "Add billing",
     "recordsTitle": "Billing records",
     "addBilling": "Add billing",
-    "integrityHint": "Credit notes reduce Invoiced. Voided records are excluded from totals."
+    "integrityHint": "Credit notes reduce invoice totals. Voided records are excluded from totals. Invoice total is not revenue for profit."
   },
   "errors": {
     "notEditable": "Only draft billing records can be edited.",
@@ -169,6 +175,11 @@
     "currencyMismatch": "Billing currency must match the project currency.",
     "hasRecordedPayments": "Void recorded payments before voiding this billing record.",
     "paymentOverApplied": "Payment would exceed receivable now (after retention held).",
+    "paymentTargetCreditNote": "Payments cannot be recorded against credit notes.",
+    "paymentClientMismatch": "Payment client must match each invoice client.",
+    "paymentCurrencyMismatch": "Payment currency must match each invoice currency.",
+    "paymentDuplicateInvoice": "The same invoice cannot be applied twice in one payment.",
+    "applicationsExceedPayment": "Allocated amounts exceed the payment amount.",
     "retentionInvalid": "Retention amount is invalid.",
     "retentionExceedsTotal": "Retention cannot exceed the billing total.",
     "retentionCannotIncrease": "Retention cannot be increased after finalize; record a new billing record.",

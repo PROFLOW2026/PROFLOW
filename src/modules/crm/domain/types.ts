@@ -3,6 +3,7 @@
  * Opportunity is not a Project — conversion is an explicit action.
  */
 
+import type { AuditEventSummary } from '@/shared/audit/types';
 import { AUDIT_ACTIONS } from '@/shared/audit/actions';
 
 export const PROSPECT_STATUSES = ['active', 'converted', 'inactive'] as const;
@@ -99,6 +100,10 @@ export interface OpportunityRecord {
   readonly convertedContractId: string | null;
   readonly convertedAt: Date | null;
   readonly notes: string | null;
+  /** Due instant for the next follow-up. Distinct from expectedStartDate. */
+  readonly nextActionAt: Date | null;
+  /** Short next-action label. Distinct from general notes and the notes log. */
+  readonly nextActionText: string | null;
   readonly archivedAt: Date | null;
   readonly createdAt: Date;
   readonly updatedAt: Date;
@@ -204,6 +209,8 @@ export interface OpportunityDetail extends Omit<OpportunityRecord, 'notes'> {
   /** Activity / timeline notes. */
   readonly notes: readonly OpportunityNoteRecord[];
   readonly estimates: readonly EstimateRecord[];
+  /** Org-scoped audit summaries for this opportunity; not a synthetic activity feed. */
+  readonly auditEvents: readonly AuditEventSummary[];
   readonly salesQuotes: readonly (SalesQuoteRecord & {
     readonly versions: readonly (SalesQuoteVersionRecord & {
       readonly lines: readonly SalesQuoteLineRecord[];

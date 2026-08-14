@@ -184,6 +184,7 @@ function drillFromMetric(
 
   return {
     explanation: t(`explain.formulas.${explanation.formulaKey}`),
+    basis: t(`basis.${explanation.basisKey}`),
     lines,
     links,
     whyLabel: t('explain.whyThisNumber'),
@@ -267,6 +268,7 @@ export function ProjectFinancialsKpiPanel({
           value={kpis.currentContract}
           nature={t('metricNature.commercial')}
           explanation={contractDrill?.explanation ?? t('kpis.currentContractHint')}
+          basis={contractDrill?.basis ?? t('basis.netExVat')}
           whyLabel={contractDrill?.whyLabel}
           emphasis
           lines={
@@ -303,6 +305,7 @@ export function ProjectFinancialsKpiPanel({
         value={kpis.actualCost}
         nature={t('metricNature.actual')}
         explanation={actualDrill?.explanation ?? t('kpis.actualCostHint')}
+        basis={actualDrill?.basis ?? t('basis.netExVat')}
         whyLabel={actualDrill?.whyLabel}
         emphasis
         lines={
@@ -394,6 +397,7 @@ export function ProjectFinancialsKpiPanel({
             ? t('kpis.forecastEqualsActualHint')
             : t('kpis.forecastHint'))
         }
+        basis={forecastDrill?.basis ?? t('basis.netExVat')}
         whyLabel={forecastDrill?.whyLabel}
         lines={
           forecastDrill?.lines ?? [
@@ -433,6 +437,7 @@ export function ProjectFinancialsKpiPanel({
             value={kpis.billed}
             nature={t('metricNature.actual')}
             explanation={t('kpis.billedHint')}
+            basis={t('basis.billingCash')}
             whyLabel={t('explain.whyThisNumber')}
             links={[
               { href: projectBillingTab, label: t('drillLinks.projectBillingTab') },
@@ -444,6 +449,7 @@ export function ProjectFinancialsKpiPanel({
             value={kpis.paid}
             nature={t('metricNature.actual')}
             explanation={t('kpis.paidHint')}
+            basis={t('basis.billingCash')}
             whyLabel={t('explain.whyThisNumber')}
             links={[
               { href: projectBillingTab, label: t('drillLinks.projectBillingTab') },
@@ -457,6 +463,7 @@ export function ProjectFinancialsKpiPanel({
             explanation={
               outstandingArDrill?.explanation ?? t('kpis.outstandingHint')
             }
+            basis={outstandingArDrill?.basis ?? t('basis.outstandingCash')}
             whyLabel={outstandingArDrill?.whyLabel}
             lines={outstandingArDrill?.lines}
             links={
@@ -478,6 +485,7 @@ export function ProjectFinancialsKpiPanel({
           value={financials.cost.openApPayable}
           nature={t('metricNature.forecast')}
           explanation={outstandingApDrill.explanation}
+          basis={outstandingApDrill.basis}
           whyLabel={outstandingApDrill.whyLabel}
           lines={outstandingApDrill.lines}
           links={outstandingApDrill.links}
@@ -500,6 +508,7 @@ export function ProjectFinancialsKpiPanel({
           value={kpis.actualMargin}
           nature={t('metricNature.actual')}
           explanation={actualMarginDrill?.explanation ?? t('kpis.actualMarginHint')}
+          basis={actualMarginDrill?.basis ?? t('basis.profitNet')}
           whyLabel={actualMarginDrill?.whyLabel}
           emphasis
           lines={
@@ -536,6 +545,7 @@ export function ProjectFinancialsKpiPanel({
               ? t('kpis.forecastMarginEqualsActualHint')
               : t('kpis.forecastMarginHint'))
           }
+          basis={forecastMarginDrill?.basis ?? t('basis.profitNet')}
           whyLabel={forecastMarginDrill?.whyLabel}
           lines={
             forecastMarginDrill?.lines ?? [

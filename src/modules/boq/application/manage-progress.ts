@@ -13,6 +13,7 @@ import {
   canApproveProgressBatch,
   canRecordProgress,
 } from '../domain/lifecycle';
+import { maskProgressLineMoney } from '../domain/mask-money';
 import { BOQ_AUDIT_ACTIONS } from '../domain/types';
 import {
   cumulativeApprovedForNode,
@@ -241,13 +242,7 @@ export async function listBoqProgress(context: OrgContext, boqId: string) {
     const lines = await listProgressLines(context.db, context.organizationId, batch.id);
     withLines.push({
       batch,
-      lines: showMoney
-        ? lines
-        : lines.map((line) => ({
-            ...line,
-            unitPriceSnapshot: '0',
-            periodAmount: '0',
-          })),
+      lines: showMoney ? lines : lines.map(maskProgressLineMoney),
     });
   }
   return { boq, batches: withLines, showMoney };

@@ -16,10 +16,13 @@ import {
 } from '@/components/ui/select';
 import type { FieldOpsWorkPackageOption } from '@/modules/field-ops/domain/types';
 import { dailyLogPayloadFromFormData } from '@/modules/offline/domain/payloads';
-import { useOfflineAwareFormAction } from '@/modules/offline/ui/use-offline-aware-form-action';
 import { Link } from '@/shared/i18n/navigation';
 import { createDailyLogAction, type FieldOpsFormState } from '../actions';
-import { FieldOpsPhotoLimitationNote } from '../field-ops-photo-limitation-note';
+import {
+  FieldOpsPhotoStaging,
+  useFieldOpsCreateFormAction,
+  useStagedCreatePhotos,
+} from '../field-ops-photo-staging';
 
 const NONE = '__none__';
 
@@ -28,24 +31,30 @@ export function DailyLogCreateForm({
   workPackages,
   defaultProjectId,
   defaultLogDate,
+  canManageDocuments,
+  storageConfigured,
 }: {
   projects: readonly { id: string; name: string }[];
   workPackages: readonly FieldOpsWorkPackageOption[];
   defaultProjectId?: string;
   defaultLogDate: string;
+  canManageDocuments: boolean;
+  storageConfigured: boolean;
 }) {
   const t = useTranslations('fieldOps.createLog');
   const tCommon = useTranslations('common');
   const tOffline = useTranslations('offline');
+  const photos = useStagedCreatePhotos();
 
   const offlineSuccessState = useMemo<FieldOpsFormState>(() => ({ offlineQueued: true }), []);
 
-  const wrappedAction = useOfflineAwareFormAction<FieldOpsFormState>({
+  const wrappedAction = useFieldOpsCreateFormAction<FieldOpsFormState>({
     kind: 'daily_log',
     onlineAction: createDailyLogAction,
     buildPayload: dailyLogPayloadFromFormData,
     offlineSuccessState,
     missingOrgError: tOffline('errors.missingOrganization'),
+    appendPhotos: photos.appendToFormData,
   });
 
   const [state, formAction, pending] = useActionState<FieldOpsFormState, FormData>(
@@ -189,7 +198,13 @@ export function DailyLogCreateForm({
         )}
       </Field>
 
-      <FieldOpsPhotoLimitationNote />
+      <FieldOpsPhotoStaging
+        files={photos.files}
+        onFilesChange={photos.setFiles}
+        canManageDocuments={canManageDocuments}
+        storageConfigured={storageConfigured}
+        disabled={pending}
+      />
 
       <Button type="submit" className="h-11 w-full sm:w-auto" disabled={pending || !projectId}>
         {pending ? tCommon('states.saving') : t('submit')}

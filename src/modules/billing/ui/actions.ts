@@ -6,6 +6,7 @@ import {
   createBillingRecord,
   createBillingAdjustment,
   finalizeBillingRecord,
+  recordCustomerPayment,
   recordPayment,
   updateBillingRecord,
   voidBillingRecord,
@@ -146,16 +147,50 @@ export async function createPaymentAction(
   const tErrors = await getTranslations('errors');
   const locale = await getLocale();
 
-  const input: CreatePaymentInput = {
-    billingRecordId: String(formData.get('billingRecordId') ?? ''),
-    amount: String(formData.get('amount') ?? ''),
-    paymentDate: String(formData.get('paymentDate') ?? ''),
-    method: formData.get('method') ? String(formData.get('method')) : null,
-    reference: formData.get('reference') ? String(formData.get('reference')) : null,
-    notes: formData.get('notes') ? String(formData.get('notes')) : null,
-  };
+  const mode = String(formData.get('mode') ?? 'single');
 
   try {
+    if (mode === 'split') {
+      const billingRecordIds = formData.getAll('applicationBillingRecordId').map(String);
+      const amounts = formData.getAll('applicationAmount').map(String);
+      const applications = billingRecordIds
+        .map((billingRecordId, index) => ({
+          billingRecordId,
+          amount: amounts[index]?.trim() ?? '',
+        }))
+        .filter((app) => app.billingRecordId && app.amount);
+
+      const result = await withOrgContext((context) =>
+        recordCustomerPayment(context, {
+          clientId: String(formData.get('clientId') ?? ''),
+          amount: String(formData.get('amount') ?? ''),
+          currency: String(formData.get('currency') ?? ''),
+          paymentDate: String(formData.get('paymentDate') ?? ''),
+          method: formData.get('method') ? String(formData.get('method')) : null,
+          reference: formData.get('reference') ? String(formData.get('reference')) : null,
+          notes: formData.get('notes') ? String(formData.get('notes')) : null,
+          applications,
+        }),
+      );
+
+      const redirectId = result.billingRecords[0]?.id;
+      revalidatePath('/billing');
+      if (redirectId) {
+        revalidatePath(`/billing/${redirectId}`);
+        redirect({ href: `/billing/${redirectId}`, locale });
+      }
+      redirect({ href: '/billing', locale });
+    }
+
+    const input: CreatePaymentInput = {
+      billingRecordId: String(formData.get('billingRecordId') ?? ''),
+      amount: String(formData.get('amount') ?? ''),
+      paymentDate: String(formData.get('paymentDate') ?? ''),
+      method: formData.get('method') ? String(formData.get('method')) : null,
+      reference: formData.get('reference') ? String(formData.get('reference')) : null,
+      notes: formData.get('notes') ? String(formData.get('notes')) : null,
+    };
+
     const result = await withOrgContext((context) => recordPayment(context, input));
     revalidatePath(`/billing/${result.billingRecord.id}`);
     revalidatePath('/billing');

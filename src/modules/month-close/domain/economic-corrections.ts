@@ -80,6 +80,11 @@ export interface MonthCloseAdjustmentExplanation {
   readonly originalAmount: MoneyValue | null;
   /** This row's amount (null for audit-only). */
   readonly correctionAmount: MoneyValue | null;
+  /**
+   * Surviving amount in compose for this row.
+   * Null when the row is audit-only or has been superseded (historical journal only).
+   */
+  readonly currentEconomicAmount: MoneyValue | null;
 }
 
 function moneyFromRow(row: EconomicAdjustmentLike): MoneyValue | null {
@@ -101,12 +106,16 @@ export function explainMonthCloseAdjustments(
     const original = adjustment.supersedesAdjustmentId
       ? byId.get(adjustment.supersedesAdjustmentId)
       : undefined;
+    const isEconomic = isEconomicAdjustment(adjustment);
+    const isSuperseded = superseded.has(adjustment.id);
+    const correctionAmount = moneyFromRow(adjustment);
     return {
       adjustment,
-      isEconomic: isEconomicAdjustment(adjustment),
-      isSuperseded: superseded.has(adjustment.id),
+      isEconomic,
+      isSuperseded,
       originalAmount: original ? moneyFromRow(original) : null,
-      correctionAmount: moneyFromRow(adjustment),
+      correctionAmount,
+      currentEconomicAmount: isEconomic && !isSuperseded ? correctionAmount : null,
     };
   });
 }

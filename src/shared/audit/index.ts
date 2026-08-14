@@ -6,7 +6,7 @@ import type { OrgContext } from '@/shared/auth/context';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import type { AuditAction } from './actions';
-import type { AuditListResult } from './types';
+import type { AuditEventSummary, AuditListResult } from './types';
 
 export { AUDIT_ACTIONS, AUDIT_ACTION_VALUES, type AuditAction } from './actions';
 export type { AuditEventSummary, AuditListResult } from './types';
@@ -153,4 +153,47 @@ export async function listAuditEventSummaries(
     hasMore && items.length > 0 ? items[items.length - 1]!.createdAt.toISOString() : null;
 
   return { items, nextCursor };
+}
+
+/**
+ * Org-scoped audit summaries for one entity. Used by module history panels
+ * (notes + stored audit), not as a substitute for an activity table.
+ * CRM entity types are readable with `crm.read`; everything else needs `audit.read`.
+ */
+export async function listAuditEventSummariesForEntity(
+  context: OrgContext,
+  options: { entityType: string; entityId: string; limit?: number },
+): Promise<readonly AuditEventSummary[]> {
+  if (options.entityType.startsWith('crm_')) {
+    assertPermission(context, PERMISSIONS.CRM_READ);
+  } else {
+    assertPermission(context, PERMISSIONS.AUDIT_READ);
+  }
+
+  const pageSize = Math.min(Math.max(options.limit ?? 50, 1), 200);
+
+  const rows = await context.db
+    .select({
+      id: auditEvents.id,
+      action: auditEvents.action,
+      entityType: auditEvents.entityType,
+      entityId: auditEvents.entityId,
+      actorUserId: auditEvents.actorUserId,
+      actorDisplayName: profiles.displayName,
+      actorEmail: profiles.email,
+      createdAt: auditEvents.createdAt,
+    })
+    .from(auditEvents)
+    .leftJoin(profiles, eq(profiles.id, auditEvents.actorUserId))
+    .where(
+      and(
+        eq(auditEvents.organizationId, context.organizationId),
+        eq(auditEvents.entityType, options.entityType),
+        eq(auditEvents.entityId, options.entityId),
+      ),
+    )
+    .orderBy(desc(auditEvents.createdAt))
+    .limit(pageSize);
+
+  return rows;
 }

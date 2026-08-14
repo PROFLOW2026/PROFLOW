@@ -10,6 +10,7 @@ import { createProgressBilling } from '@/modules/boq/application/create-progress
 import { finalizeProgressBillingRpc } from '@/modules/boq/data/boq.repository';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { createTestDatabase, resultRows, type TestDatabase } from '../../setup/database';
+import { insertDraftBoqNodeViaRpc } from '../../setup/boq-draft-node';
 import { createTestOrganization, createTestUser, seedSystem } from '../../setup/fixtures';
 
 /**
@@ -83,20 +84,16 @@ describe('BOQ final pattern-sweep adversarial', () => {
           RETURNING id
         `),
       );
-      const node = resultRows<{ id: string }>(
-        await tx.execute(sql`
-          INSERT INTO boq_nodes (
-            organization_id, boq_id, node_kind, description, pricing_type,
-            original_quantity, original_unit_price, original_amount,
-            current_quantity, current_unit_price, current_amount
-          ) VALUES (
-            ${orgId}::uuid, ${boq[0]!.id}::uuid, 'item', 'Item', 'quantity_unit_price',
-            10, 100, 1000, 10, 100, 1000
-          ) RETURNING id
-        `),
-      );
+      const nodeId = await insertDraftBoqNodeViaRpc(tx, {
+        organizationId: orgId,
+        boqId: boq[0]!.id,
+        description: 'Item',
+        quantity: 10,
+        unitPrice: 100,
+        amount: 1000,
+      });
       await tx.execute(sql`SELECT app.activate_project_boq(${orgId}::uuid, ${boq[0]!.id}::uuid)`);
-      return { boqId: boq[0]!.id, nodeId: node[0]!.id };
+      return { boqId: boq[0]!.id, nodeId };
     });
   }
 
@@ -567,7 +564,10 @@ describe('BOQ final pattern-sweep adversarial', () => {
       if (wp[0]?.id) {
         await expect(
           tx.execute(sql`
-            UPDATE boq_nodes SET work_package_id = ${wp[0]!.id}::uuid WHERE id = ${nodeId}::uuid
+            SELECT app.boq_mutate_draft_node(
+              ${orgId}::uuid, 'update', ${nodeId}::uuid,
+              jsonb_build_object('work_package_id', ${wp[0]!.id}::uuid)
+            )
           `),
         ).rejects.toThrow();
       }

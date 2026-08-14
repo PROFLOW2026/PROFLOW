@@ -1,5 +1,5 @@
 import { noteModuleUsage } from '@/modules/tenancy';
-import { recordAuditEvent } from '@/shared/audit';
+import { listAuditEventSummariesForEntity, recordAuditEvent } from '@/shared/audit';
 import type { OrgContext } from '@/shared/auth/context';
 import { NotFoundError, ValidationError } from '@/shared/errors';
 import { assertPermission } from '@/shared/permissions/assert';
@@ -112,12 +112,19 @@ export async function getOpportunityById(
     };
   });
 
+  const auditEvents = await listAuditEventSummariesForEntity(context, {
+    entityType: 'crm_opportunity',
+    entityId: opportunityId,
+    limit: 50,
+  });
+
   return {
     ...opportunity,
     opportunityNotes: opportunity.notes,
     prospect,
     notes,
     estimates,
+    auditEvents,
     salesQuotes,
   };
 }
@@ -156,6 +163,8 @@ export async function createOpportunity(
     expectedStartDate: input.expectedStartDate ?? null,
     referralSource: input.referralSource ?? null,
     notes: input.notes ?? null,
+    nextActionAt: input.nextActionAt ?? null,
+    nextActionText: input.nextActionText ?? null,
   });
 
   // Lead → opportunity is the conversion step; mark the lead so lists stay coherent.
@@ -226,6 +235,8 @@ export async function updateOpportunity(
       referralSource: input.referralSource === undefined ? undefined : input.referralSource,
       lostReason: input.lostReason === undefined ? undefined : input.lostReason,
       notes: input.notes === undefined ? undefined : input.notes,
+      nextActionAt: input.nextActionAt === undefined ? undefined : input.nextActionAt,
+      nextActionText: input.nextActionText === undefined ? undefined : input.nextActionText,
     },
   );
   if (!updated) throw new NotFoundError('Opportunity');
@@ -280,6 +291,12 @@ export async function createOpportunityNote(
   });
 
   await noteModuleUsage(context.db, context.organizationId, 'crm');
+  await recordAuditEvent(context, {
+    action: CRM_AUDIT_ACTIONS.OPPORTUNITY_NOTE_CREATED,
+    entityType: 'crm_opportunity',
+    entityId: opportunity.id,
+    after: { noteId: note.id },
+  });
 
   return note;
 }

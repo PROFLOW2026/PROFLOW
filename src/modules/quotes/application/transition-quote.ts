@@ -1,9 +1,14 @@
+import { assertApprovalAllowsAction } from '@/modules/approvals';
 import { recordAuditEvent } from '@/shared/audit';
 import type { OrgContext } from '@/shared/auth/context';
 import { DomainRuleError, NotFoundError, ValidationError } from '@/shared/errors';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { noteModuleUsage } from '@/modules/tenancy';
+import {
+  isQuoteDiscountGateTransition,
+  quoteDiscountAmountForApproval,
+} from '../domain/discount';
 import { assertCanTransitionQuoteStatus } from '../domain/lifecycle';
 import { QUOTES_AUDIT_ACTIONS, type QuoteRecord, type QuoteStatus } from '../domain/types';
 import { findQuoteById, updateQuoteById } from '../data/quotes.repository';
@@ -45,6 +50,21 @@ export async function transitionQuoteStatus(
   if (!existing) throw new NotFoundError('Quote');
 
   assertCanTransitionQuoteStatus(existing.status, toStatus);
+
+  // Customer-facing lock (`sent`): large discounts matching a quote_discount
+  // rule cannot issue until approved. No matching rule / no discount → allow.
+  if (isQuoteDiscountGateTransition(toStatus)) {
+    const gate = quoteDiscountAmountForApproval(existing);
+    if (gate) {
+      await assertApprovalAllowsAction(context, {
+        entityType: 'quote_discount',
+        entityId: existing.id,
+        amount: gate.amount,
+        currency: gate.currency,
+        submitIfMissing: true,
+      });
+    }
+  }
 
   const now = new Date();
   const patch: Parameters<typeof updateQuoteById>[3] = {

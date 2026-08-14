@@ -12,6 +12,7 @@ export type SettingsSectionKey =
   | 'catalog'
   | 'templates'
   | 'tax'
+  | 'numbering'
   | 'approvals'
   | 'portal'
   | 'customFields'
@@ -43,6 +44,7 @@ export const SETTINGS_SECTIONS: readonly SettingsSection[] = [
   { key: 'people', href: '/settings/people', permission: PERMISSIONS.MEMBERS_READ, group: 'basic' },
   { key: 'profile', href: '/settings/profile', permission: null, group: 'basic' },
   { key: 'tax', href: '/settings/tax', permission: PERMISSIONS.TAX_MANAGE, group: 'basic' },
+  { key: 'numbering', href: '/settings/numbering', permission: PERMISSIONS.ORG_READ, group: 'basic' },
   { key: 'app', href: '/settings/app', permission: null, group: 'basic' },
 
   { key: 'approvals', href: '/settings/approvals', permission: PERMISSIONS.APPROVALS_MANAGE, group: 'business' },
@@ -102,6 +104,8 @@ export function groupSettingsSections(
 export function canManageSection(context: OrgContext, sectionKey: SettingsSectionKey): boolean {
   switch (sectionKey) {
     case 'business':
+      return hasPermission(context, PERMISSIONS.ORG_UPDATE);
+    case 'numbering':
       return hasPermission(context, PERMISSIONS.ORG_UPDATE);
     case 'people':
       return hasPermission(context, PERMISSIONS.MEMBERS_MANAGE);

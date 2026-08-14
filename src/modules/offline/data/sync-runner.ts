@@ -1,6 +1,11 @@
 import type { OfflineDraftRecord, QueuedAction, ServerTruthHint } from '../domain/types';
 import { assertDraftMatchesScope } from '../domain/scope';
 import { toQueuedAction } from '../domain/serialize';
+import {
+  compareDraftsForSync,
+  ownerIdFromCapturePayload,
+  pendingOwnerDraftLocalIdFromPayload,
+} from '../domain/sync-order';
 import type { AttachmentStore, OfflineAttachmentRecord } from './attachment-store';
 import { getDefaultAttachmentStore } from './attachment-store';
 import type { DraftQueue } from './draft-queue';
@@ -69,12 +74,15 @@ export async function runQueuedSync(options: RunQueuedSyncOptions): Promise<Sync
   const limit = options.limit ?? 25;
   const scope = { organizationId: options.organizationId, userId: options.userId };
 
-  const pending = await queue.list({
-    organizationId: options.organizationId,
-    userId: options.userId,
-    syncStatus: ['queued', 'draft'],
-    pendingOnly: false,
-  });
+  const pending = (
+    await queue.list({
+      organizationId: options.organizationId,
+      userId: options.userId,
+      syncStatus: ['queued', 'draft'],
+      pendingOnly: false,
+    })
+  ).slice()
+    .sort(compareDraftsForSync);
 
   const results: SyncItemResult[] = [];
   let attempted = 0;
@@ -83,6 +91,26 @@ export async function runQueuedSync(options: RunQueuedSyncOptions): Promise<Sync
     attempted += 1;
     try {
       assertDraftMatchesScope(draft, scope);
+
+      let captureOwnerId: string | null = null;
+      if (draft.kind === 'capture') {
+        const parentLocalId = pendingOwnerDraftLocalIdFromPayload(draft.payload);
+        let parentServerId: string | null = null;
+        if (parentLocalId) {
+          const parent = await queue.get(parentLocalId);
+          parentServerId = parent?.serverId ?? null;
+          if (!ownerIdFromCapturePayload(draft.payload, null) && !parentServerId) {
+            results.push({
+              localId: draft.localId,
+              status: 'skipped',
+              reason: 'Waiting for owner record to sync.',
+            });
+            continue;
+          }
+        }
+        captureOwnerId = ownerIdFromCapturePayload(draft.payload, parentServerId);
+      }
+
       const action = toQueuedAction(draft);
       const serverTruth = await options.transport.fetchServerTruth(action);
       const prepared = await queue.prepareForSync(draft.localId, serverTruth);
@@ -100,8 +128,15 @@ export async function runQueuedSync(options: RunQueuedSyncOptions): Promise<Sync
           ? await attachments.listByDraft(draft.localId)
           : [];
 
+      const submitAction = captureOwnerId
+        ? {
+            ...toQueuedAction(prepared.draft),
+            payload: { ...prepared.draft.payload, ownerId: captureOwnerId },
+          }
+        : toQueuedAction(prepared.draft);
+
       try {
-        const submitted = await options.transport.submit(toQueuedAction(prepared.draft), blobs);
+        const submitted = await options.transport.submit(submitAction, blobs);
         await queue.markSynced(draft.localId, submitted);
         if (draft.kind === 'capture') {
           await attachments.deleteByDraft(draft.localId);

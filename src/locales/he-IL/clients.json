@@ -90,6 +90,22 @@
     "removeContactSuccess": "איש הקשר הוסר.",
     "removeIdentifierQuestion": "להסיר את המזהה {type} ({value})?",
     "removeIdentifierConsequence": "אפשר להוסיף מזהה מחדש בכל עת.",
-    "removeIdentifierSuccess": "המזהה הוסר."
+    "removeIdentifierSuccess": "המזהה הוסר.",
+    "financial": {
+      "title": "מצב כספי",
+      "subtitle": "סיכום חיובים וגבייה ללקוח זה — לפי רשומות החיוב הקיימות. מע״מ אינו רווח.",
+      "invoiced": "סה״כ חיוב סופי",
+      "paid": "שולם",
+      "outstanding": "יתרה לגבייה",
+      "overdue": "באיחור",
+      "overdueCount": "{count, plural, =0 {אין רשומות באיחור} one {רשומה אחת באיחור} two {שתי רשומות באיחור} other {# רשומות באיחור}}",
+      "heldRetention": "עיכבון מוחזק",
+      "heldRetentionHint": "סכום שעדיין מוחזק מחיובים סופיים. מפחית את היתרה לגבייה כעת — לא חיוב נוסף.",
+      "recentBilling": "חיובים אחרונים",
+      "recentPayments": "תשלומים אחרונים",
+      "emptyBilling": "אין עדיין רשומות חיוב ללקוח זה.",
+      "excludedForeign": "{count, plural, one {רשומה אחת הוחרגה (מטבע זר)} two {שתי רשומות הוחרגו (מטבע זר)} other {# רשומות הוחרגו (מטבע זר)}}",
+      "integrityHint": "יתרה לגבייה = חויב − שולם − עיכבון מוחזק. זיכויים מקטינים את החיוב. רשומות מבוטלות וטיוטות אינן נכללות."
+    }
   }
 }

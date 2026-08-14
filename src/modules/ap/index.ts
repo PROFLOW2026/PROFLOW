@@ -12,6 +12,7 @@ export {
   listApBillsForOrg,
   getApBillDetail,
   createApBill,
+  createDraftApBill,
   postApBill,
   updateDraftApBillRetention,
 } from './application/bills';
@@ -89,6 +90,13 @@ export type {
 } from './domain/vendor-cost-recognition';
 
 export {
+  resolveApBillTaxSplit,
+  vendorBillActualAmount,
+  vendorBillPayableAmount,
+} from './domain/bill-tax';
+export type { ApBillTaxSplit, ApTaxBasis } from './domain/bill-tax';
+
+export {
   assertApBillVoidable,
   assertRecognizedBillNotSilentlyEditable,
   assertVoidRemovesFromActual,
@@ -110,6 +118,7 @@ export {
   displayCreditLifecycleStatus,
   netRecognizedBillAfterCredits,
   scaleBillSliceAfterCredits,
+  creditApplicationActualReduction,
   creditRemaining,
   deriveCreditStatusAfterApplication,
   sumActiveCreditAmounts,
@@ -229,6 +238,7 @@ export {
 export {
   listActiveCreditAmountsForBill,
   listActiveCreditAmountsForBills,
+  listActiveCreditActualReductionsForBills,
 } from './data/credits.repository';
 
 export {

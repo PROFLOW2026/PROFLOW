@@ -142,6 +142,49 @@ describe('OCR review panel', () => {
     expect(screen.getByDisplayValue('Fixture Supplies Ltd')).toBeInTheDocument();
   });
 
+  it('explains live vs credentials-pending vs off without printing secrets', () => {
+    const { unmount } = renderPanel(
+      <OcrReviewPanel
+        initialStatus={liveStatus}
+        initialJobs={[]}
+        vendors={[]}
+        organizationId="org-1"
+        defaultTarget="expense"
+        workflow="expense"
+        canManageDocuments
+        canCreateExpenses
+        canManageAp
+      />,
+    );
+    expect(screen.getByText(enDocuments.ocr.configurationState.live)).toBeVisible();
+    expect(screen.getByText(enDocuments.ocr.providerLiveReady)).toBeVisible();
+    expect(screen.queryByText(/OCR_PROVIDER/)).toBeNull();
+    unmount();
+
+    renderPanel(
+      <OcrReviewPanel
+        initialStatus={{
+          providerId: 'azure',
+          configured: true,
+          featureMode: 'configured_pending',
+          ingestionEnabled: false,
+          messageKey: 'providerConfiguredPending',
+        }}
+        initialJobs={[]}
+        vendors={[]}
+        organizationId="org-1"
+        defaultTarget="expense"
+        workflow="expense"
+        canManageDocuments={false}
+        canCreateExpenses={false}
+        canManageAp={false}
+      />,
+    );
+    expect(screen.getByText(enDocuments.ocr.configurationState.configured_pending)).toBeVisible();
+    expect(screen.getByText(enDocuments.ocr.providerConfiguredPending)).toBeVisible();
+    expect(screen.queryByText(/OCR_PROVIDER/)).toBeNull();
+  });
+
   it('keeps camera capture on the file input and stacks original above fields in the DOM', () => {
     renderPanel(
       <OcrReviewPanel

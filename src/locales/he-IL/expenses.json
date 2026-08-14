@@ -247,5 +247,45 @@
     "currencyMustMatchOrganization": "מטבע הוצאת תפעול חייב להתאים למטבע הבסיס של העסק.",
     "projectExpenseNoAllocations": "הוצאה לפרויקט לא ניתנת לפיצול בשורות הקצאה.",
     "phaseProjectMismatch": "השלב שנבחר לא שייך לפרויקט הזה."
+  },
+  "overheadHome": {
+    "title": "תקורה",
+    "description": "הוצאות תפעול והוצאות משותפות, והקצאה לפרויקטים — דרך מנוע ההוצאות הקיים.",
+    "notAllowed": {
+      "title": "אין הרשאה",
+      "body": "נדרשת הרשאת צפייה בהוצאות כדי לפתוח את הדף הזה."
+    },
+    "actions": {
+      "addOverhead": "הוצאת תקורה חדשה",
+      "costCategories": "קטגוריות עלות",
+      "viewOverheadExpenses": "כל הוצאות התפעול",
+      "viewSharedExpenses": "כל ההוצאות המשותפות"
+    },
+    "sections": {
+      "overhead": "הוצאות תפעול",
+      "shared": "הוצאות משותפות",
+      "runs": "הקצאות",
+      "categories": "קטגוריות עלות"
+    },
+    "empty": {
+      "overheadTitle": "אין הוצאות תפעול עדיין",
+      "overheadBody": "רשמו שכר דירה, ביטוח והוצאות עסק אחרות בלי פרויקט, ואז הקצו אותן לעבודה פעילה.",
+      "sharedTitle": "אין הוצאות משותפות עדיין",
+      "sharedBody": "הוצאות משותפות משתמשות באותו מנוע הקצאה כמו התקורה.",
+      "runsTitle": "אין הקצאות עדיין",
+      "runsBody": "צילומי הקצאה אוטומטית מופיעים כאן אחרי שמקצים הוצאה משותפת או תפעול.",
+      "categoriesTitle": "אין קטגוריות תקורה עדיין"
+    },
+    "runs": {
+      "expense": "הוצאה",
+      "period": "תקופה",
+      "method": "שיטה",
+      "status": "סטטוס",
+      "amount": "נטו שהוקצה",
+      "statusDraft": "טיוטה",
+      "statusApplied": "הוחל",
+      "statusSuperseded": "הוחלף"
+    },
+    "showing": "מוצגות {count} מתוך {total}"
   }
 }

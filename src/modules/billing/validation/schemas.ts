@@ -62,6 +62,24 @@ export const createPaymentSchema = z.object({
 
 export type CreatePaymentInput = z.infer<typeof createPaymentSchema>;
 
+export const recordCustomerPaymentSchema = z.object({
+  clientId: z.string().uuid('Client is required'),
+  amount: moneyAmountSchema,
+  currency: currencySchema,
+  paymentDate: businessDateSchema,
+  method: z.string().trim().max(80).optional().nullable(),
+  reference: z.string().trim().max(120).optional().nullable(),
+  notes: z.string().trim().max(4000).optional().nullable(),
+  applications: z.array(
+    z.object({
+      billingRecordId: z.string().uuid(),
+      amount: moneyAmountSchema,
+    }),
+  ),
+});
+
+export type RecordCustomerPaymentInput = z.infer<typeof recordCustomerPaymentSchema>;
+
 export const paymentIdSchema = z.object({
   paymentId: z.string().uuid(),
 });
@@ -69,6 +87,7 @@ export const paymentIdSchema = z.object({
 export const listBillingRecordsSchema = z.object({
   filter: z.enum(['all', 'paid', 'outstanding', 'overdue']).optional(),
   projectId: z.string().uuid().optional(),
+  clientId: z.string().uuid().optional(),
   /** Org AR summary/aging may need a large page; UI lists stay modest by default. */
   limit: z.coerce.number().int().min(1).max(5_000).optional(),
   offset: z.coerce.number().int().min(0).optional(),
@@ -76,6 +95,7 @@ export const listBillingRecordsSchema = z.object({
 
 export const listPaymentApplicationsSchema = z.object({
   projectId: z.string().uuid().optional(),
+  clientId: z.string().uuid().optional(),
   limit: z.coerce.number().int().min(1).max(200).optional(),
   offset: z.coerce.number().int().min(0).optional(),
   includeVoided: z.boolean().optional(),

@@ -22,6 +22,7 @@ import { cn } from '@/shared/ui/cn';
 import { PrefetchOnIntentLink } from '@/components/ui/prefetch-on-intent-link';
 import { ProjectListFilters } from './project-list-filters';
 import { ProjectStatusBadge } from './project-status-badge';
+import { ReportsEntryLink } from '@/modules/financials/ui/reports-entry-link';
 
 export async function generateMetadata({
   params,
@@ -86,14 +87,19 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
       <PageHeader
         title={t('title')}
         actions={
-          canCreate ? (
-            <Button asChild>
-              <Link href="/projects/new" prefetch={false}>
-                <Plus aria-hidden />
-                {t('newProject')}
-              </Link>
-            </Button>
-          ) : null
+          <div className="flex max-w-full flex-wrap gap-2">
+            {shell?.permissions.has(PERMISSIONS.PROJECT_FINANCIALS_READ) ? (
+              <ReportsEntryLink section="commercial">{t('reportsEntry')}</ReportsEntryLink>
+            ) : null}
+            {canCreate ? (
+              <Button asChild>
+                <Link href="/projects/new" prefetch={false}>
+                  <Plus aria-hidden />
+                  {t('newProject')}
+                </Link>
+              </Button>
+            ) : null}
+          </div>
         }
       />
 

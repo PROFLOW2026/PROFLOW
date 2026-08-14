@@ -1,9 +1,9 @@
 {
   "title": "Planning & timeline",
-  "subtitle": "Timeline, dependencies, progress, and milestones — not an MS Project clone.",
+  "subtitle": "Light planning: dates, progress, milestones, and finish-to-start (FS) links only. Not MS Project and not CPM.",
   "jobsOptOut": "Detailed planning is for projects only. Short jobs keep simple dates.",
   "empty": "No dated planning items yet.",
-  "emptyHint": "Add tasks or milestones with a target date to see the Gantt.",
+  "emptyHint": "Add tasks or milestones with a target date to see this light timeline. FS links only — no critical path.",
   "timeline": "Timeline",
   "overdue": "Overdue",
   "overdueCount": "{count} overdue",
@@ -18,7 +18,7 @@
   "workArea": "Work area",
   "phase": "Phase",
   "today": "Today",
-  "criticalPathLimitation": "Critical Path is not shown in this version — calendars, lag, and float are missing (see LIMITATION).",
+  "criticalPathLimitation": "Light planning only: finish-to-start (FS) dependencies. No critical path, no CPM, no lag/lead, and no working calendars. This is not MS Project.",
   "legendPlanned": "Planned",
   "legendOverdue": "Overdue",
   "legendProgress": "Progress",
@@ -26,6 +26,6 @@
   "noDates": "No dates",
   "tab": "Planning",
   "criticalPath": {
-    "unsafe": "Critical Path is not safely supported in this version."
+    "unsafe": "Critical path is not calculated. This light timeline is not CPM."
   }
 }

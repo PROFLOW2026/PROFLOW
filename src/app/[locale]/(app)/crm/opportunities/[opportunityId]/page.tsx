@@ -1,13 +1,16 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { getTranslations } from 'next-intl/server';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { getLocale, getTranslations } from 'next-intl/server';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { PageHeader } from '@/components/ui/page-header';
 import { StatusBadge } from '@/components/ui/status-badge';
-import { canConvertOpportunity, getOpportunityById } from '@/modules/crm';
+import { canConvertOpportunity, getOpportunityById, nextActionUrgency } from '@/modules/crm';
 import { listCustomFieldValuesForEntity } from '@/modules/custom-fields';
 import { EntityCustomFieldsPanel } from '@/modules/custom-fields/ui';
 import { withOrgContext } from '@/shared/auth/session';
+import { formatBusinessDate, formatInstant } from '@/shared/dates/format';
+import { isBusinessDate } from '@/shared/dates/dates';
 import { Link } from '@/shared/i18n/navigation';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
@@ -19,9 +22,24 @@ import {
   IssueVersionButton,
   MarkLostForm,
   OpportunityEstimateForm,
+  OpportunityFollowUpForm,
   OpportunityNoteForm,
   OpportunityQuoteForm,
 } from './opportunity-actions';
+
+function translateAuditAction(
+  t: Awaited<ReturnType<typeof getTranslations<'settings.activity'>>>,
+  action: string,
+): string {
+  const segments = action.split('.');
+  if (segments.length === 2) {
+    const nestedKey = `actions.${segments[0]}.${segments[1]}`;
+    if (t.has(nestedKey)) return t(nestedKey);
+  }
+  const flatKey = `actions.${action}`;
+  if (t.has(flatKey)) return t(flatKey);
+  return action;
+}
 
 export async function generateMetadata({
   params,
@@ -45,16 +63,20 @@ export default async function OpportunityDetailPage({
 }) {
   const { opportunityId } = await params;
   const t = await getTranslations('crm');
+  const tAudit = await getTranslations('settings.activity');
+  const locale = await getLocale();
 
   let detail;
   let canManage = false;
   let defaultCurrency = 'ILS';
+  let timezone = 'Asia/Jerusalem';
   let customFields: Awaited<ReturnType<typeof listCustomFieldValuesForEntity>> = [];
   try {
     const result = await withOrgContext(async (context) => ({
       detail: await getOpportunityById(context, opportunityId),
       canManage: hasPermission(context, PERMISSIONS.CRM_MANAGE),
       defaultCurrency: context.organization.baseCurrency,
+      timezone: context.organization.timezone,
       customFields: await listCustomFieldValuesForEntity(context, 'opportunity', opportunityId).catch(
         () => [],
       ),
@@ -62,6 +84,7 @@ export default async function OpportunityDetailPage({
     detail = result.detail;
     canManage = result.canManage;
     defaultCurrency = result.defaultCurrency;
+    timezone = result.timezone;
     customFields = result.customFields;
   } catch {
     notFound();
@@ -74,6 +97,7 @@ export default async function OpportunityDetailPage({
       .find((version) => version.status === 'accepted') ?? null;
   const acceptedVersionId = acceptedVersion?.id ?? null;
   const convertible = canConvertOpportunity(detail);
+  const convertReady = convertible && Boolean(acceptedVersionId);
 
   return (
     <div className="flex flex-col gap-6">
@@ -95,7 +119,110 @@ export default async function OpportunityDetailPage({
             {t('title')}
           </Link>
         }
+        actions={
+          canManage && convertible ? (
+            <Button asChild size="lg" variant={convertReady ? 'primary' : 'secondary'}>
+              <a href="#convert-to-project">
+                {convertReady ? t('convert.submit') : t('convert.blockedTitle')}
+              </a>
+            </Button>
+          ) : null
+        }
       />
+
+      {canManage && convertible ? (
+        <Card
+          id="convert-to-project"
+          className={
+            convertReady
+              ? 'border-[var(--pf-status-success-border)] bg-[var(--pf-status-success-bg)]'
+              : 'border-[var(--pf-status-warning-border)] bg-[var(--pf-status-warning-bg)]'
+          }
+        >
+          <CardHeader>
+            <CardTitle className="text-lg">{t('convert.title')}</CardTitle>
+            <CardDescription>{t('convert.ctaHint')}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ConvertWonForm
+              opportunityId={detail.id}
+              defaultProjectName={detail.name}
+              acceptedVersionId={acceptedVersionId}
+              netAmount={acceptedVersion?.subtotalAmount ?? null}
+              taxAmount={acceptedVersion?.taxAmount ?? null}
+              totalAmount={acceptedVersion?.totalAmount ?? null}
+              currency={acceptedVersion?.currency ?? currency}
+            />
+          </CardContent>
+        </Card>
+      ) : null}
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">{t('followUp.title')}</CardTitle>
+          <CardDescription>{t('followUp.description')}</CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-4">
+          {canManage && detail.status === 'open' ? (
+            <OpportunityFollowUpForm
+              opportunityId={detail.id}
+              notes={detail.opportunityNotes}
+              expectedStartDate={detail.expectedStartDate}
+              nextActionAt={detail.nextActionAt}
+              nextActionText={detail.nextActionText}
+            />
+          ) : detail.opportunityNotes ||
+            detail.expectedStartDate ||
+            detail.nextActionAt ||
+            detail.nextActionText ? (
+            <dl className="grid gap-3 text-sm sm:grid-cols-2">
+              <div>
+                <dt className="text-[var(--pf-text-muted)]">{t('followUp.nextActionLabel')}</dt>
+                <dd className="mt-1 whitespace-pre-wrap">
+                  {detail.nextActionText?.trim() ? detail.nextActionText : '—'}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-[var(--pf-text-muted)]">{t('followUp.nextActionAtLabel')}</dt>
+                <dd className="mt-1">
+                  {detail.nextActionAt ? (
+                    <span
+                      className={
+                        nextActionUrgency(detail.nextActionAt) === 'overdue'
+                          ? 'text-[var(--pf-status-danger-fg)]'
+                          : undefined
+                      }
+                    >
+                      {nextActionUrgency(detail.nextActionAt) === 'overdue'
+                        ? `${t('followUp.overdue')}: `
+                        : `${t('followUp.due')}: `}
+                      {formatInstant(detail.nextActionAt, locale, timezone)}
+                    </span>
+                  ) : (
+                    '—'
+                  )}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-[var(--pf-text-muted)]">{t('followUp.notesLabel')}</dt>
+                <dd className="mt-1 whitespace-pre-wrap">
+                  {detail.opportunityNotes?.trim() ? detail.opportunityNotes : '—'}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-[var(--pf-text-muted)]">{t('followUp.expectedStartLabel')}</dt>
+                <dd className="mt-1">
+                  {detail.expectedStartDate && isBusinessDate(detail.expectedStartDate)
+                    ? formatBusinessDate(detail.expectedStartDate, locale)
+                    : '—'}
+                </dd>
+              </div>
+            </dl>
+          ) : (
+            <p className="text-sm text-[var(--pf-text-secondary)]">{t('followUp.empty')}</p>
+          )}
+        </CardContent>
+      </Card>
 
       {detail.leadId || detail.prospect ? (
         <Card>
@@ -142,25 +269,6 @@ export default async function OpportunityDetailPage({
         </Card>
       ) : null}
 
-      {canManage && convertible ? (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">{t('convert.title')}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ConvertWonForm
-              opportunityId={detail.id}
-              defaultProjectName={detail.name}
-              acceptedVersionId={acceptedVersionId}
-              netAmount={acceptedVersion?.subtotalAmount ?? null}
-              taxAmount={acceptedVersion?.taxAmount ?? null}
-              totalAmount={acceptedVersion?.totalAmount ?? null}
-              currency={acceptedVersion?.currency ?? currency}
-            />
-          </CardContent>
-        </Card>
-      ) : null}
-
       <EntityCustomFieldsPanel
         entityId={detail.id}
         fields={customFields}
@@ -170,24 +278,55 @@ export default async function OpportunityDetailPage({
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">{t('opportunity.notesSection')}</CardTitle>
+          <CardTitle className="text-base">{t('history.title')}</CardTitle>
+          <CardDescription>{t('history.description')}</CardDescription>
         </CardHeader>
-        <CardContent className="flex flex-col gap-4">
-          {detail.notes.length === 0 ? (
-            <p className="text-sm text-[var(--pf-text-secondary)]">—</p>
-          ) : (
-            <ul className="flex flex-col gap-2">
-              {detail.notes.map((note) => (
-                <li
-                  key={note.id}
-                  className="rounded-md border border-[var(--pf-border-default)] p-3 text-sm"
-                >
-                  {note.body}
-                </li>
-              ))}
-            </ul>
-          )}
-          {canManage ? <OpportunityNoteForm opportunityId={detail.id} /> : null}
+        <CardContent className="flex flex-col gap-6">
+          <section className="flex flex-col gap-3">
+            <h3 className="text-sm font-semibold">{t('history.notesHeading')}</h3>
+            {detail.notes.length === 0 ? (
+              <p className="text-sm text-[var(--pf-text-secondary)]">{t('history.notesEmpty')}</p>
+            ) : (
+              <ul className="flex flex-col gap-2">
+                {detail.notes.map((note) => (
+                  <li
+                    key={note.id}
+                    className="rounded-md border border-[var(--pf-border-default)] p-3 text-sm"
+                  >
+                    <p className="text-xs text-[var(--pf-text-muted)]">
+                      {formatInstant(note.createdAt, locale, timezone)}
+                    </p>
+                    <p className="mt-1 whitespace-pre-wrap">{note.body}</p>
+                  </li>
+                ))}
+              </ul>
+            )}
+            {canManage ? <OpportunityNoteForm opportunityId={detail.id} /> : null}
+          </section>
+
+          <section className="flex flex-col gap-3">
+            <h3 className="text-sm font-semibold">{t('history.auditHeading')}</h3>
+            {detail.auditEvents.length === 0 ? (
+              <p className="text-sm text-[var(--pf-text-secondary)]">{t('history.auditEmpty')}</p>
+            ) : (
+              <ul className="flex flex-col gap-2">
+                {detail.auditEvents.map((event) => (
+                  <li
+                    key={event.id}
+                    className="rounded-md border border-[var(--pf-border-default)] p-3 text-sm"
+                  >
+                    <p className="font-medium">{translateAuditAction(tAudit, event.action)}</p>
+                    <p className="mt-1 text-xs text-[var(--pf-text-muted)]">
+                      {formatInstant(event.createdAt, locale, timezone)}
+                      {event.actorDisplayName || event.actorEmail
+                        ? ` · ${event.actorDisplayName ?? event.actorEmail}`
+                        : ''}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
         </CardContent>
       </Card>
 

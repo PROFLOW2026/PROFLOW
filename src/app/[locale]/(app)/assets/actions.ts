@@ -4,16 +4,19 @@ import { revalidatePath } from 'next/cache';
 import { getLocale, getTranslations } from 'next-intl/server';
 import {
   archiveEquipmentUsage,
+  archiveInventoryLocation,
   archiveMaterialUsage,
   createAsset,
   createFleetVehicle,
   createInventoryItem,
+  createInventoryLocation,
   createMaintenanceRecord,
   recordEquipmentUsage,
   recordInventoryMovement,
   recordMaterialUsage,
   updateAsset,
   updateFleetVehicle,
+  updateInventoryLocation,
   updateMaintenanceRecord,
 } from '@/modules/assets';
 import { withOrgContext } from '@/shared/auth/session';
@@ -277,15 +280,73 @@ export async function recordInventoryMovementAction(
           | 'receive'
           | 'issue'
           | 'return'
-          | 'adjust',
+          | 'adjust'
+          | 'transfer',
         quantity: requiredFormValue(formData, 'quantity'),
         occurredOn: requiredFormValue(formData, 'occurredOn'),
         projectId: optionalUuidOrNull(formData, 'projectId') ?? undefined,
+        fromLocationId: optionalUuidOrNull(formData, 'fromLocationId') ?? undefined,
+        toLocationId: optionalUuidOrNull(formData, 'toLocationId') ?? undefined,
+        locationId: optionalUuidOrNull(formData, 'locationId') ?? undefined,
         notes: formValue(formData, 'notes'),
       }),
     );
     revalidatePath('/assets/inventory');
     revalidatePath(`/assets/inventory/${inventoryItemId}`);
+    return { success: true };
+  } catch (error) {
+    return mapAppError(error);
+  }
+}
+
+export async function createInventoryLocationAction(
+  _prev: AssetsFormState,
+  formData: FormData,
+): Promise<AssetsFormState> {
+  try {
+    await withOrgContext((context) =>
+      createInventoryLocation(context, {
+        name: requiredFormValue(formData, 'name'),
+        code: formValue(formData, 'code'),
+      }),
+    );
+    revalidatePath('/assets/inventory', 'layout');
+    return { success: true };
+  } catch (error) {
+    return mapAppError(error);
+  }
+}
+
+export async function updateInventoryLocationAction(
+  _prev: AssetsFormState,
+  formData: FormData,
+): Promise<AssetsFormState> {
+  try {
+    await withOrgContext((context) =>
+      updateInventoryLocation(context, {
+        locationId: requiredFormValue(formData, 'locationId'),
+        name: formValue(formData, 'name'),
+        code: formValue(formData, 'code'),
+      }),
+    );
+    revalidatePath('/assets/inventory', 'layout');
+    return { success: true };
+  } catch (error) {
+    return mapAppError(error);
+  }
+}
+
+export async function archiveInventoryLocationAction(
+  _prev: AssetsFormState,
+  formData: FormData,
+): Promise<AssetsFormState> {
+  try {
+    await withOrgContext((context) =>
+      archiveInventoryLocation(context, {
+        locationId: requiredFormValue(formData, 'locationId'),
+      }),
+    );
+    revalidatePath('/assets/inventory', 'layout');
     return { success: true };
   } catch (error) {
     return mapAppError(error);

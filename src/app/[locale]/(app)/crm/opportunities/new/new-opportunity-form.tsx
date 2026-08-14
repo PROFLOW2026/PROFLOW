@@ -21,6 +21,7 @@ export function NewOpportunityForm({
   defaultLeadId?: string;
 }) {
   const t = useTranslations('crm.opportunity');
+  const tFollowUp = useTranslations('crm.followUp');
   const tCommon = useTranslations('common');
   const [state, formAction, pending] = useActionState<CrmFormState, FormData>(
     createOpportunityAction,
@@ -92,6 +93,12 @@ export function NewOpportunityForm({
       </Field>
       <Field label={t('notesLabel')} optionalLabel={tCommon('labels.optional')}>
         {(control) => <Textarea {...control} name="notes" rows={3} />}
+      </Field>
+      <Field label={tFollowUp('nextActionLabel')} optionalLabel={tCommon('labels.optional')}>
+        {(control) => <Input {...control} name="nextActionText" />}
+      </Field>
+      <Field label={tFollowUp('nextActionAtLabel')} optionalLabel={tCommon('labels.optional')}>
+        {(control) => <Input {...control} name="nextActionAt" type="datetime-local" dir="ltr" />}
       </Field>
       <Button type="submit" loading={pending} block>
         {t('submit')}

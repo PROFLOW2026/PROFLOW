@@ -174,6 +174,102 @@ describe('offline reconnect sync', () => {
     expect(pending[0]?.syncStatus).toBe('queued');
   });
 
+  it('injects the parent server id into a create-form capture and syncs the parent first', async () => {
+    const queue = createDraftQueue(createMemoryDraftStore());
+    const attachments = createMemoryAttachmentStore();
+    const parentLocalId = 'parent-daily-log';
+
+    await enqueueCaptureDraft(
+      {
+        organizationId: 'org-1',
+        userId: 'user-1',
+        file: new Blob(['img'], { type: 'image/jpeg' }),
+        fileName: 'wall.jpg',
+        mimeType: 'image/jpeg',
+        ownerType: 'daily_log',
+        ownerId: null,
+        pendingOwnerDraftLocalId: parentLocalId,
+      },
+      { queue, attachments },
+    );
+
+    await queue.enqueue({
+      localId: parentLocalId,
+      organizationId: 'org-1',
+      userId: 'user-1',
+      kind: 'daily_log',
+      payload: { projectId: 'p1', logDate: '2026-08-14', summary: 'poured slab' },
+    });
+
+    const submittedKinds: string[] = [];
+    const transport: OfflineSyncTransport = {
+      async fetchServerTruth() {
+        return null;
+      },
+      async submit(action) {
+        submittedKinds.push(action.kind);
+        if (action.kind === 'daily_log') {
+          return { serverId: 'log-1', serverUpdatedAt: '2026-08-14T10:00:00.000Z' };
+        }
+        expect(action.payload.ownerId).toBe('log-1');
+        expect(action.payload.ownerType).toBe('daily_log');
+        return { serverId: 'doc-1', serverUpdatedAt: '2026-08-14T10:00:01.000Z' };
+      },
+    };
+
+    const run = await runQueuedSync({
+      organizationId: 'org-1',
+      userId: 'user-1',
+      transport,
+      queue,
+      attachments,
+    });
+
+    expect(submittedKinds).toEqual(['daily_log', 'capture']);
+    expect(run.results.map((row) => row.status)).toEqual(['synced', 'synced']);
+  });
+
+  it('waits when a create-form capture has no owner and the parent is not synced yet', async () => {
+    const queue = createDraftQueue(createMemoryDraftStore());
+    const attachments = createMemoryAttachmentStore();
+    const { draft } = await enqueueCaptureDraft(
+      {
+        organizationId: 'org-1',
+        userId: 'user-1',
+        file: new Blob(['img'], { type: 'image/jpeg' }),
+        fileName: 'wall.jpg',
+        mimeType: 'image/jpeg',
+        ownerType: 'daily_log',
+        pendingOwnerDraftLocalId: 'missing-parent',
+      },
+      { queue, attachments },
+    );
+
+    const transport: OfflineSyncTransport = {
+      async fetchServerTruth() {
+        return null;
+      },
+      async submit() {
+        throw new Error('must not submit capture without owner');
+      },
+    };
+
+    const run = await runQueuedSync({
+      organizationId: 'org-1',
+      userId: 'user-1',
+      transport,
+      queue,
+      attachments,
+    });
+
+    expect(run.results[0]).toMatchObject({
+      localId: draft.localId,
+      status: 'skipped',
+      reason: 'Waiting for owner record to sync.',
+    });
+    expect((await queue.get(draft.localId))?.syncStatus).toBe('queued');
+  });
+
   it('marks synced and clears capture blobs on success', async () => {
     const queue = createDraftQueue(createMemoryDraftStore());
     const attachments = createMemoryAttachmentStore();

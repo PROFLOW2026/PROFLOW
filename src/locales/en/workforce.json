@@ -94,6 +94,7 @@
   "time": {
     "title": "Time entries",
     "description": "Hours logged against projects and non-project codes.",
+    "reportsEntry": "Labor cost report",
     "new": "Log time",
     "quickLog": "Quick time log",
     "quickLogDescription": "Log hours in a few taps — employee, date, hours, project, and notes.",
@@ -252,6 +253,7 @@
     "title": "Attendance",
     "description": "Clock in and out for presence. Attendance is not project time and never creates labor Actual by itself.",
     "disclaimer": "Presence only — not project hours and not cost.",
+    "completenessHint": "Complete is a presence heuristic: at least one clock-in and currently clocked out. It is not a timesheet or payroll completeness check and does not create labor cost. Open means still on site, or the day has no closing clock-out yet.",
     "clock": {
       "today": "Today · {date}",
       "in": "Clock in",
@@ -265,8 +267,8 @@
       "on_break": "On break"
     },
     "dayStatus": {
-      "open": "Open",
-      "complete": "Complete",
+      "open": "Open (still on site or no clock-out)",
+      "complete": "Complete (clocked out)",
       "void": "Void"
     },
     "eventTypes": {
@@ -283,7 +285,7 @@
     },
     "list": {
       "title": "Attendance days",
-      "hint": "Filter by date or status. Open a day for events and corrections.",
+      "hint": "Filter by date or status. Open a day for events and corrections. Status is presence only — see the completeness note.",
       "empty": {
         "title": "No attendance yet",
         "description": "Optional — use the clock or a manager manual entry when you need presence tracking. Nothing is required to set up."
@@ -344,6 +346,8 @@
     "emptyBulk": "No days matched the selected range and weekdays.",
     "timeEntryAlreadyVoid": "This time entry is already void.",
     "timeEntryArchived": "Cannot correct an archived time entry.",
+    "closedMonthNeedsProject": "Cannot post a closed-month economic correction without a project. Date a reversing time entry in an open month, or assign the original entry to a project.",
+    "closedMonthCurrencyMismatch": "Closed-month time correction requires the same cost currency on the original and replacement.",
     "alreadyClockedIn": "Already clocked in.",
     "notClockedIn": "Not clocked in.",
     "noLinkedEmployee": "Your login is not linked to an employee record.",

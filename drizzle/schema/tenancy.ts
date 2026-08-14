@@ -1,5 +1,17 @@
-import { relations } from 'drizzle-orm';
-import { boolean, char, index, jsonb, pgTable, text, timestamp, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
+import { relations, sql } from 'drizzle-orm';
+import {
+  boolean,
+  char,
+  check,
+  index,
+  integer,
+  jsonb,
+  pgTable,
+  text,
+  timestamp,
+  uniqueIndex,
+  uuid,
+} from 'drizzle-orm/pg-core';
 import { archivedAt, primaryId, timestamps } from './_shared';
 import { invitationStatusEnum, membershipStatusEnum } from './enums';
 import { profiles } from './identity';
@@ -132,3 +144,30 @@ export const organizationMembershipsRelations = relations(organizationMembership
     references: [profiles.id],
   }),
 }));
+
+/**
+ * Internal tracking numbers only — not statutory Israeli invoice issuance.
+ */
+export const documentNumberSequences = pgTable(
+  'document_number_sequences',
+  {
+    id: primaryId(),
+    organizationId: uuid('organization_id')
+      .notNull()
+      .references(() => organizations.id, { onDelete: 'cascade' }),
+    documentKind: text('document_kind').notNull(),
+    prefix: text('prefix').notNull().default(''),
+    padding: integer('padding').notNull().default(4),
+    nextNumber: integer('next_number').notNull().default(1),
+    ...timestamps(),
+  },
+  (table) => [
+    uniqueIndex('document_number_sequences_org_kind_uq').on(table.organizationId, table.documentKind),
+    check(
+      'document_number_sequences_kind_known',
+      sql`${table.documentKind} IN ('estimate','change_request','change_order','purchase_order','vendor_bill','billing_record')`,
+    ),
+    check('document_number_sequences_padding_range', sql`${table.padding} >= 1 AND ${table.padding} <= 8`),
+    check('document_number_sequences_next_positive', sql`${table.nextNumber} >= 1`),
+  ],
+);

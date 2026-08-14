@@ -67,6 +67,31 @@ describe('month-close completeness scoring', () => {
     expect(missing?.sampleEntityIds).toEqual(['a']);
   });
 
+  it('treats submitted time_correction requests as an open completeness issue', () => {
+    const snapshot = scoreCompleteness(
+      [
+        { key: 'missing_employer_cost_actual', applicable: true, issueCount: 0 },
+        { key: 'unallocated_employee_cost', applicable: true, issueCount: 0 },
+        { key: 'vendor_bills_unallocated', applicable: true, issueCount: 0 },
+        { key: 'open_time_corrections', applicable: true, issueCount: 1, sampleEntityIds: ['req-1'] },
+        { key: 'ap_anomalies', applicable: true, issueCount: 0 },
+        { key: 'missing_project_allocations', applicable: true, issueCount: 0 },
+        { key: 'unresolved_expense_drafts', applicable: true, issueCount: 0 },
+        { key: 'incomplete_attendance', applicable: false, issueCount: 0 },
+        { key: 'open_overhead_allocation', applicable: true, issueCount: 0 },
+      ],
+      { yearMonth: '2026-08' },
+    );
+
+    expect(isCompletenessReady(snapshot)).toBe(false);
+    expect(snapshot.items.find((item) => item.key === 'open_time_corrections')).toMatchObject({
+      applicable: true,
+      issueCount: 1,
+      scorePercent: 0,
+      sampleEntityIds: ['req-1'],
+    });
+  });
+
   it('treats zero applicable checks as complete', () => {
     const items = buildCompletenessItems([]);
     expect(items).toHaveLength(9);
@@ -97,6 +122,21 @@ describe('month-close period transitions', () => {
 
   it('throws on illegal transitions', () => {
     expect(() => assertCanTransitionMonthClose('closed', 'open')).toThrow(DomainRuleError);
+  });
+});
+
+describe('closed-period source rewrite errors', () => {
+  it('maps the DB freeze code to a Hebrew DomainRuleError', async () => {
+    const { closedPeriodSourceRewriteError, isClosedPeriodFreezeError, rethrowClosedPeriodRewrite } =
+      await import('@/modules/month-close/domain/period-state');
+
+    expect(isClosedPeriodFreezeError(new Error('closed_period_immutable'))).toBe(true);
+    expect(isClosedPeriodFreezeError(new Error('other'))).toBe(false);
+
+    const mapped = closedPeriodSourceRewriteError();
+    expect(mapped.messageKey).toBe('monthClose.errors.useCorrectionNotRewrite');
+
+    expect(() => rethrowClosedPeriodRewrite(new Error('closed_period_immutable'))).toThrow(DomainRuleError);
   });
 });
 

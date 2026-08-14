@@ -32,6 +32,14 @@ function formValue(formData: FormData, key: string): string | undefined {
   return s === '' ? undefined : s;
 }
 
+/** Present empty field → null (clear). Omitted field → undefined (leave unchanged). */
+function formValueOrNull(formData: FormData, key: string): string | null | undefined {
+  const value = formData.get(key);
+  if (value === null) return undefined;
+  const text = String(value).trim();
+  return text === '' ? null : text;
+}
+
 function mapError(error: unknown, tErrors: Awaited<ReturnType<typeof getTranslations>>): CrmFormState {
   if (error instanceof ValidationError) {
     const fieldErrors: Record<string, string> = {};
@@ -135,6 +143,8 @@ export async function createOpportunityAction(
         expectedStartDate: formValue(formData, 'expectedStartDate'),
         referralSource: formValue(formData, 'referralSource'),
         notes: formValue(formData, 'notes'),
+        nextActionAt: formValue(formData, 'nextActionAt'),
+        nextActionText: formValue(formData, 'nextActionText'),
       }),
     );
     revalidatePath('/crm');
@@ -323,11 +333,15 @@ export async function updateOpportunityAction(
         status: formValue(formData, 'status') as 'open' | 'won' | 'lost' | 'cancelled' | undefined,
         expectedValueAmount: formValue(formData, 'expectedValueAmount'),
         currency: formValue(formData, 'currency'),
+        expectedStartDate: formValue(formData, 'expectedStartDate'),
         lostReason: formValue(formData, 'lostReason'),
         notes: formValue(formData, 'notes'),
+        nextActionAt: formValueOrNull(formData, 'nextActionAt'),
+        nextActionText: formValueOrNull(formData, 'nextActionText'),
       }),
     );
     revalidatePath(`/crm/opportunities/${opportunityId}`);
+    revalidatePath('/crm');
     return {};
   } catch (error) {
     return mapError(error, tErrors);

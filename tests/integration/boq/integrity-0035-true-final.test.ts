@@ -9,6 +9,7 @@ import { createBillingRecordWithPermission } from '@/modules/billing';
 import { finalizeProgressBillingRpc } from '@/modules/boq/data/boq.repository';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { createTestDatabase, resultRows, type TestDatabase } from '../../setup/database';
+import { insertDraftBoqNodeViaRpc } from '../../setup/boq-draft-node';
 import { createTestOrganization, createTestUser, seedSystem } from '../../setup/fixtures';
 
 /**
@@ -119,20 +120,16 @@ describe('BOQ true-final integrity closure adversarial', () => {
           RETURNING id
         `),
       );
-      const node = resultRows<{ id: string }>(
-        await tx.execute(sql`
-          INSERT INTO boq_nodes (
-            organization_id, boq_id, node_kind, description, pricing_type,
-            original_quantity, original_unit_price, original_amount,
-            current_quantity, current_unit_price, current_amount
-          ) VALUES (
-            ${orgId}::uuid, ${boq[0]!.id}::uuid, 'item', 'Item', 'quantity_unit_price',
-            10, 100, 1000, 10, 100, 1000
-          ) RETURNING id
-        `),
-      );
+      const nodeId = await insertDraftBoqNodeViaRpc(tx, {
+        organizationId: orgId,
+        boqId: boq[0]!.id,
+        description: 'Item',
+        quantity: 10,
+        unitPrice: 100,
+        amount: 1000,
+      });
       await tx.execute(sql`SELECT app.activate_project_boq(${orgId}::uuid, ${boq[0]!.id}::uuid)`);
-      return { boqId: boq[0]!.id, nodeId: node[0]!.id };
+      return { boqId: boq[0]!.id, nodeId };
     });
   }
 
@@ -593,18 +590,14 @@ describe('BOQ true-final integrity closure adversarial', () => {
           RETURNING id
         `),
       );
-      const node = resultRows<{ id: string }>(
-        await tx.execute(sql`
-          INSERT INTO boq_nodes (
-            organization_id, boq_id, node_kind, description, pricing_type,
-            original_quantity, original_unit_price, original_amount,
-            current_quantity, current_unit_price, current_amount
-          ) VALUES (
-            ${orgId}::uuid, ${boq[0]!.id}::uuid, 'item', 'Item', 'quantity_unit_price',
-            10, 100, 1000, 10, 100, 1000
-          ) RETURNING id
-        `),
-      );
+      const nodeId = await insertDraftBoqNodeViaRpc(tx, {
+        organizationId: orgId,
+        boqId: boq[0]!.id,
+        description: 'Item',
+        quantity: 10,
+        unitPrice: 100,
+        amount: 1000,
+      });
       await tx.execute(sql`SELECT app.activate_project_boq(${orgId}::uuid, ${boq[0]!.id}::uuid)`);
 
       const batch = resultRows<{ id: string }>(
@@ -622,7 +615,7 @@ describe('BOQ true-final integrity closure adversarial', () => {
             organization_id, batch_id, boq_node_id, measured_quantity,
             previous_approved_quantity, approved_quantity, unit_price_snapshot, period_amount, currency
           ) VALUES (
-            ${orgId}::uuid, ${batch[0]!.id}::uuid, ${node[0]!.id}::uuid,
+            ${orgId}::uuid, ${batch[0]!.id}::uuid, ${nodeId}::uuid,
             10, 0, 0, 0, 0, 'ILS'
           ) RETURNING id
         `),
@@ -674,19 +667,14 @@ describe('BOQ true-final integrity closure adversarial', () => {
           RETURNING id
         `),
       );
-      const node = resultRows<{ id: string }>(
-        await tx.execute(sql`
-          INSERT INTO boq_nodes (
-            organization_id, boq_id, node_kind, description, pricing_type,
-            original_quantity, original_unit_price, original_amount,
-            current_quantity, current_unit_price, current_amount
-          ) VALUES (
-            ${orgId}::uuid, ${draft[0]!.id}::uuid, 'item', 'Draft map', 'quantity_unit_price',
-            1, 1, 1, 1, 1, 1
-          ) RETURNING id
-        `),
-      );
-      return node[0]!.id;
+      return insertDraftBoqNodeViaRpc(tx, {
+        organizationId: orgId,
+        boqId: draft[0]!.id,
+        description: 'Draft map',
+        quantity: 1,
+        unitPrice: 1,
+        amount: 1,
+      });
     });
 
     const fixtures = await database.asService(async (db) => {
@@ -767,41 +755,57 @@ describe('BOQ true-final integrity closure adversarial', () => {
       if (fixtures.wpForeign) {
         await expect(
           tx.execute(sql`
-            UPDATE boq_nodes SET work_package_id = ${fixtures.wpForeign}::uuid WHERE id = ${nodeId}::uuid
+            SELECT app.boq_mutate_draft_node(
+              ${orgId}::uuid, 'update', ${nodeId}::uuid,
+              jsonb_build_object('work_package_id', ${fixtures.wpForeign}::uuid)
+            )
           `),
         ).rejects.toThrow();
       }
       if (fixtures.wpWrongProject) {
         await expect(
           tx.execute(sql`
-            UPDATE boq_nodes SET work_package_id = ${fixtures.wpWrongProject}::uuid WHERE id = ${nodeId}::uuid
+            SELECT app.boq_mutate_draft_node(
+              ${orgId}::uuid, 'update', ${nodeId}::uuid,
+              jsonb_build_object('work_package_id', ${fixtures.wpWrongProject}::uuid)
+            )
           `),
         ).rejects.toThrow();
       }
       await expect(
         tx.execute(sql`
-          UPDATE boq_nodes SET cost_category_id = ${fixtures.catForeign}::uuid WHERE id = ${nodeId}::uuid
+          SELECT app.boq_mutate_draft_node(
+            ${orgId}::uuid, 'update', ${nodeId}::uuid,
+            jsonb_build_object('cost_category_id', ${fixtures.catForeign}::uuid)
+          )
         `),
       ).rejects.toThrow();
       await expect(
         tx.execute(sql`
-          UPDATE boq_nodes SET budget_line_id = ${fixtures.blWrong}::uuid WHERE id = ${nodeId}::uuid
+          SELECT app.boq_mutate_draft_node(
+            ${orgId}::uuid, 'update', ${nodeId}::uuid,
+            jsonb_build_object('budget_line_id', ${fixtures.blWrong}::uuid)
+          )
         `),
       ).rejects.toThrow();
     });
 
-    // source_change_order_id is baseline-locked after activate â€” probe on draft node.
+    // source_change_order_id is baseline-locked after activate — probe on draft node.
     await database.asUser(owner.id, async (tx) => {
       await expect(
         tx.execute(sql`
-          UPDATE boq_nodes SET source_change_order_id = ${fixtures.coWrongProject}::uuid
-          WHERE id = ${draftNodeId}::uuid
+          SELECT app.boq_mutate_draft_node(
+            ${orgId}::uuid, 'update', ${draftNodeId}::uuid,
+            jsonb_build_object('source_change_order_id', ${fixtures.coWrongProject}::uuid)
+          )
         `),
       ).rejects.toThrow();
       await expect(
         tx.execute(sql`
-          UPDATE boq_nodes SET source_change_order_id = ${fixtures.coForeign}::uuid
-          WHERE id = ${draftNodeId}::uuid
+          SELECT app.boq_mutate_draft_node(
+            ${orgId}::uuid, 'update', ${draftNodeId}::uuid,
+            jsonb_build_object('source_change_order_id', ${fixtures.coForeign}::uuid)
+          )
         `),
       ).rejects.toThrow();
     });

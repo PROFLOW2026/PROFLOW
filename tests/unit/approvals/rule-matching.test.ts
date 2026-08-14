@@ -50,6 +50,16 @@ describe('approval rule matching', () => {
     );
     expect(selected?.id).toBe('low');
   });
+
+  it('matches quote_discount on the discount money amount', () => {
+    const r = rule({ entityType: 'quote_discount', thresholdAmount: '1000', currency: 'ILS' });
+    expect(ruleMatchesAmount(r, { entityType: 'quote_discount', amount: '1500', currency: 'ILS' })).toBe(
+      true,
+    );
+    expect(ruleMatchesAmount(r, { entityType: 'quote_discount', amount: '50', currency: 'ILS' })).toBe(
+      false,
+    );
+  });
 });
 
 describe('approvalCoversAmount', () => {

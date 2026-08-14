@@ -3,7 +3,7 @@ import type { OrgContext } from '@/shared/auth/context';
 import { DomainRuleError, NotFoundError, ValidationError } from '@/shared/errors';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
-import { noteModuleUsage } from '@/modules/tenancy';
+import { noteModuleUsage, resolveAllocatedReference } from '@/modules/tenancy';
 import {
   assertCommittedAmountMatchesLines,
   assertIssueCreatesCommittedNotExpense,
@@ -31,6 +31,7 @@ import {
   type CreatePurchaseOrderInput,
 } from '../validation/schemas';
 import { assertOptionalProjectRefsInOrg } from './assert-project-refs';
+import { loadPurchaseOrderReceivingDetail } from './receive-purchase-order';
 
 export async function listPurchaseOrdersForOrg(context: OrgContext, projectId?: string) {
   assertPermission(context, PERMISSIONS.PROCUREMENT_READ);
@@ -39,10 +40,7 @@ export async function listPurchaseOrdersForOrg(context: OrgContext, projectId?: 
 
 export async function getPurchaseOrderById(context: OrgContext, purchaseOrderId: string) {
   assertPermission(context, PERMISSIONS.PROCUREMENT_READ);
-  const order = await findPurchaseOrderById(context.db, context.organizationId, purchaseOrderId);
-  if (!order) throw new NotFoundError('Purchase order');
-  const lines = await listPurchaseOrderLines(context.db, context.organizationId, purchaseOrderId);
-  return { order, lines };
+  return loadPurchaseOrderReceivingDetail(context, purchaseOrderId);
 }
 
 export async function listPurchaseOrdersWithCommittedForOrg(
@@ -105,13 +103,14 @@ export async function createPurchaseOrder(context: OrgContext, raw: CreatePurcha
   });
 
   const currency = input.currency.toUpperCase();
+  const reference = await resolveAllocatedReference(context, 'purchase_order', input.reference);
   const po = await insertPurchaseOrder(context.db, {
     organizationId: context.organizationId,
     vendorId: input.vendorId,
     projectId: input.projectId ?? null,
     workPackageId: input.workPackageId ?? null,
     supplierQuoteId: input.supplierQuoteId ?? null,
-    reference: input.reference ?? null,
+    reference,
     status: 'draft',
     currency,
     committedAmount: input.committedAmount,

@@ -340,6 +340,8 @@ export async function confirmOcrCandidate(
       date: confirmed.date,
       currency: confirmed.currency,
       amount: confirmed.gross ?? confirmed.net,
+      netAmount: confirmed.net,
+      taxAmount: confirmed.tax,
       description: confirmed.description,
     });
     if (!creditDraft) {

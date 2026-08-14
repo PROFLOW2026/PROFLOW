@@ -25,6 +25,8 @@ export interface MetricDrilldownProps {
   readonly value: { amount: string; currency: string };
   readonly nature?: string;
   readonly explanation?: string;
+  /** Short net-vs-cash basis note, always visible under the label. */
+  readonly basis?: string;
   /** Localized "Why this number?" affordance next to the expand control. */
   readonly whyLabel?: string;
   readonly lines?: readonly MetricDrillLine[];
@@ -45,6 +47,7 @@ export function MetricDrilldown({
   value,
   nature,
   explanation,
+  basis,
   whyLabel,
   lines = [],
   links = [],
@@ -95,6 +98,11 @@ export function MetricDrilldown({
                 aria-hidden
               />
             </span>
+            {basis ? (
+              <span className="mt-0.5 block text-xs font-normal text-[var(--pf-text-muted)]">
+                {basis}
+              </span>
+            ) : null}
             {whyLabel ? (
               <span className="mt-0.5 block text-xs font-normal text-[var(--pf-text-brand)] underline-offset-2 hover:underline">
                 {whyLabel}
@@ -117,6 +125,9 @@ export function MetricDrilldown({
             {label}
             {nature ? (
               <span className="ms-1 text-xs text-[var(--pf-text-muted)]">· {nature}</span>
+            ) : null}
+            {basis ? (
+              <span className="mt-0.5 block text-xs text-[var(--pf-text-muted)]">{basis}</span>
             ) : null}
           </span>
           <MoneyText value={value} className={emphasis ? 'shrink-0 font-semibold' : 'shrink-0'} />

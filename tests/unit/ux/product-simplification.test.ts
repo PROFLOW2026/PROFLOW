@@ -120,7 +120,7 @@ describe('authenticated product simplification', () => {
     ).toEqual(expect.arrayContaining(['clients', 'changes', 'billing', 'reports']));
     expect(
       groups.find((g: NavItemGroup) => g.group === 'advanced')?.items.map((i) => i.key),
-    ).toEqual(expect.arrayContaining(['vendorBills', 'assets', 'compliance']));
+    ).toEqual(expect.arrayContaining(['vendorBills', 'assets', 'compliance', 'overhead']));
     expect(NAV_ITEMS.some((item) => item.href === '/documents/ocr-review')).toBe(false);
   });
 
@@ -142,11 +142,13 @@ describe('authenticated product simplification', () => {
       expect(nav.has('moreGroups.advanced')).toBe(true);
       expect(nav.has('vendorBills')).toBe(true);
       expect(nav.has('jobs')).toBe(true);
+      expect(nav.has('overhead')).toBe(true);
       expect(nav.has('newMenu.job')).toBe(true);
     }
     const heNav = flattenLocaleCatalog(readLocaleCatalog('he-IL', 'nav'));
     expect(heNav.get('vendorBills')).toBe('חשבונות ספקים');
     expect(heNav.get('jobs')).toBe('עבודות');
+    expect(heNav.get('overhead')).toBe('תקורה');
     expect(heNav.get('newMenu.job')).toBe('עבודה');
     expect(heNav.get('attendance')).toBe('נוכחות');
     expect(heNav.get('newMenu.fieldLog')).toBe('יומן שטח');

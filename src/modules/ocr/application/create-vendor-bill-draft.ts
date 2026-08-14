@@ -1,4 +1,5 @@
 import type { OrgContext } from '@/shared/auth/context';
+import { resolveAllocatedReference } from '@/modules/tenancy';
 import { DomainRuleError, NotFoundError, ValidationError } from '@/shared/errors';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
@@ -7,6 +8,7 @@ import {
   insertApBill,
   insertApBillLines,
 } from '@/modules/ap';
+import { resolveApBillTaxSplit } from '@/modules/ap/domain/bill-tax';
 import type { mapConfirmedFieldsToVendorBillDraft } from '../domain/confirm';
 
 export type VendorBillDraftPayload = ReturnType<typeof mapConfirmedFieldsToVendorBillDraft>;
@@ -55,17 +57,30 @@ export async function createVendorBillDraftFromOcr(
   if (draft.taxAmount) notesParts.push(`Tax: ${draft.taxAmount}`);
   notesParts.push('Created from document review as draft — not recognized actual.');
 
+  const taxSplit = resolveApBillTaxSplit({
+    enteredAmount: draft.totalAmount,
+    currency: draft.currency,
+    netAmount: draft.netAmount,
+    taxAmount: draft.taxAmount,
+  });
+
   const bill = await insertApBill(context.db, {
     organizationId: context.organizationId,
     vendorId: draft.vendorId,
     projectId: null,
     purchaseOrderId: null,
-    reference: draft.reference ?? null,
+    reference: await resolveAllocatedReference(context, 'vendor_bill', draft.reference),
     status: 'draft',
     billDate: draft.billDate ?? null,
     dueDate: draft.dueDate ?? null,
     currency: draft.currency,
-    totalAmount: draft.totalAmount,
+    totalAmount: taxSplit.totalAmount,
+    netAmount: taxSplit.netAmount,
+    taxAmount: taxSplit.taxAmount,
+    grossAmount: taxSplit.grossAmount,
+    amountIncludesTax: taxSplit.amountIncludesTax,
+    taxSnapshot: taxSplit.taxSnapshot,
+    taxBasis: taxSplit.taxBasis,
     notes: notesParts.join('\n').slice(0, 2000),
   });
 

@@ -14,8 +14,9 @@ import { TimeEntriesTable } from '@/modules/workforce/ui/time-entries-table';
 import { TimeEntryListFilters } from '@/modules/workforce/ui/time-entry-list-filters';
 import { withOrgContext } from '@/shared/auth/session';
 import { Link } from '@/shared/i18n/navigation';
-import { hasAnyPermission } from '@/shared/permissions/assert';
+import { hasAnyPermission, hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
+import { ReportsEntryLink } from '@/modules/financials/ui/reports-entry-link';
 
 export async function generateMetadata({
   params,
@@ -51,7 +52,7 @@ export default async function TimeEntriesPage({
   });
   const filters = parsedFilters.success ? parsedFilters.data : {};
 
-  const { entries, showCosts, allowLog, employees, projects, showAttendance } = await withOrgContext(
+  const { entries, showCosts, allowLog, employees, projects, showAttendance, canReadReports } = await withOrgContext(
     async (context) => ({
       entries: await listTimeEntriesForOrg(context, filters),
       showCosts: canViewWorkforceCosts(context),
@@ -63,6 +64,7 @@ export default async function TimeEntriesPage({
         PERMISSIONS.ATTENDANCE_SELF,
         PERMISSIONS.ATTENDANCE_MANAGE,
       ]),
+      canReadReports: hasPermission(context, PERMISSIONS.PROJECT_FINANCIALS_READ),
     }),
   );
 
@@ -72,11 +74,16 @@ export default async function TimeEntriesPage({
         title={t('time.title')}
         description={t('time.description')}
         actions={
-          allowLog ? (
-            <Button asChild>
-              <Link href="/workforce/time/new">{t('time.new')}</Link>
-            </Button>
-          ) : undefined
+          <div className="flex max-w-full flex-wrap gap-2">
+            {canReadReports ? (
+              <ReportsEntryLink section="cost">{t('time.reportsEntry')}</ReportsEntryLink>
+            ) : null}
+            {allowLog ? (
+              <Button asChild>
+                <Link href="/workforce/time/new">{t('time.new')}</Link>
+              </Button>
+            ) : undefined}
+          </div>
         }
       />
 

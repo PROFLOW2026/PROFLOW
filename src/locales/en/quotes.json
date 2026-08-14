@@ -1,12 +1,29 @@
 {
-  "title": "Estimates and quotes",
-  "description": "Pre-sale offers. Not an invoice, not a change order, and not revenue until work is won and converted.",
+  "title": "Pre-project estimates",
+  "description": "Pre-project offers before work exists. Not an invoice, not a sales CRM quote, not a change-order quote, and not billing or revenue until work is won and converted.",
   "disclaimer": "This estimate is a commercial offer. It is not a statutory tax invoice.",
-  "newQuote": "New estimate",
+  "hub": {
+    "title": "Estimates, changes, and billing",
+    "description": "Three separate documents — not one table. Pick the object you need.",
+    "stripIntro": "This is not a change request and not billing. CRM pipeline is a different object.",
+    "preProjectTitle": "Before a project / sales",
+    "preProjectBody": "Pre-project estimates in the quotes module. Not an invoice and not an in-project change.",
+    "preProjectAction": "Open pre-project estimates",
+    "inProjectTitle": "Change inside a project",
+    "inProjectBody": "Change requests and extras on an existing project. Not a sales estimate.",
+    "inProjectAction": "Open change requests",
+    "billingTitle": "Billing is not a quote",
+    "billingBody": "Invoices and collections after work exists. Not an estimate.",
+    "billingAction": "Open billing",
+    "crmNote": "CRM is the sales pipeline (opportunities). It is not the quotes module and not billing.",
+    "crmAction": "Open CRM",
+    "here": "You are here"
+  },
+  "newQuote": "New pre-project estimate",
   "empty": {
     "title": "No estimates yet",
     "body": "Create a priced offer for a client before winning the work. Acceptance can create a project or job — it does not bill.",
-    "action": "Create estimate"
+    "action": "Create pre-project estimate"
   },
   "list": {
     "columns": {
@@ -18,9 +35,11 @@
     }
   },
   "create": {
-    "title": "New estimate",
+    "title": "New pre-project estimate",
     "description": "Mobile-friendly offer with line items, optional cost/margin preview, and VAT from your tax settings.",
     "titleLabel": "Title",
+    "referenceLabel": "Internal number",
+    "referenceHint": "Leave blank to assign the next internal tracking number. This is not a tax invoice.",
     "clientLabel": "Client",
     "clientNone": "No client yet",
     "descriptionLabel": "Description",
@@ -40,7 +59,11 @@
     "markup": "Markup",
     "margin": "Margin",
     "submit": "Save draft",
-    "profitHint": "Estimated cost and margin are a pre-win profitability preview — not Actual and not revenue."
+    "profitHint": "Estimated cost and margin are a pre-win profitability preview — not Actual and not revenue.",
+    "discountAmountLabel": "Customer discount",
+    "listSubtotalLabel": "List subtotal",
+    "discountPercentLabel": "Discount %",
+    "discountHint": "Customer discount on this estimate. Cost/margin is not a discount. Large discounts may need approval before sending."
   },
   "taxModes": {
     "exclusive": "Excluding VAT",
@@ -48,7 +71,7 @@
     "none": "No VAT"
   },
   "detail": {
-    "title": "Estimate",
+    "title": "Pre-project estimate",
     "subtotal": "Subtotal (net)",
     "tax": "VAT",
     "total": "Total",
@@ -86,6 +109,6 @@
     "noSubtotal": "Add priced lines before converting",
     "noTotal": "Tax-inclusive convert needs a total",
     "clientRequiredForJob": "Choose a client before converting to a job",
-    "quoteIsNotBilling": "Estimates must not create billing records"
+    "quoteIsNotBilling": "Pre-project estimates must not create billing records"
   }
 }

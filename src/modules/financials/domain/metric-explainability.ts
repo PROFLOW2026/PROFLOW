@@ -45,6 +45,9 @@ export type ExplainableMetricKey =
   | 'outstanding_ar'
   | 'outstanding_ap';
 
+/** i18n key under financial.basis.* — presentation only, never changes amounts. */
+export type MetricBasisKey = 'netExVat' | 'billingCash' | 'profitNet' | 'outstandingCash' | 'cashNotProfit';
+
 export type ExplanationCategoryRole = 'add' | 'subtract' | 'info' | 'total';
 
 export type ExplanationCategoryKey =
@@ -105,6 +108,8 @@ export interface MetricExplanation {
   readonly nature: MetricNature | 'commercial' | 'disclosure';
   /** i18n key under financial.explain.formulas.* */
   readonly formulaKey: ExplainableMetricKey;
+  /** i18n key under financial.basis.* — label only, never folded into totals. */
+  readonly basisKey: MetricBasisKey;
   readonly categories: readonly ExplanationCategoryLine[];
   readonly sources: readonly ExplanationSourceRef[];
   /** Permission gate that must pass to show this metric. */
@@ -145,6 +150,7 @@ function buildActual(cost: CostPosition): MetricExplanation {
     total: cost.actualCostToDate,
     nature: 'actual',
     formulaKey: 'actual',
+    basisKey: 'netExVat',
     categories: [
       line('recognized_original', originalRecognized, 'add'),
       ...closeLine,
@@ -172,6 +178,7 @@ function buildForecast(cost: CostPosition): MetricExplanation {
     total: cost.estimatedFinalCost,
     nature: 'forecast',
     formulaKey: 'forecast',
+    basisKey: 'netExVat',
     categories: [
       line('actual_cost', cost.actualCostToDate, 'add'),
       line('committed_open', cost.committedOpen, 'add'),
@@ -194,6 +201,7 @@ function buildCurrentContract(commercial: CommercialPosition): MetricExplanation
     total: commercial.currentContractValue,
     nature: 'commercial',
     formulaKey: 'current_contract',
+    basisKey: 'netExVat',
     categories: [
       line('original_contract', commercial.originalContractValue, 'add'),
       line('approved_additions', commercial.approvedAdditions, 'add'),
@@ -216,6 +224,7 @@ function buildActualMargin(
     total: profit.actualProfit,
     nature: 'actual',
     formulaKey: 'actual_margin',
+    basisKey: 'profitNet',
     categories: [
       line('current_contract', commercial.currentContractValue, 'add'),
       line('actual_cost', cost.actualCostToDate, 'subtract'),
@@ -239,6 +248,7 @@ function buildForecastMargin(
     total: profit.estimatedProfit,
     nature: 'forecast',
     formulaKey: 'forecast_margin',
+    basisKey: 'profitNet',
     categories: [
       line('current_contract', commercial.currentContractValue, 'add'),
       line('forecast_cost', cost.estimatedFinalCost, 'subtract'),
@@ -272,6 +282,7 @@ function buildOutstandingAr(billing: BillingPosition): MetricExplanation {
     total: billing.outstanding,
     nature: 'forecast',
     formulaKey: 'outstanding_ar',
+    basisKey: 'outstandingCash',
     categories: [
       line('invoiced', originalInvoiced, 'add'),
       ...closeLine,
@@ -294,6 +305,7 @@ function buildOutstandingAp(cost: CostPosition): MetricExplanation {
     total: cost.openApPayable,
     nature: 'forecast',
     formulaKey: 'outstanding_ap',
+    basisKey: 'cashNotProfit',
     categories: [
       line('open_ap_payable', cost.openApPayable, 'total'),
       line('committed_open', cost.committedOpen, 'info'),
@@ -312,6 +324,7 @@ function buildUnallocated(unallocated: MoneyValue): MetricExplanation {
     total: unallocated,
     nature: 'disclosure',
     formulaKey: 'unallocated_cost',
+    basisKey: 'netExVat',
     categories: [line('unallocated_business', unallocated, 'total')],
     sources: [
       { kind: 'org_expenses' },

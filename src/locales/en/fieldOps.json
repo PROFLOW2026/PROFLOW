@@ -31,8 +31,14 @@
     }
   },
   "photoCapture": {
-    "title": "Photos after save",
-    "body": "Save the record first, then attach photos from the detail page."
+    "title": "Photos",
+    "body": "Add photos now. They are saved together with this record.",
+    "add": "Add photo",
+    "capture": "Take photo",
+    "remove": "Remove",
+    "staged": "{count, plural, one {# photo will be saved with this record.} other {# photos will be saved with this record.}}",
+    "manageRequired": "You can save the record. Attaching photos needs document permission.",
+    "storageNotConfigured": "File storage is not available, so photos cannot be attached yet."
   },
   "filters": {
     "status": "Status",
@@ -170,6 +176,7 @@
   "errors": {
     "invalidPunchTransition": "That punch list status change is not allowed.",
     "invalidInspectionTransition": "That inspection status change is not allowed.",
-    "projectRequired": "Select a project."
+    "projectRequired": "Select a project.",
+    "photosRequireDocumentsManage": "Attaching photos needs document permission. The record was not created."
   }
 }

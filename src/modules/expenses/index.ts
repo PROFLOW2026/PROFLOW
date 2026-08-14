@@ -21,9 +21,14 @@ export {
   listProjectsForOrg,
   listWorkPackagesForOrg,
 } from './application/queries';
+export { getOverheadHome } from './application/get-overhead-home';
+export type { OverheadHomeResult } from './application/get-overhead-home';
+export { canAccessOverheadHome, OVERHEAD_HOME_COST_FAMILIES } from './domain/overhead-home';
+export type { OverheadHomeCostFamily, OverheadAllocationRunSummary } from './domain/overhead-home';
 export type {
   CostFamily,
   CategoryPeriodBehavior,
+  CostCategoryRow,
   ExpenseDetail,
   ExpenseSummary,
   ExpenseStatus,

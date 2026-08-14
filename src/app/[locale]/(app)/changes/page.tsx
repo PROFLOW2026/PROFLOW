@@ -8,6 +8,7 @@ import { ChangeRequestList } from '@/modules/commercial/ui/change-request-list';
 import { getShellContext, withOrgContext } from '@/shared/auth/session';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { Link } from '@/shared/i18n/navigation';
+import { CommercialDocsHub } from '@/modules/quotes/ui/commercial-docs-hub';
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('changes');
@@ -37,6 +38,8 @@ export default async function ChangesPage() {
           ) : null
         }
       />
+
+      <CommercialDocsHub current="changes" />
 
       <ChangeRequestList items={items} canManage={canManage} />
     </div>

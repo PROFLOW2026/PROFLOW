@@ -173,6 +173,13 @@ export type ProposeSubcontractorValuationApInput = z.infer<
   typeof proposeSubcontractorValuationApSchema
 >;
 
+export const createDraftApFromSubcontractorValuationSchema = z.object({
+  valuationId: z.string().uuid(),
+});
+export type CreateDraftApFromSubcontractorValuationInput = z.infer<
+  typeof createDraftApFromSubcontractorValuationSchema
+>;
+
 export const voidSubcontractorValuationSchema = z.object({
   valuationId: z.string().uuid(),
 });

@@ -7,6 +7,7 @@ import {
   isOcrReviewUiAllowed,
   OCR_REVIEW_HISTORY_STATUSES,
 } from '@/modules/ocr';
+import { getOcrFeatureMode } from '@/modules/ocr/domain/feature-gate';
 import { OcrReviewHistory } from '@/modules/ocr/ui/ocr-review-history';
 import { withOrgContext } from '@/shared/auth/session';
 import { AuthorizationError } from '@/shared/errors';
@@ -33,6 +34,7 @@ export default async function OcrReviewHistoryPage() {
   }
 
   const [tOcr] = await Promise.all([getTranslations('documents.ocr')]);
+  const featureMode = getOcrFeatureMode();
 
   const data = await withOrgContext(async (context) => {
     try {
@@ -52,7 +54,7 @@ export default async function OcrReviewHistoryPage() {
     <div className="flex flex-col gap-6" data-pf-ocr-history-page>
       <PageHeader
         title={tOcr('historyTitle')}
-        description={tOcr('historyDescription')}
+        description={`${tOcr(`configurationState.${featureMode}`)} ${tOcr('historyDescription')}`}
         actions={
           <Link
             href="/documents/ocr-review"

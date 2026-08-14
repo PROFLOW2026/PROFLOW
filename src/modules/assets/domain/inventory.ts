@@ -8,6 +8,10 @@ const STORAGE_SCALE = 6;
 export const REORDER_STATUSES = ['ok', 'at_reorder', 'below_reorder', 'no_reorder_level'] as const;
 export type ReorderStatus = (typeof REORDER_STATUSES)[number];
 
+export const DEFAULT_INVENTORY_LOCATION_CODE = 'MAIN';
+export const DEFAULT_INVENTORY_LOCATION_NAME_HE = 'ראשי';
+export const DEFAULT_INVENTORY_LOCATION_NAME_EN = 'Main';
+
 /**
  * Inventory quantity math. Explicitly not GL and not Expense — only
  * updates quantity_on_hand for operational stock tracking.
@@ -21,52 +25,89 @@ export function normalizeQuantity(value: string): string {
   return new Decimal(value).toFixed(STORAGE_SCALE);
 }
 
+export function isZeroQuantity(value: string): boolean {
+  return new Decimal(value).isZero();
+}
+
+export function sumQuantities(values: readonly string[]): string {
+  return values
+    .reduce((acc, value) => acc.plus(value), new Decimal(0))
+    .toFixed(STORAGE_SCALE);
+}
+
+export function defaultInventoryLocationName(locale: string | null | undefined): string {
+  const normalized = (locale ?? '').toLowerCase();
+  return normalized.startsWith('he')
+    ? DEFAULT_INVENTORY_LOCATION_NAME_HE
+    : DEFAULT_INVENTORY_LOCATION_NAME_EN;
+}
+
+/**
+ * Signed delta against a location (or header) quantity. Must not go negative.
+ */
+export function applySignedQuantityChange(currentQuantity: string, delta: string): string {
+  const next = new Decimal(currentQuantity).plus(delta);
+  if (next.isNegative()) {
+    throw new Error('Insufficient quantity on hand');
+  }
+  return next.toFixed(STORAGE_SCALE);
+}
+
+/**
+ * Location deltas for a qty-only movement. Header quantity is the sum of
+ * location balances after these deltas — transfer leaves the header unchanged.
+ */
+export function locationDeltasForMovement(input: {
+  readonly movementType: InventoryMovementType;
+  readonly quantity: string;
+}): { readonly fromDelta: string | null; readonly toDelta: string | null } {
+  const qty = new Decimal(input.quantity);
+  switch (input.movementType) {
+    case 'receive':
+    case 'return':
+      if (qty.lte(0)) throw new Error('Movement quantity must be positive');
+      return { fromDelta: null, toDelta: qty.toFixed(STORAGE_SCALE) };
+    case 'issue':
+      if (qty.lte(0)) throw new Error('Movement quantity must be positive');
+      return { fromDelta: qty.negated().toFixed(STORAGE_SCALE), toDelta: null };
+    case 'transfer':
+      if (qty.lte(0)) throw new Error('Movement quantity must be positive');
+      return {
+        fromDelta: qty.negated().toFixed(STORAGE_SCALE),
+        toDelta: qty.toFixed(STORAGE_SCALE),
+      };
+    case 'adjust':
+      if (qty.isZero()) throw new Error('Adjustment quantity must be non-zero');
+      if (qty.isPositive()) {
+        return { fromDelta: null, toDelta: qty.toFixed(STORAGE_SCALE) };
+      }
+      return { fromDelta: qty.toFixed(STORAGE_SCALE), toDelta: null };
+    default: {
+      const _exhaustive: never = input.movementType;
+      throw new Error(`Unknown movement type: ${_exhaustive}`);
+    }
+  }
+}
+
 /**
  * Applies a stock movement to on-hand quantity.
  * - receive / return: add
  * - issue: subtract (must not go negative)
  * - adjust: treat quantity as signed delta
+ * - transfer: header unchanged (qty moves between locations)
  */
 export function applyInventoryMovement(input: {
   readonly quantityOnHand: string;
   readonly movementType: InventoryMovementType;
   readonly quantity: string;
 }): { nextQuantityOnHand: string } {
-  const onHand = new Decimal(input.quantityOnHand);
-  const qty = new Decimal(input.quantity);
-  if (input.movementType === 'adjust') {
-    if (qty.isZero()) {
-      throw new Error('Adjustment quantity must be non-zero');
-    }
-  } else if (qty.lte(0)) {
-    throw new Error('Movement quantity must be positive');
-  }
-
-  let next: Decimal;
-  switch (input.movementType) {
-    case 'receive':
-    case 'return':
-      next = onHand.plus(qty);
-      break;
-    case 'issue':
-      next = onHand.minus(qty);
-      if (next.isNegative()) {
-        throw new Error('Insufficient quantity on hand');
-      }
-      break;
-    case 'adjust':
-      next = onHand.plus(qty);
-      if (next.isNegative()) {
-        throw new Error('Adjustment would make quantity negative');
-      }
-      break;
-    default: {
-      const _exhaustive: never = input.movementType;
-      throw new Error(`Unknown movement type: ${_exhaustive}`);
-    }
-  }
-
-  return { nextQuantityOnHand: next.toFixed(STORAGE_SCALE) };
+  const deltas = locationDeltasForMovement({
+    movementType: input.movementType,
+    quantity: input.quantity,
+  });
+  const net = new Decimal(deltas.fromDelta ?? '0').plus(deltas.toDelta ?? '0');
+  const next = applySignedQuantityChange(input.quantityOnHand, net.toFixed(STORAGE_SCALE));
+  return { nextQuantityOnHand: next };
 }
 
 /**

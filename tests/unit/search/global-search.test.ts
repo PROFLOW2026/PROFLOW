@@ -22,6 +22,7 @@ describe('global search validation', () => {
         'billing',
         'document',
         'asset',
+        'boq_item',
       ]),
     );
   });

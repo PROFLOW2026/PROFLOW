@@ -22,7 +22,7 @@ import {
   type MappedImportRow,
 } from '../domain/types';
 import { validateMappedRows, rowHasErrors } from '../validation/validate-rows';
-import { assertCanImportKind } from './import-permissions';
+import { assertCanImportKind, canImportEmployeeCostFields } from './import-permissions';
 
 /** Default row cap for most import kinds. */
 export const MAX_IMPORT_ROWS = 500;
@@ -105,6 +105,7 @@ export function previewImport(
   let rows: MappedImportRow[] = validateMappedRows(kind, mapped, {
     baseCurrency: context.organization.baseCurrency,
     locale: context.locale,
+    canManageWorkforceCost: canImportEmployeeCostFields(context),
   });
 
   if (kind === 'projects') {

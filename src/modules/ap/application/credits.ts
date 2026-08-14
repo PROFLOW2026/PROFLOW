@@ -60,6 +60,8 @@ import {
   type ApVendorCreditListItem,
   type ApVendorCreditRow,
 } from '../data/credits.repository';
+import { resolveApBillTaxSplit } from '../domain/bill-tax';
+import { resolveApplicableDefaultTax } from '@/modules/tax';
 import {
   applyVendorCreditSchema,
   createVendorCreditSchema,
@@ -147,6 +149,19 @@ export async function createVendorCredit(
   const currency = input.currency.toUpperCase();
   assertCreditCreatable({ amount: input.amount, currency });
 
+  const taxResolution = await resolveApplicableDefaultTax(
+    context,
+    businessDate(input.creditDate),
+  );
+  const taxSplit = resolveApBillTaxSplit({
+    enteredAmount: input.amount,
+    currency,
+    amountIncludesTax: input.amountIncludesTax,
+    netAmount: input.netAmount,
+    taxAmount: input.taxAmount,
+    resolved: taxResolution.resolved,
+  });
+
   const vendorOk = await assertVendorInOrganization(
     context.db,
     context.organizationId,
@@ -172,7 +187,7 @@ export async function createVendorCredit(
 
   const matchingApproval = await findMatchingApprovalRule(context, {
     entityType: 'vendor_credit',
-    amount: toNumericString(money(input.amount, currency)),
+    amount: taxSplit.grossAmount,
     currency,
   });
 
@@ -184,7 +199,11 @@ export async function createVendorCredit(
     reference: input.reference ?? null,
     creditDate: businessDate(input.creditDate),
     currency,
-    amount: toNumericString(money(input.amount, currency)),
+    amount: taxSplit.grossAmount,
+    netAmount: taxSplit.netAmount,
+    taxAmount: taxSplit.taxAmount,
+    grossAmount: taxSplit.grossAmount,
+    taxBasis: taxSplit.taxBasis,
     status: 'draft',
     notes: input.notes ?? null,
     createdByUserId: context.userId,
@@ -298,9 +317,22 @@ export async function updateVendorCredit(
   assertCreditDraftEditable(existing.status as 'draft' | 'open' | 'applied' | 'void');
   assertCreditCreatable({ amount: input.amount, currency: existing.currency });
 
+  const taxResolution = await resolveApplicableDefaultTax(
+    context,
+    businessDate(input.creditDate),
+  );
+  const taxSplit = resolveApBillTaxSplit({
+    enteredAmount: input.amount,
+    currency: existing.currency,
+    amountIncludesTax: input.amountIncludesTax,
+    netAmount: input.netAmount,
+    taxAmount: input.taxAmount,
+    resolved: taxResolution.resolved,
+  });
+
   const amountChanged = !moneyEquals(
     money(existing.amount, existing.currency),
-    money(input.amount, existing.currency),
+    money(taxSplit.grossAmount, existing.currency),
   );
   const dateChanged =
     businessDate(input.creditDate) !== businessDate(existing.creditDate);
@@ -321,7 +353,11 @@ export async function updateVendorCredit(
     context.organizationId,
     existing.id,
     {
-      amount: toNumericString(money(input.amount, existing.currency)),
+      amount: taxSplit.grossAmount,
+      netAmount: taxSplit.netAmount,
+      taxAmount: taxSplit.taxAmount,
+      grossAmount: taxSplit.grossAmount,
+      taxBasis: taxSplit.taxBasis,
       creditDate: businessDate(input.creditDate),
       reference: input.reference ?? null,
       notes: input.notes ?? null,

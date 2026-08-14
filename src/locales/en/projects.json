@@ -1,6 +1,7 @@
 {
   "title": "Projects",
   "newProject": "New project",
+  "reportsEntry": "Commercial report",
   "noContractValue": "Not set",
   "empty": {
     "title": "No projects yet",
@@ -132,7 +133,7 @@
       "compliance": "Compliance"
     },
     "header": {
-      "currentContractValue": "Current contract value",
+      "currentContractValue": "Current contract value net",
       "displayOriginalValue": "Per original contract",
       "managedOpeningValue": "What you manage here"
     },

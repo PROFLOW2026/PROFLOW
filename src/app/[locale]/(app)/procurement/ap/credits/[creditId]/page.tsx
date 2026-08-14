@@ -18,6 +18,7 @@ import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { textNavLinkClassName, textNavLinkMutedClassName } from '@/components/ui/pressable';
 import { cn } from '@/shared/ui/cn';
+import { ApBillTaxSummary } from '@/modules/ap/ui/ap-bill-tax-summary';
 import {
   ApplyVendorCreditForm,
   EditDraftCreditForm,
@@ -137,6 +138,14 @@ export default async function VendorCreditDetailPage({
       <Alert tone={displayStatus === 'pending_approval' ? 'warning' : 'info'}>
         {t(`credits.detail.${lifecycleHintKey(displayStatus)}`)}
       </Alert>
+
+      <ApBillTaxSummary
+        netAmount={credit.netAmount ?? credit.amount}
+        taxAmount={credit.taxAmount ?? '0'}
+        grossAmount={credit.grossAmount ?? credit.amount}
+        currency={credit.currency}
+        taxBasis={credit.taxBasis}
+      />
 
       <div className="grid min-w-0 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <div className="min-w-0">

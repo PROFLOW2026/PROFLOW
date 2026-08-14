@@ -58,8 +58,8 @@
     "save": "Save changes"
   },
   "quote": {
-    "pageTitle": "Price change",
-    "pageDescription": "Create a new quote version. Issued versions cannot be edited.",
+    "pageTitle": "In-project change quote",
+    "pageDescription": "Price a change inside an existing project. This is not a pre-project estimate, not a sales quote, and not billing. Issued versions cannot be edited.",
     "lineDescription": "Line description",
     "lineTotal": "Customer price",
     "taxAmount": "Tax",
@@ -96,6 +96,15 @@
       "rejected": "Rejected"
     }
   },
+  "reverse": {
+    "confirm": "Reverse change order",
+    "reason": "Reason",
+    "description": "The original change order stays in the history. Current contract value is neutralized by an opposite change order.",
+    "alreadyReversedTitle": "This change order was reversed",
+    "alreadyReversedBody": "Reversed by {reference}. The original row remains in history; current contract value is neutralized.",
+    "isReversal": "This is a reversing change order and cannot be reversed again.",
+    "noPermission": "Reversing a change order requires the approve-changes permission."
+  },
   "actions": {
     "submit": "Mark awaiting approval",
     "submitAndSent": "Send & mark awaiting approval",
@@ -110,6 +119,10 @@
     "quoteNotIssued": "Approval requires an issued quote version.",
     "noContract": "Set an original contract value on the project before approving.",
     "noAmount": "Provide a priced quote or requested amount before approval.",
-    "referenceConflict": "Could not assign a change order reference. Try again."
+    "referenceConflict": "Could not assign a change order reference. Try again.",
+    "cannotReverseReversal": "A reversing change order cannot be reversed again.",
+    "alreadyReversed": "This change order has already been reversed.",
+    "unsafeBilling": "This change order has finalized billing. Issue a credit note or void that billing first.",
+    "closedMonth": "Cannot reverse a change order into a closed month. Use an open month as the effective date."
   }
 }

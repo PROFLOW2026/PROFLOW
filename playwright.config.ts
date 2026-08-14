@@ -2,6 +2,7 @@ import { defineConfig, devices } from '@playwright/test';
 import { ANON_KEY, APP_PORT, APP_URL, AUTH_URL, DATABASE_URL } from './tests/e2e/harness/config';
 
 const harnessEnv = {
+  APP_ENV: 'local',
   DATABASE_URL,
   DATABASE_POOL_MAX: '1',
   NEXT_PUBLIC_SUPABASE_URL: AUTH_URL,
@@ -95,7 +96,7 @@ export default defineConfig({
           command: `npm run build && npm run start -- -p ${APP_PORT}`,
           url: baseURL,
           reuseExistingServer: !process.env.CI,
-          timeout: 300_000,
+          timeout: 720_000,
           env: harnessEnv,
         },
       ],

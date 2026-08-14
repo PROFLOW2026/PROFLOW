@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/select';
 import type { InventoryMovementType } from '@/modules/assets/domain/types';
 import { recordInventoryMovementAction, type AssetsFormState } from '../actions';
+import { LocationSelect } from './inventory-locations-panel';
 
 const NONE = '__none__';
 
@@ -24,12 +25,16 @@ export function InventoryMovementForm({
   movementType,
   defaultDate,
   projects = [],
+  locations = [],
+  defaultLocationId,
   compact = false,
 }: {
   inventoryItemId: string;
   movementType: InventoryMovementType;
   defaultDate: string;
   projects?: readonly { id: string; name: string }[];
+  locations?: readonly { id: string; name: string; code: string | null }[];
+  defaultLocationId?: string;
   compact?: boolean;
 }) {
   const t = useTranslations('assets.inventory');
@@ -39,6 +44,14 @@ export function InventoryMovementForm({
     {},
   );
   const [projectId, setProjectId] = useState(NONE);
+  const fallbackLocation = defaultLocationId ?? locations[0]?.id ?? '';
+  const [fromLocationId, setFromLocationId] = useState(fallbackLocation);
+  const [toLocationId, setToLocationId] = useState(
+    movementType === 'transfer'
+      ? (locations.find((location) => location.id !== fallbackLocation)?.id ?? '')
+      : fallbackLocation,
+  );
+  const [locationId, setLocationId] = useState(fallbackLocation);
 
   const labelKey =
     movementType === 'receive'
@@ -47,7 +60,15 @@ export function InventoryMovementForm({
         ? 'issue'
         : movementType === 'return'
           ? 'return'
-          : 'adjust';
+          : movementType === 'transfer'
+            ? 'transfer'
+            : 'adjust';
+
+  const showProject = movementType === 'issue' && !compact && projects.length > 0;
+  const showFrom = movementType === 'issue' || movementType === 'transfer';
+  const showTo =
+    movementType === 'receive' || movementType === 'return' || movementType === 'transfer';
+  const showSingleLocation = movementType === 'adjust';
 
   return (
     <form
@@ -91,7 +112,52 @@ export function InventoryMovementForm({
         </Field>
       </div>
 
-      {!compact && projects.length > 0 ? (
+      {!compact && locations.length > 0 && showFrom ? (
+        <Field label={t('fromLocation')} required={movementType === 'transfer'}>
+          {(control) => (
+            <LocationSelect
+              id={control.id}
+              name="fromLocationId"
+              locations={locations}
+              value={fromLocationId}
+              onValueChange={setFromLocationId}
+              placeholder={t('fromLocation')}
+            />
+          )}
+        </Field>
+      ) : null}
+
+      {!compact && locations.length > 0 && showTo ? (
+        <Field label={t('toLocation')} required={movementType === 'transfer'}>
+          {(control) => (
+            <LocationSelect
+              id={control.id}
+              name="toLocationId"
+              locations={locations}
+              value={toLocationId}
+              onValueChange={setToLocationId}
+              placeholder={t('toLocation')}
+            />
+          )}
+        </Field>
+      ) : null}
+
+      {!compact && locations.length > 0 && showSingleLocation ? (
+        <Field label={t('locationLabel')}>
+          {(control) => (
+            <LocationSelect
+              id={control.id}
+              name="locationId"
+              locations={locations}
+              value={locationId}
+              onValueChange={setLocationId}
+              placeholder={t('locationLabel')}
+            />
+          )}
+        </Field>
+      ) : null}
+
+      {showProject ? (
         <Field label={t('projectLabel')} optionalLabel={tCommon('labels.optional')}>
           {(control) => (
             <Select value={projectId} onValueChange={setProjectId}>
@@ -119,6 +185,10 @@ export function InventoryMovementForm({
 
       {movementType === 'adjust' && !compact ? (
         <p className="text-xs text-[var(--pf-text-secondary)]">{t('adjustQuantityHint')}</p>
+      ) : null}
+
+      {!compact ? (
+        <p className="text-xs text-[var(--pf-text-secondary)]">{t('movementNotExpense')}</p>
       ) : null}
 
       <Button type="submit" size="sm" variant="secondary" loading={pending} className="min-h-11 md:min-h-8">

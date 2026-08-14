@@ -6,7 +6,7 @@ import { money, toNumericString } from '@/shared/money';
 import { resolveRetentionCapture } from '@/modules/retention';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
-import { noteModuleUsage } from '@/modules/tenancy';
+import { noteModuleUsage, resolveAllocatedReference } from '@/modules/tenancy';
 import { assertBillingCurrencyMatchesProject } from '../domain/currency';
 import { resolveTaxAmounts } from '../domain/tax';
 import {
@@ -126,9 +126,9 @@ export async function createBillingRecordWithPermission(
 
   const billingRecordId = await insertBillingRecord(context.db, context.organizationId, {
     projectId: input.projectId,
-    clientId: null,
+    clientId: project.clientId ?? null,
     kind: 'invoice',
-    reference: input.reference?.trim() || null,
+    reference: await resolveAllocatedReference(context, 'billing_record', input.reference),
     issueDate,
     dueDate,
     subtotalAmount: toNumericString(amounts.subtotalAmount),

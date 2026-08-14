@@ -10,7 +10,7 @@ import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { previewImport } from './preview-import';
 import { enrichImportPreview } from './enrich-preview';
-import { assertCanImportKind } from './import-permissions';
+import { assertCanImportKind, employeeImportBaseRate } from './import-permissions';
 import { confirmBoqItemsRows } from './confirm-boq-import';
 import { isBoqImportSkipRow } from '../domain/boq-import-parse';
 import {
@@ -117,7 +117,7 @@ async function createFromRow(
       const employee = await createEmployee(context, {
         name: v.name ?? '',
         rateUnit,
-        baseRate: emptyToUndefined(v.baseRate),
+        baseRate: employeeImportBaseRate(context, v.baseRate),
         email: emptyToUndefined(v.email) ?? '',
         phone: emptyToUndefined(v.phone),
         jobTitle: emptyToUndefined(v.jobTitle),

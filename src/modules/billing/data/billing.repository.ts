@@ -1,9 +1,8 @@
-import { and, desc, eq, inArray, isNull, notInArray } from 'drizzle-orm';
+import { and, desc, eq, inArray, isNull, notInArray, or } from 'drizzle-orm';
 import {
   billingLines,
   billingRecords,
   changeOrders,
-  payments,
   projects,
 } from '@drizzle/schema';
 import { todayInTimeZone, type BusinessDate } from '@/shared/dates';
@@ -28,6 +27,7 @@ import type {
   TaxSnapshot,
   UnbilledChangeOrder,
 } from '../domain/types';
+import { listPaidAmountRowsByBillingRecordIds, listPaymentRowsForBillingRecord } from './payments.repository';
 
 function mapMoney(amount: string, currency: string): MoneyValue {
   return fromNumericString(amount, currency)!;
@@ -119,6 +119,7 @@ function buildSummary(
     id: string;
     projectId: string | null;
     projectName: string | null;
+    clientId: string | null;
     reference: string | null;
     issueDate: string;
     dueDate: string | null;
@@ -155,6 +156,7 @@ function buildSummary(
     id: row.id,
     projectId: row.projectId,
     projectName: row.projectName,
+    clientId: row.clientId,
     reference: row.reference,
     issueDate: row.issueDate as BusinessDate,
     dueDate: row.dueDate as BusinessDate | null,
@@ -181,6 +183,7 @@ export async function findProjectInOrganization(
       id: projects.id,
       name: projects.name,
       currency: projects.currency,
+      clientId: projects.clientId,
     })
     .from(projects)
     .where(
@@ -204,6 +207,7 @@ export async function listProjectOptions(
       id: projects.id,
       name: projects.name,
       currency: projects.currency,
+      clientId: projects.clientId,
     })
     .from(projects)
     .where(and(eq(projects.organizationId, organizationId), isNull(projects.archivedAt)))
@@ -289,6 +293,7 @@ export async function findBillingRecordById(
       projectId: billingRecords.projectId,
       projectName: projects.name,
       clientId: billingRecords.clientId,
+      projectClientId: projects.clientId,
       reference: billingRecords.reference,
       issueDate: billingRecords.issueDate,
       dueDate: billingRecords.dueDate,
@@ -316,22 +321,11 @@ export async function findBillingRecordById(
 
   if (!row) return null;
 
-  const paymentRows = await db
-    .select({
-      id: payments.id,
-      amount: payments.amount,
-      currency: payments.currency,
-      paymentDate: payments.paymentDate,
-      method: payments.method,
-      reference: payments.reference,
-      status: payments.status,
-      notes: payments.notes,
-    })
-    .from(payments)
-    .where(
-      and(eq(payments.organizationId, organizationId), eq(payments.billingRecordId, billingRecordId)),
-    )
-    .orderBy(desc(payments.paymentDate), desc(payments.createdAt));
+  const paymentRows = await listPaymentRowsForBillingRecord(
+    db,
+    organizationId,
+    billingRecordId,
+  );
 
   const lineRows = await db
     .select({
@@ -365,6 +359,7 @@ export async function findBillingRecordById(
       id: row.id,
       projectId: row.projectId,
       projectName: row.projectName,
+      clientId: row.clientId ?? row.projectClientId,
       reference: row.reference,
       issueDate: row.issueDate,
       dueDate: row.dueDate,
@@ -391,7 +386,7 @@ export async function findBillingRecordById(
 
   return {
     ...summary,
-    clientId: row.clientId,
+    clientId: row.clientId ?? row.projectClientId,
     subtotalAmount: mapMoney(row.subtotalAmount, row.currency),
     taxAmount: row.taxAmount ? mapMoney(row.taxAmount, row.currency) : null,
     taxSnapshot: mapTaxSnapshot(row.taxSnapshot),
@@ -420,6 +415,8 @@ export async function listBillingRecords(
       id: billingRecords.id,
       projectId: billingRecords.projectId,
       projectName: projects.name,
+      clientId: billingRecords.clientId,
+      projectClientId: projects.clientId,
       reference: billingRecords.reference,
       issueDate: billingRecords.issueDate,
       dueDate: billingRecords.dueDate,
@@ -437,6 +434,12 @@ export async function listBillingRecords(
         eq(billingRecords.organizationId, organizationId),
         isNull(billingRecords.archivedAt),
         filters.projectId ? eq(billingRecords.projectId, filters.projectId) : undefined,
+        filters.clientId
+          ? or(
+              eq(billingRecords.clientId, filters.clientId),
+              eq(projects.clientId, filters.clientId),
+            )
+          : undefined,
       ),
     )
     .orderBy(desc(billingRecords.issueDate), desc(billingRecords.createdAt))
@@ -446,15 +449,7 @@ export async function listBillingRecords(
   const ids = rows.map((row) => row.id);
   if (ids.length === 0) return [];
 
-  const paymentRows = await db
-    .select({
-      billingRecordId: payments.billingRecordId,
-      amount: payments.amount,
-      currency: payments.currency,
-      status: payments.status,
-    })
-    .from(payments)
-    .where(and(eq(payments.organizationId, organizationId), inArray(payments.billingRecordId, ids)));
+  const paymentRows = await listPaidAmountRowsByBillingRecordIds(db, organizationId, ids);
 
   const paidByRecord = new Map<string, MoneyValue>();
   for (const row of rows) {
@@ -473,7 +468,10 @@ export async function listBillingRecords(
 
   const summaries = rows.map((row) =>
     buildSummary(
-      row,
+      {
+        ...row,
+        clientId: row.clientId ?? row.projectClientId,
+      },
       paidByRecord.get(row.id) ?? zeroMoney(row.currency),
       today,
     ),
@@ -533,15 +531,7 @@ export async function listProjectBillingAmountRows(
   if (rows.length === 0) return [];
 
   const ids = rows.map((row) => row.id);
-  const paymentRows = await db
-    .select({
-      billingRecordId: payments.billingRecordId,
-      amount: payments.amount,
-      currency: payments.currency,
-      status: payments.status,
-    })
-    .from(payments)
-    .where(and(eq(payments.organizationId, organizationId), inArray(payments.billingRecordId, ids)));
+  const paymentRows = await listPaidAmountRowsByBillingRecordIds(db, organizationId, ids);
 
   const paymentsByRecord = new Map<string, typeof paymentRows>();
   for (const payment of paymentRows) {

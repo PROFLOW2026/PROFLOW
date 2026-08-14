@@ -21,6 +21,7 @@ import {
   previewBillAllocationStrip,
   resolveBillProjectAllocationLines,
 } from '../domain/bill-project-allocation';
+import { vendorBillActualAmount } from '../domain/bill-tax';
 import { areApBillProjectAllocationsAvailable } from '../domain/vendor-bill-project-attribution';
 import { isRecognizedVendorBillStatus } from '../domain/vendor-cost-recognition';
 import {
@@ -74,7 +75,7 @@ export async function loadBillProjectAllocationReview(
     return {
       available: false,
       apBillId,
-      recognizedNet: bill.totalAmount,
+      recognizedNet: vendorBillActualAmount(bill),
       currency: bill.currency,
       lines: [],
       preview: null,
@@ -87,7 +88,7 @@ export async function loadBillProjectAllocationReview(
   ]);
 
   const preview = previewBillAllocationStrip({
-    recognizedNet: bill.totalAmount,
+    recognizedNet: vendorBillActualAmount(bill),
     lines: lines.map((line) => ({
       projectId: line.projectId ?? '',
       method: line.method as 'manual_amount' | 'manual_percent' | 'active_days' | 'equal_split',
@@ -101,7 +102,7 @@ export async function loadBillProjectAllocationReview(
   return {
     available: true,
     apBillId,
-    recognizedNet: bill.totalAmount,
+    recognizedNet: vendorBillActualAmount(bill),
     currency: bill.currency,
     lines,
     preview,
@@ -133,7 +134,7 @@ export async function saveBillProjectAllocations(
   }
 
   const resolved = resolveBillProjectAllocationLines({
-    recognizedNet: bill.totalAmount,
+    recognizedNet: vendorBillActualAmount(bill),
     currency: bill.currency,
     lines: parsed.data.lines.map((line) => ({
       projectId: line.projectId,

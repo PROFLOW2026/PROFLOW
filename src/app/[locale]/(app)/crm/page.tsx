@@ -1,20 +1,17 @@
 import { Handshake, Plus } from 'lucide-react';
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
-import { ResponsiveTable } from '@/components/patterns/responsive-table';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/ui/page-header';
-import { StatusBadge } from '@/components/ui/status-badge';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { listOpportunitiesForOrg } from '@/modules/crm';
+import { OpportunityPipelineViews } from '@/modules/crm/ui/opportunity-pipeline-views';
 import { withOrgContext } from '@/shared/auth/session';
 import { Link } from '@/shared/i18n/navigation';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { CrmSectionNav, CrmShell } from './crm-shell';
-import { pressableCardLinkClassName, textNavLinkClassName } from '@/components/ui/pressable';
-import { cn } from '@/shared/ui/cn';
+import { CommercialDocsHub } from '@/modules/quotes/ui/commercial-docs-hub';
 
 export async function generateMetadata({
   params,
@@ -33,6 +30,19 @@ export default async function CrmOpportunitiesPage() {
     canManage: hasPermission(context, PERMISSIONS.CRM_MANAGE),
   }));
 
+  const boardItems = opportunities.map((row) => ({
+    id: row.id,
+    name: row.name,
+    stage: row.stage,
+    status: row.status,
+    expectedValueAmount: row.expectedValueAmount,
+    currency: row.currency,
+    expectedStartDate: row.expectedStartDate,
+    notes: row.notes,
+    nextActionAt: row.nextActionAt,
+    nextActionText: row.nextActionText,
+  }));
+
   return (
     <CrmShell>
       <PageHeader
@@ -49,6 +59,7 @@ export default async function CrmOpportunitiesPage() {
           ) : null
         }
       />
+      <CommercialDocsHub current="crm" />
       <CrmSectionNav active="opportunities" />
 
       {opportunities.length === 0 ? (
@@ -65,80 +76,7 @@ export default async function CrmOpportunitiesPage() {
           }
         />
       ) : (
-        <ResponsiveTable
-          items={opportunities}
-          getRowKey={(row) => row.id}
-          desktop={
-            <div className="overflow-x-auto rounded-lg border border-[var(--pf-border-default)]">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>{t('list.columns.name')}</TableHead>
-                    <TableHead>{t('list.columns.stage')}</TableHead>
-                    <TableHead>{t('list.columns.status')}</TableHead>
-                    <TableHead numeric>{t('list.columns.value')}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {opportunities.map((row) => (
-                    <TableRow key={row.id}>
-                      <TableCell>
-                        <Link
-                          href={`/crm/opportunities/${row.id}`}
-                          className={cn(textNavLinkClassName, 'font-medium')}
-                        >
-                          {row.name}
-                        </Link>
-                      </TableCell>
-                      <TableCell>{t(`stages.${row.stage}`)}</TableCell>
-                      <TableCell>
-                        <StatusBadge
-                          shape={row.status === 'open' ? 'active' : 'archived'}
-                          label={t(`statuses.opportunity.${row.status}`)}
-                        />
-                      </TableCell>
-                      <TableCell numeric>
-                        {row.expectedValueAmount ? (
-                          <span dir="ltr">
-                            {`${row.expectedValueAmount} ${row.currency ?? ''}`.trim()}
-                          </span>
-                        ) : (
-                          '—'
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          }
-          renderMobileCard={(row) => (
-            <Link
-              href={`/crm/opportunities/${row.id}`}
-              className={pressableCardLinkClassName}
-            >
-              <div className="flex items-start justify-between gap-2">
-                <span className="min-w-0 flex-1 truncate text-start font-semibold">{row.name}</span>
-                <StatusBadge
-                  className="shrink-0"
-                  shape={row.status === 'open' ? 'active' : 'archived'}
-                  label={t(`statuses.opportunity.${row.status}`)}
-                />
-              </div>
-              <p className="mt-1 text-start text-sm text-[var(--pf-text-secondary)]">
-                {t(`stages.${row.stage}`)}
-                {row.expectedValueAmount ? (
-                  <>
-                    {' · '}
-                    <span dir="ltr">
-                      {`${row.expectedValueAmount} ${row.currency ?? ''}`.trim()}
-                    </span>
-                  </>
-                ) : null}
-              </p>
-            </Link>
-          )}
-        />
+        <OpportunityPipelineViews items={boardItems} />
       )}
     </CrmShell>
   );

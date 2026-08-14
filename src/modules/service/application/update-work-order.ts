@@ -10,11 +10,13 @@ import {
   findServiceDetailsByProjectId,
   updateServiceDetailsByProjectId,
 } from '../data/service-details.repository';
+import { assertWorkOrderCompletionChecklist } from '../domain/checklist-gate';
 import {
   canTransitionServiceStatus,
   projectStatusForServiceStatus,
 } from '../domain/service-status';
 import type { ServiceStatus } from '../domain/types';
+import { workOrderHasSubmittedChecklist } from './work-order-checklist';
 import {
   updateServiceStatusSchema,
   updateWorkOrderSchema,
@@ -88,6 +90,32 @@ export async function updateWorkOrder(
         { from: details.serviceStatus, to: input.serviceStatus },
       );
     }
+  }
+
+  const nextChecklistTemplateId =
+    input.checklistTemplateId !== undefined
+      ? input.checklistTemplateId
+      : details.checklistTemplateId;
+  if (input.serviceStatus === 'completed' && input.serviceStatus !== details.serviceStatus) {
+    const submissions =
+      nextChecklistTemplateId
+        ? [
+            {
+              templateId: nextChecklistTemplateId,
+              status: (await workOrderHasSubmittedChecklist(context, {
+                workOrderId: input.workOrderId,
+                checklistTemplateId: nextChecklistTemplateId,
+              }))
+                ? ('submitted' as const)
+                : ('draft' as const),
+            },
+          ]
+        : [];
+    assertWorkOrderCompletionChecklist({
+      targetStatus: input.serviceStatus,
+      checklistTemplateId: nextChecklistTemplateId,
+      submissions,
+    });
   }
 
   const projectPatch: {

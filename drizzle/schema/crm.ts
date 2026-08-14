@@ -122,6 +122,8 @@ export const crmOpportunities = pgTable(
     }),
     convertedAt: timestamp('converted_at', { withTimezone: true, mode: 'date' }),
     notes: text('notes'),
+    nextActionAt: timestamp('next_action_at', { withTimezone: true, mode: 'date' }),
+    nextActionText: text('next_action_text'),
     archivedAt: archivedAt(),
     ...timestamps(),
   },

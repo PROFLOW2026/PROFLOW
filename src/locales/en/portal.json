@@ -1,10 +1,10 @@
 {
   "title": "Portal access",
-  "subtitle": "Grant customers and vendors scoped external access. External principals are not organization members.",
-  "externalNote": "External principals are not organization members. Public portal login is DISABLED — grants are admin-managed only and never mutate financial truth.",
+  "subtitle": "Grant records are internal foundation only. Public customer and vendor login is disabled — this page does not enable a public portal.",
+  "externalNote": "Public portal login is DISABLED. Grants are admin-managed records only and never mutate financial truth. External principals cannot sign in.",
   "publicDisabled": {
-    "title": "External portal unavailable",
-    "body": "Public customer and vendor login is disabled. Access is grant-scoped and admin-mediated until external authentication is ready."
+    "title": "Public login is disabled",
+    "body": "Public customer and vendor login is disabled. This settings page is hidden foundation — it does not open a public portal."
   },
   "customerSection": "Customer portal",
   "vendorSection": "Vendor portal",

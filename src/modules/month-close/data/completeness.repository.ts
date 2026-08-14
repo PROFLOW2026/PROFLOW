@@ -1,8 +1,6 @@
 import { and, eq, gte, inArray, isNull, lte, ne, sql } from 'drizzle-orm';
 import {
   allocationRuns,
-  approvalRequests,
-  attendanceDays,
   employeeMonthCosts,
   expenses,
   laborAllocationRuns,
@@ -55,11 +53,11 @@ export async function gatherCompletenessSignals(
     countMissingEmployerCostActual(db, organizationId, yearMonth, startDate, endDate),
     countUnallocatedEmployeeCost(db, organizationId, yearMonth),
     countVendorBillsUnallocated(db, organizationId, startDate, endDate),
-    countOpenTimeCorrections(db, organizationId),
+    countOpenTimeCorrections(db, organizationId, startDate, endDate),
     countApAnomalies(db, organizationId, startDate, endDate),
     countMissingProjectAllocations(db, organizationId, startDate, endDate),
     countUnresolvedExpenseDrafts(db, organizationId, startDate, endDate),
-    orgUsesAttendance(db, organizationId),
+    orgUsesAttendanceThisMonth(db, organizationId, startDate, endDate),
     countIncompleteAttendance(db, organizationId, startDate, endDate),
     countOpenOverheadAllocation(db, organizationId, startDate, endDate),
   ]);
@@ -253,22 +251,29 @@ async function countVendorBillsUnallocated(
 async function countOpenTimeCorrections(
   db: DbExecutor,
   organizationId: string,
+  startDate: string,
+  endDate: string,
 ): Promise<{ count: number; ids: string[] }> {
-  const rows = await db
-    .select({ id: approvalRequests.id })
-    .from(approvalRequests)
-    .where(
-      and(
-        eq(approvalRequests.organizationId, organizationId),
-        eq(approvalRequests.entityType, 'time_correction'),
-        eq(approvalRequests.status, 'submitted'),
-      ),
-    )
-    .limit(200);
+  const result = await db.execute(sql`
+    SELECT r.id
+    FROM approval_requests r
+    INNER JOIN time_entries te
+      ON te.id = r.entity_id
+     AND te.organization_id = r.organization_id
+    WHERE r.organization_id = ${organizationId}::uuid
+      AND r.entity_type = 'time_correction'
+      AND r.status = 'submitted'
+      AND te.work_date >= ${startDate}
+      AND te.work_date <= ${endDate}
+      AND te.archived_at IS NULL
+    ORDER BY r.id
+    LIMIT 200
+  `);
 
+  const list = rowsFromExecute<{ id: string }>(result);
   return {
-    count: rows.length,
-    ids: rows.slice(0, SAMPLE_LIMIT).map((row) => row.id),
+    count: list.length,
+    ids: list.slice(0, SAMPLE_LIMIT).map((row) => String(row.id)),
   };
 }
 
@@ -391,13 +396,50 @@ async function countUnresolvedExpenseDrafts(
   );
 }
 
-async function orgUsesAttendance(db: DbExecutor, organizationId: string): Promise<boolean> {
-  const rows = await db
-    .select({ id: attendanceDays.id })
-    .from(attendanceDays)
-    .where(eq(attendanceDays.organizationId, organizationId))
-    .limit(1);
-  return rows.length > 0;
+/**
+ * Attendance is applicable for this month when the org actually used it here:
+ * attendance_days in the month, or recorded time_entries paired with any
+ * historical attendance usage. Lifetime-only "has a row somewhere" is too weak.
+ */
+async function orgUsesAttendanceThisMonth(
+  db: DbExecutor,
+  organizationId: string,
+  startDate: string,
+  endDate: string,
+): Promise<boolean> {
+  const result = await db.execute(sql`
+    SELECT (
+      EXISTS (
+        SELECT 1
+        FROM attendance_days d
+        WHERE d.organization_id = ${organizationId}::uuid
+          AND d.archived_at IS NULL
+          AND d.status <> 'void'
+          AND d.work_date >= ${startDate}
+          AND d.work_date <= ${endDate}
+      )
+      OR (
+        EXISTS (
+          SELECT 1
+          FROM attendance_days d
+          WHERE d.organization_id = ${organizationId}::uuid
+            AND d.archived_at IS NULL
+            AND d.status <> 'void'
+        )
+        AND EXISTS (
+          SELECT 1
+          FROM time_entries te
+          WHERE te.organization_id = ${organizationId}::uuid
+            AND te.status = 'recorded'
+            AND te.archived_at IS NULL
+            AND te.work_date >= ${startDate}
+            AND te.work_date <= ${endDate}
+        )
+      )
+    ) AS used
+  `);
+  const rows = rowsFromExecute<{ used: boolean }>(result);
+  return Boolean(rows[0]?.used);
 }
 
 async function countIncompleteAttendance(
@@ -406,22 +448,51 @@ async function countIncompleteAttendance(
   startDate: string,
   endDate: string,
 ): Promise<{ count: number; ids: string[] }> {
-  return sampleIds(
-    db,
-    db
-      .select({ id: attendanceDays.id })
-      .from(attendanceDays)
-      .where(
-        and(
-          eq(attendanceDays.organizationId, organizationId),
-          eq(attendanceDays.status, 'open'),
-          isNull(attendanceDays.archivedAt),
-          gte(attendanceDays.workDate, startDate),
-          lte(attendanceDays.workDate, endDate),
-        ),
-      )
-      .limit(200),
-  );
+  const result = await db.execute(sql`
+    SELECT id FROM (
+      SELECT d.id
+      FROM attendance_days d
+      WHERE d.organization_id = ${organizationId}::uuid
+        AND d.archived_at IS NULL
+        AND d.status = 'open'
+        AND d.work_date >= ${startDate}
+        AND d.work_date <= ${endDate}
+
+      UNION
+
+      SELECT te.id
+      FROM time_entries te
+      WHERE te.organization_id = ${organizationId}::uuid
+        AND te.status = 'recorded'
+        AND te.archived_at IS NULL
+        AND te.work_date >= ${startDate}
+        AND te.work_date <= ${endDate}
+        AND EXISTS (
+          SELECT 1
+          FROM attendance_days any_day
+          WHERE any_day.organization_id = te.organization_id
+            AND any_day.archived_at IS NULL
+            AND any_day.status <> 'void'
+        )
+        AND NOT EXISTS (
+          SELECT 1
+          FROM attendance_days d
+          WHERE d.organization_id = te.organization_id
+            AND d.employee_id = te.employee_id
+            AND d.work_date = te.work_date
+            AND d.status = 'complete'
+            AND d.archived_at IS NULL
+        )
+    ) issues
+    ORDER BY id
+    LIMIT 200
+  `);
+
+  const list = rowsFromExecute<{ id: string }>(result);
+  return {
+    count: list.length,
+    ids: list.slice(0, SAMPLE_LIMIT).map((row) => String(row.id)),
+  };
 }
 
 async function countOpenOverheadAllocation(

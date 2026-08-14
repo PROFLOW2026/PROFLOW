@@ -132,5 +132,9 @@
     "settings.manage": "שינוי הגדרות",
     "tax.manage": "ניהול כללי מס",
     "audit.read": "צפייה ביומן הפעילות"
+  },
+  "errors": {
+    "unknownDocumentKind": "סוג מסמך לא מוכר למספור פנימי.",
+    "documentNumberFailed": "לא ניתן להקצות מספר פנימי למסמך."
   }
 }

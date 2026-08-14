@@ -1,0 +1,176 @@
+﻿AREA,CAPABILITY,USER-FACING?,BACKEND COMPLETE?,UI COMPLETE?,MOBILE?,PERMISSION-GATED?,OPTIONAL MODULE?,FINANCIAL EFFECT?,STATUS,EVIDENCE,NOTES
+Organization,User registration (sign-up),Y,Y,Y,Partial,N,,N,FULL,src/app/[locale]/(auth)/sign-up; (auth)/actions.ts signUpAction,Supabase Auth; Hebrew UI
+Organization,Login / logout,Y,Y,Y,Partial,N,,N,FULL,sign-in/; src/shared/auth/actions.ts signOutAction,Session cookie
+Organization,Forgot / reset password,Y,Y,Y,Partial,N,,N,FULL,forgot-password/; reset-password/,
+Organization,Accept invitation,Y,Y,Y,Partial,Y,,N,FULL,accept-invite/; invitations 14-day TTL hashed token,Requires matching email
+Organization,Create organization (onboarding),Y,Y,Y,Partial,N,,N,FULL,src/modules/tenancy/application/create-organization.ts; /onboarding,"Seeds owner role, cost categories, optional profile"
+Organization,Environment setup gate,Y,Y,Y,Partial,N,,N,FULL,/setup,Shown only when env unconfigured — not product onboarding
+Organization,"Organization profile (name, country, currency, timezone, locale)",Y,Y,Y,Partial,Y,,N,FULL,/settings/business; organizations table,IL/US/GB in Settings UI; default locale he-IL RTL
+Organization,Legal identity / tax ID,Y,Y,Y,Partial,Y,,N,FULL,saveOrganizationLegalIdentity,Used by OCR wrong-customer warning
+Organization,Business profile presets,Y,Y,Y,Partial,Y,,N,FULL,src/modules/tenancy/domain/business-profiles.ts (12 keys),Seeds modules/terminology/Quick Create; does not stamp project data
+Organization,Work mix (projects / jobs / mixed nav),Y,Y,Y,Y,Y,,N,FULL,work_mix setting; navigation.ts applyWorkMixToNavItems,Chrome only; same financial entity
+Organization,Optional module visibility (on/off/auto),Y,Y,Y,Partial,Y,,N,FULL,/settings/features; resolveModuleVisibility,Hiding never deletes data; default hidden until use or profile
+Organization,Membership list / suspend,Y,Y,Y,Partial,Y,,N,FULL,/settings/people; removeMemberAccess suspends,Does not delete historical records
+Organization,Invitations (send / revoke / accept),Y,Y,Y,Partial,Y,,N,FULL,invitations table; Settings People,Email via Resend if configured; else copyable link
+Organization,Default roles cloned per org,Y,Y,Y,Partial,Y,,N,FULL,role-templates.ts owner/manager/finance/worker,Owner protected; some toggles
+Organization,Permission catalog + server assertPermission,N,Y,Y,N,Y,,N,FULL,src/shared/permissions/catalog.ts,Never branch on role display name
+Organization,Project-scoped role assignments,N,Partial,N,N,Y,,N,FOUNDATION,role_assignments.projectId reserved,V1 seeds org-wide only
+Organization,"User profile (display name, locale)",Y,Y,Y,Partial,N,,N,FULL,/settings/profile,
+Organization,Hebrew / English + RTL,Y,Y,Y,Y,N,,N,FULL,src/shared/i18n/config.ts; locales he-IL default,
+Organization,Tax rules (country pack + org override),Y,Y,Y,Partial,Y,,Y,FULL,/settings/tax; tax_rules; dated snapshots,Drafts recalc; finalized frozen
+Organization,Cost categories,Y,Y,Y,Partial,Y,,Y,FULL,/settings/cost-categories,Four families; allocation policy defaults
+Organization,Project structure templates / catalog domains,Y,Y,Y,Partial,Y,,N,FULL,/settings/templates; /settings/catalog,
+Organization,Labor cost defaults copied to new rate versions,Y,Y,Y,Partial,Y,,Y,FULL,organization_settings labor_cost_defaults,
+Organization,Document numbering / sequences settings,N,N,N,N,N,,N,NOT-IMPLEMENTED,No org sequence settings,CR reference is per-project only
+Organization,Data-retention / purge policy,N,N,N,N,N,,N,NOT-IMPLEMENTED,No purge job,Product 'retention' means cash holdback
+Clients,Client directory CRUD + archive,Y,Y,Y,Partial,Y,clients,N,OPTIONAL-FULL,/clients; src/modules/clients,Soft-archive; no hard delete
+Clients,Client contacts (primary/billing/site/other),Y,Y,Y,Partial,Y,clients,N,OPTIONAL-FULL,client_contacts,Mark primary does not mutate project contact
+Clients,Party identifiers (tax/registration),Y,Y,Y,Partial,Y,clients,N,OPTIONAL-FULL,party_identifiers,Exactly one of client or vendor
+Clients,"Notes, documents, custom fields, search",Y,Y,Y,Partial,Y,clients,N,OPTIONAL-FULL,client detail page; global search kind client/contact,
+Clients,Link clients to projects,Y,Y,Y,Partial,Y,clients,N,OPTIONAL-FULL,projects.clientId,Projects optional client; jobs/WO require client
+Clients,Client-level AR / financial 360 view,N,N,N,N,N,clients,Y,NOT-IMPLEMENTED,Client detail has no receivables panel,
+Clients,Client timeline / dedicated history,Partial,Partial,N,N,Y,,N,PARTIAL,Org audit log only,No client activity timeline
+Projects,Projects as work container,Y,Y,Y,Partial,Y,,Y,FULL,/projects; projects.work_kind=project,Always-on; optional client; optional contract
+Projects,Jobs (short work UX),Y,Y,Y,Partial,Y,jobs,Y,OPTIONAL-FULL,/jobs; work_kind=job,Same table/engine; client required; WPs hidden; planning opt-out
+Projects,Convert job to project,Y,Y,Y,Partial,Y,jobs,N,FULL,convert-job-to-project.ts; convert-job-button.tsx,Same row; work_kind change
+Projects,Work orders / service calls,Y,Y,Y,Partial,Y,service,Y,OPTIONAL-FULL,/work-orders; project_service_details,Same financial engine; no second Actual table
+Projects,Work packages (default hidden until 2nd),Y,Y,Y,Partial,Y,,Y,FULL,work_packages; project tab work,Structural invariant >=1 default WP
+Projects,Phases,Y,Y,Y,Partial,Y,,N,FULL,phases,Optional
+Projects,Milestones,Y,Y,Y,Partial,Y,,N,FULL,project_milestones,Light schedule
+Projects,Project team assignments,Y,Y,Y,Partial,Y,,N,FULL,employee_project_assignments,Assignment ≠ Actual
+Projects,Archive / restore / status lifecycle,Y,Y,Y,Partial,Y,,N,FULL,draft/active/on_hold/completed/cancelled/archived,Soft-archive
+Projects,Job pricing modes (fixed vs open),Y,Y,Y,Partial,Y,jobs,Y,FULL,job-pricing.ts; priceNotSet,Open-price jobs: profit is null not fake zero
+Contracts,Primary contract original + current (CCV),Y,Y,Y,Partial,Y,,Y,FULL,contracts; contract_value_events; computeCurrentContractValue,CCV is NET; only original event + approved COs move it
+Contracts,Display original / opening reduction (context only),Y,Y,Y,Partial,Y,,N,FULL,attachEntryBaselineContext; display_original_*,Must not enter profitability
+Contracts,Tax on contract (inclusive/exclusive → stored net),Y,Y,Y,Partial,Y,,Y,FULL,upsertPrimaryContractAmount; tax snapshot,
+Contracts,Multi-contract per project UX,Partial,Y,Partial,N,Y,,Y,PARTIAL,Schema many contracts; V1 primary only,is_primary unique
+Contracts,Contract value event kind=adjustment,N,Partial,N,N,Y,,Y,FOUNDATION,Schema kind exists; app writes original + change_order only,
+Contracts,Retention stored on the contract itself,N,N,N,N,N,,Y,NOT-IMPLEMENTED,Retention lives on AR/AP documents,By design: CCV not reduced by retention
+BOQ,Create / edit draft BOQ chapters and items,Y,Y,Y,N,Y,boq,N,OPTIONAL-FULL,createProjectBoq; upsertBoqNode; project tab boq,GC/renovation profiles enable
+BOQ,Import BOQ from CSV/Excel,Y,Y,Y,N,Y,boq,N,OPTIONAL-FULL,confirm-boq-import.ts; /imports kind boq_items,Draft only; skip total rows
+BOQ,"Activate BOQ (freeze originals, one active per project)",Y,Y,Y,N,Y,boq,N,OPTIONAL-FULL,activateBoq + RPC,Post-activate money only via allocations
+BOQ,Lump-sum and unit-price items,Y,Y,Y,N,Y,boq,N,OPTIONAL-FULL,pricing_type; computeLineAmount decimal.js,
+BOQ,Map items to work packages / cost categories / budget lines,Y,Y,Y,N,Y,boq,N,OPTIONAL-FULL,updateBoqNodeMappings,Does not create Actual; locked after activate
+BOQ,Simple and advanced progress measurement + approval,Y,Y,Y,N,Y,boq,N,OPTIONAL-FULL,createProgressBatch; approveProgressBatch,Progress ≠ Actual
+BOQ,Progress billing to finalized AR invoice,Y,Y,Y,N,Y,boq,Y,OPTIONAL-FULL,createProgressBilling; unique billed link,VAT/retention use existing AR helpers; never auto-payment
+BOQ,Allocate approved Change Orders to BOQ (Original vs Current),Y,Y,Y,N,Y,boq,Y,OPTIONAL-FULL,allocateApprovedChangeToBoq; reverseBoqChangeAllocation,Pending COs never allocate; CCV already moved by CO
+BOQ,Worker unit-price masking,Y,Y,Y,N,Y,boq,N,FULL,boq_nodes_secure view; search never returns prices,Worker: boq.read + boq.progress.submit
+BOQ,Subcontractor schedules and valuations,Y,Y,Y,N,Y,boq,N,OPTIONAL-FULL,manage-subcontractor-schedule.ts,Cost-only; never mixed into client original/current
+BOQ,Proposed AP from subcontractor valuation,Y,Partial,Partial,N,Y,boq,Y,PARTIAL,status proposed_ap; does not call createApBill,Manual AP required because createApBill posts open
+BOQ,Command Center BOQ cards + contract mismatch,Y,Y,Y,Partial,Y,boq,N,OPTIONAL-FULL,boq_measurement_awaiting_approval; boq_progress_ready_to_bill; boq_vs_contract_mismatch,Inbox directs; does not mutate money
+BOQ,"BOQ vs financial comparison (reads engine, does not invent Actual)",Y,Y,Y,N,Y,boq,N,OPTIONAL-FULL,getBoqFinancialComparison; note progress_is_not_actual,
+BOQ,BOQ CSV/XLSX export,Y,Y,Y,N,Y,boq,N,OPTIONAL-FULL,exports kind boq; prices gated by BOQ_MANAGE,
+BOQ,Dedicated mobile field BOQ strip,N,Y,N,N,Y,boq,N,NOT-IMPLEMENTED,No mobile BOQ routes; field-ops has no BOQ,Architecture assigned it; not shipped
+BOQ,Automatic Actual from BOQ progress,N,N,N,N,N,boq,Y,DISABLED,Explicit product rule Progress ≠ Actual,Intentional
+Financial engine,Single compose path (Actual / Forecast / CCV / profit),Y,Y,Y,Partial,Y,,Y,FULL,composeProjectFinancials.ts,Feature modules must not invent a second Actual
+Financial engine,Actual cost (finalized expenses net + labor + posted AP),Y,Y,Y,Partial,Y,,Y,FULL,aggregateProjectCosts; withRecognizedVendorBills,Drafts/POs/payments/BOQ progress are not Actual
+Financial engine,Forecast = Actual + remaining PO commitment + ETC,Y,Y,Y,Partial,Y,,Y,FULL,computeForecastFinalCost,Open AP payable is disclosure only
+Financial engine,"Profit = CCV net − cost (not invoiced, not VAT)",Y,Y,Y,Partial,Y,,Y,FULL,computeProfitPosition; PROJECT_PROFIT_READ,Retention does not reduce profit
+Financial engine,Outstanding AR = invoiced − paid − held retention,Y,Y,Y,Partial,Y,billing,Y,OPTIONAL-FULL,billing/domain/outstanding.ts,Billing ≠ Payment
+Financial engine,Outstanding AP = bill − payments − credits − held retention,Y,Y,Y,Partial,Y,,Y,FULL,AP aging; computePayablesAging,Payments never Actual
+Financial engine,AR aging buckets,Y,Y,Y,Partial,Y,billing,Y,OPTIONAL-FULL,computeReceivablesAging; /reports,
+Financial engine,Committed cost from issued PO (never Actual),Y,Y,Y,Partial,Y,procurement,Y,OPTIONAL-FULL,committed_costs; issuePurchaseOrder,Commitment ≠ Actual
+Revenue,Internal billing records (invoice/credit/advance/retention_release),Y,Y,Y,Partial,Y,billing,Y,OPTIONAL-FULL,/billing; billing_records,NOT a statutory tax invoice
+Revenue,Finalize / void / credit billing; record payments 1:1,Y,Y,Y,Partial,Y,billing,Y,OPTIONAL-FULL,finalize-billing-record.ts; payments,No multi-invoice AR application table (unlike AP)
+Revenue,AR split payment across invoices,N,N,N,N,N,billing,Y,PARTIAL,payments.billing_record_id required 1:1,AP has application table; AR does not
+Revenue,Statutory / Israeli e-invoicing issuance,Partial,Partial,Partial,N,Y,,Y,DISABLED,invoicing-integration; assertStatutoryFeatureEnabled,Tables exist; throws until real provider; local ids forbidden
+Expenses,Create draft expense (project or non-project),Y,Y,Y,Partial,Y,,N,FULL,/expenses/new; createExpense,Always-on core loop; Actual only after finalize
+Expenses,Allocations (manual + automatic weight runs),Y,Y,Y,Partial,Y,,N,FULL,expense_allocations; allocation_runs,Frozen when applied at finalize
+Expenses,Finalize expense → Actual (NET),Y,Y,Y,Partial,Y,,Y,FULL,finalizeExpense; month must be open,VAT snapshot frozen; Actual uses net
+Expenses,Void / reversal / adjustment (immutable corrections),Y,Y,Y,Partial,Y,,Y,FULL,voidExpense; createExpenseReversal; createExpenseAdjustment,No silent rewrite of finalized rows
+Expenses,Recurring expense/AP/billing drafts,Y,Y,Y,Partial,Y,,N,FULL,/recurring-drafts; generate.ts Draft only — not posted,Generated rows remain drafts
+Expenses,Overhead / shared cost allocation tools,Y,Y,Partial,Partial,Y,overhead,Y,PARTIAL,overhead module key; no nav home; tools on expenses,No profile enables overhead
+Vendors,Vendor master + contacts + identifiers,Y,Y,Y,Partial,Y,vendors,N,OPTIONAL-FULL,/vendors,Separate from Client/Employee
+Vendors,Vendor ↔ project engagements,Y,Y,Y,Partial,Y,vendors,N,OPTIONAL-FULL,vendor_engagements,Engagement ≠ Actual
+AP,Vendor bills (create posts as open / Actual),Y,Y,Y,Partial,Y,,Y,FULL,/procurement/ap; createApBill status open,Nav permission-only (not procurement module); unless approval blocks
+AP,Vendor credits (reduce outstanding AND economic cost),Y,Y,Y,Partial,Y,,Y,FULL,/procurement/ap/credits,Credit ≠ payment
+AP,Vendor payments + applications,Y,Y,Y,Partial,Y,,Y,FULL,ap_payments; ap_payment_applications,Cash; never Actual
+AP,PO matching (proposed/accepted/rejected),Y,Y,Y,Partial,Y,,Y,FULL,ap_po_matches; assertAcceptMatchDoesNotCreateExpense,Does not invent Expense
+AP,Bill project allocations,Y,Y,Y,Partial,Y,,Y,FULL,ap_bill_project_allocations,Payment ≠ Actual
+AP,AP aging,Y,Y,Y,Partial,Y,,Y,FULL,/procurement/ap/aging,
+AP,AP bill net/tax split (VAT-exclusive Actual),N,N,N,N,N,,Y,NOT-IMPLEMENTED,ap_bills.total_amount only,VAT-inclusive totals can inflate Actual — financial-truth gap
+AP,AP / AR retention holdback + releases,Y,Y,Y,Partial,Y,,Y,FULL,src/modules/retention; retention_releases,Cash timing only; does not reduce profit/CCV/invoiced
+Procurement,RFQ create / send / close,Y,Y,Y,Partial,Y,procurement,N,OPTIONAL-FULL,/procurement/rfqs,
+Procurement,Supplier quotes + compare by total,Y,Y,Y,Partial,Y,procurement,N,OPTIONAL-FULL,compareSupplierQuotesByTotal,Per currency; best price first
+Procurement,Purchase orders issue → Commitment,Y,Y,Y,Partial,Y,procurement,Y,OPTIONAL-FULL,issuePurchaseOrder; shouldCreateCommittedCostOnIssue,Never creates Expense
+Procurement,Goods receiving (qty received / 3-way match),Partial,N,Partial,N,Y,procurement,N,FOUNDATION,PO status partially_received exists; no receive API,No receipt lines
+Materials,Material catalog + vendor prices,Y,Y,Y,Partial,Y,materials,N,OPTIONAL-FULL,/procurement/materials,Not Actual
+Materials,Inventory quantity + movements (receive/issue/adjust/return),Y,Y,Y,Partial,Y,assets,N,FOUNDATION,inventory_items; inventory_movements,Explicitly not GL/Expense
+Materials,Project material usage records,Y,Y,Partial,N,Y,assets,N,FOUNDATION,material_usage_records,Operational; not purchase Actual
+Materials,Warehouse locations / reservations / transfers / costing,N,N,N,N,N,,N,NOT-IMPLEMENTED,No transfer type; no FIFO/AVG,
+Workforce,Employee master (optional login link),Y,Y,Y,Partial,Y,,N,FULL,/workforce/employees,Nav always discoverable with workforce.read (not hidden by module pref)
+Workforce,Effective-dated compensation / rate versions / burden components,Y,Y,Y,Partial,Y,,Y,FULL,rate_versions; labor_cost_components; WORKFORCE_COST_*,Corrections = new version
+Workforce,Time entries (project and non-project) + bulk + corrections,Y,Y,Y,Partial,Y,,Y,FULL,/workforce/time; createBulkTimeEntries; correctTimeEntry,Snapshot cost_amount at record; void+replace
+Workforce,Attendance clock in/out + manual + void,Y,Y,Y,Partial,Y,,N,FULL,/workforce/attendance,Attendance ≠ time ≠ Actual
+Workforce,Labor Actual (time True Cost and/or monthly employer cost),Y,Y,Y,Partial,Y,,Y,FULL,labor-recognition.ts; EMPLOYEE_MONTH_COSTS_READY,Month allocation displaces time snapshots for that employee-month
+Workforce,Timesheet submit/approve product,Partial,Partial,N,N,Y,approvals,Y,PARTIAL,approval_rules entity time_correction named; no time-entry gate,Time is recorded/void
+Workforce,Worker privacy beyond cost redaction,Partial,Partial,Partial,Partial,Y,,N,PARTIAL,workforce.read never unlocks rates; list redactListRates,No broader PII privacy mode
+Scheduling,Light project dates / phases / WP / milestones,Y,Y,Y,Partial,Y,,N,FULL,projects/domain/scheduling.ts,
+Scheduling,Gantt tasks + FS dependencies (projects only),Y,Y,Y,Partial,Y,,N,OPTIONAL-FULL,planning_work_items; gantt-chart.tsx; PLANNING_READ/WRITE,Not an optional module; jobs/WO excluded
+Scheduling,Critical path / calendars / lag / leveling / capacity,N,Partial,N,N,Y,,N,FOUNDATION,buildCriticalPathFoundation supported:false,
+Scheduling,Planning task assignees,N,N,N,N,N,,N,NOT-IMPLEMENTED,No assignee on planning_work_items,
+Service,Dispatch board (today/tomorrow/week),Y,Y,Y,Partial,Y,service,N,OPTIONAL-FULL,/dispatch; listDispatchBoard,Not a general calendar
+Service,Recurring service definitions (pause/resume/end/skip) generating WOs,Y,Y,Y,Partial,Y,service,N,OPTIONAL-FULL,/service/recurring; recurrence_definitions,Frequencies daily..yearly
+Service,Work-order field completion status,Y,Y,Y,Partial,Y,service,N,OPTIONAL-FULL,updateServiceStatus,Completed maps project status
+Service,Dedicated WO invoice object,N,N,N,N,N,service,Y,PARTIAL,Fixed WO may seed contract; costs via shared engine,No separate WO billing entity
+Service,WO checklist template wiring,Partial,Partial,N,N,Y,forms,N,FOUNDATION,checklistTemplateId column,SCHEMA_REQUEST: wire to Forms
+CRM,Prospects + contacts,Y,Y,Y,Partial,Y,crm,N,OPTIONAL-FULL,/crm/prospects,No profile auto-enables CRM
+CRM,Leads,Y,Y,Y,Partial,Y,crm,N,OPTIONAL-FULL,/crm/leads,
+CRM,Opportunities + stages + notes,Y,Y,Y,Partial,Y,crm,N,OPTIONAL-FULL,/crm,Table list not kanban
+CRM,Sales quotes with versions + issue/accept,Y,Y,Y,Partial,Y,crm,N,OPTIONAL-FULL,crm_sales_quote_versions immutable when issued,Quote ≠ Billing ≠ Change Order
+CRM,Convert won opportunity → Client + Project + Contract,Y,Y,Y,Partial,Y,crm,Y,OPTIONAL-FULL,convertWonOpportunity,Explicit conversion only
+CRM,Pipeline kanban / activities / follow-ups / reminders,N,N,N,N,N,crm,N,NOT-IMPLEMENTED,Notes only; no activity table,
+Quotes,Standalone estimates / quotes (pre-sale),Y,Y,Y,Partial,Y,quotes,N,OPTIONAL-FULL,/quotes; estimates table,Third quote-like object besides CRM and CO quotes
+Quotes,Convert standalone quote to project or job,Y,Y,Y,Partial,Y,quotes,Y,OPTIONAL-FULL,quotes convert actions,Does not create billing
+Changes,Change requests + lines + pending vs approved,Y,Y,Y,Partial,Y,changes,N,OPTIONAL-FULL,/changes; change_requests,Pending does not move CCV
+Changes,Approve CR → Change Order + contract value event (net),Y,Y,Y,Partial,Y,changes,Y,OPTIONAL-FULL,approveChangeRequest; changeOrderApprovedNetAmount,Internal recorded approval; not e-sign / portal
+Changes,Reverse Change Order / reverse CCV event,N,N,N,N,N,changes,Y,PARTIAL,BOQ allocation reverse exists; no commercial CO reverse API,CCV cannot be undone via CO reversal
+Budgets,Project/job budgets + lines + revisions + variance,Y,Y,Y,Partial,Y,budgets,N,OPTIONAL-FULL,project_budgets; composeBudgetControlPosition,Project tab not main nav; Actual from engine never recalculated here
+Field ops,Daily logs,Y,Y,Y,Partial,Y,field_ops,N,OPTIONAL-FULL,/field-ops/logs,Offline draft kind daily_log
+Field ops,Punch list / deficiencies,Y,Y,Y,Partial,Y,field_ops,N,OPTIONAL-FULL,/field-ops/punch,
+Field ops,Inspections (site QC),Y,Y,Y,Partial,Y,field_ops,N,OPTIONAL-FULL,/field-ops/inspections,Not a safety/HSE program
+Field ops,Photos on create (camera-first),Partial,Y,Partial,Partial,Y,field_ops,N,PARTIAL,Attach after save; field-ops-photo-limitation-note.tsx,Documents capture=environment on detail
+Forms,Form templates + submissions (checklist/yes-no/photo/signature ack),Y,Y,Y,Partial,Y,forms,N,OPTIONAL-FULL,/forms; /settings/forms,Signature is acknowledgement not legal e-sign
+Documents,Private document upload/download/link/soft-delete,Y,Y,Y,Partial,Y,documents,N,OPTIONAL-FULL,/documents; signed URLs; bucket documents,No public objects; 25MB; storage-config gated
+OCR,OCR extract + review UI + confirm to drafts,Y,Y,Y,Partial,Y,documents,N,OPTIONAL-FULL,/documents/ocr-review; ocr_extraction_jobs,Never finalizes Expense/AP; default OCR_INGESTION_ENABLED=false
+OCR,Azure Document Intelligence live path,Y,Y,Y,Partial,Y,documents,N,OPTIONAL-FULL,AzureDocumentIntelligenceProvider; AZURE_OCR_LIVE_HTTP_READY=true,Infrastructure ready; production flag default OFF
+OCR,Google / AWS OCR providers,N,Partial,N,N,N,,N,NOT-IMPLEMENTED,UnimplementedOcrProvider stubs,
+OCR,Duplicate + wrong-customer warnings,Y,Y,Y,Partial,Y,documents,N,OPTIONAL-FULL,duplicates.ts; possible_wrong_customer,Never auto-reject
+Approvals,Ops approval inbox + threshold rules,Y,Y,Y,Partial,Y,approvals,N,OPTIONAL-FULL,/approvals; /settings/approvals,Lightweight; not multi-step workflow
+Approvals,Gate expense finalize / AP post / PO issue / vendor credit / budget revision,Y,Y,Y,Partial,Y,approvals,Y,OPTIONAL-FULL,assertApprovalAllowsAction in those modules,No matching rule → allow
+Approvals,Gate quote discounts,N,Partial,N,N,Y,approvals,Y,FOUNDATION,Catalog type quote_discount; quotes never call gate,
+Approvals,Gate time corrections,N,Partial,N,N,Y,approvals,Y,FOUNDATION,Catalog type time_correction counted in month-close only,
+Command Center,Today actionable inbox (directs; does not mutate financials),Y,Y,Y,Y,Y,command_center,N,OPTIONAL-FULL,/today; /inbox redirect; collect-sources.ts 16 card types,Handle/snooze never change AR/AP
+Month close,Operational month close workflow (open/ready/closed + completeness),Y,Y,Y,Partial,Y,month_close,Y,OPTIONAL-FULL,/month-close; month_close_periods,Nav is permission-only (not module-gated); not statutory GL close
+Month close,App-layer freeze of rewrites in closed months,N,Y,Y,N,Y,month_close,Y,PARTIAL,assertMonthOpenForRewrite on expense/AP/labor paths,No general DB triggers
+Month close,Post-close economic adjustments folding into compose,Y,Y,Y,Partial,Y,month_close,Y,PARTIAL,month_close_adjustments; netEconomicAdjustments,Does not unlock source expense/AP supersede APIs
+Explainability,Why-this-number + confidence High/Medium/Needs data + drilldown,Y,Y,Y,Partial,Y,,N,FULL,buildProjectFinancialExplainability; data-confidence.ts,Permission-filtered
+Reports,Home dashboard rollup,Y,Y,Y,Partial,Y,,Y,FULL,/ (signed-in); dashboard.json,Progressive by permission
+Reports,Organization reports / analytics page,Y,Y,Y,Partial,Y,,Y,FULL,/reports; project_financials.read,Single page not a multi-report catalog
+Reports,Project financials workspace,Y,Y,Y,Partial,Y,,Y,FULL,/projects/[id]/financials and ?tab=financials,Profit gated separately
+Search,Global search (permission-filtered; no money/profit/rates),Y,Y,Y,Partial,Y,,N,FULL,src/modules/search; global-search.tsx,Kinds: project/job/WO/client/contact/employee/vendor/bill/billing/document/asset/boq_item
+Search,Search custom fields,N,N,N,N,N,,N,NOT-IMPLEMENTED,Custom fields not in search kinds,
+Import,"CSV imports (clients, contacts, vendors, employees, projects, opening values, cost categories, draft expenses, BOQ)",Y,Y,Y,N,Y,,Partial,FULL,/imports; confirm uses canonical create APIs,Expenses import draft only; tax columns unmapped; no invented Actual
+Export,"CSV/XLSX exports (projects, clients, vendors, expenses, billing, financials, employees, time, payments, AR aging, POs, AP, audit, BOQ)",Y,Y,Y,N,Y,,Partial,FULL,/[locale]/exports/[kind],Cookie session not API key; rates omitted without cost.read
+Custom fields,Governed custom fields on client/project/vendor/employee/opportunity/expense,Y,Y,Y,Partial,Y,,N,OPTIONAL-FULL,/settings/custom-fields,Reserved keys block amount/profit/rate/vat/status; not in search/reports
+Assets,Asset register + fleet extras + maintenance records,Y,Y,Y,Partial,Y,assets,N,OPTIONAL-FULL,/assets; /assets/fleet; /assets/maintenance,Maintenance cost_amount is metadata ≠ Expense
+Assets,Equipment usage on project,Y,Y,Partial,N,Y,assets,N,FOUNDATION,equipment_usage_records,Usage ≠ Actual
+Assets,Depreciation / utilization calendar,N,N,N,N,N,,Y,NOT-IMPLEMENTED,,
+Compliance,Insurance / license / certification registry + expiry buckets,Y,Y,Y,Partial,Y,compliance,N,OPTIONAL-FULL,/compliance,No profile auto-enables; UI only — no notification delivery
+Compliance,Safety incidents / toolbox talks / HSE program,N,N,N,N,N,,N,NOT-IMPLEMENTED,Field inspections are site QC,
+Notifications,In-app notification feed,N,N,N,N,N,,N,NOT-IMPLEMENTED,No src/modules/notifications; /inbox is Today alias,
+Notifications,Invitation email delivery,Y,Partial,Y,N,Y,,N,PARTIAL,email port; EMAIL_DRIVER=console default; Resend optional,Failed send never fails business txn; copyable link fallback
+Notifications,Push / scheduled expiry / assignment / approval emails,N,N,N,N,N,,N,NOT-IMPLEMENTED,SW: no push; compliance comment deferred,
+API,API keys in Settings,Y,Y,Y,N,Y,api,N,FOUNDATION,/settings/api; hashed keys,
+API,"Public HTTP API (health, whoami, project list)",N,Partial,N,N,Y,api,N,FOUNDATION,GET /api/v1/health|whoami|projects,Scopes clients.read/billing.read not exposed as HTTP yet
+API,Webhook HTTP fan-out with retries,Y,Partial,Y,N,Y,api,N,FOUNDATION,enqueueWebhookDelivery: No HTTP fan-out in this foundation,State machine + max 5 attempts persisted only
+PWA,Installable PWA + manifest + service worker shell cache,Y,Y,Y,Y,N,,N,OPTIONAL-FULL,manifest.webmanifest; public/sw.js; PwaBootstrap,SW never caches financial paths
+PWA,"Offline drafts (expense, time, CR, daily log, punch, inspection, form, capture) + sync",Y,Y,Y,Y,N,,N,OPTIONAL-FULL,src/modules/offline; /settings/offline-drafts,Never silent overwrite; financial pages need connection
+Audit,Append-only audit trail + Settings activity + export,Y,Y,Y,Partial,Y,,N,FULL,audit_events; /settings/activity; AUDIT_READ,UPDATE/DELETE revoked from app roles
+Security,Organization isolation + RLS + membership helpers,N,Y,N,N,Y,,N,FULL,0001_rls_security.sql; app.is_org_member SECURITY DEFINER,Every tenant table has organization_id
+Security,"Worker financial masking (rates, profit, BOQ prices)",Y,Y,Y,Partial,Y,,N,FULL,FINANCIAL_PERMISSIONS; boq_nodes_secure; redactListRates,
+Banking,Bank accounts + CSV/XLSX import + match suggestions/decisions,Y,Y,Y,N,Y,,N,FOUNDATION,/settings/banking; drizzle/schema/banking.ts,Match decisions must not mutate financial truth; live feed stub not_configured
+Portal,Public customer/vendor portal login,Y,N,Y,N,Y,portal,N,DISABLED,isExternalPublicAccessEnabled(): false; /portal disabled page,Customer/vendor routes redirect to disabled page
+Portal,Admin-mediated grants / safe projections / vendor candidates,Y,Partial,Partial,N,Y,portal,N,FOUNDATION,/settings/portal hideFromNav; portal.manage,Candidates never write ap_bills/Expense
+Public site,Marketing homepage + sign-up CTA,Y,Y,Y,Y,N,,N,FULL,PublicHomepage; src/modules/marketing/ui,No CMS /pricing /blog
+Ops finance,Link maintenance/compliance/fleet/recurring ops → draft expenses,Y,Y,Partial,Partial,Y,,N,PARTIAL,ops_expense_links; inventory never linkable,Actual only after expense finalize

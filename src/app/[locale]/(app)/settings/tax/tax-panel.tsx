@@ -39,14 +39,15 @@ export function TaxSettingsPanel({
 
   const packRules = rules.filter((rule) => rule.organizationId === null);
   const orgRules = rules.filter((rule) => rule.organizationId !== null);
+  const hasCountryPack =
+    countryCode === 'IL' || countryCode === 'US' || countryCode === 'GB';
   const countryLabel =
-    countryCode === 'IL' || countryCode === 'US' || countryCode === 'GB'
-      ? tCountries(countryCode)
-      : countryCode;
+    hasCountryPack ? tCountries(countryCode as 'IL' | 'US' | 'GB') : countryCode;
 
   return (
     <div className="flex w-full min-w-0 flex-col gap-6">
       <p className="text-start text-sm text-[var(--pf-text-secondary)]">{t('subtitle')}</p>
+      <p className="text-start text-xs text-[var(--pf-text-muted)]">{t('supportedPacks')}</p>
 
       {currentRateLabel ? (
         <p className="text-start text-sm">
@@ -59,15 +60,33 @@ export function TaxSettingsPanel({
 
       <section className="min-w-0">
         <h2 className="text-start text-sm font-semibold">
-          {t('countryPackTitle', { country: countryLabel })}
+          {hasCountryPack
+            ? t('countryPackTitle', { country: countryLabel })
+            : t('unsupportedCountryTitle', { country: countryLabel })}
         </h2>
-        <p className="text-start text-xs text-[var(--pf-text-muted)]">{t('countryPackHint')}</p>
-        <TaxRulesTable rules={packRules} t={t} locale={locale} />
+        <p className="text-start text-xs text-[var(--pf-text-muted)]">
+          {hasCountryPack
+            ? t('countryPackHint')
+            : t('unsupportedCountry', { country: countryLabel })}
+        </p>
+        <TaxRulesTable
+          rules={packRules}
+          t={t}
+          locale={locale}
+          emptyTitle={hasCountryPack ? t('empty') : t('unsupportedCountryTitle', { country: countryLabel })}
+          emptyHint={hasCountryPack ? t('emptyHint') : t('emptyHintNoPack')}
+        />
       </section>
 
       <section className="min-w-0">
         <h2 className="text-start text-sm font-semibold">{t('orgRulesTitle')}</h2>
-        <TaxRulesTable rules={orgRules} t={t} locale={locale} />
+        <TaxRulesTable
+          rules={orgRules}
+          t={t}
+          locale={locale}
+          emptyTitle={t('empty')}
+          emptyHint={hasCountryPack ? t('emptyHint') : t('emptyHintNoPack')}
+        />
       </section>
 
       {canEdit ? (
@@ -135,13 +154,24 @@ function TaxRulesTable({
   rules,
   t,
   locale,
+  emptyTitle,
+  emptyHint,
 }: {
   rules: TaxRuleRecord[];
   t: ReturnType<typeof useTranslations<'tax'>>;
   locale: string;
+  emptyTitle?: string;
+  emptyHint?: string;
 }) {
   if (rules.length === 0) {
-    return <EmptyState size="sm" title={t('empty')} description={t('emptyHint')} className="mt-2" />;
+    return (
+      <EmptyState
+        size="sm"
+        title={emptyTitle ?? t('empty')}
+        description={emptyHint ?? t('emptyHint')}
+        className="mt-2"
+      />
+    );
   }
 
   return (

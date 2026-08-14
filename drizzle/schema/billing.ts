@@ -132,9 +132,10 @@ export const payments = pgTable(
     organizationId: uuid('organization_id')
       .notNull()
       .references(() => organizations.id, { onDelete: 'cascade' }),
-    billingRecordId: uuid('billing_record_id')
-      .notNull()
-      .references(() => billingRecords.id, { onDelete: 'cascade' }),
+    billingRecordId: uuid('billing_record_id').references(() => billingRecords.id, {
+      onDelete: 'cascade',
+    }),
+    clientId: uuid('client_id').references(() => clients.id, { onDelete: 'restrict' }),
     amount: moneyAmount('amount').notNull(),
     currency: currencyCode().notNull(),
     paymentDate: date('payment_date').notNull(),
@@ -147,9 +148,33 @@ export const payments = pgTable(
     ...timestamps(),
   },
   (table) => [
+    uniqueIndex('payments_id_organization_id_uq').on(table.id, table.organizationId),
     index('payments_billing_record_idx').on(table.billingRecordId),
     index('payments_org_date_idx').on(table.organizationId, table.paymentDate),
     check('payments_amount_positive', sql`${table.amount} > 0`),
+  ],
+);
+
+export const paymentApplications = pgTable(
+  'payment_applications',
+  {
+    id: primaryId(),
+    organizationId: uuid('organization_id')
+      .notNull()
+      .references(() => organizations.id, { onDelete: 'cascade' }),
+    paymentId: uuid('payment_id').notNull(),
+    billingRecordId: uuid('billing_record_id').notNull(),
+    appliedAmount: moneyAmount('applied_amount').notNull(),
+    currency: currencyCode().notNull(),
+    ...timestamps(),
+  },
+  (table) => [
+    uniqueIndex('payment_applications_id_organization_id_uq').on(table.id, table.organizationId),
+    index('payment_applications_payment_bill_idx').on(table.paymentId, table.billingRecordId),
+    index('payment_applications_payment_idx').on(table.paymentId),
+    index('payment_applications_bill_idx').on(table.billingRecordId),
+    index('payment_applications_org_idx').on(table.organizationId),
+    check('payment_applications_amount_positive', sql`${table.appliedAmount} > 0`),
   ],
 );
 

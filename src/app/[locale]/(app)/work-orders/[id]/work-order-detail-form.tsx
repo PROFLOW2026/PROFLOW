@@ -14,10 +14,12 @@ import {
   type ServicePriority,
   type ServiceStatus,
 } from '@/modules/service/domain/types';
+import { WorkOrderChecklistField } from '@/modules/service/ui/work-order-checklist-field';
 import { updateWorkOrderAction, type WorkOrderFormState } from '../actions';
 
 interface WorkOrderDetailFormProps {
   workOrderId: string;
+  checklistTemplates: { id: string; name: string }[];
   initial: {
     name: string;
     description: string;
@@ -32,10 +34,15 @@ interface WorkOrderDetailFormProps {
     serviceNotes: string;
     notes: string;
     serviceStatus: ServiceStatus;
+    checklistTemplateId: string | null;
   };
 }
 
-export function WorkOrderDetailForm({ workOrderId, initial }: WorkOrderDetailFormProps) {
+export function WorkOrderDetailForm({
+  workOrderId,
+  checklistTemplates,
+  initial,
+}: WorkOrderDetailFormProps) {
   const t = useTranslations('service');
   const tCommon = useTranslations('common');
   const [state, formAction, pending] = useActionState<WorkOrderFormState, FormData>(
@@ -93,6 +100,12 @@ export function WorkOrderDetailForm({ workOrderId, initial }: WorkOrderDetailFor
           )}
         </Field>
       </div>
+
+      <WorkOrderChecklistField
+        templates={checklistTemplates}
+        defaultTemplateId={initial.checklistTemplateId}
+        error={state.fieldErrors?.checklistTemplateId}
+      />
 
       <Field label={t('create.statusLabel')}>
         {(control) => (

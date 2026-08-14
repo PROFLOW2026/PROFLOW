@@ -215,10 +215,13 @@
     "unitRate": "Unit rate (cost)",
     "periodLabel": "Valuation period",
     "periodQtyHint": "Enter CURRENT-PERIOD quantity per line. Default is 0 — not the full agreed quantity.",
-    "flowHint": "Draft → add lines → activate → valuation (period qty) → approve. AP handoff stays manual.",
+    "flowHint": "Draft → add lines → activate → valuation (period qty) → approve → create draft vendor bill. Posting stays in AP.",
     "valuationHistory": "Valuation history",
-    "apManualNote": "Propose draft vendor bill manually in AP. Auto-create is disabled because AP create may post as open Actual. proposed_vendor_bill_id attaches only via approved→proposed_ap.",
-    "valuationCreated": "Valuation draft saved. Propose the vendor bill manually in AP after approval.",
+    "apManualNote": "After approval, create a draft vendor bill here. It is not Actual and does not consume a PO. Posting stays in AP.",
+    "valuationCreated": "Valuation draft saved. After approval you can create a draft vendor bill — it is not posted.",
+    "createDraftAp": "Create draft vendor bill",
+    "draftApCreated": "Draft vendor bill created. It is not Actual until posted in AP.",
+    "draftApNeedsPermission": "Creating a draft vendor bill needs AP manage permission.",
     "costSideOnly": "Cost side only — not client BOQ revenue."
   },
   "comparison": {
@@ -229,5 +232,30 @@
     "currentContract": "Current contract",
     "currentBoq": "Current BOQ",
     "progressNotActual": "Physical progress is not Actual. Actual and Forecast come from the financials engine only."
+  },
+  "measure": {
+    "title": "Field measurement",
+    "description": "Record measured quantities on site. Unit prices, profit, and commercial totals stay in the office.",
+    "link": "Field measurement",
+    "backToBoq": "Back to BOQ",
+    "search": "Search items",
+    "emptyTitle": "No items to measure",
+    "emptyBody": "An active bill of quantities with items is needed before field measurement.",
+    "emptyList": "No items match this search.",
+    "inactiveHint": "Progress can be recorded once the BOQ is active.",
+    "selectItem": "Select an item to enter a measured quantity.",
+    "noCode": "No code",
+    "currentQty": "Current qty",
+    "performedQty": "Performed",
+    "remainingQty": "Remaining",
+    "pendingQty": "Pending approval",
+    "measuredQty": "Measured qty this period",
+    "note": "Note",
+    "submit": "Submit measurement",
+    "periodLabel": "Period",
+    "officeApproveHint": "Approval stays on the office BOQ tab.",
+    "officeApproveLink": "Open office BOQ",
+    "noSubmitPermission": "You can view quantities. Submitting measurements needs progress permission.",
+    "chapter": "Chapter"
   }
 }

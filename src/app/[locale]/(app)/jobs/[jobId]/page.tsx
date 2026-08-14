@@ -36,6 +36,7 @@ import { ConvertJobButton } from './convert-job-button';
 import { JobOpenPricePanel } from './job-open-price-panel';
 import { textNavLinkClassName } from '@/components/ui/pressable';
 import { ProjectFormsPanel } from '@/modules/forms/ui';
+import { BoqMeasureEntryLink } from '@/modules/boq/ui/boq-measure-entry-link';
 
 interface JobPageProps {
   params: Promise<{ locale: string; jobId: string }>;
@@ -321,6 +322,11 @@ export default async function JobPage({ params, searchParams }: JobPageProps) {
               (shell?.permissions.has(PERMISSIONS.FORMS_READ) ?? false) ? (
                 <Suspense fallback={<TabPanelSkeleton />}>
                   <ProjectFormsPanel ownerType="job" ownerId={jobId} />
+                </Suspense>
+              ) : null}
+              {Boolean(modules?.boq) ? (
+                <Suspense fallback={null}>
+                  <BoqMeasureEntryLink projectId={jobId} />
                 </Suspense>
               ) : null}
               <OverviewTab

@@ -136,6 +136,7 @@ describe('void-correction invariants (source)', () => {
     expect(source).toContain('correctsEntryId: original.id');
     expect(source).toContain('TIME_ENTRY_VOIDED');
     expect(source).toContain('TIME_ENTRY_CORRECTED');
+    expect(source).toContain("entityType: 'time_correction'");
     expect(source).not.toMatch(/\.update\(timeEntries\)[\s\S]*hours:/);
   });
 

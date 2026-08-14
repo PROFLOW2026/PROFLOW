@@ -4,9 +4,9 @@
  * HARD RULES:
  * - Credits ≠ payments. Credits reduce economic cost (Actual) and payable outstanding.
  * - Payments are cash only and never reduce Actual.
- * - Outstanding = bill total − active payments − active credit applications.
- * - Recognized Actual for a posted bill = bill total − active credit applications
- *   (void bills contribute zero Actual entirely).
+ * - Outstanding = bill GROSS − active payments − active credit applications (GROSS).
+ * - Recognized Actual for a posted bill = bill NET − credit Actual reductions.
+ * - A credit Actual reduction uses the CREDIT's own NET/GROSS, never the bill VAT ratio.
  * - No silent rewrite of credit amount / applications; void + new credit is the correction path.
  */
 
@@ -76,20 +76,53 @@ export function sumActiveCreditAmounts(
 }
 
 /**
+ * Actual reduction for one GROSS application of a credit.
+ * Uses the credit's own NET/GROSS. Legacy undivided (net = gross) reduces Actual
+ * by the applied GROSS. Never uses the bill VAT ratio.
+ */
+export function creditApplicationActualReduction(input: {
+  readonly currency: string;
+  readonly appliedGross: string;
+  readonly creditNet: string;
+  readonly creditGross: string;
+}): MoneyValue {
+  const currency = input.currency.toUpperCase();
+  const applied = money(input.appliedGross, currency);
+  const creditNet = money(input.creditNet, currency);
+  const creditGross = money(input.creditGross, currency);
+  if (!isPositiveMoney(applied) || !isPositiveMoney(creditGross)) {
+    return zeroMoney(currency);
+  }
+  if (compareMoney(creditNet, creditGross) === 0) {
+    return applied;
+  }
+  return divideMoney(multiplyMoney(applied, creditNet.amount), creditGross.amount);
+}
+
+/**
  * Net Actual recognized for one posted bill after credits.
- * Callers must already exclude void/draft bills.
+ * `billNetAmount` is the bill's own NET (or historical total when undivided).
+ * `creditActualReductions` are already converted via creditApplicationActualReduction.
  */
 export function netRecognizedBillAfterCredits(input: {
   readonly currency: string;
-  readonly billTotal: string;
-  readonly appliedCreditAmounts: readonly string[];
+  readonly billNetAmount: string;
+  readonly creditActualReductions: readonly string[];
+  /** @deprecated Use billNetAmount. Kept so undivided callers can pass billTotal. */
+  readonly billTotal?: string;
+  /** @deprecated Use creditActualReductions. GROSS amounts only when credits are undivided. */
+  readonly appliedCreditAmounts?: readonly string[];
 }): MoneyValue {
   const currency = input.currency.toUpperCase();
+  const billNet = money(input.billNetAmount ?? input.billTotal ?? '0', currency);
+  const reductions = input.creditActualReductions
+    ?? input.appliedCreditAmounts
+    ?? [];
   const credits = sumMoney(
-    input.appliedCreditAmounts.map((a) => money(a, currency)),
+    reductions.map((a) => money(a, currency)),
     currency,
   );
-  const net = subtractMoney(money(input.billTotal, currency), credits);
+  const net = subtractMoney(billNet, credits);
   if (compareMoney(net, zeroMoney(currency)) < 0) {
     return zeroMoney(currency);
   }
@@ -98,30 +131,30 @@ export function netRecognizedBillAfterCredits(input: {
 
 /**
  * Scale a project slice of bill Actual after credits so org-wide Actual drops
- * by the credit amount without inventing a second recognition path.
- * Uses proportional reduction: slice * net / billTotal.
+ * by the credit Actual reduction (credit NET/GROSS), not a bill VAT ratio.
  */
 export function scaleBillSliceAfterCredits(input: {
   readonly currency: string;
-  readonly billTotal: string;
+  readonly billNetAmount?: string;
+  readonly billTotal?: string;
   readonly sliceAmount: string;
-  readonly appliedCreditAmounts: readonly string[];
+  readonly creditActualReductions?: readonly string[];
+  readonly appliedCreditAmounts?: readonly string[];
 }): MoneyValue {
   const currency = input.currency.toUpperCase();
-  const billTotal = money(input.billTotal, currency);
+  const billNet = money(input.billNetAmount ?? input.billTotal ?? '0', currency);
   const slice = money(input.sliceAmount, currency);
-  if (!isPositiveMoney(billTotal)) return zeroMoney(currency);
+  if (!isPositiveMoney(billNet)) return zeroMoney(currency);
 
   const net = netRecognizedBillAfterCredits({
     currency,
-    billTotal: input.billTotal,
-    appliedCreditAmounts: input.appliedCreditAmounts,
+    billNetAmount: billNet.amount,
+    creditActualReductions: input.creditActualReductions ?? input.appliedCreditAmounts ?? [],
   });
   if (!isPositiveMoney(net)) return zeroMoney(currency);
-  if (compareMoney(net, billTotal) === 0) return slice;
+  if (compareMoney(net, billNet) === 0) return slice;
 
-  // slice * net / billTotal via money helpers (not JS floats for the arithmetic path).
-  return divideMoney(multiplyMoney(slice, net.amount), billTotal.amount);
+  return divideMoney(multiplyMoney(slice, net.amount), billNet.amount);
 }
 
 export function assertCreditCreatable(input: {

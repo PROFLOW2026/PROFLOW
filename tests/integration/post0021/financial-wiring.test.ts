@@ -210,6 +210,10 @@ describe('POST-0021 financial wiring (displacement + bill NET slices)', () => {
         status: 'open',
         currency: 'ILS',
         totalAmount: '1000.000000',
+        netAmount: '1000.000000',
+        taxAmount: '0',
+        grossAmount: '1000.000000',
+        taxBasis: 'legacy_undivided',
         billDate: '2026-06-01',
       });
 

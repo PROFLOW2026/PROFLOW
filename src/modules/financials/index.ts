@@ -15,6 +15,8 @@ export type {
   OrganizationReportsAnalyticsOptions,
   OperationsReportSection,
 } from './application/get-organization-reports-analytics';
+export { parseReportsSection, reportsHref } from './domain/reports-section';
+export type { ReportsSection } from './domain/reports-section';
 export {
   isOpenPriceJob,
   hasRevenueBasisForProfitability,

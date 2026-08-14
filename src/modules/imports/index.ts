@@ -72,6 +72,8 @@ export {
   permissionForImportKind,
   assertCanImportKind,
   canImportKind,
+  canImportEmployeeCostFields,
+  employeeImportBaseRate,
   listImportableKinds,
   assertCanAccessImports,
 } from './application/import-permissions';

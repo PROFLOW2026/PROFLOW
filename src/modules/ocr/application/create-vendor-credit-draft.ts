@@ -11,6 +11,8 @@ export interface VendorCreditDraftPayload {
   readonly creditDate: string;
   readonly currency: string;
   readonly amount: string;
+  readonly netAmount?: string | null;
+  readonly taxAmount?: string | null;
   readonly notes: string | null;
   readonly status: 'draft';
 }
@@ -26,6 +28,8 @@ export function mapFieldsToVendorCreditDraft(input: {
   date: string | null;
   currency: string | null;
   amount: string | null;
+  netAmount?: string | null;
+  taxAmount?: string | null;
   description: string | null;
 }): VendorCreditDraftPayload | null {
   const currency = input.currency?.trim().toUpperCase() || null;
@@ -38,6 +42,8 @@ export function mapFieldsToVendorCreditDraft(input: {
     creditDate,
     currency,
     amount,
+    netAmount: input.netAmount?.trim() || null,
+    taxAmount: input.taxAmount?.trim() || null,
     notes: input.description,
     status: 'draft',
   };
@@ -61,6 +67,8 @@ export async function createVendorCreditDraftFromOcr(
     creditDate: draft.creditDate,
     currency: draft.currency,
     amount: draft.amount,
+    netAmount: draft.netAmount,
+    taxAmount: draft.taxAmount,
     notes: [draft.notes, 'Created from document review as draft — not applied.']
       .filter(Boolean)
       .join('\n')

@@ -50,15 +50,7 @@ test.describe('master completion owner journeys', () => {
   });
 
   test('Vendor bills → AP aging buckets visible', async ({ page }) => {
-    await page.goto('/he-IL');
-    const nav = page.getByRole('navigation', { name: he.common.a11y.mainNavigation });
-    // Desktop may place vendor bills in More/advanced — try direct nav link first.
-    const billsLink = nav.getByRole('link', { name: he.nav.vendorBills });
-    if ((await billsLink.count()) > 0) {
-      await billsLink.click();
-    } else {
-      await page.goto('/he-IL/procurement/ap');
-    }
+    await page.goto('/he-IL/procurement/ap');
     await expect(page).toHaveURL(/\/he-IL\/procurement\/ap/);
     await page.getByRole('link', { name: 'גיל יתרות' }).click();
     await expect(page).toHaveURL(/\/he-IL\/procurement\/ap\/aging/);
@@ -125,8 +117,8 @@ test.describe('master completion owner journeys', () => {
     await openFromNavOrGoto('היום', '/he-IL/today');
     await expect(page.getByRole('heading', { name: 'היום', exact: true })).toBeVisible();
 
-    await openFromNavOrGoto('הצעות מחיר', '/he-IL/quotes');
-    await expect(page.getByRole('heading', { name: 'הצעות מחיר', exact: true })).toBeVisible();
+    await openFromNavOrGoto('הצעות מחיר לפני פרויקט', '/he-IL/quotes');
+    await expect(page.getByRole('heading', { name: 'הצעות מחיר לפני פרויקט', exact: true })).toBeVisible();
 
     await openFromNavOrGoto('קריאות שירות', '/he-IL/work-orders');
     await expect(page.getByRole('heading', { name: 'קריאות שירות', exact: true })).toBeVisible();

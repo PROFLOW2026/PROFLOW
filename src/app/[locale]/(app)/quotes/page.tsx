@@ -16,6 +16,7 @@ import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { pressableCardLinkClassName, textNavLinkClassName } from '@/components/ui/pressable';
 import { cn } from '@/shared/ui/cn';
+import { CommercialDocsHub } from '@/modules/quotes/ui/commercial-docs-hub';
 
 export async function generateMetadata({
   params,
@@ -71,6 +72,8 @@ export default async function QuotesPage() {
           ) : null
         }
       />
+
+      <CommercialDocsHub current="quotes" />
 
       <p className="text-sm text-[var(--pf-text-secondary)]">{t('disclaimer')}</p>
 

@@ -8,7 +8,9 @@ import { PageHeader } from '@/components/ui/page-header';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import {
   getInventoryItemById,
+  listInventoryLocationsForOrg,
   listMovementsForInventoryItem,
+  type InventoryMovementRecord,
   type InventoryMovementType,
   type ReorderStatus,
 } from '@/modules/assets';
@@ -24,6 +26,7 @@ import { InventoryMovementForm } from '../inventory-movement-form';
 import { InventoryMaterialUsagePanel } from '@/modules/assets/ui';
 import { textNavLinkMutedClassName } from '@/components/ui/pressable';
 import { cn } from '@/shared/ui/cn';
+import { Alert } from '@/components/ui/alert';
 
 export async function generateMetadata({
   params,
@@ -53,7 +56,22 @@ function reorderTone(status: ReorderStatus): 'success' | 'warning' | 'danger' | 
   }
 }
 
-const MOVEMENT_TYPES: InventoryMovementType[] = ['receive', 'issue', 'return', 'adjust'];
+const MOVEMENT_TYPES: InventoryMovementType[] = [
+  'receive',
+  'issue',
+  'transfer',
+  'return',
+  'adjust',
+];
+
+function movementLocationLabel(movement: InventoryMovementRecord): string {
+  const from = movement.fromLocationName;
+  const to = movement.toLocationName;
+  if (from && to) return `${from} → ${to}`;
+  if (to) return to;
+  if (from) return from;
+  return '—';
+}
 
 export default async function InventoryItemDetailPage({
   params,
@@ -68,15 +86,21 @@ export default async function InventoryItemDetailPage({
     if (!item) return null;
     const canManage = hasPermission(context, PERMISSIONS.ASSETS_MANAGE);
     const canReadProjects = hasPermission(context, PERMISSIONS.PROJECTS_READ);
-    const [movements, projects, documentsPanel] = await Promise.all([
+    const [movements, projects, documentsPanel, locations] = await Promise.all([
       listMovementsForInventoryItem(context, itemId),
       canReadProjects ? listProjectsForOrg(context, {}) : Promise.resolve([]),
       getEntityDocumentPanelData(context, 'inventory_item', itemId),
+      listInventoryLocationsForOrg(context),
     ]);
     return {
       item,
       movements,
       documentsPanel,
+      locations: locations.map((location) => ({
+        id: location.id,
+        name: location.name,
+        code: location.code,
+      })),
       projects: canManage
         ? projects.map((p) => ({ id: p.id, name: p.name }))
         : [],
@@ -88,7 +112,8 @@ export default async function InventoryItemDetailPage({
 
   if (!loaded) notFound();
 
-  const { item, movements, documentsPanel, projects, canManage, today, projectNames } = loaded;
+  const { item, movements, documentsPanel, locations, projects, canManage, today, projectNames } =
+    loaded;
 
   return (
     <div className="flex min-w-0 flex-col gap-6">
@@ -109,6 +134,11 @@ export default async function InventoryItemDetailPage({
           </Badge>
         }
       />
+
+      <Alert tone="info">
+        <span className="block font-medium">{t('inventory.qtyOnlyBannerHe')}</span>
+        <span className="block text-sm">{t('inventory.qtyOnlyBannerEn')}</span>
+      </Alert>
 
       <dl className="grid min-w-0 gap-3 rounded-lg border border-[var(--pf-border-default)] p-4 sm:grid-cols-2 lg:grid-cols-4">
         <div className="min-w-0">
@@ -158,6 +188,42 @@ export default async function InventoryItemDetailPage({
 
       <p className="text-sm text-[var(--pf-text-secondary)]">{t('inventory.movementNotExpense')}</p>
 
+      <section className="flex min-w-0 flex-col gap-3">
+        <h2 className="text-lg font-semibold">{t('inventory.balancesTitle')}</h2>
+        {item.locationBalances.length === 0 ? (
+          <p className="text-sm text-[var(--pf-text-secondary)]">{t('inventory.balancesEmpty')}</p>
+        ) : (
+          <div className="min-w-0 overflow-x-auto rounded-lg border border-[var(--pf-border-default)]">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>{t('inventory.locationLabel')}</TableHead>
+                  <TableHead numeric>{t('list.columns.quantity')}</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {item.locationBalances.map((balance) => (
+                  <TableRow key={balance.id}>
+                    <TableCell className="font-medium">
+                      {balance.locationName}
+                      {balance.locationCode ? (
+                        <span className="text-[var(--pf-text-secondary)]">
+                          {' '}
+                          ({balance.locationCode})
+                        </span>
+                      ) : null}
+                    </TableCell>
+                    <TableCell numeric>
+                      <span dir="ltr">{balance.quantity}</span>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        )}
+      </section>
+
       <DocumentAttachments
         ownerType="inventory_item"
         ownerId={item.id}
@@ -181,6 +247,8 @@ export default async function InventoryItemDetailPage({
                 movementType={type}
                 defaultDate={today}
                 projects={projects}
+                locations={locations}
+                defaultLocationId={locations[0]?.id}
               />
             ))}
           </div>
@@ -206,6 +274,7 @@ export default async function InventoryItemDetailPage({
                       <TableHead>{t('inventory.history.columns.date')}</TableHead>
                       <TableHead>{t('inventory.history.columns.type')}</TableHead>
                       <TableHead numeric>{t('inventory.history.columns.quantity')}</TableHead>
+                      <TableHead>{t('inventory.history.columns.location')}</TableHead>
                       <TableHead>{t('inventory.history.columns.project')}</TableHead>
                       <TableHead>{t('inventory.history.columns.notes')}</TableHead>
                     </TableRow>
@@ -219,6 +288,9 @@ export default async function InventoryItemDetailPage({
                         <TableCell>{t(`inventory.movementTypes.${movement.movementType}`)}</TableCell>
                         <TableCell numeric>
                           <span dir="ltr">{movement.quantity}</span>
+                        </TableCell>
+                        <TableCell className="max-w-[14rem] truncate">
+                          {movementLocationLabel(movement)}
                         </TableCell>
                         <TableCell className="max-w-[12rem] truncate">
                           {movement.projectId
@@ -246,6 +318,9 @@ export default async function InventoryItemDetailPage({
                 </div>
                 <p className="text-xs text-[var(--pf-text-secondary)]" dir="ltr">
                   {movement.occurredOn}
+                </p>
+                <p className="break-words text-sm text-[var(--pf-text-secondary)]">
+                  {movementLocationLabel(movement)}
                 </p>
                 {movement.projectId ? (
                   <p className="break-words text-sm text-[var(--pf-text-secondary)]">

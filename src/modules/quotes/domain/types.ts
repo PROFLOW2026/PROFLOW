@@ -56,6 +56,12 @@ export interface QuoteRecord {
   readonly totalAmount: string | null;
   readonly estimatedCostAmount: string | null;
   readonly estimatedMarginPercent: string | null;
+  /** Customer discount (money). Stored on `estimates.discount_amount`. */
+  readonly discountAmount: string | null;
+  /** Catalogue net before discount. Stored on `estimates.list_subtotal_amount`. */
+  readonly listSubtotalAmount: string | null;
+  /** Discount percent when no money discount is stored. */
+  readonly discountPercent: string | null;
   readonly convertedProjectId: string | null;
   readonly convertedAt: Date | null;
   readonly sentAt: Date | null;

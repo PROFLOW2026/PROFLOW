@@ -12,6 +12,7 @@ import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import {
   assertMonthOpenForRewrite,
+  rethrowClosedPeriodRewrite,
   yearMonthFromBusinessDate,
 } from '@/modules/month-close';
 import {
@@ -57,42 +58,48 @@ export async function voidApBill(context: OrgContext, raw: { billId: string }): 
   const freezeDate =
     billPreview.billDate ??
     billPreview.createdAt.toISOString().slice(0, 10);
-  await assertMonthOpenForRewrite(context, yearMonthFromBusinessDate(freezeDate));
 
-  const voided = await withTransaction(context.db, async (tx) => {
-    const repo = getVendorPaymentsRepository();
-    await repo.lockBillsForUpdate(tx, context.organizationId, [parsed.data.billId]);
+  let voided: { before: ApBillRow; after: ApBillRow };
+  try {
+    await assertMonthOpenForRewrite(context, yearMonthFromBusinessDate(freezeDate));
 
-    const bill = await findApBillById(tx, context.organizationId, parsed.data.billId);
-    if (!bill || bill.archivedAt) throw new NotFoundError('AP bill');
+    voided = await withTransaction(context.db, async (tx) => {
+      const repo = getVendorPaymentsRepository();
+      await repo.lockBillsForUpdate(tx, context.organizationId, [parsed.data.billId]);
 
-    const activePayments = await repo.listActiveAppliedAmountsForBill(
-      tx,
-      context.organizationId,
-      bill.id,
-    );
-    const activeCredits = await listActiveCreditAmountsForBill(
-      tx,
-      context.organizationId,
-      bill.id,
-    );
-    assertApBillVoidable({
-      billStatus: bill.status,
-      hasActivePayments: activePayments.length > 0,
-      hasActiveCredits: activeCredits.length > 0,
+      const bill = await findApBillById(tx, context.organizationId, parsed.data.billId);
+      if (!bill || bill.archivedAt) throw new NotFoundError('AP bill');
+
+      const activePayments = await repo.listActiveAppliedAmountsForBill(
+        tx,
+        context.organizationId,
+        bill.id,
+      );
+      const activeCredits = await listActiveCreditAmountsForBill(
+        tx,
+        context.organizationId,
+        bill.id,
+      );
+      assertApBillVoidable({
+        billStatus: bill.status,
+        hasActivePayments: activePayments.length > 0,
+        hasActiveCredits: activeCredits.length > 0,
+      });
+
+      await supersedeActiveBillAllocations(tx, context.organizationId, bill.id);
+
+      if (bill.purchaseOrderId) {
+        await restoreCommitmentForVoidedBill(tx, context.organizationId, bill);
+      }
+
+      const updated = await updateApBillStatus(tx, context.organizationId, bill.id, 'void');
+      if (!updated) throw new NotFoundError('AP bill');
+      assertVoidRemovesFromActual(updated.status as 'void');
+      return { before: bill, after: updated };
     });
-
-    await supersedeActiveBillAllocations(tx, context.organizationId, bill.id);
-
-    if (bill.purchaseOrderId) {
-      await restoreCommitmentForVoidedBill(tx, context.organizationId, bill);
-    }
-
-    const updated = await updateApBillStatus(tx, context.organizationId, bill.id, 'void');
-    if (!updated) throw new NotFoundError('AP bill');
-    assertVoidRemovesFromActual(updated.status as 'void');
-    return { before: bill, after: updated };
-  });
+  } catch (error) {
+    rethrowClosedPeriodRewrite(error);
+  }
 
   await recordAuditEvent(context, {
     action: AUDIT_ACTIONS.AP_BILL_VOIDED,

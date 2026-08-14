@@ -17,6 +17,7 @@ import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { Link } from '@/shared/i18n/navigation';
 import { WithClientMessages } from '@/shared/i18n/with-client-messages';
+import { Button } from '@/components/ui/button';
 import {
   getBoqFinancialComparison,
   getProjectBoqWorkspace,
@@ -39,6 +40,7 @@ export async function ProjectBoqPanel({ projectId }: ProjectBoqPanelProps) {
 
   const view = await withOrgContext(async (context) => {
     const canManage = hasPermission(context, PERMISSIONS.BOQ_MANAGE);
+    const canProposeApDraft = hasPermission(context, PERMISSIONS.AP_MANAGE);
     const canSubmitProgress = hasPermission(context, PERMISSIONS.BOQ_PROGRESS_SUBMIT);
     const canApproveProgress = hasPermission(context, PERMISSIONS.BOQ_PROGRESS_APPROVE);
     const canCreateBilling = hasPermission(context, PERMISSIONS.BOQ_BILLING_CREATE);
@@ -126,6 +128,7 @@ export async function ProjectBoqPanel({ projectId }: ProjectBoqPanelProps) {
       importKinds,
       permissions: {
         canManage,
+        canProposeApDraft,
         canSubmitProgress,
         canApproveProgress,
         canCreateBilling,
@@ -225,14 +228,21 @@ export async function ProjectBoqPanel({ projectId }: ProjectBoqPanelProps) {
           <h2 className="text-lg font-semibold">{t('panel.title')}</h2>
           <p className="text-sm text-[var(--pf-text-secondary)]">{t('panel.description')}</p>
         </div>
-        {boq && permissions.canManage ? (
-          <Link
-            href={`/exports/boq?projectId=${encodeURIComponent(projectId)}`}
-            className="text-sm font-medium text-[var(--pf-text-brand)] underline-offset-2 hover:underline"
-          >
-            {t('export.downloadCsv')}
-          </Link>
-        ) : null}
+        <div className="flex min-w-0 flex-wrap items-center gap-2">
+          {boq && permissions.canSubmitProgress ? (
+            <Button asChild>
+              <Link href={`/projects/${projectId}/boq-measure`}>{t('measure.link')}</Link>
+            </Button>
+          ) : null}
+          {boq && permissions.canManage ? (
+            <Link
+              href={`/exports/boq?projectId=${encodeURIComponent(projectId)}`}
+              className="text-sm font-medium text-[var(--pf-text-brand)] underline-offset-2 hover:underline"
+            >
+              {t('export.downloadCsv')}
+            </Link>
+          ) : null}
+        </div>
       </div>
 
       {!boq ? (
@@ -362,6 +372,7 @@ export async function ProjectBoqPanel({ projectId }: ProjectBoqPanelProps) {
           projectId={projectId}
           boqId={boq.id}
           canManage={permissions.canManage}
+          canProposeApDraft={permissions.canProposeApDraft}
           engagements={engagements.map((e) => ({
             id: e.id,
             label: e.vendorName,

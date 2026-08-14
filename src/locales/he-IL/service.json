@@ -69,6 +69,10 @@
     "notesLabel": "הערות שירות",
     "statusLabel": "סטטוס",
     "quickStatusLabel": "עדכון סטטוס",
+    "checklistLabel": "צ׳ק־ליסט חובה",
+    "checklistNone": "בלי צ׳ק־ליסט",
+    "checklistHint": "אם בוחרים תבנית טופס, הטכנאי חייב להגיש אותה לפני שאפשר לסמן את הקריאה כהושלמה.",
+    "checklistUnavailable": "תבנית שמורה (לא מופיעה יותר ברשימה)",
     "usualKind": {
       "jobTitle": "בארגון שלכם בדרך כלל יוצרים עבודות",
       "projectTitle": "בארגון שלכם בדרך כלל יוצרים פרויקטים",
@@ -96,6 +100,22 @@
     "financialsTitle": "פיננסים",
     "saved": "נשמר",
     "updateStatus": "עדכון סטטוס"
+  },
+  "checklist": {
+    "title": "צ׳ק־ליסט חובה",
+    "untitled": "טופס שטח",
+    "requiredTitle": "נדרש צ׳ק־ליסט",
+    "requiredBody": "יש להגיש את הטופס הזה לפני סימון הקריאה כהושלמה.",
+    "submittedBody": "הצ׳ק־ליסט החובה הוגש.",
+    "fill": "מילוי צ׳ק־ליסט",
+    "continue": "המשך מילוי",
+    "view": "צפייה בצ׳ק־ליסט",
+    "statusSubmitted": "הוגש",
+    "statusDraft": "טיוטה",
+    "statusMissing": "טרם התחיל"
+  },
+  "errors": {
+    "checklistRequired": "יש להגיש את הצ׳ק־ליסט החובה לפני השלמת קריאת השירות."
   },
   "dispatch": {
     "title": "שיבוץ",

@@ -3,10 +3,18 @@ import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import { MoneyText } from '@/components/patterns/money-text';
 import { PageHeader } from '@/components/ui/page-header';
+import { Alert } from '@/components/ui/alert';
 import { StatusBadge, type StatusShape } from '@/components/ui/status-badge';
 import { getEntityDocumentPanelData } from '@/modules/documents';
 import { DocumentAttachments } from '@/modules/documents/ui';
-import { getPurchaseOrderById, isPurchaseOrderCancellable, isPurchaseOrderCloseable, type PurchaseOrderStatus } from '@/modules/procurement';
+import {
+  getPurchaseOrderById,
+  isPurchaseOrderCancellable,
+  isPurchaseOrderCloseable,
+  isPurchaseOrderReceivable,
+  type PurchaseOrderStatus,
+} from '@/modules/procurement';
+import { todayInTimeZone } from '@/shared/dates';
 import { money } from '@/shared/money/money';
 import { withOrgContext } from '@/shared/auth/session';
 import { Link } from '@/shared/i18n/navigation';
@@ -14,6 +22,7 @@ import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { textNavLinkMutedClassName } from '@/components/ui/pressable';
 import { CancelPurchaseOrderButton, ClosePurchaseOrderButton } from '../po-lifecycle-buttons';
+import { PurchaseOrderReceiveForm } from './po-receive-form';
 
 export async function generateMetadata({
   params,
@@ -63,6 +72,7 @@ export default async function PurchaseOrderDetailPage({
         ...detail,
         documentsPanel,
         canManage: hasPermission(context, PERMISSIONS.PROCUREMENT_MANAGE),
+        defaultReceivedOn: todayInTimeZone(context.organization.timezone),
       };
     } catch {
       return null;
@@ -71,10 +81,11 @@ export default async function PurchaseOrderDetailPage({
 
   if (!data) notFound();
 
-  const { order, lines, documentsPanel, canManage } = data;
+  const { order, lines, receipts, fullyReceived, documentsPanel, canManage, defaultReceivedOn } = data;
   const status = order.status as PurchaseOrderStatus;
   const showCancel = canManage && isPurchaseOrderCancellable(status);
   const showClose = canManage && isPurchaseOrderCloseable(status);
+  const showReceive = canManage && isPurchaseOrderReceivable(status) && !fullyReceived;
 
   return (
     <div className="flex min-w-0 flex-col gap-6">
@@ -97,6 +108,10 @@ export default async function PurchaseOrderDetailPage({
         }
       />
 
+      {fullyReceived && isPurchaseOrderReceivable(status) ? (
+        <Alert tone="info">{t('receive.fullyReceivedHint')}</Alert>
+      ) : null}
+
       <div className="grid min-w-0 gap-3 text-sm sm:grid-cols-2">
         <div className="min-w-0">
           <p className="text-xs text-[var(--pf-text-muted)]">{t('list.columns.committed')}</p>
@@ -114,6 +129,86 @@ export default async function PurchaseOrderDetailPage({
           {showCancel ? <CancelPurchaseOrderButton purchaseOrderId={order.id} /> : null}
         </div>
       ) : null}
+
+      <section className="flex min-w-0 flex-col gap-3">
+        <h2 className="text-base font-semibold text-[var(--pf-text-primary)]">{t('detail.linesTitle')}</h2>
+        {lines.map((line) => (
+          <div
+            key={line.id}
+            className="flex flex-col gap-1 rounded-md border border-[var(--pf-border-default)] p-3 text-sm"
+          >
+            <p className="font-medium text-[var(--pf-text-primary)]">{line.description}</p>
+            <div className="flex items-baseline justify-between gap-2">
+              <span className="text-[var(--pf-text-muted)]">{t('receive.ordered')}</span>
+              <span className="pf-numeric pf-ltr-island" dir="ltr">
+                {line.quantity}
+              </span>
+            </div>
+            <div className="flex items-baseline justify-between gap-2">
+              <span className="text-[var(--pf-text-muted)]">{t('receive.received')}</span>
+              <span className="pf-numeric pf-ltr-island" dir="ltr">
+                {line.receivedQuantity}
+              </span>
+            </div>
+            <div className="flex items-baseline justify-between gap-2">
+              <span className="text-[var(--pf-text-muted)]">{t('receive.remaining')}</span>
+              <span className="pf-numeric pf-ltr-island" dir="ltr">
+                {line.remainingQuantity}
+              </span>
+            </div>
+          </div>
+        ))}
+      </section>
+
+      {showReceive ? (
+        <PurchaseOrderReceiveForm
+          purchaseOrderId={order.id}
+          defaultReceivedOn={defaultReceivedOn}
+          lines={lines}
+        />
+      ) : null}
+
+      <section className="flex min-w-0 flex-col gap-3">
+        <h2 className="text-base font-semibold text-[var(--pf-text-primary)]">{t('receive.receiptsTitle')}</h2>
+        {receipts.length === 0 ? (
+          <p className="text-sm text-[var(--pf-text-muted)]">{t('receive.emptyReceipts')}</p>
+        ) : (
+          receipts.map((receipt) => (
+            <div
+              key={receipt.id}
+              className="flex flex-col gap-1 rounded-md border border-[var(--pf-border-default)] p-3 text-sm"
+            >
+              <div className="flex items-baseline justify-between gap-2">
+                <span className="text-[var(--pf-text-muted)]">{t('receive.receivedOn')}</span>
+                <span className="pf-ltr-island" dir="ltr">
+                  {receipt.receivedOn}
+                </span>
+              </div>
+              {receipt.reference ? (
+                <div className="flex items-baseline justify-between gap-2">
+                  <span className="text-[var(--pf-text-muted)]">{t('receive.reference')}</span>
+                  <span>{receipt.reference}</span>
+                </div>
+              ) : null}
+              {receipt.receivedByDisplayName ? (
+                <div className="flex items-baseline justify-between gap-2">
+                  <span className="text-[var(--pf-text-muted)]">{t('receive.receivedBy')}</span>
+                  <span>{receipt.receivedByDisplayName}</span>
+                </div>
+              ) : null}
+              {receipt.notes ? <p>{receipt.notes}</p> : null}
+              {receipt.lines.map((line) => (
+                <div key={line.id} className="flex items-baseline justify-between gap-2">
+                  <span className="text-[var(--pf-text-muted)]">{t('receive.quantity')}</span>
+                  <span className="pf-numeric pf-ltr-island" dir="ltr">
+                    {line.quantity}
+                  </span>
+                </div>
+              ))}
+            </div>
+          ))
+        )}
+      </section>
 
       <DocumentAttachments
         ownerType="purchase_order"

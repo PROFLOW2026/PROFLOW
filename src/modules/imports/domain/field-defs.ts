@@ -49,7 +49,12 @@ const EMPLOYEE_FIELDS: readonly ImportFieldDef[] = [
     required: false,
     aliases: ['rate_unit', 'unit', 'יחידת_תעריף'],
   },
-  { key: 'baseRate', required: false, aliases: ['base_rate', 'rate', 'תעריף'] },
+  {
+    key: 'baseRate',
+    required: false,
+    aliases: ['base_rate', 'rate', 'תעריף'],
+    requiresCostManage: true,
+  },
   { key: 'notes', required: false, aliases: ['notes', 'הערות'] },
 ];
 

@@ -105,6 +105,8 @@ const IDENTICAL_MESSAGE_ALLOWLIST = new Set([
   'api.events.api.key.revoked',
   'settings.activity.actions._fallback',
   'settings.activity.entities._fallback',
+  'assets.inventory.qtyOnlyBannerEn',
+  'assets.inventory.qtyOnlyBannerHe',
   'marketing.hero.brand',
   'marketing.footer.note',
   'marketing.financial.neq',

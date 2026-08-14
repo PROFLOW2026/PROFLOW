@@ -1,5 +1,6 @@
 import { and, asc, eq, ilike, inArray, isNull, or, sql } from 'drizzle-orm';
 import { clientContacts, clients, partyIdentifiers, projects } from '@drizzle/schema';
+import { existsSearchableCustomFieldValueSql } from '@/modules/custom-fields';
 import {
   ORG_LIST_EXPORT_CAP,
   ORG_LIST_HARD_CAP,
@@ -170,7 +171,13 @@ export async function listClients(
 
   if (filters.search?.trim()) {
     const term = `%${filters.search.trim()}%`;
-    conditions.push(or(ilike(clients.name, term), ilike(clients.legalName, term))!);
+    conditions.push(
+      or(
+        ilike(clients.name, term),
+        ilike(clients.legalName, term),
+        existsSearchableCustomFieldValueSql(organizationId, 'client', clients.id, term),
+      )!,
+    );
   }
 
   const hardCap =

@@ -23,6 +23,9 @@ import {
   upsertOrgWorkPackagePack,
   deleteOrgWorkPackagePack,
   saveLaborCostDefaults,
+  saveDocumentNumberSettings,
+  DOCUMENT_NUMBER_KINDS,
+  isDocumentNumberKind,
 } from '@/modules/tenancy';
 import { setRolePermissionToggle } from '@/modules/rbac';
 import { updateProfile } from '@/modules/identity';
@@ -667,6 +670,44 @@ export async function deleteOrgWorkPackagePackAction(packId: string): Promise<Se
     return { ok: true };
   } catch (error) {
     if (error instanceof AppError) return { error: tErrors('unexpected') };
+    throw error;
+  }
+}
+
+export async function saveDocumentNumberSettingsAction(
+  _prev: SettingsActionState,
+  formData: FormData,
+): Promise<SettingsActionState> {
+  const tErrors = await getTranslations('errors');
+  const sequences: Array<{
+    documentKind: (typeof DOCUMENT_NUMBER_KINDS)[number];
+    prefix: string;
+    padding: number;
+    nextNumber: number;
+  }> = [];
+
+  for (const kind of DOCUMENT_NUMBER_KINDS) {
+    const marked = formValue(formData, `kind.${kind}`);
+    if (marked && !isDocumentNumberKind(marked)) {
+      return { error: tErrors('validationFailed') };
+    }
+    if (!formData.has(`padding.${kind}`)) continue;
+    sequences.push({
+      documentKind: kind,
+      prefix: formValue(formData, `prefix.${kind}`) ?? '',
+      padding: Number(formData.get(`padding.${kind}`)),
+      nextNumber: Number(formData.get(`nextNumber.${kind}`)),
+    });
+  }
+
+  if (sequences.length === 0) return { error: tErrors('validationFailed') };
+
+  try {
+    await withOrgContext((context) => saveDocumentNumberSettings(context, { sequences }));
+    revalidatePath('/settings/numbering');
+    return { ok: true };
+  } catch (error) {
+    if (error instanceof AppError) return { error: tErrors('validationFailed') };
     throw error;
   }
 }

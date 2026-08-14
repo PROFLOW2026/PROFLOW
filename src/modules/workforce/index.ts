@@ -33,7 +33,7 @@ export {
   resolveTimeEntryCostSnapshot,
   suggestDefaultEmployee,
 } from './application/time-entries';
-export type { CostSnapshot } from './application/time-entries';
+export type { CorrectTimeEntryResult, CostSnapshot } from './application/time-entries';
 
 export {
   addProjectTeamMember,
@@ -117,6 +117,10 @@ export type {
 
 export { calculateLaborCost, calculateLaborCostTotal, hoursToRateUnits } from './domain/labor-cost';
 export { resolveRateVersionForDate } from './domain/rate-lookup';
+export {
+  TIME_CORRECTION_AMOUNT_SENTINEL_RATE,
+  resolveTimeCorrectionApprovalAmount,
+} from './domain/time-correction-approval';
 export {
   buildEmployeeArchivePatch,
   buildEmployeeRestorePatch,

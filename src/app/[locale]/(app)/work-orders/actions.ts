@@ -42,11 +42,30 @@ async function mapValidationError(error: ValidationError): Promise<WorkOrderForm
   return { error: error.message, fieldErrors };
 }
 
+async function mapWorkOrderError(error: unknown): Promise<WorkOrderFormState> {
+  const tErrors = await getTranslations('errors');
+  const t = await getTranslations('service');
+  if (error instanceof ValidationError) return await mapValidationError(error);
+  if (error instanceof DomainRuleError) {
+    if (error.messageKey.startsWith('service.')) {
+      const key = error.messageKey.replace(/^service\./, '');
+      try {
+        return { error: t(key as 'errors.checklistRequired') };
+      } catch {
+        return { error: error.message };
+      }
+    }
+    return { error: error.message };
+  }
+  if (error instanceof AuthorizationError) return { error: tErrors('notAllowed') };
+  if (error instanceof AppError) return { error: tErrors('unexpected') };
+  throw error;
+}
+
 export async function createWorkOrderAction(
   _prev: WorkOrderFormState,
   formData: FormData,
 ): Promise<WorkOrderFormState> {
-  const tErrors = await getTranslations('errors');
   const locale = await getLocale();
 
   const clientMode = String(formData.get('clientMode') ?? 'new');
@@ -97,10 +116,7 @@ export async function createWorkOrderAction(
     revalidatePath('/projects');
     redirect({ href: `/work-orders/${result.projectId}`, locale });
   } catch (error) {
-    if (error instanceof ValidationError) return await mapValidationError(error);
-    if (error instanceof AuthorizationError) return { error: tErrors('notAllowed') };
-    if (error instanceof AppError) return { error: tErrors('unexpected') };
-    throw error;
+    return await mapWorkOrderError(error);
   }
 
   return {};
@@ -110,7 +126,6 @@ export async function updateWorkOrderAction(
   _prev: WorkOrderFormState,
   formData: FormData,
 ): Promise<WorkOrderFormState> {
-  const tErrors = await getTranslations('errors');
   const workOrderId = requiredFormValue(formData, 'workOrderId');
 
   try {
@@ -152,11 +167,7 @@ export async function updateWorkOrderAction(
     revalidatePath('/dispatch');
     return { success: true };
   } catch (error) {
-    if (error instanceof ValidationError) return await mapValidationError(error);
-    if (error instanceof DomainRuleError) return { error: error.message };
-    if (error instanceof AuthorizationError) return { error: tErrors('notAllowed') };
-    if (error instanceof AppError) return { error: tErrors('unexpected') };
-    throw error;
+    return await mapWorkOrderError(error);
   }
 }
 
@@ -164,7 +175,6 @@ export async function updateServiceStatusAction(
   _prev: WorkOrderFormState,
   formData: FormData,
 ): Promise<WorkOrderFormState> {
-  const tErrors = await getTranslations('errors');
   const workOrderId = requiredFormValue(formData, 'workOrderId');
 
   try {
@@ -186,11 +196,7 @@ export async function updateServiceStatusAction(
     revalidatePath('/dispatch');
     return { success: true };
   } catch (error) {
-    if (error instanceof ValidationError) return await mapValidationError(error);
-    if (error instanceof DomainRuleError) return { error: error.message };
-    if (error instanceof AuthorizationError) return { error: tErrors('notAllowed') };
-    if (error instanceof AppError) return { error: tErrors('unexpected') };
-    throw error;
+    return await mapWorkOrderError(error);
   }
 }
 
@@ -198,7 +204,6 @@ export async function rescheduleWorkOrderAction(
   _prev: WorkOrderFormState,
   formData: FormData,
 ): Promise<WorkOrderFormState> {
-  const tErrors = await getTranslations('errors');
   const workOrderId = requiredFormValue(formData, 'workOrderId');
 
   try {
@@ -224,10 +229,6 @@ export async function rescheduleWorkOrderAction(
     revalidatePath('/work-orders');
     return { success: true };
   } catch (error) {
-    if (error instanceof ValidationError) return await mapValidationError(error);
-    if (error instanceof DomainRuleError) return { error: error.message };
-    if (error instanceof AuthorizationError) return { error: tErrors('notAllowed') };
-    if (error instanceof AppError) return { error: tErrors('unexpected') };
-    throw error;
+    return await mapWorkOrderError(error);
   }
 }

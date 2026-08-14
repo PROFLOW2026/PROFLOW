@@ -37,6 +37,7 @@ describe('settings section grouping', () => {
       'people',
       'profile',
       'tax',
+      'numbering',
       'app',
       'approvals',
       'features',

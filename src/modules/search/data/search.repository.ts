@@ -12,6 +12,7 @@ import {
   projects,
   vendors,
 } from '@drizzle/schema';
+import { existsSearchableCustomFieldValueSql } from '@/modules/custom-fields';
 import type { DbExecutor } from '@/shared/db/types';
 import type { GlobalSearchHit } from '../domain/types';
 
@@ -43,7 +44,11 @@ export async function searchProjectsByWorkKind(
         eq(projects.organizationId, organizationId),
         eq(projects.workKind, workKind),
         isNull(projects.archivedAt),
-        or(ilike(projects.name, term), ilike(projects.location, term))!,
+        or(
+          ilike(projects.name, term),
+          ilike(projects.location, term),
+          existsSearchableCustomFieldValueSql(organizationId, 'project', projects.id, term),
+        )!,
       ),
     )
     .orderBy(projects.updatedAt)
@@ -72,7 +77,11 @@ export async function searchClients(
       and(
         eq(clients.organizationId, organizationId),
         isNull(clients.archivedAt),
-        or(ilike(clients.name, term), ilike(clients.legalName, term))!,
+        or(
+          ilike(clients.name, term),
+          ilike(clients.legalName, term),
+          existsSearchableCustomFieldValueSql(organizationId, 'client', clients.id, term),
+        )!,
       ),
     )
     .orderBy(clients.name)
@@ -154,6 +163,7 @@ export async function searchEmployees(
           ilike(employees.email, term),
           ilike(employees.employeeNumber, term),
           ilike(employees.jobTitle, term),
+          existsSearchableCustomFieldValueSql(organizationId, 'employee', employees.id, term),
         )!,
       ),
     )
@@ -183,7 +193,11 @@ export async function searchVendors(
       and(
         eq(vendors.organizationId, organizationId),
         isNull(vendors.archivedAt),
-        or(ilike(vendors.name, term), ilike(vendors.email, term))!,
+        or(
+          ilike(vendors.name, term),
+          ilike(vendors.email, term),
+          existsSearchableCustomFieldValueSql(organizationId, 'vendor', vendors.id, term),
+        )!,
       ),
     )
     .orderBy(vendors.name)

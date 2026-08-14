@@ -37,6 +37,7 @@ export interface PaymentSummary {
 /** Payment applied to a billing record — for AR history, not a separate ledger. */
 export interface PaymentApplicationRow {
   readonly id: string;
+  readonly paymentId: string;
   readonly billingRecordId: string;
   readonly billingReference: string | null;
   readonly billingKind: BillingKind;
@@ -52,6 +53,7 @@ export interface PaymentApplicationRow {
 
 export interface PaymentApplicationFilters {
   readonly projectId?: string;
+  readonly clientId?: string;
   readonly limit?: number;
   readonly offset?: number;
   readonly includeVoided?: boolean;
@@ -61,6 +63,8 @@ export interface BillingRecordSummary {
   readonly id: string;
   readonly projectId: string | null;
   readonly projectName: string | null;
+  /** Billing stamp, else the project's client. */
+  readonly clientId?: string | null;
   readonly reference: string | null;
   readonly issueDate: BusinessDate;
   readonly dueDate: BusinessDate | null;
@@ -103,6 +107,8 @@ export type BillingListFilter = 'all' | 'paid' | 'outstanding' | 'overdue';
 export interface BillingListFilters {
   readonly filter?: BillingListFilter;
   readonly projectId?: string;
+  /** Billing stamped with this client, or billed on a project linked to this client. */
+  readonly clientId?: string;
   readonly limit?: number;
   readonly offset?: number;
 }
@@ -111,4 +117,5 @@ export interface ProjectOption {
   readonly id: string;
   readonly name: string;
   readonly currency: string | null;
+  readonly clientId: string | null;
 }

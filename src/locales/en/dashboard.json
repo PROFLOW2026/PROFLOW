@@ -28,9 +28,9 @@
   },
   "businessSummary": {
     "title": "Business summary",
-    "outstanding": "Outstanding",
-    "invoicedThisMonth": "Invoiced this month",
-    "costsThisMonth": "Costs this month"
+    "outstanding": "Outstanding to collect",
+    "invoicedThisMonth": "Invoice total this month",
+    "costsThisMonth": "Costs this month net"
   },
   "workKindFilter": {
     "label": "Show",
@@ -40,7 +40,7 @@
   },
   "reports": {
     "title": "Reports & analytics",
-    "description": "Organization visibility in the base currency. Every figure is labelled Actual, Committed, Forecast, Commercial, or Estimate. VAT is never profit. Currencies are never mixed.",
+    "description": "Organization visibility in the base currency. Every figure is labelled Actual, Committed, Forecast, Commercial, or Estimate. Profit uses net contract excluding VAT. Invoice totals are billing/cash, not profit.",
     "exportMenu": "Export & import",
     "exportProjects": "Export projects",
     "exportClients": "Export clients",
@@ -70,13 +70,13 @@
     },
     "sections": {
       "commercial": "Commercial",
-      "commercialHint": "Contract value only — not billing and not payment.",
+      "commercialHint": "Net contract value excluding VAT — not invoice total and not payment.",
       "cash": "Cash & receivables",
-      "cashHint": "Invoiced and Paid are Actual. Outstanding and aging are from Outstanding AR. Forecast in/out uses due dates.",
+      "cashHint": "Invoice total and Paid are billing/cash amounts, including VAT if entered — not revenue for profit. Outstanding to collect is from open invoices. Forecast in/out uses due dates.",
       "cost": "Cost",
-      "costHint": "Project Actual, allocated overhead, commitments, ETC and Forecast Final Cost. Unallocated business costs are shown separately and are not forced into project profit.",
+      "costHint": "Project Actual Cost net, allocated overhead, commitments, ETC and Forecast Final Cost net. Unallocated business costs are shown separately and are not forced into project profit.",
       "profitability": "Profitability",
-      "profitabilityHint": "Actual Margin = current contract − actual project cost. Forecast Margin = current contract − forecast final cost. VAT and unallocated org costs stay out of project profit.",
+      "profitabilityHint": "Actual profit net = current contract net − actual project cost net. Forecast profit net = current contract net − forecast final cost net. VAT and invoice totals stay out of project profit.",
       "operations": "Operations",
       "operationsHint": "Counts only — no notification delivery. Shown when you have permission and data.",
       "comparison": "Project comparison",
@@ -99,7 +99,7 @@
       "pricedAwaitingApproval": "Includes: priced changes awaiting approval",
       "finalizedBilling": "Includes: finalized billing records",
       "recordedPayments": "Includes: recorded payments",
-      "invoicedMinusPaid": "Includes: invoiced minus paid (Outstanding)",
+      "invoicedMinusPaid": "Includes: invoice total minus paid (outstanding to collect)",
       "expensesAndLaborEntered": "Includes: entered expenses and costed labor",
       "recognizedVendorBills": "Includes: recognized posted vendor bills (Actual Vendor Cost)",
       "workforceCostedEntries": "Includes: workforce entries with rates",
@@ -112,8 +112,8 @@
       "actualPlusEnteredRemaining": "Includes: actual plus any entered remaining cost",
       "actualPlusRemainingCommitmentsPlusEtc": "Includes: actual + remaining commitments + expected remaining (ETC)",
       "finalizedOrgCostsAwaitingAllocation": "Includes: finalized organization costs awaiting allocation",
-      "currentContractMinusEstimatedFinal": "Includes: current contract − forecast final cost",
-      "currentContractMinusActualCost": "Includes: current contract − actual project cost",
+      "currentContractMinusEstimatedFinal": "Includes: current contract net − forecast final cost net",
+      "currentContractMinusActualCost": "Includes: current contract net − actual project cost net",
       "plannedMilestones": "Includes: milestones in planned status",
       "missedMilestones": "Includes: milestones marked missed",
       "plannedPastTargetDate": "Includes: planned milestones past target date",
@@ -186,16 +186,16 @@
     "columns": {
       "project": "Project",
       "progress": "Progress",
-      "original": "Original (commercial)",
-      "current": "Current (commercial)",
+      "original": "Original net",
+      "current": "Current net",
       "pending": "Pending (commercial)",
-      "invoiced": "Invoiced (Actual)",
-      "paid": "Paid (Actual)",
-      "outstanding": "Outstanding (Actual)",
-      "actualCost": "Cost (Actual)",
+      "invoiced": "Invoice total",
+      "paid": "Paid cash",
+      "outstanding": "Outstanding to collect",
+      "actualCost": "Cost actual net",
       "committed": "Committed (PO)",
       "apPayable": "Vendor bills payable (Forecast)",
-      "profit": "Estimated profit"
+      "profit": "Estimated profit net"
     },
     "cashFlow": {
       "title": "Cash view — Actual vs Forecast",

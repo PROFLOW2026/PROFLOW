@@ -9,6 +9,7 @@ import {
   createQuoteVersion,
   issueQuoteVersion,
   rejectChangeRequest,
+  reverseChangeOrder,
   submitChangeRequestForApproval,
   updateChangeRequest,
 } from '@/modules/commercial';
@@ -170,6 +171,45 @@ export async function approveChangeAction(
   } catch (error) {
     if (isAppError(error)) return { error: t('validationFailed') };
     throw error;
+  }
+}
+
+async function mapChangesError(error: unknown): Promise<FormActionState> {
+  const tErrors = await getTranslations('errors');
+  const t = await getTranslations('changes');
+  if (!isAppError(error)) throw error;
+  if (error.messageKey.startsWith('changes.')) {
+    const key = error.messageKey.replace(/^changes\./, '') as
+      | 'errors.alreadyReversed'
+      | 'errors.cannotReverseReversal'
+      | 'errors.unsafeBilling';
+    return { error: t(key) };
+  }
+  return { error: tErrors('unexpected') };
+}
+
+export async function reverseChangeOrderAction(
+  _prev: FormActionState,
+  formData: FormData,
+): Promise<FormActionState> {
+  const changeOrderId = String(formData.get('changeOrderId') ?? '');
+  const changeRequestId = String(formData.get('changeRequestId') ?? '');
+  const reason = String(formData.get('reason') ?? '');
+
+  try {
+    await withOrgContext(async (context) =>
+      reverseChangeOrder(context, {
+        changeOrderId,
+        reason,
+        effectiveDate: (formData.get('effectiveDate') as string) || null,
+      }),
+    );
+
+    revalidatePath('/changes');
+    if (changeRequestId) revalidatePath(`/changes/${changeRequestId}`);
+    return { success: true };
+  } catch (error) {
+    return mapChangesError(error);
   }
 }
 

@@ -18,6 +18,8 @@ import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { ProcurementSectionNav } from '../procurement-section-nav';
 import { textNavLinkClassName } from '@/components/ui/pressable';
 import { cn } from '@/shared/ui/cn';
+import { ReportsEntryLink } from '@/modules/financials/ui/reports-entry-link';
+import { ApBillTaxSummary } from '@/modules/ap/ui/ap-bill-tax-summary';
 
 export async function generateMetadata({
   params,
@@ -51,12 +53,13 @@ export default async function ApBillsPage() {
   const tRecurring = await getTranslations('recurringDrafts');
   const locale = await getLocale();
 
-  const { bills, canManage, canRead } = await withOrgContext(async (context) => ({
+  const { bills, canManage, canRead, canReadReports } = await withOrgContext(async (context) => ({
     bills: hasPermission(context, PERMISSIONS.AP_READ)
       ? await listApBillsForOrg(context)
       : [],
     canManage: hasPermission(context, PERMISSIONS.AP_MANAGE),
     canRead: hasPermission(context, PERMISSIONS.AP_READ),
+    canReadReports: hasPermission(context, PERMISSIONS.PROJECT_FINANCIALS_READ),
   }));
 
   if (!canRead) {
@@ -76,6 +79,9 @@ export default async function ApBillsPage() {
         description={t('description')}
         actions={
           <div className="flex max-w-full flex-wrap gap-2">
+            {canReadReports ? (
+              <ReportsEntryLink section="cost">{t('reportsEntry')}</ReportsEntryLink>
+            ) : null}
             <Button asChild variant="secondary" className="max-w-full">
               <Link href="/recurring-drafts?kind=vendor_bill">{tRecurring('navFromSource')}</Link>
             </Button>
@@ -125,7 +131,9 @@ export default async function ApBillsPage() {
                     <TableHead>{t('list.columns.reference')}</TableHead>
                     <TableHead>{t('list.columns.vendor')}</TableHead>
                     <TableHead>{t('list.columns.status')}</TableHead>
-                    <TableHead numeric>{t('list.columns.total')}</TableHead>
+                    <TableHead numeric>{t('list.columns.net')}</TableHead>
+                    <TableHead numeric>{t('list.columns.vat')}</TableHead>
+                    <TableHead numeric>{t('list.columns.gross')}</TableHead>
                     <TableHead>{t('list.columns.billDate')}</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -148,7 +156,13 @@ export default async function ApBillsPage() {
                         />
                       </TableCell>
                       <TableCell numeric>
-                        <MoneyText value={money(bill.totalAmount, bill.currency)} />
+                        <MoneyText value={money(bill.netAmount ?? bill.totalAmount, bill.currency)} />
+                      </TableCell>
+                      <TableCell numeric>
+                        <MoneyText value={money(bill.taxAmount ?? '0', bill.currency)} />
+                      </TableCell>
+                      <TableCell numeric>
+                        <MoneyText value={money(bill.grossAmount ?? bill.totalAmount, bill.currency)} />
                       </TableCell>
                       <TableCell>
                         {bill.billDate ? (
@@ -184,7 +198,14 @@ export default async function ApBillsPage() {
               <p className="break-words text-sm text-[var(--pf-text-secondary)]">
                 {bill.vendorName ?? '—'}
               </p>
-              <MoneyText value={money(bill.totalAmount, bill.currency)} />
+              <ApBillTaxSummary
+                compact
+                netAmount={bill.netAmount ?? bill.totalAmount}
+                taxAmount={bill.taxAmount ?? '0'}
+                grossAmount={bill.grossAmount ?? bill.totalAmount}
+                currency={bill.currency}
+                taxBasis={bill.taxBasis}
+              />
               {bill.billDate ? (
                 <p className="text-xs text-[var(--pf-text-muted)]" dir="ltr">
                   {new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(

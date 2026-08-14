@@ -128,6 +128,15 @@ export function VendorCreditCreateForm({
         )}
       </Field>
 
+      <label className="flex items-start gap-2 text-sm">
+        <input type="checkbox" name="amountIncludesTax" defaultChecked className="mt-1" />
+        <span>
+          <span className="font-medium">{tCreate('amountIncludesTax')}</span>
+          <span className="mt-0.5 block text-[var(--pf-text-secondary)]">{tCreate('taxSplitHint')}</span>
+        </span>
+      </label>
+      <p className="text-xs text-[var(--pf-text-muted)]">{tCreate('actualVsPayableHint')}</p>
+
       <Field label={t('creditDateLabel')} required>
         {(controlProps) => (
           <Input

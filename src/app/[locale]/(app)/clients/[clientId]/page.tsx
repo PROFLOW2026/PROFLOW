@@ -3,14 +3,16 @@ import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import { PageHeader } from '@/components/ui/page-header';
 import { StatusBadge } from '@/components/ui/status-badge';
-import { getClientById } from '@/modules/clients';
+import { getClientById, getClientFinancials } from '@/modules/clients';
 import { listCustomFieldValuesForEntity } from '@/modules/custom-fields';
 import { getEntityDocumentPanelData } from '@/modules/documents';
 import { DocumentAttachments } from '@/modules/documents/ui';
 import { listProjectsForOrg } from '@/modules/projects';
 import { getShellContext, withOrgContext } from '@/shared/auth/session';
+import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { ClientDetailView } from './client-detail-view';
+import { ClientFinancialPanel } from './client-financial-panel';
 
 interface ClientPageProps {
   params: Promise<{ locale: string; clientId: string }>;
@@ -28,7 +30,7 @@ export async function generateMetadata({ params }: ClientPageProps): Promise<Met
 }
 
 export default async function ClientPage({ params }: ClientPageProps) {
-  const { clientId } = await params;
+  const { clientId, locale } = await params;
   const [t, tStatus, shell] = await Promise.all([
     getTranslations('clients.detail'),
     getTranslations('status.generic'),
@@ -45,18 +47,22 @@ export default async function ClientPage({ params }: ClientPageProps) {
   }> = [];
   let customFields: Awaited<ReturnType<typeof listCustomFieldValuesForEntity>> = [];
   let documentsPanel: Awaited<ReturnType<typeof getEntityDocumentPanelData>> | null = null;
+  let financials: Awaited<ReturnType<typeof getClientFinancials>> | null = null;
   try {
     const loaded = await withOrgContext(async (context) => {
       const detail = await getClientById(context, clientId);
-      const [fields, panel, projects] = await Promise.all([
+      const canReadBilling = hasPermission(context, PERMISSIONS.BILLING_READ);
+      const [fields, panel, projects, clientFinancials] = await Promise.all([
         listCustomFieldValuesForEntity(context, 'client', clientId).catch(() => []),
         getEntityDocumentPanelData(context, 'client', clientId),
         listProjectsForOrg(context, { clientId, includeArchived: false }).catch(() => []),
+        canReadBilling ? getClientFinancials(context, clientId) : Promise.resolve(null),
       ]);
       return {
         detail,
         fields,
         panel,
+        financials: clientFinancials,
         projects: projects.map((project) => ({
           id: project.id,
           name: project.name,
@@ -69,6 +75,7 @@ export default async function ClientPage({ params }: ClientPageProps) {
     customFields = loaded.fields;
     documentsPanel = loaded.panel;
     linkedProjects = loaded.projects;
+    financials = loaded.financials;
   } catch {
     notFound();
   }
@@ -91,6 +98,7 @@ export default async function ClientPage({ params }: ClientPageProps) {
         linkedProjects={linkedProjects}
         canManage={canManage}
       />
+      {financials ? <ClientFinancialPanel financials={financials} locale={locale} /> : null}
       {documentsPanel ? (
         <DocumentAttachments
           ownerType="client"

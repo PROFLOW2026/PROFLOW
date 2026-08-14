@@ -28,6 +28,20 @@ export {
 } from './domain/reserved-keys';
 
 export {
+  SEARCHABLE_CUSTOM_FIELD_TYPES,
+  isSearchableCustomFieldType,
+  isSearchableCustomFieldDefinition,
+  searchableTextsFromCustomField,
+  customFieldsMatchQuery,
+} from './domain/searchable';
+export type {
+  SearchableCustomFieldType,
+  SearchableCustomFieldDefinition,
+  SearchableCustomFieldValue,
+  SearchableCustomFieldPair,
+} from './domain/searchable';
+
+export {
   assertCustomFieldValueValid,
   assertSelectOptionsConfig,
   parseSelectOptions,
@@ -44,3 +58,6 @@ export type {
   ArchiveDefinitionInput,
   UpsertValueInput,
 } from './validation/schemas';
+
+/** SQL predicate for org-list search against searchable custom field values. */
+export { existsSearchableCustomFieldValueSql } from './data/searchable-match';

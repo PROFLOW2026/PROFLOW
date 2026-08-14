@@ -71,6 +71,7 @@ export const AUDIT_ACTIONS = {
   QUOTE_VERSION_CREATED: 'quote_version.created',
   QUOTE_VERSION_ISSUED: 'quote_version.issued',
   CHANGE_ORDER_CREATED: 'change_order.created',
+  CHANGE_ORDER_REVERSED: 'change_order.reversed',
 
   BILLING_RECORD_CREATED: 'billing_record.created',
   BILLING_RECORD_UPDATED: 'billing_record.updated',
@@ -102,6 +103,8 @@ export const AUDIT_ACTIONS = {
   DOCUMENT_UPLOADED: 'document.uploaded',
   DOCUMENT_FINALIZED: 'document.finalized',
   DOCUMENT_DELETED: 'document.deleted',
+  DOCUMENT_STORAGE_CLEANUP_FAILED: 'document.storage_cleanup_failed',
+  DOCUMENT_STORAGE_CLEANUP_COMPLETED: 'document.storage_cleanup_completed',
 
   CRM_PROSPECT_CREATED: 'crm.prospect_created',
   CRM_PROSPECT_UPDATED: 'crm.prospect_updated',
@@ -166,6 +169,7 @@ export const AUDIT_ACTIONS = {
   AP_CREDIT_VOIDED: 'ap.credit_voided',
   PURCHASE_ORDER_CANCELLED: 'purchase_order.cancelled',
   PURCHASE_ORDER_CLOSED: 'purchase_order.closed',
+  PURCHASE_ORDER_RECEIVED: 'purchase_order.received',
 
   DAILY_LOG_CREATED: 'daily_log.created',
   DAILY_LOG_UPDATED: 'daily_log.updated',
@@ -182,6 +186,9 @@ export const AUDIT_ACTIONS = {
   MAINTENANCE_RECORD_UPDATED: 'maintenance_record.updated',
   INVENTORY_ITEM_CREATED: 'inventory_item.created',
   INVENTORY_MOVEMENT_RECORDED: 'inventory_movement.recorded',
+  INVENTORY_LOCATION_CREATED: 'inventory_location.created',
+  INVENTORY_LOCATION_UPDATED: 'inventory_location.updated',
+  INVENTORY_LOCATION_ARCHIVED: 'inventory_location.archived',
   MATERIAL_USAGE_RECORDED: 'material_usage.recorded',
   MATERIAL_USAGE_ARCHIVED: 'material_usage.archived',
   EQUIPMENT_USAGE_RECORDED: 'equipment_usage.recorded',

@@ -16,6 +16,7 @@ import {
   assertCanTransitionMonthClose,
   assertPeriodClosed,
   assertPeriodNotClosed,
+  closedPeriodSourceRewriteError,
 } from '../domain/period-state';
 import { isEconomicAdjustment } from '../domain/economic-corrections';
 import type {
@@ -49,6 +50,7 @@ import {
   markReadySchema,
   type ClosePeriodInput,
   type CreateAdjustmentInput,
+  type CreateAdjustmentParsed,
   type DemoteToOpenInput,
   type EnsurePeriodInput,
   type ListPeriodsInput,
@@ -313,7 +315,62 @@ export async function createMonthCloseAdjustment(
   const period = await findPeriodById(context.db, context.organizationId, input.periodId);
   if (!period) throw new NotFoundError('Month close period');
   assertPeriodClosed(period.status);
+  return persistMonthCloseAdjustment(context, period, input);
+}
 
+/**
+ * Closed-period economic correction from a source module (time / similar).
+ * Caller must already be authorized for the source action. Does not require
+ * month_close.manage — rewriting the source is illegal; this is the only legal path.
+ */
+export async function createClosedPeriodSourceCorrection(
+  context: OrgContext,
+  rawInput: {
+    readonly yearMonth: string;
+    readonly reason: string;
+    readonly amount: string;
+    readonly currency: string;
+    readonly effectSide: 'cost' | 'revenue';
+    readonly projectId: string;
+    readonly entityType: string;
+    readonly entityId: string;
+    readonly adjustmentType?: 'correction' | 'adjustment';
+  },
+): Promise<MonthCloseAdjustment> {
+  const yearMonth = assertYearMonth(rawInput.yearMonth);
+  const period = await findPeriodByYearMonth(
+    context.db,
+    context.organizationId,
+    yearMonth,
+  );
+  if (!period) {
+    throw new DomainRuleError(
+      'Closed-period corrections require a closed month-close period',
+      'monthClose.errors.notClosed',
+      { yearMonth },
+    );
+  }
+  assertPeriodClosed(period.status);
+
+  const input = parseOrThrow(createAdjustmentSchema, {
+    periodId: period.id,
+    adjustmentType: rawInput.adjustmentType ?? 'correction',
+    reason: rawInput.reason,
+    amount: rawInput.amount,
+    currency: rawInput.currency,
+    effectSide: rawInput.effectSide,
+    projectId: rawInput.projectId,
+    entityType: rawInput.entityType,
+    entityId: rawInput.entityId,
+  });
+  return persistMonthCloseAdjustment(context, period, input);
+}
+
+async function persistMonthCloseAdjustment(
+  context: OrgContext,
+  period: MonthClosePeriod,
+  input: CreateAdjustmentParsed,
+): Promise<MonthCloseAdjustment> {
   const isEconomic = input.amount != null;
   let amount: string | null = null;
   let currency: string | null = null;
@@ -454,7 +511,7 @@ export async function assertMonthOpenForRewrite(
   yearMonth: string,
 ): Promise<void> {
   if (await isMonthClosed(context, yearMonth)) {
-    assertPeriodNotClosed('closed');
+    throw closedPeriodSourceRewriteError();
   }
 }
 

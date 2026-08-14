@@ -13,6 +13,7 @@ import {
   issuePurchaseOrder,
   cancelPurchaseOrder,
   closePurchaseOrder,
+  receivePurchaseOrder,
   setSupplierQuoteStatus,
   updateMaterialVendorPriceForOrg,
   updateRfqStatus,
@@ -157,6 +158,52 @@ export async function closePurchaseOrderAction(
   try {
     const purchaseOrderId = requiredFormValue(formData, 'purchaseOrderId');
     await withOrgContext((context) => closePurchaseOrder(context, { purchaseOrderId }));
+    revalidatePath('/procurement');
+    revalidatePath(`/procurement/${purchaseOrderId}`);
+    return { success: true };
+  } catch (error) {
+    return mapAppError(error);
+  }
+}
+
+function parseReceiveLines(formData: FormData) {
+  const raw = formData.get('lines');
+  if (!raw || typeof raw !== 'string') return [];
+  try {
+    const parsed = JSON.parse(raw) as unknown;
+    if (!Array.isArray(parsed)) return [];
+    return parsed.flatMap((line) => {
+      const row = line as Record<string, unknown>;
+      const purchaseOrderLineId = String(row.purchaseOrderLineId ?? '').trim();
+      const quantity = String(row.quantity ?? '').trim();
+      if (!purchaseOrderLineId || !quantity) return [];
+      const notes = row.notes != null && String(row.notes).trim() !== '' ? String(row.notes).trim() : undefined;
+      return [{ purchaseOrderLineId, quantity, notes }];
+    });
+  } catch {
+    return [];
+  }
+}
+
+export async function receivePurchaseOrderAction(
+  _prev: ProcurementFormState,
+  formData: FormData,
+): Promise<ProcurementFormState> {
+  const t = await getTranslations('procurement');
+  const purchaseOrderId = requiredFormValue(formData, 'purchaseOrderId');
+  const lines = parseReceiveLines(formData);
+  if (lines.length === 0) return { error: t('errors.receiveLinesRequired') };
+
+  try {
+    await withOrgContext((context) =>
+      receivePurchaseOrder(context, {
+        purchaseOrderId,
+        receivedOn: requiredFormValue(formData, 'receivedOn'),
+        reference: formValue(formData, 'reference'),
+        notes: formValue(formData, 'notes'),
+        lines,
+      }),
+    );
     revalidatePath('/procurement');
     revalidatePath(`/procurement/${purchaseOrderId}`);
     return { success: true };

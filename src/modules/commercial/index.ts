@@ -18,6 +18,9 @@ export {
 } from './application/quotes-and-approval';
 export type { ApproveChangeRequestResult } from './application/quotes-and-approval';
 
+export { reverseChangeOrder } from './application/reverse-change-order';
+export type { ReverseChangeOrderResult } from './application/reverse-change-order';
+
 export {
   listProjectChangeRequests,
   listAllChangeRequests,
@@ -35,6 +38,7 @@ export {
   changeOrderEventAmount,
   changeOrderApprovedNetAmount,
   signedChangeAmount,
+  oppositeChangeDirection,
 } from './domain/contract-value';
 
 export {
@@ -67,6 +71,7 @@ export {
   createChangeRequestSchema,
   updateChangeRequestSchema,
   approveChangeRequestSchema,
+  reverseChangeOrderSchema,
   createQuoteVersionSchema,
   issueQuoteVersionSchema,
   listChangesFilterSchema,
@@ -74,5 +79,6 @@ export {
 export type {
   CreateChangeRequestInput,
   ApproveChangeRequestInput,
+  ReverseChangeOrderInput,
   CreateQuoteVersionInput,
 } from './validation/schemas';

@@ -1,9 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import {
   applyInventoryMovement,
+  applySignedQuantityChange,
+  defaultInventoryLocationName,
+  DEFAULT_INVENTORY_LOCATION_NAME_EN,
+  DEFAULT_INVENTORY_LOCATION_NAME_HE,
   getReorderStatus,
   isInventoryQuantityGlOrExpense,
   isMaintenanceCostAnExpense,
+  locationDeltasForMovement,
+  sumQuantities,
 } from '@/modules/assets';
 
 describe('applyInventoryMovement', () => {
@@ -78,7 +84,62 @@ describe('applyInventoryMovement', () => {
         movementType: 'adjust',
         quantity: '-2',
       }),
-    ).toThrow(/negative/);
+    ).toThrow(/negative|Insufficient/);
+  });
+
+  it('leaves header quantity unchanged on transfer', () => {
+    expect(
+      applyInventoryMovement({
+        quantityOnHand: '10',
+        movementType: 'transfer',
+        quantity: '4',
+      }).nextQuantityOnHand,
+    ).toBe('10.000000');
+  });
+
+  it('rejects non-positive transfer quantity', () => {
+    expect(() =>
+      applyInventoryMovement({
+        quantityOnHand: '10',
+        movementType: 'transfer',
+        quantity: '0',
+      }),
+    ).toThrow(/positive/);
+  });
+});
+
+describe('location quantity math', () => {
+  it('computes receive / issue / transfer / adjust deltas', () => {
+    expect(locationDeltasForMovement({ movementType: 'receive', quantity: '2' })).toEqual({
+      fromDelta: null,
+      toDelta: '2.000000',
+    });
+    expect(locationDeltasForMovement({ movementType: 'issue', quantity: '2' })).toEqual({
+      fromDelta: '-2.000000',
+      toDelta: null,
+    });
+    expect(locationDeltasForMovement({ movementType: 'transfer', quantity: '2' })).toEqual({
+      fromDelta: '-2.000000',
+      toDelta: '2.000000',
+    });
+    expect(locationDeltasForMovement({ movementType: 'adjust', quantity: '-1.5' })).toEqual({
+      fromDelta: '-1.500000',
+      toDelta: null,
+    });
+  });
+
+  it('blocks negative location balances', () => {
+    expect(() => applySignedQuantityChange('2', '-3')).toThrow(/Insufficient/);
+    expect(applySignedQuantityChange('2', '-2')).toBe('0.000000');
+  });
+
+  it('sums location quantities to the header', () => {
+    expect(sumQuantities(['4.000000', '6.500000'])).toBe('10.500000');
+  });
+
+  it('names the lazy default location ראשי / Main', () => {
+    expect(defaultInventoryLocationName('he-IL')).toBe(DEFAULT_INVENTORY_LOCATION_NAME_HE);
+    expect(defaultInventoryLocationName('en')).toBe(DEFAULT_INVENTORY_LOCATION_NAME_EN);
   });
 });
 

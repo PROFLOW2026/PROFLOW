@@ -39,6 +39,7 @@ import { VendorCreditPanel } from './credit-actions';
 import { PostApBillPanel } from './post-actions';
 import { VoidApBillPanel } from './void-actions';
 import { textNavLinkMutedClassName } from '@/components/ui/pressable';
+import { ApBillTaxSummary } from '@/modules/ap/ui/ap-bill-tax-summary';
 
 export async function generateMetadata({
   params,
@@ -197,11 +198,14 @@ export default async function ApBillDetailPage({
         }
       />
 
+      <ApBillTaxSummary
+        netAmount={bill.netAmount ?? bill.totalAmount}
+        taxAmount={bill.taxAmount ?? '0'}
+        grossAmount={bill.grossAmount ?? bill.totalAmount}
+        currency={bill.currency}
+        taxBasis={bill.taxBasis}
+      />
       <div className="grid min-w-0 gap-4 sm:grid-cols-3">
-        <div className="min-w-0">
-          <p className="text-xs text-[var(--pf-text-muted)]">{t('list.columns.total')}</p>
-          <MoneyText value={money(bill.totalAmount, bill.currency)} />
-        </div>
         <div className="min-w-0">
           <p className="text-xs text-[var(--pf-text-muted)]">{t('list.columns.billDate')}</p>
           <p>
@@ -314,7 +318,7 @@ export default async function ApBillDetailPage({
         <VendorBillAllocationPanel
           billId={bill.id}
           currency={bill.currency}
-          recognizedNet={bill.totalAmount}
+          recognizedNet={bill.netAmount ?? bill.totalAmount}
           headerProjectId={bill.projectId}
           projects={projects}
           canManage={canManage}

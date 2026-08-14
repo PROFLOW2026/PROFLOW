@@ -2,6 +2,7 @@ import {
   assertVendorInOrganization,
   insertApBill,
   insertApBillLines,
+  resolveApBillTaxSplit,
 } from '@/modules/ap';
 import { createBillingRecord } from '@/modules/billing';
 import { createExpense } from '@/modules/expenses';
@@ -9,6 +10,7 @@ import { AUDIT_ACTIONS, recordAuditEvent } from '@/shared/audit';
 import type { OrgContext } from '@/shared/auth/context';
 import { todayInTimeZone } from '@/shared/dates';
 import { withTransaction } from '@/shared/db';
+import { resolveAllocatedReference } from '@/modules/tenancy';
 import { ConflictError, DomainRuleError, NotFoundError, ValidationError } from '@/shared/errors';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
@@ -83,17 +85,29 @@ async function createDraftEntity(
       );
       if (!vendorOk) throw new NotFoundError('Vendor');
 
+      const taxSplit = resolveApBillTaxSplit({
+        enteredAmount: insert.totalAmount,
+        currency: insert.currency,
+        amountIncludesTax: false,
+      });
+
       const bill = await insertApBill(context.db, {
         organizationId: context.organizationId,
         vendorId: insert.vendorId,
         projectId: insert.projectId,
         purchaseOrderId: null,
-        reference: insert.reference,
+        reference: await resolveAllocatedReference(context, 'vendor_bill', insert.reference),
         status: 'draft',
         billDate: insert.billDate,
         dueDate: insert.dueDate,
         currency: insert.currency,
-        totalAmount: insert.totalAmount,
+        totalAmount: taxSplit.totalAmount,
+        netAmount: taxSplit.netAmount,
+        taxAmount: taxSplit.taxAmount,
+        grossAmount: taxSplit.grossAmount,
+        amountIncludesTax: taxSplit.amountIncludesTax,
+        taxSnapshot: taxSplit.taxSnapshot,
+        taxBasis: taxSplit.taxBasis,
         notes: insert.notes,
       });
 

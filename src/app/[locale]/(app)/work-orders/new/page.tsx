@@ -4,6 +4,7 @@ import { listAvailableCreateWorkKinds } from '@/components/shell/quick-create-ac
 import { PageHeader } from '@/components/ui/page-header';
 import { listClientsForOrg } from '@/modules/clients';
 import { resolveApplicableDefaultTax } from '@/modules/tax';
+import { listWorkOrderChecklistTemplateOptions } from '@/modules/service';
 import { listEmployeesForOrg } from '@/modules/workforce';
 import { getShellContext, withOrgContext } from '@/shared/auth/session';
 import { todayInTimeZone } from '@/shared/dates';
@@ -37,30 +38,35 @@ export default async function NewWorkOrderPage({
 
   let clients: { id: string; name: string }[] = [];
   let employees: { id: string; name: string }[] = [];
+  let checklistTemplates: { id: string; name: string }[] = [];
   let taxRatePercent: string | null = null;
 
   try {
     const loaded = await withOrgContext(async (context) => {
-      const [clientRows, employeeRows, tax] = await Promise.all([
+      const [clientRows, employeeRows, tax, templates] = await Promise.all([
         listClientsForOrg(context, {}),
         listEmployeesForOrg(context, { status: 'active' }).catch(() => []),
         resolveApplicableDefaultTax(
           context,
           todayInTimeZone(context.organization.timezone),
         ),
+        listWorkOrderChecklistTemplateOptions(context).catch(() => []),
       ]);
       return {
         clients: clientRows.map((client) => ({ id: client.id, name: client.name })),
         employees: employeeRows.map((employee) => ({ id: employee.id, name: employee.name })),
         taxRatePercent: tax.resolved?.ratePercent ?? null,
+        checklistTemplates: templates,
       };
     });
     clients = loaded.clients;
     employees = loaded.employees;
     taxRatePercent = loaded.taxRatePercent;
+    checklistTemplates = loaded.checklistTemplates;
   } catch {
     clients = [];
     employees = [];
+    checklistTemplates = [];
   }
 
   const sample = formatMoney(zeroMoney(baseCurrency), locale);
@@ -88,6 +94,7 @@ export default async function NewWorkOrderPage({
         currencySymbol={currencySymbol}
         clients={clients}
         employees={employees}
+        checklistTemplates={checklistTemplates}
         defaultRequestedDate={defaultRequestedDate}
         taxRatePercent={taxRatePercent}
       />

@@ -1,6 +1,9 @@
 import { DomainRuleError } from '@/shared/errors';
 import type { MonthCloseStatus } from './types';
 
+/** Postgres trigger error from 0037 when a closed YYYY-MM is rewritten. */
+export const CLOSED_PERIOD_FREEZE_CODE = 'closed_period_immutable';
+
 /**
  * Operational close state machine: OPEN → READY → CLOSED.
  * Closed periods are never silently reopened.
@@ -37,6 +40,45 @@ export function assertPeriodNotClosed(status: MonthCloseStatus): void {
       { status },
     );
   }
+}
+
+/** Hebrew-mapped: do not rewrite source rows; post a month-close correction. */
+export function closedPeriodSourceRewriteError(): DomainRuleError {
+  return new DomainRuleError(
+    'This month is closed. Record a month-close correction instead of rewriting the source transaction.',
+    'monthClose.errors.useCorrectionNotRewrite',
+  );
+}
+
+export function isClosedPeriodFreezeError(error: unknown): boolean {
+  const texts: string[] = [];
+  let current: unknown = error;
+  for (let depth = 0; depth < 4 && current; depth += 1) {
+    if (current instanceof Error) {
+      texts.push(current.message);
+      const code = (current as Error & { code?: string }).code;
+      if (code) texts.push(code);
+      current = current.cause;
+      continue;
+    }
+    texts.push(String(current));
+    break;
+  }
+  return texts.some(
+    (text) =>
+      text.includes(CLOSED_PERIOD_FREEZE_CODE) || text.includes('closed_period_immutable'),
+  );
+}
+
+/** If the DB freeze fired, replace it with the Hebrew DomainRuleError; otherwise rethrow. */
+export function rethrowClosedPeriodRewrite(error: unknown): never {
+  if (error instanceof DomainRuleError && error.messageKey.startsWith('monthClose.')) {
+    throw error;
+  }
+  if (isClosedPeriodFreezeError(error)) {
+    throw closedPeriodSourceRewriteError();
+  }
+  throw error;
 }
 
 export function assertPeriodClosed(status: MonthCloseStatus): void {

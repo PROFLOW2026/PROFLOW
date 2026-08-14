@@ -19,6 +19,8 @@ export {
   upsertClientPartyIdentifier,
   removeClientPartyIdentifier,
 } from './application/manage-contacts';
+export { getClientFinancials } from './application/get-client-financials';
+export type { ClientFinancialView } from './application/get-client-financials';
 
 export {
   CLIENT_STATUSES,

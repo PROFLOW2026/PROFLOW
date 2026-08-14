@@ -206,8 +206,8 @@ describe('AP void + credit economics (PGlite)', () => {
 
       const netActual = netRecognizedBillAfterCredits({
         currency: ILS,
-        billTotal: seeded.bill.totalAmount,
-        appliedCreditAmounts: ['15000'],
+        billNetAmount: seeded.bill.netAmount ?? seeded.bill.totalAmount,
+        creditActualReductions: ['15000'],
       });
       expect(netActual).toEqual(money('85000', ILS));
 
@@ -225,8 +225,8 @@ describe('AP void + credit economics (PGlite)', () => {
     expect(
       netRecognizedBillAfterCredits({
         currency: ILS,
-        billTotal: '42000',
-        appliedCreditAmounts: ['42000'],
+        billNetAmount: '42000',
+        creditActualReductions: ['42000'],
       }),
     ).toEqual(money('0', ILS));
   });

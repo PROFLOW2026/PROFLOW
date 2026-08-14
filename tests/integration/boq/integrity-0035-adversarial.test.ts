@@ -6,6 +6,7 @@ import { resolveOrgContext, setModuleVisibility } from '@/modules/tenancy';
 import { assignRole, findRoleByKey } from '@/modules/rbac';
 import { organizationMemberships } from '@drizzle/schema';
 import { createTestDatabase, resultRows, type TestDatabase } from '../../setup/database';
+import { insertDraftBoqNodeViaRpc } from '../../setup/boq-draft-node';
 import { createTestOrganization, createTestUser, seedSystem } from '../../setup/fixtures';
 
 /**
@@ -139,20 +140,16 @@ describe('BOQ integrity closure adversarial RLS', () => {
         `),
       );
       const boqId = boq[0]!.id;
-      const node = resultRows<{ id: string }>(
-        await tx.execute(sql`
-          INSERT INTO boq_nodes (
-            organization_id, boq_id, node_kind, description, pricing_type,
-            original_quantity, original_unit_price, original_amount,
-            current_quantity, current_unit_price, current_amount
-          ) VALUES (
-            ${orgId}::uuid, ${boqId}::uuid, 'item', 'Point', 'quantity_unit_price',
-            10, 100, 1000, 10, 100, 1000
-          ) RETURNING id
-        `),
-      );
+      const nodeId = await insertDraftBoqNodeViaRpc(tx, {
+        organizationId: orgId,
+        boqId,
+        description: 'Point',
+        quantity: 10,
+        unitPrice: 100,
+        amount: 1000,
+      });
       await tx.execute(sql`SELECT app.activate_project_boq(${orgId}::uuid, ${boqId}::uuid)`);
-      return { boqId, nodeId: node[0]!.id };
+      return { boqId, nodeId };
     });
 
     await database.asUser(owner.id, async (tx) => {
@@ -212,23 +209,22 @@ describe('BOQ integrity closure adversarial RLS', () => {
         `),
       );
       const boqId = boq[0]!.id;
-      await tx.execute(sql`
-        INSERT INTO boq_nodes (
-          organization_id, boq_id, node_kind, description, pricing_type,
-          original_quantity, original_unit_price, original_amount,
-          current_quantity, current_unit_price, current_amount
-        ) VALUES (
-          ${orgId}::uuid, ${boqId}::uuid, 'item', 'Point', 'quantity_unit_price',
-          10, 100, 1000, 10, 100, 1000
-        )
-      `);
+      const nodeId = await insertDraftBoqNodeViaRpc(tx, {
+        organizationId: orgId,
+        boqId,
+        description: 'Point',
+        quantity: 10,
+        unitPrice: 100,
+        amount: 1000,
+      });
       await tx.execute(sql`SELECT app.activate_project_boq(${orgId}::uuid, ${boqId}::uuid)`);
 
       const node = resultRows<{ id: string }>(
         await tx.execute(sql`
-          SELECT id FROM boq_nodes WHERE boq_id = ${boqId}::uuid LIMIT 1
+          SELECT id FROM boq_nodes_secure WHERE boq_id = ${boqId}::uuid LIMIT 1
         `),
       );
+      expect(node[0]!.id).toBe(nodeId);
 
       const inserted = resultRows<{ id: string; status: string }>(
         await tx.execute(sql`
@@ -279,19 +275,14 @@ describe('BOQ integrity closure adversarial RLS', () => {
           RETURNING id
         `),
       );
-      const node = resultRows<{ id: string }>(
-        await tx.execute(sql`
-          INSERT INTO boq_nodes (
-            organization_id, boq_id, node_kind, description, pricing_type,
-            original_quantity, original_unit_price, original_amount,
-            current_quantity, current_unit_price, current_amount
-          ) VALUES (
-            ${orgId}::uuid, ${boq[0]!.id}::uuid, 'item', 'Point', 'quantity_unit_price',
-            10, 321.5, 3215, 10, 321.5, 3215
-          ) RETURNING id
-        `),
-      );
-      return node[0]!.id;
+      return insertDraftBoqNodeViaRpc(tx, {
+        organizationId: orgId,
+        boqId: boq[0]!.id,
+        description: 'Point',
+        quantity: 10,
+        unitPrice: 321.5,
+        amount: 3215,
+      });
     });
 
     const workerRow = await database.asUser(worker.id, async (tx) =>

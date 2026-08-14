@@ -19,6 +19,10 @@ export {
   assertFormOwnerExists,
   documentOwnerForFormOwner,
 } from './application/assert-owner';
+export {
+  hasSubmittedFormForOwner,
+  listFormSubmissionsForOwnerUnchecked,
+} from './application/owner-submission-status';
 
 export {
   FORM_OWNER_TYPES,

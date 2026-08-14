@@ -24,6 +24,22 @@ const optionalDate = z.preprocess(
     .nullable()
     .optional(),
 );
+/** Preserve omitted fields on partial update; empty string clears. */
+const optionalInstant = z.preprocess((value) => {
+  if (value === undefined) return undefined;
+  if (value === '' || value === null) return null;
+  if (value instanceof Date) return value;
+  if (typeof value === 'string') {
+    const parsed = new Date(value);
+    return Number.isNaN(parsed.getTime()) ? value : parsed;
+  }
+  return value;
+}, z.date().nullable().optional());
+const optionalNextActionText = z.preprocess((value) => {
+  if (value === undefined) return undefined;
+  if (value === '' || value === null) return null;
+  return value;
+}, z.string().trim().max(2000).nullable().optional());
 const moneyAmount = z
   .string()
   .trim()
@@ -91,6 +107,8 @@ export const createOpportunitySchema = z.object({
   expectedStartDate: optionalDate,
   referralSource: optionalText,
   notes: optionalText,
+  nextActionAt: optionalInstant,
+  nextActionText: optionalNextActionText,
 });
 export type CreateOpportunityInput = z.input<typeof createOpportunitySchema>;
 
@@ -107,6 +125,8 @@ export const updateOpportunitySchema = z.object({
   referralSource: optionalText,
   lostReason: optionalText,
   notes: optionalText,
+  nextActionAt: optionalInstant,
+  nextActionText: optionalNextActionText,
 });
 export type UpdateOpportunityInput = z.input<typeof updateOpportunitySchema>;
 

@@ -3,6 +3,12 @@
 import { revalidatePath } from 'next/cache';
 import { getLocale, getTranslations } from 'next-intl/server';
 import {
+  attachFilesToOwner,
+  assertCanAttachCreatePhotos,
+  collectCreatePhotoFiles,
+  type DocumentOwnerType,
+} from '@/modules/documents';
+import {
   createDailyLog,
   createInspection,
   createPunchListItem,
@@ -11,8 +17,10 @@ import {
   updatePunchListItem,
 } from '@/modules/field-ops';
 import { withOrgContext } from '@/shared/auth/session';
-import { AppError, DomainRuleError, ValidationError } from '@/shared/errors';
+import type { OrgContext } from '@/shared/auth/context';
+import { AppError, AuthorizationError, DomainRuleError, ValidationError } from '@/shared/errors';
 import { redirect } from '@/shared/i18n/navigation';
+import { PERMISSIONS } from '@/shared/permissions/catalog';
 
 export interface FieldOpsFormState {
   error?: string;
@@ -52,6 +60,12 @@ async function mapAppError(error: unknown): Promise<FieldOpsFormState> {
   const tErrors = await getTranslations('errors');
   const t = await getTranslations('fieldOps');
   if (error instanceof ValidationError) return mapValidationError(error);
+  if (error instanceof AuthorizationError) {
+    if (error.details?.permission === PERMISSIONS.DOCUMENTS_MANAGE) {
+      return { error: t('errors.photosRequireDocumentsManage') };
+    }
+    return { error: tErrors('notAllowed') };
+  }
   if (error instanceof DomainRuleError) {
     const key = error.messageKey.replace(/^fieldOps\./, '');
     try {
@@ -62,6 +76,26 @@ async function mapAppError(error: unknown): Promise<FieldOpsFormState> {
   }
   if (error instanceof AppError) return { error: tErrors('unexpected') };
   throw error;
+}
+
+async function createOwnerThenAttachPhotos<T extends { id: string }>(
+  ownerType: DocumentOwnerType,
+  formData: FormData,
+  create: (context: OrgContext) => Promise<T>,
+): Promise<T> {
+  const files = collectCreatePhotoFiles(formData);
+  return withOrgContext(async (context) => {
+    assertCanAttachCreatePhotos(context, files.length);
+    const created = await create(context);
+    if (files.length > 0) {
+      await attachFilesToOwner(context, {
+        ownerType,
+        ownerId: created.id,
+        files,
+      });
+    }
+    return created;
+  });
 }
 
 function revalidateFieldOps(projectId?: string) {
@@ -82,7 +116,7 @@ export async function createDailyLogAction(
   if (!projectId) return { error: t('errors.projectRequired') };
 
   try {
-    const log = await withOrgContext((context) =>
+    const log = await createOwnerThenAttachPhotos('daily_log', formData, (context) =>
       createDailyLog(context, {
         projectId,
         workPackageId: formValue(formData, 'workPackageId'),
@@ -134,7 +168,7 @@ export async function createPunchListItemAction(
   if (!projectId) return { error: t('errors.projectRequired') };
 
   try {
-    const item = await withOrgContext((context) =>
+    const item = await createOwnerThenAttachPhotos('punch_list_item', formData, (context) =>
       createPunchListItem(context, {
         projectId,
         workPackageId: formValue(formData, 'workPackageId'),
@@ -213,7 +247,7 @@ export async function createInspectionAction(
   if (!projectId) return { error: t('errors.projectRequired') };
 
   try {
-    const inspection = await withOrgContext((context) =>
+    const inspection = await createOwnerThenAttachPhotos('inspection', formData, (context) =>
       createInspection(context, {
         projectId,
         workPackageId: formValue(formData, 'workPackageId'),

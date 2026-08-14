@@ -128,23 +128,26 @@ function FieldControl({
       );
     case 'signature':
       return (
-        <label className="flex items-center gap-2 text-sm">
-          <input
-            type="checkbox"
-            name={name}
-            value="true"
-            defaultChecked={
-              Boolean(
-                value &&
-                  typeof value === 'object' &&
-                  !Array.isArray(value) &&
-                  (value as { acknowledged?: boolean }).acknowledged,
-              )
-            }
-            disabled={readOnly}
-          />
-          {field.label}
-        </label>
+        <div className="flex flex-col gap-2">
+          <label className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              name={name}
+              value="true"
+              defaultChecked={
+                Boolean(
+                  value &&
+                    typeof value === 'object' &&
+                    !Array.isArray(value) &&
+                    (value as { acknowledged?: boolean }).acknowledged,
+                )
+              }
+              disabled={readOnly}
+            />
+            {field.label}
+          </label>
+          <p className="text-xs text-[var(--pf-text-secondary)]">{t('fill.signatureHelp')}</p>
+        </div>
       );
     case 'text':
     default:

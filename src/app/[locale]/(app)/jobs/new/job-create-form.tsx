@@ -12,6 +12,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { ContractAmountFields } from '@/modules/projects/ui/contract-amount-fields';
 import { rtlFlipClassName } from '@/shared/i18n/ltr-island';
 import { createJobAction, type JobFormState } from '../actions';
+import {
+  JobCreateEmployeePicker,
+  type JobCreateEmployeeOption,
+} from './job-create-employee-picker';
 
 type ClientMode = 'new' | 'existing';
 type PricingMode = 'fixed' | 'open';
@@ -22,6 +26,8 @@ interface JobCreateFormProps {
   clients: { id: string; name: string }[];
   defaultStartDate: string;
   taxRatePercent?: string | null;
+  employees?: readonly JobCreateEmployeeOption[];
+  canAssignEmployees?: boolean;
 }
 
 export function JobCreateForm({
@@ -30,6 +36,8 @@ export function JobCreateForm({
   clients,
   defaultStartDate,
   taxRatePercent = null,
+  employees = [],
+  canAssignEmployees = false,
 }: JobCreateFormProps) {
   const t = useTranslations('jobs');
   const tCommon = useTranslations('common');
@@ -153,6 +161,13 @@ export function JobCreateForm({
         )}
       </Field>
 
+      {canAssignEmployees ? (
+        <JobCreateEmployeePicker
+          employees={employees}
+          error={state.fieldErrors?.employeeIds}
+        />
+      ) : null}
+
       <Button
         type="button"
         variant="ghost"
@@ -179,17 +194,15 @@ export function JobCreateForm({
             label={t('create.notesLabel')}
             optionalLabel={tCommon('labels.optional')}
             error={state.fieldErrors?.notes}
-          >
-            {(control) => <Textarea {...control} name="notes" rows={2} />}
-          </Field>
-          <Field
-            label={t('create.workersLabel')}
-            optionalLabel={tCommon('labels.optional')}
-            error={state.fieldErrors?.workersNote}
-            description={t('create.workersHint')}
+            description={t('create.notesHint')}
           >
             {(control) => (
-              <Input {...control} name="workersNote" placeholder={t('create.workersPlaceholder')} />
+              <Textarea
+                {...control}
+                name="notes"
+                rows={2}
+                placeholder={t('create.notesPlaceholder')}
+              />
             )}
           </Field>
           <Field

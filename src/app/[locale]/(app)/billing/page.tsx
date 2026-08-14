@@ -22,6 +22,8 @@ import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { Link } from '@/shared/i18n/navigation';
 import type { BillingListFilter } from '@/modules/billing';
+import { CommercialDocsHub } from '@/modules/quotes/ui/commercial-docs-hub';
+import { ReportsEntryLink } from '@/modules/financials/ui/reports-entry-link';
 import { isZeroMoney } from '@/shared/money';
 
 export async function generateMetadata({
@@ -53,7 +55,7 @@ export default async function BillingListPage({
   const filter = (FILTERS.includes(rawFilter as BillingListFilter) ? rawFilter : 'all') as BillingListFilter;
 
   // One org billing load feeds the list filter + AR summary + aging (was 3× listBillingRecords).
-  const { canRead, records, canManage, summary, aging, payments } = await withOrgContext(
+  const { canRead, records, canManage, summary, aging, payments, canReadReports } = await withOrgContext(
     async (context) => {
       const allowed = hasPermission(context, PERMISSIONS.BILLING_READ);
       if (!allowed) {
@@ -64,6 +66,7 @@ export default async function BillingListPage({
           summary: null,
           aging: null,
           payments: [],
+          canReadReports: false,
         };
       }
 
@@ -91,6 +94,7 @@ export default async function BillingListPage({
         summary: receivablesSummary,
         aging: receivablesAging,
         payments: paymentRows,
+        canReadReports: hasPermission(context, PERMISSIONS.PROJECT_FINANCIALS_READ),
       };
     },
   );
@@ -125,6 +129,9 @@ export default async function BillingListPage({
         description={t('subtitle')}
         actions={
           <div className="flex max-w-full flex-wrap gap-2">
+            {canReadReports ? (
+              <ReportsEntryLink section="cash">{t('reportsEntry')}</ReportsEntryLink>
+            ) : null}
             <Button asChild variant="secondary" className="max-w-full">
               <Link href="/recurring-drafts?kind=billing_record">{tRecurring}</Link>
             </Button>
@@ -142,6 +149,7 @@ export default async function BillingListPage({
         }
       />
       <p className="text-xs text-[var(--pf-text-muted)]">{t('statutoryDisclosure')}</p>
+      <CommercialDocsHub current="billing" />
 
       {showSummary && summary ? <ReceivablesSummaryPanel summary={summary} /> : null}
       {showAging && aging ? <ReceivablesAgingPanel aging={aging} /> : null}

@@ -17,7 +17,14 @@ for first-class dispatch assignee and checklist UX.
 
 ## Checklist
 
-- `checklist_template_id` column already exists; wire to Forms module templates when Agent 10 lands. No schema change required for V1 link storage.
+- `checklist_template_id` column already exists; wired to Forms module templates.
+- **V1 rule (no migration):** if `checklist_template_id` is set, the checklist is **required** — completing the work order is blocked until a non-void `submitted` form submission exists for that work order + template.
+
+## Optional later column on `project_service_details`
+
+| Column | Type | Notes |
+|--------|------|--------|
+| `checklist_required` | `boolean` not null default `true` | Only needed if some work orders should attach a template without blocking completion. Until then, treat “template set” as required. |
 
 ## Not requested
 

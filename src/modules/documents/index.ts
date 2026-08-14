@@ -6,11 +6,21 @@ export {
   isStorageConfigured,
 } from './application/upload-document';
 export {
+  attachFilesToOwner,
+  assertCanAttachCreatePhotos,
+} from './application/attach-files-to-owner';
+export type {
+  AttachFilesToOwnerInput,
+  AttachFilesToOwnerResult,
+} from './application/attach-files-to-owner';
+export {
   finalizeDocumentUpload,
   createDocumentDownloadUrl,
   softDeleteDocument,
+  retryFailedDocumentCleanups,
   getDocumentById,
 } from './application/manage-document';
+export type { StorageCleanupRetryResult } from './application/manage-document';
 export { linkDocumentToEntity, unlinkDocumentFromEntity } from './application/link-document';
 export {
   getEntityDocumentPanelData,
@@ -53,6 +63,23 @@ export { DOCUMENT_CATEGORIES, isDocumentCategory } from './domain/categories';
 export type { DocumentCategory } from './domain/categories';
 
 export { formatFileSize } from './domain/format-file-size';
+export {
+  CREATE_PHOTO_FIELD,
+  MAX_CREATE_PHOTOS,
+  collectCreatePhotoFiles,
+} from './domain/create-form-files';
+export {
+  STORAGE_CLEANUP_RETRY_ATTEMPTS,
+  STORAGE_CLEANUP_STATUSES,
+  STORAGE_CLEANUP_RETRY_STATUSES,
+  STORAGE_ORPHAN_CHECKSUM_PREFIX,
+  isStorageCleanupStatus,
+  isStorageOrphanChecksum,
+  needsStorageCleanupRetry,
+  restoreChecksumIfOrphanEncoded,
+  decodeStorageOrphanChecksum,
+} from './domain/storage-cleanup';
+export type { StorageCleanupStatus } from './domain/storage-cleanup';
 
 export {
   prepareUploadSchema,

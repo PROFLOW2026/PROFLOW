@@ -1,7 +1,12 @@
-import { and, eq, inArray } from 'drizzle-orm';
-import { allocationRunLines, allocationRuns } from '@drizzle/schema';
+import { and, desc, eq, inArray, isNull } from 'drizzle-orm';
+import { allocationRunLines, allocationRuns, expenses } from '@drizzle/schema';
 import { fromNumericString } from '@/shared/money';
+import type { BusinessDate } from '@/shared/dates';
 import type { DbExecutor } from '@/shared/db/types';
+import {
+  OVERHEAD_HOME_COST_FAMILIES,
+  type OverheadAllocationRunSummary,
+} from '../domain/overhead-home';
 import type {
   AllocationMethod,
   AllocationRunExplanation,
@@ -282,4 +287,63 @@ export async function listAppliedFrozenSlices(
   }
 
   return frozen.sort((a, b) => a.sliceIndex - b.sliceIndex);
+}
+
+/**
+ * Recent allocation-run snapshots for overhead/shared expenses.
+ * Reuses the existing engine — does not invent a second Actual.
+ */
+export async function listRecentAllocationRuns(
+  db: DbExecutor,
+  organizationId: string,
+  options?: { readonly limit?: number },
+): Promise<OverheadAllocationRunSummary[]> {
+  const families = [...OVERHEAD_HOME_COST_FAMILIES];
+  const rows = await db
+    .select({
+      id: allocationRuns.id,
+      expenseId: allocationRuns.expenseId,
+      expenseDescription: expenses.description,
+      costFamily: expenses.costFamily,
+      method: allocationRuns.method,
+      status: allocationRuns.status,
+      periodStart: allocationRuns.periodStart,
+      periodEnd: allocationRuns.periodEnd,
+      allocatableNetAmount: allocationRuns.allocatableNetAmount,
+      currency: allocationRuns.currency,
+      runAt: allocationRuns.runAt,
+    })
+    .from(allocationRuns)
+    .innerJoin(expenses, eq(expenses.id, allocationRuns.expenseId))
+    .where(
+      and(
+        eq(allocationRuns.organizationId, organizationId),
+        eq(expenses.organizationId, organizationId),
+        isNull(expenses.archivedAt),
+        inArray(expenses.costFamily, families),
+      ),
+    )
+    .orderBy(desc(allocationRuns.runAt))
+    .limit(options?.limit ?? 20);
+
+  return rows.flatMap((row) => {
+    const family = row.costFamily;
+    if (family !== 'business_overhead' && family !== 'shared') return [];
+    const amount = fromNumericString(row.allocatableNetAmount, row.currency);
+    if (!amount) return [];
+    return [
+      {
+        id: row.id,
+        expenseId: row.expenseId,
+        expenseDescription: row.expenseDescription,
+        costFamily: family,
+        method: row.method,
+        status: row.status,
+        periodStart: row.periodStart as BusinessDate,
+        periodEnd: row.periodEnd as BusinessDate,
+        allocatableNetAmount: amount,
+        runAt: row.runAt,
+      },
+    ];
+  });
 }

@@ -246,6 +246,76 @@
                         "when":  1786503300000,
                         "tag":  "0035_boq_integrity_closure",
                         "breakpoints":  true
+                    },
+                    {
+                        "idx":  35,
+                        "version":  "7",
+                        "when":  1786503400000,
+                        "tag":  "0036_ap_vat_net_tax_gross",
+                        "breakpoints":  true
+                    },
+                    {
+                        "idx":  36,
+                        "version":  "7",
+                        "when":  1786503500000,
+                        "tag":  "0037_month_close_db_freeze",
+                        "breakpoints":  true
+                    },
+                    {
+                        "idx":  37,
+                        "version":  "7",
+                        "when":  1786503600000,
+                        "tag":  "0038_change_order_commercial_reversal",
+                        "breakpoints":  true
+                    },
+                    {
+                        "idx":  38,
+                        "version":  "7",
+                        "when":  1786503700000,
+                        "tag":  "0039_ar_split_payment_applications",
+                        "breakpoints":  true
+                    },
+                    {
+                        "idx":  39,
+                        "version":  "7",
+                        "when":  1786503800000,
+                        "tag":  "0040_po_receiving",
+                        "breakpoints":  true
+                    },
+                    {
+                        "idx":  40,
+                        "version":  "7",
+                        "when":  1786503900000,
+                        "tag":  "0041_document_storage_cleanup",
+                        "breakpoints":  true
+                    },
+                    {
+                        "idx":  41,
+                        "version":  "7",
+                        "when":  1786504000000,
+                        "tag":  "0042_boq_raw_money_revoke",
+                        "breakpoints":  true
+                    },
+                    {
+                        "idx":  42,
+                        "version":  "7",
+                        "when":  1786504100000,
+                        "tag":  "0043_product_columns_numbering_crm_quotes",
+                        "breakpoints":  true
+                    },
+                    {
+                        "idx":  43,
+                        "version":  "7",
+                        "when":  1786504200000,
+                        "tag":  "0044_inventory_locations_qty",
+                        "breakpoints":  true
+                    },
+                    {
+                        "idx":  44,
+                        "version":  "7",
+                        "when":  1786504300000,
+                        "tag":  "0045_boq_reverse_allocation_changes_approve",
+                        "breakpoints":  true
                     }
                 ]
 }

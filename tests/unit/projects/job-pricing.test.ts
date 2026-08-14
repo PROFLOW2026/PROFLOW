@@ -146,4 +146,41 @@ describe('job pricing — Scenario D (open then set price)', () => {
     });
     expect(setPrice.success).toBe(true);
   });
+
+  it('createJobSchema accepts employeeIds and ignores workersNote free-text', () => {
+    const employeeId = '11111111-1111-4111-8111-111111111111';
+    const assigned = createJobSchema.safeParse({
+      name: 'AC fix',
+      clientName: 'Walk-in Dana',
+      pricingMode: 'open',
+      startDate: '2026-08-10',
+      employeeIds: [employeeId, employeeId],
+      workersNote: 'Dana and Avi',
+    });
+    expect(assigned.success).toBe(true);
+    if (assigned.success) {
+      expect(assigned.data.employeeIds).toEqual([employeeId]);
+      expect(assigned.data).not.toHaveProperty('workersNote');
+    }
+
+    const invalid = createJobSchema.safeParse({
+      name: 'AC fix',
+      clientName: 'Walk-in Dana',
+      pricingMode: 'open',
+      startDate: '2026-08-10',
+      employeeIds: ['not-a-uuid'],
+    });
+    expect(invalid.success).toBe(false);
+
+    const omitted = createJobSchema.safeParse({
+      name: 'AC fix',
+      clientName: 'Walk-in Dana',
+      pricingMode: 'open',
+      startDate: '2026-08-10',
+    });
+    expect(omitted.success).toBe(true);
+    if (omitted.success) {
+      expect(omitted.data.employeeIds).toEqual([]);
+    }
+  });
 });

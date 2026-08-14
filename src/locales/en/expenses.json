@@ -247,5 +247,45 @@
     "currencyMustMatchOrganization": "Overhead expense currency must match the organization currency.",
     "projectExpenseNoAllocations": "Project expenses cannot be split across allocation lines.",
     "phaseProjectMismatch": "The selected phase does not belong to this project."
+  },
+  "overheadHome": {
+    "title": "Overhead",
+    "description": "Business overhead and shared expenses, plus allocation runs — using the existing expense engine.",
+    "notAllowed": {
+      "title": "Not allowed",
+      "body": "You need permission to view expenses to open this page."
+    },
+    "actions": {
+      "addOverhead": "New overhead expense",
+      "costCategories": "Cost categories",
+      "viewOverheadExpenses": "All overhead expenses",
+      "viewSharedExpenses": "All shared expenses"
+    },
+    "sections": {
+      "overhead": "Business overhead",
+      "shared": "Shared expenses",
+      "runs": "Allocation runs",
+      "categories": "Cost categories"
+    },
+    "empty": {
+      "overheadTitle": "No overhead expenses yet",
+      "overheadBody": "Record rent, insurance, and other business costs without a project, then allocate them to active work.",
+      "sharedTitle": "No shared expenses yet",
+      "sharedBody": "Shared costs use the same allocation engine as overhead.",
+      "runsTitle": "No allocation runs yet",
+      "runsBody": "Automatic allocation snapshots appear here after you allocate a shared or overhead expense.",
+      "categoriesTitle": "No overhead categories yet"
+    },
+    "runs": {
+      "expense": "Expense",
+      "period": "Period",
+      "method": "Method",
+      "status": "Status",
+      "amount": "Allocated net",
+      "statusDraft": "Draft",
+      "statusApplied": "Applied",
+      "statusSuperseded": "Superseded"
+    },
+    "showing": "Showing {count} of {total}"
   }
 }

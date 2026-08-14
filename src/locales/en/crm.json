@@ -1,6 +1,6 @@
 {
   "title": "CRM",
-  "description": "Pre-project sales: prospects, leads, opportunities and sales quotes.",
+  "description": "Pre-project sales: prospects, leads, opportunities and sales quotes (not billing, not in-project change quotes).",
   "navLabel": "CRM sections",
   "nav": {
     "prospects": "Prospects",
@@ -25,6 +25,9 @@
     }
   },
   "list": {
+    "viewLabel": "Opportunity views",
+    "boardView": "Board",
+    "tableView": "Table",
     "columns": {
       "name": "Name",
       "title": "Title",
@@ -34,10 +37,40 @@
       "company": "Company"
     }
   },
+  "board": {
+    "emptyColumn": "None in this stage"
+  },
+  "followUp": {
+    "title": "Next action / follow-up",
+    "description": "Set the next follow-up and due time. Opportunity notes stay on the record; the log below is a separate note history. No email is sent.",
+    "notesLabel": "Follow-up notes",
+    "notesHint": "Stored on the opportunity notes field. Use this for context; the next-action fields are the due reminder.",
+    "notesShort": "Follow-up",
+    "nextActionLabel": "Next action",
+    "nextActionHint": "Short label for the next call, visit, or wait. Distinct from general notes and from the notes log.",
+    "nextActionShort": "Next",
+    "nextActionAtLabel": "Follow-up due",
+    "nextActionAtHint": "Due date and time for the next follow-up. Expected start is the project start, not this due time.",
+    "due": "Due",
+    "overdue": "Overdue",
+    "expectedStartLabel": "Expected start",
+    "expectedStartHint": "Expected project start — not a follow-up due date.",
+    "expectedStartShort": "Expected start",
+    "empty": "No next action, follow-up notes, or expected start stored yet.",
+    "save": "Save follow-up"
+  },
+  "history": {
+    "title": "Notes and audit",
+    "description": "Stored opportunity notes and audit events for this record. This is not a separate activity feed.",
+    "notesHeading": "Notes",
+    "notesEmpty": "No notes stored yet.",
+    "auditHeading": "Audit events",
+    "auditEmpty": "No audit events for this opportunity."
+  },
   "stages": {
     "qualify": "Qualify",
     "estimate": "Estimate",
-    "quote": "Quote",
+    "quote": "Sales quote",
     "negotiation": "Negotiation",
     "won": "Won",
     "lost": "Lost"
@@ -121,8 +154,9 @@
     "submit": "Create opportunity",
     "markLost": "Mark as lost",
     "notesSection": "Notes",
-    "addNote": "Add note",
-    "noteBody": "Note",
+    "addNote": "Add follow-up note",
+    "noteBody": "Follow-up note",
+    "noteHint": "Logged as a dated note on this opportunity. Does not send email.",
     "estimatesSection": "Estimates",
     "addEstimate": "Add estimate",
     "estimateName": "Estimate name",
@@ -147,13 +181,16 @@
     "quoteNet": "Net",
     "quoteTax": "VAT/tax",
     "quoteTotal": "Total",
-    "quoteNotBilling": "Sales quotes are commercial offers only — they never create invoices or billing records."
+    "quoteNotBilling": "Sales quotes are commercial offers in CRM — not billing, not a pre-project estimate, and not an in-project change quote."
   },
   "convert": {
     "title": "Convert to project",
+    "headline": "Convert this opportunity to a project now",
     "description": "Creates a client, project and original contract value from the accepted sales quote. Safe to retry — already-converted opportunities reuse the same Client, Project and Contract.",
+    "ctaHint": "Explicit conversion — this is how a won deal becomes a Client, Project and Contract.",
     "projectNameLabel": "Project name",
-    "submit": "Convert won opportunity",
+    "submit": "Convert to project now",
+    "blockedTitle": "Conversion needs an accepted sales quote",
     "requiresAcceptedQuote": "Accept a sales quote version before converting.",
     "alreadyConverted": "This opportunity was already converted.",
     "cannotConvert": "This opportunity cannot be converted.",

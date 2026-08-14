@@ -135,6 +135,7 @@ export async function insertTimeEntry(
   return mapTimeEntry(row!);
 }
 
+/** Only call from `correctTimeEntry` after the `time_correction` approval gate. */
 export async function voidTimeEntryRow(
   db: DbExecutor,
   organizationId: string,

@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { ContractAmountFields } from '@/modules/projects/ui/contract-amount-fields';
+import { WorkOrderChecklistField } from '@/modules/service/ui/work-order-checklist-field';
 import { createWorkOrderAction, type WorkOrderFormState } from '../actions';
 
 type ClientMode = 'new' | 'existing';
@@ -19,6 +20,7 @@ interface WorkOrderCreateFormProps {
   currencySymbol: string;
   clients: { id: string; name: string }[];
   employees: { id: string; name: string }[];
+  checklistTemplates: { id: string; name: string }[];
   defaultRequestedDate: string;
   taxRatePercent?: string | null;
 }
@@ -28,6 +30,7 @@ export function WorkOrderCreateForm({
   currencySymbol,
   clients,
   employees,
+  checklistTemplates,
   defaultRequestedDate,
   taxRatePercent = null,
 }: WorkOrderCreateFormProps) {
@@ -246,6 +249,11 @@ export function WorkOrderCreateForm({
           )}
         </Field>
       ) : null}
+
+      <WorkOrderChecklistField
+        templates={checklistTemplates}
+        error={state.fieldErrors?.checklistTemplateId}
+      />
 
       <Field
         label={tCommon('labels.description')}

@@ -1,8 +1,9 @@
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { PageHeader } from '@/components/ui/page-header';
-import { getOrganizationReportsAnalytics, parseWorkKindFilter } from '@/modules/financials';
+import { getOrganizationReportsAnalytics, parseReportsSection, parseWorkKindFilter } from '@/modules/financials';
 import { ReportsAnalyticsView } from '@/modules/financials/ui';
+import { ReportsSectionFocus } from '@/modules/financials/ui/reports-section-focus';
 import { WorkKindFilterChrome } from '@/modules/financials/ui/work-kind-filter-chrome';
 import { withOrgContext } from '@/shared/auth/session';
 import { ReportsExportActionsLazy } from './reports-export-actions-lazy';
@@ -20,13 +21,14 @@ export async function generateMetadata({
 export default async function ReportsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ workKind?: string }>;
+  searchParams: Promise<{ workKind?: string; section?: string }>;
 }) {
   const [t, params] = await Promise.all([
     getTranslations('dashboard.reports'),
     searchParams,
   ]);
   const workKindFilter = parseWorkKindFilter(params.workKind);
+  const section = parseReportsSection(params.section);
 
   const analytics = await withOrgContext(async (context) =>
     getOrganizationReportsAnalytics(context, {
@@ -42,9 +44,11 @@ export default async function ReportsPage({
         actions={<ReportsExportActionsLazy />}
       />
 
-      <WorkKindFilterChrome active={workKindFilter} pathname="/reports" />
+      <WorkKindFilterChrome active={workKindFilter} pathname="/reports" section={section} />
 
-      <ReportsAnalyticsView analytics={analytics} />
+      <ReportsSectionFocus section={section} />
+
+      <ReportsAnalyticsView analytics={analytics} focusSection={section} />
     </div>
   );
 }

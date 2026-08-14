@@ -11,6 +11,7 @@ import {
 } from 'drizzle-orm/pg-core';
 import { archivedAt, currencyCode, moneyAmount, primaryId, quantityAmount, timestamps } from './_shared';
 import { organizations } from './tenancy';
+import { profiles } from './identity';
 import { projects, workPackages } from './projects';
 import { vendors } from './vendors';
 
@@ -192,6 +193,7 @@ export const purchaseOrders = pgTable(
     ...timestamps(),
   },
   (table) => [
+    uniqueIndex('purchase_orders_id_organization_id_uq').on(table.id, table.organizationId),
     index('purchase_orders_org_idx').on(table.organizationId),
     index('purchase_orders_project_idx').on(table.projectId),
     check(
@@ -216,13 +218,66 @@ export const purchaseOrderLines = pgTable(
       onDelete: 'set null',
     }),
     quantity: quantityAmount('quantity').notNull().default('1'),
+    receivedQuantity: quantityAmount('received_quantity').notNull().default('0'),
     unitAmount: moneyAmount('unit_amount').notNull(),
     lineTotal: moneyAmount('line_total').notNull(),
     currency: currencyCode().notNull(),
     sortOrder: integer('sort_order').notNull().default(0),
     ...timestamps(),
   },
-  (table) => [index('purchase_order_lines_po_idx').on(table.purchaseOrderId)],
+  (table) => [
+    uniqueIndex('purchase_order_lines_id_organization_id_uq').on(table.id, table.organizationId),
+    index('purchase_order_lines_po_idx').on(table.purchaseOrderId),
+    check(
+      'purchase_order_lines_received_range',
+      sql`${table.receivedQuantity} >= 0 AND ${table.receivedQuantity} <= ${table.quantity}`,
+    ),
+  ],
+);
+
+/** Quantity receipts — never Actual. Vendor bill remains Actual. */
+export const poReceipts = pgTable(
+  'po_receipts',
+  {
+    id: primaryId(),
+    organizationId: uuid('organization_id')
+      .notNull()
+      .references(() => organizations.id, { onDelete: 'cascade' }),
+    purchaseOrderId: uuid('purchase_order_id').notNull(),
+    receivedOn: date('received_on', { mode: 'string' }).notNull(),
+    receivedByUserId: uuid('received_by_user_id').references(() => profiles.id, {
+      onDelete: 'set null',
+    }),
+    reference: text('reference'),
+    notes: text('notes'),
+    ...timestamps(),
+  },
+  (table) => [
+    uniqueIndex('po_receipts_id_organization_id_uq').on(table.id, table.organizationId),
+    index('po_receipts_po_idx').on(table.purchaseOrderId),
+    index('po_receipts_org_idx').on(table.organizationId),
+  ],
+);
+
+export const poReceiptLines = pgTable(
+  'po_receipt_lines',
+  {
+    id: primaryId(),
+    organizationId: uuid('organization_id')
+      .notNull()
+      .references(() => organizations.id, { onDelete: 'cascade' }),
+    receiptId: uuid('receipt_id').notNull(),
+    purchaseOrderLineId: uuid('purchase_order_line_id').notNull(),
+    quantity: quantityAmount('quantity').notNull(),
+    notes: text('notes'),
+    ...timestamps(),
+  },
+  (table) => [
+    uniqueIndex('po_receipt_lines_id_organization_id_uq').on(table.id, table.organizationId),
+    index('po_receipt_lines_receipt_idx').on(table.receiptId),
+    index('po_receipt_lines_po_line_idx').on(table.purchaseOrderLineId),
+    check('po_receipt_lines_quantity_positive', sql`${table.quantity} > 0`),
+  ],
 );
 
 /** Explicit committed-cost ledger — never treated as Expense. */

@@ -6,7 +6,7 @@
     "assets": "Assets",
     "fleet": "Fleet",
     "maintenance": "Maintenance",
-    "inventory": "Inventory"
+    "inventory": "Inventory (qty)"
   },
   "newAsset": "New asset",
   "newFleetVehicle": "New fleet vehicle",
@@ -28,7 +28,7 @@
     },
     "inventory": {
       "title": "No inventory items yet",
-      "body": "Track on-hand quantities. Receive and issue movements update stock only — not the ledger.",
+      "body": "Track on-hand operational quantity. Receive and issue change quantity only — not cost, not Actual, and not FIFO/AVG costing.",
       "action": "New inventory item"
     }
   },
@@ -144,9 +144,9 @@
     "updateStatusPending": "Saving…"
   },
   "inventory": {
-    "title": "Inventory",
-    "description": "On-hand quantities for materials and stock. Movements update quantity only — never GL or expense.",
-    "detailDescription": "Operational stock only. Recording a movement does not create an expense or ledger entry.",
+    "title": "Operational quantity",
+    "description": "On-hand operational quantity only. Movements change quantity — not cost, not Actual, not GL. No FIFO or average costing.",
+    "detailDescription": "Operational quantity only. Recording a movement does not create cost, Actual, expense, or a ledger entry. No FIFO/AVG inventory costing.",
     "createTitle": "New inventory item",
     "submitItem": "Save item",
     "nameLabel": "Name",
@@ -161,11 +161,28 @@
     "issue": "Issue",
     "return": "Return",
     "adjust": "Adjust",
+    "transfer": "Transfer",
+    "qtyOnlyBanner": "Quantity-only inventory — not Actual cost / not FIFO",
+    "qtyOnlyBannerHe": "מלאי כמות בלבד — לא עלות בפועל / לא FIFO",
+    "qtyOnlyBannerEn": "Quantity-only inventory — not Actual cost / not FIFO",
+    "locationsTitle": "Locations",
+    "locationsHint": "Quantity-only bins. Receive goes to a location, issue comes from one, transfer moves between two. Header on-hand is the sum.",
+    "locationsEmpty": "No locations yet. The default Main / ראשי location is created on first receive.",
+    "locationNameLabel": "Location name",
+    "locationCodeLabel": "Code",
+    "submitLocation": "Save location",
+    "saveLocation": "Save",
+    "archiveLocation": "Archive",
+    "fromLocation": "From location",
+    "toLocation": "To location",
+    "locationLabel": "Location",
+    "balancesTitle": "Quantity by location",
+    "balancesEmpty": "No location balances yet.",
     "movementQuantity": "Quantity",
     "occurredOn": "Date",
     "movementNotes": "Notes",
     "movementTypeLabel": "Movement type",
-    "movementNotExpense": "Stock movements change on-hand quantity only. They are not expenses and do not post to the ledger.",
+    "movementNotExpense": "Stock movements change on-hand operational quantity only. They are not cost, not Actual, not expenses, and do not post to the ledger. No FIFO or average costing.",
     "adjustQuantityHint": "For adjustments, enter a signed delta (for example 2 or -1).",
     "projectLabel": "Project",
     "projectNone": "No project",
@@ -175,7 +192,7 @@
     "openDetail": "History & more…",
     "linkedMaterial": "Open linked catalog material",
     "historyTitle": "Movement history",
-    "historyHint": "Chronological stock movements for this item. Quantity changes only — no financial posting.",
+    "historyHint": "Chronological quantity movements for this item. Operational quantity only — no cost, Actual, FIFO, or average costing.",
     "emptyHistory": "No movements recorded yet.",
     "reorderStatus": {
       "ok": "Above reorder",
@@ -187,13 +204,15 @@
       "receive": "Receive",
       "issue": "Issue",
       "return": "Return",
-      "adjust": "Adjust"
+      "adjust": "Adjust",
+      "transfer": "Transfer"
     },
     "history": {
       "columns": {
         "date": "Date",
         "type": "Type",
         "quantity": "Quantity",
+        "location": "Location",
         "project": "Project",
         "notes": "Notes"
       }
@@ -201,6 +220,11 @@
   },
   "errors": {
     "insufficientQuantity": "Not enough quantity on hand for this issue.",
+    "locationNameTaken": "A location with this name already exists.",
+    "cannotArchiveLocationWithStock": "Transfer or issue remaining quantity before archiving this location.",
+    "transferLocationsRequired": "Transfer requires a from location and a to location.",
+    "transferSameLocation": "Transfer from and to locations must be different.",
+    "locationRequired": "Choose a location for this movement.",
     "invalidMaintenanceTransition": "That maintenance status change is not allowed.",
     "fleetRequiresVehicle": "Fleet records must link to a vehicle asset.",
     "fleetAlreadyLinked": "This vehicle already has a fleet record.",
@@ -208,11 +232,11 @@
     "invalidUsageDateRange": "Usage end date must be on or after the start date."
   },
   "usage": {
-    "panelNote": "Usage attributes materials and equipment to this work. It never creates Actual cost — purchase Actual stays on expenses / vendor bills once.",
-    "notActualHint": "Operational only — does not create Actual, Expense, or ledger entries. Purchase cost is recognized once when you buy.",
-    "stockSeparateHint": "Usage does not change on-hand quantity. Use inventory receive/issue to update stock. Low stock is an operational reorder indicator only.",
+    "panelNote": "Usage attributes materials and equipment to this work as operational quantity. It never creates Actual cost — purchase Actual stays on expenses / vendor bills once. No FIFO/AVG.",
+    "notActualHint": "Operational quantity only — does not create Actual, Expense, or ledger entries. Not inventory costing (no FIFO or average). Purchase cost is recognized once when you buy.",
+    "stockSeparateHint": "Usage does not change on-hand quantity. Use inventory receive/issue to update operational stock. Low stock is an operational reorder indicator only — not cost.",
     "materialSection": "Material consumption",
-    "materialHint": "Log qty used on this project, job, or work order. Optional catalog / inventory links.",
+    "materialHint": "Log operational qty used on this project, job, or work order. Optional catalog / inventory links. Quantity only — not cost or Actual.",
     "equipmentSection": "Equipment / vehicle usage",
     "equipmentHint": "Log asset use by date or range, with optional hours, days, or mileage.",
     "descriptionLabel": "Description",
@@ -244,7 +268,7 @@
     "needProject": "Create a project or job before recording usage from inventory.",
     "emptyMaterial": {
       "title": "No material usage yet",
-      "body": "Record consumption here. It does not post cost."
+      "body": "Record operational quantity used here. It does not post cost or Actual."
     },
     "emptyEquipment": {
       "title": "No equipment usage yet",

@@ -9,6 +9,7 @@ import {
   type BillingAmountInput,
   type PaymentAmountInput,
 } from '@/modules/billing/domain/outstanding';
+import { listPaidAmountRowsByBillingRecordIds } from '@/modules/billing';
 import { businessDate, type BusinessDate } from '@/shared/dates';
 import { fromNumericString, type MoneyValue } from '@/shared/money';
 import type { DbExecutor } from '@/shared/db/types';
@@ -35,12 +36,7 @@ async function mapBillingRecords(
   const currency = records[0]!.currency;
   const recordIds = records.map((record) => record.id);
 
-  const paymentRows = await db
-    .select()
-    .from(payments)
-    .where(
-      and(eq(payments.organizationId, organizationId), inArray(payments.billingRecordId, recordIds)),
-    );
+  const paymentRows = await listPaidAmountRowsByBillingRecordIds(db, organizationId, recordIds);
 
   const paymentsByRecord = new Map<string, PaymentAmountInput[]>();
   for (const payment of paymentRows) {
@@ -129,18 +125,7 @@ export async function loadBillingRowsGroupedByProject(
 
   // One payments query for all record ids, then split per project.
   const allRecordIds = records.map((record) => record.id);
-  const paymentRows =
-    allRecordIds.length === 0
-      ? []
-      : await db
-          .select()
-          .from(payments)
-          .where(
-            and(
-              eq(payments.organizationId, organizationId),
-              inArray(payments.billingRecordId, allRecordIds),
-            ),
-          );
+  const paymentRows = await listPaidAmountRowsByBillingRecordIds(db, organizationId, allRecordIds);
 
   const paymentsByRecord = new Map<string, PaymentAmountInput[]>();
   for (const payment of paymentRows) {

@@ -135,6 +135,7 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
               <KpiCard
                 title={tFinancial('kpis.currentContract')}
                 money={data.totalContractValue}
+                hint={tFinancial('basis.netExVat')}
                 footer={
                   contractValueNote ? (
                     <p className="break-words text-xs text-[var(--pf-text-secondary)]">{contractValueNote}</p>
@@ -146,6 +147,7 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
               <KpiCard
                 title={tFinancial('kpis.actualCost')}
                 money={data.totalActualCost}
+                hint={tFinancial('basis.netExVat')}
                 footer={
                   data.costCoverage ? (
                     <CoverageDisclosure sources={costCoverageSources} />
@@ -157,6 +159,7 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
               <KpiCard
                 title={tFinancial('kpis.forecastMargin')}
                 money={data.estimatedProfit}
+                hint={tFinancial('basis.profitNet')}
                 footer={<CoverageDisclosure sources={coverageSources} />}
               />
             ) : null}
@@ -179,17 +182,20 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
               <KpiCard
                 title={tFinancial('kpis.forecast')}
                 money={data.forecast.totalForecastFinalCost}
+                hint={tFinancial('basis.netExVat')}
               />
               {data.showProfit && data.forecast.totalActualMargin ? (
                 <KpiCard
                   title={tFinancial('kpis.actualMargin')}
                   money={data.forecast.totalActualMargin}
+                  hint={tFinancial('basis.profitNet')}
                 />
               ) : null}
               {data.showProfit && data.forecast.totalForecastMargin ? (
                 <KpiCard
                   title={tFinancial('kpis.forecastMargin')}
                   money={data.forecast.totalForecastMargin}
+                  hint={tFinancial('basis.profitNet')}
                 />
               ) : null}
               <KpiCard
@@ -209,6 +215,7 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
               <KpiCard
                 title={tFinancial('kpis.billed')}
                 money={data.billing.invoiced}
+                hint={tFinancial('basis.billingCash')}
                 footer={(() => {
                   if (!data.billingCoverage) return null;
                   const notes = standalonePartialNotes(data.billingCoverage, tFinancial, [
@@ -222,8 +229,16 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
                   ));
                 })()}
               />
-              <KpiCard title={tFinancial('kpis.paid')} money={data.billing.paid} />
-              <KpiCard title={tFinancial('kpis.outstanding')} money={data.billing.outstanding} />
+              <KpiCard
+                title={tFinancial('kpis.paid')}
+                money={data.billing.paid}
+                hint={tFinancial('basis.billingCash')}
+              />
+              <KpiCard
+                title={tFinancial('kpis.outstanding')}
+                money={data.billing.outstanding}
+                hint={tFinancial('basis.outstandingCash')}
+              />
             </div>
           ) : null}
         </section>
@@ -236,17 +251,20 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
               <KpiCard
                 title={t('businessSummary.outstanding')}
                 money={data.organizationSummary.outstanding}
+                hint={tFinancial('basis.outstandingCash')}
               />
             ) : null}
             {data.showBilling ? (
               <KpiCard
                 title={t('businessSummary.invoicedThisMonth')}
                 money={data.organizationSummary.invoicedThisMonth}
+                hint={tFinancial('basis.billingCash')}
               />
             ) : null}
             <KpiCard
               title={t('businessSummary.costsThisMonth')}
               money={data.organizationSummary.costsThisMonth}
+              hint={tFinancial('basis.netExVat')}
             />
           </div>
         </section>
@@ -343,11 +361,13 @@ function KpiCard({
   title,
   money,
   value,
+  hint,
   footer,
 }: {
   title: string;
   money?: { amount: string; currency: string };
   value?: string;
+  hint?: string;
   footer?: ReactNode;
 }) {
   return (
@@ -365,6 +385,9 @@ function KpiCard({
         ) : (
           <span className="text-lg font-semibold">{value}</span>
         )}
+        {hint ? (
+          <p className="break-words text-xs text-[var(--pf-text-muted)]">{hint}</p>
+        ) : null}
         {footer}
       </CardContent>
     </Card>

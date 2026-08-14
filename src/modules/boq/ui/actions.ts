@@ -178,9 +178,11 @@ export async function createProgressBatchAction(
   const projectId = String(formData.get('projectId') ?? '');
   const boqNodeIds = formData.getAll('boqNodeId').map(String);
   const measuredQuantities = formData.getAll('measuredQuantity').map(String);
+  const lineNotes = formData.getAll('lineNote').map(String);
   const lines = boqNodeIds.map((boqNodeId, index) => ({
     boqNodeId,
     measuredQuantity: measuredQuantities[index] ?? '0',
+    notes: lineNotes[index]?.trim() ? lineNotes[index] : undefined,
   }));
   try {
     await withOrgContext((context) =>
@@ -196,6 +198,7 @@ export async function createProgressBatchAction(
       }),
     );
     revalidateProject(projectId);
+    revalidatePath(`/projects/${projectId}/boq-measure`);
     return { ok: true, message: t('actions.progressCreated') };
   } catch (error) {
     if (error instanceof AppError) return mapError(error, t);
@@ -447,6 +450,27 @@ export async function approveSubcontractorValuationAction(
     );
     revalidateProject(projectId);
     return { ok: true, message: t('subcontractor.valuationApproved') };
+  } catch (error) {
+    if (error instanceof AppError) return mapError(error, t);
+    throw error;
+  }
+}
+
+export async function createDraftApFromSubcontractorValuationAction(
+  _prev: BoqFormState,
+  formData: FormData,
+): Promise<BoqFormState> {
+  const t = await getTranslations('boq');
+  const projectId = String(formData.get('projectId') ?? '');
+  try {
+    const { createDraftApFromSubcontractorValuation } = await import('@/modules/boq');
+    await withOrgContext((context) =>
+      createDraftApFromSubcontractorValuation(context, {
+        valuationId: String(formData.get('valuationId') ?? ''),
+      }),
+    );
+    revalidateProject(projectId);
+    return { ok: true, message: t('subcontractor.draftApCreated') };
   } catch (error) {
     if (error instanceof AppError) return mapError(error, t);
     throw error;

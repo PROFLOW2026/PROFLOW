@@ -15,6 +15,11 @@ export const createApBillSchema = z.object({
   dueDate: z.string().trim().optional().nullable(),
   currency: z.string().trim().length(3),
   totalAmount: moneyString,
+  amountIncludesTax: z.boolean().optional().nullable(),
+  netAmount: moneyString.optional().nullable(),
+  taxAmount: moneyString.optional().nullable(),
+  /** When true, persist as draft — no Actual, no commitment consumption. */
+  asDraft: z.boolean().optional(),
   retentionAmount: moneyString.optional().nullable(),
   retentionPercent: moneyString.optional().nullable(),
   notes: z.string().trim().max(2000).optional().nullable(),
@@ -154,6 +159,9 @@ export const createVendorCreditSchema = z.object({
   creditDate: z.string().trim().min(10).max(10),
   currency: z.string().trim().length(3),
   amount: moneyString,
+  amountIncludesTax: z.boolean().optional().nullable(),
+  netAmount: moneyString.optional().nullable(),
+  taxAmount: moneyString.optional().nullable(),
   notes: z.string().trim().max(2000).optional().nullable(),
 });
 
@@ -172,6 +180,9 @@ export const updateVendorCreditDraftSchema = z.object({
   reference: z.string().trim().max(120).optional().nullable(),
   creditDate: z.string().trim().min(10).max(10),
   amount: moneyString,
+  amountIncludesTax: z.boolean().optional().nullable(),
+  netAmount: moneyString.optional().nullable(),
+  taxAmount: moneyString.optional().nullable(),
   notes: z.string().trim().max(2000).optional().nullable(),
 });
 

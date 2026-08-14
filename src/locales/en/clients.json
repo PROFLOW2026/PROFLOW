@@ -90,6 +90,22 @@
     "removeContactSuccess": "Contact removed.",
     "removeIdentifierQuestion": "Remove {type} identifier {value}?",
     "removeIdentifierConsequence": "You can add an identifier again at any time.",
-    "removeIdentifierSuccess": "Identifier removed."
+    "removeIdentifierSuccess": "Identifier removed.",
+    "financial": {
+      "title": "Financial position",
+      "subtitle": "Billing and collections for this client from existing billing records. VAT is not profit.",
+      "invoiced": "Total finalized billing",
+      "paid": "Paid",
+      "outstanding": "Outstanding",
+      "overdue": "Overdue",
+      "overdueCount": "{count, plural, =0 {No overdue records} one {# overdue record} other {# overdue records}}",
+      "heldRetention": "Held retention",
+      "heldRetentionHint": "Still held on finalized billing. Reduces receivable now — not a second invoice.",
+      "recentBilling": "Recent billing",
+      "recentPayments": "Recent payments",
+      "emptyBilling": "No billing records for this client yet.",
+      "excludedForeign": "{count, plural, one {# record excluded (foreign currency)} other {# records excluded (foreign currency)}}",
+      "integrityHint": "Outstanding = invoiced − paid − held retention. Credit notes reduce invoiced. Draft and voided records are excluded."
+    }
   }
 }

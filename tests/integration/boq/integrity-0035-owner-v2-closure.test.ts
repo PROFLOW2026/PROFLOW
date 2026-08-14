@@ -16,6 +16,7 @@ import { money } from '@/shared/money';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { AuthorizationError } from '@/shared/errors';
 import { createTestDatabase, applySqlMigrations, resultRows, type TestDatabase } from '../../setup/database';
+import { insertDraftBoqNodeViaRpc } from '../../setup/boq-draft-node';
 import { createTestOrganization, createTestUser, seedSystem } from '../../setup/fixtures';
 import {
   isContendedConnectionError,
@@ -99,21 +100,16 @@ describe('BOQ owner v2 closure', () => {
           RETURNING id
         `),
       );
-      const node = resultRows<{ id: string }>(
-        await tx.execute(sql`
-          INSERT INTO boq_nodes (
-            organization_id, boq_id, node_kind, description, pricing_type,
-            original_quantity, original_unit_price, original_amount,
-            current_quantity, current_unit_price, current_amount
-          ) VALUES (
-            ${orgId}::uuid, ${boq[0]!.id}::uuid, 'item', 'Item', 'quantity_unit_price',
-            ${qty}::numeric, 100, (${qty}::numeric * 100),
-            ${qty}::numeric, 100, (${qty}::numeric * 100)
-          ) RETURNING id
-        `),
-      );
+      const nodeId = await insertDraftBoqNodeViaRpc(tx, {
+        organizationId: orgId,
+        boqId: boq[0]!.id,
+        description: 'Item',
+        quantity: qty,
+        unitPrice: 100,
+        amount: Number(qty) * 100,
+      });
       await tx.execute(sql`SELECT app.activate_project_boq(${orgId}::uuid, ${boq[0]!.id}::uuid)`);
-      return { boqId: boq[0]!.id, nodeId: node[0]!.id };
+      return { boqId: boq[0]!.id, nodeId };
     });
   }
 

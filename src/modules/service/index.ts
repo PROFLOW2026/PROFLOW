@@ -5,6 +5,14 @@ export { updateWorkOrder, updateServiceStatus } from './application/update-work-
 export { listWorkOrdersForOrg, getWorkOrderDetail } from './application/list-work-orders';
 export type { WorkOrderDetail } from './application/list-work-orders';
 export { listDispatchBoard, rescheduleWorkOrder } from './application/dispatch';
+export {
+  listWorkOrderChecklistTemplateOptions,
+  getWorkOrderChecklistGateState,
+} from './application/work-order-checklist';
+export type {
+  WorkOrderChecklistTemplateOption,
+  WorkOrderChecklistGateState,
+} from './application/work-order-checklist';
 
 export {
   SERVICE_STATUSES,
@@ -26,6 +34,13 @@ export {
   isServiceStatus,
   projectStatusForServiceStatus,
 } from './domain/service-status';
+
+export {
+  isWorkOrderChecklistRequired,
+  hasSubmittedWorkOrderChecklist,
+  assertWorkOrderCompletionChecklist,
+} from './domain/checklist-gate';
+export type { WorkOrderChecklistSubmissionRef } from './domain/checklist-gate';
 
 export {
   createWorkOrderSchema,

@@ -49,8 +49,11 @@ export async function recordPayment(context: OrgContext, rawInput: CreatePayment
   }
   const paymentDate = businessDate(input.paymentDate);
 
+  // Keep billingRecordId set so migration 0039's AFTER INSERT trigger creates
+  // the 1:1 application. Do not also insert payment_applications here.
   const paymentId = await insertPayment(context.db, context.organizationId, {
     billingRecordId: input.billingRecordId,
+    clientId: billingRecord.clientId,
     amount: toNumericString(paymentAmount),
     currency: billingRecord.totalAmount.currency,
     paymentDate,

@@ -35,10 +35,10 @@ export interface PlanningMessages {
 
 const HE: PlanningMessages = {
   title: 'תכנון ולוח זמנים',
-  subtitle: 'ציר זמן, תלויות, התקדמות ואבני דרך לפרויקט — לא שכפול של MS Project.',
+  subtitle: 'תכנון קל: תאריכים, התקדמות, אבני דרך ותלויות סיום-להתחלה (FS) בלבד. לא MS Project ולא CPM.',
   jobsOptOut: 'תכנון מפורט זמין לפרויקטים בלבד. עבודות קצרות נשארות עם תאריכים פשוטים.',
   empty: 'עדיין אין פריטי תכנון עם תאריכים.',
-  emptyHint: 'הוסיפו משימות או אבני דרך עם תאריך יעד כדי לראות את הגאנט.',
+  emptyHint: 'הוסיפו משימות או אבני דרך עם תאריך יעד לציר זמן קל. תלויות FS בלבד — אין נתיב קריטי.',
   timeline: 'ציר זמן',
   overdue: 'באיחור',
   overdueCount: '{count} באיחור',
@@ -54,7 +54,7 @@ const HE: PlanningMessages = {
   phase: 'שלב',
   today: 'היום',
   criticalPathLimitation:
-    'נתיב קריטי אינו מוצג בגרסה זו — חסרים לוחות עבודה, השהיות וחישוב מרווח (ראו LIMITATION).',
+    'תכנון קל בלבד: תלויות סיום-להתחלה (FS). אין נתיב קריטי, אין CPM, אין השהיה/הקדמה, ואין לוח עבודה. זה אינו MS Project.',
   legendPlanned: 'מתוכנן',
   legendOverdue: 'באיחור',
   legendProgress: 'התקדמות',
@@ -64,10 +64,10 @@ const HE: PlanningMessages = {
 
 const EN: PlanningMessages = {
   title: 'Planning & timeline',
-  subtitle: 'Timeline, dependencies, progress, and milestones — not an MS Project clone.',
+  subtitle: 'Light planning: dates, progress, milestones, and finish-to-start (FS) links only. Not MS Project and not CPM.',
   jobsOptOut: 'Detailed planning is for projects only. Short jobs keep simple dates.',
   empty: 'No dated planning items yet.',
-  emptyHint: 'Add tasks or milestones with a target date to see the Gantt.',
+  emptyHint: 'Add tasks or milestones with a target date to see this light timeline. FS links only — no critical path.',
   timeline: 'Timeline',
   overdue: 'Overdue',
   overdueCount: '{count} overdue',
@@ -83,7 +83,7 @@ const EN: PlanningMessages = {
   phase: 'Phase',
   today: 'Today',
   criticalPathLimitation:
-    'Critical Path is not shown in this version — calendars, lag, and float are missing (see LIMITATION).',
+    'Light planning only: finish-to-start (FS) dependencies. No critical path, no CPM, no lag/lead, and no working calendars. This is not MS Project.',
   legendPlanned: 'Planned',
   legendOverdue: 'Overdue',
   legendProgress: 'Progress',

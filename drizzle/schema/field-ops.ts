@@ -247,6 +247,8 @@ export const inventoryMovements = pgTable(
     movementType: text('movement_type').notNull(),
     quantity: quantityAmount('quantity').notNull(),
     occurredOn: date('occurred_on', { mode: 'string' }).notNull(),
+    fromLocationId: uuid('from_location_id'),
+    toLocationId: uuid('to_location_id'),
     notes: text('notes'),
     ...timestamps(),
   },
@@ -254,7 +256,44 @@ export const inventoryMovements = pgTable(
     index('inventory_movements_item_idx').on(table.inventoryItemId),
     check(
       'inventory_movements_type_known',
-      sql`${table.movementType} IN ('receive', 'issue', 'adjust', 'return')`,
+      sql`${table.movementType} IN ('receive', 'issue', 'adjust', 'return', 'transfer')`,
     ),
+  ],
+);
+
+export const inventoryLocations = pgTable(
+  'inventory_locations',
+  {
+    id: primaryId(),
+    organizationId: uuid('organization_id')
+      .notNull()
+      .references(() => organizations.id, { onDelete: 'cascade' }),
+    name: text('name').notNull(),
+    code: text('code'),
+    archivedAt: archivedAt(),
+    ...timestamps(),
+  },
+  (table) => [
+    uniqueIndex('inventory_locations_id_organization_id_uq').on(table.id, table.organizationId),
+    uniqueIndex('inventory_locations_org_name_uq')
+      .on(table.organizationId, table.name)
+      .where(sql`${table.archivedAt} is null`),
+  ],
+);
+
+export const inventoryLocationBalances = pgTable(
+  'inventory_location_balances',
+  {
+    id: primaryId(),
+    organizationId: uuid('organization_id')
+      .notNull()
+      .references(() => organizations.id, { onDelete: 'cascade' }),
+    inventoryItemId: uuid('inventory_item_id').notNull(),
+    locationId: uuid('location_id').notNull(),
+    quantity: quantityAmount('quantity').notNull().default('0'),
+    ...timestamps(),
+  },
+  (table) => [
+    uniqueIndex('inventory_location_balances_item_loc_uq').on(table.inventoryItemId, table.locationId),
   ],
 );

@@ -1,6 +1,8 @@
 import { and, asc, desc, eq, sql } from 'drizzle-orm';
 import {
   approvals,
+  billingLines,
+  billingRecords,
   changeOrders,
   quoteVersionLines,
   quoteVersions,
@@ -382,7 +384,89 @@ function mapChangeOrder(row: typeof changeOrders.$inferSelect): ChangeOrderRecor
     currency: row.currency,
     effectiveDate: row.effectiveDate,
     notes: row.notes,
+    reversalOfChangeOrderId: row.reversalOfChangeOrderId,
+    reversalReason: row.reversalReason,
+    reversedByUserId: row.reversedByUserId,
   };
+}
+
+export async function reverseChangeOrderRpc(
+  db: DbExecutor,
+  organizationId: string,
+  changeOrderId: string,
+  reason: string,
+  effectiveDate: string,
+): Promise<{ reversalChangeOrderId: string; reference: string | null }> {
+  const result = await db.execute(sql`
+    SELECT app.reverse_change_order(
+      ${organizationId}::uuid,
+      ${changeOrderId}::uuid,
+      ${reason}::text,
+      ${effectiveDate}::date
+    ) AS id
+  `);
+  const list = Array.isArray(result)
+    ? result
+    : ((result as { rows?: Array<Record<string, unknown>> }).rows ?? []);
+  const id = String((list[0] as Record<string, unknown> | undefined)?.id ?? '');
+  if (!id) throw new Error('Failed to reverse change order');
+  const reversal = await findChangeOrderById(db, organizationId, id);
+  return { reversalChangeOrderId: id, reference: reversal?.reference ?? null };
+}
+
+export async function findChangeOrderById(
+  db: DbExecutor,
+  organizationId: string,
+  changeOrderId: string,
+): Promise<ChangeOrderRecord | null> {
+  const [row] = await db
+    .select()
+    .from(changeOrders)
+    .where(and(eq(changeOrders.id, changeOrderId), eq(changeOrders.organizationId, organizationId)))
+    .limit(1);
+
+  return row ? mapChangeOrder(row) : null;
+}
+
+export async function findReversalOfChangeOrder(
+  db: DbExecutor,
+  organizationId: string,
+  originalChangeOrderId: string,
+): Promise<ChangeOrderRecord | null> {
+  const [row] = await db
+    .select()
+    .from(changeOrders)
+    .where(
+      and(
+        eq(changeOrders.organizationId, organizationId),
+        eq(changeOrders.reversalOfChangeOrderId, originalChangeOrderId),
+      ),
+    )
+    .limit(1);
+
+  return row ? mapChangeOrder(row) : null;
+}
+
+/** True when a non-void finalized billing line still points at this change order. */
+export async function hasFinalizedBillingForChangeOrder(
+  db: DbExecutor,
+  organizationId: string,
+  changeOrderId: string,
+): Promise<boolean> {
+  const [row] = await db
+    .select({ id: billingLines.id })
+    .from(billingLines)
+    .innerJoin(billingRecords, eq(billingRecords.id, billingLines.billingRecordId))
+    .where(
+      and(
+        eq(billingLines.organizationId, organizationId),
+        eq(billingLines.changeOrderId, changeOrderId),
+        eq(billingRecords.status, 'finalized'),
+      ),
+    )
+    .limit(1);
+
+  return Boolean(row);
 }
 
 export async function findChangeOrderByChangeRequest(
@@ -466,15 +550,18 @@ export async function insertChangeOrder(
     organizationId: string;
     projectId: string;
     contractId: string;
-    changeRequestId: string;
+    changeRequestId?: string | null;
     quoteVersionId?: string | null;
-    approvalId: string;
+    approvalId?: string | null;
     reference: string;
     direction: ChangeOrderRecord['direction'];
     amount: string;
     currency: string;
     effectiveDate: string;
     notes?: string | null;
+    reversalOfChangeOrderId?: string | null;
+    reversalReason?: string | null;
+    reversedByUserId?: string | null;
   },
 ): Promise<ChangeOrderRecord> {
   const [row] = await db
@@ -483,15 +570,18 @@ export async function insertChangeOrder(
       organizationId: input.organizationId,
       projectId: input.projectId,
       contractId: input.contractId,
-      changeRequestId: input.changeRequestId,
+      changeRequestId: input.changeRequestId ?? null,
       quoteVersionId: input.quoteVersionId ?? null,
-      approvalId: input.approvalId,
+      approvalId: input.approvalId ?? null,
       reference: input.reference,
       direction: input.direction,
       amount: input.amount,
       currency: input.currency,
       effectiveDate: input.effectiveDate,
       notes: input.notes ?? null,
+      reversalOfChangeOrderId: input.reversalOfChangeOrderId ?? null,
+      reversalReason: input.reversalReason ?? null,
+      reversedByUserId: input.reversedByUserId ?? null,
     })
     .returning();
 

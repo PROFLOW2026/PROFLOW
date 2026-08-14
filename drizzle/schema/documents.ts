@@ -2,7 +2,9 @@ import { relations, sql } from 'drizzle-orm';
 import {
   bigint,
   boolean,
+  check,
   index,
+  integer,
   pgTable,
   text,
   timestamp,
@@ -37,6 +39,13 @@ export const documents = pgTable(
     sizeBytes: bigint('size_bytes', { mode: 'number' }),
     checksum: text('checksum'),
     status: documentStatusEnum('status').notNull().default('pending'),
+    storageCleanupStatus: text('storage_cleanup_status'),
+    storageCleanupAttempts: integer('storage_cleanup_attempts').notNull().default(0),
+    storageCleanupError: text('storage_cleanup_error'),
+    storageCleanupLastAttemptedAt: timestamp('storage_cleanup_last_attempted_at', {
+      withTimezone: true,
+      mode: 'date',
+    }),
     uploadedByUserId: uuid('uploaded_by_user_id').references(() => profiles.id, { onDelete: 'set null' }),
     deletedAt: timestamp('deleted_at', { withTimezone: true, mode: 'date' }),
     ...timestamps(),
@@ -45,6 +54,10 @@ export const documents = pgTable(
     uniqueIndex('documents_id_organization_id_uq').on(table.id, table.organizationId),
     uniqueIndex('documents_storage_path_uq').on(table.storageBucket, table.storagePath),
     index('documents_org_idx').on(table.organizationId),
+    check(
+      'documents_storage_cleanup_status_known',
+      sql`${table.storageCleanupStatus} IS NULL OR ${table.storageCleanupStatus} IN ('pending', 'succeeded', 'failed')`,
+    ),
   ],
 );
 

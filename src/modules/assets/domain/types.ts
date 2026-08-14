@@ -13,7 +13,13 @@ export type AssetStatus = (typeof ASSET_STATUSES)[number];
 export const MAINTENANCE_STATUSES = ['planned', 'in_progress', 'completed', 'cancelled'] as const;
 export type MaintenanceStatus = (typeof MAINTENANCE_STATUSES)[number];
 
-export const INVENTORY_MOVEMENT_TYPES = ['receive', 'issue', 'adjust', 'return'] as const;
+export const INVENTORY_MOVEMENT_TYPES = [
+  'receive',
+  'issue',
+  'adjust',
+  'return',
+  'transfer',
+] as const;
 export type InventoryMovementType = (typeof INVENTORY_MOVEMENT_TYPES)[number];
 
 export interface AssetRecord {
@@ -87,7 +93,35 @@ export interface InventoryMovementRecord {
   readonly movementType: InventoryMovementType;
   readonly quantity: string;
   readonly occurredOn: string;
+  readonly fromLocationId: string | null;
+  readonly toLocationId: string | null;
+  readonly fromLocationName: string | null;
+  readonly toLocationName: string | null;
   readonly notes: string | null;
+  readonly createdAt: Date;
+  readonly updatedAt: Date;
+}
+
+/** Quantity-only stock location. Not a costing warehouse. */
+export interface InventoryLocationRecord {
+  readonly id: string;
+  readonly organizationId: string;
+  readonly name: string;
+  readonly code: string | null;
+  readonly archivedAt: Date | null;
+  readonly createdAt: Date;
+  readonly updatedAt: Date;
+}
+
+/** Per-location operational quantity. Header quantity_on_hand is the sum. */
+export interface InventoryLocationBalanceRecord {
+  readonly id: string;
+  readonly organizationId: string;
+  readonly inventoryItemId: string;
+  readonly locationId: string;
+  readonly locationName: string;
+  readonly locationCode: string | null;
+  readonly quantity: string;
   readonly createdAt: Date;
   readonly updatedAt: Date;
 }

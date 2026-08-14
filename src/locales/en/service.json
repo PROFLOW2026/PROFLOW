@@ -69,6 +69,10 @@
     "notesLabel": "Service notes",
     "statusLabel": "Status",
     "quickStatusLabel": "Update status",
+    "checklistLabel": "Required checklist",
+    "checklistNone": "No checklist",
+    "checklistHint": "If you pick a form template, the technician must submit it before this call can be marked completed.",
+    "checklistUnavailable": "Saved template (no longer in the list)",
     "usualKind": {
       "jobTitle": "Your organization usually creates jobs",
       "projectTitle": "Your organization usually creates projects",
@@ -96,6 +100,22 @@
     "financialsTitle": "Financials",
     "saved": "Saved",
     "updateStatus": "Update status"
+  },
+  "checklist": {
+    "title": "Required checklist",
+    "untitled": "Field form",
+    "requiredTitle": "Checklist required",
+    "requiredBody": "Submit this form before marking the service call completed.",
+    "submittedBody": "The required checklist was submitted.",
+    "fill": "Fill checklist",
+    "continue": "Continue checklist",
+    "view": "View checklist",
+    "statusSubmitted": "Submitted",
+    "statusDraft": "Draft",
+    "statusMissing": "Not started"
+  },
+  "errors": {
+    "checklistRequired": "Submit the required checklist before completing this service call."
   },
   "dispatch": {
     "title": "Dispatch",

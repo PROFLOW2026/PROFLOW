@@ -77,6 +77,12 @@ export function ProjectPlanningPanel({
       <header className="space-y-1">
         <h2 className="text-base font-semibold text-[var(--pf-text-primary)]">{t.title}</h2>
         <p className="text-sm text-[var(--pf-text-secondary)]">{t.subtitle}</p>
+        <p
+          className="rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-muted)] px-3 py-2 text-sm text-[var(--pf-text-primary)]"
+          role="note"
+        >
+          {t.criticalPathLimitation}
+        </p>
       </header>
 
       <div className="flex flex-wrap items-center gap-3 text-sm">
@@ -90,7 +96,7 @@ export function ProjectPlanningPanel({
 
       {/* Desktop / tablet: full Gantt. Mobile: list-only (no forced giant chart). */}
       {gantt ? (
-        <div className="hidden md:block">
+        <div className="hidden md:block space-y-2">
           <GanttChart
             model={gantt}
             messages={t}
@@ -98,6 +104,7 @@ export function ProjectPlanningPanel({
             focusWorkItemId={focusId}
             focusedPredecessorIds={focusedPredecessorIds}
           />
+          <p className="text-xs text-[var(--pf-text-secondary)]">{t.criticalPathLimitation}</p>
         </div>
       ) : (
         <div className="rounded-lg border border-dashed border-[var(--pf-border-default)] p-6 text-sm text-[var(--pf-text-secondary)]">

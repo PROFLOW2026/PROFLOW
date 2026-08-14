@@ -1,9 +1,11 @@
 import Decimal from 'decimal.js';
+import { createDraftApBill } from '@/modules/ap';
 import { recordAuditEvent } from '@/shared/audit';
 import type { OrgContext } from '@/shared/auth/context';
+import { withTransaction } from '@/shared/db';
 import { ConflictError, NotFoundError, ValidationError } from '@/shared/errors';
-import { money, multiplyMoney, toNumericString } from '@/shared/money';
-import { assertPermission, hasPermission } from '@/shared/permissions/assert';
+import { addMoney, compareMoney, money, multiplyMoney, toNumericString, zeroMoney } from '@/shared/money';
+import { assertAllPermissions, assertPermission, hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { noteModuleUsage } from '@/modules/tenancy';
 import { findVendorEngagementById } from '@/modules/vendors';
@@ -16,12 +18,14 @@ import {
   findProjectInOrganization,
   findSubcontractorScheduleById,
   findSubcontractorScheduleLineById,
+  findSubcontractorValuationById,
   insertSubcontractorSchedule,
   insertSubcontractorScheduleLine,
   insertSubcontractorValuation,
   insertSubcontractorValuationLines,
   listSubcontractorScheduleLines,
   listSubcontractorSchedulesForBoq,
+  listSubcontractorValuationLines,
   listSubcontractorValuationsForSchedule,
   approveSubcontractorValuationRpc,
   activateSubcontractorScheduleRpc,
@@ -32,6 +36,7 @@ import {
   addSubcontractorScheduleLineSchema,
   approveSubcontractorValuationSchema,
   activateSubcontractorScheduleSchema,
+  createDraftApFromSubcontractorValuationSchema,
   createSubcontractorScheduleSchema,
   createSubcontractorValuationSchema,
   proposeSubcontractorValuationApSchema,
@@ -39,6 +44,7 @@ import {
   type AddSubcontractorScheduleLineInput,
   type ApproveSubcontractorValuationInput,
   type ActivateSubcontractorScheduleInput,
+  type CreateDraftApFromSubcontractorValuationInput,
   type CreateSubcontractorScheduleInput,
   type CreateSubcontractorValuationInput,
   type ProposeSubcontractorValuationApInput,
@@ -52,10 +58,11 @@ import {
  * original_* / current_* revenue columns.
  *
  * AP proposal boundary:
- * `createApBill` is NOT a safe explicit draft API — without a matching approval
- * rule it inserts status `open` and can recognize Actual / consume PO commitment.
- * This module therefore stops at a durable valuation draft and surfaces a UI note
- * to propose a draft vendor bill manually in AP.
+ * `createDraftApBill` is the safe explicit draft API (no Actual, no PO consume).
+ * `createApBill` without asDraft can insert `open` and recognize Actual.
+ * After an approved valuation, `createDraftApFromSubcontractorValuation` creates a
+ * draft vendor bill and links it via propose_boq_subcontractor_valuation_ap.
+ * Posting remains a separate AP action — never auto-post from this module.
  */
 
 function validationFromZod(error: {
@@ -169,7 +176,7 @@ export async function addSubcontractorScheduleLine(
 
 /**
  * Creates a durable subcontractor valuation draft.
- * Does NOT call AP createApBill — see module header AP proposal boundary.
+ * Does NOT create AP — after approval, use createDraftApFromSubcontractorValuation.
  */
 export async function createSubcontractorValuationDraft(
   context: OrgContext,
@@ -259,7 +266,7 @@ export async function createSubcontractorValuationDraft(
       scheduleId: schedule.id,
       status: 'draft',
       apProposal: 'manual_only',
-      note: 'Propose draft vendor bill manually in AP — createApBill is not draft-safe by default',
+      note: 'After approval, create a draft vendor bill via createDraftApFromSubcontractorValuation',
     },
   });
 
@@ -268,10 +275,10 @@ export async function createSubcontractorValuationDraft(
     scheduleId: schedule.id,
     status: 'draft' as const,
     /**
-     * Explicit product note for UI: do not auto-create AP.
-     * Operator should open AP and create a draft vendor bill manually.
+     * Explicit product note for UI: do not auto-post AP.
+     * After approval, operator may create a draft vendor bill (not Actual).
      */
-    apProposalNote: 'propose_draft_vendor_bill_manually' as const,
+    apProposalNote: 'create_draft_vendor_bill_after_approval' as const,
   };
 }
 
@@ -328,7 +335,7 @@ export async function activateSubcontractorSchedule(
 
 /**
  * Canonical approved → proposed_ap. Attaches proposed_vendor_bill_id only here.
- * Does not create Actual; AP bill must already exist as a draft-safe manual proposal.
+ * Does not create Actual; AP bill must already exist as a draft-safe proposal.
  */
 export async function proposeSubcontractorValuationAp(
   context: OrgContext,
@@ -356,6 +363,122 @@ export async function proposeSubcontractorValuationAp(
   });
 
   return { valuationId: parsed.data.valuationId, status: 'proposed_ap' as const };
+}
+
+/**
+ * After approved valuation: create a draft vendor bill (no Actual, no PO consume)
+ * then link it via the canonical proposed_ap RPC. Never auto-posts.
+ */
+export async function createDraftApFromSubcontractorValuation(
+  context: OrgContext,
+  raw: CreateDraftApFromSubcontractorValuationInput,
+) {
+  assertAllPermissions(context, [PERMISSIONS.BOQ_MANAGE, PERMISSIONS.AP_MANAGE]);
+  const parsed = createDraftApFromSubcontractorValuationSchema.safeParse(raw);
+  if (!parsed.success) throw validationFromZod(parsed.error);
+
+  const valuation = await findSubcontractorValuationById(
+    context.db,
+    context.organizationId,
+    parsed.data.valuationId,
+  );
+  if (!valuation) throw new NotFoundError('Subcontractor valuation');
+  if (valuation.status !== 'approved') {
+    throw new ConflictError('Draft vendor bill requires an approved subcontractor valuation');
+  }
+  if (valuation.proposedVendorBillId) {
+    throw new ConflictError('Valuation already has a proposed vendor bill');
+  }
+
+  const schedule = await findSubcontractorScheduleById(
+    context.db,
+    context.organizationId,
+    valuation.scheduleId,
+  );
+  if (!schedule) throw new NotFoundError('Subcontractor schedule');
+
+  const engagement = await findVendorEngagementById(
+    context.db,
+    context.organizationId,
+    schedule.vendorEngagementId,
+  );
+  if (!engagement) throw new NotFoundError('Vendor engagement');
+
+  const valuationLines = await listSubcontractorValuationLines(
+    context.db,
+    context.organizationId,
+    valuation.id,
+  );
+
+  const billLines: {
+    description: string;
+    quantity: string;
+    unitAmount: string;
+    lineTotal: string;
+    currency: string;
+  }[] = [];
+  let total = zeroMoney(schedule.currency);
+
+  for (const line of valuationLines) {
+    const period = money(line.periodAmount, line.currency);
+    if (compareMoney(period, zeroMoney(line.currency)) <= 0) continue;
+    billLines.push({
+      description: line.notes?.trim() || `Subcontractor valuation ${valuation.periodLabel}`,
+      quantity: line.approvedQuantity,
+      unitAmount: toNumericString(money(line.unitRateSnapshot, line.currency)),
+      lineTotal: toNumericString(period),
+      currency: line.currency,
+    });
+    total = addMoney(total, period);
+  }
+
+  if (billLines.length === 0) {
+    throw new ConflictError('Approved valuation has no billable period amounts');
+  }
+
+  return withTransaction(context.db, async (tx) => {
+    const txContext = { ...context, db: tx };
+    const bill = await createDraftApBill(txContext, {
+      vendorId: engagement.vendorId,
+      projectId: schedule.projectId,
+      reference: valuation.periodLabel.slice(0, 80),
+      currency: schedule.currency,
+      totalAmount: toNumericString(total),
+      notes: `Draft from approved subcontractor valuation ${valuation.id} — not Actual until posted`,
+      lines: billLines,
+    });
+
+    if (bill.status !== 'draft') {
+      throw new ConflictError('Subcontractor AP handoff must remain draft');
+    }
+
+    await proposeSubcontractorValuationApRpc(
+      tx,
+      context.organizationId,
+      valuation.id,
+      bill.id,
+    );
+
+    await recordAuditEvent(txContext, {
+      action: BOQ_AUDIT_ACTIONS.BOQ_SUB_VALUATION_PROPOSED_AP,
+      entityType: 'boq_subcontractor_valuation',
+      entityId: valuation.id,
+      after: {
+        status: 'proposed_ap',
+        proposedVendorBillId: bill.id,
+        billStatus: bill.status,
+        recognizedActual: false,
+        consumedPo: false,
+      },
+    });
+
+    return {
+      valuationId: valuation.id,
+      vendorBillId: bill.id,
+      status: 'proposed_ap' as const,
+      billStatus: bill.status,
+    };
+  });
 }
 
 export async function voidSubcontractorValuation(

@@ -106,6 +106,8 @@ function mapOpportunity(row: typeof crmOpportunities.$inferSelect): OpportunityR
     convertedContractId: row.convertedContractId,
     convertedAt: row.convertedAt,
     notes: row.notes,
+    nextActionAt: row.nextActionAt,
+    nextActionText: row.nextActionText,
     archivedAt: row.archivedAt,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
@@ -440,6 +442,8 @@ export async function insertOpportunity(
     expectedStartDate?: string | null;
     referralSource?: string | null;
     notes?: string | null;
+    nextActionAt?: Date | null;
+    nextActionText?: string | null;
   },
 ): Promise<OpportunityRecord> {
   const [row] = await db
@@ -455,6 +459,8 @@ export async function insertOpportunity(
       expectedStartDate: input.expectedStartDate ?? null,
       referralSource: input.referralSource ?? null,
       notes: input.notes ?? null,
+      nextActionAt: input.nextActionAt ?? null,
+      nextActionText: input.nextActionText ?? null,
     })
     .returning();
   return mapOpportunity(row!);
@@ -480,6 +486,8 @@ export async function updateOpportunityById(
     convertedProjectId: string | null;
     convertedContractId: string | null;
     convertedAt: Date | null;
+    nextActionAt: Date | null;
+    nextActionText: string | null;
   }>,
 ): Promise<OpportunityRecord | null> {
   const [row] = await db

@@ -21,7 +21,10 @@ import { globalSearchSchema, type GlobalSearchInput } from '../validation/schema
 
 /**
  * Org-scoped global search. Each kind is gated by its read permission.
- * Never returns Actual, profit, rates, or employer cost fields.
+ * Text/select custom field values are included under that same parent-entity
+ * permission (`custom_fields.manage` is not required). Hits still return the
+ * entity title/subtitle — never Actual, profit, rates, money custom values,
+ * or BOQ prices.
  */
 export async function globalSearch(
   context: OrgContext,

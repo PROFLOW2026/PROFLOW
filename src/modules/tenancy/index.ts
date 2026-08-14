@@ -149,3 +149,26 @@ export {
   inviteMemberSchema,
   acceptInvitationSchema,
 } from './validation/schemas';
+
+export {
+  allocateDocumentNumber,
+  resolveAllocatedReference,
+  listDocumentNumberSettings,
+  saveDocumentNumberSettings,
+} from './application/document-numbers';
+export {
+  DOCUMENT_NUMBER_KINDS,
+  ALLOCATED_DOCUMENT_NUMBER_KINDS,
+  suppliedDocumentReference,
+  titleWithDocumentNumber,
+  isDocumentNumberKind,
+} from './domain/document-numbers';
+export type {
+  DocumentNumberKind,
+  AllocatedDocumentNumberKind,
+  DocumentNumberSequenceRecord,
+} from './domain/document-numbers';
+export {
+  saveDocumentNumberSequencesSchema,
+  documentNumberSequenceInputSchema,
+} from './validation/document-numbers';

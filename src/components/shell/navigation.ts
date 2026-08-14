@@ -345,6 +345,15 @@ export const NAV_ITEMS: readonly NavItem[] = [
     moreGroup: 'advanced',
   },
   {
+    key: 'overhead',
+    href: '/overhead',
+    labelKey: 'overhead',
+    iconKey: 'expenses',
+    permission: PERMISSIONS.EXPENSES_READ,
+    module: 'overhead',
+    moreGroup: 'advanced',
+  },
+  {
     key: 'settings',
     href: '/settings',
     labelKey: 'settings',

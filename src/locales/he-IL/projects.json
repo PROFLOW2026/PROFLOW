@@ -1,6 +1,7 @@
 {
   "title": "פרויקטים",
   "newProject": "פרויקט חדש",
+  "reportsEntry": "דוח מסחרי",
   "noContractValue": "לא הוגדר",
   "empty": {
     "title": "עדיין אין פרויקטים",
@@ -132,7 +133,7 @@
       "compliance": "ציות וביטוח"
     },
     "header": {
-      "currentContractValue": "סכום חוזה נוכחי",
+      "currentContractValue": "סכום חוזה נוכחי נטו",
       "displayOriginalValue": "לפי החוזה המקורי",
       "managedOpeningValue": "מה שמנהלים מכאן"
     },

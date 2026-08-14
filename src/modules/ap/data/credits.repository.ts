@@ -8,6 +8,7 @@ import { apBills, apCreditApplications, apVendorCredits, vendors } from '@drizzl
 import type { BusinessDate } from '@/shared/dates';
 import type { DbExecutor } from '@/shared/db/types';
 import type { ApCreditApplicationStatus, ApCreditStatus } from '../domain/vendor-credits';
+import { creditApplicationActualReduction } from '../domain/vendor-credits';
 
 export type ApVendorCreditRow = typeof apVendorCredits.$inferSelect;
 export type ApCreditApplicationRow = typeof apCreditApplications.$inferSelect;
@@ -34,6 +35,10 @@ export async function insertVendorCredit(
     readonly creditDate: BusinessDate;
     readonly currency: string;
     readonly amount: string;
+    readonly netAmount?: string;
+    readonly taxAmount?: string;
+    readonly grossAmount?: string;
+    readonly taxBasis?: 'canonical' | 'legacy_undivided' | 'zero_exempt';
     readonly status?: ApCreditStatus;
     readonly notes?: string | null;
     readonly createdByUserId?: string | null;
@@ -50,6 +55,10 @@ export async function insertVendorCredit(
       creditDate: values.creditDate,
       currency: values.currency,
       amount: values.amount,
+      netAmount: values.netAmount ?? values.amount,
+      taxAmount: values.taxAmount ?? '0',
+      grossAmount: values.grossAmount ?? values.amount,
+      taxBasis: values.taxBasis ?? 'legacy_undivided',
       status: values.status ?? 'open',
       notes: values.notes ?? null,
       createdByUserId: values.createdByUserId ?? null,
@@ -109,6 +118,10 @@ function mapCreditRow(raw: Record<string, unknown>): ApVendorCreditRow {
     creditDate: String(raw.credit_date ?? raw.creditDate),
     currency: String(raw.currency),
     amount: String(raw.amount),
+    netAmount: String(raw.net_amount ?? raw.netAmount ?? raw.amount),
+    taxAmount: String(raw.tax_amount ?? raw.taxAmount ?? '0'),
+    grossAmount: String(raw.gross_amount ?? raw.grossAmount ?? raw.amount),
+    taxBasis: String(raw.tax_basis ?? raw.taxBasis ?? 'legacy_undivided'),
     status: String(raw.status) as ApCreditStatus,
     notes: (raw.notes ?? null) as string | null,
     voidedAt: (raw.voided_at ?? raw.voidedAt ?? null) as Date | null,
@@ -125,6 +138,10 @@ export async function updateVendorCreditDraftFields(
   creditId: string,
   values: {
     readonly amount: string;
+    readonly netAmount: string;
+    readonly taxAmount: string;
+    readonly grossAmount: string;
+    readonly taxBasis: 'canonical' | 'legacy_undivided' | 'zero_exempt';
     readonly creditDate: BusinessDate;
     readonly reference: string | null;
     readonly notes: string | null;
@@ -134,6 +151,10 @@ export async function updateVendorCreditDraftFields(
     .update(apVendorCredits)
     .set({
       amount: values.amount,
+      netAmount: values.netAmount,
+      taxAmount: values.taxAmount,
+      grossAmount: values.grossAmount,
+      taxBasis: values.taxBasis,
       creditDate: values.creditDate,
       reference: values.reference,
       notes: values.notes,
@@ -240,6 +261,45 @@ export async function listActiveCreditAmountsForBills(
   for (const row of rows) {
     const list = map.get(row.apBillId) ?? [];
     list.push(row.amount);
+    map.set(row.apBillId, list);
+  }
+  return map;
+}
+
+/** Per-bill Actual reductions using each credit's own NET/GROSS. */
+export async function listActiveCreditActualReductionsForBills(
+  db: DbExecutor,
+  organizationId: string,
+  billIds: readonly string[],
+): Promise<Map<string, string[]>> {
+  const map = new Map<string, string[]>();
+  if (billIds.length === 0) return map;
+  const rows = await db
+    .select({
+      apBillId: apCreditApplications.apBillId,
+      appliedGross: apCreditApplications.amount,
+      currency: apCreditApplications.currency,
+      creditNet: apVendorCredits.netAmount,
+      creditGross: apVendorCredits.grossAmount,
+    })
+    .from(apCreditApplications)
+    .innerJoin(apVendorCredits, eq(apVendorCredits.id, apCreditApplications.creditId))
+    .where(
+      and(
+        eq(apCreditApplications.organizationId, organizationId),
+        inArray(apCreditApplications.apBillId, [...billIds]),
+        eq(apCreditApplications.status, 'applied'),
+      ),
+    );
+  for (const row of rows) {
+    const reduction = creditApplicationActualReduction({
+      currency: row.currency,
+      appliedGross: row.appliedGross,
+      creditNet: row.creditNet,
+      creditGross: row.creditGross,
+    });
+    const list = map.get(row.apBillId) ?? [];
+    list.push(reduction.amount);
     map.set(row.apBillId, list);
   }
   return map;

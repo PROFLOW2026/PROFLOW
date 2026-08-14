@@ -1,5 +1,10 @@
-import { and, eq, ilike, isNull, sql } from 'drizzle-orm';
+import { and, eq, ilike, inArray, isNull, sql } from 'drizzle-orm';
 import { documentLinks, documents } from '@drizzle/schema';
+import {
+  STORAGE_CLEANUP_RETRY_STATUSES,
+  isStorageCleanupStatus,
+  type StorageCleanupStatus,
+} from '../domain/storage-cleanup';
 import {
   ORG_LIST_EXPORT_CAP,
   ORG_LIST_HARD_CAP,
@@ -27,6 +32,12 @@ function mapDocument(row: typeof documents.$inferSelect): DocumentRecord {
     sizeBytes: row.sizeBytes,
     checksum: row.checksum,
     status: row.status,
+    storageCleanupStatus: isStorageCleanupStatus(row.storageCleanupStatus)
+      ? row.storageCleanupStatus
+      : null,
+    storageCleanupAttempts: row.storageCleanupAttempts,
+    storageCleanupError: row.storageCleanupError,
+    storageCleanupLastAttemptedAt: row.storageCleanupLastAttemptedAt,
     uploadedByUserId: row.uploadedByUserId,
     deletedAt: row.deletedAt,
     createdAt: row.createdAt,
@@ -87,6 +98,10 @@ export async function updateDocumentById(
     sizeBytes: number | null;
     checksum: string | null;
     deletedAt: Date | null;
+    storageCleanupStatus: StorageCleanupStatus | null;
+    storageCleanupAttempts: number;
+    storageCleanupError: string | null;
+    storageCleanupLastAttemptedAt: Date | null;
   }>,
 ): Promise<DocumentRecord | null> {
   const [row] = await db
@@ -113,6 +128,27 @@ export async function findDocumentsByChecksum(
         isNull(documents.deletedAt),
       ),
     );
+  return rows.map(mapDocument);
+}
+
+export async function listDeletedDocumentsNeedingStorageCleanup(
+  db: DbExecutor,
+  organizationId: string,
+  options: { limit?: number } = {},
+): Promise<DocumentRecord[]> {
+  const rows = await db
+    .select()
+    .from(documents)
+    .where(
+      and(
+        eq(documents.organizationId, organizationId),
+        eq(documents.status, 'deleted'),
+        inArray(documents.storageCleanupStatus, [...STORAGE_CLEANUP_RETRY_STATUSES]),
+      ),
+    )
+    .orderBy(documents.updatedAt)
+    .limit(resolveListLimit(options.limit, { hardCap: ORG_LIST_HARD_CAP }));
+
   return rows.map(mapDocument);
 }
 

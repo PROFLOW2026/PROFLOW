@@ -120,7 +120,17 @@ function validateVendors(values: Readonly<Record<string, string>>): ImportIssue[
   return issues;
 }
 
-function validateEmployees(values: Readonly<Record<string, string>>): ImportIssue[] {
+function employeeCostPermissionMessage(locale = 'en'): string {
+  const he = locale.startsWith('he');
+  return he
+    ? 'אין הרשאה לייבא תעריף או עלות עובד. נקו את השדה כדי לייבא את העובד בלי תעריף.'
+    : 'No permission to import employee rate or cost. Clear this field to import the employee without a rate.';
+}
+
+function validateEmployees(
+  values: Readonly<Record<string, string>>,
+  options: { locale?: string; canManageWorkforceCost?: boolean } = {},
+): ImportIssue[] {
   const issues: ImportIssue[] = [];
   const rateUnitRaw = emptyToUndefined(values.rateUnit)?.toLowerCase() ?? 'hourly';
   if (!(RATE_UNITS as readonly string[]).includes(rateUnitRaw)) {
@@ -131,6 +141,19 @@ function validateEmployees(values: Readonly<Record<string, string>>): ImportIssu
     });
   }
 
+  const canManageCost = options.canManageWorkforceCost === true;
+  for (const field of fieldDefsForKind('employees')) {
+    if (!field.requiresCostManage) continue;
+    const raw = emptyToUndefined(values[field.key]);
+    if (raw && !canManageCost) {
+      issues.push({
+        severity: 'error',
+        field: field.key,
+        message: employeeCostPermissionMessage(options.locale ?? 'en'),
+      });
+    }
+  }
+
   const baseRate = emptyToUndefined(values.baseRate);
   if (baseRate && !AMOUNT_RE.test(baseRate)) {
     issues.push({ severity: 'error', field: 'baseRate', message: 'Invalid amount' });
@@ -139,7 +162,7 @@ function validateEmployees(values: Readonly<Record<string, string>>): ImportIssu
   const parsed = createEmployeeSchema.safeParse({
     name: values.name ?? '',
     rateUnit: rateUnitRaw,
-    baseRate,
+    baseRate: canManageCost ? baseRate : undefined,
     email: emptyToUndefined(values.email) ?? '',
     phone: emptyToUndefined(values.phone),
     jobTitle: emptyToUndefined(values.jobTitle),
@@ -514,7 +537,11 @@ export function validateBoqItems(
 export function validateMappedValues(
   kind: EnabledImportKind,
   values: Readonly<Record<string, string>>,
-  options: { baseCurrency?: string; locale?: string } = {},
+  options: {
+    baseCurrency?: string;
+    locale?: string;
+    canManageWorkforceCost?: boolean;
+  } = {},
 ): ImportIssue[] {
   switch (kind) {
     case 'clients':
@@ -524,7 +551,7 @@ export function validateMappedValues(
     case 'vendors':
       return validateVendors(values);
     case 'employees':
-      return validateEmployees(values);
+      return validateEmployees(values, options);
     case 'projects':
       return validateProjects(values);
     case 'opening_values':
@@ -541,7 +568,11 @@ export function validateMappedValues(
 export function validateMappedRows(
   kind: EnabledImportKind,
   rows: readonly { rowNumber: number; values: Readonly<Record<string, string>> }[],
-  options: { baseCurrency?: string; locale?: string } = {},
+  options: {
+    baseCurrency?: string;
+    locale?: string;
+    canManageWorkforceCost?: boolean;
+  } = {},
 ): MappedImportRow[] {
   const fields = fieldDefsForKind(kind);
   return rows.map((row) => {

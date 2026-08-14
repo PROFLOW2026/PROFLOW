@@ -138,6 +138,13 @@ export {
 } from './domain/offline-marker';
 
 export {
+  compareDraftsForSync,
+  captureOwnerTypeForProductKind,
+  ownerIdFromCapturePayload,
+  pendingOwnerDraftLocalIdFromPayload,
+} from './domain/sync-order';
+
+export {
   expensePayloadFromFormData,
   timeEntryPayloadFromFormData,
   changeRequestPayloadFromFormData,

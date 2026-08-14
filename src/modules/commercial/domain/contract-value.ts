@@ -26,6 +26,10 @@ import type {
  * via append-only contract value events. Pending changes are shown separately.
  */
 
+export function oppositeChangeDirection(direction: ChangeDirection): ChangeDirection {
+  return direction === 'addition' ? 'reduction' : 'addition';
+}
+
 export function signedChangeAmount(
   direction: ChangeDirection,
   magnitude: MoneyValue,

@@ -2,6 +2,8 @@
  * Documents domain types. Framework-free.
  */
 
+import type { StorageCleanupStatus } from './storage-cleanup';
+
 export const DOCUMENT_STATUSES = ['pending', 'available', 'deleted'] as const;
 export type DocumentStatus = (typeof DOCUMENT_STATUSES)[number];
 
@@ -40,6 +42,10 @@ export interface DocumentRecord {
   readonly sizeBytes: number | null;
   readonly checksum: string | null;
   readonly status: DocumentStatus;
+  readonly storageCleanupStatus: StorageCleanupStatus | null;
+  readonly storageCleanupAttempts: number;
+  readonly storageCleanupError: string | null;
+  readonly storageCleanupLastAttemptedAt: Date | null;
   readonly uploadedByUserId: string | null;
   readonly deletedAt: Date | null;
   readonly createdAt: Date;

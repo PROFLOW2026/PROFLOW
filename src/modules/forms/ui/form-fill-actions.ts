@@ -124,7 +124,7 @@ export async function submitAction(
   if (!submissionId) return { error: tErrors('validationFailed') };
 
   try {
-    const { template } = await loadFields(submissionId);
+    const { template, submission } = await loadFields(submissionId);
     const answers = parseAnswersFromFormData(formData, template.schema.fields);
     await withOrgContext((context) =>
       submitFormSubmission(context, {
@@ -136,6 +136,9 @@ export async function submitAction(
     );
     revalidatePath(`/forms/${submissionId}`);
     revalidatePath('/forms');
+    if (submission.ownerType === 'work_order') {
+      revalidatePath(`/work-orders/${submission.ownerId}`);
+    }
     return { ok: true };
   } catch (error) {
     if (error instanceof AppError) return { error: tErrors('validationFailed') };

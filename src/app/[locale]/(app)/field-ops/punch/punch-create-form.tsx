@@ -20,10 +20,13 @@ import {
   type PunchPriority,
 } from '@/modules/field-ops/domain/types';
 import { punchPayloadFromFormData } from '@/modules/offline/domain/payloads';
-import { useOfflineAwareFormAction } from '@/modules/offline/ui/use-offline-aware-form-action';
 import { Link } from '@/shared/i18n/navigation';
 import { createPunchListItemAction, type FieldOpsFormState } from '../actions';
-import { FieldOpsPhotoLimitationNote } from '../field-ops-photo-limitation-note';
+import {
+  FieldOpsPhotoStaging,
+  useFieldOpsCreateFormAction,
+  useStagedCreatePhotos,
+} from '../field-ops-photo-staging';
 
 const NONE = '__none__';
 
@@ -31,22 +34,28 @@ export function PunchCreateForm({
   projects,
   workPackages,
   defaultProjectId,
+  canManageDocuments,
+  storageConfigured,
 }: {
   projects: readonly { id: string; name: string }[];
   workPackages: readonly FieldOpsWorkPackageOption[];
   defaultProjectId?: string;
+  canManageDocuments: boolean;
+  storageConfigured: boolean;
 }) {
   const t = useTranslations('fieldOps.createPunch');
   const tPriorities = useTranslations('fieldOps.priorities');
   const tCommon = useTranslations('common');
   const tOffline = useTranslations('offline');
+  const photos = useStagedCreatePhotos();
   const offlineSuccessState = useMemo<FieldOpsFormState>(() => ({ offlineQueued: true }), []);
-  const wrappedAction = useOfflineAwareFormAction<FieldOpsFormState>({
+  const wrappedAction = useFieldOpsCreateFormAction<FieldOpsFormState>({
     kind: 'punch',
     onlineAction: createPunchListItemAction,
     buildPayload: punchPayloadFromFormData,
     offlineSuccessState,
     missingOrgError: tOffline('errors.missingOrganization'),
+    appendPhotos: photos.appendToFormData,
   });
   const [state, formAction, pending] = useActionState<FieldOpsFormState, FormData>(
     wrappedAction,
@@ -162,7 +171,13 @@ export function PunchCreateForm({
         {(control) => <Input {...control} type="date" name="dueDate" />}
       </Field>
 
-      <FieldOpsPhotoLimitationNote />
+      <FieldOpsPhotoStaging
+        files={photos.files}
+        onFilesChange={photos.setFiles}
+        canManageDocuments={canManageDocuments}
+        storageConfigured={storageConfigured}
+        disabled={pending}
+      />
 
       <Button type="submit" className="h-11 w-full sm:w-auto" disabled={pending || !projectId}>
         {pending ? tCommon('states.saving') : t('submit')}

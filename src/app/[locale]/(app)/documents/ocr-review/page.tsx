@@ -8,6 +8,7 @@ import {
   isOcrReviewUiAllowed,
   OCR_REVIEW_SURFACE_STATUSES,
 } from '@/modules/ocr';
+import { getOcrFeatureMode } from '@/modules/ocr/domain/feature-gate';
 import { OcrReviewPanelLazy } from '@/modules/ocr/ui/ocr-review-panel-lazy';
 import { listVendorsForOrg } from '@/modules/vendors';
 import { getOrganizationTaxId } from '@/modules/tenancy';
@@ -61,6 +62,7 @@ export default async function OcrReviewPage({
     getTranslations('documents.ocr'),
   ]);
   const workflow = parseWorkflow(target);
+  const featureMode = getOcrFeatureMode();
 
   const data = await withOrgContext(async (context) => {
     try {
@@ -101,7 +103,7 @@ export default async function OcrReviewPage({
     <div className="flex flex-col gap-6">
       <PageHeader
         title={tOcr('title')}
-        description={tOcr('description')}
+        description={`${tOcr(`configurationState.${featureMode}`)} ${tOcr('description')}`}
         actions={
           <div className="flex flex-wrap items-center gap-3">
             <Link

@@ -141,6 +141,8 @@ export async function createApBillAction(
         dueDate: formValue(formData, 'dueDate'),
         currency: requiredFormValue(formData, 'currency'),
         totalAmount: requiredFormValue(formData, 'totalAmount'),
+        amountIncludesTax: formData.get('amountIncludesTax') === 'on',
+        asDraft: formData.get('asDraft') === 'on',
         retentionAmount: formValue(formData, 'retentionAmount'),
         retentionPercent: formValue(formData, 'retentionPercent'),
         notes: formValue(formData, 'notes'),
@@ -367,6 +369,9 @@ export async function updateVendorCreditAction(
         amount: requiredFormValue(formData, 'amount'),
         creditDate: requiredFormValue(formData, 'creditDate'),
         reference: formValue(formData, 'reference'),
+        amountIncludesTax: formData.get('amountIncludesTax') === 'on',
+        netAmount: formValue(formData, 'netAmount'),
+        taxAmount: formValue(formData, 'taxAmount'),
         notes: formValue(formData, 'notes'),
       }),
     );
@@ -423,6 +428,9 @@ export async function createVendorCreditAction(
         creditDate: requiredFormValue(formData, 'creditDate'),
         currency: requiredFormValue(formData, 'currency'),
         amount: requiredFormValue(formData, 'amount'),
+        amountIncludesTax: formData.get('amountIncludesTax') === 'on',
+        netAmount: formValue(formData, 'netAmount'),
+        taxAmount: formValue(formData, 'taxAmount'),
         notes: formValue(formData, 'notes'),
       }),
     );

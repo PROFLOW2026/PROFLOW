@@ -119,6 +119,9 @@ export interface ChangeOrderRecord {
   readonly currency: string;
   readonly effectiveDate: string;
   readonly notes: string | null;
+  readonly reversalOfChangeOrderId: string | null;
+  readonly reversalReason: string | null;
+  readonly reversedByUserId: string | null;
 }
 
 export interface ContractValueEventRecord {
@@ -171,6 +174,7 @@ export interface ChangeRequestDetail extends ChangeRequestRecord {
   readonly quote: QuoteRecord | null;
   readonly quoteVersions: readonly QuoteVersionRecord[];
   readonly changeOrder: ChangeOrderRecord | null;
+  readonly reversingChangeOrder: ChangeOrderRecord | null;
 }
 
 export const COMMERCIAL_AUDIT_ACTIONS = {
@@ -184,4 +188,5 @@ export const COMMERCIAL_AUDIT_ACTIONS = {
   QUOTE_VERSION_CREATED: 'quote_version.created',
   QUOTE_VERSION_ISSUED: 'quote_version.issued',
   CHANGE_ORDER_CREATED: 'change_order.created',
+  CHANGE_ORDER_REVERSED: 'change_order.reversed',
 } as const;

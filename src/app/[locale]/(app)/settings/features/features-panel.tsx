@@ -47,6 +47,9 @@ function ModuleRow({
     <form action={action} className="flex flex-col gap-3 border-b border-[var(--pf-border-default)] py-3 last:border-0 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
       <div className="min-w-0 flex-1">
         <p className="text-start font-medium">{moduleLabel}</p>
+        {moduleKey === 'portal' ? (
+          <p className="text-start text-xs text-[var(--pf-text-muted)]">{t('portalHint')}</p>
+        ) : null}
         {defaultMode === 'auto' && !isActive ? (
           <p className="text-start text-xs text-[var(--pf-text-muted)]">{t('autoHint')}</p>
         ) : null}

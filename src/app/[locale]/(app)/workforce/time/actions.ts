@@ -27,6 +27,8 @@ const WORKFORCE_ERROR_KEYS = [
   'timeEntryArchived',
   'invalidWorkPackage',
   'invalidPhase',
+  'closedMonthNeedsProject',
+  'closedMonthCurrencyMismatch',
 ] as const;
 
 async function mapActionError(error: unknown, fallback: string): Promise<TimeEntryFormState> {
@@ -38,6 +40,20 @@ async function mapActionError(error: unknown, fallback: string): Promise<TimeEnt
       const tWorkforce = await getTranslations('workforce');
       return { error: tWorkforce(`errors.${shortKey}` as 'errors.invalidBulkRange') };
     }
+  }
+  if (error.messageKey.startsWith('monthClose.')) {
+    const tMonthClose = await getTranslations('monthClose');
+    const key = error.messageKey.slice('monthClose.'.length);
+    try {
+      return { error: tMonthClose(key as 'errors.useCorrectionNotRewrite') };
+    } catch {
+      return { error: fallback };
+    }
+  }
+  if (error.messageKey.startsWith('approvals.errors.')) {
+    const tApprovals = await getTranslations('approvals');
+    const shortKey = error.messageKey.slice('approvals.errors.'.length);
+    return { error: tApprovals(`errors.${shortKey}` as 'errors.pending') };
   }
   return { error: fallback };
 }

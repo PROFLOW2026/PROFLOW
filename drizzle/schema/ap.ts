@@ -1,10 +1,12 @@
 import { sql } from 'drizzle-orm';
 import {
+  boolean,
   check,
   date,
   foreignKey,
   index,
   integer,
+  jsonb,
   numeric,
   pgTable,
   text,
@@ -55,7 +57,24 @@ export const apBills = pgTable(
     billDate: date('bill_date', { mode: 'string' }),
     dueDate: date('due_date', { mode: 'string' }),
     currency: currencyCode().notNull(),
+    /**
+     * Payable GROSS (cash / outstanding / payments). Always equals `grossAmount`.
+     * Actual vendor cost uses `netAmount`, never this column.
+     */
     totalAmount: moneyAmount('total_amount').notNull(),
+    /** Canonical NET — Actual / profit. */
+    netAmount: moneyAmount('net_amount').notNull(),
+    taxAmount: moneyAmount('tax_amount').notNull().default('0'),
+    /** Canonical GROSS = net + tax. Equals totalAmount. */
+    grossAmount: moneyAmount('gross_amount').notNull(),
+    amountIncludesTax: boolean('amount_includes_tax'),
+    taxSnapshot: jsonb('tax_snapshot'),
+    /**
+     * canonical = explicit split from tax engine or manual net/tax.
+     * legacy_undivided = pre-0036 row; net=gross=total; VAT unknown — do not invent.
+     * zero_exempt = explicit zero/exempt tax.
+     */
+    taxBasis: text('tax_basis').notNull().default('legacy_undivided'),
     /** Held cash timing — does NOT reduce recognized Actual. */
     retentionAmount: moneyAmount('retention_amount').notNull().default('0'),
     retentionHeldRemaining: moneyAmount('retention_held_remaining').notNull().default('0'),
@@ -78,6 +97,15 @@ export const apBills = pgTable(
         AND ${table.retentionHeldRemaining} >= 0
         AND ${table.retentionHeldRemaining} <= ${table.retentionAmount}
         AND ${table.retentionAmount} <= ${table.totalAmount}`,
+    ),
+    check(
+      'ap_bills_tax_basis_known',
+      sql`${table.taxBasis} IN ('canonical', 'legacy_undivided', 'zero_exempt')`,
+    ),
+    check(
+      'ap_bills_net_tax_gross',
+      sql`${table.netAmount} + ${table.taxAmount} = ${table.grossAmount}
+        AND ${table.grossAmount} = ${table.totalAmount}`,
     ),
   ],
 );
@@ -300,6 +328,10 @@ export const apVendorCredits = pgTable(
     creditDate: date('credit_date', { mode: 'string' }).notNull(),
     currency: currencyCode().notNull(),
     amount: moneyAmount('amount').notNull(),
+    netAmount: moneyAmount('net_amount').notNull(),
+    taxAmount: moneyAmount('tax_amount').notNull().default('0'),
+    grossAmount: moneyAmount('gross_amount').notNull(),
+    taxBasis: text('tax_basis').notNull().default('legacy_undivided'),
     status: text('status').notNull().default('open'),
     notes: text('notes'),
     voidedAt: timestamp('voided_at', { withTimezone: true }),
@@ -314,6 +346,15 @@ export const apVendorCredits = pgTable(
     check(
       'ap_vendor_credits_status_known',
       sql`${table.status} IN ('draft', 'open', 'applied', 'void')`,
+    ),
+    check(
+      'ap_vendor_credits_tax_basis_known',
+      sql`${table.taxBasis} IN ('canonical', 'legacy_undivided', 'zero_exempt')`,
+    ),
+    check(
+      'ap_vendor_credits_net_tax_gross',
+      sql`${table.netAmount} + ${table.taxAmount} = ${table.grossAmount}
+        AND ${table.grossAmount} = ${table.amount}`,
     ),
     foreignKey({
       columns: [table.vendorId, table.organizationId],

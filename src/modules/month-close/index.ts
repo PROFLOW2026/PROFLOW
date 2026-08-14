@@ -40,10 +40,14 @@ export {
 export type { CompletenessCheckInput } from './domain/completeness';
 
 export {
+  CLOSED_PERIOD_FREEZE_CODE,
   assertCanTransitionMonthClose,
   assertPeriodClosed,
   assertPeriodNotClosed,
   canTransitionMonthClose,
+  closedPeriodSourceRewriteError,
+  isClosedPeriodFreezeError,
+  rethrowClosedPeriodRewrite,
   statusShape,
 } from './domain/period-state';
 
@@ -58,6 +62,7 @@ export {
 export {
   assertMonthOpenForRewrite,
   closeMonthClosePeriod,
+  createClosedPeriodSourceCorrection,
   createMonthCloseAdjustment,
   demoteMonthCloseToOpen,
   ensureMonthClosePeriod,

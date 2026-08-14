@@ -27,6 +27,10 @@ export async function voidPayment(context: OrgContext, paymentId: string) {
     after: { status: 'void', voidedAt: voidedAt.toISOString() },
   });
 
+  if (!payment.billingRecordId) {
+    return null;
+  }
+
   const billingRecord = await findBillingRecordById(
     context.db,
     context.organizationId,

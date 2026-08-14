@@ -5,6 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { ReceivablesAgingPanel } from '@/modules/billing/ui/receivables-aging-panel';
 import { Link } from '@/shared/i18n/navigation';
 import type { OrganizationReportsAnalytics } from '../application/get-organization-reports-analytics';
+import type { ReportsSection } from '../domain/reports-section';
 import type { CountReportMetric, MoneyReportMetric, ReportMetricKind } from '../domain/report-metric';
 import type { DataConfidenceLevel, DataConfidenceReason } from '../domain/data-confidence';
 import { CashFlowView } from './cash-flow-view';
@@ -22,14 +23,27 @@ function natureKey(kind: ReportMetricKind | 'operational'): string {
 
 export async function ReportsAnalyticsView({
   analytics,
+  focusSection = null,
 }: {
   readonly analytics: OrganizationReportsAnalytics;
+  readonly focusSection?: ReportsSection | null;
 }) {
   const t = await getTranslations('dashboard.reports');
   const tFinancial = await getTranslations('financial');
   const { rollup, cashFlow } = analytics;
 
-  const moneyCopy = (metric: MoneyReportMetric, label: string) => ({
+  const sectionClass = (id: ReportsSection) =>
+    cn(
+      'flex min-w-0 flex-col gap-3 scroll-mt-4',
+      focusSection === id &&
+        'rounded-lg ring-1 ring-[var(--pf-border-strong)] p-3',
+    );
+
+  const moneyCopy = (
+    metric: MoneyReportMetric,
+    label: string,
+    basisKey?: 'netExVat' | 'billingCash' | 'profitNet' | 'outstandingCash',
+  ) => ({
     label,
     natureLabel: t(`natures.${natureKey(metric.kind)}` as 'natures.actual'),
     inclusionLabels: metric.inclusions.map((key) =>
@@ -38,6 +52,7 @@ export async function ReportsAnalyticsView({
     exclusionLabels: metric.exclusions.map((key) =>
       t(`exclusions.${key}` as 'exclusions.foreignCurrencyProjects'),
     ),
+    basisLabel: basisKey ? tFinancial(`basis.${basisKey}`) : undefined,
   });
 
   const countCopy = (metric: CountReportMetric, label: string) => ({
@@ -87,7 +102,7 @@ export async function ReportsAnalyticsView({
       </div>
 
       {analytics.commercial ? (
-        <section className="flex min-w-0 flex-col gap-3">
+        <section id="reports-commercial" className={sectionClass('commercial')}>
           <div className="min-w-0">
             <h2 className="text-sm font-semibold">{t('sections.commercial')}</h2>
             <p className="break-words text-xs text-[var(--pf-text-secondary)]">
@@ -97,22 +112,23 @@ export async function ReportsAnalyticsView({
           <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
             <MoneyReportMetricTile
               metric={analytics.commercial.original}
-              copy={moneyCopy(analytics.commercial.original, tFinancial('originalContractValue'))}
+              copy={moneyCopy(analytics.commercial.original, tFinancial('originalContractValue'), 'netExVat')}
             />
             <MoneyReportMetricTile
               metric={analytics.commercial.approvedAdditions}
-              copy={moneyCopy(analytics.commercial.approvedAdditions, tFinancial('approvedAdditions'))}
+              copy={moneyCopy(analytics.commercial.approvedAdditions, tFinancial('approvedAdditions'), 'netExVat')}
             />
             <MoneyReportMetricTile
               metric={analytics.commercial.approvedReductions}
               copy={moneyCopy(
                 analytics.commercial.approvedReductions,
                 tFinancial('approvedReductions'),
+                'netExVat',
               )}
             />
             <MoneyReportMetricTile
               metric={analytics.commercial.current}
-              copy={moneyCopy(analytics.commercial.current, tFinancial('currentContractValue'))}
+              copy={moneyCopy(analytics.commercial.current, tFinancial('currentContractValue'), 'netExVat')}
             />
             <MoneyReportMetricTile
               metric={analytics.commercial.pending}
@@ -123,7 +139,7 @@ export async function ReportsAnalyticsView({
       ) : null}
 
       {analytics.cash || analytics.showArAging || cashFlow ? (
-        <section className="flex min-w-0 flex-col gap-4">
+        <section id="reports-cash" className={cn(sectionClass('cash'), 'gap-4')}>
           <div className="min-w-0">
             <h2 className="text-sm font-semibold">{t('sections.cash')}</h2>
             <p className="break-words text-xs text-[var(--pf-text-secondary)]">
@@ -134,15 +150,15 @@ export async function ReportsAnalyticsView({
             <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-3">
               <MoneyReportMetricTile
                 metric={analytics.cash.invoiced}
-                copy={moneyCopy(analytics.cash.invoiced, tFinancial('invoiced'))}
+                copy={moneyCopy(analytics.cash.invoiced, tFinancial('invoiced'), 'billingCash')}
               />
               <MoneyReportMetricTile
                 metric={analytics.cash.paid}
-                copy={moneyCopy(analytics.cash.paid, tFinancial('paid'))}
+                copy={moneyCopy(analytics.cash.paid, tFinancial('paid'), 'billingCash')}
               />
               <MoneyReportMetricTile
                 metric={analytics.cash.outstanding}
-                copy={moneyCopy(analytics.cash.outstanding, tFinancial('outstanding'))}
+                copy={moneyCopy(analytics.cash.outstanding, tFinancial('outstanding'), 'outstandingCash')}
                 colorizeNegative
               />
             </div>
@@ -177,7 +193,7 @@ export async function ReportsAnalyticsView({
       ) : null}
 
       {analytics.cost ? (
-        <section className="flex min-w-0 flex-col gap-3">
+        <section id="reports-cost" className={sectionClass('cost')}>
           <div className="min-w-0">
             <h2 className="text-sm font-semibold">{t('sections.cost')}</h2>
             <p className="break-words text-xs text-[var(--pf-text-secondary)]">
@@ -187,7 +203,7 @@ export async function ReportsAnalyticsView({
           <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             <MoneyReportMetricTile
               metric={analytics.cost.actual}
-              copy={moneyCopy(analytics.cost.actual, tFinancial('actualCostToDate'))}
+              copy={moneyCopy(analytics.cost.actual, tFinancial('actualCostToDate'), 'netExVat')}
             />
             <MoneyReportMetricTile
               metric={analytics.cost.labor}
@@ -238,7 +254,7 @@ export async function ReportsAnalyticsView({
       ) : null}
 
       {analytics.profitability ? (
-        <section className="flex min-w-0 flex-col gap-3">
+        <section id="reports-profitability" className={sectionClass('profitability')}>
           <div className="min-w-0">
             <h2 className="text-sm font-semibold">{t('sections.profitability')}</h2>
             <p className="break-words text-xs text-[var(--pf-text-secondary)]">
@@ -251,6 +267,7 @@ export async function ReportsAnalyticsView({
               copy={moneyCopy(
                 analytics.profitability.actualProfit,
                 tFinancial('kpis.actualMargin'),
+                'profitNet',
               )}
               colorizeNegative
             />
@@ -259,6 +276,7 @@ export async function ReportsAnalyticsView({
               copy={moneyCopy(
                 analytics.profitability.estimatedProfit,
                 tFinancial('kpis.forecastMargin'),
+                'profitNet',
               )}
               colorizeNegative
             />
@@ -286,7 +304,7 @@ export async function ReportsAnalyticsView({
         </section>
       ) : null}
 
-      <section className="flex min-w-0 flex-col gap-3">
+      <section id="reports-operations" className={sectionClass('operations')}>
         <div className="min-w-0">
           <h2 className="text-sm font-semibold">{t('sections.operations')}</h2>
           <p className="break-words text-xs text-[var(--pf-text-secondary)]">
@@ -425,7 +443,7 @@ export async function ReportsAnalyticsView({
         </div>
       </section>
 
-      <section className="flex min-w-0 flex-col gap-3">
+      <section id="reports-comparison" className={sectionClass('comparison')}>
         <div className="min-w-0">
           <h2 className="text-sm font-semibold">{t('sections.comparison')}</h2>
           <p className="break-words text-xs text-[var(--pf-text-secondary)]">

@@ -52,6 +52,32 @@ describe('nav grouping', () => {
     expect(byKey.assets?.moreGroup).toBe('advanced');
     expect(byKey.compliance?.moreGroup).toBe('advanced');
     expect(byKey.vendorBills?.moreGroup).toBe('advanced');
+    expect(byKey.overhead?.moreGroup).toBe('advanced');
+  });
+
+  it('lists overhead under advanced when the overhead module is on', () => {
+    const item = NAV_ITEMS.find((entry) => entry.key === 'overhead');
+    expect(item?.href).toBe('/overhead');
+    expect(item?.moreGroup).toBe('advanced');
+    expect(item?.permission).toBe(PERMISSIONS.EXPENSES_READ);
+    expect(item?.module).toBe('overhead');
+
+    const modules = allModulesOn();
+    const withModule = visibleNavItems(new Set([PERMISSIONS.EXPENSES_READ]), modules, {
+      workMix: 'projects',
+    });
+    expect(withModule.some((entry) => entry.key === 'overhead')).toBe(true);
+
+    modules.overhead = false;
+    const withoutModule = visibleNavItems(new Set([PERMISSIONS.EXPENSES_READ]), modules, {
+      workMix: 'projects',
+    });
+    expect(withoutModule.some((entry) => entry.key === 'overhead')).toBe(false);
+
+    const noPermission = visibleNavItems(new Set([PERMISSIONS.PROJECTS_READ]), allModulesOn(), {
+      workMix: 'projects',
+    });
+    expect(noPermission.some((entry) => entry.key === 'overhead')).toBe(false);
   });
 
   it('lists recurring financial drafts under business, distinct from service recurrence', () => {
@@ -141,6 +167,7 @@ describe('nav grouping', () => {
     expect(groups.find((entry) => entry.group === 'advanced')?.items.map((i) => i.key)).toEqual([
       'vendorBills',
       'assets',
+      'overhead',
     ]);
     expect(settings.map((item) => item.key)).toEqual(['settings']);
   });

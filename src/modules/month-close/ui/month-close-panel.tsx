@@ -282,8 +282,35 @@ export function MonthClosePanel({
               <ActionAlert state={closeState} savedLabel={t('actions.saved')} />
 
               {selected.status === 'closed' ? (
-                <Alert tone="warning">{t('closed.notice')}</Alert>
+                <Alert tone="warning">
+                  <p className="font-medium">{t('closed.notice')}</p>
+                  <p className="mt-1 text-sm">{t('closed.sourceRewriteHint')}</p>
+                </Alert>
               ) : null}
+
+              <div className="rounded-lg border border-[var(--pf-border-default)] p-4 text-sm">
+                <h3 className="mb-2 font-medium">{t('coherence.title')}</h3>
+                <ul className="flex flex-col gap-1.5 text-[var(--pf-text-secondary)]">
+                  <li>
+                    <span className="font-medium text-[var(--pf-text-primary)]">
+                      {t('coherence.historicalTruth')}:{' '}
+                    </span>
+                    {t('coherence.historicalTruthBody')}
+                  </li>
+                  <li>
+                    <span className="font-medium text-[var(--pf-text-primary)]">
+                      {t('coherence.currentTruth')}:{' '}
+                    </span>
+                    {t('coherence.currentTruthBody')}
+                  </li>
+                  <li>
+                    <span className="font-medium text-[var(--pf-text-primary)]">
+                      {t('coherence.openPeriod')}:{' '}
+                    </span>
+                    {t('coherence.openPeriodBody')}
+                  </li>
+                </ul>
+              </div>
 
               <CompletenessChecklist snapshot={selected.completenessSnapshot} />
 
@@ -343,32 +370,47 @@ export function MonthClosePanel({
                             </p>
                           ) : null}
                           {item.isEconomic ? (
-                            <p className="mt-2 flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                              {item.originalAmount ? (
-                                <span>
-                                  <span className="text-[var(--pf-text-muted)]">
-                                    {t('adjustments.original')}:{' '}
+                            <div className="mt-2 flex flex-col gap-1">
+                              <p className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                                {item.originalAmount ? (
+                                  <span>
+                                    <span className="text-[var(--pf-text-muted)]">
+                                      {t('adjustments.originalTransaction')}:{' '}
+                                    </span>
+                                    <MoneyText
+                                      value={item.originalAmount}
+                                      className="line-through opacity-70"
+                                    />
                                   </span>
-                                  <MoneyText
-                                    value={item.originalAmount}
-                                    className="line-through opacity-70"
-                                  />
-                                </span>
-                              ) : null}
-                              {item.correctionAmount ? (
-                                <span>
-                                  <span className="text-[var(--pf-text-muted)]">
-                                    {t('adjustments.correction')}:{' '}
+                                ) : null}
+                                {item.correctionAmount ? (
+                                  <span>
+                                    <span className="text-[var(--pf-text-muted)]">
+                                      {t('adjustments.correction')}:{' '}
+                                    </span>
+                                    <MoneyText
+                                      value={item.correctionAmount}
+                                      className={
+                                        item.isSuperseded ? 'line-through opacity-70' : undefined
+                                      }
+                                    />
                                   </span>
-                                  <MoneyText
-                                    value={item.correctionAmount}
-                                    className={
-                                      item.isSuperseded ? 'line-through opacity-70' : undefined
-                                    }
-                                  />
+                                ) : null}
+                              </p>
+                              <p>
+                                <span className="text-[var(--pf-text-muted)]">
+                                  {t('adjustments.currentTruth')}:{' '}
                                 </span>
-                              ) : null}
-                            </p>
+                                {item.currentEconomicAmount ? (
+                                  <MoneyText value={item.currentEconomicAmount} />
+                                ) : (
+                                  <span>{t('adjustments.supersededFromTotals')}</span>
+                                )}
+                              </p>
+                              <p className="text-xs text-[var(--pf-text-muted)]">
+                                {t('adjustments.historicalTruth')}
+                              </p>
+                            </div>
                           ) : null}
                           <p className="mt-1 text-[var(--pf-text-secondary)]">{adjustment.reason}</p>
                         </li>
@@ -435,6 +477,7 @@ function EconomicAdjustmentForm({
       <h3 className="font-medium">{t('adjustments.title')}</h3>
       <p className="text-sm text-[var(--pf-text-secondary)]">{t('adjustments.hint')}</p>
       <p className="text-sm text-[var(--pf-text-secondary)]">{t('adjustments.economicHint')}</p>
+      <p className="text-sm text-[var(--pf-text-secondary)]">{t('adjustments.sourceRewriteHint')}</p>
       <input type="hidden" name="periodId" value={periodId} />
       <div>
         <Label htmlFor="adjustmentType">{t('adjustments.type')}</Label>

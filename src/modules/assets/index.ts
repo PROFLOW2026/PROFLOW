@@ -13,11 +13,16 @@ export {
   updateMaintenanceRecord,
 } from './application/maintenance';
 export {
+  archiveInventoryLocation,
   createInventoryItem,
+  createInventoryLocation,
+  ensureDefaultInventoryLocation,
   getInventoryItemById,
   listInventoryItemsForOrg,
+  listInventoryLocationsForOrg,
   listMovementsForInventoryItem,
   recordInventoryMovement,
+  updateInventoryLocation,
 } from './application/inventory';
 export type { InventoryItemWithReorder } from './application/inventory';
 export {
@@ -46,6 +51,8 @@ export type {
   FleetVehicleRecord,
   MaintenanceRecordRow,
   InventoryItemRecord,
+  InventoryLocationBalanceRecord,
+  InventoryLocationRecord,
   InventoryMovementRecord,
   MaterialUsageRecord,
   EquipmentUsageRecord,
@@ -53,10 +60,18 @@ export type {
 
 export {
   applyInventoryMovement,
+  applySignedQuantityChange,
+  defaultInventoryLocationName,
   getReorderStatus,
   isInventoryQuantityGlOrExpense,
   isMaintenanceCostAnExpense,
+  isZeroQuantity,
+  locationDeltasForMovement,
   normalizeQuantity,
+  sumQuantities,
+  DEFAULT_INVENTORY_LOCATION_CODE,
+  DEFAULT_INVENTORY_LOCATION_NAME_EN,
+  DEFAULT_INVENTORY_LOCATION_NAME_HE,
   REORDER_STATUSES,
 } from './domain/inventory';
 export type { ReorderStatus } from './domain/inventory';
@@ -96,6 +111,9 @@ export {
   updateMaintenanceRecordSchema,
   createInventoryItemSchema,
   recordInventoryMovementSchema,
+  createInventoryLocationSchema,
+  updateInventoryLocationSchema,
+  archiveInventoryLocationSchema,
   recordMaterialUsageSchema,
   recordEquipmentUsageSchema,
   archiveMaterialUsageSchema,
@@ -110,6 +128,9 @@ export type {
   UpdateMaintenanceRecordInput,
   CreateInventoryItemInput,
   RecordInventoryMovementInput,
+  CreateInventoryLocationInput,
+  UpdateInventoryLocationInput,
+  ArchiveInventoryLocationInput,
   RecordMaterialUsageInput,
   RecordEquipmentUsageInput,
   ArchiveMaterialUsageInput,

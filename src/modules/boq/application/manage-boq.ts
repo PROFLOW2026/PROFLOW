@@ -7,6 +7,7 @@ import { assertPermission, hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { noteModuleUsage } from '@/modules/tenancy';
 import { computeLineAmount, quantityString } from '../domain/amounts';
+import { maskBoqNodeMoney } from '../domain/mask-money';
 import {
   canActivateBoq,
   canEditBoqBaseline,
@@ -271,15 +272,7 @@ export async function getProjectBoqWorkspace(context: OrgContext, projectId: str
     hasPermission(context, PERMISSIONS.CONTRACTS_READ) ||
     hasPermission(context, PERMISSIONS.BOQ_BILLING_CREATE);
 
-  const safeNodes = showMoney
-    ? nodes
-    : nodes.map((node) => ({
-        ...node,
-        originalUnitPrice: '0',
-        originalAmount: '0',
-        currentUnitPrice: '0',
-        currentAmount: '0',
-      }));
+  const safeNodes = showMoney ? nodes : nodes.map(maskBoqNodeMoney);
 
   return {
     project,

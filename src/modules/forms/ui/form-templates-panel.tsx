@@ -183,6 +183,11 @@ export function FormTemplatesPanel({
                     )}
                   </Field>
                 ) : null}
+                {draftType === 'signature' ? (
+                  <p className="text-xs text-[var(--pf-text-secondary)]">
+                    {t('settings.signatureTypeHint')}
+                  </p>
+                ) : null}
                 <label className="flex items-center gap-2 text-sm">
                   <input
                     type="checkbox"

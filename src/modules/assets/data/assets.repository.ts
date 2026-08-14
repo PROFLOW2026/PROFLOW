@@ -1,8 +1,11 @@
 import { and, desc, eq, isNull, notInArray, sql } from 'drizzle-orm';
+import { alias } from 'drizzle-orm/pg-core';
 import {
   assets,
   fleetVehicles,
   inventoryItems,
+  inventoryLocations,
+  inventoryLocationBalances,
   inventoryMovements,
   maintenanceRecords,
   projects,
@@ -20,11 +23,14 @@ import type {
   AssetStatus,
   FleetVehicleRecord,
   InventoryItemRecord,
+  InventoryLocationBalanceRecord,
+  InventoryLocationRecord,
   InventoryMovementRecord,
   InventoryMovementType,
   MaintenanceRecordRow,
   MaintenanceStatus,
 } from '../domain/types';
+import { normalizeQuantity } from '../domain/inventory';
 
 export interface AssetListItem extends AssetRecord {
   readonly assignedProjectName: string | null;
@@ -116,7 +122,10 @@ function mapInventoryItem(row: typeof inventoryItems.$inferSelect): InventoryIte
   };
 }
 
-function mapMovement(row: typeof inventoryMovements.$inferSelect): InventoryMovementRecord {
+function mapMovement(
+  row: typeof inventoryMovements.$inferSelect,
+  names: { fromLocationName?: string | null; toLocationName?: string | null } = {},
+): InventoryMovementRecord {
   return {
     id: row.id,
     organizationId: row.organizationId,
@@ -125,7 +134,23 @@ function mapMovement(row: typeof inventoryMovements.$inferSelect): InventoryMove
     movementType: row.movementType as InventoryMovementType,
     quantity: row.quantity,
     occurredOn: asDateString(row.occurredOn) ?? row.occurredOn,
+    fromLocationId: row.fromLocationId ?? null,
+    toLocationId: row.toLocationId ?? null,
+    fromLocationName: names.fromLocationName ?? null,
+    toLocationName: names.toLocationName ?? null,
     notes: row.notes,
+    createdAt: row.createdAt,
+    updatedAt: row.updatedAt,
+  };
+}
+
+function mapLocation(row: typeof inventoryLocations.$inferSelect): InventoryLocationRecord {
+  return {
+    id: row.id,
+    organizationId: row.organizationId,
+    name: row.name,
+    code: row.code,
+    archivedAt: row.archivedAt,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   };
@@ -511,9 +536,17 @@ export async function listInventoryMovementsForItem(
   organizationId: string,
   inventoryItemId: string,
 ): Promise<InventoryMovementRecord[]> {
+  const fromLoc = alias(inventoryLocations, 'inventory_from_location');
+  const toLoc = alias(inventoryLocations, 'inventory_to_location');
   const rows = await db
-    .select()
+    .select({
+      movement: inventoryMovements,
+      fromLocationName: fromLoc.name,
+      toLocationName: toLoc.name,
+    })
     .from(inventoryMovements)
+    .leftJoin(fromLoc, eq(fromLoc.id, inventoryMovements.fromLocationId))
+    .leftJoin(toLoc, eq(toLoc.id, inventoryMovements.toLocationId))
     .where(
       and(
         eq(inventoryMovements.organizationId, organizationId),
@@ -521,5 +554,213 @@ export async function listInventoryMovementsForItem(
       ),
     )
     .orderBy(desc(inventoryMovements.occurredOn), desc(inventoryMovements.createdAt));
-  return rows.map(mapMovement);
+  return rows.map((row) =>
+    mapMovement(row.movement, {
+      fromLocationName: row.fromLocationName,
+      toLocationName: row.toLocationName,
+    }),
+  );
+}
+
+export async function listInventoryLocations(
+  db: DbExecutor,
+  organizationId: string,
+  options: { readonly includeArchived?: boolean } = {},
+): Promise<InventoryLocationRecord[]> {
+  const rows = await db
+    .select()
+    .from(inventoryLocations)
+    .where(
+      and(
+        eq(inventoryLocations.organizationId, organizationId),
+        options.includeArchived ? undefined : isNull(inventoryLocations.archivedAt),
+      ),
+    )
+    .orderBy(inventoryLocations.name);
+  return rows.map(mapLocation);
+}
+
+export async function findInventoryLocationById(
+  db: DbExecutor,
+  organizationId: string,
+  id: string,
+): Promise<InventoryLocationRecord | null> {
+  const [row] = await db
+    .select()
+    .from(inventoryLocations)
+    .where(and(eq(inventoryLocations.id, id), eq(inventoryLocations.organizationId, organizationId)))
+    .limit(1);
+  return row ? mapLocation(row) : null;
+}
+
+export async function findInventoryLocationByName(
+  db: DbExecutor,
+  organizationId: string,
+  name: string,
+): Promise<InventoryLocationRecord | null> {
+  const [row] = await db
+    .select()
+    .from(inventoryLocations)
+    .where(
+      and(
+        eq(inventoryLocations.organizationId, organizationId),
+        eq(inventoryLocations.name, name),
+        isNull(inventoryLocations.archivedAt),
+      ),
+    )
+    .limit(1);
+  return row ? mapLocation(row) : null;
+}
+
+export async function insertInventoryLocation(
+  db: DbExecutor,
+  values: typeof inventoryLocations.$inferInsert,
+): Promise<InventoryLocationRecord> {
+  const [row] = await db.insert(inventoryLocations).values(values).returning();
+  if (!row) throw new Error('Failed to insert inventory location');
+  return mapLocation(row);
+}
+
+export async function updateInventoryLocationById(
+  db: DbExecutor,
+  organizationId: string,
+  id: string,
+  patch: Partial<{ name: string; code: string | null; archivedAt: Date | null }>,
+): Promise<InventoryLocationRecord | null> {
+  const [row] = await db
+    .update(inventoryLocations)
+    .set({ ...patch, updatedAt: new Date() })
+    .where(and(eq(inventoryLocations.id, id), eq(inventoryLocations.organizationId, organizationId)))
+    .returning();
+  return row ? mapLocation(row) : null;
+}
+
+export async function listLocationBalancesForItem(
+  db: DbExecutor,
+  organizationId: string,
+  inventoryItemId: string,
+): Promise<InventoryLocationBalanceRecord[]> {
+  const rows = await db
+    .select({
+      balance: inventoryLocationBalances,
+      locationName: inventoryLocations.name,
+      locationCode: inventoryLocations.code,
+    })
+    .from(inventoryLocationBalances)
+    .innerJoin(inventoryLocations, eq(inventoryLocations.id, inventoryLocationBalances.locationId))
+    .where(
+      and(
+        eq(inventoryLocationBalances.organizationId, organizationId),
+        eq(inventoryLocationBalances.inventoryItemId, inventoryItemId),
+      ),
+    )
+    .orderBy(inventoryLocations.name);
+  return rows.map((row) => ({
+    id: row.balance.id,
+    organizationId: row.balance.organizationId,
+    inventoryItemId: row.balance.inventoryItemId,
+    locationId: row.balance.locationId,
+    locationName: row.locationName,
+    locationCode: row.locationCode,
+    quantity: row.balance.quantity,
+    createdAt: row.balance.createdAt,
+    updatedAt: row.balance.updatedAt,
+  }));
+}
+
+export async function findLocationBalance(
+  db: DbExecutor,
+  organizationId: string,
+  inventoryItemId: string,
+  locationId: string,
+): Promise<{ id: string; quantity: string } | null> {
+  const [row] = await db
+    .select({
+      id: inventoryLocationBalances.id,
+      quantity: inventoryLocationBalances.quantity,
+    })
+    .from(inventoryLocationBalances)
+    .where(
+      and(
+        eq(inventoryLocationBalances.organizationId, organizationId),
+        eq(inventoryLocationBalances.inventoryItemId, inventoryItemId),
+        eq(inventoryLocationBalances.locationId, locationId),
+      ),
+    )
+    .limit(1);
+  return row ?? null;
+}
+
+export async function upsertLocationBalanceQuantity(
+  db: DbExecutor,
+  values: {
+    readonly organizationId: string;
+    readonly inventoryItemId: string;
+    readonly locationId: string;
+    readonly quantity: string;
+  },
+): Promise<void> {
+  const existing = await findLocationBalance(
+    db,
+    values.organizationId,
+    values.inventoryItemId,
+    values.locationId,
+  );
+  if (existing) {
+    await db
+      .update(inventoryLocationBalances)
+      .set({ quantity: values.quantity, updatedAt: new Date() })
+      .where(
+        and(
+          eq(inventoryLocationBalances.id, existing.id),
+          eq(inventoryLocationBalances.organizationId, values.organizationId),
+        ),
+      );
+    return;
+  }
+  await db.insert(inventoryLocationBalances).values({
+    organizationId: values.organizationId,
+    inventoryItemId: values.inventoryItemId,
+    locationId: values.locationId,
+    quantity: values.quantity,
+  });
+}
+
+export async function sumLocationBalancesForItem(
+  db: DbExecutor,
+  organizationId: string,
+  inventoryItemId: string,
+): Promise<string> {
+  const [row] = await db
+    .select({
+      total: sql<string>`coalesce(sum(${inventoryLocationBalances.quantity}), 0)::text`,
+    })
+    .from(inventoryLocationBalances)
+    .where(
+      and(
+        eq(inventoryLocationBalances.organizationId, organizationId),
+        eq(inventoryLocationBalances.inventoryItemId, inventoryItemId),
+      ),
+    );
+  return normalizeQuantity(row?.total ?? '0');
+}
+
+export async function countNonZeroBalancesForLocation(
+  db: DbExecutor,
+  organizationId: string,
+  locationId: string,
+): Promise<number> {
+  const [row] = await db
+    .select({
+      count: sql<number>`count(*)::int`,
+    })
+    .from(inventoryLocationBalances)
+    .where(
+      and(
+        eq(inventoryLocationBalances.organizationId, organizationId),
+        eq(inventoryLocationBalances.locationId, locationId),
+        sql`${inventoryLocationBalances.quantity} <> 0`,
+      ),
+    );
+  return row?.count ?? 0;
 }

@@ -6,7 +6,12 @@ import { PageHeader } from '@/components/ui/page-header';
 import { textNavLinkClassName } from '@/components/ui/pressable';
 import { ProjectFinancialsPanel } from '@/modules/financials/ui/project-financials-panel';
 import { ProjectFormsPanel } from '@/modules/forms/ui';
-import { getWorkOrderDetail } from '@/modules/service';
+import {
+  getWorkOrderChecklistGateState,
+  getWorkOrderDetail,
+  listWorkOrderChecklistTemplateOptions,
+} from '@/modules/service';
+import { WorkOrderChecklistCard } from '@/modules/service/ui/work-order-checklist-panel';
 import { WorkOrderStatusBadge } from '@/modules/service/ui/work-order-status-badge';
 import { getShellContext, withOrgContext } from '@/shared/auth/session';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
@@ -52,6 +57,33 @@ export default async function WorkOrderDetailPage({ params }: WorkOrderPageProps
       shell?.permissions.has(PERMISSIONS.CONTRACTS_READ)) ??
     false;
 
+  const [checklistState, checklistTemplates] = await withOrgContext(async (context) => {
+    const [gate, templates] = await Promise.all([
+      getWorkOrderChecklistGateState(context, {
+        workOrderId: id,
+        checklistTemplateId: service.checklistTemplateId,
+      }),
+      canManage
+        ? listWorkOrderChecklistTemplateOptions(context).catch(() => [])
+        : Promise.resolve([]),
+    ]);
+    return [gate, templates] as const;
+  }).catch(
+    () =>
+      [
+        {
+          required: Boolean(service.checklistTemplateId),
+          satisfied: !service.checklistTemplateId,
+          templateId: service.checklistTemplateId,
+          templateName: null,
+          fillHref: null,
+          canSubmit: false,
+          submissionStatus: null,
+        },
+        [] as { id: string; name: string }[],
+      ] as const,
+  );
+
   return (
     <div className="flex min-w-0 max-w-full flex-col gap-6">
       <PageHeader
@@ -77,12 +109,21 @@ export default async function WorkOrderDetailPage({ params }: WorkOrderPageProps
       <p className="text-sm text-[var(--pf-text-secondary)]">{t('workspace.sameEngineHint')}</p>
 
       {canManage ? (
-        <WorkOrderStatusForm workOrderId={id} currentStatus={service.serviceStatus} />
+        <WorkOrderStatusForm
+          workOrderId={id}
+          currentStatus={service.serviceStatus}
+          checklistBlocked={checklistState.required && !checklistState.satisfied}
+        />
+      ) : null}
+
+      {checklistState.required ? (
+        <WorkOrderChecklistCard workOrderId={id} state={checklistState} />
       ) : null}
 
       {canManage ? (
         <WorkOrderDetailForm
           workOrderId={id}
+          checklistTemplates={checklistTemplates}
           initial={{
             name: project.name,
             description: project.description ?? '',
@@ -97,6 +138,7 @@ export default async function WorkOrderDetailPage({ params }: WorkOrderPageProps
             serviceNotes: service.notes ?? '',
             notes: project.notes ?? '',
             serviceStatus: service.serviceStatus,
+            checklistTemplateId: service.checklistTemplateId,
           }}
         />
       ) : (

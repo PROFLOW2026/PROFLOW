@@ -3,9 +3,9 @@ import type { OrgContext } from '@/shared/auth/context';
 import { DomainRuleError, NotFoundError, ValidationError } from '@/shared/errors';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
-import { noteModuleUsage } from '@/modules/tenancy';
+import { noteModuleUsage, resolveAllocatedReference } from '@/modules/tenancy';
 import { addMoney, money, moneyEquals, toNumericString, zeroMoney } from '@/shared/money';
-import { todayInTimeZone } from '@/shared/dates';
+import { businessDate, todayInTimeZone } from '@/shared/dates';
 import { findProjectById } from '@/modules/projects';
 import {
   assertMonthOpenForRewrite,
@@ -27,6 +27,8 @@ import {
   type MatchVariance,
 } from '../domain/matching';
 import { consumeAmountForPostedPoBill } from '../domain/vendor-cost-recognition';
+import { resolveApBillTaxSplit } from '../domain/bill-tax';
+import { resolveApplicableDefaultTax } from '@/modules/tax';
 import {
   assertVendorInOrganization,
   findApBillById,
@@ -177,9 +179,20 @@ export async function createApBill(context: OrgContext, raw: CreateApBillInput) 
     lines: input.lines,
   });
 
-  const billDate =
-    input.billDate ?? todayInTimeZone(context.organization.timezone);
+  const billDate = businessDate(
+    input.billDate ?? todayInTimeZone(context.organization.timezone),
+  );
   await assertMonthOpenForRewrite(context, yearMonthFromBusinessDate(billDate));
+
+  const taxResolution = await resolveApplicableDefaultTax(context, billDate);
+  const taxSplit = resolveApBillTaxSplit({
+    enteredAmount: input.totalAmount,
+    currency: input.currency,
+    amountIncludesTax: input.amountIncludesTax,
+    netAmount: input.netAmount,
+    taxAmount: input.taxAmount,
+    resolved: taxResolution.resolved,
+  });
 
   const vendorOk = await assertVendorInOrganization(
     context.db,
@@ -257,13 +270,13 @@ export async function createApBill(context: OrgContext, raw: CreateApBillInput) 
 
   const matchingApproval = await findMatchingApprovalRule(context, {
     entityType: 'vendor_bill',
-    amount: input.totalAmount,
+    amount: taxSplit.grossAmount,
     currency: input.currency.toUpperCase(),
   });
-  const initialStatus = matchingApproval ? 'draft' : 'open';
+  const initialStatus = input.asDraft || matchingApproval ? 'draft' : 'open';
 
   const retention = resolveRetentionCapture({
-    totalAmount: input.totalAmount,
+    totalAmount: taxSplit.grossAmount,
     currency: input.currency,
     retentionAmount: input.retentionAmount,
     retentionPercent: input.retentionPercent,
@@ -273,17 +286,24 @@ export async function createApBill(context: OrgContext, raw: CreateApBillInput) 
   const retentionHeldRemaining =
     initialStatus === 'open' ? heldRemainingOnPost(retention) : toNumericString(money('0', input.currency));
 
+  const reference = await resolveAllocatedReference(context, 'vendor_bill', input.reference);
   const bill = await insertApBill(context.db, {
     organizationId: context.organizationId,
     vendorId: input.vendorId,
     projectId,
     purchaseOrderId,
-    reference: input.reference ?? null,
+    reference,
     status: initialStatus,
     billDate,
     dueDate: input.dueDate ?? null,
     currency: input.currency.toUpperCase(),
-    totalAmount: input.totalAmount,
+    totalAmount: taxSplit.totalAmount,
+    netAmount: taxSplit.netAmount,
+    taxAmount: taxSplit.taxAmount,
+    grossAmount: taxSplit.grossAmount,
+    amountIncludesTax: taxSplit.amountIncludesTax,
+    taxSnapshot: taxSplit.taxSnapshot,
+    taxBasis: taxSplit.taxBasis,
     retentionAmount,
     retentionHeldRemaining,
     notes: input.notes ?? null,
@@ -307,7 +327,7 @@ export async function createApBill(context: OrgContext, raw: CreateApBillInput) 
   // Posted PO-linked bill → consume commitment by bill total (Actual recognition path).
   // Draft (awaiting approval) must NOT consume commitment or recognize Actual.
   if (purchaseOrderId && initialStatus === 'open') {
-    await consumePoCommitmentForPostedBill(context, purchaseOrderId, bill.totalAmount);
+    await consumePoCommitmentForPostedBill(context, purchaseOrderId, bill.netAmount);
   }
 
   if (matchingApproval) {
@@ -377,7 +397,7 @@ export async function postApBill(context: OrgContext, billId: string): Promise<A
   if (!updated) throw new NotFoundError('AP bill');
 
   if (updated.purchaseOrderId) {
-    await consumePoCommitmentForPostedBill(context, updated.purchaseOrderId, updated.totalAmount);
+    await consumePoCommitmentForPostedBill(context, updated.purchaseOrderId, updated.netAmount);
   }
 
   await recordAuditEvent(context, {
@@ -440,4 +460,15 @@ export async function updateDraftApBillRetention(
   });
   if (!updated) throw new NotFoundError('AP bill');
   return updated;
+}
+
+/**
+ * Always-draft vendor bill. Recognizes NO Actual and consumes NO commitment
+ * until `postApBill`. Safe for OCR and BOQ subcontractor handoff.
+ */
+export async function createDraftApBill(
+  context: OrgContext,
+  raw: CreateApBillInput,
+): Promise<ApBillRow> {
+  return createApBill(context, { ...raw, asDraft: true });
 }

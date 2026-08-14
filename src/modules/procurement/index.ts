@@ -25,6 +25,12 @@ export {
 } from './application/purchase-orders';
 
 export {
+  receivePurchaseOrder,
+  listPurchaseOrderReceipts,
+} from './application/receive-purchase-order';
+export type { PurchaseOrderReceiptView } from './application/receive-purchase-order';
+
+export {
   createRfq,
   getRfqDetail,
   listRfqsForOrg,
@@ -54,6 +60,14 @@ export {
 export type { PurchaseOrderStatus, CommittedCostStatus } from './domain/committed-cost';
 
 export {
+  remainingQuantity,
+  withLineRemaining,
+  isPurchaseOrderReceivable,
+  isPurchaseOrderFullyReceived,
+  isReceivingActualExpense,
+} from './domain/receiving';
+
+export {
   buildPurchaseOrderInputFromAcceptedQuote,
   compareSupplierQuotesByTotal,
   RFQ_STATUSES,
@@ -75,6 +89,7 @@ export {
   createSupplierQuoteSchema,
   deleteMaterialVendorPriceSchema,
   issuePurchaseOrderSchema,
+  receivePurchaseOrderSchema,
   updateMaterialVendorPriceSchema,
   updateRfqStatusSchema,
   updateSupplierQuoteStatusSchema,

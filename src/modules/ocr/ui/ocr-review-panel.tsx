@@ -528,7 +528,8 @@ export function OcrReviewPanel({
   return (
     <div className="flex flex-col gap-6" dir="auto" data-pf-ocr-review>
       <Alert tone={initialStatus.featureMode === 'live' ? 'info' : 'warning'}>
-        {t(initialStatus.messageKey)}
+        <p className="font-medium">{t(`configurationState.${initialStatus.featureMode}`)}</p>
+        <p>{t(initialStatus.messageKey)}</p>
       </Alert>
       <p className="text-sm text-[var(--pf-text-secondary)]">{t('honesty')}</p>
       {offline || (typeof navigator !== 'undefined' && !navigator.onLine) ? (

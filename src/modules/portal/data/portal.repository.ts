@@ -658,6 +658,7 @@ export async function listCustomerSafeBillingRows(
 
   const paymentsByRecord = new Map<string, typeof paymentRows>();
   for (const payment of paymentRows) {
+    if (!payment.billingRecordId) continue;
     const list = paymentsByRecord.get(payment.billingRecordId) ?? [];
     list.push(payment);
     paymentsByRecord.set(payment.billingRecordId, list);

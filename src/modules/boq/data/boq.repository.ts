@@ -1,6 +1,6 @@
 import { and, desc, eq, inArray, isNull, or, sql } from 'drizzle-orm';
 import {
-  boqNodes,
+  type boqNodes,
   changeOrders,
   boqProgressBatches,
   boqProgressBillingLinks,
@@ -220,6 +220,29 @@ function mapSecureBoqNode(raw: Record<string, unknown>): BoqNodeRow {
   };
 }
 
+async function mutateDraftBoqNodeRpc(
+  db: DbExecutor,
+  organizationId: string,
+  action: 'insert' | 'update' | 'delete' | 'archive',
+  nodeId: string | null,
+  payload: Record<string, unknown>,
+): Promise<string> {
+  const result = await db.execute(sql`
+    SELECT app.boq_mutate_draft_node(
+      ${organizationId}::uuid,
+      ${action}::text,
+      ${nodeId}::uuid,
+      ${JSON.stringify(payload)}::jsonb
+    ) AS id
+  `);
+  const list = Array.isArray(result)
+    ? result
+    : ((result as { rows?: Array<Record<string, unknown>> }).rows ?? []);
+  const id = list[0] ? String((list[0] as Record<string, unknown>).id ?? '') : '';
+  if (!id || id === 'null') throw new Error(`Failed BOQ node ${action}`);
+  return id;
+}
+
 export async function insertBoqNode(
   db: DbExecutor,
   organizationId: string,
@@ -247,16 +270,29 @@ export async function insertBoqNode(
     notes: string | null;
   },
 ): Promise<string> {
-  const [row] = await db
-    .insert(boqNodes)
-    .values({
-      organizationId,
-      ...values,
-      status: 'active',
-    })
-    .returning({ id: boqNodes.id });
-  if (!row) throw new Error('Failed to insert BOQ node');
-  return row.id;
+  return mutateDraftBoqNodeRpc(db, organizationId, 'insert', null, {
+    boq_id: values.boqId,
+    parent_id: values.parentId,
+    node_kind: values.nodeKind,
+    item_code: values.itemCode,
+    description: values.description,
+    unit: values.unit,
+    pricing_type: values.pricingType,
+    original_quantity: values.originalQuantity,
+    original_unit_price: values.originalUnitPrice,
+    original_amount: values.originalAmount,
+    current_quantity: values.currentQuantity,
+    current_unit_price: values.currentUnitPrice,
+    current_amount: values.currentAmount,
+    opening_approved_quantity: values.openingApprovedQuantity,
+    opening_billed_quantity: values.openingBilledQuantity,
+    work_package_id: values.workPackageId,
+    cost_category_id: values.costCategoryId,
+    budget_line_id: values.budgetLineId,
+    source_change_order_id: values.sourceChangeOrderId,
+    sort_order: values.sortOrder,
+    notes: values.notes,
+  });
 }
 
 export async function updateBoqNodeDraft(
@@ -284,10 +320,30 @@ export async function updateBoqNodeDraft(
     notes: string | null;
   }>,
 ) {
-  await db
-    .update(boqNodes)
-    .set({ ...values, updatedAt: new Date() })
-    .where(and(eq(boqNodes.id, nodeId), eq(boqNodes.organizationId, organizationId)));
+  const payload: Record<string, unknown> = {};
+  if (values.parentId !== undefined) payload.parent_id = values.parentId;
+  if (values.itemCode !== undefined) payload.item_code = values.itemCode;
+  if (values.description !== undefined) payload.description = values.description;
+  if (values.unit !== undefined) payload.unit = values.unit;
+  if (values.pricingType !== undefined) payload.pricing_type = values.pricingType;
+  if (values.originalQuantity !== undefined) payload.original_quantity = values.originalQuantity;
+  if (values.originalUnitPrice !== undefined) payload.original_unit_price = values.originalUnitPrice;
+  if (values.originalAmount !== undefined) payload.original_amount = values.originalAmount;
+  if (values.currentQuantity !== undefined) payload.current_quantity = values.currentQuantity;
+  if (values.currentUnitPrice !== undefined) payload.current_unit_price = values.currentUnitPrice;
+  if (values.currentAmount !== undefined) payload.current_amount = values.currentAmount;
+  if (values.openingApprovedQuantity !== undefined) {
+    payload.opening_approved_quantity = values.openingApprovedQuantity;
+  }
+  if (values.openingBilledQuantity !== undefined) {
+    payload.opening_billed_quantity = values.openingBilledQuantity;
+  }
+  if (values.workPackageId !== undefined) payload.work_package_id = values.workPackageId;
+  if (values.costCategoryId !== undefined) payload.cost_category_id = values.costCategoryId;
+  if (values.budgetLineId !== undefined) payload.budget_line_id = values.budgetLineId;
+  if (values.sortOrder !== undefined) payload.sort_order = values.sortOrder;
+  if (values.notes !== undefined) payload.notes = values.notes;
+  await mutateDraftBoqNodeRpc(db, organizationId, 'update', nodeId, payload);
 }
 
 export async function updateBoqNodeCurrent(
@@ -300,23 +356,19 @@ export async function updateBoqNodeCurrent(
     currentAmount: string;
   },
 ) {
-  await db
-    .update(boqNodes)
-    .set({ ...values, updatedAt: new Date() })
-    .where(and(eq(boqNodes.id, nodeId), eq(boqNodes.organizationId, organizationId)));
+  await mutateDraftBoqNodeRpc(db, organizationId, 'update', nodeId, {
+    current_quantity: values.currentQuantity,
+    current_unit_price: values.currentUnitPrice,
+    current_amount: values.currentAmount,
+  });
 }
 
 export async function archiveBoqNode(db: DbExecutor, organizationId: string, nodeId: string) {
-  await db
-    .update(boqNodes)
-    .set({ archivedAt: new Date(), status: 'archived', updatedAt: new Date() })
-    .where(and(eq(boqNodes.id, nodeId), eq(boqNodes.organizationId, organizationId)));
+  await mutateDraftBoqNodeRpc(db, organizationId, 'archive', nodeId, {});
 }
 
 export async function deleteDraftBoqNode(db: DbExecutor, organizationId: string, nodeId: string) {
-  await db
-    .delete(boqNodes)
-    .where(and(eq(boqNodes.id, nodeId), eq(boqNodes.organizationId, organizationId)));
+  await mutateDraftBoqNodeRpc(db, organizationId, 'delete', nodeId, {});
 }
 
 export async function sumItemAmounts(
@@ -409,6 +461,40 @@ export async function listChangeAllocationsForBoq(
     createdByUserId: string | null;
     createdAt: Date;
   }>;
+}
+
+export async function listChangeAllocationsForChangeOrder(
+  db: DbExecutor,
+  organizationId: string,
+  changeOrderId: string,
+) {
+  const result = await db.execute(sql`
+    SELECT
+      id,
+      organization_id AS "organizationId",
+      project_id AS "projectId",
+      boq_id AS "boqId",
+      change_order_id AS "changeOrderId",
+      boq_node_id AS "boqNodeId",
+      allocation_kind AS "allocationKind",
+      quantity_delta::text AS "quantityDelta",
+      unit_price_delta::text AS "unitPriceDelta",
+      amount_delta::text AS "amountDelta",
+      currency,
+      notes,
+      reverses_allocation_id AS "reversesAllocationId",
+      created_via AS "createdVia",
+      created_by_user_id AS "createdByUserId",
+      created_at AS "createdAt"
+    FROM public.boq_change_allocations_secure
+    WHERE organization_id = ${organizationId}::uuid
+      AND change_order_id = ${changeOrderId}::uuid
+    ORDER BY created_at ASC
+  `);
+  const list = Array.isArray(result)
+    ? result
+    : ((result as { rows?: Array<Record<string, unknown>> }).rows ?? []);
+  return list as Awaited<ReturnType<typeof listChangeAllocationsForBoq>>;
 }
 
 export async function nextCertificateNumber(
@@ -935,10 +1021,11 @@ export async function updateBoqNodeMappings(
     budgetLineId?: string | null;
   },
 ) {
-  await db
-    .update(boqNodes)
-    .set({ ...values, updatedAt: new Date() })
-    .where(and(eq(boqNodes.id, nodeId), eq(boqNodes.organizationId, organizationId)));
+  await mutateDraftBoqNodeRpc(db, organizationId, 'update', nodeId, {
+    ...(values.workPackageId !== undefined ? { work_package_id: values.workPackageId } : {}),
+    ...(values.costCategoryId !== undefined ? { cost_category_id: values.costCategoryId } : {}),
+    ...(values.budgetLineId !== undefined ? { budget_line_id: values.budgetLineId } : {}),
+  });
 }
 
 export type BoqSubScheduleRow = typeof boqSubcontractorSchedules.$inferSelect;
@@ -1173,6 +1260,41 @@ export async function listSubcontractorValuationsForSchedule(
       ),
     )
     .orderBy(desc(boqSubcontractorValuations.createdAt));
+}
+
+export async function findSubcontractorValuationById(
+  db: DbExecutor,
+  organizationId: string,
+  valuationId: string,
+) {
+  const [row] = await db
+    .select()
+    .from(boqSubcontractorValuations)
+    .where(
+      and(
+        eq(boqSubcontractorValuations.id, valuationId),
+        eq(boqSubcontractorValuations.organizationId, organizationId),
+      ),
+    )
+    .limit(1);
+  return row ?? null;
+}
+
+export async function listSubcontractorValuationLines(
+  db: DbExecutor,
+  organizationId: string,
+  valuationId: string,
+) {
+  return db
+    .select()
+    .from(boqSubcontractorValuationLines)
+    .where(
+      and(
+        eq(boqSubcontractorValuationLines.organizationId, organizationId),
+        eq(boqSubcontractorValuationLines.valuationId, valuationId),
+      ),
+    )
+    .orderBy(boqSubcontractorValuationLines.createdAt);
 }
 
 export async function listDraftProgressBatchesForOrg(db: DbExecutor, organizationId: string) {

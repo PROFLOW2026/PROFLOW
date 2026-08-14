@@ -57,3 +57,41 @@ jobs:
           NEXT_PUBLIC_SUPABASE_ANON_KEY: public-anon-key-for-ci
           APP_ENV: local
           LOG_LEVEL: warn
+
+  e2e:
+    name: Playwright critical (local harness)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Critical E2E (PGlite + auth stub, no live Supabase secrets)
+        run: npm run playwright:ci
+        env:
+          CI: true
+          APP_ENV: local
+          DATABASE_URL: postgres://postgres@127.0.0.1:55432/postgres
+          NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:55321
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: e2e-anon-key
+          NEXT_PUBLIC_APP_URL: http://127.0.0.1:3100
+
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report
+          retention-days: 7

@@ -39,6 +39,12 @@ export {
 } from './domain/lifecycle';
 
 export {
+  quoteDiscountAmountForApproval,
+  isQuoteDiscountGateTransition,
+} from './domain/discount';
+export type { QuoteDiscountBasis, QuoteDiscountGateAmount } from './domain/discount';
+
+export {
   computeQuoteTotals,
   computeEstimatedMarginPercent,
   computeLineMarkupPercent,

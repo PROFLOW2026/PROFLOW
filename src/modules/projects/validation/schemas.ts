@@ -156,8 +156,19 @@ export const createJobSchema = z
     startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Start date is required'),
     targetEndDate: optionalDate,
     notes: optionalText,
-    /** Free-text crew note; formal assignment stays on the Time tab. */
-    workersNote: z.preprocess(emptyToNull, z.string().trim().max(500).nullable().optional()),
+    /**
+     * Formal crew via `employee_project_assignments` (Assignment ≠ Actual).
+     * Unknown keys such as the old workersNote free-text are stripped.
+     */
+    employeeIds: z
+      .preprocess((value) => {
+        if (value == null || value === '') return [];
+        const raw = Array.isArray(value) ? value : [value];
+        const ids = raw.filter((item): item is string => typeof item === 'string' && item.trim().length > 0);
+        return [...new Set(ids)];
+      }, z.array(z.string().uuid()).max(50))
+      .optional()
+      .default([]),
     status: z.enum(PROJECT_STATUSES).optional(),
   })
   .superRefine((value, ctx) => {

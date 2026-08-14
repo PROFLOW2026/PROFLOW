@@ -12,9 +12,11 @@ import { updateServiceStatusAction, type WorkOrderFormState } from '../actions';
 export function WorkOrderStatusForm({
   workOrderId,
   currentStatus,
+  checklistBlocked,
 }: {
   workOrderId: string;
   currentStatus: ServiceStatus;
+  checklistBlocked?: boolean;
 }) {
   const t = useTranslations('service');
   const [state, formAction, pending] = useActionState<WorkOrderFormState, FormData>(
@@ -47,6 +49,11 @@ export function WorkOrderStatusForm({
       <Button type="submit" variant="secondary" loading={pending}>
         {t('workspace.updateStatus')}
       </Button>
+      {checklistBlocked ? (
+        <Alert tone="warning" className="w-full">
+          {t('checklist.requiredBody')}
+        </Alert>
+      ) : null}
       {state.error ? <Alert tone="danger" className="w-full">{state.error}</Alert> : null}
       {state.success ? (
         <Alert tone="success" className="w-full">

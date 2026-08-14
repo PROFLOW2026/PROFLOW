@@ -16,6 +16,7 @@
     "catalog": "Domains & types",
     "templates": "Structure templates",
     "tax": "Tax",
+    "numbering": "Document numbering",
     "approvals": "Approvals",
     "portal": "Portal access",
     "customFields": "Custom fields",
@@ -48,13 +49,14 @@
     "crm": "CRM and pre-project sales",
     "compliance": "Insurance and compliance",
     "portal": "Portal access",
+    "portalHint": "Foundation only — public portal login is disabled. Toggling this does not open a customer login.",
     "api": "API and webhooks",
     "procurement": "Procurement and purchase orders",
     "materials": "Materials catalog",
     "field_ops": "Field operations",
     "assets": "Assets and fleet",
     "jobs": "Jobs (short / daily work)",
-    "quotes": "Estimates (pre-sale — not billing)",
+    "quotes": "Pre-project estimates (not billing)",
     "service": "Service calls / work orders",
     "approvals": "Approvals",
     "month_close": "Month close (optional period close)",
@@ -312,7 +314,8 @@
         "issued": "Quote version issued"
       },
       "change_order": {
-        "created": "Change order created"
+        "created": "Change order created",
+        "reversed": "Change order reversed"
       },
       "billing_record": {
         "created": "Billing record created",
@@ -358,7 +361,9 @@
       "document": {
         "uploaded": "Document uploaded",
         "finalized": "Document finalized",
-        "deleted": "Document deleted"
+        "deleted": "Document deleted",
+        "storage_cleanup_failed": "Document file cleanup failed",
+        "storage_cleanup_completed": "Document file cleanup completed"
       },
       "tax_rule": {
         "created": "Tax rule created",
@@ -426,7 +431,8 @@
         "created": "Purchase order created",
         "issued": "Purchase order issued",
         "cancelled": "Purchase order cancelled",
-        "closed": "Purchase order closed"
+        "closed": "Purchase order closed",
+        "received": "Purchase order received"
       },
       "procurement": {
         "supplier_quote_received": "Supplier quote received"
@@ -474,6 +480,11 @@
       },
       "inventory_movement": {
         "recorded": "Inventory movement recorded"
+      },
+      "inventory_location": {
+        "created": "Inventory location created",
+        "updated": "Inventory location updated",
+        "archived": "Inventory location archived"
       },
       "material_usage": {
         "recorded": "Material usage recorded",
@@ -634,6 +645,7 @@
       "maintenance_record": "Maintenance record",
       "inventory_item": "Inventory item",
       "inventory_movement": "Inventory movement",
+      "inventory_location": "Inventory location",
       "recurring_financial_draft": "Recurring draft template",
       "recurring_financial_draft_run": "Recurring draft run",
       "retention_release": "Retention release",
@@ -650,6 +662,27 @@
     "displayName": "Your name",
     "language": "Interface language",
     "saved": "Profile updated."
+  },
+  "numbering": {
+    "title": "Document numbering",
+    "subtitle": "Internal tracking numbers assigned when you leave the reference blank. Change requests and change orders keep their per-project numbers.",
+    "legalDisclaimer": "Internal tracking numbers only. This is not Israeli tax-invoice numbering.",
+    "commercialNote": "These numbers are for follow-up inside ProjectFlow. They are not statutory invoices and do not issue a legal tax invoice.",
+    "perProjectNote": "Not applied on create. Change requests and change orders keep per-project numbers such as CR-001 / CO-001.",
+    "prefix": "Prefix",
+    "padding": "Digit padding",
+    "nextNumber": "Next number",
+    "save": "Save numbering",
+    "saving": "Saving…",
+    "saved": "Numbering updated.",
+    "kinds": {
+      "estimate": "Pre-project estimate",
+      "change_request": "Change request",
+      "change_order": "Change order",
+      "purchase_order": "Purchase order",
+      "vendor_bill": "Vendor bill",
+      "billing_record": "Billing record"
+    }
   },
   "notAllowed": {
     "title": "Not allowed",

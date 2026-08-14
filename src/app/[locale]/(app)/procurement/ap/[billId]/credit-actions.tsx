@@ -105,6 +105,10 @@ export function VendorCreditPanel({
               </>
             )}
           </Field>
+          <label className="flex items-start gap-2 text-sm">
+            <input type="checkbox" name="amountIncludesTax" defaultChecked className="mt-1" />
+            <span className="font-medium">{t('amountIncludesTax')}</span>
+          </label>
           <Field label={t('creditDateLabel')}>
             {(controlProps) => (
               <Input

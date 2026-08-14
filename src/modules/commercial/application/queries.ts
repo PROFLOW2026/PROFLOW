@@ -1,4 +1,4 @@
-import { attachEntryBaselineContext } from '@/modules/financials';
+import { attachEntryBaselineContext } from '@/modules/financials/domain/entry-baseline-context';
 import type { CommercialPosition } from '@/modules/financials/domain/types';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
@@ -21,6 +21,7 @@ import {
 import {
   findChangeOrderByChangeRequest,
   findQuoteForChangeRequest,
+  findReversalOfChangeOrder,
   listQuoteVersions,
 } from '../data/quotes.repository';
 import type { ListChangesFilterInput } from '../validation/schemas';
@@ -90,6 +91,10 @@ export async function getChangeRequestDetail(
     ? await listQuoteVersions(context.db, context.organizationId, quote.id)
     : [];
 
+  const reversingChangeOrder = changeOrder
+    ? await findReversalOfChangeOrder(context.db, context.organizationId, changeOrder.id)
+    : null;
+
   return {
     ...changeRequest,
     projectName: '',
@@ -97,6 +102,7 @@ export async function getChangeRequestDetail(
     quote,
     quoteVersions,
     changeOrder,
+    reversingChangeOrder,
   };
 }
 
