@@ -12,6 +12,10 @@ import {
 } from '@/modules/tenancy/domain/business-profiles';
 import { applyBusinessProfileAction, type SettingsActionState } from '../actions';
 
+function uniqueJoin(values: readonly string[]): string {
+  return [...new Set(values.filter(Boolean))].join(', ');
+}
+
 export function BusinessProfilePresetForm({
   canEdit,
   currentProfileKey,
@@ -21,6 +25,8 @@ export function BusinessProfilePresetForm({
 }) {
   const t = useTranslations('settings.businessProfiles');
   const tAuth = useTranslations('auth.onboarding');
+  const tModules = useTranslations('settings.modules');
+  const tNav = useTranslations('nav.newMenu');
   const locale = useLocale();
   const initial =
     currentProfileKey && (BUSINESS_PROFILE_KEYS as readonly string[]).includes(currentProfileKey)
@@ -36,6 +42,23 @@ export function BusinessProfilePresetForm({
   const he = locale === 'he-IL';
 
   if (!canEdit) return null;
+
+  const moduleLabels = preview
+    ? preview.visibleModules
+        .filter((key) => key !== 'portal')
+        .map((key) => tModules(key))
+    : [];
+  const quickCreateLabels = preview
+    ? preview.quickCreateEmphasis.slice(0, 5).map((key) => tNav(key))
+    : [];
+  const terminologyLabels = preview
+    ? uniqueJoin([
+        he ? preview.terminology.project.he : preview.terminology.project.en,
+        he ? preview.terminology.job.he : preview.terminology.job.en,
+        he ? preview.terminology.workOrder.he : preview.terminology.workOrder.en,
+        he ? preview.terminology.serviceCall.he : preview.terminology.serviceCall.en,
+      ])
+    : '';
 
   return (
     <form action={action} className="flex w-full max-w-lg flex-col gap-3 border-t border-[var(--pf-border-default)] pt-6">
@@ -76,21 +99,15 @@ export function BusinessProfilePresetForm({
           </p>
           <p className="mt-1 break-words">
             <span className="font-medium text-[var(--pf-text-primary)]">{t('previewModules')}: </span>
-            {preview.visibleModules.join(', ')}
+            {moduleLabels.join(', ')}
           </p>
           <p className="mt-1 break-words">
             <span className="font-medium text-[var(--pf-text-primary)]">{t('previewTerminology')}: </span>
-            {he ? preview.terminology.project.he : preview.terminology.project.en}
-            {' / '}
-            {he ? preview.terminology.job.he : preview.terminology.job.en}
-            {' / '}
-            {he ? preview.terminology.workOrder.he : preview.terminology.workOrder.en}
-            {' / '}
-            {he ? preview.terminology.serviceCall.he : preview.terminology.serviceCall.en}
+            {terminologyLabels}
           </p>
           <p className="mt-1 break-words">
             <span className="font-medium text-[var(--pf-text-primary)]">{t('previewQuickCreate')}: </span>
-            {preview.quickCreateEmphasis.slice(0, 5).join(', ')}
+            {quickCreateLabels.join(', ')}
           </p>
           <p className="mt-1 break-words">
             <span className="font-medium text-[var(--pf-text-primary)]">{t('previewCategories')}: </span>

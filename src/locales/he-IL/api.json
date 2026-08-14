@@ -3,7 +3,7 @@
   "subtitle": "ניהול מפתחות גישה והתראות למערכות חיצוניות.",
   "versionNote": "מפתחות אלה מיועדים למפתחים שמחברים מערכת חיצונית. התחברות רגילה באפליקציה אינה מחליפה מפתח.",
   "moreInfo": "מידע נוסף",
-  "versionNoteDetails": "נתיבים ציבוריים בגרסת v1: whoami ו־projects. שלחו את מפתח ה־API בכותרת Authorization. התחברות דרך הדפדפן אינה חלה על נתיבים אלה.",
+  "versionNoteDetails": "שלחו את מפתח ה־API בכותרת Authorization. התחברות דרך הדפדפן אינה חלה על מפתחות אלה.",
   "addClient": "יצירת לקוח",
   "clientSaved": "לקוח ה־API נוצר.",
   "addKey": "יצירת מפתח",
@@ -50,17 +50,39 @@
     "revoked": "מבוטל"
   },
   "scopes": {
-    "projects.read": "קריאת פרויקטים",
-    "clients.read": "קריאת לקוחות",
-    "billing.read": "קריאת חיובים",
-    "webhooks.manage": "ניהול התראות"
+    "projects": {
+      "read": "קריאת פרויקטים"
+    },
+    "clients": {
+      "read": "קריאת לקוחות"
+    },
+    "billing": {
+      "read": "קריאת חיובים"
+    },
+    "webhooks": {
+      "manage": "ניהול התראות"
+    }
   },
   "events": {
-    "test.ping": "בדיקת חיבור",
-    "project.created": "נוצר פרויקט",
-    "project.updated": "עודכן פרויקט",
-    "client.updated": "עודכן לקוח",
-    "billing.invoice.issued": "הונפק חיוב",
-    "api.key.revoked": "בוטל מפתח גישה"
+    "test": {
+      "ping": "בדיקת חיבור"
+    },
+    "project": {
+      "created": "נוצר פרויקט",
+      "updated": "עודכן פרויקט"
+    },
+    "client": {
+      "updated": "עודכן לקוח"
+    },
+    "billing": {
+      "invoice": {
+        "issued": "הונפק חיוב"
+      }
+    },
+    "api": {
+      "key": {
+        "revoked": "בוטל מפתח גישה"
+      }
+    }
   }
 }

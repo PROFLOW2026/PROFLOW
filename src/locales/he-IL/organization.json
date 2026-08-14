@@ -55,83 +55,176 @@
     "worker": { "name": "עובד", "description": "מדווח הוצאות ושעות. בלי סיכומים כספיים." }
   },
   "permissions": {
-    "org.read": "צפייה בפרטי העסק",
-    "org.update": "עדכון פרטי העסק",
-    "members.read": "צפייה באנשים",
-    "members.manage": "ניהול אנשים",
-    "roles.manage": "ניהול תפקידים",
-    "invitations.manage": "הזמנת משתמשים",
-    "projects.read": "צפייה בפרויקטים",
-    "projects.create": "יצירת פרויקטים",
-    "projects.update": "עדכון פרויקטים",
-    "projects.archive": "העברה לארכיון והחזרת פרויקטים",
-    "project_financials.read": "צפייה בעלויות פרויקט",
-    "project_profit.read": "צפייה ברווח ובשיעור רווח",
-    "clients.read": "צפייה בלקוחות",
-    "clients.manage": "ניהול לקוחות",
-    "contracts.read": "צפייה בחוזים",
-    "contracts.manage": "ניהול חוזים",
-    "changes.read": "צפייה בשינויים",
-    "changes.manage": "יצירה ותמחור של שינויים",
-    "changes.approve": "אישור שינויים",
-    "expenses.read": "צפייה בהוצאות",
-    "expenses.create": "רישום הוצאות",
-    "expenses.update": "עדכון הוצאות",
-    "expenses.finalize": "סגירה וביטול של הוצאות",
-    "vendors.read": "צפייה בספקים",
-    "vendors.manage": "ניהול ספקים",
-    "workforce.read": "צפייה בעובדים ובשעות",
-    "workforce.manage": "ניהול רשומות עובדים",
-    "workforce.cost.read": "צפייה בעלות מעסיק ובתנאי שכר עסקי",
-    "workforce.cost.manage": "ניהול עלות מעסיק ותנאי שכר עסקי",
-    "time.manage": "דיווח שעות",
-    "attendance.read": "צפייה בנוכחות",
-    "attendance.manage": "הזנה ותיקון נוכחות",
-    "attendance.self": "כניסה ויציאה עצמית",
-    "billing.read": "צפייה בחיובים",
-    "billing.manage": "ניהול חיובים ותשלומים",
-    "documents.read": "צפייה במסמכים",
-    "documents.manage": "העלאה והסרה של מסמכים",
-    "crm.read": "צפייה בצינור CRM",
-    "crm.manage": "ניהול צינור CRM",
-    "compliance.read": "צפייה בפריטי ציות",
-    "compliance.manage": "ניהול פריטי ציות",
-    "custom_fields.manage": "הגדרת שדות מותאמים",
-    "portal.manage": "ניהול מענקי גישה לפורטל",
-    "api.manage": "ניהול לקוחות API ו־webhooks",
-    "procurement.read": "צפייה ברכש ובהזמנות רכש",
-    "procurement.manage": "ניהול רכש והזמנות רכש",
-    "materials.read": "צפייה בקטלוג חומרים",
-    "materials.manage": "ניהול קטלוג חומרים",
-    "field_ops.read": "צפייה בעבודה בשטח",
-    "field_ops.manage": "ניהול עבודה בשטח",
-    "assets.read": "צפייה בנכסים וציוד",
-    "assets.manage": "ניהול נכסים, צי וציוד",
-    "ap.read": "צפייה בחשבונות ספקים והתאמות",
-    "ap.manage": "ניהול חשבונות ספקים והתאמות",
-    "banking.read": "צפייה בחשבונות בנק והתאמות",
-    "banking.manage": "ניהול חשבונות בנק והחלטות התאמה",
-    "planning.read": "צפייה בתכנון פרויקט",
-    "planning.write": "עריכת תכנון פרויקט",
-    "quotes.read": "צפייה בהצעות מחיר",
-    "quotes.manage": "ניהול הצעות מחיר",
-    "service.read": "צפייה בעבודות שירות",
-    "service.manage": "ניהול עבודות שירות",
-    "dispatch.manage": "ניהול שיבוץ",
-    "approvals.read": "צפייה בבקשות אישור",
-    "approvals.manage": "ניהול כללי אישור",
-    "approvals.decide": "אישור או דחייה של בקשות",
-    "month_close.read": "צפייה בסטטוס סגירת חודש",
-    "month_close.manage": "סגירת חודשים ותיקונים",
-    "budgets.read": "צפייה בתקציבי פרויקט",
-    "budgets.manage": "ניהול תקציבי פרויקט",
-    "forms.read": "צפייה בטפסי שטח",
-    "forms.submit": "מילוי והגשת טפסי שטח",
-    "forms.manage": "ניהול תבניות טפסים",
-    "command_center.read": "צפייה ב״היום״",
-    "settings.manage": "שינוי הגדרות",
-    "tax.manage": "ניהול כללי מס",
-    "audit.read": "צפייה ביומן הפעילות"
+    "org": {
+      "read": "צפייה בפרטי העסק",
+      "update": "עדכון פרטי העסק"
+    },
+    "members": {
+      "read": "צפייה באנשים",
+      "manage": "ניהול אנשים"
+    },
+    "roles": {
+      "manage": "ניהול תפקידים"
+    },
+    "invitations": {
+      "manage": "ניהול הזמנות משתמשים"
+    },
+    "projects": {
+      "read": "צפייה בפרויקטים",
+      "create": "יצירת פרויקטים",
+      "update": "עדכון פרויקטים",
+      "archive": "העברה לארכיון והחזרת פרויקטים"
+    },
+    "project_financials": {
+      "read": "צפייה בעלויות פרויקט"
+    },
+    "project_profit": {
+      "read": "צפייה ברווחיות"
+    },
+    "clients": {
+      "read": "צפייה בלקוחות",
+      "manage": "ניהול לקוחות"
+    },
+    "contracts": {
+      "read": "צפייה בחוזים",
+      "manage": "ניהול חוזים"
+    },
+    "changes": {
+      "read": "צפייה בשינויים",
+      "manage": "יצירה ותמחור של שינויים",
+      "approve": "אישור שינויים"
+    },
+    "expenses": {
+      "read": "צפייה בהוצאות",
+      "create": "רישום הוצאות",
+      "update": "עדכון הוצאות",
+      "finalize": "סגירה וביטול של הוצאות"
+    },
+    "vendors": {
+      "read": "צפייה בספקים",
+      "manage": "ניהול ספקים"
+    },
+    "workforce": {
+      "read": "צפייה בעובדים ובשעות",
+      "manage": "ניהול רשומות עובדים",
+      "cost": {
+        "read": "צפייה בעלות מעסיק ובתנאי שכר עסקי",
+        "manage": "ניהול עלות מעסיק ותנאי שכר עסקי"
+      }
+    },
+    "time": {
+      "manage": "ניהול דיווחי שעות"
+    },
+    "attendance": {
+      "read": "צפייה בנוכחות",
+      "manage": "הזנה ותיקון נוכחות",
+      "self": "כניסה ויציאה עצמית"
+    },
+    "billing": {
+      "read": "צפייה בחיובים",
+      "manage": "ניהול חיובים וגבייה"
+    },
+    "documents": {
+      "read": "צפייה במסמכים",
+      "manage": "ניהול מסמכים"
+    },
+    "crm": {
+      "read": "צפייה במכירות",
+      "manage": "ניהול מכירות"
+    },
+    "compliance": {
+      "read": "צפייה בפריטי ציות",
+      "manage": "ניהול פריטי ציות"
+    },
+    "custom_fields": {
+      "manage": "הגדרת שדות מותאמים"
+    },
+    "portal": {
+      "manage": "ניהול מענקי גישה לפורטל"
+    },
+    "api": {
+      "manage": "ניהול לקוחות API ו־webhooks"
+    },
+    "procurement": {
+      "read": "צפייה ברכש ובהזמנות רכש",
+      "manage": "ניהול רכש והזמנות רכש"
+    },
+    "materials": {
+      "read": "צפייה בקטלוג חומרים",
+      "manage": "ניהול קטלוג חומרים"
+    },
+    "field_ops": {
+      "read": "צפייה בתפעול שטח",
+      "manage": "ניהול תפעול שטח"
+    },
+    "assets": {
+      "read": "צפייה בנכסים וציוד",
+      "manage": "ניהול נכסים, צי וציוד"
+    },
+    "ap": {
+      "read": "צפייה בחשבונות ספקים והתאמות",
+      "manage": "ניהול חשבונות ספקים והתאמות"
+    },
+    "banking": {
+      "read": "צפייה בחשבונות בנק והתאמות",
+      "manage": "ניהול חשבונות בנק והחלטות התאמה"
+    },
+    "planning": {
+      "read": "צפייה בתכנון פרויקט",
+      "write": "עריכת תכנון פרויקט"
+    },
+    "quotes": {
+      "read": "צפייה בהצעות מחיר",
+      "manage": "ניהול הצעות מחיר"
+    },
+    "service": {
+      "read": "צפייה בקריאות שירות",
+      "manage": "ניהול קריאות שירות"
+    },
+    "dispatch": {
+      "manage": "ניהול שיבוץ"
+    },
+    "approvals": {
+      "read": "צפייה בבקשות אישור",
+      "manage": "ניהול כללי אישור",
+      "decide": "אישור או דחייה של בקשות"
+    },
+    "month_close": {
+      "read": "צפייה בסטטוס סגירת חודש",
+      "manage": "סגירת חודשים ותיקונים"
+    },
+    "budgets": {
+      "read": "צפייה בתקציבי פרויקט",
+      "manage": "ניהול תקציבי פרויקט"
+    },
+    "boq": {
+      "read": "צפייה בכתב כמויות",
+      "manage": "ניהול כתב כמויות",
+      "progress": {
+        "submit": "הגשת מדידות ביצוע",
+        "approve": "אישור מדידות ביצוע"
+      },
+      "billing": {
+        "create": "יצירת חשבון חלקי"
+      }
+    },
+    "forms": {
+      "read": "צפייה בטפסים",
+      "submit": "מילוי והגשת טפסים",
+      "manage": "ניהול תבניות טפסים"
+    },
+    "command_center": {
+      "read": "צפייה ב״היום״"
+    },
+    "settings": {
+      "manage": "שינוי הגדרות"
+    },
+    "tax": {
+      "manage": "ניהול כללי מס"
+    },
+    "audit": {
+      "read": "צפייה ביומן הפעילות"
+    }
   },
   "errors": {
     "unknownDocumentKind": "סוג מסמך לא מוכר למספור פנימי.",

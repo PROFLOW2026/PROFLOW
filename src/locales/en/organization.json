@@ -55,83 +55,176 @@
     "worker": { "name": "Worker", "description": "Records expenses and hours. No financial totals." }
   },
   "permissions": {
-    "org.read": "View business profile",
-    "org.update": "Update business profile",
-    "members.read": "View people",
-    "members.manage": "Manage people",
-    "roles.manage": "Manage roles",
-    "invitations.manage": "Invite people",
-    "projects.read": "View projects",
-    "projects.create": "Create projects",
-    "projects.update": "Update projects",
-    "projects.archive": "Archive and restore projects",
-    "project_financials.read": "View project costs",
-    "project_profit.read": "View profit and margin",
-    "clients.read": "View clients",
-    "clients.manage": "Manage clients",
-    "contracts.read": "View contracts",
-    "contracts.manage": "Manage contracts",
-    "changes.read": "View changes",
-    "changes.manage": "Create and price changes",
-    "changes.approve": "Approve changes",
-    "expenses.read": "View expenses",
-    "expenses.create": "Record expenses",
-    "expenses.update": "Update expenses",
-    "expenses.finalize": "Finalize and void expenses",
-    "vendors.read": "View vendors",
-    "vendors.manage": "Manage vendors",
-    "workforce.read": "View people and hours",
-    "workforce.manage": "Manage employee records",
-    "workforce.cost.read": "View employer cost and compensation",
-    "workforce.cost.manage": "Manage employer cost and compensation",
-    "time.manage": "Record hours",
-    "attendance.read": "View attendance",
-    "attendance.manage": "Enter and correct attendance",
-    "attendance.self": "Clock in/out for yourself",
-    "billing.read": "View billing",
-    "billing.manage": "Manage billing and payments",
-    "documents.read": "View documents",
-    "documents.manage": "Upload and remove documents",
-    "crm.read": "View CRM pipeline",
-    "crm.manage": "Manage CRM pipeline",
-    "compliance.read": "View compliance artifacts",
-    "compliance.manage": "Manage compliance artifacts",
-    "custom_fields.manage": "Define custom fields",
-    "portal.manage": "Manage portal access grants",
-    "api.manage": "Manage API clients and webhooks",
-    "procurement.read": "View procurement and purchase orders",
-    "procurement.manage": "Manage procurement and purchase orders",
-    "materials.read": "View materials catalog",
-    "materials.manage": "Manage materials catalog",
-    "field_ops.read": "View field operations",
-    "field_ops.manage": "Manage field operations",
-    "assets.read": "View assets and equipment",
-    "assets.manage": "Manage assets, fleet and maintenance",
-    "ap.read": "View vendor bills and PO matches",
-    "ap.manage": "Manage vendor bills and PO matching",
-    "banking.read": "View bank accounts and reconciliation",
-    "banking.manage": "Manage bank accounts and match decisions",
-    "planning.read": "View project planning",
-    "planning.write": "Edit project planning",
-    "quotes.read": "View quotes and estimates",
-    "quotes.manage": "Manage quotes and estimates",
-    "service.read": "View service work",
-    "service.manage": "Manage service work",
-    "dispatch.manage": "Manage dispatch",
-    "approvals.read": "View approval requests",
-    "approvals.manage": "Manage approval rules",
-    "approvals.decide": "Approve or reject requests",
-    "month_close.read": "View month-close status",
-    "month_close.manage": "Close months and record corrections",
-    "budgets.read": "View project budgets",
-    "budgets.manage": "Manage project budgets",
-    "forms.read": "View field forms",
-    "forms.submit": "Fill and submit field forms",
-    "forms.manage": "Manage form templates",
-    "command_center.read": "View Today",
-    "settings.manage": "Change settings",
-    "tax.manage": "Manage tax rules",
-    "audit.read": "Read the activity log"
+    "org": {
+      "read": "View business profile",
+      "update": "Update business profile"
+    },
+    "members": {
+      "read": "View people",
+      "manage": "Manage people"
+    },
+    "roles": {
+      "manage": "Manage roles"
+    },
+    "invitations": {
+      "manage": "Manage user invitations"
+    },
+    "projects": {
+      "read": "View projects",
+      "create": "Create projects",
+      "update": "Update projects",
+      "archive": "Archive and restore projects"
+    },
+    "project_financials": {
+      "read": "View project costs"
+    },
+    "project_profit": {
+      "read": "View profitability"
+    },
+    "clients": {
+      "read": "View clients",
+      "manage": "Manage clients"
+    },
+    "contracts": {
+      "read": "View contracts",
+      "manage": "Manage contracts"
+    },
+    "changes": {
+      "read": "View changes",
+      "manage": "Create and price changes",
+      "approve": "Approve changes"
+    },
+    "expenses": {
+      "read": "View expenses",
+      "create": "Record expenses",
+      "update": "Update expenses",
+      "finalize": "Finalize and void expenses"
+    },
+    "vendors": {
+      "read": "View vendors",
+      "manage": "Manage vendors"
+    },
+    "workforce": {
+      "read": "View people and hours",
+      "manage": "Manage employee records",
+      "cost": {
+        "read": "View employer cost and compensation",
+        "manage": "Manage employer cost and compensation"
+      }
+    },
+    "time": {
+      "manage": "Manage time entries"
+    },
+    "attendance": {
+      "read": "View attendance",
+      "manage": "Enter and correct attendance",
+      "self": "Clock in/out for yourself"
+    },
+    "billing": {
+      "read": "View billing",
+      "manage": "Manage billing and collections"
+    },
+    "documents": {
+      "read": "View documents",
+      "manage": "Manage documents"
+    },
+    "crm": {
+      "read": "View sales",
+      "manage": "Manage sales"
+    },
+    "compliance": {
+      "read": "View compliance artifacts",
+      "manage": "Manage compliance artifacts"
+    },
+    "custom_fields": {
+      "manage": "Define custom fields"
+    },
+    "portal": {
+      "manage": "Manage portal access grants"
+    },
+    "api": {
+      "manage": "Manage API clients and webhooks"
+    },
+    "procurement": {
+      "read": "View procurement and purchase orders",
+      "manage": "Manage procurement and purchase orders"
+    },
+    "materials": {
+      "read": "View materials catalog",
+      "manage": "Manage materials catalog"
+    },
+    "field_ops": {
+      "read": "View field operations",
+      "manage": "Manage field operations"
+    },
+    "assets": {
+      "read": "View assets and equipment",
+      "manage": "Manage assets, fleet and maintenance"
+    },
+    "ap": {
+      "read": "View vendor bills and PO matches",
+      "manage": "Manage vendor bills and PO matching"
+    },
+    "banking": {
+      "read": "View bank accounts and reconciliation",
+      "manage": "Manage bank accounts and match decisions"
+    },
+    "planning": {
+      "read": "View project planning",
+      "write": "Edit project planning"
+    },
+    "quotes": {
+      "read": "View quotes",
+      "manage": "Manage quotes"
+    },
+    "service": {
+      "read": "View service calls",
+      "manage": "Manage service calls"
+    },
+    "dispatch": {
+      "manage": "Manage dispatch"
+    },
+    "approvals": {
+      "read": "View approval requests",
+      "manage": "Manage approval rules",
+      "decide": "Approve or reject requests"
+    },
+    "month_close": {
+      "read": "View month-close status",
+      "manage": "Close months and record corrections"
+    },
+    "budgets": {
+      "read": "View project budgets",
+      "manage": "Manage project budgets"
+    },
+    "boq": {
+      "read": "View bill of quantities",
+      "manage": "Manage bill of quantities",
+      "progress": {
+        "submit": "Submit progress measurements",
+        "approve": "Approve progress measurements"
+      },
+      "billing": {
+        "create": "Create progress billing"
+      }
+    },
+    "forms": {
+      "read": "View forms",
+      "submit": "Fill and submit forms",
+      "manage": "Manage form templates"
+    },
+    "command_center": {
+      "read": "View Today"
+    },
+    "settings": {
+      "manage": "Change settings"
+    },
+    "tax": {
+      "manage": "Manage tax rules"
+    },
+    "audit": {
+      "read": "Read the activity log"
+    }
   },
   "errors": {
     "unknownDocumentKind": "Unknown document number kind.",

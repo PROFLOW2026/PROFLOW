@@ -30,6 +30,7 @@ export {
 } from './data/organizations.repository';
 export {
   OPTIONAL_MODULE_KEYS,
+  CUSTOMER_FEATURE_MODULE_KEYS,
   isOptionalModuleKey,
   parseModuleVisibilityMode,
   resolveModuleVisibility,

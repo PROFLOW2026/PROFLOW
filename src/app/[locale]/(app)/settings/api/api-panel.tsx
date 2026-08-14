@@ -173,7 +173,7 @@ export function ApiSettingsPanel({
                     defaultChecked={scope === 'projects.read'}
                     className="size-5 shrink-0 rounded border-[var(--pf-border-strong)]"
                   />
-                  <span dir="ltr">{t(`scopes.${scope}`)}</span>
+                  <span>{t(`scopes.${scope}`)}</span>
                 </label>
               ))}
             </fieldset>
@@ -216,8 +216,8 @@ export function ApiSettingsPanel({
                             <code dir="ltr">{key.keyPrefix}…</code>
                           </TableCell>
                           <TableCell>
-                            <span dir="ltr" className="text-xs">
-                              {key.scopes.join(', ')}
+                            <span className="text-xs">
+                              {key.scopes.map((scope) => t(`scopes.${scope}`)).join(', ')}
                             </span>
                           </TableCell>
                           <TableCell className="text-xs">
@@ -276,8 +276,8 @@ export function ApiSettingsPanel({
                         label={key.revokedAt ? t('status.revoked') : t('status.active')}
                       />
                     </p>
-                    <p className="mt-1 text-xs text-[var(--pf-text-muted)]" dir="ltr">
-                      {key.scopes.join(', ')}
+                    <p className="mt-1 text-xs text-[var(--pf-text-muted)]">
+                      {key.scopes.map((scope) => t(`scopes.${scope}`)).join(', ')}
                     </p>
                     <p className="mt-1 text-xs text-[var(--pf-text-muted)]">
                       {t('columns.lastUsed')}: {formatInstant(key.lastUsedAt, t('neverUsed'))}
@@ -347,7 +347,7 @@ export function ApiSettingsPanel({
                     defaultChecked={eventType === 'test.ping'}
                     className="size-4"
                   />
-                  <span dir="ltr">{t(`events.${eventType}`)}</span>
+                  <span>{t(`events.${eventType}`)}</span>
                 </label>
               ))}
             </fieldset>
@@ -394,7 +394,7 @@ export function ApiSettingsPanel({
                               {endpoint.url}
                             </TableCell>
                             <TableCell>
-                              <span dir="ltr">{endpoint.eventTypes.join(', ')}</span>
+                              <span>{endpoint.eventTypes.map((event) => t(`events.${event}`)).join(', ')}</span>
                             </TableCell>
                             <TableCell>
                               <StatusBadge
@@ -469,7 +469,7 @@ export function ApiSettingsPanel({
                         {endpoint.url}
                       </p>
                       <p className="mt-1 text-sm text-[var(--pf-text-secondary)]" dir="ltr">
-                        {endpoint.eventTypes.join(', ')}
+                        {endpoint.eventTypes.map((event) => t(`events.${event}`)).join(', ')}
                       </p>
                       <div className="mt-2">
                         <StatusBadge

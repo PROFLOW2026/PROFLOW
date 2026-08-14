@@ -3,7 +3,7 @@
   "subtitle": "Manage access keys and notifications for external systems.",
   "versionNote": "These keys are for developers connecting an external system. Signing in to the app does not replace a key.",
   "moreInfo": "More information",
-  "versionNoteDetails": "Public v1 routes: whoami and projects. Send the API key in the Authorization header. Browser sign-in does not apply to these routes.",
+  "versionNoteDetails": "Send the API key in the Authorization header. Browser sign-in does not apply to these keys.",
   "addClient": "Create client",
   "clientSaved": "API client created.",
   "addKey": "Generate key",
@@ -50,17 +50,39 @@
     "revoked": "Revoked"
   },
   "scopes": {
-    "projects.read": "Read projects",
-    "clients.read": "Read clients",
-    "billing.read": "Read billing",
-    "webhooks.manage": "Manage webhooks"
+    "projects": {
+      "read": "Read projects"
+    },
+    "clients": {
+      "read": "Read clients"
+    },
+    "billing": {
+      "read": "Read billing"
+    },
+    "webhooks": {
+      "manage": "Manage webhooks"
+    }
   },
   "events": {
-    "test.ping": "Connection test",
-    "project.created": "Project created",
-    "project.updated": "Project updated",
-    "client.updated": "Client updated",
-    "billing.invoice.issued": "Billing issued",
-    "api.key.revoked": "Access key revoked"
+    "test": {
+      "ping": "Connection test"
+    },
+    "project": {
+      "created": "Project created",
+      "updated": "Project updated"
+    },
+    "client": {
+      "updated": "Client updated"
+    },
+    "billing": {
+      "invoice": {
+        "issued": "Billing issued"
+      }
+    },
+    "api": {
+      "key": {
+        "revoked": "Access key revoked"
+      }
+    }
   }
 }

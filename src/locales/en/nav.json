@@ -15,7 +15,7 @@
   "attendance": "Attendance",
   "documents": "Documents",
   "crm": "Sales",
-  "quotes": "Pre-project estimates",
+  "quotes": "Quotes",
   "compliance": "Insurance and compliance",
   "procurement": "Procurement",
   "materials": "Materials",
@@ -51,7 +51,7 @@
     "maintenance": "Asset / maintenance",
     "vendorBill": "Vendor bill",
     "attendance": "Attendance",
-    "quote": "Pre-project estimate",
+    "quote": "Quote",
     "service": "Service call",
     "recurringDrafts": "Recurring draft"
   },

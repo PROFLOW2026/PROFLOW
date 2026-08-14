@@ -51,6 +51,11 @@ export const OPTIONAL_MODULE_KEYS = [
 
 export type OptionalModuleKey = (typeof OPTIONAL_MODULE_KEYS)[number];
 
+/** Optional modules shown on Settings → Features. Portal stays in code, off, and off the product UI. */
+export const CUSTOMER_FEATURE_MODULE_KEYS = OPTIONAL_MODULE_KEYS.filter(
+  (key) => key !== 'portal',
+) as readonly Exclude<OptionalModuleKey, 'portal'>[];
+
 export function isOptionalModuleKey(value: string): value is OptionalModuleKey {
   return (OPTIONAL_MODULE_KEYS as readonly string[]).includes(value);
 }

@@ -15,7 +15,7 @@
   "attendance": "נוכחות",
   "documents": "מסמכים",
   "crm": "מכירות",
-  "quotes": "הצעות מחיר לפני פרויקט",
+  "quotes": "הצעות מחיר",
   "compliance": "ביטוחים וציות",
   "procurement": "רכש",
   "materials": "חומרים",
@@ -51,7 +51,7 @@
     "maintenance": "ציוד / תחזוקה",
     "vendorBill": "חשבון ספק",
     "attendance": "נוכחות",
-    "quote": "הצעת מחיר לפני פרויקט",
+    "quote": "הצעת מחיר",
     "service": "קריאת שירות",
     "recurringDrafts": "טיוטה חוזרת"
   },

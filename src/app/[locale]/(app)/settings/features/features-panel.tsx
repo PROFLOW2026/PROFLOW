@@ -6,13 +6,14 @@ import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
-  OPTIONAL_MODULE_KEYS,
+  CUSTOMER_FEATURE_MODULE_KEYS,
   type ModuleVisibility,
   type OptionalModuleKey,
 } from '@/modules/tenancy/domain/types';
 import { setModuleVisibilityAction, type SettingsActionState } from '../actions';
 
 type VisibilityMode = 'auto' | 'on' | 'off';
+type CustomerFeatureKey = (typeof CUSTOMER_FEATURE_MODULE_KEYS)[number];
 
 function resolveMode(
   key: OptionalModuleKey,
@@ -28,12 +29,10 @@ function resolveMode(
 function ModuleRow({
   moduleKey,
   defaultMode,
-  isActive,
   canEdit,
 }: {
-  moduleKey: OptionalModuleKey;
+  moduleKey: CustomerFeatureKey;
   defaultMode: VisibilityMode;
-  isActive: boolean;
   canEdit: boolean;
 }) {
   const t = useTranslations('settings.modules');
@@ -42,17 +41,13 @@ function ModuleRow({
   const [state, action, pending] = useActionState(setModuleVisibilityAction, {} as SettingsActionState);
   const moduleLabel = t(moduleKey);
   const visibilityLabel = t('visibilityLabel', { module: moduleLabel });
+  const hint = t(`hints.${moduleKey}`);
 
   return (
     <form action={action} className="flex flex-col gap-3 border-b border-[var(--pf-border-default)] py-3 last:border-0 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
       <div className="min-w-0 flex-1">
         <p className="text-start font-medium">{moduleLabel}</p>
-        {moduleKey === 'portal' ? (
-          <p className="text-start text-xs text-[var(--pf-text-muted)]">{t('portalHint')}</p>
-        ) : null}
-        {defaultMode === 'auto' && !isActive ? (
-          <p className="text-start text-xs text-[var(--pf-text-muted)]">{t('autoHint')}</p>
-        ) : null}
+        <p className="text-start text-xs text-[var(--pf-text-muted)]">{hint}</p>
       </div>
 
       {canEdit ? (
@@ -109,12 +104,11 @@ export function FeaturesSettingsPanel({
       <p className="text-sm text-[var(--pf-text-secondary)]">{t('subtitle')}</p>
 
       <div className="mt-2 rounded-lg border border-[var(--pf-border-default)] p-4">
-        {OPTIONAL_MODULE_KEYS.map((moduleKey) => (
+        {CUSTOMER_FEATURE_MODULE_KEYS.map((moduleKey) => (
           <ModuleRow
             key={moduleKey}
             moduleKey={moduleKey}
             defaultMode={resolveMode(moduleKey, visibility, preferences)}
-            isActive={visibility[moduleKey]}
             canEdit={canEdit}
           />
         ))}
