@@ -44,6 +44,7 @@ export default async function ProjectLayout({ children, params }: ProjectLayoutP
     false;
   const showExpensesTab = can(PERMISSIONS.EXPENSES_READ);
   const showChangesTab = Boolean(modules?.changes) && can(PERMISSIONS.CHANGES_READ);
+  const showBoqTab = Boolean(modules?.boq) && can(PERMISSIONS.BOQ_READ);
   const showBillingTab = Boolean(modules?.billing) && can(PERMISSIONS.BILLING_READ);
   const showBudgetsTab = Boolean(modules?.budgets) && can(PERMISSIONS.BUDGETS_READ);
   // Team is permission-gated (not module) so owners can assign people before
@@ -76,6 +77,7 @@ export default async function ProjectLayout({ children, params }: ProjectLayoutP
     financials: canReadFinancials,
     expenses: showExpensesTab,
     changes: showChangesTab,
+    boq: showBoqTab,
     billing: showBillingTab,
     budgets: showBudgetsTab,
     team: showTeamTab,

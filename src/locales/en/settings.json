@@ -59,6 +59,7 @@
     "approvals": "Approvals",
     "month_close": "Month close (optional period close)",
     "budgets": "Budgets on project / job (not a separate menu)",
+    "boq": "Bill of quantities / progress billing (project measured contracts)",
     "forms": "Field forms",
     "command_center": "Today",
     "saved": "Feature visibility updated."

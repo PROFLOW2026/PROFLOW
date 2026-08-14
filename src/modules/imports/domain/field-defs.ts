@@ -119,6 +119,61 @@ const COST_CATEGORY_FIELDS: readonly ImportFieldDef[] = [
 ];
 
 /**
+ * Project BOQ item rows — hierarchy via chapter/subchapter columns.
+ * Requires projectId on confirm (wizard/context), not as a CSV column.
+ */
+const BOQ_ITEM_FIELDS: readonly ImportFieldDef[] = [
+  {
+    key: 'itemCode',
+    required: false,
+    aliases: ['item_code', 'itemcode', 'code', 'boq_code', 'קוד', 'קוד_פריט', 'מספר_סעיף'],
+  },
+  {
+    key: 'description',
+    required: true,
+    aliases: ['description', 'desc', 'item', 'name', 'תיאור', 'תיאור_פריט', 'סעיף'],
+  },
+  {
+    key: 'unit',
+    required: false,
+    aliases: ['unit', 'uom', 'measure', 'יחידה', 'יח'],
+  },
+  {
+    key: 'quantity',
+    required: false,
+    aliases: ['quantity', 'qty', 'qty_', 'כמות'],
+  },
+  {
+    key: 'unitPrice',
+    required: false,
+    aliases: [
+      'unit_price',
+      'unitprice',
+      'price',
+      'rate',
+      'מחיר',
+      'מחיר_יחידה',
+      'תעריף',
+    ],
+  },
+  {
+    key: 'amount',
+    required: false,
+    aliases: ['amount', 'total', 'line_amount', 'סכום', 'סהכ', 'סה_כ'],
+  },
+  {
+    key: 'chapter',
+    required: false,
+    aliases: ['chapter', 'section', 'header', 'פרק', 'פרק_ראשי'],
+  },
+  {
+    key: 'subchapter',
+    required: false,
+    aliases: ['subchapter', 'sub_chapter', 'subsection', 'תת_פרק', 'תתפרק'],
+  },
+];
+
+/**
  * Safe expense import fields — maps to createExpenseSchema.
  * Tax/VAT/net columns are intentionally not mapped (VAT ≠ profit).
  */
@@ -159,6 +214,7 @@ const FIELDS_BY_KIND: Record<ImportKind, readonly ImportFieldDef[]> = {
   opening_values: OPENING_VALUE_FIELDS,
   cost_categories: COST_CATEGORY_FIELDS,
   expenses: EXPENSE_FIELDS,
+  boq_items: BOQ_ITEM_FIELDS,
 };
 
 export function fieldDefsForKind(kind: ImportKind): readonly ImportFieldDef[] {

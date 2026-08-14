@@ -32,7 +32,10 @@
     "overdue_maintenance": "Maintenance",
     "stale_project": "Inactive work",
     "credit_void_issue": "Credit / void",
-    "month_close_incomplete": "Month close"
+    "month_close_incomplete": "Month close",
+    "boq_measurement_awaiting_approval": "BOQ measurement",
+    "boq_progress_ready_to_bill": "BOQ progress bill",
+    "boq_vs_contract_mismatch": "BOQ vs contract"
   },
   "empty": {
     "title": "You're clear",

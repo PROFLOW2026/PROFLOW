@@ -11,6 +11,7 @@ export type ProjectWorkspaceLinkKey =
   | 'financials'
   | 'expenses'
   | 'changes'
+  | 'boq'
   | 'billing'
   | 'budgets'
   | 'work'
@@ -75,6 +76,10 @@ export function selectProjectWorkspaceLinks(input: WorkspaceLinkInput): ProjectW
 
   if (moduleOn(input.modules, 'changes') && can(input.permissions, PERMISSIONS.CHANGES_READ)) {
     links.push({ key: 'changes', href: tab('changes'), inProject: true });
+  }
+
+  if (moduleOn(input.modules, 'boq') && can(input.permissions, PERMISSIONS.BOQ_READ)) {
+    links.push({ key: 'boq', href: tab('boq'), inProject: true });
   }
 
   if (moduleOn(input.modules, 'billing') && can(input.permissions, PERMISSIONS.BILLING_READ)) {

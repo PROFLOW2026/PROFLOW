@@ -85,6 +85,7 @@ export const MESSAGE_NAMESPACES = [
   'exports',
   'marketing',
   'budgets',
+  'boq',
   'approvals',
   'monthClose',
   'forms',
@@ -122,6 +123,7 @@ export const APP_CLIENT_MESSAGE_NAMESPACES = [
   'customFields',
   'exports',
   'budgets',
+  'boq',
   'approvals',
   'search',
 ] as const satisfies readonly MessageNamespace[];

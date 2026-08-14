@@ -9,6 +9,7 @@ import {
   searchApBills,
   searchAssets,
   searchBillingRecords,
+  searchBoqItems,
   searchClients,
   searchContacts,
   searchDocuments,
@@ -68,6 +69,9 @@ export async function globalSearch(
   }
   if (hasPermission(context, PERMISSIONS.ASSETS_READ)) {
     tasks.push(searchAssets(context.db, context.organizationId, query, limit));
+  }
+  if (hasPermission(context, PERMISSIONS.BOQ_READ)) {
+    tasks.push(searchBoqItems(context.db, context.organizationId, query, limit));
   }
 
   const batches = await Promise.all(tasks);

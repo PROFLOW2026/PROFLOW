@@ -1,0 +1,233 @@
+{
+  "panel": {
+    "title": "Bill of quantities",
+    "description": "Measured contract quantities, physical progress, and progress bills. Progress is not Actual cost.",
+    "emptyTitle": "No bill of quantities yet",
+    "emptyBody": "Create a draft BOQ when you are ready to measure and bill by quantity. You can activate it once items are in place.",
+    "emptyAction": "Create draft BOQ",
+    "simpleModeHint": "Simple flow: Project → BOQ → Update progress → Create progress bill."
+  },
+  "status": {
+    "draft": "Draft",
+    "active": "Active",
+    "superseded": "Superseded",
+    "archived": "Archived",
+    "approved": "Approved",
+    "billed": "Billed",
+    "voided": "Voided"
+  },
+  "batchStatus": {
+    "draft": "Draft",
+    "approved": "Approved",
+    "billed": "Billed",
+    "superseded": "Superseded",
+    "voided": "Voided"
+  },
+  "totals": {
+    "title": "BOQ totals",
+    "original": "Original BOQ",
+    "current": "Current BOQ",
+    "currency": "Currency"
+  },
+  "recon": {
+    "title": "Contract ↔ BOQ",
+    "originalContract": "Original contract",
+    "originalBoq": "Original BOQ",
+    "currentContract": "Current contract",
+    "currentBoq": "Current BOQ",
+    "approvedChanges": "Approved changes",
+    "allocated": "Allocated to BOQ",
+    "unallocated": "Unallocated approved changes",
+    "status": {
+      "matched": "Matched",
+      "variance": "Variance",
+      "unallocated_contract_value": "Unallocated contract value",
+      "unallocated_approved_change": "Unallocated approved change"
+    },
+    "unavailable": "Contract reconciliation needs Changes permission or a primary contract."
+  },
+  "nodes": {
+    "title": "Chapters and items",
+    "search": "Search items",
+    "filterAll": "All",
+    "filterChapters": "Chapters",
+    "filterItems": "Items",
+    "empty": "No lines yet. Add a chapter or item to the draft.",
+    "chapter": "Chapter",
+    "item": "Item",
+    "code": "Code",
+    "description": "Description",
+    "unit": "Unit",
+    "quantity": "Qty",
+    "unitPrice": "Unit price",
+    "amount": "Amount",
+    "currentQty": "Current qty",
+    "history": "Progress history",
+    "noHistory": "No progress recorded yet."
+  },
+  "forms": {
+    "createTitle": "Create draft BOQ",
+    "title": "Title (optional)",
+    "notes": "Notes",
+    "progressMode": "Progress mode",
+    "progressModeSimple": "Simple (measured = approved)",
+    "progressModeAdvanced": "Advanced (measure, then approve)",
+    "addChapter": "Add chapter",
+    "addItem": "Add item",
+    "parentChapter": "Parent chapter (optional)",
+    "noParent": "Top level",
+    "quantity": "Quantity",
+    "unitPrice": "Unit price",
+    "openingApproved": "Opening approved qty",
+    "openingBilled": "Opening billed qty",
+    "saveNode": "Save line",
+    "removeNode": "Remove",
+    "activate": "Activate baseline",
+    "activateHint": "After activation, original quantities and prices are locked. Further changes go through approved change orders."
+  },
+  "progress": {
+    "title": "Progress",
+    "description": "Record measured quantities for a period. Approval unlocks a progress bill — this never creates Actual cost.",
+    "createTitle": "Update progress",
+    "periodLabel": "Period label",
+    "periodStart": "Period start",
+    "periodEnd": "Period end",
+    "measuredQty": "Measured qty this period",
+    "approvedQty": "Approved qty this period",
+    "selectItems": "Items to update",
+    "submit": "Save progress batch",
+    "batchesTitle": "Progress batches",
+    "emptyBatches": "No progress batches yet.",
+    "certificate": "Certificate #{number}",
+    "approve": "Approve",
+    "simpleApproveHint": "Simple mode: approved quantity will equal measured quantity.",
+    "createBill": "Create and finalize progress invoice",
+    "taxAmount": "VAT / tax amount (optional — blank means intentional zero tax)",
+    "retentionPercent": "Retention % (optional)",
+    "billedLinked": "Progress bill created",
+    "linesCount": "{count} lines"
+  },
+  "allocate": {
+    "title": "Allocate approved change",
+    "description": "Map an approved change order onto the active BOQ. Pending changes never update quantities.",
+    "changeOrderId": "Approved change order",
+    "changeOrderPlaceholder": "Select a change order",
+    "noChangeOrders": "No approved change orders on this project.",
+    "amountDelta": "Amount delta",
+    "quantityDelta": "Quantity delta",
+    "unitPriceDelta": "Unit price delta",
+    "allocationKind": "Allocation type",
+    "kindQuantity": "Quantity change only",
+    "kindUnitPrice": "Unit price change only",
+    "targetItem": "Target item (optional)",
+    "unallocated": "Leave unallocated on contract",
+    "submit": "Allocate"
+  },
+  "actions": {
+    "created": "Draft BOQ created.",
+    "saveItem": "Line saved.",
+    "activated": "BOQ baseline activated.",
+    "progressCreated": "Progress batch saved.",
+    "progressApproved": "Progress batch approved.",
+    "billingCreated": "Progress invoice created and finalized.",
+    "create": "Create draft BOQ",
+    "activate": "Activate baseline",
+    "addItem": "Add item",
+    "recordProgress": "Save progress batch",
+    "approveProgress": "Approve",
+    "createBilling": "Create and finalize progress invoice"
+  },
+  "fields": {
+    "title": "Title (optional)",
+    "chapter": "Parent chapter",
+    "itemCode": "Code",
+    "description": "Description",
+    "unit": "Unit",
+    "quantity": "Quantity",
+    "unitPrice": "Unit price",
+    "periodLabel": "Period label",
+    "measuredQty": "Measured qty this period",
+    "approvedQty": "Approved qty this period",
+    "retentionPercent": "Retention % (optional)"
+  },
+  "permissions": {
+    "amountsHidden": "Unit prices and amounts are hidden for your role. You can still update progress quantities."
+  },
+  "errors": {
+    "generic": "Could not complete that BOQ action. Check the values and try again.",
+    "duplicateBilling": "This progress period is already billed — duplicate progress billing is blocked.",
+    "billingRequiresApproved": "Only an approved, unbilled progress period can create a bill.",
+    "overMeasurement": "Quantity exceeds the current BOQ quantity.",
+    "negativePeriod": "Negative period quantities require an explicit correction workflow.",
+    "draftOnly": "Only a draft BOQ can be edited.",
+    "activeRequired": "An active BOQ is required.",
+    "zeroPeriod": "Period value is zero — nothing to bill.",
+    "changeOrderInvalid": "Change order was not found or does not belong to this project.",
+    "notFound": "Item was not found."
+  },
+  "import": {
+    "title": "Import from Excel / CSV",
+    "hint": "Import items into a draft BOQ. No silent partial import — invalid rows are reported.",
+    "draftOnlyHint": "Import always targets a draft BOQ. If this project only has an active BOQ, import creates or uses a separate draft version."
+  },
+  "export": {
+    "downloadCsv": "Download BOQ (CSV)"
+  },
+  "kpis": {
+    "title": "Progress vs contract",
+    "performed": "Performed (cumulative approved)",
+    "billed": "Billed (incl. opening)",
+    "remaining": "Remaining to perform",
+    "alreadyBilledHint": "This period is already linked to a bill — the same quantities cannot be billed again."
+  },
+  "allocations": {
+    "title": "Change allocation history",
+    "empty": "No approved changes allocated to the BOQ yet.",
+    "kind": "Kind",
+    "amount": "Amount",
+    "qty": "Qty"
+  },
+  "mappings": {
+    "title": "Related mappings",
+    "description": "Link this item to work package, cost category, and budget line. Does not change BOQ amounts.",
+    "workPackage": "Work package",
+    "costCategory": "Cost category",
+    "budgetLine": "Budget line",
+    "none": "None",
+    "save": "Save mappings",
+    "saved": "Mappings saved."
+  },
+  "subcontractor": {
+    "title": "Subcontractor schedule",
+    "description": "Cost rates for vendor engagements mapped to client BOQ items. Never mixed into client revenue.",
+    "empty": "No subcontractor schedules yet.",
+    "create": "Create schedule",
+    "addLine": "Add cost line",
+    "activate": "Activate schedule",
+    "activateHint": "After activation the schedule is immutable. Create valuations against the active schedule.",
+    "activated": "Subcontractor schedule activated.",
+    "createValuation": "Create valuation draft",
+    "approveValuation": "Approve valuation",
+    "valuationApproved": "Valuation approved.",
+    "proposedAp": "Proposed AP bill attached.",
+    "vendorEngagement": "Vendor engagement",
+    "agreedQty": "Agreed quantity",
+    "unitRate": "Unit rate (cost)",
+    "periodLabel": "Valuation period",
+    "periodQtyHint": "Enter CURRENT-PERIOD quantity per line. Default is 0 — not the full agreed quantity.",
+    "flowHint": "Draft → add lines → activate → valuation (period qty) → approve. AP handoff stays manual.",
+    "valuationHistory": "Valuation history",
+    "apManualNote": "Propose draft vendor bill manually in AP. Auto-create is disabled because AP create may post as open Actual. proposed_vendor_bill_id attaches only via approved→proposed_ap.",
+    "valuationCreated": "Valuation draft saved. Propose the vendor bill manually in AP after approval.",
+    "costSideOnly": "Cost side only — not client BOQ revenue."
+  },
+  "comparison": {
+    "title": "BOQ vs financials",
+    "physicalProgress": "Physical progress",
+    "actualCost": "Actual cost (engine)",
+    "forecast": "Forecast final cost",
+    "currentContract": "Current contract",
+    "currentBoq": "Current BOQ",
+    "progressNotActual": "Physical progress is not Actual. Actual and Forecast come from the financials engine only."
+  }
+}

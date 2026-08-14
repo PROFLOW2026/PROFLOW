@@ -20,7 +20,8 @@
     "arAging": "AR aging",
     "purchaseOrders": "Purchase orders",
     "apBills": "Vendor bills",
-    "activityLog": "Activity log"
+    "activityLog": "Activity log",
+    "boq": "Bill of quantities"
   },
   "headers": {
     "id": "ID",
@@ -94,7 +95,20 @@
     "actorEmail": "Actor email",
     "action": "Action",
     "entityType": "Entity type",
-    "entityId": "Entity ID"
+    "entityId": "Entity ID",
+    "itemCode": "Item code",
+    "nodeKind": "Node kind",
+    "unit": "Unit",
+    "quantity": "Quantity",
+    "unitPrice": "Unit price",
+    "originalAmount": "Original amount",
+    "currentQuantity": "Current quantity",
+    "currentUnitPrice": "Current unit price",
+    "currentAmount": "Current amount",
+    "chapter": "Chapter",
+    "subchapter": "Subchapter",
+    "approvedQuantity": "Approved quantity (cumulative)",
+    "percentComplete": "Percent complete"
   },
   "notes": {
     "projectsContract": "Contract amounts appear only with contract-view permission. Currencies are per-row; do not sum mixed currencies.",
@@ -113,7 +127,8 @@
     "apNeExpense": "A vendor bill is not an expense. Match status belongs to the bill, not a payment.",
     "auditPermission": "Requires activity-log view permission (same as Settings → Activity).",
     "auditPayloads": "Before/after details are omitted intentionally — same as the activity screen.",
-    "auditCap": "Export capped at {cap} newest events."
+    "auditCap": "Export capped at {cap} newest events.",
+    "boqProgressOptional": "Progress columns reflect cumulative approved quantities when available. BOQ progress is not Actual cost."
   },
   "metrics": {
     "projectId": "Project ID",

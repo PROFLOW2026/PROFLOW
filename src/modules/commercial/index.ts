@@ -31,6 +31,7 @@ export {
   computeApprovedReductions,
   computeCurrentContractValue,
   computePendingChanges,
+  computeNetApprovedChanges,
   changeOrderEventAmount,
   changeOrderApprovedNetAmount,
   signedChangeAmount,

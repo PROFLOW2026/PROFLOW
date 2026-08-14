@@ -15,6 +15,7 @@ describe('project tab business priority', () => {
       'usage',
       'schedule',
       'changes',
+      'boq',
       'billing',
       'budgets',
       'time',
@@ -25,6 +26,12 @@ describe('project tab business priority', () => {
     expect(PROJECT_TAB_PRIORITY.indexOf('team')).toBeLessThan(
       PROJECT_TAB_PRIORITY.indexOf('schedule'),
     );
+    expect(PROJECT_TAB_PRIORITY.indexOf('changes')).toBeLessThan(
+      PROJECT_TAB_PRIORITY.indexOf('boq'),
+    );
+    expect(PROJECT_TAB_PRIORITY.indexOf('boq')).toBeLessThan(
+      PROJECT_TAB_PRIORITY.indexOf('billing'),
+    );
   });
 
   it('filters by visibility without reordering or RTL-reversing', () => {
@@ -32,6 +39,7 @@ describe('project tab business priority', () => {
       financials: true,
       expenses: true,
       changes: true,
+      boq: true,
       billing: true,
       budgets: true,
       team: true,
@@ -57,6 +65,7 @@ describe('project tab business priority', () => {
         financials: false,
         expenses: false,
         changes: false,
+        boq: false,
         billing: false,
         budgets: false,
         team: false,
@@ -77,6 +86,7 @@ describe('project tab business priority', () => {
       financials: true,
       expenses: true,
       changes: false,
+      boq: false,
       billing: false,
       budgets: false,
       team: false,

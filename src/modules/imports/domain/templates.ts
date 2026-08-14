@@ -1,9 +1,10 @@
 /**
  * Downloadable CSV/XLSX-ready templates for onboarding import.
  * Headers include English canonical names; Hebrew aliases are documented in field-defs.
+ * For he-IL, BOQ templates use Hebrew header labels (still auto-mapped via aliases).
  */
 
-import type { ImportKind } from './types';
+import type { ImportFieldDef, ImportKind } from './types';
 import { fieldDefsForKind } from './field-defs';
 
 const EXAMPLE_ROWS: Partial<Record<ImportKind, readonly (readonly string[])[]>> = {
@@ -25,20 +26,43 @@ const EXAMPLE_ROWS: Partial<Record<ImportKind, readonly (readonly string[])[]>> 
     ['travel_field', 'Field travel', 'direct_project'],
   ],
   expenses: [['2026-03-01', 'Cable purchase', '450.00', 'ILS', '', '', 'Supply Co', 'direct_project', '']],
+  boq_items: [
+    ['01.01', 'Excavation for foundations', 'm3', '120', '85.50', '10260.00', 'Earthworks', 'Foundations'],
+    ['01.02', 'Lean concrete blinding', 'm2', '80', '45', '3600', 'Earthworks', 'Foundations'],
+    ['02.01', 'Formwork walls', 'm2', '200', '120.00', '24000.00', 'Concrete', 'Walls'],
+  ],
 };
 
-export function importTemplateHeaders(kind: ImportKind): readonly string[] {
-  return fieldDefsForKind(kind).map((field) => field.key);
+const BOQ_HE_EXAMPLE_ROWS: readonly (readonly string[])[] = [
+  ['01.01', 'חפירה ליסודות', 'מ"ק', '120', '85.50', '10260.00', 'עפר', 'יסודות'],
+  ['01.02', 'בטון רזה', 'מ"ר', '80', '45', '3600', 'עפר', 'יסודות'],
+  ['02.01', 'תבניות לקירות', 'מ"ר', '200', '120.00', '24000.00', 'בטון', 'קירות'],
+];
+
+function hebrewAlias(field: ImportFieldDef): string | undefined {
+  return field.aliases.find((alias) => /[\u0590-\u05FF]/.test(alias));
 }
 
-export function importTemplateExampleRows(kind: ImportKind): readonly (readonly string[])[] {
+export function importTemplateHeaders(kind: ImportKind, locale?: string): readonly string[] {
+  const fields = fieldDefsForKind(kind);
+  if (locale === 'he-IL' && kind === 'boq_items') {
+    return fields.map((field) => hebrewAlias(field) ?? field.key);
+  }
+  return fields.map((field) => field.key);
+}
+
+export function importTemplateExampleRows(
+  kind: ImportKind,
+  locale?: string,
+): readonly (readonly string[])[] {
+  if (kind === 'boq_items' && locale === 'he-IL') return BOQ_HE_EXAMPLE_ROWS;
   return EXAMPLE_ROWS[kind] ?? [];
 }
 
 /** CSV text with BOM for Excel Hebrew compatibility. */
-export function buildImportTemplateCsv(kind: ImportKind): string {
-  const headers = importTemplateHeaders(kind);
-  const rows = importTemplateExampleRows(kind);
+export function buildImportTemplateCsv(kind: ImportKind, locale?: string): string {
+  const headers = importTemplateHeaders(kind, locale);
+  const rows = importTemplateExampleRows(kind, locale);
   const escape = (cell: string) => {
     if (/[",\n\r]/.test(cell)) return `"${cell.replace(/"/g, '""')}"`;
     return cell;

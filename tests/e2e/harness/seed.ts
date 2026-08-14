@@ -3,10 +3,16 @@ import { organizationMemberships, profiles } from '@drizzle/schema';
 import { seedSystemData } from '@drizzle/seed/system';
 import { createClient } from '@/modules/clients';
 import { createExpense, finalizeExpense } from '@/modules/expenses';
+import { activateBoq, createProjectBoq, upsertBoqNode } from '@/modules/boq';
+import {
+  approveChangeRequest,
+  createChangeRequest,
+  submitChangeRequestForApproval,
+} from '@/modules/commercial';
 import { createProject } from '@/modules/projects';
 import { assignRole, findRoleByKey } from '@/modules/rbac';
 import { createOrganization, resolveOrgContext, setModuleVisibility } from '@/modules/tenancy';
-import { createVendor } from '@/modules/vendors';
+import { createVendor, createVendorEngagement } from '@/modules/vendors';
 import type { Database, Transaction } from '@/shared/db/types';
 import {
   ELECTRICAL_OWNER,
@@ -37,6 +43,8 @@ export interface SeededWorld {
   projectId: string;
   otherProjectId: string;
   vendorId: string;
+  advancedProjectId: string;
+  changeProjectId: string;
 }
 
 async function asUser<T>(db: Database, userId: string, fn: (tx: Transaction) => Promise<T>): Promise<T> {
@@ -165,8 +173,27 @@ export async function seedWorld(db: Database): Promise<SeededWorld> {
     await finalizeExpense(context, expense.id);
 
     // Enable optional workspace tabs used by authenticated product flows / perf verification.
-    for (const moduleKey of ['changes', 'billing', 'documents'] as const) {
+    for (const moduleKey of ['changes', 'billing', 'documents', 'boq'] as const) {
       await setModuleVisibility(context, { moduleKey, enabled: true });
+    }
+
+    // Reproducible BOQ draft for Playwright (activate / progress covered in integration + panel smoke).
+    const boq = await createProjectBoq(context, {
+      projectId: project.projectId,
+      title: 'כתב כמויות בדיקה',
+      progressMode: 'simple',
+    });
+    if (boq) {
+      await upsertBoqNode(context, {
+        boqId: boq.id,
+        nodeKind: 'item',
+        itemCode: '1.01',
+        description: 'סעיף בדיקה',
+        unit: 'יח׳',
+        pricingType: 'quantity_unit_price',
+        quantity: '10',
+        unitPrice: '100',
+      });
     }
 
     return project.projectId;
@@ -182,6 +209,85 @@ export async function seedWorld(db: Database): Promise<SeededWorld> {
       name: 'Fixture Supplies Ltd',
     });
     return vendor.id;
+  });
+
+  const advancedProjectId = await asUser(db, OWNER.id, async (tx) => {
+    const context = await resolveOrgContext(tx, {
+      userId: OWNER.id,
+      organizationId: primary.organization.id,
+      locale: 'he-IL',
+    });
+    const project = await createProject(context, {
+      name: 'BOQ Advanced E2E',
+      contractValueAmount: '80000',
+      status: 'active',
+    });
+    const boq = await createProjectBoq(context, {
+      projectId: project.projectId,
+      title: 'Advanced BOQ',
+      progressMode: 'advanced',
+    });
+    if (boq) {
+      await upsertBoqNode(context, {
+        boqId: boq.id,
+        nodeKind: 'item',
+        itemCode: 'A.01',
+        description: 'סעיף מתקדם',
+        unit: 'יח׳',
+        pricingType: 'quantity_unit_price',
+        quantity: '10',
+        unitPrice: '100',
+      });
+    }
+    return project.projectId;
+  });
+
+  const changeProjectId = await asUser(db, OWNER.id, async (tx) => {
+    const context = await resolveOrgContext(tx, {
+      userId: OWNER.id,
+      organizationId: primary.organization.id,
+      locale: 'he-IL',
+    });
+    const project = await createProject(context, {
+      name: 'BOQ Change Sub E2E',
+      contractValueAmount: '100000',
+      status: 'active',
+    });
+    const boq = await createProjectBoq(context, {
+      projectId: project.projectId,
+      title: 'Change BOQ',
+      progressMode: 'simple',
+    });
+    if (boq) {
+      await upsertBoqNode(context, {
+        boqId: boq.id,
+        nodeKind: 'item',
+        itemCode: 'C.01',
+        description: 'סעיף שינוי',
+        unit: 'יח׳',
+        pricingType: 'quantity_unit_price',
+        quantity: '10',
+        unitPrice: '100',
+      });
+      await activateBoq(context, { boqId: boq.id });
+    }
+    const change = await createChangeRequest(context, {
+      projectId: project.projectId,
+      title: 'E2E addition',
+      direction: 'addition',
+      requestedAmount: '500',
+    });
+    await submitChangeRequestForApproval(context, change.changeRequestId);
+    await approveChangeRequest(context, {
+      changeRequestId: change.changeRequestId,
+      effectiveDate: '2026-08-01',
+    });
+    await createVendorEngagement(context, {
+      vendorId,
+      projectId: project.projectId,
+      role: 'subcontractor',
+    });
+    return project.projectId;
   });
 
   const secondaryProject = await asUser(db, OTHER_OWNER.id, async (tx) => {
@@ -228,5 +334,7 @@ export async function seedWorld(db: Database): Promise<SeededWorld> {
     projectId: primaryProject,
     otherProjectId: secondaryProject,
     vendorId,
+    advancedProjectId,
+    changeProjectId,
   };
 }

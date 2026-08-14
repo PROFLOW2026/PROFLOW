@@ -3,6 +3,7 @@ export type ProjectTabKey =
   | 'financials'
   | 'expenses'
   | 'changes'
+  | 'boq'
   | 'billing'
   | 'budgets'
   | 'work'
@@ -18,8 +19,6 @@ export type ProjectTabKey =
  *
  * Array order is encounter order at the reading-start edge (right in RTL,
  * left in LTR). Do not reverse this for Hebrew — CSS `dir` handles mirroring.
- *
- * Keep room after `team` for peer agents (`contractors`, etc.): team → schedule.
  */
 export const PROJECT_TAB_PRIORITY: readonly ProjectTabKey[] = [
   'overview',
@@ -29,6 +28,7 @@ export const PROJECT_TAB_PRIORITY: readonly ProjectTabKey[] = [
   'usage',
   'schedule',
   'changes',
+  'boq',
   'billing',
   'budgets',
   'time',
@@ -41,6 +41,7 @@ export interface ProjectTabVisibility {
   readonly financials: boolean;
   readonly expenses: boolean;
   readonly changes: boolean;
+  readonly boq: boolean;
   readonly billing: boolean;
   readonly budgets: boolean;
   readonly team: boolean;
@@ -64,6 +65,8 @@ export function resolveProjectTabs(visibility: ProjectTabVisibility): ProjectTab
         return visibility.expenses;
       case 'changes':
         return visibility.changes;
+      case 'boq':
+        return visibility.boq;
       case 'billing':
         return visibility.billing;
       case 'budgets':

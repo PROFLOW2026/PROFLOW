@@ -4,7 +4,7 @@ function he(locale: string): boolean {
   return locale.toLowerCase().startsWith('he');
 }
 
-export function fallbackWhere(locale: string, key: 'billing' | 'vendorBills' | 'workforce' | 'approvals' | 'project' | 'assets' | 'monthClose'): string {
+export function fallbackWhere(locale: string, key: 'billing' | 'vendorBills' | 'workforce' | 'approvals' | 'project' | 'assets' | 'monthClose' | 'boq'): string {
   if (he(locale)) {
     switch (key) {
       case 'billing':
@@ -21,6 +21,8 @@ export function fallbackWhere(locale: string, key: 'billing' | 'vendorBills' | '
         return 'ציוד';
       case 'monthClose':
         return 'סגירת חודש';
+      case 'boq':
+        return 'כתב כמויות';
     }
   }
   switch (key) {
@@ -38,6 +40,8 @@ export function fallbackWhere(locale: string, key: 'billing' | 'vendorBills' | '
       return 'Assets';
     case 'monthClose':
       return 'Month close';
+    case 'boq':
+      return 'BOQ';
   }
 }
 
@@ -250,6 +254,54 @@ export function monthCloseIncompleteCopy(
   return {
     what: `Complete month close ${input.yearMonth}`,
     why: `Status ${status} · completeness ${input.completenessPercent}%`,
+  };
+}
+
+export function boqMeasurementAwaitingCopy(
+  locale: string,
+  input: { periodLabel: string; certificateNumber: number },
+): { what: string; why: string } {
+  if (he(locale)) {
+    return {
+      what: 'אישור מדידת כתב כמויות',
+      why: `חשבון ${input.certificateNumber} · ${input.periodLabel} ממתין לאישור`,
+    };
+  }
+  return {
+    what: 'Approve BOQ measurement',
+    why: `Certificate ${input.certificateNumber} · ${input.periodLabel} awaits approval`,
+  };
+}
+
+export function boqProgressReadyToBillCopy(
+  locale: string,
+  input: { periodLabel: string; certificateNumber: number },
+): { what: string; why: string } {
+  if (he(locale)) {
+    return {
+      what: 'יצירת חשבון חלקי מכתב כמויות',
+      why: `חשבון ${input.certificateNumber} · ${input.periodLabel} מאושר ומוכן לחיוב`,
+    };
+  }
+  return {
+    what: 'Create BOQ progress bill',
+    why: `Certificate ${input.certificateNumber} · ${input.periodLabel} approved and ready to bill`,
+  };
+}
+
+export function boqVsContractMismatchCopy(
+  locale: string,
+  input: { status: string },
+): { what: string; why: string } {
+  if (he(locale)) {
+    return {
+      what: 'התאמת כתב כמויות לחוזה',
+      why: `פער בין חוזה לכתב כמויות · ${input.status}`,
+    };
+  }
+  return {
+    what: 'Reconcile BOQ vs contract',
+    why: `Contract and BOQ diverge · ${input.status}`,
   };
 }
 

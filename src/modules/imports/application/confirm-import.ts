@@ -11,6 +11,8 @@ import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { previewImport } from './preview-import';
 import { enrichImportPreview } from './enrich-preview';
 import { assertCanImportKind } from './import-permissions';
+import { confirmBoqItemsRows } from './confirm-boq-import';
+import { isBoqImportSkipRow } from '../domain/boq-import-parse';
 import {
   isEnabledImportKind,
   type ColumnMapping,
@@ -29,6 +31,10 @@ export interface ConfirmImportInput {
   readonly mapping: ColumnMapping;
   /** When set, only these row numbers (file line numbers) are imported. Skipped rows are allowed. */
   readonly rowNumbers?: readonly number[];
+  /** Required when kind is boq_items. */
+  readonly projectId?: string;
+  /** Optional draft BOQ target for boq_items. */
+  readonly boqId?: string;
 }
 
 function emptyToUndefined(value: string | undefined): string | undefined {
@@ -218,6 +224,14 @@ async function createFromRow(
       });
       return created.id;
     }
+    case 'boq_items': {
+      throw new ValidationError([
+        {
+          path: 'kind',
+          message: 'boq_items import uses confirmBoqItemsRows — not per-row createFromRow',
+        },
+      ]);
+    }
     default: {
       const _exhaustive: never = kind;
       throw new ValidationError([
@@ -280,22 +294,39 @@ export async function confirmImport(
 
   const selected = new Set(input.rowNumbers ?? preview.rows.map((r) => r.rowNumber));
   const candidates = preview.rows.filter(
-    (row) => selected.has(row.rowNumber) && !rowHasErrors(row),
+    (row) =>
+      selected.has(row.rowNumber) &&
+      !rowHasErrors(row) &&
+      !(kind === 'boq_items' && isBoqImportSkipRow(row.values)),
   );
 
   const results: ImportRowResult[] = [];
 
-  for (const row of candidates) {
-    try {
-      const entityId = await createFromRow(context, kind, row);
-      results.push({ rowNumber: row.rowNumber, ok: true, entityId });
-    } catch (error) {
-      results.push({ rowNumber: row.rowNumber, ok: false, error: errorMessage(error) });
+  if (kind === 'boq_items') {
+    if (!input.projectId?.trim()) {
+      throw new ValidationError([
+        { path: 'projectId', message: 'projectId is required for boq_items import' },
+      ]);
+    }
+    const boqResults = await confirmBoqItemsRows(context, candidates, {
+      projectId: input.projectId,
+      boqId: input.boqId,
+    });
+    results.push(...boqResults);
+  } else {
+    for (const row of candidates) {
+      try {
+        const entityId = await createFromRow(context, kind, row);
+        results.push({ rowNumber: row.rowNumber, ok: true, entityId });
+      } catch (error) {
+        results.push({ rowNumber: row.rowNumber, ok: false, error: errorMessage(error) });
+      }
     }
   }
 
   for (const row of preview.rows) {
     if (!selected.has(row.rowNumber)) continue;
+    if (kind === 'boq_items' && isBoqImportSkipRow(row.values) && !rowHasErrors(row)) continue;
     if (!rowHasErrors(row)) continue;
     results.push({
       rowNumber: row.rowNumber,
@@ -340,30 +371,53 @@ export async function confirmImportInBatches(
 
   const selected = new Set(input.rowNumbers ?? preview.rows.map((r) => r.rowNumber));
   const candidates = preview.rows.filter(
-    (row) => selected.has(row.rowNumber) && !rowHasErrors(row),
+    (row) =>
+      selected.has(row.rowNumber) &&
+      !rowHasErrors(row) &&
+      !(kind === 'boq_items' && isBoqImportSkipRow(row.values)),
   );
 
   const results: ImportRowResult[] = [];
 
-  for (let i = 0; i < candidates.length; i += BATCH_SIZE) {
-    const batch = candidates.slice(i, i + BATCH_SIZE);
-    const batchResults = await runInOrg(async (context) => {
-      const out: ImportRowResult[] = [];
-      for (const row of batch) {
-        try {
-          const entityId = await createFromRow(context, kind, row);
-          out.push({ rowNumber: row.rowNumber, ok: true, entityId });
-        } catch (error) {
-          out.push({ rowNumber: row.rowNumber, ok: false, error: errorMessage(error) });
+  if (kind === 'boq_items') {
+    if (!input.projectId?.trim()) {
+      throw new ValidationError([
+        { path: 'projectId', message: 'projectId is required for boq_items import' },
+      ]);
+    }
+    // Keep hierarchy + draft BOQ resolution in one org transaction per batch of rows.
+    for (let i = 0; i < candidates.length; i += BATCH_SIZE) {
+      const batch = candidates.slice(i, i + BATCH_SIZE);
+      const batchResults = await runInOrg(async (context) =>
+        confirmBoqItemsRows(context, batch, {
+          projectId: input.projectId!,
+          boqId: input.boqId,
+        }),
+      );
+      results.push(...batchResults);
+    }
+  } else {
+    for (let i = 0; i < candidates.length; i += BATCH_SIZE) {
+      const batch = candidates.slice(i, i + BATCH_SIZE);
+      const batchResults = await runInOrg(async (context) => {
+        const out: ImportRowResult[] = [];
+        for (const row of batch) {
+          try {
+            const entityId = await createFromRow(context, kind, row);
+            out.push({ rowNumber: row.rowNumber, ok: true, entityId });
+          } catch (error) {
+            out.push({ rowNumber: row.rowNumber, ok: false, error: errorMessage(error) });
+          }
         }
-      }
-      return out;
-    });
-    results.push(...batchResults);
+        return out;
+      });
+      results.push(...batchResults);
+    }
   }
 
   for (const row of preview.rows) {
     if (!selected.has(row.rowNumber) || !rowHasErrors(row)) continue;
+    if (kind === 'boq_items' && isBoqImportSkipRow(row.values)) continue;
     results.push({
       rowNumber: row.rowNumber,
       ok: false,

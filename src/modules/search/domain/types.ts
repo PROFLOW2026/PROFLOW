@@ -15,6 +15,7 @@ export const GLOBAL_SEARCH_KINDS = [
   'billing',
   'document',
   'asset',
+  'boq_item',
 ] as const;
 
 export type GlobalSearchKind = (typeof GLOBAL_SEARCH_KINDS)[number];

@@ -74,6 +74,8 @@ export async function previewImportAction(input: {
   kind: string;
   csvText: string;
   mapping?: ColumnMapping;
+  projectId?: string;
+  boqId?: string;
 }): Promise<PreviewImportActionResult> {
   const t = await getTranslations('imports');
   try {
@@ -84,6 +86,8 @@ export async function previewImportAction(input: {
           kind: input.kind,
           csvText: input.csvText,
           mapping: input.mapping,
+          projectId: input.projectId,
+          boqId: input.boqId,
         }),
       ),
     );
@@ -98,6 +102,8 @@ export async function confirmImportAction(input: {
   csvText: string;
   mapping: ColumnMapping;
   rowNumbers?: number[];
+  projectId?: string;
+  boqId?: string;
 }): Promise<ConfirmImportActionResult> {
   const t = await getTranslations('imports');
   try {
@@ -106,6 +112,8 @@ export async function confirmImportAction(input: {
       csvText: input.csvText,
       mapping: input.mapping,
       rowNumbers: input.rowNumbers,
+      projectId: input.projectId,
+      boqId: input.boqId,
     });
 
     revalidatePath('/clients');
@@ -116,6 +124,9 @@ export async function confirmImportAction(input: {
     revalidatePath('/expenses');
     revalidatePath('/settings/cost-categories');
     revalidatePath('/imports');
+    if (input.projectId) {
+      revalidatePath(`/projects/${input.projectId}`);
+    }
 
     return { ok: true, result };
   } catch (error) {

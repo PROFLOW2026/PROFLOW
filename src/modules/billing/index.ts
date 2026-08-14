@@ -1,7 +1,11 @@
 /** Public API of the billing module (doc 76 §3). */
 export { createBillingRecord } from './application/create-billing-record';
+export { createBillingRecordWithPermission } from './application/create-billing-record';
 export { updateBillingRecord } from './application/update-billing-record';
-export { finalizeBillingRecord } from './application/finalize-billing-record';
+export {
+  finalizeBillingRecord,
+  finalizeBillingRecordWithPermission,
+} from './application/finalize-billing-record';
 export { voidBillingRecord } from './application/void-billing-record';
 export { createBillingAdjustment } from './application/create-billing-adjustment';
 export { listBillingRecords } from './application/list-billing-records';

@@ -17,7 +17,7 @@ import {
   replaceBillingLines,
 } from '../data/billing.repository';
 import { createBillingRecordSchema, type CreateBillingRecordInput } from '../validation/schemas';
-import { finalizeBillingRecord } from './finalize-billing-record';
+import { finalizeBillingRecordWithPermission } from './finalize-billing-record';
 
 const BILLING_AUDIT_CREATED = 'billing_record.created';
 
@@ -68,7 +68,20 @@ function buildLines(
 }
 
 export async function createBillingRecord(context: OrgContext, rawInput: CreateBillingRecordInput) {
-  assertPermission(context, PERMISSIONS.BILLING_MANAGE);
+  return createBillingRecordWithPermission(context, rawInput, PERMISSIONS.BILLING_MANAGE);
+}
+
+/**
+ * Same draft/finalize billing path with an alternate capability gate.
+ * Used by BOQ progress billing (`boq.billing.create`) so managers can bill
+ * progress without broad `billing.manage`.
+ */
+export async function createBillingRecordWithPermission(
+  context: OrgContext,
+  rawInput: CreateBillingRecordInput,
+  permission: typeof PERMISSIONS.BILLING_MANAGE | typeof PERMISSIONS.BOQ_BILLING_CREATE,
+) {
+  assertPermission(context, permission);
 
   const parsed = createBillingRecordSchema.safeParse(rawInput);
   if (!parsed.success) {
@@ -148,11 +161,13 @@ export async function createBillingRecord(context: OrgContext, rawInput: CreateB
       projectId: input.projectId,
       totalAmount: toNumericString(amounts.totalAmount),
       currency,
+      viaPermission: permission,
     },
   });
 
   if (input.finalize) {
-    return finalizeBillingRecord(context, billingRecordId);
+    // Same financial finalization engine; capability already asserted above.
+    return finalizeBillingRecordWithPermission(context, billingRecordId, permission);
   }
 
   const created = await findBillingRecordById(

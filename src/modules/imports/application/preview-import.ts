@@ -8,6 +8,7 @@ import {
 } from '../domain/column-mapping';
 import {
   detectWithinFileDuplicates,
+  flagBoqItemCodeDuplicates,
   flagExpenseInFileDuplicates,
   flagInFileDuplicates,
   mergeIssueMaps,
@@ -23,13 +24,23 @@ import {
 import { validateMappedRows, rowHasErrors } from '../validation/validate-rows';
 import { assertCanImportKind } from './import-permissions';
 
-const MAX_IMPORT_ROWS = 500;
+/** Default row cap for most import kinds. */
+export const MAX_IMPORT_ROWS = 500;
+/** Large BOQ CSVs need a higher ceiling (chapters + items). */
+export const MAX_IMPORT_ROWS_BOQ = 2000;
+
+export function maxImportRowsForKind(kind: ImportKind): number {
+  return kind === 'boq_items' ? MAX_IMPORT_ROWS_BOQ : MAX_IMPORT_ROWS;
+}
 
 export interface PreviewImportInput {
   readonly kind: string;
   readonly csvText: string;
   /** Optional override; when omitted, headers are auto-mapped. */
   readonly mapping?: ColumnMapping;
+  /** Required for boq_items confirm; optional at preview (validated on confirm). */
+  readonly projectId?: string;
+  readonly boqId?: string;
 }
 
 /**
@@ -70,11 +81,12 @@ export function previewImport(
     throw error;
   }
 
-  if (parsed.rows.length > MAX_IMPORT_ROWS) {
+  if (parsed.rows.length > maxImportRowsForKind(kind)) {
+    const max = maxImportRowsForKind(kind);
     throw new ValidationError([
       {
         path: 'csv',
-        message: `Too many rows (max ${MAX_IMPORT_ROWS})`,
+        message: `Too many rows (max ${max})`,
       },
     ]);
   }
@@ -92,6 +104,7 @@ export function previewImport(
 
   let rows: MappedImportRow[] = validateMappedRows(kind, mapped, {
     baseCurrency: context.organization.baseCurrency,
+    locale: context.locale,
   });
 
   if (kind === 'projects') {
@@ -102,6 +115,9 @@ export function previewImport(
   }
   if (kind === 'expenses') {
     rows = flagExpenseInFileDuplicates(rows);
+  }
+  if (kind === 'boq_items') {
+    rows = flagBoqItemCodeDuplicates(rows, context.locale);
   }
 
   if (kind === 'projects') {
@@ -151,5 +167,3 @@ export function previewImport(
     enabled: true,
   };
 }
-
-export { MAX_IMPORT_ROWS };

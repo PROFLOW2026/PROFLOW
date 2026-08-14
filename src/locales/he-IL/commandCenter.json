@@ -32,7 +32,10 @@
     "overdue_maintenance": "תחזוקה",
     "stale_project": "עבודה לא פעילה",
     "credit_void_issue": "זיכוי / ביטול",
-    "month_close_incomplete": "סגירת חודש"
+    "month_close_incomplete": "סגירת חודש",
+    "boq_measurement_awaiting_approval": "מדידת כתב כמויות",
+    "boq_progress_ready_to_bill": "חשבון חלקי מכתב כמויות",
+    "boq_vs_contract_mismatch": "כתב כמויות מול חוזה"
   },
   "empty": {
     "title": "הכול בסדר",

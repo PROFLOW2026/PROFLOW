@@ -20,7 +20,8 @@
     "arAging": "הזדקנות חייבים",
     "purchaseOrders": "הזמנות רכש",
     "apBills": "חשבונות ספקים",
-    "activityLog": "יומן פעילות"
+    "activityLog": "יומן פעילות",
+    "boq": "כתב כמויות"
   },
   "headers": {
     "id": "מזהה",
@@ -94,7 +95,20 @@
     "actorEmail": "אימייל מבצע",
     "action": "פעולה",
     "entityType": "סוג ישות",
-    "entityId": "מזהה ישות"
+    "entityId": "מזהה ישות",
+    "itemCode": "קוד פריט",
+    "nodeKind": "סוג צומת",
+    "unit": "יחידה",
+    "quantity": "כמות",
+    "unitPrice": "מחיר יחידה",
+    "originalAmount": "סכום מקורי",
+    "currentQuantity": "כמות נוכחית",
+    "currentUnitPrice": "מחיר יחידה נוכחי",
+    "currentAmount": "סכום נוכחי",
+    "chapter": "פרק",
+    "subchapter": "תת־פרק",
+    "approvedQuantity": "כמות מאושרת מצטברת",
+    "percentComplete": "אחוז השלמה"
   },
   "notes": {
     "projectsContract": "סכומי חוזה מופיעים רק עם הרשאת קריאת חוזים. מטבעות לפי שורה; אין לסכום מטבעות מעורבים.",
@@ -113,7 +127,8 @@
     "apNeExpense": "חשבון ספק ≠ הוצאה. סטטוס התאמה שייך למחזור חיי החשבון, לא לתשלום.",
     "auditPermission": "דורש הרשאת קריאת יומן פעילות (אותה הרשאה כמו הגדרות ← פעילות).",
     "auditPayloads": "מטעני לפני/אחרי הושמטו במכוון — אותו חוזה בטיחות כמו במסך הפעילות.",
-    "auditCap": "הייצוא מוגבל ל־{cap} אירועים האחרונים."
+    "auditCap": "הייצוא מוגבל ל־{cap} אירועים האחרונים.",
+    "boqProgressOptional": "עמודות התקדמות משקפות כמויות מאושרות מצטברות כשיש. התקדמות BOQ אינה עלות בפועל (Actual)."
   },
   "metrics": {
     "projectId": "מזהה פרויקט",

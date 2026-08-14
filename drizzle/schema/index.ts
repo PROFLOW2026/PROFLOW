@@ -40,3 +40,4 @@ export * from './ops-finance';
 export * from './invoicing-integration';
 export * from './next-gen';
 export * from './next-gen-ops';
+export * from './boq';

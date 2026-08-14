@@ -1,4 +1,5 @@
 import type { OrgContext } from '@/shared/auth/context';
+import Decimal from 'decimal.js';
 import { listAuditEventSummaries } from '@/shared/audit';
 import { ORG_LIST_EXPORT_CAP } from '@/shared/db/list-limits';
 import { ValidationError } from '@/shared/errors';
@@ -17,6 +18,11 @@ import { listPurchaseOrdersWithCommittedForOrg } from '@/modules/procurement';
 import { listProjectsForOrg } from '@/modules/projects';
 import { listVendorsForOrg } from '@/modules/vendors';
 import { listEmployeesForOrg, listTimeEntriesForOrg, canReadWorkforceCost } from '@/modules/workforce';
+import {
+  getProjectBoqWorkspace,
+  listBoqProgress,
+  percentComplete,
+} from '@/modules/boq';
 import { csvDownloadHeaders, rowsToCsv, type CsvCell } from '../domain/csv';
 import {
   enumLabel,
@@ -43,6 +49,7 @@ export const EXPORT_KINDS = [
   'purchase-orders',
   'ap-bills',
   'audit',
+  'boq',
 ] as const;
 
 export type ExportKind = (typeof EXPORT_KINDS)[number];
@@ -66,6 +73,8 @@ const KIND_ALIASES: Readonly<Record<string, ExportKind>> = {
   po: 'purchase-orders',
   'audit-log': 'audit',
   activity: 'audit',
+  'bill-of-quantities': 'boq',
+  boq_items: 'boq',
 };
 
 function resolveExportKind(value: string): ExportKind | null {
@@ -146,6 +155,11 @@ async function buildExportTables(
       return [await tableApBills(context, copy)];
     case 'audit':
       return [await tableAudit(context, copy)];
+    case 'boq':
+      if (!projectId) {
+        throw new ValidationError([{ path: 'projectId', message: 'projectId is required' }]);
+      }
+      return [await tableBoq(context, projectId, copy)];
   }
 }
 
@@ -158,7 +172,10 @@ function serializeExport(
   projectId?: string | null,
 ): Promise<ExportResult> | ExportResult {
   const stub = organizationId.slice(0, 8);
-  const idPart = kind === 'project-financials' && projectId ? projectId.slice(0, 8) : stub;
+  const idPart =
+    (kind === 'project-financials' || kind === 'boq') && projectId
+      ? projectId.slice(0, 8)
+      : stub;
   const baseName = `${kind}-${idPart}`;
 
   if (format === 'csv') {
@@ -785,5 +802,141 @@ async function tableAudit(context: OrgContext, copy: ExportCopy): Promise<Export
       copy.notes.auditPayloads,
       copy.notes.auditCap.replace('{cap}', String(ORG_LIST_EXPORT_CAP)),
     ],
+  };
+}
+
+/**
+ * Project BOQ export: chapters/items with qty/prices/totals and optional progress.
+ * Requires projectId. Progress columns fill when approved progress exists.
+ */
+async function tableBoq(
+  context: OrgContext,
+  projectId: string,
+  copy: ExportCopy,
+): Promise<ExportTable> {
+  assertPermission(context, PERMISSIONS.BOQ_READ);
+  const workspace = await getProjectBoqWorkspace(context, projectId);
+  const canSeePrices = context.permissions.has(PERMISSIONS.BOQ_MANAGE);
+
+  const approvedByNode = new Map<string, string>();
+  if (workspace.activeBoq) {
+    try {
+      const progress = await listBoqProgress(context, workspace.activeBoq.id);
+      for (const { batch, lines } of progress.batches) {
+        if (batch.status !== 'approved' && batch.status !== 'billed') continue;
+        for (const line of lines) {
+          const prev = approvedByNode.get(line.boqNodeId) ?? '0';
+          const next = new Decimal(prev).plus(line.approvedQuantity || '0').toFixed();
+          approvedByNode.set(line.boqNodeId, next);
+        }
+      }
+    } catch {
+      // Optional progress — workspace still exports baseline.
+    }
+  }
+
+  const nodes = workspace.nodes;
+  const byId = new Map(nodes.map((n) => [n.id, n]));
+
+  function chapterPath(node: (typeof nodes)[number]): { chapter: string; subchapter: string } {
+    if (!node.parentId) {
+      return node.nodeKind === 'chapter'
+        ? { chapter: node.description, subchapter: '' }
+        : { chapter: '', subchapter: '' };
+    }
+    const parent = byId.get(node.parentId);
+    if (!parent) return { chapter: '', subchapter: '' };
+    if (!parent.parentId) {
+      return { chapter: parent.description, subchapter: '' };
+    }
+    const grand = byId.get(parent.parentId);
+    return {
+      chapter: grand?.description ?? parent.description,
+      subchapter: parent.description,
+    };
+  }
+
+  const headers = [
+    h(copy, 'itemCode'),
+    h(copy, 'nodeKind'),
+    h(copy, 'chapter'),
+    h(copy, 'subchapter'),
+    h(copy, 'description'),
+    h(copy, 'unit'),
+    h(copy, 'quantity'),
+    ...(canSeePrices
+      ? [h(copy, 'unitPrice'), h(copy, 'originalAmount'), h(copy, 'currentAmount')]
+      : []),
+    h(copy, 'currentQuantity'),
+    h(copy, 'approvedQuantity'),
+    h(copy, 'percentComplete'),
+    h(copy, 'status'),
+    h(copy, 'currency'),
+  ];
+
+  const currency = workspace.totals.currency;
+  const rows: CsvCell[][] = nodes.map((node) => {
+    const path = chapterPath(node);
+    const opening = node.openingApprovedQuantity ?? '0';
+    const fromBatches = approvedByNode.get(node.id) ?? '0';
+    const cumulativeApproved =
+      node.nodeKind === 'item'
+        ? new Decimal(opening || '0').plus(fromBatches || '0').toFixed()
+        : '';
+    const pct =
+      node.nodeKind === 'item'
+        ? percentComplete({
+            cumulativeApproved,
+            currentQuantity: node.currentQuantity,
+          })
+        : '';
+
+    return [
+      node.itemCode,
+      node.nodeKind,
+      path.chapter,
+      node.nodeKind === 'chapter' && node.parentId ? node.description : path.subchapter,
+      node.description,
+      node.unit,
+      toExcelNumber(node.originalQuantity),
+      ...(canSeePrices
+        ? [
+            toExcelNumber(node.originalUnitPrice),
+            toExcelNumber(node.originalAmount),
+            toExcelNumber(node.currentAmount),
+          ]
+        : []),
+      toExcelNumber(node.currentQuantity),
+      cumulativeApproved ? toExcelNumber(cumulativeApproved) : null,
+      pct ? toExcelNumber(pct) : null,
+      node.status,
+      currency,
+    ];
+  });
+
+  // Totals footer row
+  rows.push([
+    null,
+    'total',
+    null,
+    null,
+    'TOTAL',
+    null,
+    null,
+    ...(canSeePrices
+      ? [null, toExcelNumber(workspace.totals.originalAmount), toExcelNumber(workspace.totals.currentAmount)]
+      : []),
+    null,
+    null,
+    null,
+    null,
+    currency,
+  ]);
+
+  return {
+    sheetName: copy.sheets.boq,
+    headers,
+    rows,
+    notes: [copy.notes.boqProgressOptional],
   };
 }

@@ -49,6 +49,10 @@ const STEPS: readonly Step[] = ['upload', 'mapping', 'preview', 'result'];
 
 export interface ImportWizardProps {
   readonly allowedKinds: readonly EnabledImportKind[];
+  /** When set (e.g. project BOQ tab), used for boq_items confirm. */
+  readonly projectId?: string;
+  /** Optional draft BOQ id for boq_items. */
+  readonly boqId?: string;
 }
 
 function downloadText(fileName: string, contents: string) {
@@ -74,7 +78,7 @@ function fileToBase64(file: File): Promise<string> {
   });
 }
 
-export function ImportWizard({ allowedKinds }: ImportWizardProps) {
+export function ImportWizard({ allowedKinds, projectId: projectIdProp, boqId }: ImportWizardProps) {
   const t = useTranslations('imports');
   const locale = useLocale();
   const [step, setStep] = useState<Step>('upload');
@@ -87,6 +91,9 @@ export function ImportWizard({ allowedKinds }: ImportWizardProps) {
   const [result, setResult] = useState<ImportConfirmResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  const [projectIdInput, setProjectIdInput] = useState(projectIdProp ?? '');
+
+  const projectId = (projectIdProp ?? projectIdInput).trim();
 
   const fieldKeys = useMemo(() => Object.keys(mapping), [mapping]);
 
@@ -133,12 +140,18 @@ export function ImportWizard({ allowedKinds }: ImportWizardProps) {
       setError(t('errors.needFile'));
       return;
     }
+    if (kind === 'boq_items' && !projectId) {
+      setError(t('errors.needProjectId'));
+      return;
+    }
     setError(null);
     startTransition(async () => {
       const response = await previewImportAction({
         kind,
         csvText,
         mapping: nextMapping,
+        projectId: kind === 'boq_items' ? projectId : undefined,
+        boqId: kind === 'boq_items' ? boqId : undefined,
       });
       if (!response.ok) {
         setError(response.error);
@@ -160,6 +173,10 @@ export function ImportWizard({ allowedKinds }: ImportWizardProps) {
       setError(t('errors.nothingSelected'));
       return;
     }
+    if (kind === 'boq_items' && !projectId) {
+      setError(t('errors.needProjectId'));
+      return;
+    }
     setError(null);
     startTransition(async () => {
       const response = await confirmImportAction({
@@ -167,6 +184,8 @@ export function ImportWizard({ allowedKinds }: ImportWizardProps) {
         csvText,
         mapping,
         rowNumbers: [...selectedRows],
+        projectId: kind === 'boq_items' ? projectId : undefined,
+        boqId: kind === 'boq_items' ? boqId : undefined,
       });
       if (!response.ok) {
         setError(response.error);
@@ -202,7 +221,7 @@ export function ImportWizard({ allowedKinds }: ImportWizardProps) {
       setError(t('errors.chooseKind'));
       return;
     }
-    downloadText(importTemplateFileName(kind, locale), buildImportTemplateCsv(kind));
+    downloadText(importTemplateFileName(kind, locale), buildImportTemplateCsv(kind, locale));
   }
 
   if (allowedKinds.length === 0) {
@@ -262,6 +281,25 @@ export function ImportWizard({ allowedKinds }: ImportWizardProps) {
               </SelectContent>
             </Select>
           </div>
+
+          {kind === 'boq_items' && !projectIdProp ? (
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="import-project-id">{t('fields.projectId')}</Label>
+              <p className="text-sm text-[var(--pf-text-secondary)]">{t('boqItemsHint')}</p>
+              <input
+                id="import-project-id"
+                className="max-w-sm rounded-md border border-[var(--pf-border)] bg-[var(--pf-bg)] px-3 py-2 text-sm"
+                value={projectIdInput}
+                onChange={(event) => setProjectIdInput(event.target.value)}
+                placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+                autoComplete="off"
+              />
+            </div>
+          ) : null}
+
+          {kind === 'boq_items' && projectIdProp ? (
+            <p className="text-sm text-[var(--pf-text-secondary)]">{t('boqItemsHint')}</p>
+          ) : null}
 
           <div className="flex flex-col gap-2">
             <Label>{t('templateLabel')}</Label>

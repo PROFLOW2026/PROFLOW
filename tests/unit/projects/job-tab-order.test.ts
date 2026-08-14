@@ -57,6 +57,7 @@ describe('job tab priority', () => {
         financials: true,
         expenses: true,
         changes: true,
+        boq: true,
         billing: true,
         budgets: true,
         team: true,

@@ -44,6 +44,7 @@ export const OPTIONAL_MODULE_KEYS = [
   'approvals',
   'month_close',
   'budgets',
+  'boq',
   'forms',
   'command_center',
 ] as const;

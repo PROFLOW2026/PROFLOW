@@ -9,6 +9,7 @@ import { PROJECT_STATUSES, WORK_KINDS } from '@/modules/projects/domain/types';
 import { createExpenseSchema } from '@/modules/expenses/validation/schemas';
 import type { EnabledImportKind, ImportIssue, MappedImportRow } from '../domain/types';
 import { fieldDefsForKind } from '../domain/field-defs';
+import { isBlankOrTotalBoqRow, parseImportDecimal } from '../domain/boq-import-parse';
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -401,10 +402,119 @@ export function validateExpenses(
   return issues;
 }
 
+/**
+ * BOQ item rows — decimal parsing (commas/currency), blank/total skip, qty/price/amount checks.
+ * Description required unless the row is blank/total (skipped on confirm).
+ */
+export function validateBoqItems(
+  values: Readonly<Record<string, string>>,
+  locale = 'en',
+): ImportIssue[] {
+  const he = locale.startsWith('he');
+  const msg = {
+    blankSkip: he
+      ? 'שורה ריקה או שורת סה״כ — תדולג בייבוא'
+      : 'Blank or total row — will be skipped on import',
+    descriptionRequired: he ? 'תיאור הוא שדה חובה' : 'description is required',
+    invalidQty: he
+      ? 'כמות לא תקינה (הסירו סמלי מטבע; השתמשו בפסיק או נקודה עשרונית)'
+      : 'Invalid quantity (remove currency symbols; use decimal commas or dots)',
+    invalidPrice: he
+      ? 'מחיר יחידה לא תקין (הסירו סמלי מטבע; השתמשו בפסיק או נקודה עשרונית)'
+      : 'Invalid unit price (remove currency symbols; use decimal commas or dots)',
+    invalidAmount: he
+      ? 'סכום לא תקין (הסירו סמלי מטבע; השתמשו בפסיק או נקודה עשרונית)'
+      : 'Invalid amount (remove currency symbols; use decimal commas or dots)',
+    noMoney: he
+      ? 'אין כמות, מחיר או סכום — הסעיף ייובא כ־0'
+      : 'No quantity, unit price, or amount — item will import as 0',
+    amountMismatch: he
+      ? 'הסכום אינו תואם לכמות × מחיר — הייבוא ישתמש בכמות × מחיר'
+      : 'Amount does not match quantity × unit price — import will use quantity × unit price',
+  } as const;
+
+  const issues: ImportIssue[] = [];
+
+  if (isBlankOrTotalBoqRow(values)) {
+    issues.push({
+      severity: 'warning',
+      message: msg.blankSkip,
+    });
+    return issues;
+  }
+
+  const description = emptyToUndefined(values.description);
+  if (!description) {
+    issues.push({ severity: 'error', field: 'description', message: msg.descriptionRequired });
+  }
+
+  const quantityRaw = emptyToUndefined(values.quantity);
+  const unitPriceRaw = emptyToUndefined(values.unitPrice);
+  const amountRaw = emptyToUndefined(values.amount);
+
+  let quantity: string | null = null;
+  let unitPrice: string | null = null;
+  let amount: string | null = null;
+
+  if (quantityRaw) {
+    quantity = parseImportDecimal(quantityRaw);
+    if (quantity === null) {
+      issues.push({
+        severity: 'error',
+        field: 'quantity',
+        message: msg.invalidQty,
+      });
+    }
+  }
+
+  if (unitPriceRaw) {
+    unitPrice = parseImportDecimal(unitPriceRaw);
+    if (unitPrice === null) {
+      issues.push({
+        severity: 'error',
+        field: 'unitPrice',
+        message: msg.invalidPrice,
+      });
+    }
+  }
+
+  if (amountRaw) {
+    amount = parseImportDecimal(amountRaw);
+    if (amount === null) {
+      issues.push({
+        severity: 'error',
+        field: 'amount',
+        message: msg.invalidAmount,
+      });
+    }
+  }
+
+  if (!quantityRaw && !unitPriceRaw && !amountRaw) {
+    issues.push({
+      severity: 'warning',
+      message: msg.noMoney,
+    });
+  }
+
+  if (quantity !== null && unitPrice !== null && amount !== null) {
+    const expected = Number(quantity) * Number(unitPrice);
+    const actual = Number(amount);
+    if (Number.isFinite(expected) && Number.isFinite(actual) && Math.abs(expected - actual) > 0.02) {
+      issues.push({
+        severity: 'warning',
+        field: 'amount',
+        message: msg.amountMismatch,
+      });
+    }
+  }
+
+  return issues;
+}
+
 export function validateMappedValues(
   kind: EnabledImportKind,
   values: Readonly<Record<string, string>>,
-  options: { baseCurrency?: string } = {},
+  options: { baseCurrency?: string; locale?: string } = {},
 ): ImportIssue[] {
   switch (kind) {
     case 'clients':
@@ -423,23 +533,29 @@ export function validateMappedValues(
       return validateCostCategories(values);
     case 'expenses':
       return validateExpenses(values, options.baseCurrency ?? 'ILS');
+    case 'boq_items':
+      return validateBoqItems(values, options.locale ?? 'en');
   }
 }
 
 export function validateMappedRows(
   kind: EnabledImportKind,
   rows: readonly { rowNumber: number; values: Readonly<Record<string, string>> }[],
-  options: { baseCurrency?: string } = {},
+  options: { baseCurrency?: string; locale?: string } = {},
 ): MappedImportRow[] {
   const fields = fieldDefsForKind(kind);
   return rows.map((row) => {
     const issues: ImportIssue[] = [];
+    const skipRequired =
+      kind === 'boq_items' && isBlankOrTotalBoqRow(row.values);
     for (const field of fields) {
+      if (skipRequired) break;
       if (field.required && !(row.values[field.key] ?? '').trim()) {
+        const he = (options.locale ?? 'en').startsWith('he');
         issues.push({
           severity: 'error',
           field: field.key,
-          message: `${field.key} is required`,
+          message: he ? `${field.key} הוא שדה חובה` : `${field.key} is required`,
         });
       }
     }
@@ -456,3 +572,4 @@ export function validateMappedRows(
 }
 
 export { rowHasErrors } from '../domain/row-has-errors';
+export { isBoqImportSkipRow, parseImportDecimal, isBlankOrTotalBoqRow } from '../domain/boq-import-parse';

@@ -240,6 +240,29 @@ export const AUDIT_ACTIONS = {
   RECURRING_FINANCIAL_DRAFT_RESUMED: 'recurring_financial_draft.resumed',
   RECURRING_FINANCIAL_DRAFT_ENDED: 'recurring_financial_draft.ended',
   RECURRING_FINANCIAL_DRAFT_GENERATED: 'recurring_financial_draft.generated',
+
+  /** Optional BOQ / progress / progress-billing vertical. */
+  BOQ_CREATED: 'boq.created',
+  BOQ_UPDATED: 'boq.updated',
+  BOQ_ACTIVATED: 'boq.activated',
+  BOQ_SUPERSEDED: 'boq.superseded',
+  BOQ_ARCHIVED: 'boq.archived',
+  BOQ_NODE_CREATED: 'boq_node.created',
+  BOQ_NODE_UPDATED: 'boq_node.updated',
+  BOQ_NODE_ARCHIVED: 'boq_node.archived',
+  BOQ_IMPORTED: 'boq.imported',
+  BOQ_CHANGE_ALLOCATED: 'boq_change.allocated',
+  BOQ_PROGRESS_CREATED: 'boq_progress.created',
+  BOQ_PROGRESS_UPDATED: 'boq_progress.updated',
+  BOQ_PROGRESS_APPROVED: 'boq_progress.approved',
+  BOQ_PROGRESS_SUPERSEDED: 'boq_progress.superseded',
+  BOQ_PROGRESS_BILLING_CREATED: 'boq_progress.billing_created',
+  BOQ_SUB_SCHEDULE_CREATED: 'boq_sub_schedule.created',
+  BOQ_SUB_SCHEDULE_ACTIVATED: 'boq_sub_schedule.activated',
+  BOQ_SUB_VALUATION_CREATED: 'boq_sub_valuation.created',
+  BOQ_SUB_VALUATION_APPROVED: 'boq_sub_valuation.approved',
+  BOQ_SUB_VALUATION_PROPOSED_AP: 'boq_sub_valuation.proposed_ap',
+  BOQ_SUB_VALUATION_VOIDED: 'boq_sub_valuation.voided',
 } as const;
 
 export type AuditAction = (typeof AUDIT_ACTIONS)[keyof typeof AUDIT_ACTIONS];

@@ -39,6 +39,7 @@ export {
 export {
   flagInFileDuplicates,
   flagExpenseInFileDuplicates,
+  flagBoqItemCodeDuplicates,
   flagExistingNameDuplicates,
   detectWithinFileDuplicates,
   detectExistingDuplicates,
@@ -46,8 +47,18 @@ export {
   mergeIssueMaps,
 } from './domain/duplicates';
 export type { ExistingImportIndex } from './domain/duplicates';
+export {
+  parseImportDecimal,
+  isBlankOrTotalBoqRow,
+  isBoqImportSkipRow,
+} from './domain/boq-import-parse';
 
-export { previewImport, MAX_IMPORT_ROWS } from './application/preview-import';
+export {
+  previewImport,
+  MAX_IMPORT_ROWS,
+  MAX_IMPORT_ROWS_BOQ,
+  maxImportRowsForKind,
+} from './application/preview-import';
 export type { PreviewImportInput } from './application/preview-import';
 export { enrichImportPreview } from './application/enrich-preview';
 export {
@@ -56,6 +67,7 @@ export {
   BATCH_SIZE,
 } from './application/confirm-import';
 export type { ConfirmImportInput } from './application/confirm-import';
+export { confirmBoqItemsRows } from './application/confirm-boq-import';
 export {
   permissionForImportKind,
   assertCanImportKind,
@@ -64,4 +76,9 @@ export {
   assertCanAccessImports,
 } from './application/import-permissions';
 
-export { validateMappedRows, validateMappedValues, rowHasErrors } from './validation/validate-rows';
+export {
+  validateMappedRows,
+  validateMappedValues,
+  validateBoqItems,
+  rowHasErrors,
+} from './validation/validate-rows';

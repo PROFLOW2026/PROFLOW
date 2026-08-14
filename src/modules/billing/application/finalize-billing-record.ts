@@ -11,9 +11,19 @@ import { findBillingRecordById, updateBillingRecordRow } from '../data/billing.r
 
 const BILLING_AUDIT_FINALIZED = 'billing_record.finalized';
 
-export async function finalizeBillingRecord(context: OrgContext, billingRecordId: string) {
-  assertPermission(context, PERMISSIONS.BILLING_MANAGE);
+export type BillingFinalizePermission =
+  | typeof PERMISSIONS.BILLING_MANAGE
+  | typeof PERMISSIONS.BOQ_BILLING_CREATE;
 
+/**
+ * Shared financial finalization (tax snapshot, retention held, finalizedAt, audit).
+ * Callers must assert the appropriate capability before invoking.
+ */
+/** Internal shared finalization engine — not part of the public billing barrel. */
+export async function finalizeBillingRecordCore(
+  context: OrgContext,
+  billingRecordId: string,
+) {
   const existing = await findBillingRecordById(
     context.db,
     context.organizationId,
@@ -55,4 +65,23 @@ export async function finalizeBillingRecord(context: OrgContext, billingRecordId
   );
   if (!finalized) throw new NotFoundError('Billing record');
   return finalized;
+}
+
+/** Normal Billing UI entrypoint — requires billing.manage. */
+export async function finalizeBillingRecord(context: OrgContext, billingRecordId: string) {
+  assertPermission(context, PERMISSIONS.BILLING_MANAGE);
+  return finalizeBillingRecordCore(context, billingRecordId);
+}
+
+/**
+ * Finalization under an alternate capability (BOQ progress billing).
+ * Same financial engine as {@link finalizeBillingRecord}; does not expand manager roles.
+ */
+export async function finalizeBillingRecordWithPermission(
+  context: OrgContext,
+  billingRecordId: string,
+  permission: BillingFinalizePermission,
+) {
+  assertPermission(context, permission);
+  return finalizeBillingRecordCore(context, billingRecordId);
 }

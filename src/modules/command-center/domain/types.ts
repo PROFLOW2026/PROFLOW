@@ -17,6 +17,9 @@ export const COMMAND_CENTER_SOURCE_TYPES = [
   'stale_project',
   'credit_void_issue',
   'month_close_incomplete',
+  'boq_measurement_awaiting_approval',
+  'boq_progress_ready_to_bill',
+  'boq_vs_contract_mismatch',
 ] as const;
 
 export type CommandCenterSourceType = (typeof COMMAND_CENTER_SOURCE_TYPES)[number];

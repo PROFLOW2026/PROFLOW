@@ -123,6 +123,12 @@ export const PERMISSIONS = {
   BUDGETS_READ: 'budgets.read',
   BUDGETS_MANAGE: 'budgets.manage',
 
+  BOQ_READ: 'boq.read',
+  BOQ_MANAGE: 'boq.manage',
+  BOQ_PROGRESS_SUBMIT: 'boq.progress.submit',
+  BOQ_PROGRESS_APPROVE: 'boq.progress.approve',
+  BOQ_BILLING_CREATE: 'boq.billing.create',
+
   FORMS_READ: 'forms.read',
   FORMS_SUBMIT: 'forms.submit',
   FORMS_MANAGE: 'forms.manage',
@@ -340,6 +346,24 @@ export const PERMISSION_CATALOG: readonly PermissionDefinition[] = [
 
   { key: PERMISSIONS.BUDGETS_READ, category: 'financials', description: 'View project/job budgets and variance' },
   { key: PERMISSIONS.BUDGETS_MANAGE, category: 'financials', description: 'Create and revise project/job budgets' },
+
+  { key: PERMISSIONS.BOQ_READ, category: 'commercial', description: 'View bill of quantities and progress' },
+  { key: PERMISSIONS.BOQ_MANAGE, category: 'commercial', description: 'Create and manage BOQ baselines and items' },
+  {
+    key: PERMISSIONS.BOQ_PROGRESS_SUBMIT,
+    category: 'commercial',
+    description: 'Submit BOQ measurement quantities',
+  },
+  {
+    key: PERMISSIONS.BOQ_PROGRESS_APPROVE,
+    category: 'commercial',
+    description: 'Approve BOQ progress batches',
+  },
+  {
+    key: PERMISSIONS.BOQ_BILLING_CREATE,
+    category: 'billing',
+    description: 'Create progress billing from approved BOQ progress',
+  },
 
   { key: PERMISSIONS.FORMS_READ, category: 'projects', description: 'View field forms and submissions' },
   { key: PERMISSIONS.FORMS_SUBMIT, category: 'projects', description: 'Fill and submit field forms' },

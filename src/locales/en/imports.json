@@ -25,8 +25,10 @@
     "projects": "Projects / jobs",
     "opening_values": "Opening values",
     "cost_categories": "Cost categories",
-    "expenses": "Expenses (draft)"
+    "expenses": "Expenses (draft)",
+    "boq_items": "BOQ items"
   },
+  "boqItemsHint": "BOQ import writes into a draft Bill of Quantities for the project. Blank and total rows are skipped. Duplicate item codes are errors.",
   "fields": {
     "name": "Name",
     "legalName": "Legal name",
@@ -61,7 +63,13 @@
     "openingReductionAmount": "Opening reduction",
     "amountIncludesTax": "Amount includes tax",
     "key": "Category key",
-    "family": "Cost family"
+    "family": "Cost family",
+    "itemCode": "Item code",
+    "unit": "Unit",
+    "quantity": "Quantity",
+    "unitPrice": "Unit price",
+    "chapter": "Chapter",
+    "subchapter": "Subchapter"
   },
   "mapping": {
     "title": "Column mapping",
@@ -106,6 +114,7 @@
     "fileTooLarge": "The file is too large to import (max about 2 MB).",
     "previewFailed": "Could not preview the import.",
     "confirmFailed": "Could not complete the import.",
-    "nothingSelected": "Select at least one valid row to import."
+    "nothingSelected": "Select at least one valid row to import.",
+    "needProjectId": "Enter a project ID for BOQ import."
   }
 }

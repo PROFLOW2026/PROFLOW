@@ -47,6 +47,7 @@ const MODULE_PANEL_TABS = new Set<ProjectTabKey>([
   'financials',
   'expenses',
   'changes',
+  'boq',
   'billing',
   'budgets',
   'team',
@@ -98,6 +99,7 @@ export default async function ProjectPage({ params, searchParams }: ProjectPageP
     false;
   const showExpensesTab = can(PERMISSIONS.EXPENSES_READ);
   const showChangesTab = Boolean(modules?.changes) && can(PERMISSIONS.CHANGES_READ);
+  const showBoqTab = Boolean(modules?.boq) && can(PERMISSIONS.BOQ_READ);
   const showBillingTab = Boolean(modules?.billing) && can(PERMISSIONS.BILLING_READ);
   const showBudgetsTab = Boolean(modules?.budgets) && can(PERMISSIONS.BUDGETS_READ);
   const showTeamTab = can(PERMISSIONS.WORKFORCE_READ);
@@ -111,6 +113,7 @@ export default async function ProjectPage({ params, searchParams }: ProjectPageP
   if (canReadFinancials) visibleModuleTabs.add('financials');
   if (showExpensesTab) visibleModuleTabs.add('expenses');
   if (showChangesTab) visibleModuleTabs.add('changes');
+  if (showBoqTab) visibleModuleTabs.add('boq');
   if (showBillingTab) visibleModuleTabs.add('billing');
   if (showBudgetsTab) visibleModuleTabs.add('budgets');
   if (showTeamTab) visibleModuleTabs.add('team');
@@ -150,6 +153,7 @@ export default async function ProjectPage({ params, searchParams }: ProjectPageP
     financials: canReadFinancials,
     expenses: showExpensesTab,
     changes: showChangesTab,
+    boq: showBoqTab,
     billing: showBillingTab,
     budgets: showBudgetsTab,
     team: showTeamTab,
@@ -170,6 +174,7 @@ export default async function ProjectPage({ params, searchParams }: ProjectPageP
       projectId,
       showExpensesTab,
       showChangesTab,
+      showBoqTab,
       showBillingTab,
       showBudgetsTab,
       showTeamTab,
@@ -410,6 +415,7 @@ async function renderModuleTab(input: {
   projectId: string;
   showExpensesTab: boolean;
   showChangesTab: boolean;
+  showBoqTab: boolean;
   showBillingTab: boolean;
   showBudgetsTab: boolean;
   showTeamTab: boolean;
@@ -437,6 +443,7 @@ async function loadActiveModulePanel(input: {
   projectId: string;
   showExpensesTab: boolean;
   showChangesTab: boolean;
+  showBoqTab: boolean;
   showBillingTab: boolean;
   showBudgetsTab: boolean;
   showTeamTab: boolean;
@@ -466,6 +473,11 @@ async function loadActiveModulePanel(input: {
       if (!input.showChangesTab) return null;
       const { ProjectChangesPanel } = await import('@/modules/commercial/ui/project-changes-panel');
       return <ProjectChangesPanel projectId={projectId} />;
+    }
+    case 'boq': {
+      if (!input.showBoqTab) return null;
+      const { ProjectBoqPanel } = await import('@/modules/boq/ui/project-boq-panel');
+      return <ProjectBoqPanel projectId={projectId} />;
     }
     case 'billing': {
       if (!input.showBillingTab) return null;

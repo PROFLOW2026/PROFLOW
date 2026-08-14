@@ -18,6 +18,7 @@
     "bill": "Vendor bill",
     "billing": "Billing",
     "document": "Document",
-    "asset": "Asset"
+    "asset": "Asset",
+    "boq_item": "BOQ item"
   }
 }

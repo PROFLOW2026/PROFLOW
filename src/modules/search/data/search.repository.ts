@@ -3,10 +3,12 @@ import {
   apBills,
   assets,
   billingRecords,
+  boqNodes,
   clientContacts,
   clients,
   documents,
   employees,
+  projectBoqs,
   projects,
   vendors,
 } from '@drizzle/schema';
@@ -338,5 +340,48 @@ export async function searchAssets(
     title: row.name,
     subtitle: [row.assetKind, row.identifier, row.status].filter(Boolean).join(' · ') || null,
     href: `/assets/inventory`,
+  }));
+}
+
+/**
+ * BOQ item codes / descriptions. Permission-gated by caller (boq.read).
+ * Never returns unit prices, contract amounts, or Actual figures.
+ */
+export async function searchBoqItems(
+  db: DbExecutor,
+  organizationId: string,
+  query: string,
+  limit: number,
+): Promise<GlobalSearchHit[]> {
+  const term = likeTerm(query);
+  const rows = await db
+    .select({
+      id: boqNodes.id,
+      itemCode: boqNodes.itemCode,
+      description: boqNodes.description,
+      projectId: projectBoqs.projectId,
+      projectName: projects.name,
+    })
+    .from(boqNodes)
+    .innerJoin(projectBoqs, eq(projectBoqs.id, boqNodes.boqId))
+    .innerJoin(projects, eq(projects.id, projectBoqs.projectId))
+    .where(
+      and(
+        eq(boqNodes.organizationId, organizationId),
+        eq(boqNodes.nodeKind, 'item'),
+        isNull(boqNodes.archivedAt),
+        isNull(projectBoqs.archivedAt),
+        or(ilike(boqNodes.itemCode, term), ilike(boqNodes.description, term))!,
+      ),
+    )
+    .orderBy(boqNodes.itemCode)
+    .limit(limit);
+
+  return rows.map((row) => ({
+    kind: 'boq_item' as const,
+    id: row.id,
+    title: row.itemCode ? `${row.itemCode} · ${row.description}` : row.description,
+    subtitle: row.projectName,
+    href: `/projects/${row.projectId}?tab=boq`,
   }));
 }

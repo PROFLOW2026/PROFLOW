@@ -68,6 +68,33 @@ export function flagExpenseInFileDuplicates(rows: readonly MappedImportRow[]): M
   });
 }
 
+/** Duplicate item codes within a BOQ import file are errors (confirm gated). */
+export function flagBoqItemCodeDuplicates(
+  rows: readonly MappedImportRow[],
+  locale = 'en',
+): MappedImportRow[] {
+  const he = locale.startsWith('he');
+  const seen = new Map<string, number>();
+  return rows.map((row) => {
+    const raw = (row.values.itemCode ?? '').trim();
+    if (!raw) return row;
+    const key = raw.toLowerCase();
+    const firstRow = seen.get(key);
+    if (firstRow === undefined) {
+      seen.set(key, row.rowNumber);
+      return row;
+    }
+    const issue: ImportIssue = {
+      severity: 'error',
+      field: 'itemCode',
+      message: he
+        ? `קוד סעיף כפול בקובץ (כמו שורה ${firstRow})`
+        : `Duplicate item code in file (same as row ${firstRow})`,
+    };
+    return { ...row, issues: [...row.issues, issue] };
+  });
+}
+
 export function flagExistingNameDuplicates(
   rows: readonly MappedImportRow[],
   existingNames: ReadonlySet<string>,

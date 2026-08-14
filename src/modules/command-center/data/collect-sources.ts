@@ -41,6 +41,9 @@ import {
   unallocatedEmployeeCostCopy,
   unallocatedVendorBillCopy,
   vendorBillDueCopy,
+  boqMeasurementAwaitingCopy,
+  boqProgressReadyToBillCopy,
+  boqVsContractMismatchCopy,
 } from '../domain/item-copy';
 
 const PER_SOURCE_CAP = 15;
@@ -595,6 +598,183 @@ export async function collectMonthCloseIncomplete(
   });
 }
 
+/**
+ * BOQ measurement draft awaiting approve.
+ * Progress ≠ Actual — this only nudges the measurement workflow.
+ */
+export async function collectBoqMeasurementAwaitingApproval(
+  ctx: CollectContext,
+): Promise<CommandCenterItem[]> {
+  if (!moduleOn(ctx.modules, 'boq')) return [];
+  if (!hasPermission(ctx.context, PERMISSIONS.BOQ_PROGRESS_APPROVE)) return [];
+
+  const {
+    listDraftProgressBatchesForOrg,
+  } = await import('@/modules/boq/data/boq.repository');
+  const rows = await listDraftProgressBatchesForOrg(
+    ctx.context.db,
+    ctx.context.organizationId,
+  );
+
+  const projectIds = [...new Set(rows.map((r) => r.projectId))];
+  const projectNameById = new Map<string, string>();
+  if (projectIds.length > 0) {
+    const projectRows = await ctx.context.db
+      .select({ id: projects.id, name: projects.name })
+      .from(projects)
+      .where(
+        and(
+          eq(projects.organizationId, ctx.context.organizationId),
+          inArray(projects.id, projectIds),
+        ),
+      );
+    for (const p of projectRows) projectNameById.set(p.id, p.name);
+  }
+
+  const locale = localeOf(ctx);
+  return rows.slice(0, PER_SOURCE_CAP).map((row) => {
+    const copy = boqMeasurementAwaitingCopy(locale, {
+      periodLabel: row.periodLabel,
+      certificateNumber: row.certificateNumber,
+    });
+    return withItemDefaults({
+      sourceType: 'boq_measurement_awaiting_approval',
+      sourceId: row.id,
+      what: copy.what,
+      why: copy.why,
+      where: projectNameById.get(row.projectId) ?? fallbackWhere(locale, 'boq'),
+      href: `/projects/${row.projectId}?tab=boq`,
+      meta: { projectId: row.projectId, boqId: row.boqId },
+    });
+  });
+}
+
+/** Approved progress with no billing link — ready for progress billing draft. */
+export async function collectBoqProgressReadyToBill(
+  ctx: CollectContext,
+): Promise<CommandCenterItem[]> {
+  if (!moduleOn(ctx.modules, 'boq')) return [];
+  if (!hasPermission(ctx.context, PERMISSIONS.BOQ_BILLING_CREATE)) return [];
+
+  const {
+    listApprovedUnbilledProgressBatchesForOrg,
+  } = await import('@/modules/boq/data/boq.repository');
+  const rows = await listApprovedUnbilledProgressBatchesForOrg(
+    ctx.context.db,
+    ctx.context.organizationId,
+  );
+
+  const projectIds = [...new Set(rows.map((r) => r.projectId))];
+  const projectNameById = new Map<string, string>();
+  if (projectIds.length > 0) {
+    const projectRows = await ctx.context.db
+      .select({ id: projects.id, name: projects.name })
+      .from(projects)
+      .where(
+        and(
+          eq(projects.organizationId, ctx.context.organizationId),
+          inArray(projects.id, projectIds),
+        ),
+      );
+    for (const p of projectRows) projectNameById.set(p.id, p.name);
+  }
+
+  const locale = localeOf(ctx);
+  return rows.slice(0, PER_SOURCE_CAP).map((row) => {
+    const copy = boqProgressReadyToBillCopy(locale, {
+      periodLabel: row.periodLabel,
+      certificateNumber: row.certificateNumber,
+    });
+    return withItemDefaults({
+      sourceType: 'boq_progress_ready_to_bill',
+      sourceId: row.id,
+      what: copy.what,
+      why: copy.why,
+      where: projectNameById.get(row.projectId) ?? fallbackWhere(locale, 'boq'),
+      href: `/projects/${row.projectId}?tab=boq`,
+      meta: { projectId: row.projectId, boqId: row.boqId },
+    });
+  });
+}
+
+/**
+ * Contract ↔ BOQ mismatch. Does not invent Actual from progress.
+ * Uses commercial + BOQ totals only.
+ */
+export async function collectBoqVsContractMismatch(
+  ctx: CollectContext,
+): Promise<CommandCenterItem[]> {
+  if (!moduleOn(ctx.modules, 'boq')) return [];
+  if (!hasPermission(ctx.context, PERMISSIONS.BOQ_READ)) return [];
+  if (!hasPermission(ctx.context, PERMISSIONS.CONTRACTS_READ)) return [];
+
+  const { listActiveBoqsWithTotalsForOrg } = await import('@/modules/boq/data/boq.repository');
+  const { reconcileContractBoq } = await import('@/modules/boq/domain/reconciliation');
+  const { loadProjectCommercialData } = await import(
+    '@/modules/financials/data/commercial.repository'
+  );
+  const { computeNetApprovedChanges } = await import('@/modules/commercial');
+  const { money } = await import('@/shared/money');
+
+  const boqs = await listActiveBoqsWithTotalsForOrg(
+    ctx.context.db,
+    ctx.context.organizationId,
+  );
+  const items: CommandCenterItem[] = [];
+  const locale = localeOf(ctx);
+
+  for (const row of boqs) {
+    if (items.length >= PER_SOURCE_CAP) break;
+    const commercial = await loadProjectCommercialData(
+      ctx.context.db,
+      ctx.context.organizationId,
+      row.projectId,
+    );
+    if (!commercial) continue;
+
+    const approvedChanges = computeNetApprovedChanges(
+      commercial.position.approvedAdditions,
+      commercial.position.approvedReductions,
+    );
+
+    const recon = reconcileContractBoq({
+      originalContract: commercial.position.originalContractValue,
+      originalBoq: money(row.originalBoqTotal, row.currency),
+      currentContract: commercial.position.currentContractValue,
+      currentBoq: money(row.currentBoqTotal, row.currency),
+      approvedChanges,
+      allocatedApprovedChanges: money(row.allocatedApprovedChanges, row.currency),
+    });
+    if (recon.status === 'matched') continue;
+
+    const [project] = await ctx.context.db
+      .select({ name: projects.name })
+      .from(projects)
+      .where(
+        and(
+          eq(projects.id, row.projectId),
+          eq(projects.organizationId, ctx.context.organizationId),
+        ),
+      )
+      .limit(1);
+
+    const copy = boqVsContractMismatchCopy(locale, { status: recon.status });
+    items.push(
+      withItemDefaults({
+        sourceType: 'boq_vs_contract_mismatch',
+        sourceId: row.boqId,
+        what: copy.what,
+        why: copy.why,
+        where: project?.name ?? fallbackWhere(locale, 'boq'),
+        href: `/projects/${row.projectId}?tab=boq`,
+        meta: { projectId: row.projectId, status: recon.status },
+      }),
+    );
+  }
+
+  return items;
+}
+
 /** Run all collectors; individual failures are isolated. */
 export async function collectAllSources(ctx: CollectContext): Promise<CommandCenterItem[]> {
   const collectors = [
@@ -611,6 +791,9 @@ export async function collectAllSources(ctx: CollectContext): Promise<CommandCen
     collectStaleProjects,
     collectCreditVoidIssues,
     collectMonthCloseIncomplete,
+    collectBoqMeasurementAwaitingApproval,
+    collectBoqProgressReadyToBill,
+    collectBoqVsContractMismatch,
   ];
 
   const settled = await Promise.allSettled(collectors.map((fn) => fn(ctx)));
