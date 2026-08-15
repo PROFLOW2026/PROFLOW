@@ -10,7 +10,7 @@ import {
   findPrimaryContractByProject,
   findContractById,
   listContractsByProject,
-} from '@/modules/projects/data/contracts.repository';
+} from '@/modules/projects';
 import { computeLineAmount, quantityString } from '../domain/amounts';
 import { maskBoqNodeMoney } from '../domain/mask-money';
 import {

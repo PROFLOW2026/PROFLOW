@@ -16,7 +16,7 @@ import {
   insertBillingRecord,
   replaceBillingLines,
 } from '../data/billing.repository';
-import { findContractById, findPrimaryContractByProject } from '@/modules/projects/data/contracts.repository';
+import { findContractById, findPrimaryContractByProject } from '@/modules/projects';
 import { createBillingRecordSchema, type CreateBillingRecordInput } from '../validation/schemas';
 import { finalizeBillingRecordWithPermission } from './finalize-billing-record';
 

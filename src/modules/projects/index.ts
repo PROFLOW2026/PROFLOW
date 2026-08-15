@@ -232,6 +232,11 @@ export type {
 /** Cross-module org-scoped lookups (FK / tenancy guards). */
 export { findProjectById } from './data/projects.repository';
 export {
+  findContractById,
+  findPrimaryContractByProject,
+  listContractsByProject,
+} from './data/contracts.repository';
+export {
   findWorkPackageById,
   listWorkPackagesForProjects,
   insertWorkPackage,

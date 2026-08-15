@@ -1,7 +1,6 @@
 'use client';
 
 import {
-  Banknote,
   CheckCircle2,
   ClipboardList,
   FileSignature,

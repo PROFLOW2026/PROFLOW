@@ -9,7 +9,7 @@ import { getOcrProvider } from '../domain/provider-registry';
 import type { ExtractionJob, OcrBatch } from '../domain/types';
 import { getOcrRepository } from '../data/resolve-repository';
 import type { OcrRepository } from '../data/ocr.repository';
-import type { CreateOcrBatchAppInput, ExtractReceiptAppInput } from '../validation/schemas';
+import type { CreateOcrBatchAppInput } from '../validation/schemas';
 import { createOcrBatchSchema } from '../validation/schemas';
 import { extractReceiptJob } from './extract-receipt';
 import { refreshBatchProgress } from './process-job';

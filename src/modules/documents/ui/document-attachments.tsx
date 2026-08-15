@@ -117,14 +117,15 @@ export function DocumentAttachments({
   const [historyDoc, setHistoryDoc] = useState<DocumentListItem | null>(null);
   const [folders, setFolders] = useState<readonly DocumentFolder[]>([]);
   const [foldersError, setFoldersError] = useState<string | null>(null);
-  const [foldersLoading, setFoldersLoading] = useState(true);
+  const folderOwnerKey = `${ownerType}:${ownerId ?? ''}`;
+  const [loadedFolderKey, setLoadedFolderKey] = useState('');
+  const foldersLoading = loadedFolderKey !== folderOwnerKey;
 
   useEffect(() => {
     let cancelled = false;
-    setFoldersLoading(true);
     void listDocumentFoldersAction({ ownerType, ownerId }).then((result) => {
       if (cancelled) return;
-      setFoldersLoading(false);
+      setLoadedFolderKey(folderOwnerKey);
       if (result.error) {
         setFoldersError(result.error);
         setFolders([]);
@@ -136,7 +137,7 @@ export function DocumentAttachments({
     return () => {
       cancelled = true;
     };
-  }, [ownerType, ownerId]);
+  }, [ownerType, ownerId, folderOwnerKey]);
 
   const resolveLinkLabel = () => {
     const note = label.trim();

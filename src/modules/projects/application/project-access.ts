@@ -2,7 +2,7 @@ import { and, eq } from 'drizzle-orm';
 import { projects } from '@drizzle/schema';
 import { AUDIT_ACTIONS, recordAuditEvent } from '@/shared/audit';
 import type { OrgContext } from '@/shared/auth/context';
-import { findActiveMembership } from '@/modules/tenancy/data/organizations.repository';
+import { findActiveMembership } from '@/modules/tenancy';
 import { NotFoundError, ValidationError } from '@/shared/errors';
 import { assertPermission, hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';

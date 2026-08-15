@@ -23,7 +23,7 @@ import {
   submitTimesheet,
 } from '@/modules/workforce/application/timesheets';
 import { businessDate } from '@/shared/dates';
-import { AuthorizationError, DomainRuleError, NotFoundError } from '@/shared/errors';
+import { AuthorizationError, NotFoundError, type DomainRuleError } from '@/shared/errors';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { createTestDatabase, type TestDatabase } from '../../setup/database';
 

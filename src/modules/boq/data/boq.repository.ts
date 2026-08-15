@@ -1,6 +1,6 @@
 import { and, desc, eq, inArray, isNull, or, sql } from 'drizzle-orm';
 import {
-  boqNodes,
+  type boqNodes,
   changeOrders,
   boqProgressBatches,
   boqProgressBillingLinks,

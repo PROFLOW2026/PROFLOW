@@ -22,8 +22,6 @@ const optionalDate = z.preprocess(
     .optional(),
 );
 
-const requiredDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be YYYY-MM-DD');
-
 export const createSafetyRecordSchema = z.object({
   projectId: optionalUuid,
   recordType: z.enum(SAFETY_RECORD_TYPES),

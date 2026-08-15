@@ -68,7 +68,7 @@ export function DocumentVersionHistoryDialog({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [versions, setVersions] = useState<readonly DocumentVersion[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [category, setCategory] = useState(document.category ?? '');
@@ -80,16 +80,9 @@ export function DocumentVersionHistoryDialog({
   const [savePending, startSave] = useTransition();
 
   useEffect(() => {
-    if (!open) return;
-    setCategory(document.category ?? '');
-    setTags(document.tags ?? '');
-    setExpiresAt(document.expiresAt ?? '');
-    setIsRequired(document.isRequired);
-    setFolderId(document.folderId ?? '');
-    setError(null);
-    setSuccess(null);
-    setLoading(true);
+    let cancelled = false;
     void listDocumentVersionsAction({ documentId: document.id }).then((result) => {
+      if (cancelled) return;
       setLoading(false);
       if (result.error) {
         setError(result.error);
@@ -98,7 +91,10 @@ export function DocumentVersionHistoryDialog({
       }
       setVersions(result.versions ?? []);
     });
-  }, [open, document]);
+    return () => {
+      cancelled = true;
+    };
+  }, [document.id]);
 
   const handleSaveMeta = () => {
     setError(null);

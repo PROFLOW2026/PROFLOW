@@ -57,7 +57,7 @@ async function requireWorkTarget(
   workOrderId: string | null | undefined,
 ): Promise<{ projectId: string | null; workOrderId: string | null }> {
   let resolvedProjectId = projectId ?? null;
-  let resolvedWorkOrderId = workOrderId ?? null;
+  const resolvedWorkOrderId = workOrderId ?? null;
 
   if (resolvedProjectId) {
     const project = await findProjectById(context.db, context.organizationId, resolvedProjectId);
