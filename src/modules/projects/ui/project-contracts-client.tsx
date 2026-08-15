@@ -7,11 +7,14 @@ import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { StatusBadge } from '@/components/ui/status-badge';
+import { Textarea } from '@/components/ui/textarea';
+import { contractStatusActions } from '@/modules/projects/domain/contract-lifecycle';
 import { fromNumericString } from '@/shared/money';
 import { cn } from '@/shared/ui/cn';
 import {
   createAdditionalContractAction,
   setPrimaryContractAction,
+  updateContractAction,
   type ContractFormState,
 } from './contract-actions';
 
@@ -28,6 +31,7 @@ export interface ProjectContractCard {
   readonly startDate: string | null;
   readonly endDate: string | null;
   readonly retentionPercent: string | null;
+  readonly notes: string | null;
 }
 
 interface ProjectContractsClientProps {
@@ -45,6 +49,118 @@ function statusShape(status: string): 'draft' | 'active' | 'completed' | 'cancel
   return 'active';
 }
 
+function ContractEditForm({
+  projectId,
+  contract,
+  pending,
+  error,
+  action,
+  onCancel,
+}: {
+  projectId: string;
+  contract: ProjectContractCard;
+  pending: boolean;
+  error?: string;
+  action: (formData: FormData) => void;
+  onCancel: () => void;
+}) {
+  const t = useTranslations('projects.contracts');
+  const tCommon = useTranslations('common');
+
+  return (
+    <form
+      action={action}
+      className="mt-3 flex min-w-0 flex-col gap-3 rounded-md border border-[var(--pf-border-default)] p-3"
+    >
+      <input type="hidden" name="projectId" value={projectId} />
+      <input type="hidden" name="contractId" value={contract.id} />
+      <Field label={t('name')}>
+        {(controlProps) => (
+          <Input {...controlProps} name="name" defaultValue={contract.name ?? ''} />
+        )}
+      </Field>
+      <Field label={t('number')} optionalLabel={tCommon('labels.optional')}>
+        {(controlProps) => (
+          <Input
+            {...controlProps}
+            name="contractNumber"
+            defaultValue={contract.contractNumber ?? ''}
+          />
+        )}
+      </Field>
+      {contract.isPrimary ? (
+        <p className="text-xs text-[var(--pf-text-muted)]">{t('primaryTypeLocked')}</p>
+      ) : (
+        <Field label={t('kind')}>
+          {(controlProps) => (
+            <select
+              {...controlProps}
+              name="contractType"
+              defaultValue={contract.contractType === 'secondary' ? 'secondary' : 'additional'}
+              className="w-full min-w-0 rounded-md border border-[var(--pf-border-default)] bg-transparent px-3 py-2 text-sm"
+            >
+              <option value="additional">{t('types.additional')}</option>
+              <option value="secondary">{t('types.secondary')}</option>
+            </select>
+          )}
+        </Field>
+      )}
+      <Field label={t('startDate')} optionalLabel={tCommon('labels.optional')}>
+        {(controlProps) => (
+          <Input
+            {...controlProps}
+            name="startDate"
+            type="date"
+            dir="ltr"
+            defaultValue={contract.startDate ?? ''}
+          />
+        )}
+      </Field>
+      <Field label={t('endDate')} optionalLabel={tCommon('labels.optional')}>
+        {(controlProps) => (
+          <Input
+            {...controlProps}
+            name="endDate"
+            type="date"
+            dir="ltr"
+            defaultValue={contract.endDate ?? ''}
+          />
+        )}
+      </Field>
+      <Field label={t('retention')} optionalLabel={tCommon('labels.optional')}>
+        {(controlProps) => (
+          <Input
+            {...controlProps}
+            name="retentionPercent"
+            inputMode="decimal"
+            dir="ltr"
+            defaultValue={contract.retentionPercent ?? ''}
+          />
+        )}
+      </Field>
+      <Field label={t('notes')} optionalLabel={tCommon('labels.optional')}>
+        {(controlProps) => (
+          <Textarea {...controlProps} name="notes" rows={3} defaultValue={contract.notes ?? ''} />
+        )}
+      </Field>
+      <p className="text-xs text-[var(--pf-text-muted)]">{t('amountNotEdited')}</p>
+      {error ? (
+        <p className="text-sm text-[var(--pf-status-danger-fg)]" role="alert">
+          {error}
+        </p>
+      ) : null}
+      <div className="flex flex-wrap gap-2">
+        <Button type="submit" disabled={pending} loading={pending}>
+          {t('saveEdit')}
+        </Button>
+        <Button type="button" variant="secondary" onClick={onCancel}>
+          {tCommon('actions.cancel')}
+        </Button>
+      </div>
+    </form>
+  );
+}
+
 export function ProjectContractsClient({
   projectId,
   currency,
@@ -55,12 +171,17 @@ export function ProjectContractsClient({
   const tCommon = useTranslations('common');
   const [showForm, setShowForm] = useState(false);
   const [showMore, setShowMore] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [createState, createAction, createPending] = useActionState<ContractFormState, FormData>(
     createAdditionalContractAction,
     {},
   );
   const [primaryState, primaryAction, primaryPending] = useActionState<ContractFormState, FormData>(
     setPrimaryContractAction,
+    {},
+  );
+  const [updateState, updateAction, updatePending] = useActionState<ContractFormState, FormData>(
+    updateContractAction,
     {},
   );
 
@@ -77,6 +198,7 @@ export function ProjectContractsClient({
             const current = contract.currentValueAmount
               ? fromNumericString(contract.currentValueAmount, contract.currency)
               : original;
+            const statusActions = canManage ? contractStatusActions(contract.status) : [];
             return (
               <li
                 key={contract.id}
@@ -114,14 +236,48 @@ export function ProjectContractsClient({
                     </div>
                   ) : null}
                 </dl>
-                {canManage && !contract.isPrimary ? (
-                  <form action={primaryAction} className="mt-3">
-                    <input type="hidden" name="projectId" value={projectId} />
-                    <input type="hidden" name="contractId" value={contract.id} />
-                    <Button type="submit" variant="secondary" disabled={primaryPending}>
-                      {t('makePrimary')}
-                    </Button>
-                  </form>
+                {canManage ? (
+                  <div className="mt-3 flex flex-col gap-2">
+                    {editingId === contract.id ? (
+                      <ContractEditForm
+                        projectId={projectId}
+                        contract={contract}
+                        pending={updatePending}
+                        error={updateState.error}
+                        action={updateAction}
+                        onCancel={() => setEditingId(null)}
+                      />
+                    ) : (
+                      <div className="flex flex-wrap gap-2">
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          onClick={() => setEditingId(contract.id)}
+                        >
+                          {t('editAction')}
+                        </Button>
+                        {!contract.isPrimary ? (
+                          <form action={primaryAction}>
+                            <input type="hidden" name="projectId" value={projectId} />
+                            <input type="hidden" name="contractId" value={contract.id} />
+                            <Button type="submit" variant="secondary" disabled={primaryPending}>
+                              {t('makePrimary')}
+                            </Button>
+                          </form>
+                        ) : null}
+                        {statusActions.map((nextStatus) => (
+                          <form action={updateAction} key={nextStatus}>
+                            <input type="hidden" name="projectId" value={projectId} />
+                            <input type="hidden" name="contractId" value={contract.id} />
+                            <input type="hidden" name="status" value={nextStatus} />
+                            <Button type="submit" variant="secondary" disabled={updatePending}>
+                              {t(`actions.${nextStatus}`)}
+                            </Button>
+                          </form>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 ) : null}
               </li>
             );
@@ -132,6 +288,11 @@ export function ProjectContractsClient({
       {primaryState.error ? (
         <p className="text-sm text-[var(--pf-status-danger-fg)]" role="alert">
           {primaryState.error}
+        </p>
+      ) : null}
+      {updateState.error && !editingId ? (
+        <p className="text-sm text-[var(--pf-status-danger-fg)]" role="alert">
+          {updateState.error}
         </p>
       ) : null}
 
@@ -185,6 +346,9 @@ export function ProjectContractsClient({
                   {(controlProps) => (
                     <Input {...controlProps} name="retentionPercent" inputMode="decimal" dir="ltr" />
                   )}
+                </Field>
+                <Field label={t('notes')} optionalLabel={tCommon('labels.optional')}>
+                  {(controlProps) => <Textarea {...controlProps} name="notes" rows={3} />}
                 </Field>
               </div>
             </details>

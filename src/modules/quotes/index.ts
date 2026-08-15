@@ -68,6 +68,13 @@ export {
   listQuotesSchema,
   quoteLineSchema,
 } from './validation/schemas';
+export {
+  PRODUCT_QUOTE_TABLE,
+  PRODUCT_QUOTE_PATH,
+  productQuoteCreateHref,
+  productQuoteDetailHref,
+  convertWonUsesEstimatesTable,
+} from './domain/product-path';
 export type {
   CreateQuoteInput,
   UpdateQuoteInput,

@@ -22,6 +22,7 @@ export const createApBillSchema = z.object({
   asDraft: z.boolean().optional(),
   retentionAmount: moneyString.optional().nullable(),
   retentionPercent: moneyString.optional().nullable(),
+  subcontractAgreementId: z.string().uuid().optional().nullable(),
   notes: z.string().trim().max(2000).optional().nullable(),
   lines: z
     .array(

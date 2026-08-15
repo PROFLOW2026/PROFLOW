@@ -5,7 +5,6 @@ import {
   MILESTONE_STATUSES,
   PRICING_MODES,
   WORK_KINDS,
-  CONTRACT_TYPES,
   CONTRACT_STATUSES,
 } from '../domain/types';
 import { DATE_ORDER_MESSAGE, isEndBeforeStart } from '../domain/scheduling';
@@ -451,7 +450,8 @@ export const updateContractSchema = z
     contractId: z.string().uuid(),
     name: z.preprocess(emptyStringOrNullToNull, z.string().trim().min(1).max(200).nullable().optional()),
     reference: z.preprocess(emptyStringOrNullToNull, z.string().trim().max(120).nullable().optional()),
-    contractType: z.enum(CONTRACT_TYPES).optional(),
+    /** Primary is owned by `isPrimary` / set-primary — not this field. */
+    contractType: z.enum(['additional', 'secondary']).optional(),
     contractNumber: z.preprocess(
       emptyStringOrNullToNull,
       z.string().trim().max(80).nullable().optional(),

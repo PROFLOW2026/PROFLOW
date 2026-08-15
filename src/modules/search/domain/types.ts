@@ -15,6 +15,8 @@ export const GLOBAL_SEARCH_KINDS = [
   'billing',
   'document',
   'asset',
+  'inventory_item',
+  'material',
   'boq_item',
 ] as const;
 

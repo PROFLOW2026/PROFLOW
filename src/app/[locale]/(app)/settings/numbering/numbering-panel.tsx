@@ -10,9 +10,13 @@ import type {
   DocumentNumberKind,
   DocumentNumberSequenceRecord,
 } from '@/modules/tenancy/domain/document-numbers';
+import { defaultDocumentNumberSequence } from '@/modules/tenancy/domain/document-numbers';
 import { saveDocumentNumberSettingsAction, type SettingsActionState } from '../actions';
 
 const KIND_ORDER: readonly DocumentNumberKind[] = [
+  'project',
+  'job',
+  'work_order',
   'estimate',
   'purchase_order',
   'vendor_bill',
@@ -51,7 +55,7 @@ export function NumberingSettingsPanel({
 
         <ul className="flex flex-col gap-4">
           {KIND_ORDER.map((kind) => {
-            const sequence = byKind.get(kind);
+            const sequence = byKind.get(kind) ?? defaultDocumentNumberSequence('', kind);
             return (
               <li
                 key={kind}
@@ -68,7 +72,7 @@ export function NumberingSettingsPanel({
                       <Input
                         {...props}
                         name={`prefix.${kind}`}
-                        defaultValue={sequence?.prefix ?? ''}
+                        defaultValue={sequence.prefix}
                         maxLength={20}
                         disabled={!canEdit}
                         dir="ltr"
@@ -85,7 +89,7 @@ export function NumberingSettingsPanel({
                         min={1}
                         max={8}
                         numeric
-                        defaultValue={String(sequence?.padding ?? 4)}
+                        defaultValue={String(sequence.padding)}
                         disabled={!canEdit}
                         required
                       />
@@ -99,7 +103,7 @@ export function NumberingSettingsPanel({
                         type="number"
                         min={1}
                         numeric
-                        defaultValue={String(sequence?.nextNumber ?? 1)}
+                        defaultValue={String(sequence.nextNumber)}
                         disabled={!canEdit}
                         required
                       />

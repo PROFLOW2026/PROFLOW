@@ -3,6 +3,7 @@
   "description": "Purchase orders commit spend with vendors. Issuing a PO creates a committed cost — not an expense.",
   "materialsTitle": "Materials catalog",
   "materialsDescription": "Reusable catalog items for purchase order lines. This is not inventory quantity and not cost/Actual. Operational stock lives under Assets → Inventory (qty). No FIFO or average costing.",
+  "threeActionsHint": "Purchase receiving, inventory quantity, and material usage are three different actions. None of them posts project Actual.",
   "navLabel": "Procurement sections",
   "nav": {
     "orders": "Purchase orders",
@@ -90,6 +91,7 @@
   "receive": {
     "title": "Receive goods",
     "description": "Record quantities received. This does not create an expense, vendor bill, or inventory actual.",
+    "threeActionsHint": "Purchase receiving, inventory quantity, and material usage are three different actions. None of them posts project Actual.",
     "submit": "Record receipt",
     "pending": "Recording…",
     "receivedOn": "Received on",

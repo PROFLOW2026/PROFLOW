@@ -33,6 +33,16 @@
     "select": "Select",
     "copyLink": "Copy link"
   },
+  "savedViews": {
+    "label": "Saved views",
+    "placeholder": "Choose a view",
+    "current": "Current filters",
+    "name": "View name",
+    "save": "Save view",
+    "makeDefault": "Default",
+    "defaultName": "{name} (default)",
+    "limitReached": "You already have the maximum number of saved views for this list."
+  },
   "labels": {
     "name": "Name",
     "description": "Description",

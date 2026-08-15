@@ -67,6 +67,7 @@ export const createQuoteSchema = z.object({
   description: optionalText,
   clientId: optionalUuid,
   contactId: optionalUuid,
+  opportunityId: optionalUuid,
   currency: z.string().trim().length(3).optional(),
   taxMode: z.enum(QUOTE_TAX_MODES).optional(),
   taxRuleId: optionalUuid,
@@ -128,6 +129,7 @@ export type ConvertQuoteInput = z.input<typeof convertQuoteSchema>;
 export const listQuotesSchema = z.object({
   status: z.enum(QUOTE_STATUSES).optional(),
   clientId: z.string().uuid().optional(),
+  opportunityId: z.string().uuid().optional(),
 });
 
 export type ListQuotesInput = z.input<typeof listQuotesSchema>;

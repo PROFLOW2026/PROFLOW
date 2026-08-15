@@ -17,6 +17,7 @@
   "expensesSafeHint": "Expense import creates drafts only through the normal expense rules. Tax/VAT columns are ignored. Currency must match the project or organization base currency.",
   "nonFinancialHint": "Project/job import does not set contract amounts. Use Opening values for managed openings. Duplicate names are flagged as warnings.",
   "openingValuesHint": "Opening values use the same contract opening path as project edit. Quote amounts are never treated as revenue.",
+  "inventoryHint": "Inventory import creates quantity items. Opening quantity is a qty receive to the default location when one exists — not Actual, not expense, not FIFO.",
   "kinds": {
     "clients": "Clients",
     "contacts": "Contacts",
@@ -26,6 +27,7 @@
     "opening_values": "Opening values",
     "cost_categories": "Cost categories",
     "expenses": "Expenses (draft)",
+    "inventory": "Inventory items (qty)",
     "boq_items": "BOQ items"
   },
   "boqItemsHint": "BOQ import writes into a draft Bill of Quantities for the project. Blank and total rows are skipped. Duplicate item codes are errors.",
@@ -69,7 +71,12 @@
     "quantity": "Quantity",
     "unitPrice": "Unit price",
     "chapter": "Chapter",
-    "subchapter": "Subchapter"
+    "subchapter": "Subchapter",
+    "sku": "SKU",
+    "barcode": "Barcode",
+    "reorderLevel": "Reorder level",
+    "minStockLevel": "Min stock level",
+    "openingQty": "Opening quantity"
   },
   "mapping": {
     "title": "Column mapping",

@@ -74,7 +74,7 @@ export const formSubmissions = pgTable(
     ),
     check(
       'form_submissions_owner_known',
-      sql`${table.ownerType} IN ('project', 'job', 'work_order', 'planning_task', 'maintenance', 'field_log')`,
+      sql`${table.ownerType} IN ('project', 'job', 'work_order', 'planning_task', 'maintenance', 'field_log', 'inspection')`,
     ),
   ],
 );

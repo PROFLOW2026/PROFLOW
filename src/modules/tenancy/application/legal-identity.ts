@@ -1,4 +1,7 @@
 import type { DbExecutor } from '@/shared/db/types';
+import type { OrgContext } from '@/shared/auth/context';
+import { assertPermission } from '@/shared/permissions/assert';
+import { PERMISSIONS } from '@/shared/permissions/catalog';
 import {
   getOrganizationSettingValue,
   upsertOrganizationSettingValue,
@@ -40,4 +43,13 @@ export async function saveOrganizationLegalIdentity(
   });
   await upsertOrganizationSettingValue(db, organizationId, LEGAL_IDENTITY_SETTING_KEY, next);
   return next;
+}
+
+/** Settings → Business save path. OCR reads the same `legal_identity` setting. */
+export async function updateOrganizationLegalIdentity(
+  context: OrgContext,
+  identity: { taxId?: string | null; companyNumber?: string | null },
+): Promise<OrganizationLegalIdentity> {
+  assertPermission(context, PERMISSIONS.ORG_UPDATE);
+  return saveOrganizationLegalIdentity(context.db, context.organizationId, identity);
 }

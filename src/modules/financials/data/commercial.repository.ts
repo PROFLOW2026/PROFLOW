@@ -8,6 +8,7 @@ import type {
 import type { CommercialPosition } from '@/modules/financials/domain/types';
 import { sumCommercialPositions } from '@/modules/financials/domain/aggregate-commercial';
 import type { DbExecutor } from '@/shared/db/types';
+import { isTerminalContractStatus } from '@/modules/projects/domain/contract-lifecycle';
 import { attachEntryBaselineContext } from '../domain/entry-baseline-context';
 import { sqlFirstRow, sqlRows } from './sql-rows';
 
@@ -110,6 +111,8 @@ function aggregateProjectContracts(
       excludedForeignCurrencyContractCount += 1;
       continue;
     }
+    // Closed/cancelled stay visible per contract (history) but are not "current".
+    if (isTerminalContractStatus(contract.status)) continue;
     included.push(position);
   }
 

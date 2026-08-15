@@ -1,10 +1,10 @@
 /**
  * Subcontract agreements persistence.
  *
- * Paid/outstanding reads `ap_bills` + recorded payment applications for the
- * same vendor+project. AP public `getVendorApOutstanding` requires `ap.read`
- * and is vendor-wide — this query is the vendor+project slice for display.
- * Never posts or drafts AP.
+ * Paid/outstanding reads `ap_bills` tagged with this agreement's id
+ * (`subcontract_agreement_id`). Two agreements on the same vendor+project
+ * never share billed / paid / outstanding. AP public `getVendorApOutstanding`
+ * can apply the same agreement filter. Never posts or drafts AP.
  *
  * Documents use `document_links` with owner_type `subcontract_agreement`
  * via the canonical documents linker.
@@ -274,11 +274,10 @@ async function listAgreements(
     const agreement = mapAgreement(row.agreement);
     const events = await listSubcontractValueEvents(db, organizationId, agreement.id);
     const current = computeCurrentSubcontractValue(events, agreement.currency);
-    const cashRows = await listApBillCashForVendorProject(
+    const cashRows = await listApBillCashForSubcontractAgreement(
       db,
       organizationId,
-      agreement.vendorId,
-      agreement.projectId,
+      agreement.id,
     );
     const cash = computeSubcontractCashPosition(cashRows, agreement.currency);
     items.push({
@@ -286,6 +285,7 @@ async function listAgreements(
       vendorName: row.vendorName,
       projectName: row.projectName,
       currentAmount: current.amount,
+      billedAmount: cash.billed,
       paidAmount: cash.paid,
       outstandingAmount: cash.outstanding,
     });
@@ -370,14 +370,14 @@ export async function listParentContractOptions(
 }
 
 /**
- * Cash position inputs for a vendor+project. Read-only AP.
- * Does not call AP posting APIs.
+ * Cash position inputs for one subcontract agreement. Read-only AP.
+ * Filters `ap_bills.subcontract_agreement_id` so two agreements on the same
+ * vendor+project do not share billed / paid / outstanding. Does not post AP.
  */
-export async function listApBillCashForVendorProject(
+export async function listApBillCashForSubcontractAgreement(
   db: DbExecutor,
   organizationId: string,
-  vendorId: string,
-  projectId: string,
+  subcontractAgreementId: string,
 ): Promise<SubcontractApBillCashRow[]> {
   const bills = await db
     .select({
@@ -390,8 +390,7 @@ export async function listApBillCashForVendorProject(
     .where(
       and(
         eq(apBills.organizationId, organizationId),
-        eq(apBills.vendorId, vendorId),
-        eq(apBills.projectId, projectId),
+        eq(apBills.subcontractAgreementId, subcontractAgreementId),
         isNull(apBills.archivedAt),
       ),
     );

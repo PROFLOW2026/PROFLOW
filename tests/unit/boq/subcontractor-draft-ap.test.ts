@@ -13,6 +13,7 @@ const findSubcontractorScheduleById = vi.fn();
 const listSubcontractorValuationLines = vi.fn();
 const proposeSubcontractorValuationApRpc = vi.fn();
 const findVendorEngagementById = vi.fn();
+const findSubcontractAgreementById = vi.fn();
 const createDraftApBill = vi.fn();
 
 vi.mock('@/modules/boq/data/boq.repository', () => ({
@@ -40,6 +41,8 @@ vi.mock('@/modules/boq/data/boq.repository', () => ({
 
 vi.mock('@/modules/vendors', () => ({
   findVendorEngagementById: (...args: unknown[]) => findVendorEngagementById(...args),
+  findSubcontractAgreementById: (...args: unknown[]) => findSubcontractAgreementById(...args),
+  findActiveEngagementForVendorProject: vi.fn(),
 }));
 
 vi.mock('@/modules/ap', () => ({
@@ -66,6 +69,7 @@ const BILL_ID = '01900000-0000-7000-8000-000000000013';
 const VENDOR_ID = '01900000-0000-7000-8000-000000000014';
 const PROJECT_ID = '01900000-0000-7000-8000-000000000015';
 const ENGAGEMENT_ID = '01900000-0000-7000-8000-000000000016';
+const AGREEMENT_ID = '01900000-0000-7000-8000-000000000017';
 
 function contextWith(permissions: readonly PermissionKey[]): OrgContext {
   return {
@@ -94,6 +98,7 @@ describe('createDraftApFromSubcontractorValuation', () => {
     listSubcontractorValuationLines.mockReset();
     proposeSubcontractorValuationApRpc.mockReset();
     findVendorEngagementById.mockReset();
+    findSubcontractAgreementById.mockReset();
     createDraftApBill.mockReset();
 
     findSubcontractorValuationById.mockResolvedValue({
@@ -107,6 +112,7 @@ describe('createDraftApFromSubcontractorValuation', () => {
       id: SCHEDULE_ID,
       projectId: PROJECT_ID,
       vendorEngagementId: ENGAGEMENT_ID,
+      subcontractAgreementId: AGREEMENT_ID,
       currency: 'ILS',
       title: 'Masonry',
     });
@@ -114,6 +120,12 @@ describe('createDraftApFromSubcontractorValuation', () => {
       id: ENGAGEMENT_ID,
       vendorId: VENDOR_ID,
       projectId: PROJECT_ID,
+    });
+    findSubcontractAgreementById.mockResolvedValue({
+      id: AGREEMENT_ID,
+      vendorId: VENDOR_ID,
+      projectId: PROJECT_ID,
+      retentionPercent: '10.000000',
     });
     listSubcontractorValuationLines.mockResolvedValue([
       {
@@ -164,6 +176,8 @@ describe('createDraftApFromSubcontractorValuation', () => {
     );
     const payload = createDraftApBill.mock.calls[0]?.[1] as Record<string, unknown>;
     expect(payload.purchaseOrderId).toBeUndefined();
+    expect(payload.subcontractAgreementId).toBe(AGREEMENT_ID);
+    expect(payload.retentionPercent).toBe('10.000000');
 
     expect(proposeSubcontractorValuationApRpc).toHaveBeenCalledWith(
       manager.db,
@@ -191,5 +205,16 @@ describe('createDraftApFromSubcontractorValuation', () => {
       createDraftApFromSubcontractorValuation(manager, { valuationId: VALUATION_ID }),
     ).rejects.toBeInstanceOf(ConflictError);
     expect(createDraftApBill).not.toHaveBeenCalled();
+  });
+
+  it('lets the operator override agreement retention percent on the draft bill', async () => {
+    const manager = contextWith([PERMISSIONS.BOQ_MANAGE, PERMISSIONS.AP_MANAGE]);
+    await createDraftApFromSubcontractorValuation(manager, {
+      valuationId: VALUATION_ID,
+      retentionPercent: '5',
+    });
+    const payload = createDraftApBill.mock.calls[0]?.[1] as Record<string, unknown>;
+    expect(payload.retentionPercent).toBe('5');
+    expect(payload.subcontractAgreementId).toBe(AGREEMENT_ID);
   });
 });

@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { PageHeader } from '@/components/ui/page-header';
 import { findTimeEntryById, loadQuickLogFormData } from '@/modules/workforce';
+import { assertCanActOnEmployeeTime } from '@/modules/workforce/application/time-scope';
 import { TimeEntryForm } from '@/modules/workforce/ui/time-entry-form';
 import { withOrgContext } from '@/shared/auth/session';
 import { todayInTimeZone } from '@/shared/dates';
@@ -62,6 +63,7 @@ export default async function QuickTimePage({
       if (!original || original.status !== 'recorded') {
         throw new NotFoundError('Time entry');
       }
+      await assertCanActOnEmployeeTime(context, original.employeeId);
       correction = {
         correctsEntryId: original.id,
         initialHours: original.hours,
@@ -108,6 +110,7 @@ export default async function QuickTimePage({
         defaultDate={formData.defaultDate}
         recentProjectId={formData.recentProjectId}
         assignedEmployeeIds={formData.assignedEmployeeIds}
+        employeeLocked={formData.selfScoped}
         correctsEntryId={formData.correctsEntryId}
         initialHours={formData.initialHours}
         initialDescription={formData.initialDescription}

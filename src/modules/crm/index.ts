@@ -62,6 +62,7 @@ export {
   groupOpportunitiesByStage,
   isOpportunityStage,
   nextActionUrgency,
+  statusForMovedStage,
 } from './domain/pipeline-board';
 export type {
   OpportunityBoardCard,

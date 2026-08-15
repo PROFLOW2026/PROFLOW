@@ -4,9 +4,12 @@ import { useTranslations } from 'next-intl';
 import { useActionState } from 'react';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
+import { Link } from '@/shared/i18n/navigation';
 import type {
   clockInAction,
   clockOutAction,
+  clockBreakStartAction,
+  clockBreakEndAction,
   AttendanceActionState,
 } from '@/app/[locale]/(app)/workforce/attendance/actions';
 import type { ClockPresenceState } from '@/modules/workforce/domain/attendance';
@@ -17,8 +20,12 @@ interface AttendanceClockPanelProps {
   readonly presence: ClockPresenceState;
   readonly canClockIn: boolean;
   readonly canClockOut: boolean;
+  readonly canBreakStart: boolean;
+  readonly canBreakEnd: boolean;
   readonly clockInAction: typeof clockInAction;
   readonly clockOutAction: typeof clockOutAction;
+  readonly clockBreakStartAction: typeof clockBreakStartAction;
+  readonly clockBreakEndAction: typeof clockBreakEndAction;
   readonly linked: boolean;
 }
 
@@ -28,8 +35,12 @@ export function AttendanceClockPanel({
   presence,
   canClockIn,
   canClockOut,
+  canBreakStart,
+  canBreakEnd,
   clockInAction,
   clockOutAction,
+  clockBreakStartAction,
+  clockBreakEndAction,
   linked,
 }: AttendanceClockPanelProps) {
   const t = useTranslations('workforce.attendance');
@@ -38,9 +49,18 @@ export function AttendanceClockPanel({
     clockOutAction,
     {} as AttendanceActionState,
   );
+  const [breakStartState, breakStartFormAction, breakStartPending] = useActionState(
+    clockBreakStartAction,
+    {} as AttendanceActionState,
+  );
+  const [breakEndState, breakEndFormAction, breakEndPending] = useActionState(
+    clockBreakEndAction,
+    {} as AttendanceActionState,
+  );
 
-  const error = inState.error ?? outState.error;
-  const pending = inPending || outPending;
+  const error =
+    inState.error ?? outState.error ?? breakStartState.error ?? breakEndState.error;
+  const pending = inPending || outPending || breakStartPending || breakEndPending;
 
   return (
     <section className="mx-auto flex w-full max-w-lg flex-col gap-4 rounded-xl border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4 sm:p-6">
@@ -52,7 +72,13 @@ export function AttendanceClockPanel({
         <p className="mt-2 text-sm text-[var(--pf-text-secondary)]">
           {t(`presence.${presence}`)}
         </p>
+        <p className="mt-2 text-sm text-[var(--pf-text-secondary)]">{t('clock.presenceVsTime')}</p>
         <p className="mt-1 text-xs text-[var(--pf-text-muted)]">{t('disclaimer')}</p>
+        <p className="mt-2 text-sm">
+          <Link href="/workforce/time" className="font-medium underline">
+            {t('clock.logHoursLink')}
+          </Link>
+        </p>
       </div>
 
       {error ? <Alert tone="danger">{error}</Alert> : null}
@@ -80,6 +106,28 @@ export function AttendanceClockPanel({
               size="lg"
             >
               {t('clock.out')}
+            </Button>
+          </form>
+          <form action={breakStartFormAction}>
+            <Button
+              type="submit"
+              disabled={!canBreakStart || pending}
+              variant="secondary"
+              className="h-16 w-full text-base font-semibold"
+              size="lg"
+            >
+              {t('clock.breakStart')}
+            </Button>
+          </form>
+          <form action={breakEndFormAction}>
+            <Button
+              type="submit"
+              disabled={!canBreakEnd || pending}
+              variant="secondary"
+              className="h-16 w-full text-base font-semibold"
+              size="lg"
+            >
+              {t('clock.breakEnd')}
             </Button>
           </form>
         </div>

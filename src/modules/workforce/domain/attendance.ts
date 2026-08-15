@@ -85,6 +85,14 @@ export function canClockOut(state: ClockPresenceState): boolean {
   return state === 'clocked_in' || state === 'on_break';
 }
 
+export function canStartBreak(state: ClockPresenceState): boolean {
+  return state === 'clocked_in';
+}
+
+export function canEndBreak(state: ClockPresenceState): boolean {
+  return state === 'on_break';
+}
+
 export function assertCanAppendClockEvent(
   state: ClockPresenceState,
   eventType: 'clock_in' | 'clock_out',

@@ -45,13 +45,13 @@ export async function WorkKindCreateHint({
   const preferred = options.find((option) => option.kind === defaultWorkKind);
   const showBanner = Boolean(preferred && preferred.kind !== current);
   const showSwitcher = options.length > 1;
-  if (!showBanner && !showSwitcher) return null;
 
   const t = await getTranslations(messagesNamespace);
   const tNav = await getTranslations('nav.newMenu');
 
   return (
     <div className="flex flex-col gap-3" data-pf-work-kind-create="">
+      <p className="text-sm text-[var(--pf-text-secondary)]">{t('create.usualKind.sameEngine')}</p>
       {showBanner && preferred ? (
         <Alert
           tone="info"

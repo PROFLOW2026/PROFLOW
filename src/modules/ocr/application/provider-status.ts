@@ -1,16 +1,18 @@
 import type { OrgContext } from '@/shared/auth/context';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
-import { getOcrFeatureMode, isOcrIngestionEnabled } from '../domain/feature-gate';
+import {
+  getOcrFeatureMode,
+  isOcrIngestionEnabled,
+} from '../domain/feature-gate';
 import type { OcrProvider } from '../domain/provider';
 import { getOcrProvider } from '../domain/provider-registry';
 import type { OcrProviderStatus } from '../domain/types';
 
-export function getOcrProviderStatus(
-  context: OrgContext,
+/** Provider/mode snapshot with no secrets. Safe to render in Settings. */
+export function readOcrProviderStatus(
   provider: OcrProvider = getOcrProvider(),
 ): OcrProviderStatus {
-  assertPermission(context, PERMISSIONS.DOCUMENTS_READ);
   const featureMode = getOcrFeatureMode();
   const configured = provider.isConfigured();
   const ingestionEnabled = isOcrIngestionEnabled();
@@ -38,4 +40,19 @@ export function getOcrProviderStatus(
     ingestionEnabled,
     messageKey,
   };
+}
+
+export function getOcrProviderStatus(
+  context: OrgContext,
+  provider: OcrProvider = getOcrProvider(),
+): OcrProviderStatus {
+  assertPermission(context, PERMISSIONS.DOCUMENTS_READ);
+  return readOcrProviderStatus(provider);
+}
+
+/** Azure live path needs both key and endpoint — never return their values. */
+export function azureOcrNeedsKeyAndEndpoint(
+  status: Pick<OcrProviderStatus, 'providerId' | 'configured'> = readOcrProviderStatus(),
+): boolean {
+  return status.providerId === 'azure' && !status.configured;
 }

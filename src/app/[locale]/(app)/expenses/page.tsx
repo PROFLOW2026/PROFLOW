@@ -13,6 +13,7 @@ import {
 import { withOrgContext } from '@/shared/auth/session';
 import { Link } from '@/shared/i18n/navigation';
 import { OcrEntryLink } from '@/modules/ocr/ui/ocr-entry-link';
+import { SavedListViewsBar } from '@/modules/tenancy/ui/saved-list-views-bar';
 import { ExpensesList } from './expenses-list';
 
 export async function generateMetadata({
@@ -81,6 +82,12 @@ export default async function ExpensesPage({
             </Button>
           </div>
         }
+      />
+
+      <SavedListViewsBar
+        listKey="expenses"
+        searchParams={rawParams}
+        keys={['dateFrom', 'dateTo', 'projectId', 'costFamily', 'costCategoryId', 'status']}
       />
 
       <ExpensesList

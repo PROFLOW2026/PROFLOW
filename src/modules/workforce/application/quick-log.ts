@@ -1,12 +1,13 @@
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import type { OrgContext } from '@/shared/auth/context';
-import { listActiveProjects } from '../data/project-refs.repository';
 import { listProjectTeamMemberIds } from '../data/project-team.repository';
 import { listTimeEntries } from '../data/time-entries.repository';
+import { findEmployeeByUserId } from '../data/employees.repository';
 import type { NonProjectTimeCodeRecord } from '../domain/types';
 import { listEmployeesForOrg } from './employees';
-import { listNonProjectCodes, suggestDefaultEmployee } from './time-entries';
+import { listNonProjectCodes, listProjectsForTimeLog, suggestDefaultEmployee } from './time-entries';
+import { canReadOrgWorkforce } from './time-scope';
 
 export interface QuickLogFormData {
   readonly employees: readonly { id: string; name: string; assignedToProject?: boolean }[];
@@ -15,6 +16,7 @@ export interface QuickLogFormData {
   readonly defaultEmployeeId: string | null;
   readonly recentProjectId: string | null;
   readonly assignedEmployeeIds: readonly string[];
+  readonly selfScoped: boolean;
 }
 
 export async function loadQuickLogFormData(
@@ -23,10 +25,19 @@ export async function loadQuickLogFormData(
 ): Promise<QuickLogFormData> {
   assertPermission(context, PERMISSIONS.TIME_MANAGE);
 
-  const [employeeRows, projects, suggestedEmployeeId, timeCodes] = await Promise.all([
-    listEmployeesForOrg(context, { status: 'active' }),
-    listActiveProjects(context.db, context.organizationId),
-    suggestDefaultEmployee(context),
+  const selfScoped = !canReadOrgWorkforce(context);
+  const suggestedEmployeeId = await suggestDefaultEmployee(context);
+
+  let employeeRows: readonly { id: string; name: string }[];
+  if (selfScoped) {
+    const linked = await findEmployeeByUserId(context.db, context.organizationId, context.userId);
+    employeeRows = linked ? [{ id: linked.id, name: linked.name }] : [];
+  } else {
+    employeeRows = await listEmployeesForOrg(context, { status: 'active' });
+  }
+
+  const [projects, timeCodes] = await Promise.all([
+    listProjectsForTimeLog(context),
     listNonProjectCodes(context),
   ]);
 
@@ -48,8 +59,9 @@ export async function loadQuickLogFormData(
       return left.name.localeCompare(right.name);
     });
 
-  const defaultEmployeeId =
-    options.employeeId && employees.some((employee) => employee.id === options.employeeId)
+  const defaultEmployeeId = selfScoped
+    ? suggestedEmployeeId
+    : options.employeeId && employees.some((employee) => employee.id === options.employeeId)
       ? options.employeeId
       : assignedEmployeeIds[0] && employees.some((employee) => employee.id === assignedEmployeeIds[0])
         ? assignedEmployeeIds[0]!
@@ -69,5 +81,6 @@ export async function loadQuickLogFormData(
     defaultEmployeeId,
     recentProjectId,
     assignedEmployeeIds,
+    selfScoped,
   };
 }

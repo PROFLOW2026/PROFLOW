@@ -50,6 +50,8 @@ export interface DailyLogRecord {
   readonly visitorNotes: string | null;
   readonly managerNotes: string | null;
   readonly correctionNotes: string | null;
+  /** Optional HSE notebook link — never auto-created. */
+  readonly linkedSafetyRecordId: string | null;
   readonly workersOnSite: string | null;
   readonly subcontractorsOnSite: string | null;
   readonly equipmentOnSite: string | null;
@@ -74,6 +76,7 @@ export interface PunchListItemRecord {
   readonly priority: PunchPriority;
   readonly location: string | null;
   readonly dueDate: string | null;
+  readonly assigneeEmployeeId: string | null;
   readonly closedAt: Date | null;
   readonly archivedAt: Date | null;
   readonly createdAt: Date;
@@ -92,6 +95,8 @@ export interface InspectionRecord {
   readonly completedOn: string | null;
   readonly result: string | null;
   readonly notes: string | null;
+  readonly inspectorEmployeeId: string | null;
+  readonly formTemplateId: string | null;
   readonly archivedAt: Date | null;
   readonly createdAt: Date;
   readonly updatedAt: Date;

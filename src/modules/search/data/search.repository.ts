@@ -6,15 +6,18 @@ import {
   boqNodes,
   clientContacts,
   clients,
-  documents,
   employees,
+  inventoryItems,
+  materialItems,
   projectBoqs,
   projects,
   vendors,
 } from '@drizzle/schema';
 import { existsSearchableCustomFieldValueSql } from '@/modules/custom-fields';
+import { listAllDocuments } from '@/modules/documents/data/documents.repository';
 import type { DbExecutor } from '@/shared/db/types';
 import type { GlobalSearchHit } from '../domain/types';
+import { assetSearchHref, inventoryItemSearchHref, materialSearchHref } from '../domain/hrefs';
 
 function likeTerm(query: string): string {
   return `%${query.replace(/[%_]/g, ' ').trim()}%`;
@@ -288,31 +291,23 @@ export async function searchDocuments(
   organizationId: string,
   query: string,
   limit: number,
+  options: {
+    includeCompensation?: boolean;
+    accessibleProjectIds?: string[] | null;
+  } = {},
 ): Promise<GlobalSearchHit[]> {
-  const term = likeTerm(query);
-  const rows = await db
-    .select({
-      id: documents.id,
-      filename: documents.originalFilename,
-      mimeType: documents.mimeType,
-    })
-    .from(documents)
-    .where(
-      and(
-        eq(documents.organizationId, organizationId),
-        isNull(documents.deletedAt),
-        sql`${documents.status} <> 'deleted'`,
-        ilike(documents.originalFilename, term),
-      ),
-    )
-    .orderBy(documents.createdAt)
-    .limit(limit);
+  const rows = await listAllDocuments(db, organizationId, {
+    search: query,
+    limit,
+    includeCompensation: options.includeCompensation === true,
+    accessibleProjectIds: options.accessibleProjectIds ?? null,
+  });
 
   return rows.map((row) => ({
     kind: 'document' as const,
     id: row.id,
-    title: row.filename,
-    subtitle: row.mimeType,
+    title: row.originalFilename,
+    subtitle: row.category || row.mimeType,
     href: `/documents?q=${encodeURIComponent(query)}`,
   }));
 }
@@ -353,7 +348,83 @@ export async function searchAssets(
     id: row.id,
     title: row.name,
     subtitle: [row.assetKind, row.identifier, row.status].filter(Boolean).join(' · ') || null,
-    href: `/assets/inventory`,
+    href: assetSearchHref(row.id),
+  }));
+}
+
+export async function searchInventoryItems(
+  db: DbExecutor,
+  organizationId: string,
+  query: string,
+  limit: number,
+): Promise<GlobalSearchHit[]> {
+  const term = likeTerm(query);
+  const rows = await db
+    .select({
+      id: inventoryItems.id,
+      name: inventoryItems.name,
+      sku: inventoryItems.sku,
+      barcode: inventoryItems.barcode,
+      unit: inventoryItems.unit,
+    })
+    .from(inventoryItems)
+    .where(
+      and(
+        eq(inventoryItems.organizationId, organizationId),
+        isNull(inventoryItems.archivedAt),
+        or(
+          ilike(inventoryItems.name, term),
+          ilike(inventoryItems.sku, term),
+          ilike(inventoryItems.barcode, term),
+        )!,
+      ),
+    )
+    .orderBy(inventoryItems.name)
+    .limit(limit);
+
+  return rows.map((row) => ({
+    kind: 'inventory_item' as const,
+    id: row.id,
+    title: row.name,
+    subtitle: [row.sku, row.barcode, row.unit].filter(Boolean).join(' · ') || null,
+    href: inventoryItemSearchHref(row.id),
+  }));
+}
+
+/**
+ * Materials catalog (name/SKU only — never default price / Actual).
+ */
+export async function searchMaterials(
+  db: DbExecutor,
+  organizationId: string,
+  query: string,
+  limit: number,
+): Promise<GlobalSearchHit[]> {
+  const term = likeTerm(query);
+  const rows = await db
+    .select({
+      id: materialItems.id,
+      name: materialItems.name,
+      sku: materialItems.sku,
+      unit: materialItems.unit,
+    })
+    .from(materialItems)
+    .where(
+      and(
+        eq(materialItems.organizationId, organizationId),
+        isNull(materialItems.archivedAt),
+        or(ilike(materialItems.name, term), ilike(materialItems.sku, term))!,
+      ),
+    )
+    .orderBy(materialItems.name)
+    .limit(limit);
+
+  return rows.map((row) => ({
+    kind: 'material' as const,
+    id: row.id,
+    title: row.name,
+    subtitle: [row.sku, row.unit].filter(Boolean).join(' · ') || null,
+    href: materialSearchHref(row.id),
   }));
 }
 

@@ -92,13 +92,16 @@ export async function ProjectFinancialsPanel({ projectId }: ProjectFinancialsPan
                   ) : null}
                 </div>
                 <div className="flex min-w-0 flex-col gap-0.5 text-sm sm:text-end">
-                  <MoneyText value={slice.position.originalContractValue} compact />
                   <span className="text-[var(--pf-text-secondary)]">
-                    <MoneyText value={slice.position.currentContractValue} compact />
+                    {t('perContract.original')}: <MoneyText value={slice.position.originalContractValue} compact />
+                  </span>
+                  <span>
+                    {t('perContract.current')}: <MoneyText value={slice.position.currentContractValue} compact />
                   </span>
                 </div>
               </div>
             ))}
+            <p className="text-xs text-[var(--pf-text-muted)]">{t('perContract.costProfitHint')}</p>
           </CardContent>
         </Card>
       ) : null}

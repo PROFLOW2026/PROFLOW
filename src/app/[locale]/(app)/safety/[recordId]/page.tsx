@@ -7,6 +7,7 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { getEntityDocumentPanelData } from '@/modules/documents';
 import { DocumentAttachments } from '@/modules/documents/ui';
 import { getSafetyRecordForOrg, isCorrectiveActionOverdue, SAFETY_RECORD_DOCUMENT_OWNER } from '@/modules/safety';
+import { getDailyLogLinkedToSafetyRecord } from '@/modules/field-ops';
 import { safetyActionStatusShape, safetyRecordStatusShape, safetySeverityShape } from '@/modules/safety/ui';
 import { listProjectsForOrg } from '@/modules/projects';
 import { listOrganizationMembers } from '@/modules/tenancy';
@@ -15,7 +16,7 @@ import { withOrgContext } from '@/shared/auth/session';
 import { Link } from '@/shared/i18n/navigation';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
-import { textNavLinkMutedClassName } from '@/components/ui/pressable';
+import { textNavLinkClassName, textNavLinkMutedClassName } from '@/components/ui/pressable';
 import { SafetyRecordForm } from '../safety-record-form';
 import { CorrectiveActionForm, CorrectiveActionStatusForm } from '../corrective-action-form';
 import { AcknowledgeAttendeeButton, ToolboxAttendeeForm } from '../toolbox-attendees-form';
@@ -42,7 +43,7 @@ export default async function SafetyRecordDetailPage({
   const loaded = await withOrgContext(async (context) => {
     try {
       const record = await getSafetyRecordForOrg(context, recordId);
-      const [projects, members, documentsPanel] = await Promise.all([
+      const [projects, members, documentsPanel, linkedDailyLog] = await Promise.all([
         listProjectsForOrg(context, {}).catch(() => []),
         listOrganizationMembers(context).catch(() => []),
         getEntityDocumentPanelData(
@@ -50,6 +51,9 @@ export default async function SafetyRecordDetailPage({
           SAFETY_RECORD_DOCUMENT_OWNER,
           recordId,
         ).catch(() => null),
+        hasPermission(context, PERMISSIONS.FIELD_OPS_READ)
+          ? getDailyLogLinkedToSafetyRecord(context, recordId).catch(() => null)
+          : Promise.resolve(null),
       ]);
       return {
         record,
@@ -61,6 +65,7 @@ export default async function SafetyRecordDetailPage({
             label: member.displayName?.trim() || member.email,
           })),
         documentsPanel,
+        linkedDailyLog,
         canManage: hasPermission(context, PERMISSIONS.SAFETY_MANAGE),
         today: todayInTimeZone(context.organization.timezone),
       };
@@ -71,7 +76,7 @@ export default async function SafetyRecordDetailPage({
 
   if (!loaded) notFound();
 
-  const { record, projects, members, documentsPanel, canManage, today } = loaded;
+  const { record, projects, members, documentsPanel, linkedDailyLog, canManage, today } = loaded;
 
   return (
     <div className="flex flex-col gap-6">
@@ -101,6 +106,18 @@ export default async function SafetyRecordDetailPage({
           </>
         }
       />
+
+      {linkedDailyLog ? (
+        <p className="text-sm">
+          <Link href={`/field-ops/logs/${linkedDailyLog.id}`} className={textNavLinkClassName}>
+            {t('linkedDailyLog')}
+            {' · '}
+            <span className="pf-ltr-island" dir="ltr">
+              {linkedDailyLog.logDate}
+            </span>
+          </Link>
+        </p>
+      ) : null}
 
       {canManage ? (
         <SafetyRecordForm

@@ -306,6 +306,7 @@ export async function createApBill(context: OrgContext, raw: CreateApBillInput) 
     taxBasis: taxSplit.taxBasis,
     retentionAmount,
     retentionHeldRemaining,
+    subcontractAgreementId: input.subcontractAgreementId ?? null,
     notes: input.notes ?? null,
   });
 

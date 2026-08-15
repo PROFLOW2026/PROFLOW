@@ -1,10 +1,20 @@
+import { and, eq } from 'drizzle-orm';
+import { contracts, projects } from '@drizzle/schema';
+import {
+  findLeadById,
+  findOpportunityById,
+  findProspectById,
+  updateLeadById,
+  updateOpportunityById,
+  updateProspectById,
+} from '@/modules/crm/data/crm.repository';
 import { createProject, createJob, updateProject } from '@/modules/projects';
 import { noteModuleUsage } from '@/modules/tenancy';
 import { recordAuditEvent } from '@/shared/audit';
 import type { OrgContext } from '@/shared/auth/context';
 import { todayInTimeZone } from '@/shared/dates';
 import { DomainRuleError, NotFoundError, ValidationError } from '@/shared/errors';
-import { assertAllPermissions } from '@/shared/permissions/assert';
+import { assertAllPermissions, hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import {
   assertCanConvertQuote,
@@ -19,8 +29,7 @@ import {
   markQuoteConvertedIfAccepted,
 } from '../data/quotes.repository';
 import { convertQuoteSchema, type ConvertQuoteInput } from '../validation/schemas';
-import { projects } from '@drizzle/schema';
-import { and, eq } from 'drizzle-orm';
+import { recordQuoteClientActivity } from './timeline-events';
 
 export interface ConvertQuoteResult {
   readonly quote: QuoteRecord;
@@ -95,6 +104,7 @@ export async function convertQuote(
   const startDate = todayInTimeZone(context.organization.timezone);
 
   let projectId: string;
+  let convertedClientId: string | null = quote.clientId;
 
   if (workKind === 'job') {
     const pricingMode = input.pricingMode ?? 'fixed';
@@ -117,6 +127,7 @@ export async function convertQuote(
       status: 'active',
     });
     projectId = result.projectId;
+    convertedClientId = result.clientId ?? quote.clientId;
 
     if (quote.contactId) {
       await updateProject(context, {
@@ -140,6 +151,7 @@ export async function convertQuote(
       status: 'active',
     });
     projectId = result.projectId;
+    convertedClientId = result.clientId ?? quote.clientId;
   }
 
   const convertedAt = new Date();
@@ -187,5 +199,97 @@ export async function convertQuote(
     },
   });
 
+  await recordQuoteClientActivity(context, {
+    clientId: convertedClientId,
+    projectId,
+    kind: 'quote_approved',
+    entityType: 'estimate',
+    entityId: updated.id,
+    summary: updated.title,
+    deepLink: `/quotes/${updated.id}`,
+  });
+  await recordQuoteClientActivity(context, {
+    clientId: convertedClientId,
+    projectId,
+    kind: 'project_created',
+    entityType: 'project',
+    entityId: projectId,
+    summary: projectName,
+    deepLink: workKind === 'job' ? `/jobs/${projectId}` : `/projects/${projectId}`,
+  });
+
+  await markLinkedOpportunityWon(context, {
+    quote: updated,
+    projectId,
+    clientId: convertedClientId,
+  });
+
   return { quote: updated, projectId, workKind };
+}
+
+async function markLinkedOpportunityWon(
+  context: OrgContext,
+  input: {
+    readonly quote: QuoteRecord;
+    readonly projectId: string;
+    readonly clientId: string | null;
+  },
+): Promise<void> {
+  if (!input.quote.opportunityId) return;
+  if (!hasPermission(context, PERMISSIONS.CRM_MANAGE)) return;
+
+  const opportunity = await findOpportunityById(
+    context.db,
+    context.organizationId,
+    input.quote.opportunityId,
+  );
+  if (!opportunity || opportunity.status === 'lost' || opportunity.status === 'cancelled') return;
+  if (opportunity.convertedProjectId && opportunity.convertedProjectId !== input.projectId) return;
+
+  let contractId: string | null = opportunity.convertedContractId;
+  const [contract] = await context.db
+    .select({ id: contracts.id })
+    .from(contracts)
+    .where(
+      and(
+        eq(contracts.projectId, input.projectId),
+        eq(contracts.organizationId, context.organizationId),
+      ),
+    )
+    .limit(1);
+  if (contract) contractId = contract.id;
+
+  const clientId = input.clientId ?? opportunity.convertedClientId;
+
+  if (opportunity.prospectId) {
+    const prospect = await findProspectById(
+      context.db,
+      context.organizationId,
+      opportunity.prospectId,
+    );
+    if (prospect && clientId && !prospect.convertedClientId) {
+      await updateProspectById(context.db, context.organizationId, prospect.id, {
+        status: 'converted',
+        convertedClientId: clientId,
+      });
+    }
+  }
+
+  if (opportunity.leadId) {
+    const lead = await findLeadById(context.db, context.organizationId, opportunity.leadId);
+    if (lead && lead.status !== 'converted') {
+      await updateLeadById(context.db, context.organizationId, lead.id, {
+        status: 'converted',
+      });
+    }
+  }
+
+  await updateOpportunityById(context.db, context.organizationId, opportunity.id, {
+    status: 'won',
+    stage: 'won',
+    convertedClientId: clientId,
+    convertedProjectId: input.projectId,
+    convertedContractId: contractId,
+    convertedAt: opportunity.convertedAt ?? new Date(),
+  });
 }

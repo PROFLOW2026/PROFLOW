@@ -54,6 +54,11 @@
     "project": "פרויקט",
     "projectPlaceholder": "בחירת פרויקט",
     "projectHint": "בחירת הפרויקט שאליו מתייחסת בקשת השינוי.",
+    "contract": "חוזה",
+    "contractPlaceholder": "בחירת חוזה",
+    "contractHint": "לפרויקט זה יש יותר מחוזה אחד. לאחר אישור, השינוי יעדכן את הסכום הנוכחי של החוזה שנבחר.",
+    "contractUntitled": "חוזה",
+    "contractPrimary": "ראשי",
     "create": "שמירת טיוטה",
     "save": "שמירת שינויים"
   },

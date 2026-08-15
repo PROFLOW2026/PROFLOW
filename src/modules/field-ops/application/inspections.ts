@@ -1,3 +1,6 @@
+import { findTemplateById } from '@/modules/forms/data/forms.repository';
+import { hasSubmittedFormForOwner } from '@/modules/forms';
+import { findEmployeeById } from '@/modules/workforce';
 import { AUDIT_ACTIONS, recordAuditEvent } from '@/shared/audit';
 import type { OrgContext } from '@/shared/auth/context';
 import { withTransaction } from '@/shared/db';
@@ -7,6 +10,7 @@ import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { todayInTimeZone } from '@/shared/dates/dates';
 import { assertCanAccessProject, isAccessibleProjectId, resolveAccessibleProjectIds } from '@/modules/projects';
 import { noteModuleUsage } from '@/modules/tenancy';
+import { assertInspectionCompletionForm } from '../domain/inspection-form-gate';
 import {
   canTransitionInspectionStatus,
   isCompletedInspectionStatus,
@@ -26,6 +30,28 @@ import {
   type UpdateInspectionInput,
 } from '../validation/schemas';
 import { assertProjectRefsInOrg } from './assert-project-refs';
+
+async function assertInspectionRefs(
+  context: OrgContext,
+  input: { inspectorEmployeeId?: string | null; formTemplateId?: string | null },
+) {
+  if (input.inspectorEmployeeId) {
+    const employee = await findEmployeeById(
+      context.db,
+      context.organizationId,
+      input.inspectorEmployeeId,
+    );
+    if (!employee || employee.archivedAt) throw new NotFoundError('Employee');
+  }
+  if (input.formTemplateId) {
+    const template = await findTemplateById(
+      context.db,
+      context.organizationId,
+      input.formTemplateId,
+    );
+    if (!template || template.archivedAt) throw new NotFoundError('Form template');
+  }
+}
 
 export async function listInspectionsForOrg(
   context: OrgContext,
@@ -61,6 +87,10 @@ export async function createInspection(context: OrgContext, raw: CreateInspectio
     projectId: input.projectId,
     workPackageId: input.workPackageId,
   });
+  await assertInspectionRefs(context, {
+    inspectorEmployeeId: input.inspectorEmployeeId,
+    formTemplateId: input.formTemplateId,
+  });
 
   const inspection = await insertInspection(context.db, {
     organizationId: context.organizationId,
@@ -71,6 +101,8 @@ export async function createInspection(context: OrgContext, raw: CreateInspectio
     status: 'scheduled',
     scheduledOn: input.scheduledOn ?? null,
     notes: input.notes ?? null,
+    inspectorEmployeeId: input.inspectorEmployeeId ?? null,
+    formTemplateId: input.formTemplateId ?? null,
   });
 
   await noteModuleUsage(context.db, context.organizationId, 'field_ops');
@@ -121,8 +153,33 @@ export async function updateInspection(context: OrgContext, raw: UpdateInspectio
       });
     }
 
+    await assertInspectionRefs(txContext, {
+      inspectorEmployeeId: input.inspectorEmployeeId,
+      formTemplateId: input.formTemplateId,
+    });
+
     const nextStatus = (input.status as InspectionStatus | undefined) ?? existing.status;
     const statusChanging = input.status !== undefined && input.status !== existing.status;
+    const nextTemplateId =
+      input.formTemplateId === undefined ? existing.formTemplateId : input.formTemplateId;
+
+    if (statusChanging && isCompletedInspectionStatus(nextStatus)) {
+      const submitted = nextTemplateId
+        ? await hasSubmittedFormForOwner(tx, context.organizationId, {
+            ownerType: 'inspection',
+            ownerId: existing.id,
+            templateId: nextTemplateId,
+          })
+        : false;
+      assertInspectionCompletionForm({
+        targetStatus: nextStatus,
+        formTemplateId: nextTemplateId,
+        submissions: nextTemplateId
+          ? [{ templateId: nextTemplateId, status: submitted ? 'submitted' : 'draft' }]
+          : [],
+      });
+    }
+
     let completedOn = input.completedOn === undefined ? undefined : input.completedOn;
     if (
       statusChanging &&
@@ -146,6 +203,9 @@ export async function updateInspection(context: OrgContext, raw: UpdateInspectio
         result: input.result === undefined ? undefined : input.result,
         notes: input.notes === undefined ? undefined : input.notes,
         workPackageId: input.workPackageId === undefined ? undefined : input.workPackageId,
+        inspectorEmployeeId:
+          input.inspectorEmployeeId === undefined ? undefined : input.inspectorEmployeeId,
+        formTemplateId: input.formTemplateId === undefined ? undefined : input.formTemplateId,
       },
       statusChanging ? { fromStatuses: [existing.status] } : undefined,
     );

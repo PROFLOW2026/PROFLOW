@@ -5,6 +5,7 @@ import { PageHeader } from '@/components/ui/page-header';
 import { getEntityDocumentPanelData } from '@/modules/documents';
 import { DocumentAttachments } from '@/modules/documents/ui';
 import { getDailyLogForOrg, listFieldOpsWorkPackages } from '@/modules/field-ops';
+import { DailyLogCorrectionNotes } from '@/modules/field-ops/ui/daily-log-correction-notes';
 import { listProjectsForOrg } from '@/modules/projects';
 import { withOrgContext } from '@/shared/auth/session';
 import { Link } from '@/shared/i18n/navigation';
@@ -50,6 +51,7 @@ export default async function DailyLogDetailPage({
         workPackageName: packages.find((p) => p.id === log.workPackageId)?.name ?? null,
         documentsPanel,
         canManage: hasPermission(context, PERMISSIONS.FIELD_OPS_MANAGE),
+        canCreateSafety: hasPermission(context, PERMISSIONS.SAFETY_MANAGE),
       };
     } catch {
       return null;
@@ -58,10 +60,19 @@ export default async function DailyLogDetailPage({
 
   if (!data) notFound();
 
-  const { log, projectName, workPackageName, documentsPanel, canManage } = data;
+  const { log, projectName, workPackageName, documentsPanel, canManage, canCreateSafety } = data;
   const dateLabel = new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(
     new Date(log.logDate),
   );
+  const incidentNotes = [log.incidents, log.safetyNotes].filter(Boolean).join('\n\n');
+  const safetyHref = (() => {
+    const params = new URLSearchParams();
+    params.set('fromDailyLogId', log.id);
+    params.set('projectId', log.projectId);
+    params.set('title', (log.incidents ?? log.safetyNotes ?? log.summary).slice(0, 200));
+    if (incidentNotes) params.set('description', incidentNotes.slice(0, 4000));
+    return `/safety/new?${params.toString()}`;
+  })();
 
   return (
     <div className="flex flex-col gap-6">
@@ -121,6 +132,7 @@ export default async function DailyLogDetailPage({
               <DetailBlock label={t('extraFields.safetyNotes')} value={log.safetyNotes} />
               <DetailBlock label={t('extraFields.visitorNotes')} value={log.visitorNotes} />
               <DetailBlock label={t('extraFields.managerNotes')} value={log.managerNotes} />
+              <DailyLogCorrectionNotes notes={log.correctionNotes} label={t('lifecycle.correctionHistory')} />
             </div>
           ) : (
             <DailyLogEditForm log={log} />
@@ -132,8 +144,29 @@ export default async function DailyLogDetailPage({
           <DetailBlock label={t('createLog.workforceNotesLabel')} value={log.workforceNotes} />
           <DetailBlock label={t('createLog.blockersLabel')} value={log.blockers} />
           <DetailBlock label={t('extraFields.managerNotes')} value={log.managerNotes} />
+          <DailyLogCorrectionNotes notes={log.correctionNotes} label={t('lifecycle.correctionHistory')} />
         </div>
       )}
+
+      {!isDailyLogLocked(log.status) && canManage ? (
+        <div className="max-w-lg">
+          <DailyLogCorrectionNotes notes={log.correctionNotes} label={t('lifecycle.correctionHistory')} />
+        </div>
+      ) : null}
+
+      {log.linkedSafetyRecordId ? (
+        <p className="text-sm">
+          <Link href={`/safety/${log.linkedSafetyRecordId}`} className={textNavLinkClassName}>
+            {t('lifecycle.linkedSafety')}
+          </Link>
+        </p>
+      ) : canCreateSafety && incidentNotes ? (
+        <p className="text-sm">
+          <Link href={safetyHref} className={textNavLinkClassName}>
+            {t('lifecycle.createSafety')}
+          </Link>
+        </p>
+      ) : null}
 
       <DocumentAttachments
         ownerType="daily_log"

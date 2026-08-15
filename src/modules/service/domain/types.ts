@@ -43,6 +43,7 @@ export interface ProjectServiceDetailsRecord {
 export interface WorkOrderListItem {
   readonly id: string;
   readonly name: string;
+  readonly documentNumber: string | null;
   readonly status: string;
   readonly pricingMode: 'fixed' | 'open' | null;
   readonly clientId: string | null;

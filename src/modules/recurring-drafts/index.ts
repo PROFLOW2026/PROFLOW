@@ -12,6 +12,10 @@ export {
 } from './application/manage';
 export { generateRecurringDraftNow } from './application/generate';
 export type { GenerateRecurringDraftResult } from './application/generate';
+export { generateDueRecurringDrafts } from './application/ops-worker';
+export type { RecurringOpsWorkerResult } from './application/ops-worker';
+export { runDueRecurringDrafts, isAlreadyGeneratedTodayError } from './domain/ops-run';
+export type { RecurringOpsRunResult, DueRecurringDraftRef } from './domain/ops-run';
 
 export {
   DRAFT_KINDS,

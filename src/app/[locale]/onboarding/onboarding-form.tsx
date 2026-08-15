@@ -7,7 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { BUSINESS_PROFILE_KEYS } from '@/modules/tenancy/domain/business-profiles';
+import { BUSINESS_PROFILE_KEYS, getBusinessProfile } from '@/modules/tenancy/domain/business-profiles';
+import { WORK_MIXES, type WorkMix } from '@/modules/tenancy/domain/work-mix';
 import { createOrganizationAction, type OnboardingFormState } from './actions';
 
 const COUNTRY_CODES = ['IL', 'US', 'GB'] as const;
@@ -30,6 +31,7 @@ export function OnboardingForm() {
   const t = useTranslations('auth.onboarding');
   const [country, setCountry] = useState<(typeof COUNTRY_CODES)[number]>('IL');
   const [preset, setPreset] = useState<string>('none');
+  const [workMix, setWorkMix] = useState<WorkMix>('projects');
   const [state, formAction, pending] = useActionState<OnboardingFormState, FormData>(
     createOrganizationAction,
     {},
@@ -69,7 +71,13 @@ export function OnboardingForm() {
         {(control) => (
           <>
             <input type="hidden" name="businessProfile" value={preset} />
-            <Select value={preset} onValueChange={setPreset}>
+            <Select
+              value={preset}
+              onValueChange={(value) => {
+                setPreset(value);
+                setWorkMix(getBusinessProfile(value)?.workMix ?? 'projects');
+              }}
+            >
               <SelectTrigger id={control.id} aria-describedby={control['aria-describedby']}>
                 <SelectValue />
               </SelectTrigger>
@@ -78,6 +86,26 @@ export function OnboardingForm() {
                 {BUSINESS_PROFILE_KEYS.map((key) => (
                   <SelectItem key={key} value={key}>
                     {t(`profiles.${key}`)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </>
+        )}
+      </Field>
+
+      <Field label={t('workMixLabel')} description={t('workMixHint')}>
+        {(control) => (
+          <>
+            <input type="hidden" name="workMix" value={workMix} />
+            <Select value={workMix} onValueChange={(value) => setWorkMix(value as WorkMix)}>
+              <SelectTrigger id={control.id} aria-describedby={control['aria-describedby']}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {WORK_MIXES.map((value) => (
+                  <SelectItem key={value} value={value}>
+                    {t(`workMix.${value}`)}
                   </SelectItem>
                 ))}
               </SelectContent>

@@ -16,18 +16,23 @@ import {
   updateEmployeeAction,
   type WorkforceFormState,
 } from '@/app/[locale]/(app)/workforce/employees/actions';
+import type { OrgMemberLinkOption } from '@/modules/workforce/data/employees.repository';
+
+const UNLINKED = '__none__';
 
 interface EmployeeEditPanelProps {
   readonly employee: EmployeeRecord;
+  readonly linkableUsers: readonly OrgMemberLinkOption[];
 }
 
 /**
  * Master-field edit only — compensation stays in the cost panel / rate history.
  */
-export function EmployeeEditPanel({ employee }: EmployeeEditPanelProps) {
+export function EmployeeEditPanel({ employee, linkableUsers }: EmployeeEditPanelProps) {
   const t = useTranslations('workforce');
   const tCommon = useTranslations('common');
   const [status, setStatus] = useState<(typeof EMPLOYEE_STATUSES)[number]>(employee.status);
+  const [linkedUserId, setLinkedUserId] = useState(employee.userId ?? UNLINKED);
   const [state, formAction, pending] = useActionState<WorkforceFormState, FormData>(
     updateEmployeeAction,
     {},
@@ -49,6 +54,46 @@ export function EmployeeEditPanel({ employee }: EmployeeEditPanelProps) {
           <Field label={t('employees.form.name')} required>
             {(control) => (
               <Input {...control} name="name" defaultValue={employee.name} required />
+            )}
+          </Field>
+
+          <Field label={t('employees.form.employeeNumber')} optionalLabel={tCommon('labels.optional')}>
+            {(control) => (
+              <Input
+                {...control}
+                name="employeeNumber"
+                defaultValue={employee.employeeNumber ?? ''}
+                dir="ltr"
+              />
+            )}
+          </Field>
+
+          <Field
+            label={t('employees.form.linkedUser')}
+            optionalLabel={tCommon('labels.optional')}
+            description={t('employees.form.linkedUserHint')}
+          >
+            {(control) => (
+              <>
+                <input
+                  type="hidden"
+                  name="userId"
+                  value={linkedUserId === UNLINKED ? '' : linkedUserId}
+                />
+                <Select value={linkedUserId} onValueChange={setLinkedUserId}>
+                  <SelectTrigger id={control.id} aria-describedby={control['aria-describedby']}>
+                    <SelectValue placeholder={t('employees.form.linkedUserNone')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={UNLINKED}>{t('employees.form.linkedUserUnlink')}</SelectItem>
+                    {linkableUsers.map((member) => (
+                      <SelectItem key={member.userId} value={member.userId}>
+                        {member.displayName ? `${member.displayName} · ${member.email}` : member.email}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </>
             )}
           </Field>
 

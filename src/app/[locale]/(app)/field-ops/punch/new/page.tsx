@@ -3,7 +3,7 @@ import { getTranslations } from 'next-intl/server';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/ui/page-header';
-import { listFieldOpsWorkPackages } from '@/modules/field-ops';
+import { listFieldOpsWorkPackages, listPunchAssigneeOptions } from '@/modules/field-ops';
 import { isStorageConfigured } from '@/modules/documents';
 import { listProjectsForOrg } from '@/modules/projects';
 import { withOrgContext } from '@/shared/auth/session';
@@ -31,18 +31,20 @@ export default async function NewPunchPage({
   const t = await getTranslations('fieldOps');
   const { projectId } = await searchParams;
 
-  const { projects, workPackages, canManageDocuments, storageConfigured } = await withOrgContext(
+  const { projects, workPackages, canManageDocuments, storageConfigured, employees } = await withOrgContext(
     async (context) => {
       const projectRows = await listProjectsForOrg(context, {});
       const packages = await listFieldOpsWorkPackages(
         context,
         projectRows.map((p) => p.id),
       );
+      const canManage = hasPermission(context, PERMISSIONS.FIELD_OPS_MANAGE);
       return {
         projects: projectRows,
         workPackages: packages,
         canManageDocuments: hasPermission(context, PERMISSIONS.DOCUMENTS_MANAGE),
         storageConfigured: isStorageConfigured(),
+        employees: canManage ? await listPunchAssigneeOptions(context) : [],
       };
     },
   );
@@ -81,6 +83,7 @@ export default async function NewPunchPage({
         defaultProjectId={projectId}
         canManageDocuments={canManageDocuments}
         storageConfigured={storageConfigured}
+        employees={employees}
       />
     </div>
   );

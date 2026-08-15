@@ -54,6 +54,11 @@
     "project": "Project",
     "projectPlaceholder": "Select a project",
     "projectHint": "Choose the project this change applies to.",
+    "contract": "Contract",
+    "contractPlaceholder": "Select a contract",
+    "contractHint": "This project has more than one contract. The change will update the selected contract’s current value when approved.",
+    "contractUntitled": "Contract",
+    "contractPrimary": "Primary",
     "create": "Save draft",
     "save": "Save changes"
   },

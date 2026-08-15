@@ -159,6 +159,9 @@
     "correctionLabel": "Correction note",
     "correctionHint": "Appended to the locked log. It does not replace the original record.",
     "correctionSubmit": "Add correction note",
+    "correctionHistory": "Correction notes",
+    "createSafety": "Create safety record from incident notes",
+    "linkedSafety": "Linked safety record",
     "saved": "Saved."
   },
   "createPunch": {
@@ -174,7 +177,10 @@
     "descriptionLabel": "Description",
     "priorityLabel": "Priority",
     "locationLabel": "Location",
-    "dueDateLabel": "Due date"
+    "dueDateLabel": "Due date",
+    "assigneeLabel": "Assignee",
+    "assigneeNone": "Unassigned",
+    "saveDetails": "Save details"
   },
   "createInspection": {
     "title": "New inspection",
@@ -188,14 +194,37 @@
     "titleLabel": "Title",
     "kindLabel": "Kind",
     "scheduledOnLabel": "Scheduled on",
-    "notesLabel": "Notes"
+    "notesLabel": "Notes",
+    "inspectorLabel": "Inspector",
+    "inspectorNone": "No inspector",
+    "inspectorPlaceholder": "Select inspector"
+  },
+  "form": {
+    "title": "Inspection form",
+    "untitled": "Field form",
+    "templateLabel": "Form template",
+    "templateHint": "Reuse an existing form. Completing pass or fail requires a submitted form when a template is set.",
+    "templateNone": "No form",
+    "templateUnavailable": "Saved template (unavailable)",
+    "requiredTitle": "Form required",
+    "requiredBody": "Submit this form before recording pass or fail.",
+    "submittedBody": "The required inspection form was submitted.",
+    "fill": "Fill form",
+    "continue": "Continue form",
+    "view": "View form",
+    "statusSubmitted": "Submitted",
+    "statusDraft": "Draft",
+    "statusMissing": "Not started"
   },
   "updateStatus": {
     "label": "Status",
     "submit": "Update",
     "pending": "Updating…",
-    "resultLabel": "Result notes",
-    "resultPlaceholder": "What was found / outcome…"
+    "resultLabel": "Pass / fail notes",
+    "resultPlaceholder": "What was found — optional notes for the pass or fail outcome…",
+    "outcomeLabel": "Outcome",
+    "pass": "Pass",
+    "fail": "Fail"
   },
   "updatePriority": {
     "label": "Priority",
@@ -210,6 +239,7 @@
     "invalidLogTransition": "That daily log status change is not allowed.",
     "logFinalizedLocked": "This log is finalized. Add a correction note or a new log.",
     "correctionRequiresFinalized": "Correction notes are for finalized logs.",
-    "duplicateLogDate": "A daily log already exists for this project day. Open it, or add a correction if it is finalized."
+    "duplicateLogDate": "A daily log already exists for this project day. Open it, or add a correction if it is finalized.",
+    "formRequired": "Submit the required inspection form before recording pass or fail."
   }
 }

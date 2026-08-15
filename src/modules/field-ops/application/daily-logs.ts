@@ -19,6 +19,7 @@ import {
   findActiveDailyLogByProjectDate,
   findDailyLogById,
   findDailyLogByIdForUpdate,
+  findDailyLogByLinkedSafetyRecordId,
   insertDailyLog,
   listDailyLogs,
   updateDailyLogById,
@@ -26,10 +27,12 @@ import {
 import {
   appendDailyLogCorrectionSchema,
   createDailyLogSchema,
+  linkDailyLogSafetyRecordSchema,
   transitionDailyLogStatusSchema,
   updateDailyLogSchema,
   type AppendDailyLogCorrectionInput,
   type CreateDailyLogInput,
+  type LinkDailyLogSafetyRecordInput,
   type TransitionDailyLogStatusInput,
   type UpdateDailyLogInput,
 } from '../validation/schemas';
@@ -88,6 +91,14 @@ export async function getDailyLogForOrg(context: OrgContext, dailyLogId: string)
   if (!log) throw new NotFoundError('Daily log');
   await assertCanAccessProject(context, log.projectId);
   return log;
+}
+
+export async function getDailyLogLinkedToSafetyRecord(
+  context: OrgContext,
+  safetyRecordId: string,
+) {
+  assertPermission(context, PERMISSIONS.FIELD_OPS_READ);
+  return findDailyLogByLinkedSafetyRecordId(context.db, context.organizationId, safetyRecordId);
 }
 
 export async function createDailyLog(context: OrgContext, raw: CreateDailyLogInput) {
@@ -322,11 +333,35 @@ export async function appendDailyLogCorrection(
     );
     if (!updated) throw new ConflictError('Daily log was updated concurrently');
 
+    return updated;
+  });
+}
+
+export async function linkDailyLogSafetyRecord(
+  context: OrgContext,
+  raw: LinkDailyLogSafetyRecordInput,
+) {
+  assertPermission(context, PERMISSIONS.FIELD_OPS_MANAGE);
+  const input = parseOrThrow(linkDailyLogSafetyRecordSchema.safeParse(raw));
+
+  return withTransaction(context.db, async (tx) => {
+    const txContext = { ...context, db: tx };
+    const existing = await findDailyLogByIdForUpdate(tx, context.organizationId, input.dailyLogId);
+    if (!existing) throw new NotFoundError('Daily log');
+    await assertCanAccessProject(txContext, existing.projectId);
+
+    if (existing.linkedSafetyRecordId === input.safetyRecordId) return existing;
+
+    const updated = await updateDailyLogById(tx, context.organizationId, input.dailyLogId, {
+      linkedSafetyRecordId: input.safetyRecordId,
+    });
+    if (!updated) throw new ConflictError('Daily log was updated concurrently');
+
     await recordAuditEvent(txContext, {
-      action: AUDIT_ACTIONS.DAILY_LOG_CORRECTION_ADDED,
+      action: AUDIT_ACTIONS.DAILY_LOG_UPDATED,
       entityType: 'daily_log',
       entityId: updated.id,
-      after: { correction: true },
+      after: { linkedSafetyRecordId: input.safetyRecordId },
     });
     return updated;
   });

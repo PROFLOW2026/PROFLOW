@@ -9,8 +9,10 @@ import {
   approveTimesheetAction,
   returnTimesheetAction,
   submitTimeEntriesAction,
+  updateTimeEntryAction,
   type TimeEntryFormState,
 } from '@/app/[locale]/(app)/workforce/time/actions';
+import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Field } from '@/components/ui/field';
 
@@ -39,6 +41,35 @@ export function SubmitTimeEntryButton({
       <input type="hidden" name="employeeId" value={employeeId} />
       <Button type="submit" variant="secondary" size="sm" loading={pending}>
         {t('time.actions.submitForApproval')}
+      </Button>
+      <ActionError state={state} />
+    </form>
+  );
+}
+
+export function EditDraftTimeEntryForm({
+  entryId,
+  hours,
+  approvalStatus,
+}: {
+  readonly entryId: string;
+  readonly hours: string;
+  readonly approvalStatus: TimeApprovalStatus;
+}) {
+  const t = useTranslations('workforce');
+  const [state, action, pending] = useActionState(updateTimeEntryAction, {});
+
+  if (approvalStatus !== 'draft' && approvalStatus !== 'returned') return null;
+
+  return (
+    <form action={action} className="flex flex-wrap items-end gap-2">
+      <input type="hidden" name="timeEntryId" value={entryId} />
+      <label className="flex min-w-[6rem] flex-col gap-1 text-xs">
+        <span>{t('time.form.hours')}</span>
+        <Input name="hours" defaultValue={hours} inputMode="decimal" className="h-11 min-w-[5rem]" />
+      </label>
+      <Button type="submit" variant="ghost" size="sm" loading={pending} className="min-h-11">
+        {t('time.actions.saveHours')}
       </Button>
       <ActionError state={state} />
     </form>

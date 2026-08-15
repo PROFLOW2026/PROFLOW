@@ -7,6 +7,7 @@ import {
   hasStoredOpeningReduction,
   resolveDisplayOriginalNet,
 } from '@/modules/projects';
+import { titleWithDocumentNumber } from '@/modules/tenancy';
 import { getShellContext } from '@/shared/auth/session';
 import { fromNumericString } from '@/shared/money';
 import { PERMISSIONS, type PermissionKey } from '@/shared/permissions/catalog';
@@ -96,7 +97,7 @@ export default async function ProjectLayout({ children, params }: ProjectLayoutP
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
-        title={detail.project.name}
+        title={titleWithDocumentNumber(detail.project.name, detail.project.documentNumber ?? '')}
         actions={
           canArchive ? (
             <ArchiveProjectButton

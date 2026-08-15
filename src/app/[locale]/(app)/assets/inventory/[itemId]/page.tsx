@@ -236,6 +236,7 @@ export default async function InventoryItemDetailPage({
       ) : null}
 
       <p className="text-sm text-[var(--pf-text-secondary)]">{t('inventory.movementNotExpense')}</p>
+      <p className="text-sm text-[var(--pf-text-secondary)]">{t('inventory.threeActionsHint')}</p>
 
       <section className="flex min-w-0 flex-col gap-3">
         <h2 className="text-lg font-semibold">{t('inventory.balancesTitle')}</h2>

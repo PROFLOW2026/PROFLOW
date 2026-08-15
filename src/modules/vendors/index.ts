@@ -104,4 +104,9 @@ export type {
 } from './validation/schemas';
 
 /** Cross-module org-scoped vendor FK guard. */
-export { findVendorById, findVendorEngagementById } from './data/vendors.repository';
+export {
+  findVendorById,
+  findVendorEngagementById,
+  findActiveEngagementForVendorProject,
+} from './data/vendors.repository';
+export { findSubcontractAgreementById } from './data/subcontracts.repository';

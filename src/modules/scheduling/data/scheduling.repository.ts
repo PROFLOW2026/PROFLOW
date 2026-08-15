@@ -1,4 +1,4 @@
-import { and, asc, eq, gt, isNull, lt, lte, gte, ne } from 'drizzle-orm';
+import { and, asc, desc, eq, gt, isNull, lt, lte, gte, ne } from 'drizzle-orm';
 import { employeeUnavailability, resourceBookings } from '@drizzle/schema';
 import {
   ORG_LIST_EXPORT_CAP,
@@ -124,6 +124,28 @@ export async function findBookingById(
     .select()
     .from(resourceBookings)
     .where(and(eq(resourceBookings.id, bookingId), eq(resourceBookings.organizationId, organizationId)))
+    .limit(1);
+  return row ? mapBooking(row) : null;
+}
+
+export async function findActiveWorkOrderBooking(
+  db: DbExecutor,
+  organizationId: string,
+  workOrderId: string,
+): Promise<ResourceBookingRecord | null> {
+  const [row] = await db
+    .select()
+    .from(resourceBookings)
+    .where(
+      and(
+        eq(resourceBookings.organizationId, organizationId),
+        eq(resourceBookings.workOrderId, workOrderId),
+        eq(resourceBookings.source, 'work_order'),
+        ne(resourceBookings.status, 'cancelled'),
+        isNull(resourceBookings.archivedAt),
+      ),
+    )
+    .orderBy(desc(resourceBookings.updatedAt))
     .limit(1);
   return row ? mapBooking(row) : null;
 }

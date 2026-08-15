@@ -12,6 +12,7 @@ import {
   listOrgPhasePacks,
   listOrgProjectTemplatesForApply,
   listOrgWorkPackagePacks,
+  titleWithDocumentNumber,
 } from '@/modules/tenancy';
 import { getShellContext, withOrgContext, type ShellContext } from '@/shared/auth/session';
 import { formatMoney } from '@/shared/money/format';
@@ -68,7 +69,7 @@ export async function generateMetadata({ params }: ProjectPageProps): Promise<Me
   try {
     // Chrome-only is enough for the document title; shares cache with layout.
     const detail = await loadProjectDetail(projectId, false);
-    return { title: detail.project.name };
+    return { title: titleWithDocumentNumber(detail.project.name, detail.project.documentNumber ?? '') };
   } catch {
     return { title: t('workspace.fallbackTitle') };
   }

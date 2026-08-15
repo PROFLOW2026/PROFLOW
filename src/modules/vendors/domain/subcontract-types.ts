@@ -56,6 +56,7 @@ export interface SubcontractListItem extends SubcontractAgreementRecord {
   readonly vendorName: string;
   readonly projectName: string;
   readonly currentAmount: string;
+  readonly billedAmount: string;
   readonly paidAmount: string;
   readonly outstandingAmount: string;
 }

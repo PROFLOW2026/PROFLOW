@@ -111,6 +111,7 @@ export async function ProjectUsagePanel({ projectId }: ProjectUsagePanelProps) {
   return (
     <div className="flex flex-col gap-6">
       <p className="text-sm text-[var(--pf-text-muted)]">{t('panelNote')}</p>
+      <p className="text-sm text-[var(--pf-text-muted)]">{t('threeActionsHint')}</p>
 
       {data.canReadMaterials ? (
         <Card className="flex flex-col gap-4 p-4 sm:p-6">

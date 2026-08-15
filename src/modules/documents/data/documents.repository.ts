@@ -1,5 +1,10 @@
-import { and, eq, ilike, inArray, isNull, sql } from 'drizzle-orm';
+import { and, eq, ilike, inArray, isNull, or, sql } from 'drizzle-orm';
 import { documentLinks, documents } from '@drizzle/schema';
+import {
+  PROJECT_SCOPED_DOCUMENT_OWNER_TYPES,
+  resolveDocumentPrivacyClass,
+  type DocumentPrivacyClass,
+} from '../domain/privacy';
 import {
   STORAGE_CLEANUP_RETRY_STATUSES,
   isStorageCleanupStatus,
@@ -54,6 +59,7 @@ function mapDocument(row: typeof documents.$inferSelect): DocumentRecord {
     isRequired: row.isRequired,
     requiredType: row.requiredType,
     currentVersionId: row.currentVersionId,
+    privacyClass: resolveDocumentPrivacyClass(row.privacyClass),
     deletedAt: row.deletedAt,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
@@ -84,6 +90,7 @@ export async function insertDocument(
     mimeType: string;
     sizeBytes?: number | null;
     uploadedByUserId?: string | null;
+    privacyClass?: DocumentPrivacyClass;
   },
 ): Promise<DocumentRecord> {
   const [row] = await db
@@ -98,6 +105,7 @@ export async function insertDocument(
       sizeBytes: input.sizeBytes ?? null,
       status: 'pending',
       uploadedByUserId: input.uploadedByUserId ?? null,
+      privacyClass: input.privacyClass ?? 'standard',
     })
     .returning();
 
@@ -129,6 +137,7 @@ export async function updateDocumentById(
     requiredType: string | null;
     currentVersionId: string | null;
     uploadedByUserId: string | null;
+    privacyClass: DocumentPrivacyClass;
   }>,
 ): Promise<DocumentRecord | null> {
   const [row] = await db
@@ -260,11 +269,87 @@ export async function deleteDocumentLink(
   return deleted.length > 0;
 }
 
+function likeTerm(query: string): string {
+  return `%${query.replace(/[%_]/g, ' ').trim()}%`;
+}
+
+function compensationVisibilitySql(includeCompensation: boolean | undefined) {
+  if (includeCompensation === true) return undefined;
+  return sql`${documents.privacyClass} is distinct from 'compensation'`;
+}
+
+function projectAccessRestrictionSql(
+  organizationId: string,
+  accessibleProjectIds: string[] | null | undefined,
+) {
+  if (accessibleProjectIds === null || accessibleProjectIds === undefined) return undefined;
+  if (accessibleProjectIds.length === 0) {
+    return sql`not exists (
+      select 1 from document_links dl
+      where dl.document_id = ${documents.id}
+        and dl.organization_id = ${organizationId}
+        and dl.owner_type in ('project', 'work_order')
+    )`;
+  }
+  return sql`not exists (
+    select 1 from document_links dl
+    where dl.document_id = ${documents.id}
+      and dl.organization_id = ${organizationId}
+      and dl.owner_type in ('project', 'work_order')
+      and dl.owner_id not in (${sql.join(
+        accessibleProjectIds.map((id) => sql`${id}`),
+        sql`, `,
+      )})
+  )`;
+}
+
+function documentSearchMatchSql(organizationId: string, rawQuery: string) {
+  const term = likeTerm(rawQuery);
+  return or(
+    ilike(documents.originalFilename, term),
+    ilike(documents.category, term),
+    ilike(documents.tags, term),
+    sql`exists (
+      select 1 from document_links dl
+      left join projects p
+        on p.id = dl.owner_id
+        and p.organization_id = dl.organization_id
+        and dl.owner_type in ('project', 'work_order')
+      where dl.document_id = ${documents.id}
+        and dl.organization_id = ${organizationId}
+        and (
+          dl.owner_type::text ilike ${term}
+          or coalesce(dl.label, '') ilike ${term}
+          or coalesce(p.name, '') ilike ${term}
+        )
+    )`,
+  );
+}
+
+export async function listProjectScopedOwnerIdsForDocument(
+  db: DbExecutor,
+  organizationId: string,
+  documentId: string,
+): Promise<string[]> {
+  const rows = await db
+    .select({ ownerId: documentLinks.ownerId })
+    .from(documentLinks)
+    .where(
+      and(
+        eq(documentLinks.organizationId, organizationId),
+        eq(documentLinks.documentId, documentId),
+        inArray(documentLinks.ownerType, [...PROJECT_SCOPED_DOCUMENT_OWNER_TYPES]),
+      ),
+    );
+  return rows.map((row) => row.ownerId);
+}
+
 export async function listDocumentsForEntity(
   db: DbExecutor,
   organizationId: string,
   filters: EntityDocumentFilters,
 ): Promise<DocumentListItem[]> {
+  const compensation = compensationVisibilitySql(filters.includeCompensation);
   const rows = await db
     .select({ document: documents, link: documentLinks })
     .from(documentLinks)
@@ -276,6 +361,7 @@ export async function listDocumentsForEntity(
         eq(documentLinks.ownerId, filters.ownerId),
         isNull(documents.deletedAt),
         sql`${documents.status} <> 'deleted'`,
+        ...(compensation ? [compensation] : []),
       ),
     )
     .orderBy(documents.createdAt)
@@ -303,6 +389,15 @@ export async function listAllDocuments(
     conditions.push(isNull(documents.deletedAt));
   }
 
+  const compensation = compensationVisibilitySql(filters.includeCompensation);
+  if (compensation) conditions.push(compensation);
+
+  const projectRestriction = projectAccessRestrictionSql(
+    organizationId,
+    filters.accessibleProjectIds,
+  );
+  if (projectRestriction) conditions.push(projectRestriction);
+
   if (filters.ownerType && filters.ownerType !== 'all') {
     conditions.push(
       sql`exists (
@@ -322,9 +417,29 @@ export async function listAllDocuments(
     }
   }
 
+  if (filters.category && filters.category !== 'all') {
+    conditions.push(eq(documents.category, filters.category));
+  }
+
+  if (filters.tags?.trim()) {
+    conditions.push(ilike(documents.tags, likeTerm(filters.tags)));
+  }
+
+  if (filters.projectId) {
+    conditions.push(
+      sql`exists (
+        select 1 from document_links dl
+        where dl.document_id = ${documents.id}
+          and dl.organization_id = ${organizationId}
+          and dl.owner_type in ('project', 'work_order')
+          and dl.owner_id = ${filters.projectId}
+      )`,
+    );
+  }
+
   if (filters.search?.trim()) {
-    const term = `%${filters.search.trim()}%`;
-    conditions.push(ilike(documents.originalFilename, term));
+    const match = documentSearchMatchSql(organizationId, filters.search);
+    if (match) conditions.push(match);
   }
 
   const rows = await db

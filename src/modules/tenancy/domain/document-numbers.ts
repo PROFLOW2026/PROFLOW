@@ -9,6 +9,9 @@ export const DOCUMENT_NUMBER_KINDS = [
   'purchase_order',
   'vendor_bill',
   'billing_record',
+  'project',
+  'job',
+  'work_order',
 ] as const;
 
 export type DocumentNumberKind = (typeof DOCUMENT_NUMBER_KINDS)[number];
@@ -19,6 +22,9 @@ export const ALLOCATED_DOCUMENT_NUMBER_KINDS = [
   'purchase_order',
   'vendor_bill',
   'billing_record',
+  'project',
+  'job',
+  'work_order',
 ] as const;
 
 export type AllocatedDocumentNumberKind = (typeof ALLOCATED_DOCUMENT_NUMBER_KINDS)[number];
@@ -59,16 +65,39 @@ export function titleWithDocumentNumber(title: string, documentNumber: string): 
   return `${trimmedNumber} — ${trimmedTitle}`;
 }
 
+/** Maps the shared `projects.work_kind` UX onto an allocated number sequence. */
+export function documentKindForWorkKind(
+  workKind: string | null | undefined,
+): AllocatedDocumentNumberKind {
+  if (workKind === 'job') return 'job';
+  if (workKind === 'work_order') return 'work_order';
+  return 'project';
+}
+
+function defaultsForKind(kind: DocumentNumberKind): { prefix: string; padding: number } {
+  switch (kind) {
+    case 'project':
+      return { prefix: 'PRJ-', padding: 5 };
+    case 'job':
+      return { prefix: 'JOB-', padding: 5 };
+    case 'work_order':
+      return { prefix: 'WO-', padding: 5 };
+    default:
+      return { prefix: '', padding: 4 };
+  }
+}
+
 export function defaultDocumentNumberSequence(
   organizationId: string,
   kind: DocumentNumberKind,
 ): DocumentNumberSequenceRecord {
+  const defaults = defaultsForKind(kind);
   return {
     id: null,
     organizationId,
     documentKind: kind,
-    prefix: '',
-    padding: 4,
+    prefix: defaults.prefix,
+    padding: defaults.padding,
     nextNumber: 1,
   };
 }

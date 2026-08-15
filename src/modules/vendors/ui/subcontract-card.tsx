@@ -85,7 +85,7 @@ export function SubcontractCard({
         <StatusBadge shape={statusShape(item.status)} label={t(`status.${item.status}`)} />
       </div>
 
-      <dl className="grid grid-cols-2 gap-2 text-sm sm:grid-cols-4">
+      <dl className="grid grid-cols-2 gap-2 text-sm sm:grid-cols-5">
         <div className="text-start">
           <dt className="text-[var(--pf-text-muted)]">{t('originalAmountLabel')}</dt>
           <dd>
@@ -96,6 +96,12 @@ export function SubcontractCard({
           <dt className="text-[var(--pf-text-muted)]">{t('currentAmountLabel')}</dt>
           <dd>
             <MoneyText value={money(item.currentAmount, item.currency)} />
+          </dd>
+        </div>
+        <div className="text-start">
+          <dt className="text-[var(--pf-text-muted)]">{t('billedLabel')}</dt>
+          <dd>
+            <MoneyText value={money(item.billedAmount, item.currency)} />
           </dd>
         </div>
         <div className="text-start">
@@ -222,6 +228,7 @@ export function SubcontractCard({
           <input type="hidden" name="subcontractId" value={item.id} />
           <input type="hidden" name="vendorId" value={item.vendorId} />
           <input type="hidden" name="projectId" value={item.projectId} />
+          <p className="text-xs text-[var(--pf-text-muted)]">{t('addChangeHint')}</p>
           {changeState.error ? <Alert tone="danger">{changeState.error}</Alert> : null}
           {changeState.ok ? <Alert tone="success">{t('addChangeSuccess')}</Alert> : null}
           <div className="grid gap-3 sm:grid-cols-2">

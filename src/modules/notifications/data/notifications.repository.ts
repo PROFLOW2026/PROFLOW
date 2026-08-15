@@ -180,6 +180,27 @@ export async function listUnresolvedEntityIdsForRecipient(
     .filter((id): id is string => typeof id === 'string' && id.length > 0);
 }
 
+export async function listUnresolvedEntityIdsForType(
+  db: DbExecutor,
+  organizationId: string,
+  type: NotificationEventType,
+): Promise<string[]> {
+  const rows = await db
+    .select({ entityId: notifications.entityId })
+    .from(notifications)
+    .where(
+      and(
+        eq(notifications.organizationId, organizationId),
+        eq(notifications.type, type),
+        isNull(notifications.resolvedAt),
+      ),
+    );
+
+  return rows
+    .map((row) => row.entityId)
+    .filter((id): id is string => typeof id === 'string' && id.length > 0);
+}
+
 export async function emitNotificationRpc(
   db: DbExecutor,
   input: {

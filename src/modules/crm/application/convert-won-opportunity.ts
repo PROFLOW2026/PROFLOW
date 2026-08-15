@@ -1,28 +1,14 @@
-import { createClient } from '@/modules/clients';
-import { createProject, upsertPrimaryContractAmount } from '@/modules/projects';
-import { noteModuleUsage } from '@/modules/tenancy';
+import { convertQuote } from '@/modules/quotes/application/convert-quote';
+import { convertWonUsesEstimatesTable } from '@/modules/quotes/domain/product-path';
+import { listQuotes } from '@/modules/quotes/data/quotes.repository';
 import { recordAuditEvent } from '@/shared/audit';
 import type { OrgContext } from '@/shared/auth/context';
 import { DomainRuleError, NotFoundError, ValidationError } from '@/shared/errors';
 import { assertAllPermissions } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
-import {
-  findAcceptedVersionForOpportunity,
-  findLeadById,
-  findOpportunityById,
-  findProspectById,
-  findSalesQuoteById,
-  findSalesQuoteVersionById,
-  updateLeadById,
-  updateOpportunityById,
-  updateProspectById,
-} from '../data/crm.repository';
+import { findOpportunityById } from '../data/crm.repository';
 import {
   assertCanConvertOpportunity,
-  assertQuoteBelongsToOpportunity,
-  assertSalesQuoteIsNotBilling,
-  contractEnteredAmountFromAcceptedQuote,
-  contractNetAmountFromAcceptedQuote,
   resolveCompletedConversion,
 } from '../domain/conversion';
 import { CRM_AUDIT_ACTIONS, type OpportunityRecord } from '../domain/types';
@@ -41,19 +27,19 @@ export interface ConvertWonOpportunityResult {
 }
 
 /**
- * Explicit win conversion (doc 20 §6): create Client + Project + Contract
- * from the accepted sales quote. Does not invent a second Change Order path.
- * Opportunity ≠ Project — conversion is an explicit action that links them.
+ * Won conversion uses the owner-facing `/quotes` path (`estimates` table).
+ * CRM `crm_sales_quotes` are not the commercial bid.
  */
 export async function convertWonOpportunity(
   context: OrgContext,
   rawInput: ConvertWonOpportunityInput,
 ): Promise<ConvertWonOpportunityResult> {
-  // Fail fast before any Client/Project writes so partial conversion cannot orphan rows.
   assertAllPermissions(context, [
     PERMISSIONS.CRM_MANAGE,
+    PERMISSIONS.QUOTES_MANAGE,
     PERMISSIONS.CLIENTS_MANAGE,
     PERMISSIONS.PROJECTS_CREATE,
+    PERMISSIONS.PROJECTS_UPDATE,
     PERMISSIONS.CONTRACTS_MANAGE,
   ]);
 
@@ -84,147 +70,70 @@ export async function convertWonOpportunity(
   }
 
   assertCanConvertOpportunity(opportunity);
-  // Sales quote ≠ billing — conversion creates Contract baseline, not AR invoice.
-  assertSalesQuoteIsNotBilling();
+  convertWonUsesEstimatesTable();
 
-  const acceptedVersion = input.salesQuoteVersionId
-    ? await findSalesQuoteVersionById(
-        context.db,
-        context.organizationId,
-        input.salesQuoteVersionId,
-      )
-    : await findAcceptedVersionForOpportunity(
-        context.db,
-        context.organizationId,
-        opportunity.id,
-      );
-
-  if (!acceptedVersion) {
-    throw new DomainRuleError(
-      'An accepted sales quote version is required to convert',
-      'crm.errors.acceptedQuoteRequired',
-    );
-  }
-
-  if (acceptedVersion.status !== 'accepted') {
-    throw new DomainRuleError(
-      'Selected sales quote version is not accepted',
-      'crm.errors.quoteNotAccepted',
-    );
-  }
-
-  const quote = await findSalesQuoteById(
-    context.db,
-    context.organizationId,
-    acceptedVersion.salesQuoteId,
-  );
-  if (!quote) throw new NotFoundError('Sales quote');
-
-  assertQuoteBelongsToOpportunity({
+  const productQuotes = await listQuotes(context.db, context.organizationId, {
     opportunityId: opportunity.id,
-    quoteOpportunityId: quote.opportunityId,
   });
-
-  const netAmount = contractNetAmountFromAcceptedQuote(acceptedVersion);
-  const currency = acceptedVersion.currency.toUpperCase();
-  const amountIncludesTax = input.amountIncludesTax ?? false;
-  const { enteredAmount, amountIncludesTax: inclusive } = contractEnteredAmountFromAcceptedQuote(
-    acceptedVersion,
-    amountIncludesTax,
+  const alreadyConverted = productQuotes.find(
+    (quote) => quote.status === 'converted' && quote.convertedProjectId,
   );
-
-  let clientId: string | null = null;
-  const prospect = opportunity.prospectId
-    ? await findProspectById(context.db, context.organizationId, opportunity.prospectId)
-    : null;
-
-  if (prospect?.convertedClientId) {
-    clientId = prospect.convertedClientId;
-  } else if (prospect) {
-    const client = await createClient(context, {
-      name: prospect.companyName?.trim() || prospect.name,
-      email: prospect.email ?? undefined,
-      phone: prospect.phone ?? undefined,
-      notes: prospect.notes ?? undefined,
-    });
-    clientId = client.id;
-    await updateProspectById(context.db, context.organizationId, prospect.id, {
-      status: 'converted',
-      convertedClientId: client.id,
-    });
-  } else {
-    const client = await createClient(context, {
-      name: opportunity.name,
-    });
-    clientId = client.id;
+  if (alreadyConverted?.convertedProjectId) {
+    const refreshed = await findOpportunityById(
+      context.db,
+      context.organizationId,
+      opportunity.id,
+    );
+    const linked = refreshed ?? opportunity;
+    return {
+      opportunity: linked,
+      clientId: linked.convertedClientId ?? '',
+      projectId: alreadyConverted.convertedProjectId,
+      contractId: linked.convertedContractId ?? '',
+      idempotent: true,
+    };
   }
 
-  const projectName = input.projectName?.trim() || opportunity.name;
-  const { projectId } = await createProject(context, {
-    name: projectName,
-    clientId,
-    status: 'active',
-    startDate: opportunity.expectedStartDate ?? undefined,
-    notes: opportunity.notes ?? undefined,
-  });
-
-  // Contract stores net; VAT is never profit. Upsert derives net from entered + tax flag.
-  const { contract } = await upsertPrimaryContractAmount(context, {
-    projectId,
-    enteredAmount,
-    currency,
-    amountIncludesTax: inclusive,
-  });
-
-  if (opportunity.leadId) {
-    const lead = await findLeadById(context.db, context.organizationId, opportunity.leadId);
-    if (lead && lead.status !== 'converted') {
-      await updateLeadById(context.db, context.organizationId, lead.id, {
-        status: 'converted',
-      });
-    }
+  const accepted = productQuotes.find((quote) => quote.status === 'accepted');
+  if (!accepted) {
+    throw new DomainRuleError(
+      'Create and accept a product quote at /quotes before converting',
+      'crm.errors.useProductQuote',
+    );
   }
 
-  const convertedAt = new Date();
-  const updated = await updateOpportunityById(
+  const result = await convertQuote(context, {
+    quoteId: accepted.id,
+    workKind: 'project',
+    projectName: input.projectName,
+    amountIncludesTax: input.amountIncludesTax,
+  });
+
+  const updated = await findOpportunityById(
     context.db,
     context.organizationId,
     opportunity.id,
-    {
-      status: 'won',
-      stage: 'won',
-      convertedClientId: clientId,
-      convertedProjectId: projectId,
-      convertedContractId: contract.id,
-      convertedAt,
-    },
   );
   if (!updated) throw new NotFoundError('Opportunity');
 
-  await noteModuleUsage(context.db, context.organizationId, 'crm');
   await recordAuditEvent(context, {
     action: CRM_AUDIT_ACTIONS.OPPORTUNITY_CONVERTED,
     entityType: 'crm_opportunity',
     entityId: updated.id,
     after: {
-      clientId,
-      projectId,
-      contractId: contract.id,
-      salesQuoteVersionId: acceptedVersion.id,
-      netAmount,
-      currency,
-      amountIncludesTax: inclusive,
-      taxAmount: acceptedVersion.taxAmount,
-      totalAmount: acceptedVersion.totalAmount,
+      clientId: updated.convertedClientId,
+      projectId: result.projectId,
+      contractId: updated.convertedContractId,
+      estimateId: result.quote.id,
+      table: 'estimates',
       vatIsNotProfit: true,
     },
   });
 
   return {
     opportunity: updated,
-    clientId,
-    projectId,
-    contractId: contract.id,
+    clientId: updated.convertedClientId ?? '',
+    projectId: result.projectId,
+    contractId: updated.convertedContractId ?? '',
   };
 }
-

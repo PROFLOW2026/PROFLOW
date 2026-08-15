@@ -1,9 +1,14 @@
 import { addDays, todayInTimeZone, type BusinessDate } from '@/shared/dates';
 import type { OrgContext } from '@/shared/auth/context';
+import { withTransaction } from '@/shared/db';
 import { ValidationError } from '@/shared/errors';
 import { assertAnyPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
-import { listDispatchRows } from '../data/service-details.repository';
+import {
+  findServiceDetailsByProjectId,
+  findWorkOrderAssigneeEmployeeId,
+  listDispatchRows,
+} from '../data/service-details.repository';
 import type { DispatchListItem, DispatchWindow } from '../domain/types';
 import {
   listDispatchSchema,
@@ -11,6 +16,7 @@ import {
   type ListDispatchInput,
   type RescheduleWorkOrderInput,
 } from '../validation/schemas';
+import { upsertWorkOrderDispatchBooking } from './dispatch-booking';
 import { updateWorkOrder } from './update-work-order';
 
 /**
@@ -95,6 +101,7 @@ export async function listDispatchBoard(
 /**
  * Dispatch reschedule / reassign. Schedule lives on project_service_details;
  * assignee uses employee_project_assignments (≠ Actual).
+ * When an assignee and window are set, upsert a resource_booking (source=work_order).
  */
 export async function rescheduleWorkOrder(
   context: OrgContext,
@@ -109,11 +116,53 @@ export async function rescheduleWorkOrder(
     );
   }
 
-  await updateWorkOrder(context, {
-    workOrderId: parsed.data.workOrderId,
-    scheduledStartAt: parsed.data.scheduledStartAt,
-    scheduledEndAt: parsed.data.scheduledEndAt,
-    assigneeEmployeeId: parsed.data.assigneeEmployeeId,
-    serviceStatus: parsed.data.serviceStatus,
+  await withTransaction(context.db, async (tx) => {
+    const txContext = { ...context, db: tx };
+    const details = await findServiceDetailsByProjectId(
+      tx,
+      context.organizationId,
+      parsed.data.workOrderId,
+    );
+    const currentAssigneeId = await findWorkOrderAssigneeEmployeeId(
+      tx,
+      context.organizationId,
+      parsed.data.workOrderId,
+    );
+
+    const nextStart =
+      parsed.data.scheduledStartAt === undefined
+        ? (details?.scheduledStartAt ?? null)
+        : parseOptionalInstant(parsed.data.scheduledStartAt);
+    const nextEnd =
+      parsed.data.scheduledEndAt === undefined
+        ? (details?.scheduledEndAt ?? null)
+        : parseOptionalInstant(parsed.data.scheduledEndAt);
+    const nextAssignee =
+      parsed.data.assigneeEmployeeId === undefined
+        ? currentAssigneeId
+        : parsed.data.assigneeEmployeeId;
+
+    await upsertWorkOrderDispatchBooking(txContext, {
+      workOrderId: parsed.data.workOrderId,
+      assigneeEmployeeId: nextAssignee,
+      scheduledStartAt: nextStart,
+      scheduledEndAt: nextEnd,
+      confirmConflict: parsed.data.confirmConflict,
+    });
+
+    await updateWorkOrder(txContext, {
+      workOrderId: parsed.data.workOrderId,
+      scheduledStartAt: parsed.data.scheduledStartAt,
+      scheduledEndAt: parsed.data.scheduledEndAt,
+      assigneeEmployeeId: parsed.data.assigneeEmployeeId,
+      serviceStatus: parsed.data.serviceStatus,
+    });
   });
+}
+
+function parseOptionalInstant(value: string | null | undefined): Date | null {
+  if (value === undefined || value === null || value === '') return null;
+  const parsed = Date.parse(value);
+  if (!Number.isFinite(parsed)) return null;
+  return new Date(parsed);
 }

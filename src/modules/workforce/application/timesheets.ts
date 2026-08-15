@@ -1,7 +1,7 @@
 import { AUDIT_ACTIONS, recordAuditEvent } from '@/shared/audit';
 import { withTransaction } from '@/shared/db';
 import { ConflictError, DomainRuleError, NotFoundError, ValidationError } from '@/shared/errors';
-import { assertPermission, hasPermission } from '@/shared/permissions/assert';
+import { assertAnyPermission, assertPermission, hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import type { OrgContext } from '@/shared/auth/context';
 import {
@@ -9,6 +9,12 @@ import {
   resolveAccessibleProjectIds,
 } from '@/modules/projects/application/project-access';
 import { canReadWorkforceCost } from './workforce-cost-authz';
+import {
+  assertCanActOnEmployeeTime,
+  assertNotSelfTimeApproval,
+  canReadOrgWorkforce,
+  resolveSelfScopedEmployeeId,
+} from './time-scope';
 import { findEmployeeById } from '../data/employees.repository';
 import {
   findTimeEntryById,
@@ -151,10 +157,22 @@ export async function listTimesheetsForOrg(
   context: OrgContext,
   filters: TimesheetFiltersInput = {},
 ): Promise<TimesheetListItem[]> {
-  assertPermission(context, PERMISSIONS.WORKFORCE_READ);
+  assertAnyPermission(context, [PERMISSIONS.WORKFORCE_READ, PERMISSIONS.TIME_MANAGE]);
   const parsed = parseOrThrow(timesheetFiltersSchema.safeParse(filters));
+  let scopedEmployeeId = parsed.employeeId;
+  if (!canReadOrgWorkforce(context)) {
+    const linkedId = await resolveSelfScopedEmployeeId(context);
+    if (!linkedId) return [];
+    if (parsed.employeeId && parsed.employeeId !== linkedId) {
+      throw new DomainRuleError(
+        'Time self scope is limited to the linked employee',
+        'workforce.errors.timeSelfScope',
+      );
+    }
+    scopedEmployeeId = linkedId;
+  }
   return listTimesheets(context.db, context.organizationId, {
-    employeeId: parsed.employeeId,
+    employeeId: scopedEmployeeId,
     status: parsed.status ?? 'all',
     fromDate: parsed.fromDate,
     toDate: parsed.toDate,
@@ -203,8 +221,11 @@ export async function getTimesheetDetail(
   readonly timesheet: TimesheetListItem;
   readonly entries: TimeEntryListItem[];
 }> {
-  assertPermission(context, PERMISSIONS.WORKFORCE_READ);
+  assertAnyPermission(context, [PERMISSIONS.WORKFORCE_READ, PERMISSIONS.TIME_MANAGE]);
   const sheet = await requireTimesheet(context, timesheetId);
+  if (!canReadOrgWorkforce(context)) {
+    await assertCanActOnEmployeeTime(context, sheet.employeeId);
+  }
   const listed = await listTimesheets(context.db, context.organizationId, {
     employeeId: sheet.employeeId,
   });
@@ -243,6 +264,7 @@ export async function submitTimesheet(
   assertPermission(context, PERMISSIONS.TIME_MANAGE);
   const input = parseOrThrow(submitTimesheetSchema.safeParse(rawInput));
   await requireEmployee(context, input.employeeId);
+  await assertCanActOnEmployeeTime(context, input.employeeId);
 
   const period = input.periodStart
     ? timesheetPeriodForWorkDate(input.periodStart)
@@ -399,6 +421,7 @@ export async function returnTimesheet(
     const txContext = { ...context, db: tx };
     const sheet = await findTimesheetByIdForUpdate(tx, context.organizationId, input.timesheetId);
     if (!sheet || sheet.archivedAt) throw new NotFoundError('Timesheet');
+    await assertNotSelfTimeApproval(txContext, sheet.employeeId);
     assertTimesheetTransition(sheet.status, 'returned');
 
     const periodEntries = await listRecordedEntriesInPeriod(
@@ -465,6 +488,7 @@ export async function approveTimesheet(
     const txContext = { ...context, db: tx };
     const sheet = await findTimesheetByIdForUpdate(tx, context.organizationId, input.timesheetId);
     if (!sheet || sheet.archivedAt) throw new NotFoundError('Timesheet');
+    await assertNotSelfTimeApproval(txContext, sheet.employeeId);
 
     if (sheet.status === 'approved') {
       const entries = await listTimeEntries(tx, context.organizationId, {
@@ -538,6 +562,7 @@ export async function approveTimeEntry(
   }
   if (entry.approvalStatus === 'approved') return entry;
 
+  await assertNotSelfTimeApproval(context, entry.employeeId);
   assertTimeApprovalTransition(entry.approvalStatus, 'approved');
 
   const now = new Date();
@@ -587,6 +612,10 @@ export async function bulkApproveTimeEntries(
     const foundIds = new Set(rows.map((row) => row.id));
     const missing = uniqueIds.filter((id) => !foundIds.has(id));
     if (missing.length > 0) throw new NotFoundError('Time entry');
+
+    for (const row of rows) {
+      await assertNotSelfTimeApproval(txContext, row.employeeId);
+    }
 
     const alreadyApprovedIds = rows
       .filter((row) => row.approvalStatus === 'approved' && row.status === 'recorded')

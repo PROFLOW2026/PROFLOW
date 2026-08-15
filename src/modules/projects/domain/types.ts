@@ -49,6 +49,8 @@ export interface ProjectRecord {
   readonly id: string;
   readonly organizationId: string;
   readonly name: string;
+  /** Internal tracking number (PRJ-/JOB-/WO-). Null on rows created before numbering. */
+  readonly documentNumber: string | null;
   readonly status: ProjectStatus;
   readonly workKind: WorkKind;
   readonly pricingMode: PricingMode | null;

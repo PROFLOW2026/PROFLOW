@@ -15,6 +15,8 @@ import {
   returnTimesheet,
   submitTimeEntries,
   submitTimesheet,
+  updateTimeEntry,
+  updateTimeEntrySchema,
 } from '@/modules/workforce';
 import { withOrgContext } from '@/shared/auth/session';
 import { AppError } from '@/shared/errors';
@@ -44,6 +46,9 @@ const WORKFORCE_ERROR_KEYS = [
   'timeEntryApprovedLocked',
   'timeEntryNotEditable',
   'invalidTimesheetPeriod',
+  'timeSelfScope',
+  'selfApprovalBlocked',
+  'noLinkedEmployee',
 ] as const;
 
 async function mapActionError(error: unknown, fallback: string): Promise<TimeEntryFormState> {
@@ -256,6 +261,27 @@ export async function returnTimesheetAction(
   const managerNote = String(formData.get('managerNote') ?? '');
   try {
     await withOrgContext((context) => returnTimesheet(context, { timesheetId, managerNote }));
+    revalidatePath('/workforce', 'layout');
+    return { ok: true };
+  } catch (error) {
+    return mapActionError(error, fallback);
+  }
+}
+
+export async function updateTimeEntryAction(
+  _prevState: TimeEntryFormState,
+  formData: FormData,
+): Promise<TimeEntryFormState> {
+  const tErrors = await getTranslations('errors');
+  const fallback = tErrors('unexpected');
+  const parsed = updateTimeEntrySchema.safeParse({
+    timeEntryId: formData.get('timeEntryId'),
+    hours: formData.get('hours') || undefined,
+    description: formData.has('description') ? formData.get('description') || null : undefined,
+  });
+  if (!parsed.success) return { error: tErrors('validationFailed') };
+  try {
+    await withOrgContext((context) => updateTimeEntry(context, parsed.data));
     revalidatePath('/workforce', 'layout');
     return { ok: true };
   } catch (error) {

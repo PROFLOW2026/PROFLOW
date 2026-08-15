@@ -23,6 +23,10 @@ vi.mock('@/shared/i18n/navigation', () => ({
   ),
 }));
 
+vi.mock('@/app/[locale]/(app)/crm/actions', () => ({
+  updateOpportunityAction: async () => ({}),
+}));
+
 const items: OpportunityBoardCard[] = [
   {
     id: 'opp-quote',
@@ -107,5 +111,19 @@ describe('OpportunityPipelineViews', () => {
     expect(screen.getByRole('table')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Kitchen remodel' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Villa extension' })).toBeInTheDocument();
+  });
+
+  it('sends stage from board cards so the kanban can move opportunities', () => {
+    renderWithIntl(<OpportunityPipelineViews items={items} canMoveStages />, {
+      locale: 'en',
+      messages: { crm: enCrm },
+    });
+
+    const stageSelect = screen.getByTestId('opportunity-stage-opp-quote');
+    expect(stageSelect).toHaveAttribute('name', 'stage');
+    expect(stageSelect).toHaveValue('quote');
+    expect(stageSelect.closest('form')?.querySelector('input[name="opportunityId"]')).toHaveValue(
+      'opp-quote',
+    );
   });
 });

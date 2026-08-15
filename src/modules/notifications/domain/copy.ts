@@ -64,6 +64,11 @@ export function notificationCopy(
           title: ref ? `שובצת לקריאת שירות — ${ref}` : 'שובצת לקריאת שירות',
           body: 'קריאת שירות שויכה אליך.',
         };
+      case 'punch_assigned':
+        return {
+          title: ref ? `שובצת לפריט תיקון — ${ref}` : 'שובצת לפריט תיקון',
+          body: 'פריט תיקון שויך אליך.',
+        };
       case 'low_stock':
         return {
           title: ref ? `מלאי נמוך — ${ref}` : 'מלאי נמוך',
@@ -127,6 +132,11 @@ export function notificationCopy(
       return {
         title: ref ? `Work order assigned — ${ref}` : 'Work order assigned',
         body: 'A work order was assigned to you.',
+      };
+    case 'punch_assigned':
+      return {
+        title: ref ? `Punch item assigned — ${ref}` : 'Punch item assigned',
+        body: 'A punch list item was assigned to you.',
       };
     case 'low_stock':
       return {

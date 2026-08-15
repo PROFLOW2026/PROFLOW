@@ -5,8 +5,10 @@ import type { DbExecutor } from '@/shared/db/types';
 import { assignRole, provisionOrganizationRoles } from '@/modules/rbac';
 import { defaultsForCountry } from '../domain/organization-defaults';
 import { resolveBusinessProfileKey } from '../domain/business-profiles';
+import { WORK_MIX_SETTING_KEY, isWorkMix } from '../domain/work-mix';
 import { applyBusinessProfileConfig } from './apply-business-profile';
 import { createOrganizationSchema, type CreateOrganizationInput } from '../validation/schemas';
+import { upsertOrganizationSettingValue } from '../data/organization-settings.repository';
 import {
   findOrganizationById,
   insertMembership,
@@ -21,7 +23,7 @@ import {
  * partially provisioned tenant — an organization nobody can administer — must
  * never be reachable.
  *
- * Onboarding asks for a name and a country and nothing else (doc 39 §9).
+ * Onboarding asks for a name, country, optional business profile, and work mix.
  */
 export interface CreateOrganizationResult {
   readonly organization: OrganizationSummary;
@@ -85,6 +87,10 @@ export async function createOrganization(
       profileKey,
       organization.defaultLocale === 'en' ? 'en' : 'he-IL',
     );
+  }
+
+  if (isWorkMix(input.workMix)) {
+    await upsertOrganizationSettingValue(db, organization.id, WORK_MIX_SETTING_KEY, input.workMix);
   }
 
   await writeAuditEvent(db, {

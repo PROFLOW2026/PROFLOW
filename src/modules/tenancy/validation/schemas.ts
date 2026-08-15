@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { BUSINESS_PROFILE_KEYS } from '../domain/business-profiles';
 import { PROFESSION_PRESET_KEYS } from '../domain/profession-presets';
+import { WORK_MIXES } from '../domain/work-mix';
 
 /**
  * Server-authoritative validation (doc 67). The browser may run the same
@@ -38,6 +39,8 @@ export const createOrganizationSchema = z.object({
   /** Legacy profession catalog seed — mapped to a business profile when present. */
   professionPreset: z
     .preprocess(optionalPresetToken, z.enum(PROFESSION_PRESET_KEYS).optional()),
+  /** Explicit work-mix choice after org create — not a separate product. */
+  workMix: z.preprocess(optionalPresetToken, z.enum(WORK_MIXES).optional()),
 });
 
 export type CreateOrganizationInput = z.input<typeof createOrganizationSchema>;

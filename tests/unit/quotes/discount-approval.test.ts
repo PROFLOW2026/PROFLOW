@@ -78,6 +78,7 @@ function quote(partial: Partial<QuoteRecord> = {}): QuoteRecord {
     listSubtotalAmount: null,
     discountPercent: null,
     convertedProjectId: null,
+    opportunityId: null,
     convertedAt: null,
     sentAt: null,
     decidedAt: null,

@@ -19,6 +19,8 @@
     "billing": "Billing",
     "document": "Document",
     "asset": "Asset",
+    "inventory_item": "Inventory item",
+    "material": "Material",
     "boq_item": "BOQ item"
   }
 }

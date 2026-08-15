@@ -1,11 +1,11 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getLocale, getTranslations } from 'next-intl/server';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { PageHeader } from '@/components/ui/page-header';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { canConvertOpportunity, getOpportunityById, nextActionUrgency } from '@/modules/crm';
+import { productQuoteDetailHref } from '@/modules/quotes/domain/product-path';
 import { listCustomFieldValuesForEntity } from '@/modules/custom-fields';
 import { EntityCustomFieldsPanel } from '@/modules/custom-fields/ui';
 import { withOrgContext } from '@/shared/auth/session';
@@ -19,6 +19,7 @@ import { textNavLinkClassName, textNavLinkMutedClassName } from '@/components/ui
 import {
   AcceptVersionButton,
   ConvertWonForm,
+  CreateProductQuoteLink,
   IssueVersionButton,
   MarkLostForm,
   OpportunityEstimateForm,
@@ -91,13 +92,12 @@ export default async function OpportunityDetailPage({
   }
 
   const currency = detail.currency ?? defaultCurrency;
-  const acceptedVersion =
-    detail.salesQuotes
-      .flatMap((quote) => quote.versions)
-      .find((version) => version.status === 'accepted') ?? null;
-  const acceptedVersionId = acceptedVersion?.id ?? null;
+  const acceptedProductQuote =
+    detail.productQuotes.find((quote) => quote.status === 'accepted') ??
+    detail.productQuotes.find((quote) => quote.status === 'converted') ??
+    null;
   const convertible = canConvertOpportunity(detail);
-  const convertReady = convertible && Boolean(acceptedVersionId);
+  const convertReady = convertible && Boolean(acceptedProductQuote);
 
   return (
     <div className="flex flex-col gap-6">
@@ -120,12 +120,8 @@ export default async function OpportunityDetailPage({
           </Link>
         }
         actions={
-          canManage && convertible ? (
-            <Button asChild size="lg" variant={convertReady ? 'primary' : 'secondary'}>
-              <a href="#convert-to-project">
-                {convertReady ? t('convert.submit') : t('convert.blockedTitle')}
-              </a>
-            </Button>
+          canManage && detail.status === 'open' ? (
+            <CreateProductQuoteLink opportunityId={detail.id} />
           ) : null
         }
       />
@@ -146,12 +142,7 @@ export default async function OpportunityDetailPage({
           <CardContent>
             <ConvertWonForm
               opportunityId={detail.id}
-              defaultProjectName={detail.name}
-              acceptedVersionId={acceptedVersionId}
-              netAmount={acceptedVersion?.subtotalAmount ?? null}
-              taxAmount={acceptedVersion?.taxAmount ?? null}
-              totalAmount={acceptedVersion?.totalAmount ?? null}
-              currency={acceptedVersion?.currency ?? currency}
+              acceptedProductQuoteId={acceptedProductQuote?.id ?? null}
             />
           </CardContent>
         </Card>
@@ -166,6 +157,7 @@ export default async function OpportunityDetailPage({
           {canManage && detail.status === 'open' ? (
             <OpportunityFollowUpForm
               opportunityId={detail.id}
+              stage={detail.stage}
               notes={detail.opportunityNotes}
               expectedStartDate={detail.expectedStartDate}
               nextActionAt={detail.nextActionAt}
@@ -332,83 +324,112 @@ export default async function OpportunityDetailPage({
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">{t('opportunity.estimatesSection')}</CardTitle>
+          <CardTitle className="text-base">{t('opportunity.productQuotesSection')}</CardTitle>
+          <CardDescription>{t('opportunity.productQuotesHint')}</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
-          {detail.estimates.length === 0 ? (
-            <p className="text-sm text-[var(--pf-text-secondary)]">—</p>
+          {detail.productQuotes.length === 0 ? (
+            <p className="text-sm text-[var(--pf-text-secondary)]">{t('opportunity.productQuotesEmpty')}</p>
           ) : (
             <ul className="flex flex-col gap-2 text-sm">
-              {detail.estimates.map((estimate) => (
-                <li key={estimate.id} className="flex flex-wrap items-start justify-between gap-2">
-                  <span className="min-w-0 flex-1 text-start">{estimate.name}</span>
-                  <span className="shrink-0 text-[var(--pf-text-secondary)]" dir={estimate.internalAmount ? 'ltr' : undefined}>
-                    {estimate.internalAmount
-                      ? `${estimate.internalAmount} ${estimate.currency}`
-                      : t(`statuses.estimate.${estimate.status}`)}
+              {detail.productQuotes.map((quote) => (
+                <li key={quote.id} className="flex flex-wrap items-center justify-between gap-2">
+                  <Link href={productQuoteDetailHref(quote.id)} className={textNavLinkClassName}>
+                    {quote.title}
+                  </Link>
+                  <span className="text-[var(--pf-text-secondary)]">
+                    {quote.status}
+                    {quote.totalAmount ? ` · ${quote.totalAmount} ${quote.currency}` : ''}
                   </span>
                 </li>
               ))}
             </ul>
           )}
           {canManage && detail.status === 'open' ? (
-            <OpportunityEstimateForm opportunityId={detail.id} currency={currency} />
+            <CreateProductQuoteLink opportunityId={detail.id} />
           ) : null}
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">{t('opportunity.quotesSection')}</CardTitle>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-4">
-          {detail.salesQuotes.map((quote) => (
-            <div key={quote.id} className="rounded-md border border-[var(--pf-border-default)] p-3">
-              <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-                <p className="min-w-0 flex-1 text-start font-medium">{quote.title}</p>
-                <StatusBadge
-                  className="shrink-0"
-                  shape={quote.status === 'accepted' ? 'active' : 'archived'}
-                  label={t(`statuses.quote.${quote.status}`)}
-                />
-              </div>
-              <ul className="flex flex-col gap-2">
-                {quote.versions.map((version) => (
-                  <li
-                    key={version.id}
-                    className="flex flex-wrap items-center justify-between gap-2 text-sm"
-                  >
-                    <span className="min-w-0 flex-1 text-start">
-                      {t('opportunity.versionLabel', { number: version.versionNumber })} ·{' '}
-                      <span dir="ltr">
-                        {t('opportunity.quoteNet')}: {version.subtotalAmount} {version.currency}
-                        {version.taxAmount && version.taxAmount !== '0'
-                          ? ` · ${t('opportunity.quoteTax')}: ${version.taxAmount}`
-                          : ''}{' '}
-                        · {t('opportunity.quoteTotal')}: {version.totalAmount} {version.currency}
-                      </span>{' '}
-                      · {t(`statuses.version.${version.status}`)}
+      <details className="rounded-lg border border-[var(--pf-border-default)] p-4">
+        <summary className="cursor-pointer text-sm font-semibold">
+          {t('opportunity.advancedInternal')}
+        </summary>
+        <p className="mt-2 text-xs text-[var(--pf-text-muted)]">{t('opportunity.advancedInternalHint')}</p>
+        <div className="mt-4 flex flex-col gap-6">
+          <section className="flex flex-col gap-3">
+            <h3 className="text-sm font-semibold">{t('opportunity.estimatesSection')}</h3>
+            {detail.estimates.length === 0 ? (
+              <p className="text-sm text-[var(--pf-text-secondary)]">—</p>
+            ) : (
+              <ul className="flex flex-col gap-2 text-sm">
+                {detail.estimates.map((estimate) => (
+                  <li key={estimate.id} className="flex flex-wrap items-start justify-between gap-2">
+                    <span className="min-w-0 flex-1 text-start">{estimate.name}</span>
+                    <span className="shrink-0 text-[var(--pf-text-secondary)]" dir={estimate.internalAmount ? 'ltr' : undefined}>
+                      {estimate.internalAmount
+                        ? `${estimate.internalAmount} ${estimate.currency}`
+                        : t(`statuses.estimate.${estimate.status}`)}
                     </span>
-                    {canManage && detail.status === 'open' ? (
-                      <div className="flex flex-wrap gap-2">
-                        {version.status === 'draft' ? (
-                          <IssueVersionButton versionId={version.id} />
-                        ) : null}
-                        {version.status === 'draft' || version.status === 'issued' ? (
-                          <AcceptVersionButton versionId={version.id} />
-                        ) : null}
-                      </div>
-                    ) : null}
                   </li>
                 ))}
               </ul>
-            </div>
-          ))}
-          {canManage && detail.status === 'open' ? (
-            <OpportunityQuoteForm opportunityId={detail.id} currency={currency} />
-          ) : null}
-        </CardContent>
-      </Card>
+            )}
+            {canManage && detail.status === 'open' ? (
+              <OpportunityEstimateForm opportunityId={detail.id} currency={currency} />
+            ) : null}
+          </section>
+
+          <section className="flex flex-col gap-3">
+            <h3 className="text-sm font-semibold">{t('opportunity.quotesSection')}</h3>
+            {detail.salesQuotes.map((quote) => (
+              <div key={quote.id} className="rounded-md border border-[var(--pf-border-default)] p-3">
+                <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+                  <p className="min-w-0 flex-1 text-start font-medium">{quote.title}</p>
+                  <StatusBadge
+                    className="shrink-0"
+                    shape={quote.status === 'accepted' ? 'active' : 'archived'}
+                    label={t(`statuses.quote.${quote.status}`)}
+                  />
+                </div>
+                <ul className="flex flex-col gap-2">
+                  {quote.versions.map((version) => (
+                    <li
+                      key={version.id}
+                      className="flex flex-wrap items-center justify-between gap-2 text-sm"
+                    >
+                      <span className="min-w-0 flex-1 text-start">
+                        {t('opportunity.versionLabel', { number: version.versionNumber })} ·{' '}
+                        <span dir="ltr">
+                          {t('opportunity.quoteNet')}: {version.subtotalAmount} {version.currency}
+                          {version.taxAmount && version.taxAmount !== '0'
+                            ? ` · ${t('opportunity.quoteTax')}: ${version.taxAmount}`
+                            : ''}{' '}
+                          · {t('opportunity.quoteTotal')}: {version.totalAmount} {version.currency}
+                        </span>{' '}
+                        · {t(`statuses.version.${version.status}`)}
+                      </span>
+                      {canManage && detail.status === 'open' ? (
+                        <div className="flex flex-wrap gap-2">
+                          {version.status === 'draft' ? (
+                            <IssueVersionButton versionId={version.id} />
+                          ) : null}
+                          {version.status === 'draft' || version.status === 'issued' ? (
+                            <AcceptVersionButton versionId={version.id} />
+                          ) : null}
+                        </div>
+                      ) : null}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+            {canManage && detail.status === 'open' ? (
+              <OpportunityQuoteForm opportunityId={detail.id} currency={currency} />
+            ) : null}
+          </section>
+        </div>
+      </details>
 
       {canManage && detail.status === 'open' ? (
         <Card>

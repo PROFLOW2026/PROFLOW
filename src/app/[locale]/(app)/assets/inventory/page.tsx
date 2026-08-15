@@ -22,6 +22,7 @@ import { InventoryCountsPanel } from './inventory-counts-panel';
 import { textNavLinkClassName } from '@/components/ui/pressable';
 import { cn } from '@/shared/ui/cn';
 import { Alert } from '@/components/ui/alert';
+import { SavedListViewsBar } from '@/modules/tenancy/ui/saved-list-views-bar';
 import { todayInTimeZone } from '@/shared/dates/dates';
 import { Field } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
@@ -146,6 +147,7 @@ export default async function InventoryPage({
       <Alert tone="info">
         <span className="block font-medium">{t('inventory.qtyOnlyBannerHe')}</span>
         <span className="block text-sm">{t('inventory.qtyOnlyBannerEn')}</span>
+        <span className="mt-1 block text-sm">{t('inventory.threeActionsHint')}</span>
       </Alert>
 
       <InventoryLocationsPanel
@@ -175,6 +177,7 @@ export default async function InventoryPage({
           {tCommon('actions.search')}
         </Button>
       </form>
+      <SavedListViewsBar listKey="inventory" searchParams={{ q: search }} keys={['q']} />
 
       <InventoryReservationsPanel
         items={items.map((item) => ({ id: item.id, name: item.name, unit: item.unit }))}

@@ -8,8 +8,10 @@
     "action": "Browse projects"
   },
   "list": {
-    "searchPlaceholder": "Search documents…",
+    "searchPlaceholder": "Search filename, category, tags, or project…",
     "ownerTypeFilter": "Linked to",
+    "categoryFilter": "Category",
+    "tagsFilter": "Tags",
     "filterActive": "current filters",
     "hint": "Documents are usually attached from a project, vendor, or expense. Browse vendors at",
     "hintLink": "Vendors & subcontractors"
@@ -77,6 +79,10 @@
     "categoryOptional": "Category",
     "categoryPlaceholder": "Choose a category…",
     "categoryNone": "No category",
+    "privacyLabel": "Privacy",
+    "privacyStandard": "Standard",
+    "privacyCompensation": "Compensation (pay / rates)",
+    "privacyHint": "Compensation files are hidden from people without employer-cost access.",
     "labelOptional": "Note",
     "labelPlaceholder": "Optional note for this attachment…",
     "linkExisting": "Link existing",

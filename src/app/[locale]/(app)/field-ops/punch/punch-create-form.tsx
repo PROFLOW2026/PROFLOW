@@ -36,12 +36,14 @@ export function PunchCreateForm({
   defaultProjectId,
   canManageDocuments,
   storageConfigured,
+  employees,
 }: {
   projects: readonly { id: string; name: string }[];
   workPackages: readonly FieldOpsWorkPackageOption[];
   defaultProjectId?: string;
   canManageDocuments: boolean;
   storageConfigured: boolean;
+  employees: readonly { id: string; name: string }[];
 }) {
   const t = useTranslations('fieldOps.createPunch');
   const tPriorities = useTranslations('fieldOps.priorities');
@@ -64,6 +66,7 @@ export function PunchCreateForm({
   const [projectId, setProjectId] = useState(defaultProjectId ?? '');
   const [workPackageId, setWorkPackageId] = useState(NONE);
   const [priority, setPriority] = useState<PunchPriority>('normal');
+  const [assigneeEmployeeId, setAssigneeEmployeeId] = useState(NONE);
 
   const projectPackages = useMemo(
     () => workPackages.filter((pkg) => pkg.projectId === projectId),
@@ -168,7 +171,32 @@ export function PunchCreateForm({
       </Field>
 
       <Field label={t('dueDateLabel')}>
-        {(control) => <Input {...control} type="date" name="dueDate" />}
+        {(control) => <Input {...control} type="date" name="dueDate" className="min-h-11" />}
+      </Field>
+
+      <Field label={t('assigneeLabel')}>
+        {(control) => (
+          <>
+            <input
+              type="hidden"
+              name="assigneeEmployeeId"
+              value={assigneeEmployeeId === NONE ? '' : assigneeEmployeeId}
+            />
+            <Select value={assigneeEmployeeId} onValueChange={setAssigneeEmployeeId}>
+              <SelectTrigger id={control.id} className="min-h-11">
+                <SelectValue placeholder={t('assigneeNone')} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={NONE}>{t('assigneeNone')}</SelectItem>
+                {employees.map((employee) => (
+                  <SelectItem key={employee.id} value={employee.id}>
+                    {employee.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </>
+        )}
       </Field>
 
       <FieldOpsPhotoStaging

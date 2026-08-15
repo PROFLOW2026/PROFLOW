@@ -72,6 +72,17 @@ export { DOCUMENT_RUNTIME_STAGES } from './domain/runtime-stage';
 
 export { DOCUMENT_CATEGORIES, isDocumentCategory } from './domain/categories';
 export type { DocumentCategory } from './domain/categories';
+export {
+  DOCUMENT_PRIVACY_CLASSES,
+  PROJECT_SCOPED_DOCUMENT_OWNER_TYPES,
+  canSeeDocumentPrivacyClass,
+  canSeeProjectLinkedDocument,
+  isDocumentPrivacyClass,
+  isProjectScopedDocumentOwnerType,
+  resolveDocumentPrivacyClass,
+  resolveUploadPrivacyClass,
+} from './domain/privacy';
+export type { DocumentPrivacyClass, ProjectScopedDocumentOwnerType } from './domain/privacy';
 export { documentExpiryState } from './domain/expiry';
 export type { DocumentExpiryState } from './domain/expiry';
 export { isDocumentOwnedStoragePath } from './domain/version-storage-path';

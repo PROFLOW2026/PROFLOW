@@ -27,7 +27,7 @@ import {
   findSubcontractAgreementByIdForUpdate,
   insertSubcontractAgreement,
   insertSubcontractValueEvent,
-  listApBillCashForVendorProject,
+  listApBillCashForSubcontractAgreement,
   listLinkableDocuments,
   listParentContractOptions,
   listSubcontractLinkedDocuments,
@@ -98,11 +98,10 @@ async function loadDetail(
     findVendorById(context.db, context.organizationId, agreement.vendorId),
     findProjectById(context.db, context.organizationId, agreement.projectId),
     listSubcontractValueEvents(context.db, context.organizationId, agreement.id),
-    listApBillCashForVendorProject(
+    listApBillCashForSubcontractAgreement(
       context.db,
       context.organizationId,
-      agreement.vendorId,
-      agreement.projectId,
+      agreement.id,
     ),
     listSubcontractLinkedDocuments(context.db, context.organizationId, agreement.id),
   ]);

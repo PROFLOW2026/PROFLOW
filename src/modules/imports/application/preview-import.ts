@@ -120,6 +120,10 @@ export function previewImport(
   if (kind === 'boq_items') {
     rows = flagBoqItemCodeDuplicates(rows, context.locale);
   }
+  if (kind === 'inventory') {
+    rows = flagInFileDuplicates(rows, 'sku', 'SKU');
+    rows = flagInFileDuplicates(rows, 'barcode', 'barcode');
+  }
 
   if (kind === 'projects') {
     const financialHeaders = parsed.headers.filter((header) =>
@@ -145,6 +149,22 @@ export function previewImport(
       const warning = {
         severity: 'warning' as const,
         message: `Tax/VAT columns ignored (${taxHeaders.join(', ')}); VAT is not profit and is not imported`,
+      };
+      rows = rows.map((row) => ({
+        ...row,
+        issues: [...row.issues, warning],
+      }));
+    }
+  }
+
+  if (kind === 'inventory') {
+    const moneyHeaders = parsed.headers.filter((header) =>
+      /amount|cost|price|fifo|actual|expense|עלות|מחיר/i.test(header),
+    );
+    if (moneyHeaders.length > 0) {
+      const warning = {
+        severity: 'warning' as const,
+        message: `Cost/price columns ignored (${moneyHeaders.join(', ')}); inventory import is quantity only — not Actual`,
       };
       rows = rows.map((row) => ({
         ...row,

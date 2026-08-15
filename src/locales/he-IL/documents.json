@@ -8,8 +8,10 @@
     "action": "מעבר לפרויקטים"
   },
   "list": {
-    "searchPlaceholder": "חיפוש מסמכים…",
+    "searchPlaceholder": "חיפוש לפי שם קובץ, קטגוריה, תגיות או פרויקט…",
     "ownerTypeFilter": "מקושר ל",
+    "categoryFilter": "קטגוריה",
+    "tagsFilter": "תגיות",
     "filterActive": "המסננים הנוכחיים",
     "hint": "מסמכים מצורפים בדרך כלל מפרויקט, ספק או הוצאה. לספקים:",
     "hintLink": "רשימת ספקים"
@@ -77,6 +79,10 @@
     "categoryOptional": "קטגוריה",
     "categoryPlaceholder": "בחרו קטגוריה…",
     "categoryNone": "ללא קטגוריה",
+    "privacyLabel": "פרטיות",
+    "privacyStandard": "רגיל",
+    "privacyCompensation": "שכר / תנאי עלות מעסיק",
+    "privacyHint": "קבצי שכר מוסתרים ממי שאין לו הרשאת עלות מעסיק.",
     "labelOptional": "הערה",
     "labelPlaceholder": "הערה אופציונלית לצירוף זה…",
     "linkExisting": "קישור למסמך קיים",

@@ -1,6 +1,6 @@
 import { AUDIT_ACTIONS, recordAuditEvent } from '@/shared/audit';
 import { todayInTimeZone } from '@/shared/dates';
-import { NotFoundError, ValidationError } from '@/shared/errors';
+import { DomainRuleError, NotFoundError, ValidationError } from '@/shared/errors';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import type { OrgContext } from '@/shared/auth/context';
@@ -8,9 +8,13 @@ import { noteModuleUsage } from '@/modules/tenancy';
 import {
   countEmployees,
   findEmployeeById,
+  findEmployeeByLinkedUserId,
   insertEmployee,
+  listActiveOrgMembersForLinking,
   listEmployees,
+  listLinkedEmployeeUserIds,
   updateEmployeeById,
+  type OrgMemberLinkOption,
 } from '../data/employees.repository';
 import {
   insertLaborCostComponent,
@@ -44,6 +48,52 @@ function redactListRates(items: readonly EmployeeListItem[]): EmployeeListItem[]
     currentRateUnit: null,
     currentRateCurrency: null,
   }));
+}
+
+function isUniqueViolation(error: unknown): boolean {
+  return (error as { code?: string }).code === '23505';
+}
+
+async function assertUserLinkAllowed(
+  context: OrgContext,
+  userId: string | null | undefined,
+  exceptEmployeeId?: string,
+): Promise<void> {
+  if (!userId) return;
+
+  const members = await listActiveOrgMembersForLinking(context.db, context.organizationId);
+  if (!members.some((member) => member.userId === userId)) {
+    throw new DomainRuleError(
+      'User is not an active member of this organization',
+      'workforce.errors.userNotInOrganization',
+    );
+  }
+
+  const taken = await findEmployeeByLinkedUserId(
+    context.db,
+    context.organizationId,
+    userId,
+    exceptEmployeeId,
+  );
+  if (taken) {
+    throw new DomainRuleError(
+      'This login is already linked to another employee',
+      'workforce.errors.userAlreadyLinked',
+    );
+  }
+}
+
+/** Org members not already linked to another employee. Current link stays selectable. */
+export async function listLinkableOrgMembers(
+  context: OrgContext,
+  options: { readonly exceptEmployeeId?: string } = {},
+): Promise<OrgMemberLinkOption[]> {
+  assertPermission(context, PERMISSIONS.WORKFORCE_MANAGE);
+  const [members, linked] = await Promise.all([
+    listActiveOrgMembersForLinking(context.db, context.organizationId),
+    listLinkedEmployeeUserIds(context.db, context.organizationId, options.exceptEmployeeId),
+  ]);
+  return members.filter((member) => !linked.has(member.userId));
 }
 
 export async function listEmployeesForOrg(
@@ -93,10 +143,13 @@ export async function createEmployee(
   if (input.baseRate) {
     assertCanManageWorkforceCost(context);
   }
+  await assertUserLinkAllowed(context, input.userId);
   const currency = (input.currency ?? context.organization.baseCurrency).toUpperCase();
   const validFrom = input.validFrom ?? todayInTimeZone(context.organization.timezone);
 
-  const employee = await insertEmployee(context.db, {
+  let employee;
+  try {
+    employee = await insertEmployee(context.db, {
     organizationId: context.organizationId,
     name: input.name,
     status: input.status,
@@ -106,7 +159,16 @@ export async function createEmployee(
     email: input.email || null,
     phone: input.phone ?? null,
     notes: input.notes ?? null,
-  });
+    });
+  } catch (error) {
+    if (isUniqueViolation(error)) {
+      throw new DomainRuleError(
+        'This login is already linked to another employee',
+        'workforce.errors.userAlreadyLinked',
+      );
+    }
+    throw error;
+  }
 
   if (input.baseRate) {
     const { getLaborCostDefaultsForApply } = await import(
@@ -191,16 +253,31 @@ export async function updateEmployee(
   if (!existing) throw new NotFoundError('Employee');
 
   const input = parsed.data;
-  const updated = await updateEmployeeById(context.db, context.organizationId, employeeId, {
-    name: input.name,
-    status: input.status,
-    userId: input.userId,
-    employeeNumber: input.employeeNumber,
-    jobTitle: input.jobTitle,
-    email: input.email || null,
-    phone: input.phone,
-    notes: input.notes,
-  });
+  if (input.userId !== undefined) {
+    await assertUserLinkAllowed(context, input.userId, employeeId);
+  }
+
+  let updated;
+  try {
+    updated = await updateEmployeeById(context.db, context.organizationId, employeeId, {
+      name: input.name,
+      status: input.status,
+      userId: input.userId,
+      employeeNumber: input.employeeNumber,
+      jobTitle: input.jobTitle,
+      email: input.email || null,
+      phone: input.phone,
+      notes: input.notes,
+    });
+  } catch (error) {
+    if (isUniqueViolation(error)) {
+      throw new DomainRuleError(
+        'This login is already linked to another employee',
+        'workforce.errors.userAlreadyLinked',
+      );
+    }
+    throw error;
+  }
 
   if (!updated) throw new NotFoundError('Employee');
 

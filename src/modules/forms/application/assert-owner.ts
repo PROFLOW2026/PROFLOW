@@ -1,6 +1,7 @@
 import { and, eq, isNull } from 'drizzle-orm';
 import {
   dailyLogs,
+  inspections,
   maintenanceRecords,
   planningWorkItems,
   projects,
@@ -15,6 +16,7 @@ import type { FormOwnerType } from '../domain/types';
  * planning_task → planning_work_items
  * maintenance → maintenance_records
  * field_log → daily_logs
+ * inspection → inspections
  */
 export async function assertFormOwnerExists(
   context: OrgContext,
@@ -73,6 +75,22 @@ export async function assertFormOwnerExists(
     return;
   }
 
+  if (ownerType === 'inspection') {
+    const [row] = await db
+      .select({ id: inspections.id })
+      .from(inspections)
+      .where(
+        and(
+          eq(inspections.id, ownerId),
+          eq(inspections.organizationId, organizationId),
+          isNull(inspections.archivedAt),
+        ),
+      )
+      .limit(1);
+    if (!row) throw new NotFoundError('Inspection');
+    return;
+  }
+
   // field_log
   const [row] = await db
     .select({ id: dailyLogs.id })
@@ -95,12 +113,15 @@ export async function assertFormOwnerExists(
 export function documentOwnerForFormOwner(
   ownerType: FormOwnerType,
   ownerId: string,
-): { ownerType: 'project' | 'daily_log'; ownerId: string } | null {
+): { ownerType: 'project' | 'daily_log' | 'inspection'; ownerId: string } | null {
   if (ownerType === 'project' || ownerType === 'job' || ownerType === 'work_order') {
     return { ownerType: 'project', ownerId };
   }
   if (ownerType === 'field_log') {
     return { ownerType: 'daily_log', ownerId };
+  }
+  if (ownerType === 'inspection') {
+    return { ownerType: 'inspection', ownerId };
   }
   return null;
 }

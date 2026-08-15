@@ -22,6 +22,14 @@ function formValue(formData: FormData, key: string): string | undefined {
   return String(value);
 }
 
+/** Present empty fields as null so optional metadata can be cleared. */
+function formValueOrNull(formData: FormData, key: string): string | null | undefined {
+  if (!formData.has(key)) return undefined;
+  const value = formData.get(key);
+  if (value === null || String(value).trim() === '') return null;
+  return String(value);
+}
+
 export async function createAdditionalContractAction(
   _prev: ContractFormState,
   formData: FormData,
@@ -89,22 +97,48 @@ export async function updateContractAction(
 ): Promise<ContractFormState> {
   const t = await getTranslations('projects.contracts');
   const projectId = String(formData.get('projectId') ?? '');
+  const contractTypeRaw = formValue(formData, 'contractType');
+  const statusRaw = formValue(formData, 'status');
   try {
     await withOrgContext((context) =>
       updateContract(context, {
         contractId: String(formData.get('contractId') ?? ''),
-        name: formValue(formData, 'name'),
-        contractNumber: formValue(formData, 'contractNumber'),
-        startDate: formValue(formData, 'startDate'),
-        endDate: formValue(formData, 'endDate'),
-        retentionPercent: formValue(formData, 'retentionPercent'),
-        notes: formValue(formData, 'notes'),
+        name: formValueOrNull(formData, 'name'),
+        contractNumber: formValueOrNull(formData, 'contractNumber'),
+        contractType:
+          contractTypeRaw === 'secondary' || contractTypeRaw === 'additional'
+            ? contractTypeRaw
+            : undefined,
+        startDate: formValueOrNull(formData, 'startDate'),
+        endDate: formValueOrNull(formData, 'endDate'),
+        retentionPercent: formValueOrNull(formData, 'retentionPercent'),
+        notes: formValueOrNull(formData, 'notes'),
+        status:
+          statusRaw === 'draft' ||
+          statusRaw === 'active' ||
+          statusRaw === 'closed' ||
+          statusRaw === 'cancelled'
+            ? statusRaw
+            : undefined,
       }),
     );
     revalidatePath(`/projects/${projectId}`);
+    revalidatePath(`/projects/${projectId}`, 'layout');
     return { ok: true };
   } catch (error) {
-    if (error instanceof AppError) return { error: t('errors.saveFailed') };
+    if (error instanceof ValidationError) {
+      const fieldErrors: Record<string, string> = {};
+      for (const issue of error.issues) {
+        if (issue.path) fieldErrors[issue.path] = issue.message;
+      }
+      return { error: t('errors.saveFailed'), fieldErrors };
+    }
+    if (error instanceof AppError) {
+      if (error.messageKey === 'projects.contracts.errors.invalidStatus') {
+        return { error: t('errors.invalidStatus') };
+      }
+      return { error: t('errors.saveFailed') };
+    }
     throw error;
   }
 }

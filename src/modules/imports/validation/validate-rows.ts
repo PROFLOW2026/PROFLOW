@@ -7,6 +7,7 @@ import { RATE_UNITS } from '@/modules/workforce/domain/types';
 import { createProjectSchema } from '@/modules/projects/validation/schemas';
 import { PROJECT_STATUSES, WORK_KINDS } from '@/modules/projects/domain/types';
 import { createExpenseSchema } from '@/modules/expenses/validation/schemas';
+import { createInventoryItemSchema } from '@/modules/assets/validation/schemas';
 import type { EnabledImportKind, ImportIssue, MappedImportRow } from '../domain/types';
 import { fieldDefsForKind } from '../domain/field-defs';
 import { isBlankOrTotalBoqRow, parseImportDecimal } from '../domain/boq-import-parse';
@@ -534,6 +535,36 @@ export function validateBoqItems(
   return issues;
 }
 
+function remapInventoryField(path: string | undefined): string | undefined {
+  if (path === 'quantityOnHand') return 'openingQty';
+  return path;
+}
+
+/** Qty catalog only — opening receive is not Actual. */
+function validateInventory(values: Readonly<Record<string, string>>): ImportIssue[] {
+  const issues: ImportIssue[] = [];
+  const parsed = createInventoryItemSchema.safeParse({
+    name: values.name ?? '',
+    sku: emptyToUndefined(values.sku),
+    barcode: emptyToUndefined(values.barcode),
+    unit: emptyToUndefined(values.unit),
+    quantityOnHand: emptyToUndefined(values.openingQty) ?? '0',
+    reorderLevel: emptyToUndefined(values.reorderLevel) ?? null,
+    minStockLevel: emptyToUndefined(values.minStockLevel) ?? null,
+  });
+  if (!parsed.success) {
+    for (const issue of parsed.error.issues) {
+      const field = remapInventoryField(issue.path.length ? String(issue.path[0]) : undefined);
+      issues.push({
+        severity: 'error',
+        field,
+        message: issue.message,
+      });
+    }
+  }
+  return issues;
+}
+
 export function validateMappedValues(
   kind: EnabledImportKind,
   values: Readonly<Record<string, string>>,
@@ -560,6 +591,8 @@ export function validateMappedValues(
       return validateCostCategories(values);
     case 'expenses':
       return validateExpenses(values, options.baseCurrency ?? 'ILS');
+    case 'inventory':
+      return validateInventory(values);
     case 'boq_items':
       return validateBoqItems(values, options.locale ?? 'en');
   }

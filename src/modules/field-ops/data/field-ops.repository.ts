@@ -1,5 +1,5 @@
-import { and, desc, eq, inArray, isNull } from 'drizzle-orm';
-import { dailyLogs, inspections, punchListItems } from '@drizzle/schema';
+import { and, asc, desc, eq, inArray, isNull } from 'drizzle-orm';
+import { dailyLogs, employees, inspections, punchListItems } from '@drizzle/schema';
 import {
   ORG_LIST_EXPORT_CAP,
   ORG_LIST_HARD_CAP,
@@ -44,6 +44,7 @@ function mapDailyLog(row: typeof dailyLogs.$inferSelect): DailyLogRecord {
     visitorNotes: row.visitorNotes,
     managerNotes: row.managerNotes,
     correctionNotes: row.correctionNotes ?? null,
+    linkedSafetyRecordId: row.linkedSafetyRecordId ?? null,
     workersOnSite: row.workersOnSite,
     subcontractorsOnSite: row.subcontractorsOnSite,
     equipmentOnSite: row.equipmentOnSite,
@@ -70,6 +71,7 @@ function mapPunch(row: typeof punchListItems.$inferSelect): PunchListItemRecord 
     priority: row.priority as PunchPriority,
     location: row.location,
     dueDate: asDateString(row.dueDate),
+    assigneeEmployeeId: row.assigneeEmployeeId ?? null,
     closedAt: row.closedAt,
     archivedAt: row.archivedAt,
     createdAt: row.createdAt,
@@ -90,6 +92,8 @@ function mapInspection(row: typeof inspections.$inferSelect): InspectionRecord {
     completedOn: asDateString(row.completedOn),
     result: row.result,
     notes: row.notes,
+    inspectorEmployeeId: row.inspectorEmployeeId ?? null,
+    formTemplateId: row.formTemplateId ?? null,
     archivedAt: row.archivedAt,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
@@ -182,6 +186,7 @@ export async function updateDailyLogById(
     visitorNotes: string | null;
     managerNotes: string | null;
     correctionNotes: string | null;
+    linkedSafetyRecordId: string | null;
     workersOnSite: string | null;
     subcontractorsOnSite: string | null;
     equipmentOnSite: string | null;
@@ -228,6 +233,25 @@ export async function findDailyLogByIdForUpdate(
     .from(dailyLogs)
     .where(and(eq(dailyLogs.id, id), eq(dailyLogs.organizationId, organizationId)))
     .for('update')
+    .limit(1);
+  return row ? mapDailyLog(row) : null;
+}
+
+export async function findDailyLogByLinkedSafetyRecordId(
+  db: DbExecutor,
+  organizationId: string,
+  safetyRecordId: string,
+): Promise<DailyLogRecord | null> {
+  const [row] = await db
+    .select()
+    .from(dailyLogs)
+    .where(
+      and(
+        eq(dailyLogs.organizationId, organizationId),
+        eq(dailyLogs.linkedSafetyRecordId, safetyRecordId),
+        isNull(dailyLogs.archivedAt),
+      ),
+    )
     .limit(1);
   return row ? mapDailyLog(row) : null;
 }
@@ -318,6 +342,7 @@ export async function updatePunchListItemById(
     priority: PunchPriority;
     location: string | null;
     dueDate: string | null;
+    assigneeEmployeeId: string | null;
     workPackageId: string | null;
     closedAt: Date | null;
   }>,
@@ -334,6 +359,18 @@ export async function updatePunchListItemById(
     .where(and(...conditions))
     .returning();
   return row ? mapPunch(row) : null;
+}
+
+export async function listActiveEmployeeNameOptions(
+  db: DbExecutor,
+  organizationId: string,
+): Promise<{ id: string; name: string }[]> {
+  const rows = await db
+    .select({ id: employees.id, name: employees.name })
+    .from(employees)
+    .where(and(eq(employees.organizationId, organizationId), isNull(employees.archivedAt)))
+    .orderBy(asc(employees.name));
+  return rows;
 }
 
 export interface InspectionListFilters {
@@ -419,6 +456,8 @@ export async function updateInspectionById(
     result: string | null;
     notes: string | null;
     workPackageId: string | null;
+    inspectorEmployeeId: string | null;
+    formTemplateId: string | null;
   }>,
   options?: { readonly fromStatuses?: readonly InspectionStatus[] },
 ): Promise<InspectionRecord | null> {

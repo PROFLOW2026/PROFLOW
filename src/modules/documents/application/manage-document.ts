@@ -8,6 +8,7 @@ import { getStoragePort, StorageNotConfiguredError } from '@/shared/ports/storag
 import { validateUploadConstraints } from '../domain/file-rules';
 import type { DocumentRecord, DownloadUrlResult } from '../domain/types';
 import { findDocumentById, listDeletedDocumentsNeedingStorageCleanup, updateDocumentById, flushDocumentCurrentVersionGuards } from '../data/documents.repository';
+import { assertCanReadStoredDocument } from './document-visibility';
 import { ensureFirstDocumentVersion } from '../data/versions.repository';
 import {
   isStorageOrphanChecksum,
@@ -116,7 +117,14 @@ export async function getDocumentById(
   documentId: string,
 ): Promise<DocumentRecord | null> {
   assertPermission(context, PERMISSIONS.DOCUMENTS_READ);
-  return findDocumentById(context.db, context.organizationId, documentId);
+  const document = await findDocumentById(context.db, context.organizationId, documentId);
+  if (!document) return null;
+  try {
+    await assertCanReadStoredDocument(context, document);
+  } catch {
+    return null;
+  }
+  return document;
 }
 
 export async function createDocumentDownloadUrl(
@@ -134,6 +142,7 @@ export async function createDocumentDownloadUrl(
 
   const document = await findDocumentById(context.db, context.organizationId, parsed.data.documentId);
   if (!document) throw new NotFoundError('Document');
+  await assertCanReadStoredDocument(context, document);
 
   if (document.status !== 'available' || document.deletedAt) {
     throw new NotFoundError('Document');
@@ -180,6 +189,7 @@ export async function softDeleteDocument(
 
   const existing = await findDocumentById(context.db, context.organizationId, parsed.data.documentId);
   if (!existing) throw new NotFoundError('Document');
+  await assertCanReadStoredDocument(context, existing);
 
   const storage = getStoragePort();
   const updated = await updateDocumentById(context.db, context.organizationId, parsed.data.documentId, {

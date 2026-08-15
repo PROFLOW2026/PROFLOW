@@ -1,7 +1,13 @@
-import { and, asc, eq, ilike, isNull, or, sql } from 'drizzle-orm';
-import { employees } from '@drizzle/schema';
+import { and, asc, eq, ilike, isNotNull, isNull, ne, or, sql } from 'drizzle-orm';
+import { employees, organizationMemberships, profiles } from '@drizzle/schema';
 import type { DbExecutor } from '@/shared/db/types';
 import type { EmployeeListItem, EmployeeRecord, RateUnit } from '../domain/types';
+
+export interface OrgMemberLinkOption {
+  readonly userId: string;
+  readonly email: string;
+  readonly displayName: string | null;
+}
 
 function mapEmployee(row: typeof employees.$inferSelect): EmployeeRecord {
   return {
@@ -192,4 +198,65 @@ export async function countEmployees(db: DbExecutor, organizationId: string): Pr
     .where(and(eq(employees.organizationId, organizationId), isNull(employees.archivedAt)));
 
   return row?.count ?? 0;
+}
+
+export async function findEmployeeByLinkedUserId(
+  db: DbExecutor,
+  organizationId: string,
+  userId: string,
+  exceptEmployeeId?: string,
+): Promise<EmployeeRecord | null> {
+  const conditions = [
+    eq(employees.organizationId, organizationId),
+    eq(employees.userId, userId),
+  ];
+  if (exceptEmployeeId) {
+    conditions.push(ne(employees.id, exceptEmployeeId));
+  }
+  const [row] = await db.select().from(employees).where(and(...conditions)).limit(1);
+  return row ? mapEmployee(row) : null;
+}
+
+/** Active org members for the employee ↔ login picker (tenant-scoped). */
+export async function listActiveOrgMembersForLinking(
+  db: DbExecutor,
+  organizationId: string,
+): Promise<OrgMemberLinkOption[]> {
+  const rows = await db
+    .select({
+      userId: organizationMemberships.userId,
+      email: profiles.email,
+      displayName: profiles.displayName,
+    })
+    .from(organizationMemberships)
+    .innerJoin(profiles, eq(profiles.id, organizationMemberships.userId))
+    .where(
+      and(
+        eq(organizationMemberships.organizationId, organizationId),
+        eq(organizationMemberships.status, 'active'),
+      ),
+    )
+    .orderBy(asc(profiles.displayName), asc(profiles.email));
+
+  return rows;
+}
+
+export async function listLinkedEmployeeUserIds(
+  db: DbExecutor,
+  organizationId: string,
+  exceptEmployeeId?: string,
+): Promise<Set<string>> {
+  const conditions = [
+    eq(employees.organizationId, organizationId),
+    isNotNull(employees.userId),
+  ];
+  if (exceptEmployeeId) {
+    conditions.push(ne(employees.id, exceptEmployeeId));
+  }
+  const rows = await db
+    .select({ userId: employees.userId })
+    .from(employees)
+    .where(and(...conditions));
+
+  return new Set(rows.map((row) => row.userId).filter((id): id is string => Boolean(id)));
 }

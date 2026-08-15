@@ -13,6 +13,7 @@ import { assertCanTransitionQuoteStatus } from '../domain/lifecycle';
 import { QUOTES_AUDIT_ACTIONS, type QuoteRecord, type QuoteStatus } from '../domain/types';
 import { findQuoteById, updateQuoteById } from '../data/quotes.repository';
 import { transitionQuoteSchema, type TransitionQuoteInput } from '../validation/schemas';
+import { recordQuoteClientActivity } from './timeline-events';
 
 const DECISION_STATUSES: readonly QuoteStatus[] = [
   'accepted',
@@ -89,6 +90,27 @@ export async function transitionQuoteStatus(
     before: { status: existing.status },
     after: { status: updated.status, sentAt: updated.sentAt, decidedAt: updated.decidedAt },
   });
+
+  if (toStatus === 'sent') {
+    await recordQuoteClientActivity(context, {
+      clientId: updated.clientId,
+      kind: 'quote_submitted',
+      entityType: 'estimate',
+      entityId: updated.id,
+      summary: updated.title,
+      deepLink: `/quotes/${updated.id}`,
+    });
+  }
+  if (toStatus === 'accepted') {
+    await recordQuoteClientActivity(context, {
+      clientId: updated.clientId,
+      kind: 'quote_approved',
+      entityType: 'estimate',
+      entityId: updated.id,
+      summary: updated.title,
+      deepLink: `/quotes/${updated.id}`,
+    });
+  }
 
   return updated;
 }

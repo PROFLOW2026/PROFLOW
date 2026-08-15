@@ -344,6 +344,10 @@ export async function createSubcontractorScheduleAction(
         projectId,
         boqId: String(formData.get('boqId') ?? ''),
         vendorEngagementId: String(formData.get('vendorEngagementId') ?? ''),
+        subcontractAgreementId: (() => {
+          const raw = String(formData.get('subcontractAgreementId') ?? '').trim();
+          return raw ? raw : undefined;
+        })(),
         title: formData.get('title') ? String(formData.get('title')) : undefined,
       }),
     );
@@ -468,6 +472,10 @@ export async function createDraftApFromSubcontractorValuationAction(
     await withOrgContext((context) =>
       createDraftApFromSubcontractorValuation(context, {
         valuationId: String(formData.get('valuationId') ?? ''),
+        retentionPercent: (() => {
+          const raw = String(formData.get('retentionPercent') ?? '').trim();
+          return raw ? raw : undefined;
+        })(),
       }),
     );
     revalidateProject(projectId);

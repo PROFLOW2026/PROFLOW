@@ -17,7 +17,16 @@ import {
 
 export interface SubEngagementOption {
   readonly id: string;
+  readonly vendorId: string;
   readonly label: string;
+}
+
+export interface SubAgreementOption {
+  readonly id: string;
+  readonly vendorId: string;
+  readonly title: string;
+  readonly retentionPercent: string | null;
+  readonly status: string;
 }
 
 export interface SubBoqItemOption {
@@ -45,6 +54,8 @@ export interface SubScheduleView {
   readonly title: string | null;
   readonly status: string;
   readonly currency: string;
+  readonly subcontractAgreementId: string | null;
+  readonly retentionPercent: string | null;
   readonly lines: readonly SubScheduleLineView[];
   readonly valuations: readonly SubValuationView[];
 }
@@ -55,6 +66,7 @@ export interface SubcontractorSchedulePanelProps {
   readonly canManage: boolean;
   readonly canProposeApDraft: boolean;
   readonly engagements: readonly SubEngagementOption[];
+  readonly agreements: readonly SubAgreementOption[];
   readonly items: readonly SubBoqItemOption[];
   readonly schedules: readonly SubScheduleView[];
 }
@@ -70,11 +82,14 @@ export function SubcontractorSchedulePanel({
   canManage,
   canProposeApDraft,
   engagements,
+  agreements,
   items,
   schedules,
 }: SubcontractorSchedulePanelProps) {
   const t = useTranslations('boq');
   const [selectedScheduleId, setSelectedScheduleId] = useState(schedules[0]?.id ?? '');
+  const [engagementId, setEngagementId] = useState(engagements[0]?.id ?? '');
+  const [agreementId, setAgreementId] = useState('');
   const [createState, createAction, createPending] = useActionState(
     createSubcontractorScheduleAction,
     {} as BoqFormState,
@@ -103,6 +118,14 @@ export function SubcontractorSchedulePanel({
   const selected = schedules.find((s) => s.id === selectedScheduleId) ?? schedules[0] ?? null;
   const isDraft = selected?.status === 'draft';
   const isActive = selected?.status === 'active';
+  const selectedEngagement = engagements.find((row) => row.id === engagementId) ?? engagements[0];
+  const agreementsForVendor = selectedEngagement
+    ? agreements.filter((row) => row.vendorId === selectedEngagement.vendorId)
+    : [];
+  const resolvedAgreementId =
+    agreementId && agreementsForVendor.some((row) => row.id === agreementId) ? agreementId : '';
+  const selectedAgreement = agreementsForVendor.find((row) => row.id === resolvedAgreementId);
+  const draftRetentionDefault = selected?.retentionPercent ?? '';
 
   return (
     <section className="flex min-w-0 flex-col gap-4 border-t border-[var(--pf-border-default)] pt-6">
@@ -174,6 +197,21 @@ export function SubcontractorSchedulePanel({
               <select
                 name="vendorEngagementId"
                 required
+                value={selectedEngagement?.id ?? ''}
+                onChange={(event) => {
+                  const nextId = event.target.value;
+                  setEngagementId(nextId);
+                  const nextEngagement = engagements.find((row) => row.id === nextId);
+                  if (
+                    resolvedAgreementId &&
+                    nextEngagement &&
+                    !agreements.some(
+                      (row) => row.id === resolvedAgreementId && row.vendorId === nextEngagement.vendorId,
+                    )
+                  ) {
+                    setAgreementId('');
+                  }
+                }}
                 className="w-full rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] px-2 py-2 text-sm"
               >
                 {engagements.map((e) => (
@@ -182,6 +220,37 @@ export function SubcontractorSchedulePanel({
                   </option>
                 ))}
               </select>
+            </label>
+            <label className="flex flex-col gap-1 text-sm text-start">
+              <span>{t('subcontractor.agreement')}</span>
+              <select
+                name="subcontractAgreementId"
+                value={resolvedAgreementId}
+                onChange={(event) => {
+                  const nextAgreementId = event.target.value;
+                  setAgreementId(nextAgreementId);
+                  const agreement = agreements.find((row) => row.id === nextAgreementId);
+                  if (!agreement) return;
+                  const preferred = engagements.find((row) => row.vendorId === agreement.vendorId);
+                  if (preferred) setEngagementId(preferred.id);
+                }}
+                className="w-full rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] px-2 py-2 text-sm"
+              >
+                <option value="">{t('subcontractor.agreementNone')}</option>
+                {agreementsForVendor.map((agreement) => (
+                  <option key={agreement.id} value={agreement.id}>
+                    {agreement.title}
+                    {agreement.retentionPercent ? ` · ${agreement.retentionPercent}%` : ''}
+                  </option>
+                ))}
+              </select>
+              {selectedAgreement?.retentionPercent ? (
+                <span className="text-xs text-[var(--pf-text-muted)]">
+                  {t('subcontractor.agreementRetention', {
+                    percent: selectedAgreement.retentionPercent,
+                  })}
+                </span>
+              ) : null}
             </label>
             <label className="flex flex-col gap-1 text-sm text-start">
               <span>{t('fields.title')}</span>
@@ -339,9 +408,21 @@ export function SubcontractorSchedulePanel({
                       {valuation.periodLabel} · {valuation.status}
                     </span>
                     {canProposeApDraft ? (
-                      <Button type="submit" size="sm" disabled={draftApPending}>
-                        {t('subcontractor.createDraftAp')}
-                      </Button>
+                      <>
+                        <label className="flex min-w-32 flex-col gap-1 text-xs text-start">
+                          <span>{t('subcontractor.retentionPercent')}</span>
+                          <Input
+                            name="retentionPercent"
+                            defaultValue={draftRetentionDefault}
+                            inputMode="decimal"
+                            dir="ltr"
+                            placeholder={selected?.retentionPercent ?? undefined}
+                          />
+                        </label>
+                        <Button type="submit" size="sm" disabled={draftApPending}>
+                          {t('subcontractor.createDraftAp')}
+                        </Button>
+                      </>
                     ) : (
                       <p className="text-xs text-[var(--pf-text-muted)]">
                         {t('subcontractor.draftApNeedsPermission')}

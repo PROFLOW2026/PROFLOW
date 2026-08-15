@@ -147,6 +147,87 @@ describe('composeProjectFinancials', () => {
     expect(result.billing.monthCloseRevenueNet.amount).toBe('30.000000');
   });
 
+  it('keeps profit at project level when multiple contracts contribute CCV', () => {
+    const currency = 'ILS';
+    const primaryPosition = {
+      originalContractValue: money('100000', currency),
+      approvedAdditions: zeroMoney(currency),
+      approvedReductions: zeroMoney(currency),
+      currentContractValue: money('100000', currency),
+      pendingChanges: zeroMoney(currency),
+    };
+    const additionalPosition = {
+      originalContractValue: money('40000', currency),
+      approvedAdditions: zeroMoney(currency),
+      approvedReductions: zeroMoney(currency),
+      currentContractValue: money('40000', currency),
+      pendingChanges: zeroMoney(currency),
+    };
+    const result = composeProjectFinancials({
+      projectId: 'p1',
+      currency,
+      expectedRemainingCostAmount: null,
+      canReadCommercial: true,
+      canReadBilling: true,
+      canReadProfit: true,
+      commercialData: {
+        currency,
+        position: {
+          originalContractValue: money('140000', currency),
+          approvedAdditions: zeroMoney(currency),
+          approvedReductions: zeroMoney(currency),
+          currentContractValue: money('140000', currency),
+          pendingChanges: zeroMoney(currency),
+        },
+        perContract: [
+          {
+            contractId: 'c-primary',
+            projectId: 'p1',
+            isPrimary: true,
+            name: 'Main',
+            contractType: 'primary',
+            status: 'active',
+            currency,
+            position: primaryPosition,
+          },
+          {
+            contractId: 'c-extra',
+            projectId: 'p1',
+            isPrimary: false,
+            name: 'Facade',
+            contractType: 'additional',
+            status: 'active',
+            currency,
+            position: additionalPosition,
+          },
+        ],
+      },
+      billingRows: { currency, records: [] },
+      expenseContributions: [
+        {
+          amount: '40000.00',
+          currency,
+          costFamily: 'direct_project',
+          isDirectOnProject: true,
+          isAllocated: false,
+          isSubcontractor: false,
+          projectId: 'p1',
+          expenseId: 'e1',
+        },
+      ],
+      laborInput: null,
+      committed: null,
+      openAp: null,
+      recognizedVendor: null,
+    });
+
+    expect(result.perContract).toHaveLength(2);
+    expect(result.commercial?.currentContractValue.amount).toBe('140000.000000');
+    expect(result.cost.actualCostToDate.amount).toBe('40000.000000');
+    expect(result.profit?.actualProfit.amount).toBe('100000.000000');
+    expect(result.perContract?.every((slice) => !('profit' in slice))).toBe(true);
+  });
+
   it('throws when a month-close net uses the wrong currency', () => {
     expect(() =>
       composeProjectFinancials({
@@ -181,5 +262,15 @@ describe('org rollup query-shape contract', () => {
     const queriesAfterMax = 2 + 12;
     expect(queriesAfterMax).toBeLessThan(queriesBefore / 10);
     expect(queriesAfterMax).toBeLessThanOrEqual(14);
+  });
+});
+
+describe('multi-contract financials copy', () => {
+  it('states that cost and profit stay at project level', async () => {
+    const en = await import('@/locales/en/financial.json');
+    const he = await import('@/locales/he-IL/financial.json');
+    expect(en.default.perContract.costProfitHint.toLowerCase()).toContain('project-level');
+    expect(en.default.perContract.costProfitHint.toLowerCase()).not.toContain('allocated profit');
+    expect(he.default.perContract.costProfitHint).toContain('ברמת הפרויקט');
   });
 });

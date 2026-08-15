@@ -2,14 +2,17 @@
 export {
   createDailyLog,
   getDailyLogForOrg,
+  getDailyLogLinkedToSafetyRecord,
   listDailyLogsForOrg,
   updateDailyLog,
   transitionDailyLogStatus,
   appendDailyLogCorrection,
+  linkDailyLogSafetyRecord,
 } from './application/daily-logs';
 export {
   createPunchListItem,
   getPunchListItemForOrg,
+  listPunchAssigneeOptions,
   listPunchListItemsForOrg,
   updatePunchListItem,
 } from './application/punch-list';
@@ -19,6 +22,14 @@ export {
   listInspectionsForOrg,
   updateInspection,
 } from './application/inspections';
+export {
+  listInspectionFormTemplateOptions,
+  getInspectionFormGateState,
+} from './application/inspection-form';
+export type {
+  InspectionFormTemplateOption,
+  InspectionFormGateState,
+} from './application/inspection-form';
 export { getProjectFieldOpsSummary, countOpenPunchItems, selectUpcomingInspections } from './application/project-summary';
 export type { ProjectFieldOpsSummary } from './application/project-summary';
 export { listFieldOpsWorkPackages } from './application/work-packages';
@@ -63,6 +74,12 @@ export {
   isCompletedInspectionStatus,
 } from './domain/inspection-status';
 export {
+  isInspectionFormRequired,
+  hasSubmittedInspectionForm,
+  assertInspectionCompletionForm,
+} from './domain/inspection-form-gate';
+export type { InspectionFormSubmissionRef } from './domain/inspection-form-gate';
+export {
   canTransitionDailyLogStatus,
   assertDailyLogStatusTransition,
   assertDailyLogContentMutable,
@@ -74,6 +91,7 @@ export {
   updateDailyLogSchema,
   transitionDailyLogStatusSchema,
   appendDailyLogCorrectionSchema,
+  linkDailyLogSafetyRecordSchema,
   createPunchListItemSchema,
   updatePunchListItemSchema,
   createInspectionSchema,
@@ -84,6 +102,7 @@ export type {
   UpdateDailyLogInput,
   TransitionDailyLogStatusInput,
   AppendDailyLogCorrectionInput,
+  LinkDailyLogSafetyRecordInput,
   CreatePunchListItemInput,
   UpdatePunchListItemInput,
   CreateInspectionInput,

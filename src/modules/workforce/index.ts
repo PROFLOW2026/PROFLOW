@@ -1,9 +1,17 @@
 /** Public API of the workforce module (doc 76 §3). */
-export { createEmployee, getEmployee, listEmployeesForOrg, updateEmployee, archiveEmployee, restoreEmployee } from './application/employees';
+export { createEmployee, getEmployee, listEmployeesForOrg, listLinkableOrgMembers, updateEmployee, archiveEmployee, restoreEmployee } from './application/employees';
 export type { EmployeeDetail } from './application/employees';
+export type { OrgMemberLinkOption } from './data/employees.repository';
 
 export { createRateVersion, listRateHistory } from './application/rate-versions';
 export type { RateVersionDetail } from './application/rate-versions';
+
+export {
+  assertCanActOnEmployeeTime,
+  assertNotSelfTimeApproval,
+  canReadOrgWorkforce,
+  isUnrestrictedOwner,
+} from './application/time-scope';
 
 export {
   assertCanManageWorkforceCost,
@@ -29,6 +37,7 @@ export {
   correctTimeEntry,
   listNonProjectCodes,
   listProjectTimeEntries,
+  listProjectsForTimeLog,
   listTimeEntriesForOrg,
   resolveTimeEntryCostSnapshot,
   suggestDefaultEmployee,

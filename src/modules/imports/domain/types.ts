@@ -11,6 +11,7 @@ export const IMPORT_KINDS = [
   'opening_values',
   'cost_categories',
   'expenses',
+  'inventory',
   'boq_items',
 ] as const;
 
@@ -20,6 +21,7 @@ export type ImportKind = (typeof IMPORT_KINDS)[number];
  * Kinds confirmable via canonical create* APIs (or additive catalog inserts).
  * Expenses create draft rows only — never finalize/bypass money rules.
  * Opening values use the same contract opening path as project create/edit.
+ * Inventory uses createInventoryItem (qty receive to default location — not Actual).
  */
 export const ENABLED_IMPORT_KINDS = [
   'clients',
@@ -30,6 +32,7 @@ export const ENABLED_IMPORT_KINDS = [
   'opening_values',
   'cost_categories',
   'expenses',
+  'inventory',
   'boq_items',
 ] as const satisfies readonly ImportKind[];
 

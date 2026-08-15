@@ -41,6 +41,8 @@ export interface TimeEntryFormProps {
   readonly defaultDate: string;
   readonly recentProjectId: string | null;
   readonly assignedEmployeeIds?: readonly string[];
+  /** When true, the employee picker is fixed to the linked employee. */
+  readonly employeeLocked?: boolean;
   /** When set, submit voids this entry and inserts a replacement. */
   readonly correctsEntryId?: string | null;
   readonly initialHours?: string;
@@ -60,6 +62,7 @@ export function TimeEntryForm({
   defaultDate,
   recentProjectId,
   assignedEmployeeIds = [],
+  employeeLocked = false,
   correctsEntryId = null,
   initialHours = '',
   initialDescription = null,
@@ -191,6 +194,13 @@ export function TimeEntryForm({
         {(control) => (
           <>
             <input type="hidden" name="employeeId" value={employeeId} />
+            {employeeLocked ? (
+              <Input
+                {...control}
+                readOnly
+                value={employees.find((row) => row.id === employeeId)?.name ?? ''}
+              />
+            ) : (
             <Select value={employeeId} onValueChange={setEmployeeId}>
               <SelectTrigger id={control.id} aria-describedby={control['aria-describedby']}>
                 <SelectValue placeholder={t('time.form.employeePlaceholder')} />
@@ -224,6 +234,7 @@ export function TimeEntryForm({
                 )}
               </SelectContent>
             </Select>
+            )}
           </>
         )}
       </Field>

@@ -128,6 +128,7 @@ export const crmOpportunities = pgTable(
     ...timestamps(),
   },
   (table) => [
+    uniqueIndex('crm_opportunities_id_organization_id_uq').on(table.id, table.organizationId),
     index('crm_opportunities_org_idx').on(table.organizationId),
     index('crm_opportunities_org_status_idx').on(table.organizationId, table.status),
     check(

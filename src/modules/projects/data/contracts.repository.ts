@@ -363,13 +363,24 @@ export async function listContractsByProject(
   organizationId: string,
   projectId: string,
 ): Promise<ContractRecord[]> {
+  return listContractsForProjects(db, organizationId, [projectId]);
+}
+
+/** Non-archived contracts across many projects — primary first per project, then created order. */
+export async function listContractsForProjects(
+  db: DbExecutor,
+  organizationId: string,
+  projectIds: readonly string[],
+): Promise<ContractRecord[]> {
+  if (projectIds.length === 0) return [];
+
   const rows = await db
     .select()
     .from(contracts)
     .where(
       and(
         eq(contracts.organizationId, organizationId),
-        eq(contracts.projectId, projectId),
+        inArray(contracts.projectId, [...projectIds]),
         isNull(contracts.archivedAt),
       ),
     )

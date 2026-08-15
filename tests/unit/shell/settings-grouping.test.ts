@@ -69,6 +69,12 @@ describe('settings section grouping', () => {
     expect(accessibleSections(context).some((section) => section.key === 'business')).toBe(true);
   });
 
+  it('keeps OCR out of the static listed nav until ingestion is enabled', () => {
+    const ocr = SETTINGS_SECTIONS.find((section) => section.key === 'ocr')!;
+    expect(ocr.hideFromNav).toBe(true);
+    expect(ocr.href).toBe('/settings/ocr');
+  });
+
   it('groups accessible sections in SETTINGS_NAV_GROUP_ORDER', () => {
     const context = contextWith([
       PERMISSIONS.ORG_READ,

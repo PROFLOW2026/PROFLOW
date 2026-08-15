@@ -9,7 +9,6 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import {
   acceptSalesQuoteVersionAction,
-  convertWonOpportunityAction,
   createEstimateAction,
   createOpportunityNoteAction,
   createSalesQuoteAction,
@@ -18,6 +17,8 @@ import {
   updateOpportunityAction,
   type CrmFormState,
 } from '../../actions';
+import { productQuoteCreateHref, productQuoteDetailHref } from '@/modules/quotes/domain/product-path';
+import { Link } from '@/shared/i18n/navigation';
 
 function toDatetimeLocalValue(value: Date | string | null): string {
   if (!value) return '';
@@ -29,18 +30,21 @@ function toDatetimeLocalValue(value: Date | string | null): string {
 
 export function OpportunityFollowUpForm({
   opportunityId,
+  stage,
   notes,
   expectedStartDate,
   nextActionAt,
   nextActionText,
 }: {
   opportunityId: string;
+  stage: 'qualify' | 'estimate' | 'quote' | 'negotiation' | 'won' | 'lost';
   notes: string | null;
   expectedStartDate: string | null;
   nextActionAt: Date | null;
   nextActionText: string | null;
 }) {
   const t = useTranslations('crm.followUp');
+  const tStages = useTranslations('crm.stages');
   const tCommon = useTranslations('common');
   const [state, formAction, pending] = useActionState<CrmFormState, FormData>(
     updateOpportunityAction,
@@ -51,6 +55,23 @@ export function OpportunityFollowUpForm({
     <form action={formAction} className="flex flex-col gap-3">
       <input type="hidden" name="opportunityId" value={opportunityId} />
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
+      <Field label={t('stageLabel')} description={t('stageHint')}>
+        {(control) => (
+          <select
+            {...control}
+            name="stage"
+            defaultValue={stage}
+            className="block min-h-11 w-full rounded-md border border-[var(--pf-border-strong)] bg-[var(--pf-bg-surface)] px-3 py-2 text-sm"
+          >
+            <option value="qualify">{tStages('qualify')}</option>
+            <option value="estimate">{tStages('estimate')}</option>
+            <option value="quote">{tStages('quote')}</option>
+            <option value="negotiation">{tStages('negotiation')}</option>
+            <option value="won">{tStages('won')}</option>
+            <option value="lost">{tStages('lost')}</option>
+          </select>
+        )}
+      </Field>
       <Field
         label={t('nextActionLabel')}
         optionalLabel={tCommon('labels.optional')}
@@ -268,62 +289,55 @@ export function MarkLostForm({ opportunityId }: { opportunityId: string }) {
   );
 }
 
-export function ConvertWonForm({
+export function CreateProductQuoteLink({
   opportunityId,
-  defaultProjectName,
-  acceptedVersionId,
-  netAmount,
-  taxAmount,
-  totalAmount,
-  currency,
 }: {
   opportunityId: string;
-  defaultProjectName: string;
-  acceptedVersionId: string | null;
+}) {
+  const t = useTranslations('crm.opportunity');
+  return (
+    <Button asChild>
+      <Link href={productQuoteCreateHref(opportunityId)}>{t('createProductQuote')}</Link>
+    </Button>
+  );
+}
+
+export function ConvertWonForm({
+  opportunityId,
+  acceptedProductQuoteId,
+}: {
+  opportunityId: string;
+  defaultProjectName?: string;
+  acceptedVersionId?: string | null;
+  acceptedProductQuoteId?: string | null;
   netAmount?: string | null;
   taxAmount?: string | null;
   totalAmount?: string | null;
   currency?: string;
 }) {
   const t = useTranslations('crm.convert');
-  const [state, formAction, pending] = useActionState<CrmFormState, FormData>(
-    convertWonOpportunityAction,
-    {},
-  );
 
-  if (!acceptedVersionId) {
+  if (acceptedProductQuoteId) {
     return (
-      <Alert tone="warning" title={t('blockedTitle')}>
-        {t('requiresAcceptedQuote')}
-      </Alert>
+      <div className="flex flex-col gap-3">
+        <Alert tone="success" title={t('headline')}>
+          {t('useQuotesConvert')}
+        </Alert>
+        <Button asChild>
+          <Link href={productQuoteDetailHref(acceptedProductQuoteId)}>{t('openProductQuote')}</Link>
+        </Button>
+      </div>
     );
   }
 
   return (
-    <form action={formAction} className="flex flex-col gap-3">
-      <input type="hidden" name="opportunityId" value={opportunityId} />
-      <input type="hidden" name="salesQuoteVersionId" value={acceptedVersionId} />
-      {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
-      <Alert tone="success" title={t('headline')}>
-        {t('description')}
+    <div className="flex flex-col gap-3">
+      <Alert tone="warning" title={t('blockedTitle')}>
+        {t('requiresProductQuote')}
       </Alert>
-      {netAmount && currency ? (
-        <p className="text-sm text-[var(--pf-text-secondary)]" dir="ltr">
-          {t('netBaseline', {
-            net: netAmount,
-            tax: taxAmount ?? '0',
-            total: totalAmount ?? netAmount,
-            currency,
-          })}
-        </p>
-      ) : null}
-      <p className="text-xs text-[var(--pf-text-muted)]">{t('vatNote')}</p>
-      <Field label={t('projectNameLabel')}>
-        {(control) => <Input {...control} name="projectName" defaultValue={defaultProjectName} />}
-      </Field>
-      <Button type="submit" size="lg" loading={pending} className="self-start sm:self-auto">
-        {t('submit')}
+      <Button asChild>
+        <Link href={productQuoteCreateHref(opportunityId)}>{t('createQuote')}</Link>
       </Button>
-    </form>
+    </div>
   );
 }

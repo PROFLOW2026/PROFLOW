@@ -10,6 +10,7 @@ export const FORM_OWNER_TYPES = [
   'planning_task',
   'maintenance',
   'field_log',
+  'inspection',
 ] as const;
 export type FormOwnerType = (typeof FORM_OWNER_TYPES)[number];
 

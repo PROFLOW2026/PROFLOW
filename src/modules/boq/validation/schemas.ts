@@ -124,6 +124,7 @@ export const createSubcontractorScheduleSchema = z.object({
   projectId: z.string().uuid(),
   boqId: z.string().uuid(),
   vendorEngagementId: z.string().uuid(),
+  subcontractAgreementId: z.string().uuid().optional().nullable(),
   title: z.string().trim().max(200).optional(),
   notes: z.string().trim().max(4000).optional(),
 });
@@ -177,6 +178,8 @@ export type ProposeSubcontractorValuationApInput = z.infer<
 
 export const createDraftApFromSubcontractorValuationSchema = z.object({
   valuationId: z.string().uuid(),
+  /** Override agreement retention %; omit to use the linked agreement percent. */
+  retentionPercent: decimalString.optional(),
 });
 export type CreateDraftApFromSubcontractorValuationInput = z.infer<
   typeof createDraftApFromSubcontractorValuationSchema

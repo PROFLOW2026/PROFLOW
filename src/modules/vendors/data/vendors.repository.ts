@@ -457,6 +457,29 @@ export async function findVendorEngagementById(
   return row ? mapEngagement(row) : null;
 }
 
+export async function findActiveEngagementForVendorProject(
+  db: DbExecutor,
+  organizationId: string,
+  vendorId: string,
+  projectId: string,
+): Promise<VendorEngagementRecord | null> {
+  const [row] = await db
+    .select()
+    .from(vendorEngagements)
+    .where(
+      and(
+        eq(vendorEngagements.organizationId, organizationId),
+        eq(vendorEngagements.vendorId, vendorId),
+        eq(vendorEngagements.projectId, projectId),
+        eq(vendorEngagements.status, 'active'),
+        isNull(vendorEngagements.archivedAt),
+      ),
+    )
+    .limit(1);
+
+  return row ? mapEngagement(row) : null;
+}
+
 /**
  * List engagements for a vendor. Overlapping / multi-project spans are allowed.
  * Does not join expenses or labor — engagement is not Actual.

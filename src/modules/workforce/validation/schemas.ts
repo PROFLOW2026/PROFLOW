@@ -62,7 +62,10 @@ export const createEmployeeSchema = z.object({
   burdenPercent: percentSchema,
   validFrom: businessDateSchema.optional(),
   status: z.enum(EMPLOYEE_STATUSES).optional(),
-  userId: z.string().uuid().optional().nullable(),
+  userId: z.preprocess(
+    (value) => (value === '' ? null : value),
+    z.string().uuid().nullable().optional(),
+  ),
   employeeNumber: z.string().trim().max(64).optional().nullable(),
   jobTitle: z.string().trim().max(200).optional().nullable(),
   email: z.string().trim().email().optional().nullable().or(z.literal('')),
@@ -76,7 +79,10 @@ export type CreateEmployeeInput = z.infer<typeof createEmployeeSchema>;
 export const updateEmployeeSchema = z.object({
   name: z.string().trim().min(1).max(200).optional(),
   status: z.enum(EMPLOYEE_STATUSES).optional(),
-  userId: z.string().uuid().optional().nullable(),
+  userId: z.preprocess(
+    (value) => (value === '' ? null : value),
+    z.string().uuid().nullable().optional(),
+  ),
   employeeNumber: z.string().trim().max(64).optional().nullable(),
   jobTitle: z.string().trim().max(200).optional().nullable(),
   email: z.string().trim().email().optional().nullable().or(z.literal('')),
@@ -351,7 +357,7 @@ const isoDateTimeSchema = z
   .refine((value) => !Number.isNaN(new Date(value).getTime()), { message: 'Invalid timestamp' });
 
 export const clockAttendanceSchema = z.object({
-  eventType: z.enum(['clock_in', 'clock_out']),
+  eventType: z.enum(['clock_in', 'clock_out', 'break_start', 'break_end']),
   employeeId: z.string().uuid().optional(),
   workDate: businessDateSchema.optional(),
   occurredAt: isoDateTimeSchema.optional(),

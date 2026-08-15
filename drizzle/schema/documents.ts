@@ -55,6 +55,8 @@ export const documents = pgTable(
     isRequired: boolean('is_required').notNull().default(false),
     requiredType: text('required_type'),
     currentVersionId: uuid('current_version_id'),
+    /** standard = ordinary file; compensation = rates/pay docs — requires workforce.cost.read */
+    privacyClass: text('privacy_class').notNull().default('standard'),
     deletedAt: timestamp('deleted_at', { withTimezone: true, mode: 'date' }),
     ...timestamps(),
   },
@@ -64,6 +66,10 @@ export const documents = pgTable(
     index('documents_org_idx').on(table.organizationId),
     index('documents_org_folder_idx').on(table.organizationId, table.folderId),
     index('documents_org_expires_idx').on(table.organizationId, table.expiresAt),
+    check(
+      'documents_privacy_class_known',
+      sql`${table.privacyClass} IN ('standard', 'compensation')`,
+    ),
     check(
       'documents_storage_cleanup_status_known',
       sql`${table.storageCleanupStatus} IS NULL OR ${table.storageCleanupStatus} IN ('pending', 'succeeded', 'failed')`,

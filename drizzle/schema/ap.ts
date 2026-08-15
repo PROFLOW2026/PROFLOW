@@ -78,6 +78,7 @@ export const apBills = pgTable(
     /** Held cash timing — does NOT reduce recognized Actual. */
     retentionAmount: moneyAmount('retention_amount').notNull().default('0'),
     retentionHeldRemaining: moneyAmount('retention_held_remaining').notNull().default('0'),
+    subcontractAgreementId: uuid('subcontract_agreement_id'),
     notes: text('notes'),
     archivedAt: archivedAt(),
     ...timestamps(),

@@ -61,6 +61,7 @@ export function PurchaseOrderReceiveForm({
       <div className="flex flex-col gap-1">
         <h2 className="text-base font-semibold text-[var(--pf-text-primary)]">{t('title')}</h2>
         <p className="text-sm text-[var(--pf-text-muted)]">{t('description')}</p>
+        <p className="text-sm text-[var(--pf-text-muted)]">{t('threeActionsHint')}</p>
       </div>
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
       {state.success ? <Alert tone="success">{t('success')}</Alert> : null}

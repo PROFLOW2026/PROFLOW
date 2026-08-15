@@ -7,6 +7,7 @@ import type { DocumentRecord } from '../domain/types';
 import { findDocumentById, updateDocumentById } from '../data/documents.repository';
 import { findDocumentFolderById } from '../data/folders.repository';
 import { setDocumentMetadataSchema } from '../validation/schemas';
+import { assertCanReadStoredDocument } from './document-visibility';
 
 export async function setDocumentMetadata(
   context: OrgContext,
@@ -33,6 +34,7 @@ export async function setDocumentMetadata(
   if (!existing || existing.status === 'deleted' || existing.deletedAt) {
     throw new NotFoundError('Document');
   }
+  await assertCanReadStoredDocument(context, existing);
 
   if (parsed.data.category && !isDocumentCategory(parsed.data.category)) {
     throw new ValidationError([{ path: 'category', message: 'Unknown category' }]);

@@ -1065,6 +1065,7 @@ export async function insertSubcontractorSchedule(
     projectId: string;
     boqId: string;
     vendorEngagementId: string;
+    subcontractAgreementId?: string | null;
     title: string | null;
     currency: string;
     notes: string | null;

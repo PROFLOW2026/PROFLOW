@@ -3,6 +3,7 @@ import { createVendor } from '@/modules/vendors';
 import { createEmployee } from '@/modules/workforce';
 import { createProject, upsertPrimaryContractAmount } from '@/modules/projects';
 import { createExpense } from '@/modules/expenses';
+import { createInventoryItem } from '@/modules/assets';
 import { costCategories } from '@drizzle/schema';
 import type { OrgContext } from '@/shared/auth/context';
 import { AppError, ValidationError } from '@/shared/errors';
@@ -221,6 +222,20 @@ async function createFromRow(
           | null
           | undefined,
         notes: emptyToUndefined(v.notes) ?? null,
+      });
+      return created.id;
+    }
+    case 'inventory': {
+      // Canonical createInventoryItem: opening qty is a qty receive to the
+      // default location when present — never Actual / Expense / FIFO.
+      const created = await createInventoryItem(context, {
+        name: v.name ?? '',
+        sku: emptyToUndefined(v.sku),
+        barcode: emptyToUndefined(v.barcode),
+        unit: emptyToUndefined(v.unit),
+        quantityOnHand: emptyToUndefined(v.openingQty) ?? '0',
+        reorderLevel: emptyToUndefined(v.reorderLevel) ?? null,
+        minStockLevel: emptyToUndefined(v.minStockLevel) ?? null,
       });
       return created.id;
     }

@@ -133,8 +133,11 @@ export async function ensureRoleAssigned(
 
 /**
  * Union of the permissions granted by every role the user holds in this
- * organization (doc 73 §7). Project-scoped assignments are reserved but not
- * yet issued in V1, so no scope filtering is applied.
+ * organization (doc 73 §7). `role_assignments.project_id` is reserved and
+ * ignored in V1: permissions stay org-wide. Per-project permission unions
+ * would change Owner/Manager globally and are not implemented. Assigned
+ * project visibility uses `employee_project_assignments` and grants, not
+ * per-project roles.
  */
 export async function loadEffectivePermissions(
   db: DbExecutor,

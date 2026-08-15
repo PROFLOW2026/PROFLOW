@@ -23,6 +23,7 @@ export interface WorkOrderFormState {
   error?: string;
   fieldErrors?: Record<string, string>;
   success?: boolean;
+  confirmRequired?: boolean;
 }
 
 function formValue(formData: FormData, key: string): string | undefined {
@@ -49,6 +50,14 @@ async function mapWorkOrderError(error: unknown): Promise<WorkOrderFormState> {
   const t = await getTranslations('service');
   if (error instanceof ValidationError) return await mapValidationError(error);
   if (error instanceof ConflictError) {
+    if (error.messageKey.startsWith('scheduling.')) {
+      const tScheduling = await getTranslations('scheduling');
+      const key = error.messageKey.replace(/^scheduling\./, '');
+      return {
+        error: tScheduling(key as 'errors.bookingOverlap'),
+        confirmRequired: Boolean(error.details?.confirmRequired),
+      };
+    }
     if (error.messageKey.startsWith('service.')) {
       const key = error.messageKey.replace(/^service\./, '');
       try {
@@ -60,6 +69,15 @@ async function mapWorkOrderError(error: unknown): Promise<WorkOrderFormState> {
     return { error: error.message };
   }
   if (error instanceof DomainRuleError) {
+    if (error.messageKey.startsWith('scheduling.')) {
+      const tScheduling = await getTranslations('scheduling');
+      const key = error.messageKey.replace(/^scheduling\./, '');
+      try {
+        return { error: tScheduling(key as 'errors.unavailableOverlap') };
+      } catch {
+        return { error: error.message };
+      }
+    }
     if (error.messageKey.startsWith('service.')) {
       const key = error.messageKey.replace(/^service\./, '');
       try {
@@ -234,12 +252,14 @@ export async function rescheduleWorkOrderAction(
           | 'completed'
           | 'cancelled'
           | undefined,
+        confirmConflict: formValue(formData, 'confirmConflict') === 'on',
       }),
     );
 
     revalidatePath('/dispatch');
     revalidatePath(`/work-orders/${workOrderId}`);
     revalidatePath('/work-orders');
+    revalidatePath('/scheduling');
     return { success: true };
   } catch (error) {
     return await mapWorkOrderError(error);

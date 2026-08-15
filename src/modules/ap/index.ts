@@ -28,6 +28,7 @@ export {
 export {
   getBillPayablePosition,
   listVendorPaymentsForBill,
+  listVendorPaymentsForVendor,
   recordVendorPayment,
   voidVendorPayment,
   updateVendorPaymentMetadata,
@@ -53,6 +54,7 @@ export {
   getVendorApOutstanding,
   getProjectApOutstanding,
   getOrganizationPayablesAging,
+  getVendorPayablesAging,
 } from './application/payables';
 export type { BillPayableSummary, OrgApPayablesSummary } from './application/payables';
 

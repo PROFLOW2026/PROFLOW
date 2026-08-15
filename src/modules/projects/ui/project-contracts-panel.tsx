@@ -51,6 +51,7 @@ export async function ProjectContractsPanel({ projectId, currency }: ProjectCont
             startDate: item.contract.startDate,
             endDate: item.contract.endDate,
             retentionPercent: item.contract.retentionPercent,
+            notes: item.contract.notes,
           }))}
         />
       </CardContent>

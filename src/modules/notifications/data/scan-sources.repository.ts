@@ -7,6 +7,7 @@ import {
   planningWorkItems,
   projectServiceDetails,
   projects,
+  punchListItems,
   safetyCorrectiveActions,
   timesheets,
 } from '@drizzle/schema';
@@ -20,7 +21,7 @@ function isMissingRelation(error: unknown): boolean {
   if (!error || typeof error !== 'object') return false;
   const code = 'code' in error ? String((error as { code?: unknown }).code) : '';
   const message = error instanceof Error ? error.message : String(error);
-  return code === '42P01' || /relation .+ does not exist/i.test(message);
+  return code === '42P01' || code === '42703' || /relation .+ does not exist/i.test(message) || /column .+ does not exist/i.test(message);
 }
 
 export interface ScanEntity {
@@ -30,6 +31,7 @@ export interface ScanEntity {
   readonly deepLink: string;
   readonly projectId?: string | null;
   readonly recipientUserId?: string | null;
+  readonly excludeUserId?: string | null;
 }
 
 export async function listSubmittedTimesheets(
@@ -42,8 +44,13 @@ export async function listSubmittedTimesheets(
       id: timesheets.id,
       periodStart: timesheets.periodStart,
       periodEnd: timesheets.periodEnd,
+      workerUserId: employees.userId,
     })
     .from(timesheets)
+    .leftJoin(
+      employees,
+      and(eq(employees.id, timesheets.employeeId), eq(employees.organizationId, timesheets.organizationId)),
+    )
     .where(
       and(
         eq(timesheets.organizationId, organizationId),
@@ -58,6 +65,7 @@ export async function listSubmittedTimesheets(
     reference: null,
     extra: `${row.periodStart} – ${row.periodEnd}`,
     deepLink: '/workforce/time/approvals',
+    excludeUserId: row.workerUserId,
   }));
 }
 
@@ -278,6 +286,7 @@ export async function listOverdueSafetyActions(
         id: safetyCorrectiveActions.id,
         title: safetyCorrectiveActions.title,
         dueDate: safetyCorrectiveActions.dueDate,
+        ownerUserId: safetyCorrectiveActions.ownerUserId,
       })
       .from(safetyCorrectiveActions)
       .where(
@@ -295,7 +304,79 @@ export async function listOverdueSafetyActions(
       reference: row.title,
       extra: row.dueDate,
       deepLink: '/safety',
+      recipientUserId: row.ownerUserId,
     }));
+  } catch (error) {
+    if (isMissingRelation(error)) return [];
+    throw error;
+  }
+}
+
+export async function listAssignedPunchItems(
+  db: DbExecutor,
+  organizationId: string,
+  cap: number,
+): Promise<ScanEntity[]> {
+  try {
+    const rows = await db
+      .select({
+        id: punchListItems.id,
+        title: punchListItems.title,
+        projectId: punchListItems.projectId,
+        assigneeUserId: employees.userId,
+      })
+      .from(punchListItems)
+      .leftJoin(
+        employees,
+        and(
+          eq(employees.id, punchListItems.assigneeEmployeeId),
+          eq(employees.organizationId, punchListItems.organizationId),
+        ),
+      )
+      .where(
+        and(
+          eq(punchListItems.organizationId, organizationId),
+          isNull(punchListItems.archivedAt),
+          sql`${punchListItems.assigneeEmployeeId} is not null`,
+          sql`${punchListItems.status} in ('open', 'in_progress')`,
+        ),
+      )
+      .limit(cap);
+
+    return rows
+      .filter((row) => row.assigneeUserId)
+      .map((row) => ({
+        id: row.id,
+        reference: row.title,
+        extra: null,
+        deepLink: `/field-ops/punch/${row.id}`,
+        projectId: row.projectId,
+        recipientUserId: row.assigneeUserId,
+      }));
+  } catch (error) {
+    if (isMissingRelation(error)) return [];
+    throw error;
+  }
+}
+
+export async function listClosedAssignedPunchIds(
+  db: DbExecutor,
+  organizationId: string,
+  cap: number,
+): Promise<string[]> {
+  try {
+    const rows = await db
+      .select({ id: punchListItems.id })
+      .from(punchListItems)
+      .where(
+        and(
+          eq(punchListItems.organizationId, organizationId),
+          sql`${punchListItems.assigneeEmployeeId} is not null`,
+          sql`${punchListItems.status} in ('done', 'cancelled')`,
+        ),
+      )
+      .limit(cap);
+    return rows.map((row) => row.id);
   } catch (error) {
     if (isMissingRelation(error)) return [];
     throw error;

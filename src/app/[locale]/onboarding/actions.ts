@@ -29,6 +29,7 @@ export async function createOrganizationAction(
     defaultLocale: locale,
     businessProfile: formData.get('businessProfile'),
     professionPreset: formData.get('professionPreset'),
+    workMix: formData.get('workMix'),
   });
   if (!parsed.success) return { error: tErrors('validationFailed') };
 

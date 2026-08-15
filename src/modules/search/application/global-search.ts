@@ -14,9 +14,12 @@ import {
   searchContacts,
   searchDocuments,
   searchEmployees,
+  searchInventoryItems,
+  searchMaterials,
   searchProjectsByWorkKind,
   searchVendors,
 } from '../data/search.repository';
+import { resolveAccessibleProjectIds } from '@/modules/projects/application/project-access';
 import { globalSearchSchema, type GlobalSearchInput } from '../validation/schemas';
 
 /**
@@ -68,10 +71,20 @@ export async function globalSearch(
     tasks.push(searchBillingRecords(context.db, context.organizationId, query, limit));
   }
   if (hasPermission(context, PERMISSIONS.DOCUMENTS_READ)) {
-    tasks.push(searchDocuments(context.db, context.organizationId, query, limit));
+    const accessibleProjectIds = await resolveAccessibleProjectIds(context);
+    tasks.push(
+      searchDocuments(context.db, context.organizationId, query, limit, {
+        includeCompensation: hasPermission(context, PERMISSIONS.WORKFORCE_COST_READ),
+        accessibleProjectIds,
+      }),
+    );
   }
   if (hasPermission(context, PERMISSIONS.ASSETS_READ)) {
     tasks.push(searchAssets(context.db, context.organizationId, query, limit));
+    tasks.push(searchInventoryItems(context.db, context.organizationId, query, limit));
+  }
+  if (hasPermission(context, PERMISSIONS.MATERIALS_READ)) {
+    tasks.push(searchMaterials(context.db, context.organizationId, query, limit));
   }
   if (hasPermission(context, PERMISSIONS.BOQ_READ)) {
     tasks.push(searchBoqItems(context.db, context.organizationId, query, limit));

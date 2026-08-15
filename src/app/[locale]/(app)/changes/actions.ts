@@ -44,6 +44,7 @@ export async function createChangeRequestAction(
         description: (formData.get('description') as string) || null,
         direction: (formData.get('direction') as 'addition' | 'reduction') || 'addition',
         requestedAmount: (formData.get('requestedAmount') as string) || null,
+        contractId: (formData.get('contractId') as string) || null,
       }),
     );
 

@@ -239,6 +239,7 @@ export async function createPunchListItemAction(
           | undefined,
         location: formValue(formData, 'location'),
         dueDate: formValue(formData, 'dueDate'),
+        assigneeEmployeeId: formValue(formData, 'assigneeEmployeeId'),
       }),
     );
     revalidateFieldOps(projectId);
@@ -294,6 +295,27 @@ export async function updatePunchPriorityAction(
   }
 }
 
+export async function updatePunchDetailsAction(
+  _prev: FieldOpsFormState,
+  formData: FormData,
+): Promise<FieldOpsFormState> {
+  try {
+    const item = await withOrgContext((context) =>
+      updatePunchListItem(context, {
+        punchListItemId: requiredFormValue(formData, 'punchListItemId'),
+        location: formNullableText(formData, 'location'),
+        dueDate: formNullableText(formData, 'dueDate'),
+        assigneeEmployeeId: formNullableText(formData, 'assigneeEmployeeId'),
+      }),
+    );
+    revalidateFieldOps(item.projectId);
+    revalidatePath(`/field-ops/punch/${item.id}`);
+    return { success: true };
+  } catch (error) {
+    return mapAppError(error);
+  }
+}
+
 export async function createInspectionAction(
   _prev: FieldOpsFormState,
   formData: FormData,
@@ -318,6 +340,8 @@ export async function createInspectionAction(
           | undefined,
         scheduledOn: formValue(formData, 'scheduledOn'),
         notes: formValue(formData, 'notes'),
+        inspectorEmployeeId: formValue(formData, 'inspectorEmployeeId'),
+        formTemplateId: formValue(formData, 'formTemplateId'),
       }),
     );
     revalidateFieldOps(projectId);
@@ -344,6 +368,26 @@ export async function updateInspectionStatusAction(
         inspectionId: requiredFormValue(formData, 'inspectionId'),
         status,
         result,
+      }),
+    );
+    revalidateFieldOps(inspection.projectId);
+    revalidatePath(`/field-ops/inspections/${inspection.id}`);
+    return { success: true };
+  } catch (error) {
+    return mapAppError(error);
+  }
+}
+
+export async function updateInspectionDetailsAction(
+  _prev: FieldOpsFormState,
+  formData: FormData,
+): Promise<FieldOpsFormState> {
+  try {
+    const inspection = await withOrgContext((context) =>
+      updateInspection(context, {
+        inspectionId: requiredFormValue(formData, 'inspectionId'),
+        inspectorEmployeeId: formNullableText(formData, 'inspectorEmployeeId'),
+        formTemplateId: formNullableText(formData, 'formTemplateId'),
       }),
     );
     revalidateFieldOps(inspection.projectId);

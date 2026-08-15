@@ -18,9 +18,15 @@ export interface TimeEntryListFiltersProps {
     kind?: string;
     approvalStatus?: string;
   };
+  readonly hideEmployeeFilter?: boolean;
 }
 
-export function TimeEntryListFilters({ employees, projects, initial }: TimeEntryListFiltersProps) {
+export function TimeEntryListFilters({
+  employees,
+  projects,
+  initial,
+  hideEmployeeFilter = false,
+}: TimeEntryListFiltersProps) {
   const t = useTranslations('workforce');
   const tCommon = useTranslations('common');
 
@@ -29,6 +35,7 @@ export function TimeEntryListFilters({ employees, projects, initial }: TimeEntry
 
   return (
     <form method="get" className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
+      {!hideEmployeeFilter ? (
       <Field label={t('time.filters.employee')} className="sm:w-48">
         {(control) => (
           <select
@@ -46,6 +53,7 @@ export function TimeEntryListFilters({ employees, projects, initial }: TimeEntry
           </select>
         )}
       </Field>
+      ) : null}
 
       <Field label={t('time.filters.project')} className="sm:w-48">
         {(control) => (

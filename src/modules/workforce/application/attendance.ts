@@ -12,6 +12,8 @@ import { PERMISSIONS } from '@/shared/permissions/catalog';
 import {
   canClockIn,
   canClockOut,
+  canEndBreak,
+  canStartBreak,
   deriveAttendanceDayStatus,
   resolveClockPresenceState,
   type AttendanceEventSource,
@@ -198,6 +200,8 @@ export interface AttendanceClockSurface {
   readonly presence: ClockPresenceState;
   readonly canClockIn: boolean;
   readonly canClockOut: boolean;
+  readonly canBreakStart: boolean;
+  readonly canBreakEnd: boolean;
   readonly canManage: boolean;
 }
 
@@ -234,6 +238,8 @@ export async function getAttendanceClockSurface(
       presence: 'absent',
       canClockIn: false,
       canClockOut: false,
+      canBreakStart: false,
+      canBreakEnd: false,
       canManage: manage,
     };
   }
@@ -258,6 +264,8 @@ export async function getAttendanceClockSurface(
     presence,
     canClockIn: canClockIn(presence),
     canClockOut: canClockOut(presence),
+    canBreakStart: canStartBreak(presence),
+    canBreakEnd: canEndBreak(presence),
     canManage: manage,
   };
 }
@@ -369,6 +377,12 @@ export async function clockAttendance(
   }
   if (input.eventType === 'clock_out' && !canClockOut(presence)) {
     throw new DomainRuleError('Not clocked in', 'workforce.errors.notClockedIn');
+  }
+  if (input.eventType === 'break_start' && !canStartBreak(presence)) {
+    throw new DomainRuleError('Not clocked in', 'workforce.errors.breakStartInvalid');
+  }
+  if (input.eventType === 'break_end' && !canEndBreak(presence)) {
+    throw new DomainRuleError('Not on break', 'workforce.errors.breakEndInvalid');
   }
 
   const source = inferEventSource(context, input.source);

@@ -41,6 +41,11 @@
       "burdenHint": "Loaded cost on top of the base rate, e.g. taxes and benefits. Not net salary / payroll.",
       "jobTitle": "Role / title",
       "jobTitleHint": "What they do — e.g. site manager, electrician, admin.",
+      "employeeNumber": "Employee number",
+      "linkedUser": "Linked login",
+      "linkedUserHint": "Connect this employee to an organization member so they can log their own time and clock in. Unlink anytime.",
+      "linkedUserNone": "Not linked",
+      "linkedUserUnlink": "Unlink login",
       "email": "Email",
       "phone": "Phone",
       "notes": "Notes",
@@ -95,6 +100,7 @@
   "time": {
     "title": "Time entries",
     "description": "Hours logged against projects and non-project codes.",
+    "selfDescription": "Your hours. Clocking is presence only — these entries are what count for project cost after approval.",
     "reportsEntry": "Labor cost report",
     "new": "Log time",
     "quickLog": "Quick time log",
@@ -120,6 +126,7 @@
     },
     "actions": {
       "submitForApproval": "Submit for approval",
+      "saveHours": "Save hours",
       "waitingApproval": "Waiting for approval",
       "approved": "Approved",
       "returned": "Returned for correction"
@@ -296,6 +303,10 @@
       "today": "Today · {date}",
       "in": "Clock in",
       "out": "Clock out",
+      "breakStart": "Start break",
+      "breakEnd": "End break",
+      "presenceVsTime": "Clocking records presence. Hours that count for cost are logged under Time.",
+      "logHoursLink": "Log hours",
       "noLinkedEmployee": "No linked employee",
       "linkRequired": "Link your user to an employee record to use the clock."
     },
@@ -399,6 +410,12 @@
     "noLinkedEmployee": "Your login is not linked to an employee record.",
     "attendanceSelfScope": "You can only view or clock your own attendance.",
     "attendanceDayVoid": "This attendance day is void.",
-    "attendanceEventVoided": "This attendance event is already void."
+    "attendanceEventVoided": "This attendance event is already void.",
+    "timeSelfScope": "You can only view or log time for the employee linked to your login.",
+    "selfApprovalBlocked": "You cannot approve your own timesheet. Ask another manager or the owner.",
+    "userNotInOrganization": "That login is not an active member of this organization.",
+    "userAlreadyLinked": "That login is already linked to another employee.",
+    "breakStartInvalid": "Start a break only while clocked in.",
+    "breakEndInvalid": "You are not on a break."
   }
 }

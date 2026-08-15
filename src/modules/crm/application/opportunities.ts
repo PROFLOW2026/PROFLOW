@@ -19,7 +19,9 @@ import {
   updateLeadById,
   updateOpportunityById,
 } from '../data/crm.repository';
+import { listQuotes } from '@/modules/quotes/data/quotes.repository';
 import { assertLostCreatesNoProject } from '../domain/conversion';
+import { statusForMovedStage } from '../domain/pipeline-board';
 import {
   CRM_AUDIT_ACTIONS,
   type OpportunityDetail,
@@ -71,6 +73,9 @@ export async function getOpportunityById(
     context.organizationId,
     opportunityId,
   );
+  const productQuotes = await listQuotes(context.db, context.organizationId, {
+    opportunityId,
+  });
   const quotes = await listSalesQuotesForOpportunity(
     context.db,
     context.organizationId,
@@ -124,6 +129,7 @@ export async function getOpportunityById(
     prospect,
     notes,
     estimates,
+    productQuotes,
     auditEvents,
     salesQuotes,
   };
@@ -218,6 +224,11 @@ export async function updateOpportunity(
     // Converted opportunities stay historical; allow notes/lostReason tweaks only via status guards elsewhere.
   }
 
+  const statusFromStage =
+    input.stage && input.status === undefined
+      ? statusForMovedStage(input.stage, existing.status)
+      : undefined;
+
   const updated = await updateOpportunityById(
     context.db,
     context.organizationId,
@@ -227,7 +238,7 @@ export async function updateOpportunity(
       prospectId: input.prospectId === undefined ? undefined : input.prospectId,
       leadId: input.leadId === undefined ? undefined : input.leadId,
       stage: input.stage,
-      status: input.status,
+      status: input.status ?? statusFromStage,
       expectedValueAmount:
         input.expectedValueAmount === undefined ? undefined : input.expectedValueAmount,
       currency: input.currency === undefined ? undefined : input.currency?.toUpperCase() ?? null,
@@ -243,6 +254,7 @@ export async function updateOpportunity(
 
   await noteModuleUsage(context.db, context.organizationId, 'crm');
 
+  const stageChanged = Boolean(input.stage && input.stage !== existing.stage);
   if (markingLost && existing.status !== 'lost') {
     await recordAuditEvent(context, {
       action: CRM_AUDIT_ACTIONS.OPPORTUNITY_UPDATED,
@@ -256,6 +268,14 @@ export async function updateOpportunity(
         convertedProjectId: null,
         noProjectCreated: true,
       },
+    });
+  } else if (stageChanged) {
+    await recordAuditEvent(context, {
+      action: CRM_AUDIT_ACTIONS.OPPORTUNITY_UPDATED,
+      entityType: 'crm_opportunity',
+      entityId: updated.id,
+      before: { status: existing.status, stage: existing.stage },
+      after: { status: updated.status, stage: updated.stage },
     });
   }
 

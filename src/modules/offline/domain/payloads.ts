@@ -59,6 +59,7 @@ export interface ChangeRequestDraftPayload extends Record<string, unknown> {
   readonly description: string | null;
   readonly direction: 'addition' | 'reduction';
   readonly requestedAmount: string | null;
+  readonly contractId?: string | null;
   readonly changeRequestId?: string | null;
 }
 
@@ -81,6 +82,7 @@ export interface PunchDraftPayload extends Record<string, unknown> {
   readonly priority: string | null;
   readonly location: string | null;
   readonly dueDate: string | null;
+  readonly assigneeEmployeeId: string | null;
   readonly punchListItemId?: string | null;
 }
 
@@ -91,6 +93,8 @@ export interface InspectionDraftPayload extends Record<string, unknown> {
   readonly kind: string | null;
   readonly scheduledOn: string | null;
   readonly notes: string | null;
+  readonly inspectorEmployeeId?: string | null;
+  readonly formTemplateId?: string | null;
   readonly inspectionId?: string | null;
 }
 
@@ -150,6 +154,7 @@ export function changeRequestPayloadFromFormData(formData: FormData): ChangeRequ
     description: formText(formData, 'description'),
     direction,
     requestedAmount: formText(formData, 'requestedAmount'),
+    contractId: formText(formData, 'contractId'),
     changeRequestId: formText(formData, 'changeRequestId'),
   };
 }
@@ -176,6 +181,7 @@ export function punchPayloadFromFormData(formData: FormData): PunchDraftPayload 
     priority: formText(formData, 'priority'),
     location: formText(formData, 'location'),
     dueDate: formText(formData, 'dueDate'),
+    assigneeEmployeeId: formText(formData, 'assigneeEmployeeId'),
     punchListItemId: formText(formData, 'punchListItemId'),
   };
 }
@@ -188,6 +194,8 @@ export function inspectionPayloadFromFormData(formData: FormData): InspectionDra
     kind: formText(formData, 'kind'),
     scheduledOn: formText(formData, 'scheduledOn'),
     notes: formText(formData, 'notes'),
+    inspectorEmployeeId: formText(formData, 'inspectorEmployeeId'),
+    formTemplateId: formText(formData, 'formTemplateId'),
     inspectionId: formText(formData, 'inspectionId'),
   };
 }

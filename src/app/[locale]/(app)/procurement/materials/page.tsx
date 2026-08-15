@@ -53,6 +53,8 @@ export default async function MaterialsCatalogPage() {
         }
       />
 
+      <p className="text-sm text-[var(--pf-text-secondary)]">{t('threeActionsHint')}</p>
+
       <ProcurementSectionNav active="materials" />
 
       {materials.length === 0 ? (

@@ -8,6 +8,8 @@ import { PageHeader } from '@/components/ui/page-header';
 import { pressableCardLinkClassName, textNavLinkClassName } from '@/components/ui/pressable';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { listWorkOrdersForOrg, type ServiceStatus } from '@/modules/service';
+import { titleWithDocumentNumber } from '@/modules/tenancy';
+import { SavedListViewsBar } from '@/modules/tenancy/ui/saved-list-views-bar';
 import { getShellContext, withOrgContext } from '@/shared/auth/session';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { Link } from '@/shared/i18n/navigation';
@@ -76,6 +78,11 @@ export default async function WorkOrdersPage({ searchParams }: WorkOrdersPagePro
       />
 
       <WorkOrderListFilters initialQuery={params.q ?? ''} initialStatus={serviceStatus ?? 'all'} />
+      <SavedListViewsBar
+        listKey="work_orders"
+        searchParams={{ q: params.q, status: params.status }}
+        keys={['q', 'status']}
+      />
 
       {workOrders.length === 0 ? (
         filtersActive ? (
@@ -134,7 +141,7 @@ export default async function WorkOrdersPage({ searchParams }: WorkOrdersPagePro
                         href={`/work-orders/${row.id}`}
                         className={cn(textNavLinkClassName, 'font-medium')}
                       >
-                        {row.name}
+                        {titleWithDocumentNumber(row.name, row.documentNumber ?? '')}
                       </Link>
                     </TableCell>
                     <TableCell>{row.service?.siteAddress ?? row.location ?? '—'}</TableCell>
@@ -168,7 +175,9 @@ export default async function WorkOrdersPage({ searchParams }: WorkOrdersPagePro
               className={cn(pressableCardLinkClassName, 'min-w-0 max-w-full')}
             >
               <div className="flex min-w-0 items-start justify-between gap-2">
-                <span className="min-w-0 flex-1 break-words font-semibold">{row.name}</span>
+                <span className="min-w-0 flex-1 break-words font-semibold">
+                  {titleWithDocumentNumber(row.name, row.documentNumber ?? '')}
+                </span>
                 {row.service ? (
                   <WorkOrderStatusBadge
                     status={row.service.serviceStatus}

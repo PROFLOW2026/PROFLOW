@@ -21,6 +21,8 @@ import {
   RefreshCw,
   Repeat2,
   Settings,
+  Timer,
+  Upload,
   ShieldAlert,
   ShieldCheck,
   Truck,
@@ -47,6 +49,7 @@ const NAV_ICONS: Record<NavIconKey, LucideIcon> = {
   vendors: Truck,
   workforce: Users,
   attendance: Clock,
+  time: Timer,
   timesheets: ListChecks,
   documents: FileText,
   crm: Handshake,
@@ -63,6 +66,7 @@ const NAV_ICONS: Record<NavIconKey, LucideIcon> = {
   monthClose: CalendarCheck,
   service: CalendarClock,
   scheduling: CalendarRange,
+  imports: Upload,
   settings: Settings,
 };
 

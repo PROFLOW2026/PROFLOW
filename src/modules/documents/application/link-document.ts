@@ -8,9 +8,12 @@ import {
   findDocumentById,
   findDocumentLinkById,
   insertDocumentLink,
+  updateDocumentById,
 } from '../data/documents.repository';
 import { documentOwnerExistsInOrganization } from '../data/verify-document-owner';
+import { resolveUploadPrivacyClass } from '../domain/privacy';
 import { linkDocumentSchema, unlinkDocumentSchema } from '../validation/schemas';
+import { assertCanReadStoredDocument, canReadCompensationDocuments } from './document-visibility';
 
 export async function linkDocumentToEntity(
   context: OrgContext,
@@ -19,6 +22,7 @@ export async function linkDocumentToEntity(
     ownerType: DocumentLinkRecord['ownerType'];
     ownerId: string;
     label?: string | null;
+    privacyClass?: 'standard' | 'compensation' | null;
   },
 ): Promise<DocumentLinkRecord> {
   assertPermission(context, PERMISSIONS.DOCUMENTS_MANAGE);
@@ -32,6 +36,7 @@ export async function linkDocumentToEntity(
 
   const document = await findDocumentById(context.db, context.organizationId, parsed.data.documentId);
   if (!document || document.status === 'deleted') throw new NotFoundError('Document');
+  await assertCanReadStoredDocument(context, document);
 
   const ownerExists = await documentOwnerExistsInOrganization(
     context.db,
@@ -40,6 +45,17 @@ export async function linkDocumentToEntity(
     parsed.data.ownerId,
   );
   if (!ownerExists) throw new NotFoundError('Document owner');
+
+  const privacyClass = resolveUploadPrivacyClass({
+    ownerType: parsed.data.ownerType,
+    requested: parsed.data.privacyClass,
+    canReadWorkforceCost: canReadCompensationDocuments(context),
+  });
+  if (privacyClass === 'compensation' && document.privacyClass !== 'compensation') {
+    await updateDocumentById(context.db, context.organizationId, document.id, {
+      privacyClass: 'compensation',
+    });
+  }
 
   return insertDocumentLink(context.db, {
     organizationId: context.organizationId,

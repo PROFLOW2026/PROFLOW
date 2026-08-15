@@ -47,6 +47,8 @@ export const estimates = pgTable(
     estimatedCostAmount: moneyAmount('estimated_cost_amount'),
     estimatedMarginPercent: percentAmount('estimated_margin_percent'),
     convertedProjectId: uuid('converted_project_id'),
+    /** Optional CRM opportunity. Owner-facing bids live on this table, not crm_sales_quotes. */
+    opportunityId: uuid('opportunity_id'),
     convertedAt: timestamp('converted_at', { withTimezone: true, mode: 'date' }),
     sentAt: timestamp('sent_at', { withTimezone: true, mode: 'date' }),
     decidedAt: timestamp('decided_at', { withTimezone: true, mode: 'date' }),
@@ -61,6 +63,7 @@ export const estimates = pgTable(
     uniqueIndex('estimates_id_organization_id_uq').on(table.id, table.organizationId),
     index('estimates_org_status_idx').on(table.organizationId, table.status),
     index('estimates_org_client_idx').on(table.organizationId, table.clientId),
+    index('estimates_org_opportunity_idx').on(table.organizationId, table.opportunityId),
     check(
       'estimates_status_known',
       sql`${table.status} IN ('draft', 'ready', 'sent', 'accepted', 'rejected', 'expired', 'cancelled', 'converted')`,

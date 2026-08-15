@@ -21,6 +21,7 @@ function mapProject(row: typeof projects.$inferSelect): ProjectRecord {
     id: row.id,
     organizationId: row.organizationId,
     name: row.name,
+    documentNumber: row.documentNumber ?? null,
     status: row.status,
     workKind: (row.workKind as ProjectRecord['workKind']) ?? 'project',
     pricingMode: (row.pricingMode as ProjectRecord['pricingMode']) ?? null,
@@ -66,6 +67,7 @@ export async function insertProject(
   input: {
     organizationId: string;
     name: string;
+    documentNumber?: string | null;
     status?: ProjectRecord['status'];
     workKind?: ProjectRecord['workKind'];
     pricingMode?: ProjectRecord['pricingMode'];
@@ -87,6 +89,7 @@ export async function insertProject(
     .values({
       organizationId: input.organizationId,
       name: input.name,
+      documentNumber: input.documentNumber ?? null,
       status: input.status ?? 'active',
       workKind: input.workKind ?? 'project',
       pricingMode: input.pricingMode ?? null,
@@ -225,6 +228,7 @@ export async function listProjects(
     conditions.push(
       or(
         ilike(projects.name, term),
+        ilike(projects.documentNumber, term),
         ilike(projects.location, term),
         existsSearchableCustomFieldValueSql(organizationId, 'project', projects.id, term),
       )!,

@@ -5,7 +5,7 @@
 
 import type { OrgContext } from '@/shared/auth/context';
 import { businessDate, type BusinessDate } from '@/shared/dates';
-import { addMoney, isZeroMoney, money } from '@/shared/money';
+import { addMoney, isZeroMoney, money, zeroMoney } from '@/shared/money';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { listApBills } from '../data/ap.repository';
@@ -30,6 +30,7 @@ export interface BillPayableSummary {
   readonly vendorId: string;
   readonly vendorName: string | null;
   readonly projectId: string | null;
+  readonly subcontractAgreementId: string | null;
   readonly reference: string | null;
   readonly billStatus: string;
   readonly dueDate: BusinessDate | null;
@@ -49,6 +50,7 @@ export interface OrgApPayablesSummary {
   readonly billed: string;
   readonly paid: string;
   readonly outstanding: string;
+  readonly retentionHeld: string;
   readonly unpaidCount: number;
   readonly partialCount: number;
   readonly paidCount: number;
@@ -83,12 +85,17 @@ function toSummary(
     currency,
     bills: toAggregateBills(bills),
   });
+  const retentionHeld = bills.reduce(
+    (sum, bill) => addMoney(sum, money(bill.retentionHeldRemaining, bill.currency)),
+    zeroMoney(currency),
+  );
   return {
     currency,
     paymentsAvailable: areApPaymentsAvailable(),
     billed: aggregate.billed.amount,
     paid: aggregate.paid.amount,
     outstanding: aggregate.outstanding.amount,
+    retentionHeld: retentionHeld.amount,
     unpaidCount: aggregate.unpaidCount,
     partialCount: aggregate.partialCount,
     paidCount: aggregate.paidCount,
@@ -102,6 +109,7 @@ async function loadPayableBills(
   options: {
     readonly vendorId?: string;
     readonly projectId?: string | null;
+    readonly subcontractAgreementId?: string;
     readonly currency: string;
   },
 ): Promise<BillPayableSummary[]> {
@@ -109,6 +117,12 @@ async function loadPayableBills(
   const filtered = bills.filter((bill) => {
     if (options.vendorId && bill.vendorId !== options.vendorId) return false;
     if (options.projectId !== undefined && bill.projectId !== options.projectId) return false;
+    if (
+      options.subcontractAgreementId &&
+      bill.subcontractAgreementId !== options.subcontractAgreementId
+    ) {
+      return false;
+    }
     if (bill.currency.toUpperCase() !== options.currency.toUpperCase()) return false;
     return true;
   });
@@ -151,6 +165,7 @@ async function loadPayableBills(
       vendorId: bill.vendorId,
       vendorName: bill.vendorName,
       projectId: bill.projectId,
+      subcontractAgreementId: bill.subcontractAgreementId,
       reference: bill.reference,
       billStatus: bill.status,
       dueDate: (bill.dueDate as BusinessDate | null) ?? null,
@@ -189,15 +204,21 @@ export async function getOrganizationApPayables(
 export async function getVendorApOutstanding(
   context: OrgContext,
   vendorId: string,
-  options: { readonly currency?: string } = {},
+  options: { readonly currency?: string; readonly subcontractAgreementId?: string } = {},
 ): Promise<OrgApPayablesSummary> {
   assertPermission(context, PERMISSIONS.AP_READ);
   const currency = (options.currency ?? context.organization.baseCurrency).toUpperCase();
-  const bills = await loadPayableBills(context, { vendorId, currency });
+  const bills = await loadPayableBills(context, {
+    vendorId,
+    currency,
+    subcontractAgreementId: options.subcontractAgreementId,
+  });
   return toSummary(
     currency,
     bills,
-    'Vendor AP outstanding is cash only. Payments do not affect Actual Cost.',
+    options.subcontractAgreementId
+      ? 'Subcontract AP outstanding is cash only for this agreement. Payments do not affect Actual Cost.'
+      : 'Vendor AP outstanding is cash only. Payments do not affect Actual Cost.',
   );
 }
 
@@ -216,15 +237,11 @@ export async function getProjectApOutstanding(
   );
 }
 
-export async function getOrganizationPayablesAging(
-  context: OrgContext,
-  options: { readonly currency?: string; readonly asOf?: BusinessDate } = {},
-): Promise<PayablesAging> {
-  assertPermission(context, PERMISSIONS.AP_READ);
-  const currency = (options.currency ?? context.organization.baseCurrency).toUpperCase();
-  const asOf = options.asOf ?? businessDate(new Date().toISOString().slice(0, 10));
-  const bills = await loadPayableBills(context, { currency });
-
+function agingFromBills(
+  bills: readonly BillPayableSummary[],
+  currency: string,
+  asOf: BusinessDate,
+): PayablesAging {
   const agingInputs: ApAgingBillInput[] = bills.map((bill) => {
     const paid = money(bill.paid, bill.currency);
     const credited = money(bill.credited, bill.currency);
@@ -243,6 +260,36 @@ export async function getOrganizationPayablesAging(
       retentionHeldRemaining: money(bill.retentionHeldRemaining, bill.currency),
     };
   });
-
   return computePayablesAging(agingInputs, currency, asOf);
+}
+
+export async function getOrganizationPayablesAging(
+  context: OrgContext,
+  options: { readonly currency?: string; readonly asOf?: BusinessDate } = {},
+): Promise<PayablesAging> {
+  assertPermission(context, PERMISSIONS.AP_READ);
+  const currency = (options.currency ?? context.organization.baseCurrency).toUpperCase();
+  const asOf = options.asOf ?? businessDate(new Date().toISOString().slice(0, 10));
+  const bills = await loadPayableBills(context, { currency });
+  return agingFromBills(bills, currency, asOf);
+}
+
+export async function getVendorPayablesAging(
+  context: OrgContext,
+  vendorId: string,
+  options: {
+    readonly currency?: string;
+    readonly asOf?: BusinessDate;
+    readonly subcontractAgreementId?: string;
+  } = {},
+): Promise<PayablesAging> {
+  assertPermission(context, PERMISSIONS.AP_READ);
+  const currency = (options.currency ?? context.organization.baseCurrency).toUpperCase();
+  const asOf = options.asOf ?? businessDate(new Date().toISOString().slice(0, 10));
+  const bills = await loadPayableBills(context, {
+    vendorId,
+    currency,
+    subcontractAgreementId: options.subcontractAgreementId,
+  });
+  return agingFromBills(bills, currency, asOf);
 }

@@ -13,7 +13,7 @@ import {
   nextChangeRequestReference,
   updateChangeRequestFields,
 } from '../data/change-requests.repository';
-import { findPrimaryContractForProject } from '../data/contracts.repository';
+import { findContractById, findPrimaryContractForProject } from '../data/contracts.repository';
 import { createChangeRequestSchema, type CreateChangeRequestInput } from '../validation/schemas';
 
 export interface CreateChangeRequestResult {
@@ -38,11 +38,19 @@ export async function createChangeRequest(
   }
 
   const input = parsed.data;
-  const contract = await findPrimaryContractForProject(
-    context.db,
-    context.organizationId,
-    input.projectId,
-  );
+  const contract = input.contractId
+    ? await findContractById(context.db, context.organizationId, input.contractId)
+    : await findPrimaryContractForProject(
+        context.db,
+        context.organizationId,
+        input.projectId,
+      );
+
+  if (input.contractId) {
+    if (!contract || contract.projectId !== input.projectId) {
+      throw new NotFoundError('Contract');
+    }
+  }
 
   const currency = contract?.currency ?? context.organization.baseCurrency;
   const reference = await nextChangeRequestReference(

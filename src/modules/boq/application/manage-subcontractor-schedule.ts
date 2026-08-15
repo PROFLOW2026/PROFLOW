@@ -8,7 +8,11 @@ import { addMoney, compareMoney, money, multiplyMoney, toNumericString, zeroMone
 import { assertAllPermissions, assertPermission, hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { noteModuleUsage } from '@/modules/tenancy';
-import { findVendorEngagementById } from '@/modules/vendors';
+import {
+  findActiveEngagementForVendorProject,
+  findSubcontractAgreementById,
+  findVendorEngagementById,
+} from '@/modules/vendors';
 import { parseQuantity, quantityString } from '../domain/amounts';
 import { BOQ_AUDIT_ACTIONS } from '../domain/types';
 import {
@@ -101,10 +105,44 @@ export async function createSubcontractorSchedule(
     throw new NotFoundError('Vendor engagement');
   }
 
+  let vendorEngagementId = engagement.id;
+  const subcontractAgreementId = input.subcontractAgreementId ?? null;
+  if (subcontractAgreementId) {
+    const agreement = await findSubcontractAgreementById(
+      context.db,
+      context.organizationId,
+      subcontractAgreementId,
+    );
+    if (!agreement) throw new NotFoundError('Subcontract agreement');
+    if (agreement.projectId !== input.projectId) {
+      throw new ValidationError([
+        { path: 'subcontractAgreementId', message: 'Agreement must belong to this project' },
+      ]);
+    }
+    if (engagement.vendorId !== agreement.vendorId) {
+      const preferred = await findActiveEngagementForVendorProject(
+        context.db,
+        context.organizationId,
+        agreement.vendorId,
+        input.projectId,
+      );
+      if (!preferred) {
+        throw new ValidationError([
+          {
+            path: 'subcontractAgreementId',
+            message: 'Agreement vendor must match a project engagement',
+          },
+        ]);
+      }
+      vendorEngagementId = preferred.id;
+    }
+  }
+
   const scheduleId = await insertSubcontractorSchedule(context.db, context.organizationId, {
     projectId: input.projectId,
     boqId: input.boqId,
-    vendorEngagementId: input.vendorEngagementId,
+    vendorEngagementId,
+    subcontractAgreementId,
     title: input.title?.trim() || null,
     currency: boq.currency,
     notes: input.notes?.trim() || null,
@@ -118,7 +156,8 @@ export async function createSubcontractorSchedule(
     entityId: scheduleId,
     after: {
       boqId: boq.id,
-      vendorEngagementId: input.vendorEngagementId,
+      vendorEngagementId,
+      subcontractAgreementId,
       currency: boq.currency,
       costSideOnly: true,
     },
@@ -404,6 +443,27 @@ export async function createDraftApFromSubcontractorValuation(
   );
   if (!engagement) throw new NotFoundError('Vendor engagement');
 
+  let vendorId = engagement.vendorId;
+  const agreement = schedule.subcontractAgreementId
+    ? await findSubcontractAgreementById(
+        context.db,
+        context.organizationId,
+        schedule.subcontractAgreementId,
+      )
+    : null;
+  if (schedule.subcontractAgreementId && !agreement) {
+    throw new NotFoundError('Subcontract agreement');
+  }
+  if (agreement) {
+    if (agreement.vendorId !== engagement.vendorId || agreement.projectId !== schedule.projectId) {
+      throw new ConflictError('Subcontract agreement vendor or project does not match the schedule');
+    }
+    vendorId = agreement.vendorId;
+  }
+
+  const retentionPercent =
+    parsed.data.retentionPercent ?? agreement?.retentionPercent ?? undefined;
+
   const valuationLines = await listSubcontractorValuationLines(
     context.db,
     context.organizationId,
@@ -439,13 +499,15 @@ export async function createDraftApFromSubcontractorValuation(
   return withTransaction(context.db, async (tx) => {
     const txContext = { ...context, db: tx };
     const bill = await createDraftApBill(txContext, {
-      vendorId: engagement.vendorId,
+      vendorId,
       projectId: schedule.projectId,
       reference: valuation.periodLabel.slice(0, 80),
       currency: schedule.currency,
       totalAmount: toNumericString(total),
       notes: `Draft from approved subcontractor valuation ${valuation.id} — not Actual until posted`,
       lines: billLines,
+      subcontractAgreementId: schedule.subcontractAgreementId ?? undefined,
+      retentionPercent,
     });
 
     if (bill.status !== 'draft') {
@@ -537,7 +599,18 @@ export async function listSubcontractorSchedulesForBoqWorkspace(
       context.organizationId,
       schedule.id,
     );
-    detailed.push({ schedule, lines, valuations });
+    detailed.push({
+      schedule,
+      lines,
+      valuations,
+      agreement: schedule.subcontractAgreementId
+        ? await findSubcontractAgreementById(
+            context.db,
+            context.organizationId,
+            schedule.subcontractAgreementId,
+          )
+        : null,
+    });
   }
   return detailed;
 }

@@ -185,6 +185,15 @@ async function loadAssigneeMap(
   return map;
 }
 
+export async function findWorkOrderAssigneeEmployeeId(
+  db: DbExecutor,
+  organizationId: string,
+  workOrderId: string,
+): Promise<string | null> {
+  const map = await loadAssigneeMap(db, organizationId, [workOrderId]);
+  return map.get(workOrderId)?.employeeId ?? null;
+}
+
 export async function listWorkOrdersWithDetails(
   db: DbExecutor,
   organizationId: string,
@@ -213,6 +222,7 @@ export async function listWorkOrdersWithDetails(
     conditions.push(
       sql`(
         ${projects.name} ilike ${term}
+        or coalesce(${projects.documentNumber}, '') ilike ${term}
         or coalesce(${projects.location}, '') ilike ${term}
         or coalesce(${projectServiceDetails.siteAddress}, '') ilike ${term}
         or coalesce(${clients.name}, '') ilike ${term}
@@ -224,6 +234,7 @@ export async function listWorkOrdersWithDetails(
     .select({
       id: projects.id,
       name: projects.name,
+      documentNumber: projects.documentNumber,
       status: projects.status,
       pricingMode: projects.pricingMode,
       clientId: projects.clientId,
@@ -275,6 +286,7 @@ export async function listWorkOrdersWithDetails(
     return {
       id: row.id,
       name: row.name,
+      documentNumber: row.documentNumber ?? null,
       status: row.status,
       pricingMode: (row.pricingMode as WorkOrderListItem['pricingMode']) ?? null,
       clientId: row.clientId,

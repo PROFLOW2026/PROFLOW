@@ -19,6 +19,8 @@
     "billing": "חיוב",
     "document": "מסמך",
     "asset": "נכס",
+    "inventory_item": "פריט מלאי",
+    "material": "חומר",
     "boq_item": "סעיף כתב כמויות"
   }
 }

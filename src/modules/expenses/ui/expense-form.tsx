@@ -31,6 +31,7 @@ import { isWeightAllocationMethod } from '@/modules/expenses/domain/types';
 import { scheduleModeFromCategoryPeriodBehavior } from '@/modules/expenses/domain/allocation-schedule';
 import { formatMoney } from '@/shared/money/format';
 import { rtlFlipClassName } from '@/shared/i18n/ltr-island';
+import { Link } from '@/shared/i18n/navigation';
 import { AllocationEditor, type AllocationDraft } from './allocation-editor';
 
 const OVERHEAD_VALUE = '__overhead__';
@@ -627,48 +628,17 @@ export function ExpenseForm({
           ) : null}
 
           {isOverhead ? (
-            <Field label={t('fields.recurrence')} optionalLabel={tCommon('labels.optional')}>
-              {(controlProps) => (
-                <Select
-                  value={recurrenceCadence}
-                  onValueChange={(value) => {
-                    setRecurrenceCadence(value as RecurrenceCadence);
-                    setPolicyOverridden(true);
-                  }}
-                  disabled={readOnly}
-                >
-                  <SelectTrigger {...controlProps}>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {(['one_time', 'monthly', 'quarterly', 'yearly', 'custom'] as const).map((cadence) => (
-                      <SelectItem key={cadence} value={cadence}>
-                        {t(`recurrence.${cadence}`)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-            </Field>
+            <p className="text-sm text-[var(--pf-text-secondary)]">
+              {t('fields.recurrenceUseDrafts')}{' '}
+              <Link href="/recurring-drafts" className="underline underline-offset-2">
+                {t('fields.recurrenceDraftsLink')}
+              </Link>
+            </p>
           ) : null}
 
           <input type="hidden" name="recurrenceCadence" value={recurrenceCadence} />
 
-          {isOverhead && recurrenceCadence === 'custom' ? (
-            <Field label={t('fields.recurrenceCustom')}>
-              {(controlProps) => (
-                <Input
-                  {...controlProps}
-                  name="recurrenceCustomLabel"
-                  value={recurrenceCustomLabel}
-                  onChange={(event) => setRecurrenceCustomLabel(event.target.value)}
-                  disabled={readOnly}
-                />
-              )}
-            </Field>
-          ) : (
-            <input type="hidden" name="recurrenceCustomLabel" value={recurrenceCustomLabel} />
-          )}
+          <input type="hidden" name="recurrenceCustomLabel" value={recurrenceCustomLabel} />
 
           {isOverhead ? (
             <>

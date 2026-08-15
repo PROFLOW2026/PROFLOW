@@ -18,15 +18,27 @@ export interface ChangeRequestProjectOption {
   readonly name: string;
 }
 
+export interface ChangeRequestContractOption {
+  readonly id: string;
+  readonly projectId: string;
+  readonly name: string | null;
+  readonly contractNumber: string | null;
+  readonly isPrimary: boolean;
+  readonly contractType: string;
+  readonly status: string;
+}
+
 export interface ChangeRequestFormProps {
   action: (state: FormActionState, formData: FormData) => Promise<FormActionState>;
   projectId?: string;
   projects?: readonly ChangeRequestProjectOption[];
+  contracts?: readonly ChangeRequestContractOption[];
   initial?: {
     title?: string;
     description?: string | null;
     direction?: 'addition' | 'reduction';
     requestedAmount?: string | null;
+    contractId?: string | null;
   };
   changeRequestId?: string;
   /** ISO server baseline for conflict detection on edit drafts. */
@@ -37,6 +49,7 @@ export function ChangeRequestForm({
   action,
   projectId,
   projects = [],
+  contracts = [],
   initial,
   changeRequestId,
   serverUpdatedAt = null,
@@ -46,6 +59,7 @@ export function ChangeRequestForm({
   const tOffline = useTranslations('offline');
   const [direction, setDirection] = useState<'addition' | 'reduction'>(initial?.direction ?? 'addition');
   const [selectedProjectId, setSelectedProjectId] = useState(projectId ?? '');
+  const [selectedContractId, setSelectedContractId] = useState(initial?.contractId ?? '');
 
   const offlineSuccessState = useMemo<FormActionState>(() => ({ offlineQueued: true }), []);
 
@@ -67,6 +81,17 @@ export function ChangeRequestForm({
   const [state, formAction, pending] = useActionState(wrappedAction, {});
 
   const resolvedProjectId = projectId ?? selectedProjectId;
+  const projectContracts = contracts.filter(
+    (contract) =>
+      contract.projectId === resolvedProjectId &&
+      (contract.status === 'draft' || contract.status === 'active'),
+  );
+  const showContractPicker = projectContracts.length > 1;
+  const fallbackContractId =
+    projectContracts.find((contract) => contract.isPrimary)?.id ?? projectContracts[0]?.id ?? '';
+  const resolvedContractId = projectContracts.some((contract) => contract.id === selectedContractId)
+    ? selectedContractId
+    : fallbackContractId;
 
   return (
     <form action={formAction} className="mx-auto flex w-full max-w-xl flex-col gap-4">
@@ -90,7 +115,10 @@ export function ChangeRequestForm({
           {(control) => (
             <Select
               value={selectedProjectId}
-              onValueChange={setSelectedProjectId}
+              onValueChange={(value) => {
+                setSelectedProjectId(value);
+                setSelectedContractId('');
+              }}
               required
             >
               <SelectTrigger
@@ -110,6 +138,33 @@ export function ChangeRequestForm({
             </Select>
           )}
         </Field>
+      ) : null}
+
+      {showContractPicker ? (
+        <>
+          <input type="hidden" name="contractId" value={resolvedContractId} />
+          <Field label={t('contract')} required description={t('contractHint')}>
+            {(control) => (
+              <Select value={resolvedContractId} onValueChange={setSelectedContractId} required>
+                <SelectTrigger
+                  id={control.id}
+                  aria-describedby={control['aria-describedby']}
+                  aria-required="true"
+                >
+                  <SelectValue placeholder={t('contractPlaceholder')} />
+                </SelectTrigger>
+                <SelectContent>
+                  {projectContracts.map((contract) => (
+                    <SelectItem key={contract.id} value={contract.id}>
+                      {contract.name ?? contract.contractNumber ?? t('contractUntitled')}
+                      {contract.isPrimary ? ` · ${t('contractPrimary')}` : ''}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          </Field>
+        </>
       ) : null}
 
       <Field label={t('title')} required>

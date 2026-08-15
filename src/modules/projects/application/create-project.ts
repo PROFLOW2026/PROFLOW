@@ -3,6 +3,7 @@ import { NotFoundError, ValidationError } from '@/shared/errors';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import type { OrgContext } from '@/shared/auth/context';
+import { allocateDocumentNumber, documentKindForWorkKind } from '@/modules/tenancy';
 import { clients, projectDomains } from '@drizzle/schema';
 import { and, eq } from 'drizzle-orm';
 import { DEFAULT_WORK_PACKAGE_NAME } from '../domain/types';
@@ -64,9 +65,15 @@ export async function createProject(
   const pricingMode =
     workKind === 'job' || workKind === 'work_order' ? (input.pricingMode ?? null) : null;
 
+  const documentNumber = await allocateDocumentNumber(
+    context,
+    documentKindForWorkKind(workKind),
+  );
+
   const project = await insertProject(context.db, {
     organizationId: context.organizationId,
     name: input.name,
+    documentNumber,
     status: input.status,
     workKind,
     pricingMode,
@@ -119,6 +126,7 @@ export async function createProject(
     entityId: project.id,
     after: {
       name: project.name,
+      documentNumber: project.documentNumber,
       status: project.status,
       clientId,
       primaryContactId,

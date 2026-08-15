@@ -51,6 +51,9 @@ export async function startOwnerSubmissionAction(
     if (ownerType === 'work_order') {
       revalidatePath(`/work-orders/${ownerId}`);
     }
+    if (ownerType === 'inspection') {
+      revalidatePath(`/field-ops/inspections/${ownerId}`);
+    }
     redirect({ href: `/forms/${submission.id}`, locale });
   } catch (error) {
     if (error instanceof AppError) return { error: tErrors('validationFailed') };

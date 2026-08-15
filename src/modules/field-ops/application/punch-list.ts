@@ -5,7 +5,9 @@ import { ConflictError, DomainRuleError, NotFoundError, ValidationError } from '
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { assertCanAccessProject, isAccessibleProjectId, resolveAccessibleProjectIds } from '@/modules/projects';
+import { emitNotification } from '@/modules/notifications';
 import { noteModuleUsage } from '@/modules/tenancy';
+import { findEmployeeById } from '@/modules/workforce/data/employees.repository';
 import {
   canTransitionPunchStatus,
   closedAtForPunchStatus,
@@ -15,6 +17,7 @@ import {
   findPunchListItemById,
   findPunchListItemByIdForUpdate,
   insertPunchListItem,
+  listActiveEmployeeNameOptions,
   listPunchListItems,
   updatePunchListItemById,
 } from '../data/field-ops.repository';
@@ -25,6 +28,66 @@ import {
   type UpdatePunchListItemInput,
 } from '../validation/schemas';
 import { assertProjectRefsInOrg } from './assert-project-refs';
+
+async function assertAssigneeInOrg(
+  context: OrgContext,
+  assigneeEmployeeId: string | null | undefined,
+): Promise<void> {
+  if (!assigneeEmployeeId) return;
+  const employee = await findEmployeeById(context.db, context.organizationId, assigneeEmployeeId);
+  if (!employee || employee.archivedAt) throw new NotFoundError('Employee');
+}
+
+function punchAssignedCopy(locale: string, title: string): { title: string; body: string } {
+  if (locale.toLowerCase().startsWith('he')) {
+    return {
+      title: `שובצת לפריט תיקון — ${title}`,
+      body: 'פריט תיקון שויך אליך.',
+    };
+  }
+  return {
+    title: `Punch item assigned — ${title}`,
+    body: 'A punch list item was assigned to you.',
+  };
+}
+
+async function notifyPunchAssignee(
+  context: OrgContext,
+  input: {
+    readonly punchListItemId: string;
+    readonly title: string;
+    readonly assigneeEmployeeId: string | null;
+    readonly previousAssigneeEmployeeId?: string | null;
+  },
+): Promise<void> {
+  if (!input.assigneeEmployeeId) return;
+  if (input.assigneeEmployeeId === input.previousAssigneeEmployeeId) return;
+
+  const employee = await findEmployeeById(
+    context.db,
+    context.organizationId,
+    input.assigneeEmployeeId,
+  );
+  if (!employee?.userId) return;
+
+  const copy = punchAssignedCopy(context.locale, input.title);
+  await emitNotification(context, {
+    recipientUserId: employee.userId,
+    type: 'punch_assigned',
+    title: copy.title,
+    body: copy.body,
+    dedupeKey: `punch_assigned:${input.punchListItemId}:${employee.userId}`,
+    entityType: 'punch_list_item',
+    entityId: input.punchListItemId,
+    deepLink: `/field-ops/punch/${input.punchListItemId}`,
+    severity: 'info',
+  });
+}
+
+export async function listPunchAssigneeOptions(context: OrgContext) {
+  assertPermission(context, PERMISSIONS.FIELD_OPS_MANAGE);
+  return listActiveEmployeeNameOptions(context.db, context.organizationId);
+}
 
 export async function listPunchListItemsForOrg(
   context: OrgContext,
@@ -60,6 +123,7 @@ export async function createPunchListItem(context: OrgContext, raw: CreatePunchL
     projectId: input.projectId,
     workPackageId: input.workPackageId,
   });
+  await assertAssigneeInOrg(context, input.assigneeEmployeeId);
 
   const item = await insertPunchListItem(context.db, {
     organizationId: context.organizationId,
@@ -71,6 +135,7 @@ export async function createPunchListItem(context: OrgContext, raw: CreatePunchL
     priority: input.priority ?? 'normal',
     location: input.location ?? null,
     dueDate: input.dueDate ?? null,
+    assigneeEmployeeId: input.assigneeEmployeeId ?? null,
   });
 
   await noteModuleUsage(context.db, context.organizationId, 'field_ops');
@@ -79,6 +144,11 @@ export async function createPunchListItem(context: OrgContext, raw: CreatePunchL
     entityType: 'punch_list_item',
     entityId: item.id,
     after: { id: item.id, projectId: item.projectId, status: item.status },
+  });
+  await notifyPunchAssignee(context, {
+    punchListItemId: item.id,
+    title: item.title,
+    assigneeEmployeeId: item.assigneeEmployeeId,
   });
   return item;
 }
@@ -93,6 +163,9 @@ export async function updatePunchListItem(context: OrgContext, raw: UpdatePunchL
   }
 
   const input = parsed.data;
+  if (input.assigneeEmployeeId !== undefined) {
+    await assertAssigneeInOrg(context, input.assigneeEmployeeId);
+  }
 
   return withTransaction(context.db, async (tx) => {
     const txContext = { ...context, db: tx };
@@ -134,6 +207,8 @@ export async function updatePunchListItem(context: OrgContext, raw: UpdatePunchL
         location: input.location === undefined ? undefined : input.location,
         dueDate: input.dueDate === undefined ? undefined : input.dueDate,
         workPackageId: input.workPackageId === undefined ? undefined : input.workPackageId,
+        assigneeEmployeeId:
+          input.assigneeEmployeeId === undefined ? undefined : input.assigneeEmployeeId,
         closedAt,
       },
       statusChanging ? { fromStatuses: [existing.status] } : undefined,
@@ -147,6 +222,16 @@ export async function updatePunchListItem(context: OrgContext, raw: UpdatePunchL
       before: existing,
       after: updated,
     });
+
+    if (input.assigneeEmployeeId !== undefined) {
+      await notifyPunchAssignee(txContext, {
+        punchListItemId: updated.id,
+        title: updated.title,
+        assigneeEmployeeId: updated.assigneeEmployeeId,
+        previousAssigneeEmployeeId: existing.assigneeEmployeeId,
+      });
+    }
+
     return updated;
   });
 }

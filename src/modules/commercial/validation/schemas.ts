@@ -22,6 +22,10 @@ export const createChangeRequestSchema = z.object({
   requestedAmount: moneyAmountSchema,
   requestedDate: businessDateSchema,
   notes: z.string().trim().max(5000).optional().nullable(),
+  contractId: z.preprocess(
+    (value) => (value === '' || value === undefined ? undefined : value),
+    z.string().uuid().optional().nullable(),
+  ),
 });
 
 export type CreateChangeRequestInput = z.infer<typeof createChangeRequestSchema>;

@@ -40,6 +40,7 @@ export interface WorkOrderDetail {
   readonly project: {
     readonly id: string;
     readonly name: string;
+    readonly documentNumber: string | null;
     readonly status: string;
     readonly workKind: string;
     readonly pricingMode: string | null;
@@ -68,6 +69,7 @@ export async function getWorkOrderDetail(
     .select({
       id: projects.id,
       name: projects.name,
+      documentNumber: projects.documentNumber,
       status: projects.status,
       workKind: projects.workKind,
       pricingMode: projects.pricingMode,
@@ -106,6 +108,7 @@ export async function getWorkOrderDetail(
     project: {
       id: row.id,
       name: row.name,
+      documentNumber: row.documentNumber ?? null,
       status: row.status,
       workKind: row.workKind,
       pricingMode: row.pricingMode,

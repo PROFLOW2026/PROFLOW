@@ -26,6 +26,7 @@ import {
   saveDocumentNumberSettings,
   DOCUMENT_NUMBER_KINDS,
   isDocumentNumberKind,
+  updateOrganizationLegalIdentity,
 } from '@/modules/tenancy';
 import { setRolePermissionToggle } from '@/modules/rbac';
 import { updateProfile } from '@/modules/identity';
@@ -138,6 +139,27 @@ export async function updateBusinessProfileAction(
         baseCurrency: formValue(formData, 'baseCurrency'),
         timezone: formValue(formData, 'timezone'),
         defaultLocale: formValue(formData, 'defaultLocale'),
+      }),
+    );
+    revalidatePath('/settings/business');
+    return { ok: true };
+  } catch (error) {
+    if (error instanceof AppError) return { error: tErrors('validationFailed') };
+    throw error;
+  }
+}
+
+export async function saveOrganizationLegalIdentityAction(
+  _prev: SettingsActionState,
+  formData: FormData,
+): Promise<SettingsActionState> {
+  const tErrors = await getTranslations('errors');
+
+  try {
+    await withOrgContext((context) =>
+      updateOrganizationLegalIdentity(context, {
+        taxId: formValue(formData, 'taxId') ?? null,
+        companyNumber: formValue(formData, 'companyNumber') ?? null,
       }),
     );
     revalidatePath('/settings/business');

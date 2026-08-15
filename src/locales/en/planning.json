@@ -1,6 +1,6 @@
 {
   "title": "Planning & timeline",
-  "subtitle": "Light planning: dates, progress, milestones, and finish-to-start (FS) links only. Not MS Project and not CPM.",
+  "subtitle": "Project Gantt planning: dates, progress, milestones, and finish-to-start (FS) links only. Not the resource board, not daily dispatch, not MS Project, and not CPM.",
   "jobsOptOut": "Detailed planning is for projects only. Short jobs keep simple dates.",
   "empty": "No dated planning items yet.",
   "emptyHint": "Add tasks or milestones with a target date to see this light timeline. FS links only — no critical path.",

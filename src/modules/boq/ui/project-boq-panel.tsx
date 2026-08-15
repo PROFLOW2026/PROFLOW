@@ -8,7 +8,7 @@ import {
 } from '@/modules/commercial';
 import { listCostCategoriesForOrg, listWorkPackagesForOrg } from '@/modules/expenses';
 import { getProjectBudgetWorkspace } from '@/modules/budgets';
-import { listProjectVendorEngagements } from '@/modules/vendors';
+import { listProjectSubcontracts, listProjectVendorEngagements } from '@/modules/vendors';
 import { listImportableKinds } from '@/modules/imports';
 import { ImportWizardLazy } from '@/modules/imports/ui/import-wizard-lazy';
 import { fromNumericString, zeroMoney } from '@/shared/money';
@@ -98,6 +98,9 @@ export async function ProjectBoqPanel({ projectId, contractId }: ProjectBoqPanel
     const engagements = hasPermission(context, PERMISSIONS.VENDORS_READ)
       ? await listProjectVendorEngagements(context, projectId).catch(() => [])
       : [];
+    const projectSubcontracts = hasPermission(context, PERMISSIONS.VENDORS_READ)
+      ? await listProjectSubcontracts(context, projectId).catch(() => [])
+      : [];
     const subSchedules = workspace.activeBoq
       ? await listSubcontractorSchedulesForBoqWorkspace(context, workspace.activeBoq.id).catch(
           () => [],
@@ -124,6 +127,7 @@ export async function ProjectBoqPanel({ projectId, contractId }: ProjectBoqPanel
         (line) => line.kind !== 'unmapped_remainder',
       ),
       engagements,
+      projectSubcontracts,
       subSchedules,
       approvedChangeOrders,
       importKinds,
@@ -149,6 +153,7 @@ export async function ProjectBoqPanel({ projectId, contractId }: ProjectBoqPanel
     costCategories,
     budgetLines,
     engagements,
+    projectSubcontracts,
     subSchedules,
     approvedChangeOrders,
     importKinds,
@@ -402,7 +407,15 @@ export async function ProjectBoqPanel({ projectId, contractId }: ProjectBoqPanel
           canProposeApDraft={permissions.canProposeApDraft}
           engagements={engagements.map((e) => ({
             id: e.id,
+            vendorId: e.vendorId,
             label: e.vendorName,
+          }))}
+          agreements={projectSubcontracts.map((agreement) => ({
+            id: agreement.id,
+            vendorId: agreement.vendorId,
+            title: agreement.title,
+            retentionPercent: agreement.retentionPercent,
+            status: agreement.status,
           }))}
           items={itemNodes.map((node) => ({
             id: node.id,
@@ -410,11 +423,13 @@ export async function ProjectBoqPanel({ projectId, contractId }: ProjectBoqPanel
               ? `${node.itemCode} · ${node.description}`
               : node.description,
           }))}
-          schedules={subSchedules.map(({ schedule, lines, valuations }) => ({
+          schedules={subSchedules.map(({ schedule, lines, valuations, agreement }) => ({
             id: schedule.id,
             title: schedule.title,
             status: schedule.status,
             currency: schedule.currency,
+            subcontractAgreementId: schedule.subcontractAgreementId,
+            retentionPercent: agreement?.retentionPercent ?? null,
             lines: lines.map((line) => ({
               id: line.id,
               boqNodeId: line.boqNodeId,

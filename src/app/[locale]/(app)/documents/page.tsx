@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/ui/page-header';
 import {
+  DOCUMENT_CATEGORIES,
   DOCUMENT_OWNER_TYPES,
   isStorageConfigured,
   listDocumentsForOrg,
@@ -47,10 +48,15 @@ function parseFolderId(raw: string | undefined): string | 'all' | 'none' {
   return 'all';
 }
 
+function parseCategory(raw: string | undefined): string | 'all' {
+  if (!raw || raw === 'all') return 'all';
+  return (DOCUMENT_CATEGORIES as readonly string[]).includes(raw) ? raw : 'all';
+}
+
 export default async function DocumentsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; ownerType?: string; folderId?: string }>;
+  searchParams: Promise<{ q?: string; ownerType?: string; folderId?: string; category?: string; tags?: string }>;
 }) {
   const [t, tCommon, search, shell] = await Promise.all([
     getTranslations('documents'),
@@ -58,10 +64,16 @@ export default async function DocumentsPage({
     searchParams,
     getShellContext(),
   ]);
-  const { q, ownerType: ownerTypeRaw, folderId: folderIdRaw } = search;
+  const { q, ownerType: ownerTypeRaw, folderId: folderIdRaw, category: categoryRaw, tags } = search;
   const ownerType = parseOwnerType(ownerTypeRaw);
   const folderId = parseFolderId(folderIdRaw);
-  const filtersActive = Boolean(q?.trim()) || ownerType !== 'all' || folderId !== 'all';
+  const category = parseCategory(categoryRaw);
+  const filtersActive =
+    Boolean(q?.trim()) ||
+    ownerType !== 'all' ||
+    folderId !== 'all' ||
+    category !== 'all' ||
+    Boolean(tags?.trim());
   const storageConfigured = isStorageConfigured();
   const vendorsEnabled = Boolean(shell?.modules?.vendors);
 
@@ -71,6 +83,8 @@ export default async function DocumentsPage({
         search: q,
         ownerType,
         folderId,
+        category,
+        tags,
       }),
       listFolders(context, {}),
     ]);
@@ -96,6 +110,8 @@ export default async function DocumentsPage({
         initialQuery={q ?? ''}
         initialOwnerType={ownerType}
         initialFolderId={folderId}
+        initialCategory={category}
+        initialTags={tags ?? ''}
         folders={loaded.folders}
       />
 

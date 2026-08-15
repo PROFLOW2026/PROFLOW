@@ -1,6 +1,6 @@
 {
   "title": "Scheduling",
-  "description": "See who is booked, available, or away — by day or week.",
+  "description": "Resource board: who is booked, available, or away. Not daily dispatch and not project Gantt planning.",
   "loading": "Loading the schedule…",
   "notAllowed": {
     "title": "Scheduling is not available",

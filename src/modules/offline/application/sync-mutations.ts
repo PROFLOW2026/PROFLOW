@@ -363,6 +363,7 @@ async function submitChangeRequest(
       description: appendOfflineMarker(optionalString(payload, 'description'), action.localId),
       direction: payload.direction === 'reduction' ? 'reduction' : 'addition',
       requestedAmount: optionalString(payload, 'requestedAmount'),
+      contractId: optionalString(payload, 'contractId'),
     });
     const detail = await getChangeRequestDetail(context, created.changeRequestId);
     return { changeRequestId: detail.id, updatedAt: detail.updatedAt };
@@ -447,6 +448,7 @@ async function submitPunch(
         location: optionalString(payload, 'location'),
         dueDate: optionalString(payload, 'dueDate'),
         workPackageId: optionalString(payload, 'workPackageId'),
+        assigneeEmployeeId: optionalString(payload, 'assigneeEmployeeId'),
       }),
     );
     return { serverId: updated.id, serverUpdatedAt: toIso(updated.updatedAt) };
@@ -460,6 +462,7 @@ async function submitPunch(
     priority: optionalString(payload, 'priority') ?? undefined,
     location: optionalString(payload, 'location'),
     dueDate: optionalString(payload, 'dueDate'),
+    assigneeEmployeeId: optionalString(payload, 'assigneeEmployeeId'),
   });
   if (!parsed.success) {
     throw new OfflineSyncSubmitError('Punch draft failed validation.');
@@ -509,6 +512,8 @@ async function submitInspection(
         scheduledOn: optionalString(payload, 'scheduledOn'),
         notes: optionalString(payload, 'notes'),
         workPackageId: optionalString(payload, 'workPackageId'),
+        inspectorEmployeeId: optionalString(payload, 'inspectorEmployeeId'),
+        formTemplateId: optionalString(payload, 'formTemplateId'),
       }),
     );
     return { serverId: updated.id, serverUpdatedAt: toIso(updated.updatedAt) };
@@ -521,6 +526,8 @@ async function submitInspection(
     kind: optionalString(payload, 'kind') ?? undefined,
     scheduledOn: optionalString(payload, 'scheduledOn'),
     notes: appendOfflineMarker(optionalString(payload, 'notes'), action.localId),
+    inspectorEmployeeId: optionalString(payload, 'inspectorEmployeeId'),
+    formTemplateId: optionalString(payload, 'formTemplateId'),
   });
   if (!parsed.success) {
     throw new OfflineSyncSubmitError('Inspection draft failed validation.');

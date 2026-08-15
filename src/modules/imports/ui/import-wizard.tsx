@@ -329,6 +329,8 @@ export function ImportWizard({ allowedKinds, projectId: projectIdProp, boqId }: 
             <p className="text-sm text-[var(--pf-text-secondary)]">{t('expensesSafeHint')}</p>
           ) : kind === 'opening_values' ? (
             <p className="text-sm text-[var(--pf-text-secondary)]">{t('openingValuesHint')}</p>
+          ) : kind === 'inventory' ? (
+            <p className="text-sm text-[var(--pf-text-secondary)]">{t('inventoryHint')}</p>
           ) : (
             <p className="text-sm text-[var(--pf-text-secondary)]">{t('nonFinancialHint')}</p>
           )}

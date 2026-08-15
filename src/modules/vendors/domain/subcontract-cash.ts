@@ -1,5 +1,5 @@
 /**
- * Paid / outstanding from existing AP bills for vendor+project.
+ * Paid / outstanding from existing vendor bills tagged to one subcontract agreement.
  * Commitment ≠ expense. Cash ≠ Actual. This module never posts AP.
  *
  * Payable statuses mirror AP recognized bills (open / partially_matched / matched).
@@ -13,7 +13,7 @@ function isPayableBillStatus(status: string): boolean {
 }
 
 export const SUBCONTRACT_CASH_NOTE =
-  'Paid and outstanding read existing AP bills for this vendor and project. Creating or changing a subcontract never posts AP.';
+  'Paid and outstanding read existing vendor bills tagged to this subcontract agreement. Creating or changing a subcontract never posts a vendor bill.';
 
 export function computeSubcontractCashPosition(
   bills: readonly SubcontractApBillCashRow[],

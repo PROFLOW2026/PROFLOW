@@ -2,6 +2,7 @@
  * Documents domain types. Framework-free.
  */
 
+import type { DocumentPrivacyClass } from './privacy';
 import type { StorageCleanupStatus } from './storage-cleanup';
 
 export const DOCUMENT_STATUSES = ['pending', 'available', 'deleted'] as const;
@@ -63,6 +64,7 @@ export interface DocumentRecord {
   readonly isRequired: boolean;
   readonly requiredType: string | null;
   readonly currentVersionId: string | null;
+  readonly privacyClass: DocumentPrivacyClass;
   readonly deletedAt: Date | null;
   readonly createdAt: Date;
   readonly updatedAt: Date;
@@ -131,7 +133,19 @@ export interface DocumentListFilters {
   readonly search?: string;
   readonly ownerType?: DocumentOwnerType | 'all';
   readonly folderId?: string | 'none' | 'all';
+  readonly category?: string | 'all';
+  readonly tags?: string;
+  readonly projectId?: string;
   readonly includeDeleted?: boolean;
+  /**
+   * Application-only. Default false (fail closed). Never accept from the query string.
+   */
+  readonly includeCompensation?: boolean;
+  /**
+   * Application-only. `null` = unrestricted project access.
+   * Restricts documents linked to `project` / `work_order` owners.
+   */
+  readonly accessibleProjectIds?: string[] | null;
   readonly limit?: number;
   readonly offset?: number;
 }
@@ -146,6 +160,7 @@ export interface DocumentFolderListFilters {
 export interface EntityDocumentFilters {
   readonly ownerType: DocumentOwnerType;
   readonly ownerId: string;
+  readonly includeCompensation?: boolean;
   readonly limit?: number;
   readonly offset?: number;
 }

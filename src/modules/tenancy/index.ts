@@ -137,6 +137,7 @@ export {
   getOrganizationLegalIdentity,
   getOrganizationTaxId,
   saveOrganizationLegalIdentity,
+  updateOrganizationLegalIdentity,
 } from './application/legal-identity';
 export {
   parseOrganizationLegalIdentity,
@@ -163,6 +164,8 @@ export {
   suppliedDocumentReference,
   titleWithDocumentNumber,
   isDocumentNumberKind,
+  documentKindForWorkKind,
+  defaultDocumentNumberSequence,
 } from './domain/document-numbers';
 export type {
   DocumentNumberKind,
@@ -173,3 +176,15 @@ export {
   saveDocumentNumberSequencesSchema,
   documentNumberSequenceInputSchema,
 } from './validation/document-numbers';
+export {
+  SAVED_LIST_KEYS,
+  compactSearchQuery,
+  queriesMatch,
+  isSavedListKey,
+} from './domain/saved-list-views';
+export type { SavedListKey, SavedListViewRecord } from './domain/saved-list-views';
+export {
+  listSavedListViews,
+  saveSavedListView,
+  deleteSavedListView,
+} from './application/saved-list-views';

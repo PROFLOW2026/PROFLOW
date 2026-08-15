@@ -121,4 +121,15 @@ describe('permission catalog integrity', () => {
   it('offers the owner role nothing to toggle, since it already has everything', () => {
     expect(TOGGLEABLE_PERMISSIONS.owner).toHaveLength(0);
   });
+
+  it('lets owners turn projects.access_all on or off for manager and finance', () => {
+    expect(TOGGLEABLE_PERMISSIONS.manager).toContain(PERMISSIONS.PROJECTS_ACCESS_ALL);
+    expect(TOGGLEABLE_PERMISSIONS.finance).toContain(PERMISSIONS.PROJECTS_ACCESS_ALL);
+    expect(TOGGLEABLE_PERMISSIONS.worker).not.toContain(PERMISSIONS.PROJECTS_ACCESS_ALL);
+  });
+
+  it('lets owners turn workforce.manage on or off for manager', () => {
+    expect(TOGGLEABLE_PERMISSIONS.manager).toContain(PERMISSIONS.WORKFORCE_MANAGE);
+    expect(TOGGLEABLE_PERMISSIONS.finance).not.toContain(PERMISSIONS.WORKFORCE_MANAGE);
+  });
 });

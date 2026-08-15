@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { PageHeader } from '@/components/ui/page-header';
 import { EmployeeForm } from '@/modules/workforce/ui/employee-form';
+import { listLinkableOrgMembers } from '@/modules/workforce';
 import { withOrgContext } from '@/shared/auth/session';
 import { todayInTimeZone } from '@/shared/dates';
 import { AuthorizationError } from '@/shared/errors';
@@ -29,6 +30,7 @@ export default async function NewEmployeePage() {
     return {
       currency: context.organization.baseCurrency,
       validFrom: todayInTimeZone(context.organization.timezone),
+      linkableUsers: await listLinkableOrgMembers(context),
     };
   });
 
@@ -39,6 +41,7 @@ export default async function NewEmployeePage() {
         action={createEmployeeAction}
         defaultCurrency={defaults.currency}
         defaultValidFrom={defaults.validFrom}
+        linkableUsers={defaults.linkableUsers}
       />
     </div>
   );

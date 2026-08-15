@@ -9,6 +9,7 @@ import { DocumentAttachments } from '@/modules/documents/ui';
 import {
   getPunchListItemForOrg,
   listFieldOpsWorkPackages,
+  listPunchAssigneeOptions,
   type PunchStatus,
 } from '@/modules/field-ops';
 import { listProjectsForOrg } from '@/modules/projects';
@@ -18,6 +19,7 @@ import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { PunchPriorityForm } from '../punch-priority-form';
 import { PunchStatusForm } from '../punch-status-form';
+import { PunchEditDetailsForm } from '../punch-edit-details-form';
 import { textNavLinkClassName, textNavLinkMutedClassName } from '@/components/ui/pressable';
 
 export async function generateMetadata({
@@ -58,15 +60,20 @@ export default async function PunchDetailPage({
   const data = await withOrgContext(async (context) => {
     try {
       const item = await getPunchListItemForOrg(context, punchId);
-      const [projects, packages, documentsPanel] = await Promise.all([
+      const [projects, packages, documentsPanel, employees] = await Promise.all([
         listProjectsForOrg(context, {}),
         listFieldOpsWorkPackages(context, [item.projectId]),
         getEntityDocumentPanelData(context, 'punch_list_item', punchId),
+        hasPermission(context, PERMISSIONS.FIELD_OPS_MANAGE)
+          ? listPunchAssigneeOptions(context)
+          : Promise.resolve([]),
       ]);
       return {
         item,
         projectName: projects.find((p) => p.id === item.projectId)?.name ?? null,
         workPackageName: packages.find((p) => p.id === item.workPackageId)?.name ?? null,
+        assigneeName: employees.find((row) => row.id === item.assigneeEmployeeId)?.name ?? null,
+        employees,
         documentsPanel,
         canManage: hasPermission(context, PERMISSIONS.FIELD_OPS_MANAGE),
       };
@@ -77,7 +84,7 @@ export default async function PunchDetailPage({
 
   if (!data) notFound();
 
-  const { item, projectName, workPackageName, documentsPanel, canManage } = data;
+  const { item, projectName, workPackageName, assigneeName, employees, documentsPanel, canManage } = data;
 
   return (
     <div className="flex flex-col gap-6">
@@ -127,12 +134,22 @@ export default async function PunchDetailPage({
             }
           />
         ) : null}
+        {assigneeName ? (
+          <DetailRow label={t('createPunch.assigneeLabel')} value={assigneeName} />
+        ) : null}
         {item.description ? (
           <DetailRow label={t('createPunch.descriptionLabel')} value={item.description} />
         ) : null}
 
         {canManage ? (
           <div className="flex flex-col gap-3 border-t border-[var(--pf-border-default)] pt-4">
+            <PunchEditDetailsForm
+              punchListItemId={item.id}
+              location={item.location}
+              dueDate={item.dueDate}
+              assigneeEmployeeId={item.assigneeEmployeeId}
+              employees={employees}
+            />
             <PunchPriorityForm punchListItemId={item.id} currentPriority={item.priority} />
             <PunchStatusForm punchListItemId={item.id} currentStatus={item.status} />
           </div>

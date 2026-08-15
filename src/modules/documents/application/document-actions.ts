@@ -125,6 +125,7 @@ export async function linkDocumentAction(input: {
   ownerType: DocumentOwnerType;
   ownerId: string;
   label?: string | null;
+  privacyClass?: 'standard' | 'compensation' | null;
 }): Promise<ActionResult> {
   const t = await getTranslations('documents.errors');
 

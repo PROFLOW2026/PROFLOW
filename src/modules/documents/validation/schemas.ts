@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { DOCUMENT_OWNER_TYPES } from '../domain/types';
+import { DOCUMENT_PRIVACY_CLASSES } from '../domain/privacy';
 
 const emptyToNull = (value: unknown) => {
   if (value === '' || value === null || value === undefined) return null;
@@ -21,6 +22,7 @@ export const prepareUploadSchema = z.object({
   ownerType: z.enum(DOCUMENT_OWNER_TYPES),
   ownerId: z.string().uuid(),
   label: optionalText,
+  privacyClass: z.enum(DOCUMENT_PRIVACY_CLASSES).optional(),
 });
 
 export type PrepareUploadInput = z.input<typeof prepareUploadSchema>;
@@ -46,6 +48,9 @@ export const listDocumentsSchema = z.object({
   search: z.string().trim().optional(),
   ownerType: z.enum([...DOCUMENT_OWNER_TYPES, 'all'] as const).optional(),
   folderId: z.union([z.literal('all'), z.literal('none'), z.string().uuid()]).optional(),
+  category: z.union([z.literal('all'), z.string().trim().min(1).max(40)]).optional(),
+  tags: z.string().trim().max(500).optional(),
+  projectId: z.string().uuid().optional(),
   includeDeleted: z.boolean().optional(),
   limit: z.coerce.number().int().min(0).optional(),
   offset: z.coerce.number().int().min(0).optional(),
@@ -56,6 +61,7 @@ export const linkDocumentSchema = z.object({
   ownerType: z.enum(DOCUMENT_OWNER_TYPES),
   ownerId: z.string().uuid(),
   label: optionalText,
+  privacyClass: z.enum(DOCUMENT_PRIVACY_CLASSES).optional(),
 });
 
 export const unlinkDocumentSchema = z.object({

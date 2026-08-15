@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
 import { Textarea } from '@/components/ui/textarea';
@@ -26,11 +27,13 @@ export function InspectionStatusForm({
   inspectionId,
   currentStatus,
   currentResult,
+  formBlocked = false,
   compact = false,
 }: {
   inspectionId: string;
   currentStatus: InspectionStatus;
   currentResult?: string | null;
+  formBlocked?: boolean;
   compact?: boolean;
 }) {
   const t = useTranslations('fieldOps');
@@ -41,9 +44,15 @@ export function InspectionStatusForm({
     {},
   );
 
-  const options = INSPECTION_STATUSES.filter(
-    (value) => value === currentStatus || canTransitionInspectionStatus(currentStatus, value),
-  );
+  const options = INSPECTION_STATUSES.filter((value) => {
+    if (value !== currentStatus && !canTransitionInspectionStatus(currentStatus, value)) {
+      return false;
+    }
+    if (formBlocked && isCompletedInspectionStatus(value) && value !== currentStatus) {
+      return false;
+    }
+    return true;
+  });
   const needsResult = isCompletedInspectionStatus(status);
 
   return (
@@ -57,15 +66,24 @@ export function InspectionStatusForm({
     >
       <input type="hidden" name="inspectionId" value={inspectionId} />
       <input type="hidden" name="status" value={status} />
+      {formBlocked ? (
+        <Alert tone="warning" className="w-full">
+          {t('form.requiredBody')}
+        </Alert>
+      ) : null}
       <div className="flex flex-wrap items-center gap-2">
         <Select value={status} onValueChange={(value) => setStatus(value as InspectionStatus)}>
-          <SelectTrigger className="min-h-11 w-full sm:w-[10rem] md:h-9 md:min-h-9" aria-label={t('updateStatus.label')}>
+          <SelectTrigger className="min-h-11 w-full sm:w-[10rem] md:h-9 md:min-h-9" aria-label={t('updateStatus.outcomeLabel')}>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
             {options.map((value) => (
               <SelectItem key={value} value={value}>
-                {tStatus(value)}
+                {value === 'passed'
+                  ? t('updateStatus.pass')
+                  : value === 'failed'
+                    ? t('updateStatus.fail')
+                    : tStatus(value)}
               </SelectItem>
             ))}
           </SelectContent>

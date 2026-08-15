@@ -17,6 +17,7 @@ import { ResponsiveTable } from '@/components/patterns/responsive-table';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 import { listVendorsForOrg } from '@/modules/vendors';
+import { SavedListViewsBar } from '@/modules/tenancy/ui/saved-list-views-bar';
 
 import { withOrgContext } from '@/shared/auth/session';
 
@@ -119,6 +120,7 @@ export default async function VendorsPage({
 
 
       <VendorListFilters initialQuery={q ?? ''} />
+      <SavedListViewsBar listKey="vendors" searchParams={{ q }} keys={['q']} />
 
 
 

@@ -26,6 +26,7 @@ const EXAMPLE_ROWS: Partial<Record<ImportKind, readonly (readonly string[])[]>> 
     ['travel_field', 'Field travel', 'direct_project'],
   ],
   expenses: [['2026-03-01', 'Cable purchase', '450.00', 'ILS', '', '', 'Supply Co', 'direct_project', '']],
+  inventory: [['NYM cable 3x1.5', 'CABLE-3X15', 'm', '7290001234567', '50', '20', '100']],
   boq_items: [
     ['01.01', 'Excavation for foundations', 'm3', '120', '85.50', '10260.00', 'Earthworks', 'Foundations'],
     ['01.02', 'Lean concrete blinding', 'm2', '80', '45', '3600', 'Earthworks', 'Foundations'],

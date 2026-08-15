@@ -66,3 +66,18 @@ export function groupOpportunitiesByStage<T extends { readonly stage: string }>(
 export function isOpportunityStage(value: string): value is OpportunityStage {
   return (OPPORTUNITY_STAGES as readonly string[]).includes(value);
 }
+
+/**
+ * Board / follow-up stage moves. Lost closes the opportunity. Won is a pipeline
+ * column only — converting to a project happens on `/quotes`, not here.
+ * Moving off lost reopens the record.
+ */
+export function statusForMovedStage(
+  stage: OpportunityStage,
+  currentStatus: OpportunityStatus,
+): OpportunityStatus | undefined {
+  if (stage === 'lost') return 'lost';
+  if (stage === 'won') return undefined;
+  if (currentStatus === 'lost' || currentStatus === 'cancelled') return 'open';
+  return undefined;
+}

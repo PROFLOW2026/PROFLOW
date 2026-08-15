@@ -81,6 +81,13 @@ export const appendDailyLogCorrectionSchema = z.object({
 
 export type AppendDailyLogCorrectionInput = z.input<typeof appendDailyLogCorrectionSchema>;
 
+export const linkDailyLogSafetyRecordSchema = z.object({
+  dailyLogId: z.string().uuid(),
+  safetyRecordId: z.string().uuid(),
+});
+
+export type LinkDailyLogSafetyRecordInput = z.input<typeof linkDailyLogSafetyRecordSchema>;
+
 export const createPunchListItemSchema = z.object({
   projectId: z.string().uuid(),
   workPackageId: optionalUuid,
@@ -89,6 +96,7 @@ export const createPunchListItemSchema = z.object({
   priority: z.enum(PUNCH_PRIORITIES).optional().default('normal'),
   location: optionalText,
   dueDate: optionalDate,
+  assigneeEmployeeId: optionalUuid,
 });
 
 export type CreatePunchListItemInput = z.input<typeof createPunchListItemSchema>;
@@ -102,6 +110,7 @@ export const updatePunchListItemSchema = z.object({
   location: optionalText,
   dueDate: optionalDate,
   workPackageId: optionalUuid,
+  assigneeEmployeeId: optionalUuid,
 });
 
 export type UpdatePunchListItemInput = z.input<typeof updatePunchListItemSchema>;
@@ -113,6 +122,8 @@ export const createInspectionSchema = z.object({
   kind: z.enum(INSPECTION_KINDS).optional().default('general'),
   scheduledOn: optionalDate,
   notes: optionalText,
+  inspectorEmployeeId: optionalUuid,
+  formTemplateId: optionalUuid,
 });
 
 export type CreateInspectionInput = z.input<typeof createInspectionSchema>;
@@ -127,6 +138,8 @@ export const updateInspectionSchema = z.object({
   result: optionalText,
   notes: optionalText,
   workPackageId: optionalUuid,
+  inspectorEmployeeId: optionalUuid,
+  formTemplateId: optionalUuid,
 });
 
 export type UpdateInspectionInput = z.input<typeof updateInspectionSchema>;

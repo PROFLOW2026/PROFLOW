@@ -11,6 +11,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { MoneyInput } from '@/components/patterns/money-input';
 import { RATE_UNITS } from '@/modules/workforce/domain/types';
 import type { createEmployeeAction } from '@/app/[locale]/(app)/workforce/employees/actions';
+import type { OrgMemberLinkOption } from '@/modules/workforce/data/employees.repository';
+
+const UNLINKED = '__none__';
 
 export interface EmployeeFormProps {
   readonly action: typeof createEmployeeAction;
@@ -18,6 +21,7 @@ export interface EmployeeFormProps {
   readonly defaultValidFrom: string;
   /** Rate fields require workforce.manage (create page already asserts this). */
   readonly showRateFields?: boolean;
+  readonly linkableUsers?: readonly OrgMemberLinkOption[];
 }
 
 /**
@@ -29,6 +33,7 @@ export function EmployeeForm({
   defaultCurrency,
   defaultValidFrom,
   showRateFields = true,
+  linkableUsers = [],
 }: EmployeeFormProps) {
   const t = useTranslations('workforce');
   const tCommon = useTranslations('common');
@@ -36,6 +41,7 @@ export function EmployeeForm({
   const [baseRate, setBaseRate] = useState('');
   const [burdenPercent, setBurdenPercent] = useState('');
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [linkedUserId, setLinkedUserId] = useState(UNLINKED);
   const [state, formAction, pending] = useActionState(action, {});
 
   return (
@@ -44,6 +50,38 @@ export function EmployeeForm({
 
       <Field label={t('employees.form.name')} required>
         {(control) => <Input {...control} name="name" autoFocus required />}
+      </Field>
+
+      <Field
+        label={t('employees.form.employeeNumber')}
+        optionalLabel={tCommon('labels.optional')}
+      >
+        {(control) => <Input {...control} name="employeeNumber" dir="ltr" />}
+      </Field>
+
+      <Field
+        label={t('employees.form.linkedUser')}
+        optionalLabel={tCommon('labels.optional')}
+        description={t('employees.form.linkedUserHint')}
+      >
+        {(control) => (
+          <>
+            <input type="hidden" name="userId" value={linkedUserId === UNLINKED ? '' : linkedUserId} />
+            <Select value={linkedUserId} onValueChange={setLinkedUserId}>
+              <SelectTrigger id={control.id} aria-describedby={control['aria-describedby']}>
+                <SelectValue placeholder={t('employees.form.linkedUserNone')} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={UNLINKED}>{t('employees.form.linkedUserNone')}</SelectItem>
+                {linkableUsers.map((member) => (
+                  <SelectItem key={member.userId} value={member.userId}>
+                    {member.displayName ? `${member.displayName} · ${member.email}` : member.email}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </>
+        )}
       </Field>
 
       <Field

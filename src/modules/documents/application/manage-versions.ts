@@ -39,6 +39,7 @@ import {
   prepareNewVersionSchema,
   versionIdSchema,
 } from '../validation/schemas';
+import { assertCanReadStoredDocument } from './document-visibility';
 
 const DEFAULT_BUCKET = 'documents';
 
@@ -88,6 +89,7 @@ export async function prepareNewVersionUpload(
   const document = assertDocumentAvailable(
     await findDocumentById(context.db, context.organizationId, parsed.data.documentId),
   );
+  await assertCanReadStoredDocument(context, document);
 
   const storage = getStoragePort();
   if (!storage.configured) {
@@ -297,6 +299,7 @@ export async function listVersions(
 
   const document = await findDocumentById(context.db, context.organizationId, parsed.data.documentId);
   if (!document) throw new NotFoundError('Document');
+  await assertCanReadStoredDocument(context, document);
 
   return listDocumentVersions(context.db, context.organizationId, document.id);
 }
@@ -325,6 +328,7 @@ export async function createDocumentVersionDownloadUrl(
   if (!document || document.status === 'deleted' || document.deletedAt) {
     throw new NotFoundError('Document');
   }
+  await assertCanReadStoredDocument(context, document);
 
   const storage = getStoragePort();
   if (!storage.configured) {

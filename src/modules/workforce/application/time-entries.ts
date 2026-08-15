@@ -21,6 +21,7 @@ import {
   resolveAccessibleProjectIds,
 } from '@/modules/projects/application/project-access';
 import { canReadWorkforceCost } from './workforce-cost-authz';
+import { assertCanActOnEmployeeTime, assertCanListTime, canReadOrgWorkforce, resolveSelfScopedEmployeeId } from './time-scope';
 import { expandBulkWorkDates } from '../domain/bulk-time-expand';
 import { calculateLaborCostTotal } from '../domain/labor-cost';
 import { resolveRateVersionForDate } from '../domain/rate-lookup';
@@ -36,6 +37,7 @@ import {
   findPhaseById,
   findProjectById,
   findWorkPackageById,
+  listActiveProjects,
 } from '../data/project-refs.repository';
 import {
   listComponentsByRateVersion,
@@ -125,7 +127,7 @@ async function ensureDefaultTimeCodes(db: OrgContext['db'], organizationId: stri
 }
 
 export async function listNonProjectCodes(context: OrgContext): Promise<NonProjectTimeCodeRecord[]> {
-  assertPermission(context, PERMISSIONS.WORKFORCE_READ);
+  assertAnyPermission(context, [PERMISSIONS.TIME_MANAGE, PERMISSIONS.WORKFORCE_READ]);
   await ensureDefaultTimeCodes(context.db, context.organizationId);
   return listNonProjectTimeCodes(context.db, context.organizationId);
 }
@@ -142,10 +144,22 @@ export async function listTimeEntriesForOrg(
   context: OrgContext,
   filters: TimeEntryFiltersInput = {},
 ): Promise<TimeEntryListItem[]> {
-  assertPermission(context, PERMISSIONS.WORKFORCE_READ);
+  assertCanListTime(context);
+  let scopedEmployeeId = filters.employeeId;
+  if (!canReadOrgWorkforce(context)) {
+    const linkedId = await resolveSelfScopedEmployeeId(context);
+    if (!linkedId) return [];
+    if (filters.employeeId && filters.employeeId !== linkedId) {
+      throw new DomainRuleError(
+        'Time self scope is limited to the linked employee',
+        'workforce.errors.timeSelfScope',
+      );
+    }
+    scopedEmployeeId = linkedId;
+  }
   if (filters.projectId) await assertCanAccessProject(context, filters.projectId);
   const rows = await listTimeEntries(context.db, context.organizationId, {
-    employeeId: filters.employeeId,
+    employeeId: scopedEmployeeId,
     projectId: filters.projectId,
     fromDate: filters.fromDate,
     toDate: filters.toDate,
@@ -158,6 +172,15 @@ export async function listTimeEntriesForOrg(
   return rows
     .filter((row) => isAccessibleProjectId(allowed, row.projectId))
     .map((row) => redactTimeEntryCost(row, canReadCost));
+}
+
+export async function listProjectsForTimeLog(
+  context: OrgContext,
+): Promise<{ id: string; name: string }[]> {
+  assertAnyPermission(context, [PERMISSIONS.TIME_MANAGE, PERMISSIONS.WORKFORCE_READ]);
+  const projects = await listActiveProjects(context.db, context.organizationId);
+  const allowed = await resolveAccessibleProjectIds(context);
+  return projects.filter((project) => isAccessibleProjectId(allowed, project.id));
 }
 
 export async function listProjectTimeEntries(
@@ -329,6 +352,7 @@ export async function createTimeEntry(
 
   const employee = await findEmployeeById(context.db, context.organizationId, input.employeeId);
   if (!employee || employee.archivedAt) throw new NotFoundError('Employee');
+  await assertCanActOnEmployeeTime(context, input.employeeId);
 
   await assertMonthOpenForRewrite(context, yearMonthFromBusinessDate(input.workDate));
 
@@ -406,6 +430,7 @@ export async function createBulkTimeEntries(
 
   const employee = await findEmployeeById(context.db, context.organizationId, input.employeeId);
   if (!employee || employee.archivedAt) throw new NotFoundError('Employee');
+  await assertCanActOnEmployeeTime(context, input.employeeId);
 
   const months = new Set(days.map((day) => yearMonthFromBusinessDate(day.workDate)));
   for (const yearMonth of months) {
@@ -559,9 +584,11 @@ export async function correctTimeEntry(
       'workforce.errors.timeEntryArchived',
     );
   }
+  await assertCanActOnEmployeeTime(context, original.employeeId);
 
   const employee = await findEmployeeById(context.db, context.organizationId, input.employeeId);
   if (!employee || employee.archivedAt) throw new NotFoundError('Employee');
+  await assertCanActOnEmployeeTime(context, input.employeeId);
 
   const targets = await resolveTimeTargets(context, input);
   const snapshot = await resolveTimeEntryCostSnapshot(context.db, context.organizationId, {
@@ -706,6 +733,7 @@ export async function updateTimeEntry(
       'workforce.errors.timeEntryArchived',
     );
   }
+  await assertCanActOnEmployeeTime(context, original.employeeId);
   if (isApprovedRecordedLocked(original)) {
     throw new DomainRuleError(
       'Approved time is locked; use a correction',

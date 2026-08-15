@@ -21,12 +21,14 @@ export function ProjectAccessPanel({
   members,
   projects,
   grants,
+  accessAllMembers,
 }: {
   mode: ProjectAccessMode;
   canManage: boolean;
   members: { userId: string; email: string; displayName: string | null }[];
   projects: { id: string; name: string }[];
   grants: { id: string; userId: string; projectId: string }[];
+  accessAllMembers: { userId: string; email: string; displayName: string | null }[];
 }) {
   const t = useTranslations('settings.people');
   const router = useRouter();
@@ -52,7 +54,18 @@ export function ProjectAccessPanel({
       <div>
         <h2 className="text-base font-semibold">{t('accessTitle')}</h2>
         <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">{t('accessHint')}</p>
+        <p className="mt-2 text-sm text-[var(--pf-text-secondary)]">{t('assignedModeHint')}</p>
       </div>
+
+      {mode !== 'all' && accessAllMembers.length > 0 ? (
+        <Alert tone="warning">
+          {t('accessAllBypassWarning', {
+            names: accessAllMembers
+              .map((member) => member.displayName || member.email)
+              .join(', '),
+          })}
+        </Alert>
+      ) : null}
 
       {canManage ? (
         <form action={modeAction} className="flex flex-col gap-3 sm:flex-row sm:items-end">

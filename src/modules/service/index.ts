@@ -10,6 +10,7 @@ export {
 } from './application/create-work-order-billing';
 export type { CreateWorkOrderBillingResult } from './application/create-work-order-billing';
 export { listDispatchBoard, rescheduleWorkOrder } from './application/dispatch';
+export { upsertWorkOrderDispatchBooking } from './application/dispatch-booking';
 export {
   listWorkOrderChecklistTemplateOptions,
   getWorkOrderChecklistGateState,
@@ -54,6 +55,8 @@ export {
   assertWorkOrderCompletionChecklist,
 } from './domain/checklist-gate';
 export type { WorkOrderChecklistSubmissionRef } from './domain/checklist-gate';
+export { resolveDispatchBookingUpsert, resolveDispatchWindowEnd } from './domain/dispatch-booking';
+export type { DispatchBookingUpsert } from './domain/dispatch-booking';
 
 export {
   createWorkOrderSchema,

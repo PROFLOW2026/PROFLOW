@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { Card } from '@/components/ui/card';
 import { listPendingInvitations } from '@/modules/tenancy';
-import { listOrganizationRoles } from '@/modules/rbac';
+import { listOrganizationRoles, listPermissionsByRoleIds } from '@/modules/rbac';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { withOrgContext } from '@/shared/auth/session';
@@ -45,6 +45,20 @@ export default async function PeopleSettingsPage() {
     ]);
 
     const roleIdToKey = Object.fromEntries(roles.map((role) => [role.id, role.key]));
+    const permissionsByRoleId = await listPermissionsByRoleIds(
+      context.db,
+      roles.map((role) => role.id),
+    );
+    const accessAllRoleKeys = new Set(
+      roles
+        .filter((role) =>
+          (permissionsByRoleId.get(role.id) ?? []).includes(PERMISSIONS.PROJECTS_ACCESS_ALL),
+        )
+        .map((role) => role.key),
+    );
+    const accessAllMembers = members.filter((member) =>
+      member.roleKeys.some((key) => accessAllRoleKeys.has(key)),
+    );
 
     return {
       allowed: true as const,
@@ -59,6 +73,11 @@ export default async function PeopleSettingsPage() {
       accessMode,
       grants,
       projects: projectRows.map((row) => ({ id: row.id, name: row.name })),
+      accessAllMembers: accessAllMembers.map((member) => ({
+        userId: member.userId,
+        email: member.email,
+        displayName: member.displayName,
+      })),
     };
   });
 
@@ -89,6 +108,7 @@ export default async function PeopleSettingsPage() {
           members={data.members}
           projects={data.projects}
           grants={data.grants}
+          accessAllMembers={data.accessAllMembers}
         />
       </Card>
     </SettingsPageShell>

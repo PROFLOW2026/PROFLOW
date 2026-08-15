@@ -1,9 +1,9 @@
 {
   "title": "Notifications",
-  "bellLabel": "Notifications",
+  "bellLabel": "Alerts",
   "unreadCount": "{count, plural, one {# unread} other {# unread}}",
   "empty": "No notifications",
-  "emptyHint": "When something needs attention, it will show up here.",
+  "emptyHint": "Alerts about overdue items, approvals, and expirations. Today's work inbox is a separate page.",
   "loading": "Loading notifications…",
   "error": "Could not load notifications.",
   "retry": "Try again",
@@ -26,10 +26,11 @@
     "task_overdue": "Overdue task",
     "boq_awaiting_approval": "BOQ awaiting approval",
     "work_order_assigned": "Work order assignment",
+    "punch_assigned": "Punch item assigned",
     "low_stock": "Low stock",
     "safety_action_due": "Safety action due"
   },
   "viewAll": "View all",
   "scan": "Refresh",
-  "pageDescription": "Items that need attention across the organization."
+  "pageDescription": "Alerts that need attention. Today's work inbox is separate."
 }

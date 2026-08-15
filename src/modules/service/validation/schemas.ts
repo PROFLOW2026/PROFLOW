@@ -14,6 +14,13 @@ const optionalDate = z.preprocess(
 );
 const optionalDateTime = z.preprocess(emptyToNull, z.string().trim().min(1).nullable().optional());
 const optionalUuid = z.preprocess(emptyToNull, z.string().uuid().nullable().optional());
+const optionalBoolean = z.preprocess((value) => {
+  if (value === '' || value === null || value === undefined) return false;
+  if (typeof value === 'boolean') return value;
+  if (value === 'true' || value === 'on' || value === '1') return true;
+  if (value === 'false' || value === '0') return false;
+  return value;
+}, z.boolean().optional());
 
 export const createWorkOrderSchema = z
   .object({
@@ -150,6 +157,7 @@ export const rescheduleWorkOrderSchema = z
     scheduledEndAt: optionalDateTime,
     assigneeEmployeeId: optionalUuid,
     serviceStatus: z.enum(SERVICE_STATUSES).optional(),
+    confirmConflict: optionalBoolean,
   })
   .superRefine((value, ctx) => {
     if (!value.scheduledStartAt && !value.assigneeEmployeeId && !value.serviceStatus) {

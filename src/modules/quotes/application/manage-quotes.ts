@@ -1,5 +1,6 @@
 import { and, eq } from 'drizzle-orm';
 import { clients, clientContacts } from '@drizzle/schema';
+import { findOpportunityById, findProspectById, updateOpportunityById } from '@/modules/crm/data/crm.repository';
 import { resolveApplicableDefaultTax, resolveTaxForDate } from '@/modules/tax';
 import { noteModuleUsage, resolveAllocatedReference, titleWithDocumentNumber } from '@/modules/tenancy';
 import { recordAuditEvent } from '@/shared/audit';
@@ -8,6 +9,7 @@ import { todayInTimeZone } from '@/shared/dates';
 import { NotFoundError, ValidationError } from '@/shared/errors';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
+import { recordQuoteClientActivity } from './timeline-events';
 import { assertQuoteEditable } from '../domain/lifecycle';
 import { computeQuoteTotals } from '../domain/totals';
 import { QUOTES_AUDIT_ACTIONS, type QuoteDetail, type QuoteRecord } from '../domain/types';
@@ -60,6 +62,33 @@ async function assertContactInOrg(
   }
 }
 
+async function resolveOpportunityLink(
+  context: OrgContext,
+  input: { clientId?: string | null; opportunityId?: string | null },
+): Promise<{ clientId: string | null; opportunityId: string | null }> {
+  let clientId = input.clientId ?? null;
+  const opportunityId = input.opportunityId ?? null;
+  if (!opportunityId) return { clientId, opportunityId };
+
+  const opportunity = await findOpportunityById(context.db, context.organizationId, opportunityId);
+  if (!opportunity) throw new NotFoundError('Opportunity');
+
+  if (!clientId) {
+    if (opportunity.convertedClientId) {
+      clientId = opportunity.convertedClientId;
+    } else if (opportunity.prospectId) {
+      const prospect = await findProspectById(
+        context.db,
+        context.organizationId,
+        opportunity.prospectId,
+      );
+      if (prospect?.convertedClientId) clientId = prospect.convertedClientId;
+    }
+  }
+
+  return { clientId, opportunityId };
+}
+
 async function resolveTaxForQuote(
   context: OrgContext,
   taxMode: 'exclusive' | 'inclusive' | 'none',
@@ -101,13 +130,17 @@ export async function createQuote(
   }
 
   const input = parsed.data;
+  const linked = await resolveOpportunityLink(context, {
+    clientId: input.clientId,
+    opportunityId: input.opportunityId,
+  });
   const currency = (input.currency ?? context.organization.baseCurrency).toUpperCase();
   const taxMode = input.taxMode ?? 'exclusive';
   const documentNumber = await resolveAllocatedReference(context, 'estimate', input.reference);
   const title = titleWithDocumentNumber(input.title, documentNumber);
 
-  await assertClientInOrg(context, input.clientId);
-  await assertContactInOrg(context, input.contactId, input.clientId ?? null);
+  await assertClientInOrg(context, linked.clientId);
+  await assertContactInOrg(context, input.contactId, linked.clientId);
 
   const { resolved, ruleId } = await resolveTaxForQuote(context, taxMode, input.taxRuleId);
   const totals = computeQuoteTotals({
@@ -119,8 +152,9 @@ export async function createQuote(
 
   const quote = await insertQuote(context.db, {
     organizationId: context.organizationId,
-    clientId: input.clientId ?? null,
+    clientId: linked.clientId,
     contactId: input.contactId ?? null,
+    opportunityId: linked.opportunityId,
     title,
     description: input.description ?? null,
     status: 'draft',
@@ -173,6 +207,32 @@ export async function createQuote(
       isNotBilling: true,
       isNotRevenue: true,
     },
+  });
+
+  if (linked.opportunityId) {
+    const opportunity = await findOpportunityById(
+      context.db,
+      context.organizationId,
+      linked.opportunityId,
+    );
+    if (
+      opportunity &&
+      opportunity.status === 'open' &&
+      (opportunity.stage === 'qualify' || opportunity.stage === 'estimate')
+    ) {
+      await updateOpportunityById(context.db, context.organizationId, opportunity.id, {
+        stage: 'quote',
+      });
+    }
+  }
+
+  await recordQuoteClientActivity(context, {
+    clientId: linked.clientId,
+    kind: 'quote_created',
+    entityType: 'estimate',
+    entityId: quote.id,
+    summary: quote.title,
+    deepLink: `/quotes/${quote.id}`,
   });
 
   return {

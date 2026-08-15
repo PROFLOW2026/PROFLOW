@@ -17,8 +17,18 @@ export async function generateMetadata({
   return { title: t('create.title') };
 }
 
-export default async function NewSafetyRecordPage() {
+export default async function NewSafetyRecordPage({
+  searchParams,
+}: {
+  searchParams: Promise<{
+    fromDailyLogId?: string;
+    projectId?: string;
+    title?: string;
+    description?: string;
+  }>;
+}) {
   const t = await getTranslations('safety');
+  const params = await searchParams;
   const projects = await withOrgContext(async (context) => {
     const rows = await listProjectsForOrg(context, {}).catch(() => []);
     return rows.map((project) => ({ id: project.id, name: project.name }));
@@ -35,7 +45,17 @@ export default async function NewSafetyRecordPage() {
           </Link>
         }
       />
-      <SafetyRecordForm mode="create" projects={projects} defaultOccurredAt={new Date()} />
+      <SafetyRecordForm
+        mode="create"
+        projects={projects}
+        defaultOccurredAt={new Date()}
+        defaults={{
+          fromDailyLogId: params.fromDailyLogId,
+          projectId: params.projectId,
+          title: params.title,
+          description: params.description,
+        }}
+      />
     </div>
   );
 }

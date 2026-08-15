@@ -79,6 +79,11 @@ export {
   isOriginalContractAmountLocked,
 } from './domain/contract-value';
 export {
+  canTransitionContractStatus,
+  contractStatusActions,
+  isTerminalContractStatus,
+} from './domain/contract-lifecycle';
+export {
   computeEntryBaselineAmounts,
   computeManagedOpeningNet,
   hasStoredOpeningReduction,
@@ -235,6 +240,7 @@ export {
   findContractById,
   findPrimaryContractByProject,
   listContractsByProject,
+  listContractsForProjects,
 } from './data/contracts.repository';
 export {
   findWorkPackageById,

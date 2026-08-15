@@ -386,6 +386,9 @@ export async function getClientTimeline(
   }
 
   for (const estimate of estimates) {
+    // Product `/quotes` estimates appear here once they have a clientId.
+    // CRM pipeline rows (leads/opportunities/crm_sales_quotes) are not listed
+    // until they become an estimate or a converted project.
     canonical.push(
       buildEvent({
         kind: 'quote_created',

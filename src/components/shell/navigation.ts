@@ -35,6 +35,7 @@ export const NAV_ICON_KEYS = [
   'vendors',
   'workforce',
   'attendance',
+  'time',
   'documents',
   'crm',
   'quotes',
@@ -51,6 +52,7 @@ export const NAV_ICON_KEYS = [
   'service',
   'forms',
   'scheduling',
+  'imports',
   'settings',
 ] as const;
 
@@ -158,6 +160,24 @@ export const NAV_ITEMS: readonly NavItem[] = [
     moreGroup: 'business',
   },
   {
+    key: 'quotes',
+    href: '/quotes',
+    labelKey: 'quotes',
+    iconKey: 'quotes',
+    permission: PERMISSIONS.QUOTES_READ,
+    module: 'quotes',
+    moreGroup: 'business',
+  },
+  {
+    key: 'crm',
+    href: '/crm',
+    labelKey: 'crm',
+    iconKey: 'crm',
+    permission: PERMISSIONS.CRM_READ,
+    module: 'crm',
+    moreGroup: 'business',
+  },
+  {
     key: 'changes',
     href: '/changes',
     labelKey: 'changes',
@@ -199,24 +219,6 @@ export const NAV_ITEMS: readonly NavItem[] = [
     moreGroup: 'business',
   },
   {
-    key: 'crm',
-    href: '/crm',
-    labelKey: 'crm',
-    iconKey: 'crm',
-    permission: PERMISSIONS.CRM_READ,
-    module: 'crm',
-    moreGroup: 'operations',
-  },
-  {
-    key: 'quotes',
-    href: '/quotes',
-    labelKey: 'quotes',
-    iconKey: 'quotes',
-    permission: PERMISSIONS.QUOTES_READ,
-    module: 'quotes',
-    moreGroup: 'business',
-  },
-  {
     key: 'vendors',
     href: '/vendors',
     labelKey: 'vendors',
@@ -237,6 +239,18 @@ export const NAV_ITEMS: readonly NavItem[] = [
     moreGroup: 'operations',
   },
   {
+    key: 'time',
+    href: '/workforce/time',
+    labelKey: 'time',
+    iconKey: 'time',
+    anyPermissions: [
+      PERMISSIONS.TIME_MANAGE,
+      PERMISSIONS.TIME_APPROVE,
+      PERMISSIONS.WORKFORCE_READ,
+    ],
+    moreGroup: 'operations',
+  },
+  {
     key: 'attendance',
     // Permission-only (read | self | manage). No global planning / aging here.
     href: '/workforce/attendance',
@@ -250,19 +264,19 @@ export const NAV_ITEMS: readonly NavItem[] = [
     moreGroup: 'operations',
   },
   {
-    key: 'scheduling',
-    href: '/scheduling',
-    labelKey: 'scheduling',
-    iconKey: 'scheduling',
-    permission: PERMISSIONS.SCHEDULING_READ,
-    moreGroup: 'operations',
-  },
-  {
     key: 'timesheets',
     href: '/workforce/time/approvals',
     labelKey: 'timesheets',
     iconKey: 'timesheets',
     permission: PERMISSIONS.TIME_APPROVE,
+    moreGroup: 'operations',
+  },
+  {
+    key: 'scheduling',
+    href: '/scheduling',
+    labelKey: 'scheduling',
+    iconKey: 'scheduling',
+    permission: PERMISSIONS.SCHEDULING_READ,
     moreGroup: 'operations',
   },
   {
@@ -273,6 +287,16 @@ export const NAV_ITEMS: readonly NavItem[] = [
     permission: PERMISSIONS.PROCUREMENT_READ,
     module: 'procurement',
     moreGroup: 'operations',
+  },
+  {
+    key: 'vendorBills',
+    // Permission-only so AP is findable without Procurement. When Procurement
+    // is on, visibleNavItems promotes this into Operations next to POs.
+    href: '/procurement/ap',
+    labelKey: 'vendorBills',
+    iconKey: 'procurement',
+    permission: PERMISSIONS.AP_READ,
+    moreGroup: 'advanced',
   },
   {
     key: 'materials',
@@ -328,13 +352,21 @@ export const NAV_ITEMS: readonly NavItem[] = [
     moreGroup: 'operations',
   },
   {
-    key: 'vendorBills',
-    // Permission-only: owners with AP must find bills without enabling Procurement first.
-    href: '/procurement/ap',
-    labelKey: 'vendorBills',
-    iconKey: 'procurement',
-    permission: PERMISSIONS.AP_READ,
-    moreGroup: 'advanced',
+    key: 'imports',
+    href: '/imports',
+    labelKey: 'imports',
+    iconKey: 'imports',
+    anyPermissions: [
+      PERMISSIONS.CLIENTS_MANAGE,
+      PERMISSIONS.VENDORS_MANAGE,
+      PERMISSIONS.WORKFORCE_MANAGE,
+      PERMISSIONS.PROJECTS_CREATE,
+      PERMISSIONS.CONTRACTS_MANAGE,
+      PERMISSIONS.EXPENSES_CREATE,
+      PERMISSIONS.SETTINGS_MANAGE,
+      PERMISSIONS.BOQ_MANAGE,
+    ],
+    moreGroup: 'operations',
   },
   {
     key: 'assets',
@@ -442,7 +474,12 @@ export function visibleNavItems(
     return true;
   });
 
-  return applyWorkMixToNavItems(filtered, workMix);
+  return applyWorkMixToNavItems(filtered, workMix).map((item) => {
+    if (item.key === 'vendorBills' && modules.procurement) {
+      return { ...item, moreGroup: 'operations' as const };
+    }
+    return item;
+  });
 }
 
 export interface NavItemGroup {

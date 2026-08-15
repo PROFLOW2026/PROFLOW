@@ -179,6 +179,40 @@ const BOQ_ITEM_FIELDS: readonly ImportFieldDef[] = [
 ];
 
 /**
+ * Qty inventory items. Opening qty is a receive to the default location when
+ * present — never Actual / Expense / FIFO.
+ */
+const INVENTORY_FIELDS: readonly ImportFieldDef[] = [
+  { key: 'name', required: true, aliases: ['name', 'item_name', 'item', 'שם', 'שם_פריט'] },
+  { key: 'sku', required: false, aliases: ['sku', 'item_code', 'code', 'מקט', 'מק״ט', 'קוד'] },
+  { key: 'unit', required: false, aliases: ['unit', 'uom', 'יחידה', 'יח'] },
+  { key: 'barcode', required: false, aliases: ['barcode', 'bar_code', 'qr', 'ברקוד'] },
+  {
+    key: 'reorderLevel',
+    required: false,
+    aliases: ['reorder_level', 'reorder', 'reorderlevel', 'רמת_הזמנה', 'הזמנה_מחדש'],
+  },
+  {
+    key: 'minStockLevel',
+    required: false,
+    aliases: ['min_stock_level', 'min_stock', 'min', 'מלאי_מינימום', 'מינימום'],
+  },
+  {
+    key: 'openingQty',
+    required: false,
+    aliases: [
+      'opening_qty',
+      'opening_quantity',
+      'quantity_on_hand',
+      'qty',
+      'quantity',
+      'כמות',
+      'כמות_פתיחה',
+    ],
+  },
+];
+
+/**
  * Safe expense import fields — maps to createExpenseSchema.
  * Tax/VAT/net columns are intentionally not mapped (VAT ≠ profit).
  */
@@ -219,6 +253,7 @@ const FIELDS_BY_KIND: Record<ImportKind, readonly ImportFieldDef[]> = {
   opening_values: OPENING_VALUE_FIELDS,
   cost_categories: COST_CATEGORY_FIELDS,
   expenses: EXPENSE_FIELDS,
+  inventory: INVENTORY_FIELDS,
   boq_items: BOQ_ITEM_FIELDS,
 };
 

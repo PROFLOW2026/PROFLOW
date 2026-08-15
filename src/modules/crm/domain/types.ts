@@ -209,6 +209,14 @@ export interface OpportunityDetail extends Omit<OpportunityRecord, 'notes'> {
   /** Activity / timeline notes. */
   readonly notes: readonly OpportunityNoteRecord[];
   readonly estimates: readonly EstimateRecord[];
+  /** Owner-facing bids from `estimates` / /quotes. */
+  readonly productQuotes: readonly {
+    readonly id: string;
+    readonly title: string;
+    readonly status: string;
+    readonly totalAmount: string | null;
+    readonly currency: string;
+  }[];
   /** Org-scoped audit summaries for this opportunity; not a synthetic activity feed. */
   readonly auditEvents: readonly AuditEventSummary[];
   readonly salesQuotes: readonly (SalesQuoteRecord & {

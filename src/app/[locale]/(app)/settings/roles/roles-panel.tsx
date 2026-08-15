@@ -9,7 +9,7 @@ import {
   ROLE_TEMPLATE_KEYS,
   TOGGLEABLE_PERMISSIONS,
 } from '@/shared/permissions/role-templates';
-import type { PermissionKey } from '@/shared/permissions/catalog';
+import { PERMISSIONS, type PermissionKey } from '@/shared/permissions/catalog';
 import { setRoleToggleAction, type SettingsActionState } from '../actions';
 
 function RolePermissionToggle({
@@ -17,12 +17,14 @@ function RolePermissionToggle({
   permission,
   enabled,
   label,
+  hint,
   onFeedback,
 }: {
   roleKey: string;
   permission: PermissionKey;
   enabled: boolean;
   label: string;
+  hint?: string;
   onFeedback: (state: SettingsActionState) => void;
 }) {
   const formRef = useRef<HTMLFormElement>(null);
@@ -42,7 +44,10 @@ function RolePermissionToggle({
       <input type="hidden" name="roleKey" value={roleKey} />
       <input type="hidden" name="permission" value={permission} />
       <input ref={enabledRef} type="hidden" name="enabled" defaultValue={String(!enabled)} />
-      <Label className="min-w-0 flex-1 text-start text-sm leading-snug break-words">{label}</Label>
+      <div className="min-w-0 flex-1">
+        <Label className="text-start text-sm leading-snug break-words">{label}</Label>
+        {hint ? <p className="mt-1 text-xs text-[var(--pf-text-muted)]">{hint}</p> : null}
+      </div>
       <Switch
         checked={enabled}
         disabled={pending}
@@ -102,6 +107,11 @@ export function RolesSettingsPanel({
                     permission={permission}
                     enabled={rolePermissions[roleKey]?.includes(permission) ?? false}
                     label={tPerm(permission)}
+                    hint={
+                      permission === PERMISSIONS.PROJECTS_ACCESS_ALL
+                        ? t('accessAllHint')
+                        : undefined
+                    }
                     onFeedback={setFeedback}
                   />
                 ))}

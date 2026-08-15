@@ -21,6 +21,7 @@ import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { PunchListFilters } from '../field-ops-list-filters';
 import { FieldOpsSectionNav } from '../field-ops-section-nav';
+import { SavedListViewsBar } from '@/modules/tenancy/ui/saved-list-views-bar';
 import { PunchPriorityForm } from './punch-priority-form';
 import { PunchStatusForm } from './punch-status-form';
 import { textNavLinkClassName } from '@/components/ui/pressable';
@@ -115,6 +116,11 @@ export default async function FieldOpsPunchPage({
         projectId={projectId}
         initialStatus={statusParam ?? 'all'}
         initialPriority={priorityParam ?? 'all'}
+      />
+      <SavedListViewsBar
+        listKey="punch"
+        searchParams={{ projectId, status: statusParam, priority: priorityParam }}
+        keys={['projectId', 'status', 'priority']}
       />
 
       {items.length === 0 ? (

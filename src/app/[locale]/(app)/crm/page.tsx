@@ -2,6 +2,7 @@ import { Handshake, Plus } from 'lucide-react';
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { Button } from '@/components/ui/button';
+import { Alert } from '@/components/ui/alert';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/ui/page-header';
 import { listOpportunitiesForOrg } from '@/modules/crm';
@@ -59,6 +60,7 @@ export default async function CrmOpportunitiesPage() {
           ) : null
         }
       />
+      <Alert tone="info">{t('quotesVsCrmBanner')}</Alert>
       <CommercialDocsHub current="crm" />
       <CrmSectionNav active="opportunities" />
 
@@ -76,7 +78,7 @@ export default async function CrmOpportunitiesPage() {
           }
         />
       ) : (
-        <OpportunityPipelineViews items={boardItems} />
+        <OpportunityPipelineViews items={boardItems} canMoveStages={canManage} />
       )}
     </CrmShell>
   );

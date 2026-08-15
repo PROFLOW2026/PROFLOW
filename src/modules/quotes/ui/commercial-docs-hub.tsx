@@ -82,7 +82,11 @@ export async function CommercialDocsHub({
             <Link href="/crm" className="font-medium text-[var(--pf-text-brand)] underline-offset-4 hover:underline">
               {t('crmAction')}
             </Link>
-          ) : null}
+          ) : (
+            <Link href="/quotes" className="font-medium text-[var(--pf-text-brand)] underline-offset-4 hover:underline">
+              {t('preProjectAction')}
+            </Link>
+          )}
         </p>
       ) : null}
     </section>

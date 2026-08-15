@@ -4,7 +4,7 @@ import { AUDIT_ACTIONS, recordAuditEvent } from '@/shared/audit';
 import type { OrgContext } from '@/shared/auth/context';
 import { todayInTimeZone, toIsoInstant } from '@/shared/dates';
 import { withTransaction } from '@/shared/db';
-import { ConflictError, NotFoundError, ValidationError } from '@/shared/errors';
+import { ConflictError, DomainRuleError, NotFoundError, ValidationError } from '@/shared/errors';
 import { money } from '@/shared/money';
 import { assertPermission, assertSameOrganization } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
@@ -42,6 +42,7 @@ import {
   isOriginalContractAmountLocked,
 } from '../domain/contract-value';
 import { CONTRACT_VALUE_REASON_ORIGINAL } from '../domain/contract-value-reason';
+import { canTransitionContractStatus } from '../domain/contract-lifecycle';
 import type { ContractRecord, ContractType } from '../domain/types';
 import { ORIGINAL_AMOUNT_LOCKED_MESSAGE_KEY } from './contract-amount';
 import {
@@ -354,6 +355,13 @@ export async function updateContract(
     }
   }
 
+  if (input.status && !canTransitionContractStatus(existing.status, input.status)) {
+    throw new DomainRuleError(
+      `Cannot transition contract from ${existing.status} to ${input.status}`,
+      'projects.contracts.errors.invalidStatus',
+    );
+  }
+
   if (input.isPrimary === true && !existing.isPrimary) {
     await setProjectPrimaryContract(context, {
       projectId: existing.projectId,
@@ -366,10 +374,12 @@ export async function updateContract(
     });
   }
 
+  const contractType = existing.isPrimary ? undefined : input.contractType;
+
   const updated = await updateContractMetadata(context.db, context.organizationId, existing.id, {
     name: input.name,
     reference: input.reference,
-    contractType: input.contractType,
+    contractType,
     contractNumber: input.contractNumber,
     clientId: input.clientId,
     startDate: input.startDate,

@@ -2,6 +2,7 @@ import { FileSpreadsheet, Plus } from 'lucide-react';
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { Button } from '@/components/ui/button';
+import { Alert } from '@/components/ui/alert';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/ui/page-header';
 import { StatusBadge, type StatusShape } from '@/components/ui/status-badge';
@@ -17,6 +18,7 @@ import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { pressableCardLinkClassName, textNavLinkClassName } from '@/components/ui/pressable';
 import { cn } from '@/shared/ui/cn';
 import { CommercialDocsHub } from '@/modules/quotes/ui/commercial-docs-hub';
+import { SavedListViewsBar } from '@/modules/tenancy/ui/saved-list-views-bar';
 
 export async function generateMetadata({
   params,
@@ -47,9 +49,14 @@ function quoteShape(status: QuoteStatus): StatusShape {
   }
 }
 
-export default async function QuotesPage() {
+export default async function QuotesPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const t = await getTranslations('quotes');
   const tStatus = await getTranslations('status.estimateQuote');
+  const params = await searchParams;
 
   const { items, canManage } = await withOrgContext(async (context) => ({
     items: await listQuotesForOrg(context),
@@ -73,7 +80,9 @@ export default async function QuotesPage() {
         }
       />
 
+      <Alert tone="info">{t('salesVsCrmBanner')}</Alert>
       <CommercialDocsHub current="quotes" />
+      <SavedListViewsBar listKey="quotes" searchParams={params} />
 
       <p className="text-sm text-[var(--pf-text-secondary)]">{t('disclaimer')}</p>
 

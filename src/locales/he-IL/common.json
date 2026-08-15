@@ -33,6 +33,16 @@
     "select": "בחירה",
     "copyLink": "העתקת קישור"
   },
+  "savedViews": {
+    "label": "תצוגות שמורות",
+    "placeholder": "בחירת תצוגה",
+    "current": "הסינון הנוכחי",
+    "name": "שם התצוגה",
+    "save": "שמירת תצוגה",
+    "makeDefault": "ברירת מחדל",
+    "defaultName": "{name} (ברירת מחדל)",
+    "limitReached": "הגעתם למספר המרבי של תצוגות שמורות ברשימה הזו."
+  },
   "labels": {
     "name": "שם",
     "description": "תיאור",

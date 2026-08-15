@@ -224,7 +224,11 @@
     "createDraftAp": "Create draft vendor bill",
     "draftApCreated": "Draft vendor bill created. It is not Actual until posted in AP.",
     "draftApNeedsPermission": "Creating a draft vendor bill needs AP manage permission.",
-    "costSideOnly": "Cost side only — not client BOQ revenue."
+    "costSideOnly": "Cost side only — not client BOQ revenue.",
+    "agreement": "Subcontract agreement",
+    "agreementNone": "No agreement",
+    "agreementRetention": "Draft bills will use {percent}% retention unless you override it.",
+    "retentionPercent": "Retention %"
   },
   "comparison": {
     "title": "BOQ vs financials",

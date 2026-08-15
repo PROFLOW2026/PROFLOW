@@ -173,6 +173,7 @@
     "qtyOnlyBanner": "Quantity-only inventory — not Actual cost / not FIFO",
     "qtyOnlyBannerHe": "מלאי כמות בלבד — לא עלות בפועל / לא FIFO",
     "qtyOnlyBannerEn": "Quantity-only inventory — not Actual cost / not FIFO",
+    "threeActionsHint": "Purchase receiving, inventory quantity, and material usage are three different actions. None of them posts project Actual.",
     "locationsTitle": "Locations",
     "locationsHint": "Quantity-only bins. Receive goes to a location, issue comes from one, transfer moves between two. Header on-hand is the sum.",
     "locationsEmpty": "No locations yet. The default Main / ראשי location is created on first receive.",
@@ -291,6 +292,7 @@
   },
   "usage": {
     "panelNote": "Usage attributes materials and equipment to this work as operational quantity. It never creates Actual cost — purchase Actual stays on expenses / vendor bills once. No FIFO/AVG.",
+    "threeActionsHint": "Purchase receiving, inventory quantity, and material usage are three different actions. None of them posts project Actual.",
     "notActualHint": "Operational quantity only — does not create Actual, Expense, or ledger entries. Not inventory costing (no FIFO or average). Purchase cost is recognized once when you buy.",
     "stockSeparateHint": "Usage does not change on-hand quantity. Use inventory receive/issue to update operational stock. Low stock is an operational reorder indicator only — not cost.",
     "materialSection": "Material consumption",

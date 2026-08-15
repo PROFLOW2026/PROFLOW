@@ -15,6 +15,7 @@ import {
   listAssignableProjects,
   listEmployeeAssignmentHistoryLinks,
   listEmployeeProjectLinks,
+  listLinkableOrgMembers,
   listRateHistory,
   resolveRateVersionForDate,
 } from '@/modules/workforce';
@@ -65,6 +66,7 @@ export default async function EmployeeDetailPage({
         projectLinks,
         history,
         candidateProjects,
+        linkableUsers,
       ] = await Promise.all([
         canReadRates ? listRateHistory(context, employeeId) : Promise.resolve([]),
         getEntityDocumentPanelData(context, 'employee', employeeId),
@@ -72,6 +74,9 @@ export default async function EmployeeDetailPage({
         listEmployeeProjectLinks(context, employeeId),
         listEmployeeAssignmentHistoryLinks(context, employeeId).catch(() => []),
         allowManage ? listAssignableProjects(context).catch(() => []) : Promise.resolve([]),
+        allowManage
+          ? listLinkableOrgMembers(context, { exceptEmployeeId: employeeId }).catch(() => [])
+          : Promise.resolve([]),
       ]);
       const today = todayInTimeZone(context.organization.timezone);
       const currentRate = resolveRateVersionForDate(employee.rateVersions, businessDate(today));
@@ -85,6 +90,7 @@ export default async function EmployeeDetailPage({
         projectLinks,
         history,
         candidateProjects,
+        linkableUsers,
         canReadRates,
         canManageCosts,
         allowLog: canLogTime(context),
@@ -108,6 +114,7 @@ export default async function EmployeeDetailPage({
     projectLinks,
     history,
     candidateProjects,
+    linkableUsers,
     canReadRates,
     canManageCosts,
     allowLog,
@@ -144,7 +151,7 @@ export default async function EmployeeDetailPage({
         defaultStartDate={today}
       />
 
-      {allowManage ? <EmployeeEditPanel employee={employee} /> : (
+      {allowManage ? <EmployeeEditPanel employee={employee} linkableUsers={linkableUsers} /> : (
       <Card className="flex flex-col gap-2 p-4 sm:p-6">
         <h2 className="text-base font-semibold">{t('employees.detail.profile')}</h2>
         {employee.email ? (
@@ -249,6 +256,7 @@ export default async function EmployeeDetailPage({
         canRead={documentsPanel.canRead}
         canManage={documentsPanel.canManage}
         storageConfigured={documentsPanel.storageConfigured}
+        canClassifyCompensation={documentsPanel.canClassifyCompensation}
       />
     </div>
   );

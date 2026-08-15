@@ -3,7 +3,7 @@
   "newWorkOrder": "New service call",
   "empty": {
     "title": "No service calls yet",
-    "body": "Schedule and dispatch field visits without a second money system — same costs and billing as projects and jobs.",
+    "body": "A service call is the same financial row as a project or job, with a dispatch workspace — not a second money system.",
     "action": "Create first service call",
     "moduleLink": "Show Service in navigation (Settings)"
   },
@@ -81,6 +81,7 @@
       "goToProject": "Create a project",
       "goToWorkOrder": "Create a service call",
       "stayHint": "This form is still available if you need a service call.",
+      "sameEngine": "Projects, jobs, and service calls are the same financial row with different screens.",
       "switcherLabel": "Work type"
     },
     "submit": "Create service call"
@@ -119,7 +120,7 @@
   },
   "billing": {
     "title": "Bill this work",
-    "hint": "Creates a draft invoice with the existing billing engine. VAT is applied there. You cannot bill the same work order twice while a live invoice exists.",
+    "hint": "Creates a draft invoice with the existing billing engine. VAT is applied there. Billing is on this work order as a project; a primary contract is attached when one exists. You cannot bill the same work order twice while a live invoice exists.",
     "submit": "Create billing",
     "created": "Draft billing created",
     "alreadyBilled": "This work order already has a {status} invoice.",
@@ -140,7 +141,9 @@
   },
   "dispatch": {
     "title": "Dispatch",
-    "description": "Today / tomorrow / week schedule for work orders. Mobile list with form-based reassignment.",
+    "description": "Assign and reschedule today’s work orders. This is the daily board — not the resource calendar and not project Gantt planning.",
+    "overlapWarning": "This assignee already has an overlapping booking. Confirm to keep both, or pick a different time.",
+    "confirmOverlap": "Assign anyway — times overlap",
     "windowLabel": "Window",
     "assigneeFilter": "Assignee",
     "allAssignees": "All assignees",

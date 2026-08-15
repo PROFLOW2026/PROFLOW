@@ -31,24 +31,35 @@ export function SafetyRecordForm({
   record,
   projects,
   defaultOccurredAt,
+  defaults,
 }: {
   mode: 'create' | 'edit';
   record?: SafetyRecordDetail;
   projects: readonly { id: string; name: string }[];
   defaultOccurredAt: Date;
+  defaults?: {
+    title?: string;
+    description?: string;
+    projectId?: string;
+    fromDailyLogId?: string;
+  };
 }) {
   const t = useTranslations('safety');
   const tCommon = useTranslations('common');
   const action = mode === 'create' ? createSafetyRecordAction : updateSafetyRecordAction;
   const [state, formAction, pending] = useActionState<SafetyFormState, FormData>(action, {});
   const [recordType, setRecordType] = useState(record?.recordType ?? 'incident');
-  const [projectId, setProjectId] = useState(record?.projectId ?? NONE);
+  const [projectId, setProjectId] = useState(record?.projectId ?? defaults?.projectId ?? NONE);
 
   return (
     <form action={formAction} className="flex max-w-lg flex-col gap-4">
       {record ? <input type="hidden" name="safetyRecordId" value={record.id} /> : null}
+      {defaults?.fromDailyLogId ? (
+        <input type="hidden" name="fromDailyLogId" value={defaults.fromDailyLogId} />
+      ) : null}
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
       {state.success ? <Alert tone="success">{t('detail.saved')}</Alert> : null}
+      {defaults?.fromDailyLogId ? <Alert tone="info">{t('fromDailyLogHint')}</Alert> : null}
 
       <Field label={t('fields.type')} required>
         {(control) => (
@@ -72,7 +83,7 @@ export function SafetyRecordForm({
 
       <Field label={t('fields.title')} required error={state.fieldErrors?.title}>
         {(control) => (
-          <Input {...control} name="title" required defaultValue={record?.title ?? ''} className="h-11 text-base" />
+          <Input {...control} name="title" required defaultValue={record?.title ?? defaults?.title ?? ''} className="h-11 text-base" />
         )}
       </Field>
 
@@ -83,7 +94,7 @@ export function SafetyRecordForm({
             name="description"
             required
             rows={4}
-            defaultValue={record?.description ?? ''}
+            defaultValue={record?.description ?? defaults?.description ?? ''}
             className="min-h-24 text-base"
           />
         )}

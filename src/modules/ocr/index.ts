@@ -140,7 +140,13 @@ export type { OcrRepository } from './data/ocr.repository';
 export { createDrizzleOcrRepository } from './data/drizzle-ocr.repository';
 export { getOcrRepository, setOcrRepositoryForTests } from './data/resolve-repository';
 
-export { getOcrProviderStatus } from './application/provider-status';
+export {
+  getOcrProviderStatus,
+  readOcrProviderStatus,
+  azureOcrNeedsKeyAndEndpoint,
+} from './application/provider-status';
+export { getOcrQueueSnapshot } from './application/queue-counts';
+export type { OcrQueueCounts, OcrQueueSnapshot } from './application/queue-counts';
 export { extractReceiptJob } from './application/extract-receipt';
 export {
   processQueuedJob,

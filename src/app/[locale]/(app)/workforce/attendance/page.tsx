@@ -19,6 +19,8 @@ import { WorkforceSubNav } from '@/modules/workforce/ui/workforce-sub-nav';
 import {
   clockInAction,
   clockOutAction,
+  clockBreakStartAction,
+  clockBreakEndAction,
   manualAttendanceAction,
 } from '@/app/[locale]/(app)/workforce/attendance/actions';
 import { withOrgContext } from '@/shared/auth/session';
@@ -106,9 +108,13 @@ export default async function AttendancePage({
             presence={data.clock.presence}
             canClockIn={data.clock.canClockIn}
             canClockOut={data.clock.canClockOut}
+            canBreakStart={data.clock.canBreakStart}
+            canBreakEnd={data.clock.canBreakEnd}
             linked={Boolean(data.clock.employeeId)}
             clockInAction={clockInAction}
             clockOutAction={clockOutAction}
+            clockBreakStartAction={clockBreakStartAction}
+            clockBreakEndAction={clockBreakEndAction}
           />
         ) : null}
 

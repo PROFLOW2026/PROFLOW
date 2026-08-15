@@ -106,6 +106,8 @@
     "notes": "Notes",
     "recurrence": "Recurrence",
     "recurrenceCustom": "Custom cadence",
+    "recurrenceUseDrafts": "This does not generate repeating expense rows. Use Recurring drafts to schedule them.",
+    "recurrenceDraftsLink": "Open Recurring drafts",
     "percent": "Percentage"
   },
   "placeholders": {

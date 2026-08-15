@@ -7,7 +7,14 @@
     "baseCurrency": "Base currency",
     "timezone": "Time zone",
     "defaultLocale": "Default language",
-    "saved": "Business details updated."
+    "saved": "Business details updated.",
+    "legalIdentityTitle": "Legal identity",
+    "legalIdentityHint": "Used when reviewing scanned invoices so the customer tax ID can be matched to this business.",
+    "legalIdentitySaved": "Legal identity updated.",
+    "taxId": "Tax ID",
+    "taxIdHint": "VAT / עוסק number. OCR uses this to flag invoices billed to a different business.",
+    "companyNumber": "Company number",
+    "companyNumberHint": "ח.פ. or company registration number, if different from the tax ID."
   },
   "members": {
     "title": "People",

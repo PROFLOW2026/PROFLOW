@@ -115,9 +115,11 @@ export async function createQuoteAction(
         listSubtotalAmount: formValue(formData, 'listSubtotalAmount') ?? null,
         discountPercent: formValue(formData, 'discountPercent') ?? null,
         lines: parseLines(formData),
+        opportunityId: optionalUuid(formData, 'opportunityId'),
       }),
     );
     revalidatePath('/quotes');
+    revalidatePath('/crm');
     redirect({ href: `/quotes/${created.id}`, locale });
   } catch (error) {
     return mapAppError(error);

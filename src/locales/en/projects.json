@@ -5,7 +5,7 @@
   "noContractValue": "Not set",
   "empty": {
     "title": "No projects yet",
-    "body": "Projects are where you track work, contract value, costs, and billing for each engagement.",
+    "body": "Projects, jobs, and service calls share one financial row — this list is the project workspace, not a separate ledger.",
     "action": "Create first project",
     "jobsAffordance": "Short work? New job"
   },
@@ -79,6 +79,7 @@
       "goToProject": "Create a project",
       "goToWorkOrder": "Create a service call",
       "stayHint": "This form is still available if you need a project.",
+      "sameEngine": "Projects, jobs, and service calls are the same financial row with different screens.",
       "switcherLabel": "Work type"
     },
     "submit": "Create project",
@@ -290,6 +291,16 @@
     "endDate": "End date",
     "moreDetails": "Dates, retention, and number",
     "makePrimary": "Set as primary",
+    "editAction": "Edit",
+    "saveEdit": "Save contract",
+    "notes": "Notes",
+    "primaryTypeLocked": "Primary kind is set with “Set as primary”, not by editing type.",
+    "amountNotEdited": "Original contract amount is not edited here. After value events exist it stays locked — use change orders for further value changes.",
+    "actions": {
+      "active": "Activate",
+      "closed": "Close",
+      "cancelled": "Cancel contract"
+    },
     "types": {
       "primary": "Primary",
       "additional": "Additional",
@@ -302,7 +313,8 @@
       "cancelled": "Cancelled"
     },
     "errors": {
-      "saveFailed": "Could not save the contract."
+      "saveFailed": "Could not save the contract.",
+      "invalidStatus": "That status change is not allowed for this contract."
     }
   },
   "workPackages": {

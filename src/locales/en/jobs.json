@@ -5,7 +5,7 @@
   "priceNotSet": "Price not set yet",
   "empty": {
     "title": "No jobs yet",
-    "body": "Short work: client, fixed or open price, costs and billing — without heavy project setup.",
+    "body": "Short work on the same financial row as a project — client, price, costs and billing, without heavy project setup.",
     "action": "Create first job",
     "workMixLink": "Show jobs in navigation (Settings)"
   },
@@ -80,6 +80,7 @@
       "goToProject": "Create a project",
       "goToWorkOrder": "Create a service call",
       "stayHint": "This form is still available if you need a job.",
+      "sameEngine": "Projects, jobs, and service calls are the same financial row with different screens.",
       "switcherLabel": "Work type"
     },
     "submit": "Create job",

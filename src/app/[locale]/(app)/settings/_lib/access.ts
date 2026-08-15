@@ -2,6 +2,7 @@ import type { PermissionKey } from '@/shared/permissions/catalog';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import type { OrgContext } from '@/shared/auth/context';
 import { hasPermission } from '@/shared/permissions/assert';
+import { isOcrIngestionFlagOn } from '@/modules/ocr/domain/feature-gate';
 
 export type SettingsSectionKey =
   | 'business'
@@ -22,6 +23,7 @@ export type SettingsSectionKey =
   | 'app'
   | 'offlineDrafts'
   | 'banking'
+  | 'ocr'
   | 'profile';
 
 export type SettingsNavGroup = 'basic' | 'business' | 'advanced' | 'developers';
@@ -59,6 +61,14 @@ export const SETTINGS_SECTIONS: readonly SettingsSection[] = [
   { key: 'activity', href: '/settings/activity', permission: PERMISSIONS.AUDIT_READ, group: 'advanced' },
   { key: 'offlineDrafts', href: '/settings/offline-drafts', permission: null, group: 'advanced' },
   { key: 'banking', href: '/settings/banking', permission: PERMISSIONS.BANKING_READ, group: 'advanced' },
+  {
+    key: 'ocr',
+    href: '/settings/ocr',
+    permission: PERMISSIONS.SETTINGS_MANAGE,
+    group: 'advanced',
+    /** Listed in nav only when OCR_INGESTION_ENABLED is on — see accessibleSections. */
+    hideFromNav: true,
+  },
 
   { key: 'api', href: '/settings/api', permission: PERMISSIONS.API_MANAGE, group: 'developers' },
 
@@ -85,9 +95,12 @@ export function canAccessSection(context: OrgContext, section: SettingsSection):
 }
 
 export function accessibleSections(context: OrgContext): SettingsSection[] {
-  return SETTINGS_SECTIONS.filter(
-    (section) => !section.hideFromNav && canAccessSection(context, section),
-  );
+  return SETTINGS_SECTIONS.filter((section) => {
+    if (section.key === 'ocr') {
+      return isOcrIngestionFlagOn() && canAccessSection(context, section);
+    }
+    return !section.hideFromNav && canAccessSection(context, section);
+  });
 }
 
 export function groupSettingsSections(
@@ -135,6 +148,8 @@ export function canManageSection(context: OrgContext, sectionKey: SettingsSectio
     case 'offlineDrafts':
     case 'profile':
       return false;
+    case 'ocr':
+      return hasPermission(context, PERMISSIONS.SETTINGS_MANAGE);
     default:
       return false;
   }

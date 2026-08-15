@@ -20,6 +20,7 @@ export type {
 } from './domain/types';
 
 export { buildDedupeKey } from './domain/dedupe';
+export { selectActorRecipients, NOTIFICATION_RECIPIENT_FANOUT_CAP } from './domain/recipients';
 export {
   NOTIFICATION_CHANNELS,
   ACTIVE_NOTIFICATION_CHANNELS,

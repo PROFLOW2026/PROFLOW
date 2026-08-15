@@ -2,12 +2,14 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { sql } from 'drizzle-orm';
 import { createBillingRecord } from '@/modules/billing';
 import { createProjectBoq } from '@/modules/boq';
-import { loadProjectCommercialData } from '@/modules/financials';
+import { createChangeRequest, getChangeRequestDetail } from '@/modules/commercial';
+import { getProjectFinancials, loadProjectCommercialData } from '@/modules/financials';
 import {
   createAdditionalContract,
   createProject,
   getProjectDetail,
   listProjectContracts,
+  updateContract,
 } from '@/modules/projects';
 import { resolveOrgContext } from '@/modules/tenancy';
 import { createTestDatabase, type TestDatabase } from '@tests/setup/database';
@@ -224,5 +226,86 @@ describe('multi-contract projects', () => {
     });
 
     expect(boq?.contractId).toBeTruthy();
+  });
+
+  it('edits an additional contract and binds a change request to the non-primary', async () => {
+    const { orgA, userA } = await provisionTwoTenants(database);
+
+    const result = await database.asUser(userA.id, async (tx) => {
+      const context = await resolveOrgContext(tx, {
+        userId: userA.id,
+        organizationId: orgA.organization.id,
+        locale: 'en',
+      });
+      const { projectId } = await createProject(context, {
+        name: 'Edit and CR target',
+        contractValueAmount: '100000',
+        contractValueCurrency: 'ILS',
+        amountIncludesTax: false,
+      });
+      const additional = await createAdditionalContract(context, {
+        projectId,
+        name: 'Facade package',
+        enteredAmount: '40000',
+        currency: 'ILS',
+        amountIncludesTax: false,
+      });
+      const edited = await updateContract(context, {
+        contractId: additional.id,
+        name: 'Facade package revised',
+        contractType: 'secondary',
+        contractNumber: 'FAC-2',
+        notes: 'Balcony extra',
+      });
+      const closed = await updateContract(context, {
+        contractId: additional.id,
+        status: 'closed',
+      });
+      const liveAdditional = await createAdditionalContract(context, {
+        projectId,
+        name: 'MEP package',
+        enteredAmount: '15000',
+        currency: 'ILS',
+        amountIncludesTax: false,
+      });
+      const change = await createChangeRequest(context, {
+        projectId,
+        title: 'MEP extra',
+        direction: 'addition',
+        requestedAmount: '2500',
+        contractId: liveAdditional.id,
+      });
+      const financials = await getProjectFinancials(context, projectId);
+      return { projectId, edited, closed, change, liveAdditional, financials };
+    });
+
+    expect(result.edited.name).toBe('Facade package revised');
+    expect(result.edited.contractType).toBe('secondary');
+    expect(result.edited.contractNumber).toBe('FAC-2');
+    expect(result.edited.originalValueAmount).toBe('40000.000000');
+    expect(result.closed.status).toBe('closed');
+    expect(result.change.changeRequestId).toBeTruthy();
+
+    const persisted = await database.asUser(userA.id, async (tx) => {
+      const context = await resolveOrgContext(tx, {
+        userId: userA.id,
+        organizationId: orgA.organization.id,
+        locale: 'en',
+      });
+      return getChangeRequestDetail(context, result.change.changeRequestId);
+    });
+    expect(persisted.contractId).toBe(result.liveAdditional.id);
+    expect(result.financials.perContract?.length).toBeGreaterThan(1);
+    expect(result.financials.profit).toBeTruthy();
+    expect(result.financials.perContract?.every((slice) => !('profit' in slice))).toBe(true);
+    const closedSlice = result.financials.perContract?.find(
+      (slice) => slice.contractId === result.closed.id,
+    );
+    const liveSlice = result.financials.perContract?.find(
+      (slice) => slice.contractId === result.liveAdditional.id,
+    );
+    expect(closedSlice?.status).toBe('closed');
+    expect(liveSlice?.status).toBe('active');
+    expect(result.financials.commercial?.currentContractValue.amount).toBe('115000.000000');
   });
 });

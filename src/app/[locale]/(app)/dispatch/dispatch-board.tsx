@@ -103,7 +103,20 @@ function DispatchRowEditor({
           <Button type="submit" size="sm" loading={pending}>
             {t('dispatch.saveReschedule')}
           </Button>
-          {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
+          {state.confirmRequired ? (
+            <label className="flex items-start gap-2 text-sm" htmlFor={`confirm-overlap-${row.projectId}`}>
+              <input
+                id={`confirm-overlap-${row.projectId}`}
+                type="checkbox"
+                name="confirmConflict"
+                className="mt-1 size-4"
+              />
+              <span>{t('dispatch.confirmOverlap')}</span>
+            </label>
+          ) : null}
+          {state.error ? (
+            <Alert tone={state.confirmRequired ? 'warning' : 'danger'}>{state.error}</Alert>
+          ) : null}
           {state.success ? <Alert tone="success">{t('workspace.saved')}</Alert> : null}
         </form>
       ) : null}

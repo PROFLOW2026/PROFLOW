@@ -27,18 +27,23 @@ import {
   useFieldOpsCreateFormAction,
   useStagedCreatePhotos,
 } from '../field-ops-photo-staging';
+import { InspectionFormTemplateField } from '@/modules/field-ops/ui/inspection-form-field';
 
 const NONE = '__none__';
 
 export function InspectionCreateForm({
   projects,
   workPackages,
+  employees,
+  formTemplates,
   defaultProjectId,
   canManageDocuments,
   storageConfigured,
 }: {
   projects: readonly { id: string; name: string }[];
   workPackages: readonly FieldOpsWorkPackageOption[];
+  employees: readonly { id: string; name: string }[];
+  formTemplates: readonly { id: string; name: string }[];
   defaultProjectId?: string;
   canManageDocuments: boolean;
   storageConfigured: boolean;
@@ -64,6 +69,7 @@ export function InspectionCreateForm({
   const [projectId, setProjectId] = useState(defaultProjectId ?? '');
   const [workPackageId, setWorkPackageId] = useState(NONE);
   const [kind, setKind] = useState<InspectionKind>('general');
+  const [inspectorEmployeeId, setInspectorEmployeeId] = useState(NONE);
 
   const projectPackages = useMemo(
     () => workPackages.filter((pkg) => pkg.projectId === projectId),
@@ -162,6 +168,37 @@ export function InspectionCreateForm({
       <Field label={t('scheduledOnLabel')}>
         {(control) => <Input {...control} type="date" name="scheduledOn" />}
       </Field>
+
+      {employees.length > 0 ? (
+        <Field label={t('inspectorLabel')}>
+          {(control) => (
+            <>
+              <input
+                type="hidden"
+                name="inspectorEmployeeId"
+                value={inspectorEmployeeId === NONE ? '' : inspectorEmployeeId}
+              />
+              <Select value={inspectorEmployeeId} onValueChange={setInspectorEmployeeId}>
+                <SelectTrigger id={control.id}>
+                  <SelectValue placeholder={t('inspectorPlaceholder')} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={NONE}>{t('inspectorNone')}</SelectItem>
+                  {employees.map((employee) => (
+                    <SelectItem key={employee.id} value={employee.id}>
+                      {employee.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </>
+          )}
+        </Field>
+      ) : null}
+
+      {formTemplates.length > 0 ? (
+        <InspectionFormTemplateField templates={formTemplates} error={state.fieldErrors?.formTemplateId} />
+      ) : null}
 
       <Field label={t('notesLabel')}>
         {(control) => <Textarea {...control} name="notes" rows={3} />}

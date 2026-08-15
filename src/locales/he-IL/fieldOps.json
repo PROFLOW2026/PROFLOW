@@ -159,6 +159,9 @@
     "correctionLabel": "הערת תיקון",
     "correctionHint": "נוספת ליומן הנעול. לא מחליפה את הרשומה המקורית.",
     "correctionSubmit": "הוספת הערת תיקון",
+    "correctionHistory": "הערות תיקון",
+    "createSafety": "יצירת רשומת בטיחות מהערות האירוע",
+    "linkedSafety": "רשומת בטיחות מקושרת",
     "saved": "נשמר."
   },
   "createPunch": {
@@ -174,7 +177,10 @@
     "descriptionLabel": "תיאור",
     "priorityLabel": "עדיפות",
     "locationLabel": "מיקום",
-    "dueDateLabel": "תאריך יעד"
+    "dueDateLabel": "תאריך יעד",
+    "assigneeLabel": "משובץ",
+    "assigneeNone": "לא משובץ",
+    "saveDetails": "שמירת פרטים"
   },
   "createInspection": {
     "title": "בדיקה חדשה",
@@ -188,14 +194,37 @@
     "titleLabel": "כותרת",
     "kindLabel": "סוג",
     "scheduledOnLabel": "מתוזמן ל־",
-    "notesLabel": "הערות"
+    "notesLabel": "הערות",
+    "inspectorLabel": "בודק",
+    "inspectorNone": "ללא בודק",
+    "inspectorPlaceholder": "בחרו בודק"
+  },
+  "form": {
+    "title": "טופס בדיקה",
+    "untitled": "טופס שטח",
+    "templateLabel": "תבנית טופס",
+    "templateHint": "שימוש בטופס קיים. רישום עבר/נכשל דורש הגשת טופס כשמוגדרת תבנית.",
+    "templateNone": "ללא טופס",
+    "templateUnavailable": "תבנית שמורה (לא זמינה)",
+    "requiredTitle": "נדרש טופס",
+    "requiredBody": "הגישו את הטופס לפני רישום עבר או נכשל.",
+    "submittedBody": "טופס הבדיקה הנדרש הוגש.",
+    "fill": "מילוי טופס",
+    "continue": "המשך טופס",
+    "view": "צפייה בטופס",
+    "statusSubmitted": "הוגש",
+    "statusDraft": "טיוטה",
+    "statusMissing": "לא התחיל"
   },
   "updateStatus": {
     "label": "סטטוס",
     "submit": "עדכון",
     "pending": "מעדכן…",
-    "resultLabel": "הערות תוצאה",
-    "resultPlaceholder": "מה נמצא / תוצאה…"
+    "resultLabel": "הערות עבר / נכשל",
+    "resultPlaceholder": "מה נמצא — הערות אופציונליות לתוצאה…",
+    "outcomeLabel": "תוצאה",
+    "pass": "עבר",
+    "fail": "נכשל"
   },
   "updatePriority": {
     "label": "עדיפות",
@@ -210,6 +239,7 @@
     "invalidLogTransition": "לא ניתן לשנות את סטטוס היומן כך.",
     "logFinalizedLocked": "היומן סופי. הוסיפו הערת תיקון או יומן חדש.",
     "correctionRequiresFinalized": "הערות תיקון מיועדות ליומן סופי.",
-    "duplicateLogDate": "כבר קיים יומן ליום הזה בפרויקט. פתחו אותו, או הוסיפו הערת תיקון אם הוא סופי."
+    "duplicateLogDate": "כבר קיים יומן ליום הזה בפרויקט. פתחו אותו, או הוסיפו הערת תיקון אם הוא סופי.",
+    "formRequired": "הגישו את טופס הבדיקה הנדרש לפני רישום עבר או נכשל."
   }
 }

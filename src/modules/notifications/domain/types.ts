@@ -16,6 +16,7 @@ export const NOTIFICATION_EVENT_TYPES = [
   'task_overdue',
   'boq_awaiting_approval',
   'work_order_assigned',
+  'punch_assigned',
   'low_stock',
   'safety_action_due',
 ] as const;
@@ -30,6 +31,7 @@ export const NOTIFICATION_DOMAINS = [
   'planning',
   'boq',
   'service',
+  'field_ops',
   'inventory',
   'safety',
 ] as const;
@@ -46,6 +48,7 @@ export const EVENT_DOMAIN: Readonly<Record<NotificationEventType, NotificationDo
   task_overdue: 'planning',
   boq_awaiting_approval: 'boq',
   work_order_assigned: 'service',
+  punch_assigned: 'field_ops',
   low_stock: 'inventory',
   safety_action_due: 'safety',
 };

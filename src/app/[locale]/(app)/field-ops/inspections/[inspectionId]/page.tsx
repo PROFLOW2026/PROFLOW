@@ -8,16 +8,21 @@ import { getEntityDocumentPanelData } from '@/modules/documents';
 import { DocumentAttachments } from '@/modules/documents/ui';
 import {
   getInspectionForOrg,
+  getInspectionFormGateState,
   listFieldOpsWorkPackages,
+  listInspectionFormTemplateOptions,
   type InspectionKind,
   type InspectionStatus,
 } from '@/modules/field-ops';
+import { InspectionFormCard } from '@/modules/field-ops/ui/inspection-form-panel';
 import { listProjectsForOrg } from '@/modules/projects';
+import { listEmployeesForOrg } from '@/modules/workforce';
 import { withOrgContext } from '@/shared/auth/session';
 import { Link } from '@/shared/i18n/navigation';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { InspectionStatusForm } from '../inspection-status-form';
+import { InspectionDetailsForm } from '../inspection-details-form';
 import { textNavLinkClassName, textNavLinkMutedClassName } from '@/components/ui/pressable';
 
 export async function generateMetadata({
@@ -60,16 +65,29 @@ export default async function InspectionDetailPage({
   const data = await withOrgContext(async (context) => {
     try {
       const item = await getInspectionForOrg(context, inspectionId);
-      const [projects, packages, documentsPanel] = await Promise.all([
-        listProjectsForOrg(context, {}),
-        listFieldOpsWorkPackages(context, [item.projectId]),
-        getEntityDocumentPanelData(context, 'inspection', inspectionId),
-      ]);
+      const [projects, packages, documentsPanel, employees, formTemplates, formGate] =
+        await Promise.all([
+          listProjectsForOrg(context, {}),
+          listFieldOpsWorkPackages(context, [item.projectId]),
+          getEntityDocumentPanelData(context, 'inspection', inspectionId),
+          listEmployeesForOrg(context, { status: 'active' }).catch(() => []),
+          listInspectionFormTemplateOptions(context).catch(() => []),
+          getInspectionFormGateState(context, {
+            inspectionId: item.id,
+            formTemplateId: item.formTemplateId,
+          }),
+        ]);
+      const inspectorName =
+        employees.find((row) => row.id === item.inspectorEmployeeId)?.name ?? null;
       return {
         item,
         projectName: projects.find((p) => p.id === item.projectId)?.name ?? null,
         workPackageName: packages.find((p) => p.id === item.workPackageId)?.name ?? null,
         documentsPanel,
+        employees: employees.map((row) => ({ id: row.id, name: row.name })),
+        formTemplates,
+        formGate,
+        inspectorName,
         canManage: hasPermission(context, PERMISSIONS.FIELD_OPS_MANAGE),
       };
     } catch {
@@ -79,7 +97,8 @@ export default async function InspectionDetailPage({
 
   if (!data) notFound();
 
-  const { item, projectName, workPackageName, documentsPanel, canManage } = data;
+  const { item, projectName, workPackageName, documentsPanel, employees, formTemplates, formGate, inspectorName, canManage } =
+    data;
   const kindKey = item.kind as InspectionKind;
 
   return (
@@ -117,6 +136,9 @@ export default async function InspectionDetailPage({
         {workPackageName ? (
           <DetailRow label={t('createInspection.workPackageLabel')} value={workPackageName} />
         ) : null}
+        {inspectorName ? (
+          <DetailRow label={t('createInspection.inspectorLabel')} value={inspectorName} />
+        ) : null}
         {item.scheduledOn ? (
           <DetailRow
             label={t('createInspection.scheduledOnLabel')}
@@ -137,21 +159,33 @@ export default async function InspectionDetailPage({
             }
           />
         ) : null}
-        {item.result ? <DetailRow label={t('list.columns.result')} value={item.result} /> : null}
+        {item.result ? (
+          <DetailRow label={t('updateStatus.resultLabel')} value={item.result} />
+        ) : null}
         {item.notes ? (
           <DetailRow label={t('createInspection.notesLabel')} value={item.notes} />
         ) : null}
 
         {canManage ? (
-          <div className="border-t border-[var(--pf-border-default)] pt-4">
+          <div className="flex flex-col gap-4 border-t border-[var(--pf-border-default)] pt-4">
+            <InspectionDetailsForm
+              inspectionId={item.id}
+              inspectorEmployeeId={item.inspectorEmployeeId}
+              formTemplateId={item.formTemplateId}
+              employees={employees}
+              formTemplates={formTemplates}
+            />
             <InspectionStatusForm
               inspectionId={item.id}
               currentStatus={item.status}
               currentResult={item.result}
+              formBlocked={formGate.required && !formGate.satisfied}
             />
           </div>
         ) : null}
       </div>
+
+      <InspectionFormCard inspectionId={item.id} state={formGate} />
 
       <DocumentAttachments
         ownerType="inspection"

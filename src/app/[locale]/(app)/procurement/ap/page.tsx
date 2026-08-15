@@ -19,6 +19,7 @@ import { ProcurementSectionNav } from '../procurement-section-nav';
 import { textNavLinkClassName } from '@/components/ui/pressable';
 import { cn } from '@/shared/ui/cn';
 import { ReportsEntryLink } from '@/modules/financials/ui/reports-entry-link';
+import { SavedListViewsBar } from '@/modules/tenancy/ui/saved-list-views-bar';
 import { ApBillTaxSummary } from '@/modules/ap/ui/ap-bill-tax-summary';
 
 export async function generateMetadata({
@@ -48,10 +49,15 @@ function billStatusShape(status: string): StatusShape {
   }
 }
 
-export default async function ApBillsPage() {
+export default async function ApBillsPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const t = await getTranslations('ap');
   const tRecurring = await getTranslations('recurringDrafts');
   const locale = await getLocale();
+  const params = await searchParams;
 
   const { bills, canManage, canRead, canReadReports } = await withOrgContext(async (context) => ({
     bills: hasPermission(context, PERMISSIONS.AP_READ)
@@ -105,6 +111,7 @@ export default async function ApBillsPage() {
       />
 
       <ProcurementSectionNav active="ap" />
+      <SavedListViewsBar listKey="ap_bills" searchParams={params} />
 
       {bills.length === 0 ? (
         <EmptyState

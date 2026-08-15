@@ -14,7 +14,7 @@
  * - Optional metadata update: method / reference / notes on recorded payments.
  */
 
-import { and, eq, inArray, sql } from 'drizzle-orm';
+import { and, desc, eq, inArray, sql } from 'drizzle-orm';
 import { apPaymentApplications, apPayments } from '@drizzle/schema';
 import type { BusinessDate } from '@/shared/dates';
 import type { DbExecutor } from '@/shared/db/types';
@@ -435,6 +435,20 @@ export function setVendorPaymentsRepository(repo: VendorPaymentsRepository): voi
 
 export function getVendorPaymentsRepository(): VendorPaymentsRepository {
   return activeRepository;
+}
+
+export async function listRecordedPaymentsForVendor(
+  db: DbExecutor,
+  organizationId: string,
+  vendorId: string,
+): Promise<readonly ApPaymentRow[]> {
+  if (!areApPaymentsAvailable()) return [];
+  const rows = await db
+    .select()
+    .from(apPayments)
+    .where(and(eq(apPayments.organizationId, organizationId), eq(apPayments.vendorId, vendorId)))
+    .orderBy(desc(apPayments.paymentDate), desc(apPayments.createdAt));
+  return rows.map(mapPayment);
 }
 
 export function resetVendorPaymentsRepository(): void {

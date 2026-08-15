@@ -41,6 +41,8 @@ export async function createEmployeeAction(
     email: formData.get('email') || null,
     phone: formData.get('phone') || null,
     notes: formData.get('notes') || null,
+    employeeNumber: formData.get('employeeNumber') || null,
+    userId: formData.get('userId') || null,
   });
 
   if (!parsed.success) {
@@ -52,6 +54,9 @@ export async function createEmployeeAction(
     revalidatePath('/workforce', 'layout');
     redirect({ href: `/workforce/employees/${employee.id}`, locale });
   } catch (error) {
+    if (error instanceof DomainRuleError || error instanceof ValidationError) {
+      return { error: error.message };
+    }
     if (error instanceof AppError) return { error: tErrors('unexpected') };
     throw error;
   }
@@ -74,6 +79,7 @@ export async function updateEmployeeAction(
     phone: formData.get('phone') || null,
     notes: formData.get('notes') || null,
     employeeNumber: formData.get('employeeNumber') || null,
+    userId: formData.has('userId') ? formData.get('userId') || null : undefined,
   });
 
   if (!parsed.success) {
@@ -86,6 +92,9 @@ export async function updateEmployeeAction(
     revalidatePath('/workforce', 'layout');
     return { ok: true };
   } catch (error) {
+    if (error instanceof DomainRuleError || error instanceof ValidationError) {
+      return { error: error.message };
+    }
     if (error instanceof AppError) return { error: tErrors('unexpected') };
     throw error;
   }

@@ -6,7 +6,9 @@ import { PERMISSIONS } from '@/shared/permissions/catalog';
 import type { OrgContext } from '@/shared/auth/context';
 import { getStoragePort, StorageNotConfiguredError } from '@/shared/ports/storage';
 import { noteModuleUsage } from '@/modules/tenancy';
+import { resolveAccessibleProjectIds } from '@/modules/projects/application/project-access';
 import { validateUploadConstraints } from '../domain/file-rules';
+import { resolveUploadPrivacyClass } from '../domain/privacy';
 import type { DocumentListFilters, DocumentListItem, PrepareUploadResult } from '../domain/types';
 import {
   flushDocumentCurrentVersionGuards,
@@ -18,6 +20,10 @@ import {
 } from '../data/documents.repository';
 import { documentOwnerExistsInOrganization } from '../data/verify-document-owner';
 import { listDocumentsSchema, listEntityDocumentsSchema, prepareUploadSchema, type PrepareUploadInput } from '../validation/schemas';
+import {
+  assertCanListEntityDocuments,
+  canReadCompensationDocuments,
+} from './document-visibility';
 
 const DEFAULT_BUCKET = 'documents';
 
@@ -85,6 +91,11 @@ export async function prepareDocumentUpload(
     mimeType: input.mimeType,
     sizeBytes: input.sizeBytes,
     uploadedByUserId: context.userId,
+    privacyClass: resolveUploadPrivacyClass({
+      ownerType: input.ownerType,
+      requested: input.privacyClass,
+      canReadWorkforceCost: canReadCompensationDocuments(context),
+    }),
   });
 
   await flushDocumentCurrentVersionGuards(context.db);
@@ -149,7 +160,18 @@ export async function listDocumentsForOrg(
     );
   }
 
-  return listAllDocuments(context.db, context.organizationId, parsed.data);
+  const accessibleProjectIds = await resolveAccessibleProjectIds(context);
+  if (parsed.data.projectId && accessibleProjectIds !== null) {
+    if (!accessibleProjectIds.includes(parsed.data.projectId)) {
+      return [];
+    }
+  }
+
+  return listAllDocuments(context.db, context.organizationId, {
+    ...parsed.data,
+    includeCompensation: canReadCompensationDocuments(context),
+    accessibleProjectIds,
+  });
 }
 
 export async function listEntityDocuments(
@@ -165,5 +187,10 @@ export async function listEntityDocuments(
     );
   }
 
-  return listDocumentsForEntity(context.db, context.organizationId, parsed.data);
+  await assertCanListEntityDocuments(context, parsed.data.ownerType, parsed.data.ownerId);
+
+  return listDocumentsForEntity(context.db, context.organizationId, {
+    ...parsed.data,
+    includeCompensation: canReadCompensationDocuments(context),
+  });
 }

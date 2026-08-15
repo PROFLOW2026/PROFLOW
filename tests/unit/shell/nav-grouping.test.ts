@@ -50,7 +50,8 @@ describe('nav grouping', () => {
     expect(byKey.materials?.moreGroup).toBe('operations');
     expect(byKey.fieldOps?.moreGroup).toBe('operations');
     expect(byKey.documents?.moreGroup).toBe('operations');
-    expect(byKey.crm?.moreGroup).toBe('operations');
+    expect(byKey.quotes?.moreGroup).toBe('business');
+    expect(byKey.crm?.moreGroup).toBe('business');
 
     expect(byKey.assets?.moreGroup).toBe('advanced');
     expect(byKey.compliance?.moreGroup).toBe('advanced');
@@ -166,9 +167,9 @@ describe('nav grouping', () => {
     ]);
     expect(groups.find((entry) => entry.group === 'operations')?.items.map((i) => i.key)).toEqual([
       'vendors',
+      'vendorBills',
     ]);
     expect(groups.find((entry) => entry.group === 'advanced')?.items.map((i) => i.key)).toEqual([
-      'vendorBills',
       'assets',
       'overhead',
     ]);

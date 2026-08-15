@@ -9,6 +9,8 @@ import { PageHeader } from '@/components/ui/page-header';
 import { pressableCardLinkClassName, textNavLinkClassName } from '@/components/ui/pressable';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { jobListMissingProfitKind, listJobsForOrg } from '@/modules/projects';
+import { titleWithDocumentNumber } from '@/modules/tenancy';
+import { SavedListViewsBar } from '@/modules/tenancy/ui/saved-list-views-bar';
 import {
   isWorkListFacet,
   resolveWorkListFacet,
@@ -96,6 +98,11 @@ export default async function JobsPage({ searchParams }: JobsPageProps) {
       />
 
       <JobListFilters initialQuery={params.q ?? ''} initialFacet={facet} />
+      <SavedListViewsBar
+        listKey="jobs"
+        searchParams={{ q: params.q, facet, status: params.status }}
+        keys={['q', 'facet']}
+      />
 
       {jobs.length === 0 ? (
         filtersActive ? (
@@ -171,7 +178,7 @@ export default async function JobsPage({ searchParams }: JobsPageProps) {
                       <TableCell>{job.clientName ?? t('list.columns.noClient')}</TableCell>
                       <TableCell>
                         <Link href={`/jobs/${job.id}`} className={cn(textNavLinkClassName, 'font-medium')}>
-                          {job.name}
+                          {titleWithDocumentNumber(job.name, job.documentNumber ?? '')}
                         </Link>
                       </TableCell>
                       <TableCell className="pf-ltr-island" dir="ltr">
@@ -232,7 +239,9 @@ export default async function JobsPage({ searchParams }: JobsPageProps) {
                 className={cn(pressableCardLinkClassName, 'min-w-0 max-w-full')}
               >
                 <div className="flex min-w-0 items-start justify-between gap-2">
-                  <span className="min-w-0 flex-1 break-words font-semibold">{job.name}</span>
+                  <span className="min-w-0 flex-1 break-words font-semibold">
+                    {titleWithDocumentNumber(job.name, job.documentNumber ?? '')}
+                  </span>
                   <ProjectStatusBadge status={job.status} label={tStatus(job.status)} />
                 </div>
                 <p className="mt-1 min-w-0 break-words text-sm text-[var(--pf-text-secondary)]">

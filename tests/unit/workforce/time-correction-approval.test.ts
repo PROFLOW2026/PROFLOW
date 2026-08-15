@@ -299,7 +299,7 @@ describe('resolveTimeCorrectionApprovalAmount', () => {
 });
 
 describe('correctTimeEntry approval gate', () => {
-  const context = contextWith([PERMISSIONS.TIME_MANAGE]);
+  const context = contextWith([PERMISSIONS.TIME_MANAGE, PERMISSIONS.WORKFORCE_READ]);
 
   beforeEach(() => {
     vi.clearAllMocks();

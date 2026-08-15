@@ -35,6 +35,8 @@ async function mapAttendanceError(error: unknown): Promise<string> {
     const key = error.messageKey;
     if (key === 'workforce.errors.alreadyClockedIn') return t('errors.alreadyClockedIn');
     if (key === 'workforce.errors.notClockedIn') return t('errors.notClockedIn');
+    if (key === 'workforce.errors.breakStartInvalid') return t('errors.breakStartInvalid');
+    if (key === 'workforce.errors.breakEndInvalid') return t('errors.breakEndInvalid');
     if (key === 'workforce.errors.noLinkedEmployee') return t('errors.noLinkedEmployee');
     if (key === 'workforce.errors.attendanceSelfScope') return t('errors.attendanceSelfScope');
     if (key === 'workforce.errors.attendanceDayVoid') return t('errors.attendanceDayVoid');
@@ -68,6 +70,36 @@ export async function clockOutAction(
   try {
     await withOrgContext((context) =>
       clockAttendance(context, { eventType: 'clock_out' }),
+    );
+    revalidatePath('/workforce/attendance');
+    return { ok: true };
+  } catch (error) {
+    return { error: await mapAttendanceError(error) };
+  }
+}
+
+export async function clockBreakStartAction(
+  _prev: AttendanceActionState,
+  _formData: FormData,
+): Promise<AttendanceActionState> {
+  try {
+    await withOrgContext((context) =>
+      clockAttendance(context, { eventType: 'break_start' }),
+    );
+    revalidatePath('/workforce/attendance');
+    return { ok: true };
+  } catch (error) {
+    return { error: await mapAttendanceError(error) };
+  }
+}
+
+export async function clockBreakEndAction(
+  _prev: AttendanceActionState,
+  _formData: FormData,
+): Promise<AttendanceActionState> {
+  try {
+    await withOrgContext((context) =>
+      clockAttendance(context, { eventType: 'break_end' }),
     );
     revalidatePath('/workforce/attendance');
     return { ok: true };

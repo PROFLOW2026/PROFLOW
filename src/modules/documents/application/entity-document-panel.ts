@@ -5,6 +5,7 @@ import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import type { DocumentListItem, DocumentLinkCandidate, DocumentOwnerType } from '../domain/types';
 import { isStorageConfigured, listDocumentsForOrg, listEntityDocuments } from './upload-document';
+import { canReadCompensationDocuments } from './document-visibility';
 
 export type { DocumentLinkCandidate };
 
@@ -14,6 +15,7 @@ export interface EntityDocumentPanelData {
   readonly canRead: boolean;
   readonly canManage: boolean;
   readonly storageConfigured: boolean;
+  readonly canClassifyCompensation: boolean;
 }
 
 /**
@@ -49,5 +51,6 @@ export async function getEntityDocumentPanelData(
     canRead,
     canManage,
     storageConfigured: isStorageConfigured(),
+    canClassifyCompensation: canReadCompensationDocuments(context),
   };
 }

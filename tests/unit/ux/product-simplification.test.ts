@@ -120,7 +120,10 @@ describe('authenticated product simplification', () => {
     ).toEqual(expect.arrayContaining(['clients', 'changes', 'billing', 'reports']));
     expect(
       groups.find((g: NavItemGroup) => g.group === 'advanced')?.items.map((i) => i.key),
-    ).toEqual(expect.arrayContaining(['vendorBills', 'assets', 'compliance', 'overhead']));
+    ).toEqual(expect.arrayContaining(['assets', 'compliance', 'overhead']));
+    expect(
+      groups.find((g: NavItemGroup) => g.group === 'operations')?.items.map((i) => i.key),
+    ).toEqual(expect.arrayContaining(['vendorBills']));
     expect(NAV_ITEMS.some((item) => item.href === '/documents/ocr-review')).toBe(false);
   });
 

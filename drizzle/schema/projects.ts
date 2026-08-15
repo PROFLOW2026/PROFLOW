@@ -49,6 +49,8 @@ export const projects = pgTable(
      * UX/required fields, not the engine.
      */
     workKind: text('work_kind').notNull().default('project'),
+    /** Human tracking number (PRJ-00001). Distinct from UUID identity. Never rewritten. */
+    documentNumber: text('document_number'),
     /**
      * Revenue pricing mode. Jobs: `fixed` | `open`. Classic projects: null
      * (treated as fixed once a managed contract exists).
@@ -115,6 +117,9 @@ export const projects = pgTable(
       table.workKind,
       table.status,
     ),
+    uniqueIndex('projects_org_document_number_uq')
+      .on(table.organizationId, table.documentNumber)
+      .where(sql`${table.documentNumber} is not null`),
   ],
 );
 

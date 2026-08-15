@@ -165,9 +165,46 @@ export const documentNumberSequences = pgTable(
     uniqueIndex('document_number_sequences_org_kind_uq').on(table.organizationId, table.documentKind),
     check(
       'document_number_sequences_kind_known',
-      sql`${table.documentKind} IN ('estimate','change_request','change_order','purchase_order','vendor_bill','billing_record')`,
+      sql`${table.documentKind} IN ('estimate','change_request','change_order','purchase_order','vendor_bill','billing_record','project','job','work_order')`,
     ),
     check('document_number_sequences_padding_range', sql`${table.padding} >= 1 AND ${table.padding} <= 8`),
     check('document_number_sequences_next_positive', sql`${table.nextNumber} >= 1`),
   ],
 );
+
+/** Per-user saved filters on major lists. Not a BI catalog. */
+export const savedListViews = pgTable(
+  'saved_list_views',
+  {
+    id: primaryId(),
+    organizationId: uuid('organization_id')
+      .notNull()
+      .references(() => organizations.id, { onDelete: 'cascade' }),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => profiles.id, { onDelete: 'cascade' }),
+    listKey: text('list_key').notNull(),
+    name: text('name').notNull(),
+    queryJson: jsonb('query_json').notNull().default({}),
+    isDefault: boolean('is_default').notNull().default(false),
+    ...timestamps(),
+  },
+  (table) => [
+    uniqueIndex('saved_list_views_id_org_uq').on(table.id, table.organizationId),
+    uniqueIndex('saved_list_views_user_list_name_uq').on(
+      table.organizationId,
+      table.userId,
+      table.listKey,
+      table.name,
+    ),
+    uniqueIndex('saved_list_views_user_list_default_uq')
+      .on(table.organizationId, table.userId, table.listKey)
+      .where(sql`${table.isDefault} = true`),
+    index('saved_list_views_user_list_idx').on(table.organizationId, table.userId, table.listKey),
+    check(
+      'saved_list_views_key_known',
+      sql`${table.listKey} IN ('projects','jobs','work_orders','clients','vendors','expenses','ap_bills','quotes','punch','inventory')`,
+    ),
+  ],
+);
+

@@ -88,6 +88,7 @@ describe('field-ops create forms photo staging', () => {
       <PunchCreateForm
         projects={PROJECTS}
         workPackages={[]}
+        employees={[]}
         defaultProjectId={PROJECTS[0]!.id}
         canManageDocuments
         storageConfigured

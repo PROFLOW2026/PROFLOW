@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { OPPORTUNITY_STAGES } from '@/modules/crm/domain/types';
-import { groupOpportunitiesByStage } from '@/modules/crm/domain/pipeline-board';
+import {
+  groupOpportunitiesByStage,
+  statusForMovedStage,
+} from '@/modules/crm/domain/pipeline-board';
+import { updateOpportunitySchema } from '@/modules/crm/validation/schemas';
 
 describe('groupOpportunitiesByStage', () => {
   it('groups opportunities into pipeline stage columns and keeps empty stages', () => {
@@ -29,5 +33,30 @@ describe('groupOpportunitiesByStage', () => {
     const columns = groupOpportunitiesByStage([]);
     expect(columns).toHaveLength(6);
     expect(columns.every((column) => column.items.length === 0)).toBe(true);
+  });
+});
+
+describe('statusForMovedStage', () => {
+  it('closes the opportunity when moved to lost', () => {
+    expect(statusForMovedStage('lost', 'open')).toBe('lost');
+  });
+
+  it('does not auto-win from the board — convert stays on /quotes', () => {
+    expect(statusForMovedStage('won', 'open')).toBeUndefined();
+  });
+
+  it('reopens a lost opportunity when moved back to an open stage', () => {
+    expect(statusForMovedStage('quote', 'lost')).toBe('open');
+    expect(statusForMovedStage('qualify', 'open')).toBeUndefined();
+  });
+});
+
+describe('updateOpportunity stage field', () => {
+  it('accepts a pipeline stage on update', () => {
+    const parsed = updateOpportunitySchema.parse({
+      opportunityId: '01900000-0000-7000-8000-000000000001',
+      stage: 'negotiation',
+    });
+    expect(parsed.stage).toBe('negotiation');
   });
 });

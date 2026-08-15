@@ -2,10 +2,10 @@
  * Org-scoped condition scanners. UPSERT via app.emit_notification with stable
  * dedupe keys; resolve via app.resolve_notifications when the condition is gone.
  *
+ * Recipients are people who can ACT — not whoever opened the bell.
  * Employee missing required report: skipped. There is no existing workforce
  * semantics for a required periodic employee report (distinct from submitted
  * timesheets, attendance open-days, or documents.is_required on files).
- * Inventing one would collide with time-entry / timesheet work owned elsewhere.
  */
 
 import { listPendingApprovals } from '@/modules/approvals';
@@ -16,22 +16,26 @@ import type { OrgContext } from '@/shared/auth/context';
 import { addDays, todayInTimeZone, type BusinessDate } from '@/shared/dates';
 import { ValidationError } from '@/shared/errors';
 import { assertPermission, hasPermission } from '@/shared/permissions/assert';
-import { PERMISSIONS } from '@/shared/permissions/catalog';
+import { PERMISSIONS, type PermissionKey } from '@/shared/permissions/catalog';
 import { notificationCopy } from '../domain/copy';
 import { buildDedupeKey } from '../domain/dedupe';
+import { selectActorRecipients } from '../domain/recipients';
 import type {
   NotificationEventType,
   NotificationScanResult,
   NotificationSeverity,
 } from '../domain/types';
 import {
-  listUnresolvedEntityIdsForRecipient,
+  listUnresolvedEntityIdsForType,
   resolveNotificationsAsSystem,
   resolveNotificationsRpc,
 } from '../data/notifications.repository';
+import { listUserIdsWithPermission } from '../data/permission-holders.repository';
 import {
   SCAN_SOURCE_CAP,
+  listAssignedPunchItems,
   listAssignedWorkOrders,
+  listClosedAssignedPunchIds,
   listClosedAssignedWorkOrderIds,
   listExpiringDocuments,
   listLowStockItems,
@@ -51,6 +55,23 @@ interface ScannerContext {
   readonly today: BusinessDate;
   readonly cap: number;
   readonly locale: string;
+  readonly holders: Map<PermissionKey, Promise<string[]>>;
+}
+
+async function holdersFor(
+  ctx: ScannerContext,
+  permission: PermissionKey,
+): Promise<string[]> {
+  const cached = ctx.holders.get(permission);
+  if (cached) return cached;
+  const pending = listUserIdsWithPermission(
+    ctx.context.db,
+    ctx.context.organizationId,
+    permission,
+    ctx.cap,
+  );
+  ctx.holders.set(permission, pending);
+  return pending;
 }
 
 async function emitLive(
@@ -59,46 +80,47 @@ async function emitLive(
   entityType: string,
   severity: NotificationSeverity,
   entities: readonly ScanEntity[],
-  recipientFor: (entity: ScanEntity) => string,
+  recipientsFor: (entity: ScanEntity) => readonly string[] | Promise<readonly string[]>,
 ): Promise<number> {
   let emitted = 0;
   for (const entity of entities) {
-    const recipientUserId = recipientFor(entity);
-    if (!recipientUserId) continue;
-    const copy = notificationCopy(ctx.locale, type, {
-      reference: entity.reference,
-      extra: entity.extra,
-    });
-    await emitNotification(ctx.context, {
-      recipientUserId,
-      type,
-      title: copy.title,
-      body: copy.body,
-      dedupeKey: buildDedupeKey(type, entity.id, type === 'work_order_assigned' ? recipientUserId : undefined),
-      severity,
-      entityType,
-      entityId: entity.id,
-      deepLink: entity.deepLink,
-      metadata: entity.projectId ? { projectId: entity.projectId } : null,
-    });
-    emitted += 1;
+    const recipients = await recipientsFor(entity);
+    for (const recipientUserId of recipients) {
+      if (!recipientUserId) continue;
+      const copy = notificationCopy(ctx.locale, type, {
+        reference: entity.reference,
+        extra: entity.extra,
+      });
+      await emitNotification(ctx.context, {
+        recipientUserId,
+        type,
+        title: copy.title,
+        body: copy.body,
+        dedupeKey: buildDedupeKey(type, entity.id, recipientUserId),
+        severity,
+        entityType,
+        entityId: entity.id,
+        deepLink: entity.deepLink,
+        metadata: entity.projectId ? { projectId: entity.projectId } : null,
+      });
+      emitted += 1;
+    }
   }
   return emitted;
 }
 
-async function resolveStaleForRecipient(
+async function resolveStaleForType(
   ctx: ScannerContext,
   type: NotificationEventType,
   liveIds: ReadonlySet<string>,
 ): Promise<number> {
-  const openIds = await listUnresolvedEntityIdsForRecipient(
+  const openIds = await listUnresolvedEntityIdsForType(
     ctx.context.db,
     ctx.context.organizationId,
-    ctx.context.userId,
     type,
   );
   let resolved = 0;
-  for (const entityId of openIds) {
+  for (const entityId of new Set(openIds)) {
     if (liveIds.has(entityId)) continue;
     resolved += await resolveNotificationsRpc(ctx.context.db, ctx.context.organizationId, type, entityId);
   }
@@ -117,6 +139,17 @@ async function resolveEntityIds(
   return resolved;
 }
 
+function permissionRecipients(ctx: ScannerContext, permission: PermissionKey, entity: ScanEntity) {
+  return holdersFor(ctx, permission).then((holders) =>
+    selectActorRecipients({
+      holders,
+      namedRecipientUserId: entity.recipientUserId,
+      excludeUserIds: entity.excludeUserId ? [entity.excludeUserId] : [],
+      cap: ctx.cap,
+    }),
+  );
+}
+
 async function scanBillingOverdue(ctx: ScannerContext): Promise<{ emitted: number; resolved: number }> {
   if (!hasPermission(ctx.context, PERMISSIONS.BILLING_READ)) {
     return { emitted: 0, resolved: 0 };
@@ -133,8 +166,15 @@ async function scanBillingOverdue(ctx: ScannerContext): Promise<{ emitted: numbe
       extra: `${record.outstandingAmount.amount} ${record.outstandingAmount.currency}`,
       deepLink: `/billing/${record.id}`,
     }));
-  const emitted = await emitLive(ctx, 'billing_overdue', 'billing_record', 'urgent', entities, () => ctx.context.userId);
-  const resolved = await resolveStaleForRecipient(
+  const emitted = await emitLive(
+    ctx,
+    'billing_overdue',
+    'billing_record',
+    'urgent',
+    entities,
+    (entity) => permissionRecipients(ctx, PERMISSIONS.BILLING_MANAGE, entity),
+  );
+  const resolved = await resolveStaleForType(
     ctx,
     'billing_overdue',
     new Set(entities.map((row) => row.id)),
@@ -169,10 +209,11 @@ async function scanApDue(ctx: ScannerContext): Promise<{ emitted: number; resolv
     }
   }
 
-  const emittedSoon = await emitLive(ctx, 'ap_due_soon', 'ap_bill', 'warning', dueSoon, () => ctx.context.userId);
-  const emittedOverdue = await emitLive(ctx, 'ap_overdue', 'ap_bill', 'urgent', overdue, () => ctx.context.userId);
-  const resolvedSoon = await resolveStaleForRecipient(ctx, 'ap_due_soon', new Set(dueSoon.map((row) => row.id)));
-  const resolvedOverdue = await resolveStaleForRecipient(ctx, 'ap_overdue', new Set(overdue.map((row) => row.id)));
+  const recipients = (entity: ScanEntity) => permissionRecipients(ctx, PERMISSIONS.AP_MANAGE, entity);
+  const emittedSoon = await emitLive(ctx, 'ap_due_soon', 'ap_bill', 'warning', dueSoon, recipients);
+  const emittedOverdue = await emitLive(ctx, 'ap_overdue', 'ap_bill', 'urgent', overdue, recipients);
+  const resolvedSoon = await resolveStaleForType(ctx, 'ap_due_soon', new Set(dueSoon.map((row) => row.id)));
+  const resolvedOverdue = await resolveStaleForType(ctx, 'ap_overdue', new Set(overdue.map((row) => row.id)));
   return {
     emitted: emittedSoon + emittedOverdue,
     resolved: resolvedSoon + resolvedOverdue,
@@ -190,8 +231,15 @@ async function scanApprovals(ctx: ScannerContext): Promise<{ emitted: number; re
     extra: item.amount,
     deepLink: '/approvals',
   }));
-  const emitted = await emitLive(ctx, 'approval_waiting', 'approval_request', 'warning', entities, () => ctx.context.userId);
-  const resolved = await resolveStaleForRecipient(ctx, 'approval_waiting', new Set(entities.map((row) => row.id)));
+  const emitted = await emitLive(
+    ctx,
+    'approval_waiting',
+    'approval_request',
+    'warning',
+    entities,
+    (entity) => permissionRecipients(ctx, PERMISSIONS.APPROVALS_DECIDE, entity),
+  );
+  const resolved = await resolveStaleForType(ctx, 'approval_waiting', new Set(entities.map((row) => row.id)));
   return { emitted, resolved };
 }
 
@@ -203,8 +251,15 @@ async function scanTimesheets(ctx: ScannerContext): Promise<{ emitted: number; r
     return { emitted: 0, resolved: 0 };
   }
   const entities = await listSubmittedTimesheets(ctx.context.db, ctx.context.organizationId, ctx.cap);
-  const emitted = await emitLive(ctx, 'timesheet_waiting', 'timesheet', 'warning', entities, () => ctx.context.userId);
-  const resolved = await resolveStaleForRecipient(ctx, 'timesheet_waiting', new Set(entities.map((row) => row.id)));
+  const emitted = await emitLive(
+    ctx,
+    'timesheet_waiting',
+    'timesheet',
+    'warning',
+    entities,
+    (entity) => permissionRecipients(ctx, PERMISSIONS.TIME_APPROVE, entity),
+  );
+  const resolved = await resolveStaleForType(ctx, 'timesheet_waiting', new Set(entities.map((row) => row.id)));
   return { emitted, resolved };
 }
 
@@ -218,8 +273,15 @@ async function scanDocuments(ctx: ScannerContext): Promise<{ emitted: number; re
     ctx.today,
     ctx.cap,
   );
-  const emitted = await emitLive(ctx, 'document_expiring', 'document', 'warning', entities, () => ctx.context.userId);
-  const resolved = await resolveStaleForRecipient(ctx, 'document_expiring', new Set(entities.map((row) => row.id)));
+  const emitted = await emitLive(
+    ctx,
+    'document_expiring',
+    'document',
+    'warning',
+    entities,
+    (entity) => permissionRecipients(ctx, PERMISSIONS.DOCUMENTS_MANAGE, entity),
+  );
+  const resolved = await resolveStaleForType(ctx, 'document_expiring', new Set(entities.map((row) => row.id)));
   return { emitted, resolved };
 }
 
@@ -233,8 +295,15 @@ async function scanPlanning(ctx: ScannerContext): Promise<{ emitted: number; res
     ctx.today,
     ctx.cap,
   );
-  const emitted = await emitLive(ctx, 'task_overdue', 'planning_work_item', 'warning', entities, () => ctx.context.userId);
-  const resolved = await resolveStaleForRecipient(ctx, 'task_overdue', new Set(entities.map((row) => row.id)));
+  const emitted = await emitLive(
+    ctx,
+    'task_overdue',
+    'planning_work_item',
+    'warning',
+    entities,
+    (entity) => permissionRecipients(ctx, PERMISSIONS.PLANNING_WRITE, entity),
+  );
+  const resolved = await resolveStaleForType(ctx, 'task_overdue', new Set(entities.map((row) => row.id)));
   return { emitted, resolved };
 }
 
@@ -250,8 +319,15 @@ async function scanBoq(ctx: ScannerContext): Promise<{ emitted: number; resolved
     ctx.context.organizationId,
     ctx.cap,
   );
-  const emitted = await emitLive(ctx, 'boq_awaiting_approval', 'boq_progress_batch', 'warning', entities, () => ctx.context.userId);
-  const resolved = await resolveStaleForRecipient(
+  const emitted = await emitLive(
+    ctx,
+    'boq_awaiting_approval',
+    'boq_progress_batch',
+    'warning',
+    entities,
+    (entity) => permissionRecipients(ctx, PERMISSIONS.BOQ_PROGRESS_APPROVE, entity),
+  );
+  const resolved = await resolveStaleForType(
     ctx,
     'boq_awaiting_approval',
     new Set(entities.map((row) => row.id)),
@@ -270,7 +346,7 @@ async function scanWorkOrders(ctx: ScannerContext): Promise<{ emitted: number; r
     'project_service_details',
     'info',
     entities,
-    (entity) => entity.recipientUserId ?? '',
+    (entity) => selectActorRecipients({ namedRecipientUserId: entity.recipientUserId }),
   );
   const closedIds = await listClosedAssignedWorkOrderIds(
     ctx.context.db,
@@ -278,9 +354,34 @@ async function scanWorkOrders(ctx: ScannerContext): Promise<{ emitted: number; r
     ctx.cap,
   );
   const liveIds = new Set(entities.map((row) => row.id));
-  const staleFromInbox = await resolveStaleForRecipient(ctx, 'work_order_assigned', liveIds);
+  const staleFromInbox = await resolveStaleForType(ctx, 'work_order_assigned', liveIds);
   const closedToResolve = closedIds.filter((id) => !liveIds.has(id));
   const staleClosed = await resolveEntityIds(ctx, 'work_order_assigned', closedToResolve);
+  return { emitted, resolved: staleFromInbox + staleClosed };
+}
+
+async function scanPunchAssigned(ctx: ScannerContext): Promise<{ emitted: number; resolved: number }> {
+  if (!hasPermission(ctx.context, PERMISSIONS.FIELD_OPS_READ)) {
+    return { emitted: 0, resolved: 0 };
+  }
+  const entities = await listAssignedPunchItems(ctx.context.db, ctx.context.organizationId, ctx.cap);
+  const emitted = await emitLive(
+    ctx,
+    'punch_assigned',
+    'punch_list_item',
+    'info',
+    entities,
+    (entity) => selectActorRecipients({ namedRecipientUserId: entity.recipientUserId }),
+  );
+  const closedIds = await listClosedAssignedPunchIds(
+    ctx.context.db,
+    ctx.context.organizationId,
+    ctx.cap,
+  );
+  const liveIds = new Set(entities.map((row) => row.id));
+  const staleFromInbox = await resolveStaleForType(ctx, 'punch_assigned', liveIds);
+  const closedToResolve = closedIds.filter((id) => !liveIds.has(id));
+  const staleClosed = await resolveEntityIds(ctx, 'punch_assigned', closedToResolve);
   return { emitted, resolved: staleFromInbox + staleClosed };
 }
 
@@ -289,8 +390,15 @@ async function scanLowStock(ctx: ScannerContext): Promise<{ emitted: number; res
     return { emitted: 0, resolved: 0 };
   }
   const entities = await listLowStockItems(ctx.context.db, ctx.context.organizationId, ctx.cap);
-  const emitted = await emitLive(ctx, 'low_stock', 'inventory_item', 'warning', entities, () => ctx.context.userId);
-  const resolved = await resolveStaleForRecipient(ctx, 'low_stock', new Set(entities.map((row) => row.id)));
+  const emitted = await emitLive(
+    ctx,
+    'low_stock',
+    'inventory_item',
+    'warning',
+    entities,
+    (entity) => permissionRecipients(ctx, PERMISSIONS.ASSETS_MANAGE, entity),
+  );
+  const resolved = await resolveStaleForType(ctx, 'low_stock', new Set(entities.map((row) => row.id)));
   return { emitted, resolved };
 }
 
@@ -304,8 +412,15 @@ async function scanSafety(ctx: ScannerContext): Promise<{ emitted: number; resol
     ctx.today,
     ctx.cap,
   );
-  const emitted = await emitLive(ctx, 'safety_action_due', 'safety_corrective_action', 'urgent', entities, () => ctx.context.userId);
-  const resolved = await resolveStaleForRecipient(ctx, 'safety_action_due', new Set(entities.map((row) => row.id)));
+  const emitted = await emitLive(
+    ctx,
+    'safety_action_due',
+    'safety_corrective_action',
+    'urgent',
+    entities,
+    (entity) => permissionRecipients(ctx, PERMISSIONS.SAFETY_MANAGE, entity),
+  );
+  const resolved = await resolveStaleForType(ctx, 'safety_action_due', new Set(entities.map((row) => row.id)));
   return { emitted, resolved };
 }
 
@@ -321,6 +436,7 @@ const SCANNERS: readonly {
   { key: 'task_overdue', run: scanPlanning },
   { key: 'boq_awaiting_approval', run: scanBoq },
   { key: 'work_order_assigned', run: scanWorkOrders },
+  { key: 'punch_assigned', run: scanPunchAssigned },
   { key: 'low_stock', run: scanLowStock },
   { key: 'safety_action_due', run: scanSafety },
 ];
@@ -347,6 +463,7 @@ export async function runNotificationScan(
     today,
     cap,
     locale: context.locale || 'he-IL',
+    holders: new Map(),
   };
 
   let scannersRun = 0;

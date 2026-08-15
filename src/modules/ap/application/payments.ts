@@ -25,6 +25,7 @@ import {
 import { listActiveCreditAmountsForBill } from '../data/credits.repository';
 import {
   getVendorPaymentsRepository,
+  listRecordedPaymentsForVendor,
   type ApPaymentApplicationRow,
   type ApPaymentRow,
   type ApPaymentWithApplications,
@@ -144,6 +145,15 @@ export async function listVendorPaymentsForBill(
     context.organizationId,
     billId,
   );
+}
+
+export async function listVendorPaymentsForVendor(
+  context: OrgContext,
+  vendorId: string,
+): Promise<readonly ApPaymentRow[]> {
+  assertPermission(context, PERMISSIONS.AP_READ);
+  if (!areApPaymentsAvailable()) return [];
+  return listRecordedPaymentsForVendor(context.db, context.organizationId, vendorId);
 }
 
 /**

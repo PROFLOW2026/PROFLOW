@@ -9,6 +9,7 @@ import { StatusBadge } from '@/components/ui/status-badge';
 import { ResponsiveTable } from '@/components/patterns/responsive-table';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { listClientsForOrg } from '@/modules/clients';
+import { SavedListViewsBar } from '@/modules/tenancy/ui/saved-list-views-bar';
 import { getShellContext, withOrgContext } from '@/shared/auth/session';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { Link } from '@/shared/i18n/navigation';
@@ -60,6 +61,11 @@ export default async function ClientsPage({ searchParams }: ClientsPageProps) {
       />
 
       <ClientListFilters initialQuery={params.q ?? ''} includeArchived={includeArchived} />
+      <SavedListViewsBar
+        listKey="clients"
+        searchParams={{ q: params.q, includeArchived: params.includeArchived }}
+        keys={['q', 'includeArchived']}
+      />
 
       {clients.length === 0 ? (
         <EmptyState

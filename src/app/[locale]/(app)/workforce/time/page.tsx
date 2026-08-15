@@ -4,11 +4,12 @@ import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/ui/page-header';
 import {
   listEmployeesForOrg,
-  listAssignableProjects,
+  listProjectsForTimeLog,
   listTimeEntriesForOrg,
   timeEntryFiltersSchema,
 } from '@/modules/workforce';
 import { canLogTime, canViewWorkforceCosts } from '@/modules/workforce/ui/employees-table';
+import { canReadOrgWorkforce } from '@/modules/workforce/application/time-scope';
 import { TimeEntriesTable } from '@/modules/workforce/ui/time-entries-table';
 import { TimeEntryListFilters } from '@/modules/workforce/ui/time-entry-list-filters';
 import { WorkforceSubNav } from '@/modules/workforce/ui/workforce-sub-nav';
@@ -54,22 +55,27 @@ export default async function TimeEntriesPage({
   });
   const filters = parsedFilters.success ? parsedFilters.data : {};
 
-  const { entries, showCosts, allowLog, employees, projects, canReadReports } = await withOrgContext(
-    async (context) => ({
-      entries: await listTimeEntriesForOrg(context, filters),
-      showCosts: canViewWorkforceCosts(context),
-      allowLog: canLogTime(context),
-      employees: await listEmployeesForOrg(context, { status: 'active' }),
-      projects: await listAssignableProjects(context),
-      canReadReports: hasPermission(context, PERMISSIONS.PROJECT_FINANCIALS_READ),
-    }),
-  );
+  const { entries, showCosts, allowLog, employees, projects, canReadReports, selfScoped } =
+    await withOrgContext(async (context) => {
+      const orgRoster = canReadOrgWorkforce(context);
+      return {
+        entries: await listTimeEntriesForOrg(context, filters),
+        showCosts: canViewWorkforceCosts(context),
+        allowLog: canLogTime(context),
+        employees: orgRoster
+          ? await listEmployeesForOrg(context, { status: 'active' })
+          : [],
+        projects: await listProjectsForTimeLog(context),
+        canReadReports: hasPermission(context, PERMISSIONS.PROJECT_FINANCIALS_READ),
+        selfScoped: !orgRoster,
+      };
+    });
 
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
         title={t('time.title')}
-        description={t('time.description')}
+        description={selfScoped ? t('time.selfDescription') : t('time.description')}
         actions={
           <div className="flex max-w-full flex-wrap gap-2">
             {canReadReports ? (
@@ -90,6 +96,7 @@ export default async function TimeEntriesPage({
         <TimeEntryListFilters
           employees={employees.map((employee) => ({ id: employee.id, name: employee.name }))}
           projects={projects}
+          hideEmployeeFilter={selfScoped}
           initial={{
             employeeId: filters.employeeId,
             projectId: filters.projectId,

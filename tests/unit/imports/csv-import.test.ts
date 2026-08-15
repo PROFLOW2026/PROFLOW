@@ -137,6 +137,7 @@ describe('imports kinds', () => {
       'opening_values',
       'cost_categories',
       'expenses',
+      'inventory',
       'boq_items',
     ]);
   });

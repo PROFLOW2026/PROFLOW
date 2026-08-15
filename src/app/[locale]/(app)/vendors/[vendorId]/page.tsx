@@ -10,6 +10,13 @@ import { getEntityDocumentPanelData } from '@/modules/documents';
 import { DocumentAttachments } from '@/modules/documents/ui';
 import { listProjectsForOrg } from '@/modules/projects';
 import {
+  getVendorApOutstanding,
+  getVendorPayablesAging,
+  listVendorCredits,
+  listVendorPaymentsForVendor,
+} from '@/modules/ap';
+import { VendorAp360Panel } from '@/modules/ap/ui/vendor-ap-360-panel';
+import {
   getVendorById,
   listVendorEngagementHistory,
   listVendorSubcontracts,
@@ -64,12 +71,18 @@ export default async function VendorDetailPage({
   let documentCandidates: Awaited<ReturnType<typeof listSubcontractDocumentCandidates>> = [];
   let candidateProjects: { id: string; name: string }[] = [];
   let canManage = false;
+  let canReadAp = false;
   let defaultStartDate = '';
+  let apOutstanding: Awaited<ReturnType<typeof getVendorApOutstanding>> | null = null;
+  let apAging: Awaited<ReturnType<typeof getVendorPayablesAging>> | null = null;
+  let apCredits: Awaited<ReturnType<typeof listVendorCredits>> = [];
+  let apPayments: Awaited<ReturnType<typeof listVendorPaymentsForVendor>> = [];
 
   try {
     const result = await withOrgContext(async (context) => {
       const detail = await getVendorById(context, vendorId);
       const allowManage = hasPermission(context, PERMISSIONS.VENDORS_MANAGE);
+      const allowAp = hasPermission(context, PERMISSIONS.AP_READ);
       const [panel, fields, history, projects, agreements, contracts, docs] = await Promise.all([
         getEntityDocumentPanelData(context, 'vendor', vendorId),
         listCustomFieldValuesForEntity(context, 'vendor', vendorId).catch(() => []),
@@ -84,6 +97,14 @@ export default async function VendorDetailPage({
       const details = await Promise.all(
         agreements.map((agreement) => getSubcontractById(context, agreement.id).catch(() => null)),
       );
+      const [outstanding, aging, credits, payments] = allowAp
+        ? await Promise.all([
+            getVendorApOutstanding(context, vendorId).catch(() => null),
+            getVendorPayablesAging(context, vendorId).catch(() => null),
+            listVendorCredits(context, { vendorId }).catch(() => []),
+            listVendorPaymentsForVendor(context, vendorId).catch(() => []),
+          ])
+        : [null, null, [], []];
       return {
         vendor: detail,
         documentsPanel: panel,
@@ -98,7 +119,12 @@ export default async function VendorDetailPage({
         parentContracts: contracts,
         documentCandidates: docs,
         canManage: allowManage,
+        canReadAp: allowAp,
         defaultStartDate: todayInTimeZone(context.organization.timezone),
+        apOutstanding: outstanding,
+        apAging: aging,
+        apCredits: credits,
+        apPayments: payments,
       };
     });
     vendor = result.vendor;
@@ -111,7 +137,12 @@ export default async function VendorDetailPage({
     parentContracts = result.parentContracts;
     documentCandidates = result.documentCandidates;
     canManage = result.canManage;
+    canReadAp = result.canReadAp;
     defaultStartDate = result.defaultStartDate;
+    apOutstanding = result.apOutstanding;
+    apAging = result.apAging;
+    apCredits = result.apCredits;
+    apPayments = result.apPayments;
   } catch {
     notFound();
   }
@@ -222,6 +253,26 @@ export default async function VendorDetailPage({
         candidateProjects={candidateProjects}
         canManage={canManage}
         defaultStartDate={defaultStartDate}
+      />
+
+      <VendorAp360Panel
+        canRead={canReadAp}
+        outstanding={apOutstanding}
+        aging={apAging}
+        credits={apCredits}
+        payments={apPayments}
+        linkedProjects={[
+          ...vendor.engagements.map((engagement) => ({
+            id: engagement.projectId,
+            name: engagement.projectName,
+          })),
+          ...engagementHistory.map((engagement) => ({
+            id: engagement.projectId,
+            name: engagement.projectName,
+          })),
+        ].filter(
+          (project, index, all) => all.findIndex((row) => row.id === project.id) === index,
+        )}
       />
 
       <VendorSubcontractsPanel

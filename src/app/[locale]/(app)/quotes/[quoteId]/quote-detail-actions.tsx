@@ -70,16 +70,21 @@ export function QuoteDetailActions({
       {convertState.error ? <Alert tone="danger">{convertState.error}</Alert> : null}
 
       {transitions.length > 0 ? (
-        <div className="flex flex-wrap gap-2">
-          {transitions.map((item) => (
-            <form key={item.to} action={transitionAction}>
-              <input type="hidden" name="quoteId" value={quoteId} />
-              <input type="hidden" name="toStatus" value={item.to} />
-              <Button type="submit" variant="secondary" size="sm" disabled={transitionPending}>
-                {item.label}
-              </Button>
-            </form>
-          ))}
+        <div className="flex flex-col gap-2">
+          {status === 'draft' || status === 'ready' ? (
+            <p className="text-xs text-[var(--pf-text-muted)]">{t('markSentHint')}</p>
+          ) : null}
+          <div className="flex flex-wrap gap-2">
+            {transitions.map((item) => (
+              <form key={item.to} action={transitionAction}>
+                <input type="hidden" name="quoteId" value={quoteId} />
+                <input type="hidden" name="toStatus" value={item.to} />
+                <Button type="submit" variant="secondary" size="sm" disabled={transitionPending}>
+                  {item.label}
+                </Button>
+              </form>
+            ))}
+          </div>
         </div>
       ) : null}
 

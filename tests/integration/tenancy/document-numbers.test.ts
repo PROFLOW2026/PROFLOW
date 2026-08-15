@@ -196,7 +196,7 @@ describe('internal document numbering', () => {
         locale: 'en',
       });
       const listed = await listDocumentNumberSettings(context);
-      expect(listed).toHaveLength(6);
+      expect(listed).toHaveLength(9);
       await expect(
         saveDocumentNumberSettings(context, {
           sequences: [{ documentKind: 'estimate', prefix: 'X', padding: 4, nextNumber: 1 }],

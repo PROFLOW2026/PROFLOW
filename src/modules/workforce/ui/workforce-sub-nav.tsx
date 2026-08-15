@@ -14,7 +14,8 @@ interface WorkforceSubNavProps {
 /** Local workforce tab strip — shell More nav is owned by Agent 8. */
 export async function WorkforceSubNav({ active }: WorkforceSubNavProps) {
   const t = await getTranslations('workforce');
-  const { showAttendance, showApprovals } = await withOrgContext(async (context) => ({
+  const { showEmployees, showAttendance, showApprovals } = await withOrgContext(async (context) => ({
+    showEmployees: hasPermission(context, PERMISSIONS.WORKFORCE_READ),
     showAttendance: hasAnyPermission(context, [
       PERMISSIONS.ATTENDANCE_READ,
       PERMISSIONS.ATTENDANCE_SELF,
@@ -26,9 +27,11 @@ export async function WorkforceSubNav({ active }: WorkforceSubNavProps) {
   return (
     <Tabs value={active}>
       <TabsList>
-        <TabsTrigger value="employees" asChild>
-          <Link href="/workforce/employees">{t('nav.employees')}</Link>
-        </TabsTrigger>
+        {showEmployees ? (
+          <TabsTrigger value="employees" asChild>
+            <Link href="/workforce/employees">{t('nav.employees')}</Link>
+          </TabsTrigger>
+        ) : null}
         <TabsTrigger value="time" asChild>
           <Link href="/workforce/time">{t('nav.time')}</Link>
         </TabsTrigger>

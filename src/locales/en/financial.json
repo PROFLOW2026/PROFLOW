@@ -181,8 +181,11 @@
   },
   "perContract": {
     "title": "By contract",
-    "hint": "Project current contract value is the sum of live contracts in this currency. Pending changes do not move Current.",
+    "hint": "Current contract value is shown per live contract (draft/active) and summed for the project. Closed and cancelled contracts stay listed for history and are not included in the project current total. Cost and profit stay at project level — they are not split across contracts.",
     "primary": "Primary",
+    "original": "Original",
+    "current": "Current",
+    "costProfitHint": "Cost and profit remain project-level. This list does not allocate cost or invent per-contract profit.",
     "skippedFx": "Another currency — not included in the project total"
   }
 }

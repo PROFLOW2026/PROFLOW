@@ -34,6 +34,7 @@ function mapQuote(row: typeof estimates.$inferSelect): QuoteRecord {
     listSubtotalAmount: row.listSubtotalAmount,
     discountPercent: row.discountPercent,
     convertedProjectId: row.convertedProjectId,
+    opportunityId: row.opportunityId,
     convertedAt: row.convertedAt,
     sentAt: row.sentAt,
     decidedAt: row.decidedAt,
@@ -63,11 +64,12 @@ function mapLine(row: typeof estimateLineItems.$inferSelect): QuoteLineItemRecor
 export async function listQuotes(
   db: DbExecutor,
   organizationId: string,
-  filters: { status?: QuoteStatus; clientId?: string } = {},
+  filters: { status?: QuoteStatus; clientId?: string; opportunityId?: string } = {},
 ): Promise<QuoteListItem[]> {
   const conditions = [eq(estimates.organizationId, organizationId), isNull(estimates.archivedAt)];
   if (filters.status) conditions.push(eq(estimates.status, filters.status));
   if (filters.clientId) conditions.push(eq(estimates.clientId, filters.clientId));
+  if (filters.opportunityId) conditions.push(eq(estimates.opportunityId, filters.opportunityId));
 
   const rows = await db
     .select({

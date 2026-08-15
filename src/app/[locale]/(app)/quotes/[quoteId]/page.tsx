@@ -5,7 +5,7 @@ import { MoneyText } from '@/components/patterns/money-text';
 import { PageHeader } from '@/components/ui/page-header';
 import { StatusBadge, type StatusShape } from '@/components/ui/status-badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { getQuoteById, type QuoteStatus } from '@/modules/quotes';
+import { getQuoteById, isQuoteEditable, type QuoteStatus } from '@/modules/quotes';
 import { money } from '@/shared/money';
 import { withOrgContext } from '@/shared/auth/session';
 import { Link } from '@/shared/i18n/navigation';
@@ -13,6 +13,8 @@ import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { textNavLinkClassName, textNavLinkMutedClassName } from '@/components/ui/pressable';
 import { QuoteDetailActions, QuotePrintButton } from './quote-detail-actions';
+import { QuoteEditorForm } from '@/modules/quotes/ui/quote-editor-form';
+import { listClientsForOrg } from '@/modules/clients';
 
 export async function generateMetadata({
   params,
@@ -53,15 +55,19 @@ export default async function QuoteDetailPage({
   const tStatus = await getTranslations('status.estimateQuote');
   const tTax = await getTranslations('quotes.taxModes');
 
-  const { quote, canManage } = await withOrgContext(async (context) => {
+  const { quote, canManage, clients } = await withOrgContext(async (context) => {
     try {
       const detail = await getQuoteById(context, quoteId);
+      const listed = hasPermission(context, PERMISSIONS.CLIENTS_READ)
+        ? await listClientsForOrg(context, { status: 'active' }).catch(() => [])
+        : [];
       return {
         quote: detail,
         canManage: hasPermission(context, PERMISSIONS.QUOTES_MANAGE),
+        clients: listed,
       };
     } catch {
-      return { quote: null, canManage: false };
+      return { quote: null, canManage: false, clients: [] };
     }
   });
 
@@ -92,6 +98,11 @@ export default async function QuoteDetailPage({
       <p className="rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-muted)] px-3 py-2 text-sm text-[var(--pf-text-secondary)]">
         {t('disclaimer')}
       </p>
+      {quote.status === 'sent' ? (
+        <p className="rounded-md border border-[var(--pf-border-default)] px-3 py-2 text-sm text-[var(--pf-text-secondary)]">
+          {t('detail.sentIsNotEmail')}
+        </p>
+      ) : null}
 
       {quote.description ? (
         <p className="whitespace-pre-wrap text-sm">{quote.description}</p>
@@ -245,6 +256,34 @@ export default async function QuoteDetailPage({
             {t('detail.openWork')}
           </Link>
         </p>
+      ) : null}
+
+      {canManage && isQuoteEditable(quote.status) ? (
+        <section className="print:hidden">
+          <h2 className="mb-3 text-base font-semibold">{t('detail.editDraft')}</h2>
+          <QuoteEditorForm
+            mode="edit"
+            quoteId={quote.id}
+            defaultCurrency={quote.currency}
+            defaultTitle={quote.title}
+            defaultClientId={quote.clientId}
+            defaultDescription={quote.description}
+            defaultTaxMode={quote.taxMode}
+            defaultValidityDate={quote.validityDate}
+            defaultNotes={quote.notes}
+            defaultDiscountAmount={quote.discountAmount}
+            defaultListSubtotalAmount={quote.listSubtotalAmount}
+            defaultDiscountPercent={quote.discountPercent}
+            defaultLines={quote.lines.map((line) => ({
+              description: line.description,
+              quantity: line.quantity,
+              unit: line.unit ?? '',
+              unitPriceAmount: line.unitPriceAmount,
+              estimatedUnitCostAmount: line.estimatedUnitCostAmount ?? '',
+            }))}
+            clients={clients.map((c) => ({ id: c.id, name: c.name }))}
+          />
+        </section>
       ) : null}
 
       <QuoteDetailActions

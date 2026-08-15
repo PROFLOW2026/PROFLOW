@@ -26,6 +26,7 @@
     "app": "App",
     "offlineDrafts": "Offline drafts",
     "banking": "Banking",
+    "ocr": "Receipt scan (OCR)",
     "profile": "Your profile"
   },
   "people": {
@@ -36,6 +37,8 @@
     "modeAll": "All projects",
     "modeSelected": "Selected projects only",
     "modeAssigned": "Assigned projects",
+    "assignedModeHint": "Assigned mode uses project team assignments and extra grants. Roles stay organization-wide — a role is not limited to one project.",
+    "accessAllBypassWarning": "Selected or Assigned mode does not hide projects from people whose role has “see every project” until that toggle is turned off: {names}",
     "grantUser": "Person",
     "grantProject": "Project",
     "grantAdd": "Grant access",
@@ -96,7 +99,7 @@
       "approvals": "Manage approval flows for expenses, purchasing, and other actions.",
       "month_close": "Close an operational month to keep history stable.",
       "budgets": "Track budget versus actuals and forecast.",
-      "boq": "Manage items, site measurements, and progress billing on a project.",
+      "boq": "Optional bill of quantities for measured construction. Leave off unless you bill from a quantity list — a jobs/service mix does not need it.",
       "forms": "Reusable checklists and field forms.",
       "command_center": "Today view for current work and tasks.",
       "safety": "Incidents, near misses, toolbox talks, and corrective actions."
@@ -105,14 +108,14 @@
   },
   "workMix": {
     "title": "Business focus",
-    "subtitle": "Choose what stands out in navigation: projects, jobs, or both.",
+    "subtitle": "Choose what stands out in navigation: projects, jobs, or both. Same app and same money — not separate products.",
     "label": "Navigation focus",
     "projects": "Mostly projects",
     "jobs": "Mostly jobs",
     "mixed": "Projects and jobs",
-    "hintProjects": "Projects appear in the main navigation. Jobs stay available when needed.",
-    "hintJobs": "Jobs appear in the main navigation. Projects stay available.",
-    "hintMixed": "Projects and jobs appear together in navigation.",
+    "hintJobs": "Jobs and service calls appear in the main navigation. Projects stay available. Bill of quantities stays hidden unless you turn that feature on.",
+    "hintMixed": "Projects, jobs, and service calls appear together. They share one financial record — this is not a separate product, and BOQ stays off unless you enable it.",
+    "hintProjects": "Projects appear in the main navigation. Jobs stay available when needed. Bill of quantities stays hidden unless you turn that feature on.",
     "saved": "Business focus updated."
   },
   "businessProfiles": {
@@ -151,6 +154,7 @@
     "title": "Roles",
     "subtitle": "Four roles. A few permissions can be adjusted per role.",
     "toggleTitle": "Adjustable permissions",
+    "accessAllHint": "This bypasses Selected and Assigned project visibility. Turn it off for this role if those modes should hide projects from them.",
     "profitToggle": "Allow this role to see profit and margin",
     "protectedHint": "The owner role always has full access.",
     "saved": "Role updated."
@@ -751,7 +755,7 @@
   },
   "numbering": {
     "title": "Document numbering",
-    "subtitle": "Internal tracking numbers assigned when you leave the reference blank. Change requests and change orders keep their per-project numbers.",
+    "subtitle": "Internal tracking numbers assigned when you leave the reference blank. Change requests and change orders keep their per-project numbers. Project, job, and service-call numbers are assigned on create only — existing rows are not backfilled.",
     "legalDisclaimer": "Internal tracking numbers only. This is not Israeli tax-invoice numbering.",
     "commercialNote": "These numbers are for follow-up inside ProjectFlow. They are not statutory invoices and do not issue a legal tax invoice.",
     "perProjectNote": "Not applied on create. Change requests and change orders keep per-project numbers such as CR-001 / CO-001.",
@@ -762,6 +766,9 @@
     "saving": "Saving…",
     "saved": "Numbering updated.",
     "kinds": {
+      "project": "Project",
+      "job": "Job",
+      "work_order": "Service call",
       "estimate": "Pre-project estimate",
       "change_request": "Change request",
       "change_order": "Change order",
@@ -773,5 +780,23 @@
   "notAllowed": {
     "title": "Not allowed",
     "body": "You do not have permission to view this settings area."
+  },
+  "ocr": {
+    "title": "Receipt scan (OCR)",
+    "description": "Operational status for automatic document reading. Drafts only — never a posted actual.",
+    "ingestionLabel": "Ingestion",
+    "ingestionOn": "Enabled",
+    "ingestionOff": "Disabled",
+    "providerLabel": "Provider",
+    "providerConfigured": "credentials present",
+    "providerMissing": "not configured",
+    "azureGuidance": "Azure Document Intelligence needs both an API key and an endpoint in server environment variables. Values are never shown here.",
+    "draftsOnly": "Confirmed reading creates a draft expense, draft vendor bill, or draft vendor credit only. It never posts an Actual.",
+    "queueTitle": "Queue",
+    "queued": "Queued",
+    "processing": "Processing",
+    "failed": "Failed",
+    "queueEmpty": "No queued, in-flight, or failed jobs.",
+    "reviewLink": "Open document review"
   }
 }

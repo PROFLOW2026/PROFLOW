@@ -65,6 +65,8 @@ export interface DocumentAttachmentsProps {
   defaultCategory?: (typeof DOCUMENT_CATEGORIES)[number] | '';
   /** Optional hook after a successful upload finalize (e.g. set compliance.document_id). */
   afterFinalizeAction?: (documentId: string) => Promise<{ error?: string }>;
+  /** When the owner is an employee, allow marking compensation files. */
+  canClassifyCompensation?: boolean;
   className?: string;
 }
 
@@ -85,6 +87,7 @@ export function DocumentAttachments({
   titleKey = 'title',
   defaultCategory = '',
   afterFinalizeAction,
+  canClassifyCompensation = false,
   className,
 }: DocumentAttachmentsProps) {
   const t = useTranslations('documents.attachments');
@@ -104,6 +107,7 @@ export function DocumentAttachments({
   const [uploadSuccess, setUploadSuccess] = useState<string | null>(null);
   const [label, setLabel] = useState('');
   const [category, setCategory] = useState<string>(defaultCategory);
+  const [privacyClass, setPrivacyClass] = useState<'standard' | 'compensation'>('standard');
   const [uploadPending, startUploadTransition] = useTransition();
   const [linkPending, startLinkTransition] = useTransition();
   const [selectedLinkId, setSelectedLinkId] = useState<string>('');
@@ -138,6 +142,11 @@ export function DocumentAttachments({
       cancelled = true;
     };
   }, [ownerType, ownerId, folderOwnerKey]);
+
+  const showCompensationControl = ownerType === 'employee' && canManage && canClassifyCompensation;
+
+  const resolvePrivacyClass = () =>
+    showCompensationControl ? privacyClass : 'standard';
 
   const resolveLinkLabel = () => {
     const note = label.trim();
@@ -201,6 +210,7 @@ export function DocumentAttachments({
         ownerType,
         ownerId,
         label: resolveLinkLabel(),
+        privacyClass: resolvePrivacyClass(),
       });
 
       if (prepared.error) {
@@ -273,6 +283,7 @@ export function DocumentAttachments({
         ownerType,
         ownerId,
         label: resolveLinkLabel(),
+        privacyClass: resolvePrivacyClass(),
       });
 
       if (result.error) {
@@ -411,6 +422,29 @@ export function DocumentAttachments({
                 </>
               )}
             </Field>
+            {showCompensationControl ? (
+              <Field label={t('privacyLabel')} description={t('privacyHint')}>
+                {(control) => (
+                  <>
+                    <input type="hidden" name="privacyClass" value={privacyClass} />
+                    <Select
+                      value={privacyClass}
+                      onValueChange={(value) =>
+                        setPrivacyClass(value === 'compensation' ? 'compensation' : 'standard')
+                      }
+                    >
+                      <SelectTrigger id={control.id}>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="standard">{t('privacyStandard')}</SelectItem>
+                        <SelectItem value="compensation">{t('privacyCompensation')}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </>
+                )}
+              </Field>
+            ) : null}
             <Field label={t('labelOptional')} optionalLabel={tCommon('labels.optional')}>
               {(control) => (
                 <Input

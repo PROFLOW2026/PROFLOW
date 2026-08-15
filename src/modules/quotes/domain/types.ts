@@ -63,6 +63,8 @@ export interface QuoteRecord {
   /** Discount percent when no money discount is stored. */
   readonly discountPercent: string | null;
   readonly convertedProjectId: string | null;
+  /** Optional CRM opportunity. Convert-won uses this row, not crm_sales_quotes. */
+  readonly opportunityId: string | null;
   readonly convertedAt: Date | null;
   readonly sentAt: Date | null;
   readonly decidedAt: Date | null;

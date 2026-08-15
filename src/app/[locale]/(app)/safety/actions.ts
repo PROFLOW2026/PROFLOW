@@ -15,6 +15,7 @@ import {
   type SafetyRecordType,
   type SafetySeverity,
 } from '@/modules/safety';
+import { linkDailyLogSafetyRecord } from '@/modules/field-ops';
 import { withOrgContext } from '@/shared/auth/session';
 import { AppError, DomainRuleError, ValidationError } from '@/shared/errors';
 import { redirect } from '@/shared/i18n/navigation';
@@ -103,7 +104,18 @@ export async function createSafetyRecordAction(
   };
 
   try {
-    const record = await withOrgContext((context) => createSafetyRecord(context, input));
+    const record = await withOrgContext(async (context) => {
+      const created = await createSafetyRecord(context, input);
+      const fromDailyLogId = formValue(formData, 'fromDailyLogId');
+      if (fromDailyLogId) {
+        await linkDailyLogSafetyRecord(context, {
+          dailyLogId: fromDailyLogId,
+          safetyRecordId: created.id,
+        });
+        revalidatePath(`/field-ops/logs/${fromDailyLogId}`);
+      }
+      return created;
+    });
     revalidateSafety(record.id);
     redirect({ href: `/safety/${record.id}`, locale });
   } catch (error) {

@@ -38,4 +38,15 @@ describe('commercial money validation', () => {
     });
     expect(result.success).toBe(false);
   });
+
+  it('accepts an optional contractId for multi-contract projects', () => {
+    const contractId = '00000000-0000-4000-8000-000000000009';
+    const result = createChangeRequestSchema.parse({
+      projectId: '00000000-0000-4000-8000-000000000001',
+      title: 'Facade extra',
+      direction: 'addition',
+      contractId,
+    });
+    expect(result.contractId).toBe(contractId);
+  });
 });

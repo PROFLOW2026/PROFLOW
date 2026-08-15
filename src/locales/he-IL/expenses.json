@@ -106,6 +106,8 @@
     "notes": "הערות",
     "recurrence": "תדירות",
     "recurrenceCustom": "תדירות מותאמת",
+    "recurrenceUseDrafts": "שדה זה אינו יוצר שורות הוצאה חוזרות. השתמשו בטיוטות חוזרות לתזמון.",
+    "recurrenceDraftsLink": "פתחו טיוטות חוזרות",
     "percent": "אחוז"
   },
   "placeholders": {

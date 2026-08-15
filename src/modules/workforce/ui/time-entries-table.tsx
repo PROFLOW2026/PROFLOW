@@ -11,7 +11,7 @@ import { businessDate } from '@/shared/dates/dates';
 import { formatBusinessDate } from '@/shared/dates/format';
 import { fromNumericString } from '@/shared/money';
 import { Link } from '@/shared/i18n/navigation';
-import { SubmitTimeEntryButton } from './timesheet-actions';
+import { SubmitTimeEntryButton, EditDraftTimeEntryForm } from './timesheet-actions';
 
 interface TimeEntriesTableProps {
   readonly entries: readonly TimeEntryListItem[];
@@ -139,11 +139,18 @@ export async function TimeEntriesTable({ entries, showCosts, canLogTime }: TimeE
                           </Button>
                         ) : null}
                         {entry.status === 'recorded' ? (
-                          <SubmitTimeEntryButton
-                            entryId={entry.id}
-                            employeeId={entry.employeeId}
-                            approvalStatus={entry.approvalStatus}
-                          />
+                          <>
+                            <EditDraftTimeEntryForm
+                              entryId={entry.id}
+                              hours={entry.hours}
+                              approvalStatus={entry.approvalStatus}
+                            />
+                            <SubmitTimeEntryButton
+                              entryId={entry.id}
+                              employeeId={entry.employeeId}
+                              approvalStatus={entry.approvalStatus}
+                            />
+                          </>
                         ) : null}
                       </div>
                     </TableCell>
@@ -201,6 +208,11 @@ export async function TimeEntriesTable({ entries, showCosts, canLogTime }: TimeE
                   <Link href={`/workforce/time/new?correctsEntryId=${entry.id}`}>{t('time.correct')}</Link>
                 </Button>
               ) : null}
+              <EditDraftTimeEntryForm
+                entryId={entry.id}
+                hours={entry.hours}
+                approvalStatus={entry.approvalStatus}
+              />
               <SubmitTimeEntryButton
                 entryId={entry.id}
                 employeeId={entry.employeeId}

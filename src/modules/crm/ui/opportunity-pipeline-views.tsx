@@ -1,5 +1,6 @@
 'use client';
 
+import { useActionState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { Columns3, Table2 } from 'lucide-react';
 import { ResponsiveTable } from '@/components/patterns/responsive-table';
@@ -17,6 +18,8 @@ import {
   nextActionUrgency,
   type OpportunityBoardCard,
 } from '../domain/pipeline-board';
+import { OPPORTUNITY_STAGES } from '../domain/types';
+import { updateOpportunityAction, type CrmFormState } from '@/app/[locale]/(app)/crm/actions';
 
 function NextActionBadge({
   nextActionAt,
@@ -79,14 +82,66 @@ function OpportunityValue({
   );
 }
 
-function BoardCard({ item }: { item: OpportunityBoardCard }) {
+function BoardStageSelect({
+  opportunityId,
+  stage,
+}: {
+  opportunityId: string;
+  stage: OpportunityBoardCard['stage'];
+}) {
+  const t = useTranslations('crm');
+  const [, formAction, pending] = useActionState<CrmFormState, FormData>(
+    updateOpportunityAction,
+    {},
+  );
+
+  return (
+    <form
+      action={formAction}
+      className="mt-2"
+      onClick={(event) => event.stopPropagation()}
+    >
+      <input type="hidden" name="opportunityId" value={opportunityId} />
+      <label className="sr-only" htmlFor={`opportunity-stage-${opportunityId}`}>
+        {t('list.columns.stage')}
+      </label>
+      <select
+        id={`opportunity-stage-${opportunityId}`}
+        name="stage"
+        data-testid={`opportunity-stage-${opportunityId}`}
+        defaultValue={stage}
+        disabled={pending}
+        className="block min-h-9 w-full rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] px-2 py-1 text-xs"
+        onChange={(event) => {
+          event.currentTarget.form?.requestSubmit();
+        }}
+      >
+        {OPPORTUNITY_STAGES.map((value) => (
+          <option key={value} value={value}>
+            {t(`stages.${value}`)}
+          </option>
+        ))}
+      </select>
+    </form>
+  );
+}
+
+function BoardCard({
+  item,
+  canMoveStages,
+}: {
+  item: OpportunityBoardCard;
+  canMoveStages: boolean;
+}) {
   const t = useTranslations('crm');
   const locale = useLocale();
   const notesPreview = item.notes?.trim() ? item.notes.trim() : null;
 
   return (
-    <Link href={`/crm/opportunities/${item.id}`} className={pressableCardLinkClassName}>
-      <p className="min-w-0 text-start font-semibold">{item.name}</p>
+    <article className={cn(pressableCardLinkClassName, 'hover:bg-[var(--pf-bg-surface)]')}>
+      <Link href={`/crm/opportunities/${item.id}`} className="min-w-0 font-semibold">
+        {item.name}
+      </Link>
       <div className="mt-2 flex flex-wrap items-center gap-2">
         <StatusBadge
           className="shrink-0"
@@ -120,7 +175,8 @@ function BoardCard({ item }: { item: OpportunityBoardCard }) {
           {t('followUp.notesShort')}: {notesPreview}
         </p>
       ) : null}
-    </Link>
+      {canMoveStages ? <BoardStageSelect opportunityId={item.id} stage={item.stage} /> : null}
+    </article>
   );
 }
 
@@ -204,7 +260,13 @@ function OpportunityTable({ items }: { items: readonly OpportunityBoardCard[] })
   );
 }
 
-export function OpportunityPipelineViews({ items }: { items: readonly OpportunityBoardCard[] }) {
+export function OpportunityPipelineViews({
+  items,
+  canMoveStages = false,
+}: {
+  items: readonly OpportunityBoardCard[];
+  canMoveStages?: boolean;
+}) {
   const t = useTranslations('crm');
   const columns = groupOpportunitiesByStage(items);
 
@@ -247,7 +309,7 @@ export function OpportunityPipelineViews({ items }: { items: readonly Opportunit
                 <ul className="flex flex-col gap-2">
                   {column.items.map((item) => (
                     <li key={item.id}>
-                      <BoardCard item={item} />
+                      <BoardCard item={item} canMoveStages={canMoveStages} />
                     </li>
                   ))}
                 </ul>

@@ -245,7 +245,13 @@ describe('migration journal', () => {
     expect(tags.indexOf('0050_wave3_operations')).toBeLessThan(
       tags.indexOf('0051_review_integrity_closure'),
     );
-    expect(tags.at(-1)).toBe('0051_review_integrity_closure');
+    expect(tags.indexOf('0051_review_integrity_closure')).toBeLessThan(
+      tags.indexOf('0052_product_completion'),
+    );
+    expect(tags.indexOf('0052_product_completion')).toBeLessThan(
+      tags.indexOf('0053_estimates_opportunity'),
+    );
+    expect(tags.at(-1)).toBe('0053_estimates_opportunity');
 
     const sql35 = await readFile(
       path.join(MIGRATIONS_DIR, '0035_boq_integrity_closure.sql'),

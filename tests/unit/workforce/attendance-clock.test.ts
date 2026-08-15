@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 import {
   canClockIn,
   canClockOut,
+  canEndBreak,
+  canStartBreak,
   deriveAttendanceDayStatus,
   listActiveAttendanceEvents,
   resolveClockPresenceState,
@@ -103,6 +105,18 @@ describe('canClockIn / canClockOut', () => {
     expect(canClockOut('absent')).toBe(false);
     expect(canClockOut('clocked_in')).toBe(true);
     expect(canClockOut('on_break')).toBe(true);
+  });
+
+  it('allows break start only while clocked in', () => {
+    expect(canStartBreak('clocked_in')).toBe(true);
+    expect(canStartBreak('absent')).toBe(false);
+    expect(canStartBreak('on_break')).toBe(false);
+  });
+
+  it('allows break end only while on break', () => {
+    expect(canEndBreak('on_break')).toBe(true);
+    expect(canEndBreak('clocked_in')).toBe(false);
+    expect(canEndBreak('absent')).toBe(false);
   });
 });
 
