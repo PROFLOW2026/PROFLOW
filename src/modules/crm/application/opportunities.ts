@@ -19,7 +19,7 @@ import {
   updateLeadById,
   updateOpportunityById,
 } from '../data/crm.repository';
-import { listQuotes } from '@/modules/quotes/data/quotes.repository';
+import { listQuotes } from '@/modules/quotes/lookups';
 import { assertLostCreatesNoProject } from '../domain/conversion';
 import { statusForMovedStage } from '../domain/pipeline-board';
 import {

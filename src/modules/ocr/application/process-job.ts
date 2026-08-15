@@ -63,7 +63,8 @@ export function setOcrBackgroundProcessingForTests(enabled: boolean): void {
 
 /**
  * Same-process drain for tests. Production OCR processing is claimed by
- * `drainDurableOcrQueue` / the internal worker route — never setImmediate.
+ * `drainDurableOcrQueue` (enqueue kick via Next.js `after()`, plus daily
+ * recovery cron) — never setImmediate.
  */
 export function registerOcrJobForWorker(work: RegisteredOcrWork): void {
   if (!registerInProcessDrain) return;

@@ -151,7 +151,7 @@ export function ExpenseForm({
   const [recurrenceCadence, setRecurrenceCadence] = React.useState<RecurrenceCadence>(
     initialValues?.recurrenceCadence ?? 'one_time',
   );
-  const [recurrenceCustomLabel, setRecurrenceCustomLabel] = React.useState(
+  const [recurrenceCustomLabel] = React.useState(
     initialValues?.recurrenceCustomLabel ?? '',
   );
   const [allocations, setAllocations] = React.useState<AllocationDraft[]>(initialValues?.allocations ?? []);

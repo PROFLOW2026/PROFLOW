@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { OrgContext } from '@/shared/auth/context';
 import { DomainRuleError } from '@/shared/errors';
-import { ALL_PERMISSION_KEYS, PERMISSIONS, type PermissionKey } from '@/shared/permissions/catalog';
+import { ALL_PERMISSION_KEYS, type PermissionKey } from '@/shared/permissions/catalog';
 import { roleTemplate } from '@/shared/permissions/role-templates';
 
 vi.mock('@/modules/workforce/data/employees.repository', () => ({

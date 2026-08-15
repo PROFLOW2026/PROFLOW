@@ -12,6 +12,7 @@ import { cancelOcrJob } from './cancel-job';
 import { confirmOcrCandidate } from './confirm-candidate';
 import { createVendorBillDraftFromOcr } from './create-vendor-bill-draft';
 import { extractReceiptJob } from './extract-receipt';
+import { kickDurableOcrQueue } from './kick-queue';
 import { listOcrCandidates, OCR_REVIEW_SURFACE_STATUSES } from './list-candidates';
 import { getOcrProviderStatus } from './provider-status';
 import { rejectOcrCandidate } from './reject-candidate';
@@ -112,6 +113,7 @@ export async function extractReceiptAction(
       );
     }
     const job = await withOrgContext((context) => extractReceiptJob(context, parsed.data));
+    kickDurableOcrQueue();
     return { ok: true, data: job };
   } catch (error) {
     return { ok: false, error: await failMessage(error) };
@@ -134,6 +136,7 @@ export async function createOcrBatchAction(
       );
     }
     const data = await withOrgContext((context) => createOcrBatch(context, parsed.data));
+    kickDurableOcrQueue();
     return { ok: true, data };
   } catch (error) {
     return { ok: false, error: await failMessage(error) };

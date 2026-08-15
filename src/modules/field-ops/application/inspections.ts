@@ -1,4 +1,4 @@
-import { findTemplateById } from '@/modules/forms/data/forms.repository';
+import { findTemplateById } from '@/modules/forms/lookups';
 import { hasSubmittedFormForOwner } from '@/modules/forms';
 import { findEmployeeById } from '@/modules/workforce';
 import { AUDIT_ACTIONS, recordAuditEvent } from '@/shared/audit';

@@ -11,7 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { MoneyInput } from '@/components/patterns/money-input';
 import { RATE_UNITS } from '@/modules/workforce/domain/types';
 import type { createEmployeeAction } from '@/app/[locale]/(app)/workforce/employees/actions';
-import type { OrgMemberLinkOption } from '@/modules/workforce/data/employees.repository';
+import type { OrgMemberLinkOption } from '@/modules/workforce';
 
 const UNLINKED = '__none__';
 

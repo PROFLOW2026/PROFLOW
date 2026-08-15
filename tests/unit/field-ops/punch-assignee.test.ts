@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { OrgContext } from '@/shared/auth/context';
-import { PERMISSIONS, type PermissionKey } from '@/shared/permissions/catalog';
+import { type PermissionKey } from '@/shared/permissions/catalog';
 import { roleTemplate } from '@/shared/permissions/role-templates';
 
 vi.mock('@/shared/db', () => ({

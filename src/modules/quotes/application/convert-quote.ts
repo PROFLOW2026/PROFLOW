@@ -7,7 +7,7 @@ import {
   updateLeadById,
   updateOpportunityById,
   updateProspectById,
-} from '@/modules/crm/data/crm.repository';
+} from '@/modules/crm/lookups';
 import { createProject, createJob, updateProject } from '@/modules/projects';
 import { noteModuleUsage } from '@/modules/tenancy';
 import { recordAuditEvent } from '@/shared/audit';

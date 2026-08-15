@@ -6,7 +6,7 @@ import {
   findActiveWorkOrderBooking,
   insertBooking,
   updateBookingById,
-} from '@/modules/scheduling/data/scheduling.repository';
+} from '@/modules/scheduling/lookups';
 import { resolveDispatchBookingUpsert } from '../domain/dispatch-booking';
 
 export async function upsertWorkOrderDispatchBooking(

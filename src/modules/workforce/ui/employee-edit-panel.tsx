@@ -16,7 +16,7 @@ import {
   updateEmployeeAction,
   type WorkforceFormState,
 } from '@/app/[locale]/(app)/workforce/employees/actions';
-import type { OrgMemberLinkOption } from '@/modules/workforce/data/employees.repository';
+import type { OrgMemberLinkOption } from '@/modules/workforce';
 
 const UNLINKED = '__none__';
 

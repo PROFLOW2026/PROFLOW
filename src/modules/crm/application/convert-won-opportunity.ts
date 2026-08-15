@@ -1,6 +1,6 @@
 import { convertQuote } from '@/modules/quotes/application/convert-quote';
 import { convertWonUsesEstimatesTable } from '@/modules/quotes/domain/product-path';
-import { listQuotes } from '@/modules/quotes/data/quotes.repository';
+import { listQuotes } from '@/modules/quotes/lookups';
 import { recordAuditEvent } from '@/shared/audit';
 import type { OrgContext } from '@/shared/auth/context';
 import { DomainRuleError, NotFoundError, ValidationError } from '@/shared/errors';

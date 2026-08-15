@@ -7,7 +7,7 @@ import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { assertCanAccessProject, isAccessibleProjectId, resolveAccessibleProjectIds } from '@/modules/projects';
 import { emitNotification } from '@/modules/notifications';
 import { noteModuleUsage } from '@/modules/tenancy';
-import { findEmployeeById } from '@/modules/workforce/data/employees.repository';
+import { findEmployeeById } from '@/modules/workforce';
 import {
   canTransitionPunchStatus,
   closedAtForPunchStatus,

@@ -14,7 +14,7 @@ import {
   vendors,
 } from '@drizzle/schema';
 import { existsSearchableCustomFieldValueSql } from '@/modules/custom-fields';
-import { listAllDocuments } from '@/modules/documents/data/documents.repository';
+import { listAllDocuments } from '@/modules/documents/lookups';
 import type { DbExecutor } from '@/shared/db/types';
 import type { GlobalSearchHit } from '../domain/types';
 import { assetSearchHref, inventoryItemSearchHref, materialSearchHref } from '../domain/hrefs';

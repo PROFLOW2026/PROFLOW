@@ -309,7 +309,6 @@ export async function appendDailyLogCorrection(
   const input = parseOrThrow(appendDailyLogCorrectionSchema.safeParse(raw));
 
   return withTransaction(context.db, async (tx) => {
-    const txContext = { ...context, db: tx };
     const existing = await findDailyLogByIdForUpdate(tx, context.organizationId, input.dailyLogId);
     if (!existing) throw new NotFoundError('Daily log');
     if (!isDailyLogLocked(existing.status)) {

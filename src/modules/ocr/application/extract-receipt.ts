@@ -42,8 +42,10 @@ function reused(job: ExtractionJob): ExtractionJob {
 /**
  * Enqueue a document extraction job and return immediately.
  *
- * Processing is claimed by a durable worker (`drainDurableOcrQueue`). Tests drain
- * via `flushOcrBackgroundJobs`. Never creates an Expense, Vendor Bill, or Vendor Credit.
+ * Processing is claimed by a durable worker (`drainDurableOcrQueue`). Product
+ * enqueue kicks that drain after the response; daily cron is recovery only.
+ * Tests drain via `flushOcrBackgroundJobs`. Never creates an Expense, Vendor
+ * Bill, or Vendor Credit.
  */
 export async function extractReceiptJob(
   context: OrgContext,

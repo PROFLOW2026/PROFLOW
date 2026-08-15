@@ -11,7 +11,6 @@ import {
   isOpenPriceJob,
   selectProjectWorkspaceLinks,
 } from '@/modules/projects';
-import { titleWithDocumentNumber } from '@/modules/tenancy';
 import { getShellContext, withOrgContext } from '@/shared/auth/session';
 import { formatMoney } from '@/shared/money/format';
 import { zeroMoney } from '@/shared/money';

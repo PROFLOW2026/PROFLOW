@@ -1,6 +1,6 @@
 import { and, eq } from 'drizzle-orm';
 import { clients, clientContacts } from '@drizzle/schema';
-import { findOpportunityById, findProspectById, updateOpportunityById } from '@/modules/crm/data/crm.repository';
+import { findOpportunityById, findProspectById, updateOpportunityById } from '@/modules/crm/lookups';
 import { resolveApplicableDefaultTax, resolveTaxForDate } from '@/modules/tax';
 import { noteModuleUsage, resolveAllocatedReference, titleWithDocumentNumber } from '@/modules/tenancy';
 import { recordAuditEvent } from '@/shared/audit';
