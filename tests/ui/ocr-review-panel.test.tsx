@@ -31,6 +31,10 @@ vi.mock('@/modules/ocr/application/ocr-actions', () => ({
   cancelOcrJobAction: vi.fn(),
   createOcrBatchAction: vi.fn(),
   getOcrReviewPageDataAction: vi.fn(async () => ({ ok: false, error: 'not polled in unit test' })),
+  getOcrReviewSuggestionsAction: vi.fn(async () => ({
+    ok: true,
+    data: { projects: [], purchaseOrders: [], subcontractAgreements: [] },
+  })),
 }));
 
 vi.mock('@/modules/documents/application/document-actions', () => ({
@@ -45,6 +49,14 @@ vi.mock('@/modules/documents/application/document-actions', () => ({
 
 vi.mock('@/modules/documents/client/upload-document-bytes', () => ({
   uploadDocumentBytes: vi.fn(async () => ({ ok: true })),
+}));
+
+vi.mock('@/shared/i18n/navigation', () => ({
+  Link: ({ href, children, ...props }: { href: string; children: ReactNode }) => (
+    <a href={href} {...props}>
+      {children}
+    </a>
+  ),
 }));
 
 const DOCUMENT_ID = '01900000-0000-7000-8000-0000000000d1';
@@ -113,6 +125,19 @@ const liveStatus: OcrProviderStatus = {
   messageKey: 'providerLiveReady',
 };
 
+function acceptVendorLabel() {
+  return `Accept ${enDocuments.ocr.fields.vendor}`;
+}
+
+async function acceptVendorField(user: ReturnType<typeof userEvent.setup>) {
+  await user.click(screen.getByRole('checkbox', { name: acceptVendorLabel() }));
+}
+
+async function overrideDuplicateIfShown(user: ReturnType<typeof userEvent.setup>) {
+  const override = screen.queryByRole('checkbox', { name: enDocuments.ocr.duplicateOverride });
+  if (override) await user.click(override);
+}
+
 function renderPanel(ui: ReactElement) {
   function Wrapper({ children }: { children: ReactNode }) {
     return (
@@ -146,6 +171,9 @@ describe('OCR review panel', () => {
 
     expect(document.querySelector('[data-pf-ocr-review]')).not.toBeNull();
     expect(screen.getByText(enDocuments.ocr.duplicateWarning)).toBeVisible();
+    expect(screen.getByText(enDocuments.ocr.duplicateWarningTitle)).toBeVisible();
+    expect(screen.getByRole('checkbox', { name: enDocuments.ocr.duplicateOverride })).toBeVisible();
+    expect(document.querySelector('[data-pf-ocr-inbox-tab="needs_review"]')).not.toBeNull();
     expect(screen.getAllByText(enDocuments.ocr.confidenceState.high).length).toBeGreaterThan(0);
     expect(screen.getByLabelText(enDocuments.ocr.extractCapture)).toBeInTheDocument();
     expect(screen.getByLabelText(enDocuments.ocr.extractImage)).toBeInTheDocument();
@@ -249,8 +277,8 @@ describe('OCR review panel', () => {
     await user.click(screen.getByRole('button', { name: enDocuments.ocr.confirmExpense }));
     expect(confirmOcrCandidateAction).not.toHaveBeenCalled();
 
-    const acceptBoxes = screen.getAllByRole('checkbox');
-    await user.click(acceptBoxes[0]!);
+    await user.click(screen.getByRole('checkbox', { name: acceptVendorLabel() }));
+    await user.click(screen.getByRole('checkbox', { name: enDocuments.ocr.duplicateOverride }));
     await user.click(screen.getByRole('button', { name: enDocuments.ocr.confirmExpense }));
     expect(confirmOcrCandidateAction).toHaveBeenCalled();
     await waitFor(() => {
@@ -337,12 +365,12 @@ describe('OCR review panel', () => {
 
     // Reject uses startTransition — job removal can paint before `pending` clears.
     await waitFor(() => {
-      expect(screen.getAllByRole('checkbox')[0]).toBeEnabled();
+      expect(screen.getByRole('checkbox', { name: acceptVendorLabel() })).toBeEnabled();
       expect(screen.getByRole('button', { name: enDocuments.ocr.rejectReview })).toBeEnabled();
     });
 
-    const acceptBoxes = screen.getAllByRole('checkbox');
-    await user.click(acceptBoxes[0]!);
+    await user.click(screen.getByRole('checkbox', { name: acceptVendorLabel() }));
+    await user.click(screen.getByRole('checkbox', { name: enDocuments.ocr.duplicateOverride }));
     const confirmBtn = screen.getByRole('button', { name: enDocuments.ocr.confirmExpense });
     await waitFor(() => {
       expect(confirmBtn).toBeEnabled();
@@ -620,19 +648,115 @@ describe('OCR review panel', () => {
       />,
     );
 
-    expect(screen.getByText(enDocuments.ocr.status.queued)).toBeVisible();
-    expect(screen.getAllByText(enDocuments.ocr.status.processing).length).toBeGreaterThan(0);
-    expect(screen.getByText(enDocuments.ocr.status.failed)).toBeVisible();
-    expect(screen.getByText(enDocuments.ocr.stillProcessing)).toBeVisible();
+    expect(document.querySelector('[data-pf-ocr-inbox-tab="waiting"]')).not.toBeNull();
+    expect(document.querySelector('[data-pf-ocr-inbox-tab="processing"]')).not.toBeNull();
+    expect(document.querySelector('[data-pf-ocr-inbox-tab="failed"]')).not.toBeNull();
+    expect(document.querySelector('[data-pf-ocr-job-status="queued"]')).toBeTruthy();
+    expect(screen.getByRole('button', { name: enDocuments.ocr.cancelJob })).toBeVisible();
     expect(document.querySelector('[data-pf-ocr-batches]')).toBeTruthy();
     expect(document.querySelector('[data-pf-ocr-batch-id="01900000-0000-7000-8000-0000000000b1"]')).toBeTruthy();
     expect(screen.getByText(/of 3 read/i)).toBeVisible();
-    expect(screen.getByRole('button', { name: enDocuments.ocr.cancelJob })).toBeVisible();
 
+    await user.click(screen.getByRole('tab', { name: new RegExp(enDocuments.ocr.inbox.processing) }));
+    expect(screen.getAllByText(enDocuments.ocr.status.processing).length).toBeGreaterThan(0);
+    expect(screen.getByText(enDocuments.ocr.stillProcessing)).toBeVisible();
+
+    await user.click(screen.getByRole('tab', { name: new RegExp(enDocuments.ocr.inbox.failed) }));
     const failedButton = document.querySelector(
       '[data-pf-ocr-job-status="failed"]',
     ) as HTMLButtonElement;
     await user.click(failedButton);
     expect(screen.getByRole('button', { name: enDocuments.ocr.retry })).toBeVisible();
+  });
+
+  it('requires an explicit not-a-duplicate override before confirm when hits exist', async () => {
+    const user = userEvent.setup();
+    const { confirmOcrCandidateAction } = await import('@/modules/ocr/application/ocr-actions');
+    vi.mocked(confirmOcrCandidateAction).mockClear();
+    const job: ExtractionJob = {
+      ...baseJob(),
+      rawMetadata: {
+        ...baseJob().rawMetadata!,
+        duplicateHits: [
+          {
+            kind: 'probable_document',
+            reasonKeys: ['vendorName', 'reference'],
+            expenseId: '01900000-0000-7000-8000-0000000000e1',
+          },
+        ],
+      },
+    };
+
+    renderPanel(
+      <OcrReviewPanel
+        initialStatus={liveStatus}
+        initialJobs={[job]}
+        vendors={[{ id: VENDOR_ID, name: 'Fixture Supplies Ltd' }]}
+        organizationId="org-dup"
+        defaultTarget="expense"
+        workflow="expense"
+        canManageDocuments
+        canCreateExpenses
+        canManageAp
+      />,
+    );
+
+    expect(screen.getByRole('link', { name: enDocuments.ocr.duplicateOpenExpense })).toBeVisible();
+    await acceptVendorField(user);
+    await user.click(screen.getByRole('button', { name: enDocuments.ocr.confirmExpense }));
+    expect(confirmOcrCandidateAction).not.toHaveBeenCalled();
+    expect(screen.getByText(enDocuments.ocr.duplicateOverrideRequired)).toBeVisible();
+
+    await overrideDuplicateIfShown(user);
+    await user.click(screen.getByRole('button', { name: enDocuments.ocr.confirmExpense }));
+    expect(confirmOcrCandidateAction).toHaveBeenCalled();
+  });
+
+  it('passes remembered project suggestion ids on confirm and never implies an actual', async () => {
+    const user = userEvent.setup();
+    const actions = await import('@/modules/ocr/application/ocr-actions');
+    const projectId = '01900000-0000-7000-8000-0000000000p1';
+    vi.mocked(actions.getOcrReviewSuggestionsAction).mockResolvedValue({
+      ok: true,
+      data: {
+        projects: [{ projectId, projectName: 'Tower A', reason: 'memory' }],
+        purchaseOrders: [],
+        subcontractAgreements: [],
+      },
+    });
+    vi.mocked(actions.confirmOcrCandidateAction).mockClear();
+
+    const job: ExtractionJob = {
+      ...baseJob(),
+      rawMetadata: { ...baseJob().rawMetadata!, duplicateHits: [] },
+    };
+
+    renderPanel(
+      <OcrReviewPanel
+        initialStatus={liveStatus}
+        initialJobs={[job]}
+        vendors={[{ id: VENDOR_ID, name: 'Fixture Supplies Ltd' }]}
+        organizationId="org-suggest"
+        defaultTarget="expense"
+        workflow="expense"
+        canManageDocuments
+        canCreateExpenses
+        canManageAp
+      />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /Tower A/ })).toBeVisible();
+    });
+    await user.click(screen.getByRole('button', { name: /Tower A/ }));
+    await acceptVendorField(user);
+    await user.click(screen.getByRole('button', { name: enDocuments.ocr.confirmExpense }));
+    expect(actions.confirmOcrCandidateAction).toHaveBeenCalledWith(
+      expect.objectContaining({
+        confirm: true,
+        rememberProjectId: projectId,
+        draftTarget: 'expense',
+      }),
+    );
   });
 });

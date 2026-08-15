@@ -13,6 +13,12 @@ import { logger, redactEmail } from '@/shared/observability';
  * is present — preview/local must not accidentally send.
  */
 
+export interface EmailAttachment {
+  filename: string;
+  contentType: string;
+  bytes: Uint8Array;
+}
+
 export interface EmailMessage {
   to: string;
   subject: string;
@@ -20,6 +26,20 @@ export interface EmailMessage {
   text: string;
   html?: string;
   replyTo?: string;
+  /** Optional file attachments (PDF report packs). Console driver ignores these. */
+  attachments?: readonly EmailAttachment[];
+}
+
+/** Maps optional attachments for a provider. Empty input yields undefined (omit the field). */
+export function toProviderAttachments(
+  attachments: EmailMessage['attachments'],
+): { filename: string; content: Buffer; contentType: string }[] | undefined {
+  if (!attachments?.length) return undefined;
+  return attachments.map((item) => ({
+    filename: item.filename,
+    content: Buffer.from(item.bytes),
+    contentType: item.contentType,
+  }));
 }
 
 export type EmailResult =
@@ -39,6 +59,7 @@ class NoopEmailAdapter implements EmailPort {
     logger.info('email.noop', {
       subject: message.subject,
       to: redactEmail(message.to),
+      attachmentCount: message.attachments?.length ?? 0,
     });
     return { delivered: false, reason: 'not-configured' };
   }
@@ -56,6 +77,7 @@ class ResendEmailAdapter implements EmailPort {
     try {
       const { Resend } = await import('resend');
       const client = new Resend(this.apiKey);
+      const attachments = toProviderAttachments(message.attachments);
       const { data, error } = await client.emails.send({
         from: this.from,
         to: message.to,
@@ -63,6 +85,7 @@ class ResendEmailAdapter implements EmailPort {
         text: message.text,
         ...(message.html ? { html: message.html } : {}),
         ...(message.replyTo ? { replyTo: message.replyTo } : {}),
+        ...(attachments ? { attachments } : {}),
       });
 
       if (error) return { delivered: false, reason: 'failed', message: error.message };

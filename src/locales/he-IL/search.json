@@ -1,12 +1,23 @@
 {
   "title": "חיפוש",
   "open": "חיפוש",
-  "placeholder": "חיפוש פרויקטים, עבודות, לקוחות, ספקים…",
+  "placeholder": "חיפוש או מעבר — פרויקטים, חשבוניות, ספקים…",
   "minChars": "הקלידו לפחות 2 תווים.",
   "searching": "מחפש…",
   "empty": "אין תוצאות באזורים שמותר לכם לראות.",
   "error": "לא ניתן להריץ חיפוש. נסו שוב.",
   "results": "תוצאות",
+  "commands": {
+    "title": "פקודות",
+    "createExpense": "יצירת הוצאה",
+    "createProject": "יצירת פרויקט",
+    "createQuote": "יצירת הצעת מחיר",
+    "openToday": "פתיחת היום",
+    "openVendors": "פתיחת ספקים",
+    "openClients": "פתיחת לקוחות",
+    "openOcr": "פתיחת סקירת OCR",
+    "openReports": "פתיחת דוחות"
+  },
   "kinds": {
     "project": "פרויקט",
     "job": "עבודה",
@@ -16,11 +27,22 @@
     "employee": "עובד",
     "vendor": "ספק",
     "bill": "חשבון ספק",
+    "vendor_credit": "זיכוי ספק",
     "billing": "חיוב",
+    "expense": "הוצאה",
+    "quote": "הצעת מחיר",
+    "opportunity": "הזדמנות",
+    "contract": "חוזה",
+    "purchase_order": "הזמנת רכש",
+    "subcontract": "הסכם קבלן משנה",
     "document": "מסמך",
     "asset": "נכס",
     "inventory_item": "פריט מלאי",
     "material": "חומר",
-    "boq_item": "סעיף כתב כמויות"
+    "boq_item": "סעיף כתב כמויות",
+    "daily_log": "יומן יומי",
+    "punch": "ליקוי",
+    "inspection": "בדיקה",
+    "safety": "בטיחות"
   }
 }

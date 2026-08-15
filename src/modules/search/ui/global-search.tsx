@@ -14,12 +14,19 @@ import {
 import { Input } from '@/components/ui/input';
 import { pressableChromeClassName } from '@/components/ui/pressable';
 import { globalSearchAction } from '@/modules/search/application/search-actions';
-import type { GlobalSearchHit } from '@/modules/search/domain/types';
+import type { GlobalSearchGroup, GlobalSearchHit, SearchCommandHit } from '@/modules/search/domain/types';
 import { cn } from '@/shared/ui/cn';
 
+function formatHitMeta(hit: GlobalSearchHit): string | null {
+  const parts = [hit.contextLabel, hit.status, hit.date, hit.amount && hit.currency ? `${hit.amount} ${hit.currency}` : hit.amount]
+    .filter(Boolean);
+  if (parts.length === 0) return hit.subtitle;
+  return parts.join(' · ');
+}
+
 /**
- * Permission-safe org search. Mobile bottom-sheet dialog; desktop centered.
- * Lazy-mounted from the shell so ordinary screens do not pay for Dialog until open.
+ * Permission-safe org search + lightweight commands.
+ * Mobile bottom-sheet dialog; desktop centered.
  */
 export function GlobalSearchDialog({
   open,
@@ -32,14 +39,26 @@ export function GlobalSearchDialog({
   const tCommon = useTranslations('common');
   const router = useRouter();
   const [query, setQuery] = React.useState('');
-  const [hits, setHits] = React.useState<GlobalSearchHit[]>([]);
+  const [groups, setGroups] = React.useState<GlobalSearchGroup[]>([]);
+  const [commands, setCommands] = React.useState<SearchCommandHit[]>([]);
   const [pending, setPending] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const [activeIndex, setActiveIndex] = React.useState(0);
   const inputRef = React.useRef<HTMLInputElement>(null);
 
   const trimmed = query.trim();
   const canSearch = open && trimmed.length >= 2;
-  const displayHits = trimmed.length < 2 ? [] : hits;
+  const displayCommands = canSearch ? commands : [];
+  const displayGroups = canSearch ? groups : [];
+  const flatHits = displayGroups.flatMap((group) => group.hits);
+  const rows: Array<{ type: 'command'; href: string } | { type: 'hit'; href: string }> = [
+    ...displayCommands.map((command) => ({ type: 'command' as const, href: command.href })),
+    ...flatHits.map((hit) => ({ type: 'hit' as const, href: hit.href })),
+  ];
+  const groupHitOffsets = displayGroups.map((_, groupIndex) =>
+    displayCommands.length +
+    displayGroups.slice(0, groupIndex).reduce((sum, group) => sum + group.hits.length, 0),
+  );
 
   React.useEffect(() => {
     if (!open) return;
@@ -58,11 +77,14 @@ export function GlobalSearchDialog({
         try {
           const result = await globalSearchAction(trimmed);
           if (cancelled) return;
-          setHits([...result.hits]);
+          setGroups([...result.groups]);
+          setCommands([...result.commands]);
+          setActiveIndex(0);
           setError(null);
         } catch {
           if (cancelled) return;
-          setHits([]);
+          setGroups([]);
+          setCommands([]);
           setError(t('error'));
         } finally {
           if (!cancelled) setPending(false);
@@ -79,9 +101,11 @@ export function GlobalSearchDialog({
   function handleOpenChange(next: boolean) {
     if (!next) {
       setQuery('');
-      setHits([]);
+      setGroups([]);
+      setCommands([]);
       setError(null);
       setPending(false);
+      setActiveIndex(0);
     }
     onOpenChange(next);
   }
@@ -89,6 +113,22 @@ export function GlobalSearchDialog({
   function navigate(href: string) {
     handleOpenChange(false);
     router.push(href);
+  }
+
+  function onKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      setActiveIndex((index) => Math.min(index + 1, Math.max(rows.length - 1, 0)));
+    } else if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      setActiveIndex((index) => Math.max(index - 1, 0));
+    } else if (event.key === 'Enter') {
+      const row = rows[activeIndex];
+      if (row) {
+        event.preventDefault();
+        navigate(row.href);
+      }
+    }
   }
 
   return (
@@ -107,6 +147,7 @@ export function GlobalSearchDialog({
             type="search"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
+            onKeyDown={onKeyDown}
             placeholder={t('placeholder')}
             aria-label={t('title')}
             autoComplete="off"
@@ -116,33 +157,72 @@ export function GlobalSearchDialog({
           ) : null}
           {pending ? <p className="text-sm text-[var(--pf-text-muted)]">{t('searching')}</p> : null}
           {error ? <p className="text-sm text-[var(--pf-status-danger-fg)]">{error}</p> : null}
-          {!pending && !error && trimmed.length >= 2 && displayHits.length === 0 ? (
+          {!pending && !error && trimmed.length >= 2 && rows.length === 0 ? (
             <p className="text-sm text-[var(--pf-text-secondary)]">{t('empty')}</p>
           ) : null}
-          <ul className="flex flex-col gap-1" role="listbox" aria-label={t('results')}>
-            {displayHits.map((hit) => (
-              <li key={`${hit.kind}:${hit.id}`}>
-                <button
-                  type="button"
-                  className={cn(
-                    pressableChromeClassName,
-                    'flex w-full min-h-11 flex-col items-start rounded-md px-3 py-2 text-start',
-                    'hover:bg-[var(--pf-bg-muted)] active:bg-[var(--pf-action-subtle-active)]',
-                    'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]',
-                  )}
-                  onClick={() => navigate(hit.href)}
-                >
-                  <span className="text-xs font-medium uppercase tracking-wide text-[var(--pf-text-muted)]">
-                    {t(`kinds.${hit.kind}`)}
-                  </span>
-                  <span className="text-sm font-medium text-[var(--pf-text-primary)]">{hit.title}</span>
-                  {hit.subtitle ? (
-                    <span className="text-xs text-[var(--pf-text-secondary)]">{hit.subtitle}</span>
-                  ) : null}
-                </button>
-              </li>
-            ))}
-          </ul>
+
+          {displayCommands.length > 0 ? (
+            <div>
+              <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-[var(--pf-text-muted)]">
+                {t('commands.title')}
+              </p>
+              <ul className="flex flex-col gap-1" role="listbox" aria-label={t('commands.title')}>
+                {displayCommands.map((command, commandIndex) => (
+                    <li key={command.id}>
+                      <button
+                        type="button"
+                        className={cn(
+                          pressableChromeClassName,
+                          'flex w-full min-h-11 flex-col items-start rounded-md px-3 py-2 text-start',
+                          commandIndex === activeIndex
+                            ? 'bg-[var(--pf-bg-muted)]'
+                            : 'hover:bg-[var(--pf-bg-muted)]',
+                        )}
+                        onClick={() => navigate(command.href)}
+                      >
+                        <span className="text-sm font-medium text-[var(--pf-text-primary)]">
+                          {t(command.titleKey)}
+                        </span>
+                      </button>
+                    </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+
+          {displayGroups.map((group, groupIndex) => (
+            <div key={group.kind}>
+              <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-[var(--pf-text-muted)]">
+                {t(`kinds.${group.kind}`)}
+              </p>
+              <ul className="flex flex-col gap-1" role="listbox" aria-label={t(`kinds.${group.kind}`)}>
+                {group.hits.map((hit, hitIndex) => {
+                  const index = (groupHitOffsets[groupIndex] ?? displayCommands.length) + hitIndex;
+                  const meta = formatHitMeta(hit);
+                  return (
+                    <li key={`${hit.kind}:${hit.id}`}>
+                      <button
+                        type="button"
+                        className={cn(
+                          pressableChromeClassName,
+                          'flex w-full min-h-11 flex-col items-start rounded-md px-3 py-2 text-start',
+                          index === activeIndex
+                            ? 'bg-[var(--pf-bg-muted)]'
+                            : 'hover:bg-[var(--pf-bg-muted)]',
+                        )}
+                        onClick={() => navigate(hit.href)}
+                      >
+                        <span className="text-sm font-medium text-[var(--pf-text-primary)]">{hit.title}</span>
+                        {meta ? (
+                          <span className="text-xs text-[var(--pf-text-secondary)]">{meta}</span>
+                        ) : null}
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          ))}
         </DialogBody>
       </DialogContent>
     </Dialog>

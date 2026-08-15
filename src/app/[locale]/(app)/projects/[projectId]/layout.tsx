@@ -20,6 +20,7 @@ import { ProjectStatusBadge } from '../project-status-badge';
 import { resolveProjectTabs, type ProjectTabKey } from './project-tab-order';
 import { ProjectTabsShell } from './project-tabs-shell';
 import { TabPanelSkeleton } from './tab-panel-skeleton';
+import { ProjectReportActions } from '@/modules/reports/ui';
 
 interface ProjectLayoutProps {
   children: React.ReactNode;
@@ -99,13 +100,20 @@ export default async function ProjectLayout({ children, params }: ProjectLayoutP
       <PageHeader
         title={titleWithDocumentNumber(detail.project.name, detail.project.documentNumber ?? '')}
         actions={
-          canArchive ? (
-            <ArchiveProjectButton
+          <div className="flex flex-wrap items-center gap-2">
+            <ProjectReportActions
               projectId={projectId}
-              status={detail.project.status}
-              archivedAt={detail.project.archivedAt}
+              canStatus={can(PERMISSIONS.PROJECTS_READ)}
+              canFinancials={can(PERMISSIONS.PROJECT_FINANCIALS_READ)}
             />
-          ) : null
+            {canArchive ? (
+              <ArchiveProjectButton
+                projectId={projectId}
+                status={detail.project.status}
+                archivedAt={detail.project.archivedAt}
+              />
+            ) : null}
+          </div>
         }
         meta={
           <div className="flex flex-wrap items-center gap-2">

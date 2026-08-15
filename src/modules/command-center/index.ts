@@ -25,6 +25,7 @@ export {
   withItemDefaults,
   assertSafeItemStateTransition,
   SOURCE_DEFAULT_SEVERITY,
+  groupInboxBySeverity,
 } from './domain/ranking';
 
 export {

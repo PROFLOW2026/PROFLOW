@@ -21,6 +21,7 @@ import { PunchPriorityForm } from '../punch-priority-form';
 import { PunchStatusForm } from '../punch-status-form';
 import { PunchEditDetailsForm } from '../punch-edit-details-form';
 import { textNavLinkClassName, textNavLinkMutedClassName } from '@/components/ui/pressable';
+import { ReportDownloadButtons } from '@/modules/reports/ui';
 
 export async function generateMetadata({
   params,
@@ -91,6 +92,7 @@ export default async function PunchDetailPage({
       <PageHeader
         title={item.title}
         description={projectName ?? t('detail.unknownProject')}
+        actions={<ReportDownloadButtons kind="punch_inspection" id={item.id} compact />}
         breadcrumb={
           <Link
             href="/field-ops/punch"

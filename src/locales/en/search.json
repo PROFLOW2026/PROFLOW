@@ -1,12 +1,23 @@
 {
   "title": "Search",
   "open": "Search",
-  "placeholder": "Search projects, jobs, clients, vendors…",
+  "placeholder": "Search or jump — projects, invoices, vendors…",
   "minChars": "Type at least 2 characters.",
   "searching": "Searching…",
   "empty": "No matches in areas you can access.",
   "error": "Search could not run. Try again.",
   "results": "Results",
+  "commands": {
+    "title": "Commands",
+    "createExpense": "Create expense",
+    "createProject": "Create project",
+    "createQuote": "Create quote",
+    "openToday": "Open Today",
+    "openVendors": "Open vendors",
+    "openClients": "Open clients",
+    "openOcr": "Open OCR review",
+    "openReports": "Open reports"
+  },
   "kinds": {
     "project": "Project",
     "job": "Job",
@@ -16,11 +27,22 @@
     "employee": "Employee",
     "vendor": "Vendor",
     "bill": "Vendor bill",
+    "vendor_credit": "Vendor credit",
     "billing": "Billing",
+    "expense": "Expense",
+    "quote": "Quote",
+    "opportunity": "Opportunity",
+    "contract": "Contract",
+    "purchase_order": "Purchase order",
+    "subcontract": "Subcontract",
     "document": "Document",
     "asset": "Asset",
     "inventory_item": "Inventory item",
     "material": "Material",
-    "boq_item": "BOQ item"
+    "boq_item": "BOQ item",
+    "daily_log": "Daily log",
+    "punch": "Punch item",
+    "inspection": "Inspection",
+    "safety": "Safety"
   }
 }

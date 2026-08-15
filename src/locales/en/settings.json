@@ -783,7 +783,7 @@
   },
   "ocr": {
     "title": "Receipt scan (OCR)",
-    "description": "Operational status for automatic document reading. Drafts only — never a posted actual.",
+    "description": "Operational status for automatic document reading. Processing is on-demand when you upload. Drafts only — never a posted actual. Secrets are never shown here.",
     "ingestionLabel": "Ingestion",
     "ingestionOn": "Enabled",
     "ingestionOff": "Disabled",
@@ -793,9 +793,11 @@
     "azureGuidance": "Azure Document Intelligence needs both an API key and an endpoint in server environment variables. Values are never shown here.",
     "draftsOnly": "Confirmed reading creates a draft expense, draft vendor bill, or draft vendor credit only. It never posts an Actual.",
     "queueTitle": "Queue",
-    "queued": "Queued",
+    "queueHint": "Jobs are processed on demand when you upload a document. A daily recovery cron only retries stuck work. API keys and secrets are never shown here.",
+    "queued": "Waiting",
     "processing": "Processing",
     "failed": "Failed",
+    "needsReview": "Needs review",
     "queueEmpty": "No queued, in-flight, or failed jobs.",
     "reviewLink": "Open document review"
   }

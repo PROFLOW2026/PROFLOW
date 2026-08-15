@@ -24,6 +24,7 @@ import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { InspectionStatusForm } from '../inspection-status-form';
 import { InspectionDetailsForm } from '../inspection-details-form';
 import { textNavLinkClassName, textNavLinkMutedClassName } from '@/components/ui/pressable';
+import { ReportDownloadButtons } from '@/modules/reports/ui';
 
 export async function generateMetadata({
   params,
@@ -106,6 +107,7 @@ export default async function InspectionDetailPage({
       <PageHeader
         title={item.title}
         description={projectName ?? t('detail.unknownProject')}
+        actions={<ReportDownloadButtons kind="punch_inspection" id={item.id} compact />}
         breadcrumb={
           <Link
             href="/field-ops/inspections"

@@ -21,6 +21,12 @@ export const BUSINESS_PROFILE_KEYS = [
   'CLEANING',
   'INSTALLATION',
   'MIXED_PROJECT_SERVICE',
+  'SUBCONTRACTOR',
+  'ARCHITECT',
+  'DESIGNER',
+  'ENGINEERING_CONSULTANT',
+  'SAFETY_INSPECTION_CONSULTANT',
+  'PROJECT_MANAGEMENT',
 ] as const;
 
 export type BusinessProfileKey = (typeof BUSINESS_PROFILE_KEYS)[number];
@@ -419,6 +425,144 @@ export const BUSINESS_PROFILES: readonly BusinessProfile[] = [
     ]),
     suggestedDefaults: { defaultWorkKind: 'project', preferServiceSurface: true },
   },
+  {
+    key: 'SUBCONTRACTOR',
+    workMix: 'projects',
+    visibleModules: [
+      'clients',
+      'vendors',
+      'billing',
+      'workforce',
+      'field_ops',
+      'documents',
+    ],
+    quickCreateEmphasis: ['project', 'expense', 'vendor', 'vendorBill', 'timeEntry', 'fieldLog'],
+    terminology: TERM_PROJECT_JOB,
+    domains: [{ key: 'subcontracting', nameEn: 'Subcontracting', nameHe: 'קבלנות משנה' }],
+    costCategories: cats([
+      { key: 'sub_labor', nameEn: 'Crew labor', nameHe: 'עבודת צוות', family: 'direct_project' },
+      { key: 'materials_sub', nameEn: 'Trade materials', nameHe: 'חומרי מקצוע', family: 'direct_project' },
+    ]),
+    suggestedDefaults: { defaultWorkKind: 'project', preferServiceSurface: false },
+  },
+  {
+    key: 'ARCHITECT',
+    workMix: 'projects',
+    visibleModules: [
+      'clients',
+      'documents',
+      'quotes',
+      'changes',
+      'billing',
+    ],
+    quickCreateEmphasis: ['project', 'quote', 'client', 'change', 'expense', 'billingRecord'],
+    terminology: {
+      project: { en: 'Design project', he: 'פרויקט תכנון' },
+      job: { en: 'Job', he: 'עבודה' },
+      workOrder: { en: 'Site visit', he: 'ביקור באתר' },
+      serviceCall: { en: 'Site visit', he: 'ביקור באתר' },
+    },
+    domains: [{ key: 'architecture', nameEn: 'Architecture', nameHe: 'אדריכלות' }],
+    costCategories: cats([
+      { key: 'printing_plotting', nameEn: 'Printing / plotting', nameHe: 'הדפסות', family: 'direct_project' },
+      { key: 'consultant_fees_arch', nameEn: 'Consultant fees', nameHe: 'שכר יועצים', family: 'direct_project' },
+    ]),
+    suggestedDefaults: { defaultWorkKind: 'project', preferServiceSurface: false },
+  },
+  {
+    key: 'DESIGNER',
+    workMix: 'mixed',
+    visibleModules: [
+      'clients',
+      'documents',
+      'quotes',
+      'changes',
+      'billing',
+      'jobs',
+    ],
+    quickCreateEmphasis: ['job', 'project', 'quote', 'client', 'change', 'expense'],
+    terminology: {
+      project: { en: 'Design project', he: 'פרויקט עיצוב' },
+      job: { en: 'Design job', he: 'עבודת עיצוב' },
+      workOrder: { en: 'Site visit', he: 'ביקור באתר' },
+      serviceCall: { en: 'Site visit', he: 'ביקור באתר' },
+    },
+    domains: [{ key: 'interior_design', nameEn: 'Interior design', nameHe: 'עיצוב פנים' }],
+    costCategories: cats([
+      { key: 'samples_ff_e', nameEn: 'Samples / FF&E', nameHe: 'דגימות וריהוט', family: 'direct_project' },
+      { key: 'styling', nameEn: 'Styling', nameHe: 'סטיילינג', family: 'direct_project' },
+    ]),
+    suggestedDefaults: { defaultWorkKind: 'job', preferServiceSurface: false },
+  },
+  {
+    key: 'ENGINEERING_CONSULTANT',
+    workMix: 'projects',
+    visibleModules: [
+      'clients',
+      'documents',
+      'quotes',
+      'billing',
+    ],
+    quickCreateEmphasis: ['project', 'quote', 'client', 'expense', 'billingRecord', 'change'],
+    terminology: {
+      project: { en: 'Engagement', he: 'ליווי הנדסי' },
+      job: { en: 'Job', he: 'עבודה' },
+      workOrder: { en: 'Site visit', he: 'ביקור באתר' },
+      serviceCall: { en: 'Site visit', he: 'ביקור באתר' },
+    },
+    domains: [{ key: 'engineering', nameEn: 'Engineering consulting', nameHe: 'ייעוץ הנדסי' }],
+    costCategories: cats([
+      { key: 'engineering_reports', nameEn: 'Reports and calculations', nameHe: 'דוחות וחישובים', family: 'direct_project' },
+      { key: 'site_visits_eng', nameEn: 'Site visits', nameHe: 'ביקורי אתר', family: 'direct_project' },
+    ]),
+    suggestedDefaults: { defaultWorkKind: 'project', preferServiceSurface: false },
+  },
+  {
+    key: 'SAFETY_INSPECTION_CONSULTANT',
+    workMix: 'mixed',
+    visibleModules: [
+      'clients',
+      'billing',
+      'safety',
+      'field_ops',
+      'forms',
+      'jobs',
+      'documents',
+    ],
+    quickCreateEmphasis: ['job', 'fieldLog', 'expense', 'client', 'quote', 'attendance'],
+    terminology: {
+      project: { en: 'Project', he: 'פרויקט' },
+      job: { en: 'Inspection', he: 'ביקורת' },
+      workOrder: { en: 'Site inspection', he: 'ביקורת באתר' },
+      serviceCall: { en: 'Site inspection', he: 'ביקורת באתר' },
+    },
+    domains: [{ key: 'safety', nameEn: 'Safety consulting', nameHe: 'ייעוץ בטיחות' }],
+    costCategories: cats([
+      { key: 'inspection_travel', nameEn: 'Site travel', nameHe: 'נסיעות לאתר', family: 'direct_project' },
+      { key: 'safety_equipment', nameEn: 'Safety equipment', nameHe: 'ציוד בטיחות', family: 'direct_project' },
+    ]),
+    suggestedDefaults: { defaultWorkKind: 'job', preferServiceSurface: true },
+  },
+  {
+    key: 'PROJECT_MANAGEMENT',
+    workMix: 'projects',
+    visibleModules: [
+      'clients',
+      'changes',
+      'budgets',
+      'command_center',
+      'documents',
+      'billing',
+    ],
+    quickCreateEmphasis: ['project', 'change', 'client', 'expense', 'billingRecord', 'quote'],
+    terminology: TERM_PROJECT_JOB,
+    domains: [{ key: 'project_management', nameEn: 'Project management', nameHe: 'ניהול פרויקטים' }],
+    costCategories: cats([
+      { key: 'pm_fees', nameEn: 'Project management fees', nameHe: 'דמי ניהול פרויקט', family: 'direct_project' },
+      { key: 'coordination', nameEn: 'Coordination', nameHe: 'תיאום', family: 'direct_project' },
+    ]),
+    suggestedDefaults: { defaultWorkKind: 'project', preferServiceSurface: false },
+  },
 ];
 
 export const BUSINESS_PROFILE_SETTING_KEY = 'business_profile';
@@ -441,11 +585,11 @@ export function getBusinessProfile(key: string | null | undefined): BusinessProf
  */
 export const LEGACY_PROFESSION_TO_BUSINESS_PROFILE: Readonly<Record<string, BusinessProfileKey>> = {
   electrician: 'ELECTRICAL',
-  architect: 'MIXED_PROJECT_SERVICE',
+  architect: 'ARCHITECT',
   main_contractor: 'GENERAL_CONTRACTOR',
   hvac_subcontractor: 'HVAC',
-  safety_consultant: 'FACILITY_MANAGEMENT',
-  interior_design: 'RENOVATION',
+  safety_consultant: 'SAFETY_INSPECTION_CONSULTANT',
+  interior_design: 'DESIGNER',
 };
 
 export function resolveBusinessProfileKey(raw: string | null | undefined): BusinessProfileKey | null {

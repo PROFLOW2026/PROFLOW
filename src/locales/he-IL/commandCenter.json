@@ -19,13 +19,21 @@
     "medium": "בינוני",
     "low": "נמוך"
   },
+  "sections": {
+    "critical": "קריטי",
+    "high": "באיחור / גבוה",
+    "medium": "אזהרה / בינוני",
+    "low": "מידע / נמוך"
+  },
   "sources": {
     "overdue_ar": "חיוב באיחור",
     "vendor_bill_due": "חשבון ספק לתשלום",
+    "vendor_bill_approaching": "חשבון ספק מתקרב לפירעון",
     "attendance_open": "נוכחות",
     "unallocated_employee_cost": "עלות עובד בלי הקצאה",
     "unallocated_vendor_bill": "חשבון ספק בלי שיוך",
     "project_over_budget": "חריגה מתקציב",
+    "forecast_warning": "אזהרת תחזית",
     "open_approval": "ממתין לאישור",
     "overdue_planning": "תכנון",
     "expiring_compliance": "ציות שפג תוקף",
@@ -35,7 +43,14 @@
     "month_close_incomplete": "סגירת חודש",
     "boq_measurement_awaiting_approval": "מדידת כתב כמויות",
     "boq_progress_ready_to_bill": "חשבון חלקי מכתב כמויות",
-    "boq_vs_contract_mismatch": "כתב כמויות מול חוזה"
+    "boq_vs_contract_mismatch": "כתב כמויות מול חוזה",
+    "ocr_needs_review": "סקירת מסמך",
+    "ocr_failed": "קריאת מסמך נכשלה",
+    "punch_open": "ליקוי פתוח",
+    "safety_open": "בטיחות פתוחה",
+    "inspection_open": "בדיקה באיחור",
+    "recurring_draft_issue": "טיוטה חוזרת",
+    "timesheet_missing": "גיליון שעות חסר"
   },
   "empty": {
     "title": "הכול בסדר",

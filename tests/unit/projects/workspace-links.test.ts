@@ -40,6 +40,7 @@ describe('project workspace links', () => {
         budgets: true,
         procurement: true,
         field_ops: true,
+        safety: true,
         compliance: true,
         vendors: false,
       },
@@ -50,6 +51,7 @@ describe('project workspace links', () => {
         PERMISSIONS.PROCUREMENT_READ,
         PERMISSIONS.AP_READ,
         PERMISSIONS.FIELD_OPS_READ,
+        PERMISSIONS.SAFETY_READ,
         PERMISSIONS.COMPLIANCE_READ,
         PERMISSIONS.VENDORS_READ,
         PERMISSIONS.PLANNING_READ,
@@ -68,8 +70,20 @@ describe('project workspace links', () => {
     expect(keys).toContain('procurement');
     expect(keys).toContain('ap');
     expect(keys).toContain('field_ops');
+    expect(keys).toContain('punch');
+    expect(keys).toContain('inspections');
+    expect(keys).toContain('safety');
+    expect(keys).toContain('reports');
     expect(keys).toContain('compliance');
     expect(keys).not.toContain('vendors');
+    expect(links.find((link) => link.key === 'ap')?.href).toBe('/procurement/ap?projectId=p1');
+    expect(links.find((link) => link.key === 'field_ops')?.href).toBe('/field-ops/logs?projectId=p1');
+    expect(links.find((link) => link.key === 'punch')?.href).toBe('/field-ops/punch?projectId=p1');
+    expect(links.find((link) => link.key === 'inspections')?.href).toBe(
+      '/field-ops/inspections?projectId=p1',
+    );
+    expect(links.find((link) => link.key === 'safety')?.href).toBe('/safety?projectId=p1');
+    expect(links.find((link) => link.key === 'reports')?.href).toBe('/reports?projectId=p1');
     expect(keys.indexOf('boq')).toBeLessThan(keys.indexOf('billing'));
     expect(keys.indexOf('billing')).toBeLessThan(keys.indexOf('work'));
     expect(keys.indexOf('work')).toBeLessThan(keys.indexOf('details'));

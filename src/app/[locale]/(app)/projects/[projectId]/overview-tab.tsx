@@ -19,6 +19,8 @@ import { Link } from '@/shared/i18n/navigation';
 import { MilestonesPanel } from './milestones-panel';
 import { OverviewContractHistorySuspense } from './overview-contract-history';
 import { ProjectWorkspaceNav } from './project-workspace-nav';
+import { ProjectEarlyWarningsPanel, ProjectEarlyWarningsFallback } from './overview-early-warnings';
+import { ProjectOverviewLatest } from './overview-latest';
 import { ProjectContractsPanel } from '@/modules/projects/ui/project-contracts-panel';
 import { ScheduleSummaryPanel } from './schedule-summary-panel';
 import { textNavLinkClassName } from '@/components/ui/pressable';
@@ -91,6 +93,12 @@ export async function OverviewTab({
   return (
     <div className="flex min-w-0 max-w-full flex-col gap-4">
       <ProjectWorkspaceNav links={workspaceLinks} />
+
+      {canReadFinancials ? (
+        <Suspense fallback={<ProjectEarlyWarningsFallback />}>
+          <ProjectEarlyWarningsPanel projectId={detail.project.id} />
+        </Suspense>
+      ) : null}
 
       {isJob ? (
         <section className="rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4">
@@ -196,6 +204,12 @@ export async function OverviewTab({
           </Card>
         ) : null}
       </section>
+
+      {!isJob ? (
+        <Suspense fallback={<SkeletonText lines={3} />}>
+          <ProjectOverviewLatest projectId={detail.project.id} />
+        </Suspense>
+      ) : null}
 
       {!isJob
         ? (milestonesSlot ?? (

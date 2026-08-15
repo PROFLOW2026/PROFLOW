@@ -17,7 +17,9 @@ const SEVERITY_WEIGHT: Record<CommandCenterSeverity, number> = {
 export const SOURCE_DEFAULT_SEVERITY: Record<CommandCenterSourceType, CommandCenterSeverity> = {
   overdue_ar: 'critical',
   vendor_bill_due: 'critical',
+  vendor_bill_approaching: 'high',
   project_over_budget: 'critical',
+  forecast_warning: 'high',
   credit_void_issue: 'high',
   unallocated_employee_cost: 'high',
   unallocated_vendor_bill: 'high',
@@ -25,6 +27,13 @@ export const SOURCE_DEFAULT_SEVERITY: Record<CommandCenterSourceType, CommandCen
   month_close_incomplete: 'high',
   boq_measurement_awaiting_approval: 'high',
   boq_progress_ready_to_bill: 'high',
+  ocr_needs_review: 'medium',
+  ocr_failed: 'high',
+  punch_open: 'medium',
+  safety_open: 'high',
+  inspection_open: 'high',
+  recurring_draft_issue: 'medium',
+  timesheet_missing: 'medium',
   boq_vs_contract_mismatch: 'medium',
   attendance_open: 'medium',
   overdue_planning: 'medium',
@@ -32,6 +41,26 @@ export const SOURCE_DEFAULT_SEVERITY: Record<CommandCenterSourceType, CommandCen
   overdue_maintenance: 'medium',
   stale_project: 'low',
 };
+
+export const INBOX_SECTION_ORDER = ['critical', 'high', 'medium', 'low'] as const;
+
+/** Group already-ranked inbox items into severity sections. Empty sections omitted. */
+export function groupInboxBySeverity(
+  items: readonly CommandCenterItem[],
+): { readonly severity: CommandCenterSeverity; readonly items: CommandCenterItem[] }[] {
+  const buckets: Record<CommandCenterSeverity, CommandCenterItem[]> = {
+    critical: [],
+    high: [],
+    medium: [],
+    low: [],
+  };
+  for (const item of items) {
+    buckets[item.severity].push(item);
+  }
+  return INBOX_SECTION_ORDER.filter((severity) => buckets[severity].length > 0).map(
+    (severity) => ({ severity, items: buckets[severity] }),
+  );
+}
 
 /**
  * Build a stable item key: sourceType:sourceId (unique per org via DB uq).

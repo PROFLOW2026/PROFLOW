@@ -4,7 +4,7 @@ function he(locale: string): boolean {
   return locale.toLowerCase().startsWith('he');
 }
 
-export function fallbackWhere(locale: string, key: 'billing' | 'vendorBills' | 'workforce' | 'approvals' | 'project' | 'assets' | 'monthClose' | 'boq'): string {
+export function fallbackWhere(locale: string, key: 'billing' | 'vendorBills' | 'workforce' | 'approvals' | 'project' | 'assets' | 'monthClose' | 'boq' | 'ocr' | 'fieldOps' | 'safety' | 'recurring' | 'timesheets'): string {
   if (he(locale)) {
     switch (key) {
       case 'billing':
@@ -23,6 +23,16 @@ export function fallbackWhere(locale: string, key: 'billing' | 'vendorBills' | '
         return 'סגירת חודש';
       case 'boq':
         return 'כתב כמויות';
+      case 'ocr':
+        return 'סקירת מסמכים';
+      case 'fieldOps':
+        return 'פעילות שטח';
+      case 'safety':
+        return 'בטיחות';
+      case 'recurring':
+        return 'טיוטות חוזרות';
+      case 'timesheets':
+        return 'גיליונות שעות';
     }
   }
   switch (key) {
@@ -42,6 +52,16 @@ export function fallbackWhere(locale: string, key: 'billing' | 'vendorBills' | '
       return 'Month close';
     case 'boq':
       return 'BOQ';
+    case 'ocr':
+      return 'Document review';
+    case 'fieldOps':
+      return 'Field operations';
+    case 'safety':
+      return 'Safety';
+    case 'recurring':
+      return 'Recurring drafts';
+    case 'timesheets':
+      return 'Timesheets';
   }
 }
 
@@ -302,6 +322,209 @@ export function boqVsContractMismatchCopy(
   return {
     what: 'Reconcile BOQ vs contract',
     why: `Contract and BOQ diverge · ${input.status}`,
+  };
+}
+
+export function vendorBillApproachingCopy(
+  locale: string,
+  input: { reference: string | null; dueDate: string; outstanding: string; currency: string },
+): { what: string; why: string } {
+  if (he(locale)) {
+    return {
+      what: input.reference ? `חשבון ספק מתקרב לפירעון ${input.reference}` : 'חשבון ספק מתקרב לפירעון',
+      why: `לתשלום עד ${input.dueDate} · יתרה ${input.outstanding} ${input.currency}`,
+    };
+  }
+  return {
+    what: input.reference ? `Vendor bill due soon ${input.reference}` : 'Vendor bill due soon',
+    why: `Due ${input.dueDate} · outstanding ${input.outstanding} ${input.currency}`,
+  };
+}
+
+export function ocrNeedsReviewCopy(locale: string, filename: string | null): { what: string; why: string } {
+  if (he(locale)) {
+    return {
+      what: 'סקירת מסמך שנסרק',
+      why: filename ? `${filename} ממתין לאישור ידני לפני טיוטה` : 'מסמך ממתין לאישור ידני לפני טיוטה',
+    };
+  }
+  return {
+    what: 'Review scanned document',
+    why: filename
+      ? `${filename} needs explicit confirmation before a draft is created`
+      : 'Needs explicit confirmation before a draft is created',
+  };
+}
+
+export function ocrFailedCopy(locale: string, filename: string | null): { what: string; why: string } {
+  if (he(locale)) {
+    return {
+      what: 'ניסיון חוזר לקריאת מסמך',
+      why: filename ? `${filename} נכשל — אפשר לנסות שוב` : 'קריאה נכשלה — אפשר לנסות שוב',
+    };
+  }
+  return {
+    what: 'Retry a failed document read',
+    why: filename ? `${filename} failed and can be retried` : 'Reading failed and can be retried',
+  };
+}
+
+export function forecastWarningCopy(
+  locale: string,
+  kind: string,
+): { what: string; why: string } {
+  if (he(locale)) {
+    switch (kind) {
+      case 'projected_cost_over_budget':
+        return {
+          what: 'בדיקת חריגת תקציב צפויה',
+          why: 'תחזית העלות עולה על התקציב הפעיל — זו הערכה, לא חריגה בפועל',
+        };
+      case 'insufficient_remaining_budget':
+        return {
+          what: 'בדיקת יתרת תקציב לא מספקת',
+          why: 'התחייבויות ועלויות צפויות שנותרו גדולות מיתרת התקציב',
+        };
+      case 'forecast_margin_negative':
+        return {
+          what: 'בדיקת מרווח תחזית שלילי',
+          why: 'מרווח התחזית מתחת לאפס לפי החוזה ותחזית העלות',
+        };
+      case 'margin_deterioration':
+        return {
+          what: 'בדיקת הידרדרות מרווח',
+          why: 'מרווח התחזית נמוך ממרווח בפועל ב־3 נקודות אחוז או יותר',
+        };
+      case 'commitment_pressure':
+        return {
+          what: 'בדיקת לחץ התחייבויות',
+          why: 'התחייבויות פתוחות לוחצות על יתרת התקציב',
+        };
+      case 'billing_lag':
+        return {
+          what: 'בדיקת פיגור בחיוב',
+          why: 'העלות התקדמה משמעותית יותר מהחיוב מול החוזה',
+        };
+      case 'collection_risk':
+        return {
+          what: 'בדיקת סיכון גבייה',
+          why: 'חלק גדול מהחיוב עדיין פתוח לגבייה',
+        };
+      case 'high_consumption_vs_progress':
+        return {
+          what: 'בדיקת צריכת תקציב מול התקדמות',
+          why: 'שיעור צריכת התקציב גבוה מההתקדמות הפיזית',
+        };
+      case 'missing_data':
+        return {
+          what: 'השלמת נתונים לתחזית',
+          why: 'חסרים נתונים כדי להעריך את מצב הפרויקט בביטחון',
+        };
+      default:
+        return { what: 'בדיקת אזהרת תחזית', why: 'יש סיכון כספי צפוי שדורש בדיקה' };
+    }
+  }
+  switch (kind) {
+    case 'projected_cost_over_budget':
+      return {
+        what: 'Review projected budget overrun',
+        why: 'Forecast cost exceeds the active budget — a projection, not an actual overrun',
+      };
+    case 'insufficient_remaining_budget':
+      return {
+        what: 'Review remaining budget shortfall',
+        why: 'Open commitments plus remaining expected cost exceed remaining budget',
+      };
+    case 'forecast_margin_negative':
+      return {
+        what: 'Review negative forecast margin',
+        why: 'Forecast margin is below zero on contract versus forecast cost',
+      };
+    case 'margin_deterioration':
+      return {
+        what: 'Review margin deterioration',
+        why: 'Forecast margin is at least 3 points below actual margin',
+      };
+    case 'commitment_pressure':
+      return {
+        what: 'Review commitment pressure',
+        why: 'Open commitments are pressing remaining budget',
+      };
+    case 'billing_lag':
+      return {
+        what: 'Review billing lag',
+        why: 'Cost has advanced well ahead of invoicing against the contract',
+      };
+    case 'collection_risk':
+      return {
+        what: 'Review collection risk',
+        why: 'A large share of invoiced amounts is still outstanding',
+      };
+    case 'high_consumption_vs_progress':
+      return {
+        what: 'Review budget consumption vs progress',
+        why: 'Budget consumed is running ahead of physical progress',
+      };
+    case 'missing_data':
+      return {
+        what: 'Complete forecast inputs',
+        why: 'Not enough data to assess project position with confidence',
+      };
+    default:
+      return { what: 'Review forecast warning', why: 'A projected financial risk needs a look' };
+  }
+}
+
+export function punchOpenCopy(locale: string, title: string): { what: string; why: string } {
+  if (he(locale)) {
+    return { what: `סגירת ליקוי פתוח — ${title}`, why: 'פריט תיקון עדיין פתוח' };
+  }
+  return { what: `Close open punch item — ${title}`, why: 'Punch item is still open' };
+}
+
+export function safetyOpenCopy(locale: string, title: string): { what: string; why: string } {
+  if (he(locale)) {
+    return { what: `טיפול ברשומת בטיחות — ${title}`, why: 'רשומת בטיחות עדיין פתוחה' };
+  }
+  return { what: `Resolve safety record — ${title}`, why: 'Safety record is still open' };
+}
+
+export function inspectionOpenCopy(locale: string, title: string, scheduledOn: string | null): { what: string; why: string } {
+  if (he(locale)) {
+    return {
+      what: `השלמת בדיקה — ${title}`,
+      why: scheduledOn ? `מתוכננת ל־${scheduledOn} ועדיין פתוחה` : 'בדיקה עדיין פתוחה',
+    };
+  }
+  return {
+    what: `Complete inspection — ${title}`,
+    why: scheduledOn ? `Scheduled ${scheduledOn} and still open` : 'Inspection is still open',
+  };
+}
+
+export function recurringDraftIssueCopy(locale: string, title: string, nextRunDate: string): { what: string; why: string } {
+  if (he(locale)) {
+    return {
+      what: `טיפול בטיוטה חוזרת — ${title}`,
+      why: `מועד היצירה ${nextRunDate} עבר והטיוטה עדיין פעילה`,
+    };
+  }
+  return {
+    what: `Fix recurring draft — ${title}`,
+    why: `Next run ${nextRunDate} is overdue while the draft is still active`,
+  };
+}
+
+export function timesheetMissingCopy(locale: string, periodEnd: string): { what: string; why: string } {
+  if (he(locale)) {
+    return {
+      what: 'הגשת גיליון שעות שטרם הוגש',
+      why: `תקופה שהסתיימה ב־${periodEnd} עדיין בטיוטה`,
+    };
+  }
+  return {
+    what: 'Submit an overdue timesheet',
+    why: `Period ending ${periodEnd} is still a draft`,
   };
 }
 

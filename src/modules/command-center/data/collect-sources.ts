@@ -16,16 +16,22 @@ import { listBillingRecords } from '@/modules/billing';
 import { listComplianceArtifactsForOrg } from '@/modules/compliance';
 import { getOrganizationApPayables } from '@/modules/ap';
 import { listMaintenanceScheduleForOrg } from '@/modules/assets';
-import { listAttendanceDaysForOrg } from '@/modules/workforce';
+import { listAttendanceDaysForOrg, listTimesheetsForOrg } from '@/modules/workforce';
 import { getOrganizationProjectRollup } from '@/modules/financials/application/get-organization-project-rollup';
+import { getOrganizationEarlyWarnings } from '@/modules/forecast';
+import { isOcrReviewUiAllowed, listOcrCandidates } from '@/modules/ocr';
+import { listInspectionsForOrg, listPunchListItemsForOrg } from '@/modules/field-ops';
+import { listSafetyRecordsForOrg } from '@/modules/safety';
+import { listRecurringDraftsForOrg } from '@/modules/recurring-drafts/application/queries';
+import { ANY_DRAFT_ACCESS_PERMISSIONS } from '@/modules/recurring-drafts/domain/permissions';
 import { fromNumericString, isPositiveMoney, isZeroMoney } from '@/shared/money';
 import type { OrgContext } from '@/shared/auth/context';
-import { hasPermission } from '@/shared/permissions/assert';
+import { hasAnyPermission, hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
-import { addDays, daysBetween, type BusinessDate } from '@/shared/dates';
+import { addDays, businessDate, daysBetween, type BusinessDate } from '@/shared/dates';
 import type { ModuleVisibility } from '@/modules/tenancy/domain/types';
 import { withItemDefaults } from '../domain/ranking';
-import type { CommandCenterItem } from '../domain/types';
+import type { CommandCenterItem, CommandCenterSeverity } from '../domain/types';
 import {
   creditVoidIssueCopy,
   expiringComplianceCopy,
@@ -44,10 +50,21 @@ import {
   boqMeasurementAwaitingCopy,
   boqProgressReadyToBillCopy,
   boqVsContractMismatchCopy,
+  vendorBillApproachingCopy,
+  ocrNeedsReviewCopy,
+  ocrFailedCopy,
+  forecastWarningCopy,
+  punchOpenCopy,
+  safetyOpenCopy,
+  inspectionOpenCopy,
+  recurringDraftIssueCopy,
+  timesheetMissingCopy,
 } from '../domain/item-copy';
 
 const PER_SOURCE_CAP = 15;
+const OCR_CAP = 10;
 const STALE_PROJECT_DAYS = 14;
+const VENDOR_BILL_APPROACHING_DAYS = 7;
 
 export interface CollectContext {
   readonly context: OrgContext;
@@ -775,15 +792,298 @@ export async function collectBoqVsContractMismatch(
   return items;
 }
 
+async function loadProjectNames(
+  ctx: CollectContext,
+  projectIds: readonly string[],
+): Promise<Map<string, string>> {
+  const ids = [...new Set(projectIds.filter(Boolean))];
+  const map = new Map<string, string>();
+  if (ids.length === 0) return map;
+  const rows = await ctx.context.db
+    .select({ id: projects.id, name: projects.name })
+    .from(projects)
+    .where(and(eq(projects.organizationId, ctx.context.organizationId), inArray(projects.id, ids)));
+  for (const row of rows) map.set(row.id, row.name);
+  return map;
+}
+
+function mapForecastSeverity(severity: string): CommandCenterSeverity {
+  if (severity === 'critical') return 'critical';
+  if (severity === 'warning') return 'high';
+  return 'low';
+}
+
+export async function collectVendorBillsApproaching(
+  ctx: CollectContext,
+): Promise<CommandCenterItem[]> {
+  if (!hasPermission(ctx.context, PERMISSIONS.AP_READ)) return [];
+
+  const payables = await getOrganizationApPayables(ctx.context);
+  const horizon = addDays(ctx.today, VENDOR_BILL_APPROACHING_DAYS);
+  const items: CommandCenterItem[] = [];
+
+  for (const bill of payables.bills) {
+    if (items.length >= PER_SOURCE_CAP) break;
+    const outstanding = fromNumericString(bill.outstanding, bill.currency);
+    if (!outstanding || isZeroMoney(outstanding) || !isPositiveMoney(outstanding)) continue;
+    if (!bill.dueDate) continue;
+    if (bill.dueDate < ctx.today) continue;
+    if (bill.dueDate > horizon) continue;
+
+    const daysLeft = daysBetween(ctx.today, bill.dueDate);
+    const copy = vendorBillApproachingCopy(localeOf(ctx), {
+      reference: bill.reference,
+      dueDate: bill.dueDate,
+      outstanding: bill.outstanding,
+      currency: bill.currency,
+    });
+    items.push(
+      withItemDefaults({
+        sourceType: 'vendor_bill_approaching',
+        sourceId: bill.billId,
+        what: copy.what,
+        why: copy.why,
+        where: bill.vendorName ?? fallbackWhere(localeOf(ctx), 'vendorBills'),
+        href: `/procurement/ap/${bill.billId}`,
+        urgencyBump: Math.min(99, Math.max(0, (VENDOR_BILL_APPROACHING_DAYS - daysLeft) * 10)),
+        meta: { dueDate: bill.dueDate, outstanding: bill.outstanding },
+      }),
+    );
+  }
+
+  return items;
+}
+
+export async function collectOcrNeedsReview(ctx: CollectContext): Promise<CommandCenterItem[]> {
+  if (!isOcrReviewUiAllowed()) return [];
+  if (!hasPermission(ctx.context, PERMISSIONS.DOCUMENTS_READ)) return [];
+
+  const jobs = await listOcrCandidates(ctx.context, { status: ['needs_review'] });
+  const locale = localeOf(ctx);
+  return jobs.slice(0, OCR_CAP).map((job) => {
+    const filename = job.sourceDocument.filename ?? null;
+    const copy = ocrNeedsReviewCopy(locale, filename);
+    return withItemDefaults({
+      sourceType: 'ocr_needs_review',
+      sourceId: job.id,
+      what: copy.what,
+      why: copy.why,
+      where: filename ?? fallbackWhere(locale, 'ocr'),
+      href: '/documents/ocr-review',
+      meta: { status: job.status },
+    });
+  });
+}
+
+export async function collectOcrFailed(ctx: CollectContext): Promise<CommandCenterItem[]> {
+  if (!isOcrReviewUiAllowed()) return [];
+  if (!hasPermission(ctx.context, PERMISSIONS.DOCUMENTS_READ)) return [];
+
+  const jobs = await listOcrCandidates(ctx.context, { status: ['failed'] });
+  const locale = localeOf(ctx);
+  return jobs.slice(0, OCR_CAP).map((job) => {
+    const filename = job.sourceDocument.filename ?? null;
+    const copy = ocrFailedCopy(locale, filename);
+    return withItemDefaults({
+      sourceType: 'ocr_failed',
+      sourceId: job.id,
+      what: copy.what,
+      why: copy.why,
+      where: filename ?? fallbackWhere(locale, 'ocr'),
+      href: '/documents/ocr-review',
+      meta: { status: job.status },
+    });
+  });
+}
+
+export async function collectForecastWarnings(ctx: CollectContext): Promise<CommandCenterItem[]> {
+  if (!hasPermission(ctx.context, PERMISSIONS.PROJECT_FINANCIALS_READ)) return [];
+
+  const warnings = await getOrganizationEarlyWarnings(ctx.context);
+  const actionable = warnings.filter((warning) => warning.kind !== 'actual_over_budget');
+  const names = await loadProjectNames(
+    ctx,
+    actionable.map((warning) => warning.projectId),
+  );
+  const locale = localeOf(ctx);
+  const items: CommandCenterItem[] = [];
+
+  for (const warning of actionable) {
+    if (items.length >= PER_SOURCE_CAP) break;
+    const copy = forecastWarningCopy(locale, warning.kind);
+    items.push(
+      withItemDefaults({
+        sourceType: 'forecast_warning',
+        sourceId: `${warning.kind}:${warning.projectId}`,
+        what: copy.what,
+        why: copy.why,
+        where: names.get(warning.projectId) ?? fallbackWhere(locale, 'project'),
+        href: warning.href,
+        severity: mapForecastSeverity(warning.severity),
+        meta: { kind: warning.kind, projectId: warning.projectId, warningClass: warning.warningClass },
+      }),
+    );
+  }
+
+  return items;
+}
+
+export async function collectOpenPunch(ctx: CollectContext): Promise<CommandCenterItem[]> {
+  if (!moduleOn(ctx.modules, 'field_ops')) return [];
+  if (!hasPermission(ctx.context, PERMISSIONS.FIELD_OPS_READ)) return [];
+
+  const [openRows, inProgressRows] = await Promise.all([
+    listPunchListItemsForOrg(ctx.context, { status: 'open' }),
+    listPunchListItemsForOrg(ctx.context, { status: 'in_progress' }),
+  ]);
+  const rows = [...openRows, ...inProgressRows].slice(0, PER_SOURCE_CAP);
+  const names = await loadProjectNames(
+    ctx,
+    rows.map((row) => row.projectId),
+  );
+  const locale = localeOf(ctx);
+
+  return rows.map((row) => {
+    const copy = punchOpenCopy(locale, row.title);
+    const severity: CommandCenterSeverity | undefined =
+      row.priority === 'critical' ? 'critical' : row.priority === 'high' ? 'high' : undefined;
+    return withItemDefaults({
+      sourceType: 'punch_open',
+      sourceId: row.id,
+      what: copy.what,
+      why: copy.why,
+      where: names.get(row.projectId) ?? fallbackWhere(locale, 'fieldOps'),
+      href: `/field-ops/punch/${row.id}`,
+      severity,
+      meta: { projectId: row.projectId, status: row.status, priority: row.priority },
+    });
+  });
+}
+
+export async function collectOpenSafety(ctx: CollectContext): Promise<CommandCenterItem[]> {
+  if (!moduleOn(ctx.modules, 'safety')) return [];
+  if (!hasPermission(ctx.context, PERMISSIONS.SAFETY_READ)) return [];
+
+  const rows = (await listSafetyRecordsForOrg(ctx.context, { status: 'open' })).slice(
+    0,
+    PER_SOURCE_CAP,
+  );
+  const names = await loadProjectNames(
+    ctx,
+    rows.map((row) => row.projectId).filter((id): id is string => Boolean(id)),
+  );
+  const locale = localeOf(ctx);
+
+  return rows.map((row) => {
+    const copy = safetyOpenCopy(locale, row.title);
+    const severity: CommandCenterSeverity =
+      row.severity === 'critical' ? 'critical' : row.severity === 'high' ? 'high' : 'medium';
+    return withItemDefaults({
+      sourceType: 'safety_open',
+      sourceId: row.id,
+      what: copy.what,
+      why: copy.why,
+      where: (row.projectId ? names.get(row.projectId) : null) ?? fallbackWhere(locale, 'safety'),
+      href: `/safety/${row.id}`,
+      severity,
+      meta: { projectId: row.projectId, recordSeverity: row.severity },
+    });
+  });
+}
+
+export async function collectOpenInspections(ctx: CollectContext): Promise<CommandCenterItem[]> {
+  if (!moduleOn(ctx.modules, 'field_ops')) return [];
+  if (!hasPermission(ctx.context, PERMISSIONS.FIELD_OPS_READ)) return [];
+
+  const [scheduled, inProgress] = await Promise.all([
+    listInspectionsForOrg(ctx.context, { status: 'scheduled' }),
+    listInspectionsForOrg(ctx.context, { status: 'in_progress' }),
+  ]);
+  const overdue = [...scheduled, ...inProgress]
+    .filter((row) => row.scheduledOn != null && row.scheduledOn < ctx.today)
+    .slice(0, PER_SOURCE_CAP);
+  const names = await loadProjectNames(
+    ctx,
+    overdue.map((row) => row.projectId),
+  );
+  const locale = localeOf(ctx);
+
+  return overdue.map((row) => {
+    const copy = inspectionOpenCopy(locale, row.title, row.scheduledOn);
+    const days = row.scheduledOn ? daysBetween(businessDate(row.scheduledOn), ctx.today) : 0;
+    return withItemDefaults({
+      sourceType: 'inspection_open',
+      sourceId: row.id,
+      what: copy.what,
+      why: copy.why,
+      where: names.get(row.projectId) ?? fallbackWhere(locale, 'fieldOps'),
+      href: `/field-ops/inspections/${row.id}`,
+      urgencyBump: Math.min(99, Math.max(0, days)),
+      meta: { projectId: row.projectId, scheduledOn: row.scheduledOn, status: row.status },
+    });
+  });
+}
+
+export async function collectRecurringDraftIssues(
+  ctx: CollectContext,
+): Promise<CommandCenterItem[]> {
+  if (!hasAnyPermission(ctx.context, ANY_DRAFT_ACCESS_PERMISSIONS)) return [];
+
+  const drafts = await listRecurringDraftsForOrg(ctx.context, { status: 'active' });
+  const stuck = drafts
+    .filter((draft) => draft.nextRunDate < ctx.today)
+    .slice(0, PER_SOURCE_CAP);
+  const locale = localeOf(ctx);
+
+  return stuck.map((draft) => {
+    const copy = recurringDraftIssueCopy(locale, draft.title, draft.nextRunDate);
+    return withItemDefaults({
+      sourceType: 'recurring_draft_issue',
+      sourceId: draft.id,
+      what: copy.what,
+      why: copy.why,
+      where: fallbackWhere(locale, 'recurring'),
+      href: `/recurring-drafts/${draft.id}`,
+      meta: { nextRunDate: draft.nextRunDate, draftKind: draft.draftKind },
+    });
+  });
+}
+
+export async function collectMissingTimesheets(ctx: CollectContext): Promise<CommandCenterItem[]> {
+  if (!moduleOn(ctx.modules, 'workforce')) return [];
+  if (!hasPermission(ctx.context, PERMISSIONS.WORKFORCE_READ)) return [];
+
+  const sheets = await listTimesheetsForOrg(ctx.context, { status: 'draft' });
+  const missing = sheets
+    .filter((sheet) => sheet.periodEnd < ctx.today)
+    .slice(0, PER_SOURCE_CAP);
+  const locale = localeOf(ctx);
+
+  return missing.map((sheet) => {
+    const copy = timesheetMissingCopy(locale, sheet.periodEnd);
+    return withItemDefaults({
+      sourceType: 'timesheet_missing',
+      sourceId: sheet.id,
+      what: copy.what,
+      why: copy.why,
+      where: sheet.employeeName || fallbackWhere(locale, 'timesheets'),
+      href: '/workforce/time',
+      meta: { periodStart: sheet.periodStart, periodEnd: sheet.periodEnd },
+    });
+  });
+}
+
 /** Run all collectors; individual failures are isolated. */
 export async function collectAllSources(ctx: CollectContext): Promise<CommandCenterItem[]> {
   const collectors = [
     collectOverdueAr,
     collectVendorBillsDue,
+    collectVendorBillsApproaching,
     collectOpenAttendance,
     collectUnallocatedEmployeeCost,
     collectUnallocatedVendorBills,
     collectProjectOverBudget,
+    collectForecastWarnings,
     collectOpenApprovals,
     collectOverduePlanning,
     collectExpiringCompliance,
@@ -794,6 +1094,13 @@ export async function collectAllSources(ctx: CollectContext): Promise<CommandCen
     collectBoqMeasurementAwaitingApproval,
     collectBoqProgressReadyToBill,
     collectBoqVsContractMismatch,
+    collectOcrNeedsReview,
+    collectOcrFailed,
+    collectOpenPunch,
+    collectOpenSafety,
+    collectOpenInspections,
+    collectRecurringDraftIssues,
+    collectMissingTimesheets,
   ];
 
   const settled = await Promise.allSettled(collectors.map((fn) => fn(ctx)));

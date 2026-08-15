@@ -1,0 +1,81 @@
+{
+  "panelTitle": "Early warnings",
+  "open": "Open",
+  "recommendationNote": "Recommendation — not accounting truth.",
+  "actualOverBudget": {
+    "title": "Actual cost is over budget",
+    "why": "Recorded actual cost already exceeds the active budget.",
+    "recommendation": "Review postings and the budget before more spend is committed."
+  },
+  "projectedOverBudget": {
+    "title": "Forecast cost is over budget",
+    "why": "Forecast final cost exceeds the active budget. Actual is still within budget.",
+    "recommendation": "Check remaining work and commitments before the overrun becomes actual."
+  },
+  "insufficientBudget": {
+    "title": "Remaining budget may not cover what is left",
+    "why": "Open commitments plus expected remaining cost exceed remaining budget.",
+    "recommendation": "Revisit commitments, expected remaining cost, or the budget."
+  },
+  "negativeForecastMargin": {
+    "title": "Forecast margin is negative",
+    "why": "On current contract versus forecast cost, the project is projected to lose money.",
+    "recommendation": "Review price, remaining cost, and unapproved commercial changes. This is not a posted loss."
+  },
+  "marginDeterioration": {
+    "title": "Forecast margin is weaker than actual margin",
+    "why": "Forecast margin is at least three points below actual margin.",
+    "recommendation": "Look at remaining cost and commitments that are pulling margin down."
+  },
+  "commitmentPressure": {
+    "title": "Open commitments are pressing remaining budget",
+    "why": "Committed spend is large relative to budget still available after actual cost.",
+    "recommendation": "Review open purchase orders before releasing more work."
+  },
+  "billingLag": {
+    "title": "Billing is lagging cost",
+    "why": "A large share of contract cost is in before a matching share has been invoiced.",
+    "recommendation": "Check whether progress billing can be issued. Not a collection posting."
+  },
+  "collectionRisk": {
+    "title": "A large share of invoices is still outstanding",
+    "why": "Outstanding collections are high relative to what has been invoiced.",
+    "recommendation": "Follow up on open billing. Outstanding is not a new cost."
+  },
+  "consumptionVsProgress": {
+    "title": "Budget consumed is ahead of progress",
+    "why": "The share of budget used is running well ahead of recorded physical progress.",
+    "recommendation": "Check progress measurement and remaining work. Progress is not actual cost."
+  },
+  "missingData": {
+    "title": "Not enough data for a confident forecast",
+    "why": "Key inputs are incomplete, so this is a data gap — not a confirmed problem."
+  },
+  "drivers": {
+    "actual": "Actual cost",
+    "budget": "Budget",
+    "forecast": "Forecast cost",
+    "remainingBudget": "Remaining budget",
+    "committed": "Open commitments",
+    "etc": "Expected remaining (ETC)",
+    "forecastMargin": "Forecast margin",
+    "actualMargin": "Actual margin",
+    "contract": "Current contract",
+    "invoiced": "Invoiced",
+    "outstanding": "Outstanding",
+    "budgetConsumed": "Budget consumed",
+    "progress": "Progress",
+    "confidence": "Data confidence",
+    "pressurePercent": "Commitment pressure"
+  },
+  "class": {
+    "confirmed": "Confirmed",
+    "projected": "Projected",
+    "missing_data": "Missing data"
+  },
+  "severity": {
+    "critical": "Critical",
+    "warning": "Warning",
+    "info": "Info"
+  }
+}

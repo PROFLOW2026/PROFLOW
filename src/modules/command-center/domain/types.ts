@@ -6,10 +6,12 @@
 export const COMMAND_CENTER_SOURCE_TYPES = [
   'overdue_ar',
   'vendor_bill_due',
+  'vendor_bill_approaching',
   'attendance_open',
   'unallocated_employee_cost',
   'unallocated_vendor_bill',
   'project_over_budget',
+  'forecast_warning',
   'open_approval',
   'overdue_planning',
   'expiring_compliance',
@@ -20,6 +22,13 @@ export const COMMAND_CENTER_SOURCE_TYPES = [
   'boq_measurement_awaiting_approval',
   'boq_progress_ready_to_bill',
   'boq_vs_contract_mismatch',
+  'ocr_needs_review',
+  'ocr_failed',
+  'punch_open',
+  'safety_open',
+  'inspection_open',
+  'recurring_draft_issue',
+  'timesheet_missing',
 ] as const;
 
 export type CommandCenterSourceType = (typeof COMMAND_CENTER_SOURCE_TYPES)[number];
@@ -34,9 +43,11 @@ export type CommandCenterItemState = (typeof COMMAND_CENTER_ITEM_STATES)[number]
 export const FINANCIAL_SOURCE_TYPES = [
   'overdue_ar',
   'vendor_bill_due',
+  'vendor_bill_approaching',
   'unallocated_employee_cost',
   'unallocated_vendor_bill',
   'project_over_budget',
+  'forecast_warning',
   'credit_void_issue',
 ] as const satisfies readonly CommandCenterSourceType[];
 

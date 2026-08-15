@@ -7,6 +7,7 @@ import {
   sortCommandCenterItems,
   SOURCE_DEFAULT_SEVERITY,
   withItemDefaults,
+  groupInboxBySeverity,
 } from '@/modules/command-center/domain/ranking';
 import { isFinancialSourceType } from '@/modules/command-center/domain/types';
 
@@ -69,12 +70,63 @@ describe('command center ranking', () => {
     expect(assertSafeItemStateTransition('overdue_ar', 'dismissed').ok).toBe(false);
     expect(assertSafeItemStateTransition('overdue_ar', 'snoozed').ok).toBe(true);
     expect(assertSafeItemStateTransition('attendance_open', 'handled').ok).toBe(true);
+    expect(assertSafeItemStateTransition('forecast_warning', 'handled').ok).toBe(false);
+    expect(assertSafeItemStateTransition('forecast_warning', 'snoozed').ok).toBe(true);
+    expect(SOURCE_DEFAULT_SEVERITY.forecast_warning).toBe('high');
+    expect(SOURCE_DEFAULT_SEVERITY.vendor_bill_approaching).toBe('high');
   });
 
-  it('uses expected default severities for money vs ops', () => {
-    expect(SOURCE_DEFAULT_SEVERITY.overdue_ar).toBe('critical');
-    expect(SOURCE_DEFAULT_SEVERITY.vendor_bill_due).toBe('critical');
-    expect(SOURCE_DEFAULT_SEVERITY.stale_project).toBe('low');
-    expect(SOURCE_DEFAULT_SEVERITY.open_approval).toBe('high');
+  it('ranks new ops sources and blocks dismiss on financial forecast items', () => {
+    expect(SOURCE_DEFAULT_SEVERITY.vendor_bill_approaching).toBe('high');
+    expect(SOURCE_DEFAULT_SEVERITY.ocr_needs_review).toBe('medium');
+    expect(SOURCE_DEFAULT_SEVERITY.ocr_failed).toBe('high');
+    expect(SOURCE_DEFAULT_SEVERITY.punch_open).toBe('medium');
+    expect(SOURCE_DEFAULT_SEVERITY.safety_open).toBe('high');
+    expect(SOURCE_DEFAULT_SEVERITY.inspection_open).toBe('high');
+    expect(SOURCE_DEFAULT_SEVERITY.forecast_warning).toBe('high');
+    expect(SOURCE_DEFAULT_SEVERITY.timesheet_missing).toBe('medium');
+    expect(SOURCE_DEFAULT_SEVERITY.recurring_draft_issue).toBe('medium');
+
+    expect(isFinancialSourceType('forecast_warning')).toBe(true);
+    expect(isFinancialSourceType('vendor_bill_approaching')).toBe(true);
+    expect(isFinancialSourceType('punch_open')).toBe(false);
+
+    const forecast = withItemDefaults({
+      sourceType: 'forecast_warning',
+      sourceId: 'projected_cost_over_budget:p1',
+      what: 'Review',
+      why: 'Projected',
+      where: 'Project A',
+      href: '/projects/p1?tab=financials',
+      severity: 'critical',
+    });
+    expect(forecast.allowHandle).toBe(false);
+    expect(forecast.isFinancial).toBe(true);
+    expect(assertSafeItemStateTransition('forecast_warning', 'dismissed').ok).toBe(false);
+    expect(assertSafeItemStateTransition('forecast_warning', 'handled').ok).toBe(false);
+    expect(assertSafeItemStateTransition('forecast_warning', 'snoozed').ok).toBe(true);
+    expect(assertSafeItemStateTransition('vendor_bill_approaching', 'dismissed').ok).toBe(false);
+  });
+
+  it('groups inbox items by severity and hides empty sections', () => {
+    const critical = withItemDefaults({
+      sourceType: 'overdue_ar',
+      sourceId: 'a',
+      what: 'Collect',
+      why: 'Past due',
+      where: 'A',
+      href: '/billing/a',
+    });
+    const info = withItemDefaults({
+      sourceType: 'stale_project',
+      sourceId: 'b',
+      what: 'Check',
+      why: 'Quiet',
+      where: 'B',
+      href: '/projects/b',
+    });
+    const sections = groupInboxBySeverity([info, critical]);
+    expect(sections.map((section) => section.severity)).toEqual(['critical', 'low']);
+    expect(sections[0]?.items[0]?.itemKey).toBe(critical.itemKey);
   });
 });

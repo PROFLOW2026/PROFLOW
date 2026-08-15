@@ -62,5 +62,7 @@ describe('OCR settings visibility', () => {
     expect(source).not.toMatch(/OCR_PROVIDER_API_KEY|Ocp-Apim-Subscription-Key/);
     expect(source).toMatch(/azureOcrNeedsKeyAndEndpoint/);
     expect(source).toMatch(/\/documents\/ocr-review/);
+    expect(source).toMatch(/needsReview/);
+    expect(source).toMatch(/queueHint/);
   });
 });

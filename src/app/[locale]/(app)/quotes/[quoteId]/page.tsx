@@ -13,6 +13,7 @@ import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { textNavLinkClassName, textNavLinkMutedClassName } from '@/components/ui/pressable';
 import { QuoteDetailActions, QuotePrintButton } from './quote-detail-actions';
+import { ReportDownloadButtons } from '@/modules/reports/ui';
 import { QuoteEditorForm } from '@/modules/quotes/ui/quote-editor-form';
 import { listClientsForOrg } from '@/modules/clients';
 
@@ -91,6 +92,7 @@ export default async function QuoteDetailPage({
           <div className="flex items-center gap-2">
             <StatusBadge shape={quoteShape(quote.status)} label={tStatus(quote.status)} />
             <QuotePrintButton label={t('detail.print')} />
+            <ReportDownloadButtons kind="quote_estimate" id={quoteId} compact />
           </div>
         }
       />

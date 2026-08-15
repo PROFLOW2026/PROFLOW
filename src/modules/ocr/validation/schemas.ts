@@ -54,6 +54,9 @@ export const confirmOcrCandidateSchema = z
      * Required when draftTarget is vendor_bill — OCR vendor text is never a UUID.
      */
     vendorId: z.string().uuid().optional().nullable(),
+    rememberProjectId: z.string().uuid().optional().nullable(),
+    rememberPurchaseOrderId: z.string().uuid().optional().nullable(),
+    rememberSubcontractAgreementId: z.string().uuid().optional().nullable(),
     /**
      * Fields the reviewer explicitly accepts for mapping.
      * Empty → domain refuses (OCR is never auto-canonical).
@@ -97,6 +100,16 @@ export const confirmOcrCandidateSchema = z
     }
   });
 
+export const ocrReviewSuggestionsProbeSchema = z.object({
+  vendorId: z.string().uuid().optional().nullable(),
+  vendorName: z.string().trim().max(500).optional().nullable(),
+  companyNumber: z.string().trim().max(100).optional().nullable(),
+  vatId: z.string().trim().max(100).optional().nullable(),
+  projectId: z.string().uuid().optional().nullable(),
+  orderNumber: z.string().trim().max(200).optional().nullable(),
+  currency: z.string().trim().max(10).optional().nullable(),
+});
+
 export const rejectOcrCandidateSchema = z.object({
   jobId: z.string().uuid(),
   rejectedFields: z.array(z.enum(OCR_CANDIDATE_FIELD_KEYS)).optional(),
@@ -110,5 +123,6 @@ export type ListOcrCandidatesInput = z.infer<typeof listOcrCandidatesSchema>;
 /** Input type — `draftTarget` defaults to expense when omitted. */
 export type ConfirmOcrCandidateInput = z.input<typeof confirmOcrCandidateSchema>;
 export type RejectOcrCandidateInput = z.infer<typeof rejectOcrCandidateSchema>;
+export type OcrReviewSuggestionsProbeInput = z.infer<typeof ocrReviewSuggestionsProbeSchema>;
 
 export const ocrCandidateFieldKeySchema = z.enum(OCR_CANDIDATE_FIELD_KEYS);

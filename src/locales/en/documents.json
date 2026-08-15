@@ -174,6 +174,19 @@
     "fixtureOnlyMode": "Internal sample mode only — this is not live document reading.",
     "honesty": "Fields below are suggestions only. Everything is editable before confirm. No finalized financial transaction is created automatically.",
     "empty": "No documents waiting for review.",
+    "inbox": {
+      "waiting": "Waiting",
+      "processing": "Processing",
+      "needs_review": "Needs review",
+      "failed": "Failed"
+    },
+    "inboxAria": "Review inbox",
+    "inboxEmpty": {
+      "waiting": "Nothing waiting to be read.",
+      "processing": "Nothing is being read right now.",
+      "needs_review": "Nothing needs review.",
+      "failed": "No failed readings to retry."
+    },
     "seedFixture": "Load sample for testing",
     "fixtureSeeded": "Sample added for internal review.",
     "sources": {
@@ -196,8 +209,15 @@
     "viewOriginal": "View original document",
     "retry": "Try reading again",
     "duplicateWarning": "This document may already exist",
+    "duplicateWarningTitle": "Possible duplicate — review before creating a draft",
     "duplicateExactFile": "Same file was already stored",
     "duplicateProbable": "Similar invoice details already exist",
+    "duplicateOpenExpense": "Open existing expense",
+    "duplicateOpenBill": "Open existing vendor bill",
+    "duplicateOpenDocument": "Open existing document",
+    "duplicateOverride": "This is not a duplicate",
+    "duplicateOverrideHint": "Confirm stays available. Check this only if you are sure this is a legitimate new document.",
+    "duplicateOverrideRequired": "This looks like a duplicate. Check “This is not a duplicate” to create a draft anyway.",
     "vendorExact": "We found a matching supplier",
     "vendorProbable": "Several possible suppliers — choose one",
     "vendorNone": "No matching supplier. Choose an existing one or add a supplier first.",
@@ -270,9 +290,29 @@
     "lineDescriptions": "Line descriptions",
     "lineDescriptionsHint": "Display only — copy into description if needed.",
     "suggestionsTitle": "Suggestions to review",
-    "suggestionsHint": "Labels only — not saved automatically.",
+    "suggestionsHint": "Labels only — not saved automatically. Confirm still creates a draft only.",
     "suggestionProject": "Suggested project",
     "suggestionCategory": "Suggested category",
+    "suggestionPurchaseOrder": "Suggested purchase order",
+    "suggestionSubcontract": "Suggested subcontract",
+    "suggestionNone": "No project, purchase order, or subcontract suggestions for this supplier yet.",
+    "suggestionReason": {
+      "memory": "From earlier reviews",
+      "open_po": "Open purchase order",
+      "engagement": "Supplier on this project",
+      "recent_bill": "Recent vendor bill"
+    },
+    "suggestionPoStrength": {
+      "order_number": "Matches order number",
+      "vendor_project": "Open PO on this project",
+      "vendor_open": "Open PO for this supplier"
+    },
+    "suggestionAgreementStrength": {
+      "vendor_project_currency": "Agreement on this project and currency",
+      "vendor_project": "Agreement on this project"
+    },
+    "recommendationsTitle": "Recommended matches",
+    "recommendationsHint": "Choose a match to remember it for next time. This does not assign a project on an expense draft.",
     "noCandidates": "No suggestions available.",
     "fields": {
       "vendor": "Vendor",

@@ -4,6 +4,11 @@ import {
   monthCloseIncompleteCopy,
   overdueArCopy,
   vendorBillDueCopy,
+  vendorBillApproachingCopy,
+  forecastWarningCopy,
+  punchOpenCopy,
+  ocrNeedsReviewCopy,
+  timesheetMissingCopy,
 } from '@/modules/command-center/domain/item-copy';
 
 describe('command center item copy', () => {
@@ -51,5 +56,29 @@ describe('command center item copy', () => {
     });
     expect(he.what).toContain('2026-07');
     expect(he.why).toContain('מוכן לסגירה');
+  });
+
+  it('localizes copy for new exception sources', () => {
+    const approachingHe = vendorBillApproachingCopy('he-IL', {
+      reference: 'VB-1',
+      dueDate: '2026-08-20',
+      outstanding: '900',
+      currency: 'ILS',
+    });
+    expect(approachingHe.what).toContain('מתקרב לפירעון');
+    expect(vendorBillApproachingCopy('en', {
+      reference: 'VB-1',
+      dueDate: '2026-08-20',
+      outstanding: '900',
+      currency: 'ILS',
+    }).what).toContain('due soon');
+
+    expect(forecastWarningCopy('he-IL', 'projected_cost_over_budget').what).toContain('תקציב');
+    expect(forecastWarningCopy('en', 'collection_risk').what.toLowerCase()).toContain('collection');
+    expect(punchOpenCopy('he-IL', 'Ceiling').what).toContain('ליקוי');
+    expect(ocrNeedsReviewCopy('en', 'scan.pdf').why).toContain('scan.pdf');
+    expect(timesheetMissingCopy('he-IL', '2026-08-07').why).toContain('2026-08-07');
+    expect(fallbackWhere('he-IL', 'safety')).toBe('בטיחות');
+    expect(fallbackWhere('en', 'ocr')).toBe('Document review');
   });
 });

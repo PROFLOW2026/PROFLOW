@@ -19,13 +19,21 @@
     "medium": "Medium",
     "low": "Low"
   },
+  "sections": {
+    "critical": "Critical",
+    "high": "Overdue / High",
+    "medium": "Warning / Medium",
+    "low": "Info / Low"
+  },
   "sources": {
     "overdue_ar": "Overdue billing",
     "vendor_bill_due": "Vendor bill due",
+    "vendor_bill_approaching": "Vendor bill due soon",
     "attendance_open": "Attendance",
     "unallocated_employee_cost": "Unallocated labor cost",
     "unallocated_vendor_bill": "Unallocated vendor bill",
     "project_over_budget": "Over budget",
+    "forecast_warning": "Forecast warning",
     "open_approval": "Pending approval",
     "overdue_planning": "Planning",
     "expiring_compliance": "Expiring compliance",
@@ -35,7 +43,14 @@
     "month_close_incomplete": "Month close",
     "boq_measurement_awaiting_approval": "BOQ measurement",
     "boq_progress_ready_to_bill": "BOQ progress bill",
-    "boq_vs_contract_mismatch": "BOQ vs contract"
+    "boq_vs_contract_mismatch": "BOQ vs contract",
+    "ocr_needs_review": "Document review",
+    "ocr_failed": "Document read failed",
+    "punch_open": "Open punch",
+    "safety_open": "Open safety",
+    "inspection_open": "Overdue inspection",
+    "recurring_draft_issue": "Recurring draft",
+    "timesheet_missing": "Missing timesheet"
   },
   "empty": {
     "title": "You're clear",

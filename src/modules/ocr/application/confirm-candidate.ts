@@ -49,6 +49,7 @@ import {
   mapFieldsToVendorCreditDraft,
   type CreateVendorCreditDraftFn,
 } from './create-vendor-credit-draft';
+import { rememberOcrCorrections } from './remember-corrections';
 
 export type CreateExpenseFn = (
   context: OrgContext,
@@ -341,6 +342,17 @@ export async function confirmOcrCandidate(
       rejectedFields: input.rejectedFields ?? null,
     });
 
+    await rememberOcrCorrections(context, {
+      vendorName: confirmed.vendor,
+      companyNumber: confirmed.companyNumber,
+      vatId: confirmed.vatId,
+      currency: confirmed.currency,
+      vendorId: input.vendorId,
+      projectId: input.rememberProjectId,
+      purchaseOrderId: input.rememberPurchaseOrderId,
+      subcontractAgreementId: input.rememberSubcontractAgreementId,
+    });
+
     return {
       kind: 'created',
       draftTarget: 'vendor_bill',
@@ -388,6 +400,16 @@ export async function confirmOcrCandidate(
       acceptedFields: input.acceptedFields,
       rejectedFields: input.rejectedFields ?? null,
     });
+    await rememberOcrCorrections(context, {
+      vendorName: confirmed.vendor,
+      companyNumber: confirmed.companyNumber,
+      vatId: confirmed.vatId,
+      currency: confirmed.currency,
+      vendorId: input.vendorId,
+      projectId: input.rememberProjectId,
+      purchaseOrderId: input.rememberPurchaseOrderId,
+      subcontractAgreementId: input.rememberSubcontractAgreementId,
+    });
     return {
       kind: 'created',
       draftTarget: 'vendor_credit',
@@ -421,6 +443,17 @@ export async function confirmOcrCandidate(
     extractedCandidates: retained.extractedCandidates,
     acceptedFields: input.acceptedFields,
     rejectedFields: input.rejectedFields ?? null,
+  });
+
+  await rememberOcrCorrections(context, {
+    vendorName: confirmed.vendor,
+    companyNumber: confirmed.companyNumber,
+    vatId: confirmed.vatId,
+    currency: confirmed.currency,
+    vendorId: input.vendorId,
+    projectId: input.rememberProjectId,
+    purchaseOrderId: input.rememberPurchaseOrderId,
+    subcontractAgreementId: input.rememberSubcontractAgreementId,
   });
 
   return {

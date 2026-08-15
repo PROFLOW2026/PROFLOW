@@ -27,10 +27,22 @@ import {
 } from '../domain/types';
 import {
   findActiveBudgetForProject,
+  listActiveBudgetAmountsForOrg,
   listBudgetLinesForRevision,
   listBudgetRevisions,
 } from '../data/budgets.repository';
 import { findProjectById } from '@/modules/projects';
+
+export async function getActiveBudgetForProject(context: OrgContext, projectId: string) {
+  return findActiveBudgetForProject(context.db, context.organizationId, projectId);
+}
+
+export async function getActiveBudgetAmountsForOrg(
+  context: OrgContext,
+): Promise<Map<string, { amount: string; currency: string }>> {
+  if (!hasPermission(context, PERMISSIONS.BUDGETS_READ)) return new Map();
+  return listActiveBudgetAmountsForOrg(context.db, context.organizationId);
+}
 
 export interface ProjectBudgetWorkspace {
   readonly budget: ProjectBudgetRecord | null;

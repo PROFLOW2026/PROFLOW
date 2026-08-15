@@ -60,7 +60,7 @@ function parseSeverity(value: string | undefined): SafetySeverity | undefined {
 export default async function SafetyPage({
   searchParams,
 }: {
-  searchParams: Promise<{ type?: string; status?: string; severity?: string }>;
+  searchParams: Promise<{ type?: string; status?: string; severity?: string; projectId?: string }>;
 }) {
   const t = await getTranslations('safety');
   const locale = await getLocale();
@@ -68,10 +68,11 @@ export default async function SafetyPage({
   const recordType = parseType(params.type);
   const status = parseStatus(params.status);
   const severity = parseSeverity(params.severity);
+  const projectId = params.projectId?.trim() || undefined;
 
   const { records, summary, projects, canManage } = await withOrgContext(async (context) => {
     const [rows, summaryRow, projectRows] = await Promise.all([
-      listSafetyRecordsForOrg(context, { recordType, status, severity }),
+      listSafetyRecordsForOrg(context, { recordType, status, severity, projectId }),
       getSafetySummaryForOrg(context),
       listProjectsForOrg(context, {}).catch(() => []),
     ]);
@@ -174,6 +175,7 @@ export default async function SafetyPage({
         initialType={recordType ?? 'all'}
         initialStatus={status ?? 'all'}
         initialSeverity={severity ?? 'all'}
+        projectId={projectId}
       />
 
       {records.length === 0 ? (

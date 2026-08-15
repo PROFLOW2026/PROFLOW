@@ -16,6 +16,7 @@ import { DailyLogEditForm } from '../daily-log-edit-form';
 import { DailyLogStatusActions } from '../daily-log-status-actions';
 import { isDailyLogLocked } from '@/modules/field-ops/domain/daily-log-status';
 import { textNavLinkClassName, textNavLinkMutedClassName } from '@/components/ui/pressable';
+import { ReportDownloadButtons } from '@/modules/reports/ui';
 
 export async function generateMetadata({
   params,
@@ -83,6 +84,7 @@ export default async function DailyLogDetailPage({
           </span>
         }
         description={projectName ?? t('detail.unknownProject')}
+        actions={<ReportDownloadButtons kind="field_daily" id={log.id} compact />}
         breadcrumb={
           <Link
             href="/field-ops/logs"

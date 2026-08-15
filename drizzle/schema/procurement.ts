@@ -194,6 +194,11 @@ export const purchaseOrders = pgTable(
   },
   (table) => [
     uniqueIndex('purchase_orders_id_organization_id_uq').on(table.id, table.organizationId),
+    uniqueIndex('purchase_orders_id_org_vendor_uq').on(
+      table.id,
+      table.organizationId,
+      table.vendorId,
+    ),
     index('purchase_orders_org_idx').on(table.organizationId),
     index('purchase_orders_project_idx').on(table.projectId),
     check(

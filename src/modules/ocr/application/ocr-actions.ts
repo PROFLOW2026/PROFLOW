@@ -14,6 +14,7 @@ import { createVendorBillDraftFromOcr } from './create-vendor-bill-draft';
 import { extractReceiptJob } from './extract-receipt';
 import { kickDurableOcrQueue } from './kick-queue';
 import { listOcrCandidates, OCR_REVIEW_SURFACE_STATUSES } from './list-candidates';
+import { loadOcrReviewSuggestions, type OcrReviewSuggestions } from './load-review-suggestions';
 import { getOcrProviderStatus } from './provider-status';
 import { rejectOcrCandidate } from './reject-candidate';
 import { getOcrRepository } from '../data/resolve-repository';
@@ -30,11 +31,13 @@ import {
   confirmOcrCandidateSchema,
   createOcrBatchSchema,
   extractReceiptSchema,
+  ocrReviewSuggestionsProbeSchema,
   rejectOcrCandidateSchema,
   type CancelOcrJobInput,
   type ConfirmOcrCandidateInput,
   type CreateOcrBatchAppInput,
   type ExtractReceiptAppInput,
+  type OcrReviewSuggestionsProbeInput,
   type RejectOcrCandidateInput,
 } from '../validation/schemas';
 
@@ -90,6 +93,26 @@ export async function getOcrReviewPageDataAction(): Promise<
         vendors = [];
       }
       return { status, jobs, batches, vendors };
+    });
+    return { ok: true, data };
+  } catch (error) {
+    return { ok: false, error: await failMessage(error) };
+  }
+}
+
+export async function getOcrReviewSuggestionsAction(
+  raw: OcrReviewSuggestionsProbeInput,
+): Promise<OcrActionResult<OcrReviewSuggestions>> {
+  const parsed = ocrReviewSuggestionsProbeSchema.safeParse(raw);
+  if (!parsed.success) {
+    const t = await getTranslations('errors');
+    return { ok: false, error: parsed.error.issues[0]?.message ?? t('validationFailed') };
+  }
+  try {
+    assertReviewSurfaceAllowed();
+    const data = await withOrgContext((context) => {
+      assertPermission(context, PERMISSIONS.DOCUMENTS_READ);
+      return loadOcrReviewSuggestions(context, parsed.data);
     });
     return { ok: true, data };
   } catch (error) {

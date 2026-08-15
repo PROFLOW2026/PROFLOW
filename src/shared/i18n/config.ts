@@ -94,6 +94,8 @@ export const MESSAGE_NAMESPACES = [
   'notifications',
   'safety',
   'scheduling',
+  'forecast',
+  'reports',
 ] as const;
 
 export type MessageNamespace = (typeof MESSAGE_NAMESPACES)[number];
@@ -130,4 +132,5 @@ export const APP_CLIENT_MESSAGE_NAMESPACES = [
   'approvals',
   'search',
   'notifications',
+  'reports',
 ] as const satisfies readonly MessageNamespace[];

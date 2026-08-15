@@ -5,6 +5,8 @@ import { getOrganizationReportsAnalytics, parseReportsSection, parseWorkKindFilt
 import { ReportsAnalyticsView } from '@/modules/financials/ui';
 import { ReportsSectionFocus } from '@/modules/financials/ui/reports-section-focus';
 import { WorkKindFilterChrome } from '@/modules/financials/ui/work-kind-filter-chrome';
+import { loadReportPackCatalog } from '@/modules/reports';
+import { ReportPacksSection } from '@/modules/reports/ui';
 import { withOrgContext } from '@/shared/auth/session';
 import { ReportsExportActionsLazy } from './reports-export-actions-lazy';
 
@@ -30,11 +32,14 @@ export default async function ReportsPage({
   const workKindFilter = parseWorkKindFilter(params.workKind);
   const section = parseReportsSection(params.section);
 
-  const analytics = await withOrgContext(async (context) =>
-    getOrganizationReportsAnalytics(context, {
-      workKindFilter,
-    }),
-  );
+  const [analytics, packs] = await Promise.all([
+    withOrgContext(async (context) =>
+      getOrganizationReportsAnalytics(context, {
+        workKindFilter,
+      }),
+    ),
+    withOrgContext((context) => loadReportPackCatalog(context)),
+  ]);
 
   return (
     <div className="flex min-w-0 max-w-full flex-col gap-6">
@@ -42,6 +47,12 @@ export default async function ReportsPage({
         title={t('title')}
         description={t('description')}
         actions={<ReportsExportActionsLazy />}
+      />
+
+      <ReportPacksSection
+        projects={packs.projects}
+        quotes={packs.quotes}
+        enabledKinds={packs.enabledKinds}
       />
 
       <WorkKindFilterChrome active={workKindFilter} pathname="/reports" section={section} />

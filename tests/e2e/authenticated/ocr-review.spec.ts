@@ -132,21 +132,28 @@ async function expectSelectedPreview(page: Page, documentId: string, checksum: s
 }
 
 async function drainActiveQueue(page: Page): Promise<void> {
-  for (let i = 0; i < 20; i += 1) {
-    const selected = page.locator('[data-pf-ocr-job-id][aria-current="true"]');
-    if ((await selected.count()) === 0) {
-      if ((await page.locator('[data-pf-ocr-job-id]').count()) === 0) return;
-      await page.locator('[data-pf-ocr-job-id]').first().click();
+  const tabOrder = ['needs_review', 'waiting', 'processing', 'failed'] as const;
+  for (const tab of tabOrder) {
+    const trigger = page.locator(`[data-pf-ocr-inbox-tab="${tab}"]`);
+    if ((await trigger.count()) > 0) {
+      await trigger.click();
     }
-    const reject = page.getByRole('button', { name: he.documents.ocr.rejectReview });
-    if ((await reject.count()) === 0 || (await reject.isDisabled())) return;
-    const before = await selectedJobId(page);
-    await reject.click();
-    await expect
-      .poll(async () => (await selectedJobId(page)) !== before || (await page.locator('[data-pf-ocr-job-id]').count()) === 0, {
-        timeout: 30_000,
-      })
-      .toBe(true);
+    for (let i = 0; i < 20; i += 1) {
+      const selected = page.locator('[data-pf-ocr-job-id][aria-current="true"]');
+      if ((await selected.count()) === 0) {
+        if ((await page.locator('[data-pf-ocr-job-id]').count()) === 0) break;
+        await page.locator('[data-pf-ocr-job-id]').first().click();
+      }
+      const reject = page.getByRole('button', { name: he.documents.ocr.rejectReview });
+      if ((await reject.count()) === 0 || (await reject.isDisabled())) break;
+      const before = await selectedJobId(page);
+      await reject.click();
+      await expect
+        .poll(async () => (await selectedJobId(page)) !== before || (await page.locator('[data-pf-ocr-job-id]').count()) === 0, {
+          timeout: 30_000,
+        })
+        .toBe(true);
+    }
   }
 }
 
@@ -167,6 +174,16 @@ async function confirmDraftTarget(
   }
 
   await acceptCoreFields(page);
+
+  const override = page.getByRole('checkbox', { name: he.documents.ocr.duplicateOverride });
+  if ((await override.count()) > 0) {
+    await override.check();
+  }
+
+  const notDuplicate = page.getByLabel(he.documents.ocr.duplicateOverride);
+  if ((await notDuplicate.count()) > 0) {
+    await notDuplicate.check();
+  }
 
   const confirmLabel =
     target === 'expense'

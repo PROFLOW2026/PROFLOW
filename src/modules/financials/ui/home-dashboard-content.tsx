@@ -277,21 +277,32 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
             {t('attention.title')}
           </h2>
           <ul className="flex min-w-0 flex-col gap-2 text-sm">
-            {data.attention.pendingChangesCount > 0 ? (
-              <li className="min-w-0 break-words rounded-md border border-[var(--pf-border-default)] px-3 py-2">
-                {t('attention.pendingChanges', { count: data.attention.pendingChangesCount })}
-              </li>
-            ) : null}
-            {data.attention.unbilledApprovedCount > 0 ? (
-              <li className="min-w-0 break-words rounded-md border border-[var(--pf-border-default)] px-3 py-2">
-                {t('attention.approvedNotBilled', { count: data.attention.unbilledApprovedCount })}
-              </li>
-            ) : null}
-            {data.attention.overdueBillingCount > 0 ? (
-              <li className="min-w-0 break-words rounded-md border border-[var(--pf-border-default)] px-3 py-2">
-                {t('attention.overdueBilling', { count: data.attention.overdueBillingCount })}
-              </li>
-            ) : null}
+            {(data.preferServiceSurface
+              ? (['overdueBilling', 'unbilledApproved', 'pendingChanges'] as const)
+              : (['pendingChanges', 'unbilledApproved', 'overdueBilling'] as const)
+            ).map((key) => {
+              const count =
+                key === 'overdueBilling'
+                  ? data.attention.overdueBillingCount
+                  : key === 'unbilledApproved'
+                    ? data.attention.unbilledApprovedCount
+                    : data.attention.pendingChangesCount;
+              if (count <= 0) return null;
+              const text =
+                key === 'overdueBilling'
+                  ? t('attention.overdueBilling', { count })
+                  : key === 'unbilledApproved'
+                    ? t('attention.approvedNotBilled', { count })
+                    : t('attention.pendingChanges', { count });
+              return (
+                <li
+                  key={key}
+                  className="min-w-0 break-words rounded-md border border-[var(--pf-border-default)] px-3 py-2"
+                >
+                  {text}
+                </li>
+              );
+            })}
           </ul>
         </section>
       ) : null}

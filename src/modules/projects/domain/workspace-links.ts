@@ -23,6 +23,10 @@ export type ProjectWorkspaceLinkKey =
   | 'procurement'
   | 'ap'
   | 'field_ops'
+  | 'punch'
+  | 'inspections'
+  | 'safety'
+  | 'reports'
   | 'workforce'
   | 'vendors'
   | 'assets'
@@ -140,9 +144,37 @@ export function selectProjectWorkspaceLinks(input: WorkspaceLinkInput): ProjectW
   }
 
   if (moduleOn(input.modules, 'field_ops') && can(input.permissions, PERMISSIONS.FIELD_OPS_READ)) {
+    links.push(
+      {
+        key: 'field_ops',
+        href: `/field-ops/logs?projectId=${projectId}`,
+        inProject: false,
+      },
+      {
+        key: 'punch',
+        href: `/field-ops/punch?projectId=${projectId}`,
+        inProject: false,
+      },
+      {
+        key: 'inspections',
+        href: `/field-ops/inspections?projectId=${projectId}`,
+        inProject: false,
+      },
+    );
+  }
+
+  if (moduleOn(input.modules, 'safety') && can(input.permissions, PERMISSIONS.SAFETY_READ)) {
     links.push({
-      key: 'field_ops',
-      href: `/field-ops/logs?projectId=${projectId}`,
+      key: 'safety',
+      href: `/safety?projectId=${projectId}`,
+      inProject: false,
+    });
+  }
+
+  if (input.canReadFinancials) {
+    links.push({
+      key: 'reports',
+      href: `/reports?projectId=${projectId}`,
       inProject: false,
     });
   }

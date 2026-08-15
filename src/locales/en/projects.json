@@ -127,7 +127,11 @@
       "schedule": "Schedule",
       "procurement": "Procurement",
       "ap": "Vendor bills",
-      "field_ops": "Field operations",
+      "field_ops": "Daily logs",
+      "punch": "Punch list",
+      "inspections": "Inspections",
+      "safety": "Safety",
+      "reports": "Reports",
       "workforce": "Employees",
       "vendors": "Vendors",
       "assets": "Assets",
@@ -209,6 +213,17 @@
       "original": "Original",
       "change_order": "Change order",
       "adjustment": "Adjustment"
+    },
+    "earlyWarnings": {
+      "title": "Early warnings",
+      "open": "Open"
+    },
+    "latest": {
+      "title": "Latest",
+      "dailyLog": "Daily log",
+      "punch": "Punch item",
+      "change": "Change request",
+      "open": "Open"
     }
   },
   "work": {

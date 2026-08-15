@@ -117,6 +117,11 @@ export interface HomeDashboardData {
    * Always set so the dashboard empty state stays honest for jobs/service orgs.
    */
   readonly emptyStartKind: 'project' | 'job' | 'work_order';
+  /**
+   * Profile / work-mix bias for home chrome (empty CTA + attention order).
+   * Does not change financial totals.
+   */
+  readonly preferServiceSurface: boolean;
   /** Org-scope DATA CONFIDENCE (worst-of projects + unallocated / FX). */
   readonly dataConfidence: DataConfidence | null;
 }
@@ -152,6 +157,7 @@ export async function getHomeDashboard(
 
   const jobsReachable = Boolean(modules.jobs) || workMixSurfacesJobs(workMix);
   const serviceReachable = Boolean(modules.service) && canCreateService;
+  const preferServiceSurface = Boolean(suggestedDefaults?.preferServiceSurface);
   let emptyStartKind: 'project' | 'job' | 'work_order' = 'project';
   if (
     serviceReachable &&
@@ -245,6 +251,7 @@ export async function getHomeDashboard(
       canCreateProject,
       canCreateExpense,
       emptyStartKind,
+      preferServiceSurface,
       dataConfidence: null,
     };
   }
@@ -445,6 +452,7 @@ export async function getHomeDashboard(
     canCreateProject,
     canCreateExpense,
     emptyStartKind,
+    preferServiceSurface,
     dataConfidence,
   };
 }

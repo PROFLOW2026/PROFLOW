@@ -60,7 +60,7 @@ export function MobileNav({ items }: { items: NavItem[] }) {
       <nav
         aria-label={tCommon('a11y.mainNavigation')}
         data-pf-mobile-nav=""
-        className="fixed inset-x-0 bottom-0 z-20 flex w-full max-w-full border-t border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] pb-[env(safe-area-inset-bottom,0px)] lg:hidden"
+        className="fixed inset-x-0 bottom-0 z-20 flex w-full max-w-full border-t border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] pb-[env(safe-area-inset-bottom,0px)] print:hidden lg:hidden"
       >
         <ul className="flex w-full min-w-0 items-stretch">
           {primary.map((item) => {

@@ -46,6 +46,11 @@ export type { CanonicalOcrDocument } from './domain/canonical';
 export { mapAzureAnalyzeResult } from './domain/azure-mapper';
 export { matchVendors } from './domain/vendor-matching';
 export { detectDuplicateHits, shouldReuseExistingJob } from './domain/duplicates';
+export { suggestProjects } from './domain/project-matching';
+export { suggestPurchaseOrders } from './domain/po-matching';
+export { suggestSubcontracts } from './domain/agreement-matching';
+export { loadOcrReviewSuggestions } from './application/load-review-suggestions';
+export type { OcrReviewSuggestions } from './application/load-review-suggestions';
 export { collectReviewWarnings, lineItemsTrustworthy, countTrustworthyLineRows } from './domain/totals-warnings';
 export { confidenceState } from './domain/confidence';
 export {
@@ -162,9 +167,15 @@ export { createOcrBatch, getOcrBatchProgress, listOcrBatches } from './applicati
 export {
   OCR_REVIEW_SURFACE_STATUSES,
   OCR_REVIEW_HISTORY_STATUSES,
+  OCR_INBOX_TABS,
   isOcrActiveQueueStatus,
   isOcrHistoryStatus,
+  ocrInboxTabForStatus,
+  defaultOcrInboxTab,
+  jobsForOcrInboxTab,
+  countOcrInboxTabs,
 } from './domain/review-queue';
+export type { OcrInboxTab } from './domain/review-queue';
 export { listOcrCandidates } from './application/list-candidates';
 export { confirmOcrCandidate } from './application/confirm-candidate';
 export type {
@@ -188,6 +199,7 @@ export {
   rejectOcrCandidateSchema,
   createOcrBatchSchema,
   cancelOcrJobSchema,
+  ocrReviewSuggestionsProbeSchema,
 } from './validation/schemas';
 export type {
   ExtractReceiptAppInput,
@@ -196,4 +208,5 @@ export type {
   RejectOcrCandidateInput,
   CreateOcrBatchAppInput,
   CancelOcrJobInput,
+  OcrReviewSuggestionsProbeInput,
 } from './validation/schemas';

@@ -23,7 +23,8 @@ import { WORK_MIX_SETTING_KEY } from '../domain/work-mix';
 
 /**
  * Applies a business profile as editable configuration only.
- * Never forks financial logic, never deletes existing rows, never bypasses permissions.
+ * Writes organization_settings JSON (no schema fork). Never forks financial
+ * logic, never deletes existing rows, never enables portal, never bypasses permissions.
  */
 export async function applyBusinessProfileConfig(
   db: DbExecutor,
@@ -53,6 +54,7 @@ export async function applyBusinessProfileConfig(
   );
 
   for (const moduleKey of profile.visibleModules) {
+    if (moduleKey === 'portal') continue;
     await setModulePreference(db, organizationId, moduleKey, true);
   }
 

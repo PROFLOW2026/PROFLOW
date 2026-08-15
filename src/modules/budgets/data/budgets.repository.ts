@@ -106,6 +106,32 @@ export async function findActiveBudgetForProject(
   return row ? mapBudget(row) : null;
 }
 
+export async function listActiveBudgetAmountsForOrg(
+  db: DbExecutor,
+  organizationId: string,
+): Promise<Map<string, { amount: string; currency: string }>> {
+  const rows = await db
+    .select({
+      projectId: projectBudgets.projectId,
+      totalBudgetAmount: projectBudgets.totalBudgetAmount,
+      currency: projectBudgets.currency,
+    })
+    .from(projectBudgets)
+    .where(
+      and(
+        eq(projectBudgets.organizationId, organizationId),
+        eq(projectBudgets.status, 'active'),
+        isNull(projectBudgets.archivedAt),
+      ),
+    );
+  const map = new Map<string, { amount: string; currency: string }>();
+  for (const row of rows) {
+    if (!row.totalBudgetAmount) continue;
+    map.set(row.projectId, { amount: row.totalBudgetAmount, currency: row.currency });
+  }
+  return map;
+}
+
 export async function findBudgetById(
   db: DbExecutor,
   organizationId: string,

@@ -6,6 +6,8 @@ import { Link } from '@/shared/i18n/navigation';
 import { loadProjectDetail } from '../load-project-detail';
 import { loadProjectFinancials } from '../load-project-financials';
 import { ProjectFinancialsExportLink } from './project-financials-export-link';
+import { ReportDownloadButtons } from '@/modules/reports/ui';
+import { WithClientMessages } from '@/shared/i18n/with-client-messages';
 import { textNavLinkClassName } from '@/components/ui/pressable';
 import { cn } from '@/shared/ui/cn';
 
@@ -43,7 +45,14 @@ export default async function ProjectFinancialsPage({ params }: ProjectFinancial
             {tCommon('actions.back')}
           </Link>
         }
-        actions={<ProjectFinancialsExportLink projectId={projectId} />}
+        actions={
+          <div className="flex flex-wrap items-center gap-2">
+            <ProjectFinancialsExportLink projectId={projectId} />
+            <WithClientMessages extra={['reports', 'exports']}>
+              <ReportDownloadButtons kind="project_financial_summary" id={projectId} compact />
+            </WithClientMessages>
+          </div>
+        }
       />
       <ProjectFinancialsPanel projectId={projectId} />
     </div>

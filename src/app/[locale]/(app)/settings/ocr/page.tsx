@@ -33,13 +33,13 @@ export default async function OcrSettingsPage() {
     if (!canAccessSection(context, section)) return { allowed: false as const };
 
     const status = readOcrProviderStatus();
-    let queue = { queued: 0, processing: 0, failed: 0, jobs: [] as Awaited<
+    let queue = { queued: 0, processing: 0, failed: 0, needsReview: 0, jobs: [] as Awaited<
       ReturnType<typeof getOcrQueueSnapshot>
     >['jobs'] };
     try {
       queue = await getOcrQueueSnapshot(context);
     } catch {
-      queue = { queued: 0, processing: 0, failed: 0, jobs: [] };
+      queue = { queued: 0, processing: 0, failed: 0, needsReview: 0, jobs: [] };
     }
 
     return {
@@ -101,7 +101,8 @@ export default async function OcrSettingsPage() {
 
         <Card className="flex flex-col gap-3 p-5">
           <h2 className="text-base font-semibold">{t('queueTitle')}</h2>
-          <dl className="grid grid-cols-3 gap-3 text-sm" data-pf-ocr-queue-counts>
+          <p className="text-sm text-[var(--pf-text-secondary)]">{t('queueHint')}</p>
+          <dl className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-4" data-pf-ocr-queue-counts>
             <div>
               <dt className="text-[var(--pf-text-secondary)]">{t('queued')}</dt>
               <dd className="text-lg font-semibold">{data.queue.queued}</dd>
@@ -109,6 +110,10 @@ export default async function OcrSettingsPage() {
             <div>
               <dt className="text-[var(--pf-text-secondary)]">{t('processing')}</dt>
               <dd className="text-lg font-semibold">{data.queue.processing}</dd>
+            </div>
+            <div>
+              <dt className="text-[var(--pf-text-secondary)]">{t('needsReview')}</dt>
+              <dd className="text-lg font-semibold">{data.queue.needsReview}</dd>
             </div>
             <div>
               <dt className="text-[var(--pf-text-secondary)]">{t('failed')}</dt>

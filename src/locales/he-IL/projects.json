@@ -127,7 +127,11 @@
       "schedule": "לוח זמנים",
       "procurement": "רכש",
       "ap": "חשבונות ספקים",
-      "field_ops": "פעילות שטח",
+      "field_ops": "יומני שטח",
+      "punch": "רשימת ליקויים",
+      "inspections": "בדיקות",
+      "safety": "בטיחות",
+      "reports": "דוחות",
       "workforce": "עובדים",
       "vendors": "ספקים",
       "assets": "נכסים",
@@ -209,6 +213,17 @@
       "original": "מקורי",
       "change_order": "שינוי מאושר",
       "adjustment": "התאמה"
+    },
+    "earlyWarnings": {
+      "title": "אזהרות מוקדמות",
+      "open": "פתיחה"
+    },
+    "latest": {
+      "title": "לאחרונה",
+      "dailyLog": "יומן שטח",
+      "punch": "פריט תיקון",
+      "change": "בקשת שינוי",
+      "open": "פתיחה"
     }
   },
   "work": {

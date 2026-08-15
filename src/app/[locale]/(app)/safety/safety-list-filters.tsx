@@ -13,16 +13,19 @@ export function SafetyListFilters({
   initialType,
   initialStatus,
   initialSeverity,
+  projectId,
 }: {
   initialType: string;
   initialStatus: string;
   initialSeverity: string;
+  projectId?: string;
 }) {
   const t = useTranslations('safety');
   const tCommon = useTranslations('common');
 
   return (
     <form method="get" className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
+      {projectId ? <input type="hidden" name="projectId" value={projectId} /> : null}
       <Field label={t('filters.type')} className="w-full sm:w-44">
         {(control) => (
           <select

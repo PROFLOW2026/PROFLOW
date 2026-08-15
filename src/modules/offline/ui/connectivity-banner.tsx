@@ -82,7 +82,7 @@ export function ConnectivityBanner() {
       aria-live="polite"
       data-pf-connectivity={online ? (failedCount > 0 ? 'sync-failed' : 'pending') : 'offline'}
       className={cn(
-        'border-b border-[var(--pf-border-default)] px-4 py-2 text-sm text-[var(--pf-text-primary)]',
+        'border-b border-[var(--pf-border-default)] px-4 py-2 text-sm text-[var(--pf-text-primary)] print:hidden',
         showFailed
           ? 'bg-[var(--pf-status-warning-bg,var(--pf-bg-muted))]'
           : 'bg-[var(--pf-bg-muted)]',

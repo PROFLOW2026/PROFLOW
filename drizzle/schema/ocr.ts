@@ -12,11 +12,16 @@ import {
   uniqueIndex,
   uuid,
 } from 'drizzle-orm/pg-core';
-import { primaryId, timestamps } from './_shared';
+import { currencyCode, primaryId, timestamps } from './_shared';
 import { apBills, apVendorCredits } from './ap';
 import { documents } from './documents';
 import { expenses } from './expenses';
-import { organizations } from './tenancy';
+import { profiles } from './identity';
+import { purchaseOrders } from './procurement';
+import { projects } from './projects';
+import { subcontractAgreements } from './platform-ops';
+import { organizationMemberships, organizations } from './tenancy';
+import { vendors } from './vendors';
 
 /**
  * OCR extraction jobs — never ledger truth.
@@ -149,5 +154,137 @@ export const ocrExtractionJobs = pgTable(
       columns: [table.confirmedVendorCreditId, table.organizationId],
       foreignColumns: [apVendorCredits.id, apVendorCredits.organizationId],
     }).onDelete('restrict'),
+  ],
+);
+
+/**
+ * Confirmed OCR mapping memory — suggestions only, never ledger truth.
+ * Remembered after explicit human confirm. Not an ML training platform.
+ */
+export const ocrCorrectionMemory = pgTable(
+  'ocr_correction_memory',
+  {
+    id: primaryId(),
+    organizationId: uuid('organization_id')
+      .notNull()
+      .references(() => organizations.id, { onDelete: 'cascade' }),
+    mappingKind: text('mapping_kind').notNull(),
+    sourceKey: text('source_key').notNull(),
+    sourceVendorName: text('source_vendor_name'),
+    sourceIdentifier: text('source_identifier'),
+    sourceCurrency: currencyCode('source_currency'),
+    vendorId: uuid('vendor_id'),
+    projectId: uuid('project_id'),
+    purchaseOrderId: uuid('purchase_order_id'),
+    subcontractAgreementId: uuid('subcontract_agreement_id'),
+    confirmedCount: integer('confirmed_count').notNull().default(1),
+    lastConfirmedAt: timestamp('last_confirmed_at', { withTimezone: true, mode: 'date' })
+      .notNull()
+      .defaultNow(),
+    lastConfirmedByUserId: uuid('last_confirmed_by_user_id').references(() => profiles.id, {
+      onDelete: 'set null',
+    }),
+    // Composite membership FK is declared below. SQL SET NULL is column-specific.
+    ...timestamps(),
+  },
+  (table) => [
+    uniqueIndex('ocr_correction_memory_id_organization_id_uq').on(table.id, table.organizationId),
+    uniqueIndex('ocr_correction_memory_org_kind_source_uq').on(
+      table.organizationId,
+      table.mappingKind,
+      table.sourceKey,
+    ),
+    index('ocr_correction_memory_org_vendor_idx')
+      .on(table.organizationId, table.vendorId)
+      .where(sql`${table.vendorId} is not null`),
+    index('ocr_correction_memory_org_project_idx')
+      .on(table.organizationId, table.projectId)
+      .where(sql`${table.projectId} is not null`),
+    check(
+      'ocr_correction_memory_kind_known',
+      sql`${table.mappingKind} IN ('vendor', 'project', 'purchase_order', 'subcontract_agreement')`,
+    ),
+    check(
+      'ocr_correction_memory_source_key_nonempty',
+      sql`char_length(btrim(${table.sourceKey})) > 0`,
+    ),
+    check('ocr_correction_memory_count_positive', sql`${table.confirmedCount} >= 1`),
+    check(
+      'ocr_correction_memory_target_shape',
+      sql`(
+        (
+          ${table.mappingKind} = 'vendor'
+          AND ${table.vendorId} IS NOT NULL
+          AND ${table.projectId} IS NULL
+          AND ${table.purchaseOrderId} IS NULL
+          AND ${table.subcontractAgreementId} IS NULL
+        )
+        OR (
+          ${table.mappingKind} = 'project'
+          AND ${table.projectId} IS NOT NULL
+          AND ${table.purchaseOrderId} IS NULL
+          AND ${table.subcontractAgreementId} IS NULL
+        )
+        OR (
+          ${table.mappingKind} = 'purchase_order'
+          AND ${table.purchaseOrderId} IS NOT NULL
+          AND ${table.subcontractAgreementId} IS NULL
+        )
+        OR (
+          ${table.mappingKind} = 'subcontract_agreement'
+          AND ${table.subcontractAgreementId} IS NOT NULL
+          AND ${table.purchaseOrderId} IS NULL
+          AND ${table.projectId} IS NOT NULL
+        )
+      )`,
+    ),
+    foreignKey({
+      name: 'ocr_correction_memory_vendor_org_fk',
+      columns: [table.vendorId, table.organizationId],
+      foreignColumns: [vendors.id, vendors.organizationId],
+    }).onDelete('cascade'),
+    foreignKey({
+      name: 'ocr_correction_memory_project_org_fk',
+      columns: [table.projectId, table.organizationId],
+      foreignColumns: [projects.id, projects.organizationId],
+    }).onDelete('cascade'),
+    foreignKey({
+      name: 'ocr_correction_memory_po_org_fk',
+      columns: [table.purchaseOrderId, table.organizationId],
+      foreignColumns: [purchaseOrders.id, purchaseOrders.organizationId],
+    }).onDelete('cascade'),
+    foreignKey({
+      name: 'ocr_correction_memory_po_vendor_fk',
+      columns: [table.purchaseOrderId, table.organizationId, table.vendorId],
+      foreignColumns: [purchaseOrders.id, purchaseOrders.organizationId, purchaseOrders.vendorId],
+    }).onDelete('cascade'),
+    foreignKey({
+      name: 'ocr_correction_memory_agreement_org_fk',
+      columns: [table.subcontractAgreementId, table.organizationId],
+      foreignColumns: [subcontractAgreements.id, subcontractAgreements.organizationId],
+    }).onDelete('cascade'),
+    foreignKey({
+      name: 'ocr_correction_memory_agreement_project_fk',
+      columns: [table.subcontractAgreementId, table.organizationId, table.projectId],
+      foreignColumns: [
+        subcontractAgreements.id,
+        subcontractAgreements.organizationId,
+        subcontractAgreements.projectId,
+      ],
+    }).onDelete('cascade'),
+    foreignKey({
+      name: 'ocr_correction_memory_agreement_vendor_fk',
+      columns: [table.subcontractAgreementId, table.organizationId, table.vendorId],
+      foreignColumns: [
+        subcontractAgreements.id,
+        subcontractAgreements.organizationId,
+        subcontractAgreements.vendorId,
+      ],
+    }).onDelete('cascade'),
+    foreignKey({
+      name: 'ocr_correction_memory_confirmed_by_membership_fk',
+      columns: [table.organizationId, table.lastConfirmedByUserId],
+      foreignColumns: [organizationMemberships.organizationId, organizationMemberships.userId],
+    }).onDelete('set null'),
   ],
 );

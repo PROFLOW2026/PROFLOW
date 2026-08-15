@@ -1,16 +1,27 @@
-import { and, eq, ilike, isNull, or, sql } from 'drizzle-orm';
+import { and, eq, ilike, inArray, isNull, or, sql } from 'drizzle-orm';
 import {
   apBills,
+  apVendorCredits,
   assets,
   billingRecords,
   boqNodes,
   clientContacts,
   clients,
+  contracts,
+  crmOpportunities,
+  dailyLogs,
   employees,
+  estimates,
+  expenses,
+  inspections,
   inventoryItems,
   materialItems,
   projectBoqs,
   projects,
+  punchListItems,
+  purchaseOrders,
+  safetyRecords,
+  subcontractAgreements,
   vendors,
 } from '@drizzle/schema';
 import { existsSearchableCustomFieldValueSql } from '@/modules/custom-fields';
@@ -23,12 +34,31 @@ function likeTerm(query: string): string {
   return `%${query.replace(/[%_]/g, ' ').trim()}%`;
 }
 
+function projectAccessSql(
+  column: ReturnType<typeof sql> | { name?: string },
+  allowed: string[] | null,
+) {
+  if (allowed === null) return sql`true`;
+  if (allowed.length === 0) return sql`false`;
+  return inArray(column as never, allowed);
+}
+
+function moneyContext(
+  includeMoney: boolean,
+  amount: string | null | undefined,
+  currency: string | null | undefined,
+): Pick<GlobalSearchHit, 'amount' | 'currency'> {
+  if (!includeMoney || !amount) return {};
+  return { amount, currency: currency ?? null };
+}
+
 export async function searchProjectsByWorkKind(
   db: DbExecutor,
   organizationId: string,
   query: string,
   workKind: 'project' | 'job' | 'work_order',
   limit: number,
+  accessibleProjectIds: string[] | null = null,
 ): Promise<GlobalSearchHit[]> {
   const term = likeTerm(query);
   const hrefBase =
@@ -40,6 +70,7 @@ export async function searchProjectsByWorkKind(
       name: projects.name,
       status: projects.status,
       location: projects.location,
+      documentNumber: projects.documentNumber,
     })
     .from(projects)
     .where(
@@ -47,9 +78,11 @@ export async function searchProjectsByWorkKind(
         eq(projects.organizationId, organizationId),
         eq(projects.workKind, workKind),
         isNull(projects.archivedAt),
+        projectAccessSql(projects.id, accessibleProjectIds),
         or(
           ilike(projects.name, term),
           ilike(projects.location, term),
+          ilike(projects.documentNumber, term),
           existsSearchableCustomFieldValueSql(organizationId, 'project', projects.id, term),
         )!,
       ),
@@ -60,9 +93,10 @@ export async function searchProjectsByWorkKind(
   return rows.map((row) => ({
     kind,
     id: row.id,
-    title: row.name,
+    title: row.documentNumber ? `${row.documentNumber} · ${row.name}` : row.name,
     subtitle: [row.status, row.location].filter(Boolean).join(' · ') || null,
     href: `${hrefBase}/${row.id}`,
+    status: row.status,
   }));
 }
 
@@ -220,6 +254,7 @@ export async function searchApBills(
   organizationId: string,
   query: string,
   limit: number,
+  accessibleProjectIds: string[] | null = null,
 ): Promise<GlobalSearchHit[]> {
   const term = likeTerm(query);
   const rows = await db
@@ -228,6 +263,10 @@ export async function searchApBills(
       reference: apBills.reference,
       status: apBills.status,
       vendorName: vendors.name,
+      projectId: apBills.projectId,
+      billDate: apBills.billDate,
+      totalAmount: apBills.totalAmount,
+      currency: apBills.currency,
     })
     .from(apBills)
     .innerJoin(vendors, and(eq(apBills.vendorId, vendors.id), eq(vendors.organizationId, organizationId)))
@@ -236,6 +275,7 @@ export async function searchApBills(
         eq(apBills.organizationId, organizationId),
         isNull(apBills.archivedAt),
         sql`${apBills.status} <> 'void'`,
+        or(sql`${apBills.projectId} is null`, projectAccessSql(apBills.projectId, accessibleProjectIds)),
         or(ilike(apBills.reference, term), ilike(vendors.name, term))!,
       ),
     )
@@ -248,6 +288,10 @@ export async function searchApBills(
     title: row.reference?.trim() || row.vendorName,
     subtitle: [row.vendorName, row.status].filter(Boolean).join(' · ') || null,
     href: `/procurement/ap/${row.id}`,
+    status: row.status,
+    contextLabel: row.vendorName,
+    date: row.billDate,
+    ...moneyContext(true, row.totalAmount, row.currency),
   }));
 }
 
@@ -256,6 +300,7 @@ export async function searchBillingRecords(
   organizationId: string,
   query: string,
   limit: number,
+  accessibleProjectIds: string[] | null = null,
 ): Promise<GlobalSearchHit[]> {
   const term = likeTerm(query);
   const rows = await db
@@ -264,6 +309,10 @@ export async function searchBillingRecords(
       reference: billingRecords.reference,
       status: billingRecords.status,
       kind: billingRecords.kind,
+      issueDate: billingRecords.issueDate,
+      totalAmount: billingRecords.totalAmount,
+      currency: billingRecords.currency,
+      projectId: billingRecords.projectId,
     })
     .from(billingRecords)
     .where(
@@ -271,6 +320,10 @@ export async function searchBillingRecords(
         eq(billingRecords.organizationId, organizationId),
         isNull(billingRecords.archivedAt),
         sql`${billingRecords.status} <> 'void'`,
+        or(
+          sql`${billingRecords.projectId} is null`,
+          projectAccessSql(billingRecords.projectId, accessibleProjectIds),
+        ),
         ilike(billingRecords.reference, term),
       ),
     )
@@ -280,9 +333,12 @@ export async function searchBillingRecords(
   return rows.map((row) => ({
     kind: 'billing' as const,
     id: row.id,
-    title: row.reference?.trim() || row.id.slice(0, 8),
+    title: row.reference?.trim() || row.kind,
     subtitle: [row.kind, row.status].join(' · '),
     href: `/billing/${row.id}`,
+    status: row.status,
+    date: row.issueDate,
+    ...moneyContext(true, row.totalAmount, row.currency),
   }));
 }
 
@@ -437,6 +493,7 @@ export async function searchBoqItems(
   organizationId: string,
   query: string,
   limit: number,
+  accessibleProjectIds: string[] | null = null,
 ): Promise<GlobalSearchHit[]> {
   const term = likeTerm(query);
   const rows = await db
@@ -456,6 +513,7 @@ export async function searchBoqItems(
         eq(boqNodes.nodeKind, 'item'),
         isNull(boqNodes.archivedAt),
         isNull(projectBoqs.archivedAt),
+        projectAccessSql(projectBoqs.projectId, accessibleProjectIds),
         or(ilike(boqNodes.itemCode, term), ilike(boqNodes.description, term))!,
       ),
     )
@@ -468,5 +526,496 @@ export async function searchBoqItems(
     title: row.itemCode ? `${row.itemCode} · ${row.description}` : row.description,
     subtitle: row.projectName,
     href: `/projects/${row.projectId}?tab=boq`,
+    contextLabel: row.projectName,
+  }));
+}
+
+export async function searchExpenses(
+  db: DbExecutor,
+  organizationId: string,
+  query: string,
+  limit: number,
+  accessibleProjectIds: string[] | null = null,
+): Promise<GlobalSearchHit[]> {
+  const term = likeTerm(query);
+  const rows = await db
+    .select({
+      id: expenses.id,
+      description: expenses.description,
+      supplierName: expenses.supplierName,
+      status: expenses.status,
+      expenseDate: expenses.expenseDate,
+      grossAmount: expenses.grossAmount,
+      currency: expenses.currency,
+      projectId: expenses.projectId,
+    })
+    .from(expenses)
+    .where(
+      and(
+        eq(expenses.organizationId, organizationId),
+        isNull(expenses.archivedAt),
+        sql`${expenses.status} <> 'void'`,
+        or(sql`${expenses.projectId} is null`, projectAccessSql(expenses.projectId, accessibleProjectIds)),
+        or(ilike(expenses.description, term), ilike(expenses.supplierName, term), ilike(expenses.notes, term))!,
+      ),
+    )
+    .orderBy(expenses.updatedAt)
+    .limit(limit);
+
+  return rows.map((row) => ({
+    kind: 'expense' as const,
+    id: row.id,
+    title: row.description?.trim() || row.supplierName || 'Expense',
+    subtitle: [row.supplierName, row.status].filter(Boolean).join(' · ') || null,
+    href: `/expenses/${row.id}`,
+    status: row.status,
+    contextLabel: row.supplierName,
+    date: row.expenseDate ? String(row.expenseDate) : null,
+    ...moneyContext(true, row.grossAmount, row.currency),
+  }));
+}
+
+export async function searchQuotes(
+  db: DbExecutor,
+  organizationId: string,
+  query: string,
+  limit: number,
+): Promise<GlobalSearchHit[]> {
+  const term = likeTerm(query);
+  const rows = await db
+    .select({
+      id: estimates.id,
+      title: estimates.title,
+      status: estimates.status,
+      totalAmount: estimates.totalAmount,
+      currency: estimates.currency,
+      clientName: clients.name,
+    })
+    .from(estimates)
+    .leftJoin(clients, and(eq(estimates.clientId, clients.id), eq(clients.organizationId, organizationId)))
+    .where(
+      and(
+        eq(estimates.organizationId, organizationId),
+        isNull(estimates.archivedAt),
+        or(ilike(estimates.title, term), ilike(clients.name, term))!,
+      ),
+    )
+    .orderBy(estimates.updatedAt)
+    .limit(limit);
+
+  return rows.map((row) => ({
+    kind: 'quote' as const,
+    id: row.id,
+    title: row.title,
+    subtitle: [row.clientName, row.status].filter(Boolean).join(' · ') || null,
+    href: `/quotes/${row.id}`,
+    status: row.status,
+    contextLabel: row.clientName,
+    ...moneyContext(true, row.totalAmount, row.currency),
+  }));
+}
+
+export async function searchOpportunities(
+  db: DbExecutor,
+  organizationId: string,
+  query: string,
+  limit: number,
+): Promise<GlobalSearchHit[]> {
+  const term = likeTerm(query);
+  const rows = await db
+    .select({
+      id: crmOpportunities.id,
+      name: crmOpportunities.name,
+      status: crmOpportunities.status,
+      stage: crmOpportunities.stage,
+      expectedValueAmount: crmOpportunities.expectedValueAmount,
+      currency: crmOpportunities.currency,
+    })
+    .from(crmOpportunities)
+    .where(
+      and(
+        eq(crmOpportunities.organizationId, organizationId),
+        isNull(crmOpportunities.archivedAt),
+        ilike(crmOpportunities.name, term),
+      ),
+    )
+    .orderBy(crmOpportunities.updatedAt)
+    .limit(limit);
+
+  return rows.map((row) => ({
+    kind: 'opportunity' as const,
+    id: row.id,
+    title: row.name,
+    subtitle: [row.stage, row.status].filter(Boolean).join(' · ') || null,
+    href: `/crm/opportunities/${row.id}`,
+    status: row.status,
+    ...moneyContext(true, row.expectedValueAmount, row.currency),
+  }));
+}
+
+export async function searchContracts(
+  db: DbExecutor,
+  organizationId: string,
+  query: string,
+  limit: number,
+  accessibleProjectIds: string[] | null = null,
+): Promise<GlobalSearchHit[]> {
+  const term = likeTerm(query);
+  const rows = await db
+    .select({
+      id: contracts.id,
+      name: contracts.name,
+      contractNumber: contracts.contractNumber,
+      reference: contracts.reference,
+      status: contracts.status,
+      projectId: contracts.projectId,
+      projectName: projects.name,
+    })
+    .from(contracts)
+    .innerJoin(projects, and(eq(contracts.projectId, projects.id), eq(projects.organizationId, organizationId)))
+    .where(
+      and(
+        eq(contracts.organizationId, organizationId),
+        isNull(contracts.archivedAt),
+        projectAccessSql(contracts.projectId, accessibleProjectIds),
+        or(
+          ilike(contracts.name, term),
+          ilike(contracts.contractNumber, term),
+          ilike(contracts.reference, term),
+          ilike(projects.name, term),
+        )!,
+      ),
+    )
+    .orderBy(contracts.updatedAt)
+    .limit(limit);
+
+  return rows.map((row) => ({
+    kind: 'contract' as const,
+    id: row.id,
+    title: row.contractNumber || row.name || row.reference || row.projectName,
+    subtitle: [row.projectName, row.status].filter(Boolean).join(' · ') || null,
+    href: `/projects/${row.projectId}`,
+    status: row.status,
+    contextLabel: row.projectName,
+  }));
+}
+
+export async function searchPurchaseOrders(
+  db: DbExecutor,
+  organizationId: string,
+  query: string,
+  limit: number,
+  accessibleProjectIds: string[] | null = null,
+): Promise<GlobalSearchHit[]> {
+  const term = likeTerm(query);
+  const rows = await db
+    .select({
+      id: purchaseOrders.id,
+      reference: purchaseOrders.reference,
+      status: purchaseOrders.status,
+      vendorName: vendors.name,
+      projectId: purchaseOrders.projectId,
+      orderedOn: purchaseOrders.orderedOn,
+    })
+    .from(purchaseOrders)
+    .innerJoin(vendors, and(eq(purchaseOrders.vendorId, vendors.id), eq(vendors.organizationId, organizationId)))
+    .where(
+      and(
+        eq(purchaseOrders.organizationId, organizationId),
+        isNull(purchaseOrders.archivedAt),
+        or(
+          sql`${purchaseOrders.projectId} is null`,
+          projectAccessSql(purchaseOrders.projectId, accessibleProjectIds),
+        ),
+        or(ilike(purchaseOrders.reference, term), ilike(vendors.name, term))!,
+      ),
+    )
+    .orderBy(purchaseOrders.updatedAt)
+    .limit(limit);
+
+  return rows.map((row) => ({
+    kind: 'purchase_order' as const,
+    id: row.id,
+    title: row.reference?.trim() || row.vendorName,
+    subtitle: [row.vendorName, row.status].filter(Boolean).join(' · ') || null,
+    href: `/procurement/${row.id}`,
+    status: row.status,
+    contextLabel: row.vendorName,
+    date: row.orderedOn,
+  }));
+}
+
+export async function searchSubcontracts(
+  db: DbExecutor,
+  organizationId: string,
+  query: string,
+  limit: number,
+  accessibleProjectIds: string[] | null = null,
+): Promise<GlobalSearchHit[]> {
+  const term = likeTerm(query);
+  const rows = await db
+    .select({
+      id: subcontractAgreements.id,
+      title: subcontractAgreements.title,
+      subcontractNumber: subcontractAgreements.subcontractNumber,
+      status: subcontractAgreements.status,
+      vendorId: subcontractAgreements.vendorId,
+      vendorName: vendors.name,
+      projectId: subcontractAgreements.projectId,
+      projectName: projects.name,
+    })
+    .from(subcontractAgreements)
+    .innerJoin(
+      vendors,
+      and(eq(subcontractAgreements.vendorId, vendors.id), eq(vendors.organizationId, organizationId)),
+    )
+    .innerJoin(
+      projects,
+      and(eq(subcontractAgreements.projectId, projects.id), eq(projects.organizationId, organizationId)),
+    )
+    .where(
+      and(
+        eq(subcontractAgreements.organizationId, organizationId),
+        isNull(subcontractAgreements.archivedAt),
+        projectAccessSql(subcontractAgreements.projectId, accessibleProjectIds),
+        or(
+          ilike(subcontractAgreements.title, term),
+          ilike(subcontractAgreements.subcontractNumber, term),
+          ilike(vendors.name, term),
+        )!,
+      ),
+    )
+    .orderBy(subcontractAgreements.updatedAt)
+    .limit(limit);
+
+  return rows.map((row) => ({
+    kind: 'subcontract' as const,
+    id: row.id,
+    title: row.subcontractNumber ? `${row.subcontractNumber} · ${row.title}` : row.title,
+    subtitle: [row.vendorName, row.projectName, row.status].filter(Boolean).join(' · ') || null,
+    href: `/vendors/${row.vendorId}`,
+    status: row.status,
+    contextLabel: row.projectName,
+  }));
+}
+
+export async function searchVendorCredits(
+  db: DbExecutor,
+  organizationId: string,
+  query: string,
+  limit: number,
+  accessibleProjectIds: string[] | null = null,
+): Promise<GlobalSearchHit[]> {
+  const term = likeTerm(query);
+  const rows = await db
+    .select({
+      id: apVendorCredits.id,
+      reference: apVendorCredits.reference,
+      status: apVendorCredits.status,
+      vendorName: vendors.name,
+      projectId: apVendorCredits.projectId,
+      creditDate: apVendorCredits.creditDate,
+      grossAmount: apVendorCredits.grossAmount,
+      currency: apVendorCredits.currency,
+    })
+    .from(apVendorCredits)
+    .innerJoin(
+      vendors,
+      and(eq(apVendorCredits.vendorId, vendors.id), eq(vendors.organizationId, organizationId)),
+    )
+    .where(
+      and(
+        eq(apVendorCredits.organizationId, organizationId),
+        isNull(apVendorCredits.archivedAt),
+        sql`${apVendorCredits.status} <> 'void'`,
+        or(
+          sql`${apVendorCredits.projectId} is null`,
+          projectAccessSql(apVendorCredits.projectId, accessibleProjectIds),
+        ),
+        or(ilike(apVendorCredits.reference, term), ilike(vendors.name, term))!,
+      ),
+    )
+    .orderBy(apVendorCredits.updatedAt)
+    .limit(limit);
+
+  return rows.map((row) => ({
+    kind: 'vendor_credit' as const,
+    id: row.id,
+    title: row.reference?.trim() || row.vendorName,
+    subtitle: [row.vendorName, row.status].filter(Boolean).join(' · ') || null,
+    href: `/procurement/ap/credits/${row.id}`,
+    status: row.status,
+    date: row.creditDate,
+    ...moneyContext(true, row.grossAmount, row.currency),
+  }));
+}
+
+export async function searchDailyLogs(
+  db: DbExecutor,
+  organizationId: string,
+  query: string,
+  limit: number,
+  accessibleProjectIds: string[] | null = null,
+): Promise<GlobalSearchHit[]> {
+  const term = likeTerm(query);
+  const rows = await db
+    .select({
+      id: dailyLogs.id,
+      summary: dailyLogs.summary,
+      logDate: dailyLogs.logDate,
+      status: dailyLogs.status,
+      projectId: dailyLogs.projectId,
+      projectName: projects.name,
+    })
+    .from(dailyLogs)
+    .innerJoin(projects, and(eq(dailyLogs.projectId, projects.id), eq(projects.organizationId, organizationId)))
+    .where(
+      and(
+        eq(dailyLogs.organizationId, organizationId),
+        isNull(dailyLogs.archivedAt),
+        projectAccessSql(dailyLogs.projectId, accessibleProjectIds),
+        or(ilike(dailyLogs.summary, term), ilike(dailyLogs.workPerformed, term), ilike(projects.name, term))!,
+      ),
+    )
+    .orderBy(dailyLogs.logDate)
+    .limit(limit);
+
+  return rows.map((row) => ({
+    kind: 'daily_log' as const,
+    id: row.id,
+    title: row.summary,
+    subtitle: [row.projectName, row.logDate, row.status].filter(Boolean).join(' · ') || null,
+    href: `/field-ops/logs/${row.id}`,
+    status: row.status,
+    contextLabel: row.projectName,
+    date: row.logDate,
+  }));
+}
+
+export async function searchPunchItems(
+  db: DbExecutor,
+  organizationId: string,
+  query: string,
+  limit: number,
+  accessibleProjectIds: string[] | null = null,
+): Promise<GlobalSearchHit[]> {
+  const term = likeTerm(query);
+  const rows = await db
+    .select({
+      id: punchListItems.id,
+      title: punchListItems.title,
+      status: punchListItems.status,
+      projectId: punchListItems.projectId,
+      projectName: projects.name,
+      dueDate: punchListItems.dueDate,
+    })
+    .from(punchListItems)
+    .innerJoin(
+      projects,
+      and(eq(punchListItems.projectId, projects.id), eq(projects.organizationId, organizationId)),
+    )
+    .where(
+      and(
+        eq(punchListItems.organizationId, organizationId),
+        isNull(punchListItems.archivedAt),
+        projectAccessSql(punchListItems.projectId, accessibleProjectIds),
+        or(ilike(punchListItems.title, term), ilike(punchListItems.description, term))!,
+      ),
+    )
+    .orderBy(punchListItems.updatedAt)
+    .limit(limit);
+
+  return rows.map((row) => ({
+    kind: 'punch' as const,
+    id: row.id,
+    title: row.title,
+    subtitle: [row.projectName, row.status].filter(Boolean).join(' · ') || null,
+    href: `/field-ops/punch/${row.id}`,
+    status: row.status,
+    contextLabel: row.projectName,
+    date: row.dueDate,
+  }));
+}
+
+export async function searchInspections(
+  db: DbExecutor,
+  organizationId: string,
+  query: string,
+  limit: number,
+  accessibleProjectIds: string[] | null = null,
+): Promise<GlobalSearchHit[]> {
+  const term = likeTerm(query);
+  const rows = await db
+    .select({
+      id: inspections.id,
+      title: inspections.title,
+      status: inspections.status,
+      projectId: inspections.projectId,
+      projectName: projects.name,
+      scheduledOn: inspections.scheduledOn,
+    })
+    .from(inspections)
+    .innerJoin(projects, and(eq(inspections.projectId, projects.id), eq(projects.organizationId, organizationId)))
+    .where(
+      and(
+        eq(inspections.organizationId, organizationId),
+        isNull(inspections.archivedAt),
+        projectAccessSql(inspections.projectId, accessibleProjectIds),
+        ilike(inspections.title, term),
+      ),
+    )
+    .orderBy(inspections.updatedAt)
+    .limit(limit);
+
+  return rows.map((row) => ({
+    kind: 'inspection' as const,
+    id: row.id,
+    title: row.title,
+    subtitle: [row.projectName, row.status].filter(Boolean).join(' · ') || null,
+    href: `/field-ops/inspections/${row.id}`,
+    status: row.status,
+    contextLabel: row.projectName,
+    date: row.scheduledOn,
+  }));
+}
+
+export async function searchSafetyRecords(
+  db: DbExecutor,
+  organizationId: string,
+  query: string,
+  limit: number,
+  accessibleProjectIds: string[] | null = null,
+): Promise<GlobalSearchHit[]> {
+  const term = likeTerm(query);
+  const rows = await db
+    .select({
+      id: safetyRecords.id,
+      title: safetyRecords.title,
+      status: safetyRecords.status,
+      recordType: safetyRecords.recordType,
+      projectId: safetyRecords.projectId,
+    })
+    .from(safetyRecords)
+    .where(
+      and(
+        eq(safetyRecords.organizationId, organizationId),
+        isNull(safetyRecords.archivedAt),
+        or(
+          sql`${safetyRecords.projectId} is null`,
+          projectAccessSql(safetyRecords.projectId, accessibleProjectIds),
+        ),
+        or(ilike(safetyRecords.title, term), ilike(safetyRecords.description, term))!,
+      ),
+    )
+    .orderBy(safetyRecords.updatedAt)
+    .limit(limit);
+
+  return rows.map((row) => ({
+    kind: 'safety' as const,
+    id: row.id,
+    title: row.title,
+    subtitle: [row.recordType, row.status].filter(Boolean).join(' · ') || null,
+    href: `/safety/${row.id}`,
+    status: row.status,
   }));
 }

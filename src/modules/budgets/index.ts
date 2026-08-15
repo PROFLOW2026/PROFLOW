@@ -1,5 +1,9 @@
 /** Public API of the budgets module (next-gen Agent 4). */
-export { getProjectBudgetWorkspace } from './application/queries';
+export {
+  getActiveBudgetAmountsForOrg,
+  getActiveBudgetForProject,
+  getProjectBudgetWorkspace,
+} from './application/queries';
 export type { ProjectBudgetWorkspace } from './application/queries';
 
 export { createProjectBudget, reviseProjectBudget } from './application/manage-budget';

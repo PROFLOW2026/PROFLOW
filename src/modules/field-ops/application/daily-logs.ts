@@ -75,7 +75,7 @@ function extraFieldsFromCreate(input: ReturnType<typeof createDailyLogSchema.par
 
 export async function listDailyLogsForOrg(
   context: OrgContext,
-  projectIdOrFilters?: string | { projectId?: string; status?: DailyLogStatus },
+  projectIdOrFilters?: string | { projectId?: string; status?: DailyLogStatus; limit?: number },
 ) {
   assertPermission(context, PERMISSIONS.FIELD_OPS_READ);
   const [allowed, rows] = await Promise.all([

@@ -256,6 +256,16 @@ export const subcontractAgreements = pgTable(
   },
   (table) => [
     uniqueIndex('subcontract_agreements_id_organization_id_uq').on(table.id, table.organizationId),
+    uniqueIndex('subcontract_agreements_id_org_project_uq').on(
+      table.id,
+      table.organizationId,
+      table.projectId,
+    ),
+    uniqueIndex('subcontract_agreements_id_org_vendor_uq').on(
+      table.id,
+      table.organizationId,
+      table.vendorId,
+    ),
     uniqueIndex('subcontract_agreements_org_number_uq')
       .on(table.organizationId, table.subcontractNumber)
       .where(sql`${table.subcontractNumber} is not null and ${table.archivedAt} is null`),
