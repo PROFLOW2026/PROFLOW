@@ -7,7 +7,7 @@ import type { OrgContext } from '@/shared/auth/context';
 import { getStoragePort, StorageNotConfiguredError } from '@/shared/ports/storage';
 import { validateUploadConstraints } from '../domain/file-rules';
 import type { DocumentRecord, DownloadUrlResult } from '../domain/types';
-import { findDocumentById, listDeletedDocumentsNeedingStorageCleanup, updateDocumentById } from '../data/documents.repository';
+import { findDocumentById, listDeletedDocumentsNeedingStorageCleanup, updateDocumentById, flushDocumentCurrentVersionGuards } from '../data/documents.repository';
 import { ensureFirstDocumentVersion } from '../data/versions.repository';
 import {
   isStorageOrphanChecksum,
@@ -97,6 +97,8 @@ export async function finalizeDocumentUpload(
           currentVersionId: version.id,
         });
   const result = withCurrent ?? updated;
+
+  await flushDocumentCurrentVersionGuards(context.db);
 
   await recordAuditEvent(context, {
     action: 'document.finalized',

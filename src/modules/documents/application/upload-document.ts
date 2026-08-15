@@ -9,6 +9,7 @@ import { noteModuleUsage } from '@/modules/tenancy';
 import { validateUploadConstraints } from '../domain/file-rules';
 import type { DocumentListFilters, DocumentListItem, PrepareUploadResult } from '../domain/types';
 import {
+  flushDocumentCurrentVersionGuards,
   insertDocument,
   insertDocumentLink,
   listAllDocuments,
@@ -85,6 +86,8 @@ export async function prepareDocumentUpload(
     sizeBytes: input.sizeBytes,
     uploadedByUserId: context.userId,
   });
+
+  await flushDocumentCurrentVersionGuards(context.db);
 
   await insertDocumentLink(context.db, {
     organizationId: context.organizationId,

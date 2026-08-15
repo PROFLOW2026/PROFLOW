@@ -21,6 +21,14 @@ import type {
   EntityDocumentFilters,
 } from '../domain/types';
 
+/** Flush 0048 deferred current-version guards while the row set is consistent. */
+export async function flushDocumentCurrentVersionGuards(db: DbExecutor): Promise<void> {
+  await db.execute(sql`SET CONSTRAINTS documents_current_version_guard IMMEDIATE`);
+  await db.execute(sql`SET CONSTRAINTS document_versions_current_guard IMMEDIATE`);
+  await db.execute(sql`SET CONSTRAINTS documents_current_version_guard DEFERRED`);
+  await db.execute(sql`SET CONSTRAINTS document_versions_current_guard DEFERRED`);
+}
+
 function mapDocument(row: typeof documents.$inferSelect): DocumentRecord {
   return {
     id: row.id,

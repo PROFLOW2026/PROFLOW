@@ -23,6 +23,7 @@ import type {
 import {
   findDocumentById,
   findDocumentByIdForUpdate,
+  flushDocumentCurrentVersionGuards,
   updateDocumentById,
 } from '../data/documents.repository';
 import {
@@ -246,6 +247,8 @@ export async function uploadNewVersion(
         currentVersionId: version.id,
       });
       if (!updated) throw new NotFoundError('Document');
+
+      await flushDocumentCurrentVersionGuards(tx);
 
       return { previous: locked, document: updated, version };
     });
