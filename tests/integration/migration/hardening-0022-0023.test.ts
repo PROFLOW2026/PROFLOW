@@ -431,7 +431,6 @@ describe('attendance RLS role separation', () => {
     await seedSystem(database);
     const owner = await createTestUser(database, 'att-owner@example.test');
     const workerUser = await createTestUser(database, 'att-worker@example.test');
-    const peerUser = await createTestUser(database, 'att-peer@example.test');
 
     const org = await database.asService(async (db) => {
       const { createOrganization } = await import('@/modules/tenancy');
@@ -469,7 +468,6 @@ describe('attendance RLS role separation', () => {
       const peerEmp = await createEmployee(context, {
         name: 'Peer Employee',
         rateUnit: 'monthly',
-        userId: peerUser.id,
       });
       await tx.execute(sql`
         INSERT INTO attendance_days (organization_id, employee_id, work_date, status)
