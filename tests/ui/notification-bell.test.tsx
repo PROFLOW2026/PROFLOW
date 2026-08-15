@@ -80,8 +80,8 @@ describe('notification bell', () => {
     renderBell(emptyInbox);
 
     await user.click(screen.getByRole('button', { name: 'התראות' }));
-    expect(await screen.findByText('אין התראות')).toBeVisible();
-    expect(screen.getByText(/כשמשהו ידרוש תשומת לב/)).toBeVisible();
+    expect(await screen.findByText(heNotifications.empty)).toBeVisible();
+    expect(screen.getByText(heNotifications.emptyHint)).toBeVisible();
     expect(screen.queryByText('2')).toBeNull();
   });
 

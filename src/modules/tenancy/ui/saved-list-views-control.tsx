@@ -112,7 +112,7 @@ export function SavedListViewsControl({
       ) : null}
 
       {saveState.error || deleteState.error ? (
-        <p className="text-sm text-[var(--pf-danger)]">{saveState.error ?? deleteState.error}</p>
+        <p className="text-sm text-[var(--pf-status-danger-fg)]">{saveState.error ?? deleteState.error}</p>
       ) : null}
     </div>
   );
