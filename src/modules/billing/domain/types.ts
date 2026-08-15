@@ -63,6 +63,8 @@ export interface BillingRecordSummary {
   readonly id: string;
   readonly projectId: string | null;
   readonly projectName: string | null;
+  readonly contractId?: string | null;
+  readonly contractName?: string | null;
   /** Billing stamp, else the project's client. */
   readonly clientId?: string | null;
   readonly reference: string | null;
@@ -109,6 +111,7 @@ export interface BillingListFilters {
   readonly projectId?: string;
   /** Billing stamped with this client, or billed on a project linked to this client. */
   readonly clientId?: string;
+  readonly contractId?: string;
   readonly limit?: number;
   readonly offset?: number;
 }
@@ -118,4 +121,12 @@ export interface ProjectOption {
   readonly name: string;
   readonly currency: string | null;
   readonly clientId: string | null;
+}
+
+export interface BillingContractOption {
+  readonly id: string;
+  readonly projectId: string;
+  readonly name: string | null;
+  readonly contractNumber: string | null;
+  readonly isPrimary: boolean;
 }

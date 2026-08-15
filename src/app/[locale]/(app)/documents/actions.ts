@@ -7,6 +7,13 @@ export {
   linkDocumentAction,
   unlinkDocumentAction,
   softDeleteDocumentAction,
+  listDocumentFoldersAction,
+  createDocumentFolderAction,
+  listDocumentVersionsAction,
+  prepareNewVersionUploadAction,
+  finalizeNewVersionUploadAction,
+  downloadDocumentVersionAction,
+  setDocumentMetadataAction,
 } from '@/modules/documents/application/document-actions';
 
 export type {

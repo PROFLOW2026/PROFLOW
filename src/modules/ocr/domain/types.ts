@@ -41,10 +41,12 @@ export type OcrCandidateFieldKey = (typeof OCR_CANDIDATE_FIELD_KEYS)[number];
 export const EXTRACTION_JOB_STATUSES = [
   'queued',
   'running',
+  'processing',
   'succeeded',
   'failed',
   'needs_review',
   'rejected',
+  'cancelled',
 ] as const;
 
 export type ExtractionJobStatus = (typeof EXTRACTION_JOB_STATUSES)[number];
@@ -315,6 +317,38 @@ export interface ExtractionJob {
   readonly confirmedVendorCreditId: string | null;
   /** Last confirmed draft target, when any. Credit is application-only. */
   readonly confirmedDraftTarget: OcrDraftTarget | null;
+  /** Pointer to documents.current_version_id when the documents module exposes it. */
+  readonly documentVersionId: string | null;
+  readonly batchId: string | null;
+  readonly attemptCount: number;
+  readonly lastError: string | null;
+  readonly idempotencyKey: string | null;
+  readonly queuedAt: string | null;
+  readonly startedAt: string | null;
+  readonly completedAt: string | null;
+  readonly cancelledAt: string | null;
+  readonly createdAt: string;
+  readonly updatedAt: string;
+}
+
+export const OCR_BATCH_STATUSES = [
+  'queued',
+  'processing',
+  'completed',
+  'failed',
+  'cancelled',
+] as const;
+
+export type OcrBatchStatus = (typeof OCR_BATCH_STATUSES)[number];
+
+export interface OcrBatch {
+  readonly id: string;
+  readonly organizationId: string;
+  readonly createdByUserId: string | null;
+  readonly status: OcrBatchStatus;
+  readonly totalCount: number;
+  readonly completedCount: number;
+  readonly failedCount: number;
   readonly createdAt: string;
   readonly updatedAt: string;
 }

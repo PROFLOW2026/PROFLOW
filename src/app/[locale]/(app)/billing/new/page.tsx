@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { PageHeader } from '@/components/ui/page-header';
-import { listBillingProjectOptions } from '@/modules/billing';
+import { listBillingContractOptionsForOrg, listBillingProjectOptions } from '@/modules/billing';
 import { BillingRecordForm } from '@/modules/billing/ui/billing-record-form';
 import { withOrgContext } from '@/shared/auth/session';
 import { todayInTimeZone } from '@/shared/dates';
@@ -19,13 +19,14 @@ export async function generateMetadata({
 export default async function NewBillingRecordPage({
   searchParams,
 }: {
-  searchParams: Promise<{ projectId?: string }>;
+  searchParams: Promise<{ projectId?: string; contractId?: string }>;
 }) {
-  const { projectId } = await searchParams;
+  const { projectId, contractId } = await searchParams;
   const t = await getTranslations('billing');
 
-  const { projects, defaultIssueDate, defaultCurrency } = await withOrgContext(async (context) => ({
+  const { projects, contracts, defaultIssueDate, defaultCurrency } = await withOrgContext(async (context) => ({
     projects: await listBillingProjectOptions(context),
+    contracts: await listBillingContractOptionsForOrg(context),
     defaultIssueDate: todayInTimeZone(context.organization.timezone),
     defaultCurrency: context.organization.baseCurrency,
   }));
@@ -36,7 +37,9 @@ export default async function NewBillingRecordPage({
       <p className="text-xs text-[var(--pf-text-muted)]">{t('statutoryDisclosure')}</p>
       <BillingRecordForm
         projects={projects}
+        contracts={contracts}
         defaultProjectId={projectId}
+        defaultContractId={contractId}
         defaultCurrency={defaultCurrency}
         defaultIssueDate={defaultIssueDate}
       />

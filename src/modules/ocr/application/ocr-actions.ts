@@ -7,6 +7,8 @@ import { withOrgContext } from '@/shared/auth/session';
 import { AppError, AuthorizationError, DomainRuleError } from '@/shared/errors';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
+import { createOcrBatch, getOcrBatchProgress } from './batches';
+import { cancelOcrJob } from './cancel-job';
 import { confirmOcrCandidate } from './confirm-candidate';
 import { createVendorBillDraftFromOcr } from './create-vendor-bill-draft';
 import { extractReceiptJob } from './extract-receipt';
@@ -21,12 +23,16 @@ import {
   isOcrReviewUiAllowed,
 } from '../domain/feature-gate';
 import { buildFixtureCandidates } from '../domain/field-mapping';
-import type { ExtractionJob, OcrProviderStatus } from '../domain/types';
+import type { ExtractionJob, OcrBatch, OcrProviderStatus } from '../domain/types';
 import {
+  cancelOcrJobSchema,
   confirmOcrCandidateSchema,
+  createOcrBatchSchema,
   extractReceiptSchema,
   rejectOcrCandidateSchema,
+  type CancelOcrJobInput,
   type ConfirmOcrCandidateInput,
+  type CreateOcrBatchAppInput,
   type ExtractReceiptAppInput,
   type RejectOcrCandidateInput,
 } from '../validation/schemas';
@@ -60,6 +66,7 @@ export async function getOcrReviewPageDataAction(): Promise<
   OcrActionResult<{
     status: OcrProviderStatus;
     jobs: ExtractionJob[];
+    batches: OcrBatch[];
     vendors: readonly { id: string; name: string }[];
   }>
 > {
@@ -70,6 +77,8 @@ export async function getOcrReviewPageDataAction(): Promise<
       const jobs = await listOcrCandidates(context, {
         status: [...OCR_REVIEW_SURFACE_STATUSES],
       });
+      const repo = getOcrRepository(context.db);
+      const batches = await repo.listBatchesForOrg(context.organizationId);
       let vendors: { id: string; name: string }[] = [];
       try {
         vendors = (await listVendorsForOrg(context, { status: 'active' })).map((vendor) => ({
@@ -79,7 +88,7 @@ export async function getOcrReviewPageDataAction(): Promise<
       } catch {
         vendors = [];
       }
-      return { status, jobs, vendors };
+      return { status, jobs, batches, vendors };
     });
     return { ok: true, data };
   } catch (error) {
@@ -104,6 +113,61 @@ export async function extractReceiptAction(
     }
     const job = await withOrgContext((context) => extractReceiptJob(context, parsed.data));
     return { ok: true, data: job };
+  } catch (error) {
+    return { ok: false, error: await failMessage(error) };
+  }
+}
+
+export async function createOcrBatchAction(
+  raw: CreateOcrBatchAppInput,
+): Promise<OcrActionResult<{ batch: OcrBatch; jobs: ExtractionJob[] }>> {
+  const parsed = createOcrBatchSchema.safeParse(raw);
+  if (!parsed.success) {
+    const t = await getTranslations('errors');
+    return { ok: false, error: parsed.error.issues[0]?.message ?? t('validationFailed') };
+  }
+  try {
+    if (!isOcrIngestionEnabled()) {
+      throw new DomainRuleError(
+        'OCR ingestion is disabled',
+        'ocr.errors.featureDisabled',
+      );
+    }
+    const data = await withOrgContext((context) => createOcrBatch(context, parsed.data));
+    return { ok: true, data };
+  } catch (error) {
+    return { ok: false, error: await failMessage(error) };
+  }
+}
+
+export async function cancelOcrJobAction(
+  raw: CancelOcrJobInput,
+): Promise<OcrActionResult<ExtractionJob>> {
+  const parsed = cancelOcrJobSchema.safeParse(raw);
+  if (!parsed.success) {
+    const t = await getTranslations('errors');
+    return { ok: false, error: parsed.error.issues[0]?.message ?? t('validationFailed') };
+  }
+  try {
+    assertReviewSurfaceAllowed();
+    const job = await withOrgContext((context) => cancelOcrJob(context, parsed.data));
+    return { ok: true, data: job };
+  } catch (error) {
+    return { ok: false, error: await failMessage(error) };
+  }
+}
+
+export async function getOcrBatchProgressAction(
+  batchId: string,
+): Promise<OcrActionResult<{ batch: OcrBatch; jobs: ExtractionJob[] }>> {
+  try {
+    assertReviewSurfaceAllowed();
+    const data = await withOrgContext((context) => getOcrBatchProgress(context, batchId));
+    if (!data) {
+      const t = await getTranslations('errors');
+      return { ok: false, error: t('notFound') };
+    }
+    return { ok: true, data };
   } catch (error) {
     return { ok: false, error: await failMessage(error) };
   }

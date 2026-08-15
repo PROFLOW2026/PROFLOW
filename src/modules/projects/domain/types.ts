@@ -132,11 +132,24 @@ export interface ContractTaxSnapshotRecord {
   readonly capturedAt: string;
 }
 
+/** UX kind. `isPrimary` remains the unique commercial primary per project. */
+export const CONTRACT_TYPES = ['primary', 'additional', 'secondary'] as const;
+export type ContractType = (typeof CONTRACT_TYPES)[number];
+
+export const CONTRACT_STATUSES = ['draft', 'active', 'closed', 'cancelled'] as const;
+export type ContractStatus = (typeof CONTRACT_STATUSES)[number];
+
 export interface ContractRecord {
   readonly id: string;
   readonly organizationId: string;
   readonly projectId: string;
   readonly isPrimary: boolean;
+  readonly contractType: ContractType;
+  readonly contractNumber: string | null;
+  readonly clientId: string | null;
+  readonly startDate: string | null;
+  readonly endDate: string | null;
+  readonly retentionPercent: string | null;
   readonly name: string | null;
   readonly reference: string | null;
   readonly status: string;

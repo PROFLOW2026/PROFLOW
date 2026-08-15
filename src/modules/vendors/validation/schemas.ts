@@ -1,6 +1,11 @@
 import { z } from 'zod';
 import { isBusinessDate } from '@/shared/dates';
 import { CONTACT_ROLES, ENGAGEMENT_STATUSES, VENDOR_STATUSES, VENDOR_TYPES } from '../domain/types';
+import {
+  SUBCONTRACT_CHANGE_DIRECTIONS,
+  SUBCONTRACT_REQUIRED_DOC_TYPES,
+  SUBCONTRACT_STATUSES,
+} from '../domain/subcontract-types';
 
 const emptyToNull = (value: unknown) => {
   if (value === '' || value === null || value === undefined) return null;
@@ -151,3 +156,98 @@ export const promoteVendorFromTransactionSchema = z.object({
 });
 
 export type PromoteVendorFromTransactionInput = z.input<typeof promoteVendorFromTransactionSchema>;
+
+const moneyAmountSchema = z
+  .string()
+  .trim()
+  .regex(/^\d+(\.\d+)?$/, 'Amount must be a non-negative decimal');
+
+const optionalPercentSchema = z.preprocess(
+  emptyToNull,
+  z
+    .string()
+    .trim()
+    .regex(/^\d+(\.\d+)?$/, 'Retention must be a non-negative percent')
+    .nullable()
+    .optional(),
+);
+
+export const createSubcontractSchema = z
+  .object({
+    title: z.string().trim().min(1).max(200),
+    subcontractNumber: optionalText,
+    vendorId: z.string().uuid(),
+    projectId: z.string().uuid(),
+    parentContractId: z.preprocess(emptyToNull, z.string().uuid().nullable().optional()),
+    originalAmount: moneyAmountSchema,
+    retentionPercent: optionalPercentSchema,
+    startDate: optionalBusinessDate,
+    endDate: optionalBusinessDate,
+    notes: optionalText,
+  })
+  .superRefine((value, ctx) => {
+    if (value.startDate && value.endDate && value.endDate < value.startDate) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['endDate'],
+        message: 'End date must be on or after start date',
+      });
+    }
+  });
+
+export type CreateSubcontractInput = z.infer<typeof createSubcontractSchema>;
+
+export const updateSubcontractSchema = z
+  .object({
+    subcontractId: z.string().uuid(),
+    title: z.string().trim().min(1).max(200).optional(),
+    subcontractNumber: optionalText,
+    vendorId: z.string().uuid().optional(),
+    projectId: z.string().uuid().optional(),
+    parentContractId: z.preprocess(emptyToNull, z.string().uuid().nullable().optional()),
+    retentionPercent: optionalPercentSchema,
+    startDate: optionalBusinessDate,
+    endDate: optionalBusinessDate,
+    notes: optionalText,
+  })
+  .superRefine((value, ctx) => {
+    if (value.startDate && value.endDate && value.endDate < value.startDate) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['endDate'],
+        message: 'End date must be on or after start date',
+      });
+    }
+  });
+
+export type UpdateSubcontractInput = z.infer<typeof updateSubcontractSchema>;
+
+export const changeSubcontractStatusSchema = z.object({
+  subcontractId: z.string().uuid(),
+  status: z.enum(SUBCONTRACT_STATUSES),
+});
+
+export type ChangeSubcontractStatusInput = z.infer<typeof changeSubcontractStatusSchema>;
+
+export const addSubcontractValueChangeSchema = z.object({
+  subcontractId: z.string().uuid(),
+  kind: z.enum(['change_order', 'adjustment']),
+  direction: z.enum(SUBCONTRACT_CHANGE_DIRECTIONS),
+  amount: moneyAmountSchema,
+  effectiveDate: optionalBusinessDate,
+  reason: optionalText,
+});
+
+export type AddSubcontractValueChangeInput = z.infer<typeof addSubcontractValueChangeSchema>;
+
+export const linkSubcontractDocumentSchema = z.object({
+  subcontractId: z.string().uuid(),
+  documentId: z.string().uuid(),
+  isInsurance: z.coerce.boolean().optional(),
+  isRequired: z.coerce.boolean().optional(),
+  requiredType: z.enum(SUBCONTRACT_REQUIRED_DOC_TYPES).optional().nullable(),
+  expiresAt: optionalBusinessDate,
+  label: optionalText,
+});
+
+export type LinkSubcontractDocumentInput = z.infer<typeof linkSubcontractDocumentSchema>;

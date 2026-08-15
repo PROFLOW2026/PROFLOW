@@ -139,6 +139,11 @@ export default async function BillingDetailPage({
             <p className="mt-2 text-xs text-[var(--pf-text-secondary)]">
               {t('detail.kind')}: {tKind(record.kind)}
             </p>
+            {record.contractName ? (
+              <p className="mt-1 text-xs text-[var(--pf-text-secondary)]">
+                {t('list.contract')}: {record.contractName}
+              </p>
+            ) : null}
             {record.kind === 'credit_note' ? (
               <p className="mt-1 text-xs text-[var(--pf-text-secondary)]">
                 {t('integrity.creditNoteReducesInvoiced')}

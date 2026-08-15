@@ -2,6 +2,7 @@ import { sql } from 'drizzle-orm';
 import {
   check,
   date,
+  foreignKey,
   index,
   pgTable,
   text,
@@ -46,11 +47,36 @@ export const dailyLogs = pgTable(
     weather: text('weather'),
     summary: text('summary').notNull(),
     workforceNotes: text('workforce_notes'),
+    status: text('status').notNull().default('draft'),
+    workPerformed: text('work_performed'),
+    delays: text('delays'),
+    incidents: text('incidents'),
+    safetyNotes: text('safety_notes'),
+    visitorNotes: text('visitor_notes'),
+    managerNotes: text('manager_notes'),
+    workersOnSite: text('workers_on_site'),
+    subcontractorsOnSite: text('subcontractors_on_site'),
+    equipmentOnSite: text('equipment_on_site'),
+    deliveries: text('deliveries'),
+    submittedAt: timestamp('submitted_at', { withTimezone: true, mode: 'date' }),
+    submittedByUserId: uuid('submitted_by_user_id'),
+    finalizedAt: timestamp('finalized_at', { withTimezone: true, mode: 'date' }),
+    correctionNotes: text('correction_notes'),
     createdBy: uuid('created_by').references(() => profiles.id, { onDelete: 'set null' }),
     archivedAt: archivedAt(),
     ...timestamps(),
   },
-  (table) => [index('daily_logs_project_date_idx').on(table.projectId, table.logDate)],
+  (table) => [
+    uniqueIndex('daily_logs_id_organization_id_uq').on(table.id, table.organizationId),
+    uniqueIndex('daily_logs_project_date_active_uq')
+      .on(table.organizationId, table.projectId, table.logDate)
+      .where(sql`${table.archivedAt} is null`),
+    index('daily_logs_project_date_idx').on(table.projectId, table.logDate),
+    check(
+      'daily_logs_status_known',
+      sql`${table.status} IN ('draft', 'submitted', 'finalized')`,
+    ),
+  ],
 );
 
 export const punchListItems = pgTable(
@@ -220,9 +246,11 @@ export const inventoryItems = pgTable(
     }),
     name: text('name').notNull(),
     sku: text('sku'),
+    barcode: text('barcode'),
     unit: text('unit').notNull().default('ea'),
     quantityOnHand: quantityAmount('quantity_on_hand').notNull().default('0'),
     reorderLevel: quantityAmount('reorder_level'),
+    minStockLevel: quantityAmount('min_stock_level'),
     notes: text('notes'),
     archivedAt: archivedAt(),
     ...timestamps(),
@@ -270,6 +298,8 @@ export const inventoryLocations = pgTable(
       .references(() => organizations.id, { onDelete: 'cascade' }),
     name: text('name').notNull(),
     code: text('code'),
+    locationKind: text('location_kind').notNull().default('warehouse'),
+    projectId: uuid('project_id'),
     archivedAt: archivedAt(),
     ...timestamps(),
   },
@@ -278,6 +308,15 @@ export const inventoryLocations = pgTable(
     uniqueIndex('inventory_locations_org_name_uq')
       .on(table.organizationId, table.name)
       .where(sql`${table.archivedAt} is null`),
+    check(
+      'inventory_locations_kind_known',
+      sql`${table.locationKind} IN ('warehouse', 'site', 'vehicle')`,
+    ),
+    foreignKey({
+      name: 'inventory_locations_project_org_fk',
+      columns: [table.projectId, table.organizationId],
+      foreignColumns: [projects.id, projects.organizationId],
+    }).onDelete('set null'),
   ],
 );
 

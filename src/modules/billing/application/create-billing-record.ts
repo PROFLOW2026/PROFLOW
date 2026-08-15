@@ -16,6 +16,7 @@ import {
   insertBillingRecord,
   replaceBillingLines,
 } from '../data/billing.repository';
+import { findContractById, findPrimaryContractByProject } from '@/modules/projects/data/contracts.repository';
 import { createBillingRecordSchema, type CreateBillingRecordInput } from '../validation/schemas';
 import { finalizeBillingRecordWithPermission } from './finalize-billing-record';
 
@@ -94,6 +95,24 @@ export async function createBillingRecordWithPermission(
   const project = await findProjectInOrganization(context.db, context.organizationId, input.projectId);
   if (!project) throw new NotFoundError('Project');
 
+  let contractId = input.contractId ?? null;
+  let contractRetentionPercent: string | null = null;
+  if (contractId) {
+    const contract = await findContractById(context.db, context.organizationId, contractId);
+    if (!contract || contract.projectId !== input.projectId) {
+      throw new NotFoundError('Contract');
+    }
+    contractRetentionPercent = contract.retentionPercent;
+  } else {
+    const primary = await findPrimaryContractByProject(
+      context.db,
+      context.organizationId,
+      input.projectId,
+    );
+    contractId = primary?.id ?? null;
+    contractRetentionPercent = primary?.retentionPercent ?? null;
+  }
+
   const currency = await resolveCurrency(context, input.projectId, input.currency);
   const amounts = resolveTaxAmounts({
     amount: input.amount,
@@ -116,17 +135,22 @@ export async function createBillingRecordWithPermission(
   const issueDate = businessDate(input.issueDate);
   const dueDate = input.dueDate ? businessDate(input.dueDate) : null;
 
+  const callerSetRetention =
+    input.retentionAmount !== undefined || input.retentionPercent !== undefined;
   const retention = resolveRetentionCapture({
     totalAmount: toNumericString(amounts.totalAmount),
     currency,
     retentionAmount: input.retentionAmount,
-    retentionPercent: input.retentionPercent,
+    retentionPercent: callerSetRetention
+      ? input.retentionPercent
+      : (contractRetentionPercent ?? undefined),
     side: 'ar',
   });
 
   const billingRecordId = await insertBillingRecord(context.db, context.organizationId, {
     projectId: input.projectId,
     clientId: project.clientId ?? null,
+    contractId,
     kind: 'invoice',
     reference: await resolveAllocatedReference(context, 'billing_record', input.reference),
     issueDate,
@@ -159,6 +183,7 @@ export async function createBillingRecordWithPermission(
     after: {
       status: 'draft',
       projectId: input.projectId,
+      contractId,
       totalAmount: toNumericString(amounts.totalAmount),
       currency,
       viaPermission: permission,

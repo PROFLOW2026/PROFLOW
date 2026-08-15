@@ -9,14 +9,19 @@ import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { noteModuleUsage } from '@/modules/tenancy';
 import { findProjectById } from '@/modules/projects';
 import { findMaterialItemById } from '@/modules/procurement';
+import Decimal from 'decimal.js';
 import {
   DEFAULT_INVENTORY_LOCATION_CODE,
+  availableQuantity,
   defaultInventoryLocationName,
   getReorderStatus,
   isInventoryQuantityGlOrExpense,
+  isLowStock,
   isZeroQuantity,
   locationDeltasForMovement,
   normalizeQuantity,
+  resolveMinStockLevel,
+  suggestedReorder,
   type ReorderStatus,
 } from '../domain/inventory';
 import {
@@ -33,6 +38,14 @@ import {
   listLocationBalancesForItem,
   updateInventoryLocationById,
 } from '../data/assets.repository';
+import {
+  lockInventoryItemRow,
+  lockInventoryReservationForUpdate,
+  listInventoryReservations,
+  sumActiveReservedByItemIds,
+  sumActiveReservedForItem,
+} from '../data/inventory-advanced.repository';
+import { consumeReservationsForIssue } from './inventory-reservations';
 import {
   archiveInventoryLocationSchema,
   createInventoryItemSchema,
@@ -51,6 +64,7 @@ import type {
   InventoryLocationRecord,
   InventoryMovementRecord,
   InventoryMovementType,
+  LowStockItem,
 } from '../domain/types';
 
 /**
@@ -62,18 +76,36 @@ import type {
 export type InventoryItemWithReorder = InventoryItemRecord & {
   readonly reorderStatus: ReorderStatus;
   readonly locationBalances: readonly InventoryLocationBalanceRecord[];
+  readonly reservedQuantity: string;
+  readonly availableQuantity: string;
+  readonly isLowStock: boolean;
+  readonly suggestedReorder: boolean;
 };
 
 function withReorder(
   item: InventoryItemRecord,
   locationBalances: readonly InventoryLocationBalanceRecord[] = [],
+  reservedQuantity = '0.000000',
 ): InventoryItemWithReorder {
   return {
     ...item,
     locationBalances,
+    reservedQuantity,
+    availableQuantity: availableQuantity(item.quantityOnHand, reservedQuantity),
+    isLowStock: isLowStock({
+      quantityOnHand: item.quantityOnHand,
+      minStockLevel: item.minStockLevel,
+      reorderLevel: item.reorderLevel,
+    }),
+    suggestedReorder: suggestedReorder({
+      quantityOnHand: item.quantityOnHand,
+      minStockLevel: item.minStockLevel,
+      reorderLevel: item.reorderLevel,
+    }),
     reorderStatus: getReorderStatus({
       quantityOnHand: item.quantityOnHand,
       reorderLevel: item.reorderLevel,
+      minStockLevel: item.minStockLevel,
     }),
   };
 }
@@ -115,10 +147,59 @@ function rethrowInventoryWrite(error: unknown): never {
 
 export async function listInventoryItemsForOrg(
   context: OrgContext,
+  options: { readonly search?: string } = {},
 ): Promise<InventoryItemWithReorder[]> {
   assertPermission(context, PERMISSIONS.ASSETS_READ);
-  const items = await listInventoryItems(context.db, context.organizationId);
-  return items.map((item) => withReorder(item));
+  const items = await listInventoryItems(context.db, context.organizationId, {
+    search: options.search,
+  });
+  const reservedByItem = await sumActiveReservedByItemIds(
+    context.db,
+    context.organizationId,
+    items.map((item) => item.id),
+  );
+  return items.map((item) =>
+    withReorder(item, [], reservedByItem.get(item.id) ?? '0.000000'),
+  );
+}
+
+/**
+ * Operational low-stock list for notifications. on_hand < min_stock_level
+ * (fallback reorder_level). suggestedReorder is always true for returned rows.
+ */
+export async function listLowStockItems(context: OrgContext): Promise<readonly LowStockItem[]> {
+  assertPermission(context, PERMISSIONS.ASSETS_READ);
+  const items = await listInventoryItems(context.db, context.organizationId, {
+    limit: 5000,
+  });
+  const low: LowStockItem[] = [];
+  for (const item of items) {
+    if (
+      !isLowStock({
+        quantityOnHand: item.quantityOnHand,
+        minStockLevel: item.minStockLevel,
+        reorderLevel: item.reorderLevel,
+      })
+    ) {
+      continue;
+    }
+    const minStockLevel = resolveMinStockLevel({
+      minStockLevel: item.minStockLevel,
+      reorderLevel: item.reorderLevel,
+    });
+    if (!minStockLevel) continue;
+    low.push({
+      id: item.id,
+      name: item.name,
+      sku: item.sku,
+      barcode: item.barcode,
+      unit: item.unit,
+      quantityOnHand: item.quantityOnHand,
+      minStockLevel,
+      suggestedReorder: true,
+    });
+  }
+  return low;
 }
 
 export async function getInventoryItemById(
@@ -133,7 +214,12 @@ export async function getInventoryItemById(
     context.organizationId,
     inventoryItemId,
   );
-  return withReorder(item, locationBalances);
+  const reservedQuantity = await sumActiveReservedForItem(
+    context.db,
+    context.organizationId,
+    inventoryItemId,
+  );
+  return withReorder(item, locationBalances, reservedQuantity);
 }
 
 export async function listMovementsForInventoryItem(
@@ -164,6 +250,7 @@ export async function ensureDefaultInventoryLocation(
     organizationId: context.organizationId,
     name: defaultInventoryLocationName(context.organization.defaultLocale || context.locale),
     code: DEFAULT_INVENTORY_LOCATION_CODE,
+    locationKind: 'warehouse',
   });
   await recordAuditEvent(context, {
     action: AUDIT_ACTIONS.INVENTORY_LOCATION_CREATED,
@@ -189,10 +276,17 @@ export async function createInventoryLocation(
     throw new DomainRuleError('Location name already exists', 'assets.errors.locationNameTaken');
   }
 
+  if (input.projectId) {
+    const project = await findProjectById(context.db, context.organizationId, input.projectId);
+    if (!project || project.archivedAt) throw new NotFoundError('Project');
+  }
+
   const location = await insertInventoryLocation(context.db, {
     organizationId: context.organizationId,
     name: input.name,
     code: input.code ?? null,
+    locationKind: input.locationKind ?? 'warehouse',
+    projectId: input.projectId ?? null,
   });
 
   await noteModuleUsage(context.db, context.organizationId, 'assets');
@@ -200,7 +294,13 @@ export async function createInventoryLocation(
     action: AUDIT_ACTIONS.INVENTORY_LOCATION_CREATED,
     entityType: 'inventory_location',
     entityId: location.id,
-    after: { id: location.id, name: location.name, code: location.code },
+    after: {
+      id: location.id,
+      name: location.name,
+      code: location.code,
+      locationKind: location.locationKind,
+      projectId: location.projectId,
+    },
   });
   return location;
 }
@@ -236,6 +336,8 @@ export async function updateInventoryLocation(
     {
       ...(input.name !== undefined ? { name: input.name } : {}),
       ...(input.code !== undefined ? { code: input.code ?? null } : {}),
+      ...(input.locationKind !== undefined ? { locationKind: input.locationKind } : {}),
+      ...(input.projectId !== undefined ? { projectId: input.projectId ?? null } : {}),
     },
   );
   if (!updated) throw new NotFoundError('Inventory location');
@@ -244,8 +346,18 @@ export async function updateInventoryLocation(
     action: AUDIT_ACTIONS.INVENTORY_LOCATION_UPDATED,
     entityType: 'inventory_location',
     entityId: updated.id,
-    before: { name: current.name, code: current.code },
-    after: { name: updated.name, code: updated.code },
+    before: {
+      name: current.name,
+      code: current.code,
+      locationKind: current.locationKind,
+      projectId: current.projectId,
+    },
+    after: {
+      name: updated.name,
+      code: updated.code,
+      locationKind: updated.locationKind,
+      projectId: updated.projectId,
+    },
   });
   return updated;
 }
@@ -313,9 +425,15 @@ export async function createInventoryItem(context: OrgContext, raw: CreateInvent
       organizationId: context.organizationId,
       name: input.name,
       sku: input.sku ?? null,
+      barcode: input.barcode ?? null,
       unit: input.unit ?? 'ea',
       quantityOnHand: '0',
       reorderLevel: input.reorderLevel ? normalizeQuantity(input.reorderLevel) : null,
+      minStockLevel: input.minStockLevel
+        ? normalizeQuantity(input.minStockLevel)
+        : input.reorderLevel
+          ? normalizeQuantity(input.reorderLevel)
+          : null,
       materialItemId: input.materialItemId ?? null,
       notes: input.notes ?? null,
     });
@@ -458,9 +576,22 @@ export async function recordInventoryMovement(
   );
   if (!item || item.archivedAt) throw new NotFoundError('Inventory item');
 
+  let movementProjectId = input.projectId ?? null;
   if (input.projectId) {
     const project = await findProjectById(context.db, context.organizationId, input.projectId);
     if (!project || project.archivedAt) throw new NotFoundError('Project');
+  }
+  if (input.workOrderId) {
+    const workOrder = await findProjectById(
+      context.db,
+      context.organizationId,
+      input.workOrderId,
+    );
+    if (!workOrder || workOrder.archivedAt) throw new NotFoundError('Work order');
+    if (workOrder.workKind !== 'work_order') {
+      throw new DomainRuleError('Not a work order', 'assets.errors.notAWorkOrder');
+    }
+    movementProjectId = movementProjectId ?? workOrder.id;
   }
 
   let deltas: ReturnType<typeof locationDeltasForMovement>;
@@ -478,6 +609,66 @@ export async function recordInventoryMovement(
   return withTransaction(context.db, async (tx) => {
     const txContext = withExecutor(context, tx);
     await backfillHeaderOntoDefaultIfNeeded(txContext, item, input.occurredOn);
+    await lockInventoryItemRow(tx, context.organizationId, item.id);
+    const lockedItem =
+      (await findInventoryItemById(tx, context.organizationId, item.id)) ?? item;
+
+    if (input.movementType === 'issue') {
+      const reservedActive = await sumActiveReservedForItem(tx, context.organizationId, item.id);
+      const available = new Decimal(
+        availableQuantity(lockedItem.quantityOnHand, reservedActive),
+      );
+      const issueQty = new Decimal(normalizeQuantity(input.quantity));
+      let plannedConsume = new Decimal(0);
+
+      if (input.reservationId) {
+        const reservation = await lockInventoryReservationForUpdate(
+          tx,
+          context.organizationId,
+          input.reservationId,
+        );
+        if (!reservation || reservation.inventoryItemId !== item.id) {
+          throw new NotFoundError('Inventory reservation');
+        }
+        if (reservation.status !== 'active') {
+          throw new DomainRuleError(
+            'Reservation is not active',
+            'assets.errors.reservationNotActive',
+          );
+        }
+        plannedConsume = Decimal.min(issueQty, reservation.quantity);
+      } else if (input.projectId || input.workOrderId) {
+        const candidates = await listInventoryReservations(tx, context.organizationId, {
+          inventoryItemId: item.id,
+          status: 'active',
+        });
+        let leftover = issueQty;
+        for (const row of candidates) {
+          if (leftover.lte(0)) break;
+          const matches =
+            (input.workOrderId && row.workOrderId === input.workOrderId) ||
+            (input.projectId && row.projectId === input.projectId);
+          if (!matches) continue;
+          const take = Decimal.min(leftover, row.quantity);
+          plannedConsume = plannedConsume.plus(take);
+          leftover = leftover.minus(take);
+        }
+      }
+
+      if (issueQty.gt(lockedItem.quantityOnHand)) {
+        throw new DomainRuleError(
+          'Insufficient quantity on hand',
+          'assets.errors.insufficientQuantity',
+        );
+      }
+
+      if (issueQty.minus(plannedConsume).gt(available)) {
+        throw new DomainRuleError(
+          'Insufficient available quantity',
+          'assets.errors.insufficientAvailable',
+        );
+      }
+    }
 
     let fromLocationId: string | null = null;
     let toLocationId: string | null = null;
@@ -520,7 +711,7 @@ export async function recordInventoryMovement(
       movement = await insertInventoryMovement(tx, {
         organizationId: context.organizationId,
         inventoryItemId: item.id,
-        projectId: input.projectId ?? null,
+        projectId: movementProjectId,
         movementType: input.movementType,
         quantity: normalizeQuantity(input.quantity),
         occurredOn: input.occurredOn,
@@ -530,6 +721,16 @@ export async function recordInventoryMovement(
       });
     } catch (error) {
       rethrowInventoryWrite(error);
+    }
+
+    if (input.movementType === 'issue') {
+      await consumeReservationsForIssue(txContext, {
+        inventoryItemId: item.id,
+        issueQuantity: normalizeQuantity(input.quantity),
+        reservationId: input.reservationId ?? null,
+        projectId: movementProjectId,
+        workOrderId: input.workOrderId ?? null,
+      });
     }
 
     const updated = await findInventoryItemById(tx, context.organizationId, item.id);

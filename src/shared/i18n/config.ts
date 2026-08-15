@@ -91,6 +91,9 @@ export const MESSAGE_NAMESPACES = [
   'forms',
   'commandCenter',
   'recurringDrafts',
+  'notifications',
+  'safety',
+  'scheduling',
 ] as const;
 
 export type MessageNamespace = (typeof MESSAGE_NAMESPACES)[number];
@@ -126,4 +129,5 @@ export const APP_CLIENT_MESSAGE_NAMESPACES = [
   'boq',
   'approvals',
   'search',
+  'notifications',
 ] as const satisfies readonly MessageNamespace[];

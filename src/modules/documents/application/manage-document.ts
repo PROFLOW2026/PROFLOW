@@ -7,11 +7,8 @@ import type { OrgContext } from '@/shared/auth/context';
 import { getStoragePort, StorageNotConfiguredError } from '@/shared/ports/storage';
 import { validateUploadConstraints } from '../domain/file-rules';
 import type { DocumentRecord, DownloadUrlResult } from '../domain/types';
-import {
-  findDocumentById,
-  listDeletedDocumentsNeedingStorageCleanup,
-  updateDocumentById,
-} from '../data/documents.repository';
+import { findDocumentById, listDeletedDocumentsNeedingStorageCleanup, updateDocumentById } from '../data/documents.repository';
+import { ensureFirstDocumentVersion } from '../data/versions.repository';
 import {
   isStorageOrphanChecksum,
   removeStorageObjectWithRetry,
@@ -92,15 +89,24 @@ export async function finalizeDocumentUpload(
 
   if (!updated) throw new NotFoundError('Document');
 
+  const version = await ensureFirstDocumentVersion(context.db, updated);
+  const withCurrent =
+    updated.currentVersionId === version.id
+      ? updated
+      : await updateDocumentById(context.db, context.organizationId, updated.id, {
+          currentVersionId: version.id,
+        });
+  const result = withCurrent ?? updated;
+
   await recordAuditEvent(context, {
     action: 'document.finalized',
     entityType: 'document',
-    entityId: updated.id,
+    entityId: result.id,
     before: { status: existing.status },
-    after: { status: updated.status, sizeBytes: updated.sizeBytes },
+    after: { status: result.status, sizeBytes: result.sizeBytes, currentVersionId: result.currentVersionId },
   });
 
-  return updated;
+  return result;
 }
 
 export async function getDocumentById(

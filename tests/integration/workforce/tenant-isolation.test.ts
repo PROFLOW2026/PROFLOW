@@ -166,6 +166,7 @@ describe('workforce tenant isolation', () => {
         rateVersionId,
         costAmount: '800',
         costCurrency: 'ILS',
+        approvalStatus: 'approved',
       });
     });
 

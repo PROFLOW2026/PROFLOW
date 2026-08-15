@@ -19,6 +19,19 @@ export function packWorkforceAndBlockers(
   return `${workforce}${DAILY_LOG_BLOCKERS_MARKER}${blockersText}`;
 }
 
+export const DAILY_LOG_CORRECTION_MARKER = '\n\n--- correction ---\n';
+
+export function appendDailyLogCorrectionNote(
+  existing: string | null | undefined,
+  note: string,
+  at: Date,
+): string {
+  const trimmed = note.trim();
+  const block = `[${at.toISOString()}]\n${trimmed}`;
+  if (!existing?.trim()) return `--- correction ---\n${block}`;
+  return `${existing.trimEnd()}${DAILY_LOG_CORRECTION_MARKER}${block}`;
+}
+
 export function unpackWorkforceAndBlockers(stored: string | null | undefined): {
   workforceNotes: string | null;
   blockers: string | null;

@@ -1,0 +1,90 @@
+{
+  "title": "Scheduling",
+  "description": "See who is booked, available, or away — by day or week.",
+  "loading": "Loading the schedule…",
+  "notAllowed": {
+    "title": "Scheduling is not available",
+    "body": "You do not have permission to view the resource schedule."
+  },
+  "empty": {
+    "title": "No people on this schedule yet",
+    "body": "Add employees, then book time or mark time off. Assigned projects and scheduled service calls appear here automatically.",
+    "action": "New booking"
+  },
+  "view": {
+    "day": "Day",
+    "week": "Week",
+    "today": "Today",
+    "previous": "Previous",
+    "next": "Next"
+  },
+  "signals": {
+    "available": "Available",
+    "partially_booked": "Partially booked",
+    "fully_booked": "Fully booked",
+    "conflict": "Conflict",
+    "over_capacity": "Over capacity",
+    "unavailable": "Unavailable"
+  },
+  "sources": {
+    "manual": "Booking",
+    "work_order": "Service call",
+    "assignment": "Project assignment",
+    "recurring": "Recurring service"
+  },
+  "status": {
+    "planned": "Planned",
+    "confirmed": "Confirmed",
+    "cancelled": "Cancelled"
+  },
+  "kinds": {
+    "leave": "Leave",
+    "unavailable": "Unavailable",
+    "holiday": "Holiday"
+  },
+  "hours": "{hours} h",
+  "capacity": "{planned} of {capacity} h",
+  "assignmentBackground": "Assigned: {project}",
+  "readOnlyHint": "Shown from the service schedule. Change it on the service call.",
+  "newBooking": "New booking",
+  "newUnavailability": "Mark time off",
+  "reschedule": "Reschedule",
+  "hideReschedule": "Hide",
+  "cancelBooking": "Cancel booking",
+  "cancelConfirmTitle": "Cancel this booking?",
+  "cancelConfirmBody": "The time slot will be freed. This does not change time entries or pay.",
+  "cancelConfirmAction": "Cancel booking",
+  "cancelled": "Booking cancelled.",
+  "saved": "Saved.",
+  "confirmOverlap": "Book anyway — times overlap",
+  "overlapWarning": "This overlaps another booking. Confirm to keep both.",
+  "overCapacityHint": "Planned hours are above the usual {hours} hours for this period.",
+  "fields": {
+    "employee": "Employee",
+    "employeePlaceholder": "Select employee",
+    "project": "Project",
+    "projectPlaceholder": "Optional project",
+    "projectNone": "No project",
+    "startAt": "Starts",
+    "endAt": "Ends",
+    "plannedHours": "Planned hours",
+    "plannedHoursHint": "Leave empty to use the time between start and end.",
+    "notes": "Notes",
+    "kind": "Kind",
+    "startDate": "From",
+    "endDate": "Until"
+  },
+  "actions": {
+    "createBooking": "Save booking",
+    "saveReschedule": "Save times",
+    "createUnavailability": "Save time off"
+  },
+  "errors": {
+    "bookingOverlap": "This overlaps another booking. Confirm to keep both, or pick a different time.",
+    "unavailableOverlap": "This overlaps time off. Pick a different time, or change the time off first.",
+    "unavailabilityOverlap": "This overlaps existing time off.",
+    "cancelledLocked": "A cancelled booking cannot be changed.",
+    "employeeRequired": "Select an employee.",
+    "windowRequired": "Start and end are required."
+  }
+}

@@ -10,6 +10,7 @@ import {
 } from '../data/service-details.repository';
 import type { ProjectServiceDetailsRecord, WorkOrderListItem } from '../domain/types';
 import { listWorkOrdersSchema, type ListWorkOrdersInput } from '../validation/schemas';
+import { assertCanAccessProject, resolveAccessibleProjectIds } from '@/modules/projects';
 
 export async function listWorkOrdersForOrg(
   context: OrgContext,
@@ -24,11 +25,15 @@ export async function listWorkOrdersForOrg(
     );
   }
 
-  return listWorkOrdersWithDetails(context.db, context.organizationId, {
+  const rows = await listWorkOrdersWithDetails(context.db, context.organizationId, {
     search: parsed.data.search,
     serviceStatus: parsed.data.serviceStatus,
     includeArchived: parsed.data.includeArchived,
   });
+  const allowed = await resolveAccessibleProjectIds(context);
+  if (allowed === null) return rows;
+  const set = new Set(allowed);
+  return rows.filter((row) => set.has(row.id));
 }
 
 export interface WorkOrderDetail {
@@ -82,6 +87,7 @@ export async function getWorkOrderDetail(
     .limit(1);
 
   if (!row) throw new NotFoundError('Work order');
+  await assertCanAccessProject(context, workOrderId);
   if (row.workKind !== 'work_order') {
     throw new DomainRuleError('Not a work order', 'service.notAWorkOrder', {
       workOrderId,

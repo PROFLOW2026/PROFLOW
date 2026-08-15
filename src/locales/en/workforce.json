@@ -4,7 +4,8 @@
   "nav": {
     "employees": "Employees",
     "time": "Time entries",
-    "attendance": "Attendance"
+    "attendance": "Attendance",
+    "approvals": "Timesheet approvals"
   },
   "rateUnits": {
     "hourly": "Hourly",
@@ -111,6 +112,42 @@
       "void": "Void",
       "correction": "Correction"
     },
+    "approvalStatus": {
+      "draft": "Draft",
+      "submitted": "Waiting for approval",
+      "approved": "Approved",
+      "returned": "Returned for correction"
+    },
+    "actions": {
+      "submitForApproval": "Submit for approval",
+      "waitingApproval": "Waiting for approval",
+      "approved": "Approved",
+      "returned": "Returned for correction"
+    },
+    "approvals": {
+      "title": "Timesheet approvals",
+      "description": "Approve submitted hours before they become labor Actual. Draft, waiting, and returned rows do not cost.",
+      "queueHint": "Only submitted rows can be approved. Returning requires a manager note.",
+      "approve": "Approve",
+      "approveSelected": "Approve selected",
+      "return": "Return for correction",
+      "submitSelected": "Submit selected for approval",
+      "managerNote": "Manager note",
+      "managerNoteRequired": "A note is required when returning a timesheet.",
+      "managerNotePlaceholder": "What should be corrected?",
+      "period": "Period",
+      "entries": "Entries",
+      "successSubmitted": "Submitted for approval.",
+      "successApproved": "Approved. These hours now count as labor Actual.",
+      "successReturned": "Returned for correction.",
+      "empty": {
+        "title": "No timesheets waiting",
+        "description": "Submitted hours appear here for review. Nothing is required until someone submits a timesheet."
+      },
+      "filters": {
+        "approvalStatus": "Approval"
+      }
+    },
     "weekdays": {
       "sun": "Sun",
       "mon": "Mon",
@@ -127,7 +164,8 @@
       "from": "From",
       "to": "To",
       "status": "Status",
-      "kind": "Type"
+      "kind": "Type",
+      "approval": "Approval"
     },
     "columns": {
       "date": "Date",
@@ -348,6 +386,14 @@
     "timeEntryArchived": "Cannot correct an archived time entry.",
     "closedMonthNeedsProject": "Cannot post a closed-month economic correction without a project. Date a reversing time entry in an open month, or assign the original entry to a project.",
     "closedMonthCurrencyMismatch": "Closed-month time correction requires the same cost currency on the original and replacement.",
+    "invalidTimesheetTransition": "This timesheet status change is not allowed.",
+    "timesheetPeriodApproved": "This week is already approved. Use a time correction for approved hours.",
+    "timesheetEmployeeMismatch": "Time entries must belong to the same employee.",
+    "nothingToSubmit": "There are no draft or returned hours to submit.",
+    "managerNoteRequired": "A manager note is required when returning a timesheet.",
+    "timeEntryApprovedLocked": "Approved hours are locked. Use Correct to change them.",
+    "timeEntryNotEditable": "Only draft or returned hours can be edited. Submitted hours wait for approval.",
+    "invalidTimesheetPeriod": "The timesheet period is invalid.",
     "alreadyClockedIn": "Already clocked in.",
     "notClockedIn": "Not clocked in.",
     "noLinkedEmployee": "Your login is not linked to an employee record.",

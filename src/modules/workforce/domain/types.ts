@@ -21,9 +21,19 @@ export type LaborComponentBasis = (typeof LABOR_COMPONENT_BASES)[number];
 export const TIME_ENTRY_KINDS = ['project', 'non_project'] as const;
 export type TimeEntryKind = (typeof TIME_ENTRY_KINDS)[number];
 
-/** recorded = counts toward Actual; void = corrected/cancelled (excluded). */
+/** recorded = eligible for Actual; void = corrected/cancelled (excluded). */
 export const TIME_ENTRY_STATUSES = ['recorded', 'void'] as const;
 export type TimeEntryStatus = (typeof TIME_ENTRY_STATUSES)[number];
+
+/**
+ * Timesheet / time-entry approval lifecycle.
+ * Labor Actual requires recorded + approved. draft/submitted/returned never cost.
+ */
+export const TIME_APPROVAL_STATUSES = ['draft', 'submitted', 'approved', 'returned'] as const;
+export type TimeApprovalStatus = (typeof TIME_APPROVAL_STATUSES)[number];
+
+export const TIMESHEET_STATUSES = TIME_APPROVAL_STATUSES;
+export type TimesheetStatus = TimeApprovalStatus;
 
 export interface EmployeeRecord {
   readonly id: string;
@@ -101,9 +111,39 @@ export interface TimeEntryRecord {
   readonly voidedAt: Date | null;
   readonly correctsEntryId: string | null;
   readonly bulkBatchId: string | null;
+  readonly timesheetId: string | null;
+  readonly approvalStatus: TimeApprovalStatus;
+  readonly submittedAt: Date | null;
+  readonly submittedByUserId: string | null;
+  readonly decidedAt: Date | null;
+  readonly decidedByUserId: string | null;
+  readonly managerNote: string | null;
   readonly archivedAt: Date | null;
   readonly createdAt: Date;
   readonly updatedAt: Date;
+}
+
+export interface TimesheetRecord {
+  readonly id: string;
+  readonly organizationId: string;
+  readonly employeeId: string;
+  readonly periodStart: string;
+  readonly periodEnd: string;
+  readonly status: TimesheetStatus;
+  readonly submittedByUserId: string | null;
+  readonly submittedAt: Date | null;
+  readonly decidedByUserId: string | null;
+  readonly decidedAt: Date | null;
+  readonly managerNote: string | null;
+  readonly archivedAt: Date | null;
+  readonly createdAt: Date;
+  readonly updatedAt: Date;
+}
+
+export interface TimesheetListItem extends TimesheetRecord {
+  readonly employeeName: string;
+  readonly entryCount: number;
+  readonly totalHours: string;
 }
 
 export interface EmployeeListItem extends EmployeeRecord {

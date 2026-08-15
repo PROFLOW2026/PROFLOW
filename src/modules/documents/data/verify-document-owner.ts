@@ -8,6 +8,7 @@ import {
   changeRequests,
   clients,
   complianceArtifacts,
+  contracts,
   dailyLogs,
   employees,
   expenses,
@@ -19,6 +20,9 @@ import {
   punchListItems,
   purchaseOrders,
   quoteVersions,
+  safetyRecords,
+  subcontractAgreements,
+  timesheets,
   vendors,
 } from '@drizzle/schema';
 import type { DbExecutor } from '@/shared/db/types';
@@ -32,6 +36,21 @@ export async function documentOwnerExistsInOrganization(
 ): Promise<boolean> {
   if (ownerType === 'organization') {
     return ownerId === organizationId;
+  }
+
+  if (ownerType === 'work_order') {
+    const [row] = await db
+      .select({ id: projects.id })
+      .from(projects)
+      .where(
+        and(
+          eq(projects.id, ownerId),
+          eq(projects.organizationId, organizationId),
+          eq(projects.workKind, 'work_order'),
+        ),
+      )
+      .limit(1);
+    return Boolean(row);
   }
 
   const tableByOwnerType = {
@@ -55,6 +74,10 @@ export async function documentOwnerExistsInOrganization(
     asset: assets,
     inventory_item: inventoryItems,
     form_submission: formSubmissions,
+    contract: contracts,
+    subcontract_agreement: subcontractAgreements,
+    safety_record: safetyRecords,
+    timesheet: timesheets,
   } as const;
 
   const table = tableByOwnerType[ownerType];

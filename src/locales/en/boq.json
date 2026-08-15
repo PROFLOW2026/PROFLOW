@@ -72,6 +72,8 @@
     "progressMode": "Progress mode",
     "progressModeSimple": "Simple (measured = approved)",
     "progressModeAdvanced": "Advanced (measure, then approve)",
+    "contract": "Contract",
+    "contractPrimary": "Primary",
     "addChapter": "Add chapter",
     "addItem": "Add item",
     "parentChapter": "Parent chapter (optional)",

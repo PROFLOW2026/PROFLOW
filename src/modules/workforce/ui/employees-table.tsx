@@ -166,6 +166,10 @@ export function canLogTime(context: OrgContext): boolean {
   return hasPermission(context, PERMISSIONS.TIME_MANAGE);
 }
 
+export function canApproveTime(context: OrgContext): boolean {
+  return hasPermission(context, PERMISSIONS.TIME_APPROVE);
+}
+
 export function canViewWorkforceCosts(context: OrgContext): boolean {
   // List rate columns must match list redaction — never show empty "no rate" cells
   // when the user cannot read workforce cost (rates stay redacted).

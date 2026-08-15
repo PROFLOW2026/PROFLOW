@@ -1,6 +1,6 @@
 import { and, desc, eq, inArray, isNull, or, sql } from 'drizzle-orm';
 import {
-  type boqNodes,
+  boqNodes,
   changeOrders,
   boqProgressBatches,
   boqProgressBillingLinks,
@@ -52,6 +52,7 @@ export async function findActiveBoqForProject(
   db: DbExecutor,
   organizationId: string,
   projectId: string,
+  contractId?: string | null,
 ) {
   const [row] = await db
     .select()
@@ -62,6 +63,9 @@ export async function findActiveBoqForProject(
         eq(projectBoqs.projectId, projectId),
         eq(projectBoqs.status, 'active'),
         isNull(projectBoqs.archivedAt),
+        contractId
+          ? eq(projectBoqs.contractId, contractId)
+          : undefined,
       ),
     )
     .limit(1);
@@ -107,6 +111,7 @@ export async function insertProjectBoq(
     progressMode: string;
     notes: string | null;
     createdByUserId: string | null;
+    contractId?: string | null;
   },
 ): Promise<string> {
   const [row] = await db
@@ -121,6 +126,7 @@ export async function insertProjectBoq(
       notes: values.notes,
       status: 'draft',
       createdByUserId: values.createdByUserId,
+      contractId: values.contractId ?? null,
     })
     .returning({ id: projectBoqs.id });
   if (!row) throw new Error('Failed to insert project BOQ');
@@ -140,6 +146,18 @@ export async function updateProjectBoqStatus(
   },
 ): Promise<never> {
   throw new Error('updateProjectBoqStatus is removed — use activateProjectBoqRpc / archiveProjectBoqRpc');
+}
+
+export async function updateProjectBoqContractId(
+  db: DbExecutor,
+  organizationId: string,
+  boqId: string,
+  contractId: string | null,
+): Promise<void> {
+  await db
+    .update(projectBoqs)
+    .set({ contractId, updatedAt: new Date() })
+    .where(and(eq(projectBoqs.id, boqId), eq(projectBoqs.organizationId, organizationId)));
 }
 
 export async function activateProjectBoqRpc(
@@ -998,6 +1016,7 @@ export async function nextBoqVersionNumber(
   db: DbExecutor,
   organizationId: string,
   projectId: string,
+  contractId?: string | null,
 ): Promise<number> {
   const [row] = await db
     .select({
@@ -1005,7 +1024,13 @@ export async function nextBoqVersionNumber(
     })
     .from(projectBoqs)
     .where(
-      and(eq(projectBoqs.organizationId, organizationId), eq(projectBoqs.projectId, projectId)),
+      and(
+        eq(projectBoqs.organizationId, organizationId),
+        eq(projectBoqs.projectId, projectId),
+        contractId
+          ? eq(projectBoqs.contractId, contractId)
+          : isNull(projectBoqs.contractId),
+      ),
     );
   return Number(row?.max ?? 0) + 1;
 }

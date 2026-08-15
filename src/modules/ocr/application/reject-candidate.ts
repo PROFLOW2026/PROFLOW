@@ -1,5 +1,5 @@
 import type { OrgContext } from '@/shared/auth/context';
-import { DomainRuleError, NotFoundError } from '@/shared/errors';
+import { ConflictError, DomainRuleError, NotFoundError } from '@/shared/errors';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { getOcrRepository } from '../data/resolve-repository';
@@ -36,14 +36,31 @@ export async function rejectOcrCandidate(
     );
   }
 
-  const updated = await repo.updateJob(context.organizationId, job.id, {
-    status: 'rejected',
-    reviewStatus: 'rejected',
-    rejectedFields: input.rejectedFields ?? null,
-    errorCode: input.reason ? 'rejected_by_reviewer' : job.errorCode,
-    errorMessage: input.reason ?? job.errorMessage,
-  });
-
-  if (!updated) throw new NotFoundError('OCR extraction job');
+  const updated = await repo.claimJob(
+    context.organizationId,
+    job.id,
+    ['needs_review', 'succeeded', 'failed'],
+    {
+      status: 'rejected',
+      reviewStatus: 'rejected',
+      rejectedFields: input.rejectedFields ?? null,
+      errorCode: input.reason ? 'rejected_by_reviewer' : job.errorCode,
+      errorMessage: input.reason ?? job.errorMessage,
+    },
+  );
+  if (!updated) {
+    const latest = await repo.findJob(context.organizationId, job.id);
+    if (
+      latest?.confirmedExpenseId ||
+      latest?.confirmedVendorBillId ||
+      latest?.confirmedVendorCreditId
+    ) {
+      throw new DomainRuleError(
+        'Extraction was already confirmed into a draft',
+        'ocr.errors.alreadyConfirmed',
+      );
+    }
+    throw new ConflictError('OCR job was updated concurrently');
+  }
   return updated;
 }

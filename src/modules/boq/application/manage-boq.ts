@@ -6,6 +6,11 @@ import { money, toNumericString } from '@/shared/money';
 import { assertPermission, hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { noteModuleUsage } from '@/modules/tenancy';
+import {
+  findPrimaryContractByProject,
+  findContractById,
+  listContractsByProject,
+} from '@/modules/projects/data/contracts.repository';
 import { computeLineAmount, quantityString } from '../domain/amounts';
 import { maskBoqNodeMoney } from '../domain/mask-money';
 import {
@@ -33,6 +38,7 @@ import {
   nodeHasProgressHistory,
   sumItemAmounts,
   updateBoqNodeDraft,
+  updateProjectBoqContractId,
 } from '../data/boq.repository';
 import {
   activateBoqSchema,
@@ -63,10 +69,27 @@ export async function createProjectBoq(context: OrgContext, raw: CreateProjectBo
   );
   if (!project) throw new NotFoundError('Project');
 
+  const liveContracts = await listContractsByProject(
+    context.db,
+    context.organizationId,
+    parsed.data.projectId,
+  );
+  let contractId = parsed.data.contractId ?? null;
+  if (contractId) {
+    const contract = await findContractById(context.db, context.organizationId, contractId);
+    if (!contract || contract.projectId !== parsed.data.projectId) {
+      throw new NotFoundError('Contract');
+    }
+  } else if (liveContracts.length > 1) {
+    const primary = liveContracts.find((row) => row.isPrimary) ?? liveContracts[0]!;
+    contractId = primary.id;
+  }
+
   const active = await findActiveBoqForProject(
     context.db,
     context.organizationId,
     parsed.data.projectId,
+    contractId,
   );
   // Allow draft alongside active; only one active enforced by DB.
 
@@ -74,6 +97,7 @@ export async function createProjectBoq(context: OrgContext, raw: CreateProjectBo
     context.db,
     context.organizationId,
     parsed.data.projectId,
+    contractId,
   );
   const currency = (parsed.data.currency ?? project.currency ?? context.organization.baseCurrency)
     .toUpperCase();
@@ -86,6 +110,7 @@ export async function createProjectBoq(context: OrgContext, raw: CreateProjectBo
     progressMode: parsed.data.progressMode ?? 'simple',
     notes: parsed.data.notes?.trim() || null,
     createdByUserId: context.userId,
+    contractId,
   });
 
   await noteModuleUsage(context.db, context.organizationId, 'boq');
@@ -197,6 +222,39 @@ export async function activateBoq(context: OrgContext, raw: ActivateBoqInput) {
     throw new ValidationError([{ path: 'boqId', message: 'Activate requires at least one item' }]);
   }
 
+  if (parsed.data.contractId !== undefined) {
+    if (parsed.data.contractId) {
+      const contract = await findContractById(
+        context.db,
+        context.organizationId,
+        parsed.data.contractId,
+      );
+      if (!contract || contract.projectId !== boq.projectId) {
+        throw new NotFoundError('Contract');
+      }
+    }
+    await updateProjectBoqContractId(
+      context.db,
+      context.organizationId,
+      boq.id,
+      parsed.data.contractId,
+    );
+  } else if (!boq.contractId) {
+    const liveContracts = await listContractsByProject(
+      context.db,
+      context.organizationId,
+      boq.projectId,
+    );
+    if (liveContracts.length > 1) {
+      const primary =
+        liveContracts.find((row) => row.isPrimary) ??
+        (await findPrimaryContractByProject(context.db, context.organizationId, boq.projectId));
+      if (primary) {
+        await updateProjectBoqContractId(context.db, context.organizationId, boq.id, primary.id);
+      }
+    }
+  }
+
   await activateProjectBoqRpc(context.db, context.organizationId, boq.id);
 
   await noteModuleUsage(context.db, context.organizationId, 'boq');
@@ -244,13 +302,36 @@ export async function removeBoqNode(context: OrgContext, nodeId: string) {
   });
 }
 
-export async function getProjectBoqWorkspace(context: OrgContext, projectId: string) {
+export async function getProjectBoqWorkspace(
+  context: OrgContext,
+  projectId: string,
+  contractId?: string | null,
+) {
   assertPermission(context, PERMISSIONS.BOQ_READ);
   const project = await findProjectInOrganization(context.db, context.organizationId, projectId);
   if (!project) throw new NotFoundError('Project');
 
+  const liveContracts = await listContractsByProject(
+    context.db,
+    context.organizationId,
+    projectId,
+  );
+  const primary = liveContracts.find((row) => row.isPrimary) ?? null;
+  const selectedContractId =
+    contractId ??
+    (liveContracts.length > 1 ? (primary?.id ?? liveContracts[0]?.id ?? null) : null);
+
   const versions = await listBoqsForProject(context.db, context.organizationId, projectId);
-  const active = versions.find((row) => row.status === 'active') ?? versions[0] ?? null;
+  const scopedVersions =
+    liveContracts.length > 1 && selectedContractId
+      ? versions.filter(
+          (row) =>
+            row.contractId === selectedContractId ||
+            (row.contractId == null && selectedContractId === primary?.id),
+        )
+      : versions;
+  const active =
+    scopedVersions.find((row) => row.status === 'active') ?? scopedVersions[0] ?? null;
   const nodes = active ? await listBoqNodes(context.db, context.organizationId, active.id) : [];
   const originalTotal = active
     ? await sumItemAmounts(context.db, context.organizationId, active.id, 'original')
@@ -287,6 +368,14 @@ export async function getProjectBoqWorkspace(context: OrgContext, projectId: str
       currency: active?.currency ?? project.currency ?? context.organization.baseCurrency,
     },
     showMoney,
+    contracts: liveContracts.map((row) => ({
+      id: row.id,
+      name: row.name,
+      contractNumber: row.contractNumber,
+      isPrimary: row.isPrimary,
+      contractType: row.contractType,
+    })),
+    selectedContractId,
   };
 }
 

@@ -43,7 +43,7 @@ export default async function BillingListPage({
   searchParams,
 }: {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ filter?: string }>;
+  searchParams: Promise<{ filter?: string; contractId?: string }>;
 }) {
   const [{ locale }, search, t, tRecurring] = await Promise.all([
     params,
@@ -53,9 +53,20 @@ export default async function BillingListPage({
   ]);
   const rawFilter = search.filter;
   const filter = (FILTERS.includes(rawFilter as BillingListFilter) ? rawFilter : 'all') as BillingListFilter;
+  const contractId =
+    typeof search.contractId === 'string' && search.contractId.length > 0 ? search.contractId : undefined;
+
+  function billingListHref(nextFilter: BillingListFilter, nextContractId?: string) {
+    const params = new URLSearchParams();
+    if (nextFilter !== 'all') params.set('filter', nextFilter);
+    if (nextContractId) params.set('contractId', nextContractId);
+    const qs = params.toString();
+    return qs ? `/billing?${qs}` : '/billing';
+  }
 
   // One org billing load feeds the list filter + AR summary + aging (was 3× listBillingRecords).
-  const { canRead, records, canManage, summary, aging, payments, canReadReports } = await withOrgContext(
+  const { canRead, records, canManage, summary, aging, payments, canReadReports, contractOptions } =
+    await withOrgContext(
     async (context) => {
       const allowed = hasPermission(context, PERMISSIONS.BILLING_READ);
       if (!allowed) {
@@ -67,6 +78,7 @@ export default async function BillingListPage({
           aging: null,
           payments: [],
           canReadReports: false,
+          contractOptions: [] as { id: string; name: string | null }[],
         };
       }
 
@@ -85,7 +97,22 @@ export default async function BillingListPage({
       );
       const listed = allRecords
         .filter((record) => matchesListFilter(filter, record.collectionStatus))
+        .filter((record) => (contractId ? record.contractId === contractId : true))
         .slice(0, 100);
+
+      const contractOptions = [
+        ...new Map(
+          allRecords
+            .filter((record) => record.contractId)
+            .map((record) => [
+              record.contractId!,
+              {
+                id: record.contractId!,
+                name: record.contractName ?? null,
+              },
+            ]),
+        ).values(),
+      ];
 
       return {
         canRead: true,
@@ -95,6 +122,7 @@ export default async function BillingListPage({
         aging: receivablesAging,
         payments: paymentRows,
         canReadReports: hasPermission(context, PERMISSIONS.PROJECT_FINANCIALS_READ),
+        contractOptions,
       };
     },
   );
@@ -154,13 +182,39 @@ export default async function BillingListPage({
       {showSummary && summary ? <ReceivablesSummaryPanel summary={summary} /> : null}
       {showAging && aging ? <ReceivablesAgingPanel aging={aging} /> : null}
 
+      {contractOptions.length > 1 ? (
+        <nav className="flex min-w-0 flex-wrap gap-2" aria-label={t('list.contract')}>
+          <Link
+            href={billingListHref(filter)}
+            className={
+              !contractId
+                ? 'rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-muted)] px-3 py-2 text-sm font-medium'
+                : 'rounded-md border border-transparent px-3 py-2 text-sm text-[var(--pf-text-secondary)]'
+            }
+          >
+            {t('list.allContracts')}
+          </Link>
+          {contractOptions.map((contract) => (
+            <Link
+              key={contract.id}
+              href={billingListHref(filter, contract.id)}
+              className={
+                contractId === contract.id
+                  ? 'rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-muted)] px-3 py-2 text-sm font-medium'
+                  : 'rounded-md border border-transparent px-3 py-2 text-sm text-[var(--pf-text-secondary)]'
+              }
+            >
+              {contract.name ?? contract.id.slice(0, 8)}
+            </Link>
+          ))}
+        </nav>
+      ) : null}
+
       <Tabs value={filter} className="min-w-0">
         <TabsList aria-label={t('list.filtersLabel')} className="min-w-0 max-w-full">
           {FILTERS.map((value) => (
             <TabsTrigger key={value} value={value} asChild className="min-h-11">
-              <Link href={value === 'all' ? '/billing' : `/billing?filter=${value}`}>
-                {t(`list.filters.${value}`)}
-              </Link>
+              <Link href={billingListHref(value, contractId)}>{t(`list.filters.${value}`)}</Link>
             </TabsTrigger>
           ))}
         </TabsList>

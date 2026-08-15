@@ -162,6 +162,8 @@ export async function loadLaborHoursBases(
       and(
         eq(timeEntries.organizationId, organizationId),
         eq(timeEntries.kind, 'project'),
+        eq(timeEntries.status, 'recorded'),
+        eq(timeEntries.approvalStatus, 'approved'),
         isNull(timeEntries.archivedAt),
         inArray(timeEntries.projectId, [...projectIds]),
         gte(timeEntries.workDate, period.start),

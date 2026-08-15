@@ -28,6 +28,9 @@ vi.mock('@/modules/ocr/application/ocr-actions', () => ({
   extractReceiptAction: vi.fn(),
   rejectOcrCandidateAction: vi.fn(),
   seedFixtureOcrJobAction: vi.fn(),
+  cancelOcrJobAction: vi.fn(),
+  createOcrBatchAction: vi.fn(),
+  getOcrReviewPageDataAction: vi.fn(async () => ({ ok: false, error: 'not polled in unit test' })),
 }));
 
 vi.mock('@/modules/documents/application/document-actions', () => ({
@@ -88,6 +91,15 @@ function baseJob(): ExtractionJob {
     confirmedVendorBillId: null,
     confirmedVendorCreditId: null,
     confirmedDraftTarget: null,
+    documentVersionId: null,
+    batchId: null,
+    attemptCount: 0,
+    lastError: null,
+    idempotencyKey: null,
+    queuedAt: now,
+    startedAt: null,
+    completedAt: null,
+    cancelledAt: null,
     createdAt: now,
     updatedAt: now,
   };
@@ -540,5 +552,87 @@ describe('OCR review panel', () => {
       />,
     );
     expect(screen.queryByText(enDocuments.ocr.warnPossibleWrongCustomer)).toBeNull();
+  });
+
+  it('shows queued, processing, and failed states with retry and batch progress', async () => {
+    const user = userEvent.setup();
+    const queued = {
+      ...baseJob(),
+      id: '01900000-0000-7000-8000-0000000000q1',
+      status: 'queued' as const,
+      candidates: null,
+      extractedCandidates: null,
+      batchId: '01900000-0000-7000-8000-0000000000b1',
+    };
+    const processing = {
+      ...baseJob(),
+      id: '01900000-0000-7000-8000-0000000000p1',
+      status: 'processing' as const,
+      candidates: null,
+      extractedCandidates: null,
+      batchId: '01900000-0000-7000-8000-0000000000b1',
+      sourceDocument: {
+        documentId: DOCUMENT_ID,
+        filename: 'processing.png',
+        mimeType: 'image/png',
+      },
+    };
+    const failed = {
+      ...baseJob(),
+      id: '01900000-0000-7000-8000-0000000000f1',
+      status: 'failed' as const,
+      candidates: null,
+      extractedCandidates: null,
+      errorCode: 'timeout',
+      errorMessage: 'Timed out',
+      lastError: 'Timed out',
+      sourceDocument: {
+        documentId: DOCUMENT_ID,
+        filename: 'failed.png',
+        mimeType: 'image/png',
+      },
+    };
+
+    renderPanel(
+      <OcrReviewPanel
+        initialStatus={liveStatus}
+        initialJobs={[queued, processing, failed]}
+        initialBatches={[
+          {
+            id: '01900000-0000-7000-8000-0000000000b1',
+            organizationId: 'org-1',
+            createdByUserId: 'user-1',
+            status: 'processing',
+            totalCount: 3,
+            completedCount: 0,
+            failedCount: 1,
+            createdAt: '2026-08-12T00:00:00.000Z',
+            updatedAt: '2026-08-12T00:00:00.000Z',
+          },
+        ]}
+        vendors={[]}
+        organizationId="org-1"
+        defaultTarget="expense"
+        workflow="expense"
+        canManageDocuments
+        canCreateExpenses
+        canManageAp
+      />,
+    );
+
+    expect(screen.getByText(enDocuments.ocr.status.queued)).toBeVisible();
+    expect(screen.getAllByText(enDocuments.ocr.status.processing).length).toBeGreaterThan(0);
+    expect(screen.getByText(enDocuments.ocr.status.failed)).toBeVisible();
+    expect(screen.getByText(enDocuments.ocr.stillProcessing)).toBeVisible();
+    expect(document.querySelector('[data-pf-ocr-batches]')).toBeTruthy();
+    expect(document.querySelector('[data-pf-ocr-batch-id="01900000-0000-7000-8000-0000000000b1"]')).toBeTruthy();
+    expect(screen.getByText(/of 3 read/i)).toBeVisible();
+    expect(screen.getByRole('button', { name: enDocuments.ocr.cancelJob })).toBeVisible();
+
+    const failedButton = document.querySelector(
+      '[data-pf-ocr-job-status="failed"]',
+    ) as HTMLButtonElement;
+    await user.click(failedButton);
+    expect(screen.getByRole('button', { name: enDocuments.ocr.retry })).toBeVisible();
   });
 });

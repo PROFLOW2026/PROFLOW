@@ -18,6 +18,7 @@ export {
   listUnbilledChangeOrders,
   listProjectBillingRecords,
   listBillingProjectOptions,
+  listBillingContractOptionsForOrg,
 } from './application/project-billing';
 
 export { getOrganizationReceivablesAging } from './application/get-receivables-aging';
@@ -62,6 +63,7 @@ export type {
   PaymentApplicationFilters,
   UnbilledChangeOrder,
   ProjectOption,
+  BillingContractOption,
 } from './domain/types';
 
 export {

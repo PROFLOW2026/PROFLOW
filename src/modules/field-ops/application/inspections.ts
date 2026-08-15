@@ -1,9 +1,11 @@
 import { AUDIT_ACTIONS, recordAuditEvent } from '@/shared/audit';
 import type { OrgContext } from '@/shared/auth/context';
-import { DomainRuleError, NotFoundError, ValidationError } from '@/shared/errors';
+import { withTransaction } from '@/shared/db';
+import { ConflictError, DomainRuleError, NotFoundError, ValidationError } from '@/shared/errors';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { todayInTimeZone } from '@/shared/dates/dates';
+import { assertCanAccessProject, isAccessibleProjectId, resolveAccessibleProjectIds } from '@/modules/projects';
 import { noteModuleUsage } from '@/modules/tenancy';
 import {
   canTransitionInspectionStatus,
@@ -12,6 +14,7 @@ import {
 import type { InspectionStatus } from '../domain/types';
 import {
   findInspectionById,
+  findInspectionByIdForUpdate,
   insertInspection,
   listInspections,
   updateInspectionById,
@@ -29,13 +32,18 @@ export async function listInspectionsForOrg(
   filters: { projectId?: string; status?: InspectionStatus } = {},
 ) {
   assertPermission(context, PERMISSIONS.FIELD_OPS_READ);
-  return listInspections(context.db, context.organizationId, filters);
+  const [allowed, rows] = await Promise.all([
+    resolveAccessibleProjectIds(context),
+    listInspections(context.db, context.organizationId, filters),
+  ]);
+  return rows.filter((row) => isAccessibleProjectId(allowed, row.projectId));
 }
 
 export async function getInspectionForOrg(context: OrgContext, inspectionId: string) {
   assertPermission(context, PERMISSIONS.FIELD_OPS_READ);
   const item = await findInspectionById(context.db, context.organizationId, inspectionId);
   if (!item) throw new NotFoundError('Inspection');
+  await assertCanAccessProject(context, item.projectId);
   return item;
 }
 
@@ -85,60 +93,71 @@ export async function updateInspection(context: OrgContext, raw: UpdateInspectio
   }
 
   const input = parsed.data;
-  const existing = await findInspectionById(context.db, context.organizationId, input.inspectionId);
-  if (!existing) throw new NotFoundError('Inspection');
 
-  if (
-    input.status &&
-    !canTransitionInspectionStatus(existing.status, input.status as InspectionStatus)
-  ) {
-    throw new DomainRuleError(
-      `Cannot transition inspection from ${existing.status} to ${input.status}`,
-      'fieldOps.errors.invalidInspectionTransition',
+  return withTransaction(context.db, async (tx) => {
+    const txContext = { ...context, db: tx };
+    const existing = await findInspectionByIdForUpdate(
+      tx,
+      context.organizationId,
+      input.inspectionId,
     );
-  }
+    if (!existing) throw new NotFoundError('Inspection');
+    await assertCanAccessProject(txContext, existing.projectId);
 
-  if (input.workPackageId) {
-    await assertProjectRefsInOrg(context, {
-      projectId: existing.projectId,
-      workPackageId: input.workPackageId,
+    if (
+      input.status &&
+      !canTransitionInspectionStatus(existing.status, input.status as InspectionStatus)
+    ) {
+      throw new DomainRuleError(
+        `Cannot transition inspection from ${existing.status} to ${input.status}`,
+        'fieldOps.errors.invalidInspectionTransition',
+      );
+    }
+
+    if (input.workPackageId) {
+      await assertProjectRefsInOrg(txContext, {
+        projectId: existing.projectId,
+        workPackageId: input.workPackageId,
+      });
+    }
+
+    const nextStatus = (input.status as InspectionStatus | undefined) ?? existing.status;
+    const statusChanging = input.status !== undefined && input.status !== existing.status;
+    let completedOn = input.completedOn === undefined ? undefined : input.completedOn;
+    if (
+      statusChanging &&
+      isCompletedInspectionStatus(nextStatus) &&
+      completedOn === undefined &&
+      !existing.completedOn
+    ) {
+      completedOn = todayInTimeZone(context.organization.timezone);
+    }
+
+    const updated = await updateInspectionById(
+      tx,
+      context.organizationId,
+      input.inspectionId,
+      {
+        title: input.title,
+        kind: input.kind,
+        status: statusChanging ? (input.status as InspectionStatus) : undefined,
+        scheduledOn: input.scheduledOn === undefined ? undefined : input.scheduledOn,
+        completedOn,
+        result: input.result === undefined ? undefined : input.result,
+        notes: input.notes === undefined ? undefined : input.notes,
+        workPackageId: input.workPackageId === undefined ? undefined : input.workPackageId,
+      },
+      statusChanging ? { fromStatuses: [existing.status] } : undefined,
+    );
+    if (!updated) throw new ConflictError('Inspection was updated concurrently');
+
+    await recordAuditEvent(txContext, {
+      action: AUDIT_ACTIONS.INSPECTION_UPDATED,
+      entityType: 'inspection',
+      entityId: updated.id,
+      before: existing,
+      after: updated,
     });
-  }
-
-  const nextStatus = (input.status as InspectionStatus | undefined) ?? existing.status;
-  let completedOn = input.completedOn === undefined ? undefined : input.completedOn;
-  if (
-    input.status &&
-    isCompletedInspectionStatus(nextStatus) &&
-    completedOn === undefined &&
-    !existing.completedOn
-  ) {
-    completedOn = todayInTimeZone(context.organization.timezone);
-  }
-
-  const updated = await updateInspectionById(
-    context.db,
-    context.organizationId,
-    input.inspectionId,
-    {
-      title: input.title,
-      kind: input.kind,
-      status: input.status as InspectionStatus | undefined,
-      scheduledOn: input.scheduledOn === undefined ? undefined : input.scheduledOn,
-      completedOn,
-      result: input.result === undefined ? undefined : input.result,
-      notes: input.notes === undefined ? undefined : input.notes,
-      workPackageId: input.workPackageId === undefined ? undefined : input.workPackageId,
-    },
-  );
-  if (!updated) throw new NotFoundError('Inspection');
-
-  await recordAuditEvent(context, {
-    action: AUDIT_ACTIONS.INSPECTION_UPDATED,
-    entityType: 'inspection',
-    entityId: updated.id,
-    before: existing,
-    after: updated,
+    return updated;
   });
-  return updated;
 }

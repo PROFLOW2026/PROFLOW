@@ -1,9 +1,10 @@
 import { relations, sql } from 'drizzle-orm';
 import { boolean, check, date, index, jsonb, pgTable, text, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
-import { archivedAt, currencyCode, moneyAmount, primaryId, timestamps } from './_shared';
+import { archivedAt, currencyCode, moneyAmount, percentAmount, primaryId, timestamps } from './_shared';
 import { contractStatusEnum } from './enums';
 import { profiles } from './identity';
 import { projects } from './projects';
+import { clients } from './clients';
 import { organizations } from './tenancy';
 
 /**
@@ -30,6 +31,13 @@ export const contracts = pgTable(
       .notNull()
       .references(() => projects.id, { onDelete: 'cascade' }),
     isPrimary: boolean('is_primary').notNull().default(true),
+    /** primary | additional | secondary — UX kind; is_primary remains the unique commercial primary. */
+    contractType: text('contract_type').notNull().default('primary'),
+    contractNumber: text('contract_number'),
+    clientId: uuid('client_id').references(() => clients.id, { onDelete: 'set null' }),
+    startDate: date('start_date'),
+    endDate: date('end_date'),
+    retentionPercent: percentAmount('retention_percent'),
     name: text('name'),
     reference: text('reference'),
     status: contractStatusEnum('status').notNull().default('active'),
@@ -75,9 +83,25 @@ export const contracts = pgTable(
   (table) => [
     index('contracts_org_idx').on(table.organizationId),
     index('contracts_project_idx').on(table.projectId),
+    uniqueIndex('contracts_id_organization_id_uq').on(table.id, table.organizationId),
     uniqueIndex('contracts_project_primary_uq')
       .on(table.projectId)
       .where(sql`${table.isPrimary} and ${table.archivedAt} is null`),
+    uniqueIndex('contracts_org_number_uq')
+      .on(table.organizationId, table.contractNumber)
+      .where(sql`${table.contractNumber} is not null and ${table.archivedAt} is null`),
+    check(
+      'contracts_type_known',
+      sql`${table.contractType} IN ('primary', 'additional', 'secondary')`,
+    ),
+    check(
+      'contracts_date_order',
+      sql`${table.endDate} IS NULL OR ${table.startDate} IS NULL OR ${table.endDate} >= ${table.startDate}`,
+    ),
+    check(
+      'contracts_retention_percent_range',
+      sql`${table.retentionPercent} IS NULL OR (${table.retentionPercent} >= 0 AND ${table.retentionPercent} <= 100)`,
+    ),
     check(
       'contracts_opening_reduction_non_negative',
       sql`${table.openingReductionNetAmount} IS NULL OR ${table.openingReductionNetAmount} >= 0`,

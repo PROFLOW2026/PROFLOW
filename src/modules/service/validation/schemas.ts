@@ -162,3 +162,30 @@ export const rescheduleWorkOrderSchema = z
   });
 
 export type RescheduleWorkOrderInput = z.input<typeof rescheduleWorkOrderSchema>;
+
+const optionalMoney = z.preprocess(
+  emptyToNull,
+  z
+    .string()
+    .trim()
+    .regex(/^[+]?\d+(\.\d+)?$/, 'Amount must be a positive decimal')
+    .nullable()
+    .optional(),
+);
+
+export const createWorkOrderBillingSchema = z.object({
+  workOrderId: z.string().uuid(),
+  laborHours: optionalMoney,
+  laborRate: optionalMoney,
+  materialsAmount: optionalMoney,
+  callOutFee: optionalMoney,
+  additionalCharges: optionalMoney,
+  discountAmount: optionalMoney,
+  issueDate: z.preprocess(
+    emptyToNull,
+    z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable().optional(),
+  ),
+  notes: optionalText,
+});
+
+export type CreateWorkOrderBillingInput = z.input<typeof createWorkOrderBillingSchema>;

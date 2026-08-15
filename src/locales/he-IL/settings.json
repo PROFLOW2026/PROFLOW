@@ -29,7 +29,20 @@
     "profile": "הפרופיל שלכם"
   },
   "people": {
-    "linkCopied": "הקישור הועתק"
+    "linkCopied": "הקישור הועתק",
+    "accessTitle": "גישה לפרויקטים",
+    "accessHint": "מי רואה אילו פרויקטים. ברירת המחדל היא כל מי שיש לו הרשאת פרויקטים. עלות מעסיק נשארת מוסתרת בלי הרשאת עלות כוח אדם.",
+    "accessMode": "נראות",
+    "modeAll": "כל הפרויקטים",
+    "modeSelected": "פרויקטים שנבחרו בלבד",
+    "modeAssigned": "פרויקטים משובצים",
+    "grantUser": "אדם",
+    "grantProject": "פרויקט",
+    "grantAdd": "הענקת גישה",
+    "grantEmpty": "אין הרשאות נוספות עדיין.",
+    "revoke": "הסרה",
+    "saveMode": "שמירת נראות",
+    "saved": "נשמר"
   },
   "modules": {
     "title": "יכולות",
@@ -61,6 +74,7 @@
     "boq": "כתב כמויות וחשבונות חלקיים",
     "forms": "טפסים",
     "command_center": "היום",
+    "safety": "בטיחות / HSE",
     "hints": {
       "billing": "ניהול חיובים, חשבוניות וגבייה מלקוחות.",
       "workforce": "ניהול עובדים ודיווחי שעות.",
@@ -84,7 +98,8 @@
       "budgets": "מעקב תקציב מול ביצוע ותחזית.",
       "boq": "ניהול סעיפים, מדידות ביצוע וחשבונות חלקיים בפרויקט.",
       "forms": "טפסים ורשימות בדיקה לשימוש בשטח.",
-      "command_center": "תצוגת היום למשימות ולעבודה השוטפת."
+      "command_center": "תצוגת היום למשימות ולעבודה השוטפת.",
+      "safety": "תאונות, כמעט-תאונות, שיחות בטיחות ופעולות מתקנות."
     },
     "saved": "תצוגת היכולות עודכנה."
   },
@@ -280,7 +295,13 @@
         "archived": "העברת אבן דרך לארכיון"
       },
       "contract": {
-        "value_recorded": "רישום סכום חוזה"
+        "value_recorded": "רישום סכום חוזה",
+        "additional_created": "יצירת חוזה נוסף",
+        "updated": "עדכון חוזה"
+      },
+      "project_access": {
+        "granted": "הוענקה גישה לפרויקט",
+        "revoked": "הוסרה גישה לפרויקט"
       },
       "client": {
         "created": "יצירת לקוח",
@@ -315,6 +336,13 @@
         "ended": "סיום התקשרות עם ספק",
         "cancelled": "ביטול התקשרות עם ספק",
         "archived": "סגירת התקשרות עם ספק"
+      },
+      "subcontract": {
+        "created": "יצירת הסכם קבלן משנה",
+        "updated": "עדכון הסכם קבלן משנה",
+        "status_changed": "שינוי סטטוס הסכם קבלן משנה",
+        "value_recorded": "רישום ערך הסכם קבלן משנה",
+        "document_linked": "קישור מסמך להסכם קבלן משנה"
       },
       "expense": {
         "created": "יצירת הוצאה",
@@ -363,7 +391,15 @@
         "created": "רישום שעות",
         "voided": "ביטול רישום שעות",
         "corrected": "תיקון רישום שעות",
-        "bulk_created": "יצירת רישומי שעות מרובים"
+        "bulk_created": "יצירת רישומי שעות מרובים",
+        "updated": "עדכון רישום שעות",
+        "approved": "אישור רישום שעות",
+        "bulk_approved": "אישור שעות מרובות"
+      },
+      "timesheet": {
+        "submitted": "שליחת גיליון שעות",
+        "returned": "החזרת גיליון שעות לתיקון",
+        "approved": "אישור גיליון שעות"
       },
       "attendance": {
         "clocked": "דיווח נוכחות",
@@ -475,7 +511,10 @@
       },
       "daily_log": {
         "created": "יצירת יומן יומי",
-        "updated": "עדכון יומן יומי"
+        "updated": "עדכון יומן יומי",
+        "submitted": "הגשת יומן יומי",
+        "finalized": "סגירת יומן יומי",
+        "correction_added": "תיקון ליומן יומי"
       },
       "punch_list_item": {
         "created": "יצירת פריט פאנץ׳",
@@ -484,6 +523,18 @@
       "inspection": {
         "created": "יצירת בדיקה",
         "updated": "עדכון בדיקה"
+      },
+      "safety_record": {
+        "created": "יצירת רשומת בטיחות",
+        "updated": "עדכון רשומת בטיחות"
+      },
+      "safety_action": {
+        "created": "יצירת פעולת תיקון בטיחות",
+        "updated": "עדכון פעולת תיקון בטיחות"
+      },
+      "safety_attendee": {
+        "added": "הוספת משתתף לשיחת בטיחות",
+        "acknowledged": "אישור השתתפות בשיחת בטיחות"
       },
       "asset": {
         "created": "יצירת נכס",
@@ -507,6 +558,16 @@
         "created": "יצירת מיקום מלאי",
         "updated": "עדכון מיקום מלאי",
         "archived": "ארכוב מיקום מלאי"
+      },
+      "inventory_reservation": {
+        "created": "הזמנת מלאי",
+        "released": "שחרור הזמנת מלאי",
+        "consumed": "ניצול הזמנת מלאי"
+      },
+      "inventory_count": {
+        "created": "יצירת ספירת מלאי",
+        "finalized": "סגירת ספירת מלאי",
+        "voided": "ביטול ספירת מלאי"
       },
       "material_usage": {
         "recorded": "נרשם שימוש בחומר",
@@ -628,6 +689,7 @@
       "vendor": "ספק",
       "vendor_contact": "איש קשר לספק",
       "vendor_engagement": "התקשרות עם ספק",
+      "subcontract_agreement": "הסכם קבלן משנה",
       "expense": "הוצאה",
       "change_request": "בקשת שינוי",
       "change_order": "שינוי מסחרי",
@@ -668,6 +730,8 @@
       "inventory_item": "פריט מלאי",
       "inventory_movement": "תנועת מלאי",
       "inventory_location": "מיקום מלאי",
+      "inventory_reservation": "הזמנת מלאי",
+      "inventory_count": "ספירת מלאי",
       "recurring_financial_draft": "תבנית טיוטה חוזרת",
       "recurring_financial_draft_run": "הרצת טיוטה חוזרת",
       "retention_release": "שחרור עיכבון",

@@ -39,6 +39,13 @@ function mapDocument(row: typeof documents.$inferSelect): DocumentRecord {
     storageCleanupError: row.storageCleanupError,
     storageCleanupLastAttemptedAt: row.storageCleanupLastAttemptedAt,
     uploadedByUserId: row.uploadedByUserId,
+    folderId: row.folderId,
+    category: row.category,
+    tags: row.tags,
+    expiresAt: row.expiresAt,
+    isRequired: row.isRequired,
+    requiredType: row.requiredType,
+    currentVersionId: row.currentVersionId,
     deletedAt: row.deletedAt,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
@@ -102,6 +109,18 @@ export async function updateDocumentById(
     storageCleanupAttempts: number;
     storageCleanupError: string | null;
     storageCleanupLastAttemptedAt: Date | null;
+    storageBucket: string;
+    storagePath: string;
+    originalFilename: string;
+    mimeType: string;
+    folderId: string | null;
+    category: string | null;
+    tags: string | null;
+    expiresAt: string | null;
+    isRequired: boolean;
+    requiredType: string | null;
+    currentVersionId: string | null;
+    uploadedByUserId: string | null;
   }>,
 ): Promise<DocumentRecord | null> {
   const [row] = await db
@@ -161,6 +180,22 @@ export async function findDocumentById(
     .select()
     .from(documents)
     .where(and(eq(documents.id, documentId), eq(documents.organizationId, organizationId)))
+    .limit(1);
+
+  return row ? mapDocument(row) : null;
+}
+
+/** Locks the document row so concurrent version uploads serialize on one current. */
+export async function findDocumentByIdForUpdate(
+  db: DbExecutor,
+  organizationId: string,
+  documentId: string,
+): Promise<DocumentRecord | null> {
+  const [row] = await db
+    .select()
+    .from(documents)
+    .where(and(eq(documents.id, documentId), eq(documents.organizationId, organizationId)))
+    .for('update')
     .limit(1);
 
   return row ? mapDocument(row) : null;
@@ -269,6 +304,14 @@ export async function listAllDocuments(
           and dl.owner_type = ${filters.ownerType}
       )`,
     );
+  }
+
+  if (filters.folderId && filters.folderId !== 'all') {
+    if (filters.folderId === 'none') {
+      conditions.push(isNull(documents.folderId));
+    } else {
+      conditions.push(eq(documents.folderId, filters.folderId));
+    }
   }
 
   if (filters.search?.trim()) {

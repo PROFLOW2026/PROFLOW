@@ -70,6 +70,39 @@ export async function ProjectFinancialsPanel({ projectId }: ProjectFinancialsPan
         </CardContent>
       </Card>
 
+      {canReadCommercial && (financials.perContract?.length ?? 0) > 1 ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>{t('perContract.title')}</CardTitle>
+            <CardDescription>{t('perContract.hint')}</CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-3">
+            {financials.perContract!.map((slice) => (
+              <div
+                key={slice.contractId}
+                className="flex min-w-0 flex-col gap-1 rounded-md border border-[var(--pf-border-default)] p-3 text-start sm:flex-row sm:items-center sm:justify-between"
+              >
+                <div className="min-w-0">
+                  <p className="font-medium">
+                    {slice.name ?? slice.contractType}
+                    {slice.isPrimary ? ` · ${t('perContract.primary')}` : null}
+                  </p>
+                  {slice.skippedForeignCurrency ? (
+                    <p className="text-xs text-[var(--pf-text-muted)]">{t('perContract.skippedFx')}</p>
+                  ) : null}
+                </div>
+                <div className="flex min-w-0 flex-col gap-0.5 text-sm sm:text-end">
+                  <MoneyText value={slice.position.originalContractValue} compact />
+                  <span className="text-[var(--pf-text-secondary)]">
+                    <MoneyText value={slice.position.currentContractValue} compact />
+                  </span>
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      ) : null}
+
       {canReadBilling && cashFlow ? (
         <CashFlowView
           cashFlow={cashFlow}

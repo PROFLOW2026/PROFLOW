@@ -1,7 +1,6 @@
 import type { OrgContext } from '@/shared/auth/context';
 import { DomainRuleError, NotFoundError } from '@/shared/errors';
-import { findProjectById } from '@/modules/projects';
-import { findWorkPackageById } from '@/modules/projects';
+import { assertCanAccessProject, findProjectById, findWorkPackageById } from '@/modules/projects';
 
 /** Ensures project / work-package FKs stay inside the active organization. */
 export async function assertProjectRefsInOrg(
@@ -10,6 +9,7 @@ export async function assertProjectRefsInOrg(
 ): Promise<void> {
   const project = await findProjectById(context.db, context.organizationId, input.projectId);
   if (!project || project.archivedAt) throw new NotFoundError('Project');
+  await assertCanAccessProject(context, input.projectId);
 
   if (!input.workPackageId) return;
 

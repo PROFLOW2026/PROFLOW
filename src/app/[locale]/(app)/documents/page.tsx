@@ -9,8 +9,10 @@ import {
   DOCUMENT_OWNER_TYPES,
   isStorageConfigured,
   listDocumentsForOrg,
+  listFolders,
   type DocumentOwnerType,
 } from '@/modules/documents';
+import { DocumentFoldersPanel } from '@/modules/documents/ui';
 import { getShellContext, withOrgContext } from '@/shared/auth/session';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
@@ -36,10 +38,19 @@ function parseOwnerType(raw: string | undefined): DocumentOwnerType | 'all' {
     : 'all';
 }
 
+function parseFolderId(raw: string | undefined): string | 'all' | 'none' {
+  if (!raw || raw === 'all') return 'all';
+  if (raw === 'none') return 'none';
+  if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(raw)) {
+    return raw;
+  }
+  return 'all';
+}
+
 export default async function DocumentsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; ownerType?: string }>;
+  searchParams: Promise<{ q?: string; ownerType?: string; folderId?: string }>;
 }) {
   const [t, tCommon, search, shell] = await Promise.all([
     getTranslations('documents'),
@@ -47,19 +58,25 @@ export default async function DocumentsPage({
     searchParams,
     getShellContext(),
   ]);
-  const { q, ownerType: ownerTypeRaw } = search;
+  const { q, ownerType: ownerTypeRaw, folderId: folderIdRaw } = search;
   const ownerType = parseOwnerType(ownerTypeRaw);
-  const filtersActive = Boolean(q?.trim()) || ownerType !== 'all';
+  const folderId = parseFolderId(folderIdRaw);
+  const filtersActive = Boolean(q?.trim()) || ownerType !== 'all' || folderId !== 'all';
   const storageConfigured = isStorageConfigured();
   const vendorsEnabled = Boolean(shell?.modules?.vendors);
 
   const loaded = await withOrgContext(async (context) => {
-    const documents = await listDocumentsForOrg(context, {
-      search: q,
-      ownerType,
-    });
+    const [documents, folders] = await Promise.all([
+      listDocumentsForOrg(context, {
+        search: q,
+        ownerType,
+        folderId,
+      }),
+      listFolders(context, {}),
+    ]);
     return {
       documents,
+      folders,
       canRead: hasPermission(context, PERMISSIONS.DOCUMENTS_READ),
       canManage: hasPermission(context, PERMISSIONS.DOCUMENTS_MANAGE),
     };
@@ -78,6 +95,14 @@ export default async function DocumentsPage({
       <DocumentListFilters
         initialQuery={q ?? ''}
         initialOwnerType={ownerType}
+        initialFolderId={folderId}
+        folders={loaded.folders}
+      />
+
+      <DocumentFoldersPanel
+        folders={loaded.folders}
+        canManage={loaded.canManage}
+        selectedFolderId={folderId}
       />
 
       {loaded.documents.length === 0 ? (
@@ -109,6 +134,7 @@ export default async function DocumentsPage({
           canRead={loaded.canRead}
           canManage={loaded.canManage}
           storageConfigured={storageConfigured}
+          folders={loaded.folders}
         />
       )}
 

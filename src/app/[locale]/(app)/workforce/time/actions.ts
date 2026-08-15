@@ -3,12 +3,18 @@
 import { revalidatePath } from 'next/cache';
 import { getLocale, getTranslations } from 'next-intl/server';
 import {
+  approveTimeEntry,
+  approveTimesheet,
+  bulkApproveTimeEntries,
   correctTimeEntry,
   correctTimeEntrySchema,
   createBulkTimeEntries,
   createBulkTimeEntriesSchema,
   createTimeEntry,
   createTimeEntrySchema,
+  returnTimesheet,
+  submitTimeEntries,
+  submitTimesheet,
 } from '@/modules/workforce';
 import { withOrgContext } from '@/shared/auth/session';
 import { AppError } from '@/shared/errors';
@@ -16,6 +22,7 @@ import { redirect } from '@/shared/i18n/navigation';
 
 export interface TimeEntryFormState {
   error?: string;
+  ok?: boolean;
   /** Local draft queued — not server truth. */
   offlineQueued?: boolean;
 }
@@ -29,6 +36,14 @@ const WORKFORCE_ERROR_KEYS = [
   'invalidPhase',
   'closedMonthNeedsProject',
   'closedMonthCurrencyMismatch',
+  'invalidTimesheetTransition',
+  'timesheetPeriodApproved',
+  'timesheetEmployeeMismatch',
+  'nothingToSubmit',
+  'managerNoteRequired',
+  'timeEntryApprovedLocked',
+  'timeEntryNotEditable',
+  'invalidTimesheetPeriod',
 ] as const;
 
 async function mapActionError(error: unknown, fallback: string): Promise<TimeEntryFormState> {
@@ -88,6 +103,14 @@ function parseWeekdays(formData: FormData): number[] | undefined {
   return values.length > 0 ? [...new Set(values)] : undefined;
 }
 
+function parseIdList(formData: FormData, name: string): string[] {
+  return formData
+    .getAll(name)
+    .flatMap((value) => (typeof value === 'string' ? value.split(',') : []))
+    .map((value) => value.trim())
+    .filter(Boolean);
+}
+
 export async function createTimeEntryAction(
   _prevState: TimeEntryFormState,
   formData: FormData,
@@ -120,7 +143,6 @@ export async function createTimeEntryAction(
     } catch (error) {
       return mapActionError(error, fallback);
     }
-    return {};
   }
 
   if (mode === 'bulk') {
@@ -146,7 +168,6 @@ export async function createTimeEntryAction(
     } catch (error) {
       return mapActionError(error, fallback);
     }
-    return {};
   }
 
   const parsed = createTimeEntrySchema.safeParse({
@@ -172,6 +193,72 @@ export async function createTimeEntryAction(
   } catch (error) {
     return mapActionError(error, fallback);
   }
+}
 
-  return {};
+export async function submitTimeEntriesAction(
+  _prevState: TimeEntryFormState,
+  formData: FormData,
+): Promise<TimeEntryFormState> {
+  const tErrors = await getTranslations('errors');
+  const fallback = tErrors('unexpected');
+  const entryIds = parseIdList(formData, 'entryIds');
+  const employeeId = String(formData.get('employeeId') ?? '');
+  try {
+    await withOrgContext((context) =>
+      employeeId
+        ? submitTimesheet(context, { employeeId, entryIds: entryIds.length > 0 ? entryIds : undefined })
+        : submitTimeEntries(context, { entryIds }),
+    );
+    revalidatePath('/workforce', 'layout');
+    return { ok: true };
+  } catch (error) {
+    return mapActionError(error, fallback);
+  }
+}
+
+export async function approveTimesheetAction(
+  _prevState: TimeEntryFormState,
+  formData: FormData,
+): Promise<TimeEntryFormState> {
+  const tErrors = await getTranslations('errors');
+  const fallback = tErrors('unexpected');
+  const timesheetId = String(formData.get('timesheetId') ?? '');
+  const timeEntryId = String(formData.get('timeEntryId') ?? '');
+  const entryIds = parseIdList(formData, 'entryIds');
+  try {
+    await withOrgContext(async (context) => {
+      if (timesheetId) {
+        await approveTimesheet(context, { timesheetId });
+        return;
+      }
+      if (entryIds.length > 0) {
+        await bulkApproveTimeEntries(context, { timeEntryIds: entryIds });
+        return;
+      }
+      if (timeEntryId) {
+        await approveTimeEntry(context, { timeEntryId });
+      }
+    });
+    revalidatePath('/workforce', 'layout');
+    return { ok: true };
+  } catch (error) {
+    return mapActionError(error, fallback);
+  }
+}
+
+export async function returnTimesheetAction(
+  _prevState: TimeEntryFormState,
+  formData: FormData,
+): Promise<TimeEntryFormState> {
+  const tErrors = await getTranslations('errors');
+  const fallback = tErrors('unexpected');
+  const timesheetId = String(formData.get('timesheetId') ?? '');
+  const managerNote = String(formData.get('managerNote') ?? '');
+  try {
+    await withOrgContext((context) => returnTimesheet(context, { timesheetId, managerNote }));
+    revalidatePath('/workforce', 'layout');
+    return { ok: true };
+  } catch (error) {
+    return mapActionError(error, fallback);
+  }
 }

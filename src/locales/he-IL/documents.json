@@ -35,7 +35,13 @@
     "inspection": "בדיקה",
     "compliance_artifact": "ציות",
     "asset": "נכס",
-    "inventory_item": "פריט מלאי"
+    "inventory_item": "פריט מלאי",
+    "form_submission": "מילוי טופס",
+    "contract": "חוזה",
+    "work_order": "הזמנת עבודה",
+    "subcontract_agreement": "הסכם קבלן משנה",
+    "safety_record": "רישום בטיחות",
+    "timesheet": "גיליון שעות"
   },
   "status": {
     "pending": "ממתין להעלאה",
@@ -52,7 +58,11 @@
     "unlinkFailed": "לא ניתן להסיר את הקישור.",
     "deleteFailed": "לא ניתן להסיר את המסמך.",
     "notFound": "המסמך לא נמצא.",
-    "notPending": "מסמך זה אינו ממתין להעלאה."
+    "notPending": "מסמך זה אינו ממתין להעלאה.",
+    "notAvailable": "מסמך זה אינו זמין.",
+    "folderNotFound": "התיקייה לא נמצאה.",
+    "versionNotFound": "הגרסה לא נמצאה.",
+    "versionPathInvalid": "יעד ההעלאה אינו תקף למסמך זה."
   },
   "attachments": {
     "title": "מסמכים",
@@ -84,7 +94,8 @@
     "storageNotConfigured": "העלאת קבצים אינה זמינה בסביבה זו. שאר העבודה לא מושפעת.",
     "uploadFailed": "ההעלאה לא הושלמה. נסו שוב.",
     "uploadSuccess": "הקובץ הועלה.",
-    "downloadFailed": "ההורדה אינה זמינה."
+    "downloadFailed": "ההורדה אינה זמינה.",
+    "versions": "גרסאות"
   },
   "categories": {
     "contract": "חוזה",
@@ -98,6 +109,43 @@
     "drawing": "שרטוט / תוכנית",
     "other": "אחר"
   },
+  "folders": {
+    "title": "תיקיות",
+    "empty": "עדיין אין תיקיות.",
+    "namePlaceholder": "שם תיקייה",
+    "create": "יצירת תיקייה",
+    "createSuccess": "התיקייה נוצרה.",
+    "createFailed": "לא ניתן ליצור את התיקייה.",
+    "filterLabel": "תיקייה",
+    "all": "כל התיקיות",
+    "none": "ללא תיקייה"
+  },
+  "versions": {
+    "title": "היסטוריית גרסאות",
+    "history": "היסטוריית גרסאות",
+    "empty": "עדיין אין גרסאות.",
+    "current": "נוכחית",
+    "uploadNew": "העלאת גרסה חדשה",
+    "uploadSuccess": "גרסה חדשה הועלתה.",
+    "uploadFailed": "לא ניתן להעלות גרסה חדשה.",
+    "versionLabel": "גרסה {number}",
+    "notesPlaceholder": "הערה אופציונלית לגרסה זו…",
+    "downloadFailed": "ההורדה אינה זמינה לגרסה זו.",
+    "keepOldHint": "קבצים קודמים נשארים במערכת. רק הגרסה הנוכחית משתנה."
+  },
+  "meta": {
+    "required": "חובה",
+    "requiredBadge": "חובה",
+    "expires": "תאריך תפוגה",
+    "expired": "פג תוקף",
+    "expiring": "פג תוקף בקרוב",
+    "tags": "תגיות",
+    "tagsPlaceholder": "תגיות אופציונליות…",
+    "save": "שמירה",
+    "saveSuccess": "פרטי המסמך נשמרו.",
+    "saveFailed": "לא ניתן לשמור את פרטי המסמך.",
+    "folder": "תיקייה"
+  },
   "fileSize": {
     "bytes": "{size} B",
     "kilobytes": "{size} KB",
@@ -105,7 +153,7 @@
   },
   "ocr": {
     "title": "בדיקת מסמך",
-    "description": "מעלים או מצלמים מסמך, עורכים כל שדה, ואז מאשרים במפורש טיוטת הוצאה או טיוטת חשבונית ספק בלבד.",
+    "description": "מעלים או מצלמים מסמך, עורכים כל שדה, ואז מאשרים במפורש טיוטת הוצאה או טיוטת חשבון ספק בלבד.",
     "configurationState": {
       "disabled": "מצב: כבוי — קריאה אוטומטית אינה מופעלת.",
       "fixture_only": "מצב: דוגמה בלבד — לא קריאה חיה.",
@@ -131,6 +179,12 @@
     "extractImage": "צירוף קבלה או חשבונית",
     "extractCapture": "צילום קבלה או חשבונית",
     "extractQueuedReview": "יש לבדוק ולאשר לפני יצירת טיוטה.",
+    "extractQueuedBackground": "הקריאה רצה ברקע. אפשר להמשיך לעבוד.",
+    "stillProcessing": "עדיין קוראים את המסמך…",
+    "batchProgress": "{completed} מתוך {total} נקראו · {failed} נכשלו",
+    "batchQueued": "{count} מסמכים ממתינים לקריאה.",
+    "cancelJob": "ביטול קריאה",
+    "jobCancelled": "הקריאה בוטלה. לא נוצרה טיוטה.",
     "extractFailed": "לא הצלחנו לקרוא את המסמך ({code}). לא נוצרה טיוטה.",
     "offlineBlocked": "קריאת מסמך דורשת חיבור. הקובץ לא נשלח.",
     "viewOriginal": "הצגת המסמך המקורי",
@@ -164,11 +218,11 @@
     "lineItems": "שורות",
     "previewMapping": "בדיקה לפני יצירת טיוטה",
     "confirmExpense": "צור טיוטת הוצאה",
-    "confirmVendorBill": "צור טיוטת חשבונית ספק",
+    "confirmVendorBill": "צור טיוטת חשבון ספק",
     "confirmVendorCredit": "צור טיוטת זיכוי ספק",
     "mappedOnly": "התצוגה נשמרה. לא נוצרה טיוטה — יש לאשר במפורש.",
     "expenseCreated": "נוצרה טיוטת הוצאה: {id}.",
-    "vendorBillCreated": "נוצרה טיוטת חשבונית ספק: {id}.",
+    "vendorBillCreated": "נוצרה טיוטת חשבון ספק: {id}.",
     "vendorCreditCreated": "נוצרה טיוטת זיכוי ספק: {id}.",
     "rejected": "הבדיקה נדחתה. לא נוצרה טיוטה.",
     "rejectReview": "דחיית המסמך",
@@ -176,13 +230,13 @@
     "accept": "אישור שדה",
     "acceptField": "אישור שדה {field}",
     "acceptRequired": "יש לאשר לפחות שדה אחד לפני יצירת טיוטה.",
-    "vendorRequired": "יש לבחור ספק לפני יצירת טיוטת חשבונית ספק.",
+    "vendorRequired": "יש לבחור ספק לפני יצירת טיוטת חשבון ספק.",
     "vendorEntity": "ספק",
     "vendorEntityPlaceholder": "בחירת ספק",
     "draftTargetTitle": "מה ליצור?",
     "draftTargetHint": "רק טיוטה — לא אישור סופי ולא הכרה בעלות בפועל.",
     "draftTargetExpense": "טיוטת הוצאה",
-    "draftTargetVendorBill": "טיוטת חשבונית ספק",
+    "draftTargetVendorBill": "טיוטת חשבון ספק",
     "draftTargetVendorCredit": "טיוטת זיכוי ספק",
     "reviewLink": "בדיקת מסמך",
     "historyTitle": "היסטוריית בדיקת מסמכים",
@@ -236,10 +290,12 @@
     "status": {
       "queued": "ממתין",
       "running": "בעיבוד",
+      "processing": "בעיבוד",
       "succeeded": "אושר",
       "failed": "נכשל",
       "needs_review": "ממתין לבדיקה",
-      "rejected": "נדחה"
+      "rejected": "נדחה",
+      "cancelled": "בוטל"
     },
     "reviewStatus": {
       "awaiting_review": "ממתין לבדיקה",

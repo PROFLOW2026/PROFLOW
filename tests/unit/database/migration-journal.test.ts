@@ -239,7 +239,13 @@ describe('migration journal', () => {
     expect(tags.indexOf('0044_inventory_locations_qty')).toBeLessThan(
       tags.indexOf('0045_boq_reverse_allocation_changes_approve'),
     );
-    expect(tags.at(-1)).toBe('0045_boq_reverse_allocation_changes_approve');
+      expect(tags.indexOf('0045_boq_reverse_allocation_changes_approve')).toBeLessThan(
+      tags.indexOf('0046_multi_contract_projects'),
+    );
+    expect(tags.indexOf('0050_wave3_operations')).toBeLessThan(
+      tags.indexOf('0051_review_integrity_closure'),
+    );
+    expect(tags.at(-1)).toBe('0051_review_integrity_closure');
 
     const sql35 = await readFile(
       path.join(MIGRATIONS_DIR, '0035_boq_integrity_closure.sql'),

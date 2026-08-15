@@ -5,6 +5,13 @@ export { createJob } from './application/create-job';
 export type { CreateJobResult } from './application/create-job';
 export { updateProject } from './application/update-project';
 export { upsertPrimaryContractAmount } from './application/contract-amount';
+export {
+  createAdditionalContract,
+  updateContract,
+  listProjectContracts,
+  setProjectPrimaryContract,
+} from './application/manage-contracts';
+export type { ProjectContractListItem } from './application/manage-contracts';
 export { setJobFixedPrice } from './application/set-job-fixed-price';
 export type { SetJobFixedPriceResult } from './application/set-job-fixed-price';
 export { convertJobToProject } from './application/convert-job-to-project';
@@ -12,6 +19,21 @@ export { archiveProject } from './application/archive-project';
 export { restoreProject } from './application/restore-project';
 export { listProjectsForOrg } from './application/list-projects';
 export { listJobsForOrg } from './application/list-jobs';
+export {
+  getProjectAccessModeForOrg,
+  saveProjectAccessMode,
+  listProjectAccessGrantsForOrg,
+  grantProjectAccess,
+  revokeProjectAccess,
+  assertCanAccessProject,
+  resolveAccessibleProjectIds,
+  isAccessibleProjectId,
+} from './application/project-access';
+export {
+  PROJECT_ACCESS_MODES,
+  parseProjectAccessMode,
+} from './domain/project-access';
+export type { ProjectAccessMode, ProjectAccessLevel } from './domain/project-access';
 export {
   assembleProjectDetail,
   countProjectActiveWorkPackages,
@@ -132,6 +154,8 @@ export {
   MILESTONE_STATUSES,
   WORK_KINDS,
   PRICING_MODES,
+  CONTRACT_TYPES,
+  CONTRACT_STATUSES,
   DEFAULT_WORK_PACKAGE_NAME,
   usesJobStylePricing,
 } from './domain/types';
@@ -141,6 +165,8 @@ export type {
   MilestoneStatus,
   WorkKind,
   PricingMode,
+  ContractType,
+  ContractStatus,
   ProjectRecord,
   ProjectListItem,
   ProjectListFilters,
@@ -190,11 +216,17 @@ export {
   updateMilestoneSchema,
   archiveMilestoneSchema,
   applyProjectTemplateSchema,
+  createAdditionalContractSchema,
+  updateContractSchema,
+  listProjectContractsSchema,
+  setPrimaryContractSchema,
 } from './validation/schemas';
 export type {
   CreateJobInput,
   SetJobFixedPriceInput,
   ConvertJobToProjectInput,
+  CreateAdditionalContractInput,
+  UpdateContractInput,
 } from './validation/schemas';
 
 /** Cross-module org-scoped lookups (FK / tenancy guards). */

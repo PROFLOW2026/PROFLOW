@@ -20,6 +20,9 @@ export type InspectionStatus = (typeof INSPECTION_STATUSES)[number];
 export const INSPECTION_KINDS = ['general', 'safety', 'quality', 'handover', 'other'] as const;
 export type InspectionKind = (typeof INSPECTION_KINDS)[number];
 
+export const DAILY_LOG_STATUSES = ['draft', 'submitted', 'finalized'] as const;
+export type DailyLogStatus = (typeof DAILY_LOG_STATUSES)[number];
+
 /** Work-package option for field-ops create forms (project-scoped). */
 export interface FieldOpsWorkPackageOption {
   readonly id: string;
@@ -39,6 +42,21 @@ export interface DailyLogRecord {
   readonly workforceNotes: string | null;
   /** Day blockers — packed into workforce_notes without a dedicated column. */
   readonly blockers: string | null;
+  readonly status: DailyLogStatus;
+  readonly workPerformed: string | null;
+  readonly delays: string | null;
+  readonly incidents: string | null;
+  readonly safetyNotes: string | null;
+  readonly visitorNotes: string | null;
+  readonly managerNotes: string | null;
+  readonly correctionNotes: string | null;
+  readonly workersOnSite: string | null;
+  readonly subcontractorsOnSite: string | null;
+  readonly equipmentOnSite: string | null;
+  readonly deliveries: string | null;
+  readonly submittedAt: Date | null;
+  readonly submittedByUserId: string | null;
+  readonly finalizedAt: Date | null;
   readonly createdBy: string | null;
   readonly archivedAt: Date | null;
   readonly createdAt: Date;

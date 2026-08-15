@@ -1,0 +1,106 @@
+{
+  "title": "בטיחות / HSE",
+  "description": "אירועים, כמעט-תאונות, שיחות בטיחות ופעולות מתקנות.",
+  "newRecord": "רשומת בטיחות חדשה",
+  "empty": "אין עדיין רשומות בטיחות",
+  "emptyHint": "תעדו אירועים, כמעט-תאונות ושיחות בטיחות מהשטח.",
+  "loading": "טוען רשומות בטיחות…",
+  "error": "לא ניתן לטעון רשומות בטיחות.",
+  "types": {
+    "incident": "אירוע",
+    "near_miss": "כמעט-תאונה",
+    "accident": "תאונה",
+    "hazard": "מפגע",
+    "observation": "תצפית",
+    "toolbox_talk": "שיחת בטיחות",
+    "ppe_issue": "ציוד מגן"
+  },
+  "severity": {
+    "low": "נמוך",
+    "medium": "בינוני",
+    "high": "גבוה",
+    "critical": "קריטי"
+  },
+  "status": {
+    "open": "פתוח",
+    "in_progress": "בטיפול",
+    "closed": "נסגר",
+    "cancelled": "בוטל",
+    "done": "הושלם"
+  },
+  "fields": {
+    "title": "כותרת",
+    "description": "תיאור",
+    "project": "פרויקט / אתר",
+    "projectNone": "ללא פרויקט",
+    "occurredAt": "תאריך ושעה",
+    "peopleInvolved": "מעורבים",
+    "immediateAction": "פעולה מיידית",
+    "correctiveAction": "פעולה מתקנת",
+    "owner": "אחראי",
+    "ownerNone": "ללא אחראי",
+    "dueDate": "תאריך יעד",
+    "topic": "נושא",
+    "talkDate": "תאריך השיחה",
+    "talkNotes": "הערות לשיחה",
+    "attendees": "משתתפים",
+    "attendeeName": "שם",
+    "acknowledged": "אושר",
+    "notAcknowledged": "טרם אושר",
+    "type": "סוג",
+    "severity": "חומרה",
+    "status": "סטטוס"
+  },
+  "actions": {
+    "create": "יצירה",
+    "save": "שמירה",
+    "close": "סגירה",
+    "addAction": "הוספת פעולה",
+    "acknowledge": "אישור נוכחות",
+    "addAttendee": "הוספת משתתף"
+  },
+  "summary": {
+    "open": "פתוח",
+    "overdue": "באיחור",
+    "bySeverity": "לפי חומרה",
+    "byProject": "לפי פרויקט",
+    "byType": "לפי סוג"
+  },
+  "overdue": "באיחור",
+  "filters": {
+    "all": "הכול",
+    "type": "סוג",
+    "status": "סטטוס",
+    "severity": "חומרה"
+  },
+  "list": {
+    "columns": {
+      "title": "כותרת",
+      "type": "סוג",
+      "project": "פרויקט",
+      "occurredAt": "מתי",
+      "severity": "חומרה",
+      "status": "סטטוס"
+    }
+  },
+  "create": {
+    "title": "רשומת בטיחות חדשה",
+    "description": "תיעוד אירוע, מפגע או שיחת בטיחות.",
+    "attendeeNamesHint": "שם אחד בכל שורה. אופציונלי."
+  },
+  "detail": {
+    "title": "רשומת בטיחות",
+    "actionsTitle": "פעולות מתקנות",
+    "noActions": "אין עדיין פעולות מתקנות.",
+    "toolboxTitle": "שיחת בטיחות",
+    "noAttendees": "אין עדיין משתתפים.",
+    "saved": "נשמר."
+  },
+  "errors": {
+    "titleRequired": "נדרשת כותרת.",
+    "invalidRecordTransition": "לא ניתן לשנות את הסטטוס כך.",
+    "invalidActionTransition": "לא ניתן לשנות את סטטוס הפעולה כך.",
+    "toolboxTopicRequired": "שיחת בטיחות דורשת נושא.",
+    "attendeesRequireTalk": "ניתן להוסיף משתתפים רק לשיחת בטיחות."
+  }
+}

@@ -204,6 +204,20 @@ export interface ProjectFinancials {
    * (missing employer cost, unallocated remainder, open drafts/allocations, FX gaps).
    */
   dataConfidence: DataConfidence;
+  /**
+   * Per-contract commercial slices when more than one live contract exists.
+   * Project `commercial` remains the same-currency sum — not a second engine.
+   */
+  perContract?: readonly {
+    readonly contractId: string;
+    readonly isPrimary: boolean;
+    readonly name: string | null;
+    readonly contractType: string;
+    readonly status: string;
+    readonly currency: string;
+    readonly position: CommercialPosition;
+    readonly skippedForeignCurrency?: boolean;
+  }[];
 }
 
 /** Cross-project figures for the home dashboard. */

@@ -47,6 +47,7 @@ export const OPTIONAL_MODULE_KEYS = [
   'boq',
   'forms',
   'command_center',
+  'safety',
 ] as const;
 
 export type OptionalModuleKey = (typeof OPTIONAL_MODULE_KEYS)[number];

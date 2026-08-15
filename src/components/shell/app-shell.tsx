@@ -4,6 +4,8 @@ import { getShellContext } from '@/shared/auth/session';
 import { redirect } from '@/shared/i18n/navigation';
 import { ConnectivityBanner } from '@/modules/offline/ui/connectivity-banner';
 import { OfflineSyncProvider } from '@/modules/offline/ui/offline-sync-provider';
+import { NotificationBell } from '@/modules/notifications/ui';
+import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { MobileNav } from './mobile-nav';
 import { visibleNavItems } from './navigation';
 import { QuickCreate } from './quick-create';
@@ -56,6 +58,9 @@ export async function AppShell({ children }: { children: ReactNode }) {
 
           <TopBar
             organizationName={shell.organization.name}
+            notifications={
+              shell.permissions.has(PERMISSIONS.NOTIFICATIONS_READ) ? <NotificationBell /> : undefined
+            }
             quickCreate={<QuickCreate actions={quickCreateActions} />}
             userMenu={
               <UserMenu

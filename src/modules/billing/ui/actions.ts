@@ -54,6 +54,7 @@ export async function createBillingRecordAction(
       ? String(formData.get('retentionPercent'))
       : null,
     changeOrderIds: changeOrderIds.length > 0 ? changeOrderIds : undefined,
+    contractId: formData.get('contractId') ? String(formData.get('contractId')) : undefined,
     finalize: formData.get('finalize') === 'true',
   };
 

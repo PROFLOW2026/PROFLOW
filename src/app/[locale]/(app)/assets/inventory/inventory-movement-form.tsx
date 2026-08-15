@@ -25,6 +25,7 @@ export function InventoryMovementForm({
   movementType,
   defaultDate,
   projects = [],
+  reservations = [],
   locations = [],
   defaultLocationId,
   compact = false,
@@ -33,6 +34,7 @@ export function InventoryMovementForm({
   movementType: InventoryMovementType;
   defaultDate: string;
   projects?: readonly { id: string; name: string }[];
+  reservations?: readonly { id: string; quantity: string }[];
   locations?: readonly { id: string; name: string; code: string | null }[];
   defaultLocationId?: string;
   compact?: boolean;
@@ -44,6 +46,7 @@ export function InventoryMovementForm({
     {},
   );
   const [projectId, setProjectId] = useState(NONE);
+  const [reservationId, setReservationId] = useState(NONE);
   const fallbackLocation = defaultLocationId ?? locations[0]?.id ?? '';
   const [fromLocationId, setFromLocationId] = useState(fallbackLocation);
   const [toLocationId, setToLocationId] = useState(
@@ -82,6 +85,7 @@ export function InventoryMovementForm({
       <input type="hidden" name="inventoryItemId" value={inventoryItemId} />
       <input type="hidden" name="movementType" value={movementType} />
       <input type="hidden" name="projectId" value={projectId} />
+      <input type="hidden" name="reservationId" value={reservationId} />
 
       {!compact ? <p className="text-sm font-medium">{t(labelKey)}</p> : null}
 
@@ -169,6 +173,26 @@ export function InventoryMovementForm({
                 {projects.map((project) => (
                   <SelectItem key={project.id} value={project.id}>
                     {project.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+        </Field>
+      ) : null}
+
+      {movementType === 'issue' && !compact && reservations.length > 0 ? (
+        <Field label={t('reservationLabel')} optionalLabel={tCommon('labels.optional')}>
+          {(control) => (
+            <Select value={reservationId} onValueChange={setReservationId}>
+              <SelectTrigger id={control.id}>
+                <SelectValue placeholder={t('reservationNone')} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={NONE}>{t('reservationNone')}</SelectItem>
+                {reservations.map((reservation) => (
+                  <SelectItem key={reservation.id} value={reservation.id}>
+                    {reservation.quantity}
                   </SelectItem>
                 ))}
               </SelectContent>

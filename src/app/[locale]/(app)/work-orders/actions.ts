@@ -7,11 +7,13 @@ import {
   rescheduleWorkOrder,
   updateServiceStatus,
   updateWorkOrder,
+  createWorkOrderBilling,
 } from '@/modules/service';
 import { withOrgContext } from '@/shared/auth/session';
 import {
   AppError,
   AuthorizationError,
+  ConflictError,
   DomainRuleError,
   ValidationError,
 } from '@/shared/errors';
@@ -46,6 +48,17 @@ async function mapWorkOrderError(error: unknown): Promise<WorkOrderFormState> {
   const tErrors = await getTranslations('errors');
   const t = await getTranslations('service');
   if (error instanceof ValidationError) return await mapValidationError(error);
+  if (error instanceof ConflictError) {
+    if (error.messageKey.startsWith('service.')) {
+      const key = error.messageKey.replace(/^service\./, '');
+      try {
+        return { error: t(key as 'errors.checklistRequired') };
+      } catch {
+        return { error: error.message };
+      }
+    }
+    return { error: error.message };
+  }
   if (error instanceof DomainRuleError) {
     if (error.messageKey.startsWith('service.')) {
       const key = error.messageKey.replace(/^service\./, '');
@@ -227,6 +240,34 @@ export async function rescheduleWorkOrderAction(
     revalidatePath('/dispatch');
     revalidatePath(`/work-orders/${workOrderId}`);
     revalidatePath('/work-orders');
+    return { success: true };
+  } catch (error) {
+    return await mapWorkOrderError(error);
+  }
+}
+
+export async function createWorkOrderBillingAction(
+  _prev: WorkOrderFormState,
+  formData: FormData,
+): Promise<WorkOrderFormState> {
+  const workOrderId = requiredFormValue(formData, 'workOrderId');
+
+  try {
+    await withOrgContext((context) =>
+      createWorkOrderBilling(context, {
+        workOrderId,
+        laborHours: formValue(formData, 'laborHours'),
+        laborRate: formValue(formData, 'laborRate'),
+        materialsAmount: formValue(formData, 'materialsAmount'),
+        callOutFee: formValue(formData, 'callOutFee'),
+        additionalCharges: formValue(formData, 'additionalCharges'),
+        discountAmount: formValue(formData, 'discountAmount'),
+        notes: formValue(formData, 'notes'),
+      }),
+    );
+
+    revalidatePath(`/work-orders/${workOrderId}`);
+    revalidatePath('/billing');
     return { success: true };
   } catch (error) {
     return await mapWorkOrderError(error);

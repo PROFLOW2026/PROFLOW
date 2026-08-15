@@ -29,7 +29,20 @@
     "profile": "Your profile"
   },
   "people": {
-    "linkCopied": "Link copied"
+    "linkCopied": "Link copied",
+    "accessTitle": "Project access",
+    "accessHint": "Who can see which projects. Default is everyone with project permission. Compensation stays hidden unless the person has workforce cost access.",
+    "accessMode": "Visibility",
+    "modeAll": "All projects",
+    "modeSelected": "Selected projects only",
+    "modeAssigned": "Assigned projects",
+    "grantUser": "Person",
+    "grantProject": "Project",
+    "grantAdd": "Grant access",
+    "grantEmpty": "No extra grants yet.",
+    "revoke": "Remove",
+    "saveMode": "Save visibility",
+    "saved": "Saved"
   },
   "modules": {
     "title": "Features",
@@ -61,6 +74,7 @@
     "boq": "Bill of quantities and progress billing",
     "forms": "Forms",
     "command_center": "Today",
+    "safety": "Safety / HSE",
     "hints": {
       "billing": "Manage invoices, billing, and collections.",
       "workforce": "Manage employees and time entries.",
@@ -84,7 +98,8 @@
       "budgets": "Track budget versus actuals and forecast.",
       "boq": "Manage items, site measurements, and progress billing on a project.",
       "forms": "Reusable checklists and field forms.",
-      "command_center": "Today view for current work and tasks."
+      "command_center": "Today view for current work and tasks.",
+      "safety": "Incidents, near misses, toolbox talks, and corrective actions."
     },
     "saved": "Feature visibility updated."
   },
@@ -280,7 +295,13 @@
         "archived": "Milestone archived"
       },
       "contract": {
-        "value_recorded": "Contract value recorded"
+        "value_recorded": "Contract value recorded",
+        "additional_created": "Additional contract created",
+        "updated": "Contract updated"
+      },
+      "project_access": {
+        "granted": "Project access granted",
+        "revoked": "Project access removed"
       },
       "client": {
         "created": "Client created",
@@ -315,6 +336,13 @@
         "ended": "Vendor engagement ended",
         "cancelled": "Vendor engagement cancelled",
         "archived": "Vendor engagement closed"
+      },
+      "subcontract": {
+        "created": "Subcontract created",
+        "updated": "Subcontract updated",
+        "status_changed": "Subcontract status changed",
+        "value_recorded": "Subcontract value recorded",
+        "document_linked": "Subcontract document linked"
       },
       "expense": {
         "created": "Expense created",
@@ -363,7 +391,15 @@
         "created": "Time entry recorded",
         "voided": "Time entry voided",
         "corrected": "Time entry corrected",
-        "bulk_created": "Bulk time entries created"
+        "bulk_created": "Bulk time entries created",
+        "updated": "Time entry updated",
+        "approved": "Time entry approved",
+        "bulk_approved": "Time entries approved in bulk"
+      },
+      "timesheet": {
+        "submitted": "Timesheet submitted",
+        "returned": "Timesheet returned for correction",
+        "approved": "Timesheet approved"
       },
       "attendance": {
         "clocked": "Attendance clock event",
@@ -475,7 +511,10 @@
       },
       "daily_log": {
         "created": "Daily log created",
-        "updated": "Daily log updated"
+        "updated": "Daily log updated",
+        "submitted": "Daily log submitted",
+        "finalized": "Daily log finalized",
+        "correction_added": "Daily log correction added"
       },
       "punch_list_item": {
         "created": "Punch item created",
@@ -484,6 +523,18 @@
       "inspection": {
         "created": "Inspection created",
         "updated": "Inspection updated"
+      },
+      "safety_record": {
+        "created": "Safety record created",
+        "updated": "Safety record updated"
+      },
+      "safety_action": {
+        "created": "Safety action created",
+        "updated": "Safety action updated"
+      },
+      "safety_attendee": {
+        "added": "Toolbox attendee added",
+        "acknowledged": "Toolbox talk acknowledged"
       },
       "asset": {
         "created": "Asset created",
@@ -507,6 +558,16 @@
         "created": "Inventory location created",
         "updated": "Inventory location updated",
         "archived": "Inventory location archived"
+      },
+      "inventory_reservation": {
+        "created": "Inventory reserved",
+        "released": "Inventory reservation released",
+        "consumed": "Inventory reservation consumed"
+      },
+      "inventory_count": {
+        "created": "Stock count created",
+        "finalized": "Stock count finalized",
+        "voided": "Stock count voided"
       },
       "material_usage": {
         "recorded": "Material usage recorded",
@@ -628,6 +689,7 @@
       "vendor": "Vendor",
       "vendor_contact": "Vendor contact",
       "vendor_engagement": "Vendor engagement",
+      "subcontract_agreement": "Subcontract",
       "expense": "Expense",
       "change_request": "Change request",
       "change_order": "Change order",
@@ -668,6 +730,8 @@
       "inventory_item": "Inventory item",
       "inventory_movement": "Inventory movement",
       "inventory_location": "Inventory location",
+      "inventory_reservation": "Inventory reservation",
+      "inventory_count": "Stock count",
       "recurring_financial_draft": "Recurring draft template",
       "recurring_financial_draft_run": "Recurring draft run",
       "retention_release": "Retention release",

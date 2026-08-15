@@ -156,6 +156,7 @@ describe('home dashboard cost coverage', () => {
         projectId: olderProjectId,
         costAmount: '800.000000',
         costCurrency: 'ILS',
+        approvalStatus: 'approved',
       });
     });
 

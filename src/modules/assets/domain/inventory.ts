@@ -111,14 +111,28 @@ export function applyInventoryMovement(input: {
 }
 
 /**
- * Compares on-hand quantity to reorder_level for operational alerts.
- * Null/empty reorder level → no_reorder_level (not an alert).
+ * Canonical low-stock threshold is min_stock_level; reorder_level is the fallback.
+ */
+export function resolveMinStockLevel(input: {
+  readonly minStockLevel?: string | null;
+  readonly reorderLevel?: string | null;
+}): string | null {
+  const minRaw = input.minStockLevel?.trim();
+  if (minRaw) return minRaw;
+  const reorderRaw = input.reorderLevel?.trim();
+  return reorderRaw || null;
+}
+
+/**
+ * Compares on-hand quantity to min_stock_level (fallback reorder_level).
+ * Null/empty threshold → no_reorder_level (not an alert).
  */
 export function getReorderStatus(input: {
   readonly quantityOnHand: string;
-  readonly reorderLevel: string | null | undefined;
+  readonly reorderLevel?: string | null;
+  readonly minStockLevel?: string | null;
 }): ReorderStatus {
-  const levelRaw = input.reorderLevel?.trim();
+  const levelRaw = resolveMinStockLevel(input);
   if (!levelRaw) return 'no_reorder_level';
 
   const onHand = new Decimal(input.quantityOnHand);
@@ -126,6 +140,83 @@ export function getReorderStatus(input: {
   if (onHand.lt(level)) return 'below_reorder';
   if (onHand.eq(level)) return 'at_reorder';
   return 'ok';
+}
+
+/** Low stock when on_hand < min_stock_level (or reorder_level). Strictly less-than. */
+export function isLowStock(input: {
+  readonly quantityOnHand: string;
+  readonly minStockLevel?: string | null;
+  readonly reorderLevel?: string | null;
+}): boolean {
+  return getReorderStatus(input) === 'below_reorder';
+}
+
+/** Suggested reorder is the same signal as low stock. */
+export function suggestedReorder(input: {
+  readonly quantityOnHand: string;
+  readonly minStockLevel?: string | null;
+  readonly reorderLevel?: string | null;
+}): boolean {
+  return isLowStock(input);
+}
+
+/**
+ * available = on_hand − active reserved. Never negative without a domain error
+ * on reserve (caller must throw). This helper clamps display to zero only when
+ * `allowNegative` is false; reserve uses `assertCanReserve` instead.
+ */
+export function availableQuantity(onHand: string, reservedActive: string): string {
+  return new Decimal(onHand).minus(reservedActive).toFixed(STORAGE_SCALE);
+}
+
+export function assertCanReserve(input: {
+  readonly quantityOnHand: string;
+  readonly reservedActive: string;
+  readonly reserveQuantity: string;
+}): string {
+  const qty = new Decimal(input.reserveQuantity);
+  if (qty.lte(0)) {
+    throw new Error('Reservation quantity must be positive');
+  }
+  const available = new Decimal(input.quantityOnHand).minus(input.reservedActive);
+  if (available.lt(qty)) {
+    throw new Error('Insufficient available quantity');
+  }
+  return available.minus(qty).toFixed(STORAGE_SCALE);
+}
+
+/**
+ * Remaining reserved qty after consuming `consumeQuantity` from one reservation.
+ * Remaining must stay > 0 or the reservation is fully consumed (qty constraint).
+ */
+export function remainingReservationAfterConsume(input: {
+  readonly reservedQuantity: string;
+  readonly consumeQuantity: string;
+}): { readonly remaining: string; readonly consumedFully: boolean } {
+  const consume = new Decimal(input.consumeQuantity);
+  if (consume.lte(0)) {
+    throw new Error('Consume quantity must be positive');
+  }
+  const reserved = new Decimal(input.reservedQuantity);
+  if (consume.gte(reserved)) {
+    return { remaining: '0.000000', consumedFully: true };
+  }
+  return { remaining: reserved.minus(consume).toFixed(STORAGE_SCALE), consumedFully: false };
+}
+
+/**
+ * Signed adjust qty for a count line: counted − expected.
+ * Zero delta → no movement. Result is qty-only — never Actual / GL / Expense.
+ */
+export function countLineAdjustQuantity(expectedQuantity: string, countedQuantity: string): string | null {
+  const delta = new Decimal(countedQuantity).minus(expectedQuantity);
+  if (delta.isZero()) return null;
+  return delta.toFixed(STORAGE_SCALE);
+}
+
+/** Count finalize creates adjust movements only — never Actual. */
+export function isInventoryCountRecognizedActual(): false {
+  return false;
 }
 
 /** Maintenance cost_amount must never create or imply an Expense. */

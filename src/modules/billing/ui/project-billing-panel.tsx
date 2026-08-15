@@ -8,6 +8,7 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import {
   getProjectBillingPosition,
+  listBillingContractOptionsForOrg,
   listProjectBillingRecords,
   listUnbilledChangeOrders,
   listPaymentApplications,
@@ -24,38 +25,80 @@ import { cn } from '@/shared/ui/cn';
 
 interface ProjectBillingPanelProps {
   projectId: string;
+  contractId?: string | null;
 }
 
-export async function ProjectBillingPanel({ projectId }: ProjectBillingPanelProps) {
+export async function ProjectBillingPanel({ projectId, contractId }: ProjectBillingPanelProps) {
   const t = await getTranslations('billing');
   const tFinancial = await getTranslations('financial');
   const locale = await getLocale();
 
-  const { position, records, unbilledChanges, canManage, payments } = await withOrgContext(
+  const { position, records, unbilledChanges, canManage, payments, contracts } = await withOrgContext(
     async (context) => {
-      const [positionResult, recordsResult, unbilledResult, paymentsResult] = await Promise.all([
-        getProjectBillingPosition(context, projectId),
-        listProjectBillingRecords(context, projectId),
-        listUnbilledChangeOrders(context, projectId),
-        listPaymentApplications(context, {
-          projectId,
-          limit: 25,
-          includeVoided: true,
-        }),
-      ]);
+      const [positionResult, recordsResult, unbilledResult, paymentsResult, contractOptions] =
+        await Promise.all([
+          getProjectBillingPosition(context, projectId),
+          listProjectBillingRecords(context, projectId, contractId),
+          listUnbilledChangeOrders(context, projectId),
+          listPaymentApplications(context, {
+            projectId,
+            limit: 25,
+            includeVoided: true,
+          }),
+          listBillingContractOptionsForOrg(context, projectId),
+        ]);
       return {
         position: positionResult,
         records: recordsResult,
         unbilledChanges: unbilledResult,
         canManage: hasPermission(context, PERMISSIONS.BILLING_MANAGE),
         payments: paymentsResult,
+        contracts: contractOptions,
       };
     },
   );
 
+  const selectedContractId = contractId ?? null;
+  const newBillingHref = selectedContractId
+    ? `/billing/new?projectId=${projectId}&contractId=${selectedContractId}`
+    : `/billing/new?projectId=${projectId}`;
+
   return (
     <div className="flex min-w-0 flex-col gap-4">
       <p className="text-xs text-[var(--pf-text-muted)]">{t('statutoryDisclosure')}</p>
+      {contracts.length > 1 ? (
+        <nav className="flex min-w-0 flex-wrap gap-2" aria-label={t('list.contract')}>
+          <Link
+            href={`/projects/${projectId}?tab=billing`}
+            className={
+              !selectedContractId
+                ? 'rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-muted)] px-3 py-2 text-sm font-medium'
+                : 'rounded-md border border-transparent px-3 py-2 text-sm text-[var(--pf-text-secondary)]'
+            }
+          >
+            {t('list.allContracts')}
+          </Link>
+          {contracts.map((contract) => {
+            const href = `/projects/${projectId}?tab=billing&contractId=${contract.id}`;
+            const selected = selectedContractId === contract.id;
+            return (
+              <Link
+                key={contract.id}
+                href={href}
+                className={
+                  selected
+                    ? 'rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-muted)] px-3 py-2 text-sm font-medium'
+                    : 'rounded-md border border-transparent px-3 py-2 text-sm text-[var(--pf-text-secondary)]'
+                }
+              >
+                {contract.name ??
+                  contract.contractNumber ??
+                  (contract.isPrimary ? t('form.contractPrimary') : contract.id.slice(0, 8))}
+              </Link>
+            );
+          })}
+        </nav>
+      ) : null}
       <Card className="min-w-0">
         <CardHeader>
           <CardTitle className="text-start">{t('panel.positionTitle')}</CardTitle>
@@ -116,7 +159,7 @@ export async function ProjectBillingPanel({ projectId }: ProjectBillingPanelProp
           action={
             canManage ? (
               <Button asChild>
-                <Link href={`/billing/new?projectId=${projectId}`}>{t('panel.emptyAction')}</Link>
+                <Link href={newBillingHref}>{t('panel.emptyAction')}</Link>
               </Button>
             ) : undefined
           }
@@ -127,7 +170,7 @@ export async function ProjectBillingPanel({ projectId }: ProjectBillingPanelProp
             <CardTitle className="text-start">{t('panel.recordsTitle')}</CardTitle>
             {canManage ? (
               <Button asChild size="sm" variant="secondary" className="min-h-11 max-w-full md:min-h-8">
-                <Link href={`/billing/new?projectId=${projectId}`}>{t('panel.addBilling')}</Link>
+                <Link href={newBillingHref}>{t('panel.addBilling')}</Link>
               </Button>
             ) : null}
           </CardHeader>
@@ -142,6 +185,7 @@ export async function ProjectBillingPanel({ projectId }: ProjectBillingPanelProp
                       <TableRow>
                         <TableHead>{t('list.issueDate')}</TableHead>
                         <TableHead>{t('list.kind')}</TableHead>
+                        <TableHead>{t('list.contract')}</TableHead>
                         <TableHead numeric>{t('list.amount')}</TableHead>
                         <TableHead numeric>{t('list.outstanding')}</TableHead>
                         <TableHead>{t('list.status')}</TableHead>
@@ -156,6 +200,9 @@ export async function ProjectBillingPanel({ projectId }: ProjectBillingPanelProp
                             </Link>
                           </TableCell>
                           <TableCell>{t(`kinds.${record.kind}`)}</TableCell>
+                          <TableCell className="max-w-[8rem] truncate">
+                            {record.contractName ?? '—'}
+                          </TableCell>
                           <TableCell numeric>
                             <MoneyText value={record.totalAmount} />
                           </TableCell>
@@ -191,6 +238,7 @@ export async function ProjectBillingPanel({ projectId }: ProjectBillingPanelProp
                   </div>
                   <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">
                     {t(`kinds.${record.kind}`)}
+                    {record.contractName ? ` · ${record.contractName}` : ''}
                   </p>
                   <div className="mt-2 flex flex-wrap items-baseline gap-x-3 gap-y-1 text-sm">
                     <span>

@@ -135,3 +135,18 @@ export const upsertIdentifierSchema = z.object({
 export const deleteIdentifierSchema = z.object({
   identifierId: z.string().uuid(),
 });
+
+export const recordActivityEventSchema = z.object({
+  clientId: z.string().uuid().nullable().optional(),
+  projectId: z.string().uuid().nullable().optional(),
+  actorUserId: z.string().uuid().nullable().optional(),
+  occurredAt: z.coerce.date().optional(),
+  kind: z.string().trim().min(1).max(80),
+  entityType: z.string().trim().min(1).max(80),
+  entityId: z.string().uuid(),
+  summary: z.string().trim().min(1).max(500),
+  deepLink: z.string().trim().max(500).nullable().optional(),
+  metadata: z.record(z.string(), z.unknown()).nullable().optional(),
+});
+
+export type RecordActivityEventInput = z.input<typeof recordActivityEventSchema>;

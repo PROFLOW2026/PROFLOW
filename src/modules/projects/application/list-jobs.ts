@@ -10,6 +10,7 @@ import { PERMISSIONS } from '@/shared/permissions/catalog';
 import type { JobBillingPaymentStatus, JobListItem } from '../domain/types';
 import { listProjects } from '../data/projects.repository';
 import { listJobsSchema } from '../validation/schemas';
+import { resolveAccessibleProjectIds } from './project-access';
 
 function resolveBillingPaymentStatus(input: {
   readonly invoiced: string | null;
@@ -63,10 +64,16 @@ export async function listJobsForOrg(
     );
   }
 
-  const rows = await listProjects(context.db, context.organizationId, {
-    ...parsed.data,
-    workKind: 'job',
-  });
+  const restrictToProjectIds = await resolveAccessibleProjectIds(context);
+  const rows = await listProjects(
+    context.db,
+    context.organizationId,
+    {
+      ...parsed.data,
+      workKind: 'job',
+    },
+    { restrictToProjectIds },
+  );
 
   if (rows.length === 0) return [];
 

@@ -4,12 +4,17 @@ import {
   listProjectVendorEngagementHistory,
   listProjectVendorEngagements,
   listVendorsForOrg,
+  listProjectSubcontracts,
+  getSubcontractById,
+  listSubcontractParentContracts,
+  listSubcontractDocumentCandidates,
 } from '@/modules/vendors';
 import { withOrgContext } from '@/shared/auth/session';
 import { todayInTimeZone } from '@/shared/dates';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { ProjectContractorsRoster } from './project-contractors-roster';
+import { ProjectSubcontractsRoster } from './project-subcontracts-roster';
 
 export interface ProjectContractorsPanelProps {
   readonly projectId: string;
@@ -28,13 +33,19 @@ export async function ProjectContractorsPanel({ projectId }: ProjectContractorsP
     }
 
     const allowManage = hasPermission(context, PERMISSIONS.VENDORS_MANAGE);
-    const [engagements, history, vendors] = await Promise.all([
+    const [engagements, history, vendors, agreements, contracts, docs] = await Promise.all([
       listProjectVendorEngagements(context, projectId),
       listProjectVendorEngagementHistory(context, projectId).catch(() => []),
       allowManage
         ? listVendorsForOrg(context, { status: 'active' })
         : Promise.resolve([]),
+      listProjectSubcontracts(context, projectId).catch(() => []),
+      listSubcontractParentContracts(context, projectId).catch(() => []),
+      listSubcontractDocumentCandidates(context).catch(() => []),
     ]);
+    const details = await Promise.all(
+      agreements.map((agreement) => getSubcontractById(context, agreement.id).catch(() => null)),
+    );
 
     return {
       engagements,
@@ -44,6 +55,10 @@ export async function ProjectContractorsPanel({ projectId }: ProjectContractorsP
         name: vendor.name,
         type: vendor.type,
       })),
+      subcontracts: agreements,
+      subcontractDetails: details.filter((row): row is NonNullable<typeof row> => row !== null),
+      parentContracts: contracts,
+      documentCandidates: docs,
       allowManage,
       defaultStartDate: todayInTimeZone(context.organization.timezone),
     };
@@ -59,6 +74,18 @@ export async function ProjectContractorsPanel({ projectId }: ProjectContractorsP
           engagements={data.engagements}
           history={data.history}
           candidateVendors={data.candidateVendors}
+          canManage={data.allowManage}
+          defaultStartDate={data.defaultStartDate}
+        />
+      </Card>
+      <Card className="flex flex-col gap-4 p-4 sm:p-6">
+        <ProjectSubcontractsRoster
+          projectId={projectId}
+          items={data.subcontracts}
+          details={data.subcontractDetails}
+          candidateVendors={data.candidateVendors}
+          parentContracts={data.parentContracts}
+          documentCandidates={data.documentCandidates}
           canManage={data.allowManage}
           defaultStartDate={data.defaultStartDate}
         />

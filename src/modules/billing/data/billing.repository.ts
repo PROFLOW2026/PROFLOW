@@ -3,6 +3,7 @@ import {
   billingLines,
   billingRecords,
   changeOrders,
+  contracts,
   projects,
 } from '@drizzle/schema';
 import { todayInTimeZone, type BusinessDate } from '@/shared/dates';
@@ -21,6 +22,7 @@ import type {
   BillingRecordDetail,
   BillingRecordStatus,
   BillingRecordSummary,
+  BillingContractOption,
   PaymentRecordStatus,
   PaymentSummary,
   ProjectOption,
@@ -49,6 +51,9 @@ function mapTaxSnapshot(value: unknown): TaxSnapshot | null {
 export interface BillingRecordInsertRow {
   readonly projectId: string;
   readonly clientId: string | null;
+  readonly contractId?: string | null;
+  readonly sourceKind?: string;
+  readonly sourceId?: string | null;
   readonly kind: BillingKind;
   readonly reference: string | null;
   readonly issueDate: BusinessDate;
@@ -120,6 +125,8 @@ function buildSummary(
     projectId: string | null;
     projectName: string | null;
     clientId: string | null;
+    contractId?: string | null;
+    contractName?: string | null;
     reference: string | null;
     issueDate: string;
     dueDate: string | null;
@@ -156,6 +163,8 @@ function buildSummary(
     id: row.id,
     projectId: row.projectId,
     projectName: row.projectName,
+    contractId: row.contractId ?? null,
+    contractName: row.contractName ?? null,
     clientId: row.clientId,
     reference: row.reference,
     issueDate: row.issueDate as BusinessDate,
@@ -212,6 +221,30 @@ export async function listProjectOptions(
     .from(projects)
     .where(and(eq(projects.organizationId, organizationId), isNull(projects.archivedAt)))
     .orderBy(projects.name);
+}
+
+export async function listBillingContractOptions(
+  db: DbExecutor,
+  organizationId: string,
+  projectId?: string,
+): Promise<BillingContractOption[]> {
+  return db
+    .select({
+      id: contracts.id,
+      projectId: contracts.projectId,
+      name: contracts.name,
+      contractNumber: contracts.contractNumber,
+      isPrimary: contracts.isPrimary,
+    })
+    .from(contracts)
+    .where(
+      and(
+        eq(contracts.organizationId, organizationId),
+        isNull(contracts.archivedAt),
+        projectId ? eq(contracts.projectId, projectId) : undefined,
+      ),
+    )
+    .orderBy(desc(contracts.isPrimary), contracts.createdAt);
 }
 
 export async function insertBillingRecord(
@@ -294,6 +327,9 @@ export async function findBillingRecordById(
       projectName: projects.name,
       clientId: billingRecords.clientId,
       projectClientId: projects.clientId,
+      contractId: billingRecords.contractId,
+      contractName: contracts.name,
+      contractNumber: contracts.contractNumber,
       reference: billingRecords.reference,
       issueDate: billingRecords.issueDate,
       dueDate: billingRecords.dueDate,
@@ -314,6 +350,7 @@ export async function findBillingRecordById(
     })
     .from(billingRecords)
     .leftJoin(projects, eq(projects.id, billingRecords.projectId))
+    .leftJoin(contracts, eq(contracts.id, billingRecords.contractId))
     .where(
       and(eq(billingRecords.organizationId, organizationId), eq(billingRecords.id, billingRecordId)),
     )
@@ -360,6 +397,8 @@ export async function findBillingRecordById(
       projectId: row.projectId,
       projectName: row.projectName,
       clientId: row.clientId ?? row.projectClientId,
+      contractId: row.contractId,
+      contractName: row.contractName ?? row.contractNumber,
       reference: row.reference,
       issueDate: row.issueDate,
       dueDate: row.dueDate,
@@ -417,6 +456,9 @@ export async function listBillingRecords(
       projectName: projects.name,
       clientId: billingRecords.clientId,
       projectClientId: projects.clientId,
+      contractId: billingRecords.contractId,
+      contractName: contracts.name,
+      contractNumber: contracts.contractNumber,
       reference: billingRecords.reference,
       issueDate: billingRecords.issueDate,
       dueDate: billingRecords.dueDate,
@@ -429,11 +471,13 @@ export async function listBillingRecords(
     })
     .from(billingRecords)
     .leftJoin(projects, eq(projects.id, billingRecords.projectId))
+    .leftJoin(contracts, eq(contracts.id, billingRecords.contractId))
     .where(
       and(
         eq(billingRecords.organizationId, organizationId),
         isNull(billingRecords.archivedAt),
         filters.projectId ? eq(billingRecords.projectId, filters.projectId) : undefined,
+        filters.contractId ? eq(billingRecords.contractId, filters.contractId) : undefined,
         filters.clientId
           ? or(
               eq(billingRecords.clientId, filters.clientId),
@@ -471,6 +515,7 @@ export async function listBillingRecords(
       {
         ...row,
         clientId: row.clientId ?? row.projectClientId,
+        contractName: row.contractName ?? row.contractNumber,
       },
       paidByRecord.get(row.id) ?? zeroMoney(row.currency),
       today,
@@ -494,8 +539,14 @@ export async function listBillingRecordsForProject(
   organizationId: string,
   projectId: string,
   timezone: string,
+  contractId?: string | null,
 ): Promise<BillingRecordSummary[]> {
-  return listBillingRecords(db, organizationId, { projectId, filter: 'all', limit: 50 }, timezone);
+  return listBillingRecords(
+    db,
+    organizationId,
+    { projectId, filter: 'all', limit: 50, contractId: contractId ?? undefined },
+    timezone,
+  );
 }
 
 export async function listProjectBillingAmountRows(

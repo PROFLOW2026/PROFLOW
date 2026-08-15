@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState } from 'react';
+import { useActionState, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -25,7 +25,12 @@ export function InventoryLocationsPanel({
   locations,
   canManage,
 }: {
-  locations: readonly { id: string; name: string; code: string | null }[];
+  locations: readonly {
+    id: string;
+    name: string;
+    code: string | null;
+    locationKind: 'warehouse' | 'site' | 'vehicle';
+  }[];
   canManage: boolean;
 }) {
   const t = useTranslations('assets.inventory');
@@ -35,6 +40,7 @@ export function InventoryLocationsPanel({
     createInventoryLocationAction,
     {},
   );
+  const [locationKind, setLocationKind] = useState<'warehouse' | 'site' | 'vehicle'>('warehouse');
 
   return (
     <section className="flex min-w-0 flex-col gap-3 rounded-lg border border-[var(--pf-border-default)] p-4">
@@ -44,9 +50,9 @@ export function InventoryLocationsPanel({
       </div>
 
       {canManage ? (
-        <form action={createAction} className="grid min-w-0 gap-3 sm:grid-cols-[1fr_8rem_auto]">
+        <form action={createAction} className="grid min-w-0 gap-3 sm:grid-cols-[1fr_8rem_8rem_auto]">
           {createState.error ? (
-            <Alert tone="danger" className="sm:col-span-3">
+            <Alert tone="danger" className="sm:col-span-4">
               {createState.error}
             </Alert>
           ) : null}
@@ -55,6 +61,28 @@ export function InventoryLocationsPanel({
           </Field>
           <Field label={t('locationCodeLabel')} optionalLabel={tCommon('labels.optional')}>
             {(control) => <Input {...control} name="code" />}
+          </Field>
+          <Field label={t('locationKindLabel')}>
+            {(control) => (
+              <>
+                <input type="hidden" name="locationKind" value={locationKind} />
+                <Select
+                  value={locationKind}
+                  onValueChange={(value) =>
+                    setLocationKind(value as 'warehouse' | 'site' | 'vehicle')
+                  }
+                >
+                  <SelectTrigger id={control.id}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="warehouse">{t('locationKinds.warehouse')}</SelectItem>
+                    <SelectItem value="site">{t('locationKinds.site')}</SelectItem>
+                    <SelectItem value="vehicle">{t('locationKinds.vehicle')}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </>
+            )}
           </Field>
           <div className="flex items-end">
             <Button type="submit" size="sm" loading={createPending} className="min-h-11 md:min-h-8">
@@ -73,6 +101,7 @@ export function InventoryLocationsPanel({
               <TableRow>
                 <TableHead>{t('locationNameLabel')}</TableHead>
                 <TableHead>{t('locationCodeLabel')}</TableHead>
+                <TableHead>{t('locationKindLabel')}</TableHead>
                 {canManage ? <TableHead>{tList('actions')}</TableHead> : null}
               </TableRow>
             </TableHeader>
@@ -92,7 +121,12 @@ function LocationRow({
   location,
   canManage,
 }: {
-  location: { id: string; name: string; code: string | null };
+  location: {
+    id: string;
+    name: string;
+    code: string | null;
+    locationKind: 'warehouse' | 'site' | 'vehicle';
+  };
   canManage: boolean;
 }) {
   const t = useTranslations('assets.inventory');
@@ -104,26 +138,48 @@ function LocationRow({
     archiveInventoryLocationAction,
     {},
   );
+  const [locationKind, setLocationKind] = useState(location.locationKind);
 
   if (!canManage) {
     return (
       <TableRow>
         <TableCell className="font-medium">{location.name}</TableCell>
         <TableCell>{location.code ?? '—'}</TableCell>
+        <TableCell>{t(`locationKinds.${location.locationKind}`)}</TableCell>
       </TableRow>
     );
   }
 
   return (
     <TableRow>
-      <TableCell colSpan={3}>
+      <TableCell colSpan={4}>
         <form action={updateAction} className="flex min-w-0 flex-wrap items-end gap-2">
           <input type="hidden" name="locationId" value={location.id} />
+          <input type="hidden" name="locationKind" value={locationKind} />
           <Field label={t('locationNameLabel')} className="min-w-40 flex-1">
             {(control) => <Input {...control} name="name" required defaultValue={location.name} />}
           </Field>
           <Field label={t('locationCodeLabel')} className="w-28">
             {(control) => <Input {...control} name="code" defaultValue={location.code ?? ''} />}
+          </Field>
+          <Field label={t('locationKindLabel')} className="w-36">
+            {(control) => (
+              <Select
+                value={locationKind}
+                onValueChange={(value) =>
+                  setLocationKind(value as 'warehouse' | 'site' | 'vehicle')
+                }
+              >
+                <SelectTrigger id={control.id}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="warehouse">{t('locationKinds.warehouse')}</SelectItem>
+                  <SelectItem value="site">{t('locationKinds.site')}</SelectItem>
+                  <SelectItem value="vehicle">{t('locationKinds.vehicle')}</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
           </Field>
           <Button type="submit" size="sm" variant="secondary" loading={updatePending}>
             {t('saveLocation')}

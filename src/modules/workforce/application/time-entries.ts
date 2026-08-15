@@ -15,10 +15,20 @@ import {
   yearMonthFromBusinessDate,
 } from '@/modules/month-close';
 import { noteModuleUsage } from '@/modules/tenancy';
+import {
+  assertCanAccessProject,
+  isAccessibleProjectId,
+  resolveAccessibleProjectIds,
+} from '@/modules/projects/application/project-access';
+import { canReadWorkforceCost } from './workforce-cost-authz';
 import { expandBulkWorkDates } from '../domain/bulk-time-expand';
 import { calculateLaborCostTotal } from '../domain/labor-cost';
 import { resolveRateVersionForDate } from '../domain/rate-lookup';
 import { resolveTimeCorrectionApprovalAmount } from '../domain/time-correction-approval';
+import {
+  assertTimeEntryHoursEditable,
+  isApprovedRecordedLocked,
+} from '../domain/timesheet-lifecycle';
 import { DEFAULT_NON_PROJECT_TIME_CODES } from '../domain/types';
 import { findEmployeeById, findEmployeeByUserId } from '../data/employees.repository';
 import {
@@ -42,8 +52,10 @@ import {
   sumProjectLaborCost,
   voidTimeEntryRow,
 } from '../data/time-entries.repository';
+import { patchMutableTimeEntry } from '../data/timesheets.repository';
 import type {
   NonProjectTimeCodeRecord,
+  TimeApprovalStatus,
   TimeEntryKind,
   TimeEntryListItem,
   TimeEntryRecord,
@@ -52,10 +64,12 @@ import {
   correctTimeEntrySchema,
   createBulkTimeEntriesSchema,
   createTimeEntrySchema,
+  updateTimeEntrySchema,
   type CorrectTimeEntryInput,
   type CreateBulkTimeEntriesInput,
   type CreateTimeEntryInput,
   type TimeEntryFiltersInput,
+  type UpdateTimeEntryInput,
 } from '../validation/schemas';
 
 export interface CostSnapshot {
@@ -116,19 +130,34 @@ export async function listNonProjectCodes(context: OrgContext): Promise<NonProje
   return listNonProjectTimeCodes(context.db, context.organizationId);
 }
 
+function redactTimeEntryCost<T extends { costAmount: string | null; costCurrency: string | null }>(
+  entry: T,
+  canReadCost: boolean,
+): T {
+  if (canReadCost) return entry;
+  return { ...entry, costAmount: null, costCurrency: null };
+}
+
 export async function listTimeEntriesForOrg(
   context: OrgContext,
   filters: TimeEntryFiltersInput = {},
 ): Promise<TimeEntryListItem[]> {
   assertPermission(context, PERMISSIONS.WORKFORCE_READ);
-  return listTimeEntries(context.db, context.organizationId, {
+  if (filters.projectId) await assertCanAccessProject(context, filters.projectId);
+  const rows = await listTimeEntries(context.db, context.organizationId, {
     employeeId: filters.employeeId,
     projectId: filters.projectId,
     fromDate: filters.fromDate,
     toDate: filters.toDate,
     kind: filters.kind ?? 'all',
     status: filters.status ?? 'recorded',
+    approvalStatus: filters.approvalStatus ?? 'all',
   });
+  const allowed = await resolveAccessibleProjectIds(context);
+  const canReadCost = canReadWorkforceCost(context);
+  return rows
+    .filter((row) => isAccessibleProjectId(allowed, row.projectId))
+    .map((row) => redactTimeEntryCost(row, canReadCost));
 }
 
 export async function listProjectTimeEntries(
@@ -136,11 +165,14 @@ export async function listProjectTimeEntries(
   projectId: string,
 ): Promise<TimeEntryListItem[]> {
   assertAnyPermission(context, [PERMISSIONS.WORKFORCE_READ, PERMISSIONS.PROJECTS_READ]);
-  return listTimeEntries(context.db, context.organizationId, {
+  await assertCanAccessProject(context, projectId);
+  const rows = await listTimeEntries(context.db, context.organizationId, {
     projectId,
     kind: 'project',
     status: 'recorded',
   });
+  const canReadCost = canReadWorkforceCost(context);
+  return rows.map((row) => redactTimeEntryCost(row, canReadCost));
 }
 
 interface ResolvedTimeTargets {
@@ -168,6 +200,7 @@ async function resolveTimeTargets(
   if (input.kind === 'project') {
     const project = await findProjectById(context.db, context.organizationId, input.projectId!);
     if (!project) throw new NotFoundError('Project');
+    await assertCanAccessProject(context, project.id);
 
     projectId = project.id;
 
@@ -235,6 +268,11 @@ async function insertRecordedTimeEntry(
     correctsEntryId?: string | null;
     bulkBatchId?: string | null;
     snapshot?: CostSnapshot;
+    /**
+     * New logs: draft (no Actual). Corrections of approved history: approved
+     * so Actual is not silently dropped — the time_correction gate still applies.
+     */
+    approvalStatus?: TimeApprovalStatus;
   },
 ): Promise<TimeEntryRecord> {
   const snapshot =
@@ -263,9 +301,17 @@ async function insertRecordedTimeEntry(
     status: 'recorded',
     correctsEntryId: input.correctsEntryId ?? null,
     bulkBatchId: input.bulkBatchId ?? null,
+    approvalStatus: input.approvalStatus ?? 'draft',
+    decidedAt: input.approvalStatus === 'approved' ? new Date() : null,
+    decidedByUserId: input.approvalStatus === 'approved' ? context.userId : null,
   });
 }
 
+/**
+ * New entries start as approval_status='draft' and do not create labor Actual.
+ * Actors with time.approve are not auto-approved on create (safer default):
+ * Actual waits for submit → approve.
+ */
 export async function createTimeEntry(
   context: OrgContext,
   rawInput: CreateTimeEntryInput,
@@ -313,6 +359,7 @@ export async function createTimeEntry(
       costCurrency: entry.costCurrency,
       rateVersionId: entry.rateVersionId,
       status: entry.status,
+      approvalStatus: entry.approvalStatus,
     },
   });
 
@@ -600,6 +647,7 @@ export async function correctTimeEntry(
       description: input.description,
       correctsEntryId: original.id,
       snapshot,
+      approvalStatus: original.approvalStatus === 'approved' ? 'approved' : 'draft',
     });
 
     return { voided, replacement };
@@ -631,6 +679,77 @@ export async function correctTimeEntry(
   });
 
   return { mode: 'void_replace', ...result };
+}
+
+/**
+ * Draft / returned hour edits. Approved recorded rows must use correctTimeEntry.
+ */
+export async function updateTimeEntry(
+  context: OrgContext,
+  rawInput: UpdateTimeEntryInput,
+): Promise<TimeEntryRecord> {
+  assertPermission(context, PERMISSIONS.TIME_MANAGE);
+
+  const parsed = updateTimeEntrySchema.safeParse(rawInput);
+  if (!parsed.success) {
+    throw new ValidationError(
+      parsed.error.issues.map((issue) => ({ path: issue.path.join('.'), message: issue.message })),
+    );
+  }
+
+  const input = parsed.data;
+  const original = await findTimeEntryById(context.db, context.organizationId, input.timeEntryId);
+  if (!original) throw new NotFoundError('Time entry');
+  if (original.archivedAt) {
+    throw new DomainRuleError(
+      'Cannot correct an archived time entry',
+      'workforce.errors.timeEntryArchived',
+    );
+  }
+  if (isApprovedRecordedLocked(original)) {
+    throw new DomainRuleError(
+      'Approved time is locked; use a correction',
+      'workforce.errors.timeEntryApprovedLocked',
+    );
+  }
+  assertTimeEntryHoursEditable(original);
+
+  let snapshot = {
+    costAmount: original.costAmount,
+    costCurrency: original.costCurrency,
+    rateVersionId: original.rateVersionId,
+  };
+  if (input.hours && input.hours !== original.hours) {
+    snapshot = await resolveTimeEntryCostSnapshot(context.db, context.organizationId, {
+      employeeId: original.employeeId,
+      workDate: original.workDate,
+      hours: input.hours,
+    });
+  }
+
+  const updated = await patchMutableTimeEntry(context.db, context.organizationId, original.id, {
+    hours: input.hours,
+    description: input.description,
+    costAmount: snapshot.costAmount,
+    costCurrency: snapshot.costCurrency,
+    rateVersionId: snapshot.rateVersionId,
+  });
+  if (!updated) {
+    throw new DomainRuleError(
+      'Approved time is locked; use a correction',
+      'workforce.errors.timeEntryApprovedLocked',
+    );
+  }
+
+  await recordAuditEvent(context, {
+    action: AUDIT_ACTIONS.TIME_ENTRY_UPDATED,
+    entityType: 'time_entry',
+    entityId: updated.id,
+    before: { hours: original.hours, description: original.description },
+    after: { hours: updated.hours, description: updated.description },
+  });
+
+  return updated;
 }
 
 /** Suggested default employee when the signed-in user is linked to one. */

@@ -2,13 +2,20 @@ import { describe, expect, it } from 'vitest';
 import {
   applyInventoryMovement,
   applySignedQuantityChange,
+  assertCanReserve,
+  availableQuantity,
+  countLineAdjustQuantity,
   defaultInventoryLocationName,
   DEFAULT_INVENTORY_LOCATION_NAME_EN,
   DEFAULT_INVENTORY_LOCATION_NAME_HE,
   getReorderStatus,
+  isInventoryCountRecognizedActual,
   isInventoryQuantityGlOrExpense,
+  isLowStock,
   isMaintenanceCostAnExpense,
   locationDeltasForMovement,
+  remainingReservationAfterConsume,
+  suggestedReorder,
   sumQuantities,
 } from '@/modules/assets';
 
@@ -163,6 +170,90 @@ describe('getReorderStatus', () => {
     expect(
       getReorderStatus({ quantityOnHand: '9.5', reorderLevel: '10' }),
     ).toBe('below_reorder');
+  });
+
+  it('uses min_stock_level over reorder_level', () => {
+    expect(
+      getReorderStatus({
+        quantityOnHand: '8',
+        minStockLevel: '5',
+        reorderLevel: '10',
+      }),
+    ).toBe('ok');
+    expect(
+      getReorderStatus({
+        quantityOnHand: '4',
+        minStockLevel: '5',
+        reorderLevel: '10',
+      }),
+    ).toBe('below_reorder');
+  });
+});
+
+describe('available and reserve math', () => {
+  it('available is on_hand minus active reserved', () => {
+    expect(availableQuantity('10', '3')).toBe('7.000000');
+    expect(availableQuantity('10', '10')).toBe('0.000000');
+  });
+
+  it('cannot over-reserve past available', () => {
+    expect(assertCanReserve({
+      quantityOnHand: '10',
+      reservedActive: '7',
+      reserveQuantity: '3',
+    })).toBe('0.000000');
+
+    expect(() =>
+      assertCanReserve({
+        quantityOnHand: '10',
+        reservedActive: '7',
+        reserveQuantity: '4',
+      }),
+    ).toThrow(/available/i);
+  });
+
+  it('partial consume leaves remaining reservation qty', () => {
+    expect(
+      remainingReservationAfterConsume({
+        reservedQuantity: '5',
+        consumeQuantity: '2',
+      }),
+    ).toEqual({ remaining: '3.000000', consumedFully: false });
+    expect(
+      remainingReservationAfterConsume({
+        reservedQuantity: '5',
+        consumeQuantity: '5',
+      }),
+    ).toEqual({ remaining: '0.000000', consumedFully: true });
+  });
+});
+
+describe('low stock helper', () => {
+  it('is low stock when on_hand is strictly below min_stock_level', () => {
+    expect(isLowStock({ quantityOnHand: '4', minStockLevel: '5' })).toBe(true);
+    expect(isLowStock({ quantityOnHand: '5', minStockLevel: '5' })).toBe(false);
+    expect(isLowStock({ quantityOnHand: '6', minStockLevel: '5' })).toBe(false);
+  });
+
+  it('falls back to reorder_level and treats suggested reorder as low stock', () => {
+    expect(isLowStock({ quantityOnHand: '1', reorderLevel: '2' })).toBe(true);
+    expect(suggestedReorder({ quantityOnHand: '1', reorderLevel: '2' })).toBe(true);
+    expect(isLowStock({ quantityOnHand: '4', minStockLevel: null, reorderLevel: null })).toBe(
+      false,
+    );
+  });
+});
+
+describe('stock count adjust is not Actual', () => {
+  it('emits signed adjust qty from counted minus expected', () => {
+    expect(countLineAdjustQuantity('10', '8')).toBe('-2.000000');
+    expect(countLineAdjustQuantity('10', '12')).toBe('2.000000');
+    expect(countLineAdjustQuantity('10', '10')).toBeNull();
+  });
+
+  it('count finalize is never Actual', () => {
+    expect(isInventoryCountRecognizedActual()).toBe(false);
+    expect(isInventoryQuantityGlOrExpense()).toBe(false);
   });
 });
 

@@ -2,7 +2,10 @@ import { z } from 'zod';
 import {
   ASSET_KINDS,
   ASSET_STATUSES,
+  INVENTORY_COUNT_STATUSES,
+  INVENTORY_LOCATION_KINDS,
   INVENTORY_MOVEMENT_TYPES,
+  INVENTORY_RESERVATION_STATUSES,
   MAINTENANCE_STATUSES,
 } from '../domain/types';
 
@@ -136,6 +139,7 @@ export type UpdateMaintenanceRecordInput = z.input<typeof updateMaintenanceRecor
 export const createInventoryItemSchema = z.object({
   name: z.string().trim().min(1, 'Name is required').max(200),
   sku: optionalText,
+  barcode: optionalText,
   unit: z.string().trim().min(1).max(32).optional().default('ea'),
   quantityOnHand: z
     .string()
@@ -149,6 +153,15 @@ export const createInventoryItemSchema = z.object({
       .string()
       .trim()
       .regex(/^\d+(\.\d+)?$/, 'Reorder level must be a non-negative number')
+      .nullable()
+      .optional(),
+  ),
+  minStockLevel: z.preprocess(
+    emptyToNull,
+    z
+      .string()
+      .trim()
+      .regex(/^\d+(\.\d+)?$/, 'Min stock level must be a non-negative number')
       .nullable()
       .optional(),
   ),
@@ -175,6 +188,8 @@ export const recordInventoryMovementSchema = z
     toLocationId: optionalUuid,
     /** Single-location alias for receive / issue / adjust. */
     locationId: optionalUuid,
+    reservationId: optionalUuid,
+    workOrderId: optionalUuid,
     notes: optionalText,
   })
   .superRefine((data, ctx) => {
@@ -228,6 +243,8 @@ export type RecordInventoryMovementInput = z.input<typeof recordInventoryMovemen
 export const createInventoryLocationSchema = z.object({
   name: z.string().trim().min(1, 'Name is required').max(200),
   code: optionalText,
+  locationKind: z.enum(INVENTORY_LOCATION_KINDS).optional().default('warehouse'),
+  projectId: optionalUuid,
 });
 
 export type CreateInventoryLocationInput = z.input<typeof createInventoryLocationSchema>;
@@ -236,6 +253,8 @@ export const updateInventoryLocationSchema = z.object({
   locationId: z.string().uuid(),
   name: z.string().trim().min(1).max(200).optional(),
   code: optionalText,
+  locationKind: z.enum(INVENTORY_LOCATION_KINDS).optional(),
+  projectId: optionalUuid,
 });
 
 export type UpdateInventoryLocationInput = z.input<typeof updateInventoryLocationSchema>;
@@ -245,6 +264,67 @@ export const archiveInventoryLocationSchema = z.object({
 });
 
 export type ArchiveInventoryLocationInput = z.input<typeof archiveInventoryLocationSchema>;
+
+export const reserveInventorySchema = z
+  .object({
+    inventoryItemId: z.string().uuid(),
+    quantity: requiredQuantity,
+    projectId: optionalUuid,
+    workOrderId: optionalUuid,
+    notes: optionalText,
+  })
+  .superRefine((data, ctx) => {
+    if (!data.projectId && !data.workOrderId) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['projectId'],
+        message: 'Reserve for a project and/or work order',
+      });
+    }
+  });
+
+export type ReserveInventoryInput = z.input<typeof reserveInventorySchema>;
+
+export const releaseInventoryReservationSchema = z.object({
+  reservationId: z.string().uuid(),
+});
+
+export type ReleaseInventoryReservationInput = z.input<typeof releaseInventoryReservationSchema>;
+
+export const createInventoryCountSchema = z.object({
+  locationId: z.string().uuid(),
+  countedOn: requiredDate,
+  notes: optionalText,
+});
+
+export type CreateInventoryCountInput = z.input<typeof createInventoryCountSchema>;
+
+export const upsertInventoryCountLineSchema = z.object({
+  countId: z.string().uuid(),
+  inventoryItemId: z.string().uuid(),
+  countedQuantity: z
+    .string()
+    .trim()
+    .regex(/^\d+(\.\d+)?$/, 'Counted quantity must be a non-negative number'),
+});
+
+export type UpsertInventoryCountLineInput = z.input<typeof upsertInventoryCountLineSchema>;
+
+export const finalizeInventoryCountSchema = z.object({
+  countId: z.string().uuid(),
+});
+
+export type FinalizeInventoryCountInput = z.input<typeof finalizeInventoryCountSchema>;
+
+export const voidInventoryCountSchema = z.object({
+  countId: z.string().uuid(),
+});
+
+export type VoidInventoryCountInput = z.input<typeof voidInventoryCountSchema>;
+
+export const inventoryReservationStatusSchema = z.enum(INVENTORY_RESERVATION_STATUSES);
+export const inventoryCountStatusSchema = z.enum(INVENTORY_COUNT_STATUSES);
+export const inventoryLocationKindSchema = z.enum(INVENTORY_LOCATION_KINDS);
 
 export const inventoryMovementTypeSchema = z.enum(INVENTORY_MOVEMENT_TYPES);
 

@@ -17,6 +17,7 @@ import type { DbExecutor } from '@/shared/db/types';
 import { areEmployeeMonthCostsAvailable } from '../domain/monthly-cost-gates';
 import type {
   NonProjectTimeCodeRecord,
+  TimeApprovalStatus,
   TimeEntryKind,
   TimeEntryListItem,
   TimeEntryRecord,
@@ -67,6 +68,13 @@ function mapTimeEntry(row: typeof timeEntries.$inferSelect): TimeEntryRecord {
     voidedAt: row.voidedAt ?? null,
     correctsEntryId: row.correctsEntryId ?? null,
     bulkBatchId: row.bulkBatchId ?? null,
+    timesheetId: row.timesheetId ?? null,
+    approvalStatus: (row.approvalStatus as TimeApprovalStatus) ?? 'draft',
+    submittedAt: row.submittedAt ?? null,
+    submittedByUserId: row.submittedByUserId ?? null,
+    decidedAt: row.decidedAt ?? null,
+    decidedByUserId: row.decidedByUserId ?? null,
+    managerNote: row.managerNote ?? null,
     archivedAt: row.archivedAt,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
@@ -106,6 +114,14 @@ export async function insertTimeEntry(
     voidedAt?: Date | null;
     correctsEntryId?: string | null;
     bulkBatchId?: string | null;
+    timesheetId?: string | null;
+    /** New logs default to draft — they do not create Actual until approved. */
+    approvalStatus?: TimeApprovalStatus;
+    submittedAt?: Date | null;
+    submittedByUserId?: string | null;
+    decidedAt?: Date | null;
+    decidedByUserId?: string | null;
+    managerNote?: string | null;
   },
 ): Promise<TimeEntryRecord> {
   const [row] = await db
@@ -129,6 +145,13 @@ export async function insertTimeEntry(
       voidedAt: input.voidedAt ?? null,
       correctsEntryId: input.correctsEntryId ?? null,
       bulkBatchId: input.bulkBatchId ?? null,
+      timesheetId: input.timesheetId ?? null,
+      approvalStatus: input.approvalStatus ?? 'draft',
+      submittedAt: input.submittedAt ?? null,
+      submittedByUserId: input.submittedByUserId ?? null,
+      decidedAt: input.decidedAt ?? null,
+      decidedByUserId: input.decidedByUserId ?? null,
+      managerNote: input.managerNote ?? null,
     })
     .returning();
 
@@ -169,6 +192,14 @@ export interface TimeEntryFilters {
   readonly kind?: TimeEntryKind | 'all';
   /** Default `recorded` — void rows stay out of the working list unless requested. */
   readonly status?: TimeEntryStatus | 'all';
+  /** Working lists omit this; costing callers must pass `approved`. */
+  readonly approvalStatus?: TimeApprovalStatus | 'all';
+  /**
+   * Labor Actual slice: recorded + approved only (same gate as sum functions).
+   * When true, overrides `status` / `approvalStatus` to the costing pair.
+   */
+  readonly forCosting?: boolean;
+  readonly timesheetId?: string;
   readonly includeArchived?: boolean;
   readonly limit?: number;
   readonly offset?: number;
@@ -205,9 +236,22 @@ export async function listTimeEntries(
     conditions.push(eq(timeEntries.kind, filters.kind));
   }
 
-  const statusFilter = filters.status ?? 'recorded';
-  if (statusFilter !== 'all') {
-    conditions.push(eq(timeEntries.status, statusFilter));
+  if (filters.timesheetId) {
+    conditions.push(eq(timeEntries.timesheetId, filters.timesheetId));
+  }
+
+  if (filters.forCosting) {
+    conditions.push(eq(timeEntries.status, 'recorded'));
+    conditions.push(eq(timeEntries.approvalStatus, 'approved'));
+  } else {
+    const statusFilter = filters.status ?? 'recorded';
+    if (statusFilter !== 'all') {
+      conditions.push(eq(timeEntries.status, statusFilter));
+    }
+
+    if (filters.approvalStatus && filters.approvalStatus !== 'all') {
+      conditions.push(eq(timeEntries.approvalStatus, filters.approvalStatus));
+    }
   }
 
   const hardCap =
@@ -256,6 +300,23 @@ export async function findTimeEntryById(
   return row ? mapTimeEntry(row) : null;
 }
 
+export async function listTimeEntriesByIds(
+  db: DbExecutor,
+  organizationId: string,
+  timeEntryIds: readonly string[],
+): Promise<TimeEntryRecord[]> {
+  if (timeEntryIds.length === 0) return [];
+
+  const rows = await db
+    .select()
+    .from(timeEntries)
+    .where(
+      and(eq(timeEntries.organizationId, organizationId), inArray(timeEntries.id, [...timeEntryIds])),
+    );
+
+  return rows.map(mapTimeEntry);
+}
+
 export async function sumProjectLaborCost(
   db: DbExecutor,
   organizationId: string,
@@ -292,6 +353,7 @@ export async function sumProjectLaborCost(
         eq(timeEntries.projectId, projectId),
         eq(timeEntries.kind, 'project'),
         eq(timeEntries.status, 'recorded'),
+        eq(timeEntries.approvalStatus, 'approved'),
         isNull(timeEntries.archivedAt),
         ...(displacement ? [displacement] : []),
       ),
@@ -352,6 +414,7 @@ export async function sumLaborCostGroupedByProject(
         inArray(timeEntries.projectId, [...projectIds]),
         eq(timeEntries.kind, 'project'),
         eq(timeEntries.status, 'recorded'),
+        eq(timeEntries.approvalStatus, 'approved'),
         isNull(timeEntries.archivedAt),
         ...(displacement ? [displacement] : []),
       ),
@@ -392,6 +455,7 @@ export async function sumOrganizationProjectLaborCoverage(
     eq(timeEntries.organizationId, organizationId),
     eq(timeEntries.kind, 'project'),
     eq(timeEntries.status, 'recorded'),
+    eq(timeEntries.approvalStatus, 'approved'),
     isNull(timeEntries.archivedAt),
     isNotNull(timeEntries.projectId),
     ...(displacement ? [displacement] : []),

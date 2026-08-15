@@ -10,7 +10,10 @@ import { withOrgContext } from '@/shared/auth/session';
 import { Link } from '@/shared/i18n/navigation';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
+import { StatusBadge } from '@/components/ui/status-badge';
 import { DailyLogEditForm } from '../daily-log-edit-form';
+import { DailyLogStatusActions } from '../daily-log-status-actions';
+import { isDailyLogLocked } from '@/modules/field-ops/domain/daily-log-status';
 import { textNavLinkClassName, textNavLinkMutedClassName } from '@/components/ui/pressable';
 
 export async function generateMetadata({
@@ -78,7 +81,17 @@ export default async function DailyLogDetailPage({
           </Link>
         }
         meta={
-          <div className="flex flex-wrap gap-2 text-sm text-[var(--pf-text-secondary)]">
+          <div className="flex flex-wrap items-center gap-2 text-sm text-[var(--pf-text-secondary)]">
+            <StatusBadge
+              shape={
+                log.status === 'finalized'
+                  ? 'completed'
+                  : log.status === 'submitted'
+                    ? 'pending'
+                    : 'draft'
+              }
+              label={t(`logStatus.${log.status}`)}
+            />
             <Link
               href={`/projects/${log.projectId}`}
               className={textNavLinkClassName}
@@ -92,12 +105,33 @@ export default async function DailyLogDetailPage({
       />
 
       {canManage ? (
-        <DailyLogEditForm log={log} />
+        <>
+          <DailyLogStatusActions log={log} />
+          {isDailyLogLocked(log.status) ? (
+            <div className="flex max-w-lg flex-col gap-4 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4 text-sm">
+              <DetailBlock label={t('createLog.summaryLabel')} value={log.summary} />
+              <DetailBlock label={t('createLog.workforceNotesLabel')} value={log.workforceNotes} />
+              <DetailBlock label={t('createLog.blockersLabel')} value={log.blockers} />
+              <DetailBlock label={t('extraFields.workersOnSite')} value={log.workersOnSite} />
+              <DetailBlock label={t('extraFields.subcontractorsOnSite')} value={log.subcontractorsOnSite} />
+              <DetailBlock label={t('extraFields.equipmentOnSite')} value={log.equipmentOnSite} />
+              <DetailBlock label={t('extraFields.deliveries')} value={log.deliveries} />
+              <DetailBlock label={t('extraFields.delays')} value={log.delays} />
+              <DetailBlock label={t('extraFields.incidents')} value={log.incidents} />
+              <DetailBlock label={t('extraFields.safetyNotes')} value={log.safetyNotes} />
+              <DetailBlock label={t('extraFields.visitorNotes')} value={log.visitorNotes} />
+              <DetailBlock label={t('extraFields.managerNotes')} value={log.managerNotes} />
+            </div>
+          ) : (
+            <DailyLogEditForm log={log} />
+          )}
+        </>
       ) : (
         <div className="flex max-w-lg flex-col gap-4 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4 text-sm">
           <DetailBlock label={t('createLog.summaryLabel')} value={log.summary} />
           <DetailBlock label={t('createLog.workforceNotesLabel')} value={log.workforceNotes} />
           <DetailBlock label={t('createLog.blockersLabel')} value={log.blockers} />
+          <DetailBlock label={t('extraFields.managerNotes')} value={log.managerNotes} />
         </div>
       )}
 

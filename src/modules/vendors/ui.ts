@@ -8,3 +8,5 @@
 export { ProjectContractorsPanel } from './ui/project-contractors-panel';
 export { ProjectContractorsRoster } from './ui/project-contractors-roster';
 export { VendorEngagementsPanel } from './ui/vendor-engagements-panel';
+export { VendorSubcontractsPanel } from './ui/vendor-subcontracts-panel';
+export { ProjectSubcontractsRoster } from './ui/project-subcontracts-roster';

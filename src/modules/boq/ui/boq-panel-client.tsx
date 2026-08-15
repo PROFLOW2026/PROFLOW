@@ -101,6 +101,13 @@ export interface BoqPanelClientProps {
     readonly canCreateBilling: boolean;
     readonly showAmounts: boolean;
   };
+  readonly contracts?: readonly {
+    readonly id: string;
+    readonly name: string | null;
+    readonly contractNumber: string | null;
+    readonly isPrimary: boolean;
+  }[];
+  readonly selectedContractId?: string | null;
 }
 
 type KindFilter = 'all' | 'chapter' | 'item';
@@ -160,6 +167,8 @@ export function BoqPanelClient({
   changeOrders = [],
   allocations = [],
   permissions,
+  contracts = [],
+  selectedContractId = null,
 }: BoqPanelClientProps) {
   const t = useTranslations('boq');
   const [query, setQuery] = useState('');
@@ -223,7 +232,28 @@ export function BoqPanelClient({
         {permissions.canManage ? (
           <form action={createAction} className="flex min-w-0 flex-col gap-3 rounded-md border border-[var(--pf-border-default)] p-3">
             <input type="hidden" name="projectId" value={projectId} />
-            <h3 className="text-sm font-semibold">{t('forms.createTitle')}</h3>
+            {contracts.length > 1 ? (
+              <Field label={t('forms.contract')}>
+                {(controlProps) => (
+                  <select
+                    {...controlProps}
+                    name="contractId"
+                    defaultValue={selectedContractId ?? contracts.find((row) => row.isPrimary)?.id ?? ''}
+                    className="w-full min-w-0 rounded-md border border-[var(--pf-border-default)] bg-transparent px-3 py-2 text-sm"
+                  >
+                    {contracts.map((contract) => (
+                      <option key={contract.id} value={contract.id}>
+                        {contract.name ??
+                          contract.contractNumber ??
+                          (contract.isPrimary ? t('forms.contractPrimary') : contract.id.slice(0, 8))}
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </Field>
+            ) : selectedContractId ? (
+              <input type="hidden" name="contractId" value={selectedContractId} />
+            ) : null}
             <Field label={t('forms.title')}>
               {(controlProps) => (
                 <input

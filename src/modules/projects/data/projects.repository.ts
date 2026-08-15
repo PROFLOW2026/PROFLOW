@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, ilike, isNull, or, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, ilike, inArray, isNull, or, sql } from 'drizzle-orm';
 import { clients, contracts, projects } from '@drizzle/schema';
 import { existsSearchableCustomFieldValueSql } from '@/modules/custom-fields';
 import {
@@ -159,8 +159,16 @@ export async function listProjects(
   db: DbExecutor,
   organizationId: string,
   filters: ProjectListFilters = {},
+  options: { restrictToProjectIds?: string[] | null } = {},
 ): Promise<ProjectListItem[]> {
+  if (options.restrictToProjectIds && options.restrictToProjectIds.length === 0) {
+    return [];
+  }
+
   const conditions = [eq(projects.organizationId, organizationId)];
+  if (options.restrictToProjectIds) {
+    conditions.push(inArray(projects.id, options.restrictToProjectIds));
+  }
 
   if (!filters.includeArchived) {
     conditions.push(isNull(projects.archivedAt));
@@ -243,8 +251,19 @@ export async function listProjects(
         join contracts c on c.id = cve.contract_id
         where c.project_id = ${projects.id}
           and c.organization_id = ${organizationId}
-          and c.is_primary = true
           and c.archived_at is null
+          and upper(cve.currency) = upper(coalesce(
+            (
+              select primary_c.currency
+              from contracts primary_c
+              where primary_c.project_id = ${projects.id}
+                and primary_c.organization_id = ${organizationId}
+                and primary_c.is_primary = true
+                and primary_c.archived_at is null
+              limit 1
+            ),
+            ${projects.currency}
+          ))
       )`,
     })
     .from(projects)

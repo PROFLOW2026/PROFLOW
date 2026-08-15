@@ -5,6 +5,8 @@ import {
   MILESTONE_STATUSES,
   PRICING_MODES,
   WORK_KINDS,
+  CONTRACT_TYPES,
+  CONTRACT_STATUSES,
 } from '../domain/types';
 import { DATE_ORDER_MESSAGE, isEndBeforeStart } from '../domain/scheduling';
 
@@ -397,4 +399,82 @@ export const applyProjectTemplateSchema = z.object({
     'design_studio',
     'main_contractor',
   ] as const),
+});
+
+const optionalRetentionPercent = z.preprocess(
+  emptyToNull,
+  z
+    .string()
+    .trim()
+    .regex(/^\d+(\.\d+)?$/, 'Retention must be a non-negative number')
+    .refine((value) => {
+      const n = Number(value);
+      return Number.isFinite(n) && n >= 0 && n <= 100;
+    }, 'Retention must be between 0 and 100')
+    .nullable()
+    .optional(),
+);
+
+export const createAdditionalContractSchema = z
+  .object({
+    projectId: z.string().uuid(),
+    name: z.preprocess(emptyToNull, z.string().trim().min(1).max(200).nullable().optional()),
+    reference: z.preprocess(emptyToNull, z.string().trim().max(120).nullable().optional()),
+    contractType: z.enum(['additional', 'secondary']).optional(),
+    contractNumber: z.preprocess(emptyToNull, z.string().trim().max(80).nullable().optional()),
+    clientId: z.preprocess(emptyToNull, z.string().uuid().nullable().optional()),
+    startDate: optionalDate,
+    endDate: optionalDate,
+    retentionPercent: optionalRetentionPercent,
+    notes: optionalText,
+    enteredAmount: z.preprocess(emptyToNull, z.string().trim().nullable().optional()),
+    currency: z.preprocess(emptyToNull, z.string().trim().length(3).nullable().optional()),
+    amountIncludesTax: amountIncludesTaxSchema.optional(),
+    openingReductionAmount: optionalMoneyAmount,
+    status: z.enum(CONTRACT_STATUSES).optional(),
+  })
+  .superRefine((value, ctx) => {
+    refineDateOrder(value, ctx, 'startDate', 'endDate');
+    if (value.openingReductionAmount && !value.enteredAmount) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Opening reduction requires an original contract amount',
+        path: ['openingReductionAmount'],
+      });
+    }
+  });
+
+export type CreateAdditionalContractInput = z.input<typeof createAdditionalContractSchema>;
+
+export const updateContractSchema = z
+  .object({
+    contractId: z.string().uuid(),
+    name: z.preprocess(emptyStringOrNullToNull, z.string().trim().min(1).max(200).nullable().optional()),
+    reference: z.preprocess(emptyStringOrNullToNull, z.string().trim().max(120).nullable().optional()),
+    contractType: z.enum(CONTRACT_TYPES).optional(),
+    contractNumber: z.preprocess(
+      emptyStringOrNullToNull,
+      z.string().trim().max(80).nullable().optional(),
+    ),
+    clientId: z.preprocess(emptyStringOrNullToNull, z.string().uuid().nullable().optional()),
+    startDate: optionalDate,
+    endDate: optionalDate,
+    retentionPercent: optionalRetentionPercent,
+    notes: optionalText,
+    status: z.enum(CONTRACT_STATUSES).optional(),
+    isPrimary: z.boolean().optional(),
+  })
+  .superRefine((value, ctx) => {
+    refineDateOrder(value, ctx, 'startDate', 'endDate');
+  });
+
+export type UpdateContractInput = z.input<typeof updateContractSchema>;
+
+export const listProjectContractsSchema = z.object({
+  projectId: z.string().uuid(),
+});
+
+export const setPrimaryContractSchema = z.object({
+  projectId: z.string().uuid(),
+  contractId: z.preprocess(emptyToNull, z.string().uuid().nullable()),
 });

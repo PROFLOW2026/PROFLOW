@@ -20,9 +20,12 @@ import type {
 } from '../domain/types';
 import {
   findPrimaryContractByProject,
+  listContractsByProject,
   listContractValueEvents,
+  listContractValueEventsForContracts,
 } from '../data/contracts.repository';
 import { findProjectById } from '../data/projects.repository';
+import { assertCanAccessProject } from './project-access';
 import { listPhasesByProject } from '../data/phases.repository';
 import { listMilestonesByProject } from '../data/milestones.repository';
 import {
@@ -54,6 +57,7 @@ export interface ProjectDetail {
   readonly milestones: readonly MilestoneRecord[];
   readonly showWorkPackages: boolean;
   readonly contract: ContractRecord | null;
+  readonly contracts: readonly ContractRecord[];
   readonly contractValueEvents: readonly ContractValueEventRecord[];
   readonly currentContractValue: MoneyValue | null;
   /** True once a finalized contract-value change exists (approved CO / adjustment). */
@@ -95,15 +99,20 @@ export async function getProjectDetailChrome(
   const project = await findProjectById(context.db, context.organizationId, projectId);
   if (!project) throw new NotFoundError('Project');
   assertSameOrganization(context, project, 'Project');
+  await assertCanAccessProject(context, projectId);
 
   const canReadContracts = context.permissions.has(PERMISSIONS.CONTRACTS_READ);
 
-  // Contract first so value events can overlap client / domain lookups.
-  const contract = canReadContracts
-    ? await findPrimaryContractByProject(context.db, context.organizationId, projectId)
-    : null;
+  const projectContracts = canReadContracts
+    ? await listContractsByProject(context.db, context.organizationId, projectId)
+    : [];
+  const contract =
+    projectContracts.find((row) => row.isPrimary) ??
+    (canReadContracts
+      ? await findPrimaryContractByProject(context.db, context.organizationId, projectId)
+      : null);
 
-  const [clientName, clientContact, domainName, contractValueEvents] = await Promise.all([
+  const [clientName, clientContact, domainName, allContractEvents] = await Promise.all([
     project.clientId
       ? context.db
           .select({ name: clients.name })
@@ -119,20 +128,36 @@ export async function getProjectDetailChrome(
       .where(eq(projectDomains.projectId, projectId))
       .limit(1)
       .then((rows) => rows[0]?.adHocName ?? null),
-    contract
-      ? listContractValueEvents(context.db, context.organizationId, contract.id)
-      : Promise.resolve([] as ContractValueEventRecord[]),
+    projectContracts.length > 0
+      ? listContractValueEventsForContracts(
+          context.db,
+          context.organizationId,
+          projectContracts.map((row) => row.id),
+        )
+      : contract
+        ? listContractValueEvents(context.db, context.organizationId, contract.id)
+        : Promise.resolve([] as ContractValueEventRecord[]),
   ]);
+
+  const contractValueEvents = contract
+    ? allContractEvents.filter((event) => event.contractId === contract.id)
+    : [];
 
   let currentContractValue: MoneyValue | null = null;
   let originalContractAmountLocked = false;
 
   if (canReadContracts) {
-    if (contract) {
-      currentContractValue = computeCurrentContractValue(contractValueEvents, contract.currency);
+    const currency =
+      contract?.currency ?? projectContracts[0]?.currency ?? project.currency ?? null;
+    if (currency) {
+      const sameCurrencyEvents = allContractEvents.filter(
+        (event) => event.currency.toUpperCase() === currency.toUpperCase(),
+      );
+      currentContractValue =
+        sameCurrencyEvents.length > 0
+          ? computeCurrentContractValue(sameCurrencyEvents, currency)
+          : fromNumericString(contract?.originalValueAmount ?? '0', currency);
       originalContractAmountLocked = isOriginalContractAmountLocked(contractValueEvents);
-    } else if (project.currency) {
-      currentContractValue = fromNumericString('0', project.currency);
     }
   }
 
@@ -142,6 +167,7 @@ export async function getProjectDetailChrome(
     clientContact,
     domainName,
     contract,
+    contracts: projectContracts,
     contractValueEvents,
     currentContractValue,
     originalContractAmountLocked,

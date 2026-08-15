@@ -7,6 +7,7 @@ import { textNavLinkClassName } from '@/components/ui/pressable';
 import { ProjectFinancialsPanel } from '@/modules/financials/ui/project-financials-panel';
 import { ProjectFormsPanel } from '@/modules/forms/ui';
 import {
+  getWorkOrderBillingLink,
   getWorkOrderChecklistGateState,
   getWorkOrderDetail,
   listWorkOrderChecklistTemplateOptions,
@@ -19,6 +20,7 @@ import { Link } from '@/shared/i18n/navigation';
 import { cn } from '@/shared/ui/cn';
 import { WorkOrderDetailForm } from './work-order-detail-form';
 import { WorkOrderStatusForm } from './work-order-status-form';
+import { WorkOrderBillingForm } from './work-order-billing-form';
 
 interface WorkOrderPageProps {
   params: Promise<{ locale: string; id: string }>;
@@ -56,6 +58,12 @@ export default async function WorkOrderDetailPage({ params }: WorkOrderPageProps
     (shell?.permissions.has(PERMISSIONS.PROJECT_FINANCIALS_READ) ||
       shell?.permissions.has(PERMISSIONS.CONTRACTS_READ)) ??
     false;
+  const canBill =
+    canManage && (shell?.permissions.has(PERMISSIONS.BILLING_MANAGE) ?? false);
+
+  const billingLink = await withOrgContext((context) => getWorkOrderBillingLink(context, id)).catch(
+    () => null,
+  );
 
   const [checklistState, checklistTemplates] = await withOrgContext(async (context) => {
     const [gate, templates] = await Promise.all([
@@ -115,6 +123,13 @@ export default async function WorkOrderDetailPage({ params }: WorkOrderPageProps
           checklistBlocked={checklistState.required && !checklistState.satisfied}
         />
       ) : null}
+
+      <WorkOrderBillingForm
+        workOrderId={id}
+        existingBillingRecordId={billingLink?.billingRecordId ?? null}
+        existingStatus={billingLink?.status ?? null}
+        canBill={canBill}
+      />
 
       {checklistState.required ? (
         <WorkOrderChecklistCard workOrderId={id} state={checklistState} />

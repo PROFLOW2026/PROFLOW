@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import { PageHeader } from '@/components/ui/page-header';
 import { StatusBadge } from '@/components/ui/status-badge';
-import { getClientById, getClientFinancials } from '@/modules/clients';
+import { getClientById, getClientFinancials, getClientTimeline } from '@/modules/clients';
 import { listCustomFieldValuesForEntity } from '@/modules/custom-fields';
 import { getEntityDocumentPanelData } from '@/modules/documents';
 import { DocumentAttachments } from '@/modules/documents/ui';
@@ -48,21 +48,25 @@ export default async function ClientPage({ params }: ClientPageProps) {
   let customFields: Awaited<ReturnType<typeof listCustomFieldValuesForEntity>> = [];
   let documentsPanel: Awaited<ReturnType<typeof getEntityDocumentPanelData>> | null = null;
   let financials: Awaited<ReturnType<typeof getClientFinancials>> | null = null;
+  let timelineEvents: Awaited<ReturnType<typeof getClientTimeline>>['events'] = [];
+  let timelineState: 'ready' | 'error' = 'ready';
   try {
     const loaded = await withOrgContext(async (context) => {
       const detail = await getClientById(context, clientId);
       const canReadBilling = hasPermission(context, PERMISSIONS.BILLING_READ);
-      const [fields, panel, projects, clientFinancials] = await Promise.all([
+      const [fields, panel, projects, clientFinancials, timeline] = await Promise.all([
         listCustomFieldValuesForEntity(context, 'client', clientId).catch(() => []),
         getEntityDocumentPanelData(context, 'client', clientId),
         listProjectsForOrg(context, { clientId, includeArchived: false }).catch(() => []),
         canReadBilling ? getClientFinancials(context, clientId) : Promise.resolve(null),
+        getClientTimeline(context, clientId).catch(() => null),
       ]);
       return {
         detail,
         fields,
         panel,
         financials: clientFinancials,
+        timeline,
         projects: projects.map((project) => ({
           id: project.id,
           name: project.name,
@@ -76,6 +80,12 @@ export default async function ClientPage({ params }: ClientPageProps) {
     documentsPanel = loaded.panel;
     linkedProjects = loaded.projects;
     financials = loaded.financials;
+    if (loaded.timeline) {
+      timelineEvents = loaded.timeline.events;
+      timelineState = 'ready';
+    } else {
+      timelineState = 'error';
+    }
   } catch {
     notFound();
   }
@@ -97,6 +107,8 @@ export default async function ClientPage({ params }: ClientPageProps) {
         customFields={customFields}
         linkedProjects={linkedProjects}
         canManage={canManage}
+        timelineEvents={timelineEvents}
+        timelineState={timelineState}
       />
       {financials ? <ClientFinancialPanel financials={financials} locale={locale} /> : null}
       {documentsPanel ? (

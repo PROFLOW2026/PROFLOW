@@ -17,6 +17,24 @@ export const extractReceiptSchema = z.object({
   filename: z.string().trim().max(500).optional(),
   workflow: z.enum(OCR_WORKFLOW_CONTEXTS).optional(),
   forceRetry: z.boolean().optional(),
+  batchId: z.string().uuid().optional(),
+  idempotencyKey: z.string().trim().min(1).max(200).optional(),
+});
+
+export const createOcrBatchSchema = z.object({
+  totalCount: z.number().int().min(0).max(50).optional(),
+  documentIds: z.array(z.string().uuid()).max(50).optional(),
+  extract: z
+    .object({
+      mimeType: z.string().trim().max(200).optional(),
+      filename: z.string().trim().max(500).optional(),
+      workflow: z.enum(OCR_WORKFLOW_CONTEXTS).optional(),
+    })
+    .optional(),
+});
+
+export const cancelOcrJobSchema = z.object({
+  jobId: z.string().uuid(),
 });
 
 export const listOcrCandidatesSchema = z.object({
@@ -86,6 +104,8 @@ export const rejectOcrCandidateSchema = z.object({
 });
 
 export type ExtractReceiptAppInput = z.infer<typeof extractReceiptSchema>;
+export type CreateOcrBatchAppInput = z.infer<typeof createOcrBatchSchema>;
+export type CancelOcrJobInput = z.infer<typeof cancelOcrJobSchema>;
 export type ListOcrCandidatesInput = z.infer<typeof listOcrCandidatesSchema>;
 /** Input type — `draftTarget` defaults to expense when omitted. */
 export type ConfirmOcrCandidateInput = z.input<typeof confirmOcrCandidateSchema>;

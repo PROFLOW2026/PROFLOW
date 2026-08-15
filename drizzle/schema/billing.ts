@@ -23,6 +23,7 @@ import {
 import { billingKindEnum, billingStatusEnum, paymentStatusEnum } from './enums';
 import { changeOrders } from './changes';
 import { clients } from './clients';
+import { contracts } from './contracts';
 import { documents } from './documents';
 import { profiles } from './identity';
 import { projects } from './projects';
@@ -46,6 +47,9 @@ export const billingRecords = pgTable(
       .references(() => organizations.id, { onDelete: 'cascade' }),
     projectId: uuid('project_id').references(() => projects.id, { onDelete: 'set null' }),
     clientId: uuid('client_id').references(() => clients.id, { onDelete: 'set null' }),
+    contractId: uuid('contract_id').references(() => contracts.id, { onDelete: 'set null' }),
+    sourceKind: text('source_kind').notNull().default('manual'),
+    sourceId: uuid('source_id'),
     kind: billingKindEnum('kind').notNull().default('invoice'),
     /** The external invoice number, when the user has one. */
     reference: text('reference'),
@@ -80,9 +84,15 @@ export const billingRecords = pgTable(
     index('billing_records_project_idx').on(table.projectId),
     index('billing_records_org_status_idx').on(table.organizationId, table.status),
     index('billing_records_issue_date_idx').on(table.organizationId, table.issueDate),
+    index('billing_records_contract_idx').on(table.organizationId, table.contractId),
+    index('billing_records_source_idx').on(table.organizationId, table.sourceKind, table.sourceId),
     uniqueIndex('billing_records_org_reference_uq')
       .on(table.organizationId, table.reference)
       .where(sql`${table.reference} is not null`),
+    check(
+      'billing_records_source_kind_known',
+      sql`${table.sourceKind} IN ('manual', 'boq_progress', 'work_order', 'retention_release')`,
+    ),
     check(
       'billing_records_retention_range',
       sql`${table.retentionAmount} >= 0

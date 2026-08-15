@@ -178,5 +178,11 @@
       "later": "Later (Forecast)",
       "undated": "No due date (Forecast)"
     }
+  },
+  "perContract": {
+    "title": "By contract",
+    "hint": "Project current contract value is the sum of live contracts in this currency. Pending changes do not move Current.",
+    "primary": "Primary",
+    "skippedFx": "Another currency — not included in the project total"
   }
 }

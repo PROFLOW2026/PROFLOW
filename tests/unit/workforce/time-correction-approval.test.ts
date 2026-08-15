@@ -61,6 +61,12 @@ vi.mock('@/modules/tenancy', () => ({
   noteModuleUsage: vi.fn(async () => undefined),
 }));
 
+vi.mock('@/modules/projects/application/project-access', () => ({
+  assertCanAccessProject: vi.fn(async () => undefined),
+  resolveAccessibleProjectIds: vi.fn(async () => null),
+  isAccessibleProjectId: () => true,
+}));
+
 vi.mock('@/modules/approvals/data/approvals.repository', () => ({
   listEnabledRulesForEntity,
   findLatestRequestForEntityGate,
@@ -183,6 +189,13 @@ function originalEntry(partial: Partial<TimeEntryRecord> = {}): TimeEntryRecord 
     voidedAt: null,
     correctsEntryId: null,
     bulkBatchId: null,
+    timesheetId: null,
+    approvalStatus: 'approved',
+    submittedAt: null,
+    submittedByUserId: null,
+    decidedAt: null,
+    decidedByUserId: null,
+    managerNote: null,
     archivedAt: null,
     createdAt: new Date('2026-08-10T00:00:00.000Z'),
     updatedAt: new Date('2026-08-10T00:00:00.000Z'),

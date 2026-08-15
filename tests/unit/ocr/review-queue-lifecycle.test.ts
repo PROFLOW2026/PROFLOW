@@ -11,15 +11,17 @@ describe('OCR review queue lifecycle statuses', () => {
     expect([...OCR_REVIEW_SURFACE_STATUSES]).toEqual([
       'queued',
       'running',
+      'processing',
       'needs_review',
       'failed',
     ]);
     expect(OCR_REVIEW_SURFACE_STATUSES).not.toContain('succeeded');
     expect(OCR_REVIEW_SURFACE_STATUSES).not.toContain('rejected');
+    expect(OCR_REVIEW_SURFACE_STATUSES).not.toContain('cancelled');
   });
 
   it('places terminal reviews in history only', () => {
-    expect([...OCR_REVIEW_HISTORY_STATUSES]).toEqual(['succeeded', 'rejected']);
+    expect([...OCR_REVIEW_HISTORY_STATUSES]).toEqual(['succeeded', 'rejected', 'cancelled']);
     expect(isOcrHistoryStatus('succeeded')).toBe(true);
     expect(isOcrHistoryStatus('rejected')).toBe(true);
     expect(isOcrActiveQueueStatus('needs_review')).toBe(true);

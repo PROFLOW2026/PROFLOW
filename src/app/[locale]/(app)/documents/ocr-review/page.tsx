@@ -6,6 +6,7 @@ import {
   listOcrCandidates,
   getOcrProviderStatus,
   isOcrReviewUiAllowed,
+  listOcrBatches,
   OCR_REVIEW_SURFACE_STATUSES,
 } from '@/modules/ocr';
 import { getOcrFeatureMode } from '@/modules/ocr/domain/feature-gate';
@@ -70,6 +71,12 @@ export default async function OcrReviewPage({
       const jobs = await listOcrCandidates(context, {
         status: [...OCR_REVIEW_SURFACE_STATUSES],
       });
+      let batches: Awaited<ReturnType<typeof listOcrBatches>> = [];
+      try {
+        batches = await listOcrBatches(context);
+      } catch {
+        batches = [];
+      }
       let vendors: { id: string; name: string }[] = [];
       try {
         vendors = (await listVendorsForOrg(context, { status: 'active' })).map((vendor) => ({
@@ -84,6 +91,7 @@ export default async function OcrReviewPage({
         allowed: true as const,
         status,
         jobs,
+        batches,
         vendors,
         organizationId: context.organizationId,
         organizationTaxId,
@@ -128,6 +136,7 @@ export default async function OcrReviewPage({
         <OcrReviewPanelLazy
           initialStatus={data.status}
           initialJobs={data.jobs}
+          initialBatches={data.batches}
           vendors={data.vendors}
           organizationId={data.organizationId}
           organizationTaxId={data.organizationTaxId}

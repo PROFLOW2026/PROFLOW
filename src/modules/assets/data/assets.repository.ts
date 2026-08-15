@@ -1,4 +1,4 @@
-import { and, desc, eq, isNull, notInArray, sql } from 'drizzle-orm';
+import { and, desc, eq, ilike, isNull, notInArray, or, sql } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/pg-core';
 import {
   assets,
@@ -24,6 +24,7 @@ import type {
   FleetVehicleRecord,
   InventoryItemRecord,
   InventoryLocationBalanceRecord,
+  InventoryLocationKind,
   InventoryLocationRecord,
   InventoryMovementRecord,
   InventoryMovementType,
@@ -112,9 +113,11 @@ function mapInventoryItem(row: typeof inventoryItems.$inferSelect): InventoryIte
     materialItemId: row.materialItemId,
     name: row.name,
     sku: row.sku,
+    barcode: row.barcode ?? null,
     unit: row.unit,
     quantityOnHand: row.quantityOnHand,
     reorderLevel: row.reorderLevel,
+    minStockLevel: row.minStockLevel ?? null,
     notes: row.notes,
     archivedAt: row.archivedAt,
     createdAt: row.createdAt,
@@ -150,6 +153,8 @@ function mapLocation(row: typeof inventoryLocations.$inferSelect): InventoryLoca
     organizationId: row.organizationId,
     name: row.name,
     code: row.code,
+    locationKind: (row.locationKind ?? 'warehouse') as InventoryLocationKind,
+    projectId: row.projectId ?? null,
     archivedAt: row.archivedAt,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
@@ -467,12 +472,27 @@ export async function updateMaintenanceRecordById(
 export async function listInventoryItems(
   db: DbExecutor,
   organizationId: string,
-  options: { readonly limit?: number; readonly offset?: number } = {},
+  options: { readonly limit?: number; readonly offset?: number; readonly search?: string } = {},
 ): Promise<InventoryItemRecord[]> {
+  const term = options.search?.trim();
+  const searchFilter =
+    term && term.length > 0
+      ? or(
+          ilike(inventoryItems.name, `%${term}%`),
+          ilike(inventoryItems.sku, `%${term}%`),
+          ilike(inventoryItems.barcode, `%${term}%`),
+        )
+      : undefined;
   const rows = await db
     .select()
     .from(inventoryItems)
-    .where(and(eq(inventoryItems.organizationId, organizationId), isNull(inventoryItems.archivedAt)))
+    .where(
+      and(
+        eq(inventoryItems.organizationId, organizationId),
+        isNull(inventoryItems.archivedAt),
+        searchFilter,
+      ),
+    )
     .orderBy(inventoryItems.name)
     .limit(
       resolveListLimit(options.limit, {
@@ -625,7 +645,13 @@ export async function updateInventoryLocationById(
   db: DbExecutor,
   organizationId: string,
   id: string,
-  patch: Partial<{ name: string; code: string | null; archivedAt: Date | null }>,
+  patch: Partial<{
+    name: string;
+    code: string | null;
+    locationKind: InventoryLocationKind;
+    projectId: string | null;
+    archivedAt: Date | null;
+  }>,
 ): Promise<InventoryLocationRecord | null> {
   const [row] = await db
     .update(inventoryLocations)
@@ -763,4 +789,37 @@ export async function countNonZeroBalancesForLocation(
       ),
     );
   return row?.count ?? 0;
+}
+
+export async function listLocationBalancesForLocation(
+  db: DbExecutor,
+  organizationId: string,
+  locationId: string,
+): Promise<InventoryLocationBalanceRecord[]> {
+  const rows = await db
+    .select({
+      balance: inventoryLocationBalances,
+      locationName: inventoryLocations.name,
+      locationCode: inventoryLocations.code,
+    })
+    .from(inventoryLocationBalances)
+    .innerJoin(inventoryLocations, eq(inventoryLocations.id, inventoryLocationBalances.locationId))
+    .where(
+      and(
+        eq(inventoryLocationBalances.organizationId, organizationId),
+        eq(inventoryLocationBalances.locationId, locationId),
+      ),
+    )
+    .orderBy(inventoryLocations.name);
+  return rows.map((row) => ({
+    id: row.balance.id,
+    organizationId: row.balance.organizationId,
+    inventoryItemId: row.balance.inventoryItemId,
+    locationId: row.balance.locationId,
+    locationName: row.locationName,
+    locationCode: row.locationCode,
+    quantity: row.balance.quantity,
+    createdAt: row.balance.createdAt,
+    updatedAt: row.balance.updatedAt,
+  }));
 }

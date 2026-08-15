@@ -12,8 +12,12 @@ import { listProjectsForOrg } from '@/modules/projects';
 import {
   getVendorById,
   listVendorEngagementHistory,
+  listVendorSubcontracts,
+  getSubcontractById,
+  listSubcontractParentContracts,
+  listSubcontractDocumentCandidates,
 } from '@/modules/vendors';
-import { VendorEngagementsPanel } from '@/modules/vendors/ui';
+import { VendorEngagementsPanel, VendorSubcontractsPanel } from '@/modules/vendors/ui';
 import { withOrgContext } from '@/shared/auth/session';
 import { todayInTimeZone } from '@/shared/dates';
 import { Link } from '@/shared/i18n/navigation';
@@ -54,6 +58,10 @@ export default async function VendorDetailPage({
   let documentsPanel;
   let customFields: Awaited<ReturnType<typeof listCustomFieldValuesForEntity>> = [];
   let engagementHistory: Awaited<ReturnType<typeof listVendorEngagementHistory>> = [];
+  let subcontracts: Awaited<ReturnType<typeof listVendorSubcontracts>> = [];
+  let subcontractDetails: Awaited<ReturnType<typeof getSubcontractById>>[] = [];
+  let parentContracts: Awaited<ReturnType<typeof listSubcontractParentContracts>> = [];
+  let documentCandidates: Awaited<ReturnType<typeof listSubcontractDocumentCandidates>> = [];
   let candidateProjects: { id: string; name: string }[] = [];
   let canManage = false;
   let defaultStartDate = '';
@@ -62,14 +70,20 @@ export default async function VendorDetailPage({
     const result = await withOrgContext(async (context) => {
       const detail = await getVendorById(context, vendorId);
       const allowManage = hasPermission(context, PERMISSIONS.VENDORS_MANAGE);
-      const [panel, fields, history, projects] = await Promise.all([
+      const [panel, fields, history, projects, agreements, contracts, docs] = await Promise.all([
         getEntityDocumentPanelData(context, 'vendor', vendorId),
         listCustomFieldValuesForEntity(context, 'vendor', vendorId).catch(() => []),
         listVendorEngagementHistory(context, vendorId).catch(() => []),
         allowManage
           ? listProjectsForOrg(context, {}).catch(() => [])
           : Promise.resolve([]),
+        listVendorSubcontracts(context, vendorId).catch(() => []),
+        listSubcontractParentContracts(context).catch(() => []),
+        listSubcontractDocumentCandidates(context).catch(() => []),
       ]);
+      const details = await Promise.all(
+        agreements.map((agreement) => getSubcontractById(context, agreement.id).catch(() => null)),
+      );
       return {
         vendor: detail,
         documentsPanel: panel,
@@ -79,6 +93,10 @@ export default async function VendorDetailPage({
           id: project.id,
           name: project.name,
         })),
+        subcontracts: agreements,
+        subcontractDetails: details.filter((row): row is NonNullable<typeof row> => row !== null),
+        parentContracts: contracts,
+        documentCandidates: docs,
         canManage: allowManage,
         defaultStartDate: todayInTimeZone(context.organization.timezone),
       };
@@ -88,6 +106,10 @@ export default async function VendorDetailPage({
     customFields = result.customFields;
     engagementHistory = result.engagementHistory;
     candidateProjects = result.candidateProjects;
+    subcontracts = result.subcontracts;
+    subcontractDetails = result.subcontractDetails;
+    parentContracts = result.parentContracts;
+    documentCandidates = result.documentCandidates;
     canManage = result.canManage;
     defaultStartDate = result.defaultStartDate;
   } catch {
@@ -198,6 +220,17 @@ export default async function VendorDetailPage({
         engagements={vendor.engagements}
         history={engagementHistory}
         candidateProjects={candidateProjects}
+        canManage={canManage}
+        defaultStartDate={defaultStartDate}
+      />
+
+      <VendorSubcontractsPanel
+        vendorId={vendor.id}
+        items={subcontracts}
+        details={subcontractDetails}
+        candidateProjects={candidateProjects}
+        parentContracts={parentContracts}
+        documentCandidates={documentCandidates}
         canManage={canManage}
         defaultStartDate={defaultStartDate}
       />

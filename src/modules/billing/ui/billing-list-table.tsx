@@ -34,6 +34,7 @@ export function BillingListTable({ records, locale }: BillingListTableProps) {
             <TableHeader>
               <TableRow>
                 <TableHead>{t('list.project')}</TableHead>
+                <TableHead>{t('list.contract')}</TableHead>
                 <TableHead>{t('list.reference')}</TableHead>
                 <TableHead>{t('list.kind')}</TableHead>
                 <TableHead>{t('list.issueDate')}</TableHead>
@@ -53,6 +54,9 @@ export function BillingListTable({ records, locale }: BillingListTableProps) {
                     >
                       {record.projectName ?? t('list.unknownProject')}
                     </Link>
+                  </TableCell>
+                  <TableCell className="max-w-[10rem] truncate">
+                    {record.contractName ?? '—'}
                   </TableCell>
                   <TableCell className="max-w-[8rem] truncate">{record.reference ?? '—'}</TableCell>
                   <TableCell>
@@ -96,6 +100,7 @@ export function BillingListTable({ records, locale }: BillingListTableProps) {
           </div>
           <p className="mt-1 text-start text-sm text-[var(--pf-text-secondary)]">
             {record.reference ?? '—'}
+            {record.contractName ? ` · ${record.contractName}` : ''}
             {' · '}
             {tKind(record.kind)}
             {' · '}

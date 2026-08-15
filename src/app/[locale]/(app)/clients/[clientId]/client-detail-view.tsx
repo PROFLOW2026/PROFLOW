@@ -16,10 +16,12 @@ import {
   type ClientContactRecord,
   type ClientDetail,
 } from '@/modules/clients/domain/types';
+import { type ClientTimelineEventView } from '@/modules/clients/domain/timeline';
 import { type CustomFieldValueView } from '@/modules/custom-fields/domain/types';
 import { EntityCustomFieldsPanel } from '@/modules/custom-fields/ui';
 import { Link } from '@/shared/i18n/navigation';
 import { upsertEntityFieldValueAction } from '../../settings/custom-fields/actions';
+import { ClientTimeline } from './client-timeline';
 import {
   addClientContactAction,
   archiveClientAction,
@@ -45,6 +47,8 @@ interface ClientDetailViewProps {
   customFields?: CustomFieldValueView[];
   linkedProjects?: readonly ClientLinkedProject[];
   canManage?: boolean;
+  timelineEvents?: readonly ClientTimelineEventView[];
+  timelineState?: 'ready' | 'loading' | 'error';
 }
 
 export function ClientDetailView({
@@ -52,6 +56,8 @@ export function ClientDetailView({
   customFields = [],
   linkedProjects = [],
   canManage = false,
+  timelineEvents = [],
+  timelineState = 'ready',
 }: ClientDetailViewProps) {
   const t = useTranslations('clients.detail');
   const tClients = useTranslations('clients');
@@ -192,6 +198,8 @@ export function ClientDetailView({
         revalidatePath={`/clients/${client.id}`}
         saveAction={upsertEntityFieldValueAction}
       />
+
+      <ClientTimeline events={timelineEvents} state={timelineState} />
 
       <Card>
         <CardHeader>

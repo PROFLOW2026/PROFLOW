@@ -3,10 +3,13 @@ import {
   check,
   foreignKey,
   index,
+  integer,
   jsonb,
   numeric,
   pgTable,
   text,
+  timestamp,
+  uniqueIndex,
   uuid,
 } from 'drizzle-orm/pg-core';
 import { primaryId, timestamps } from './_shared';
@@ -47,6 +50,19 @@ export const ocrExtractionJobs = pgTable(
     confirmedVendorBillId: uuid('confirmed_vendor_bill_id'),
     confirmedVendorCreditId: uuid('confirmed_vendor_credit_id'),
     confirmedDraftTarget: text('confirmed_draft_target'),
+    documentVersionId: uuid('document_version_id'),
+    batchId: uuid('batch_id'),
+    attemptCount: integer('attempt_count').notNull().default(0),
+    lastError: text('last_error'),
+    idempotencyKey: text('idempotency_key'),
+    queuedAt: timestamp('queued_at', { withTimezone: true, mode: 'date' }),
+    startedAt: timestamp('started_at', { withTimezone: true, mode: 'date' }),
+    completedAt: timestamp('completed_at', { withTimezone: true, mode: 'date' }),
+    cancelledAt: timestamp('cancelled_at', { withTimezone: true, mode: 'date' }),
+    claimedAt: timestamp('claimed_at', { withTimezone: true, mode: 'date' }),
+    claimedBy: text('claimed_by'),
+    leaseExpiresAt: timestamp('lease_expires_at', { withTimezone: true, mode: 'date' }),
+    heartbeatAt: timestamp('heartbeat_at', { withTimezone: true, mode: 'date' }),
     ...timestamps(),
   },
   (table) => [
@@ -62,9 +78,15 @@ export const ocrExtractionJobs = pgTable(
     index('ocr_extraction_jobs_org_credit_idx')
       .on(table.organizationId, table.confirmedVendorCreditId)
       .where(sql`${table.confirmedVendorCreditId} is not null`),
+    uniqueIndex('ocr_extraction_jobs_org_idempotency_uq')
+      .on(table.organizationId, table.idempotencyKey)
+      .where(sql`${table.idempotencyKey} is not null`),
+    uniqueIndex('ocr_extraction_jobs_active_document_provider_uq')
+      .on(table.organizationId, table.documentId, table.providerId)
+      .where(sql`${table.documentId} is not null AND ${table.status} IN ('queued', 'running', 'processing')`),
     check(
       'ocr_extraction_jobs_status_known',
-      sql`${table.status} IN ('queued', 'running', 'succeeded', 'failed', 'needs_review', 'rejected')`,
+      sql`${table.status} IN ('queued', 'running', 'processing', 'succeeded', 'failed', 'needs_review', 'rejected', 'cancelled')`,
     ),
     check(
       'ocr_extraction_jobs_review_status_known',

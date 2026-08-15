@@ -41,3 +41,4 @@ export * from './invoicing-integration';
 export * from './next-gen';
 export * from './next-gen-ops';
 export * from './boq';
+export * from './platform-ops';

@@ -146,6 +146,14 @@ export function composeProjectFinancials(
   let { cost } = aggregated;
   const { sources, partials } = aggregated;
   const commitmentPartials: CoveragePartial[] = [];
+  const commercialPartials: CoveragePartial[] = [];
+  const excludedFxContracts = input.commercialData?.excludedForeignCurrencyContractCount ?? 0;
+  if (excludedFxContracts > 0) {
+    commercialPartials.push({
+      reason: 'foreign_currency_contracts_excluded',
+      count: excludedFxContracts,
+    });
+  }
 
   if (input.recognizedVendor) {
     const recognition = composeVendorCostRecognition({
@@ -232,7 +240,7 @@ export function composeProjectFinancials(
   const coverage = buildFinancialCoverage(
     sources,
     new Date(),
-    mergeCoveragePartials(partials, billingPartials, commitmentPartials),
+    mergeCoveragePartials(partials, billingPartials, commitmentPartials, commercialPartials),
   );
 
   const workKind = normalizeWorkKind(input.workKind);
@@ -275,5 +283,6 @@ export function composeProjectFinancials(
     profit,
     coverage,
     dataConfidence,
+    perContract: input.commercialData?.perContract,
   };
 }

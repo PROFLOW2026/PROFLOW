@@ -4,7 +4,7 @@ import { Camera, FileText, Upload } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { useTranslations } from 'next-intl';
 import { useRouter } from '@/shared/i18n/navigation';
-import { useRef, useState, useTransition } from 'react';
+import { useEffect, useRef, useState, useTransition } from 'react';
 import { ConfirmAction } from '@/components/patterns/confirm-action';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -17,7 +17,7 @@ import { Spinner } from '@/components/ui/spinner';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { pressableClassName } from '@/components/ui/pressable';
 import { cn } from '@/shared/ui/cn';
-import type { DocumentListItem, DocumentLinkCandidate, DocumentOwnerType } from '@/modules/documents/domain/types';
+import type { DocumentFolder, DocumentListItem, DocumentLinkCandidate, DocumentOwnerType } from '@/modules/documents/domain/types';
 import { DOCUMENT_CATEGORIES } from '@/modules/documents/domain/categories';
 import { formatFileSize } from '@/modules/documents/domain/format-file-size';
 import { isBrowserPreviewableMime, normalizeUploadMime } from '@/modules/documents/domain/file-rules';
@@ -29,12 +29,16 @@ import {
   downloadDocumentAction,
   finalizeDocumentUploadAction,
   linkDocumentAction,
+  listDocumentFoldersAction,
   prepareDocumentUploadAction,
   softDeleteDocumentAction,
   unlinkDocumentAction,
 } from '../application/document-actions';
 import { openFilePicker } from '../client/open-file-picker';
 import { uploadDocumentBytes } from '../client/upload-document-bytes';
+import { DocumentExpiryBadge, DocumentRequiredBadge } from './document-expiry-badge';
+import { DocumentFoldersPanel } from './document-folders-panel';
+import { DocumentVersionHistoryDialog } from './document-version-history-dialog';
 
 const DocumentPreviewDialog = dynamic(
   () => import('./document-preview-dialog').then((mod) => mod.DocumentPreviewDialog),
@@ -110,6 +114,29 @@ export function DocumentAttachments({
     filename: string;
     mimeType: string;
   } | null>(null);
+  const [historyDoc, setHistoryDoc] = useState<DocumentListItem | null>(null);
+  const [folders, setFolders] = useState<readonly DocumentFolder[]>([]);
+  const [foldersError, setFoldersError] = useState<string | null>(null);
+  const [foldersLoading, setFoldersLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    setFoldersLoading(true);
+    void listDocumentFoldersAction({ ownerType, ownerId }).then((result) => {
+      if (cancelled) return;
+      setFoldersLoading(false);
+      if (result.error) {
+        setFoldersError(result.error);
+        setFolders([]);
+        return;
+      }
+      setFoldersError(null);
+      setFolders(result.folders ?? []);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [ownerType, ownerId]);
 
   const resolveLinkLabel = () => {
     const note = label.trim();
@@ -347,6 +374,17 @@ export function DocumentAttachments({
       </CardHeader>
 
       <CardContent className="flex flex-col gap-3">
+        {canRead ? (
+          <DocumentFoldersPanel
+            folders={folders}
+            canManage={canManage}
+            ownerType={ownerType}
+            ownerId={ownerId}
+            loading={foldersLoading}
+            error={foldersError}
+            embedded
+          />
+        ) : null}
         {showManageUpload ? (
           <>
             <Field label={t('categoryOptional')} optionalLabel={tCommon('labels.optional')}>
@@ -511,14 +549,16 @@ export function DocumentAttachments({
                         </span>
                         {document.label ? ` · ${document.label}` : ''}
                       </p>
-                      {document.status !== 'available' ? (
-                        <div className="mt-1">
+                      <div className="mt-1 flex flex-wrap gap-1">
+                        {document.status !== 'available' ? (
                           <StatusBadge
                             shape={statusShape(document.status)}
                             label={tStatus(document.status)}
                           />
-                        </div>
-                      ) : null}
+                        ) : null}
+                        <DocumentExpiryBadge expiresAt={document.expiresAt} />
+                        <DocumentRequiredBadge isRequired={document.isRequired} />
+                      </div>
                     </div>
                   </div>
                   <div className="flex flex-wrap items-center gap-1">
@@ -536,6 +576,16 @@ export function DocumentAttachments({
                         }
                       >
                         {t('preview')}
+                      </Button>
+                    ) : null}
+                    {canRead ? (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setHistoryDoc(document)}
+                      >
+                        {t('versions')}
                       </Button>
                     ) : null}
                     {canRead && document.status === 'available' ? (
@@ -603,6 +653,19 @@ export function DocumentAttachments({
           mimeType={previewDoc.mimeType}
           onOpenChange={(open) => {
             if (!open) setPreviewDoc(null);
+          }}
+        />
+      ) : null}
+
+      {historyDoc ? (
+        <DocumentVersionHistoryDialog
+          open
+          document={historyDoc}
+          canManage={canManage}
+          storageConfigured={storageConfigured}
+          folders={folders}
+          onOpenChange={(open) => {
+            if (!open) setHistoryDoc(null);
           }}
         />
       ) : null}

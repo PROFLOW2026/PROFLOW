@@ -9,16 +9,18 @@ import {
   type DocumentOwnerType,
 } from '@/modules/documents';
 import {
+  appendDailyLogCorrection,
   createDailyLog,
   createInspection,
   createPunchListItem,
+  transitionDailyLogStatus,
   updateDailyLog,
   updateInspection,
   updatePunchListItem,
 } from '@/modules/field-ops';
 import { withOrgContext } from '@/shared/auth/session';
 import type { OrgContext } from '@/shared/auth/context';
-import { AppError, AuthorizationError, DomainRuleError, ValidationError } from '@/shared/errors';
+import { AppError, AuthorizationError, ConflictError, DomainRuleError, ValidationError } from '@/shared/errors';
 import { redirect } from '@/shared/i18n/navigation';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 
@@ -66,7 +68,7 @@ async function mapAppError(error: unknown): Promise<FieldOpsFormState> {
     }
     return { error: tErrors('notAllowed') };
   }
-  if (error instanceof DomainRuleError) {
+  if (error instanceof DomainRuleError || error instanceof ConflictError) {
     const key = error.messageKey.replace(/^fieldOps\./, '');
     try {
       return { error: t(key as 'errors.invalidPunchTransition') };
@@ -106,6 +108,21 @@ function revalidateFieldOps(projectId?: string) {
   if (projectId) revalidatePath(`/projects/${projectId}`);
 }
 
+function extraLogFields(formData: FormData) {
+  return {
+    workPerformed: formNullableText(formData, 'workPerformed'),
+    delays: formNullableText(formData, 'delays'),
+    incidents: formNullableText(formData, 'incidents'),
+    safetyNotes: formNullableText(formData, 'safetyNotes'),
+    visitorNotes: formNullableText(formData, 'visitorNotes'),
+    managerNotes: formNullableText(formData, 'managerNotes'),
+    workersOnSite: formNullableText(formData, 'workersOnSite'),
+    subcontractorsOnSite: formNullableText(formData, 'subcontractorsOnSite'),
+    equipmentOnSite: formNullableText(formData, 'equipmentOnSite'),
+    deliveries: formNullableText(formData, 'deliveries'),
+  };
+}
+
 export async function createDailyLogAction(
   _prev: FieldOpsFormState,
   formData: FormData,
@@ -125,6 +142,7 @@ export async function createDailyLogAction(
         summary: requiredFormValue(formData, 'summary'),
         workforceNotes: formValue(formData, 'workforceNotes'),
         blockers: formValue(formData, 'blockers'),
+        ...extraLogFields(formData),
       }),
     );
     revalidateFieldOps(projectId);
@@ -148,6 +166,45 @@ export async function updateDailyLogAction(
         workforceNotes: formNullableText(formData, 'workforceNotes'),
         blockers: formNullableText(formData, 'blockers'),
         workPackageId: formNullableText(formData, 'workPackageId'),
+        ...extraLogFields(formData),
+      }),
+    );
+    revalidateFieldOps(log.projectId);
+    revalidatePath(`/field-ops/logs/${log.id}`);
+    return { success: true };
+  } catch (error) {
+    return mapAppError(error);
+  }
+}
+
+export async function transitionDailyLogStatusAction(
+  _prev: FieldOpsFormState,
+  formData: FormData,
+): Promise<FieldOpsFormState> {
+  try {
+    const log = await withOrgContext((context) =>
+      transitionDailyLogStatus(context, {
+        dailyLogId: requiredFormValue(formData, 'dailyLogId'),
+        status: requiredFormValue(formData, 'status') as 'draft' | 'submitted' | 'finalized',
+      }),
+    );
+    revalidateFieldOps(log.projectId);
+    revalidatePath(`/field-ops/logs/${log.id}`);
+    return { success: true };
+  } catch (error) {
+    return mapAppError(error);
+  }
+}
+
+export async function appendDailyLogCorrectionAction(
+  _prev: FieldOpsFormState,
+  formData: FormData,
+): Promise<FieldOpsFormState> {
+  try {
+    const log = await withOrgContext((context) =>
+      appendDailyLogCorrection(context, {
+        dailyLogId: requiredFormValue(formData, 'dailyLogId'),
+        note: requiredFormValue(formData, 'note'),
       }),
     );
     revalidateFieldOps(log.projectId);

@@ -21,6 +21,7 @@ import {
 } from './_shared';
 import { billingRecords } from './billing';
 import { changeOrders } from './changes';
+import { contracts } from './contracts';
 import { costCategories } from './expenses';
 import { profiles } from './identity';
 import { projectBudgetLines } from './next-gen';
@@ -45,6 +46,7 @@ export const projectBoqs = pgTable(
     projectId: uuid('project_id')
       .notNull()
       .references(() => projects.id, { onDelete: 'cascade' }),
+    contractId: uuid('contract_id').references(() => contracts.id, { onDelete: 'set null' }),
     versionNumber: integer('version_number').notNull().default(1),
     title: text('title'),
     status: text('status').notNull().default('draft'),
@@ -65,15 +67,20 @@ export const projectBoqs = pgTable(
   },
   (table) => [
     uniqueIndex('project_boqs_id_organization_id_uq').on(table.id, table.organizationId),
-    uniqueIndex('project_boqs_project_version_uq').on(
-      table.organizationId,
-      table.projectId,
-      table.versionNumber,
-    ),
-    uniqueIndex('project_boqs_one_active_per_project_uq')
+    uniqueIndex('project_boqs_project_version_unscoped_uq')
+      .on(table.organizationId, table.projectId, table.versionNumber)
+      .where(sql`${table.contractId} is null`),
+    uniqueIndex('project_boqs_project_contract_version_uq')
+      .on(table.organizationId, table.projectId, table.contractId, table.versionNumber)
+      .where(sql`${table.contractId} is not null`),
+    uniqueIndex('project_boqs_one_active_unscoped_uq')
       .on(table.organizationId, table.projectId)
-      .where(sql`${table.status} = 'active' AND ${table.archivedAt} IS NULL`),
+      .where(sql`${table.status} = 'active' AND ${table.archivedAt} IS NULL AND ${table.contractId} IS NULL`),
+    uniqueIndex('project_boqs_one_active_per_contract_uq')
+      .on(table.organizationId, table.projectId, table.contractId)
+      .where(sql`${table.status} = 'active' AND ${table.archivedAt} IS NULL AND ${table.contractId} IS NOT NULL`),
     index('project_boqs_org_project_idx').on(table.organizationId, table.projectId),
+    index('project_boqs_contract_idx').on(table.organizationId, table.contractId),
     check(
       'project_boqs_status_known',
       sql`${table.status} IN ('draft', 'active', 'superseded', 'archived')`,
@@ -319,6 +326,7 @@ export const boqSubcontractorSchedules = pgTable(
     vendorEngagementId: uuid('vendor_engagement_id')
       .notNull()
       .references(() => vendorEngagements.id, { onDelete: 'restrict' }),
+    subcontractAgreementId: uuid('subcontract_agreement_id'),
     title: text('title'),
     status: text('status').notNull().default('draft'),
     currency: currencyCode().notNull(),

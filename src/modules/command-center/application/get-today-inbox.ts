@@ -1,8 +1,9 @@
 import type { OrgContext } from '@/shared/auth/context';
 import { DomainRuleError } from '@/shared/errors';
-import { assertPermission } from '@/shared/permissions/assert';
+import { assertPermission, hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { getModuleVisibility } from '@/modules/tenancy';
+import { runNotificationScan } from '@/modules/notifications';
 import { todayInTimeZone } from '@/shared/dates';
 import { collectAllSources } from '../data/collect-sources';
 import { listCommandCenterItemStates } from '../data/item-states.repository';
@@ -46,9 +47,14 @@ export async function getTodayInbox(context: OrgContext): Promise<CommandCenterI
   const today = todayInTimeZone(context.organization.timezone);
   const now = new Date();
 
+  const scanPromise = hasPermission(context, PERMISSIONS.NOTIFICATIONS_READ)
+    ? runNotificationScan(context, { maxMs: 2500, perScannerCap: 12 }).catch(() => null)
+    : Promise.resolve(null);
+
   const [rawItems, states] = await Promise.all([
     collectAllSources({ context, modules, today }),
     listCommandCenterItemStates(context.db, context.organizationId),
+    scanPromise,
   ]);
 
   const stateByKey = new Map(states.map((row) => [row.itemKey, row]));

@@ -11,13 +11,15 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Spinner } from '@/components/ui/spinner';
 import { StatusBadge } from '@/components/ui/status-badge';
-import type { DocumentListItem } from '@/modules/documents/domain/types';
+import type { DocumentFolder, DocumentListItem } from '@/modules/documents/domain/types';
 import { formatFileSize } from '@/modules/documents/domain/format-file-size';
 import { isBrowserPreviewableImageMime } from '@/modules/documents/domain/file-rules';
 import {
   downloadDocumentAction,
   softDeleteDocumentAction,
 } from '@/modules/documents/application/document-actions';
+import { DocumentExpiryBadge, DocumentRequiredBadge } from '@/modules/documents/ui/document-expiry-badge';
+import { DocumentVersionHistoryDialog } from '@/modules/documents/ui/document-version-history-dialog';
 
 const DocumentPreviewDialog = dynamic(
   () =>
@@ -36,6 +38,7 @@ export interface DocumentOrgListProps {
   canRead: boolean;
   canManage: boolean;
   storageConfigured: boolean;
+  folders?: readonly DocumentFolder[];
 }
 
 export function DocumentOrgList({
@@ -43,6 +46,7 @@ export function DocumentOrgList({
   canRead,
   canManage,
   storageConfigured,
+  folders = [],
 }: DocumentOrgListProps) {
   const t = useTranslations('documents');
   const tAttach = useTranslations('documents.attachments');
@@ -52,6 +56,7 @@ export function DocumentOrgList({
   const [error, setError] = useState<string | null>(null);
   const [downloadingIds, setDownloadingIds] = useState<ReadonlySet<string>>(() => new Set());
   const [previewDoc, setPreviewDoc] = useState<{ id: string; filename: string } | null>(null);
+  const [historyDoc, setHistoryDoc] = useState<DocumentListItem | null>(null);
 
   const handleDownload = (documentId: string) => {
     setError(null);
@@ -108,6 +113,10 @@ export function DocumentOrgList({
                     </span>
                     {document.label ? ` · ${document.label}` : ''}
                   </p>
+                  <div className="mt-1 flex flex-wrap gap-1">
+                    <DocumentExpiryBadge expiresAt={document.expiresAt} />
+                    <DocumentRequiredBadge isRequired={document.isRequired} />
+                  </div>
                 </div>
               </div>
 
@@ -116,6 +125,16 @@ export function DocumentOrgList({
                   shape={documentStatusShape(document.status)}
                   label={t(`status.${document.status}`)}
                 />
+                {canRead ? (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setHistoryDoc(document)}
+                  >
+                    {tAttach('versions')}
+                  </Button>
+                ) : null}
                 {canPreview ? (
                   <Button
                     type="button"
@@ -175,6 +194,19 @@ export function DocumentOrgList({
           filename={previewDoc.filename}
           onOpenChange={(open) => {
             if (!open) setPreviewDoc(null);
+          }}
+        />
+      ) : null}
+
+      {historyDoc ? (
+        <DocumentVersionHistoryDialog
+          open
+          document={historyDoc}
+          canManage={canManage}
+          storageConfigured={storageConfigured}
+          folders={folders}
+          onOpenChange={(open) => {
+            if (!open) setHistoryDoc(null);
           }}
         />
       ) : null}

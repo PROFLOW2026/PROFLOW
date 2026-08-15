@@ -35,7 +35,13 @@
     "inspection": "Inspection",
     "compliance_artifact": "Compliance",
     "asset": "Asset",
-    "inventory_item": "Inventory item"
+    "inventory_item": "Inventory item",
+    "form_submission": "Form submission",
+    "contract": "Contract",
+    "work_order": "Work order",
+    "subcontract_agreement": "Subcontract",
+    "safety_record": "Safety record",
+    "timesheet": "Timesheet"
   },
   "status": {
     "pending": "Upload pending",
@@ -52,7 +58,11 @@
     "unlinkFailed": "Could not remove this attachment.",
     "deleteFailed": "Could not remove this document.",
     "notFound": "Document not found.",
-    "notPending": "This document is not awaiting upload."
+    "notPending": "This document is not awaiting upload.",
+    "notAvailable": "This document is not available.",
+    "folderNotFound": "Folder not found.",
+    "versionNotFound": "Version not found.",
+    "versionPathInvalid": "Upload target is not valid for this document."
   },
   "attachments": {
     "title": "Documents",
@@ -84,7 +94,8 @@
     "storageNotConfigured": "File uploads are not available in this environment. Other work is unaffected.",
     "uploadFailed": "Upload did not complete. Try again.",
     "uploadSuccess": "File uploaded.",
-    "downloadFailed": "Download is not available."
+    "downloadFailed": "Download is not available.",
+    "versions": "Versions"
   },
   "categories": {
     "contract": "Contract",
@@ -97,6 +108,43 @@
     "photo": "Photo",
     "drawing": "Drawing / plan",
     "other": "Other"
+  },
+  "folders": {
+    "title": "Folders",
+    "empty": "No folders yet.",
+    "namePlaceholder": "Folder name",
+    "create": "Create folder",
+    "createSuccess": "Folder created.",
+    "createFailed": "Could not create this folder.",
+    "filterLabel": "Folder",
+    "all": "All folders",
+    "none": "No folder"
+  },
+  "versions": {
+    "title": "Version history",
+    "history": "Version history",
+    "empty": "No versions yet.",
+    "current": "Current",
+    "uploadNew": "Upload new version",
+    "uploadSuccess": "New version uploaded.",
+    "uploadFailed": "Could not upload a new version.",
+    "versionLabel": "Version {number}",
+    "notesPlaceholder": "Optional note for this version…",
+    "downloadFailed": "Download is not available for this version.",
+    "keepOldHint": "Previous files stay on file. Only the current version changes."
+  },
+  "meta": {
+    "required": "Required",
+    "requiredBadge": "Required",
+    "expires": "Expiry date",
+    "expired": "Expired",
+    "expiring": "Expiring soon",
+    "tags": "Tags",
+    "tagsPlaceholder": "Optional tags…",
+    "save": "Save",
+    "saveSuccess": "Document details saved.",
+    "saveFailed": "Could not save document details.",
+    "folder": "Folder"
   },
   "fileSize": {
     "bytes": "{size} B",
@@ -131,6 +179,12 @@
     "extractImage": "Attach receipt or invoice",
     "extractCapture": "Photograph receipt or invoice",
     "extractQueuedReview": "Review and confirm before creating a draft.",
+    "extractQueuedBackground": "Reading in the background. You can keep working.",
+    "stillProcessing": "Still reading this document…",
+    "batchProgress": "{completed} of {total} read · {failed} failed",
+    "batchQueued": "{count} documents queued for reading.",
+    "cancelJob": "Cancel reading",
+    "jobCancelled": "Reading cancelled. No draft was created.",
     "extractFailed": "Could not read the document ({code}). No draft was created.",
     "offlineBlocked": "Document reading needs a connection. The file was not sent.",
     "viewOriginal": "View original document",
@@ -236,10 +290,12 @@
     "status": {
       "queued": "Waiting",
       "running": "Processing",
+      "processing": "Processing",
       "succeeded": "Accepted",
       "failed": "Failed",
       "needs_review": "Needs review",
-      "rejected": "Rejected"
+      "rejected": "Rejected",
+      "cancelled": "Cancelled"
     },
     "reviewStatus": {
       "awaiting_review": "Awaiting review",

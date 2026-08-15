@@ -1,8 +1,10 @@
 import { AUDIT_ACTIONS, recordAuditEvent } from '@/shared/audit';
 import type { OrgContext } from '@/shared/auth/context';
-import { DomainRuleError, NotFoundError, ValidationError } from '@/shared/errors';
+import { withTransaction } from '@/shared/db';
+import { ConflictError, DomainRuleError, NotFoundError, ValidationError } from '@/shared/errors';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
+import { assertCanAccessProject, isAccessibleProjectId, resolveAccessibleProjectIds } from '@/modules/projects';
 import { noteModuleUsage } from '@/modules/tenancy';
 import {
   canTransitionPunchStatus,
@@ -11,6 +13,7 @@ import {
 import type { PunchPriority, PunchStatus } from '../domain/types';
 import {
   findPunchListItemById,
+  findPunchListItemByIdForUpdate,
   insertPunchListItem,
   listPunchListItems,
   updatePunchListItemById,
@@ -28,13 +31,18 @@ export async function listPunchListItemsForOrg(
   filters: { projectId?: string; status?: PunchStatus; priority?: PunchPriority } = {},
 ) {
   assertPermission(context, PERMISSIONS.FIELD_OPS_READ);
-  return listPunchListItems(context.db, context.organizationId, filters);
+  const [allowed, rows] = await Promise.all([
+    resolveAccessibleProjectIds(context),
+    listPunchListItems(context.db, context.organizationId, filters),
+  ]);
+  return rows.filter((row) => isAccessibleProjectId(allowed, row.projectId));
 }
 
 export async function getPunchListItemForOrg(context: OrgContext, punchListItemId: string) {
   assertPermission(context, PERMISSIONS.FIELD_OPS_READ);
   const item = await findPunchListItemById(context.db, context.organizationId, punchListItemId);
   if (!item) throw new NotFoundError('Punch list item');
+  await assertCanAccessProject(context, item.projectId);
   return item;
 }
 
@@ -85,54 +93,60 @@ export async function updatePunchListItem(context: OrgContext, raw: UpdatePunchL
   }
 
   const input = parsed.data;
-  const existing = await findPunchListItemById(
-    context.db,
-    context.organizationId,
-    input.punchListItemId,
-  );
-  if (!existing) throw new NotFoundError('Punch list item');
 
-  if (input.status && !canTransitionPunchStatus(existing.status, input.status as PunchStatus)) {
-    throw new DomainRuleError(
-      `Cannot transition punch item from ${existing.status} to ${input.status}`,
-      'fieldOps.errors.invalidPunchTransition',
+  return withTransaction(context.db, async (tx) => {
+    const txContext = { ...context, db: tx };
+    const existing = await findPunchListItemByIdForUpdate(
+      tx,
+      context.organizationId,
+      input.punchListItemId,
     );
-  }
+    if (!existing) throw new NotFoundError('Punch list item');
+    await assertCanAccessProject(txContext, existing.projectId);
 
-  if (input.workPackageId) {
-    await assertProjectRefsInOrg(context, {
-      projectId: existing.projectId,
-      workPackageId: input.workPackageId,
+    if (input.status && !canTransitionPunchStatus(existing.status, input.status as PunchStatus)) {
+      throw new DomainRuleError(
+        `Cannot transition punch item from ${existing.status} to ${input.status}`,
+        'fieldOps.errors.invalidPunchTransition',
+      );
+    }
+
+    if (input.workPackageId) {
+      await assertProjectRefsInOrg(txContext, {
+        projectId: existing.projectId,
+        workPackageId: input.workPackageId,
+      });
+    }
+
+    const nextStatus = (input.status as PunchStatus | undefined) ?? existing.status;
+    const statusChanging = input.status !== undefined && input.status !== existing.status;
+    const closedAt = statusChanging ? closedAtForPunchStatus(nextStatus) : undefined;
+
+    const updated = await updatePunchListItemById(
+      tx,
+      context.organizationId,
+      input.punchListItemId,
+      {
+        title: input.title,
+        description: input.description === undefined ? undefined : input.description,
+        status: statusChanging ? (input.status as PunchStatus) : undefined,
+        priority: input.priority,
+        location: input.location === undefined ? undefined : input.location,
+        dueDate: input.dueDate === undefined ? undefined : input.dueDate,
+        workPackageId: input.workPackageId === undefined ? undefined : input.workPackageId,
+        closedAt,
+      },
+      statusChanging ? { fromStatuses: [existing.status] } : undefined,
+    );
+    if (!updated) throw new ConflictError('Punch list item was updated concurrently');
+
+    await recordAuditEvent(txContext, {
+      action: AUDIT_ACTIONS.PUNCH_LIST_ITEM_UPDATED,
+      entityType: 'punch_list_item',
+      entityId: updated.id,
+      before: existing,
+      after: updated,
     });
-  }
-
-  const nextStatus = (input.status as PunchStatus | undefined) ?? existing.status;
-  const closedAt =
-    input.status !== undefined ? closedAtForPunchStatus(nextStatus) : undefined;
-
-  const updated = await updatePunchListItemById(
-    context.db,
-    context.organizationId,
-    input.punchListItemId,
-    {
-      title: input.title,
-      description: input.description === undefined ? undefined : input.description,
-      status: input.status as PunchStatus | undefined,
-      priority: input.priority,
-      location: input.location === undefined ? undefined : input.location,
-      dueDate: input.dueDate === undefined ? undefined : input.dueDate,
-      workPackageId: input.workPackageId === undefined ? undefined : input.workPackageId,
-      closedAt,
-    },
-  );
-  if (!updated) throw new NotFoundError('Punch list item');
-
-  await recordAuditEvent(context, {
-    action: AUDIT_ACTIONS.PUNCH_LIST_ITEM_UPDATED,
-    entityType: 'punch_list_item',
-    entityId: updated.id,
-    before: existing,
-    after: updated,
+    return updated;
   });
-  return updated;
 }

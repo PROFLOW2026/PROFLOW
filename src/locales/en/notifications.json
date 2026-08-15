@@ -1,0 +1,35 @@
+{
+  "title": "Notifications",
+  "bellLabel": "Notifications",
+  "unreadCount": "{count, plural, one {# unread} other {# unread}}",
+  "empty": "No notifications",
+  "emptyHint": "When something needs attention, it will show up here.",
+  "loading": "Loading notifications…",
+  "error": "Could not load notifications.",
+  "retry": "Try again",
+  "markRead": "Mark as read",
+  "markAllRead": "Mark all as read",
+  "allCaughtUp": "All caught up",
+  "severity": {
+    "info": "Info",
+    "warning": "Warning",
+    "urgent": "Urgent"
+  },
+  "types": {
+    "billing_overdue": "Overdue customer billing",
+    "ap_due_soon": "Vendor bill due soon",
+    "ap_overdue": "Vendor bill overdue",
+    "approval_waiting": "Waiting for approval",
+    "timesheet_waiting": "Timesheet waiting",
+    "employee_missing_report": "Missing time report",
+    "document_expiring": "Document expiring",
+    "task_overdue": "Overdue task",
+    "boq_awaiting_approval": "BOQ awaiting approval",
+    "work_order_assigned": "Work order assignment",
+    "low_stock": "Low stock",
+    "safety_action_due": "Safety action due"
+  },
+  "viewAll": "View all",
+  "scan": "Refresh",
+  "pageDescription": "Items that need attention across the organization."
+}

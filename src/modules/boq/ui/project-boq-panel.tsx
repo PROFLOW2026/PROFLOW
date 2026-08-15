@@ -33,9 +33,10 @@ import { SubcontractorSchedulePanel } from './subcontractor-schedule-panel';
 
 export interface ProjectBoqPanelProps {
   readonly projectId: string;
+  readonly contractId?: string | null;
 }
 
-export async function ProjectBoqPanel({ projectId }: ProjectBoqPanelProps) {
+export async function ProjectBoqPanel({ projectId, contractId }: ProjectBoqPanelProps) {
   const t = await getTranslations('boq');
 
   const view = await withOrgContext(async (context) => {
@@ -46,7 +47,7 @@ export async function ProjectBoqPanel({ projectId }: ProjectBoqPanelProps) {
     const canCreateBilling = hasPermission(context, PERMISSIONS.BOQ_BILLING_CREATE);
     const canReadFinancials = hasPermission(context, PERMISSIONS.PROJECT_FINANCIALS_READ);
 
-    const workspace = await getProjectBoqWorkspace(context, projectId);
+    const workspace = await getProjectBoqWorkspace(context, projectId, contractId);
     const showAmounts = Boolean(workspace.showMoney);
     const progress = workspace.activeBoq
       ? await listBoqProgress(context, workspace.activeBoq.id)
@@ -245,6 +246,30 @@ export async function ProjectBoqPanel({ projectId }: ProjectBoqPanelProps) {
         </div>
       </div>
 
+      {workspace.contracts.length > 1 ? (
+        <nav className="flex min-w-0 flex-wrap gap-2" aria-label={t('forms.contract')}>
+          {workspace.contracts.map((contract) => {
+            const href = `/projects/${projectId}?tab=boq&contractId=${contract.id}`;
+            const selected = workspace.selectedContractId === contract.id;
+            return (
+              <Link
+                key={contract.id}
+                href={href}
+                className={
+                  selected
+                    ? 'rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-muted)] px-3 py-2 text-sm font-medium'
+                    : 'rounded-md border border-transparent px-3 py-2 text-sm text-[var(--pf-text-secondary)]'
+                }
+              >
+                {contract.name ??
+                  contract.contractNumber ??
+                  (contract.isPrimary ? t('forms.contractPrimary') : contract.id.slice(0, 8))}
+              </Link>
+            );
+          })}
+        </nav>
+      ) : null}
+
       {!boq ? (
         <EmptyState
           icon={ClipboardList}
@@ -338,6 +363,8 @@ export async function ProjectBoqPanel({ projectId }: ProjectBoqPanelProps) {
         }))}
         allocations={allocations}
         permissions={permissions}
+        contracts={workspace.contracts}
+        selectedContractId={workspace.selectedContractId}
       />
 
       {comparison ? <BoqFinancialComparisonStrip comparison={comparison} /> : null}

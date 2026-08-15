@@ -135,6 +135,7 @@ describe('POST-0021 financial wiring (displacement + bill NET slices)', () => {
         projectId: projectAId,
         costAmount: '800.000000',
         costCurrency: 'ILS',
+        approvalStatus: 'approved',
       });
 
       await db.insert(employeeMonthCosts).values({

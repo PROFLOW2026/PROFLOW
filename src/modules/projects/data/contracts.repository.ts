@@ -1,11 +1,13 @@
-import { and, asc, eq, isNull } from 'drizzle-orm';
+import { and, asc, desc, eq, inArray, isNull } from 'drizzle-orm';
 import { contractValueEvents, contracts, profiles } from '@drizzle/schema';
 import type { DbExecutor } from '@/shared/db/types';
 import type {
   ContractRecord,
   ContractTaxSnapshotRecord,
+  ContractType,
   ContractValueEventRecord,
 } from '../domain/types';
+import { CONTRACT_TYPES } from '../domain/types';
 
 function mapTaxSnapshot(value: unknown): ContractTaxSnapshotRecord | null {
   if (!value || typeof value !== 'object') return null;
@@ -27,12 +29,25 @@ function mapTaxSnapshot(value: unknown): ContractTaxSnapshotRecord | null {
   };
 }
 
+function mapContractType(value: string | null | undefined, isPrimary: boolean): ContractType {
+  if (value && (CONTRACT_TYPES as readonly string[]).includes(value)) {
+    return value as ContractType;
+  }
+  return isPrimary ? 'primary' : 'additional';
+}
+
 function mapContract(row: typeof contracts.$inferSelect): ContractRecord {
   return {
     id: row.id,
     organizationId: row.organizationId,
     projectId: row.projectId,
     isPrimary: row.isPrimary,
+    contractType: mapContractType(row.contractType, row.isPrimary),
+    contractNumber: row.contractNumber,
+    clientId: row.clientId,
+    startDate: row.startDate,
+    endDate: row.endDate,
+    retentionPercent: row.retentionPercent,
     name: row.name,
     reference: row.reference,
     status: row.status,
@@ -87,6 +102,12 @@ export async function insertContract(
     organizationId: string;
     projectId: string;
     isPrimary?: boolean;
+    contractType?: ContractType;
+    contractNumber?: string | null;
+    clientId?: string | null;
+    startDate?: string | null;
+    endDate?: string | null;
+    retentionPercent?: string | null;
     name?: string | null;
     reference?: string | null;
     status?: 'draft' | 'active' | 'closed' | 'cancelled';
@@ -109,12 +130,21 @@ export async function insertContract(
     notes?: string | null;
   },
 ): Promise<ContractRecord> {
+  const isPrimary = input.isPrimary ?? true;
+  const contractType =
+    input.contractType ?? (isPrimary ? 'primary' : 'additional');
   const [row] = await db
     .insert(contracts)
     .values({
       organizationId: input.organizationId,
       projectId: input.projectId,
-      isPrimary: input.isPrimary ?? true,
+      isPrimary,
+      contractType,
+      contractNumber: input.contractNumber ?? null,
+      clientId: input.clientId ?? null,
+      startDate: input.startDate ?? null,
+      endDate: input.endDate ?? null,
+      retentionPercent: input.retentionPercent ?? null,
       name: input.name ?? null,
       reference: input.reference ?? null,
       status: input.status ?? 'active',
@@ -303,6 +333,192 @@ export async function findContractById(
     .from(contracts)
     .where(and(eq(contracts.id, contractId), eq(contracts.organizationId, organizationId)))
     .limit(1);
+
+  return row ? mapContract(row) : null;
+}
+
+export async function findContractByNumber(
+  db: DbExecutor,
+  organizationId: string,
+  contractNumber: string,
+): Promise<ContractRecord | null> {
+  const [row] = await db
+    .select()
+    .from(contracts)
+    .where(
+      and(
+        eq(contracts.organizationId, organizationId),
+        eq(contracts.contractNumber, contractNumber),
+        isNull(contracts.archivedAt),
+      ),
+    )
+    .limit(1);
+
+  return row ? mapContract(row) : null;
+}
+
+/** All non-archived contracts for a project — primary first, then created order. */
+export async function listContractsByProject(
+  db: DbExecutor,
+  organizationId: string,
+  projectId: string,
+): Promise<ContractRecord[]> {
+  const rows = await db
+    .select()
+    .from(contracts)
+    .where(
+      and(
+        eq(contracts.organizationId, organizationId),
+        eq(contracts.projectId, projectId),
+        isNull(contracts.archivedAt),
+      ),
+    )
+    .orderBy(desc(contracts.isPrimary), asc(contracts.createdAt));
+
+  return rows.map(mapContract);
+}
+
+export async function listContractValueEventsForContracts(
+  db: DbExecutor,
+  organizationId: string,
+  contractIds: readonly string[],
+): Promise<ContractValueEventRecord[]> {
+  if (contractIds.length === 0) return [];
+
+  const rows = await db
+    .select({
+      event: contractValueEvents,
+      actorDisplayName: profiles.displayName,
+      actorEmail: profiles.email,
+    })
+    .from(contractValueEvents)
+    .leftJoin(profiles, eq(profiles.id, contractValueEvents.actorUserId))
+    .where(
+      and(
+        eq(contractValueEvents.organizationId, organizationId),
+        inArray(contractValueEvents.contractId, [...contractIds]),
+      ),
+    )
+    .orderBy(asc(contractValueEvents.effectiveDate), asc(contractValueEvents.createdAt));
+
+  return rows.map((row) =>
+    mapValueEvent(row.event, {
+      displayName: row.actorDisplayName,
+      email: row.actorEmail,
+    }),
+  );
+}
+
+export interface ContractMetadataPatch {
+  readonly name?: string | null;
+  readonly reference?: string | null;
+  readonly contractType?: ContractType;
+  readonly contractNumber?: string | null;
+  readonly clientId?: string | null;
+  readonly startDate?: string | null;
+  readonly endDate?: string | null;
+  readonly retentionPercent?: string | null;
+  readonly status?: 'draft' | 'active' | 'closed' | 'cancelled';
+  readonly notes?: string | null;
+  readonly signedDate?: string | null;
+}
+
+export async function updateContractMetadata(
+  db: DbExecutor,
+  organizationId: string,
+  contractId: string,
+  patch: ContractMetadataPatch,
+): Promise<ContractRecord | null> {
+  const set: {
+    name?: string | null;
+    reference?: string | null;
+    contractType?: ContractType;
+    contractNumber?: string | null;
+    clientId?: string | null;
+    startDate?: string | null;
+    endDate?: string | null;
+    retentionPercent?: string | null;
+    status?: 'draft' | 'active' | 'closed' | 'cancelled';
+    notes?: string | null;
+    signedDate?: string | null;
+    updatedAt: Date;
+  } = { updatedAt: new Date() };
+  if (patch.name !== undefined) set.name = patch.name;
+  if (patch.reference !== undefined) set.reference = patch.reference;
+  if (patch.contractType !== undefined) set.contractType = patch.contractType;
+  if (patch.contractNumber !== undefined) set.contractNumber = patch.contractNumber;
+  if (patch.clientId !== undefined) set.clientId = patch.clientId;
+  if (patch.startDate !== undefined) set.startDate = patch.startDate;
+  if (patch.endDate !== undefined) set.endDate = patch.endDate;
+  if (patch.retentionPercent !== undefined) set.retentionPercent = patch.retentionPercent;
+  if (patch.status !== undefined) set.status = patch.status;
+  if (patch.notes !== undefined) set.notes = patch.notes;
+  if (patch.signedDate !== undefined) set.signedDate = patch.signedDate;
+
+  const [row] = await db
+    .update(contracts)
+    .set(set)
+    .where(and(eq(contracts.id, contractId), eq(contracts.organizationId, organizationId)))
+    .returning();
+
+  return row ? mapContract(row) : null;
+}
+
+/** Clears the unique primary flag for every live contract on the project. */
+export async function clearProjectPrimary(
+  db: DbExecutor,
+  organizationId: string,
+  projectId: string,
+): Promise<void> {
+  await db
+    .update(contracts)
+    .set({
+      isPrimary: false,
+      contractType: 'additional',
+      updatedAt: new Date(),
+    })
+    .where(
+      and(
+        eq(contracts.organizationId, organizationId),
+        eq(contracts.projectId, projectId),
+        eq(contracts.isPrimary, true),
+        isNull(contracts.archivedAt),
+      ),
+    );
+}
+
+export async function markContractPrimary(
+  db: DbExecutor,
+  organizationId: string,
+  contractId: string,
+): Promise<ContractRecord | null> {
+  const [row] = await db
+    .update(contracts)
+    .set({
+      isPrimary: true,
+      contractType: 'primary',
+      updatedAt: new Date(),
+    })
+    .where(and(eq(contracts.id, contractId), eq(contracts.organizationId, organizationId)))
+    .returning();
+
+  return row ? mapContract(row) : null;
+}
+
+export async function unsetContractPrimary(
+  db: DbExecutor,
+  organizationId: string,
+  contractId: string,
+): Promise<ContractRecord | null> {
+  const [row] = await db
+    .update(contracts)
+    .set({
+      isPrimary: false,
+      contractType: 'additional',
+      updatedAt: new Date(),
+    })
+    .where(and(eq(contracts.id, contractId), eq(contracts.organizationId, organizationId)))
+    .returning();
 
   return row ? mapContract(row) : null;
 }

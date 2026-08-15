@@ -3,7 +3,7 @@ import type { CreateExpenseInput } from '@/modules/expenses';
 import { findExpenseById } from '@/modules/expenses';
 import { findApBillById } from '@/modules/ap';
 import type { OrgContext } from '@/shared/auth/context';
-import { DomainRuleError, NotFoundError } from '@/shared/errors';
+import { ConflictError, DomainRuleError, NotFoundError } from '@/shared/errors';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { linkDocumentToEntity } from '@/modules/documents';
@@ -191,17 +191,17 @@ export async function confirmOcrCandidate(
   const job = await repo.findJob(context.organizationId, input.jobId);
   if (!job) throw new NotFoundError('OCR extraction job');
 
-  if (job.status !== 'needs_review' && job.status !== 'succeeded') {
-    throw new DomainRuleError(
-      `Job status ${job.status} cannot be confirmed`,
-      'ocr.errors.jobNotReviewable',
-    );
-  }
-
   if (job.confirmedExpenseId || job.confirmedVendorBillId || job.confirmedVendorCreditId) {
     throw new DomainRuleError(
       'Extraction was already confirmed into a draft',
       'ocr.errors.alreadyConfirmed',
+    );
+  }
+
+  if (job.status !== 'needs_review' && job.status !== 'succeeded') {
+    throw new DomainRuleError(
+      `Job status ${job.status} cannot be confirmed`,
+      'ocr.errors.jobNotReviewable',
     );
   }
 
@@ -262,6 +262,33 @@ export async function confirmOcrCandidate(
     };
   }
 
+  const inFlight =
+    job.status === 'needs_review'
+      ? await repo.claimJob(context.organizationId, job.id, ['needs_review'], {
+          status: 'succeeded',
+          reviewStatus: 'accepted',
+          candidates: workingCandidates,
+          reviewOverrides: retainedOverrides,
+          extractedCandidates: retained.extractedCandidates,
+          acceptedFields: input.acceptedFields,
+          rejectedFields: input.rejectedFields ?? null,
+        })
+      : retained;
+  if (!inFlight) {
+    const latest = await repo.findJob(context.organizationId, job.id);
+    if (
+      latest?.confirmedExpenseId ||
+      latest?.confirmedVendorBillId ||
+      latest?.confirmedVendorCreditId
+    ) {
+      throw new DomainRuleError(
+        'Extraction was already confirmed into a draft',
+        'ocr.errors.alreadyConfirmed',
+      );
+    }
+    throw new ConflictError('OCR job was updated concurrently');
+  }
+
   if (draftTarget === 'vendor_bill') {
     if (!input.vendorId) {
       throw new DomainRuleError(
@@ -305,9 +332,7 @@ export async function confirmOcrCandidate(
     const targetShape = vendorBillConfirmTargetShape(created.id);
     assertOcrConfirmedTargetShape(targetShape);
 
-    const updated = await repo.updateJob(context.organizationId, job.id, {
-      status: 'succeeded',
-      reviewStatus: 'accepted',
+    const updated = await claimConfirmedTarget(repo, context.organizationId, job.id, {
       ...targetShape,
       candidates: workingCandidates,
       reviewOverrides: retainedOverrides,
@@ -355,9 +380,7 @@ export async function confirmOcrCandidate(
     await linkSourceDocument(context, job.sourceDocument.documentId, 'vendor', input.vendorId);
     const targetShape = vendorCreditConfirmTargetShape(created.id);
     assertOcrConfirmedTargetShape(targetShape);
-    const updated = await repo.updateJob(context.organizationId, job.id, {
-      status: 'succeeded',
-      reviewStatus: 'accepted',
+    const updated = await claimConfirmedTarget(repo, context.organizationId, job.id, {
       ...targetShape,
       candidates: workingCandidates,
       reviewOverrides: retainedOverrides,
@@ -391,9 +414,7 @@ export async function confirmOcrCandidate(
   const targetShape = expenseConfirmTargetShape(created.id);
   assertOcrConfirmedTargetShape(targetShape);
 
-  const updated = await repo.updateJob(context.organizationId, job.id, {
-    status: 'succeeded',
-    reviewStatus: 'accepted',
+  const updated = await claimConfirmedTarget(repo, context.organizationId, job.id, {
     ...targetShape,
     candidates: workingCandidates,
     reviewOverrides: retainedOverrides,
@@ -411,6 +432,21 @@ export async function confirmOcrCandidate(
     expenseDraft,
     draft: expenseDraft,
   };
+}
+
+async function claimConfirmedTarget(
+  repo: OcrRepository,
+  organizationId: string,
+  jobId: string,
+  patch: Parameters<OcrRepository['claimJob']>[3],
+) {
+  const updated = await repo.claimJob(organizationId, jobId, ['succeeded'], {
+    status: 'succeeded',
+    reviewStatus: 'accepted',
+    ...patch,
+  });
+  if (!updated) throw new ConflictError('OCR job was confirmed concurrently');
+  return updated;
 }
 
 async function linkSourceDocument(

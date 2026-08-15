@@ -12,6 +12,8 @@ export type {
   ReceiptExtractionCandidates,
   ExtractionJobStatus,
   ExtractionJob,
+  OcrBatch,
+  OcrBatchStatus,
   OcrProviderStatus,
   OcrReviewStatus,
   OcrDraftTarget,
@@ -21,6 +23,7 @@ export {
   EXTRACTION_JOB_STATUSES,
   OCR_REVIEW_STATUSES,
   OCR_DRAFT_TARGETS,
+  OCR_BATCH_STATUSES,
 } from './domain/types';
 
 export type {
@@ -114,12 +117,23 @@ export {
 } from './domain/target-shape';
 
 export {
+  isOcrActiveProcessingStatus,
+  isOcrTerminalJobStatus,
+  isOcrCancelableStatus,
+  mapProviderSuccessToJobStatus,
+  recountOcrBatchFromJobs,
+  OCR_ACTIVE_PROCESSING_STATUSES,
+  OCR_WORKER_MAX_ATTEMPTS,
+} from './domain/job-lifecycle';
+
+export {
   resetOcrStoreForTests,
   seedFixtureJob,
   findJob,
   listJobsForOrg,
   updateJob,
   createQueuedJob,
+  createBatch,
   createInMemoryOcrRepository,
 } from './data/in-memory-ocr.store';
 export type { OcrRepository } from './data/ocr.repository';
@@ -128,6 +142,17 @@ export { getOcrRepository, setOcrRepositoryForTests } from './data/resolve-repos
 
 export { getOcrProviderStatus } from './application/provider-status';
 export { extractReceiptJob } from './application/extract-receipt';
+export {
+  processQueuedJob,
+  cancelQueuedOcrJob,
+  flushOcrBackgroundJobs,
+  setOcrBackgroundProcessingForTests,
+  resetOcrBackgroundJobsForTests,
+  registerOcrJobForWorker,
+} from './application/process-job';
+export { drainDurableOcrQueue } from './application/drain-queue';
+export { cancelOcrJob } from './application/cancel-job';
+export { createOcrBatch, getOcrBatchProgress, listOcrBatches } from './application/batches';
 export {
   OCR_REVIEW_SURFACE_STATUSES,
   OCR_REVIEW_HISTORY_STATUSES,
@@ -155,10 +180,14 @@ export {
   listOcrCandidatesSchema,
   confirmOcrCandidateSchema,
   rejectOcrCandidateSchema,
+  createOcrBatchSchema,
+  cancelOcrJobSchema,
 } from './validation/schemas';
 export type {
   ExtractReceiptAppInput,
   ListOcrCandidatesInput,
   ConfirmOcrCandidateInput,
   RejectOcrCandidateInput,
+  CreateOcrBatchAppInput,
+  CancelOcrJobInput,
 } from './validation/schemas';

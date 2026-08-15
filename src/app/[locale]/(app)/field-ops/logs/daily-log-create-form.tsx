@@ -18,6 +18,7 @@ import type { FieldOpsWorkPackageOption } from '@/modules/field-ops/domain/types
 import { dailyLogPayloadFromFormData } from '@/modules/offline/domain/payloads';
 import { Link } from '@/shared/i18n/navigation';
 import { createDailyLogAction, type FieldOpsFormState } from '../actions';
+import { DailyLogExtraFields } from './daily-log-extra-fields';
 import {
   FieldOpsPhotoStaging,
   useFieldOpsCreateFormAction,
@@ -197,6 +198,8 @@ export function DailyLogCreateForm({
           />
         )}
       </Field>
+
+      <DailyLogExtraFields fieldErrors={state.fieldErrors} />
 
       <FieldOpsPhotoStaging
         files={photos.files}

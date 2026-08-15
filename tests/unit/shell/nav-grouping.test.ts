@@ -43,6 +43,9 @@ describe('nav grouping', () => {
     expect(byKey.vendors?.moreGroup).toBe('operations');
     expect(byKey.workforce?.moreGroup).toBe('operations');
     expect(byKey.attendance?.moreGroup).toBe('operations');
+    expect(byKey.scheduling?.moreGroup).toBe('operations');
+    expect(byKey.scheduling?.href).toBe('/scheduling');
+    expect(byKey.scheduling?.permission).toBe(PERMISSIONS.SCHEDULING_READ);
     expect(byKey.procurement?.moreGroup).toBe('operations');
     expect(byKey.materials?.moreGroup).toBe('operations');
     expect(byKey.fieldOps?.moreGroup).toBe('operations');

@@ -4,6 +4,8 @@ export {
   getDailyLogForOrg,
   listDailyLogsForOrg,
   updateDailyLog,
+  transitionDailyLogStatus,
+  appendDailyLogCorrection,
 } from './application/daily-logs';
 export {
   createPunchListItem,
@@ -25,7 +27,9 @@ export type { FieldOpsWorkPackageOption } from './application/work-packages';
 export {
   packWorkforceAndBlockers,
   unpackWorkforceAndBlockers,
+  appendDailyLogCorrectionNote,
   DAILY_LOG_BLOCKERS_MARKER,
+  DAILY_LOG_CORRECTION_MARKER,
 } from './domain/daily-log-notes';
 
 export {
@@ -33,12 +37,14 @@ export {
   PUNCH_PRIORITIES,
   INSPECTION_STATUSES,
   INSPECTION_KINDS,
+  DAILY_LOG_STATUSES,
 } from './domain/types';
 export type {
   PunchStatus,
   PunchPriority,
   InspectionStatus,
   InspectionKind,
+  DailyLogStatus,
   DailyLogRecord,
   PunchListItemRecord,
   InspectionRecord,
@@ -56,10 +62,18 @@ export {
   isTerminalInspectionStatus,
   isCompletedInspectionStatus,
 } from './domain/inspection-status';
+export {
+  canTransitionDailyLogStatus,
+  assertDailyLogStatusTransition,
+  assertDailyLogContentMutable,
+  isDailyLogLocked,
+} from './domain/daily-log-status';
 
 export {
   createDailyLogSchema,
   updateDailyLogSchema,
+  transitionDailyLogStatusSchema,
+  appendDailyLogCorrectionSchema,
   createPunchListItemSchema,
   updatePunchListItemSchema,
   createInspectionSchema,
@@ -68,6 +82,8 @@ export {
 export type {
   CreateDailyLogInput,
   UpdateDailyLogInput,
+  TransitionDailyLogStatusInput,
+  AppendDailyLogCorrectionInput,
   CreatePunchListItemInput,
   UpdatePunchListItemInput,
   CreateInspectionInput,

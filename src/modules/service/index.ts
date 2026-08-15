@@ -4,6 +4,11 @@ export { createWorkOrder } from './application/create-work-order';
 export { updateWorkOrder, updateServiceStatus } from './application/update-work-order';
 export { listWorkOrdersForOrg, getWorkOrderDetail } from './application/list-work-orders';
 export type { WorkOrderDetail } from './application/list-work-orders';
+export {
+  createWorkOrderBilling,
+  getWorkOrderBillingLink,
+} from './application/create-work-order-billing';
+export type { CreateWorkOrderBillingResult } from './application/create-work-order-billing';
 export { listDispatchBoard, rescheduleWorkOrder } from './application/dispatch';
 export {
   listWorkOrderChecklistTemplateOptions,
@@ -36,6 +41,14 @@ export {
 } from './domain/service-status';
 
 export {
+  composeWorkOrderBillingAmount,
+} from './domain/work-order-billing';
+export type {
+  WorkOrderBillingComposition,
+  WorkOrderBillingCompositionInput,
+} from './domain/work-order-billing';
+
+export {
   isWorkOrderChecklistRequired,
   hasSubmittedWorkOrderChecklist,
   assertWorkOrderCompletionChecklist,
@@ -49,6 +62,7 @@ export {
   listWorkOrdersSchema,
   listDispatchSchema,
   rescheduleWorkOrderSchema,
+  createWorkOrderBillingSchema,
 } from './validation/schemas';
 export type {
   CreateWorkOrderInput,
@@ -57,6 +71,7 @@ export type {
   ListWorkOrdersInput,
   ListDispatchInput,
   RescheduleWorkOrderInput,
+  CreateWorkOrderBillingInput,
 } from './validation/schemas';
 
 /** Recurrence (Agent 7) */

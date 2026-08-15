@@ -6,7 +6,7 @@ import {
   ATTENDANCE_EVENT_SOURCES,
   ATTENDANCE_EVENT_TYPES,
 } from '../domain/attendance';
-import { EMPLOYEE_STATUSES, RATE_UNITS, TIME_ENTRY_KINDS, TIME_ENTRY_STATUSES } from '../domain/types';
+import { EMPLOYEE_STATUSES, RATE_UNITS, TIME_APPROVAL_STATUSES, TIME_ENTRY_KINDS, TIME_ENTRY_STATUSES } from '../domain/types';
 
 const businessDateSchema = z
   .string()
@@ -180,11 +180,72 @@ export const timeEntryFiltersSchema = z.object({
   toDate: businessDateSchema.optional(),
   kind: z.enum([...TIME_ENTRY_KINDS, 'all'] as const).optional(),
   status: z.enum([...TIME_ENTRY_STATUSES, 'all'] as const).optional(),
+  approvalStatus: z.enum([...TIME_APPROVAL_STATUSES, 'all'] as const).optional(),
+  timesheetId: z.string().uuid().optional(),
   limit: z.coerce.number().int().min(0).optional(),
   offset: z.coerce.number().int().min(0).optional(),
 });
 
 export type TimeEntryFiltersInput = z.infer<typeof timeEntryFiltersSchema>;
+
+export const submitTimesheetSchema = z.object({
+  employeeId: z.string().uuid(),
+  periodStart: businessDateSchema.optional(),
+  workDate: businessDateSchema.optional(),
+  entryIds: z.array(z.string().uuid()).min(1).max(200).optional(),
+});
+
+export type SubmitTimesheetInput = z.infer<typeof submitTimesheetSchema>;
+
+export const submitTimeEntriesSchema = z.object({
+  entryIds: z.array(z.string().uuid()).min(1).max(200),
+});
+
+export type SubmitTimeEntriesInput = z.infer<typeof submitTimeEntriesSchema>;
+
+export const returnTimesheetSchema = z.object({
+  timesheetId: z.string().uuid(),
+  managerNote: z.string().trim().min(1).max(2000),
+});
+
+export type ReturnTimesheetInput = z.infer<typeof returnTimesheetSchema>;
+
+export const approveTimesheetSchema = z.object({
+  timesheetId: z.string().uuid(),
+});
+
+export type ApproveTimesheetInput = z.infer<typeof approveTimesheetSchema>;
+
+export const approveTimeEntrySchema = z.object({
+  timeEntryId: z.string().uuid(),
+});
+
+export type ApproveTimeEntryInput = z.infer<typeof approveTimeEntrySchema>;
+
+export const bulkApproveTimeEntriesSchema = z.object({
+  timeEntryIds: z.array(z.string().uuid()).min(1).max(200),
+});
+
+export type BulkApproveTimeEntriesInput = z.infer<typeof bulkApproveTimeEntriesSchema>;
+
+export const updateTimeEntrySchema = z.object({
+  timeEntryId: z.string().uuid(),
+  hours: hoursSchema.optional(),
+  description: z.string().trim().max(2000).optional().nullable(),
+});
+
+export type UpdateTimeEntryInput = z.infer<typeof updateTimeEntrySchema>;
+
+export const timesheetFiltersSchema = z.object({
+  employeeId: z.string().uuid().optional(),
+  status: z.enum([...TIME_APPROVAL_STATUSES, 'all'] as const).optional(),
+  fromDate: businessDateSchema.optional(),
+  toDate: businessDateSchema.optional(),
+  limit: z.coerce.number().int().min(0).optional(),
+  offset: z.coerce.number().int().min(0).optional(),
+});
+
+export type TimesheetFiltersInput = z.infer<typeof timesheetFiltersSchema>;
 
 export const addProjectTeamMemberSchema = z.object({
   projectId: z.string().uuid(),

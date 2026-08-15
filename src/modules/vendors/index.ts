@@ -23,7 +23,33 @@ export {
   promoteVendorFromTransaction,
 } from './application/promote-vendor-from-transaction';
 export type { PromoteVendorFromTransactionResult } from './application/promote-vendor-from-transaction';
+export {
+  createSubcontract,
+  updateSubcontract,
+  changeSubcontractStatus,
+  addApprovedSubcontractChange,
+  getSubcontractById,
+  listVendorSubcontracts,
+  listProjectSubcontracts,
+  listSubcontractParentContracts,
+  listSubcontractDocumentCandidates,
+  linkSubcontractDocument,
+} from './application/subcontracts';
 
+export {
+  SUBCONTRACT_STATUSES,
+  SUBCONTRACT_VALUE_EVENT_KINDS,
+  SUBCONTRACT_CHANGE_DIRECTIONS,
+} from './domain/subcontract-types';
+export type {
+  SubcontractStatus,
+  SubcontractAgreementRecord,
+  SubcontractValueEventRecord,
+  SubcontractListItem,
+  SubcontractDetail,
+  SubcontractParentContractOption,
+  SubcontractLinkedDocument,
+} from './domain/subcontract-types';
 export { VENDOR_TYPES, VENDOR_STATUSES, CONTACT_ROLES, ENGAGEMENT_STATUSES } from './domain/types';
 export type {
   VendorType,
@@ -57,6 +83,11 @@ export {
   cancelEngagementSchema,
   archiveEngagementSchema,
   promoteVendorFromTransactionSchema,
+  createSubcontractSchema,
+  updateSubcontractSchema,
+  changeSubcontractStatusSchema,
+  addSubcontractValueChangeSchema,
+  linkSubcontractDocumentSchema,
 } from './validation/schemas';
 export type {
   PromoteVendorFromTransactionInput,
@@ -65,6 +96,11 @@ export type {
   CreateEngagementInput,
   EndEngagementInput,
   CancelEngagementInput,
+  CreateSubcontractInput,
+  UpdateSubcontractInput,
+  ChangeSubcontractStatusInput,
+  AddSubcontractValueChangeInput,
+  LinkSubcontractDocumentInput,
 } from './validation/schemas';
 
 /** Cross-module org-scoped vendor FK guard. */

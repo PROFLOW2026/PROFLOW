@@ -8,10 +8,12 @@ import { Field } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import type { DailyLogRecord } from '@/modules/field-ops/domain/types';
+import { isDailyLogLocked } from '@/modules/field-ops/domain/daily-log-status';
 import { dailyLogPayloadFromFormData } from '@/modules/offline/domain/payloads';
 import { useOfflineAwareFormAction } from '@/modules/offline/ui/use-offline-aware-form-action';
 import { Link } from '@/shared/i18n/navigation';
 import { updateDailyLogAction, type FieldOpsFormState } from '../actions';
+import { DailyLogExtraFields } from './daily-log-extra-fields';
 
 function toServerUpdatedAt(value: Date | string): string {
   return value instanceof Date ? value.toISOString() : new Date(value).toISOString();
@@ -46,6 +48,11 @@ export function DailyLogEditForm({ log }: { log: DailyLogRecord }) {
     wrappedAction,
     {},
   );
+  const locked = isDailyLogLocked(log.status);
+
+  if (locked) {
+    return null;
+  }
 
   return (
     <form action={formAction} className="flex max-w-lg flex-col gap-4">
@@ -126,6 +133,8 @@ export function DailyLogEditForm({ log }: { log: DailyLogRecord }) {
           />
         )}
       </Field>
+
+      <DailyLogExtraFields log={log} fieldErrors={state.fieldErrors} />
 
       <Button type="submit" className="h-11 w-full sm:w-auto" loading={pending}>
         {pending ? tCommon('states.saving') : tDetail('saveLog')}

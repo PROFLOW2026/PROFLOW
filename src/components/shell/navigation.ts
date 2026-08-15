@@ -42,12 +42,15 @@ export const NAV_ICON_KEYS = [
   'procurement',
   'materials',
   'fieldOps',
+  'safety',
   'assets',
   'reports',
   'approvals',
+  'timesheets',
   'monthClose',
   'service',
   'forms',
+  'scheduling',
   'settings',
 ] as const;
 
@@ -247,6 +250,22 @@ export const NAV_ITEMS: readonly NavItem[] = [
     moreGroup: 'operations',
   },
   {
+    key: 'scheduling',
+    href: '/scheduling',
+    labelKey: 'scheduling',
+    iconKey: 'scheduling',
+    permission: PERMISSIONS.SCHEDULING_READ,
+    moreGroup: 'operations',
+  },
+  {
+    key: 'timesheets',
+    href: '/workforce/time/approvals',
+    labelKey: 'timesheets',
+    iconKey: 'timesheets',
+    permission: PERMISSIONS.TIME_APPROVE,
+    moreGroup: 'operations',
+  },
+  {
     key: 'procurement',
     href: '/procurement',
     labelKey: 'procurement',
@@ -271,6 +290,14 @@ export const NAV_ITEMS: readonly NavItem[] = [
     iconKey: 'fieldOps',
     permission: PERMISSIONS.FIELD_OPS_READ,
     module: 'field_ops',
+    moreGroup: 'operations',
+  },
+  {
+    key: 'safety',
+    href: '/safety',
+    labelKey: 'safety',
+    iconKey: 'safety',
+    permission: PERMISSIONS.SAFETY_READ,
     moreGroup: 'operations',
   },
   {

@@ -43,6 +43,9 @@ export function InventoryItemCreateForm({
         <Field label={t('skuLabel')} optionalLabel={tCommon('labels.optional')}>
           {(control) => <Input {...control} name="sku" />}
         </Field>
+        <Field label={t('barcodeLabel')} optionalLabel={tCommon('labels.optional')}>
+          {(control) => <Input {...control} name="barcode" dir="ltr" autoComplete="off" />}
+        </Field>
         <Field label={t('unitLabel')}>
           {(control) => <Input {...control} name="unit" defaultValue="ea" />}
         </Field>

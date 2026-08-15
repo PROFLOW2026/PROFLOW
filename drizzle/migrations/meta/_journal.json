@@ -316,6 +316,48 @@
                         "when":  1786504300000,
                         "tag":  "0045_boq_reverse_allocation_changes_approve",
                         "breakpoints":  true
+                    },
+                    {
+                        "idx":  45,
+                        "version":  "7",
+                        "when":  1786560000000,
+                        "tag":  "0046_multi_contract_projects",
+                        "breakpoints":  true
+                    },
+                    {
+                        "idx":  46,
+                        "version":  "7",
+                        "when":  1786560100000,
+                        "tag":  "0047_notifications_and_timesheets",
+                        "breakpoints":  true
+                    },
+                    {
+                        "idx":  47,
+                        "version":  "7",
+                        "when":  1786560200000,
+                        "tag":  "0048_document_versioning",
+                        "breakpoints":  true
+                    },
+                    {
+                        "idx":  48,
+                        "version":  "7",
+                        "when":  1786560300000,
+                        "tag":  "0049_wave2_workflows",
+                        "breakpoints":  true
+                    },
+                    {
+                        "idx":  49,
+                        "version":  "7",
+                        "when":  1786560400000,
+                        "tag":  "0050_wave3_operations",
+                        "breakpoints":  true
+                    },
+                    {
+                        "idx":  50,
+                        "version":  "7",
+                        "when":  1786560500000,
+                        "tag":  "0051_review_integrity_closure",
+                        "breakpoints":  true
                     }
                 ]
 }

@@ -271,6 +271,40 @@
     "originalAmountLockedTitle": "סכום החוזה המקורי נעול",
     "originalAmountLocked": "לא ניתן לשנות את סכום החוזה המקורי או את מצב המע״מ אחרי שינוי חוזה מאושר. שינויי סכום נוספים יש לבצע דרך שינוי חוזה."
   },
+  "contracts": {
+    "title": "חוזים",
+    "empty": "אין חוזים נוספים עדיין. החוזה הראשי נשאר הבסיס המסחרי.",
+    "untitled": "חוזה",
+    "primaryBadge": "ראשי",
+    "original": "מקורי",
+    "current": "נוכחי",
+    "retention": "עיכבון %",
+    "addAction": "הוספת חוזה נוסף",
+    "addTitle": "חוזה נוסף",
+    "addSubmit": "שמירת חוזה",
+    "name": "שם",
+    "enteredAmount": "סכום מקורי (נטו ללא מע״מ לרווחיות)",
+    "number": "מספר חוזה",
+    "kind": "סוג",
+    "startDate": "תאריך התחלה",
+    "endDate": "תאריך סיום",
+    "moreDetails": "תאריכים, עיכבון ומספר",
+    "makePrimary": "הגדרה כראשי",
+    "types": {
+      "primary": "ראשי",
+      "additional": "נוסף",
+      "secondary": "משני"
+    },
+    "status": {
+      "draft": "טיוטה",
+      "active": "פעיל",
+      "closed": "סגור",
+      "cancelled": "בוטל"
+    },
+    "errors": {
+      "saveFailed": "לא ניתן לשמור את החוזה."
+    }
+  },
   "workPackages": {
     "title": "תחומי עבודה",
     "defaultName": "כללי",

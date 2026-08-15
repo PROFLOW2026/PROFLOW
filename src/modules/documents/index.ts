@@ -28,6 +28,14 @@ export {
 export type {
   EntityDocumentPanelData,
 } from './application/entity-document-panel';
+export { createFolder, listFolders, getFolderById } from './application/manage-folders';
+export {
+  prepareNewVersionUpload,
+  uploadNewVersion,
+  listVersions,
+  createDocumentVersionDownloadUrl,
+} from './application/manage-versions';
+export { setDocumentMetadata } from './application/manage-metadata';
 
 export {
   DOCUMENT_STATUSES,
@@ -37,10 +45,13 @@ export type {
   DocumentStatus,
   DocumentOwnerType,
   DocumentRecord,
+  DocumentFolder,
+  DocumentVersion,
   DocumentListItem,
   DocumentLinkCandidate,
   DocumentLinkRecord,
   PrepareUploadResult,
+  PrepareNewVersionResult,
   DownloadUrlResult,
 } from './domain/types';
 
@@ -61,6 +72,9 @@ export { DOCUMENT_RUNTIME_STAGES } from './domain/runtime-stage';
 
 export { DOCUMENT_CATEGORIES, isDocumentCategory } from './domain/categories';
 export type { DocumentCategory } from './domain/categories';
+export { documentExpiryState } from './domain/expiry';
+export type { DocumentExpiryState } from './domain/expiry';
+export { isDocumentOwnedStoragePath } from './domain/version-storage-path';
 
 export { formatFileSize } from './domain/format-file-size';
 export {
@@ -85,5 +99,9 @@ export {
   prepareUploadSchema,
   finalizeUploadSchema,
   listEntityDocumentsSchema,
+  createFolderSchema,
+  prepareNewVersionSchema,
+  finalizeNewVersionSchema,
+  setDocumentMetadataSchema,
 } from './validation/schemas';
 export type { PrepareUploadInput, FinalizeUploadInput } from './validation/schemas';

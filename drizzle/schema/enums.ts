@@ -134,6 +134,11 @@ export const documentOwnerTypeEnum = pgEnum('document_owner_type', [
   'asset',
   'inventory_item',
   'form_submission',
+  'contract',
+  'work_order',
+  'subcontract_agreement',
+  'safety_record',
+  'timesheet',
 ]);
 
 export const taxMethodEnum = pgEnum('tax_method', ['percentage', 'exempt', 'zero_rated']);

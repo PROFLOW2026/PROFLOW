@@ -17,6 +17,7 @@ export default function SettingsLayout({ children }: { children: ReactNode }) {
         'banking',
         'exports',
         'forms',
+        'safety',
       ]}
     >
       {children}

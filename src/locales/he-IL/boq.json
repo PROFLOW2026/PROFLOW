@@ -72,6 +72,8 @@
     "progressMode": "מצב התקדמות",
     "progressModeSimple": "פשוט (מדידה = אישור)",
     "progressModeAdvanced": "מתקדם (מדידה ואז אישור)",
+    "contract": "חוזה",
+    "contractPrimary": "ראשי",
     "addChapter": "הוספת פרק",
     "addItem": "הוספת סעיף",
     "parentChapter": "פרק הורה (אופציונלי)",

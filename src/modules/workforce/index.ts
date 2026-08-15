@@ -32,8 +32,22 @@ export {
   listTimeEntriesForOrg,
   resolveTimeEntryCostSnapshot,
   suggestDefaultEmployee,
+  updateTimeEntry,
 } from './application/time-entries';
 export type { CorrectTimeEntryResult, CostSnapshot } from './application/time-entries';
+
+export {
+  approveTimeEntry,
+  approveTimesheet,
+  bulkApproveTimeEntries,
+  canApproveTime,
+  getTimesheetDetail,
+  listTimeApprovalQueue,
+  listTimesheetsForOrg,
+  returnTimesheet,
+  submitTimeEntries,
+  submitTimesheet,
+} from './application/timesheets';
 
 export {
   addProjectTeamMember,
@@ -87,8 +101,16 @@ export {
   replaceAttendanceEventSchema,
   saveMonthlyEmployerCostDraftSchema,
   timeEntryFiltersSchema,
+  timesheetFiltersSchema,
   updateEmployeeSchema,
   updateProjectTeamAssignmentSchema,
+  updateTimeEntrySchema,
+  submitTimesheetSchema,
+  submitTimeEntriesSchema,
+  returnTimesheetSchema,
+  approveTimesheetSchema,
+  approveTimeEntrySchema,
+  bulkApproveTimeEntriesSchema,
   voidAttendanceDaySchema,
   voidAttendanceEventSchema,
 } from './validation/schemas';
@@ -96,6 +118,9 @@ export type {
   AddProjectTeamMemberInput,
   ApplyMonthlyEmployerCostAllocationInput,
   AttendanceFiltersInput,
+  ApproveTimeEntryInput,
+  ApproveTimesheetInput,
+  BulkApproveTimeEntriesInput,
   CancelProjectTeamAssignmentInput,
   ClockAttendanceInput,
   CorrectTimeEntryInput,
@@ -107,15 +132,33 @@ export type {
   ManualAttendanceEventInput,
   RemoveProjectTeamMemberInput,
   ReplaceAttendanceEventInput,
+  ReturnTimesheetInput,
   SaveMonthlyEmployerCostDraftInput,
+  SubmitTimeEntriesInput,
+  SubmitTimesheetInput,
   TimeEntryFiltersInput,
+  TimesheetFiltersInput,
   UpdateEmployeeInput,
   UpdateProjectTeamAssignmentInput,
+  UpdateTimeEntryInput,
   VoidAttendanceDayInput,
   VoidAttendanceEventInput,
 } from './validation/schemas';
 
 export { calculateLaborCost, calculateLaborCostTotal, hoursToRateUnits } from './domain/labor-cost';
+export {
+  TIMESHEET_TRANSITIONS,
+  assertTimeApprovalTransition,
+  assertTimeEntryHoursEditable,
+  assertTimesheetTransition,
+  canEditTimeEntryHours,
+  canSubmitApprovalStatus,
+  canTransitionTimeApprovalStatus,
+  canTransitionTimesheetStatus,
+  contributesLaborActual,
+  isApprovedRecordedLocked,
+  timesheetPeriodForWorkDate,
+} from './domain/timesheet-lifecycle';
 export { resolveRateVersionForDate } from './domain/rate-lookup';
 export {
   TIME_CORRECTION_AMOUNT_SENTINEL_RATE,
@@ -153,8 +196,10 @@ export {
   DEFAULT_NON_PROJECT_TIME_CODES,
   EMPLOYEE_PROJECT_ASSIGNMENT_STATUSES,
   RATE_UNITS,
+  TIME_APPROVAL_STATUSES,
   TIME_ENTRY_KINDS,
   TIME_ENTRY_STATUSES,
+  TIMESHEET_STATUSES,
 } from './domain/types';
 export type {
   AttendanceDayDetail,
@@ -171,10 +216,14 @@ export type {
   ProjectTeamMemberRecord,
   ProjectTeamMemberSummary,
   RateUnit,
+  TimeApprovalStatus,
   TimeEntryKind,
   TimeEntryListItem,
   TimeEntryRecord,
   TimeEntryStatus,
+  TimesheetListItem,
+  TimesheetRecord,
+  TimesheetStatus,
 } from './domain/types';
 
 export {

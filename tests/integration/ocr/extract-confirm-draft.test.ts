@@ -7,6 +7,7 @@ import {
   confirmOcrCandidate,
   createDrizzleOcrRepository,
   extractReceiptJob,
+  flushOcrBackgroundJobs,
 } from '@/modules/ocr';
 import { createExpense, findExpenseById } from '@/modules/expenses';
 import { createVendorBillDraftFromOcr } from '@/modules/ocr/application/create-vendor-bill-draft';
@@ -91,10 +92,12 @@ describe('OCR extract → confirm draft (PGlite)', () => {
         provider,
         repo,
       );
-      expect(extracted.status).toBe('needs_review');
-      expect(extracted.confirmedExpenseId).toBeNull();
-      expect(extracted.rawMetadata?.vendorMatches?.[0]?.vendorId).toBe(vendor.id);
-      expect(extracted.sourceDocument.documentId).toBe(documentId);
+      await flushOcrBackgroundJobs();
+      const settled = await repo.findJob(context.organizationId, extracted.id);
+      expect(settled?.status).toBe('needs_review');
+      expect(settled?.confirmedExpenseId).toBeNull();
+      expect(settled?.rawMetadata?.vendorMatches?.[0]?.vendorId).toBe(vendor.id);
+      expect(settled?.sourceDocument.documentId).toBe(documentId);
 
       const reused = await extractReceiptJob(
         context,
@@ -160,6 +163,7 @@ describe('OCR extract → confirm draft (PGlite)', () => {
         new ScriptedOcrProvider(buildFixtureCandidates({ reference: 'BILL-UNIQUE' })),
         repo,
       );
+      await flushOcrBackgroundJobs();
       const bill = await confirmOcrCandidate(
         context,
         {
@@ -191,6 +195,7 @@ describe('OCR extract → confirm draft (PGlite)', () => {
         ),
         repo,
       );
+      await flushOcrBackgroundJobs();
       const credit = await confirmOcrCandidate(
         context,
         {

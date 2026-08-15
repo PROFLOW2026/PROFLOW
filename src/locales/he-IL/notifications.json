@@ -1,0 +1,35 @@
+{
+  "title": "התראות",
+  "bellLabel": "התראות",
+  "unreadCount": "{count, plural, one {התראה אחת שלא נקראה} other {# התראות שלא נקראו}}",
+  "empty": "אין התראות",
+  "emptyHint": "כשמשהו ידרוש תשומת לב, הוא יופיע כאן.",
+  "loading": "טוען התראות…",
+  "error": "לא ניתן לטעון התראות.",
+  "retry": "נסה שוב",
+  "markRead": "סמן כנקרא",
+  "markAllRead": "סמן הכול כנקרא",
+  "allCaughtUp": "הכול מעודכן",
+  "severity": {
+    "info": "מידע",
+    "warning": "אזהרה",
+    "urgent": "דחוף"
+  },
+  "types": {
+    "billing_overdue": "חיוב לקוח באיחור",
+    "ap_due_soon": "חשבון ספק מתקרב לפירעון",
+    "ap_overdue": "חשבון ספק באיחור",
+    "approval_waiting": "ממתין לאישור",
+    "timesheet_waiting": "גיליון שעות ממתין",
+    "employee_missing_report": "חסר דיווח שעות",
+    "document_expiring": "מסמך שפג תוקף בקרוב",
+    "task_overdue": "משימה באיחור",
+    "boq_awaiting_approval": "כתב כמויות ממתין לאישור",
+    "work_order_assigned": "שובצת לקריאת שירות",
+    "low_stock": "מלאי נמוך",
+    "safety_action_due": "פעולת בטיחות לטיפול"
+  },
+  "viewAll": "כל ההתראות",
+  "scan": "רענון",
+  "pageDescription": "פריטים שדורשים תשומת לב ברחבי הארגון."
+}

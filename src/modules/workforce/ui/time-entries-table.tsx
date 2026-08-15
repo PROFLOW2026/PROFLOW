@@ -4,17 +4,26 @@ import { ResponsiveTable } from '@/components/patterns/responsive-table';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { StatusBadge, type StatusShape } from '@/components/ui/status-badge';
 import { MoneyText } from '@/components/patterns/money-text';
-import type { TimeEntryListItem } from '@/modules/workforce';
+import type { TimeApprovalStatus, TimeEntryListItem } from '@/modules/workforce';
 import { businessDate } from '@/shared/dates/dates';
 import { formatBusinessDate } from '@/shared/dates/format';
 import { fromNumericString } from '@/shared/money';
 import { Link } from '@/shared/i18n/navigation';
+import { SubmitTimeEntryButton } from './timesheet-actions';
 
 interface TimeEntriesTableProps {
   readonly entries: readonly TimeEntryListItem[];
   readonly showCosts: boolean;
   readonly canLogTime: boolean;
+}
+
+function approvalShape(status: TimeApprovalStatus): StatusShape {
+  if (status === 'approved') return 'approved';
+  if (status === 'submitted') return 'pending';
+  if (status === 'returned') return 'onHold';
+  return 'draft';
 }
 
 function entryTarget(
@@ -87,8 +96,19 @@ export async function TimeEntriesTable({ entries, showCosts, canLogTime }: TimeE
                   </TableCell>
                   <TableCell>
                     {entry.status === 'void' ? t('time.status.void') : t('time.status.recorded')}
+                    {entry.status === 'recorded' ? (
+                      <p className="mt-1">
+                        <StatusBadge
+                          shape={approvalShape(entry.approvalStatus)}
+                          label={t(`time.approvalStatus.${entry.approvalStatus}`)}
+                        />
+                      </p>
+                    ) : null}
                     {entry.correctsEntryId ? (
                       <p className="text-xs text-[var(--pf-text-muted)]">{t('time.status.correction')}</p>
+                    ) : null}
+                    {entry.approvalStatus === 'returned' && entry.managerNote ? (
+                      <p className="mt-1 text-xs text-[var(--pf-text-secondary)]">{entry.managerNote}</p>
                     ) : null}
                   </TableCell>
                   <TableCell numeric>{entry.hours}</TableCell>
@@ -110,13 +130,22 @@ export async function TimeEntriesTable({ entries, showCosts, canLogTime }: TimeE
                   ) : null}
                   {canLogTime ? (
                     <TableCell>
-                      {entry.status === 'recorded' ? (
-                        <Button asChild variant="ghost" size="sm">
-                          <Link href={`/workforce/time/new?correctsEntryId=${entry.id}`}>
-                            {t('time.correct')}
-                          </Link>
-                        </Button>
-                      ) : null}
+                      <div className="flex flex-col items-start gap-2">
+                        {entry.status === 'recorded' && entry.approvalStatus === 'approved' ? (
+                          <Button asChild variant="ghost" size="sm">
+                            <Link href={`/workforce/time/new?correctsEntryId=${entry.id}`}>
+                              {t('time.correct')}
+                            </Link>
+                          </Button>
+                        ) : null}
+                        {entry.status === 'recorded' ? (
+                          <SubmitTimeEntryButton
+                            entryId={entry.id}
+                            employeeId={entry.employeeId}
+                            approvalStatus={entry.approvalStatus}
+                          />
+                        ) : null}
+                      </div>
                     </TableCell>
                   ) : null}
                 </TableRow>
@@ -142,6 +171,17 @@ export async function TimeEntriesTable({ entries, showCosts, canLogTime }: TimeE
           <p className="mt-1 text-xs text-[var(--pf-text-muted)]">
             {entry.status === 'void' ? t('time.status.void') : t('time.status.recorded')}
           </p>
+          {entry.status === 'recorded' ? (
+            <div className="mt-1">
+              <StatusBadge
+                shape={approvalShape(entry.approvalStatus)}
+                label={t(`time.approvalStatus.${entry.approvalStatus}`)}
+              />
+            </div>
+          ) : null}
+          {entry.approvalStatus === 'returned' && entry.managerNote ? (
+            <p className="mt-1 text-start text-xs text-[var(--pf-text-secondary)]">{entry.managerNote}</p>
+          ) : null}
           {showCosts && entry.costAmount && entry.costCurrency ? (
             <p className="mt-1 text-start text-sm">
               <MoneyText
@@ -155,10 +195,17 @@ export async function TimeEntriesTable({ entries, showCosts, canLogTime }: TimeE
             </p>
           ) : null}
           {canLogTime && entry.status === 'recorded' ? (
-            <div className="mt-3">
-              <Button asChild variant="secondary" size="sm">
-                <Link href={`/workforce/time/new?correctsEntryId=${entry.id}`}>{t('time.correct')}</Link>
-              </Button>
+            <div className="mt-3 flex flex-col items-start gap-2">
+              {entry.approvalStatus === 'approved' ? (
+                <Button asChild variant="secondary" size="sm">
+                  <Link href={`/workforce/time/new?correctsEntryId=${entry.id}`}>{t('time.correct')}</Link>
+                </Button>
+              ) : null}
+              <SubmitTimeEntryButton
+                entryId={entry.id}
+                employeeId={entry.employeeId}
+                approvalStatus={entry.approvalStatus}
+              />
             </div>
           ) : null}
         </div>

@@ -1,5 +1,7 @@
 /** Public API of the financials module (docs 04, 46, 51). */
 export { getProjectFinancials } from './application/get-project-financials';
+export { loadProjectCommercialData, loadContractCommercialData } from './data/commercial.repository';
+export type { ContractCommercialSlice, ProjectCommercialData } from './data/commercial.repository';
 export { setProjectExpectedRemainingCost } from './application/set-project-expected-remaining-cost';
 export { getOrganizationFinancials } from './application/get-organization-financials';
 export { getOrganizationProjectRollup } from './application/get-organization-project-rollup';
@@ -59,6 +61,7 @@ export type {
 } from './application/get-home-dashboard';
 
 export { attachEntryBaselineContext } from './domain/entry-baseline-context';
+export { sumCommercialPositions, addCommercialPositions } from './domain/aggregate-commercial';
 export { computeProfitPosition, computeMarginPercent } from './domain/profit';
 export { buildFinancialCoverage, ALL_COST_SOURCES } from './domain/coverage';
 export {

@@ -39,7 +39,7 @@ import { SkeletonText } from '@/components/ui/skeleton';
 
 interface ProjectPageProps {
   params: Promise<{ locale: string; projectId: string }>;
-  searchParams: Promise<{ tab?: string | string[] }>;
+  searchParams: Promise<{ tab?: string | string[]; contractId?: string | string[] }>;
 }
 
 /** Module panels that only need project chrome — not WP/phase/milestone rows. */
@@ -172,6 +172,7 @@ export default async function ProjectPage({ params, searchParams }: ProjectPageP
     return await renderModuleTab({
       activeTab,
       projectId,
+      boqContractId: typeof search.contractId === 'string' ? search.contractId : search.contractId?.[0],
       showExpensesTab,
       showChangesTab,
       showBoqTab,
@@ -413,6 +414,7 @@ async function ProjectStructuredTabPanel({
 async function renderModuleTab(input: {
   activeTab: ProjectTabKey;
   projectId: string;
+  boqContractId?: string;
   showExpensesTab: boolean;
   showChangesTab: boolean;
   showBoqTab: boolean;
@@ -441,6 +443,7 @@ async function renderModuleTab(input: {
 async function loadActiveModulePanel(input: {
   activeTab: ProjectTabKey;
   projectId: string;
+  boqContractId?: string;
   showExpensesTab: boolean;
   showChangesTab: boolean;
   showBoqTab: boolean;
@@ -477,12 +480,12 @@ async function loadActiveModulePanel(input: {
     case 'boq': {
       if (!input.showBoqTab) return null;
       const { ProjectBoqPanel } = await import('@/modules/boq/ui/project-boq-panel');
-      return <ProjectBoqPanel projectId={projectId} />;
+      return <ProjectBoqPanel projectId={projectId} contractId={input.boqContractId} />;
     }
     case 'billing': {
       if (!input.showBillingTab) return null;
       const { ProjectBillingPanel } = await import('@/modules/billing/ui/project-billing-panel');
-      return <ProjectBillingPanel projectId={projectId} />;
+      return <ProjectBillingPanel projectId={projectId} contractId={input.boqContractId} />;
     }
     case 'budgets': {
       if (!input.showBudgetsTab) return null;

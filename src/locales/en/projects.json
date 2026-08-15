@@ -271,6 +271,40 @@
     "originalAmountLockedTitle": "Original contract amount is locked",
     "originalAmountLocked": "The original contract amount and VAT mode cannot be changed after an approved contract change. Make further value changes through Change Orders."
   },
+  "contracts": {
+    "title": "Contracts",
+    "empty": "No additional contracts yet. The primary contract stays the commercial base.",
+    "untitled": "Contract",
+    "primaryBadge": "Primary",
+    "original": "Original",
+    "current": "Current",
+    "retention": "Retention %",
+    "addAction": "Add additional contract",
+    "addTitle": "Additional contract",
+    "addSubmit": "Save contract",
+    "name": "Name",
+    "enteredAmount": "Original amount (net of VAT for profitability)",
+    "number": "Contract number",
+    "kind": "Kind",
+    "startDate": "Start date",
+    "endDate": "End date",
+    "moreDetails": "Dates, retention, and number",
+    "makePrimary": "Set as primary",
+    "types": {
+      "primary": "Primary",
+      "additional": "Additional",
+      "secondary": "Secondary"
+    },
+    "status": {
+      "draft": "Draft",
+      "active": "Active",
+      "closed": "Closed",
+      "cancelled": "Cancelled"
+    },
+    "errors": {
+      "saveFailed": "Could not save the contract."
+    }
+  },
   "workPackages": {
     "title": "Work areas",
     "defaultName": "General",

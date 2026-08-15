@@ -1,4 +1,4 @@
-import { and, desc, eq, isNull } from 'drizzle-orm';
+import { and, desc, eq, inArray, isNull } from 'drizzle-orm';
 import { dailyLogs, inspections, punchListItems } from '@drizzle/schema';
 import {
   ORG_LIST_EXPORT_CAP,
@@ -10,6 +10,7 @@ import type { DbExecutor } from '@/shared/db/types';
 import { unpackWorkforceAndBlockers } from '../domain/daily-log-notes';
 import type {
   DailyLogRecord,
+  DailyLogStatus,
   InspectionRecord,
   InspectionStatus,
   PunchListItemRecord,
@@ -35,6 +36,21 @@ function mapDailyLog(row: typeof dailyLogs.$inferSelect): DailyLogRecord {
     summary: row.summary,
     workforceNotes: notes.workforceNotes,
     blockers: notes.blockers,
+    status: (row.status as DailyLogStatus) ?? 'draft',
+    workPerformed: row.workPerformed,
+    delays: row.delays,
+    incidents: row.incidents,
+    safetyNotes: row.safetyNotes,
+    visitorNotes: row.visitorNotes,
+    managerNotes: row.managerNotes,
+    correctionNotes: row.correctionNotes ?? null,
+    workersOnSite: row.workersOnSite,
+    subcontractorsOnSite: row.subcontractorsOnSite,
+    equipmentOnSite: row.equipmentOnSite,
+    deliveries: row.deliveries,
+    submittedAt: row.submittedAt,
+    submittedByUserId: row.submittedByUserId,
+    finalizedAt: row.finalizedAt,
     createdBy: row.createdBy,
     archivedAt: row.archivedAt,
     createdAt: row.createdAt,
@@ -80,28 +96,40 @@ function mapInspection(row: typeof inspections.$inferSelect): InspectionRecord {
   };
 }
 
+export interface DailyLogListFilters {
+  readonly projectId?: string;
+  readonly status?: DailyLogStatus;
+  readonly limit?: number;
+  readonly offset?: number;
+}
+
 export async function listDailyLogs(
   db: DbExecutor,
   organizationId: string,
-  projectId?: string,
+  projectIdOrFilters?: string | DailyLogListFilters,
   options: { readonly limit?: number; readonly offset?: number } = {},
 ): Promise<DailyLogRecord[]> {
+  const filtersObj: DailyLogListFilters =
+    typeof projectIdOrFilters === 'string'
+      ? { projectId: projectIdOrFilters, ...options }
+      : { ...(projectIdOrFilters ?? {}), ...options };
   const filters = [eq(dailyLogs.organizationId, organizationId), isNull(dailyLogs.archivedAt)];
-  if (projectId) filters.push(eq(dailyLogs.projectId, projectId));
+  if (filtersObj.projectId) filters.push(eq(dailyLogs.projectId, filtersObj.projectId));
+  if (filtersObj.status) filters.push(eq(dailyLogs.status, filtersObj.status));
   const rows = await db
     .select()
     .from(dailyLogs)
     .where(and(...filters))
     .orderBy(desc(dailyLogs.logDate), desc(dailyLogs.createdAt))
     .limit(
-      resolveListLimit(options.limit, {
+      resolveListLimit(filtersObj.limit, {
         hardCap:
-          options.limit != null && options.limit > ORG_LIST_HARD_CAP
+          filtersObj.limit != null && filtersObj.limit > ORG_LIST_HARD_CAP
             ? ORG_LIST_EXPORT_CAP
             : ORG_LIST_HARD_CAP,
       }),
     )
-    .offset(resolveListOffset(options.offset));
+    .offset(resolveListOffset(filtersObj.offset));
   return rows.map(mapDailyLog);
 }
 
@@ -114,6 +142,28 @@ export async function insertDailyLog(
   return mapDailyLog(row);
 }
 
+export async function findActiveDailyLogByProjectDate(
+  db: DbExecutor,
+  organizationId: string,
+  projectId: string,
+  logDate: string,
+  excludeId?: string,
+): Promise<DailyLogRecord | null> {
+  const filters = [
+    eq(dailyLogs.organizationId, organizationId),
+    eq(dailyLogs.projectId, projectId),
+    eq(dailyLogs.logDate, logDate),
+    isNull(dailyLogs.archivedAt),
+  ];
+  const rows = await db
+    .select()
+    .from(dailyLogs)
+    .where(and(...filters))
+    .limit(8);
+  const match = excludeId ? rows.find((row) => row.id !== excludeId) : rows[0];
+  return match ? mapDailyLog(match) : null;
+}
+
 export async function updateDailyLogById(
   db: DbExecutor,
   organizationId: string,
@@ -124,12 +174,33 @@ export async function updateDailyLogById(
     weather: string | null;
     summary: string;
     workforceNotes: string | null;
+    status: DailyLogStatus;
+    workPerformed: string | null;
+    delays: string | null;
+    incidents: string | null;
+    safetyNotes: string | null;
+    visitorNotes: string | null;
+    managerNotes: string | null;
+    correctionNotes: string | null;
+    workersOnSite: string | null;
+    subcontractorsOnSite: string | null;
+    equipmentOnSite: string | null;
+    deliveries: string | null;
+    submittedAt: Date | null;
+    submittedByUserId: string | null;
+    finalizedAt: Date | null;
   }>,
+  options?: { readonly fromStatuses?: readonly DailyLogStatus[] },
 ): Promise<DailyLogRecord | null> {
+  const conditions = [eq(dailyLogs.id, id), eq(dailyLogs.organizationId, organizationId)];
+  if (options?.fromStatuses && options.fromStatuses.length > 0) {
+    conditions.push(inArray(dailyLogs.status, [...options.fromStatuses]));
+  }
+
   const [row] = await db
     .update(dailyLogs)
     .set({ ...patch, updatedAt: new Date() })
-    .where(and(eq(dailyLogs.id, id), eq(dailyLogs.organizationId, organizationId)))
+    .where(and(...conditions))
     .returning();
   return row ? mapDailyLog(row) : null;
 }
@@ -143,6 +214,20 @@ export async function findDailyLogById(
     .select()
     .from(dailyLogs)
     .where(and(eq(dailyLogs.id, id), eq(dailyLogs.organizationId, organizationId)))
+    .limit(1);
+  return row ? mapDailyLog(row) : null;
+}
+
+export async function findDailyLogByIdForUpdate(
+  db: DbExecutor,
+  organizationId: string,
+  id: string,
+): Promise<DailyLogRecord | null> {
+  const [row] = await db
+    .select()
+    .from(dailyLogs)
+    .where(and(eq(dailyLogs.id, id), eq(dailyLogs.organizationId, organizationId)))
+    .for('update')
     .limit(1);
   return row ? mapDailyLog(row) : null;
 }
@@ -208,6 +293,20 @@ export async function findPunchListItemById(
   return row ? mapPunch(row) : null;
 }
 
+export async function findPunchListItemByIdForUpdate(
+  db: DbExecutor,
+  organizationId: string,
+  id: string,
+): Promise<PunchListItemRecord | null> {
+  const [row] = await db
+    .select()
+    .from(punchListItems)
+    .where(and(eq(punchListItems.id, id), eq(punchListItems.organizationId, organizationId)))
+    .for('update')
+    .limit(1);
+  return row ? mapPunch(row) : null;
+}
+
 export async function updatePunchListItemById(
   db: DbExecutor,
   organizationId: string,
@@ -222,11 +321,17 @@ export async function updatePunchListItemById(
     workPackageId: string | null;
     closedAt: Date | null;
   }>,
+  options?: { readonly fromStatuses?: readonly PunchStatus[] },
 ): Promise<PunchListItemRecord | null> {
+  const conditions = [eq(punchListItems.id, id), eq(punchListItems.organizationId, organizationId)];
+  if (options?.fromStatuses && options.fromStatuses.length > 0) {
+    conditions.push(inArray(punchListItems.status, [...options.fromStatuses]));
+  }
+
   const [row] = await db
     .update(punchListItems)
     .set({ ...patch, updatedAt: new Date() })
-    .where(and(eq(punchListItems.id, id), eq(punchListItems.organizationId, organizationId)))
+    .where(and(...conditions))
     .returning();
   return row ? mapPunch(row) : null;
 }
@@ -287,6 +392,20 @@ export async function findInspectionById(
   return row ? mapInspection(row) : null;
 }
 
+export async function findInspectionByIdForUpdate(
+  db: DbExecutor,
+  organizationId: string,
+  id: string,
+): Promise<InspectionRecord | null> {
+  const [row] = await db
+    .select()
+    .from(inspections)
+    .where(and(eq(inspections.id, id), eq(inspections.organizationId, organizationId)))
+    .for('update')
+    .limit(1);
+  return row ? mapInspection(row) : null;
+}
+
 export async function updateInspectionById(
   db: DbExecutor,
   organizationId: string,
@@ -301,11 +420,17 @@ export async function updateInspectionById(
     notes: string | null;
     workPackageId: string | null;
   }>,
+  options?: { readonly fromStatuses?: readonly InspectionStatus[] },
 ): Promise<InspectionRecord | null> {
+  const conditions = [eq(inspections.id, id), eq(inspections.organizationId, organizationId)];
+  if (options?.fromStatuses && options.fromStatuses.length > 0) {
+    conditions.push(inArray(inspections.status, [...options.fromStatuses]));
+  }
+
   const [row] = await db
     .update(inspections)
     .set({ ...patch, updatedAt: new Date() })
-    .where(and(eq(inspections.id, id), eq(inspections.organizationId, organizationId)))
+    .where(and(...conditions))
     .returning();
   return row ? mapInspection(row) : null;
 }

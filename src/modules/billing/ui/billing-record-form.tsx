@@ -10,20 +10,24 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { pressableClassName } from '@/components/ui/pressable';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/shared/ui/cn';
-import type { ProjectOption } from '@/modules/billing/domain/types';
+import type { BillingContractOption, ProjectOption } from '@/modules/billing/domain/types';
 import { RetentionCaptureFields } from '@/modules/retention/ui/retention-capture-fields';
 import { createBillingRecordAction, type BillingFormState } from './actions';
 
 interface BillingRecordFormProps {
   projects: readonly ProjectOption[];
+  contracts?: readonly BillingContractOption[];
   defaultProjectId?: string;
+  defaultContractId?: string;
   defaultCurrency?: string;
   defaultIssueDate: string;
 }
 
 export function BillingRecordForm({
   projects,
+  contracts = [],
   defaultProjectId,
+  defaultContractId,
   defaultCurrency,
   defaultIssueDate,
 }: BillingRecordFormProps) {
@@ -31,6 +35,7 @@ export function BillingRecordForm({
   const tCommon = useTranslations('common');
   const [amount, setAmount] = useState('');
   const [projectId, setProjectId] = useState(defaultProjectId ?? '');
+  const [contractId, setContractId] = useState(defaultContractId ?? '');
   const [state, formAction, pending] = useActionState<BillingFormState, FormData>(
     createBillingRecordAction,
     {},
@@ -61,6 +66,36 @@ export function BillingRecordForm({
           </>
         )}
       </Field>
+
+      {contracts.filter((row) => row.projectId === projectId).length > 1 ? (
+        <Field label={t('form.contract')} optionalLabel={tCommon('labels.optional')}>
+          {(controlProps) => (
+            <>
+              <Select
+                name="contractId"
+                value={contractId}
+                onValueChange={setContractId}
+              >
+                <SelectTrigger {...controlProps}>
+                  <SelectValue placeholder={t('form.contractPlaceholder')} />
+                </SelectTrigger>
+                <SelectContent>
+                  {contracts
+                    .filter((row) => row.projectId === projectId)
+                    .map((contract) => (
+                      <SelectItem key={contract.id} value={contract.id}>
+                        {contract.name ??
+                          contract.contractNumber ??
+                          (contract.isPrimary ? t('form.contractPrimary') : contract.id.slice(0, 8))}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+              <input type="hidden" name="contractId" value={contractId} />
+            </>
+          )}
+        </Field>
+      ) : null}
 
       <Field label={t('form.amount')} required>
         {(controlProps) => (

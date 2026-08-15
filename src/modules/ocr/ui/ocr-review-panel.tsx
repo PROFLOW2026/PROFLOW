@@ -22,18 +22,23 @@ import { uploadDocumentBytes } from '@/modules/documents/client/upload-document-
 import { normalizeUploadMime } from '@/modules/documents/domain/file-rules';
 import type { DocumentRuntimeStage } from '@/modules/documents/domain/runtime-stage';
 import {
+  cancelOcrJobAction,
   confirmOcrCandidateAction,
+  createOcrBatchAction,
   extractReceiptAction,
+  getOcrReviewPageDataAction,
   rejectOcrCandidateAction,
   seedFixtureOcrJobAction,
 } from '@/modules/ocr/application/ocr-actions';
 import { isOcrActiveQueueStatus } from '@/modules/ocr/domain/review-queue';
+import { recountOcrBatchFromJobs } from '@/modules/ocr/domain/job-lifecycle';
 import { confidenceState } from '@/modules/ocr/domain/confidence';
 import { collectReviewWarnings } from '@/modules/ocr/domain/totals-warnings';
 import { suggestedDraftTarget } from '@/modules/ocr/domain/canonical';
 import { isOcrSupportedMime } from '@/modules/ocr/domain/cost-controls';
 import type {
   ExtractionJob,
+  OcrBatch,
   OcrCandidateFieldKey,
   OcrDocumentTypeKey,
   OcrDraftTarget,
@@ -49,7 +54,7 @@ function statusShape(
   status: ExtractionJob['status'],
 ): 'pending' | 'onHold' | 'completed' | 'rejected' {
   if (status === 'needs_review') return 'onHold';
-  if (status === 'failed' || status === 'rejected') return 'rejected';
+  if (status === 'failed' || status === 'rejected' || status === 'cancelled') return 'rejected';
   if (status === 'succeeded') return 'completed';
   return 'pending';
 }
@@ -104,6 +109,7 @@ function hydrateOverrides(
 export interface OcrReviewPanelProps {
   readonly initialStatus: OcrProviderStatus;
   readonly initialJobs: readonly ExtractionJob[];
+  readonly initialBatches?: readonly OcrBatch[];
   readonly vendors: readonly { id: string; name: string }[];
   readonly organizationId: string;
   /** Organization tax/company ID from legal_identity settings — wrong-customer checks. */
@@ -119,6 +125,7 @@ export interface OcrReviewPanelProps {
 export function OcrReviewPanel({
   initialStatus,
   initialJobs,
+  initialBatches = [],
   vendors,
   organizationId,
   organizationTaxId = null,
@@ -153,10 +160,35 @@ export function OcrReviewPanel({
   const uploadGenerationRef = useRef(0);
   const activeUploadKeyRef = useRef<string | null>(null);
   const jobsRef = useRef(jobs);
+  const [batches, setBatches] = useState<OcrBatch[]>(() => [...initialBatches]);
 
   useEffect(() => {
     jobsRef.current = jobs;
   }, [jobs]);
+
+  const inFlight = jobs.some(
+    (job) => job.status === 'queued' || job.status === 'running' || job.status === 'processing',
+  );
+
+  useEffect(() => {
+    if (!inFlight) return;
+    let cancelled = false;
+    const tick = async () => {
+      const result = await getOcrReviewPageDataAction();
+      if (cancelled || !result.ok) return;
+      const nextJobs = result.data.jobs.filter((job) => isOcrActiveQueueStatus(job.status));
+      jobsRef.current = nextJobs;
+      setJobs(nextJobs);
+      setBatches([...result.data.batches]);
+    };
+    const timer = window.setInterval(() => {
+      void tick();
+    }, 2000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(timer);
+    };
+  }, [inFlight]);
 
   const liveExtract = initialStatus.ingestionEnabled && initialStatus.featureMode === 'live';
   const fixtureTools = initialStatus.featureMode === 'fixture_only';
@@ -270,7 +302,7 @@ export function OcrReviewPanel({
     });
   }
 
-  async function uploadThenExtract(file: File, generation: number) {
+  async function uploadThenExtract(file: File, generation: number, batchId?: string) {
     if (offline || !navigator.onLine) {
       setError(t('offlineBlocked'));
       return;
@@ -350,6 +382,7 @@ export function OcrReviewPanel({
       mimeType: mime.mimeType,
       filename: file.name,
       workflow,
+      batchId,
     });
     if (generation !== uploadGenerationRef.current) return;
     if (!result.ok) {
@@ -364,6 +397,12 @@ export function OcrReviewPanel({
     selectJob(result.data);
     if (result.data.status === 'failed') {
       setInfo(t('extractFailed', { code: extractionStageCode(result.data) }));
+    } else if (
+      result.data.status === 'queued' ||
+      result.data.status === 'processing' ||
+      result.data.status === 'running'
+    ) {
+      setInfo(t('extractQueuedBackground'));
     } else {
       setInfo(t('extractQueuedReview'));
     }
@@ -371,9 +410,12 @@ export function OcrReviewPanel({
 
   function onExtractImage(file: File | null) {
     if (!file) return;
-    const key = fileUploadKey(file);
-    // Same-file `change` can fire twice (picker + clear); ignore the duplicate
-    // while that exact file is already uploading.
+    onExtractImages([file]);
+  }
+
+  function onExtractImages(files: File[]) {
+    if (files.length === 0) return;
+    const key = files.map(fileUploadKey).join('|');
     if (activeUploadKeyRef.current === key) return;
     const generation = ++uploadGenerationRef.current;
     activeUploadKeyRef.current = key;
@@ -381,7 +423,21 @@ export function OcrReviewPanel({
     setInfo(null);
     startTransition(async () => {
       try {
-        await uploadThenExtract(file, generation);
+        if (files.length === 1) {
+          await uploadThenExtract(files[0]!, generation);
+          return;
+        }
+        const batchResult = await createOcrBatchAction({ totalCount: files.length });
+        if (!batchResult.ok) {
+          setError(batchResult.error);
+          return;
+        }
+        setBatches((prev) => [batchResult.data.batch, ...prev.filter((item) => item.id !== batchResult.data.batch.id)]);
+        for (const file of files) {
+          if (generation !== uploadGenerationRef.current) return;
+          await uploadThenExtract(file, generation, batchResult.data.batch.id);
+        }
+        setInfo(t('batchQueued', { count: files.length }));
       } catch {
         if (generation === uploadGenerationRef.current) {
           setError(t('extractFailed', { code: 'file_picker' }));
@@ -403,6 +459,7 @@ export function OcrReviewPanel({
         filename: selected.sourceDocument.filename ?? undefined,
         workflow,
         forceRetry: true,
+        batchId: selected.batchId ?? undefined,
       });
       if (!result.ok) {
         setError(result.error);
@@ -414,6 +471,25 @@ export function OcrReviewPanel({
         return next;
       });
       selectJob(result.data);
+      if (
+        result.data.status === 'queued' ||
+        result.data.status === 'processing' ||
+        result.data.status === 'running'
+      ) {
+        setInfo(t('extractQueuedBackground'));
+      }
+    });
+  }
+
+  function onCancelQueued() {
+    if (!selected || selected.status !== 'queued') return;
+    startTransition(async () => {
+      const result = await cancelOcrJobAction({ jobId: selected.id });
+      if (!result.ok) {
+        setError(result.error);
+        return;
+      }
+      leaveTerminalJob(selected.id, t('jobCancelled'));
     });
   }
 
@@ -524,6 +600,15 @@ export function OcrReviewPanel({
   const vendorMatches = selected?.rawMetadata?.vendorMatches ?? [];
   const duplicateHits = selected?.rawMetadata?.duplicateHits ?? [];
   const sourceDocumentId = selected?.sourceDocument.documentId;
+  const visibleBatches = useMemo(() => {
+    const ids = new Set(jobs.map((job) => job.batchId).filter((id): id is string => Boolean(id)));
+    return batches
+      .filter((batch) => ids.has(batch.id) || batch.status === 'queued' || batch.status === 'processing')
+      .map((batch) => {
+        const members = jobs.filter((job) => job.batchId === batch.id);
+        return { batch, ...recountOcrBatchFromJobs(members, batch.totalCount) };
+      });
+  }, [batches, jobs]);
 
   return (
     <div className="flex flex-col gap-6" dir="auto" data-pf-ocr-review>
@@ -573,13 +658,14 @@ export function OcrReviewPanel({
               ref={fileInputRef}
               type="file"
               accept={OCR_FILE_ACCEPT}
+              multiple
               className="sr-only"
               aria-hidden="true"
               tabIndex={-1}
               data-pf-ocr-file-input
               disabled={pending}
               onChange={(event) => {
-                onExtractImage(event.target.files?.[0] ?? null);
+                onExtractImages(event.target.files ? [...event.target.files] : []);
                 event.target.value = '';
               }}
             />
@@ -607,6 +693,22 @@ export function OcrReviewPanel({
         ) : null}
       </div>
 
+      {visibleBatches.length > 0 ? (
+        <ul className="flex flex-col gap-2" data-pf-ocr-batches>
+          {visibleBatches.map(({ batch, completedCount, failedCount, totalCount, status }) => (
+            <li key={batch.id}>
+              <Alert tone={status === 'failed' ? 'warning' : 'info'} data-pf-ocr-batch-id={batch.id}>
+                {t('batchProgress', {
+                  completed: completedCount,
+                  total: totalCount,
+                  failed: failedCount,
+                })}
+              </Alert>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+
       {jobs.length === 0 ? (
         <Alert tone="info">{t('empty')}</Alert>
       ) : (
@@ -619,6 +721,7 @@ export function OcrReviewPanel({
                   aria-current={job.id === selectedId ? 'true' : undefined}
                   data-pf-ocr-job-id={job.id}
                   data-pf-ocr-job-document-id={job.sourceDocument.documentId ?? ''}
+                  data-pf-ocr-job-status={job.status}
                   className={cn(
                     pressableClassName,
                     'flex w-full min-h-11 items-center justify-between gap-2 rounded-md border border-[var(--pf-border-default)] px-3 py-2 text-start text-sm',
@@ -664,6 +767,17 @@ export function OcrReviewPanel({
                 {selected.status === 'failed' && sourceDocumentId ? (
                   <Button type="button" className="min-h-11" loading={pending} onClick={onRetry}>
                     {t('retry')}
+                  </Button>
+                ) : null}
+                {selected.status === 'queued' ? (
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    className="min-h-11"
+                    loading={pending}
+                    onClick={onCancelQueued}
+                  >
+                    {t('cancelJob')}
                   </Button>
                 ) : null}
               </div>
@@ -859,8 +973,16 @@ export function OcrReviewPanel({
                     </Button>
                   </div>
                 </>
+              ) : selected.status === 'queued' ||
+                selected.status === 'processing' ||
+                selected.status === 'running' ? (
+                <Alert tone="info" data-pf-ocr-job-inflight>
+                  {t('stillProcessing')}
+                </Alert>
               ) : (
-                <Alert tone="warning">{selected.errorMessage ?? t('noCandidates')}</Alert>
+                <Alert tone="warning" data-pf-ocr-job-failed={selected.status === 'failed' ? 'true' : undefined}>
+                  {selected.errorMessage ?? t('noCandidates')}
+                </Alert>
               )}
               </div>
             </div>

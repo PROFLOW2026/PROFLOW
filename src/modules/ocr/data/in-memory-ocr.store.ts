@@ -1,8 +1,11 @@
 import { randomUUID } from 'node:crypto';
+import { ConflictError } from '@/shared/errors';
+import { isOcrActiveProcessingStatus } from '../domain/job-lifecycle';
 import { assertOcrConfirmedTargetShape } from '../domain/target-shape';
 import type {
   ExtractionJob,
   ExtractionJobStatus,
+  OcrBatch,
   OcrCandidateFieldKey,
   OcrDraftTarget,
   OcrReviewOverrides,
@@ -12,7 +15,10 @@ import type {
   ReceiptExtractionCandidates,
 } from '../domain/types';
 import type {
+  CreateOcrBatchInput,
   CreateOcrJobInput,
+  ListOcrJobsOptions,
+  OcrBatchPatch,
   OcrJobPatch,
   OcrRepository,
   SeedOcrFixtureInput,
@@ -28,12 +34,22 @@ import type {
 type JobRow = ExtractionJob;
 
 const jobsByOrg = new Map<string, Map<string, JobRow>>();
+const batchesByOrg = new Map<string, Map<string, OcrBatch>>();
 
 function orgBucket(organizationId: string): Map<string, JobRow> {
   let bucket = jobsByOrg.get(organizationId);
   if (!bucket) {
     bucket = new Map();
     jobsByOrg.set(organizationId, bucket);
+  }
+  return bucket;
+}
+
+function batchBucket(organizationId: string): Map<string, OcrBatch> {
+  let bucket = batchesByOrg.get(organizationId);
+  if (!bucket) {
+    bucket = new Map();
+    batchesByOrg.set(organizationId, bucket);
   }
   return bucket;
 }
@@ -54,8 +70,66 @@ function sourceRef(input: {
   };
 }
 
+function queueDefaults(createdAt: string): Pick<
+  ExtractionJob,
+  | 'documentVersionId'
+  | 'batchId'
+  | 'attemptCount'
+  | 'lastError'
+  | 'idempotencyKey'
+  | 'queuedAt'
+  | 'startedAt'
+  | 'completedAt'
+  | 'cancelledAt'
+> {
+  return {
+    documentVersionId: null,
+    batchId: null,
+    attemptCount: 0,
+    lastError: null,
+    idempotencyKey: null,
+    queuedAt: createdAt,
+    startedAt: null,
+    completedAt: null,
+    cancelledAt: null,
+  };
+}
+
+function assertActiveUniqueness(organizationId: string, job: ExtractionJob): void {
+  const documentId = job.sourceDocument.documentId;
+  if (!documentId || !isOcrActiveProcessingStatus(job.status)) return;
+  for (const existing of orgBucket(organizationId).values()) {
+    if (existing.id === job.id) continue;
+    if (
+      existing.sourceDocument.documentId === documentId &&
+      existing.providerId === job.providerId &&
+      isOcrActiveProcessingStatus(existing.status)
+    ) {
+      throw new ConflictError(
+        'An OCR job is already processing this document',
+        'ocr.errors.duplicateActiveJob',
+      );
+    }
+  }
+}
+
+function assertIdempotencyUniqueness(organizationId: string, job: ExtractionJob): void {
+  const key = job.idempotencyKey;
+  if (!key) return;
+  for (const existing of orgBucket(organizationId).values()) {
+    if (existing.id === job.id) continue;
+    if (existing.idempotencyKey === key) {
+      throw new ConflictError(
+        'An OCR job with this idempotency key already exists',
+        'ocr.errors.duplicateIdempotencyKey',
+      );
+    }
+  }
+}
+
 export function resetOcrStoreForTests(): void {
   jobsByOrg.clear();
+  batchesByOrg.clear();
 }
 
 export function createInMemoryOcrRepository(): OcrRepository {
@@ -66,14 +140,35 @@ export function createInMemoryOcrRepository(): OcrRepository {
     async updateJob(organizationId, jobId, patch) {
       return updateJob(organizationId, jobId, patch);
     },
+    async claimJob(organizationId, jobId, fromStatuses, patch) {
+      return claimJob(organizationId, jobId, fromStatuses, patch);
+    },
     async findJob(organizationId, jobId) {
       return findJob(organizationId, jobId);
+    },
+    async findActiveJobForDocument(organizationId, documentId, providerId) {
+      return findActiveJobForDocument(organizationId, documentId, providerId);
+    },
+    async findJobByIdempotencyKey(organizationId, idempotencyKey) {
+      return findJobByIdempotencyKey(organizationId, idempotencyKey);
     },
     async listJobsForOrg(organizationId, options) {
       return listJobsForOrg(organizationId, options);
     },
     async seedFixtureJob(input) {
       return seedFixtureJob(input);
+    },
+    async createBatch(input) {
+      return createBatch(input);
+    },
+    async updateBatch(organizationId, batchId, patch) {
+      return updateBatch(organizationId, batchId, patch);
+    },
+    async findBatch(organizationId, batchId) {
+      return findBatch(organizationId, batchId);
+    },
+    async listBatchesForOrg(organizationId) {
+      return listBatchesForOrg(organizationId);
     },
   };
 }
@@ -104,9 +199,15 @@ export function createQueuedJob(input: CreateOcrJobInput): ExtractionJob {
     confirmedVendorBillId: null,
     confirmedVendorCreditId: null,
     confirmedDraftTarget: null,
+    ...queueDefaults(createdAt),
+    documentVersionId: input.documentVersionId ?? null,
+    batchId: input.batchId ?? null,
+    idempotencyKey: input.idempotencyKey ?? null,
     createdAt,
     updatedAt: createdAt,
   };
+  assertActiveUniqueness(input.organizationId, job);
+  assertIdempotencyUniqueness(input.organizationId, job);
   orgBucket(input.organizationId).set(job.id, job);
   return job;
 }
@@ -119,6 +220,34 @@ export function updateJob(
   const bucket = orgBucket(organizationId);
   const existing = bucket.get(jobId);
   if (!existing) return null;
+  const next = applyJobPatch(existing, patch);
+  assertActiveUniqueness(organizationId, next);
+  assertIdempotencyUniqueness(organizationId, next);
+  bucket.set(jobId, next);
+  return hydrateJob(next);
+}
+
+export function claimJob(
+  organizationId: string,
+  jobId: string,
+  fromStatuses: readonly ExtractionJobStatus[],
+  patch: OcrJobPatch,
+): ExtractionJob | null {
+  const existing = orgBucket(organizationId).get(jobId);
+  if (!existing) return null;
+  if (!fromStatuses.includes(existing.status)) return null;
+  if (
+    (patch.confirmedExpenseId != null ||
+      patch.confirmedVendorBillId != null ||
+      patch.confirmedVendorCreditId != null) &&
+    (existing.confirmedExpenseId || existing.confirmedVendorBillId || existing.confirmedVendorCreditId)
+  ) {
+    return null;
+  }
+  return updateJob(organizationId, jobId, patch);
+}
+
+function applyJobPatch(existing: ExtractionJob, patch: OcrJobPatch): ExtractionJob {
   const sourceDocument = patch.sourceDocument ?? existing.sourceDocument;
   const nextShape = {
     confirmedDraftTarget:
@@ -140,7 +269,7 @@ export function updateJob(
   };
   assertOcrConfirmedTargetShape(nextShape);
 
-  const next: JobRow = {
+  return {
     ...existing,
     ...patch,
     ...nextShape,
@@ -148,8 +277,6 @@ export function updateJob(
     documentId: sourceDocument.documentId,
     updatedAt: nowIso(),
   };
-  bucket.set(jobId, next);
-  return hydrateJob(next);
 }
 
 function hydrateJob(job: ExtractionJob): ExtractionJob {
@@ -159,6 +286,15 @@ function hydrateJob(job: ExtractionJob): ExtractionJob {
       job.confirmedVendorCreditId ?? job.rawMetadata?.confirmedVendorCreditId ?? null,
     confirmedDraftTarget:
       job.confirmedDraftTarget ?? job.rawMetadata?.confirmedApplicationTarget ?? null,
+    documentVersionId: job.documentVersionId ?? null,
+    batchId: job.batchId ?? null,
+    attemptCount: job.attemptCount ?? 0,
+    lastError: job.lastError ?? null,
+    idempotencyKey: job.idempotencyKey ?? null,
+    queuedAt: job.queuedAt ?? job.createdAt,
+    startedAt: job.startedAt ?? null,
+    completedAt: job.completedAt ?? null,
+    cancelledAt: job.cancelledAt ?? null,
   };
 }
 
@@ -167,15 +303,46 @@ export function findJob(organizationId: string, jobId: string): ExtractionJob | 
   return job ? hydrateJob(job) : null;
 }
 
+export function findActiveJobForDocument(
+  organizationId: string,
+  documentId: string,
+  providerId: string,
+): ExtractionJob | null {
+  for (const job of orgBucket(organizationId).values()) {
+    if (
+      job.sourceDocument.documentId === documentId &&
+      job.providerId === providerId &&
+      isOcrActiveProcessingStatus(job.status)
+    ) {
+      return hydrateJob(job);
+    }
+  }
+  return null;
+}
+
+export function findJobByIdempotencyKey(
+  organizationId: string,
+  idempotencyKey: string,
+): ExtractionJob | null {
+  for (const job of orgBucket(organizationId).values()) {
+    if (job.idempotencyKey === idempotencyKey) return hydrateJob(job);
+  }
+  return null;
+}
+
 export function listJobsForOrg(
   organizationId: string,
-  options?: { status?: ExtractionJobStatus | readonly ExtractionJobStatus[] },
+  options?: ListOcrJobsOptions,
 ): ExtractionJob[] {
   const all = [...orgBucket(organizationId).values()];
   const statuses = options?.status
     ? new Set(Array.isArray(options.status) ? options.status : [options.status])
     : null;
-  const filtered = statuses ? all.filter((job) => statuses.has(job.status)) : all;
+  const filtered = all.filter((job) => {
+    if (statuses && !statuses.has(job.status)) return false;
+    if (options?.batchId && job.batchId !== options.batchId) return false;
+    return true;
+  });
   return filtered.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)).map(hydrateJob);
 }
 
@@ -213,11 +380,57 @@ export function seedFixtureJob(input: SeedOcrFixtureInput): ExtractionJob {
     confirmedVendorBillId: null,
     confirmedVendorCreditId: null,
     confirmedDraftTarget: null,
+    ...queueDefaults(createdAt),
+    completedAt: createdAt,
     createdAt,
     updatedAt: createdAt,
   };
   orgBucket(input.organizationId).set(job.id, job);
   return job;
+}
+
+export function createBatch(input: CreateOcrBatchInput): OcrBatch {
+  const createdAt = nowIso();
+  const batch: OcrBatch = {
+    id: randomUUID(),
+    organizationId: input.organizationId,
+    createdByUserId: input.createdByUserId ?? null,
+    status: 'queued',
+    totalCount: input.totalCount ?? 0,
+    completedCount: 0,
+    failedCount: 0,
+    createdAt,
+    updatedAt: createdAt,
+  };
+  batchBucket(input.organizationId).set(batch.id, batch);
+  return batch;
+}
+
+export function updateBatch(
+  organizationId: string,
+  batchId: string,
+  patch: OcrBatchPatch,
+): OcrBatch | null {
+  const bucket = batchBucket(organizationId);
+  const existing = bucket.get(batchId);
+  if (!existing) return null;
+  const next: OcrBatch = {
+    ...existing,
+    ...patch,
+    updatedAt: nowIso(),
+  };
+  bucket.set(batchId, next);
+  return next;
+}
+
+export function findBatch(organizationId: string, batchId: string): OcrBatch | null {
+  return batchBucket(organizationId).get(batchId) ?? null;
+}
+
+export function listBatchesForOrg(organizationId: string): OcrBatch[] {
+  return [...batchBucket(organizationId).values()].sort((a, b) =>
+    b.updatedAt.localeCompare(a.updatedAt),
+  );
 }
 
 // Re-export patch field types used by callers that previously imported from this file.

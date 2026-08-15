@@ -14,6 +14,14 @@ import {
   endVendorEngagement,
   restoreVendor,
   updateVendor,
+  createSubcontract,
+  changeSubcontractStatus,
+  addApprovedSubcontractChange,
+  linkSubcontractDocument,
+  createSubcontractSchema,
+  changeSubcontractStatusSchema,
+  addSubcontractValueChangeSchema,
+  linkSubcontractDocumentSchema,
   type CreateVendorInput,
   type UpdateVendorInput,
 } from '@/modules/vendors';
@@ -223,6 +231,128 @@ export async function cancelVendorEngagementAction(input: {
     return { ok: true };
   } catch (error) {
     if (error instanceof AppError) return { error: t('unexpected') };
+    throw error;
+  }
+}
+
+export async function createSubcontractAction(
+  _prev: VendorFormState,
+  formData: FormData,
+): Promise<VendorFormState> {
+  const t = await getTranslations('errors');
+
+  const parsed = createSubcontractSchema.safeParse({
+    title: formData.get('title'),
+    subcontractNumber: formData.get('subcontractNumber') || null,
+    vendorId: formData.get('vendorId'),
+    projectId: formData.get('projectId'),
+    parentContractId: formData.get('parentContractId') || null,
+    originalAmount: formData.get('originalAmount'),
+    retentionPercent: formData.get('retentionPercent') || null,
+    startDate: formData.get('startDate') || null,
+    endDate: formData.get('endDate') || null,
+    notes: formData.get('notes') || null,
+  });
+  if (!parsed.success) {
+    return { error: t('validationFailed') };
+  }
+
+  try {
+    await withOrgContext((context) => createSubcontract(context, parsed.data));
+    revalidatePath('/vendors');
+    revalidatePath(`/vendors/${parsed.data.vendorId}`);
+    revalidatePath(`/projects/${parsed.data.projectId}`);
+    return { ok: true };
+  } catch (error) {
+    if (error instanceof AppError) return { error: t('validationFailed') };
+    throw error;
+  }
+}
+
+export async function changeSubcontractStatusAction(input: {
+  subcontractId: string;
+  vendorId: string;
+  projectId: string;
+  status: 'active' | 'completed' | 'cancelled';
+}): Promise<VendorFormState> {
+  const t = await getTranslations('errors');
+  const parsed = changeSubcontractStatusSchema.safeParse(input);
+  if (!parsed.success) {
+    return { error: t('validationFailed') };
+  }
+
+  try {
+    await withOrgContext((context) => changeSubcontractStatus(context, parsed.data));
+    revalidatePath('/vendors');
+    revalidatePath(`/vendors/${input.vendorId}`);
+    revalidatePath(`/projects/${input.projectId}`);
+    return { ok: true };
+  } catch (error) {
+    if (error instanceof AppError) return { error: t('unexpected') };
+    throw error;
+  }
+}
+
+export async function addSubcontractChangeAction(
+  _prev: VendorFormState,
+  formData: FormData,
+): Promise<VendorFormState> {
+  const t = await getTranslations('errors');
+  const vendorId = String(formData.get('vendorId') ?? '');
+  const projectId = String(formData.get('projectId') ?? '');
+
+  const parsed = addSubcontractValueChangeSchema.safeParse({
+    subcontractId: formData.get('subcontractId'),
+    kind: formData.get('kind'),
+    direction: formData.get('direction'),
+    amount: formData.get('amount'),
+    effectiveDate: formData.get('effectiveDate') || null,
+    reason: formData.get('reason') || null,
+  });
+  if (!parsed.success) {
+    return { error: t('validationFailed') };
+  }
+
+  try {
+    await withOrgContext((context) => addApprovedSubcontractChange(context, parsed.data));
+    revalidatePath('/vendors');
+    if (vendorId) revalidatePath(`/vendors/${vendorId}`);
+    if (projectId) revalidatePath(`/projects/${projectId}`);
+    return { ok: true };
+  } catch (error) {
+    if (error instanceof AppError) return { error: t('validationFailed') };
+    throw error;
+  }
+}
+
+export async function linkSubcontractDocumentAction(
+  _prev: VendorFormState,
+  formData: FormData,
+): Promise<VendorFormState> {
+  const t = await getTranslations('errors');
+  const vendorId = String(formData.get('vendorId') ?? '');
+  const projectId = String(formData.get('projectId') ?? '');
+
+  const parsed = linkSubcontractDocumentSchema.safeParse({
+    subcontractId: formData.get('subcontractId'),
+    documentId: formData.get('documentId'),
+    isInsurance: formData.get('isInsurance') === 'on',
+    isRequired: formData.get('isRequired') === 'on',
+    expiresAt: formData.get('expiresAt') || null,
+    label: formData.get('label') || null,
+  });
+  if (!parsed.success) {
+    return { error: t('validationFailed') };
+  }
+
+  try {
+    await withOrgContext((context) => linkSubcontractDocument(context, parsed.data));
+    revalidatePath('/vendors');
+    if (vendorId) revalidatePath(`/vendors/${vendorId}`);
+    if (projectId) revalidatePath(`/projects/${projectId}`);
+    return { ok: true };
+  } catch (error) {
+    if (error instanceof AppError) return { error: t('validationFailed') };
     throw error;
   }
 }

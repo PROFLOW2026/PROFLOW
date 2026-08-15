@@ -1,0 +1,90 @@
+{
+  "title": "שיבוץ משאבים",
+  "description": "מי משובץ, פנוי או לא זמין — לפי יום או שבוע.",
+  "loading": "טוען את לוח השיבוץ…",
+  "notAllowed": {
+    "title": "אין גישה לשיבוץ",
+    "body": "אין לך הרשאה לצפות בלוח השיבוץ."
+  },
+  "empty": {
+    "title": "אין עובדים בלוח הזה עדיין",
+    "body": "הוסיפו עובדים, ואז שבצו זמן או סמנו היעדרות. שיוכים לפרויקטים וקריאות שירות מתוזמנות יופיעו כאן לבד.",
+    "action": "שיבוץ חדש"
+  },
+  "view": {
+    "day": "יום",
+    "week": "שבוע",
+    "today": "היום",
+    "previous": "הקודם",
+    "next": "הבא"
+  },
+  "signals": {
+    "available": "פנוי",
+    "partially_booked": "משובץ חלקית",
+    "fully_booked": "משובץ במלואו",
+    "conflict": "התנגשות",
+    "over_capacity": "מעל הקיבולת",
+    "unavailable": "לא זמין"
+  },
+  "sources": {
+    "manual": "שיבוץ",
+    "work_order": "קריאת שירות",
+    "assignment": "שיוך לפרויקט",
+    "recurring": "שירות חוזר"
+  },
+  "status": {
+    "planned": "מתוכנן",
+    "confirmed": "מאושר",
+    "cancelled": "בוטל"
+  },
+  "kinds": {
+    "leave": "חופשה",
+    "unavailable": "לא זמין",
+    "holiday": "חג"
+  },
+  "hours": "{hours} שע׳",
+  "capacity": "{planned} מתוך {capacity} שע׳",
+  "assignmentBackground": "משובץ: {project}",
+  "readOnlyHint": "מוצג מלוח השירות. אפשר לשנות בקריאת השירות.",
+  "newBooking": "שיבוץ חדש",
+  "newUnavailability": "סימון היעדרות",
+  "reschedule": "שינוי מועד",
+  "hideReschedule": "הסתרה",
+  "cancelBooking": "ביטול שיבוץ",
+  "cancelConfirmTitle": "לבטל את השיבוץ?",
+  "cancelConfirmBody": "המשבצת תתפנה. רישומי שעות ושכר לא משתנים.",
+  "cancelConfirmAction": "ביטול השיבוץ",
+  "cancelled": "השיבוץ בוטל.",
+  "saved": "נשמר.",
+  "confirmOverlap": "שבץ בכל זאת — הזמנים חופפים",
+  "overlapWarning": "זה חופף לשיבוץ אחר. אשרו כדי להשאיר את שניהם.",
+  "overCapacityHint": "השעות המתוכננות גבוהות מ־{hours} השעות הרגילות לתקופה הזו.",
+  "fields": {
+    "employee": "עובד",
+    "employeePlaceholder": "בחירת עובד",
+    "project": "פרויקט",
+    "projectPlaceholder": "פרויקט אופציונלי",
+    "projectNone": "בלי פרויקט",
+    "startAt": "התחלה",
+    "endAt": "סיום",
+    "plannedHours": "שעות מתוכננות",
+    "plannedHoursHint": "ריק — לפי הזמן בין התחלה לסיום.",
+    "notes": "הערות",
+    "kind": "סוג",
+    "startDate": "מתאריך",
+    "endDate": "עד תאריך"
+  },
+  "actions": {
+    "createBooking": "שמירת שיבוץ",
+    "saveReschedule": "שמירת מועדים",
+    "createUnavailability": "שמירת היעדרות"
+  },
+  "errors": {
+    "bookingOverlap": "זה חופף לשיבוץ אחר. אשרו כדי להשאיר את שניהם, או בחרו זמן אחר.",
+    "unavailableOverlap": "זה חופף להיעדרות. בחרו זמן אחר, או שנו את ההיעדרות קודם.",
+    "unavailabilityOverlap": "זה חופף להיעדרות קיימת.",
+    "cancelledLocked": "אי אפשר לשנות שיבוץ שבוטל.",
+    "employeeRequired": "בחרו עובד.",
+    "windowRequired": "נדרשות שעת התחלה ושעת סיום."
+  }
+}

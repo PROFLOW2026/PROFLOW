@@ -30,6 +30,7 @@ import {
   confirmReceiptExtraction,
   extractReceiptJob,
   findJob,
+  flushOcrBackgroundJobs,
   getOcrFeatureMode,
   getOcrProviderStatus,
   listOcrCandidates,
@@ -37,6 +38,7 @@ import {
   mapConfirmedFieldsToExpenseDraft,
   mapConfirmedFieldsToVendorBillDraft,
   rejectOcrCandidate,
+  resetOcrBackgroundJobsForTests,
   resetOcrStoreForTests,
   seedFixtureJob,
   validateMappedCandidates,
@@ -67,6 +69,16 @@ function contextWith(permissions: readonly PermissionKey[]): OrgContext {
 
 const ALL_FIELDS = [...OCR_CANDIDATE_FIELD_KEYS];
 const VENDOR_UUID = '01900000-0000-7000-8000-0000000000aa';
+
+async function extractUntilSettled(
+  ctx: OrgContext,
+  payload: Parameters<typeof extractReceiptJob>[1],
+  provider: Parameters<typeof extractReceiptJob>[2],
+) {
+  const queued = await extractReceiptJob(ctx, payload, provider);
+  await flushOcrBackgroundJobs();
+  return findJob(ctx.organizationId, queued.id) ?? queued;
+}
 
 describe('OCR feature gate', () => {
   const previous = {
@@ -241,6 +253,7 @@ describe('confirm path never creates expense without confirm', () => {
   beforeEach(() => {
     setOcrPersistenceReadyForTests(false);
     resetOcrStoreForTests();
+    resetOcrBackgroundJobsForTests();
   });
 
   afterEach(() => {
@@ -552,7 +565,7 @@ describe('confirm path never creates expense without confirm', () => {
   it('never auto-creates an expense from extraction alone', async () => {
     const ctx = contextWith([PERMISSIONS.DOCUMENTS_MANAGE]);
     const provider = new StubOcrProvider(undefined);
-    const job = await extractReceiptJob(
+    const job = await extractUntilSettled(
       ctx,
       { filename: 'scan.png', mimeType: 'image/png' },
       provider,
@@ -593,6 +606,7 @@ describe('extractReceiptJob with stub', () => {
   beforeEach(() => {
     setOcrPersistenceReadyForTests(false);
     resetOcrStoreForTests();
+    resetOcrBackgroundJobsForTests();
   });
 
   afterEach(() => {
@@ -602,7 +616,7 @@ describe('extractReceiptJob with stub', () => {
   it('marks job failed when provider is not configured and retains source document', async () => {
     const ctx = contextWith([PERMISSIONS.DOCUMENTS_MANAGE]);
     const provider = new StubOcrProvider(undefined);
-    const job = await extractReceiptJob(
+    const job = await extractUntilSettled(
       ctx,
       { filename: 'invoice.pdf', mimeType: 'application/pdf' },
       provider,
@@ -620,7 +634,7 @@ describe('extractReceiptJob with stub', () => {
   it('configured stub still fails empty without inventing candidates', async () => {
     const ctx = contextWith([PERMISSIONS.DOCUMENTS_MANAGE]);
     const provider = new StubOcrProvider(true);
-    const job = await extractReceiptJob(ctx, { filename: 'blank.pdf' }, provider);
+    const job = await extractUntilSettled(ctx, { filename: 'blank.pdf' }, provider);
     expect(job.status).toBe('failed');
     expect(job.errorCode).toBe('empty_result');
     expect(job.candidates).toBeNull();
@@ -639,7 +653,7 @@ describe('extractReceiptJob with stub', () => {
         'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
     };
 
-    const first = await extractReceiptJob(ctx, payload, provider);
+    const first = await extractUntilSettled(ctx, payload, provider);
     const second = await extractReceiptJob(ctx, payload, provider);
     expect(first.id).toBe(second.id);
     expect(spy).toHaveBeenCalledTimes(1);
@@ -663,6 +677,7 @@ describe('end-to-end extract → review → confirm draft', () => {
   beforeEach(() => {
     setOcrPersistenceReadyForTests(false);
     resetOcrStoreForTests();
+    resetOcrBackgroundJobsForTests();
   });
 
   afterEach(() => {
@@ -679,7 +694,7 @@ describe('end-to-end extract → review → confirm draft', () => {
     });
     const provider = new ScriptedOcrProvider(candidates);
 
-    const extracted = await extractReceiptJob(
+    const extracted = await extractUntilSettled(
       manageCtx,
       {
         documentId: '01900000-0000-7000-8000-000000000001',

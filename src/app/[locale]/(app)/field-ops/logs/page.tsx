@@ -6,7 +6,8 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/ui/page-header';
 import { ResponsiveTable } from '@/components/patterns/responsive-table';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { listDailyLogsForOrg } from '@/modules/field-ops';
+import { StatusBadge } from '@/components/ui/status-badge';
+import { DAILY_LOG_STATUSES, listDailyLogsForOrg } from '@/modules/field-ops';
 import { listProjectsForOrg } from '@/modules/projects';
 import { withOrgContext } from '@/shared/auth/session';
 import { Link } from '@/shared/i18n/navigation';
@@ -29,15 +30,20 @@ export async function generateMetadata({
 export default async function FieldOpsLogsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ projectId?: string }>;
+  searchParams: Promise<{ projectId?: string; status?: string }>;
 }) {
   const t = await getTranslations('fieldOps');
+  const tCommon = await getTranslations('common');
   const locale = await getLocale();
-  const { projectId } = await searchParams;
+  const { projectId, status: statusRaw } = await searchParams;
+  const status =
+    statusRaw && (DAILY_LOG_STATUSES as readonly string[]).includes(statusRaw)
+      ? (statusRaw as (typeof DAILY_LOG_STATUSES)[number])
+      : undefined;
 
   const { logs, projects, canManage } = await withOrgContext(async (context) => {
     const [logRows, projectRows] = await Promise.all([
-      listDailyLogsForOrg(context, projectId),
+      listDailyLogsForOrg(context, { projectId, status }),
       listProjectsForOrg(context, {}),
     ]);
     return {
@@ -71,6 +77,28 @@ export default async function FieldOpsLogsPage({
       />
       <FieldOpsSectionNav active="logs" />
 
+      <form method="get" className="flex flex-col gap-3 sm:flex-row sm:items-end">
+        {projectId ? <input type="hidden" name="projectId" value={projectId} /> : null}
+        <label className="flex flex-col gap-1 text-sm sm:w-44">
+          <span className="text-[var(--pf-text-secondary)]">{t('filters.status')}</span>
+          <select
+            name="status"
+            defaultValue={status ?? 'all'}
+            className="flex h-11 w-full rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] px-3 text-sm focus:border-[var(--pf-border-focus)] focus:outline-2 focus:outline-offset-0 focus:outline-[var(--pf-focus-ring)]"
+          >
+            <option value="all">{t('filters.all')}</option>
+            {DAILY_LOG_STATUSES.map((value) => (
+              <option key={value} value={value}>
+                {t(`logStatus.${value}`)}
+              </option>
+            ))}
+          </select>
+        </label>
+        <Button type="submit" variant="secondary" className="min-h-11 w-full sm:w-auto">
+          {tCommon('actions.filter')}
+        </Button>
+      </form>
+
       {logs.length === 0 ? (
         <EmptyState
           icon={HardHat}
@@ -95,6 +123,7 @@ export default async function FieldOpsLogsPage({
                   <TableRow>
                     <TableHead>{t('list.columns.date')}</TableHead>
                     <TableHead>{t('list.columns.project')}</TableHead>
+                    <TableHead>{t('list.columns.status')}</TableHead>
                     <TableHead>{t('list.columns.summary')}</TableHead>
                     <TableHead>{t('list.columns.weather')}</TableHead>
                     <TableHead>{t('list.columns.workforce')}</TableHead>
@@ -116,6 +145,18 @@ export default async function FieldOpsLogsPage({
                         </Link>
                       </TableCell>
                       <TableCell>{projectName.get(log.projectId) ?? '—'}</TableCell>
+                      <TableCell>
+                        <StatusBadge
+                          shape={
+                            log.status === 'finalized'
+                              ? 'completed'
+                              : log.status === 'submitted'
+                                ? 'pending'
+                                : 'draft'
+                          }
+                          label={t(`logStatus.${log.status}`)}
+                        />
+                      </TableCell>
                       <TableCell className="max-w-md truncate font-medium">
                         <Link href={`/field-ops/logs/${log.id}`} className={textNavLinkClassName}>
                           {log.summary}
@@ -137,7 +178,19 @@ export default async function FieldOpsLogsPage({
               href={`/field-ops/logs/${log.id}`}
               className={pressableCardLinkClassName}
             >
-              <p className="min-w-0 font-semibold">{log.summary}</p>
+              <div className="flex items-start justify-between gap-2">
+                <p className="min-w-0 font-semibold">{log.summary}</p>
+                <StatusBadge
+                  shape={
+                    log.status === 'finalized'
+                      ? 'completed'
+                      : log.status === 'submitted'
+                        ? 'pending'
+                        : 'draft'
+                  }
+                  label={t(`logStatus.${log.status}`)}
+                />
+              </div>
               <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">
                 <span className="pf-ltr-island" dir="ltr">
                   {log.logDate}

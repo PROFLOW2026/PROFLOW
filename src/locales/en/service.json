@@ -117,6 +117,27 @@
   "errors": {
     "checklistRequired": "Submit the required checklist before completing this service call."
   },
+  "billing": {
+    "title": "Bill this work",
+    "hint": "Creates a draft invoice with the existing billing engine. VAT is applied there. You cannot bill the same work order twice while a live invoice exists.",
+    "submit": "Create billing",
+    "created": "Draft billing created",
+    "alreadyBilled": "This work order already has a {status} invoice.",
+    "openBilling": "Open billing record",
+    "laborHours": "Labor hours",
+    "laborRate": "Labor rate",
+    "materialsAmount": "Materials",
+    "callOutFee": "Call-out fee",
+    "additionalCharges": "Additional charges",
+    "discountAmount": "Discount",
+    "notes": "Notes",
+    "invalidAmount": "Invalid amount",
+    "negativeAmount": "Amounts must be zero or more",
+    "discountExceeds": "Discount cannot exceed charges",
+    "zeroAmount": "Enter an amount greater than zero",
+    "notWorkOrder": "Only work orders can be billed here",
+    "alreadyBilledError": "This work order already has a live billing record"
+  },
   "dispatch": {
     "title": "Dispatch",
     "description": "Today / tomorrow / week schedule for work orders. Mobile list with form-based reassignment.",

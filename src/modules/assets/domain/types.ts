@@ -22,6 +22,20 @@ export const INVENTORY_MOVEMENT_TYPES = [
 ] as const;
 export type InventoryMovementType = (typeof INVENTORY_MOVEMENT_TYPES)[number];
 
+export const INVENTORY_LOCATION_KINDS = ['warehouse', 'site', 'vehicle'] as const;
+export type InventoryLocationKind = (typeof INVENTORY_LOCATION_KINDS)[number];
+
+export const INVENTORY_RESERVATION_STATUSES = [
+  'active',
+  'released',
+  'consumed',
+  'cancelled',
+] as const;
+export type InventoryReservationStatus = (typeof INVENTORY_RESERVATION_STATUSES)[number];
+
+export const INVENTORY_COUNT_STATUSES = ['draft', 'finalizing', 'finalized', 'void'] as const;
+export type InventoryCountStatus = (typeof INVENTORY_COUNT_STATUSES)[number];
+
 export interface AssetRecord {
   readonly id: string;
   readonly organizationId: string;
@@ -75,10 +89,14 @@ export interface InventoryItemRecord {
   readonly materialItemId: string | null;
   readonly name: string;
   readonly sku: string | null;
+  /** Barcode / QR identifier — storage + search only, not a scanner library. */
+  readonly barcode: string | null;
   readonly unit: string;
   /** Quantity on hand — not a GL balance. */
   readonly quantityOnHand: string;
   readonly reorderLevel: string | null;
+  /** Canonical low-stock threshold; fall back to reorderLevel when null. */
+  readonly minStockLevel: string | null;
   readonly notes: string | null;
   readonly archivedAt: Date | null;
   readonly createdAt: Date;
@@ -108,9 +126,62 @@ export interface InventoryLocationRecord {
   readonly organizationId: string;
   readonly name: string;
   readonly code: string | null;
+  readonly locationKind: InventoryLocationKind;
+  readonly projectId: string | null;
   readonly archivedAt: Date | null;
   readonly createdAt: Date;
   readonly updatedAt: Date;
+}
+
+/** Qty reservation only. available = on_hand − active reserved. Never Actual. */
+export interface InventoryReservationRecord {
+  readonly id: string;
+  readonly organizationId: string;
+  readonly inventoryItemId: string;
+  readonly projectId: string | null;
+  readonly workOrderId: string | null;
+  readonly quantity: string;
+  readonly status: InventoryReservationStatus;
+  readonly notes: string | null;
+  readonly createdByUserId: string | null;
+  readonly releasedAt: Date | null;
+  readonly createdAt: Date;
+  readonly updatedAt: Date;
+}
+
+export interface InventoryCountRecord {
+  readonly id: string;
+  readonly organizationId: string;
+  readonly locationId: string;
+  readonly status: InventoryCountStatus;
+  readonly countedOn: string;
+  readonly notes: string | null;
+  readonly finalizedAt: Date | null;
+  readonly createdByUserId: string | null;
+  readonly createdAt: Date;
+  readonly updatedAt: Date;
+}
+
+export interface InventoryCountLineRecord {
+  readonly id: string;
+  readonly organizationId: string;
+  readonly countId: string;
+  readonly inventoryItemId: string;
+  readonly expectedQuantity: string;
+  readonly countedQuantity: string;
+  readonly createdAt: Date;
+  readonly updatedAt: Date;
+}
+
+export interface LowStockItem {
+  readonly id: string;
+  readonly name: string;
+  readonly sku: string | null;
+  readonly barcode: string | null;
+  readonly unit: string;
+  readonly quantityOnHand: string;
+  readonly minStockLevel: string;
+  readonly suggestedReorder: true;
 }
 
 /** Per-location operational quantity. Header quantity_on_hand is the sum. */

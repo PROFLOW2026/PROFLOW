@@ -9,6 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import {
   getInventoryItemById,
   listInventoryLocationsForOrg,
+  listInventoryReservationsForOrg,
   listMovementsForInventoryItem,
   type InventoryMovementRecord,
   type InventoryMovementType,
@@ -86,11 +87,12 @@ export default async function InventoryItemDetailPage({
     if (!item) return null;
     const canManage = hasPermission(context, PERMISSIONS.ASSETS_MANAGE);
     const canReadProjects = hasPermission(context, PERMISSIONS.PROJECTS_READ);
-    const [movements, projects, documentsPanel, locations] = await Promise.all([
+    const [movements, projects, documentsPanel, locations, reservations] = await Promise.all([
       listMovementsForInventoryItem(context, itemId),
       canReadProjects ? listProjectsForOrg(context, {}) : Promise.resolve([]),
       getEntityDocumentPanelData(context, 'inventory_item', itemId),
       listInventoryLocationsForOrg(context),
+      listInventoryReservationsForOrg(context, { inventoryItemId: itemId, activeOnly: true }),
     ]);
     return {
       item,
@@ -104,6 +106,10 @@ export default async function InventoryItemDetailPage({
       projects: canManage
         ? projects.map((p) => ({ id: p.id, name: p.name }))
         : [],
+      reservations: reservations.map((row) => ({
+        id: row.id,
+        quantity: row.quantity,
+      })),
       canManage,
       today: todayInTimeZone(context.organization.timezone),
       projectNames: new Map(projects.map((p) => [p.id, p.name] as const)),
@@ -112,8 +118,17 @@ export default async function InventoryItemDetailPage({
 
   if (!loaded) notFound();
 
-  const { item, movements, documentsPanel, locations, projects, canManage, today, projectNames } =
-    loaded;
+  const {
+    item,
+    movements,
+    documentsPanel,
+    locations,
+    projects,
+    reservations,
+    canManage,
+    today,
+    projectNames,
+  } = loaded;
 
   return (
     <div className="flex min-w-0 flex-col gap-6">
@@ -129,9 +144,15 @@ export default async function InventoryItemDetailPage({
           </Link>
         }
         meta={
-          <Badge tone={reorderTone(item.reorderStatus)}>
-            {t(`inventory.reorderStatus.${item.reorderStatus}`)}
-          </Badge>
+          <div className="flex flex-wrap gap-1">
+            {item.isLowStock ? (
+              <Badge tone="danger">{t('inventory.lowStockBadge')}</Badge>
+            ) : (
+              <Badge tone={reorderTone(item.reorderStatus)}>
+                {t(`inventory.reorderStatus.${item.reorderStatus}`)}
+              </Badge>
+            )}
+          </div>
         }
       />
 
@@ -154,6 +175,18 @@ export default async function InventoryItemDetailPage({
           </dd>
         </div>
         <div className="min-w-0">
+          <dt className="text-xs text-[var(--pf-text-secondary)]">{t('list.columns.barcode')}</dt>
+          <dd className="break-words font-medium">
+            {item.barcode ? (
+              <span dir="ltr" className="pf-numeric">
+                {item.barcode}
+              </span>
+            ) : (
+              '—'
+            )}
+          </dd>
+        </div>
+        <div className="min-w-0">
           <dt className="text-xs text-[var(--pf-text-secondary)]">{t('list.columns.unit')}</dt>
           <dd className="font-medium">{item.unit}</dd>
         </div>
@@ -164,9 +197,25 @@ export default async function InventoryItemDetailPage({
           </dd>
         </div>
         <div className="min-w-0">
-          <dt className="text-xs text-[var(--pf-text-secondary)]">{t('list.columns.reorderLevel')}</dt>
+          <dt className="text-xs text-[var(--pf-text-secondary)]">{t('list.columns.available')}</dt>
+          <dd className="font-medium tabular-nums" dir="ltr">
+            {item.availableQuantity}
+          </dd>
+        </div>
+        <div className="min-w-0">
+          <dt className="text-xs text-[var(--pf-text-secondary)]">{t('list.columns.reserved')}</dt>
+          <dd className="font-medium tabular-nums" dir="ltr">
+            {item.reservedQuantity}
+          </dd>
+        </div>
+        <div className="min-w-0">
+          <dt className="text-xs text-[var(--pf-text-secondary)]">{t('list.columns.minStock')}</dt>
           <dd className="font-medium">
-            {item.reorderLevel ? <span dir="ltr">{item.reorderLevel}</span> : '—'}
+            {item.minStockLevel || item.reorderLevel ? (
+              <span dir="ltr">{item.minStockLevel ?? item.reorderLevel}</span>
+            ) : (
+              '—'
+            )}
           </dd>
         </div>
       </dl>
@@ -247,6 +296,7 @@ export default async function InventoryItemDetailPage({
                 movementType={type}
                 defaultDate={today}
                 projects={projects}
+                reservations={reservations}
                 locations={locations}
                 defaultLocationId={locations[0]?.id}
               />

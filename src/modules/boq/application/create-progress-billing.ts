@@ -129,6 +129,7 @@ export async function createProgressBilling(context: OrgContext, raw: CreateProg
     context,
     {
       projectId: batch.projectId,
+      contractId: boq.contractId ?? undefined,
       amount: periodNet,
       ...(input.taxAmount
         ? { netAmount: periodNet, taxAmount: input.taxAmount }

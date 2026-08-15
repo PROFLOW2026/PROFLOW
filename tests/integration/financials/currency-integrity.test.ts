@@ -261,6 +261,7 @@ describe('financials currency integrity', () => {
           projectId,
           costAmount: '800.000000',
           costCurrency: 'ILS',
+          approvalStatus: 'approved',
         },
         {
           organizationId: orgId,
@@ -271,6 +272,7 @@ describe('financials currency integrity', () => {
           projectId,
           costAmount: null,
           costCurrency: null,
+          approvalStatus: 'approved',
         },
       ]);
     });

@@ -12,6 +12,7 @@ export const createProjectBoqSchema = z.object({
   currency: z.string().length(3).optional(),
   progressMode: z.enum(BOQ_PROGRESS_MODES).optional(),
   notes: z.string().trim().max(4000).optional(),
+  contractId: z.string().uuid().nullable().optional(),
 });
 export type CreateProjectBoqInput = z.infer<typeof createProjectBoqSchema>;
 
@@ -38,6 +39,7 @@ export type UpsertBoqNodeInput = z.infer<typeof upsertBoqNodeSchema>;
 
 export const activateBoqSchema = z.object({
   boqId: z.string().uuid(),
+  contractId: z.string().uuid().nullable().optional(),
 });
 export type ActivateBoqInput = z.infer<typeof activateBoqSchema>;
 

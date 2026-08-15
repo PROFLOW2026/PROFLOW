@@ -19,6 +19,7 @@ const businessDateSchema = z
 
 export const createBillingRecordSchema = z.object({
   projectId: z.string().uuid('Project is required'),
+  contractId: z.string().uuid().nullable().optional(),
   amount: moneyAmountSchema,
   currency: currencySchema.optional(),
   issueDate: businessDateSchema,
@@ -88,6 +89,7 @@ export const listBillingRecordsSchema = z.object({
   filter: z.enum(['all', 'paid', 'outstanding', 'overdue']).optional(),
   projectId: z.string().uuid().optional(),
   clientId: z.string().uuid().optional(),
+  contractId: z.string().uuid().optional(),
   /** Org AR summary/aging may need a large page; UI lists stay modest by default. */
   limit: z.coerce.number().int().min(1).max(5_000).optional(),
   offset: z.coerce.number().int().min(0).optional(),

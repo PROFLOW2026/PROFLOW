@@ -132,6 +132,35 @@
     "blockersHint": "בעיות שעיכבו או עצרו את העבודה.",
     "blockersPlaceholder": "חומרים, גישה, עיכובי מזג אוויר…"
   },
+  "extraFields": {
+    "title": "פרטי אתר נוספים",
+    "hint": "עובדים, ציוד, עיכובים והערות — פתחו רק אם רלוונטי.",
+    "workersOnSite": "עובדים באתר",
+    "subcontractorsOnSite": "קבלני משנה",
+    "equipmentOnSite": "ציוד",
+    "deliveries": "אספקות",
+    "delays": "עיכובים",
+    "incidents": "אירועים",
+    "safetyNotes": "הערות בטיחות",
+    "visitorNotes": "מבקרים",
+    "managerNotes": "הערות מנהל"
+  },
+  "logStatus": {
+    "draft": "טיוטה",
+    "submitted": "הוגש",
+    "finalized": "סופי"
+  },
+  "lifecycle": {
+    "submit": "הגשה",
+    "finalize": "סיום וסגירה",
+    "finalizeTitle": "סגירת היומן",
+    "finalizeBody": "יומן סופי ננעל. תיקון נעשה בהערה או ביומן חדש — בלי לשכתב את המקור.",
+    "locked": "יומן זה סופי ונעול.",
+    "correctionLabel": "הערת תיקון",
+    "correctionHint": "נוספת ליומן הנעול. לא מחליפה את הרשומה המקורית.",
+    "correctionSubmit": "הוספת הערת תיקון",
+    "saved": "נשמר."
+  },
   "createPunch": {
     "title": "פריט תיקון חדש",
     "description": "הוסיפו פריט פתוח לסגירה לפני מסירה.",
@@ -177,6 +206,10 @@
     "invalidPunchTransition": "לא ניתן לשנות את סטטוס פריט התיקון כך.",
     "invalidInspectionTransition": "לא ניתן לשנות את סטטוס הבדיקה כך.",
     "projectRequired": "בחרו פרויקט.",
-    "photosRequireDocumentsManage": "צירוף תמונות דורש הרשאת מסמכים. הרשומה לא נוצרה."
+    "photosRequireDocumentsManage": "צירוף תמונות דורש הרשאת מסמכים. הרשומה לא נוצרה.",
+    "invalidLogTransition": "לא ניתן לשנות את סטטוס היומן כך.",
+    "logFinalizedLocked": "היומן סופי. הוסיפו הערת תיקון או יומן חדש.",
+    "correctionRequiresFinalized": "הערות תיקון מיועדות ליומן סופי.",
+    "duplicateLogDate": "כבר קיים יומן ליום הזה בפרויקט. פתחו אותו, או הוסיפו הערת תיקון אם הוא סופי."
   }
 }

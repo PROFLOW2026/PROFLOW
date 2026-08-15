@@ -8,16 +8,22 @@ import {
   archiveMaterialUsage,
   createAsset,
   createFleetVehicle,
+  createInventoryCount,
   createInventoryItem,
   createInventoryLocation,
   createMaintenanceRecord,
+  finalizeInventoryCount,
   recordEquipmentUsage,
   recordInventoryMovement,
   recordMaterialUsage,
+  releaseInventoryReservation,
+  reserveInventory,
   updateAsset,
   updateFleetVehicle,
   updateInventoryLocation,
   updateMaintenanceRecord,
+  upsertInventoryCountLine,
+  voidInventoryCount,
 } from '@/modules/assets';
 import { withOrgContext } from '@/shared/auth/session';
 import { AppError, DomainRuleError, ValidationError } from '@/shared/errors';
@@ -253,9 +259,11 @@ export async function createInventoryItemAction(
       createInventoryItem(context, {
         name: requiredFormValue(formData, 'name'),
         sku: formValue(formData, 'sku'),
+        barcode: formValue(formData, 'barcode'),
         unit: formValue(formData, 'unit') ?? 'ea',
         quantityOnHand: formValue(formData, 'quantityOnHand') ?? '0',
         reorderLevel: formValue(formData, 'reorderLevel'),
+        minStockLevel: formValue(formData, 'minStockLevel') ?? formValue(formData, 'reorderLevel'),
         materialItemId: optionalUuidOrNull(formData, 'materialItemId') ?? undefined,
         notes: formValue(formData, 'notes'),
       }),
@@ -285,6 +293,8 @@ export async function recordInventoryMovementAction(
         quantity: requiredFormValue(formData, 'quantity'),
         occurredOn: requiredFormValue(formData, 'occurredOn'),
         projectId: optionalUuidOrNull(formData, 'projectId') ?? undefined,
+        workOrderId: optionalUuidOrNull(formData, 'workOrderId') ?? undefined,
+        reservationId: optionalUuidOrNull(formData, 'reservationId') ?? undefined,
         fromLocationId: optionalUuidOrNull(formData, 'fromLocationId') ?? undefined,
         toLocationId: optionalUuidOrNull(formData, 'toLocationId') ?? undefined,
         locationId: optionalUuidOrNull(formData, 'locationId') ?? undefined,
@@ -308,6 +318,12 @@ export async function createInventoryLocationAction(
       createInventoryLocation(context, {
         name: requiredFormValue(formData, 'name'),
         code: formValue(formData, 'code'),
+        locationKind: formValue(formData, 'locationKind') as
+          | 'warehouse'
+          | 'site'
+          | 'vehicle'
+          | undefined,
+        projectId: optionalUuidOrNull(formData, 'projectId') ?? undefined,
       }),
     );
     revalidatePath('/assets/inventory', 'layout');
@@ -327,6 +343,12 @@ export async function updateInventoryLocationAction(
         locationId: requiredFormValue(formData, 'locationId'),
         name: formValue(formData, 'name'),
         code: formValue(formData, 'code'),
+        locationKind: formValue(formData, 'locationKind') as
+          | 'warehouse'
+          | 'site'
+          | 'vehicle'
+          | undefined,
+        projectId: optionalUuidOrNull(formData, 'projectId') ?? undefined,
       }),
     );
     revalidatePath('/assets/inventory', 'layout');
@@ -344,6 +366,116 @@ export async function archiveInventoryLocationAction(
     await withOrgContext((context) =>
       archiveInventoryLocation(context, {
         locationId: requiredFormValue(formData, 'locationId'),
+      }),
+    );
+    revalidatePath('/assets/inventory', 'layout');
+    return { success: true };
+  } catch (error) {
+    return mapAppError(error);
+  }
+}
+
+export async function reserveInventoryAction(
+  _prev: AssetsFormState,
+  formData: FormData,
+): Promise<AssetsFormState> {
+  try {
+    await withOrgContext((context) =>
+      reserveInventory(context, {
+        inventoryItemId: requiredFormValue(formData, 'inventoryItemId'),
+        quantity: requiredFormValue(formData, 'quantity'),
+        projectId: optionalUuidOrNull(formData, 'projectId') ?? undefined,
+        workOrderId: optionalUuidOrNull(formData, 'workOrderId') ?? undefined,
+        notes: formValue(formData, 'notes'),
+      }),
+    );
+    revalidatePath('/assets/inventory', 'layout');
+    return { success: true };
+  } catch (error) {
+    return mapAppError(error);
+  }
+}
+
+export async function releaseInventoryReservationAction(
+  _prev: AssetsFormState,
+  formData: FormData,
+): Promise<AssetsFormState> {
+  try {
+    await withOrgContext((context) =>
+      releaseInventoryReservation(context, {
+        reservationId: requiredFormValue(formData, 'reservationId'),
+      }),
+    );
+    revalidatePath('/assets/inventory', 'layout');
+    return { success: true };
+  } catch (error) {
+    return mapAppError(error);
+  }
+}
+
+export async function createInventoryCountAction(
+  _prev: AssetsFormState,
+  formData: FormData,
+): Promise<AssetsFormState> {
+  try {
+    await withOrgContext((context) =>
+      createInventoryCount(context, {
+        locationId: requiredFormValue(formData, 'locationId'),
+        countedOn: requiredFormValue(formData, 'countedOn'),
+        notes: formValue(formData, 'notes'),
+      }),
+    );
+    revalidatePath('/assets/inventory', 'layout');
+    return { success: true };
+  } catch (error) {
+    return mapAppError(error);
+  }
+}
+
+export async function upsertInventoryCountLineAction(
+  _prev: AssetsFormState,
+  formData: FormData,
+): Promise<AssetsFormState> {
+  try {
+    await withOrgContext((context) =>
+      upsertInventoryCountLine(context, {
+        countId: requiredFormValue(formData, 'countId'),
+        inventoryItemId: requiredFormValue(formData, 'inventoryItemId'),
+        countedQuantity: requiredFormValue(formData, 'countedQuantity'),
+      }),
+    );
+    revalidatePath('/assets/inventory', 'layout');
+    return { success: true };
+  } catch (error) {
+    return mapAppError(error);
+  }
+}
+
+export async function finalizeInventoryCountAction(
+  _prev: AssetsFormState,
+  formData: FormData,
+): Promise<AssetsFormState> {
+  try {
+    await withOrgContext((context) =>
+      finalizeInventoryCount(context, {
+        countId: requiredFormValue(formData, 'countId'),
+      }),
+    );
+    revalidatePath('/assets/inventory', 'layout');
+    return { success: true };
+  } catch (error) {
+    return mapAppError(error);
+  }
+}
+
+export async function voidInventoryCountAction(
+  _prev: AssetsFormState,
+  formData: FormData,
+): Promise<AssetsFormState> {
+  try {
+    await withOrgContext((context) =>
+      voidInventoryCount(context, {
+        countId: requiredFormValue(formData, 'countId'),
       }),
     );
     revalidatePath('/assets/inventory', 'layout');

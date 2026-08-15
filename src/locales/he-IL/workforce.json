@@ -4,7 +4,8 @@
   "nav": {
     "employees": "עובדים",
     "time": "דיווחי שעות",
-    "attendance": "נוכחות"
+    "attendance": "נוכחות",
+    "approvals": "אישור גיליונות שעות"
   },
   "rateUnits": {
     "hourly": "שעתי",
@@ -111,6 +112,42 @@
       "void": "מבוטל",
       "correction": "תיקון"
     },
+    "approvalStatus": {
+      "draft": "טיוטה",
+      "submitted": "מחכה לאישור",
+      "approved": "אושר",
+      "returned": "הוחזר לתיקון"
+    },
+    "actions": {
+      "submitForApproval": "שלח לאישור",
+      "waitingApproval": "מחכה לאישור",
+      "approved": "אושר",
+      "returned": "הוחזר לתיקון"
+    },
+    "approvals": {
+      "title": "אישור גיליונות שעות",
+      "description": "מאשרים שעות שהוגשו לפני שהן הופכות לעלות עבודה בפועל. טיוטה, המתנה והחזרה אינן יוצרות עלות.",
+      "queueHint": "אפשר לאשר רק שורות שהוגשו. החזרה לתיקון דורשת הערת מנהל.",
+      "approve": "אישור",
+      "approveSelected": "אישור נבחרים",
+      "return": "החזר לתיקון",
+      "submitSelected": "שלח נבחרים לאישור",
+      "managerNote": "הערת מנהל",
+      "managerNoteRequired": "חובה לכתוב הערה בהחזרה לתיקון.",
+      "managerNotePlaceholder": "מה צריך לתקן?",
+      "period": "תקופה",
+      "entries": "דיווחים",
+      "successSubmitted": "נשלח לאישור.",
+      "successApproved": "אושר. השעות האלה נספרות עכשיו כעלות עבודה בפועל.",
+      "successReturned": "הוחזר לתיקון.",
+      "empty": {
+        "title": "אין גיליונות שממתינים",
+        "description": "שעות שהוגשו יופיעו כאן לבדיקה. אין חובה עד שמישהו שולח גיליון שעות."
+      },
+      "filters": {
+        "approvalStatus": "אישור"
+      }
+    },
     "weekdays": {
       "sun": "א׳",
       "mon": "ב׳",
@@ -127,7 +164,8 @@
       "from": "מתאריך",
       "to": "עד תאריך",
       "status": "סטטוס",
-      "kind": "סוג"
+      "kind": "סוג",
+      "approval": "אישור"
     },
     "columns": {
       "date": "תאריך",
@@ -348,6 +386,14 @@
     "timeEntryArchived": "לא ניתן לתקן דיווח שעות בארכיון.",
     "closedMonthNeedsProject": "לא ניתן לרשום תיקון כלכלי בחודש סגור בלי פרויקט. יש לרשום דיווח הופכי בחודש פתוח, או לשייך את הרשומה המקורית לפרויקט.",
     "closedMonthCurrencyMismatch": "תיקון שעות בחודש סגור דורש אותו מטבע עלות במקור ובהחלפה.",
+    "invalidTimesheetTransition": "לא ניתן לשנות את סטטוס גיליון השעות כך.",
+    "timesheetPeriodApproved": "השבוע כבר אושר. לשינוי שעות מאושרות יש להשתמש בתיקון.",
+    "timesheetEmployeeMismatch": "דיווחי השעות חייבים להיות של אותו עובד.",
+    "nothingToSubmit": "אין שעות בטיוטה או שהוחזרו לשליחה לאישור.",
+    "managerNoteRequired": "חובה לכתוב הערת מנהל בהחזרה לתיקון.",
+    "timeEntryApprovedLocked": "שעות שאושרו נעולות. לשינוי יש להשתמש בתיקון.",
+    "timeEntryNotEditable": "אפשר לערוך רק שעות בטיוטה או שהוחזרו. שעות שהוגשו ממתינות לאישור.",
+    "invalidTimesheetPeriod": "תקופת גיליון השעות אינה תקינה.",
     "alreadyClockedIn": "כבר בוצעה כניסה.",
     "notClockedIn": "לא בוצעה כניסה.",
     "noLinkedEmployee": "המשתמש אינו מקושר לרשומת עובד.",

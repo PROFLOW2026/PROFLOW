@@ -19,6 +19,7 @@ import { Link } from '@/shared/i18n/navigation';
 import { MilestonesPanel } from './milestones-panel';
 import { OverviewContractHistorySuspense } from './overview-contract-history';
 import { ProjectWorkspaceNav } from './project-workspace-nav';
+import { ProjectContractsPanel } from '@/modules/projects/ui/project-contracts-panel';
 import { ScheduleSummaryPanel } from './schedule-summary-panel';
 import { textNavLinkClassName } from '@/components/ui/pressable';
 import { cn } from '@/shared/ui/cn';
@@ -219,6 +220,10 @@ export async function OverviewTab({
           locale={locale}
           currency={currency}
         />
+      ) : null}
+
+      {canReadFinancials && !isJob ? (
+        <ProjectContractsPanel projectId={detail.project.id} currency={currency} />
       ) : null}
     </div>
   );

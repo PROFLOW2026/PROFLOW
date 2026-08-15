@@ -1,0 +1,106 @@
+{
+  "title": "Safety / HSE",
+  "description": "Incidents, near misses, toolbox talks, and corrective actions.",
+  "newRecord": "New safety record",
+  "empty": "No safety records yet",
+  "emptyHint": "Log incidents, near misses, and toolbox talks from the field.",
+  "loading": "Loading safety records…",
+  "error": "Could not load safety records.",
+  "types": {
+    "incident": "Incident",
+    "near_miss": "Near miss",
+    "accident": "Accident",
+    "hazard": "Hazard",
+    "observation": "Observation",
+    "toolbox_talk": "Toolbox talk",
+    "ppe_issue": "PPE issue"
+  },
+  "severity": {
+    "low": "Low",
+    "medium": "Medium",
+    "high": "High",
+    "critical": "Critical"
+  },
+  "status": {
+    "open": "Open",
+    "in_progress": "In progress",
+    "closed": "Closed",
+    "cancelled": "Cancelled",
+    "done": "Done"
+  },
+  "fields": {
+    "title": "Title",
+    "description": "Description",
+    "project": "Project / site",
+    "projectNone": "No project",
+    "occurredAt": "Date and time",
+    "peopleInvolved": "People involved",
+    "immediateAction": "Immediate action",
+    "correctiveAction": "Corrective action",
+    "owner": "Owner",
+    "ownerNone": "No owner",
+    "dueDate": "Due date",
+    "topic": "Topic",
+    "talkDate": "Talk date",
+    "talkNotes": "Talk notes",
+    "attendees": "Attendees",
+    "attendeeName": "Name",
+    "acknowledged": "Acknowledged",
+    "notAcknowledged": "Not acknowledged",
+    "type": "Type",
+    "severity": "Severity",
+    "status": "Status"
+  },
+  "actions": {
+    "create": "Create",
+    "save": "Save",
+    "close": "Close",
+    "addAction": "Add action",
+    "acknowledge": "Acknowledge",
+    "addAttendee": "Add attendee"
+  },
+  "summary": {
+    "open": "Open",
+    "overdue": "Overdue",
+    "bySeverity": "By severity",
+    "byProject": "By project",
+    "byType": "By type"
+  },
+  "overdue": "Overdue",
+  "filters": {
+    "all": "All",
+    "type": "Type",
+    "status": "Status",
+    "severity": "Severity"
+  },
+  "list": {
+    "columns": {
+      "title": "Title",
+      "type": "Type",
+      "project": "Project",
+      "occurredAt": "When",
+      "severity": "Severity",
+      "status": "Status"
+    }
+  },
+  "create": {
+    "title": "New safety record",
+    "description": "Record an incident, hazard, or toolbox talk.",
+    "attendeeNamesHint": "One name per line. Optional."
+  },
+  "detail": {
+    "title": "Safety record",
+    "actionsTitle": "Corrective actions",
+    "noActions": "No corrective actions yet.",
+    "toolboxTitle": "Toolbox talk",
+    "noAttendees": "No attendees yet.",
+    "saved": "Saved."
+  },
+  "errors": {
+    "titleRequired": "Title is required.",
+    "invalidRecordTransition": "That status change is not allowed.",
+    "invalidActionTransition": "That action status change is not allowed.",
+    "toolboxTopicRequired": "Toolbox talks need a topic.",
+    "attendeesRequireTalk": "Attendees can only be added to a toolbox talk."
+  }
+}

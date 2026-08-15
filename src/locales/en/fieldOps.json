@@ -132,6 +132,35 @@
     "blockersHint": "Issues that slowed or stopped work.",
     "blockersPlaceholder": "Materials, access, weather delays…"
   },
+  "extraFields": {
+    "title": "More site details",
+    "hint": "Workers, equipment, delays, and notes — open only when needed.",
+    "workersOnSite": "Workers on site",
+    "subcontractorsOnSite": "Subcontractors",
+    "equipmentOnSite": "Equipment",
+    "deliveries": "Deliveries",
+    "delays": "Delays",
+    "incidents": "Incidents",
+    "safetyNotes": "Safety notes",
+    "visitorNotes": "Visitors",
+    "managerNotes": "Manager notes"
+  },
+  "logStatus": {
+    "draft": "Draft",
+    "submitted": "Submitted",
+    "finalized": "Finalized"
+  },
+  "lifecycle": {
+    "submit": "Submit",
+    "finalize": "Finalize",
+    "finalizeTitle": "Finalize this log",
+    "finalizeBody": "A finalized log is locked. Corrections are a new note or a new log — the original is not rewritten.",
+    "locked": "This log is finalized and locked.",
+    "correctionLabel": "Correction note",
+    "correctionHint": "Appended to the locked log. It does not replace the original record.",
+    "correctionSubmit": "Add correction note",
+    "saved": "Saved."
+  },
   "createPunch": {
     "title": "New punch item",
     "description": "Add an open item to close before handover.",
@@ -177,6 +206,10 @@
     "invalidPunchTransition": "That punch list status change is not allowed.",
     "invalidInspectionTransition": "That inspection status change is not allowed.",
     "projectRequired": "Select a project.",
-    "photosRequireDocumentsManage": "Attaching photos needs document permission. The record was not created."
+    "photosRequireDocumentsManage": "Attaching photos needs document permission. The record was not created.",
+    "invalidLogTransition": "That daily log status change is not allowed.",
+    "logFinalizedLocked": "This log is finalized. Add a correction note or a new log.",
+    "correctionRequiresFinalized": "Correction notes are for finalized logs.",
+    "duplicateLogDate": "A daily log already exists for this project day. Open it, or add a correction if it is finalized."
   }
 }

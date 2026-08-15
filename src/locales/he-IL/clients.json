@@ -106,6 +106,70 @@
       "emptyBilling": "אין עדיין רשומות חיוב ללקוח זה.",
       "excludedForeign": "{count, plural, one {רשומה אחת הוחרגה (מטבע זר)} two {שתי רשומות הוחרגו (מטבע זר)} other {# רשומות הוחרגו (מטבע זר)}}",
       "integrityHint": "יתרה לגבייה = חויב − שולם − עיכבון מוחזק. זיכויים מקטינים את החיוב. רשומות מבוטלות וטיוטות אינן נכללות."
+    },
+    "timeline": {
+      "title": "פעילות",
+      "subtitle": "ציר זמן לפי הרשומות הקיימות ללקוח זה. חיוב שבוטל מוצג כמבוטל — לא כחשבונית פתוחה.",
+      "newestFirst": "החדשים קודם",
+      "oldestFirst": "הישנים קודם",
+      "filterAll": "הכול",
+      "open": "פתיחה",
+      "byActor": "על ידי {name}",
+      "error": "לא ניתן לטעון את רשימת הפעילות. אפשר לנסות שוב מאוחר יותר.",
+      "empty": {
+        "title": "עדיין אין פעילות",
+        "body": "כשלקוח זה יקושר לעבודה, הצעות מחיר, חיובים או מסמכים — האירועים יופיעו כאן."
+      },
+      "categories": {
+        "client": "לקוח",
+        "project": "פרויקטים",
+        "work_order": "הזמנות עבודה",
+        "quote": "הצעות מחיר",
+        "contract": "חוזים",
+        "change": "שינויים",
+        "milestone": "אבני דרך",
+        "billing": "חיוב",
+        "document": "מסמכים",
+        "approval": "אישורים",
+        "correction": "תיקונים"
+      },
+      "presentations": {
+        "active": "פעיל",
+        "void": "מבוטל",
+        "draft": "טיוטה",
+        "approved": "אושר",
+        "pending": "ממתין",
+        "cancelled": "בוטל",
+        "neutral": "נרשם"
+      },
+      "kinds": {
+        "clientCreated": "הלקוח נוצר",
+        "clientUpdated": "פרטי הלקוח עודכנו",
+        "projectCreated": "פרויקט נוצר",
+        "projectStatusChanged": "סטטוס הפרויקט השתנה",
+        "workOrderCreated": "הזמנת עבודה נוצרה",
+        "workOrderStatusChanged": "סטטוס הזמנת העבודה השתנה",
+        "quoteCreated": "הצעת מחיר נוצרה",
+        "quoteSubmitted": "הצעת מחיר נשלחה",
+        "quoteApproved": "הצעת מחיר אושרה",
+        "quoteRejected": "הצעת מחיר נדחתה",
+        "commercialQuoteIssued": "הצעה מסחרית הונפקה",
+        "commercialQuoteAccepted": "הצעה מסחרית התקבלה",
+        "contractCreated": "חוזה נוצר",
+        "changeRequested": "בקשת שינוי נפתחה",
+        "changeApproved": "בקשת שינוי אושרה",
+        "milestoneCreated": "אבן דרך תוכננה",
+        "milestoneAchieved": "אבן דרך הושגה",
+        "boqProgressApproved": "התקדמות אושרה",
+        "billingCreated": "חיוב נוצר",
+        "billingVoided": "חיוב בוטל",
+        "paymentReceived": "התקבל תשלום",
+        "documentUploaded": "מסמך הועלה",
+        "documentVersioned": "גרסה חדשה למסמך",
+        "approvalDecided": "אישור נרשם",
+        "financialCorrection": "תיקון כספי",
+        "indexed": "פעילות"
+      }
     }
   }
 }

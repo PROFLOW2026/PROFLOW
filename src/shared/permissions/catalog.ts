@@ -135,6 +135,14 @@ export const PERMISSIONS = {
 
   COMMAND_CENTER_READ: 'command_center.read',
 
+  NOTIFICATIONS_READ: 'notifications.read',
+  TIME_APPROVE: 'time.approve',
+  PROJECTS_ACCESS_ALL: 'projects.access_all',
+  SCHEDULING_READ: 'scheduling.read',
+  SCHEDULING_MANAGE: 'scheduling.manage',
+  SAFETY_READ: 'safety.read',
+  SAFETY_MANAGE: 'safety.manage',
+
   SETTINGS_MANAGE: 'settings.manage',
   TAX_MANAGE: 'tax.manage',
   AUDIT_READ: 'audit.read',
@@ -374,6 +382,17 @@ export const PERMISSION_CATALOG: readonly PermissionDefinition[] = [
     category: 'organization',
     description: 'View Today actionable items',
   },
+  { key: PERMISSIONS.NOTIFICATIONS_READ, category: 'organization', description: 'View in-app notifications' },
+  { key: PERMISSIONS.TIME_APPROVE, category: 'workforce', description: 'Approve, return and lock timesheets' },
+  {
+    key: PERMISSIONS.PROJECTS_ACCESS_ALL,
+    category: 'projects',
+    description: 'See every project regardless of assignment-scoped access mode',
+  },
+  { key: PERMISSIONS.SCHEDULING_READ, category: 'workforce', description: 'View resource scheduling and availability' },
+  { key: PERMISSIONS.SCHEDULING_MANAGE, category: 'workforce', description: 'Create and change resource bookings' },
+  { key: PERMISSIONS.SAFETY_READ, category: 'projects', description: 'View safety and HSE records' },
+  { key: PERMISSIONS.SAFETY_MANAGE, category: 'projects', description: 'Create and close safety records and actions' },
 
   { key: PERMISSIONS.SETTINGS_MANAGE, category: 'administration', description: 'Change organization settings' },
   { key: PERMISSIONS.TAX_MANAGE, category: 'administration', description: 'Manage tax rules and overrides' },

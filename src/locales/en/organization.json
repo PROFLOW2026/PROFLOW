@@ -73,7 +73,8 @@
       "read": "View projects",
       "create": "Create projects",
       "update": "Update projects",
-      "archive": "Archive and restore projects"
+      "archive": "Archive and restore projects",
+      "access_all": "See every project even when access is assignment-scoped"
     },
     "project_financials": {
       "read": "View project costs"
@@ -113,7 +114,8 @@
       }
     },
     "time": {
-      "manage": "Manage time entries"
+      "manage": "Manage time entries",
+      "approve": "Approve, return and lock timesheets"
     },
     "attendance": {
       "read": "View attendance",
@@ -224,6 +226,17 @@
     },
     "audit": {
       "read": "Read the activity log"
+    },
+    "notifications": {
+      "read": "View in-app notifications"
+    },
+    "scheduling": {
+      "read": "View resource scheduling and availability",
+      "manage": "Create and change resource bookings"
+    },
+    "safety": {
+      "read": "View safety and HSE records",
+      "manage": "Create and close safety records and actions"
     }
   },
   "errors": {

@@ -16,6 +16,7 @@ export interface TimeEntryListFiltersProps {
     toDate?: string;
     status?: string;
     kind?: string;
+    approvalStatus?: string;
   };
 }
 
@@ -97,6 +98,23 @@ export function TimeEntryListFilters({ employees, projects, initial }: TimeEntry
             <option value="all">{t('time.filters.all')}</option>
             <option value="project">{t('time.form.kindProject')}</option>
             <option value="non_project">{t('time.form.kindNonProject')}</option>
+          </select>
+        )}
+      </Field>
+
+      <Field label={t('time.filters.approval')} className="sm:w-48">
+        {(control) => (
+          <select
+            {...control}
+            name="approvalStatus"
+            defaultValue={initial.approvalStatus ?? 'all'}
+            className={selectClass}
+          >
+            <option value="all">{t('time.filters.all')}</option>
+            <option value="draft">{t('time.approvalStatus.draft')}</option>
+            <option value="submitted">{t('time.approvalStatus.submitted')}</option>
+            <option value="approved">{t('time.approvalStatus.approved')}</option>
+            <option value="returned">{t('time.approvalStatus.returned')}</option>
           </select>
         )}
       </Field>

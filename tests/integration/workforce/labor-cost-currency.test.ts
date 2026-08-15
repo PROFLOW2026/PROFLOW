@@ -97,6 +97,7 @@ describe('project labor cost currency (MEDIUM-13)', () => {
           projectId,
           costAmount: '800.000000',
           costCurrency: 'ILS',
+          approvalStatus: 'approved',
         },
         {
           organizationId: orgId,
@@ -107,6 +108,7 @@ describe('project labor cost currency (MEDIUM-13)', () => {
           projectId,
           costAmount: '900.000000',
           costCurrency: 'USD',
+          approvalStatus: 'approved',
         },
       ]);
     });

@@ -111,5 +111,11 @@ export function detectDuplicateHits(
 }
 
 export function shouldReuseExistingJob(status: string): boolean {
-  return status === 'needs_review' || status === 'queued' || status === 'running' || status === 'succeeded';
+  return (
+    status === 'needs_review' ||
+    status === 'queued' ||
+    status === 'running' ||
+    status === 'processing' ||
+    status === 'succeeded'
+  );
 }

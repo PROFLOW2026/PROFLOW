@@ -21,6 +21,27 @@ export {
 } from './application/manage-contacts';
 export { getClientFinancials } from './application/get-client-financials';
 export type { ClientFinancialView } from './application/get-client-financials';
+export { getClientTimeline, recordActivityEvent } from './application/timeline';
+export type { ClientTimelineView } from './application/timeline';
+export type { ClientTimelineEventView } from './domain/timeline';
+export {
+  TIMELINE_CATEGORIES,
+  TIMELINE_EVENT_KINDS,
+  TIMELINE_SORT_DIRECTIONS,
+  filterTimelineEvents,
+  isShownAsActiveInvoice,
+  mapBillingStatusToTimeline,
+  mergeCanonicalAndIndexEvents,
+  sortTimelineEvents,
+  timelineKindMessageKey,
+} from './domain/timeline';
+export type {
+  TimelineCategory,
+  TimelineEvent,
+  TimelineEventKind,
+  TimelinePresentation,
+  TimelineSortDirection,
+} from './domain/timeline';
 
 export {
   CLIENT_STATUSES,
@@ -56,4 +77,6 @@ export {
   updateContactSchema,
   markContactPrimarySchema,
   upsertIdentifierSchema,
+  recordActivityEventSchema,
 } from './validation/schemas';
+export type { RecordActivityEventInput } from './validation/schemas';

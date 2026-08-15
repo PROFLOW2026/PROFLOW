@@ -4,6 +4,7 @@ import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import {
   findProjectInOrganization,
+  listBillingContractOptions,
   listBillingRecordsForProject,
   listProjectOptions,
   listUnbilledChangeOrders as listUnbilledChangeOrdersRepo,
@@ -25,6 +26,7 @@ export async function listUnbilledChangeOrders(
 export async function listProjectBillingRecords(
   context: OrgContext,
   projectId: string,
+  contractId?: string | null,
 ): Promise<BillingRecordSummary[]> {
   assertPermission(context, PERMISSIONS.BILLING_READ);
 
@@ -36,10 +38,19 @@ export async function listProjectBillingRecords(
     context.organizationId,
     projectId,
     context.organization.timezone,
+    contractId,
   );
 }
 
 export async function listBillingProjectOptions(context: OrgContext) {
   assertPermission(context, PERMISSIONS.BILLING_READ);
   return listProjectOptions(context.db, context.organizationId);
+}
+
+export async function listBillingContractOptionsForOrg(
+  context: OrgContext,
+  projectId?: string,
+) {
+  assertPermission(context, PERMISSIONS.BILLING_READ);
+  return listBillingContractOptions(context.db, context.organizationId, projectId);
 }

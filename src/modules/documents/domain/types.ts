@@ -29,9 +29,18 @@ export const DOCUMENT_OWNER_TYPES = [
   'asset',
   'inventory_item',
   'form_submission',
+  'contract',
+  'work_order',
+  'subcontract_agreement',
+  'safety_record',
+  'timesheet',
 ] as const;
 export type DocumentOwnerType = (typeof DOCUMENT_OWNER_TYPES)[number];
 
+/**
+ * Logical document (authorization + current pointer).
+ * A stored file is `DocumentVersion`. The storage path is operational, not authorization.
+ */
 export interface DocumentRecord {
   readonly id: string;
   readonly organizationId: string;
@@ -47,7 +56,50 @@ export interface DocumentRecord {
   readonly storageCleanupError: string | null;
   readonly storageCleanupLastAttemptedAt: Date | null;
   readonly uploadedByUserId: string | null;
+  readonly folderId: string | null;
+  readonly category: string | null;
+  readonly tags: string | null;
+  readonly expiresAt: string | null;
+  readonly isRequired: boolean;
+  readonly requiredType: string | null;
+  readonly currentVersionId: string | null;
   readonly deletedAt: Date | null;
+  readonly createdAt: Date;
+  readonly updatedAt: Date;
+}
+
+/** Organization or entity folder. Nesting is optional; archived folders are hidden from lists. */
+export interface DocumentFolder {
+  readonly id: string;
+  readonly organizationId: string;
+  readonly parentId: string | null;
+  readonly name: string;
+  readonly ownerType: string | null;
+  readonly ownerId: string | null;
+  readonly archivedAt: Date | null;
+  readonly createdAt: Date;
+  readonly updatedAt: Date;
+}
+
+/**
+ * One stored file object for a logical document.
+ * File identity (bucket, path, checksum, version number, document id) is immutable.
+ */
+export interface DocumentVersion {
+  readonly id: string;
+  readonly organizationId: string;
+  readonly documentId: string;
+  readonly versionNumber: number;
+  readonly storageBucket: string;
+  readonly storagePath: string;
+  readonly originalFilename: string;
+  readonly mimeType: string;
+  readonly sizeBytes: number | null;
+  readonly checksum: string | null;
+  readonly isCurrent: boolean;
+  readonly uploadedByUserId: string | null;
+  readonly uploadedAt: Date;
+  readonly notes: string | null;
   readonly createdAt: Date;
   readonly updatedAt: Date;
 }
@@ -78,9 +130,17 @@ export interface DocumentLinkCandidate {
 export interface DocumentListFilters {
   readonly search?: string;
   readonly ownerType?: DocumentOwnerType | 'all';
+  readonly folderId?: string | 'none' | 'all';
   readonly includeDeleted?: boolean;
   readonly limit?: number;
   readonly offset?: number;
+}
+
+export interface DocumentFolderListFilters {
+  readonly ownerType?: DocumentOwnerType | null;
+  readonly ownerId?: string | null;
+  readonly parentId?: string | null;
+  readonly limit?: number;
 }
 
 export interface EntityDocumentFilters {
@@ -103,4 +163,14 @@ export interface DownloadUrlResult {
   readonly url: string;
   readonly expiresAt: Date;
   readonly filename: string;
+}
+
+export interface PrepareNewVersionResult {
+  readonly document: DocumentRecord;
+  readonly nextVersionNumber: number;
+  readonly uploadUrl: string;
+  readonly uploadToken: string | null;
+  readonly uploadPath: string;
+  readonly uploadBucket: string;
+  readonly uploadExpiresAt: Date;
 }

@@ -450,6 +450,17 @@ export const timeEntries = pgTable(
     voidedAt: timestamp('voided_at', { withTimezone: true }),
     correctsEntryId: uuid('corrects_entry_id'),
     bulkBatchId: uuid('bulk_batch_id'),
+    timesheetId: uuid('timesheet_id'),
+    approvalStatus: text('approval_status').notNull().default('draft'),
+    submittedAt: timestamp('submitted_at', { withTimezone: true, mode: 'date' }),
+    submittedByUserId: uuid('submitted_by_user_id').references(() => profiles.id, {
+      onDelete: 'set null',
+    }),
+    decidedAt: timestamp('decided_at', { withTimezone: true, mode: 'date' }),
+    decidedByUserId: uuid('decided_by_user_id').references(() => profiles.id, {
+      onDelete: 'set null',
+    }),
+    managerNote: text('manager_note'),
     archivedAt: archivedAt(),
     ...timestamps(),
   },
@@ -459,8 +470,14 @@ export const timeEntries = pgTable(
     index('time_entries_employee_date_idx').on(table.employeeId, table.workDate),
     index('time_entries_project_idx').on(table.projectId),
     index('time_entries_org_status_idx').on(table.organizationId, table.status),
+    index('time_entries_org_approval_idx').on(table.organizationId, table.approvalStatus),
+    index('time_entries_timesheet_idx').on(table.timesheetId),
     check('time_entries_hours_positive', sql`${table.hours} > 0`),
     check('time_entries_status_known', sql`${table.status} IN ('recorded', 'void')`),
+    check(
+      'time_entries_approval_status_known',
+      sql`${table.approvalStatus} IN ('draft', 'submitted', 'approved', 'returned')`,
+    ),
     check(
       'time_entries_kind_target',
       sql`(${table.kind} = 'project' and ${table.projectId} is not null)

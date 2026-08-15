@@ -106,6 +106,70 @@
       "emptyBilling": "No billing records for this client yet.",
       "excludedForeign": "{count, plural, one {# record excluded (foreign currency)} other {# records excluded (foreign currency)}}",
       "integrityHint": "Outstanding = invoiced − paid − held retention. Credit notes reduce invoiced. Draft and voided records are excluded."
+    },
+    "timeline": {
+      "title": "Activity",
+      "subtitle": "A chronological view of this client from existing records. Voided billing is shown as void — never as an open invoice.",
+      "newestFirst": "Newest first",
+      "oldestFirst": "Oldest first",
+      "filterAll": "All",
+      "open": "Open",
+      "byActor": "by {name}",
+      "error": "The activity list could not be loaded. You can try again later.",
+      "empty": {
+        "title": "No activity yet",
+        "body": "When this client is linked to work, quotes, billing, or documents, those events appear here."
+      },
+      "categories": {
+        "client": "Client",
+        "project": "Projects",
+        "work_order": "Work orders",
+        "quote": "Quotes",
+        "contract": "Contracts",
+        "change": "Changes",
+        "milestone": "Milestones",
+        "billing": "Billing",
+        "document": "Documents",
+        "approval": "Approvals",
+        "correction": "Corrections"
+      },
+      "presentations": {
+        "active": "Active",
+        "void": "Voided",
+        "draft": "Draft",
+        "approved": "Approved",
+        "pending": "Pending",
+        "cancelled": "Cancelled",
+        "neutral": "Recorded"
+      },
+      "kinds": {
+        "clientCreated": "Client created",
+        "clientUpdated": "Client updated",
+        "projectCreated": "Project created",
+        "projectStatusChanged": "Project status changed",
+        "workOrderCreated": "Work order created",
+        "workOrderStatusChanged": "Work order status changed",
+        "quoteCreated": "Quote created",
+        "quoteSubmitted": "Quote sent",
+        "quoteApproved": "Quote accepted",
+        "quoteRejected": "Quote declined",
+        "commercialQuoteIssued": "Commercial quote issued",
+        "commercialQuoteAccepted": "Commercial quote accepted",
+        "contractCreated": "Contract created",
+        "changeRequested": "Change requested",
+        "changeApproved": "Change approved",
+        "milestoneCreated": "Milestone planned",
+        "milestoneAchieved": "Milestone achieved",
+        "boqProgressApproved": "Progress certified",
+        "billingCreated": "Billing created",
+        "billingVoided": "Billing voided",
+        "paymentReceived": "Payment received",
+        "documentUploaded": "Document uploaded",
+        "documentVersioned": "New document version",
+        "approvalDecided": "Approval recorded",
+        "financialCorrection": "Financial correction",
+        "indexed": "Activity"
+      }
     }
   }
 }

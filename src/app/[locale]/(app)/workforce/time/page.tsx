@@ -2,7 +2,6 @@ import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/ui/page-header';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   listEmployeesForOrg,
   listAssignableProjects,
@@ -12,9 +11,10 @@ import {
 import { canLogTime, canViewWorkforceCosts } from '@/modules/workforce/ui/employees-table';
 import { TimeEntriesTable } from '@/modules/workforce/ui/time-entries-table';
 import { TimeEntryListFilters } from '@/modules/workforce/ui/time-entry-list-filters';
+import { WorkforceSubNav } from '@/modules/workforce/ui/workforce-sub-nav';
 import { withOrgContext } from '@/shared/auth/session';
 import { Link } from '@/shared/i18n/navigation';
-import { hasAnyPermission, hasPermission } from '@/shared/permissions/assert';
+import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { ReportsEntryLink } from '@/modules/financials/ui/reports-entry-link';
 
@@ -38,6 +38,7 @@ export default async function TimeEntriesPage({
     toDate?: string;
     status?: string;
     kind?: string;
+    approvalStatus?: string;
   }>;
 }) {
   const [t, rawFilters] = await Promise.all([getTranslations('workforce'), searchParams]);
@@ -49,21 +50,17 @@ export default async function TimeEntriesPage({
     toDate: rawFilters.toDate || undefined,
     status: rawFilters.status || undefined,
     kind: rawFilters.kind || undefined,
+    approvalStatus: rawFilters.approvalStatus || undefined,
   });
   const filters = parsedFilters.success ? parsedFilters.data : {};
 
-  const { entries, showCosts, allowLog, employees, projects, showAttendance, canReadReports } = await withOrgContext(
+  const { entries, showCosts, allowLog, employees, projects, canReadReports } = await withOrgContext(
     async (context) => ({
       entries: await listTimeEntriesForOrg(context, filters),
       showCosts: canViewWorkforceCosts(context),
       allowLog: canLogTime(context),
       employees: await listEmployeesForOrg(context, { status: 'active' }),
       projects: await listAssignableProjects(context),
-      showAttendance: hasAnyPermission(context, [
-        PERMISSIONS.ATTENDANCE_READ,
-        PERMISSIONS.ATTENDANCE_SELF,
-        PERMISSIONS.ATTENDANCE_MANAGE,
-      ]),
       canReadReports: hasPermission(context, PERMISSIONS.PROJECT_FINANCIALS_READ),
     }),
   );
@@ -87,36 +84,24 @@ export default async function TimeEntriesPage({
         }
       />
 
-      <Tabs defaultValue="time">
-        <TabsList>
-          <TabsTrigger value="employees" asChild>
-            <Link href="/workforce/employees">{t('nav.employees')}</Link>
-          </TabsTrigger>
-          <TabsTrigger value="time" asChild>
-            <Link href="/workforce/time">{t('nav.time')}</Link>
-          </TabsTrigger>
-          {showAttendance ? (
-            <TabsTrigger value="attendance" asChild>
-              <Link href="/workforce/attendance">{t('nav.attendance')}</Link>
-            </TabsTrigger>
-          ) : null}
-        </TabsList>
-        <TabsContent value="time" className="mt-4 flex flex-col gap-4">
-          <TimeEntryListFilters
-            employees={employees.map((employee) => ({ id: employee.id, name: employee.name }))}
-            projects={projects}
-            initial={{
-              employeeId: filters.employeeId,
-              projectId: filters.projectId,
-              fromDate: filters.fromDate,
-              toDate: filters.toDate,
-              status: filters.status ?? 'recorded',
-              kind: filters.kind ?? 'all',
-            }}
-          />
-          <TimeEntriesTable entries={entries} showCosts={showCosts} canLogTime={allowLog} />
-        </TabsContent>
-      </Tabs>
+      <WorkforceSubNav active="time" />
+
+      <div className="flex flex-col gap-4">
+        <TimeEntryListFilters
+          employees={employees.map((employee) => ({ id: employee.id, name: employee.name }))}
+          projects={projects}
+          initial={{
+            employeeId: filters.employeeId,
+            projectId: filters.projectId,
+            fromDate: filters.fromDate,
+            toDate: filters.toDate,
+            status: filters.status ?? 'recorded',
+            kind: filters.kind ?? 'all',
+            approvalStatus: filters.approvalStatus ?? 'all',
+          }}
+        />
+        <TimeEntriesTable entries={entries} showCosts={showCosts} canLogTime={allowLog} />
+      </div>
     </div>
   );
 }

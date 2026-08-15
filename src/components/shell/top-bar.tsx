@@ -6,10 +6,12 @@ export function TopBar({
   organizationName,
   quickCreate,
   userMenu,
+  notifications,
 }: {
   organizationName: string;
   quickCreate?: React.ReactNode;
   userMenu: React.ReactNode;
+  notifications?: React.ReactNode;
 }) {
   return (
     <header className="sticky top-0 z-20 flex h-[var(--pf-topbar-height)] w-full min-w-0 shrink-0 items-center gap-2 border-b border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] px-4 sm:gap-3">
@@ -24,6 +26,7 @@ export function TopBar({
 
       <div className="flex shrink-0 items-center gap-2">
         <GlobalSearchLazy />
+        {notifications}
         <ConnectivityIndicator className="hidden sm:inline-flex" />
         {quickCreate}
         {userMenu}

@@ -76,6 +76,7 @@ export async function createProjectBoqAction(
         notes: formData.get('notes') ? String(formData.get('notes')) : undefined,
         progressMode:
           formData.get('progressMode') === 'advanced' ? 'advanced' : 'simple',
+        contractId: formData.get('contractId') ? String(formData.get('contractId')) : undefined,
       }),
     );
     revalidateProject(projectId);
