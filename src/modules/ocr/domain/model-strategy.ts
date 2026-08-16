@@ -44,7 +44,7 @@ export function resolveAzureModelId(
 }
 
 /**
- * Optional Israel-specific Query Fields — ONLY when OCR_AZURE_QUERY_FIELDS=true
+ * Optional Israel-specific Query Fields - ONLY when OCR_AZURE_QUERY_FIELDS=true
  * on S0. Never required for Hebrew. Never sent on F0.
  *
  * Native invoice already returns VendorName, VendorTaxId, InvoiceId, dates,

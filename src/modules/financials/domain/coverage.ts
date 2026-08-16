@@ -15,7 +15,7 @@ export interface CostSourcePresence {
 /**
  * Builds the coverage envelope that every derived figure travels with (doc 04 §10, doc 39).
  *
- * A source with no configured data is absent from coverage — not counted as zero.
+ * A source with no configured data is absent from coverage - not counted as zero.
  */
 export function buildFinancialCoverage(
   sources: readonly CostSourcePresence[],

@@ -1,5 +1,5 @@
 /**
- * Vendor credit notes — create, draft-edit, post, apply, void.
+ * Vendor credit notes - create, draft-edit, post, apply, void.
  * Credits ≠ payments: they reduce outstanding AND Actual recognition.
  * No silent post. No hard delete after posting.
  */
@@ -295,7 +295,7 @@ export async function postVendorCredit(context: OrgContext, creditId: string) {
 
 /**
  * Edit amount / date / notes / reference while the credit is still draft.
- * Open / applied / void credits are immutable — void + replace is the correction path.
+ * Open / applied / void credits are immutable - void + replace is the correction path.
  */
 export async function updateVendorCredit(
   context: OrgContext,

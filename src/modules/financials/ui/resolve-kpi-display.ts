@@ -9,13 +9,13 @@ import { subtractMoney, type MoneyValue } from '@/shared/money';
 export type ProjectFinancialsWithOptionalKpis = ProjectFinancials & {
   readonly cost?: ProjectFinancials['cost'] & {
     readonly allocatedOverhead?: MoneyValue;
-    /** Alias — prefer estimatedFinalCost (Forecast Final Cost). */
+    /** Alias - prefer estimatedFinalCost (Forecast Final Cost). */
     readonly forecastCost?: MoneyValue;
   };
   readonly profit?: (NonNullable<ProjectFinancials['profit']> & {
-    /** Alias — prefer actualProfit. */
+    /** Alias - prefer actualProfit. */
     readonly actualMargin?: MoneyValue;
-    /** Alias — prefer estimatedProfit. */
+    /** Alias - prefer estimatedProfit. */
     readonly forecastMargin?: MoneyValue;
     readonly forecastMarginPercent?: string | null;
   }) | null;
@@ -40,7 +40,7 @@ export interface ResolvedProjectKpis {
   /** True when Forecast Final Cost equals Actual (no remaining commitments / ETC). */
   readonly forecastEqualsActual: boolean;
   /**
-   * Open-price job: cost forecast OK; margins null — show price-not-set copy.
+   * Open-price job: cost forecast OK; margins null - show price-not-set copy.
    * Never derive a fake −loss from revenue = 0.
    */
   readonly priceNotSet: boolean;

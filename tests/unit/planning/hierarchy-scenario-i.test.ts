@@ -16,7 +16,7 @@ const PROJECT_B = '018f0000-0000-7000-8000-0000000000b1';
 const PHASE_B = '018f0000-0000-7000-8000-0000000000c1';
 const WP_B = '018f0000-0000-7000-8000-0000000000d1';
 
-describe('scenario I — planning cross-project phase / work package', () => {
+describe('scenario I - planning cross-project phase / work package', () => {
   it('domain rejects phase from another project', () => {
     expect(() =>
       assertPhaseBelongsToProject(

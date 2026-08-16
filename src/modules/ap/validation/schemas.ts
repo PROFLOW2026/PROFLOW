@@ -18,7 +18,7 @@ export const createApBillSchema = z.object({
   amountIncludesTax: z.boolean().optional().nullable(),
   netAmount: moneyString.optional().nullable(),
   taxAmount: moneyString.optional().nullable(),
-  /** When true, persist as draft — no Actual, no commitment consumption. */
+  /** When true, persist as draft - no Actual, no commitment consumption. */
   asDraft: z.boolean().optional(),
   retentionAmount: moneyString.optional().nullable(),
   retentionPercent: moneyString.optional().nullable(),
@@ -98,7 +98,7 @@ export type VoidVendorPaymentInput = z.input<typeof voidVendorPaymentSchema>;
 
 /**
  * Non-financial metadata only. Amount / currency / paymentDate / vendorId are
- * intentionally omitted — correction requires void + new payment.
+ * intentionally omitted - correction requires void + new payment.
  */
 export const updateVendorPaymentMetadataSchema = z
   .object({

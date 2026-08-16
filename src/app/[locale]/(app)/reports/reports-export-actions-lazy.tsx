@@ -15,7 +15,7 @@ const ReportsExportActions = dynamic(
   },
 );
 
-/** Reports toolbar export menu — deferred until the reports route mounts. */
+/** Reports toolbar export menu - deferred until the reports route mounts. */
 export function ReportsExportActionsLazy() {
   return <ReportsExportActions />;
 }

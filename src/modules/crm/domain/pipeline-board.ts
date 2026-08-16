@@ -69,7 +69,7 @@ export function isOpportunityStage(value: string): value is OpportunityStage {
 
 /**
  * Board / follow-up stage moves. Lost closes the opportunity. Won is a pipeline
- * column only — converting to a project happens on `/quotes`, not here.
+ * column only - converting to a project happens on `/quotes`, not here.
  * Moving off lost reopens the record.
  */
 export function statusForMovedStage(

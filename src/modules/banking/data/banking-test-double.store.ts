@@ -11,7 +11,7 @@ import type {
 } from '../domain/types';
 
 /**
- * TEST DOUBLE ONLY — process-local banking store for unit tests.
+ * TEST DOUBLE ONLY - process-local banking store for unit tests.
  *
  * Production default when BANKING_PERSISTENCE_READY is false is the gated
  * repository (schemaPending), not this store. Wire via

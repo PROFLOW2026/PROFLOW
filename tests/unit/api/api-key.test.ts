@@ -15,7 +15,7 @@ import {
 } from '@/modules/api/validation/schemas';
 
 describe('api key material', () => {
-  it('stores hash and prefix only — plaintext is not the hash', () => {
+  it('stores hash and prefix only - plaintext is not the hash', () => {
     const material = generateApiKeyMaterial();
     expect(material.plaintext.startsWith('pfk_')).toBe(true);
     expect(material.keyPrefix).toHaveLength(API_KEY_PREFIX_LENGTH);

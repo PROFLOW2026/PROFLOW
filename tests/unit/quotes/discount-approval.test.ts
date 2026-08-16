@@ -211,7 +211,7 @@ describe('transitionQuoteStatus quote_discount gate', () => {
     findQuoteById.mockResolvedValue(quote({ discountAmount: '1500.000000' }));
     assertApprovalAllowsAction.mockRejectedValue(
       new DomainRuleError(
-        'Submitted for approval — waiting for a decision',
+        'Submitted for approval - waiting for a decision',
         'approvals.errors.submittedPending',
         { entityType: 'quote_discount', entityId: QUOTE_ID },
       ),

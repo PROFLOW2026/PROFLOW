@@ -173,7 +173,7 @@ export default async function VendorCreditDetailPage({
       <div className="grid min-w-0 gap-2 sm:grid-cols-2">
         <p className="min-w-0 break-words text-sm">
           <span className="text-[var(--pf-text-muted)]">{t('credits.detail.vendor')}: </span>
-          {credit.vendorName ?? '—'}
+          {credit.vendorName ?? '-'}
         </p>
         {credit.notes ? (
           <p className="min-w-0 break-words text-sm">

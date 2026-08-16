@@ -2,13 +2,13 @@ import type { CoveragePartial, FinancialCoverage } from '@/modules/financials/do
 import { isZeroMoney, type MoneyValue } from '@/shared/money';
 
 /**
- * DATA CONFIDENCE — deterministic incompleteness indicator (no AI scores).
+ * DATA CONFIDENCE - deterministic incompleteness indicator (no AI scores).
  *
  * Levels (worst signal wins):
  *
- *   needs_data  — figures are known-understated or incomplete for decision use
- *   medium      — figures are usable but known gaps / exclusions apply
- *   high        — no known incompleteness signals for this scope
+ *   needs_data  - figures are known-understated or incomplete for decision use
+ *   medium      - figures are usable but known gaps / exclusions apply
+ *   high        - no known incompleteness signals for this scope
  *
  * Signals (Agent 3 / architecture):
  *   1. Missing employer / labor cost
@@ -27,7 +27,7 @@ import { isZeroMoney, type MoneyValue } from '@/shared/money';
  *      → level: medium
  *   6. Labor dual-source exclusion (Mode B omitted because Mode C present)
  *      → informational only; does NOT lower confidence (Actual is complete for
- *        the chosen labor path — see labor-expense-integrity)
+ *        the chosen labor path - see labor-expense-integrity)
  *
  * Not signals:
  *   - Cost source simply not configured (direct_only basis is fine)
@@ -124,7 +124,7 @@ export function collectDataConfidenceSignals(input: {
 }
 
 /**
- * Pure confidence resolver. Documented formula — unit-tested; never ML/AI.
+ * Pure confidence resolver. Documented formula - unit-tested; never ML/AI.
  */
 export function resolveDataConfidence(signals: DataConfidenceSignals): DataConfidence {
   const reasons: DataConfidenceReason[] = [];

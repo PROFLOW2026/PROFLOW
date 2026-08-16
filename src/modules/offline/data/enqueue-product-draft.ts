@@ -15,7 +15,7 @@ export interface EnqueueProductDraftInput<TPayload extends Record<string, unknow
 
 /**
  * Persist a product draft locally. Does not call the server and does not
- * invent a sync-success state — status is `queued` until reconnect sync.
+ * invent a sync-success state - status is `queued` until reconnect sync.
  */
 export async function enqueueProductDraft<TPayload extends Record<string, unknown>>(
   input: EnqueueProductDraftInput<TPayload>,

@@ -25,7 +25,7 @@ import type {
 } from './ocr.repository';
 
 /**
- * Process-local OCR job store — **TEST DOUBLE ONLY**.
+ * Process-local OCR job store - **TEST DOUBLE ONLY**.
  *
  * Not durable across restarts. Production uses Drizzle when
  * `OCR_PERSISTENCE_READY` is true.

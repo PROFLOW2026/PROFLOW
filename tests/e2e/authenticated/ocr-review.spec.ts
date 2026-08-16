@@ -242,7 +242,7 @@ test.describe('OCR authenticated journey (mocked provider)', () => {
     });
     await expect(page.locator(`[data-pf-ocr-job-id="${jobCredit}"]`)).toHaveCount(0);
 
-    // Terminal jobs leave the active queue — no stale preview remains.
+    // Terminal jobs leave the active queue - no stale preview remains.
     await expect(page.getByText(he.documents.ocr.empty)).toBeVisible({ timeout: 15_000 });
     await expect(page.locator('[data-pf-ocr-original]')).toHaveCount(0);
     await expect(page.locator('#ocr-review-info')).not.toContainText(/סופי|finalized|posted/i);

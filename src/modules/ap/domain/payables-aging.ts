@@ -1,6 +1,6 @@
 /**
- * AP payables aging — derived from Outstanding (never billed alone).
- * Mirror of AR aging buckets; cash only — not Actual Cost.
+ * AP payables aging - derived from Outstanding (never billed alone).
+ * Mirror of AR aging buckets; cash only - not Actual Cost.
  */
 
 import { daysBetween, type BusinessDate } from '@/shared/dates';

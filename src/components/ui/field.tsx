@@ -26,7 +26,7 @@ export interface FieldProps {
    * SSR→client `useId()` remounts do not wipe filled values mid-interaction.
    */
   id?: string;
-  /** Only genuinely required fields are marked — see the contextual matrix in doc 48. */
+  /** Only genuinely required fields are marked - see the contextual matrix in doc 48. */
   required?: boolean;
   optionalLabel?: string;
   description?: React.ReactNode;

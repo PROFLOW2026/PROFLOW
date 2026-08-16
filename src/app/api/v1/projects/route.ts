@@ -11,7 +11,7 @@ import {
 } from '@/modules/api';
 
 /**
- * GET /api/v1/projects — tenant-scoped project list.
+ * GET /api/v1/projects - tenant-scoped project list.
  * Requires `projects.read` (maps to UI `projects.read` permission).
  * Never trusts a client-supplied organization id.
  */

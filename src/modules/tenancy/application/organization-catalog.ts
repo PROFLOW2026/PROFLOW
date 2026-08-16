@@ -50,7 +50,7 @@ export async function listOrganizationDocumentTypes(
   return listDocumentTypeCatalog(context.db, context.organizationId);
 }
 
-/** Public read for pickers (projects / documents) — ORG_READ is enough. */
+/** Public read for pickers (projects / documents) - ORG_READ is enough. */
 export async function listEnabledServiceDomainsForPicker(
   context: OrgContext,
 ): Promise<OrganizationDomainRow[]> {

@@ -722,7 +722,7 @@ describe('BOQ final pattern-sweep adversarial', () => {
           RETURNING id
         `),
       );
-      // Keep schedule draft — this test only forges valuation approval evidence.
+      // Keep schedule draft - this test only forges valuation approval evidence.
       const val = resultRows<{ id: string }>(
         await tx.execute(sql`
           INSERT INTO boq_subcontractor_valuations (organization_id, schedule_id, period_label, status)

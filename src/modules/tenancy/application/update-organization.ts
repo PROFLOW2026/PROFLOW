@@ -20,7 +20,7 @@ export interface OrganizationProfile {
  * Updates the business profile.
  *
  * Changing country re-applies that country's currency and timezone, but only
- * where the owner did not state one explicitly in the same edit — an explicit
+ * where the owner did not state one explicitly in the same edit - an explicit
  * choice always wins over a default.
  */
 export async function updateOrganizationProfile(

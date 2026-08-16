@@ -456,5 +456,5 @@ export async function listEmployeeAssignmentHistory(
   }));
 }
 
-/** @deprecated Prefer listActiveAssignedEmployeeIds — kept for call-site compatibility. */
+/** @deprecated Prefer listActiveAssignedEmployeeIds - kept for call-site compatibility. */
 export const listProjectTeamMemberIds = listActiveAssignedEmployeeIds;

@@ -1,6 +1,6 @@
 /**
  * Work-order billing composition (Wave 2).
- * Produces a single net amount for the existing AR engine — not a second billing system.
+ * Produces a single net amount for the existing AR engine - not a second billing system.
  * VAT is applied by billing.createBillingRecord, not here.
  */
 

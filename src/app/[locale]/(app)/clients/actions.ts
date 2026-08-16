@@ -254,7 +254,7 @@ export async function markClientContactPrimaryAction(
 
   try {
     await withOrgContext(async (context) => {
-      // Client-wide practical primary only — does not mutate projects.primary_contact_id.
+      // Client-wide practical primary only - does not mutate projects.primary_contact_id.
       await markClientContactAsPrimary(context, { contactId });
     });
     revalidatePath(`/clients/${clientId}`);

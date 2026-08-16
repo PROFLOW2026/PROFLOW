@@ -20,7 +20,7 @@ interface OverviewWorkSetupProps {
 }
 
 /**
- * Work setup on overview (when there is no Work tab) — loaded behind Suspense
+ * Work setup on overview (when there is no Work tab) - loaded behind Suspense
  * so open-project primary flight is not blocked by templates/packs/clone list.
  */
 export function OverviewWorkSetup(props: OverviewWorkSetupProps) {

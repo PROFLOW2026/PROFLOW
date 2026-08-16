@@ -7,7 +7,7 @@ export const TABLET_OVERFLOW_WIDTHS = [768, 820, 1024] as const;
 /** Desktop widths including large monitors. */
 export const DESKTOP_OVERFLOW_WIDTHS = [1280, 1440, 1920] as const;
 
-/** Full owner matrix — expensive; use for highest-risk surfaces (reports). */
+/** Full owner matrix - expensive; use for highest-risk surfaces (reports). */
 export const PAGE_OVERFLOW_WIDTHS = [
   ...MOBILE_OVERFLOW_WIDTHS,
   ...TABLET_OVERFLOW_WIDTHS,
@@ -28,7 +28,7 @@ export const QUICK_CREATE_FAB = '[data-pf-quick-create="fab"]';
 /**
  * Assert the document itself does not scroll horizontally.
  *
- * Intentionally checks scrollWidth vs clientWidth — do not “fix” overflow by
+ * Intentionally checks scrollWidth vs clientWidth - do not “fix” overflow by
  * asserting body/html overflow:hidden (that would hide the product bug).
  */
 export async function assertNoPageHorizontalOverflow(page: Page, label?: string): Promise<void> {

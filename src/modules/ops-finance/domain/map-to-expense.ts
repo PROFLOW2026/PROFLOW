@@ -13,7 +13,7 @@ export interface MapOpsRecordToExpenseDraftInput {
   readonly vendorId?: string | null;
   readonly expenseDate?: string | null;
   readonly notes?: string | null;
-  /** Optional periodic overhead — uses existing allocation engine on create/finalize. */
+  /** Optional periodic overhead - uses existing allocation engine on create/finalize. */
   readonly allocationPeriodStart?: string | null;
   readonly allocationPeriodEnd?: string | null;
   readonly allocationDriverMethod?: CreateExpenseInput['allocationDriverMethod'];
@@ -47,7 +47,7 @@ export function resolveOpsLinkPurpose(input: MapOpsRecordToExpenseDraftInput): O
 
 /**
  * Maps an ops cost snapshot (+ explicit overrides) to a CreateExpenseInput.
- * Never sets status — createExpense always inserts draft.
+ * Never sets status - createExpense always inserts draft.
  */
 export function mapOpsRecordToExpenseDraft(
   input: MapOpsRecordToExpenseDraftInput,

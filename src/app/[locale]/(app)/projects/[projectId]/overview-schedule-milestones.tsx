@@ -5,7 +5,7 @@ import { loadProjectDetail } from './load-project-detail';
 import { MilestonesPanel } from './milestones-panel';
 import { ScheduleSummaryPanel } from './schedule-summary-panel';
 
-/** Client-bound milestone rows — drop notes, org id, and timestamps from Flight. */
+/** Client-bound milestone rows - drop notes, org id, and timestamps from Flight. */
 function slimMilestonesForClient(milestones: readonly MilestoneRecord[]) {
   return milestones.map((row) => ({
     id: row.id,
@@ -17,7 +17,7 @@ function slimMilestonesForClient(milestones: readonly MilestoneRecord[]) {
 }
 
 /**
- * Schedule summary — structure fetch is request-cached with milestones.
+ * Schedule summary - structure fetch is request-cached with milestones.
  * Overview contract cards stream without waiting on WP/phase/milestone rows.
  */
 export async function OverviewSchedulePanel({

@@ -207,7 +207,7 @@ export async function issuePurchaseOrder(context: OrgContext, raw: { purchaseOrd
 }
 
 /**
- * Cancel a PO — commitment must not stay active.
+ * Cancel a PO - commitment must not stay active.
  * Draft: status only. Issued/partial: cancel open commitment row.
  */
 export async function cancelPurchaseOrder(
@@ -253,7 +253,7 @@ export async function cancelPurchaseOrder(
 }
 
 /**
- * Close a PO — remaining open commitment is zeroed (closed), not left active.
+ * Close a PO - remaining open commitment is zeroed (closed), not left active.
  */
 export async function closePurchaseOrder(
   context: OrgContext,

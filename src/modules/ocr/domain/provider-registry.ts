@@ -16,7 +16,7 @@ function readProviderId(): string {
 }
 
 /**
- * Deterministic e2e/mock transport — never calls Azure HTTP.
+ * Deterministic e2e/mock transport - never calls Azure HTTP.
  * Enabled only when OCR_E2E_MOCK_PROVIDER is set (Playwright harness).
  */
 function isE2eMockProviderEnabled(): boolean {
@@ -26,8 +26,8 @@ function isE2eMockProviderEnabled(): boolean {
 
 /**
  * Resolve the process OCR provider from env.
- * Unknown ids fall back to stub (inert — never fabricates amounts).
- * google/aws are registry slots only — no fake HTTP.
+ * Unknown ids fall back to stub (inert - never fabricates amounts).
+ * google/aws are registry slots only - no fake HTTP.
  */
 export function createOcrProviderFromEnv(): OcrProvider {
   if (isE2eMockProviderEnabled()) {
@@ -52,7 +52,7 @@ export function getOcrProvider(): OcrProvider {
   return defaultProvider;
 }
 
-/** Test / DI hook — swap the process-wide provider instance. */
+/** Test / DI hook - swap the process-wide provider instance. */
 export function setOcrProviderForTests(provider: OcrProvider | null): void {
   defaultProvider = provider;
 }

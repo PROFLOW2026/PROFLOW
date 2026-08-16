@@ -1,5 +1,5 @@
 /**
- * Operational material / equipment usage — attribution only.
+ * Operational material / equipment usage - attribution only.
  *
  * Cost recognition audit (V1 / next-gen):
  * - Purchase Actual is recognized once via Expense finalize and/or posted AP vendor bills.
@@ -8,7 +8,7 @@
  * - Do not invent inventory costing (FIFO/AVG/standard) or capitalize usage into project cost.
  * - Doc 21 “issue → project material cost” is future planning and is overridden here.
  *
- * Low stock: use inventory reorder_level / getReorderStatus — operational indicator only.
+ * Low stock: use inventory reorder_level / getReorderStatus - operational indicator only.
  */
 
 /** Material consumption is never recognized Actual cost. */

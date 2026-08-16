@@ -19,7 +19,7 @@ import {
  * `work_mix` adjusts which of Projects / Jobs dominates mobile chrome.
  *
  * Icons are referenced by key so nav items stay serializable across the
- * server/client boundary — Lucide components cannot be passed as props.
+ * server/client boundary - Lucide components cannot be passed as props.
  */
 
 export const NAV_ICON_KEYS = [
@@ -85,7 +85,7 @@ export interface NavItem {
   primaryOnMobile?: boolean;
   /**
    * More-menu / sidebar section. Core (dashboard, projects, expenses) and
-   * settings omit this — they render ungrouped / last respectively.
+   * settings omit this - they render ungrouped / last respectively.
    */
   moreGroup?: MoreNavGroup;
 }
@@ -105,7 +105,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
     iconKey: 'today',
     permission: PERMISSIONS.COMMAND_CENTER_READ,
     module: 'command_center',
-    /** Today inbox — promote when module on; mobile bar still caps at 4. */
+    /** Today inbox - promote when module on; mobile bar still caps at 4. */
     primaryOnMobile: true,
   },
   {
@@ -229,7 +229,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
   },
   {
     key: 'workforce',
-    // Always discoverable when the viewer can read workforce — do not hide
+    // Always discoverable when the viewer can read workforce - do not hide
     // behind adaptive module prefs (chicken/egg: first employee cannot be
     // created if Owners never see Employees in More).
     href: '/workforce/employees',

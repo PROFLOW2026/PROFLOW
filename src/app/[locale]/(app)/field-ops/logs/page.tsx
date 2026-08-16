@@ -144,7 +144,7 @@ export default async function FieldOpsLogsPage({
                           )}
                         </Link>
                       </TableCell>
-                      <TableCell>{projectName.get(log.projectId) ?? '—'}</TableCell>
+                      <TableCell>{projectName.get(log.projectId) ?? '-'}</TableCell>
                       <TableCell>
                         <StatusBadge
                           shape={
@@ -162,11 +162,11 @@ export default async function FieldOpsLogsPage({
                           {log.summary}
                         </Link>
                       </TableCell>
-                      <TableCell>{log.weather ?? '—'}</TableCell>
+                      <TableCell>{log.weather ?? '-'}</TableCell>
                       <TableCell className="max-w-xs truncate">
-                        {log.workforceNotes ?? '—'}
+                        {log.workforceNotes ?? '-'}
                       </TableCell>
-                      <TableCell className="max-w-xs truncate">{log.blockers ?? '—'}</TableCell>
+                      <TableCell className="max-w-xs truncate">{log.blockers ?? '-'}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -196,7 +196,7 @@ export default async function FieldOpsLogsPage({
                   {log.logDate}
                 </span>
                 {' · '}
-                {projectName.get(log.projectId) ?? '—'}
+                {projectName.get(log.projectId) ?? '-'}
                 {log.weather ? ` · ${log.weather}` : ''}
               </p>
               {log.workforceNotes ? (

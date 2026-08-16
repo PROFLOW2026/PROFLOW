@@ -22,7 +22,7 @@ import {
 } from '@/modules/ap';
 import { RECOGNIZED_VENDOR_BILL_STATUSES } from '@/modules/ap/domain/vendor-cost-recognition';
 const OPEN_COMMITTED_STATUSES = ['open', 'partially_consumed'] as const;
-/** Recognized bills may still owe cash after PO match — include `matched`. */
+/** Recognized bills may still owe cash after PO match - include `matched`. */
 const OPEN_AP_CASH_STATUSES = RECOGNIZED_VENDOR_BILL_STATUSES;
 
 /**
@@ -70,7 +70,7 @@ export async function sumOpenCommittedCostsForProject(
  * Sum cash outstanding on recognized AP bills for a project.
  * Outstanding = bill total − active (non-void) vendor payment applications.
  * Not Actual cost (recognized bill totals enter Actual separately; payments ignored there).
- * PO match remainder is a separate matching metric — never used as open AP cash.
+ * PO match remainder is a separate matching metric - never used as open AP cash.
  */
 export async function sumOpenApPayableForProject(
   db: DbExecutor,
@@ -143,7 +143,7 @@ export interface RecognizedVendorBillRollup {
 }
 
 /**
- * Posted/approved vendor bills for a project — recognized Actual Vendor Cost.
+ * Posted/approved vendor bills for a project - recognized Actual Vendor Cost.
  * Also returns expense ids linked via accepted matches (exclude to avoid double-count).
  *
  * When `ap_bill_project_allocations` is available (0021 applied + gate on):
@@ -327,7 +327,7 @@ export type ProjectApPayableRollup = ProjectMoneyRollup & {
 };
 
 /**
- * Open committed costs for many projects — one query, grouped in memory.
+ * Open committed costs for many projects - one query, grouped in memory.
  */
 export async function sumOpenCommittedCostsForProjects(
   db: DbExecutor,
@@ -381,7 +381,7 @@ export async function sumOpenCommittedCostsForProjects(
 }
 
 /**
- * Open AP cash payable for many projects — bills + one active-payment-applications query.
+ * Open AP cash payable for many projects - bills + one active-payment-applications query.
  */
 export async function sumOpenApPayableForProjects(
   db: DbExecutor,
@@ -469,7 +469,7 @@ export async function sumOpenApPayableForProjects(
 }
 
 /**
- * Recognized vendor bills for many projects — bills + linked expenses in two queries.
+ * Recognized vendor bills for many projects - bills + linked expenses in two queries.
  * Honors allocation-line precedence when the 0021 allocations gate is on.
  */
 export async function loadRecognizedVendorBillsForProjects(

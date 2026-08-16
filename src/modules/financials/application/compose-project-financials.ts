@@ -48,7 +48,7 @@ import type { RecognizedVendorBillRollup } from '../data/committed-costs.reposit
 
 /**
  * Shared financial composition for a single project.
- * Used by getProjectFinancials and the set-based org rollup — formulas stay identical.
+ * Used by getProjectFinancials and the set-based org rollup - formulas stay identical.
  */
 export interface ProjectFinancialsLoadedSlices {
   readonly projectId: string;
@@ -85,7 +85,7 @@ export interface ProjectFinancialsLoadedSlices {
   };
   /**
    * Non-superseded month-close economic corrections for this project.
-   * Closed history is never rewritten — these rows add to composed totals once.
+   * Closed history is never rewritten - these rows add to composed totals once.
    */
   readonly monthCloseEconomic?: {
     readonly costNet: MoneyValue;
@@ -264,7 +264,7 @@ export function composeProjectFinancials(
         )
       : null;
 
-  // Same Actual / Forecast / margin engine — confidence only labels incompleteness.
+  // Same Actual / Forecast / margin engine - confidence only labels incompleteness.
   const dataConfidence = dataConfidenceFromCoverage(coverage, {
     unallocatedRemainder: input.incompleteness?.unallocatedRemainder,
     openDraftDocumentCount: input.incompleteness?.openDraftDocumentCount,

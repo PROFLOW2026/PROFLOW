@@ -33,7 +33,7 @@ export interface OpsExpenseLink {
 export interface OpsRecordCostSnapshot {
   readonly opsRecordKind: OpsRecordKind;
   readonly opsRecordId: string;
-  /** Operational metadata amount — not Actual until a linked expense is finalized. */
+  /** Operational metadata amount - not Actual until a linked expense is finalized. */
   readonly costAmount: string | null;
   readonly currency: string | null;
   readonly title: string;

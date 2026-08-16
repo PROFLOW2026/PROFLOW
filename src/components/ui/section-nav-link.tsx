@@ -18,14 +18,14 @@ export const sectionNavLinkClassName = cn(
   'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]',
   'text-[var(--pf-text-secondary)]',
   'hover:bg-[var(--pf-bg-muted)] hover:text-[var(--pf-text-primary)]',
-  // Touch press — not hover-only.
+  // Touch press - not hover-only.
   'active:bg-[var(--pf-action-subtle-active)] active:text-[var(--pf-text-primary)]',
   'aria-[current=page]:bg-[var(--pf-teal-50)] aria-[current=page]:text-[var(--pf-text-brand)]',
   'aria-[busy=true]:cursor-wait aria-[busy=true]:opacity-90',
   'data-[pending]:pointer-events-none',
 );
 
-/** Re-export — prefer importing from `@/components/ui/pressable` in Server Components. */
+/** Re-export - prefer importing from `@/components/ui/pressable` in Server Components. */
 export const textNavLinkClassName = textNavLinkClassNameBase;
 
 export interface SectionNavLinkProps {
@@ -35,7 +35,7 @@ export interface SectionNavLinkProps {
   className?: string;
   onNavigate?: () => void;
   /**
-   * Next.js Link prefetch. Default false — settings/section nav must not
+   * Next.js Link prefetch. Default false - settings/section nav must not
    * prefetch every sibling route on mount.
    */
   prefetch?: boolean;

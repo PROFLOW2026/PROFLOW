@@ -106,7 +106,7 @@ export function aggregateOrgCommercial(
   };
 }
 
-/** Billing cash position — Contract ≠ Billing ≠ Payment. */
+/** Billing cash position - Contract ≠ Billing ≠ Payment. */
 export function aggregateOrgCash(
   rows: readonly ProjectRollupRow[],
   currency: string,
@@ -140,15 +140,15 @@ export function aggregateOrgCash(
 export interface AggregateOrgCostOptions {
   /**
    * Unallocated business costs / costs awaiting allocation.
-   * Surfaced beside project Actual — never added into project profit.
+   * Surfaced beside project Actual - never added into project profit.
    */
   readonly unallocatedBusinessCosts?: MoneyValue | null;
 }
 
 /**
- * Cost rollup. Committed stays beside Actual — never summed into it.
+ * Cost rollup. Committed stays beside Actual - never summed into it.
  * Estimated Final Cost (Forecast Final Cost) = Actual + Remaining Commitments + ETC.
- * Open AP payable / vendor payments are cash disclosure only — never folded into estimatedFinal.
+ * Open AP payable / vendor payments are cash disclosure only - never folded into estimatedFinal.
  * Actual includes recognized (posted) vendor bills from project financials.
  * Unallocated org costs are disclosed separately when provided.
  */

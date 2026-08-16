@@ -294,7 +294,7 @@ function CustomerSafePreview({
           </div>
           <div className="min-w-0">
             <dt className="text-[var(--pf-text-secondary)]">{t('preview.fields.client')}</dt>
-            <dd className="break-words">{summary.clientName ?? '—'}</dd>
+            <dd className="break-words">{summary.clientName ?? '-'}</dd>
           </div>
           <div className="min-w-0">
             <dt className="text-[var(--pf-text-secondary)]">{t('preview.fields.progress')}</dt>
@@ -304,7 +304,7 @@ function CustomerSafePreview({
                   {summary.progressPercent}%
                 </span>
               ) : (
-                '—'
+                '-'
               )}
               {summary.progressStatus ? (
                 <>
@@ -324,16 +324,16 @@ function CustomerSafePreview({
           <div className="min-w-0">
             <dt className="text-[var(--pf-text-secondary)]">{t('preview.fields.dates')}</dt>
             <dd dir="ltr" className="pf-ltr-island">
-              {[summary.startDate, summary.targetEndDate].filter(Boolean).join(' → ') || '—'}
+              {[summary.startDate, summary.targetEndDate].filter(Boolean).join(' → ') || '-'}
             </dd>
           </div>
           <div className="min-w-0">
             <dt className="text-[var(--pf-text-secondary)]">{t('preview.fields.location')}</dt>
-            <dd className="break-words">{summary.location ?? '—'}</dd>
+            <dd className="break-words">{summary.location ?? '-'}</dd>
           </div>
           <div className="min-w-0 sm:col-span-2">
             <dt className="text-[var(--pf-text-secondary)]">{t('preview.fields.description')}</dt>
-            <dd className="break-words">{summary.description ?? '—'}</dd>
+            <dd className="break-words">{summary.description ?? '-'}</dd>
           </div>
           {summary.outstanding ? (
             <div className="min-w-0">
@@ -523,7 +523,7 @@ function VendorSafePreview({
                   ))}
                 </ul>
               ) : (
-                '—'
+                '-'
               )}
             </dd>
           </div>

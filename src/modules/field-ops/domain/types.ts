@@ -40,7 +40,7 @@ export interface DailyLogRecord {
   readonly summary: string;
   /** Site / crew notes (blockers stored separately; packed in DB). */
   readonly workforceNotes: string | null;
-  /** Day blockers — packed into workforce_notes without a dedicated column. */
+  /** Day blockers - packed into workforce_notes without a dedicated column. */
   readonly blockers: string | null;
   readonly status: DailyLogStatus;
   readonly workPerformed: string | null;
@@ -50,7 +50,7 @@ export interface DailyLogRecord {
   readonly visitorNotes: string | null;
   readonly managerNotes: string | null;
   readonly correctionNotes: string | null;
-  /** Optional HSE notebook link — never auto-created. */
+  /** Optional HSE notebook link - never auto-created. */
   readonly linkedSafetyRecordId: string | null;
   readonly workersOnSite: string | null;
   readonly subcontractorsOnSite: string | null;

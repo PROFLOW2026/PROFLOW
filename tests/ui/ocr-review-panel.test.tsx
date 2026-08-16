@@ -363,7 +363,7 @@ describe('OCR review panel', () => {
     ).toBe('true');
     expect(document.querySelector('[data-pf-preview-document-id="doc-b"]')).toBeTruthy();
 
-    // Reject uses startTransition — job removal can paint before `pending` clears.
+    // Reject uses startTransition - job removal can paint before `pending` clears.
     await waitFor(() => {
       expect(screen.getByRole('checkbox', { name: acceptVendorLabel() })).toBeEnabled();
       expect(screen.getByRole('button', { name: enDocuments.ocr.rejectReview })).toBeEnabled();

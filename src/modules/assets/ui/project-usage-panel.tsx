@@ -27,7 +27,7 @@ export interface ProjectUsagePanelProps {
 
 /**
  * Project / job / work-order usage tab.
- * Material + equipment attribution only — never Actual cost.
+ * Material + equipment attribution only - never Actual cost.
  */
 export async function ProjectUsagePanel({ projectId }: ProjectUsagePanelProps) {
   const t = await getTranslations('assets.usage');
@@ -157,9 +157,9 @@ export async function ProjectUsagePanel({ projectId }: ProjectUsagePanelProps) {
                       <TableCell numeric>
                         <span dir="ltr">{row.quantity}</span>
                       </TableCell>
-                      <TableCell>{row.unit ?? '—'}</TableCell>
+                      <TableCell>{row.unit ?? '-'}</TableCell>
                       <TableCell className="max-w-[12rem] truncate text-[var(--pf-text-secondary)]">
-                        {row.notes ?? '—'}
+                        {row.notes ?? '-'}
                       </TableCell>
                       {data.canManageMaterials ? (
                         <TableCell>
@@ -220,16 +220,16 @@ export async function ProjectUsagePanel({ projectId }: ProjectUsagePanelProps) {
                         {data.assetNames.get(row.assetId) ?? row.assetId.slice(0, 8)}
                       </TableCell>
                       <TableCell numeric>
-                        <span dir="ltr">{row.hours ?? '—'}</span>
+                        <span dir="ltr">{row.hours ?? '-'}</span>
                       </TableCell>
                       <TableCell numeric>
-                        <span dir="ltr">{row.days ?? '—'}</span>
+                        <span dir="ltr">{row.days ?? '-'}</span>
                       </TableCell>
                       <TableCell numeric>
-                        <span dir="ltr">{row.mileage ?? '—'}</span>
+                        <span dir="ltr">{row.mileage ?? '-'}</span>
                       </TableCell>
                       <TableCell className="max-w-[12rem] truncate text-[var(--pf-text-secondary)]">
-                        {row.notes ?? '—'}
+                        {row.notes ?? '-'}
                       </TableCell>
                       {data.canManageAssets ? (
                         <TableCell>

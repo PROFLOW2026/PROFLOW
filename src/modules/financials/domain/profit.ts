@@ -15,7 +15,7 @@ import {
  * FORECAST MARGIN = Current Contract Net − Forecast Final Cost
  *
  * `estimatedProfit` / `marginPercent` remain the forecast pair for UI compatibility.
- * Margin is null when contract value is zero — dividing by zero is meaningless.
+ * Margin is null when contract value is zero - dividing by zero is meaningless.
  */
 export function computeProfitPosition(
   currentContractValue: MoneyValue,

@@ -4,7 +4,7 @@ import type { FormOwnerType, FormSubmissionListItem } from '../domain/types';
 
 /**
  * Tenant-scoped lookup used by other modules (e.g. work-order completion).
- * Does not assert forms.read — callers already authorized on their own surface.
+ * Does not assert forms.read - callers already authorized on their own surface.
  */
 export async function hasSubmittedFormForOwner(
   db: DbExecutor,

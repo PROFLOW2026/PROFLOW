@@ -67,7 +67,7 @@ export interface DashboardAttention {
 
 /**
  * Organization forecast reconciliation across all base-currency active projects.
- * Unallocated business costs are disclosed beside project totals — never forced into profit.
+ * Unallocated business costs are disclosed beside project totals - never forced into profit.
  */
 export interface OrganizationForecastSummary {
   readonly totalCurrentContract: MoneyValue;
@@ -78,7 +78,7 @@ export interface OrganizationForecastSummary {
   readonly totalForecastFinalCost: MoneyValue;
   readonly totalActualMargin: MoneyValue | null;
   readonly totalForecastMargin: MoneyValue | null;
-  /** Finalized org costs awaiting allocation — not in project Actual / profit. */
+  /** Finalized org costs awaiting allocation - not in project Actual / profit. */
   readonly unallocatedBusinessCosts: MoneyValue;
   readonly eligibleProjectCount: number;
   readonly excludedForeignCurrencyCount: number;
@@ -177,7 +177,7 @@ export async function getHomeDashboard(
   }
 
   // Kick off org financial rollup in parallel with existence probes.
-  // Brand-new orgs discard the result — empty rollup is cheap; warm path saves a full wave.
+  // Brand-new orgs discard the result - empty rollup is cheap; warm path saves a full wave.
   const orgExpenseContributionsPromise =
     canReadFinancials && canReadExpenses
       ? loadOrganizationExpenseContributions(context.db, context.organizationId)
@@ -284,7 +284,7 @@ export async function getHomeDashboard(
       : Promise.resolve(null),
   ]);
 
-  // Derive overdue from the billing rows already loaded — avoid a second full org load.
+  // Derive overdue from the billing rows already loaded - avoid a second full org load.
   const overdueBillingCount = billingRows
     ? countOverdueFromBillingRows(billingRows, today)
     : 0;

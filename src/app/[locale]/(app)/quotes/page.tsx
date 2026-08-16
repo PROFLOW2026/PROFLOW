@@ -123,7 +123,7 @@ export default async function QuotesPage({
                           {item.title}
                         </Link>
                       </TableCell>
-                      <TableCell>{item.clientName ?? '—'}</TableCell>
+                      <TableCell>{item.clientName ?? '-'}</TableCell>
                       <TableCell>
                         <StatusBadge shape={quoteShape(item.status)} label={tStatus(item.status)} />
                       </TableCell>
@@ -131,7 +131,7 @@ export default async function QuotesPage({
                         {item.totalAmount ? (
                           <MoneyText value={money(item.totalAmount, item.currency)} />
                         ) : (
-                          '—'
+                          '-'
                         )}
                       </TableCell>
                       <TableCell>
@@ -140,7 +140,7 @@ export default async function QuotesPage({
                             {item.validityDate}
                           </span>
                         ) : (
-                          '—'
+                          '-'
                         )}
                       </TableCell>
                     </TableRow>
@@ -156,7 +156,7 @@ export default async function QuotesPage({
                 <StatusBadge shape={quoteShape(item.status)} label={tStatus(item.status)} />
               </div>
               <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">
-                {item.clientName ?? '—'}
+                {item.clientName ?? '-'}
                 {item.totalAmount ? ` · ${item.totalAmount} ${item.currency}` : ''}
               </p>
             </Link>

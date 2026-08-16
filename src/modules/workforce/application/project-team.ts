@@ -37,7 +37,7 @@ import {
 
 /**
  * Formal project team from `employee_project_assignments` (active spans).
- * Assignment alone never creates labor Actual — only time entries do.
+ * Assignment alone never creates labor Actual - only time entries do.
  */
 export async function listProjectTeamMembers(
   context: OrgContext,

@@ -70,7 +70,7 @@ import type {
 /**
  * UX split (Wave 3): operational stock + movements live under /assets/inventory.
  * Materials catalog + vendor prices live under /procurement/materials.
- * Inventory movements update quantity_on_hand only — never Expense / GL / FIFO.
+ * Inventory movements update quantity_on_hand only - never Expense / GL / FIFO.
  */
 
 export type InventoryItemWithReorder = InventoryItemRecord & {
@@ -703,7 +703,7 @@ export async function recordInventoryMovement(
     }
 
     // Hard rule: inventory qty is not GL and not Expense. Balances are applied
-    // by the movement INSERT trigger — never by rewriting location balances.
+    // by the movement INSERT trigger - never by rewriting location balances.
     void isInventoryQuantityGlOrExpense();
 
     let movement: InventoryMovementRecord;

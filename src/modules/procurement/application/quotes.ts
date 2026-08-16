@@ -206,7 +206,7 @@ export async function setSupplierQuoteStatus(
 
 /**
  * Accept quote (if needed) then create a draft PO via createPurchaseOrder.
- * Issuing later creates committed_costs only — never Expense.
+ * Issuing later creates committed_costs only - never Expense.
  */
 export async function createPurchaseOrderFromAcceptedQuote(
   context: OrgContext,

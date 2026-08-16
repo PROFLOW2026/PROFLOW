@@ -1,5 +1,5 @@
 /**
- * Projects domain types. Framework-free — no React, no Next.js, no persistence.
+ * Projects domain types. Framework-free - no React, no Next.js, no persistence.
  */
 
 export const PROJECT_STATUSES = [
@@ -161,7 +161,7 @@ export interface ContractRecord {
    */
   readonly enteredValueAmount: string | null;
   readonly amountIncludesTax: boolean;
-  /** Managed opening NET — profitability / CCV basis (not display original). */
+  /** Managed opening NET - profitability / CCV basis (not display original). */
   readonly originalValueAmount: string | null;
   readonly originalTaxAmount: string | null;
   readonly originalGrossAmount: string | null;
@@ -237,7 +237,7 @@ export type JobBillingPaymentStatus = 'none' | 'unpaid' | 'partial' | 'paid';
 export interface JobListItem extends ProjectListItem {
   readonly actualCostAmount: string | null;
   readonly profitAmount: string | null;
-  /** False when open-price / no revenue basis — UI must not invent a margin. */
+  /** False when open-price / no revenue basis - UI must not invent a margin. */
   readonly profitDefined: boolean;
   readonly billingPaymentStatus: JobBillingPaymentStatus;
   readonly invoicedAmount: string | null;

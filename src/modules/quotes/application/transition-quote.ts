@@ -24,7 +24,7 @@ const DECISION_STATUSES: readonly QuoteStatus[] = [
 
 /**
  * Lifecycle transitions only. Convert is a separate use case (accepted → project/job).
- * Transition to `converted` is rejected here — must go through convertQuote.
+ * Transition to `converted` is rejected here - must go through convertQuote.
  */
 export async function transitionQuoteStatus(
   context: OrgContext,

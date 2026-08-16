@@ -1,5 +1,5 @@
 /**
- * Vendor credit notes (AP) — domain rules.
+ * Vendor credit notes (AP) - domain rules.
  *
  * HARD RULES:
  * - Credits ≠ payments. Credits reduce economic cost (Actual) and payable outstanding.
@@ -61,7 +61,7 @@ export function areApCreditsAvailable(): boolean {
 
 /** Documented guard: credits are not cash payments. */
 export function assertCreditIsNotPayment(): void {
-  // Structural invariant — credits never call payment recognition paths.
+  // Structural invariant - credits never call payment recognition paths.
 }
 
 export function sumActiveCreditAmounts(
@@ -191,7 +191,7 @@ export function assertCreditApplicable(input: {
     );
   }
   if (input.creditStatus === 'applied') {
-    // Fully applied credits have no remaining — remaining check below covers it.
+    // Fully applied credits have no remaining - remaining check below covers it.
   }
   if (!isRecognizedVendorBillStatus(input.billStatus)) {
     throw new DomainRuleError(
@@ -274,7 +274,7 @@ export function creditRemaining(input: {
   return remaining;
 }
 
-/** UI lifecycle labels — pending approval is draft + submitted request, not a DB status. */
+/** UI lifecycle labels - pending approval is draft + submitted request, not a DB status. */
 export const AP_CREDIT_LIFECYCLE_DISPLAY_STATUSES = [
   'draft',
   'pending_approval',

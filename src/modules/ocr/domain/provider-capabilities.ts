@@ -14,7 +14,7 @@
 
 export type AzurePricingTier = 'F0' | 'S0';
 
-/** Product abuse ceiling — independent of Azure tier. */
+/** Product abuse ceiling - independent of Azure tier. */
 export const OCR_APP_MAX_FILE_BYTES = 25 * 1024 * 1024;
 export const OCR_APP_MAX_PAGES = 50;
 
@@ -28,7 +28,7 @@ export interface OcrProviderCapabilities {
   readonly tier: AzurePricingTier | 'unlimited' | 'unknown';
   readonly maxFileBytes: number;
   readonly maxPages: number;
-  /** Free layout/key-value feature — safe on F0. */
+  /** Free layout/key-value feature - safe on F0. */
   readonly keyValuePairs: boolean;
   /**
    * Paid Query Fields add-on. Off by default. Never auto-enabled on F0.

@@ -54,7 +54,7 @@ export async function createTestOrganization(
   return { organization: result.organization, membershipId: result.membershipId, owner };
 }
 
-/** Two fully provisioned, unrelated tenants — the standard isolation scenario. */
+/** Two fully provisioned, unrelated tenants - the standard isolation scenario. */
 export interface TwoTenantScenario {
   readonly orgA: TestOrganization;
   readonly orgB: TestOrganization;

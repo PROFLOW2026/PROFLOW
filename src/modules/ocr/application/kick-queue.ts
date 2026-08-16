@@ -2,7 +2,7 @@ import { after } from 'next/server';
 
 /**
  * Hobby-compatible OCR kick: start durable drain after the user-facing
- * enqueue response. Does not bypass the queue — still claims via
+ * enqueue response. Does not bypass the queue - still claims via
  * `claim_ocr_job`. Daily Vercel cron is recovery only.
  */
 export function kickDurableOcrQueue(): void {

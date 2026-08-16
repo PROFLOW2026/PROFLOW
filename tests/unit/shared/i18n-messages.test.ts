@@ -11,7 +11,7 @@ import { LOCALES, MESSAGE_NAMESPACES, type Locale } from '@/shared/i18n/config';
  * one must exist in the other with the same ICU placeholders. A mismatch here
  * shows up in production as an untranslated key or a broken interpolation.
  *
- * `loadMessages` deep-merges English under he-IL for missing keys — that would
+ * `loadMessages` deep-merges English under he-IL for missing keys - that would
  * silently show English in the Hebrew UI. These tests require he-IL to ship
  * every English key so the merge never becomes the only source of a label.
  */
@@ -109,7 +109,6 @@ const IDENTICAL_MESSAGE_ALLOWLIST = new Set([
   'assets.inventory.qtyOnlyBannerHe',
   'marketing.hero.brand',
   'marketing.footer.note',
-  'marketing.financial.neq',
   // Shared screenshot asset paths (language-neutral).
   'marketing.tour.tabs.0.src',
   'marketing.tour.tabs.1.src',

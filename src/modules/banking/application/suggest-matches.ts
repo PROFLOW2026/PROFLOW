@@ -27,7 +27,7 @@ function isTestDoubleRepo(repo: ReturnType<typeof getBankingRepository>): boolea
 
 /**
  * Build / refresh suggestions for one transaction.
- * Candidates are injected by the caller (billing/AP open items) — banking
+ * Candidates are injected by the caller (billing/AP open items) - banking
  * does not own payment math.
  *
  * Same-org APP GUARD: every candidate target must belong to the organization

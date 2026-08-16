@@ -5,7 +5,7 @@ import { deriveWebhookSecretKek } from '../domain/webhook-secret-seal';
 
 /**
  * Derives the webhook secret KEK from process env.
- * Production requires an explicit WEBHOOK_SECRET_KEK — never reuse the service-role
+ * Production requires an explicit WEBHOOK_SECRET_KEK - never reuse the service-role
  * key or DATABASE_URL as encryption material (rotation / blast-radius isolation).
  * Local/preview may fall back to service-role / DATABASE_URL / deterministic local.
  */
@@ -36,6 +36,6 @@ export function resolveWebhookSecretKek(): Buffer {
     return deriveWebhookSecretKek(databaseUrl);
   }
 
-  // Deterministic local/test fallback — never reached in production (guard above).
+  // Deterministic local/test fallback - never reached in production (guard above).
   return createHash('sha256').update('projectflow.webhook.kek.local-dev', 'utf8').digest();
 }

@@ -293,7 +293,7 @@ async function insertRecordedTimeEntry(
     snapshot?: CostSnapshot;
     /**
      * New logs: draft (no Actual). Corrections of approved history: approved
-     * so Actual is not silently dropped — the time_correction gate still applies.
+     * so Actual is not silently dropped - the time_correction gate still applies.
      */
     approvalStatus?: TimeApprovalStatus;
   },

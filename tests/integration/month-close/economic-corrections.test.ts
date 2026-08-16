@@ -69,7 +69,7 @@ describe('month-close economic corrections', () => {
 
       const audit = await createMonthCloseAdjustment(context, {
         periodId,
-        reason: 'Documented missing allocation — no money',
+        reason: 'Documented missing allocation - no money',
       });
 
       const original = await createMonthCloseAdjustment(context, {

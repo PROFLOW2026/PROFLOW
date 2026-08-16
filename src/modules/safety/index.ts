@@ -1,4 +1,4 @@
-/** Public API of the safety / HSE module. No UI — import components from `./ui`. */
+/** Public API of the safety / HSE module. No UI - import components from `./ui`. */
 export {
   listSafetyRecordsForOrg,
   getSafetyRecordForOrg,

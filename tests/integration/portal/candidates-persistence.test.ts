@@ -90,7 +90,7 @@ describe('portal candidates persistence (L + cross-tenant)', () => {
     setPortalCandidatesPersistenceReadyForTests(true);
   });
 
-  it('L — persistence restart: AP + compliance candidates survive', async () => {
+  it('L - persistence restart: AP + compliance candidates survive', async () => {
     const ap = await database.asService(async (db) =>
       drizzleVendorPortalCandidatesRepository.insertAp(db, {
         organizationId: orgAId,

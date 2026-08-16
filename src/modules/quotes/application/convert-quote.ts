@@ -166,12 +166,12 @@ export async function convertQuote(
     },
   );
   if (!updated) {
-    // Lost the race — another convert claimed the quote. Throwing rolls back
+    // Lost the race - another convert claimed the quote. Throwing rolls back
     // this request transaction (including the project created above).
     const raced = await findQuoteById(context.db, context.organizationId, quote.id);
     if (raced?.convertedProjectId) {
       throw new DomainRuleError(
-        'Quote was converted concurrently — refresh and open the existing project',
+        'Quote was converted concurrently - refresh and open the existing project',
         'quotes.errors.alreadyConverted',
         { projectId: raced.convertedProjectId },
       );

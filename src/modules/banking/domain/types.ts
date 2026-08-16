@@ -6,7 +6,7 @@
  * - No silent finalized financial writes (payment / bill / expense / cost).
  * - Matching a vendor payment for an already-recognized bill is cash reconciliation,
  *   never project Actual Cost.
- * - Live bank feed is an extension point — V1 is CSV/XLSX only.
+ * - Live bank feed is an extension point - V1 is CSV/XLSX only.
  */
 
 export const BANK_ACCOUNT_STATUSES = ['active', 'archived'] as const;
@@ -103,12 +103,12 @@ export interface BankMatchDecision {
   readonly currency: string | null;
   readonly notes: string | null;
   /**
-   * Always false for V1 — decisions are reconciliation intent only.
+   * Always false for V1 - decisions are reconciliation intent only.
    * Financial mutation requires an explicit separate application path.
    */
   readonly mutatesFinancials: false;
   /**
-   * Always false — bank↔vendor-payment match never becomes project cost.
+   * Always false - bank↔vendor-payment match never becomes project cost.
    */
   readonly createsProjectCost: false;
   readonly createdAt: string;

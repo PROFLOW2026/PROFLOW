@@ -448,7 +448,7 @@ export async function searchInventoryItems(
 }
 
 /**
- * Materials catalog (name/SKU only — never default price / Actual).
+ * Materials catalog (name/SKU only - never default price / Actual).
  */
 export async function searchMaterials(
   db: DbExecutor,

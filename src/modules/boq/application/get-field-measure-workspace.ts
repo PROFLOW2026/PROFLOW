@@ -80,7 +80,7 @@ export async function getFieldMeasureWorkspace(
   };
 }
 
-/** Cheap entry check — submitters only, and only when an active BOQ exists. */
+/** Cheap entry check - submitters only, and only when an active BOQ exists. */
 export async function getFieldMeasureEntry(
   context: OrgContext,
   projectId: string,

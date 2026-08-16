@@ -86,7 +86,7 @@ export default async function CrmProspectsPage() {
                           {row.name}
                         </Link>
                       </TableCell>
-                      <TableCell>{row.companyName ?? '—'}</TableCell>
+                      <TableCell>{row.companyName ?? '-'}</TableCell>
                       <TableCell>
                         <StatusBadge
                           shape={row.status === 'active' ? 'active' : 'archived'}

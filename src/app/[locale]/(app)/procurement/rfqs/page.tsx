@@ -122,7 +122,7 @@ export default async function RfqsPage() {
                             )}
                           </span>
                         ) : (
-                          '—'
+                          '-'
                         )}
                       </TableCell>
                       <TableCell>

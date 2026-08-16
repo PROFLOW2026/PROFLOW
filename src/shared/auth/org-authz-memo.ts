@@ -7,7 +7,7 @@ import type { PermissionKey } from '@/shared/permissions/catalog';
 /**
  * Authz fields that are safe to reuse within a single RSC/action request.
  *
- * Never includes `db` — RLS identity is transaction-scoped (`SET LOCAL`), so a
+ * Never includes `db` - RLS identity is transaction-scoped (`SET LOCAL`), so a
  * fresh executor must be attached for every `withUserContext` call.
  * Never caches financial or domain payloads.
  */

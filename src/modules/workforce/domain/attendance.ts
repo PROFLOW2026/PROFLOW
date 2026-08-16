@@ -19,7 +19,7 @@ export type AttendanceDayStatus = (typeof ATTENDANCE_DAY_STATUSES)[number];
 export const ATTENDANCE_EVENT_SOURCES = ['self', 'manager', 'manual', 'system'] as const;
 export type AttendanceEventSource = (typeof ATTENDANCE_EVENT_SOURCES)[number];
 
-/** Derived presence from active (non-voided) events — not a persisted column. */
+/** Derived presence from active (non-voided) events - not a persisted column. */
 export const CLOCK_PRESENCE_STATES = ['absent', 'clocked_in', 'on_break'] as const;
 export type ClockPresenceState = (typeof CLOCK_PRESENCE_STATES)[number];
 

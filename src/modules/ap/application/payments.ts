@@ -1,6 +1,6 @@
 /**
  * Vendor payment application services.
- * Cash / AP only — never recognizes Actual Cost.
+ * Cash / AP only - never recognizes Actual Cost.
  *
  * Financial immutability:
  * - No delete of payments or applications.
@@ -426,7 +426,7 @@ export async function updateVendorPaymentMetadata(
   return updated;
 }
 
-/** Hard-delete is forbidden — always throws. */
+/** Hard-delete is forbidden - always throws. */
 export async function deleteVendorPayment(
   _context: OrgContext,
   _paymentId: string,
@@ -435,7 +435,7 @@ export async function deleteVendorPayment(
   assertPaymentNotDeletable();
 }
 
-/** Application rewrite / delete is forbidden — always throws. */
+/** Application rewrite / delete is forbidden - always throws. */
 export function rejectPaymentApplicationMutation(): never {
   assertPaymentApplicationNotMutable();
 }

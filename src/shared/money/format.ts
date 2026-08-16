@@ -21,7 +21,7 @@ export type MoneyDecimalsMode = 'minor-units' | 'whole' | 'auto';
 export interface FormatMoneyOptions {
   /** `minor-units` = always show the currency scale, `whole` = never, `auto` = hide `.00`. */
   decimals?: MoneyDecimalsMode;
-  /** Renders 310,000 as ₪310K — only for tight mobile cards, never on detail screens. */
+  /** Renders 310,000 as ₪310K - only for tight mobile cards, never on detail screens. */
   compact?: boolean;
   /** Prefix positive values with `+`; negatives always keep their sign. */
   signDisplay?: 'auto' | 'always' | 'never';
@@ -114,7 +114,7 @@ export function formatMoney(value: MoneyValue, locale: string, options: FormatMo
   return formatted;
 }
 
-/** Always shows an explicit sign — for deltas such as approved additions/reductions. */
+/** Always shows an explicit sign - for deltas such as approved additions/reductions. */
 export function formatMoneyDelta(value: MoneyValue, locale: string, options: FormatMoneyOptions = {}): string {
   return formatMoney(value, locale, { ...options, signDisplay: 'always' });
 }

@@ -334,7 +334,7 @@ export function describeSliceKey(slice: AllocationSliceWindow): string {
   return `${slice.sliceIndex}:${slice.periodStart}:${slice.periodEnd}`;
 }
 
-/** Exported for tests — equal monthly share before last-slice residue. */
+/** Exported for tests - equal monthly share before last-slice residue. */
 export function equalMonthlySharePreview(sourceNet: MoneyValue, months: number): string {
   const scale = displayScaleFor(sourceNet.currency);
   return roundMoney(

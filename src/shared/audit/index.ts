@@ -18,7 +18,7 @@ export type { AuditEventSummary, AuditListResult } from './types';
  * changed this money figure and when" for the business owner. Application logs
  * stay separate and are never a substitute.
  *
- * Rows are append-only — the database rejects UPDATE and DELETE.
+ * Rows are append-only - the database rejects UPDATE and DELETE.
  *
  * `AUDIT_ACTIONS` live in `./actions` so client/domain code can import the
  * catalog without pulling Drizzle into the browser bundle.

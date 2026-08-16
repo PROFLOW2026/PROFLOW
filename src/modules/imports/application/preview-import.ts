@@ -164,7 +164,7 @@ export function previewImport(
     if (moneyHeaders.length > 0) {
       const warning = {
         severity: 'warning' as const,
-        message: `Cost/price columns ignored (${moneyHeaders.join(', ')}); inventory import is quantity only — not Actual`,
+        message: `Cost/price columns ignored (${moneyHeaders.join(', ')}); inventory import is quantity only - not Actual`,
       };
       rows = rows.map((row) => ({
         ...row,

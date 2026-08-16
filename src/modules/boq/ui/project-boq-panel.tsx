@@ -194,7 +194,7 @@ export async function ProjectBoqPanel({ projectId, contractId }: ProjectBoqPanel
     })),
   }));
 
-  // KPI snapshot: opening baselines + approved/billed period lines (qty only — safe for field).
+  // KPI snapshot: opening baselines + approved/billed period lines (qty only - safe for field).
   let performedQty = new Decimal(0);
   let billedQty = new Decimal(0);
   let currentQty = new Decimal(0);

@@ -16,7 +16,7 @@ describe('cost category allocation policy', () => {
   });
 
   it('resolves method from category policy, never from category key examples', () => {
-    // insurance (or any key) is not consulted — only the configured default method.
+    // insurance (or any key) is not consulted - only the configured default method.
     const method = resolveAllocationMethodPolicy({
       explicitMethod: null,
       categoryDefaultMethod: 'labor_hours_weight',

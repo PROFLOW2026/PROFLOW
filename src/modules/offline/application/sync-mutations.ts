@@ -276,7 +276,7 @@ async function submitTimeEntry(
   action: QueuedAction,
 ): Promise<{ serverId: string; serverUpdatedAt: string }> {
   // Time entries are create-only from the product form. Financial cost snapshot
-  // is always server-validated — never invent success offline.
+  // is always server-validated - never invent success offline.
   if (action.serverId) {
     throw new OfflineSyncSubmitError(
       'Time entry updates are not supported offline; keep as a new draft candidate.',

@@ -1,4 +1,4 @@
-/** Public API — downloadable PDF / print report packs. */
+/** Public API - downloadable PDF / print report packs. */
 
 export { REPORT_KINDS, DOCUMENT_NAME_CAP } from './domain/types';
 export type {

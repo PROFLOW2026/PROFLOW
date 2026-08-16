@@ -33,7 +33,7 @@ function contextWith(
   };
 }
 
-/** Manager template + roster manage — not employer-cost manage. */
+/** Manager template + roster manage - not employer-cost manage. */
 function managerWithRoster(): OrgContext {
   return contextWith([...roleTemplate('manager').permissions, PERMISSIONS.WORKFORCE_MANAGE]);
 }

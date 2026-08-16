@@ -1,6 +1,6 @@
 /**
  * Service recurrence / service-contract templates.
- * Generating occurrences creates draft/scheduled work orders only — never Actual.
+ * Generating occurrences creates draft/scheduled work orders only - never Actual.
  */
 
 export const RECURRENCE_FREQUENCIES = [
@@ -24,7 +24,7 @@ export const RECURRENCE_OCCURRENCE_STATUSES = [
 ] as const;
 export type RecurrenceOccurrenceStatus = (typeof RECURRENCE_OCCURRENCE_STATUSES)[number];
 
-/** Template pricing hint only — never auto-recognized as revenue/Actual. */
+/** Template pricing hint only - never auto-recognized as revenue/Actual. */
 export const RECURRENCE_PRICING_MODES = ['fixed', 'open', 'none'] as const;
 export type RecurrencePricingMode = (typeof RECURRENCE_PRICING_MODES)[number];
 

@@ -37,7 +37,7 @@ export const createWorkOrderSchema = z
     requestedDate: optionalDate,
     scheduledStartAt: optionalDateTime,
     scheduledEndAt: optionalDateTime,
-    /** Interim assignee — persisted via employee_project_assignments until schema lands. */
+    /** Interim assignee - persisted via employee_project_assignments until schema lands. */
     assigneeEmployeeId: optionalUuid,
     checklistTemplateId: optionalUuid,
     notes: optionalText,

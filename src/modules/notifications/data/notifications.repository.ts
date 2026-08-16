@@ -268,7 +268,7 @@ export async function resolveNotificationsRpc(
 /**
  * Trusted system scanner path. Bypasses RLS via the admin connection and
  * resolves every recipient for the org+type+entity. Never exposed as a client
- * RPC or authenticated GRANT — scanners call this from server code only.
+ * RPC or authenticated GRANT - scanners call this from server code only.
  * Do not add current_user = 'service_role' to app.resolve_notifications.
  */
 export async function resolveNotificationsAsSystem(

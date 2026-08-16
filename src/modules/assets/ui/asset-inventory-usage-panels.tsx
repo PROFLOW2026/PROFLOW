@@ -107,13 +107,13 @@ export async function AssetEquipmentUsagePanel({ assetId }: { readonly assetId: 
                     </Link>
                   </TableCell>
                   <TableCell numeric>
-                    <span dir="ltr">{row.hours ?? '—'}</span>
+                    <span dir="ltr">{row.hours ?? '-'}</span>
                   </TableCell>
                   <TableCell numeric>
-                    <span dir="ltr">{row.days ?? '—'}</span>
+                    <span dir="ltr">{row.days ?? '-'}</span>
                   </TableCell>
                   <TableCell numeric>
-                    <span dir="ltr">{row.mileage ?? '—'}</span>
+                    <span dir="ltr">{row.mileage ?? '-'}</span>
                   </TableCell>
                   {data.canManage ? (
                     <TableCell>

@@ -32,7 +32,7 @@ export interface DecideBankMatchInput {
 export interface DecideBankMatchResult {
   readonly decision: Omit<BankMatchDecision, 'id' | 'createdAt'>;
   readonly nextMatchStatus: BankTxnMatchStatus;
-  /** Always false — callers must not treat this as a ledger write. */
+  /** Always false - callers must not treat this as a ledger write. */
   readonly financialMutationPerformed: false;
 }
 

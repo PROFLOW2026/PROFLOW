@@ -14,9 +14,9 @@ describe('internal document numbering helpers', () => {
   });
 
   it('prefixes a title with the allocated number once', () => {
-    expect(titleWithDocumentNumber('Kitchen remodel', 'EST-0001')).toBe('EST-0001 — Kitchen remodel');
-    expect(titleWithDocumentNumber('EST-0001 — Kitchen remodel', 'EST-0001')).toBe(
-      'EST-0001 — Kitchen remodel',
+    expect(titleWithDocumentNumber('Kitchen remodel', 'EST-0001')).toBe('EST-0001 - Kitchen remodel');
+    expect(titleWithDocumentNumber('EST-0001 - Kitchen remodel', 'EST-0001')).toBe(
+      'EST-0001 - Kitchen remodel',
     );
     expect(titleWithDocumentNumber('EST-0001 Kitchen', 'EST-0001')).toBe('EST-0001 Kitchen');
   });

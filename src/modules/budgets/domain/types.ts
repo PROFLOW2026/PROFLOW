@@ -1,5 +1,5 @@
 /**
- * Project/job budgets — control totals only.
+ * Project/job budgets - control totals only.
  * Actual / Forecast / commitments always come from `modules/financials`.
  */
 

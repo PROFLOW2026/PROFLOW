@@ -1,6 +1,6 @@
 /**
  * Pure calendar math for recurring financial DRAFT templates.
- * Framework-free — unit-tested without DB.
+ * Framework-free - unit-tested without DB.
  */
 
 import {

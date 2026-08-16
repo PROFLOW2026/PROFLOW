@@ -482,7 +482,7 @@ export async function findActiveEngagementForVendorProject(
 
 /**
  * List engagements for a vendor. Overlapping / multi-project spans are allowed.
- * Does not join expenses or labor — engagement is not Actual.
+ * Does not join expenses or labor - engagement is not Actual.
  */
 export async function listEngagementsForVendor(
   db: DbExecutor,

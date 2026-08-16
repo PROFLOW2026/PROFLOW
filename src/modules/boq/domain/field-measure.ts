@@ -47,7 +47,7 @@ function openingFloor(node: FieldMeasureNodeInput) {
 
 /**
  * Builds the worker-first measure DTO.
- * Money fields on the source nodes are ignored — never copied onto the result.
+ * Money fields on the source nodes are ignored - never copied onto the result.
  */
 export function toFieldMeasureItems(
   nodes: readonly FieldMeasureNodeInput[],

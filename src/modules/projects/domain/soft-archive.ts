@@ -5,7 +5,7 @@ import type { ProjectStatus } from './types';
  *
  * Archive sets status=`archived` + archivedAt.
  * Restore nulls archivedAt and returns status to `active`.
- * Completed / cancelled are separate lifecycle states — not soft-archive.
+ * Completed / cancelled are separate lifecycle states - not soft-archive.
  */
 
 export function buildProjectArchivePatch(now: Date = new Date()) {

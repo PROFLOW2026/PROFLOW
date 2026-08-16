@@ -24,7 +24,7 @@ export interface TaxInput {
   /** Advanced capture may supply net and tax explicitly (bypasses tax engine). */
   readonly netAmount?: string | null;
   readonly taxAmount?: string | null;
-  /** Org / country-pack rule resolved for the expense date — never a hardcoded rate. */
+  /** Org / country-pack rule resolved for the expense date - never a hardcoded rate. */
   readonly resolved?: Pick<ResolvedTaxRate, 'method' | 'ratePercent'> | null;
 }
 

@@ -126,7 +126,7 @@ export function UserMenu({
             disabled={pending}
             onSelect={() => {
               startTransition(() => {
-                // Same route, different locale prefix — the user keeps their place.
+                // Same route, different locale prefix - the user keeps their place.
                 router.replace(pathname, { locale: option });
               });
             }}

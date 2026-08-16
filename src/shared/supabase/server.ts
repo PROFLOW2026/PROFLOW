@@ -42,7 +42,7 @@ export async function createSupabaseServerClient() {
  *
  * Wrapped in React `cache` so layout + page + metadata share one Auth round-trip
  * per RSC request. Middleware still performs its own `getUser()` so cookies can
- * be refreshed — that edge call cannot share this memo.
+ * be refreshed - that edge call cannot share this memo.
  */
 export const getSupabaseUser = cache(async () => {
   if (!isSupabaseConfigured()) return null;

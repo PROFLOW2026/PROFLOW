@@ -9,7 +9,7 @@ const TIMESHEET_WORKER = 'timesheet-employee-1';
 const ENTITY = '018f1234-5678-7abc-8def-0123456789ac';
 
 describe('notification actor recipients', () => {
-  it('does not notify the scanner user for approvals — only approvals.decide holders', () => {
+  it('does not notify the scanner user for approvals - only approvals.decide holders', () => {
     const recipients = selectActorRecipients({
       holders: [APPROVER],
       excludeUserIds: [SCANNER],
@@ -18,7 +18,7 @@ describe('notification actor recipients', () => {
     expect(recipients).not.toContain(SCANNER);
   });
 
-  it('does not notify the timesheet worker — only time.approve holders', () => {
+  it('does not notify the timesheet worker - only time.approve holders', () => {
     const recipients = selectActorRecipients({
       holders: [TIME_APPROVER, TIMESHEET_WORKER],
       excludeUserIds: [TIMESHEET_WORKER, SCANNER],

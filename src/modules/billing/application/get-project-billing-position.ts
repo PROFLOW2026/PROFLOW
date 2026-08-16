@@ -2,7 +2,7 @@ import { getComposedProjectBillingPosition } from '@/modules/financials/applicat
 import type { OrgContext } from '@/shared/auth/context';
 import type { BillingPosition } from '@/modules/financials/domain/types';
 
-/** Project billing tab — compose billing slice, not a second outstanding engine. */
+/** Project billing tab - compose billing slice, not a second outstanding engine. */
 export async function getProjectBillingPosition(
   context: OrgContext,
   projectId: string,

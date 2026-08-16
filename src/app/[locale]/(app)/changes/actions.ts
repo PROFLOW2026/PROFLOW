@@ -20,7 +20,7 @@ import { redirect } from '@/shared/i18n/navigation';
 export interface FormActionState {
   error?: string;
   success?: boolean;
-  /** Local draft queued — not server truth. */
+  /** Local draft queued - not server truth. */
   offlineQueued?: boolean;
 }
 

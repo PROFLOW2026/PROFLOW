@@ -66,13 +66,13 @@ export const SETTINGS_SECTIONS: readonly SettingsSection[] = [
     href: '/settings/ocr',
     permission: PERMISSIONS.SETTINGS_MANAGE,
     group: 'advanced',
-    /** Listed in nav only when OCR_INGESTION_ENABLED is on — see accessibleSections. */
+    /** Listed in nav only when OCR_INGESTION_ENABLED is on - see accessibleSections. */
     hideFromNav: true,
   },
 
   { key: 'api', href: '/settings/api', permission: PERMISSIONS.API_MANAGE, group: 'developers' },
 
-  // Foundation only — not in customer Settings nav
+  // Foundation only - not in customer Settings nav
   {
     key: 'portal',
     href: '/settings/portal',

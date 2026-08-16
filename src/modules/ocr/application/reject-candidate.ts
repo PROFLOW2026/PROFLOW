@@ -9,7 +9,7 @@ import type { RejectOcrCandidateInput } from '../validation/schemas';
 import { rejectOcrCandidateSchema } from '../validation/schemas';
 
 /**
- * Explicit reject — no Expense / Vendor Bill write.
+ * Explicit reject - no Expense / Vendor Bill write.
  */
 export async function rejectOcrCandidate(
   context: OrgContext,

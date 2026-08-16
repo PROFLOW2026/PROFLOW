@@ -4,7 +4,7 @@ import type { ProjectStatus } from './types';
  * Customer-facing list buckets for Projects / Jobs.
  *
  * Maps onto existing `project_status` values where possible. `awaiting_payment`
- * is derived from billing outstanding — not a new core status.
+ * is derived from billing outstanding - not a new core status.
  */
 export const WORK_LIST_FACETS = [
   'all',
@@ -34,7 +34,7 @@ export function resolveWorkListFacet(facet: string | undefined | null): Resolved
     case 'active':
       return { status: 'active' };
     case 'completed':
-      // Completed is a lifecycle outcome — distinct from soft-archive.
+      // Completed is a lifecycle outcome - distinct from soft-archive.
       return { status: 'completed' };
     case 'awaiting_payment':
       return { awaitingPayment: true };

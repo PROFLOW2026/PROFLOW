@@ -1,5 +1,5 @@
 /**
- * Internal document tracking numbers — not Israeli statutory invoice issuance.
+ * Internal document tracking numbers - not Israeli statutory invoice issuance.
  */
 
 export const DOCUMENT_NUMBER_KINDS = [
@@ -62,7 +62,7 @@ export function titleWithDocumentNumber(title: string, documentNumber: string): 
   if (trimmedTitle === trimmedNumber || trimmedTitle.startsWith(`${trimmedNumber} `) || trimmedTitle.startsWith(`${trimmedNumber}—`) || trimmedTitle.startsWith(`${trimmedNumber} –`) || trimmedTitle.startsWith(`${trimmedNumber} —`)) {
     return trimmedTitle;
   }
-  return `${trimmedNumber} — ${trimmedTitle}`;
+  return `${trimmedNumber} - ${trimmedTitle}`;
 }
 
 /** Maps the shared `projects.work_kind` UX onto an allocated number sequence. */

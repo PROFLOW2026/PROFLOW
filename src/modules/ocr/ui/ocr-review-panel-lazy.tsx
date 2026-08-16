@@ -16,7 +16,7 @@ const OcrReviewPanel = dynamic(
   },
 );
 
-/** Dev/tooling route island — defer the review UI until this page mounts. */
+/** Dev/tooling route island - defer the review UI until this page mounts. */
 export function OcrReviewPanelLazy(props: OcrReviewPanelProps) {
   return <OcrReviewPanel {...props} />;
 }

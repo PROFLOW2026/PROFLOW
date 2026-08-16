@@ -1,5 +1,5 @@
 /**
- * OCR cost / abuse controls. Application-level — not a billing product.
+ * OCR cost / abuse controls. Application-level - not a billing product.
  * Effective file/page limits come from provider capabilities (F0/S0).
  */
 
@@ -11,7 +11,7 @@ import {
 } from './provider-capabilities';
 
 export const OCR_MAX_FILE_BYTES = OCR_APP_MAX_FILE_BYTES;
-/** @deprecated Prefer capability.maxPages — kept for callers expecting a constant. */
+/** @deprecated Prefer capability.maxPages - kept for callers expecting a constant. */
 export const OCR_MAX_PAGES = 10;
 export const OCR_PROVIDER_TIMEOUT_MS = 60_000;
 export const OCR_POLL_INTERVAL_MS = 1_000;
@@ -30,7 +30,7 @@ const OCR_MIME_EXACT = new Set([
   'image/heif',
 ]);
 
-/** Azure prebuilt invoice/receipt do not list WebP — reject before the paid call. */
+/** Azure prebuilt invoice/receipt do not list WebP - reject before the paid call. */
 export function isOcrSupportedMime(mimeType: string | null | undefined): boolean {
   const normalized = mimeType?.trim().toLowerCase() ?? '';
   if (OCR_MIME_EXACT.has(normalized)) return true;

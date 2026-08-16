@@ -154,7 +154,7 @@ export default async function RfqDetailPage({
                       <TableCell numeric>
                         <span dir="ltr">{line.quantity}</span>
                       </TableCell>
-                      <TableCell>{line.unit ?? '—'}</TableCell>
+                      <TableCell>{line.unit ?? '-'}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -214,7 +214,7 @@ export default async function RfqDetailPage({
                     {quotes.map((quote) => (
                       <TableRow key={quote.id}>
                         <TableCell className="max-w-[12rem] truncate font-medium">
-                          {quote.vendorName ?? '—'}
+                          {quote.vendorName ?? '-'}
                         </TableCell>
                         <TableCell>
                           <StatusBadge
@@ -226,7 +226,7 @@ export default async function RfqDetailPage({
                           {quote.totalAmount ? (
                             <MoneyText value={money(quote.totalAmount, quote.currency)} />
                           ) : (
-                            '—'
+                            '-'
                           )}
                         </TableCell>
                         <TableCell>
@@ -237,7 +237,7 @@ export default async function RfqDetailPage({
                               )}
                             </span>
                           ) : (
-                            '—'
+                            '-'
                           )}
                         </TableCell>
                         {canManage ? (
@@ -262,7 +262,7 @@ export default async function RfqDetailPage({
               <div className="flex min-w-0 flex-col gap-2 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4">
                 <div className="flex min-w-0 items-start justify-between gap-2">
                   <span className="min-w-0 break-words font-semibold">
-                    {quote.vendorName ?? '—'}
+                    {quote.vendorName ?? '-'}
                   </span>
                   <StatusBadge
                     shape={quoteStatusShape(quote.status)}

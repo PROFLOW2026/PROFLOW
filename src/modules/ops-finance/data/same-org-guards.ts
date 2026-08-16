@@ -1,5 +1,5 @@
 /**
- * APP GUARDS for ops_expense_links — polymorphic ops_record_id + expense same-org.
+ * APP GUARDS for ops_expense_links - polymorphic ops_record_id + expense same-org.
  */
 
 import { and, eq } from 'drizzle-orm';

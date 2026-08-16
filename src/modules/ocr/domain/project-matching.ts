@@ -1,6 +1,6 @@
 /**
  * Suggest a project for an OCR review from vendor memory, open POs, and engagements.
- * Suggestion only — never writes Actual or posts a draft by itself.
+ * Suggestion only - never writes Actual or posts a draft by itself.
  */
 
 export interface ProjectSuggestionRow {

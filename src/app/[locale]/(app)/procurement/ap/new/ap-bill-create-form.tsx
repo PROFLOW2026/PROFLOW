@@ -337,7 +337,7 @@ export function ApBillCreateForm({
                 <p className="text-sm text-[var(--pf-text-secondary)]">
                   {t('lineTotal')}:{' '}
                   <span dir="ltr" className="pf-numeric">
-                    {line.lineTotal || '—'} {currency}
+                    {line.lineTotal || '-'} {currency}
                   </span>
                 </p>
                 {lines.length > 1 ? (

@@ -40,7 +40,7 @@ function limitFailureMessage(code: 'unsupported_file' | 'too_large' | 'too_many_
 /**
  * Azure Document Intelligence live adapter.
  *
- * Required env (server only — never NEXT_PUBLIC_*):
+ * Required env (server only - never NEXT_PUBLIC_*):
  * - OCR_PROVIDER=azure
  * - OCR_PROVIDER_API_KEY=<Azure DI key>
  * - OCR_PROVIDER_ENDPOINT=https://<resource>.cognitiveservices.azure.com/

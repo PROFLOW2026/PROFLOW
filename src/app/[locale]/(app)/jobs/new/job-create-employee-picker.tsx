@@ -20,7 +20,7 @@ interface JobCreateEmployeePickerProps {
 
 /**
  * Multi-select for formal job team assignment at create.
- * Submits `employeeIds` — Assignment ≠ Actual.
+ * Submits `employeeIds` - Assignment ≠ Actual.
  */
 export function JobCreateEmployeePicker({ employees, error }: JobCreateEmployeePickerProps) {
   const t = useTranslations('jobs');

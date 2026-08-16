@@ -56,7 +56,7 @@ export interface OperationsReportSection {
     readonly active: CountReportMetric;
     readonly assignedToProjects: CountReportMetric;
     readonly inMaintenance: CountReportMetric;
-    /** Actual expense family asset_capital — not maintenance metadata amounts. */
+    /** Actual expense family asset_capital - not maintenance metadata amounts. */
     readonly capitalExpenseActual: ReturnType<typeof aggregateOrgCost>['actual'] | null;
   } | null;
 }
@@ -113,7 +113,7 @@ export async function getOrganizationReportsAnalytics(
     ? listBillingRecords(context, { filter: 'all', limit: ORG_LIST_EXPORT_CAP })
     : Promise.resolve(null);
 
-  // Shared org billing promise — cash flow + AR aging previously each re-listed all records.
+  // Shared org billing promise - cash flow + AR aging previously each re-listed all records.
   const [rollup, billingRecords, unallocatedBusinessCosts, cashFlow] = await Promise.all([
     getOrganizationProjectRollup(context, {
       workKindFilter: options.workKindFilter,
@@ -136,7 +136,7 @@ export async function getOrganizationReportsAnalytics(
     : null;
 
   // Rollup includes every base-currency active project (no correctness cap).
-  // Optional limit/offset on rollup pages rows only — aggregates always use the full set.
+  // Optional limit/offset on rollup pages rows only - aggregates always use the full set.
   const commercial = rollup.canReadCommercial
     ? aggregateOrgCommercial(rollup.rows, currency)
     : null;

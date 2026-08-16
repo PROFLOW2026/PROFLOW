@@ -17,7 +17,7 @@ export interface ProjectSchedulePanelProps {
 
 /**
  * Project → לוח זמנים tab: Gantt + list for classic projects.
- * Jobs stay opt-out (eligibility) — panel shows the opt-out message if reached.
+ * Jobs stay opt-out (eligibility) - panel shows the opt-out message if reached.
  */
 export async function ProjectSchedulePanel({ projectId }: ProjectSchedulePanelProps) {
   const locale = await getLocale();

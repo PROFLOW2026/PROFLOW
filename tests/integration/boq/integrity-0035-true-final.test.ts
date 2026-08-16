@@ -790,7 +790,7 @@ describe('BOQ true-final integrity closure adversarial', () => {
       ).rejects.toThrow();
     });
 
-    // source_change_order_id is baseline-locked after activate — probe on draft node.
+    // source_change_order_id is baseline-locked after activate - probe on draft node.
     await database.asUser(owner.id, async (tx) => {
       await expect(
         tx.execute(sql`

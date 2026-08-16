@@ -11,7 +11,7 @@ const RESERVED_KEY_SQL = sql.join(
 
 /**
  * Correlated EXISTS for list/search filters.
- * Matches tenant-scoped text/select values only — never money/number columns,
+ * Matches tenant-scoped text/select values only - never money/number columns,
  * reserved financial keys, or archived definitions.
  */
 export function existsSearchableCustomFieldValueSql(

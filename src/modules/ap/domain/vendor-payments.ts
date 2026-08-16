@@ -1,5 +1,5 @@
 /**
- * Vendor payments (AP cash) — domain rules.
+ * Vendor payments (AP cash) - domain rules.
  *
  * HARD RULES:
  * - Vendor Bill recognition → Actual Cost (see vendor-cost-recognition.ts).
@@ -9,7 +9,7 @@
  * - Void is explicit (status flip + voidedAt). No silent amount rewrite.
  * - Prefer payment header + applications to bills (cleaner than 1:1 AR-style rows).
  *
- * FINANCIAL IMMUTABILITY (app layer — Agent A may add matching DB triggers):
+ * FINANCIAL IMMUTABILITY (app layer - Agent A may add matching DB triggers):
  * - Recorded payments cannot be deleted.
  * - Financial fields are frozen after insert: amount, currency, paymentDate, vendorId.
  * - Applications cannot be silently edited or deleted.
@@ -36,7 +36,7 @@ import { isRecognizedVendorBillStatus, isVendorPaymentRecognizedActual } from '.
 export const AP_PAYMENT_STATUSES = ['recorded', 'void'] as const;
 export type ApPaymentStatus = (typeof AP_PAYMENT_STATUSES)[number];
 
-/** Payable collection state derived from applications — independent of PO match status. */
+/** Payable collection state derived from applications - independent of PO match status. */
 export const AP_PAYABLE_STATUSES = ['unpaid', 'partial', 'paid'] as const;
 export type ApPayableStatus = (typeof AP_PAYABLE_STATUSES)[number];
 
@@ -47,13 +47,13 @@ export interface VendorPaymentAmountInput {
 
 export interface VendorPaymentApplicationInput {
   readonly appliedAmount: MoneyValue;
-  /** Parent payment status — void payments contribute zero. */
+  /** Parent payment status - void payments contribute zero. */
   readonly paymentStatus: ApPaymentStatus;
 }
 
 export interface BillCreditApplicationInput {
   readonly appliedAmount: MoneyValue;
-  /** Parent credit application status — void applications contribute zero. */
+  /** Parent credit application status - void applications contribute zero. */
   readonly status: 'applied' | 'void';
 }
 
@@ -75,7 +75,7 @@ export interface BillPayableInput {
 
 /**
  * Persistence gate for `ap_payments` / `ap_payment_applications`.
- * Owner applied `0020_overnight_foundations` — production uses Drizzle.
+ * Owner applied `0020_overnight_foundations` - production uses Drizzle.
  * Disposable tests may override via `setApPaymentsPersistenceReadyForTests`.
  */
 export const AP_PAYMENTS_PERSISTENCE_READY = true as boolean;
@@ -219,7 +219,7 @@ function sumActiveCreditApplicationAmounts(
 /**
  * Remaining cash payable: bill − active payments − active credits − held retention.
  * Credits are not “paid”; they still clear outstanding.
- * Held retention is cash timing only — recognized Actual still uses bill total.
+ * Held retention is cash timing only - recognized Actual still uses bill total.
  */
 export function computeBillOutstanding(input: BillPayableInput): MoneyValue {
   const currency = input.billTotal.currency;
@@ -248,7 +248,7 @@ export function derivePayableStatus(input: BillPayableInput): ApPayableStatus | 
   return 'partial';
 }
 
-/** No FX — payment currency must equal each bill currency (ILS ≠ USD). */
+/** No FX - payment currency must equal each bill currency (ILS ≠ USD). */
 export function assertApPaymentCurrencyMatch(
   paymentCurrency: string,
   billCurrency: string,
@@ -370,7 +370,7 @@ export function assertPaymentVoidable(status: ApPaymentStatus): void {
   }
 }
 
-/** Payments are never hard-deleted — void + recreate is the correction path. */
+/** Payments are never hard-deleted - void + recreate is the correction path. */
 export function assertPaymentNotDeletable(): never {
   throw new DomainRuleError(
     'Vendor payments cannot be deleted; void the payment and record a correction',
@@ -378,7 +378,7 @@ export function assertPaymentNotDeletable(): never {
   );
 }
 
-/** Applications are never edited or deleted — void the parent payment instead. */
+/** Applications are never edited or deleted - void the parent payment instead. */
 export function assertPaymentApplicationNotMutable(): never {
   throw new DomainRuleError(
     'Payment applications cannot be edited or deleted; void the payment instead',
@@ -426,7 +426,7 @@ export function assertPaymentMetadataEditable(status: ApPaymentStatus): void {
 
 /**
  * Scenario helper: apply sequential payments and return outstanding + Actual unchanged.
- * Pure — used by unit tests (Bill 92k → pay 50/30/12).
+ * Pure - used by unit tests (Bill 92k → pay 50/30/12).
  */
 export function applySequentialBillPayments(input: {
   readonly currency: string;

@@ -23,7 +23,7 @@ export interface RelatedMappingsSectionProps {
 }
 
 /**
- * Related mappings on BOQ item edit — WP / cost category / budget line.
+ * Related mappings on BOQ item edit - WP / cost category / budget line.
  * Never mutates BOQ money columns.
  */
 export function RelatedMappingsSection({

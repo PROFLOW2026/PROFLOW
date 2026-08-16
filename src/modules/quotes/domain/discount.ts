@@ -14,7 +14,7 @@ import type { QuoteStatus } from './types';
  * Schema stores `estimates.discount_amount`, `list_subtotal_amount`, and
  * `discount_percent`. The issue/`sent` gate prefers stored `discount_amount`.
  * This is NOT CRM sales-quote discount and NOT commercial change-order quote
- * concession — those objects do not share these semantics.
+ * concession - those objects do not share these semantics.
  */
 export interface QuoteDiscountBasis {
   readonly currency: string;
@@ -53,7 +53,7 @@ function isPositivePercent(value: string): boolean {
  * Money amount submitted to `quote_discount` approval rules.
  *
  * The rule is a money threshold, so:
- * 1. Explicit discount amount (preferred) — that is what the rule measures.
+ * 1. Explicit discount amount (preferred) - that is what the rule measures.
  * 2. Else list subtotal − quoted subtotal when list is higher (implied discount).
  * 3. Else quote total when a discount percent is present (percent cannot be
  *    compared to a money threshold).

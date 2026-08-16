@@ -182,7 +182,7 @@ export default async function JobsPage({ searchParams }: JobsPageProps) {
                         </Link>
                       </TableCell>
                       <TableCell className="pf-ltr-island" dir="ltr">
-                        {job.startDate ?? '—'}
+                        {job.startDate ?? '-'}
                       </TableCell>
                       <TableCell>
                         <ProjectStatusBadge status={job.status} label={tStatus(job.status)} />
@@ -197,7 +197,7 @@ export default async function JobsPage({ searchParams }: JobsPageProps) {
                         )}
                       </TableCell>
                       <TableCell numeric>
-                        {actual ? <MoneyText value={actual} /> : '—'}
+                        {actual ? <MoneyText value={actual} /> : '-'}
                       </TableCell>
                       <TableCell numeric>
                         {profit ? (
@@ -206,7 +206,7 @@ export default async function JobsPage({ searchParams }: JobsPageProps) {
                           <span className="text-[var(--pf-text-secondary)]">
                             {jobListMissingProfitKind(job.pricingMode) === 'price_not_set'
                               ? t('pricing.priceNotSet')
-                              : '—'}
+                              : '-'}
                           </span>
                         )}
                       </TableCell>
@@ -260,7 +260,7 @@ export default async function JobsPage({ searchParams }: JobsPageProps) {
                     ) : jobListMissingProfitKind(job.pricingMode) === 'price_not_set' ? (
                       t('pricing.priceNotSet')
                     ) : (
-                      '—'
+                      '-'
                     )}
                   </span>
                   <span>{t(`list.billingStatus.${job.billingPaymentStatus}`)}</span>

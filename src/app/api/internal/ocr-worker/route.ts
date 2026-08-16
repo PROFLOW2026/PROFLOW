@@ -5,7 +5,7 @@ import { isInternalWorkerAuthorized } from '@/shared/http/internal-worker-auth';
 /**
  * Durable OCR worker. Daily Vercel recovery cron (Hobby: once per day) or an
  * operator calls this with `Authorization: Bearer $CRON_SECRET`. Upload paths
- * enqueue then kick the same drain after the response — they do not bypass the queue.
+ * enqueue then kick the same drain after the response - they do not bypass the queue.
  */
 export async function POST(request: Request): Promise<Response> {
   if (!isInternalWorkerAuthorized(request)) {

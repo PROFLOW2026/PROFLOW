@@ -10,7 +10,7 @@ import {
 /**
  * One control view over Budget + the shared financial engine.
  *
- * Never recalculates Actual — callers pass CostPosition from
+ * Never recalculates Actual - callers pass CostPosition from
  * `compose-project-financials` / `getProjectFinancials`.
  *
  * Variance = Budget − Forecast (positive = under budget / favorable).
@@ -27,7 +27,7 @@ export interface BudgetControlPosition {
 export interface ComposeBudgetControlInput {
   readonly budgetAmount: MoneyValue | string | null;
   readonly currency: string;
-  /** Engine cost position — required for Actual / Commitment / ETC / Forecast. */
+  /** Engine cost position - required for Actual / Commitment / ETC / Forecast. */
   readonly cost: CostPosition | null;
 }
 
@@ -84,7 +84,7 @@ export function composeBudgetControlPosition(
   };
 }
 
-/** Pure variance helper for unit tests — Budget − Forecast. */
+/** Pure variance helper for unit tests - Budget − Forecast. */
 export function computeBudgetVariance(budget: MoneyValue, forecast: MoneyValue): MoneyValue {
   return subtractMoney(budget, forecast);
 }

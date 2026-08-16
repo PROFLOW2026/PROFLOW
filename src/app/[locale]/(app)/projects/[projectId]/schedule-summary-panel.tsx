@@ -36,7 +36,7 @@ export async function ScheduleSummaryPanel({ summary, projectId }: ScheduleSumma
     );
   }
 
-  const dateRange = [summary.startDate, summary.targetEndDate].filter(Boolean).join(' → ') || '—';
+  const dateRange = [summary.startDate, summary.targetEndDate].filter(Boolean).join(' → ') || '-';
 
   return (
     <section className="rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4">
@@ -59,7 +59,7 @@ export async function ScheduleSummaryPanel({ summary, projectId }: ScheduleSumma
             {tDetails('progressPercent')}
           </dt>
           <dd className="mt-1 text-sm tabular-nums">
-            {summary.progressPercent != null ? `${summary.progressPercent}%` : '—'}
+            {summary.progressPercent != null ? `${summary.progressPercent}%` : '-'}
             {summary.progressStatus
               ? ` · ${tDetails(`progressStatuses.${summary.progressStatus}`)}`
               : null}
@@ -90,7 +90,7 @@ export async function ScheduleSummaryPanel({ summary, projectId }: ScheduleSumma
               <>
                 <span className="font-medium">{summary.nextMilestone.name}</span>
                 <span className="mt-0.5 block text-[var(--pf-text-secondary)]">
-                  {summary.nextMilestone.targetDate ?? '—'}
+                  {summary.nextMilestone.targetDate ?? '-'}
                   {summary.nextMilestone.overdue ? ` · ${t('overdue')}` : null}
                 </span>
               </>

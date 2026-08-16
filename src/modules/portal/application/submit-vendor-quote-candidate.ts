@@ -116,7 +116,7 @@ async function insertReceivedQuote(
 
 /**
  * Domain candidate intake path: asserts vendor grant scopes.
- * Stores supplier_quote as `received` only — never finalizes financials.
+ * Stores supplier_quote as `received` only - never finalizes financials.
  * Public auth is not wired; this is the grant-scoped intake contract for later login.
  */
 export async function submitVendorQuoteCandidate(
@@ -164,7 +164,7 @@ export async function submitVendorQuoteCandidate(
 
 /**
  * Admin records a vendor quote on behalf of the vendor.
- * Still stored as `received` for PROCUREMENT_MANAGE review — external cannot finalize.
+ * Still stored as `received` for PROCUREMENT_MANAGE review - external cannot finalize.
  */
 export async function recordVendorQuoteOnBehalf(
   context: OrgContext,

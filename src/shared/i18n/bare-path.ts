@@ -4,7 +4,7 @@ import { DEFAULT_LOCALE, isLocale, type Locale } from './config';
  * How a locale-unprefixed path should be localized.
  *
  * `localePrefix: 'always'` keeps shareable URLs prefixed, so `/sign-in` still
- * redirects. The PWA `start_url` is `/` — a redirect there adds a second
+ * redirects. The PWA `start_url` is `/` - a redirect there adds a second
  * document hop (and used to also refresh Auth) before the installed-app splash
  * can dismiss. The root is therefore rewritten in one request.
  */
@@ -17,7 +17,7 @@ export function barePathLocalization(pathname: string): BarePathLocalization {
   return 'redirect';
 }
 
-/** Locale-prefix redirects must not call Auth — the follow-up document request does. */
+/** Locale-prefix redirects must not call Auth - the follow-up document request does. */
 export function shouldRefreshSessionOnBarePath(kind: BarePathLocalization): boolean {
   return kind !== 'redirect';
 }

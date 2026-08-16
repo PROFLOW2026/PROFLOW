@@ -22,7 +22,7 @@ import type { VendorComplianceUploadCandidate } from '../domain/types';
 
 /**
  * Vendor compliance / insurance upload as CANDIDATE only.
- * Does not write compliance_artifacts as valid truth — internal review first.
+ * Does not write compliance_artifacts as valid truth - internal review first.
  */
 export async function submitVendorComplianceCandidate(
   context: OrgContext,

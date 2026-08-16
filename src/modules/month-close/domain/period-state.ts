@@ -35,7 +35,7 @@ export function assertCanTransitionMonthClose(
 export function assertPeriodNotClosed(status: MonthCloseStatus): void {
   if (status === 'closed') {
     throw new DomainRuleError(
-      'This month is closed — use an explicit post-close adjustment',
+      'This month is closed - use an explicit post-close adjustment',
       'monthClose.errors.monthClosed',
       { status },
     );

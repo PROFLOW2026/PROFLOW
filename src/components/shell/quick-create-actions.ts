@@ -80,7 +80,7 @@ export function listAvailableCreateWorkKinds(
 
 /**
  * Permission- and module-aware Quick Create destinations.
- * Keep this short: daily field/office capture only — not compensation,
+ * Keep this short: daily field/office capture only - not compensation,
  * allocation, OCR, or every module's "new" page.
  *
  * `suggestedDefaults.defaultWorkKind` wins the first slot when that action
@@ -139,12 +139,12 @@ export function buildQuickCreateActions(
     actions.push({ key: 'timeEntry', href: '/workforce/time/new', labelKey: 'timeEntry' });
   }
 
-  // Field daily capture — module-gated like Field Ops nav.
+  // Field daily capture - module-gated like Field Ops nav.
   if (modules.field_ops && permissions.has(PERMISSIONS.FIELD_OPS_MANAGE)) {
     actions.push({ key: 'fieldLog', href: '/field-ops/logs/new', labelKey: 'fieldLog' });
   }
 
-  // Documents: no standalone /documents/new — upload lives on entity panels.
+  // Documents: no standalone /documents/new - upload lives on entity panels.
   // Skip Quick Create until a dedicated capture route exists.
 
   // Assets / maintenance hub create (maintenance lines still need an asset).
@@ -168,7 +168,7 @@ export function buildQuickCreateActions(
     });
   }
 
-  // Next-gen surfaces — only when module is visible and permission exists.
+  // Next-gen surfaces - only when module is visible and permission exists.
   if (modules.service && permissions.has(PERMISSIONS.SERVICE_MANAGE)) {
     actions.push({ key: 'service', href: '/work-orders/new', labelKey: 'service' });
   }

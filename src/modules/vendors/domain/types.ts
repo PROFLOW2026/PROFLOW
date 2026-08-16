@@ -11,7 +11,7 @@ export type VendorStatus = (typeof VENDOR_STATUSES)[number];
 export const CONTACT_ROLES = ['primary', 'billing', 'site', 'other'] as const;
 export type ContactRole = (typeof CONTACT_ROLES)[number];
 
-/** Engagement lifecycle — not a cost / Actual signal. */
+/** Engagement lifecycle - not a cost / Actual signal. */
 export const ENGAGEMENT_STATUSES = ['active', 'ended', 'cancelled'] as const;
 export type EngagementStatus = (typeof ENGAGEMENT_STATUSES)[number];
 

@@ -1,4 +1,4 @@
-/** Browser online check — SSR / unknown environments treat as online (server path). */
+/** Browser online check - SSR / unknown environments treat as online (server path). */
 export function isBrowserOnline(): boolean {
   if (typeof navigator === 'undefined') return true;
   // jsdom / some runtimes expose navigator without a boolean onLine.

@@ -23,7 +23,7 @@ export function ApproveChangeForm({ detail, action, canApprove }: ApproveChangeF
   const [state, formAction, pending] = useActionState(action, {});
 
   const selectedVersion = detail.quoteVersions.find((version) => version.isSelected);
-  // Preview net commercial impact (VAT ≠ profit) — matches approval write path.
+  // Preview net commercial impact (VAT ≠ profit) - matches approval write path.
   const raw = selectedVersion?.subtotalAmount ?? detail.requestedAmount;
   const magnitude = raw ? fromNumericString(raw, detail.currency) : null;
   const signed = magnitude ? signedChangeAmount(detail.direction, magnitude) : null;

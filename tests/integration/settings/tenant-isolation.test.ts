@@ -8,7 +8,7 @@ import { listAuditEvents } from '@/app/[locale]/(app)/settings/_lib/audit';
 
 /**
  * Tenants are provisioned through the shared fixture, which founds each
- * organization as a real authenticated user — the same path production takes.
+ * organization as a real authenticated user - the same path production takes.
  */
 async function seedTwoTenants(database: TestDatabase) {
   const scenario = await createTwoTenantScenario(database);

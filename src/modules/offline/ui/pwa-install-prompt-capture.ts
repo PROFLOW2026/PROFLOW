@@ -1,7 +1,7 @@
 /**
  * Module-level `beforeinstallprompt` capture (LEO KIDS pattern).
  *
- * Chrome fires BIP once when installability criteria are met — typically soon
+ * Chrome fires BIP once when installability criteria are met - typically soon
  * after the SW activates, often long before the user opens Settings → App.
  * Listeners mounted only on `/settings/app` miss the event and permanently
  * show capability `unavailable` for that browsing session.
@@ -80,7 +80,7 @@ export async function promptPwaInstall(): Promise<'accepted' | 'dismissed' | 'un
   }
 }
 
-/** Test / HMR helper — do not call from product UI. */
+/** Test / HMR helper - do not call from product UI. */
 export function resetPwaInstallPromptCaptureForTests(): void {
   if (typeof window !== 'undefined' && captureInitialized) {
     window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);

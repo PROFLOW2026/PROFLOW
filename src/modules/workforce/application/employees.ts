@@ -118,7 +118,7 @@ export async function getEmployee(
   const employee = await findEmployeeById(context.db, context.organizationId, employeeId);
   if (!employee) throw new NotFoundError('Employee');
 
-  // Compensation history is private employer cost — not unlocked by workforce.read.
+  // Compensation history is private employer cost - not unlocked by workforce.read.
   const rateVersions = canReadWorkforceCost(context)
     ? await listRateVersionsByEmployee(context.db, context.organizationId, employeeId)
     : [];

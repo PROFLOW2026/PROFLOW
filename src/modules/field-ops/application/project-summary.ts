@@ -50,7 +50,7 @@ export function selectUpcomingInspections(
     }));
 }
 
-/** Overview counts for Project Workspace — progressive complexity friendly. */
+/** Overview counts for Project Workspace - progressive complexity friendly. */
 export async function getProjectFieldOpsSummary(
   context: OrgContext,
   projectId: string,

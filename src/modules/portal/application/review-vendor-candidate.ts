@@ -27,7 +27,7 @@ export type ReviewVendorCandidateInput = z.input<typeof reviewSchema>;
 
 /**
  * Operator review of portal candidates. Never posts AP bills, expenses,
- * payments, or compliance artifacts — internal approval gate only.
+ * payments, or compliance artifacts - internal approval gate only.
  */
 export async function reviewVendorPortalCandidate(
   context: OrgContext,

@@ -41,7 +41,7 @@ describe('statusForMovedStage', () => {
     expect(statusForMovedStage('lost', 'open')).toBe('lost');
   });
 
-  it('does not auto-win from the board — convert stays on /quotes', () => {
+  it('does not auto-win from the board - convert stays on /quotes', () => {
     expect(statusForMovedStage('won', 'open')).toBeUndefined();
   });
 

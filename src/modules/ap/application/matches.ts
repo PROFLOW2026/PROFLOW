@@ -245,7 +245,7 @@ export async function acceptApMatch(
   const settlementPoId = accepted.purchaseOrderId ?? bill.purchaseOrderId;
 
   // Consume open PO commitment when match introduces the PO link.
-  // Skip when bill header already linked the PO — createApBill consumed the bill total.
+  // Skip when bill header already linked the PO - createApBill consumed the bill total.
   if (
     shouldConsumeCommitmentOnMatchAccept({
       billPurchaseOrderId: bill.purchaseOrderId,

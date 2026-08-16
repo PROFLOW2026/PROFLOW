@@ -1,7 +1,7 @@
 /**
  * Soft-archive / restore patches for employee master records.
  * Restore clears `archivedAt` (null) and returns status to active.
- * No hard delete when history exists — archive/inactive only.
+ * No hard delete when history exists - archive/inactive only.
  */
 
 export function buildEmployeeArchivePatch(now: Date = new Date()) {

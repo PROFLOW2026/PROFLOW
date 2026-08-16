@@ -95,7 +95,7 @@ describe('allocation run integrity (0018)', () => {
     expect(scheduleModeFromCategoryPeriodBehavior('monthly')).toBe('monthly');
     expect(scheduleModeFromCategoryPeriodBehavior('date_range')).toBe('custom');
     expect(scheduleModeFromCategoryPeriodBehavior(null)).toBeNull();
-    // annual is expense-level only — not a category vocabulary value
+    // annual is expense-level only - not a category vocabulary value
   });
 
   it('rejects allocation_run.organization_id mismatched to expense org', async () => {

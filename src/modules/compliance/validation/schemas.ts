@@ -68,7 +68,7 @@ export const listComplianceArtifactsSchema = z.object({
   kind: z.enum([...ARTIFACT_KINDS, 'all'] as const).optional(),
   status: z.enum([...ARTIFACT_STATUSES, 'all'] as const).optional(),
   subjectType: z.enum([...SUBJECT_TYPES, 'all'] as const).optional(),
-  /** UI evidence filter — not a DB status. */
+  /** UI evidence filter - not a DB status. */
   evidence: z.enum(['all', 'present', 'missing'] as const).optional(),
   includeArchived: z.boolean().optional(),
   limit: z.coerce.number().int().min(1).max(5_000).optional(),

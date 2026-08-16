@@ -2,7 +2,7 @@
  * Locale configuration (doc 10).
  *
  * English is the canonical key language; Hebrew is the first complete UI.
- * Language and country are independent axes — an Israeli organization can run
+ * Language and country are independent axes - an Israeli organization can run
  * the English UI, and the country pack still drives tax and currency.
  */
 
@@ -15,7 +15,7 @@ export const DEFAULT_LOCALE: Locale = 'he-IL';
 export interface LocaleMetadata {
   readonly code: Locale;
   readonly dir: 'rtl' | 'ltr';
-  /** Endonym — shown in the language switcher in the language itself. */
+  /** Endonym - shown in the language switcher in the language itself. */
   readonly label: string;
   readonly htmlLang: string;
 }

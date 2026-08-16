@@ -4,7 +4,7 @@ import { SERVICE_STATUSES } from './types';
 
 const TERMINAL: ReadonlySet<ServiceStatus> = new Set(['completed', 'cancelled']);
 
-/** Allowed service lifecycle transitions (lightweight — no forced workflow engine). */
+/** Allowed service lifecycle transitions (lightweight - no forced workflow engine). */
 const ALLOWED: Readonly<Record<ServiceStatus, readonly ServiceStatus[]>> = {
   new: ['scheduled', 'in_progress', 'waiting', 'cancelled'],
   scheduled: ['in_progress', 'waiting', 'completed', 'cancelled', 'new'],

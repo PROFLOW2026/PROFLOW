@@ -1,5 +1,5 @@
 /**
- * Pre-sale Quotes / Estimates — Quote ≠ Billing ≠ Change Order ≠ Revenue.
+ * Pre-sale Quotes / Estimates - Quote ≠ Billing ≠ Change Order ≠ Revenue.
  */
 
 import { AUDIT_ACTIONS } from '@/shared/audit/actions';

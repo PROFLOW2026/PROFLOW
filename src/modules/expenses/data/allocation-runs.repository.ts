@@ -248,7 +248,7 @@ export async function listAppliedFrozenSlices(
   const frozen: FrozenSliceAllocation[] = [];
   for (const run of runs) {
     if (run.sliceIndex === null || run.sliceIndex === undefined) {
-      // Legacy single-period applied run — treat as slice 0.
+      // Legacy single-period applied run - treat as slice 0.
       if (runs.length > 1) continue;
     }
     const sliceIndex = run.sliceIndex ?? 0;
@@ -291,7 +291,7 @@ export async function listAppliedFrozenSlices(
 
 /**
  * Recent allocation-run snapshots for overhead/shared expenses.
- * Reuses the existing engine — does not invent a second Actual.
+ * Reuses the existing engine - does not invent a second Actual.
  */
 export async function listRecentAllocationRuns(
   db: DbExecutor,

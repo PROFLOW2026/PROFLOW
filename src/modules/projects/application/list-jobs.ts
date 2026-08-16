@@ -49,7 +49,7 @@ function resolveBillingPaymentStatusFromPosition(
  *
  * Actual cost and profit prefer the shared financial compose batch (same path as
  * org rollup) so labor / overhead / AP recognition stay consistent with project
- * financials — not an expense-net-only approximation.
+ * financials - not an expense-net-only approximation.
  */
 export async function listJobsForOrg(
   context: OrgContext,
@@ -88,7 +88,7 @@ export async function listJobsForOrg(
     hasPermission(context, PERMISSIONS.WORKFORCE_READ) ||
     hasPermission(context, PERMISSIONS.AP_READ);
 
-  // Forecast meta comes from the list select — no second projects round-trip.
+  // Forecast meta comes from the list select - no second projects round-trip.
   const forecastByProject = new Map(
     rows.map((row) => [
       row.id,

@@ -1,5 +1,5 @@
 /**
- * Operational month close — NOT statutory accounting close.
+ * Operational month close - NOT statutory accounting close.
  * Protects operational history from silent rewrite when CLOSED.
  */
 

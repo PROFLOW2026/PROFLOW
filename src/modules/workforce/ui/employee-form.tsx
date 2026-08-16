@@ -26,7 +26,7 @@ export interface EmployeeFormProps {
 
 /**
  * Simple create: name + basic details only.
- * Compensation (rate / burden) stays under Advanced — org may skip forever.
+ * Compensation (rate / burden) stays under Advanced - org may skip forever.
  */
 export function EmployeeForm({
   action,
@@ -92,7 +92,7 @@ export function EmployeeForm({
         {(control) => <Input {...control} name="jobTitle" />}
       </Field>
 
-      {/* Hidden defaults — create works with no salary / no rate version. */}
+      {/* Hidden defaults - create works with no salary / no rate version. */}
       <input type="hidden" name="rateUnit" value={rateUnit} />
       <input type="hidden" name="validFrom" value={defaultValidFrom} />
       <input type="hidden" name="currency" value={defaultCurrency} />

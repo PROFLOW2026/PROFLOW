@@ -12,7 +12,7 @@ import { withOrgContext } from '@/shared/auth/session';
  * Request-scoped project detail for layout, page, and metadata.
  *
  * Layout (chrome) and page (overview structure) share one chrome fetch via
- * nested `cache` — previously `includeStructure` was part of a single cache
+ * nested `cache` - previously `includeStructure` was part of a single cache
  * key and layout+page each paid for project/contract/events twice.
  */
 const loadProjectChrome = cache(async (projectId: string) =>

@@ -6,7 +6,7 @@ import type { DbExecutor } from '@/shared/db/types';
 /**
  * Bridges Supabase Auth to the application's own user record (doc 73 §2).
  *
- * `profiles.id` is the auth user id — there is no second identity space and no
+ * `profiles.id` is the auth user id - there is no second identity space and no
  * credential material is copied here. Called on first sign-in so the row always
  * exists before anything references it.
  */

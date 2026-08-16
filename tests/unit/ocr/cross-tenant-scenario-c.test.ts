@@ -67,7 +67,7 @@ function contextWith(
   };
 }
 
-describe('scenario C — OCR cross-tenant guards', () => {
+describe('scenario C - OCR cross-tenant guards', () => {
   beforeEach(() => {
     setOcrPersistenceReadyForTests(false);
     resetOcrStoreForTests();

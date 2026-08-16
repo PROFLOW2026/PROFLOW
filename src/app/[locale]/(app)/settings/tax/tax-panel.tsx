@@ -201,7 +201,7 @@ function TaxRulesTable({
                           {rule.ratePercent}%
                         </span>
                       ) : (
-                        '—'
+                        '-'
                       )}
                     </TableCell>
                     <TableCell>
@@ -233,7 +233,7 @@ function TaxRulesTable({
           <div className="rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4">
             <p className="text-sm font-medium">{rule.name}</p>
             <p className="mt-1 text-sm" dir="ltr">
-              {rule.ratePercent ? `${rule.ratePercent}%` : '—'}
+              {rule.ratePercent ? `${rule.ratePercent}%` : '-'}
             </p>
             <p className="mt-1 text-xs text-[var(--pf-text-secondary)]" dir="ltr">
               {formatBusinessDate(rule.validFrom, locale)}

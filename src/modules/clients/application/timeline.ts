@@ -161,7 +161,7 @@ async function safeSource<T>(load: () => Promise<T>, fallback: T): Promise<T> {
 
 /**
  * Idempotent pointer into `activity_events`. Unique on (org, kind, entity_type, entity_id).
- * Not financial truth — callers must still keep canonical tables correct.
+ * Not financial truth - callers must still keep canonical tables correct.
  */
 export async function recordActivityEvent(
   context: OrgContext,

@@ -59,7 +59,7 @@ describe('vendor engagement ≠ Actual', () => {
     const source = readFileSync(vendorsRepoPath, 'utf8');
     expect(source).toContain('insert(vendorEngagements)');
     expect(source).toContain('Engagement ≠ cost');
-    // linkExpenseToVendor updates expenses.vendorId — engagement insert path must stay clean.
+    // linkExpenseToVendor updates expenses.vendorId - engagement insert path must stay clean.
     expect(source).not.toMatch(/\.insert\(expenses\)/);
     for (const pattern of FORBIDDEN_REPO_PATTERNS) {
       if (pattern === 'timeEntries') {

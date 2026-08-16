@@ -19,7 +19,7 @@ const ALLOWED_MIME_EXACT = new Set([
   'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
 ]);
 
-/** Browser-safe inline preview — excludes HEIC/HEIF (often unsupported). */
+/** Browser-safe inline preview - excludes HEIC/HEIF (often unsupported). */
 const BROWSER_PREVIEWABLE_IMAGE_MIMES = new Set([
   'image/jpeg',
   'image/jpg',

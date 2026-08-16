@@ -78,7 +78,7 @@ export function DocumentPreviewDialog({
     return () => {
       cancelled = true;
     };
-    // Intentionally omit `t` and `fetched` — unstable t caused reload loops;
+    // Intentionally omit `t` and `fetched` - unstable t caused reload loops;
     // fetched-in-deps cancelled in-flight downloads during rapid switches.
     // eslint-disable-next-line react-hooks/exhaustive-deps -- open + documentId only
   }, [open, documentId]);
@@ -107,7 +107,7 @@ export function DocumentPreviewDialog({
             </Alert>
           ) : null}
           {!activeLoading && activeUrl && showImage ? (
-            // Signed URL only — expires; no permanent public path.
+            // Signed URL only - expires; no permanent public path.
             // eslint-disable-next-line @next/next/no-img-element -- ephemeral signed URL
             <img
               key={`${documentId}:${activeUrl}`}

@@ -40,7 +40,7 @@ export interface MetricDrilldownProps {
 
 /**
  * Primary KPI row with optional breakdown panel and filtered-list links.
- * Breakdown uses already-exposed figures — it does not invent allocation or forecast math.
+ * Breakdown uses already-exposed figures - it does not invent allocation or forecast math.
  */
 export function MetricDrilldown({
   label,

@@ -88,7 +88,7 @@ export async function OverviewTab({
   const openingReductionNet = detail.contract ? resolveOpeningReductionNet(detail.contract) : null;
 
   const dateRange =
-    [detail.project.startDate, detail.project.targetEndDate].filter(Boolean).join(' → ') || '—';
+    [detail.project.startDate, detail.project.targetEndDate].filter(Boolean).join(' → ') || '-';
 
   return (
     <div className="flex min-w-0 max-w-full flex-col gap-4">

@@ -131,7 +131,7 @@ export default async function QuoteDetailPage({
                     {line.quantity}
                   </span>
                 </TableCell>
-                <TableCell>{line.unit ?? '—'}</TableCell>
+                <TableCell>{line.unit ?? '-'}</TableCell>
                 <TableCell>
                   <MoneyText value={money(line.unitPriceAmount, quote.currency)} />
                 </TableCell>
@@ -139,14 +139,14 @@ export default async function QuoteDetailPage({
                   {line.estimatedUnitCostAmount ? (
                     <MoneyText value={money(line.estimatedUnitCostAmount, quote.currency)} />
                   ) : (
-                    '—'
+                    '-'
                   )}
                 </TableCell>
                 <TableCell>
                   {line.lineTotalAmount ? (
                     <MoneyText value={money(line.lineTotalAmount, quote.currency)} />
                   ) : (
-                    '—'
+                    '-'
                   )}
                 </TableCell>
               </TableRow>
@@ -162,7 +162,7 @@ export default async function QuoteDetailPage({
             {quote.subtotalAmount ? (
               <MoneyText value={money(quote.subtotalAmount, quote.currency)} />
             ) : (
-              '—'
+              '-'
             )}
           </dd>
         </div>
@@ -171,7 +171,7 @@ export default async function QuoteDetailPage({
             {t('detail.tax')} ({tTax(quote.taxMode)})
           </dt>
           <dd>
-            {quote.taxAmount ? <MoneyText value={money(quote.taxAmount, quote.currency)} /> : '—'}
+            {quote.taxAmount ? <MoneyText value={money(quote.taxAmount, quote.currency)} /> : '-'}
           </dd>
         </div>
         <div className="flex justify-between gap-2 font-semibold sm:block">
@@ -180,7 +180,7 @@ export default async function QuoteDetailPage({
             {quote.totalAmount ? (
               <MoneyText value={money(quote.totalAmount, quote.currency)} />
             ) : (
-              '—'
+              '-'
             )}
           </dd>
         </div>
@@ -196,7 +196,7 @@ export default async function QuoteDetailPage({
               <dt className="text-[var(--pf-text-secondary)]">{t('detail.estimatedMargin')}</dt>
               <dd>
                 <span className="pf-ltr-island" dir="ltr">
-                  {quote.estimatedMarginPercent ?? '—'}%
+                  {quote.estimatedMarginPercent ?? '-'}%
                 </span>
                 <span className="ms-2 text-xs text-[var(--pf-text-secondary)]">
                   ({t('detail.notRevenue')})

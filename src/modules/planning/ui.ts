@@ -1,5 +1,5 @@
 /**
- * UI entry for planning — keep React out of `index.ts`.
+ * UI entry for planning - keep React out of `index.ts`.
  * Lead wires project tab / nav later; export panel for composition.
  */
 

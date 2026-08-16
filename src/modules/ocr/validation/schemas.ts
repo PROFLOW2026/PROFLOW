@@ -48,10 +48,10 @@ export const confirmOcrCandidateSchema = z
     jobId: z.string().uuid(),
     /** Explicit human confirm. Draft is created only when this is true. */
     confirm: z.boolean(),
-    /** Draft target — expense or vendor bill. Default expense. */
+    /** Draft target - expense or vendor bill. Default expense. */
     draftTarget: z.enum(OCR_DRAFT_TARGETS).default('expense'),
     /**
-     * Required when draftTarget is vendor_bill — OCR vendor text is never a UUID.
+     * Required when draftTarget is vendor_bill - OCR vendor text is never a UUID.
      */
     vendorId: z.string().uuid().optional().nullable(),
     rememberProjectId: z.string().uuid().optional().nullable(),
@@ -120,7 +120,7 @@ export type ExtractReceiptAppInput = z.infer<typeof extractReceiptSchema>;
 export type CreateOcrBatchAppInput = z.infer<typeof createOcrBatchSchema>;
 export type CancelOcrJobInput = z.infer<typeof cancelOcrJobSchema>;
 export type ListOcrCandidatesInput = z.infer<typeof listOcrCandidatesSchema>;
-/** Input type — `draftTarget` defaults to expense when omitted. */
+/** Input type - `draftTarget` defaults to expense when omitted. */
 export type ConfirmOcrCandidateInput = z.input<typeof confirmOcrCandidateSchema>;
 export type RejectOcrCandidateInput = z.infer<typeof rejectOcrCandidateSchema>;
 export type OcrReviewSuggestionsProbeInput = z.infer<typeof ocrReviewSuggestionsProbeSchema>;

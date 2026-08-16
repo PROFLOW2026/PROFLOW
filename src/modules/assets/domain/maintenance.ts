@@ -2,7 +2,7 @@ import type { MaintenanceStatus } from './types';
 
 /**
  * Maintenance scheduling is derived from status + performed_on only.
- * No notification delivery — UI surfaces overdue/upcoming lists.
+ * No notification delivery - UI surfaces overdue/upcoming lists.
  */
 
 const TERMINAL: ReadonlySet<MaintenanceStatus> = new Set(['completed', 'cancelled']);

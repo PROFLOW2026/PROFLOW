@@ -3,7 +3,7 @@
  *
  * Soft-delete is metadata-authoritative (`status=deleted`). Bytes are removed
  * best-effort with retries. Cleanup state lives on `documents.storage_cleanup_*`
- * (Lead 0041). The checksum prefix below is legacy only — never write it.
+ * (Lead 0041). The checksum prefix below is legacy only - never write it.
  */
 
 export const STORAGE_CLEANUP_RETRY_ATTEMPTS = 3;
@@ -16,7 +16,7 @@ export type StorageCleanupRetryStatus = (typeof STORAGE_CLEANUP_RETRY_STATUSES)[
 
 const STORAGE_CLEANUP_ERROR_MAX = 1000;
 
-/** Legacy checksum prefix — not a file hash. Restored by 0041; do not encode new rows. */
+/** Legacy checksum prefix - not a file hash. Restored by 0041; do not encode new rows. */
 export const STORAGE_ORPHAN_CHECKSUM_PREFIX = 'pf:storage-orphan';
 
 export function isStorageCleanupStatus(

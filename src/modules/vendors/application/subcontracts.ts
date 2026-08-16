@@ -356,7 +356,7 @@ export async function changeSubcontractStatus(
 }
 
 /**
- * Approved subcontract change — INSERT a new value event. Never mutates original.
+ * Approved subcontract change - INSERT a new value event. Never mutates original.
  * Pending statuses are not events and cannot change current.
  */
 export async function addApprovedSubcontractChange(
@@ -519,7 +519,7 @@ export async function linkSubcontractDocument(
   return loadDetail(context, agreement.id);
 }
 
-/** Original amount is immutable after create — only append-only events change current. */
+/** Original amount is immutable after create - only append-only events change current. */
 export function rejectSubcontractOriginalMutation(): never {
   throw new DomainRuleError(
     'Original subcontract amount cannot be updated; append an approved change event',

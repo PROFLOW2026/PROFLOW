@@ -915,7 +915,7 @@ export function BoqPanelClient({
                         <option value="">{t('forms.noParent')}</option>
                         {items.map((item) => (
                           <option key={item.id} value={item.id}>
-                            {item.itemCode ? `${item.itemCode} — ` : ''}
+                            {item.itemCode ? `${item.itemCode} - ` : ''}
                             {item.description}
                           </option>
                         ))}

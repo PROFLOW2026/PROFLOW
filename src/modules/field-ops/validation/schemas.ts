@@ -47,7 +47,7 @@ export const createDailyLogSchema = z.object({
   weather: optionalText,
   summary: z.string().trim().min(1, 'Summary is required').max(4000),
   workforceNotes: optionalText,
-  /** Packed into workforce_notes — no dedicated DB column. */
+  /** Packed into workforce_notes - no dedicated DB column. */
   blockers: optionalText,
   ...dailyLogExtraFields,
 });

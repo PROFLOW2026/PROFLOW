@@ -8,7 +8,7 @@ import {
  * Labor recognition Displacement invariant:
  * When an employee-month is applied/closed with recognition_source=monthly_allocated,
  * project labor Actual for that (employee, YYYY-MM) comes ONLY from
- * labor_allocation_run_lines — never also from time_entries.cost_amount.
+ * labor_allocation_run_lines - never also from time_entries.cost_amount.
  * Assignment never creates Actual. Employee economic cost appears exactly once.
  */
 

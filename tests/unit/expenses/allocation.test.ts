@@ -157,7 +157,7 @@ describe('automatic weight allocation', () => {
       ],
     });
 
-    // Sorted by projectId: a, m, z — residue on z
+    // Sorted by projectId: a, m, z - residue on z
     expect(lines.map((l) => l.projectId)).toEqual(['a', 'm', 'z']);
     validateAllocationSum(
       allocatableNet,

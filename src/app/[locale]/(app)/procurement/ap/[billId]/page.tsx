@@ -216,7 +216,7 @@ export default async function ApBillDetailPage({
                 )}
               </span>
             ) : (
-              '—'
+              '-'
             )}
           </p>
         </div>
@@ -283,7 +283,7 @@ export default async function ApBillDetailPage({
                       <TableCell className="text-sm text-[var(--pf-text-secondary)]" dir="ltr">
                         {line.purchaseOrderLineId
                           ? line.purchaseOrderLineId.slice(0, 8)
-                          : '—'}
+                          : '-'}
                       </TableCell>
                       <TableCell numeric>
                         <span dir="ltr">{line.quantity}</span>
@@ -426,7 +426,7 @@ export default async function ApBillDetailPage({
                           {canManage && match.status === 'proposed' ? (
                             <MatchDecisionButtons matchId={match.id} billId={bill.id} />
                           ) : (
-                            '—'
+                            '-'
                           )}
                         </TableCell>
                       </TableRow>

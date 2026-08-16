@@ -50,7 +50,7 @@ export function getOcrProviderStatus(
   return readOcrProviderStatus(provider);
 }
 
-/** Azure live path needs both key and endpoint — never return their values. */
+/** Azure live path needs both key and endpoint - never return their values. */
 export function azureOcrNeedsKeyAndEndpoint(
   status: Pick<OcrProviderStatus, 'providerId' | 'configured'> = readOcrProviderStatus(),
 ): boolean {

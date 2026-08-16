@@ -1,7 +1,7 @@
 import { DomainRuleError } from '@/shared/errors';
 
 /**
- * Inspection completion gate — reuse Forms, do not invent a second engine.
+ * Inspection completion gate - reuse Forms, do not invent a second engine.
  * If `inspections.form_template_id` is set, a submitted form for that template
  * is required before status passed/failed (same idea as work-order checklists).
  */

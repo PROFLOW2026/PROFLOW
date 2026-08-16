@@ -241,7 +241,7 @@ async function enrichOpeningValueRefs(
         issues.push({
           severity: 'error',
           field: 'projectName',
-          message: 'Multiple projects match this name — use projectId',
+          message: 'Multiple projects match this name - use projectId',
         });
       } else {
         values.projectId = matches[0]!;

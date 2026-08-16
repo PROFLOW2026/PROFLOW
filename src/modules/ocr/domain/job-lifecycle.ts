@@ -13,7 +13,7 @@ export const OCR_ACTIVE_PROCESSING_STATUSES: readonly ExtractionJobStatus[] = [
   'processing',
 ];
 
-/** Human review queue — in-flight plus failed (retry) plus needs_review. */
+/** Human review queue - in-flight plus failed (retry) plus needs_review. */
 export const OCR_WORKER_SUCCESS_STATUS: ExtractionJobStatus = 'needs_review';
 
 export const OCR_WORKER_MAX_ATTEMPTS = OCR_TRANSIENT_RETRY_LIMIT;
@@ -41,7 +41,7 @@ export function isOcrCancelableStatus(status: string): boolean {
 }
 
 /**
- * Provider "succeeded" is never ledger truth — it always lands in needs_review
+ * Provider "succeeded" is never ledger truth - it always lands in needs_review
  * so a human can confirm a DRAFT only.
  */
 export function mapProviderSuccessToJobStatus(): ExtractionJobStatus {

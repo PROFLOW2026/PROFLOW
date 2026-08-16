@@ -1,5 +1,5 @@
 /**
- * Unified client timeline — projection over canonical records.
+ * Unified client timeline - projection over canonical records.
  * `activity_events` is a pointer index, never a second financial ledger.
  */
 

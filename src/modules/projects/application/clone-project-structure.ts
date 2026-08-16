@@ -75,7 +75,7 @@ export async function previewProjectStructureSnapshot(
 
 /**
  * Clones work areas, phases, and milestones onto a simple (unsplit) project.
- * Creates editable copies only — no live link to the source.
+ * Creates editable copies only - no live link to the source.
  */
 export async function cloneProjectStructure(
   context: OrgContext,

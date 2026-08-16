@@ -161,7 +161,7 @@ export default async function FieldOpsPunchPage({
                           {item.title}
                         </Link>
                       </TableCell>
-                      <TableCell>{projectName.get(item.projectId) ?? '—'}</TableCell>
+                      <TableCell>{projectName.get(item.projectId) ?? '-'}</TableCell>
                       <TableCell>
                         {canManage ? (
                           <PunchPriorityForm
@@ -181,7 +181,7 @@ export default async function FieldOpsPunchPage({
                             {item.dueDate}
                           </span>
                         ) : (
-                          '—'
+                          '-'
                         )}
                       </TableCell>
                       {canManage ? (
@@ -207,7 +207,7 @@ export default async function FieldOpsPunchPage({
                 <StatusBadge shape={punchShape(item.status)} label={tStatus(item.status)} />
               </div>
               <p className="text-sm text-[var(--pf-text-secondary)]">
-                {projectName.get(item.projectId) ?? '—'} · {t(`priorities.${item.priority}`)}
+                {projectName.get(item.projectId) ?? '-'} · {t(`priorities.${item.priority}`)}
                 {item.dueDate ? (
                   <>
                     {' · '}

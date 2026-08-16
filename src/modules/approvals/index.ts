@@ -1,4 +1,4 @@
-/** Public API — lightweight optional approvals (Agent 8). */
+/** Public API - lightweight optional approvals (Agent 8). */
 
 export {
   APPROVAL_ENTITY_TYPES,

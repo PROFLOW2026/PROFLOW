@@ -41,8 +41,8 @@ function formatSpan(
   ongoingLabel: string,
 ): string {
   if (!startDate && !endDate) return ongoingLabel;
-  if (!endDate) return `${startDate ?? '—'} · ${ongoingLabel}`;
-  return `${startDate ?? '—'} → ${endDate}`;
+  if (!endDate) return `${startDate ?? '-'} · ${ongoingLabel}`;
+  return `${startDate ?? '-'} → ${endDate}`;
 }
 
 /**

@@ -32,7 +32,7 @@ test.describe('worker permission gating', () => {
   test('attendance page is reachable without financial surfaces', async ({ page }) => {
     await page.goto('/he-IL/workforce/attendance');
     await expect(page.getByRole('heading', { name: /נוכחות/ }).first()).toBeVisible();
-    // Unlinked worker still sees the page (empty / link required) — not a crash.
+    // Unlinked worker still sees the page (empty / link required) - not a crash.
     await expect(page.getByText(/עלות בפועל|רווח|חשבונות ספקים/).first()).toHaveCount(0);
     await page.goto('/he-IL/procurement/ap');
     await expect(page.getByRole('heading', { name: 'אין הרשאה' })).toBeVisible();

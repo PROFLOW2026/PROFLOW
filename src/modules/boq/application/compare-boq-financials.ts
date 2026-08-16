@@ -29,12 +29,12 @@ export interface BoqFinancialComparison {
   readonly projectId: string;
   readonly boqId: string | null;
   readonly currency: string;
-  /** Physical progress from approved BOQ quantities — NOT Actual. */
+  /** Physical progress from approved BOQ quantities - NOT Actual. */
   readonly physicalProgressPercent: string | null;
   readonly currentBoqAmount: MoneyValue | null;
-  /** From financials engine — never derived from BOQ progress. */
+  /** From financials engine - never derived from BOQ progress. */
   readonly actualCostToDate: MoneyValue | null;
-  /** Forecast Final Cost from financials — never invented from BOQ. */
+  /** Forecast Final Cost from financials - never invented from BOQ. */
   readonly estimatedFinalCost: MoneyValue | null;
   readonly currentContractValue: MoneyValue | null;
   readonly reconciliationStatus: string | null;
@@ -70,7 +70,7 @@ export async function getBoqFinancialComparison(
       approvedParts.push(quantityString(approved));
       currentParts.push(quantityString(item.currentQuantity));
     }
-    // Aggregate % for display only — still not Actual.
+    // Aggregate % for display only - still not Actual.
     if (items.length > 0) {
       physicalProgressPercent = percentComplete({
         cumulativeApproved: sumDecimalStrings(approvedParts),
@@ -91,7 +91,7 @@ export async function getBoqFinancialComparison(
       estimatedFinalCost = financials.cost.estimatedFinalCost;
       const commercial = financials.commercial;
       if (!commercial) {
-        // Open-price / missing commercial — still show cost metrics only.
+        // Open-price / missing commercial - still show cost metrics only.
       } else {
         currentContractValue = commercial.currentContractValue;
 
@@ -118,7 +118,7 @@ export async function getBoqFinancialComparison(
         }
       }
     } catch {
-      // Missing financials permission edge or empty project — leave nulls.
+      // Missing financials permission edge or empty project - leave nulls.
     }
   }
 

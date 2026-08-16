@@ -21,7 +21,7 @@ export interface ImportBankStatementResult {
   readonly imported: readonly BankTransaction[];
   readonly skippedDuplicates: number;
   readonly invalidRows: number;
-  /** Always false — import never writes payments/bills/expenses. */
+  /** Always false - import never writes payments/bills/expenses. */
   readonly financialMutationPerformed: false;
 }
 

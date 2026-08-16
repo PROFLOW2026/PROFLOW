@@ -14,7 +14,7 @@ interface AttendanceDaysTableProps {
 }
 
 function formatInstant(value: Date | null): string {
-  if (!value) return '—';
+  if (!value) return '-';
   const date = value instanceof Date ? value : new Date(value);
   return new Intl.DateTimeFormat(undefined, {
     hour: '2-digit',

@@ -50,7 +50,7 @@ function normalizeScopes(scopes: readonly string[]): ApiKeyScope[] {
 
  * Tenant isolation is enforced by returning the key's organizationId for all
 
- * subsequent data access — never by trusting a client-supplied org id.
+ * subsequent data access - never by trusting a client-supplied org id.
 
  */
 

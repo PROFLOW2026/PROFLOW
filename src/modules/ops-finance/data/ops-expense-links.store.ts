@@ -1,5 +1,5 @@
 /**
- * TEST DOUBLE ONLY — process-local ops↔expense link store.
+ * TEST DOUBLE ONLY - process-local ops↔expense link store.
  *
  * Not durable across processes/instances. Production default when
  * `OPS_FINANCE_PERSISTENCE_READY` is true uses Drizzle

@@ -22,7 +22,7 @@ import { UserMenu } from './user-menu';
  * expression of Progressive Complexity rather than a filter applied later.
  *
  * Installed-app first paint is dominated by SW navigation preload and the `/`
- * rewrite — not by splitting this chrome across Suspense (that duplicated
+ * rewrite - not by splitting this chrome across Suspense (that duplicated
  * Radix/client trees on hydrate).
  */
 export async function AppShell({ children }: { children: ReactNode }) {

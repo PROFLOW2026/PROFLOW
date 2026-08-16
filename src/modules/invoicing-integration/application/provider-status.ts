@@ -27,7 +27,7 @@ export function getStatutoryProviderStatus(
   };
 }
 
-/** Pure gate used by application services and UI — no permission side effects. */
+/** Pure gate used by application services and UI - no permission side effects. */
 export function isStatutoryInvoicingFeatureEnabled(
   provider: StatutoryInvoicingProvider = getStatutoryInvoicingProvider(),
 ): boolean {

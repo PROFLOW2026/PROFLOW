@@ -32,7 +32,7 @@ export interface ProjectEligibilityFacts {
   readonly targetEndDate: BusinessDate | null;
   readonly archivedAt: Date | string | null;
   /**
-   * `project` | `job` — both are eligible for overhead when period-overlapping.
+   * `project` | `job` - both are eligible for overhead when period-overlapping.
    * Defaults to `project` when unset (legacy fixtures / pre-0019 rows).
    */
   readonly workKind?: WorkKind | string | null;
@@ -77,7 +77,7 @@ export function projectActiveDaysInSlice(
   return countInclusiveDays(overlapStart, overlapEnd);
 }
 
-/** activeDays / sliceDays — 0 when the slice has no days. */
+/** activeDays / sliceDays - 0 when the slice has no days. */
 export function projectActiveFractionOfSlice(
   project: ProjectEligibilityFacts,
   slice: AllocationPeriod,
@@ -93,7 +93,7 @@ export function projectActiveFractionOfSlice(
  * - `multiply`: effective_weight = driver_basis × (activeDays / sliceDays)
  *   Used for contract_weight and equal_split (calendar exposure is not in the driver).
  * - `inherent`: driver already reflects activity inside the slice window
- *   (labor hours / direct costs queried for the slice) — do NOT multiply again.
+ *   (labor hours / direct costs queried for the slice) - do NOT multiply again.
  */
 export type ActiveDayExposurePolicy = 'multiply' | 'inherent';
 

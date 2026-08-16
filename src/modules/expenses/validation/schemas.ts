@@ -55,7 +55,7 @@ const expenseFieldsSchema = z.object({
   /**
    * When set, net/tax/gross are derived from the org tax rule via the shared
    * tax engine. Omitted → legacy fast capture (entered = net = gross).
-   * Not persisted as its own column — reconstructed from stored amounts on edit.
+   * Not persisted as its own column - reconstructed from stored amounts on edit.
    */
   amountIncludesTax: amountIncludesTaxSchema,
   netAmount: z.string().trim().nullable().optional(),

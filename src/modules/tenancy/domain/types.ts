@@ -38,7 +38,7 @@ export const OPTIONAL_MODULE_KEYS = [
   'assets',
   /** Short / daily work UX; shares `projects` rows + PROJECTS_* permissions. */
   'jobs',
-  /** Next-gen optional surfaces — off until use or business profile enables. */
+  /** Next-gen optional surfaces - off until use or business profile enables. */
   'quotes',
   'service',
   'approvals',

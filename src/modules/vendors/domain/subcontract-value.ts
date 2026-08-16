@@ -1,5 +1,5 @@
 /**
- * Subcontract current-value arithmetic — same pattern as commercial contract-value.
+ * Subcontract current-value arithmetic - same pattern as commercial contract-value.
  *
  * Formula: Original + approved events (kind change_order / adjustment) = Current.
  * Pending proposals are not an event kind and must never mutate current.

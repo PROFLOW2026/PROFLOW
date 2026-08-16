@@ -13,8 +13,8 @@ import type { Database, Transaction } from '@/shared/db/types';
  * Integration-test database.
  *
  * No Docker or local Postgres is required: PGlite is a real Postgres build
- * compiled to WebAssembly, so the migrations — including RLS policies, CHECK
- * constraints and partial unique indexes — execute exactly as they will on
+ * compiled to WebAssembly, so the migrations - including RLS policies, CHECK
+ * constraints and partial unique indexes - execute exactly as they will on
  * Supabase. That is what makes the cross-tenant isolation tests meaningful
  * rather than a mock.
  *

@@ -1,5 +1,5 @@
 /**
- * Canonical OCR document result — provider-agnostic.
+ * Canonical OCR document result - provider-agnostic.
  * Adapters map vendor JSON into this shape; application code never reads
  * Azure/Google/AWS field names.
  */
@@ -42,7 +42,7 @@ export interface CanonicalOcrMoney {
   readonly tax: OcrFieldCandidate;
   /** VAT rate percent string when known (e.g. "18"). */
   readonly vatRate: OcrFieldCandidate;
-  /** Invoice total including VAT — never copied from subtotal. */
+  /** Invoice total including VAT - never copied from subtotal. */
   readonly gross: OcrFieldCandidate;
   readonly amountDue: OcrFieldCandidate;
   readonly vatRates: readonly string[];

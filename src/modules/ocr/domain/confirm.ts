@@ -8,7 +8,7 @@ import type {
 import { OCR_CANDIDATE_FIELD_KEYS } from './types';
 
 /**
- * Confirmed field values after human review — still not ledger truth until an
+ * Confirmed field values after human review - still not ledger truth until an
  * Expense or Vendor Bill draft write path persists them explicitly.
  */
 export interface ConfirmedReceiptFields {
@@ -93,7 +93,7 @@ export function confirmReceiptExtraction(
 
 /**
  * Mapping into Expense must be a separate explicit application step.
- * This helper only builds a draft form payload — it does not write the ledger.
+ * This helper only builds a draft form payload - it does not write the ledger.
  *
  * Project/category suggestions are intentionally omitted (non-canonical).
  */
@@ -130,7 +130,7 @@ export function mapConfirmedFieldsToExpenseDraft(fields: ConfirmedReceiptFields)
 }
 
 /**
- * Mapping into a Vendor Bill draft payload — never open/posted recognition.
+ * Mapping into a Vendor Bill draft payload - never open/posted recognition.
  * Caller must supply an explicit vendor entity id (OCR vendor text is not an ID).
  */
 export function mapConfirmedFieldsToVendorBillDraft(
@@ -218,7 +218,7 @@ export function mapStructuredBillLines(
   return candidates.lines
     .map((line) => {
       const description = line.description.value?.trim();
-      // Prefer pre-VAT netAmount — never invent inclusive totals from Amount alone.
+      // Prefer pre-VAT netAmount - never invent inclusive totals from Amount alone.
       const lineTotal = line.netAmount.value?.trim() || line.lineTotal.value?.trim();
       const unitAmount = line.unitPrice.value?.trim() || lineTotal;
       const quantity = line.quantity.value?.trim() || '1';

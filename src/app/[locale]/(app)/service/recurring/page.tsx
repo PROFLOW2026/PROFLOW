@@ -144,7 +144,7 @@ export default async function RecurringListPage({ searchParams }: RecurringListP
                     {t(`frequency.${row.frequency}`)}
                     {row.intervalCount > 1 ? ` ×${row.intervalCount}` : ''}
                   </TableCell>
-                  <TableCell dir="ltr">{row.nextOccurrenceDate ?? '—'}</TableCell>
+                  <TableCell dir="ltr">{row.nextOccurrenceDate ?? '-'}</TableCell>
                   <TableCell>{t(`status.${row.status}`)}</TableCell>
                 </TableRow>
               ))}

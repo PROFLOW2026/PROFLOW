@@ -15,7 +15,7 @@ import { addMoney, money, zeroMoney, type MoneyValue } from '@/shared/money';
 const ILS = 'ILS';
 
 /**
- * Scenario E — mixed portfolio: 2 classic projects + 8 jobs (fixed + open).
+ * Scenario E - mixed portfolio: 2 classic projects + 8 jobs (fixed + open).
  * Proves All / Projects / Jobs filters partition without double-count,
  * and open-price jobs never inject fake loss into org profit.
  */
@@ -126,7 +126,7 @@ function sumActual(rows: readonly ProjectRollupRow[]): MoneyValue {
   );
 }
 
-describe('Scenario E — mixed 2 projects + 8 jobs filters', () => {
+describe('Scenario E - mixed 2 projects + 8 jobs filters', () => {
   const portfolio = buildMixedPortfolio();
 
   it('partitions All = Projects + Jobs with no double count', () => {
@@ -167,7 +167,7 @@ describe('Scenario E — mixed 2 projects + 8 jobs filters', () => {
     });
     expect(cost.actual.value.amount).toBe('9000.000000');
     expect(cost.estimatedFinal.value.amount).toBe('10500.000000');
-    // Unallocated org costs stay visible beside — not folded into project profit.
+    // Unallocated org costs stay visible beside - not folded into project profit.
     expect(cost.unallocatedBusinessCosts?.value.amount).toBe('12000.000000');
   });
 

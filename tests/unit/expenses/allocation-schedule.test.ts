@@ -207,7 +207,7 @@ describe('contract weight by month', () => {
       method: 'contract_weight',
       periodStart: slices[1]!.periodStart,
       periodEnd: slices[1]!.periodEnd,
-      // Contract grew — only affects February slice
+      // Contract grew - only affects February slice
       bases: [
         { projectId: 'a', basisValue: '3000000', basisUnit: 'money' },
         { projectId: 'b', basisValue: '1000000', basisUnit: 'money' },
@@ -314,7 +314,7 @@ describe('historical immutability', () => {
     expect(plan.reusable[0]!.lines[0]!.amount.amount).toBe('1000.000000');
     expect(plan.pending.map((s) => s.sliceIndex)).toEqual([1]);
 
-    // Live bases changed drastically — frozen January still reused as-is
+    // Live bases changed drastically - frozen January still reused as-is
     const febLines = allocateByProjectWeights({
       allocatableNet: plan.pending[0]!.amount,
       method: 'contract_weight',

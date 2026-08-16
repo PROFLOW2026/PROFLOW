@@ -7,7 +7,7 @@ export interface WorkKindScopedRow {
 
 /**
  * Filters org rollup / report rows by All | Projects | Jobs.
- * Pure — used by application rollup and Scenario E tests.
+ * Pure - used by application rollup and Scenario E tests.
  * Does not invent duplicates: each entity appears at most once.
  */
 export function filterRowsByWorkKind<T extends WorkKindScopedRow>(
@@ -19,7 +19,7 @@ export function filterRowsByWorkKind<T extends WorkKindScopedRow>(
 }
 
 /**
- * Sum of actual costs across filtered rows — used to prove no double-count
+ * Sum of actual costs across filtered rows - used to prove no double-count
  * when switching All ↔ Projects ↔ Jobs (Projects + Jobs = All).
  */
 export function partitionWorkKindCounts(rows: readonly WorkKindScopedRow[]): {

@@ -1,5 +1,5 @@
 /**
- * PRE-0021 Reviewer 1 — adversarial financial / concurrency break attempts.
+ * PRE-0021 Reviewer 1 - adversarial financial / concurrency break attempts.
  * Disposable PGlite only. Does not edit migrations or touch owner Supabase.
  */
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
@@ -78,7 +78,7 @@ describe('PRE-0021 Reviewer1 adversarial (SQL invariants)', () => {
         db.execute(sql`DELETE FROM employee_month_costs WHERE id = ${month.id}`),
       ).rejects.toThrow(/immutable|23514|Failed query/i);
 
-      // Close via supersede path is required — direct closed money mutate still blocked.
+      // Close via supersede path is required - direct closed money mutate still blocked.
       await db.execute(sql`
         UPDATE employee_month_costs SET status = 'superseded' WHERE id = ${month.id}
       `);
@@ -186,7 +186,7 @@ describe('PRE-0021 Reviewer1 adversarial (SQL invariants)', () => {
     });
   });
 
-  it('3: labor conservation — header/lines must match known; over-alloc fails', async () => {
+  it('3: labor conservation - header/lines must match known; over-alloc fails', async () => {
     await database.asService(async (db) => {
       const orgId = await seedOrg(db, 'R1 Cons');
       const employee = resultRows<{ id: string }>(
@@ -322,7 +322,7 @@ describe('PRE-0021 Reviewer1 adversarial (SQL invariants)', () => {
     });
   });
 
-  it('7: displacement coupling — applied/closed cannot stay on time_snapshot', async () => {
+  it('7: displacement coupling - applied/closed cannot stay on time_snapshot', async () => {
     await database.asService(async (db) => {
       const orgId = await seedOrg(db, 'R1 Disp');
       const employee = resultRows<{ id: string }>(
@@ -544,7 +544,7 @@ describe('PRE-0021 Reviewer1 adversarial (SQL invariants)', () => {
     });
   });
 
-  it('9: tenant mismatch — composite org FKs reject cross-org pointers', async () => {
+  it('9: tenant mismatch - composite org FKs reject cross-org pointers', async () => {
     await database.asService(async (db) => {
       const orgA = await seedOrg(db, 'R1 OrgA');
       const orgB = await seedOrg(db, 'R1 OrgB');
@@ -698,7 +698,7 @@ describe('PRE-0021 Reviewer1 concurrency re-break', () => {
     }
   }, 180_000);
 
-  it('6: concurrent overlapping assignments — at most one wins', async () => {
+  it('6: concurrent overlapping assignments - at most one wins', async () => {
     const harness = await openTwoConnectionHarness(applyMigrationsAndAgent1Patch);
     try {
       const { sqlA, sqlB } = harness;

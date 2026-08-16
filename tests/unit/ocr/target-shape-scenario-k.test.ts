@@ -15,7 +15,7 @@ const ORG = '018f0000-0000-7000-8000-0000000000aa';
 const EXPENSE = '018f0000-0000-7000-8000-0000000000e1';
 const BILL = '018f0000-0000-7000-8000-0000000000b1';
 
-describe('scenario K — OCR confirmed target shape', () => {
+describe('scenario K - OCR confirmed target shape', () => {
   it('allows expense target with expense id and null vendor bill', () => {
     expect(() => assertOcrConfirmedTargetShape(expenseConfirmTargetShape(EXPENSE))).not.toThrow();
   });

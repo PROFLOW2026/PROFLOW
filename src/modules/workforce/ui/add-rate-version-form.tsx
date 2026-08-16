@@ -22,7 +22,7 @@ export interface AddRateVersionFormProps {
 }
 
 /**
- * Add a new rate version from a date — closes the open version, never rewrites history.
+ * Add a new rate version from a date - closes the open version, never rewrites history.
  */
 export function AddRateVersionForm({
   employeeId,

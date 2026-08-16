@@ -3,7 +3,7 @@
  *
  * Text-like only (stored text and select labels). Money, numbers, dates,
  * booleans, references, reserved financial keys, and archived definitions
- * never contribute searchable text — so Actual / profit / rates cannot leak
+ * never contribute searchable text - so Actual / profit / rates cannot leak
  * through search hits.
  */
 
@@ -45,7 +45,7 @@ export function isSearchableCustomFieldDefinition(
   return isSearchableCustomFieldType(definition.fieldType);
 }
 
-/** Selectable strings only — never valueNumber (money/number) or JSON. */
+/** Selectable strings only - never valueNumber (money/number) or JSON. */
 export function searchableTextsFromCustomField(
   definition: SearchableCustomFieldDefinition,
   value: SearchableCustomFieldValue | null,

@@ -31,7 +31,7 @@ export const BUSINESS_PROFILE_KEYS = [
 
 export type BusinessProfileKey = (typeof BUSINESS_PROFILE_KEYS)[number];
 
-/** Display labels only — underlying work entity stays projects.work_kind. */
+/** Display labels only - underlying work entity stays projects.work_kind. */
 export interface WorkTerminologyLabels {
   readonly project: { readonly en: string; readonly he: string };
   readonly job: { readonly en: string; readonly he: string };

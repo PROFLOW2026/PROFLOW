@@ -1,6 +1,6 @@
 /**
  * CRM / pre-project lifecycle (doc 20).
- * Opportunity is not a Project — conversion is an explicit action.
+ * Opportunity is not a Project - conversion is an explicit action.
  */
 
 import type { AuditEventSummary } from '@/shared/audit/types';

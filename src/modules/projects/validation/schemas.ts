@@ -141,7 +141,7 @@ const jobNameSchema = z
   .max(200, 'Job name must be at most 200 characters');
 
 /**
- * Quick job creation — client + name + pricing mode + start date required.
+ * Quick job creation - client + name + pricing mode + start date required.
  * Fixed pricing requires an amount; open pricing forbids inventing a zero contract.
  */
 export const createJobSchema = z
@@ -450,7 +450,7 @@ export const updateContractSchema = z
     contractId: z.string().uuid(),
     name: z.preprocess(emptyStringOrNullToNull, z.string().trim().min(1).max(200).nullable().optional()),
     reference: z.preprocess(emptyStringOrNullToNull, z.string().trim().max(120).nullable().optional()),
-    /** Primary is owned by `isPrimary` / set-primary — not this field. */
+    /** Primary is owned by `isPrimary` / set-primary - not this field. */
     contractType: z.enum(['additional', 'secondary']).optional(),
     contractNumber: z.preprocess(
       emptyStringOrNullToNull,

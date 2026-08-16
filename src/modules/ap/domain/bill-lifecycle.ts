@@ -1,5 +1,5 @@
 /**
- * AP bill lifecycle — void / replace; no silent edit of recognized bills.
+ * AP bill lifecycle - void / replace; no silent edit of recognized bills.
  */
 
 import { DomainRuleError } from '@/shared/errors';

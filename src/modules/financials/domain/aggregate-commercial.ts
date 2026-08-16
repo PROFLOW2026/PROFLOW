@@ -11,7 +11,7 @@ function addOptionalMoney(
   return addMoney(left ?? zeroMoney(currency), right ?? zeroMoney(currency));
 }
 
-/** Same-currency sum of commercial positions — not a second engine. */
+/** Same-currency sum of commercial positions - not a second engine. */
 export function addCommercialPositions(
   left: CommercialPosition,
   right: CommercialPosition,

@@ -105,7 +105,7 @@ export function VendorBillAllocationPanel({
     });
   }, [mode, lines, recognizedNet]);
 
-  // Managers only — ap.read viewers without manage must not get the split editor
+  // Managers only - ap.read viewers without manage must not get the split editor
   // when READY flips true (Reviewer 2 H2).
   if (!canManage) return null;
 

@@ -1,6 +1,6 @@
 /**
  * Document evidence helpers for compliance artifacts (doc 24).
- * "Missing" is a UI/evidence concept — not a new DB status (no schema change).
+ * "Missing" is a UI/evidence concept - not a new DB status (no schema change).
  * Notifications are explicitly out of scope (doc 26 deferred).
  */
 

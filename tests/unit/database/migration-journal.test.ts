@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest';
 /**
  * The two migration runners disagree unless the journal is maintained by hand.
  *
- * `drizzle/scripts/migrate.ts` — the only path to a real environment — asks the
+ * `drizzle/scripts/migrate.ts` - the only path to a real environment - asks the
  * Drizzle migrator for the entries in `meta/_journal.json`, while the test
  * harnesses read every `.sql` file straight off disk. A hand-written migration
  * that never reaches the journal therefore passes the whole suite and is
@@ -76,7 +76,7 @@ describe('migration journal', () => {
       path.join(MIGRATIONS_DIR, '0012_ap_vendor_portal.sql'),
       'utf8',
     );
-    // Content freeze markers — must remain; do not weaken AP/portal integrity.
+    // Content freeze markers - must remain; do not weaken AP/portal integrity.
     expect(sql).toContain('ap_bills');
     expect(sql).toContain('ap_po_matches');
     expect(sql).toContain('external_access_grants_scope_present');

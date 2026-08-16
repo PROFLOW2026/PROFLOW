@@ -125,7 +125,7 @@ function DispatchRowEditor({
 }
 
 /**
- * Daily dispatch list — mobile-first. Reschedule uses an explicit form
+ * Daily dispatch list - mobile-first. Reschedule uses an explicit form
  * (mobile alternative); no drag/drop-only path.
  */
 export function DispatchBoard({
@@ -164,13 +164,13 @@ export function DispatchBoard({
           <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">
             {row.assigneeName ?? t('list.unassigned')}
             {' · '}
-            {row.clientName ?? '—'}
+            {row.clientName ?? '-'}
             {row.siteAddress ? ` · ${row.siteAddress}` : ''}
           </p>
           <p className="mt-1 pf-ltr-island text-sm text-[var(--pf-text-secondary)]" dir="ltr">
             {row.scheduledStartAt
               ? new Date(row.scheduledStartAt).toISOString().slice(0, 16).replace('T', ' ')
-              : '—'}
+              : '-'}
             {row.scheduledEndAt
               ? ` → ${new Date(row.scheduledEndAt).toISOString().slice(0, 16).replace('T', ' ')}`
               : ''}

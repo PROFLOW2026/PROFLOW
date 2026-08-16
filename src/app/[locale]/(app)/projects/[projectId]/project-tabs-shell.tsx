@@ -15,7 +15,7 @@ interface ProjectTabsShellProps {
    * client JS.
    */
   activeTab?: ProjectTabKey;
-  /** App path for this project (`/projects/{id}`) — real hrefs before hydrate. */
+  /** App path for this project (`/projects/{id}`) - real hrefs before hydrate. */
   projectHref: string;
   /** Resolved tab labels from the server caller (`getTranslations`). */
   labels: Readonly<Partial<Record<ProjectTabKey, string>>>;

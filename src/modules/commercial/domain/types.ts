@@ -1,5 +1,5 @@
 /**
- * Commercial domain types (doc 05). Framework-free — no React, no persistence.
+ * Commercial domain types (doc 05). Framework-free - no React, no persistence.
  */
 
 export const CHANGE_REQUEST_STATUSES = [

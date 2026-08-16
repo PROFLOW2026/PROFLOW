@@ -78,7 +78,7 @@ export function MilestonesPanel({ projectId, milestones, canEdit, today }: Miles
                 <div className="flex flex-col gap-1">
                   <div className="font-medium">{milestone.name}</div>
                   <div className="flex flex-wrap items-center gap-2 text-[var(--pf-text-secondary)]">
-                    <span>{milestone.targetDate ? milestone.targetDate : '—'}</span>
+                    <span>{milestone.targetDate ? milestone.targetDate : '-'}</span>
                     <StatusBadge
                       shape={milestoneShape(milestone.status)}
                       label={t(`milestoneStatuses.${milestone.status}`)}

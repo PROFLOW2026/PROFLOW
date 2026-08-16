@@ -48,7 +48,7 @@ export async function getApprovalRequest(context: OrgContext, requestId: string)
 
 /**
  * Gate-safe latest request for domain UIs (AP credit post, bill post).
- * Does not require approvals.read — same helper as assertApprovalAllowsAction.
+ * Does not require approvals.read - same helper as assertApprovalAllowsAction.
  */
 export async function getLatestApprovalForEntity(
   context: OrgContext,

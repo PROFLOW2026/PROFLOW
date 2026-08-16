@@ -105,7 +105,7 @@ export async function listEmployees(
     search?: string;
     includeArchived?: boolean;
     status?: EmployeeRecord['status'] | 'all';
-    /** Org-timezone business date — must match detail (`todayInTimeZone`), never DB `current_date`. */
+    /** Org-timezone business date - must match detail (`todayInTimeZone`), never DB `current_date`. */
     asOfDate: string;
   },
 ): Promise<EmployeeListItem[]> {

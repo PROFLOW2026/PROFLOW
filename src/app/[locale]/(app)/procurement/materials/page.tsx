@@ -97,19 +97,19 @@ export default async function MaterialsCatalogPage() {
                             {item.sku}
                           </span>
                         ) : (
-                          '—'
+                          '-'
                         )}
                       </TableCell>
                       <TableCell className="max-w-[10rem] truncate">
-                        {item.manufacturer ?? '—'}
+                        {item.manufacturer ?? '-'}
                       </TableCell>
-                      <TableCell className="max-w-[8rem] truncate">{item.model ?? '—'}</TableCell>
+                      <TableCell className="max-w-[8rem] truncate">{item.model ?? '-'}</TableCell>
                       <TableCell>{item.unit}</TableCell>
                       <TableCell numeric>
                         {item.defaultUnitPrice && item.currency ? (
                           <MoneyText value={money(item.defaultUnitPrice, item.currency)} />
                         ) : (
-                          '—'
+                          '-'
                         )}
                       </TableCell>
                     </TableRow>
@@ -126,7 +126,7 @@ export default async function MaterialsCatalogPage() {
               <p className="break-words font-semibold">{item.name}</p>
               <p className="mt-1 break-words text-sm text-[var(--pf-text-secondary)]">
                 {[item.sku, item.manufacturer, item.model, item.unit].filter(Boolean).join(' · ') ||
-                  '—'}
+                  '-'}
               </p>
               {item.defaultUnitPrice && item.currency ? (
                 <p className="mt-2 text-sm">

@@ -4,7 +4,7 @@
   "organizationContextRequired": "בחרו קודם עסק לעבוד בו.",
   "notFound": "לא מצאנו את מה שחיפשתם.",
   "validationFailed": "בדקו את השדות המסומנים.",
-  "conflict": "יש התנגשות עם רשומה קיימת.",
+  "conflict": "יש התנגשות עם פריט קיים.",
   "serviceUnavailable": "השירות אינו זמין כרגע.",
   "unexpected": "משהו השתבש. נסו שוב.",
   "databaseNotConfigured": "מסד הנתונים אינו מוגדר בסביבה הזו.",

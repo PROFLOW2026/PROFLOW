@@ -29,7 +29,7 @@ async function sampleIds(
 
 /**
  * Gather transparent completeness signals for one operational month.
- * Does not invent Actual — only counts known incompleteness sources.
+ * Does not invent Actual - only counts known incompleteness sources.
  */
 export async function gatherCompletenessSignals(
   db: DbExecutor,

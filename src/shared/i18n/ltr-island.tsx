@@ -36,7 +36,7 @@ export type LtrIslandProps = React.HTMLAttributes<HTMLElement> & {
 
 /**
  * LTR isolate for emails, URLs, IDs, codes, and numeric tokens inside Hebrew UI.
- * Does not flip surrounding chrome — only the island content.
+ * Does not flip surrounding chrome - only the island content.
  */
 export function LtrIsland({ as: Comp = 'span', className, ...props }: LtrIslandProps) {
   return <Comp dir="ltr" className={cn('pf-ltr-island', className)} {...props} />;

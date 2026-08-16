@@ -11,10 +11,10 @@ import { createTestDatabase, type TestDatabase } from '@tests/setup/database';
 import { provisionTwoTenants } from '../projects/setup';
 
 /**
- * Scenario L — planning metadata survives a new repository instance (restart double).
+ * Scenario L - planning metadata survives a new repository instance (restart double).
  * Uses disposable PGlite; does not flip production PLANNING_PERSISTENCE_READY.
  */
-describe('scenario L — planning persistence restart', () => {
+describe('scenario L - planning persistence restart', () => {
   let database: TestDatabase;
 
   beforeAll(async () => {

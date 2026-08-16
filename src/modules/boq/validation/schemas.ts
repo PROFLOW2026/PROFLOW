@@ -75,7 +75,7 @@ export const createProgressBillingSchema = z.object({
   dueDate: z.string().optional(),
   retentionPercent: decimalString.optional(),
   retentionAmount: decimalString.optional(),
-  /** Optional VAT amount — stored on AR tax_amount; BOQ period_net stays NET (= AR subtotal). */
+  /** Optional VAT amount - stored on AR tax_amount; BOQ period_net stays NET (= AR subtotal). */
   taxAmount: decimalString.optional(),
   reference: z.string().trim().max(120).optional(),
   notes: z.string().trim().max(4000).optional(),
@@ -111,7 +111,7 @@ export const allocateChangeToBoqSchema = z.object({
 });
 export type AllocateChangeToBoqInput = z.infer<typeof allocateChangeToBoqSchema>;
 
-/** Related mappings only — never touches original_* / current_* money columns. */
+/** Related mappings only - never touches original_* / current_* money columns. */
 export const updateBoqNodeMappingsSchema = z.object({
   nodeId: z.string().uuid(),
   workPackageId: z.string().uuid().nullable().optional(),
@@ -135,7 +135,7 @@ export const addSubcontractorScheduleLineSchema = z.object({
   boqNodeId: z.string().uuid(),
   unit: z.string().trim().max(32).nullable().optional(),
   agreedQuantity: decimalString,
-  /** COST rate — never written into client BOQ unit prices. */
+  /** COST rate - never written into client BOQ unit prices. */
   unitRate: decimalString,
   notes: z.string().trim().max(2000).nullable().optional(),
   sortOrder: z.number().int().optional(),

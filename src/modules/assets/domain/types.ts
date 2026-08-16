@@ -1,6 +1,6 @@
 /**
  * Assets / fleet / maintenance / inventory domain types (Wave 3).
- * Maintenance cost_amount is metadata — not an Expense posting.
+ * Maintenance cost_amount is metadata - not an Expense posting.
  * Inventory quantity is not GL and not Expense.
  */
 
@@ -73,7 +73,7 @@ export interface MaintenanceRecordRow {
   readonly title: string;
   readonly status: MaintenanceStatus;
   readonly performedOn: string | null;
-  /** Operational metadata only — never posts an Expense. */
+  /** Operational metadata only - never posts an Expense. */
   readonly costAmount: string | null;
   readonly currency: string | null;
   readonly vendorId: string | null;
@@ -89,10 +89,10 @@ export interface InventoryItemRecord {
   readonly materialItemId: string | null;
   readonly name: string;
   readonly sku: string | null;
-  /** Barcode / QR identifier — storage + search only, not a scanner library. */
+  /** Barcode / QR identifier - storage + search only, not a scanner library. */
   readonly barcode: string | null;
   readonly unit: string;
-  /** Quantity on hand — not a GL balance. */
+  /** Quantity on hand - not a GL balance. */
   readonly quantityOnHand: string;
   readonly reorderLevel: string | null;
   /** Canonical low-stock threshold; fall back to reorderLevel when null. */
@@ -197,7 +197,7 @@ export interface InventoryLocationBalanceRecord {
   readonly updatedAt: Date;
 }
 
-/** Operational material consumption — not Actual cost. */
+/** Operational material consumption - not Actual cost. */
 export interface MaterialUsageRecord {
   readonly id: string;
   readonly organizationId: string;
@@ -216,7 +216,7 @@ export interface MaterialUsageRecord {
   readonly updatedAt: Date;
 }
 
-/** Equipment / vehicle usage — assignment itself does not create Actual. */
+/** Equipment / vehicle usage - assignment itself does not create Actual. */
 export interface EquipmentUsageRecord {
   readonly id: string;
   readonly organizationId: string;

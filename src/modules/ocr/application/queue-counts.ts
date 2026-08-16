@@ -41,7 +41,7 @@ function countJobs(jobs: readonly ExtractionJob[]): OcrQueueCounts {
 }
 
 /**
- * Org-scoped OCR queue visibility for Settings. Counts only — no raw provider
+ * Org-scoped OCR queue visibility for Settings. Counts only - no raw provider
  * payloads or secrets.
  */
 export async function getOcrQueueSnapshot(

@@ -56,7 +56,7 @@ import {
 } from '../validation/schemas';
 
 /**
- * Subcontractor schedule of rates — COST side only.
+ * Subcontractor schedule of rates - COST side only.
  *
  * Invariant 9: unit rates / amounts here MUST NEVER be mixed into client BOQ
  * original_* / current_* revenue columns.
@@ -66,7 +66,7 @@ import {
  * `createApBill` without asDraft can insert `open` and recognize Actual.
  * After an approved valuation, `createDraftApFromSubcontractorValuation` creates a
  * draft vendor bill and links it via propose_boq_subcontractor_valuation_ap.
- * Posting remains a separate AP action — never auto-post from this module.
+ * Posting remains a separate AP action - never auto-post from this module.
  */
 
 function validationFromZod(error: {
@@ -215,7 +215,7 @@ export async function addSubcontractorScheduleLine(
 
 /**
  * Creates a durable subcontractor valuation draft.
- * Does NOT create AP — after approval, use createDraftApFromSubcontractorValuation.
+ * Does NOT create AP - after approval, use createDraftApFromSubcontractorValuation.
  */
 export async function createSubcontractorValuationDraft(
   context: OrgContext,
@@ -322,7 +322,7 @@ export async function createSubcontractorValuationDraft(
 }
 
 /**
- * Canonical cumulative approval — DB enforces agreed qty ceiling and stamps evidence.
+ * Canonical cumulative approval - DB enforces agreed qty ceiling and stamps evidence.
  */
 export async function approveSubcontractorValuation(
   context: OrgContext,
@@ -504,7 +504,7 @@ export async function createDraftApFromSubcontractorValuation(
       reference: valuation.periodLabel.slice(0, 80),
       currency: schedule.currency,
       totalAmount: toNumericString(total),
-      notes: `Draft from approved subcontractor valuation ${valuation.id} — not Actual until posted`,
+      notes: `Draft from approved subcontractor valuation ${valuation.id} - not Actual until posted`,
       lines: billLines,
       subcontractAgreementId: schedule.subcontractAgreementId ?? undefined,
       retentionPercent,

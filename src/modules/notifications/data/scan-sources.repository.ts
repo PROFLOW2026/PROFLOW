@@ -63,7 +63,7 @@ export async function listSubmittedTimesheets(
   return rows.map((row) => ({
     id: row.id,
     reference: null,
-    extra: `${row.periodStart} – ${row.periodEnd}`,
+    extra: `${row.periodStart} - ${row.periodEnd}`,
     deepLink: '/workforce/time/approvals',
     excludeUserId: row.workerUserId,
   }));

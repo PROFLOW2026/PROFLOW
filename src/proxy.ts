@@ -30,7 +30,7 @@ function localeFromPathname(pathname: string): Locale | null {
 
 /**
  * With `localeDetection: false`, next-intl ignores both Accept-Language and the
- * NEXT_LOCALE cookie for bare paths — they always become the default locale.
+ * NEXT_LOCALE cookie for bare paths - they always become the default locale.
  * We still need cookie persistence for English users who chose `/en/...`, and
  * we must never invent `/en` from the browser language alone.
  *

@@ -4,7 +4,7 @@ import { DomainRuleError } from '@/shared/errors';
 
 const VENDOR_SCOPE_SET = new Set<string>(VENDOR_PORTAL_SCOPES);
 
-/** Scopes that would imply mutating financial truth — never grantable to vendors. */
+/** Scopes that would imply mutating financial truth - never grantable to vendors. */
 const FORBIDDEN_VENDOR_SCOPE_PATTERNS = [
   /write/i,
   /manage/i,

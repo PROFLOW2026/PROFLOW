@@ -31,7 +31,7 @@ export async function submitApprovalRequest(
   context: OrgContext,
   raw: SubmitApprovalRequestInput,
 ): Promise<SubmitApprovalResult> {
-  // Submitters are domain actors (expense finalize, PO issue) — not approvals.manage.
+  // Submitters are domain actors (expense finalize, PO issue) - not approvals.manage.
   // Read permission is enough to open a request; decide is separate.
   assertPermission(context, PERMISSIONS.APPROVALS_READ);
 
@@ -120,7 +120,7 @@ export async function submitApprovalRequest(
  * Otherwise submit (optional) and block with DomainRuleError.
  *
  * Rule/request reads use 0029 SECURITY DEFINER helpers so domain actors without
- * approvals.read are still gated — without opening approval_rules to all members.
+ * approvals.read are still gated - without opening approval_rules to all members.
  */
 export async function assertApprovalAllowsAction(
   context: OrgContext,
@@ -214,7 +214,7 @@ export async function assertApprovalAllowsAction(
   });
 
   throw new DomainRuleError(
-    'Submitted for approval — waiting for a decision',
+    'Submitted for approval - waiting for a decision',
     'approvals.errors.submittedPending',
     { requestId: submitted.id, entityType: raw.entityType, entityId: raw.entityId },
   );

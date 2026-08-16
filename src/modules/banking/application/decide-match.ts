@@ -16,7 +16,7 @@ import {
 export interface DecideBankMatchAppResult {
   readonly decision: BankMatchDecision;
   readonly transaction: BankTransaction;
-  /** Always false — no payment/bill/expense/cost write occurs here. */
+  /** Always false - no payment/bill/expense/cost write occurs here. */
   readonly financialMutationPerformed: false;
 }
 
@@ -37,7 +37,7 @@ function isTestDoubleRepo(repo: ReturnType<typeof getBankingRepository>): boolea
  * Approve / Change / Ignore a suggested (or user-chosen) match.
  *
  * Records reconciliation intent only. Callers that later create a customer
- * or vendor payment must do so via billing/AP modules — never from this path.
+ * or vendor payment must do so via billing/AP modules - never from this path.
  * mutates_financials remains false.
  */
 export async function decideBankMatch(

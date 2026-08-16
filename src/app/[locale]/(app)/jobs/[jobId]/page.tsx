@@ -91,7 +91,7 @@ export default async function JobPage({ params, searchParams }: JobPageProps) {
     false;
   const showExpensesTab = can(PERMISSIONS.EXPENSES_READ);
   const showBillingTab = Boolean(modules?.billing) && can(PERMISSIONS.BILLING_READ);
-  // Team is permission-gated (not module) — parity with projects.
+  // Team is permission-gated (not module) - parity with projects.
   const showTeamTab = can(PERMISSIONS.WORKFORCE_READ);
   const showTimeTab = Boolean(modules?.workforce) && can(PERMISSIONS.WORKFORCE_READ);
   const showDocumentsTab = Boolean(modules?.documents) && can(PERMISSIONS.DOCUMENTS_READ);
@@ -128,7 +128,7 @@ export default async function JobPage({ params, searchParams }: JobPageProps) {
 
   const openPrice = isOpenPriceJob(detail.project);
   const canReadContracts = can(PERMISSIONS.CONTRACTS_READ);
-  // When contracts.read is missing, detail.contract is null — don't false-disable
+  // When contracts.read is missing, detail.contract is null - don't false-disable
   // fixed jobs; convertJobToProject still enforces managed revenue on the server.
   const convertAllowed = openPrice
     ? false

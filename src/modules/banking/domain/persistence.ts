@@ -1,6 +1,6 @@
 /**
  * Banking persistence gate for accounts / imports / transactions / matches.
- * Owner applied `0020_overnight_foundations` — production uses Drizzle.
+ * Owner applied `0020_overnight_foundations` - production uses Drizzle.
  * Live bank feed remains disabled separately. Test override via
  * `setBankingPersistenceReadyForTests`.
  */

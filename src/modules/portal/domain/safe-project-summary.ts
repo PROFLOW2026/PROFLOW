@@ -46,7 +46,7 @@ export function grantCoversProject(
 
 /**
  * Build a CustomerPortalSession from an ExternalAccessGrant + principal.
- * ExternalPrincipal ≠ Membership — never returns OrgContext.
+ * ExternalPrincipal ≠ Membership - never returns OrgContext.
  */
 export function buildCustomerPortalSession(input: {
   readonly grant: ExternalAccessGrantRecord;
@@ -159,7 +159,7 @@ export function buildCustomerSafeDocuments(
 }
 
 /**
- * Customer-safe milestones — name/status/dates only.
+ * Customer-safe milestones - name/status/dates only.
  * Internal notes are never accepted into the projection.
  */
 export function buildCustomerSafeMilestones(
@@ -281,7 +281,7 @@ export function buildCustomerSafeBillingItems(
 
 /**
  * Builds the customer-safe projection. Sensitive internal fields are never
- * accepted as parameters — callers cannot accidentally leak costs/profit/rates.
+ * accepted as parameters - callers cannot accidentally leak costs/profit/rates.
  */
 export function buildCustomerSafeProjectSummary(
   input: SafeProjectSummaryInput,
@@ -382,7 +382,7 @@ export function buildCustomerSafeProjectSummary(
 
 /** Runtime guard: reject objects that look like they carry internal financials. */
 export function assertNoSensitiveCustomerFields(value: Record<string, unknown>): void {
-  /** Short tokens — exact match only (avoid `contractual` ⊃ `actual`). */
+  /** Short tokens - exact match only (avoid `contractual` ⊃ `actual`). */
   const exactForbidden = new Set([
     'actual',
     'actuals',

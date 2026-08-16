@@ -499,7 +499,7 @@ export async function recordWebhookDeliveryAttempt(
 
 /**
  * Builds signed outbound headers + body for a delivery without performing HTTP.
- * Requires sealed secret storage (or legacy hash rows cannot sign — rotate first).
+ * Requires sealed secret storage (or legacy hash rows cannot sign - rotate first).
  */
 export async function prepareSignedWebhookDelivery(
   context: OrgContext,

@@ -69,7 +69,7 @@ describe('forecast final cost engine', () => {
         estimatedFinalCost: money('92000', ILS),
       },
       zeroMoney(ILS),
-      money('92000', ILS), // cash AP — must not inflate forecast
+      money('92000', ILS), // cash AP - must not inflate forecast
       zeroMoney(ILS),
     );
 
@@ -124,7 +124,7 @@ describe('forecast final cost engine', () => {
         estimatedFinalCost: money('50000', ILS),
       },
       money('10000', ILS),
-      money('8000', ILS), // open AP — cash only
+      money('8000', ILS), // open AP - cash only
       money('15000', ILS), // ETC
     );
 

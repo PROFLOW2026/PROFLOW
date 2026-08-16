@@ -107,13 +107,13 @@ export function presentProjectFinancialSummary(
         { label: copy.fields.actualProfit, value: formatMoney(p.actualProfit, locale), nature: 'actual' },
         {
           label: copy.fields.actualMargin,
-          value: p.actualMarginPercent != null ? formatPercent(p.actualMarginPercent, locale) : '—',
+          value: p.actualMarginPercent != null ? formatPercent(p.actualMarginPercent, locale) : '-',
           nature: 'actual',
         },
         { label: copy.fields.forecastProfit, value: formatMoney(p.estimatedProfit, locale), nature: 'forecast' },
         {
           label: copy.fields.forecastMargin,
-          value: p.marginPercent != null ? formatPercent(p.marginPercent, locale) : '—',
+          value: p.marginPercent != null ? formatPercent(p.marginPercent, locale) : '-',
           nature: 'forecast',
         },
       ],

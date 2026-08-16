@@ -18,7 +18,7 @@ export interface ExpenseCaptureFormProps {
   readonly workPackages: readonly WorkPackageOption[];
   readonly vendors?: readonly VendorOption[];
   readonly initialProjectId?: string;
-  /** Org tax rule rate for live VAT preview — never hardcoded. */
+  /** Org tax rule rate for live VAT preview - never hardcoded. */
   readonly taxRatePercent?: string | null;
 }
 

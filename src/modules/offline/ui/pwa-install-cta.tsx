@@ -13,7 +13,7 @@ export type PwaInstallCtaVariant = 'auth' | 'dashboard' | 'inline' | 'marketing'
  * Discoverable install CTA for public auth + authenticated home.
  * Hidden when already installed / standalone.
  * Android Chromium: one-tap native prompt when BIP is held.
- * iOS: instructions only — never a fake direct-install button.
+ * iOS: instructions only - never a fake direct-install button.
  * Unsupported / waiting for BIP: render nothing (avoid false "unavailable").
  */
 export function PwaInstallCta({
@@ -102,7 +102,7 @@ export function PwaInstallCta({
     );
   }
 
-  // `unavailable` — waiting for BIP or unsupported browser: do not claim install is impossible.
+  // `unavailable` - waiting for BIP or unsupported browser: do not claim install is impossible.
   return null;
 }
 

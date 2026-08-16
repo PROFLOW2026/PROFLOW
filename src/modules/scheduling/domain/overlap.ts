@@ -1,6 +1,6 @@
 /**
  * Overlap / conflict detection for bookings and unavailability.
- * Framework-free — unit-tested without DB.
+ * Framework-free - unit-tested without DB.
  */
 
 import { addDays, businessDate } from '@/shared/dates';
@@ -52,7 +52,7 @@ export function findOverlappingDateRanges<T extends InclusiveDateRange>(
 
 /**
  * Two bookings conflict when their instants overlap.
- * Used for same-employee, active (non-cancelled) rows only — callers filter.
+ * Used for same-employee, active (non-cancelled) rows only - callers filter.
  */
 export function bookingsConflict(left: Interval, right: Interval): boolean {
   return instantsOverlap(left, right);

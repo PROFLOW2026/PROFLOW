@@ -45,7 +45,7 @@ function mapError(error: unknown, t: (key: string) => string): BoqFormState {
   if (/Progress requires an active BOQ|Change allocation requires an active BOQ/i.test(message)) {
     return { error: t('errors.activeRequired') };
   }
-  if (/zero — nothing to bill|period value is zero/i.test(message)) {
+  if (/zero - nothing to bill|period value is zero/i.test(message)) {
     return { error: t('errors.zeroPeriod') };
   }
   if (/Change order must belong|Change order/i.test(message) && /same project|NotFound/i.test(message)) {
@@ -385,7 +385,7 @@ export async function addSubcontractorScheduleLineAction(
 
 /**
  * Durable valuation draft only.
- * Does not call createApBill — propose draft vendor bill manually in AP.
+ * Does not call createApBill - propose draft vendor bill manually in AP.
  */
 export async function createSubcontractorValuationDraftAction(
   _prev: BoqFormState,

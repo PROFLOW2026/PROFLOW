@@ -88,17 +88,17 @@ export default async function MaterialDetailPage({
                 {material.sku}
               </span>
             ) : (
-              '—'
+              '-'
             )}
           </dd>
         </div>
         <div className="min-w-0">
           <dt className="text-xs text-[var(--pf-text-secondary)]">{t('list.columns.manufacturer')}</dt>
-          <dd className="break-words font-medium">{material.manufacturer ?? '—'}</dd>
+          <dd className="break-words font-medium">{material.manufacturer ?? '-'}</dd>
         </div>
         <div className="min-w-0">
           <dt className="text-xs text-[var(--pf-text-secondary)]">{t('list.columns.model')}</dt>
-          <dd className="break-words font-medium">{material.model ?? '—'}</dd>
+          <dd className="break-words font-medium">{material.model ?? '-'}</dd>
         </div>
         <div className="min-w-0">
           <dt className="text-xs text-[var(--pf-text-secondary)]">{t('list.columns.unit')}</dt>
@@ -110,7 +110,7 @@ export default async function MaterialDetailPage({
             {material.defaultUnitPrice && material.currency ? (
               <MoneyText value={money(material.defaultUnitPrice, material.currency)} />
             ) : (
-              '—'
+              '-'
             )}
           </dd>
         </div>
@@ -151,10 +151,10 @@ export default async function MaterialDetailPage({
                           {price.effectiveFrom ? (
                             <span dir="ltr">{price.effectiveFrom}</span>
                           ) : (
-                            '—'
+                            '-'
                           )}
                         </TableCell>
-                        <TableCell className="max-w-[12rem] truncate">{price.notes ?? '—'}</TableCell>
+                        <TableCell className="max-w-[12rem] truncate">{price.notes ?? '-'}</TableCell>
                         {canManage ? (
                           <TableCell>
                             <VendorPriceDeleteButton id={price.id} materialItemId={material.id} />

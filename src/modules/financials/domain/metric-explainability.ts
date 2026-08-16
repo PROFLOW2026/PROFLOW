@@ -45,7 +45,7 @@ export type ExplainableMetricKey =
   | 'outstanding_ar'
   | 'outstanding_ap';
 
-/** i18n key under financial.basis.* — presentation only, never changes amounts. */
+/** i18n key under financial.basis.* - presentation only, never changes amounts. */
 export type MetricBasisKey = 'netExVat' | 'billingCash' | 'profitNet' | 'outstandingCash' | 'cashNotProfit';
 
 export type ExplanationCategoryRole = 'add' | 'subtract' | 'info' | 'total';
@@ -108,7 +108,7 @@ export interface MetricExplanation {
   readonly nature: MetricNature | 'commercial' | 'disclosure';
   /** i18n key under financial.explain.formulas.* */
   readonly formulaKey: ExplainableMetricKey;
-  /** i18n key under financial.basis.* — label only, never folded into totals. */
+  /** i18n key under financial.basis.* - label only, never folded into totals. */
   readonly basisKey: MetricBasisKey;
   readonly categories: readonly ExplanationCategoryLine[];
   readonly sources: readonly ExplanationSourceRef[];

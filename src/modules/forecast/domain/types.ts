@@ -3,7 +3,7 @@
  *
  * Not a second financial engine. Every number comes from the existing
  * compose path (Actual / Committed / Forecast / commercial / billing).
- * Recommendations are labelled as such — never accounting truth.
+ * Recommendations are labelled as such - never accounting truth.
  */
 
 export const EARLY_WARNING_KINDS = [

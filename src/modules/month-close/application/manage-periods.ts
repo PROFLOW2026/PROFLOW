@@ -321,7 +321,7 @@ export async function createMonthCloseAdjustment(
 /**
  * Closed-period economic correction from a source module (time / similar).
  * Caller must already be authorized for the source action. Does not require
- * month_close.manage — rewriting the source is illegal; this is the only legal path.
+ * month_close.manage - rewriting the source is illegal; this is the only legal path.
  */
 export async function createClosedPeriodSourceCorrection(
   context: OrgContext,

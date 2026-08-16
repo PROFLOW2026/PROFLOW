@@ -201,7 +201,7 @@ export async function ProjectBillingPanel({ projectId, contractId }: ProjectBill
                           </TableCell>
                           <TableCell>{t(`kinds.${record.kind}`)}</TableCell>
                           <TableCell className="max-w-[8rem] truncate">
-                            {record.contractName ?? '—'}
+                            {record.contractName ?? '-'}
                           </TableCell>
                           <TableCell numeric>
                             <MoneyText value={record.totalAmount} />

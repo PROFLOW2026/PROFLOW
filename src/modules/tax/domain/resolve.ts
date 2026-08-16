@@ -6,7 +6,7 @@ import type { ResolvedTaxRate, TaxResolutionExplanation, TaxRuleRecord } from '.
  *
  * Organization rules take precedence over country-pack reference rules with
  * the same key. Within a scope, the effective-dated row whose range contains
- * the date wins — never "latest row" by created_at.
+ * the date wins - never "latest row" by created_at.
  */
 export function resolveTaxRateForDate(
   rules: readonly TaxRuleRecord[],

@@ -342,7 +342,7 @@ export async function listPaymentRowsForBillingRecord(
 }
 
 /**
- * Payment applications for AR history — applications table first, then legacy
+ * Payment applications for AR history - applications table first, then legacy
  * 1:1 payments that still have billing_record_id and no application rows.
  */
 export async function listPaymentApplications(

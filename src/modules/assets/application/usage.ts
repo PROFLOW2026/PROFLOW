@@ -1,6 +1,6 @@
 /**
  * Material / equipment usage application.
- * Operational attribution only — never Expense, GL, or Actual.
+ * Operational attribution only - never Expense, GL, or Actual.
  * Purchase Actual stays on Expense / AP paths once; usage does not double-count.
  */
 import { AUDIT_ACTIONS, recordAuditEvent } from '@/shared/audit';
@@ -170,7 +170,7 @@ export async function recordMaterialUsage(context: OrgContext, raw: RecordMateri
     if (!description.trim()) description = item.name;
   }
 
-  // Hard financial invariant — usage never becomes Actual.
+  // Hard financial invariant - usage never becomes Actual.
   void isMaterialUsageRecognizedActual();
   void doesUsageCreatePurchaseActual();
 

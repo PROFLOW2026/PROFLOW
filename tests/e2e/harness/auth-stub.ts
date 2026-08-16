@@ -144,7 +144,7 @@ export function startAuthStub(port: number): Promise<() => Promise<void>> {
     void (async () => {
       const url = new URL(request.url ?? '/', 'http://127.0.0.1');
 
-      // E2E storage (browser PUT + server downloadBytes) — outside GoTrue paths.
+      // E2E storage (browser PUT + server downloadBytes) - outside GoTrue paths.
       if (url.pathname.startsWith('/e2e-storage/')) {
         if (request.method === 'OPTIONS') return send(response, 204, null);
         const key = decodeURIComponent(url.pathname.replace(/^\/e2e-storage\//, ''));

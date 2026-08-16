@@ -13,7 +13,7 @@ import { createTestDatabase, type TestDatabase } from '@tests/setup/database';
 import { provisionTwoTenants } from '../billing/setup';
 
 /**
- * Scenario B — Cross-tenant bank isolation (PGlite).
+ * Scenario B - Cross-tenant bank isolation (PGlite).
  * Org A transaction / import must not reference Org B account or import batch.
  */
 describe('banking cross-tenant isolation (B)', () => {

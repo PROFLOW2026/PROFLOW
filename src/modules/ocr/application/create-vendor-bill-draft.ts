@@ -55,7 +55,7 @@ export async function createVendorBillDraftFromOcr(
   if (draft.description) notesParts.push(draft.description);
   if (draft.netAmount) notesParts.push(`Net: ${draft.netAmount}`);
   if (draft.taxAmount) notesParts.push(`Tax: ${draft.taxAmount}`);
-  notesParts.push('Created from document review as draft — not recognized actual.');
+  notesParts.push('Created from document review as draft - not recognized actual.');
 
   const taxSplit = resolveApBillTaxSplit({
     enteredAmount: draft.totalAmount,

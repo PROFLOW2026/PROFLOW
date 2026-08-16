@@ -1,7 +1,7 @@
 /**
  * Client-only offline draft model (field PWA hardening).
  *
- * Drafts live in IndexedDB / memory — no server schema. Offline mode creates
+ * Drafts live in IndexedDB / memory - no server schema. Offline mode creates
  * candidates, never authoritative issued financial documents (doc 31).
  */
 
@@ -59,7 +59,7 @@ export interface OfflineDraftRecord<TPayload = Record<string, unknown>> {
   readonly serverId: string | null;
   /**
    * Last server `updatedAt` observed when this draft was loaded or last synced.
-   * Used for conflict detection — never overwritten without an explicit choice.
+   * Used for conflict detection - never overwritten without an explicit choice.
    */
   readonly serverUpdatedAt: string | null;
   readonly conflictReason: string | null;

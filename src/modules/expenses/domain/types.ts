@@ -1,7 +1,7 @@
 import type { BusinessDate } from '@/shared/dates';
 import type { MoneyValue } from '@/shared/money';
 
-/** Doc 04 §6 — the four V1 cost families. */
+/** Doc 04 §6 - the four V1 cost families. */
 export type CostFamily = 'direct_project' | 'shared' | 'business_overhead' | 'asset_capital';
 
 export type ExpenseStatus = 'draft' | 'finalized' | 'void';
@@ -37,7 +37,7 @@ export type RecurrenceCadence = 'one_time' | 'monthly' | 'quarterly' | 'yearly' 
 
 /**
  * Category-level period policy for shared/overhead capture.
- * Configured in Settings — never inferred from category key.
+ * Configured in Settings - never inferred from category key.
  */
 export type CategoryPeriodBehavior = 'one_time' | 'monthly' | 'date_range';
 

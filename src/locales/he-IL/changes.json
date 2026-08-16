@@ -25,18 +25,18 @@
     "displayOriginal": "לפי החוזה המקורי",
     "openingReduction": "הפחתה לפני תחילת הניהול",
     "managedOpening": "מה שמנהלים מכאן",
-    "entryBaselineHint": "שינויים מאושרים מתווספים למה שמנהלים מכאן — לא לסכום החוזה המקורי המלא.",
+    "entryBaselineHint": "שינויים מאושרים מתווספים למה שמנהלים מכאן - לא לסכום החוזה המקורי המלא.",
     "approvedAdditions": "תוספות מאושרות",
     "approvedReductions": "הפחתות מאושרות",
     "current": "סכום חוזה נוכחי",
     "pending": "שינויים ממתינים",
     "potential": "פוטנציאל אם יאושר",
-    "potentialHint": "סכום נוכחי בתוספת ממתינים — לא חלק מהחוזה עד לאישור."
+    "potentialHint": "סכום נוכחי בתוספת ממתינים - לא חלק מהחוזה עד לאישור."
   },
   "status": {
     "draft": "טיוטה",
     "awaiting_approval": "ממתין לאישור",
-    "awaitingApprovalSent": "ממתין לאישור · נשלח",
+    "awaitingApprovalSent": "ממתין לאישור · הועבר ללקוח",
     "approved": "מאושר",
     "rejected": "נדחה",
     "cancelled": "בוטל"
@@ -48,7 +48,7 @@
     "description": "תיאור",
     "direction": "השפעת מחיר",
     "directionAddition": "תוספת (+)",
-    "directionReduction": "הפחתה (−)",
+    "directionReduction": "הפחתה (-)",
     "requestedAmount": "סכום מבוקש",
     "requestedAmountHint": "אופציונלי עד יצירת גרסת הצעה.",
     "project": "פרויקט",
@@ -80,7 +80,7 @@
     "versionLabel": "גרסת הצעה V{version}",
     "noAmount": "יש להוסיף מחיר או סכום מבוקש לפני האישור.",
     "approverName": "אושר על ידי",
-    "approverNameHint": "איש קשר אצל הלקוח או מאשר פנימי — אופציונלי.",
+    "approverNameHint": "איש קשר אצל הלקוח או מאשר פנימי - אופציונלי.",
     "effectiveDate": "תאריך תחולה",
     "notes": "הערות",
     "confirm": "אישור ויצירת שינוי מאושר",
@@ -95,7 +95,7 @@
     "changeOrderTitle": "שינוי מאושר",
     "quoteVersionStatus": {
       "draft": "טיוטה",
-      "issued": "נשלחה",
+      "issued": "הונפקה",
       "accepted": "אושרה",
       "superseded": "הוחלפה",
       "rejected": "נדחתה"
@@ -112,7 +112,7 @@
   },
   "actions": {
     "submit": "סימון כממתין לאישור",
-    "submitAndSent": "שליחה וסימון כממתין לאישור",
+    "submitAndSent": "סימון כהועבר ללקוח וממתין לאישור",
     "reject": "דחייה",
     "cancel": "ביטול בקשה"
   },

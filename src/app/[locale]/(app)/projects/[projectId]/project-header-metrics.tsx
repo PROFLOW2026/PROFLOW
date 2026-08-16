@@ -8,7 +8,7 @@ export async function ProjectHeaderMetrics({
   managedOpeningValue,
 }: {
   currentContractValue: MoneyValue | null;
-  /** Real-world original — context only; never used as a KPI base. */
+  /** Real-world original - context only; never used as a KPI base. */
   displayOriginalValue?: MoneyValue | null;
   /** Managed opening (original event) when an opening reduction exists. */
   managedOpeningValue?: MoneyValue | null;

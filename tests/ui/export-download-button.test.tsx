@@ -115,7 +115,7 @@ describe('ExportDownloadButton pending / success feedback', () => {
       }),
     );
 
-    // Wait for the toast message to change — findByRole('status') alone matches the
+    // Wait for the toast message to change - findByRole('status') alone matches the
     // still-open preparing toast before the success update commits.
     await waitFor(() => {
       expect(screen.getByRole('status')).toHaveTextContent(enExports.feedback.ready);

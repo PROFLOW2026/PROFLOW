@@ -1,5 +1,5 @@
 /**
- * TEST DOUBLE ONLY — process-local external statutory document store.
+ * TEST DOUBLE ONLY - process-local external statutory document store.
  *
  * Not durable across instances. Production default when
  * `INVOICING_INTEGRATION_PERSISTENCE_READY` is true uses Drizzle.

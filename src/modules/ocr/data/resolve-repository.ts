@@ -25,7 +25,7 @@ export function getOcrRepository(db?: DbExecutor | null): OcrRepository {
   return createInMemoryOcrRepository();
 }
 
-/** Test hook — inject a repository double. */
+/** Test hook - inject a repository double. */
 export function setOcrRepositoryForTests(repo: OcrRepository | null): void {
   overrideRepo = repo;
 }

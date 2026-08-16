@@ -2,9 +2,9 @@
  * Date primitives (doc 71 §8).
  *
  * Two distinct concepts, deliberately not interchangeable:
- *  - BusinessDate — a calendar day with no time zone (expense date, due date,
+ *  - BusinessDate - a calendar day with no time zone (expense date, due date,
  *    rate effective date). Stored in Postgres `date`.
- *  - Instant — an exact moment. Stored in Postgres `timestamptz` as UTC.
+ *  - Instant - an exact moment. Stored in Postgres `timestamptz` as UTC.
  *
  * The organisation time zone only affects *display* and "what day is it for
  * this business right now"; it never rewrites a stored instant.

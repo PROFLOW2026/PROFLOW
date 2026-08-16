@@ -23,7 +23,7 @@ describe('LandingFaq', () => {
     expect(screen.getByText(firstItem.a)).not.toBeVisible();
   });
 
-  it('expands one answer with keyboard and keeps OCR/portal/Gantt off the homepage FAQ', async () => {
+  it('expands one answer with keyboard and keeps portal/Gantt/OCR acronym off the homepage FAQ', async () => {
     const user = userEvent.setup();
     renderWithIntl(<LandingFaq />, { locale: 'he-IL', messages: { marketing: heMarketing } });
 

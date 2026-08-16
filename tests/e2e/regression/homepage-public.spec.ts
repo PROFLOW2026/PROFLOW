@@ -8,7 +8,7 @@ import {
 import { he } from '../fixtures/locales';
 
 /**
- * Public ProjectFlow homepage — signed-out locale root.
+ * Public ProjectFlow homepage - signed-out locale root.
  */
 test.describe('public homepage', () => {
   test.describe.configure({ timeout: 180_000 });
@@ -17,7 +17,7 @@ test.describe('public homepage', () => {
     await page.goto('/he-IL');
     // Skip when the environment is not configured (setup screen).
     if (page.url().includes('/setup')) {
-      test.skip(true, 'Supabase/database not configured — homepage requires configured app');
+      test.skip(true, 'Supabase/database not configured - homepage requires configured app');
     }
   });
 

@@ -19,7 +19,7 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const { locale } = await params;
-  // Do not await the session here — it serializes first HTML (PWA splash)
+  // Do not await the session here - it serializes first HTML (PWA splash)
   // behind Auth. `/[locale]` is the public homepage URL; signed-in title
   // is set by the dashboard heading itself.
   const t = await getTranslations({ locale, namespace: 'marketing' });
@@ -50,7 +50,7 @@ export async function generateMetadata({
 }
 
 /**
- * Locale root (`/he-IL`, `/en`) — outside the `(app)` route group.
+ * Locale root (`/he-IL`, `/en`) - outside the `(app)` route group.
  *
  * Signed-out → public homepage (no AppShell; no access to product routes).
  * Signed-in with org → AppShell + Dashboard.
@@ -58,7 +58,7 @@ export async function generateMetadata({
  * Unconfigured → setup.
  *
  * Product routes under `(app)` always use AppShell, which rejects anonymous
- * users — avoiding auth holes from an anonymous layout pass-through.
+ * users - avoiding auth holes from an anonymous layout pass-through.
  */
 export default async function LocaleRootPage({
   params,

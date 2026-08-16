@@ -3,7 +3,7 @@ import type { ProjectTabKey } from '@/app/[locale]/(app)/projects/[projectId]/pr
 export type JobTabKey = ProjectTabKey;
 
 /**
- * Job workspace tab priority — ops first; hide large-project setup by default.
+ * Job workspace tab priority - ops first; hide large-project setup by default.
  *
  * Contract priority: overview → expenses → team → usage → time → billing → docs.
  * Financials stay available when permitted; work/changes stay off unless
@@ -31,7 +31,7 @@ export interface JobTabVisibility {
   readonly financials: boolean;
   readonly usage: boolean;
   readonly budgets?: boolean;
-  /** Large-project setup — off for jobs by default. */
+  /** Large-project setup - off for jobs by default. */
   readonly changes?: boolean;
   readonly work?: boolean;
 }

@@ -11,7 +11,7 @@ const buttonVariants = cva(
     'font-medium',
     pressableClassName,
     'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]',
-    // Touch devices fire :active, not :hover — pressed feedback must not be hover-only.
+    // Touch devices fire :active, not :hover - pressed feedback must not be hover-only.
     'disabled:pointer-events-none disabled:bg-[var(--pf-status-disabled-bg)] disabled:text-[var(--pf-status-disabled-fg)] disabled:border-[var(--pf-status-disabled-border)]',
     'aria-[busy=true]:cursor-wait aria-[busy=true]:opacity-90',
     'data-[loading]:pointer-events-none',

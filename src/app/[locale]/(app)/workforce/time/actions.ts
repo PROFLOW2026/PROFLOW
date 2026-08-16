@@ -25,7 +25,7 @@ import { redirect } from '@/shared/i18n/navigation';
 export interface TimeEntryFormState {
   error?: string;
   ok?: boolean;
-  /** Local draft queued — not server truth. */
+  /** Local draft queued - not server truth. */
   offlineQueued?: boolean;
 }
 

@@ -145,17 +145,17 @@ export default async function AssetDetailPage({
                   {asset.identifier}
                 </span>
               ) : (
-                '—'
+                '-'
               )}
             </dd>
           </div>
           <div>
             <dt className="text-[var(--pf-text-secondary)]">{t('detail.manufacturer')}</dt>
-            <dd>{asset.manufacturer ?? '—'}</dd>
+            <dd>{asset.manufacturer ?? '-'}</dd>
           </div>
           <div>
             <dt className="text-[var(--pf-text-secondary)]">{t('detail.model')}</dt>
-            <dd>{asset.model ?? '—'}</dd>
+            <dd>{asset.model ?? '-'}</dd>
           </div>
           <div>
             <dt className="text-[var(--pf-text-secondary)]">{t('detail.serialNumber')}</dt>
@@ -165,7 +165,7 @@ export default async function AssetDetailPage({
                   {asset.serialNumber}
                 </span>
               ) : (
-                '—'
+                '-'
               )}
             </dd>
           </div>
@@ -212,7 +212,7 @@ export default async function AssetDetailPage({
                     {fleet.plateNumber}
                   </span>
                 ) : (
-                  '—'
+                  '-'
                 )}
               </dd>
             </div>
@@ -224,7 +224,7 @@ export default async function AssetDetailPage({
                     {fleet.vin}
                   </span>
                 ) : (
-                  '—'
+                  '-'
                 )}
               </dd>
             </div>
@@ -236,7 +236,7 @@ export default async function AssetDetailPage({
                     {fleet.odometer}
                   </span>
                 ) : (
-                  '—'
+                  '-'
                 )}
               </dd>
             </div>
@@ -315,11 +315,11 @@ export default async function AssetDetailPage({
                               {row.performedOn}
                             </span>
                           ) : (
-                            '—'
+                            '-'
                           )}
                         </TableCell>
                         <TableCell>
-                          {row.vendorId ? (vendorNameById.get(row.vendorId) ?? '—') : '—'}
+                          {row.vendorId ? (vendorNameById.get(row.vendorId) ?? '-') : '-'}
                         </TableCell>
                         <TableCell numeric>
                           {row.costAmount ? (
@@ -332,7 +332,7 @@ export default async function AssetDetailPage({
                               </span>
                             </>
                           ) : (
-                            '—'
+                            '-'
                           )}
                         </TableCell>
                         <TableCell>
@@ -359,7 +359,7 @@ export default async function AssetDetailPage({
                               compact
                             />
                           ) : (
-                            '—'
+                            '-'
                           )}
                         </TableCell>
                       </TableRow>
@@ -380,7 +380,7 @@ export default async function AssetDetailPage({
                   )}
                 </div>
                 <p className="text-sm text-[var(--pf-text-secondary)]">
-                  {row.vendorId ? (vendorNameById.get(row.vendorId) ?? '—') : '—'}
+                  {row.vendorId ? (vendorNameById.get(row.vendorId) ?? '-') : '-'}
                   {row.performedOn ? (
                     <>
                       {' · '}

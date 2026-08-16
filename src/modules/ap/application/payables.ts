@@ -233,7 +233,7 @@ export async function getProjectApOutstanding(
   return toSummary(
     currency,
     bills,
-    'Project AP outstanding follows bill.projectId. Cash only — not Actual Cost.',
+    'Project AP outstanding follows bill.projectId. Cash only - not Actual Cost.',
   );
 }
 

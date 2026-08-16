@@ -29,7 +29,7 @@ export function OfflineOrgProvider({
   return <OfflineScopeContext.Provider value={value}>{children}</OfflineScopeContext.Provider>;
 }
 
-/** @deprecated Prefer OfflineOrgProvider with userId — alias kept for call-site clarity. */
+/** @deprecated Prefer OfflineOrgProvider with userId - alias kept for call-site clarity. */
 export const OfflineScopeProvider = OfflineOrgProvider;
 
 export function useOfflineOrganizationId(): string | null {

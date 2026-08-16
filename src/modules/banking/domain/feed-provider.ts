@@ -49,7 +49,7 @@ export interface BankFeedProvider {
 }
 
 /**
- * Stub live feed — always reports not configured.
+ * Stub live feed - always reports not configured.
  * Does not invent balances or transactions.
  */
 export class StubBankFeedProvider implements BankFeedProvider {

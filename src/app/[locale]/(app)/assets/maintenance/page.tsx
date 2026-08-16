@@ -91,7 +91,7 @@ function MaintenanceTable({
                         {row.performedOn}
                       </span>
                     ) : (
-                      '—'
+                      '-'
                     )}
                   </TableCell>
                   <TableCell numeric>
@@ -100,7 +100,7 @@ function MaintenanceTable({
                         {`${row.costAmount}${row.currency ? ` ${row.currency}` : ''}`}
                       </span>
                     ) : (
-                      '—'
+                      '-'
                     )}
                   </TableCell>
                 </TableRow>
@@ -123,7 +123,7 @@ function MaintenanceTable({
           </div>
           <p className="mt-2 text-xs text-[var(--pf-text-muted)]">
             <span className="pf-ltr-island" dir="ltr">
-              {row.performedOn ?? '—'}
+              {row.performedOn ?? '-'}
             </span>
             {row.costAmount ? (
               <>

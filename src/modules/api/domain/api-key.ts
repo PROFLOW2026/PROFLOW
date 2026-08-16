@@ -50,7 +50,7 @@ export function isSha256HexDigest(value: string): boolean {
 
  * Generates a one-time plaintext API key.
 
- * Format: `pfk_<prefixBody><secretBody>` — prefix is the first 12 chars including `pfk_`.
+ * Format: `pfk_<prefixBody><secretBody>` - prefix is the first 12 chars including `pfk_`.
 
  * Only `keyPrefix` + `keyHash` are safe to persist.
 

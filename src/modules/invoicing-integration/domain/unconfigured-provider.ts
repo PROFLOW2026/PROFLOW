@@ -22,7 +22,7 @@ function notConfigured<T>(): StatutoryProviderResult<T> {
 }
 
 /**
- * Default provider — feature stays disabled.
+ * Default provider - feature stays disabled.
  * Does not hardcode a commercial vendor and never issues documents.
  */
 export class UnconfiguredStatutoryProvider implements StatutoryInvoicingProvider {
@@ -80,7 +80,7 @@ export function getStatutoryInvoicingProvider(): StatutoryInvoicingProvider {
   return defaultProvider;
 }
 
-/** Test / DI hook — swap the process-wide provider. Never wire a fake issuer in production. */
+/** Test / DI hook - swap the process-wide provider. Never wire a fake issuer in production. */
 export function setStatutoryInvoicingProviderForTests(
   provider: StatutoryInvoicingProvider | null,
 ): void {

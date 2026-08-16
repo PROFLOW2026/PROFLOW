@@ -1,7 +1,7 @@
 /**
  * OCR / document intelligence candidates (doc 27).
  *
- * AI output is never ledger truth — every field is a candidate with confidence
+ * AI output is never ledger truth - every field is a candidate with confidence
  * and provenance until a human explicitly confirms a mapping into a draft
  * Expense, draft Vendor Bill, or draft Vendor Credit.
  *
@@ -14,7 +14,7 @@ import type { OcrFeatureMode } from './feature-gate';
 /**
  * Fields a reviewer may explicitly accept into a draft mapping.
  * Extra identity fields persist in JSON on `ocr_extraction_jobs` (no migration).
- * `dueDate` / `orderNumber` may append to expense notes — Expense has no those columns.
+ * `dueDate` / `orderNumber` may append to expense notes - Expense has no those columns.
  */
 export const OCR_CANDIDATE_FIELD_KEYS = [
   'vendor',
@@ -51,7 +51,7 @@ export const EXTRACTION_JOB_STATUSES = [
 
 export type ExtractionJobStatus = (typeof EXTRACTION_JOB_STATUSES)[number];
 
-/** Human review disposition — independent of provider job progress. */
+/** Human review disposition - independent of provider job progress. */
 export const OCR_REVIEW_STATUSES = [
   'awaiting_review',
   'accepted',
@@ -61,14 +61,14 @@ export const OCR_REVIEW_STATUSES = [
 export type OcrReviewStatus = (typeof OCR_REVIEW_STATUSES)[number];
 
 /**
- * Explicit confirm target — draft only; never finalized ledger posts.
+ * Explicit confirm target - draft only; never finalized ledger posts.
  * `vendor_credit` is a first-class confirmed draft target (0031).
  */
 export const OCR_DRAFT_TARGETS = ['expense', 'vendor_bill', 'vendor_credit'] as const;
 
 export type OcrDraftTarget = (typeof OCR_DRAFT_TARGETS)[number];
 
-/** Where the user started capture — drives default target + model strategy. */
+/** Where the user started capture - drives default target + model strategy. */
 export const OCR_WORKFLOW_CONTEXTS = [
   'expense',
   'vendor_bill',
@@ -96,7 +96,7 @@ export type OcrDocumentTypeKey = (typeof OCR_DOCUMENT_TYPE_KEYS)[number];
 
 export type OcrFieldSource = 'ocr' | 'user_override' | 'fixture';
 
-/** How a value was obtained — used for trust hierarchy in review. */
+/** How a value was obtained - used for trust hierarchy in review. */
 export type OcrExtractionMethod =
   | 'structured'
   | 'hebrew_labeled'
@@ -143,7 +143,7 @@ export interface OcrLineItemCandidate {
 }
 
 /**
- * Project / category suggestions are labels only — never invented UUIDs and
+ * Project / category suggestions are labels only - never invented UUIDs and
  * never written to Expense.projectId / costCategoryId by OCR confirm.
  */
 export interface OcrNonCanonicalSuggestions {
@@ -170,7 +170,7 @@ export interface ReceiptExtractionCandidates {
   readonly tax: OcrFieldCandidate;
   /** Explicit VAT rate from TaxDetails / labeled text (e.g. "18"). */
   readonly vatRate: OcrFieldCandidate;
-  /** Invoice total including VAT — never copied from subtotal. */
+  /** Invoice total including VAT - never copied from subtotal. */
   readonly gross: OcrFieldCandidate;
   /** Amount due when distinct from invoice total. */
   readonly amountDue: OcrFieldCandidate;
@@ -182,7 +182,7 @@ export interface ReceiptExtractionCandidates {
   readonly lineDescriptions: readonly OcrFieldCandidate[];
   /** Structured lines when the provider returned them. */
   readonly lines: readonly OcrLineItemCandidate[];
-  /** Non-canonical targeting hints — display only. */
+  /** Non-canonical targeting hints - display only. */
   readonly suggestions: OcrNonCanonicalSuggestions;
 }
 
@@ -210,11 +210,11 @@ export interface OcrSafeRawMetadata {
   readonly durationMs?: number;
   readonly manualRetryCount?: number;
   readonly reusedExistingJob?: boolean;
-  /** Legacy mirror only — prefer confirmed_vendor_credit_id column (0031). */
+  /** Legacy mirror only - prefer confirmed_vendor_credit_id column (0031). */
   readonly confirmedVendorCreditId?: string;
   readonly confirmedApplicationTarget?: OcrDraftTarget;
   readonly documentTypeKey?: OcrDocumentTypeKey;
-  /** Customer party when distinct from supplier — review only, never auto-applied. */
+  /** Customer party when distinct from supplier - review only, never auto-applied. */
   readonly customer?: {
     readonly name?: string | null;
     readonly taxId?: string | null;
@@ -280,7 +280,7 @@ export type OcrReviewOverrides = Partial<Record<OcrCandidateFieldKey, string | n
 export interface ExtractionJob {
   readonly id: string;
   readonly organizationId: string;
-  /** @deprecated Prefer `sourceDocument.documentId` — kept for callers. */
+  /** @deprecated Prefer `sourceDocument.documentId` - kept for callers. */
   readonly documentId: string | null;
   readonly sourceDocument: OcrSourceDocumentRef;
   readonly status: ExtractionJobStatus;

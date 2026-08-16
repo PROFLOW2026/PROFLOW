@@ -24,7 +24,7 @@ export interface MembershipRow {
  * Inserts an organization and returns its id, without a `RETURNING` clause.
  *
  * Postgres applies SELECT policies to `INSERT ... RETURNING`, and the select
- * policy on `organizations` requires an active membership — which cannot exist
+ * policy on `organizations` requires an active membership - which cannot exist
  * until the row does. Reading the row back is therefore deferred until after
  * the founder's membership is in place, rather than loosening the policy to
  * expose member-less organizations to every authenticated user.
@@ -112,7 +112,7 @@ export async function findOrganizationById(
   return row ?? null;
 }
 
-/** Organizations the user can actually act in — used by the org switcher. */
+/** Organizations the user can actually act in - used by the org switcher. */
 export async function listMembershipsForUser(
   db: DbExecutor,
   userId: string,

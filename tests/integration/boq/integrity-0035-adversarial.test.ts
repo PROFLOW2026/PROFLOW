@@ -11,7 +11,7 @@ import { createTestOrganization, createTestUser, seedSystem } from '../../setup/
 
 /**
  * Adversarial SQL/RLS tests for BOQ integrity closure (0035).
- * Runs as authenticated users — same path as production PostgREST-style access.
+ * Runs as authenticated users - same path as production PostgREST-style access.
  */
 describe('BOQ integrity closure adversarial RLS', () => {
   let database: TestDatabase;

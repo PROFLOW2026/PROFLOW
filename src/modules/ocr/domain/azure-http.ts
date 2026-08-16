@@ -2,7 +2,7 @@
  * Azure Document Intelligence REST (2024-11-30): analyze + poll.
  * Server-only. Credentials never leave this module toward the client.
  *
- * Native Hebrew (`he`) on prebuilt-invoice / prebuilt-receipt — do not require
+ * Native Hebrew (`he`) on prebuilt-invoice / prebuilt-receipt - do not require
  * queryFields. keyValuePairs is free on S0 but not supported on F0 free tier.
  * queryFields is paid and opt-in (S0 only).
  */

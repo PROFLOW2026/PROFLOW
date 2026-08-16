@@ -28,7 +28,7 @@ export type CreateExpenseFn = (
 export interface CreateLinkedExpenseResult {
   readonly link: OpsExpenseLink;
   readonly expenseId: string;
-  /** Always draft from createExpense — never silently finalized. */
+  /** Always draft from createExpense - never silently finalized. */
   readonly expenseStatus: string;
   readonly expenseInput: CreateExpenseInput;
 }

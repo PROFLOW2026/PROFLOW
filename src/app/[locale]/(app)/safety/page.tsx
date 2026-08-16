@@ -218,7 +218,7 @@ export default async function SafetyPage({
                       </TableCell>
                       <TableCell>{t(`types.${record.recordType}`)}</TableCell>
                       <TableCell>
-                        {record.projectId ? (projectName.get(record.projectId) ?? '—') : '—'}
+                        {record.projectId ? (projectName.get(record.projectId) ?? '-') : '-'}
                       </TableCell>
                       <TableCell>
                         <span className="pf-ltr-island" dir="ltr">

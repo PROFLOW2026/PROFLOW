@@ -1,6 +1,6 @@
 /**
  * Presentation mapping for contract value event reasons stored as English
- * canonical strings in the ledger. Do not rewrite historical DB truth — only
+ * canonical strings in the ledger. Do not rewrite historical DB truth - only
  * map known reasons to locale message keys at render time.
  */
 

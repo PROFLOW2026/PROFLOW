@@ -9,7 +9,7 @@ import type {
  * Pluggable OCR provider (doc 27 §4 / doc 32 adapter style).
  *
  * Implementations must not invent financial amounts. A stub without credentials
- * returns a hard failure; a stub with credentials still returns empty — never
+ * returns a hard failure; a stub with credentials still returns empty - never
  * fabricated receipt fields. Providers never create financial entities.
  */
 
@@ -43,7 +43,7 @@ export type ExtractDocumentResult =
       readonly ok: true;
       readonly candidates: ReceiptExtractionCandidates;
       readonly canonical: CanonicalOcrDocument;
-      /** Always true for financial fields — caller must route to review. */
+      /** Always true for financial fields - caller must route to review. */
       readonly needsReview: true;
       readonly rawMetadata?: OcrSafeRawMetadata;
       readonly overallConfidence?: number | null;
@@ -62,6 +62,6 @@ export interface OcrProvider {
   readonly id: string;
   isConfigured(): boolean;
   extractDocument(input: ExtractDocumentInput): Promise<ExtractDocumentResult>;
-  /** Alias used by existing tests — must call extractDocument. */
+  /** Alias used by existing tests - must call extractDocument. */
   extractReceipt(input: ExtractReceiptInput): Promise<ExtractReceiptResult>;
 }

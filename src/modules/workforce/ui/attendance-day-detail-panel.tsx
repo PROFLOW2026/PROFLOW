@@ -76,7 +76,7 @@ export async function AttendanceDayDetailPanel({
                   {event.voidedAt ? ` (${t('events.voided')})` : ''}
                 </TableCell>
                 <TableCell>{t(`sources.${event.source}`)}</TableCell>
-                <TableCell>{event.notes ?? '—'}</TableCell>
+                <TableCell>{event.notes ?? '-'}</TableCell>
                 {canManage ? (
                   <TableCell>
                     {!event.voidedAt && detail.status !== 'void' ? (
@@ -93,7 +93,7 @@ export async function AttendanceDayDetailPanel({
                         />
                       </div>
                     ) : (
-                      '—'
+                      '-'
                     )}
                   </TableCell>
                 ) : null}

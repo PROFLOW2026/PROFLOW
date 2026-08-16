@@ -6,7 +6,7 @@ import type { PermissionKey } from './catalog';
  * The only authorization gate in the product (doc 73 §1).
  *
  * There is no role-name comparison anywhere in the codebase; a lint rule blocks
- * reintroducing one. Hiding a control in the UI is a courtesy — these
+ * reintroducing one. Hiding a control in the UI is a courtesy - these
  * assertions are the actual protection and must run on every mutation and every
  * financial read.
  */

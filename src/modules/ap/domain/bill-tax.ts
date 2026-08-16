@@ -1,5 +1,5 @@
 /**
- * AP bill tax split — reuse the shared tax engine (no second tax product).
+ * AP bill tax split - reuse the shared tax engine (no second tax product).
  *
  * Actual / profit uses NET.
  * Payments / outstanding / aging use GROSS (`totalAmount`).

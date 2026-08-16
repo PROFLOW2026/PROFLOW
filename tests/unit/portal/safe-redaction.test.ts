@@ -166,7 +166,7 @@ describe('customer safe-project-summary redaction', () => {
         status: 'planned',
         targetDate: '2026-08-01',
         completedAt: null,
-        notes: 'INTERNAL — margin risk',
+        notes: 'INTERNAL - margin risk',
       },
     ]);
     expect(milestones[0]).toEqual({

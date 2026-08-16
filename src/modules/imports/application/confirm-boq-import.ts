@@ -195,7 +195,7 @@ function resolveQtyPrice(values: Readonly<Record<string, string>>): {
     return { quantity: quantity === '0' ? '1' : quantity, unitPrice: amountParsed, pricingType: 'lump_sum' };
   }
   if (amountParsed !== null && quantity !== '0') {
-    // Derive unit price from amount / qty when price missing — Decimal, never JS Number.
+    // Derive unit price from amount / qty when price missing - Decimal, never JS Number.
     const qtyDec = new Decimal(quantity);
     const amtDec = new Decimal(amountParsed);
     if (!qtyDec.isZero()) {

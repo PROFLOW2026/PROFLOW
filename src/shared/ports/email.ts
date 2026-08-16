@@ -10,7 +10,7 @@ import { logger, redactEmail } from '@/shared/observability';
  * environment run the full flow without sending real mail.
  *
  * `EMAIL_DRIVER=console` always uses the no-op adapter, even if a Resend key
- * is present — preview/local must not accidentally send.
+ * is present - preview/local must not accidentally send.
  */
 
 export interface EmailAttachment {
@@ -22,7 +22,7 @@ export interface EmailAttachment {
 export interface EmailMessage {
   to: string;
   subject: string;
-  /** Plain-text body. Required — an HTML-only email is not acceptable. */
+  /** Plain-text body. Required - an HTML-only email is not acceptable. */
   text: string;
   html?: string;
   replyTo?: string;
@@ -118,7 +118,7 @@ export function getEmailPort(): EmailPort {
   return instance;
 }
 
-/** Test seam — lets integration tests assert on what would have been sent. */
+/** Test seam - lets integration tests assert on what would have been sent. */
 export function setEmailPort(port: EmailPort | undefined): void {
   instance = port;
 }

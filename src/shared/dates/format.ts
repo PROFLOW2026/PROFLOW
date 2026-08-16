@@ -54,5 +54,5 @@ export function formatDateRange(
   openEndedLabel: string,
 ): string {
   const start = formatBusinessDate(from, locale);
-  return to === null ? `${start} – ${openEndedLabel}` : `${start} – ${formatBusinessDate(to, locale)}`;
+  return to === null ? `${start} - ${openEndedLabel}` : `${start} - ${formatBusinessDate(to, locale)}`;
 }

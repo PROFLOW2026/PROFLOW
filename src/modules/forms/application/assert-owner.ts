@@ -108,7 +108,7 @@ export async function assertFormOwnerExists(
 
 /**
  * Map form owner to a documents module owner when possible.
- * Photos reuse documents — form_submission owner type is a SCHEMA_REQUEST gap.
+ * Photos reuse documents - form_submission owner type is a SCHEMA_REQUEST gap.
  */
 export function documentOwnerForFormOwner(
   ownerType: FormOwnerType,

@@ -138,7 +138,7 @@ describe('Azure analyzeResult mapper', () => {
               VendorName: { valueString: 'ארכה בע"מ', confidence: 0.93 },
               VendorTaxId: { valueString: '511022493', confidence: 0.9 },
               InvoiceDate: { valueDate: '2026-07-26', confidence: 0.91 },
-              // InvoiceId intentionally absent — Hebrew fallback must recover it.
+              // InvoiceId intentionally absent - Hebrew fallback must recover it.
               SubTotal: { valueCurrency: { amount: 6882.33, currencyCode: 'ILS' }, confidence: 0.92 },
               TotalDiscount: { valueCurrency: { amount: 0.13, currencyCode: 'ILS' }, confidence: 0.88 },
               TotalTax: { valueCurrency: { amount: 1238.8, currencyCode: 'ILS' }, confidence: 0.9 },

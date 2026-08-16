@@ -83,7 +83,7 @@ export async function createProgressBatch(context: OrgContext, raw: CreateProgre
     );
     const previousApprovedQuantity = openingFloor.plus(priorProgress).toFixed();
     const measuredQuantity = quantityString(line.measuredQuantity);
-    // Approved is never trusted at submit — approve RPC stamps it (simple: measured; advanced: approver).
+    // Approved is never trusted at submit - approve RPC stamps it (simple: measured; advanced: approver).
     const approvedQuantity = '0';
     if (parseQuantity(measuredQuantity).isNegative()) {
       throw new ValidationError([

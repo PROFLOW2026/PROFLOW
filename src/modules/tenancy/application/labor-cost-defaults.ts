@@ -25,7 +25,7 @@ export async function getLaborCostDefaults(context: OrgContext): Promise<LaborCo
   return parseLaborCostDefaults(raw);
 }
 
-/** Used when creating employees / rate versions — soft read. */
+/** Used when creating employees / rate versions - soft read. */
 export async function getLaborCostDefaultsForApply(
   context: OrgContext,
 ): Promise<LaborCostDefaults> {

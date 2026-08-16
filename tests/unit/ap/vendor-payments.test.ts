@@ -162,7 +162,7 @@ describe('vendor payments domain (cash ≠ Actual)', () => {
     ).not.toThrow();
   });
 
-  it('void is explicit — only recorded payments are voidable', () => {
+  it('void is explicit - only recorded payments are voidable', () => {
     expect(() => assertPaymentVoidable('recorded')).not.toThrow();
     expect(() => assertPaymentVoidable('void')).toThrow(DomainRuleError);
   });

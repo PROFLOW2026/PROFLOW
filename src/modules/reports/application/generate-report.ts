@@ -99,7 +99,7 @@ function formatInstant(value: Date, locale: string): string {
 }
 
 function formatDay(value: string | null | undefined, locale: string): string {
-  if (!value) return '—';
+  if (!value) return '-';
   return new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(new Date(`${value}T00:00:00Z`));
 }
 
@@ -190,10 +190,10 @@ async function buildProjectStatus(
       heading: ctx.copy.sections.status,
       rows: [
         { label: ctx.copy.identity.status, value: p.status },
-        { label: ctx.copy.identity.location, value: p.location ?? '—' },
+        { label: ctx.copy.identity.location, value: p.location ?? '-' },
         { label: ctx.copy.identity.startDate, value: formatDay(p.startDate, ctx.locale) },
         { label: ctx.copy.identity.targetEnd, value: formatDay(p.targetEndDate, ctx.locale) },
-        { label: ctx.copy.identity.progress, value: p.progressPercent ? `${p.progressPercent}%` : '—' },
+        { label: ctx.copy.identity.progress, value: p.progressPercent ? `${p.progressPercent}%` : '-' },
       ],
     },
   ];
@@ -220,7 +220,7 @@ async function buildProjectStatus(
         { label: ctx.copy.sections.punch, value: String(summary.openPunchCount) },
         {
           label: ctx.copy.fields.logDate,
-          value: summary.latestLog ? formatDay(summary.latestLog.logDate, ctx.locale) : '—',
+          value: summary.latestLog ? formatDay(summary.latestLog.logDate, ctx.locale) : '-',
         },
       ],
     });
@@ -277,7 +277,7 @@ async function buildBoqProgress(
       value:
         comparison.physicalProgressPercent != null
           ? formatPercent(comparison.physicalProgressPercent, ctx.locale)
-          : '—',
+          : '-',
     },
   ];
   if (comparison.actualCostToDate) {
@@ -494,15 +494,15 @@ async function buildQuote(
       label: ctx.copy.fields.subtotal,
       value: quote.subtotalAmount
         ? formatMoney(money(quote.subtotalAmount, currency), ctx.locale)
-        : '—',
+        : '-',
     },
     {
       label: ctx.copy.fields.tax,
-      value: quote.taxAmount ? formatMoney(money(quote.taxAmount, currency), ctx.locale) : '—',
+      value: quote.taxAmount ? formatMoney(money(quote.taxAmount, currency), ctx.locale) : '-',
     },
     {
       label: ctx.copy.fields.total,
-      value: quote.totalAmount ? formatMoney(money(quote.totalAmount, currency), ctx.locale) : '—',
+      value: quote.totalAmount ? formatMoney(money(quote.totalAmount, currency), ctx.locale) : '-',
     },
   ];
   if (canProfit && quote.estimatedCostAmount) {
@@ -575,18 +575,18 @@ async function buildDailyLog(
       rows: [
         { label: ctx.copy.fields.logDate, value: formatDay(log.logDate, ctx.locale) },
         { label: ctx.copy.identity.status, value: log.status },
-        { label: ctx.copy.fields.weather, value: log.weather ?? '—' },
+        { label: ctx.copy.fields.weather, value: log.weather ?? '-' },
         { label: ctx.copy.fields.summary, value: log.summary },
-        { label: ctx.copy.fields.workPerformed, value: log.workPerformed ?? '—' },
-        { label: ctx.copy.fields.workforceNotes, value: log.workforceNotes ?? '—' },
-        { label: ctx.copy.fields.blockers, value: log.blockers ?? '—' },
-        { label: ctx.copy.fields.workersOnSite, value: log.workersOnSite ?? '—' },
-        { label: ctx.copy.fields.subcontractorsOnSite, value: log.subcontractorsOnSite ?? '—' },
-        { label: ctx.copy.fields.equipment, value: log.equipmentOnSite ?? '—' },
-        { label: ctx.copy.fields.deliveries, value: log.deliveries ?? '—' },
-        { label: ctx.copy.fields.delays, value: log.delays ?? '—' },
-        { label: ctx.copy.fields.incidents, value: log.incidents ?? '—' },
-        { label: ctx.copy.fields.safetyNotes, value: log.safetyNotes ?? '—' },
+        { label: ctx.copy.fields.workPerformed, value: log.workPerformed ?? '-' },
+        { label: ctx.copy.fields.workforceNotes, value: log.workforceNotes ?? '-' },
+        { label: ctx.copy.fields.blockers, value: log.blockers ?? '-' },
+        { label: ctx.copy.fields.workersOnSite, value: log.workersOnSite ?? '-' },
+        { label: ctx.copy.fields.subcontractorsOnSite, value: log.subcontractorsOnSite ?? '-' },
+        { label: ctx.copy.fields.equipment, value: log.equipmentOnSite ?? '-' },
+        { label: ctx.copy.fields.deliveries, value: log.deliveries ?? '-' },
+        { label: ctx.copy.fields.delays, value: log.delays ?? '-' },
+        { label: ctx.copy.fields.incidents, value: log.incidents ?? '-' },
+        { label: ctx.copy.fields.safetyNotes, value: log.safetyNotes ?? '-' },
       ],
     },
     {
@@ -636,9 +636,9 @@ async function buildPunchInspection(
             { label: ctx.copy.fields.title, value: punch.title },
             { label: ctx.copy.identity.status, value: punch.status },
             { label: ctx.copy.fields.priority, value: punch.priority },
-            { label: ctx.copy.fields.location, value: punch.location ?? '—' },
+            { label: ctx.copy.fields.location, value: punch.location ?? '-' },
             { label: ctx.copy.fields.dueDate, value: formatDay(punch.dueDate, ctx.locale) },
-            { label: ctx.copy.fields.description, value: punch.description ?? '—' },
+            { label: ctx.copy.fields.description, value: punch.description ?? '-' },
           ],
         },
         documentNameSection(ctx.copy, docs.documents),
@@ -671,8 +671,8 @@ async function buildPunchInspection(
             { label: ctx.copy.identity.status, value: inspection.status },
             { label: ctx.copy.fields.scheduledOn, value: formatDay(inspection.scheduledOn, ctx.locale) },
             { label: ctx.copy.fields.completedOn, value: formatDay(inspection.completedOn, ctx.locale) },
-            { label: ctx.copy.fields.result, value: inspection.result ?? '—' },
-            { label: ctx.copy.fields.description, value: inspection.notes ?? '—' },
+            { label: ctx.copy.fields.result, value: inspection.result ?? '-' },
+            { label: ctx.copy.fields.description, value: inspection.notes ?? '-' },
           ],
         },
         documentNameSection(ctx.copy, docs.documents),

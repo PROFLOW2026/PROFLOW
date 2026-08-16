@@ -71,7 +71,7 @@ export function overdueArCopy(
 ): { what: string; why: string } {
   if (he(locale)) {
     return {
-      what: input.reference ? `גבייה — ${input.reference}` : 'גביית חיוב באיחור',
+      what: input.reference ? `גבייה - ${input.reference}` : 'גביית חיוב באיחור',
       why: input.dueDate
         ? `באיחור מאז ${input.dueDate} · יתרה ${input.outstanding} ${input.currency}`
         : `באיחור · יתרה ${input.outstanding} ${input.currency}`,
@@ -360,7 +360,7 @@ export function ocrFailedCopy(locale: string, filename: string | null): { what: 
   if (he(locale)) {
     return {
       what: 'ניסיון חוזר לקריאת מסמך',
-      why: filename ? `${filename} נכשל — אפשר לנסות שוב` : 'קריאה נכשלה — אפשר לנסות שוב',
+      why: filename ? `${filename} נכשל - אפשר לנסות שוב` : 'קריאה נכשלה - אפשר לנסות שוב',
     };
   }
   return {
@@ -378,7 +378,7 @@ export function forecastWarningCopy(
       case 'projected_cost_over_budget':
         return {
           what: 'בדיקת חריגת תקציב צפויה',
-          why: 'תחזית העלות עולה על התקציב הפעיל — זו הערכה, לא חריגה בפועל',
+          why: 'תחזית העלות עולה על התקציב הפעיל - זו הערכה, לא חריגה בפועל',
         };
       case 'insufficient_remaining_budget':
         return {
@@ -428,7 +428,7 @@ export function forecastWarningCopy(
     case 'projected_cost_over_budget':
       return {
         what: 'Review projected budget overrun',
-        why: 'Forecast cost exceeds the active budget — a projection, not an actual overrun',
+        why: 'Forecast cost exceeds the active budget - a projection, not an actual overrun',
       };
     case 'insufficient_remaining_budget':
       return {
@@ -477,27 +477,27 @@ export function forecastWarningCopy(
 
 export function punchOpenCopy(locale: string, title: string): { what: string; why: string } {
   if (he(locale)) {
-    return { what: `סגירת ליקוי פתוח — ${title}`, why: 'פריט תיקון עדיין פתוח' };
+    return { what: `סגירת ליקוי פתוח - ${title}`, why: 'פריט תיקון עדיין פתוח' };
   }
-  return { what: `Close open punch item — ${title}`, why: 'Punch item is still open' };
+  return { what: `Close open punch item - ${title}`, why: 'Punch item is still open' };
 }
 
 export function safetyOpenCopy(locale: string, title: string): { what: string; why: string } {
   if (he(locale)) {
-    return { what: `טיפול ברשומת בטיחות — ${title}`, why: 'רשומת בטיחות עדיין פתוחה' };
+    return { what: `טיפול ברשומת בטיחות - ${title}`, why: 'רשומת בטיחות עדיין פתוחה' };
   }
-  return { what: `Resolve safety record — ${title}`, why: 'Safety record is still open' };
+  return { what: `Resolve safety record - ${title}`, why: 'Safety record is still open' };
 }
 
 export function inspectionOpenCopy(locale: string, title: string, scheduledOn: string | null): { what: string; why: string } {
   if (he(locale)) {
     return {
-      what: `השלמת בדיקה — ${title}`,
+      what: `השלמת בדיקה - ${title}`,
       why: scheduledOn ? `מתוכננת ל־${scheduledOn} ועדיין פתוחה` : 'בדיקה עדיין פתוחה',
     };
   }
   return {
-    what: `Complete inspection — ${title}`,
+    what: `Complete inspection - ${title}`,
     why: scheduledOn ? `Scheduled ${scheduledOn} and still open` : 'Inspection is still open',
   };
 }
@@ -505,12 +505,12 @@ export function inspectionOpenCopy(locale: string, title: string, scheduledOn: s
 export function recurringDraftIssueCopy(locale: string, title: string, nextRunDate: string): { what: string; why: string } {
   if (he(locale)) {
     return {
-      what: `טיפול בטיוטה חוזרת — ${title}`,
+      what: `טיפול בטיוטה חוזרת - ${title}`,
       why: `מועד היצירה ${nextRunDate} עבר והטיוטה עדיין פעילה`,
     };
   }
   return {
-    what: `Fix recurring draft — ${title}`,
+    what: `Fix recurring draft - ${title}`,
     why: `Next run ${nextRunDate} is overdue while the draft is still active`,
   };
 }

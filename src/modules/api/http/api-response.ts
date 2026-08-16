@@ -25,7 +25,7 @@ export function apiSuccess<T extends Record<string, unknown>>(
 }
 
 /**
- * Versioned error envelope — never includes stacks, SQL, or raw Exception messages.
+ * Versioned error envelope - never includes stacks, SQL, or raw Exception messages.
  * Validation issues are path/message only (no internal details bags).
  */
 export function apiError(error: unknown, init?: { status?: number }): NextResponse {

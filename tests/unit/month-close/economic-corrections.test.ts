@@ -127,7 +127,7 @@ describe('economic correction netting', () => {
     }),
     row({
       id: D,
-      reason: 'Audit only — no money',
+      reason: 'Audit only - no money',
     }),
   ];
 

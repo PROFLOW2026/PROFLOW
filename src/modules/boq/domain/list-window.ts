@@ -1,6 +1,6 @@
 /**
  * Pagination / virtualization helpers for large BOQ node lists (UI agent).
- * Framework-free — no React dependency.
+ * Framework-free - no React dependency.
  */
 
 export interface ListWindow<T> {

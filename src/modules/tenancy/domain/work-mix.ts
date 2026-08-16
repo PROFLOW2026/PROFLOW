@@ -1,5 +1,5 @@
 /**
- * Organization work mix — which destinations dominate shell chrome.
+ * Organization work mix - which destinations dominate shell chrome.
  *
  * Stored in `organization_settings` (no migration). Does not change the
  * underlying `projects` entity; Jobs and Projects share one financial engine.

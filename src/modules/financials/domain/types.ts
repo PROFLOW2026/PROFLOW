@@ -60,14 +60,14 @@ export interface FinancialCoverage {
   entries: CoverageEntry[];
   /** When the figures were derived, so a stale card can say so. */
   calculatedAt: Date;
-  /** Present when rows were excluded from a sum — never fold them in silently. */
+  /** Present when rows were excluded from a sum - never fold them in silently. */
   partials?: readonly CoveragePartial[];
 }
 
 /** Commercial value: what was agreed, and what is still being negotiated. */
 export interface CommercialPosition {
   /**
-   * Managed opening (engine) — `contracts.original_*` / original value event.
+   * Managed opening (engine) - `contracts.original_*` / original value event.
    * Profitability and KPI math use this path via current contract, never display original.
    */
   originalContractValue: MoneyValue;
@@ -82,7 +82,7 @@ export interface CommercialPosition {
    * Must not enter profitability, billing target, or forecast margin KPIs.
    */
   displayOriginalContractValue?: MoneyValue | null;
-  /** Context only — opening reduction audit net. Never a payment / bill / expense. */
+  /** Context only - opening reduction audit net. Never a payment / bill / expense. */
   openingReductionValue?: MoneyValue | null;
 }
 
@@ -93,7 +93,7 @@ export interface BillingPosition {
   outstanding: MoneyValue;
   /**
    * Closed-month economic revenue correction net (surviving rows only).
-   * Folded into invoiced / outstanding once — not a second billing engine.
+   * Folded into invoiced / outstanding once - not a second billing engine.
    */
   monthCloseRevenueNet: MoneyValue;
 }
@@ -106,7 +106,7 @@ export type MetricNature = 'actual' | 'committed' | 'forecast';
 
 export interface CostPosition {
   /**
-   * Actual — finalized expenses + labor + recognized (posted) vendor bills.
+   * Actual - finalized expenses + labor + recognized (posted) vendor bills.
    * Never includes open committed PO. Bill-linked expenses are deduped.
    */
   actualCostToDate: MoneyValue;
@@ -121,17 +121,17 @@ export interface CostPosition {
     businessOverhead: MoneyValue;
     assetCapital: MoneyValue;
   };
-  /** Actual — workforce labor cost when present; otherwise zero. */
+  /** Actual - workforce labor cost when present; otherwise zero. */
   laborActual: MoneyValue;
   /**
-   * Actual — vendor/subcontractor expenses + recognized vendor bills.
+   * Actual - vendor/subcontractor expenses + recognized vendor bills.
    * Never open PO committed amounts; never vendor payments.
    */
   vendorActual: MoneyValue;
-  /** Actual — business overhead family total. */
+  /** Actual - business overhead family total. */
   overheadActual: MoneyValue;
   /**
-   * Committed — open / partially consumed PO remaining amounts.
+   * Committed - open / partially consumed PO remaining amounts.
    * Must never be summed into actualCostToDate (CommittedCost ≠ Expense).
    * Included in Forecast Final Cost once (as remaining commitment).
    */
@@ -142,13 +142,13 @@ export interface CostPosition {
    */
   expectedRemainingCost: MoneyValue;
   /**
-   * Unmatched open AP payable for the project — cash obligation disclosure only.
+   * Unmatched open AP payable for the project - cash obligation disclosure only.
    * Not folded into Forecast Final Cost (payments are cash-only).
    */
   openApPayable: MoneyValue;
   /**
    * Closed-month economic cost correction net (surviving rows only).
-   * Folded into actualCostToDate once — never into byFamily, never a second engine.
+   * Folded into actualCostToDate once - never into byFamily, never a second engine.
    */
   monthCloseCostNet: MoneyValue;
 }
@@ -159,24 +159,24 @@ export interface ProfitPosition {
    * Kept as `estimatedProfit` for existing UI / exports; Agent 4 may relabel.
    */
   estimatedProfit: MoneyValue;
-  /** Forecast margin % — null when contract value is zero. */
+  /** Forecast margin % - null when contract value is zero. */
   marginPercent: string | null;
   /** Actual margin: currentContractValue − actualCostToDate. */
   actualProfit: MoneyValue;
-  /** Actual margin % — null when contract value is zero. */
+  /** Actual margin % - null when contract value is zero. */
   actualMarginPercent: string | null;
 }
 
 /**
  * Deterministic data-confidence level attached to composed financials.
- * Formula lives in `domain/data-confidence.ts` — never an AI score.
+ * Formula lives in `domain/data-confidence.ts` - never an AI score.
  */
 export type ProjectDataConfidenceLevel = DataConfidence['level'];
 
 export interface ProjectFinancials {
   projectId: string;
   currency: string;
-  /** `project` | `job` — same financial engine; filterable at org level. */
+  /** `project` | `job` - same financial engine; filterable at org level. */
   workKind: WorkKind;
   /**
    * Jobs: `fixed` | `open`. Classic projects: null (= fixed when contracted).
@@ -185,28 +185,28 @@ export interface ProjectFinancials {
   /**
    * No managed revenue basis yet: open-price job, or job without primary
    * contract. Costs/forecast OK; profit/margin not claimed.
-   * UI should show price-not-set (Hebrew: המחיר טרם נקבע) — never fake −loss.
+   * UI should show price-not-set (Hebrew: המחיר טרם נקבע) - never fake −loss.
    */
   priceNotSet: boolean;
-  /** Null when the viewer lacks contracts.read — never substitute zeros. */
+  /** Null when the viewer lacks contracts.read - never substitute zeros. */
   commercial: CommercialPosition | null;
   billing: BillingPosition;
   cost: CostPosition;
   /**
    * Null when the viewer lacks project_profit.read, commercial is hidden,
-   * or `priceNotSet` (open-price — no revenue basis yet).
-   * Never substitute zeros — that would look like break-even or fake loss.
+   * or `priceNotSet` (open-price - no revenue basis yet).
+   * Never substitute zeros - that would look like break-even or fake loss.
    */
   profit: ProfitPosition | null;
   coverage: FinancialCoverage;
   /**
-   * High / Medium / Needs data — from known incompleteness only
+   * High / Medium / Needs data - from known incompleteness only
    * (missing employer cost, unallocated remainder, open drafts/allocations, FX gaps).
    */
   dataConfidence: DataConfidence;
   /**
    * Per-contract commercial slices when more than one live contract exists.
-   * Project `commercial` remains the same-currency sum — not a second engine.
+   * Project `commercial` remains the same-currency sum - not a second engine.
    */
   perContract?: readonly {
     readonly contractId: string;

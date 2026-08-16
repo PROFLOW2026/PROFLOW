@@ -270,7 +270,7 @@ async function assertBatchOwned(
   }
 }
 
-/** Gated stub — production default while BANKING_PERSISTENCE_READY is false. */
+/** Gated stub - production default while BANKING_PERSISTENCE_READY is false. */
 export const gatedBankingRepository: BankingRepository = {
   async createAccount() {
     unavailable();
@@ -573,7 +573,7 @@ let activeRepository: BankingRepository = areBankingPersistenceAvailable()
   ? drizzleBankingRepository
   : gatedBankingRepository;
 
-/** Test / Lead hook — swap in Drizzle or TEST DOUBLE after schema lands. */
+/** Test / Lead hook - swap in Drizzle or TEST DOUBLE after schema lands. */
 export function setBankingRepository(repo: BankingRepository): void {
   activeRepository = repo;
 }
@@ -589,7 +589,7 @@ export function resetBankingRepository(): void {
 }
 
 /**
- * TEST DOUBLE ONLY — process-local store for unit tests.
+ * TEST DOUBLE ONLY - process-local store for unit tests.
  * Never used as the production default when the readiness flag is false
  * (production uses gatedBankingRepository → schemaPending).
  */
@@ -623,7 +623,7 @@ export function createBankingTestDoubleRepository(): BankingRepository & {
       return tdCreateBatch(input);
     },
     async findImportBatch(_db, organizationId, batchId) {
-      // Test double does not expose batch lookup by id currently — always null.
+      // Test double does not expose batch lookup by id currently - always null.
       void organizationId;
       void batchId;
       return null;

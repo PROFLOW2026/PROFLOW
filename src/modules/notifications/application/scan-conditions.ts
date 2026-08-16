@@ -2,7 +2,7 @@
  * Org-scoped condition scanners. UPSERT via app.emit_notification with stable
  * dedupe keys; resolve via app.resolve_notifications when the condition is gone.
  *
- * Recipients are people who can ACT — not whoever opened the bell.
+ * Recipients are people who can ACT - not whoever opened the bell.
  * Employee missing required report: skipped. There is no existing workforce
  * semantics for a required periodic employee report (distinct from submitted
  * timesheets, attendance open-days, or documents.is_required on files).

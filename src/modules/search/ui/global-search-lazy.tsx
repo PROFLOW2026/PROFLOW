@@ -7,7 +7,7 @@ const GlobalSearchTrigger = dynamic(
   { ssr: false, loading: () => null },
 );
 
-/** Shell entry — defers Dialog/search bundle until after paint. */
+/** Shell entry - defers Dialog/search bundle until after paint. */
 export function GlobalSearchLazy() {
   return <GlobalSearchTrigger />;
 }

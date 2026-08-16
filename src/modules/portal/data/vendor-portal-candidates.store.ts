@@ -1,5 +1,5 @@
 /**
- * TEST DOUBLE ONLY — process-local vendor portal candidate store.
+ * TEST DOUBLE ONLY - process-local vendor portal candidate store.
  *
  * Candidates are never written to ap_bills / expenses / payments.
  * Not durable across instances. Production default when
@@ -146,7 +146,7 @@ export function listAllVendorComplianceCandidates(
 }
 
 /**
- * Internal review only — never creates ap_bills / expenses / compliance artifacts.
+ * Internal review only - never creates ap_bills / expenses / compliance artifacts.
  * Accepted_for_review means an operator acknowledged the candidate for later manual work.
  */
 export function reviewVendorApBillCandidate(input: {

@@ -205,7 +205,7 @@ export interface AttendanceClockSurface {
   readonly canManage: boolean;
 }
 
-/** Worker-friendly clock surface for today (org TZ). Optional — unused orgs see empty. */
+/** Worker-friendly clock surface for today (org TZ). Optional - unused orgs see empty. */
 export async function getAttendanceClockSurface(
   context: OrgContext,
 ): Promise<AttendanceClockSurface> {
@@ -333,7 +333,7 @@ export async function getAttendanceDayDetail(
 
   return {
     ...day,
-    employeeName: employee?.name ?? '—',
+    employeeName: employee?.name ?? '-',
     events,
     presence: resolveClockPresenceState(events),
   };
@@ -416,7 +416,7 @@ export async function clockAttendance(
   return event;
 }
 
-/** Manager manual entry (any allowed event type) — still not labor Actual. */
+/** Manager manual entry (any allowed event type) - still not labor Actual. */
 export async function recordManualAttendanceEvent(
   context: OrgContext,
   rawInput: ManualAttendanceEventInput,
@@ -573,7 +573,7 @@ export async function replaceAttendanceEvent(
     );
     const presence = resolveClockPresenceState(remaining);
     if (replacementType === 'clock_in' && !canClockIn(presence)) {
-      // Roll forward would fail — still allow manager replace when only this type makes sense
+      // Roll forward would fail - still allow manager replace when only this type makes sense
       // after void; if still invalid, reject.
       throw new DomainRuleError('Already clocked in', 'workforce.errors.alreadyClockedIn');
     }

@@ -17,7 +17,7 @@ import { WORK_LIST_FACETS, type WorkListFacet } from '@/modules/projects/domain/
 interface ProjectListFiltersProps {
   initialQuery: string;
   initialFacet: WorkListFacet;
-  /** Locale namespace for facet labels — `projects` or `jobs`. */
+  /** Locale namespace for facet labels - `projects` or `jobs`. */
   namespace?: 'projects' | 'jobs';
 }
 

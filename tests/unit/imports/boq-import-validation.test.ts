@@ -10,7 +10,7 @@ import { maxImportRowsForKind, MAX_IMPORT_ROWS, MAX_IMPORT_ROWS_BOQ } from '@/mo
 import { sliceListWindow, pageCount } from '@/modules/boq/domain/list-window';
 
 describe('BOQ import decimal precision', () => {
-  it('derives unit price with Decimal — not JS Number float drift', () => {
+  it('derives unit price with Decimal - not JS Number float drift', () => {
     const quantity = '0.1';
     const amount = '0.3';
     const derived = new Decimal(amount).div(new Decimal(quantity)).toFixed(6);

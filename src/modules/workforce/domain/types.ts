@@ -1,5 +1,5 @@
 /**
- * Workforce domain types. Framework-free — no React, no Next.js, no persistence.
+ * Workforce domain types. Framework-free - no React, no Next.js, no persistence.
  */
 
 import type {
@@ -191,7 +191,7 @@ export interface ProjectTeamMemberRecord {
 /**
  * Project team roster from active `employee_project_assignments`.
  * `membershipId` is the assignment id (UI compatibility).
- * `totalHours` / `entryCount` are secondary time evidence only — not membership cost.
+ * `totalHours` / `entryCount` are secondary time evidence only - not membership cost.
  */
 export interface ProjectTeamMemberSummary {
   readonly membershipId: string;
@@ -245,7 +245,7 @@ export interface EmployeeProjectAssignmentRecord {
 
 /**
  * Project → צוות row (current or historical).
- * Hours/entryCount are secondary time evidence only — not assignment cost.
+ * Hours/entryCount are secondary time evidence only - not assignment cost.
  */
 export interface EmployeeProjectAssignmentSummary {
   readonly assignmentId: string;
@@ -280,7 +280,7 @@ export interface EmployeeAssignmentLink {
   readonly lastWorkDate: string | null;
 }
 
-/** Attendance day row (presence only — never labor Actual). */
+/** Attendance day row (presence only - never labor Actual). */
 export interface AttendanceDayRecord {
   readonly id: string;
   readonly organizationId: string;

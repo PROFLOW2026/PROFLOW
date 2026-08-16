@@ -97,7 +97,7 @@ async function resolveTaxForQuote(
   if (taxMode === 'none') return { resolved: null, ruleId: null as string | null };
   const on = todayInTimeZone(context.organization.timezone);
   if (taxRuleId) {
-    // Prefer keyed resolution when a rule id is supplied — fall back to default.
+    // Prefer keyed resolution when a rule id is supplied - fall back to default.
     const byDefault = await resolveApplicableDefaultTax(context, on);
     if (byDefault.resolved?.ruleId === taxRuleId) {
       return { resolved: byDefault.resolved, ruleId: taxRuleId };

@@ -15,7 +15,7 @@ export type FinalizeExpenseFn = (
 ) => Promise<{ id: string; status: string }>;
 
 /**
- * Finalize path for ops-linked expenses — delegates to existing finalizeExpense.
+ * Finalize path for ops-linked expenses - delegates to existing finalizeExpense.
  * Does not reimplement allocation / tax / Actual recognition.
  */
 export async function finalizeLinkedOpsExpense(

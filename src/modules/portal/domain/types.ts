@@ -15,14 +15,14 @@ export const CUSTOMER_PORTAL_SCOPES = [
   'billing.outstanding',
   'documents.read',
   'milestones.read',
-  /** Customer-facing quote status/totals only — never estimated cost/margin. */
+  /** Customer-facing quote status/totals only - never estimated cost/margin. */
   'quotes.read',
 ] as const;
 
 export type CustomerPortalScope = (typeof CUSTOMER_PORTAL_SCOPES)[number];
 
 /**
- * Vendor portal scopes — external users never mutate financial truth.
+ * Vendor portal scopes - external users never mutate financial truth.
  * `quote.submit` / `bill.candidate` / `documents.upload` create candidates only.
  * `payment.outstanding` is grantable but policy-gated until AP payments are safe.
  */
@@ -41,7 +41,7 @@ export type VendorPortalScope = (typeof VENDOR_PORTAL_SCOPES)[number];
 
 /**
  * External portal session for a customer grant.
- * ExternalPrincipal != OrganizationMembership — never treat as OrgContext.
+ * ExternalPrincipal != OrganizationMembership - never treat as OrgContext.
  */
 export interface CustomerPortalSession {
   readonly kind: 'customer_portal';
@@ -56,7 +56,7 @@ export interface CustomerPortalSession {
 
 /**
  * External portal session for a vendor grant.
- * ExternalPrincipal != OrganizationMembership — never treat as OrgContext.
+ * ExternalPrincipal != OrganizationMembership - never treat as OrgContext.
  */
 export interface VendorPortalSession {
   readonly kind: 'vendor_portal';
@@ -68,7 +68,7 @@ export interface VendorPortalSession {
   readonly scopes: readonly VendorPortalScope[];
 }
 
-/** Portal AP bill submission — candidate only; never an ap_bills / Expense row. */
+/** Portal AP bill submission - candidate only; never an ap_bills / Expense row. */
 export interface VendorApBillCandidate {
   readonly id: string;
   readonly organizationId: string;
@@ -93,7 +93,7 @@ export interface VendorApBillCandidate {
   readonly reviewNote?: string | null;
 }
 
-/** Document / compliance upload candidate — pending internal review. */
+/** Document / compliance upload candidate - pending internal review. */
 export interface VendorComplianceUploadCandidate {
   readonly id: string;
   readonly organizationId: string;
@@ -128,7 +128,7 @@ export interface VendorSafePaymentOutstanding {
 
 /**
  * Vendor-safe RFQ projection. No internal cost or profit fields.
- * RFQ↔vendor invite linkage is not in V1 schema — visibility is grant-scoped
+ * RFQ↔vendor invite linkage is not in V1 schema - visibility is grant-scoped
  * to sent RFQs for the organization when `rfq.read` is granted.
  */
 export interface VendorSafeRfqSummary {
@@ -188,7 +188,7 @@ export interface VendorPortalPreview {
   readonly candidateIntakeNote: 'candidates_only';
   /**
    * RFQ browse is limited to RFQs already associated with this vendor
-   * (via supplier_quote). Full invite table is deferred — no org-wide RFQ dump.
+   * (via supplier_quote). Full invite table is deferred - no org-wide RFQ dump.
    */
   readonly rfqVisibility: 'vendor_associated_only';
   /** Public vendor login remains disabled (not merely foundation-only). */

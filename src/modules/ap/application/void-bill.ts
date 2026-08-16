@@ -1,5 +1,5 @@
 /**
- * AP bill void — remove from Actual, supersede allocations, preserve history.
+ * AP bill void - remove from Actual, supersede allocations, preserve history.
  * Active payments must be voided first.
  */
 
@@ -32,8 +32,8 @@ import { voidApBillSchema } from '../validation/schemas';
 
 /**
  * Void a vendor bill.
- * - Blocks when active (recorded) payments exist — void payments first.
- * - Blocks when active credit applications exist — reverse credits first.
+ * - Blocks when active (recorded) payments exist - void payments first.
+ * - Blocks when active credit applications exist - reverse credits first.
  * - Sets status to void → exits Actual recognition.
  * - Supersedes project allocations (history preserved as superseded).
  * - Restores PO commitment previously consumed at bill create (when linked).

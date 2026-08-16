@@ -12,7 +12,7 @@ import {
 const ORG = '018f0000-0000-7000-8000-0000000000aa';
 const PROJECT = '018f0000-0000-7000-8000-0000000000a1';
 
-describe('scenario J — planning dependency cycle A→B→C→A', () => {
+describe('scenario J - planning dependency cycle A→B→C→A', () => {
   beforeEach(() => {
     resetDefaultPlanningStoreForTests();
   });

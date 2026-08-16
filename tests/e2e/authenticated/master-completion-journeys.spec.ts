@@ -3,7 +3,7 @@ import { he } from '../fixtures/locales';
 import { loadWorld } from '../fixtures/world';
 
 /**
- * Owner journeys for master completion waves — start from visible chrome where
+ * Owner journeys for master completion waves - start from visible chrome where
  * practical; deep links only for secondary confirmations after discoverability.
  */
 test.describe('master completion owner journeys', () => {
@@ -56,14 +56,14 @@ test.describe('master completion owner journeys', () => {
     await expect(page).toHaveURL(/\/he-IL\/procurement\/ap\/aging/);
     await expect(page.getByRole('heading', { name: 'גיל יתרות ספקים' })).toBeVisible();
     await expect(page.getByText('שוטף').first()).toBeVisible();
-    await expect(page.getByText('1–30 ימים').first()).toBeVisible();
+    await expect(page.getByText('1-30 ימים').first()).toBeVisible();
     await expect(page.getByText('90+ ימים').first()).toBeVisible();
   });
 
   test('attendance surface exposes large clock actions', async ({ page }) => {
     await page.goto('/he-IL/workforce/attendance');
     await expect(page.getByRole('heading', { name: /נוכחות/ }).first()).toBeVisible();
-    // Owner may manage without a linked employee — clock buttons or linkRequired alert.
+    // Owner may manage without a linked employee - clock buttons or linkRequired alert.
     const clockIn = page.getByRole('button', { name: 'כניסה' });
     const linkHint = page.getByText(/לקשר את המשתמש לרשומת עובד|Link your user/i);
     await expect(clockIn.or(linkHint).first()).toBeVisible();

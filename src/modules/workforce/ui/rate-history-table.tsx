@@ -57,7 +57,7 @@ export async function RateHistoryTable({ versions }: RateHistoryTableProps) {
                         {version.burdenPercent}%
                       </span>
                     ) : (
-                      '—'
+                      '-'
                     )}
                   </TableCell>
                 </TableRow>

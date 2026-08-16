@@ -193,7 +193,7 @@ function drillFromMetric(
 
 /**
  * Primary project financial KPIs with practical drill-downs and filtered-list links.
- * "Why this number?" packs reuse the composed engine — no second Actual formula.
+ * "Why this number?" packs reuse the composed engine - no second Actual formula.
  */
 export function ProjectFinancialsKpiPanel({
   projectId,

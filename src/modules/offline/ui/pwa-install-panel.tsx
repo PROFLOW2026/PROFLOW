@@ -46,7 +46,7 @@ export function PwaInstallPanel() {
           </ol>
         ) : null}
 
-        {/* After dismiss, capability falls back to unavailable — keep one message. */}
+        {/* After dismiss, capability falls back to unavailable - keep one message. */}
         {capability === 'unavailable' && promptOutcome !== 'dismissed' ? (
           <p className="text-sm text-[var(--pf-text-secondary)]">{t('unavailable')}</p>
         ) : null}

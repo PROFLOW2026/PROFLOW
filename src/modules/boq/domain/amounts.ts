@@ -3,7 +3,7 @@ import { money, multiplyMoney, toNumericString, type MoneyValue } from '@/shared
 import type { BoqPricingType } from './types';
 
 /**
- * Deterministic BOQ amount math — decimal.js only, never IEEE floats.
+ * Deterministic BOQ amount math - decimal.js only, never IEEE floats.
  */
 
 export function parseQuantity(raw: string | number | Decimal): Decimal {

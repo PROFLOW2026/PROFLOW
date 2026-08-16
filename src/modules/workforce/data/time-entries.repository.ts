@@ -115,7 +115,7 @@ export async function insertTimeEntry(
     correctsEntryId?: string | null;
     bulkBatchId?: string | null;
     timesheetId?: string | null;
-    /** New logs default to draft — they do not create Actual until approved. */
+    /** New logs default to draft - they do not create Actual until approved. */
     approvalStatus?: TimeApprovalStatus;
     submittedAt?: Date | null;
     submittedByUserId?: string | null;
@@ -190,7 +190,7 @@ export interface TimeEntryFilters {
   readonly fromDate?: string;
   readonly toDate?: string;
   readonly kind?: TimeEntryKind | 'all';
-  /** Default `recorded` — void rows stay out of the working list unless requested. */
+  /** Default `recorded` - void rows stay out of the working list unless requested. */
   readonly status?: TimeEntryStatus | 'all';
   /** Working lists omit this; costing callers must pass `approved`. */
   readonly approvalStatus?: TimeApprovalStatus | 'all';
@@ -379,7 +379,7 @@ export interface ProjectLaborCostAggregate {
 
 /**
  * Labor cost per project in one grouped query (org rollup / set-based financials).
- * `projectCurrency` is the org base currency — callers only include matching projects.
+ * `projectCurrency` is the org base currency - callers only include matching projects.
  */
 export async function sumLaborCostGroupedByProject(
   db: DbExecutor,

@@ -9,7 +9,7 @@ import { createTestDatabase, type TestDatabase } from '@tests/setup/database';
 import { provisionTwoTenants } from '../billing/setup';
 
 /**
- * Scenario L — Persistence restart: data survives a new repository instance.
+ * Scenario L - Persistence restart: data survives a new repository instance.
  */
 describe('banking persistence restart (L)', () => {
   let database: TestDatabase;

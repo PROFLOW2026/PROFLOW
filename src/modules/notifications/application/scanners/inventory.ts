@@ -5,7 +5,7 @@ import type { OrgContext } from '@/shared/auth/context';
  * Low-stock scanner source for the notifications engine.
  * Canonical threshold is min_stock_level (fallback reorder_level).
  * on_hand < threshold; suggestedReorder is always true for returned rows.
- * Qty-only — never Actual / GL / FIFO.
+ * Qty-only - never Actual / GL / FIFO.
  */
 export interface InventoryLowStockScanRow {
   readonly id: string;

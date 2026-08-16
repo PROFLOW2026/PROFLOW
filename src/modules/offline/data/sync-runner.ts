@@ -25,7 +25,7 @@ export interface SyncRunResult {
   readonly results: readonly SyncItemResult[];
 }
 
-/** Thrown by placeholder transports — draft stays queued, not conflicted. */
+/** Thrown by placeholder transports - draft stays queued, not conflicted. */
 export class OfflineSyncNotWiredError extends Error {
   constructor(message = 'Offline sync transport is not wired for this draft kind yet.') {
     super(message);
@@ -34,7 +34,7 @@ export class OfflineSyncNotWiredError extends Error {
 }
 
 /**
- * Pluggable transport — Wave 4 foundations call this; feature owners wire
+ * Pluggable transport - Wave 4 foundations call this; feature owners wire
  * real server actions per draft kind. Must never last-write-wins overwrite.
  */
 export interface OfflineSyncTransport {
@@ -201,7 +201,7 @@ export interface ReconnectSyncController {
 
 /**
  * Start listening for browser online events and drain the queue.
- * No-op transport stub is not registered — callers must pass a real transport
+ * No-op transport stub is not registered - callers must pass a real transport
  * (or a stub that no-ops submit until feature owners land).
  */
 export function startReconnectSync(options: {
@@ -248,7 +248,7 @@ export function startReconnectSync(options: {
 }
 
 /**
- * Default transport that skips mutations — keeps foundations safe until
+ * Default transport that skips mutations - keeps foundations safe until
  * expense/time/change/daily-log/capture owners wire real submitters.
  */
 export function createNoopSyncTransport(): OfflineSyncTransport {

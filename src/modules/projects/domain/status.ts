@@ -1,6 +1,6 @@
 import type { ProjectStatus } from './types';
 
-/** Visual status shape consumed by `<StatusBadge>` — kept in domain as a plain union. */
+/** Visual status shape consumed by `<StatusBadge>` - kept in domain as a plain union. */
 export type ProjectStatusShape =
   | 'draft'
   | 'active'

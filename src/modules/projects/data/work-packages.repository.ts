@@ -71,7 +71,7 @@ export async function listWorkPackagesByProject(
   return rows.map(mapWorkPackage);
 }
 
-/** Active (non-archived) package count — for workspace chrome without loading rows. */
+/** Active (non-archived) package count - for workspace chrome without loading rows. */
 export async function countActiveWorkPackagesByProject(
   db: DbExecutor,
   organizationId: string,

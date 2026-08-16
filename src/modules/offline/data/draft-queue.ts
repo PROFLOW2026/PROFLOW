@@ -61,7 +61,7 @@ export interface DraftQueue {
     reason: string,
     server?: ServerTruthHint | null,
   ): Promise<OfflineDraftRecord>;
-  /** Submit/validation failure — recoverable via retryFailed. */
+  /** Submit/validation failure - recoverable via retryFailed. */
   markRejected(localId: string, reason: string): Promise<OfflineDraftRecord>;
   /**
    * Compare against server truth before sync. Marks conflict when needed and
@@ -140,7 +140,7 @@ export function createDraftQueue(store: DraftStore = getDefaultDraftStore()): Dr
       }
 
       if (existing?.syncStatus === 'conflict' || existing?.syncStatus === 'rejected') {
-        // Preserve failure state until the user resolves / retries — do not silently re-queue.
+        // Preserve failure state until the user resolves / retries - do not silently re-queue.
         const preserved: OfflineDraftRecord = {
           ...existing,
           payload: { ...input.payload },

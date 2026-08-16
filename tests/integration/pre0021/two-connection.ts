@@ -57,7 +57,7 @@ export interface TwoConnectionHarness {
 
 /**
  * Real two-connection disposable Postgres via the repo's PGlite socket harness.
- * Uses one `postgres` pool with max=2 (two backend connections) — more stable
+ * Uses one `postgres` pool with max=2 (two backend connections) - more stable
  * on pglite-socket than two separate client instances during startup.
  */
 export async function openTwoConnectionHarness(

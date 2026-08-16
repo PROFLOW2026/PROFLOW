@@ -151,7 +151,7 @@ export function ProjectPlanningPanel({
                     <div>
                       <dt className="inline">{t.targetEnd}: </dt>
                       <dd className="inline tabular-nums text-[var(--pf-text-primary)]">
-                        {item.targetEndDate ?? '—'}
+                        {item.targetEndDate ?? '-'}
                       </dd>
                     </div>
                     <div>
@@ -224,19 +224,19 @@ export function ProjectPlanningPanel({
                           {isOverdue ? <StatusBadge shape="overdue" label={t.overdue} /> : null}
                         </div>
                       </td>
-                      <td className="px-3 py-2 tabular-nums">{item.startDate ?? '—'}</td>
-                      <td className="px-3 py-2 tabular-nums">{item.targetEndDate ?? '—'}</td>
-                      <td className="px-3 py-2 tabular-nums">{item.actualEndDate ?? '—'}</td>
+                      <td className="px-3 py-2 tabular-nums">{item.startDate ?? '-'}</td>
+                      <td className="px-3 py-2 tabular-nums">{item.targetEndDate ?? '-'}</td>
+                      <td className="px-3 py-2 tabular-nums">{item.actualEndDate ?? '-'}</td>
                       <td className="px-3 py-2 tabular-nums">{`${Math.round(item.progressPercent)}%`}</td>
                       <td className="px-3 py-2">
                         {item.workPackageId
                           ? (workPackageNames[item.workPackageId] ?? item.workPackageId.slice(0, 8))
                           : item.phaseId
                             ? `${t.phase}: ${phaseNames[item.phaseId] ?? item.phaseId.slice(0, 8)}`
-                            : '—'}
+                            : '-'}
                       </td>
                       <td className="px-3 py-2 text-[var(--pf-text-secondary)]">
-                        {preds.length > 0 ? preds.join(', ') : '—'}
+                        {preds.length > 0 ? preds.join(', ') : '-'}
                       </td>
                     </tr>
                   );
@@ -247,7 +247,7 @@ export function ProjectPlanningPanel({
         </>
       ) : null}
 
-      {/* Always document CPM limitation — never claim critical path. */}
+      {/* Always document CPM limitation - never claim critical path. */}
       {!criticalPathFoundation.supported ? (
         <p className="text-xs text-[var(--pf-text-secondary)]">{t.criticalPathLimitation}</p>
       ) : null}

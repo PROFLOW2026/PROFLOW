@@ -135,7 +135,7 @@ export default async function WorkOrdersPage({ searchParams }: WorkOrdersPagePro
               <TableBody>
                 {workOrders.map((row) => (
                   <TableRow key={row.id}>
-                    <TableCell>{row.clientName ?? '—'}</TableCell>
+                    <TableCell>{row.clientName ?? '-'}</TableCell>
                     <TableCell>
                       <Link
                         href={`/work-orders/${row.id}`}
@@ -144,13 +144,13 @@ export default async function WorkOrdersPage({ searchParams }: WorkOrdersPagePro
                         {titleWithDocumentNumber(row.name, row.documentNumber ?? '')}
                       </Link>
                     </TableCell>
-                    <TableCell>{row.service?.siteAddress ?? row.location ?? '—'}</TableCell>
+                    <TableCell>{row.service?.siteAddress ?? row.location ?? '-'}</TableCell>
                     <TableCell className="pf-ltr-island" dir="ltr">
                       {row.service?.scheduledStartAt
                         ? row.service.scheduledStartAt.toISOString().slice(0, 16).replace('T', ' ')
-                        : '—'}
+                        : '-'}
                     </TableCell>
-                    <TableCell>{row.assigneeName ?? '—'}</TableCell>
+                    <TableCell>{row.assigneeName ?? '-'}</TableCell>
                     <TableCell>
                       {row.service ? (
                         <WorkOrderStatusBadge
@@ -158,11 +158,11 @@ export default async function WorkOrdersPage({ searchParams }: WorkOrdersPagePro
                           label={t(`status.${row.service.serviceStatus}`)}
                         />
                       ) : (
-                        '—'
+                        '-'
                       )}
                     </TableCell>
                     <TableCell>
-                      {row.service ? t(`priority.${row.service.priority}`) : '—'}
+                      {row.service ? t(`priority.${row.service.priority}`) : '-'}
                     </TableCell>
                   </TableRow>
                 ))}
@@ -186,7 +186,7 @@ export default async function WorkOrdersPage({ searchParams }: WorkOrdersPagePro
                 ) : null}
               </div>
               <p className="mt-1 min-w-0 break-words text-sm text-[var(--pf-text-secondary)]">
-                {row.clientName ?? '—'}
+                {row.clientName ?? '-'}
                 {row.service?.siteAddress ? ` · ${row.service.siteAddress}` : ''}
               </p>
               <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">

@@ -617,7 +617,7 @@ export async function collectMonthCloseIncomplete(
 
 /**
  * BOQ measurement draft awaiting approve.
- * Progress ≠ Actual — this only nudges the measurement workflow.
+ * Progress ≠ Actual - this only nudges the measurement workflow.
  */
 export async function collectBoqMeasurementAwaitingApproval(
   ctx: CollectContext,
@@ -666,7 +666,7 @@ export async function collectBoqMeasurementAwaitingApproval(
   });
 }
 
-/** Approved progress with no billing link — ready for progress billing draft. */
+/** Approved progress with no billing link - ready for progress billing draft. */
 export async function collectBoqProgressReadyToBill(
   ctx: CollectContext,
 ): Promise<CommandCenterItem[]> {

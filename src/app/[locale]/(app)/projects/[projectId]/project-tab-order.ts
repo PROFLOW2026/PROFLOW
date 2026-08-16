@@ -18,7 +18,7 @@ export type ProjectTabKey =
  * Business-priority order for project workspace tabs.
  *
  * Array order is encounter order at the reading-start edge (right in RTL,
- * left in LTR). Do not reverse this for Hebrew — CSS `dir` handles mirroring.
+ * left in LTR). Do not reverse this for Hebrew - CSS `dir` handles mirroring.
  */
 export const PROJECT_TAB_PRIORITY: readonly ProjectTabKey[] = [
   'overview',

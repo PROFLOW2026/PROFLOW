@@ -64,7 +64,7 @@ export interface ProjectDetail {
   readonly originalContractAmountLocked: boolean;
 }
 
-/** Header / tab chrome — no work-package, phase, or milestone rows. */
+/** Header / tab chrome - no work-package, phase, or milestone rows. */
 export type ProjectDetailChrome = Omit<
   ProjectDetail,
   'workPackages' | 'phases' | 'milestones' | 'showWorkPackages'

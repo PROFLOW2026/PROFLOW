@@ -132,7 +132,7 @@ export function VendorPaymentPanel({
                     <MoneyText value={money(payment.amount, payment.currency)} />
                   </TableCell>
                   <TableCell className="max-w-[10rem] truncate text-sm">
-                    {[payment.method, payment.reference].filter(Boolean).join(' · ') || '—'}
+                    {[payment.method, payment.reference].filter(Boolean).join(' · ') || '-'}
                   </TableCell>
                   <TableCell>{t(`statuses.${payment.status}`)}</TableCell>
                   <TableCell>
@@ -145,7 +145,7 @@ export function VendorPaymentPanel({
                         </Button>
                       </form>
                     ) : (
-                      '—'
+                      '-'
                     )}
                   </TableCell>
                 </TableRow>

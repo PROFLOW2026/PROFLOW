@@ -1,6 +1,6 @@
 /**
  * Deep-link into an existing org reports section (`?section=`).
- * Not a second analytics engine — ids match ReportsAnalyticsView headings.
+ * Not a second analytics engine - ids match ReportsAnalyticsView headings.
  */
 
 export const REPORT_SECTIONS = [

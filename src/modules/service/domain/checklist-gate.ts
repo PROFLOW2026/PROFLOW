@@ -4,7 +4,7 @@ import { DomainRuleError } from '@/shared/errors';
  * Work-order checklist completion gate.
  *
  * `project_service_details.checklist_template_id` is the only persisted flag.
- * There is no `checklist_required` column yet — if a template is set, the
+ * There is no `checklist_required` column yet - if a template is set, the
  * checklist is required before status `completed`. See SCHEMA_REQUEST.md.
  */
 

@@ -545,7 +545,7 @@ describe('PRE-0021 Agent 1 financial/data integrity (patched)', () => {
         `),
       ).rejects.toThrow(/employee_project_assignments_overlap|23P01|Failed query/i);
 
-      // Different project overlapping dates — allowed.
+      // Different project overlapping dates - allowed.
       await db.execute(sql`
         INSERT INTO employee_project_assignments (
           organization_id, project_id, employee_id, start_date, end_date, status
@@ -553,7 +553,7 @@ describe('PRE-0021 Agent 1 financial/data integrity (patched)', () => {
         VALUES (${orgId}, ${projectB.id}, ${employee.id}, '2026-02-01', '2026-04-30', 'active')
       `);
 
-      // Non-overlapping repeat on same project — allowed.
+      // Non-overlapping repeat on same project - allowed.
       await db.execute(sql`
         INSERT INTO employee_project_assignments (
           organization_id, project_id, employee_id, start_date, end_date, status
@@ -760,7 +760,7 @@ describe('PRE-0021 Agent 1 concurrency (two connections via PGlite socket)', () 
 });
 
 /**
- * Lead folded Agent 1 integrity into 0021 — assert required objects exist.
+ * Lead folded Agent 1 integrity into 0021 - assert required objects exist.
  */
 describe('PRE-0021 Agent 1 integrity present in 0021', () => {
   let database: TestDatabase;

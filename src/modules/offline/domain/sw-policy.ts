@@ -20,7 +20,7 @@ export const SHELL_NETWORK_FIRST_URLS = ['/manifest.webmanifest'] as const;
 
 /**
  * Path fragments that must never be SW-cached (sensitive financial surfaces).
- * Field offline is queue/draft based — not full-app financial page cache.
+ * Field offline is queue/draft based - not full-app financial page cache.
  */
 export const SENSITIVE_FINANCIAL_PATH_MARKERS = [
   '/billing',

@@ -1,6 +1,6 @@
 /**
  * Field forms / checklists / acknowledgement capture (next-gen forms module).
- * Signature = acknowledgement only — not legal e-signature compliance.
+ * Signature = acknowledgement only - not legal e-signature compliance.
  */
 
 export const FORM_OWNER_TYPES = [
@@ -87,7 +87,7 @@ export interface FormSubmissionListItem extends FormSubmissionRecord {
   readonly templateName: string;
 }
 
-/** Photo field answer shape — document IDs via existing documents module. */
+/** Photo field answer shape - document IDs via existing documents module. */
 export interface FormPhotoAnswer {
   readonly documentIds: readonly string[];
 }

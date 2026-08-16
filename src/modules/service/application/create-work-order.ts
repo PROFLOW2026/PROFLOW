@@ -105,7 +105,7 @@ export async function createWorkOrder(
         role: 'assignee',
       });
     } catch {
-      // Team assign requires workforce.manage — WO still created; assignee is best-effort.
+      // Team assign requires workforce.manage - WO still created; assignee is best-effort.
     }
   }
 

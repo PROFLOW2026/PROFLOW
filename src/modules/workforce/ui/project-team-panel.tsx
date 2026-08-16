@@ -18,7 +18,7 @@ export interface ProjectTeamPanelProps {
 
 /**
  * Project → צוות tab: assignment roster only.
- * Assignment ≠ labor Actual — adding a member never creates cost.
+ * Assignment ≠ labor Actual - adding a member never creates cost.
  */
 export async function ProjectTeamPanel({ projectId }: ProjectTeamPanelProps) {
   const t = await getTranslations('workforce');

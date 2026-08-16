@@ -5,7 +5,7 @@ import type { BankMatchTargetKind } from './types';
  * Tests and decide-match call sites assert this.
  */
 export function assertBankMatchDoesNotMutateFinancials(): void {
-  // Intentional no-op — presence documents the invariant.
+  // Intentional no-op - presence documents the invariant.
 }
 
 /** Bank match decisions are never Actual Cost recognition. */
@@ -20,7 +20,7 @@ export function isBankMatchCreatingProjectCost(): false {
 
 /**
  * When a bank debit is matched to a vendor payment (or a vendor bill that already
- * recognizes Actual), the reconciliation is cash only — never project cost.
+ * recognizes Actual), the reconciliation is cash only - never project cost.
  */
 export function shouldRecognizeBankTxnAsProjectCost(input: {
   readonly targetKind: BankMatchTargetKind | null;

@@ -1,5 +1,5 @@
 /**
- * Lightweight optional approvals — threshold rules, not a workflow engine.
+ * Lightweight optional approvals - threshold rules, not a workflow engine.
  */
 
 export const APPROVAL_ENTITY_TYPES = [

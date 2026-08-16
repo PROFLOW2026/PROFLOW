@@ -1,5 +1,5 @@
 /**
- * BOQ CSV preview helpers — decimal normalization, blank/total detection.
+ * BOQ CSV preview helpers - decimal normalization, blank/total detection.
  * Framework-free; used by validation + confirm (never invents money rules).
  */
 

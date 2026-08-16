@@ -22,7 +22,7 @@ describe('AP bill NET / VAT / GROSS labels', () => {
     expect(screen.getByText(heAp.detail.net)).toBeInTheDocument();
     expect(screen.getByText(heAp.detail.tax)).toBeInTheDocument();
     expect(screen.getByText(heAp.detail.gross)).toBeInTheDocument();
-    expect(screen.getByText('לא פוצל מע״מ היסטורית — עלות=סכום מלא')).toBeInTheDocument();
+    expect(screen.getByText('לא פוצל מע״מ היסטורית - עלות=סכום מלא')).toBeInTheDocument();
   });
 
   it('shows canonical split labels in English', () => {

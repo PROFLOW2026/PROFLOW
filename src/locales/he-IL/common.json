@@ -86,7 +86,7 @@
     "offline": "נראה שאין חיבור לאינטרנט."
   },
   "pagination": {
-    "showing": "מוצג {from}–{to} מתוך {total}",
+    "showing": "מוצג {from}-{to} מתוך {total}",
     "page": "עמוד {page}",
     "rowsPerPage": "שורות בעמוד"
   },

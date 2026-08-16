@@ -43,7 +43,7 @@ function scheduledWindow(
   occurrenceDate: string,
   durationMinutes: number | null | undefined,
 ): { start: Date; end: Date | null } {
-  // Noon UTC on the business date — schedule display is refined by Agent 6 dispatch UX.
+  // Noon UTC on the business date - schedule display is refined by Agent 6 dispatch UX.
   const [y, m, d] = occurrenceDate.split('-').map(Number) as [number, number, number];
   const start = new Date(Date.UTC(y, m - 1, d, 12, 0, 0));
   if (!durationMinutes || durationMinutes < 1) {
@@ -57,7 +57,7 @@ function scheduledWindow(
  * Creates a draft work_order + service details for one occurrence.
  *
  * HARD RULE: never upserts contract / never writes expense / attendance Actual.
- * Template fixed price stays on the recurrence definition only — generated rows
+ * Template fixed price stays on the recurrence definition only - generated rows
  * use open pricing so no silent revenue basis.
  */
 async function createDraftWorkOrderForOccurrence(
@@ -84,10 +84,10 @@ async function createDraftWorkOrderForOccurrence(
     .insert(projects)
     .values({
       organizationId: context.organizationId,
-      name: `${definition.title} — ${occurrenceDate}`,
+      name: `${definition.title} - ${occurrenceDate}`,
       status: 'draft',
       workKind: 'work_order',
-      // Open until a human sets revenue — never auto-contract from template price.
+      // Open until a human sets revenue - never auto-contract from template price.
       pricingMode: 'open',
       clientId: definition.clientId,
       currency: null,

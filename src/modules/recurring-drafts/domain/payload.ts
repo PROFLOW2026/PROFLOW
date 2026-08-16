@@ -124,7 +124,7 @@ export function vendorBillDraftInsertFromPayload(
 
   const noteParts = [
     data.notes?.trim() || null,
-    `Generated from recurring draft “${templateTitle}”. Draft only — not posted.`,
+    `Generated from recurring draft “${templateTitle}”. Draft only - not posted.`,
   ].filter(Boolean);
 
   return {

@@ -13,7 +13,7 @@ export type CashFlowBucketKey = 'overdue' | 'next_7' | 'next_30' | 'later' | 'un
 
 export interface CashFlowBucket {
   readonly key: CashFlowBucketKey;
-  /** Forecast expected incoming from Outstanding due dates — not Paid. */
+  /** Forecast expected incoming from Outstanding due dates - not Paid. */
   readonly expectedIn: MoneyValue;
   readonly count: number;
 }
@@ -45,7 +45,7 @@ export type CashFlowOutgoingCoverage =
 
 export interface CashFlowOutgoingBucket {
   readonly key: CashFlowBucketKey;
-  /** Forecast expected outgoing from open AP bill due dates — not Expense actual. */
+  /** Forecast expected outgoing from open AP bill due dates - not Expense actual. */
   readonly expectedOut: MoneyValue;
   readonly count: number;
 }
@@ -54,9 +54,9 @@ export interface CashFlowOutlook {
   readonly currency: string;
   readonly asOf: BusinessDate;
   readonly horizonEnd: BusinessDate;
-  /** Paid collected in [actual.rangeStart, actual.rangeEnd] — Actual, not Forecast. */
+  /** Paid collected in [actual.rangeStart, actual.rangeEnd] - Actual, not Forecast. */
   readonly actual: CashFlowActualCollected;
-  /** Expected incoming from Outstanding due dates — Forecast, not Paid. */
+  /** Expected incoming from Outstanding due dates - Forecast, not Paid. */
   readonly forecastBuckets: readonly CashFlowBucket[];
   /**
    * @deprecated Prefer `forecastBuckets`. Kept as an alias for call sites that
@@ -74,10 +74,10 @@ export interface CollectedPaymentInput {
 }
 
 export const OUTGOING_NO_AP_DISCLOSURE =
-  'Outgoing cash is not forecast here: no open AP bills with due dates are in scope. Finalized expenses alone are cost records — AP invoices are not invented from expenses.';
+  'Outgoing cash is not forecast here: no open AP bills with due dates are in scope. Finalized expenses alone are cost records - AP invoices are not invented from expenses.';
 
 export const OUTGOING_AP_FORECAST_NOTE =
-  'Forecast outgoing — recognized AP bills by due date using cash outstanding after vendor payments. Not Expense actual cost. Draft/void and fully paid bills excluded.';
+  'Forecast outgoing - recognized AP bills by due date using cash outstanding after vendor payments. Not Expense actual cost. Draft/void and fully paid bills excluded.';
 
 export interface ApBillCashInput {
   readonly status: string;
@@ -153,10 +153,10 @@ export function computeOutgoingCashOutlook(
 }
 
 export const FORECAST_NOTE =
-  'Forecast only — based on Outstanding billing due dates (credit notes net into undated). Not Paid. Undated Outstanding stays explicit. Does not invent collection precision.';
+  'Forecast only - based on Outstanding billing due dates (credit notes net into undated). Not Paid. Undated Outstanding stays explicit. Does not invent collection precision.';
 
 export const ACTUAL_NOTE =
-  'Actual — Paid collected in the stated payment-date range. Not a Forecast.';
+  'Actual - Paid collected in the stated payment-date range. Not a Forecast.';
 
 /**
  * Expected incoming cash from Outstanding billing with due dates.

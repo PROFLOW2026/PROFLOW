@@ -1,6 +1,6 @@
 /**
  * Org-owned structure templates (doc 36).
- * Stored as copies in organization_settings — never live-linked to projects.
+ * Stored as copies in organization_settings - never live-linked to projects.
  */
 
 import { z } from 'zod';
@@ -87,7 +87,7 @@ export function previewOrgStructureTemplate(
   };
 }
 
-/** Deep clone for apply — no shared refs with the stored bag. */
+/** Deep clone for apply - no shared refs with the stored bag. */
 export function cloneOrgStructureTemplateForApply(template: OrgStructureTemplate): {
   readonly workPackages: readonly { readonly name: string; readonly phases: readonly string[] }[];
   readonly milestones: readonly {

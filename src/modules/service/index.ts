@@ -1,4 +1,4 @@
-/** Service module — work orders / dispatch (Agent 6) + recurrence (Agent 7). */
+/** Service module - work orders / dispatch (Agent 6) + recurrence (Agent 7). */
 
 export { createWorkOrder } from './application/create-work-order';
 export { updateWorkOrder, updateServiceStatus } from './application/update-work-order';

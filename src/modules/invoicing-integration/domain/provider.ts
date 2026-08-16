@@ -93,7 +93,7 @@ export interface AllocateExternalReferenceOutput {
 export interface StatutoryInvoicingProvider {
   readonly id: string;
   isConfigured(): boolean;
-  /** False until a real provider connection is wired — keeps the product surface off. */
+  /** False until a real provider connection is wired - keeps the product surface off. */
   isFeatureEnabled(): boolean;
   createDocument(
     input: CreateExternalDocumentInput,

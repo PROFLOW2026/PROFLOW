@@ -15,7 +15,7 @@ import type { Locale } from '@/shared/i18n/config';
  * Lives outside `[locale]` so next-intl cannot rewrite this URL via Accept-Language.
  * Locale comes from the email link (`locale=`), then the NEXT_LOCALE cookie,
  * then sign-up `locale_preference` metadata, then the product default (`he-IL`)
- * — never from the browser language header alone.
+ * - never from the browser language header alone.
  */
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = request.nextUrl;

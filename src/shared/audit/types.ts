@@ -1,4 +1,4 @@
-/** Client-safe audit list DTOs — no Drizzle. */
+/** Client-safe audit list DTOs - no Drizzle. */
 
 export interface AuditEventSummary {
   readonly id: string;

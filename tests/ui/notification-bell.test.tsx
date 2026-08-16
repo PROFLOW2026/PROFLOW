@@ -46,7 +46,7 @@ const unreadInbox: NotificationInboxDto = {
       id: '018f1234-5678-7abc-8def-0123456789aa',
       type: 'billing_overdue',
       domain: 'billing',
-      title: 'חיוב לקוח באיחור — INV-1',
+      title: 'חיוב לקוח באיחור - INV-1',
       body: 'יתרה פתוחה',
       severity: 'urgent',
       deepLink: '/billing/1',
@@ -57,7 +57,7 @@ const unreadInbox: NotificationInboxDto = {
       id: '018f1234-5678-7abc-8def-0123456789ab',
       type: 'ap_overdue',
       domain: 'ap',
-      title: 'חשבון ספק באיחור — BILL-9',
+      title: 'חשבון ספק באיחור - BILL-9',
       body: 'עבר את מועד הפירעון',
       severity: 'warning',
       deepLink: '/procurement/ap/2',
@@ -94,8 +94,8 @@ describe('notification bell', () => {
     expect(screen.getByText('2')).toBeVisible();
 
     await user.click(trigger);
-    expect(await screen.findByText('חיוב לקוח באיחור — INV-1')).toBeVisible();
-    expect(screen.getByText('חשבון ספק באיחור — BILL-9')).toBeVisible();
+    expect(await screen.findByText('חיוב לקוח באיחור - INV-1')).toBeVisible();
+    expect(screen.getByText('חשבון ספק באיחור - BILL-9')).toBeVisible();
     expect(screen.getByText('2 התראות שלא נקראו')).toBeVisible();
   });
 });

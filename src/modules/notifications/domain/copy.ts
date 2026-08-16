@@ -16,17 +16,17 @@ export function notificationCopy(
     switch (type) {
       case 'billing_overdue':
         return {
-          title: ref ? `חיוב לקוח באיחור — ${ref}` : 'חיוב לקוח באיחור',
+          title: ref ? `חיוב לקוח באיחור - ${ref}` : 'חיוב לקוח באיחור',
           body: extra ? `יתרה פתוחה · ${extra}` : 'חיוב סופי עם יתרה שטרם נפרעה.',
         };
       case 'ap_due_soon':
         return {
-          title: ref ? `חשבון ספק מתקרב לפירעון — ${ref}` : 'חשבון ספק מתקרב לפירעון',
+          title: ref ? `חשבון ספק מתקרב לפירעון - ${ref}` : 'חשבון ספק מתקרב לפירעון',
           body: extra ? `לתשלום עד ${extra}` : 'פירעון בתוך שבעה ימים.',
         };
       case 'ap_overdue':
         return {
-          title: ref ? `חשבון ספק באיחור — ${ref}` : 'חשבון ספק באיחור',
+          title: ref ? `חשבון ספק באיחור - ${ref}` : 'חשבון ספק באיחור',
           body: extra ? `עבר את מועד הפירעון ${extra}` : 'חשבון ספק שעבר את מועד הפירעון.',
         };
       case 'approval_waiting':
@@ -46,12 +46,12 @@ export function notificationCopy(
         };
       case 'document_expiring':
         return {
-          title: ref ? `מסמך שפג תוקף בקרוב — ${ref}` : 'מסמך שפג תוקף בקרוב',
+          title: ref ? `מסמך שפג תוקף בקרוב - ${ref}` : 'מסמך שפג תוקף בקרוב',
           body: extra ? `תוקף עד ${extra}` : 'יש לחדש או להחליף את המסמך.',
         };
       case 'task_overdue':
         return {
-          title: ref ? `משימה באיחור — ${ref}` : 'משימה באיחור',
+          title: ref ? `משימה באיחור - ${ref}` : 'משימה באיחור',
           body: extra ? `יעד ${extra}` : 'פריט תכנון שעבר את תאריך היעד.',
         };
       case 'boq_awaiting_approval':
@@ -61,22 +61,22 @@ export function notificationCopy(
         };
       case 'work_order_assigned':
         return {
-          title: ref ? `שובצת לקריאת שירות — ${ref}` : 'שובצת לקריאת שירות',
+          title: ref ? `שובצת לקריאת שירות - ${ref}` : 'שובצת לקריאת שירות',
           body: 'קריאת שירות שויכה אליך.',
         };
       case 'punch_assigned':
         return {
-          title: ref ? `שובצת לפריט תיקון — ${ref}` : 'שובצת לפריט תיקון',
+          title: ref ? `שובצת לפריט תיקון - ${ref}` : 'שובצת לפריט תיקון',
           body: 'פריט תיקון שויך אליך.',
         };
       case 'low_stock':
         return {
-          title: ref ? `מלאי נמוך — ${ref}` : 'מלאי נמוך',
+          title: ref ? `מלאי נמוך - ${ref}` : 'מלאי נמוך',
           body: extra ? extra : 'הכמות במלאי ירדה מתחת לסף.',
         };
       case 'safety_action_due':
         return {
-          title: ref ? `פעולת בטיחות לטיפול — ${ref}` : 'פעולת בטיחות לטיפול',
+          title: ref ? `פעולת בטיחות לטיפול - ${ref}` : 'פעולת בטיחות לטיפול',
           body: extra ? `יעד ${extra}` : 'פעולה מתקנת שעברה את המועד.',
         };
     }
@@ -85,17 +85,17 @@ export function notificationCopy(
   switch (type) {
     case 'billing_overdue':
       return {
-        title: ref ? `Overdue customer billing — ${ref}` : 'Overdue customer billing',
+        title: ref ? `Overdue customer billing - ${ref}` : 'Overdue customer billing',
         body: extra ? `Outstanding ${extra}` : 'Finalized billing still has an outstanding balance.',
       };
     case 'ap_due_soon':
       return {
-        title: ref ? `Vendor bill due soon — ${ref}` : 'Vendor bill due soon',
+        title: ref ? `Vendor bill due soon - ${ref}` : 'Vendor bill due soon',
         body: extra ? `Due ${extra}` : 'Due within seven days.',
       };
     case 'ap_overdue':
       return {
-        title: ref ? `Vendor bill overdue — ${ref}` : 'Vendor bill overdue',
+        title: ref ? `Vendor bill overdue - ${ref}` : 'Vendor bill overdue',
         body: extra ? `Past due since ${extra}` : 'Vendor bill is past its due date.',
       };
     case 'approval_waiting':
@@ -115,12 +115,12 @@ export function notificationCopy(
       };
     case 'document_expiring':
       return {
-        title: ref ? `Document expiring — ${ref}` : 'Document expiring',
+        title: ref ? `Document expiring - ${ref}` : 'Document expiring',
         body: extra ? `Expires ${extra}` : 'Renew or replace this document.',
       };
     case 'task_overdue':
       return {
-        title: ref ? `Overdue task — ${ref}` : 'Overdue task',
+        title: ref ? `Overdue task - ${ref}` : 'Overdue task',
         body: extra ? `Target ${extra}` : 'A planning item is past its target date.',
       };
     case 'boq_awaiting_approval':
@@ -130,22 +130,22 @@ export function notificationCopy(
       };
     case 'work_order_assigned':
       return {
-        title: ref ? `Work order assigned — ${ref}` : 'Work order assigned',
+        title: ref ? `Work order assigned - ${ref}` : 'Work order assigned',
         body: 'A work order was assigned to you.',
       };
     case 'punch_assigned':
       return {
-        title: ref ? `Punch item assigned — ${ref}` : 'Punch item assigned',
+        title: ref ? `Punch item assigned - ${ref}` : 'Punch item assigned',
         body: 'A punch list item was assigned to you.',
       };
     case 'low_stock':
       return {
-        title: ref ? `Low stock — ${ref}` : 'Low stock',
+        title: ref ? `Low stock - ${ref}` : 'Low stock',
         body: extra ?? 'On-hand quantity is at or below the reorder threshold.',
       };
     case 'safety_action_due':
       return {
-        title: ref ? `Safety action due — ${ref}` : 'Safety action due',
+        title: ref ? `Safety action due - ${ref}` : 'Safety action due',
         body: extra ? `Due ${extra}` : 'A corrective action is past due.',
       };
   }

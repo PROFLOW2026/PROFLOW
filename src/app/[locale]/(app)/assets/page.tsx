@@ -212,12 +212,12 @@ export default async function AssetsPage() {
                             {item.identifier}
                           </span>
                         ) : (
-                          '—'
+                          '-'
                         )}
                       </TableCell>
-                      <TableCell>{item.manufacturer ?? '—'}</TableCell>
-                      <TableCell>{item.model ?? '—'}</TableCell>
-                      <TableCell>{item.assignedProjectName ?? '—'}</TableCell>
+                      <TableCell>{item.manufacturer ?? '-'}</TableCell>
+                      <TableCell>{item.model ?? '-'}</TableCell>
+                      <TableCell>{item.assignedProjectName ?? '-'}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

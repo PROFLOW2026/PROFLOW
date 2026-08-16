@@ -23,7 +23,7 @@ export const inAppChannel: NotificationChannelAdapter = {
   },
 };
 
-/** Intentionally unimplemented — do not wire SMTP or web-push here. */
+/** Intentionally unimplemented - do not wire SMTP or web-push here. */
 export const emailChannel: NotificationChannelAdapter = {
   channel: 'email',
   async deliver() {
@@ -31,7 +31,7 @@ export const emailChannel: NotificationChannelAdapter = {
   },
 };
 
-/** Intentionally unimplemented — do not wire device push here. */
+/** Intentionally unimplemented - do not wire device push here. */
 export const pushChannel: NotificationChannelAdapter = {
   channel: 'push',
   async deliver() {

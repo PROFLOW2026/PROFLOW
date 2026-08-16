@@ -9,7 +9,7 @@ import { he } from '../fixtures/locales';
 
 /**
  * Targeted business-flow coverage for Projects / Jobs IA (Agent 4).
- * createJob persistence is Agent 2 — this suite asserts nav, Hebrew copy,
+ * createJob persistence is Agent 2 - this suite asserts nav, Hebrew copy,
  * RTL mobile create path, and money presentation.
  */
 
@@ -42,7 +42,7 @@ test.describe('jobs navigation and mobile path', () => {
     await expect(page.getByText(he.projects.create.managedOpeningPreviewLabel)).toHaveCount(0);
 
     await page.getByLabel(he.jobs.create.nameLabel).first().fill('תיקון מזגן בדיקה');
-    await page.getByLabel(he.jobs.create.clientNew).first().fill('מזדמן — בדיקה');
+    await page.getByLabel(he.jobs.create.clientNew).first().fill('מזדמן - בדיקה');
     await page.getByLabel(he.jobs.pricing.priceLabel).first().fill('2500');
 
     const sampleMoney = formatMoney({ amount: '52000', currency: 'ILS' }, 'he-IL');

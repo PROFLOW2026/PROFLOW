@@ -5,7 +5,7 @@ export interface ResponsiveTableProps<T> {
   /** Rows shared by the desktop table and mobile cards. */
   readonly items: readonly T[];
   readonly getRowKey: (item: T) => string;
-  /** Full table markup for lg+ viewports — typically `<Table>…</Table>`. */
+  /** Full table markup for lg+ viewports - typically `<Table>…</Table>`. */
   readonly desktop: ReactNode;
   readonly renderMobileCard: (item: T) => ReactNode;
   readonly mobileListClassName?: string;

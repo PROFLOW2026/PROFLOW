@@ -33,7 +33,7 @@ import {
 
 /**
  * App-layer gates for `ap_bill_project_allocations`.
- * Membership alone must never authorize bill project slices — AP_READ / AP_MANAGE only.
+ * Membership alone must never authorize bill project slices - AP_READ / AP_MANAGE only.
  */
 
 export function assertCanReadBillProjectAllocations(context: OrgContext): void {

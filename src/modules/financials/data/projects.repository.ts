@@ -123,7 +123,7 @@ export async function findProjectCurrency(
 
 /**
  * Project currency + uncovenanted expected remaining cost (ETC) for forecast.
- * Null ETC amount means zero — never invent a budget from contract/actual.
+ * Null ETC amount means zero - never invent a budget from contract/actual.
  * Includes work_kind / pricing_mode for open-price profit gating.
  */
 export async function findProjectForecastInputs(

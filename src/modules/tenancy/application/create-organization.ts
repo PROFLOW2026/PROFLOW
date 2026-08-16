@@ -20,7 +20,7 @@ import {
  *
  * Everything happens in one transaction: organization, the founder's active
  * membership, cloned role templates, the owner grant and the audit entry. A
- * partially provisioned tenant — an organization nobody can administer — must
+ * partially provisioned tenant - an organization nobody can administer - must
  * never be reachable.
  *
  * Onboarding asks for a name, country, optional business profile, and work mix.

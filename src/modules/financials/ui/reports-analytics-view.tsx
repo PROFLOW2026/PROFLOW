@@ -482,7 +482,7 @@ export async function ReportsAnalyticsView({
                     </TableCell>
                     {rollup.canReadCommercial ? (
                       <TableCell>
-                        {row.currentContract ? <MoneyText value={row.currentContract} /> : '—'}
+                        {row.currentContract ? <MoneyText value={row.currentContract} /> : '-'}
                       </TableCell>
                     ) : null}
                     {rollup.canReadBilling ? (
@@ -490,26 +490,26 @@ export async function ReportsAnalyticsView({
                         {row.outstanding ? (
                           <MoneyText value={row.outstanding} colorizeNegative />
                         ) : (
-                          '—'
+                          '-'
                         )}
                       </TableCell>
                     ) : null}
                     <TableCell>
-                      {row.actualCost ? <MoneyText value={row.actualCost} /> : '—'}
+                      {row.actualCost ? <MoneyText value={row.actualCost} /> : '-'}
                     </TableCell>
                     <TableCell>
-                      {row.committedOpen ? <MoneyText value={row.committedOpen} /> : '—'}
+                      {row.committedOpen ? <MoneyText value={row.committedOpen} /> : '-'}
                     </TableCell>
                     {rollup.canReadProfit ? (
                       <TableCell>
                         {row.estimatedProfit ? (
                           <MoneyText value={row.estimatedProfit} colorizeNegative />
                         ) : (
-                          '—'
+                          '-'
                         )}
                       </TableCell>
                     ) : null}
-                    <TableCell>{row.progressPercent ? `${row.progressPercent}%` : '—'}</TableCell>
+                    <TableCell>{row.progressPercent ? `${row.progressPercent}%` : '-'}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -523,7 +523,7 @@ export async function ReportsAnalyticsView({
               <div className="flex items-start justify-between gap-2">
                 <span className="min-w-0 flex-1 break-words font-semibold">{row.name}</span>
                 <span className="shrink-0 text-sm text-[var(--pf-text-secondary)]">
-                  {row.progressPercent ? `${row.progressPercent}%` : '—'}
+                  {row.progressPercent ? `${row.progressPercent}%` : '-'}
                 </span>
               </div>
               <dl className="mt-3 grid min-w-0 grid-cols-1 gap-2 text-sm sm:grid-cols-2">
@@ -533,7 +533,7 @@ export async function ReportsAnalyticsView({
                       {tFinancial('currentContractValue')}
                     </dt>
                     <dd className="min-w-0 max-w-full overflow-x-auto">
-                      {row.currentContract ? <MoneyText value={row.currentContract} /> : '—'}
+                      {row.currentContract ? <MoneyText value={row.currentContract} /> : '-'}
                     </dd>
                   </div>
                 ) : null}
@@ -546,7 +546,7 @@ export async function ReportsAnalyticsView({
                       {row.outstanding ? (
                         <MoneyText value={row.outstanding} colorizeNegative />
                       ) : (
-                        '—'
+                        '-'
                       )}
                     </dd>
                   </div>
@@ -556,7 +556,7 @@ export async function ReportsAnalyticsView({
                     {tFinancial('actualCostToDate')}
                   </dt>
                   <dd className="min-w-0 max-w-full overflow-x-auto">
-                    {row.actualCost ? <MoneyText value={row.actualCost} /> : '—'}
+                    {row.actualCost ? <MoneyText value={row.actualCost} /> : '-'}
                   </dd>
                 </div>
                 <div className="min-w-0">
@@ -564,7 +564,7 @@ export async function ReportsAnalyticsView({
                     {tFinancial('committedOpen')}
                   </dt>
                   <dd className="min-w-0 max-w-full overflow-x-auto">
-                    {row.committedOpen ? <MoneyText value={row.committedOpen} /> : '—'}
+                    {row.committedOpen ? <MoneyText value={row.committedOpen} /> : '-'}
                   </dd>
                 </div>
                 {rollup.canReadProfit ? (
@@ -576,7 +576,7 @@ export async function ReportsAnalyticsView({
                       {row.estimatedProfit ? (
                         <MoneyText value={row.estimatedProfit} colorizeNegative />
                       ) : (
-                        '—'
+                        '-'
                       )}
                     </dd>
                   </div>

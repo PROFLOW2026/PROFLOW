@@ -88,11 +88,11 @@ export default async function RecurringDetailPage({
         </div>
         <div>
           <dt className="text-xs text-[var(--pf-text-secondary)]">{t('list.columns.next')}</dt>
-          <dd dir="ltr">{definition.nextOccurrenceDate ?? '—'}</dd>
+          <dd dir="ltr">{definition.nextOccurrenceDate ?? '-'}</dd>
         </div>
         <div>
           <dt className="text-xs text-[var(--pf-text-secondary)]">{t('fields.siteAddress')}</dt>
-          <dd>{definition.siteAddress ?? '—'}</dd>
+          <dd>{definition.siteAddress ?? '-'}</dd>
         </div>
         <div>
           <dt className="text-xs text-[var(--pf-text-secondary)]">{t('fields.startDate')}</dt>
@@ -162,7 +162,7 @@ export default async function RecurringDetailPage({
                           {row.skippedReason}
                         </span>
                       ) : (
-                        '—'
+                        '-'
                       )}
                     </TableCell>
                   </TableRow>

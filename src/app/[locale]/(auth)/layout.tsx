@@ -20,7 +20,7 @@ export default async function AuthLayout({ children }: { children: ReactNode }) 
           {children}
         </div>
 
-        {/* Pre-login install — no account required (LEO-style discoverability). */}
+        {/* Pre-login install - no account required (LEO-style discoverability). */}
         <PwaInstallCta variant="auth" />
       </div>
     </WithClientMessages>

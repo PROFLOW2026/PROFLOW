@@ -82,7 +82,7 @@ export interface ExpenseFormProps {
   readonly vendors?: readonly VendorOption[];
   /**
    * Org default percentage tax rate for live נטו / מע״מ / סה״כ preview.
-   * From resolveApplicableDefaultTax — never a hardcoded Israeli rate.
+   * From resolveApplicableDefaultTax - never a hardcoded Israeli rate.
    */
   readonly taxRatePercent?: string | null;
   readonly readOnly?: boolean;

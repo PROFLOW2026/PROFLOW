@@ -60,7 +60,7 @@ describe('project team assignment ≠ Actual', () => {
     expect(source).toContain('updateEmployeeProjectAssignmentById');
     expect(source).not.toContain('projectTeamMembers');
     for (const pattern of FORBIDDEN_REPO_PATTERNS) {
-      // Hours are read for secondary UI display in list helpers — insert path must stay clean.
+      // Hours are read for secondary UI display in list helpers - insert path must stay clean.
       if (pattern === 'timeEntries') {
         expect(source).toContain('from(timeEntries)');
         expect(source).not.toMatch(/\.insert\(timeEntries\)/);

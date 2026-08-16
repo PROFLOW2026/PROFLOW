@@ -27,6 +27,6 @@ describe('forecast locale keys', () => {
     expect(heClass.confirmed).toBe('מאומת');
     expect(heClass.projected).toBe('צפוי');
     expect(heClass.missing_data).toBe('חסרים נתונים');
-    expect(en.recommendationNote).toBe('Recommendation — not accounting truth.');
+    expect(en.recommendationNote).toBe('Recommendation - not accounting truth.');
   });
 });

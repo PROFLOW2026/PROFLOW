@@ -196,7 +196,7 @@ export function RetentionPanel({
                           <MoneyText value={money(row.amount, row.currency)} />
                         </TableCell>
                         <TableCell className="max-w-[16rem] truncate text-sm">
-                          {row.notes ?? '—'}
+                          {row.notes ?? '-'}
                         </TableCell>
                       </TableRow>
                     ))}

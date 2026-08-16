@@ -26,7 +26,7 @@ function dateNumFmt(locale: Locale): string {
 
 /**
  * Build a UTF-8 XLSX workbook (Hebrew-safe). One sheet per table.
- * Does not aggregate across currencies — callers must not mix FX totals.
+ * Does not aggregate across currencies - callers must not mix FX totals.
  */
 export async function tablesToXlsx(
   tables: readonly ExportTable[],

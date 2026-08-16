@@ -38,7 +38,7 @@ export function detectConflict(
   if (!draft.serverId || !server) return false;
   if (draft.serverId !== server.serverId) return false;
   if (!draft.serverUpdatedAt) {
-    // Linked to a server row but we never captured a baseline — treat as conflict
+    // Linked to a server row but we never captured a baseline - treat as conflict
     // so we do not push blindly over unknown server state.
     return true;
   }
@@ -54,7 +54,7 @@ export function shouldBlockAutoSync(
 }
 
 /**
- * Pure transition helper — does not mutate storage.
+ * Pure transition helper - does not mutate storage.
  * Resolving a conflict never writes to the server; it only adjusts local state.
  */
 export function applyConflictResolution(
@@ -93,7 +93,7 @@ export function isConflictStatus(status: SyncStatus): boolean {
 
 /**
  * Building a sync payload that would mutate an existing server row requires
- * either no conflict or an explicit confirmation — never implicit last-write-wins.
+ * either no conflict or an explicit confirmation - never implicit last-write-wins.
  */
 export function canPrepareServerMutation(
   draft: Pick<OfflineDraftRecord, 'serverId' | 'serverUpdatedAt' | 'syncStatus'>,
@@ -106,7 +106,7 @@ export function canPrepareServerMutation(
     return options.userConfirmedOverwrite;
   }
   if (!draft.serverId) {
-    // Create-candidate — safe to enqueue; server still validates.
+    // Create-candidate - safe to enqueue; server still validates.
     return true;
   }
   if (detectConflict(draft, server)) {

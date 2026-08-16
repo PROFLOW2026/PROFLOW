@@ -1,5 +1,5 @@
 /**
- * Planning V1 — work items, dependencies, milestones (doc 22 Layer A+).
+ * Planning V1 - work items, dependencies, milestones (doc 22 Layer A+).
  * Framework-free. Persistence lands via Lead SCHEMA_REQUEST → 0020+.
  */
 
@@ -94,7 +94,7 @@ export interface GanttModel {
 
 /**
  * Non-authoritative longest-path scaffolding only.
- * See LIMITATION.md — not a true Critical Path Method result.
+ * See LIMITATION.md - not a true Critical Path Method result.
  */
 export interface CriticalPathFoundation {
   readonly supported: false;

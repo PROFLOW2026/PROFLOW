@@ -49,7 +49,7 @@ const setCategoryPolicySchema = z.object({
   defaultPeriodBehavior: periodBehaviorSchema.nullable(),
 });
 
-/** @deprecated Use setCostCategoryPolicy — kept for call-site compatibility. */
+/** @deprecated Use setCostCategoryPolicy - kept for call-site compatibility. */
 const setDefaultAllocationMethodSchema = z.object({
   categoryId: z.string().uuid(),
   defaultAllocationMethod: allocationMethodSchema.nullable(),

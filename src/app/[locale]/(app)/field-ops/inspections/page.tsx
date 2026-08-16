@@ -148,7 +148,7 @@ export default async function FieldOpsInspectionsPage({
                           {item.title}
                         </Link>
                       </TableCell>
-                      <TableCell>{projectName.get(item.projectId) ?? '—'}</TableCell>
+                      <TableCell>{projectName.get(item.projectId) ?? '-'}</TableCell>
                       <TableCell>{t(`kinds.${item.kind}` as 'kinds.general')}</TableCell>
                       <TableCell>
                         <StatusBadge
@@ -156,14 +156,14 @@ export default async function FieldOpsInspectionsPage({
                           label={tStatus(item.status)}
                         />
                       </TableCell>
-                      <TableCell className="max-w-xs truncate">{item.result ?? '—'}</TableCell>
+                      <TableCell className="max-w-xs truncate">{item.result ?? '-'}</TableCell>
                       <TableCell>
                         {item.scheduledOn ? (
                           <span className="pf-ltr-island" dir="ltr">
                             {item.scheduledOn}
                           </span>
                         ) : (
-                          '—'
+                          '-'
                         )}
                       </TableCell>
                       {canManage ? (
@@ -194,7 +194,7 @@ export default async function FieldOpsInspectionsPage({
                 <StatusBadge shape={inspectionShape(item.status)} label={tStatus(item.status)} />
               </div>
               <p className="text-sm text-[var(--pf-text-secondary)]">
-                {projectName.get(item.projectId) ?? '—'} ·{' '}
+                {projectName.get(item.projectId) ?? '-'} ·{' '}
                 {t(`kinds.${item.kind}` as 'kinds.general')}
                 {item.scheduledOn ? (
                   <>

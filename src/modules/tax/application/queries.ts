@@ -32,7 +32,7 @@ export async function resolveTaxForDate(
 
 /**
  * Resolves the default tax rule for financial calculations (contracts, etc.).
- * Does not require TAX_MANAGE — callers must already be authorized for the
+ * Does not require TAX_MANAGE - callers must already be authorized for the
  * surrounding financial write.
  */
 export async function resolveApplicableDefaultTax(

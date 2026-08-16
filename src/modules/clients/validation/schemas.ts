@@ -18,7 +18,7 @@ export const createClientSchema = z
   .object({
     name: clientNameSchema,
     legalName: optionalText,
-    /** Company switchboard / office phone — not the contact person. */
+    /** Company switchboard / office phone - not the contact person. */
     email: z.preprocess(emptyToNull, z.string().trim().email().nullable().optional()),
     phone: optionalText,
     website: optionalText,

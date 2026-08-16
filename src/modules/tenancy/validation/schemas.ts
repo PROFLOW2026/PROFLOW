@@ -36,10 +36,10 @@ export const createOrganizationSchema = z.object({
   /** Preferred: business profile configuration preset (not a separate product). */
   businessProfile: z
     .preprocess(optionalPresetToken, z.enum(BUSINESS_PROFILE_KEYS).optional()),
-  /** Legacy profession catalog seed — mapped to a business profile when present. */
+  /** Legacy profession catalog seed - mapped to a business profile when present. */
   professionPreset: z
     .preprocess(optionalPresetToken, z.enum(PROFESSION_PRESET_KEYS).optional()),
-  /** Explicit work-mix choice after org create — not a separate product. */
+  /** Explicit work-mix choice after org create - not a separate product. */
   workMix: z.preprocess(optionalPresetToken, z.enum(WORK_MIXES).optional()),
 });
 

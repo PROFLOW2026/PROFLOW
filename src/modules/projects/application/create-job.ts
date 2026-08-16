@@ -18,7 +18,7 @@ export type CreateJobResult = CreateProjectResult;
  * - Open: no contract row / no fake zero revenue.
  * - Default work package is still created (engine invariant) but job UX hides it.
  * - Optional employeeIds write `employee_project_assignments` only.
- *   Assignment alone never creates labor Actual — only time entries do.
+ *   Assignment alone never creates labor Actual - only time entries do.
  */
 export async function createJob(
   context: OrgContext,

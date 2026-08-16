@@ -34,7 +34,7 @@ export interface ProjectForecastMeta {
 
 /**
  * Set-based project financials for org rollup / reports.
- * Same compose path as getProjectFinancials — O(1) query groups vs O(N) per project.
+ * Same compose path as getProjectFinancials - O(1) query groups vs O(N) per project.
  */
 export async function loadProjectFinancialsBatch(
   context: OrgContext,

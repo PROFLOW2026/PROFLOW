@@ -38,5 +38,5 @@ export async function SettingsPageShell({
 
 export async function settingsMetadata(sectionKey: string) {
   const t = await getTranslations('settings');
-  return { title: `${t(`sections.${sectionKey}`)} — ${t('title')}` };
+  return { title: `${t(`sections.${sectionKey}`)} - ${t('title')}` };
 }

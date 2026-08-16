@@ -2,7 +2,7 @@ import type { ExtractionJob, ExtractionJobStatus } from './types';
 
 /**
  * Active review queue only.
- * Terminal `succeeded` / `rejected` jobs belong in history — never here.
+ * Terminal `succeeded` / `rejected` jobs belong in history - never here.
  */
 export const OCR_REVIEW_SURFACE_STATUSES: readonly ExtractionJobStatus[] = [
   'queued',
@@ -13,7 +13,7 @@ export const OCR_REVIEW_SURFACE_STATUSES: readonly ExtractionJobStatus[] = [
 ];
 
 /**
- * Read-only OCR review history — completed / rejected / cancelled jobs.
+ * Read-only OCR review history - completed / rejected / cancelled jobs.
  * Not the active work queue.
  */
 export const OCR_REVIEW_HISTORY_STATUSES: readonly ExtractionJobStatus[] = [
@@ -22,7 +22,7 @@ export const OCR_REVIEW_HISTORY_STATUSES: readonly ExtractionJobStatus[] = [
   'cancelled',
 ];
 
-/** Inbox grouping on /documents/ocr-review — not history. */
+/** Inbox grouping on /documents/ocr-review - not history. */
 export const OCR_INBOX_TABS = ['waiting', 'processing', 'needs_review', 'failed'] as const;
 export type OcrInboxTab = (typeof OCR_INBOX_TABS)[number];
 

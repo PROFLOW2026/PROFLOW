@@ -22,7 +22,7 @@ import type {
 /**
  * Commercial value arithmetic (doc 04 §3, doc 05 §3).
  *
- * Change requests never move Current Contract Value — only change orders do,
+ * Change requests never move Current Contract Value - only change orders do,
  * via append-only contract value events. Pending changes are shown separately.
  */
 

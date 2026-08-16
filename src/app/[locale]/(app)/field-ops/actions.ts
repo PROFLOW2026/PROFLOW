@@ -28,7 +28,7 @@ export interface FieldOpsFormState {
   error?: string;
   fieldErrors?: Record<string, string>;
   success?: boolean;
-  /** Local draft queued — not server truth. */
+  /** Local draft queued - not server truth. */
   offlineQueued?: boolean;
 }
 

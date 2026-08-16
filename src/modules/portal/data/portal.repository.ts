@@ -147,7 +147,7 @@ export async function findGrantById(
 
   if (!row) return null;
   const grant = mapGrant(row);
-  // Defense in depth — repository already filters by org; assert traps misuse.
+  // Defense in depth - repository already filters by org; assert traps misuse.
   assertGrantBelongsToOrganization(grant, organizationId);
   return grant;
 }
@@ -359,7 +359,7 @@ export async function findVendorName(
 
 /**
  * RFQs visible to a vendor with rfq.read.
- * No RFQ↔vendor invite table yet — only RFQs already associated via
+ * No RFQ↔vendor invite table yet - only RFQs already associated via
  * supplier_quote for this vendor (never an org-wide sent-RFQ dump).
  */
 export async function listVendorScopedRfqsForPortal(
@@ -497,7 +497,7 @@ export async function listCustomerSafeProjectDocuments(
 /**
  * Customer-visible milestones for a project (org-scoped).
  * Only rows with portal_visible = true (default false → share nothing).
- * Notes are selected only so callers can drop them — never expose in DTO.
+ * Notes are selected only so callers can drop them - never expose in DTO.
  */
 export async function listCustomerSafeProjectMilestones(
   db: DbExecutor,

@@ -38,7 +38,7 @@ export async function loadOrganizationExpenseContributions(
 
 /**
  * Set-scoped contributions for batch financial compose (jobs list / rollup subset).
- * Same recognition rules as org-wide load — filtered to the requested project ids
+ * Same recognition rules as org-wide load - filtered to the requested project ids
  * so list requests do not pull every org expense contribution.
  */
 export async function loadExpenseContributionsForProjects(
@@ -125,7 +125,7 @@ async function loadExpenseContributions(
 
   for (const row of directRows) {
     contributions.push({
-      // Profitability uses NET — VAT must not inflate Actual Cost / margin.
+      // Profitability uses NET - VAT must not inflate Actual Cost / margin.
       amount: row.netAmount,
       currency: row.currency,
       costFamily: row.costFamily as DbCostFamily,

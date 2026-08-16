@@ -1,9 +1,9 @@
 {
   "meta": {
-    "title": "ProjectFlow | Projects, jobs & field service — with the money in one place",
-    "description": "A business system for project, job, and field-service companies. Manage the work and understand the money — costs, commitments, billing, and profitability — in one place.",
+    "title": "ProjectFlow | Projects, jobs & service - with the money together",
+    "description": "A system for project, job, and service businesses. Manage the work, see what needs attention now, and understand costs, billing, and profitability.",
     "ogTitle": "Manage the work. Understand the money. | ProjectFlow",
-    "ogDescription": "Projects, jobs, and field service — with costs, billing, and profitability in the same system."
+    "ogDescription": "Projects, jobs, and service - with costs, billing, and profitability in the same system."
   },
   "header": {
     "navLabel": "Marketing navigation",
@@ -17,21 +17,21 @@
   "hero": {
     "brand": "ProjectFlow",
     "title": "Manage the work. Understand the money.",
-    "subtitle": "A business system for projects, jobs, and field service — work and money in one place, so you know what is happening, what it cost, and what you really earn.",
+    "subtitle": "For project, job, and service businesses. See what needs attention now, open a project, and view work and money together - without turning everything on first.",
     "primaryCta": "Get started",
     "secondaryCta": "See how it works",
-    "shotCaption": "Project financials — contract, cost, commitment, and collections at a glance",
+    "shotCaption": "Project financials - value, cost, billing, and collections at a glance",
     "shotAlt": "Preview of project financials in ProjectFlow",
-    "mobileShotCaption": "The work on your phone — the same system from the field",
+    "mobileShotCaption": "The work on your phone - the same system from the field",
     "mobileShotAlt": "Preview of the work on mobile"
   },
   "questions": {
     "title": "The questions every business owner asks",
     "items": [
       "What is the work worth right now?",
-      "How much has it already cost, and what am I still committed to?",
-      "How much was billed, and how much was actually paid?",
-      "How profitable is it really?"
+      "How much has it already cost, and how much is still expected?",
+      "How much was billed, and how much is still open?",
+      "Is the project actually profitable?"
     ]
   },
   "problem": {
@@ -47,12 +47,12 @@
       },
       {
         "title": "Profit shows up too late",
-        "body": "What was billed, paid, and actually spent are not always in the same picture."
+        "body": "You learn a project is weakening only after the damage is done."
       }
     ]
   },
   "howItWorks": {
-    "title": "From client to profit — in one flow",
+    "title": "From client to profit - in one flow",
     "steps": ["Client", "Project / job / service", "Costs", "Changes", "Billing & payments", "Profitability"],
     "support": "Start simple and add depth only when the business needs it."
   },
@@ -61,49 +61,53 @@
     "blocks": [
       {
         "title": "Projects, jobs & service",
-        "body": "Clients, projects, jobs, and work orders — fixed-price or open-price."
+        "body": "Clients, projects, jobs, and work orders - fixed-price or open-price."
+      },
+      {
+        "title": "One project picture",
+        "body": "Everything happening on a project - the work, the money, and the field - in one place."
+      },
+      {
+        "title": "What needs attention now",
+        "body": "Open Today and immediately see approvals, overdue items, balances, and issues that need handling."
       },
       {
         "title": "Costs, billing & profitability",
-        "body": "See what it cost, what you committed to, what was billed and paid — and real profitability."
+        "body": "See what it cost, what is still expected, what was billed and paid - and get a warning when a project starts to overrun."
       },
       {
-        "title": "Employees & time",
-        "body": "Assignments, time tracking, and labor cost by employee."
+        "title": "Vendors, purchasing & subcontractors",
+        "body": "Vendors, purchase orders, subcontractors, vendor bills, and payments - linked to the work."
       },
       {
-        "title": "Vendors & purchasing",
-        "body": "Vendors, purchase orders, vendor bills, and payments — linked to the work."
-      },
-      {
-        "title": "Planning & field work",
-        "body": "Planning, field logs, forms, photos, and documents — from the office and the field."
+        "title": "BOQ & progress",
+        "body": "Bill of quantities, progress measurement, changes, and progress billing - when construction work needs it."
       }
     ],
-    "shotCaption": "Expenses — fast cost capture across the work",
-    "shotAlt": "Preview of expenses"
+    "shotCaption": "Photograph an invoice - the system prepares a draft for review",
+    "shotAlt": "Preview of invoice review"
   },
   "financial": {
-    "title": "The work and the money — in the same view",
-    "lead": "Every project, job, or work order connects to contract, costs, changes, and collections.",
+    "title": "Work and money - in the same view",
+    "lead": "On every project you see value, costs, commitments, billing, and expected profitability - without mixing what was billed with what was already paid.",
     "items": [
-      "Original contract",
+      "Project value",
       "Approved changes",
       "Actual cost",
-      "Commitments",
-      "Billing",
-      "Payments",
-      "Profitability"
+      "Commitments already made",
+      "Customer billing",
+      "Payments received",
+      "Outstanding balance",
+      "Expected profitability"
     ],
-    "principles": [
-      { "left": "Billed", "right": "Paid" },
-      { "left": "Committed", "right": "Expense" },
-      { "left": "VAT", "right": "Profit" },
-      { "left": "Pending", "right": "Approved" }
+    "insights": [
+      "See how much was billed and how much is still open.",
+      "Know how much the project has already cost and how much is still expected.",
+      "See supplier commitments before they become actual expenses.",
+      "Get a warning when profitability or budget starts to weaken."
     ],
-    "neq": "≠",
     "cta": "Get started",
-    "shotCaption": "Project financials — contract, cost, commitment, and collections at a glance",
+    "shotCaption": "Project financials - value, cost, billing, and collections at a glance",
     "shotAlt": "Preview of project financials"
   },
   "commercial": {
@@ -111,19 +115,19 @@
     "blocks": [
       {
         "title": "Changes",
-        "body": "Additions and deductions stay pending until approved."
+        "body": "Additions and deductions stay under review until approved."
       },
       {
         "title": "Billing",
-        "body": "See what the client was billed."
+        "body": "See how much the client was billed at each stage."
       },
       {
         "title": "Payments",
         "body": "See what was actually received and what is still open."
       }
     ],
-    "changesCaption": "Changes — pending stays separate until approval",
-    "billingCaption": "Billing and payments — know what is truly open",
+    "changesCaption": "Changes - waiting for approval separately",
+    "billingCaption": "Billing and payments - know what is open",
     "changesAlt": "Preview of changes",
     "billingAlt": "Preview of billing"
   },
@@ -131,51 +135,94 @@
     "title": "How ProjectFlow looks in practice",
     "cta": "Get started",
     "tabs": [
-      { "id": "dashboard", "label": "Dashboard", "caption": "Dashboard — what needs attention today", "src": "/marketing/screenshots/pf-landing-sc-01-desktop.svg", "alt": "Dashboard preview" },
-      { "id": "project", "label": "Project", "caption": "Project workspace — work and money hub", "src": "/marketing/screenshots/pf-landing-sc-03-desktop.svg", "alt": "Project workspace preview" },
-      { "id": "financials", "label": "Financials", "caption": "Project financials — contract, cost, commitment, and collections", "src": "/marketing/screenshots/pf-landing-sc-02-desktop.svg", "alt": "Project financials preview" },
-      { "id": "expenses", "label": "Expenses", "caption": "Expenses — fast cost capture across the work", "src": "/marketing/screenshots/pf-landing-sc-04-desktop.svg", "alt": "Expenses preview" },
-      { "id": "changes", "label": "Changes", "caption": "Changes — pending stays separate until approval", "src": "/marketing/screenshots/pf-landing-sc-05-desktop.svg", "alt": "Changes preview" },
-      { "id": "billing", "label": "Collections", "caption": "Billing and payments — know what is truly open", "src": "/marketing/screenshots/pf-landing-sc-06-desktop.svg", "alt": "Billing preview" },
-      { "id": "reports", "label": "Reports", "caption": "Reports — profitability without mixing VAT and profit", "src": "/marketing/screenshots/pf-landing-sc-07-desktop.svg", "alt": "Reports preview" }
+      {
+        "id": "today",
+        "label": "Today",
+        "caption": "Today - open and immediately see what needs attention",
+        "src": "/marketing/screenshots/pf-landing-sc-01-desktop.svg",
+        "alt": "Today screen preview"
+      },
+      {
+        "id": "project",
+        "label": "Project",
+        "caption": "The project - work, money, and field in one screen",
+        "src": "/marketing/screenshots/pf-landing-sc-03-desktop.svg",
+        "alt": "Project workspace preview"
+      },
+      {
+        "id": "financials",
+        "label": "Financials",
+        "caption": "Project financials - value, cost, billing, and collections",
+        "src": "/marketing/screenshots/pf-landing-sc-02-desktop.svg",
+        "alt": "Project financials preview"
+      },
+      {
+        "id": "invoice",
+        "label": "Invoice",
+        "caption": "Photograph an invoice, check the details, and continue",
+        "src": "/marketing/screenshots/pf-landing-sc-04-desktop.svg",
+        "alt": "Invoice review preview"
+      },
+      {
+        "id": "warnings",
+        "label": "Warnings",
+        "caption": "A warning when a project starts to overrun budget or profitability",
+        "src": "/marketing/screenshots/pf-landing-sc-11-desktop.svg",
+        "alt": "Project warnings preview"
+      },
+      {
+        "id": "billing",
+        "label": "Collections",
+        "caption": "Billing and payments - know what is open",
+        "src": "/marketing/screenshots/pf-landing-sc-06-desktop.svg",
+        "alt": "Collections preview"
+      },
+      {
+        "id": "reports",
+        "label": "Reports",
+        "caption": "Client reports - status, money, and progress without giving system access",
+        "src": "/marketing/screenshots/pf-landing-sc-07-desktop.svg",
+        "alt": "Reports preview"
+      }
     ]
   },
   "advanced": {
-    "title": "Daily control — and more depth when you need it",
+    "title": "Daily control - and more depth when you need it",
     "support": "Turn on only what the business needs. Small businesses stay simple; larger ones add controls.",
     "modules": [
-      "Today — what needs attention",
-      "Budgets & approvals",
-      "Quotes & recurring work",
-      "Procurement & vendor bills",
-      "Materials & inventory",
-      "Assets & maintenance",
-      "Insurance & compliance"
+      "Today - what needs attention",
+      "Quick search across the business",
+      "Photograph an invoice for review",
+      "Overrun warnings",
+      "PDF reports for clients",
+      "Multiple contracts on a complex project",
+      "Materials, assets & compliance"
     ]
   },
   "mobile": {
-    "title": "From the office and the field — same system",
-    "body": "Daily work from your phone: logs, expenses, and key information stay available in the field. You can also install ProjectFlow as an app on your device.",
+    "title": "From the office and the field - same system",
+    "body": "Daily work from your phone: logs, expenses, and invoice photos stay available in the field. You can also install ProjectFlow as an app on your device.",
     "installHeading": "Install ProjectFlow",
-    "shotCaption": "The work on your phone — the same system from the field",
+    "shotCaption": "The work on your phone - the same system from the field",
     "shotAlt": "ProjectFlow mobile preview"
   },
   "audience": {
-    "title": "Built for project and field-service businesses",
+    "title": "Built for project and service businesses",
     "chips": [
       "Contractors & renovation",
       "Electrical",
       "Plumbing",
       "HVAC",
-      "Maintenance & field service",
-      "Facility management",
-      "Landscaping",
-      "Cleaning",
-      "Installation",
-      "Mixed project + service businesses"
+      "Maintenance & service",
+      "Subcontractors",
+      "Architects & designers",
+      "Engineers & consultants",
+      "Inspectors & safety consultants",
+      "Project managers",
+      "Other project & service businesses"
     ],
-    "teamTitle": "The team works together — each with the information they need",
-    "teamBody": "Invite workers and managers and define who manages projects, expenses, changes, and profitability."
+    "teamTitle": "The team works together - each with the information they need",
+    "teamBody": "Invite workers and managers and define who sees projects, expenses, changes, and profitability. You can also hide areas that are not relevant to the business."
   },
   "faq": {
     "title": "Frequently asked questions",
@@ -187,15 +234,15 @@
         "items": [
           {
             "q": "Who is ProjectFlow for?",
-            "a": "Project, job, and field-service businesses — contractors, renovation, trades, maintenance, and mixed project + service companies."
+            "a": "Project, job, and service businesses - contractors, renovation, trades, maintenance, subcontractors, architects, engineers, consultants, and project managers."
+          },
+          {
+            "q": "Does it also fit architects, engineers, and consultants?",
+            "a": "Yes. You can manage projects, documents, costs, and billing in consulting and design businesses - and leave irrelevant areas off."
           },
           {
             "q": "Does it also fit a small business?",
-            "a": "Yes. Start with clients, jobs, and basic expenses — without turning everything on."
-          },
-          {
-            "q": "Can I manage both projects and service work?",
-            "a": "Yes. Projects, jobs, and work orders can live in the same system — fixed-price or open-price."
+            "a": "Yes. Start with clients, jobs, and basic expenses - without turning everything on."
           },
           {
             "q": "Do I have to use every capability?",
@@ -208,16 +255,16 @@
         "title": "Money & profitability",
         "items": [
           {
-            "q": "How do I know if a project or job is really profitable?",
-            "a": "You see in one place what it cost, what you are still committed to, what was billed, and what was actually paid — and the real profit. Billed is not paid, and a commitment is not a cost that already happened."
+            "q": "How do I know if a project is really profitable?",
+            "a": "You see what it cost, what is still expected, what was billed and paid - and the profitability. You can also produce a financial report for a client without giving them system access."
           },
           {
-            "q": "Can I manage budget versus actuals?",
-            "a": "Yes. Set a budget and see how actual costs compare."
+            "q": "Does the system warn when a project starts to overrun?",
+            "a": "Yes. You can get a warning when profitability weakens, budget is under pressure, costs grow, or billing and collection lag."
           },
           {
-            "q": "Can I see how much customers still owe me, and how much I owe vendors?",
-            "a": "Yes. You can see what is still open with customers and with vendors."
+            "q": "Can I manage a bill of quantities?",
+            "a": "Yes. You can build a BOQ, measure progress, manage changes, and issue progress bills - when the capability is turned on."
           },
           {
             "q": "Does ProjectFlow replace bookkeeping?",
@@ -230,20 +277,20 @@
         "title": "People, vendors & field",
         "items": [
           {
-            "q": "Can I manage employees, hours, and attendance?",
-            "a": "Yes. Manage employees, assignments, time, and attendance — and see what the work really costs."
+            "q": "Can I photograph an invoice?",
+            "a": "Yes. Photograph or upload an invoice, the system reads the main details and prepares a draft for review. You check before continuing."
           },
           {
             "q": "Can I manage vendors and subcontractors?",
-            "a": "Yes. Vendors, orders, vendor bills, and payments can be linked to the work when you need them."
+            "a": "Yes. Vendors, purchase orders, subcontractors, vendor bills, and payments can be linked to the work when you need them."
           },
           {
             "q": "Can workers use it from a phone?",
-            "a": "Yes. The same system is adapted for mobile — logs, expenses, and key information stay available in the field."
+            "a": "Yes. The same system is adapted for mobile - logs, expenses, and key information stay available in the field."
           },
           {
-            "q": "Is there planning, forms, photos, and field work?",
-            "a": "Yes. You can plan, record field logs, fill forms, and attach photos and documents."
+            "q": "Can I produce reports for a client?",
+            "a": "Yes. You can produce professional reports on project status, financial summary, progress, changes, and field work - without giving the client access to the system."
           }
         ]
       },
@@ -252,20 +299,20 @@
         "title": "Use, permissions & flexibility",
         "items": [
           {
+            "q": "Can I quickly find clients, projects, and documents?",
+            "a": "Yes. Quick search finds clients, projects, vendors, invoices, documents, employees, and work orders."
+          },
+          {
+            "q": "Does every worker see financials and profitability?",
+            "a": "No. You set permissions - each person sees what they need."
+          },
+          {
             "q": "Can I install ProjectFlow as an app?",
             "a": "Yes. Install from the browser to the home screen or desktop when the device supports it."
           },
           {
-            "q": "Does every worker see financials and profitability?",
-            "a": "No. You set permissions — each person sees what they need."
-          },
-          {
             "q": "How is ProjectFlow different from a task manager?",
-            "a": "A task manager tracks tasks. ProjectFlow connects the work to the money: costs, commitments, billing, and profitability."
-          },
-          {
-            "q": "Can I start simple and add capabilities later?",
-            "a": "Yes. Start with the basics and add controls only as the business grows."
+            "a": "A task manager tracks tasks. ProjectFlow connects the work to the money: costs, billing, collections, and profitability."
           }
         ]
       }
@@ -273,7 +320,7 @@
   },
   "finalCta": {
     "title": "Want to see what is really happening in your business?",
-    "body": "Start with ProjectFlow and connect the work, costs, changes, and collections in one place.",
+    "body": "Start with ProjectFlow and connect the work, costs, changes, and collections.",
     "cta": "Get started"
   },
   "footer": {

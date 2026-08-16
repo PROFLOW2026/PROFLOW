@@ -53,7 +53,7 @@ export function collectReviewWarnings(
   }
 
   const lineSum = candidates.lines.reduce((sum, line) => {
-    // Reconcile pre-VAT line amounts against document net — never gross/lineTotal.
+    // Reconcile pre-VAT line amounts against document net - never gross/lineTotal.
     const amount = parseMoneyToken(line.netAmount.value);
     return amount == null ? sum : sum + amount;
   }, 0);
@@ -100,7 +100,7 @@ export function collectReviewWarnings(
 
   const customerTaxId = options.customerTaxId?.replace(/[^\d]/g, '') || null;
   const orgTaxId = options.organizationTaxId?.replace(/[^\d]/g, '') || null;
-  // Only when both identities are known and disagree — never auto-reject.
+  // Only when both identities are known and disagree - never auto-reject.
   if (customerTaxId && orgTaxId && customerTaxId !== orgTaxId) {
     warnings.push({ code: 'possible_wrong_customer', messageKey: 'warnPossibleWrongCustomer' });
   }

@@ -1,5 +1,5 @@
 /**
- * BOQ domain types — framework-free.
+ * BOQ domain types - framework-free.
  * BOQ Progress ≠ Actual. See docs/boq/LEAD-ARCHITECTURE-CONTRACT.md.
  */
 
@@ -45,7 +45,7 @@ export const CONTRACT_BOQ_RECON_STATUSES = [
 ] as const;
 export type ContractBoqReconStatus = (typeof CONTRACT_BOQ_RECON_STATUSES)[number];
 
-/** Suggested units — not a closed DB enum; custom text allowed. */
+/** Suggested units - not a closed DB enum; custom text allowed. */
 export const BOQ_SUGGESTED_UNITS = [
   "יח'",
   'מ\'',

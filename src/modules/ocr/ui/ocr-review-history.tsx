@@ -15,7 +15,7 @@ function historyVendor(job: ExtractionJob): string {
   const fromCandidates = job.candidates?.vendor.value?.trim();
   if (fromCandidates) return fromCandidates;
   const match = job.rawMetadata?.vendorMatches?.[0]?.vendorName?.trim();
-  return match || '—';
+  return match || '-';
 }
 
 function historyDocumentType(job: ExtractionJob): string {
@@ -26,7 +26,7 @@ function historyDocumentType(job: ExtractionJob): string {
     const label = documentTypeLabel(key);
     if (label) return label;
   }
-  return '—';
+  return '-';
 }
 
 function targetHref(job: ExtractionJob): string | null {
@@ -45,7 +45,7 @@ function targetLabel(
   if (target === 'expense') return t('draftTargetExpense');
   if (target === 'vendor_bill') return t('draftTargetVendorBill');
   if (target === 'vendor_credit') return t('draftTargetVendorCredit');
-  return '—';
+  return '-';
 }
 
 function HistoryRow({ job }: { job: ExtractionJob }) {

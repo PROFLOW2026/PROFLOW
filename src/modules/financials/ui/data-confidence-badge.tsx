@@ -13,7 +13,7 @@ export interface DataConfidenceBadgeProps {
 }
 
 /**
- * Deterministic DATA CONFIDENCE chip — High / Medium / Needs data.
+ * Deterministic DATA CONFIDENCE chip - High / Medium / Needs data.
  * Never an AI score; level comes from domain/data-confidence.ts.
  */
 export function DataConfidenceBadge({

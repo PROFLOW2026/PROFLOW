@@ -1,6 +1,6 @@
 /**
  * RFQ supplier-quote comparison and accepted-quote → PO mapping.
- * HARD RULE: CommittedCost != Expense — PO committed amounts are not expenses.
+ * HARD RULE: CommittedCost != Expense - PO committed amounts are not expenses.
  */
 
 import { DomainRuleError } from '@/shared/errors';

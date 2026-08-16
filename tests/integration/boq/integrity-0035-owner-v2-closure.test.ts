@@ -25,7 +25,7 @@ import {
 } from '../pre0021/two-connection';
 
 /**
- * Owner V2 closure — concurrency, permission, allocation seq, draft AP, recon truth.
+ * Owner V2 closure - concurrency, permission, allocation seq, draft AP, recon truth.
  */
 describe('BOQ owner v2 closure', () => {
   let database: TestDatabase;
@@ -460,7 +460,7 @@ describe('BOQ owner v2 closure', () => {
     const contractId = await ensureContract(owner.id, orgId, projectId);
 
     await database.asUser(owner.id, async (tx) => {
-      // A: matched baseline (no CO) — Original=Current
+      // A: matched baseline (no CO) - Original=Current
       const matched = await listActiveBoqsWithTotalsForOrg(tx, orgId);
       const row = matched.find((r) => r.boqId === boqId)!;
       expect(Number(row.originalBoqTotal)).toBe(1000);

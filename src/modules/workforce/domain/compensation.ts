@@ -1,14 +1,14 @@
 /**
  * Compensation history domain types (Master Wave Agent 1).
  *
- * BUSINESS COST / employer cost only — not payroll net, not statutory Israeli payroll.
+ * BUSINESS COST / employer cost only - not payroll net, not statutory Israeli payroll.
  * Physical persistence remains `rate_versions` + optional month facts (Lead/0021).
  * Framework-free: no React, Next.js, or DB imports.
  */
 
 import type { LaborCostComponentRecord, RateUnit, RateVersionRecord } from './types';
 
-/** Employment / costing basis — reuses existing rate_unit vocabulary. */
+/** Employment / costing basis - reuses existing rate_unit vocabulary. */
 export type EmploymentBasis = RateUnit;
 
 export const COMPENSATION_SOURCES = [
@@ -44,7 +44,7 @@ export type CompensationVersionDetail = CompensationVersionRecord & {
 
 /**
  * Calendar-month employer cost fact (optional advanced).
- * Does not create project/org Actual by existing — Agent 3 owns recognition rules.
+ * Does not create project/org Actual by existing - Agent 3 owns recognition rules.
  */
 export interface EmployerCostMonthRecord {
   readonly id: string;
@@ -72,9 +72,9 @@ export interface EmployerCostMonthRecord {
 
 /** Semantic aliases for existing RateVersion money fields. */
 export interface CompensationMoneySemantics {
-  /** Maps to `base_rate` — gross/base business cost per unit. */
+  /** Maps to `base_rate` - gross/base business cost per unit. */
   readonly grossBasePerUnit: string;
-  /** Maps to `burden_percent` — user-supplied estimate only; never magic default. */
+  /** Maps to `burden_percent` - user-supplied estimate only; never magic default. */
   readonly estimatedBurdenPercent: string | null;
 }
 

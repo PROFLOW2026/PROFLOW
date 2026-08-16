@@ -142,7 +142,7 @@ export async function projectWorkOrderBookings(
 }
 
 /**
- * Recurring service templates clipped to the board window — never an infinite series.
+ * Recurring service templates clipped to the board window - never an infinite series.
  */
 export async function projectRecurringBookings(
   context: OrgContext,

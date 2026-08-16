@@ -1,7 +1,7 @@
 /**
  * Lightweight localStorage mirror of pending draft metadata.
  * Used for quick banner counts when IndexedDB is slow/unavailable.
- * Never authoritative — IndexedDB remains source of truth for payloads/blobs.
+ * Never authoritative - IndexedDB remains source of truth for payloads/blobs.
  */
 
 import type { DraftKind, OfflineDraftRecord, SyncStatus } from '../domain/types';
@@ -55,7 +55,7 @@ export function writeQueueIndex(entries: readonly QueueIndexEntry[]): void {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(snapshot));
   } catch {
-    // Quota / private mode — ignore; IndexedDB still holds drafts.
+    // Quota / private mode - ignore; IndexedDB still holds drafts.
   }
 }
 

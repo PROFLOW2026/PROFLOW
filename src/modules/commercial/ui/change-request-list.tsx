@@ -82,7 +82,7 @@ export async function ChangeRequestList({ items, projectId, canManage }: ChangeR
                 return (
                   <TableRow key={item.id}>
                     <TableCell className="max-w-[8rem] truncate font-mono text-xs" dir="ltr">
-                      {item.reference ?? '—'}
+                      {item.reference ?? '-'}
                     </TableCell>
                     <TableCell className="max-w-[14rem] truncate text-start">
                       <Link
@@ -96,7 +96,7 @@ export async function ChangeRequestList({ items, projectId, canManage }: ChangeR
                       <TableCell className="max-w-[12rem] truncate">{item.projectName}</TableCell>
                     ) : null}
                     <TableCell numeric>
-                      {signed ? <MoneyText value={signed} colorizeNegative /> : '—'}
+                      {signed ? <MoneyText value={signed} colorizeNegative /> : '-'}
                     </TableCell>
                     <TableCell>
                       <ChangeStatusBadge status={item.status} sentAt={item.sentAt} />
@@ -127,7 +127,7 @@ export async function ChangeRequestList({ items, projectId, canManage }: ChangeR
               <ChangeStatusBadge className="shrink-0" status={item.status} sentAt={item.sentAt} />
             </div>
             <p className="mt-1 truncate text-start text-sm text-[var(--pf-text-secondary)]">
-              <span dir="ltr">{item.reference ?? '—'}</span>
+              <span dir="ltr">{item.reference ?? '-'}</span>
               {!projectId && item.projectName ? ` · ${item.projectName}` : null}
             </p>
             <div className="mt-2 flex flex-wrap items-baseline justify-between gap-2 text-sm">

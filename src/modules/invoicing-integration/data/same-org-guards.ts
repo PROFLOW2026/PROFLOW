@@ -1,5 +1,5 @@
 /**
- * APP GUARDS for external statutory documents — billing_record + PDF document same-org.
+ * APP GUARDS for external statutory documents - billing_record + PDF document same-org.
  */
 
 import { and, eq } from 'drizzle-orm';

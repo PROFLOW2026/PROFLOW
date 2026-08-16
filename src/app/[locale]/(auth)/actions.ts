@@ -10,7 +10,7 @@ import { createSupabaseServerClient, isSupabaseConfigured } from '@/shared/supab
  * Credential flows (doc 72 §4).
  *
  * Supabase handles the credentials; these actions only translate the outcome.
- * Messages are deliberately non-enumerating — the sign-in failure and the
+ * Messages are deliberately non-enumerating - the sign-in failure and the
  * password-reset response never reveal whether an account exists.
  */
 

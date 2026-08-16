@@ -65,7 +65,7 @@ export async function listApprovalRulesForOrg(
 
 /**
  * Gate-safe rule load via SECURITY DEFINER (0029).
- * Does not require approvals.read — thresholds stay hidden from table RLS SELECT.
+ * Does not require approvals.read - thresholds stay hidden from table RLS SELECT.
  */
 export async function listEnabledRulesForEntity(
   db: DbExecutor,

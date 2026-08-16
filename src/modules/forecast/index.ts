@@ -1,4 +1,4 @@
-/** Early-warning product layer — consumes composed financials, never recalculates them. */
+/** Early-warning product layer - consumes composed financials, never recalculates them. */
 
 export { evaluateEarlyWarnings, highestWarningSeverity } from './domain/evaluate-warnings';
 export {

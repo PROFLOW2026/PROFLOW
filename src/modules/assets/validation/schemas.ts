@@ -54,7 +54,7 @@ export const createAssetSchema = z.object({
   serialNumber: optionalText,
   assignedProjectId: optionalUuid,
   notes: optionalText,
-  /** Optional fleet fields — only stored when assetKind is vehicle or fields provided. */
+  /** Optional fleet fields - only stored when assetKind is vehicle or fields provided. */
   plateNumber: optionalText,
   vin: optionalText,
   odometer: optionalText,
@@ -113,7 +113,7 @@ export const createMaintenanceRecordSchema = z.object({
   title: z.string().trim().min(1, 'Title is required').max(200),
   status: z.enum(MAINTENANCE_STATUSES).optional().default('planned'),
   performedOn: optionalDate,
-  /** Metadata only — does not post Expense. */
+  /** Metadata only - does not post Expense. */
   costAmount: optionalMoney,
   currency: z.preprocess(emptyToNull, z.string().trim().length(3).nullable().optional()),
   vendorId: optionalUuid,
@@ -127,7 +127,7 @@ export const updateMaintenanceRecordSchema = z.object({
   title: z.string().trim().min(1).max(200).optional(),
   status: z.enum(MAINTENANCE_STATUSES).optional(),
   performedOn: optionalDate,
-  /** Metadata only — does not post Expense. */
+  /** Metadata only - does not post Expense. */
   costAmount: optionalMoney,
   currency: z.preprocess(emptyToNull, z.string().trim().length(3).nullable().optional()),
   vendorId: optionalUuid,

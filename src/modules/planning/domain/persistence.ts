@@ -9,7 +9,7 @@ export function arePlanningWritesDurable(): boolean {
   return PLANNING_PERSISTENCE_READY;
 }
 
-/** Test / Lead hook — never flip in production code paths. */
+/** Test / Lead hook - never flip in production code paths. */
 export function setPlanningPersistenceReadyForTests(ready: boolean): void {
   PLANNING_PERSISTENCE_READY = ready;
 }

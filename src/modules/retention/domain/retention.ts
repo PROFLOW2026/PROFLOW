@@ -1,5 +1,5 @@
 /**
- * Retention / holdback — cash timing only.
+ * Retention / holdback - cash timing only.
  *
  * Recognized Actual / invoiced stays the full bill or billing total.
  * Payable / receivable now = total − payments − credits − held remaining.

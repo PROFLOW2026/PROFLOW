@@ -196,7 +196,7 @@ export async function upsertInventoryCountLine(
 
 /**
  * Finalize a draft count. Each non-zero (counted − expected) line becomes an
- * `adjust` movement through the existing qty-only engine — never writes
+ * `adjust` movement through the existing qty-only engine - never writes
  * balances directly, never Actual / GL / Expense.
  *
  * Concurrent finalize is serialized with FOR UPDATE on the count row. A second

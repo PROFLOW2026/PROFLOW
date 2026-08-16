@@ -209,7 +209,7 @@ function looksLikeRejectedInvoiceNumber(
 
 /**
  * Deterministic Hebrew/English invoice-number fallback when Azure InvoiceId is absent.
- * Requires a nearby invoice label — never grabs arbitrary long digit runs.
+ * Requires a nearby invoice label - never grabs arbitrary long digit runs.
  */
 export function extractIsraeliInvoiceNumber(
   text: string,

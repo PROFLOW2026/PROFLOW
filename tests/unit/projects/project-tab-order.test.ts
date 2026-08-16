@@ -81,7 +81,7 @@ describe('project tab business priority', () => {
   it('relies on locale dir for visual start edge instead of reversing the array', () => {
     expect(localeDirection('he-IL')).toBe('rtl');
     expect(localeDirection('en')).toBe('ltr');
-    // Same data order for both locales — Tabs Root `dir` places index 0 at start.
+    // Same data order for both locales - Tabs Root `dir` places index 0 at start.
     const tabs = resolveProjectTabs({
       financials: true,
       expenses: true,

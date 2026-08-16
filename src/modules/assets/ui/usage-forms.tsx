@@ -45,7 +45,7 @@ export function MaterialUsageForm({
   readonly inventoryItems?: readonly UsageOption[];
   readonly employees?: readonly UsageOption[];
   readonly defaultInventoryItemId?: string;
-  /** When recording from inventory detail — pick project/job/WO. */
+  /** When recording from inventory detail - pick project/job/WO. */
   readonly projects?: readonly UsageOption[];
 }) {
   const t = useTranslations('assets.usage');
@@ -240,7 +240,7 @@ export function EquipmentUsageForm({
   readonly assets?: readonly UsageOption[];
   readonly employees?: readonly UsageOption[];
   readonly defaultAssetId?: string;
-  /** When recording from asset detail — pick project. */
+  /** When recording from asset detail - pick project. */
   readonly projects?: readonly UsageOption[];
 }) {
   const t = useTranslations('assets.usage');

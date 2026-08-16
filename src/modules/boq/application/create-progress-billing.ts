@@ -43,7 +43,7 @@ function validationFromZod(error: {
  * - VAT (tax_amount) and total are AR-only; not folded into BOQ net
  * - Retention is AR cash timing; does not reduce recognized net
  *
- * Failure anywhere rolls back AR + claim + link — no orphan billing_records.
+ * Failure anywhere rolls back AR + claim + link - no orphan billing_records.
  */
 export async function createProgressBilling(context: OrgContext, raw: CreateProgressBillingInput) {
   assertPermission(context, PERMISSIONS.BOQ_BILLING_CREATE);
@@ -60,7 +60,7 @@ export async function createProgressBilling(context: OrgContext, raw: CreateProg
     batch.id,
   );
   if (existingLink) {
-    throw new ConflictError('This progress batch already has billing — duplicate billing blocked');
+    throw new ConflictError('This progress batch already has billing - duplicate billing blocked');
   }
 
   if (
@@ -102,7 +102,7 @@ export async function createProgressBilling(context: OrgContext, raw: CreateProg
 
   if (isZeroMoney(certificate.currentPeriodValue)) {
     throw new ValidationError([
-      { path: 'batchId', message: 'Progress period value is zero — nothing to bill' },
+      { path: 'batchId', message: 'Progress period value is zero - nothing to bill' },
     ]);
   }
 
@@ -115,7 +115,7 @@ export async function createProgressBilling(context: OrgContext, raw: CreateProg
     });
 
   const notes = [
-    `Progress certificate #${batch.certificateNumber} — ${batch.periodLabel}`,
+    `Progress certificate #${batch.certificateNumber} - ${batch.periodLabel}`,
     input.notes?.trim() || null,
     lineDescriptions.slice(0, 40).join('; '),
   ]

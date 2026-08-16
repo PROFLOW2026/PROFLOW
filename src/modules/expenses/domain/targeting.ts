@@ -9,7 +9,7 @@ export interface TargetingInput {
 
 /**
  * An expense targets exactly one of: a project (optionally with a work area)
- * or business overhead — never both (doc 04 §7).
+ * or business overhead - never both (doc 04 §7).
  */
 export function resolveExpenseTargeting(input: TargetingInput): ExpenseTargeting {
   const projectId = input.projectId?.trim() ? input.projectId : null;

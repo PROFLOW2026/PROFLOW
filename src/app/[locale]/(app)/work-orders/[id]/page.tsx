@@ -160,7 +160,7 @@ export default async function WorkOrderDetailPage({ params }: WorkOrderPageProps
         <dl className="grid gap-3 sm:grid-cols-2">
           <div>
             <dt className="text-xs text-[var(--pf-text-muted)]">{t('fields.site')}</dt>
-            <dd>{service.siteAddress ?? project.location ?? '—'}</dd>
+            <dd>{service.siteAddress ?? project.location ?? '-'}</dd>
           </div>
           <div>
             <dt className="text-xs text-[var(--pf-text-muted)]">{t('fields.priority')}</dt>
@@ -169,7 +169,7 @@ export default async function WorkOrderDetailPage({ params }: WorkOrderPageProps
           <div>
             <dt className="text-xs text-[var(--pf-text-muted)]">{t('fields.contact')}</dt>
             <dd>
-              {service.contactName ?? '—'}
+              {service.contactName ?? '-'}
               {service.contactPhone ? ` · ${service.contactPhone}` : ''}
             </dd>
           </div>
@@ -178,12 +178,12 @@ export default async function WorkOrderDetailPage({ params }: WorkOrderPageProps
             <dd className="pf-ltr-island" dir="ltr">
               {service.scheduledStartAt
                 ? service.scheduledStartAt.toISOString().slice(0, 16).replace('T', ' ')
-                : '—'}
+                : '-'}
             </dd>
           </div>
           <div className="sm:col-span-2">
             <dt className="text-xs text-[var(--pf-text-muted)]">{t('fields.notes')}</dt>
-            <dd className="whitespace-pre-wrap">{service.notes ?? project.notes ?? '—'}</dd>
+            <dd className="whitespace-pre-wrap">{service.notes ?? project.notes ?? '-'}</dd>
           </div>
         </dl>
       )}

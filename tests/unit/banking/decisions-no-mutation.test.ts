@@ -46,7 +46,7 @@ function testContext(): OrgContext {
   };
 }
 
-describe('bank match decisions — no silent mutation', () => {
+describe('bank match decisions - no silent mutation', () => {
   beforeEach(() => {
     resetBankingStoreForTests();
     setBankingPersistenceReadyForTests(true);

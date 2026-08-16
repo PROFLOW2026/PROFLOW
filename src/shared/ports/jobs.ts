@@ -38,7 +38,7 @@ export function registerJobHandler(name: JobName, handler: JobHandler): void {
  * refreshed must never roll back the user's write. The figure is recomputed on
  * next read anyway.
  *
- * Payloads are never logged — they may contain PII or financial identifiers.
+ * Payloads are never logged - they may contain PII or financial identifiers.
  */
 class InlineJobAdapter implements JobPort {
   async enqueue(name: JobName, payload: JobPayload): Promise<void> {

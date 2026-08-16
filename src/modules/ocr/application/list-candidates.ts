@@ -19,7 +19,7 @@ export {
 
 /**
  * List extraction jobs for the OCR review queue or history.
- * Candidates are proposals only — not ledger truth.
+ * Candidates are proposals only - not ledger truth.
  */
 export async function listOcrCandidates(
   context: OrgContext,

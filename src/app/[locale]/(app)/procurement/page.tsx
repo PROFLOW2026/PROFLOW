@@ -157,7 +157,7 @@ export default async function ProcurementPage() {
                             )}
                           </span>
                         ) : (
-                          '—'
+                          '-'
                         )}
                       </TableCell>
                       <TableCell>
@@ -172,7 +172,7 @@ export default async function ProcurementPage() {
                           {order.status === 'draft' ? (
                             <IssuePurchaseOrderButton purchaseOrderId={order.id} />
                           ) : (
-                            '—'
+                            '-'
                           )}
                         </TableCell>
                       ) : null}

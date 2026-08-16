@@ -116,7 +116,7 @@ describe('original contract amount lock after approved change', () => {
       detail = await getProjectDetail(context, created.project.id);
       expect(detail.originalContractAmountLocked).toBe(false);
 
-      // Draft still present — still unlocked.
+      // Draft still present - still unlocked.
       expect(draft.changeRequestId).toBeTruthy();
       await updateProject(context, {
         projectId: created.project.id,

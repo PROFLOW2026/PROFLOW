@@ -66,7 +66,7 @@ function readOcrApiKey(): string | undefined {
 
 /**
  * Default provider when no real OCR adapter is wired.
- * Never fabricates receipt fields — returns not_configured or empty_result.
+ * Never fabricates receipt fields - returns not_configured or empty_result.
  * Even with a key present, this stub stays non-production and does not fake OCR.
  */
 export class StubOcrProvider implements OcrProvider {
@@ -134,7 +134,7 @@ export class StubOcrProvider implements OcrProvider {
 
 /**
  * Deterministic provider for unit/integration tests only.
- * Returns fixed candidates with needsReview — never used as the default provider.
+ * Returns fixed candidates with needsReview - never used as the default provider.
  */
 export class ScriptedOcrProvider implements OcrProvider {
   readonly id = 'scripted';

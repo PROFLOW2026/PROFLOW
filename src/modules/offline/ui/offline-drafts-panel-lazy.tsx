@@ -15,7 +15,7 @@ const OfflineDraftsPanel = dynamic(
   },
 );
 
-/** Settings-only island — keep draft queue UI out of the shared shell graph. */
+/** Settings-only island - keep draft queue UI out of the shared shell graph. */
 export function OfflineDraftsPanelLazy({ organizationId }: { organizationId: string }) {
   return <OfflineDraftsPanel organizationId={organizationId} />;
 }

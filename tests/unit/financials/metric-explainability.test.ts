@@ -184,7 +184,7 @@ describe('buildProjectFinancialExplainability', () => {
 
     expect(composed.dataConfidence.level).toBe('needs_data');
     expect(composed.dataConfidence.reasons).toContain('workforce_entries_missing_cost');
-    // Coverage still documents the partial — confidence does not invent a second Actual.
+    // Coverage still documents the partial - confidence does not invent a second Actual.
     expect(composed.coverage.partials).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ reason: 'workforce_entries_missing_cost', count: 4 }),

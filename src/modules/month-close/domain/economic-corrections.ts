@@ -93,7 +93,7 @@ function moneyFromRow(row: EconomicAdjustmentLike): MoneyValue | null {
 }
 
 /**
- * Panel explainability only — does not compute project Actual.
+ * Panel explainability only - does not compute project Actual.
  * Financial totals come from compose, which nets the same surviving rows.
  */
 export function explainMonthCloseAdjustments(

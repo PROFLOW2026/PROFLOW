@@ -31,7 +31,7 @@ import {
 /**
  * Admin / foundation preview of vendor-safe portal projections.
  * Public vendor login is DISABLED; this path uses PORTAL_MANAGE only.
- * ExternalPrincipal session is built from the grant — never Membership.
+ * ExternalPrincipal session is built from the grant - never Membership.
  */
 export async function getVendorPortalPreview(
   context: OrgContext,

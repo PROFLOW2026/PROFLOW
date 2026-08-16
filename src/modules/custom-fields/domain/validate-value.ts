@@ -1,6 +1,6 @@
 /**
  * Type-aware custom field value validation (doc 35).
- * Never replaces canonical financial / status fields — those are blocked by reserved keys.
+ * Never replaces canonical financial / status fields - those are blocked by reserved keys.
  */
 
 import { DomainRuleError } from '@/shared/errors';

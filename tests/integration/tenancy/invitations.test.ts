@@ -70,7 +70,7 @@ describe('invitations', () => {
     });
 
     expect(members.map((member) => member.email)).toContain('newcomer@example.test');
-    // The invited role is what they get — not the inviter's role.
+    // The invited role is what they get - not the inviter's role.
     expect(members.find((member) => member.email === 'newcomer@example.test')?.roleKeys).toEqual([
       'worker',
     ]);

@@ -1,5 +1,5 @@
 /**
- * Today ("היום") — one grant-aware inbox of actionable items.
+ * Today ("היום") - one grant-aware inbox of actionable items.
  * Framework-free domain types.
  */
 
@@ -39,7 +39,7 @@ export type CommandCenterSeverity = (typeof COMMAND_CENTER_SEVERITIES)[number];
 export const COMMAND_CENTER_ITEM_STATES = ['active', 'handled', 'dismissed', 'snoozed'] as const;
 export type CommandCenterItemState = (typeof COMMAND_CENTER_ITEM_STATES)[number];
 
-/** Money / AR / AP / allocation truth — never dismiss or mark handled. */
+/** Money / AR / AP / allocation truth - never dismiss or mark handled. */
 export const FINANCIAL_SOURCE_TYPES = [
   'overdue_ar',
   'vendor_bill_due',
@@ -61,11 +61,11 @@ export interface CommandCenterItem {
   readonly itemKey: string;
   readonly sourceType: CommandCenterSourceType;
   readonly sourceId: string;
-  /** WHAT — short title of the action needed. */
+  /** WHAT - short title of the action needed. */
   readonly what: string;
-  /** WHY — why this matters now. */
+  /** WHY - why this matters now. */
   readonly why: string;
-  /** WHERE — human location (project, vendor, employee, …). */
+  /** WHERE - human location (project, vendor, employee, …). */
   readonly where: string;
   /** Primary navigation href (locale-stripped app path). */
   readonly href: string;

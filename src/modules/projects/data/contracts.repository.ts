@@ -357,7 +357,7 @@ export async function findContractByNumber(
   return row ? mapContract(row) : null;
 }
 
-/** All non-archived contracts for a project — primary first, then created order. */
+/** All non-archived contracts for a project - primary first, then created order. */
 export async function listContractsByProject(
   db: DbExecutor,
   organizationId: string,
@@ -366,7 +366,7 @@ export async function listContractsByProject(
   return listContractsForProjects(db, organizationId, [projectId]);
 }
 
-/** Non-archived contracts across many projects — primary first per project, then created order. */
+/** Non-archived contracts across many projects - primary first per project, then created order. */
 export async function listContractsForProjects(
   db: DbExecutor,
   organizationId: string,

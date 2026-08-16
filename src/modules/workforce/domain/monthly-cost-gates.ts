@@ -14,7 +14,7 @@ function isTestRuntime(): boolean {
   return process.env.NODE_ENV === 'test' || process.env.VITEST === 'true';
 }
 
-/** Test-only override — mirrors `setApBillProjectAllocationsReadyForTests`. */
+/** Test-only override - mirrors `setApBillProjectAllocationsReadyForTests`. */
 export function setEmployeeMonthCostsReadyForTests(ready: boolean | undefined): void {
   if (!isTestRuntime()) {
     throw new Error('setEmployeeMonthCostsReadyForTests is test-only');

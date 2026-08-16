@@ -27,7 +27,7 @@ import { provisionTwoTenants } from '../billing/setup';
 const ILS = 'ILS';
 
 /**
- * Wave F — void + credit economics (PGlite).
+ * Wave F - void + credit economics (PGlite).
  * Credits ≠ payments; void exits Actual; credits reduce Actual + outstanding.
  */
 describe('AP void + credit economics (PGlite)', () => {
@@ -163,7 +163,7 @@ describe('AP void + credit economics (PGlite)', () => {
         locale: 'en',
       });
 
-      // Payment: cash only — Actual still full bill.
+      // Payment: cash only - Actual still full bill.
       await recordVendorPayment(context, {
         amount: '20000',
         currency: ILS,

@@ -7,7 +7,7 @@ import type * as schema from '@drizzle/schema';
  *
  * Repositories accept these types rather than importing a concrete client, so
  * the same code runs against Supabase Postgres in production and against an
- * in-process PGlite instance in the integration tests — including the RLS
+ * in-process PGlite instance in the integration tests - including the RLS
  * policies, which is the whole point.
  */
 

@@ -65,7 +65,7 @@ export type ConfirmOcrCandidateResult =
       readonly expenseInput: CreateExpenseInput | null;
       readonly expenseDraft: ReturnType<typeof mapConfirmedFieldsToExpenseDraft>;
       readonly vendorBillDraft: VendorBillDraftPayload | null;
-      /** @deprecated Prefer expenseDraft — kept for existing callers. */
+      /** @deprecated Prefer expenseDraft - kept for existing callers. */
       readonly draft: ReturnType<typeof mapConfirmedFieldsToExpenseDraft>;
     }
   | {
@@ -170,7 +170,7 @@ async function assertVendorBillSameOrg(
  * Review workflow: map OCR candidates → draft Expense or draft Vendor Bill.
  *
  * Draft creation happens ONLY when `confirm: true`. With `confirm: false`,
- * retains user corrections on the job and returns the mapped payload — no write.
+ * retains user corrections on the job and returns the mapped payload - no write.
  *
  * NEVER finalizes expenses or posts open/recognized vendor bills.
  */
@@ -428,7 +428,7 @@ export async function confirmOcrCandidate(
   }
 
   const create = deps.createExpense ?? createExpense;
-  // createExpense always inserts status `draft` — never finalized from OCR.
+  // createExpense always inserts status `draft` - never finalized from OCR.
   const created = await create(context, expenseInput);
 
   await assertExpenseSameOrg(context, created.id);

@@ -1,6 +1,6 @@
 /**
  * API / webhook platform domain (doc 32).
- * No third-party adapters — foundation entities only.
+ * No third-party adapters - foundation entities only.
  */
 
 export const API_CLIENT_STATUSES = ['active', 'disabled'] as const;
@@ -12,7 +12,7 @@ export type WebhookEndpointStatus = (typeof WEBHOOK_ENDPOINT_STATUSES)[number];
 export const WEBHOOK_DELIVERY_STATUSES = ['pending', 'delivered', 'failed', 'abandoned'] as const;
 export type WebhookDeliveryStatus = (typeof WEBHOOK_DELIVERY_STATUSES)[number];
 
-/** Foundation scopes — not fake third-party integrations. */
+/** Foundation scopes - not fake third-party integrations. */
 export const API_KEY_SCOPES = [
   'projects.read',
   'clients.read',
@@ -49,7 +49,7 @@ export interface ApiKeyRecord {
   readonly updatedAt: Date;
 }
 
-/** Safe list projection — never includes keyHash. */
+/** Safe list projection - never includes keyHash. */
 export interface ApiKeyListItem {
   readonly id: string;
   readonly organizationId: string;

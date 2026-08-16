@@ -56,7 +56,7 @@ function lineCost(
 }
 
 /**
- * Pre-win profitability estimate only — never Actual, never revenue recognition.
+ * Pre-win profitability estimate only - never Actual, never revenue recognition.
  * Margin % = (subtotal − estimatedCost) / subtotal × 100 when cost is present.
  */
 export function computeEstimatedMarginPercent(
@@ -90,7 +90,7 @@ export function computeLineMarginPercent(unitPrice: string, unitCost: string | n
 
 /**
  * Rolls up line nets and applies org tax authority for exclusive/inclusive modes.
- * Tax is display/compliance context — subtotal (net commercial) feeds convert contract.
+ * Tax is display/compliance context - subtotal (net commercial) feeds convert contract.
  */
 export function computeQuoteTotals(input: {
   readonly lines: readonly QuoteLineInput[];

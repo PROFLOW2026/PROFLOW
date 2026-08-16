@@ -54,7 +54,7 @@ describe('AP bill tax split', () => {
     expect(split.taxBasis).toBe('zero_exempt');
   });
 
-  it('legacy undivided: no mode and no split — do not invent VAT', () => {
+  it('legacy undivided: no mode and no split - do not invent VAT', () => {
     const split = resolveApBillTaxSplit({
       enteredAmount: '500.00',
       currency: ILS,

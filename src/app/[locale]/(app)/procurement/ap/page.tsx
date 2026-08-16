@@ -155,7 +155,7 @@ export default async function ApBillsPage({
                           {bill.reference?.trim() || t('list.noReference')}
                         </Link>
                       </TableCell>
-                      <TableCell className="max-w-[10rem] truncate">{bill.vendorName ?? '—'}</TableCell>
+                      <TableCell className="max-w-[10rem] truncate">{bill.vendorName ?? '-'}</TableCell>
                       <TableCell>
                         <StatusBadge
                           shape={billStatusShape(bill.status)}
@@ -179,7 +179,7 @@ export default async function ApBillsPage({
                             )}
                           </span>
                         ) : (
-                          '—'
+                          '-'
                         )}
                       </TableCell>
                     </TableRow>
@@ -203,7 +203,7 @@ export default async function ApBillsPage({
                 />
               </div>
               <p className="break-words text-sm text-[var(--pf-text-secondary)]">
-                {bill.vendorName ?? '—'}
+                {bill.vendorName ?? '-'}
               </p>
               <ApBillTaxSummary
                 compact

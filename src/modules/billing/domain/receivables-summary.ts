@@ -18,7 +18,7 @@ export interface ReceivablesSummary {
   readonly overdueCount: number;
   /**
    * Outstanding on finalized `retention_release` billing only.
-   * Null when the org has no such open amounts in base currency — do not invent holdback accounting.
+   * Null when the org has no such open amounts in base currency - do not invent holdback accounting.
    */
   readonly retentionReleaseOutstanding: MoneyValue | null;
   readonly retentionReleaseOpenCount: number;

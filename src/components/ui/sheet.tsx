@@ -38,7 +38,7 @@ const SheetOverlay = React.forwardRef<
 
 export type SheetSide = 'start' | 'end' | 'bottom';
 
-// Side enter/exit uses fade only — physical slide-from-left/right fights RTL.
+// Side enter/exit uses fade only - physical slide-from-left/right fights RTL.
 const SIDE_MOTION =
   'data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0';
 

@@ -52,7 +52,7 @@ export type CommittedCostStatus = (typeof COMMITTED_COST_STATUSES)[number];
 
 
 
-/** Issuing a PO creates/updates committed cost — never posts an Expense. */
+/** Issuing a PO creates/updates committed cost - never posts an Expense. */
 
 export function shouldCreateCommittedCostOnIssue(status: PurchaseOrderStatus): boolean {
 
@@ -170,7 +170,7 @@ export function assertCommittedAmountMatchesLines(input: {
 
  * Committed amounts may inform forecasts but must not be summed into
 
- * actual project cost / expense totals. Uses money helpers — never JS floats.
+ * actual project cost / expense totals. Uses money helpers - never JS floats.
 
  */
 

@@ -23,9 +23,9 @@ export function OfflineSyncProvider({
   transport,
   children,
 }: {
-  /** Optional — resolved via getOfflineActorScopeAction so AppShell need not block on org. */
+  /** Optional - resolved via getOfflineActorScopeAction so AppShell need not block on org. */
   organizationId?: string;
-  /** Optional — resolved via getOfflineActorScopeAction when omitted (AppShell is Lead-owned). */
+  /** Optional - resolved via getOfflineActorScopeAction when omitted (AppShell is Lead-owned). */
   userId?: string;
   transport?: OfflineSyncTransport;
   children?: ReactNode;
@@ -70,7 +70,7 @@ export function OfflineSyncProvider({
       try {
         await getDraftQueue().claimUnscopedDrafts({ organizationId, userId });
       } catch {
-        // Non-fatal — queue may be unavailable during SSR/hydration.
+        // Non-fatal - queue may be unavailable during SSR/hydration.
       }
 
       let active = transportRef.current;
@@ -112,7 +112,7 @@ export function OfflineSyncProvider({
   }, [organizationId, userId, transport]);
 
   if (!userId) {
-    // Still provide org-only context until user resolves — forms show missing-scope errors offline.
+    // Still provide org-only context until user resolves - forms show missing-scope errors offline.
     return (
       <OfflineOrgProvider organizationId={organizationId} userId="">
         {children ?? null}

@@ -30,7 +30,7 @@ export interface ProjectRollupRow {
   readonly status: string;
   readonly workKind: WorkKind;
   readonly pricingMode: PricingMode;
-  /** Open-price job — costs in rollup; profit fields stay null. */
+  /** Open-price job - costs in rollup; profit fields stay null. */
   readonly priceNotSet: boolean;
   readonly currency: string;
   readonly originalContract: MoneyValue | null;
@@ -68,13 +68,13 @@ export interface OrganizationOpsSummary {
 export interface OrganizationProjectRollupOptions {
   /**
    * Optional row pagination for UI tables.
-   * Financial totals / ops always use the full eligible set — never truncated.
+   * Financial totals / ops always use the full eligible set - never truncated.
    */
   readonly limit?: number;
   readonly offset?: number;
   /**
    * All | Projects | Jobs. Defaults to all (projects + jobs, no double count).
-   * Unallocated org costs are reported beside rollup — not affected by this filter.
+   * Unallocated org costs are reported beside rollup - not affected by this filter.
    */
   readonly workKindFilter?: WorkKindFilter | string | null;
   /**
@@ -92,7 +92,7 @@ export interface OrganizationProjectRollup {
   /** Projects excluded because their currency differs from org base. */
   readonly excludedForeignCurrencyCount: number;
   /**
-   * @deprecated Always 0 — Wave 2 removed the 50-project correctness cap.
+   * @deprecated Always 0 - Wave 2 removed the 50-project correctness cap.
    * Kept for UI compatibility; prefer totalEligibleProjectCount.
    */
   readonly truncatedActiveProjectCount: number;
@@ -229,7 +229,7 @@ export async function getOrganizationProjectRollup(
     const expectedRemainingCost = financials.cost.expectedRemainingCost;
     const estimatedFinalCost = financials.cost.estimatedFinalCost;
     const assetCapitalActual = financials.cost.byFamily.assetCapital;
-    // Open-price rows keep null profit — never count as loss-making.
+    // Open-price rows keep null profit - never count as loss-making.
     const estimatedProfit =
       canProfit && !priceNotSet ? (financials.profit?.estimatedProfit ?? null) : null;
     const marginPercent =

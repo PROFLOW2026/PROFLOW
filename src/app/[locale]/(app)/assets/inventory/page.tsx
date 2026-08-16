@@ -256,7 +256,7 @@ export default async function InventoryPage({
                             {item.sku}
                           </span>
                         ) : (
-                          '—'
+                          '-'
                         )}
                       </TableCell>
                       <TableCell>
@@ -265,7 +265,7 @@ export default async function InventoryPage({
                             {item.barcode}
                           </span>
                         ) : (
-                          '—'
+                          '-'
                         )}
                       </TableCell>
                       <TableCell>{item.unit}</TableCell>
@@ -279,7 +279,7 @@ export default async function InventoryPage({
                         {item.minStockLevel || item.reorderLevel ? (
                           <span dir="ltr">{item.minStockLevel ?? item.reorderLevel}</span>
                         ) : (
-                          '—'
+                          '-'
                         )}
                       </TableCell>
                       <TableCell>

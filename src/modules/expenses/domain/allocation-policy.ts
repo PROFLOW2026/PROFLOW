@@ -20,7 +20,7 @@ export function isAllocatableClassification(classification: ExpenseCostClassific
 /**
  * Resolves which automatic (or manual) method to use.
  * Priority: explicit request → category default → org default → none.
- * `equal_split` is never inferred — it must appear explicitly on the request
+ * `equal_split` is never inferred - it must appear explicitly on the request
  * or on a configured category/org policy.
  */
 export function resolveAllocationMethodPolicy(input: {

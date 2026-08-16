@@ -1,7 +1,7 @@
 /**
  * Dispatch → resource_booking write-through.
  * Persist a source=work_order booking for the assignee window.
- * Not Microsoft Project / CPM — scheduling already owns conflict checks.
+ * Not Microsoft Project / CPM - scheduling already owns conflict checks.
  */
 
 export type DispatchBookingUpsert =

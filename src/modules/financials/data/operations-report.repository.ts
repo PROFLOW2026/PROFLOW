@@ -10,7 +10,7 @@ import type { DbExecutor } from '@/shared/db/types';
 import type { BusinessDate } from '@/shared/dates';
 
 /**
- * Lightweight org operations counts for reports (application projections — no new schema).
+ * Lightweight org operations counts for reports (application projections - no new schema).
  */
 
 export interface OperationsReportCounts {

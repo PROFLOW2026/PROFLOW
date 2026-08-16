@@ -5,14 +5,14 @@ import { useEffect } from 'react';
 /**
  * Registers the installable shell service worker in production only.
  * Skipped in development to avoid Turbopack/HMR cache races.
- * Does not subscribe to push — no notification product in Wave 4.
+ * Does not subscribe to push - no notification product in Wave 4.
  *
  * Calls `registration.update()` on load and when the tab becomes visible so
  * clients pick up shell cache bumps (skipWaiting + clients.claim) without
  * staying trapped on a stale worker.
  *
  * `controllerchange` reloads only when replacing an existing controller.
- * The first claim after register must not reload — that wiped in-flight
+ * The first claim after register must not reload - that wiped in-flight
  * sign-in forms and Playwright auth setup.
  */
 export function ServiceWorkerRegistrar() {
@@ -49,7 +49,7 @@ export function ServiceWorkerRegistrar() {
       .then((reg) => {
         if (cancelled) return;
         registration = reg;
-        // Do not call update() immediately — first claim + update can interrupt
+        // Do not call update() immediately - first claim + update can interrupt
         // in-flight auth and form edits. Visibility probes still refresh.
       })
       .catch(() => {

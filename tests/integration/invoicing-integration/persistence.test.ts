@@ -78,7 +78,7 @@ describe('invoicing-integration persistence (L + cross-tenant)', () => {
     setInvoicingIntegrationPersistenceReadyForTests(true);
   });
 
-  it('L — persistence restart: external document + connection survive', async () => {
+  it('L - persistence restart: external document + connection survive', async () => {
     const doc = await database.asService(async (db) =>
       drizzleExternalDocumentsRepository.create(db, {
         organizationId: orgAId,

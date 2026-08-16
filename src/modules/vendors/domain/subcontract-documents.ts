@@ -1,6 +1,6 @@
 /**
  * Required-doc / insurance flags live on existing documents rows
- * (`is_required`, `required_type`, `expires_at`) — not a new store.
+ * (`is_required`, `required_type`, `expires_at`) - not a new store.
  */
 
 import type { SubcontractDocumentFlags, SubcontractLinkedDocument } from './subcontract-types';

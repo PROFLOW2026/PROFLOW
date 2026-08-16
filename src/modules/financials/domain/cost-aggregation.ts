@@ -28,9 +28,9 @@ export interface ProjectExpenseContribution {
   readonly isSubcontractor: boolean;
   /** Project the contribution lands on (direct or allocation target). */
   readonly projectId?: string | null;
-  /** System category key `labor` — Mode B payroll/labor lump sum. */
+  /** System category key `labor` - Mode B payroll/labor lump sum. */
   readonly isLaborCategory?: boolean;
-  /** Source expense id — used to exclude bill-linked expenses from Actual. */
+  /** Source expense id - used to exclude bill-linked expenses from Actual. */
   readonly expenseId?: string | null;
   /** Optional mapping for per-line budget Actual. Never guessed when absent. */
   readonly categoryKey?: string | null;
@@ -44,7 +44,7 @@ export interface LaborCostContribution {
   readonly excludedForeignCurrencyEntries?: number;
   /**
    * Org-scope: exclude labor-category expenses only for these project ids.
-   * Project-scope: omit — any labor-category line is excluded when hasWorkforceData.
+   * Project-scope: omit - any labor-category line is excluded when hasWorkforceData.
    */
   readonly projectIdsWithWorkforceLabor?: ReadonlySet<string>;
 }
@@ -59,7 +59,7 @@ export interface ForecastFinalCostInput {
   readonly actualCostToDate: MoneyValue;
   /** Remaining open / partially_consumed committed amounts (already net of consumption). */
   readonly remainingCommitments: MoneyValue;
-  /** Uncovenanted ETC — must not duplicate PO commitments. */
+  /** Uncovenanted ETC - must not duplicate PO commitments. */
   readonly expectedRemainingCost: MoneyValue;
 }
 
@@ -83,7 +83,7 @@ function familyKeyFromDb(value: string): CostFamilyKey {
  *
  * Actual includes finalized expenses and recognized (posted) vendor bills.
  * Commitments must already be remaining (post bill/PO consumption). Never add open AP
- * payable / vendor payments here — cash obligations only, not incremental cost.
+ * payable / vendor payments here - cash obligations only, not incremental cost.
  */
 export function computeForecastFinalCost(input: ForecastFinalCostInput): MoneyValue {
   const currency = input.actualCostToDate.currency;

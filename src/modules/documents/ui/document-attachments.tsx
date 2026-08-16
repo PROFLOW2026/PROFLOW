@@ -46,7 +46,7 @@ const DocumentPreviewDialog = dynamic(
 );
 
 export interface DocumentAttachmentsProps {
-  /** Closed enum — which entity owns these attachments. */
+  /** Closed enum - which entity owns these attachments. */
   ownerType: DocumentOwnerType;
   ownerId: string;
   /** Pre-loaded attachments from the server. */
@@ -164,7 +164,7 @@ export function DocumentAttachments({
           setError(tOffline('errors.missingOrganization'));
           return;
         }
-        // afterFinalize mutates a linked server record — require online.
+        // afterFinalize mutates a linked server record - require online.
         if (afterFinalizeAction) {
           setError(tOffline('forms.captureFinalizeRequiresOnline'));
           return;

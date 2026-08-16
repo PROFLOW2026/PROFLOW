@@ -102,7 +102,7 @@
     "cancelled": "בוטל"
   },
   "events": {
-    "sentAt": "נשלח ב־{date}",
+    "sentAt": "נשלח ב-{date}",
     "notSent": "לא נשלח"
   }
 }

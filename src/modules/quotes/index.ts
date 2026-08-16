@@ -1,4 +1,4 @@
-/** Public API — pre-sale Quotes / Estimates (Quote ≠ Billing ≠ Change Order ≠ Revenue). */
+/** Public API - pre-sale Quotes / Estimates (Quote ≠ Billing ≠ Change Order ≠ Revenue). */
 
 export {
   createQuote,

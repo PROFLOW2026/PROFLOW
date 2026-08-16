@@ -26,7 +26,7 @@ interface EmployeeEditPanelProps {
 }
 
 /**
- * Master-field edit only — compensation stays in the cost panel / rate history.
+ * Master-field edit only - compensation stays in the cost panel / rate history.
  */
 export function EmployeeEditPanel({ employee, linkableUsers }: EmployeeEditPanelProps) {
   const t = useTranslations('workforce');

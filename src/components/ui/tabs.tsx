@@ -22,7 +22,7 @@ export const TabsList = React.forwardRef<
     <TabsPrimitive.List
       ref={ref}
       className={cn(
-        // Contained horizontal scroll — never widen the page for many tabs.
+        // Contained horizontal scroll - never widen the page for many tabs.
         'flex min-w-0 max-w-full w-full items-center gap-1 overflow-x-auto overscroll-x-contain border-b border-[var(--pf-border-default)]',
         '[scrollbar-width:none] [&::-webkit-scrollbar]:hidden',
         className,

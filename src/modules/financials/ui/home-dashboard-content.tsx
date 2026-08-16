@@ -324,7 +324,7 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="min-w-0 pb-3 text-sm text-[var(--pf-text-secondary)]">
-                  {project.clientName ?? '—'}
+                  {project.clientName ?? '-'}
                   {project.currentContractValue && project.currency ? (
                     <p className="mt-1 min-w-0 max-w-full overflow-x-auto">
                       <MoneyText

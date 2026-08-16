@@ -95,7 +95,7 @@ describe('PRE-0021 Reviewer1 lifecycle probes', () => {
   });
 
   it('draft vendor allocation suppresses header path risk is app-layer (status unfiltered)', async () => {
-    // Pure documentation assert — loader must filter status='applied' before READY=true.
+    // Pure documentation assert - loader must filter status='applied' before READY=true.
     const { resolveVendorBillProjectAmounts } = await import(
       '@/modules/ap/domain/vendor-bill-project-attribution'
     );

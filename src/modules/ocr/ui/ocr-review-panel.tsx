@@ -137,7 +137,7 @@ export interface OcrReviewPanelProps {
   readonly initialBatches?: readonly OcrBatch[];
   readonly vendors: readonly { id: string; name: string }[];
   readonly organizationId: string;
-  /** Organization tax/company ID from legal_identity settings — wrong-customer checks. */
+  /** Organization tax/company ID from legal_identity settings - wrong-customer checks. */
   readonly organizationTaxId?: string | null;
   readonly defaultTarget: OcrDraftTarget;
   readonly workflow: OcrWorkflowContext;
@@ -1237,7 +1237,7 @@ export function OcrReviewPanel({
                       <ul className="list-disc ps-5 text-sm text-[var(--pf-text-secondary)]">
                         {selected.candidates.lines.map((line, index) => (
                           <li key={`line-${index}`}>
-                            {line.description.value ?? '—'}
+                            {line.description.value ?? '-'}
                             {line.lineTotal.value ? ` · ${line.lineTotal.value}` : ''}
                           </li>
                         ))}

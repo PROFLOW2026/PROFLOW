@@ -345,7 +345,7 @@ export async function ensurePlannedOccurrence(
       status: 'planned',
     });
   } catch (error) {
-    // Race on unique index — re-read.
+    // Race on unique index - re-read.
     const raced = await findOccurrenceByDefinitionDate(
       db,
       input.organizationId,

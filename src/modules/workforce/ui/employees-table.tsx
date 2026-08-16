@@ -171,7 +171,7 @@ export function canApproveTime(context: OrgContext): boolean {
 }
 
 export function canViewWorkforceCosts(context: OrgContext): boolean {
-  // List rate columns must match list redaction — never show empty "no rate" cells
+  // List rate columns must match list redaction - never show empty "no rate" cells
   // when the user cannot read workforce cost (rates stay redacted).
   return canReadWorkforceCost(context);
 }

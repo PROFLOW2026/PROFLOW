@@ -43,7 +43,7 @@ interface ProjectPageProps {
   searchParams: Promise<{ tab?: string | string[]; contractId?: string | string[] }>;
 }
 
-/** Module panels that only need project chrome — not WP/phase/milestone rows. */
+/** Module panels that only need project chrome - not WP/phase/milestone rows. */
 const MODULE_PANEL_TABS = new Set<ProjectTabKey>([
   'financials',
   'expenses',
@@ -76,7 +76,7 @@ export async function generateMetadata({ params }: ProjectPageProps): Promise<Me
 }
 
 /**
- * Tab panel segment — re-runs on `?tab=` soft-nav.
+ * Tab panel segment - re-runs on `?tab=` soft-nav.
  * Stable header / metrics / tab list live in `layout.tsx`.
  *
  * Overview / work / details return a Suspense boundary before awaiting
@@ -104,7 +104,7 @@ export default async function ProjectPage({ params, searchParams }: ProjectPageP
   const showBillingTab = Boolean(modules?.billing) && can(PERMISSIONS.BILLING_READ);
   const showBudgetsTab = Boolean(modules?.budgets) && can(PERMISSIONS.BUDGETS_READ);
   const showTeamTab = can(PERMISSIONS.WORKFORCE_READ);
-  // Schedule is permission-gated (not module) — `planning` is not in OPTIONAL_MODULE_KEYS.
+  // Schedule is permission-gated (not module) - `planning` is not in OPTIONAL_MODULE_KEYS.
   const showScheduleTab = can(PERMISSIONS.PLANNING_READ);
   const showTimeTab = can(PERMISSIONS.WORKFORCE_READ);
   const showDocumentsTab = Boolean(modules?.documents) && can(PERMISSIONS.DOCUMENTS_READ);
@@ -126,7 +126,7 @@ export default async function ProjectPage({ params, searchParams }: ProjectPageP
   const isModuleTab =
     MODULE_PANEL_TABS.has(tabParam as ProjectTabKey) && visibleModuleTabs.has(tabParam);
 
-  // Chrome-only — shares React cache with layout; job redirect without structure.
+  // Chrome-only - shares React cache with layout; job redirect without structure.
   // Warm structure (and overview snapshot financials) in parallel with chrome.
   if (!isModuleTab) {
     void loadProjectDetail(projectId, true);
@@ -228,7 +228,7 @@ async function ProjectStructuredTabPanel({
 
   const uiLocale = locale === 'he-IL' ? 'he-IL' : 'en';
   const modules = shell?.modules;
-  /** Optional contractors panel on overview — no `contractors` tab (avoids schedule conflict). */
+  /** Optional contractors panel on overview - no `contractors` tab (avoids schedule conflict). */
   const showContractorsPanel = shell?.permissions.has(PERMISSIONS.VENDORS_READ) ?? false;
   const workspaceLinks = selectProjectWorkspaceLinks({
     projectId,

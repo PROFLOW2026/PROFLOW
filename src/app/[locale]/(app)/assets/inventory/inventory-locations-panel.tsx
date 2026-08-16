@@ -144,7 +144,7 @@ function LocationRow({
     return (
       <TableRow>
         <TableCell className="font-medium">{location.name}</TableCell>
-        <TableCell>{location.code ?? '—'}</TableCell>
+        <TableCell>{location.code ?? '-'}</TableCell>
         <TableCell>{t(`locationKinds.${location.locationKind}`)}</TableCell>
       </TableRow>
     );

@@ -136,7 +136,7 @@ export function allocateByProjectWeights(input: {
   const totalBasis = basisDecimals.reduce((acc, row) => acc.plus(row.basis), new Decimal(0));
   if (totalBasis.isZero()) {
     throw new DomainRuleError(
-      'Allocation basis total is zero — cannot allocate',
+      'Allocation basis total is zero - cannot allocate',
       'expenses.errors.allocationBasisZero',
     );
   }
@@ -212,7 +212,7 @@ export function allocateByProjectWeights(input: {
   return { lines, explanation };
 }
 
-/** Builds equal-split bases (explicit method only — never a silent default). */
+/** Builds equal-split bases (explicit method only - never a silent default). */
 export function equalSplitBases(projectIds: readonly string[]): ProjectWeightBasis[] {
   return projectIds
     .slice()

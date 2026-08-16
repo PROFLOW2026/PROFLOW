@@ -5,7 +5,7 @@
 
 export type WorkKind = 'project' | 'job' | 'work_order';
 export type PricingMode = 'fixed' | 'open' | null;
-/** Org dashboard / reports scope — never double-counts across kinds. */
+/** Org dashboard / reports scope - never double-counts across kinds. */
 export type WorkKindFilter = 'all' | 'project' | 'job';
 
 export function normalizeWorkKind(value: string | null | undefined): WorkKind {
@@ -68,7 +68,7 @@ export function hasRevenueBasisForProfitability(
 /**
  * `contract_weight` must not invent a fake contract for open-price jobs.
  * Other drivers (labor hours, direct cost, equal_split) still include them.
- * (Eligibility uses pricing_mode only — open jobs never carry a managed contract.)
+ * (Eligibility uses pricing_mode only - open jobs never carry a managed contract.)
  */
 export function isEligibleForContractWeightAllocation(
   workKind: string | null | undefined,

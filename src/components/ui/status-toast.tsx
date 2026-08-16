@@ -21,7 +21,7 @@ export interface StatusToastProps {
 const emptySubscribe = () => () => {};
 
 /**
- * Minimal product status toast — fixed region using Alert design tokens.
+ * Minimal product status toast - fixed region using Alert design tokens.
  * Client mount uses useSyncExternalStore (no setState-in-effect).
  */
 export function StatusToast({ open, tone, message, onDismiss, className }: StatusToastProps) {

@@ -13,7 +13,7 @@ const SEVERITY_WEIGHT: Record<CommandCenterSeverity, number> = {
   low: 100,
 };
 
-/** Default severity per source — used when collectors omit an override. */
+/** Default severity per source - used when collectors omit an override. */
 export const SOURCE_DEFAULT_SEVERITY: Record<CommandCenterSourceType, CommandCenterSeverity> = {
   overdue_ar: 'critical',
   vendor_bill_due: 'critical',

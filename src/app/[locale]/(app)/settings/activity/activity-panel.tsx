@@ -69,7 +69,7 @@ export function ActivityLogPanel({
                     </TableCell>
                     <TableCell>
                       {event.actorDisplayName ??
-                        (event.actorEmail ? <span dir="ltr">{event.actorEmail}</span> : '—')}
+                        (event.actorEmail ? <span dir="ltr">{event.actorEmail}</span> : '-')}
                     </TableCell>
                     <TableCell>{translateAuditKey(t, 'actions', event.action)}</TableCell>
                     <TableCell>{translateAuditKey(t, 'entities', event.entityType)}</TableCell>
@@ -86,7 +86,7 @@ export function ActivityLogPanel({
             </p>
             <p className="mt-1 font-medium">
               {event.actorDisplayName ??
-                (event.actorEmail ? <span dir="ltr">{event.actorEmail}</span> : '—')}
+                (event.actorEmail ? <span dir="ltr">{event.actorEmail}</span> : '-')}
             </p>
             <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">
               {translateAuditKey(t, 'actions', event.action)} ·{' '}

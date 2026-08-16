@@ -18,7 +18,7 @@ export interface CashFlowViewCopy {
 
 /**
  * Actual (Paid collected) vs Forecast (Outstanding due dates) cash panel.
- * Outgoing uses open AP bills when available — never Expense invent.
+ * Outgoing uses open AP bills when available - never Expense invent.
  */
 export function CashFlowView({
   cashFlow,
@@ -59,7 +59,7 @@ export function CashFlowView({
         </div>
         <p className="break-all text-xs text-[var(--pf-text-muted)]" dir="ltr">
           <time dateTime={cashFlow.actual.rangeStart}>{cashFlow.actual.rangeStart}</time>
-          {' – '}
+          {' - '}
           <time dateTime={cashFlow.actual.rangeEnd}>{cashFlow.actual.rangeEnd}</time>
         </p>
       </div>

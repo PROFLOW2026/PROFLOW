@@ -1,8 +1,8 @@
 /**
  * Planning / Timeline / Gantt V1 (Agent 6 overnight + PRE-SQL Agent D).
  *
- * Useful project planning — not MS Project. Jobs opt-out by default.
- * Critical Path: foundations only (`supported: false`) — see LIMITATION.md.
+ * Useful project planning - not MS Project. Jobs opt-out by default.
+ * Critical Path: foundations only (`supported: false`) - see LIMITATION.md.
  * Persistence: Drizzle when `PLANNING_PERSISTENCE_READY`; otherwise in-memory
  * is a **test double only**.
  */

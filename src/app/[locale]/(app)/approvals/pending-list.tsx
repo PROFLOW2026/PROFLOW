@@ -32,7 +32,7 @@ function PendingCard({
               {item.amount && item.currency ? (
                 <MoneyText value={money(item.amount, item.currency)} />
               ) : (
-                '—'
+                '-'
               )}
             </p>
           </div>

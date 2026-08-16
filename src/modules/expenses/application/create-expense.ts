@@ -133,7 +133,7 @@ async function validateAllocationReferences(
 async function persistAllocations(
   context: OrgContext,
   expenseId: string,
-  /** Allocatable total — always NET so Actual Cost stays pre-VAT. */
+  /** Allocatable total - always NET so Actual Cost stays pre-VAT. */
   netAmount: ReturnType<typeof resolveTaxAmounts>['netAmount'],
   allocationInputs: readonly AllocationLineInput[] | undefined,
 ): Promise<void> {

@@ -188,7 +188,7 @@ test('production navigation performance verification', async ({ page }) => {
   const base = {
     mode: 'PRODUCTION' as const,
     measuredAt: new Date().toISOString(),
-    primaryMetric: 'wallMs — click/goto until content ready (UX)',
+    primaryMetric: 'wallMs - click/goto until content ready (UX)',
     classificationBands: {
       FAST: '<500ms repeated',
       ACCEPTABLE: '500–1000ms',
@@ -202,7 +202,7 @@ test('production navigation performance verification', async ({ page }) => {
     results.push(r);
     persist({ ...base, results });
     console.log(
-      `[perf] ${r.flow} first=${r.firstMs}ms repeated=${r.repeatedMs ?? '—'}ms ${r.classification}` +
+      `[perf] ${r.flow} first=${r.firstMs}ms repeated=${r.repeatedMs ?? '-'}ms ${r.classification}` +
         (r.note ? ` | ${r.note}` : ''),
     );
   };
@@ -511,7 +511,7 @@ test('production navigation performance verification', async ({ page }) => {
   });
 
   // Client chunk check: real Drizzle ORM/schema leak (not loose "postgres" strings).
-  // Match Symbol.for("drizzle:entityKind") / schema builders — not incidental text.
+  // Match Symbol.for("drizzle:entityKind") / schema builders - not incidental text.
   const chunkProbe = await page.evaluate(async () => {
     const scripts = [...document.querySelectorAll('script[src*="/_next/static/chunks/"]')].map(
       (el) => (el as HTMLScriptElement).src,
@@ -572,7 +572,7 @@ test('production navigation performance verification', async ({ page }) => {
 
   console.log('\n=== PERF VERIFICATION SUMMARY ===');
   for (const r of results) {
-    console.log(`${r.flow} | first=${r.firstMs} | repeated=${r.repeatedMs ?? '—'} | ${r.classification}`);
+    console.log(`${r.flow} | first=${r.firstMs} | repeated=${r.repeatedMs ?? '-'} | ${r.classification}`);
   }
   console.log('Wrote', outPath());
   console.log('productionCues', productionCues);

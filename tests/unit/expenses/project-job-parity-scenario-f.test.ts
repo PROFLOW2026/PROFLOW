@@ -14,7 +14,7 @@ import { money } from '@/shared/money';
 const ILS = 'ILS';
 
 /**
- * Scenario F — overhead across projects + jobs with short job period exposure.
+ * Scenario F - overhead across projects + jobs with short job period exposure.
  * Open-price jobs are excluded from contract_weight (no invented contract).
  * Snapshots remain slice-scoped; SUM(lines) = slice NET.
  */
@@ -40,7 +40,7 @@ function entity(
   };
 }
 
-describe('Scenario F — overhead projects+jobs + short exposure', () => {
+describe('Scenario F - overhead projects+jobs + short exposure', () => {
   const jan = { start: businessDate('2026-01-01'), end: businessDate('2026-01-31') };
 
   const portfolio: ProjectEligibilityFacts[] = [
@@ -60,7 +60,7 @@ describe('Scenario F — overhead projects+jobs + short exposure', () => {
       workKind: 'job',
       pricingMode: 'fixed',
     }),
-    // Open-price job — eligible for equal_split / labor / direct, NOT contract_weight
+    // Open-price job - eligible for equal_split / labor / direct, NOT contract_weight
     entity('job-open', {
       start: '2026-01-01',
       end: null,

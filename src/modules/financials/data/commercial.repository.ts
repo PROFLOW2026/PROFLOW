@@ -286,7 +286,7 @@ export async function loadContractCommercialData(
 
 /**
  * Set-based commercial positions for many projects (org rollup).
- * Same arithmetic as loadProjectCommercialData — all live contracts, summed per project.
+ * Same arithmetic as loadProjectCommercialData - all live contracts, summed per project.
  */
 export async function loadCommercialDataForProjects(
   db: DbExecutor,

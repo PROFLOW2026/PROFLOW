@@ -15,7 +15,7 @@ import {
   type WorkMix,
 } from '../domain/work-mix';
 
-/** Soft read for shell / nav — no settings permission required. */
+/** Soft read for shell / nav - no settings permission required. */
 export async function getWorkMixForOrg(context: OrgContext): Promise<WorkMix> {
   const raw = await getOrganizationSettingValue<unknown>(
     context.db,

@@ -8,7 +8,7 @@ import { createTestUser, createTwoTenantScenario, seedSystem } from '../../setup
 /**
  * The founding path is the one flow that runs before any membership exists, so
  * it is the only place where row-level security has nothing to authorise
- * against yet. It has to be exercised as a real authenticated user — running it
+ * against yet. It has to be exercised as a real authenticated user - running it
  * as the service role would prove nothing.
  */
 describe('founding an organization as an authenticated user', () => {

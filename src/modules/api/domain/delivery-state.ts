@@ -69,7 +69,7 @@ export function parseDeliveryHttpStatus(lastError: string | null): number | null
 
 /**
  * Pure retry-state update after one delivery attempt.
- * Does not perform HTTP — keeps attempt/status invariants correct for workers.
+ * Does not perform HTTP - keeps attempt/status invariants correct for workers.
  */
 export function applyDeliveryAttempt(
   current: DeliveryAttemptState,

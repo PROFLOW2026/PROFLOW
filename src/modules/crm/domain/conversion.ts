@@ -5,7 +5,7 @@ import type { OpportunityRecord, SalesQuoteVersionRecord } from './types';
 /**
  * Conversion rules (doc 20 §6): Opportunity ≠ Project; win is explicit.
  * Lost / cancelled opportunities stay in CRM history with no Project.
- * Sales quotes are commercial offers — they never create AR / billing_records.
+ * Sales quotes are commercial offers - they never create AR / billing_records.
  */
 
 export type ConversionOpportunity = Pick<

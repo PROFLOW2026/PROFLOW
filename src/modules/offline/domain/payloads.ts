@@ -1,6 +1,6 @@
 /**
  * Typed offline draft payloads for product sync (Wave 4).
- * Drafts are candidates only — never authoritative financial truth.
+ * Drafts are candidates only - never authoritative financial truth.
  */
 
 import { parseAllocationsFromForm } from '@/modules/expenses/validation/schemas';

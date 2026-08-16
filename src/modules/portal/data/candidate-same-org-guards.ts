@@ -1,7 +1,7 @@
 /**
  * APP GUARDS for vendor portal candidates.
  * Vendor + grant same-org; principal must match grant.principal_id
- * (principals have no organization_id — intentional).
+ * (principals have no organization_id - intentional).
  */
 
 import { and, eq } from 'drizzle-orm';
@@ -63,7 +63,7 @@ export async function assertGrantSameOrgAndPrincipal(input: {
       'errors.notAllowed',
     );
   }
-  // Principals are global (no org) — candidate principal_id must match grant.
+  // Principals are global (no org) - candidate principal_id must match grant.
   if (grant.principalId !== input.principalId) {
     throw new DomainRuleError(
       'Candidate principal must match grant principal',

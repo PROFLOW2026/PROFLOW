@@ -145,7 +145,7 @@ export async function updateProjectBoqStatus(
     archivedAt?: Date | null;
   },
 ): Promise<never> {
-  throw new Error('updateProjectBoqStatus is removed — use activateProjectBoqRpc / archiveProjectBoqRpc');
+  throw new Error('updateProjectBoqStatus is removed - use activateProjectBoqRpc / archiveProjectBoqRpc');
 }
 
 export async function updateProjectBoqContractId(
@@ -427,7 +427,7 @@ export async function insertChangeAllocation(
     createdByUserId: string | null;
   },
 ): Promise<never> {
-  throw new Error('insertChangeAllocation is removed — use allocateChangeRpc / reverseChangeAllocationRpc');
+  throw new Error('insertChangeAllocation is removed - use allocateChangeRpc / reverseChangeAllocationRpc');
 }
 
 export async function listChangeAllocationsForBoq(
@@ -667,7 +667,7 @@ export async function updateProgressBatchStatus(
     approvedByUserId?: string | null;
   },
 ): Promise<never> {
-  throw new Error('updateProgressBatchStatus is removed — use approveProgressBatchRpc / claim / supersede RPCs');
+  throw new Error('updateProgressBatchStatus is removed - use approveProgressBatchRpc / claim / supersede RPCs');
 }
 
 export async function cumulativeApprovedForNode(
@@ -1035,7 +1035,7 @@ export async function nextBoqVersionNumber(
   return Number(row?.max ?? 0) + 1;
 }
 
-/** Mapping FKs only — never original or current money/qty columns. */
+/** Mapping FKs only - never original or current money/qty columns. */
 export async function updateBoqNodeMappings(
   db: DbExecutor,
   organizationId: string,

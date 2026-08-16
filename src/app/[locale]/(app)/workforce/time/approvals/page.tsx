@@ -111,7 +111,7 @@ export default async function TimesheetApprovalsPage({
                   <p className="font-medium">{sheet.employeeName}</p>
                   <p className="text-sm text-[var(--pf-text-secondary)]" dir="ltr">
                     {formatBusinessDate(businessDate(sheet.periodStart), locale, 'short')}
-                    {' – '}
+                    {' - '}
                     {formatBusinessDate(businessDate(sheet.periodEnd), locale, 'short')}
                   </p>
                   <p className="mt-1 text-sm text-[var(--pf-text-muted)]">

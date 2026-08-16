@@ -11,7 +11,7 @@ interface WorkforceSubNavProps {
   readonly active: WorkforceTab;
 }
 
-/** Local workforce tab strip — shell More nav is owned by Agent 8. */
+/** Local workforce tab strip - shell More nav is owned by Agent 8. */
 export async function WorkforceSubNav({ active }: WorkforceSubNavProps) {
   const t = await getTranslations('workforce');
   const { showEmployees, showAttendance, showApprovals } = await withOrgContext(async (context) => ({

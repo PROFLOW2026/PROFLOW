@@ -2,7 +2,7 @@
  * Subcontract agreement types. Framework-free.
  *
  * Commitment ≠ expense. Valuation ≠ payment. Current value is derived from
- * append-only value events — never from a pending proposal.
+ * append-only value events - never from a pending proposal.
  */
 
 export const SUBCONTRACT_STATUSES = ['draft', 'active', 'completed', 'cancelled'] as const;

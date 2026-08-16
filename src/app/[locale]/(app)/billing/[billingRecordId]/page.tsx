@@ -234,8 +234,8 @@ export default async function BillingDetailPage({
                           <TableCell numeric>
                             <MoneyText value={payment.amount} />
                           </TableCell>
-                          <TableCell className="max-w-[8rem] truncate">{payment.method ?? '—'}</TableCell>
-                          <TableCell className="max-w-[8rem] truncate">{payment.reference ?? '—'}</TableCell>
+                          <TableCell className="max-w-[8rem] truncate">{payment.method ?? '-'}</TableCell>
+                          <TableCell className="max-w-[8rem] truncate">{payment.reference ?? '-'}</TableCell>
                           <TableCell>
                             <span className="text-sm text-[var(--pf-text-secondary)]">
                               {tPayment(payment.status)}
@@ -261,7 +261,7 @@ export default async function BillingDetailPage({
                     <MoneyText value={payment.amount} />
                   </p>
                   <p className="mt-1 truncate text-sm text-[var(--pf-text-secondary)]">
-                    {payment.method ?? '—'}
+                    {payment.method ?? '-'}
                     {payment.reference ? ` · ${payment.reference}` : null}
                   </p>
                 </div>

@@ -1,6 +1,6 @@
 /**
  * RFC4180-ish CSV parser for structured imports (doc 37).
- * Complements export helpers in `modules/exports` — parse side only.
+ * Complements export helpers in `modules/exports` - parse side only.
  */
 
 import type { ParsedCsv } from './types';

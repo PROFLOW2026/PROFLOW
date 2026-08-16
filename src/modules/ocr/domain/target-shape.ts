@@ -1,7 +1,7 @@
 /**
  * Confirmed OCR target shape (app guard; DB CHECK from 0031).
  *
- * Strict invariant — every confirmed target requires its matching ID:
+ * Strict invariant - every confirmed target requires its matching ID:
  * - null target → all IDs null
  * - expense → expense id NOT NULL; bill/credit null
  * - vendor_bill → bill id NOT NULL; expense/credit null

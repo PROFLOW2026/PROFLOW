@@ -18,7 +18,7 @@ interface OverviewContractHistoryProps {
 }
 
 /**
- * Contract value history — own Suspense boundary so overview chrome/schedule
+ * Contract value history - own Suspense boundary so overview chrome/schedule
  * can stream without waiting on the history table flight.
  * Chrome detail is request-cached with layout/page.
  */

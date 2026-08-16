@@ -171,7 +171,7 @@ export default async function OpportunityDetailPage({
               <div>
                 <dt className="text-[var(--pf-text-muted)]">{t('followUp.nextActionLabel')}</dt>
                 <dd className="mt-1 whitespace-pre-wrap">
-                  {detail.nextActionText?.trim() ? detail.nextActionText : '—'}
+                  {detail.nextActionText?.trim() ? detail.nextActionText : '-'}
                 </dd>
               </div>
               <div>
@@ -191,14 +191,14 @@ export default async function OpportunityDetailPage({
                       {formatInstant(detail.nextActionAt, locale, timezone)}
                     </span>
                   ) : (
-                    '—'
+                    '-'
                   )}
                 </dd>
               </div>
               <div>
                 <dt className="text-[var(--pf-text-muted)]">{t('followUp.notesLabel')}</dt>
                 <dd className="mt-1 whitespace-pre-wrap">
-                  {detail.opportunityNotes?.trim() ? detail.opportunityNotes : '—'}
+                  {detail.opportunityNotes?.trim() ? detail.opportunityNotes : '-'}
                 </dd>
               </div>
               <div>
@@ -206,7 +206,7 @@ export default async function OpportunityDetailPage({
                 <dd className="mt-1">
                   {detail.expectedStartDate && isBusinessDate(detail.expectedStartDate)
                     ? formatBusinessDate(detail.expectedStartDate, locale)
-                    : '—'}
+                    : '-'}
                 </dd>
               </div>
             </dl>

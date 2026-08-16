@@ -16,7 +16,7 @@ const GENERATE_SOURCE = readFileSync(
   'utf8',
 );
 
-describe('recurring draft payload — drafts only', () => {
+describe('recurring draft payload - drafts only', () => {
   it('strips finalize so stored templates cannot auto-post', () => {
     expect(stripFinalizeFlag({ amount: '100', finalize: true })).toEqual({ amount: '100' });
     expect(stripFinalizeFlag({ finalize: false, projectId: 'p' })).toEqual({ projectId: 'p' });

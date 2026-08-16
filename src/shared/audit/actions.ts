@@ -1,6 +1,6 @@
 /**
  * Client-safe audit action catalog (string constants only).
- * Import from here in domain/UI modules — never from `@/shared/audit` (server/DB).
+ * Import from here in domain/UI modules - never from `@/shared/audit` (server/DB).
  */
 
 export const AUDIT_ACTIONS = {
@@ -228,7 +228,7 @@ export const AUDIT_ACTIONS = {
   TAX_RULE_CREATED: 'tax_rule.created',
   TAX_RULE_UPDATED: 'tax_rule.updated',
 
-  /** Pre-sale estimates (`src/modules/quotes`) — not change-order / CRM / supplier quotes. */
+  /** Pre-sale estimates (`src/modules/quotes`) - not change-order / CRM / supplier quotes. */
   ESTIMATE_QUOTE_CREATED: 'estimate_quote.created',
   ESTIMATE_QUOTE_UPDATED: 'estimate_quote.updated',
   ESTIMATE_QUOTE_STATUS_CHANGED: 'estimate_quote.status_changed',
@@ -259,7 +259,7 @@ export const AUDIT_ACTIONS = {
   FORM_SUBMISSION_SUBMITTED: 'form_submission.submitted',
   FORM_SUBMISSION_VOIDED: 'form_submission.voided',
 
-  /** Service recurrence templates (`src/modules/service/recurrence`) — generate never finalizes money. */
+  /** Service recurrence templates (`src/modules/service/recurrence`) - generate never finalizes money. */
   SERVICE_RECURRENCE_CREATED: 'service_recurrence.created',
   SERVICE_RECURRENCE_UPDATED: 'service_recurrence.updated',
   SERVICE_RECURRENCE_PAUSED: 'service_recurrence.paused',
@@ -268,10 +268,10 @@ export const AUDIT_ACTIONS = {
   SERVICE_RECURRENCE_OCCURRENCE_SKIPPED: 'service_recurrence.occurrence_skipped',
   SERVICE_RECURRENCE_GENERATED: 'service_recurrence.generated',
 
-  /** Retention / holdback release — cash timing only, never a second Actual. */
+  /** Retention / holdback release - cash timing only, never a second Actual. */
   RETENTION_RELEASED: 'retention.released',
 
-  /** Recurring financial DRAFT templates — generate never finalizes or posts money. */
+  /** Recurring financial DRAFT templates - generate never finalizes or posts money. */
   RECURRING_FINANCIAL_DRAFT_CREATED: 'recurring_financial_draft.created',
   RECURRING_FINANCIAL_DRAFT_UPDATED: 'recurring_financial_draft.updated',
   RECURRING_FINANCIAL_DRAFT_PAUSED: 'recurring_financial_draft.paused',

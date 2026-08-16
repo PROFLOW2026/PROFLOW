@@ -7,10 +7,10 @@ import { createTestDatabase, type TestDatabase } from '@tests/setup/database';
 import { createTestUser, createTestOrganization, seedSystem } from '@tests/setup/fixtures';
 
 /**
- * Scenario L — OCR job metadata survives a new repository instance (restart double).
+ * Scenario L - OCR job metadata survives a new repository instance (restart double).
  * Uses disposable PGlite; does not flip production OCR_PERSISTENCE_READY.
  */
-describe('scenario L — OCR persistence restart', () => {
+describe('scenario L - OCR persistence restart', () => {
   let database: TestDatabase;
 
   beforeAll(async () => {

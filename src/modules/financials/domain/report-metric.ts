@@ -17,7 +17,7 @@ export interface MoneyReportMetric {
   readonly key: string;
   readonly kind: ReportMetricKind;
   readonly value: MoneyValue;
-  /** Always equals value.currency — never mix currencies in one metric. */
+  /** Always equals value.currency - never mix currencies in one metric. */
   readonly currency: string;
   /** i18n keys under dashboard.reports.inclusions.* */
   readonly inclusions: readonly string[];

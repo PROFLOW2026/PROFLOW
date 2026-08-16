@@ -1,5 +1,5 @@
 /**
- * Organization legal / tax identity — pure parsers (no persistence).
+ * Organization legal / tax identity - pure parsers (no persistence).
  * Stored value lives in organization_settings JSON key `legal_identity`.
  */
 
@@ -32,7 +32,7 @@ export function parseOrganizationLegalIdentity(raw: unknown): OrganizationLegalI
   return { taxId, companyNumber };
 }
 
-/** Prefer taxId, then companyNumber — both are Israeli business identifiers. */
+/** Prefer taxId, then companyNumber - both are Israeli business identifiers. */
 export function resolveOrganizationTaxId(identity: OrganizationLegalIdentity): string | null {
   return identity.taxId ?? identity.companyNumber;
 }

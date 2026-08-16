@@ -1,6 +1,6 @@
 /**
  * Same-org APP GUARD for polymorphic bank match targets.
- * No cross-table FK exists for target_id — validate organization_id in app.
+ * No cross-table FK exists for target_id - validate organization_id in app.
  */
 
 import { and, eq } from 'drizzle-orm';

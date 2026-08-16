@@ -69,7 +69,7 @@ export async function createVendorCreditDraftFromOcr(
     amount: draft.amount,
     netAmount: draft.netAmount,
     taxAmount: draft.taxAmount,
-    notes: [draft.notes, 'Created from document review as draft — not applied.']
+    notes: [draft.notes, 'Created from document review as draft - not applied.']
       .filter(Boolean)
       .join('\n')
       .slice(0, 2000),

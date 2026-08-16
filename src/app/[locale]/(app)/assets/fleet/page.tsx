@@ -155,14 +155,14 @@ export default async function FleetPage({
                           label={tStatus(item.assetStatus)}
                         />
                       </TableCell>
-                      <TableCell>{item.assignedProjectName ?? '—'}</TableCell>
+                      <TableCell>{item.assignedProjectName ?? '-'}</TableCell>
                       <TableCell>
                         {item.plateNumber ? (
                           <span className="pf-ltr-island pf-entity-string" dir="ltr">
                             {item.plateNumber}
                           </span>
                         ) : (
-                          '—'
+                          '-'
                         )}
                       </TableCell>
                       <TableCell>
@@ -171,14 +171,14 @@ export default async function FleetPage({
                             {item.vin}
                           </span>
                         ) : (
-                          '—'
+                          '-'
                         )}
                       </TableCell>
                       <TableCell numeric>
                         {item.odometer ? (
                           <span dir="ltr">{item.odometer}</span>
                         ) : (
-                          '—'
+                          '-'
                         )}
                       </TableCell>
                       {canManage ? (
@@ -236,7 +236,7 @@ export default async function FleetPage({
                   </>
                 ) : null}
                 {!item.assignedProjectName && !item.plateNumber && !item.vin && !item.odometer
-                  ? '—'
+                  ? '-'
                   : null}
               </p>
               {canManage ? (

@@ -41,12 +41,12 @@ async function assertAssigneeInOrg(
 function punchAssignedCopy(locale: string, title: string): { title: string; body: string } {
   if (locale.toLowerCase().startsWith('he')) {
     return {
-      title: `שובצת לפריט תיקון — ${title}`,
+      title: `שובצת לפריט תיקון - ${title}`,
       body: 'פריט תיקון שויך אליך.',
     };
   }
   return {
-    title: `Punch item assigned — ${title}`,
+    title: `Punch item assigned - ${title}`,
     body: 'A punch list item was assigned to you.',
   };
 }

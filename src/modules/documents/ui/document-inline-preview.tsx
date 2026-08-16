@@ -80,7 +80,7 @@ export function DocumentInlinePreview({
           </Alert>
         ) : null}
         {!loading && url && showImage ? (
-          // Signed URL only — expires; no permanent public path.
+          // Signed URL only - expires; no permanent public path.
           // eslint-disable-next-line @next/next/no-img-element -- ephemeral signed URL
           <img
             key={`${documentId}:${url}`}

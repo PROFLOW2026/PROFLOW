@@ -26,7 +26,7 @@
     "columnStatus": "סטטוס",
     "you": "אתם",
     "remove": "הסרת גישה",
-    "removeConfirm": "להסיר את {name} מהעסק? הרשומות שנוצרו יישארו.",
+    "removeConfirm": "להסיר את {name} מהעסק? הנתונים שכבר נוצרו יישארו.",
     "removeSuccess": "הגישה הוסרה.",
     "empty": "אתם היחידים כאן.",
     "emptyHint": "אפשר להזמין עמית כשתרצו. עבודה לבד היא לגמרי בסדר."
@@ -41,14 +41,14 @@
     "revoke": "ביטול",
     "revoked": "ההזמנה בוטלה.",
     "linkFallbackTitle": "שליחת אימייל אינה מוגדרת",
-    "linkFallbackBody": "שתפו את הקישור החד־פעמי הזה עם {email}. הוא בתוקף עד {date}.",
+    "linkFallbackBody": "שתפו את הקישור החד-פעמי הזה עם {email}. הוא בתוקף עד {date}.",
     "acceptTitle": "הצטרפות אל {organization}",
-    "acceptBody": "הוזמנתם להצטרף אל {organization} ב־ProjectFlow.",
+    "acceptBody": "הוזמנתם להצטרף אל {organization} ב-ProjectFlow.",
     "acceptSubmit": "הצטרפות לעסק",
     "accepted": "הצטרפתם אל {organization}.",
     "acceptSignInPrompt": "התחברו עם {email} כדי להצטרף, או צרו חשבון עם הכתובת הזו.",
     "acceptWrongAccountTitle": "מחוברים עם כתובת אחרת",
-    "acceptWrongAccount": "ההזמנה נשלחה אל {invited}, אבל אתם מחוברים כ־{current}. התנתקו והתחברו עם הכתובת שאליה נשלחה ההזמנה.",
+    "acceptWrongAccount": "ההזמנה נשלחה אל {invited}, אבל אתם מחוברים כ-{current}. התנתקו והתחברו עם הכתובת שאליה נשלחה ההזמנה.",
     "acceptInvalidTitle": "ההזמנה כבר אינה בתוקף",
     "acceptInvalidBody": "ייתכן שהקישור פג או שכבר נעשה בו שימוש. בקשו הזמנה חדשה."
   },
@@ -114,7 +114,7 @@
     },
     "workforce": {
       "read": "צפייה בעובדים ובשעות",
-      "manage": "ניהול רשומות עובדים",
+      "manage": "ניהול עובדים",
       "cost": {
         "read": "צפייה בעלות מעסיק ובתנאי שכר עסקי",
         "manage": "ניהול עלות מעסיק ותנאי שכר עסקי"
@@ -152,7 +152,7 @@
       "manage": "ניהול מענקי גישה לפורטל"
     },
     "api": {
-      "manage": "ניהול לקוחות API ו־webhooks"
+      "manage": "ניהול לקוחות API ו-webhooks"
     },
     "procurement": {
       "read": "צפייה ברכש ובהזמנות רכש",
@@ -242,8 +242,8 @@
       "manage": "יצירה ושינוי של שיבוצי משאבים"
     },
     "safety": {
-      "read": "צפייה ברשומות בטיחות ו־HSE",
-      "manage": "יצירה וסגירה של רשומות בטיחות ופעולות"
+      "read": "צפייה בתיעוד בטיחות",
+      "manage": "יצירה וסגירה של תיעוד בטיחות ופעולות"
     }
   },
   "errors": {

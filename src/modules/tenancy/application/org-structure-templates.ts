@@ -57,7 +57,7 @@ export async function getOrgStructureTemplatesBag(
   return loadBag(context);
 }
 
-/** Read for project apply UI — projects update permission. */
+/** Read for project apply UI - projects update permission. */
 export async function listOrgProjectTemplatesForApply(
   context: OrgContext,
 ): Promise<readonly OrgStructureTemplatePreview[]> {

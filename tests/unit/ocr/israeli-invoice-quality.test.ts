@@ -8,7 +8,7 @@ import {
 } from '@/modules/ocr/domain/israeli-normalize';
 
 /**
- * Israeli OCR quality regression fixtures — assert VALUES, not mere field presence.
+ * Israeli OCR quality regression fixtures - assert VALUES, not mere field presence.
  * Payloads are synthetic Azure analyzeResult shapes grounded in real document patterns.
  */
 
@@ -25,7 +25,7 @@ function map(content: string, fields: Record<string, unknown>) {
 }
 
 describe('Israeli invoice quality fixtures', () => {
-  it('1. Owner Arka tax invoice — full financial ground truth', () => {
+  it('1. Owner Arka tax invoice - full financial ground truth', () => {
     const content = `
 חשבונית מס
 ארכה בע"מ, סניף גבעת ברנר
@@ -119,7 +119,7 @@ describe('Israeli invoice quality fixtures', () => {
         MerchantName: { valueString: 'חנות פינה', confidence: 0.9 },
         SubTotal: { valueCurrency: { amount: 40, currencyCode: 'ILS' }, confidence: 0.9 },
         TotalTax: { valueCurrency: { amount: 7.2, currencyCode: 'ILS' }, confidence: 0.85 },
-        // no InvoiceTotal / Total — gross must stay missing
+        // no InvoiceTotal / Total - gross must stay missing
       }),
     );
     expect(c.documentType.value).toBe('קבלה');

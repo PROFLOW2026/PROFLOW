@@ -30,7 +30,7 @@ const EXPORT_LINKS = [
 ] as const;
 
 /**
- * Reports export/import actions — menu on all viewports so the toolbar never
+ * Reports export/import actions - menu on all viewports so the toolbar never
  * forces page-level horizontal overflow.
  */
 export function ReportsExportActions() {

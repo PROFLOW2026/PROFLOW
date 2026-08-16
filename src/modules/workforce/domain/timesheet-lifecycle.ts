@@ -12,7 +12,7 @@ import type { TimeApprovalStatus, TimeEntryStatus, TimesheetStatus } from './typ
  * Draft/submitted/returned never create Actual.
  *
  * New entries always start as draft (safer default). Having `time.approve`
- * does not auto-approve on create — Actual waits for an explicit approve.
+ * does not auto-approve on create - Actual waits for an explicit approve.
  */
 
 export const TIMESHEET_TRANSITIONS: Readonly<

@@ -49,7 +49,7 @@ function sumHeldRetention(
 
 /**
  * Client AR snapshot from billing summaries in one currency.
- * Composes outstanding.ts + receivables-summary — not a second calculator.
+ * Composes outstanding.ts + receivables-summary - not a second calculator.
  * Profit is omitted: project-level profit must not be summed across jobs.
  */
 export function computeClientReceivablesSnapshot(

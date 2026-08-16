@@ -4,7 +4,7 @@ import { withOrgContext } from '@/shared/auth/session';
 import { getProjectFinancials } from '../application/get-project-financials';
 
 /**
- * Request-scoped project financials (React `cache` only — not cross-request).
+ * Request-scoped project financials (React `cache` only - not cross-request).
  *
  * Financials panel, Overview snapshot, and Budget panel can otherwise each
  * call `withOrgContext` + `getProjectFinancials` in the same RSC request.

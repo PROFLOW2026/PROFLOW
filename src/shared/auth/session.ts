@@ -123,7 +123,7 @@ export async function withOrgContextFor<T>(
  * AppShell (`getShellContext`) and page bodies (`withOrgContext`) previously
  * each re-ran `resolveOrgContext` (membership + org + effective permissions).
  * That work is identical within one navigation and is safe to memoize per
- * `(userId, organizationId, locale)` — never across requests or tenants, and
+ * `(userId, organizationId, locale)` - never across requests or tenants, and
  * never for financial payloads.
  */
 async function runInOrgContext<T>(
@@ -160,7 +160,7 @@ export async function setActiveOrganization(organizationId: string): Promise<voi
 }
 
 /**
- * Read-only slice of the context used by the app shell — organization name,
+ * Read-only slice of the context used by the app shell - organization name,
  * permissions, role keys and which optional modules are in play. Cached so the
  * sidebar, top bar and page body share one resolution instead of each opening
  * its own transaction.

@@ -16,7 +16,7 @@ const ImportWizard = dynamic(
   },
 );
 
-/** Route-level island — keeps the heavy wizard out of shared app shells. */
+/** Route-level island - keeps the heavy wizard out of shared app shells. */
 export function ImportWizardLazy(props: ImportWizardProps) {
   return <ImportWizard {...props} />;
 }

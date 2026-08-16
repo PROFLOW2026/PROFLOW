@@ -1,5 +1,5 @@
 /**
- * OCR ingestion feature gate — OFF by default.
+ * OCR ingestion feature gate - OFF by default.
  *
  * Customer-visible “working OCR” requires an explicit enable flag AND a
  * non-stub provider with credentials AND a verified live HTTP analyze path.
@@ -15,7 +15,7 @@ export type OcrFeatureMode =
 
 /**
  * Flip only after Azure (or other HTTP provider) analyze+poll is wired and
- * verified to return real fields — never while extract returns empty_result.
+ * verified to return real fields - never while extract returns empty_result.
  */
 export const AZURE_OCR_LIVE_HTTP_READY = true;
 
@@ -40,13 +40,13 @@ function readEndpoint(): string | undefined {
   return process.env.OCR_PROVIDER_ENDPOINT?.trim() || undefined;
 }
 
-/** True when env asks for ingestion — still not sufficient for live OCR alone. */
+/** True when env asks for ingestion - still not sufficient for live OCR alone. */
 export function isOcrIngestionFlagOn(): boolean {
   if (typeof process === 'undefined') return false;
   return envTruthy(process.env.OCR_INGESTION_ENABLED);
 }
 
-/** Internal sample seed — never production; never presented as real OCR. */
+/** Internal sample seed - never production; never presented as real OCR. */
 export function isOcrFixtureAllowed(): boolean {
   if (typeof process === 'undefined') return false;
   if (process.env.NODE_ENV === 'production') return false;
@@ -77,7 +77,7 @@ export function isLiveOcrProviderConfigured(): boolean {
 /**
  * Effective product mode:
  * - disabled (default): no customer-visible OCR surfaces
- * - fixture_only: local/test review of samples — not working OCR
+ * - fixture_only: local/test review of samples - not working OCR
  * - configured_pending: credentials present but live HTTP extract not ready
  * - live: real provider HTTP extract verified + enable flag
  */

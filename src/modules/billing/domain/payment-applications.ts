@@ -149,7 +149,7 @@ export function assertCustomerPaymentApplicationsValid(input: {
   }
 }
 
-/** Payment remaining after proposed applications — may be unapplied cash. */
+/** Payment remaining after proposed applications - may be unapplied cash. */
 export function computeCustomerPaymentUnapplied(input: {
   readonly currency: string;
   readonly paymentAmount: string;

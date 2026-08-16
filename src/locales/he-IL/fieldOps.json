@@ -4,29 +4,29 @@
   "navLabel": "אזורי עבודה בשטח",
   "nav": {
     "logs": "יומני עבודה",
-    "punch": "רשימת תיקונים",
+    "punch": "רשימת ליקויים",
     "inspections": "בדיקות"
   },
   "projectLinks": {
     "title": "עבודה בשטח",
     "logs": "יומני עבודה",
-    "punch": "רשימת תיקונים",
+    "punch": "רשימת ליקויים",
     "inspections": "בדיקות"
   },
   "projectSummary": {
     "title": "עבודה בשטח",
-    "openPunch": "תיקונים פתוחים",
+    "openPunch": "ליקויים פתוחים",
     "latestLog": "יומן עבודה אחרון",
     "upcomingInspections": "בדיקות קרובות",
     "noLog": "אין עדיין יומני עבודה",
     "noInspections": "אין בדיקות קרובות",
     "unscheduled": "ללא תאריך",
     "addLog": "יומן עבודה חדש",
-    "addPunch": "פריט תיקון חדש",
+    "addPunch": "ליקוי חדש",
     "addInspection": "בדיקה חדשה",
     "links": {
       "logs": "כל היומנים",
-      "punch": "רשימת תיקונים",
+      "punch": "רשימת ליקויים",
       "inspections": "בדיקות"
     }
   },
@@ -47,14 +47,14 @@
   },
   "detail": {
     "logTitle": "יומן עבודה",
-    "punchTitle": "פריט תיקון",
+    "punchTitle": "ליקוי",
     "inspectionTitle": "בדיקה",
     "unknownProject": "פרויקט",
     "saveLog": "שמירת שינויים",
     "saved": "נשמר."
   },
   "newLog": "יומן עבודה חדש",
-  "newPunch": "פריט תיקון חדש",
+  "newPunch": "ליקוי חדש",
   "newInspection": "בדיקה חדשה",
   "empty": {
     "logs": {
@@ -63,9 +63,9 @@
       "action": "יומן עבודה חדש"
     },
     "punch": {
-      "title": "אין עדיין פריטי תיקון",
-      "body": "עקבו אחרי פריטים שצריך לסגור לפני מסירה.",
-      "action": "פריט תיקון חדש"
+      "title": "אין עדיין ליקויים",
+      "body": "עקבו אחרי ליקויים שצריך לסגור לפני מסירה.",
+      "action": "ליקוי חדש"
     },
     "inspections": {
       "title": "אין עדיין בדיקות",
@@ -134,7 +134,7 @@
   },
   "extraFields": {
     "title": "פרטי אתר נוספים",
-    "hint": "עובדים, ציוד, עיכובים והערות — פתחו רק אם רלוונטי.",
+    "hint": "עובדים, ציוד, עיכובים והערות - פתחו רק אם רלוונטי.",
     "workersOnSite": "עובדים באתר",
     "subcontractorsOnSite": "קבלני משנה",
     "equipmentOnSite": "ציוד",
@@ -154,7 +154,7 @@
     "submit": "הגשה",
     "finalize": "סיום וסגירה",
     "finalizeTitle": "סגירת היומן",
-    "finalizeBody": "יומן סופי ננעל. תיקון נעשה בהערה או ביומן חדש — בלי לשכתב את המקור.",
+    "finalizeBody": "יומן סופי ננעל. תיקון נעשה בהערה או ביומן חדש - בלי לשכתב את המקור.",
     "locked": "יומן זה סופי ונעול.",
     "correctionLabel": "הערת תיקון",
     "correctionHint": "נוספת ליומן הנעול. לא מחליפה את הרשומה המקורית.",
@@ -165,9 +165,9 @@
     "saved": "נשמר."
   },
   "createPunch": {
-    "title": "פריט תיקון חדש",
-    "description": "הוסיפו פריט פתוח לסגירה לפני מסירה.",
-    "submit": "שמירת פריט",
+    "title": "ליקוי חדש",
+    "description": "הוסיפו ליקוי פתוח לסגירה לפני מסירה.",
+    "submit": "שמירת ליקוי",
     "projectLabel": "פרויקט",
     "projectPlaceholder": "בחרו פרויקט",
     "workPackageLabel": "תחום עבודה",
@@ -193,7 +193,7 @@
     "workPackageNone": "ללא תחום עבודה",
     "titleLabel": "כותרת",
     "kindLabel": "סוג",
-    "scheduledOnLabel": "מתוזמן ל־",
+    "scheduledOnLabel": "מתוזמן ל-",
     "notesLabel": "הערות",
     "inspectorLabel": "בודק",
     "inspectorNone": "ללא בודק",
@@ -221,7 +221,7 @@
     "submit": "עדכון",
     "pending": "מעדכן…",
     "resultLabel": "הערות עבר / נכשל",
-    "resultPlaceholder": "מה נמצא — הערות אופציונליות לתוצאה…",
+    "resultPlaceholder": "מה נמצא - הערות אופציונליות לתוצאה…",
     "outcomeLabel": "תוצאה",
     "pass": "עבר",
     "fail": "נכשל"
@@ -232,7 +232,7 @@
     "pending": "מעדכן…"
   },
   "errors": {
-    "invalidPunchTransition": "לא ניתן לשנות את סטטוס פריט התיקון כך.",
+    "invalidPunchTransition": "לא ניתן לשנות את סטטוס הליקוי כך.",
     "invalidInspectionTransition": "לא ניתן לשנות את סטטוס הבדיקה כך.",
     "projectRequired": "בחרו פרויקט.",
     "photosRequireDocumentsManage": "צירוף תמונות דורש הרשאת מסמכים. הרשומה לא נוצרה.",

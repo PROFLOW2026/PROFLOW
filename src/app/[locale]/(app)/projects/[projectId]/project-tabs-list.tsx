@@ -4,14 +4,14 @@ import { Link } from '@/shared/i18n/navigation';
 import { cn } from '@/shared/ui/cn';
 import { type ProjectTabKey } from './project-tab-order';
 
-/** Setup / configuration tabs — visually quieter than day-to-day ops. */
+/** Setup / configuration tabs - visually quieter than day-to-day ops. */
 const SECONDARY_TABS = new Set<ProjectTabKey>(['work', 'details']);
 
 export interface ProjectTabsListProps {
   tabs: readonly ProjectTabKey[];
   activeTab: ProjectTabKey;
   labels: Readonly<Partial<Record<ProjectTabKey, string>>>;
-  /** Absolute app path for this project (`/projects/{id}`) — enables no-JS tab navigation. */
+  /** Absolute app path for this project (`/projects/{id}`) - enables no-JS tab navigation. */
   projectHref: string;
   dir?: 'rtl' | 'ltr';
 }

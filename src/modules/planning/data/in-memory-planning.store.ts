@@ -15,7 +15,7 @@ function bucketKey(organizationId: string, projectId: string): string {
 }
 
 /**
- * In-memory planning store — **TEST DOUBLE ONLY**.
+ * In-memory planning store - **TEST DOUBLE ONLY**.
  *
  * Not durable across restarts. Production paths use Drizzle when
  * `PLANNING_PERSISTENCE_READY` is true.

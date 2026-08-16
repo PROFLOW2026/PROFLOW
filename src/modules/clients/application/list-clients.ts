@@ -81,7 +81,7 @@ export async function getClientContactById(
 
 /**
  * Contact for project chrome / headers. Caller must already have PROJECTS_READ
- * (or equivalent). Does not require CLIENTS_READ — workers open projects without
+ * (or equivalent). Does not require CLIENTS_READ - workers open projects without
  * Clients module access.
  */
 export async function loadDisplayContactForProject(

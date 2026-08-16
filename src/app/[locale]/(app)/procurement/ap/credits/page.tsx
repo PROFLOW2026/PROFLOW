@@ -131,7 +131,7 @@ export default async function VendorCreditsPage() {
                         </Link>
                       </TableCell>
                       <TableCell className="max-w-[10rem] truncate">
-                        {credit.vendorName ?? '—'}
+                        {credit.vendorName ?? '-'}
                       </TableCell>
                       <TableCell>
                         <StatusBadge
@@ -174,7 +174,7 @@ export default async function VendorCreditsPage() {
                 />
               </div>
               <p className="break-words text-sm text-[var(--pf-text-secondary)]">
-                {credit.vendorName ?? '—'}
+                {credit.vendorName ?? '-'}
               </p>
               <MoneyText value={money(credit.amount, credit.currency)} />
               <p className="text-xs text-[var(--pf-text-muted)]" dir="ltr">

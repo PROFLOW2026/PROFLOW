@@ -4,11 +4,11 @@
  * HARD RULES:
  * - AP bill != Expense entity (matching never invents Expense rows).
  * - Posted/approved vendor bills DO recognize Actual Vendor Cost
- *   (see vendor-cost-recognition.ts) — distinct from the Expense table.
+ *   (see vendor-cost-recognition.ts) - distinct from the Expense table.
  * - Matching links a bill to a PO and/or an *existing* expense.
  * - Accepting a match never invents / auto-creates an Expense.
  * - Match != automatic posting; multiple partial matches are allowed.
- * - Vendor payment is cash only — not handled here as cost recognition.
+ * - Vendor payment is cash only - not handled here as cost recognition.
  */
 
 import { DomainRuleError } from '@/shared/errors';
@@ -117,7 +117,7 @@ export interface MatchVariance {
 
 /**
  * Variance visibility: accepted match sum vs bill total.
- * Does not create expenses — disclosure only.
+ * Does not create expenses - disclosure only.
  */
 export function computeMatchVariance(input: {
   readonly currency: string;
@@ -212,7 +212,7 @@ export function assertMatchCurrencyIntegrity(input: {
 
 /**
  * Derive bill status from accepted match amounts vs bill total.
- * Does not create expenses — status only.
+ * Does not create expenses - status only.
  */
 export function deriveBillStatusFromAcceptedMatches(input: {
   readonly currency: string;

@@ -1,5 +1,5 @@
 /**
- * Critical Path foundations only — NOT a true CPM engine.
+ * Critical Path foundations only - NOT a true CPM engine.
  *
  * Unsafe to present as Critical Path without working calendars, lag/lead,
  * resource leveling, and float computation. See LIMITATION.md.

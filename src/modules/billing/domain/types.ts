@@ -5,7 +5,7 @@ export type BillingRecordStatus = 'draft' | 'finalized' | 'void';
 export type BillingKind = 'invoice' | 'credit_note' | 'advance' | 'retention_release';
 export type PaymentRecordStatus = 'recorded' | 'void';
 
-/** Derived collection state — never stored (doc 04 §9). */
+/** Derived collection state - never stored (doc 04 §9). */
 export type CollectionStatus = 'open' | 'partial' | 'paid' | 'overdue';
 
 export interface TaxSnapshot {
@@ -34,7 +34,7 @@ export interface PaymentSummary {
   readonly notes: string | null;
 }
 
-/** Payment applied to a billing record — for AR history, not a separate ledger. */
+/** Payment applied to a billing record - for AR history, not a separate ledger. */
 export interface PaymentApplicationRow {
   readonly id: string;
   readonly paymentId: string;
@@ -75,7 +75,7 @@ export interface BillingRecordSummary {
   readonly totalAmount: MoneyValue;
   readonly paidAmount: MoneyValue;
   readonly outstandingAmount: MoneyValue;
-  /** Original holdback — cash timing, not a second invoiced amount. */
+  /** Original holdback - cash timing, not a second invoiced amount. */
   readonly retentionAmount?: MoneyValue;
   /** Still held; reduces receivable-now only. */
   readonly retentionHeldRemaining?: MoneyValue;

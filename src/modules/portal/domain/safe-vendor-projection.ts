@@ -61,7 +61,7 @@ export function assertVendorGrantActive(
 
 /**
  * Build a VendorPortalSession from an ExternalAccessGrant + principal.
- * ExternalPrincipal != Membership — never returns OrgContext.
+ * ExternalPrincipal != Membership - never returns OrgContext.
  */
 export function buildVendorPortalSession(input: {
   readonly grant: ExternalAccessGrantRecord;
@@ -244,7 +244,7 @@ export function buildVendorSafePaymentOutstanding(input?: {
       billedAmount: input?.billedAmount ?? null,
       paidAmount: input?.paidAmount ?? null,
       outstandingAmount: input?.outstandingAmount ?? null,
-      note: 'Vendor-facing payment position only — never cost recognition.',
+      note: 'Vendor-facing payment position only - never cost recognition.',
     };
     assertNoSensitiveVendorFields(projection as unknown as Record<string, unknown>);
     return projection;

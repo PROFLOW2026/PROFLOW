@@ -199,13 +199,13 @@ async function createFromRow(
         .returning({ id: costCategories.id });
       if (!inserted) {
         throw new ValidationError([
-          { path: 'key', message: 'Cost category key already exists — skipped to avoid overwrite' },
+          { path: 'key', message: 'Cost category key already exists - skipped to avoid overwrite' },
         ]);
       }
       return inserted.id;
     }
     case 'expenses': {
-      // Canonical createExpense only — draft status, money/tax rules unchanged.
+      // Canonical createExpense only - draft status, money/tax rules unchanged.
       const created = await createExpense(context, {
         amount: v.amount ?? '',
         currency: (emptyToUndefined(v.currency) ?? context.organization.baseCurrency).toUpperCase(),
@@ -227,7 +227,7 @@ async function createFromRow(
     }
     case 'inventory': {
       // Canonical createInventoryItem: opening qty is a qty receive to the
-      // default location when present — never Actual / Expense / FIFO.
+      // default location when present - never Actual / Expense / FIFO.
       const created = await createInventoryItem(context, {
         name: v.name ?? '',
         sku: emptyToUndefined(v.sku),
@@ -243,7 +243,7 @@ async function createFromRow(
       throw new ValidationError([
         {
           path: 'kind',
-          message: 'boq_items import uses confirmBoqItemsRows — not per-row createFromRow',
+          message: 'boq_items import uses confirmBoqItemsRows - not per-row createFromRow',
         },
       ]);
     }

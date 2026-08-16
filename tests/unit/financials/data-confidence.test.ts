@@ -110,7 +110,7 @@ describe('collectDataConfidenceSignals / dataConfidenceFromCoverage', () => {
     );
 
     const signals = collectDataConfidenceSignals({ coverage });
-    // Dual-source labor exclusion is informational — not a confidence signal.
+    // Dual-source labor exclusion is informational - not a confidence signal.
     expect(signals.workforceEntriesMissingCost).toBe(2);
     expect(signals.foreignCurrencyExcludedCount).toBe(1);
 

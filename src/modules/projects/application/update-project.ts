@@ -59,7 +59,7 @@ export async function updateProject(
       input.primaryContactId,
     );
   } else if (input.clientId !== undefined && input.clientId !== existing.clientId) {
-    // Client changed without a new contact — clear project contact to satisfy FK/trigger.
+    // Client changed without a new contact - clear project contact to satisfy FK/trigger.
     nextPrimaryContactId = null;
   }
 

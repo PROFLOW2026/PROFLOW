@@ -14,7 +14,7 @@ export default function LocaleError({
   const t = useTranslations('errors.errorPage');
 
   useEffect(() => {
-    // Digest only — never echo stacks or internal messages into the browser console.
+    // Digest only - never echo stacks or internal messages into the browser console.
     console.error(
       JSON.stringify({
         level: 'error',

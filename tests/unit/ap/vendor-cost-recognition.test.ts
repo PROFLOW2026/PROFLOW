@@ -109,7 +109,7 @@ describe('vendor cost recognition model', () => {
     expect(remaining.remainingAmount).toBe(money('60000', ILS).amount);
     expect(remaining.status).toBe('partially_consumed');
 
-    // Progress bill stays open — do not release remaining commitment.
+    // Progress bill stays open - do not release remaining commitment.
     expect(
       shouldReleaseRemainingCommitmentOnSettlement({
         billStatusAfterAccept: 'open',

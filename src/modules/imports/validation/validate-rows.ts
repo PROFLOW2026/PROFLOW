@@ -178,7 +178,7 @@ function validateEmployees(
     issues.push({
       severity: 'warning',
       field: 'baseRate',
-      message: 'No base rate — employee will be created without a cost rate',
+      message: 'No base rate - employee will be created without a cost rate',
     });
   }
 
@@ -221,7 +221,7 @@ function validateProjects(values: Readonly<Record<string, string>>): ImportIssue
     }
   }
 
-  // Contract amounts belong in opening_values import — refuse silent money on projects.
+  // Contract amounts belong in opening_values import - refuse silent money on projects.
   const financialKeys = [
     'contractAmount',
     'contractValueAmount',
@@ -338,7 +338,7 @@ function validateCostCategories(values: Readonly<Record<string, string>>): Impor
 }
 
 /**
- * Expense rows validate through createExpenseSchema — never invents money rules.
+ * Expense rows validate through createExpenseSchema - never invents money rules.
  * Creates drafts only; tax/VAT columns are rejected as warnings (not mapped).
  */
 export function validateExpenses(
@@ -419,7 +419,7 @@ export function validateExpenses(
     issues.push({
       severity: 'warning',
       field: 'projectId',
-      message: 'No project — expense will be created as business overhead (draft)',
+      message: 'No project - expense will be created as business overhead (draft)',
     });
   }
 
@@ -427,7 +427,7 @@ export function validateExpenses(
 }
 
 /**
- * BOQ item rows — decimal parsing (commas/currency), blank/total skip, qty/price/amount checks.
+ * BOQ item rows - decimal parsing (commas/currency), blank/total skip, qty/price/amount checks.
  * Description required unless the row is blank/total (skipped on confirm).
  */
 export function validateBoqItems(
@@ -437,8 +437,8 @@ export function validateBoqItems(
   const he = locale.startsWith('he');
   const msg = {
     blankSkip: he
-      ? 'שורה ריקה או שורת סה״כ — תדולג בייבוא'
-      : 'Blank or total row — will be skipped on import',
+      ? 'שורה ריקה או שורת סה״כ - תדולג בייבוא'
+      : 'Blank or total row - will be skipped on import',
     descriptionRequired: he ? 'תיאור הוא שדה חובה' : 'description is required',
     invalidQty: he
       ? 'כמות לא תקינה (הסירו סמלי מטבע; השתמשו בפסיק או נקודה עשרונית)'
@@ -450,11 +450,11 @@ export function validateBoqItems(
       ? 'סכום לא תקין (הסירו סמלי מטבע; השתמשו בפסיק או נקודה עשרונית)'
       : 'Invalid amount (remove currency symbols; use decimal commas or dots)',
     noMoney: he
-      ? 'אין כמות, מחיר או סכום — הסעיף ייובא כ־0'
-      : 'No quantity, unit price, or amount — item will import as 0',
+      ? 'אין כמות, מחיר או סכום - הסעיף ייובא כ־0'
+      : 'No quantity, unit price, or amount - item will import as 0',
     amountMismatch: he
-      ? 'הסכום אינו תואם לכמות × מחיר — הייבוא ישתמש בכמות × מחיר'
-      : 'Amount does not match quantity × unit price — import will use quantity × unit price',
+      ? 'הסכום אינו תואם לכמות × מחיר - הייבוא ישתמש בכמות × מחיר'
+      : 'Amount does not match quantity × unit price - import will use quantity × unit price',
   } as const;
 
   const issues: ImportIssue[] = [];
@@ -540,7 +540,7 @@ function remapInventoryField(path: string | undefined): string | undefined {
   return path;
 }
 
-/** Qty catalog only — opening receive is not Actual. */
+/** Qty catalog only - opening receive is not Actual. */
 function validateInventory(values: Readonly<Record<string, string>>): ImportIssue[] {
   const issues: ImportIssue[] = [];
   const parsed = createInventoryItemSchema.safeParse({

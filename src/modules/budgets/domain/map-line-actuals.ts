@@ -24,7 +24,7 @@ import {
  * work-package lines receive slices of already-loaded expense contributions
  * only when the mapping key is present on both the line and the contribution.
  * Discipline and cost-code keys are not carried by the expense/AP model, so
- * those lines stay unmapped — never guessed.
+ * those lines stay unmapped - never guessed.
  *
  * Remaining commitment and project ETC are not split across detail lines.
  * Forecast on a mapped detail line is Actual + that line's `etcAmount` when
@@ -65,11 +65,11 @@ export const UNMAPPED_REMAINDER_ROW_ID = '__unmapped_remainder';
 export interface MapBudgetLineActualsInput {
   readonly currency: string;
   readonly lines: readonly ProjectBudgetLineRecord[];
-  /** Engine cost — required for Actual. Null when financials are not readable. */
+  /** Engine cost - required for Actual. Null when financials are not readable. */
   readonly cost: CostPosition | null;
   /**
    * Expense contribution slices already loaded for this project.
-   * `null` = slices were not loaded (no expenses permission) — do not treat
+   * `null` = slices were not loaded (no expenses permission) - do not treat
    * as mapped-to-zero. `[]` = loaded, nothing to map.
    */
   readonly contributions: readonly ProjectExpenseContribution[] | null;
@@ -80,7 +80,7 @@ export interface MapBudgetLineActualsInput {
   readonly linkedExpenseIds?: ReadonlySet<string>;
   /**
    * When workforce True Cost is in engine Actual, Mode B labor-category expenses
-   * are excluded from Actual — exclude them from mapping too.
+   * are excluded from Actual - exclude them from mapping too.
    */
   readonly excludeLaborCategory?: boolean;
 }
@@ -276,7 +276,7 @@ function hasNonTotalLines(lines: readonly ProjectBudgetLineRecord[]): boolean {
 /**
  * Map engine Actual onto budget lines when the key is reliable.
  * Always appends an Unmapped / unallocated row when non-total lines exist
- * and engine Actual is available — never drop the remainder.
+ * and engine Actual is available - never drop the remainder.
  */
 export function mapBudgetLineActuals(
   input: MapBudgetLineActualsInput,

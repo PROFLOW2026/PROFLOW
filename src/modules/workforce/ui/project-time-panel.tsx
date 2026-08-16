@@ -66,7 +66,7 @@ export async function ProjectTimePanel({ projectId }: ProjectTimePanelProps) {
           <Link href={`/projects/${projectId}?tab=team`} className="underline underline-offset-2">
             {t('projectPanel.teamTitle')}
           </Link>
-          {' — '}
+          {' - '}
           {t('projectPanel.assignmentNote')}
         </p>
 

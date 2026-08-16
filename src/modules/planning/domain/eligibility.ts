@@ -1,6 +1,6 @@
 /**
  * Planning defaults to classic projects only.
- * Jobs (`work_kind=job`) stay opt-out — never force heavy planning onto them.
+ * Jobs (`work_kind=job`) stay opt-out - never force heavy planning onto them.
  */
 
 import type { WorkKind } from '@/modules/projects/domain/types';

@@ -434,7 +434,7 @@ describe('confirm path never creates expense without confirm', () => {
     }
   });
 
-  it('confirm→vendor bill draft only — never open/recognized', async () => {
+  it('confirm→vendor bill draft only - never open/recognized', async () => {
     const ctx = contextWith([PERMISSIONS.AP_MANAGE]);
     const job = seedFixtureJob({
       organizationId: ctx.organizationId,
@@ -490,7 +490,7 @@ describe('confirm path never creates expense without confirm', () => {
     }
   });
 
-  it('confirm→vendor credit draft only — never posted or applied', async () => {
+  it('confirm→vendor credit draft only - never posted or applied', async () => {
     const ctx = contextWith([PERMISSIONS.AP_MANAGE]);
     const job = seedFixtureJob({
       organizationId: ctx.organizationId,

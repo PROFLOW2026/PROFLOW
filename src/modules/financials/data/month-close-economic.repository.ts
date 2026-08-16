@@ -15,7 +15,7 @@ function emptyNets(currency: string): MonthCloseEconomicNets {
 
 /**
  * Non-superseded economic month-close corrections for one project.
- * Closed source history is never rewritten — these rows fold into compose once.
+ * Closed source history is never rewritten - these rows fold into compose once.
  */
 export async function loadMonthCloseEconomicForProject(
   db: DbExecutor,

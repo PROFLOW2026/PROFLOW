@@ -47,7 +47,7 @@ export async function insertOpsExpenseLinkRow(
   }
 
   if (areOpsFinanceLinksAvailable()) {
-    // APP GUARDS — durable path only (PGlite / production after 0020).
+    // APP GUARDS - durable path only (PGlite / production after 0020).
     await assertOpsRecordSameOrg(context, input.opsRecordKind, input.opsRecordId);
     await assertExpenseSameOrg(context.db, organizationId, input.expenseId);
     return getOpsExpenseLinksRepository().insert(context.db, {
@@ -60,7 +60,7 @@ export async function insertOpsExpenseLinkRow(
     });
   }
 
-  // TEST DOUBLE path — no DB round-trips; callers still load ops via application.
+  // TEST DOUBLE path - no DB round-trips; callers still load ops via application.
   return insertInMemory({
     organizationId,
     opsRecordKind: input.opsRecordKind,

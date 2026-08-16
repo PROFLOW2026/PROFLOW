@@ -3,7 +3,7 @@ import type { MoneyValue } from '@/shared/money';
 import type { BusinessDate } from '@/shared/dates';
 import type { AllocationMethod, CostFamily } from './types';
 
-/** Expense families that belong on the overhead home — not a second Actual. */
+/** Expense families that belong on the overhead home - not a second Actual. */
 export const OVERHEAD_HOME_COST_FAMILIES = ['business_overhead', 'shared'] as const;
 
 export type OverheadHomeCostFamily = (typeof OVERHEAD_HOME_COST_FAMILIES)[number];

@@ -71,7 +71,7 @@ function movementLocationLabel(movement: InventoryMovementRecord): string {
   if (from && to) return `${from} → ${to}`;
   if (to) return to;
   if (from) return from;
-  return '—';
+  return '-';
 }
 
 export default async function InventoryItemDetailPage({
@@ -170,7 +170,7 @@ export default async function InventoryItemDetailPage({
                 {item.sku}
               </span>
             ) : (
-              '—'
+              '-'
             )}
           </dd>
         </div>
@@ -182,7 +182,7 @@ export default async function InventoryItemDetailPage({
                 {item.barcode}
               </span>
             ) : (
-              '—'
+              '-'
             )}
           </dd>
         </div>
@@ -214,7 +214,7 @@ export default async function InventoryItemDetailPage({
             {item.minStockLevel || item.reorderLevel ? (
               <span dir="ltr">{item.minStockLevel ?? item.reorderLevel}</span>
             ) : (
-              '—'
+              '-'
             )}
           </dd>
         </div>
@@ -346,10 +346,10 @@ export default async function InventoryItemDetailPage({
                         <TableCell className="max-w-[12rem] truncate">
                           {movement.projectId
                             ? (projectNames.get(movement.projectId) ?? movement.projectId)
-                            : '—'}
+                            : '-'}
                         </TableCell>
                         <TableCell className="max-w-[12rem] truncate">
-                          {movement.notes ?? '—'}
+                          {movement.notes ?? '-'}
                         </TableCell>
                       </TableRow>
                     ))}

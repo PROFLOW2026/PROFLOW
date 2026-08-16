@@ -40,7 +40,7 @@ function worseSeverity(a: EarlyWarningSeverity, b: EarlyWarningSeverity): EarlyW
 
 /**
  * Deterministic early warnings from already-composed financial truth.
- * Thresholds are coarse on purpose — never fake precision.
+ * Thresholds are coarse on purpose - never fake precision.
  */
 export function evaluateEarlyWarnings(input: EarlyWarningInput): EarlyWarning[] {
   const warnings: EarlyWarning[] = [];

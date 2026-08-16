@@ -48,7 +48,7 @@ export class AuthenticationRequiredError extends AppError {
 }
 
 /**
- * Deliberately does not reveal whether the resource exists — an attacker
+ * Deliberately does not reveal whether the resource exists - an attacker
  * probing another tenant learns nothing from the difference.
  */
 export class AuthorizationError extends AppError {
@@ -101,7 +101,7 @@ export class ConflictError extends AppError {
   }
 }
 
-/** A business rule refused the operation — for example editing a finalized record. */
+/** A business rule refused the operation - for example editing a finalized record. */
 export class DomainRuleError extends AppError {
   constructor(message: string, messageKey: string, details?: Record<string, unknown>) {
     super('domain_rule_violated', 422, message, messageKey, details);

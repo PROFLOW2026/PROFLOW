@@ -1,5 +1,5 @@
 /**
- * Recipients are people who can act — not whoever opened the bell.
+ * Recipients are people who can act - not whoever opened the bell.
  * Named assignee/owner wins; otherwise permission holders, capped.
  */
 

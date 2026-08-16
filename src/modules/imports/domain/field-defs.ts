@@ -79,7 +79,7 @@ const PROJECT_FIELDS: readonly ImportFieldDef[] = [
   { key: 'notes', required: false, aliases: ['notes', 'הערות'] },
 ];
 
-/** Managed opening via existing contract APIs — never invents Actual. */
+/** Managed opening via existing contract APIs - never invents Actual. */
 const OPENING_VALUE_FIELDS: readonly ImportFieldDef[] = [
   { key: 'projectId', required: false, aliases: ['project_id', 'projectid'] },
   {
@@ -124,7 +124,7 @@ const COST_CATEGORY_FIELDS: readonly ImportFieldDef[] = [
 ];
 
 /**
- * Project BOQ item rows — hierarchy via chapter/subchapter columns.
+ * Project BOQ item rows - hierarchy via chapter/subchapter columns.
  * Requires projectId on confirm (wizard/context), not as a CSV column.
  */
 const BOQ_ITEM_FIELDS: readonly ImportFieldDef[] = [
@@ -180,7 +180,7 @@ const BOQ_ITEM_FIELDS: readonly ImportFieldDef[] = [
 
 /**
  * Qty inventory items. Opening qty is a receive to the default location when
- * present — never Actual / Expense / FIFO.
+ * present - never Actual / Expense / FIFO.
  */
 const INVENTORY_FIELDS: readonly ImportFieldDef[] = [
   { key: 'name', required: true, aliases: ['name', 'item_name', 'item', 'שם', 'שם_פריט'] },
@@ -213,7 +213,7 @@ const INVENTORY_FIELDS: readonly ImportFieldDef[] = [
 ];
 
 /**
- * Safe expense import fields — maps to createExpenseSchema.
+ * Safe expense import fields - maps to createExpenseSchema.
  * Tax/VAT/net columns are intentionally not mapped (VAT ≠ profit).
  */
 const EXPENSE_FIELDS: readonly ImportFieldDef[] = [

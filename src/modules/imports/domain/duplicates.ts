@@ -109,7 +109,7 @@ export function flagExistingNameDuplicates(
     const issue: ImportIssue = {
       severity: 'warning',
       field,
-      message: `Possible duplicate ${label} — a record with this name already exists in the organization`,
+      message: `Possible duplicate ${label} - a record with this name already exists in the organization`,
     };
     return { ...row, issues: [...row.issues, issue] };
   });

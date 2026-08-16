@@ -31,7 +31,7 @@ interface ProjectLayoutProps {
  * Stable project chrome for `?tab=` soft-nav.
  *
  * Layout does not read `searchParams`, so tab switches re-render the page
- * segment only — header, metrics, and tab list stay mounted without re-fetching.
+ * segment only - header, metrics, and tab list stay mounted without re-fetching.
  */
 export default async function ProjectLayout({ children, params }: ProjectLayoutProps) {
   const { projectId } = await params;
@@ -52,7 +52,7 @@ export default async function ProjectLayout({ children, params }: ProjectLayoutP
   // Team is permission-gated (not module) so owners can assign people before
   // the workforce module preference flips on from first create.
   const showTeamTab = can(PERMISSIONS.WORKFORCE_READ);
-  // Schedule is permission-gated (not module) — `planning` is not in OPTIONAL_MODULE_KEYS.
+  // Schedule is permission-gated (not module) - `planning` is not in OPTIONAL_MODULE_KEYS.
   const showScheduleTab = can(PERMISSIONS.PLANNING_READ);
   const showTimeTab = can(PERMISSIONS.WORKFORCE_READ);
   const showDocumentsTab = Boolean(modules?.documents) && can(PERMISSIONS.DOCUMENTS_READ);
@@ -67,7 +67,7 @@ export default async function ProjectLayout({ children, params }: ProjectLayoutP
   ]);
   if (!detail) notFound();
 
-  // Jobs / work orders use dedicated routes — page owns redirect (preserves `?tab=`).
+  // Jobs / work orders use dedicated routes - page owns redirect (preserves `?tab=`).
   if (detail.project.workKind === 'job' || detail.project.workKind === 'work_order') {
     return <>{children}</>;
   }
@@ -167,7 +167,7 @@ export default async function ProjectLayout({ children, params }: ProjectLayoutP
       />
 
       {/*
-        Tab list must not sit behind the page Suspense — otherwise open-project
+        Tab list must not sit behind the page Suspense - otherwise open-project
         wall clock waits on overview structure before tabs are selectable.
         Soft-nav still only re-renders `children` (layout ignores searchParams).
       */}

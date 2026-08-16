@@ -1,5 +1,5 @@
 /**
- * Worker / field masking — zeros commercial money without changing quantities.
+ * Worker / field masking - zeros commercial money without changing quantities.
  *
  * Used by workspace + progress reads when the viewer lacks money permissions,
  * and by the dedicated field-measure DTO (which omits money keys entirely).

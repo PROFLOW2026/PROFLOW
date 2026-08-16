@@ -191,7 +191,7 @@ export function getDefaultDraftStore(): DraftStore {
   return browserStore;
 }
 
-/** Test helper — resets the singleton so suites do not leak IDB state. */
+/** Test helper - resets the singleton so suites do not leak IDB state. */
 export function resetDefaultDraftStoreForTests(): void {
   browserStore = null;
 }

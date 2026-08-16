@@ -19,7 +19,7 @@ export type BillingFinalizePermission =
  * Shared financial finalization (tax snapshot, retention held, finalizedAt, audit).
  * Callers must assert the appropriate capability before invoking.
  */
-/** Internal shared finalization engine — not part of the public billing barrel. */
+/** Internal shared finalization engine - not part of the public billing barrel. */
 export async function finalizeBillingRecordCore(
   context: OrgContext,
   billingRecordId: string,
@@ -67,7 +67,7 @@ export async function finalizeBillingRecordCore(
   return finalized;
 }
 
-/** Normal Billing UI entrypoint — requires billing.manage. */
+/** Normal Billing UI entrypoint - requires billing.manage. */
 export async function finalizeBillingRecord(context: OrgContext, billingRecordId: string) {
   assertPermission(context, PERMISSIONS.BILLING_MANAGE);
   return finalizeBillingRecordCore(context, billingRecordId);

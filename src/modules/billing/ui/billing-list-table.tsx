@@ -56,9 +56,9 @@ export function BillingListTable({ records, locale }: BillingListTableProps) {
                     </Link>
                   </TableCell>
                   <TableCell className="max-w-[10rem] truncate">
-                    {record.contractName ?? '—'}
+                    {record.contractName ?? '-'}
                   </TableCell>
-                  <TableCell className="max-w-[8rem] truncate">{record.reference ?? '—'}</TableCell>
+                  <TableCell className="max-w-[8rem] truncate">{record.reference ?? '-'}</TableCell>
                   <TableCell>
                     <span className="text-sm">{tKind(record.kind)}</span>
                   </TableCell>
@@ -99,7 +99,7 @@ export function BillingListTable({ records, locale }: BillingListTableProps) {
             />
           </div>
           <p className="mt-1 text-start text-sm text-[var(--pf-text-secondary)]">
-            {record.reference ?? '—'}
+            {record.reference ?? '-'}
             {record.contractName ? ` · ${record.contractName}` : ''}
             {' · '}
             {tKind(record.kind)}

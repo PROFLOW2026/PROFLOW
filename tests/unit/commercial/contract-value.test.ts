@@ -121,7 +121,7 @@ describe('contract value arithmetic', () => {
     ).toEqual(money('-8000', CURRENCY));
   });
 
-  it('uses quote subtotal (net) for CO approval — VAT is never contract value', () => {
+  it('uses quote subtotal (net) for CO approval - VAT is never contract value', () => {
     expect(
       changeOrderApprovedNetAmount({
         quoteVersion: {

@@ -13,7 +13,7 @@ export const DEFAULT_INVENTORY_LOCATION_NAME_HE = 'ראשי';
 export const DEFAULT_INVENTORY_LOCATION_NAME_EN = 'Main';
 
 /**
- * Inventory quantity math. Explicitly not GL and not Expense — only
+ * Inventory quantity math. Explicitly not GL and not Expense - only
  * updates quantity_on_hand for operational stock tracking.
  * App-layer org filters + RLS on inventory_* tables; never post Expense from movements.
  */
@@ -55,7 +55,7 @@ export function applySignedQuantityChange(currentQuantity: string, delta: string
 
 /**
  * Location deltas for a qty-only movement. Header quantity is the sum of
- * location balances after these deltas — transfer leaves the header unchanged.
+ * location balances after these deltas - transfer leaves the header unchanged.
  */
 export function locationDeltasForMovement(input: {
   readonly movementType: InventoryMovementType;
@@ -206,7 +206,7 @@ export function remainingReservationAfterConsume(input: {
 
 /**
  * Signed adjust qty for a count line: counted − expected.
- * Zero delta → no movement. Result is qty-only — never Actual / GL / Expense.
+ * Zero delta → no movement. Result is qty-only - never Actual / GL / Expense.
  */
 export function countLineAdjustQuantity(expectedQuantity: string, countedQuantity: string): string | null {
   const delta = new Decimal(countedQuantity).minus(expectedQuantity);
@@ -214,7 +214,7 @@ export function countLineAdjustQuantity(expectedQuantity: string, countedQuantit
   return delta.toFixed(STORAGE_SCALE);
 }
 
-/** Count finalize creates adjust movements only — never Actual. */
+/** Count finalize creates adjust movements only - never Actual. */
 export function isInventoryCountRecognizedActual(): false {
   return false;
 }

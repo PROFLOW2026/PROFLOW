@@ -8,7 +8,7 @@ import type { MoneyValue } from '@/shared/money';
  * never generated or mutated as a local statutory invoice.
  */
 
-/** Internal billing snapshot used only as the bridge source — not a statutory doc. */
+/** Internal billing snapshot used only as the bridge source - not a statutory doc. */
 export interface BillingRecordBridgeRef {
   readonly billingRecordId: string;
   readonly organizationId: string;

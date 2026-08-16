@@ -11,7 +11,7 @@ export const pressableClassName = cn(
   'active:scale-[0.98]',
 );
 
-/** Denser chrome (bottom nav, FAB) — slightly stronger scale, still subtle. */
+/** Denser chrome (bottom nav, FAB) - slightly stronger scale, still subtle. */
 export const pressableChromeClassName = cn(pressableClassName, 'active:scale-[0.96]');
 
 /**

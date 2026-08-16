@@ -21,7 +21,7 @@ export interface ShellNavLinkProps {
   /** Soften the icon color (overflow sheet idle rows). */
   muteIcon?: boolean;
   /**
-   * Next.js Link prefetch. Default false — shell destinations must not
+   * Next.js Link prefetch. Default false - shell destinations must not
    * storm RSC on dashboard mount. Opt in only for high-probability next hops.
    */
   prefetch?: boolean;

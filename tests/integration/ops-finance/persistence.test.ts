@@ -78,7 +78,7 @@ describe('ops-finance persistence (L + same-org)', () => {
     setOpsFinancePersistenceReadyForTests(true);
   });
 
-  it('L — persistence restart: link survives new repository instance', async () => {
+  it('L - persistence restart: link survives new repository instance', async () => {
     const opsRecordId = '01900000-0000-7000-8000-00000000aa01';
     const inserted = await database.asService(async (db) =>
       drizzleOpsExpenseLinksRepository.insert(db, {

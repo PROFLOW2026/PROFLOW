@@ -11,7 +11,7 @@ import { isDatabaseConfigured } from '@/shared/db/client';
 
 /**
  * Versioned API identity probe (doc 32).
- * Authorization: Bearer <api_key> — no cookie session.
+ * Authorization: Bearer <api_key> - no cookie session.
  * Requires any issued foundation scope (permission-equivalent).
  */
 export async function GET(request: Request) {

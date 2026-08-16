@@ -22,7 +22,7 @@ export async function generateMetadata({ params }: ProjectFinancialsPageProps): 
   const detail = await loadProjectDetail(projectId, false);
 
   return {
-    title: `${t('currentContractValue')} — ${detail.project.name}`,
+    title: `${t('currentContractValue')} - ${detail.project.name}`,
   };
 }
 

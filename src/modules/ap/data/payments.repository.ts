@@ -1,11 +1,11 @@
 /**
  * Vendor payment persistence against `ap_payments` / `ap_payment_applications`.
  *
- * Financial invariant: these rows are cash / AP outstanding only — never Actual Cost.
+ * Financial invariant: these rows are cash / AP outstanding only - never Actual Cost.
  *
  * Production default: gated repository until `areApPaymentsAvailable()` is true,
  * then Drizzle. In-memory (`createInMemoryVendorPaymentsRepository`) is a TEST
- * DOUBLE ONLY — never the production financial path.
+ * DOUBLE ONLY - never the production financial path.
  *
  * Immutability (app layer):
  * - No delete API for payments or applications.
@@ -113,7 +113,7 @@ export interface VendorPaymentsRepository {
     paymentId: string,
     voidedAt: Date,
   ): Promise<ApPaymentRow | null>;
-  /** Non-financial metadata only — never amount/currency/date/vendor. */
+  /** Non-financial metadata only - never amount/currency/date/vendor. */
   updatePaymentMetadata(
     db: DbExecutor,
     organizationId: string,
@@ -181,7 +181,7 @@ function unavailable(): never {
   );
 }
 
-/** Gated stub — used only when persistence flag is off. */
+/** Gated stub - used only when persistence flag is off. */
 export const gatedVendorPaymentsRepository: VendorPaymentsRepository = {
   async insertPayment() {
     unavailable();
@@ -474,7 +474,7 @@ export function disableApPaymentsPersistenceForTests(): void {
 
 /**
  * In-memory double for unit/integration tests (tenant isolation + payment math).
- * Not used in production paths — financial truth requires Drizzle when ready.
+ * Not used in production paths - financial truth requires Drizzle when ready.
  */
 export function createInMemoryVendorPaymentsRepository(): VendorPaymentsRepository & {
   readonly _payments: ApPaymentRow[];
@@ -541,7 +541,7 @@ export function createInMemoryVendorPaymentsRepository(): VendorPaymentsReposito
     },
 
     async lockBillsForUpdate() {
-      // In-memory double — no row locks; domain re-validation still applies.
+      // In-memory double - no row locks; domain re-validation still applies.
     },
 
     async voidPayment(_db, organizationId, paymentId, voidedAt) {

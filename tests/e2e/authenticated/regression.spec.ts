@@ -364,7 +364,7 @@ test.describe('bottom nav / FAB overlap heuristics', () => {
           page.getByRole('navigation', { name: he.common.a11y.mainNavigation }).first(),
         ).toBeVisible();
 
-        // Prefer geometry over display alone — fixed nav can remain in DOM.
+        // Prefer geometry over display alone - fixed nav can remain in DOM.
         const metrics = await page.locator(MOBILE_NAV).evaluate((el) => {
           const style = getComputedStyle(el);
           const rect = el.getBoundingClientRect();

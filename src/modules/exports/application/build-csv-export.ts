@@ -110,7 +110,7 @@ export async function buildExport(
   return serializeExport(tables, kind, context.organizationId, format, locale, options.projectId);
 }
 
-/** @deprecated Prefer buildExport — kept for callers that always want CSV. */
+/** @deprecated Prefer buildExport - kept for callers that always want CSV. */
 export async function buildCsvExport(
   context: OrgContext,
   kindRaw: string,
@@ -686,7 +686,7 @@ async function tableReceivablesAging(context: OrgContext, copy: ExportCopy): Pro
       toExcelDate(aging.asOf),
     ]),
     notes: [
-      // Localized disclosure — do not pass domain English `aging.note` into he-IL workbooks.
+      // Localized disclosure - do not pass domain English `aging.note` into he-IL workbooks.
       copy.notes.arAgingRules,
       copy.notes.arAgingBase.replace('{currency}', aging.currency),
       copy.notes.arAgingOutstanding,
@@ -831,7 +831,7 @@ async function tableBoq(
         }
       }
     } catch {
-      // Optional progress — workspace still exports baseline.
+      // Optional progress - workspace still exports baseline.
     }
   }
 

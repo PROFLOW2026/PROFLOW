@@ -97,7 +97,7 @@ export function BudgetLineControlList({
                 {METRIC_KEYS.map((key) => {
                   const value = metricValue(row, key);
                   if (remainder && key !== 'actual') return null;
-                  // Commitment is not split onto detail lines — only the engine total.
+                  // Commitment is not split onto detail lines - only the engine total.
                   if (row.mappingStatus !== 'engine_total' && key === 'remainingCommitment') {
                     return null;
                   }

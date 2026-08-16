@@ -1,4 +1,4 @@
-/** Public API — operational month close (optional module). */
+/** Public API - operational month close (optional module). */
 
 export type {
   CompletenessCheckItem,

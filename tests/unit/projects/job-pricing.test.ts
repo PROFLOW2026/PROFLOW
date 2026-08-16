@@ -13,7 +13,7 @@ import {
 } from '@/modules/projects/validation/schemas';
 import { money } from '@/shared/money';
 
-describe('job pricing — Scenario C (fixed 4500, costs 1800, margin 2700)', () => {
+describe('job pricing - Scenario C (fixed 4500, costs 1800, margin 2700)', () => {
   it('defines profit as contract net minus actual cost', () => {
     const display = resolveJobProfitDisplay({
       workKind: 'job',
@@ -36,7 +36,7 @@ describe('job pricing — Scenario C (fixed 4500, costs 1800, margin 2700)', () 
   });
 });
 
-describe('job pricing — Scenario D (open then set price)', () => {
+describe('job pricing - Scenario D (open then set price)', () => {
   it('does not invent a zero-revenue margin while open', () => {
     expect(
       isOpenPriceJob({ workKind: 'job', pricingMode: 'open' }),

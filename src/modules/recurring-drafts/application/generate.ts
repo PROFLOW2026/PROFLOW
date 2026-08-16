@@ -210,7 +210,7 @@ export async function generateRecurringDraftNow(
         runDate,
         generatedEntityType: existing.draftKind,
         generatedEntityId: created.id,
-        notes: 'Manual generate-now — draft only, not posted.',
+        notes: 'Manual generate-now - draft only, not posted.',
       });
 
       const bumped = bumpScheduleAfterGenerate({

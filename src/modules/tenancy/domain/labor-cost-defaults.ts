@@ -1,6 +1,6 @@
 /**
  * Organization labor cost component defaults (doc 06 / 35).
- * Applied as copies when creating new rate versions — not live-linked.
+ * Applied as copies when creating new rate versions - not live-linked.
  */
 
 import { z } from 'zod';

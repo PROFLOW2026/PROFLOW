@@ -20,7 +20,7 @@ const LandingFaq = dynamic(() => import('./landing-faq').then((mod) => mod.Landi
 
 /**
  * Public ProjectFlow homepage for signed-out visitors.
- * Authenticated users never reach this tree — locale root branches first.
+ * Authenticated users never reach this tree - locale root branches first.
  */
 export async function PublicHomepage() {
   const t = await getTranslations('marketing');
@@ -29,7 +29,7 @@ export async function PublicHomepage() {
   const problemPoints = t.raw('problem.points') as Array<{ title: string; body: string }>;
   const steps = t.raw('howItWorks.steps') as string[];
   const financialItems = t.raw('financial.items') as string[];
-  const principles = t.raw('financial.principles') as Array<{ left: string; right: string }>;
+  const financialInsights = t.raw('financial.insights') as string[];
   const capabilityBlocks = t.raw('capabilities.blocks') as Array<{ title: string; body: string }>;
   const commercialBlocks = t.raw('commercial.blocks') as Array<{ title: string; body: string }>;
   const advancedModules = t.raw('advanced.modules') as string[];
@@ -251,24 +251,19 @@ export async function PublicHomepage() {
               />
             </div>
 
-            <div
-              className="mt-10 grid gap-3 rounded-xl bg-[linear-gradient(145deg,var(--pf-teal-900),var(--pf-teal-700))] p-4 sm:grid-cols-2 lg:grid-cols-4 lg:p-5"
-              role="group"
+            <ul
+              className="mt-10 grid list-none gap-3 rounded-xl bg-[linear-gradient(145deg,var(--pf-teal-900),var(--pf-teal-700))] p-4 sm:grid-cols-2 lg:p-5"
               aria-label={t('financial.title')}
             >
-              {principles.map((principle) => (
-                <div
-                  key={`${principle.left}-${principle.right}`}
-                  className="flex items-center justify-center gap-2 rounded-md border border-white/20 bg-white/10 px-3 py-3 text-center text-sm font-bold text-white"
+              {financialInsights.map((insight) => (
+                <li
+                  key={insight}
+                  className="rounded-md border border-white/20 bg-white/10 px-4 py-3 text-sm font-medium leading-relaxed text-white"
                 >
-                  <span>{principle.left}</span>
-                  <span className="font-medium opacity-70" aria-hidden>
-                    {t('financial.neq')}
-                  </span>
-                  <span>{principle.right}</span>
-                </div>
+                  {insight}
+                </li>
               ))}
-            </div>
+            </ul>
 
             <div className="mt-8">
               <Button asChild size="lg" className="min-h-12 w-full sm:w-auto">

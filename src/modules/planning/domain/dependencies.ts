@@ -1,5 +1,5 @@
 /**
- * Dependency graph validation — cycle detection (Kahn topological sort).
+ * Dependency graph validation - cycle detection (Kahn topological sort).
  * V1 supports finish-to-start edges only.
  */
 

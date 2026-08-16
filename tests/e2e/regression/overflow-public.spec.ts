@@ -14,7 +14,7 @@ test.describe('public page overflow', () => {
   test.describe.configure({ timeout: 180_000 });
 
   const publicRoutes = [
-    { name: 'he-IL homepage', path: '/he-IL', heading: 'שליטה בפרויקט — מהחוזה ועד הרווח' },
+    { name: 'he-IL homepage', path: '/he-IL', heading: 'שליטה בפרויקט - מהחוזה ועד הרווח' },
     { name: 'he-IL sign-in', path: '/he-IL/sign-in', heading: 'כניסה' },
     { name: 'en sign-in', path: '/en/sign-in', heading: 'Sign in' },
     { name: 'he-IL sign-up', path: '/he-IL/sign-up', heading: 'יצירת חשבון' },

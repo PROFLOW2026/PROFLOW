@@ -5,7 +5,7 @@
  * without a cloud project: PGlite is served over the Postgres wire protocol so
  * `DATABASE_URL` points at a genuine Postgres (RLS policies and all), and a
  * local stand-in answers the handful of auth endpoints the app calls. No
- * application code is aware of any of this — it sees an ordinary database and
+ * application code is aware of any of this - it sees an ordinary database and
  * an ordinary auth host.
  */
 

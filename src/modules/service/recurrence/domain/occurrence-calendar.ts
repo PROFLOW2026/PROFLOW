@@ -1,6 +1,6 @@
 /**
  * Pure calendar math for service recurrence templates.
- * Framework-free — unit-tested without DB.
+ * Framework-free - unit-tested without DB.
  */
 
 import {

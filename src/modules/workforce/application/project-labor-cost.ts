@@ -26,7 +26,7 @@ export interface ProjectLaborCostSummary {
   /** True when residual project time entries exist or monthly allocated labor > 0. */
   readonly hasWorkforceData: boolean;
   readonly entryCount: number;
-  /** Residual entries where no rate applied at log time — cost is unknown, not zero. */
+  /** Residual entries where no rate applied at log time - cost is unknown, not zero. */
   readonly entriesMissingCost: number;
   readonly excludedForeignCurrencyEntries: number;
   readonly calculatedAt: Date;
@@ -36,7 +36,7 @@ export async function getProjectLaborCost(
   context: OrgContext,
   projectId: string,
 ): Promise<ProjectLaborCostSummary> {
-  // Project labor totals are employer cost — workforce.read alone is insufficient.
+  // Project labor totals are employer cost - workforce.read alone is insufficient.
   assertAnyPermission(context, [
     PERMISSIONS.PROJECT_FINANCIALS_READ,
     PERMISSIONS.WORKFORCE_COST_READ,

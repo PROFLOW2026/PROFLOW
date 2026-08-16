@@ -1,5 +1,5 @@
 /**
- * Light scheduling (doc 22 Layer A) — dates, progress, overdue, summary.
+ * Light scheduling (doc 22 Layer A) - dates, progress, overdue, summary.
  * No Gantt / critical path. No notification delivery.
  */
 

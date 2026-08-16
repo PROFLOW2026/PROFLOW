@@ -71,7 +71,7 @@ export function PaymentHistoryTable({
                   <TableCell numeric>
                     <MoneyText value={row.amount} />
                   </TableCell>
-                  <TableCell className="max-w-[8rem] truncate">{row.method ?? '—'}</TableCell>
+                  <TableCell className="max-w-[8rem] truncate">{row.method ?? '-'}</TableCell>
                   <TableCell>
                     <StatusBadge
                       shape={row.status === 'void' ? 'void' : 'approved'}

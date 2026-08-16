@@ -1,5 +1,5 @@
 /**
- * Resource scheduling domain types. Framework-free — no React, no persistence.
+ * Resource scheduling domain types. Framework-free - no React, no persistence.
  *
  * Bookings occupy employee time. Unavailability is a hard calendar block.
  * Assignments and work-order windows may appear as read-only projections.
@@ -28,7 +28,7 @@ export const AVAILABILITY_SIGNALS = [
 ] as const;
 export type AvailabilitySignal = (typeof AVAILABILITY_SIGNALS)[number];
 
-/** Alias kept for copy / tests — same signal as `over_capacity`. */
+/** Alias kept for copy / tests - same signal as `over_capacity`. */
 export type OvertimeSignal = 'over_capacity';
 
 export const SCHEDULING_VIEWS = ['day', 'week'] as const;

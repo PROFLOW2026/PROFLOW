@@ -26,7 +26,7 @@ const ENTITY_READ_PERMISSION: Record<CustomFieldEntityType, PermissionKey> = {
   expense: PERMISSIONS.EXPENSES_READ,
 };
 
-/** Writes require entity manage/update — never read-only. */
+/** Writes require entity manage/update - never read-only. */
 const ENTITY_WRITE_PERMISSION: Record<CustomFieldEntityType, PermissionKey> = {
   client: PERMISSIONS.CLIENTS_MANAGE,
   project: PERMISSIONS.PROJECTS_UPDATE,

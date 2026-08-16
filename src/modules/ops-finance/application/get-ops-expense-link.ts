@@ -34,7 +34,7 @@ export async function listOpsExpenseLinksForRecords(
   return listActiveLinksForOpsRecordsRow(context, opsRecordKind, opsRecordIds);
 }
 
-/** Read without permission assert — for UI composition after caller checked access. */
+/** Read without permission assert - for UI composition after caller checked access. */
 export async function peekOpsExpenseLinksForRecords(
   context: Pick<OrgContext, 'db' | 'organizationId'>,
   opsRecordKind: OpsRecordKind,

@@ -1,6 +1,6 @@
 /**
  * Vendor credit notes persistence (`ap_vendor_credits` / `ap_credit_applications`).
- * Credits ≠ payments — reduce Actual and outstanding when applied.
+ * Credits ≠ payments - reduce Actual and outstanding when applied.
  */
 
 import { and, desc, eq, inArray, isNull, sql } from 'drizzle-orm';

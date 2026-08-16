@@ -7,7 +7,7 @@ export interface EmptyStateProps {
   title: string;
   /**
    * Explains what this area is for and what happens next. Never phrased as a
-   * warning or a missing-setup error — empty is a legitimate state (doc 48 §1.5).
+   * warning or a missing-setup error - empty is a legitimate state (doc 48 §1.5).
    */
   description?: React.ReactNode;
   action?: React.ReactNode;

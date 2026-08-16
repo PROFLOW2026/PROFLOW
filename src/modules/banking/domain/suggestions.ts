@@ -62,7 +62,7 @@ function scoreCandidate(
     score += 25;
     reasons.push('amount_partial');
   } else {
-    // Bank line larger than open — weak
+    // Bank line larger than open - weak
     score += 5;
     reasons.push('amount_over');
   }
@@ -112,7 +112,7 @@ function scoreCandidate(
 
 /**
  * Rank match suggestions. Incoming → customer payment / billing;
- * outgoing → vendor payment / bill. Pure — never writes financials.
+ * outgoing → vendor payment / bill. Pure - never writes financials.
  */
 export function suggestBankMatches(input: {
   readonly organizationId: string;

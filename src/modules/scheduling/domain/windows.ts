@@ -1,13 +1,13 @@
 /**
  * Org-timezone window math for the scheduling board.
- * Framework-free — unit-tested without DB.
+ * Framework-free - unit-tested without DB.
  */
 
 import { addDays, businessDate, type BusinessDate } from '@/shared/dates';
 
 /**
  * Start of a calendar day in `timeZone`, as a UTC instant.
- * Iterative correction (same approach as dispatch) — not a full TZ library.
+ * Iterative correction (same approach as dispatch) - not a full TZ library.
  */
 export function startOfDayInTimeZone(date: string, timeZone: string): Date {
   const day = businessDate(date);

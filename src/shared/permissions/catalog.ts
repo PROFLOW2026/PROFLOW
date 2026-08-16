@@ -153,7 +153,7 @@ export type PermissionKey = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];
 export interface PermissionDefinition {
   readonly key: PermissionKey;
   readonly category: PermissionCategory;
-  /** English description — the UI renders the translated `permissions.<key>` message. */
+  /** English description - the UI renders the translated `permissions.<key>` message. */
   readonly description: string;
 }
 

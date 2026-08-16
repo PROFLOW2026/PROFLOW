@@ -93,7 +93,7 @@ describe('ProjectFinancialsSnapshotView', () => {
     expect(screen.getByText('Forecast Margin')).toBeInTheDocument();
     expect(screen.getByText(/25,000/)).toBeInTheDocument();
     expect(screen.getAllByText(/75,000/).length).toBeGreaterThan(0);
-    expect(screen.queryByText('—')).not.toBeInTheDocument();
+    expect(screen.queryByText('-')).not.toBeInTheDocument();
   });
 
   it('shows coverage disclosure when partials exist (B2)', () => {

@@ -9,7 +9,7 @@
   "invalidDate": "הזינו תאריך תקין.",
   "endBeforeStart": "תאריך הסיום לא יכול להיות לפני תאריך ההתחלה.",
   "currencyRequired": "בחרו מטבע.",
-  "currencyMismatch": "כל הסכומים ברשומה חייבים להיות באותו מטבע.",
+  "currencyMismatch": "כל הסכומים באותו פריט חייבים להיות באותו מטבע.",
   "allocationMustTotal": "סכום שורות הפיצול חייב להתאים לסכום ההוצאה.",
   "percentMustTotal": "סך האחוזים חייב להיות 100%.",
   "passwordTooWeak": "השתמשו בלפחות 10 תווים.",

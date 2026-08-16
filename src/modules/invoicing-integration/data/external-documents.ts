@@ -1,7 +1,7 @@
 /**
  * External statutory document persistence facade.
  * Drizzle when ready; otherwise TEST DOUBLE in-memory (non-durable).
- * Never fakes provider completion — storage ≠ configured provider.
+ * Never fakes provider completion - storage ≠ configured provider.
  */
 
 import type { OrgContext } from '@/shared/auth/context';

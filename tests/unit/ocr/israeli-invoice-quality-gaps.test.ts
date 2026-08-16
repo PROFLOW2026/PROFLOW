@@ -29,7 +29,7 @@ function map(content: string, fields: Record<string, unknown>) {
   });
 }
 
-describe('Israeli invoice quality — gap closure', () => {
+describe('Israeli invoice quality - gap closure', () => {
   it('Arka live Azure analyzeResult: header ground truth + line trust blocked', () => {
     const analyzeResult = JSON.parse(
       readFileSync(
@@ -153,7 +153,7 @@ describe('Israeli invoice quality — gap closure', () => {
     expect(c.gross.value).toBe('100.00');
   });
 
-  it('low-quality / rotated Hebrew safety — no invented totals or invoice number', () => {
+  it('low-quality / rotated Hebrew safety - no invented totals or invoice number', () => {
     const noisy = `
 מסמך מטושטש מסובב
 ארכה???
@@ -179,7 +179,7 @@ describe('Israeli invoice quality — gap closure', () => {
     expect(warnings.some((w) => w.code === 'reference_missing')).toBe(true);
   });
 
-  it('organization tax id wiring helpers — match / mismatch / missing', () => {
+  it('organization tax id wiring helpers - match / mismatch / missing', () => {
     const match = parseOrganizationLegalIdentity({ taxId: '514628903' });
     expect(resolveOrganizationTaxId(match)).toBe('514628903');
 

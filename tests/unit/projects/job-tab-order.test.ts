@@ -22,7 +22,7 @@ describe('job tab priority', () => {
       'financials',
       'details',
     ]);
-    // Planning Gantt stays project-only — never force schedule onto jobs.
+    // Planning Gantt stays project-only - never force schedule onto jobs.
     expect(JOB_TAB_PRIORITY).not.toContain('schedule');
   });
 

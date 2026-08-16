@@ -37,7 +37,7 @@ export interface ExpenseActionState {
   error?: string;
   expenseId?: string;
   fieldErrors?: Record<string, string>;
-  /** Local draft queued — not server truth. */
+  /** Local draft queued - not server truth. */
   offlineQueued?: boolean;
 }
 

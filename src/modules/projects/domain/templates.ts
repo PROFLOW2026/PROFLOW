@@ -131,7 +131,7 @@ function localizeName(item: TemplateNamedItem, locale: TemplateLocale): string {
   return locale === 'he-IL' ? item.nameHe : item.nameEn;
 }
 
-/** Read-only preview for UI — never mutates the catalog entry. */
+/** Read-only preview for UI - never mutates the catalog entry. */
 export interface ProjectTemplatePreview {
   readonly key: ProjectTemplateKey;
   readonly name: string;
