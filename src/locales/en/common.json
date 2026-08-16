@@ -86,7 +86,7 @@
     "offline": "You appear to be offline."
   },
   "pagination": {
-    "showing": "Showing {from}–{to} of {total}",
+    "showing": "Showing {from}-{to} of {total}",
     "page": "Page {page}",
     "rowsPerPage": "Rows per page"
   },

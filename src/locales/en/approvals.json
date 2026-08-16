@@ -1,6 +1,6 @@
 {
   "title": "Approvals",
-  "description": "Review pending requests and set amount thresholds. Optional — off until you use it.",
+  "description": "Review pending requests and set amount thresholds. Optional - off until you use it.",
   "pendingTitle": "Pending approvals",
   "pendingEmpty": {
     "title": "Nothing waiting",
@@ -48,7 +48,7 @@
     "pending": "This action is waiting for approval.",
     "rejected": "This action was rejected and cannot proceed.",
     "required": "Approval is required before this action.",
-    "submittedPending": "Submitted for approval — waiting for a decision.",
+    "submittedPending": "Submitted for approval - waiting for a decision.",
     "notSubmitted": "Only submitted requests can be updated."
   },
   "settingsLink": "Configure rules",

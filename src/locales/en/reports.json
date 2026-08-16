@@ -37,7 +37,7 @@
   "kindHints": {
     "project_status": "Status, dates, and operational snapshot.",
     "project_financial_summary": "Commercial, billing, cost, and profit when permitted.",
-    "boq_progress": "Physical progress from approved quantities — not Actual cost.",
+    "boq_progress": "Physical progress from approved quantities - not Actual cost.",
     "change_order_summary": "Approved versus pending. Pending does not change the current contract.",
     "quote_estimate": "Pre-sale quote. Quote is not a billing record.",
     "field_daily": "Daily log with photo document names, not a full photo dump.",

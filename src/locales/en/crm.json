@@ -1,6 +1,6 @@
 {
   "title": "CRM",
-  "description": "Optional sales pipeline: prospects, leads, and opportunities. Quotes (bids) live under Quotes — not here, and not billing.",
+  "description": "Optional sales pipeline: prospects, leads, and opportunities. Quotes (bids) live under Quotes - not here, and not billing.",
   "quotesVsCrmBanner": "Quotes are bids. This CRM pipeline is optional and separate from the quotes book.",
   "navLabel": "CRM sections",
   "nav": {
@@ -55,7 +55,7 @@
     "due": "Due",
     "overdue": "Overdue",
     "expectedStartLabel": "Expected start",
-    "expectedStartHint": "Expected project start — not a follow-up due date.",
+    "expectedStartHint": "Expected project start - not a follow-up due date.",
     "expectedStartShort": "Expected start",
     "stageLabel": "Stage",
     "stageHint": "Moves the opportunity on the pipeline board. Won convert happens on Quotes, not here.",
@@ -187,7 +187,7 @@
     "quoteNotBilling": "Internal CRM sales quotes are not the customer bid. Use Quotes (bids) instead.",
     "createProductQuote": "Create quote",
     "productQuotesSection": "Quotes (bids)",
-    "productQuotesHint": "Customer bids live in Quotes. Accept and convert there — this is not a second quote book.",
+    "productQuotesHint": "Customer bids live in Quotes. Accept and convert there - this is not a second quote book.",
     "productQuotesEmpty": "No product quote yet. Create one in Quotes.",
     "advancedInternal": "Internal CRM quotes and estimates (advanced)",
     "advancedInternalHint": "These write crm_sales_quotes / crm_estimates. They are not the owner-facing bid."
@@ -201,7 +201,7 @@
     "submit": "Convert to project now",
     "blockedTitle": "Create a quote first",
     "requiresAcceptedQuote": "Accept a product quote before converting.",
-    "requiresProductQuote": "Create a quote under Quotes, then accept it. Convert happens on the quote — not from a CRM sales quote.",
+    "requiresProductQuote": "Create a quote under Quotes, then accept it. Convert happens on the quote - not from a CRM sales quote.",
     "useQuotesConvert": "This opportunity has an accepted product quote. Convert it on the quote page to create the project.",
     "openProductQuote": "Open quote",
     "createQuote": "Create quote",

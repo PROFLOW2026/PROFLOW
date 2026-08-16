@@ -28,7 +28,7 @@
     "method": "Default allocation method",
     "period": "Default period",
     "none": "No default",
-    "overrideHint": "You can change method and period below — this expense keeps your override.",
+    "overrideHint": "You can change method and period below - this expense keeps your override.",
     "fromPolicy": "From category policy",
     "overridden": "Overridden for this expense"
   },
@@ -60,7 +60,7 @@
     "amountLabel": "Corrected amount",
     "submit": "Create correction",
     "success": "Correction draft created. Approve the replacement when ready.",
-    "exampleHint": "Example: 52,000 → 50,000 keeps +52,000 original, −52,000 reversal, +50,000 replacement (net 50,000)."
+    "exampleHint": "Example: 52,000 → 50,000 keeps +52,000 original, -52,000 reversal, +50,000 replacement (net 50,000)."
   },
   "confirm": {
     "finalizeTitle": "Approve expense into Actual Cost",
@@ -178,7 +178,7 @@
   "list": {
     "empty": {
       "title": "Track what the business spends",
-      "description": "Record materials, subcontractors, rent, and other costs. Start with an amount — details can wait.",
+      "description": "Record materials, subcontractors, rent, and other costs. Start with an amount - details can wait.",
       "action": "Add first expense"
     },
     "noDescription": "No description",
@@ -202,11 +202,11 @@
     "method": "Method",
     "period": "Period (recurrence)",
     "projectsLabel": "Projects in this allocation",
-    "targetRow": "Target — row {row}",
-    "methodRow": "Method — row {row}",
-    "amountRow": "Amount — row {row}",
-    "percentRow": "Percentage — row {row}",
-    "categoryRow": "Section — row {row}",
+    "targetRow": "Target - row {row}",
+    "methodRow": "Method - row {row}",
+    "amountRow": "Amount - row {row}",
+    "percentRow": "Percentage - row {row}",
+    "categoryRow": "Section - row {row}",
     "selectTarget": "Choose project or overhead",
     "methods": {
       "amount": "Fixed amount",
@@ -222,7 +222,7 @@
     "periodEnd": "Allocation period end",
     "autoDriverHint": "The system splits NET across eligible projects in the period and stores a historical snapshot.",
     "sumHintPrefix": "Lines must sum exactly to",
-    "unallocatedCallout": "No projects selected yet — this overhead will not land on project Actual Cost."
+    "unallocatedCallout": "No projects selected yet - this overhead will not land on project Actual Cost."
   },
   "errors": {
     "inclusiveTaxRateRequired": "An applicable percentage tax rule is required when the amount includes VAT.",
@@ -252,7 +252,7 @@
   },
   "overheadHome": {
     "title": "Overhead",
-    "description": "Business overhead and shared expenses, plus allocation runs — using the existing expense engine.",
+    "description": "Business overhead and shared expenses, plus allocation runs - using the existing expense engine.",
     "notAllowed": {
       "title": "Not allowed",
       "body": "You need permission to view expenses to open this page."

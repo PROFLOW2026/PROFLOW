@@ -1,11 +1,11 @@
 {
   "title": "Pre-project estimates",
   "description": "Pre-project offers before work exists. Not an invoice, not a sales CRM quote, not a change-order quote, and not billing or revenue until work is won and converted.",
-  "salesVsCrmBanner": "Quotes are bids you send a customer. CRM is an optional sales pipeline — not a second quotes list.",
+  "salesVsCrmBanner": "Quotes are bids you send a customer. CRM is an optional sales pipeline - not a second quotes list.",
   "disclaimer": "This estimate is a commercial offer. It is not a statutory tax invoice.",
   "hub": {
     "title": "Estimates, changes, and billing",
-    "description": "Three separate documents — not one table. Pick the object you need.",
+    "description": "Three separate documents - not one table. Pick the object you need.",
     "stripIntro": "This is not a change request and not billing. CRM pipeline is a different object.",
     "preProjectTitle": "Quotes (bids)",
     "preProjectBody": "Priced bids before work exists. Not an invoice, not CRM, and not an in-project change.",
@@ -31,7 +31,7 @@
   "newQuote": "New pre-project estimate",
   "empty": {
     "title": "No estimates yet",
-    "body": "Create a priced offer for a client before winning the work. Acceptance can create a project or job — it does not bill.",
+    "body": "Create a priced offer for a client before winning the work. Acceptance can create a project or job - it does not bill.",
     "action": "Create pre-project estimate"
   },
   "list": {
@@ -71,7 +71,7 @@
     "saveDraft": "Save draft",
     "saved": "Draft saved",
     "fromOpportunity": "Quote for opportunity: {name}",
-    "profitHint": "Estimated cost and margin are a pre-win profitability preview — not Actual and not revenue.",
+    "profitHint": "Estimated cost and margin are a pre-win profitability preview - not Actual and not revenue.",
     "discountAmountLabel": "Customer discount",
     "listSubtotalLabel": "List subtotal",
     "discountPercentLabel": "Discount %",

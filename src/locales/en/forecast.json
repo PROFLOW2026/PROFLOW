@@ -1,7 +1,7 @@
 {
   "panelTitle": "Early warnings",
   "open": "Open",
-  "recommendationNote": "Recommendation — not accounting truth.",
+  "recommendationNote": "Recommendation - not accounting truth.",
   "actualOverBudget": {
     "title": "Actual cost is over budget",
     "why": "Recorded actual cost already exceeds the active budget.",
@@ -49,7 +49,7 @@
   },
   "missingData": {
     "title": "Not enough data for a confident forecast",
-    "why": "Key inputs are incomplete, so this is a data gap — not a confirmed problem."
+    "why": "Key inputs are incomplete, so this is a data gap - not a confirmed problem."
   },
   "drivers": {
     "actual": "Actual cost",

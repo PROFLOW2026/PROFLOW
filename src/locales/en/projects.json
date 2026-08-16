@@ -5,7 +5,7 @@
   "noContractValue": "Not set",
   "empty": {
     "title": "No projects yet",
-    "body": "Projects, jobs, and service calls share one financial row — this list is the project workspace, not a separate ledger.",
+    "body": "Projects, jobs, and service calls share one financial row - this list is the project workspace, not a separate ledger.",
     "action": "Create first project",
     "jobsAffordance": "Short work? New job"
   },
@@ -27,7 +27,7 @@
       "client": "Client",
       "status": "Status",
       "contractValue": "Contract value",
-      "noClient": "—"
+      "noClient": "-"
     }
   },
   "create": {
@@ -42,7 +42,7 @@
     "clientNamePlaceholder": "Client name",
     "clientNameExample": "e.g. Cohen family",
     "contactPersonLabel": "Contact person",
-    "contactPersonHint": "Who to call on this project — separate from the company office phone. Choosing or adding a contact here does not change the client’s default primary contact.",
+    "contactPersonHint": "Who to call on this project - separate from the company office phone. Choosing or adding a contact here does not change the client’s default primary contact.",
     "contactModeLabel": "Contact person",
     "contactNone": "No contact person yet",
     "contactSelect": "Choose existing contact person",
@@ -58,7 +58,7 @@
     "contractValueHint": "Real-world original contract. Commercial and profitability use what you manage here (net after any opening reduction, excluding VAT).",
     "openingReductionLabel": "Reduction before management started",
     "openingReductionPlaceholder": "e.g. 150000",
-    "openingReductionHint": "Optional. Amount already economically behind before you started managing here — not a payment, bill, or expense.",
+    "openingReductionHint": "Optional. Amount already economically behind before you started managing here - not a payment, bill, or expense.",
     "managedOpeningPreviewLabel": "What you manage here (net)",
     "managedOpeningPreviewHint": "Profitability and current contract start from what you manage here, not the original contract figure.",
     "managedOpeningPreviewApprox": "entered units",
@@ -148,7 +148,7 @@
   },
   "schedule": {
     "title": "Dates & milestones",
-    "empty": "No dates, progress, or milestones yet — optional for simple jobs. Work planning (Gantt) lives under the Schedule tab.",
+    "empty": "No dates, progress, or milestones yet - optional for simple jobs. Work planning (Gantt) lives under the Schedule tab.",
     "addDates": "Add dates in Details",
     "dates": "Dates",
     "milestones": "Milestones",
@@ -185,7 +185,7 @@
   },
   "clone": {
     "title": "Clone structure from another project",
-    "subtitle": "Copies work areas, phases, and milestones only — not money, expenses, or documents.",
+    "subtitle": "Copies work areas, phases, and milestones only - not money, expenses, or documents.",
     "source": "Source project",
     "chooseSource": "Choose a project",
     "preview": "Preview",
@@ -234,7 +234,7 @@
       "reason": "Reason",
       "changedAt": "Changed",
       "changedBy": "Changed by",
-      "unknownActor": "—",
+      "unknownActor": "-",
       "reasons": {
         "originalContractValue": "Original contract value",
         "changeOrder": "Change order {reference}"
@@ -271,7 +271,7 @@
     "markMilestoneMissed": "Mark missed",
     "markMilestoneCancelled": "Mark cancelled",
     "reopenMilestone": "Reopen",
-    "emptyMilestones": "No milestones yet — optional.",
+    "emptyMilestones": "No milestones yet - optional.",
     "milestoneStatuses": {
       "planned": "Planned",
       "achieved": "Achieved",
@@ -310,7 +310,7 @@
     "saveEdit": "Save contract",
     "notes": "Notes",
     "primaryTypeLocked": "Primary kind is set with “Set as primary”, not by editing type.",
-    "amountNotEdited": "Original contract amount is not edited here. After value events exist it stays locked — use change orders for further value changes.",
+    "amountNotEdited": "Original contract amount is not edited here. After value events exist it stays locked - use change orders for further value changes.",
     "actions": {
       "active": "Activate",
       "closed": "Close",

@@ -1,10 +1,10 @@
 {
   "title": "Portal access",
-  "subtitle": "Grant records are internal foundation only. Public customer and vendor login is disabled — this page does not enable a public portal.",
+  "subtitle": "Grant records are internal foundation only. Public customer and vendor login is disabled - this page does not enable a public portal.",
   "externalNote": "Public portal login is DISABLED. Grants are admin-managed records only and never mutate financial truth. External principals cannot sign in.",
   "publicDisabled": {
     "title": "Public login is disabled",
-    "body": "Public customer and vendor login is disabled. This settings page is hidden foundation — it does not open a public portal."
+    "body": "Public customer and vendor login is disabled. This settings page is hidden foundation - it does not open a public portal."
   },
   "customerSection": "Customer portal",
   "vendorSection": "Vendor portal",
@@ -76,7 +76,7 @@
     "needProject": "Select a project to preview.",
     "notAllowed": "That grant does not cover this project, is inactive, or lacks summary scopes.",
     "grantOptional": "Grant (optional)",
-    "grantHint": "Without a grant, preview uses project summary only. With a grant, scopes and coverage from that grant apply — including outstanding balance when allowed.",
+    "grantHint": "Without a grant, preview uses project summary only. With a grant, scopes and coverage from that grant apply - including outstanding balance when allowed.",
     "empty": "Run a preview to inspect the customer-safe projection.",
     "scopesApplied": "Scopes applied",
     "neverExposed": "Never exposed",
@@ -94,7 +94,7 @@
       "internalNotes": "Internal notes",
       "supplierPricing": "Supplier pricing"
     },
-    "foundationNote": "Public customer login is DISABLED. This preview is admin-mediated via ExternalPrincipal grants — not OrganizationMembership.",
+    "foundationNote": "Public customer login is DISABLED. This preview is admin-mediated via ExternalPrincipal grants - not OrganizationMembership.",
     "denials": {
       "crossCustomer": "Cross-customer denial: this grant does not cover the selected project.",
       "grantInactive": "Portal grant is inactive, revoked, or expired.",
@@ -134,12 +134,12 @@
     "apCandidates": "Vendor bill candidates",
     "complianceCandidates": "Compliance candidates",
     "intakeNote": "Intake mode",
-    "candidatesOnly": "Candidates only — never mutates vendor bills, expenses, or payments",
+    "candidatesOnly": "Candidates only - never mutates vendor bills, expenses, or payments",
     "rfqVisibilityNote": "RFQs appear only when this vendor already has a linked supplier quote. Org-wide RFQ browse is blocked (invite table deferred)."
   },
   "candidateQuote": {
     "title": "Submit quote candidate (grant-scoped)",
-    "hint": "Requires quote.submit on the grant. Stores supplier quote as received for internal review — never accepted/finalized by the external principal.",
+    "hint": "Requires quote.submit on the grant. Stores supplier quote as received for internal review - never accepted/finalized by the external principal.",
     "submit": "Queue quote candidate",
     "saved": "Quote candidate stored as received (not finalized)."
   },
@@ -167,7 +167,7 @@
   },
   "candidateReview": {
     "title": "Internal candidate review",
-    "subtitle": "Accept or reject vendor portal candidates. Accepting only queues internal follow-up — it never posts vendor bills, expenses, or compliance artifacts.",
+    "subtitle": "Accept or reject vendor portal candidates. Accepting only queues internal follow-up - it never posts vendor bills, expenses, or compliance artifacts.",
     "neverPosts": "Candidates ≠ ledger truth. Financial posting remains a separate internal action.",
     "accept": "Accept for review",
     "reject": "Reject",

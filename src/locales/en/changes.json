@@ -25,13 +25,13 @@
     "displayOriginal": "Real-world original contract",
     "openingReduction": "Reduction before management started",
     "managedOpening": "Managed opening basis",
-    "entryBaselineHint": "Approved changes apply to the managed opening basis — not the full real-world original.",
+    "entryBaselineHint": "Approved changes apply to the managed opening basis - not the full real-world original.",
     "approvedAdditions": "Approved additions",
     "approvedReductions": "Approved reductions",
     "current": "Current contract value",
     "pending": "Pending changes",
     "potential": "Potential if approved",
-    "potentialHint": "Current value plus pending — not part of the contract until approved."
+    "potentialHint": "Current value plus pending - not part of the contract until approved."
   },
   "status": {
     "draft": "Draft",
@@ -48,7 +48,7 @@
     "description": "Description",
     "direction": "Price impact",
     "directionAddition": "Addition (+)",
-    "directionReduction": "Reduction (−)",
+    "directionReduction": "Reduction (-)",
     "requestedAmount": "Requested amount",
     "requestedAmountHint": "Optional until you price a quote version.",
     "project": "Project",
@@ -80,7 +80,7 @@
     "versionLabel": "Quote version V{version}",
     "noAmount": "Add a price or requested amount before approval.",
     "approverName": "Approved by",
-    "approverNameHint": "Client contact or internal approver — optional.",
+    "approverNameHint": "Client contact or internal approver - optional.",
     "effectiveDate": "Effective date",
     "notes": "Notes",
     "confirm": "Approve and create change order",

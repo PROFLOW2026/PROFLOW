@@ -17,7 +17,7 @@
     "action": "Create a project",
     "job": {
       "title": "Start with your first job",
-      "body": "Short or daily work. A name is enough — costs and billing can come later.",
+      "body": "Short or daily work. A name is enough - costs and billing can come later.",
       "action": "Create a job"
     },
     "workOrder": {
@@ -70,15 +70,15 @@
     },
     "sections": {
       "commercial": "Commercial",
-      "commercialHint": "Net contract value excluding VAT — not invoice total and not payment.",
+      "commercialHint": "Net contract value excluding VAT - not invoice total and not payment.",
       "cash": "Cash & receivables",
-      "cashHint": "Invoice total and Paid are billing/cash amounts, including VAT if entered — not revenue for profit. Outstanding to collect is from open invoices. Forecast in/out uses due dates.",
+      "cashHint": "Invoice total and Paid are billing/cash amounts, including VAT if entered - not revenue for profit. Outstanding to collect is from open invoices. Forecast in/out uses due dates.",
       "cost": "Cost",
       "costHint": "Project Actual Cost net, allocated overhead, commitments, ETC and Forecast Final Cost net. Unallocated business costs are shown separately and are not forced into project profit.",
       "profitability": "Profitability",
-      "profitabilityHint": "Actual profit net = current contract net − actual project cost net. Forecast profit net = current contract net − forecast final cost net. VAT and invoice totals stay out of project profit.",
+      "profitabilityHint": "Actual profit net = current contract net - actual project cost net. Forecast profit net = current contract net - forecast final cost net. VAT and invoice totals stay out of project profit.",
       "operations": "Operations",
-      "operationsHint": "Counts only — no notification delivery. Shown when you have permission and data.",
+      "operationsHint": "Counts only - no notification delivery. Shown when you have permission and data.",
       "comparison": "Project comparison",
       "comparisonHint": "Base-currency projects only. Committed is shown beside Actual, never added into it."
     },
@@ -112,8 +112,8 @@
       "actualPlusEnteredRemaining": "Includes: actual plus any entered remaining cost",
       "actualPlusRemainingCommitmentsPlusEtc": "Includes: actual + remaining commitments + expected remaining (ETC)",
       "finalizedOrgCostsAwaitingAllocation": "Includes: finalized organization costs awaiting allocation",
-      "currentContractMinusEstimatedFinal": "Includes: current contract net − forecast final cost net",
-      "currentContractMinusActualCost": "Includes: current contract net − actual project cost net",
+      "currentContractMinusEstimatedFinal": "Includes: current contract net - forecast final cost net",
+      "currentContractMinusActualCost": "Includes: current contract net - actual project cost net",
       "plannedMilestones": "Includes: milestones in planned status",
       "missedMilestones": "Includes: milestones marked missed",
       "plannedPastTargetDate": "Includes: planned milestones past target date",
@@ -142,7 +142,7 @@
       "openAp": "Excludes: open vendor bills payable",
       "expenseActual": "Excludes: expense Actual",
       "recognizedVendorBills": "Excludes: recognized vendor bills (already in Actual)",
-      "vendorPayments": "Excludes: vendor payments (cash only — not cost)",
+      "vendorPayments": "Excludes: vendor payments (cash only - not cost)",
       "matchedAp": "Excludes: fully matched vendor bill",
       "vatNotProfit": "Excludes: VAT-as-profit",
       "vatAsCost": "Excludes: inventing VAT as cost",
@@ -198,21 +198,21 @@
       "profit": "Estimated profit net"
     },
     "cashFlow": {
-      "title": "Cash view — Actual vs Forecast",
-      "actualTitle": "Actual — Paid collected",
+      "title": "Cash view - Actual vs Forecast",
+      "actualTitle": "Actual - Paid collected",
       "actualHint": "Payments recorded with a payment date in this month-to-date range. Not a Forecast.",
-      "forecastTitle": "Forecast — expected incoming",
+      "forecastTitle": "Forecast - expected incoming",
       "forecastHint": "Outstanding billing by due date. Not Paid. Does not invent collection timing.",
       "outgoingTitle": "Outgoing",
       "outgoingDisclosure": "Outgoing cash is not forecast here: no open vendor bills with due dates are in scope. Expenses alone do not invent vendor invoices.",
-      "outgoingAvailableHint": "Forecast from open vendor bills by due date — not Expense actual cost.",
+      "outgoingAvailableHint": "Forecast from open vendor bills by due date - not Expense actual cost.",
       "billCount": "{count, plural, one {# bill} other {# bills}}",
       "undatedNote": "Amounts with no due date are listed under “No due date” and are not assigned to a Forecast week.",
       "paymentCount": "{count, plural, =0 {No payments in range} =1 {# payment} other {# payments}}",
       "buckets": {
         "overdue": "Overdue (Forecast)",
         "next_7": "Next 7 days (Forecast)",
-        "next_30": "8–30 days (Forecast)",
+        "next_30": "8-30 days (Forecast)",
         "later": "Later (Forecast)",
         "undated": "No due date (Forecast)"
       }

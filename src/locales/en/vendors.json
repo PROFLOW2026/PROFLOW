@@ -4,7 +4,7 @@
   "newVendor": "New vendor",
   "empty": {
     "title": "No vendors yet",
-    "body": "Vendors are optional. Keep a simple directory and link suppliers to projects when helpful — or save them from an expense later.",
+    "body": "Vendors are optional. Keep a simple directory and link suppliers to projects when helpful - or save them from an expense later.",
     "action": "Add first vendor"
   },
   "list": {
@@ -30,11 +30,11 @@
   },
   "create": {
     "title": "New vendor",
-    "description": "Only a name is required. Type helps classify the relationship — you can change it anytime.",
+    "description": "Only a name is required. Type helps classify the relationship - you can change it anytime.",
     "nameLabel": "Vendor name",
     "namePlaceholder": "Company or person",
     "typeLabel": "Type",
-    "typeHint": "Contextual label only — not a rigid classification.",
+    "typeHint": "Contextual label only - not a rigid classification.",
     "moreDetails": "More details",
     "emailLabel": "Email",
     "phoneLabel": "Phone",
@@ -63,7 +63,7 @@
       "other": "Other"
     },
     "engagementsSection": "Projects & engagements",
-    "engagementsHint": "Projects this vendor is engaged on. Engagement itself is not a cost — Actual comes from bills or expenses.",
+    "engagementsHint": "Projects this vendor is engaged on. Engagement itself is not a cost - Actual comes from bills or expenses.",
     "engagementsEmpty": "No active project links yet. Add an engagement when they work on a project.",
     "engagementNote": "Engagement ≠ cost Actual.",
     "addEngagement": "Add engagement",
@@ -92,12 +92,12 @@
     "restore": "Restore to active",
     "archivedBadge": "Archived",
     "editSection": "Edit vendor",
-    "typeClearHint": "Type is a clear label (supplier, subcontractor, both, or other) — change it anytime without affecting expenses or bills.",
+    "typeClearHint": "Type is a clear label (supplier, subcontractor, both, or other) - change it anytime without affecting expenses or bills.",
     "save": "Save changes"
   },
   "ap360": {
     "title": "Vendor bills & payables",
-    "description": "Open and posted bills, payments, credits, outstanding, aging, and retention held. Cash view — not Actual Cost.",
+    "description": "Open and posted bills, payments, credits, outstanding, aging, and retention held. Cash view - not Actual Cost.",
     "noAccess": "Vendor-bill permissions are needed to see payables for this vendor.",
     "billed": "Billed",
     "paid": "Paid",
@@ -117,7 +117,7 @@
   },
   "projectPanel": {
     "title": "Contractors & vendors",
-    "description": "Optional engagements with dates. Linking a vendor does not create cost — Actual comes from bills or expenses.",
+    "description": "Optional engagements with dates. Linking a vendor does not create cost - Actual comes from bills or expenses.",
     "empty": "No contractors engaged yet. Add an engagement when a vendor works on this project.",
     "addEngagement": "Add engagement",
     "addSave": "Save engagement",
@@ -145,7 +145,7 @@
   },
   "subcontracts": {
     "sectionTitle": "Subcontractor agreements",
-    "sectionHint": "A subcontract is a commitment, not an expense. Current value is original plus recorded approved adjustments. Paid amounts come from vendor bills tagged to this agreement — this screen never posts a vendor bill.",
+    "sectionHint": "A subcontract is a commitment, not an expense. Current value is original plus recorded approved adjustments. Paid amounts come from vendor bills tagged to this agreement - this screen never posts a vendor bill.",
     "empty": "No subcontract agreements yet.",
     "add": "Add subcontract",
     "addSave": "Save subcontract",

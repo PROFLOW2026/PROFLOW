@@ -1,6 +1,6 @@
 {
   "title": "Month close",
-  "description": "Optional operational close for a calendar month. This is not statutory accounting — it freezes operational history so corrections stay explicit.",
+  "description": "Optional operational close for a calendar month. This is not statutory accounting - it freezes operational history so corrections stay explicit.",
   "moduleOff": {
     "title": "Month close is off",
     "body": "Turn on Month close under Settings → Features, or open a period once to enable it automatically."
@@ -31,7 +31,7 @@
     "saved": "Saved."
   },
   "closed": {
-    "notice": "This month is closed. Silent rewrites are blocked — record an explicit adjustment or economic correction. Original records stay unchanged.",
+    "notice": "This month is closed. Silent rewrites are blocked - record an explicit adjustment or economic correction. Original records stay unchanged.",
     "sourceRewriteHint": "Do not void or rewrite expenses, vendor bills, or time in this month. Post a month-close correction instead. The source row remains historical truth."
   },
   "coherence": {
@@ -66,7 +66,7 @@
   "adjustments": {
     "title": "Post-close adjustment",
     "hint": "Explain why operational history needs an explicit correction, supersede, or adjustment after close.",
-    "economicHint": "Amount is optional. Leave it empty for an audit-only note. When filled, this row folds into project Actual (cost) or invoiced (revenue) once through the financial compose engine — original expenses and bills are never rewritten.",
+    "economicHint": "Amount is optional. Leave it empty for an audit-only note. When filled, this row folds into project Actual (cost) or invoiced (revenue) once through the financial compose engine - original expenses and bills are never rewritten.",
     "type": "Type",
     "reason": "Reason",
     "amount": "Amount",
@@ -81,20 +81,20 @@
     "projectPlaceholder": "Select a project",
     "noProject": "No project",
     "supersede": "Supersede existing correction",
-    "supersedeNone": "None — new correction",
+    "supersedeNone": "None - new correction",
     "supersedeHint": "The original row stays on the ledger but is excluded from totals. This amount replaces it in compose.",
     "original": "Original",
     "originalTransaction": "Original transaction",
     "correction": "Correction / adjustment",
     "currentTruth": "Current economic truth",
-    "historicalTruth": "Historical truth — the source row was not rewritten.",
+    "historicalTruth": "Historical truth - the source row was not rewritten.",
     "supersededFromTotals": "Excluded from compose (superseded)",
     "sourceRewriteHint": "Closed-month expenses, vendor bills, and time cannot be voided or rewritten. Record the correction here so compose can net it.",
     "auditOnly": "Audit only",
     "activeInTotals": "Included in compose",
     "superseded": "Superseded",
     "history": "Adjustment history",
-    "explainability": "Closed-month history is immutable. Amounts shown here are the correction rows themselves — project Actual and billing totals come from compose only, never a second engine on this page.",
+    "explainability": "Closed-month history is immutable. Amounts shown here are the correction rows themselves - project Actual and billing totals come from compose only, never a second engine on this page.",
     "types": {
       "correction": "Correction",
       "supersede": "Supersede",
@@ -104,7 +104,7 @@
   "errors": {
     "invalidTransition": "That status change is not allowed.",
     "monthClosed": "This month is closed. Open Month close and record an explicit post-close adjustment instead of changing the original record.",
-    "useCorrectionNotRewrite": "This month is closed. Do not void or rewrite the original expense, vendor bill, or time entry — record a month-close correction instead.",
+    "useCorrectionNotRewrite": "This month is closed. Do not void or rewrite the original expense, vendor bill, or time entry - record a month-close correction instead.",
     "notClosed": "Post-close adjustments require a closed month.",
     "notComplete": "Completeness must be 100% before ready/close.",
     "currencyMismatch": "Economic corrections must use the organization base currency.",

@@ -134,7 +134,7 @@
   },
   "extraFields": {
     "title": "More site details",
-    "hint": "Workers, equipment, delays, and notes — open only when needed.",
+    "hint": "Workers, equipment, delays, and notes - open only when needed.",
     "workersOnSite": "Workers on site",
     "subcontractorsOnSite": "Subcontractors",
     "equipmentOnSite": "Equipment",
@@ -154,7 +154,7 @@
     "submit": "Submit",
     "finalize": "Finalize",
     "finalizeTitle": "Finalize this log",
-    "finalizeBody": "A finalized log is locked. Corrections are a new note or a new log — the original is not rewritten.",
+    "finalizeBody": "A finalized log is locked. Corrections are a new note or a new log - the original is not rewritten.",
     "locked": "This log is finalized and locked.",
     "correctionLabel": "Correction note",
     "correctionHint": "Appended to the locked log. It does not replace the original record.",
@@ -221,7 +221,7 @@
     "submit": "Update",
     "pending": "Updating…",
     "resultLabel": "Pass / fail notes",
-    "resultPlaceholder": "What was found — optional notes for the pass or fail outcome…",
+    "resultPlaceholder": "What was found - optional notes for the pass or fail outcome…",
     "outcomeLabel": "Outcome",
     "pass": "Pass",
     "fail": "Fail"

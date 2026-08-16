@@ -1,6 +1,6 @@
 {
   "title": "Today",
-  "description": "What needs handling now — your work inbox, not the alert bell.",
+  "description": "What needs handling now - your work inbox, not the alert bell.",
   "listLabel": "Items for today",
   "summary": "{count, plural, =0 {Nothing needs attention right now} =1 {1 item to handle} other {# items to handle}}",
   "fields": {
@@ -12,7 +12,7 @@
     "snooze1d": "Snooze 1 day",
     "snooze7d": "Snooze 7 days"
   },
-  "financialGuard": "Financial items can only be opened or snoozed — they stay visible until resolved at the source.",
+  "financialGuard": "Financial items can only be opened or snoozed - they stay visible until resolved at the source.",
   "severity": {
     "critical": "Critical",
     "high": "High",
@@ -54,7 +54,7 @@
   },
   "empty": {
     "title": "You're clear",
-    "body": "Nothing needs attention from the areas you can access. If you expected more, check Settings → Features — or look again later."
+    "body": "Nothing needs attention from the areas you can access. If you expected more, check Settings → Features - or look again later."
   },
   "moduleOff": {
     "title": "Today is turned off",
@@ -62,7 +62,7 @@
     "action": "Open features"
   },
   "errors": {
-    "unsafeState": "This item cannot be dismissed — open or snooze it instead.",
+    "unsafeState": "This item cannot be dismissed - open or snooze it instead.",
     "moduleOff": "Today is not enabled for this organization. Turn it on under Settings → Features."
   }
 }

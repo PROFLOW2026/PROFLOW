@@ -89,7 +89,7 @@
   },
   "progress": {
     "title": "Progress",
-    "description": "Record measured quantities for a period. Approval unlocks a progress bill — this never creates Actual cost.",
+    "description": "Record measured quantities for a period. Approval unlocks a progress bill - this never creates Actual cost.",
     "createTitle": "Update progress",
     "periodLabel": "Period label",
     "periodStart": "Period start",
@@ -104,7 +104,7 @@
     "approve": "Approve",
     "simpleApproveHint": "Simple mode: approved quantity will equal measured quantity.",
     "createBill": "Create and finalize progress invoice",
-    "taxAmount": "VAT / tax amount (optional — blank means intentional zero tax)",
+    "taxAmount": "VAT / tax amount (optional - blank means intentional zero tax)",
     "retentionPercent": "Retention % (optional)",
     "billedLinked": "Progress bill created",
     "linesCount": "{count} lines"
@@ -157,19 +157,19 @@
   },
   "errors": {
     "generic": "Could not complete that BOQ action. Check the values and try again.",
-    "duplicateBilling": "This progress period is already billed — duplicate progress billing is blocked.",
+    "duplicateBilling": "This progress period is already billed - duplicate progress billing is blocked.",
     "billingRequiresApproved": "Only an approved, unbilled progress period can create a bill.",
     "overMeasurement": "Quantity exceeds the current BOQ quantity.",
     "negativePeriod": "Negative period quantities require an explicit correction workflow.",
     "draftOnly": "Only a draft BOQ can be edited.",
     "activeRequired": "An active BOQ is required.",
-    "zeroPeriod": "Period value is zero — nothing to bill.",
+    "zeroPeriod": "Period value is zero - nothing to bill.",
     "changeOrderInvalid": "Change order was not found or does not belong to this project.",
     "notFound": "Item was not found."
   },
   "import": {
     "title": "Import from Excel / CSV",
-    "hint": "Import items into a draft BOQ. No silent partial import — invalid rows are reported.",
+    "hint": "Import items into a draft BOQ. No silent partial import - invalid rows are reported.",
     "draftOnlyHint": "Import always targets a draft BOQ. If this project only has an active BOQ, import creates or uses a separate draft version."
   },
   "export": {
@@ -180,7 +180,7 @@
     "performed": "Performed (cumulative approved)",
     "billed": "Billed (incl. opening)",
     "remaining": "Remaining to perform",
-    "alreadyBilledHint": "This period is already linked to a bill — the same quantities cannot be billed again."
+    "alreadyBilledHint": "This period is already linked to a bill - the same quantities cannot be billed again."
   },
   "allocations": {
     "title": "Change allocation history",
@@ -216,15 +216,15 @@
     "agreedQty": "Agreed quantity",
     "unitRate": "Unit rate (cost)",
     "periodLabel": "Valuation period",
-    "periodQtyHint": "Enter CURRENT-PERIOD quantity per line. Default is 0 — not the full agreed quantity.",
+    "periodQtyHint": "Enter CURRENT-PERIOD quantity per line. Default is 0 - not the full agreed quantity.",
     "flowHint": "Draft → add lines → activate → valuation (period qty) → approve → create draft vendor bill. Posting stays in AP.",
     "valuationHistory": "Valuation history",
     "apManualNote": "After approval, create a draft vendor bill here. It is not Actual and does not consume a PO. Posting stays in AP.",
-    "valuationCreated": "Valuation draft saved. After approval you can create a draft vendor bill — it is not posted.",
+    "valuationCreated": "Valuation draft saved. After approval you can create a draft vendor bill - it is not posted.",
     "createDraftAp": "Create draft vendor bill",
     "draftApCreated": "Draft vendor bill created. It is not Actual until posted in AP.",
     "draftApNeedsPermission": "Creating a draft vendor bill needs AP manage permission.",
-    "costSideOnly": "Cost side only — not client BOQ revenue.",
+    "costSideOnly": "Cost side only - not client BOQ revenue.",
     "agreement": "Subcontract agreement",
     "agreementNone": "No agreement",
     "agreementRetention": "Draft bills will use {percent}% retention unless you override it.",

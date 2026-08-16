@@ -1,6 +1,6 @@
 {
   "title": "Recurring drafts",
-  "subtitle": "Templates that create expense, vendor-bill, or billing drafts on a schedule. Generation never posts money — you still approve each draft.",
+  "subtitle": "Templates that create expense, vendor-bill, or billing drafts on a schedule. Generation never posts money - you still approve each draft.",
   "navFromSource": "Recurring drafts",
   "notAllowed": {
     "title": "No access",
@@ -8,7 +8,7 @@
   },
   "empty": {
     "title": "No recurring drafts yet",
-    "body": "Save a template for rent, retainers, or regular vendor bills. Each run creates a draft only — nothing is approved or posted automatically.",
+    "body": "Save a template for rent, retainers, or regular vendor bills. Each run creates a draft only - nothing is approved or posted automatically.",
     "action": "New recurring draft"
   },
   "list": {

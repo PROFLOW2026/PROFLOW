@@ -5,7 +5,7 @@
   "priceNotSet": "Price not set yet",
   "empty": {
     "title": "No jobs yet",
-    "body": "Short work on the same financial row as a project — client, price, costs and billing, without heavy project setup.",
+    "body": "Short work on the same financial row as a project - client, price, costs and billing, without heavy project setup.",
     "action": "Create first job",
     "workMixLink": "Show jobs in navigation (Settings)"
   },
@@ -31,7 +31,7 @@
       "actualCost": "Actual cost net",
       "profit": "Profit net",
       "billing": "Billing / payment",
-      "noClient": "—"
+      "noClient": "-"
     },
     "billingStatus": {
       "none": "No invoice",
@@ -60,12 +60,12 @@
     "clientNew": "Walk-in / new client",
     "clientSelect": "Existing client",
     "clientNamePlaceholder": "Client name",
-    "clientNameExample": "e.g. Walk-in — Dana",
+    "clientNameExample": "e.g. Walk-in - Dana",
     "pricingModeLabel": "Pricing",
     "startDateLabel": "Start date",
     "endDateLabel": "End date",
     "notesLabel": "Team notes",
-    "notesPlaceholder": "Optional notes — not an assignment",
+    "notesPlaceholder": "Optional notes - not an assignment",
     "notesHint": "Notes only. Assign employees above; assignment does not create labor Actual.",
     "assignLabel": "Assign employees",
     "assignHint": "Assignment does not create labor Actual. Logged time does.",
@@ -97,7 +97,7 @@
     "convertToProject": "Convert to project",
     "convertHint": "Opens full project tabs. Financial history stays on the same job.",
     "convertConfirm": "Convert this job to a project? Full project workspace appears; financial data is kept.",
-    "openPriceBanner": "Price not set yet — you can keep logging costs; profit appears after a price is set."
+    "openPriceBanner": "Price not set yet - you can keep logging costs; profit appears after a price is set."
   },
   "convert": {
     "success": "Converted to project",

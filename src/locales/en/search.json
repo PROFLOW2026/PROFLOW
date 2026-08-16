@@ -1,7 +1,7 @@
 {
   "title": "Search",
   "open": "Search",
-  "placeholder": "Search or jump — projects, invoices, vendors…",
+  "placeholder": "Search or jump - projects, invoices, vendors…",
   "minChars": "Type at least 2 characters.",
   "searching": "Searching…",
   "empty": "No matches in areas you can access.",

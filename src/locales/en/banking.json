@@ -67,14 +67,14 @@
       "vendor_payment": "Vendor payment",
       "vendor_bill": "Vendor bill"
     },
-    "costGuard": "Matching a vendor payment for an already-recognized bill is cash only — it does not add project cost."
+    "costGuard": "Matching a vendor payment for an already-recognized bill is cash only - it does not add project cost."
   },
   "actions": {
     "approve": "Approve",
     "change": "Change",
     "ignore": "Ignore",
-    "approved": "Match approved (reconciliation only — no ledger write).",
-    "changed": "Match changed (reconciliation only — no ledger write).",
+    "approved": "Match approved (reconciliation only - no ledger write).",
+    "changed": "Match changed (reconciliation only - no ledger write).",
     "ignored": "Transaction ignored.",
     "selectTarget": "Select a suggestion or enter a target before Approve / Change."
   },

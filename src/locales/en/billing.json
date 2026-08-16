@@ -2,7 +2,7 @@
   "title": "Billing and collections",
   "subtitle": "Track invoice totals, what was collected, and cash still outstanding to collect. Billing is not a quote.",
   "reportsEntry": "Cash & receivables report",
-  "statutoryDisclosure": "Internal billing tracking only — not statutory invoice issuance.",
+  "statutoryDisclosure": "Internal billing tracking only - not statutory invoice issuance.",
   "list": {
     "project": "Project",
     "reference": "Reference",
@@ -23,25 +23,25 @@
       "overdue": "Overdue"
     },
     "emptyTitle": "No billing records yet",
-    "emptyBody": "Record billing when you send an amount to a client — even if the legal invoice lives in another system.",
+    "emptyBody": "Record billing when you send an amount to a client - even if the legal invoice lives in another system.",
     "emptyAction": "Add billing record"
   },
   "aging": {
     "title": "Receivables aging",
-    "note": "Aging uses outstanding to collect only. Invoice totals include VAT if entered — VAT is not revenue for profit. Foreign-currency records are excluded.",
+    "note": "Aging uses outstanding to collect only. Invoice totals include VAT if entered - VAT is not revenue for profit. Foreign-currency records are excluded.",
     "total": "Total outstanding",
     "count": "{count, plural, =0 {No records} =1 {# record} other {# records}}",
     "buckets": {
       "current": "Current / no due date",
-      "days_1_30": "1–30 days past due",
-      "days_31_60": "31–60 days",
-      "days_61_90": "61–90 days",
+      "days_1_30": "1-30 days past due",
+      "days_31_60": "31-60 days",
+      "days_61_90": "61-90 days",
       "days_90_plus": "90+ days"
     }
   },
   "receivables": {
     "title": "Receivables summary",
-    "integrityNote": "Outstanding to collect = Invoice total − Paid. Includes VAT if entered. Credit notes reduce outstanding; voided records and voided payments are excluded. VAT is not profit or revenue.",
+    "integrityNote": "Outstanding to collect = Invoice total - Paid. Includes VAT if entered. Credit notes reduce outstanding; voided records and voided payments are excluded. VAT is not profit or revenue.",
     "totalOutstanding": "Total outstanding",
     "overdueTotal": "Overdue",
     "overdueCount": "{count, plural, =0 {No overdue records} =1 {# overdue record} other {# overdue records}}",
@@ -104,7 +104,7 @@
     "percentHint": "Optional. 10 means 10% of the billing total.",
     "captureHint": "Set amount or percent on a draft. On finalize, held remaining equals retention. After finalize, increase only with a new billing record.",
     "releaseTitle": "Release retention",
-    "releaseHint": "Partial release is allowed while held remaining is greater than zero. Releases are immutable history — not a second invoice.",
+    "releaseHint": "Partial release is allowed while held remaining is greater than zero. Releases are immutable history - not a second invoice.",
     "releaseAmount": "Release amount",
     "releaseDate": "Release date",
     "releaseNotes": "Notes",

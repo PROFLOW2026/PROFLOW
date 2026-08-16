@@ -96,7 +96,7 @@
   "financeLink": {
     "create": "Create linked expense",
     "pending": "Creating…",
-    "hint": "Creates an Expense draft only. Actual changes after you finalize the expense — not from this compliance record alone.",
+    "hint": "Creates an Expense draft only. Actual changes after you finalize the expense - not from this compliance record alone.",
     "linkedDraft": "Linked expense draft",
     "openExpense": "Open expense",
     "amountLabel": "Premium / fee amount",

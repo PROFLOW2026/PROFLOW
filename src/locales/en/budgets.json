@@ -10,7 +10,7 @@
     "remainingCommitment": "Remaining commitment",
     "etc": "ETC",
     "forecast": "Forecast",
-    "variance": "Variance (Budget − Forecast)",
+    "variance": "Variance (Budget - Forecast)",
     "engineMissing": "Actual and Forecast need project financials permission. Budget figures still show."
   },
   "lines": {
@@ -19,10 +19,10 @@
     "modeLightweight": "Lightweight (total)",
     "modeAdvanced": "Advanced",
     "revision": "Revision {number}",
-    "mappingHint": "Actual comes from the shared financial engine only. Category and work-package lines show mapped expense Actual when the key matches. Remaining commitment and project ETC stay on the total line — they are not split across detail lines. Forecast on a detail line is Actual plus that line's ETC when you set one; otherwise it equals Actual. Discipline and cost-code lines stay unmapped because expenses and AP do not carry those keys.",
+    "mappingHint": "Actual comes from the shared financial engine only. Category and work-package lines show mapped expense Actual when the key matches. Remaining commitment and project ETC stay on the total line - they are not split across detail lines. Forecast on a detail line is Actual plus that line's ETC when you set one; otherwise it equals Actual. Discipline and cost-code lines stay unmapped because expenses and AP do not carry those keys.",
     "unmappedRow": "Unmapped / unallocated",
     "unmappedRowHint": "Engine Actual not matched to a category or work-package line. Includes labor, vendor bills, and expenses without those keys. Never guessed onto a line.",
-    "unmappedValue": "—",
+    "unmappedValue": "-",
     "mappedStatus": "Mapped Actual",
     "unmappedStatus": "Unmapped",
     "engineTotalStatus": "Engine total"
@@ -37,7 +37,7 @@
   "revisions": {
     "title": "Revision history",
     "item": "Revision {number}",
-    "historyHint": "Earlier revisions stay on record. New amounts append a revision — nothing is silently rewritten."
+    "historyHint": "Earlier revisions stay on record. New amounts append a revision - nothing is silently rewritten."
   },
   "fields": {
     "totalBudget": "Total budget",

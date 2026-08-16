@@ -18,7 +18,7 @@
   },
   "employees": {
     "new": "+ New employee",
-    "newDescription": "Name and role first. Add compensation under Advanced when you know cost — rates alone do not create project labor Actual.",
+    "newDescription": "Name and role first. Add compensation under Advanced when you know cost - rates alone do not create project labor Actual.",
     "noRate": "No rate",
     "columns": {
       "name": "Name",
@@ -34,13 +34,13 @@
     "form": {
       "name": "Name",
       "employmentStyle": "How rate is expressed",
-      "employmentStyleHint": "Hourly, daily, or monthly — only needed if you enter a rate.",
+      "employmentStyleHint": "Hourly, daily, or monthly - only needed if you enter a rate.",
       "baseRate": "Base rate",
       "baseRateHint": "Optional. Labor Actual on a project only appears after time is logged. You can save with no salary.",
       "burdenPercent": "Employer burden %",
       "burdenHint": "Loaded cost on top of the base rate, e.g. taxes and benefits. Not net salary / payroll.",
       "jobTitle": "Role / title",
-      "jobTitleHint": "What they do — e.g. site manager, electrician, admin.",
+      "jobTitleHint": "What they do - e.g. site manager, electrician, admin.",
       "employeeNumber": "Employee number",
       "linkedUser": "Linked login",
       "linkedUserHint": "Connect this employee to an organization member so they can log their own time and clock in. Unlink anytime.",
@@ -82,7 +82,7 @@
     },
     "projects": {
       "title": "Assignments / projects",
-      "description": "Projects this person is assigned to. Assignment itself is not a cost — labor Actual comes from time entries.",
+      "description": "Projects this person is assigned to. Assignment itself is not a cost - labor Actual comes from time entries.",
       "logTime": "Log time",
       "assign": "Add assignment",
       "assignSave": "Save assignment",
@@ -100,12 +100,12 @@
   "time": {
     "title": "Time entries",
     "description": "Hours logged against projects and non-project codes.",
-    "selfDescription": "Your hours. Clocking is presence only — these entries are what count for project cost after approval.",
+    "selfDescription": "Your hours. Clocking is presence only - these entries are what count for project cost after approval.",
     "reportsEntry": "Labor cost report",
     "new": "Log time",
     "quickLog": "Quick time log",
-    "quickLogDescription": "Log hours in a few taps — employee, date, hours, project, and notes.",
-    "quickLogProjectDescription": "Log hours on this project. Team members appear first; you can still pick any org employee. Hours create labor Actual when a rate applies — team assignment alone does not.",
+    "quickLogDescription": "Log hours in a few taps - employee, date, hours, project, and notes.",
+    "quickLogProjectDescription": "Log hours on this project. Team members appear first; you can still pick any org employee. Hours create labor Actual when a rate applies - team assignment alone does not.",
     "correctionTitle": "Correct time entry",
     "correctionDescription": "Voids the original entry and saves a replacement. Past Actual is not silently overwritten.",
     "correct": "Correct",
@@ -224,7 +224,7 @@
     "logTime": "Log time",
     "viewAll": "View all time entries",
     "teamTitle": "Team",
-    "teamDescription": "Current assignments with dates. Adding someone does not create labor cost — Actual only comes from logged time.",
+    "teamDescription": "Current assignments with dates. Adding someone does not create labor cost - Actual only comes from logged time.",
     "teamEmpty": "No one assigned yet. Use Add employee to put someone on this team.",
     "addEmployee": "Add employee",
     "addSuccess": "Employee added to the team. No labor Actual was created.",
@@ -248,7 +248,7 @@
     "roleLabel": "Role on project",
     "rolePlaceholder": "e.g. site lead",
     "plannedShareLabel": "Planned time share (optional)",
-    "plannedShareHint": "Planning hint only — not cost allocation and not Actual.",
+    "plannedShareHint": "Planning hint only - not cost allocation and not Actual.",
     "plannedSharePlaceholder": "e.g. 50",
     "noCandidates": "Every active employee is already on this team, or create a new employee first.",
     "noHoursYet": "Assigned · no hours logged yet",
@@ -260,7 +260,7 @@
   "monthReview": {
     "title": "Monthly employer cost (optional)",
     "description": "Review estimated vs actual employer cost for a month. Not on daily field nav.",
-    "gateOff": "Persistence is off until Lead enables monthly cost after migration. Preview and draft only — does not claim Actual.",
+    "gateOff": "Persistence is off until Lead enables monthly cost after migration. Preview and draft only - does not claim Actual.",
     "yearMonth": "Month",
     "cost": "Cost",
     "allocated": "Allocated",
@@ -276,7 +276,7 @@
     "estimated": "Estimated",
     "estimatedHint": "Optional estimate from compensation / rates.",
     "actual": "Actual employer cost",
-    "actualHint": "Known employer cost for the month — not net salary / payroll.",
+    "actualHint": "Known employer cost for the month - not net salary / payroll.",
     "method": "Allocation method",
     "methodHint": "How to weight projects when splitting known cost. Advanced only.",
     "methods": {
@@ -297,7 +297,7 @@
   "attendance": {
     "title": "Attendance",
     "description": "Clock in and out for presence. Attendance is not project time and never creates labor Actual by itself.",
-    "disclaimer": "Presence only — not project hours and not cost.",
+    "disclaimer": "Presence only - not project hours and not cost.",
     "completenessHint": "Complete is a presence heuristic: at least one clock-in and currently clocked out. It is not a timesheet or payroll completeness check and does not create labor cost. Open means still on site, or the day has no closing clock-out yet.",
     "clock": {
       "today": "Today · {date}",
@@ -334,10 +334,10 @@
     },
     "list": {
       "title": "Attendance days",
-      "hint": "Filter by date or status. Open a day for events and corrections. Status is presence only — see the completeness note.",
+      "hint": "Filter by date or status. Open a day for events and corrections. Status is presence only - see the completeness note.",
       "empty": {
         "title": "No attendance yet",
-        "description": "Optional — use the clock or a manager manual entry when you need presence tracking. Nothing is required to set up."
+        "description": "Optional - use the clock or a manager manual entry when you need presence tracking. Nothing is required to set up."
       },
       "columns": {
         "date": "Date",

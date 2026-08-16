@@ -37,7 +37,7 @@
     "modeAll": "All projects",
     "modeSelected": "Selected projects only",
     "modeAssigned": "Assigned projects",
-    "assignedModeHint": "Assigned mode uses project team assignments and extra grants. Roles stay organization-wide — a role is not limited to one project.",
+    "assignedModeHint": "Assigned mode uses project team assignments and extra grants. Roles stay organization-wide - a role is not limited to one project.",
     "accessAllBypassWarning": "Selected or Assigned mode does not hide projects from people whose role has “see every project” until that toggle is turned off: {names}",
     "grantUser": "Person",
     "grantProject": "Project",
@@ -99,7 +99,7 @@
       "approvals": "Manage approval flows for expenses, purchasing, and other actions.",
       "month_close": "Close an operational month to keep history stable.",
       "budgets": "Track budget versus actuals and forecast.",
-      "boq": "Optional bill of quantities for measured construction. Leave off unless you bill from a quantity list — a jobs/service mix does not need it.",
+      "boq": "Optional bill of quantities for measured construction. Leave off unless you bill from a quantity list - a jobs/service mix does not need it.",
       "forms": "Reusable checklists and field forms.",
       "command_center": "Today view for current work and tasks.",
       "safety": "Incidents, near misses, toolbox talks, and corrective actions."
@@ -108,13 +108,13 @@
   },
   "workMix": {
     "title": "Business focus",
-    "subtitle": "Choose what stands out in navigation: projects, jobs, or both. Same app and same money — not separate products.",
+    "subtitle": "Choose what stands out in navigation: projects, jobs, or both. Same app and same money - not separate products.",
     "label": "Navigation focus",
     "projects": "Mostly projects",
     "jobs": "Mostly jobs",
     "mixed": "Projects and jobs",
     "hintJobs": "Jobs and service calls appear in the main navigation. Projects stay available. Bill of quantities stays hidden unless you turn that feature on.",
-    "hintMixed": "Projects, jobs, and service calls appear together. They share one financial record — this is not a separate product, and BOQ stays off unless you enable it.",
+    "hintMixed": "Projects, jobs, and service calls appear together. They share one financial record - this is not a separate product, and BOQ stays off unless you enable it.",
     "hintProjects": "Projects appear in the main navigation. Jobs stay available when needed. Bill of quantities stays hidden unless you turn that feature on.",
     "saved": "Business focus updated."
   },
@@ -161,7 +161,7 @@
   },
   "costCategories": {
     "title": "Cost categories",
-    "subtitle": "Optional. Categories help you group costs and set default allocation policy. Policy is chosen by the business — nothing is hardcoded by category name.",
+    "subtitle": "Optional. Categories help you group costs and set default allocation policy. Policy is chosen by the business - nothing is hardcoded by category name.",
     "family": "Cost section",
     "addCategory": "Add category",
     "renameLabel": "Name for {name}",
@@ -755,7 +755,7 @@
   },
   "numbering": {
     "title": "Document numbering",
-    "subtitle": "Internal tracking numbers assigned when you leave the reference blank. Change requests and change orders keep their per-project numbers. Project, job, and service-call numbers are assigned on create only — existing rows are not backfilled.",
+    "subtitle": "Internal tracking numbers assigned when you leave the reference blank. Change requests and change orders keep their per-project numbers. Project, job, and service-call numbers are assigned on create only - existing rows are not backfilled.",
     "legalDisclaimer": "Internal tracking numbers only. This is not Israeli tax-invoice numbering.",
     "commercialNote": "These numbers are for follow-up inside ProjectFlow. They are not statutory invoices and do not issue a legal tax invoice.",
     "perProjectNote": "Not applied on create. Change requests and change orders keep per-project numbers such as CR-001 / CO-001.",
@@ -783,7 +783,7 @@
   },
   "ocr": {
     "title": "Receipt scan (OCR)",
-    "description": "Operational status for automatic document reading. Processing is on-demand when you upload. Drafts only — never a posted actual. Secrets are never shown here.",
+    "description": "Operational status for automatic document reading. Processing is on-demand when you upload. Drafts only - never a posted actual. Secrets are never shown here.",
     "ingestionLabel": "Ingestion",
     "ingestionOn": "Enabled",
     "ingestionOff": "Disabled",

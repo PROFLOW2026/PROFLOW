@@ -1,15 +1,15 @@
 {
   "title": "Field forms",
-  "subtitle": "Reusable checklists and field forms. Optional module — photos use Documents. Acknowledgement is operational only: not a legal electronic signature.",
+  "subtitle": "Reusable checklists and field forms. Optional module - photos use Documents. Acknowledgement is operational only: not a legal electronic signature.",
   "navLabel": "Field forms",
   "acknowledgementDisclaimer": "This is operational acknowledgement only: a typed name and timestamp for internal sign-off. It is not a legal electronic signature, not e-sign, and not a substitute for a legally binding signature.",
   "photoNote": {
     "title": "Photos via Documents",
-    "body": "Save the draft first, then attach photos from the submission page. Photos use the existing Documents storage — not a separate gallery."
+    "body": "Save the draft first, then attach photos from the submission page. Photos use the existing Documents storage - not a separate gallery."
   },
   "settings": {
     "title": "Form templates",
-    "subtitle": "Define reusable field forms (checklist, yes/no, text, number, date, photo, notes, operational acknowledgement — not e-sign).",
+    "subtitle": "Define reusable field forms (checklist, yes/no, text, number, date, photo, notes, operational acknowledgement - not e-sign).",
     "signatureTypeHint": "Acknowledgement stores a name and timestamp only. It never creates a legally binding electronic signature.",
     "addTemplate": "Add template",
     "saved": "Template saved.",
@@ -94,9 +94,9 @@
     "no": "No",
     "acknowledgementName": "Acknowledgement name",
     "acknowledgementNote": "Acknowledgement note",
-    "signatureHelp": "Checking this records operational acknowledgement only — not a legal electronic signature.",
+    "signatureHelp": "Checking this records operational acknowledgement only - not a legal electronic signature.",
     "readOnly": "This submission can no longer be edited.",
-    "offlineQueued": "Saved offline — will sync when you are back online."
+    "offlineQueued": "Saved offline - will sync when you are back online."
   },
   "ownerPanel": {
     "title": "Field forms",

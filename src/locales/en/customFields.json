@@ -1,6 +1,6 @@
 {
   "title": "Custom fields",
-  "subtitle": "Optional attributes on records — they never replace financial fields.",
+  "subtitle": "Optional attributes on records - they never replace financial fields.",
   "reportingNote": "Custom fields are operational labels; they may not appear in reports or exports yet.",
   "listTitle": "Field definitions",
   "empty": "No custom fields yet",

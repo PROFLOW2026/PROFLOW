@@ -52,7 +52,7 @@
     "status": "Status"
   },
   "linkedDailyLog": "Linked daily log",
-  "fromDailyLogHint": "Prefills from a daily log. Saving creates the safety record and then links it — nothing is created until you save.",
+  "fromDailyLogHint": "Prefills from a daily log. Saving creates the safety record and then links it - nothing is created until you save.",
   "actions": {
     "create": "Create",
     "save": "Save",

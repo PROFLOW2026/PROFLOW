@@ -118,7 +118,7 @@
     "timeEntriesCurrency": "Labor cost is per entry currency. Do not mix currencies when totaling.",
     "timeEntriesCap": "Export capped at 5000 rows.",
     "paymentsIntegrity": "Payment is not the billing total. Voided payments are excluded.",
-    "arCurrency": "Per-row currency — do not sum mixed currencies.",
+    "arCurrency": "Per-row currency - do not sum mixed currencies.",
     "arIntegrity": "Outstanding is derived. Contract, billing, and payment stay separate. Not labelled as revenue.",
     "arAgingRules": "Aging uses outstanding only. VAT is not revenue. Foreign-currency records are excluded.",
     "arAgingBase": "Organization base currency only ({currency}). Foreign-currency outstanding excluded from bucket totals.",
@@ -126,7 +126,7 @@
     "poCommitted": "A purchase-order commitment is not an expense until received or expensed.",
     "apNeExpense": "A vendor bill is not an expense. Match status belongs to the bill, not a payment.",
     "auditPermission": "Requires activity-log view permission (same as Settings → Activity).",
-    "auditPayloads": "Before/after details are omitted intentionally — same as the activity screen.",
+    "auditPayloads": "Before/after details are omitted intentionally - same as the activity screen.",
     "auditCap": "Export capped at {cap} newest events.",
     "boqProgressOptional": "Progress columns reflect cumulative approved quantities when available. BOQ progress is not Actual cost."
   },
@@ -152,7 +152,7 @@
     "originalPlusApproved": "original ± approved",
     "notInCurrent": "not included in current",
     "hidden": "hidden by permission or unavailable",
-    "notRevenue": "not revenue for profit — invoice total includes VAT if entered",
+    "notRevenue": "not revenue for profit - invoice total includes VAT if entered",
     "derived": "derived",
     "estimateOnly": "estimate only; profit on net contract excluding VAT"
   },
@@ -221,9 +221,9 @@
     },
     "agingBucket": {
       "current": "Current / no due date",
-      "days_1_30": "1–30 days past due",
-      "days_31_60": "31–60 days",
-      "days_61_90": "61–90 days",
+      "days_1_30": "1-30 days past due",
+      "days_31_60": "31-60 days",
+      "days_61_90": "61-90 days",
       "days_90_plus": "90+ days"
     },
     "purchaseOrderStatus": {

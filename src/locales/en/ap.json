@@ -1,6 +1,6 @@
 {
   "title": "Vendor bills",
-  "description": "Vendor bills are payable obligations. Matching links them to purchase orders and/or existing expenses — it never invents an expense.",
+  "description": "Vendor bills are payable obligations. Matching links them to purchase orders and/or existing expenses - it never invents an expense.",
   "newBill": "New vendor bill",
   "empty": {
     "bills": {
@@ -54,9 +54,9 @@
     "net": "Net (Actual cost)",
     "tax": "VAT",
     "gross": "Gross (payable)",
-    "taxBasisLegacy": "VAT was not split historically — cost = full amount",
-    "taxBasisZero": "Zero / exempt VAT — NET equals GROSS.",
-    "taxBasisCanonical": "VAT split — Actual uses NET, payable uses GROSS.",
+    "taxBasisLegacy": "VAT was not split historically - cost = full amount",
+    "taxBasisZero": "Zero / exempt VAT - NET equals GROSS.",
+    "taxBasisCanonical": "VAT split - Actual uses NET, payable uses GROSS.",
     "actualHint": "Actual / profit uses NET. Payable / aging uses GROSS. VAT is not profit."
   },
   "reportsEntry": "Cost & payables report",
@@ -89,7 +89,7 @@
   },
   "create": {
     "title": "New vendor bill",
-    "description": "Create a payable bill. This is not an expense — matching links to PO commitment and/or existing expense actuals.",
+    "description": "Create a payable bill. This is not an expense - matching links to PO commitment and/or existing expense actuals.",
     "submit": "Create bill",
     "vendorLabel": "Vendor",
     "vendorPlaceholder": "Select vendor",
@@ -143,7 +143,7 @@
   },
   "payments": {
     "title": "Vendor payments",
-    "cashOnlyNote": "Payments are cash / AP only. They never increase Actual Cost — the vendor bill already recognized cost.",
+    "cashOnlyNote": "Payments are cash / AP only. They never increase Actual Cost - the vendor bill already recognized cost.",
     "schemaPending": "Recording payments is gated until the ap_payments schema is applied. Outstanding below assumes no recorded payments yet.",
     "paid": "Paid",
     "outstanding": "Outstanding",
@@ -179,7 +179,7 @@
     "title": "Vendor credits",
     "navLink": "Credits",
     "listTitle": "Vendor credits",
-    "listDescription": "Independent credit notes. Drafts stay off Actual until you post. Applying a credit reduces outstanding and Actual Cost — it is not a payment.",
+    "listDescription": "Independent credit notes. Drafts stay off Actual until you post. Applying a credit reduces outstanding and Actual Cost - it is not a payment.",
     "newCredit": "New vendor credit",
     "notPaymentNote": "Credits are not payments. Applying a credit reduces outstanding and Actual Cost.",
     "empty": "No credits applied yet.",
@@ -246,8 +246,8 @@
       "applicationStatusVoid": "Void",
       "billLink": "Bill",
       "pendingApproval": "Waiting for approval. This credit stays draft and does not reduce Actual until you post after approval.",
-      "draftHint": "Draft — not in Actual. Review the amount and date, then post. Posting is never silent.",
-      "openHint": "Open — recognized. Apply remaining to a payable bill to reduce outstanding and Actual.",
+      "draftHint": "Draft - not in Actual. Review the amount and date, then post. Posting is never silent.",
+      "openHint": "Open - recognized. Apply remaining to a payable bill to reduce outstanding and Actual.",
       "appliedHint": "Fully applied. Outstanding and Actual already reflect this credit. Void to unwind.",
       "voidHint": "Void. History is preserved. This credit no longer reduces Actual or outstanding."
     },
@@ -259,7 +259,7 @@
     },
     "post": {
       "title": "Post credit",
-      "note": "Posting moves draft to open. If approval is still pending, posting is blocked — it will not post silently.",
+      "note": "Posting moves draft to open. If approval is still pending, posting is blocked - it will not post silently.",
       "action": "Post credit",
       "success": "Credit posted. It is open and can be applied to a bill."
     },
@@ -289,7 +289,7 @@
   },
   "void": {
     "title": "Void bill",
-    "note": "Void removes the bill from Actual recognition and supersedes allocations. History is preserved. Correction path is void + replace, or credit — never silent edit.",
+    "note": "Void removes the bill from Actual recognition and supersedes allocations. History is preserved. Correction path is void + replace, or credit - never silent edit.",
     "paymentsFirst": "Void recorded payments on this bill before voiding the bill.",
     "creditsFirst": "Reverse applied vendor credits on this bill before voiding the bill.",
     "action": "Void bill",
@@ -299,7 +299,7 @@
   "aging": {
     "title": "AP aging",
     "navLink": "Aging",
-    "description": "Payables aging by due date using outstanding (bill − payments − credits). Cash view — not Actual Cost.",
+    "description": "Payables aging by due date using outstanding (bill - payments - credits). Cash view - not Actual Cost.",
     "note": "Buckets use outstanding only. Payments never increase Actual; credits reduce both outstanding and Actual.",
     "asOf": "As of {date}",
     "total": "Total outstanding",
@@ -307,16 +307,16 @@
     "filterNote": "Vendor/project query filters are reserved for a later pass; buckets show org-wide aging in the base currency.",
     "buckets": {
       "current": "Current",
-      "days_1_30": "1–30 days",
-      "days_31_60": "31–60 days",
-      "days_61_90": "61–90 days",
+      "days_1_30": "1-30 days",
+      "days_31_60": "31-60 days",
+      "days_61_90": "61-90 days",
       "days_90_plus": "90+ days"
     }
   },
   "allocation": {
     "title": "Project cost allocation",
     "subtitle": "Send 100% to one project, or split by amount / % / days. Remainder stays visible as unallocated. Payment is separate.",
-    "gateOff": "Persistence is off until Lead enables ap_bill_project_allocations after migration. Live preview and draft only — does not change Actual yet.",
+    "gateOff": "Persistence is off until Lead enables ap_bill_project_allocations after migration. Live preview and draft only - does not change Actual yet.",
     "recognizedNet": "Recognized bill NET",
     "allocated": "Allocated",
     "unallocated": "Unallocated vendor cost",
@@ -338,7 +338,7 @@
     "removeLine": "Remove line",
     "save": "Save allocation",
     "saveDraft": "Save draft (set up later)",
-    "draftSaved": "Draft saved. Actual uses applied lines only — drafts do not claim Actual.",
+    "draftSaved": "Draft saved. Actual uses applied lines only - drafts do not claim Actual.",
     "applied": "Allocation applied. Project Actual uses these slices of bill NET.",
     "apply": "Apply allocation",
     "paymentNote": "PAYMENT ≠ Actual. Recording a payment does not allocate bill cost."

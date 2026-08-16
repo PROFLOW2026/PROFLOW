@@ -56,7 +56,7 @@
   "cancelConfirmAction": "Cancel booking",
   "cancelled": "Booking cancelled.",
   "saved": "Saved.",
-  "confirmOverlap": "Book anyway — times overlap",
+  "confirmOverlap": "Book anyway - times overlap",
   "overlapWarning": "This overlaps another booking. Confirm to keep both.",
   "overCapacityHint": "Planned hours are above the usual {hours} hours for this period.",
   "fields": {

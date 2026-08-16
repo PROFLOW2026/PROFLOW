@@ -28,7 +28,7 @@
     },
     "inventory": {
       "title": "No inventory items yet",
-      "body": "Track on-hand operational quantity. Receive and issue change quantity only — not cost, not Actual, and not FIFO/AVG costing.",
+      "body": "Track on-hand operational quantity. Receive and issue change quantity only - not cost, not Actual, and not FIFO/AVG costing.",
       "action": "New inventory item"
     }
   },
@@ -131,8 +131,8 @@
     "documents": "Documents",
     "maintenance": "Maintenance",
     "maintenanceHint": "Cost here is operational metadata only and does not create an expense.",
-    "costNotExpense": "Not an Expense — cost is metadata only. No expense posting or ledger link.",
-    "createLinkedExpenseHint": "To affect Actual, explicitly create a linked expense draft — then finalize it in Expenses.",
+    "costNotExpense": "Not an Expense - cost is metadata only. No expense posting or ledger link.",
+    "createLinkedExpenseHint": "To affect Actual, explicitly create a linked expense draft - then finalize it in Expenses.",
     "newMaintenance": "Add maintenance",
     "maintenanceTitle": "Title",
     "maintenanceStatus": "Status",
@@ -149,7 +149,7 @@
   },
   "inventory": {
     "title": "Operational quantity",
-    "description": "On-hand operational quantity only. Movements change quantity — not cost, not Actual, not GL. No FIFO or average costing.",
+    "description": "On-hand operational quantity only. Movements change quantity - not cost, not Actual, not GL. No FIFO or average costing.",
     "detailDescription": "Operational quantity only. Recording a movement does not create cost, Actual, expense, or a ledger entry. No FIFO/AVG inventory costing.",
     "createTitle": "New inventory item",
     "submitItem": "Save item",
@@ -170,7 +170,7 @@
     "return": "Return",
     "adjust": "Adjust",
     "transfer": "Transfer",
-    "qtyOnlyBanner": "Quantity-only inventory — not Actual cost / not FIFO",
+    "qtyOnlyBanner": "Quantity-only inventory - not Actual cost / not FIFO",
     "qtyOnlyBannerHe": "מלאי כמות בלבד - לא עלות בספרים / לא FIFO",
     "qtyOnlyBannerEn": "Quantity-only inventory - not bookkeeping cost / not FIFO",
     "threeActionsHint": "Purchase receiving, inventory quantity, and material usage are three different actions. None of them posts project Actual.",
@@ -208,7 +208,7 @@
     "openDetail": "History & more…",
     "linkedMaterial": "Open linked catalog material",
     "historyTitle": "Movement history",
-    "historyHint": "Chronological quantity movements for this item. Operational quantity only — no cost, Actual, FIFO, or average costing.",
+    "historyHint": "Chronological quantity movements for this item. Operational quantity only - no cost, Actual, FIFO, or average costing.",
     "emptyHistory": "No movements recorded yet.",
     "lowStockBadge": "Low stock",
     "suggestedReorder": "Suggested reorder",
@@ -231,7 +231,7 @@
       "cancelled": "Cancelled"
     },
     "countsTitle": "Stock counts",
-    "countsHint": "Draft lines, then finalize. Finalize creates quantity adjust movements only — not Actual, not GL, not Expense.",
+    "countsHint": "Draft lines, then finalize. Finalize creates quantity adjust movements only - not Actual, not GL, not Expense.",
     "countsEmpty": "No stock counts yet.",
     "createCount": "Start count",
     "countDate": "Count date",
@@ -291,12 +291,12 @@
     "invalidUsageDateRange": "Usage end date must be on or after the start date."
   },
   "usage": {
-    "panelNote": "Usage attributes materials and equipment to this work as operational quantity. It never creates Actual cost — purchase Actual stays on expenses / vendor bills once. No FIFO/AVG.",
+    "panelNote": "Usage attributes materials and equipment to this work as operational quantity. It never creates Actual cost - purchase Actual stays on expenses / vendor bills once. No FIFO/AVG.",
     "threeActionsHint": "Purchase receiving, inventory quantity, and material usage are three different actions. None of them posts project Actual.",
-    "notActualHint": "Operational quantity only — does not create Actual, Expense, or ledger entries. Not inventory costing (no FIFO or average). Purchase cost is recognized once when you buy.",
-    "stockSeparateHint": "Usage does not change on-hand quantity. Use inventory receive/issue to update operational stock. Low stock is an operational reorder indicator only — not cost.",
+    "notActualHint": "Operational quantity only - does not create Actual, Expense, or ledger entries. Not inventory costing (no FIFO or average). Purchase cost is recognized once when you buy.",
+    "stockSeparateHint": "Usage does not change on-hand quantity. Use inventory receive/issue to update operational stock. Low stock is an operational reorder indicator only - not cost.",
     "materialSection": "Material consumption",
-    "materialHint": "Log operational qty used on this project, job, or work order. Optional catalog / inventory links. Quantity only — not cost or Actual.",
+    "materialHint": "Log operational qty used on this project, job, or work order. Optional catalog / inventory links. Quantity only - not cost or Actual.",
     "equipmentSection": "Equipment / vehicle usage",
     "equipmentHint": "Log asset use by date or range, with optional hours, days, or mileage.",
     "descriptionLabel": "Description",
@@ -351,7 +351,7 @@
   "financeLink": {
     "create": "Create linked expense",
     "pending": "Creating…",
-    "hint": "Creates an Expense draft only. Actual changes after you finalize the expense — not from this operational record alone.",
+    "hint": "Creates an Expense draft only. Actual changes after you finalize the expense - not from this operational record alone.",
     "linkedDraft": "Linked expense draft",
     "openExpense": "Open expense",
     "amountLabel": "Amount",

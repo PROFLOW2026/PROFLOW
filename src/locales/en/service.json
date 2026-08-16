@@ -3,7 +3,7 @@
   "newWorkOrder": "New service call",
   "empty": {
     "title": "No service calls yet",
-    "body": "A service call is the same financial row as a project or job, with a dispatch workspace — not a second money system.",
+    "body": "A service call is the same financial row as a project or job, with a dispatch workspace - not a second money system.",
     "action": "Create first service call",
     "moduleLink": "Show Service in navigation (Settings)"
   },
@@ -47,13 +47,13 @@
   },
   "create": {
     "title": "New service call",
-    "description": "Field visit intake — customer, site, and schedule. Costs and billing stay on the same work record as projects and jobs.",
+    "description": "Field visit intake - customer, site, and schedule. Costs and billing stay on the same work record as projects and jobs.",
     "customerLabel": "Customer",
     "customerNew": "Walk-in / new customer",
     "customerSelect": "Existing customer",
     "customerExample": "e.g. Cohen residence",
     "nameLabel": "What needs doing",
-    "namePlaceholder": "e.g. AC not cooling — living room",
+    "namePlaceholder": "e.g. AC not cooling - living room",
     "siteLabel": "Site",
     "contactNameLabel": "Site contact",
     "contactPhoneLabel": "Contact phone",
@@ -65,7 +65,7 @@
     "windowEndLabel": "Schedule end",
     "assigneeLabel": "Assignee",
     "assigneeNone": "Unassigned",
-    "assigneeHint": "Who is going — can change later from Dispatch.",
+    "assigneeHint": "Who is going - can change later from Dispatch.",
     "notesLabel": "Service notes",
     "statusLabel": "Status",
     "quickStatusLabel": "Update status",
@@ -97,7 +97,7 @@
     "fallbackTitle": "Work order",
     "backToList": "All work orders",
     "openDispatch": "Daily dispatch",
-    "sameEngineHint": "Costs and billing use the same financial engine as projects and jobs — no duplicate Actual.",
+    "sameEngineHint": "Costs and billing use the same financial engine as projects and jobs - no duplicate Actual.",
     "financialsTitle": "Financials",
     "saved": "Saved",
     "updateStatus": "Update status"
@@ -141,9 +141,9 @@
   },
   "dispatch": {
     "title": "Dispatch",
-    "description": "Assign and reschedule today’s work orders. This is the daily board — not the resource calendar and not project Gantt planning.",
+    "description": "Assign and reschedule today’s work orders. This is the daily board - not the resource calendar and not project Gantt planning.",
     "overlapWarning": "This assignee already has an overlapping booking. Confirm to keep both, or pick a different time.",
-    "confirmOverlap": "Assign anyway — times overlap",
+    "confirmOverlap": "Assign anyway - times overlap",
     "windowLabel": "Window",
     "assigneeFilter": "Assignee",
     "allAssignees": "All assignees",
@@ -163,11 +163,11 @@
   },
   "recurring": {
     "title": "Recurring work",
-    "description": "Service contracts and scheduled templates. Generated work orders stay draft until work is done — never silent revenue.",
+    "description": "Service contracts and scheduled templates. Generated work orders stay draft until work is done - never silent revenue.",
     "new": "New recurring template",
     "empty": {
       "title": "No recurring templates yet",
-      "body": "Create a customer/site schedule. ProjectFlow will open draft work orders on each occurrence — you confirm work before money moves.",
+      "body": "Create a customer/site schedule. ProjectFlow will open draft work orders on each occurrence - you confirm work before money moves.",
       "action": "New recurring template"
     },
     "list": {
@@ -207,7 +207,7 @@
     },
     "create": {
       "title": "New recurring template",
-      "description": "Optional service contract template. Pricing here is a hint only — generating never finalizes financials.",
+      "description": "Optional service contract template. Pricing here is a hint only - generating never finalizes financials.",
       "submit": "Create template"
     },
     "detail": {
