@@ -139,6 +139,11 @@ export const documentOwnerTypeEnum = pgEnum('document_owner_type', [
   'subcontract_agreement',
   'safety_record',
   'timesheet',
+  'warranty_coverage',
+  'warranty_issue',
+  'closeout',
+  'outbound_communication',
+  'calendar_event',
 ]);
 
 export const taxMethodEnum = pgEnum('tax_method', ['percentage', 'exempt', 'zero_rated']);

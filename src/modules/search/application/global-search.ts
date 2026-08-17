@@ -29,6 +29,10 @@ import {
   searchSubcontracts,
   searchVendorCredits,
   searchVendors,
+  searchWarrantyCoverages,
+  searchCommunications,
+  searchCalendarEvents,
+  searchCloseouts,
 } from '../data/search.repository';
 import { resolveAccessibleProjectIds } from '@/modules/projects/application/project-access';
 import { getModuleVisibility } from '@/modules/tenancy';
@@ -165,6 +169,30 @@ export async function globalSearch(
   if (Boolean(modules.safety) && hasPermission(context, PERMISSIONS.SAFETY_READ)) {
     tasks.push(
       searchSafetyRecords(context.db, context.organizationId, query, limit, accessibleProjectIds),
+    );
+  }
+  if (hasPermission(context, PERMISSIONS.PROJECTS_READ)) {
+    tasks.push(
+      searchWarrantyCoverages(
+        context.db,
+        context.organizationId,
+        query,
+        limit,
+        accessibleProjectIds,
+      ),
+    );
+    tasks.push(
+      searchCloseouts(context.db, context.organizationId, query, limit, accessibleProjectIds),
+    );
+  }
+  if (hasPermission(context, PERMISSIONS.COMMUNICATIONS_READ)) {
+    tasks.push(
+      searchCommunications(context.db, context.organizationId, query, limit, accessibleProjectIds),
+    );
+  }
+  if (hasPermission(context, PERMISSIONS.SCHEDULING_READ)) {
+    tasks.push(
+      searchCalendarEvents(context.db, context.organizationId, query, limit, accessibleProjectIds),
     );
   }
 

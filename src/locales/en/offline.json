@@ -34,6 +34,8 @@
     "daily_log": "Daily log",
     "punch": "Punch item",
     "inspection": "Inspection",
+    "form_submission": "Form",
+    "note": "Field note",
     "capture": "Photo / document"
   },
   "status": {
@@ -43,6 +45,12 @@
     "synced": "Synced",
     "conflict": "Conflict",
     "rejected": "Rejected"
+  },
+  "truthful": {
+    "saved_on_device": "Saved on device",
+    "waiting_to_sync": "Waiting to sync",
+    "synced": "Synced",
+    "failed_retry": "Failed — retry"
   },
   "actions": {
     "refresh": "Refresh",

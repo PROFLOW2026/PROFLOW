@@ -6,6 +6,8 @@ import { PageHeader } from '@/components/ui/page-header';
 import { StatusBadge, type StatusShape } from '@/components/ui/status-badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { getQuoteById, isQuoteEditable, type QuoteStatus } from '@/modules/quotes';
+import { findProjectById } from '@/modules/projects';
+import { workEntityHref } from '@/modules/search/domain/hrefs';
 import { money } from '@/shared/money';
 import { withOrgContext } from '@/shared/auth/session';
 import { Link } from '@/shared/i18n/navigation';
@@ -13,6 +15,7 @@ import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { textNavLinkClassName, textNavLinkMutedClassName } from '@/components/ui/pressable';
 import { QuoteDetailActions, QuotePrintButton } from './quote-detail-actions';
+import { PrepareMessageLink } from '@/modules/communications/ui/prepare-message-link';
 import { ReportDownloadButtons } from '@/modules/reports/ui';
 import { QuoteEditorForm } from '@/modules/quotes/ui/quote-editor-form';
 import { listClientsForOrg } from '@/modules/clients';
@@ -56,26 +59,36 @@ export default async function QuoteDetailPage({
   const tStatus = await getTranslations('status.estimateQuote');
   const tTax = await getTranslations('quotes.taxModes');
 
-  const { quote, canManage, clients } = await withOrgContext(async (context) => {
+  const { quote, canManage, clients, convertedWorkKind } = await withOrgContext(async (context) => {
     try {
       const detail = await getQuoteById(context, quoteId);
       const listed = hasPermission(context, PERMISSIONS.CLIENTS_READ)
         ? await listClientsForOrg(context, { status: 'active' }).catch(() => [])
         : [];
+      let convertedWorkKind: string | null = null;
+      if (detail.convertedProjectId) {
+        const converted = await findProjectById(
+          context.db,
+          context.organizationId,
+          detail.convertedProjectId,
+        );
+        convertedWorkKind = converted?.workKind ?? null;
+      }
       return {
         quote: detail,
         canManage: hasPermission(context, PERMISSIONS.QUOTES_MANAGE),
         clients: listed,
+        convertedWorkKind,
       };
     } catch {
-      return { quote: null, canManage: false, clients: [] };
+      return { quote: null, canManage: false, clients: [], convertedWorkKind: null };
     }
   });
 
   if (!quote) notFound();
 
   const workHref = quote.convertedProjectId
-    ? `/projects/${quote.convertedProjectId}`
+    ? workEntityHref(convertedWorkKind, quote.convertedProjectId)
     : null;
 
   return (
@@ -92,6 +105,12 @@ export default async function QuoteDetailPage({
           <div className="flex items-center gap-2">
             <StatusBadge shape={quoteShape(quote.status)} label={tStatus(quote.status)} />
             <QuotePrintButton label={t('detail.print')} />
+            <PrepareMessageLink
+              entityType="quote"
+              entityId={quote.id}
+              clientId={quote.clientId}
+              subject={quote.title}
+            />
             <ReportDownloadButtons kind="quote_estimate" id={quoteId} compact />
           </div>
         }

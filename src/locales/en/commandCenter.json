@@ -50,7 +50,12 @@
     "safety_open": "Open safety",
     "inspection_open": "Overdue inspection",
     "recurring_draft_issue": "Recurring draft",
-    "timesheet_missing": "Missing timesheet"
+    "timesheet_missing": "Missing timesheet",
+    "closeout_blockers": "Closeout blockers",
+    "warranty_expiring": "Warranty ending",
+    "cash_flow_risk": "Cash flow risk",
+    "automation_followup": "Automation follow-up",
+    "communication_failed": "Message not sent"
   },
   "empty": {
     "title": "You're clear",

@@ -9,6 +9,7 @@ import type { ReportsSection } from '../domain/reports-section';
 import type { CountReportMetric, MoneyReportMetric, ReportMetricKind } from '../domain/report-metric';
 import type { DataConfidenceLevel, DataConfidenceReason } from '../domain/data-confidence';
 import { CashFlowView } from './cash-flow-view';
+import { ManagementAnalyticsView } from './management-analytics-view';
 import { CountReportMetricTile, MoneyReportMetricTile } from './report-metric-tile';
 import { DataConfidenceBadge } from './data-confidence-badge';
 import { pressableCardLinkClassName, textNavLinkClassName } from '@/components/ui/pressable';
@@ -303,6 +304,46 @@ export async function ReportsAnalyticsView({
           </div>
         </section>
       ) : null}
+
+      <section id="reports-management" className={sectionClass('management')}>
+        <ManagementAnalyticsView
+          management={analytics.management}
+          copy={{
+            title: t('sections.management'),
+            hint: t('sections.managementHint'),
+            empty: t('management.empty'),
+            labels: {
+              activeProjectValue: t('management.activeProjectValue'),
+              unbilledBacklog: t('management.unbilledBacklog'),
+              totalActualCost: t('management.totalActualCost'),
+              totalCommitments: t('management.totalCommitments'),
+              expectedProfit: t('management.expectedProfit'),
+              clientOutstanding: t('management.clientOutstanding'),
+              vendorOutstanding: t('management.vendorOutstanding'),
+              cashExpectedIn: t('management.cashExpectedIn'),
+              cashExpectedOut: t('management.cashExpectedOut'),
+              quotesConversion: t('management.quotesConversion'),
+              opportunityConversion: t('management.opportunityConversion'),
+              profitByProject: t('management.profitByProject'),
+              profitByClient: t('management.profitByClient'),
+              profitByWorkType: t('management.profitByWorkType'),
+              projectsAtRisk: t('management.projectsAtRisk'),
+              workforceHours: t('management.workforceHours'),
+              utilizationUnavailable: t('management.utilizationUnavailable'),
+              vendorConcentration: t('management.vendorConcentration'),
+            },
+            conversionRate: (rate, converted, total) =>
+              t('management.conversionRate', { rate, converted, total }),
+            concentration: (name, share, count) =>
+              t('management.concentration', { name, share, count }),
+            hoursSummary: (hours, employees) => t('management.hoursSummary', { hours, employees }),
+            riskCount: (count) => t('management.riskCount', { count }),
+            cashFlowLink: t('management.cashFlowLink'),
+            workTypeLabel: (kind) =>
+              t(`management.workKinds.${kind}` as 'management.workKinds.project'),
+          }}
+        />
+      </section>
 
       <section id="reports-operations" className={sectionClass('operations')}>
         <div className="min-w-0">

@@ -56,6 +56,8 @@ const MODULE_PANEL_TABS = new Set<ProjectTabKey>([
   'time',
   'documents',
   'usage',
+  'closeout',
+  'warranty',
 ]);
 
 function tabFromSearchParams(raw: string | string[] | undefined): string {
@@ -122,6 +124,8 @@ export default async function ProjectPage({ params, searchParams }: ProjectPageP
   if (showTimeTab) visibleModuleTabs.add('time');
   if (showDocumentsTab) visibleModuleTabs.add('documents');
   if (showUsageTab) visibleModuleTabs.add('usage');
+  visibleModuleTabs.add('closeout');
+  visibleModuleTabs.add('warranty');
 
   const isModuleTab =
     MODULE_PANEL_TABS.has(tabParam as ProjectTabKey) && visibleModuleTabs.has(tabParam);
@@ -163,6 +167,8 @@ export default async function ProjectPage({ params, searchParams }: ProjectPageP
     documents: showDocumentsTab,
     usage: showUsageTab,
     work: showWorkTab,
+    closeout: true,
+    warranty: true,
   });
 
   const activeTab: ProjectTabKey = tabs.includes(tabParam as ProjectTabKey)
@@ -517,6 +523,14 @@ async function loadActiveModulePanel(input: {
       if (!input.showDocumentsTab) return null;
       const { DocumentsTab } = await import('./documents-tab');
       return <DocumentsTab projectId={projectId} hasContract={input.hasContract} />;
+    }
+    case 'closeout': {
+      const { ProjectCloseoutPanel } = await import('@/modules/closeout/ui/project-closeout-panel');
+      return <ProjectCloseoutPanel projectId={projectId} />;
+    }
+    case 'warranty': {
+      const { ProjectWarrantyPanel } = await import('@/modules/warranty/ui/project-warranty-panel');
+      return <ProjectWarrantyPanel projectId={projectId} />;
     }
     default:
       return null;

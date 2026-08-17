@@ -64,6 +64,7 @@ import {
   timeEntries,
 } from '@drizzle/schema';
 import { OfflineSyncSubmitError } from '../domain/sync-submit-error';
+import { assertOfflineDraftAllowed, OfflineFinancialGuardError } from '../domain/financial-guard';
 
 function toIso(value: Date | string): string {
   if (value instanceof Date) return value.toISOString();
@@ -425,6 +426,37 @@ async function submitDailyLog(
   return { serverId: created.id, serverUpdatedAt: toIso(created.updatedAt) };
 }
 
+/**
+ * Field notes sync as daily-log create candidates. They never invent a
+ * clock-in / attendance event (those stay online-only with real timestamps).
+ */
+async function submitNote(
+  action: QueuedAction,
+): Promise<{ serverId: string; serverUpdatedAt: string }> {
+  const payload = asRecord(action.payload);
+  const projectId = optionalString(payload, 'projectId');
+  if (!projectId) {
+    throw new OfflineSyncSubmitError('Note draft is missing projectId.');
+  }
+  const body = requireString(payload, 'body');
+  const title = optionalString(payload, 'title');
+  const summary = title ? `${title}: ${body}` : body;
+
+  return submitDailyLog({
+    ...action,
+    kind: 'daily_log',
+    payload: {
+      projectId,
+      workPackageId: optionalString(payload, 'workPackageId'),
+      logDate: requireString(payload, 'noteDate'),
+      weather: null,
+      summary,
+      workforceNotes: null,
+      blockers: null,
+    },
+  });
+}
+
 async function submitPunch(
   action: QueuedAction,
 ): Promise<{ serverId: string; serverUpdatedAt: string }> {
@@ -701,10 +733,12 @@ export async function submitOfflineDraftAction(input: {
 
     switch (input.kind) {
       case 'expense':
+        assertOfflineDraftAllowed(input.kind, asRecord(input.payload));
         return await submitExpense(action);
       case 'time_entry':
         return await submitTimeEntry(action);
       case 'change_request':
+        assertOfflineDraftAllowed(input.kind, asRecord(input.payload));
         return await submitChangeRequest(action);
       case 'daily_log':
         return await submitDailyLog(action);
@@ -714,6 +748,8 @@ export async function submitOfflineDraftAction(input: {
         return await submitInspection(action);
       case 'form_submission':
         return await submitFormSubmissionDraft(action);
+      case 'note':
+        return await submitNote(action);
       case 'capture':
         throw new OfflineSyncSubmitError(
           'Capture drafts must be submitted by the client transport with the blob.',
@@ -722,6 +758,9 @@ export async function submitOfflineDraftAction(input: {
         throw new OfflineSyncSubmitError(`Unsupported draft kind: ${String(input.kind)}`);
     }
   } catch (error) {
+    if (error instanceof OfflineFinancialGuardError) {
+      throw new OfflineSyncSubmitError(error.message);
+    }
     mapSubmitError(error);
   }
 }

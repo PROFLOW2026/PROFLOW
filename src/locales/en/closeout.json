@@ -1,0 +1,87 @@
+{
+  "title": "Project closeout",
+  "navLabel": "Closeout",
+  "description": "A controlled end for the project. History is kept.",
+  "lifecycle": {
+    "active": "Active",
+    "ready": "Ready to close",
+    "closed": "Closed",
+    "reopened": "Reopened"
+  },
+  "badge": {
+    "ready": "Ready to close"
+  },
+  "readiness": {
+    "title": "Closeout readiness",
+    "hard": "Must be resolved before closing",
+    "warning": "Warning",
+    "info": "For awareness",
+    "empty": "Nothing outstanding for this check.",
+    "items": {
+      "openDefects": "Open defects",
+      "openInspections": "Open or failed inspections",
+      "incompleteForms": "Required forms not submitted",
+      "openSafety": "Open safety items",
+      "unresolvedChanges": "Unresolved changes",
+      "unapprovedTime": "Unapproved time",
+      "openCommitments": "Open commitments",
+      "openPurchaseOrders": "Open purchase orders",
+      "openSupplierLiabilities": "Open supplier balances",
+      "openClientBalances": "Open client balances",
+      "unbilledWork": "Approved work not yet billed",
+      "remainingRetention": "Remaining retention",
+      "openSubcontract": "Open subcontractor items",
+      "missingDocuments": "Missing required closeout documents",
+      "unfinishedMilestones": "Unfinished milestones"
+    }
+  },
+  "snapshot": {
+    "title": "Final financial picture",
+    "originalContract": "Original contract",
+    "currentContract": "Current contract",
+    "approvedChanges": "Approved changes",
+    "actualCost": "Actual cost",
+    "remainingCommitments": "Remaining commitments",
+    "totalBilling": "Total billing",
+    "paymentsReceived": "Payments received",
+    "outstandingClient": "Outstanding client balance",
+    "supplierOutstanding": "Supplier outstanding",
+    "retentionHeld": "Retention held",
+    "expectedProfit": "Expected profit",
+    "margin": "Margin",
+    "unavailable": "Not available with current permissions."
+  },
+  "actions": {
+    "start": "Start closeout",
+    "markReady": "Mark ready to close",
+    "close": "Close project",
+    "reopen": "Reopen project",
+    "closeConfirm": "Close this project? History stays. You can reopen later with a reason.",
+    "reopenConfirm": "Reopen this project? Record who, when, and why.",
+    "reason": "Reason",
+    "reasonRequired": "A reason is required.",
+    "closed": "Project closed.",
+    "reopened": "Project reopened.",
+    "blocked": "Resolve the blocking items before closing.",
+    "jobsHint": "Jobs and service calls can be completed without a full closeout."
+  },
+  "history": {
+    "title": "Closeout history",
+    "empty": "No closeout actions yet.",
+    "actor": "By {name}",
+    "at": "On {date}"
+  },
+  "empty": {
+    "title": "Closeout is not started",
+    "body": "Review readiness, then close the project when the work is done."
+  },
+  "errors": {
+    "notCloseable": "This project cannot be closed yet.",
+    "alreadyClosed": "This project is already closed.",
+    "notClosed": "This project is not closed.",
+    "jobsUseComplete": "Complete the job from its status instead of project closeout.",
+    "useCloseout": "Close this project from Closeout, not from the status field.",
+    "useReopen": "Reopen this project from Closeout, with a reason. Not from the status field.",
+    "reasonRequired": "A reason is required."
+  }
+}

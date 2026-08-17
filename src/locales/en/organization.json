@@ -244,6 +244,20 @@
     "safety": {
       "read": "View safety and HSE records",
       "manage": "Create and close safety records and actions"
+    },
+    "communications": {
+      "read": "View outbound messages",
+      "manage": "Prepare and send outbound messages"
+    },
+    "automations": {
+      "read": "View automation rules",
+      "manage": "Configure automation rules"
+    },
+    "assistant": {
+      "use": "Use the assistant"
+    },
+    "integrations": {
+      "read": "View external connections"
     }
   },
   "errors": {

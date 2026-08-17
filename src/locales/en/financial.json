@@ -175,8 +175,48 @@
       "overdue": "Overdue (Forecast)",
       "next_7": "Next 7 days (Forecast)",
       "next_30": "8-30 days (Forecast)",
-      "later": "Later (Forecast)",
+      "next_60": "31-60 days (Forecast)",
+      "next_90": "61-90 days (Forecast)",
+      "later": "Later than 90 days (Forecast)",
       "undated": "No due date (Forecast)"
+    }
+  },
+  "cashFlowForecast": {
+    "pageTitle": "Cash flow forecast",
+    "pageHint": "Expected money in and out from recorded due dates. Missing dates stay undated. Recurring drafts are labelled as forecast and are not posted.",
+    "managementLink": "Owner management view",
+    "noAccessTitle": "Cash flow is not available",
+    "noAccessBody": "Project financials permission is required to open this page.",
+    "summaryTitle": "Forecast by period",
+    "summaryHint": "7 / 30 / 60 / 90 day windows, plus overdue and undated. No invented dates.",
+    "inTitle": "Expected in",
+    "outTitle": "Expected out",
+    "inHidden": "Client billing permission is needed to show expected incoming cash.",
+    "outHidden": "Vendor bill permission is needed to show expected outgoing cash.",
+    "drilldownTitle": "Line items",
+    "empty": "No dated or undated cash items in scope yet.",
+    "recurringNote": "Recurring drafts are forecast only - they are not posted bills or invoices.",
+    "noDate": "No due date",
+    "itemCount": "{count, plural, one {# item} other {# items}}",
+    "certainty": {
+      "confirmed": "Recorded",
+      "expected": "Expected",
+      "uncertain": "Missing date"
+    },
+    "direction": {
+      "in": "In",
+      "out": "Out"
+    },
+    "sources": {
+      "client_outstanding": "Client outstanding",
+      "issued_billing": "Issued billing",
+      "expected_progress_billing": "Expected progress billing",
+      "retention_release_in": "Retention release (in)",
+      "vendor_bill": "Vendor bill",
+      "commitment": "Open commitment",
+      "subcontractor_liability": "Subcontractor liability",
+      "recurring_draft": "Recurring draft (forecast)",
+      "retention_release_out": "Retention release (out)"
     }
   },
   "perContract": {

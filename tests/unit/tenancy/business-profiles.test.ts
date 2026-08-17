@@ -7,9 +7,11 @@ import {
   SUGGESTED_DEFAULTS_SETTING_KEY,
   TERMINOLOGY_SETTING_KEY,
   getBusinessProfile,
+  getBusinessProfileSetup,
   resolveBusinessProfileKey,
   parseTerminology,
   parseQuickCreateEmphasis,
+  parseSuggestedDefaults,
   orderQuickCreateActions,
 } from '@/modules/tenancy';
 
@@ -47,6 +49,35 @@ describe('business profiles', () => {
     expect(TERMINOLOGY_SETTING_KEY).toBe('work_terminology');
     expect(QUICK_CREATE_EMPHASIS_SETTING_KEY).toBe('quick_create_emphasis');
     expect(SUGGESTED_DEFAULTS_SETTING_KEY).toBe('business_profile_defaults');
+  });
+
+  it('seeds setup suggestions without enabling portal', () => {
+    const setup = getBusinessProfileSetup('ELECTRICAL');
+    expect(setup.todayEmphasis).toBe('field');
+    expect(setup.documentFolders.length).toBeGreaterThan(0);
+    expect(setup.formTemplates.length).toBeGreaterThan(0);
+    expect(setup.projectTemplateKeys).toContain('electrical_project');
+    for (const profile of BUSINESS_PROFILES) {
+      expect(profile.visibleModules).not.toContain('portal');
+      expect(getBusinessProfileSetup(profile.key).todayEmphasis).toMatch(/^(field|today|dashboard)$/);
+    }
+  });
+
+  it('parses suggested defaults including optional today emphasis', () => {
+    expect(
+      parseSuggestedDefaults({
+        defaultWorkKind: 'job',
+        preferServiceSurface: true,
+        todayEmphasis: 'field',
+      }),
+    ).toEqual({
+      defaultWorkKind: 'job',
+      preferServiceSurface: true,
+      todayEmphasis: 'field',
+    });
+    expect(
+      parseSuggestedDefaults({ defaultWorkKind: 'project', preferServiceSurface: false }),
+    ).toEqual({ defaultWorkKind: 'project', preferServiceSurface: false });
   });
 
   it('hides quotes, CRM, and BOQ on the subcontractor template until needed', () => {

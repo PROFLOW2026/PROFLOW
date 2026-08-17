@@ -139,14 +139,20 @@ export function ProjectTemplateApplyForm({
             <span className="font-medium text-[var(--pf-text-primary)]">{t('previewPackages')}: </span>
             {systemPreview.workPackageNames.join(', ')}
           </p>
-          {systemPreview.milestoneNames.length > 0 ? (
-            <p className="mt-1">
-              <span className="font-medium text-[var(--pf-text-primary)]">{t('previewMilestones')}: </span>
-              {systemPreview.milestoneNames.join(', ')}
-            </p>
-          ) : null}
-        </div>
-      ) : null}
+            {systemPreview.milestoneNames.length > 0 ? (
+              <p className="mt-1">
+                <span className="font-medium text-[var(--pf-text-primary)]">{t('previewMilestones')}: </span>
+                {systemPreview.milestoneNames.join(', ')}
+              </p>
+            ) : null}
+            {systemPreview.folderNames.length > 0 ? (
+              <p className="mt-1">
+                <span className="font-medium text-[var(--pf-text-primary)]">{t('previewFolders')}: </span>
+                {systemPreview.folderNames.join(', ')}
+              </p>
+            ) : null}
+          </div>
+        ) : null}
 
       {mode === 'org' && orgPreview ? (
         <div className="text-sm text-[var(--pf-text-secondary)]">

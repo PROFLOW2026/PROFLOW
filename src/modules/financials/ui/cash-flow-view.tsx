@@ -73,7 +73,7 @@ export function CashFlowView({
             {copy.forecastHint}
           </p>
         </div>
-        <ul className="grid min-w-0 list-none grid-cols-1 gap-3 p-0 sm:grid-cols-2 lg:grid-cols-5">
+        <ul className="grid min-w-0 list-none grid-cols-1 gap-3 p-0 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
           {cashFlow.forecastBuckets.map((bucket) => (
             <li
               key={bucket.key}
@@ -104,7 +104,7 @@ export function CashFlowView({
                 {copy.outgoingAvailableHint}
               </p>
             ) : null}
-            <ul className="mt-2 grid min-w-0 list-none grid-cols-1 gap-3 p-0 sm:grid-cols-2 lg:grid-cols-5">
+            <ul className="mt-2 grid min-w-0 list-none grid-cols-1 gap-3 p-0 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
               {cashFlow.outgoing.forecastBuckets.map((bucket) => (
                 <li
                   key={`out-${bucket.key}`}

@@ -1,0 +1,55 @@
+{
+  "title": "יומן",
+  "description": "פגישות, ביקורי אתר ותאריכים שכבר קיימים ברשומות.",
+  "new": "אירוע חדש",
+  "notAllowed": {
+    "title": "היומן אינו זמין",
+    "body": "אין הרשאה לצפות ביומן."
+  },
+  "view": {
+    "month": "חודש",
+    "agenda": "סדר יום",
+    "previous": "הקודם",
+    "next": "הבא"
+  },
+  "kinds": {
+    "meeting": "פגישה",
+    "site_visit": "ביקור באתר",
+    "other": "אחר",
+    "work_order": "קריאת שירות",
+    "inspection": "בדיקה",
+    "milestone": "אבן דרך",
+    "task": "משימה",
+    "assignment": "שיבוץ",
+    "maintenance": "טיפול בציוד",
+    "warranty": "פקיעת אחריות",
+    "compliance": "פקיעת רישיון / ציות",
+    "follow_up": "מעקב מכירות"
+  },
+  "source": {
+    "native": "אירוע יומן",
+    "existing": "מתוך רשומות קיימות"
+  },
+  "external": {
+    "title": "יומנים חיצוניים",
+    "unconfigured": "יומני Google ו-Microsoft אינם מחוברים. התאריכים כאן הם רשומות ProjectFlow בלבד."
+  },
+  "empty": {
+    "title": "אין פריטים מתוזמנים בטווח הזה",
+    "body": "הוסיפו פגישה או פתחו רשומה שכבר יש לה תאריך."
+  },
+  "actions": {
+    "save": "שמירה",
+    "cancel": "ביטול אירוע",
+    "saved": "האירוע נשמר.",
+    "cancelled": "האירוע בוטל."
+  },
+  "fields": {
+    "title": "כותרת",
+    "date": "תאריך",
+    "notes": "הערות",
+    "project": "פרויקט",
+    "allDay": "כל היום",
+    "kind": "סוג"
+  }
+}

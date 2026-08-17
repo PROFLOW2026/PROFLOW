@@ -254,7 +254,19 @@ describe('migration journal', () => {
     expect(tags.indexOf('0053_estimates_opportunity')).toBeLessThan(
       tags.indexOf('0054_product_experience'),
     );
-    expect(tags.at(-1)).toBe('0054_product_experience');
+    expect(tags.indexOf('0054_product_experience')).toBeLessThan(
+      tags.indexOf('0055_next_gen_permissions'),
+    );
+    expect(tags.indexOf('0055_next_gen_permissions')).toBeLessThan(
+      tags.indexOf('0056_closeout_warranty'),
+    );
+    expect(tags.indexOf('0056_closeout_warranty')).toBeLessThan(
+      tags.indexOf('0057_communications_calendar'),
+    );
+    expect(tags.indexOf('0057_communications_calendar')).toBeLessThan(
+      tags.indexOf('0058_automations_integrations_assistant'),
+    );
+    expect(tags.at(-1)).toBe('0058_automations_integrations_assistant');
 
     const sql35 = await readFile(
       path.join(MIGRATIONS_DIR, '0035_boq_integrity_closure.sql'),

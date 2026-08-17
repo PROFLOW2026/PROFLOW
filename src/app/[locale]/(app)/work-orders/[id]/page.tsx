@@ -112,6 +112,18 @@ export default async function WorkOrderDetailPage({ params }: WorkOrderPageProps
         <Link href="/dispatch" className={cn(textNavLinkClassName)}>
           {t('workspace.openDispatch')}
         </Link>
+        <Link href="/field" className={cn(textNavLinkClassName)}>
+          {t('workspace.openField')}
+        </Link>
+        <Link href={`/expenses/new?projectId=${id}`} className={cn(textNavLinkClassName)}>
+          {t('workspace.openExpenses')}
+        </Link>
+        <Link href="/workforce/time" className={cn(textNavLinkClassName)}>
+          {t('workspace.openTime')}
+        </Link>
+        <Link href={`/warranty?workOrderId=${id}`} className={cn(textNavLinkClassName)}>
+          {t('workspace.openWarranty')}
+        </Link>
       </div>
 
       <p className="text-sm text-[var(--pf-text-secondary)]">{t('workspace.sameEngineHint')}</p>

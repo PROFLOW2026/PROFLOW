@@ -5,7 +5,9 @@
     "on_hold": "בהשהיה",
     "completed": "הושלם",
     "cancelled": "בוטל",
-    "archived": "בארכיון"
+    "archived": "בארכיון",
+    "ready_to_close": "מוכן לסגירה",
+    "closed": "סגור"
   },
   "change": {
     "draft": "טיוטה",

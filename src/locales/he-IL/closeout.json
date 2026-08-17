@@ -1,0 +1,87 @@
+{
+  "title": "סגירת פרויקט",
+  "navLabel": "סגירה",
+  "description": "סיום מסודר לפרויקט. ההיסטוריה נשמרת.",
+  "lifecycle": {
+    "active": "פעיל",
+    "ready": "מוכן לסגירה",
+    "closed": "סגור",
+    "reopened": "נפתח מחדש"
+  },
+  "badge": {
+    "ready": "מוכן לסגירה"
+  },
+  "readiness": {
+    "title": "מוכנות לסגירה",
+    "hard": "חובה לטפל לפני הסגירה",
+    "warning": "אזהרה",
+    "info": "לידיעה",
+    "empty": "אין פריטים פתוחים בבדיקה הזו.",
+    "items": {
+      "openDefects": "ליקויים פתוחים",
+      "openInspections": "בדיקות פתוחות או שלא עברו",
+      "incompleteForms": "טפסים נדרשים שטרם הוגשו",
+      "openSafety": "פריטי בטיחות פתוחים",
+      "unresolvedChanges": "שינויים שטרם הוכרעו",
+      "unapprovedTime": "שעות שטרם אושרו",
+      "openCommitments": "התחייבויות פתוחות",
+      "openPurchaseOrders": "הזמנות רכש פתוחות",
+      "openSupplierLiabilities": "יתרות ספקים פתוחות",
+      "openClientBalances": "יתרות לקוח פתוחות",
+      "unbilledWork": "עבודה מאושרת שטרם חויבה",
+      "remainingRetention": "עיכבון שנותר",
+      "openSubcontract": "פריטי קבלן משנה פתוחים",
+      "missingDocuments": "מסמכי סגירה חסרים",
+      "unfinishedMilestones": "אבני דרך שטרם הושלמו"
+    }
+  },
+  "snapshot": {
+    "title": "תמונה כספית סופית",
+    "originalContract": "חוזה מקורי",
+    "currentContract": "חוזה נוכחי",
+    "approvedChanges": "שינויים מאושרים",
+    "actualCost": "עלות בפועל",
+    "remainingCommitments": "התחייבויות שנותרו",
+    "totalBilling": "סה״כ חיובים",
+    "paymentsReceived": "תשלומים שהתקבלו",
+    "outstandingClient": "יתרת לקוח",
+    "supplierOutstanding": "יתרת ספקים",
+    "retentionHeld": "עיכבון מוחזק",
+    "expectedProfit": "רווח צפוי",
+    "margin": "מרווח",
+    "unavailable": "לא זמין לפי ההרשאות הנוכחיות."
+  },
+  "actions": {
+    "start": "התחלת סגירה",
+    "markReady": "סימון כמוכן לסגירה",
+    "close": "סגירת פרויקט",
+    "reopen": "פתיחה מחדש",
+    "closeConfirm": "לסגור את הפרויקט? ההיסטוריה נשמרת. אפשר לפתוח מחדש עם סיבה.",
+    "reopenConfirm": "לפתוח את הפרויקט מחדש? יירשמו מי, מתי ולמה.",
+    "reason": "סיבה",
+    "reasonRequired": "חובה לציין סיבה.",
+    "closed": "הפרויקט נסגר.",
+    "reopened": "הפרויקט נפתח מחדש.",
+    "blocked": "יש לטפל בפריטים החוסמים לפני הסגירה.",
+    "jobsHint": "עבודות וקריאות שירות אפשר להשלים בלי סגירת פרויקט מלאה."
+  },
+  "history": {
+    "title": "היסטוריית סגירה",
+    "empty": "עדיין אין פעולות סגירה.",
+    "actor": "על ידי {name}",
+    "at": "ב-{date}"
+  },
+  "empty": {
+    "title": "סגירה עדיין לא התחילה",
+    "body": "בדקו את המוכנות, ואז סגרו את הפרויקט כשהעבודה הסתיימה."
+  },
+  "errors": {
+    "notCloseable": "אי אפשר לסגור את הפרויקט עדיין.",
+    "alreadyClosed": "הפרויקט כבר סגור.",
+    "notClosed": "הפרויקט אינו סגור.",
+    "jobsUseComplete": "השלימו את העבודה דרך הסטטוס שלה, לא דרך סגירת פרויקט.",
+    "useCloseout": "סגרו את הפרויקט ממסך הסגירה, לא דרך שדה הסטטוס.",
+    "useReopen": "פתחו את הפרויקט מחדש ממסך הסגירה, עם סיבה. לא דרך שדה הסטטוס.",
+    "reasonRequired": "חובה לציין סיבה."
+  }
+}

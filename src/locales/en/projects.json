@@ -33,6 +33,9 @@
   "create": {
     "title": "New project",
     "description": "Enter a name to get started. Everything else is optional and can be added later.",
+    "fromTemplate": "Create from template",
+    "templateNone": "No template",
+    "templateHint": "Applies editable copies of work areas, milestones, and suggested folders. The template itself is never changed.",
     "nameLabel": "Project name",
     "namePlaceholder": "e.g. Cohen residence",
     "clientLabel": "Client",
@@ -105,6 +108,8 @@
       "time": "Time",
       "documents": "Documents",
       "usage": "Materials and equipment",
+      "closeout": "Closeout",
+      "warranty": "Warranty",
       "details": "Details"
     },
     "links": {
@@ -170,6 +175,7 @@
     "sourceOrg": "Organization templates",
     "previewPackages": "Work areas",
     "previewMilestones": "Milestones",
+    "previewFolders": "Document folders",
     "apply": "Apply as copies",
     "applied": "Template applied as editable copies.",
     "phasePack": "Phase pack",
@@ -180,7 +186,13 @@
       "simple_finish": "Simple finish job",
       "residential_mep": "Residential MEP",
       "design_studio": "Design studio",
-      "main_contractor": "Main contractor"
+      "main_contractor": "Main contractor",
+      "apartment_renovation": "Apartment renovation",
+      "electrical_project": "Electrical project",
+      "maintenance_contract": "Maintenance contract",
+      "architecture_project": "Architecture project",
+      "consulting_engagement": "Consulting engagement",
+      "service_installation": "Service installation"
     }
   },
   "clone": {
@@ -226,6 +238,25 @@
       "open": "Open"
     }
   },
+  "nextGen": {
+    "title": "Closeout and aftercare",
+    "closeout": "Closeout",
+    "closeoutOpen": "Closeout in progress",
+    "closeoutReady": "Ready to close",
+    "closeoutClosed": "Closed",
+    "closeoutReopened": "Reopened",
+    "closeoutEmpty": "Closeout has not started.",
+    "openCloseout": "Open closeout",
+    "warranty": "Warranty",
+    "warrantyEmpty": "No warranty coverage yet.",
+    "warrantyCount": "{count, plural, one {# coverage} other {# coverages}}",
+    "openWarranty": "Open warranty",
+    "communications": "Messages",
+    "communicationsEmpty": "No messages for this project.",
+    "communicationsOpen": "Open messages",
+    "cashFlow": "Cash flow",
+    "cashFlowHint": "Collections and payables for this work."
+  },
   "work": {
     "areasPlaceholder": "Electrical\nPlumbing\nDrywall",
     "contractHistory": {
@@ -244,6 +275,9 @@
   "details": {
     "title": "Project details",
     "statusLabel": "Status",
+    "closeoutUseTab": "Classic projects close from the Closeout tab, not from this status list.",
+    "closeoutClosedHint": "This project is closed. Reopen it from the Closeout tab, with a reason.",
+    "closeoutTabLink": "Closeout tab",
     "clientLabel": "Client",
     "contactPersonLabel": "Project contact person",
     "contactPersonHint": "Contact for this project only. Does not change the client’s default primary contact. If unset, the header falls back to the client default.",

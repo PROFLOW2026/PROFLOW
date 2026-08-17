@@ -34,6 +34,8 @@
     "daily_log": "יומן יומי",
     "punch": "ליקוי",
     "inspection": "בדיקה",
+    "form_submission": "טופס",
+    "note": "הערת שטח",
     "capture": "תמונה / מסמך"
   },
   "status": {
@@ -43,6 +45,12 @@
     "synced": "סונכרן",
     "conflict": "התנגשות",
     "rejected": "נדחה"
+  },
+  "truthful": {
+    "saved_on_device": "נשמר במכשיר",
+    "waiting_to_sync": "ממתין לסנכרון",
+    "synced": "סונכרן",
+    "failed_retry": "נכשל, ניסיון חוזר"
   },
   "actions": {
     "refresh": "רענון",

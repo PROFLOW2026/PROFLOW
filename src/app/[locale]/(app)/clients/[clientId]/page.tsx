@@ -13,6 +13,8 @@ import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { ClientDetailView } from './client-detail-view';
 import { ClientFinancialPanel } from './client-financial-panel';
+import { RelatedCommunicationsPanel } from '@/modules/communications/ui/related-panel';
+import { PrepareMessageLink } from '@/modules/communications/ui/prepare-message-link';
 
 interface ClientPageProps {
   params: Promise<{ locale: string; clientId: string }>;
@@ -111,6 +113,13 @@ export default async function ClientPage({ params }: ClientPageProps) {
         timelineState={timelineState}
       />
       {financials ? <ClientFinancialPanel financials={financials} locale={locale} /> : null}
+      <PrepareMessageLink
+        entityType="other"
+        clientId={client.id}
+        recipientEmail={client.email}
+        subject={client.name}
+      />
+      <RelatedCommunicationsPanel clientId={client.id} />
       {documentsPanel ? (
         <DocumentAttachments
           ownerType="client"

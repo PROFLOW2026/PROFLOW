@@ -30,6 +30,10 @@ export const GLOBAL_SEARCH_KINDS = [
   'punch',
   'inspection',
   'safety',
+  'warranty',
+  'communication',
+  'calendar_event',
+  'closeout',
 ] as const;
 
 export type GlobalSearchKind = (typeof GLOBAL_SEARCH_KINDS)[number];

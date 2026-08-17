@@ -24,7 +24,8 @@ import {
   listSubcontractParentContracts,
   listSubcontractDocumentCandidates,
 } from '@/modules/vendors';
-import { VendorEngagementsPanel, VendorSubcontractsPanel } from '@/modules/vendors/ui';
+import { getVendorPerformance } from '@/modules/vendors/application/get-vendor-performance';
+import { VendorEngagementsPanel, VendorSubcontractsPanel, VendorPerformancePanel } from '@/modules/vendors/ui';
 import { withOrgContext } from '@/shared/auth/session';
 import { todayInTimeZone } from '@/shared/dates';
 import { Link } from '@/shared/i18n/navigation';
@@ -34,6 +35,8 @@ import { upsertEntityFieldValueAction } from '../../settings/custom-fields/actio
 import { VendorContactForm } from './vendor-contact-form';
 import { VendorEditForm } from './vendor-edit-form';
 import { textNavLinkMutedClassName } from '@/components/ui/pressable';
+import { RelatedCommunicationsPanel } from '@/modules/communications/ui/related-panel';
+import { PrepareMessageLink } from '@/modules/communications/ui/prepare-message-link';
 
 export async function generateMetadata({
   params,
@@ -77,13 +80,15 @@ export default async function VendorDetailPage({
   let apAging: Awaited<ReturnType<typeof getVendorPayablesAging>> | null = null;
   let apCredits: Awaited<ReturnType<typeof listVendorCredits>> = [];
   let apPayments: Awaited<ReturnType<typeof listVendorPaymentsForVendor>> = [];
+  let performance: Awaited<ReturnType<typeof getVendorPerformance>> | null = null;
 
   try {
     const result = await withOrgContext(async (context) => {
       const detail = await getVendorById(context, vendorId);
       const allowManage = hasPermission(context, PERMISSIONS.VENDORS_MANAGE);
       const allowAp = hasPermission(context, PERMISSIONS.AP_READ);
-      const [panel, fields, history, projects, agreements, contracts, docs] = await Promise.all([
+      const [panel, fields, history, projects, agreements, contracts, docs, performanceRow] =
+        await Promise.all([
         getEntityDocumentPanelData(context, 'vendor', vendorId),
         listCustomFieldValuesForEntity(context, 'vendor', vendorId).catch(() => []),
         listVendorEngagementHistory(context, vendorId).catch(() => []),
@@ -93,6 +98,7 @@ export default async function VendorDetailPage({
         listVendorSubcontracts(context, vendorId).catch(() => []),
         listSubcontractParentContracts(context).catch(() => []),
         listSubcontractDocumentCandidates(context).catch(() => []),
+        getVendorPerformance(context, vendorId).catch(() => null),
       ]);
       const details = await Promise.all(
         agreements.map((agreement) => getSubcontractById(context, agreement.id).catch(() => null)),
@@ -125,6 +131,7 @@ export default async function VendorDetailPage({
         apAging: aging,
         apCredits: credits,
         apPayments: payments,
+        performance: performanceRow,
       };
     });
     vendor = result.vendor;
@@ -143,6 +150,7 @@ export default async function VendorDetailPage({
     apAging = result.apAging;
     apCredits = result.apCredits;
     apPayments = result.apPayments;
+    performance = result.performance;
   } catch {
     notFound();
   }
@@ -167,6 +175,14 @@ export default async function VendorDetailPage({
           </Link>
         }
       />
+
+      <PrepareMessageLink
+        entityType="vendor"
+        vendorId={vendor.id}
+        recipientEmail={vendor.email}
+        subject={vendor.name}
+      />
+      <RelatedCommunicationsPanel vendorId={vendor.id} />
 
       {canManage ? <VendorEditForm vendor={vendor} /> : null}
 
@@ -274,6 +290,8 @@ export default async function VendorDetailPage({
           (project, index, all) => all.findIndex((row) => row.id === project.id) === index,
         )}
       />
+
+      <VendorPerformancePanel performance={performance} />
 
       <VendorSubcontractsPanel
         vendorId={vendor.id}

@@ -28,7 +28,11 @@
     "work_order_assigned": "Work order assignment",
     "punch_assigned": "Punch item assigned",
     "low_stock": "Low stock",
-    "safety_action_due": "Safety action due"
+    "safety_action_due": "Safety action due",
+    "warranty_expiring": "Warranty ending",
+    "closeout_blockers": "Closeout blocked",
+    "communication_failed": "Message not sent",
+    "automation_output": "Automation follow-up"
   },
   "viewAll": "View all",
   "scan": "Refresh",

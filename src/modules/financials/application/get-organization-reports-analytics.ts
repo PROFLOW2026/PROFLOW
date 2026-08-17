@@ -33,6 +33,8 @@ import {
   getOrganizationProjectRollup,
   type OrganizationProjectRollup,
 } from './get-organization-project-rollup';
+import { composeManagementAnalytics } from './compose-management-analytics';
+import type { ManagementAnalytics } from '../domain/management-analytics';
 
 export interface OperationsReportSection {
   readonly progressAveragePercent: string | null;
@@ -73,6 +75,7 @@ export interface OrganizationReportsAnalytics {
   readonly cashFlow: CashFlowOutlook | null;
   readonly arAging: ReceivablesAging | null;
   readonly showArAging: boolean;
+  readonly management: ManagementAnalytics;
   readonly disclosures: readonly string[];
 }
 
@@ -334,6 +337,17 @@ export async function getOrganizationReportsAnalytics(
       ? profitability
       : null;
 
+  const management = await composeManagementAnalytics(context, {
+    rollup,
+    cashFlow,
+    commercialCurrent: commercialVisible?.current.value ?? null,
+    invoiced: cashVisible?.invoiced.value ?? null,
+    actualCost: costVisible?.actual.value ?? null,
+    commitments: costVisible?.committed.value ?? null,
+    expectedProfit: profitVisible?.estimatedProfit.value ?? null,
+    clientOutstanding: cashVisible?.outstanding.value ?? null,
+  });
+
   return {
     currency,
     asOf,
@@ -346,6 +360,7 @@ export async function getOrganizationReportsAnalytics(
     cashFlow,
     arAging,
     showArAging,
+    management,
     disclosures: [...disclosures],
   };
 }

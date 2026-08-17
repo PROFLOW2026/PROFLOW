@@ -1,0 +1,55 @@
+{
+  "title": "Calendar",
+  "description": "Meetings, site visits, and dates already on your records.",
+  "new": "New event",
+  "notAllowed": {
+    "title": "Calendar is not available",
+    "body": "You do not have permission to view the calendar."
+  },
+  "view": {
+    "month": "Month",
+    "agenda": "Agenda",
+    "previous": "Previous",
+    "next": "Next"
+  },
+  "kinds": {
+    "meeting": "Meeting",
+    "site_visit": "Site visit",
+    "other": "Other",
+    "work_order": "Service call",
+    "inspection": "Inspection",
+    "milestone": "Milestone",
+    "task": "Task",
+    "assignment": "Assignment",
+    "maintenance": "Equipment service",
+    "warranty": "Warranty expiry",
+    "compliance": "License / compliance expiry",
+    "follow_up": "Sales follow-up"
+  },
+  "source": {
+    "native": "Calendar event",
+    "existing": "From existing records"
+  },
+  "external": {
+    "title": "External calendars",
+    "unconfigured": "Google and Microsoft calendars are not connected. Dates here are ProjectFlow records only."
+  },
+  "empty": {
+    "title": "Nothing scheduled in this range",
+    "body": "Add a meeting or open a record that already has a date."
+  },
+  "actions": {
+    "save": "Save",
+    "cancel": "Cancel event",
+    "saved": "Event saved.",
+    "cancelled": "Event cancelled."
+  },
+  "fields": {
+    "title": "Title",
+    "date": "Date",
+    "notes": "Notes",
+    "project": "Project",
+    "allDay": "All day",
+    "kind": "Type"
+  }
+}

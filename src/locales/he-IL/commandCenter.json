@@ -50,7 +50,12 @@
     "safety_open": "בטיחות פתוחה",
     "inspection_open": "בדיקה באיחור",
     "recurring_draft_issue": "טיוטה חוזרת",
-    "timesheet_missing": "גיליון שעות חסר"
+    "timesheet_missing": "גיליון שעות חסר",
+    "closeout_blockers": "חסמים לסגירה",
+    "warranty_expiring": "אחריות שעומדת לפוג",
+    "cash_flow_risk": "סיכון תזרים",
+    "automation_followup": "מעקב אוטומציה",
+    "communication_failed": "הודעה לא נשלחה"
   },
   "empty": {
     "title": "הכול בסדר",

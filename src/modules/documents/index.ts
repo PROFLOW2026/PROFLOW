@@ -29,6 +29,7 @@ export type {
   EntityDocumentPanelData,
 } from './application/entity-document-panel';
 export { createFolder, listFolders, getFolderById } from './application/manage-folders';
+export { insertDocumentFolder, listDocumentFolders } from './data/folders.repository';
 export {
   prepareNewVersionUpload,
   uploadNewVersion,

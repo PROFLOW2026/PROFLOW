@@ -43,7 +43,12 @@
     "work_order": "Work order",
     "subcontract_agreement": "Subcontract",
     "safety_record": "Safety record",
-    "timesheet": "Timesheet"
+    "timesheet": "Timesheet",
+    "warranty_coverage": "Warranty coverage",
+    "warranty_issue": "Warranty call",
+    "closeout": "Closeout",
+    "outbound_communication": "Outgoing message",
+    "calendar_event": "Calendar event"
   },
   "status": {
     "pending": "Upload pending",

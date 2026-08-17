@@ -1,0 +1,70 @@
+{
+  "title": "Messages",
+  "description": "Prepare and track outbound business messages. Sent only after the provider confirms.",
+  "new": "New message",
+  "prepareMessage": "Prepare message",
+  "notAllowed": {
+    "title": "Messages are not available",
+    "body": "You do not have permission to view outbound messages."
+  },
+  "status": {
+    "draft": "Draft",
+    "queued": "Queued",
+    "sending": "Sending",
+    "sent": "Sent",
+    "failed": "Failed",
+    "cancelled": "Cancelled"
+  },
+  "fields": {
+    "to": "To",
+    "subject": "Subject",
+    "body": "Message",
+    "related": "Related to",
+    "attachments": "Attachments",
+    "recipientName": "Recipient name"
+  },
+  "kinds": {
+    "quote": "Quote",
+    "purchase_order": "Purchase order",
+    "report": "Report",
+    "project_summary": "Project summary",
+    "billing_record": "Billing",
+    "payment_reminder": "Payment reminder",
+    "vendor": "Supplier",
+    "closeout": "Closeout",
+    "warranty": "Warranty",
+    "other": "Other"
+  },
+  "provider": {
+    "configured": "Sending is configured.",
+    "notConfigured": "Sending is not configured. You can prepare a draft, but it will not be marked sent.",
+    "notSent": "Not sent - no delivery confirmation."
+  },
+  "actions": {
+    "saveDraft": "Save draft",
+    "send": "Send",
+    "retry": "Retry",
+    "cancel": "Cancel",
+    "saved": "Draft saved.",
+    "queued": "Queued to send.",
+    "sent": "Sent.",
+    "failed": "Send failed.",
+    "notConfigured": "Saved as a draft. Sending is not configured."
+  },
+  "history": {
+    "title": "Send attempts",
+    "empty": "No send attempts yet.",
+    "delivered": "Delivered",
+    "failed": "Failed",
+    "notConfigured": "Not configured",
+    "relatedTitle": "Messages"
+  },
+  "empty": {
+    "title": "No messages yet",
+    "body": "Prepare a quote, reminder, or supplier message from the relevant record."
+  },
+  "errors": {
+    "invalidEmail": "Enter a valid email address.",
+    "cannotMarkSent": "A message is marked sent only after the provider confirms delivery."
+  }
+}

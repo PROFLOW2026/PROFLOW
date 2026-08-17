@@ -32,6 +32,9 @@ import {
   ChartColumn,
   BadgeCheck,
   CalendarClock,
+  Mail,
+  Sparkles,
+  Workflow,
   type LucideIcon,
 } from 'lucide-react';
 import type { NavIconKey } from './navigation';
@@ -68,6 +71,13 @@ const NAV_ICONS: Record<NavIconKey, LucideIcon> = {
   scheduling: CalendarRange,
   imports: Upload,
   settings: Settings,
+  cashFlow: Wallet,
+  calendar: CalendarRange,
+  warranty: ShieldCheck,
+  communications: Mail,
+  assistant: Sparkles,
+  automations: Workflow,
+  fieldHome: HardHat,
 };
 
 export function NavIcon({

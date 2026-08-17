@@ -301,6 +301,32 @@ export const AUDIT_ACTIONS = {
   BOQ_SUB_VALUATION_APPROVED: 'boq_sub_valuation.approved',
   BOQ_SUB_VALUATION_PROPOSED_AP: 'boq_sub_valuation.proposed_ap',
   BOQ_SUB_VALUATION_VOIDED: 'boq_sub_valuation.voided',
+
+  CLOSEOUT_STARTED: 'closeout.started',
+  CLOSEOUT_MARKED_READY: 'closeout.marked_ready',
+  CLOSEOUT_CLOSED: 'closeout.closed',
+  CLOSEOUT_REOPENED: 'closeout.reopened',
+
+  WARRANTY_CREATED: 'warranty.created',
+  WARRANTY_UPDATED: 'warranty.updated',
+  WARRANTY_ISSUE_CREATED: 'warranty.issue_created',
+  WARRANTY_ISSUE_RESOLVED: 'warranty.issue_resolved',
+
+  COMMUNICATION_CREATED: 'communication.created',
+  COMMUNICATION_QUEUED: 'communication.queued',
+  COMMUNICATION_SENT: 'communication.sent',
+  COMMUNICATION_FAILED: 'communication.failed',
+  COMMUNICATION_CANCELLED: 'communication.cancelled',
+
+  CALENDAR_EVENT_CREATED: 'calendar_event.created',
+  CALENDAR_EVENT_UPDATED: 'calendar_event.updated',
+  CALENDAR_EVENT_CANCELLED: 'calendar_event.cancelled',
+
+  AUTOMATION_RULE_CREATED: 'automation_rule.created',
+  AUTOMATION_RULE_UPDATED: 'automation_rule.updated',
+  AUTOMATION_RULE_RAN: 'automation_rule.ran',
+
+  ASSISTANT_CONVERSATION_CREATED: 'assistant.conversation_created',
 } as const;
 
 export type AuditAction = (typeof AUDIT_ACTIONS)[keyof typeof AUDIT_ACTIONS];

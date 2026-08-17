@@ -33,6 +33,9 @@
   "create": {
     "title": "פרויקט חדש",
     "description": "הזינו שם כדי להתחיל. כל השאר אופציונלי וניתן להוסיף מאוחר יותר.",
+    "fromTemplate": "יצירה מתבנית",
+    "templateNone": "ללא תבנית",
+    "templateHint": "מחילה עותקים הניתנים לעריכה של תחומי עבודה, אבני דרך ותיקיות מוצעות. התבנית עצמה לא משתנה.",
     "nameLabel": "שם הפרויקט",
     "namePlaceholder": "לדוגמה: בית כהן",
     "clientLabel": "לקוח",
@@ -105,6 +108,8 @@
       "time": "שעות",
       "documents": "מסמכים",
       "usage": "חומרים וציוד",
+      "closeout": "סגירה",
+      "warranty": "אחריות",
       "details": "פרטים"
     },
     "links": {
@@ -170,6 +175,7 @@
     "sourceOrg": "תבניות הארגון",
     "previewPackages": "תחומי עבודה",
     "previewMilestones": "אבני דרך",
+    "previewFolders": "תיקיות מסמכים",
     "apply": "החלה כעותקים",
     "applied": "התבנית הוחלה כעותקים הניתנים לעריכה.",
     "phasePack": "חבילת שלבים",
@@ -180,7 +186,13 @@
       "simple_finish": "עבודת גמר פשוטה",
       "residential_mep": "MEP למגורים",
       "design_studio": "סטודיו תכנון",
-      "main_contractor": "קבלן ראשי"
+      "main_contractor": "קבלן ראשי",
+      "apartment_renovation": "שיפוץ דירה",
+      "electrical_project": "פרויקט חשמל",
+      "maintenance_contract": "חוזה תחזוקה",
+      "architecture_project": "פרויקט אדריכלות",
+      "consulting_engagement": "ליווי ייעוץ",
+      "service_installation": "התקנת שירות"
     }
   },
   "clone": {
@@ -226,6 +238,25 @@
       "open": "פתיחה"
     }
   },
+  "nextGen": {
+    "title": "סגירה ואחריות",
+    "closeout": "סגירה",
+    "closeoutOpen": "סגירה בתהליך",
+    "closeoutReady": "מוכן לסגירה",
+    "closeoutClosed": "סגור",
+    "closeoutReopened": "נפתח מחדש",
+    "closeoutEmpty": "סגירה טרם התחילה.",
+    "openCloseout": "פתיחת סגירה",
+    "warranty": "אחריות",
+    "warrantyEmpty": "אין עדיין כיסוי אחריות.",
+    "warrantyCount": "{count, plural, one {כיסוי אחד} two {שני כיסויים} other {# כיסויים}}",
+    "openWarranty": "פתיחת אחריות",
+    "communications": "הודעות",
+    "communicationsEmpty": "אין הודעות לפרויקט זה.",
+    "communicationsOpen": "פתיחת הודעות",
+    "cashFlow": "תזרים",
+    "cashFlowHint": "גבייה ותשלומים שקשורים לעבודה זו."
+  },
   "work": {
     "areasPlaceholder": "חשמל\nאינסטלציה\nגבס",
     "contractHistory": {
@@ -244,6 +275,9 @@
   "details": {
     "title": "פרטי פרויקט",
     "statusLabel": "סטטוס",
+    "closeoutUseTab": "פרויקט קלאסי נסגר מלשונית הסגירה, לא מרשימת הסטטוס כאן.",
+    "closeoutClosedHint": "הפרויקט סגור. פתיחה מחדש נעשית מלשונית הסגירה, עם סיבה.",
+    "closeoutTabLink": "לשונית הסגירה",
     "clientLabel": "לקוח",
     "contactPersonLabel": "איש קשר לפרויקט",
     "contactPersonHint": "איש קשר לפרויקט זה בלבד. לא משנה את איש הקשר הראשי של הלקוח. אם לא הוגדר - הכותרת מציגה את ברירת המחדל של הלקוח.",

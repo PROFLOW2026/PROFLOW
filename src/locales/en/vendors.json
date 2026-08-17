@@ -49,6 +49,11 @@
   "detail": {
     "title": "Vendor profile",
     "profileHint": "Basic supplier or subcontractor profile",
+    "performanceSection": "Performance",
+    "performanceEmpty": "No extra performance data yet.",
+    "communications": "Messages",
+    "warrantyCoverages": "Warranty coverages",
+    "openSubcontracts": "Open subcontracts",
     "profileSection": "Profile",
     "parentVendor": "Parent vendor: {name}",
     "contactsSection": "Contacts",
@@ -218,6 +223,38 @@
       "active": "Active",
       "completed": "Completed",
       "cancelled": "Cancelled"
+    }
+  },
+  "performance": {
+    "title": "Supplier performance",
+    "description": "Recorded facts only. Missing data stays neutral and is not punished.",
+    "empty": "Not enough recorded supplier data yet.",
+    "totalPurchased": "Total billed",
+    "openLiabilities": "Open liabilities",
+    "projects": "Projects",
+    "poCount": "Purchase orders",
+    "poCommitted": "PO committed amount",
+    "fulfillmentLag": "Order to receipt (days)",
+    "fulfillmentLagValue": "{days} days average · {count, plural, one {# order} other {# orders}}",
+    "billDiscrepancy": "Bill match discrepancies",
+    "billDiscrepancyValue": "{discrepancies} of {matched} matched bills",
+    "warrantyQuality": "Warranty issues",
+    "warrantyQualityValue": "{open} open · {coverages} coverages",
+    "punch": "Field punch",
+    "punchUnlinked": "Punch items are not linked to vendors - not scored.",
+    "subcontract": "Subcontracts",
+    "subcontractAgreements": "{count, plural, one {# agreement} other {# agreements}}",
+    "compliance": "Compliance",
+    "complianceValue": "{valid} current of {total}",
+    "payment": "Payments recorded",
+    "paymentCount": "{count, plural, one {# payment} other {# payments}}",
+    "overallScore": "Summary score: {score}",
+    "formula": "Overall = average of available component scores. Missing components are omitted, never treated as zero.",
+    "noScore": "No scored components yet - showing recorded facts only.",
+    "components": {
+      "billAccuracy": "Bill match accuracy: {score} ({count} matched bills)",
+      "warrantyQuality": "Warranty quality: {score} ({count} coverages)",
+      "complianceValidity": "Compliance validity: {score} ({count} artifacts)"
     }
   }
 }

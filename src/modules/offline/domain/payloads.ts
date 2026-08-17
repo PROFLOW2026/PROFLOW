@@ -98,6 +98,15 @@ export interface InspectionDraftPayload extends Record<string, unknown> {
   readonly inspectionId?: string | null;
 }
 
+/** Field note candidate - never a posted clock-in. */
+export interface NoteDraftPayload extends Record<string, unknown> {
+  readonly projectId: string;
+  readonly workPackageId: string | null;
+  readonly noteDate: string;
+  readonly body: string;
+  readonly title?: string | null;
+}
+
 export type ProductDraftPayload =
   | ExpenseDraftPayload
   | TimeEntryDraftPayload
@@ -105,6 +114,7 @@ export type ProductDraftPayload =
   | DailyLogDraftPayload
   | PunchDraftPayload
   | InspectionDraftPayload
+  | NoteDraftPayload
   | CaptureDraftPayload;
 
 export function expensePayloadFromFormData(formData: FormData): ExpenseDraftPayload {
@@ -200,6 +210,16 @@ export function inspectionPayloadFromFormData(formData: FormData): InspectionDra
   };
 }
 
+export function notePayloadFromFormData(formData: FormData): NoteDraftPayload {
+  return {
+    projectId: formTextRequired(formData, 'projectId'),
+    workPackageId: formText(formData, 'workPackageId'),
+    noteDate: formTextRequired(formData, 'noteDate'),
+    body: formTextRequired(formData, 'body'),
+    title: formText(formData, 'title'),
+  };
+}
+
 export function payloadBuilderForKind(
   kind: Exclude<DraftKind, 'capture'>,
 ): (formData: FormData) => Record<string, unknown> {
@@ -218,6 +238,8 @@ export function payloadBuilderForKind(
       return inspectionPayloadFromFormData;
     case 'form_submission':
       return (formData) => Object.fromEntries(formData.entries());
+    case 'note':
+      return notePayloadFromFormData;
     default: {
       const _exhaustive: never = kind;
       return _exhaustive;

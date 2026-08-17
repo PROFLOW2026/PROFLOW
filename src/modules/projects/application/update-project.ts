@@ -17,6 +17,7 @@ import { isOriginalContractAmountLocked } from '../domain/contract-value';
 import { updateProjectSchema, type UpdateProjectInput } from '../validation/schemas';
 import { ORIGINAL_AMOUNT_LOCKED_MESSAGE_KEY, openingReductionInputsDiffer, upsertPrimaryContractAmount } from './contract-amount';
 import { resolvePrimaryContactIdForProject } from './assert-project-contact';
+import { assertClassicProjectUsesCloseout } from '@/modules/closeout/domain/close-rules';
 
 function amountsDiffer(
   left: string | null | undefined,
@@ -48,6 +49,11 @@ export async function updateProject(
   const existing = await findProjectById(context.db, context.organizationId, input.projectId);
   if (!existing) throw new NotFoundError('Project');
   assertSameOrganization(context, existing, 'Project');
+  assertClassicProjectUsesCloseout({
+    workKind: existing.workKind,
+    existingStatus: existing.status,
+    nextStatus: input.status,
+  });
 
   const nextClientId = input.clientId !== undefined ? input.clientId : existing.clientId;
 

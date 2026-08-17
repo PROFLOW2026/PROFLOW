@@ -5,6 +5,7 @@ import {
   assets,
   billingRecords,
   boqNodes,
+  calendarEvents,
   clientContacts,
   clients,
   contracts,
@@ -16,19 +17,42 @@ import {
   inspections,
   inventoryItems,
   materialItems,
+  outboundCommunications,
   projectBoqs,
+  projectCloseouts,
   projects,
   punchListItems,
   purchaseOrders,
   safetyRecords,
   subcontractAgreements,
   vendors,
+  warrantyCoverages,
 } from '@drizzle/schema';
 import { existsSearchableCustomFieldValueSql } from '@/modules/custom-fields';
 import { listAllDocuments } from '@/modules/documents/lookups';
 import type { DbExecutor } from '@/shared/db/types';
 import type { GlobalSearchHit } from '../domain/types';
-import { assetSearchHref, inventoryItemSearchHref, materialSearchHref } from '../domain/hrefs';
+import {
+  assetSearchHref,
+  calendarEventSearchHref,
+  closeoutSearchHref,
+  communicationSearchHref,
+  inventoryItemSearchHref,
+  materialSearchHref,
+  warrantySearchHref,
+} from '../domain/hrefs';
+
+function isMissingRelation(error: unknown): boolean {
+  if (!error || typeof error !== 'object') return false;
+  const code = 'code' in error ? String((error as { code?: unknown }).code) : '';
+  const message = error instanceof Error ? error.message : String(error);
+  return (
+    code === '42P01' ||
+    code === '42703' ||
+    /relation .+ does not exist/i.test(message) ||
+    /column .+ does not exist/i.test(message)
+  );
+}
 
 function likeTerm(query: string): string {
   return `%${query.replace(/[%_]/g, ' ').trim()}%`;
@@ -1018,4 +1042,205 @@ export async function searchSafetyRecords(
     href: `/safety/${row.id}`,
     status: row.status,
   }));
+}
+
+export async function searchWarrantyCoverages(
+  db: DbExecutor,
+  organizationId: string,
+  query: string,
+  limit: number,
+  accessibleProjectIds: string[] | null = null,
+): Promise<GlobalSearchHit[]> {
+  const term = likeTerm(query);
+  try {
+    const rows = await db
+      .select({
+        id: warrantyCoverages.id,
+        title: warrantyCoverages.title,
+        status: warrantyCoverages.status,
+        endDate: warrantyCoverages.endDate,
+        projectId: warrantyCoverages.projectId,
+        projectName: projects.name,
+      })
+      .from(warrantyCoverages)
+      .innerJoin(
+        projects,
+        and(
+          eq(projects.id, warrantyCoverages.projectId),
+          eq(projects.organizationId, warrantyCoverages.organizationId),
+        ),
+      )
+      .where(
+        and(
+          eq(warrantyCoverages.organizationId, organizationId),
+          isNull(warrantyCoverages.archivedAt),
+          projectAccessSql(warrantyCoverages.projectId, accessibleProjectIds),
+          or(ilike(warrantyCoverages.title, term), ilike(projects.name, term))!,
+        ),
+      )
+      .orderBy(warrantyCoverages.updatedAt)
+      .limit(limit);
+
+    return rows.map((row) => ({
+      kind: 'warranty' as const,
+      id: row.id,
+      title: row.title,
+      subtitle: [row.projectName, row.status, row.endDate].filter(Boolean).join(' · ') || null,
+      href: warrantySearchHref(row.id, row.projectId),
+      status: row.status,
+      contextLabel: row.projectName,
+      date: row.endDate,
+    }));
+  } catch (error) {
+    if (isMissingRelation(error)) return [];
+    throw error;
+  }
+}
+
+export async function searchCommunications(
+  db: DbExecutor,
+  organizationId: string,
+  query: string,
+  limit: number,
+  accessibleProjectIds: string[] | null = null,
+): Promise<GlobalSearchHit[]> {
+  const term = likeTerm(query);
+  try {
+    const rows = await db
+      .select({
+        id: outboundCommunications.id,
+        subject: outboundCommunications.subject,
+        status: outboundCommunications.status,
+        recipientName: outboundCommunications.recipientName,
+        recipientEmail: outboundCommunications.recipientEmail,
+        projectId: outboundCommunications.projectId,
+      })
+      .from(outboundCommunications)
+      .where(
+        and(
+          eq(outboundCommunications.organizationId, organizationId),
+          isNull(outboundCommunications.archivedAt),
+          or(
+            sql`${outboundCommunications.projectId} is null`,
+            projectAccessSql(outboundCommunications.projectId, accessibleProjectIds),
+          ),
+          or(
+            ilike(outboundCommunications.subject, term),
+            ilike(outboundCommunications.recipientName, term),
+            ilike(outboundCommunications.recipientEmail, term),
+          )!,
+        ),
+      )
+      .orderBy(outboundCommunications.updatedAt)
+      .limit(limit);
+
+    return rows.map((row) => ({
+      kind: 'communication' as const,
+      id: row.id,
+      title: row.subject,
+      subtitle: [row.recipientName ?? row.recipientEmail, row.status].filter(Boolean).join(' · ') || null,
+      href: communicationSearchHref(row.id),
+      status: row.status,
+    }));
+  } catch (error) {
+    if (isMissingRelation(error)) return [];
+    throw error;
+  }
+}
+
+export async function searchCalendarEvents(
+  db: DbExecutor,
+  organizationId: string,
+  query: string,
+  limit: number,
+  accessibleProjectIds: string[] | null = null,
+): Promise<GlobalSearchHit[]> {
+  const term = likeTerm(query);
+  try {
+    const rows = await db
+      .select({
+        id: calendarEvents.id,
+        title: calendarEvents.title,
+        eventKind: calendarEvents.eventKind,
+        eventDate: calendarEvents.eventDate,
+        projectId: calendarEvents.projectId,
+      })
+      .from(calendarEvents)
+      .where(
+        and(
+          eq(calendarEvents.organizationId, organizationId),
+          isNull(calendarEvents.archivedAt),
+          or(
+            sql`${calendarEvents.projectId} is null`,
+            projectAccessSql(calendarEvents.projectId, accessibleProjectIds),
+          ),
+          or(ilike(calendarEvents.title, term), ilike(calendarEvents.notes, term))!,
+        ),
+      )
+      .orderBy(calendarEvents.eventDate)
+      .limit(limit);
+
+    return rows.map((row) => ({
+      kind: 'calendar_event' as const,
+      id: row.id,
+      title: row.title,
+      subtitle: [row.eventKind, row.eventDate].filter(Boolean).join(' · ') || null,
+      href: calendarEventSearchHref(row.id),
+      date: row.eventDate,
+    }));
+  } catch (error) {
+    if (isMissingRelation(error)) return [];
+    throw error;
+  }
+}
+
+export async function searchCloseouts(
+  db: DbExecutor,
+  organizationId: string,
+  query: string,
+  limit: number,
+  accessibleProjectIds: string[] | null = null,
+): Promise<GlobalSearchHit[]> {
+  const term = likeTerm(query);
+  try {
+    const rows = await db
+      .select({
+        id: projectCloseouts.id,
+        status: projectCloseouts.status,
+        projectId: projectCloseouts.projectId,
+        projectName: projects.name,
+      })
+      .from(projectCloseouts)
+      .innerJoin(
+        projects,
+        and(
+          eq(projects.id, projectCloseouts.projectId),
+          eq(projects.organizationId, projectCloseouts.organizationId),
+        ),
+      )
+      .where(
+        and(
+          eq(projectCloseouts.organizationId, organizationId),
+          eq(projects.workKind, 'project'),
+          isNull(projects.archivedAt),
+          projectAccessSql(projectCloseouts.projectId, accessibleProjectIds),
+          or(ilike(projects.name, term), ilike(projects.documentNumber, term))!,
+        ),
+      )
+      .orderBy(projectCloseouts.updatedAt)
+      .limit(limit);
+
+    return rows.map((row) => ({
+      kind: 'closeout' as const,
+      id: row.id,
+      title: row.projectName,
+      subtitle: row.status,
+      href: closeoutSearchHref(row.projectId),
+      status: row.status,
+      contextLabel: row.projectName,
+    }));
+  } catch (error) {
+    if (isMissingRelation(error)) return [];
+    throw error;
+  }
 }

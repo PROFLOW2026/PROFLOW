@@ -1,0 +1,23 @@
+{
+  "title": "Assistant",
+  "description": "Ask about work you already have permission to see. The assistant does not post or approve money.",
+  "placeholder": "What needs attention today?",
+  "send": "Ask",
+  "unconfigured": "A live assistant is not connected. Answers use ProjectFlow records you can already see.",
+  "empty": "Ask a question about today, a project, or a number you want explained.",
+  "disclaimer": "Facts come from ProjectFlow records. Suggestions are labeled as such.",
+  "facts": "Fact",
+  "inference": "Inference",
+  "notAllowed": {
+    "title": "Assistant is not available",
+    "body": "You do not have permission to use the assistant."
+  },
+  "citations": "Sources",
+  "errors": {
+    "noPermission": "You do not have permission for this.",
+    "noProvider": "No live model is connected. Local tools still run on your records."
+  },
+  "actions": {
+    "draftOnly": "This prepared a draft. Nothing was posted."
+  }
+}

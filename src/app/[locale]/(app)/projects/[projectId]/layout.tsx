@@ -8,7 +8,8 @@ import {
   resolveDisplayOriginalNet,
 } from '@/modules/projects';
 import { titleWithDocumentNumber } from '@/modules/tenancy';
-import { getShellContext } from '@/shared/auth/session';
+import { listCloseoutStatusesForProjects } from '@/modules/closeout';
+import { getShellContext, withOrgContext } from '@/shared/auth/session';
 import { fromNumericString } from '@/shared/money';
 import { PERMISSIONS, type PermissionKey } from '@/shared/permissions/catalog';
 import { Link } from '@/shared/i18n/navigation';
@@ -58,10 +59,11 @@ export default async function ProjectLayout({ children, params }: ProjectLayoutP
   const showDocumentsTab = Boolean(modules?.documents) && can(PERMISSIONS.DOCUMENTS_READ);
   const showUsageTab = can(PERMISSIONS.MATERIALS_READ) || can(PERMISSIONS.ASSETS_READ);
 
-  const [t, tTabs, tStatus, detail, locale] = await Promise.all([
+  const [t, tTabs, tStatus, tCloseout, detail, locale] = await Promise.all([
     getTranslations('projects'),
     getTranslations('projects.workspace.tabs'),
     getTranslations('status.project'),
+    getTranslations('closeout'),
     loadProjectDetail(projectId, false).catch(() => null),
     getLocale(),
   ]);
@@ -72,6 +74,14 @@ export default async function ProjectLayout({ children, params }: ProjectLayoutP
     return <>{children}</>;
   }
 
+  const closeoutReady =
+    detail.project.status !== 'completed'
+      ? await withOrgContext((context) =>
+          listCloseoutStatusesForProjects(context, [projectId]),
+        )
+          .then((rows) => rows.some((row) => row.status === 'ready'))
+          .catch(() => false)
+      : false;
   const showWorkTab = detail.showWorkPackages;
   const canArchive = shell?.permissions.has(PERMISSIONS.PROJECTS_ARCHIVE) ?? false;
 
@@ -88,6 +98,8 @@ export default async function ProjectLayout({ children, params }: ProjectLayoutP
     documents: showDocumentsTab,
     usage: showUsageTab,
     work: showWorkTab,
+    closeout: true,
+    warranty: true,
   });
 
   const tabLabels = Object.fromEntries(tabs.map((tab) => [tab, tTabs(tab)])) as Partial<
@@ -117,7 +129,17 @@ export default async function ProjectLayout({ children, params }: ProjectLayoutP
         }
         meta={
           <div className="flex flex-wrap items-center gap-2">
-            <ProjectStatusBadge status={detail.project.status} label={tStatus(detail.project.status)} />
+            <ProjectStatusBadge
+              status={detail.project.status}
+              label={
+                detail.project.workKind === 'project' && detail.project.status === 'completed'
+                  ? tStatus('closed')
+                  : tStatus(detail.project.status)
+              }
+            />
+            {closeoutReady ? (
+              <ProjectStatusBadge status="active" label={tCloseout('badge.ready')} />
+            ) : null}
             <span className="text-sm text-[var(--pf-text-secondary)]">
               {detail.clientName && detail.project.clientId ? (
                 t.rich('workspace.clientLinked', {

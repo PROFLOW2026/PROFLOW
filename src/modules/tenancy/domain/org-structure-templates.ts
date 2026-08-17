@@ -21,12 +21,23 @@ export const orgMilestoneTemplateSchema = z.object({
   offsetDaysFromStart: z.number().int().min(0).max(3650).nullable().default(null),
 });
 
+export const orgFormChecklistSchema = z.object({
+  name: z.string().trim().min(1).max(120),
+  items: z.array(z.string().trim().min(1).max(120)).max(40).default([]),
+});
+
 export const orgStructureTemplateSchema = z.object({
   id: z.string().uuid(),
   name: z.string().trim().min(1).max(120),
   description: z.string().trim().max(500).nullable().default(null),
   workPackages: z.array(orgWorkPackageTemplateSchema).min(1).max(40),
   milestones: z.array(orgMilestoneTemplateSchema).max(40).default([]),
+  documentFolders: z.array(z.string().trim().min(1).max(120)).max(40).default([]),
+  formChecklists: z.array(orgFormChecklistSchema).max(20).default([]),
+  budgetCategories: z.array(z.string().trim().min(1).max(120)).max(40).default([]),
+  closeoutRequirementKeys: z.array(z.string().trim().min(1).max(80)).max(40).default([]),
+  boqSkeleton: z.array(z.string().trim().min(1).max(120)).max(40).default([]),
+  defaultRoleKeys: z.array(z.string().trim().min(1).max(80)).max(20).default([]),
   updatedAt: z.string().datetime().optional(),
 });
 
@@ -72,6 +83,8 @@ export interface OrgStructureTemplatePreview {
   readonly workPackageNames: readonly string[];
   readonly phaseCount: number;
   readonly milestoneNames: readonly string[];
+  readonly folderNames: readonly string[];
+  readonly closeoutRequirementKeys: readonly string[];
 }
 
 export function previewOrgStructureTemplate(
@@ -84,6 +97,8 @@ export function previewOrgStructureTemplate(
     workPackageNames: template.workPackages.map((pkg) => pkg.name),
     phaseCount: template.workPackages.reduce((sum, pkg) => sum + pkg.phases.length, 0),
     milestoneNames: template.milestones.map((m) => m.name),
+    folderNames: template.documentFolders,
+    closeoutRequirementKeys: template.closeoutRequirementKeys,
   };
 }
 
@@ -94,6 +109,12 @@ export function cloneOrgStructureTemplateForApply(template: OrgStructureTemplate
     readonly name: string;
     readonly offsetDaysFromStart: number | null;
   }[];
+  readonly documentFolders: readonly string[];
+  readonly formChecklists: readonly { readonly name: string; readonly items: readonly string[] }[];
+  readonly budgetCategories: readonly string[];
+  readonly closeoutRequirementKeys: readonly string[];
+  readonly boqSkeleton: readonly string[];
+  readonly defaultRoleKeys: readonly string[];
 } {
   return {
     workPackages: template.workPackages.map((pkg) => ({
@@ -104,5 +125,14 @@ export function cloneOrgStructureTemplateForApply(template: OrgStructureTemplate
       name: m.name,
       offsetDaysFromStart: m.offsetDaysFromStart,
     })),
+    documentFolders: [...template.documentFolders],
+    formChecklists: template.formChecklists.map((checklist) => ({
+      name: checklist.name,
+      items: [...checklist.items],
+    })),
+    budgetCategories: [...template.budgetCategories],
+    closeoutRequirementKeys: [...template.closeoutRequirementKeys],
+    boqSkeleton: [...template.boqSkeleton],
+    defaultRoleKeys: [...template.defaultRoleKeys],
   };
 }

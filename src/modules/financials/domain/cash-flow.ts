@@ -9,7 +9,43 @@ import {
 } from '@/shared/money';
 import type { BillingRecordSummary } from '@/modules/billing/domain/types';
 
-export type CashFlowBucketKey = 'overdue' | 'next_7' | 'next_30' | 'later' | 'undated';
+export type CashFlowBucketKey =
+  | 'overdue'
+  | 'next_7'
+  | 'next_30'
+  | 'next_60'
+  | 'next_90'
+  | 'later'
+  | 'undated';
+
+export const CASH_FLOW_BUCKET_KEYS: readonly CashFlowBucketKey[] = [
+  'overdue',
+  'next_7',
+  'next_30',
+  'next_60',
+  'next_90',
+  'later',
+  'undated',
+];
+
+/** Timed forecast horizon in days. Overdue and undated sit outside this window. */
+export const CASH_FLOW_HORIZON_DAYS = 90;
+
+/**
+ * Bucket from a recorded due date. Missing dates stay `undated` - never invented.
+ */
+export function assignCashFlowBucket(
+  dueDate: BusinessDate | null,
+  asOf: BusinessDate,
+): CashFlowBucketKey {
+  if (!dueDate) return 'undated';
+  if (compareBusinessDates(dueDate, asOf) < 0) return 'overdue';
+  if (compareBusinessDates(dueDate, addDays(asOf, 7)) <= 0) return 'next_7';
+  if (compareBusinessDates(dueDate, addDays(asOf, 30)) <= 0) return 'next_30';
+  if (compareBusinessDates(dueDate, addDays(asOf, 60)) <= 0) return 'next_60';
+  if (compareBusinessDates(dueDate, addDays(asOf, CASH_FLOW_HORIZON_DAYS)) <= 0) return 'next_90';
+  return 'later';
+}
 
 export interface CashFlowBucket {
   readonly key: CashFlowBucketKey;
@@ -87,6 +123,10 @@ export interface ApBillCashInput {
    * payment applications. Never PO-match remainder and never Actual Cost.
    */
   readonly totalAmount: MoneyValue;
+  readonly id?: string;
+  readonly reference?: string | null;
+  readonly projectId?: string | null;
+  readonly subcontractAgreementId?: string | null;
 }
 
 /**
@@ -98,9 +138,7 @@ export function computeOutgoingCashOutlook(
   currency: string,
   asOf: BusinessDate,
 ): CashFlowOutgoingCoverage {
-  const horizonEnd = addDays(asOf, 30);
-  const weekEnd = addDays(asOf, 7);
-  const keys: CashFlowBucketKey[] = ['overdue', 'next_7', 'next_30', 'later', 'undated'];
+  const keys = CASH_FLOW_BUCKET_KEYS;
   const totals = new Map<CashFlowBucketKey, MoneyValue>();
   const counts = new Map<CashFlowBucketKey, number>();
   for (const key of keys) {
@@ -121,19 +159,7 @@ export function computeOutgoingCashOutlook(
     if (!isPositiveMoney(bill.totalAmount)) continue;
 
     any = true;
-    let key: CashFlowBucketKey;
-    if (!bill.dueDate) {
-      key = 'undated';
-    } else if (compareBusinessDates(bill.dueDate, asOf) < 0) {
-      key = 'overdue';
-    } else if (compareBusinessDates(bill.dueDate, weekEnd) <= 0) {
-      key = 'next_7';
-    } else if (compareBusinessDates(bill.dueDate, horizonEnd) <= 0) {
-      key = 'next_30';
-    } else {
-      key = 'later';
-    }
-
+    const key = assignCashFlowBucket(bill.dueDate, asOf);
     totals.set(key, addMoney(totals.get(key)!, bill.totalAmount));
     counts.set(key, (counts.get(key) ?? 0) + 1);
   }
@@ -168,16 +194,14 @@ export function computeIncomingCashOutlook(
   currency: string,
   asOf: BusinessDate,
 ): Pick<CashFlowOutlook, 'currency' | 'asOf' | 'horizonEnd' | 'forecastBuckets' | 'buckets' | 'note'> {
-  const horizonEnd = addDays(asOf, 30);
-  const keys: CashFlowBucketKey[] = ['overdue', 'next_7', 'next_30', 'later', 'undated'];
+  const horizonEnd = addDays(asOf, CASH_FLOW_HORIZON_DAYS);
+  const keys = CASH_FLOW_BUCKET_KEYS;
   const totals = new Map<CashFlowBucketKey, MoneyValue>();
   const counts = new Map<CashFlowBucketKey, number>();
   for (const key of keys) {
     totals.set(key, zeroMoney(currency));
     counts.set(key, 0);
   }
-
-  const weekEnd = addDays(asOf, 7);
 
   for (const record of records) {
     if (record.totalAmount.currency !== currency) continue;
@@ -189,19 +213,7 @@ export function computeIncomingCashOutlook(
       continue;
     }
 
-    let key: CashFlowBucketKey;
-    if (!record.dueDate) {
-      key = 'undated';
-    } else if (compareBusinessDates(record.dueDate, asOf) < 0) {
-      key = 'overdue';
-    } else if (compareBusinessDates(record.dueDate, weekEnd) <= 0) {
-      key = 'next_7';
-    } else if (compareBusinessDates(record.dueDate, horizonEnd) <= 0) {
-      key = 'next_30';
-    } else {
-      key = 'later';
-    }
-
+    const key = assignCashFlowBucket(record.dueDate, asOf);
     totals.set(key, addMoney(totals.get(key)!, record.outstandingAmount));
     counts.set(key, (counts.get(key) ?? 0) + 1);
   }

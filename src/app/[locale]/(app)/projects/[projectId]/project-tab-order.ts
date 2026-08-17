@@ -12,6 +12,8 @@ export type ProjectTabKey =
   | 'time'
   | 'documents'
   | 'usage'
+  | 'closeout'
+  | 'warranty'
   | 'details';
 
 /**
@@ -34,6 +36,8 @@ export const PROJECT_TAB_PRIORITY: readonly ProjectTabKey[] = [
   'schedule',
   'work',
   'documents',
+  'closeout',
+  'warranty',
   'details',
 ] as const;
 
@@ -50,6 +54,8 @@ export interface ProjectTabVisibility {
   readonly documents: boolean;
   readonly usage: boolean;
   readonly work: boolean;
+  readonly closeout: boolean;
+  readonly warranty: boolean;
 }
 
 /** Filters {@link PROJECT_TAB_PRIORITY} by module/permission visibility. */
@@ -83,6 +89,10 @@ export function resolveProjectTabs(visibility: ProjectTabVisibility): ProjectTab
         return visibility.usage;
       case 'work':
         return visibility.work;
+      case 'closeout':
+        return visibility.closeout;
+      case 'warranty':
+        return visibility.warranty;
       default:
         return false;
     }

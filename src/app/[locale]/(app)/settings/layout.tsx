@@ -18,6 +18,7 @@ export default function SettingsLayout({ children }: { children: ReactNode }) {
         'exports',
         'forms',
         'safety',
+        'integrations',
       ]}
     >
       {children}

@@ -51,6 +51,9 @@ export {
 } from './domain/schema';
 export { normalizeFormAnswers } from './domain/answers';
 
+/** Cross-module org-scoped lookups used by business-profile setup. */
+export { insertTemplate, listTemplates } from './data/forms.repository';
+
 export {
   createFormTemplateSchema,
   updateFormTemplateSchema,

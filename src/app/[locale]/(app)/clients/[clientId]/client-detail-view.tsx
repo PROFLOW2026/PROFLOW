@@ -20,6 +20,7 @@ import { type ClientTimelineEventView } from '@/modules/clients/domain/timeline'
 import { type CustomFieldValueView } from '@/modules/custom-fields/domain/types';
 import { EntityCustomFieldsPanel } from '@/modules/custom-fields/ui';
 import { Link } from '@/shared/i18n/navigation';
+import { workEntityHref } from '@/modules/search/domain/hrefs';
 import { upsertEntityFieldValueAction } from '../../settings/custom-fields/actions';
 import { ClientTimeline } from './client-timeline';
 import {
@@ -289,11 +290,7 @@ export function ClientDetailView({
               {linkedProjects.map((project) => (
                 <li key={project.id} className="flex flex-wrap items-center justify-between gap-2 text-sm">
                   <Link
-                    href={
-                      project.workKind === 'job'
-                        ? `/jobs/${project.id}`
-                        : `/projects/${project.id}`
-                    }
+                    href={workEntityHref(project.workKind, project.id)}
                     className="min-w-0 flex-1 font-medium text-[var(--pf-text-primary)] underline-offset-2 hover:underline"
                   >
                     {project.name}
@@ -310,6 +307,26 @@ export function ClientDetailView({
               {t('projectsCount', { count: client.projectCount })}
             </p>
           ) : null}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>{t('relatedSection')}</CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-2 text-sm">
+          <Link
+            href={`/communications?clientId=${client.id}`}
+            className="font-medium text-[var(--pf-text-primary)] underline-offset-2 hover:underline"
+          >
+            {t('communications')}
+          </Link>
+          <Link
+            href={`/warranty?clientId=${client.id}`}
+            className="font-medium text-[var(--pf-text-primary)] underline-offset-2 hover:underline"
+          >
+            {t('warrantyHistory')}
+          </Link>
         </CardContent>
       </Card>
     </div>

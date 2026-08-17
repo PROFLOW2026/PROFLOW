@@ -168,5 +168,9 @@
   "errors": {
     "unknownKind": "Unknown report kind.",
     "missingId": "A report id is required."
+  },
+  "management": {
+    "title": "Owner management analytics",
+    "hint": "Uses the same financial engine as project financials and cash flow. Uncovered metrics stay hidden."
   }
 }

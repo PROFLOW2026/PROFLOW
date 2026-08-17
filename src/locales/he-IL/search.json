@@ -16,7 +16,11 @@
     "openVendors": "פתיחת ספקים",
     "openClients": "פתיחת לקוחות",
     "openOcr": "פתיחת בדיקת חשבונית",
-    "openReports": "פתיחת דוחות"
+    "openReports": "פתיחת דוחות",
+    "openCalendar": "פתיחת לוח שנה",
+    "openCommunications": "פתיחת הודעות",
+    "openWarranty": "פתיחת אחריות",
+    "openCashFlow": "פתיחת תזרים"
   },
   "kinds": {
     "project": "פרויקט",
@@ -43,6 +47,10 @@
     "daily_log": "יומן עבודה",
     "punch": "ליקוי",
     "inspection": "בדיקה",
-    "safety": "בטיחות"
+    "safety": "בטיחות",
+    "warranty": "אחריות",
+    "communication": "הודעה",
+    "calendar_event": "אירוע בלוח שנה",
+    "closeout": "סגירת פרויקט"
   }
 }

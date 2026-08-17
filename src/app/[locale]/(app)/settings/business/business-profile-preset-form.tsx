@@ -10,6 +10,7 @@ import {
   BUSINESS_PROFILE_KEYS,
   getBusinessProfile,
 } from '@/modules/tenancy/domain/business-profiles';
+import { getBusinessProfileSetup } from '@/modules/tenancy/domain/business-profile-setup';
 import { applyBusinessProfileAction, type SettingsActionState } from '../actions';
 
 function uniqueJoin(values: readonly string[]): string {
@@ -39,6 +40,7 @@ export function BusinessProfilePresetForm({
   );
 
   const preview = useMemo(() => getBusinessProfile(preset), [preset]);
+  const setup = useMemo(() => (preview ? getBusinessProfileSetup(preview.key) : null), [preview]);
   const he = locale === 'he-IL';
 
   if (!canEdit) return null;
@@ -113,6 +115,26 @@ export function BusinessProfilePresetForm({
             <span className="font-medium text-[var(--pf-text-primary)]">{t('previewCategories')}: </span>
             {preview.costCategories.map((c) => (he ? c.nameHe : c.nameEn)).join(', ')}
           </p>
+          {setup ? (
+            <>
+              <p className="mt-1 break-words">
+                <span className="font-medium text-[var(--pf-text-primary)]">{t('previewFolders')}: </span>
+                {setup.documentFolders.map((folder) => (he ? folder.nameHe : folder.nameEn)).join(', ')}
+              </p>
+              <p className="mt-1 break-words">
+                <span className="font-medium text-[var(--pf-text-primary)]">{t('previewForms')}: </span>
+                {setup.formTemplates.map((form) => (he ? form.nameHe : form.nameEn)).join(', ')}
+              </p>
+              <p className="mt-1 break-words">
+                <span className="font-medium text-[var(--pf-text-primary)]">{t('previewTemplates')}: </span>
+                {setup.projectTemplateKeys.join(', ')}
+              </p>
+              <p className="mt-1 break-words">
+                <span className="font-medium text-[var(--pf-text-primary)]">{t('previewToday')}: </span>
+                {t(`todayEmphasis.${setup.todayEmphasis}`)}
+              </p>
+            </>
+          ) : null}
           <p className="mt-2 text-xs">{t('previewHint')}</p>
         </div>
       ) : null}

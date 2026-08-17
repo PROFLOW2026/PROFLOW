@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { AUDIT_ACTIONS, recordAuditEvent } from '@/shared/audit';
 import { DomainRuleError, NotFoundError, ValidationError } from '@/shared/errors';
-import { assertPermission, assertSameOrganization } from '@/shared/permissions/assert';
+import { assertPermission, assertSameOrganization, hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import type { OrgContext } from '@/shared/auth/context';
 import {
@@ -107,6 +107,21 @@ export async function applyOrgProjectTemplate(
     milestoneNames.push(created.name);
   }
 
+  if (
+    copy.documentFolders.length > 0 &&
+    hasPermission(context, PERMISSIONS.DOCUMENTS_MANAGE)
+  ) {
+    const { insertDocumentFolder } = await import('@/modules/documents/data/folders.repository');
+    for (const folderName of copy.documentFolders) {
+      await insertDocumentFolder(context.db, {
+        organizationId: context.organizationId,
+        name: folderName,
+        ownerType: 'project',
+        ownerId: project.id,
+      });
+    }
+  }
+
   await recordAuditEvent(context, {
     action: AUDIT_ACTIONS.PROJECT_TEMPLATE_APPLIED,
     entityType: 'project',
@@ -117,6 +132,8 @@ export async function applyOrgProjectTemplate(
       workPackageNames: packageNames,
       milestoneNames,
       phaseCount,
+      documentFolders: copy.documentFolders,
+      closeoutRequirementKeys: copy.closeoutRequirementKeys,
     },
   });
 

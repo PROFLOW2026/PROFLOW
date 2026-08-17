@@ -79,6 +79,26 @@ export function notificationCopy(
           title: ref ? `פעולת בטיחות לטיפול - ${ref}` : 'פעולת בטיחות לטיפול',
           body: extra ? `יעד ${extra}` : 'פעולה מתקנת שעברה את המועד.',
         };
+      case 'warranty_expiring':
+        return {
+          title: ref ? `אחריות שעומדת לפוג - ${ref}` : 'אחריות שעומדת לפוג',
+          body: extra ? `תוקף עד ${extra}` : 'כיסוי אחריות מתקרב לסיום.',
+        };
+      case 'closeout_blockers':
+        return {
+          title: ref ? `סגירת פרויקט חסומה - ${ref}` : 'סגירת פרויקט חסומה',
+          body: extra ?? 'יש פריטים שחוסמים סגירה מסודרת.',
+        };
+      case 'communication_failed':
+        return {
+          title: ref ? `הודעה לא נשלחה - ${ref}` : 'הודעה לא נשלחה',
+          body: extra ?? 'השליחה נכשלה או לא אושרה על ידי הספק.',
+        };
+      case 'automation_output':
+        return {
+          title: ref ? `אוטומציה דורשת מעקב - ${ref}` : 'אוטומציה דורשת מעקב',
+          body: extra ?? 'ריצת אוטומציה נכשלה או הפיקה פלט לטיפול.',
+        };
     }
   }
 
@@ -147,6 +167,26 @@ export function notificationCopy(
       return {
         title: ref ? `Safety action due - ${ref}` : 'Safety action due',
         body: extra ? `Due ${extra}` : 'A corrective action is past due.',
+      };
+    case 'warranty_expiring':
+      return {
+        title: ref ? `Warranty ending - ${ref}` : 'Warranty ending',
+        body: extra ? `Ends ${extra}` : 'Warranty coverage is near its end date.',
+      };
+    case 'closeout_blockers':
+      return {
+        title: ref ? `Closeout blocked - ${ref}` : 'Closeout blocked',
+        body: extra ?? 'Blocking items remain before the project can close.',
+      };
+    case 'communication_failed':
+      return {
+        title: ref ? `Message not sent - ${ref}` : 'Message not sent',
+        body: extra ?? 'Delivery failed or was not confirmed by the provider.',
+      };
+    case 'automation_output':
+      return {
+        title: ref ? `Automation needs follow-up - ${ref}` : 'Automation needs follow-up',
+        body: extra ?? 'An automation run failed or produced output to review.',
       };
   }
 }

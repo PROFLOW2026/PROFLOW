@@ -1,15 +1,20 @@
-import { and, eq, isNull, lt, lte, sql } from 'drizzle-orm';
+import { and, eq, gte, isNull, lt, lte, sql } from 'drizzle-orm';
 import {
+  automationRules,
+  automationRuns,
   boqProgressBatches,
   documents,
   employees,
   inventoryItems,
+  outboundCommunications,
   planningWorkItems,
+  projectCloseouts,
   projectServiceDetails,
   projects,
   punchListItems,
   safetyCorrectiveActions,
   timesheets,
+  warrantyCoverages,
 } from '@drizzle/schema';
 import type { DbExecutor } from '@/shared/db/types';
 import type { BusinessDate } from '@/shared/dates';
@@ -377,6 +382,196 @@ export async function listClosedAssignedPunchIds(
       )
       .limit(cap);
     return rows.map((row) => row.id);
+  } catch (error) {
+    if (isMissingRelation(error)) return [];
+    throw error;
+  }
+}
+
+/**
+ * Expected module paths when the owning agents land:
+ * - @/modules/warranty/application/list-expiring-coverages
+ * - @/modules/closeout/application/list-closeout-blockers
+ * - @/modules/communications/application/list-failed-communications
+ * - @/modules/automations/application/list-followups
+ */
+
+export async function listExpiringWarranties(
+  db: DbExecutor,
+  organizationId: string,
+  today: BusinessDate,
+  cap: number,
+): Promise<ScanEntity[]> {
+  try {
+    const rows = await db
+      .select({
+        id: warrantyCoverages.id,
+        title: warrantyCoverages.title,
+        endDate: warrantyCoverages.endDate,
+        reminderDaysBefore: warrantyCoverages.reminderDaysBefore,
+        projectId: warrantyCoverages.projectId,
+        projectName: projects.name,
+      })
+      .from(warrantyCoverages)
+      .innerJoin(
+        projects,
+        and(
+          eq(projects.id, warrantyCoverages.projectId),
+          eq(projects.organizationId, warrantyCoverages.organizationId),
+        ),
+      )
+      .where(
+        and(
+          eq(warrantyCoverages.organizationId, organizationId),
+          sql`${warrantyCoverages.status} in ('scheduled', 'active')`,
+          isNull(warrantyCoverages.archivedAt),
+          sql`${warrantyCoverages.endDate} is not null`,
+          gte(warrantyCoverages.endDate, today),
+        ),
+      )
+      .limit(cap * 2);
+
+    const entities: ScanEntity[] = [];
+    for (const row of rows) {
+      if (!row.endDate) continue;
+      const reminder = Math.max(0, row.reminderDaysBefore ?? 30);
+      const [year, month, day] = today.split('-').map(Number) as [number, number, number];
+      const end = new Date(`${row.endDate}T00:00:00.000Z`);
+      const start = new Date(Date.UTC(year, month - 1, day));
+      const daysLeft = Math.round((end.getTime() - start.getTime()) / 86_400_000);
+      if (daysLeft > reminder) continue;
+      entities.push({
+        id: row.id,
+        reference: row.title,
+        extra: row.endDate,
+        deepLink: `/projects/${row.projectId}?tab=warranty`,
+        projectId: row.projectId,
+      });
+      if (entities.length >= cap) break;
+    }
+    return entities;
+  } catch (error) {
+    if (isMissingRelation(error)) return [];
+    throw error;
+  }
+}
+
+export async function listCloseoutBlockers(
+  db: DbExecutor,
+  organizationId: string,
+  cap: number,
+): Promise<ScanEntity[]> {
+  try {
+    const rows = await db
+      .select({
+        id: projectCloseouts.id,
+        status: projectCloseouts.status,
+        projectId: projectCloseouts.projectId,
+        projectName: projects.name,
+      })
+      .from(projectCloseouts)
+      .innerJoin(
+        projects,
+        and(
+          eq(projects.id, projectCloseouts.projectId),
+          eq(projects.organizationId, projectCloseouts.organizationId),
+        ),
+      )
+      .where(
+        and(
+          eq(projectCloseouts.organizationId, organizationId),
+          sql`${projectCloseouts.status} in ('open', 'reopened')`,
+          eq(projects.workKind, 'project'),
+          isNull(projects.archivedAt),
+        ),
+      )
+      .limit(cap);
+
+    return rows.map((row) => ({
+      id: row.id,
+      reference: row.projectName,
+      extra: row.status,
+      deepLink: `/projects/${row.projectId}?tab=closeout`,
+      projectId: row.projectId,
+    }));
+  } catch (error) {
+    if (isMissingRelation(error)) return [];
+    throw error;
+  }
+}
+
+export async function listFailedCommunications(
+  db: DbExecutor,
+  organizationId: string,
+  cap: number,
+): Promise<ScanEntity[]> {
+  try {
+    const rows = await db
+      .select({
+        id: outboundCommunications.id,
+        subject: outboundCommunications.subject,
+        lastError: outboundCommunications.lastError,
+        projectId: outboundCommunications.projectId,
+      })
+      .from(outboundCommunications)
+      .where(
+        and(
+          eq(outboundCommunications.organizationId, organizationId),
+          eq(outboundCommunications.status, 'failed'),
+          isNull(outboundCommunications.archivedAt),
+        ),
+      )
+      .limit(cap);
+
+    return rows.map((row) => ({
+      id: row.id,
+      reference: row.subject,
+      extra: row.lastError,
+      deepLink: `/communications/${row.id}`,
+      projectId: row.projectId,
+    }));
+  } catch (error) {
+    if (isMissingRelation(error)) return [];
+    throw error;
+  }
+}
+
+export async function listAutomationFollowups(
+  db: DbExecutor,
+  organizationId: string,
+  cap: number,
+): Promise<ScanEntity[]> {
+  try {
+    const rows = await db
+      .select({
+        id: automationRuns.id,
+        presetKey: automationRules.presetKey,
+        errorMessage: automationRuns.errorMessage,
+        ranAt: automationRuns.ranAt,
+      })
+      .from(automationRuns)
+      .innerJoin(
+        automationRules,
+        and(
+          eq(automationRules.id, automationRuns.ruleId),
+          eq(automationRules.organizationId, automationRuns.organizationId),
+        ),
+      )
+      .where(
+        and(
+          eq(automationRuns.organizationId, organizationId),
+          eq(automationRuns.status, 'failed'),
+          isNull(automationRules.archivedAt),
+        ),
+      )
+      .limit(cap);
+
+    return rows.map((row) => ({
+      id: row.id,
+      reference: row.presetKey,
+      extra: row.errorMessage ?? row.ranAt.toISOString().slice(0, 10),
+      deepLink: '/automations',
+    }));
   } catch (error) {
     if (isMissingRelation(error)) return [];
     throw error;

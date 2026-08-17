@@ -20,9 +20,10 @@ import { withOrgContext } from '@/shared/auth/session';
 import { Link } from '@/shared/i18n/navigation';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
-import { textNavLinkMutedClassName } from '@/components/ui/pressable';
+import { textNavLinkClassName, textNavLinkMutedClassName } from '@/components/ui/pressable';
 import { CancelPurchaseOrderButton, ClosePurchaseOrderButton } from '../po-lifecycle-buttons';
 import { PurchaseOrderReceiveForm } from './po-receive-form';
+import { PrepareMessageLink } from '@/modules/communications/ui/prepare-message-link';
 
 export async function generateMetadata({
   params,
@@ -72,6 +73,7 @@ export default async function PurchaseOrderDetailPage({
         ...detail,
         documentsPanel,
         canManage: hasPermission(context, PERMISSIONS.PROCUREMENT_MANAGE),
+        canReadAp: hasPermission(context, PERMISSIONS.AP_MANAGE),
         defaultReceivedOn: todayInTimeZone(context.organization.timezone),
       };
     } catch {
@@ -81,7 +83,7 @@ export default async function PurchaseOrderDetailPage({
 
   if (!data) notFound();
 
-  const { order, lines, receipts, fullyReceived, documentsPanel, canManage, defaultReceivedOn } = data;
+  const { order, lines, receipts, fullyReceived, documentsPanel, canManage, canReadAp, defaultReceivedOn } = data;
   const status = order.status as PurchaseOrderStatus;
   const showCancel = canManage && isPurchaseOrderCancellable(status);
   const showClose = canManage && isPurchaseOrderCloseable(status);
@@ -106,6 +108,14 @@ export default async function PurchaseOrderDetailPage({
             label={t(`statuses.${order.status}` as 'statuses.draft')}
           />
         }
+        actions={
+          <PrepareMessageLink
+            entityType="purchase_order"
+            entityId={order.id}
+            vendorId={order.vendorId}
+            subject={order.reference}
+          />
+        }
       />
 
       {fullyReceived && isPurchaseOrderReceivable(status) ? (
@@ -128,6 +138,14 @@ export default async function PurchaseOrderDetailPage({
           {showClose ? <ClosePurchaseOrderButton purchaseOrderId={order.id} /> : null}
           {showCancel ? <CancelPurchaseOrderButton purchaseOrderId={order.id} /> : null}
         </div>
+      ) : null}
+
+      {canReadAp && status !== 'draft' && status !== 'cancelled' ? (
+        <p className="text-sm">
+          <Link href={`/procurement/ap/new?purchaseOrderId=${order.id}`} className={textNavLinkClassName}>
+            {t('detail.createVendorBill')}
+          </Link>
+        </p>
       ) : null}
 
       <section className="flex min-w-0 flex-col gap-3">

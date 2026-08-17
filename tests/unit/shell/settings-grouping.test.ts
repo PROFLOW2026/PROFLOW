@@ -50,6 +50,7 @@ describe('settings section grouping', () => {
       'activity',
       'offlineDrafts',
       'banking',
+      'integrations',
       'api',
     ]);
 

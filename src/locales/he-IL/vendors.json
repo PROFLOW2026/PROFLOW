@@ -49,6 +49,11 @@
   "detail": {
     "title": "פרופיל ספק",
     "profileHint": "פרופיל בסיסי של ספק או קבלן משנה",
+    "performanceSection": "ביצועים",
+    "performanceEmpty": "אין עדיין נתוני ביצועים נוספים.",
+    "communications": "הודעות",
+    "warrantyCoverages": "כיסויי אחריות",
+    "openSubcontracts": "הסכמי קבלן פתוחים",
     "profileSection": "פרופיל",
     "parentVendor": "ספק אב: {name}",
     "contactsSection": "אנשי קשר",
@@ -218,6 +223,38 @@
       "active": "פעיל",
       "completed": "הושלם",
       "cancelled": "בוטל"
+    }
+  },
+  "performance": {
+    "title": "ביצועי ספק",
+    "description": "עובדות רשומות בלבד. נתונים חסרים נשארים ניטרליים ולא מורידים ציון.",
+    "empty": "עדיין אין מספיק נתוני ספק רשומים.",
+    "totalPurchased": "סה״כ שחויב",
+    "openLiabilities": "התחייבויות פתוחות",
+    "projects": "פרויקטים",
+    "poCount": "הזמנות רכש",
+    "poCommitted": "סכום התחייבות בהזמנות",
+    "fulfillmentLag": "ימים מהזמנה לקבלה",
+    "fulfillmentLagValue": "ממוצע {days} ימים · {count, plural, one {הזמנה אחת} two {שתי הזמנות} other {# הזמנות}}",
+    "billDiscrepancy": "פערי התאמת חשבוניות",
+    "billDiscrepancyValue": "{discrepancies} מתוך {matched} חשבוניות מותאמות",
+    "warrantyQuality": "נושאי אחריות",
+    "warrantyQualityValue": "{open} פתוחים · {coverages} כיסויים",
+    "punch": "ליקויי שטח",
+    "punchUnlinked": "פריטי ליקויים אינם מקושרים לספק - לא נספרים.",
+    "subcontract": "הסכמי קבלנות משנה",
+    "subcontractAgreements": "{count, plural, one {הסכם אחד} two {שני הסכמים} other {# הסכמים}}",
+    "compliance": "ציות",
+    "complianceValue": "{valid} בתוקף מתוך {total}",
+    "payment": "תשלומים שנרשמו",
+    "paymentCount": "{count, plural, one {תשלום אחד} two {שני תשלומים} other {# תשלומים}}",
+    "overallScore": "ציון סיכום: {score}",
+    "formula": "הציון = ממוצע רכיבים זמינים. רכיבים חסרים מושמטים, ולא נספרים כאפס.",
+    "noScore": "עדיין אין רכיבים לציון - מוצגות עובדות רשומות בלבד.",
+    "components": {
+      "billAccuracy": "דיוק התאמת חשבוניות: {score} ({count} חשבוניות מותאמות)",
+      "warrantyQuality": "איכות אחריות: {score} ({count} כיסויים)",
+      "complianceValidity": "תוקף ציות: {score} ({count} מסמכים)"
     }
   }
 }

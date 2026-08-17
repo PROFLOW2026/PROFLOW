@@ -35,6 +35,11 @@ export const DOCUMENT_OWNER_TYPES = [
   'subcontract_agreement',
   'safety_record',
   'timesheet',
+  'warranty_coverage',
+  'warranty_issue',
+  'closeout',
+  'outbound_communication',
+  'calendar_event',
 ] as const;
 export type DocumentOwnerType = (typeof DOCUMENT_OWNER_TYPES)[number];
 

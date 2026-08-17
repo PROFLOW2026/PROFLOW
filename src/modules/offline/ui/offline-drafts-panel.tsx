@@ -10,6 +10,7 @@ import { getDraftQueue } from '../data/draft-queue';
 import { getDefaultAttachmentStore } from '../data/attachment-store';
 import { mirrorDraftsToLocalStorage } from '../data/queue-index';
 import type { DraftKind, OfflineDraftRecord, SyncStatus } from '../domain/types';
+import { truthfulSyncLabel } from '../domain/sync-labels';
 import { ConnectivityIndicator } from './connectivity-banner';
 import { useOfflineScope } from './use-offline-aware-form-action';
 
@@ -17,8 +18,10 @@ const KIND_ORDER: readonly DraftKind[] = [
   'expense',
   'time_entry',
   'daily_log',
+  'note',
   'punch',
   'inspection',
+  'form_submission',
   'capture',
   'change_request',
 ];
@@ -43,6 +46,7 @@ function summarizePayload(draft: OfflineDraftRecord): string {
     return `${p.amount} ${currency}`.trim();
   }
   if (typeof p.hours === 'string' && p.hours.trim()) return `${p.hours}h`;
+  if (typeof p.body === 'string' && p.body.trim()) return p.body.trim();
   return draft.localId.slice(0, 8);
 }
 
@@ -400,7 +404,7 @@ export function OfflineDraftsPanel({ organizationId }: { organizationId: string 
                       : 'text-xs font-medium text-[var(--pf-text-secondary)]'
                   }
                 >
-                  {t(`status.${draft.syncStatus}`)}
+                  {t(`truthful.${truthfulSyncLabel(draft.syncStatus)}`)}
                 </span>
               </li>
             ))}

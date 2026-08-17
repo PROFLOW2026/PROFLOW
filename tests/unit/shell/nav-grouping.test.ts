@@ -164,9 +164,11 @@ describe('nav grouping', () => {
       'clients',
       'recurringDrafts',
       'reports',
+      'cashFlow',
     ]);
     expect(groups.find((entry) => entry.group === 'operations')?.items.map((i) => i.key)).toEqual([
       'vendors',
+      'warranty',
       'vendorBills',
     ]);
     expect(groups.find((entry) => entry.group === 'advanced')?.items.map((i) => i.key)).toEqual([

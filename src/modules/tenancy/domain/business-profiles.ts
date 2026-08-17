@@ -77,6 +77,7 @@ export interface BusinessProfile {
   readonly suggestedDefaults: {
     readonly defaultWorkKind: 'project' | 'job' | 'work_order';
     readonly preferServiceSurface: boolean;
+    readonly todayEmphasis?: 'field' | 'today' | 'dashboard';
   };
 }
 
@@ -135,7 +136,7 @@ export const BUSINESS_PROFILES: readonly BusinessProfile[] = [
       { key: 'materials_gc', nameEn: 'Site materials', nameHe: 'חומרי אתר', family: 'direct_project' },
       { key: 'equipment_rental_gc', nameEn: 'Equipment rental', nameHe: 'השכרת ציוד', family: 'direct_project' },
     ]),
-    suggestedDefaults: { defaultWorkKind: 'project', preferServiceSurface: false },
+    suggestedDefaults: { defaultWorkKind: 'project', preferServiceSurface: false, todayEmphasis: 'dashboard' },
   },
   {
     key: 'RENOVATION',
@@ -166,7 +167,7 @@ export const BUSINESS_PROFILES: readonly BusinessProfile[] = [
       { key: 'demolition', nameEn: 'Demolition', nameHe: 'פירוק', family: 'direct_project' },
       { key: 'materials_reno', nameEn: 'Renovation materials', nameHe: 'חומרי שיפוץ', family: 'direct_project' },
     ]),
-    suggestedDefaults: { defaultWorkKind: 'project', preferServiceSurface: false },
+    suggestedDefaults: { defaultWorkKind: 'project', preferServiceSurface: false, todayEmphasis: 'today' },
   },
   {
     key: 'ELECTRICAL',
@@ -190,7 +191,7 @@ export const BUSINESS_PROFILES: readonly BusinessProfile[] = [
       { key: 'materials_electrical', nameEn: 'Electrical materials', nameHe: 'חומרי חשמל', family: 'direct_project' },
       { key: 'permits_electrical', nameEn: 'Electrical permits', nameHe: 'היתרי חשמל', family: 'direct_project' },
     ]),
-    suggestedDefaults: { defaultWorkKind: 'job', preferServiceSurface: false },
+    suggestedDefaults: { defaultWorkKind: 'job', preferServiceSurface: false, todayEmphasis: 'field' },
   },
   {
     key: 'PLUMBING',
@@ -214,7 +215,7 @@ export const BUSINESS_PROFILES: readonly BusinessProfile[] = [
       { key: 'materials_plumbing', nameEn: 'Plumbing materials', nameHe: 'חומרי אינסטלציה', family: 'direct_project' },
       { key: 'emergency_callout', nameEn: 'Emergency call-out', nameHe: 'קריאה דחופה', family: 'direct_project' },
     ]),
-    suggestedDefaults: { defaultWorkKind: 'job', preferServiceSurface: true },
+    suggestedDefaults: { defaultWorkKind: 'job', preferServiceSurface: true, todayEmphasis: 'field' },
   },
   {
     key: 'HVAC',
@@ -239,7 +240,7 @@ export const BUSINESS_PROFILES: readonly BusinessProfile[] = [
       { key: 'hvac_equipment', nameEn: 'HVAC equipment', nameHe: 'ציוד מיזוג', family: 'direct_project' },
       { key: 'refrigerant', nameEn: 'Refrigerant / gas', nameHe: 'גז קירור', family: 'direct_project' },
     ]),
-    suggestedDefaults: { defaultWorkKind: 'job', preferServiceSurface: true },
+    suggestedDefaults: { defaultWorkKind: 'job', preferServiceSurface: true, todayEmphasis: 'field' },
   },
   {
     key: 'MAINTENANCE',
@@ -263,7 +264,7 @@ export const BUSINESS_PROFILES: readonly BusinessProfile[] = [
       { key: 'spare_parts', nameEn: 'Spare parts', nameHe: 'חלקי חילוף', family: 'direct_project' },
       { key: 'preventive_maint', nameEn: 'Preventive maintenance', nameHe: 'תחזוקה מונעת', family: 'direct_project' },
     ]),
-    suggestedDefaults: { defaultWorkKind: 'work_order', preferServiceSurface: true },
+    suggestedDefaults: { defaultWorkKind: 'work_order', preferServiceSurface: true, todayEmphasis: 'field' },
   },
   {
     key: 'FIELD_SERVICE',
@@ -292,7 +293,7 @@ export const BUSINESS_PROFILES: readonly BusinessProfile[] = [
       { key: 'travel_field', nameEn: 'Field travel', nameHe: 'נסיעות שטח', family: 'direct_project' },
       { key: 'service_parts', nameEn: 'Service parts', nameHe: 'חלקי שירות', family: 'direct_project' },
     ]),
-    suggestedDefaults: { defaultWorkKind: 'work_order', preferServiceSurface: true },
+    suggestedDefaults: { defaultWorkKind: 'work_order', preferServiceSurface: true, todayEmphasis: 'field' },
   },
   {
     key: 'FACILITY_MANAGEMENT',
@@ -317,7 +318,7 @@ export const BUSINESS_PROFILES: readonly BusinessProfile[] = [
       { key: 'facility_supplies', nameEn: 'Facility supplies', nameHe: 'ציוד מתקנים', family: 'direct_project' },
       { key: 'site_contracts', nameEn: 'Site service contracts', nameHe: 'חוזי שירות לאתר', family: 'direct_project' },
     ]),
-    suggestedDefaults: { defaultWorkKind: 'work_order', preferServiceSurface: true },
+    suggestedDefaults: { defaultWorkKind: 'work_order', preferServiceSurface: true, todayEmphasis: 'today' },
   },
   {
     key: 'LANDSCAPING',
@@ -340,7 +341,7 @@ export const BUSINESS_PROFILES: readonly BusinessProfile[] = [
       { key: 'plants_soil', nameEn: 'Plants and soil', nameHe: 'צמחים ואדמה', family: 'direct_project' },
       { key: 'irrigation', nameEn: 'Irrigation', nameHe: 'השקיה', family: 'direct_project' },
     ]),
-    suggestedDefaults: { defaultWorkKind: 'job', preferServiceSurface: false },
+    suggestedDefaults: { defaultWorkKind: 'job', preferServiceSurface: false, todayEmphasis: 'field' },
   },
   {
     key: 'CLEANING',
@@ -367,7 +368,7 @@ export const BUSINESS_PROFILES: readonly BusinessProfile[] = [
       { key: 'cleaning_supplies', nameEn: 'Cleaning supplies', nameHe: 'חומרי ניקוי', family: 'direct_project' },
       { key: 'consumables', nameEn: 'Consumables', nameHe: 'מתכלים', family: 'direct_project' },
     ]),
-    suggestedDefaults: { defaultWorkKind: 'work_order', preferServiceSurface: true },
+    suggestedDefaults: { defaultWorkKind: 'work_order', preferServiceSurface: true, todayEmphasis: 'field' },
   },
   {
     key: 'INSTALLATION',
@@ -391,7 +392,7 @@ export const BUSINESS_PROFILES: readonly BusinessProfile[] = [
       { key: 'install_materials', nameEn: 'Installation materials', nameHe: 'חומרי התקנה', family: 'direct_project' },
       { key: 'commissioning', nameEn: 'Commissioning', nameHe: 'הפעלה והרצה', family: 'direct_project' },
     ]),
-    suggestedDefaults: { defaultWorkKind: 'job', preferServiceSurface: false },
+    suggestedDefaults: { defaultWorkKind: 'job', preferServiceSurface: false, todayEmphasis: 'field' },
   },
   {
     key: 'MIXED_PROJECT_SERVICE',
@@ -423,7 +424,7 @@ export const BUSINESS_PROFILES: readonly BusinessProfile[] = [
       { key: 'project_direct', nameEn: 'Project direct', nameHe: 'ישיר לפרויקט', family: 'direct_project' },
       { key: 'service_direct', nameEn: 'Service direct', nameHe: 'ישיר לשירות', family: 'direct_project' },
     ]),
-    suggestedDefaults: { defaultWorkKind: 'project', preferServiceSurface: true },
+    suggestedDefaults: { defaultWorkKind: 'project', preferServiceSurface: true, todayEmphasis: 'today' },
   },
   {
     key: 'SUBCONTRACTOR',
@@ -443,7 +444,7 @@ export const BUSINESS_PROFILES: readonly BusinessProfile[] = [
       { key: 'sub_labor', nameEn: 'Crew labor', nameHe: 'עבודת צוות', family: 'direct_project' },
       { key: 'materials_sub', nameEn: 'Trade materials', nameHe: 'חומרי מקצוע', family: 'direct_project' },
     ]),
-    suggestedDefaults: { defaultWorkKind: 'project', preferServiceSurface: false },
+    suggestedDefaults: { defaultWorkKind: 'project', preferServiceSurface: false, todayEmphasis: 'field' },
   },
   {
     key: 'ARCHITECT',
@@ -467,7 +468,7 @@ export const BUSINESS_PROFILES: readonly BusinessProfile[] = [
       { key: 'printing_plotting', nameEn: 'Printing / plotting', nameHe: 'הדפסות', family: 'direct_project' },
       { key: 'consultant_fees_arch', nameEn: 'Consultant fees', nameHe: 'שכר יועצים', family: 'direct_project' },
     ]),
-    suggestedDefaults: { defaultWorkKind: 'project', preferServiceSurface: false },
+    suggestedDefaults: { defaultWorkKind: 'project', preferServiceSurface: false, todayEmphasis: 'dashboard' },
   },
   {
     key: 'DESIGNER',
@@ -492,7 +493,7 @@ export const BUSINESS_PROFILES: readonly BusinessProfile[] = [
       { key: 'samples_ff_e', nameEn: 'Samples / FF&E', nameHe: 'דגימות וריהוט', family: 'direct_project' },
       { key: 'styling', nameEn: 'Styling', nameHe: 'סטיילינג', family: 'direct_project' },
     ]),
-    suggestedDefaults: { defaultWorkKind: 'job', preferServiceSurface: false },
+    suggestedDefaults: { defaultWorkKind: 'job', preferServiceSurface: false, todayEmphasis: 'today' },
   },
   {
     key: 'ENGINEERING_CONSULTANT',
@@ -515,7 +516,7 @@ export const BUSINESS_PROFILES: readonly BusinessProfile[] = [
       { key: 'engineering_reports', nameEn: 'Reports and calculations', nameHe: 'דוחות וחישובים', family: 'direct_project' },
       { key: 'site_visits_eng', nameEn: 'Site visits', nameHe: 'ביקורי אתר', family: 'direct_project' },
     ]),
-    suggestedDefaults: { defaultWorkKind: 'project', preferServiceSurface: false },
+    suggestedDefaults: { defaultWorkKind: 'project', preferServiceSurface: false, todayEmphasis: 'dashboard' },
   },
   {
     key: 'SAFETY_INSPECTION_CONSULTANT',
@@ -541,7 +542,7 @@ export const BUSINESS_PROFILES: readonly BusinessProfile[] = [
       { key: 'inspection_travel', nameEn: 'Site travel', nameHe: 'נסיעות לאתר', family: 'direct_project' },
       { key: 'safety_equipment', nameEn: 'Safety equipment', nameHe: 'ציוד בטיחות', family: 'direct_project' },
     ]),
-    suggestedDefaults: { defaultWorkKind: 'job', preferServiceSurface: true },
+    suggestedDefaults: { defaultWorkKind: 'job', preferServiceSurface: true, todayEmphasis: 'field' },
   },
   {
     key: 'PROJECT_MANAGEMENT',
@@ -561,7 +562,7 @@ export const BUSINESS_PROFILES: readonly BusinessProfile[] = [
       { key: 'pm_fees', nameEn: 'Project management fees', nameHe: 'דמי ניהול פרויקט', family: 'direct_project' },
       { key: 'coordination', nameEn: 'Coordination', nameHe: 'תיאום', family: 'direct_project' },
     ]),
-    suggestedDefaults: { defaultWorkKind: 'project', preferServiceSurface: false },
+    suggestedDefaults: { defaultWorkKind: 'project', preferServiceSurface: false, todayEmphasis: 'today' },
   },
 ];
 
@@ -622,6 +623,7 @@ export function parseTerminology(
 export interface SuggestedBusinessDefaults {
   readonly defaultWorkKind: 'project' | 'job' | 'work_order';
   readonly preferServiceSurface: boolean;
+  readonly todayEmphasis?: 'field' | 'today' | 'dashboard';
 }
 
 export function parseSuggestedDefaults(value: unknown): SuggestedBusinessDefaults | null {
@@ -629,9 +631,15 @@ export function parseSuggestedDefaults(value: unknown): SuggestedBusinessDefault
   const v = value as Record<string, unknown>;
   const kind = v.defaultWorkKind;
   if (kind !== 'project' && kind !== 'job' && kind !== 'work_order') return null;
+  const emphasis = v.todayEmphasis;
+  const todayEmphasis =
+    emphasis === 'field' || emphasis === 'today' || emphasis === 'dashboard'
+      ? emphasis
+      : undefined;
   return {
     defaultWorkKind: kind,
     preferServiceSurface: Boolean(v.preferServiceSurface),
+    ...(todayEmphasis ? { todayEmphasis } : {}),
   };
 }
 

@@ -24,7 +24,8 @@ export type SettingsSectionKey =
   | 'offlineDrafts'
   | 'banking'
   | 'ocr'
-  | 'profile';
+  | 'profile'
+  | 'integrations';
 
 export type SettingsNavGroup = 'basic' | 'business' | 'advanced' | 'developers';
 
@@ -61,6 +62,12 @@ export const SETTINGS_SECTIONS: readonly SettingsSection[] = [
   { key: 'activity', href: '/settings/activity', permission: PERMISSIONS.AUDIT_READ, group: 'advanced' },
   { key: 'offlineDrafts', href: '/settings/offline-drafts', permission: null, group: 'advanced' },
   { key: 'banking', href: '/settings/banking', permission: PERMISSIONS.BANKING_READ, group: 'advanced' },
+  {
+    key: 'integrations',
+    href: '/settings/integrations',
+    permission: PERMISSIONS.INTEGRATIONS_READ,
+    group: 'advanced',
+  },
   {
     key: 'ocr',
     href: '/settings/ocr',
@@ -149,6 +156,8 @@ export function canManageSection(context: OrgContext, sectionKey: SettingsSectio
     case 'profile':
       return false;
     case 'ocr':
+      return hasPermission(context, PERMISSIONS.SETTINGS_MANAGE);
+    case 'integrations':
       return hasPermission(context, PERMISSIONS.SETTINGS_MANAGE);
     default:
       return false;

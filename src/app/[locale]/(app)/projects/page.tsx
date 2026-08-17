@@ -9,6 +9,7 @@ import { PageHeader } from '@/components/ui/page-header';
 import { pressableCardLinkClassName, textNavLinkClassName } from '@/components/ui/pressable';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { listProjectsForOrg } from '@/modules/projects';
+import { listCloseoutStatusesForProjects } from '@/modules/closeout';
 import { titleWithDocumentNumber } from '@/modules/tenancy';
 import { SavedListViewsBar } from '@/modules/tenancy/ui/saved-list-views-bar';
 import {
@@ -59,10 +60,11 @@ function hasActiveFilters(params: { q?: string; facet: WorkListFacet }): boolean
 }
 
 export default async function ProjectsPage({ searchParams }: ProjectsPageProps) {
-  const [t, tStatus, tCommon, params, shell] = await Promise.all([
+  const [t, tStatus, tCommon, tCloseout, params, shell] = await Promise.all([
     getTranslations('projects'),
     getTranslations('status.project'),
     getTranslations('common'),
+    getTranslations('closeout'),
     searchParams,
     getShellContext(),
   ]);
@@ -72,15 +74,25 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
   const canCreate = shell?.permissions.has(PERMISSIONS.PROJECTS_CREATE) ?? false;
   const filtersActive = hasActiveFilters({ q: params.q, facet });
 
-  const projects = await withOrgContext((context) =>
-    listProjectsForOrg(context, {
+  const { projects, readyCloseoutIds } = await withOrgContext(async (context) => {
+    const listed = await listProjectsForOrg(context, {
       search: params.q,
       workKind: 'project',
       status: resolved.status,
       awaitingPayment: resolved.awaitingPayment,
       includeArchived: resolved.includeArchived,
-    }),
-  );
+    });
+    const statuses = await listCloseoutStatusesForProjects(
+      context,
+      listed.map((project) => project.id),
+    ).catch(() => []);
+    return {
+      projects: listed,
+      readyCloseoutIds: new Set(
+        statuses.filter((row) => row.status === 'ready').map((row) => row.projectId),
+      ),
+    };
+  });
 
   const noResultsQuery = params.q?.trim() || t(`list.facets.${facet}`);
 
@@ -178,7 +190,12 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
                         {project.clientName ?? t('list.columns.noClient')}
                       </TableCell>
                       <TableCell>
-                        <ProjectStatusBadge status={project.status} label={tStatus(project.status)} />
+                        <div className="flex flex-wrap items-center gap-1">
+                          <ProjectStatusBadge status={project.status} label={tStatus(project.status)} />
+                          {readyCloseoutIds.has(project.id) && project.status !== 'completed' ? (
+                            <ProjectStatusBadge status="active" label={tCloseout('badge.ready')} />
+                          ) : null}
+                        </div>
                       </TableCell>
                       <TableCell numeric>
                         {money ? <MoneyText value={money} compact /> : t('noContractValue')}
@@ -204,7 +221,12 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
                   <span className="min-w-0 flex-1 break-words font-semibold">
                     {titleWithDocumentNumber(project.name, project.documentNumber ?? '')}
                   </span>
-                  <ProjectStatusBadge status={project.status} label={tStatus(project.status)} />
+                  <div className="flex flex-col items-end gap-1">
+                    <ProjectStatusBadge status={project.status} label={tStatus(project.status)} />
+                    {readyCloseoutIds.has(project.id) && project.status !== 'completed' ? (
+                      <ProjectStatusBadge status="active" label={tCloseout('badge.ready')} />
+                    ) : null}
+                  </div>
                 </div>
                 <p className="mt-1 min-w-0 break-words text-sm text-[var(--pf-text-secondary)]">
                   {project.clientName ?? t('list.columns.noClient')}

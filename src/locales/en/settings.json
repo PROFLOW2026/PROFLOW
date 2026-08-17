@@ -27,7 +27,8 @@
     "offlineDrafts": "Offline drafts",
     "banking": "Banking",
     "ocr": "Invoice capture",
-    "profile": "Your profile"
+    "profile": "Your profile",
+    "integrations": "External connections"
   },
   "people": {
     "linkCopied": "Link copied",
@@ -122,6 +123,8 @@
   "businessProfiles": {
     "title": "Business profile",
     "subtitle": "Choose a template that fits the business. You can change everything afterward. Existing data is never deleted.",
+    "firstRunTitle": "Finish setup with a business profile",
+    "firstRunBody": "Recommended after creating the organization. Seeds modules, folders, form templates, and project templates as editable copies — never hides financial data, never enables portal.",
     "label": "Profile",
     "apply": "Apply profile",
     "saved": "Profile applied. You can change capabilities, names, and categories anytime.",
@@ -131,7 +134,16 @@
     "previewTerminology": "Display names",
     "previewQuickCreate": "Quick create",
     "previewCategories": "Suggested cost categories",
+    "previewFolders": "Suggested document folders",
+    "previewForms": "Suggested form templates",
+    "previewTemplates": "Suggested project templates",
+    "previewToday": "Today / Field emphasis",
     "previewHint": "You can change everything after applying. Existing data is never deleted.",
+    "todayEmphasis": {
+      "field": "Field cockpit",
+      "today": "Today inbox",
+      "dashboard": "Dashboard"
+    },
     "workMix": {
       "projects": "Mostly projects",
       "jobs": "Mostly jobs",
@@ -673,6 +685,38 @@
         "approved": "Subcontractor valuation approved",
         "proposed_ap": "Subcontractor valuation proposed to AP",
         "voided": "Subcontractor valuation voided"
+      },
+      "closeout": {
+        "started": "Closeout started",
+        "marked_ready": "Project marked ready to close",
+        "closed": "Project closed",
+        "reopened": "Project reopened"
+      },
+      "warranty": {
+        "created": "Warranty coverage created",
+        "updated": "Warranty coverage updated",
+        "issue_created": "Warranty issue opened",
+        "issue_resolved": "Warranty issue resolved"
+      },
+      "communication": {
+        "created": "Message draft created",
+        "queued": "Message queued",
+        "sent": "Message sent",
+        "failed": "Message send failed",
+        "cancelled": "Message cancelled"
+      },
+      "calendar_event": {
+        "created": "Calendar event created",
+        "updated": "Calendar event updated",
+        "cancelled": "Calendar event cancelled"
+      },
+      "automation_rule": {
+        "created": "Automation rule created",
+        "updated": "Automation rule updated",
+        "ran": "Automation rule ran"
+      },
+      "assistant": {
+        "conversation_created": "Assistant conversation started"
       }
     },
     "entities": {

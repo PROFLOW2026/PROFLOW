@@ -1,0 +1,62 @@
+{
+  "title": "אחריות",
+  "navLabel": "אחריות",
+  "description": "כיסוי אחריות וקריאות לאחר סיום. פרויקט סגור נשאר סגור.",
+  "list": {
+    "empty": "אין עדיין תקופות אחריות.",
+    "new": "הוספת כיסוי",
+    "openIssues": "{count, plural, one {קריאה פתוחה אחת} two {# קריאות פתוחות} other {# קריאות פתוחות}}"
+  },
+  "coverage": {
+    "title": "כיסוי",
+    "type": "סוג",
+    "types": {
+      "workmanship": "עבודה",
+      "materials": "חומרים",
+      "equipment": "ציוד",
+      "mixed": "משולב"
+    },
+    "start": "תחילה",
+    "end": "סיום",
+    "vendor": "ספק אחראי",
+    "workPackage": "תחום עבודה",
+    "reminder": "תזכורת לפני פקיעה (ימים)",
+    "notes": "הערות",
+    "status": {
+      "scheduled": "מתוכנן",
+      "active": "בתוקף",
+      "expired": "פג תוקף",
+      "void": "מבוטל"
+    }
+  },
+  "issue": {
+    "title": "קריאת אחריות",
+    "new": "פתיחת קריאת אחריות",
+    "createWorkOrder": "יצירת קריאת שירות",
+    "linkedWorkOrder": "קריאת שירות מקושרת",
+    "status": {
+      "open": "פתוחה",
+      "in_progress": "בטיפול",
+      "resolved": "טופלה",
+      "cancelled": "בוטלה"
+    },
+    "reported": "נפתחה",
+    "resolved": "טופלה",
+    "empty": "אין קריאות אחריות בכיסוי הזה."
+  },
+  "actions": {
+    "save": "שמירה",
+    "void": "ביטול כיסוי",
+    "resolve": "סימון כטופל",
+    "saved": "נשמר.",
+    "created": "הכיסוי נוצר.",
+    "issueCreated": "קריאת אחריות נפתחה.",
+    "workOrderCreated": "נוצרה קריאת שירות. הפרויקט נשאר סגור."
+  },
+  "errors": {
+    "projectRequired": "חובה לבחור פרויקט.",
+    "dates": "תאריך הסיום לא יכול להיות לפני תאריך ההתחלה.",
+    "clientRequired": "חובה לקוח כדי לפתוח קריאת שירות.",
+    "projectStaysClosed": "הפרויקט המקורי נשאר סגור."
+  }
+}

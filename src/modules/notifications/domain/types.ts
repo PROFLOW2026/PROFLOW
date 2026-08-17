@@ -19,6 +19,10 @@ export const NOTIFICATION_EVENT_TYPES = [
   'punch_assigned',
   'low_stock',
   'safety_action_due',
+  'warranty_expiring',
+  'closeout_blockers',
+  'communication_failed',
+  'automation_output',
 ] as const;
 export type NotificationEventType = (typeof NOTIFICATION_EVENT_TYPES)[number];
 
@@ -34,6 +38,10 @@ export const NOTIFICATION_DOMAINS = [
   'field_ops',
   'inventory',
   'safety',
+  'warranty',
+  'closeout',
+  'communications',
+  'automations',
 ] as const;
 export type NotificationDomain = (typeof NOTIFICATION_DOMAINS)[number];
 
@@ -51,6 +59,10 @@ export const EVENT_DOMAIN: Readonly<Record<NotificationEventType, NotificationDo
   punch_assigned: 'field_ops',
   low_stock: 'inventory',
   safety_action_due: 'safety',
+  warranty_expiring: 'warranty',
+  closeout_blockers: 'closeout',
+  communication_failed: 'communications',
+  automation_output: 'automations',
 };
 
 export function isNotificationSeverity(value: string): value is NotificationSeverity {

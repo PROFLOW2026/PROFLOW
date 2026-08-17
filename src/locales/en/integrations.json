@@ -1,0 +1,33 @@
+{
+  "title": "External connections",
+  "description": "Foundation for future accounting and other connections. Nothing is connected yet.",
+  "status": {
+    "unconfigured": "Not connected",
+    "disconnected": "Disconnected",
+    "error": "Error"
+  },
+  "kinds": {
+    "accounting": "Accounting",
+    "calendar": "Calendar",
+    "email": "Email",
+    "other": "Other"
+  },
+  "empty": {
+    "title": "No live connection",
+    "body": "ProjectFlow does not issue tax invoices and is not connected to an accounting system. This page is a future connection area only."
+  },
+  "notice": "Do not treat this as a connected accounting product. Provider choice is an owner decision later.",
+  "neverConnected": "Not connected. Future connection only — no live accounting API and no tax invoice issuance.",
+  "providers": {
+    "hashavshevet": "Hashavshevet",
+    "priority": "Priority",
+    "icount": "iCount",
+    "morning": "Morning",
+    "green_invoice": "Green Invoice",
+    "quickbooks": "QuickBooks",
+    "xero": "Xero"
+  },
+  "errors": {
+    "neverConnected": "This execution does not report a connected accounting system."
+  }
+}

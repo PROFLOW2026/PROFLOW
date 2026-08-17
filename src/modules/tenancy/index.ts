@@ -79,6 +79,15 @@ export type {
   SuggestedBusinessDefaults,
 } from './domain/business-profiles';
 export {
+  TODAY_EMPHASIS_SETTING_KEY,
+  getBusinessProfileSetup,
+  parseTodayEmphasis,
+} from './domain/business-profile-setup';
+export type {
+  BusinessProfileSetupSuggestions,
+  TodayEmphasis,
+} from './domain/business-profile-setup';
+export {
   applyProfessionPreset,
   suggestedWorkPackageNames,
 } from './application/apply-profession-preset';
@@ -90,6 +99,7 @@ export {
   getSuggestedDefaultsForOrg,
   orderQuickCreateActions,
 } from './application/apply-business-profile';
+export { seedBusinessProfileSetup } from './application/seed-business-profile-setup';
 export { applyOrganizationProfessionPreset } from './application/apply-organization-profession-preset';
 export { applyOrganizationBusinessProfile } from './application/apply-organization-business-profile';
 export {

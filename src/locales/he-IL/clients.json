@@ -53,6 +53,10 @@
   "detail": {
     "title": "פרופיל לקוח",
     "projectsSection": "פרויקטים",
+    "relatedSection": "קשור",
+    "communications": "הודעות",
+    "warrantyHistory": "אחריות ושירות",
+    "noRelated": "אין היסטוריה נוספת עדיין.",
     "projectsCount": "{count, plural, one {פרויקט אחד} two {שני פרויקטים} other {# פרויקטים}}",
     "noProjects": "אין פרויקטים מקושרים עדיין",
     "companyPhoneLabel": "טלפון החברה",

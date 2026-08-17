@@ -24,6 +24,13 @@ import { listInspectionsForOrg, listPunchListItemsForOrg } from '@/modules/field
 import { listSafetyRecordsForOrg } from '@/modules/safety';
 import { listRecurringDraftsForOrg } from '@/modules/recurring-drafts/application/queries';
 import { ANY_DRAFT_ACCESS_PERMISSIONS } from '@/modules/recurring-drafts/domain/permissions';
+import {
+  collectAutomationFollowups,
+  collectCashFlowRisk,
+  collectCloseoutBlockers,
+  collectFailedCommunications,
+  collectWarrantyExpiring,
+} from './collect-next-gen';
 import { fromNumericString, isPositiveMoney, isZeroMoney } from '@/shared/money';
 import type { OrgContext } from '@/shared/auth/context';
 import { hasAnyPermission, hasPermission } from '@/shared/permissions/assert';
@@ -1101,6 +1108,11 @@ export async function collectAllSources(ctx: CollectContext): Promise<CommandCen
     collectOpenInspections,
     collectRecurringDraftIssues,
     collectMissingTimesheets,
+    collectCloseoutBlockers,
+    collectWarrantyExpiring,
+    collectCashFlowRisk,
+    collectAutomationFollowups,
+    collectFailedCommunications,
   ];
 
   const settled = await Promise.allSettled(collectors.map((fn) => fn(ctx)));

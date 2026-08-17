@@ -22,3 +22,4 @@ export { PwaBootstrap } from './ui/pwa-bootstrap';
 export { PwaInstallCta } from './ui/pwa-install-cta';
 export { PwaInstallPanel } from './ui/pwa-install-panel';
 export { usePwaInstall } from './ui/use-pwa-install';
+export { enqueueProductDraft } from './data/enqueue-product-draft';

@@ -24,6 +24,20 @@ export {
 } from './domain/types';
 
 export {
+  TRUTHFUL_SYNC_LABELS,
+  truthfulSyncLabel,
+  type TruthfulSyncLabel,
+} from './domain/sync-labels';
+
+export {
+  OFFLINE_FORBIDDEN_FINANCIAL_ACTIONS,
+  OfflineFinancialGuardError,
+  assertOfflineDraftAllowed,
+  isOfflineFinancialFinalization,
+} from './domain/financial-guard';
+export type { OfflineForbiddenFinancialAction } from './domain/financial-guard';
+
+export {
   applyConflictResolution,
   assertNeverSilentOverwrite,
   canPrepareServerMutation,
@@ -151,6 +165,7 @@ export {
   dailyLogPayloadFromFormData,
   punchPayloadFromFormData,
   inspectionPayloadFromFormData,
+  notePayloadFromFormData,
   payloadBuilderForKind,
   type ExpenseDraftPayload,
   type TimeEntryDraftPayload,
@@ -158,4 +173,5 @@ export {
   type DailyLogDraftPayload,
   type PunchDraftPayload,
   type InspectionDraftPayload,
+  type NoteDraftPayload,
 } from './domain/payloads';

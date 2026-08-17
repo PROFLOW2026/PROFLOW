@@ -61,6 +61,7 @@ export function ApBillCreateForm({
   projects,
   purchaseOrders,
   poLinesByPoId,
+  defaultPurchaseOrderId = '',
 }: {
   defaultCurrency: string;
   vendors: readonly { id: string; name: string }[];
@@ -70,14 +71,16 @@ export function ApBillCreateForm({
     string,
     readonly { id: string; description: string; lineTotal: string; currency: string }[]
   >;
+  defaultPurchaseOrderId?: string;
 }) {
   const t = useTranslations('ap.create');
   const tCommon = useTranslations('common');
   const [state, formAction, pending] = useActionState<ApFormState, FormData>(createApBillAction, {});
 
-  const [vendorId, setVendorId] = useState('');
+  const initialPo = purchaseOrders.find((po) => po.id === defaultPurchaseOrderId) ?? null;
+  const [vendorId, setVendorId] = useState(initialPo?.vendorId ?? '');
   const [projectId, setProjectId] = useState('');
-  const [purchaseOrderId, setPurchaseOrderId] = useState('');
+  const [purchaseOrderId, setPurchaseOrderId] = useState(initialPo?.id ?? '');
   const [lines, setLines] = useState<LineDraft[]>([emptyLine()]);
   const currency = defaultCurrency;
 

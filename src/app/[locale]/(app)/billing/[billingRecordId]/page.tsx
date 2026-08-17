@@ -24,6 +24,7 @@ import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { Link } from '@/shared/i18n/navigation';
 import { formatBusinessDate } from '@/shared/dates/format';
 import { notFound } from 'next/navigation';
+import { PrepareMessageLink } from '@/modules/communications/ui/prepare-message-link';
 
 export async function generateMetadata({
   params,
@@ -88,6 +89,13 @@ export default async function BillingDetailPage({
                 </Link>
               </Button>
             ) : null}
+            <PrepareMessageLink
+              entityType="billing_record"
+              entityId={record.id}
+              projectId={record.projectId}
+              clientId={record.clientId}
+              subject={record.reference}
+            />
             <BillingDetailActions
               billingRecordId={record.id}
               canManage={canManage}

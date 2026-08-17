@@ -108,6 +108,45 @@ describe('command center ranking', () => {
     expect(assertSafeItemStateTransition('vendor_bill_approaching', 'dismissed').ok).toBe(false);
   });
 
+  it('ranks next-gen sources and keeps cash-flow risk financial', () => {
+    expect(SOURCE_DEFAULT_SEVERITY.closeout_blockers).toBe('high');
+    expect(SOURCE_DEFAULT_SEVERITY.warranty_expiring).toBe('medium');
+    expect(SOURCE_DEFAULT_SEVERITY.cash_flow_risk).toBe('critical');
+    expect(SOURCE_DEFAULT_SEVERITY.automation_followup).toBe('medium');
+    expect(SOURCE_DEFAULT_SEVERITY.communication_failed).toBe('high');
+
+    expect(isFinancialSourceType('cash_flow_risk')).toBe(true);
+    expect(isFinancialSourceType('closeout_blockers')).toBe(false);
+    expect(isFinancialSourceType('warranty_expiring')).toBe(false);
+    expect(isFinancialSourceType('automation_followup')).toBe(false);
+    expect(isFinancialSourceType('communication_failed')).toBe(false);
+
+    const cash = withItemDefaults({
+      sourceType: 'cash_flow_risk',
+      sourceId: 'org-1',
+      what: 'Review',
+      why: 'Overdue',
+      where: 'Cash flow',
+      href: '/cash-flow',
+    });
+    expect(cash.allowHandle).toBe(false);
+    expect(cash.isFinancial).toBe(true);
+    expect(assertSafeItemStateTransition('cash_flow_risk', 'dismissed').ok).toBe(false);
+    expect(assertSafeItemStateTransition('cash_flow_risk', 'handled').ok).toBe(false);
+    expect(assertSafeItemStateTransition('closeout_blockers', 'handled').ok).toBe(true);
+
+    const closeout = withItemDefaults({
+      sourceType: 'closeout_blockers',
+      sourceId: 'c1',
+      what: 'Finish',
+      why: 'Blocked',
+      where: 'Project A',
+      href: '/projects/p1?tab=closeout',
+    });
+    const sorted = sortCommandCenterItems([closeout, cash]);
+    expect(sorted[0]?.sourceType).toBe('cash_flow_risk');
+  });
+
   it('groups inbox items by severity and hides empty sections', () => {
     const critical = withItemDefaults({
       sourceType: 'overdue_ar',

@@ -26,7 +26,7 @@ describe('org structure templates', () => {
     ]);
   });
 
-  it('clones apply payload without shared refs', () => {
+  it('clones apply payload without shared refs and defaults additive fields', () => {
     const bag = parseOrgStructureTemplatesBag({
       projectTemplates: [
         {
@@ -39,8 +39,11 @@ describe('org structure templates', () => {
       ],
     });
     const template = bag.projectTemplates[0]!;
+    expect(template.documentFolders).toEqual([]);
+    expect(template.closeoutRequirementKeys).toEqual([]);
     const copy = cloneOrgStructureTemplateForApply(template);
     expect(copy.workPackages[0]).not.toBe(template.workPackages[0]);
+    expect(copy.documentFolders).not.toBe(template.documentFolders);
     expect(previewOrgStructureTemplate(template).workPackageNames).toEqual(['Electrical']);
   });
 });

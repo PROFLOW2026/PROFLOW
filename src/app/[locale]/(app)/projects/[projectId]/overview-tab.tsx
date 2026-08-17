@@ -22,6 +22,7 @@ import { ProjectWorkspaceNav } from './project-workspace-nav';
 import { ProjectEarlyWarningsPanel, ProjectEarlyWarningsFallback } from './overview-early-warnings';
 import { ProjectOverviewLatest } from './overview-latest';
 import { ProjectContractsPanel } from '@/modules/projects/ui/project-contracts-panel';
+import { OverviewNextGenPanel } from './overview-next-gen';
 import { ScheduleSummaryPanel } from './schedule-summary-panel';
 import { textNavLinkClassName } from '@/components/ui/pressable';
 import { cn } from '@/shared/ui/cn';
@@ -238,6 +239,13 @@ export async function OverviewTab({
 
       {canReadFinancials && !isJob ? (
         <ProjectContractsPanel projectId={detail.project.id} currency={currency} />
+      ) : null}
+
+      {!isJob ? (
+        <OverviewNextGenPanel
+          projectId={detail.project.id}
+          canReadFinancials={canReadFinancials}
+        />
       ) : null}
     </div>
   );

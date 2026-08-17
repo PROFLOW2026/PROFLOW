@@ -28,7 +28,11 @@
     "work_order_assigned": "שובצת לקריאת שירות",
     "punch_assigned": "שובצת לליקוי",
     "low_stock": "מלאי נמוך",
-    "safety_action_due": "פעולת בטיחות לטיפול"
+    "safety_action_due": "פעולת בטיחות לטיפול",
+    "warranty_expiring": "אחריות שעומדת לפוג",
+    "closeout_blockers": "סגירת פרויקט חסומה",
+    "communication_failed": "הודעה לא נשלחה",
+    "automation_output": "מעקב אוטומציה"
   },
   "viewAll": "כל ההתראות",
   "scan": "רענון",

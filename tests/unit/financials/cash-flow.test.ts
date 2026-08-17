@@ -79,7 +79,7 @@ describe('incoming cash outlook (Forecast)', () => {
     expect(outlook.forecastBuckets.every((b) => b.expectedIn.amount === '0.000000')).toBe(true);
   });
 
-  it('buckets next_30 and later distinctly', () => {
+  it('buckets next_30, next_60, next_90, and later distinctly', () => {
     const outlook = computeIncomingCashOutlook(
       [
         record({
@@ -92,6 +92,16 @@ describe('incoming cash outlook (Forecast)', () => {
           dueDate: businessDate('2026-10-01'),
           outstandingAmount: money('75', 'ILS'),
         }),
+        record({
+          id: '3',
+          dueDate: businessDate('2026-11-01'),
+          outstandingAmount: money('20', 'ILS'),
+        }),
+        record({
+          id: '4',
+          dueDate: businessDate('2026-12-15'),
+          outstandingAmount: money('30', 'ILS'),
+        }),
       ],
       'ILS',
       businessDate('2026-08-09'),
@@ -100,8 +110,14 @@ describe('incoming cash outlook (Forecast)', () => {
     expect(outlook.forecastBuckets.find((b) => b.key === 'next_30')?.expectedIn.amount).toBe(
       '50.000000',
     );
-    expect(outlook.forecastBuckets.find((b) => b.key === 'later')?.expectedIn.amount).toBe(
+    expect(outlook.forecastBuckets.find((b) => b.key === 'next_60')?.expectedIn.amount).toBe(
       '75.000000',
+    );
+    expect(outlook.forecastBuckets.find((b) => b.key === 'next_90')?.expectedIn.amount).toBe(
+      '20.000000',
+    );
+    expect(outlook.forecastBuckets.find((b) => b.key === 'later')?.expectedIn.amount).toBe(
+      '30.000000',
     );
   });
 

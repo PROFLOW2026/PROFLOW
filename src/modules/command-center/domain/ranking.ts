@@ -40,6 +40,11 @@ export const SOURCE_DEFAULT_SEVERITY: Record<CommandCenterSourceType, CommandCen
   expiring_compliance: 'medium',
   overdue_maintenance: 'medium',
   stale_project: 'low',
+  closeout_blockers: 'high',
+  warranty_expiring: 'medium',
+  cash_flow_risk: 'critical',
+  automation_followup: 'medium',
+  communication_failed: 'high',
 };
 
 export const INBOX_SECTION_ORDER = ['critical', 'high', 'medium', 'low'] as const;

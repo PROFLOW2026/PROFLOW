@@ -1,7 +1,7 @@
 'use client';
 
 import { ChevronRight } from 'lucide-react';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { useActionState, useMemo, useState } from 'react';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -11,6 +11,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { pickPracticalClientContact } from '@/modules/clients/domain/practical-contact';
 import type { ClientContactRecord } from '@/modules/clients/domain/types';
+import {
+  PROJECT_TEMPLATE_KEYS,
+  previewProjectTemplate,
+  type ProjectTemplateKey,
+} from '@/modules/projects/domain/templates';
 import { ContractAmountFields } from '@/modules/projects/ui/contract-amount-fields';
 import { rtlFlipClassName } from '@/shared/i18n/ltr-island';
 import { createProjectAction, type ProjectFormState } from '../actions';
@@ -62,6 +67,7 @@ export function ProjectCreateForm({
 }: ProjectCreateFormProps) {
   const t = useTranslations('projects');
   const tCommon = useTranslations('common');
+  const locale = useLocale() === 'he-IL' ? 'he-IL' : 'en';
   const [state, formAction, pending] = useActionState<ProjectFormState, FormData>(
     createProjectAction,
     {},
@@ -71,15 +77,68 @@ export function ProjectCreateForm({
   const [contactMode, setContactMode] = useState<ContactMode>('none');
   const [selectedContactId, setSelectedContactId] = useState<string>('');
   const [showMore, setShowMore] = useState(false);
+  const [templateKey, setTemplateKey] = useState<string>('none');
 
   const selectedClient = useMemo(
     () => clients.find((client) => client.id === selectedClientId) ?? null,
     [clients, selectedClientId],
   );
+  const templatePreview = useMemo(
+    () =>
+      templateKey !== 'none'
+        ? previewProjectTemplate(templateKey as ProjectTemplateKey, locale)
+        : null,
+    [templateKey, locale],
+  );
 
   return (
     <form action={formAction} className="mx-auto flex w-full min-w-0 max-w-lg flex-col gap-4">
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
+
+      <Field
+        label={t('create.fromTemplate')}
+        optionalLabel={tCommon('labels.optional')}
+        description={t('create.templateHint')}
+      >
+        {(control) => (
+          <>
+            <input type="hidden" name="templateKey" value={templateKey} />
+            <Select value={templateKey} onValueChange={setTemplateKey}>
+              <SelectTrigger id={control.id} aria-describedby={control['aria-describedby']}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">{t('create.templateNone')}</SelectItem>
+                {PROJECT_TEMPLATE_KEYS.map((key) => (
+                  <SelectItem key={key} value={key}>
+                    {t(`templates.keys.${key}`)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </>
+        )}
+      </Field>
+
+      {templatePreview ? (
+        <div className="rounded-md border border-[var(--pf-border-default)] p-3 text-sm text-[var(--pf-text-secondary)]">
+          <p>{templatePreview.description}</p>
+          <p className="mt-2">
+            <span className="font-medium text-[var(--pf-text-primary)]">
+              {t('templates.previewPackages')}:{' '}
+            </span>
+            {templatePreview.workPackageNames.join(', ')}
+          </p>
+          {templatePreview.folderNames.length > 0 ? (
+            <p className="mt-1">
+              <span className="font-medium text-[var(--pf-text-primary)]">
+                {t('templates.previewFolders')}:{' '}
+              </span>
+              {templatePreview.folderNames.join(', ')}
+            </p>
+          ) : null}
+        </div>
+      ) : null}
 
       <Field label={t('create.nameLabel')} required error={state.fieldErrors?.name}>
         {(control) => (

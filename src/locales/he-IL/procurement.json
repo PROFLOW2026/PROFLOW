@@ -59,7 +59,9 @@
   "detail": {
     "title": "הזמנת רכש",
     "description": "התחייבות רכש מול ספק. ניתן לצרף מסמכים תומכים בלי להתייחס לכך כהוצאה.",
-    "linesTitle": "שורות"
+    "linesTitle": "שורות",
+    "createVendorBill": "יצירת חשבונית ספק",
+    "openVendor": "פתיחת ספק"
   },
   "statuses": {
     "draft": "טיוטה",

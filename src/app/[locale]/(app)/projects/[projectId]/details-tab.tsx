@@ -14,8 +14,11 @@ import type { ProjectDetail } from '@/modules/projects/application/get-project-d
 import { ContractAmountFields } from '@/modules/projects/ui/contract-amount-fields';
 import { type CustomFieldValueView } from '@/modules/custom-fields/domain/types';
 import { EntityCustomFieldsPanel } from '@/modules/custom-fields/ui';
+import { Link } from '@/shared/i18n/navigation';
 import { upsertEntityFieldValueAction } from '../../settings/custom-fields/actions';
 import { updateProjectAction, type ProjectFormState } from '../actions';
+import { textNavLinkClassName } from '@/components/ui/pressable';
+import { cn } from '@/shared/ui/cn';
 
 type ContactMode = 'none' | 'existing' | 'new';
 
@@ -102,10 +105,15 @@ export function DetailsTab({
 
   const currency = detail.contract?.currency ?? project.currency ?? baseCurrency;
   const fieldsRevalidatePath = customFieldsRevalidatePath ?? `/projects/${project.id}`;
+  const isClassicProject = project.workKind === 'project';
+  const [statusValue, setStatusValue] = useState(project.status);
 
   return (
     <>
-      <form action={formAction} className="mx-auto flex max-w-xl flex-col gap-4">
+      <form
+        action={formAction}
+        className="mx-auto flex max-w-xl flex-col gap-4"
+      >
         <input type="hidden" name="projectId" value={project.id} />
         {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
 
@@ -114,21 +122,46 @@ export function DetailsTab({
         </Field>
 
         <Field label={t('statusLabel')}>
-          {(control) => (
-            <Select name="status" defaultValue={project.status}>
-              <SelectTrigger id={control.id}>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {PROJECT_STATUSES.filter((status) => status !== 'archived').map((status) => (
-                  <SelectItem key={status} value={status}>
-                    {tStatus(status)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
+          {(control) =>
+            isClassicProject && project.status === 'completed' ? (
+              <>
+                <input type="hidden" name="status" value="completed" />
+                <p id={control.id} className="text-sm">
+                  {tStatus('closed')}
+                </p>
+              </>
+            ) : (
+              <Select
+                name="status"
+                value={statusValue}
+                onValueChange={(value) => setStatusValue(value as (typeof PROJECT_STATUSES)[number])}
+              >
+                <SelectTrigger id={control.id}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {PROJECT_STATUSES.filter((status) => {
+                    if (status === 'archived') return false;
+                    if (isClassicProject && status === 'completed') return false;
+                    return true;
+                  }).map((status) => (
+                    <SelectItem key={status} value={status}>
+                      {tStatus(status)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )
+          }
         </Field>
+        {isClassicProject ? (
+          <p className="text-sm text-[var(--pf-text-secondary)]">
+            {project.status === 'completed' ? t('closeoutClosedHint') : t('closeoutUseTab')}{' '}
+            <Link href={`/projects/${project.id}?tab=closeout`} className={cn(textNavLinkClassName, 'text-sm')}>
+              {t('closeoutTabLink')}
+            </Link>
+          </p>
+        ) : null}
 
         <Field label={t('clientLabel')} optionalLabel={tCommon('labels.optional')}>
           {(control) => (

@@ -21,6 +21,8 @@ describe('project tab business priority', () => {
       'schedule',
       'work',
       'documents',
+      'closeout',
+      'warranty',
       'details',
     ]);
     expect(PROJECT_TAB_PRIORITY.indexOf('team')).toBeLessThan(
@@ -48,6 +50,8 @@ describe('project tab business priority', () => {
       documents: true,
       usage: true,
       work: true,
+      closeout: true,
+      warranty: true,
     });
 
     expect(tabs).toEqual([...PROJECT_TAB_PRIORITY]);
@@ -74,6 +78,8 @@ describe('project tab business priority', () => {
         documents: false,
         usage: false,
         work: false,
+        closeout: false,
+        warranty: false,
       }),
     ).toEqual(['overview', 'details']);
   });
@@ -95,6 +101,8 @@ describe('project tab business priority', () => {
       documents: false,
       usage: false,
       work: false,
+      closeout: false,
+      warranty: false,
     });
     expect(tabs[0]).toBe('overview');
     expect(tabs).toEqual(['overview', 'financials', 'expenses', 'details']);

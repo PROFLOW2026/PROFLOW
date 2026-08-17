@@ -379,6 +379,34 @@
                         "when":  1786560800000,
                         "tag":  "0054_product_experience",
                         "breakpoints":  true
+                    },
+                    {
+                        "idx":  54,
+                        "version":  "7",
+                        "when":  1786560900000,
+                        "tag":  "0055_next_gen_permissions",
+                        "breakpoints":  true
+                    },
+                    {
+                        "idx":  55,
+                        "version":  "7",
+                        "when":  1786561000000,
+                        "tag":  "0056_closeout_warranty",
+                        "breakpoints":  true
+                    },
+                    {
+                        "idx":  56,
+                        "version":  "7",
+                        "when":  1786561100000,
+                        "tag":  "0057_communications_calendar",
+                        "breakpoints":  true
+                    },
+                    {
+                        "idx":  57,
+                        "version":  "7",
+                        "when":  1786561200000,
+                        "tag":  "0058_automations_integrations_assistant",
+                        "breakpoints":  true
                     }
                 ]
 }

@@ -16,6 +16,11 @@ export const DRAFT_KINDS = [
   'inspection',
   /** Field form draft / submission sync candidate. */
   'form_submission',
+  /**
+   * Field note candidate. Syncs as a daily-log create when project+date exist.
+   * Not a clock-in / attendance post - those stay online-only.
+   */
+  'note',
   /** Photo / document capture waiting for upload (blob stored separately). */
   'capture',
 ] as const;

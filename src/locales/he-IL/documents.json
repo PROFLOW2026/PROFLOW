@@ -43,7 +43,12 @@
     "work_order": "קריאת שירות",
     "subcontract_agreement": "הסכם קבלן משנה",
     "safety_record": "רישום בטיחות",
-    "timesheet": "גיליון שעות"
+    "timesheet": "גיליון שעות",
+    "warranty_coverage": "כיסוי אחריות",
+    "warranty_issue": "קריאת אחריות",
+    "closeout": "סגירת פרויקט",
+    "outbound_communication": "הודעה יוצאת",
+    "calendar_event": "אירוע ביומן"
   },
   "status": {
     "pending": "ממתין להעלאה",

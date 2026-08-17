@@ -235,7 +235,7 @@ export type {
 } from './validation/schemas';
 
 /** Cross-module org-scoped lookups (FK / tenancy guards). */
-export { findProjectById } from './data/projects.repository';
+export { findProjectById, updateProjectById } from './data/projects.repository';
 export {
   findContractById,
   findPrimaryContractByProject,

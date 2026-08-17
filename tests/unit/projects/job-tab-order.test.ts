@@ -66,6 +66,8 @@ describe('job tab priority', () => {
         documents: true,
         usage: true,
         work: true,
+        closeout: true,
+        warranty: true,
       }),
     ).toEqual([...PROJECT_TAB_PRIORITY]);
   });

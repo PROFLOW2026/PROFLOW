@@ -19,6 +19,7 @@ import {
   parseTerminology,
   type SuggestedBusinessDefaults,
 } from '../domain/business-profiles';
+import { seedBusinessProfileSetup } from './seed-business-profile-setup';
 import { WORK_MIX_SETTING_KEY } from '../domain/work-mix';
 
 /**
@@ -86,6 +87,8 @@ export async function applyBusinessProfileConfig(
       })
       .onConflictDoNothing();
   }
+
+  await seedBusinessProfileSetup(db, organizationId, profileKey, locale);
 
   return { applied: true, profileKey };
 }

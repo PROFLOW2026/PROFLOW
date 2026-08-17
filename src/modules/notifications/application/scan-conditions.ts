@@ -35,9 +35,13 @@ import {
   SCAN_SOURCE_CAP,
   listAssignedPunchItems,
   listAssignedWorkOrders,
+  listAutomationFollowups,
   listClosedAssignedPunchIds,
   listClosedAssignedWorkOrderIds,
+  listCloseoutBlockers,
   listExpiringDocuments,
+  listExpiringWarranties,
+  listFailedCommunications,
   listLowStockItems,
   listOverduePlanningTasks,
   listOverdueSafetyActions,
@@ -424,6 +428,105 @@ async function scanSafety(ctx: ScannerContext): Promise<{ emitted: number; resol
   return { emitted, resolved };
 }
 
+async function scanWarrantyExpiring(ctx: ScannerContext): Promise<{ emitted: number; resolved: number }> {
+  if (!hasPermission(ctx.context, PERMISSIONS.PROJECTS_READ)) {
+    return { emitted: 0, resolved: 0 };
+  }
+  const entities = await listExpiringWarranties(
+    ctx.context.db,
+    ctx.context.organizationId,
+    ctx.today,
+    ctx.cap,
+  );
+  const emitted = await emitLive(
+    ctx,
+    'warranty_expiring',
+    'warranty_coverage',
+    'warning',
+    entities,
+    (entity) => permissionRecipients(ctx, PERMISSIONS.PROJECTS_UPDATE, entity),
+  );
+  const resolved = await resolveStaleForType(
+    ctx,
+    'warranty_expiring',
+    new Set(entities.map((row) => row.id)),
+  );
+  return { emitted, resolved };
+}
+
+async function scanCloseoutBlockers(ctx: ScannerContext): Promise<{ emitted: number; resolved: number }> {
+  if (!hasPermission(ctx.context, PERMISSIONS.PROJECTS_READ)) {
+    return { emitted: 0, resolved: 0 };
+  }
+  const entities = await listCloseoutBlockers(ctx.context.db, ctx.context.organizationId, ctx.cap);
+  const emitted = await emitLive(
+    ctx,
+    'closeout_blockers',
+    'closeout',
+    'warning',
+    entities,
+    (entity) => permissionRecipients(ctx, PERMISSIONS.PROJECTS_UPDATE, entity),
+  );
+  const resolved = await resolveStaleForType(
+    ctx,
+    'closeout_blockers',
+    new Set(entities.map((row) => row.id)),
+  );
+  return { emitted, resolved };
+}
+
+async function scanCommunicationFailed(
+  ctx: ScannerContext,
+): Promise<{ emitted: number; resolved: number }> {
+  if (!hasPermission(ctx.context, PERMISSIONS.COMMUNICATIONS_READ)) {
+    return { emitted: 0, resolved: 0 };
+  }
+  const entities = await listFailedCommunications(
+    ctx.context.db,
+    ctx.context.organizationId,
+    ctx.cap,
+  );
+  const emitted = await emitLive(
+    ctx,
+    'communication_failed',
+    'outbound_communication',
+    'warning',
+    entities,
+    (entity) => permissionRecipients(ctx, PERMISSIONS.COMMUNICATIONS_MANAGE, entity),
+  );
+  const resolved = await resolveStaleForType(
+    ctx,
+    'communication_failed',
+    new Set(entities.map((row) => row.id)),
+  );
+  return { emitted, resolved };
+}
+
+async function scanAutomationOutputs(ctx: ScannerContext): Promise<{ emitted: number; resolved: number }> {
+  if (!hasPermission(ctx.context, PERMISSIONS.AUTOMATIONS_READ)) {
+    return { emitted: 0, resolved: 0 };
+  }
+  const entities = await listAutomationFollowups(
+    ctx.context.db,
+    ctx.context.organizationId,
+    ctx.cap,
+  );
+  const emitted = await emitLive(
+    ctx,
+    'automation_output',
+    'automation_run',
+    'warning',
+    entities,
+    (entity) => permissionRecipients(ctx, PERMISSIONS.AUTOMATIONS_MANAGE, entity),
+  );
+  const resolved = await resolveStaleForType(
+    ctx,
+    'automation_output',
+    new Set(entities.map((row) => row.id)),
+  );
+  return { emitted, resolved };
+}
+
 const SCANNERS: readonly {
   readonly key: string;
   readonly run: (ctx: ScannerContext) => Promise<{ emitted: number; resolved: number }>;
@@ -439,6 +542,10 @@ const SCANNERS: readonly {
   { key: 'punch_assigned', run: scanPunchAssigned },
   { key: 'low_stock', run: scanLowStock },
   { key: 'safety_action_due', run: scanSafety },
+  { key: 'warranty_expiring', run: scanWarrantyExpiring },
+  { key: 'closeout_blockers', run: scanCloseoutBlockers },
+  { key: 'communication_failed', run: scanCommunicationFailed },
+  { key: 'automation_output', run: scanAutomationOutputs },
 ];
 
 export async function runNotificationScan(

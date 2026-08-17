@@ -5,7 +5,9 @@
     "on_hold": "On hold",
     "completed": "Completed",
     "cancelled": "Cancelled",
-    "archived": "Archived"
+    "archived": "Archived",
+    "ready_to_close": "Ready to close",
+    "closed": "Closed"
   },
   "change": {
     "draft": "Draft",

@@ -27,8 +27,14 @@ function CountryLabel({ code }: { code: (typeof COUNTRY_CODES)[number] }) {
   return t(`countries.${code}`);
 }
 
+/**
+ * Required step: name + country.
+ * Recommended next step: business profile + work mix (skippable).
+ */
 export function OnboardingForm() {
   const t = useTranslations('auth.onboarding');
+  const [step, setStep] = useState<'required' | 'recommended'>('required');
+  const [name, setName] = useState('');
   const [country, setCountry] = useState<(typeof COUNTRY_CODES)[number]>('IL');
   const [preset, setPreset] = useState<string>('none');
   const [workMix, setWorkMix] = useState<WorkMix>('projects');
@@ -37,21 +43,33 @@ export function OnboardingForm() {
     {},
   );
 
-  return (
-    <form action={formAction} className="flex w-full min-w-0 flex-col gap-4">
-      {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
+  if (step === 'required') {
+    return (
+      <div className="flex w-full min-w-0 flex-col gap-4">
+        {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
 
-      <Field label={t('organizationName')} required>
-        {(control) => (
-          <Input {...control} name="name" placeholder={t('organizationNamePlaceholder')} autoFocus required />
-        )}
-      </Field>
+        <p className="text-sm font-medium text-[var(--pf-text-primary)]">{t('stepRequired')}</p>
 
-      <Field label={t('country')} required description={t('countryHint')}>
-        {(control) => (
-          <>
-            <input type="hidden" name="countryCode" value={country} />
-            <Select value={country} onValueChange={(value) => setCountry(value as (typeof COUNTRY_CODES)[number])}>
+        <Field label={t('organizationName')} required>
+          {(control) => (
+            <Input
+              {...control}
+              name="name"
+              value={name}
+              onChange={(event) => setName(event.target.value)}
+              placeholder={t('organizationNamePlaceholder')}
+              autoFocus
+              required
+            />
+          )}
+        </Field>
+
+        <Field label={t('country')} required description={t('countryHint')}>
+          {(control) => (
+            <Select
+              value={country}
+              onValueChange={(value) => setCountry(value as (typeof COUNTRY_CODES)[number])}
+            >
               <SelectTrigger id={control.id} aria-describedby={control['aria-describedby']}>
                 <SelectValue />
               </SelectTrigger>
@@ -63,60 +81,82 @@ export function OnboardingForm() {
                 ))}
               </SelectContent>
             </Select>
-          </>
-        )}
-      </Field>
+          )}
+        </Field>
+
+        <Button
+          type="button"
+          block
+          disabled={!name.trim()}
+          onClick={() => setStep('recommended')}
+        >
+          {t('continue')}
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <form action={formAction} className="flex w-full min-w-0 flex-col gap-4">
+      {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
+
+      <input type="hidden" name="name" value={name} />
+      <input type="hidden" name="countryCode" value={country} />
+      <input type="hidden" name="businessProfile" value={preset} />
+      <input type="hidden" name="workMix" value={workMix} />
+
+      <p className="text-sm font-medium text-[var(--pf-text-primary)]">{t('stepRecommended')}</p>
+      <p className="text-sm text-[var(--pf-text-secondary)]">{t('recommendedHint')}</p>
 
       <Field label={t('presetLabel')} optionalLabel={t('presetOptional')} description={t('presetHint')}>
         {(control) => (
-          <>
-            <input type="hidden" name="businessProfile" value={preset} />
-            <Select
-              value={preset}
-              onValueChange={(value) => {
-                setPreset(value);
-                setWorkMix(getBusinessProfile(value)?.workMix ?? 'projects');
-              }}
-            >
-              <SelectTrigger id={control.id} aria-describedby={control['aria-describedby']}>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">{t('presetNone')}</SelectItem>
-                {BUSINESS_PROFILE_KEYS.map((key) => (
-                  <SelectItem key={key} value={key}>
-                    {t(`profiles.${key}`)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </>
+          <Select
+            value={preset}
+            onValueChange={(value) => {
+              setPreset(value);
+              setWorkMix(getBusinessProfile(value)?.workMix ?? 'projects');
+            }}
+          >
+            <SelectTrigger id={control.id} aria-describedby={control['aria-describedby']}>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">{t('presetNone')}</SelectItem>
+              {BUSINESS_PROFILE_KEYS.map((key) => (
+                <SelectItem key={key} value={key}>
+                  {t(`profiles.${key}`)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         )}
       </Field>
 
       <Field label={t('workMixLabel')} description={t('workMixHint')}>
         {(control) => (
-          <>
-            <input type="hidden" name="workMix" value={workMix} />
-            <Select value={workMix} onValueChange={(value) => setWorkMix(value as WorkMix)}>
-              <SelectTrigger id={control.id} aria-describedby={control['aria-describedby']}>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {WORK_MIXES.map((value) => (
-                  <SelectItem key={value} value={value}>
-                    {t(`workMix.${value}`)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </>
+          <Select value={workMix} onValueChange={(value) => setWorkMix(value as WorkMix)}>
+            <SelectTrigger id={control.id} aria-describedby={control['aria-describedby']}>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {WORK_MIXES.map((value) => (
+                <SelectItem key={value} value={value}>
+                  {t(`workMix.${value}`)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         )}
       </Field>
 
-      <Button type="submit" loading={pending} block>
-        {t('submit')}
-      </Button>
+      <div className="flex flex-col gap-2">
+        <Button type="submit" loading={pending} block>
+          {t('submit')}
+        </Button>
+        <Button type="button" variant="ghost" block onClick={() => setStep('required')}>
+          {t('back')}
+        </Button>
+      </div>
     </form>
   );
 }

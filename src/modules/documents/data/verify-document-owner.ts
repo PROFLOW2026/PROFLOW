@@ -24,6 +24,11 @@ import {
   subcontractAgreements,
   timesheets,
   vendors,
+  calendarEvents,
+  outboundCommunications,
+  projectCloseouts,
+  warrantyCoverages,
+  warrantyIssues,
 } from '@drizzle/schema';
 import type { DbExecutor } from '@/shared/db/types';
 import type { DocumentOwnerType } from '../domain/types';
@@ -78,6 +83,11 @@ export async function documentOwnerExistsInOrganization(
     subcontract_agreement: subcontractAgreements,
     safety_record: safetyRecords,
     timesheet: timesheets,
+    warranty_coverage: warrantyCoverages,
+    warranty_issue: warrantyIssues,
+    closeout: projectCloseouts,
+    outbound_communication: outboundCommunications,
+    calendar_event: calendarEvents,
   } as const;
 
   const table = tableByOwnerType[ownerType];

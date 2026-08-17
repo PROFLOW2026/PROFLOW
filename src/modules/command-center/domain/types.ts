@@ -29,6 +29,11 @@ export const COMMAND_CENTER_SOURCE_TYPES = [
   'inspection_open',
   'recurring_draft_issue',
   'timesheet_missing',
+  'closeout_blockers',
+  'warranty_expiring',
+  'cash_flow_risk',
+  'automation_followup',
+  'communication_failed',
 ] as const;
 
 export type CommandCenterSourceType = (typeof COMMAND_CENTER_SOURCE_TYPES)[number];
@@ -49,6 +54,7 @@ export const FINANCIAL_SOURCE_TYPES = [
   'project_over_budget',
   'forecast_warning',
   'credit_void_issue',
+  'cash_flow_risk',
 ] as const satisfies readonly CommandCenterSourceType[];
 
 export type FinancialSourceType = (typeof FINANCIAL_SOURCE_TYPES)[number];

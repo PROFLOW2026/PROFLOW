@@ -33,6 +33,10 @@
     "invoicedThisMonth": "סכום חשבוניות החודש",
     "costsThisMonth": "עלויות החודש נטו"
   },
+  "ownerLinks": {
+    "cashFlow": "תחזית תזרים",
+    "management": "תצוגת ניהול לבעלים"
+  },
   "workKindFilter": {
     "label": "הצג",
     "all": "הכל",
@@ -81,7 +85,9 @@
       "operations": "תפעול",
       "operationsHint": "ספירות בלבד - ללא התראות. מוצג לפי הרשאה ונתונים.",
       "comparison": "השוואת פרויקטים",
-      "comparisonHint": "פרויקטים במטבע הבסיס בלבד. התחייבויות מוצגות ליד בפועל, ולא מתווספות אליו."
+      "comparisonHint": "פרויקטים במטבע הבסיס בלבד. התחייבויות מוצגות ליד בפועל, ולא מתווספות אליו.",
+      "management": "ניהול לבעלים",
+      "managementHint": "מדדי בעלים מנתונים רשומים בלבד. מדדים בלי כיסוי נשארים מוסתרים. בלי תרשימים מומצאים."
     },
     "disclosures": {
       "baseCurrencyOnly": "הסכומים במטבע הבסיס של העסק בלבד.",
@@ -214,8 +220,41 @@
         "overdue": "באיחור (תחזית)",
         "next_7": "7 הימים הקרובים (תחזית)",
         "next_30": "8-30 ימים (תחזית)",
-        "later": "מאוחר יותר (תחזית)",
+        "next_60": "31-60 ימים (תחזית)",
+        "next_90": "61-90 ימים (תחזית)",
+        "later": "מעבר ל־90 ימים (תחזית)",
         "undated": "ללא תאריך (תחזית)"
+      }
+    },
+    "management": {
+      "empty": "עדיין אין מדדי ניהול מהנתונים שהוזנו.",
+      "activeProjectValue": "סכום חוזה בפרויקטים פעילים",
+      "unbilledBacklog": "עדיין לחייב לפי חוזה",
+      "totalActualCost": "סך עלות בפועל",
+      "totalCommitments": "התחייבויות פתוחות",
+      "expectedProfit": "רווח צפוי",
+      "clientOutstanding": "יתרת לקוחות",
+      "vendorOutstanding": "יתרת ספקים",
+      "cashExpectedIn": "צפי מזומן נכנס (עם תאריך)",
+      "cashExpectedOut": "צפי מזומן יוצא (עם תאריך)",
+      "quotesConversion": "המרת הצעות מחיר",
+      "opportunityConversion": "הזדמנויות שנסגרו בזכייה",
+      "profitByProject": "רווח לפי פרויקט",
+      "profitByClient": "רווח לפי לקוח",
+      "profitByWorkType": "רווח לפי סוג עבודה",
+      "projectsAtRisk": "פרויקטים עם אזהרות תחזית",
+      "workforceHours": "שעות שנרשמו החודש",
+      "utilizationUnavailable": "אחוז ניצולת נשאר מוסתר עד שיש קיבולת מתוכננת.",
+      "vendorConcentration": "ריכוז ספקים",
+      "conversionRate": "{rate}% ({converted} מתוך {total})",
+      "concentration": "{name} · {share}% מתוך {count} ספקים",
+      "hoursSummary": "{hours} שעות · {employees} אנשים",
+      "riskCount": "{count, plural, one {אזהרה אחת} two {שתי אזהרות} other {# אזהרות}}",
+      "cashFlowLink": "פתיחת תחזית תזרים",
+      "workKinds": {
+        "project": "פרויקטים",
+        "job": "עבודות",
+        "work_order": "קריאות שירות"
       }
     }
   }

@@ -53,6 +53,10 @@
   "detail": {
     "title": "Client profile",
     "projectsSection": "Projects",
+    "relatedSection": "Related",
+    "communications": "Messages",
+    "warrantyHistory": "Warranty and service",
+    "noRelated": "No extra history yet.",
     "projectsCount": "{count, plural, one {# project} other {# projects}}",
     "noProjects": "No linked projects yet",
     "companyPhoneLabel": "Company phone",

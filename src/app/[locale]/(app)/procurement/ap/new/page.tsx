@@ -23,8 +23,14 @@ export async function generateMetadata({
   return { title: t('create.title') };
 }
 
-export default async function NewApBillPage() {
+export default async function NewApBillPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const t = await getTranslations('ap');
+  const params = await searchParams;
+  const requestedPoId = typeof params.purchaseOrderId === 'string' ? params.purchaseOrderId : '';
 
   const { vendors, projects, purchaseOrders, poLinesByPoId, defaultCurrency, canManage } =
     await withOrgContext(async (context) => {
@@ -106,6 +112,7 @@ export default async function NewApBillPage() {
           projects={projects}
           purchaseOrders={purchaseOrders}
           poLinesByPoId={poLinesByPoId}
+          defaultPurchaseOrderId={requestedPoId}
         />
       )}
     </div>

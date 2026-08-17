@@ -9,7 +9,16 @@ export type {
   SearchCommandHit,
 } from './domain/types';
 export { GLOBAL_SEARCH_KINDS } from './domain/types';
-export { assetSearchHref, inventoryItemSearchHref, materialSearchHref } from './domain/hrefs';
+export {
+  assetSearchHref,
+  inventoryItemSearchHref,
+  materialSearchHref,
+  warrantySearchHref,
+  communicationSearchHref,
+  calendarEventSearchHref,
+  closeoutSearchHref,
+  workEntityHref,
+} from './domain/hrefs';
 export { globalSearchSchema } from './validation/schemas';
 export type { GlobalSearchInput } from './validation/schemas';
 export { matchSearchCommands } from './domain/commands';

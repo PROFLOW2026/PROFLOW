@@ -59,7 +59,9 @@
   "detail": {
     "title": "Purchase order",
     "description": "Committed spend with a vendor. Attach supporting documents without treating this as an expense.",
-    "linesTitle": "Lines"
+    "linesTitle": "Lines",
+    "createVendorBill": "Create vendor bill",
+    "openVendor": "Open vendor"
   },
   "statuses": {
     "draft": "Draft",

@@ -8,6 +8,7 @@ export const REPORT_SECTIONS = [
   'cash',
   'cost',
   'profitability',
+  'management',
   'operations',
   'comparison',
 ] as const;

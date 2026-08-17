@@ -1,0 +1,84 @@
+{
+  "title": "Automations",
+  "description": "Simple rules that notify, add Today items, or prepare drafts. They never post money or approve on their own.",
+  "presets": {
+    "client_balance_overdue": {
+      "name": "Overdue client balance",
+      "hint": "When a client balance is past due."
+    },
+    "quote_no_followup": {
+      "name": "Quote without follow-up",
+      "hint": "When a quote has had no follow-up for the set number of days."
+    },
+    "vendor_bill_due": {
+      "name": "Vendor bill due",
+      "hint": "When a supplier bill reaches its due date."
+    },
+    "timesheet_not_submitted": {
+      "name": "Timesheet not submitted",
+      "hint": "When a timesheet is still missing."
+    },
+    "timesheet_waiting_approval": {
+      "name": "Timesheet waiting for approval",
+      "hint": "When a timesheet is waiting for approval."
+    },
+    "ocr_waiting_review": {
+      "name": "Invoice capture waiting for review",
+      "hint": "When a scanned invoice is waiting for review."
+    },
+    "forecast_over_budget": {
+      "name": "Forecast over budget",
+      "hint": "When project forecast exceeds the budget threshold."
+    },
+    "forecast_margin_low": {
+      "name": "Forecast margin low",
+      "hint": "When forecast margin drops below the threshold."
+    },
+    "warranty_expiring": {
+      "name": "Warranty approaching expiry",
+      "hint": "When warranty coverage is near its end date."
+    },
+    "compliance_expiring": {
+      "name": "Compliance document expiring",
+      "hint": "When a license or insurance is near expiry."
+    },
+    "asset_service_due": {
+      "name": "Equipment service due",
+      "hint": "When vehicle or equipment service is due."
+    },
+    "retention_release_date": {
+      "name": "Retention release date",
+      "hint": "When retention has a release date."
+    },
+    "closeout_has_blockers": {
+      "name": "Closeout blockers",
+      "hint": "When project closeout has blocking items."
+    }
+  },
+  "actions": {
+    "enable": "Turn on",
+    "disable": "Turn off",
+    "runNow": "Run now",
+    "saved": "Saved.",
+    "ran": "Rule ran."
+  },
+  "safeNote": "Rules may notify, add a Today item, create a follow-up task, or prepare a draft. They cannot post, pay, approve, or change contracts.",
+  "notAllowed": {
+    "title": "Automations are not available",
+    "body": "You do not have permission to view automations."
+  },
+  "errors": {
+    "unsafeAction": "This rule cannot post, pay, approve, or change contracts."
+  },
+  "empty": {
+    "title": "No rules yet",
+    "body": "Turn on a preset. You can change the thresholds later."
+  },
+  "history": {
+    "title": "Recent runs",
+    "empty": "No runs yet.",
+    "ok": "Done",
+    "skipped": "Skipped",
+    "failed": "Failed"
+  }
+}

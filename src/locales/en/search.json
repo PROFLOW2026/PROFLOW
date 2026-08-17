@@ -16,7 +16,11 @@
     "openVendors": "Open vendors",
     "openClients": "Open clients",
     "openOcr": "Open OCR review",
-    "openReports": "Open reports"
+    "openReports": "Open reports",
+    "openCalendar": "Open calendar",
+    "openCommunications": "Open messages",
+    "openWarranty": "Open warranty",
+    "openCashFlow": "Open cash flow"
   },
   "kinds": {
     "project": "Project",
@@ -43,6 +47,10 @@
     "daily_log": "Daily log",
     "punch": "Punch item",
     "inspection": "Inspection",
-    "safety": "Safety"
+    "safety": "Safety",
+    "warranty": "Warranty",
+    "communication": "Message",
+    "calendar_event": "Calendar event",
+    "closeout": "Closeout"
   }
 }

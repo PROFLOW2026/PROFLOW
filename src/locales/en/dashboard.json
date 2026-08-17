@@ -33,6 +33,10 @@
     "invoicedThisMonth": "Invoice total this month",
     "costsThisMonth": "Costs this month net"
   },
+  "ownerLinks": {
+    "cashFlow": "Cash flow forecast",
+    "management": "Owner management view"
+  },
   "workKindFilter": {
     "label": "Show",
     "all": "All",
@@ -81,7 +85,9 @@
       "operations": "Operations",
       "operationsHint": "Counts only - no notification delivery. Shown when you have permission and data.",
       "comparison": "Project comparison",
-      "comparisonHint": "Base-currency projects only. Committed is shown beside Actual, never added into it."
+      "comparisonHint": "Base-currency projects only. Committed is shown beside Actual, never added into it.",
+      "management": "Owner management",
+      "managementHint": "Owner metrics from recorded data only. Uncovered metrics stay hidden. No invented charts."
     },
     "disclosures": {
       "baseCurrencyOnly": "Amounts use organization base currency only.",
@@ -214,8 +220,41 @@
         "overdue": "Overdue (Forecast)",
         "next_7": "Next 7 days (Forecast)",
         "next_30": "8-30 days (Forecast)",
-        "later": "Later (Forecast)",
+        "next_60": "31-60 days (Forecast)",
+        "next_90": "61-90 days (Forecast)",
+        "later": "Later than 90 days (Forecast)",
         "undated": "No due date (Forecast)"
+      }
+    },
+    "management": {
+      "empty": "No management metrics yet from the data entered so far.",
+      "activeProjectValue": "Active project contract value",
+      "unbilledBacklog": "Still to bill on contract",
+      "totalActualCost": "Total actual cost",
+      "totalCommitments": "Open commitments",
+      "expectedProfit": "Expected profit",
+      "clientOutstanding": "Client outstanding",
+      "vendorOutstanding": "Vendor outstanding",
+      "cashExpectedIn": "Cash expected in (dated)",
+      "cashExpectedOut": "Cash expected out (dated)",
+      "quotesConversion": "Quotes conversion",
+      "opportunityConversion": "Opportunities won",
+      "profitByProject": "Profit by project",
+      "profitByClient": "Profit by client",
+      "profitByWorkType": "Profit by work type",
+      "projectsAtRisk": "Projects with forecast warnings",
+      "workforceHours": "Hours recorded this month",
+      "utilizationUnavailable": "Utilization % stays hidden until scheduled capacity is recorded.",
+      "vendorConcentration": "Vendor concentration",
+      "conversionRate": "{rate}% ({converted} of {total})",
+      "concentration": "{name} · {share}% of {count} vendors",
+      "hoursSummary": "{hours} hours · {employees} people",
+      "riskCount": "{count, plural, one {# warning} other {# warnings}}",
+      "cashFlowLink": "Open cash flow forecast",
+      "workKinds": {
+        "project": "Projects",
+        "job": "Jobs",
+        "work_order": "Service calls"
       }
     }
   }

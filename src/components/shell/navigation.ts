@@ -54,6 +54,13 @@ export const NAV_ICON_KEYS = [
   'scheduling',
   'imports',
   'settings',
+  'cashFlow',
+  'calendar',
+  'warranty',
+  'communications',
+  'assistant',
+  'automations',
+  'fieldHome',
 ] as const;
 
 export type NavIconKey = (typeof NAV_ICON_KEYS)[number];
@@ -279,6 +286,54 @@ export const NAV_ITEMS: readonly NavItem[] = [
     moreGroup: 'operations',
   },
   {
+    key: 'calendar',
+    href: '/calendar',
+    labelKey: 'calendar',
+    iconKey: 'calendar',
+    permission: PERMISSIONS.SCHEDULING_READ,
+    moreGroup: 'operations',
+  },
+  {
+    key: 'cashFlow',
+    href: '/cash-flow',
+    labelKey: 'cashFlow',
+    iconKey: 'cashFlow',
+    permission: PERMISSIONS.PROJECT_FINANCIALS_READ,
+    moreGroup: 'business',
+  },
+  {
+    key: 'warranty',
+    href: '/warranty',
+    labelKey: 'warranty',
+    iconKey: 'warranty',
+    permission: PERMISSIONS.PROJECTS_READ,
+    moreGroup: 'operations',
+  },
+  {
+    key: 'communications',
+    href: '/communications',
+    labelKey: 'communications',
+    iconKey: 'communications',
+    permission: PERMISSIONS.COMMUNICATIONS_READ,
+    moreGroup: 'business',
+  },
+  {
+    key: 'assistant',
+    href: '/assistant',
+    labelKey: 'assistant',
+    iconKey: 'assistant',
+    permission: PERMISSIONS.ASSISTANT_USE,
+    moreGroup: 'advanced',
+  },
+  {
+    key: 'automations',
+    href: '/automations',
+    labelKey: 'automations',
+    iconKey: 'automations',
+    permission: PERMISSIONS.AUTOMATIONS_READ,
+    moreGroup: 'advanced',
+  },
+  {
     key: 'procurement',
     href: '/procurement',
     labelKey: 'procurement',
@@ -313,6 +368,19 @@ export const NAV_ITEMS: readonly NavItem[] = [
     iconKey: 'fieldOps',
     permission: PERMISSIONS.FIELD_OPS_READ,
     module: 'field_ops',
+    moreGroup: 'operations',
+  },
+  {
+    key: 'fieldHome',
+    href: '/field',
+    labelKey: 'fieldHome',
+    iconKey: 'fieldOps',
+    anyPermissions: [
+      PERMISSIONS.FIELD_OPS_READ,
+      PERMISSIONS.SERVICE_READ,
+      PERMISSIONS.TIME_MANAGE,
+      PERMISSIONS.ATTENDANCE_SELF,
+    ],
     moreGroup: 'operations',
   },
   {
@@ -446,6 +514,12 @@ export function applyWorkMixToNavItems(
         return { ...item, primaryOnMobile: true, moreGroup: undefined };
       }
       return { ...item, primaryOnMobile: false, moreGroup: 'business' as const };
+    }
+    if (item.key === 'fieldHome') {
+      if (jobsPrimary) {
+        return { ...item, primaryOnMobile: true, moreGroup: undefined };
+      }
+      return { ...item, primaryOnMobile: false, moreGroup: 'operations' as const };
     }
     return { ...item };
   });

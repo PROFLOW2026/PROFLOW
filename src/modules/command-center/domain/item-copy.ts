@@ -4,7 +4,28 @@ function he(locale: string): boolean {
   return locale.toLowerCase().startsWith('he');
 }
 
-export function fallbackWhere(locale: string, key: 'billing' | 'vendorBills' | 'workforce' | 'approvals' | 'project' | 'assets' | 'monthClose' | 'boq' | 'ocr' | 'fieldOps' | 'safety' | 'recurring' | 'timesheets'): string {
+export function fallbackWhere(
+  locale: string,
+  key:
+    | 'billing'
+    | 'vendorBills'
+    | 'workforce'
+    | 'approvals'
+    | 'project'
+    | 'assets'
+    | 'monthClose'
+    | 'boq'
+    | 'ocr'
+    | 'fieldOps'
+    | 'safety'
+    | 'recurring'
+    | 'timesheets'
+    | 'closeout'
+    | 'warranty'
+    | 'cashFlow'
+    | 'automations'
+    | 'communications',
+): string {
   if (he(locale)) {
     switch (key) {
       case 'billing':
@@ -33,6 +54,16 @@ export function fallbackWhere(locale: string, key: 'billing' | 'vendorBills' | '
         return 'טיוטות חוזרות';
       case 'timesheets':
         return 'אישורי שעות';
+      case 'closeout':
+        return 'סגירת פרויקט';
+      case 'warranty':
+        return 'אחריות';
+      case 'cashFlow':
+        return 'תזרים';
+      case 'automations':
+        return 'אוטומציות';
+      case 'communications':
+        return 'הודעות';
     }
   }
   switch (key) {
@@ -52,7 +83,7 @@ export function fallbackWhere(locale: string, key: 'billing' | 'vendorBills' | '
       return 'Month close';
     case 'boq':
       return 'BOQ';
-      case 'ocr':
+    case 'ocr':
       return 'Invoice capture';
     case 'fieldOps':
       return 'Field operations';
@@ -60,8 +91,18 @@ export function fallbackWhere(locale: string, key: 'billing' | 'vendorBills' | '
       return 'Safety';
     case 'recurring':
       return 'Recurring drafts';
-      case 'timesheets':
+    case 'timesheets':
       return 'Timesheet approvals';
+    case 'closeout':
+      return 'Closeout';
+    case 'warranty':
+      return 'Warranty';
+    case 'cashFlow':
+      return 'Cash flow';
+    case 'automations':
+      return 'Automations';
+    case 'communications':
+      return 'Messages';
   }
 }
 
@@ -586,4 +627,156 @@ function monthCloseStatusLabel(locale: string, status: string): string {
   if (status === 'ready') return 'מוכן לסגירה';
   if (status === 'closed') return 'סגור';
   return status;
+}
+
+export function closeoutBlockersCopy(
+  locale: string,
+  input: { projectName: string; status: string },
+): { what: string; why: string } {
+  if (he(locale)) {
+    return {
+      what: `סגירת פרויקט ממתינה - ${input.projectName}`,
+      why:
+        input.status === 'reopened'
+          ? 'הפרויקט נפתח מחדש. בדקו את מוכנות הסגירה.'
+          : 'בדקו את מוכנות הסגירה בלשונית הסגירה.',
+    };
+  }
+  return {
+    what: `Finish closeout - ${input.projectName}`,
+      why:
+        input.status === 'reopened'
+          ? 'The project was reopened. Review closeout readiness.'
+          : 'Review closeout readiness on the Closeout tab.',
+  };
+}
+
+export function warrantyExpiringCopy(
+  locale: string,
+  input: { title: string; endDate: string },
+): { what: string; why: string } {
+  if (he(locale)) {
+    return {
+      what: `אחריות שעומדת לפוג - ${input.title}`,
+      why: `תוקף עד ${input.endDate}`,
+    };
+  }
+  return {
+    what: `Warranty ending - ${input.title}`,
+    why: `Coverage ends ${input.endDate}`,
+  };
+}
+
+export function cashFlowRiskCopy(
+  locale: string,
+  input: { overdueIn: string; overdueOut: string; currency: string },
+): { what: string; why: string } {
+  if (he(locale)) {
+    return {
+      what: 'סיכון תזרים לטיפול',
+      why: `גבייה באיחור ${input.overdueIn} ${input.currency} · תשלומים באיחור ${input.overdueOut} ${input.currency}`,
+    };
+  }
+  return {
+    what: 'Cash flow risk to review',
+    why: `Overdue collections ${input.overdueIn} ${input.currency} · overdue payables ${input.overdueOut} ${input.currency}`,
+  };
+}
+
+function automationPresetLabel(locale: string, presetKey: string): string {
+  if (he(locale)) {
+    switch (presetKey) {
+      case 'client_balance_overdue':
+        return 'יתרת לקוח באיחור';
+      case 'quote_no_followup':
+        return 'הצעת מחיר בלי מעקב';
+      case 'vendor_bill_due':
+        return 'חשבונית ספק לפירעון';
+      case 'timesheet_not_submitted':
+        return 'גיליון שעות לא הוגש';
+      case 'timesheet_waiting_approval':
+        return 'גיליון שעות ממתין לאישור';
+      case 'ocr_waiting_review':
+        return 'קליטת חשבונית ממתינה לבדיקה';
+      case 'forecast_over_budget':
+        return 'תחזית מעל התקציב';
+      case 'forecast_margin_low':
+        return 'מרווח תחזית נמוך';
+      case 'warranty_expiring':
+        return 'אחריות לקראת פקיעה';
+      case 'compliance_expiring':
+        return 'מסמך ציות לקראת פקיעה';
+      case 'asset_service_due':
+        return 'טיפול בציוד לפירעון';
+      case 'retention_release_date':
+        return 'מועד שחרור עיכבון';
+      case 'closeout_has_blockers':
+        return 'חסמים בסגירת פרויקט';
+      default:
+        return presetKey;
+    }
+  }
+  switch (presetKey) {
+    case 'client_balance_overdue':
+      return 'Client balance overdue';
+    case 'quote_no_followup':
+      return 'Quote without follow-up';
+    case 'vendor_bill_due':
+      return 'Vendor bill due';
+    case 'timesheet_not_submitted':
+      return 'Timesheet not submitted';
+    case 'timesheet_waiting_approval':
+      return 'Timesheet waiting for approval';
+    case 'ocr_waiting_review':
+      return 'Invoice capture waiting for review';
+    case 'forecast_over_budget':
+      return 'Forecast over budget';
+    case 'forecast_margin_low':
+      return 'Forecast margin low';
+    case 'warranty_expiring':
+      return 'Warranty ending';
+    case 'compliance_expiring':
+      return 'Compliance document ending';
+    case 'asset_service_due':
+      return 'Equipment service due';
+    case 'retention_release_date':
+      return 'Retention release date';
+    case 'closeout_has_blockers':
+      return 'Closeout blockers';
+    default:
+      return presetKey;
+  }
+}
+
+export function automationFollowupCopy(
+  locale: string,
+  input: { presetKey: string; ranAt: string },
+): { what: string; why: string } {
+  const preset = automationPresetLabel(locale, input.presetKey);
+  if (he(locale)) {
+    return {
+      what: 'אוטומציה דורשת מעקב',
+      why: `${preset} · ${input.ranAt}`,
+    };
+  }
+  return {
+    what: 'Automation needs follow-up',
+    why: `${preset} · ${input.ranAt}`,
+  };
+}
+
+export function communicationFailedCopy(
+  locale: string,
+  input: { subject: string },
+): { what: string; why: string } {
+  if (he(locale)) {
+    return {
+      what: `הודעה לא נשלחה - ${input.subject}`,
+      why: 'השליחה נכשלה או לא אושרה על ידי הספק.',
+    };
+  }
+  return {
+    what: `Message not sent - ${input.subject}`,
+    why: 'Delivery failed or was not confirmed by the provider.',
+  };
 }

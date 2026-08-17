@@ -137,6 +137,20 @@ export async function createProjectAction(
         startDate: formValue(formData, 'startDate'),
         targetEndDate: formValue(formData, 'targetEndDate'),
         notes: formValue(formData, 'notes'),
+      }).then(async (created) => {
+        const templateKey = formValue(formData, 'templateKey');
+        if (templateKey && templateKey !== 'none') {
+          try {
+            await applyProjectTemplate(context, {
+              projectId: created.projectId,
+              templateKey,
+              locale: locale === 'he-IL' ? 'he-IL' : 'en',
+            });
+          } catch {
+            // Project was created; template apply is best-effort on create.
+          }
+        }
+        return created;
       });
     });
 

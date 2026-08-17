@@ -64,7 +64,12 @@ describe('groupSearchHits', () => {
     const hits: GlobalSearchHit[] = [
       { kind: 'vendor', id: 'v1', title: 'Vendor', subtitle: null, href: '/vendors/v1' },
       { kind: 'client', id: 'c1', title: 'Client', subtitle: null, href: '/clients/c1' },
+      { kind: 'warranty', id: 'w1', title: 'Roof', subtitle: null, href: '/projects/p1?tab=warranty' },
     ];
-    expect(groupSearchHits(hits).map((group) => group.kind)).toEqual(['client', 'vendor']);
+    expect(groupSearchHits(hits).map((group) => group.kind)).toEqual([
+      'client',
+      'vendor',
+      'warranty',
+    ]);
   });
 });

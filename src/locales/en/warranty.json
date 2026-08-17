@@ -1,0 +1,62 @@
+{
+  "title": "Warranty",
+  "navLabel": "Warranty",
+  "description": "Post-completion coverage and warranty calls. A closed project stays closed.",
+  "list": {
+    "empty": "No warranty coverages yet.",
+    "new": "Add coverage",
+    "openIssues": "{count, plural, one {# open issue} other {# open issues}}"
+  },
+  "coverage": {
+    "title": "Coverage",
+    "type": "Type",
+    "types": {
+      "workmanship": "Workmanship",
+      "materials": "Materials",
+      "equipment": "Equipment",
+      "mixed": "Mixed"
+    },
+    "start": "Starts",
+    "end": "Ends",
+    "vendor": "Responsible vendor",
+    "workPackage": "Work area",
+    "reminder": "Remind before expiry (days)",
+    "notes": "Notes",
+    "status": {
+      "scheduled": "Scheduled",
+      "active": "Active",
+      "expired": "Expired",
+      "void": "Void"
+    }
+  },
+  "issue": {
+    "title": "Warranty call",
+    "new": "Open warranty call",
+    "createWorkOrder": "Create service call",
+    "linkedWorkOrder": "Linked service call",
+    "status": {
+      "open": "Open",
+      "in_progress": "In progress",
+      "resolved": "Resolved",
+      "cancelled": "Cancelled"
+    },
+    "reported": "Reported",
+    "resolved": "Resolved",
+    "empty": "No warranty calls on this coverage."
+  },
+  "actions": {
+    "save": "Save",
+    "void": "Void coverage",
+    "resolve": "Mark resolved",
+    "saved": "Saved.",
+    "created": "Coverage created.",
+    "issueCreated": "Warranty call opened.",
+    "workOrderCreated": "Service call created. The project stays closed."
+  },
+  "errors": {
+    "projectRequired": "A project is required.",
+    "dates": "End date cannot be before start date.",
+    "clientRequired": "A customer is required to open a service call.",
+    "projectStaysClosed": "The original project stays closed."
+  }
+}

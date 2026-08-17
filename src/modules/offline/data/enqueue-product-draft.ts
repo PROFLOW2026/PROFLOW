@@ -1,4 +1,5 @@
 import type { DraftKind, EnqueueDraftInput, OfflineDraftRecord } from '../domain/types';
+import { assertOfflineDraftAllowed } from '../domain/financial-guard';
 import { getDraftQueue, type DraftQueue } from './draft-queue';
 import { mirrorDraftsToLocalStorage } from './queue-index';
 
@@ -16,11 +17,13 @@ export interface EnqueueProductDraftInput<TPayload extends Record<string, unknow
 /**
  * Persist a product draft locally. Does not call the server and does not
  * invent a sync-success state - status is `queued` until reconnect sync.
+ * Refuses offline financial finalization payloads.
  */
 export async function enqueueProductDraft<TPayload extends Record<string, unknown>>(
   input: EnqueueProductDraftInput<TPayload>,
   deps: { readonly queue?: DraftQueue } = {},
 ): Promise<OfflineDraftRecord<TPayload>> {
+  assertOfflineDraftAllowed(input.kind, input.payload);
   const queue = deps.queue ?? getDraftQueue();
   const enqueueInput: EnqueueDraftInput<TPayload> = {
     organizationId: input.organizationId,

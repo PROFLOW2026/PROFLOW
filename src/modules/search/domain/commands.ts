@@ -73,6 +73,34 @@ const COMMANDS: readonly CommandDef[] = [
     keywords: ['reports', 'דוחות'],
     allowed: (context) => hasPermission(context, PERMISSIONS.PROJECT_FINANCIALS_READ),
   },
+  {
+    id: 'open-calendar',
+    href: '/calendar',
+    titleKey: 'commands.openCalendar',
+    keywords: ['calendar', 'לוח שנה', 'יומן'],
+    allowed: (context) => hasPermission(context, PERMISSIONS.SCHEDULING_READ),
+  },
+  {
+    id: 'open-communications',
+    href: '/communications',
+    titleKey: 'commands.openCommunications',
+    keywords: ['messages', 'communications', 'הודעות', 'דואל'],
+    allowed: (context) => hasPermission(context, PERMISSIONS.COMMUNICATIONS_READ),
+  },
+  {
+    id: 'open-warranty',
+    href: '/warranty',
+    titleKey: 'commands.openWarranty',
+    keywords: ['warranty', 'אחריות'],
+    allowed: (context) => hasPermission(context, PERMISSIONS.PROJECTS_READ),
+  },
+  {
+    id: 'open-cash-flow',
+    href: '/cash-flow',
+    titleKey: 'commands.openCashFlow',
+    keywords: ['cash flow', 'cashflow', 'תזרים'],
+    allowed: (context) => hasPermission(context, PERMISSIONS.PROJECT_FINANCIALS_READ),
+  },
 ];
 
 function normalize(value: string): string {

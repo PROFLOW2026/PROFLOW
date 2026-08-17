@@ -146,6 +146,13 @@ export const PERMISSIONS = {
   SETTINGS_MANAGE: 'settings.manage',
   TAX_MANAGE: 'tax.manage',
   AUDIT_READ: 'audit.read',
+
+  COMMUNICATIONS_READ: 'communications.read',
+  COMMUNICATIONS_MANAGE: 'communications.manage',
+  AUTOMATIONS_READ: 'automations.read',
+  AUTOMATIONS_MANAGE: 'automations.manage',
+  ASSISTANT_USE: 'assistant.use',
+  INTEGRATIONS_READ: 'integrations.read',
 } as const;
 
 export type PermissionKey = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];
@@ -397,6 +404,37 @@ export const PERMISSION_CATALOG: readonly PermissionDefinition[] = [
   { key: PERMISSIONS.SETTINGS_MANAGE, category: 'administration', description: 'Change organization settings' },
   { key: PERMISSIONS.TAX_MANAGE, category: 'administration', description: 'Manage tax rules and overrides' },
   { key: PERMISSIONS.AUDIT_READ, category: 'administration', description: 'Read the audit trail' },
+
+  {
+    key: PERMISSIONS.COMMUNICATIONS_READ,
+    category: 'organization',
+    description: 'View outbound business communications',
+  },
+  {
+    key: PERMISSIONS.COMMUNICATIONS_MANAGE,
+    category: 'organization',
+    description: 'Prepare and send outbound business communications',
+  },
+  {
+    key: PERMISSIONS.AUTOMATIONS_READ,
+    category: 'administration',
+    description: 'View business automation rules and run history',
+  },
+  {
+    key: PERMISSIONS.AUTOMATIONS_MANAGE,
+    category: 'administration',
+    description: 'Configure business automation presets',
+  },
+  {
+    key: PERMISSIONS.ASSISTANT_USE,
+    category: 'organization',
+    description: 'Use the in-product assistant within existing permissions',
+  },
+  {
+    key: PERMISSIONS.INTEGRATIONS_READ,
+    category: 'administration',
+    description: 'View external integration connection state',
+  },
 ];
 
 export const ALL_PERMISSION_KEYS: readonly PermissionKey[] = PERMISSION_CATALOG.map((p) => p.key);

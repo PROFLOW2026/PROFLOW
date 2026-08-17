@@ -244,6 +244,15 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
         </section>
       )}
 
+      <section className="flex min-w-0 flex-wrap gap-3 text-sm">
+        <Link href="/cash-flow" className={textNavLinkClassName}>
+          {t('ownerLinks.cashFlow')}
+        </Link>
+        <Link href="/reports?section=management" className={textNavLinkClassName}>
+          {t('ownerLinks.management')}
+        </Link>
+      </section>
+
       {data.organizationSummary ? (
         <section className="min-w-0 max-w-full">
           <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-3">
