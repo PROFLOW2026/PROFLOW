@@ -52,9 +52,9 @@ test.describe('master completion owner journeys', () => {
   test('Vendor bills → AP aging buckets visible', async ({ page }) => {
     await page.goto('/he-IL/procurement/ap');
     await expect(page).toHaveURL(/\/he-IL\/procurement\/ap/);
-    await page.getByRole('link', { name: 'גיל יתרות' }).click();
+    await page.getByRole('link', { name: 'חובות לספקים' }).click();
     await expect(page).toHaveURL(/\/he-IL\/procurement\/ap\/aging/);
-    await expect(page.getByRole('heading', { name: 'גיל יתרות ספקים' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'חובות לספקים לפי מועד תשלום' })).toBeVisible();
     await expect(page.getByText('שוטף').first()).toBeVisible();
     await expect(page.getByText('1-30 ימים').first()).toBeVisible();
     await expect(page.getByText('90+ ימים').first()).toBeVisible();
