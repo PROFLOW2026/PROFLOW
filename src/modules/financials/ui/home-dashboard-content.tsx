@@ -276,6 +276,13 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
             <AlertCircle className="size-4 shrink-0" aria-hidden />
             {t('attention.title')}
           </h2>
+          {data.canReadToday ? (
+            <p className="mb-3">
+              <Link href="/today" className={textNavLinkClassName} prefetch={false}>
+                {t('attention.linkToday')}
+              </Link>
+            </p>
+          ) : null}
           <ul className="flex min-w-0 flex-col gap-2 text-sm">
             {(data.preferServiceSurface
               ? (['overdueBilling', 'unbilledApproved', 'pendingChanges'] as const)

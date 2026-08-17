@@ -84,8 +84,6 @@ export default async function QuotesPage({
       <CommercialDocsHub current="quotes" />
       <SavedListViewsBar listKey="quotes" searchParams={params} />
 
-      <p className="text-sm text-[var(--pf-text-secondary)]">{t('disclaimer')}</p>
-
       {items.length === 0 ? (
         <EmptyState
           icon={FileSpreadsheet}

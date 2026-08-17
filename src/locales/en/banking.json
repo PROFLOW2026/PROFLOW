@@ -91,7 +91,7 @@
     "needCsv": "Provide CSV text to import.",
     "importFailed": "Import failed.",
     "decideFailed": "Could not save the decision.",
-    "schemaPending": "Banking persistence is not enabled yet (schema pending migrate).",
+    "schemaPending": "Saving a bank account is not available in this environment yet.",
     "crossOrgTarget": "Match target must belong to the same organization.",
     "crossOrgAccount": "Bank account must belong to the same organization.",
     "crossOrgImport": "Import batch must belong to the same organization and account."

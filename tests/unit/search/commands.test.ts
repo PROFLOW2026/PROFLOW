@@ -44,9 +44,18 @@ describe('search commands', () => {
     expect(hits.some((hit) => hit.id === 'create-expense')).toBe(true);
   });
 
-  it('hides create expense without permission', () => {
-    const hits = matchSearchCommands('create expense', contextWith([]), modules);
-    expect(hits.some((hit) => hit.id === 'create-expense')).toBe(false);
+  it('shows open-today even when the old command_center module preference is off', () => {
+    const hits = matchSearchCommands(
+      'היום',
+      contextWith([PERMISSIONS.COMMAND_CENTER_READ]),
+      { ...modules, command_center: false },
+    );
+    expect(hits.some((hit) => hit.id === 'open-today')).toBe(true);
+  });
+
+  it('hides open-today without permission', () => {
+    const hits = matchSearchCommands('היום', contextWith([]), modules);
+    expect(hits.some((hit) => hit.id === 'open-today')).toBe(false);
   });
 });
 

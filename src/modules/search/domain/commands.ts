@@ -40,8 +40,7 @@ const COMMANDS: readonly CommandDef[] = [
     href: '/today',
     titleKey: 'commands.openToday',
     keywords: ['today', 'inbox', 'היום', 'תיבת דואר'],
-    allowed: (context, modules) =>
-      Boolean(modules.command_center) && hasPermission(context, PERMISSIONS.COMMAND_CENTER_READ),
+    allowed: (context) => hasPermission(context, PERMISSIONS.COMMAND_CENTER_READ),
   },
   {
     id: 'open-vendors',

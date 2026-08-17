@@ -145,9 +145,7 @@ export default async function InventoryPage({
       <AssetsSectionNav active="inventory" />
 
       <Alert tone="info">
-        <span className="block font-medium">{t('inventory.qtyOnlyBannerHe')}</span>
-        <span className="block text-sm">{t('inventory.qtyOnlyBannerEn')}</span>
-        <span className="mt-1 block text-sm">{t('inventory.threeActionsHint')}</span>
+        <span className="block font-medium">{t('inventory.qtyOnlyBanner')}</span>
       </Alert>
 
       <InventoryLocationsPanel

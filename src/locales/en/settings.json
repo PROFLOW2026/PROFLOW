@@ -9,14 +9,14 @@
   },
   "sections": {
     "business": "Business",
-    "people": "People and roles",
+    "people": "Users and permissions",
     "roles": "Roles",
     "features": "Features",
     "costCategories": "Cost categories",
     "catalog": "Domains & types",
     "templates": "Structure templates",
-    "tax": "Tax",
-    "numbering": "Document numbering",
+    "tax": "Finance and VAT",
+    "numbering": "Numbering",
     "approvals": "Approvals",
     "portal": "Portal access",
     "customFields": "Custom fields",
@@ -26,7 +26,7 @@
     "app": "App",
     "offlineDrafts": "Offline drafts",
     "banking": "Banking",
-    "ocr": "Receipt scan (OCR)",
+    "ocr": "Invoice capture",
     "profile": "Your profile"
   },
   "people": {
@@ -53,7 +53,8 @@
     "visibilityLabel": "State for {module}",
     "on": "On",
     "off": "Off",
-    "auto": "Automatic",
+    "auto": "As needed",
+    "autoHint": "As needed - the capability appears according to the type of business and how the system is used.",
     "billing": "Billing and collections",
     "workforce": "People and hours",
     "vendors": "Vendors",
@@ -782,7 +783,7 @@
     "body": "You do not have permission to view this settings area."
   },
   "ocr": {
-    "title": "Receipt scan (OCR)",
+    "title": "Invoice capture",
     "description": "Operational status for automatic document reading. Processing is on-demand when you upload. Drafts only - never a posted actual. Secrets are never shown here.",
     "ingestionLabel": "Ingestion",
     "ingestionOn": "Enabled",

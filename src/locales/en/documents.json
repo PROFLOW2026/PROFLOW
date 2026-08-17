@@ -158,7 +158,7 @@
     "megabytes": "{size} MB"
   },
   "ocr": {
-    "title": "Document review",
+    "title": "Invoice capture",
     "description": "Upload or photograph a document, edit every field, then explicitly confirm a draft expense or draft vendor bill only.",
     "configurationState": {
       "disabled": "State: Off - automatic reading is not enabled.",

@@ -20,7 +20,7 @@
   },
   "billing": {
     "draft": "טיוטה",
-    "finalized": "סופי",
+    "finalized": "הופק",
     "void": "מבוטל"
   },
   "payment": {
@@ -33,12 +33,12 @@
   },
   "expense": {
     "draft": "טיוטה",
-    "finalized": "מאושרת לעלות",
+    "finalized": "נרשמה",
     "void": "מבוטל"
   },
   "quoteVersion": {
     "draft": "טיוטה",
-    "issued": "נשלחה",
+    "issued": "הופקה",
     "superseded": "הוחלפה",
     "accepted": "התקבלה",
     "rejected": "נדחתה"
@@ -46,7 +46,7 @@
   "estimateQuote": {
     "draft": "טיוטה",
     "ready": "מוכן",
-    "sent": "נשלח",
+    "sent": "הופקה",
     "accepted": "התקבל",
     "rejected": "נדחה",
     "expired": "פג תוקף",
@@ -80,7 +80,7 @@
     "scheduled": "מתוזמן",
     "in_progress": "בתהליך",
     "passed": "עבר",
-    "failed": "נכשל",
+    "failed": "לא עבר",
     "cancelled": "בוטל"
   },
   "asset": {

@@ -20,7 +20,7 @@ test.describe('overnight 3-wave surfaces (hebrew owner)', () => {
     await assertNoPageHorizontalOverflow(page, 'notifications mobile');
 
     await page.goto('/he-IL/workforce/time/approvals');
-    await expect(page.getByRole('heading', { name: 'אישור גיליונות שעות', level: 1 })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'אישורי שעות', level: 1 })).toBeVisible();
     await assertNoPageHorizontalOverflow(page, 'timesheet approvals mobile');
   });
 });

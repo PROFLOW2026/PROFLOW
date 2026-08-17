@@ -52,10 +52,14 @@ export const OPTIONAL_MODULE_KEYS = [
 
 export type OptionalModuleKey = (typeof OPTIONAL_MODULE_KEYS)[number];
 
-/** Optional modules shown on Settings → Features. Portal stays in code, off, and off the product UI. */
+/**
+ * Optional modules shown on Settings → Features.
+ * Portal stays off the product UI. Today (`command_center`) is a core
+ * permission-gated destination, not a user-toggleable capability.
+ */
 export const CUSTOMER_FEATURE_MODULE_KEYS = OPTIONAL_MODULE_KEYS.filter(
-  (key) => key !== 'portal',
-) as readonly Exclude<OptionalModuleKey, 'portal'>[];
+  (key) => key !== 'portal' && key !== 'command_center',
+) as readonly Exclude<OptionalModuleKey, 'portal' | 'command_center'>[];
 
 export function isOptionalModuleKey(value: string): value is OptionalModuleKey {
   return (OPTIONAL_MODULE_KEYS as readonly string[]).includes(value);

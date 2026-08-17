@@ -9,7 +9,8 @@
     "title": "Worth a look",
     "approvedNotBilled": "{count, plural, =1 {# approved change is not billed yet} other {# approved changes are not billed yet}}",
     "overdueBilling": "{count, plural, =1 {# billing record is overdue} other {# billing records are overdue}}",
-    "pendingChanges": "{count, plural, =1 {# change is waiting for approval} other {# changes are waiting for approval}}"
+    "pendingChanges": "{count, plural, =1 {# change is waiting for approval} other {# changes are waiting for approval}}",
+    "linkToday": "Everything that needs handling"
   },
   "empty": {
     "title": "Start with your first project",

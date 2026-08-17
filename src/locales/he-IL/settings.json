@@ -9,14 +9,14 @@
   },
   "sections": {
     "business": "העסק",
-    "people": "אנשים ותפקידים",
+    "people": "משתמשים והרשאות",
     "roles": "תפקידים",
     "features": "יכולות",
     "costCategories": "קטגוריות עלות",
     "catalog": "תחומים וסוגים",
     "templates": "תבניות מבנה",
-    "tax": "מס",
-    "numbering": "מספור מסמכים",
+    "tax": "כספים ומע״מ",
+    "numbering": "מספור",
     "approvals": "אישורים",
     "portal": "גישת פורטל",
     "customFields": "שדות מותאמים",
@@ -26,7 +26,7 @@
     "app": "אפליקציה",
     "offlineDrafts": "טיוטות לא מקוונות",
     "banking": "בנקאות",
-    "ocr": "סריקת קבלות",
+    "ocr": "קליטת חשבוניות",
     "profile": "הפרופיל שלך"
   },
   "people": {
@@ -53,7 +53,8 @@
     "visibilityLabel": "מצב עבור {module}",
     "on": "פעיל",
     "off": "כבוי",
-    "auto": "אוטומטי",
+    "auto": "לפי הצורך",
+    "autoHint": "לפי הצורך - היכולת תוצג בהתאם לסוג העסק ולשימוש במערכת.",
     "billing": "חיובים וגבייה",
     "workforce": "עובדים ושעות",
     "vendors": "ספקים",
@@ -434,7 +435,7 @@
       "portal": {
         "grant_created": "יצירת מענק פורטל",
         "grant_revoked": "ביטול מענק פורטל",
-        "vendor_ap_candidate": "הגשת מועמד חשבון ספק",
+        "vendor_ap_candidate": "הגשת מועמד חשבונית ספק",
         "vendor_compliance_candidate": "הגשת מועמד ציות ספק",
         "vendor_candidate_reviewed": "סקירת מועמד פורטל ספק"
       },
@@ -500,16 +501,16 @@
         "supplier_quote_received": "קבלת הצעת ספק"
       },
       "ap": {
-        "bill_created": "יצירת חשבון ספק",
-        "bill_voided": "ביטול חשבון ספק",
-        "match_proposed": "הצעת התאמת חשבון ספק",
-        "match_accepted": "קבלת התאמת חשבון ספק",
-        "match_rejected": "דחיית התאמת חשבון ספק",
+        "bill_created": "יצירת חשבונית ספק",
+        "bill_voided": "ביטול חשבונית ספק",
+        "match_proposed": "הצעת התאמת חשבונית ספק",
+        "match_accepted": "קבלת התאמת חשבונית ספק",
+        "match_rejected": "דחיית התאמת חשבונית ספק",
         "payment_recorded": "רישום תשלום ספק",
         "payment_voided": "ביטול תשלום ספק",
         "credit_created": "יצירת זיכוי ספק",
         "credit_updated": "עדכון זיכוי ספק",
-        "credit_posted": "פרסום זיכוי ספק",
+        "credit_posted": "רישום זיכוי ספק",
         "credit_applied": "החלת זיכוי ספק",
         "credit_voided": "ביטול זיכוי ספק"
       },
@@ -670,7 +671,7 @@
       "boq_sub_valuation": {
         "created": "נוצרה הערכת קבלן משנה",
         "approved": "הערכת קבלן משנה אושרה",
-        "proposed_ap": "הערכת קבלן משנה הוצעה לחשבון ספק",
+        "proposed_ap": "הערכת קבלן משנה הוצעה לחשבונית ספק",
         "voided": "הערכת קבלן משנה בוטלה"
       }
     },
@@ -722,8 +723,8 @@
       "procurement_rfq": "בקשת הצעות",
       "supplier_quote": "הצעת ספק",
       "purchase_order": "הזמנת רכש",
-      "ap_bill": "חשבון ספק",
-      "ap_match": "התאמת חשבון ספק",
+      "ap_bill": "חשבונית ספק",
+      "ap_match": "התאמת חשבונית ספק",
       "ap_payment": "תשלום ספק",
       "daily_log": "יומן יומי",
       "punch_list_item": "ליקוי",
@@ -773,7 +774,7 @@
       "change_request": "בקשת שינוי",
       "change_order": "צו שינוי",
       "purchase_order": "הזמנת רכש",
-      "vendor_bill": "חשבון ספק",
+      "vendor_bill": "חשבונית ספק",
       "billing_record": "חיוב"
     }
   },
@@ -782,8 +783,8 @@
     "body": "אין לכם הרשאה לצפות באזור ההגדרות הזה."
   },
   "ocr": {
-    "title": "סריקת קבלות",
-    "description": "סטטוס קריאה אוטומטית של מסמכים. העיבוד מתחיל בהעלאה. נוצרת רק טיוטה - לא נרשם בעלות בפועל. סודות לא מוצגים כאן.",
+    "title": "קליטת חשבוניות",
+    "description": "צילום או העלאת חשבונית. המערכת מציעה פרטים לבדיקה ומכינה טיוטה. סודות לא מוצגים כאן.",
     "ingestionLabel": "קליטה",
     "ingestionOn": "פעיל",
     "ingestionOff": "כבוי",
@@ -791,7 +792,7 @@
     "providerConfigured": "יש אישורים",
     "providerMissing": "לא מוגדר",
     "azureGuidance": "Azure Document Intelligence דורש מפתח API וכתובת קצה במשתני הסביבה בשרת. הערכים עצמם לא מוצגים כאן.",
-    "draftsOnly": "אישור קריאה יוצר רק טיוטת הוצאה, טיוטת חשבון ספק או טיוטת זיכוי ספק. לא נרשם בעלות בפועל.",
+    "draftsOnly": "אישור קריאה יוצר רק טיוטת הוצאה, טיוטת חשבונית ספק או טיוטת זיכוי ספק. לא נרשם בעלות בפועל.",
     "queueTitle": "משימות ממתינות",
     "queueHint": "המסמכים מעובדים בהעלאה. בדיקה יומית מנסה שוב רק פריטים שנתקעו. מפתחות API וסודות לא מוצגים כאן.",
     "queued": "ממתינים",

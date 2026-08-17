@@ -62,7 +62,6 @@ export default async function NewQuotePage({
           </Link>
         }
       />
-      <p className="text-sm text-[var(--pf-text-secondary)]">{t('disclaimer')}</p>
       <QuoteCreateForm
         defaultCurrency={opportunity?.currency ?? shell?.organization.baseCurrency ?? 'ILS'}
         clients={clients.map((c) => ({ id: c.id, name: c.name }))}

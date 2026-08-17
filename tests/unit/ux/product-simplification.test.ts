@@ -100,7 +100,7 @@ describe('authenticated product simplification', () => {
 
   it('procurement AP tab is labeled vendor bills in Hebrew', () => {
     const procurement = flattenLocaleCatalog(readLocaleCatalog('he-IL', 'procurement'));
-    expect(procurement.get('nav.ap')).toBe('חשבונות ספקים');
+    expect(procurement.get('nav.ap')).toBe('חשבוניות ספק');
     expect(procurement.get('nav.ap')).not.toMatch(/AP/);
   });
 
@@ -149,13 +149,13 @@ describe('authenticated product simplification', () => {
       expect(nav.has('newMenu.job')).toBe(true);
     }
     const heNav = flattenLocaleCatalog(readLocaleCatalog('he-IL', 'nav'));
-    expect(heNav.get('vendorBills')).toBe('חשבונות ספקים');
+    expect(heNav.get('vendorBills')).toBe('חשבוניות ספק');
     expect(heNav.get('jobs')).toBe('עבודות');
     expect(heNav.get('overhead')).toBe('תקורה');
     expect(heNav.get('newMenu.job')).toBe('עבודה');
     expect(heNav.get('attendance')).toBe('נוכחות');
-    expect(heNav.get('newMenu.fieldLog')).toBe('יומן שטח');
-    expect(heNav.get('newMenu.vendorBill')).toBe('חשבון ספק');
+    expect(heNav.get('newMenu.fieldLog')).toBe('יומן עבודה');
+    expect(heNav.get('newMenu.vendorBill')).toBe('חשבונית ספק');
     expect(heNav.get('newMenu.attendance')).toBe('נוכחות');
     expect(heNav.get('newMenu.maintenance')).toBe('ציוד / תחזוקה');
   });

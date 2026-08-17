@@ -10,7 +10,7 @@ export function fallbackWhere(locale: string, key: 'billing' | 'vendorBills' | '
       case 'billing':
         return 'חיוב';
       case 'vendorBills':
-        return 'חשבונות ספק';
+        return 'חשבוניות ספק';
       case 'workforce':
         return 'עובדים · עלות מעסיק';
       case 'approvals':
@@ -24,15 +24,15 @@ export function fallbackWhere(locale: string, key: 'billing' | 'vendorBills' | '
       case 'boq':
         return 'כתב כמויות';
       case 'ocr':
-        return 'סקירת מסמכים';
+        return 'קליטת חשבונית';
       case 'fieldOps':
-        return 'פעילות שטח';
+        return 'עבודה בשטח';
       case 'safety':
         return 'בטיחות';
       case 'recurring':
         return 'טיוטות חוזרות';
       case 'timesheets':
-        return 'גיליונות שעות';
+        return 'אישורי שעות';
     }
   }
   switch (key) {
@@ -52,16 +52,16 @@ export function fallbackWhere(locale: string, key: 'billing' | 'vendorBills' | '
       return 'Month close';
     case 'boq':
       return 'BOQ';
-    case 'ocr':
-      return 'Document review';
+      case 'ocr':
+      return 'Invoice capture';
     case 'fieldOps':
       return 'Field operations';
     case 'safety':
       return 'Safety';
     case 'recurring':
       return 'Recurring drafts';
-    case 'timesheets':
-      return 'Timesheets';
+      case 'timesheets':
+      return 'Timesheet approvals';
   }
 }
 
@@ -91,7 +91,7 @@ export function vendorBillDueCopy(
 ): { what: string; why: string } {
   if (he(locale)) {
     return {
-      what: input.reference ? `תשלום חשבון ספק ${input.reference}` : 'תשלום חשבון ספק באיחור',
+      what: input.reference ? `תשלום חשבונית ספק ${input.reference}` : 'תשלום חשבונית ספק באיחור',
       why: `לתשלום עד ${input.dueDate} · יתרה ${input.outstanding} ${input.currency}`,
     };
   }
@@ -137,8 +137,8 @@ export function unallocatedVendorBillCopy(
 ): { what: string; why: string } {
   if (he(locale)) {
     return {
-      what: 'שיוך חשבון ספק לפרויקט',
-      why: `חשבון פורסם בלי פרויקט · ${input.outstanding} ${input.currency}`,
+      what: 'שיוך חשבונית ספק לפרויקט',
+      why: `חשבונית נרשמה בלי פרויקט · ${input.outstanding} ${input.currency}`,
     };
   }
   return {
@@ -316,12 +316,12 @@ export function boqVsContractMismatchCopy(
   if (he(locale)) {
     return {
       what: 'התאמת כתב כמויות לחוזה',
-      why: `פער בין חוזה לכתב כמויות · ${input.status}`,
+      why: `פער בין חוזה לכתב כמויות. ${boqReconStatusLabel(locale, input.status)}`,
     };
   }
   return {
     what: 'Reconcile BOQ vs contract',
-    why: `Contract and BOQ diverge · ${input.status}`,
+    why: `Contract and BOQ diverge. ${boqReconStatusLabel(locale, input.status)}`,
   };
 }
 
@@ -331,7 +331,7 @@ export function vendorBillApproachingCopy(
 ): { what: string; why: string } {
   if (he(locale)) {
     return {
-      what: input.reference ? `חשבון ספק מתקרב לפירעון ${input.reference}` : 'חשבון ספק מתקרב לפירעון',
+      what: input.reference ? `חשבונית ספק מתקרבת לפירעון ${input.reference}` : 'חשבונית ספק מתקרבת לפירעון',
       why: `לתשלום עד ${input.dueDate} · יתרה ${input.outstanding} ${input.currency}`,
     };
   }
@@ -344,8 +344,8 @@ export function vendorBillApproachingCopy(
 export function ocrNeedsReviewCopy(locale: string, filename: string | null): { what: string; why: string } {
   if (he(locale)) {
     return {
-      what: 'סקירת מסמך שנסרק',
-      why: filename ? `${filename} ממתין לאישור ידני לפני טיוטה` : 'מסמך ממתין לאישור ידני לפני טיוטה',
+      what: 'בדיקת חשבונית',
+      why: filename ? `${filename} ממתין לבדיקה לפני יצירת טיוטה` : 'מסמך ממתין לבדיקה לפני יצירת טיוטה',
     };
   }
   return {
@@ -528,6 +528,23 @@ export function timesheetMissingCopy(locale: string, periodEnd: string): { what:
   };
 }
 
+function boqReconStatusLabel(locale: string, status: string): string {
+  const heMap: Record<string, string> = {
+    matched: 'תואם',
+    variance: 'סטייה',
+    unallocated_contract_value: 'ערך חוזה לא משויך',
+    unallocated_approved_change: 'שינוי מאושר לא משויך',
+  };
+  const enMap: Record<string, string> = {
+    matched: 'matched',
+    variance: 'variance',
+    unallocated_contract_value: 'unallocated contract value',
+    unallocated_approved_change: 'approved change not yet allocated',
+  };
+  if (he(locale)) return heMap[status] ?? status;
+  return enMap[status] ?? status.replaceAll('_', ' ');
+}
+
 function allocationStatusLabel(locale: string, status: string): string {
   if (!he(locale)) return status;
   if (status === 'applied') return 'הוחל';
@@ -539,7 +556,7 @@ function entityTypeLabel(locale: string, entityType: string): string {
   if (!he(locale)) return entityType;
   const map: Record<string, string> = {
     expense: 'הוצאה',
-    vendor_bill: 'חשבון ספק',
+    vendor_bill: 'חשבונית ספק',
     vendor_credit: 'זיכוי ספק',
     billing_record: 'חיוב',
     payment: 'תשלום',

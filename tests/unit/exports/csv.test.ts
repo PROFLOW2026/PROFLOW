@@ -254,7 +254,7 @@ describe('hebrew business export copy', () => {
     ]);
 
     const matrix = await workbookFirstSheetToMatrix(buffer);
-    expect(matrix.headers).toEqual(['מזהה', 'יתרה לגבייה מזומן', 'סטטוס גבייה']);
+    expect(matrix.headers).toEqual(['מזהה', 'יתרה פתוחה', 'סטטוס גבייה']);
     expect(matrix.rows[0]?.[2]).toBe('פתוח');
     expect(matrix.headers.join('|')).not.toMatch(/Outstanding|Collection|Status|Aging/i);
     expect(matrix.rows.flat().join('|')).not.toMatch(

@@ -1,6 +1,6 @@
 {
-  "title": "CRM",
-  "description": "Optional sales pipeline: prospects, leads, and opportunities. Quotes (bids) live under Quotes - not here, and not billing.",
+  "title": "Sales",
+  "description": "Follow inquiries and opportunities through to a quote and closing the work.",
   "quotesVsCrmBanner": "Quotes are bids. This CRM pipeline is optional and separate from the quotes book.",
   "navLabel": "CRM sections",
   "nav": {

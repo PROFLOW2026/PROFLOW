@@ -21,18 +21,16 @@ describe('financial basis labels distinguish invoice cash from net profit', () =
     const billingCash = financial.get('basis.billingCash') ?? '';
     const profitNet = financial.get('basis.profitNet') ?? '';
 
-    expect(invoiced).toMatch(/חשבוניות/);
-    expect(billed).toMatch(/חשבוניות/);
+    expect(invoiced).toMatch(/חיוב/);
+    expect(billed).toMatch(/חיוב/);
     expect(invoiced).not.toBe(profit);
     expect(billed).not.toBe(actualMargin);
-    expect(billedHint).toMatch(/מע״מ/);
-    expect(billedHint).toMatch(/לא הכנסה לחישוב רווח|לא הכנסה לרווח/);
-    expect(profit).toMatch(/נטו/);
-    expect(actualMargin).toMatch(/נטו/);
-    expect(actualMarginHint).toMatch(/מע״מ/);
-    expect(actualMarginHint).toMatch(/נטו/);
-    expect(actualCost).toMatch(/נטו/);
-    expect(outstanding).toMatch(/מזומן/);
+    expect(billedHint).toMatch(/הסכום שכבר חויב ללקוח/);
+    expect(profit).toMatch(/רווח/);
+    expect(actualMargin).toMatch(/רווח/);
+    expect(actualMarginHint).toMatch(/הרווח המשוער/);
+    expect(actualCost).toMatch(/עלות בפועל/);
+    expect(outstanding).toMatch(/יתרה פתוחה/);
     expect(billingCash).not.toBe(profitNet);
     expect(billingCash).toMatch(/מע״מ/);
     expect(profitNet).toMatch(/מע״מ/);
@@ -56,17 +54,16 @@ describe('financial basis labels distinguish invoice cash from net profit', () =
     const actualCost = financial.get('kpis.actualCost') ?? '';
     const outstanding = financial.get('kpis.outstanding') ?? '';
 
-    expect(invoiced.toLowerCase()).toMatch(/invoice/);
-    expect(billed.toLowerCase()).toMatch(/invoice/);
+    expect(invoiced.toLowerCase()).toMatch(/bill/);
+    expect(billed.toLowerCase()).toMatch(/bill/);
     expect(invoiced).not.toBe(profit);
     expect(billed).not.toBe(actualMargin);
-    expect(billedHint).toMatch(/VAT/i);
-    expect(billedHint.toLowerCase()).toMatch(/not revenue for profit/);
-    expect(profit.toLowerCase()).toMatch(/net/);
-    expect(actualMargin.toLowerCase()).toMatch(/net/);
-    expect(actualMarginHint).toMatch(/VAT/i);
-    expect(actualCost.toLowerCase()).toMatch(/net/);
-    expect(outstanding.toLowerCase()).toMatch(/collect|cash/);
+    expect(billedHint.toLowerCase()).toMatch(/already billed|billed to the client/);
+    expect(profit.toLowerCase()).toMatch(/profit/);
+    expect(actualMargin.toLowerCase()).toMatch(/profit/);
+    expect(actualMarginHint.toLowerCase()).toMatch(/estimated profit|data entered/);
+    expect(actualCost.toLowerCase()).toMatch(/cost/);
+    expect(outstanding.toLowerCase()).toMatch(/outstanding|open/);
     expect(dashboard.get('businessSummary.invoicedThisMonth')?.toLowerCase()).toMatch(/invoice/);
     expect(dashboard.get('reports.columns.profit')?.toLowerCase()).toMatch(/net/);
     expect(dashboard.get('reports.columns.invoiced')).not.toBe(

@@ -10,26 +10,26 @@ describe('project tab business priority', () => {
     expect(PROJECT_TAB_PRIORITY).toEqual([
       'overview',
       'financials',
-      'expenses',
-      'team',
-      'usage',
-      'schedule',
-      'changes',
-      'boq',
-      'billing',
       'budgets',
+      'boq',
+      'changes',
+      'billing',
+      'expenses',
+      'usage',
+      'team',
       'time',
-      'documents',
+      'schedule',
       'work',
+      'documents',
       'details',
     ]);
     expect(PROJECT_TAB_PRIORITY.indexOf('team')).toBeLessThan(
       PROJECT_TAB_PRIORITY.indexOf('schedule'),
     );
-    expect(PROJECT_TAB_PRIORITY.indexOf('changes')).toBeLessThan(
-      PROJECT_TAB_PRIORITY.indexOf('boq'),
-    );
     expect(PROJECT_TAB_PRIORITY.indexOf('boq')).toBeLessThan(
+      PROJECT_TAB_PRIORITY.indexOf('changes'),
+    );
+    expect(PROJECT_TAB_PRIORITY.indexOf('changes')).toBeLessThan(
       PROJECT_TAB_PRIORITY.indexOf('billing'),
     );
   });
@@ -53,10 +53,10 @@ describe('project tab business priority', () => {
     expect(tabs).toEqual([...PROJECT_TAB_PRIORITY]);
     expect(tabs.indexOf('expenses')).toBeLessThan(tabs.indexOf('team'));
     expect(tabs.indexOf('team')).toBeLessThan(tabs.indexOf('schedule'));
-    expect(tabs.indexOf('schedule')).toBeLessThan(tabs.indexOf('time'));
+    expect(tabs.indexOf('time')).toBeLessThan(tabs.indexOf('schedule'));
     expect(tabs.indexOf('billing')).toBeLessThan(tabs.indexOf('time'));
-    expect(tabs.indexOf('documents')).toBeLessThan(tabs.indexOf('work'));
-    expect(tabs.indexOf('work')).toBeLessThan(tabs.indexOf('details'));
+    expect(tabs.indexOf('documents')).toBeLessThan(tabs.indexOf('details'));
+    expect(tabs.indexOf('work')).toBeLessThan(tabs.indexOf('documents'));
   });
 
   it('keeps overview and details when optional modules are off', () => {

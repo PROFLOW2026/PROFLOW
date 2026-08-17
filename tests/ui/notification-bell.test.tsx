@@ -57,7 +57,7 @@ const unreadInbox: NotificationInboxDto = {
       id: '018f1234-5678-7abc-8def-0123456789ab',
       type: 'ap_overdue',
       domain: 'ap',
-      title: 'חשבון ספק באיחור - BILL-9',
+      title: 'חשבונית ספק באיחור - BILL-9',
       body: 'עבר את מועד הפירעון',
       severity: 'warning',
       deepLink: '/procurement/ap/2',
@@ -95,7 +95,7 @@ describe('notification bell', () => {
 
     await user.click(trigger);
     expect(await screen.findByText('חיוב לקוח באיחור - INV-1')).toBeVisible();
-    expect(screen.getByText('חשבון ספק באיחור - BILL-9')).toBeVisible();
+    expect(screen.getByText('חשבונית ספק באיחור - BILL-9')).toBeVisible();
     expect(screen.getByText('2 התראות שלא נקראו')).toBeVisible();
   });
 });

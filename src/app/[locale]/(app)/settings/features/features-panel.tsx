@@ -102,6 +102,7 @@ export function FeaturesSettingsPanel({
   return (
     <div className="flex flex-col gap-2">
       <p className="text-sm text-[var(--pf-text-secondary)]">{t('subtitle')}</p>
+      <p className="text-sm text-[var(--pf-text-secondary)]">{t('autoHint')}</p>
 
       <div className="mt-2 rounded-lg border border-[var(--pf-border-default)] p-4">
         {CUSTOMER_FEATURE_MODULE_KEYS.map((moduleKey) => (

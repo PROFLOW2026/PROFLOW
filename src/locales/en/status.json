@@ -20,7 +20,7 @@
   },
   "billing": {
     "draft": "Draft",
-    "finalized": "Finalized",
+    "finalized": "Issued",
     "void": "Void"
   },
   "payment": {
@@ -33,7 +33,7 @@
   },
   "expense": {
     "draft": "Draft",
-    "finalized": "In Actual Cost",
+    "finalized": "Recorded",
     "void": "Void"
   },
   "quoteVersion": {
@@ -46,7 +46,7 @@
   "estimateQuote": {
     "draft": "Draft",
     "ready": "Ready",
-    "sent": "Sent",
+    "sent": "Issued",
     "accepted": "Accepted",
     "rejected": "Rejected",
     "expired": "Expired",
@@ -80,7 +80,7 @@
     "scheduled": "Scheduled",
     "in_progress": "In progress",
     "passed": "Passed",
-    "failed": "Failed",
+    "failed": "Did not pass",
     "cancelled": "Cancelled"
   },
   "asset": {

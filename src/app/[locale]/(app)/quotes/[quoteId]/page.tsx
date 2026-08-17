@@ -97,9 +97,6 @@ export default async function QuoteDetailPage({
         }
       />
 
-      <p className="rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-muted)] px-3 py-2 text-sm text-[var(--pf-text-secondary)]">
-        {t('disclaimer')}
-      </p>
       {quote.status === 'sent' ? (
         <p className="rounded-md border border-[var(--pf-border-default)] px-3 py-2 text-sm text-[var(--pf-text-secondary)]">
           {t('detail.sentIsNotEmail')}

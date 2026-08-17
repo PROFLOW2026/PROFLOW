@@ -1,5 +1,5 @@
 {
-  "title": "PDF report packs",
+  "title": "PDF reports",
   "description": "Download a snapshot PDF or open a print-friendly page. Figures keep Actual, Committed, and Forecast labels. Invoice totals are billing/cash, not profit. VAT is not profit.",
   "downloadPdf": "Download PDF",
   "previewPrint": "Preview / print",
@@ -10,7 +10,7 @@
   "selectQuote": "Quote / estimate",
   "noProjects": "No accessible projects to report on.",
   "chooseProject": "Choose a project",
-  "packsHeading": "Project PDF packs",
+  "packsHeading": "Project PDF reports",
   "quotePacksHeading": "Quote PDF",
   "csvStillHere": "Spreadsheet exports (CSV / Excel) stay in the export menu above.",
   "identity": {

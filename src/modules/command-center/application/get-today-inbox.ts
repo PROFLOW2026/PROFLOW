@@ -1,5 +1,4 @@
 import type { OrgContext } from '@/shared/auth/context';
-import { DomainRuleError } from '@/shared/errors';
 import { assertPermission, hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { getModuleVisibility } from '@/modules/tenancy';
@@ -31,18 +30,12 @@ function isHiddenByState(
 
 /**
  * Aggregates actionable Today items for anyone with `command_center.read`.
- * Optional module must be on (nav + page). Items are filtered by grants.
+ * Visibility is permission-gated, not an optional-module toggle.
  */
 export async function getTodayInbox(context: OrgContext): Promise<CommandCenterInbox> {
   assertPermission(context, PERMISSIONS.COMMAND_CENTER_READ);
 
   const modules = await getModuleVisibility(context);
-  if (!modules.command_center) {
-    throw new DomainRuleError(
-      'Command Center module is not enabled for this organization',
-      'commandCenter.errors.moduleOff',
-    );
-  }
 
   const today = todayInTimeZone(context.organization.timezone);
   const now = new Date();

@@ -1,7 +1,7 @@
 {
   "title": "Today",
-  "description": "What needs handling now - your work inbox, not the alert bell.",
-  "listLabel": "Items for today",
+  "description": "Everything that needs handling now.",
+  "listLabel": "To handle",
   "summary": "{count, plural, =0 {Nothing needs attention right now} =1 {1 item to handle} other {# items to handle}}",
   "fields": {
     "where": "Where"
@@ -21,9 +21,9 @@
   },
   "sections": {
     "critical": "Critical",
-    "high": "Overdue / High",
-    "medium": "Warning / Medium",
-    "low": "Info / Low"
+    "high": "Overdue",
+    "medium": "Needs review",
+    "low": "To handle"
   },
   "sources": {
     "overdue_ar": "Overdue billing",
@@ -54,15 +54,15 @@
   },
   "empty": {
     "title": "You're clear",
-    "body": "Nothing needs attention from the areas you can access. If you expected more, check Settings → Features - or look again later."
+    "body": "Nothing needs handling right now."
   },
   "moduleOff": {
-    "title": "Today is turned off",
-    "body": "Turn on Today under Settings → Features to see items that need attention.",
-    "action": "Open features"
+    "title": "No access",
+    "body": "You do not have permission to open Today.",
+    "action": "Back to dashboard"
   },
   "errors": {
     "unsafeState": "This item cannot be dismissed - open or snooze it instead.",
-    "moduleOff": "Today is not enabled for this organization. Turn it on under Settings → Features."
+    "moduleOff": "You do not have permission to open Today."
   }
 }

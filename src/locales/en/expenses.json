@@ -9,7 +9,7 @@
     "title": "Expense",
     "summary": "Summary",
     "draftBanner": "This expense was saved as a draft and is not included in project costs yet.",
-    "finalizedBanner": "This expense was approved and is included in project costs.",
+    "finalizedBanner": "The expense was recorded in the project costs.",
     "reversalOf": "Reversal of expense {id}",
     "adjustmentOf": "Corrected replacement for expense {id}",
     "viewVendor": "Open linked vendor",
@@ -49,7 +49,7 @@
   "actions": {
     "add": "Add expense",
     "saveDraft": "Save draft",
-    "finalize": "Approve into Actual Cost",
+    "finalize": "Record expense",
     "void": "Void",
     "reverse": "Reverse (offset)",
     "correct": "Correct expense"
@@ -63,10 +63,10 @@
     "exampleHint": "Example: 52,000 → 50,000 keeps +52,000 original, -52,000 reversal, +50,000 replacement (net 50,000)."
   },
   "confirm": {
-    "finalizeTitle": "Approve expense into Actual Cost",
-    "finalizeQuestion": "Approve the expense of <amount></amount> from <date></date> and include it in Actual Cost?",
-    "finalizeConsequence": "Once approved it cannot be edited, and the net amount enters Actual Cost and profitability.",
-    "finalizeSuccess": "This expense was approved and is included in project costs.",
+    "finalizeTitle": "Record expense",
+    "finalizeQuestion": "Record the expense of <amount></amount> from <date></date>?",
+    "finalizeConsequence": "The expense will be recorded in the project costs.",
+    "finalizeSuccess": "The expense was recorded.",
     "voidTitle": "Void expense",
     "voidQuestion": "Void the expense of <amount></amount> from <date></date>?",
     "voidConsequence": "It will be excluded from all cost figures.",

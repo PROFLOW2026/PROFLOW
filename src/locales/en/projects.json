@@ -5,8 +5,8 @@
   "noContractValue": "Not set",
   "empty": {
     "title": "No projects yet",
-    "body": "Projects, jobs, and service calls share one financial row - this list is the project workspace, not a separate ledger.",
-    "action": "Create first project",
+    "body": "Create the first project to start managing the work, costs, and billing.",
+    "action": "New project",
     "jobsAffordance": "Short work? New job"
   },
   "list": {
@@ -79,7 +79,7 @@
       "goToProject": "Create a project",
       "goToWorkOrder": "Create a service call",
       "stayHint": "This form is still available if you need a project.",
-      "sameEngine": "Projects, jobs, and service calls are the same financial row with different screens.",
+      "sameEngine": "You can manage projects, jobs, and service calls according to the type of work.",
       "switcherLabel": "Work type"
     },
     "submit": "Create project",
@@ -104,7 +104,7 @@
       "schedule": "Schedule",
       "time": "Time",
       "documents": "Documents",
-      "usage": "Usage",
+      "usage": "Materials and equipment",
       "details": "Details"
     },
     "links": {
@@ -122,7 +122,7 @@
       "team": "Team",
       "time": "Time",
       "documents": "Documents",
-      "usage": "Usage",
+      "usage": "Materials and equipment",
       "details": "Details",
       "schedule": "Schedule",
       "procurement": "Procurement",
@@ -138,7 +138,7 @@
       "compliance": "Compliance"
     },
     "header": {
-      "currentContractValue": "Current contract value net",
+      "currentContractValue": "Current contract value",
       "displayOriginalValue": "Per original contract",
       "managedOpeningValue": "What you manage here"
     },

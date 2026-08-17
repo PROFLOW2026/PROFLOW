@@ -104,8 +104,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
     labelKey: 'today',
     iconKey: 'today',
     permission: PERMISSIONS.COMMAND_CENTER_READ,
-    module: 'command_center',
-    /** Today inbox - promote when module on; mobile bar still caps at 4. */
+    /** Core destination for eligible users - not an optional module. */
     primaryOnMobile: true,
   },
   {
@@ -506,7 +505,37 @@ export function partitionNavItems(items: readonly NavItem[]): {
   return { core, groups, settings };
 }
 
-/** Marks a nav item active, treating `/projects/123` as inside Projects. */
+/**
+ * Mobile bottom bar: at most four destinations. Today stays in that set
+ * whenever the user can see it, immediately after Dashboard.
+ */
+export function selectMobilePrimaryItems(items: readonly NavItem[]): NavItem[] {
+  const preferred = items.filter((item) => item.primaryOnMobile);
+  const today = preferred.find((item) => item.key === 'today');
+  if (!today) return preferred.slice(0, 4);
+
+  const dashboard = preferred.find((item) => item.key === 'dashboard');
+  const expenses = preferred.find((item) => item.key === 'expenses');
+  const projects = preferred.find((item) => item.key === 'projects');
+  const jobs = preferred.find((item) => item.key === 'jobs');
+  const work = projects ?? jobs;
+
+  const pinned: NavItem[] = [];
+  const used = new Set<string>();
+  for (const item of [dashboard, today, work, expenses]) {
+    if (!item || used.has(item.key)) continue;
+    pinned.push(item);
+    used.add(item.key);
+  }
+  for (const item of preferred) {
+    if (pinned.length >= 4) break;
+    if (used.has(item.key)) continue;
+    pinned.push(item);
+    used.add(item.key);
+  }
+  return pinned.slice(0, 4);
+}
+
 export function isNavItemActive(pathname: string, href: string): boolean {
   const normalized = pathname.replace(/^\/[a-z]{2}(-[A-Z]{2})?(?=\/|$)/, '') || '/';
   if (href === '/') return normalized === '/';

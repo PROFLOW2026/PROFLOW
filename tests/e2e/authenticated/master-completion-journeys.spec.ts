@@ -117,8 +117,8 @@ test.describe('master completion owner journeys', () => {
     await openFromNavOrGoto('היום', '/he-IL/today');
     await expect(page.getByRole('heading', { name: 'היום', exact: true })).toBeVisible();
 
-    await openFromNavOrGoto('הצעות מחיר לפני פרויקט', '/he-IL/quotes');
-    await expect(page.getByRole('heading', { name: 'הצעות מחיר לפני פרויקט', exact: true })).toBeVisible();
+    await openFromNavOrGoto('הצעות מחיר', '/he-IL/quotes');
+    await expect(page.getByRole('heading', { name: 'הצעות מחיר', exact: true })).toBeVisible();
 
     await openFromNavOrGoto('קריאות שירות', '/he-IL/work-orders');
     await expect(page.getByRole('heading', { name: 'קריאות שירות', exact: true })).toBeVisible();

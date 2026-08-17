@@ -1,38 +1,38 @@
 {
-  "title": "Pre-project estimates",
-  "description": "Pre-project offers before work exists. Not an invoice, not a sales CRM quote, not a change-order quote, and not billing or revenue until work is won and converted.",
-  "salesVsCrmBanner": "Quotes are bids you send a customer. CRM is an optional sales pipeline - not a second quotes list.",
-  "disclaimer": "This estimate is a commercial offer. It is not a statutory tax invoice.",
+  "title": "Quotes",
+  "description": "Create, edit, and track quotes for clients.",
+  "salesVsCrmBanner": "Quotes for clients. Sales follows inquiries and opportunities through to a quote.",
+  "disclaimer": "A quote for the client.",
   "hub": {
-    "title": "Estimates, changes, and billing",
-    "description": "Three separate documents - not one table. Pick the object you need.",
-    "stripIntro": "This is not a change request and not billing. CRM pipeline is a different object.",
-    "preProjectTitle": "Quotes (bids)",
-    "preProjectBody": "Priced bids before work exists. Not an invoice, not CRM, and not an in-project change.",
-    "preProjectAction": "Open pre-project estimates",
-    "inProjectTitle": "Change inside a project",
-    "inProjectBody": "Change requests and extras on an existing project. Not a sales estimate.",
+    "title": "Quotes, changes, and billing",
+    "description": "Choose what to manage: a client quote, a project change, or billing.",
+    "stripIntro": "This is where you manage quotes for clients.",
+    "preProjectTitle": "Quotes",
+    "preProjectBody": "Quotes for a client before work starts.",
+    "preProjectAction": "Quotes",
+    "inProjectTitle": "Changes and extras",
+    "inProjectBody": "Change requests and extras on an existing project.",
     "inProjectAction": "Open change requests",
-    "billingTitle": "Billing is not a quote",
-    "billingBody": "Invoices and collections after work exists. Not an estimate.",
+    "billingTitle": "Billing and collections",
+    "billingBody": "See how much the client was billed and what is still outstanding.",
     "billingAction": "Open billing",
-    "crmNote": "CRM is an optional sales pipeline. It is not the quotes book and not billing.",
-    "crmAction": "Open sales pipeline",
+    "crmNote": "Sales follows inquiries and opportunities through to a quote.",
+    "crmAction": "Sales",
     "here": "You are here",
     "salesTitle": "Sales",
-    "salesDescription": "Quotes (bids) are the customer offer. The sales pipeline is an optional CRM board.",
+    "salesDescription": "Follow inquiries and opportunities through to a quote and closing the work.",
     "primary": "Primary",
     "optional": "Optional",
-    "quotesBidsTitle": "Quotes (bids)",
-    "quotesBidsBody": "Create, edit, issue (print/status), accept, and convert an estimate. Not billing.",
-    "pipelineTitle": "Sales pipeline (optional)",
-    "pipelineBody": "Leads, prospects, and opportunities. Create the customer quote from Quotes."
+    "quotesBidsTitle": "Quotes",
+    "quotesBidsBody": "Create, edit, issue, accept, and convert to a project or job.",
+    "pipelineTitle": "Sales",
+    "pipelineBody": "Inquiries and opportunities through to a quote and closing the work."
   },
-  "newQuote": "New pre-project estimate",
+  "newQuote": "New quote",
   "empty": {
-    "title": "No estimates yet",
-    "body": "Create a priced offer for a client before winning the work. Acceptance can create a project or job - it does not bill.",
-    "action": "Create pre-project estimate"
+    "title": "No quotes yet",
+    "body": "Create a quote for a client. You can edit, issue, and convert it to a project or job.",
+    "action": "New quote"
   },
   "list": {
     "columns": {
@@ -83,7 +83,7 @@
     "none": "No VAT"
   },
   "detail": {
-    "title": "Pre-project estimate",
+    "title": "Quote",
     "subtotal": "Subtotal (net)",
     "tax": "VAT",
     "total": "Total",
@@ -96,9 +96,9 @@
     "print": "Print / share",
     "editDraft": "Edit draft",
     "markReady": "Mark ready",
-    "markSent": "Mark issued (print / status)",
-    "markSentHint": "This records that the offer was issued to the customer (print or hand-off). It does not send email.",
-    "sentIsNotEmail": "Status is Issued. ProjectFlow did not send an email.",
+    "markSent": "Issue quote",
+    "markSentHint": "Issuing the quote does not send it to the client automatically.",
+    "sentIsNotEmail": "The quote was issued. It was not sent to the client automatically.",
     "accept": "Mark accepted",
     "reject": "Reject",
     "expire": "Mark expired",
@@ -124,6 +124,6 @@
     "noSubtotal": "Add priced lines before converting",
     "noTotal": "Tax-inclusive convert needs a total",
     "clientRequiredForJob": "Choose a client before converting to a job",
-    "quoteIsNotBilling": "Pre-project estimates must not create billing records"
+    "quoteIsNotBilling": "A quote does not create customer billing"
   }
 }

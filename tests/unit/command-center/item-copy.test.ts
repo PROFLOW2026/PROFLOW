@@ -9,6 +9,7 @@ import {
   punchOpenCopy,
   ocrNeedsReviewCopy,
   timesheetMissingCopy,
+  boqVsContractMismatchCopy,
 } from '@/modules/command-center/domain/item-copy';
 
 describe('command center item copy', () => {
@@ -33,7 +34,7 @@ describe('command center item copy', () => {
   });
 
   it('localizes fallback location labels', () => {
-    expect(fallbackWhere('he-IL', 'vendorBills')).toBe('חשבונות ספק');
+    expect(fallbackWhere('he-IL', 'vendorBills')).toBe('חשבוניות ספק');
     expect(fallbackWhere('en', 'vendorBills')).toBe('Vendor bills');
   });
 
@@ -44,7 +45,7 @@ describe('command center item copy', () => {
       outstanding: '500',
       currency: 'ILS',
     });
-    expect(he.what).toBe('תשלום חשבון ספק באיחור');
+    expect(he.what).toBe('תשלום חשבונית ספק באיחור');
     expect(he.what.toLowerCase()).not.toContain('owner');
   });
 
@@ -65,7 +66,7 @@ describe('command center item copy', () => {
       outstanding: '900',
       currency: 'ILS',
     });
-    expect(approachingHe.what).toContain('מתקרב לפירעון');
+    expect(approachingHe.what).toContain('מתקרבת לפירעון');
     expect(vendorBillApproachingCopy('en', {
       reference: 'VB-1',
       dueDate: '2026-08-20',
@@ -79,6 +80,12 @@ describe('command center item copy', () => {
     expect(ocrNeedsReviewCopy('en', 'scan.pdf').why).toContain('scan.pdf');
     expect(timesheetMissingCopy('he-IL', '2026-08-07').why).toContain('2026-08-07');
     expect(fallbackWhere('he-IL', 'safety')).toBe('בטיחות');
-    expect(fallbackWhere('en', 'ocr')).toBe('Document review');
+    expect(fallbackWhere('en', 'ocr')).toBe('Invoice capture');
+  });
+
+  it('does not leak BOQ recon status keys into Hebrew Today copy', () => {
+    const heCopy = boqVsContractMismatchCopy('he-IL', { status: 'unallocated_approved_change' });
+    expect(heCopy.why).toContain('שינוי מאושר לא משויך');
+    expect(heCopy.why).not.toMatch(/unallocated_approved_change/);
   });
 });

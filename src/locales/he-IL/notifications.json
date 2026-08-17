@@ -17,8 +17,8 @@
   },
   "types": {
     "billing_overdue": "חיוב לקוח באיחור",
-    "ap_due_soon": "חשבון ספק מתקרב לפירעון",
-    "ap_overdue": "חשבון ספק באיחור",
+    "ap_due_soon": "חשבונית ספק מתקרב לפירעון",
+    "ap_overdue": "חשבונית ספק באיחור",
     "approval_waiting": "ממתין לאישור",
     "timesheet_waiting": "גיליון שעות ממתין",
     "employee_missing_report": "חסר דיווח שעות",

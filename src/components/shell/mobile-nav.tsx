@@ -10,6 +10,7 @@ import { usePathname } from '@/shared/i18n/navigation';
 import { cn } from '@/shared/ui/cn';
 import {
   isNavItemActive,
+  selectMobilePrimaryItems,
   type NavItem,
 } from './navigation';
 import { ShellNavLink } from './shell-nav-link';
@@ -47,7 +48,7 @@ export function MobileNav({ items }: { items: NavItem[] }) {
   /** Keep the lazy sheet mounted after first open so reopen is instant. */
   const [moreMounted, setMoreMounted] = React.useState(false);
 
-  const primary = items.filter((item) => item.primaryOnMobile).slice(0, 4);
+  const primary = selectMobilePrimaryItems(items);
   const overflow = items.filter((item) => !primary.includes(item));
 
   function openMore() {

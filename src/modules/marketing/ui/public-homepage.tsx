@@ -30,6 +30,7 @@ export async function PublicHomepage() {
   const steps = t.raw('howItWorks.steps') as string[];
   const financialItems = t.raw('financial.items') as string[];
   const financialInsights = t.raw('financial.insights') as string[];
+  const valueStories = t.raw('valueStories') as Array<{ title: string; body: string }>;
   const capabilityBlocks = t.raw('capabilities.blocks') as Array<{ title: string; body: string }>;
   const commercialBlocks = t.raw('commercial.blocks') as Array<{ title: string; body: string }>;
   const advancedModules = t.raw('advanced.modules') as string[];
@@ -78,7 +79,7 @@ export async function PublicHomepage() {
             <div className="min-w-0">
               <div className="hidden lg:block">
                 <ScreenshotFrame
-                  src="/marketing/screenshots/pf-landing-sc-02-desktop.svg"
+                  src="/marketing/screenshots/financials-desktop.png"
                   alt={t('hero.shotAlt')}
                   caption={t('hero.shotCaption')}
                   priority
@@ -86,7 +87,7 @@ export async function PublicHomepage() {
               </div>
               <div className="lg:hidden">
                 <ScreenshotFrame
-                  src="/marketing/screenshots/pf-landing-sc-08-mobile.svg"
+                  src="/marketing/screenshots/today-mobile.png"
                   alt={t('hero.mobileShotAlt')}
                   caption={t('hero.mobileShotCaption')}
                   mobile
@@ -205,7 +206,7 @@ export async function PublicHomepage() {
             </div>
             <div className="mt-8">
               <ScreenshotFrame
-                src="/marketing/screenshots/pf-landing-sc-04-desktop.svg"
+                src="/marketing/screenshots/invoice-capture-desktop.png"
                 alt={t('capabilities.shotAlt')}
                 caption={t('capabilities.shotCaption')}
                 className="mx-auto max-w-4xl"
@@ -245,7 +246,7 @@ export async function PublicHomepage() {
                 </ul>
               </div>
               <ScreenshotFrame
-                src="/marketing/screenshots/pf-landing-sc-02-desktop.svg"
+                src="/marketing/screenshots/financials-desktop.png"
                 alt={t('financial.shotAlt')}
                 caption={t('financial.shotCaption')}
               />
@@ -269,6 +270,26 @@ export async function PublicHomepage() {
               <Button asChild size="lg" className="min-h-12 w-full sm:w-auto">
                 <Link href="/sign-in">{t('financial.cta')}</Link>
               </Button>
+            </div>
+          </div>
+        </section>
+
+        <section
+          className="border-t border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)]"
+          aria-label={valueStories[0]?.title ?? ''}
+          data-pf-landing-section="value-stories"
+        >
+          <div className="mx-auto w-full max-w-6xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
+            <div className="grid gap-4 md:grid-cols-3">
+              {valueStories.map((story) => (
+                <article
+                  key={story.title}
+                  className="rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-page)] p-4"
+                >
+                  <h2 className="text-base font-bold text-[var(--pf-text-brand)]">{story.title}</h2>
+                  <p className="mt-2 text-sm leading-relaxed text-[var(--pf-text-secondary)]">{story.body}</p>
+                </article>
+              ))}
             </div>
           </div>
         </section>
@@ -300,12 +321,12 @@ export async function PublicHomepage() {
             </div>
             <div className="mt-8 grid gap-6 lg:grid-cols-2">
               <ScreenshotFrame
-                src="/marketing/screenshots/pf-landing-sc-05-desktop.svg"
+                src="/marketing/screenshots/changes-desktop.png"
                 alt={t('commercial.changesAlt')}
                 caption={t('commercial.changesCaption')}
               />
               <ScreenshotFrame
-                src="/marketing/screenshots/pf-landing-sc-06-desktop.svg"
+                src="/marketing/screenshots/billing-desktop.png"
                 alt={t('commercial.billingAlt')}
                 caption={t('commercial.billingCaption')}
               />
@@ -387,7 +408,7 @@ export async function PublicHomepage() {
               <LandingInstallBlock />
             </div>
             <ScreenshotFrame
-              src="/marketing/screenshots/pf-landing-sc-08-mobile.svg"
+              src="/marketing/screenshots/today-mobile.png"
               alt={t('mobile.shotAlt')}
               caption={t('mobile.shotCaption')}
               mobile

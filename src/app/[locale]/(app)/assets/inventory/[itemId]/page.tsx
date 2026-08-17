@@ -157,8 +157,7 @@ export default async function InventoryItemDetailPage({
       />
 
       <Alert tone="info">
-        <span className="block font-medium">{t('inventory.qtyOnlyBannerHe')}</span>
-        <span className="block text-sm">{t('inventory.qtyOnlyBannerEn')}</span>
+        <span className="block font-medium">{t('inventory.qtyOnlyBanner')}</span>
       </Alert>
 
       <dl className="grid min-w-0 gap-3 rounded-lg border border-[var(--pf-border-default)] p-4 sm:grid-cols-2 lg:grid-cols-4">

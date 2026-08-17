@@ -83,7 +83,7 @@
     "approverNameHint": "Client contact or internal approver - optional.",
     "effectiveDate": "Effective date",
     "notes": "Notes",
-    "confirm": "Approve and create change order",
+    "confirm": "Approve the change",
     "noPermission": "You can view this request but approving requires the approve permission."
   },
   "detail": {

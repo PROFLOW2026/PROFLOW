@@ -2,7 +2,6 @@ import type { OrgContext } from '@/shared/auth/context';
 import { DomainRuleError, ValidationError } from '@/shared/errors';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
-import { getModuleVisibility } from '@/modules/tenancy';
 import { upsertCommandCenterItemState } from '../data/item-states.repository';
 import { assertSafeItemStateTransition } from '../domain/ranking';
 import type { CommandCenterItemStateRecord } from '../domain/types';
@@ -27,14 +26,6 @@ export async function updateCommandCenterItemState(
   raw: UpdateCommandCenterItemStateInput,
 ): Promise<CommandCenterItemStateRecord> {
   assertPermission(context, PERMISSIONS.COMMAND_CENTER_READ);
-
-  const modules = await getModuleVisibility(context);
-  if (!modules.command_center) {
-    throw new DomainRuleError(
-      'Command Center module is not enabled for this organization',
-      'commandCenter.errors.moduleOff',
-    );
-  }
 
   const parsed = updateCommandCenterItemStateSchema.safeParse(raw);
   if (!parsed.success) {

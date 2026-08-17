@@ -13,6 +13,7 @@ test.describe('mobile shell', () => {
     const bottomNav = page.locator(MOBILE_NAV);
     await expect(bottomNav).toBeVisible();
     await expect(bottomNav.getByRole('link', { name: he.nav.dashboard })).toBeVisible();
+    await expect(bottomNav.getByRole('link', { name: he.nav.today })).toBeVisible();
     await expect(bottomNav.getByRole('link', { name: he.nav.projects })).toBeVisible();
     await expect(bottomNav.getByRole('link', { name: he.nav.expenses })).toBeVisible();
 

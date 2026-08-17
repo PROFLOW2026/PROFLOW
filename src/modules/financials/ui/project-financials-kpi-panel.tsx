@@ -183,7 +183,7 @@ function drillFromMetric(
   }));
 
   return {
-    explanation: t(`explain.formulas.${explanation.formulaKey}`),
+    detail: t(`explain.formulas.${explanation.formulaKey}`),
     basis: t(`basis.${explanation.basisKey}`),
     lines,
     links,
@@ -267,8 +267,9 @@ export function ProjectFinancialsKpiPanel({
           label={t('kpis.currentContract')}
           value={kpis.currentContract}
           nature={t('metricNature.commercial')}
-          explanation={contractDrill?.explanation ?? t('kpis.currentContractHint')}
-          basis={contractDrill?.basis ?? t('basis.netExVat')}
+          explanation={t('kpis.currentContractHint')}
+          detail={contractDrill?.detail}
+          basis={contractDrill?.basis}
           whyLabel={contractDrill?.whyLabel}
           emphasis
           lines={
@@ -304,8 +305,9 @@ export function ProjectFinancialsKpiPanel({
         label={t('kpis.actualCost')}
         value={kpis.actualCost}
         nature={t('metricNature.actual')}
-        explanation={actualDrill?.explanation ?? t('kpis.actualCostHint')}
-        basis={actualDrill?.basis ?? t('basis.netExVat')}
+        explanation={t('kpis.actualCostHint')}
+        detail={actualDrill?.detail}
+        basis={actualDrill?.basis}
         whyLabel={actualDrill?.whyLabel}
         emphasis
         lines={
@@ -391,13 +393,9 @@ export function ProjectFinancialsKpiPanel({
         label={t('kpis.forecast')}
         value={kpis.forecastCost}
         nature={t('metricNature.forecast')}
-        explanation={
-          forecastDrill?.explanation ??
-          (kpis.forecastEqualsActual
-            ? t('kpis.forecastEqualsActualHint')
-            : t('kpis.forecastHint'))
-        }
-        basis={forecastDrill?.basis ?? t('basis.netExVat')}
+        explanation={t('kpis.forecastHint')}
+        detail={forecastDrill?.detail}
+        basis={forecastDrill?.basis}
         whyLabel={forecastDrill?.whyLabel}
         lines={
           forecastDrill?.lines ?? [
@@ -460,10 +458,9 @@ export function ProjectFinancialsKpiPanel({
             label={t('kpis.outstanding')}
             value={kpis.outstanding}
             nature={t('metricNature.forecast')}
-            explanation={
-              outstandingArDrill?.explanation ?? t('kpis.outstandingHint')
-            }
-            basis={outstandingArDrill?.basis ?? t('basis.outstandingCash')}
+            explanation={t('kpis.outstandingHint')}
+            detail={outstandingArDrill?.detail}
+            basis={outstandingArDrill?.basis}
             whyLabel={outstandingArDrill?.whyLabel}
             lines={outstandingArDrill?.lines}
             links={
@@ -484,7 +481,8 @@ export function ProjectFinancialsKpiPanel({
           label={t('openApPayable')}
           value={financials.cost.openApPayable}
           nature={t('metricNature.forecast')}
-          explanation={outstandingApDrill.explanation}
+          explanation={t('openApPayableHint')}
+          detail={outstandingApDrill.detail}
           basis={outstandingApDrill.basis}
           whyLabel={outstandingApDrill.whyLabel}
           lines={outstandingApDrill.lines}
@@ -507,8 +505,9 @@ export function ProjectFinancialsKpiPanel({
           label={t('kpis.actualMargin')}
           value={kpis.actualMargin}
           nature={t('metricNature.actual')}
-          explanation={actualMarginDrill?.explanation ?? t('kpis.actualMarginHint')}
-          basis={actualMarginDrill?.basis ?? t('basis.profitNet')}
+          explanation={t('kpis.actualMarginHint')}
+          detail={actualMarginDrill?.detail}
+          basis={actualMarginDrill?.basis}
           whyLabel={actualMarginDrill?.whyLabel}
           emphasis
           lines={
@@ -539,13 +538,9 @@ export function ProjectFinancialsKpiPanel({
           label={t('kpis.forecastMargin')}
           value={kpis.forecastMargin}
           nature={t('metricNature.forecast')}
-          explanation={
-            forecastMarginDrill?.explanation ??
-            (kpis.forecastEqualsActual
-              ? t('kpis.forecastMarginEqualsActualHint')
-              : t('kpis.forecastMarginHint'))
-          }
-          basis={forecastMarginDrill?.basis ?? t('basis.profitNet')}
+          explanation={t('kpis.forecastMarginHint')}
+          detail={forecastMarginDrill?.detail}
+          basis={forecastMarginDrill?.basis}
           whyLabel={forecastMarginDrill?.whyLabel}
           lines={
             forecastMarginDrill?.lines ?? [

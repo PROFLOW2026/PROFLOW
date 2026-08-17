@@ -25,8 +25,10 @@ export interface MetricDrilldownProps {
   readonly value: { amount: string; currency: string };
   readonly nature?: string;
   readonly explanation?: string;
-  /** Short net-vs-cash basis note, always visible under the label. */
+  /** Extra basis note shown only after the row is expanded. */
   readonly basis?: string;
+  /** Longer formula or warning shown only after the row is expanded. */
+  readonly detail?: string;
   /** Localized "Why this number?" affordance next to the expand control. */
   readonly whyLabel?: string;
   readonly lines?: readonly MetricDrillLine[];
@@ -45,9 +47,9 @@ export interface MetricDrilldownProps {
 export function MetricDrilldown({
   label,
   value,
-  nature,
   explanation,
   basis,
+  detail,
   whyLabel,
   lines = [],
   links = [],
@@ -57,7 +59,7 @@ export function MetricDrilldown({
   defaultOpen = false,
 }: MetricDrilldownProps) {
   const [open, setOpen] = React.useState(defaultOpen);
-  const hasDetails = expandable && (lines.length > 0 || links.length > 0 || Boolean(explanation));
+  const hasDetails = expandable && (lines.length > 0 || links.length > 0 || Boolean(basis) || Boolean(detail));
   const panelId = React.useId();
 
   return (
@@ -84,11 +86,6 @@ export function MetricDrilldown({
             <span className="inline-flex max-w-full items-start gap-1">
               <span className="min-w-0 break-words">
                 {label}
-                {nature ? (
-                  <span className="ms-1 text-xs font-normal text-[var(--pf-text-muted)]">
-                    · {nature}
-                  </span>
-                ) : null}
               </span>
               <ChevronDown
                 className={cn(
@@ -98,9 +95,9 @@ export function MetricDrilldown({
                 aria-hidden
               />
             </span>
-            {basis ? (
+            {explanation ? (
               <span className="mt-0.5 block text-xs font-normal text-[var(--pf-text-muted)]">
-                {basis}
+                {explanation}
               </span>
             ) : null}
             {whyLabel ? (
@@ -123,11 +120,8 @@ export function MetricDrilldown({
             }
           >
             {label}
-            {nature ? (
-              <span className="ms-1 text-xs text-[var(--pf-text-muted)]">· {nature}</span>
-            ) : null}
-            {basis ? (
-              <span className="mt-0.5 block text-xs text-[var(--pf-text-muted)]">{basis}</span>
+            {explanation ? (
+              <span className="mt-0.5 block text-xs text-[var(--pf-text-muted)]">{explanation}</span>
             ) : null}
           </span>
           <MoneyText value={value} className={emphasis ? 'shrink-0 font-semibold' : 'shrink-0'} />
@@ -139,8 +133,11 @@ export function MetricDrilldown({
           id={panelId}
           className="mt-2 space-y-2 rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-muted)] px-3 py-2 text-xs"
         >
-          {explanation ? (
-            <p className="text-start text-[var(--pf-text-secondary)]">{explanation}</p>
+          {detail ? (
+            <p className="text-start text-[var(--pf-text-secondary)]">{detail}</p>
+          ) : null}
+          {basis ? (
+            <p className="text-start text-[var(--pf-text-secondary)]">{basis}</p>
           ) : null}
 
           {lines.length > 0 ? (

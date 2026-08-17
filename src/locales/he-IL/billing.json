@@ -12,14 +12,14 @@
     "issueDate": "תאריך",
     "amount": "סכום",
     "paid": "שולם",
-    "outstanding": "יתרה לגבייה מזומן",
+    "outstanding": "יתרה פתוחה",
     "status": "סטטוס",
     "unknownProject": "פרויקט לא ידוע",
     "filtersLabel": "סינון חיובים",
     "filters": {
       "all": "כל החיובים",
       "paid": "שולם",
-      "outstanding": "יתרה לגבייה מזומן",
+      "outstanding": "יתרה פתוחה",
       "overdue": "באיחור"
     },
     "emptyTitle": "אין עדיין רשומות חיוב",
@@ -28,7 +28,7 @@
   },
   "aging": {
     "title": "גיל יתרות לגבייה",
-    "note": "לפי יתרה לגבייה מזומן בלבד. סכום חשבוניות כולל מע״מ אם הוזן - מע״מ אינו חלק מחישוב הרווח. מטבע זר מוחרג.",
+    "note": "לפי יתרה פתוחה בלבד. סכום חשבוניות כולל מע״מ אם הוזן - מע״מ אינו חלק מחישוב הרווח. מטבע זר מוחרג.",
     "total": "סה״כ יתרה לגבייה",
     "count": "{count, plural, =0 {אין רשומות} one {רשומה אחת} two {שתי רשומות} other {# רשומות}}",
     "buckets": {
@@ -41,7 +41,7 @@
   },
   "receivables": {
     "title": "סיכום יתרות לגבייה",
-    "integrityNote": "יתרה לגבייה מזומן = סכום חשבוניות - שולם. כולל מע״מ אם הוזן. מע״מ אינו חלק מחישוב הרווח או ההכנסה.",
+    "integrityNote": "יתרה פתוחה = סכום חשבוניות - שולם. כולל מע״מ אם הוזן. מע״מ אינו חלק מחישוב הרווח או ההכנסה.",
     "totalOutstanding": "סה״כ יתרה לגבייה",
     "overdueTotal": "באיחור",
     "overdueCount": "{count, plural, =0 {אין רשומות באיחור} one {רשומה אחת באיחור} two {שתי רשומות באיחור} other {# רשומות באיחור}}",
@@ -71,7 +71,7 @@
   },
   "integrity": {
     "creditNoteReducesInvoiced": "זיכויים מקטינים את סכום החשבוניות; הם אינם הכנסה לחישוב רווח.",
-    "voidExcluded": "חיובים ותשלומים מבוטלים אינם נכללים בסכום החשבוניות, בשולם וביתרה לגבייה מזומן."
+    "voidExcluded": "חיובים ותשלומים מבוטלים אינם נכללים בסכום החשבוניות, בשולם וביתרה פתוחה."
   },
   "form": {
     "title": "חיוב חדש",
@@ -133,7 +133,7 @@
   },
   "detail": {
     "title": "חיוב",
-    "finalize": "סגירת חיוב",
+    "finalize": "הפקת חיוב",
     "void": "ביטול חיוב",
     "voidPayment": "ביטול תשלום",
     "recordPayment": "רישום תשלום",
@@ -147,10 +147,10 @@
     "voidPaymentAriaLabel": "ביטול תשלום על סך {amount} מתאריך {date}"
   },
   "confirm": {
-    "finalizeTitle": "סגירת חיוב",
-    "finalizeQuestion": "לסגור את החיוב {reference}?",
-    "finalizeConsequence": "לאחר הסגירה לא ניתן לערוך את החיוב.",
-    "finalizeSuccess": "החיוב נסגר.",
+    "finalizeTitle": "הפקת חיוב",
+    "finalizeQuestion": "להפיק את החיוב {reference}?",
+    "finalizeConsequence": "לאחר ההפקה לא ניתן לערוך את החיוב.",
+    "finalizeSuccess": "החיוב הופק.",
     "voidRecordTitle": "ביטול חיוב",
     "voidRecordQuestion": "לבטל את החיוב {reference}?",
     "voidRecordConsequence": "החיוב יוסר מסך החיובים ולא ניתן לשחזר אותו.",

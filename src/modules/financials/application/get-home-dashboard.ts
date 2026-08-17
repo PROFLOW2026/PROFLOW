@@ -112,6 +112,7 @@ export interface HomeDashboardData {
   readonly showProfit: boolean;
   readonly canCreateProject: boolean;
   readonly canCreateExpense: boolean;
+  readonly canReadToday: boolean;
   /**
    * Brand-new empty CTA: which work surface to start with (profile / work mix).
    * Always set so the dashboard empty state stays honest for jobs/service orgs.
@@ -146,6 +147,7 @@ export async function getHomeDashboard(
   const canReadContracts = hasPermission(context, PERMISSIONS.CONTRACTS_READ);
   const canCreateProject = hasPermission(context, PERMISSIONS.PROJECTS_CREATE);
   const canCreateExpense = hasPermission(context, PERMISSIONS.EXPENSES_CREATE);
+  const canReadToday = hasPermission(context, PERMISSIONS.COMMAND_CENTER_READ);
   const canReadExpenses = hasPermission(context, PERMISSIONS.EXPENSES_READ);
   const canCreateService = hasPermission(context, PERMISSIONS.SERVICE_MANAGE);
 
@@ -250,6 +252,7 @@ export async function getHomeDashboard(
       showProfit: false,
       canCreateProject,
       canCreateExpense,
+      canReadToday,
       emptyStartKind,
       preferServiceSurface,
       dataConfidence: null,
@@ -451,6 +454,7 @@ export async function getHomeDashboard(
     showProfit: canReadProfit && estimatedProfit !== null,
     canCreateProject,
     canCreateExpense,
+    canReadToday,
     emptyStartKind,
     preferServiceSurface,
     dataConfidence,
