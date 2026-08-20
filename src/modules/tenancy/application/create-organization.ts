@@ -81,15 +81,19 @@ export async function createOrganization(
     resolveBusinessProfileKey(input.businessProfile) ??
     resolveBusinessProfileKey(input.professionPreset);
   if (profileKey) {
+    const moduleMode =
+      input.moduleMode ?? (profileKey === 'ALL_CAPABILITIES' ? 'additive' : 'replace');
     await applyBusinessProfileConfig(
       db,
       organization.id,
       profileKey,
       organization.defaultLocale === 'en' ? 'en' : 'he-IL',
       {
-        moduleMode: input.moduleMode ?? (profileKey === 'ALL_CAPABILITIES' ? 'additive' : 'replace'),
+        moduleMode,
         extraModules: input.extraModules,
         workMixOverride: input.workMix,
+        // Recommended path uses replace — start with a simple experience surface.
+        experienceComplexity: moduleMode === 'replace' ? 'simple' : undefined,
       },
     );
   }

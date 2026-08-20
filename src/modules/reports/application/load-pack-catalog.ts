@@ -1,16 +1,26 @@
 import { listProjectsForOrg } from '@/modules/projects';
 import { listQuotesForOrg } from '@/modules/quotes';
-import { getModuleVisibility } from '@/modules/tenancy';
+import {
+  getBusinessProfileKeyForOrg,
+  getModuleVisibility,
+  personaForBusinessProfile,
+} from '@/modules/tenancy';
+import type { ExperiencePersonaKey } from '@/modules/tenancy/domain/experience-persona';
 import type { OrgContext } from '@/shared/auth/context';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { REPORT_KIND_DEFINITIONS } from '../domain/kinds';
+import { prioritizeReportKindsForPersona } from '../domain/persona-pack-order';
 import type { ReportKind, ReportPackOption } from '../domain/types';
 
 export interface ReportPackCatalog {
   readonly projects: readonly ReportPackOption[];
   readonly quotes: readonly ReportPackOption[];
   readonly enabledKinds: readonly ReportKind[];
+  readonly recommendedKinds: readonly ReportKind[];
+  /** Recommended first, then remaining — for “כל הדוחות”. */
+  readonly orderedKinds: readonly ReportKind[];
+  readonly persona: ExperiencePersonaKey;
 }
 
 export async function loadReportPackCatalog(context: OrgContext): Promise<ReportPackCatalog> {
@@ -25,6 +35,13 @@ export async function loadReportPackCatalog(context: OrgContext): Promise<Report
     if (definition.kind === 'vendor_subcontract_summary' && !modules.vendors) return false;
     return true;
   }).map((definition) => definition.kind);
+
+  const profileKey = await getBusinessProfileKeyForOrg(context.db, context.organizationId);
+  const persona = personaForBusinessProfile(profileKey);
+  const { recommended, all: orderedKinds } = prioritizeReportKindsForPersona(
+    enabledKinds,
+    persona,
+  );
 
   const projects = hasPermission(context, PERMISSIONS.PROJECTS_READ)
     ? (await listProjectsForOrg(context, { limit: 80 })).map((project) => ({
@@ -41,5 +58,12 @@ export async function loadReportPackCatalog(context: OrgContext): Promise<Report
         }))
       : [];
 
-  return { projects, quotes, enabledKinds };
+  return {
+    projects,
+    quotes,
+    enabledKinds,
+    recommendedKinds: recommended,
+    orderedKinds,
+    persona,
+  };
 }

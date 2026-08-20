@@ -32,7 +32,7 @@ describe('Today is a core permission destination', () => {
         PERMISSIONS.EXPENSES_READ,
       ]),
       modulesOffExcept(),
-      { workMix: 'projects' },
+      { workMix: 'projects', persona: 'project_contractor' },
     );
     expect(items.map((item) => item.key)).toEqual(
       expect.arrayContaining(['dashboard', 'today', 'projects', 'expenses']),
@@ -62,10 +62,11 @@ describe('Today is a core permission destination', () => {
         PERMISSIONS.EXPENSES_READ,
       ]),
       modulesOffExcept({ jobs: true }),
-      { workMix: 'mixed' },
+      { workMix: 'mixed', persona: 'mixed' },
     );
     const primary = selectMobilePrimaryItems(items);
-    expect(primary.map((item) => item.key)).toEqual(['dashboard', 'today', 'projects', 'expenses']);
+    expect(primary.map((item) => item.key)).toEqual(['dashboard', 'today', 'projects', 'jobs']);
+    expect(primary.some((item) => item.key === 'today')).toBe(true);
   });
 
   it('removes Today from Settings → Features toggles while keeping the stored key harmless', () => {

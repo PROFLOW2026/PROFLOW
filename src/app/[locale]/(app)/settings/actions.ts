@@ -9,8 +9,10 @@ import {
   enableAllCustomerCapabilities,
   resetCapabilitiesToBusinessProfile,
   saveWorkMix,
+  saveExperienceComplexity,
   isOptionalModuleKey,
   isWorkMix,
+  isExperienceComplexityKey,
   parseModuleVisibilityMode,
   applyOrganizationProfessionPreset,
   applyOrganizationBusinessProfile,
@@ -29,6 +31,7 @@ import {
   DOCUMENT_NUMBER_KINDS,
   isDocumentNumberKind,
   updateOrganizationLegalIdentity,
+  dismissUnusedCapabilitySuggestion,
 } from '@/modules/tenancy';
 import { setRolePermissionToggle } from '@/modules/rbac';
 import { updateProfile } from '@/modules/identity';
@@ -314,6 +317,52 @@ export async function setModuleVisibilityAction(
   }
 }
 
+export async function hideUnusedCapabilityAction(
+  _prev: SettingsActionState,
+  formData: FormData,
+): Promise<SettingsActionState> {
+  const tErrors = await getTranslations('errors');
+  const tModules = await getTranslations('settings.modules');
+  const moduleKey = formValue(formData, 'moduleKey');
+  if (!moduleKey || !isOptionalModuleKey(moduleKey)) {
+    return { error: tErrors('validationFailed') };
+  }
+
+  try {
+    await withOrgContext((context) =>
+      setModuleVisibility(context, { moduleKey, enabled: false }),
+    );
+    revalidatePath('/settings/features');
+    revalidatePath('/', 'layout');
+    return { ok: true, message: tModules('unusedHidden') };
+  } catch (error) {
+    if (error instanceof AppError) return { error: tErrors('unexpected') };
+    throw error;
+  }
+}
+
+export async function dismissUnusedCapabilityAction(
+  _prev: SettingsActionState,
+  formData: FormData,
+): Promise<SettingsActionState> {
+  const tErrors = await getTranslations('errors');
+  const tModules = await getTranslations('settings.modules');
+  const moduleKey = formValue(formData, 'moduleKey');
+  if (!moduleKey || !isOptionalModuleKey(moduleKey)) {
+    return { error: tErrors('validationFailed') };
+  }
+
+  try {
+    await withOrgContext((context) => dismissUnusedCapabilitySuggestion(context, moduleKey));
+    revalidatePath('/settings/features');
+    revalidatePath('/');
+    return { ok: true, message: tModules('unusedDismissed') };
+  } catch (error) {
+    if (error instanceof AppError) return { error: tErrors('unexpected') };
+    throw error;
+  }
+}
+
 export async function enableAllCapabilitiesAction(
   _prev: SettingsActionState,
   _formData: FormData,
@@ -365,6 +414,27 @@ export async function setWorkMixAction(
 
   try {
     await withOrgContext((context) => saveWorkMix(context, workMix));
+    revalidatePath('/settings/features');
+    revalidatePath('/', 'layout');
+    return { ok: true };
+  } catch (error) {
+    if (error instanceof AppError) return { error: tErrors('unexpected') };
+    throw error;
+  }
+}
+
+export async function saveComplexityAction(
+  _prev: SettingsActionState,
+  formData: FormData,
+): Promise<SettingsActionState> {
+  const tErrors = await getTranslations('errors');
+  const complexity = formValue(formData, 'complexity');
+  if (!complexity || !isExperienceComplexityKey(complexity)) {
+    return { error: tErrors('validationFailed') };
+  }
+
+  try {
+    await withOrgContext((context) => saveExperienceComplexity(context, complexity));
     revalidatePath('/settings/features');
     revalidatePath('/', 'layout');
     return { ok: true };

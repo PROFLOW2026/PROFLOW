@@ -39,10 +39,12 @@ function ModuleRow({
   moduleKey,
   defaultMode,
   canEdit,
+  hasExistingData,
 }: {
   moduleKey: OptionalModuleKey;
   defaultMode: VisibilityMode;
   canEdit: boolean;
+  hasExistingData: boolean;
 }) {
   const t = useTranslations('settings.modules');
   const tCommon = useTranslations('common');
@@ -61,6 +63,11 @@ function ModuleRow({
       <div className="min-w-0 flex-1">
         <p className="text-start font-medium">{moduleLabel}</p>
         <p className="text-start text-xs text-[var(--pf-text-muted)]">{hint}</p>
+        {hasExistingData ? (
+          <p className="mt-1 text-start text-xs text-[var(--pf-text-secondary)]">
+            {t('existingDataNote')}
+          </p>
+        ) : null}
         {foundations.length > 0 && mode === 'on' ? (
           <p className="mt-1 text-start text-xs text-[var(--pf-text-secondary)]">
             {t('foundationsNote', {
@@ -176,6 +183,14 @@ export function FeaturesSettingsPanel({
 }) {
   const t = useTranslations('settings.modules');
 
+  const firstUsedByKey = useMemo(() => {
+    const map = new Map<string, Date | null>();
+    for (const pref of preferences) {
+      map.set(pref.moduleKey, pref.firstUsedAt);
+    }
+    return map;
+  }, [preferences]);
+
   const grouped = useMemo(() => {
     return CAPABILITY_GROUP_ORDER.map((group) => ({
       group,
@@ -203,6 +218,7 @@ export function FeaturesSettingsPanel({
                 moduleKey={capability.id}
                 defaultMode={resolveMode(capability.id, visibility, preferences)}
                 canEdit={canEdit}
+                hasExistingData={firstUsedByKey.get(capability.id) != null}
               />
             ))}
           </section>

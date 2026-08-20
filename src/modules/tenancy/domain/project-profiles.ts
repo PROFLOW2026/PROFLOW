@@ -43,15 +43,8 @@ export type ProjectTabCapability =
 export const PROJECT_PROFILE_TAB_ALLOWLIST: Readonly<
   Record<ProjectExperienceProfileKey, ReadonlySet<ProjectTabCapability>>
 > = {
-  simple: new Set([
-    'financials',
-    'expenses',
-    'billing',
-    'team',
-    'time',
-    'documents',
-  ]),
-  small_job: new Set(['expenses', 'billing', 'documents', 'team', 'time']),
+  simple: new Set(['expenses', 'billing', 'team', 'documents']),
+  small_job: new Set(['expenses', 'billing', 'documents', 'team']),
   consulting: new Set([
     'financials',
     'billing',

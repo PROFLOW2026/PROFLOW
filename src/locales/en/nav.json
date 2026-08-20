@@ -46,6 +46,14 @@
   "moreGroups": {
     "business": "Business",
     "operations": "Operations",
+    "clients": "Clients",
+    "work": "Work",
+    "people": "People",
+    "purchasing": "Purchasing",
+    "money": "Money",
+    "field": "Field",
+    "documents": "Documents",
+    "reports": "Reports",
     "advanced": "Advanced"
   },
   "newMenu": {
@@ -79,18 +87,18 @@
   "experiencePreview": {
     "label": "Experience preview",
     "actual": "Organization’s real profile",
-    "previewing": "Previewing: {label}",
+    "previewing": "QA preview: {label}",
     "returnToActual": "Return to real profile",
     "profiles": {
-      "GENERAL_CONTRACTOR": "General contractor",
-      "ELECTRICAL": "Electrical",
-      "RENOVATION": "Renovation",
-      "SMALL_WORKS": "Small works",
-      "FIELD_SERVICE": "Field service",
-      "ARCHITECT": "Architect",
-      "ENGINEERING_CONSULTANT": "Engineering consultant",
-      "SAFETY_INSPECTION_CONSULTANT": "Safety / inspection consultant",
-      "MIXED_PROJECT_SERVICE": "Mixed projects & service",
+      "GENERAL_CONTRACTOR": "Project contractor",
+      "ELECTRICAL": "Electrical contractor",
+      "RENOVATION": "Renovation contractor",
+      "SMALL_WORKS": "Small works contractor",
+      "FIELD_SERVICE": "Service & maintenance",
+      "ARCHITECT": "Architecture / design",
+      "ENGINEERING_CONSULTANT": "Engineering / consulting",
+      "SAFETY_INSPECTION_CONSULTANT": "Inspection / supervision",
+      "MIXED_PROJECT_SERVICE": "Mixed business",
       "ALL_CAPABILITIES": "All capabilities"
     }
   },

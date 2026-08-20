@@ -34,13 +34,18 @@ export async function AppShell({ children }: { children: ReactNode }) {
   if (!shell) redirect({ href: '/onboarding', locale: await getLocale() });
 
   const workMix = shell.workMix ?? 'projects';
-  const items = visibleNavItems(shell.permissions, shell.modules, { workMix });
+  const items = visibleNavItems(shell.permissions, shell.modules, {
+    workMix,
+    persona: shell.persona,
+    roleSurface: shell.roleSurface,
+  });
   const quickCreateActions = buildQuickCreateActions(
     shell.permissions,
     shell.modules,
     workMix,
     shell.quickCreateEmphasis,
     shell.suggestedDefaults,
+    shell.persona,
   );
 
   return (

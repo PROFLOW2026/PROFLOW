@@ -1,6 +1,15 @@
 import { PERMISSIONS } from '@/shared/permissions/catalog';
-import type { QuickCreateEmphasisKey, SuggestedBusinessDefaults, WorkMix } from '@/modules/tenancy';
-import { orderQuickCreateActions, workMixSurfacesJobs } from '@/modules/tenancy';
+import type {
+  ExperiencePersonaKey,
+  QuickCreateEmphasisKey,
+  SuggestedBusinessDefaults,
+  WorkMix,
+} from '@/modules/tenancy';
+import {
+  limitQuickCreateForPersona,
+  orderQuickCreateActions,
+  workMixSurfacesJobs,
+} from '@/modules/tenancy';
 import type { QuickCreateAction } from './quick-create';
 
 export type CreateWorkKind = SuggestedBusinessDefaults['defaultWorkKind'];
@@ -92,6 +101,7 @@ export function buildQuickCreateActions(
   workMix: WorkMix,
   emphasis?: readonly QuickCreateEmphasisKey[] | null,
   suggestedDefaults?: SuggestedBusinessDefaults | null,
+  persona?: ExperiencePersonaKey | null,
 ): QuickCreateAction[] {
   const actions: QuickCreateAction[] = [];
   const canCreateWork = permissions.has(PERMISSIONS.PROJECTS_CREATE);
@@ -186,5 +196,7 @@ export function buildQuickCreateActions(
   }
 
   const ordered = orderQuickCreateActions(actions, emphasis);
-  return pinDefaultWorkKindFirst(ordered, defaultWorkKind);
+  const pinned = pinDefaultWorkKindFirst(ordered, defaultWorkKind);
+  if (!persona) return pinned;
+  return limitQuickCreateForPersona(pinned, persona);
 }

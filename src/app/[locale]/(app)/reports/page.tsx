@@ -53,6 +53,8 @@ export default async function ReportsPage({
         projects={packs.projects}
         quotes={packs.quotes}
         enabledKinds={packs.enabledKinds}
+        recommendedKinds={packs.recommendedKinds}
+        orderedKinds={packs.orderedKinds}
       />
 
       <WorkKindFilterChrome active={workKindFilter} pathname="/reports" section={section} />

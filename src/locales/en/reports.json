@@ -12,6 +12,8 @@
   "chooseProject": "Choose a project",
   "packsHeading": "Project PDF reports",
   "quotePacksHeading": "Quote PDF",
+  "recommendedPacks": "Recommended for you",
+  "allPacks": "All reports",
   "csvStillHere": "Spreadsheet exports (CSV / Excel) stay in the export menu above.",
   "identity": {
     "company": "Company",

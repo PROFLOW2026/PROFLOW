@@ -35,10 +35,17 @@ import {
   searchCloseouts,
 } from '../data/search.repository';
 import { resolveAccessibleProjectIds } from '@/modules/projects/application/project-access';
-import { getModuleVisibility } from '@/modules/tenancy';
+import {
+  getBusinessProfileKeyForOrg,
+  getModuleVisibility,
+  personaForBusinessProfile,
+} from '@/modules/tenancy';
+import { canUseExperiencePreview, resolveExperiencePreview } from '@/modules/tenancy/domain/experience-preview';
+import { readExperiencePreviewCookie } from '@/modules/tenancy/application/experience-preview';
 import { matchSearchCommands } from '../domain/commands';
 import { groupSearchHits } from '../domain/group';
 import { globalSearchSchema, type GlobalSearchInput } from '../validation/schemas';
+import { serverEnv } from '@/shared/env/server';
 
 /**
  * Org-scoped global search. Each kind is gated by its read permission.
@@ -58,10 +65,22 @@ export async function globalSearch(
 
   const query = parsed.data.query;
   const limit = parsed.data.limitPerKind;
-  const [accessibleProjectIds, modules] = await Promise.all([
+  const env = serverEnv();
+  const [accessibleProjectIds, modules, businessProfileKey, previewSelection] = await Promise.all([
     resolveAccessibleProjectIds(context),
     getModuleVisibility(context),
+    getBusinessProfileKeyForOrg(context.db, context.organizationId),
+    readExperiencePreviewCookie(),
   ]);
+  const previewAllowed = canUseExperiencePreview(
+    context.roleKeys,
+    env.APP_ENV,
+    env.PF_EXPERIENCE_PREVIEW,
+  );
+  const preview = resolveExperiencePreview(previewAllowed ? previewSelection : 'actual');
+  const effectiveProfileKey =
+    preview.active && preview.profileKey ? preview.profileKey : businessProfileKey;
+  const persona = personaForBusinessProfile(effectiveProfileKey);
   const tasks: Promise<GlobalSearchHit[]>[] = [];
 
   if (hasPermission(context, PERMISSIONS.PROJECTS_READ)) {
@@ -203,7 +222,7 @@ export async function globalSearch(
   return {
     query,
     commands,
-    groups: groupSearchHits(hits),
+    groups: groupSearchHits(hits, persona),
     hits,
   };
 }

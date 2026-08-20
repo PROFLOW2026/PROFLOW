@@ -2,9 +2,13 @@ import type { OrgContext } from '@/shared/auth/context';
 import { assertPermission, hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import {
+  getBusinessProfileKeyForOrg,
   getModuleVisibility,
   getSuggestedDefaultsForOrg,
+  personaForBusinessProfile,
   todayEmphasisUrgencyBump,
+  todayItemVisibleForPersona,
+  todayUrgencyBumpForPersona,
 } from '@/modules/tenancy';
 import {
   canUseExperiencePreview,
@@ -45,10 +49,11 @@ function isHiddenByState(
 export async function getTodayInbox(context: OrgContext): Promise<CommandCenterInbox> {
   assertPermission(context, PERMISSIONS.COMMAND_CENTER_READ);
 
-  const [modulesRaw, suggestedDefaults, previewSelection] = await Promise.all([
+  const [modulesRaw, suggestedDefaults, previewSelection, businessProfileKey] = await Promise.all([
     getModuleVisibility(context),
     getSuggestedDefaultsForOrg(context.db, context.organizationId),
     readExperiencePreviewCookie(),
+    getBusinessProfileKeyForOrg(context.db, context.organizationId),
   ]);
   const env = serverEnv();
   const previewAllowed = canUseExperiencePreview(
@@ -63,6 +68,9 @@ export async function getTodayInbox(context: OrgContext): Promise<CommandCenterI
     (preview.active && preview.suggestedDefaults?.todayEmphasis) ||
     suggestedDefaults?.todayEmphasis ||
     null;
+  const effectiveProfileKey =
+    preview.active && preview.profileKey ? preview.profileKey : businessProfileKey;
+  const persona = personaForBusinessProfile(effectiveProfileKey);
 
   const today = todayInTimeZone(context.organization.timezone);
   const now = new Date();
@@ -87,7 +95,12 @@ export async function getTodayInbox(context: OrgContext): Promise<CommandCenterI
       hiddenByState += 1;
       continue;
     }
-    const bump = todayEmphasisUrgencyBump(item.sourceType, todayEmphasis);
+    if (!todayItemVisibleForPersona(item.sourceType, persona, item.severity)) {
+      continue;
+    }
+    const personaBump = todayUrgencyBumpForPersona(item.sourceType, persona, item.severity);
+    const emphasisBump = todayEmphasisUrgencyBump(item.sourceType, todayEmphasis);
+    const bump = Math.max(personaBump, emphasisBump);
     if (bump > 0) {
       visible.push({
         ...item,

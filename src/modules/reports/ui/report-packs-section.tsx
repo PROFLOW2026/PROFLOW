@@ -25,20 +25,73 @@ const PROJECT_KINDS: readonly ReportKind[] = [
   'vendor_subcontract_summary',
 ];
 
+function KindRows({
+  kinds,
+  projectId,
+}: {
+  kinds: readonly ReportKind[];
+  projectId: string;
+}) {
+  const t = useTranslations('reports');
+  return (
+    <>
+      {kinds.map((kind) => (
+        <div
+          key={kind}
+          className="flex flex-col gap-2 border-t border-[var(--pf-border-default)] pt-3 sm:flex-row sm:items-center sm:justify-between"
+        >
+          <div>
+            <p className="font-medium">{t(`kinds.${kind}`)}</p>
+            <p className="text-sm text-[var(--pf-text-secondary)]">{t(`kindHints.${kind}`)}</p>
+          </div>
+          <ReportDownloadButtons kind={kind} id={projectId} compact />
+        </div>
+      ))}
+    </>
+  );
+}
+
 export function ReportPacksSection({
   projects,
   quotes,
   enabledKinds,
+  recommendedKinds = [],
+  orderedKinds,
 }: {
   projects: readonly ReportPackOption[];
   quotes: readonly ReportPackOption[];
   enabledKinds: readonly ReportKind[];
+  recommendedKinds?: readonly ReportKind[];
+  /** When provided, “כל הדוחות” uses this order (recommended first). */
+  orderedKinds?: readonly ReportKind[];
 }) {
   const t = useTranslations('reports');
   const [projectId, setProjectId] = useState(projects[0]?.id ?? '');
   const [quoteId, setQuoteId] = useState(quotes[0]?.id ?? '');
   const enabled = useMemo(() => new Set(enabledKinds), [enabledKinds]);
-  const projectKinds = PROJECT_KINDS.filter((kind) => enabled.has(kind));
+
+  const allProjectKinds = useMemo(() => {
+    const source = orderedKinds ?? enabledKinds;
+    return source.filter(
+      (kind) => PROJECT_KINDS.includes(kind) && enabled.has(kind),
+    );
+  }, [orderedKinds, enabledKinds, enabled]);
+
+  const recommendedProjectKinds = useMemo(
+    () =>
+      recommendedKinds.filter(
+        (kind) => PROJECT_KINDS.includes(kind) && enabled.has(kind),
+      ),
+    [recommendedKinds, enabled],
+  );
+
+  const remainingProjectKinds = useMemo(() => {
+    const recommendedSet = new Set(recommendedProjectKinds);
+    return allProjectKinds.filter((kind) => !recommendedSet.has(kind));
+  }, [allProjectKinds, recommendedProjectKinds]);
+
+  const showSplit =
+    recommendedProjectKinds.length > 0 && remainingProjectKinds.length > 0;
 
   return (
     <div className="flex flex-col gap-6">
@@ -72,20 +125,36 @@ export function ReportPacksSection({
                   </>
                 )}
               </Field>
-              {projectId
-                ? projectKinds.map((kind) => (
-                    <div
-                      key={kind}
-                      className="flex flex-col gap-2 border-t border-[var(--pf-border-default)] pt-3 sm:flex-row sm:items-center sm:justify-between"
-                    >
-                      <div>
-                        <p className="font-medium">{t(`kinds.${kind}`)}</p>
-                        <p className="text-sm text-[var(--pf-text-secondary)]">{t(`kindHints.${kind}`)}</p>
-                      </div>
-                      <ReportDownloadButtons kind={kind} id={projectId} compact />
+              {projectId ? (
+                showSplit ? (
+                  <>
+                    <div>
+                      <h3 className="text-sm font-semibold text-[var(--pf-text-primary)]">
+                        {t('recommendedPacks')}
+                      </h3>
+                      <KindRows kinds={recommendedProjectKinds} projectId={projectId} />
                     </div>
-                  ))
-                : null}
+                    <div>
+                      <h3 className="mt-2 text-sm font-semibold text-[var(--pf-text-primary)]">
+                        {t('allPacks')}
+                      </h3>
+                      <KindRows
+                        kinds={[...recommendedProjectKinds, ...remainingProjectKinds]}
+                        projectId={projectId}
+                      />
+                    </div>
+                  </>
+                ) : (
+                  <KindRows
+                    kinds={
+                      recommendedProjectKinds.length > 0
+                        ? recommendedProjectKinds
+                        : allProjectKinds
+                    }
+                    projectId={projectId}
+                  />
+                )
+              ) : null}
             </>
           )}
         </CardContent>

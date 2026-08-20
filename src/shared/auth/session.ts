@@ -17,19 +17,29 @@ import {
   setActiveOrganizationPreference,
 } from '@/modules/identity';
 import {
+  applyComplexityToVisibility,
+  CAPABILITY_MODE_SETTING_KEY,
+  dashboardCardsForPersona,
+  getBusinessProfile,
   getBusinessProfileKeyForOrg,
+  getExperienceComplexityForOrg,
   getModuleVisibility,
   getQuickCreateEmphasisForOrg,
   getSuggestedDefaultsForOrg,
   getWorkMixForOrg,
   listMembershipsForUser,
+  parseCapabilityCustomizationMode,
+  personaForBusinessProfile,
+  resolveExperienceRoleSurface,
   resolveOrgContext,
+  type ModuleVisibility,
 } from '@/modules/tenancy';
 import {
   canUseExperiencePreview,
   resolveExperiencePreview,
 } from '@/modules/tenancy/domain/experience-preview';
 import { readExperiencePreviewCookie } from '@/modules/tenancy/application/experience-preview';
+import { getOrganizationSettingValue } from '@/modules/tenancy/data/organization-settings.repository';
 import { serverEnv } from '@/shared/env/server';
 import { AuthenticationRequiredError, AppError } from '@/shared/errors';
 import { localeFromAuthMetadata } from '@/shared/i18n/auth-locale';
@@ -178,15 +188,29 @@ export const getShellContext = cache(async () => {
 
   try {
     return await runInOrgContext(session.user.id, session.activeOrganizationId, async (context) => {
-      const [modules, workMix, quickCreateEmphasis, suggestedDefaults, businessProfileKey, previewSelection] =
-        await Promise.all([
-          getModuleVisibility(context),
-          getWorkMixForOrg(context),
-          getQuickCreateEmphasisForOrg(context.db, context.organizationId),
-          getSuggestedDefaultsForOrg(context.db, context.organizationId),
-          getBusinessProfileKeyForOrg(context.db, context.organizationId),
-          readExperiencePreviewCookie(),
-        ]);
+      const [
+        modules,
+        workMix,
+        quickCreateEmphasis,
+        suggestedDefaults,
+        businessProfileKey,
+        previewSelection,
+        complexity,
+        capabilityModeRaw,
+      ] = await Promise.all([
+        getModuleVisibility(context),
+        getWorkMixForOrg(context),
+        getQuickCreateEmphasisForOrg(context.db, context.organizationId),
+        getSuggestedDefaultsForOrg(context.db, context.organizationId),
+        getBusinessProfileKeyForOrg(context.db, context.organizationId),
+        readExperiencePreviewCookie(),
+        getExperienceComplexityForOrg(context),
+        getOrganizationSettingValue<unknown>(
+          context.db,
+          context.organizationId,
+          CAPABILITY_MODE_SETTING_KEY,
+        ),
+      ]);
 
       const env = serverEnv();
       const previewAllowed = canUseExperiencePreview(
@@ -196,6 +220,29 @@ export const getShellContext = cache(async () => {
       );
       const preview = resolveExperiencePreview(previewAllowed ? previewSelection : 'actual');
 
+      const effectiveProfileKey =
+        preview.active && preview.profileKey ? preview.profileKey : businessProfileKey;
+      const persona = personaForBusinessProfile(effectiveProfileKey);
+      const roleSurface = resolveExperienceRoleSurface(context.roleKeys);
+      const customizationMode = parseCapabilityCustomizationMode(capabilityModeRaw);
+
+      let resolvedModules: ModuleVisibility =
+        preview.active && preview.modules ? preview.modules : modules;
+      // Preview shows the selected profile's recommended surface at full depth so
+      // Owner QA is not masked by the org's stored complexity setting.
+      const complexityForSurface = preview.active ? 'full' : complexity;
+      if (!preview.active && customizationMode === 'profile') {
+        const recommended =
+          getBusinessProfile(effectiveProfileKey)?.visibleModules ?? [];
+        resolvedModules = applyComplexityToVisibility(
+          resolvedModules,
+          recommended,
+          complexityForSurface,
+          persona,
+          customizationMode,
+        ) as ModuleVisibility;
+      }
+
       return {
         user: session.user,
         memberships: session.memberships,
@@ -204,7 +251,11 @@ export const getShellContext = cache(async () => {
         permissions: context.permissions,
         roleKeys: context.roleKeys,
         businessProfileKey,
-        modules: preview.active && preview.modules ? preview.modules : modules,
+        persona,
+        roleSurface,
+        complexity,
+        dashboardCards: dashboardCardsForPersona(persona),
+        modules: resolvedModules,
         workMix: preview.active && preview.workMix != null ? preview.workMix : workMix,
         quickCreateEmphasis:
           preview.active && preview.quickCreateEmphasis

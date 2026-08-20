@@ -6,11 +6,22 @@ import {
   sumOrganizationProjectLaborCoverage,
 } from '@/modules/workforce';
 import {
+  getBusinessProfileKeyForOrg,
   getModuleVisibility,
   getSuggestedDefaultsForOrg,
   getWorkMixForOrg,
+  dashboardCardsForPersona,
+  personaForBusinessProfile,
   workMixSurfacesJobs,
+  type ExperienceDashboardCard,
+  type ExperiencePersonaKey,
 } from '@/modules/tenancy';
+import {
+  canUseExperiencePreview,
+  resolveExperiencePreview,
+} from '@/modules/tenancy/domain/experience-preview';
+import { readExperiencePreviewCookie } from '@/modules/tenancy/application/experience-preview';
+import { serverEnv } from '@/shared/env/server';
 import type { CostSourceKey, FinancialCoverage } from '@/modules/financials/domain/types';
 import type { OrgContext } from '@/shared/auth/context';
 import { endOfMonth, startOfMonth, todayInTimeZone } from '@/shared/dates';
@@ -125,6 +136,10 @@ export interface HomeDashboardData {
   readonly preferServiceSurface: boolean;
   /** Org-scope DATA CONFIDENCE (worst-of projects + unallocated / FX). */
   readonly dataConfidence: DataConfidence | null;
+  readonly persona: ExperiencePersonaKey;
+  readonly dashboardCards: readonly ExperienceDashboardCard[];
+  /** Quotes module visible — used for quotePipeline card chrome. */
+  readonly showQuotes: boolean;
 }
 
 export interface HomeDashboardOptions {
@@ -151,29 +166,53 @@ export async function getHomeDashboard(
   const canReadExpenses = hasPermission(context, PERMISSIONS.EXPENSES_READ);
   const canCreateService = hasPermission(context, PERMISSIONS.SERVICE_MANAGE);
 
-  const [workMix, suggestedDefaults, modules] = await Promise.all([
-    getWorkMixForOrg(context),
-    getSuggestedDefaultsForOrg(context.db, context.organizationId),
-    getModuleVisibility(context),
-  ]);
+  const [workMix, suggestedDefaults, modules, businessProfileKey, previewSelection] =
+    await Promise.all([
+      getWorkMixForOrg(context),
+      getSuggestedDefaultsForOrg(context.db, context.organizationId),
+      getModuleVisibility(context),
+      getBusinessProfileKeyForOrg(context.db, context.organizationId),
+      readExperiencePreviewCookie(),
+    ]);
 
-  const jobsReachable = Boolean(modules.jobs) || workMixSurfacesJobs(workMix);
-  const serviceReachable = Boolean(modules.service) && canCreateService;
-  const preferServiceSurface = Boolean(suggestedDefaults?.preferServiceSurface);
+  const env = serverEnv();
+  const previewAllowed = canUseExperiencePreview(
+    context.roleKeys,
+    env.APP_ENV,
+    env.PF_EXPERIENCE_PREVIEW,
+  );
+  const preview = resolveExperiencePreview(previewAllowed ? previewSelection : 'actual');
+  const effectiveProfileKey =
+    preview.active && preview.profileKey ? preview.profileKey : businessProfileKey;
+  const persona = personaForBusinessProfile(effectiveProfileKey);
+  const dashboardCards = dashboardCardsForPersona(persona);
+  const effectiveModules =
+    preview.active && preview.modules ? preview.modules : modules;
+  const effectiveWorkMix =
+    preview.active && preview.workMix != null ? preview.workMix : workMix;
+  const effectiveSuggestedDefaults =
+    preview.active && preview.suggestedDefaults
+      ? preview.suggestedDefaults
+      : suggestedDefaults;
+  const showQuotes = Boolean(effectiveModules.quotes);
+  const jobsReachable =
+    Boolean(effectiveModules.jobs) || workMixSurfacesJobs(effectiveWorkMix);
+  const serviceReachable = Boolean(effectiveModules.service) && canCreateService;
+  const preferServiceSurface = Boolean(effectiveSuggestedDefaults?.preferServiceSurface);
   let emptyStartKind: 'project' | 'job' | 'work_order' = 'project';
   if (
     serviceReachable &&
     canCreateProject &&
-    (suggestedDefaults?.preferServiceSurface ||
-      suggestedDefaults?.defaultWorkKind === 'work_order')
+    (effectiveSuggestedDefaults?.preferServiceSurface ||
+      effectiveSuggestedDefaults?.defaultWorkKind === 'work_order')
   ) {
     emptyStartKind = 'work_order';
   } else if (
     canCreateProject &&
     jobsReachable &&
-    (workMix === 'jobs' ||
-      suggestedDefaults?.defaultWorkKind === 'job' ||
-      suggestedDefaults?.defaultWorkKind === 'work_order')
+    (effectiveWorkMix === 'jobs' ||
+      effectiveSuggestedDefaults?.defaultWorkKind === 'job' ||
+      effectiveSuggestedDefaults?.defaultWorkKind === 'work_order')
   ) {
     emptyStartKind = 'job';
   }
@@ -256,6 +295,9 @@ export async function getHomeDashboard(
       emptyStartKind,
       preferServiceSurface,
       dataConfidence: null,
+      persona,
+      dashboardCards,
+      showQuotes,
     };
   }
 
@@ -458,6 +500,9 @@ export async function getHomeDashboard(
     emptyStartKind,
     preferServiceSurface,
     dataConfidence,
+    persona,
+    dashboardCards,
+    showQuotes,
   };
 }
 

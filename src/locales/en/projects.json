@@ -36,6 +36,7 @@
     "fromTemplate": "Create from template",
     "templateNone": "No template",
     "templateHint": "Applies editable copies of work areas, milestones, and suggested folders. The template itself is never changed.",
+    "recommendedTemplatesTip": "Recommended for your business: {templates}. Pick one below.",
     "nameLabel": "Project name",
     "namePlaceholder": "e.g. Cohen residence",
     "clientLabel": "Client",

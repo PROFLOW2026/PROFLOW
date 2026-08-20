@@ -2,16 +2,25 @@ import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { AppShell } from '@/components/shell/app-shell';
+import { UnusedCapabilityDashboardTip } from '@/components/shell/unused-capability-dashboard-tip';
 import { PageHeader } from '@/components/ui/page-header';
 import { PublicHomepage } from '@/modules/marketing/ui';
 import { getHomeDashboard, parseWorkKindFilter } from '@/modules/financials';
 import { HomeDashboardContent } from '@/modules/financials/ui';
 import { WorkKindFilterChrome } from '@/modules/financials/ui/work-kind-filter-chrome';
 import { PwaInstallCta } from '@/modules/offline/ui/pwa-install-cta';
+import {
+  getUnusedCapabilityDismissals,
+  isOptionalModuleKey,
+  suggestUnusedCapabilities,
+  type OptionalModuleKey,
+} from '@/modules/tenancy';
 import { getSessionState, withOrgContext } from '@/shared/auth/session';
+import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { redirect } from '@/shared/i18n/navigation';
 import { WithClientMessages } from '@/shared/i18n/with-client-messages';
 import { DashboardSkeleton } from './(app)/(home)/dashboard-skeleton';
+import { listModulePreferencesForOrg } from './(app)/settings/_lib/module-preferences';
 
 export async function generateMetadata({
   params,
@@ -114,9 +123,29 @@ async function AuthenticatedDashboardHome({
   const name = displayName;
   const workKindFilter = parseWorkKindFilter(workKind);
 
+  const tip = await withOrgContext(async (context) => {
+    if (!context.permissions.has(PERMISSIONS.SETTINGS_MANAGE)) {
+      return null as OptionalModuleKey | null;
+    }
+    const [preferences, dismissals] = await Promise.all([
+      listModulePreferencesForOrg(context),
+      getUnusedCapabilityDismissals(context),
+    ]);
+    const suggestions = suggestUnusedCapabilities(preferences, {
+      dismissedKeys: dismissals,
+    });
+    const key = suggestions[0];
+    return key && isOptionalModuleKey(key) ? key : null;
+  }).catch(() => null);
+
   return (
     <div className="flex min-w-0 max-w-full flex-col gap-6" data-pf-dashboard-home>
       <PageHeader title={name ? t('greeting', { name }) : t('greetingNoName')} />
+      {tip ? (
+        <WithClientMessages extra={['settings']}>
+          <UnusedCapabilityDashboardTip moduleKey={tip} canEdit />
+        </WithClientMessages>
+      ) : null}
       <PwaInstallCta variant="dashboard" />
       <WorkKindFilterChrome active={workKindFilter} pathname="/" />
       <Suspense

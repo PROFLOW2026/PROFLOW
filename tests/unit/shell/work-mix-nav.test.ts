@@ -34,21 +34,30 @@ describe('work mix nav IA', () => {
     expect(workMixSurfacesJobs('jobs')).toBe(true);
 
     const permissions = new Set([PERMISSIONS.PROJECTS_READ, PERMISSIONS.EXPENSES_READ]);
-    const jobsOnly = visibleNavItems(permissions, allModulesOff(), { workMix: 'jobs' });
+    const jobsOnly = visibleNavItems(permissions, allModulesOff(), {
+      workMix: 'jobs',
+      persona: 'small_works',
+    });
     expect(jobsOnly.some((item) => item.key === 'jobs')).toBe(true);
     expect(jobsOnly.find((item) => item.key === 'jobs')?.primaryOnMobile).toBe(true);
     expect(jobsOnly.find((item) => item.key === 'projects')?.primaryOnMobile).toBe(false);
-    expect(jobsOnly.find((item) => item.key === 'projects')?.moreGroup).toBe('business');
+    expect(jobsOnly.find((item) => item.key === 'projects')?.moreGroup).toBe('work');
   });
 
   it('keeps jobs hidden for projects-first orgs until module is on', () => {
     const permissions = new Set([PERMISSIONS.PROJECTS_READ]);
-    const hidden = visibleNavItems(permissions, allModulesOff(), { workMix: 'projects' });
+    const hidden = visibleNavItems(permissions, allModulesOff(), {
+      workMix: 'projects',
+      persona: 'project_contractor',
+    });
     expect(hidden.some((item) => item.key === 'jobs')).toBe(false);
 
-    const shown = visibleNavItems(permissions, allModulesOn(), { workMix: 'projects' });
+    const shown = visibleNavItems(permissions, allModulesOn(), {
+      workMix: 'projects',
+      persona: 'project_contractor',
+    });
     expect(shown.some((item) => item.key === 'jobs')).toBe(true);
-    expect(shown.find((item) => item.key === 'jobs')?.moreGroup).toBe('business');
+    expect(shown.find((item) => item.key === 'jobs')?.moreGroup).toBe('work');
   });
 
   it('marks both projects and jobs primary for mixed', () => {
@@ -71,11 +80,14 @@ describe('work mix nav IA', () => {
       PERMISSIONS.EXPENSES_READ,
       PERMISSIONS.WORKFORCE_READ,
     ]);
-    const items = visibleNavItems(permissions, allModulesOff(), { workMix: 'projects' });
+    const items = visibleNavItems(permissions, allModulesOff(), {
+      workMix: 'projects',
+      persona: 'project_contractor',
+    });
     const workforce = items.find((item) => item.key === 'workforce');
     expect(workforce).toBeDefined();
     expect(workforce?.href).toBe('/workforce/employees');
-    expect(workforce?.moreGroup).toBe('operations');
+    expect(workforce?.moreGroup).toBe('people');
     expect(workforce?.module).toBeUndefined();
   });
 });

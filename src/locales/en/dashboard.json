@@ -37,6 +37,21 @@
     "cashFlow": "Cash flow forecast",
     "management": "Owner management view"
   },
+  "cards": {
+    "serviceToday": {
+      "title": "Service today",
+      "body": "Open Today for service and field items that need handling.",
+      "bodyService": "Focus on today’s service calls and field follow-ups."
+    },
+    "timeUtilization": {
+      "title": "Time & active work",
+      "body": "Time utilization metrics are not summarized here yet. Active work and attention counts stay honest until they are."
+    },
+    "quotePipeline": {
+      "title": "Quotes",
+      "body": "Open the quotes list to review pipeline - no invented totals."
+    }
+  },
   "workKindFilter": {
     "label": "Show",
     "all": "All",

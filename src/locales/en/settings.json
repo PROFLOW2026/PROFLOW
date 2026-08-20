@@ -107,7 +107,14 @@
       "safety": "Incidents, near misses, toolbox talks, and corrective actions."
     },
     "saved": "Feature visibility updated.",
-    "hideNeverDeletes": "Hiding a capability never deletes data — you can show it again anytime.",
+    "hideNeverDeletes": "Hiding a capability never deletes data - you can show it again anytime.",
+    "existingDataNote": "Existing data is present - hiding does not delete it.",
+    "unusedSuggestion": "You have not used {module} recently. Hide it from the menu?",
+    "unusedHide": "Hide from menu",
+    "unusedDismiss": "Not now",
+    "unusedHidden": "Capability hidden from the menu.",
+    "unusedDismissed": "Suggestion dismissed.",
+    "unusedOpenSettings": "Manage capabilities",
     "showAll": "Show all",
     "showAllHint": "Turns on every capability available to the business.",
     "resetToProfile": "Reset to profile recommendations",
@@ -140,6 +147,20 @@
     "hintMixed": "Projects, jobs, and service calls appear together. They share one financial record - this is not a separate product, and BOQ stays off unless you enable it.",
     "hintProjects": "Projects appear in the main navigation. Jobs stay available when needed. Bill of quantities stays hidden unless you turn that feature on.",
     "saved": "Business focus updated."
+  },
+  "complexity": {
+    "title": "Experience depth",
+    "subtitle": "How much of ProjectFlow to show for your business profile. Does not change permissions or stored data.",
+    "label": "Complexity",
+    "simple": "Simple",
+    "advanced": "Advanced",
+    "full": "Full",
+    "hint": {
+      "simple": "Core destinations only - clients, quotes, billing, documents, workforce, and jobs when recommended.",
+      "advanced": "Adds purchasing, changes, field ops, materials, and related tools while keeping the heaviest modules off.",
+      "full": "Shows the full profile recommendation."
+    },
+    "saved": "Experience depth updated."
   },
   "businessProfiles": {
     "title": "Business profile",

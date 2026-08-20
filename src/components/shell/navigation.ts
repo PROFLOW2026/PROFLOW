@@ -7,6 +7,16 @@ import {
   workMixProjectsPrimary,
   workMixSurfacesJobs,
 } from '@/modules/tenancy/domain/work-mix';
+import type {
+  ExperiencePersonaKey,
+  ExperienceRoleSurface,
+} from '@/modules/tenancy/domain/experience-persona';
+import {
+  NAV_KEY_TO_EXPERIENCE_GROUP,
+  PERSONA_PRIMARY_NAV_KEYS,
+  PERSONA_VISIBLE_GROUPS,
+  roleNavEmphasis,
+} from '@/modules/tenancy/domain/experience-nav-layout';
 
 /**
  * Adaptive navigation model (docs 40 §4, 41, 48 U1).
@@ -65,12 +75,30 @@ export const NAV_ICON_KEYS = [
 
 export type NavIconKey = (typeof NAV_ICON_KEYS)[number];
 
-/** Overflow / sidebar section for non-core destinations. */
-export type MoreNavGroup = 'business' | 'operations' | 'advanced';
+/** Overflow / sidebar section for non-core destinations — experience groups. */
+export type MoreNavGroup =
+  | 'clients'
+  | 'work'
+  | 'people'
+  | 'purchasing'
+  | 'money'
+  | 'field'
+  | 'documents'
+  | 'reports'
+  | 'advanced'
+  /** @deprecated legacy aliases kept for tests during transition */
+  | 'business'
+  | 'operations';
 
 export const MORE_GROUP_ORDER: readonly MoreNavGroup[] = [
-  'business',
-  'operations',
+  'clients',
+  'work',
+  'people',
+  'purchasing',
+  'money',
+  'field',
+  'documents',
+  'reports',
   'advanced',
 ] as const;
 
@@ -489,6 +517,8 @@ export const NAV_ITEMS: readonly NavItem[] = [
 
 export interface VisibleNavOptions {
   readonly workMix?: WorkMix;
+  readonly persona?: ExperiencePersonaKey;
+  readonly roleSurface?: ExperienceRoleSurface;
 }
 
 /**
@@ -507,21 +537,69 @@ export function applyWorkMixToNavItems(
       if (projectsPrimary) {
         return { ...item, primaryOnMobile: true, moreGroup: undefined };
       }
-      return { ...item, primaryOnMobile: false, moreGroup: 'business' as const };
+      return { ...item, primaryOnMobile: false, moreGroup: 'work' as const };
     }
     if (item.key === 'jobs') {
       if (jobsPrimary) {
         return { ...item, primaryOnMobile: true, moreGroup: undefined };
       }
-      return { ...item, primaryOnMobile: false, moreGroup: 'business' as const };
+      return { ...item, primaryOnMobile: false, moreGroup: 'work' as const };
     }
     if (item.key === 'fieldHome') {
       if (jobsPrimary) {
         return { ...item, primaryOnMobile: true, moreGroup: undefined };
       }
-      return { ...item, primaryOnMobile: false, moreGroup: 'operations' as const };
+      return { ...item, primaryOnMobile: false, moreGroup: 'field' as const };
     }
     return { ...item };
+  });
+}
+
+/**
+ * Recompose navigation into persona groups + primary set.
+ * Destination catalog stays NAV_ITEMS; presentation changes here.
+ */
+export function applyExperienceNavLayout(
+  items: readonly NavItem[],
+  persona: ExperiencePersonaKey = 'mixed',
+  roleSurface: ExperienceRoleSurface = 'general',
+): NavItem[] {
+  const primaryKeys = PERSONA_PRIMARY_NAV_KEYS[persona];
+  const visibleGroups = new Set(PERSONA_VISIBLE_GROUPS[persona]);
+  const { prefer, demote } = roleNavEmphasis(roleSurface);
+  const preferSet = new Set(prefer);
+  const demoteSet = new Set(demote);
+
+  return items.map((item) => {
+    if (item.key === 'settings') {
+      return { ...item, moreGroup: undefined, primaryOnMobile: false };
+    }
+
+    const mappedGroup = NAV_KEY_TO_EXPERIENCE_GROUP[item.key] ?? 'advanced';
+    let group: MoreNavGroup =
+      mappedGroup === 'today' ? ('work' as MoreNavGroup) : (mappedGroup as MoreNavGroup);
+
+    const isPrimary = primaryKeys.includes(item.key) || preferSet.has(item.key);
+
+    if (demoteSet.has(item.key)) {
+      group = 'advanced';
+    } else if (!visibleGroups.has(mappedGroup) && mappedGroup !== 'today') {
+      group = 'advanced';
+    }
+
+    if (item.key === 'today' || item.key === 'dashboard') {
+      return { ...item, moreGroup: undefined, primaryOnMobile: true };
+    }
+
+    if (isPrimary && primaryKeys.indexOf(item.key) >= 0 && primaryKeys.indexOf(item.key) < 4) {
+      return { ...item, moreGroup: undefined, primaryOnMobile: true };
+    }
+
+    return {
+      ...item,
+      moreGroup: group,
+      primaryOnMobile: false,
+    };
   });
 }
 
@@ -547,12 +625,18 @@ export function visibleNavItems(
     return true;
   });
 
-  return applyWorkMixToNavItems(filtered, workMix).map((item) => {
+  const withMix = applyWorkMixToNavItems(filtered, workMix).map((item) => {
     if (item.key === 'vendorBills' && modules.procurement) {
-      return { ...item, moreGroup: 'operations' as const };
+      return { ...item, moreGroup: 'purchasing' as const };
     }
     return item;
   });
+
+  return applyExperienceNavLayout(
+    withMix,
+    options.persona ?? 'mixed',
+    options.roleSurface ?? 'general',
+  );
 }
 
 export interface NavItemGroup {
@@ -580,33 +664,32 @@ export function partitionNavItems(items: readonly NavItem[]): {
 }
 
 /**
- * Mobile bottom bar: at most four destinations. Today stays in that set
- * whenever the user can see it, immediately after Dashboard.
+ * Mobile bottom bar: at most four destinations.
+ * Prefer persona-marked primaryOnMobile items (set by applyExperienceNavLayout).
+ * Keep Dashboard then Today first whenever both are available.
  */
 export function selectMobilePrimaryItems(items: readonly NavItem[]): NavItem[] {
   const preferred = items.filter((item) => item.primaryOnMobile);
-  const today = preferred.find((item) => item.key === 'today');
-  if (!today) return preferred.slice(0, 4);
-
-  const dashboard = preferred.find((item) => item.key === 'dashboard');
-  const expenses = preferred.find((item) => item.key === 'expenses');
-  const projects = preferred.find((item) => item.key === 'projects');
-  const jobs = preferred.find((item) => item.key === 'jobs');
-  const work = projects ?? jobs;
+  if (preferred.length === 0) return items.slice(0, 4);
 
   const pinned: NavItem[] = [];
   const used = new Set<string>();
-  for (const item of [dashboard, today, work, expenses]) {
+
+  const dashboard = preferred.find((item) => item.key === 'dashboard');
+  const today = preferred.find((item) => item.key === 'today');
+  for (const item of [dashboard, today]) {
     if (!item || used.has(item.key)) continue;
     pinned.push(item);
     used.add(item.key);
   }
+
   for (const item of preferred) {
     if (pinned.length >= 4) break;
     if (used.has(item.key)) continue;
     pinned.push(item);
     used.add(item.key);
   }
+
   return pinned.slice(0, 4);
 }
 

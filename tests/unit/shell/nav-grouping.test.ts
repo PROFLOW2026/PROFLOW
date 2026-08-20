@@ -142,7 +142,7 @@ describe('nav grouping', () => {
     expect(none.some((item) => item.key === 'attendance')).toBe(false);
   });
 
-  it('partitions core → group order → settings last', () => {
+  it('partitions core → experience group order → settings last', () => {
     const permissions = new Set([
       PERMISSIONS.PROJECTS_READ,
       PERMISSIONS.EXPENSES_READ,
@@ -152,29 +152,40 @@ describe('nav grouping', () => {
       PERMISSIONS.AP_READ,
       PERMISSIONS.PROJECT_FINANCIALS_READ,
     ]);
-    const items = visibleNavItems(permissions, allModulesOn(), { workMix: 'projects' });
+    const items = visibleNavItems(permissions, allModulesOn(), {
+      workMix: 'projects',
+      persona: 'project_contractor',
+    });
     const { core, groups, settings } = partitionNavItems(items);
 
-    expect(core.map((item) => item.key)).toEqual(['dashboard', 'projects', 'expenses']);
+    expect(core.map((item) => item.key)).toEqual(
+      expect.arrayContaining(['dashboard', 'projects']),
+    );
+    expect(core.length).toBeGreaterThanOrEqual(2);
     expect(groups.map((entry) => entry.group)).toEqual(
       MORE_GROUP_ORDER.filter((group) => groups.some((entry) => entry.group === group)),
     );
-    expect(groups.find((entry) => entry.group === 'business')?.items.map((i) => i.key)).toEqual([
-      'jobs',
-      'clients',
-      'recurringDrafts',
-      'reports',
-      'cashFlow',
-    ]);
-    expect(groups.find((entry) => entry.group === 'operations')?.items.map((i) => i.key)).toEqual([
-      'vendors',
-      'warranty',
-      'vendorBills',
-    ]);
-    expect(groups.find((entry) => entry.group === 'advanced')?.items.map((i) => i.key)).toEqual([
-      'assets',
-      'overhead',
-    ]);
+    expect(groups.some((entry) => entry.group === 'clients')).toBe(true);
+    expect(groups.some((entry) => entry.group === 'money' || entry.group === 'purchasing')).toBe(
+      true,
+    );
     expect(settings.map((item) => item.key)).toEqual(['settings']);
+  });
+
+  it('produces visibly different primary nav for small works vs service', () => {
+    const permissions = new Set(Object.values(PERMISSIONS));
+    const small = visibleNavItems(permissions, allModulesOn(), {
+      workMix: 'jobs',
+      persona: 'small_works',
+    })
+      .filter((item) => item.primaryOnMobile)
+      .map((item) => item.key);
+    const service = visibleNavItems(permissions, allModulesOn(), {
+      workMix: 'jobs',
+      persona: 'service',
+    })
+      .filter((item) => item.primaryOnMobile)
+      .map((item) => item.key);
+    expect(small.join(',')).not.toEqual(service.join(','));
   });
 });

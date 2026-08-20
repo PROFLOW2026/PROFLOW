@@ -180,6 +180,65 @@ export {
 } from './domain/experience-presentation';
 export type { DashboardCardKey } from './domain/experience-presentation';
 export {
+  EXPERIENCE_PERSONA_KEYS,
+  personaForBusinessProfile,
+  resolveExperienceRoleSurface,
+} from './domain/experience-persona';
+export type {
+  ExperiencePersonaKey,
+  ExperienceRoleSurface,
+} from './domain/experience-persona';
+export {
+  EXPERIENCE_COMPLEXITY_KEYS,
+  EXPERIENCE_COMPLEXITY_SETTING_KEY,
+  isExperienceComplexityKey,
+  parseExperienceComplexity,
+  filterModulesByComplexity,
+  applyComplexityToVisibility,
+} from './domain/experience-complexity';
+export type { ExperienceComplexityKey } from './domain/experience-complexity';
+export {
+  EXPERIENCE_NAV_GROUPS,
+  NAV_KEY_TO_EXPERIENCE_GROUP,
+  PERSONA_PRIMARY_NAV_KEYS,
+  PERSONA_VISIBLE_GROUPS,
+  roleNavEmphasis,
+} from './domain/experience-nav-layout';
+export type { ExperienceNavGroup } from './domain/experience-nav-layout';
+export {
+  PERSONA_DASHBOARD_CARDS,
+  dashboardCardsForPersona,
+} from './domain/experience-dashboard';
+export type { ExperienceDashboardCard } from './domain/experience-dashboard';
+export {
+  todayCategoryForSource,
+  PERSONA_TODAY_FOCUS,
+  PERSONA_TODAY_DEEMPHASIZE,
+  todayUrgencyBumpForPersona,
+  todayItemVisibleForPersona,
+} from './domain/experience-today';
+export type { TodayFocusCategory } from './domain/experience-today';
+export {
+  PERSONA_QUICK_CREATE_KEYS,
+  limitQuickCreateForPersona,
+} from './domain/experience-quick-create';
+export {
+  getExperienceComplexityForOrg,
+  saveExperienceComplexity,
+} from './application/experience-complexity';
+export {
+  UNUSED_CAPABILITY_DISMISSALS_SETTING_KEY,
+  UNUSED_CAPABILITY_NEVER_SUGGEST,
+  UNUSED_CAPABILITY_STALE_DAYS,
+  parseUnusedCapabilityDismissals,
+  suggestUnusedCapabilities,
+} from './domain/unused-capability-suggestions';
+export type { ModulePreferenceForSuggestion } from './domain/unused-capability-suggestions';
+export {
+  getUnusedCapabilityDismissals,
+  dismissUnusedCapabilitySuggestion,
+} from './application/unused-capability-dismissals';
+export {
   listOrganizationServiceDomains,
   listOrganizationDocumentTypes,
   listEnabledServiceDomainsForPicker,

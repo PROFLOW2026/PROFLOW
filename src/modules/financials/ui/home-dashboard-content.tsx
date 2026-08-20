@@ -10,6 +10,7 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { PrefetchOnIntentLink } from '@/components/ui/prefetch-on-intent-link';
 import { textNavLinkClassName } from '@/components/ui/pressable';
 import { cn } from '@/shared/ui/cn';
+import type { ExperienceDashboardCard } from '@/modules/tenancy';
 import type { HomeDashboardData } from '../application/get-home-dashboard';
 import type { DataConfidenceLevel, DataConfidenceReason } from '../domain/data-confidence';
 import { mapCoverageToSources, partialNote, standalonePartialNotes } from './map-coverage-sources';
@@ -80,11 +81,17 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
     );
   }
 
+  const cardSet = new Set(data.dashboardCards);
+  const showMoneyChrome =
+    cardSet.has('contractValue') ||
+    cardSet.has('profit') ||
+    cardSet.has('forecast') ||
+    cardSet.has('commitments') ||
+    cardSet.has('billing') ||
+    cardSet.has('collections');
+
   const coverageSources = data.profitCoverage
     ? mapCoverageToSources(data.profitCoverage, tFinancial)
-    : [];
-  const costCoverageSources = data.costCoverage
-    ? mapCoverageToSources(data.costCoverage, tFinancial)
     : [];
   const contractValueNote =
     data.contractValueCoverage?.partials?.[0] &&
@@ -99,90 +106,153 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
     data.attention.unbilledApprovedCount > 0 ||
     data.attention.overdueBillingCount > 0;
 
-  return (
-    <div className="flex min-w-0 max-w-full flex-col gap-6">
-      {(data.totalContractValue ||
-        data.totalActualCost ||
-        data.estimatedProfit ||
-        data.forecast ||
-        data.showBilling) && (
-        <section className="min-w-0 max-w-full">
-          <div className="mb-3 flex min-w-0 flex-wrap items-center justify-between gap-2">
-            <h2 className="text-sm font-semibold text-[var(--pf-text-secondary)]">
-              {t('businessSummary.title')}
+  function renderCard(card: ExperienceDashboardCard): ReactNode {
+    switch (card) {
+      case 'attention':
+        if (!hasAttention) return null;
+        return (
+          <section key={card} className="min-w-0 max-w-full">
+            <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold">
+              <AlertCircle className="size-4 shrink-0" aria-hidden />
+              {t('attention.title')}
             </h2>
-            {data.dataConfidence ? (
-              <DataConfidenceBadge
-                level={data.dataConfidence.level as DataConfidenceLevel}
-                label={tFinancial(`confidence.levels.${data.dataConfidence.level}`)}
-                title={
-                  data.dataConfidence.reasons.length === 0
-                    ? tFinancial('confidence.highHint')
-                    : data.dataConfidence.reasons
-                        .map((reason) =>
-                          tFinancial(`confidence.reasons.${reason as DataConfidenceReason}`),
-                        )
-                        .join(' · ')
-                }
-              />
+            {data.canReadToday ? (
+              <p className="mb-3">
+                <Link href="/today" className={textNavLinkClassName} prefetch={false}>
+                  {t('attention.linkToday')}
+                </Link>
+              </p>
             ) : null}
-          </div>
-          <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            {data.activeProjectCount > 0 ? (
-              <KpiCard title={t('activeProjects')} value={String(data.activeProjectCount)} />
+            <ul className="flex min-w-0 flex-col gap-2 text-sm">
+              {(data.preferServiceSurface
+                ? (['overdueBilling', 'unbilledApproved', 'pendingChanges'] as const)
+                : (['pendingChanges', 'unbilledApproved', 'overdueBilling'] as const)
+              ).map((key) => {
+                const count =
+                  key === 'overdueBilling'
+                    ? data.attention.overdueBillingCount
+                    : key === 'unbilledApproved'
+                      ? data.attention.unbilledApprovedCount
+                      : data.attention.pendingChangesCount;
+                if (count <= 0) return null;
+                const text =
+                  key === 'overdueBilling'
+                    ? t('attention.overdueBilling', { count })
+                    : key === 'unbilledApproved'
+                      ? t('attention.approvedNotBilled', { count })
+                      : t('attention.pendingChanges', { count });
+                return (
+                  <li
+                    key={key}
+                    className="min-w-0 break-words rounded-md border border-[var(--pf-border-default)] px-3 py-2"
+                  >
+                    {text}
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+        );
+
+      case 'activeWork':
+        return (
+          <section key={card} className="min-w-0 max-w-full">
+            <div className="mb-3 grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2">
+              {data.activeProjectCount > 0 ? (
+                <KpiCard title={t('activeProjects')} value={String(data.activeProjectCount)} />
+              ) : null}
+            </div>
+            {data.recentProjects.length > 0 ? (
+              <>
+                <h2 className="mb-3 text-sm font-semibold">{t('activeProjects')}</h2>
+                <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2">
+                  {data.recentProjects.map((project) => (
+                    <Card key={project.id} className="min-w-0 max-w-full">
+                      <CardHeader className="py-3">
+                        <CardTitle className="min-w-0 break-words text-base">
+                          <PrefetchOnIntentLink
+                            href={`/projects/${project.id}`}
+                            className={cn(textNavLinkClassName, 'font-medium')}
+                          >
+                            {project.name}
+                          </PrefetchOnIntentLink>
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="min-w-0 pb-3 text-sm text-[var(--pf-text-secondary)]">
+                        {project.clientName ?? '-'}
+                        {project.currentContractValue && project.currency ? (
+                          <p className="mt-1 min-w-0 max-w-full overflow-x-auto">
+                            <MoneyText
+                              value={{
+                                amount: project.currentContractValue,
+                                currency: project.currency,
+                              }}
+                              compact
+                            />
+                          </p>
+                        ) : null}
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </>
             ) : null}
-            {data.totalContractValue ? (
+          </section>
+        );
+
+      case 'contractValue':
+        if (!data.totalContractValue) return null;
+        return (
+          <section key={card} className="min-w-0 max-w-full">
+            <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
               <KpiCard
                 title={tFinancial('kpis.currentContract')}
                 money={data.totalContractValue}
                 hint={tFinancial('basis.netExVat')}
                 footer={
                   contractValueNote ? (
-                    <p className="break-words text-xs text-[var(--pf-text-secondary)]">{contractValueNote}</p>
+                    <p className="break-words text-xs text-[var(--pf-text-secondary)]">
+                      {contractValueNote}
+                    </p>
                   ) : null
                 }
               />
-            ) : null}
-            {data.totalActualCost ? (
-              <KpiCard
-                title={tFinancial('kpis.actualCost')}
-                money={data.totalActualCost}
-                hint={tFinancial('basis.netExVat')}
-                footer={
-                  data.costCoverage ? (
-                    <CoverageDisclosure sources={costCoverageSources} />
-                  ) : null
-                }
-              />
-            ) : null}
-            {data.showProfit && data.estimatedProfit ? (
+            </div>
+          </section>
+        );
+
+      case 'profit':
+        if (!(data.showProfit && data.estimatedProfit)) return null;
+        return (
+          <section key={card} className="min-w-0 max-w-full">
+            <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
               <KpiCard
                 title={tFinancial('kpis.forecastMargin')}
                 money={data.estimatedProfit}
                 hint={tFinancial('basis.profitNet')}
                 footer={<CoverageDisclosure sources={coverageSources} />}
               />
-            ) : null}
-          </div>
+            </div>
+          </section>
+        );
 
-          {data.forecast ? (
-            <div className="mt-3 grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      case 'forecast':
+        if (!data.forecast) return null;
+        return (
+          <section key={card} className="min-w-0 max-w-full">
+            <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
               <KpiCard
-                title={tFinancial('kpis.allocatedOverhead')}
-                money={data.forecast.totalAllocatedOverhead}
-              />
-              <KpiCard
-                title={tFinancial('kpis.committed')}
-                money={data.forecast.totalRemainingCommitments}
+                title={tFinancial('kpis.forecast')}
+                money={data.forecast.totalForecastFinalCost}
+                hint={tFinancial('basis.netExVat')}
               />
               <KpiCard
                 title={tFinancial('kpis.expectedRemaining')}
                 money={data.forecast.totalExpectedRemaining}
               />
               <KpiCard
-                title={tFinancial('kpis.forecast')}
-                money={data.forecast.totalForecastFinalCost}
-                hint={tFinancial('basis.netExVat')}
+                title={tFinancial('kpis.allocatedOverhead')}
+                money={data.forecast.totalAllocatedOverhead}
               />
               {data.showProfit && data.forecast.totalActualMargin ? (
                 <KpiCard
@@ -208,10 +278,27 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
                 }
               />
             </div>
-          ) : null}
+          </section>
+        );
 
-          {data.showBilling && data.billing ? (
-            <div className="mt-3 grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-3">
+      case 'commitments':
+        if (!data.forecast) return null;
+        return (
+          <section key={card} className="min-w-0 max-w-full">
+            <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <KpiCard
+                title={tFinancial('kpis.committed')}
+                money={data.forecast.totalRemainingCommitments}
+              />
+            </div>
+          </section>
+        );
+
+      case 'billing':
+        if (!(data.showBilling && data.billing)) return null;
+        return (
+          <section key={card} className="min-w-0 max-w-full">
+            <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-3">
               <KpiCard
                 title={tFinancial('kpis.billed')}
                 money={data.billing.invoiced}
@@ -234,36 +321,166 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
                 money={data.billing.paid}
                 hint={tFinancial('basis.billingCash')}
               />
+            </div>
+          </section>
+        );
+
+      case 'collections':
+        if (!(data.showBilling && data.billing)) return null;
+        return (
+          <section key={card} className="min-w-0 max-w-full">
+            <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-3">
               <KpiCard
                 title={tFinancial('kpis.outstanding')}
                 money={data.billing.outstanding}
                 hint={tFinancial('basis.outstandingCash')}
               />
+              {data.organizationSummary && data.showBilling ? (
+                <KpiCard
+                  title={t('businessSummary.outstanding')}
+                  money={data.organizationSummary.outstanding}
+                  hint={tFinancial('basis.outstandingCash')}
+                />
+              ) : null}
             </div>
+          </section>
+        );
+
+      case 'serviceToday':
+        return (
+          <section key={card} className="min-w-0 max-w-full">
+            <h2 className="mb-2 text-sm font-semibold">{t('cards.serviceToday.title')}</h2>
+            <p className="text-sm text-[var(--pf-text-secondary)]">
+              {data.preferServiceSurface
+                ? t('cards.serviceToday.bodyService')
+                : t('cards.serviceToday.body')}
+            </p>
+            <p className="mt-2">
+              <Link href="/today" className={textNavLinkClassName} prefetch={false}>
+                {t('attention.linkToday')}
+              </Link>
+            </p>
+          </section>
+        );
+
+      case 'timeUtilization':
+        return (
+          <section key={card} className="min-w-0 max-w-full">
+            <h2 className="mb-2 text-sm font-semibold">{t('cards.timeUtilization.title')}</h2>
+            <p className="mb-3 text-sm text-[var(--pf-text-secondary)]">
+              {t('cards.timeUtilization.body')}
+            </p>
+            <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2">
+              {data.activeProjectCount > 0 ? (
+                <KpiCard title={t('activeProjects')} value={String(data.activeProjectCount)} />
+              ) : null}
+              {hasAttention ? (
+                <KpiCard
+                  title={t('attention.title')}
+                  value={String(
+                    data.attention.pendingChangesCount +
+                      data.attention.unbilledApprovedCount +
+                      data.attention.overdueBillingCount,
+                  )}
+                />
+              ) : null}
+            </div>
+            <p className="mt-2">
+              <Link href="/workforce/time" className={textNavLinkClassName} prefetch={false}>
+                {tNav('time')}
+              </Link>
+            </p>
+          </section>
+        );
+
+      case 'quotePipeline':
+        if (!data.showQuotes) return null;
+        return (
+          <section key={card} className="min-w-0 max-w-full">
+            <h2 className="mb-2 text-sm font-semibold">{t('cards.quotePipeline.title')}</h2>
+            <p className="mb-2 text-sm text-[var(--pf-text-secondary)]">
+              {t('cards.quotePipeline.body')}
+            </p>
+            <Link href="/quotes" className={textNavLinkClassName} prefetch={false}>
+              {tNav('quotes')}
+            </Link>
+          </section>
+        );
+
+      case 'firstActions':
+        if (!(data.canCreateProject || data.canCreateExpense)) return null;
+        return (
+          <section key={card} className="min-w-0 max-w-full">
+            <h2 className="mb-3 text-sm font-semibold">{t('quickActions')}</h2>
+            <div className="flex min-w-0 max-w-full flex-wrap gap-2">
+              {data.canCreateProject ? (
+                <Button asChild size="sm" variant="secondary">
+                  <Link
+                    href={
+                      data.emptyStartKind === 'work_order'
+                        ? '/work-orders/new'
+                        : data.emptyStartKind === 'job'
+                          ? '/jobs/new'
+                          : '/projects/new'
+                    }
+                    prefetch={false}
+                  >
+                    {data.emptyStartKind === 'work_order'
+                      ? tNav('newMenu.service')
+                      : data.emptyStartKind === 'job'
+                        ? tNav('newMenu.job')
+                        : tNav('newMenu.project')}
+                  </Link>
+                </Button>
+              ) : null}
+              {data.canCreateExpense ? (
+                <Button asChild size="sm" variant="secondary">
+                  <Link href="/expenses/new" prefetch={false}>
+                    {tNav('newMenu.expense')}
+                  </Link>
+                </Button>
+              ) : null}
+            </div>
+          </section>
+        );
+
+      default:
+        return null;
+    }
+  }
+
+  return (
+    <div className="flex min-w-0 max-w-full flex-col gap-6">
+      {showMoneyChrome ? (
+        <div className="mb-0 flex min-w-0 flex-wrap items-center justify-between gap-2">
+          <h2 className="text-sm font-semibold text-[var(--pf-text-secondary)]">
+            {t('businessSummary.title')}
+          </h2>
+          {data.dataConfidence ? (
+            <DataConfidenceBadge
+              level={data.dataConfidence.level as DataConfidenceLevel}
+              label={tFinancial(`confidence.levels.${data.dataConfidence.level}`)}
+              title={
+                data.dataConfidence.reasons.length === 0
+                  ? tFinancial('confidence.highHint')
+                  : data.dataConfidence.reasons
+                      .map((reason) =>
+                        tFinancial(`confidence.reasons.${reason as DataConfidenceReason}`),
+                      )
+                      .join(' · ')
+              }
+            />
           ) : null}
-        </section>
-      )}
+        </div>
+      ) : null}
 
-      <section className="flex min-w-0 flex-wrap gap-3 text-sm">
-        <Link href="/cash-flow" className={textNavLinkClassName}>
-          {t('ownerLinks.cashFlow')}
-        </Link>
-        <Link href="/reports?section=management" className={textNavLinkClassName}>
-          {t('ownerLinks.management')}
-        </Link>
-      </section>
+      {data.dashboardCards.map((card) => renderCard(card))}
 
-      {data.organizationSummary ? (
+      {data.organizationSummary &&
+      (cardSet.has('billing') || cardSet.has('collections') || cardSet.has('profit')) ? (
         <section className="min-w-0 max-w-full">
           <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-3">
-            {data.showBilling ? (
-              <KpiCard
-                title={t('businessSummary.outstanding')}
-                money={data.organizationSummary.outstanding}
-                hint={tFinancial('basis.outstandingCash')}
-              />
-            ) : null}
-            {data.showBilling ? (
+            {data.showBilling && cardSet.has('billing') ? (
               <KpiCard
                 title={t('businessSummary.invoicedThisMonth')}
                 money={data.organizationSummary.invoicedThisMonth}
@@ -279,107 +496,14 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
         </section>
       ) : null}
 
-      {hasAttention ? (
-        <section className="min-w-0 max-w-full">
-          <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold">
-            <AlertCircle className="size-4 shrink-0" aria-hidden />
-            {t('attention.title')}
-          </h2>
-          {data.canReadToday ? (
-            <p className="mb-3">
-              <Link href="/today" className={textNavLinkClassName} prefetch={false}>
-                {t('attention.linkToday')}
-              </Link>
-            </p>
-          ) : null}
-          <ul className="flex min-w-0 flex-col gap-2 text-sm">
-            {(data.preferServiceSurface
-              ? (['overdueBilling', 'unbilledApproved', 'pendingChanges'] as const)
-              : (['pendingChanges', 'unbilledApproved', 'overdueBilling'] as const)
-            ).map((key) => {
-              const count =
-                key === 'overdueBilling'
-                  ? data.attention.overdueBillingCount
-                  : key === 'unbilledApproved'
-                    ? data.attention.unbilledApprovedCount
-                    : data.attention.pendingChangesCount;
-              if (count <= 0) return null;
-              const text =
-                key === 'overdueBilling'
-                  ? t('attention.overdueBilling', { count })
-                  : key === 'unbilledApproved'
-                    ? t('attention.approvedNotBilled', { count })
-                    : t('attention.pendingChanges', { count });
-              return (
-                <li
-                  key={key}
-                  className="min-w-0 break-words rounded-md border border-[var(--pf-border-default)] px-3 py-2"
-                >
-                  {text}
-                </li>
-              );
-            })}
-          </ul>
-        </section>
-      ) : null}
-
-      {data.recentProjects.length > 0 ? (
-        <section className="min-w-0 max-w-full">
-          <h2 className="mb-3 text-sm font-semibold">{t('activeProjects')}</h2>
-          <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2">
-            {data.recentProjects.map((project) => (
-              <Card key={project.id} className="min-w-0 max-w-full">
-                <CardHeader className="py-3">
-                  <CardTitle className="min-w-0 break-words text-base">
-                    <PrefetchOnIntentLink
-                      href={`/projects/${project.id}`}
-                      className={cn(textNavLinkClassName, 'font-medium')}
-                    >
-                      {project.name}
-                    </PrefetchOnIntentLink>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="min-w-0 pb-3 text-sm text-[var(--pf-text-secondary)]">
-                  {project.clientName ?? '-'}
-                  {project.currentContractValue && project.currency ? (
-                    <p className="mt-1 min-w-0 max-w-full overflow-x-auto">
-                      <MoneyText
-                        value={{
-                          amount: project.currentContractValue,
-                          currency: project.currency,
-                        }}
-                        compact
-                      />
-                    </p>
-                  ) : null}
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </section>
-      ) : null}
-
-      {(data.canCreateProject || data.canCreateExpense) && (
-        <section className="min-w-0 max-w-full">
-          <h2 className="mb-3 text-sm font-semibold">{t('quickActions')}</h2>
-          <div className="flex min-w-0 max-w-full flex-wrap gap-2">
-            {data.canCreateProject ? (
-              <Button asChild size="sm" variant="secondary">
-                <Link href="/projects/new" prefetch={false}>
-                  {tNav('newMenu.project')}
-                </Link>
-              </Button>
-            ) : null}
-            {data.canCreateExpense ? (
-              <Button asChild size="sm" variant="secondary">
-                <Link href="/expenses/new" prefetch={false}>
-                  {tNav('newMenu.expense')}
-                </Link>
-              </Button>
-            ) : null}
-          </div>
-        </section>
-      )}
+      <section className="flex min-w-0 flex-wrap gap-3 text-sm">
+        <Link href="/cash-flow" className={textNavLinkClassName}>
+          {t('ownerLinks.cashFlow')}
+        </Link>
+        <Link href="/reports?section=management" className={textNavLinkClassName}>
+          {t('ownerLinks.management')}
+        </Link>
+      </section>
     </div>
   );
 }

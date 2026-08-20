@@ -214,7 +214,7 @@ const BY_PROFILE: Record<BusinessProfileKey, BusinessProfileSetupSuggestions> = 
   SMALL_WORKS: {
     documentFolders: folders(['Site photos', 'תמונות אתר'], ['Quotes', 'הצעות מחיר'], ['Invoices', 'חשבוניות']),
     formTemplates: [SITE_CHECKLIST],
-    projectTemplateKeys: ['small_job'],
+    projectTemplateKeys: ['simple_finish', 'service_installation'],
     todayEmphasis: 'today',
   },
   ALL_CAPABILITIES: {

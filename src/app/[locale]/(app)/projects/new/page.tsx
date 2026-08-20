@@ -1,8 +1,18 @@
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { listAvailableCreateWorkKinds } from '@/components/shell/quick-create-actions';
+import { Alert } from '@/components/ui/alert';
 import { PageHeader } from '@/components/ui/page-header';
 import { listClientsForOrg, listContactsForClients } from '@/modules/clients';
+import {
+  getBusinessProfileKeyForOrg,
+  getBusinessProfileSetup,
+} from '@/modules/tenancy';
+import {
+  getProjectTemplate,
+  type ProjectTemplateKey,
+  PROJECT_TEMPLATE_KEYS,
+} from '@/modules/projects/domain/templates';
 import { resolveApplicableDefaultTax } from '@/modules/tax';
 import { getShellContext, withOrgContext } from '@/shared/auth/session';
 import { todayInTimeZone } from '@/shared/dates';
@@ -30,6 +40,7 @@ export default async function NewProjectPage({
   const t = await getTranslations('projects');
   const shell = await getShellContext();
   const baseCurrency = shell?.organization.baseCurrency ?? 'ILS';
+  const nameLocale = locale === 'en' ? 'en' : 'he-IL';
 
   let clients: {
     id: string;
@@ -43,6 +54,7 @@ export default async function NewProjectPage({
     }[];
   }[] = [];
   let taxRatePercent: string | null = null;
+  let recommendedTemplateNames: string[] = [];
   try {
     const loaded = await withOrgContext(async (context) => {
       const rows = await listClientsForOrg(context, {});
@@ -60,6 +72,23 @@ export default async function NewProjectPage({
         context,
         todayInTimeZone(context.organization.timezone),
       );
+      const profileKey = await getBusinessProfileKeyForOrg(
+        context.db,
+        context.organizationId,
+      );
+      const allowed = new Set<string>(PROJECT_TEMPLATE_KEYS);
+      const templateNames =
+        profileKey == null
+          ? []
+          : getBusinessProfileSetup(profileKey)
+              .projectTemplateKeys.filter((key): key is ProjectTemplateKey => allowed.has(key))
+              .map((key) => {
+                const catalog = getProjectTemplate(key);
+                if (!catalog) return null;
+                return nameLocale === 'he-IL' ? catalog.nameHe : catalog.nameEn;
+              })
+              .filter((name): name is string => Boolean(name));
+
       return {
         clients: rows.map((client) => ({
           id: client.id,
@@ -73,10 +102,12 @@ export default async function NewProjectPage({
           })),
         })),
         taxRatePercent: tax.resolved?.ratePercent ?? null,
+        recommendedTemplateNames: templateNames,
       };
     });
     clients = loaded.clients;
     taxRatePercent = loaded.taxRatePercent;
+    recommendedTemplateNames = loaded.recommendedTemplateNames;
   } catch {
     clients = [];
   }
@@ -95,6 +126,15 @@ export default async function NewProjectPage({
   return (
     <div className="flex min-w-0 max-w-full flex-col gap-6">
       <PageHeader title={t('create.title')} description={t('create.description')} />
+      {recommendedTemplateNames.length > 0 ? (
+        <Alert tone="info" role="status">
+          <p className="text-sm">
+            {t('create.recommendedTemplatesTip', {
+              templates: recommendedTemplateNames.join(' · '),
+            })}
+          </p>
+        </Alert>
+      ) : null}
       <WorkKindCreateHint
         current="project"
         defaultWorkKind={shell?.suggestedDefaults?.defaultWorkKind}

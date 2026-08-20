@@ -4,8 +4,13 @@ import { Alert } from '@/components/ui/alert';
 import { Card } from '@/components/ui/card';
 import {
   getBusinessProfileKeyForOrg,
+  getExperienceComplexityForOrg,
   getModuleVisibility,
+  getUnusedCapabilityDismissals,
   getWorkMixForOrg,
+  isOptionalModuleKey,
+  suggestUnusedCapabilities,
+  type OptionalModuleKey,
 } from '@/modules/tenancy';
 import { withOrgContext } from '@/shared/auth/session';
 import { canAccessSection, canManageSection, SETTINGS_SECTIONS } from '../_lib/access';
@@ -13,7 +18,9 @@ import { listModulePreferencesForOrg } from '../_lib/module-preferences';
 import { BusinessProfilePresetForm } from '../business/business-profile-preset-form';
 import { SettingsNotAllowed } from '../settings-not-allowed';
 import { SettingsPageShell, settingsMetadata } from '../settings-shell';
+import { ComplexityPanel } from './complexity-panel';
 import { FeaturesSettingsPanel } from './features-panel';
+import { UnusedCapabilitySuggestionBanner } from './unused-capability-suggestion-banner';
 import { WorkMixPanel } from './work-mix-panel';
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -28,19 +35,31 @@ export default async function FeaturesSettingsPage() {
   const data = await withOrgContext(async (context) => {
     if (!canAccessSection(context, section)) return { allowed: false as const };
 
-    const [visibility, preferences, workMix, currentProfileKey] = await Promise.all([
-      getModuleVisibility(context),
-      listModulePreferencesForOrg(context),
-      getWorkMixForOrg(context),
-      getBusinessProfileKeyForOrg(context.db, context.organizationId),
-    ]);
+    const [visibility, preferences, workMix, currentProfileKey, complexity, dismissals] =
+      await Promise.all([
+        getModuleVisibility(context),
+        listModulePreferencesForOrg(context),
+        getWorkMixForOrg(context),
+        getBusinessProfileKeyForOrg(context.db, context.organizationId),
+        getExperienceComplexityForOrg(context),
+        getUnusedCapabilityDismissals(context),
+      ]);
+
+    const suggestions = suggestUnusedCapabilities(preferences, {
+      dismissedKeys: dismissals,
+    });
+    const suggestionKey = suggestions[0];
+    const unusedSuggestion: OptionalModuleKey | null =
+      suggestionKey && isOptionalModuleKey(suggestionKey) ? suggestionKey : null;
 
     return {
       allowed: true as const,
       visibility,
       preferences,
       workMix,
+      complexity,
       currentProfileKey,
+      unusedSuggestion,
       canEdit: canManageSection(context, 'features'),
     };
   });
@@ -57,6 +76,12 @@ export default async function FeaturesSettingsPage() {
 
   return (
     <SettingsPageShell title={t('title')}>
+      {data.unusedSuggestion ? (
+        <UnusedCapabilitySuggestionBanner
+          moduleKey={data.unusedSuggestion}
+          canEdit={data.canEdit}
+        />
+      ) : null}
       {showFirstRun ? (
         <Card className="mb-4 flex flex-col gap-3 p-5">
           <Alert tone="info">
@@ -68,6 +93,7 @@ export default async function FeaturesSettingsPage() {
       ) : null}
       <Card className="flex flex-col gap-2 p-5">
         <WorkMixPanel initialWorkMix={data.workMix} canEdit={data.canEdit} />
+        <ComplexityPanel initialComplexity={data.complexity} canEdit={data.canEdit} />
         <FeaturesSettingsPanel
           visibility={data.visibility}
           preferences={data.preferences}

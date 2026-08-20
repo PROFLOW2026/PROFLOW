@@ -114,12 +114,16 @@ describe('project experience profiles', () => {
   });
 
   it('allowlists tabs per profile without inventing capabilities', () => {
-    expect(projectProfileAllowsTab('simple', 'financials')).toBe(true);
+    expect(projectProfileAllowsTab('simple', 'expenses')).toBe(true);
+    expect(projectProfileAllowsTab('simple', 'financials')).toBe(false);
+    expect(projectProfileAllowsTab('simple', 'time')).toBe(false);
     expect(projectProfileAllowsTab('simple', 'boq')).toBe(false);
     expect(projectProfileAllowsTab('simple', 'closeout')).toBe(false);
     expect(projectProfileAllowsTab('small_job', 'expenses')).toBe(true);
+    expect(projectProfileAllowsTab('small_job', 'time')).toBe(false);
     expect(projectProfileAllowsTab('small_job', 'financials')).toBe(false);
     expect(projectProfileAllowsTab('consulting', 'schedule')).toBe(true);
+    expect(projectProfileAllowsTab('consulting', 'work')).toBe(true);
     expect(projectProfileAllowsTab('consulting', 'boq')).toBe(false);
     expect(projectProfileAllowsTab('service_installation', 'usage')).toBe(true);
     expect(projectProfileAllowsTab('service_installation', 'changes')).toBe(false);

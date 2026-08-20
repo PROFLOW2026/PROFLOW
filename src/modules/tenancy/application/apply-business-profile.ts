@@ -26,6 +26,11 @@ import {
 } from '../domain/capability-overrides';
 import { requiredFoundationsFor } from '../domain/capability-registry';
 import type { OptionalModuleKey } from '../domain/types';
+import {
+  EXPERIENCE_COMPLEXITY_SETTING_KEY,
+  isExperienceComplexityKey,
+  type ExperienceComplexityKey,
+} from '../domain/experience-complexity';
 import { isWorkMix, WORK_MIX_SETTING_KEY } from '../domain/work-mix';
 import { seedBusinessProfileSetup } from './seed-business-profile-setup';
 
@@ -36,6 +41,8 @@ export type ApplyBusinessProfileOptions = {
   readonly extraModules?: readonly OptionalModuleKey[];
   /** Override profile work mix when the user answered onboarding Q2. */
   readonly workMixOverride?: string;
+  /** Recommended onboarding path sets `simple` complexity (org setting jsonb). */
+  readonly experienceComplexity?: ExperienceComplexityKey;
 };
 
 /**
@@ -97,6 +104,18 @@ export async function applyBusinessProfileConfig(
       organizationId,
       CAPABILITY_MODE_SETTING_KEY,
       profileKey === 'ALL_CAPABILITIES' ? 'all' : 'profile',
+    );
+  }
+
+  if (
+    options?.experienceComplexity &&
+    isExperienceComplexityKey(options.experienceComplexity)
+  ) {
+    await upsertOrganizationSettingValue(
+      db,
+      organizationId,
+      EXPERIENCE_COMPLEXITY_SETTING_KEY,
+      options.experienceComplexity,
     );
   }
 

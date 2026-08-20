@@ -36,6 +36,7 @@
     "fromTemplate": "יצירה מתבנית",
     "templateNone": "ללא תבנית",
     "templateHint": "מחילה עותקים הניתנים לעריכה של תחומי עבודה, אבני דרך ותיקיות מוצעות. התבנית עצמה לא משתנה.",
+    "recommendedTemplatesTip": "מומלץ לסוג העסק שלכם: {templates}. בחרו מתבנית למטה.",
     "nameLabel": "שם הפרויקט",
     "namePlaceholder": "לדוגמה: בית כהן",
     "clientLabel": "לקוח",

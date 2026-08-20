@@ -27,3 +27,7 @@ export { renderReportHtmlDocument } from './application/render-html';
 export { generateReportSchema } from './validation/schemas';
 export { loadReportPackCatalog } from './application/load-pack-catalog';
 export type { ReportPackCatalog } from './application/load-pack-catalog';
+export {
+  recommendedReportKindsForPersona,
+  prioritizeReportKindsForPersona,
+} from './domain/persona-pack-order';
