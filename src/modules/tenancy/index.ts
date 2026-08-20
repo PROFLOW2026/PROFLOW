@@ -20,6 +20,7 @@ export type {
 } from './application/invitations';
 export {
   getModuleVisibility,
+  getCapabilityCustomizationModeForOrg,
   setModuleVisibility,
   noteModuleUsage,
   enableAllCustomerCapabilities,

@@ -9,10 +9,12 @@ import {
   markModuleUsed,
   setModulePreference,
 } from '../data/organizations.repository';
-import { upsertOrganizationSettingValue } from '../data/organization-settings.repository';
+import { upsertOrganizationSettingValue, getOrganizationSettingValue } from '../data/organization-settings.repository';
 import {
   CAPABILITY_MODE_SETTING_KEY,
   modulePreferenceWritesForProfile,
+  parseCapabilityCustomizationMode,
+  type CapabilityCustomizationMode,
 } from '../domain/capability-overrides';
 import { requiredFoundationsFor } from '../domain/capability-registry';
 import {
@@ -37,6 +39,18 @@ export { resolveModuleVisibility } from '../domain/types';
 export async function getModuleVisibility(context: OrgContext): Promise<ModuleVisibility> {
   const preferences = await listModulePreferences(context.db, context.organizationId);
   return resolveModuleVisibility(preferences);
+}
+
+/** Soft read for shell — missing mode returns null (no forced profile overlay). */
+export async function getCapabilityCustomizationModeForOrg(
+  context: OrgContext,
+): Promise<CapabilityCustomizationMode | null> {
+  const raw = await getOrganizationSettingValue<unknown>(
+    context.db,
+    context.organizationId,
+    CAPABILITY_MODE_SETTING_KEY,
+  );
+  return parseCapabilityCustomizationMode(raw);
 }
 
 export async function setModuleVisibility(

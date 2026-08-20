@@ -18,17 +18,16 @@ import {
 } from '@/modules/identity';
 import {
   applyComplexityToVisibility,
-  CAPABILITY_MODE_SETTING_KEY,
   dashboardCardsForPersona,
   getBusinessProfile,
   getBusinessProfileKeyForOrg,
+  getCapabilityCustomizationModeForOrg,
   getExperienceComplexityForOrg,
   getModuleVisibility,
   getQuickCreateEmphasisForOrg,
   getSuggestedDefaultsForOrg,
   getWorkMixForOrg,
   listMembershipsForUser,
-  parseCapabilityCustomizationMode,
   personaForBusinessProfile,
   resolveExperienceRoleSurface,
   resolveOrgContext,
@@ -39,7 +38,6 @@ import {
   resolveExperiencePreview,
 } from '@/modules/tenancy/domain/experience-preview';
 import { readExperiencePreviewCookie } from '@/modules/tenancy/application/experience-preview';
-import { getOrganizationSettingValue } from '@/modules/tenancy/data/organization-settings.repository';
 import { serverEnv } from '@/shared/env/server';
 import { AuthenticationRequiredError, AppError } from '@/shared/errors';
 import { localeFromAuthMetadata } from '@/shared/i18n/auth-locale';
@@ -196,7 +194,7 @@ export const getShellContext = cache(async () => {
         businessProfileKey,
         previewSelection,
         complexity,
-        capabilityModeRaw,
+        customizationMode,
       ] = await Promise.all([
         getModuleVisibility(context),
         getWorkMixForOrg(context),
@@ -205,11 +203,7 @@ export const getShellContext = cache(async () => {
         getBusinessProfileKeyForOrg(context.db, context.organizationId),
         readExperiencePreviewCookie(),
         getExperienceComplexityForOrg(context),
-        getOrganizationSettingValue<unknown>(
-          context.db,
-          context.organizationId,
-          CAPABILITY_MODE_SETTING_KEY,
-        ),
+        getCapabilityCustomizationModeForOrg(context),
       ]);
 
       const env = serverEnv();
@@ -224,7 +218,6 @@ export const getShellContext = cache(async () => {
         preview.active && preview.profileKey ? preview.profileKey : businessProfileKey;
       const persona = personaForBusinessProfile(effectiveProfileKey);
       const roleSurface = resolveExperienceRoleSurface(context.roleKeys);
-      const customizationMode = parseCapabilityCustomizationMode(capabilityModeRaw);
 
       let resolvedModules: ModuleVisibility =
         preview.active && preview.modules ? preview.modules : modules;
