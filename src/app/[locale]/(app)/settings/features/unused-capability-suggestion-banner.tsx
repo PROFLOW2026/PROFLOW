@@ -56,7 +56,7 @@ export function UnusedCapabilitySuggestionBanner({
         </form>
       </div>
       {hideState.error || dismissState.error ? (
-        <p className="mt-2 text-sm text-[var(--pf-danger)]">
+        <p className="mt-2 text-sm text-[var(--pf-status-danger-fg)]">
           {hideState.error ?? dismissState.error}
         </p>
       ) : null}

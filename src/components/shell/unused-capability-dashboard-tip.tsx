@@ -46,7 +46,7 @@ export function UnusedCapabilityDashboardTip({
         </Button>
       </form>
       {state.error ? (
-        <p className="mt-1 text-sm text-[var(--pf-danger)]">{state.error}</p>
+        <p className="mt-1 text-sm text-[var(--pf-status-danger-fg)]">{state.error}</p>
       ) : null}
     </Alert>
   );
