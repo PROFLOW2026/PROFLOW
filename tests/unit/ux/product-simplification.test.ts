@@ -104,26 +104,37 @@ describe('authenticated product simplification', () => {
     expect(procurement.get('nav.ap')).not.toMatch(/AP/);
   });
 
-  it('More menu groups CORE overflow into business / operations / advanced', () => {
+  it('More menu groups CORE overflow into experience groups', () => {
     const allPerms = new Set(Object.values(PERMISSIONS));
-    const visible = visibleNavItems(allPerms, allModulesOn());
-    const overflow = visible.filter((item) => !item.primaryOnMobile);
-    const { groups } = partitionNavItems(overflow);
+    const visible = visibleNavItems(allPerms, allModulesOn(), {
+      persona: 'project_contractor',
+      roleSurface: 'owner',
+    });
+    const { groups } = partitionNavItems(visible);
 
     expect(groups.map((g: NavItemGroup) => g.group)).toEqual([
-      'business',
-      'operations',
+      'clients',
+      'work',
+      'people',
+      'purchasing',
+      'money',
+      'field',
+      'documents',
+      'reports',
       'advanced',
     ]);
     expect(
-      groups.find((g: NavItemGroup) => g.group === 'business')?.items.map((i) => i.key),
-    ).toEqual(expect.arrayContaining(['clients', 'changes', 'billing', 'reports']));
+      groups.find((g: NavItemGroup) => g.group === 'clients')?.items.map((i) => i.key),
+    ).toEqual(expect.arrayContaining(['quotes']));
+    expect(
+      groups.find((g: NavItemGroup) => g.group === 'purchasing')?.items.map((i) => i.key),
+    ).toEqual(expect.arrayContaining(['vendorBills']));
     expect(
       groups.find((g: NavItemGroup) => g.group === 'advanced')?.items.map((i) => i.key),
-    ).toEqual(expect.arrayContaining(['assets', 'compliance', 'overhead']));
+    ).toEqual(expect.arrayContaining(['assets', 'compliance', 'approvals']));
     expect(
-      groups.find((g: NavItemGroup) => g.group === 'operations')?.items.map((i) => i.key),
-    ).toEqual(expect.arrayContaining(['vendorBills']));
+      groups.find((g: NavItemGroup) => g.group === 'money')?.items.map((i) => i.key),
+    ).toEqual(expect.arrayContaining(['overhead', 'billing']));
     expect(NAV_ITEMS.some((item) => item.href === '/documents/ocr-review')).toBe(false);
   });
 
