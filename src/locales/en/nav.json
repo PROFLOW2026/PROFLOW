@@ -43,6 +43,10 @@
   "assistant": "Assistant",
   "automations": "Automations",
   "more": "More",
+  "accordion": {
+    "expand": "Expand group",
+    "collapse": "Collapse group"
+  },
   "moreGroups": {
     "business": "Business",
     "operations": "Operations",

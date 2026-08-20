@@ -8,6 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { NavAccordionSections } from './nav-accordion';
 import {
   isNavItemActive,
   partitionNavItems,
@@ -25,6 +26,7 @@ export interface MobileNavMoreProps {
 /**
  * Overflow destinations for the mobile bottom bar.
  * Loaded on demand so ordinary screens do not pay for Dialog until "More" opens.
+ * Groups use the same exclusive accordion as the desktop sidebar.
  */
 export function MobileNavMore({ open, onOpenChange, items, pathname }: MobileNavMoreProps) {
   const t = useTranslations('nav');
@@ -42,37 +44,24 @@ export function MobileNavMore({ open, onOpenChange, items, pathname }: MobileNav
           <DialogTitle>{t('more')}</DialogTitle>
         </DialogHeader>
         <DialogBody>
-          <div className="flex flex-col gap-4">
-            {groups.map(({ group, items: groupItems }) => (
-              <div key={group}>
-                <p className="px-3 pb-1 text-xs font-semibold tracking-wide text-[var(--pf-text-secondary)] uppercase">
-                  {t(`moreGroups.${group}`)}
-                </p>
-                <ul className="flex flex-col">
-                  {groupItems.map((item) => {
-                    const active = isNavItemActive(pathname, item.href);
-                    return (
-                      <li key={item.key}>
-                        <ShellNavLink
-                          href={item.href}
-                          label={t(item.labelKey)}
-                          iconKey={item.iconKey}
-                          active={active}
-                          variant="sidebar"
-                          muteIcon
-                          onNavigate={() => onOpenChange(false)}
-                          className="min-h-11 py-3"
-                        />
-                      </li>
-                    );
-                  })}
-                </ul>
-              </div>
-            ))}
+          <div className="flex flex-col gap-3">
+            {groups.length > 0 ? (
+              <NavAccordionSections
+                groups={groups}
+                pathname={pathname}
+                groupLabel={(group) => t(`moreGroups.${group}`)}
+                itemLabel={(item) => t(item.labelKey)}
+                expandLabel={t('accordion.expand')}
+                collapseLabel={t('accordion.collapse')}
+                muteIcon
+                linkClassName="min-h-11 py-3"
+                onNavigate={() => onOpenChange(false)}
+              />
+            ) : null}
 
             {settings.length > 0 ? (
               <div>
-                <p className="px-3 pb-1 text-xs font-semibold tracking-wide text-[var(--pf-text-secondary)] uppercase">
+                <p className="px-3 pb-1 text-xs font-semibold tracking-wide text-[var(--pf-text-secondary)]">
                   {t('settings')}
                 </p>
                 <ul className="flex flex-col">

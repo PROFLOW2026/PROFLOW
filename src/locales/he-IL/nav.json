@@ -43,6 +43,10 @@
   "assistant": "עוזר",
   "automations": "כללים אוטומטיים",
   "more": "עוד",
+  "accordion": {
+    "expand": "פתיחת קבוצה",
+    "collapse": "סגירת קבוצה"
+  },
   "moreGroups": {
     "business": "עסק",
     "operations": "תפעול",

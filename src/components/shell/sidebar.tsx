@@ -3,6 +3,7 @@
 import { useTranslations } from 'next-intl';
 import type * as React from 'react';
 import { usePathname } from '@/shared/i18n/navigation';
+import { NavAccordionSections } from './nav-accordion';
 import {
   isNavItemActive,
   partitionNavItems,
@@ -19,6 +20,7 @@ export interface SidebarProps {
 /**
  * Desktop navigation. The rail sits on the inline-start edge, so it lands on
  * the right in Hebrew and the left in English without a second layout.
+ * Experience groups use an exclusive accordion (one open group at a time).
  */
 export function Sidebar({ items, organizationName, footer }: SidebarProps) {
   const t = useTranslations('nav');
@@ -40,7 +42,7 @@ export function Sidebar({ items, organizationName, footer }: SidebarProps) {
         </span>
       </div>
 
-      <div className="flex flex-1 flex-col gap-3 overflow-y-auto p-2">
+      <div className="flex flex-1 flex-col gap-2 overflow-y-auto p-2">
         {core.length > 0 ? (
           <ul className="flex flex-col gap-0.5">
             {core.map((item) => {
@@ -60,29 +62,16 @@ export function Sidebar({ items, organizationName, footer }: SidebarProps) {
           </ul>
         ) : null}
 
-        {groups.map(({ group, items: groupItems }) => (
-          <div key={group}>
-            <p className="px-3 pb-1 text-xs font-semibold tracking-wide text-[var(--pf-text-secondary)] uppercase">
-              {t(`moreGroups.${group}`)}
-            </p>
-            <ul className="flex flex-col gap-0.5">
-              {groupItems.map((item) => {
-                const active = isNavItemActive(pathname, item.href);
-                return (
-                  <li key={item.key}>
-                    <ShellNavLink
-                      href={item.href}
-                      label={t(item.labelKey)}
-                      iconKey={item.iconKey}
-                      active={active}
-                      variant="sidebar"
-                    />
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-        ))}
+        {groups.length > 0 ? (
+          <NavAccordionSections
+            groups={groups}
+            pathname={pathname}
+            groupLabel={(group) => t(`moreGroups.${group}`)}
+            itemLabel={(item) => t(item.labelKey)}
+            expandLabel={t('accordion.expand')}
+            collapseLabel={t('accordion.collapse')}
+          />
+        ) : null}
 
         {settings.length > 0 ? (
           <div className="mt-auto">
