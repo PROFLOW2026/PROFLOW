@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { he } from '../fixtures/locales';
+import { clickNavLink } from '../fixtures/nav';
 import { loadWorld } from '../fixtures/world';
 
 /**
@@ -12,8 +13,7 @@ test.describe('master completion owner journeys', () => {
     const editedName = `${employeeName} מעודכן`;
 
     await page.goto('/he-IL');
-    const nav = page.getByRole('navigation', { name: he.common.a11y.mainNavigation });
-    await nav.getByRole('link', { name: he.nav.workforce }).click();
+    await clickNavLink(page, he.nav.workforce);
     await expect(page).toHaveURL(/\/he-IL\/workforce\/employees/);
 
     await page.getByRole('link', { name: '+ עובד חדש' }).first().click();
@@ -103,13 +103,11 @@ test.describe('master completion owner journeys', () => {
 
   test('next-gen surfaces are reachable from Hebrew chrome', async ({ page }) => {
     await page.goto('/he-IL');
-    const nav = page.getByRole('navigation', { name: he.common.a11y.mainNavigation });
 
     async function openFromNavOrGoto(name: string, href: string) {
-      const link = nav.getByRole('link', { name });
-      if ((await link.count()) > 0) {
-        await link.first().click();
-      } else {
+      try {
+        await clickNavLink(page, name);
+      } catch {
         await page.goto(href);
       }
     }

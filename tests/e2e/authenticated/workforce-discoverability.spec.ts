@@ -25,8 +25,17 @@ test.describe('workforce discoverability (mobile owner)', () => {
 
     const more = page.getByRole('dialog');
     await expect(more).toBeVisible();
-    await expect(more.getByRole('link', { name: he.nav.workforce })).toBeVisible();
-    await more.getByRole('link', { name: he.nav.workforce }).click();
+    const workforce = more.getByRole('link', { name: he.nav.workforce });
+    if ((await workforce.count()) === 0) {
+      const groupButtons = more.locator('button[aria-controls^="pf-nav-group-"]');
+      const groupCount = await groupButtons.count();
+      for (let i = 0; i < groupCount; i += 1) {
+        await groupButtons.nth(i).click();
+        if ((await workforce.count()) > 0) break;
+      }
+    }
+    await expect(workforce).toBeVisible();
+    await workforce.click();
 
     await expect(page).toHaveURL(/\/he-IL\/workforce\/employees/);
     await expect(page.getByRole('heading', { name: he.nav.workforce, level: 1 })).toBeVisible();

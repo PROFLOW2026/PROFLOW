@@ -3,6 +3,7 @@ import { expect, test } from '@playwright/test';
 import { formatMoney } from '@/shared/money/format';
 import { OWNER } from '../harness/config';
 import { he } from '../fixtures/locales';
+import { clickNavLink, expectNavLinkVisible } from '../fixtures/nav';
 import { loadWorld } from '../fixtures/world';
 
 const world = loadWorld();
@@ -26,9 +27,8 @@ test.describe('signed-in owner', () => {
 
   test('desktop navigation exposes Employees without module preference', async ({ page }) => {
     await page.goto('/he-IL');
-    const nav = page.getByRole('navigation', { name: he.common.a11y.mainNavigation });
-    await expect(nav.getByRole('link', { name: he.nav.workforce })).toBeVisible();
-    await nav.getByRole('link', { name: he.nav.workforce }).click();
+    await expectNavLinkVisible(page, he.nav.workforce);
+    await clickNavLink(page, he.nav.workforce);
     await expect(page).toHaveURL(/\/he-IL\/workforce\/employees/);
     await expect(page.getByRole('heading', { name: he.nav.workforce, level: 1 })).toBeVisible();
     await expect(page.getByRole('link', { name: '+ עובד חדש' }).first()).toBeVisible();

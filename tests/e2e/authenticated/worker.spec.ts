@@ -1,6 +1,11 @@
 import { expect, test } from '@playwright/test';
 import { formatMoney } from '@/shared/money/format';
 import { he } from '../fixtures/locales';
+import {
+  expectNavLinkAbsent,
+  expectNavLinkVisible,
+  mainNav,
+} from '../fixtures/nav';
 import { loadWorld } from '../fixtures/world';
 
 const world = loadWorld();
@@ -11,22 +16,22 @@ test.describe('worker permission gating', () => {
   test('hides capabilities the worker lacks from navigation', async ({ page }) => {
     await page.goto('/he-IL');
 
-    const nav = page.getByRole('navigation', { name: he.common.a11y.mainNavigation });
+    const nav = mainNav(page);
     await expect(nav.getByRole('link', { name: he.nav.dashboard })).toBeVisible();
     await expect(nav.getByRole('link', { name: he.nav.projects })).toBeVisible();
-    await expect(nav.getByRole('link', { name: he.nav.expenses })).toBeVisible();
+    await expectNavLinkVisible(page, he.nav.expenses);
     await expect(nav.getByRole('link', { name: he.nav.settings })).toBeVisible();
     // Attendance-only self clock is allowed for workers.
-    await expect(nav.getByRole('link', { name: he.nav.attendance })).toBeVisible();
+    await expectNavLinkVisible(page, he.nav.attendance);
 
-    await expect(nav.getByRole('link', { name: he.nav.billing })).toHaveCount(0);
-    await expect(nav.getByRole('link', { name: he.nav.changes })).toHaveCount(0);
-    await expect(nav.getByRole('link', { name: he.nav.clients })).toHaveCount(0);
-    await expect(nav.getByRole('link', { name: he.nav.vendors })).toHaveCount(0);
-    await expect(nav.getByRole('link', { name: he.nav.workforce })).toHaveCount(0);
-    await expect(nav.getByRole('link', { name: he.nav.vendorBills })).toHaveCount(0);
+    await expectNavLinkAbsent(page, he.nav.billing);
+    await expectNavLinkAbsent(page, he.nav.changes);
+    await expectNavLinkAbsent(page, he.nav.clients);
+    await expectNavLinkAbsent(page, he.nav.vendors);
+    await expectNavLinkAbsent(page, he.nav.workforce);
+    await expectNavLinkAbsent(page, he.nav.vendorBills);
     // Documents module is enabled in the e2e seed; workers keep DOCUMENTS_READ.
-    await expect(nav.getByRole('link', { name: he.nav.documents })).toBeVisible();
+    await expectNavLinkVisible(page, he.nav.documents);
   });
 
   test('attendance page is reachable without financial surfaces', async ({ page }) => {

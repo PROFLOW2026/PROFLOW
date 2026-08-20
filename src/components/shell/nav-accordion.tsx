@@ -33,26 +33,24 @@ export function useExclusiveNavAccordion(
     [groups, pathname],
   );
 
-  const [openGroup, setOpenGroup] = React.useState<MoreNavGroup | null>(activeGroup);
-  const [userControlled, setUserControlled] = React.useState(false);
-  const prevPathname = React.useRef(pathname);
+  // When pathname changes, drop the user override and follow the active route group.
+  const [override, setOverride] = React.useState<{
+    path: string;
+    group: MoreNavGroup | null;
+  } | null>(null);
 
-  React.useEffect(() => {
-    if (prevPathname.current !== pathname) {
-      prevPathname.current = pathname;
-      setUserControlled(false);
-      setOpenGroup(activeGroup);
-      return;
-    }
-    if (!userControlled) {
-      setOpenGroup(activeGroup);
-    }
-  }, [pathname, activeGroup, userControlled]);
+  const openGroup =
+    override && override.path === pathname ? override.group : activeGroup;
 
-  const toggleGroup = React.useCallback((group: MoreNavGroup) => {
-    setUserControlled(true);
-    setOpenGroup((current) => nextExclusiveOpenGroup(current, group));
-  }, []);
+  const toggleGroup = React.useCallback(
+    (group: MoreNavGroup) => {
+      setOverride({
+        path: pathname,
+        group: nextExclusiveOpenGroup(openGroup, group),
+      });
+    },
+    [openGroup, pathname],
+  );
 
   return { openGroup, toggleGroup };
 }

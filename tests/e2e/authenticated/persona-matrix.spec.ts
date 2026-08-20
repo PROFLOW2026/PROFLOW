@@ -12,6 +12,7 @@ import {
   PLUMBING_OWNER,
 } from '../harness/config';
 import { he } from '../fixtures/locales';
+import { expectNavLinkVisible, clickNavLink } from '../fixtures/nav';
 import { signInThroughForm } from '../fixtures/sign-in';
 import { loadWorld } from '../fixtures/world';
 
@@ -49,9 +50,8 @@ test.describe('simple organization (seeded, no business profile)', () => {
 test.describe('manager persona', () => {
   test('runs projects and costs without profit or people admin', async ({ page }) => {
     await signInThroughForm(page, MANAGER.email);
-    const nav = page.getByRole('navigation', { name: he.common.a11y.mainNavigation });
-    await expect(nav.getByRole('link', { name: he.nav.projects })).toBeVisible();
-    await expect(nav.getByRole('link', { name: he.nav.expenses })).toBeVisible();
+    await expectNavLinkVisible(page, he.nav.projects);
+    await expectNavLinkVisible(page, he.nav.expenses);
 
     await page.goto(`/he-IL/projects/${world.projectId}?tab=financials`);
     await expect(page.getByRole('heading', { name: seededProjectName })).toBeVisible();
@@ -70,16 +70,10 @@ test.describe('manager persona', () => {
 test.describe('finance persona', () => {
   test('reaches billing, expenses, month close and profit', async ({ page }) => {
     await signInThroughForm(page, FINANCE.email);
-    const nav = page.getByRole('navigation', { name: he.common.a11y.mainNavigation });
-    await expect(nav.getByRole('link', { name: he.nav.billing })).toBeVisible();
-    await expect(nav.getByRole('link', { name: he.nav.expenses })).toBeVisible();
+    await expectNavLinkVisible(page, he.nav.billing);
+    await expectNavLinkVisible(page, he.nav.expenses);
 
-    const billingLink = nav.getByRole('link', { name: he.nav.billing });
-    if ((await billingLink.count()) > 0) {
-      await billingLink.click();
-    } else {
-      await page.goto('/he-IL/billing');
-    }
+    await clickNavLink(page, he.nav.billing);
     await expect(page).toHaveURL(/\/he-IL\/billing/);
 
     await page.goto('/he-IL/month-close');

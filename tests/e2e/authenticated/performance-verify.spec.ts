@@ -7,6 +7,7 @@ import { writeFileSync, mkdirSync } from 'node:fs';
 import path from 'node:path';
 import { OWNER } from '../harness/config';
 import { he } from '../fixtures/locales';
+import { clickNavLink } from '../fixtures/nav';
 import { loadWorld } from '../fixtures/world';
 
 type ResourceMetric = {
@@ -165,17 +166,7 @@ async function expectProjectTabsInteractive(page: Page) {
 }
 
 async function clickMainNav(page: Page, name: string) {
-  const nav = page.getByRole('navigation', { name: he.common.a11y.mainNavigation });
-  const direct = nav.getByRole('link', { name, exact: true });
-  if ((await direct.count()) > 0) {
-    await direct.click();
-    return;
-  }
-  const more = nav.getByRole('button', { name: he.nav.more });
-  if ((await more.count()) > 0) {
-    await more.click();
-  }
-  await page.getByRole('link', { name, exact: true }).click();
+  await clickNavLink(page, name);
 }
 
 test.describe.configure({ mode: 'serial', retries: 0 });
