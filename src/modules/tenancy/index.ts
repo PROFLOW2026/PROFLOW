@@ -22,6 +22,8 @@ export {
   getModuleVisibility,
   setModuleVisibility,
   noteModuleUsage,
+  enableAllCustomerCapabilities,
+  resetCapabilitiesToBusinessProfile,
 } from './application/module-visibility';
 export {
   listMembershipsForUser,
@@ -47,6 +49,18 @@ export {
   workMixJobsPrimary,
 } from './domain/work-mix';
 export type { WorkMix } from './domain/work-mix';
+export {
+  PROJECT_EXPERIENCE_PROFILE_KEYS,
+  PROJECT_PROFILE_TAB_ALLOWLIST,
+  isProjectExperienceProfileKey,
+  resolveProjectExperienceProfile,
+  projectProfileAllowsTab,
+} from './domain/project-profiles';
+export type {
+  ProjectExperienceProfileKey,
+  ProjectTabCapability,
+  DeriveProjectProfileInput,
+} from './domain/project-profiles';
 export { getWorkMixForOrg, saveWorkMix } from './application/work-mix';
 export { DEFAULT_COST_CATEGORIES, defaultsForCountry } from './domain/organization-defaults';
 export {
@@ -99,9 +113,72 @@ export {
   getSuggestedDefaultsForOrg,
   orderQuickCreateActions,
 } from './application/apply-business-profile';
+export type { ApplyBusinessProfileOptions } from './application/apply-business-profile';
 export { seedBusinessProfileSetup } from './application/seed-business-profile-setup';
 export { applyOrganizationProfessionPreset } from './application/apply-organization-profession-preset';
 export { applyOrganizationBusinessProfile } from './application/apply-organization-business-profile';
+export {
+  readExperiencePreviewCookie,
+  setExperiencePreviewAction,
+} from './application/experience-preview';
+export {
+  CAPABILITY_REGISTRY,
+  CAPABILITY_GROUP_ORDER,
+  getCapability,
+  listCustomerCapabilities,
+  listCapabilitiesByGroup,
+  requiredFoundationsFor,
+  assertCapabilityRegistryComplete,
+} from './domain/capability-registry';
+export type { CapabilityGroup, CapabilityDefinition } from './domain/capability-registry';
+export {
+  EXPERIENCE_PREVIEW_COOKIE,
+  EXPERIENCE_PREVIEW_PROFILE_KEYS,
+  isExperiencePreviewProfileKey,
+  parseExperiencePreviewSelection,
+  resolveExperiencePreview,
+  isExperiencePreviewEnvironment,
+  canUseExperiencePreview,
+} from './domain/experience-preview';
+export type {
+  ExperiencePreviewProfileKey,
+  ExperiencePreviewSelection,
+  ExperiencePreviewResolved,
+} from './domain/experience-preview';
+export {
+  CAPABILITY_MODE_SETTING_KEY,
+  CAPABILITY_CUSTOMIZATION_MODES,
+  parseCapabilityCustomizationMode,
+  modulePreferenceWritesForProfile,
+} from './domain/capability-overrides';
+export type {
+  CapabilityCustomizationMode,
+  ApplyModulePreferenceMode,
+} from './domain/capability-overrides';
+export {
+  ONBOARDING_BUSINESS_TYPES,
+  ONBOARDING_WORK_STYLES,
+  ONBOARDING_MANAGE_OPTIONS,
+  ONBOARDING_PATHS,
+  isOnboardingBusinessType,
+  isOnboardingWorkStyle,
+  isOnboardingManageOption,
+  isOnboardingPath,
+  workMixForOnboardingStyle,
+  modulesForManageOptions,
+  resolveOnboardingProfileKey,
+} from './domain/onboarding-experience';
+export type {
+  OnboardingBusinessType,
+  OnboardingWorkStyle,
+  OnboardingManageOption,
+  OnboardingPath,
+} from './domain/onboarding-experience';
+export {
+  todayEmphasisUrgencyBump,
+  preferredDashboardCards,
+} from './domain/experience-presentation';
+export type { DashboardCardKey } from './domain/experience-presentation';
 export {
   listOrganizationServiceDomains,
   listOrganizationDocumentTypes,

@@ -275,6 +275,16 @@
   "details": {
     "title": "פרטי פרויקט",
     "statusLabel": "סטטוס",
+    "experienceProfileLabel": "מצב עבודה בפרויקט",
+    "experienceProfiles": {
+      "auto": "אוטומטי (לפי סוג העבודה)",
+      "simple": "פשוט",
+      "full": "מלא",
+      "boq": "כתב כמויות",
+      "consulting": "ייעוץ",
+      "service_installation": "שירות / התקנה",
+      "small_job": "עבודה קטנה"
+    },
     "closeoutUseTab": "פרויקט קלאסי נסגר מלשונית הסגירה, לא מרשימת הסטטוס כאן.",
     "closeoutClosedHint": "הפרויקט סגור. פתיחה מחדש נעשית מלשונית הסגירה, עם סיבה.",
     "closeoutTabLink": "לשונית הסגירה",

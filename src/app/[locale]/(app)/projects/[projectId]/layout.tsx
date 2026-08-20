@@ -7,7 +7,10 @@ import {
   hasStoredOpeningReduction,
   resolveDisplayOriginalNet,
 } from '@/modules/projects';
-import { titleWithDocumentNumber } from '@/modules/tenancy';
+import {
+  resolveProjectExperienceProfile,
+  titleWithDocumentNumber,
+} from '@/modules/tenancy';
 import { listCloseoutStatusesForProjects } from '@/modules/closeout';
 import { getShellContext, withOrgContext } from '@/shared/auth/session';
 import { fromNumericString } from '@/shared/money';
@@ -15,10 +18,14 @@ import { PERMISSIONS, type PermissionKey } from '@/shared/permissions/catalog';
 import { Link } from '@/shared/i18n/navigation';
 import { localeDirection } from '@/shared/i18n/config';
 import { ArchiveProjectButton } from './archive-project-button';
-import { loadProjectDetail } from './load-project-detail';
+import { loadOrgBusinessProfileKey, loadProjectDetail } from './load-project-detail';
 import { ProjectHeaderMetrics } from './project-header-metrics';
 import { ProjectStatusBadge } from '../project-status-badge';
-import { resolveProjectTabs, type ProjectTabKey } from './project-tab-order';
+import {
+  applyProjectProfileToTabVisibility,
+  resolveProjectTabs,
+  type ProjectTabKey,
+} from './project-tab-order';
 import { ProjectTabsShell } from './project-tabs-shell';
 import { TabPanelSkeleton } from './tab-panel-skeleton';
 import { ProjectReportActions } from '@/modules/reports/ui';
@@ -59,13 +66,14 @@ export default async function ProjectLayout({ children, params }: ProjectLayoutP
   const showDocumentsTab = Boolean(modules?.documents) && can(PERMISSIONS.DOCUMENTS_READ);
   const showUsageTab = can(PERMISSIONS.MATERIALS_READ) || can(PERMISSIONS.ASSETS_READ);
 
-  const [t, tTabs, tStatus, tCloseout, detail, locale] = await Promise.all([
+  const [t, tTabs, tStatus, tCloseout, detail, locale, businessProfileKey] = await Promise.all([
     getTranslations('projects'),
     getTranslations('projects.workspace.tabs'),
     getTranslations('status.project'),
     getTranslations('closeout'),
     loadProjectDetail(projectId, false).catch(() => null),
     getLocale(),
+    loadOrgBusinessProfileKey(),
   ]);
   if (!detail) notFound();
 
@@ -85,22 +93,34 @@ export default async function ProjectLayout({ children, params }: ProjectLayoutP
   const showWorkTab = detail.showWorkPackages;
   const canArchive = shell?.permissions.has(PERMISSIONS.PROJECTS_ARCHIVE) ?? false;
 
-  const tabs = resolveProjectTabs({
-    financials: canReadFinancials,
-    expenses: showExpensesTab,
-    changes: showChangesTab,
-    boq: showBoqTab,
-    billing: showBillingTab,
-    budgets: showBudgetsTab,
-    team: showTeamTab,
-    schedule: showScheduleTab,
-    time: showTimeTab,
-    documents: showDocumentsTab,
-    usage: showUsageTab,
-    work: showWorkTab,
-    closeout: true,
-    warranty: true,
+  const experienceProfile = resolveProjectExperienceProfile({
+    stored: detail.project.experienceProfile,
+    workKind: detail.project.workKind,
+    businessProfileKey,
+    boqModuleEnabled: Boolean(modules?.boq),
   });
+
+  const tabs = resolveProjectTabs(
+    applyProjectProfileToTabVisibility(
+      {
+        financials: canReadFinancials,
+        expenses: showExpensesTab,
+        changes: showChangesTab,
+        boq: showBoqTab,
+        billing: showBillingTab,
+        budgets: showBudgetsTab,
+        team: showTeamTab,
+        schedule: showScheduleTab,
+        time: showTimeTab,
+        documents: showDocumentsTab,
+        usage: showUsageTab,
+        work: showWorkTab,
+        closeout: true,
+        warranty: true,
+      },
+      experienceProfile,
+    ),
+  );
 
   const tabLabels = Object.fromEntries(tabs.map((tab) => [tab, tTabs(tab)])) as Partial<
     Record<ProjectTabKey, string>

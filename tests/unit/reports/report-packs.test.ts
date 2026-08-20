@@ -45,6 +45,7 @@ function chrome(projectId = 'proj-1'): ProjectDetailChrome {
       documentNumber: 'PRJ-1',
       status: 'active',
       workKind: 'project',
+      experienceProfile: null,
       pricingMode: null,
       clientId: 'client-1',
       primaryContactId: null,

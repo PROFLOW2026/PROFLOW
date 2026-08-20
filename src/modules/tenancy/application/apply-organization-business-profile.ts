@@ -5,16 +5,23 @@ import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { z } from 'zod';
 import { BUSINESS_PROFILE_KEYS, type BusinessProfileKey } from '../domain/business-profiles';
+import type { ApplyModulePreferenceMode } from '../domain/capability-overrides';
 import { applyBusinessProfileConfig } from './apply-business-profile';
 
 const applySchema = z.object({
   businessProfile: z.enum(BUSINESS_PROFILE_KEYS),
+  moduleMode: z.enum(['additive', 'replace']).optional(),
+  resetToDefaults: z.boolean().optional(),
 });
 
 /** Applies a business profile to an existing organization (additive + settings). */
 export async function applyOrganizationBusinessProfile(
   context: OrgContext,
-  rawInput: { businessProfile: string },
+  rawInput: {
+    businessProfile: string;
+    moduleMode?: ApplyModulePreferenceMode;
+    resetToDefaults?: boolean;
+  },
 ): Promise<{ profileKey: BusinessProfileKey }> {
   assertPermission(context, PERMISSIONS.SETTINGS_MANAGE);
 
@@ -25,12 +32,18 @@ export async function applyOrganizationBusinessProfile(
     );
   }
 
+  const moduleMode: ApplyModulePreferenceMode =
+    parsed.data.resetToDefaults === true
+      ? 'replace'
+      : (parsed.data.moduleMode ?? 'additive');
+
   const locale = context.organization.defaultLocale === 'en' ? 'en' : 'he-IL';
   const result = await applyBusinessProfileConfig(
     context.db,
     context.organizationId,
     parsed.data.businessProfile,
     locale,
+    { moduleMode },
   );
 
   if (!result.applied) {
@@ -41,7 +54,7 @@ export async function applyOrganizationBusinessProfile(
     action: AUDIT_ACTIONS.SETTINGS_UPDATED,
     entityType: 'organization_business_profile',
     entityId: context.organizationId,
-    after: { profileKey: result.profileKey },
+    after: { profileKey: result.profileKey, moduleMode },
   });
 
   return { profileKey: result.profileKey };

@@ -1,14 +1,25 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { useActionState, useState } from 'react';
+import { useActionState, useMemo, useState } from 'react';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Field } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { BUSINESS_PROFILE_KEYS, getBusinessProfile } from '@/modules/tenancy/domain/business-profiles';
-import { WORK_MIXES, type WorkMix } from '@/modules/tenancy/domain/work-mix';
+import {
+  ONBOARDING_BUSINESS_TYPES,
+  ONBOARDING_MANAGE_OPTIONS,
+  ONBOARDING_WORK_STYLES,
+  modulesForManageOptions,
+  resolveOnboardingProfileKey,
+  workMixForOnboardingStyle,
+  type OnboardingBusinessType,
+  type OnboardingManageOption,
+  type OnboardingPath,
+  type OnboardingWorkStyle,
+} from '@/modules/tenancy/domain/onboarding-experience';
 import { createOrganizationAction, type OnboardingFormState } from './actions';
 
 const COUNTRY_CODES = ['IL', 'US', 'GB'] as const;
@@ -29,19 +40,35 @@ function CountryLabel({ code }: { code: (typeof COUNTRY_CODES)[number] }) {
 
 /**
  * Required step: name + country.
- * Recommended next step: business profile + work mix (skippable).
+ * Personalized path: business type, work style, managed areas, then recommended vs all.
+ * Advanced skip remains for power users.
  */
 export function OnboardingForm() {
   const t = useTranslations('auth.onboarding');
-  const [step, setStep] = useState<'required' | 'recommended'>('required');
+  const [step, setStep] = useState<'required' | 'experience'>('required');
   const [name, setName] = useState('');
   const [country, setCountry] = useState<(typeof COUNTRY_CODES)[number]>('IL');
-  const [preset, setPreset] = useState<string>('none');
-  const [workMix, setWorkMix] = useState<WorkMix>('projects');
+  const [businessType, setBusinessType] = useState<OnboardingBusinessType>('GENERAL_CONTRACTOR');
+  const [workStyle, setWorkStyle] = useState<OnboardingWorkStyle>('projects');
+  const [manageOptions, setManageOptions] = useState<readonly OnboardingManageOption[]>([]);
+  const [path, setPath] = useState<OnboardingPath>('recommended');
   const [state, formAction, pending] = useActionState<OnboardingFormState, FormData>(
     createOrganizationAction,
     {},
   );
+
+  const workMix = workMixForOnboardingStyle(workStyle);
+  const profileKey = resolveOnboardingProfileKey({ path, businessType });
+  const extraModules = useMemo(
+    () => (path === 'recommended' ? modulesForManageOptions(manageOptions) : []),
+    [path, manageOptions],
+  );
+
+  function toggleManageOption(option: OnboardingManageOption) {
+    setManageOptions((current) =>
+      current.includes(option) ? current.filter((item) => item !== option) : [...current, option],
+    );
+  }
 
   if (step === 'required') {
     return (
@@ -88,7 +115,7 @@ export function OnboardingForm() {
           type="button"
           block
           disabled={!name.trim()}
-          onClick={() => setStep('recommended')}
+          onClick={() => setStep('experience')}
         >
           {t('continue')}
         </Button>
@@ -102,29 +129,28 @@ export function OnboardingForm() {
 
       <input type="hidden" name="name" value={name} />
       <input type="hidden" name="countryCode" value={country} />
-      <input type="hidden" name="businessProfile" value={preset} />
+      <input type="hidden" name="businessProfile" value={profileKey ?? 'none'} />
       <input type="hidden" name="workMix" value={workMix} />
+      <input type="hidden" name="moduleMode" value={path === 'recommended' ? 'replace' : 'additive'} />
+      <input type="hidden" name="extraModules" value={extraModules.join(',')} />
 
-      <p className="text-sm font-medium text-[var(--pf-text-primary)]">{t('stepRecommended')}</p>
-      <p className="text-sm text-[var(--pf-text-secondary)]">{t('recommendedHint')}</p>
+      <p className="text-sm font-medium text-[var(--pf-text-primary)]">{t('stepExperience')}</p>
+      <p className="text-sm text-[var(--pf-text-secondary)]">{t('experienceHint')}</p>
 
-      <Field label={t('presetLabel')} optionalLabel={t('presetOptional')} description={t('presetHint')}>
+      <Field label={t('businessTypeLabel')} description={t('businessTypeHint')}>
         {(control) => (
           <Select
-            value={preset}
-            onValueChange={(value) => {
-              setPreset(value);
-              setWorkMix(getBusinessProfile(value)?.workMix ?? 'projects');
-            }}
+            value={businessType}
+            onValueChange={(value) => setBusinessType(value as OnboardingBusinessType)}
+            disabled={path === 'all' || path === 'none'}
           >
             <SelectTrigger id={control.id} aria-describedby={control['aria-describedby']}>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="none">{t('presetNone')}</SelectItem>
-              {BUSINESS_PROFILE_KEYS.map((key) => (
+              {ONBOARDING_BUSINESS_TYPES.map((key) => (
                 <SelectItem key={key} value={key}>
-                  {t(`profiles.${key}`)}
+                  {t(`businessTypes.${key}`)}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -132,22 +158,87 @@ export function OnboardingForm() {
         )}
       </Field>
 
-      <Field label={t('workMixLabel')} description={t('workMixHint')}>
+      <Field label={t('workStyleLabel')} description={t('workStyleHint')}>
         {(control) => (
-          <Select value={workMix} onValueChange={(value) => setWorkMix(value as WorkMix)}>
+          <Select
+            value={workStyle}
+            onValueChange={(value) => setWorkStyle(value as OnboardingWorkStyle)}
+            disabled={path === 'none'}
+          >
             <SelectTrigger id={control.id} aria-describedby={control['aria-describedby']}>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {WORK_MIXES.map((value) => (
+              {ONBOARDING_WORK_STYLES.map((value) => (
                 <SelectItem key={value} value={value}>
-                  {t(`workMix.${value}`)}
+                  {t(`workStyle.${value}`)}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
         )}
       </Field>
+
+      {path === 'recommended' ? (
+        <fieldset className="flex flex-col gap-2">
+          <legend className="text-sm font-medium text-[var(--pf-text-primary)]">
+            {t('manageLabel')}
+          </legend>
+          <p className="text-xs text-[var(--pf-text-muted)]">{t('manageHint')}</p>
+          <div className="flex flex-col gap-2 rounded-lg border border-[var(--pf-border-default)] p-3">
+            {ONBOARDING_MANAGE_OPTIONS.map((option) => {
+              const checked = manageOptions.includes(option);
+              return (
+                <label
+                  key={option}
+                  className="flex cursor-pointer items-center gap-3 text-sm text-[var(--pf-text-primary)]"
+                >
+                  <Checkbox
+                    checked={checked}
+                    onCheckedChange={() => toggleManageOption(option)}
+                    aria-label={t(`manage.${option}`)}
+                  />
+                  <span>{t(`manage.${option}`)}</span>
+                </label>
+              );
+            })}
+          </div>
+        </fieldset>
+      ) : null}
+
+      <fieldset className="flex flex-col gap-2">
+        <legend className="text-sm font-medium text-[var(--pf-text-primary)]">
+          {t('pathLabel')}
+        </legend>
+        <p className="text-xs text-[var(--pf-text-muted)]">{t('pathHint')}</p>
+        <div className="flex flex-col gap-2">
+          {(
+            [
+              { value: 'recommended' as const, label: t('path.recommended'), hint: t('path.recommendedHint') },
+              { value: 'all' as const, label: t('path.all'), hint: t('path.allHint') },
+              { value: 'none' as const, label: t('path.none'), hint: t('path.noneHint') },
+            ] as const
+          ).map((option) => (
+            <label
+              key={option.value}
+              className="flex cursor-pointer flex-col gap-0.5 rounded-lg border border-[var(--pf-border-default)] p-3 has-[:checked]:border-[var(--pf-action-primary)]"
+            >
+              <span className="flex items-center gap-2 text-sm font-medium text-[var(--pf-text-primary)]">
+                <input
+                  type="radio"
+                  name="onboardingPath"
+                  value={option.value}
+                  checked={path === option.value}
+                  onChange={() => setPath(option.value)}
+                  className="accent-[var(--pf-action-primary)]"
+                />
+                {option.label}
+              </span>
+              <span className="ps-6 text-xs text-[var(--pf-text-muted)]">{option.hint}</span>
+            </label>
+          ))}
+        </div>
+      </fieldset>
 
       <div className="flex flex-col gap-2">
         <Button type="submit" loading={pending} block>

@@ -19,8 +19,24 @@ import {
   parseTerminology,
   type SuggestedBusinessDefaults,
 } from '../domain/business-profiles';
+import {
+  CAPABILITY_MODE_SETTING_KEY,
+  modulePreferenceWritesForProfile,
+  type ApplyModulePreferenceMode,
+} from '../domain/capability-overrides';
+import { requiredFoundationsFor } from '../domain/capability-registry';
+import type { OptionalModuleKey } from '../domain/types';
+import { isWorkMix, WORK_MIX_SETTING_KEY } from '../domain/work-mix';
 import { seedBusinessProfileSetup } from './seed-business-profile-setup';
-import { WORK_MIX_SETTING_KEY } from '../domain/work-mix';
+
+export type ApplyBusinessProfileOptions = {
+  /** Default additive — safe for existing tenants. */
+  readonly moduleMode?: ApplyModulePreferenceMode;
+  /** Extra customer modules enabled on top of the profile recommendation. */
+  readonly extraModules?: readonly OptionalModuleKey[];
+  /** Override profile work mix when the user answered onboarding Q2. */
+  readonly workMixOverride?: string;
+};
 
 /**
  * Applies a business profile as editable configuration only.
@@ -32,14 +48,21 @@ export async function applyBusinessProfileConfig(
   organizationId: string,
   profileKey: BusinessProfileKey,
   locale: 'he-IL' | 'en' = 'he-IL',
+  options?: ApplyBusinessProfileOptions,
 ): Promise<{ applied: true; profileKey: BusinessProfileKey } | { applied: false }> {
   const profile = getBusinessProfile(profileKey);
   if (!profile) return { applied: false };
 
+  const moduleMode: ApplyModulePreferenceMode = options?.moduleMode ?? 'additive';
   const nameOf = (en: string, he: string) => (locale === 'he-IL' ? he : en);
 
+  const workMix =
+    options?.workMixOverride && isWorkMix(options.workMixOverride)
+      ? options.workMixOverride
+      : profile.workMix;
+
   await upsertOrganizationSettingValue(db, organizationId, BUSINESS_PROFILE_SETTING_KEY, profileKey);
-  await upsertOrganizationSettingValue(db, organizationId, WORK_MIX_SETTING_KEY, profile.workMix);
+  await upsertOrganizationSettingValue(db, organizationId, WORK_MIX_SETTING_KEY, workMix);
   await upsertOrganizationSettingValue(db, organizationId, TERMINOLOGY_SETTING_KEY, profile.terminology);
   await upsertOrganizationSettingValue(
     db,
@@ -54,9 +77,27 @@ export async function applyBusinessProfileConfig(
     profile.suggestedDefaults,
   );
 
-  for (const moduleKey of profile.visibleModules) {
+  const moduleWrites = modulePreferenceWritesForProfile(profileKey, moduleMode);
+  for (const { moduleKey, enabled } of moduleWrites) {
     if (moduleKey === 'portal') continue;
+    await setModulePreference(db, organizationId, moduleKey, enabled);
+  }
+
+  for (const moduleKey of options?.extraModules ?? []) {
+    if (moduleKey === 'portal') continue;
+    for (const foundation of requiredFoundationsFor(moduleKey)) {
+      await setModulePreference(db, organizationId, foundation, true);
+    }
     await setModulePreference(db, organizationId, moduleKey, true);
+  }
+
+  if (profileKey === 'ALL_CAPABILITIES' || moduleMode === 'replace') {
+    await upsertOrganizationSettingValue(
+      db,
+      organizationId,
+      CAPABILITY_MODE_SETTING_KEY,
+      profileKey === 'ALL_CAPABILITIES' ? 'all' : 'profile',
+    );
   }
 
   let sort = 0;

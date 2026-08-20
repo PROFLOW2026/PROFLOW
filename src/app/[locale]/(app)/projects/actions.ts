@@ -231,6 +231,7 @@ export async function updateProjectAction(
         targetEndDate: formValue(formData, 'targetEndDate'),
         actualEndDate: formValue(formData, 'actualEndDate'),
         notes: formValue(formData, 'notes'),
+        experienceProfile: formValue(formData, 'experienceProfile'),
         contractValueAmount: formValue(formData, 'contractValueAmount'),
         contractValueCurrency: formValue(formData, 'contractValueCurrency'),
         amountIncludesTax: formValue(formData, 'amountIncludesTax'),

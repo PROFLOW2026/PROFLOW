@@ -75,5 +75,27 @@
   "user": {
     "profile": "פרופיל",
     "signOut": "התנתקות"
+  },
+  "experiencePreview": {
+    "label": "תצוגת חוויה",
+    "actual": "הפרופיל האמיתי של העסק",
+    "previewing": "בתצוגה מקדימה: {label}",
+    "returnToActual": "חזרה לפרופיל האמיתי",
+    "profiles": {
+      "GENERAL_CONTRACTOR": "קבלן ראשי",
+      "ELECTRICAL": "חשמל",
+      "RENOVATION": "שיפוצים",
+      "SMALL_WORKS": "עבודות קטנות",
+      "FIELD_SERVICE": "שירות שטח",
+      "ARCHITECT": "אדריכל",
+      "ENGINEERING_CONSULTANT": "יועץ הנדסי",
+      "SAFETY_INSPECTION_CONSULTANT": "יועץ בטיחות וביקורת",
+      "MIXED_PROJECT_SERVICE": "פרויקטים ושירות מעורבים",
+      "ALL_CAPABILITIES": "כל היכולות"
+    }
+  },
+  "hiddenCapability": {
+    "title": "{module} מוסתר כרגע מהניווט",
+    "body": "היכולת כבויה בהגדרות, אבל הרשומה עדיין זמינה למי שיש הרשאה. אפשר להחזיר אותה דרך <settings>מה יוצג במערכת</settings>."
   }
 }

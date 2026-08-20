@@ -72,6 +72,7 @@ export default async function FeaturesSettingsPage() {
           visibility={data.visibility}
           preferences={data.preferences}
           canEdit={data.canEdit}
+          hasBusinessProfile={Boolean(data.currentProfileKey)}
         />
       </Card>
     </SettingsPageShell>

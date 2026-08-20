@@ -12,6 +12,7 @@ import { resolveDisplayOriginalEntered } from '@/modules/projects/domain/entry-b
 import { PROJECT_STATUSES } from '@/modules/projects/domain/types';
 import type { ProjectDetail } from '@/modules/projects/application/get-project-detail';
 import { ContractAmountFields } from '@/modules/projects/ui/contract-amount-fields';
+import { PROJECT_EXPERIENCE_PROFILE_KEYS } from '@/modules/tenancy/domain/project-profiles';
 import { type CustomFieldValueView } from '@/modules/custom-fields/domain/types';
 import { EntityCustomFieldsPanel } from '@/modules/custom-fields/ui';
 import { Link } from '@/shared/i18n/navigation';
@@ -107,6 +108,9 @@ export function DetailsTab({
   const fieldsRevalidatePath = customFieldsRevalidatePath ?? `/projects/${project.id}`;
   const isClassicProject = project.workKind === 'project';
   const [statusValue, setStatusValue] = useState(project.status);
+  const [experienceProfileValue, setExperienceProfileValue] = useState(
+    project.experienceProfile ?? 'auto',
+  );
 
   return (
     <>
@@ -119,6 +123,28 @@ export function DetailsTab({
 
         <Field label={tCommon('labels.name')} required error={state.fieldErrors?.name}>
           {(control) => <Input {...control} name="name" defaultValue={project.name} required />}
+        </Field>
+
+        <Field label={t('experienceProfileLabel')} optionalLabel={tCommon('labels.optional')}>
+          {(control) => (
+            <Select
+              name="experienceProfile"
+              value={experienceProfileValue}
+              onValueChange={setExperienceProfileValue}
+            >
+              <SelectTrigger id={control.id}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="auto">{t('experienceProfiles.auto')}</SelectItem>
+                {PROJECT_EXPERIENCE_PROFILE_KEYS.map((key) => (
+                  <SelectItem key={key} value={key}>
+                    {t(`experienceProfiles.${key}`)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
         </Field>
 
         <Field label={t('statusLabel')}>

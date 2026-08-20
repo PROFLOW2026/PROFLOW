@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { PROJECT_EXPERIENCE_PROFILE_KEYS } from '@/modules/tenancy/domain/project-profiles';
 import {
   PROJECT_STATUSES,
   PROGRESS_STATUSES,
@@ -18,6 +19,12 @@ const emptyToNull = (value: unknown) => {
 const emptyStringOrNullToNull = (value: unknown) => {
   if (value === undefined) return undefined;
   if (value === '' || value === null) return null;
+  return value;
+};
+
+const experienceProfileToNull = (value: unknown) => {
+  if (value === undefined) return undefined;
+  if (value === '' || value === null || value === 'auto') return null;
   return value;
 };
 
@@ -237,6 +244,10 @@ export const updateProjectSchema = z
     progressPercent: optionalPercent,
     progressStatus: optionalProgressStatus,
     notes: optionalText,
+    experienceProfile: z.preprocess(
+      experienceProfileToNull,
+      z.enum(PROJECT_EXPERIENCE_PROFILE_KEYS).nullable().optional(),
+    ),
     domainName: z.preprocess(emptyToNull, z.string().trim().min(1).max(120).nullable().optional()),
     contractValueAmount: z.preprocess(emptyToNull, z.string().trim().nullable().optional()),
     contractValueCurrency: z.preprocess(emptyToNull, z.string().trim().length(3).nullable().optional()),

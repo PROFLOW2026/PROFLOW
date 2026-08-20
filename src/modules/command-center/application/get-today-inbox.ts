@@ -1,12 +1,22 @@
 import type { OrgContext } from '@/shared/auth/context';
 import { assertPermission, hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
-import { getModuleVisibility } from '@/modules/tenancy';
+import {
+  getModuleVisibility,
+  getSuggestedDefaultsForOrg,
+  todayEmphasisUrgencyBump,
+} from '@/modules/tenancy';
+import {
+  canUseExperiencePreview,
+  resolveExperiencePreview,
+} from '@/modules/tenancy/domain/experience-preview';
+import { readExperiencePreviewCookie } from '@/modules/tenancy/application/experience-preview';
+import { serverEnv } from '@/shared/env/server';
 import { runNotificationScan } from '@/modules/notifications';
 import { todayInTimeZone } from '@/shared/dates';
 import { collectAllSources } from '../data/collect-sources';
 import { listCommandCenterItemStates } from '../data/item-states.repository';
-import { sortCommandCenterItems } from '../domain/ranking';
+import { computeRankScore, sortCommandCenterItems } from '../domain/ranking';
 import type {
   CommandCenterInbox,
   CommandCenterItem,
@@ -35,7 +45,24 @@ function isHiddenByState(
 export async function getTodayInbox(context: OrgContext): Promise<CommandCenterInbox> {
   assertPermission(context, PERMISSIONS.COMMAND_CENTER_READ);
 
-  const modules = await getModuleVisibility(context);
+  const [modulesRaw, suggestedDefaults, previewSelection] = await Promise.all([
+    getModuleVisibility(context),
+    getSuggestedDefaultsForOrg(context.db, context.organizationId),
+    readExperiencePreviewCookie(),
+  ]);
+  const env = serverEnv();
+  const previewAllowed = canUseExperiencePreview(
+    context.roleKeys,
+    env.APP_ENV,
+    env.PF_EXPERIENCE_PREVIEW,
+  );
+  const preview = resolveExperiencePreview(previewAllowed ? previewSelection : 'actual');
+  const modules =
+    preview.active && preview.modules ? preview.modules : modulesRaw;
+  const todayEmphasis =
+    (preview.active && preview.suggestedDefaults?.todayEmphasis) ||
+    suggestedDefaults?.todayEmphasis ||
+    null;
 
   const today = todayInTimeZone(context.organization.timezone);
   const now = new Date();
@@ -60,7 +87,15 @@ export async function getTodayInbox(context: OrgContext): Promise<CommandCenterI
       hiddenByState += 1;
       continue;
     }
-    visible.push(item);
+    const bump = todayEmphasisUrgencyBump(item.sourceType, todayEmphasis);
+    if (bump > 0) {
+      visible.push({
+        ...item,
+        rankScore: computeRankScore(item.severity, Math.min(99, bump)),
+      });
+    } else {
+      visible.push(item);
+    }
   }
 
   const items = sortCommandCenterItems(visible).slice(0, MAX_INBOX_ITEMS);

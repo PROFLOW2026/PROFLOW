@@ -407,6 +407,13 @@
                         "when":  1786561200000,
                         "tag":  "0058_automations_integrations_assistant",
                         "breakpoints":  true
+                    },
+                    {
+                        "idx":  58,
+                        "version":  "7",
+                        "when":  1786561300000,
+                        "tag":  "0059_dynamic_experience",
+                        "breakpoints":  true
                     }
                 ]
 }

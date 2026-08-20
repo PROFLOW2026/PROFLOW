@@ -86,9 +86,15 @@ export async function createOrganization(
       organization.id,
       profileKey,
       organization.defaultLocale === 'en' ? 'en' : 'he-IL',
+      {
+        moduleMode: input.moduleMode ?? (profileKey === 'ALL_CAPABILITIES' ? 'additive' : 'replace'),
+        extraModules: input.extraModules,
+        workMixOverride: input.workMix,
+      },
     );
   }
 
+  // Work mix may already be set via profile options; re-apply explicit choice last.
   if (isWorkMix(input.workMix)) {
     await upsertOrganizationSettingValue(db, organization.id, WORK_MIX_SETTING_KEY, input.workMix);
   }

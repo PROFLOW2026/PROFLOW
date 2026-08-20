@@ -75,5 +75,27 @@
   "user": {
     "profile": "Profile",
     "signOut": "Sign out"
+  },
+  "experiencePreview": {
+    "label": "Experience preview",
+    "actual": "Organization’s real profile",
+    "previewing": "Previewing: {label}",
+    "returnToActual": "Return to real profile",
+    "profiles": {
+      "GENERAL_CONTRACTOR": "General contractor",
+      "ELECTRICAL": "Electrical",
+      "RENOVATION": "Renovation",
+      "SMALL_WORKS": "Small works",
+      "FIELD_SERVICE": "Field service",
+      "ARCHITECT": "Architect",
+      "ENGINEERING_CONSULTANT": "Engineering consultant",
+      "SAFETY_INSPECTION_CONSULTANT": "Safety / inspection consultant",
+      "MIXED_PROJECT_SERVICE": "Mixed projects & service",
+      "ALL_CAPABILITIES": "All capabilities"
+    }
+  },
+  "hiddenCapability": {
+    "title": "{module} is currently hidden from navigation",
+    "body": "This capability is turned off in settings, but the record remains available to anyone with permission. You can restore it under <settings>What ProjectFlow shows</settings>."
   }
 }

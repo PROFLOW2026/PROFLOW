@@ -24,6 +24,7 @@ function mapProject(row: typeof projects.$inferSelect): ProjectRecord {
     documentNumber: row.documentNumber ?? null,
     status: row.status,
     workKind: (row.workKind as ProjectRecord['workKind']) ?? 'project',
+    experienceProfile: row.experienceProfile ?? null,
     pricingMode: (row.pricingMode as ProjectRecord['pricingMode']) ?? null,
     clientId: row.clientId,
     primaryContactId: row.primaryContactId,
@@ -70,6 +71,7 @@ export async function insertProject(
     documentNumber?: string | null;
     status?: ProjectRecord['status'];
     workKind?: ProjectRecord['workKind'];
+    experienceProfile?: string | null;
     pricingMode?: ProjectRecord['pricingMode'];
     clientId?: string | null;
     primaryContactId?: string | null;
@@ -92,6 +94,7 @@ export async function insertProject(
       documentNumber: input.documentNumber ?? null,
       status: input.status ?? 'active',
       workKind: input.workKind ?? 'project',
+      experienceProfile: input.experienceProfile ?? null,
       pricingMode: input.pricingMode ?? null,
       clientId: input.clientId ?? null,
       primaryContactId: input.primaryContactId ?? null,
@@ -118,6 +121,7 @@ export async function updateProjectById(
     name: string;
     status: ProjectRecord['status'];
     workKind: ProjectRecord['workKind'];
+    experienceProfile: string | null;
     pricingMode: ProjectRecord['pricingMode'];
     clientId: string | null;
     primaryContactId: string | null;

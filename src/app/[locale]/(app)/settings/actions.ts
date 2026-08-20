@@ -6,6 +6,8 @@ import {
   createInvitation,
   revokeInvitation,
   setModuleVisibility,
+  enableAllCustomerCapabilities,
+  resetCapabilitiesToBusinessProfile,
   saveWorkMix,
   isOptionalModuleKey,
   isWorkMix,
@@ -46,6 +48,7 @@ import {
 export interface SettingsActionState {
   ok?: boolean;
   error?: string;
+  message?: string;
   invitationLink?: string;
   invitationEmail?: string;
   invitationExpires?: string;
@@ -110,9 +113,18 @@ export async function applyBusinessProfileAction(
   const profile = formValue(formData, 'businessProfile');
   if (!profile) return { error: tErrors('validationFailed') };
 
+  const moduleModeRaw = formValue(formData, 'moduleMode');
+  const moduleMode =
+    moduleModeRaw === 'additive' || moduleModeRaw === 'replace' ? moduleModeRaw : undefined;
+  const resetToDefaults = formBool(formData, 'resetToDefaults');
+
   try {
     await withOrgContext((context) =>
-      applyOrganizationBusinessProfile(context, { businessProfile: profile }),
+      applyOrganizationBusinessProfile(context, {
+        businessProfile: profile,
+        moduleMode,
+        resetToDefaults: resetToDefaults || undefined,
+      }),
     );
     revalidatePath('/settings/business');
     revalidatePath('/settings/cost-categories');
@@ -271,6 +283,7 @@ export async function setModuleVisibilityAction(
   formData: FormData,
 ): Promise<SettingsActionState> {
   const tErrors = await getTranslations('errors');
+  const tModules = await getTranslations('settings.modules');
   const moduleKey = formValue(formData, 'moduleKey');
   if (!moduleKey || !isOptionalModuleKey(moduleKey)) {
     return { error: tErrors('validationFailed') };
@@ -279,14 +292,63 @@ export async function setModuleVisibilityAction(
   const enabled = formNullableBool(formData, 'enabled');
 
   try {
-    await withOrgContext((context) =>
+    const result = await withOrgContext((context) =>
       setModuleVisibility(context, { moduleKey, enabled }),
     );
     revalidatePath('/settings/features');
     revalidatePath('/', 'layout');
+
+    if (enabled === true && result.enabledFoundations.length > 0) {
+      return {
+        ok: true,
+        message: tModules('foundationsNote', {
+          modules: result.enabledFoundations.map((key) => tModules(key)).join(', '),
+        }),
+      };
+    }
+
     return { ok: true };
   } catch (error) {
     if (error instanceof AppError) return { error: tErrors('unexpected') };
+    throw error;
+  }
+}
+
+export async function enableAllCapabilitiesAction(
+  _prev: SettingsActionState,
+  _formData: FormData,
+): Promise<SettingsActionState> {
+  const tErrors = await getTranslations('errors');
+  const tModules = await getTranslations('settings.modules');
+  try {
+    await withOrgContext((context) => enableAllCustomerCapabilities(context));
+    revalidatePath('/settings/features');
+    revalidatePath('/', 'layout');
+    return { ok: true, message: tModules('bulkSaved') };
+  } catch (error) {
+    if (error instanceof AppError) return { error: tErrors('unexpected') };
+    throw error;
+  }
+}
+
+export async function resetCapabilitiesToProfileAction(
+  _prev: SettingsActionState,
+  _formData: FormData,
+): Promise<SettingsActionState> {
+  const tErrors = await getTranslations('errors');
+  const tModules = await getTranslations('settings.modules');
+  try {
+    await withOrgContext((context) => resetCapabilitiesToBusinessProfile(context));
+    revalidatePath('/settings/features');
+    revalidatePath('/', 'layout');
+    return { ok: true, message: tModules('bulkSaved') };
+  } catch (error) {
+    if (error instanceof AppError) {
+      if (error.code === 'validation_failed') {
+        return { error: tModules('resetNeedsProfile') };
+      }
+      return { error: tErrors('unexpected') };
+    }
     throw error;
   }
 }

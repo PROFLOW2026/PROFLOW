@@ -17,6 +17,7 @@ import {
   setActiveOrganizationPreference,
 } from '@/modules/identity';
 import {
+  getBusinessProfileKeyForOrg,
   getModuleVisibility,
   getQuickCreateEmphasisForOrg,
   getSuggestedDefaultsForOrg,
@@ -24,6 +25,12 @@ import {
   listMembershipsForUser,
   resolveOrgContext,
 } from '@/modules/tenancy';
+import {
+  canUseExperiencePreview,
+  resolveExperiencePreview,
+} from '@/modules/tenancy/domain/experience-preview';
+import { readExperiencePreviewCookie } from '@/modules/tenancy/application/experience-preview';
+import { serverEnv } from '@/shared/env/server';
 import { AuthenticationRequiredError, AppError } from '@/shared/errors';
 import { localeFromAuthMetadata } from '@/shared/i18n/auth-locale';
 
@@ -171,12 +178,24 @@ export const getShellContext = cache(async () => {
 
   try {
     return await runInOrgContext(session.user.id, session.activeOrganizationId, async (context) => {
-      const [modules, workMix, quickCreateEmphasis, suggestedDefaults] = await Promise.all([
-        getModuleVisibility(context),
-        getWorkMixForOrg(context),
-        getQuickCreateEmphasisForOrg(context.db, context.organizationId),
-        getSuggestedDefaultsForOrg(context.db, context.organizationId),
-      ]);
+      const [modules, workMix, quickCreateEmphasis, suggestedDefaults, businessProfileKey, previewSelection] =
+        await Promise.all([
+          getModuleVisibility(context),
+          getWorkMixForOrg(context),
+          getQuickCreateEmphasisForOrg(context.db, context.organizationId),
+          getSuggestedDefaultsForOrg(context.db, context.organizationId),
+          getBusinessProfileKeyForOrg(context.db, context.organizationId),
+          readExperiencePreviewCookie(),
+        ]);
+
+      const env = serverEnv();
+      const previewAllowed = canUseExperiencePreview(
+        context.roleKeys,
+        env.APP_ENV,
+        env.PF_EXPERIENCE_PREVIEW,
+      );
+      const preview = resolveExperiencePreview(previewAllowed ? previewSelection : 'actual');
+
       return {
         user: session.user,
         memberships: session.memberships,
@@ -184,10 +203,23 @@ export const getShellContext = cache(async () => {
         organizationId: context.organizationId,
         permissions: context.permissions,
         roleKeys: context.roleKeys,
-        modules,
-        workMix,
-        quickCreateEmphasis,
-        suggestedDefaults,
+        businessProfileKey,
+        modules: preview.active && preview.modules ? preview.modules : modules,
+        workMix: preview.active && preview.workMix != null ? preview.workMix : workMix,
+        quickCreateEmphasis:
+          preview.active && preview.quickCreateEmphasis
+            ? preview.quickCreateEmphasis
+            : quickCreateEmphasis,
+        suggestedDefaults:
+          preview.active && preview.suggestedDefaults
+            ? preview.suggestedDefaults
+            : suggestedDefaults,
+        experiencePreview: {
+          allowed: previewAllowed,
+          selection: preview.selection,
+          active: preview.active,
+          labelKey: preview.labelKey,
+        },
       };
     });
   } catch (error) {

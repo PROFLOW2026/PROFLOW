@@ -1,3 +1,6 @@
+import type { ProjectExperienceProfileKey } from '@/modules/tenancy/domain/project-profiles';
+import { projectProfileAllowsTab } from '@/modules/tenancy/domain/project-profiles';
+
 export type ProjectTabKey =
   | 'overview'
   | 'financials'
@@ -97,4 +100,27 @@ export function resolveProjectTabs(visibility: ProjectTabVisibility): ProjectTab
         return false;
     }
   });
+}
+
+/** AND org module/permission flags with the project experience profile allowlist. */
+export function applyProjectProfileToTabVisibility(
+  visibility: ProjectTabVisibility,
+  profile: ProjectExperienceProfileKey,
+): ProjectTabVisibility {
+  return {
+    financials: visibility.financials && projectProfileAllowsTab(profile, 'financials'),
+    expenses: visibility.expenses && projectProfileAllowsTab(profile, 'expenses'),
+    changes: visibility.changes && projectProfileAllowsTab(profile, 'changes'),
+    boq: visibility.boq && projectProfileAllowsTab(profile, 'boq'),
+    billing: visibility.billing && projectProfileAllowsTab(profile, 'billing'),
+    budgets: visibility.budgets && projectProfileAllowsTab(profile, 'budgets'),
+    team: visibility.team && projectProfileAllowsTab(profile, 'team'),
+    schedule: visibility.schedule && projectProfileAllowsTab(profile, 'schedule'),
+    time: visibility.time && projectProfileAllowsTab(profile, 'time'),
+    documents: visibility.documents && projectProfileAllowsTab(profile, 'documents'),
+    usage: visibility.usage && projectProfileAllowsTab(profile, 'usage'),
+    work: visibility.work && projectProfileAllowsTab(profile, 'work'),
+    closeout: visibility.closeout && projectProfileAllowsTab(profile, 'closeout'),
+    warranty: visibility.warranty && projectProfileAllowsTab(profile, 'warranty'),
+  };
 }

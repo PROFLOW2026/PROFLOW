@@ -89,6 +89,12 @@ const serverEnvSchema = z.object({
    * Required in production - must not be derived from the service-role key.
    */
   WEBHOOK_SECRET_KEK: optionalNonEmpty,
+
+  /**
+   * Owner experience preview switcher. Local/preview are on by role alone;
+   * production stays off unless explicitly set to 1/true for staging Owners.
+   */
+  PF_EXPERIENCE_PREVIEW: z.preprocess(emptyToUndefined, z.string().optional()),
 });
 
 export type ServerEnv = z.infer<typeof serverEnvSchema>;
@@ -175,4 +181,5 @@ export const SERVER_ENV_EXAMPLE_KEYS = [
   'OCR_E2E_MOCK_PROVIDER',
   'E2E_INMEMORY_STORAGE',
   'WEBHOOK_SECRET_KEK',
+  'PF_EXPERIENCE_PREVIEW',
 ] as const;

@@ -6,6 +6,7 @@ import { ConnectivityBanner } from '@/modules/offline/ui/connectivity-banner';
 import { OfflineSyncProvider } from '@/modules/offline/ui/offline-sync-provider';
 import { NotificationBell } from '@/modules/notifications/ui';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
+import { ExperiencePreviewSwitcher } from './experience-preview-switcher';
 import { MobileNav } from './mobile-nav';
 import { visibleNavItems } from './navigation';
 import { QuickCreate } from './quick-create';
@@ -13,6 +14,7 @@ import { buildQuickCreateActions } from './quick-create-actions';
 import { Sidebar } from './sidebar';
 import { TopBar } from './top-bar';
 import { UserMenu } from './user-menu';
+import { HiddenCapabilityNotice } from './hidden-capability-notice';
 
 /**
  * Authenticated application frame.
@@ -56,6 +58,14 @@ export async function AppShell({ children }: { children: ReactNode }) {
 
           <ConnectivityBanner />
 
+          {shell.experiencePreview.allowed ? (
+            <ExperiencePreviewSwitcher
+              selection={shell.experiencePreview.selection}
+              active={shell.experiencePreview.active}
+              labelKey={shell.experiencePreview.labelKey}
+            />
+          ) : null}
+
           <TopBar
             organizationName={shell.organization.name}
             notifications={
@@ -80,7 +90,10 @@ export async function AppShell({ children }: { children: ReactNode }) {
             id="main"
             className="min-w-0 w-full flex-1 px-4 pt-5 pb-[var(--pf-mobile-content-bottom)] sm:px-6 lg:pb-8"
           >
-            <div className="mx-auto w-full min-w-0 max-w-6xl">{children}</div>
+            <div className="mx-auto w-full min-w-0 max-w-6xl">
+              <HiddenCapabilityNotice modules={shell.modules} />
+              {children}
+            </div>
           </main>
         </div>
 

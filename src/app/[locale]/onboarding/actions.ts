@@ -30,6 +30,8 @@ export async function createOrganizationAction(
     businessProfile: formData.get('businessProfile'),
     professionPreset: formData.get('professionPreset'),
     workMix: formData.get('workMix'),
+    moduleMode: formData.get('moduleMode') || undefined,
+    extraModules: formData.get('extraModules'),
   });
   if (!parsed.success) return { error: tErrors('validationFailed') };
 

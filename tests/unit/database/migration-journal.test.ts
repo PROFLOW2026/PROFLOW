@@ -266,7 +266,10 @@ describe('migration journal', () => {
     expect(tags.indexOf('0057_communications_calendar')).toBeLessThan(
       tags.indexOf('0058_automations_integrations_assistant'),
     );
-    expect(tags.at(-1)).toBe('0058_automations_integrations_assistant');
+    expect(tags.indexOf('0058_automations_integrations_assistant')).toBeLessThan(
+      tags.indexOf('0059_dynamic_experience'),
+    );
+    expect(tags.at(-1)).toBe('0059_dynamic_experience');
 
     const sql35 = await readFile(
       path.join(MIGRATIONS_DIR, '0035_boq_integrity_closure.sql'),

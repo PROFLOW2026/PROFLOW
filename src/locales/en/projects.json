@@ -275,6 +275,16 @@
   "details": {
     "title": "Project details",
     "statusLabel": "Status",
+    "experienceProfileLabel": "Project work mode",
+    "experienceProfiles": {
+      "auto": "Automatic (from work type)",
+      "simple": "Simple",
+      "full": "Full",
+      "boq": "BOQ",
+      "consulting": "Consulting",
+      "service_installation": "Service / installation",
+      "small_job": "Small job"
+    },
     "closeoutUseTab": "Classic projects close from the Closeout tab, not from this status list.",
     "closeoutClosedHint": "This project is closed. Reopen it from the Closeout tab, with a reason.",
     "closeoutTabLink": "Closeout tab",

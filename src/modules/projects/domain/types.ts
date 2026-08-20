@@ -53,6 +53,11 @@ export interface ProjectRecord {
   readonly documentNumber: string | null;
   readonly status: ProjectStatus;
   readonly workKind: WorkKind;
+  /**
+   * Optional experience profile overlay. Null = derive at runtime.
+   * Known values: simple | full | boq | consulting | service_installation | small_job.
+   */
+  readonly experienceProfile: string | null;
   readonly pricingMode: PricingMode | null;
   readonly clientId: string | null;
   /** Optional project-specific contact (client_contacts). Does not mutate client-wide primary. */

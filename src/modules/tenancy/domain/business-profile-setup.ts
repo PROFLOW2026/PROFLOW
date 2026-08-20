@@ -211,6 +211,24 @@ const BY_PROFILE: Record<BusinessProfileKey, BusinessProfileSetupSuggestions> = 
     projectTemplateKeys: ['consulting_engagement', 'main_contractor'],
     todayEmphasis: 'today',
   },
+  SMALL_WORKS: {
+    documentFolders: folders(['Site photos', 'תמונות אתר'], ['Quotes', 'הצעות מחיר'], ['Invoices', 'חשבוניות']),
+    formTemplates: [SITE_CHECKLIST],
+    projectTemplateKeys: ['small_job'],
+    todayEmphasis: 'today',
+  },
+  ALL_CAPABILITIES: {
+    documentFolders: folders(
+      ['Contracts', 'חוזים'],
+      ['Drawings', 'שרטוטים'],
+      ['Site photos', 'תמונות אתר'],
+      ['Service reports', 'דוחות שירות'],
+      ['Handover', 'מסירה'],
+    ),
+    formTemplates: [SITE_CHECKLIST, SAFETY_CHECKLIST, DESIGN_CHECKLIST],
+    projectTemplateKeys: ['main_contractor', 'service_installation', 'consulting_engagement'],
+    todayEmphasis: 'today',
+  },
 };
 
 export function getBusinessProfileSetup(

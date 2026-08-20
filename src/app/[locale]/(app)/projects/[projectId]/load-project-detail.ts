@@ -6,6 +6,7 @@ import {
   getProjectDetailStructure,
   type ProjectDetail,
 } from '@/modules/projects';
+import { getBusinessProfileKeyForOrg } from '@/modules/tenancy';
 import { withOrgContext } from '@/shared/auth/session';
 
 /**
@@ -25,6 +26,13 @@ const loadProjectStructure = cache(async (projectId: string) =>
 
 const loadActiveWorkPackageCount = cache(async (projectId: string) =>
   withOrgContext((context) => countProjectActiveWorkPackages(context, projectId)),
+);
+
+/** Shared with layout + page so profile-aware tabs do not double-hit settings. */
+export const loadOrgBusinessProfileKey = cache(async () =>
+  withOrgContext((context) =>
+    getBusinessProfileKeyForOrg(context.db, context.organizationId),
+  ).catch(() => null),
 );
 
 export const loadProjectDetail = cache(

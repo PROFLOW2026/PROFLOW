@@ -50,7 +50,7 @@
   },
   "modules": {
     "title": "Features",
-    "subtitle": "Choose which capabilities appear in the business. Turning a capability off hides it and never deletes data.",
+    "subtitle": "Choose which capabilities appear in the business. Hiding removes them from navigation and never deletes data.",
     "visibilityLabel": "State for {module}",
     "on": "On",
     "off": "Off",
@@ -106,7 +106,28 @@
       "command_center": "Today view for current work and tasks.",
       "safety": "Incidents, near misses, toolbox talks, and corrective actions."
     },
-    "saved": "Feature visibility updated."
+    "saved": "Feature visibility updated.",
+    "hideNeverDeletes": "Hiding a capability never deletes data — you can show it again anytime.",
+    "showAll": "Show all",
+    "showAllHint": "Turns on every capability available to the business.",
+    "resetToProfile": "Reset to profile recommendations",
+    "resetToProfileHint": "Restores visibility from the current business profile. Data is never deleted.",
+    "resetNeedsProfile": "No business profile is set. Choose a profile first.",
+    "foundationsNote": "Required foundation capabilities were also turned on: {modules}.",
+    "bulkSaved": "Capabilities updated.",
+    "bulkHint": "Show everything at once, or restore recommendations from your business profile. Existing data is never deleted.",
+    "preserveHint": "Turning a capability off only hides it from navigation — history, financial calculations, and permissions stay intact.",
+    "requiresHint": "Also required: {modules}",
+    "capabilityGroups": {
+      "sales": "Sales and clients",
+      "work": "Work",
+      "people": "People",
+      "purchasing": "Purchasing and materials",
+      "money": "Money",
+      "field": "Field",
+      "documents": "Documents",
+      "advanced": "Advanced"
+    }
   },
   "workMix": {
     "title": "Business focus",

@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { BUSINESS_PROFILE_KEYS } from '../domain/business-profiles';
 import { PROFESSION_PRESET_KEYS } from '../domain/profession-presets';
+import { OPTIONAL_MODULE_KEYS } from '../domain/types';
 import { WORK_MIXES } from '../domain/work-mix';
 
 /**
@@ -16,6 +17,20 @@ export const organizationNameSchema = z
 
 const optionalPresetToken = (value: unknown) =>
   value === '' || value === 'none' || value == null ? undefined : value;
+
+const optionalModuleKeysFromForm = (value: unknown): string[] | undefined => {
+  if (value == null || value === '') return undefined;
+  if (Array.isArray(value)) {
+    return value.map(String).map((item) => item.trim()).filter(Boolean);
+  }
+  if (typeof value === 'string') {
+    return value
+      .split(',')
+      .map((item) => item.trim())
+      .filter(Boolean);
+  }
+  return undefined;
+};
 
 export const createOrganizationSchema = z.object({
   name: organizationNameSchema,
@@ -41,6 +56,13 @@ export const createOrganizationSchema = z.object({
     .preprocess(optionalPresetToken, z.enum(PROFESSION_PRESET_KEYS).optional()),
   /** Explicit work-mix choice after org create - not a separate product. */
   workMix: z.preprocess(optionalPresetToken, z.enum(WORK_MIXES).optional()),
+  /** Onboarding: replace locks to the recommendation; additive is safer for re-apply. */
+  moduleMode: z.enum(['additive', 'replace']).optional(),
+  /** Onboarding Q3 extras — enabled on top of the recommended profile. */
+  extraModules: z.preprocess(
+    optionalModuleKeysFromForm,
+    z.array(z.enum(OPTIONAL_MODULE_KEYS)).optional(),
+  ),
 });
 
 export type CreateOrganizationInput = z.input<typeof createOrganizationSchema>;

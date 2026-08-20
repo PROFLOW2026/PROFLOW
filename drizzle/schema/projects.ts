@@ -49,6 +49,11 @@ export const projects = pgTable(
      * UX/required fields, not the engine.
      */
     workKind: text('work_kind').notNull().default('project'),
+    /**
+     * Optional experience profile overlay (tabs/defaults). NULL = derive at
+     * runtime from work kind + org business profile. Not a second project engine.
+     */
+    experienceProfile: text('experience_profile'),
     /** Human tracking number (PRJ-00001). Distinct from UUID identity. Never rewritten. */
     documentNumber: text('document_number'),
     /**
@@ -107,6 +112,10 @@ export const projects = pgTable(
       sql`${table.expectedRemainingCostAmount} IS NULL OR ${table.expectedRemainingCostAmount} >= 0`,
     ),
     check('projects_work_kind_known', sql`${table.workKind} IN ('project', 'job', 'work_order')`),
+    check(
+      'projects_experience_profile_known',
+      sql`${table.experienceProfile} IS NULL OR ${table.experienceProfile} IN ('simple', 'full', 'boq', 'consulting', 'service_installation', 'small_job')`,
+    ),
     check(
       'projects_pricing_mode_known',
       sql`${table.pricingMode} IS NULL OR ${table.pricingMode} IN ('fixed', 'open')`,

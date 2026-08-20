@@ -1,19 +1,28 @@
 'use client';
 
-import { useActionState, useState } from 'react';
+import { useActionState, useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
-  CUSTOMER_FEATURE_MODULE_KEYS,
+  CAPABILITY_GROUP_ORDER,
+  listCapabilitiesByGroup,
+  requiredFoundationsFor,
+  type CapabilityGroup,
+} from '@/modules/tenancy/domain/capability-registry';
+import {
   type ModuleVisibility,
   type OptionalModuleKey,
 } from '@/modules/tenancy/domain/types';
-import { setModuleVisibilityAction, type SettingsActionState } from '../actions';
+import {
+  enableAllCapabilitiesAction,
+  resetCapabilitiesToProfileAction,
+  setModuleVisibilityAction,
+  type SettingsActionState,
+} from '../actions';
 
 type VisibilityMode = 'auto' | 'on' | 'off';
-type CustomerFeatureKey = (typeof CUSTOMER_FEATURE_MODULE_KEYS)[number];
 
 function resolveMode(
   key: OptionalModuleKey,
@@ -31,7 +40,7 @@ function ModuleRow({
   defaultMode,
   canEdit,
 }: {
-  moduleKey: CustomerFeatureKey;
+  moduleKey: OptionalModuleKey;
   defaultMode: VisibilityMode;
   canEdit: boolean;
 }) {
@@ -42,12 +51,23 @@ function ModuleRow({
   const moduleLabel = t(moduleKey);
   const visibilityLabel = t('visibilityLabel', { module: moduleLabel });
   const hint = t(`hints.${moduleKey}`);
+  const foundations = requiredFoundationsFor(moduleKey);
 
   return (
-    <form action={action} className="flex flex-col gap-3 border-b border-[var(--pf-border-default)] py-3 last:border-0 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+    <form
+      action={action}
+      className="flex flex-col gap-3 border-b border-[var(--pf-border-default)] py-3 last:border-0 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between"
+    >
       <div className="min-w-0 flex-1">
         <p className="text-start font-medium">{moduleLabel}</p>
         <p className="text-start text-xs text-[var(--pf-text-muted)]">{hint}</p>
+        {foundations.length > 0 && mode === 'on' ? (
+          <p className="mt-1 text-start text-xs text-[var(--pf-text-secondary)]">
+            {t('foundationsNote', {
+              modules: foundations.map((key) => t(key)).join(', '),
+            })}
+          </p>
+        ) : null}
       </div>
 
       {canEdit ? (
@@ -81,10 +101,65 @@ function ModuleRow({
       ) : null}
       {state.ok ? (
         <Alert tone="success" className="w-full" role="status" aria-live="polite">
-          {t('saved')}
+          {state.message ?? t('saved')}
         </Alert>
       ) : null}
     </form>
+  );
+}
+
+function BulkActions({
+  canEdit,
+  hasProfile,
+}: {
+  canEdit: boolean;
+  hasProfile: boolean;
+}) {
+  const t = useTranslations('settings.modules');
+  const [showAllState, showAllAction, showAllPending] = useActionState(
+    enableAllCapabilitiesAction,
+    {} as SettingsActionState,
+  );
+  const [resetState, resetAction, resetPending] = useActionState(
+    resetCapabilitiesToProfileAction,
+    {} as SettingsActionState,
+  );
+
+  if (!canEdit) return null;
+
+  return (
+    <div className="flex flex-col gap-3 rounded-lg border border-[var(--pf-border-default)] p-4">
+      <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+        <form action={showAllAction}>
+          <Button type="submit" size="sm" variant="secondary" loading={showAllPending}>
+            {t('showAll')}
+          </Button>
+        </form>
+        <form action={resetAction}>
+          <Button
+            type="submit"
+            size="sm"
+            variant="secondary"
+            loading={resetPending}
+            disabled={!hasProfile}
+          >
+            {t('resetToProfile')}
+          </Button>
+        </form>
+      </div>
+      <p className="text-xs text-[var(--pf-text-muted)]">{t('showAllHint')}</p>
+      <p className="text-xs text-[var(--pf-text-muted)]">
+        {hasProfile ? t('resetToProfileHint') : t('resetNeedsProfile')}
+      </p>
+      {showAllState.error || resetState.error ? (
+        <Alert tone="danger">{showAllState.error ?? resetState.error}</Alert>
+      ) : null}
+      {showAllState.ok || resetState.ok ? (
+        <Alert tone="success" role="status" aria-live="polite">
+          {showAllState.message ?? resetState.message ?? t('bulkSaved')}
+        </Alert>
+      ) : null}
+    </div>
   );
 }
 
@@ -92,26 +167,45 @@ export function FeaturesSettingsPanel({
   visibility,
   preferences,
   canEdit,
+  hasBusinessProfile = false,
 }: {
   visibility: ModuleVisibility;
   preferences: readonly { moduleKey: string; enabled: boolean | null; firstUsedAt: Date | null }[];
   canEdit: boolean;
+  hasBusinessProfile?: boolean;
 }) {
   const t = useTranslations('settings.modules');
 
+  const grouped = useMemo(() => {
+    return CAPABILITY_GROUP_ORDER.map((group) => ({
+      group,
+      capabilities: listCapabilitiesByGroup(group),
+    })).filter((entry) => entry.capabilities.length > 0);
+  }, []);
+
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-4">
       <p className="text-sm text-[var(--pf-text-secondary)]">{t('subtitle')}</p>
+      <p className="text-sm text-[var(--pf-text-secondary)]">{t('hideNeverDeletes')}</p>
       <p className="text-sm text-[var(--pf-text-secondary)]">{t('autoHint')}</p>
 
-      <div className="mt-2 rounded-lg border border-[var(--pf-border-default)] p-4">
-        {CUSTOMER_FEATURE_MODULE_KEYS.map((moduleKey) => (
-          <ModuleRow
-            key={moduleKey}
-            moduleKey={moduleKey}
-            defaultMode={resolveMode(moduleKey, visibility, preferences)}
-            canEdit={canEdit}
-          />
+      <BulkActions canEdit={canEdit} hasProfile={hasBusinessProfile} />
+
+      <div className="flex flex-col gap-6">
+        {grouped.map(({ group, capabilities }) => (
+          <section key={group} className="rounded-lg border border-[var(--pf-border-default)] p-4">
+            <h3 className="mb-2 text-start text-sm font-semibold text-[var(--pf-text-primary)]">
+              {t(`capabilityGroups.${group as CapabilityGroup}`)}
+            </h3>
+            {capabilities.map((capability) => (
+              <ModuleRow
+                key={capability.id}
+                moduleKey={capability.id}
+                defaultMode={resolveMode(capability.id, visibility, preferences)}
+                canEdit={canEdit}
+              />
+            ))}
+          </section>
         ))}
       </div>
     </div>

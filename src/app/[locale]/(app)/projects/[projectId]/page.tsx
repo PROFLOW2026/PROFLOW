@@ -12,6 +12,7 @@ import {
   listOrgPhasePacks,
   listOrgProjectTemplatesForApply,
   listOrgWorkPackagePacks,
+  resolveProjectExperienceProfile,
   titleWithDocumentNumber,
 } from '@/modules/tenancy';
 import { getShellContext, withOrgContext, type ShellContext } from '@/shared/auth/session';
@@ -23,14 +24,17 @@ import { ProjectContractorsPanel } from '@/modules/vendors/ui';
 import { DetailsTab } from './details-tab';
 import { OverviewTab } from './overview-tab';
 import { OverviewWorkSetup } from './overview-work-setup';
-import { loadProjectDetail } from './load-project-detail';
+import { loadOrgBusinessProfileKey, loadProjectDetail } from './load-project-detail';
 import { loadProjectFinancials } from './load-project-financials';
 import {
   OverviewMilestonesPanel,
   OverviewSchedulePanel,
   OverviewStructureFallback,
 } from './overview-schedule-milestones';
-import { resolveProjectTabs } from './project-tab-order';
+import {
+  applyProjectProfileToTabVisibility,
+  resolveProjectTabs,
+} from './project-tab-order';
 import { type ProjectTabKey } from './project-tabs-shell';
 import { ProjectFieldOpsSummaryPanel } from './project-field-ops-summary';
 import { TabPanelSkeleton } from './tab-panel-skeleton';
@@ -112,33 +116,12 @@ export default async function ProjectPage({ params, searchParams }: ProjectPageP
   const showDocumentsTab = Boolean(modules?.documents) && can(PERMISSIONS.DOCUMENTS_READ);
   const showUsageTab = can(PERMISSIONS.MATERIALS_READ) || can(PERMISSIONS.ASSETS_READ);
 
-  const visibleModuleTabs = new Set<string>();
-  if (canReadFinancials) visibleModuleTabs.add('financials');
-  if (showExpensesTab) visibleModuleTabs.add('expenses');
-  if (showChangesTab) visibleModuleTabs.add('changes');
-  if (showBoqTab) visibleModuleTabs.add('boq');
-  if (showBillingTab) visibleModuleTabs.add('billing');
-  if (showBudgetsTab) visibleModuleTabs.add('budgets');
-  if (showTeamTab) visibleModuleTabs.add('team');
-  if (showScheduleTab) visibleModuleTabs.add('schedule');
-  if (showTimeTab) visibleModuleTabs.add('time');
-  if (showDocumentsTab) visibleModuleTabs.add('documents');
-  if (showUsageTab) visibleModuleTabs.add('usage');
-  visibleModuleTabs.add('closeout');
-  visibleModuleTabs.add('warranty');
-
-  const isModuleTab =
-    MODULE_PANEL_TABS.has(tabParam as ProjectTabKey) && visibleModuleTabs.has(tabParam);
-
   // Chrome-only - shares React cache with layout; job redirect without structure.
   // Warm structure (and overview snapshot financials) in parallel with chrome.
-  if (!isModuleTab) {
-    void loadProjectDetail(projectId, true);
-    if (canReadFinancials && tabParam === 'overview') {
-      void loadProjectFinancials(projectId).catch(() => null);
-    }
-  }
-  const chrome = await loadProjectDetail(projectId, false).catch(() => null);
+  const [chrome, businessProfileKey] = await Promise.all([
+    loadProjectDetail(projectId, false).catch(() => null),
+    loadOrgBusinessProfileKey(),
+  ]);
   if (!chrome) notFound();
 
   if (chrome.project.workKind === 'job') {
@@ -154,22 +137,59 @@ export default async function ProjectPage({ params, searchParams }: ProjectPageP
   const showWorkTab = chrome.showWorkPackages;
   const canEditProjects = can(PERMISSIONS.PROJECTS_UPDATE);
 
-  const tabs: ProjectTabKey[] = resolveProjectTabs({
-    financials: canReadFinancials,
-    expenses: showExpensesTab,
-    changes: showChangesTab,
-    boq: showBoqTab,
-    billing: showBillingTab,
-    budgets: showBudgetsTab,
-    team: showTeamTab,
-    schedule: showScheduleTab,
-    time: showTimeTab,
-    documents: showDocumentsTab,
-    usage: showUsageTab,
-    work: showWorkTab,
-    closeout: true,
-    warranty: true,
+  const experienceProfile = resolveProjectExperienceProfile({
+    stored: chrome.project.experienceProfile,
+    workKind: chrome.project.workKind,
+    businessProfileKey,
+    boqModuleEnabled: Boolean(modules?.boq),
   });
+
+  const tabVisibility = applyProjectProfileToTabVisibility(
+    {
+      financials: canReadFinancials,
+      expenses: showExpensesTab,
+      changes: showChangesTab,
+      boq: showBoqTab,
+      billing: showBillingTab,
+      budgets: showBudgetsTab,
+      team: showTeamTab,
+      schedule: showScheduleTab,
+      time: showTimeTab,
+      documents: showDocumentsTab,
+      usage: showUsageTab,
+      work: showWorkTab,
+      closeout: true,
+      warranty: true,
+    },
+    experienceProfile,
+  );
+
+  const visibleModuleTabs = new Set<string>();
+  if (tabVisibility.financials) visibleModuleTabs.add('financials');
+  if (tabVisibility.expenses) visibleModuleTabs.add('expenses');
+  if (tabVisibility.changes) visibleModuleTabs.add('changes');
+  if (tabVisibility.boq) visibleModuleTabs.add('boq');
+  if (tabVisibility.billing) visibleModuleTabs.add('billing');
+  if (tabVisibility.budgets) visibleModuleTabs.add('budgets');
+  if (tabVisibility.team) visibleModuleTabs.add('team');
+  if (tabVisibility.schedule) visibleModuleTabs.add('schedule');
+  if (tabVisibility.time) visibleModuleTabs.add('time');
+  if (tabVisibility.documents) visibleModuleTabs.add('documents');
+  if (tabVisibility.usage) visibleModuleTabs.add('usage');
+  if (tabVisibility.closeout) visibleModuleTabs.add('closeout');
+  if (tabVisibility.warranty) visibleModuleTabs.add('warranty');
+
+  const isModuleTab =
+    MODULE_PANEL_TABS.has(tabParam as ProjectTabKey) && visibleModuleTabs.has(tabParam);
+
+  if (!isModuleTab) {
+    void loadProjectDetail(projectId, true);
+    if (canReadFinancials && tabParam === 'overview') {
+      void loadProjectFinancials(projectId).catch(() => null);
+    }
+  }
+
+  const tabs: ProjectTabKey[] = resolveProjectTabs(tabVisibility);
 
   const activeTab: ProjectTabKey = tabs.includes(tabParam as ProjectTabKey)
     ? (tabParam as ProjectTabKey)

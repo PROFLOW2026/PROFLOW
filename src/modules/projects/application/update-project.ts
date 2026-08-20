@@ -84,6 +84,9 @@ export async function updateProject(
     progressPercent: input.progressPercent,
     progressStatus: input.progressStatus,
     notes: input.notes,
+    ...(input.experienceProfile !== undefined
+      ? { experienceProfile: input.experienceProfile }
+      : {}),
   });
 
   if (!updated) throw new NotFoundError('Project');
