@@ -14,8 +14,13 @@ import {
  * Cookie-only Owner QA preview — never mutates organization configuration.
  */
 export async function readExperiencePreviewCookie(): Promise<ExperiencePreviewSelection> {
-  const jar = await cookies();
-  return parseExperiencePreviewSelection(jar.get(EXPERIENCE_PREVIEW_COOKIE)?.value);
+  try {
+    const jar = await cookies();
+    return parseExperiencePreviewSelection(jar.get(EXPERIENCE_PREVIEW_COOKIE)?.value);
+  } catch {
+    // Integration/unit callers (and any non-request context) have no cookie store.
+    return 'actual';
+  }
 }
 
 /**
