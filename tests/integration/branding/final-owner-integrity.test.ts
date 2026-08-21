@@ -351,7 +351,7 @@ describe('0062 final owner integrity closure', () => {
       for (const ownerType of ['planning_task', 'maintenance', 'field_log', 'inspection'] as const) {
         // Reuse same owners by looking up via existing submissions' owners is hard;
         // recreate minimal owners on project B.
-        let ownerId = crypto.randomUUID();
+        const ownerId = crypto.randomUUID();
         if (ownerType === 'planning_task') {
           await tx.execute(sql`
             INSERT INTO public.planning_work_items (
