@@ -181,6 +181,16 @@ export async function updateSafetyRecord(context: OrgContext, raw: UpdateSafetyR
       before: existing,
       after: updated,
     });
+
+    if (statusChanging && nextStatus === 'closed') {
+      const { captureBrandSnapshot } = await import('@/modules/branding');
+      await captureBrandSnapshot(txContext, {
+        entityType: 'safety_record',
+        entityId: updated.id,
+        projectId: updated.projectId,
+      });
+    }
+
     return updated;
   });
 }

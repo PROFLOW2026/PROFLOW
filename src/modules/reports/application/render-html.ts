@@ -1,6 +1,14 @@
+import type { DocumentBrandContext } from '@/modules/branding/domain/document-brand';
 import { getReportsCopy } from '../domain/copy';
 import type { ReportPayload } from '../domain/types';
 import { formatReportGeneratedAt } from './generate-report';
+import {
+  buildBrandedDocumentStyles,
+  buildHtmlFooter,
+  buildHtmlLetterhead,
+  buildSignatureSection,
+  resolveEffectiveBrand,
+} from './branded-document-shell';
 
 function escapeHtml(value: string): string {
   return value
@@ -13,8 +21,26 @@ function escapeHtml(value: string): string {
 export function renderReportHtmlDocument(payload: ReportPayload): string {
   const copy = getReportsCopy(payload.locale);
   const generated = formatReportGeneratedAt(payload.generatedAt, payload.locale);
+  const generatedLabel = `${copy.generatedAt}: ${generated}`;
+
+  const brand = resolveEffectiveBrand(
+    payload.brand,
+    payload.identity.companyName,
+    payload.locale,
+    payload.dir,
+  );
+  const brandAligned: DocumentBrandContext = {
+    ...brand,
+    dir: payload.dir,
+    locale: payload.locale,
+  };
+
+  const letterhead = buildHtmlLetterhead(brandAligned, { escapeHtml });
+  const footer = buildHtmlFooter(brandAligned, { escapeHtml, generatedLabel });
+  const signature = buildSignatureSection(brandAligned, { escapeHtml });
+  const styles = buildBrandedDocumentStyles(brandAligned);
+
   const identity = [
-    [copy.identity.company, payload.identity.companyName],
     [copy.identity.project, payload.identity.projectName],
     [copy.identity.projectNumber, payload.identity.projectNumber],
     [copy.identity.client, payload.identity.clientName],
@@ -53,34 +79,35 @@ export function renderReportHtmlDocument(payload: ReportPayload): string {
     })
     .join('');
 
+  const omitted =
+    payload.omitted.profit || payload.omitted.compensation || payload.omitted.commercial
+      ? `<section><h2>${escapeHtml(copy.sections.omitted)}</h2>
+        ${payload.omitted.profit ? `<p class="note">${escapeHtml(copy.omitted.profit)}</p>` : ''}
+        ${payload.omitted.compensation ? `<p class="note">${escapeHtml(copy.omitted.compensation)}</p>` : ''}
+        ${payload.omitted.commercial ? `<p class="note">${escapeHtml(copy.notices.commercialOmitted)}</p>` : ''}
+      </section>`
+      : '';
+
   return `<!DOCTYPE html>
 <html lang="${payload.locale === 'he-IL' ? 'he' : 'en'}" dir="${payload.dir}">
 <head>
   <meta charset="utf-8" />
   <title>${escapeHtml(payload.title)}</title>
-  <style>
-    :root { color-scheme: light; }
-    body { font-family: "Noto Sans Hebrew", "Segoe UI", Arial, sans-serif; margin: 24px; color: #111; }
-    h1 { font-size: 1.6rem; margin-bottom: 0.25rem; }
-    h2 { font-size: 1.1rem; margin-top: 1.5rem; border-bottom: 1px solid #ccc; padding-bottom: 0.25rem; }
-    table { width: 100%; border-collapse: collapse; margin: 0.5rem 0 1rem; }
-    th, td { border: 1px solid #ddd; padding: 6px 8px; text-align: start; vertical-align: top; }
-    table.kv th { width: 34%; background: #f6f6f6; font-weight: 600; }
-    .nature { display: inline-block; margin-inline-start: 0.4rem; font-size: 0.75rem; color: #444; }
-    .meta, .note { color: #333; font-size: 0.9rem; }
-    @media print {
-      body { margin: 0; }
-      .toolbar { display: none !important; }
-    }
-  </style>
+  <style>${styles}</style>
 </head>
 <body>
-  <h1>${escapeHtml(payload.title)}</h1>
-  <p class="meta"><strong>${escapeHtml(copy.generatedAt)}:</strong> ${escapeHtml(generated)}</p>
-  <p class="note">${escapeHtml(copy.snapshotNote)}</p>
-  ${identity}
-  ${notices ? `<ul>${notices}</ul>` : ''}
-  ${sections}
+  <div class="doc-sheet">
+    ${letterhead}
+    <h1>${escapeHtml(payload.title)}</h1>
+    <p class="meta"><strong>${escapeHtml(copy.generatedAt)}:</strong> ${escapeHtml(generated)}</p>
+    <p class="note">${escapeHtml(copy.snapshotNote)}</p>
+    ${identity}
+    ${notices ? `<ul>${notices}</ul>` : ''}
+    ${sections}
+    ${omitted}
+    ${signature}
+    ${footer}
+  </div>
 </body>
 </html>`;
 }

@@ -33,6 +33,7 @@ import {
   updateOrganizationLegalIdentity,
   dismissUnusedCapabilitySuggestion,
 } from '@/modules/tenancy';
+import { upsertCompanyProfile } from '@/modules/branding';
 import { setRolePermissionToggle } from '@/modules/rbac';
 import { updateProfile } from '@/modules/identity';
 import { createOrgTaxRule, updateOrgTaxRule } from '@/modules/tax';
@@ -171,13 +172,64 @@ export async function saveOrganizationLegalIdentityAction(
   const tErrors = await getTranslations('errors');
 
   try {
-    await withOrgContext((context) =>
-      updateOrganizationLegalIdentity(context, {
-        taxId: formValue(formData, 'taxId') ?? null,
-        companyNumber: formValue(formData, 'companyNumber') ?? null,
-      }),
-    );
+    await withOrgContext(async (context) => {
+      const taxId = formValue(formData, 'taxId') ?? null;
+      const companyNumber = formValue(formData, 'companyNumber') ?? null;
+      await updateOrganizationLegalIdentity(context, { taxId, companyNumber });
+      // Keep company profile (document identity source of truth) aligned.
+      await upsertCompanyProfile(context, {
+        vatTaxId: taxId,
+        registrationNumber: companyNumber,
+      });
+    });
     revalidatePath('/settings/business');
+    revalidatePath('/settings/branding');
+    return { ok: true };
+  } catch (error) {
+    if (error instanceof AppError) return { error: tErrors('validationFailed') };
+    throw error;
+  }
+}
+
+/** Company document identity — source of truth for branded outputs. Syncs legal_identity for OCR. */
+export async function saveCompanyDetailsAction(
+  _prev: SettingsActionState,
+  formData: FormData,
+): Promise<SettingsActionState> {
+  const tErrors = await getTranslations('errors');
+
+  try {
+    await withOrgContext(async (context) => {
+      const vatTaxId = formValue(formData, 'vatTaxId') ?? null;
+      const registrationNumber = formValue(formData, 'registrationNumber') ?? null;
+      await upsertCompanyProfile(context, {
+        legalName: formValue(formData, 'legalName'),
+        displayName: formValue(formData, 'displayName'),
+        tradingName: formValue(formData, 'tradingName') ?? null,
+        registrationNumber,
+        vatTaxId,
+        website: formValue(formData, 'website') ?? null,
+        mainEmail: formValue(formData, 'mainEmail') ?? null,
+        mainPhone: formValue(formData, 'mainPhone') ?? null,
+        secondaryPhone: formValue(formData, 'secondaryPhone') ?? null,
+        whatsappPhone: formValue(formData, 'whatsappPhone') ?? null,
+        billingEmail: formValue(formData, 'billingEmail') ?? null,
+        salesEmail: formValue(formData, 'salesEmail') ?? null,
+        supportEmail: formValue(formData, 'supportEmail') ?? null,
+        addressLine1: formValue(formData, 'addressLine1') ?? null,
+        addressLine2: formValue(formData, 'addressLine2') ?? null,
+        city: formValue(formData, 'city') ?? null,
+        region: formValue(formData, 'region') ?? null,
+        postalCode: formValue(formData, 'postalCode') ?? null,
+        countryCode: formValue(formData, 'countryCode') ?? null,
+      });
+      await updateOrganizationLegalIdentity(context, {
+        taxId: vatTaxId,
+        companyNumber: registrationNumber,
+      });
+    });
+    revalidatePath('/settings/business');
+    revalidatePath('/settings/branding');
     return { ok: true };
   } catch (error) {
     if (error instanceof AppError) return { error: tErrors('validationFailed') };

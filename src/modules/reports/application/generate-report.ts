@@ -43,6 +43,40 @@ import {
 } from '../domain/types';
 import { generateReportSchema } from '../validation/schemas';
 import { buildExtendedReport } from './generate-extended-reports';
+import { resolveReportBrand } from './resolve-report-brand';
+import type { DocumentBrandContext } from '@/modules/branding';
+
+function envelope(input: {
+  kind: ReportKind;
+  locale: string;
+  generatedAt: Date;
+  identity: ReportIdentity;
+  sections: readonly ReportSection[];
+  notices: readonly string[];
+  omitted?: ReportPayload['omitted'];
+  brand?: DocumentBrandContext | null;
+}): ReportPayload {
+  const copy = getReportsCopy(input.locale);
+  const brand = input.brand ?? null;
+  const identity: ReportIdentity = brand
+    ? {
+        ...input.identity,
+        companyName: brand.companyDisplayName || input.identity.companyName,
+      }
+    : input.identity;
+  return {
+    kind: input.kind,
+    title: reportTitle(copy, input.kind),
+    generatedAt: input.generatedAt.toISOString(),
+    locale: resolveReportLocale(input.locale),
+    dir: reportDirection(input.locale),
+    identity,
+    notices: input.notices,
+    sections: input.sections,
+    omitted: input.omitted ?? {},
+    brand,
+  };
+}
 
 export const defaultReportDeps = {
   now: nowUtc,
@@ -113,29 +147,6 @@ async function loadProjectChrome(
   return deps.getProjectDetailChrome(context, projectId);
 }
 
-function envelope(input: {
-  kind: ReportKind;
-  locale: string;
-  generatedAt: Date;
-  identity: ReportIdentity;
-  sections: readonly ReportSection[];
-  notices: readonly string[];
-  omitted?: ReportPayload['omitted'];
-}): ReportPayload {
-  const copy = getReportsCopy(input.locale);
-  return {
-    kind: input.kind,
-    title: reportTitle(copy, input.kind),
-    generatedAt: input.generatedAt.toISOString(),
-    locale: resolveReportLocale(input.locale),
-    dir: reportDirection(input.locale),
-    identity: input.identity,
-    notices: input.notices,
-    sections: input.sections,
-    omitted: input.omitted ?? {},
-  };
-}
-
 export async function generateReport(
   context: OrgContext,
   raw: GenerateReportInput,
@@ -148,23 +159,53 @@ export async function generateReport(
   const generatedAt = deps.now();
   const companyName = context.organization.name;
 
+  let payload: ReportPayload;
+  let brandEntity: {
+    entityType?: Parameters<typeof resolveReportBrand>[1]['entityType'];
+    entityId?: string;
+    projectId?: string | null;
+    preferSnapshot?: boolean;
+  } = { preferSnapshot: false };
+
   switch (kind) {
     case 'project_status':
-      return buildProjectStatus(context, id, { locale, copy, generatedAt, companyName, deps });
+      payload = await buildProjectStatus(context, id, { locale, copy, generatedAt, companyName, deps });
+      brandEntity = { projectId: id, preferSnapshot: false };
+      break;
     case 'project_financial_summary':
-      return buildFinancialSummary(context, id, { locale, copy, generatedAt, companyName, deps });
+      payload = await buildFinancialSummary(context, id, { locale, copy, generatedAt, companyName, deps });
+      brandEntity = { projectId: id, preferSnapshot: false };
+      break;
     case 'boq_progress':
-      return buildBoqProgress(context, id, { locale, copy, generatedAt, companyName, deps });
+      payload = await buildBoqProgress(context, id, { locale, copy, generatedAt, companyName, deps });
+      brandEntity = { projectId: id, preferSnapshot: false };
+      break;
     case 'change_order_summary':
-      return buildChangeOrders(context, id, { locale, copy, generatedAt, companyName, deps });
-    case 'quote_estimate':
-      return buildQuote(context, id, { locale, copy, generatedAt, companyName, deps });
+      payload = await buildChangeOrders(context, id, { locale, copy, generatedAt, companyName, deps });
+      brandEntity = { projectId: id, preferSnapshot: false };
+      break;
+    case 'quote_estimate': {
+      payload = await buildQuote(context, id, { locale, copy, generatedAt, companyName, deps });
+      const quote = await deps.getQuoteById(context, id);
+      brandEntity = {
+        entityType: 'quote',
+        entityId: id,
+        preferSnapshot: !['draft', 'ready'].includes(quote.status),
+      };
+      break;
+    }
     case 'field_daily':
-      return buildDailyLog(context, id, { locale, copy, generatedAt, companyName, deps });
+      payload = await buildDailyLog(context, id, { locale, copy, generatedAt, companyName, deps });
+      brandEntity = { entityType: 'daily_log', entityId: id, preferSnapshot: true };
+      break;
     case 'punch_inspection':
-      return buildPunchInspection(context, id, { locale, copy, generatedAt, companyName, deps });
+      payload = await buildPunchInspection(context, id, { locale, copy, generatedAt, companyName, deps });
+      brandEntity = { entityType: 'inspection', entityId: id, preferSnapshot: true };
+      break;
     case 'vendor_subcontract_summary':
-      return buildVendors(context, id, { locale, copy, generatedAt, companyName, deps });
+      payload = await buildVendors(context, id, { locale, copy, generatedAt, companyName, deps });
+      brandEntity = { projectId: id, preferSnapshot: false };
+      break;
     default: {
       const extended = await buildExtendedReport(context, kind, id, {
         locale,
@@ -172,9 +213,57 @@ export async function generateReport(
         generatedAt,
         companyName,
       });
-      if (extended) return extended;
-      throw new ValidationError([{ path: 'kind', message: copy.errors.unknownKind }]);
+      if (!extended) {
+        throw new ValidationError([{ path: 'kind', message: copy.errors.unknownKind }]);
+      }
+      payload = extended;
+      brandEntity = brandOptsForExtendedKind(kind, id);
+      break;
     }
+  }
+
+  const brand = await resolveReportBrand(context, {
+    kind,
+    locale,
+    ...brandEntity,
+  });
+
+  return {
+    ...payload,
+    brand,
+    identity: {
+      ...payload.identity,
+      companyName: brand.companyDisplayName || payload.identity.companyName,
+    },
+  };
+}
+
+function brandOptsForExtendedKind(
+  kind: ReportKind,
+  id: string,
+): {
+  entityType?: Parameters<typeof resolveReportBrand>[1]['entityType'];
+  entityId?: string;
+  projectId?: string | null;
+  preferSnapshot?: boolean;
+} {
+  switch (kind) {
+    case 'purchase_order':
+      return { entityType: 'purchase_order', entityId: id, preferSnapshot: true };
+    case 'procurement_rfq':
+      return { entityType: 'rfq', entityId: id, preferSnapshot: true };
+    case 'customer_statement':
+      return { entityType: 'customer_statement', entityId: id, preferSnapshot: false };
+    case 'contract_summary':
+      return { entityType: 'contract', entityId: id, preferSnapshot: true };
+    case 'work_order':
+      return { entityType: 'work_order', entityId: id, projectId: id, preferSnapshot: true };
+    case 'service_completion':
+      return { entityType: 'service_report', entityId: id, projectId: id, preferSnapshot: true };
+    case 'timesheet':
+      return { entityType: 'timesheet', entityId: id, preferSnapshot: true };
+    default:
+      return { preferSnapshot: false };
   }
 }
 

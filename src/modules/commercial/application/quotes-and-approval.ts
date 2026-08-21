@@ -362,6 +362,13 @@ export async function approveChangeRequest(
     after: changeOrder,
   });
 
+  const { captureBrandSnapshot } = await import('@/modules/branding');
+  await captureBrandSnapshot(context, {
+    entityType: 'change_order',
+    entityId: changeOrder.id,
+    projectId: changeRequest.projectId,
+  });
+
   return { changeOrderId: changeOrder.id, reference };
 }
 

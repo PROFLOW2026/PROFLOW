@@ -264,6 +264,13 @@ export async function activateBoq(context: OrgContext, raw: ActivateBoqInput) {
     entityId: boq.id,
   });
 
+  const { captureBrandSnapshot } = await import('@/modules/branding');
+  await captureBrandSnapshot(context, {
+    entityType: 'boq',
+    entityId: boq.id,
+    projectId: boq.projectId,
+  });
+
   return findBoqById(context.db, context.organizationId, boq.id);
 }
 

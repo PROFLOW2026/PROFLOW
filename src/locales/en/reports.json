@@ -45,7 +45,14 @@
     "compliance_expiry": "Compliance expiry",
     "crm_funnel": "CRM funnel",
     "month_close_completeness": "Month-close completeness",
-    "safety_open_actions": "Safety open actions"
+    "safety_open_actions": "Safety open actions",
+    "purchase_order": "Purchase order",
+    "procurement_rfq": "Request for quotation",
+    "customer_statement": "Customer account statement",
+    "contract_summary": "Contract summary",
+    "work_order": "Work order",
+    "service_completion": "Service completion report",
+    "timesheet": "Timesheet"
   },
   "kindHints": {
     "project_status": "Status, dates, and operational snapshot.",
@@ -66,7 +73,14 @@
     "compliance_expiry": "Compliance / document expiry checklist.",
     "crm_funnel": "CRM pipeline snapshot.",
     "month_close_completeness": "Operational month-close completeness.",
-    "safety_open_actions": "Open safety / HSE actions."
+    "safety_open_actions": "Open safety / HSE actions.",
+    "purchase_order": "Branded purchase order for vendors.",
+    "procurement_rfq": "Request for quotation to suppliers.",
+    "customer_statement": "Management account statement — not a statutory tax invoice.",
+    "contract_summary": "Professional contract summary from stored commercial data.",
+    "work_order": "Service / work order document.",
+    "service_completion": "Frozen service completion report for a completed work order.",
+    "timesheet": "Timesheet period summary. Not payroll."
   },
   "natures": {
     "actual": "Actual",

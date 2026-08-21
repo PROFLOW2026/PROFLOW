@@ -34,6 +34,7 @@ describe('settings section grouping', () => {
     const listed = SETTINGS_SECTIONS.filter((section) => !section.hideFromNav);
     expect(listed.map((section) => section.key)).toEqual([
       'business',
+      'branding',
       'people',
       'profile',
       'tax',
@@ -56,6 +57,8 @@ describe('settings section grouping', () => {
     ]);
 
     expect(listed.find((s) => s.key === 'business')?.group).toBe('basic');
+    expect(listed.find((s) => s.key === 'branding')?.group).toBe('basic');
+    expect(listed.find((s) => s.key === 'branding')?.href).toBe('/settings/branding');
     expect(listed.find((s) => s.key === 'features')?.group).toBe('business');
     expect(listed.find((s) => s.key === 'customFields')?.group).toBe('advanced');
     expect(listed.find((s) => s.key === 'api')?.group).toBe('developers');

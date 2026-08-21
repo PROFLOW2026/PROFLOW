@@ -278,6 +278,13 @@ export async function submitFormSubmission(
       acknowledgementKind: 'acknowledgement_only',
     },
   });
+
+  const { captureBrandSnapshot } = await import('@/modules/branding');
+  await captureBrandSnapshot(context, {
+    entityType: 'form_submission',
+    entityId: updated.id,
+  });
+
   return updated;
 }
 

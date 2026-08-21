@@ -39,11 +39,34 @@ async function attemptDelivery(
   `);
 
   const port = getEmailPort();
+  const { resolveDocumentBrand, wrapCommunicationHtmlWithBrand } = await import(
+    '@/modules/branding'
+  );
+  let html = existing.bodyHtml ?? undefined;
+  let text = existing.bodyText;
+  try {
+    const brand = await resolveDocumentBrand(context, {
+      theme: 'customer',
+      locale: context.locale,
+      entityType: 'communication',
+      entityId: existing.id,
+      useSnapshotIfPresent: true,
+    });
+    const wrapped = wrapCommunicationHtmlWithBrand(
+      brand.context,
+      existing.bodyHtml,
+      existing.bodyText,
+    );
+    html = wrapped.html;
+    text = wrapped.text;
+  } catch {
+    // Keep original body if brand resolve fails.
+  }
   const result = await port.send({
     to: existing.recipientEmail,
     subject: existing.subject,
-    text: existing.bodyText,
-    html: existing.bodyHtml ?? undefined,
+    text,
+    html,
   });
   const outcome = resolveSendOutcome(result);
   const trustedDb = getAdminDb();
@@ -74,6 +97,13 @@ async function attemptDelivery(
         providerMessageId: outcome.providerMessageId,
       },
     });
+
+    const { captureBrandSnapshot } = await import('@/modules/branding');
+    await captureBrandSnapshot(context, {
+      entityType: 'communication',
+      entityId: updated.id,
+    });
+
     return updated;
   }
 

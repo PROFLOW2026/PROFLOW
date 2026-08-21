@@ -36,6 +36,10 @@ vi.mock('@/shared/audit', () => ({
   recordAuditEvent: vi.fn(),
 }));
 
+vi.mock('@/modules/branding', () => ({
+  captureBrandSnapshot: vi.fn(async () => undefined),
+}));
+
 vi.mock('@/modules/projects/application/project-access', () => ({
   isAccessibleProjectId: () => true,
   resolveAccessibleProjectIds: vi.fn(async () => null),

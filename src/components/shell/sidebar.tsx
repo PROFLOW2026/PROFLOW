@@ -10,10 +10,12 @@ import {
   type NavItem,
 } from './navigation';
 import { ShellNavLink } from './shell-nav-link';
+import { OrgShellMark } from './org-shell-mark';
 
 export interface SidebarProps {
   items: NavItem[];
   organizationName: string;
+  organizationLogoUrl?: string | null;
   footer?: React.ReactNode;
 }
 
@@ -22,7 +24,7 @@ export interface SidebarProps {
  * the right in Hebrew and the left in English without a second layout.
  * Experience groups use an exclusive accordion (one open group at a time).
  */
-export function Sidebar({ items, organizationName, footer }: SidebarProps) {
+export function Sidebar({ items, organizationName, organizationLogoUrl, footer }: SidebarProps) {
   const t = useTranslations('nav');
   const tCommon = useTranslations('common');
   const pathname = usePathname();
@@ -34,9 +36,7 @@ export function Sidebar({ items, organizationName, footer }: SidebarProps) {
       className="hidden w-[var(--pf-sidebar-width)] shrink-0 flex-col border-e border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] print:hidden lg:flex"
     >
       <div className="flex h-[var(--pf-topbar-height)] items-center gap-2 border-b border-[var(--pf-border-default)] px-4">
-        <span className="flex size-7 shrink-0 items-center justify-center rounded-md bg-[var(--pf-action-primary)] text-xs font-bold text-[var(--pf-action-primary-fg)]">
-          PF
-        </span>
+        <OrgShellMark organizationName={organizationName} logoUrl={organizationLogoUrl} />
         <span className="min-w-0 truncate text-sm font-semibold" title={organizationName}>
           {organizationName}
         </span>

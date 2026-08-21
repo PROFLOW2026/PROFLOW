@@ -218,6 +218,16 @@ export async function updateInspection(context: OrgContext, raw: UpdateInspectio
       before: existing,
       after: updated,
     });
+
+    if (statusChanging && (nextStatus === 'passed' || nextStatus === 'failed')) {
+      const { captureBrandSnapshot } = await import('@/modules/branding');
+      await captureBrandSnapshot(txContext, {
+        entityType: 'inspection',
+        entityId: updated.id,
+        projectId: updated.projectId,
+      });
+    }
+
     return updated;
   });
 }

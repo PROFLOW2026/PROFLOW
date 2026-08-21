@@ -18,7 +18,14 @@ export {
 } from './domain/kinds';
 export { getReportsCopy, resolveReportLocale, reportTitle } from './domain/copy';
 export { presentProjectFinancialSummary } from './domain/present-financials';
-export { reportDownloadPath, reportPreviewPath, reportFilename } from './domain/paths';
+export {
+  reportDownloadPath,
+  reportPreviewPath,
+  reportFilename,
+  sanitizeFilenameSegment,
+  commercialDocumentFilename,
+} from './domain/paths';
+export type { ReportFilenameOptions } from './domain/paths';
 export { generateReport, defaultReportDeps, formatReportGeneratedAt } from './application/generate-report';
 export type { ReportDeps } from './application/generate-report';
 export { downloadReport } from './application/download-report';

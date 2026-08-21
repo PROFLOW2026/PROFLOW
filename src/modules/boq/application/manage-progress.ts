@@ -199,6 +199,13 @@ export async function approveProgressBatch(context: OrgContext, raw: ApproveProg
     entityId: batch.id,
   });
 
+  const { captureBrandSnapshot } = await import('@/modules/branding');
+  await captureBrandSnapshot(context, {
+    entityType: 'boq_progress_batch',
+    entityId: batch.id,
+    projectId: batch.projectId,
+  });
+
   return findProgressBatchById(context.db, context.organizationId, batch.id);
 }
 

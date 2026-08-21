@@ -81,6 +81,16 @@ export async function updateWarrantyIssue(context: OrgContext, raw: UpdateWarran
     before: existing,
     after: updated,
   });
+
+  if (resolving) {
+    const { captureBrandSnapshot } = await import('@/modules/branding');
+    await captureBrandSnapshot(context, {
+      entityType: 'warranty_issue',
+      entityId: updated.id,
+      projectId: updated.projectId,
+    });
+  }
+
   return updated;
 }
 

@@ -32,6 +32,13 @@ export const REPORT_KIND_DEFINITIONS: readonly ReportKindDefinition[] = [
   { kind: 'crm_funnel', permission: PERMISSIONS.CRM_READ, projectScoped: false },
   { kind: 'month_close_completeness', permission: PERMISSIONS.MONTH_CLOSE_READ, projectScoped: false },
   { kind: 'safety_open_actions', permission: PERMISSIONS.SAFETY_READ, projectScoped: false },
+  { kind: 'purchase_order', permission: PERMISSIONS.PROCUREMENT_READ, projectScoped: false },
+  { kind: 'procurement_rfq', permission: PERMISSIONS.PROCUREMENT_READ, projectScoped: false },
+  { kind: 'customer_statement', permission: PERMISSIONS.BILLING_READ, projectScoped: false },
+  { kind: 'contract_summary', permission: PERMISSIONS.CONTRACTS_READ, projectScoped: false },
+  { kind: 'work_order', permission: PERMISSIONS.SERVICE_READ, projectScoped: false },
+  { kind: 'service_completion', permission: PERMISSIONS.SERVICE_READ, projectScoped: false },
+  { kind: 'timesheet', permission: PERMISSIONS.WORKFORCE_READ, projectScoped: false },
 ] as const;
 
 const BY_KIND = new Map(REPORT_KIND_DEFINITIONS.map((item) => [item.kind, item]));

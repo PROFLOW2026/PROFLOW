@@ -424,6 +424,19 @@ export async function updateContract(
     },
   });
 
+  if (
+    input.status &&
+    input.status !== existing.status &&
+    (input.status === 'active' || input.status === 'closed')
+  ) {
+    const { captureBrandSnapshot } = await import('@/modules/branding');
+    await captureBrandSnapshot(context, {
+      entityType: 'contract',
+      entityId: updated.id,
+      projectId: updated.projectId,
+    });
+  }
+
   return updated;
 }
 

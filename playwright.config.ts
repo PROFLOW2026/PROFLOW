@@ -47,7 +47,7 @@ export default defineConfig({
     },
     {
       name: 'desktop-he-authenticated',
-      testMatch: /authenticated\/(owner|regression|performance-verify|jobs-flows|master-completion-journeys|pwa-startup|ocr-review|boq-happy-path|capture-marketing-screenshots)\.spec\.ts/,
+      testMatch: /authenticated\/(owner|regression|performance-verify|jobs-flows|master-completion-journeys|pwa-startup|ocr-review|boq-happy-path|capture-marketing-screenshots|branding)\.spec\.ts/,
       dependencies: ['setup-owner'],
       use: {
         ...devices['Desktop Chrome'],

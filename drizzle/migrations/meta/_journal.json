@@ -428,6 +428,13 @@
                         "when":  1786561500000,
                         "tag":  "0061_ops_expense_usage_kinds",
                         "breakpoints":  true
+                    },
+                    {
+                        "idx":  61,
+                        "version":  "7",
+                        "when":  1786561600000,
+                        "tag":  "0062_organization_branding",
+                        "breakpoints":  true
                     }
                 ]
 }

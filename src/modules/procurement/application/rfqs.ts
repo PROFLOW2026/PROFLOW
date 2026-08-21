@@ -121,5 +121,14 @@ export async function updateRfqStatus(
     after: { status: updated.status },
   });
 
+  if (parsed.data.status === 'sent' && existing.status !== 'sent') {
+    const { captureBrandSnapshot } = await import('@/modules/branding');
+    await captureBrandSnapshot(context, {
+      entityType: 'rfq',
+      entityId: updated.id,
+      projectId: updated.projectId,
+    });
+  }
+
   return updated;
 }

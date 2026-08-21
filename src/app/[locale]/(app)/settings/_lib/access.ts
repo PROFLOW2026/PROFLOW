@@ -6,6 +6,7 @@ import { isOcrIngestionFlagOn } from '@/modules/ocr/domain/feature-gate';
 
 export type SettingsSectionKey =
   | 'business'
+  | 'branding'
   | 'people'
   | 'roles'
   | 'features'
@@ -45,6 +46,7 @@ export interface SettingsSection {
  */
 export const SETTINGS_SECTIONS: readonly SettingsSection[] = [
   { key: 'business', href: '/settings/business', permission: PERMISSIONS.ORG_READ, group: 'basic' },
+  { key: 'branding', href: '/settings/branding', permission: PERMISSIONS.ORG_READ, group: 'basic' },
   { key: 'people', href: '/settings/people', permission: PERMISSIONS.MEMBERS_READ, group: 'basic' },
   { key: 'profile', href: '/settings/profile', permission: null, group: 'basic' },
   { key: 'tax', href: '/settings/tax', permission: PERMISSIONS.TAX_MANAGE, group: 'basic' },
@@ -131,6 +133,7 @@ export function groupSettingsSections(
 export function canManageSection(context: OrgContext, sectionKey: SettingsSectionKey): boolean {
   switch (sectionKey) {
     case 'business':
+    case 'branding':
       return hasPermission(context, PERMISSIONS.ORG_UPDATE);
     case 'numbering':
       return hasPermission(context, PERMISSIONS.ORG_UPDATE);

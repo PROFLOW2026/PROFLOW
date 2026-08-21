@@ -1,6 +1,7 @@
 import { getLocale, getTranslations } from 'next-intl/server';
 import type { ReactNode } from 'react';
-import { getShellContext } from '@/shared/auth/session';
+import { getShellOrgLogoUrl } from '@/modules/branding';
+import { getShellContext, withOrgContext } from '@/shared/auth/session';
 import { redirect } from '@/shared/i18n/navigation';
 import { ConnectivityBanner } from '@/modules/offline/ui/connectivity-banner';
 import { OfflineSyncProvider } from '@/modules/offline/ui/offline-sync-provider';
@@ -48,10 +49,21 @@ export async function AppShell({ children }: { children: ReactNode }) {
     shell.persona,
   );
 
+  let organizationLogoUrl: string | null = null;
+  try {
+    organizationLogoUrl = await withOrgContext((context) => getShellOrgLogoUrl(context));
+  } catch {
+    organizationLogoUrl = null;
+  }
+
   return (
     <OfflineSyncProvider organizationId={shell.organizationId} userId={shell.user.id}>
       <div className="flex min-h-dvh w-full max-w-full" data-pf-shell="app">
-        <Sidebar items={items} organizationName={shell.organization.name} />
+        <Sidebar
+          items={items}
+          organizationName={shell.organization.name}
+          organizationLogoUrl={organizationLogoUrl}
+        />
 
         <div className="relative flex min-w-0 max-w-full flex-1 flex-col">
           <a
@@ -73,6 +85,7 @@ export async function AppShell({ children }: { children: ReactNode }) {
 
           <TopBar
             organizationName={shell.organization.name}
+            organizationLogoUrl={organizationLogoUrl}
             notifications={
               shell.permissions.has(PERMISSIONS.NOTIFICATIONS_READ) ? <NotificationBell /> : undefined
             }

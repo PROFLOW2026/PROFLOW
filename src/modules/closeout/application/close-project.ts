@@ -139,6 +139,14 @@ export async function closeProject(context: OrgContext, raw: CloseProjectInput) 
       reason,
     },
   });
+
+  const { captureBrandSnapshot } = await import('@/modules/branding');
+  await captureBrandSnapshot(context, {
+    entityType: 'closeout',
+    entityId: closeout.id,
+    projectId: project.id,
+  });
+
   return closeout;
 }
 

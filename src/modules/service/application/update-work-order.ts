@@ -192,6 +192,20 @@ export async function updateWorkOrder(
       serviceStatus: input.serviceStatus ?? details.serviceStatus,
     },
   });
+
+  if (input.serviceStatus === 'completed' && input.serviceStatus !== details.serviceStatus) {
+    const { captureBrandSnapshot } = await import('@/modules/branding');
+    await captureBrandSnapshot(context, {
+      entityType: 'work_order',
+      entityId: input.workOrderId,
+      projectId: input.workOrderId,
+    });
+    await captureBrandSnapshot(context, {
+      entityType: 'service_report',
+      entityId: input.workOrderId,
+      projectId: input.workOrderId,
+    });
+  }
 }
 
 export async function updateServiceStatus(

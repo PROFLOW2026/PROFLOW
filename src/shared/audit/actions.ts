@@ -16,6 +16,17 @@ export const AUDIT_ACTIONS = {
   INVITATION_REVOKED: 'invitation.revoked',
   SETTINGS_UPDATED: 'settings.updated',
 
+  /** Organization branding / company identity (document letterhead — not UI theme). */
+  COMPANY_PROFILE_UPDATED: 'branding.company_profile_updated',
+  BRAND_PROFILE_CREATED: 'branding.brand_profile_created',
+  BRAND_PROFILE_UPDATED: 'branding.brand_profile_updated',
+  BRAND_PROFILE_ARCHIVED: 'branding.brand_profile_archived',
+  BRAND_PROFILE_DEFAULT_SET: 'branding.brand_profile_default_set',
+  BRAND_LOGO_CHANGED: 'branding.logo_changed',
+  BRAND_SIGNATURE_CHANGED: 'branding.signature_changed',
+  BRAND_STAMP_CHANGED: 'branding.stamp_changed',
+  BRAND_LEGAL_TEXT_CHANGED: 'branding.legal_text_changed',
+
   PROJECT_CREATED: 'project.created',
   PROJECT_UPDATED: 'project.updated',
   PROJECT_ARCHIVED: 'project.archived',

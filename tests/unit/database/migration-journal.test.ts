@@ -275,7 +275,10 @@ describe('migration journal', () => {
     expect(tags.indexOf('0060_business_catalog_refinement')).toBeLessThan(
       tags.indexOf('0061_ops_expense_usage_kinds'),
     );
-    expect(tags.at(-1)).toBe('0061_ops_expense_usage_kinds');
+    expect(tags.indexOf('0061_ops_expense_usage_kinds')).toBeLessThan(
+      tags.indexOf('0062_organization_branding'),
+    );
+    expect(tags.at(-1)).toBe('0062_organization_branding');
 
     const sql35 = await readFile(
       path.join(MIGRATIONS_DIR, '0035_boq_integrity_closure.sql'),

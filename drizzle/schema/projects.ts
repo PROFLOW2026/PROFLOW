@@ -1,6 +1,19 @@
 import { relations, sql } from 'drizzle-orm';
-import { boolean, char, check, date, index, integer, pgTable, text, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
+import {
+  boolean,
+  char,
+  check,
+  date,
+  foreignKey,
+  index,
+  integer,
+  pgTable,
+  text,
+  uniqueIndex,
+  uuid,
+} from 'drizzle-orm/pg-core';
 import { archivedAt, moneyAmount, percentAmount, primaryId, timestamps } from './_shared';
+import { organizationBrandProfiles } from './branding';
 import { projectStatusEnum } from './enums';
 import { clientContacts, clients } from './clients';
 import { organizations } from './tenancy';
@@ -90,6 +103,8 @@ export const projects = pgTable(
      */
     expectedRemainingCostAmount: moneyAmount('expected_remaining_cost_amount'),
     notes: text('notes'),
+    /** Optional brand profile override for project documents (0062). */
+    brandProfileId: uuid('brand_profile_id'),
     archivedAt: archivedAt(),
     ...timestamps(),
   },
@@ -129,6 +144,11 @@ export const projects = pgTable(
     uniqueIndex('projects_org_document_number_uq')
       .on(table.organizationId, table.documentNumber)
       .where(sql`${table.documentNumber} is not null`),
+    foreignKey({
+      name: 'projects_brand_profile_org_fk',
+      columns: [table.brandProfileId, table.organizationId],
+      foreignColumns: [organizationBrandProfiles.id, organizationBrandProfiles.organizationId],
+    }).onDelete('restrict'),
   ],
 );
 

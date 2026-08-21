@@ -583,6 +583,12 @@ export async function approveTimesheet(
       },
     });
 
+    const { captureBrandSnapshot } = await import('@/modules/branding');
+    await captureBrandSnapshot(txContext, {
+      entityType: 'timesheet',
+      entityId: updatedSheet.id,
+    });
+
     return { timesheet: updatedSheet, entries: updatedEntries };
   });
 }

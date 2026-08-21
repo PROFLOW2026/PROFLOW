@@ -2,6 +2,7 @@ import { sql } from 'drizzle-orm';
 import {
   check,
   date,
+  foreignKey,
   index,
   integer,
   pgTable,
@@ -10,6 +11,7 @@ import {
   uuid,
 } from 'drizzle-orm/pg-core';
 import { archivedAt, currencyCode, moneyAmount, primaryId, quantityAmount, timestamps } from './_shared';
+import { organizationBrandProfiles } from './branding';
 import { organizations } from './tenancy';
 import { profiles } from './identity';
 import { projects, workPackages } from './projects';
@@ -191,6 +193,8 @@ export const purchaseOrders = pgTable(
     /** Optional payment term override (kind=payment_term). Same-org FK in migration. */
     paymentTermId: uuid('payment_term_id'),
     notes: text('notes'),
+    /** Optional brand profile override for this PO (0062). */
+    brandProfileId: uuid('brand_profile_id'),
     archivedAt: archivedAt(),
     ...timestamps(),
   },
@@ -208,6 +212,11 @@ export const purchaseOrders = pgTable(
       'purchase_orders_status_known',
       sql`${table.status} IN ('draft', 'issued', 'partially_received', 'closed', 'cancelled')`,
     ),
+    foreignKey({
+      name: 'purchase_orders_brand_profile_org_fk',
+      columns: [table.brandProfileId, table.organizationId],
+      foreignColumns: [organizationBrandProfiles.id, organizationBrandProfiles.organizationId],
+    }).onDelete('restrict'),
   ],
 );
 

@@ -29,6 +29,7 @@ export function LegalIdentityForm({
       <div className="flex flex-col gap-1">
         <h2 className="text-base font-semibold">{t('legalIdentityTitle')}</h2>
         <p className="text-sm text-[var(--pf-text-secondary)]">{t('legalIdentityHint')}</p>
+        <p className="text-sm text-[var(--pf-text-secondary)]">{t('legalIdentitySyncHint')}</p>
       </div>
 
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}

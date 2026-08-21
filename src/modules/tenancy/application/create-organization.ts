@@ -11,6 +11,7 @@ import { createOrganizationSchema, type CreateOrganizationInput } from '../valid
 import { upsertOrganizationSettingValue } from '../data/organization-settings.repository';
 import { seedUniversalBusinessCatalogs } from '@/modules/business-catalog/application/seed-catalog';
 import { ensureOrgDefaultPaymentTermKey } from '@/modules/business-catalog/application/payment-term-defaults';
+import { ensureDefaultBranding } from '@/modules/branding';
 import {
   findOrganizationById,
   insertMembership,
@@ -80,6 +81,10 @@ export async function createOrganization(
   await seedDefaultCostCategories(db, organization.id);
   await seedUniversalBusinessCatalogs(db, organization.id);
   await ensureOrgDefaultPaymentTermKey(db, organization.id);
+  await ensureDefaultBranding(db, organization.id, {
+    name: organization.name,
+    countryCode: organization.countryCode,
+  });
 
   const profileKey =
     resolveBusinessProfileKey(input.businessProfile) ??

@@ -65,6 +65,15 @@ import {
 
 import { isCorrectiveActionOverdue } from "@/modules/safety/domain/overdue";
 
+import {
+  buildContractSummaryReport,
+  buildCustomerStatementReport,
+  buildProcurementRfqReport,
+  buildPurchaseOrderReport,
+  buildTimesheetReport,
+  buildWorkOrderReport,
+} from "./generate-branded-entity-reports";
+
 import type { OrgContext } from "@/shared/auth/context";
 
 import { todayInTimeZone } from "@/shared/dates";
@@ -204,6 +213,27 @@ export async function buildExtendedReport(
 
     case "safety_open_actions":
       return buildSafetyOpen(context, id, ctx);
+
+    case "purchase_order":
+      return buildPurchaseOrderReport(context, id, ctx);
+
+    case "procurement_rfq":
+      return buildProcurementRfqReport(context, id, ctx);
+
+    case "customer_statement":
+      return buildCustomerStatementReport(context, id, ctx);
+
+    case "contract_summary":
+      return buildContractSummaryReport(context, id, ctx);
+
+    case "work_order":
+      return buildWorkOrderReport(context, id, ctx);
+
+    case "service_completion":
+      return buildWorkOrderReport(context, id, ctx, "service_completion");
+
+    case "timesheet":
+      return buildTimesheetReport(context, id, ctx);
 
     default:
       return null;

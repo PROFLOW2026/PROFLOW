@@ -3,6 +3,7 @@ import {
   boolean,
   check,
   date,
+  foreignKey,
   index,
   integer,
   jsonb,
@@ -20,6 +21,7 @@ import {
   quantityAmount,
   timestamps,
 } from './_shared';
+import { organizationBrandProfiles } from './branding';
 import {
   approvalDecisionEnum,
   changeDirectionEnum,
@@ -121,6 +123,8 @@ export const quotes = pgTable(
     changeRequestId: uuid('change_request_id').references(() => changeRequests.id, { onDelete: 'cascade' }),
     title: text('title'),
     currency: currencyCode().notNull(),
+    /** Optional brand profile override for Commercial Change Quotes (0062). Product Quotes use estimates. */
+    brandProfileId: uuid('brand_profile_id'),
     archivedAt: archivedAt(),
     ...timestamps(),
   },
@@ -128,6 +132,11 @@ export const quotes = pgTable(
     index('quotes_org_idx').on(table.organizationId),
     index('quotes_project_idx').on(table.projectId),
     index('quotes_change_request_idx').on(table.changeRequestId),
+    foreignKey({
+      name: 'quotes_brand_profile_org_fk',
+      columns: [table.brandProfileId, table.organizationId],
+      foreignColumns: [organizationBrandProfiles.id, organizationBrandProfiles.organizationId],
+    }).onDelete('restrict'),
   ],
 );
 

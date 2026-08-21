@@ -100,6 +100,11 @@ export async function transitionQuoteStatus(
       summary: updated.title,
       deepLink: `/quotes/${updated.id}`,
     });
+    const { captureBrandSnapshot } = await import('@/modules/branding');
+    await captureBrandSnapshot(context, {
+      entityType: 'quote',
+      entityId: updated.id,
+    });
   }
   if (toStatus === 'accepted') {
     await recordQuoteClientActivity(context, {

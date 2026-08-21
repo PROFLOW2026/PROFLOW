@@ -354,6 +354,16 @@ export async function transitionDailyLogStatus(
       before: { status: existing.status },
       after: { status: updated.status },
     });
+
+    if (input.status === 'finalized') {
+      const { captureBrandSnapshot } = await import('@/modules/branding');
+      await captureBrandSnapshot(txContext, {
+        entityType: 'daily_log',
+        entityId: updated.id,
+        projectId: updated.projectId,
+      });
+    }
+
     return updated;
   });
 }

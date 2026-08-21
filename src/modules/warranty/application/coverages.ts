@@ -129,6 +129,16 @@ export async function createWarrantyCoverage(
     entityId: coverage.id,
     after: { id: coverage.id, projectId: coverage.projectId, status: coverage.status },
   });
+
+  if (coverage.status === 'active' || coverage.status === 'expired') {
+    const { captureBrandSnapshot } = await import('@/modules/branding');
+    await captureBrandSnapshot(context, {
+      entityType: 'warranty',
+      entityId: coverage.id,
+      projectId: coverage.projectId,
+    });
+  }
+
   return coverage;
 }
 
@@ -178,5 +188,18 @@ export async function updateWarrantyCoverage(
     before: existing,
     after: updated,
   });
+
+  if (
+    (updated.status === 'active' || updated.status === 'expired') &&
+    existing.status !== updated.status
+  ) {
+    const { captureBrandSnapshot } = await import('@/modules/branding');
+    await captureBrandSnapshot(context, {
+      entityType: 'warranty',
+      entityId: updated.id,
+      projectId: updated.projectId,
+    });
+  }
+
   return updated;
 }

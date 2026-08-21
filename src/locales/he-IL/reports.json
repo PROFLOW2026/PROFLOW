@@ -45,7 +45,14 @@
     "compliance_expiry": "תפוגת ציות",
     "crm_funnel": "משפך CRM",
     "month_close_completeness": "שלמות סגירת חודש",
-    "safety_open_actions": "פעולות בטיחות פתוחות"
+    "safety_open_actions": "פעולות בטיחות פתוחות",
+    "purchase_order": "הזמנת רכש",
+    "procurement_rfq": "בקשה להצעת מחיר מספק",
+    "customer_statement": "דף חשבון לקוח",
+    "contract_summary": "סיכום חוזה",
+    "work_order": "הזמנת עבודה",
+    "service_completion": "דוח השלמת שירות",
+    "timesheet": "גיליון שעות"
   },
   "kindHints": {
     "project_status": "סטטוס, תאריכים ותמונת מצב תפעולית.",
@@ -66,7 +73,14 @@
     "compliance_expiry": "רשימת תפוגה למסמכי ציות.",
     "crm_funnel": "תמונת מצב של צינור המכירות.",
     "month_close_completeness": "שלמות סגירת חודש תפעולי.",
-    "safety_open_actions": "פעולות בטיחות / HSE פתוחות."
+    "safety_open_actions": "פעולות בטיחות / HSE פתוחות.",
+    "purchase_order": "הזמנת רכש ממותגת לספק.",
+    "procurement_rfq": "בקשה להצעת מחיר לספקים.",
+    "customer_statement": "דף חשבון ניהולי  -  לא חשבונית מס סטטוטורית.",
+    "contract_summary": "סיכום חוזה מקצועי מנתונים קיימים.",
+    "work_order": "מסמך הזמנת עבודה / שירות.",
+    "service_completion": "דוח השלמת שירות קפוא להזמנת עבודה שהושלמה.",
+    "timesheet": "סיכום תקופת שעות. לא שכר."
   },
   "natures": {
     "actual": "בפועל",

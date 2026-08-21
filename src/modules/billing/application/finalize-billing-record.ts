@@ -64,6 +64,14 @@ export async function finalizeBillingRecordCore(
     context.organization.timezone,
   );
   if (!finalized) throw new NotFoundError('Billing record');
+
+  const { captureBrandSnapshot } = await import('@/modules/branding');
+  await captureBrandSnapshot(context, {
+    entityType: 'billing_record',
+    entityId: finalized.id,
+    projectId: finalized.projectId,
+  });
+
   return finalized;
 }
 

@@ -25,6 +25,10 @@ vi.mock('@/modules/tenancy', () => ({
   noteModuleUsage: vi.fn(async () => undefined),
 }));
 
+vi.mock('@/modules/branding', () => ({
+  captureBrandSnapshot: vi.fn(async () => undefined),
+}));
+
 import { transitionQuoteStatus } from '@/modules/quotes/application/transition-quote';
 import {
   isQuoteDiscountGateTransition,

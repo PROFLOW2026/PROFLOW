@@ -13,6 +13,7 @@ import 'server-only';
 export * from './enums';
 export * from './identity';
 export * from './tenancy';
+export * from './branding';
 export * from './rbac';
 export * from './audit';
 export * from './documents';

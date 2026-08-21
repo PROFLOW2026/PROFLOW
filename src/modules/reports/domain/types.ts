@@ -1,5 +1,6 @@
 import type { Locale } from '@/shared/i18n/config';
 import type { PermissionKey } from '@/shared/permissions/catalog';
+import type { DocumentBrandContext } from '@/modules/branding/domain/document-brand';
 
 export const REPORT_KINDS = [
   'project_status',
@@ -21,6 +22,13 @@ export const REPORT_KINDS = [
   'crm_funnel',
   'month_close_completeness',
   'safety_open_actions',
+  'purchase_order',
+  'procurement_rfq',
+  'customer_statement',
+  'contract_summary',
+  'work_order',
+  'service_completion',
+  'timesheet',
 ] as const;
 
 export type ReportKind = (typeof REPORT_KINDS)[number];
@@ -34,6 +42,7 @@ export type ReportMetricNature =
   | 'cash';
 
 export interface ReportIdentity {
+  /** Backward-compat display name. When brand is present, derived from brand.companyDisplayName. */
   readonly companyName: string;
   readonly projectId: string | null;
   readonly projectName: string | null;
@@ -79,6 +88,11 @@ export interface ReportPayload {
   readonly notices: readonly string[];
   readonly sections: readonly ReportSection[];
   readonly omitted: ReportOmitted;
+  /**
+   * Optional brand snapshot. When present, renderers use branded header/footer.
+   * identity.companyName remains populated for backward-compat callers that ignore brand.
+   */
+  readonly brand?: DocumentBrandContext | null;
 }
 
 export interface GenerateReportInput {

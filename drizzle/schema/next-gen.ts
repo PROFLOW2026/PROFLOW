@@ -3,6 +3,7 @@ import {
   boolean,
   check,
   date,
+  foreignKey,
   index,
   integer,
   jsonb,
@@ -13,6 +14,7 @@ import {
   uuid,
 } from 'drizzle-orm/pg-core';
 import { archivedAt, currencyCode, moneyAmount, percentAmount, primaryId, quantityAmount, timestamps } from './_shared';
+import { organizationBrandProfiles } from './branding';
 import { clientContacts, clients } from './clients';
 import { organizations } from './tenancy';
 import { profiles } from './identity';
@@ -55,6 +57,8 @@ export const estimates = pgTable(
     discountAmount: moneyAmount('discount_amount'),
     listSubtotalAmount: moneyAmount('list_subtotal_amount'),
     discountPercent: percentAmount('discount_percent'),
+    /** Optional brand profile override for Product Quotes (0062). Not commercial change quotes. */
+    brandProfileId: uuid('brand_profile_id'),
     createdByUserId: uuid('created_by_user_id').references(() => profiles.id, { onDelete: 'set null' }),
     archivedAt: archivedAt(),
     ...timestamps(),
@@ -69,6 +73,11 @@ export const estimates = pgTable(
       sql`${table.status} IN ('draft', 'ready', 'sent', 'accepted', 'rejected', 'expired', 'cancelled', 'converted')`,
     ),
     check('estimates_tax_mode_known', sql`${table.taxMode} IN ('exclusive', 'inclusive', 'none')`),
+    foreignKey({
+      name: 'estimates_brand_profile_org_fk',
+      columns: [table.brandProfileId, table.organizationId],
+      foreignColumns: [organizationBrandProfiles.id, organizationBrandProfiles.organizationId],
+    }).onDelete('restrict'),
   ],
 );
 

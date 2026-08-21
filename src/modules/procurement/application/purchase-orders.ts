@@ -214,6 +214,13 @@ export async function issuePurchaseOrder(context: OrgContext, raw: { purchaseOrd
       expenseCreated: isCommittedCostActualExpense(),
     },
   });
+  const { captureBrandSnapshot } = await import('@/modules/branding');
+  await captureBrandSnapshot(context, {
+    entityType: 'purchase_order',
+    entityId: issued.id,
+    projectId: issued.projectId,
+    brandProfileId: issued.brandProfileId ?? null,
+  });
   return issued;
 }
 

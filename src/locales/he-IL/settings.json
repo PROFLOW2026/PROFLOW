@@ -8,7 +8,8 @@
     "developers": "מפתחים"
   },
   "sections": {
-    "business": "העסק",
+    "business": "פרטי החברה",
+    "branding": "מיתוג ומסמכים",
     "people": "משתמשים והרשאות",
     "roles": "תפקידים",
     "features": "יכולות",
@@ -334,6 +335,17 @@
       "organization": {
         "created": "יצירת עסק",
         "updated": "עדכון עסק"
+      },
+      "branding": {
+        "company_profile_updated": "עדכון פרופיל חברה",
+        "brand_profile_created": "יצירת פרופיל מיתוג",
+        "brand_profile_updated": "עדכון פרופיל מיתוג",
+        "brand_profile_archived": "העברת פרופיל מיתוג לארכיון",
+        "brand_profile_default_set": "הגדרת מיתוג ברירת מחדל",
+        "logo_changed": "שינוי לוגו החברה",
+        "signature_changed": "שינוי תמונת חתימה",
+        "stamp_changed": "שינוי תמונת חותמת",
+        "legal_text_changed": "שינוי טקסט זהות משפטית"
       },
       "membership": {
         "created": "הוספת גישה",
@@ -978,6 +990,154 @@
       "subcontractor": "קבלן משנה",
       "both": "שניהם",
       "other": "אחר"
+    }
+  },
+  "companyDetails": {
+    "pageTitle": "פרטי החברה",
+    "pageDescription": "זהות משפטית ופרטי קשר שמופיעים בהצעות מחיר, דוחות ומסמכים אחרים.",
+    "title": "זהות החברה",
+    "subtitle": "זה מקור האמת לכותרות מסמכים. זה לא משנה את עיצוב האפליקציה.",
+    "brandingLink": "ניהול לוגו, צבעים ופריסות מסמכים ב־<link>מיתוג ומסמכים</link>.",
+    "saved": "פרטי החברה נשמרו.",
+    "legalName": "שם משפטי",
+    "displayName": "שם לתצוגה",
+    "tradingName": "שם מסחרי",
+    "vatTaxId": "מספר עוסק / מע״מ",
+    "vatTaxIdHint": "מסונכרן גם להתאמת חשבוניות בסריקה.",
+    "registrationNumber": "מספר רישום",
+    "registrationNumberHint": "מספר חברה / ח.פ. אם שונה ממספר העוסק.",
+    "contactSection": "יצירת קשר",
+    "addressSection": "כתובת",
+    "mainPhone": "טלפון ראשי",
+    "secondaryPhone": "טלפון משני",
+    "whatsappPhone": "וואטסאפ",
+    "mainEmail": "אימייל ראשי",
+    "billingEmail": "אימייל לחיוב",
+    "salesEmail": "אימייל מכירות",
+    "supportEmail": "אימייל תמיכה",
+    "website": "אתר",
+    "addressLine1": "שורת כתובת 1",
+    "addressLine2": "שורת כתובת 2",
+    "city": "עיר",
+    "region": "אזור / מחוז",
+    "postalCode": "מיקוד",
+    "country": "מדינה",
+    "countryPlaceholder": "בחירת מדינה"
+  },
+  "branding": {
+    "pageTitle": "מיתוג ומסמכים",
+    "pageDescription": "לוגואים, צבעים ופריסות למסמכי לקוח. הצבעים האלה לא משנים את עיצוב האפליקציה כולה.",
+    "subtitle": "הגדירו איך הצעות מחיר, דוחות ופלטים אחרים מציגים את החברה.",
+    "companyLink": "עריכת שם משפטי, מע״מ וכתובת ב־<link>פרטי החברה</link>.",
+    "saved": "המיתוג נשמר.",
+    "emptyLogo": {
+      "title": "הוסיפו את לוגו החברה",
+      "description": "מסמכים נראים מקצועיים יותר עם הלוגו שלכם. PNG, JPEG או WebP עד 5 מ״ב.",
+      "cta": "העלאת לוגו"
+    },
+    "emptyBrands": {
+      "title": "אין עדיין פרופיל מיתוג",
+      "description": "צרו פרופיל מיתוג כדי לשלוט בלוגואים, צבעים וכותרות תחתונות במסמכים."
+    },
+    "brands": {
+      "title": "פרופילי מיתוג",
+      "advancedHint": "מתקדם  -  רוב העסקים משתמשים במיתוג ברירת מחדל אחד.",
+      "default": "ברירת מחדל",
+      "setDefault": "הגדרה כברירת מחדל",
+      "archive": "העברה לארכיון",
+      "add": "הוספת מיתוג",
+      "newName": "שם המיתוג",
+      "newPlaceholder": "למשל: חטיבת פרויקטים",
+      "defaultName": "ברירת מחדל"
+    },
+    "sections": {
+      "identity": "שם המיתוג",
+      "logos": "לוגואים",
+      "colors": "צבעי מסמך",
+      "layout": "פריסה",
+      "visibility": "מה להציג",
+      "texts": "כותרות תחתונות ותנאים",
+      "signature": "חתימה וחותמת"
+    },
+    "fields": {
+      "brandName": "שם המיתוג",
+      "primaryColor": "צבע ראשי",
+      "secondaryColor": "צבע משני",
+      "headerLayout": "פריסת כותרת",
+      "footerStyle": "סגנון כותרת תחתונה",
+      "footerCustomText": "טקסט כותרת תחתונה מותאם",
+      "quoteTermsText": "תנאי הצעת מחיר",
+      "quoteFooterText": "כותרת תחתונה להצעה",
+      "reportFooterText": "כותרת תחתונה לדוח",
+      "paymentInstructionsText": "הוראות תשלום",
+      "emailSignatureText": "חתימת אימייל",
+      "poTermsText": "תנאי הזמנת רכש",
+      "generalDocumentNote": "הערת מסמך כללית",
+      "serviceReportNote": "הערת דוח שירות",
+      "reportDisclaimerText": "כתב ויתור לדוח"
+    },
+    "colors": {
+      "documentOnly": "הצבעים האלה חלים על פלטי מסמכים בלבד  -  לא על עיצוב ממשק האפליקציה."
+    },
+    "headerLayouts": {
+      "letterhead": "נייר מכתבים",
+      "logo_sides": "לוגו ופרטים זה לצד זה",
+      "centered": "ממורכז",
+      "minimal": "מינימלי"
+    },
+    "footerStyles": {
+      "minimal": "מינימלי",
+      "detailed": "מפורט",
+      "legal": "משפטי"
+    },
+    "visibility": {
+      "showLogo": "הצגת לוגו",
+      "showDisplayName": "הצגת שם לתצוגה",
+      "showLegalName": "הצגת שם משפטי",
+      "showRegistrationNumber": "הצגת מספר רישום",
+      "showVatTaxId": "הצגת מספר עוסק / מע״מ",
+      "showAddress": "הצגת כתובת",
+      "showPhone": "הצגת טלפון",
+      "showEmail": "הצגת אימייל",
+      "showWebsite": "הצגת אתר",
+      "showPageNumbers": "הצגת מספרי עמוד",
+      "showGeneratedDate": "הצגת תאריך יצירה",
+      "showDocumentReference": "הצגת מספר מסמך"
+    },
+    "assets": {
+      "logoPrimary": "לוגו ראשי",
+      "logoPrimaryHint": "לשימוש על נייר לבן. PNG, JPEG או WebP בלבד  -  ללא SVG.",
+      "logoCompact": "לוגו קומפקטי",
+      "logoDark": "לוגו כהה",
+      "logoLight": "לוגו בהיר",
+      "signature": "תמונת חתימה",
+      "signatureHint": "לאישור חזותי בלבד  -  אינה חתימה אלקטרונית משפטית.",
+      "stamp": "תמונת חותמת",
+      "stampHint": "חזותית בלבד.",
+      "upload": "העלאה",
+      "replace": "החלפה",
+      "noImage": "אין תמונה",
+      "removed": "התמונה הוסרה.",
+      "invalidType": "יש להשתמש ב־PNG, JPEG או WebP בלבד.",
+      "tooLarge": "הקובץ חייב להיות עד 5 מ״ב.",
+      "uploadFailed": "ההעלאה נכשלה. נסו שוב."
+    },
+    "signature": {
+      "disclaimer": "תמונות חתימה וחותמת הן חזותיות בלבד. הן אינן חתימה אלקטרונית משפטית.",
+      "allowOnQuotes": "אפשר חתימה בהצעות מחיר",
+      "allowOnReports": "אפשר חתימה בדוחות",
+      "allowStamp": "אפשר חותמת במסמכים",
+      "includeByDefault": "כלול חתימה כברירת מחדל",
+      "includeStampByDefault": "כלול חותמת כברירת מחדל"
+    },
+    "preview": {
+      "label": "תצוגה מקדימה של מסמך",
+      "title": "תצוגה חיה",
+      "logoPlaceholder": "לוגו",
+      "sampleTitle": "הצעת מחיר לדוגמה",
+      "accentChip": "הדגשה",
+      "legalFooterNote": "סגנון כותרת תחתונה משפטית",
+      "documentOnlyNote": "תצוגה מקדימה של מיתוג מסמכים  -  ממשק האפליקציה נשאר ללא שינוי."
     }
   }
 }

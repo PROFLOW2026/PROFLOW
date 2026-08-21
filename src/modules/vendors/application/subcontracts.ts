@@ -400,6 +400,15 @@ export async function changeSubcontractStatus(
       after: updated,
     });
 
+    if (input.status === 'completed') {
+      const { captureBrandSnapshot } = await import('@/modules/branding');
+      await captureBrandSnapshot(txContext, {
+        entityType: 'subcontract',
+        entityId: updated.id,
+        projectId: updated.projectId,
+      });
+    }
+
     return updated.id;
   });
 

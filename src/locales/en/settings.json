@@ -8,7 +8,8 @@
     "developers": "Developers"
   },
   "sections": {
-    "business": "Business",
+    "business": "Company details",
+    "branding": "Branding & documents",
     "people": "Users and permissions",
     "roles": "Roles",
     "features": "Features",
@@ -405,6 +406,17 @@
       "organization": {
         "created": "Business created",
         "updated": "Business updated"
+      },
+      "branding": {
+        "company_profile_updated": "Company profile updated",
+        "brand_profile_created": "Brand profile created",
+        "brand_profile_updated": "Brand profile updated",
+        "brand_profile_archived": "Brand profile archived",
+        "brand_profile_default_set": "Default brand profile set",
+        "logo_changed": "Company logo changed",
+        "signature_changed": "Signature image changed",
+        "stamp_changed": "Stamp image changed",
+        "legal_text_changed": "Legal identity text changed"
       },
       "membership": {
         "created": "Access granted",
@@ -979,5 +991,153 @@
     "needsReview": "Needs review",
     "queueEmpty": "No queued, in-flight, or failed jobs.",
     "reviewLink": "Open document review"
+  },
+  "companyDetails": {
+    "pageTitle": "Company details",
+    "pageDescription": "Legal and contact identity used on quotes, reports, and other documents.",
+    "title": "Company identity",
+    "subtitle": "This is the source of truth for document letterheads. It does not change the app theme.",
+    "brandingLink": "Manage logos, colors, and document layouts in <link>Branding & documents</link>.",
+    "saved": "Company details saved.",
+    "legalName": "Legal name",
+    "displayName": "Display name",
+    "tradingName": "Trading name",
+    "vatTaxId": "VAT / tax ID",
+    "vatTaxIdHint": "Also synced for invoice OCR matching.",
+    "registrationNumber": "Registration number",
+    "registrationNumberHint": "Company number / ח.פ. when different from the tax ID.",
+    "contactSection": "Contact",
+    "addressSection": "Address",
+    "mainPhone": "Main phone",
+    "secondaryPhone": "Secondary phone",
+    "whatsappPhone": "WhatsApp",
+    "mainEmail": "Main email",
+    "billingEmail": "Billing email",
+    "salesEmail": "Sales email",
+    "supportEmail": "Support email",
+    "website": "Website",
+    "addressLine1": "Address line 1",
+    "addressLine2": "Address line 2",
+    "city": "City",
+    "region": "Region / state",
+    "postalCode": "Postal code",
+    "country": "Country",
+    "countryPlaceholder": "Select country"
+  },
+  "branding": {
+    "pageTitle": "Branding & documents",
+    "pageDescription": "Logos, colors, and layouts for customer documents. These colors do not theme the whole app.",
+    "subtitle": "Configure how quotes, reports, and other outputs present your company.",
+    "companyLink": "Edit legal name, VAT, and address in <link>Company details</link>.",
+    "saved": "Branding saved.",
+    "emptyLogo": {
+      "title": "Add your company logo",
+      "description": "Documents look more professional with your logo. PNG, JPEG, or WebP up to 5 MB.",
+      "cta": "Upload logo"
+    },
+    "emptyBrands": {
+      "title": "No brand profile yet",
+      "description": "Create a brand profile to control logos, colors, and document footers."
+    },
+    "brands": {
+      "title": "Brand profiles",
+      "advancedHint": "Advanced — most businesses use one default brand.",
+      "default": "default",
+      "setDefault": "Set as default",
+      "archive": "Archive",
+      "add": "Add brand",
+      "newName": "Brand name",
+      "newPlaceholder": "e.g. Projects division",
+      "defaultName": "Default"
+    },
+    "sections": {
+      "identity": "Brand name",
+      "logos": "Logos",
+      "colors": "Document colors",
+      "layout": "Layout",
+      "visibility": "What to show",
+      "texts": "Footers and terms",
+      "signature": "Signature and stamp"
+    },
+    "fields": {
+      "brandName": "Brand name",
+      "primaryColor": "Primary color",
+      "secondaryColor": "Secondary color",
+      "headerLayout": "Header layout",
+      "footerStyle": "Footer style",
+      "footerCustomText": "Custom footer text",
+      "quoteTermsText": "Quote terms",
+      "quoteFooterText": "Quote footer",
+      "reportFooterText": "Report footer",
+      "paymentInstructionsText": "Payment instructions",
+      "emailSignatureText": "Email signature",
+      "poTermsText": "Purchase order terms",
+      "generalDocumentNote": "General document note",
+      "serviceReportNote": "Service report note",
+      "reportDisclaimerText": "Report disclaimer"
+    },
+    "colors": {
+      "documentOnly": "These colors apply to document outputs only — not the app UI theme."
+    },
+    "headerLayouts": {
+      "letterhead": "Letterhead",
+      "logo_sides": "Logo and details side by side",
+      "centered": "Centered",
+      "minimal": "Minimal"
+    },
+    "footerStyles": {
+      "minimal": "Minimal",
+      "detailed": "Detailed",
+      "legal": "Legal"
+    },
+    "visibility": {
+      "showLogo": "Show logo",
+      "showDisplayName": "Show display name",
+      "showLegalName": "Show legal name",
+      "showRegistrationNumber": "Show registration number",
+      "showVatTaxId": "Show VAT / tax ID",
+      "showAddress": "Show address",
+      "showPhone": "Show phone",
+      "showEmail": "Show email",
+      "showWebsite": "Show website",
+      "showPageNumbers": "Show page numbers",
+      "showGeneratedDate": "Show generated date",
+      "showDocumentReference": "Show document reference"
+    },
+    "assets": {
+      "logoPrimary": "Primary logo",
+      "logoPrimaryHint": "Used on white paper. PNG, JPEG, or WebP only — no SVG.",
+      "logoCompact": "Compact logo",
+      "logoDark": "Dark logo",
+      "logoLight": "Light logo",
+      "signature": "Signature image",
+      "signatureHint": "Visual acknowledgement only — not a legal electronic signature.",
+      "stamp": "Stamp image",
+      "stampHint": "Visual only.",
+      "upload": "Upload",
+      "replace": "Replace",
+      "noImage": "No image",
+      "removed": "Image removed.",
+      "invalidType": "Use PNG, JPEG, or WebP only.",
+      "tooLarge": "File must be 5 MB or smaller.",
+      "uploadFailed": "Upload failed. Try again."
+    },
+    "signature": {
+      "disclaimer": "Signature and stamp images are visual only. They are not legal electronic signatures.",
+      "allowOnQuotes": "Allow signature on quotes",
+      "allowOnReports": "Allow signature on reports",
+      "allowStamp": "Allow stamp on documents",
+      "includeByDefault": "Include signature by default",
+      "includeStampByDefault": "Include stamp by default"
+    },
+    "preview": {
+      "label": "Document preview",
+      "title": "Live preview",
+      "logoPlaceholder": "Logo",
+      "sampleTitle": "Sample quote",
+      "accentChip": "Accent",
+      "legalFooterNote": "Legal footer style",
+      "documentOnlyNote": "Preview of document branding — app chrome stays unchanged."
+    }
   }
 }

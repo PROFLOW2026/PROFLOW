@@ -14,7 +14,8 @@
     "taxId": "Tax ID",
     "taxIdHint": "VAT / עוסק number. OCR uses this to flag invoices billed to a different business.",
     "companyNumber": "Company number",
-    "companyNumberHint": "ח.פ. or company registration number, if different from the tax ID."
+    "companyNumberHint": "ח.פ. or company registration number, if different from the tax ID.",
+    "legalIdentitySyncHint": "These fields stay in sync with Company details (document identity). Prefer editing them there."
   },
   "members": {
     "title": "People",
