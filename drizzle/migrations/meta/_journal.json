@@ -435,6 +435,13 @@
                         "when":  1786561600000,
                         "tag":  "0062_organization_branding",
                         "breakpoints":  true
+                    },
+                    {
+                        "idx":  62,
+                        "version":  "7",
+                        "when":  1786561700000,
+                        "tag":  "0063_branding_billing_freeze_permission",
+                        "breakpoints":  true
                     }
                 ]
 }

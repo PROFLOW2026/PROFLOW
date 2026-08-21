@@ -278,7 +278,7 @@ describe('migration journal', () => {
     expect(tags.indexOf('0061_ops_expense_usage_kinds')).toBeLessThan(
       tags.indexOf('0062_organization_branding'),
     );
-    expect(tags.at(-1)).toBe('0062_organization_branding');
+    expect(tags.at(-1)).toBe('0063_branding_billing_freeze_permission');
 
     const sql35 = await readFile(
       path.join(MIGRATIONS_DIR, '0035_boq_integrity_closure.sql'),

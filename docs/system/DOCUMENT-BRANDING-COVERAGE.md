@@ -59,6 +59,7 @@ Mapped and branded: Product Quote (`estimates`), Commercial Change Quote brand o
 - Signature / stamp images are visual acknowledgement only — not legal e-sign.
 - Mutating company/branding requires **`org.update`** (Worker has `org.read` only). Enforced in application + RLS (`install_org_table_rls(..., 'org.read', 'org.update', NULL)`).
 - **`document_brand_snapshots`** are historical and **immutable** for `authenticated`: no direct INSERT / UPDATE / DELETE (even with `org.update`). Capture is only via `app.freeze_document_brand_snapshot` (SECURITY DEFINER): membership + domain permission + issued subject + project access when scoped. Snapshot JSON is built server-side from canonical company/brand profiles (client JSON is never accepted). Helpers like `document_brand_snapshot_subject_ok` are **not** executable by `authenticated`. First write wins.
+- Billing record freeze accepts **`billing.manage` or `boq.billing.create`** (progress billing finalize path).
 - Timesheet historical branding freezes only on **`approved`** (not `returned`). Communication freezes only on **`sent`** (not `failed` / retryable).
 
 ## Key modules
