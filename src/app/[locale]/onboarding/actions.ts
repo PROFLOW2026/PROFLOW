@@ -14,6 +14,10 @@ export interface OnboardingFormState {
   error?: string;
 }
 
+/**
+ * First-run organization founding.
+ * Never creates a second organization when the founder already has memberships.
+ */
 export async function createOrganizationAction(
   _prevState: OnboardingFormState,
   formData: FormData,
@@ -22,6 +26,18 @@ export async function createOrganizationAction(
   const session = await requireSession();
   const rawLocale = await getLocale();
   const locale = isLocale(rawLocale) ? rawLocale : 'he-IL';
+
+  // Existing membership → resume the app, never mint a duplicate tenant.
+  if (session.memberships.length > 0) {
+    const existingOrgId = session.activeOrganizationId ?? session.memberships[0]?.id;
+    if (existingOrgId) {
+      await withUserContext(session.user.id, async (tx) => {
+        await setActiveOrganizationPreference(tx, session.user.id, existingOrgId);
+      });
+    }
+    revalidatePath('/', 'layout');
+    redirect({ href: '/', locale });
+  }
 
   const parsed = createOrganizationSchema.safeParse({
     name: formData.get('name'),

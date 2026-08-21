@@ -7,8 +7,8 @@ export default async function AuthLayout({ children }: { children: ReactNode }) 
   const t = await getTranslations('common');
 
   return (
-    <WithClientMessages extra={['auth']}>
-      <div className="flex min-h-dvh min-w-0 max-w-full flex-col items-center justify-center bg-[var(--pf-bg-page)] px-4 py-10">
+    <WithClientMessages extra={['auth', 'validation']}>
+      <div className="flex min-h-dvh min-w-0 max-w-full flex-col items-center justify-center bg-[var(--pf-bg-page)] px-4 py-8 pb-[max(2.5rem,env(safe-area-inset-bottom))] sm:py-10">
         <div className="mb-6 flex min-w-0 max-w-full items-center gap-2">
           <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-[var(--pf-action-primary)] text-sm font-bold text-[var(--pf-action-primary-fg)]">
             PF
@@ -16,7 +16,7 @@ export default async function AuthLayout({ children }: { children: ReactNode }) 
           <span className="min-w-0 truncate text-lg font-semibold">{t('appName')}</span>
         </div>
 
-        <div className="w-full min-w-0 max-w-sm rounded-xl border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-6 shadow-[var(--pf-shadow-sm)]">
+        <div className="w-full min-w-0 max-w-sm rounded-xl border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4 shadow-[var(--pf-shadow-sm)] sm:p-6">
           {children}
         </div>
 

@@ -24,6 +24,9 @@ import { createOrganizationAction, type OnboardingFormState } from './actions';
 
 const COUNTRY_CODES = ['IL', 'US', 'GB'] as const;
 
+/** Customer-facing final choice: recommended vs all capabilities only. */
+const CUSTOMER_ONBOARDING_PATHS = ['recommended', 'all'] as const satisfies readonly OnboardingPath[];
+
 function CountryLabel({ code }: { code: (typeof COUNTRY_CODES)[number] }) {
   const t = useTranslations('onboarding');
 
@@ -41,7 +44,6 @@ function CountryLabel({ code }: { code: (typeof COUNTRY_CODES)[number] }) {
 /**
  * Required step: name + country.
  * Personalized path: business type, work style, managed areas, then recommended vs all.
- * Advanced skip remains for power users.
  */
 export function OnboardingForm() {
   const t = useTranslations('auth.onboarding');
@@ -77,7 +79,7 @@ export function OnboardingForm() {
 
         <p className="text-sm font-medium text-[var(--pf-text-primary)]">{t('stepRequired')}</p>
 
-        <Field label={t('organizationName')} required>
+        <Field id="onboarding-org-name" label={t('organizationName')} required>
           {(control) => (
             <Input
               {...control}
@@ -91,7 +93,7 @@ export function OnboardingForm() {
           )}
         </Field>
 
-        <Field label={t('country')} required description={t('countryHint')}>
+        <Field id="onboarding-country" label={t('country')} required description={t('countryHint')}>
           {(control) => (
             <Select
               value={country}
@@ -137,12 +139,12 @@ export function OnboardingForm() {
       <p className="text-sm font-medium text-[var(--pf-text-primary)]">{t('stepExperience')}</p>
       <p className="text-sm text-[var(--pf-text-secondary)]">{t('experienceHint')}</p>
 
-      <Field label={t('businessTypeLabel')} description={t('businessTypeHint')}>
+      <Field id="onboarding-business-type" label={t('businessTypeLabel')} description={t('businessTypeHint')}>
         {(control) => (
           <Select
             value={businessType}
             onValueChange={(value) => setBusinessType(value as OnboardingBusinessType)}
-            disabled={path === 'all' || path === 'none'}
+            disabled={path === 'all'}
           >
             <SelectTrigger id={control.id} aria-describedby={control['aria-describedby']}>
               <SelectValue />
@@ -158,12 +160,11 @@ export function OnboardingForm() {
         )}
       </Field>
 
-      <Field label={t('workStyleLabel')} description={t('workStyleHint')}>
+      <Field id="onboarding-work-style" label={t('workStyleLabel')} description={t('workStyleHint')}>
         {(control) => (
           <Select
             value={workStyle}
             onValueChange={(value) => setWorkStyle(value as OnboardingWorkStyle)}
-            disabled={path === 'none'}
           >
             <SelectTrigger id={control.id} aria-describedby={control['aria-describedby']}>
               <SelectValue />
@@ -185,13 +186,13 @@ export function OnboardingForm() {
             {t('manageLabel')}
           </legend>
           <p className="text-xs text-[var(--pf-text-muted)]">{t('manageHint')}</p>
-          <div className="flex flex-col gap-2 rounded-lg border border-[var(--pf-border-default)] p-3">
+          <div className="flex flex-col gap-1 rounded-lg border border-[var(--pf-border-default)] p-2 sm:p-3">
             {ONBOARDING_MANAGE_OPTIONS.map((option) => {
               const checked = manageOptions.includes(option);
               return (
                 <label
                   key={option}
-                  className="flex cursor-pointer items-center gap-3 text-sm text-[var(--pf-text-primary)]"
+                  className="flex min-h-11 cursor-pointer items-center gap-3 rounded-md px-2 text-sm text-[var(--pf-text-primary)] hover:bg-[var(--pf-bg-muted)]"
                 >
                   <Checkbox
                     checked={checked}
@@ -212,35 +213,29 @@ export function OnboardingForm() {
         </legend>
         <p className="text-xs text-[var(--pf-text-muted)]">{t('pathHint')}</p>
         <div className="flex flex-col gap-2">
-          {(
-            [
-              { value: 'recommended' as const, label: t('path.recommended'), hint: t('path.recommendedHint') },
-              { value: 'all' as const, label: t('path.all'), hint: t('path.allHint') },
-              { value: 'none' as const, label: t('path.none'), hint: t('path.noneHint') },
-            ] as const
-          ).map((option) => (
+          {CUSTOMER_ONBOARDING_PATHS.map((value) => (
             <label
-              key={option.value}
-              className="flex cursor-pointer flex-col gap-0.5 rounded-lg border border-[var(--pf-border-default)] p-3 has-[:checked]:border-[var(--pf-action-primary)]"
+              key={value}
+              className="flex min-h-11 cursor-pointer flex-col justify-center gap-0.5 rounded-lg border border-[var(--pf-border-default)] p-3 has-[:checked]:border-[var(--pf-action-primary)]"
             >
               <span className="flex items-center gap-2 text-sm font-medium text-[var(--pf-text-primary)]">
                 <input
                   type="radio"
                   name="onboardingPath"
-                  value={option.value}
-                  checked={path === option.value}
-                  onChange={() => setPath(option.value)}
-                  className="accent-[var(--pf-action-primary)]"
+                  value={value}
+                  checked={path === value}
+                  onChange={() => setPath(value)}
+                  className="size-4 accent-[var(--pf-action-primary)]"
                 />
-                {option.label}
+                {t(`path.${value}`)}
               </span>
-              <span className="ps-6 text-xs text-[var(--pf-text-muted)]">{option.hint}</span>
+              <span className="ps-6 text-xs text-[var(--pf-text-muted)]">{t(`path.${value}Hint`)}</span>
             </label>
           ))}
         </div>
       </fieldset>
 
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-2 pb-[env(safe-area-inset-bottom)]">
         <Button type="submit" loading={pending} block>
           {t('submit')}
         </Button>

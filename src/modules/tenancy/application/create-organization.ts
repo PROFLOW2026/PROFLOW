@@ -101,8 +101,13 @@ export async function createOrganization(
         moduleMode,
         extraModules: input.extraModules,
         workMixOverride: input.workMix,
-        // Recommended path uses replace — start with a simple experience surface.
-        experienceComplexity: moduleMode === 'replace' ? 'simple' : undefined,
+        // Recommended path → simple surface; All Capabilities → full customer set.
+        experienceComplexity:
+          profileKey === 'ALL_CAPABILITIES'
+            ? 'full'
+            : moduleMode === 'replace'
+              ? 'simple'
+              : undefined,
       },
     );
   }

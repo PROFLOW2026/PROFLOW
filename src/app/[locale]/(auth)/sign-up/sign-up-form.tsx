@@ -1,19 +1,41 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { useActionState } from 'react';
+import { useActionState, useMemo, useState } from 'react';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
-import { Link } from '@/shared/i18n/navigation';
-import { signUpAction, type AuthFormState } from '../actions';
+import { PasswordInput } from '@/components/ui/password-input';
 import { textNavLinkClassName } from '@/components/ui/pressable';
+import { Link } from '@/shared/i18n/navigation';
 import { cn } from '@/shared/ui/cn';
+import {
+  MIN_PASSWORD_LENGTH,
+  isPasswordLongEnough,
+  passwordsMatch,
+} from '@/shared/auth/password-policy';
+import { signUpAction, type AuthFormState } from '../actions';
 
 export function SignUpForm() {
   const t = useTranslations('auth.signUp');
+  const tValidation = useTranslations('validation');
   const [state, formAction, pending] = useActionState<AuthFormState, FormData>(signUpAction, {});
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [touched, setTouched] = useState({ password: false, confirm: false });
+
+  const passwordError = useMemo(() => {
+    if (!touched.password || !password) return null;
+    if (!isPasswordLongEnough(password)) return tValidation('passwordTooWeak');
+    return null;
+  }, [password, touched.password, tValidation]);
+
+  const confirmError = useMemo(() => {
+    if (!touched.confirm || !confirmPassword) return null;
+    if (!passwordsMatch(password, confirmPassword)) return tValidation('passwordsDoNotMatch');
+    return null;
+  }, [confirmPassword, password, touched.confirm, tValidation]);
 
   if (state.notice === 'check-email') {
     return (
@@ -30,7 +52,7 @@ export function SignUpForm() {
   }
 
   return (
-    <form action={formAction} className="flex flex-col gap-4">
+    <form action={formAction} className="flex flex-col gap-4" noValidate>
       <div>
         <h1 className="text-xl font-semibold">{t('title')}</h1>
         <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">{t('subtitle')}</p>
@@ -38,11 +60,11 @@ export function SignUpForm() {
 
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
 
-      <Field label={t('displayName')} required>
+      <Field id="sign-up-display-name" label={t('displayName')} required>
         {(control) => <Input {...control} name="displayName" autoComplete="name" required />}
       </Field>
 
-      <Field label={t('email')} required>
+      <Field id="sign-up-email" label={t('email')} required>
         {(control) => (
           <Input
             {...control}
@@ -56,9 +78,44 @@ export function SignUpForm() {
         )}
       </Field>
 
-      <Field label={t('password')} required description={t('passwordHint')}>
+      <Field
+        id="sign-up-password"
+        label={t('password')}
+        required
+        description={t('passwordHint')}
+        error={passwordError}
+      >
         {(control) => (
-          <Input {...control} name="password" type="password" autoComplete="new-password" minLength={10} required />
+          <PasswordInput
+            {...control}
+            name="password"
+            autoComplete="new-password"
+            minLength={MIN_PASSWORD_LENGTH}
+            required
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            onBlur={() => setTouched((current) => ({ ...current, password: true }))}
+          />
+        )}
+      </Field>
+
+      <Field
+        id="sign-up-confirm-password"
+        label={t('confirmPassword')}
+        required
+        error={confirmError}
+      >
+        {(control) => (
+          <PasswordInput
+            {...control}
+            name="confirmPassword"
+            autoComplete="new-password"
+            minLength={MIN_PASSWORD_LENGTH}
+            required
+            value={confirmPassword}
+            onChange={(event) => setConfirmPassword(event.target.value)}
+            onBlur={() => setTouched((current) => ({ ...current, confirm: true }))}
+          />
         )}
       </Field>
 

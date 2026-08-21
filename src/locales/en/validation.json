@@ -12,7 +12,7 @@
   "currencyMismatch": "All amounts in this record must use the same currency.",
   "allocationMustTotal": "Allocation lines must add up to the expense amount.",
   "percentMustTotal": "Percentages must add up to 100%.",
-  "passwordTooWeak": "Use at least 10 characters.",
-  "passwordsDoNotMatch": "The passwords do not match.",
+  "passwordTooWeak": "Password must be at least 8 characters",
+  "passwordsDoNotMatch": "Passwords do not match",
   "duplicateValue": "This value is already in use."
 }

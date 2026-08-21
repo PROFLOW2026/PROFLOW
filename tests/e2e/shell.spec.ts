@@ -1,5 +1,6 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
+import { he } from './fixtures/locales';
 
 /**
  * Smoke coverage that holds regardless of whether the environment has Supabase
@@ -45,7 +46,7 @@ test.describe('unauthenticated access', () => {
     } else {
       await expect(page).toHaveURL(/\/he-IL\/?$/);
       await expect(
-        page.getByRole('heading', { level: 1, name: 'שליטה בפרויקט - מהחוזה ועד הרווח' }),
+        page.getByRole('heading', { level: 1, name: he.marketing.hero.title }),
       ).toBeVisible();
       await expect(page.locator('[data-pf-public-homepage]')).toBeVisible();
       await expect(page.locator('[data-pf-shell="app"]')).toHaveCount(0);

@@ -12,7 +12,7 @@
   "currencyMismatch": "כל הסכומים באותו פריט חייבים להיות באותו מטבע.",
   "allocationMustTotal": "סכום שורות הפיצול חייב להתאים לסכום ההוצאה.",
   "percentMustTotal": "סך האחוזים חייב להיות 100%.",
-  "passwordTooWeak": "השתמשו בלפחות 10 תווים.",
-  "passwordsDoNotMatch": "הסיסמאות אינן תואמות.",
+  "passwordTooWeak": "הסיסמה חייבת להכיל לפחות 8 תווים",
+  "passwordsDoNotMatch": "הסיסמאות אינן תואמות",
   "duplicateValue": "הערך הזה כבר קיים."
 }
