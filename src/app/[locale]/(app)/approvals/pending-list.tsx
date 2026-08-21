@@ -53,7 +53,7 @@ function PendingCard({
             </p>
             {item.sourceHref ? (
               <p className="mt-1 text-sm">
-                <Link href={item.sourceHref} className="text-[var(--pf-text-link)] underline">
+                <Link href={item.sourceHref} className="text-[var(--pf-text-brand)] underline">
                   {t('openEntity')}
                 </Link>
               </p>
