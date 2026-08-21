@@ -900,7 +900,9 @@ export function BoqPanelClient({
                       >
                         <option value="quantity_change">{t('allocate.kindQuantity')}</option>
                         <option value="unit_price_change">{t('allocate.kindUnitPrice')}</option>
+                        <option value="new_item">{t('allocate.kindNewItem')}</option>
                         <option value="unallocated_contract">{t('allocate.unallocated')}</option>
+                        <option value="lump_sum">{t('allocate.kindLumpSum')}</option>
                       </select>
                     )}
                   </Field>

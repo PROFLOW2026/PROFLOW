@@ -40,6 +40,8 @@ export async function collectPresetMatches(
         body: 'Client balance is past due.',
         href: `/billing/${row.id}`,
         projectId: row.projectId,
+        amount: row.outstandingAmount?.amount ?? null,
+        currency: row.outstandingAmount?.currency ?? row.totalAmount?.currency ?? null,
       }));
     }
     case 'quote_no_followup': {
@@ -67,6 +69,8 @@ export async function collectPresetMatches(
           body: 'Supplier bill has reached its due date.',
           href: `/procurement/ap/${bill.id}`,
           projectId: bill.projectId,
+          amount: bill.totalAmount ?? null,
+          currency: bill.currency ?? null,
         }));
     }
     case 'timesheet_not_submitted': {
@@ -80,7 +84,7 @@ export async function collectPresetMatches(
         entityId: row.id,
         title: 'Timesheet not submitted',
         body: 'A timesheet is still a draft.',
-        href: '/workforce/time/approvals',
+        href: `/workforce/timesheets/${row.id}`,
       }));
     }
     case 'timesheet_waiting_approval': {
@@ -94,7 +98,7 @@ export async function collectPresetMatches(
         entityId: row.id,
         title: 'Timesheet waiting for approval',
         body: 'A timesheet is waiting for approval.',
-        href: '/workforce/time/approvals',
+        href: `/workforce/timesheets/${row.id}`,
       }));
     }
     case 'ocr_waiting_review': {

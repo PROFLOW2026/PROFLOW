@@ -21,6 +21,7 @@ export {
 } from './application/manage-contacts';
 export { getClientFinancials } from './application/get-client-financials';
 export type { ClientFinancialView } from './application/get-client-financials';
+export { findClientById } from './data/clients.repository';
 export { getClientTimeline, recordActivityEvent } from './application/timeline';
 export type { ClientTimelineView } from './application/timeline';
 export type { ClientTimelineEventView } from './domain/timeline';

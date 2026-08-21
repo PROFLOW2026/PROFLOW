@@ -1,6 +1,12 @@
 import { z } from 'zod';
 import { isBusinessDate } from '@/shared/dates';
-import { CONTACT_ROLES, ENGAGEMENT_STATUSES, VENDOR_STATUSES, VENDOR_TYPES } from '../domain/types';
+import {
+  CONTACT_ROLES,
+  ENGAGEMENT_STATUSES,
+  VENDOR_IDENTIFIER_TYPES,
+  VENDOR_STATUSES,
+  VENDOR_TYPES,
+} from '../domain/types';
 import {
   SUBCONTRACT_CHANGE_DIRECTIONS,
   SUBCONTRACT_REQUIRED_DOC_TYPES,
@@ -42,6 +48,9 @@ export const createVendorSchema = z.object({
   tier: optionalText,
   parentVendorId: z.preprocess(emptyToNull, z.string().uuid().nullable().optional()),
   notes: optionalText,
+  defaultPaymentTermId: z.preprocess(emptyToNull, z.string().uuid().nullable().optional()),
+  categoryIds: z.array(z.string().uuid()).optional(),
+  specialtyIds: z.array(z.string().uuid()).optional(),
 });
 
 export type CreateVendorInput = z.input<typeof createVendorSchema>;
@@ -60,6 +69,9 @@ export const updateVendorSchema = z.object({
   tier: optionalText,
   parentVendorId: z.preprocess(emptyToNull, z.string().uuid().nullable().optional()),
   notes: optionalText,
+  defaultPaymentTermId: z.preprocess(emptyToNull, z.string().uuid().nullable().optional()),
+  categoryIds: z.array(z.string().uuid()).optional(),
+  specialtyIds: z.array(z.string().uuid()).optional(),
 });
 
 export type UpdateVendorInput = z.input<typeof updateVendorSchema>;
@@ -74,9 +86,20 @@ export const listVendorsSchema = z.object({
   search: z.string().trim().optional(),
   status: z.enum([...VENDOR_STATUSES, 'all'] as const).optional(),
   type: z.enum([...VENDOR_TYPES, 'all'] as const).optional(),
+  categoryId: z.string().uuid().optional(),
   includeArchived: z.boolean().optional(),
   limit: z.coerce.number().int().min(0).optional(),
   offset: z.coerce.number().int().min(0).optional(),
+});
+
+export const upsertVendorIdentifierSchema = z.object({
+  vendorId: z.string().uuid(),
+  type: z.enum(VENDOR_IDENTIFIER_TYPES),
+  value: z.string().trim().min(1).max(120),
+});
+
+export const deleteVendorIdentifierSchema = z.object({
+  identifierId: z.string().uuid(),
 });
 
 export const createContactSchema = z.object({
@@ -181,9 +204,15 @@ export const createSubcontractSchema = z
     parentContractId: z.preprocess(emptyToNull, z.string().uuid().nullable().optional()),
     originalAmount: moneyAmountSchema,
     retentionPercent: optionalPercentSchema,
+    paymentTermId: z.preprocess(emptyToNull, z.string().uuid().nullable().optional()),
     startDate: optionalBusinessDate,
     endDate: optionalBusinessDate,
     notes: optionalText,
+    /**
+     * When vendor.type is supplier, must be true to promote to both.
+     * Never silent — callers must pass explicit confirmation.
+     */
+    promoteVendorToBoth: z.boolean().optional(),
   })
   .superRefine((value, ctx) => {
     if (value.startDate && value.endDate && value.endDate < value.startDate) {
@@ -196,6 +225,17 @@ export const createSubcontractSchema = z
   });
 
 export type CreateSubcontractInput = z.infer<typeof createSubcontractSchema>;
+
+export const listOrgSubcontractsSchema = z.object({
+  vendorId: z.string().uuid().optional(),
+  projectId: z.string().uuid().optional(),
+  status: z
+    .enum(['draft', 'active', 'completed', 'cancelled', 'all'] as const)
+    .optional(),
+  limit: z.coerce.number().int().min(0).optional(),
+});
+
+export type ListOrgSubcontractsInput = z.input<typeof listOrgSubcontractsSchema>;
 
 export const updateSubcontractSchema = z
   .object({

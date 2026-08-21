@@ -167,7 +167,13 @@
     "workforceNotesPlaceholder": "Crew, site notes…",
     "blockersLabel": "Blockers",
     "blockersHint": "Issues that slowed or stopped work.",
-    "blockersPlaceholder": "Materials, access, weather delays…"
+    "blockersPlaceholder": "Materials, access, weather delays…",
+    "vendorsOnSite": "Vendors / subcontractors on site",
+    "vendorsOnSiteHint": "Links real vendor records. Does not create Actual cost. Prefer subcontractors.",
+    "employeesOnSite": "Employees on site",
+    "employeesOnSiteHint": "Optional roster links for who was on site.",
+    "assetsOnSite": "Assets / equipment on site",
+    "assetsOnSiteHint": "Optional equipment links. Free-text equipment notes stay available below."
   },
   "extraFields": {
     "title": "More site details",

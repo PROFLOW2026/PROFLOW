@@ -115,6 +115,14 @@ export {
   orderQuickCreateActions,
 } from './application/apply-business-profile';
 export type { ApplyBusinessProfileOptions } from './application/apply-business-profile';
+export {
+  backfillExistingOrgBusinessCatalogs,
+  ensureOrgBusinessCatalogDefaults,
+} from './application/backfill-business-catalogs';
+export {
+  getOrganizationSettingValue,
+  upsertOrganizationSettingValue,
+} from './data/organization-settings.repository';
 export { seedBusinessProfileSetup } from './application/seed-business-profile-setup';
 export { applyOrganizationProfessionPreset } from './application/apply-organization-profession-preset';
 export { applyOrganizationBusinessProfile } from './application/apply-organization-business-profile';
@@ -230,11 +238,17 @@ export {
 export {
   UNUSED_CAPABILITY_DISMISSALS_SETTING_KEY,
   UNUSED_CAPABILITY_NEVER_SUGGEST,
+  UNUSED_CAPABILITY_PRIORITY,
   UNUSED_CAPABILITY_STALE_DAYS,
+  DISCOVERABILITY_TIP_KEYS,
   parseUnusedCapabilityDismissals,
   suggestUnusedCapabilities,
+  listDiscoverabilityTipKeys,
 } from './domain/unused-capability-suggestions';
-export type { ModulePreferenceForSuggestion } from './domain/unused-capability-suggestions';
+export type {
+  ModulePreferenceForSuggestion,
+  DiscoverabilityTipKey,
+} from './domain/unused-capability-suggestions';
 export {
   getUnusedCapabilityDismissals,
   dismissUnusedCapabilitySuggestion,

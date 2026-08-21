@@ -47,6 +47,32 @@ vi.mock('@/modules/ops-finance/application/load-ops-snapshot', () => ({
         notes: null,
       };
     }
+    if (kind === 'material_usage_record' && id === '01900000-0000-7000-8000-000000000601') {
+      return {
+        opsRecordKind: 'material_usage_record' as const,
+        opsRecordId: id,
+        costAmount: null,
+        currency: null,
+        title: 'Rebar bundle',
+        vendorId: null,
+        projectId: '01900000-0000-7000-8000-000000000222',
+        occurredOn: '2026-08-14',
+        notes: null,
+      };
+    }
+    if (kind === 'equipment_usage_record' && id === '01900000-0000-7000-8000-000000000602') {
+      return {
+        opsRecordKind: 'equipment_usage_record' as const,
+        opsRecordId: id,
+        costAmount: null,
+        currency: null,
+        title: 'Equipment usage · Tower Crane',
+        vendorId: null,
+        projectId: '01900000-0000-7000-8000-000000000222',
+        occurredOn: '2026-08-14',
+        notes: null,
+      };
+    }
     throw new Error('not found in test double');
   }),
 }));
@@ -74,6 +100,8 @@ function contextWith(permissions: readonly PermissionKey[]): OrgContext {
 const MAINTENANCE_ID = '01900000-0000-7000-8000-000000000111';
 const PROJECT_ID = '01900000-0000-7000-8000-000000000222';
 const COMPLIANCE_ID = '01900000-0000-7000-8000-000000000333';
+const MATERIAL_USAGE_ID = '01900000-0000-7000-8000-000000000601';
+const EQUIPMENT_USAGE_ID = '01900000-0000-7000-8000-000000000602';
 
 describe('ops→finance hard rules', () => {
   it('ops record cost alone is never Actual', () => {
@@ -292,5 +320,46 @@ describe('insurance / compliance → draft with optional allocation fields', () 
         allocationDriverMethod: 'contract_weight',
       }),
     );
+  });
+});
+
+describe('usage records → draft only (no auto-Actual)', () => {
+  beforeEach(() => {
+    setOpsFinancePersistenceReadyForTests(false);
+    resetOpsExpenseLinksStoreForTests();
+  });
+
+  afterEach(() => {
+    setOpsFinancePersistenceReadyForTests(null);
+  });
+
+  it.each([
+    ['material_usage_record', MATERIAL_USAGE_ID] as const,
+    ['equipment_usage_record', EQUIPMENT_USAGE_ID] as const,
+  ])('%s explicit link stays draft and blocks duplicate', async (kind, recordId) => {
+    const ctx = contextWith([PERMISSIONS.EXPENSES_CREATE]);
+    let n = 0;
+    const createExpense = vi.fn(async () => {
+      n += 1;
+      return { id: `01900000-0000-7000-8000-00000000070${n}`, status: 'draft' };
+    });
+
+    const created = await createLinkedExpenseFromOpsRecord(
+      ctx,
+      { opsRecordKind: kind, opsRecordId: recordId, amount: '1500', currency: 'ILS' },
+      { createExpense },
+    );
+
+    expect(created.expenseStatus).toBe('draft');
+    expect(expenseStatusContributesToActual(created.expenseStatus)).toBe(false);
+    expect(createExpense).toHaveBeenCalledTimes(1);
+
+    await expect(
+      createLinkedExpenseFromOpsRecord(
+        ctx,
+        { opsRecordKind: kind, opsRecordId: recordId, amount: '1500', currency: 'ILS' },
+        { createExpense },
+      ),
+    ).rejects.toBeInstanceOf(DomainRuleError);
   });
 });

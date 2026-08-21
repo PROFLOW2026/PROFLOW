@@ -176,6 +176,8 @@
     "threeActionsHint": "Purchase receiving, inventory quantity, and material usage are three different actions. None of them posts project Actual.",
     "locationsTitle": "Locations",
     "locationsHint": "Quantity-only bins. Receive goes to a location, issue comes from one, transfer moves between two. Header on-hand is the sum.",
+    "opsTitle": "Transfer and adjust",
+    "opsHint": "Move quantity between locations or adjust on-hand. Quantity only — never an expense or Actual.",
     "locationsEmpty": "No locations yet. The default Main / ראשי location is created on first receive.",
     "locationNameLabel": "Location name",
     "locationCodeLabel": "Code",
@@ -299,6 +301,8 @@
     "materialHint": "Log operational qty used on this project, job, or work order. Optional catalog / inventory links. Quantity only - not cost or Actual.",
     "equipmentSection": "Equipment / vehicle usage",
     "equipmentHint": "Log asset use by date or range, with optional hours, days, or mileage.",
+    "equipmentExpenseDescription": "Equipment usage",
+    "materialExpenseHint": "Usage is not Actual. Create an expense draft explicitly when a cost should enter finance.",
     "descriptionLabel": "Description",
     "descriptionPlaceholder": "What was used",
     "quantityLabel": "Quantity",
@@ -349,7 +353,7 @@
     }
   },
   "financeLink": {
-    "create": "Create linked expense",
+    "create": "Create expense draft",
     "pending": "Creating…",
     "hint": "Creates an Expense draft only. Actual changes after you finalize the expense - not from this operational record alone.",
     "linkedDraft": "Linked expense draft",

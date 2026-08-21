@@ -62,6 +62,7 @@ export const MESSAGE_NAMESPACES = [
   'changes',
   'billing',
   'vendors',
+  'contracts',
   'workforce',
   'documents',
   'compliance',

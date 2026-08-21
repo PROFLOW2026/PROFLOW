@@ -42,6 +42,7 @@ describe('settings section grouping', () => {
       'approvals',
       'features',
       'costCategories',
+      'businessCatalogs',
       'templates',
       'catalog',
       'roles',

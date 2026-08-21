@@ -122,7 +122,10 @@ describe('subcontract agreements', () => {
         organizationId: orgA.organizationId,
         locale: 'en',
       });
-      const vendor = await createVendor(context, { name: 'Alpha Sub' });
+      const vendor = await createVendor(context, {
+        name: 'Alpha Sub',
+        type: 'subcontractor',
+      });
       const { projectId } = await createProject(context, { name: 'Alpha Site' });
       const subcontract = await createSubcontract(context, {
         title: 'Secret package',

@@ -61,16 +61,18 @@ export function ApBillCreateForm({
   projects,
   purchaseOrders,
   poLinesByPoId,
+  paymentTerms,
   defaultPurchaseOrderId = '',
 }: {
   defaultCurrency: string;
-  vendors: readonly { id: string; name: string }[];
+  vendors: readonly { id: string; name: string; defaultPaymentTermId: string | null }[];
   projects: readonly { id: string; name: string }[];
   purchaseOrders: readonly { id: string; reference: string | null; vendorId: string }[];
   poLinesByPoId: Record<
     string,
     readonly { id: string; description: string; lineTotal: string; currency: string }[]
   >;
+  paymentTerms: readonly { id: string; name: string }[];
   defaultPurchaseOrderId?: string;
 }) {
   const t = useTranslations('ap.create');
@@ -81,6 +83,10 @@ export function ApBillCreateForm({
   const [vendorId, setVendorId] = useState(initialPo?.vendorId ?? '');
   const [projectId, setProjectId] = useState('');
   const [purchaseOrderId, setPurchaseOrderId] = useState(initialPo?.id ?? '');
+  const [paymentTermId, setPaymentTermId] = useState(() => {
+    const vendor = vendors.find((row) => row.id === (initialPo?.vendorId ?? ''));
+    return vendor?.defaultPaymentTermId ?? '';
+  });
   const [lines, setLines] = useState<LineDraft[]>([emptyLine()]);
   const currency = defaultCurrency;
 
@@ -138,6 +144,11 @@ export function ApBillCreateForm({
         name="purchaseOrderId"
         value={purchaseOrderId === NONE ? '' : purchaseOrderId}
       />
+      <input
+        type="hidden"
+        name="paymentTermId"
+        value={paymentTermId === NONE ? '' : paymentTermId}
+      />
 
       <Field label={t('vendorLabel')} required>
         {(props) => (
@@ -146,6 +157,8 @@ export function ApBillCreateForm({
             onValueChange={(value) => {
               setVendorId(value);
               setPurchaseOrderId('');
+              const vendor = vendors.find((row) => row.id === value);
+              setPaymentTermId(vendor?.defaultPaymentTermId ?? '');
             }}
           >
             <SelectTrigger {...props}>
@@ -212,10 +225,30 @@ export function ApBillCreateForm({
         <Field label={t('billDateLabel')}>
           {(props) => <Input {...props} name="billDate" type="date" dir="ltr" />}
         </Field>
-        <Field label={t('dueDateLabel')}>
+        <Field label={t('dueDateLabel')} description={t('dueDateHint')}>
           {(props) => <Input {...props} name="dueDate" type="date" dir="ltr" />}
         </Field>
       </div>
+
+      {paymentTerms.length > 0 ? (
+        <Field label={t('paymentTermLabel')} description={t('paymentTermHint')}>
+          {(props) => (
+            <Select value={paymentTermId || NONE} onValueChange={setPaymentTermId}>
+              <SelectTrigger {...props}>
+                <SelectValue placeholder={t('paymentTermNone')} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={NONE}>{t('paymentTermNone')}</SelectItem>
+                {paymentTerms.map((term) => (
+                  <SelectItem key={term.id} value={term.id}>
+                    {term.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+        </Field>
+      ) : null}
 
       <Field label={t('notesLabel')}>
         {(props) => <Textarea {...props} name="notes" rows={3} />}

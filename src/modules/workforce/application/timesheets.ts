@@ -220,6 +220,11 @@ export async function getTimesheetDetail(
 ): Promise<{
   readonly timesheet: TimesheetListItem;
   readonly entries: TimeEntryListItem[];
+  readonly totals: {
+    readonly projectHours: number;
+    readonly nonProjectHours: number;
+    readonly missingDays: number | null;
+  };
 }> {
   assertAnyPermission(context, [PERMISSIONS.WORKFORCE_READ, PERMISSIONS.TIME_MANAGE]);
   const sheet = await requireTimesheet(context, timesheetId);
@@ -242,6 +247,36 @@ export async function getTimesheetDetail(
     .map((row) =>
       canReadCost ? row : { ...row, costAmount: null, costCurrency: null },
     );
+
+  let projectHours = 0;
+  let nonProjectHours = 0;
+  const daysWithHours = new Set<string>();
+  for (const entry of visibleEntries) {
+    const hours = Number(entry.hours) || 0;
+    if (entry.kind === 'project') projectHours += hours;
+    else nonProjectHours += hours;
+    daysWithHours.add(entry.workDate);
+  }
+
+  const periodStart = new Date(`${sheet.periodStart}T00:00:00Z`);
+  const periodEnd = new Date(`${sheet.periodEnd}T00:00:00Z`);
+  let missingDays: number | null = null;
+  if (
+    !Number.isNaN(periodStart.getTime()) &&
+    !Number.isNaN(periodEnd.getTime()) &&
+    periodEnd >= periodStart
+  ) {
+    let expected = 0;
+    for (
+      const cursor = new Date(periodStart);
+      cursor <= periodEnd;
+      cursor.setUTCDate(cursor.getUTCDate() + 1)
+    ) {
+      expected += 1;
+    }
+    missingDays = Math.max(0, expected - daysWithHours.size);
+  }
+
   return {
     timesheet: named ?? {
       ...sheet,
@@ -250,6 +285,7 @@ export async function getTimesheetDetail(
       totalHours: visibleEntries.reduce((sum, entry) => sum + Number(entry.hours), 0).toString(),
     },
     entries: visibleEntries,
+    totals: { projectHours, nonProjectHours, missingDays },
   };
 }
 
@@ -530,6 +566,7 @@ export async function approveTimesheet(
         status: 'approved',
         decidedAt: now,
         decidedByUserId: context.userId,
+        lockedAt: now,
       },
       { fromStatuses: ['submitted'] },
     );
@@ -541,6 +578,7 @@ export async function approveTimesheet(
       entityId: updatedSheet.id,
       after: {
         status: 'approved',
+        lockedAt: now.toISOString(),
         entryIds: updatedEntries.map((entry) => entry.id),
       },
     });
@@ -675,6 +713,7 @@ export async function bulkApproveTimeEntries(
             status: 'approved',
             decidedAt: now,
             decidedByUserId: context.userId,
+            lockedAt: now,
           },
           { fromStatuses: ['submitted'] },
         );

@@ -12,6 +12,10 @@ import {
   removeBoqNode,
   upsertBoqNode,
 } from '@/modules/boq';
+import {
+  BOQ_USER_ALLOCATION_KINDS,
+  type BoqUserAllocationKind,
+} from '@/modules/boq/domain/types';
 import { withOrgContext } from '@/shared/auth/session';
 import { AppError } from '@/shared/errors';
 
@@ -278,8 +282,9 @@ export async function allocateApprovedChangeToBoqAction(
           {
             allocationKind: (() => {
               const kind = String(formData.get('allocationKind') ?? 'quantity_change');
-              if (kind === 'unallocated_contract') return 'unallocated_contract';
-              if (kind === 'unit_price_change') return 'unit_price_change';
+              if ((BOQ_USER_ALLOCATION_KINDS as readonly string[]).includes(kind)) {
+                return kind as BoqUserAllocationKind;
+              }
               return 'quantity_change';
             })(),
             boqNodeId: formData.get('boqNodeId') ? String(formData.get('boqNodeId')) : null,

@@ -29,6 +29,7 @@ export * from './crm';
 export * from './portal';
 export * from './compliance';
 export * from './custom-fields';
+export * from './business-catalog';
 export * from './api-platform';
 export * from './procurement';
 export * from './field-ops';

@@ -45,6 +45,8 @@ export interface ProjectBudgetLineRecord {
   readonly workPackageId: string | null;
   readonly disciplineKey: string | null;
   readonly costCode: string | null;
+  /** Org catalog cost_code entry — distinct from costCategoryId on expense allocations. */
+  readonly costCodeId: string | null;
   readonly label: string;
   readonly budgetAmount: string;
   readonly etcAmount: string | null;

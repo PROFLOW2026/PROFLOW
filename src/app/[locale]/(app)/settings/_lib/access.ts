@@ -10,6 +10,7 @@ export type SettingsSectionKey =
   | 'roles'
   | 'features'
   | 'costCategories'
+  | 'businessCatalogs'
   | 'catalog'
   | 'templates'
   | 'tax'
@@ -53,6 +54,12 @@ export const SETTINGS_SECTIONS: readonly SettingsSection[] = [
   { key: 'approvals', href: '/settings/approvals', permission: PERMISSIONS.APPROVALS_MANAGE, group: 'business' },
   { key: 'features', href: '/settings/features', permission: PERMISSIONS.SETTINGS_MANAGE, group: 'business' },
   { key: 'costCategories', href: '/settings/cost-categories', permission: PERMISSIONS.SETTINGS_MANAGE, group: 'business' },
+  {
+    key: 'businessCatalogs',
+    href: '/settings/business-catalogs',
+    permission: PERMISSIONS.SETTINGS_MANAGE,
+    group: 'business',
+  },
   { key: 'templates', href: '/settings/templates', permission: PERMISSIONS.SETTINGS_MANAGE, group: 'business' },
   { key: 'catalog', href: '/settings/catalog', permission: PERMISSIONS.SETTINGS_MANAGE, group: 'business' },
   { key: 'roles', href: '/settings/roles', permission: PERMISSIONS.ROLES_MANAGE, group: 'business' },
@@ -133,6 +140,7 @@ export function canManageSection(context: OrgContext, sectionKey: SettingsSectio
       return hasPermission(context, PERMISSIONS.ROLES_MANAGE);
     case 'features':
     case 'costCategories':
+    case 'businessCatalogs':
     case 'catalog':
     case 'templates':
       return hasPermission(context, PERMISSIONS.SETTINGS_MANAGE);

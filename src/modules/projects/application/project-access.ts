@@ -3,11 +3,12 @@ import { projects } from '@drizzle/schema';
 import { AUDIT_ACTIONS, recordAuditEvent } from '@/shared/audit';
 import type { OrgContext } from '@/shared/auth/context';
 import { findActiveMembership } from '@/modules/tenancy';
-import { NotFoundError, ValidationError } from '@/shared/errors';
+import { AuthorizationError, NotFoundError, ValidationError } from '@/shared/errors';
 import { assertPermission, hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import {
   isProjectAccessMode,
+  PROJECT_ACCESS_LEVELS,
   type ProjectAccessLevel,
   type ProjectAccessMode,
 } from '../domain/project-access';
@@ -21,6 +22,27 @@ import {
   type ProjectAccessGrantRecord,
 } from '../data/project-access.repository';
 
+/** Org-wide mode or grants: members.manage, or owners with access_all + projects.update. */
+export function canManageProjectAccess(context: OrgContext): boolean {
+  if (hasPermission(context, PERMISSIONS.MEMBERS_MANAGE)) return true;
+  return (
+    hasPermission(context, PERMISSIONS.PROJECTS_ACCESS_ALL) &&
+    hasPermission(context, PERMISSIONS.PROJECTS_UPDATE)
+  );
+}
+
+function assertCanManageProjectAccess(context: OrgContext): void {
+  if (canManageProjectAccess(context)) return;
+  assertPermission(context, PERMISSIONS.MEMBERS_MANAGE);
+}
+
+function parseAccessLevel(raw: unknown): ProjectAccessLevel {
+  if (typeof raw === 'string' && (PROJECT_ACCESS_LEVELS as readonly string[]).includes(raw)) {
+    return raw as ProjectAccessLevel;
+  }
+  return 'read';
+}
+
 export async function getProjectAccessModeForOrg(context: OrgContext): Promise<ProjectAccessMode> {
   return getStoredProjectAccessMode(context.db, context.organizationId);
 }
@@ -29,7 +51,7 @@ export async function saveProjectAccessMode(
   context: OrgContext,
   raw: unknown,
 ): Promise<ProjectAccessMode> {
-  assertPermission(context, PERMISSIONS.MEMBERS_MANAGE);
+  assertCanManageProjectAccess(context);
   if (!isProjectAccessMode(raw)) {
     throw new ValidationError([{ path: 'mode', message: 'Invalid project access mode' }]);
   }
@@ -47,15 +69,20 @@ export async function listProjectAccessGrantsForOrg(
   context: OrgContext,
   projectId?: string,
 ): Promise<ProjectAccessGrantRecord[]> {
-  assertPermission(context, PERMISSIONS.MEMBERS_READ);
+  if (
+    !hasPermission(context, PERMISSIONS.MEMBERS_READ) &&
+    !hasPermission(context, PERMISSIONS.PROJECTS_READ)
+  ) {
+    throw new AuthorizationError('Not allowed to list project access grants');
+  }
   return listProjectAccessGrants(context.db, context.organizationId, projectId);
 }
 
 export async function grantProjectAccess(
   context: OrgContext,
-  input: { userId: string; projectId: string; accessLevel?: ProjectAccessLevel },
+  input: { userId: string; projectId: string; accessLevel?: ProjectAccessLevel | string },
 ): Promise<ProjectAccessGrantRecord> {
-  assertPermission(context, PERMISSIONS.MEMBERS_MANAGE);
+  assertCanManageProjectAccess(context);
 
   const [project] = await context.db
     .select({ id: projects.id })
@@ -75,11 +102,13 @@ export async function grantProjectAccess(
     ]);
   }
 
+  const accessLevel = parseAccessLevel(input.accessLevel);
+
   const grant = await insertProjectAccessGrant(context.db, {
     organizationId: context.organizationId,
     userId: input.userId,
     projectId: input.projectId,
-    accessLevel: input.accessLevel ?? 'read',
+    accessLevel,
     grantedByUserId: context.userId,
   });
 
@@ -93,7 +122,7 @@ export async function grantProjectAccess(
 }
 
 export async function revokeProjectAccess(context: OrgContext, grantId: string): Promise<void> {
-  assertPermission(context, PERMISSIONS.MEMBERS_MANAGE);
+  assertCanManageProjectAccess(context);
   const ok = await deleteProjectAccessGrant(context.db, context.organizationId, grantId);
   if (!ok) throw new NotFoundError('Project access grant');
   await recordAuditEvent(context, {

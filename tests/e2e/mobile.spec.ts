@@ -15,8 +15,8 @@ test.describe('mobile shell', () => {
     await expect(bottomNav.getByRole('link', { name: he.nav.dashboard })).toBeVisible();
     await expect(bottomNav.getByRole('link', { name: he.nav.today })).toBeVisible();
     await expect(bottomNav.getByRole('link', { name: he.nav.projects })).toBeVisible();
-    await expect(bottomNav.getByRole('link', { name: he.nav.expenses })).toBeVisible();
-
+    // Fourth primary slot varies by persona; More sheet holds overflow destinations.
+    await expect(bottomNav.locator('[data-pf-mobile-nav-more]')).toBeVisible();
     await assertNoPageHorizontalOverflow(page, 'mobile dashboard');
   });
 

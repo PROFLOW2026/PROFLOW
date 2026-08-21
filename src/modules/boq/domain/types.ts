@@ -25,8 +25,21 @@ export const BOQ_ALLOCATION_KINDS = [
   'unit_price_change',
   'new_item',
   'unallocated_contract',
+  'lump_sum',
+  'reversal',
+  'correction',
 ] as const;
 export type BoqAllocationKind = (typeof BOQ_ALLOCATION_KINDS)[number];
+
+/** User-facing allocate form only — system kinds (reversal/correction) stay RPC/system. */
+export const BOQ_USER_ALLOCATION_KINDS = [
+  'quantity_change',
+  'unit_price_change',
+  'new_item',
+  'unallocated_contract',
+  'lump_sum',
+] as const;
+export type BoqUserAllocationKind = (typeof BOQ_USER_ALLOCATION_KINDS)[number];
 
 export const BOQ_BATCH_STATUSES = ['draft', 'approved', 'billed', 'superseded', 'voided'] as const;
 export type BoqBatchStatus = (typeof BOQ_BATCH_STATUSES)[number];

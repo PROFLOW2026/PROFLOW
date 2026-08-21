@@ -139,6 +139,7 @@ export async function createApBillAction(
         reference: formValue(formData, 'reference'),
         billDate: formValue(formData, 'billDate'),
         dueDate: formValue(formData, 'dueDate'),
+        paymentTermId: formValue(formData, 'paymentTermId'),
         currency: requiredFormValue(formData, 'currency'),
         totalAmount: requiredFormValue(formData, 'totalAmount'),
         amountIncludesTax: formData.get('amountIncludesTax') === 'on',

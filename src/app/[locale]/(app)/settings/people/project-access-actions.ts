@@ -42,6 +42,7 @@ export async function grantProjectAccessAction(
       grantProjectAccess(context, {
         userId: String(formData.get('userId') ?? ''),
         projectId: String(formData.get('projectId') ?? ''),
+        accessLevel: String(formData.get('accessLevel') ?? 'read'),
       }),
     );
     revalidatePath('/settings/people');

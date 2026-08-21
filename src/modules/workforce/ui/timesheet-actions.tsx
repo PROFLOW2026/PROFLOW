@@ -76,6 +76,28 @@ export function EditDraftTimeEntryForm({
   );
 }
 
+export function SubmitTimesheetButton({
+  employeeId,
+  periodStart,
+}: {
+  readonly employeeId: string;
+  readonly periodStart: string;
+}) {
+  const t = useTranslations('workforce');
+  const [state, action, pending] = useActionState(submitTimeEntriesAction, {});
+
+  return (
+    <form action={action} className="flex flex-col items-start gap-1">
+      <input type="hidden" name="employeeId" value={employeeId} />
+      <input type="hidden" name="periodStart" value={periodStart} />
+      <Button type="submit" variant="secondary" size="sm" loading={pending}>
+        {t('time.actions.submitForApproval')}
+      </Button>
+      <ActionError state={state} />
+    </form>
+  );
+}
+
 export function ApproveTimesheetButton({
   timesheetId,
   timeEntryId,

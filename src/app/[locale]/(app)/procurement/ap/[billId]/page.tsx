@@ -7,6 +7,7 @@ import { Alert } from '@/components/ui/alert';
 import { PageHeader } from '@/components/ui/page-header';
 import { StatusBadge, type StatusShape } from '@/components/ui/status-badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { getCatalogEntryById } from '@/modules/business-catalog';
 import {
   getApBillDetail,
   getBillPayablePosition,
@@ -89,7 +90,7 @@ export default async function ApBillDetailPage({
 
     const canReadProjects = hasPermission(context, PERMISSIONS.PROJECTS_READ);
 
-    const [orders, expensesResult, documentsPanel, payablePosition, paymentRows, creditRows, projects, retentionReleases] =
+    const [orders, expensesResult, documentsPanel, payablePosition, paymentRows, creditRows, projects, retentionReleases, paymentTerm] =
       await Promise.all([
         canReadPo ? listPurchaseOrdersForOrg(context) : Promise.resolve([]),
         canReadExpenses
@@ -103,6 +104,9 @@ export default async function ApBillDetailPage({
           ? listProjectsForOrg(context, {}).catch(() => [])
           : Promise.resolve([]),
         listVendorBillRetentionReleases(context, billId).catch(() => []),
+        detail.bill.paymentTermId
+          ? getCatalogEntryById(context.db, context.organizationId, detail.bill.paymentTermId)
+          : Promise.resolve(null),
       ]);
 
     const hasActivePayments = paymentRows.some((row) => row.payment.status === 'recorded');
@@ -111,6 +115,7 @@ export default async function ApBillDetailPage({
     return {
       ...detail,
       canManage,
+      paymentTermName: paymentTerm?.name ?? null,
       documentsPanel,
       payablePosition,
       hasActivePayments,
@@ -175,6 +180,7 @@ export default async function ApBillDetailPage({
     retentionReleases,
     projects,
     orgToday,
+    paymentTermName,
   } = data;
 
   return (
@@ -221,9 +227,52 @@ export default async function ApBillDetailPage({
           </p>
         </div>
         <div className="min-w-0">
-          <p className="text-xs text-[var(--pf-text-muted)]">{t('detail.ruleNote')}</p>
+          <p className="text-xs text-[var(--pf-text-muted)]">{t('detail.dueDate')}</p>
+          <p>
+            {bill.dueDate ? (
+              <span dir="ltr">
+                {new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(
+                  new Date(bill.dueDate),
+                )}
+              </span>
+            ) : (
+              '-'
+            )}
+          </p>
+        </div>
+        <div className="min-w-0">
+          <p className="text-xs text-[var(--pf-text-muted)]">{t('detail.paymentTerm')}</p>
+          <p>{paymentTermName ?? (bill.paymentTermId ? bill.paymentTermId.slice(0, 8) : '-')}</p>
         </div>
       </div>
+
+      {(bill.purchaseOrderId || bill.subcontractAgreementId) ? (
+        <section className="min-w-0 rounded-lg border border-[var(--pf-border-default)] p-4">
+          <h2 className="mb-2 text-sm font-semibold">{t('detail.linksTitle')}</h2>
+          <dl className="grid gap-3 text-sm sm:grid-cols-2">
+            <div>
+              <dt className="text-xs text-[var(--pf-text-muted)]">{t('detail.linkedPo')}</dt>
+              <dd className="mt-1" dir="ltr">
+                {bill.purchaseOrderId ? (
+                  <Link href={`/procurement/orders/${bill.purchaseOrderId}`} className={textNavLinkMutedClassName}>
+                    {bill.purchaseOrderId.slice(0, 8)}
+                  </Link>
+                ) : (
+                  '-'
+                )}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-xs text-[var(--pf-text-muted)]">{t('detail.subcontract')}</dt>
+              <dd className="mt-1" dir="ltr">
+                {bill.subcontractAgreementId ? bill.subcontractAgreementId.slice(0, 8) : '-'}
+              </dd>
+            </div>
+          </dl>
+        </section>
+      ) : null}
+
+      <p className="text-xs text-[var(--pf-text-muted)]">{t('detail.ruleNote')}</p>
 
       <section className="min-w-0 rounded-lg border border-[var(--pf-border-default)] p-4">
         <h2 className="mb-2 text-sm font-semibold">{t('detail.matchPositionTitle')}</h2>

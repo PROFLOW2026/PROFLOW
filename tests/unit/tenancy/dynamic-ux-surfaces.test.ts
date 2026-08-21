@@ -26,6 +26,20 @@ describe('unused capability suggestions', () => {
     expect(suggestions).not.toContain('crm');
   });
 
+  it('prioritizes BOQ and month_close ahead of lower-priority unused modules', () => {
+    const suggestions = suggestUnusedCapabilities(
+      [
+        { moduleKey: 'forms', enabled: true, firstUsedAt: null },
+        { moduleKey: 'month_close', enabled: true, firstUsedAt: null },
+        { moduleKey: 'boq', enabled: true, firstUsedAt: null },
+        { moduleKey: 'safety', enabled: true, firstUsedAt: null },
+      ],
+      { now },
+    );
+    expect(suggestions[0]).toBe('boq');
+    expect(suggestions[1]).toBe('month_close');
+  });
+
   it('skips documents when firstUsedAt is set', () => {
     const suggestions = suggestUnusedCapabilities(
       [

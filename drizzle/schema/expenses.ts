@@ -191,6 +191,8 @@ export const expenseAllocations = pgTable(
     projectId: uuid('project_id').references(() => projects.id, { onDelete: 'cascade' }),
     workPackageId: uuid('work_package_id').references(() => workPackages.id, { onDelete: 'set null' }),
     costCategoryId: uuid('cost_category_id').references(() => costCategories.id, { onDelete: 'set null' }),
+    /** Optional cost code attribution (kind=cost_code). Same-org FK in migration. */
+    costCodeId: uuid('cost_code_id'),
     method: allocationMethodEnum('method').notNull(),
     amount: moneyAmount('amount').notNull(),
     currency: currencyCode().notNull(),

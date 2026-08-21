@@ -56,6 +56,8 @@ export const apBills = pgTable(
     status: text('status').notNull().default('draft'),
     billDate: date('bill_date', { mode: 'string' }),
     dueDate: date('due_date', { mode: 'string' }),
+    /** Optional payment term used to derive/suggest dueDate. Does not rewrite history. */
+    paymentTermId: uuid('payment_term_id'),
     currency: currencyCode().notNull(),
     /**
      * Payable GROSS (cash / outstanding / payments). Always equals `grossAmount`.
@@ -129,6 +131,8 @@ export const apBillLines = pgTable(
     purchaseOrderLineId: uuid('purchase_order_line_id').references(() => purchaseOrderLines.id, {
       onDelete: 'set null',
     }),
+    /** Optional cost code attribution (kind=cost_code). Same-org FK in migration. */
+    costCodeId: uuid('cost_code_id'),
     sortOrder: integer('sort_order').notNull().default(0),
     ...timestamps(),
   },

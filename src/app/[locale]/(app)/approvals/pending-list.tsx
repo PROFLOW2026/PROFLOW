@@ -8,7 +8,15 @@ import { Textarea } from '@/components/ui/textarea';
 import type { PendingApprovalItem } from '@/modules/approvals';
 import { MoneyText } from '@/components/patterns/money-text';
 import { money } from '@/shared/money';
+import { Link } from '@/shared/i18n/navigation';
 import { decideApprovalAction, type ApprovalsActionState } from './actions';
+
+function formatAge(ageMs: number, t: ReturnType<typeof useTranslations<'approvals'>>): string {
+  const hours = Math.floor(ageMs / (60 * 60 * 1000));
+  if (hours < 1) return t('age.minutes', { count: Math.max(1, Math.floor(ageMs / 60000)) });
+  if (hours < 48) return t('age.hours', { count: hours });
+  return t('age.days', { count: Math.floor(hours / 24) });
+}
 
 function PendingCard({
   item,
@@ -35,6 +43,21 @@ function PendingCard({
                 '-'
               )}
             </p>
+            <p className="mt-1 text-xs text-[var(--pf-text-muted)]">
+              {t('inbox.submitter')}: {item.submitterName ?? t('inbox.unknownSubmitter')}
+              {' · '}
+              {t('inbox.age')}: {formatAge(item.ageMs, t)}
+              {item.totalSteps && item.currentStepOrder
+                ? ` · ${t('inbox.step', { current: item.currentStepOrder, total: item.totalSteps })}`
+                : null}
+            </p>
+            {item.sourceHref ? (
+              <p className="mt-1 text-sm">
+                <Link href={item.sourceHref} className="text-[var(--pf-text-link)] underline">
+                  {t('openEntity')}
+                </Link>
+              </p>
+            ) : null}
           </div>
         </div>
 

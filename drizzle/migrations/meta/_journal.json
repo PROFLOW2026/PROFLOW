@@ -414,6 +414,20 @@
                         "when":  1786561300000,
                         "tag":  "0059_dynamic_experience",
                         "breakpoints":  true
+                    },
+                    {
+                        "idx":  59,
+                        "version":  "7",
+                        "when":  1786561400000,
+                        "tag":  "0060_business_catalog_refinement",
+                        "breakpoints":  true
+                    },
+                    {
+                        "idx":  60,
+                        "version":  "7",
+                        "when":  1786561500000,
+                        "tag":  "0061_ops_expense_usage_kinds",
+                        "breakpoints":  true
                     }
                 ]
 }

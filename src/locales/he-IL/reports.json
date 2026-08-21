@@ -34,7 +34,18 @@
     "quote_estimate": "הצעת מחיר / אומדן",
     "field_daily": "יומן יומי",
     "punch_inspection": "דוח ליקויים ובדיקות",
-    "vendor_subcontract_summary": "ספקים והסכמי קבלנות משנה"
+    "vendor_subcontract_summary": "ספקים והסכמי קבלנות משנה",
+    "client_360": "לקוח 360",
+    "vendor_360": "ספק 360",
+    "contract_portfolio": "תיק חוזים",
+    "subcontract_cash": "מזומן קבלנות משנה",
+    "labor_utilization": "ניצולת כוח אדם",
+    "retention_schedule": "לוח עיכבון",
+    "inventory_movement": "תנועות מלאי",
+    "compliance_expiry": "תפוגת ציות",
+    "crm_funnel": "משפך CRM",
+    "month_close_completeness": "שלמות סגירת חודש",
+    "safety_open_actions": "פעולות בטיחות פתוחות"
   },
   "kindHints": {
     "project_status": "סטטוס, תאריכים ותמונת מצב תפעולית.",
@@ -44,7 +55,18 @@
     "quote_estimate": "הצעה לפני מכירה. הצעה אינה רשומת חיוב.",
     "field_daily": "יומן יומי עם שמות מסמכי תמונה, בלי הטמעת כל הקבצים.",
     "punch_inspection": "פריטי ליקויים ובדיקות - פתוחים וסגורים.",
-    "vendor_subcontract_summary": "ספקי הפרויקט והסכמי קבלנות משנה."
+    "vendor_subcontract_summary": "ספקי הפרויקט והסכמי קבלנות משנה.",
+    "client_360": "זהות לקוח וסעיפי חיוב כשההרשאה מאפשרת.",
+    "vendor_360": "זהות ספק וסעיפי חשבוניות ספק כשההרשאה מאפשרת.",
+    "contract_portfolio": "חוזים בפרויקטים נגישים.",
+    "subcontract_cash": "מזומן מחויב/שולם/יתרה לקבלנות משנה לפי ספק.",
+    "labor_utilization": "שעות פרויקט מול שאינן פרויקט. עלות לפי הרשאה. לא שכר.",
+    "retention_schedule": "תצוגות מזומן לגיל חוב AR/AP לתזמון עיכבון.",
+    "inventory_movement": "כמויות מלאי ותנועות אחרונות - לא תמחור עלות.",
+    "compliance_expiry": "רשימת תפוגה למסמכי ציות.",
+    "crm_funnel": "תמונת מצב של צינור המכירות.",
+    "month_close_completeness": "שלמות סגירת חודש תפעולי.",
+    "safety_open_actions": "פעולות בטיחות / HSE פתוחות."
   },
   "natures": {
     "actual": "בפועל",

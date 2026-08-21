@@ -72,6 +72,7 @@ export {
   markMonthCloseReady,
   refreshPeriodCompleteness,
 } from './application/manage-periods';
+export { gatherCompletenessSignals } from './data/completeness.repository';
 
 export {
   closePeriodSchema,

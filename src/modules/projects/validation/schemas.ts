@@ -436,6 +436,7 @@ export const createAdditionalContractSchema = z
     startDate: optionalDate,
     endDate: optionalDate,
     retentionPercent: optionalRetentionPercent,
+    paymentTermId: z.preprocess(emptyToNull, z.string().uuid().nullable().optional()),
     notes: optionalText,
     enteredAmount: z.preprocess(emptyToNull, z.string().trim().nullable().optional()),
     currency: z.preprocess(emptyToNull, z.string().trim().length(3).nullable().optional()),

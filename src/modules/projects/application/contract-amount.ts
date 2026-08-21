@@ -31,7 +31,9 @@ import {
 } from '../domain/contract-value';
 import { CONTRACT_VALUE_REASON_ORIGINAL } from '../domain/contract-value-reason';
 import type { ContractRecord } from '../domain/types';
-import { updateProjectById } from '../data/projects.repository';
+import { updateProjectById, findProjectById } from '../data/projects.repository';
+import { resolveDocumentPaymentTermId, resolveOrgDefaultPaymentTermIdForContext } from '@/modules/business-catalog';
+import { findClientById } from '@/modules/clients';
 
 export const ORIGINAL_AMOUNT_LOCKED_MESSAGE_KEY = 'projects.details.originalAmountLocked';
 
@@ -157,6 +159,17 @@ export async function upsertPrimaryContractAmount(
   );
 
   if (!existing) {
+    const project = await findProjectById(context.db, context.organizationId, input.projectId);
+    const client = project?.clientId
+      ? await findClientById(context.db, context.organizationId, project.clientId)
+      : null;
+    const orgDefaultId = await resolveOrgDefaultPaymentTermIdForContext(context);
+    const paymentTermId = resolveDocumentPaymentTermId({
+      explicitId: null,
+      partyDefaultId: client?.defaultPaymentTermId ?? null,
+      orgDefaultId,
+    });
+
     const contract = await insertContract(context.db, {
       organizationId: context.organizationId,
       projectId: input.projectId,
@@ -176,6 +189,7 @@ export async function upsertPrimaryContractAmount(
       openingReductionGrossAmount,
       taxSnapshot: snapshot,
       currency,
+      paymentTermId,
     });
 
     await insertContractValueEvent(context.db, {

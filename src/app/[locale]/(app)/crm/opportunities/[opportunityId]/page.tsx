@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getLocale, getTranslations } from 'next-intl/server';
+import { Alert } from '@/components/ui/alert';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { PageHeader } from '@/components/ui/page-header';
 import { StatusBadge } from '@/components/ui/status-badge';
@@ -17,10 +18,8 @@ import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { upsertEntityFieldValueAction } from '../../../settings/custom-fields/actions';
 import { textNavLinkClassName, textNavLinkMutedClassName } from '@/components/ui/pressable';
 import {
-  AcceptVersionButton,
   ConvertWonForm,
   CreateProductQuoteLink,
-  IssueVersionButton,
   MarkLostForm,
   OpportunityEstimateForm,
   OpportunityFollowUpForm,
@@ -382,7 +381,11 @@ export default async function OpportunityDetailPage({
 
           <section className="flex flex-col gap-3">
             <h3 className="text-sm font-semibold">{t('opportunity.quotesSection')}</h3>
-            {detail.salesQuotes.map((quote) => (
+            <Alert tone="info">{t('opportunity.useProductQuoteBanner')}</Alert>
+            {detail.salesQuotes.length === 0 ? (
+              <p className="text-sm text-[var(--pf-text-secondary)]">{t('opportunity.legacyQuotesEmpty')}</p>
+            ) : (
+              detail.salesQuotes.map((quote) => (
               <div key={quote.id} className="rounded-md border border-[var(--pf-border-default)] p-3">
                 <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
                   <p className="min-w-0 flex-1 text-start font-medium">{quote.title}</p>
@@ -392,6 +395,9 @@ export default async function OpportunityDetailPage({
                     label={t(`statuses.quote.${quote.status}`)}
                   />
                 </div>
+                <p className="mb-2 text-xs text-[var(--pf-text-muted)]">
+                  {t('opportunity.legacyQuoteReadOnly')}
+                </p>
                 <ul className="flex flex-col gap-2">
                   {quote.versions.map((version) => (
                     <li
@@ -409,23 +415,14 @@ export default async function OpportunityDetailPage({
                         </span>{' '}
                         · {t(`statuses.version.${version.status}`)}
                       </span>
-                      {canManage && detail.status === 'open' ? (
-                        <div className="flex flex-wrap gap-2">
-                          {version.status === 'draft' ? (
-                            <IssueVersionButton versionId={version.id} />
-                          ) : null}
-                          {version.status === 'draft' || version.status === 'issued' ? (
-                            <AcceptVersionButton versionId={version.id} />
-                          ) : null}
-                        </div>
-                      ) : null}
                     </li>
                   ))}
                 </ul>
               </div>
-            ))}
+              ))
+            )}
             {canManage && detail.status === 'open' ? (
-              <OpportunityQuoteForm opportunityId={detail.id} currency={currency} />
+              <OpportunityQuoteForm opportunityId={detail.id} />
             ) : null}
           </section>
         </div>

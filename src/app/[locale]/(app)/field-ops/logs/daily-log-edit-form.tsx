@@ -14,12 +14,27 @@ import { useOfflineAwareFormAction } from '@/modules/offline/ui/use-offline-awar
 import { Link } from '@/shared/i18n/navigation';
 import { updateDailyLogAction, type FieldOpsFormState } from '../actions';
 import { DailyLogExtraFields } from './daily-log-extra-fields';
+import { DailyLogRelationshipFields, type DailyLogLinkOption } from './daily-log-relationships';
 
 function toServerUpdatedAt(value: Date | string): string {
   return value instanceof Date ? value.toISOString() : new Date(value).toISOString();
 }
 
-export function DailyLogEditForm({ log }: { log: DailyLogRecord }) {
+export function DailyLogEditForm({
+  log,
+  vendors = [],
+  employees = [],
+  assets = [],
+}: {
+  log: DailyLogRecord & {
+    vendorIds?: readonly string[];
+    employeeIds?: readonly string[];
+    assetIds?: readonly string[];
+  };
+  vendors?: readonly DailyLogLinkOption[];
+  employees?: readonly DailyLogLinkOption[];
+  assets?: readonly DailyLogLinkOption[];
+}) {
   const t = useTranslations('fieldOps.createLog');
   const tDetail = useTranslations('fieldOps.detail');
   const tCommon = useTranslations('common');
@@ -133,6 +148,15 @@ export function DailyLogEditForm({ log }: { log: DailyLogRecord }) {
           />
         )}
       </Field>
+
+      <DailyLogRelationshipFields
+        vendors={vendors}
+        employees={employees}
+        assets={assets}
+        selectedVendorIds={log.vendorIds ?? []}
+        selectedEmployeeIds={log.employeeIds ?? []}
+        selectedAssetIds={log.assetIds ?? []}
+      />
 
       <DailyLogExtraFields log={log} fieldErrors={state.fieldErrors} />
 

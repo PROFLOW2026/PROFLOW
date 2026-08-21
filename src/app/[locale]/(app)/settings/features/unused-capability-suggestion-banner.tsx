@@ -41,6 +41,11 @@ export function UnusedCapabilitySuggestionBanner({
       <p className="text-sm font-medium">
         {t('unusedSuggestion', { module: moduleLabel })}
       </p>
+      {t.has(`unusedTipDetails.${moduleKey}`) ? (
+        <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">
+          {t(`unusedTipDetails.${moduleKey}`)}
+        </p>
+      ) : null}
       <div className="mt-3 flex flex-wrap gap-2">
         <form action={hideAction}>
           <input type="hidden" name="moduleKey" value={moduleKey} />

@@ -49,6 +49,8 @@ export const NAV_ICON_KEYS = [
   'documents',
   'crm',
   'quotes',
+  'contracts',
+  'subcontracts',
   'compliance',
   'procurement',
   'materials',
@@ -203,6 +205,14 @@ export const NAV_ITEMS: readonly NavItem[] = [
     moreGroup: 'business',
   },
   {
+    key: 'contracts',
+    href: '/contracts',
+    labelKey: 'contracts',
+    iconKey: 'contracts',
+    permission: PERMISSIONS.CONTRACTS_READ,
+    moreGroup: 'business',
+  },
+  {
     key: 'crm',
     href: '/crm',
     labelKey: 'crm',
@@ -262,6 +272,15 @@ export const NAV_ITEMS: readonly NavItem[] = [
     moreGroup: 'operations',
   },
   {
+    key: 'subcontracts',
+    href: '/subcontracts',
+    labelKey: 'subcontracts',
+    iconKey: 'subcontracts',
+    permission: PERMISSIONS.VENDORS_READ,
+    module: 'vendors',
+    moreGroup: 'operations',
+  },
+  {
     key: 'workforce',
     // Always discoverable when the viewer can read workforce - do not hide
     // behind adaptive module prefs (chicken/egg: first employee cannot be
@@ -299,10 +318,14 @@ export const NAV_ITEMS: readonly NavItem[] = [
   },
   {
     key: 'timesheets',
-    href: '/workforce/time/approvals',
+    href: '/workforce/timesheets',
     labelKey: 'timesheets',
     iconKey: 'timesheets',
-    permission: PERMISSIONS.TIME_APPROVE,
+    anyPermissions: [
+      PERMISSIONS.WORKFORCE_READ,
+      PERMISSIONS.TIME_MANAGE,
+      PERMISSIONS.TIME_APPROVE,
+    ],
     moreGroup: 'operations',
   },
   {

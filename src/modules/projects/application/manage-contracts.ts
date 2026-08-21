@@ -46,6 +46,10 @@ import { canTransitionContractStatus } from '../domain/contract-lifecycle';
 import type { ContractRecord, ContractType } from '../domain/types';
 import { ORIGINAL_AMOUNT_LOCKED_MESSAGE_KEY } from './contract-amount';
 import {
+  resolveDocumentPaymentTermId,
+} from '@/modules/business-catalog';
+import { resolveOrgDefaultPaymentTermIdForContext } from '@/modules/business-catalog/application/payment-term-defaults';
+import {
   createAdditionalContractSchema,
   listProjectContractsSchema,
   setPrimaryContractSchema,
@@ -284,6 +288,23 @@ export async function createAdditionalContract(
   const currency = (input.currency ?? project.currency ?? context.organization.baseCurrency).toUpperCase();
   const contractType: ContractType = input.contractType ?? 'additional';
 
+  let clientDefaultPaymentTermId: string | null = null;
+  if (input.clientId) {
+    const [clientRow] = await context.db
+      .select({ defaultPaymentTermId: clients.defaultPaymentTermId })
+      .from(clients)
+      .where(and(eq(clients.id, input.clientId), eq(clients.organizationId, context.organizationId)))
+      .limit(1);
+    clientDefaultPaymentTermId = clientRow?.defaultPaymentTermId ?? null;
+  }
+
+  const orgDefaultId = await resolveOrgDefaultPaymentTermIdForContext(context);
+  const paymentTermId = resolveDocumentPaymentTermId({
+    explicitId: input.paymentTermId,
+    partyDefaultId: clientDefaultPaymentTermId,
+    orgDefaultId,
+  });
+
   const created = await insertContract(context.db, {
     organizationId: context.organizationId,
     projectId: input.projectId,
@@ -294,6 +315,7 @@ export async function createAdditionalContract(
     startDate: input.startDate ?? null,
     endDate: input.endDate ?? null,
     retentionPercent: input.retentionPercent ?? null,
+    paymentTermId,
     name: input.name ?? null,
     reference: input.reference ?? null,
     status: input.status ?? 'active',

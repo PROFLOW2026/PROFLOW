@@ -6,6 +6,7 @@ import type { OrgContext } from '@/shared/auth/context';
 import type { VendorRecord } from '../domain/types';
 import { findVendorById, updateVendorById } from '../data/vendors.repository';
 import { updateVendorSchema, type UpdateVendorInput } from '../validation/schemas';
+import { setVendorCatalogLinks } from './manage-catalog-links';
 
 export async function updateVendor(
   context: OrgContext,
@@ -47,9 +48,18 @@ export async function updateVendor(
     tier: parsed.data.tier,
     parentVendorId: parsed.data.parentVendorId,
     notes: parsed.data.notes,
+    defaultPaymentTermId: parsed.data.defaultPaymentTermId,
   });
 
   if (!updated) throw new NotFoundError('Vendor');
+
+  if (parsed.data.categoryIds !== undefined || parsed.data.specialtyIds !== undefined) {
+    await setVendorCatalogLinks(context, {
+      vendorId: updated.id,
+      categoryIds: parsed.data.categoryIds ?? [],
+      specialtyIds: parsed.data.specialtyIds ?? [],
+    });
+  }
 
   await recordAuditEvent(context, {
     action: 'vendor.updated',

@@ -13,6 +13,7 @@
     "roles": "Roles",
     "features": "Features",
     "costCategories": "Cost categories",
+    "businessCatalogs": "Business catalogs",
     "catalog": "Domains & types",
     "templates": "Structure templates",
     "tax": "Finance and VAT",
@@ -44,6 +45,9 @@
     "grantProject": "Project",
     "grantAdd": "Grant access",
     "grantEmpty": "No extra grants yet.",
+    "grantLevel": "Access level",
+    "levelRead": "Read",
+    "levelManage": "Manage",
     "revoke": "Remove",
     "saveMode": "Save visibility",
     "saved": "Saved"
@@ -115,6 +119,23 @@
     "unusedHidden": "Capability hidden from the menu.",
     "unusedDismissed": "Suggestion dismissed.",
     "unusedOpenSettings": "Manage capabilities",
+    "discoverabilityTitle": "Worth knowing",
+    "unusedTipDetails": {
+      "boq": "BOQ measure and progress billing are available when this capability is on.",
+      "month_close": "Month-close locks an operational period so history stays stable.",
+      "budgets": "Budgets compare control totals to Actual — not a second ledger.",
+      "quotes": "Product Quotes are the customer quote path (distinct from CRM estimates).",
+      "billing": "Retention hold and release live on billing documents when you use retention.",
+      "overhead": "Recurring financial drafts live under Recurring drafts next to expenses and AP.",
+      "changes": "Multi-contract projects can hold primary plus additional contracts on the project."
+    },
+    "discoverabilityTips": {
+      "boq": "BOQ and field measure are enabled but quiet — open a project → BOQ when you bill from quantities.",
+      "retention": "Retention is captured on AR/AP documents — not a separate module. Look for hold/release on invoices and bills.",
+      "month_close": "Month-close is available under Finance when the capability is on.",
+      "recurring_drafts": "Recurring drafts create expense/AP/billing drafts on a schedule — never auto-Actual.",
+      "multi_contract": "A project can have more than one contract (primary + additional). Manage them on the project contracts section."
+    },
     "showAll": "Show all",
     "showAllHint": "Turns on every capability available to the business.",
     "resetToProfile": "Reset to profile recommendations",
@@ -242,6 +263,77 @@
       "one_time": "One-time",
       "monthly": "Monthly",
       "date_range": "Date range / annual period"
+    }
+  },
+  "businessCatalogs": {
+    "title": "Business catalogs",
+    "subtitle": "Shared lists for clients, vendors, payment terms, CRM, and more. Deactivate unused values — do not hard-delete ones already in use.",
+    "tabsLabel": "Catalog kinds",
+    "addItem": "Add item",
+    "emptyTitle": "No items yet",
+    "emptyHint": "Add values your business uses, or keep the seeded defaults.",
+    "inactive": "Inactive",
+    "deactivate": "Deactivate",
+    "deactivateQuestion": "Deactivate «{name}»?",
+    "deactivateSuccess": "Deactivated.",
+    "deactivateDocReqQuestion": "Deactivate requirement «{name}»?",
+    "strategy": "Due-date strategy",
+    "netDays": "Net days",
+    "eomOffsetDays": "Days after end of month",
+    "code": "Code",
+    "costCodesEnabled": "Use cost codes in the product",
+    "costCodesOptionalNote": "Cost codes are optional. Rows can exist while usage is off.",
+    "costCodesEnabledOn": "Usage on",
+    "costCodesEnabledOff": "Usage off",
+    "docReqsTitle": "Document requirements",
+    "docReqsHint": "Suggested required documents for vendor types and subcontracts. Not statutory law.",
+    "docReqsEmpty": "No document requirements yet",
+    "addDocReq": "Add requirement",
+    "contextKind": "Context",
+    "contextKey": "Vendor type",
+    "documentTypeKey": "Document type key",
+    "label": "Label",
+    "kinds": {
+      "client_type": "Client types",
+      "vendor_category": "Vendor categories",
+      "vendor_specialty": "Vendor specialties",
+      "payment_term": "Payment terms",
+      "cost_code": "Cost codes",
+      "lead_source": "Lead sources",
+      "lost_reason": "Lost reasons",
+      "engagement_role": "Engagement roles"
+    },
+    "kindHints": {
+      "client_type": "How you classify clients (private, municipality, …).",
+      "vendor_category": "Supplier / subcontractor categories used on vendors.",
+      "vendor_specialty": "Optional specialties under a vendor category.",
+      "payment_term": "Due-date strategies for invoices and bills. Set the organization default below.",
+    "defaultPaymentTermLabel": "Organization default payment term",
+    "defaultPaymentTermHint": "Used when invoices, bills, contracts, and parties do not specify a term.",
+    "defaultPaymentTermPlaceholder": "Select default…",
+    "defaultPaymentTermUnset": "Not set",
+      "cost_code": "Optional cost codes. Turn usage on only if your business needs them.",
+      "lead_source": "Where CRM leads come from.",
+      "lost_reason": "Why opportunities were lost.",
+      "engagement_role": "How a vendor engages on a project."
+    },
+    "strategies": {
+      "immediate": "Immediate",
+      "net_days": "Net days",
+      "end_of_month": "End of month",
+      "eom_plus_days": "End of month + days",
+      "milestone": "Milestone-based",
+      "custom": "Custom"
+    },
+    "contextKinds": {
+      "vendor_type": "Vendor type",
+      "subcontract": "Subcontract"
+    },
+    "vendorTypes": {
+      "supplier": "Supplier",
+      "subcontractor": "Subcontractor",
+      "both": "Both",
+      "other": "Other"
     }
   },
   "catalog": {

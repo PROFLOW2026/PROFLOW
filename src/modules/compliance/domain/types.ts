@@ -48,6 +48,7 @@ export interface ComplianceListFilters {
   readonly kind?: ArtifactKind | 'all';
   readonly status?: ArtifactStatus | 'all';
   readonly subjectType?: SubjectType | 'all';
+  readonly subjectId?: string;
   readonly evidence?: 'all' | 'present' | 'missing';
   readonly includeArchived?: boolean;
   readonly limit?: number;

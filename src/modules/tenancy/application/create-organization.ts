@@ -9,6 +9,8 @@ import { WORK_MIX_SETTING_KEY, isWorkMix } from '../domain/work-mix';
 import { applyBusinessProfileConfig } from './apply-business-profile';
 import { createOrganizationSchema, type CreateOrganizationInput } from '../validation/schemas';
 import { upsertOrganizationSettingValue } from '../data/organization-settings.repository';
+import { seedUniversalBusinessCatalogs } from '@/modules/business-catalog/application/seed-catalog';
+import { ensureOrgDefaultPaymentTermKey } from '@/modules/business-catalog/application/payment-term-defaults';
 import {
   findOrganizationById,
   insertMembership,
@@ -76,6 +78,8 @@ export async function createOrganization(
   });
 
   await seedDefaultCostCategories(db, organization.id);
+  await seedUniversalBusinessCatalogs(db, organization.id);
+  await ensureOrgDefaultPaymentTermKey(db, organization.id);
 
   const profileKey =
     resolveBusinessProfileKey(input.businessProfile) ??

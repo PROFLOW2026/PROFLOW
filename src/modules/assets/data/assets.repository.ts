@@ -582,6 +582,56 @@ export async function listInventoryMovementsForItem(
   );
 }
 
+export interface InventoryMovementWithItem extends InventoryMovementRecord {
+  readonly itemName: string;
+  readonly itemSku: string | null;
+}
+
+/** Recent org movements with item labels — one query, no per-item N+1. */
+export async function listRecentInventoryMovementsForOrg(
+  db: DbExecutor,
+  organizationId: string,
+  options: { readonly limit?: number } = {},
+): Promise<InventoryMovementWithItem[]> {
+  const fromLoc = alias(inventoryLocations, 'recent_from_location');
+  const toLoc = alias(inventoryLocations, 'recent_to_location');
+  const rows = await db
+    .select({
+      movement: inventoryMovements,
+      itemName: inventoryItems.name,
+      itemSku: inventoryItems.sku,
+      fromLocationName: fromLoc.name,
+      toLocationName: toLoc.name,
+    })
+    .from(inventoryMovements)
+    .innerJoin(
+      inventoryItems,
+      and(
+        eq(inventoryItems.id, inventoryMovements.inventoryItemId),
+        eq(inventoryItems.organizationId, organizationId),
+        isNull(inventoryItems.archivedAt),
+      ),
+    )
+    .leftJoin(fromLoc, eq(fromLoc.id, inventoryMovements.fromLocationId))
+    .leftJoin(toLoc, eq(toLoc.id, inventoryMovements.toLocationId))
+    .where(eq(inventoryMovements.organizationId, organizationId))
+    .orderBy(desc(inventoryMovements.occurredOn), desc(inventoryMovements.createdAt))
+    .limit(
+      resolveListLimit(options.limit ?? 40, {
+        hardCap: ORG_LIST_HARD_CAP,
+      }),
+    );
+
+  return rows.map((row) => ({
+    ...mapMovement(row.movement, {
+      fromLocationName: row.fromLocationName,
+      toLocationName: row.toLocationName,
+    }),
+    itemName: row.itemName,
+    itemSku: row.itemSku,
+  }));
+}
+
 export async function listInventoryLocations(
   db: DbExecutor,
   organizationId: string,

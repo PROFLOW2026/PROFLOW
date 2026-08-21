@@ -8,11 +8,8 @@ import { Field } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import {
-  acceptSalesQuoteVersionAction,
   createEstimateAction,
   createOpportunityNoteAction,
-  createSalesQuoteAction,
-  issueSalesQuoteVersionAction,
   markOpportunityLostAction,
   updateOpportunityAction,
   type CrmFormState,
@@ -179,92 +176,23 @@ export function OpportunityEstimateForm({
   );
 }
 
+/** @deprecated Prefer Product Quote (`/quotes`). Kept as banner-only CTA. */
 export function OpportunityQuoteForm({
   opportunityId,
-  currency,
 }: {
   opportunityId: string;
-  currency: string;
+  currency?: string;
 }) {
   const t = useTranslations('crm.opportunity');
-  const tCommon = useTranslations('common');
-  const [state, formAction, pending] = useActionState<CrmFormState, FormData>(
-    createSalesQuoteAction,
-    {},
-  );
-
   return (
-    <form action={formAction} className="flex flex-col gap-3">
-      <input type="hidden" name="opportunityId" value={opportunityId} />
-      <input type="hidden" name="currency" value={currency} />
-      {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
-      <Field label={t('quoteTitle')} required>
-        {(control) => <Input {...control} name="title" required />}
-      </Field>
-      <Field label={t('lineDescription')} required>
-        {(control) => <Input {...control} name="lineDescription" required />}
-      </Field>
-      <div className="grid gap-3 sm:grid-cols-3">
-        <Field label={t('lineQuantity')} className="min-w-0">
-          {(control) => (
-            <Input {...control} name="quantity" defaultValue="1" inputMode="decimal" numeric />
-          )}
-        </Field>
-        <Field label={t('lineUnit')} required className="min-w-0">
-          {(control) => (
-            <Input {...control} name="unitAmount" required inputMode="decimal" numeric />
-          )}
-        </Field>
-        <Field label={t('lineTotal')} required className="min-w-0">
-          {(control) => (
-            <Input {...control} name="lineTotal" required inputMode="decimal" numeric />
-          )}
-        </Field>
-      </div>
-      <Field label={t('quoteTax')} optionalLabel={tCommon('labels.optional')}>
-        {(control) => (
-          <Input {...control} name="taxAmount" inputMode="decimal" numeric placeholder={currency} />
-        )}
-      </Field>
-      <p className="text-xs text-[var(--pf-text-muted)]">{t('quoteNotBilling')}</p>
-      <Button type="submit" loading={pending} className="self-start">
-        {t('addQuote')}
+    <div className="flex flex-col gap-3">
+      <Alert tone="info" title={t('useProductQuoteBannerTitle')}>
+        {t('useProductQuoteBanner')}
+      </Alert>
+      <Button asChild className="self-start">
+        <Link href={productQuoteCreateHref(opportunityId)}>{t('createProductQuote')}</Link>
       </Button>
-    </form>
-  );
-}
-
-export function IssueVersionButton({ versionId }: { versionId: string }) {
-  const t = useTranslations('crm.opportunity');
-  const [state, formAction, pending] = useActionState<CrmFormState, FormData>(
-    issueSalesQuoteVersionAction,
-    {},
-  );
-  return (
-    <form action={formAction}>
-      <input type="hidden" name="versionId" value={versionId} />
-      {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
-      <Button type="submit" variant="secondary" size="sm" loading={pending}>
-        {t('issueVersion')}
-      </Button>
-    </form>
-  );
-}
-
-export function AcceptVersionButton({ versionId }: { versionId: string }) {
-  const t = useTranslations('crm.opportunity');
-  const [state, formAction, pending] = useActionState<CrmFormState, FormData>(
-    acceptSalesQuoteVersionAction,
-    {},
-  );
-  return (
-    <form action={formAction}>
-      <input type="hidden" name="versionId" value={versionId} />
-      {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
-      <Button type="submit" size="sm" loading={pending}>
-        {t('acceptVersion')}
-      </Button>
-    </form>
+    </div>
   );
 }
 

@@ -25,12 +25,25 @@ const PROJECT_KINDS: readonly ReportKind[] = [
   'vendor_subcontract_summary',
 ];
 
+const CLIENT_KINDS: readonly ReportKind[] = ['client_360'];
+const VENDOR_KINDS: readonly ReportKind[] = ['vendor_360', 'subcontract_cash'];
+const ORG_KINDS: readonly ReportKind[] = [
+  'contract_portfolio',
+  'labor_utilization',
+  'retention_schedule',
+  'inventory_movement',
+  'compliance_expiry',
+  'crm_funnel',
+  'month_close_completeness',
+  'safety_open_actions',
+];
+
 function KindRows({
   kinds,
-  projectId,
+  entityId,
 }: {
   kinds: readonly ReportKind[];
-  projectId: string;
+  entityId: string;
 }) {
   const t = useTranslations('reports');
   return (
@@ -44,7 +57,7 @@ function KindRows({
             <p className="font-medium">{t(`kinds.${kind}`)}</p>
             <p className="text-sm text-[var(--pf-text-secondary)]">{t(`kindHints.${kind}`)}</p>
           </div>
-          <ReportDownloadButtons kind={kind} id={projectId} compact />
+          <ReportDownloadButtons kind={kind} id={entityId} compact />
         </div>
       ))}
     </>
@@ -54,12 +67,18 @@ function KindRows({
 export function ReportPacksSection({
   projects,
   quotes,
+  clients = [],
+  vendors = [],
+  organizationId,
   enabledKinds,
   recommendedKinds = [],
   orderedKinds,
 }: {
   projects: readonly ReportPackOption[];
   quotes: readonly ReportPackOption[];
+  clients?: readonly ReportPackOption[];
+  vendors?: readonly ReportPackOption[];
+  organizationId?: string;
   enabledKinds: readonly ReportKind[];
   recommendedKinds?: readonly ReportKind[];
   /** When provided, “כל הדוחות” uses this order (recommended first). */
@@ -68,6 +87,8 @@ export function ReportPacksSection({
   const t = useTranslations('reports');
   const [projectId, setProjectId] = useState(projects[0]?.id ?? '');
   const [quoteId, setQuoteId] = useState(quotes[0]?.id ?? '');
+  const [clientId, setClientId] = useState(clients[0]?.id ?? '');
+  const [vendorId, setVendorId] = useState(vendors[0]?.id ?? '');
   const enabled = useMemo(() => new Set(enabledKinds), [enabledKinds]);
 
   const allProjectKinds = useMemo(() => {
@@ -92,6 +113,19 @@ export function ReportPacksSection({
 
   const showSplit =
     recommendedProjectKinds.length > 0 && remainingProjectKinds.length > 0;
+
+  const clientKinds = useMemo(
+    () => (orderedKinds ?? enabledKinds).filter((kind) => CLIENT_KINDS.includes(kind) && enabled.has(kind)),
+    [orderedKinds, enabledKinds, enabled],
+  );
+  const vendorKinds = useMemo(
+    () => (orderedKinds ?? enabledKinds).filter((kind) => VENDOR_KINDS.includes(kind) && enabled.has(kind)),
+    [orderedKinds, enabledKinds, enabled],
+  );
+  const orgKinds = useMemo(
+    () => (orderedKinds ?? enabledKinds).filter((kind) => ORG_KINDS.includes(kind) && enabled.has(kind)),
+    [orderedKinds, enabledKinds, enabled],
+  );
 
   return (
     <div className="flex flex-col gap-6">
@@ -132,7 +166,7 @@ export function ReportPacksSection({
                       <h3 className="text-sm font-semibold text-[var(--pf-text-primary)]">
                         {t('recommendedPacks')}
                       </h3>
-                      <KindRows kinds={recommendedProjectKinds} projectId={projectId} />
+                      <KindRows kinds={recommendedProjectKinds} entityId={projectId} />
                     </div>
                     <div>
                       <h3 className="mt-2 text-sm font-semibold text-[var(--pf-text-primary)]">
@@ -140,7 +174,7 @@ export function ReportPacksSection({
                       </h3>
                       <KindRows
                         kinds={[...recommendedProjectKinds, ...remainingProjectKinds]}
-                        projectId={projectId}
+                        entityId={projectId}
                       />
                     </div>
                   </>
@@ -151,7 +185,7 @@ export function ReportPacksSection({
                         ? recommendedProjectKinds
                         : allProjectKinds
                     }
-                    projectId={projectId}
+                    entityId={projectId}
                   />
                 )
               ) : null}
@@ -185,6 +219,71 @@ export function ReportPacksSection({
               )}
             </Field>
             {quoteId ? <ReportDownloadButtons kind="quote_estimate" id={quoteId} /> : null}
+          </CardContent>
+        </Card>
+      ) : null}
+
+      {clientKinds.length > 0 && clients.length > 0 ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>{t('kinds.client_360')}</CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-4">
+            <Field label={t('identity.client')}>
+              {(control) => (
+                <Select value={clientId} onValueChange={setClientId}>
+                  <SelectTrigger id={control.id}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {clients.map((client) => (
+                      <SelectItem key={client.id} value={client.id}>
+                        {client.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </Field>
+            {clientId ? <KindRows kinds={clientKinds} entityId={clientId} /> : null}
+          </CardContent>
+        </Card>
+      ) : null}
+
+      {vendorKinds.length > 0 && vendors.length > 0 ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>{t('kinds.vendor_360')}</CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-4">
+            <Field label="Vendor">
+              {(control) => (
+                <Select value={vendorId} onValueChange={setVendorId}>
+                  <SelectTrigger id={control.id}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {vendors.map((vendor) => (
+                      <SelectItem key={vendor.id} value={vendor.id}>
+                        {vendor.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </Field>
+            {vendorId ? <KindRows kinds={vendorKinds} entityId={vendorId} /> : null}
+          </CardContent>
+        </Card>
+      ) : null}
+
+      {orgKinds.length > 0 && organizationId ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>{t('allPacks')}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <KindRows kinds={orgKinds} entityId={organizationId} />
           </CardContent>
         </Card>
       ) : null}

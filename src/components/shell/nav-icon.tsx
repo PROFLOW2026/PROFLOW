@@ -57,6 +57,8 @@ const NAV_ICONS: Record<NavIconKey, LucideIcon> = {
   documents: FileText,
   crm: Handshake,
   quotes: FileSpreadsheet,
+  contracts: FileText,
+  subcontracts: Handshake,
   compliance: ShieldCheck,
   procurement: ClipboardList,
   materials: Package,

@@ -4,6 +4,8 @@ import { DomainRuleError, NotFoundError, ValidationError } from '@/shared/errors
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { noteModuleUsage, resolveAllocatedReference } from '@/modules/tenancy';
+import { resolveDocumentPaymentTermId, resolveOrgDefaultPaymentTermIdForContext } from '@/modules/business-catalog';
+import { findVendorById } from '@/modules/vendors';
 import {
   assertCommittedAmountMatchesLines,
   assertIssueCreatesCommittedNotExpense,
@@ -102,6 +104,14 @@ export async function createPurchaseOrder(context: OrgContext, raw: CreatePurcha
     workPackageId: input.workPackageId,
   });
 
+  const vendor = await findVendorById(context.db, context.organizationId, input.vendorId);
+  const orgDefaultId = await resolveOrgDefaultPaymentTermIdForContext(context);
+  const paymentTermId = resolveDocumentPaymentTermId({
+    explicitId: input.paymentTermId,
+    partyDefaultId: vendor?.defaultPaymentTermId ?? null,
+    orgDefaultId,
+  });
+
   const currency = input.currency.toUpperCase();
   const reference = await resolveAllocatedReference(context, 'purchase_order', input.reference);
   const po = await insertPurchaseOrder(context.db, {
@@ -115,6 +125,7 @@ export async function createPurchaseOrder(context: OrgContext, raw: CreatePurcha
     currency,
     committedAmount: input.committedAmount,
     orderedOn: input.orderedOn ?? null,
+    paymentTermId,
     notes: input.notes ?? null,
   });
   await insertPurchaseOrderLines(

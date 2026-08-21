@@ -19,6 +19,7 @@ import { dailyLogPayloadFromFormData } from '@/modules/offline/domain/payloads';
 import { Link } from '@/shared/i18n/navigation';
 import { createDailyLogAction, type FieldOpsFormState } from '../actions';
 import { DailyLogExtraFields } from './daily-log-extra-fields';
+import { DailyLogRelationshipFields, type DailyLogLinkOption } from './daily-log-relationships';
 import {
   FieldOpsPhotoStaging,
   useFieldOpsCreateFormAction,
@@ -30,6 +31,9 @@ const NONE = '__none__';
 export function DailyLogCreateForm({
   projects,
   workPackages,
+  vendors = [],
+  employees = [],
+  assets = [],
   defaultProjectId,
   defaultLogDate,
   canManageDocuments,
@@ -37,6 +41,9 @@ export function DailyLogCreateForm({
 }: {
   projects: readonly { id: string; name: string }[];
   workPackages: readonly FieldOpsWorkPackageOption[];
+  vendors?: readonly DailyLogLinkOption[];
+  employees?: readonly DailyLogLinkOption[];
+  assets?: readonly DailyLogLinkOption[];
   defaultProjectId?: string;
   defaultLogDate: string;
   canManageDocuments: boolean;
@@ -198,6 +205,8 @@ export function DailyLogCreateForm({
           />
         )}
       </Field>
+
+      <DailyLogRelationshipFields vendors={vendors} employees={employees} assets={assets} />
 
       <DailyLogExtraFields fieldErrors={state.fieldErrors} />
 

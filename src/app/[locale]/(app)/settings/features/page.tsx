@@ -9,7 +9,9 @@ import {
   getUnusedCapabilityDismissals,
   getWorkMixForOrg,
   isOptionalModuleKey,
+  listDiscoverabilityTipKeys,
   suggestUnusedCapabilities,
+  type DiscoverabilityTipKey,
   type OptionalModuleKey,
 } from '@/modules/tenancy';
 import { withOrgContext } from '@/shared/auth/session';
@@ -51,6 +53,9 @@ export default async function FeaturesSettingsPage() {
     const suggestionKey = suggestions[0];
     const unusedSuggestion: OptionalModuleKey | null =
       suggestionKey && isOptionalModuleKey(suggestionKey) ? suggestionKey : null;
+    const discoverabilityTips = listDiscoverabilityTipKeys(preferences, {
+      dismissedKeys: dismissals,
+    }).slice(0, 3);
 
     return {
       allowed: true as const,
@@ -60,6 +65,7 @@ export default async function FeaturesSettingsPage() {
       complexity,
       currentProfileKey,
       unusedSuggestion,
+      discoverabilityTips,
       canEdit: canManageSection(context, 'features'),
     };
   });
@@ -81,6 +87,16 @@ export default async function FeaturesSettingsPage() {
           moduleKey={data.unusedSuggestion}
           canEdit={data.canEdit}
         />
+      ) : null}
+      {data.discoverabilityTips.length > 0 ? (
+        <Alert tone="info" className="mb-4" role="status">
+          <p className="text-sm font-medium">{t('discoverabilityTitle')}</p>
+          <ul className="mt-2 list-disc space-y-1 ps-5 text-sm text-[var(--pf-text-secondary)]">
+            {data.discoverabilityTips.map((tip: DiscoverabilityTipKey) => (
+              <li key={tip}>{t(`discoverabilityTips.${tip}`)}</li>
+            ))}
+          </ul>
+        </Alert>
       ) : null}
       {showFirstRun ? (
         <Card className="mb-4 flex flex-col gap-3 p-5">

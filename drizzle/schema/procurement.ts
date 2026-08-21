@@ -188,6 +188,8 @@ export const purchaseOrders = pgTable(
     currency: currencyCode().notNull(),
     committedAmount: moneyAmount('committed_amount').notNull(),
     orderedOn: date('ordered_on', { mode: 'string' }),
+    /** Optional payment term override (kind=payment_term). Same-org FK in migration. */
+    paymentTermId: uuid('payment_term_id'),
     notes: text('notes'),
     archivedAt: archivedAt(),
     ...timestamps(),
@@ -201,6 +203,7 @@ export const purchaseOrders = pgTable(
     ),
     index('purchase_orders_org_idx').on(table.organizationId),
     index('purchase_orders_project_idx').on(table.projectId),
+    index('purchase_orders_payment_term_idx').on(table.organizationId, table.paymentTermId),
     check(
       'purchase_orders_status_known',
       sql`${table.status} IN ('draft', 'issued', 'partially_received', 'closed', 'cancelled')`,
@@ -227,6 +230,8 @@ export const purchaseOrderLines = pgTable(
     unitAmount: moneyAmount('unit_amount').notNull(),
     lineTotal: moneyAmount('line_total').notNull(),
     currency: currencyCode().notNull(),
+    /** Optional cost code attribution (kind=cost_code). Same-org FK in migration. */
+    costCodeId: uuid('cost_code_id'),
     sortOrder: integer('sort_order').notNull().default(0),
     ...timestamps(),
   },

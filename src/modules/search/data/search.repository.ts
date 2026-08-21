@@ -718,7 +718,7 @@ export async function searchContracts(
     id: row.id,
     title: row.contractNumber || row.name || row.reference || row.projectName,
     subtitle: [row.projectName, row.status].filter(Boolean).join(' · ') || null,
-    href: `/projects/${row.projectId}`,
+    href: `/projects/${row.projectId}?tab=contracts`,
     status: row.status,
     contextLabel: row.projectName,
   }));

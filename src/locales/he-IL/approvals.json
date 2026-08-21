@@ -49,10 +49,42 @@
     "rejected": "הפעולה נדחתה ולא ניתן להמשיך.",
     "required": "נדרש אישור לפני הפעולה.",
     "submittedPending": "הוגש לאישור - ממתין להחלטה.",
-    "notSubmitted": "ניתן לעדכן רק בקשות שהוגשו."
+    "notSubmitted": "ניתן לעדכן רק בקשות שהוגשו.",
+    "notEligible": "אין לך הרשאה להחליט בשלב אישור זה."
   },
   "settingsLink": "הגדרת כללים",
   "openEntity": "פתיחת הרשומה",
+  "inbox": {
+    "submitter": "הוגש על ידי",
+    "unknownSubmitter": "לא ידוע",
+    "age": "גיל הבקשה",
+    "step": "שלב {current} מתוך {total}"
+  },
+  "age": {
+    "minutes": "{count} דק׳",
+    "hours": "{count} שע׳",
+    "days": "{count} ימים"
+  },
+  "steps": {
+    "title": "שלבי אישור",
+    "hint": "שלבים ממוספרים. השאירו ריק להתנהגות חד-שלבית ישנה (כל מי שיש לו approvals.decide).",
+    "createHint": "אופציונלי. ריק = התנהגות חד-שלבית ישנה.",
+    "legacySingle": "שלב יחיד (ישן)",
+    "count": "{count} שלבים",
+    "order": "סדר",
+    "strategy": "אסטרטגיית מאשר",
+    "roleTemplate": "תבנית תפקיד",
+    "permission": "מפתח הרשאה",
+    "userId": "מזהה משתמש",
+    "add": "הוספת שלב",
+    "remove": "הסרת שלב",
+    "save": "שמירת שלבים",
+    "strategies": {
+      "role_template": "תבנית תפקיד",
+      "permission": "הרשאה",
+      "user": "משתמש ספציפי"
+    }
+  },
   "toggle": {
     "enable": "הפעלה",
     "disable": "השבתה",

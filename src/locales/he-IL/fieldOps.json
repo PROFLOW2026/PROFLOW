@@ -167,7 +167,13 @@
     "workforceNotesPlaceholder": "צוות, הערות אתר…",
     "blockersLabel": "מכשולים",
     "blockersHint": "בעיות שעיכבו או עצרו את העבודה.",
-    "blockersPlaceholder": "חומרים, גישה, עיכובי מזג אוויר…"
+    "blockersPlaceholder": "חומרים, גישה, עיכובי מזג אוויר…",
+    "vendorsOnSite": "ספקים / קבלני משנה באתר",
+    "vendorsOnSiteHint": "מקשר לרשומות ספק אמיתיות. אינו יוצר עלות בפועל. העדיפו קבלני משנה.",
+    "employeesOnSite": "עובדים באתר",
+    "employeesOnSiteHint": "קישורי רשימה אופציונליים למי שהיה באתר.",
+    "assetsOnSite": "נכסים / ציוד באתר",
+    "assetsOnSiteHint": "קישורי ציוד אופציונליים. הערות ציוד בטקסט חופשי נשארות זמינות למטה."
   },
   "extraFields": {
     "title": "פרטי אתר נוספים",

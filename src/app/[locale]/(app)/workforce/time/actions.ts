@@ -19,6 +19,7 @@ import {
   updateTimeEntrySchema,
 } from '@/modules/workforce';
 import { withOrgContext } from '@/shared/auth/session';
+import { businessDate } from '@/shared/dates';
 import { AppError } from '@/shared/errors';
 import { redirect } from '@/shared/i18n/navigation';
 
@@ -208,10 +209,16 @@ export async function submitTimeEntriesAction(
   const fallback = tErrors('unexpected');
   const entryIds = parseIdList(formData, 'entryIds');
   const employeeId = String(formData.get('employeeId') ?? '');
+  const periodStartRaw = String(formData.get('periodStart') ?? '').trim();
+  const periodStart = periodStartRaw ? businessDate(periodStartRaw) : undefined;
   try {
     await withOrgContext((context) =>
       employeeId
-        ? submitTimesheet(context, { employeeId, entryIds: entryIds.length > 0 ? entryIds : undefined })
+        ? submitTimesheet(context, {
+            employeeId,
+            entryIds: entryIds.length > 0 ? entryIds : undefined,
+            periodStart,
+          })
         : submitTimeEntries(context, { entryIds }),
     );
     revalidatePath('/workforce', 'layout');

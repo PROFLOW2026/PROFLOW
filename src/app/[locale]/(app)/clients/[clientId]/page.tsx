@@ -52,23 +52,38 @@ export default async function ClientPage({ params }: ClientPageProps) {
   let financials: Awaited<ReturnType<typeof getClientFinancials>> | null = null;
   let timelineEvents: Awaited<ReturnType<typeof getClientTimeline>>['events'] = [];
   let timelineState: 'ready' | 'error' = 'ready';
+  let clientTypes: Array<{ id: string; name: string }> = [];
+  let paymentTerms: Array<{ id: string; name: string }> = [];
+  let quotes: Array<{ id: string; title: string; status: string }> = [];
   try {
     const loaded = await withOrgContext(async (context) => {
       const detail = await getClientById(context, clientId);
       const canReadBilling = hasPermission(context, PERMISSIONS.BILLING_READ);
-      const [fields, panel, projects, clientFinancials, timeline] = await Promise.all([
-        listCustomFieldValuesForEntity(context, 'client', clientId).catch(() => []),
-        getEntityDocumentPanelData(context, 'client', clientId),
-        listProjectsForOrg(context, { clientId, includeArchived: false }).catch(() => []),
-        canReadBilling ? getClientFinancials(context, clientId) : Promise.resolve(null),
-        getClientTimeline(context, clientId).catch(() => null),
-      ]);
+      const canReadQuotes = hasPermission(context, PERMISSIONS.QUOTES_READ);
+      const { listBusinessCatalog } = await import('@/modules/business-catalog');
+      const { listQuotesForOrg } = await import('@/modules/quotes');
+      const [fields, panel, projects, clientFinancials, timeline, clientTypes, paymentTerms, quotes] =
+        await Promise.all([
+          listCustomFieldValuesForEntity(context, 'client', clientId).catch(() => []),
+          getEntityDocumentPanelData(context, 'client', clientId),
+          listProjectsForOrg(context, { clientId, includeArchived: false }).catch(() => []),
+          canReadBilling ? getClientFinancials(context, clientId) : Promise.resolve(null),
+          getClientTimeline(context, clientId).catch(() => null),
+          listBusinessCatalog(context, 'client_type').catch(() => []),
+          listBusinessCatalog(context, 'payment_term').catch(() => []),
+          canReadQuotes
+            ? listQuotesForOrg(context, { clientId }).catch(() => [])
+            : Promise.resolve([]),
+        ]);
       return {
         detail,
         fields,
         panel,
         financials: clientFinancials,
         timeline,
+        clientTypes,
+        paymentTerms,
+        quotes,
         projects: projects.map((project) => ({
           id: project.id,
           name: project.name,
@@ -82,6 +97,13 @@ export default async function ClientPage({ params }: ClientPageProps) {
     documentsPanel = loaded.panel;
     linkedProjects = loaded.projects;
     financials = loaded.financials;
+    clientTypes = loaded.clientTypes.map((row) => ({ id: row.id, name: row.name }));
+    paymentTerms = loaded.paymentTerms.map((row) => ({ id: row.id, name: row.name }));
+    quotes = loaded.quotes.map((quote) => ({
+      id: quote.id,
+      title: quote.title,
+      status: quote.status,
+    }));
     if (loaded.timeline) {
       timelineEvents = loaded.timeline.events;
       timelineState = 'ready';
@@ -111,6 +133,9 @@ export default async function ClientPage({ params }: ClientPageProps) {
         canManage={canManage}
         timelineEvents={timelineEvents}
         timelineState={timelineState}
+        clientTypes={clientTypes}
+        paymentTerms={paymentTerms}
+        quotes={quotes}
       />
       {financials ? <ClientFinancialPanel financials={financials} locale={locale} /> : null}
       <PrepareMessageLink

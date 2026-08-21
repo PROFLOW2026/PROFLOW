@@ -14,7 +14,14 @@
       "name": "ספק",
       "type": "סוג",
       "projects": "פרויקטים",
-      "status": "סטטוס"
+      "status": "סטטוס",
+      "category": "קטגוריה"
+    },
+    "filterAll": "הכול",
+    "lifecycleHint": "פעיל / לא פעיל הוא תפעולי. ארכיון מסתיר את הספק מרשימות עבודה בלי למחוק היסטוריה.",
+    "status": {
+      "active": "פעיל",
+      "inactive": "לא פעיל"
     }
   },
   "types": {
@@ -98,7 +105,48 @@
     "archivedBadge": "בארכיון",
     "editSection": "עריכת ספק",
     "typeClearHint": "הסוג הוא תווית ברורה (ספק, קבלן משנה, שניהם או אחר) - ניתן לשנות בכל עת בלי להשפיע על הוצאות או חשבוניות ספק.",
-    "save": "שמירת שינויים"
+    "save": "שמירת שינויים",
+    "archiveVsInactiveHint": "לא פעיל מסמן שהספק אינו בשימוש כרגע אבל נשאר ברשימות מסוננות. ארכיון מסתיר אותו מהמדריך הפעיל ושומר היסטוריה - העדיפו ארכיון כשסיימתם, ולא פעיל כשעשוי לחזור בקרוב.",
+    "inactiveBadge": "לא פעיל",
+    "statusLifecycleHint": "פעיל / לא פעיל = זמינות תפעולית. ארכיון = הסתרה מרשימות עבודה (ההיסטוריה נשארת).",
+    "operationalStatusLabel": "סטטוס תפעולי",
+    "operationalStatusHint": "פעיל או לא פעיל - לא אותו דבר כמו ארכיון.",
+    "statusActive": "פעיל",
+    "statusInactive": "לא פעיל",
+    "paymentTermLabel": "תנאי תשלום ברירת מחדל",
+    "paymentTermNone": "ללא",
+    "paymentTerm": "תנאי תשלום: {name}",
+    "identifiersSection": "מזהי מס ורישום",
+    "identifiersHint": "משמשים להתאמת חשבוניות ולייצוא משפטי - אופציונלי לעבודה יומיומית.",
+    "identifiersEmpty": "אין מזהים עדיין",
+    "addIdentifier": "הוספת מזהה",
+    "identifierTypes": {
+      "tax_id": "מספר עוסק / ת.ז.",
+      "company_number": "מספר חברה",
+      "vat_number": "מספר עוסק מורשה",
+      "license_number": "מספר רישיון",
+      "other": "אחר"
+    },
+    "removeIdentifierQuestion": "להסיר מזהה {type}‏ {value}?",
+    "removeIdentifierConsequence": "אפשר להוסיף מזהה שוב בכל עת.",
+    "removeIdentifierSuccess": "המזהה הוסר.",
+    "categoriesSection": "קטגוריות והתמחויות",
+    "categoriesHint": "תגיות קטלוג לסינון ולדיווח.",
+    "categoriesEmpty": "אין קטגוריות מקושרות.",
+    "specialtiesEmpty": "אין התמחויות מקושרות.",
+    "categoriesEditHint": "ערכו קטגוריות והתמחויות בלשונית זהות.",
+    "tabs": {
+      "label": "סעיפי ספק",
+      "identity": "זהות",
+      "contacts": "אנשי קשר",
+      "categories": "קטגוריות",
+      "commercial": "מסחרי",
+      "projects": "פרויקטים",
+      "performance": "ביצועים",
+      "compliance": "ציות",
+      "documents": "מסמכים",
+      "activity": "פעילות"
+    }
   },
   "ap360": {
     "title": "חשבוניות ספק ויתרות",
@@ -223,7 +271,9 @@
       "active": "פעיל",
       "completed": "הושלם",
       "cancelled": "בוטל"
-    }
+    },
+    "promoteSupplierToBoth": "הספק מסומן כרגע כספק. אשרו לסמן אותו גם כקבלן משנה (סוג שניהם). הפעולה אינה שקטה.",
+    "vendorTypeOtherBlocked": "ספקים מסוג «אחר» אינם יכולים לקבל הסכם קבלנות משנה. שנו קודם את הסוג לקבלן משנה או שניהם."
   },
   "performance": {
     "title": "ביצועי ספק",
@@ -255,6 +305,38 @@
       "billAccuracy": "דיוק התאמת חשבוניות: {score} ({count} חשבוניות מותאמות)",
       "warrantyQuality": "איכות אחריות: {score} ({count} כיסויים)",
       "complianceValidity": "תוקף ציות: {score} ({count} מסמכים)"
+    }
+  },
+  "catalog": {
+    "categoriesLabel": "קטגוריות",
+    "categoriesHint": "בחרו את כל הרלוונטיות מקטלוג הארגון.",
+    "specialtiesLabel": "התמחויות",
+    "specialtiesHint": "התמחויות אופציונליות המקושרות לספק זה."
+  },
+  "subcontractsWorkspace": {
+    "title": "הסכמי קבלנות משנה",
+    "description": "הסכמי קבלני משנה בין פרויקטים. פתחו ספק כדי לנהל את ההסכם.",
+    "filters": {
+      "all": "הכול"
+    },
+    "empty": {
+      "title": "אין עדיין הסכמי קבלנות משנה",
+      "body": "צרו הסכמי קבלנות משנה מפרופיל ספק או מפרויקט."
+    },
+    "list": {
+      "columns": {
+        "vendor": "ספק",
+        "project": "פרויקט",
+        "number": "מספר",
+        "status": "סטטוס",
+        "original": "מקורי",
+        "current": "נוכחי",
+        "billed": "חויב בחשבוניות ספק",
+        "paid": "שולם בחשבוניות ספק",
+        "outstanding": "יתרה",
+        "retention": "עיכבון",
+        "dates": "תאריכים"
+      }
     }
   }
 }

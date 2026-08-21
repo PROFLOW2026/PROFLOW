@@ -36,7 +36,7 @@ export function QuoteDetailActions({
     convertQuoteAction,
     {},
   );
-  const [workKind, setWorkKind] = useState<'project' | 'job'>('project');
+  const [workKind, setWorkKind] = useState<'project' | 'job' | 'work_order'>('project');
   const [pricingMode, setPricingMode] = useState<'fixed' | 'open'>('fixed');
 
   if (!canManage) return null;
@@ -103,19 +103,23 @@ export function QuoteDetailActions({
               {(control) => (
                 <>
                   <input type="hidden" name="workKind" value={workKind} />
-                  <Select value={workKind} onValueChange={(v) => setWorkKind(v as 'project' | 'job')}>
+                  <Select
+                    value={workKind}
+                    onValueChange={(v) => setWorkKind(v as 'project' | 'job' | 'work_order')}
+                  >
                     <SelectTrigger id={control.id}>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="project">{t('workKindProject')}</SelectItem>
                       <SelectItem value="job">{t('workKindJob')}</SelectItem>
+                      <SelectItem value="work_order">{t('workKindWorkOrder')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </>
               )}
             </Field>
-            {workKind === 'job' ? (
+            {workKind === 'job' || workKind === 'work_order' ? (
               <Field label={t('pricingMode')}>
                 {(control) => (
                   <>

@@ -38,10 +38,19 @@ export {
   getSubcontractById,
   listVendorSubcontracts,
   listProjectSubcontracts,
+  listOrgSubcontracts,
   listSubcontractParentContracts,
   listSubcontractDocumentCandidates,
   linkSubcontractDocument,
 } from './application/subcontracts';
+export {
+  upsertVendorPartyIdentifier,
+  removeVendorPartyIdentifier,
+} from './application/manage-identifiers';
+export {
+  listCatalogLinksForVendor,
+  setVendorCatalogLinks,
+} from './application/manage-catalog-links';
 
 export {
   SUBCONTRACT_STATUSES,
@@ -57,7 +66,14 @@ export type {
   SubcontractParentContractOption,
   SubcontractLinkedDocument,
 } from './domain/subcontract-types';
-export { VENDOR_TYPES, VENDOR_STATUSES, CONTACT_ROLES, ENGAGEMENT_STATUSES } from './domain/types';
+export {
+  VENDOR_TYPES,
+  VENDOR_STATUSES,
+  CONTACT_ROLES,
+  ENGAGEMENT_STATUSES,
+  VENDOR_IDENTIFIER_TYPES,
+  VENDOR_CATALOG_LINK_KINDS,
+} from './domain/types';
 export type {
   VendorType,
   VendorStatus,
@@ -70,6 +86,10 @@ export type {
   ProjectVendorEngagementSummary,
   EngagementStatus,
   ContactRole,
+  VendorIdentifierRecord,
+  VendorIdentifierType,
+  VendorCatalogLinkRecord,
+  VendorCatalogLinkKind,
 } from './domain/types';
 
 export { normalizeVendorName, vendorNamesMatch } from './domain/name-matching';
@@ -95,6 +115,9 @@ export {
   changeSubcontractStatusSchema,
   addSubcontractValueChangeSchema,
   linkSubcontractDocumentSchema,
+  listOrgSubcontractsSchema,
+  upsertVendorIdentifierSchema,
+  deleteVendorIdentifierSchema,
 } from './validation/schemas';
 export type {
   PromoteVendorFromTransactionInput,
@@ -108,6 +131,7 @@ export type {
   ChangeSubcontractStatusInput,
   AddSubcontractValueChangeInput,
   LinkSubcontractDocumentInput,
+  ListOrgSubcontractsInput,
 } from './validation/schemas';
 
 /** Cross-module org-scoped vendor FK guard. */

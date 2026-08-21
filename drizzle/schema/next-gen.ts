@@ -269,6 +269,9 @@ export const approvalRequests = pgTable(
     }),
     decidedAt: timestamp('decided_at', { withTimezone: true, mode: 'date' }),
     decisionNote: text('decision_note'),
+    /** Approvals 2.0: current step (1-based). Null = legacy single-step. */
+    currentStepOrder: integer('current_step_order'),
+    totalSteps: integer('total_steps'),
     ...timestamps(),
   },
   (table) => [
@@ -393,6 +396,8 @@ export const projectBudgetLines = pgTable(
     workPackageId: uuid('work_package_id'),
     disciplineKey: text('discipline_key'),
     costCode: text('cost_code'),
+    /** Optional org cost_code catalog entry; free-text `costCode` kept for legacy. */
+    costCodeId: uuid('cost_code_id'),
     label: text('label').notNull(),
     budgetAmount: moneyAmount('budget_amount').notNull(),
     etcAmount: moneyAmount('etc_amount'),

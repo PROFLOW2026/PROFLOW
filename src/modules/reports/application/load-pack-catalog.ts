@@ -12,10 +12,17 @@ import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { REPORT_KIND_DEFINITIONS } from '../domain/kinds';
 import { prioritizeReportKindsForPersona } from '../domain/persona-pack-order';
 import type { ReportKind, ReportPackOption } from '../domain/types';
+import {
+  listClientPackOptions,
+  listVendorPackOptions,
+} from './generate-extended-reports';
 
 export interface ReportPackCatalog {
   readonly projects: readonly ReportPackOption[];
   readonly quotes: readonly ReportPackOption[];
+  readonly clients: readonly ReportPackOption[];
+  readonly vendors: readonly ReportPackOption[];
+  readonly organizationId: string;
   readonly enabledKinds: readonly ReportKind[];
   readonly recommendedKinds: readonly ReportKind[];
   /** Recommended first, then remaining — for “כל הדוחות”. */
@@ -33,6 +40,7 @@ export async function loadReportPackCatalog(context: OrgContext): Promise<Report
     if (definition.kind === 'field_daily' && !modules.field_ops) return false;
     if (definition.kind === 'punch_inspection' && !modules.field_ops) return false;
     if (definition.kind === 'vendor_subcontract_summary' && !modules.vendors) return false;
+    if (definition.kind === 'crm_funnel' && !modules.crm) return false;
     return true;
   }).map((definition) => definition.kind);
 
@@ -58,9 +66,17 @@ export async function loadReportPackCatalog(context: OrgContext): Promise<Report
         }))
       : [];
 
+  const [clients, vendors] = await Promise.all([
+    listClientPackOptions(context),
+    listVendorPackOptions(context),
+  ]);
+
   return {
     projects,
     quotes,
+    clients,
+    vendors,
+    organizationId: context.organizationId,
     enabledKinds,
     recommendedKinds: recommended,
     orderedKinds,

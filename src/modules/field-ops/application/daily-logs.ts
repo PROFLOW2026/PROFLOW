@@ -16,6 +16,17 @@ import {
 } from '../domain/daily-log-status';
 import type { DailyLogStatus } from '../domain/types';
 import {
+  assertAssetIdsInOrg,
+  assertEmployeeIdsInOrg,
+  assertVendorIdsInOrg,
+  listDailyLogAssetIds,
+  listDailyLogEmployeeIds,
+  listDailyLogVendorIds,
+  replaceDailyLogAssets,
+  replaceDailyLogEmployees,
+  replaceDailyLogVendors,
+} from '../data/daily-log-links.repository';
+import {
   findActiveDailyLogByProjectDate,
   findDailyLogById,
   findDailyLogByIdForUpdate,
@@ -73,6 +84,33 @@ function extraFieldsFromCreate(input: ReturnType<typeof createDailyLogSchema.par
   };
 }
 
+async function syncDailyLogLinks(
+  db: Parameters<typeof replaceDailyLogVendors>[0],
+  organizationId: string,
+  dailyLogId: string,
+  input: {
+    readonly vendorIds?: readonly string[];
+    readonly employeeIds?: readonly string[];
+    readonly assetIds?: readonly string[];
+  },
+): Promise<void> {
+  if (input.vendorIds) {
+    const ok = await assertVendorIdsInOrg(db, organizationId, input.vendorIds);
+    if (!ok) throw new NotFoundError('Vendor');
+    await replaceDailyLogVendors(db, organizationId, dailyLogId, input.vendorIds);
+  }
+  if (input.employeeIds) {
+    const ok = await assertEmployeeIdsInOrg(db, organizationId, input.employeeIds);
+    if (!ok) throw new NotFoundError('Employee');
+    await replaceDailyLogEmployees(db, organizationId, dailyLogId, input.employeeIds);
+  }
+  if (input.assetIds) {
+    const ok = await assertAssetIdsInOrg(db, organizationId, input.assetIds);
+    if (!ok) throw new NotFoundError('Asset');
+    await replaceDailyLogAssets(db, organizationId, dailyLogId, input.assetIds);
+  }
+}
+
 export async function listDailyLogsForOrg(
   context: OrgContext,
   projectIdOrFilters?: string | { projectId?: string; status?: DailyLogStatus; limit?: number },
@@ -90,7 +128,12 @@ export async function getDailyLogForOrg(context: OrgContext, dailyLogId: string)
   const log = await findDailyLogById(context.db, context.organizationId, dailyLogId);
   if (!log) throw new NotFoundError('Daily log');
   await assertCanAccessProject(context, log.projectId);
-  return log;
+  const [vendorIds, employeeIds, assetIds] = await Promise.all([
+    listDailyLogVendorIds(context.db, context.organizationId, log.id),
+    listDailyLogEmployeeIds(context.db, context.organizationId, log.id),
+    listDailyLogAssetIds(context.db, context.organizationId, log.id),
+  ]);
+  return { ...log, vendorIds, employeeIds, assetIds };
 }
 
 export async function getDailyLogLinkedToSafetyRecord(
@@ -126,17 +169,25 @@ export async function createDailyLog(context: OrgContext, raw: CreateDailyLogInp
 
   let log;
   try {
-    log = await insertDailyLog(context.db, {
-      organizationId: context.organizationId,
-      projectId: input.projectId,
-      workPackageId: input.workPackageId ?? null,
-      logDate: input.logDate,
-      weather: input.weather ?? null,
-      summary: input.summary,
-      workforceNotes: packWorkforceAndBlockers(input.workforceNotes, input.blockers),
-      status: 'draft',
-      createdBy: context.userId,
-      ...extraFieldsFromCreate(input),
+    log = await withTransaction(context.db, async (tx) => {
+      const created = await insertDailyLog(tx, {
+        organizationId: context.organizationId,
+        projectId: input.projectId,
+        workPackageId: input.workPackageId ?? null,
+        logDate: input.logDate,
+        weather: input.weather ?? null,
+        summary: input.summary,
+        workforceNotes: packWorkforceAndBlockers(input.workforceNotes, input.blockers),
+        status: 'draft',
+        createdBy: context.userId,
+        ...extraFieldsFromCreate(input),
+      });
+      await syncDailyLogLinks(tx, context.organizationId, created.id, {
+        vendorIds: input.vendorIds ?? [],
+        employeeIds: input.employeeIds ?? [],
+        assetIds: input.assetIds ?? [],
+      });
+      return created;
     });
   } catch (error) {
     if (isUniqueViolation(error)) {
@@ -239,6 +290,12 @@ export async function updateDailyLog(context: OrgContext, raw: UpdateDailyLogInp
       throw error;
     }
     if (!updated) throw new ConflictError('Daily log was updated concurrently');
+
+    await syncDailyLogLinks(tx, context.organizationId, updated.id, {
+      vendorIds: input.vendorIds,
+      employeeIds: input.employeeIds,
+      assetIds: input.assetIds,
+    });
 
     await recordAuditEvent(txContext, {
       action: AUDIT_ACTIONS.DAILY_LOG_UPDATED,

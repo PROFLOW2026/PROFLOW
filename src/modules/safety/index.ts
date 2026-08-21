@@ -10,6 +10,7 @@ export { addToolboxAttendee, acknowledgeToolboxAttendee } from './application/to
 export {
   getSafetySummaryForOrg,
   loadOverdueSafetyActionsForOrg,
+  listOpenSafetyActionsForOrg,
 } from './application/summary';
 export { attachDocumentToSafetyRecord } from './application/attach-document';
 

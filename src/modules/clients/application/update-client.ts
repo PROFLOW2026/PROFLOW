@@ -38,6 +38,8 @@ export async function updateClient(
     postalCode: parsed.data.postalCode,
     countryCode: parsed.data.countryCode,
     notes: parsed.data.notes,
+    clientTypeId: parsed.data.clientTypeId,
+    defaultPaymentTermId: parsed.data.defaultPaymentTermId,
   });
 
   if (!updated) throw new NotFoundError('Client');

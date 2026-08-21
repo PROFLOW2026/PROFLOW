@@ -53,6 +53,14 @@ import {
   updateDraftRetentionSchema,
 } from '@/modules/retention';
 import { createApBillSchema, type CreateApBillInput } from '../validation/schemas';
+import {
+  parsePaymentTermMetadata,
+  resolveApPaymentTermId,
+  suggestDueDateFromPaymentTerm,
+  getCatalogEntryById,
+  resolveOrgDefaultPaymentTermIdForContext,
+} from '@/modules/business-catalog';
+import { findVendorById, findSubcontractAgreementById } from '@/modules/vendors';
 
 async function consumePoCommitmentForPostedBill(
   context: OrgContext,
@@ -179,21 +187,6 @@ export async function createApBill(context: OrgContext, raw: CreateApBillInput) 
     lines: input.lines,
   });
 
-  const billDate = businessDate(
-    input.billDate ?? todayInTimeZone(context.organization.timezone),
-  );
-  await assertMonthOpenForRewrite(context, yearMonthFromBusinessDate(billDate));
-
-  const taxResolution = await resolveApplicableDefaultTax(context, billDate);
-  const taxSplit = resolveApBillTaxSplit({
-    enteredAmount: input.totalAmount,
-    currency: input.currency,
-    amountIncludesTax: input.amountIncludesTax,
-    netAmount: input.netAmount,
-    taxAmount: input.taxAmount,
-    resolved: taxResolution.resolved,
-  });
-
   const vendorOk = await assertVendorInOrganization(
     context.db,
     context.organizationId,
@@ -201,8 +194,29 @@ export async function createApBill(context: OrgContext, raw: CreateApBillInput) 
   );
   if (!vendorOk) throw new NotFoundError('Vendor');
 
-  let projectId = input.projectId ?? null;
+  const vendor = await findVendorById(context.db, context.organizationId, input.vendorId);
+
   const purchaseOrderId = input.purchaseOrderId ?? null;
+  const subcontractAgreementId = input.subcontractAgreementId ?? null;
+
+  let purchaseOrderTermId: string | null = null;
+  let subcontractTermId: string | null = null;
+
+  if (subcontractAgreementId) {
+    const subcontract = await findSubcontractAgreementById(
+      context.db,
+      context.organizationId,
+      subcontractAgreementId,
+    );
+    if (!subcontract) throw new NotFoundError('Subcontract');
+    if (subcontract.vendorId !== input.vendorId) {
+      throw new DomainRuleError(
+        'Subcontract vendor must match the bill vendor',
+        'ap.errors.vendorMismatch',
+      );
+    }
+    subcontractTermId = subcontract.paymentTermId;
+  }
 
   if (purchaseOrderId) {
     const po = await findPurchaseOrderInOrg(
@@ -217,6 +231,60 @@ export async function createApBill(context: OrgContext, raw: CreateApBillInput) 
         'ap.errors.vendorMismatch',
       );
     }
+    purchaseOrderTermId = po.paymentTermId ?? null;
+  }
+
+  const orgDefaultId = await resolveOrgDefaultPaymentTermIdForContext(context);
+  const paymentTermId = resolveApPaymentTermId({
+    explicitId: input.paymentTermId,
+    subcontractTermId,
+    purchaseOrderTermId,
+    vendorDefaultId: vendor?.defaultPaymentTermId ?? null,
+    orgDefaultId,
+  });
+  let paymentTermMeta = null;
+  if (paymentTermId) {
+    const termEntry = await getCatalogEntryById(
+      context.db,
+      context.organizationId,
+      paymentTermId,
+    );
+    if (!termEntry || termEntry.kind !== 'payment_term' || !termEntry.isActive) {
+      throw new NotFoundError('Payment term');
+    }
+    paymentTermMeta = parsePaymentTermMetadata(termEntry.metadata);
+  }
+
+  const billDate = businessDate(
+    input.billDate ?? todayInTimeZone(context.organization.timezone),
+  );
+  const dueDateRaw = suggestDueDateFromPaymentTerm({
+    baseDateIso: billDate,
+    dueDate: input.dueDate,
+    term: paymentTermMeta,
+  });
+  const dueDate = dueDateRaw ? businessDate(dueDateRaw) : null;
+  await assertMonthOpenForRewrite(context, yearMonthFromBusinessDate(billDate));
+
+  const taxResolution = await resolveApplicableDefaultTax(context, billDate);
+  const taxSplit = resolveApBillTaxSplit({
+    enteredAmount: input.totalAmount,
+    currency: input.currency,
+    amountIncludesTax: input.amountIncludesTax,
+    netAmount: input.netAmount,
+    taxAmount: input.taxAmount,
+    resolved: taxResolution.resolved,
+  });
+
+  let projectId = input.projectId ?? null;
+
+  if (purchaseOrderId) {
+    const po = await findPurchaseOrderInOrg(
+      context.db,
+      context.organizationId,
+      purchaseOrderId,
+    );
+    if (!po) throw new NotFoundError('Purchase order');
     if (po.currency.toUpperCase() !== input.currency.toUpperCase()) {
       throw new DomainRuleError(
         'Purchase order currency must match the bill currency',
@@ -295,7 +363,8 @@ export async function createApBill(context: OrgContext, raw: CreateApBillInput) 
     reference,
     status: initialStatus,
     billDate,
-    dueDate: input.dueDate ?? null,
+    dueDate,
+    paymentTermId,
     currency: input.currency.toUpperCase(),
     totalAmount: taxSplit.totalAmount,
     netAmount: taxSplit.netAmount,

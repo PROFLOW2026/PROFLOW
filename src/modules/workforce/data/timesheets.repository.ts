@@ -27,6 +27,7 @@ function mapTimesheet(row: typeof timesheets.$inferSelect): TimesheetRecord {
     decidedByUserId: row.decidedByUserId,
     decidedAt: row.decidedAt,
     managerNote: row.managerNote,
+    lockedAt: row.lockedAt ?? null,
     archivedAt: row.archivedAt,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
@@ -243,6 +244,7 @@ export async function updateTimesheetLifecycle(
     decidedAt?: Date | null;
     decidedByUserId?: string | null;
     managerNote?: string | null;
+    lockedAt?: Date | null;
   },
   options?: { readonly fromStatuses?: readonly TimesheetStatus[] },
 ): Promise<TimesheetRecord | null> {
@@ -264,6 +266,7 @@ export async function updateTimesheetLifecycle(
       decidedAt: patch.decidedAt === undefined ? undefined : patch.decidedAt,
       decidedByUserId: patch.decidedByUserId === undefined ? undefined : patch.decidedByUserId,
       managerNote: patch.managerNote === undefined ? undefined : patch.managerNote,
+      lockedAt: patch.lockedAt === undefined ? undefined : patch.lockedAt,
       updatedAt: new Date(),
     })
     .where(and(...conditions))

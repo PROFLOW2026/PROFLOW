@@ -94,7 +94,7 @@
     "financeHint": "Insurance and compliance records do not post Actual. Create a linked expense draft when a premium or fee should enter finance."
   },
   "financeLink": {
-    "create": "Create linked expense",
+    "create": "Create expense draft",
     "pending": "Creating…",
     "hint": "Creates an Expense draft only. Actual changes after you finalize the expense - not from this compliance record alone.",
     "linkedDraft": "Linked expense draft",

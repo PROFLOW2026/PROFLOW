@@ -22,6 +22,7 @@ export {
   listInventoryLocationsForOrg,
   listLowStockItems,
   listMovementsForInventoryItem,
+  listRecentInventoryMovementsForOrg,
   recordInventoryMovement,
   updateInventoryLocation,
 } from './application/inventory';
@@ -133,6 +134,10 @@ export {
   findFleetById,
   findMaintenanceById,
 } from './data/assets.repository';
+export {
+  findEquipmentUsageById,
+  findMaterialUsageById,
+} from './data/usage.repository';
 
 export {
   createAssetSchema,

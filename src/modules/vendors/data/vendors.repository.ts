@@ -1,5 +1,14 @@
 import { and, eq, ilike, isNull, or, sql } from 'drizzle-orm';
-import { expenses, projects, vendorContacts, vendorEngagements, vendors } from '@drizzle/schema';
+import {
+  expenses,
+  organizationCatalogEntries,
+  partyIdentifiers,
+  projects,
+  vendorCatalogLinks,
+  vendorContacts,
+  vendorEngagements,
+  vendors,
+} from '@drizzle/schema';
 import {
   ORG_LIST_EXPORT_CAP,
   ORG_LIST_HARD_CAP,
@@ -11,10 +20,14 @@ import { normalizeVendorName } from '../domain/name-matching';
 import type {
   EngagementStatus,
   ProjectVendorEngagementSummary,
+  VendorCatalogLinkKind,
+  VendorCatalogLinkRecord,
   VendorContactRecord,
   VendorDetail,
   VendorEngagementRecord,
   VendorEngagementSummary,
+  VendorIdentifierRecord,
+  VendorIdentifierType,
   VendorListFilters,
   VendorListItem,
   VendorRecord,
@@ -36,6 +49,7 @@ function mapVendor(row: typeof vendors.$inferSelect): VendorRecord {
     city: row.city,
     countryCode: row.countryCode,
     notes: row.notes,
+    defaultPaymentTermId: row.defaultPaymentTermId ?? null,
     archivedAt: row.archivedAt,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
@@ -91,6 +105,7 @@ export async function insertVendor(
     city?: string | null;
     countryCode?: string | null;
     notes?: string | null;
+    defaultPaymentTermId?: string | null;
   },
 ): Promise<VendorRecord> {
   const [row] = await db
@@ -110,6 +125,7 @@ export async function insertVendor(
       city: input.city ?? null,
       countryCode: input.countryCode ?? null,
       notes: input.notes ?? null,
+      defaultPaymentTermId: input.defaultPaymentTermId ?? null,
     })
     .returning();
 
@@ -133,6 +149,7 @@ export async function updateVendorById(
     city: string | null;
     countryCode: string | null;
     notes: string | null;
+    defaultPaymentTermId: string | null;
     archivedAt: Date | null;
   }>,
 ): Promise<VendorRecord | null> {
@@ -193,6 +210,18 @@ export async function listVendors(
     conditions.push(eq(vendors.type, filters.type));
   }
 
+  if (filters.categoryId) {
+    conditions.push(
+      sql`exists (
+        select 1 from vendor_catalog_links vcl
+        where vcl.vendor_id = vendors.id
+          and vcl.organization_id = ${organizationId}
+          and vcl.catalog_entry_id = ${filters.categoryId}
+          and vcl.link_kind = 'vendor_category'
+      )`,
+    );
+  }
+
   if (filters.search?.trim()) {
     const term = `%${filters.search.trim()}%`;
     conditions.push(or(ilike(vendors.name, term), ilike(vendors.notes, term))!);
@@ -203,17 +232,27 @@ export async function listVendors(
       vendor: vendors,
       engagementCount: sql<number>`(
         select count(*)::int from vendor_engagements ve
-        where ve.vendor_id = ${vendors.id}
+        where ve.vendor_id = vendors.id
           and ve.organization_id = ${organizationId}
           and ve.archived_at is null
           and ve.status = 'active'
       )`,
       projectCount: sql<number>`(
         select count(distinct ve.project_id)::int from vendor_engagements ve
-        where ve.vendor_id = ${vendors.id}
+        where ve.vendor_id = vendors.id
           and ve.organization_id = ${organizationId}
           and ve.archived_at is null
           and ve.status = 'active'
+      )`,
+      categoryNames: sql<string>`(
+        select coalesce(string_agg(oce.name, '|' order by oce.sort_order, oce.name), '')
+        from vendor_catalog_links vcl
+        inner join organization_catalog_entries oce
+          on oce.id = vcl.catalog_entry_id
+         and oce.organization_id = vcl.organization_id
+        where vcl.vendor_id = vendors.id
+          and vcl.organization_id = ${organizationId}
+          and vcl.link_kind = 'vendor_category'
       )`,
     })
     .from(vendors)
@@ -233,6 +272,9 @@ export async function listVendors(
     ...mapVendor(row.vendor),
     engagementCount: row.engagementCount,
     projectCount: row.projectCount,
+    categoryNames: row.categoryNames
+      ? row.categoryNames.split('|').filter((name) => name.length > 0)
+      : [],
   }));
 }
 
@@ -271,6 +313,26 @@ export async function getVendorDetail(
     parentVendorName = parent?.name ?? null;
   }
 
+  let defaultPaymentTermName: string | null = null;
+  if (vendor.defaultPaymentTermId) {
+    const [termRow] = await db
+      .select({ name: organizationCatalogEntries.name })
+      .from(organizationCatalogEntries)
+      .where(
+        and(
+          eq(organizationCatalogEntries.id, vendor.defaultPaymentTermId),
+          eq(organizationCatalogEntries.organizationId, organizationId),
+        ),
+      )
+      .limit(1);
+    defaultPaymentTermName = termRow?.name ?? null;
+  }
+
+  const [identifiers, catalogLinks] = await Promise.all([
+    listVendorIdentifiers(db, organizationId, vendorId),
+    listVendorCatalogLinks(db, organizationId, vendorId),
+  ]);
+
   const engagements: VendorEngagementSummary[] = engagementRows.map((row) => ({
     ...mapEngagement(row.engagement),
     projectName: row.projectName,
@@ -284,9 +346,231 @@ export async function getVendorDetail(
     ...vendor,
     contacts: contacts.map(mapContact),
     engagements,
+    identifiers,
+    catalogLinks,
     parentVendorName,
+    defaultPaymentTermName,
     projectCount: new Set(activeProjectIds).size,
   };
+}
+
+export async function listVendorIdentifiers(
+  db: DbExecutor,
+  organizationId: string,
+  vendorId: string,
+): Promise<VendorIdentifierRecord[]> {
+  const rows = await db
+    .select()
+    .from(partyIdentifiers)
+    .where(
+      and(
+        eq(partyIdentifiers.organizationId, organizationId),
+        eq(partyIdentifiers.vendorId, vendorId),
+      ),
+    )
+    .orderBy(partyIdentifiers.type);
+
+  return rows.map((row) => ({
+    id: row.id,
+    organizationId: row.organizationId,
+    vendorId: row.vendorId!,
+    type: row.type as VendorIdentifierType,
+    value: row.value,
+    createdAt: row.createdAt,
+    updatedAt: row.updatedAt,
+  }));
+}
+
+export async function upsertVendorIdentifier(
+  db: DbExecutor,
+  input: {
+    organizationId: string;
+    vendorId: string;
+    type: VendorIdentifierType;
+    value: string;
+  },
+): Promise<VendorIdentifierRecord> {
+  const existing = await db
+    .select()
+    .from(partyIdentifiers)
+    .where(
+      and(
+        eq(partyIdentifiers.organizationId, input.organizationId),
+        eq(partyIdentifiers.vendorId, input.vendorId),
+        eq(partyIdentifiers.type, input.type),
+      ),
+    )
+    .limit(1);
+
+  if (existing[0]) {
+    const [row] = await db
+      .update(partyIdentifiers)
+      .set({ value: input.value, updatedAt: new Date() })
+      .where(eq(partyIdentifiers.id, existing[0].id))
+      .returning();
+    return {
+      id: row!.id,
+      organizationId: row!.organizationId,
+      vendorId: row!.vendorId!,
+      type: row!.type as VendorIdentifierType,
+      value: row!.value,
+      createdAt: row!.createdAt,
+      updatedAt: row!.updatedAt,
+    };
+  }
+
+  const [row] = await db
+    .insert(partyIdentifiers)
+    .values({
+      organizationId: input.organizationId,
+      vendorId: input.vendorId,
+      type: input.type,
+      value: input.value,
+    })
+    .returning();
+
+  return {
+    id: row!.id,
+    organizationId: row!.organizationId,
+    vendorId: row!.vendorId!,
+    type: row!.type as VendorIdentifierType,
+    value: row!.value,
+    createdAt: row!.createdAt,
+    updatedAt: row!.updatedAt,
+  };
+}
+
+export async function deleteVendorIdentifier(
+  db: DbExecutor,
+  organizationId: string,
+  identifierId: string,
+): Promise<boolean> {
+  const deleted = await db
+    .delete(partyIdentifiers)
+    .where(
+      and(
+        eq(partyIdentifiers.id, identifierId),
+        eq(partyIdentifiers.organizationId, organizationId),
+      ),
+    )
+    .returning({ id: partyIdentifiers.id });
+
+  return deleted.length > 0;
+}
+
+export async function findVendorIdentifierById(
+  db: DbExecutor,
+  organizationId: string,
+  identifierId: string,
+): Promise<VendorIdentifierRecord | null> {
+  const [row] = await db
+    .select()
+    .from(partyIdentifiers)
+    .where(
+      and(
+        eq(partyIdentifiers.id, identifierId),
+        eq(partyIdentifiers.organizationId, organizationId),
+      ),
+    )
+    .limit(1);
+
+  if (!row || !row.vendorId) return null;
+  return {
+    id: row.id,
+    organizationId: row.organizationId,
+    vendorId: row.vendorId,
+    type: row.type as VendorIdentifierType,
+    value: row.value,
+    createdAt: row.createdAt,
+    updatedAt: row.updatedAt,
+  };
+}
+
+export async function listVendorCatalogLinks(
+  db: DbExecutor,
+  organizationId: string,
+  vendorId: string,
+): Promise<VendorCatalogLinkRecord[]> {
+  const rows = await db
+    .select({
+      link: vendorCatalogLinks,
+      entryName: organizationCatalogEntries.name,
+      entryKey: organizationCatalogEntries.key,
+    })
+    .from(vendorCatalogLinks)
+    .innerJoin(
+      organizationCatalogEntries,
+      and(
+        eq(organizationCatalogEntries.id, vendorCatalogLinks.catalogEntryId),
+        eq(organizationCatalogEntries.organizationId, vendorCatalogLinks.organizationId),
+      ),
+    )
+    .where(
+      and(
+        eq(vendorCatalogLinks.organizationId, organizationId),
+        eq(vendorCatalogLinks.vendorId, vendorId),
+      ),
+    )
+    .orderBy(organizationCatalogEntries.sortOrder, organizationCatalogEntries.name);
+
+  return rows.map((row) => ({
+    id: row.link.id,
+    organizationId: row.link.organizationId,
+    vendorId: row.link.vendorId,
+    catalogEntryId: row.link.catalogEntryId,
+    linkKind: row.link.linkKind as VendorCatalogLinkKind,
+    entryName: row.entryName,
+    entryKey: row.entryKey,
+  }));
+}
+
+/**
+ * Replace category/specialty links for a vendor. Pass only the entry ids that
+ * should remain; missing kinds clear that kind.
+ */
+export async function replaceVendorCatalogLinks(
+  db: DbExecutor,
+  input: {
+    organizationId: string;
+    vendorId: string;
+    categoryIds: readonly string[];
+    specialtyIds: readonly string[];
+  },
+): Promise<VendorCatalogLinkRecord[]> {
+  await db
+    .delete(vendorCatalogLinks)
+    .where(
+      and(
+        eq(vendorCatalogLinks.organizationId, input.organizationId),
+        eq(vendorCatalogLinks.vendorId, input.vendorId),
+      ),
+    );
+
+  const rows: Array<{
+    organizationId: string;
+    vendorId: string;
+    catalogEntryId: string;
+    linkKind: VendorCatalogLinkKind;
+  }> = [
+    ...input.categoryIds.map((catalogEntryId) => ({
+      organizationId: input.organizationId,
+      vendorId: input.vendorId,
+      catalogEntryId,
+      linkKind: 'vendor_category' as const,
+    })),
+    ...input.specialtyIds.map((catalogEntryId) => ({
+      organizationId: input.organizationId,
+      vendorId: input.vendorId,
+      catalogEntryId,
+      linkKind: 'vendor_specialty' as const,
+    })),
+  ];
+
+  if (rows.length > 0) {
+    await db.insert(vendorCatalogLinks).values(rows);
+  }
+
+  return listVendorCatalogLinks(db, input.organizationId, input.vendorId);
 }
 
 export async function insertVendorContact(

@@ -6,6 +6,19 @@ export {
 } from './application/queries';
 export type { ProjectBudgetWorkspace } from './application/queries';
 
+export { getProjectCostCodeVariance } from './application/cost-code-variance';
+export type { ProjectCostCodeVarianceView } from './application/cost-code-variance';
+
+export {
+  composeCostCodeVariance,
+  sumCostCodeVarianceTotals,
+} from './domain/cost-code-variance';
+export type {
+  CostCodeCatalogLabel,
+  CostCodeVarianceResult,
+  CostCodeVarianceRow,
+} from './domain/cost-code-variance';
+
 export { createProjectBudget, reviseProjectBudget } from './application/manage-budget';
 
 export {

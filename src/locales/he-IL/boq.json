@@ -121,6 +121,8 @@
     "allocationKind": "סוג שיוך",
     "kindQuantity": "שינוי כמות בלבד",
     "kindUnitPrice": "שינוי מחיר יחידה בלבד",
+    "kindNewItem": "פריט חדש בכתב כמויות",
+    "kindLumpSum": "סכום כולל",
     "targetItem": "סעיף יעד (אופציונלי)",
     "unallocated": "להשאיר לא משויך על החוזה",
     "submit": "שיוך"

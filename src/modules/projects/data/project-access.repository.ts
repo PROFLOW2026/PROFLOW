@@ -112,36 +112,26 @@ export async function insertProjectAccessGrant(
       accessLevel: input.accessLevel,
       grantedByUserId: input.grantedByUserId,
     })
-    .onConflictDoNothing()
+    .onConflictDoUpdate({
+      target: [
+        projectAccessGrants.organizationId,
+        projectAccessGrants.userId,
+        projectAccessGrants.projectId,
+      ],
+      set: {
+        accessLevel: input.accessLevel,
+        grantedByUserId: input.grantedByUserId,
+      },
+    })
     .returning();
 
-  if (row) {
-    return {
-      id: row.id,
-      organizationId: row.organizationId,
-      userId: row.userId,
-      projectId: row.projectId,
-      accessLevel: row.accessLevel as ProjectAccessLevel,
-    };
-  }
-
-  const [existing] = await db
-    .select()
-    .from(projectAccessGrants)
-    .where(
-      and(
-        eq(projectAccessGrants.organizationId, input.organizationId),
-        eq(projectAccessGrants.userId, input.userId),
-        eq(projectAccessGrants.projectId, input.projectId),
-      ),
-    )
-    .limit(1);
+  if (!row) throw new Error('Failed to upsert project access grant');
   return {
-    id: existing!.id,
-    organizationId: existing!.organizationId,
-    userId: existing!.userId,
-    projectId: existing!.projectId,
-    accessLevel: existing!.accessLevel as ProjectAccessLevel,
+    id: row.id,
+    organizationId: row.organizationId,
+    userId: row.userId,
+    projectId: row.projectId,
+    accessLevel: row.accessLevel as ProjectAccessLevel,
   };
 }
 

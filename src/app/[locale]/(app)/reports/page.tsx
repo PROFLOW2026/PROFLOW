@@ -52,6 +52,9 @@ export default async function ReportsPage({
       <ReportPacksSection
         projects={packs.projects}
         quotes={packs.quotes}
+        clients={packs.clients}
+        vendors={packs.vendors}
+        organizationId={packs.organizationId}
         enabledKinds={packs.enabledKinds}
         recommendedKinds={packs.recommendedKinds}
         orderedKinds={packs.orderedKinds}

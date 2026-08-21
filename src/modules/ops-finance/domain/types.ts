@@ -8,6 +8,10 @@ export const OPS_RECORD_KINDS = [
   'compliance_artifact',
   'fleet_vehicle',
   'recurring_business_cost',
+  /** Explicit material usage → expense draft only; never auto Actual. */
+  'material_usage_record',
+  /** Explicit equipment usage → expense draft only; never auto Actual. */
+  'equipment_usage_record',
 ] as const;
 export type OpsRecordKind = (typeof OPS_RECORD_KINDS)[number];
 

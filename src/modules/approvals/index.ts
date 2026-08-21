@@ -6,8 +6,13 @@ export {
   type ApprovalEntityType,
   type ApprovalStatus,
   type ApprovalRuleRecord,
+  type ApprovalRuleStepRecord,
+  type ApprovalRuleWithSteps,
   type ApprovalRequestRecord,
+  type ApprovalRequestStepRecord,
   type PendingApprovalItem,
+  type ApproverStrategy,
+  type ApprovalStepStatus,
 } from './domain/types';
 
 export {
@@ -20,9 +25,19 @@ export {
 } from './domain/rules';
 
 export {
+  APPROVER_STRATEGIES,
+  canDecideCurrentStep,
+  entitySourceHref,
+  isApproverStrategy,
+  isRoleTemplateKey,
+} from './domain/steps';
+
+export {
   listApprovalRules,
+  listApprovalRulesWithSteps,
   createApprovalRule,
   updateApprovalRule,
+  replaceApprovalRuleStepsForRule,
 } from './application/manage-rules';
 
 export {
@@ -44,6 +59,7 @@ export {
 export {
   createApprovalRuleSchema,
   updateApprovalRuleSchema,
+  replaceApprovalRuleStepsSchema,
   submitApprovalRequestSchema,
   decideApprovalSchema,
   cancelApprovalSchema,
@@ -51,6 +67,7 @@ export {
   gateApprovalSchema,
   type CreateApprovalRuleInput,
   type UpdateApprovalRuleInput,
+  type ReplaceApprovalRuleStepsInput,
   type SubmitApprovalRequestInput,
   type DecideApprovalInput,
   type CancelApprovalInput,

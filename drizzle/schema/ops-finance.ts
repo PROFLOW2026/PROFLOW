@@ -44,7 +44,7 @@ export const opsExpenseLinks = pgTable(
     ),
     check(
       'ops_expense_links_kind_known',
-      sql`${table.opsRecordKind} IN ('maintenance_record', 'compliance_artifact', 'fleet_vehicle', 'recurring_business_cost')`,
+      sql`${table.opsRecordKind} IN ('maintenance_record', 'compliance_artifact', 'fleet_vehicle', 'recurring_business_cost', 'material_usage_record', 'equipment_usage_record')`,
     ),
     check(
       'ops_expense_links_purpose_known',

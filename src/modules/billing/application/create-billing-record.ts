@@ -7,6 +7,14 @@ import { resolveRetentionCapture } from '@/modules/retention';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { noteModuleUsage, resolveAllocatedReference } from '@/modules/tenancy';
+import {
+  parsePaymentTermMetadata,
+  resolveArPaymentTermId,
+  suggestDueDateFromPaymentTerm,
+  getCatalogEntryById,
+  resolveOrgDefaultPaymentTermIdForContext,
+} from '@/modules/business-catalog';
+import { findClientById } from '@/modules/clients';
 import { assertBillingCurrencyMatchesProject } from '../domain/currency';
 import { resolveTaxAmounts } from '../domain/tax';
 import {
@@ -97,12 +105,14 @@ export async function createBillingRecordWithPermission(
 
   let contractId = input.contractId ?? null;
   let contractRetentionPercent: string | null = null;
+  let contractPaymentTermId: string | null = null;
   if (contractId) {
     const contract = await findContractById(context.db, context.organizationId, contractId);
     if (!contract || contract.projectId !== input.projectId) {
       throw new NotFoundError('Contract');
     }
     contractRetentionPercent = contract.retentionPercent;
+    contractPaymentTermId = contract.paymentTermId;
   } else {
     const primary = await findPrimaryContractByProject(
       context.db,
@@ -111,6 +121,7 @@ export async function createBillingRecordWithPermission(
     );
     contractId = primary?.id ?? null;
     contractRetentionPercent = primary?.retentionPercent ?? null;
+    contractPaymentTermId = primary?.paymentTermId ?? null;
   }
 
   const currency = await resolveCurrency(context, input.projectId, input.currency);
@@ -133,7 +144,34 @@ export async function createBillingRecordWithPermission(
   }
 
   const issueDate = businessDate(input.issueDate);
-  const dueDate = input.dueDate ? businessDate(input.dueDate) : null;
+  const client = project.clientId
+    ? await findClientById(context.db, context.organizationId, project.clientId)
+    : null;
+  const orgDefaultId = await resolveOrgDefaultPaymentTermIdForContext(context);
+  const paymentTermId = resolveArPaymentTermId({
+    explicitId: input.paymentTermId,
+    contractTermId: contractPaymentTermId,
+    clientDefaultId: client?.defaultPaymentTermId ?? null,
+    orgDefaultId,
+  });
+  let paymentTermMeta = null;
+  if (paymentTermId) {
+    const termEntry = await getCatalogEntryById(
+      context.db,
+      context.organizationId,
+      paymentTermId,
+    );
+    if (!termEntry || termEntry.kind !== 'payment_term' || !termEntry.isActive) {
+      throw new NotFoundError('Payment term');
+    }
+    paymentTermMeta = parsePaymentTermMetadata(termEntry.metadata);
+  }
+  const dueDateRaw = suggestDueDateFromPaymentTerm({
+    baseDateIso: issueDate,
+    dueDate: input.dueDate,
+    term: paymentTermMeta,
+  });
+  const dueDate = dueDateRaw ? businessDate(dueDateRaw) : null;
 
   const callerSetRetention =
     input.retentionAmount !== undefined || input.retentionPercent !== undefined;
@@ -155,6 +193,7 @@ export async function createBillingRecordWithPermission(
     reference: await resolveAllocatedReference(context, 'billing_record', input.reference),
     issueDate,
     dueDate,
+    paymentTermId,
     subtotalAmount: toNumericString(amounts.subtotalAmount),
     taxAmount: amounts.taxAmount ? toNumericString(amounts.taxAmount) : null,
     totalAmount: toNumericString(amounts.totalAmount),

@@ -33,6 +33,10 @@ export interface ClientRecord {
   readonly postalCode: string | null;
   readonly countryCode: string | null;
   readonly notes: string | null;
+  /** Org catalog entry (kind=client_type). */
+  readonly clientTypeId: string | null;
+  /** Org catalog entry (kind=payment_term). */
+  readonly defaultPaymentTermId: string | null;
   readonly archivedAt: Date | null;
   readonly createdAt: Date;
   readonly updatedAt: Date;
@@ -64,11 +68,13 @@ export interface PartyIdentifierRecord {
 
 export interface ClientListItem extends ClientRecord {
   readonly projectCount: number;
+  readonly clientTypeName: string | null;
 }
 
 export interface ClientListFilters {
   readonly search?: string;
   readonly status?: ClientStatus | 'all';
+  readonly clientTypeId?: string;
   readonly includeArchived?: boolean;
   readonly limit?: number;
   readonly offset?: number;
@@ -78,4 +84,6 @@ export interface ClientDetail extends ClientRecord {
   readonly contacts: readonly ClientContactRecord[];
   readonly identifiers: readonly PartyIdentifierRecord[];
   readonly projectCount: number;
+  readonly clientTypeName: string | null;
+  readonly defaultPaymentTermName: string | null;
 }

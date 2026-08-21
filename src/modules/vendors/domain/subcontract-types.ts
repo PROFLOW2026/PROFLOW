@@ -29,6 +29,8 @@ export interface SubcontractAgreementRecord {
   readonly originalAmount: string;
   readonly currency: string;
   readonly retentionPercent: string | null;
+  /** Org catalog entry (kind=payment_term). */
+  readonly paymentTermId: string | null;
   readonly startDate: string | null;
   readonly endDate: string | null;
   readonly notes: string | null;

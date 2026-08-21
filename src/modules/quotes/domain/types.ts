@@ -20,8 +20,8 @@ export type QuoteStatus = (typeof QUOTE_STATUSES)[number];
 export const QUOTE_TAX_MODES = ['exclusive', 'inclusive', 'none'] as const;
 export type QuoteTaxMode = (typeof QUOTE_TAX_MODES)[number];
 
-/** Convert creates a work entity via existing project APIs. */
-export const QUOTE_CONVERT_WORK_KINDS = ['project', 'job'] as const;
+/** Convert creates a work entity via existing project / service APIs. */
+export const QUOTE_CONVERT_WORK_KINDS = ['project', 'job', 'work_order'] as const;
 export type QuoteConvertWorkKind = (typeof QUOTE_CONVERT_WORK_KINDS)[number];
 
 export interface QuoteLineItemRecord {

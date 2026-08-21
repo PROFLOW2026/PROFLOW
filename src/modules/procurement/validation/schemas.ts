@@ -137,6 +137,7 @@ export const createPurchaseOrderSchema = z.object({
   currency: z.string().trim().length(3),
   committedAmount: moneyString,
   orderedOn: z.string().trim().optional(),
+  paymentTermId: z.preprocess(emptyToNull, z.string().uuid().nullable().optional()),
   notes: z.string().trim().max(2000).optional(),
   lines: z
     .array(

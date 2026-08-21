@@ -34,7 +34,18 @@
     "quote_estimate": "Quote / estimate",
     "field_daily": "Daily log",
     "punch_inspection": "Punch and inspection report",
-    "vendor_subcontract_summary": "Vendors and subcontracts"
+    "vendor_subcontract_summary": "Vendors and subcontracts",
+    "client_360": "Client 360",
+    "vendor_360": "Vendor 360",
+    "contract_portfolio": "Contract portfolio",
+    "subcontract_cash": "Subcontract cash",
+    "labor_utilization": "Labor utilization",
+    "retention_schedule": "Retention schedule",
+    "inventory_movement": "Inventory movement",
+    "compliance_expiry": "Compliance expiry",
+    "crm_funnel": "CRM funnel",
+    "month_close_completeness": "Month-close completeness",
+    "safety_open_actions": "Safety open actions"
   },
   "kindHints": {
     "project_status": "Status, dates, and operational snapshot.",
@@ -44,7 +55,18 @@
     "quote_estimate": "Pre-sale quote. Quote is not a billing record.",
     "field_daily": "Daily log with photo document names, not a full photo dump.",
     "punch_inspection": "Open and closed punch items and inspections.",
-    "vendor_subcontract_summary": "Project vendors and subcontract agreements."
+    "vendor_subcontract_summary": "Project vendors and subcontract agreements.",
+    "client_360": "Client identity plus billing sections when permitted.",
+    "vendor_360": "Vendor identity plus AP sections when permitted.",
+    "contract_portfolio": "Contracts across accessible projects.",
+    "subcontract_cash": "Subcontract billed/paid/outstanding cash for a vendor.",
+    "labor_utilization": "Project vs non-project hours. Cost gated. Not payroll.",
+    "retention_schedule": "AR/AP aging cash views for retention timing.",
+    "inventory_movement": "Inventory quantities and recent movements — not costing.",
+    "compliance_expiry": "Compliance / document expiry checklist.",
+    "crm_funnel": "CRM pipeline snapshot.",
+    "month_close_completeness": "Operational month-close completeness.",
+    "safety_open_actions": "Open safety / HSE actions."
   },
   "natures": {
     "actual": "Actual",

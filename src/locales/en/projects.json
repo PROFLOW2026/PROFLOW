@@ -399,5 +399,15 @@
     "defaultWorkPackageArchive": "The default work area cannot be archived.",
     "lastWorkPackage": "A project must keep at least one work area.",
     "templateRequiresSimpleProject": "Apply structure templates before the project is split into multiple work areas."
+  },
+  "access": {
+    "title": "Project access",
+    "hint": "Control who can see this project when visibility is Selected or Assigned. Org-wide mode applies to every project.",
+    "modeOrgWide": "Visibility mode is organization-wide — changing it here affects all projects.",
+    "accessLevel": "Access level",
+    "levels": {
+      "read": "Read",
+      "manage": "Manage"
+    }
   }
 }

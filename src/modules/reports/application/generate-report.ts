@@ -42,6 +42,7 @@ import {
   type ReportSection,
 } from '../domain/types';
 import { generateReportSchema } from '../validation/schemas';
+import { buildExtendedReport } from './generate-extended-reports';
 
 export const defaultReportDeps = {
   now: nowUtc,
@@ -164,8 +165,16 @@ export async function generateReport(
       return buildPunchInspection(context, id, { locale, copy, generatedAt, companyName, deps });
     case 'vendor_subcontract_summary':
       return buildVendors(context, id, { locale, copy, generatedAt, companyName, deps });
-    default:
+    default: {
+      const extended = await buildExtendedReport(context, kind, id, {
+        locale,
+        copy,
+        generatedAt,
+        companyName,
+      });
+      if (extended) return extended;
       throw new ValidationError([{ path: 'kind', message: copy.errors.unknownKind }]);
+    }
   }
 }
 

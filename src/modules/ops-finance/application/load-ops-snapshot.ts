@@ -1,4 +1,10 @@
-import { findAssetById, findFleetById, findMaintenanceById } from '@/modules/assets';
+import {
+  findAssetById,
+  findEquipmentUsageById,
+  findFleetById,
+  findMaintenanceById,
+  findMaterialUsageById,
+} from '@/modules/assets';
 import { findComplianceArtifactById } from '@/modules/compliance';
 import type { OrgContext } from '@/shared/auth/context';
 import { NotFoundError } from '@/shared/errors';
@@ -84,6 +90,45 @@ export async function loadOpsRecordCostSnapshot(
         projectId: artifact.subjectType === 'project' ? artifact.subjectId : null,
         occurredOn: artifact.issuedOn,
         notes: artifact.notes,
+      };
+    }
+    case 'material_usage_record': {
+      const record = await findMaterialUsageById(
+        context.db,
+        context.organizationId,
+        opsRecordId,
+      );
+      if (!record || record.archivedAt) throw new NotFoundError('Material usage record');
+      return {
+        opsRecordKind,
+        opsRecordId: record.id,
+        costAmount: null,
+        currency: null,
+        title: record.description,
+        vendorId: null,
+        projectId: record.projectId,
+        occurredOn: record.usageDate,
+        notes: record.notes,
+      };
+    }
+    case 'equipment_usage_record': {
+      const record = await findEquipmentUsageById(
+        context.db,
+        context.organizationId,
+        opsRecordId,
+      );
+      if (!record || record.archivedAt) throw new NotFoundError('Equipment usage record');
+      const asset = await findAssetById(context.db, context.organizationId, record.assetId);
+      return {
+        opsRecordKind,
+        opsRecordId: record.id,
+        costAmount: null,
+        currency: null,
+        title: asset?.name ? `Equipment usage · ${asset.name}` : 'Equipment usage',
+        vendorId: null,
+        projectId: record.projectId,
+        occurredOn: record.usageDate,
+        notes: record.notes,
       };
     }
     default: {

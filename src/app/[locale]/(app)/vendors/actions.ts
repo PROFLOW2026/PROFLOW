@@ -1,7 +1,5 @@
 'use server';
 
-import { revalidatePath } from 'next/cache';
-import { getLocale, getTranslations } from 'next-intl/server';
 import {
   archiveVendor,
   cancelVendorEngagement,
@@ -22,16 +20,27 @@ import {
   changeSubcontractStatusSchema,
   addSubcontractValueChangeSchema,
   linkSubcontractDocumentSchema,
+  upsertVendorPartyIdentifier,
+  removeVendorPartyIdentifier,
   type CreateVendorInput,
   type UpdateVendorInput,
 } from '@/modules/vendors';
 import { withOrgContext } from '@/shared/auth/session';
 import { AppError } from '@/shared/errors';
 import { redirect } from '@/shared/i18n/navigation';
+import { revalidatePath } from 'next/cache';
+import { getLocale, getTranslations } from 'next-intl/server';
 
 export interface VendorFormState {
   error?: string;
   ok?: boolean;
+}
+
+function formUuidList(formData: FormData, key: string): string[] {
+  return formData
+    .getAll(key)
+    .map((value) => String(value).trim())
+    .filter((value) => value.length > 0);
 }
 
 export async function createVendorAction(
@@ -51,6 +60,9 @@ export async function createVendorAction(
     city: String(formData.get('city') ?? '') || undefined,
     countryCode: String(formData.get('countryCode') ?? '') || undefined,
     notes: String(formData.get('notes') ?? '') || undefined,
+    defaultPaymentTermId: String(formData.get('defaultPaymentTermId') ?? '') || undefined,
+    categoryIds: formUuidList(formData, 'categoryIds'),
+    specialtyIds: formUuidList(formData, 'specialtyIds'),
   };
 
   try {
@@ -75,6 +87,7 @@ export async function updateVendorAction(
     vendorId: String(formData.get('vendorId') ?? ''),
     name: String(formData.get('name') ?? '') || undefined,
     type: (formData.get('type') as UpdateVendorInput['type']) || undefined,
+    status: (formData.get('status') as UpdateVendorInput['status']) || undefined,
     email: String(formData.get('email') ?? '') || undefined,
     phone: String(formData.get('phone') ?? '') || undefined,
     website: String(formData.get('website') ?? '') || undefined,
@@ -82,17 +95,55 @@ export async function updateVendorAction(
     city: String(formData.get('city') ?? '') || undefined,
     countryCode: String(formData.get('countryCode') ?? '') || undefined,
     notes: String(formData.get('notes') ?? '') || undefined,
+    defaultPaymentTermId: String(formData.get('defaultPaymentTermId') ?? '') || null,
+    categoryIds: formUuidList(formData, 'categoryIds'),
+    specialtyIds: formUuidList(formData, 'specialtyIds'),
   };
 
   try {
     await withOrgContext((context) => updateVendor(context, input));
     revalidatePath('/vendors');
+    revalidatePath(`/vendors/${input.vendorId}`);
     return {};
   } catch (error) {
     if (error instanceof AppError) return { error: t('validationFailed') };
     throw error;
   }
 }
+
+export async function upsertVendorIdentifierAction(
+  _prev: VendorFormState,
+  formData: FormData,
+): Promise<VendorFormState> {
+  const t = await getTranslations('errors');
+  const vendorId = String(formData.get('vendorId') ?? '');
+
+  try {
+    await withOrgContext((context) =>
+      upsertVendorPartyIdentifier(context, {
+        vendorId,
+        type: String(formData.get('type') ?? '') as 'tax_id',
+        value: String(formData.get('value') ?? ''),
+      }),
+    );
+    revalidatePath(`/vendors/${vendorId}`);
+    return { ok: true };
+  } catch (error) {
+    if (error instanceof AppError) return { error: t('validationFailed') };
+    throw error;
+  }
+}
+
+export async function deleteVendorIdentifierAction(
+  identifierId: string,
+  vendorId: string,
+): Promise<void> {
+  await withOrgContext((context) =>
+    removeVendorPartyIdentifier(context, { identifierId }),
+  );
+  revalidatePath(`/vendors/${vendorId}`);
+}
+
 
 export async function archiveVendorAction(vendorId: string): Promise<VendorFormState> {
   const t = await getTranslations('errors');
@@ -252,6 +303,10 @@ export async function createSubcontractAction(
     startDate: formData.get('startDate') || null,
     endDate: formData.get('endDate') || null,
     notes: formData.get('notes') || null,
+    promoteVendorToBoth:
+      formData.get('promoteVendorToBoth') === 'on' ||
+      formData.get('promoteVendorToBoth') === 'true' ||
+      formData.get('promoteVendorToBoth') === '1',
   });
   if (!parsed.success) {
     return { error: t('validationFailed') };

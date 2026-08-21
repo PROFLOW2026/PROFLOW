@@ -27,7 +27,7 @@ export function ProjectAccessPanel({
   canManage: boolean;
   members: { userId: string; email: string; displayName: string | null }[];
   projects: { id: string; name: string }[];
-  grants: { id: string; userId: string; projectId: string }[];
+  grants: { id: string; userId: string; projectId: string; accessLevel?: 'read' | 'manage' }[];
   accessAllMembers: { userId: string; email: string; displayName: string | null }[];
 }) {
   const t = useTranslations('settings.people');
@@ -100,7 +100,7 @@ export function ProjectAccessPanel({
       {modeState.error ? <Alert tone="danger">{modeState.error}</Alert> : null}
 
       {canManage && mode !== 'all' ? (
-        <form action={grantAction} className="grid gap-3 sm:grid-cols-3 sm:items-end">
+        <form action={grantAction} className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 sm:items-end">
           <Field label={t('grantUser')}>
             {(control) => (
               <Select name="userId">
@@ -133,6 +133,19 @@ export function ProjectAccessPanel({
               </Select>
             )}
           </Field>
+          <Field label={t('grantLevel')}>
+            {(control) => (
+              <Select name="accessLevel" defaultValue="read">
+                <SelectTrigger id={control.id}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="read">{t('levelRead')}</SelectItem>
+                  <SelectItem value="manage">{t('levelManage')}</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
+          </Field>
           <Button type="submit" loading={grantPending}>
             {t('grantAdd')}
           </Button>
@@ -153,6 +166,8 @@ export function ProjectAccessPanel({
             >
               <span>
                 {memberName(grant.userId)} · {projectName(grant.projectId)}
+                {' · '}
+                {grant.accessLevel === 'manage' ? t('levelManage') : t('levelRead')}
               </span>
               {canManage ? (
                 <Button

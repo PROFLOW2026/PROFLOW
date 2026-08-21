@@ -7,11 +7,16 @@ import { ruleMatchesAmount, selectMatchingRule } from '@/modules/approvals/domai
 const listEnabledRulesForEntity = vi.fn();
 const findLatestRequestForEntityGate = vi.fn();
 const insertApprovalRequest = vi.fn();
+const listRuleSteps = vi.fn(async () => []);
+const insertApprovalRequestSteps = vi.fn(async () => undefined);
 
 vi.mock('@/modules/approvals/data/approvals.repository', () => ({
   listEnabledRulesForEntity: (...args: unknown[]) => listEnabledRulesForEntity(...args),
   findLatestRequestForEntityGate: (...args: unknown[]) => findLatestRequestForEntityGate(...args),
   insertApprovalRequest: (...args: unknown[]) => insertApprovalRequest(...args),
+  listRuleSteps: (...args: unknown[]) => listRuleSteps(...(args as [])),
+  insertApprovalRequestSteps: (...args: unknown[]) =>
+    insertApprovalRequestSteps(...(args as [])),
   findOpenRequestForEntity: vi.fn(),
 }));
 
@@ -79,6 +84,8 @@ function request(partial: Partial<ApprovalRequestRecord> = {}): ApprovalRequestR
     decidedByUserId: null,
     decidedAt: null,
     decisionNote: null,
+    currentStepOrder: null,
+    totalSteps: null,
     createdAt: new Date('2026-08-01'),
     updatedAt: new Date('2026-08-01'),
     ...partial,

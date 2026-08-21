@@ -81,6 +81,13 @@ vi.mock('@/modules/approvals/data/approvals.repository', () => ({
   listApprovalRequestsForOrg: vi.fn(),
   listPendingApprovalItems: vi.fn(),
   updateApprovalRequestDecision: vi.fn(),
+  listRuleSteps: vi.fn(async () => []),
+  insertApprovalRequestSteps: vi.fn(async () => undefined),
+  listRequestSteps: vi.fn(async () => []),
+  advanceApprovalRequestStep: vi.fn(),
+  decideRequestStep: vi.fn(),
+  replaceApprovalRuleSteps: vi.fn(),
+  listApprovalRulesWithStepsForOrg: vi.fn(async () => []),
 }));
 
 vi.mock('@/modules/workforce/data/employees.repository', () => ({
@@ -231,6 +238,8 @@ function submittedRequest(amount: string): ApprovalRequestRecord {
     decidedByUserId: null,
     decidedAt: null,
     decisionNote: null,
+    currentStepOrder: null,
+    totalSteps: null,
     createdAt: new Date('2026-08-14T00:00:00.000Z'),
     updatedAt: new Date('2026-08-14T00:00:00.000Z'),
   };

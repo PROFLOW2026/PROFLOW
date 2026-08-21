@@ -52,6 +52,7 @@ function mapAgreement(row: typeof subcontractAgreements.$inferSelect): Subcontra
     originalAmount: row.originalAmount,
     currency: row.currency,
     retentionPercent: row.retentionPercent,
+    paymentTermId: row.paymentTermId ?? null,
     startDate: row.startDate,
     endDate: row.endDate,
     notes: row.notes,
@@ -90,6 +91,7 @@ export async function insertSubcontractAgreement(
     originalAmount: string;
     currency: string;
     retentionPercent?: string | null;
+    paymentTermId?: string | null;
     startDate?: string | null;
     endDate?: string | null;
     notes?: string | null;
@@ -109,6 +111,7 @@ export async function insertSubcontractAgreement(
       originalAmount: input.originalAmount,
       currency: input.currency,
       retentionPercent: input.retentionPercent ?? null,
+      paymentTermId: input.paymentTermId ?? null,
       startDate: input.startDate ?? null,
       endDate: input.endDate ?? null,
       notes: input.notes ?? null,
@@ -247,7 +250,12 @@ export async function listSubcontractValueEvents(
 async function listAgreements(
   db: DbExecutor,
   organizationId: string,
-  filters: { vendorId?: string; projectId?: string },
+  filters: {
+    vendorId?: string;
+    projectId?: string;
+    status?: string;
+    limit?: number;
+  },
 ): Promise<SubcontractListItem[]> {
   const conditions = [
     eq(subcontractAgreements.organizationId, organizationId),
@@ -255,6 +263,9 @@ async function listAgreements(
   ];
   if (filters.vendorId) conditions.push(eq(subcontractAgreements.vendorId, filters.vendorId));
   if (filters.projectId) conditions.push(eq(subcontractAgreements.projectId, filters.projectId));
+  if (filters.status && filters.status !== 'all') {
+    conditions.push(eq(subcontractAgreements.status, filters.status));
+  }
 
   const rows = await db
     .select({
@@ -267,7 +278,7 @@ async function listAgreements(
     .innerJoin(projects, eq(projects.id, subcontractAgreements.projectId))
     .where(and(...conditions))
     .orderBy(desc(subcontractAgreements.createdAt))
-    .limit(resolveListLimit(undefined, { hardCap: ORG_LIST_HARD_CAP }));
+    .limit(resolveListLimit(filters.limit, { hardCap: ORG_LIST_HARD_CAP }));
 
   const items: SubcontractListItem[] = [];
   for (const row of rows) {
@@ -307,6 +318,19 @@ export async function listSubcontractsForProject(
   projectId: string,
 ): Promise<SubcontractListItem[]> {
   return listAgreements(db, organizationId, { projectId });
+}
+
+export async function listOrgSubcontracts(
+  db: DbExecutor,
+  organizationId: string,
+  filters: {
+    vendorId?: string;
+    projectId?: string;
+    status?: string;
+    limit?: number;
+  } = {},
+): Promise<SubcontractListItem[]> {
+  return listAgreements(db, organizationId, filters);
 }
 
 export async function findContractInOrg(

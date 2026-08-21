@@ -67,6 +67,9 @@ export interface AutomationMatch {
   readonly body: string;
   readonly href: string | null;
   readonly projectId?: string | null;
+  /** Optional commercial context for draft_expense — skipped when incomplete. */
+  readonly amount?: string | null;
+  readonly currency?: string | null;
 }
 
 export interface AutomationActionRequest {

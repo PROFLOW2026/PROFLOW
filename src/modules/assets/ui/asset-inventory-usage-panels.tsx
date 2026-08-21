@@ -8,6 +8,8 @@ import {
 } from '@/modules/assets';
 import { listEmployeesForOrg } from '@/modules/workforce';
 import { listProjectsForOrg } from '@/modules/projects';
+import { peekOpsExpenseLinksForRecords } from '@/modules/ops-finance';
+import { CreateLinkedExpenseForm } from '@/modules/ops-finance/ui/create-linked-expense-form';
 import { withOrgContext } from '@/shared/auth/session';
 import { todayInTimeZone } from '@/shared/dates';
 import { hasAnyPermission, hasPermission } from '@/shared/permissions/assert';
@@ -28,6 +30,7 @@ export async function AssetEquipmentUsagePanel({ assetId }: { readonly assetId: 
   const data = await withOrgContext(async (context) => {
     if (!hasPermission(context, PERMISSIONS.ASSETS_READ)) return null;
     const canManage = hasPermission(context, PERMISSIONS.ASSETS_MANAGE);
+    const canCreateExpense = hasPermission(context, PERMISSIONS.EXPENSES_CREATE);
     const canReadWorkforce = hasPermission(context, PERMISSIONS.WORKFORCE_READ);
     const canReadProjects = hasPermission(context, PERMISSIONS.PROJECTS_READ);
 
@@ -46,13 +49,27 @@ export async function AssetEquipmentUsagePanel({ assetId }: { readonly assetId: 
       for (const p of all) projectNames.set(p.id, p.name);
     }
 
+    const expenseLinks = canCreateExpense
+      ? await peekOpsExpenseLinksForRecords(
+          context,
+          'equipment_usage_record',
+          usage.map((row) => row.id),
+        )
+      : [];
+    const linkedExpenseByUsageId = new Map(
+      expenseLinks.map((link) => [link.opsRecordId, link.expenseId] as const),
+    );
+
     return {
       usage,
       canManage,
+      canCreateExpense,
+      linkedExpenseByUsageId,
       today: todayInTimeZone(context.organization.timezone),
       projects: projects.map((p) => ({ id: p.id, name: p.name })),
       employees: employees.map((e) => ({ id: e.id, name: e.name })),
       projectNames,
+      currency: context.organization.baseCurrency,
     };
   });
 
@@ -86,7 +103,9 @@ export async function AssetEquipmentUsagePanel({ assetId }: { readonly assetId: 
                 <TableHead numeric>{t('columns.hours')}</TableHead>
                 <TableHead numeric>{t('columns.days')}</TableHead>
                 <TableHead numeric>{t('columns.mileage')}</TableHead>
-                {data.canManage ? <TableHead>{t('columns.actions')}</TableHead> : null}
+                {data.canManage || data.canCreateExpense ? (
+                  <TableHead>{t('columns.actions')}</TableHead>
+                ) : null}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -115,9 +134,26 @@ export async function AssetEquipmentUsagePanel({ assetId }: { readonly assetId: 
                   <TableCell numeric>
                     <span dir="ltr">{row.mileage ?? '-'}</span>
                   </TableCell>
-                  {data.canManage ? (
+                  {data.canManage || data.canCreateExpense ? (
                     <TableCell>
-                      <ArchiveEquipmentUsageButton equipmentUsageId={row.id} />
+                      <div className="flex min-w-0 flex-col gap-2">
+                        {data.canCreateExpense ? (
+                          <CreateLinkedExpenseForm
+                            namespace="assets"
+                            opsRecordKind="equipment_usage_record"
+                            opsRecordId={row.id}
+                            assetId={assetId}
+                            defaultCurrency={data.currency}
+                            defaultDescription={t('equipmentExpenseDescription')}
+                            revalidatePath={`/assets/${assetId}`}
+                            existingExpenseId={data.linkedExpenseByUsageId.get(row.id) ?? null}
+                            compact
+                          />
+                        ) : null}
+                        {data.canManage ? (
+                          <ArchiveEquipmentUsageButton equipmentUsageId={row.id} />
+                        ) : null}
+                      </div>
                     </TableCell>
                   ) : null}
                 </TableRow>
@@ -148,6 +184,7 @@ export async function InventoryMaterialUsagePanel({
       PERMISSIONS.MATERIALS_MANAGE,
       PERMISSIONS.ASSETS_MANAGE,
     ]);
+    const canCreateExpense = hasPermission(context, PERMISSIONS.EXPENSES_CREATE);
     const canReadWorkforce = hasPermission(context, PERMISSIONS.WORKFORCE_READ);
     const canReadProjects = hasPermission(context, PERMISSIONS.PROJECTS_READ);
 
@@ -165,13 +202,27 @@ export async function InventoryMaterialUsagePanel({
       for (const p of all) projectNames.set(p.id, p.name);
     }
 
+    const expenseLinks = canCreateExpense
+      ? await peekOpsExpenseLinksForRecords(
+          context,
+          'material_usage_record',
+          usage.map((row) => row.id),
+        )
+      : [];
+    const linkedExpenseByUsageId = new Map(
+      expenseLinks.map((link) => [link.opsRecordId, link.expenseId] as const),
+    );
+
     return {
       usage,
       canManage,
+      canCreateExpense,
+      linkedExpenseByUsageId,
       today: todayInTimeZone(context.organization.timezone),
       projects: projects.map((p) => ({ id: p.id, name: p.name })),
       employees: employees.map((e) => ({ id: e.id, name: e.name })),
       projectNames,
+      currency: context.organization.baseCurrency,
     };
   });
 
@@ -209,7 +260,9 @@ export async function InventoryMaterialUsagePanel({
                 <TableHead>{t('columns.project')}</TableHead>
                 <TableHead>{t('columns.description')}</TableHead>
                 <TableHead numeric>{t('columns.quantity')}</TableHead>
-                {data.canManage ? <TableHead>{t('columns.actions')}</TableHead> : null}
+                {data.canManage || data.canCreateExpense ? (
+                  <TableHead>{t('columns.actions')}</TableHead>
+                ) : null}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -233,9 +286,25 @@ export async function InventoryMaterialUsagePanel({
                       {row.unit ? ` ${row.unit}` : ''}
                     </span>
                   </TableCell>
-                  {data.canManage ? (
+                  {data.canManage || data.canCreateExpense ? (
                     <TableCell>
-                      <ArchiveMaterialUsageButton materialUsageId={row.id} />
+                      <div className="flex min-w-0 flex-col gap-2">
+                        {data.canCreateExpense ? (
+                          <CreateLinkedExpenseForm
+                            namespace="assets"
+                            opsRecordKind="material_usage_record"
+                            opsRecordId={row.id}
+                            defaultCurrency={data.currency}
+                            defaultDescription={row.description}
+                            revalidatePath={`/assets/inventory/${inventoryItemId}`}
+                            existingExpenseId={data.linkedExpenseByUsageId.get(row.id) ?? null}
+                            compact
+                          />
+                        ) : null}
+                        {data.canManage ? (
+                          <ArchiveMaterialUsageButton materialUsageId={row.id} />
+                        ) : null}
+                      </div>
                     </TableCell>
                   ) : null}
                 </TableRow>

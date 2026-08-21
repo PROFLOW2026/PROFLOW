@@ -35,6 +35,7 @@ import {
   listInventoryItems,
   listInventoryLocations,
   listInventoryMovementsForItem,
+  listRecentInventoryMovementsForOrg as listRecentInventoryMovementsRows,
   listLocationBalancesForItem,
   updateInventoryLocationById,
 } from '../data/assets.repository';
@@ -230,6 +231,14 @@ export async function listMovementsForInventoryItem(
   const item = await findInventoryItemById(context.db, context.organizationId, inventoryItemId);
   if (!item || item.archivedAt) throw new NotFoundError('Inventory item');
   return listInventoryMovementsForItem(context.db, context.organizationId, inventoryItemId);
+}
+
+export async function listRecentInventoryMovementsForOrg(
+  context: OrgContext,
+  options: { readonly limit?: number } = {},
+) {
+  assertPermission(context, PERMISSIONS.ASSETS_READ);
+  return listRecentInventoryMovementsRows(context.db, context.organizationId, options);
 }
 
 export async function listInventoryLocationsForOrg(

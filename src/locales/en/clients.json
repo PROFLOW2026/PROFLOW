@@ -9,8 +9,10 @@
   "list": {
     "searchPlaceholder": "Search clients…",
     "includeArchived": "Include archived",
+    "filterAll": "All types",
     "columns": {
       "name": "Client",
+      "type": "Type",
       "projects": "Projects",
       "status": "Status"
     }
@@ -61,6 +63,13 @@
     "noProjects": "No linked projects yet",
     "companyPhoneLabel": "Company phone",
     "companyEmailLabel": "Company email",
+    "clientTypeLabel": "Client type",
+    "clientTypeNone": "Not set",
+    "paymentTermLabel": "Default payment terms",
+    "paymentTermNone": "Not set",
+    "salesSection": "Sales (quotes)",
+    "salesHint": "Quotes linked to this client.",
+    "salesEmpty": "No quotes for this client yet.",
     "contactsSection": "Contact people",
     "contactsEmpty": "No contact people yet. Add who to call - separate from the company phone above.",
     "addContact": "Add contact person",
@@ -83,6 +92,7 @@
     },
     "archive": "Archive client",
     "archiveConfirm": "Archive this client? Existing projects keep their link; the client is hidden from the directory.",
+    "archiveVsInactiveHint": "Inactive marks the client as not currently working with you but keeps them in filtered lists. Archive hides them from the directory while preserving history — prefer archive when you are done, inactive when they may return soon.",
     "restore": "Restore to active",
     "archivedBadge": "Archived",
     "save": "Save changes",

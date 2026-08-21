@@ -4,9 +4,11 @@ import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import type { OrgContext } from '@/shared/auth/context';
 import { noteModuleUsage } from '@/modules/tenancy';
-import type { VendorRecord } from '../domain/types';
-import { findVendorById, insertVendor } from '../data/vendors.repository';
+import { resolveDocumentPaymentTermId } from '@/modules/business-catalog';
+import { resolveOrgDefaultPaymentTermIdForContext } from '@/modules/business-catalog/application/payment-term-defaults';
+import type { VendorRecord } from '../domain/types';import { findVendorById, insertVendor } from '../data/vendors.repository';
 import { createVendorSchema, type CreateVendorInput } from '../validation/schemas';
+import { setVendorCatalogLinks } from './manage-catalog-links';
 
 export type CreateVendorResult = VendorRecord;
 
@@ -29,6 +31,13 @@ export async function createVendor(
 
   const input = parsed.data;
 
+  const orgDefaultId = await resolveOrgDefaultPaymentTermIdForContext(context);
+  const defaultPaymentTermId = resolveDocumentPaymentTermId({
+    explicitId: input.defaultPaymentTermId,
+    partyDefaultId: null,
+    orgDefaultId,
+  });
+
   if (input.parentVendorId) {
     const parent = await findVendorById(context.db, context.organizationId, input.parentVendorId);
     if (!parent) {
@@ -49,7 +58,16 @@ export async function createVendor(
     tier: input.tier ?? null,
     parentVendorId: input.parentVendorId ?? null,
     notes: input.notes ?? null,
+    defaultPaymentTermId,
   });
+
+  if (input.categoryIds?.length || input.specialtyIds?.length) {
+    await setVendorCatalogLinks(context, {
+      vendorId: vendor.id,
+      categoryIds: input.categoryIds ?? [],
+      specialtyIds: input.specialtyIds ?? [],
+    });
+  }
 
   await noteModuleUsage(context.db, context.organizationId, 'vendors');
 

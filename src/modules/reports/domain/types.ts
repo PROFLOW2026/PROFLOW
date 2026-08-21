@@ -10,6 +10,17 @@ export const REPORT_KINDS = [
   'field_daily',
   'punch_inspection',
   'vendor_subcontract_summary',
+  'client_360',
+  'vendor_360',
+  'contract_portfolio',
+  'subcontract_cash',
+  'labor_utilization',
+  'retention_schedule',
+  'inventory_movement',
+  'compliance_expiry',
+  'crm_funnel',
+  'month_close_completeness',
+  'safety_open_actions',
 ] as const;
 
 export type ReportKind = (typeof REPORT_KINDS)[number];
@@ -35,6 +46,8 @@ export interface ReportRow {
   readonly label: string;
   readonly value: string;
   readonly nature?: ReportMetricNature;
+  /** Optional deep-link path for entity rows. */
+  readonly href?: string;
 }
 
 export interface ReportTable {

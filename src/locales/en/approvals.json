@@ -49,10 +49,42 @@
     "rejected": "This action was rejected and cannot proceed.",
     "required": "Approval is required before this action.",
     "submittedPending": "Submitted for approval - waiting for a decision.",
-    "notSubmitted": "Only submitted requests can be updated."
+    "notSubmitted": "Only submitted requests can be updated.",
+    "notEligible": "You are not eligible to decide this approval step."
   },
   "settingsLink": "Configure rules",
   "openEntity": "Open related record",
+  "inbox": {
+    "submitter": "Submitted by",
+    "unknownSubmitter": "Unknown",
+    "age": "Age",
+    "step": "Step {current} of {total}"
+  },
+  "age": {
+    "minutes": "{count}m",
+    "hours": "{count}h",
+    "days": "{count}d"
+  },
+  "steps": {
+    "title": "Approval steps",
+    "hint": "Ordered steps. Leave empty for legacy single-step (anyone with approvals.decide).",
+    "createHint": "Optional. Empty = legacy single-step behavior.",
+    "legacySingle": "Single-step (legacy)",
+    "count": "{count} steps",
+    "order": "Order",
+    "strategy": "Approver strategy",
+    "roleTemplate": "Role template",
+    "permission": "Permission key",
+    "userId": "User id",
+    "add": "Add step",
+    "remove": "Remove step",
+    "save": "Save steps",
+    "strategies": {
+      "role_template": "Role template",
+      "permission": "Permission",
+      "user": "Specific user"
+    }
+  },
   "toggle": {
     "enable": "Enable",
     "disable": "Disable",

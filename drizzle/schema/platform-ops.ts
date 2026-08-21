@@ -101,6 +101,8 @@ export const timesheets = pgTable(
     }),
     decidedAt: timestamp('decided_at', { withTimezone: true, mode: 'date' }),
     managerNote: text('manager_note'),
+    /** Set when approved — silent rewrites of period entries blocked after lock. */
+    lockedAt: timestamp('locked_at', { withTimezone: true, mode: 'date' }),
     archivedAt: archivedAt(),
     ...timestamps(),
   },
@@ -245,6 +247,8 @@ export const subcontractAgreements = pgTable(
     originalAmount: moneyAmount('original_amount').notNull(),
     currency: currencyCode().notNull(),
     retentionPercent: percentAmount('retention_percent'),
+    /** Optional payment term override. Same-org FK in migration. */
+    paymentTermId: uuid('payment_term_id'),
     startDate: date('start_date', { mode: 'string' }),
     endDate: date('end_date', { mode: 'string' }),
     notes: text('notes'),
@@ -271,6 +275,7 @@ export const subcontractAgreements = pgTable(
       .where(sql`${table.subcontractNumber} is not null and ${table.archivedAt} is null`),
     index('subcontract_agreements_project_idx').on(table.organizationId, table.projectId),
     index('subcontract_agreements_vendor_idx').on(table.organizationId, table.vendorId),
+    index('subcontract_agreements_payment_term_idx').on(table.organizationId, table.paymentTermId),
     foreignKey({
       name: 'subcontract_agreements_vendor_org_fk',
       columns: [table.vendorId, table.organizationId],

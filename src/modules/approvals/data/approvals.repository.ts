@@ -1,11 +1,23 @@
-import { and, desc, eq, inArray, sql } from 'drizzle-orm';
-import { approvalRequests, approvalRules } from '@drizzle/schema';
+import { and, asc, desc, eq, inArray, sql } from 'drizzle-orm';
+import {
+  approvalRequestSteps,
+  approvalRequests,
+  approvalRuleSteps,
+  approvalRules,
+  profiles,
+} from '@drizzle/schema';
 import type { DbExecutor } from '@/shared/db/types';
+import { assertConsecutiveStepOrders, entitySourceHref, isApproverStrategy } from '../domain/steps';
 import type {
   ApprovalEntityType,
   ApprovalRequestRecord,
+  ApprovalRequestStepRecord,
   ApprovalRuleRecord,
+  ApprovalRuleStepRecord,
+  ApprovalRuleWithSteps,
   ApprovalStatus,
+  ApprovalStepStatus,
+  ApproverStrategy,
   PendingApprovalItem,
 } from '../domain/types';
 import { isApprovalEntityType, isApprovalStatus } from '../domain/rules';
@@ -30,6 +42,25 @@ function mapRule(row: typeof approvalRules.$inferSelect): ApprovalRuleRecord {
   };
 }
 
+function mapRuleStep(row: typeof approvalRuleSteps.$inferSelect): ApprovalRuleStepRecord {
+  const strategy = isApproverStrategy(row.approverStrategy)
+    ? row.approverStrategy
+    : ('permission' as ApproverStrategy);
+  return {
+    id: row.id,
+    organizationId: row.organizationId,
+    ruleId: row.ruleId,
+    stepOrder: row.stepOrder,
+    name: row.name,
+    approverStrategy: strategy,
+    roleTemplateKey: row.roleTemplateKey,
+    permissionKey: row.permissionKey,
+    userId: row.userId,
+    createdAt: row.createdAt,
+    updatedAt: row.updatedAt,
+  };
+}
+
 function mapRequest(row: typeof approvalRequests.$inferSelect): ApprovalRequestRecord {
   const entityType = isApprovalEntityType(row.entityType) ? row.entityType : 'expense';
   const status = isApprovalStatus(row.status) ? row.status : 'submitted';
@@ -43,6 +74,36 @@ function mapRequest(row: typeof approvalRequests.$inferSelect): ApprovalRequestR
     currency: row.currency,
     status,
     submittedByUserId: row.submittedByUserId,
+    decidedByUserId: row.decidedByUserId,
+    decidedAt: row.decidedAt,
+    decisionNote: row.decisionNote,
+    currentStepOrder: row.currentStepOrder ?? null,
+    totalSteps: row.totalSteps ?? null,
+    createdAt: row.createdAt,
+    updatedAt: row.updatedAt,
+  };
+}
+
+function mapRequestStep(row: typeof approvalRequestSteps.$inferSelect): ApprovalRequestStepRecord {
+  const status = (['pending', 'approved', 'rejected'] as const).includes(
+    row.status as ApprovalStepStatus,
+  )
+    ? (row.status as ApprovalStepStatus)
+    : 'pending';
+  const strategy = isApproverStrategy(row.approverStrategy)
+    ? row.approverStrategy
+    : ('permission' as ApproverStrategy);
+  return {
+    id: row.id,
+    organizationId: row.organizationId,
+    requestId: row.requestId,
+    stepOrder: row.stepOrder,
+    name: row.name,
+    approverStrategy: strategy,
+    roleTemplateKey: row.roleTemplateKey,
+    permissionKey: row.permissionKey,
+    userId: row.userId,
+    status,
     decidedByUserId: row.decidedByUserId,
     decidedAt: row.decidedAt,
     decisionNote: row.decisionNote,
@@ -61,6 +122,35 @@ export async function listApprovalRulesForOrg(
     .where(eq(approvalRules.organizationId, organizationId))
     .orderBy(desc(approvalRules.updatedAt));
   return rows.map(mapRule);
+}
+
+export async function listApprovalRulesWithStepsForOrg(
+  db: DbExecutor,
+  organizationId: string,
+): Promise<ApprovalRuleWithSteps[]> {
+  const rules = await listApprovalRulesForOrg(db, organizationId);
+  if (rules.length === 0) return [];
+  const steps = await db
+    .select()
+    .from(approvalRuleSteps)
+    .where(
+      and(
+        eq(approvalRuleSteps.organizationId, organizationId),
+        inArray(
+          approvalRuleSteps.ruleId,
+          rules.map((rule) => rule.id),
+        ),
+      ),
+    )
+    .orderBy(asc(approvalRuleSteps.stepOrder));
+  const byRule = new Map<string, ApprovalRuleStepRecord[]>();
+  for (const step of steps) {
+    const mapped = mapRuleStep(step);
+    const list = byRule.get(mapped.ruleId) ?? [];
+    list.push(mapped);
+    byRule.set(mapped.ruleId, list);
+  }
+  return rules.map((rule) => ({ ...rule, steps: byRule.get(rule.id) ?? [] }));
 }
 
 /**
@@ -106,6 +196,24 @@ export async function findApprovalRuleById(
     .where(and(eq(approvalRules.id, ruleId), eq(approvalRules.organizationId, organizationId)))
     .limit(1);
   return row ? mapRule(row) : null;
+}
+
+export async function listRuleSteps(
+  db: DbExecutor,
+  organizationId: string,
+  ruleId: string,
+): Promise<ApprovalRuleStepRecord[]> {
+  const rows = await db
+    .select()
+    .from(approvalRuleSteps)
+    .where(
+      and(
+        eq(approvalRuleSteps.organizationId, organizationId),
+        eq(approvalRuleSteps.ruleId, ruleId),
+      ),
+    )
+    .orderBy(asc(approvalRuleSteps.stepOrder));
+  return rows.map(mapRuleStep);
 }
 
 export interface ApprovalRuleInsert {
@@ -161,6 +269,50 @@ export async function updateApprovalRuleRow(
   return row ? mapRule(row) : null;
 }
 
+export interface ApprovalRuleStepInsert {
+  readonly organizationId: string;
+  readonly ruleId: string;
+  readonly stepOrder: number;
+  readonly name: string | null;
+  readonly approverStrategy: ApproverStrategy;
+  readonly roleTemplateKey: string | null;
+  readonly permissionKey: string | null;
+  readonly userId: string | null;
+}
+
+export async function replaceApprovalRuleSteps(
+  db: DbExecutor,
+  organizationId: string,
+  ruleId: string,
+  steps: readonly Omit<ApprovalRuleStepInsert, 'organizationId' | 'ruleId'>[],
+): Promise<ApprovalRuleStepRecord[]> {
+  await db
+    .delete(approvalRuleSteps)
+    .where(
+      and(
+        eq(approvalRuleSteps.organizationId, organizationId),
+        eq(approvalRuleSteps.ruleId, ruleId),
+      ),
+    );
+  if (steps.length === 0) return [];
+  const rows = await db
+    .insert(approvalRuleSteps)
+    .values(
+      steps.map((step) => ({
+        organizationId,
+        ruleId,
+        stepOrder: step.stepOrder,
+        name: step.name,
+        approverStrategy: step.approverStrategy,
+        roleTemplateKey: step.roleTemplateKey,
+        permissionKey: step.permissionKey,
+        userId: step.userId,
+      })),
+    )
+    .returning();
+  return rows.map(mapRuleStep);
+}
+
 export async function findApprovalRequestById(
   db: DbExecutor,
   organizationId: string,
@@ -174,6 +326,24 @@ export async function findApprovalRequestById(
     )
     .limit(1);
   return row ? mapRequest(row) : null;
+}
+
+export async function listRequestSteps(
+  db: DbExecutor,
+  organizationId: string,
+  requestId: string,
+): Promise<ApprovalRequestStepRecord[]> {
+  const rows = await db
+    .select()
+    .from(approvalRequestSteps)
+    .where(
+      and(
+        eq(approvalRequestSteps.organizationId, organizationId),
+        eq(approvalRequestSteps.requestId, requestId),
+      ),
+    )
+    .orderBy(asc(approvalRequestSteps.stepOrder));
+  return rows.map(mapRequestStep);
 }
 
 export async function findOpenRequestForEntity(
@@ -255,6 +425,8 @@ export async function findLatestRequestForEntityGate(
     decidedByUserId: (raw.decided_by_user_id ?? raw.decidedByUserId ?? null) as string | null,
     decidedAt: (raw.decided_at ?? raw.decidedAt ?? null) as Date | null,
     decisionNote: (raw.decision_note ?? raw.decisionNote ?? null) as string | null,
+    currentStepOrder: (raw.current_step_order ?? raw.currentStepOrder ?? null) as number | null,
+    totalSteps: (raw.total_steps ?? raw.totalSteps ?? null) as number | null,
     createdAt: (raw.created_at ?? raw.createdAt) as Date,
     updatedAt: (raw.updated_at ?? raw.updatedAt) as Date,
   };
@@ -288,8 +460,12 @@ export async function listPendingApprovalItems(
   options: { readonly limit?: number } = {},
 ): Promise<PendingApprovalItem[]> {
   const rows = await db
-    .select()
+    .select({
+      request: approvalRequests,
+      submitterName: profiles.displayName,
+    })
     .from(approvalRequests)
+    .leftJoin(profiles, eq(approvalRequests.submittedByUserId, profiles.id))
     .where(
       and(
         eq(approvalRequests.organizationId, organizationId),
@@ -299,8 +475,9 @@ export async function listPendingApprovalItems(
     .orderBy(desc(approvalRequests.createdAt))
     .limit(options.limit ?? 50);
 
+  const now = Date.now();
   return rows.map((row) => {
-    const mapped = mapRequest(row);
+    const mapped = mapRequest(row.request);
     return {
       id: mapped.id,
       entityType: mapped.entityType,
@@ -310,6 +487,11 @@ export async function listPendingApprovalItems(
       status: 'submitted' as const,
       ruleId: mapped.ruleId,
       submittedByUserId: mapped.submittedByUserId,
+      submitterName: row.submitterName ?? null,
+      currentStepOrder: mapped.currentStepOrder,
+      totalSteps: mapped.totalSteps,
+      sourceHref: entitySourceHref(mapped.entityType, mapped.entityId),
+      ageMs: Math.max(0, now - mapped.createdAt.getTime()),
       createdAt: mapped.createdAt,
     };
   });
@@ -323,6 +505,8 @@ export interface ApprovalRequestInsert {
   readonly amount: string | null;
   readonly currency: string | null;
   readonly submittedByUserId: string | null;
+  readonly currentStepOrder?: number | null;
+  readonly totalSteps?: number | null;
 }
 
 export async function insertApprovalRequest(
@@ -340,10 +524,48 @@ export async function insertApprovalRequest(
       currency: input.currency,
       status: 'submitted',
       submittedByUserId: input.submittedByUserId,
+      currentStepOrder: input.currentStepOrder ?? null,
+      totalSteps: input.totalSteps ?? null,
     })
     .returning();
   if (!row) throw new Error('Failed to insert approval request');
   return mapRequest(row);
+}
+
+export interface ApprovalRequestStepInsert {
+  readonly stepOrder: number;
+  readonly name: string | null;
+  readonly approverStrategy: ApproverStrategy;
+  readonly roleTemplateKey: string | null;
+  readonly permissionKey: string | null;
+  readonly userId: string | null;
+}
+
+export async function insertApprovalRequestSteps(
+  db: DbExecutor,
+  organizationId: string,
+  requestId: string,
+  steps: readonly ApprovalRequestStepInsert[],
+): Promise<ApprovalRequestStepRecord[]> {
+  if (steps.length === 0) return [];
+  assertConsecutiveStepOrders(steps.map((step) => step.stepOrder));
+  const rows = await db
+    .insert(approvalRequestSteps)
+    .values(
+      steps.map((step) => ({
+        organizationId,
+        requestId,
+        stepOrder: step.stepOrder,
+        name: step.name,
+        approverStrategy: step.approverStrategy,
+        roleTemplateKey: step.roleTemplateKey,
+        permissionKey: step.permissionKey,
+        userId: step.userId,
+        status: 'pending' as const,
+      })),
+    )
+    .returning();
+  return rows.map(mapRequestStep);
 }
 
 export async function updateApprovalRequestDecision(
@@ -375,4 +597,60 @@ export async function updateApprovalRequestDecision(
     )
     .returning();
   return row ? mapRequest(row) : null;
+}
+
+export async function advanceApprovalRequestStep(
+  db: DbExecutor,
+  organizationId: string,
+  requestId: string,
+  nextStepOrder: number,
+): Promise<ApprovalRequestRecord | null> {
+  const [row] = await db
+    .update(approvalRequests)
+    .set({
+      currentStepOrder: nextStepOrder,
+      updatedAt: new Date(),
+    })
+    .where(
+      and(
+        eq(approvalRequests.id, requestId),
+        eq(approvalRequests.organizationId, organizationId),
+        eq(approvalRequests.status, 'submitted'),
+      ),
+    )
+    .returning();
+  return row ? mapRequest(row) : null;
+}
+
+export async function decideRequestStep(
+  db: DbExecutor,
+  organizationId: string,
+  requestId: string,
+  stepOrder: number,
+  patch: {
+    readonly status: 'approved' | 'rejected';
+    readonly decidedByUserId: string | null;
+    readonly decidedAt: Date;
+    readonly decisionNote: string | null;
+  },
+): Promise<ApprovalRequestStepRecord | null> {
+  const [row] = await db
+    .update(approvalRequestSteps)
+    .set({
+      status: patch.status,
+      decidedByUserId: patch.decidedByUserId,
+      decidedAt: patch.decidedAt,
+      decisionNote: patch.decisionNote,
+      updatedAt: new Date(),
+    })
+    .where(
+      and(
+        eq(approvalRequestSteps.organizationId, organizationId),
+        eq(approvalRequestSteps.requestId, requestId),
+        eq(approvalRequestSteps.stepOrder, stepOrder),
+        eq(approvalRequestSteps.status, 'pending'),
+      ),
+    )
+    .returning();
+  return row ? mapRequestStep(row) : null;
 }

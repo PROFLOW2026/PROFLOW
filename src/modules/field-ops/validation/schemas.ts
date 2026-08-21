@@ -40,6 +40,18 @@ const dailyLogExtraFields = {
   deliveries: optionalText,
 };
 
+const optionalUuidList = z.preprocess((value) => {
+  if (value === undefined || value === null || value === '') return [];
+  if (Array.isArray(value)) return value.filter((item) => item != null && item !== '');
+  if (typeof value === 'string') {
+    return value
+      .split(',')
+      .map((part) => part.trim())
+      .filter(Boolean);
+  }
+  return value;
+}, z.array(z.string().uuid()).default([]));
+
 export const createDailyLogSchema = z.object({
   projectId: z.string().uuid(),
   workPackageId: optionalUuid,
@@ -49,6 +61,9 @@ export const createDailyLogSchema = z.object({
   workforceNotes: optionalText,
   /** Packed into workforce_notes - no dedicated DB column. */
   blockers: optionalText,
+  vendorIds: optionalUuidList,
+  employeeIds: optionalUuidList,
+  assetIds: optionalUuidList,
   ...dailyLogExtraFields,
 });
 
@@ -62,6 +77,9 @@ export const updateDailyLogSchema = z.object({
   summary: z.string().trim().min(1).max(4000).optional(),
   workforceNotes: optionalText,
   blockers: optionalText,
+  vendorIds: optionalUuidList.optional(),
+  employeeIds: optionalUuidList.optional(),
+  assetIds: optionalUuidList.optional(),
   ...dailyLogExtraFields,
 });
 

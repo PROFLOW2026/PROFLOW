@@ -29,6 +29,7 @@ export const createClientSchema = z
     postalCode: optionalText,
     countryCode: z.preprocess(emptyToNull, z.string().trim().length(2).nullable().optional()),
     notes: optionalText,
+    defaultPaymentTermId: z.preprocess(emptyToNull, z.string().uuid().nullable().optional()),
     /** Primary contact person created in the same flow (optional group). */
     primaryContactName: z.preprocess(
       emptyToNull,
@@ -82,6 +83,8 @@ export const updateClientSchema = z.object({
   postalCode: optionalText,
   countryCode: z.preprocess(emptyToNull, z.string().trim().length(2).nullable().optional()),
   notes: optionalText,
+  clientTypeId: z.preprocess(emptyToNull, z.string().uuid().nullable().optional()),
+  defaultPaymentTermId: z.preprocess(emptyToNull, z.string().uuid().nullable().optional()),
 });
 
 export type UpdateClientInput = z.input<typeof updateClientSchema>;
@@ -95,6 +98,7 @@ export const restoreClientSchema = archiveClientSchema;
 export const listClientsSchema = z.object({
   search: z.string().trim().optional(),
   status: z.enum([...CLIENT_STATUSES, 'all'] as const).optional(),
+  clientTypeId: z.string().uuid().optional(),
   includeArchived: z.boolean().optional(),
   limit: z.coerce.number().int().min(0).optional(),
   offset: z.coerce.number().int().min(0).optional(),

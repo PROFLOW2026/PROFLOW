@@ -24,6 +24,9 @@ export function UnusedCapabilityDashboardTip({
 }) {
   const t = useTranslations('settings.modules');
   const moduleLabel = t(moduleKey);
+  const tipDetail = t.has(`unusedTipDetails.${moduleKey}`)
+    ? t(`unusedTipDetails.${moduleKey}`)
+    : null;
   const [state, action, pending] = useActionState(
     dismissUnusedCapabilityAction,
     {} as SettingsActionState,
@@ -39,6 +42,7 @@ export function UnusedCapabilityDashboardTip({
           {t('unusedOpenSettings')}
         </Link>
       </p>
+      {tipDetail ? <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">{tipDetail}</p> : null}
       <form action={action} className="mt-2">
         <input type="hidden" name="moduleKey" value={moduleKey} />
         <Button type="submit" size="sm" variant="ghost" loading={pending}>

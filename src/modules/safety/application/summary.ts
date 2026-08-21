@@ -3,7 +3,7 @@ import type { OrgContext } from '@/shared/auth/context';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { todayInTimeZone } from '@/shared/dates/dates';
-import { isOpenSafetyRecordStatus } from '../domain/status';
+import { isOpenSafetyRecordStatus, isOpenSafetyActionStatus } from '../domain/status';
 import { isCorrectiveActionOverdue, listOverdueSafetyActions } from '../domain/overdue';
 import type { SafetyRecordType, SafetySeverity, SafetySummary } from '../domain/types';
 import { SAFETY_RECORD_TYPES, SAFETY_SEVERITIES } from '../domain/types';
@@ -72,6 +72,23 @@ export async function loadOverdueSafetyActionsForOrg(context: OrgContext) {
   const today = todayInTimeZone(context.organization.timezone);
   const actions = await listCorrectiveActionsForOrg(context.db, context.organizationId);
   return listOverdueSafetyActions(actions, today, context.organizationId);
+}
+
+/** Open corrective actions on accessible projects (batch-loaded, no per-record N+1). */
+export async function listOpenSafetyActionsForOrg(context: OrgContext) {
+  assertPermission(context, PERMISSIONS.SAFETY_READ);
+  const [allowed, records, actions] = await Promise.all([
+    resolveAccessibleProjectIds(context),
+    listSafetyRecords(context.db, context.organizationId, { limit: 5_000 }),
+    listCorrectiveActionsForOrg(context.db, context.organizationId),
+  ]);
+  const visibleRecordIds = new Set(
+    records.filter((row) => isAccessibleProjectId(allowed, row.projectId)).map((row) => row.id),
+  );
+  return actions.filter(
+    (action) =>
+      isOpenSafetyActionStatus(action.status) && visibleRecordIds.has(action.safetyRecordId),
+  );
 }
 
 export { isCorrectiveActionOverdue, listOverdueSafetyActions };

@@ -13,6 +13,8 @@ export const createApBillSchema = z.object({
   reference: z.string().trim().max(80).optional().nullable(),
   billDate: z.string().trim().optional().nullable(),
   dueDate: z.string().trim().optional().nullable(),
+  /** Optional catalog payment term (kind=payment_term). Used to suggest dueDate when empty. */
+  paymentTermId: z.string().uuid().optional().nullable(),
   currency: z.string().trim().length(3),
   totalAmount: moneyString,
   amountIncludesTax: z.boolean().optional().nullable(),

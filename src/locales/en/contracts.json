@@ -1,0 +1,34 @@
+{
+  "title": "Contracts",
+  "description": "All project contracts across the organization. Open a row to manage it on the project.",
+  "empty": {
+    "title": "No contracts yet",
+    "body": "Contracts are created on projects. This list gathers them for cross-project review."
+  },
+  "filters": {
+    "all": "All"
+  },
+  "types": {
+    "primary": "Primary",
+    "additional": "Additional",
+    "secondary": "Secondary"
+  },
+  "statuses": {
+    "draft": "Draft",
+    "active": "Active",
+    "closed": "Closed",
+    "cancelled": "Cancelled"
+  },
+  "list": {
+    "columns": {
+      "client": "Client",
+      "project": "Project",
+      "type": "Type",
+      "status": "Status",
+      "number": "Number",
+      "original": "Original",
+      "current": "Current",
+      "dates": "Dates"
+    }
+  }
+}

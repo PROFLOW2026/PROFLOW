@@ -35,6 +35,10 @@ export const clients = pgTable(
     postalCode: text('postal_code'),
     countryCode: text('country_code'),
     notes: text('notes'),
+    /** Optional org catalog entry (kind=client_type). Same-org FK in migration. */
+    clientTypeId: uuid('client_type_id'),
+    /** Optional default payment term (kind=payment_term). */
+    defaultPaymentTermId: uuid('default_payment_term_id'),
     archivedAt: archivedAt(),
     ...timestamps(),
   },
@@ -42,6 +46,7 @@ export const clients = pgTable(
     uniqueIndex('clients_id_organization_id_uq').on(table.id, table.organizationId),
     index('clients_org_idx').on(table.organizationId),
     index('clients_org_name_idx').on(table.organizationId, table.name),
+    index('clients_org_type_idx').on(table.organizationId, table.clientTypeId),
   ],
 );
 

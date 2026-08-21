@@ -7,8 +7,11 @@ import {
   createApprovalRule,
   createApprovalRuleSchema,
   decideApprovalRequest,
+  replaceApprovalRuleStepsForRule,
+  replaceApprovalRuleStepsSchema,
   updateApprovalRule,
   updateApprovalRuleSchema,
+  type ApproverStrategy,
 } from '@/modules/approvals';
 import { withOrgContext } from '@/shared/auth/session';
 import { serializeError, ValidationError } from '@/shared/errors';
@@ -25,6 +28,32 @@ function formValue(formData: FormData, key: string): string | undefined {
   return text === '' ? undefined : text;
 }
 
+type DraftStepPayload = {
+  strategy?: ApproverStrategy;
+  roleTemplateKey?: string;
+  permissionKey?: string;
+  userId?: string;
+  name?: string;
+};
+
+function parseStepsJson(raw: string | undefined) {
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw) as DraftStepPayload[];
+    if (!Array.isArray(parsed)) return [];
+    return parsed.map((step, index) => ({
+      stepOrder: index + 1,
+      name: step.name?.trim() || null,
+      approverStrategy: step.strategy ?? 'role_template',
+      roleTemplateKey: step.roleTemplateKey ?? null,
+      permissionKey: step.permissionKey ?? null,
+      userId: step.userId?.trim() || null,
+    }));
+  } catch {
+    return [];
+  }
+}
+
 export async function createApprovalRuleAction(
   _prev: ApprovalsActionState,
   formData: FormData,
@@ -34,18 +63,47 @@ export async function createApprovalRuleAction(
   const enabledRaw = formValue(formData, 'enabled');
   const thresholdRaw = formValue(formData, 'thresholdAmount');
   const currencyRaw = formValue(formData, 'currency');
+  const steps = parseStepsJson(formValue(formData, 'stepsJson'));
   const parsed = createApprovalRuleSchema.safeParse({
     name: formValue(formData, 'name'),
     entityType: formValue(formData, 'entityType'),
     thresholdAmount: thresholdRaw ?? null,
     currency: currencyRaw ?? null,
     enabled: enabledRaw === undefined ? true : enabledRaw === 'true' || enabledRaw === 'on',
+    steps,
   });
   if (!parsed.success) {
     return { error: tErrors('validationFailed') };
   }
   try {
     await withOrgContext((context) => createApprovalRule(context, parsed.data));
+    revalidatePath('/approvals');
+    revalidatePath('/settings/approvals');
+    return { ok: true };
+  } catch (error) {
+    const serialized = serializeError(error);
+    if (serialized.messageKey.startsWith('approvals.')) {
+      return { error: t(serialized.messageKey.replace('approvals.', '') as 'errors.pending') };
+    }
+    return { error: tErrors(serialized.messageKey.replace('errors.', '') as 'notAllowed') };
+  }
+}
+
+export async function replaceApprovalRuleStepsAction(
+  _prev: ApprovalsActionState,
+  formData: FormData,
+): Promise<ApprovalsActionState> {
+  const t = await getTranslations('approvals');
+  const tErrors = await getTranslations('errors');
+  const parsed = replaceApprovalRuleStepsSchema.safeParse({
+    ruleId: formValue(formData, 'ruleId'),
+    steps: parseStepsJson(formValue(formData, 'stepsJson')),
+  });
+  if (!parsed.success) {
+    return { error: tErrors('validationFailed') };
+  }
+  try {
+    await withOrgContext((context) => replaceApprovalRuleStepsForRule(context, parsed.data));
     revalidatePath('/approvals');
     revalidatePath('/settings/approvals');
     return { ok: true };

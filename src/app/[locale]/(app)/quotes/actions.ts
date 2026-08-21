@@ -183,7 +183,9 @@ export async function convertQuoteAction(
     const result = await withOrgContext((context) =>
       convertQuote(context, {
         quoteId: formValue(formData, 'quoteId') ?? '',
-        workKind: (formValue(formData, 'workKind') as 'project' | 'job' | undefined) ?? 'project',
+        workKind:
+          (formValue(formData, 'workKind') as 'project' | 'job' | 'work_order' | undefined) ??
+          'project',
         projectName: formValue(formData, 'projectName') ?? null,
         pricingMode: (formValue(formData, 'pricingMode') as 'fixed' | 'open' | undefined) ?? 'fixed',
         amountIncludesTax: formValue(formData, 'amountIncludesTax') === 'true',
@@ -192,7 +194,11 @@ export async function convertQuoteAction(
     revalidatePath('/quotes');
     revalidatePath(`/quotes/${result.quote.id}`);
     const href =
-      result.workKind === 'job' ? `/jobs/${result.projectId}` : `/projects/${result.projectId}`;
+      result.workKind === 'job'
+        ? `/jobs/${result.projectId}`
+        : result.workKind === 'work_order'
+          ? `/work-orders/${result.projectId}`
+          : `/projects/${result.projectId}`;
     redirect({ href, locale });
   } catch (error) {
     return mapAppError(error);

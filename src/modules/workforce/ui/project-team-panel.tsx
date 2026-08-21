@@ -1,6 +1,13 @@
 import { getTranslations } from 'next-intl/server';
 import { Card } from '@/components/ui/card';
 import {
+  canManageProjectAccess,
+  getProjectAccessModeForOrg,
+  listProjectAccessGrantsForOrg,
+} from '@/modules/projects';
+import { ProjectScopedAccessPanel } from '@/modules/projects/ui/project-scoped-access-panel';
+import { listOrganizationMembers } from '@/modules/tenancy';
+import {
   listEmployeesForOrg,
   listProjectTeamHistory,
   listProjectTeamMembers,
@@ -17,7 +24,7 @@ export interface ProjectTeamPanelProps {
 }
 
 /**
- * Project → צוות tab: assignment roster only.
+ * Project → צוות tab: assignment roster + optional project access grants.
  * Assignment ≠ labor Actual - adding a member never creates cost.
  */
 export async function ProjectTeamPanel({ projectId }: ProjectTeamPanelProps) {
@@ -32,10 +39,18 @@ export async function ProjectTeamPanel({ projectId }: ProjectTeamPanelProps) {
     }
 
     const allowManage = canManageWorkforce(context);
-    const [team, history, employees] = await Promise.all([
+    const allowAccessManage = canManageProjectAccess(context);
+    const [team, history, employees, accessMode, grants, members] = await Promise.all([
       listProjectTeamMembers(context, projectId),
       listProjectTeamHistory(context, projectId).catch(() => []),
       allowManage ? listEmployeesForOrg(context, { status: 'active' }) : Promise.resolve([]),
+      getProjectAccessModeForOrg(context).catch(() => 'all' as const),
+      listProjectAccessGrantsForOrg(context, projectId).catch(() => []),
+      allowAccessManage || hasPermission(context, PERMISSIONS.MEMBERS_READ)
+        ? listOrganizationMembers(context)
+            .then((rows) => rows.filter((member) => member.status === 'active'))
+            .catch(() => [])
+        : Promise.resolve([]),
     ]);
 
     return {
@@ -47,6 +62,14 @@ export async function ProjectTeamPanel({ projectId }: ProjectTeamPanelProps) {
         jobTitle: employee.jobTitle,
       })),
       allowManage,
+      allowAccessManage,
+      accessMode,
+      grants,
+      members: members.map((member) => ({
+        userId: member.userId,
+        email: member.email,
+        displayName: member.displayName,
+      })),
       defaultStartDate: todayInTimeZone(context.organization.timezone),
     };
   });
@@ -66,6 +89,16 @@ export async function ProjectTeamPanel({ projectId }: ProjectTeamPanelProps) {
         />
       </Card>
       <p className="text-start text-sm text-[var(--pf-text-muted)]">{t('projectPanel.assignmentNote')}</p>
+
+      {(data.allowAccessManage || data.grants.length > 0 || data.accessMode !== 'all') && (
+        <ProjectScopedAccessPanel
+          projectId={projectId}
+          mode={data.accessMode}
+          canManage={data.allowAccessManage}
+          members={data.members}
+          grants={data.grants}
+        />
+      )}
     </div>
   );
 }

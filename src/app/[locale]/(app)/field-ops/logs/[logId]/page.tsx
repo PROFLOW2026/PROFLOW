@@ -2,11 +2,14 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { PageHeader } from '@/components/ui/page-header';
+import { listAssetsForOrg } from '@/modules/assets';
 import { getEntityDocumentPanelData } from '@/modules/documents';
 import { DocumentAttachments } from '@/modules/documents/ui';
 import { getDailyLogForOrg, listFieldOpsWorkPackages } from '@/modules/field-ops';
 import { DailyLogCorrectionNotes } from '@/modules/field-ops/ui/daily-log-correction-notes';
 import { listProjectsForOrg } from '@/modules/projects';
+import { listVendorsForOrg } from '@/modules/vendors';
+import { listEmployeesForOrg } from '@/modules/workforce';
 import { withOrgContext } from '@/shared/auth/session';
 import { Link } from '@/shared/i18n/navigation';
 import { hasPermission } from '@/shared/permissions/assert';
@@ -41,11 +44,29 @@ export default async function DailyLogDetailPage({
   const data = await withOrgContext(async (context) => {
     try {
       const log = await getDailyLogForOrg(context, logId);
-      const [projects, packages, documentsPanel] = await Promise.all([
-        listProjectsForOrg(context, {}),
-        listFieldOpsWorkPackages(context, [log.projectId]),
-        getEntityDocumentPanelData(context, 'daily_log', logId),
-      ]);
+      const [projects, packages, documentsPanel, vendorRows, employeeRows, assetRows] =
+        await Promise.all([
+          listProjectsForOrg(context, {}),
+          listFieldOpsWorkPackages(context, [log.projectId]),
+          getEntityDocumentPanelData(context, 'daily_log', logId),
+          hasPermission(context, PERMISSIONS.VENDORS_READ)
+            ? listVendorsForOrg(context, { status: 'active' }).catch(() => [])
+            : Promise.resolve([]),
+          hasPermission(context, PERMISSIONS.WORKFORCE_READ)
+            ? listEmployeesForOrg(context, { status: 'active' }).catch(() => [])
+            : Promise.resolve([]),
+          hasPermission(context, PERMISSIONS.ASSETS_READ)
+            ? listAssetsForOrg(context).catch(() => [])
+            : Promise.resolve([]),
+        ]);
+      const preferredVendors = vendorRows.filter(
+        (v) => v.type === 'subcontractor' || v.type === 'both',
+      );
+      const vendors = (preferredVendors.length > 0 ? preferredVendors : vendorRows).map((v) => ({
+        id: v.id,
+        name: v.name,
+        hint: v.type,
+      }));
       return {
         log,
         projectName: projects.find((p) => p.id === log.projectId)?.name ?? null,
@@ -53,6 +74,19 @@ export default async function DailyLogDetailPage({
         documentsPanel,
         canManage: hasPermission(context, PERMISSIONS.FIELD_OPS_MANAGE),
         canCreateSafety: hasPermission(context, PERMISSIONS.SAFETY_MANAGE),
+        vendors,
+        employees: employeeRows.map((e) => ({
+          id: e.id,
+          name: e.name,
+        })),
+        assets: assetRows.map((a) => ({ id: a.id, name: a.name })),
+        vendorNames: vendors
+          .filter((v) => log.vendorIds.includes(v.id))
+          .map((v) => v.name),
+        employeeNames: employeeRows
+          .filter((e) => log.employeeIds.includes(e.id))
+          .map((e) => e.name),
+        assetNames: assetRows.filter((a) => log.assetIds.includes(a.id)).map((a) => a.name),
       };
     } catch {
       return null;
@@ -61,7 +95,20 @@ export default async function DailyLogDetailPage({
 
   if (!data) notFound();
 
-  const { log, projectName, workPackageName, documentsPanel, canManage, canCreateSafety } = data;
+  const {
+    log,
+    projectName,
+    workPackageName,
+    documentsPanel,
+    canManage,
+    canCreateSafety,
+    vendors,
+    employees,
+    assets,
+    vendorNames,
+    employeeNames,
+    assetNames,
+  } = data;
   const dateLabel = new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(
     new Date(log.logDate),
   );
@@ -125,6 +172,18 @@ export default async function DailyLogDetailPage({
               <DetailBlock label={t('createLog.summaryLabel')} value={log.summary} />
               <DetailBlock label={t('createLog.workforceNotesLabel')} value={log.workforceNotes} />
               <DetailBlock label={t('createLog.blockersLabel')} value={log.blockers} />
+              <DetailBlock
+                label={t('createLog.vendorsOnSite')}
+                value={vendorNames.length > 0 ? vendorNames.join(', ') : null}
+              />
+              <DetailBlock
+                label={t('createLog.employeesOnSite')}
+                value={employeeNames.length > 0 ? employeeNames.join(', ') : null}
+              />
+              <DetailBlock
+                label={t('createLog.assetsOnSite')}
+                value={assetNames.length > 0 ? assetNames.join(', ') : null}
+              />
               <DetailBlock label={t('extraFields.workersOnSite')} value={log.workersOnSite} />
               <DetailBlock label={t('extraFields.subcontractorsOnSite')} value={log.subcontractorsOnSite} />
               <DetailBlock label={t('extraFields.equipmentOnSite')} value={log.equipmentOnSite} />
@@ -137,7 +196,12 @@ export default async function DailyLogDetailPage({
               <DailyLogCorrectionNotes notes={log.correctionNotes} label={t('lifecycle.correctionHistory')} />
             </div>
           ) : (
-            <DailyLogEditForm log={log} />
+            <DailyLogEditForm
+              log={log}
+              vendors={vendors}
+              employees={employees}
+              assets={assets}
+            />
           )}
         </>
       ) : (
@@ -145,6 +209,19 @@ export default async function DailyLogDetailPage({
           <DetailBlock label={t('createLog.summaryLabel')} value={log.summary} />
           <DetailBlock label={t('createLog.workforceNotesLabel')} value={log.workforceNotes} />
           <DetailBlock label={t('createLog.blockersLabel')} value={log.blockers} />
+          <DetailBlock
+            label={t('createLog.vendorsOnSite')}
+            value={vendorNames.length > 0 ? vendorNames.join(', ') : null}
+          />
+          <DetailBlock
+            label={t('createLog.employeesOnSite')}
+            value={employeeNames.length > 0 ? employeeNames.join(', ') : null}
+          />
+          <DetailBlock
+            label={t('createLog.assetsOnSite')}
+            value={assetNames.length > 0 ? assetNames.join(', ') : null}
+          />
+          <DetailBlock label={t('extraFields.subcontractorsOnSite')} value={log.subcontractorsOnSite} />
           <DetailBlock label={t('extraFields.managerNotes')} value={log.managerNotes} />
           <DailyLogCorrectionNotes notes={log.correctionNotes} label={t('lifecycle.correctionHistory')} />
         </div>

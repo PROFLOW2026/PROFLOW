@@ -45,6 +45,7 @@ export async function createBillingRecordAction(
     currency: formData.get('currency') ? String(formData.get('currency')) : undefined,
     issueDate: String(formData.get('issueDate') ?? ''),
     dueDate: formData.get('dueDate') ? String(formData.get('dueDate')) : null,
+    paymentTermId: formData.get('paymentTermId') ? String(formData.get('paymentTermId')) : null,
     reference: formData.get('reference') ? String(formData.get('reference')) : null,
     notes: formData.get('notes') ? String(formData.get('notes')) : null,
     retentionAmount: formData.get('retentionAmount')

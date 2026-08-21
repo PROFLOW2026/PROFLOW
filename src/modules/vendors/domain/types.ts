@@ -11,9 +11,22 @@ export type VendorStatus = (typeof VENDOR_STATUSES)[number];
 export const CONTACT_ROLES = ['primary', 'billing', 'site', 'other'] as const;
 export type ContactRole = (typeof CONTACT_ROLES)[number];
 
+/** Same set as client party identifiers (party_identifiers.type). */
+export const VENDOR_IDENTIFIER_TYPES = [
+  'tax_id',
+  'company_number',
+  'vat_number',
+  'license_number',
+  'other',
+] as const;
+export type VendorIdentifierType = (typeof VENDOR_IDENTIFIER_TYPES)[number];
+
 /** Engagement lifecycle - not a cost / Actual signal. */
 export const ENGAGEMENT_STATUSES = ['active', 'ended', 'cancelled'] as const;
 export type EngagementStatus = (typeof ENGAGEMENT_STATUSES)[number];
+
+export const VENDOR_CATALOG_LINK_KINDS = ['vendor_category', 'vendor_specialty'] as const;
+export type VendorCatalogLinkKind = (typeof VENDOR_CATALOG_LINK_KINDS)[number];
 
 export interface VendorRecord {
   readonly id: string;
@@ -30,9 +43,31 @@ export interface VendorRecord {
   readonly city: string | null;
   readonly countryCode: string | null;
   readonly notes: string | null;
+  /** Org catalog entry (kind=payment_term). */
+  readonly defaultPaymentTermId: string | null;
   readonly archivedAt: Date | null;
   readonly createdAt: Date;
   readonly updatedAt: Date;
+}
+
+export interface VendorIdentifierRecord {
+  readonly id: string;
+  readonly organizationId: string;
+  readonly vendorId: string;
+  readonly type: VendorIdentifierType;
+  readonly value: string;
+  readonly createdAt: Date;
+  readonly updatedAt: Date;
+}
+
+export interface VendorCatalogLinkRecord {
+  readonly id: string;
+  readonly organizationId: string;
+  readonly vendorId: string;
+  readonly catalogEntryId: string;
+  readonly linkKind: VendorCatalogLinkKind;
+  readonly entryName: string;
+  readonly entryKey: string;
 }
 
 export interface VendorContactRecord {
@@ -68,6 +103,8 @@ export interface VendorListFilters {
   readonly search?: string;
   readonly status?: VendorStatus | 'all';
   readonly type?: VendorType | 'all';
+  /** Filter vendors linked to this catalog category (vendor_category). */
+  readonly categoryId?: string;
   readonly includeArchived?: boolean;
   readonly limit?: number;
   readonly offset?: number;
@@ -76,6 +113,7 @@ export interface VendorListFilters {
 export interface VendorListItem extends VendorRecord {
   readonly projectCount: number;
   readonly engagementCount: number;
+  readonly categoryNames: readonly string[];
 }
 
 export interface VendorEngagementSummary extends VendorEngagementRecord {
@@ -91,6 +129,9 @@ export interface ProjectVendorEngagementSummary extends VendorEngagementRecord {
 export interface VendorDetail extends VendorRecord {
   readonly contacts: readonly VendorContactRecord[];
   readonly engagements: readonly VendorEngagementSummary[];
+  readonly identifiers: readonly VendorIdentifierRecord[];
+  readonly catalogLinks: readonly VendorCatalogLinkRecord[];
   readonly parentVendorName: string | null;
+  readonly defaultPaymentTermName: string | null;
   readonly projectCount: number;
 }

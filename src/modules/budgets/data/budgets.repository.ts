@@ -41,6 +41,7 @@ function mapLine(row: typeof projectBudgetLines.$inferSelect): ProjectBudgetLine
     workPackageId: row.workPackageId,
     disciplineKey: row.disciplineKey,
     costCode: row.costCode,
+    costCodeId: row.costCodeId,
     label: row.label,
     budgetAmount: row.budgetAmount,
     etcAmount: row.etcAmount,

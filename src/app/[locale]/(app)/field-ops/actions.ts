@@ -109,6 +109,7 @@ function revalidateFieldOps(projectId?: string) {
 }
 
 function extraLogFields(formData: FormData) {
+  const syncSiteLinks = formData.get('syncSiteLinks') === '1';
   return {
     workPerformed: formNullableText(formData, 'workPerformed'),
     delays: formNullableText(formData, 'delays'),
@@ -120,6 +121,13 @@ function extraLogFields(formData: FormData) {
     subcontractorsOnSite: formNullableText(formData, 'subcontractorsOnSite'),
     equipmentOnSite: formNullableText(formData, 'equipmentOnSite'),
     deliveries: formNullableText(formData, 'deliveries'),
+    ...(syncSiteLinks
+      ? {
+          vendorIds: formData.getAll('vendorIds').map(String).filter(Boolean),
+          employeeIds: formData.getAll('employeeIds').map(String).filter(Boolean),
+          assetIds: formData.getAll('assetIds').map(String).filter(Boolean),
+        }
+      : {}),
   };
 }
 

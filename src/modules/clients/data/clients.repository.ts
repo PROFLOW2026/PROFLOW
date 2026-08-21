@@ -1,5 +1,11 @@
 import { and, asc, eq, ilike, inArray, isNull, or, sql } from 'drizzle-orm';
-import { clientContacts, clients, partyIdentifiers, projects } from '@drizzle/schema';
+import {
+  clientContacts,
+  clients,
+  organizationCatalogEntries,
+  partyIdentifiers,
+  projects,
+} from '@drizzle/schema';
 import { existsSearchableCustomFieldValueSql } from '@/modules/custom-fields';
 import {
   ORG_LIST_EXPORT_CAP,
@@ -34,6 +40,8 @@ function mapClient(row: typeof clients.$inferSelect): ClientRecord {
     postalCode: row.postalCode,
     countryCode: row.countryCode,
     notes: row.notes,
+    clientTypeId: row.clientTypeId ?? null,
+    defaultPaymentTermId: row.defaultPaymentTermId ?? null,
     archivedAt: row.archivedAt,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
@@ -85,6 +93,8 @@ export async function insertClient(
     postalCode?: string | null;
     countryCode?: string | null;
     notes?: string | null;
+    clientTypeId?: string | null;
+    defaultPaymentTermId?: string | null;
   },
 ): Promise<ClientRecord> {
   const [row] = await db
@@ -104,6 +114,8 @@ export async function insertClient(
       postalCode: input.postalCode ?? null,
       countryCode: input.countryCode ?? null,
       notes: input.notes ?? null,
+      clientTypeId: input.clientTypeId ?? null,
+      defaultPaymentTermId: input.defaultPaymentTermId ?? null,
     })
     .returning();
 
@@ -128,6 +140,8 @@ export async function updateClientById(
     postalCode: string | null;
     countryCode: string | null;
     notes: string | null;
+    clientTypeId: string | null;
+    defaultPaymentTermId: string | null;
     archivedAt: Date | null;
   }>,
 ): Promise<ClientRecord | null> {
@@ -169,6 +183,10 @@ export async function listClients(
     conditions.push(eq(clients.status, filters.status));
   }
 
+  if (filters.clientTypeId) {
+    conditions.push(eq(clients.clientTypeId, filters.clientTypeId));
+  }
+
   if (filters.search?.trim()) {
     const term = `%${filters.search.trim()}%`;
     conditions.push(
@@ -190,6 +208,7 @@ export async function listClients(
   const rows = await db
     .select({
       client: clients,
+      clientTypeName: organizationCatalogEntries.name,
       projectCount: sql<number>`(
         select count(*)::int from projects p
         where p.client_id = ${clients.id}
@@ -198,6 +217,13 @@ export async function listClients(
       )`,
     })
     .from(clients)
+    .leftJoin(
+      organizationCatalogEntries,
+      and(
+        eq(organizationCatalogEntries.id, clients.clientTypeId),
+        eq(organizationCatalogEntries.organizationId, organizationId),
+      ),
+    )
     .where(and(...conditions))
     .orderBy(clients.name)
     .limit(limit)
@@ -206,6 +232,7 @@ export async function listClients(
   return rows.map((row) => ({
     ...mapClient(row.client),
     projectCount: row.projectCount,
+    clientTypeName: row.clientTypeName ?? null,
   }));
 }
 
@@ -240,11 +267,42 @@ export async function getClientDetail(
       ),
     );
 
+  let clientTypeName: string | null = null;
+  let defaultPaymentTermName: string | null = null;
+  if (client.clientTypeId) {
+    const [typeRow] = await db
+      .select({ name: organizationCatalogEntries.name })
+      .from(organizationCatalogEntries)
+      .where(
+        and(
+          eq(organizationCatalogEntries.id, client.clientTypeId),
+          eq(organizationCatalogEntries.organizationId, organizationId),
+        ),
+      )
+      .limit(1);
+    clientTypeName = typeRow?.name ?? null;
+  }
+  if (client.defaultPaymentTermId) {
+    const [termRow] = await db
+      .select({ name: organizationCatalogEntries.name })
+      .from(organizationCatalogEntries)
+      .where(
+        and(
+          eq(organizationCatalogEntries.id, client.defaultPaymentTermId),
+          eq(organizationCatalogEntries.organizationId, organizationId),
+        ),
+      )
+      .limit(1);
+    defaultPaymentTermName = termRow?.name ?? null;
+  }
+
   return {
     ...client,
     contacts,
     identifiers: identifiers.map(mapIdentifier),
     projectCount: countRow?.count ?? 0,
+    clientTypeName,
+    defaultPaymentTermName,
   };
 }
 

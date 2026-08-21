@@ -121,6 +121,8 @@
     "allocationKind": "Allocation type",
     "kindQuantity": "Quantity change only",
     "kindUnitPrice": "Unit price change only",
+    "kindNewItem": "New BOQ item",
+    "kindLumpSum": "Lump sum",
     "targetItem": "Target item (optional)",
     "unallocated": "Leave unallocated on contract",
     "submit": "Allocate"

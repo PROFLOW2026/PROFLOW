@@ -9,12 +9,13 @@ import {
   updateProspectById,
 } from '@/modules/crm/lookups';
 import { createProject, createJob, updateProject } from '@/modules/projects';
+import { createWorkOrder } from '@/modules/service';
 import { noteModuleUsage } from '@/modules/tenancy';
 import { recordAuditEvent } from '@/shared/audit';
 import type { OrgContext } from '@/shared/auth/context';
 import { todayInTimeZone } from '@/shared/dates';
 import { DomainRuleError, NotFoundError, ValidationError } from '@/shared/errors';
-import { assertAllPermissions, hasPermission } from '@/shared/permissions/assert';
+import { assertAllPermissions, assertPermission, hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import {
   assertCanConvertQuote,
@@ -23,7 +24,11 @@ import {
   resolveCompletedQuoteConversion,
 } from '../domain/conversion';
 import { assertQuoteIsNotBilling } from '../domain/lifecycle';
-import { QUOTES_AUDIT_ACTIONS, type QuoteRecord } from '../domain/types';
+import {
+  QUOTES_AUDIT_ACTIONS,
+  type QuoteConvertWorkKind,
+  type QuoteRecord,
+} from '../domain/types';
 import {
   findQuoteById,
   markQuoteConvertedIfAccepted,
@@ -34,13 +39,13 @@ import { recordQuoteClientActivity } from './timeline-events';
 export interface ConvertQuoteResult {
   readonly quote: QuoteRecord;
   readonly projectId: string;
-  readonly workKind: 'project' | 'job';
+  readonly workKind: QuoteConvertWorkKind;
   /** True when an earlier conversion was reused. */
   readonly idempotent?: boolean;
 }
 
 /**
- * Accepted quote → create project or job via existing entity APIs.
+ * Accepted quote → create project, job, or work order via existing entity APIs.
  * Seeds client / contact / description / opening contract (net) carefully.
  * Does NOT create billing records or change orders. Quote ≠ Revenue.
  */
@@ -63,12 +68,16 @@ export async function convertQuote(
   }
 
   const input = parsed.data;
+  if (input.workKind === 'work_order') {
+    assertPermission(context, PERMISSIONS.SERVICE_MANAGE);
+  }
+
   const quote = await findQuoteById(context.db, context.organizationId, input.quoteId);
   if (!quote) throw new NotFoundError('Quote');
 
   const completed = resolveCompletedQuoteConversion(quote);
   if (completed && isQuoteAlreadyConverted(quote)) {
-    let workKind: 'project' | 'job' = input.workKind;
+    let workKind: QuoteConvertWorkKind = input.workKind;
     const [projectRow] = await context.db
       .select({ workKind: projects.workKind })
       .from(projects)
@@ -79,7 +88,11 @@ export async function convertQuote(
         ),
       )
       .limit(1);
-    if (projectRow?.workKind === 'job' || projectRow?.workKind === 'project') {
+    if (
+      projectRow?.workKind === 'job' ||
+      projectRow?.workKind === 'project' ||
+      projectRow?.workKind === 'work_order'
+    ) {
       workKind = projectRow.workKind;
     }
     return {
@@ -135,6 +148,29 @@ export async function convertQuote(
         primaryContactId: quote.contactId,
       });
     }
+  } else if (workKind === 'work_order') {
+    const pricingMode = input.pricingMode ?? 'fixed';
+    if (!quote.clientId) {
+      throw new DomainRuleError(
+        'A client is required to convert a quote into a work order',
+        'quotes.errors.clientRequiredForWorkOrder',
+      );
+    }
+    const result = await createWorkOrder(context, {
+      name: projectName,
+      description: quote.description ?? undefined,
+      clientId: quote.clientId,
+      primaryContactId: quote.contactId ?? undefined,
+      pricingMode,
+      priceAmount: pricingMode === 'fixed' ? enteredAmount : undefined,
+      priceCurrency: currency,
+      amountIncludesTax: pricingMode === 'fixed' ? inclusive : undefined,
+      requestedDate: startDate,
+      notes: quote.notes ?? undefined,
+      serviceNotes: quote.description ?? undefined,
+    });
+    projectId = result.projectId;
+    convertedClientId = result.clientId ?? quote.clientId;
   } else {
     // createProject upserts primary contract when amount present (net via tax authority).
     const result = await createProject(context, {
@@ -208,6 +244,12 @@ export async function convertQuote(
     summary: updated.title,
     deepLink: `/quotes/${updated.id}`,
   });
+  const workDeepLink =
+    workKind === 'job'
+      ? `/jobs/${projectId}`
+      : workKind === 'work_order'
+        ? `/work-orders/${projectId}`
+        : `/projects/${projectId}`;
   await recordQuoteClientActivity(context, {
     clientId: convertedClientId,
     projectId,
@@ -215,7 +257,7 @@ export async function convertQuote(
     entityType: 'project',
     entityId: projectId,
     summary: projectName,
-    deepLink: workKind === 'job' ? `/jobs/${projectId}` : `/projects/${projectId}`,
+    deepLink: workDeepLink,
   });
 
   await markLinkedOpportunityWon(context, {

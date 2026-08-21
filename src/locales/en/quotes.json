@@ -23,15 +23,15 @@
     "salesDescription": "Follow inquiries and opportunities through to a quote and closing the work.",
     "primary": "Primary",
     "optional": "Optional",
-    "quotesBidsTitle": "Quotes",
-    "quotesBidsBody": "Create, edit, issue, accept, and convert to a project or job.",
+    "quotesBidsTitle": "Product Quote",
+    "quotesBidsBody": "The customer quote: create, edit, issue, accept, and convert to a project, job, or work order. This is the commercial quote path (not a CRM estimate).",
     "pipelineTitle": "Sales",
-    "pipelineBody": "Inquiries and opportunities through to a quote and closing the work."
+    "pipelineBody": "Inquiries and opportunities through to a Product Quote and closing the work."
   },
   "newQuote": "New quote",
   "empty": {
     "title": "No quotes yet",
-    "body": "Create a quote for a client. You can edit, issue, and convert it to a project or job.",
+    "body": "Create a quote for a client. You can edit, issue, and convert it to a project, job, or work order.",
     "action": "New quote"
   },
   "list": {
@@ -105,10 +105,11 @@
     "cancel": "Cancel estimate",
     "backToDraft": "Back to draft",
     "convert": "Convert to work",
-    "convertHint": "Creates a new project or job from this accepted estimate. Existing project changes still use Change Orders.",
+    "convertHint": "Creates a new project, job, or work order from this accepted estimate. Existing project changes still use Change Orders.",
     "workKind": "Create as",
     "workKindProject": "Project",
     "workKindJob": "Job",
+    "workKindWorkOrder": "Work order",
     "projectName": "Name",
     "pricingMode": "Job pricing",
     "pricingFixed": "Fixed price (from estimate net)",
@@ -118,12 +119,13 @@
   "errors": {
     "invalidTransition": "This status change is not allowed",
     "notEditable": "Only draft or ready estimates can be edited",
-    "useConvert": "Use Convert to create a project or job",
+    "useConvert": "Use Convert to create a project, job, or work order",
     "alreadyConverted": "This estimate was already converted",
     "notAccepted": "Only an accepted estimate can be converted",
     "noSubtotal": "Add priced lines before converting",
     "noTotal": "Tax-inclusive convert needs a total",
     "clientRequiredForJob": "Choose a client before converting to a job",
+    "clientRequiredForWorkOrder": "Choose a client before converting to a work order",
     "quoteIsNotBilling": "A quote does not create customer billing"
   }
 }

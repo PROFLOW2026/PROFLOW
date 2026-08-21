@@ -531,7 +531,11 @@ describe('0052–0053 owner SQL integrity behavior', () => {
           lines: billLines(seeded.currency, '100'),
         });
       }),
-    ).rejects.toSatisfy((error) => /vendor mismatch|check_violation|23514|Failed query/i.test(errorBlob(error)));
+    ).rejects.toSatisfy((error) =>
+      /vendor mismatch|vendor must match|check_violation|23514|Failed query|DomainRuleError/i.test(
+        errorBlob(error),
+      ),
+    );
 
     await expect(
       database.asUser(tenant.owner.id, async (tx) => {

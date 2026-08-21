@@ -22,6 +22,7 @@ import { SubcontractCard } from './subcontract-card';
 
 export interface VendorSubcontractsPanelProps {
   readonly vendorId: string;
+  readonly vendorType?: 'supplier' | 'subcontractor' | 'both' | 'other';
   readonly items: readonly SubcontractListItem[];
   readonly details: readonly SubcontractDetail[];
   readonly candidateProjects: readonly { id: string; name: string }[];
@@ -33,6 +34,7 @@ export interface VendorSubcontractsPanelProps {
 
 export function VendorSubcontractsPanel({
   vendorId,
+  vendorType = 'subcontractor',
   items,
   details,
   candidateProjects,
@@ -177,7 +179,28 @@ export function VendorSubcontractsPanel({
               <Field label={t('notesLabel')} optionalLabel={tCommon('labels.optional')}>
                 {(control) => <Textarea {...control} name="notes" rows={2} />}
               </Field>
-              <Button type="submit" size="sm" loading={pending} className="self-start">
+              {vendorType === 'supplier' ? (
+                <label className="flex items-start gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    name="promoteVendorToBoth"
+                    value="true"
+                    className="mt-1 size-4 shrink-0"
+                    required
+                  />
+                  <span>{t('promoteSupplierToBoth')}</span>
+                </label>
+              ) : null}
+              {vendorType === 'other' ? (
+                <Alert tone="warning">{t('vendorTypeOtherBlocked')}</Alert>
+              ) : null}
+              <Button
+                type="submit"
+                size="sm"
+                loading={pending}
+                className="self-start"
+                disabled={vendorType === 'other'}
+              >
                 {t('addSave')}
               </Button>
             </>

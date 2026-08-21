@@ -40,6 +40,8 @@ const PERSONA_RECOMMENDED_KINDS: Readonly<
     'quote_estimate',
     'field_daily',
     'change_order_summary',
+    'client_360',
+    'labor_utilization',
   ],
   all: [
     'project_status',
@@ -50,6 +52,13 @@ const PERSONA_RECOMMENDED_KINDS: Readonly<
     'field_daily',
     'punch_inspection',
     'vendor_subcontract_summary',
+    'client_360',
+    'vendor_360',
+    'contract_portfolio',
+    'labor_utilization',
+    'retention_schedule',
+    'crm_funnel',
+    'month_close_completeness',
   ],
 };
 

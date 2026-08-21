@@ -135,6 +135,8 @@ export interface TimesheetRecord {
   readonly decidedByUserId: string | null;
   readonly decidedAt: Date | null;
   readonly managerNote: string | null;
+  /** Set when approved — silent rewrites of period entries blocked after lock. */
+  readonly lockedAt: Date | null;
   readonly archivedAt: Date | null;
   readonly createdAt: Date;
   readonly updatedAt: Date;

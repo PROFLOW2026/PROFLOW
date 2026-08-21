@@ -43,6 +43,11 @@ export type ApplyBusinessProfileOptions = {
   readonly workMixOverride?: string;
   /** Recommended onboarding path sets `simple` complexity (org setting jsonb). */
   readonly experienceComplexity?: ExperienceComplexityKey;
+  /**
+   * Existing-org backfill: seed vocabulary catalogs only.
+   * Does not rewrite profile/settings/modules/domains.
+   */
+  readonly catalogsOnly?: boolean;
 };
 
 /**
@@ -62,93 +67,179 @@ export async function applyBusinessProfileConfig(
 
   const moduleMode: ApplyModulePreferenceMode = options?.moduleMode ?? 'additive';
   const nameOf = (en: string, he: string) => (locale === 'he-IL' ? he : en);
+  const catalogsOnly = options?.catalogsOnly === true;
 
-  const workMix =
-    options?.workMixOverride && isWorkMix(options.workMixOverride)
-      ? options.workMixOverride
-      : profile.workMix;
+  if (!catalogsOnly) {
+    const workMix =
+      options?.workMixOverride && isWorkMix(options.workMixOverride)
+        ? options.workMixOverride
+        : profile.workMix;
 
-  await upsertOrganizationSettingValue(db, organizationId, BUSINESS_PROFILE_SETTING_KEY, profileKey);
-  await upsertOrganizationSettingValue(db, organizationId, WORK_MIX_SETTING_KEY, workMix);
-  await upsertOrganizationSettingValue(db, organizationId, TERMINOLOGY_SETTING_KEY, profile.terminology);
-  await upsertOrganizationSettingValue(
-    db,
-    organizationId,
-    QUICK_CREATE_EMPHASIS_SETTING_KEY,
-    profile.quickCreateEmphasis,
-  );
-  await upsertOrganizationSettingValue(
-    db,
-    organizationId,
-    SUGGESTED_DEFAULTS_SETTING_KEY,
-    profile.suggestedDefaults,
-  );
+    await upsertOrganizationSettingValue(db, organizationId, BUSINESS_PROFILE_SETTING_KEY, profileKey);
+    await upsertOrganizationSettingValue(db, organizationId, WORK_MIX_SETTING_KEY, workMix);
+    await upsertOrganizationSettingValue(db, organizationId, TERMINOLOGY_SETTING_KEY, profile.terminology);
+    await upsertOrganizationSettingValue(
+      db,
+      organizationId,
+      QUICK_CREATE_EMPHASIS_SETTING_KEY,
+      profile.quickCreateEmphasis,
+    );
+    await upsertOrganizationSettingValue(
+      db,
+      organizationId,
+      SUGGESTED_DEFAULTS_SETTING_KEY,
+      profile.suggestedDefaults,
+    );
 
-  const moduleWrites = modulePreferenceWritesForProfile(profileKey, moduleMode);
-  for (const { moduleKey, enabled } of moduleWrites) {
-    if (moduleKey === 'portal') continue;
-    await setModulePreference(db, organizationId, moduleKey, enabled);
-  }
-
-  for (const moduleKey of options?.extraModules ?? []) {
-    if (moduleKey === 'portal') continue;
-    for (const foundation of requiredFoundationsFor(moduleKey)) {
-      await setModulePreference(db, organizationId, foundation, true);
+    const moduleWrites = modulePreferenceWritesForProfile(profileKey, moduleMode);
+    for (const { moduleKey, enabled } of moduleWrites) {
+      if (moduleKey === 'portal') continue;
+      await setModulePreference(db, organizationId, moduleKey, enabled);
     }
-    await setModulePreference(db, organizationId, moduleKey, true);
+
+    for (const moduleKey of options?.extraModules ?? []) {
+      if (moduleKey === 'portal') continue;
+      for (const foundation of requiredFoundationsFor(moduleKey)) {
+        await setModulePreference(db, organizationId, foundation, true);
+      }
+      await setModulePreference(db, organizationId, moduleKey, true);
+    }
+
+    if (profileKey === 'ALL_CAPABILITIES' || moduleMode === 'replace') {
+      await upsertOrganizationSettingValue(
+        db,
+        organizationId,
+        CAPABILITY_MODE_SETTING_KEY,
+        profileKey === 'ALL_CAPABILITIES' ? 'all' : 'profile',
+      );
+    }
+
+    if (
+      options?.experienceComplexity &&
+      isExperienceComplexityKey(options.experienceComplexity)
+    ) {
+      await upsertOrganizationSettingValue(
+        db,
+        organizationId,
+        EXPERIENCE_COMPLEXITY_SETTING_KEY,
+        options.experienceComplexity,
+      );
+    }
+
+    let sort = 0;
+    for (const domain of profile.domains) {
+      await db
+        .insert(organizationDomains)
+        .values({
+          organizationId,
+          key: domain.key,
+          name: nameOf(domain.nameEn, domain.nameHe),
+          enabled: true,
+          sortOrder: sort++,
+        })
+        .onConflictDoNothing();
+    }
+
+    let categorySort = 300;
+    for (const category of profile.costCategories) {
+      await db
+        .insert(costCategories)
+        .values({
+          organizationId,
+          key: category.key,
+          name: nameOf(category.nameEn, category.nameHe),
+          family: category.family,
+          isSystem: false,
+          sortOrder: categorySort++,
+        })
+        .onConflictDoNothing();
+    }
+
+    await seedBusinessProfileSetup(db, organizationId, profileKey, locale);
   }
 
-  if (profileKey === 'ALL_CAPABILITIES' || moduleMode === 'replace') {
-    await upsertOrganizationSettingValue(
+  // Vocabulary catalogs (vendor categories, specialties, cost codes, doc requirements)
+  const { getProfileCatalogSeeds } = await import('../domain/profile-catalog-seeds');
+  const { seedCatalogItems } = await import('@/modules/business-catalog/application/seed-catalog');
+  const { documentRequirementRules } = await import('@drizzle/schema');
+  const seeds = getProfileCatalogSeeds(profileKey);
+  await seedCatalogItems(
+    db,
+    organizationId,
+    'vendor_category',
+    seeds.vendorCategories.map((item) => ({
+      key: item.key,
+      name: nameOf(item.nameEn, item.nameHe),
+      metadata: item.metadata,
+    })),
+  );
+  // Resolve parent keys for specialties after categories exist
+  const { listCatalogEntries } = await import('@/modules/business-catalog/data/catalog.repository');
+  const categories = await listCatalogEntries(db, organizationId, 'vendor_category', {
+    includeInactive: true,
+  });
+  const catKeyToId = new Map(categories.map((c) => [c.key, c.id]));
+  await seedCatalogItems(
+    db,
+    organizationId,
+    'vendor_specialty',
+    seeds.vendorSpecialties.map((item) => ({
+      key: item.key,
+      name: nameOf(item.nameEn, item.nameHe),
+      parentKey: item.parentKey,
+      metadata: item.parentKey
+        ? { ...item.metadata, parentCategoryId: catKeyToId.get(item.parentKey) }
+        : item.metadata,
+    })),
+  );
+  // Fix specialty parent_id via update when parentKey maps to category
+  for (const item of seeds.vendorSpecialties) {
+    if (!item.parentKey) continue;
+    const parentId = catKeyToId.get(item.parentKey);
+    if (!parentId) continue;
+    const specialty = (
+      await listCatalogEntries(db, organizationId, 'vendor_specialty', { includeInactive: true })
+    ).find((s) => s.key === item.key);
+    if (specialty && !specialty.parentId) {
+      const { updateCatalogEntry } = await import('@/modules/business-catalog/data/catalog.repository');
+      await updateCatalogEntry(db, organizationId, specialty.id, { parentId });
+    }
+  }
+  if (seeds.costCodes.length > 0) {
+    await seedCatalogItems(
       db,
       organizationId,
-      CAPABILITY_MODE_SETTING_KEY,
-      profileKey === 'ALL_CAPABILITIES' ? 'all' : 'profile',
+      'cost_code',
+      seeds.costCodes.map((item) => ({
+        key: item.key,
+        name: nameOf(item.nameEn, item.nameHe),
+        metadata: { code: item.key, ...(item.metadata ?? {}) },
+      })),
     );
-  }
-
-  if (
-    options?.experienceComplexity &&
-    isExperienceComplexityKey(options.experienceComplexity)
-  ) {
-    await upsertOrganizationSettingValue(
+    const existingCostCodesFlag = await getOrganizationSettingValue<unknown>(
       db,
       organizationId,
-      EXPERIENCE_COMPLEXITY_SETTING_KEY,
-      options.experienceComplexity,
+      'cost_codes_enabled',
     );
+    if (existingCostCodesFlag == null) {
+      await upsertOrganizationSettingValue(db, organizationId, 'cost_codes_enabled', true);
+    }
   }
-
-  let sort = 0;
-  for (const domain of profile.domains) {
+  for (const req of seeds.documentRequirements ?? []) {
     await db
-      .insert(organizationDomains)
+      .insert(documentRequirementRules)
       .values({
         organizationId,
-        key: domain.key,
-        name: nameOf(domain.nameEn, domain.nameHe),
-        enabled: true,
-        sortOrder: sort++,
+        contextKind: req.contextKind,
+        contextKey: req.contextKey ?? null,
+        documentTypeKey: req.documentTypeKey,
+        label: nameOf(req.labelEn, req.labelHe),
+        required: true,
+        isActive: true,
+        sortOrder: 0,
       })
       .onConflictDoNothing();
   }
-
-  let categorySort = 300;
-  for (const category of profile.costCategories) {
-    await db
-      .insert(costCategories)
-      .values({
-        organizationId,
-        key: category.key,
-        name: nameOf(category.nameEn, category.nameHe),
-        family: category.family,
-        isSystem: false,
-        sortOrder: categorySort++,
-      })
-      .onConflictDoNothing();
-  }
-
-  await seedBusinessProfileSetup(db, organizationId, profileKey, locale);
 
   return { applied: true, profileKey };
 }

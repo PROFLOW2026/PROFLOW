@@ -75,7 +75,9 @@ describe('AP subcontract agreement guard and outstanding', () => {
         });
       }),
     ).rejects.toSatisfy((error) =>
-      /vendor mismatch|check_violation|23514|Failed query/i.test(errorBlob(error)),
+      /vendor mismatch|vendor must match|check_violation|23514|Failed query|DomainRuleError/i.test(
+        errorBlob(error),
+      ),
     );
   });
 

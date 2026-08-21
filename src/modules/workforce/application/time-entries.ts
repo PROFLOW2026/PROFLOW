@@ -54,7 +54,7 @@ import {
   sumProjectLaborCost,
   voidTimeEntryRow,
 } from '../data/time-entries.repository';
-import { patchMutableTimeEntry } from '../data/timesheets.repository';
+import { findTimesheetById, patchMutableTimeEntry } from '../data/timesheets.repository';
 import type {
   NonProjectTimeCodeRecord,
   TimeApprovalStatus,
@@ -734,6 +734,16 @@ export async function updateTimeEntry(
     );
   }
   await assertCanActOnEmployeeTime(context, original.employeeId);
+  if (original.timesheetId) {
+    const sheet = await findTimesheetById(context.db, context.organizationId, original.timesheetId);
+    if (sheet?.lockedAt || sheet?.status === 'approved') {
+      throw new DomainRuleError(
+        'This timesheet period is locked; use a correction',
+        'workforce.errors.timesheetPeriodLocked',
+        { timesheetId: sheet.id },
+      );
+    }
+  }
   if (isApprovedRecordedLocked(original)) {
     throw new DomainRuleError(
       'Approved time is locked; use a correction',

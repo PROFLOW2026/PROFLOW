@@ -50,6 +50,9 @@ interface ClientDetailViewProps {
   canManage?: boolean;
   timelineEvents?: readonly ClientTimelineEventView[];
   timelineState?: 'ready' | 'loading' | 'error';
+  clientTypes?: readonly { id: string; name: string }[];
+  paymentTerms?: readonly { id: string; name: string }[];
+  quotes?: readonly { id: string; title: string; status: string }[];
 }
 
 export function ClientDetailView({
@@ -59,11 +62,16 @@ export function ClientDetailView({
   canManage = false,
   timelineEvents = [],
   timelineState = 'ready',
+  clientTypes = [],
+  paymentTerms = [],
+  quotes = [],
 }: ClientDetailViewProps) {
   const t = useTranslations('clients.detail');
   const tClients = useTranslations('clients');
   const tCommon = useTranslations('common');
   const tProjectStatus = useTranslations('status.project');
+  const [clientTypeId, setClientTypeId] = useState(client.clientTypeId ?? '');
+  const [paymentTermId, setPaymentTermId] = useState(client.defaultPaymentTermId ?? '');
   const [state, formAction, pending] = useActionState<ClientFormState, FormData>(
     updateClientAction,
     {},
@@ -150,6 +158,54 @@ export function ClientDetailView({
             )}
           </Field>
 
+          <Field label={t('clientTypeLabel')} optionalLabel={tCommon('labels.optional')}>
+            {(control) => (
+              <>
+                <input type="hidden" name="clientTypeId" value={clientTypeId} />
+                <Select
+                  value={clientTypeId || '__none__'}
+                  onValueChange={(value) => setClientTypeId(value === '__none__' ? '' : value)}
+                >
+                  <SelectTrigger id={control.id}>
+                    <SelectValue placeholder={t('clientTypeNone')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__none__">{t('clientTypeNone')}</SelectItem>
+                    {clientTypes.map((type) => (
+                      <SelectItem key={type.id} value={type.id}>
+                        {type.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </>
+            )}
+          </Field>
+
+          <Field label={t('paymentTermLabel')} optionalLabel={tCommon('labels.optional')}>
+            {(control) => (
+              <>
+                <input type="hidden" name="defaultPaymentTermId" value={paymentTermId} />
+                <Select
+                  value={paymentTermId || '__none__'}
+                  onValueChange={(value) => setPaymentTermId(value === '__none__' ? '' : value)}
+                >
+                  <SelectTrigger id={control.id}>
+                    <SelectValue placeholder={t('paymentTermNone')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__none__">{t('paymentTermNone')}</SelectItem>
+                    {paymentTerms.map((term) => (
+                      <SelectItem key={term.id} value={term.id}>
+                        {term.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </>
+            )}
+          </Field>
+
           <Field label={tCommon('labels.notes')} optionalLabel={tCommon('labels.optional')}>
             {(control) => (
               <Textarea {...control} name="notes" rows={2} defaultValue={client.notes ?? ''} />
@@ -190,6 +246,7 @@ export function ClientDetailView({
               </Button>
             )}
           </div>
+          <p className="text-xs text-[var(--pf-text-muted)]">{t('archiveVsInactiveHint')}</p>
         </form>
       ) : null}
 
@@ -307,6 +364,35 @@ export function ClientDetailView({
               {t('projectsCount', { count: client.projectCount })}
             </p>
           ) : null}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>{t('salesSection')}</CardTitle>
+          <CardDescription>{t('salesHint')}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {quotes.length === 0 ? (
+            <p className="text-sm text-[var(--pf-text-secondary)]">{t('salesEmpty')}</p>
+          ) : (
+            <ul className="flex flex-col gap-2">
+              {quotes.map((quote) => (
+                <li
+                  key={quote.id}
+                  className="flex flex-wrap items-center justify-between gap-2 text-sm"
+                >
+                  <Link
+                    href={`/quotes/${quote.id}`}
+                    className="min-w-0 flex-1 font-medium text-[var(--pf-text-primary)] underline-offset-2 hover:underline"
+                  >
+                    {quote.title}
+                  </Link>
+                  <span className="shrink-0 text-[var(--pf-text-secondary)]">{quote.status}</span>
+                </li>
+              ))}
+            </ul>
+          )}
         </CardContent>
       </Card>
 

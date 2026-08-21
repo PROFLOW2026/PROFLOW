@@ -5,9 +5,14 @@ import { assertPermission, hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { emitNotification } from '@/modules/notifications';
 import { saveCommunicationDraft } from '@/modules/communications/application/manage';
+import { createExpense } from '@/modules/expenses';
+import { upsertPlanningWorkItem } from '@/modules/planning';
+import { getProjectDetailChrome } from '@/modules/projects';
+import { todayInTimeZone } from '@/shared/dates';
 import {
   AUTOMATION_PRESET_KEYS,
   type AutomationActionRequest,
+  type AutomationMatch,
   type AutomationPresetKey,
   type AutomationRunRecord,
 } from '../domain/types';
@@ -38,6 +43,7 @@ function accessScopeForMatches(
 }
 
 const NOTIFY_CAP = 12;
+const DRAFT_CAP = 5;
 
 function parseOrThrow<T>(
   result:
@@ -84,6 +90,81 @@ function actionsFromConfig(config: Record<string, unknown>): AutomationActionReq
     .filter((item): item is AutomationActionRequest => item !== null);
 }
 
+function matchHasExpenseContext(match: AutomationMatch): boolean {
+  return Boolean(
+    match.amount &&
+      match.currency &&
+      match.currency.length === 3 &&
+      match.projectId,
+  );
+}
+
+async function executeDraftExpense(
+  context: OrgContext,
+  matches: readonly AutomationMatch[],
+): Promise<{ kind: string; count: number }> {
+  if (!hasPermission(context, PERMISSIONS.EXPENSES_CREATE)) {
+    return { kind: 'draft_expense', count: 0 };
+  }
+  let count = 0;
+  for (const match of matches) {
+    if (count >= DRAFT_CAP) break;
+    if (!matchHasExpenseContext(match)) continue;
+    await createExpense(context, {
+      amount: match.amount!,
+      currency: match.currency!,
+      projectId: match.projectId!,
+      description: `Automation draft: ${match.title}`.slice(0, 2000),
+      notes: `Created by automation from ${match.entityType}:${match.entityId}. Remains draft — never finalized.`,
+      expenseDate: todayInTimeZone(context.organization.timezone),
+    });
+    count += 1;
+  }
+  return { kind: 'draft_expense', count };
+}
+
+async function executePlanningFollowup(
+  context: OrgContext,
+  matches: readonly AutomationMatch[],
+): Promise<{ kind: string; count: number }> {
+  if (!hasPermission(context, PERMISSIONS.PLANNING_WRITE)) {
+    return { kind: 'planning_followup', count: 0 };
+  }
+  let count = 0;
+  for (const match of matches) {
+    if (count >= DRAFT_CAP) break;
+    if (!match.projectId) continue;
+    let workKind: 'project' | 'job' = 'project';
+    try {
+      const chrome = await getProjectDetailChrome(context, match.projectId);
+      if (chrome.project.workKind === 'job') continue;
+      workKind = 'project';
+    } catch {
+      continue;
+    }
+    const today = todayInTimeZone(context.organization.timezone);
+    await upsertPlanningWorkItem(
+      {
+        organizationId: context.organizationId,
+        projectId: match.projectId,
+        name: `Follow-up: ${match.title}`.slice(0, 200),
+        kind: 'task',
+        workKind,
+        startDate: today,
+        targetEndDate: today,
+        progressPercent: 0,
+        phaseId: null,
+        workPackageId: null,
+        sortOrder: 0,
+        actualEndDate: null,
+      },
+      { db: context.db },
+    );
+    count += 1;
+  }
+  return { kind: 'planning_followup', count };
+}
+
 async function executeSafeAction(
   context: OrgContext,
   presetKey: AutomationPresetKey,
@@ -124,8 +205,11 @@ async function executeSafeAction(
     });
     return { kind: 'draft_communication', count: 1 };
   }
-  if (action.kind === 'draft_expense' || action.kind === 'planning_followup') {
-    return { kind: action.kind, count: 0 };
+  if (action.kind === 'draft_expense') {
+    return executeDraftExpense(context, matches);
+  }
+  if (action.kind === 'planning_followup') {
+    return executePlanningFollowup(context, matches);
   }
   return { kind: action.kind, count: 0 };
 }
@@ -138,6 +222,7 @@ export interface RunRulesResult {
 /**
  * Permission-gated rule runner. Tests and explicit UI "Run now" call this.
  * Does not register a production cron.
+ * Prefer notify as default; draft_expense / planning_followup are safe stubs only.
  */
 export async function runRules(
   context: OrgContext,
@@ -169,7 +254,9 @@ export async function runRules(
     if (!AUTOMATION_PRESET_KEYS.includes(rule.presetKey)) continue;
     const requested = actionsFromConfig(rule.configJson);
     if (requested.some((item) => isUnsafeAutomationAction(item.kind))) {
-      const unsafe = requested.filter((item) => isUnsafeAutomationAction(item.kind)).map((item) => item.kind);
+      const unsafe = requested
+        .filter((item) => isUnsafeAutomationAction(item.kind))
+        .map((item) => item.kind);
       refusedUnsafe.push(...unsafe);
       const failed = await insertAutomationRun(context.db, {
         organizationId: context.organizationId,

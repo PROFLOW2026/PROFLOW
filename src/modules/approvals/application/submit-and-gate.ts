@@ -9,7 +9,9 @@ import {
   findLatestRequestForEntityGate,
   findOpenRequestForEntity,
   insertApprovalRequest,
+  insertApprovalRequestSteps,
   listEnabledRulesForEntity,
+  listRuleSteps,
 } from '../data/approvals.repository';
 import {
   submitApprovalRequestSchema,
@@ -23,9 +25,54 @@ export type SubmitApprovalResult =
   | { readonly kind: 'already_approved'; readonly request: ApprovalRequestRecord }
   | { readonly kind: 'submitted'; readonly request: ApprovalRequestRecord };
 
+async function createSubmittedRequest(
+  context: OrgContext,
+  input: {
+    readonly ruleId: string | null;
+    readonly entityType: SubmitApprovalRequestInput['entityType'];
+    readonly entityId: string;
+    readonly amount?: string | null;
+    readonly currency?: string | null;
+  },
+): Promise<ApprovalRequestRecord> {
+  const steps = input.ruleId
+    ? await listRuleSteps(context.db, context.organizationId, input.ruleId)
+    : [];
+  const totalSteps = steps.length;
+  const request = await insertApprovalRequest(context.db, {
+    organizationId: context.organizationId,
+    ruleId: input.ruleId,
+    entityType: input.entityType,
+    entityId: input.entityId,
+    amount: input.amount ?? null,
+    currency: input.currency ?? null,
+    submittedByUserId: context.userId,
+    // 0 steps = legacy single-step (null current/total).
+    currentStepOrder: totalSteps > 0 ? 1 : null,
+    totalSteps: totalSteps > 0 ? totalSteps : null,
+  });
+  if (totalSteps > 0) {
+    await insertApprovalRequestSteps(
+      context.db,
+      context.organizationId,
+      request.id,
+      steps.map((step) => ({
+        stepOrder: step.stepOrder,
+        name: step.name,
+        approverStrategy: step.approverStrategy,
+        roleTemplateKey: step.roleTemplateKey,
+        permissionKey: step.permissionKey,
+        userId: step.userId,
+      })),
+    );
+  }
+  return request;
+}
+
 /**
  * Creates a submitted approval request when an enabled rule matches.
  * Idempotent for an open (submitted) request on the same entity.
+ * Approvals 2.0: matching rule with steps creates request + request steps.
  */
 export async function submitApprovalRequest(
   context: OrgContext,
@@ -86,14 +133,12 @@ export async function submitApprovalRequest(
     }
   }
 
-  const request = await insertApprovalRequest(context.db, {
-    organizationId: context.organizationId,
+  const request = await createSubmittedRequest(context, {
     ruleId: matching?.id ?? null,
     entityType: input.entityType,
     entityId: input.entityId,
-    amount: input.amount ?? null,
-    currency: input.currency ?? null,
-    submittedByUserId: context.userId,
+    amount: input.amount,
+    currency: input.currency,
   });
 
   await noteModuleUsage(context.db, context.organizationId, 'approvals');
@@ -108,6 +153,8 @@ export async function submitApprovalRequest(
       currency: request.currency,
       ruleId: request.ruleId,
       status: request.status,
+      currentStepOrder: request.currentStepOrder,
+      totalSteps: request.totalSteps,
     },
   });
 
@@ -121,6 +168,8 @@ export async function submitApprovalRequest(
  *
  * Rule/request reads use 0029 SECURITY DEFINER helpers so domain actors without
  * approvals.read are still gated - without opening approval_rules to all members.
+ *
+ * Domain still does NOT force Changes/BOQ/Time into approval_requests.
  */
 export async function assertApprovalAllowsAction(
   context: OrgContext,
@@ -187,14 +236,12 @@ export async function assertApprovalAllowsAction(
     );
   }
 
-  const submitted = await insertApprovalRequest(context.db, {
-    organizationId: context.organizationId,
+  const submitted = await createSubmittedRequest(context, {
     ruleId: matching.id,
     entityType: raw.entityType,
     entityId: raw.entityId,
-    amount: raw.amount ?? null,
-    currency: raw.currency ?? null,
-    submittedByUserId: context.userId,
+    amount: raw.amount,
+    currency: raw.currency,
   });
 
   await noteModuleUsage(context.db, context.organizationId, 'approvals');
@@ -209,6 +256,8 @@ export async function assertApprovalAllowsAction(
       currency: submitted.currency,
       ruleId: submitted.ruleId,
       status: submitted.status,
+      currentStepOrder: submitted.currentStepOrder,
+      totalSteps: submitted.totalSteps,
       via: 'gate',
     },
   });

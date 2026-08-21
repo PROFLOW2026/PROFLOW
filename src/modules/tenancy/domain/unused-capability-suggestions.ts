@@ -20,6 +20,32 @@ export const UNUSED_CAPABILITY_NEVER_SUGGEST = [
 
 const NEVER_SUGGEST = new Set<string>(UNUSED_CAPABILITY_NEVER_SUGGEST);
 
+/**
+ * Prefer surfacing these when unused — owners often miss BOQ, month-close,
+ * retention (via billing), recurring drafts (via overhead/expenses), multi-contract.
+ */
+export const UNUSED_CAPABILITY_PRIORITY = [
+  'boq',
+  'month_close',
+  'budgets',
+  'quotes',
+  'procurement',
+  'changes',
+] as const satisfies readonly OptionalModuleKey[];
+
+/**
+ * Discoverability tip keys that are not toggleable modules but should be
+ * mentioned alongside unused-capability suggestions (copy / education only).
+ */
+export const DISCOVERABILITY_TIP_KEYS = [
+  'boq',
+  'retention',
+  'month_close',
+  'recurring_drafts',
+  'multi_contract',
+] as const;
+export type DiscoverabilityTipKey = (typeof DISCOVERABILITY_TIP_KEYS)[number];
+
 /** Days without use before an enabled module is suggested for hiding. */
 export const UNUSED_CAPABILITY_STALE_DAYS = 60;
 
@@ -40,10 +66,16 @@ function isStaleOrNeverUsed(firstUsedAt: Date | null, now: Date): boolean {
   return firstUsedAt.getTime() < cutoffMs;
 }
 
+function priorityRank(key: OptionalModuleKey): number {
+  const idx = (UNUSED_CAPABILITY_PRIORITY as readonly string[]).indexOf(key);
+  return idx === -1 ? UNUSED_CAPABILITY_PRIORITY.length + 1 : idx;
+}
+
 /**
  * Suggest customer modules that are explicitly enabled but unused / stale.
  * Documents with any usage (firstUsedAt set) are never suggested — data exists.
  * Never auto-hides; callers must filter dismissed keys separately if needed.
+ * Priority: BOQ, month-close, budgets, quotes, procurement, changes first.
  */
 export function suggestUnusedCapabilities(
   preferences: readonly ModulePreferenceForSuggestion[],
@@ -75,5 +107,46 @@ export function suggestUnusedCapabilities(
     suggested.push(key);
   }
 
-  return suggested;
+  return [...suggested].sort((a, b) => priorityRank(a) - priorityRank(b) || a.localeCompare(b));
+}
+
+/**
+ * Adjacent discoverability tips for capabilities that are not standalone
+ * feature toggles (retention, recurring drafts, multi-contract) plus core
+ * modules that owners often overlook.
+ */
+export function listDiscoverabilityTipKeys(
+  preferences: readonly ModulePreferenceForSuggestion[],
+  options?: {
+    readonly dismissedKeys?: readonly string[];
+    readonly now?: Date;
+  },
+): readonly DiscoverabilityTipKey[] {
+  const unused = new Set(suggestUnusedCapabilities(preferences, options));
+  const tips: DiscoverabilityTipKey[] = [];
+
+  if (unused.has('boq')) tips.push('boq');
+  if (unused.has('month_close')) tips.push('month_close');
+
+  const billing = preferences.find((pref) => pref.moduleKey === 'billing');
+  if (billing?.enabled === true && isStaleOrNeverUsed(billing.firstUsedAt, options?.now ?? new Date())) {
+    if (!options?.dismissedKeys?.includes('retention')) tips.push('retention');
+  }
+
+  const overhead = preferences.find((pref) => pref.moduleKey === 'overhead');
+  const expensesAdjacent = overhead?.enabled === true || billing?.enabled === true;
+  if (
+    expensesAdjacent &&
+    !options?.dismissedKeys?.includes('recurring_drafts') &&
+    isStaleOrNeverUsed(overhead?.firstUsedAt ?? billing?.firstUsedAt ?? null, options?.now ?? new Date())
+  ) {
+    tips.push('recurring_drafts');
+  }
+
+  // Multi-contract is always a soft tip when projects work is active (no module key).
+  if (!options?.dismissedKeys?.includes('multi_contract')) {
+    tips.push('multi_contract');
+  }
+
+  return tips;
 }

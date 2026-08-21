@@ -10,6 +10,8 @@ import {
 } from '@/modules/assets';
 import { listMaterialsForOrg } from '@/modules/procurement';
 import { listEmployeesForOrg } from '@/modules/workforce';
+import { peekOpsExpenseLinksForRecords } from '@/modules/ops-finance';
+import { CreateLinkedExpenseForm } from '@/modules/ops-finance/ui/create-linked-expense-form';
 import { withOrgContext } from '@/shared/auth/session';
 import { todayInTimeZone } from '@/shared/dates';
 import { hasAnyPermission, hasPermission } from '@/shared/permissions/assert';
@@ -45,6 +47,7 @@ export async function ProjectUsagePanel({ projectId }: ProjectUsagePanelProps) {
       PERMISSIONS.ASSETS_MANAGE,
     ]);
     const canManageAssets = hasPermission(context, PERMISSIONS.ASSETS_MANAGE);
+    const canCreateExpense = hasPermission(context, PERMISSIONS.EXPENSES_CREATE);
     const canReadWorkforce = hasPermission(context, PERMISSIONS.WORKFORCE_READ);
 
     const [
@@ -80,14 +83,37 @@ export async function ProjectUsagePanel({ projectId }: ProjectUsagePanelProps) {
       for (const asset of allAssets) assetNames.set(asset.id, asset.name);
     }
 
+    const materialLinks = canCreateExpense
+      ? await peekOpsExpenseLinksForRecords(
+          context,
+          'material_usage_record',
+          materialUsage.map((row) => row.id),
+        )
+      : [];
+    const equipmentLinks = canCreateExpense
+      ? await peekOpsExpenseLinksForRecords(
+          context,
+          'equipment_usage_record',
+          equipmentUsage.map((row) => row.id),
+        )
+      : [];
+
     return {
       materialUsage,
       equipmentUsage,
       canManageMaterials,
       canManageAssets,
+      canCreateExpense,
       canReadMaterials,
       canReadAssets,
+      linkedMaterialExpenseById: new Map(
+        materialLinks.map((link) => [link.opsRecordId, link.expenseId] as const),
+      ),
+      linkedEquipmentExpenseById: new Map(
+        equipmentLinks.map((link) => [link.opsRecordId, link.expenseId] as const),
+      ),
       today: todayInTimeZone(context.organization.timezone),
+      currency: context.organization.baseCurrency,
       materials: materials.map((m) => ({ id: m.id, name: m.name, subtitle: m.sku })),
       inventoryItems: inventoryItems.map((item) => ({
         id: item.id,
@@ -142,7 +168,9 @@ export async function ProjectUsagePanel({ projectId }: ProjectUsagePanelProps) {
                     <TableHead numeric>{t('columns.quantity')}</TableHead>
                     <TableHead>{t('columns.unit')}</TableHead>
                     <TableHead>{t('columns.notes')}</TableHead>
-                    {data.canManageMaterials ? <TableHead>{t('columns.actions')}</TableHead> : null}
+                    {data.canManageMaterials || data.canCreateExpense ? (
+                      <TableHead>{t('columns.actions')}</TableHead>
+                    ) : null}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -161,9 +189,27 @@ export async function ProjectUsagePanel({ projectId }: ProjectUsagePanelProps) {
                       <TableCell className="max-w-[12rem] truncate text-[var(--pf-text-secondary)]">
                         {row.notes ?? '-'}
                       </TableCell>
-                      {data.canManageMaterials ? (
+                      {data.canManageMaterials || data.canCreateExpense ? (
                         <TableCell>
-                          <ArchiveMaterialUsageButton materialUsageId={row.id} />
+                          <div className="flex min-w-0 flex-col gap-2">
+                            {data.canCreateExpense ? (
+                              <CreateLinkedExpenseForm
+                                namespace="assets"
+                                opsRecordKind="material_usage_record"
+                                opsRecordId={row.id}
+                                defaultCurrency={data.currency}
+                                defaultDescription={row.description}
+                                revalidatePath={`/projects/${projectId}?tab=usage`}
+                                existingExpenseId={
+                                  data.linkedMaterialExpenseById.get(row.id) ?? null
+                                }
+                                compact
+                              />
+                            ) : null}
+                            {data.canManageMaterials ? (
+                              <ArchiveMaterialUsageButton materialUsageId={row.id} />
+                            ) : null}
+                          </div>
                         </TableCell>
                       ) : null}
                     </TableRow>
@@ -204,7 +250,9 @@ export async function ProjectUsagePanel({ projectId }: ProjectUsagePanelProps) {
                     <TableHead numeric>{t('columns.days')}</TableHead>
                     <TableHead numeric>{t('columns.mileage')}</TableHead>
                     <TableHead>{t('columns.notes')}</TableHead>
-                    {data.canManageAssets ? <TableHead>{t('columns.actions')}</TableHead> : null}
+                    {data.canManageAssets || data.canCreateExpense ? (
+                      <TableHead>{t('columns.actions')}</TableHead>
+                    ) : null}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -231,9 +279,28 @@ export async function ProjectUsagePanel({ projectId }: ProjectUsagePanelProps) {
                       <TableCell className="max-w-[12rem] truncate text-[var(--pf-text-secondary)]">
                         {row.notes ?? '-'}
                       </TableCell>
-                      {data.canManageAssets ? (
+                      {data.canManageAssets || data.canCreateExpense ? (
                         <TableCell>
-                          <ArchiveEquipmentUsageButton equipmentUsageId={row.id} />
+                          <div className="flex min-w-0 flex-col gap-2">
+                            {data.canCreateExpense ? (
+                              <CreateLinkedExpenseForm
+                                namespace="assets"
+                                opsRecordKind="equipment_usage_record"
+                                opsRecordId={row.id}
+                                assetId={row.assetId}
+                                defaultCurrency={data.currency}
+                                defaultDescription={t('equipmentExpenseDescription')}
+                                revalidatePath={`/projects/${projectId}?tab=usage`}
+                                existingExpenseId={
+                                  data.linkedEquipmentExpenseById.get(row.id) ?? null
+                                }
+                                compact
+                              />
+                            ) : null}
+                            {data.canManageAssets ? (
+                              <ArchiveEquipmentUsageButton equipmentUsageId={row.id} />
+                            ) : null}
+                          </div>
                         </TableCell>
                       ) : null}
                     </TableRow>

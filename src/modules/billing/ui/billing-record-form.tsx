@@ -17,6 +17,7 @@ import { createBillingRecordAction, type BillingFormState } from './actions';
 interface BillingRecordFormProps {
   projects: readonly ProjectOption[];
   contracts?: readonly BillingContractOption[];
+  paymentTerms?: readonly { id: string; name: string }[];
   defaultProjectId?: string;
   defaultContractId?: string;
   defaultCurrency?: string;
@@ -26,6 +27,7 @@ interface BillingRecordFormProps {
 export function BillingRecordForm({
   projects,
   contracts = [],
+  paymentTerms = [],
   defaultProjectId,
   defaultContractId,
   defaultCurrency,
@@ -36,6 +38,7 @@ export function BillingRecordForm({
   const [amount, setAmount] = useState('');
   const [projectId, setProjectId] = useState(defaultProjectId ?? '');
   const [contractId, setContractId] = useState(defaultContractId ?? '');
+  const [paymentTermId, setPaymentTermId] = useState('');
   const [state, formAction, pending] = useActionState<BillingFormState, FormData>(
     createBillingRecordAction,
     {},
@@ -122,6 +125,33 @@ export function BillingRecordForm({
       <Field label={t('form.dueDate')} optionalLabel={tCommon('labels.optional')}>
         {(controlProps) => <Input {...controlProps} name="dueDate" type="date" dir="ltr" />}
       </Field>
+
+      {paymentTerms.length > 0 ? (
+        <Field
+          label={t('form.paymentTerm')}
+          optionalLabel={tCommon('labels.optional')}
+          description={t('form.paymentTermHint')}
+        >
+          {(controlProps) => (
+            <>
+              <Select value={paymentTermId || '__none__'} onValueChange={(v) => setPaymentTermId(v === '__none__' ? '' : v)}>
+                <SelectTrigger {...controlProps}>
+                  <SelectValue placeholder={t('form.paymentTermNone')} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none__">{t('form.paymentTermNone')}</SelectItem>
+                  {paymentTerms.map((term) => (
+                    <SelectItem key={term.id} value={term.id}>
+                      {term.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <input type="hidden" name="paymentTermId" value={paymentTermId} />
+            </>
+          )}
+        </Field>
+      ) : null}
 
       <Field label={t('form.reference')} optionalLabel={tCommon('labels.optional')}>
         {(controlProps) => <Input {...controlProps} name="reference" autoComplete="off" />}

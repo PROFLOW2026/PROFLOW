@@ -4,6 +4,8 @@ import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import type { OrgContext } from '@/shared/auth/context';
 import { noteModuleUsage } from '@/modules/tenancy';
+import { resolveDocumentPaymentTermId } from '@/modules/business-catalog';
+import { resolveOrgDefaultPaymentTermIdForContext } from '@/modules/business-catalog/application/payment-term-defaults';
 import type { ClientRecord } from '../domain/types';
 import { insertClient, insertClientContact } from '../data/clients.repository';
 import { createClientSchema, type CreateClientInput } from '../validation/schemas';
@@ -23,6 +25,13 @@ export async function createClient(
 
   const input = parsed.data;
 
+  const orgDefaultId = await resolveOrgDefaultPaymentTermIdForContext(context);
+  const defaultPaymentTermId = resolveDocumentPaymentTermId({
+    explicitId: input.defaultPaymentTermId,
+    partyDefaultId: null,
+    orgDefaultId,
+  });
+
   const client = await insertClient(context.db, {
     organizationId: context.organizationId,
     name: input.name,
@@ -37,6 +46,7 @@ export async function createClient(
     postalCode: input.postalCode ?? null,
     countryCode: input.countryCode ?? null,
     notes: input.notes ?? null,
+    defaultPaymentTermId,
   });
 
   if (input.primaryContactName && input.primaryContactPhone) {

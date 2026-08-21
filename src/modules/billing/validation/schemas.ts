@@ -24,6 +24,8 @@ export const createBillingRecordSchema = z.object({
   currency: currencySchema.optional(),
   issueDate: businessDateSchema,
   dueDate: businessDateSchema.optional().nullable(),
+  /** Optional catalog payment term (kind=payment_term). Suggests dueDate when empty. */
+  paymentTermId: z.string().uuid().nullable().optional(),
   reference: z.string().trim().max(120).optional().nullable(),
   externalDocumentId: z.string().uuid().optional().nullable(),
   changeOrderIds: z.array(z.string().uuid()).optional(),

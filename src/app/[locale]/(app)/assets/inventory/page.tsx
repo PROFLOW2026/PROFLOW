@@ -19,6 +19,7 @@ import { InventoryItemCreateForm } from './inventory-item-create-form';
 import { InventoryLocationsPanel } from './inventory-locations-panel';
 import { InventoryReservationsPanel } from './inventory-reservations-panel';
 import { InventoryCountsPanel } from './inventory-counts-panel';
+import { InventoryTransferAdjustPanel } from './inventory-transfer-adjust-panel';
 import { textNavLinkClassName } from '@/components/ui/pressable';
 import { cn } from '@/shared/ui/cn';
 import { Alert } from '@/components/ui/alert';
@@ -155,6 +156,17 @@ export default async function InventoryPage({
           code: location.code,
           locationKind: location.locationKind,
         }))}
+        canManage={canManage}
+      />
+
+      <InventoryTransferAdjustPanel
+        items={items.map((item) => ({ id: item.id, name: item.name }))}
+        locations={locations.map((location) => ({
+          id: location.id,
+          name: location.name,
+          code: location.code,
+        }))}
+        defaultDate={today}
         canManage={canManage}
       />
 

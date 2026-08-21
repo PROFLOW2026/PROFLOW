@@ -148,6 +148,10 @@ export async function listComplianceArtifacts(
     conditions.push(eq(complianceArtifacts.subjectType, filters.subjectType));
   }
 
+  if (filters.subjectId) {
+    conditions.push(eq(complianceArtifacts.subjectId, filters.subjectId));
+  }
+
   if (filters.search?.trim()) {
     const term = `%${filters.search.trim()}%`;
     conditions.push(

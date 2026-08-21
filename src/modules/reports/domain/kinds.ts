@@ -21,6 +21,17 @@ export const REPORT_KIND_DEFINITIONS: readonly ReportKindDefinition[] = [
     permission: PERMISSIONS.VENDORS_READ,
     projectScoped: true,
   },
+  { kind: 'client_360', permission: PERMISSIONS.CLIENTS_READ, projectScoped: false },
+  { kind: 'vendor_360', permission: PERMISSIONS.VENDORS_READ, projectScoped: false },
+  { kind: 'contract_portfolio', permission: PERMISSIONS.CONTRACTS_READ, projectScoped: false },
+  { kind: 'subcontract_cash', permission: PERMISSIONS.VENDORS_READ, projectScoped: false },
+  { kind: 'labor_utilization', permission: PERMISSIONS.WORKFORCE_READ, projectScoped: false },
+  { kind: 'retention_schedule', permission: PERMISSIONS.BILLING_READ, projectScoped: false },
+  { kind: 'inventory_movement', permission: PERMISSIONS.ASSETS_READ, projectScoped: false },
+  { kind: 'compliance_expiry', permission: PERMISSIONS.COMPLIANCE_READ, projectScoped: false },
+  { kind: 'crm_funnel', permission: PERMISSIONS.CRM_READ, projectScoped: false },
+  { kind: 'month_close_completeness', permission: PERMISSIONS.MONTH_CLOSE_READ, projectScoped: false },
+  { kind: 'safety_open_actions', permission: PERMISSIONS.SAFETY_READ, projectScoped: false },
 ] as const;
 
 const BY_KIND = new Map(REPORT_KIND_DEFINITIONS.map((item) => [item.kind, item]));

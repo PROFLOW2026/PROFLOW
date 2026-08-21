@@ -55,6 +55,8 @@ export const billingRecords = pgTable(
     reference: text('reference'),
     issueDate: date('issue_date').notNull(),
     dueDate: date('due_date'),
+    /** Optional payment term used to derive/suggest dueDate. Does not rewrite history. */
+    paymentTermId: uuid('payment_term_id'),
     status: billingStatusEnum('status').notNull().default('draft'),
     subtotalAmount: moneyAmount('subtotal_amount').notNull(),
     taxAmount: moneyAmount('tax_amount'),

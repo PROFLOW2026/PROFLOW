@@ -1,10 +1,13 @@
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { PageHeader } from '@/components/ui/page-header';
+import { listBusinessCatalog } from '@/modules/business-catalog';
 import { listBillingContractOptionsForOrg, listBillingProjectOptions } from '@/modules/billing';
 import { BillingRecordForm } from '@/modules/billing/ui/billing-record-form';
 import { withOrgContext } from '@/shared/auth/session';
 import { todayInTimeZone } from '@/shared/dates';
+import { hasPermission } from '@/shared/permissions/assert';
+import { PERMISSIONS } from '@/shared/permissions/catalog';
 
 export async function generateMetadata({
   params,
@@ -24,9 +27,12 @@ export default async function NewBillingRecordPage({
   const { projectId, contractId } = await searchParams;
   const t = await getTranslations('billing');
 
-  const { projects, contracts, defaultIssueDate, defaultCurrency } = await withOrgContext(async (context) => ({
+  const { projects, contracts, paymentTerms, defaultIssueDate, defaultCurrency } = await withOrgContext(async (context) => ({
     projects: await listBillingProjectOptions(context),
     contracts: await listBillingContractOptionsForOrg(context),
+    paymentTerms: hasPermission(context, PERMISSIONS.ORG_READ)
+      ? await listBusinessCatalog(context, 'payment_term').catch(() => [])
+      : [],
     defaultIssueDate: todayInTimeZone(context.organization.timezone),
     defaultCurrency: context.organization.baseCurrency,
   }));
@@ -38,6 +44,7 @@ export default async function NewBillingRecordPage({
       <BillingRecordForm
         projects={projects}
         contracts={contracts}
+        paymentTerms={paymentTerms.map((term) => ({ id: term.id, name: term.name }))}
         defaultProjectId={projectId}
         defaultContractId={contractId}
         defaultCurrency={defaultCurrency}

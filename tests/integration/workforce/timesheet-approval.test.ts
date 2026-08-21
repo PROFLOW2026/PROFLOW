@@ -179,7 +179,7 @@ describe('timesheet approval lifecycle', () => {
       expect(afterApprove.laborCost.amount).toBe('600.000000');
 
       await expect(updateTimeEntry(context, { timeEntryId: entry.id, hours: '4' })).rejects.toMatchObject({
-        messageKey: 'workforce.errors.timeEntryApprovedLocked',
+        messageKey: 'workforce.errors.timesheetPeriodLocked',
       } satisfies Partial<DomainRuleError>);
 
       const again = await approveTimesheet(context, { timesheetId: approved.timesheet.id });

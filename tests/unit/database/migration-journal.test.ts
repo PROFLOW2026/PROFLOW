@@ -269,7 +269,13 @@ describe('migration journal', () => {
     expect(tags.indexOf('0058_automations_integrations_assistant')).toBeLessThan(
       tags.indexOf('0059_dynamic_experience'),
     );
-    expect(tags.at(-1)).toBe('0059_dynamic_experience');
+    expect(tags.indexOf('0059_dynamic_experience')).toBeLessThan(
+      tags.indexOf('0060_business_catalog_refinement'),
+    );
+    expect(tags.indexOf('0060_business_catalog_refinement')).toBeLessThan(
+      tags.indexOf('0061_ops_expense_usage_kinds'),
+    );
+    expect(tags.at(-1)).toBe('0061_ops_expense_usage_kinds');
 
     const sql35 = await readFile(
       path.join(MIGRATIONS_DIR, '0035_boq_integrity_closure.sql'),

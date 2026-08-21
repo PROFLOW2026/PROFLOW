@@ -3,6 +3,7 @@ import { getTranslations } from 'next-intl/server';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/ui/page-header';
 import { Button } from '@/components/ui/button';
+import { listBusinessCatalog } from '@/modules/business-catalog';
 import { listPurchaseOrderLinesForOrg, listPurchaseOrdersForOrg } from '@/modules/procurement';
 import { listProjectsForOrg } from '@/modules/projects';
 import { listVendorsForOrg } from '@/modules/vendors';
@@ -32,16 +33,20 @@ export default async function NewApBillPage({
   const params = await searchParams;
   const requestedPoId = typeof params.purchaseOrderId === 'string' ? params.purchaseOrderId : '';
 
-  const { vendors, projects, purchaseOrders, poLinesByPoId, defaultCurrency, canManage } =
+  const { vendors, projects, purchaseOrders, poLinesByPoId, paymentTerms, defaultCurrency, canManage } =
     await withOrgContext(async (context) => {
       const canReadVendors = hasPermission(context, PERMISSIONS.VENDORS_READ);
       const canReadProjects = hasPermission(context, PERMISSIONS.PROJECTS_READ);
       const canReadPo = hasPermission(context, PERMISSIONS.PROCUREMENT_READ);
+      const canReadCatalog = hasPermission(context, PERMISSIONS.ORG_READ);
 
-      const [vendorRows, projectRows, poRows] = await Promise.all([
+      const [vendorRows, projectRows, poRows, termRows] = await Promise.all([
         canReadVendors ? listVendorsForOrg(context, { status: 'active' }) : Promise.resolve([]),
         canReadProjects ? listProjectsForOrg(context, { status: 'active' }) : Promise.resolve([]),
         canReadPo ? listPurchaseOrdersForOrg(context) : Promise.resolve([]),
+        canReadCatalog
+          ? listBusinessCatalog(context, 'payment_term').catch(() => [])
+          : Promise.resolve([]),
       ]);
 
       const lineEntries = canReadPo
@@ -62,7 +67,11 @@ export default async function NewApBillPage({
         : [];
 
       return {
-        vendors: vendorRows.map((vendor) => ({ id: vendor.id, name: vendor.name })),
+        vendors: vendorRows.map((vendor) => ({
+          id: vendor.id,
+          name: vendor.name,
+          defaultPaymentTermId: vendor.defaultPaymentTermId ?? null,
+        })),
         projects: projectRows.map((project) => ({ id: project.id, name: project.name })),
         purchaseOrders: poRows.map((po) => ({
           id: po.id,
@@ -73,6 +82,7 @@ export default async function NewApBillPage({
           string,
           { id: string; description: string; lineTotal: string; currency: string }[]
         >,
+        paymentTerms: termRows.map((term) => ({ id: term.id, name: term.name })),
         defaultCurrency: context.organization.baseCurrency,
         canManage: hasPermission(context, PERMISSIONS.AP_MANAGE),
       };
@@ -112,6 +122,7 @@ export default async function NewApBillPage({
           projects={projects}
           purchaseOrders={purchaseOrders}
           poLinesByPoId={poLinesByPoId}
+          paymentTerms={paymentTerms}
           defaultPurchaseOrderId={requestedPoId}
         />
       )}

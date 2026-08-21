@@ -32,6 +32,8 @@ export const vendors = pgTable(
     city: text('city'),
     countryCode: text('country_code'),
     notes: text('notes'),
+    /** Optional default payment term (kind=payment_term). Same-org FK in migration. */
+    defaultPaymentTermId: uuid('default_payment_term_id'),
     archivedAt: archivedAt(),
     ...timestamps(),
   },
@@ -39,6 +41,7 @@ export const vendors = pgTable(
     uniqueIndex('vendors_id_organization_id_uq').on(table.id, table.organizationId),
     index('vendors_org_idx').on(table.organizationId),
     index('vendors_org_name_idx').on(table.organizationId, table.name),
+    index('vendors_org_payment_term_idx').on(table.organizationId, table.defaultPaymentTermId),
   ],
 );
 
@@ -77,6 +80,8 @@ export const vendorEngagements = pgTable(
       .notNull()
       .references(() => projects.id, { onDelete: 'cascade' }),
     role: text('role'),
+    /** Optional catalog engagement_role; free-text `role` kept for legacy/import. */
+    engagementRoleId: uuid('engagement_role_id'),
     notes: text('notes'),
     /** Inclusive business dates — optional until dated engagements are used. */
     startDate: date('start_date', { mode: 'string' }),

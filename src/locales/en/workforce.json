@@ -4,8 +4,34 @@
   "nav": {
     "employees": "Employees",
     "time": "Time entries",
+    "timesheets": "Timesheets",
     "attendance": "Attendance",
     "approvals": "Timesheet approvals"
+  },
+  "timesheets": {
+    "title": "Timesheets",
+    "description": "Employee period timesheets — draft, submit, approve or return, then lock. Not payroll.",
+    "detailTitle": "Timesheet period",
+    "detailDescription": "Period hours and workflow for one employee week.",
+    "notPayroll": "Timesheets track hours for operations and labor Actual. This is not payroll.",
+    "lockedYes": "Locked",
+    "lockedHint": "Period is locked. Silent edits are blocked — use void + insert correction for changes.",
+    "columns": {
+      "employee": "Employee",
+      "period": "Period",
+      "status": "Status",
+      "hours": "Hours",
+      "locked": "Lock"
+    },
+    "totals": {
+      "project": "Project hours",
+      "nonProject": "Non-project hours",
+      "missingDays": "Days without hours"
+    },
+    "empty": {
+      "title": "No timesheets yet",
+      "description": "Submit time entries to create a period timesheet for the employee week."
+    }
   },
   "rateUnits": {
     "hourly": "Hourly",
@@ -72,6 +98,12 @@
       "addRateSuccess": "Rate version saved. History was not rewritten.",
       "hoursSection": "Hours",
       "hoursLink": "Employee time entries",
+      "timeAttendanceSection": "Time and attendance",
+      "timesheetsLink": "Timesheets",
+      "attendanceLink": "Attendance",
+      "complianceSection": "Compliance",
+      "complianceOpen": "Open compliance",
+      "complianceEmpty": "No compliance artifacts for this employee yet.",
       "editTitle": "Edit employee",
       "save": "Save changes",
       "saved": "Employee saved",
@@ -399,6 +431,7 @@
     "closedMonthCurrencyMismatch": "Closed-month time correction requires the same cost currency on the original and replacement.",
     "invalidTimesheetTransition": "This timesheet status change is not allowed.",
     "timesheetPeriodApproved": "This week is already approved. Use a time correction for approved hours.",
+    "timesheetPeriodLocked": "This timesheet period is locked. Use a time correction instead of editing silently.",
     "timesheetEmployeeMismatch": "Time entries must belong to the same employee.",
     "nothingToSubmit": "There are no draft or returned hours to submit.",
     "managerNoteRequired": "A manager note is required when returning a timesheet.",

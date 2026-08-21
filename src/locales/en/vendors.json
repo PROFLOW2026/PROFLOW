@@ -10,12 +10,25 @@
   "list": {
     "searchPlaceholder": "Search vendors…",
     "projectsCount": "{count, plural, one {# project} other {# projects}}",
+    "filterAll": "All",
+    "lifecycleHint": "Active / Inactive is operational. Archive hides the vendor from working lists without deleting history.",
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive"
+    },
     "columns": {
       "name": "Vendor",
       "type": "Type",
+      "category": "Category",
       "projects": "Projects",
       "status": "Status"
     }
+  },
+  "catalog": {
+    "categoriesLabel": "Categories",
+    "categoriesHint": "Select all that apply from your organization catalog.",
+    "specialtiesLabel": "Specialties",
+    "specialtiesHint": "Optional specialties linked to this vendor."
   },
   "types": {
     "supplier": "Supplier",
@@ -94,11 +107,78 @@
     "hideHistory": "Hide history",
     "archive": "Archive vendor",
     "archiveConfirm": "Archive this vendor? Existing engagements keep their history; the vendor is hidden from the active directory.",
+    "archiveVsInactiveHint": "Inactive marks the vendor as not currently used but keeps them in filtered lists. Archive hides them from the active directory while preserving history — prefer archive when you are done, inactive when they may return soon.",
     "restore": "Restore to active",
     "archivedBadge": "Archived",
+    "inactiveBadge": "Inactive",
+    "statusLifecycleHint": "Active / Inactive = operational availability. Archive = hide from working lists (history stays).",
+    "operationalStatusLabel": "Operational status",
+    "operationalStatusHint": "Active or Inactive — not the same as Archive.",
+    "statusActive": "Active",
+    "statusInactive": "Inactive",
+    "paymentTermLabel": "Default payment terms",
+    "paymentTermNone": "None",
+    "paymentTerm": "Payment terms: {name}",
+    "identifiersSection": "Tax & registration IDs",
+    "identifiersHint": "Used for matching invoices and legal exports — optional for everyday work.",
+    "identifiersEmpty": "No identifiers yet",
+    "addIdentifier": "Add identifier",
+    "identifierTypes": {
+      "tax_id": "Tax ID",
+      "company_number": "Company number",
+      "vat_number": "VAT number",
+      "license_number": "License number",
+      "other": "Other"
+    },
+    "removeIdentifierQuestion": "Remove {type} identifier {value}?",
+    "removeIdentifierConsequence": "You can add an identifier again at any time.",
+    "removeIdentifierSuccess": "Identifier removed.",
+    "categoriesSection": "Categories & specialties",
+    "categoriesHint": "Catalog tags for filtering and reporting.",
+    "categoriesEmpty": "No categories linked.",
+    "specialtiesEmpty": "No specialties linked.",
+    "categoriesEditHint": "Edit categories and specialties in the Identity tab.",
+    "tabs": {
+      "label": "Vendor sections",
+      "identity": "Identity",
+      "contacts": "Contacts",
+      "categories": "Categories",
+      "commercial": "Commercial",
+      "projects": "Projects",
+      "performance": "Performance",
+      "compliance": "Compliance",
+      "documents": "Documents",
+      "activity": "Activity"
+    },
     "editSection": "Edit vendor",
     "typeClearHint": "Type is a clear label (supplier, subcontractor, both, or other) - change it anytime without affecting expenses or bills.",
     "save": "Save changes"
+  },
+  "subcontractsWorkspace": {
+    "title": "Subcontracts",
+    "description": "Subcontractor agreements across projects. Open a vendor to manage the agreement.",
+    "filters": {
+      "all": "All"
+    },
+    "empty": {
+      "title": "No subcontracts yet",
+      "body": "Create subcontract agreements from a vendor profile or a project."
+    },
+    "list": {
+      "columns": {
+        "vendor": "Vendor",
+        "project": "Project",
+        "number": "Number",
+        "status": "Status",
+        "original": "Original",
+        "current": "Current",
+        "billed": "AP billed",
+        "paid": "AP paid",
+        "outstanding": "Outstanding",
+        "retention": "Retention",
+        "dates": "Dates"
+      }
+    }
   },
   "ap360": {
     "title": "Vendor bills & payables",
@@ -155,6 +235,8 @@
     "add": "Add subcontract",
     "addSave": "Save subcontract",
     "addSuccess": "Subcontract saved as draft. Original value was recorded. No AP bill was posted.",
+    "promoteSupplierToBoth": "This vendor is currently a supplier. Confirm to also mark them as a subcontractor (type both). This is never silent.",
+    "vendorTypeOtherBlocked": "Vendors typed as Other cannot receive a subcontract. Change the type to Subcontractor or Both first.",
     "titleLabel": "Title",
     "titlePlaceholder": "e.g. Electrical package",
     "numberLabel": "Number",

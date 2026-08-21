@@ -6,6 +6,7 @@ import { Card } from '@/components/ui/card';
 import { PageHeader } from '@/components/ui/page-header';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { MoneyText } from '@/components/patterns/money-text';
+import { listComplianceArtifactsForOrg } from '@/modules/compliance';
 import { listCustomFieldValuesForEntity } from '@/modules/custom-fields';
 import { EntityCustomFieldsPanel } from '@/modules/custom-fields/ui';
 import { getEntityDocumentPanelData } from '@/modules/documents';
@@ -33,6 +34,10 @@ import { withOrgContext } from '@/shared/auth/session';
 import { businessDate, todayInTimeZone } from '@/shared/dates';
 import { fromNumericString } from '@/shared/money';
 import { Link } from '@/shared/i18n/navigation';
+import { hasPermission } from '@/shared/permissions/assert';
+import { PERMISSIONS } from '@/shared/permissions/catalog';
+import { textNavLinkClassName } from '@/components/ui/pressable';
+import { cn } from '@/shared/ui/cn';
 import { upsertEntityFieldValueAction } from '../../../settings/custom-fields/actions';
 
 export async function generateMetadata({
@@ -59,6 +64,14 @@ export default async function EmployeeDetailPage({
       const allowManage = canManageWorkforce(context);
       const canReadRates = canReadWorkforceCost(context);
       const canManageCosts = canManageWorkforceCost(context);
+      const canReadCompliance = hasPermission(context, PERMISSIONS.COMPLIANCE_READ);
+      const canReadAttendance =
+        hasPermission(context, PERMISSIONS.ATTENDANCE_READ) ||
+        hasPermission(context, PERMISSIONS.ATTENDANCE_MANAGE) ||
+        hasPermission(context, PERMISSIONS.ATTENDANCE_SELF);
+      const canReadTimesheets =
+        hasPermission(context, PERMISSIONS.TIME_MANAGE) ||
+        hasPermission(context, PERMISSIONS.TIME_APPROVE);
       const [
         rateHistory,
         documentsPanel,
@@ -67,6 +80,7 @@ export default async function EmployeeDetailPage({
         history,
         candidateProjects,
         linkableUsers,
+        complianceArtifacts,
       ] = await Promise.all([
         canReadRates ? listRateHistory(context, employeeId) : Promise.resolve([]),
         getEntityDocumentPanelData(context, 'employee', employeeId),
@@ -76,6 +90,12 @@ export default async function EmployeeDetailPage({
         allowManage ? listAssignableProjects(context).catch(() => []) : Promise.resolve([]),
         allowManage
           ? listLinkableOrgMembers(context, { exceptEmployeeId: employeeId }).catch(() => [])
+          : Promise.resolve([]),
+        canReadCompliance
+          ? listComplianceArtifactsForOrg(context, {
+              subjectType: 'employee',
+              subjectId: employeeId,
+            }).catch(() => [])
           : Promise.resolve([]),
       ]);
       const today = todayInTimeZone(context.organization.timezone);
@@ -91,8 +111,12 @@ export default async function EmployeeDetailPage({
         history,
         candidateProjects,
         linkableUsers,
+        complianceArtifacts,
         canReadRates,
         canManageCosts,
+        canReadCompliance,
+        canReadAttendance,
+        canReadTimesheets,
         allowLog: canLogTime(context),
         allowManage,
         currency: context.organization.baseCurrency,
@@ -115,8 +139,12 @@ export default async function EmployeeDetailPage({
     history,
     candidateProjects,
     linkableUsers,
+    complianceArtifacts,
     canReadRates,
     canManageCosts,
+    canReadCompliance,
+    canReadAttendance,
+    canReadTimesheets,
     allowLog,
     allowManage,
     currency,
@@ -141,16 +169,6 @@ export default async function EmployeeDetailPage({
         description={employee.jobTitle ?? undefined}
       />
 
-      <EmployeeProjectsPanel
-        employeeId={employee.id}
-        projects={projectLinks}
-        history={history}
-        candidateProjects={candidateProjects}
-        canLogTime={allowLog}
-        canManage={allowManage}
-        defaultStartDate={today}
-      />
-
       {allowManage ? <EmployeeEditPanel employee={employee} linkableUsers={linkableUsers} /> : (
       <Card className="flex flex-col gap-2 p-4 sm:p-6">
         <h2 className="text-base font-semibold">{t('employees.detail.profile')}</h2>
@@ -172,24 +190,6 @@ export default async function EmployeeDetailPage({
         ) : null}
       </Card>
       )}
-
-      {allowLog ? (
-        <Card className="flex flex-col gap-2 p-4 sm:p-6">
-          <h2 className="text-base font-semibold">{t('employees.detail.hoursSection')}</h2>
-          <Button asChild variant="secondary" className="self-start">
-            <Link href={`/workforce/time?employeeId=${employee.id}`}>
-              {t('employees.detail.hoursLink')}
-            </Link>
-          </Button>
-        </Card>
-      ) : null}
-
-      <EntityCustomFieldsPanel
-        entityId={employee.id}
-        fields={customFields}
-        revalidatePath={`/workforce/employees/${employee.id}`}
-        saveAction={upsertEntityFieldValueAction}
-      />
 
       {canReadRates ? (
         <details className="rounded-lg border border-[var(--pf-border-default)] p-4 sm:p-6">
@@ -248,6 +248,52 @@ export default async function EmployeeDetailPage({
         />
       ) : null}
 
+      <EmployeeProjectsPanel
+        employeeId={employee.id}
+        projects={projectLinks}
+        history={history}
+        candidateProjects={candidateProjects}
+        canLogTime={allowLog}
+        canManage={allowManage}
+        defaultStartDate={today}
+      />
+
+      {(allowLog || canReadTimesheets || canReadAttendance) && (
+        <Card className="flex flex-col gap-3 p-4 sm:p-6">
+          <h2 className="text-base font-semibold">{t('employees.detail.timeAttendanceSection')}</h2>
+          <div className="flex flex-wrap gap-2">
+            {allowLog ? (
+              <Button asChild variant="secondary" className="self-start">
+                <Link href={`/workforce/time?employeeId=${employee.id}`}>
+                  {t('employees.detail.hoursLink')}
+                </Link>
+              </Button>
+            ) : null}
+            {canReadTimesheets ? (
+              <Button asChild variant="secondary" className="self-start">
+                <Link href={`/workforce/timesheets?employeeId=${employee.id}`}>
+                  {t('employees.detail.timesheetsLink')}
+                </Link>
+              </Button>
+            ) : null}
+            {canReadAttendance ? (
+              <Button asChild variant="secondary" className="self-start">
+                <Link href={`/workforce/attendance?employeeId=${employee.id}`}>
+                  {t('employees.detail.attendanceLink')}
+                </Link>
+              </Button>
+            ) : null}
+          </div>
+        </Card>
+      )}
+
+      <EntityCustomFieldsPanel
+        entityId={employee.id}
+        fields={customFields}
+        revalidatePath={`/workforce/employees/${employee.id}`}
+        saveAction={upsertEntityFieldValueAction}
+      />
+
       <DocumentAttachments
         ownerType="employee"
         ownerId={employee.id}
@@ -258,6 +304,39 @@ export default async function EmployeeDetailPage({
         storageConfigured={documentsPanel.storageConfigured}
         canClassifyCompensation={documentsPanel.canClassifyCompensation}
       />
+
+      {canReadCompliance ? (
+        <Card className="flex flex-col gap-3 p-4 sm:p-6">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2 className="text-base font-semibold">{t('employees.detail.complianceSection')}</h2>
+            <Link
+              href={`/compliance?subjectType=employee&subjectId=${employee.id}`}
+              className={cn(textNavLinkClassName, 'text-sm')}
+            >
+              {t('employees.detail.complianceOpen')}
+            </Link>
+          </div>
+          {complianceArtifacts.length === 0 ? (
+            <p className="text-sm text-[var(--pf-text-secondary)]">
+              {t('employees.detail.complianceEmpty')}
+            </p>
+          ) : (
+            <ul className="flex flex-col gap-2 text-sm">
+              {complianceArtifacts.slice(0, 8).map((artifact) => (
+                <li key={artifact.id} className="flex flex-wrap items-center justify-between gap-2">
+                  <Link
+                    href={`/compliance/${artifact.id}`}
+                    className={cn(textNavLinkClassName, 'rounded-sm')}
+                  >
+                    {artifact.name}
+                  </Link>
+                  <span className="text-[var(--pf-text-secondary)]">{artifact.status}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Card>
+      ) : null}
     </div>
   );
 }

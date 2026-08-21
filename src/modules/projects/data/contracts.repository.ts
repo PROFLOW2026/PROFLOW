@@ -48,6 +48,7 @@ function mapContract(row: typeof contracts.$inferSelect): ContractRecord {
     startDate: row.startDate,
     endDate: row.endDate,
     retentionPercent: row.retentionPercent,
+    paymentTermId: row.paymentTermId ?? null,
     name: row.name,
     reference: row.reference,
     status: row.status,
@@ -108,6 +109,7 @@ export async function insertContract(
     startDate?: string | null;
     endDate?: string | null;
     retentionPercent?: string | null;
+    paymentTermId?: string | null;
     name?: string | null;
     reference?: string | null;
     status?: 'draft' | 'active' | 'closed' | 'cancelled';
@@ -145,6 +147,7 @@ export async function insertContract(
       startDate: input.startDate ?? null,
       endDate: input.endDate ?? null,
       retentionPercent: input.retentionPercent ?? null,
+      paymentTermId: input.paymentTermId ?? null,
       name: input.name ?? null,
       reference: input.reference ?? null,
       status: input.status ?? 'active',

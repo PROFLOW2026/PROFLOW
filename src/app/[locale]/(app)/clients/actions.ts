@@ -114,6 +114,8 @@ export async function updateClientAction(
         postalCode: formValue(formData, 'postalCode'),
         countryCode: formValue(formData, 'countryCode'),
         notes: formValue(formData, 'notes'),
+        clientTypeId: formValue(formData, 'clientTypeId') || null,
+        defaultPaymentTermId: formValue(formData, 'defaultPaymentTermId') || null,
       });
     });
 

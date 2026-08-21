@@ -5,7 +5,8 @@
     "employees": "עובדים",
     "time": "דיווחי שעות",
     "attendance": "נוכחות",
-    "approvals": "אישורי שעות"
+    "approvals": "אישורי שעות",
+    "timesheets": "גיליונות שעות"
   },
   "rateUnits": {
     "hourly": "שעתי",
@@ -78,7 +79,13 @@
       "archive": "השבת/ארכיון",
       "archiveConfirm": "להעביר את העובד לארכיון? היסטוריה ודיווחי שעות נשמרים. אין מחיקה קשיחה.",
       "restore": "החזר לפעיל",
-      "archivedBadge": "בארכיון"
+      "archivedBadge": "בארכיון",
+      "timeAttendanceSection": "שעות ונוכחות",
+      "timesheetsLink": "גיליונות שעות",
+      "attendanceLink": "נוכחות",
+      "complianceSection": "ציות",
+      "complianceOpen": "פתיחת ציות",
+      "complianceEmpty": "אין עדיין פריטי ציות לעובד זה."
     },
     "projects": {
       "title": "שיוכים / פרויקטים",
@@ -416,6 +423,32 @@
     "userNotInOrganization": "המשתמש אינו חבר פעיל בארגון.",
     "userAlreadyLinked": "המשתמש כבר מקושר לעובד אחר.",
     "breakStartInvalid": "אפשר להתחיל הפסקה רק אחרי כניסה.",
-    "breakEndInvalid": "אינך בהפסקה."
+    "breakEndInvalid": "אינך בהפסקה.",
+    "timesheetPeriodLocked": "תקופת גיליון השעות נעולה. השתמשו בתיקון שעות במקום עריכה שקטה."
+  },
+  "timesheets": {
+    "title": "גיליונות שעות",
+    "description": "גיליונות תקופתיים לעובד - טיוטה, הגשה, אישור או החזרה, ואז נעילה. לא שכר.",
+    "detailTitle": "תקופת גיליון שעות",
+    "detailDescription": "שעות התקופה ותהליך העבודה לשבוע עובד אחד.",
+    "notPayroll": "גיליונות שעות עוקבים אחרי שעות לתפעול ולעלות עבודה בפועל. זה אינו שכר.",
+    "lockedYes": "נעול",
+    "lockedHint": "התקופה נעולה. עריכות שקטות חסומות - השתמשו בביטול + הכנסת תיקון לשינויים.",
+    "columns": {
+      "employee": "עובד",
+      "period": "תקופה",
+      "status": "סטטוס",
+      "hours": "שעות",
+      "locked": "נעילה"
+    },
+    "totals": {
+      "project": "שעות פרויקט",
+      "nonProject": "שעות שאינן פרויקט",
+      "missingDays": "ימים בלי שעות"
+    },
+    "empty": {
+      "title": "אין עדיין גיליונות שעות",
+      "description": "הגישו דיווחי שעות כדי ליצור גיליון תקופתי לשבוע העובד."
+    }
   }
 }

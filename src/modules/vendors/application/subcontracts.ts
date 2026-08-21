@@ -15,11 +15,15 @@ import { PERMISSIONS } from '@/shared/permissions/catalog';
 import type { OrgContext } from '@/shared/auth/context';
 import { linkDocumentToEntity } from '@/modules/documents/application/link-document';
 import {
+  resolveDocumentPaymentTermId,
+} from '@/modules/business-catalog';
+import { resolveOrgDefaultPaymentTermIdForContext } from '@/modules/business-catalog/application/payment-term-defaults';
+import {
   assertCanAccessProject,
   isAccessibleProjectId,
   resolveAccessibleProjectIds,
 } from '@/modules/projects/application/project-access';
-import { findProjectById, findVendorById } from '../data/vendors.repository';
+import { findProjectById, findVendorById, updateVendorById } from '../data/vendors.repository';
 import {
   findContractInOrg,
   findDocumentInOrg,
@@ -29,6 +33,7 @@ import {
   insertSubcontractValueEvent,
   listApBillCashForSubcontractAgreement,
   listLinkableDocuments,
+  listOrgSubcontracts as listOrgSubcontractsRows,
   listParentContractOptions,
   listSubcontractLinkedDocuments,
   listSubcontractValueEvents,
@@ -60,11 +65,13 @@ import {
   changeSubcontractStatusSchema,
   createSubcontractSchema,
   linkSubcontractDocumentSchema,
+  listOrgSubcontractsSchema,
   updateSubcontractSchema,
   type AddSubcontractValueChangeInput,
   type ChangeSubcontractStatusInput,
   type CreateSubcontractInput,
   type LinkSubcontractDocumentInput,
+  type ListOrgSubcontractsInput,
   type UpdateSubcontractInput,
 } from '../validation/schemas';
 
@@ -171,13 +178,56 @@ export async function createSubcontract(
   await assertVendorAndProject(context, input.vendorId, input.projectId);
   await assertParentContract(context, input.parentContractId, input.projectId);
 
+  const vendor = await findVendorById(context.db, context.organizationId, input.vendorId);
+  if (!vendor || vendor.archivedAt) throw new NotFoundError('Vendor');
+
+  if (vendor.type === 'other') {
+    throw new DomainRuleError(
+      'Vendor type "other" cannot receive a subcontract. Change the vendor type to subcontractor or both first.',
+      'vendors.subcontracts.errors.vendorTypeOther',
+      { vendorId: vendor.id, vendorType: vendor.type },
+    );
+  }
+
+  if (vendor.type === 'supplier') {
+    if (!input.promoteVendorToBoth) {
+      throw new DomainRuleError(
+        'This vendor is a supplier. Confirm promoteVendorToBoth to also mark them as a subcontractor (type both), or change the type first.',
+        'vendors.subcontracts.errors.supplierNeedsPromote',
+        { vendorId: vendor.id, vendorType: vendor.type },
+      );
+    }
+  }
+
   const currency = context.organization.baseCurrency.toUpperCase();
   const original = money(input.originalAmount, currency);
   const effectiveDate =
     input.startDate ?? todayInTimeZone(context.organization.timezone);
 
+  const orgDefaultId = await resolveOrgDefaultPaymentTermIdForContext(context);
+  const paymentTermId = resolveDocumentPaymentTermId({
+    explicitId: input.paymentTermId,
+    partyDefaultId: vendor.defaultPaymentTermId ?? null,
+    orgDefaultId,
+  });
+
   const agreementId = await withTransaction(context.db, async (tx) => {
     const txContext = { ...context, db: tx };
+
+    if (vendor.type === 'supplier' && input.promoteVendorToBoth) {
+      const promoted = await updateVendorById(tx, context.organizationId, vendor.id, {
+        type: 'both',
+      });
+      if (!promoted) throw new NotFoundError('Vendor');
+      await recordAuditEvent(txContext, {
+        action: AUDIT_ACTIONS.VENDOR_UPDATED,
+        entityType: 'vendor',
+        entityId: vendor.id,
+        before: { type: vendor.type },
+        after: { type: 'both', reason: 'subcontract_create_promote' },
+      });
+    }
+
     let agreement;
     try {
       agreement = await insertSubcontractAgreement(tx, {
@@ -190,6 +240,7 @@ export async function createSubcontract(
         originalAmount: toNumericString(original),
         currency,
         retentionPercent: input.retentionPercent ?? null,
+        paymentTermId,
         startDate: input.startDate ?? null,
         endDate: input.endDate ?? null,
         notes: input.notes ?? null,
@@ -517,6 +568,22 @@ export async function linkSubcontractDocument(
   });
 
   return loadDetail(context, agreement.id);
+}
+
+export async function listOrgSubcontracts(
+  context: OrgContext,
+  rawFilters: ListOrgSubcontractsInput = {},
+): Promise<SubcontractListItem[]> {
+  assertPermission(context, PERMISSIONS.VENDORS_READ);
+  const input = parseOrThrow(listOrgSubcontractsSchema.safeParse(rawFilters));
+  const allowed = await resolveAccessibleProjectIds(context);
+  const rows = await listOrgSubcontractsRows(context.db, context.organizationId, {
+    vendorId: input.vendorId,
+    projectId: input.projectId,
+    status: input.status,
+    limit: input.limit,
+  });
+  return rows.filter((row) => isAccessibleProjectId(allowed, row.projectId));
 }
 
 /** Original amount is immutable after create - only append-only events change current. */

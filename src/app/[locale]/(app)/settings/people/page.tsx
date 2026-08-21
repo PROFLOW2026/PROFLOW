@@ -9,6 +9,7 @@ import { withOrgContext } from '@/shared/auth/session';
 import { canAccessSection, canManageSection, SETTINGS_SECTIONS } from '../_lib/access';
 import { listOrganizationMembers } from '@/modules/tenancy';
 import {
+  canManageProjectAccess,
   getProjectAccessModeForOrg,
   listProjectAccessGrantsForOrg,
   listProjectsForOrg,
@@ -67,6 +68,7 @@ export default async function PeopleSettingsPage() {
       roleIdToKey,
       currentUserId: context.userId,
       canManage: canManageSection(context, 'people'),
+      canManageAccess: canManageProjectAccess(context),
       canInvite: hasPermission(context, PERMISSIONS.INVITATIONS_MANAGE),
       canInviteOwner: hasPermission(context, PERMISSIONS.ROLES_MANAGE),
       timezone: context.organization.timezone,
@@ -104,7 +106,7 @@ export default async function PeopleSettingsPage() {
         />
         <ProjectAccessPanel
           mode={data.accessMode}
-          canManage={data.canManage}
+          canManage={data.canManageAccess}
           members={data.members}
           projects={data.projects}
           grants={data.grants}

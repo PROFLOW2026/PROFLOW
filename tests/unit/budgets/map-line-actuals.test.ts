@@ -29,6 +29,7 @@ function line(
     workPackageId: null,
     disciplineKey: null,
     costCode: null,
+    costCodeId: null,
     etcAmount: null,
     sortOrder: 0,
     createdAt: new Date('2026-01-01T00:00:00Z'),

@@ -157,6 +157,8 @@ export interface ContractRecord {
   readonly startDate: string | null;
   readonly endDate: string | null;
   readonly retentionPercent: string | null;
+  /** Org catalog entry (kind=payment_term). */
+  readonly paymentTermId: string | null;
   readonly name: string | null;
   readonly reference: string | null;
   readonly status: string;

@@ -4,7 +4,13 @@
 
 import { and, eq } from 'drizzle-orm';
 import { expenses } from '@drizzle/schema';
-import { findAssetById, findFleetById, findMaintenanceById } from '@/modules/assets';
+import {
+  findAssetById,
+  findEquipmentUsageById,
+  findFleetById,
+  findMaintenanceById,
+  findMaterialUsageById,
+} from '@/modules/assets';
 import { findComplianceArtifactById } from '@/modules/compliance';
 import type { OrgContext } from '@/shared/auth/context';
 import type { DbExecutor } from '@/shared/db/types';
@@ -73,6 +79,26 @@ export async function assertOpsRecordSameOrg(
       // Ensure fleet's asset is also same-org when present.
       const asset = await findAssetById(db, organizationId, fleet.assetId);
       if (!asset) {
+        throw new DomainRuleError(
+          'Ops record does not belong to this organization or is not loadable',
+          'opsFinance.errors.opsRecordOrgMismatch',
+        );
+      }
+      return;
+    }
+    case 'material_usage_record': {
+      const record = await findMaterialUsageById(db, organizationId, opsRecordId);
+      if (!record || record.archivedAt) {
+        throw new DomainRuleError(
+          'Ops record does not belong to this organization or is not loadable',
+          'opsFinance.errors.opsRecordOrgMismatch',
+        );
+      }
+      return;
+    }
+    case 'equipment_usage_record': {
+      const record = await findEquipmentUsageById(db, organizationId, opsRecordId);
+      if (!record || record.archivedAt) {
         throw new DomainRuleError(
           'Ops record does not belong to this organization or is not loadable',
           'opsFinance.errors.opsRecordOrgMismatch',

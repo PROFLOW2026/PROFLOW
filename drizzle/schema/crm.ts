@@ -78,6 +78,8 @@ export const crmLeads = pgTable(
     prospectId: uuid('prospect_id').references(() => crmProspects.id, { onDelete: 'set null' }),
     title: text('title').notNull(),
     source: text('source'),
+    /** Optional catalog lead_source; free-text `source` kept for legacy. */
+    leadSourceId: uuid('lead_source_id'),
     status: text('status').notNull().default('new'),
     email: text('email'),
     phone: text('phone'),
@@ -111,6 +113,8 @@ export const crmOpportunities = pgTable(
     expectedStartDate: date('expected_start_date'),
     referralSource: text('referral_source'),
     lostReason: text('lost_reason'),
+    /** Optional catalog lost_reason; free-text kept for legacy. */
+    lostReasonId: uuid('lost_reason_id'),
     convertedClientId: uuid('converted_client_id').references(() => clients.id, {
       onDelete: 'set null',
     }),

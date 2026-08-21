@@ -8,18 +8,27 @@ import {
   findApprovalRuleById,
   insertApprovalRule,
   listApprovalRulesForOrg,
+  listApprovalRulesWithStepsForOrg,
+  replaceApprovalRuleSteps,
   updateApprovalRuleRow,
 } from '../data/approvals.repository';
 import {
   createApprovalRuleSchema,
+  replaceApprovalRuleStepsSchema,
   updateApprovalRuleSchema,
   type CreateApprovalRuleInput,
+  type ReplaceApprovalRuleStepsInput,
   type UpdateApprovalRuleInput,
 } from '../validation/schemas';
 
 export async function listApprovalRules(context: OrgContext) {
   assertPermission(context, PERMISSIONS.APPROVALS_READ);
   return listApprovalRulesForOrg(context.db, context.organizationId);
+}
+
+export async function listApprovalRulesWithSteps(context: OrgContext) {
+  assertPermission(context, PERMISSIONS.APPROVALS_READ);
+  return listApprovalRulesWithStepsForOrg(context.db, context.organizationId);
 }
 
 export async function createApprovalRule(context: OrgContext, raw: CreateApprovalRuleInput) {
@@ -42,6 +51,23 @@ export async function createApprovalRule(context: OrgContext, raw: CreateApprova
     enabled: input.enabled ?? true,
   });
 
+  let steps = [] as Awaited<ReturnType<typeof replaceApprovalRuleSteps>>;
+  if (input.steps && input.steps.length > 0) {
+    steps = await replaceApprovalRuleSteps(
+      context.db,
+      context.organizationId,
+      rule.id,
+      input.steps.map((step, index) => ({
+        stepOrder: step.stepOrder ?? index + 1,
+        name: step.name ?? null,
+        approverStrategy: step.approverStrategy,
+        roleTemplateKey: step.roleTemplateKey ?? null,
+        permissionKey: step.permissionKey ?? null,
+        userId: step.userId ?? null,
+      })),
+    );
+  }
+
   await noteModuleUsage(context.db, context.organizationId, 'approvals');
   await recordAuditEvent(context, {
     action: AUDIT_ACTIONS.APPROVAL_RULE_CREATED,
@@ -53,10 +79,11 @@ export async function createApprovalRule(context: OrgContext, raw: CreateApprova
       thresholdAmount: rule.thresholdAmount,
       currency: rule.currency,
       enabled: rule.enabled,
+      stepCount: steps.length,
     },
   });
 
-  return rule;
+  return { ...rule, steps };
 }
 
 export async function updateApprovalRule(context: OrgContext, raw: UpdateApprovalRuleInput) {
@@ -101,4 +128,45 @@ export async function updateApprovalRule(context: OrgContext, raw: UpdateApprova
   });
 
   return updated;
+}
+
+export async function replaceApprovalRuleStepsForRule(
+  context: OrgContext,
+  raw: ReplaceApprovalRuleStepsInput,
+) {
+  assertPermission(context, PERMISSIONS.APPROVALS_MANAGE);
+
+  const parsed = replaceApprovalRuleStepsSchema.safeParse(raw);
+  if (!parsed.success) {
+    throw new ValidationError(
+      parsed.error.issues.map((issue) => ({ path: issue.path.join('.'), message: issue.message })),
+    );
+  }
+
+  const input = parsed.data;
+  const existing = await findApprovalRuleById(context.db, context.organizationId, input.ruleId);
+  if (!existing) throw new NotFoundError('Approval rule');
+
+  const steps = await replaceApprovalRuleSteps(
+    context.db,
+    context.organizationId,
+    input.ruleId,
+    input.steps.map((step, index) => ({
+      stepOrder: step.stepOrder ?? index + 1,
+      name: step.name ?? null,
+      approverStrategy: step.approverStrategy,
+      roleTemplateKey: step.roleTemplateKey ?? null,
+      permissionKey: step.permissionKey ?? null,
+      userId: step.userId ?? null,
+    })),
+  );
+
+  await recordAuditEvent(context, {
+    action: AUDIT_ACTIONS.APPROVAL_RULE_UPDATED,
+    entityType: 'approval_rule',
+    entityId: existing.id,
+    after: { stepCount: steps.length, stepsReplaced: true },
+  });
+
+  return steps;
 }

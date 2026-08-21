@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { Card } from '@/components/ui/card';
-import { listApprovalRules } from '@/modules/approvals';
+import { listApprovalRulesWithSteps } from '@/modules/approvals';
 import { withOrgContext } from '@/shared/auth/session';
 import { canAccessSection, canManageSection, SETTINGS_SECTIONS } from '../_lib/access';
 import { SettingsNotAllowed } from '../settings-not-allowed';
@@ -18,7 +18,7 @@ export default async function ApprovalsSettingsPage() {
 
   const data = await withOrgContext(async (context) => {
     if (!canAccessSection(context, section)) return { allowed: false as const };
-    const rules = await listApprovalRules(context);
+    const rules = await listApprovalRulesWithSteps(context);
     return {
       allowed: true as const,
       rules,

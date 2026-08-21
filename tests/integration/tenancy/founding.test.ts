@@ -2,6 +2,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { organizationMemberships, organizations, roles } from '@drizzle/schema';
 import { eq } from 'drizzle-orm';
 import { createOrganization, listMembershipsForUser, resolveOrgContext } from '@/modules/tenancy';
+import { getOrgDefaultPaymentTermKey } from '@/modules/business-catalog/application/payment-term-defaults';
 import { createTestDatabase, resultRows, type TestDatabase } from '../../setup/database';
 import { createTestUser, createTwoTenantScenario, seedSystem } from '../../setup/fixtures';
 
@@ -35,6 +36,11 @@ describe('founding an organization as an authenticated user', () => {
     expect(result.organization.baseCurrency).toBe('ILS');
     expect(result.organization.timezone).toBe('Asia/Jerusalem');
     expect(result.membershipId).toBeTruthy();
+
+    const defaultPaymentTermKey = await database.asService(async (db) =>
+      getOrgDefaultPaymentTermKey(db, result.organization.id),
+    );
+    expect(defaultPaymentTermKey).toBe('net_30');
   });
 
   it('leaves the founder able to read the organization back immediately', async () => {

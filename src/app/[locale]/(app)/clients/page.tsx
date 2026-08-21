@@ -27,7 +27,7 @@ export async function generateMetadata({
 }
 
 interface ClientsPageProps {
-  searchParams: Promise<{ q?: string; includeArchived?: string }>;
+  searchParams: Promise<{ q?: string; includeArchived?: string; clientTypeId?: string }>;
 }
 
 export default async function ClientsPage({ searchParams }: ClientsPageProps) {
@@ -39,10 +39,20 @@ export default async function ClientsPage({ searchParams }: ClientsPageProps) {
   ]);
   const canManage = shell?.permissions.has(PERMISSIONS.CLIENTS_MANAGE) ?? false;
   const includeArchived = params.includeArchived === '1';
+  const clientTypeId =
+    params.clientTypeId && params.clientTypeId !== 'all' ? params.clientTypeId : undefined;
 
-  const clients = await withOrgContext((context) =>
-    listClientsForOrg(context, { search: params.q, includeArchived }),
-  );
+  const { clients, clientTypes } = await withOrgContext(async (context) => {
+    const { listBusinessCatalog } = await import('@/modules/business-catalog');
+    return {
+      clients: await listClientsForOrg(context, {
+        search: params.q,
+        includeArchived,
+        clientTypeId,
+      }),
+      clientTypes: await listBusinessCatalog(context, 'client_type').catch(() => []),
+    };
+  });
 
   return (
     <div className="flex flex-col gap-6">
@@ -60,11 +70,20 @@ export default async function ClientsPage({ searchParams }: ClientsPageProps) {
         }
       />
 
-      <ClientListFilters initialQuery={params.q ?? ''} includeArchived={includeArchived} />
+      <ClientListFilters
+        initialQuery={params.q ?? ''}
+        includeArchived={includeArchived}
+        initialClientTypeId={params.clientTypeId ?? ''}
+        clientTypes={clientTypes.map((row) => ({ id: row.id, name: row.name }))}
+      />
       <SavedListViewsBar
         listKey="clients"
-        searchParams={{ q: params.q, includeArchived: params.includeArchived }}
-        keys={['q', 'includeArchived']}
+        searchParams={{
+          q: params.q,
+          includeArchived: params.includeArchived,
+          clientTypeId: params.clientTypeId,
+        }}
+        keys={['q', 'includeArchived', 'clientTypeId']}
       />
 
       {clients.length === 0 ? (
@@ -89,6 +108,7 @@ export default async function ClientsPage({ searchParams }: ClientsPageProps) {
                 <TableHeader>
                   <TableRow>
                     <TableHead>{t('list.columns.name')}</TableHead>
+                    <TableHead>{t('list.columns.type')}</TableHead>
                     <TableHead numeric>{t('list.columns.projects')}</TableHead>
                     <TableHead>{t('list.columns.status')}</TableHead>
                   </TableRow>
@@ -104,6 +124,7 @@ export default async function ClientsPage({ searchParams }: ClientsPageProps) {
                           {client.name}
                         </Link>
                       </TableCell>
+                      <TableCell>{client.clientTypeName ?? '—'}</TableCell>
                       <TableCell numeric>
                         <span dir="ltr">{client.projectCount}</span>
                       </TableCell>

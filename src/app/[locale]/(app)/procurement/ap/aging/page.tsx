@@ -4,6 +4,7 @@ import { MoneyText } from '@/components/patterns/money-text';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/ui/page-header';
 import { getOrganizationPayablesAging, type ApAgingBucketKey } from '@/modules/ap';
+import { ExportDownloadControl } from '@/modules/exports/ui/export-download-control';
 import { withOrgContext } from '@/shared/auth/session';
 import { Link } from '@/shared/i18n/navigation';
 import { hasPermission } from '@/shared/permissions/assert';
@@ -34,6 +35,7 @@ export default async function ApAgingPage({
   searchParams: Promise<{ vendorId?: string; projectId?: string }>;
 }) {
   const t = await getTranslations('ap');
+  const tExports = await getTranslations('exports');
   const locale = await getLocale();
   const filters = await searchParams;
 
@@ -55,11 +57,8 @@ export default async function ApAgingPage({
   }
 
   const { aging } = data;
-  // Client-side-ish filter note: aging service is org-wide; filter labels are for UX disclosure.
   const filterNote =
-    filters.vendorId || filters.projectId
-      ? t('aging.filterNote')
-      : null;
+    filters.vendorId || filters.projectId ? t('aging.filterNote') : null;
 
   return (
     <div className="flex min-w-0 flex-col gap-6">
@@ -70,6 +69,11 @@ export default async function ApAgingPage({
           <Link href="/procurement/ap" className={textNavLinkMutedClassName}>
             {t('title')}
           </Link>
+        }
+        actions={
+          <ExportDownloadControl href="/exports/ap-bills" size="sm" variant="secondary">
+            {tExports('kinds.apBills')}
+          </ExportDownloadControl>
         }
         meta={
           <span className="text-xs text-[var(--pf-text-muted)]" dir="ltr">

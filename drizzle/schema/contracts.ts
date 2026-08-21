@@ -38,6 +38,8 @@ export const contracts = pgTable(
     startDate: date('start_date'),
     endDate: date('end_date'),
     retentionPercent: percentAmount('retention_percent'),
+    /** Optional payment term override (kind=payment_term). Same-org FK in migration. */
+    paymentTermId: uuid('payment_term_id'),
     name: text('name'),
     reference: text('reference'),
     status: contractStatusEnum('status').notNull().default('active'),

@@ -58,6 +58,7 @@ export interface BillingRecordInsertRow {
   readonly reference: string | null;
   readonly issueDate: BusinessDate;
   readonly dueDate: BusinessDate | null;
+  readonly paymentTermId?: string | null;
   readonly subtotalAmount: string;
   readonly taxAmount: string | null;
   readonly totalAmount: string;
