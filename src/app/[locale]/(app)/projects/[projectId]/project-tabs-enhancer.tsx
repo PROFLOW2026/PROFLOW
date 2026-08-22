@@ -227,7 +227,7 @@ function ProjectTabsEnhancerChrome({
     function prefetchTab(tab: string) {
       if (prefetched.has(tab)) return;
       prefetched.add(tab);
-      void router.prefetch(tabHref(tab));
+      void router.prefetch?.(tabHref(tab));
     }
     function onPointerOver(event: Event) {
       const target = (event.target as HTMLElement | null)?.closest?.('[role="tab"][data-tab]');
