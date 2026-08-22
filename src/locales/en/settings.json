@@ -553,6 +553,20 @@
         "voided": "Billing record voided",
         "adjustment_created": "Billing adjustment added"
       },
+      "billing_plan": {
+        "created": "Billing plan created",
+        "updated": "Billing plan updated",
+        "activated": "Billing plan activated",
+        "completed": "Billing plan completed",
+        "archived": "Billing plan archived",
+        "lines_changed": "Billing plan lines changed",
+        "cycle_created": "Billing cycle created",
+        "cycle_updated": "Billing cycle updated",
+        "cycle_issued": "Billing cycle issued",
+        "cycle_voided": "Billing cycle voided",
+        "template_applied": "Billing plan template applied",
+        "template_saved": "Billing plan template saved"
+      },
       "payment": {
         "recorded": "Payment recorded",
         "voided": "Payment voided"

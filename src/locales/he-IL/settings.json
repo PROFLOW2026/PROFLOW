@@ -466,6 +466,20 @@
         "voided": "ביטול חשבון",
         "adjustment_created": "הוספת התאמה לחשבון"
       },
+      "billing_plan": {
+        "created": "יצירת תוכנית חיוב",
+        "updated": "עדכון תוכנית חיוב",
+        "activated": "הפעלת תוכנית חיוב",
+        "completed": "סיום תוכנית חיוב",
+        "archived": "העברת תוכנית חיוב לארכיון",
+        "lines_changed": "שינוי שורות תוכנית חיוב",
+        "cycle_created": "יצירת מחזור חיוב",
+        "cycle_updated": "עדכון מחזור חיוב",
+        "cycle_issued": "הנפקת מחזור חיוב",
+        "cycle_voided": "ביטול מחזור חיוב",
+        "template_applied": "החלת תבנית תוכנית חיוב",
+        "template_saved": "שמירת תבנית תוכנית חיוב"
+      },
       "payment": {
         "recorded": "רישום תשלום",
         "voided": "ביטול תשלום"

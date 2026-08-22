@@ -307,11 +307,11 @@
     },
     "plumbing": {
       "name": "Plumbing",
-      "description": "Materials, rough-in and fixtures.",
+      "description": "Materials, rough-in and sanitary fittings.",
       "lines": {
         "materials": "Materials",
         "roughIn": "Rough-in",
-        "fixtures": "Fixtures"
+        "sanitary": "Sanitary fittings"
       }
     },
     "hvac": {

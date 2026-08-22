@@ -146,7 +146,7 @@ export const PROFESSION_STARTER_TEMPLATES: readonly ProfessionStarterTemplate[] 
     rows: [
       row('billingPlan.templates.plumbing.lines.materials', 'percent_of_contract', 0, '35', 'supply'),
       row('billingPlan.templates.plumbing.lines.roughIn', 'percent_of_contract', 1, '40', 'install'),
-      row('billingPlan.templates.plumbing.lines.fixtures', 'percent_of_contract', 2, '25', 'closeout'),
+      row('billingPlan.templates.plumbing.lines.sanitary', 'percent_of_contract', 2, '25', 'closeout'),
     ],
   },
   {
