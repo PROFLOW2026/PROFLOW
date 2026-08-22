@@ -292,6 +292,7 @@ export {
   getLaborCostDefaults,
   getLaborCostDefaultsForApply,
   saveLaborCostDefaults,
+  saveOrgWorkFrameworkHours,
 } from './application/labor-cost-defaults';
 export type { LaborCostDefaults, LaborCostDefaultComponent } from './domain/labor-cost-defaults';
 export {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { isFocusedComposerPath } from '@/components/shell/navigation';
+import { isFocusedComposerPath, shouldHideQuickCreateForRoute } from '@/components/shell/navigation';
 
 describe('isFocusedComposerPath', () => {
   it('treats create and edit segments as focused composer flows', () => {
@@ -16,5 +16,24 @@ describe('isFocusedComposerPath', () => {
     expect(isFocusedComposerPath('/projects/abc')).toBe(false);
     expect(isFocusedComposerPath('/expenses/abc')).toBe(false);
     expect(isFocusedComposerPath('/reports')).toBe(false);
+  });
+});
+
+describe('shouldHideQuickCreateForRoute', () => {
+  it('hides quick-create on project/job time tabs with dedicated log-time CTA', () => {
+    const params = new URLSearchParams('tab=time');
+    expect(shouldHideQuickCreateForRoute('/projects/abc', params)).toBe(true);
+    expect(shouldHideQuickCreateForRoute('/jobs/job-1', params)).toBe(true);
+    expect(shouldHideQuickCreateForRoute('/he-IL/projects/abc', params)).toBe(true);
+  });
+
+  it('keeps quick-create on other project tabs and routes', () => {
+    expect(shouldHideQuickCreateForRoute('/projects/abc', new URLSearchParams('tab=team'))).toBe(
+      false,
+    );
+    expect(shouldHideQuickCreateForRoute('/projects/abc', null)).toBe(false);
+    expect(shouldHideQuickCreateForRoute('/workforce/time', new URLSearchParams('tab=time'))).toBe(
+      false,
+    );
   });
 });

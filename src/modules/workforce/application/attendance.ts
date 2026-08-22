@@ -1,5 +1,7 @@
 import { AUDIT_ACTIONS, recordAuditEvent } from '@/shared/audit';
 import type { OrgContext } from '@/shared/auth/context';
+import { withExecutor } from '@/shared/auth/context';
+import { withTransaction } from '@/shared/db';
 import { todayInTimeZone } from '@/shared/dates';
 import { DomainRuleError, NotFoundError, ValidationError } from '@/shared/errors';
 import { noteModuleUsage } from '@/modules/tenancy';
@@ -15,10 +17,12 @@ import {
   canEndBreak,
   canStartBreak,
   deriveAttendanceDayStatus,
+  listActiveAttendanceEvents,
   resolveClockPresenceState,
   type AttendanceEventSource,
   type ClockPresenceState,
 } from '../domain/attendance';
+import { expandWorkDatesInRange } from '../domain/bulk-time-expand';
 import type {
   AttendanceDayDetail,
   AttendanceDayListItem,
@@ -41,12 +45,14 @@ import {
   attendanceFiltersSchema,
   clockAttendanceSchema,
   manualAttendanceEventSchema,
+  manualAttendanceWorkdayRangeSchema,
   replaceAttendanceEventSchema,
   voidAttendanceDaySchema,
   voidAttendanceEventSchema,
   type AttendanceFiltersInput,
   type ClockAttendanceInput,
   type ManualAttendanceEventInput,
+  type ManualAttendanceWorkdayRangeInput,
   type ReplaceAttendanceEventInput,
   type VoidAttendanceDayInput,
   type VoidAttendanceEventInput,
@@ -651,6 +657,554 @@ export async function voidAttendanceDay(
   });
 
   return updated;
+}
+
+function localWallTimeToDate(workDate: string, timeOfDay: string): Date {
+  const normalized = timeOfDay.length === 5 ? `${timeOfDay}:00` : timeOfDay;
+  const parsed = new Date(`${workDate}T${normalized}`);
+  if (Number.isNaN(parsed.getTime())) {
+    throw new ValidationError([{ path: 'clockInTime', message: 'Invalid timestamp' }]);
+  }
+  return parsed;
+}
+
+function expandAttendanceRangeDates(input: {
+  readonly fromDate: string;
+  readonly toDate: string;
+  readonly weekdays: readonly number[];
+}): string[] {
+  try {
+    return [...expandWorkDatesInRange(input)];
+  } catch {
+    throw new DomainRuleError('Invalid attendance range', 'workforce.errors.invalidBulkRange');
+  }
+}
+
+export type AttendanceRangeDayKind = 'new' | 'existing' | 'void';
+
+export interface AttendanceWorkdayRangePreview {
+  readonly dates: readonly string[];
+  readonly newCount: number;
+  readonly existingCount: number;
+  readonly voidCount: number;
+  readonly kindsByDate: Readonly<Record<string, AttendanceRangeDayKind>>;
+}
+
+export interface AttendanceWorkdayRangeResult {
+  readonly dates: readonly string[];
+  readonly createdCount: number;
+  readonly updatedCount: number;
+  readonly skippedExistingCount: number;
+  readonly skippedVoidCount: number;
+  readonly createdDates: readonly string[];
+  readonly updatedDates: readonly string[];
+  readonly skippedExistingDates: readonly string[];
+  readonly skippedVoidDates: readonly string[];
+  /** Project time created when Owner selected a project (0 when general/office). */
+  readonly projectTimeCreatedCount: number;
+  readonly projectTimeSkippedDuplicateCount: number;
+  readonly projectTimeApprovedCount: number;
+  readonly projectTimePendingCount: number;
+  readonly projectTimeVoidedDuplicateCount: number;
+  readonly projectTimeVoidedPriorWorkCount: number;
+  readonly projectTimeWarningKey?: string | null;
+}
+
+export interface AttendanceOverwriteSummary {
+  readonly employeeId: string;
+  readonly employeeName: string;
+  readonly fromDate: string;
+  readonly toDate: string;
+  readonly dayCount: number;
+  readonly existingCount: number;
+  readonly newCount: number;
+  readonly clockInTime: string;
+  readonly clockOutTime: string;
+  readonly workScope: 'general' | 'project';
+  readonly projectId: string | null;
+}
+
+export type AttendanceWorkdayWriteOutcome =
+  | {
+      readonly status: 'needs_overwrite_approval';
+      readonly summary: AttendanceOverwriteSummary;
+    }
+  | {
+      readonly status: 'applied';
+      readonly result: AttendanceWorkdayRangeResult;
+    };
+
+async function classifyAttendanceRangeDates(
+  context: OrgContext,
+  employeeId: string,
+  dates: readonly string[],
+): Promise<AttendanceWorkdayRangePreview> {
+  if (dates.length === 0) {
+    return { dates: [], newCount: 0, existingCount: 0, voidCount: 0, kindsByDate: {} };
+  }
+
+  const fromDate = dates[0]!;
+  const toDate = dates[dates.length - 1]!;
+  const listed = await listAttendanceDays(context.db, context.organizationId, {
+    employeeId,
+    fromDate,
+    toDate,
+    limit: 200,
+  });
+  const byDate = new Map(listed.map((row) => [row.workDate, row]));
+
+  const kindsByDate: Record<string, AttendanceRangeDayKind> = {};
+  let newCount = 0;
+  let existingCount = 0;
+  let voidCount = 0;
+
+  for (const workDate of dates) {
+    const day = byDate.get(workDate);
+    if (!day) {
+      kindsByDate[workDate] = 'new';
+      newCount += 1;
+      continue;
+    }
+    if (day.status === 'void') {
+      kindsByDate[workDate] = 'void';
+      voidCount += 1;
+      continue;
+    }
+    const events = await listAttendanceEventsForDay(context.db, context.organizationId, day.id);
+    const active = listActiveAttendanceEvents(events);
+    if (active.length > 0) {
+      kindsByDate[workDate] = 'existing';
+      existingCount += 1;
+    } else {
+      kindsByDate[workDate] = 'new';
+      newCount += 1;
+    }
+  }
+
+  return { dates, newCount, existingCount, voidCount, kindsByDate };
+}
+
+/**
+ * Preview which work dates a range template would touch (no writes).
+ * Existing = day with active events; void days are reported separately.
+ */
+export async function previewManualAttendanceWorkdayRange(
+  context: OrgContext,
+  rawInput: Pick<
+    ManualAttendanceWorkdayRangeInput,
+    'employeeId' | 'fromDate' | 'toDate' | 'weekdays'
+  >,
+): Promise<AttendanceWorkdayRangePreview> {
+  assertPermission(context, PERMISSIONS.ATTENDANCE_MANAGE);
+
+  const employeeId = rawInput.employeeId;
+  const employee = await findEmployeeById(context.db, context.organizationId, employeeId);
+  if (!employee || employee.archivedAt) throw new NotFoundError('Employee');
+
+  const dates = expandAttendanceRangeDates({
+    fromDate: rawInput.fromDate,
+    toDate: rawInput.toDate,
+    weekdays: rawInput.weekdays,
+  });
+  if (dates.length === 0) {
+    throw new DomainRuleError('Empty attendance range', 'workforce.errors.emptyBulk');
+  }
+
+  return classifyAttendanceRangeDates(context, employeeId, dates);
+}
+
+async function voidActiveEventsForCorrection(
+  context: OrgContext,
+  day: AttendanceDayRecord,
+  notes: string | null,
+): Promise<void> {
+  const events = await listAttendanceEventsForDay(context.db, context.organizationId, day.id);
+  for (const event of events) {
+    if (event.voidedAt) continue;
+    const voided = await voidAttendanceEventById(context.db, context.organizationId, event.id);
+    if (!voided) continue;
+    await recordAuditEvent(context, {
+      action: AUDIT_ACTIONS.ATTENDANCE_EVENT_VOIDED,
+      entityType: 'attendance_event',
+      entityId: voided.id,
+      before: {
+        eventType: event.eventType,
+        occurredAt: event.occurredAt.toISOString(),
+        notes: event.notes,
+      },
+      after: {
+        voidedAt: voided.voidedAt?.toISOString() ?? null,
+        correctionNotes: notes,
+        reason: 'attendance_range_update',
+      },
+    });
+  }
+}
+
+async function writeWorkdayInOut(
+  context: OrgContext,
+  day: AttendanceDayRecord,
+  employeeId: string,
+  workDate: string,
+  clockInAt: Date,
+  clockOutAt: Date,
+  notes: string | null,
+): Promise<void> {
+  const clockIn = await insertAttendanceEvent(context.db, {
+    organizationId: context.organizationId,
+    attendanceDayId: day.id,
+    eventType: 'clock_in',
+    occurredAt: clockInAt,
+    source: 'manual',
+    notes,
+    createdByUserId: context.userId,
+  });
+  await recordAuditEvent(context, {
+    action: AUDIT_ACTIONS.ATTENDANCE_EVENT_RECORDED,
+    entityType: 'attendance_event',
+    entityId: clockIn.id,
+    after: {
+      attendanceDayId: day.id,
+      employeeId,
+      workDate,
+      eventType: 'clock_in',
+      occurredAt: clockIn.occurredAt.toISOString(),
+      source: 'manual',
+      rangeApply: true,
+    },
+  });
+
+  const clockOut = await insertAttendanceEvent(context.db, {
+    organizationId: context.organizationId,
+    attendanceDayId: day.id,
+    eventType: 'clock_out',
+    occurredAt: clockOutAt,
+    source: 'manual',
+    notes,
+    createdByUserId: context.userId,
+  });
+  await recordAuditEvent(context, {
+    action: AUDIT_ACTIONS.ATTENDANCE_EVENT_RECORDED,
+    entityType: 'attendance_event',
+    entityId: clockOut.id,
+    after: {
+      attendanceDayId: day.id,
+      employeeId,
+      workDate,
+      eventType: 'clock_out',
+      occurredAt: clockOut.occurredAt.toISOString(),
+      source: 'manual',
+      rangeApply: true,
+    },
+  });
+
+  await refreshDayStatus(context, day);
+}
+
+/**
+ * Owner write rule gate: any existing attendance in the selected period
+ * requires overwriteConfirmed (UI double approval) before mutation.
+ * Mixed ranges (some new + some existing) use the same gate for the whole op.
+ */
+export function requiresAttendanceOverwriteApproval(
+  existingCount: number,
+  overwriteConfirmed: boolean,
+): boolean {
+  return existingCount > 0 && !overwriteConfirmed;
+}
+
+/**
+ * Integration-test only. Throws inside the apply transaction after a named phase
+ * so callers can prove full rollback. Ignored outside Vitest.
+ */
+export type AttendanceApplyRollbackProbe =
+  | 'after_attendance'
+  | 'after_project_work'
+  | 'after_costing'
+  | 'during_audit';
+
+export interface AttendanceApplyOptions {
+  readonly rollbackProbe?: AttendanceApplyRollbackProbe;
+}
+
+function fireRollbackProbe(
+  options: AttendanceApplyOptions | undefined,
+  phase: AttendanceApplyRollbackProbe,
+): void {
+  if (process.env.VITEST !== 'true') return;
+  if (options?.rollbackProbe !== phase) return;
+  throw new DomainRuleError(
+    `Attendance apply rollback probe: ${phase}`,
+    'workforce.errors.attendanceApplyRollbackProbe',
+    { phase },
+  );
+}
+
+/**
+ * Apply a normal workday (clock_in + clock_out) across selected weekdays in a date range.
+ *
+ * Owner write rule:
+ * - No existing attendance on any selected date → save immediately (+ project sync).
+ * - Any existing attendance → require overwriteConfirmed (double UI approval); then
+ *   overwrite attendance and reconcile project work atomically for the whole range.
+ *
+ * When project work is included (or overwrite clears prior time), the full mutation
+ * runs in ONE database transaction. Failure → zero committed business change.
+ */
+export async function applyManualAttendanceWorkdayRange(
+  context: OrgContext,
+  rawInput: unknown,
+  options?: AttendanceApplyOptions,
+): Promise<AttendanceWorkdayWriteOutcome> {
+  assertPermission(context, PERMISSIONS.ATTENDANCE_MANAGE);
+
+  const input = parseOrThrow(manualAttendanceWorkdayRangeSchema, rawInput);
+  const employee = await findEmployeeById(context.db, context.organizationId, input.employeeId);
+  if (!employee || employee.archivedAt) throw new NotFoundError('Employee');
+
+  const dates = expandAttendanceRangeDates({
+    fromDate: input.fromDate,
+    toDate: input.toDate,
+    weekdays: input.weekdays,
+  });
+  if (dates.length === 0) {
+    throw new DomainRuleError('Empty attendance range', 'workforce.errors.emptyBulk');
+  }
+
+  const preview = await classifyAttendanceRangeDates(context, input.employeeId, dates);
+
+  if (requiresAttendanceOverwriteApproval(preview.existingCount, input.overwriteConfirmed)) {
+    return {
+      status: 'needs_overwrite_approval',
+      summary: {
+        employeeId: employee.id,
+        employeeName: employee.name,
+        fromDate: input.fromDate,
+        toDate: input.toDate,
+        dayCount: dates.length,
+        existingCount: preview.existingCount,
+        newCount: preview.newCount,
+        clockInTime: input.clockInTime,
+        clockOutTime: input.clockOutTime,
+        workScope: input.workScope,
+        projectId: input.projectId ?? null,
+      },
+    };
+  }
+
+  const forceOverwrite = preview.existingCount > 0 && input.overwriteConfirmed;
+  const syncCandidateDates = dates.filter((workDate) => preview.kindsByDate[workDate] !== 'void');
+  const includesProjectWork = input.workScope === 'project' && Boolean(input.projectId);
+  const mutatesTimeFacts = forceOverwrite || includesProjectWork;
+
+  // Reject closed months BEFORE any write begins.
+  if (mutatesTimeFacts) {
+    const { isMonthClosed, yearMonthFromBusinessDate } = await import('@/modules/month-close');
+    const closedMonths = new Set<string>();
+    for (const workDate of syncCandidateDates) {
+      const yearMonth = yearMonthFromBusinessDate(workDate);
+      if (closedMonths.has(yearMonth)) continue;
+      if (await isMonthClosed(context, yearMonth)) {
+        closedMonths.add(yearMonth);
+      }
+    }
+    if (closedMonths.size > 0) {
+      throw new DomainRuleError(
+        'Attendance write intersects a closed financial period',
+        'workforce.errors.attendanceClosedPeriod',
+        { closedMonths: [...closedMonths].sort() },
+      );
+    }
+  }
+
+  const { hoursBetweenClockTimes } = await import('../validation/schemas');
+  const hours = hoursBetweenClockTimes(input.clockInTime, input.clockOutTime);
+
+  return withTransaction(context.db, async (tx) => {
+    const txCtx = withExecutor(context, tx);
+
+    const createdDates: string[] = [];
+    const updatedDates: string[] = [];
+    const skippedExistingDates: string[] = [];
+    const skippedVoidDates: string[] = [];
+
+    for (const workDate of dates) {
+      const kind = preview.kindsByDate[workDate] ?? 'new';
+
+      if (kind === 'void') {
+        skippedVoidDates.push(workDate);
+        continue;
+      }
+
+      const clockInAt = localWallTimeToDate(workDate, input.clockInTime);
+      const clockOutAt = localWallTimeToDate(workDate, input.clockOutTime);
+
+      let day = await findAttendanceDayByEmployeeDate(
+        txCtx.db,
+        txCtx.organizationId,
+        input.employeeId,
+        workDate,
+      );
+
+      if (kind === 'existing' && day) {
+        await voidActiveEventsForCorrection(txCtx, day, input.notes ?? null);
+        await writeWorkdayInOut(
+          txCtx,
+          day,
+          input.employeeId,
+          workDate,
+          clockInAt,
+          clockOutAt,
+          input.notes ?? null,
+        );
+        updatedDates.push(workDate);
+        continue;
+      }
+
+      day = await ensureOpenDay(txCtx, input.employeeId, workDate);
+      if (day.status === 'void') {
+        skippedVoidDates.push(workDate);
+        continue;
+      }
+
+      await writeWorkdayInOut(
+        txCtx,
+        day,
+        input.employeeId,
+        workDate,
+        clockInAt,
+        clockOutAt,
+        input.notes ?? null,
+      );
+      createdDates.push(workDate);
+    }
+
+    if (createdDates.length === 0 && updatedDates.length === 0 && skippedVoidDates.length > 0) {
+      throw new DomainRuleError(
+        'All selected dates are void',
+        'workforce.errors.attendanceDayVoid',
+      );
+    }
+
+    await noteModuleUsage(txCtx.db, txCtx.organizationId, 'workforce');
+    fireRollbackProbe(options, 'after_attendance');
+
+    let projectTimeCreatedCount = 0;
+    let projectTimeSkippedDuplicateCount = 0;
+    let projectTimeApprovedCount = 0;
+    let projectTimePendingCount = 0;
+    let projectTimeVoidedDuplicateCount = 0;
+    let projectTimeVoidedPriorWorkCount = 0;
+    let projectTimeWarningKey: string | null = null;
+
+    const syncDates = dates.filter((workDate) => !skippedVoidDates.includes(workDate));
+    const syncOptions = { skipCostRecompute: true as const };
+
+    if (forceOverwrite && syncDates.length > 0) {
+      const { reconcileProjectWorkAfterAttendanceOverwrite } = await import(
+        './attendance-project-sync'
+      );
+      const sync = await reconcileProjectWorkAfterAttendanceOverwrite(
+        txCtx,
+        {
+          employeeId: input.employeeId,
+          dates: syncDates,
+          hours,
+          notes: input.notes ?? null,
+          workScope: input.workScope,
+          projectId: input.projectId ?? null,
+          fromDate: input.fromDate,
+          toDate: input.toDate,
+          weekdays: input.weekdays,
+        },
+        syncOptions,
+      );
+      projectTimeCreatedCount = sync.createdCount;
+      projectTimeApprovedCount = sync.approvedCount;
+      projectTimePendingCount = sync.pendingCount;
+      projectTimeSkippedDuplicateCount = sync.skippedAlreadyApprovedCount;
+      projectTimeVoidedDuplicateCount = sync.voidedDuplicateCount;
+      projectTimeVoidedPriorWorkCount = sync.voidedPriorWorkCount;
+      projectTimeWarningKey = sync.warningKey;
+    } else if (includesProjectWork && syncDates.length > 0) {
+      const { syncProjectWorkFromAttendance } = await import('./attendance-project-sync');
+      const sync = await syncProjectWorkFromAttendance(
+        txCtx,
+        {
+          employeeId: input.employeeId,
+          projectId: input.projectId!,
+          dates: syncDates,
+          hours,
+          notes: input.notes ?? null,
+          fromDate: input.fromDate,
+          toDate: input.toDate,
+          weekdays: input.weekdays,
+        },
+        syncOptions,
+      );
+      projectTimeCreatedCount = sync.createdCount;
+      projectTimeApprovedCount = sync.approvedCount;
+      projectTimePendingCount = sync.pendingCount;
+      projectTimeSkippedDuplicateCount = sync.skippedAlreadyApprovedCount;
+      projectTimeVoidedDuplicateCount = sync.voidedDuplicateCount;
+      projectTimeWarningKey = sync.warningKey;
+    }
+
+    fireRollbackProbe(options, 'after_project_work');
+
+    if (mutatesTimeFacts && syncDates.length > 0) {
+      const { recomputeEmployeeCostsAfterTimeChange } = await import('./daily-cost-recompute');
+      await recomputeEmployeeCostsAfterTimeChange(txCtx, {
+        employeeId: input.employeeId,
+        workDates: syncDates,
+      });
+    }
+
+    fireRollbackProbe(options, 'after_costing');
+
+    if (forceOverwrite) {
+      fireRollbackProbe(options, 'during_audit');
+      await recordAuditEvent(txCtx, {
+        action: AUDIT_ACTIONS.ATTENDANCE_EVENT_RECORDED,
+        entityType: 'attendance_overwrite',
+        entityId: input.employeeId,
+        after: {
+          fromDate: input.fromDate,
+          toDate: input.toDate,
+          dayCount: syncDates.length,
+          existingCount: preview.existingCount,
+          clockInTime: input.clockInTime,
+          clockOutTime: input.clockOutTime,
+          workScope: input.workScope,
+          projectId: input.projectId,
+          createdDates,
+          updatedDates,
+        },
+      });
+    }
+
+    return {
+      status: 'applied' as const,
+      result: {
+        dates,
+        createdCount: createdDates.length,
+        updatedCount: updatedDates.length,
+        skippedExistingCount: skippedExistingDates.length,
+        skippedVoidCount: skippedVoidDates.length,
+        createdDates,
+        updatedDates,
+        skippedExistingDates,
+        skippedVoidDates,
+        projectTimeCreatedCount,
+        projectTimeSkippedDuplicateCount,
+        projectTimeApprovedCount,
+        projectTimePendingCount,
+        projectTimeVoidedDuplicateCount,
+        projectTimeVoidedPriorWorkCount,
+        projectTimeWarningKey,
+      },
+    };
+  });
 }
 
 export function canViewAttendance(context: OrgContext): boolean {

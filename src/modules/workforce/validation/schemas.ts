@@ -51,51 +51,84 @@ const laborComponentSchema = z
     }
   });
 
-export const createEmployeeSchema = z.object({
-  name: z.string().trim().min(1).max(200),
-  rateUnit: z.enum(RATE_UNITS),
-  baseRate: z.preprocess(
-    (value) => (value === '' || value === null || value === undefined ? undefined : value),
-    moneyAmountSchema.optional(),
-  ),
-  currency: z.string().trim().length(3).optional(),
-  burdenPercent: percentSchema,
-  validFrom: businessDateSchema.optional(),
-  status: z.enum(EMPLOYEE_STATUSES).optional(),
-  userId: z.preprocess(
-    (value) => (value === '' ? null : value),
-    z.string().uuid().nullable().optional(),
-  ),
-  employeeNumber: z.string().trim().max(64).optional().nullable(),
-  jobTitle: z.string().trim().max(200).optional().nullable(),
-  email: z.string().trim().email().optional().nullable().or(z.literal('')),
-  phone: z.string().trim().max(64).optional().nullable(),
-  notes: z.string().trim().max(4000).optional().nullable(),
-  components: z.array(laborComponentSchema).optional(),
-});
+export const createEmployeeSchema = z
+  .object({
+    name: z.string().trim().min(1).max(200),
+    rateUnit: z.enum(RATE_UNITS).default('monthly'),
+    baseRate: z.preprocess(
+      (value) => (value === '' || value === null || value === undefined ? undefined : value),
+      moneyAmountSchema.optional(),
+    ),
+    currency: z.string().trim().length(3).optional(),
+    burdenPercent: percentSchema,
+    /** Employment start date — authoritative for initial salary effective date. */
+    hireDate: businessDateSchema.optional().nullable(),
+    endDate: businessDateSchema.optional().nullable(),
+    /** Legacy/hidden; ignored when hireDate is present. */
+    validFrom: businessDateSchema.optional(),
+    status: z.enum(EMPLOYEE_STATUSES).optional(),
+    userId: z.preprocess(
+      (value) => (value === '' ? null : value),
+      z.string().uuid().nullable().optional(),
+    ),
+    employeeNumber: z.string().trim().max(64).optional().nullable(),
+    jobTitle: z.string().trim().max(200).optional().nullable(),
+    email: z.string().trim().email().optional().nullable().or(z.literal('')),
+    phone: z.string().trim().max(64).optional().nullable(),
+    notes: z.string().trim().max(4000).optional().nullable(),
+    standardHoursPerDay: z
+      .string()
+      .trim()
+      .regex(/^\d+(\.\d{1,4})?$/)
+      .optional()
+      .nullable()
+      .or(z.literal('')),
+    components: z.array(laborComponentSchema).optional(),
+  })
+  .superRefine((value, ctx) => {
+    if (value.hireDate && value.endDate && value.endDate < value.hireDate) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['endDate'],
+        message: 'End date must be on or after employment start',
+      });
+    }
+  });
 
 export type CreateEmployeeInput = z.infer<typeof createEmployeeSchema>;
 
-export const updateEmployeeSchema = z.object({
-  name: z.string().trim().min(1).max(200).optional(),
-  status: z.enum(EMPLOYEE_STATUSES).optional(),
-  userId: z.preprocess(
-    (value) => (value === '' ? null : value),
-    z.string().uuid().nullable().optional(),
-  ),
-  employeeNumber: z.string().trim().max(64).optional().nullable(),
-  jobTitle: z.string().trim().max(200).optional().nullable(),
-  email: z.string().trim().email().optional().nullable().or(z.literal('')),
-  phone: z.string().trim().max(64).optional().nullable(),
-  notes: z.string().trim().max(4000).optional().nullable(),
-  standardHoursPerDay: z
-    .string()
-    .trim()
-    .regex(/^\d+(\.\d{1,4})?$/)
-    .optional()
-    .nullable()
-    .or(z.literal('')),
-});
+export const updateEmployeeSchema = z
+  .object({
+    name: z.string().trim().min(1).max(200).optional(),
+    status: z.enum(EMPLOYEE_STATUSES).optional(),
+    userId: z.preprocess(
+      (value) => (value === '' ? null : value),
+      z.string().uuid().nullable().optional(),
+    ),
+    employeeNumber: z.string().trim().max(64).optional().nullable(),
+    jobTitle: z.string().trim().max(200).optional().nullable(),
+    email: z.string().trim().email().optional().nullable().or(z.literal('')),
+    phone: z.string().trim().max(64).optional().nullable(),
+    notes: z.string().trim().max(4000).optional().nullable(),
+    hireDate: businessDateSchema.optional().nullable(),
+    endDate: businessDateSchema.optional().nullable(),
+    standardHoursPerDay: z
+      .string()
+      .trim()
+      .regex(/^\d+(\.\d{1,4})?$/)
+      .optional()
+      .nullable()
+      .or(z.literal('')),
+  })
+  .superRefine((value, ctx) => {
+    if (value.hireDate && value.endDate && value.endDate < value.hireDate) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['endDate'],
+        message: 'End date must be on or after employment start',
+      });
+    }
+  });
 
 export type UpdateEmployeeInput = z.infer<typeof updateEmployeeSchema>;
 
@@ -125,6 +158,8 @@ export const createTimeEntrySchema = z
     timeCodeId: z.string().uuid().optional().nullable(),
     description: z.string().trim().max(2000).optional().nullable(),
     confirmDailyExcess: z.boolean().optional(),
+    /** Owner/admin: create as approved in one step (requires time.approve). */
+    approveOnCreate: z.boolean().optional(),
     /** Raw client value — server coerces to a valid UUID via ensureValidClientRequestId. */
     clientRequestId: z.union([z.string(), z.null()]).optional(),
   })
@@ -401,6 +436,77 @@ export const manualAttendanceEventSchema = z.object({
 });
 
 export type ManualAttendanceEventInput = z.infer<typeof manualAttendanceEventSchema>;
+
+/** Local wall-clock time HH:mm or HH:mm:ss for workday range templates. */
+const timeOfDaySchema = z
+  .string()
+  .trim()
+  .regex(/^\d{2}:\d{2}(:\d{2})?$/, 'Invalid time of day');
+
+export const manualAttendanceWorkdayRangeSchema = z
+  .object({
+    employeeId: z.string().uuid(),
+    fromDate: businessDateSchema,
+    toDate: businessDateSchema,
+    weekdays: z.array(z.number().int().min(0).max(6)).min(1).max(7),
+    clockInTime: timeOfDaySchema,
+    clockOutTime: timeOfDaySchema,
+    notes: z.string().trim().max(2000).optional().nullable(),
+    /** When true, void active in/out on existing days and write the template (audit preserved). */
+    updateExisting: z.boolean().default(false),
+    /**
+     * Owner completed the double-confirmation overwrite flow.
+     * Required when any selected date already has attendance.
+     */
+    overwriteConfirmed: z.boolean().default(false),
+    /**
+     * Owner work association (optional for costing/project time).
+     * `general` = attendance only; `project` = also create project time for the same days.
+     */
+    workScope: z.enum(['general', 'project']).default('general'),
+    projectId: z.string().uuid().optional().nullable(),
+  })
+  .superRefine((value, ctx) => {
+    if (value.fromDate > value.toDate) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['toDate'],
+        message: 'toDate must be on or after fromDate',
+      });
+    }
+    const inNorm = value.clockInTime.length === 5 ? `${value.clockInTime}:00` : value.clockInTime;
+    const outNorm = value.clockOutTime.length === 5 ? `${value.clockOutTime}:00` : value.clockOutTime;
+    if (outNorm <= inNorm) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['clockOutTime'],
+        message: 'clockOutTime must be after clockInTime',
+      });
+    }
+    if (value.workScope === 'project' && !value.projectId) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['projectId'],
+        message: 'Project required',
+      });
+    }
+  });
+
+export type ManualAttendanceWorkdayRangeInput = z.infer<typeof manualAttendanceWorkdayRangeSchema>;
+
+/** Hours between two same-day HH:mm values, as a positive decimal string. */
+export function hoursBetweenClockTimes(clockInTime: string, clockOutTime: string): string {
+  const toMinutes = (value: string): number => {
+    const [hours, minutes] = value.split(':').map(Number);
+    return (hours ?? 0) * 60 + (minutes ?? 0);
+  };
+  const delta = toMinutes(clockOutTime) - toMinutes(clockInTime);
+  if (!(delta > 0)) {
+    throw new Error('clockOutTime must be after clockInTime');
+  }
+  const hours = Math.round((delta / 60) * 100) / 100;
+  return String(hours);
+}
 
 export const voidAttendanceEventSchema = z.object({
   eventId: z.string().uuid(),

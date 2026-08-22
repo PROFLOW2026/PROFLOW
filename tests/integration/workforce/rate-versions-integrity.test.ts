@@ -12,7 +12,6 @@ import { seedSystemData } from '@drizzle/seed/system';
 import { assignRole, provisionOrganizationRoles } from '@/modules/rbac';
 import { createRateVersion } from '@/modules/workforce/application/rate-versions';
 import { resolveOrgContext } from '@/modules/tenancy';
-import { ValidationError } from '@/shared/errors';
 import { businessDate } from '@/shared/dates';
 import { createTestDatabase, type TestDatabase } from '../../setup/database';
 
@@ -139,22 +138,36 @@ describe('rate version integrity (MEDIUM-9)', () => {
     ).rejects.toThrow();
   });
 
-  it('rejects a new rate starting on or before the current open rate begins', async () => {
-    await expect(
-      database.asUser(userId, async (tx) => {
-        const context = await resolveOrgContext(tx, {
-          userId,
-          organizationId: orgId,
-          locale: 'en',
-        });
+  it('corrects the open rate in place when Owner saves on or before the open start (retroactive)', async () => {
+    await database.asUser(userId, async (tx) => {
+      const context = await resolveOrgContext(tx, {
+        userId,
+        organizationId: orgId,
+        locale: 'en',
+      });
 
-        return createRateVersion(context, {
-          employeeId,
-          validFrom: businessDate('2026-01-01'),
-          baseRate: '150',
-          rateUnit: 'hourly',
-        });
-      }),
-    ).rejects.toBeInstanceOf(ValidationError);
+      await createRateVersion(context, {
+        employeeId,
+        validFrom: businessDate('2026-01-01'),
+        baseRate: '150',
+        rateUnit: 'hourly',
+      });
+    });
+
+    const versions = await database.asService(async (db) =>
+      db
+        .select({
+          validFrom: rateVersions.validFrom,
+          validTo: rateVersions.validTo,
+          baseRate: rateVersions.baseRate,
+        })
+        .from(rateVersions)
+        .where(sql`${rateVersions.employeeId} = ${employeeId}`)
+        .orderBy(rateVersions.validFrom),
+    );
+
+    expect(versions).toEqual([
+      { validFrom: '2026-01-01', validTo: null, baseRate: '150.000000' },
+    ]);
   });
 });

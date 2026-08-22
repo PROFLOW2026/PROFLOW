@@ -290,7 +290,10 @@ describe('migration journal', () => {
     expect(tags.indexOf('0065_project_billing_plans')).toBeLessThan(
       tags.indexOf('0066_workforce_time_integrity'),
     );
-    expect(tags.at(-1)).toBe('0066_workforce_time_integrity');
+    expect(tags.indexOf('0066_workforce_time_integrity')).toBeLessThan(
+      tags.indexOf('0067_time_entry_cost_snapshot_fill'),
+    );
+    expect(tags.at(-1)).toBe('0067_time_entry_cost_snapshot_fill');
 
     const sql66 = await readFile(
       path.join(MIGRATIONS_DIR, '0066_workforce_time_integrity.sql'),
@@ -300,6 +303,12 @@ describe('migration journal', () => {
     expect(sql66).toContain('excess_hours');
     expect(sql66).toContain('client_request_id');
     expect(sql66).toContain('time_entries_org_client_request_uq');
+
+    const sql67 = await readFile(
+      path.join(MIGRATIONS_DIR, '0067_time_entry_cost_snapshot_fill.sql'),
+      'utf8',
+    );
+    expect(sql67.length).toBeGreaterThan(0);
 
     const sql35 = await readFile(
       path.join(MIGRATIONS_DIR, '0035_boq_integrity_closure.sql'),

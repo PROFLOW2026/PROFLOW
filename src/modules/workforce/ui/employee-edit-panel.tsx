@@ -103,6 +103,37 @@ export function EmployeeEditPanel({ employee, linkableUsers }: EmployeeEditPanel
             )}
           </Field>
 
+          <Field
+            label={t('employees.form.hireDate')}
+            description={t('employees.form.hireDateEditHint')}
+          >
+            {(control) => (
+              <Input
+                {...control}
+                name="hireDate"
+                type="date"
+                defaultValue={employee.hireDate ?? ''}
+                dir="ltr"
+              />
+            )}
+          </Field>
+
+          <Field
+            label={t('employees.form.endDate')}
+            optionalLabel={tCommon('labels.optional')}
+            description={t('employees.form.endDateHint')}
+          >
+            {(control) => (
+              <Input
+                {...control}
+                name="endDate"
+                type="date"
+                defaultValue={employee.endDate ?? ''}
+                dir="ltr"
+              />
+            )}
+          </Field>
+
           <Field label={t('employees.columns.status')}>
             {(control) => (
               <>

@@ -16,6 +16,7 @@ import {
   resolveSelfScopedEmployeeId,
 } from './time-scope';
 import { findEmployeeById } from '../data/employees.repository';
+import { refreshTimeEntryCostSnapshotIfMissing } from './time-entry-cost-reconcile';
 import {
   findTimeEntryById,
   listTimeEntries,
@@ -551,6 +552,16 @@ export async function approveTimesheet(
       (entry) => entry.approvalStatus === 'submitted' && entry.timesheetId === sheet.id,
     );
 
+    for (const entry of submitted) {
+      await refreshTimeEntryCostSnapshotIfMissing(txContext, entry.id);
+    }
+    const { recomputeDailyEmployeeCostsForDates } = await import('./daily-cost-recompute');
+    await recomputeDailyEmployeeCostsForDates(txContext, {
+      employeeId: sheet.employeeId,
+      workDates: submitted.map((e) => e.workDate),
+      approvalStatuses: ['submitted', 'approved'],
+    });
+
     const now = new Date();
     const updatedEntries = await updateEntriesApproval(tx, context.organizationId, {
       timeEntryIds: submitted.map((entry) => entry.id),
@@ -592,6 +603,12 @@ export async function approveTimesheet(
       entityId: updatedSheet.id,
     });
 
+    const { recomputeMonthlyEmployeeCostsForDates } = await import('./monthly-cost-recompute');
+    await recomputeMonthlyEmployeeCostsForDates(txContext, {
+      employeeId: sheet.employeeId,
+      workDates: updatedEntries.map((e) => e.workDate),
+    });
+
     return { timesheet: updatedSheet, entries: updatedEntries };
   });
 }
@@ -611,6 +628,15 @@ export async function approveTimeEntry(
 
   await assertNotSelfTimeApproval(context, entry.employeeId);
   assertTimeApprovalTransition(entry.approvalStatus, 'approved');
+
+  await refreshTimeEntryCostSnapshotIfMissing(context, entry.id);
+  // Daily: conserve day pool while still submitted (avoids approved-row lock pre-0067).
+  const { recomputeDailyEmployeeCostForDate } = await import('./daily-cost-recompute');
+  await recomputeDailyEmployeeCostForDate(context, {
+    employeeId: entry.employeeId,
+    workDate: entry.workDate,
+    approvalStatuses: ['submitted', 'approved'],
+  });
 
   const now = new Date();
   const [updated] = await updateEntriesApproval(context.db, context.organizationId, {
@@ -632,6 +658,12 @@ export async function approveTimeEntry(
     entityType: 'time_entry',
     entityId: updated.id,
     after: { approvalStatus: 'approved' },
+  });
+
+  const { recomputeMonthlyEmployeeCostForOpenMonth } = await import('./monthly-cost-recompute');
+  await recomputeMonthlyEmployeeCostForOpenMonth(context, {
+    employeeId: updated.employeeId,
+    yearMonth: updated.workDate.slice(0, 7),
   });
 
   return updated;
@@ -677,6 +709,32 @@ export async function bulkApproveTimeEntries(
           (row.approvalStatus !== 'submitted' && row.approvalStatus !== 'approved'),
       )
       .map((row) => row.id);
+
+    for (const row of rows) {
+      if (row.approvalStatus === 'submitted' && row.status === 'recorded') {
+        await refreshTimeEntryCostSnapshotIfMissing(txContext, row.id);
+      }
+    }
+
+    const submittedRows = rows.filter(
+      (row) => row.approvalStatus === 'submitted' && row.status === 'recorded',
+    );
+    if (submittedRows.length > 0) {
+      const byEmployee = new Map<string, string[]>();
+      for (const row of submittedRows) {
+        const list = byEmployee.get(row.employeeId) ?? [];
+        list.push(row.workDate);
+        byEmployee.set(row.employeeId, list);
+      }
+      const { recomputeDailyEmployeeCostsForDates } = await import('./daily-cost-recompute');
+      for (const [employeeId, workDates] of byEmployee) {
+        await recomputeDailyEmployeeCostsForDates(txContext, {
+          employeeId,
+          workDates,
+          approvalStatuses: ['submitted', 'approved'],
+        });
+      }
+    }
 
     const now = new Date();
     const approved =
@@ -741,6 +799,17 @@ export async function bulkApproveTimeEntries(
           skippedIds,
         },
       });
+
+      const { recomputeMonthlyEmployeeCostsForDates } = await import('./monthly-cost-recompute');
+      const byEmployee = new Map<string, string[]>();
+      for (const entry of approved) {
+        const list = byEmployee.get(entry.employeeId) ?? [];
+        list.push(entry.workDate);
+        byEmployee.set(entry.employeeId, list);
+      }
+      for (const [employeeId, workDates] of byEmployee) {
+        await recomputeMonthlyEmployeeCostsForDates(txContext, { employeeId, workDates });
+      }
     }
 
     return { approved, alreadyApprovedIds, skippedIds };

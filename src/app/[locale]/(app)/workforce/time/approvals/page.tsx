@@ -24,6 +24,7 @@ import { withOrgContext } from '@/shared/auth/session';
 import { AuthorizationError } from '@/shared/errors';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
+import { formatWorkHoursValue } from '@/modules/workforce/domain/format-work-hours';
 import { businessDate } from '@/shared/dates/dates';
 import { formatBusinessDate } from '@/shared/dates/format';
 
@@ -180,7 +181,7 @@ export default async function TimesheetApprovalsPage({
                             label={t(`time.approvalStatus.${entry.approvalStatus}`)}
                           />
                         </TableCell>
-                        <TableCell numeric>{entry.hours}</TableCell>
+                        <TableCell numeric>{formatWorkHoursValue(entry.hours)}</TableCell>
                         <TableCell>
                           <div className="flex flex-col gap-2">
                             {entry.approvalStatus === 'submitted' ? (
@@ -209,7 +210,7 @@ export default async function TimesheetApprovalsPage({
                     </p>
                   </div>
                   <span className="shrink-0 pf-numeric text-sm font-semibold">
-                    {entry.hours} {t('time.hoursAbbrev')}
+                    {formatWorkHoursValue(entry.hours)} {t('time.hoursAbbrev')}
                   </span>
                 </div>
                 <div className="mt-2">

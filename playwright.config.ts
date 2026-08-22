@@ -47,7 +47,7 @@ export default defineConfig({
     },
     {
       name: 'desktop-he-authenticated',
-      testMatch: /authenticated\/(owner|regression|performance-verify|performance-signoff|jobs-flows|master-completion-journeys|pwa-startup|ocr-review|boq-happy-path|capture-marketing-screenshots|branding|hebrew-runtime-closure|overnight-surfaces|billing-plan)\.spec\.ts/,
+      testMatch: /authenticated\/(owner|regression|performance-verify|performance-signoff|jobs-flows|master-completion-journeys|pwa-startup|ocr-review|boq-happy-path|capture-marketing-screenshots|branding|hebrew-runtime-closure|overnight-surfaces|billing-plan|project-time-mobile-gate)\.spec\.ts/,
       dependencies: ['setup-owner'],
       use: {
         ...devices['Desktop Chrome'],

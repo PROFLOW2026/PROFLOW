@@ -4,6 +4,8 @@ import { PageHeader } from '@/components/ui/page-header';
 import { findTimeEntryById, loadQuickLogFormData } from '@/modules/workforce';
 import { assertCanActOnEmployeeTime } from '@/modules/workforce/application/time-scope';
 import { TimeEntryForm } from '@/modules/workforce/ui/time-entry-form';
+import { getLaborCostDefaultsForApply } from '@/modules/tenancy';
+import { resolveOrgWorkWeekdays } from '@/modules/tenancy/domain/labor-cost-defaults';
 import { withOrgContext } from '@/shared/auth/session';
 import { todayInTimeZone } from '@/shared/dates';
 import { AuthorizationError, NotFoundError } from '@/shared/errors';
@@ -86,6 +88,10 @@ export default async function QuickTimePage({
       initialDescription: correction?.initialDescription ?? null,
       initialKind: correction?.initialKind ?? 'project',
       initialTimeCodeId: correction?.initialTimeCodeId ?? null,
+      canApproveOnCreate: hasPermission(context, PERMISSIONS.TIME_APPROVE),
+      defaultWeekdays: resolveOrgWorkWeekdays(
+        await getLaborCostDefaultsForApply(context).catch(() => null),
+      ),
     };
   });
 
@@ -116,6 +122,8 @@ export default async function QuickTimePage({
         initialDescription={formData.initialDescription}
         initialKind={formData.initialKind}
         initialTimeCodeId={formData.initialTimeCodeId}
+        defaultWeekdays={formData.defaultWeekdays}
+        canApproveOnCreate={formData.canApproveOnCreate}
       />
     </div>
   );

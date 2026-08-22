@@ -56,6 +56,7 @@ export async function AttendanceDaysTable({ days }: AttendanceDaysTableProps) {
                 <TableHead>{t('list.columns.clockOut')}</TableHead>
                 <TableHead>{t('list.columns.status')}</TableHead>
                 <TableHead>{t('list.columns.events')}</TableHead>
+                <TableHead className="text-end">{t('list.columns.actions')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -63,7 +64,7 @@ export async function AttendanceDaysTable({ days }: AttendanceDaysTableProps) {
                 <TableRow key={day.id}>
                   <TableCell>
                     <Link
-                      href={`/workforce/attendance?dayId=${day.id}`}
+                      href={`/workforce/attendance?dayId=${day.id}&employeeId=${day.employeeId}`}
                       className="font-medium text-[var(--pf-text-primary)] underline-offset-2 hover:underline"
                     >
                       {day.workDate}
@@ -76,6 +77,14 @@ export async function AttendanceDaysTable({ days }: AttendanceDaysTableProps) {
                     <StatusBadge shape={dayShape(day.status)} label={t(`dayStatus.${day.status}`)} />
                   </TableCell>
                   <TableCell>{day.eventCount}</TableCell>
+                  <TableCell className="text-end">
+                    <Link
+                      href={`/workforce/attendance?employeeId=${day.employeeId}&workDate=${day.workDate}&dayId=${day.id}&update=1`}
+                      className="text-sm font-medium underline-offset-2 hover:underline"
+                    >
+                      {t('list.correct')}
+                    </Link>
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -83,22 +92,30 @@ export async function AttendanceDaysTable({ days }: AttendanceDaysTableProps) {
         </div>
       }
       renderMobileCard={(day) => (
-        <Link
-          href={`/workforce/attendance?dayId=${day.id}`}
-          className={cn(pressableCardLinkClassName, 'hover:bg-[var(--pf-bg-subtle)]')}
-        >
-          <div className="flex items-start justify-between gap-2">
-            <div className="min-w-0 flex-1 text-start">
-              <p className="truncate font-medium">{day.employeeName}</p>
-              <p className="text-xs text-[var(--pf-text-muted)]">{day.workDate}</p>
+        <div className={cn(pressableCardLinkClassName, 'flex flex-col gap-2')}>
+          <Link
+            href={`/workforce/attendance?dayId=${day.id}&employeeId=${day.employeeId}`}
+            className="hover:bg-[var(--pf-bg-subtle)]"
+          >
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0 flex-1 text-start">
+                <p className="truncate font-medium">{day.employeeName}</p>
+                <p className="text-xs text-[var(--pf-text-muted)]">{day.workDate}</p>
+              </div>
+              <StatusBadge shape={dayShape(day.status)} label={t(`dayStatus.${day.status}`)} />
             </div>
-            <StatusBadge shape={dayShape(day.status)} label={t(`dayStatus.${day.status}`)} />
-          </div>
-          <p className="mt-2 text-start text-sm text-[var(--pf-text-secondary)]">
-            {t('clock.in')}: {formatInstant(day.clockInAt)} · {t('clock.out')}:{' '}
-            {formatInstant(day.clockOutAt)}
-          </p>
-        </Link>
+            <p className="mt-2 text-start text-sm text-[var(--pf-text-secondary)]">
+              {t('clock.in')}: {formatInstant(day.clockInAt)} · {t('clock.out')}:{' '}
+              {formatInstant(day.clockOutAt)}
+            </p>
+          </Link>
+          <Link
+            href={`/workforce/attendance?employeeId=${day.employeeId}&workDate=${day.workDate}&dayId=${day.id}&update=1`}
+            className="text-sm font-medium underline-offset-2 hover:underline"
+          >
+            {t('list.correct')}
+          </Link>
+        </div>
       )}
     />
   );

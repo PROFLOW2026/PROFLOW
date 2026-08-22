@@ -6,7 +6,7 @@ import { pressableClassName } from '@/components/ui/pressable';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/shared/ui/cn';
 import { withOrgContext } from '@/shared/auth/session';
-import { negateMoney } from '@/shared/money';
+import { isZeroMoney, negateMoney } from '@/shared/money';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { getProjectCashFlowOutlook } from '../application/get-project-cash-flow';
@@ -26,7 +26,10 @@ export interface ProjectFinancialsPanelProps {
  * Primary truth metrics stay above the fold with drill-downs; coverage sits in disclosure.
  */
 export async function ProjectFinancialsPanel({ projectId }: ProjectFinancialsPanelProps) {
-  const t = await getTranslations('financial');
+  const [t, tDashboard] = await Promise.all([
+    getTranslations('financial'),
+    getTranslations('dashboard'),
+  ]);
 
   const [financials, extras] = await Promise.all([
     loadCachedProjectFinancials(projectId),
@@ -50,6 +53,15 @@ export async function ProjectFinancialsPanel({ projectId }: ProjectFinancialsPan
   const billingNotes = standalonePartialNotes(financials.coverage, t, [
     'foreign_currency_billing_excluded',
   ]);
+  const laborMissingPartial = financials.coverage.partials?.find(
+    (partial) => partial.reason === 'workforce_entries_missing_cost',
+  );
+  // Unresolved null-cost approved hours must never render as factual ₪0 Actual.
+  const laborActualUnresolved = Boolean(
+    laborMissingPartial &&
+      (laborMissingPartial.count ?? 0) > 0 &&
+      isZeroMoney(financials.cost.laborActual),
+  );
 
   return (
     <div className="flex min-w-0 max-w-full flex-col gap-4">
@@ -197,6 +209,15 @@ export async function ProjectFinancialsPanel({ projectId }: ProjectFinancialsPan
               label={t('laborActual')}
               value={financials.cost.laborActual}
               nature={t('metricNature.actual')}
+              unavailable={laborActualUnresolved}
+              unavailableLabel={tDashboard('missingData.kpiUnavailable')}
+              unavailableHint={
+                laborMissingPartial
+                  ? t('coverage.partials.workforceEntriesMissingCost', {
+                      count: laborMissingPartial.count ?? 0,
+                    })
+                  : undefined
+              }
             />
             <MetricRow
               label={t('vendorActual')}
@@ -281,12 +302,18 @@ function MetricRow({
   emphasis = false,
   muted = false,
   nature,
+  unavailable = false,
+  unavailableLabel,
+  unavailableHint,
 }: {
   label: string;
   value: { amount: string; currency: string };
   emphasis?: boolean;
   muted?: boolean;
   nature?: string;
+  unavailable?: boolean;
+  unavailableLabel?: string;
+  unavailableHint?: string;
 }) {
   return (
     <div className="flex min-w-0 items-start justify-between gap-3">
@@ -303,11 +330,22 @@ function MetricRow({
         {nature ? (
           <span className="ms-1 text-xs text-[var(--pf-text-muted)]">· {nature}</span>
         ) : null}
+        {unavailable && unavailableHint ? (
+          <span className="mt-1 block text-xs text-[var(--pf-status-warning-fg)]">
+            {unavailableHint}
+          </span>
+        ) : null}
       </span>
-      <MoneyText
-        value={value}
-        className={emphasis ? 'shrink-0 font-semibold' : 'shrink-0'}
-      />
+      {unavailable ? (
+        <span className="shrink-0 font-medium text-[var(--pf-status-warning-fg)]">
+          {unavailableLabel ?? '—'}
+        </span>
+      ) : (
+        <MoneyText
+          value={value}
+          className={emphasis ? 'shrink-0 font-semibold' : 'shrink-0'}
+        />
+      )}
     </div>
   );
 }

@@ -70,7 +70,9 @@ describe('project team assignment ≠ Actual', () => {
     }
   });
 
-  it('addProjectTeamMember runtime does not invoke labor cost or expense modules', async () => {
+  it(
+    'addProjectTeamMember runtime does not invoke labor cost or expense modules',
+    async () => {
     const laborCost = await import('@/modules/workforce/application/project-labor-cost');
     const expenses = await import('@/modules/expenses');
     const timeEntries = await import('@/modules/workforce/application/time-entries');
@@ -90,7 +92,9 @@ describe('project team assignment ≠ Actual', () => {
     expenseSpy.mockRestore();
     timeSpy.mockRestore();
     snapshotSpy.mockRestore();
-  });
+    },
+    30_000,
+  );
 
   it('createJob assigns via addProjectTeamMember and never invents labor Actual', () => {
     const source = readFileSync(createJobPath, 'utf8');

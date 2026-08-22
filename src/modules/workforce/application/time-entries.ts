@@ -4,7 +4,7 @@ import { businessDate } from '@/shared/dates';
 import { withTransaction } from '@/shared/db';
 import { fromNumericString, subtractMoney, toNumericString, zeroMoney } from '@/shared/money';
 import { ConflictError, DomainRuleError, NotFoundError, ValidationError } from '@/shared/errors';
-import { assertAnyPermission, assertPermission } from '@/shared/permissions/assert';
+import { assertAnyPermission, assertPermission, hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import type { OrgContext } from '@/shared/auth/context';
 import { assertApprovalAllowsAction } from '@/modules/approvals';
@@ -21,14 +21,15 @@ import {
   resolveAccessibleProjectIds,
 } from '@/modules/projects/application/project-access';
 import { canReadWorkforceCost } from './workforce-cost-authz';
-import { assertCanActOnEmployeeTime, assertCanListTime, canReadOrgWorkforce, resolveSelfScopedEmployeeId } from './time-scope';
+import { assertCanActOnEmployeeTime, assertCanListTime, assertNotSelfTimeApproval, canReadOrgWorkforce, resolveSelfScopedEmployeeId } from './time-scope';
 import { expandBulkWorkDates } from '../domain/bulk-time-expand';
 import {
   parseKnownMonthlyEmployerCost,
   resolveLaborCostFromCompensation,
   type LaborCostResolutionKind,
 } from '../domain/compensation-labor-cost';
-import { resolveRateVersionForDate } from '../domain/rate-lookup';
+import { planExactDuplicateDraftRemovals } from '../domain/duplicate-draft-cleanup';
+import { resolveRateVersionForCosting } from '../domain/rate-lookup';
 import { resolveTimeCorrectionApprovalAmount } from '../domain/time-correction-approval';
 import {
   assertTimeEntryHoursEditable,
@@ -67,6 +68,7 @@ import {
   findIdempotentTimeEntry,
   reconcileDailyExcessForEmployeeDate,
 } from './time-entry-integrity';
+import { refreshTimeEntryCostSnapshotIfMissing } from './time-entry-cost-reconcile';
 import { resolveEmployeeWorkCalendarForCosting } from './work-calendar-context';
 import type {
   NonProjectTimeCodeRecord,
@@ -99,9 +101,8 @@ function isUniqueViolation(error: unknown): boolean {
 }
 
 /**
- * Resolves and calculates the labor cost snapshot for a time entry (doc 04 §13, doc 06 §5).
- * Uses org/employee work calendar for monthly→hourly conversion; falls back to
- * employee_month_costs when no rate version applies on the work date.
+ * Resolves labor cost snapshot for a time entry.
+ * Hourly → entry snapshot. Daily/monthly → null here; conserved paths fill later.
  */
 export async function resolveTimeEntryCostSnapshot(
   db: OrgContext['db'],
@@ -111,7 +112,7 @@ export async function resolveTimeEntryCostSnapshot(
   const costing = await resolveEmployeeWorkCalendarForCosting(db, organizationId, input.employeeId);
   const calendar = costing.configured ? costing.rates : null;
   const versions = await listRateVersionsByEmployee(db, organizationId, input.employeeId);
-  const rateVersion = resolveRateVersionForDate(versions, businessDate(input.workDate));
+  const rateVersion = resolveRateVersionForCosting(versions, businessDate(input.workDate));
   const components = rateVersion
     ? await listComponentsByRateVersion(db, organizationId, rateVersion.id)
     : [];
@@ -385,6 +386,7 @@ async function insertRecordedTimeEntry(
 export async function createTimeEntry(
   context: OrgContext,
   rawInput: CreateTimeEntryInput,
+  options?: { readonly skipCostRecompute?: boolean },
 ): Promise<TimeEntryRecord> {
   assertPermission(context, PERMISSIONS.TIME_MANAGE);
 
@@ -397,16 +399,23 @@ export async function createTimeEntry(
 
   const input = parsed.data;
   const clientRequestId = ensureValidClientRequestId(input.clientRequestId);
+  const canApproveTime = hasPermission(context, PERMISSIONS.TIME_APPROVE);
+  const confirmDailyExcess = input.confirmDailyExcess || canApproveTime;
 
   const employee = await findEmployeeById(context.db, context.organizationId, input.employeeId);
   if (!employee || employee.archivedAt) throw new NotFoundError('Employee');
   await assertCanActOnEmployeeTime(context, input.employeeId);
 
+  if (input.approveOnCreate) {
+    assertPermission(context, PERMISSIONS.TIME_APPROVE);
+    await assertNotSelfTimeApproval(context, input.employeeId);
+  }
+
   await assertMonthOpenForRewrite(context, yearMonthFromBusinessDate(input.workDate));
 
   const targets = await resolveTimeTargets(context, input);
 
-  return withTransaction(context.db, async (tx) => {
+  const created = await withTransaction(context.db, async (tx) => {
     const txContext = { ...context, db: tx };
 
     const idempotent = await findIdempotentTimeEntry(
@@ -421,13 +430,13 @@ export async function createTimeEntry(
       workDate: input.workDate,
       hours: input.hours,
       kind: input.kind,
-      projectId: input.projectId,
-      workPackageId: input.workPackageId,
-      phaseId: input.phaseId,
-      timeCodeId: input.timeCodeId,
+      projectId: targets.projectId,
+      workPackageId: targets.workPackageId,
+      phaseId: targets.phaseId,
+      timeCodeId: targets.timeCodeId,
       description: input.description,
       clientRequestId,
-      confirmDailyExcess: input.confirmDailyExcess,
+      confirmDailyExcess,
     });
 
     let entry: TimeEntryRecord;
@@ -440,6 +449,7 @@ export async function createTimeEntry(
         targets,
         description: input.description,
         clientRequestId,
+        approvalStatus: input.approveOnCreate ? 'approved' : undefined,
       });
     } catch (error) {
       if (isUniqueViolation(error)) {
@@ -462,6 +472,8 @@ export async function createTimeEntry(
 
     const refreshed = await findTimeEntryById(tx, context.organizationId, entry.id);
     entry = refreshed ?? entry;
+    const costRefreshed = await refreshTimeEntryCostSnapshotIfMissing(txContext, entry.id);
+    entry = costRefreshed ?? entry;
 
     await noteModuleUsage(tx, context.organizationId, 'workforce');
 
@@ -486,16 +498,31 @@ export async function createTimeEntry(
 
     return entry;
   });
+
+  if (!options?.skipCostRecompute) {
+    const { recomputeEmployeeCostsAfterTimeChange } = await import('./daily-cost-recompute');
+    await recomputeEmployeeCostsAfterTimeChange(context, {
+      employeeId: created.employeeId,
+      workDates: [created.workDate],
+    });
+  }
+  return created;
 }
 
 /**
  * Insert many day rows sharing one `bulk_batch_id`.
  * Expansion is pure (weekdays / per-day hours); each row snapshots cost independently.
+ * Exact duplicates are skipped (not fatal) so historical bulk re-entry is practical.
  */
 export async function createBulkTimeEntries(
   context: OrgContext,
   rawInput: CreateBulkTimeEntriesInput,
-): Promise<{ readonly batchId: string; readonly entries: readonly TimeEntryRecord[] }> {
+  options?: { readonly skipCostRecompute?: boolean },
+): Promise<{
+  readonly batchId: string;
+  readonly entries: readonly TimeEntryRecord[];
+  readonly skippedDuplicateCount: number;
+}> {
   assertPermission(context, PERMISSIONS.TIME_MANAGE);
 
   const parsed = createBulkTimeEntriesSchema.safeParse(rawInput);
@@ -506,6 +533,8 @@ export async function createBulkTimeEntries(
   }
 
   const input = parsed.data;
+  const canApproveTime = hasPermission(context, PERMISSIONS.TIME_APPROVE);
+  const confirmDailyExcess = input.confirmDailyExcess || canApproveTime;
   let days;
   try {
     days = expandBulkWorkDates({
@@ -538,22 +567,31 @@ export async function createBulkTimeEntries(
   const targets = await resolveTimeTargets(context, input);
   const batchId = randomUUID();
 
-  const entries = await withTransaction(context.db, async (tx) => {
+  const { created, skippedDuplicateCount } = await withTransaction(context.db, async (tx) => {
     const txContext = { ...context, db: tx };
-    const created: TimeEntryRecord[] = [];
+    const createdRows: TimeEntryRecord[] = [];
+    let skipped = 0;
     for (const day of days) {
-      await assertTimeEntryIntegrity(tx, context.organizationId, {
-        employeeId: input.employeeId,
-        workDate: day.workDate,
-        hours: day.hours,
-        kind: input.kind,
-        projectId: input.projectId,
-        workPackageId: input.workPackageId,
-        phaseId: input.phaseId,
-        timeCodeId: input.timeCodeId,
-        description: input.description,
-        confirmDailyExcess: input.confirmDailyExcess,
-      });
+      try {
+        await assertTimeEntryIntegrity(tx, context.organizationId, {
+          employeeId: input.employeeId,
+          workDate: day.workDate,
+          hours: day.hours,
+          kind: input.kind,
+          projectId: targets.projectId,
+          workPackageId: targets.workPackageId,
+          phaseId: targets.phaseId,
+          timeCodeId: targets.timeCodeId,
+          description: input.description,
+          confirmDailyExcess,
+        });
+      } catch (error) {
+        if (error instanceof ConflictError && error.messageKey === 'workforce.errors.exactDuplicateTimeEntry') {
+          skipped += 1;
+          continue;
+        }
+        throw error;
+      }
       const entry = await insertRecordedTimeEntry(txContext, {
         employeeId: input.employeeId,
         workDate: day.workDate,
@@ -571,31 +609,50 @@ export async function createBulkTimeEntries(
         day.workDate,
       );
       const refreshed = await findTimeEntryById(tx, context.organizationId, entry.id);
-      created.push(refreshed ?? entry);
+      createdRows.push(refreshed ?? entry);
     }
-    return created;
+    return { created: createdRows, skippedDuplicateCount: skipped };
   });
 
-  await noteModuleUsage(context.db, context.organizationId, 'workforce');
+  if (created.length === 0 && skippedDuplicateCount > 0) {
+    throw new ConflictError(
+      'All selected dates already have matching time entries',
+      'workforce.errors.bulkAllDuplicates',
+      { skippedDuplicateCount },
+    );
+  }
 
-  await recordAuditEvent(context, {
-    action: AUDIT_ACTIONS.TIME_ENTRY_BULK_CREATED,
-    entityType: 'time_entry_batch',
-    entityId: batchId,
-    after: {
-      bulkBatchId: batchId,
-      employeeId: input.employeeId,
-      fromDate: input.fromDate,
-      toDate: input.toDate,
-      entryCount: entries.length,
-      kind: input.kind,
-      projectId: targets.projectId,
-      timeCodeId: targets.timeCodeId,
-      entryIds: entries.map((entry) => entry.id),
-    },
-  });
+  if (created.length > 0) {
+    await noteModuleUsage(context.db, context.organizationId, 'workforce');
 
-  return { batchId, entries };
+    await recordAuditEvent(context, {
+      action: AUDIT_ACTIONS.TIME_ENTRY_BULK_CREATED,
+      entityType: 'time_entry_batch',
+      entityId: batchId,
+      after: {
+        bulkBatchId: batchId,
+        employeeId: input.employeeId,
+        fromDate: input.fromDate,
+        toDate: input.toDate,
+        entryCount: created.length,
+        skippedDuplicateCount,
+        kind: input.kind,
+        projectId: targets.projectId,
+        timeCodeId: targets.timeCodeId,
+        entryIds: created.map((entry) => entry.id),
+      },
+    });
+
+    if (!options?.skipCostRecompute) {
+      const { recomputeEmployeeCostsAfterTimeChange } = await import('./daily-cost-recompute');
+      await recomputeEmployeeCostsAfterTimeChange(context, {
+        employeeId: input.employeeId,
+        workDates: created.map((entry) => entry.workDate),
+      });
+    }
+  }
+
+  return { batchId, entries: created, skippedDuplicateCount };
 }
 
 /**
@@ -842,6 +899,12 @@ export async function correctTimeEntry(
     },
   });
 
+  const { recomputeEmployeeCostsAfterTimeChange } = await import('./daily-cost-recompute');
+  await recomputeEmployeeCostsAfterTimeChange(context, {
+    employeeId: original.employeeId,
+    workDates: [original.workDate, result.replacement.workDate],
+  });
+
   return { mode: 'void_replace', ...result };
 }
 
@@ -1008,6 +1071,33 @@ export async function deleteDraftTimeEntry(
   });
 
   return deleted;
+}
+
+/**
+ * Removes exact duplicate draft/returned rows, keeping the oldest in each group.
+ * Never deletes approved history.
+ */
+export async function purgeExactDuplicateDrafts(
+  context: OrgContext,
+  filters: TimeEntryFiltersInput = {},
+): Promise<{ readonly removedCount: number }> {
+  assertPermission(context, PERMISSIONS.TIME_MANAGE);
+
+  const entries = await listTimeEntriesForOrg(context, {
+    ...filters,
+    status: 'recorded',
+  });
+  const plans = planExactDuplicateDraftRemovals(entries);
+  let removedCount = 0;
+
+  for (const plan of plans) {
+    for (const timeEntryId of plan.removeIds) {
+      await deleteDraftTimeEntry(context, { timeEntryId });
+      removedCount += 1;
+    }
+  }
+
+  return { removedCount };
 }
 
 export { sumProjectLaborCost };

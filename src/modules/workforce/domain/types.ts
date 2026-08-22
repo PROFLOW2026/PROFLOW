@@ -46,6 +46,12 @@ export interface EmployeeRecord {
   readonly email: string | null;
   readonly phone: string | null;
   readonly notes: string | null;
+  /** Business employment start — drives initial compensation effective date. */
+  readonly hireDate: string | null;
+  /** Optional employment end date. */
+  readonly endDate: string | null;
+  /** Costing / employment basis when known (hourly | daily | monthly). */
+  readonly employmentBasis: RateUnit | null;
   /** Optional daily work-hour framework override; null inherits org default. */
   readonly standardHoursPerDay: string | null;
   readonly archivedAt: Date | null;

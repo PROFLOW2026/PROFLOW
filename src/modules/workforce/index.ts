@@ -1,5 +1,5 @@
 /** Public API of the workforce module (doc 76 §3). */
-export { createEmployee, getEmployee, listEmployeesForOrg, listLinkableOrgMembers, updateEmployee, archiveEmployee, restoreEmployee } from './application/employees';
+export { createEmployee, getEmployee, listEmployeesForOrg, listLinkableOrgMembers, updateEmployee, archiveEmployee, restoreEmployee, alignInitialCompensationToHireDate } from './application/employees';
 export type { EmployeeDetail } from './application/employees';
 export type { OrgMemberLinkOption } from './data/employees.repository';
 
@@ -30,6 +30,22 @@ export {
   saveMonthlyEmployerCostDraft,
 } from './application/employer-month-costs';
 export type { MonthlyEmployerCostReview } from './application/employer-month-costs';
+export {
+  recomputeMonthlyEmployeeCostForOpenMonth,
+  recomputeMonthlyEmployeeCostsForDates,
+  recomputeOpenMonthsAfterCompensationChange,
+} from './application/monthly-cost-recompute';
+export {
+  recomputeDailyEmployeeCostForDate,
+  recomputeDailyEmployeeCostsForDates,
+  recomputeEmployeeCostsAfterTimeChange,
+} from './application/daily-cost-recompute';
+export {
+  bootstrapOpenPeriodWorkforceCosting,
+  bootstrapOpenPeriodWorkforceCostingForEmployee,
+  bootstrapEmployeeOpenMonth,
+} from './application/workforce-costing-bootstrap';
+export type { WorkforceCostingBootstrapResult } from './application/workforce-costing-bootstrap';
 
 export {
   createBulkTimeEntries,
@@ -40,11 +56,26 @@ export {
   listProjectTimeEntries,
   listProjectsForTimeLog,
   listTimeEntriesForOrg,
+  purgeExactDuplicateDrafts,
   resolveTimeEntryCostSnapshot,
   suggestDefaultEmployee,
   updateTimeEntry,
 } from './application/time-entries';
 export type { CorrectTimeEntryResult, CostSnapshot } from './application/time-entries';
+
+export {
+  buildTimeEntryDailySummaries,
+} from './application/time-entry-daily-summaries';
+export type { TimeEntryDailySummary } from './application/time-entry-daily-summaries';
+
+export {
+  reconcileMissingTimeEntryCosts,
+  refreshTimeEntryCostSnapshotIfMissing,
+  entryNeedsCostSnapshotReconcile,
+  resolvePreloadedTimeEntryCost,
+  shouldApplyReconcileSnapshot,
+} from './application/time-entry-cost-reconcile';
+export type { TimeEntryCostReconcileResult } from './application/time-entry-cost-reconcile';
 
 export {
   approveTimeEntry,
@@ -82,6 +113,7 @@ export { findEmployeeById } from './data/employees.repository';
 export { insertEmployeeProjectAssignment } from './data/project-team.repository';
 
 export {
+  applyManualAttendanceWorkdayRange,
   canClockAttendance,
   canManageAttendanceRecords,
   canViewAttendance,
@@ -89,12 +121,22 @@ export {
   getAttendanceClockSurface,
   getAttendanceDayDetail,
   listAttendanceDaysForOrg,
+  previewManualAttendanceWorkdayRange,
   recordManualAttendanceEvent,
   replaceAttendanceEvent,
+  requiresAttendanceOverwriteApproval,
   voidAttendanceDay,
   voidAttendanceEvent,
 } from './application/attendance';
-export type { AttendanceClockSurface } from './application/attendance';
+export type {
+  AttendanceApplyOptions,
+  AttendanceApplyRollbackProbe,
+  AttendanceClockSurface,
+  AttendanceOverwriteSummary,
+  AttendanceWorkdayRangePreview,
+  AttendanceWorkdayRangeResult,
+  AttendanceWorkdayWriteOutcome,
+} from './application/attendance';
 
 export {
   addProjectTeamMemberSchema,
@@ -109,6 +151,7 @@ export {
   createTimeEntrySchema,
   loadMonthlyEmployerCostReviewSchema,
   manualAttendanceEventSchema,
+  manualAttendanceWorkdayRangeSchema,
   removeProjectTeamMemberSchema,
   replaceAttendanceEventSchema,
   saveMonthlyEmployerCostDraftSchema,
@@ -173,7 +216,7 @@ export {
   isApprovedRecordedLocked,
   timesheetPeriodForWorkDate,
 } from './domain/timesheet-lifecycle';
-export { resolveRateVersionForDate } from './domain/rate-lookup';
+export { resolveRateVersionForDate, resolveCurrentCompensationForDisplay } from './domain/rate-lookup';
 export {
   TIME_CORRECTION_AMOUNT_SENTINEL_RATE,
   resolveTimeCorrectionApprovalAmount,
@@ -262,6 +305,7 @@ export {
   ALL_WEEKDAYS,
   WEEKDAY_WORKDAYS,
   expandBulkWorkDates,
+  expandWorkDatesInRange,
   previewBulkTimeEntries,
 } from './domain/bulk-time-expand';
 export type { BulkDayHours, WeekdayIndex } from './domain/bulk-time-expand';

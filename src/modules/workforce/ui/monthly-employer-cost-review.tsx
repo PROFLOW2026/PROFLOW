@@ -21,6 +21,7 @@ import {
   previewMonthlyCostStrip,
   type MonthlyAllocationMethod,
 } from '@/modules/workforce/domain/monthly-cost-gates';
+import type { MonthlyEmployerCostReview as MonthlyEmployerCostReviewData } from '@/modules/workforce/application/employer-month-costs';
 
 export interface MonthlyEmployerCostReviewProps {
   readonly employeeId: string;
@@ -31,6 +32,8 @@ export interface MonthlyEmployerCostReviewProps {
   readonly canReview: boolean;
   /** When true and gate ready, shows Apply (requires cost.manage). */
   readonly canManage?: boolean;
+  /** Server-loaded month row for the default month (existing Owner data). */
+  readonly initialReview?: MonthlyEmployerCostReviewData | null;
 }
 
 /**
@@ -45,15 +48,17 @@ export function MonthlyEmployerCostReview({
   defaultYearMonth,
   canReview,
   canManage = false,
+  initialReview = null,
 }: MonthlyEmployerCostReviewProps) {
   const t = useTranslations('workforce');
   const tCommon = useTranslations('common');
   const ready = areEmployeeMonthCostsAvailable();
   const [pending, startTransition] = useTransition();
 
-  const [yearMonth, setYearMonth] = useState(defaultYearMonth);
-  const [estimated, setEstimated] = useState('');
-  const [actual, setActual] = useState('');
+  const initialMonth = initialReview?.month;
+  const [yearMonth, setYearMonth] = useState(initialReview?.yearMonth ?? defaultYearMonth);
+  const [estimated, setEstimated] = useState(initialMonth?.estimatedAmount ?? '');
+  const [actual, setActual] = useState(initialMonth?.actualAmount ?? initialMonth?.knownAmount ?? '');
   const [allocated, setAllocated] = useState('');
   const [method, setMethod] = useState<MonthlyAllocationMethod>('hours');
   const [showAdvanced, setShowAdvanced] = useState(false);

@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { MoneyInput } from '@/components/patterns/money-input';
+import { MoneyInput, formatMoneyAmountForInput } from '@/components/patterns/money-input';
 import {
   createRateVersionAction,
   type WorkforceFormState,
@@ -19,22 +19,30 @@ export interface AddRateVersionFormProps {
   readonly defaultCurrency: string;
   readonly defaultValidFrom: string;
   readonly defaultRateUnit?: (typeof RATE_UNITS)[number];
+  /** Prefill so Owner can correct effective date without retyping salary. */
+  readonly defaultBaseRate?: string;
+  readonly defaultBurdenPercent?: string;
 }
 
 /**
- * Add a new rate version from a date - closes the open version, never rewrites history.
+ * Owner salary update: salary + effective-from. Supports forward raises and
+ * retroactive corrections of the current open compensation.
  */
 export function AddRateVersionForm({
   employeeId,
   defaultCurrency,
   defaultValidFrom,
-  defaultRateUnit = 'hourly',
+  defaultRateUnit = 'monthly',
+  defaultBaseRate = '',
+  defaultBurdenPercent = '',
 }: AddRateVersionFormProps) {
   const t = useTranslations('workforce');
   const tCommon = useTranslations('common');
   const [rateUnit, setRateUnit] = useState<(typeof RATE_UNITS)[number]>(defaultRateUnit);
-  const [baseRate, setBaseRate] = useState('');
-  const [burdenPercent, setBurdenPercent] = useState('');
+  const [baseRate, setBaseRate] = useState(() =>
+    defaultBaseRate ? formatMoneyAmountForInput(defaultBaseRate, defaultCurrency) : '',
+  );
+  const [burdenPercent, setBurdenPercent] = useState(defaultBurdenPercent);
   const [state, formAction, pending] = useActionState<WorkforceFormState, FormData>(
     createRateVersionAction,
     {},
@@ -45,12 +53,12 @@ export function AddRateVersionForm({
       <input type="hidden" name="employeeId" value={employeeId} />
       <input type="hidden" name="currency" value={defaultCurrency} />
       <input type="hidden" name="rateUnit" value={rateUnit} />
-      <p className="text-sm font-medium">{t('employees.detail.addRate')}</p>
-      <p className="text-xs text-[var(--pf-text-muted)]">{t('employees.detail.addRateHint')}</p>
+      <p className="text-sm font-medium">{t('employees.detail.updateSalary')}</p>
+      <p className="text-xs text-[var(--pf-text-muted)]">{t('employees.detail.updateSalaryHint')}</p>
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
-      {state.ok ? <Alert tone="success">{t('employees.detail.addRateSuccess')}</Alert> : null}
+      {state.ok ? <Alert tone="success">{t('employees.detail.updateSalarySuccess')}</Alert> : null}
 
-      <Field label={t('employees.detail.rateFrom')} required>
+      <Field label={t('employees.detail.salaryEffectiveFrom')} required>
         {(control) => (
           <Input
             {...control}
@@ -89,6 +97,7 @@ export function AddRateVersionForm({
               value={baseRate}
               onValueChange={setBaseRate}
               currencySymbol={defaultCurrency}
+              currency={defaultCurrency}
             />
           </>
         )}
@@ -114,7 +123,7 @@ export function AddRateVersionForm({
       </Field>
 
       <Button type="submit" size="lg" block loading={pending} disabled={!baseRate.trim()}>
-        {t('employees.detail.addRateSave')}
+        {t('employees.detail.updateSalarySave')}
       </Button>
     </form>
   );

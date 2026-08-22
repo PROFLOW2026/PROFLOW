@@ -4,6 +4,7 @@ import { MoneyText } from '@/components/patterns/money-text';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { EmptyState } from '@/components/ui/empty-state';
 import type { RateVersionDetail } from '@/modules/workforce';
+import { formatWorkHoursValue } from '@/modules/workforce/domain/format-work-hours';
 import { fromNumericString } from '@/shared/money';
 
 interface RateHistoryTableProps {
@@ -14,7 +15,7 @@ export async function RateHistoryTable({ versions }: RateHistoryTableProps) {
   const t = await getTranslations('workforce');
 
   if (versions.length === 0) {
-    return <EmptyState size="sm" title={t('employees.detail.noRateHistory')} className="py-6" />;
+    return <EmptyState size="sm" title={t('employees.detail.noSalaryHistory')} className="py-6" />;
   }
 
   return (
@@ -26,10 +27,10 @@ export async function RateHistoryTable({ versions }: RateHistoryTableProps) {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>{t('employees.detail.rateFrom')}</TableHead>
-                <TableHead>{t('employees.detail.rateTo')}</TableHead>
+                <TableHead>{t('employees.detail.salaryHistoryFrom')}</TableHead>
+                <TableHead>{t('employees.detail.salaryHistoryTo')}</TableHead>
                 <TableHead>{t('employees.columns.employmentStyle')}</TableHead>
-                <TableHead numeric>{t('employees.columns.currentRate')}</TableHead>
+                <TableHead numeric>{t('employees.detail.salaryHistoryAmount')}</TableHead>
                 <TableHead numeric>{t('employees.form.burdenPercent')}</TableHead>
               </TableRow>
             </TableHeader>
@@ -40,7 +41,7 @@ export async function RateHistoryTable({ versions }: RateHistoryTableProps) {
                     <span dir="ltr">{version.validFrom}</span>
                   </TableCell>
                   <TableCell>
-                    {version.validTo ? <span dir="ltr">{version.validTo}</span> : t('employees.detail.openEnded')}
+                    {version.validTo ? <span dir="ltr">{version.validTo}</span> : t('employees.detail.salaryHistoryOngoing')}
                   </TableCell>
                   <TableCell>{t(`rateUnits.${version.rateUnit}`)}</TableCell>
                   <TableCell numeric>
@@ -54,7 +55,7 @@ export async function RateHistoryTable({ versions }: RateHistoryTableProps) {
                   <TableCell numeric>
                     {version.burdenPercent ? (
                       <span dir="ltr" className="pf-numeric">
-                        {version.burdenPercent}%
+                        {formatWorkHoursValue(version.burdenPercent)}%
                       </span>
                     ) : (
                       '-'
@@ -72,7 +73,7 @@ export async function RateHistoryTable({ versions }: RateHistoryTableProps) {
           <p className="mt-1 text-start text-xs text-[var(--pf-text-secondary)]" dir="ltr">
             {version.validFrom}
             {' → '}
-            {version.validTo ?? t('employees.detail.openEnded')}
+            {version.validTo ?? t('employees.detail.salaryHistoryOngoing')}
           </p>
           <p className="mt-2 text-start text-sm">
             <MoneyText
@@ -83,7 +84,7 @@ export async function RateHistoryTable({ versions }: RateHistoryTableProps) {
             />
             {version.burdenPercent ? (
               <span className="ms-2 text-xs text-[var(--pf-text-secondary)]" dir="ltr">
-                +{version.burdenPercent}%
+                +{formatWorkHoursValue(version.burdenPercent)}%
               </span>
             ) : null}
           </p>

@@ -21,6 +21,9 @@ function mapEmployee(row: typeof employees.$inferSelect): EmployeeRecord {
     email: row.email,
     phone: row.phone,
     notes: row.notes,
+    hireDate: row.hireDate ?? null,
+    endDate: row.endDate ?? null,
+    employmentBasis: (row.employmentBasis as EmployeeRecord['employmentBasis']) ?? null,
     standardHoursPerDay: row.standardHoursPerDay ?? null,
     archivedAt: row.archivedAt,
     createdAt: row.createdAt,
@@ -40,6 +43,10 @@ export async function insertEmployee(
     email?: string | null;
     phone?: string | null;
     notes?: string | null;
+    hireDate?: string | null;
+    endDate?: string | null;
+    employmentBasis?: EmployeeRecord['employmentBasis'];
+    standardHoursPerDay?: string | null;
   },
 ): Promise<EmployeeRecord> {
   const [row] = await db
@@ -54,6 +61,10 @@ export async function insertEmployee(
       email: input.email ?? null,
       phone: input.phone ?? null,
       notes: input.notes ?? null,
+      hireDate: input.hireDate ?? null,
+      endDate: input.endDate ?? null,
+      employmentBasis: input.employmentBasis ?? null,
+      standardHoursPerDay: input.standardHoursPerDay ?? null,
     })
     .returning();
 
@@ -73,6 +84,9 @@ export async function updateEmployeeById(
     email: string | null;
     phone: string | null;
     notes: string | null;
+    hireDate: string | null;
+    endDate: string | null;
+    employmentBasis: EmployeeRecord['employmentBasis'];
     standardHoursPerDay: string | null;
     archivedAt: Date | null;
   }>,
@@ -140,38 +154,82 @@ export async function listEmployees(
     conditions.push(or(ilike(employees.name, term), ilike(employees.jobTitle, term))!);
   }
 
+  // Drizzle strips table qualifiers inside select-list `sql\`\`` chunks, so
+  // `${employees.id}` becomes bare `id` and correlates to rate_versions.id
+  // (always null). Qualify the outer employee id explicitly.
+  const employeeIdRef = sql.raw('"employees"."id"');
+
   const rows = await db
     .select({
       employee: employees,
       currentRate: sql<string | null>`(
-        select rv.base_rate::text
-        from rate_versions rv
-        where rv.employee_id = ${employees.id}
-          and rv.organization_id = ${organizationId}
-          and rv.valid_from <= ${asOfDate}::date
-          and (rv.valid_to is null or rv.valid_to >= ${asOfDate}::date)
-        order by rv.valid_from desc
-        limit 1
+        coalesce(
+          (
+            select rv.base_rate::text
+            from rate_versions rv
+            where rv.employee_id = ${employeeIdRef}
+              and rv.organization_id = ${organizationId}
+              and rv.valid_from <= ${asOfDate}::date
+              and (rv.valid_to is null or rv.valid_to >= ${asOfDate}::date)
+            order by rv.valid_from desc
+            limit 1
+          ),
+          (
+            select rv.base_rate::text
+            from rate_versions rv
+            where rv.employee_id = ${employeeIdRef}
+              and rv.organization_id = ${organizationId}
+              and rv.valid_to is null
+            order by rv.valid_from desc
+            limit 1
+          )
+        )
       )`,
       currentRateUnit: sql<RateUnit | null>`(
-        select rv.rate_unit
-        from rate_versions rv
-        where rv.employee_id = ${employees.id}
-          and rv.organization_id = ${organizationId}
-          and rv.valid_from <= ${asOfDate}::date
-          and (rv.valid_to is null or rv.valid_to >= ${asOfDate}::date)
-        order by rv.valid_from desc
-        limit 1
+        coalesce(
+          (
+            select rv.rate_unit
+            from rate_versions rv
+            where rv.employee_id = ${employeeIdRef}
+              and rv.organization_id = ${organizationId}
+              and rv.valid_from <= ${asOfDate}::date
+              and (rv.valid_to is null or rv.valid_to >= ${asOfDate}::date)
+            order by rv.valid_from desc
+            limit 1
+          ),
+          (
+            select rv.rate_unit
+            from rate_versions rv
+            where rv.employee_id = ${employeeIdRef}
+              and rv.organization_id = ${organizationId}
+              and rv.valid_to is null
+            order by rv.valid_from desc
+            limit 1
+          )
+        )
       )`,
       currentRateCurrency: sql<string | null>`(
-        select rv.currency
-        from rate_versions rv
-        where rv.employee_id = ${employees.id}
-          and rv.organization_id = ${organizationId}
-          and rv.valid_from <= ${asOfDate}::date
-          and (rv.valid_to is null or rv.valid_to >= ${asOfDate}::date)
-        order by rv.valid_from desc
-        limit 1
+        coalesce(
+          (
+            select rv.currency
+            from rate_versions rv
+            where rv.employee_id = ${employeeIdRef}
+              and rv.organization_id = ${organizationId}
+              and rv.valid_from <= ${asOfDate}::date
+              and (rv.valid_to is null or rv.valid_to >= ${asOfDate}::date)
+            order by rv.valid_from desc
+            limit 1
+          ),
+          (
+            select rv.currency
+            from rate_versions rv
+            where rv.employee_id = ${employeeIdRef}
+              and rv.organization_id = ${organizationId}
+              and rv.valid_to is null
+            order by rv.valid_from desc
+            limit 1
+          )
+        )
       )`,
     })
     .from(employees)

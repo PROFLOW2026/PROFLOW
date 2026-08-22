@@ -6,7 +6,10 @@ export interface ExplicitWorkCalendarSettings {
   readonly workingDaysPerMonth: string | null;
 }
 
-/** Resolved rates used for monthly→hourly labor costing. */
+/**
+ * Resolved rates used for daily framework / legacy helpers.
+ * Monthly project Actual does NOT use standardHoursPerMonth.
+ */
 export interface WorkCalendarRates {
   readonly standardHoursPerDay: string;
   readonly standardHoursPerMonth: string;

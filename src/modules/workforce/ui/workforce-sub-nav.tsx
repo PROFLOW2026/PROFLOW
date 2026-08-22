@@ -1,11 +1,12 @@
 import { getTranslations } from 'next-intl/server';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { withOrgContext } from '@/shared/auth/session';
-import { Link } from '@/shared/i18n/navigation';
 import { hasAnyPermission, hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
-
-type WorkforceTab = 'employees' | 'time' | 'attendance' | 'approvals' | 'timesheets';
+import {
+  WorkforceSubNavClient,
+  type WorkforceSubNavTab,
+  type WorkforceTab,
+} from './workforce-sub-nav-client';
 
 interface WorkforceSubNavProps {
   readonly active: WorkforceTab;
@@ -31,33 +32,42 @@ export async function WorkforceSubNav({ active }: WorkforceSubNavProps) {
     }),
   );
 
-  return (
-    <Tabs value={active}>
-      <TabsList>
-        {showEmployees ? (
-          <TabsTrigger value="employees" asChild>
-            <Link href="/workforce/employees">{t('nav.employees')}</Link>
-          </TabsTrigger>
-        ) : null}
-        <TabsTrigger value="time" asChild>
-          <Link href="/workforce/time">{t('nav.time')}</Link>
-        </TabsTrigger>
-        {showTimesheets ? (
-          <TabsTrigger value="timesheets" asChild>
-            <Link href="/workforce/timesheets">{t('nav.timesheets')}</Link>
-          </TabsTrigger>
-        ) : null}
-        {showAttendance ? (
-          <TabsTrigger value="attendance" asChild>
-            <Link href="/workforce/attendance">{t('nav.attendance')}</Link>
-          </TabsTrigger>
-        ) : null}
-        {showApprovals ? (
-          <TabsTrigger value="approvals" asChild>
-            <Link href="/workforce/time/approvals">{t('nav.approvals')}</Link>
-          </TabsTrigger>
-        ) : null}
-      </TabsList>
-    </Tabs>
-  );
+  const tabs: WorkforceSubNavTab[] = [];
+  if (showEmployees) {
+    tabs.push({
+      value: 'employees',
+      href: '/workforce/employees',
+      label: t('nav.employees'),
+    });
+  }
+  tabs.push({
+    value: 'time',
+    href: '/workforce/time',
+    label: t('nav.time'),
+  });
+  if (showTimesheets) {
+    tabs.push({
+      value: 'timesheets',
+      href: '/workforce/timesheets',
+      label: t('nav.timesheets'),
+    });
+  }
+  if (showAttendance) {
+    tabs.push({
+      value: 'attendance',
+      href: '/workforce/attendance',
+      label: t('nav.attendance'),
+    });
+  }
+  if (showApprovals) {
+    tabs.push({
+      value: 'approvals',
+      href: '/workforce/time/approvals',
+      label: t('nav.approvals'),
+    });
+  }
+
+  return <WorkforceSubNavClient active={active} tabs={tabs} />;
 }
+
+export type { WorkforceTab };

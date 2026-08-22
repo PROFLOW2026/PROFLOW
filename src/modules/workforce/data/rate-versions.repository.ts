@@ -1,6 +1,7 @@
-import { and, asc, desc, eq, isNull } from 'drizzle-orm';
+import { and, asc, desc, eq, inArray, isNull } from 'drizzle-orm';
 import { laborCostComponents, rateVersions } from '@drizzle/schema';
 import type { DbExecutor } from '@/shared/db/types';
+import { coerceBusinessDate } from '@/shared/dates';
 import type { LaborCostComponentRecord, RateVersionRecord } from '../domain/types';
 
 function mapRateVersion(row: typeof rateVersions.$inferSelect): RateVersionRecord {
@@ -8,8 +9,8 @@ function mapRateVersion(row: typeof rateVersions.$inferSelect): RateVersionRecor
     id: row.id,
     organizationId: row.organizationId,
     employeeId: row.employeeId,
-    validFrom: row.validFrom,
-    validTo: row.validTo,
+    validFrom: coerceBusinessDate(row.validFrom),
+    validTo: row.validTo ? coerceBusinessDate(row.validTo) : null,
     baseRate: row.baseRate,
     rateUnit: row.rateUnit,
     currency: row.currency,
@@ -85,6 +86,120 @@ export async function closeOpenRateVersionBefore(
         isNull(rateVersions.validTo),
       ),
     );
+}
+
+/**
+ * Realign initial compensation effective date to employment start.
+ * Only for a single open-ended version (no salary-change history).
+ */
+export async function updateRateVersionValidFrom(
+  db: DbExecutor,
+  input: {
+    readonly organizationId: string;
+    readonly rateVersionId: string;
+    readonly validFrom: string;
+  },
+): Promise<RateVersionRecord | null> {
+  const [row] = await db
+    .update(rateVersions)
+    .set({ validFrom: input.validFrom, updatedAt: new Date() })
+    .where(
+      and(
+        eq(rateVersions.organizationId, input.organizationId),
+        eq(rateVersions.id, input.rateVersionId),
+        isNull(rateVersions.validTo),
+      ),
+    )
+    .returning();
+
+  return row ? mapRateVersion(row) : null;
+}
+
+/** Owner admin: correct open compensation (amount and/or effective date). */
+export async function updateOpenRateVersionCompensation(
+  db: DbExecutor,
+  input: {
+    readonly organizationId: string;
+    readonly rateVersionId: string;
+    readonly validFrom: string;
+    readonly baseRate: string;
+    readonly rateUnit: RateVersionRecord['rateUnit'];
+    readonly currency: string;
+    readonly burdenPercent?: string | null;
+    readonly notes?: string | null;
+  },
+): Promise<RateVersionRecord | null> {
+  const [row] = await db
+    .update(rateVersions)
+    .set({
+      validFrom: input.validFrom,
+      baseRate: input.baseRate,
+      rateUnit: input.rateUnit,
+      currency: input.currency,
+      burdenPercent: input.burdenPercent ?? null,
+      notes: input.notes ?? null,
+      updatedAt: new Date(),
+    })
+    .where(
+      and(
+        eq(rateVersions.organizationId, input.organizationId),
+        eq(rateVersions.id, input.rateVersionId),
+        isNull(rateVersions.validTo),
+      ),
+    )
+    .returning();
+
+  return row ? mapRateVersion(row) : null;
+}
+
+export async function updateRateVersionValidTo(
+  db: DbExecutor,
+  input: {
+    readonly organizationId: string;
+    readonly rateVersionId: string;
+    readonly validTo: string;
+  },
+): Promise<RateVersionRecord | null> {
+  const [row] = await db
+    .update(rateVersions)
+    .set({ validTo: input.validTo, updatedAt: new Date() })
+    .where(
+      and(
+        eq(rateVersions.organizationId, input.organizationId),
+        eq(rateVersions.id, input.rateVersionId),
+      ),
+    )
+    .returning();
+
+  return row ? mapRateVersion(row) : null;
+}
+
+export async function deleteRateVersionById(
+  db: DbExecutor,
+  input: { readonly organizationId: string; readonly rateVersionId: string },
+): Promise<RateVersionRecord | null> {
+  const existing = await findRateVersionById(db, input.organizationId, input.rateVersionId);
+  if (!existing) return null;
+
+  await db
+    .delete(laborCostComponents)
+    .where(
+      and(
+        eq(laborCostComponents.organizationId, input.organizationId),
+        eq(laborCostComponents.rateVersionId, input.rateVersionId),
+      ),
+    );
+
+  await db
+    .delete(rateVersions)
+    .where(
+      and(
+        eq(rateVersions.organizationId, input.organizationId),
+        eq(rateVersions.id, input.rateVersionId),
+      ),
+    );
+
+  return existing;
 }
 
 export async function findOpenRateVersionByEmployee(
@@ -195,8 +310,13 @@ export async function listComponentsByRateVersions(
   const rows = await db
     .select()
     .from(laborCostComponents)
-    .where(eq(laborCostComponents.organizationId, organizationId));
+    .where(
+      and(
+        eq(laborCostComponents.organizationId, organizationId),
+        inArray(laborCostComponents.rateVersionId, [...rateVersionIds]),
+      ),
+    )
+    .orderBy(asc(laborCostComponents.key));
 
-  const allowed = new Set(rateVersionIds);
-  return rows.filter((row) => allowed.has(row.rateVersionId)).map(mapComponent);
+  return rows.map(mapComponent);
 }

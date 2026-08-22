@@ -42,6 +42,27 @@ export function businessDate(value: string | Date): BusinessDate {
   return trimmed;
 }
 
+/**
+ * Normalizes Postgres `date`, ISO timestamps, and plain YYYY-MM-DD strings
+ * into a BusinessDate. Used at repository boundaries so UI never loses dates.
+ */
+export function coerceBusinessDate(value: unknown): BusinessDate {
+  if (value instanceof Date) {
+    return businessDate(value);
+  }
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    if (isBusinessDate(trimmed)) return trimmed;
+    const datePrefix = trimmed.slice(0, 10);
+    if (isBusinessDate(datePrefix)) return datePrefix;
+    const parsed = new Date(trimmed);
+    if (!Number.isNaN(parsed.getTime())) {
+      return businessDate(parsed);
+    }
+  }
+  throw new DateError(`Cannot coerce business date: ${String(value)}`);
+}
+
 /** Today in the organisation's time zone, not the server's. */
 export function todayInTimeZone(timeZone: string, now: Date = new Date()): BusinessDate {
   const parts = new Intl.DateTimeFormat('en-CA', {

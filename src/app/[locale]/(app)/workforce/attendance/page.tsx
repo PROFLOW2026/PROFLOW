@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
+import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/ui/page-header';
 import {
   attendanceFiltersSchema,
@@ -10,7 +11,10 @@ import {
   getAttendanceDayDetail,
   listAttendanceDaysForOrg,
   listEmployeesForOrg,
+  listProjectsForTimeLog,
 } from '@/modules/workforce';
+import { getLaborCostDefaultsForApply } from '@/modules/tenancy';
+import { resolveOrgWorkWeekdays } from '@/modules/tenancy/domain/labor-cost-defaults';
 import { AttendanceClockPanel } from '@/modules/workforce/ui/attendance-clock-panel';
 import { AttendanceDayDetailPanel } from '@/modules/workforce/ui/attendance-day-detail-panel';
 import { AttendanceDaysTable } from '@/modules/workforce/ui/attendance-days-table';
@@ -46,12 +50,11 @@ export default async function AttendancePage({
     toDate?: string;
     status?: string;
     dayId?: string;
+    workDate?: string;
+    update?: string;
   }>;
 }) {
-  const [t, rawFilters] = await Promise.all([
-    getTranslations('workforce'),
-    searchParams,
-  ]);
+  const [t, rawFilters] = await Promise.all([getTranslations('workforce'), searchParams]);
 
   const parsedFilters = attendanceFiltersSchema.safeParse({
     employeeId: rawFilters.employeeId || undefined,
@@ -67,6 +70,9 @@ export default async function AttendancePage({
   });
   const filters = parsedFilters.success ? parsedFilters.data : {};
   const dayId = rawFilters.dayId;
+  const focusUpdate =
+    rawFilters.update === '1' || rawFilters.update === 'true' || Boolean(rawFilters.employeeId);
+  const preferredWorkDate = rawFilters.workDate || undefined;
 
   const data = await withOrgContext(async (context) => {
     if (!canViewAttendance(context)) {
@@ -77,7 +83,7 @@ export default async function AttendancePage({
     const allowManage = canManageAttendanceRecords(context);
     const today = todayInTimeZone(context.organization.timezone);
 
-    const [clock, days, employees, detail] = await Promise.all([
+    const [clock, days, employees, detail, laborDefaults, projects] = await Promise.all([
       allowClock ? getAttendanceClockSurface(context) : Promise.resolve(null),
       listAttendanceDaysForOrg(context, filters),
       allowManage
@@ -86,22 +92,72 @@ export default async function AttendancePage({
           )
         : Promise.resolve([]),
       dayId ? getAttendanceDayDetail(context, dayId).catch(() => null) : Promise.resolve(null),
+      allowManage
+        ? getLaborCostDefaultsForApply(context).catch(() => null)
+        : Promise.resolve(null),
+      allowManage
+        ? listProjectsForTimeLog(context).catch(() => [])
+        : Promise.resolve([]),
     ]);
 
-    return { allowClock, allowManage, today, clock, days, employees, detail };
+    const selectedEmployee =
+      filters.employeeId != null
+        ? employees.find((row) => row.id === filters.employeeId) ?? null
+        : null;
+
+    return {
+      allowClock,
+      allowManage,
+      today,
+      clock,
+      days,
+      employees,
+      detail,
+      selectedEmployee,
+      defaultWeekdays: resolveOrgWorkWeekdays(laborDefaults),
+      projects,
+    };
   });
+
+  const formDefaultDate = preferredWorkDate ?? data.detail?.workDate ?? data.today;
 
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
         title={t('attendance.title')}
         description={t('attendance.description')}
+        actions={
+          data.allowManage ? (
+            <Button asChild size="lg">
+              <a href="#update-attendance">{t('attendance.updateCta')}</a>
+            </Button>
+          ) : undefined
+        }
       />
 
       <WorkforceSubNav active="attendance" />
 
       <div className="flex flex-col gap-6">
-        {data.allowClock && data.clock ? (
+        {data.allowManage ? (
+          <AttendanceManualEntryForm
+            action={manualAttendanceAction}
+            employees={data.employees}
+            projects={data.projects}
+            defaultDate={formDefaultDate}
+            defaultEmployeeId={filters.employeeId ?? null}
+            employeeLocked={Boolean(filters.employeeId)}
+            emphasize={focusUpdate}
+            defaultWeekdays={data.defaultWeekdays}
+          />
+        ) : null}
+
+        {data.selectedEmployee ? (
+          <p className="text-sm text-[var(--pf-text-secondary)]">
+            {t('attendance.filteredEmployee', { name: data.selectedEmployee.name })}
+          </p>
+        ) : null}
+
+        {data.allowClock && data.clock && !focusUpdate ? (
           <AttendanceClockPanel
             employeeName={data.clock.employeeName}
             workDate={data.clock.workDate}
@@ -120,14 +176,6 @@ export default async function AttendancePage({
 
         {data.detail ? (
           <AttendanceDayDetailPanel detail={data.detail} canManage={data.allowManage} />
-        ) : null}
-
-        {data.allowManage ? (
-          <AttendanceManualEntryForm
-            action={manualAttendanceAction}
-            employees={data.employees}
-            defaultDate={data.today}
-          />
         ) : null}
 
         <section className="flex flex-col gap-3">
@@ -173,6 +221,7 @@ export default async function AttendancePage({
             {filters.employeeId ? (
               <input type="hidden" name="employeeId" value={filters.employeeId} />
             ) : null}
+            {rawFilters.update ? <input type="hidden" name="update" value="1" /> : null}
             <button
               type="submit"
               className="h-11 rounded-md border border-[var(--pf-border-strong)] px-4 text-sm font-medium"

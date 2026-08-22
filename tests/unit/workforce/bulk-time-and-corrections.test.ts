@@ -7,22 +7,26 @@ import {
 import { correctTimeEntrySchema, createBulkTimeEntriesSchema } from '@/modules/workforce/validation/schemas';
 
 describe('expandBulkWorkDates', () => {
-  it('expands Mon–Fri same hours across a calendar week', () => {
+  it('expands Sun–Thu (canonical א׳–ה׳) across a calendar week', () => {
     const days = expandBulkWorkDates({
-      fromDate: '2026-08-10', // Monday
-      toDate: '2026-08-16', // Sunday
+      fromDate: '2026-08-09', // Sunday
+      toDate: '2026-08-15', // Saturday
       hours: '8',
       weekdays: [...WEEKDAY_WORKDAYS],
     });
 
     expect(days.map((day) => day.workDate)).toEqual([
+      '2026-08-09',
       '2026-08-10',
       '2026-08-11',
       '2026-08-12',
       '2026-08-13',
-      '2026-08-14',
     ]);
     expect(days.every((day) => day.hours === '8')).toBe(true);
+  });
+
+  it('canonical WEEKDAY_WORKDAYS is Sunday–Thursday', () => {
+    expect([...WEEKDAY_WORKDAYS]).toEqual([0, 1, 2, 3, 4]);
   });
 
   it('applies per-day hour overrides while keeping unlisted weekdays at default hours', () => {

@@ -736,6 +736,23 @@ export function isNavItemActive(pathname: string, href: string): boolean {
  * Quick-create stays available as a compact top-bar control instead.
  */
 export function isFocusedComposerPath(pathname: string): boolean {
-  const normalized = pathname.replace(/^\/[a-z]{2}(-[A-Z]{2})?(?=\/|$)/, '') || '/';
+  const normalized = normalizeShellPath(pathname);
   return normalized.split('/').some((segment) => segment === 'new' || segment === 'edit');
+}
+
+function normalizeShellPath(pathname: string): string {
+  return pathname.replace(/^\/[a-z]{2}(-[A-Z]{2})?(?=\/|$)/, '') || '/';
+}
+
+/**
+ * Hide global quick-create when the surface already exposes a dedicated primary
+ * time-entry action (project/job Time tab — "דיווח שעות").
+ */
+export function shouldHideQuickCreateForRoute(
+  pathname: string,
+  searchParams: Pick<URLSearchParams, 'get'> | null | undefined,
+): boolean {
+  const normalized = normalizeShellPath(pathname);
+  if (searchParams?.get('tab') !== 'time') return false;
+  return /^\/(projects|jobs)\/[^/]+$/.test(normalized);
 }

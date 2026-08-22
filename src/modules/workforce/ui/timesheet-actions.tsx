@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import type { TimeApprovalStatus } from '@/modules/workforce/domain/types';
+import { formatWorkHoursValue } from '@/modules/workforce/domain/format-work-hours';
 import {
   approveTimesheetAction,
   deleteDraftTimeEntryAction,
@@ -27,10 +28,12 @@ export function SubmitTimeEntryButton({
   entryId,
   employeeId,
   approvalStatus,
+  compact = false,
 }: {
   readonly entryId: string;
   readonly employeeId: string;
   readonly approvalStatus: TimeApprovalStatus;
+  readonly compact?: boolean;
 }) {
   const t = useTranslations('workforce');
   const [state, action, pending] = useActionState(submitTimeEntriesAction, {});
@@ -38,13 +41,19 @@ export function SubmitTimeEntryButton({
   if (approvalStatus !== 'draft' && approvalStatus !== 'returned') return null;
 
   return (
-    <form action={action} className="flex flex-col items-start gap-1">
+    <form action={action} className={compact ? 'contents' : 'flex flex-col items-start gap-1'}>
       <input type="hidden" name="entryIds" value={entryId} />
       <input type="hidden" name="employeeId" value={employeeId} />
-      <Button type="submit" variant="secondary" size="sm" loading={pending}>
+      <Button
+        type="submit"
+        variant={compact ? 'primary' : 'secondary'}
+        size="sm"
+        loading={pending}
+        className={compact ? 'min-h-10' : undefined}
+      >
         {t('time.actions.submitForApproval')}
       </Button>
-      <ActionError state={state} />
+      {!compact && state.error ? <ActionError state={state} /> : null}
     </form>
   );
 }
@@ -81,9 +90,11 @@ export function EditDraftTimeEntryForm({
 export function DeleteDraftTimeEntryButton({
   entryId,
   approvalStatus,
+  compact = false,
 }: {
   readonly entryId: string;
   readonly approvalStatus: TimeApprovalStatus;
+  readonly compact?: boolean;
 }) {
   const t = useTranslations('workforce');
   const [state, action, pending] = useActionState(deleteDraftTimeEntryAction, {});
@@ -91,12 +102,18 @@ export function DeleteDraftTimeEntryButton({
   if (approvalStatus !== 'draft' && approvalStatus !== 'returned') return null;
 
   return (
-    <form action={action} className="flex flex-col items-start gap-1">
+    <form action={action} className={compact ? 'contents' : 'flex flex-col items-start gap-1'}>
       <input type="hidden" name="timeEntryId" value={entryId} />
-      <Button type="submit" variant="ghost" size="sm" loading={pending} className="text-[var(--pf-status-danger-fg)]">
-        {t('time.actions.deleteDraft')}
+      <Button
+        type="submit"
+        variant="ghost"
+        size="sm"
+        loading={pending}
+        className={compact ? 'min-h-10 text-[var(--pf-status-danger-fg)]' : 'text-[var(--pf-status-danger-fg)]'}
+      >
+        {t('time.mobile.delete')}
       </Button>
-      <ActionError state={state} />
+      {!compact && state.error ? <ActionError state={state} /> : null}
     </form>
   );
 }
@@ -121,7 +138,7 @@ export function ExcessHoursApprovalPanel({
     <div className="flex min-w-0 flex-col gap-2 rounded-md border border-[var(--pf-border-default)] p-3">
       <p className="text-sm font-medium">{t('time.approvals.excessTitle')}</p>
       <p className="text-xs text-[var(--pf-text-secondary)]">
-        {t('time.approvals.excessAmount', { hours: excessHours })}
+        {t('time.approvals.excessAmount', { hours: formatWorkHoursValue(excessHours) })}
       </p>
       <form action={action} className="flex flex-col gap-2">
         <input type="hidden" name="timeEntryId" value={entryId} />

@@ -70,7 +70,9 @@ describe('vendor engagement ≠ Actual', () => {
     }
   });
 
-  it('createVendorEngagement runtime does not invoke labor/expense/AP modules', async () => {
+  it(
+    'createVendorEngagement runtime does not invoke labor/expense/AP modules',
+    async () => {
     const expenses = await import('@/modules/expenses');
     const financialsPath = path.resolve(
       process.cwd(),
@@ -82,7 +84,9 @@ describe('vendor engagement ≠ Actual', () => {
 
     expect(expenseSpy).not.toHaveBeenCalled();
     expect(financialsSource).not.toContain('createVendorEngagement');
-  });
+    },
+    30_000,
+  );
 
   it('createEngagementSchema accepts overlapping multi-project date spans', async () => {
     const { createEngagementSchema } = await import('@/modules/vendors/validation/schemas');

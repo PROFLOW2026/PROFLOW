@@ -30,16 +30,16 @@ export async function AttendanceDayDetailPanel({
   const t = await getTranslations('workforce.attendance');
 
   return (
-    <section className="flex flex-col gap-4 rounded-lg border border-[var(--pf-border-default)] p-4">
+    <section className="flex flex-col gap-4 rounded-lg border border-[var(--pf-border-default)] p-4 sm:p-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h3 className="text-base font-semibold">
+          <h2 className="text-base font-semibold">
             {detail.employeeName} · {detail.workDate}
-          </h3>
+          </h2>
           <p className="text-sm text-[var(--pf-text-muted)]">{t(`presence.${detail.presence}`)}</p>
           <p className="mt-1 text-xs text-[var(--pf-text-muted)]">{t('disclaimer')}</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <StatusBadge
             shape={
               detail.status === 'void'
@@ -50,6 +50,14 @@ export async function AttendanceDayDetailPanel({
             }
             label={t(`dayStatus.${detail.status}`)}
           />
+          {canManage && detail.status !== 'void' ? (
+            <a
+              href="#update-attendance"
+              className="text-sm font-medium underline-offset-2 hover:underline"
+            >
+              {t('list.correct')}
+            </a>
+          ) : null}
           {canManage && detail.status !== 'void' ? (
             <AttendanceVoidDayButton dayId={detail.id} action={voidAttendanceDayAction} />
           ) : null}

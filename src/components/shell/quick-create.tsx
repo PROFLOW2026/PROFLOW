@@ -2,7 +2,7 @@
 
 import { Plus } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import * as React from 'react';
+import { Suspense } from 'react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,9 +10,10 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { pressableChromeClassName } from '@/components/ui/pressable';
+import { useSearchParams } from 'next/navigation';
 import { Link, usePathname } from '@/shared/i18n/navigation';
 import { cn } from '@/shared/ui/cn';
-import { isFocusedComposerPath } from './navigation';
+import { isFocusedComposerPath, shouldHideQuickCreateForRoute } from './navigation';
 
 export interface QuickCreateAction {
   key: string;
@@ -20,14 +21,15 @@ export interface QuickCreateAction {
   labelKey: string;
 }
 
-/**
- * Global `+ New` (doc 41 §5). The menu only offers what this organization
- * actually uses, so an org without workforce never sees "Time entry".
- */
-export function QuickCreate({ actions }: { actions: QuickCreateAction[] }) {
+function QuickCreateMenu({ actions }: { actions: QuickCreateAction[] }) {
   const t = useTranslations('nav.newMenu');
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const demoteFab = isFocusedComposerPath(pathname);
+
+  if (shouldHideQuickCreateForRoute(pathname, searchParams)) {
+    return null;
+  }
 
   if (actions.length === 0) return null;
 
@@ -67,5 +69,17 @@ export function QuickCreate({ actions }: { actions: QuickCreateAction[] }) {
         ))}
       </DropdownMenuContent>
     </DropdownMenu>
+  );
+}
+
+/**
+ * Global `+ New` (doc 41 §5). The menu only offers what this organization
+ * actually uses, so an org without workforce never sees "Time entry".
+ */
+export function QuickCreate({ actions }: { actions: QuickCreateAction[] }) {
+  return (
+    <Suspense fallback={null}>
+      <QuickCreateMenu actions={actions} />
+    </Suspense>
   );
 }

@@ -83,6 +83,7 @@
     "viewMonthClose": "Open month close"
   },
   "laborActual": "Labor (Actual)",
+  "laborActualUnavailable": "Cannot calculate",
   "vendorActual": "Vendors / subcontractors (Actual)",
   "overheadActual": "Overhead (Actual)",
   "committedOpen": "Committed cost (PO open)",
@@ -113,7 +114,7 @@
       "foreignCurrencyBilling": "{count, plural, one {# billing record is in another currency - not included in this total} other {# billing records are in another currency - not included in this total}}",
       "foreignCurrencyCommitted": "{count, plural, one {# committed cost is in another currency - not included in this total} other {# committed costs are in another currency - not included in this total}}",
       "foreignCurrencyAp": "{count, plural, one {# vendor bill is in another currency - not included in this total} other {# vendor bills are in another currency - not included in this total}}",
-      "workforceEntriesMissingCost": "{count, plural, one {# time entry has no rate on its date - labor cost is understated} other {# time entries have no rate on their date - labor cost is understated}}",
+      "workforceEntriesMissingCost": "{count, plural, one {# time entry is missing calculated labor cost (salary/work framework) - labor is not shown as 0} other {# time entries are missing calculated labor cost (salary/work framework) - labor is not shown as 0}}",
       "laborCategoryExcludedForWorkforce": "{count, plural, one {# labor-category expense was excluded because time-entry labor cost is already included for this project} other {# labor-category expenses were excluded because time-entry labor cost is already included for this project}}"
     }
   },

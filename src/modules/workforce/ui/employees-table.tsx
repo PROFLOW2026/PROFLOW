@@ -9,6 +9,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { MoneyText } from '@/components/patterns/money-text';
 import type { EmployeeListItem } from '@/modules/workforce';
 import { fromNumericString } from '@/shared/money';
+import { formatBusinessDate } from '@/shared/dates/format';
+import { getLocale } from 'next-intl/server';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import type { OrgContext } from '@/shared/auth/context';
@@ -27,7 +29,10 @@ export async function EmployeesTable({
   canManage,
   showCosts = true,
 }: EmployeesTableProps) {
-  const t = await getTranslations('workforce');
+  const [t, locale] = await Promise.all([
+    getTranslations('workforce'),
+    getLocale(),
+  ]);
 
   if (employees.length === 0) {
     return (
@@ -56,6 +61,7 @@ export async function EmployeesTable({
             <TableHeader>
               <TableRow>
                 <TableHead>{t('employees.columns.name')}</TableHead>
+                <TableHead>{t('employees.columns.hireDate')}</TableHead>
                 <TableHead>{t('employees.columns.employmentStyle')}</TableHead>
                 {showCosts ? <TableHead numeric>{t('employees.columns.currentRate')}</TableHead> : null}
                 <TableHead>{t('employees.columns.status')}</TableHead>
@@ -76,9 +82,20 @@ export async function EmployeesTable({
                     ) : null}
                   </TableCell>
                   <TableCell>
+                    {employee.hireDate ? (
+                      <span dir="ltr">
+                        {formatBusinessDate(employee.hireDate as never, locale, 'medium')}
+                      </span>
+                    ) : (
+                      <span className="text-[var(--pf-text-muted)]">
+                        {t('employees.detail.hireDateNotSet')}
+                      </span>
+                    )}
+                  </TableCell>
+                  <TableCell>
                     {employee.currentRateUnit
                       ? t(`rateUnits.${employee.currentRateUnit}`)
-                      : t('employees.noRate')}
+                      : '—'}
                   </TableCell>
                   {showCosts ? (
                     <TableCell numeric>
@@ -119,6 +136,11 @@ export async function EmployeesTable({
               {employee.jobTitle ? (
                 <p className="truncate text-xs text-[var(--pf-text-muted)]">{employee.jobTitle}</p>
               ) : null}
+              {employee.hireDate ? (
+                <p className="mt-1 text-xs text-[var(--pf-text-muted)]" dir="ltr">
+                  {formatBusinessDate(employee.hireDate as never, locale, 'medium')}
+                </p>
+              ) : null}
             </div>
             <StatusBadge
               className="shrink-0"
@@ -147,9 +169,7 @@ export async function EmployeesTable({
             </p>
           ) : employee.jobTitle ? null : (
             <p className="mt-2 text-start text-sm text-[var(--pf-text-secondary)]">
-              {employee.currentRateUnit
-                ? t(`rateUnits.${employee.currentRateUnit}`)
-                : t('employees.noRate')}
+              {employee.currentRateUnit ? t(`rateUnits.${employee.currentRateUnit}`) : null}
             </p>
           )}
         </Link>

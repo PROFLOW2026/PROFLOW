@@ -3,18 +3,22 @@ import { getTranslations } from 'next-intl/server';
 import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/ui/page-header';
 import {
+  buildTimeEntryDailySummaries,
   listEmployeesForOrg,
   listProjectsForTimeLog,
   listTimeEntriesForOrg,
   timeEntryFiltersSchema,
 } from '@/modules/workforce';
+import { planExactDuplicateDraftRemovals } from '@/modules/workforce/domain/duplicate-draft-cleanup';
 import { canLogTime, canViewWorkforceCosts } from '@/modules/workforce/ui/employees-table';
 import { canReadOrgWorkforce } from '@/modules/workforce/application/time-scope';
+import { DuplicateDraftCleanupBanner } from '@/modules/workforce/ui/duplicate-draft-cleanup-banner';
 import { TimeEntriesTable } from '@/modules/workforce/ui/time-entries-table';
 import { TimeEntryListFilters } from '@/modules/workforce/ui/time-entry-list-filters';
 import { WorkforceSubNav } from '@/modules/workforce/ui/workforce-sub-nav';
 import { withOrgContext } from '@/shared/auth/session';
 import { Link } from '@/shared/i18n/navigation';
+import { todayInTimeZone } from '@/shared/dates';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { ReportsEntryLink } from '@/modules/financials/ui/reports-entry-link';
@@ -55,11 +59,12 @@ export default async function TimeEntriesPage({
   });
   const filters = parsedFilters.success ? parsedFilters.data : {};
 
-  const { entries, showCosts, allowLog, employees, projects, canReadReports, selfScoped } =
+  const { entries, showCosts, allowLog, employees, projects, canReadReports, selfScoped, dailySummaries, todayDate, canManageTime } =
     await withOrgContext(async (context) => {
       const orgRoster = canReadOrgWorkforce(context);
+      const entries = await listTimeEntriesForOrg(context, filters);
       return {
-        entries: await listTimeEntriesForOrg(context, filters),
+        entries,
         showCosts: canViewWorkforceCosts(context),
         allowLog: canLogTime(context),
         employees: orgRoster
@@ -68,8 +73,15 @@ export default async function TimeEntriesPage({
         projects: await listProjectsForTimeLog(context),
         canReadReports: hasPermission(context, PERMISSIONS.PROJECT_FINANCIALS_READ),
         selfScoped: !orgRoster,
+        dailySummaries: await buildTimeEntryDailySummaries(context, entries),
+        todayDate: todayInTimeZone(context.organization.timezone),
+        canManageTime: hasPermission(context, PERMISSIONS.TIME_MANAGE),
       };
     });
+
+  const duplicateExtraCount = canManageTime
+    ? planExactDuplicateDraftRemovals(entries).reduce((sum, plan) => sum + plan.removeIds.length, 0)
+    : 0;
 
   return (
     <div className="flex flex-col gap-6">
@@ -107,7 +119,23 @@ export default async function TimeEntriesPage({
             approvalStatus: filters.approvalStatus ?? 'all',
           }}
         />
-        <TimeEntriesTable entries={entries} showCosts={showCosts} canLogTime={allowLog} />
+        {canManageTime ? (
+          <DuplicateDraftCleanupBanner
+            duplicateExtraCount={duplicateExtraCount}
+            employeeId={filters.employeeId}
+            projectId={filters.projectId}
+            fromDate={filters.fromDate}
+            toDate={filters.toDate}
+          />
+        ) : null}
+        <TimeEntriesTable
+          entries={entries}
+          showCosts={showCosts}
+          canLogTime={allowLog}
+          dailySummaries={dailySummaries}
+          hideEmployeeName={Boolean(filters.employeeId) || selfScoped}
+          todayDate={todayDate}
+        />
       </div>
     </div>
   );

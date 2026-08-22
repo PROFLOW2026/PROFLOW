@@ -49,6 +49,10 @@ export interface TimeEntryFormProps {
   readonly initialDescription?: string | null;
   readonly initialKind?: 'project' | 'non_project';
   readonly initialTimeCodeId?: string | null;
+  /** Default selected weekdays (JS 0=Sun … 6=Sat). Canonical א׳–ה׳ when omitted. */
+  readonly defaultWeekdays?: readonly number[];
+  /** When true, show "Save and approve" for owner/admin time entry. */
+  readonly canApproveOnCreate?: boolean;
 }
 
 const WEEKDAY_KEYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'] as const;
@@ -68,6 +72,8 @@ export function TimeEntryForm({
   initialDescription = null,
   initialKind = 'project',
   initialTimeCodeId = null,
+  defaultWeekdays,
+  canApproveOnCreate = false,
 }: TimeEntryFormProps) {
   const t = useTranslations('workforce');
   const tCommon = useTranslations('common');
@@ -81,8 +87,11 @@ export function TimeEntryForm({
   const [showAdvanced, setShowAdvanced] = useState(Boolean(correctsEntryId));
   const [fromDate, setFromDate] = useState(defaultDate);
   const [toDate, setToDate] = useState(defaultDate);
-  const [weekdays, setWeekdays] = useState<WeekdayIndex[]>([...WEEKDAY_WORKDAYS]);
-  const [usePerDayHours, setUsePerDayHours] = useState(false);
+  const [weekdays, setWeekdays] = useState<WeekdayIndex[]>(() => {
+    const source =
+      defaultWeekdays && defaultWeekdays.length > 0 ? defaultWeekdays : WEEKDAY_WORKDAYS;
+    return source.filter((day): day is WeekdayIndex => day >= 0 && day <= 6);
+  });  const [usePerDayHours, setUsePerDayHours] = useState(false);
   const [perDayHours, setPerDayHours] = useState<Record<string, string>>({});
   const [clientRequestId] = useState(() =>
     typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
@@ -90,6 +99,7 @@ export function TimeEntryForm({
       : '',
   );
   const [confirmDailyExcess, setConfirmDailyExcess] = useState(false);
+  const [approveOnCreate, setApproveOnCreate] = useState(false);
 
   function formatHoursDisplay(value: string): string {
     const num = Number(value);
@@ -182,26 +192,43 @@ export function TimeEntryForm({
 
   return (
     <form action={formAction} className="mx-auto flex w-full max-w-lg flex-col gap-4">
-      {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
+      {state.ok && state.error ? (
+        <Alert tone="info" role="status">
+          {state.error}
+        </Alert>
+      ) : state.error ? (
+        <Alert tone="danger">{state.error}</Alert>
+      ) : null}
       {dailyExcess ? (
         <Alert tone="warning" role="status">
-          <p className="font-medium">{t('time.form.dailyExcessTitle')}</p>
-          <ul className="mt-2 list-inside list-disc text-sm">
-            <li>{t('time.form.dailyExcessRegular', { hours: formatHoursDisplay(dailyExcess.standardHoursPerDay) })}</li>
-            <li>{t('time.form.dailyExcessReported', { hours: formatHoursDisplay(dailyExcess.reportedSoFar) })}</li>
-            <li>{t('time.form.dailyExcessNew', { hours: formatHoursDisplay(dailyExcess.newHours) })}</li>
-            <li>{t('time.form.dailyExcessOver', { hours: formatHoursDisplay(dailyExcess.excessHours) })}</li>
-          </ul>
-          <p className="mt-2 text-sm">{t('time.form.dailyExcessManagerNote')}</p>
-          <label className="mt-3 inline-flex min-h-11 items-center gap-2 text-sm">
-            <input
-              type="checkbox"
-              checked={confirmDailyExcess}
-              onChange={(event) => setConfirmDailyExcess(event.target.checked)}
-              className="size-4"
-            />
-            {t('time.form.dailyExcessConfirm')}
-          </label>
+          {canApproveOnCreate ? (
+            <p className="text-sm">
+              {t('time.form.dailyExcessOwnerLine', {
+                framework: formatHoursDisplay(dailyExcess.standardHoursPerDay),
+                excess: formatHoursDisplay(dailyExcess.excessHours),
+              })}
+            </p>
+          ) : (
+            <>
+              <p className="font-medium">{t('time.form.dailyExcessTitle')}</p>
+              <ul className="mt-2 list-inside list-disc text-sm">
+                <li>{t('time.form.dailyExcessRegular', { hours: formatHoursDisplay(dailyExcess.standardHoursPerDay) })}</li>
+                <li>{t('time.form.dailyExcessReported', { hours: formatHoursDisplay(dailyExcess.reportedSoFar) })}</li>
+                <li>{t('time.form.dailyExcessNew', { hours: formatHoursDisplay(dailyExcess.newHours) })}</li>
+                <li>{t('time.form.dailyExcessOver', { hours: formatHoursDisplay(dailyExcess.excessHours) })}</li>
+              </ul>
+              <p className="mt-2 text-sm">{t('time.form.dailyExcessManagerNote')}</p>
+              <label className="mt-3 inline-flex min-h-11 items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={confirmDailyExcess}
+                  onChange={(event) => setConfirmDailyExcess(event.target.checked)}
+                  className="size-4"
+                />
+                {t('time.form.dailyExcessConfirm')}
+              </label>
+            </>
+          )}
         </Alert>
       ) : null}
       {correctsEntryId ? (
@@ -224,7 +251,10 @@ export function TimeEntryForm({
       {clientRequestId ? (
         <input type="hidden" name="clientRequestId" value={clientRequestId} />
       ) : null}
-      {confirmDailyExcess ? <input type="hidden" name="confirmDailyExcess" value="on" /> : null}
+      {(confirmDailyExcess || canApproveOnCreate) ? (
+        <input type="hidden" name="confirmDailyExcess" value="on" />
+      ) : null}
+      {approveOnCreate ? <input type="hidden" name="approveOnCreate" value="on" /> : null}
       {dayHoursJson ? <input type="hidden" name="dayHoursJson" value={dayHoursJson} /> : null}
       {weekdays.map((day) => (
         <input key={day} type="hidden" name="weekdays" value={String(day)} />
@@ -516,13 +546,37 @@ export function TimeEntryForm({
         </div>
       )}
 
-      <Button type="submit" loading={pending} size="lg" block>
-        {correctsEntryId
-          ? t('time.form.submitCorrection')
-          : entryMode === 'bulk'
-            ? t('time.form.submitBulk')
-            : t('time.form.submit')}
-      </Button>
+      <div className="flex flex-col gap-2">
+        <Button
+          type="submit"
+          loading={pending}
+          size="lg"
+          block
+          onClick={() => {
+            setApproveOnCreate(false);
+          }}
+        >
+          {correctsEntryId
+            ? t('time.form.submitCorrection')
+            : entryMode === 'bulk'
+              ? t('time.form.submitBulk')
+              : t('time.form.submit')}
+        </Button>
+        {canApproveOnCreate && !correctsEntryId && entryMode === 'single' ? (
+          <Button
+            type="submit"
+            loading={pending}
+            size="lg"
+            block
+            variant="secondary"
+            onClick={() => {
+              setApproveOnCreate(true);
+            }}
+          >
+            {t('time.form.submitAndApprove')}
+          </Button>
+        ) : null}
+      </div>
     </form>
   );
 }

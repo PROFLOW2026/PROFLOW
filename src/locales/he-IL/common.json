@@ -78,7 +78,7 @@
     "saving": "שומר…",
     "saved": "נשמר",
     "noResults": "אין תוצאות",
-    "noResultsForQuery": "לא נמצאו תוצאות עבור «{query}»",
+    "noResultsForQuery": "לא נמצאו תוצאות עבור \"{query}\"",
     "noResultsHint": "אפשר לנסות חיפוש או סינון אחר.",
     "emptyTitle": "עדיין אין כאן כלום",
     "errorTitle": "משהו השתבש",

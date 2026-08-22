@@ -222,7 +222,7 @@
     "duplicateOpenDocument": "פתיחת המסמך הקיים",
     "duplicateOverride": "זה אינו כפילות",
     "duplicateOverrideHint": "אישור נשאר זמין. סמנו רק אם אתם בטוחים שזה מסמך חדש לגיטימי.",
-    "duplicateOverrideRequired": "נראה שמדובר בכפילות. סמנו »זה אינו כפילות« כדי ליצור טיוטה בכל זאת.",
+    "duplicateOverrideRequired": "נראה שמדובר בכפילות. סמנו \"זה אינו כפילות\" כדי ליצור טיוטה בכל זאת.",
     "vendorExact": "מצאנו ספק קיים",
     "vendorProbable": "יש כמה ספקים אפשריים - בחרו אחד",
     "vendorNone": "לא נמצא ספק תואם. בחרו ספק קיים או הוסיפו ספק קודם.",

@@ -31,6 +31,19 @@ function parsePositiveHours(value: string, label: string): Decimal {
   return parsed;
 }
 
+/** Allows 0 (e.g. coalesce(sum(hours),0) when no entries yet that day). */
+function parseNonNegativeHours(value: string, label: string): Decimal {
+  const trimmed = value.trim();
+  if (!trimmed || !/^[+]?\d+(\.\d+)?$/.test(trimmed)) {
+    throw new DomainRuleError(`Invalid ${label}`, 'workforce.errors.invalidHours');
+  }
+  const parsed = new Decimal(trimmed);
+  if (!parsed.isFinite() || parsed.lt(0)) {
+    throw new DomainRuleError(`Invalid ${label}`, 'workforce.errors.invalidHours');
+  }
+  return parsed;
+}
+
 /** Deterministic daily excess allocation (stable sort — not frozen at insert time). */
 export interface DailyEntryForExcessAllocation {
   readonly id: string;
@@ -103,7 +116,10 @@ export function breakdownDailyHours(input: {
   readonly newHours: string;
 }): DailyHoursBreakdown {
   const capacity = parsePositiveHours(input.standardHoursPerDay, 'daily framework');
-  const soFar = input.reportedSoFar.trim() === '' ? new Decimal(0) : parsePositiveHours(input.reportedSoFar, 'reported hours');
+  const soFar =
+    input.reportedSoFar.trim() === ''
+      ? new Decimal(0)
+      : parseNonNegativeHours(input.reportedSoFar, 'reported hours');
   const incoming = parsePositiveHours(input.newHours, 'hours');
 
   const remaining = Decimal.max(capacity.minus(soFar), 0);
@@ -145,12 +161,27 @@ export function isExactDuplicateCandidate(input: {
     a.workDate === b.workDate &&
     a.kind === (b.projectId ? 'project' : 'non_project') &&
     (a.projectId ?? null) === (b.projectId ?? null) &&
-    a.hours.trim() === b.hours.trim() &&
+    hoursEqual(a.hours, b.hours) &&
     (a.workPackageId ?? null) === (b.workPackageId ?? null) &&
     (a.phaseId ?? null) === (b.phaseId ?? null) &&
     (a.timeCodeId ?? null) === (b.timeCodeId ?? null) &&
-    normalizeDescription(a.description) === normalizeDescription(b.description)
+    // Notes must not create a second economic row for the same project day/hours.
+    (a.kind === 'project' ||
+      normalizeDescription(a.description) === normalizeDescription(b.description))
   );
+}
+
+function hoursEqual(left: string, right: string): boolean {
+  try {
+    return new Decimal(left.trim()).eq(new Decimal(right.trim()));
+  } catch {
+    return left.trim() === right.trim();
+  }
+}
+
+/** Exported for attendance→project sync matching (same decimal hours). */
+export function hoursEqualLoose(left: string, right: string): boolean {
+  return hoursEqual(left, right);
 }
 
 /** Ensures excess fields satisfy DB coupling before insert. */

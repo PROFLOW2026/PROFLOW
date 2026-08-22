@@ -1,5 +1,5 @@
 import { AUDIT_ACTIONS, recordAuditEvent } from '@/shared/audit';
-import { todayInTimeZone } from '@/shared/dates';
+import { coerceBusinessDate, todayInTimeZone } from '@/shared/dates';
 import { DomainRuleError, NotFoundError, ValidationError } from '@/shared/errors';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
@@ -20,7 +20,12 @@ import {
   insertLaborCostComponent,
   insertRateVersion,
   listRateVersionsByEmployee,
+  updateRateVersionValidFrom,
 } from '../data/rate-versions.repository';
+import {
+  canRealignInitialCompensationValidFrom,
+  resolveInitialCompensationValidFrom,
+} from '../domain/employment-compensation';
 import type { EmployeeListItem, EmployeeRecord, RateVersionRecord } from '../domain/types';
 import {
   buildEmployeeArchivePatch,
@@ -36,6 +41,7 @@ import {
   assertCanManageWorkforceCost,
   canReadWorkforceCost,
 } from './workforce-cost-authz';
+import { reconcileMissingTimeEntryCosts } from './time-entry-cost-reconcile';
 
 export interface EmployeeDetail extends EmployeeRecord {
   readonly rateVersions: readonly RateVersionRecord[];
@@ -83,6 +89,49 @@ async function assertUserLinkAllowed(
   }
 }
 
+/**
+ * When Owner sets employment start and the employee still has only the initial
+ * open salary version, move that version's effective date to hireDate.
+ * Does not invent dates and does not rewrite multi-version salary history.
+ */
+export async function alignInitialCompensationToHireDate(
+  context: OrgContext,
+  employeeId: string,
+  hireDate: string,
+): Promise<{ readonly aligned: boolean; readonly previousValidFrom: string | null }> {
+  const hire = coerceBusinessDate(hireDate);
+  const versions = await listRateVersionsByEmployee(context.db, context.organizationId, employeeId);
+  const target = canRealignInitialCompensationValidFrom(versions, hire);
+  if (!target) {
+    return { aligned: false, previousValidFrom: null };
+  }
+
+  const updated = await updateRateVersionValidFrom(context.db, {
+    organizationId: context.organizationId,
+    rateVersionId: target.rateVersionId,
+    validFrom: hire,
+  });
+  if (!updated) {
+    return { aligned: false, previousValidFrom: target.previousValidFrom };
+  }
+
+  await recordAuditEvent(context, {
+    action: AUDIT_ACTIONS.RATE_VERSION_CREATED,
+    entityType: 'rate_version',
+    entityId: updated.id,
+    before: { validFrom: target.previousValidFrom },
+    after: {
+      validFrom: hire,
+      alignedToHireDate: true,
+      employeeId,
+    },
+  });
+
+  await reconcileMissingTimeEntryCosts(context, { employeeId });
+
+  return { aligned: true, previousValidFrom: target.previousValidFrom };
+}
+
 /** Org members not already linked to another employee. Current link stays selectable. */
 export async function listLinkableOrgMembers(
   context: OrgContext,
@@ -118,7 +167,6 @@ export async function getEmployee(
   const employee = await findEmployeeById(context.db, context.organizationId, employeeId);
   if (!employee) throw new NotFoundError('Employee');
 
-  // Compensation history is private employer cost - not unlocked by workforce.read.
   const rateVersions = canReadWorkforceCost(context)
     ? await listRateVersionsByEmployee(context.db, context.organizationId, employeeId)
     : [];
@@ -145,20 +193,34 @@ export async function createEmployee(
   }
   await assertUserLinkAllowed(context, input.userId);
   const currency = (input.currency ?? context.organization.baseCurrency).toUpperCase();
-  const validFrom = input.validFrom ?? todayInTimeZone(context.organization.timezone);
+  const hireDate = input.hireDate ? coerceBusinessDate(input.hireDate) : null;
+  const validFrom =
+    resolveInitialCompensationValidFrom({
+      hireDate,
+      explicitValidFrom: input.validFrom,
+    }) ?? todayInTimeZone(context.organization.timezone);
+
+  const standardHours =
+    input.standardHoursPerDay === '' || input.standardHoursPerDay === undefined
+      ? null
+      : input.standardHoursPerDay;
 
   let employee;
   try {
     employee = await insertEmployee(context.db, {
-    organizationId: context.organizationId,
-    name: input.name,
-    status: input.status,
-    userId: input.userId ?? null,
-    employeeNumber: input.employeeNumber ?? null,
-    jobTitle: input.jobTitle ?? null,
-    email: input.email || null,
-    phone: input.phone ?? null,
-    notes: input.notes ?? null,
+      organizationId: context.organizationId,
+      name: input.name,
+      status: input.status,
+      userId: input.userId ?? null,
+      employeeNumber: input.employeeNumber ?? null,
+      jobTitle: input.jobTitle ?? null,
+      email: input.email || null,
+      phone: input.phone ?? null,
+      notes: input.notes ?? null,
+      hireDate,
+      endDate: input.endDate ? coerceBusinessDate(input.endDate) : null,
+      employmentBasis: input.baseRate ? input.rateUnit : null,
+      standardHoursPerDay: standardHours,
     });
   } catch (error) {
     if (isUniqueViolation(error)) {
@@ -175,15 +237,13 @@ export async function createEmployee(
       '@/modules/tenancy/application/labor-cost-defaults'
     );
     const defaults = await getLaborCostDefaultsForApply(context).catch(() => null);
-    const burdenPercent =
-      input.burdenPercent ?? defaults?.burdenPercent ?? null;
+    const burdenPercent = input.burdenPercent ?? defaults?.burdenPercent ?? null;
     const components =
       input.components && input.components.length > 0
         ? input.components
         : (defaults?.components ?? []).map((component) => ({
             key: component.key,
             label: component.key,
-            // Org defaults use `fixed`; workforce components store fixed amounts as `amount`.
             basis: (component.basis === 'fixed' ? 'amount' : component.basis) as
               | 'amount'
               | 'percent',
@@ -227,8 +287,9 @@ export async function createEmployee(
     entityId: employee.id,
     after: {
       name: employee.name,
+      hireDate,
       rateUnit: input.rateUnit,
-      ...(input.baseRate ? { baseRate: input.baseRate, currency } : {}),
+      ...(input.baseRate ? { baseRate: input.baseRate, currency, validFrom } : {}),
     },
   });
 
@@ -257,6 +318,19 @@ export async function updateEmployee(
     await assertUserLinkAllowed(context, input.userId, employeeId);
   }
 
+  const nextHireDate =
+    input.hireDate === undefined
+      ? undefined
+      : input.hireDate
+        ? coerceBusinessDate(input.hireDate)
+        : null;
+  const nextEndDate =
+    input.endDate === undefined
+      ? undefined
+      : input.endDate
+        ? coerceBusinessDate(input.endDate)
+        : null;
+
   let updated;
   try {
     updated = await updateEmployeeById(context.db, context.organizationId, employeeId, {
@@ -268,6 +342,8 @@ export async function updateEmployee(
       email: input.email || null,
       phone: input.phone,
       notes: input.notes,
+      ...(nextHireDate !== undefined ? { hireDate: nextHireDate } : {}),
+      ...(nextEndDate !== undefined ? { endDate: nextEndDate } : {}),
       standardHoursPerDay:
         input.standardHoursPerDay === '' || input.standardHoursPerDay === undefined
           ? undefined
@@ -284,6 +360,25 @@ export async function updateEmployee(
   }
 
   if (!updated) throw new NotFoundError('Employee');
+
+  if (nextHireDate) {
+    await alignInitialCompensationToHireDate(context, employeeId, nextHireDate);
+  } else if (updated.standardHoursPerDay !== existing.standardHoursPerDay) {
+    await reconcileMissingTimeEntryCosts(context, { employeeId });
+  }
+
+  // Hire/end corrections refresh open-period monthly allocation (no bootstrap).
+  if (
+    nextHireDate !== undefined ||
+    nextEndDate !== undefined ||
+    updated.hireDate !== existing.hireDate ||
+    updated.endDate !== existing.endDate
+  ) {
+    const { recomputeOpenMonthsAfterCompensationChange } = await import(
+      './monthly-cost-recompute'
+    );
+    await recomputeOpenMonthsAfterCompensationChange(context, employeeId);
+  }
 
   await recordAuditEvent(context, {
     action: AUDIT_ACTIONS.EMPLOYEE_UPDATED,

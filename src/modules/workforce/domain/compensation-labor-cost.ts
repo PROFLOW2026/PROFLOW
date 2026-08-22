@@ -1,3 +1,11 @@
+/**
+ * Authoritative labor-cost resolution by compensation unit.
+ *
+ * HOURLY → time-entry cost snapshot (hours × loaded hourly rate)
+ * DAILY  → day-conserved allocation (filled by daily recompute; not per-entry ÷ day-hours)
+ * MONTHLY → monthly pool allocation (filled by monthly recompute; NEVER ÷ workingDaysPerMonth)
+ */
+
 import Decimal from 'decimal.js';
 import {
   fromNumericString,
@@ -8,9 +16,7 @@ import {
   type MoneyValue,
 } from '@/shared/money';
 import type { LaborCostComponentRecord, RateUnit } from './types';
-import {
-  calculateLaborCostTotal,
-} from './labor-cost';
+import { calculateLaborCostTotal } from './labor-cost';
 import type { WorkCalendarRates } from './work-calendar';
 
 export interface CompensationLaborCostInput {
@@ -26,10 +32,7 @@ export interface CompensationLaborCostInput {
   readonly calendar?: WorkCalendarRates;
 }
 
-/**
- * Authoritative labor cost for a time entry from compensation (rate version path).
- * Uses org/employee work calendar for daily/monthly unit conversion — never ad-hoc divisors.
- */
+/** Prefer hourly. Daily/monthly Actual use conserved pool paths — not this converter. */
 export function calculateCompensationLaborCostTotal(
   input: CompensationLaborCostInput,
 ): MoneyValue {
@@ -45,8 +48,7 @@ export function calculateCompensationLaborCostTotal(
 }
 
 /**
- * Derive internal hourly employer cost from a known monthly employer-cost total.
- * Used when monthly employer cost exists but no rate version snapshot applies.
+ * @deprecated Display-only helper. Monthly project Actual must NOT use this path.
  */
 export function hourlyEmployerCostFromMonthlyTotal(input: {
   readonly monthlyEmployerCost: MoneyValue;
@@ -65,7 +67,9 @@ export function hourlyEmployerCostFromMonthlyTotal(input: {
   );
 }
 
-/** Labor cost for logged hours from a known monthly employer-cost total. */
+/**
+ * @deprecated Monthly Actual uses allocation runs — not entry-level ÷ month-hours.
+ */
 export function laborCostFromMonthlyEmployerTotal(input: {
   readonly monthlyEmployerCost: MoneyValue;
   readonly hours: string;
@@ -102,6 +106,8 @@ export function parseKnownMonthlyEmployerCost(input: {
 
 export type LaborCostResolutionKind =
   | 'rate_version'
+  | 'monthly_allocation'
+  | 'daily_allocation'
   | 'monthly_employer_cost'
   | 'unresolved_missing_rate'
   | 'unresolved_missing_standard_hours'
@@ -116,7 +122,6 @@ export interface LaborCostResolution {
 
 export function resolveLaborCostFromCompensation(input: {
   readonly hours: string;
-  /** Null when org/employee standard-hours basis is not fully configured. */
   readonly calendar: WorkCalendarRates | null;
   readonly rateVersion: {
     readonly id: string;
@@ -132,40 +137,18 @@ export function resolveLaborCostFromCompensation(input: {
   readonly monthlyEmployerCost: MoneyValue | null;
 }): LaborCostResolution {
   if (input.rateVersion) {
-    if (input.rateVersion.rateUnit === 'hourly') {
-      const total = calculateCompensationLaborCostTotal({
-        baseRate: input.rateVersion.baseRate,
-        currency: input.rateVersion.currency,
-        rateUnit: input.rateVersion.rateUnit,
-        hours: input.hours,
-        burdenPercent: input.rateVersion.burdenPercent,
-        components: input.components,
-        calendar: input.calendar ?? undefined,
-      });
-      const snap = costSnapshotFromAmount(total);
+    if (input.rateVersion.rateUnit === 'monthly') {
       return {
-        kind: 'rate_version',
-        rateVersionId: input.rateVersion.id,
-        costAmount: snap.costAmount,
-        costCurrency: snap.costCurrency,
-      };
-    }
-
-    if (!input.calendar) {
-      return {
-        kind: 'unresolved_missing_standard_hours',
+        kind: 'monthly_allocation',
         rateVersionId: input.rateVersion.id,
         costAmount: null,
         costCurrency: null,
       };
     }
 
-    if (
-      input.rateVersion.rateUnit === 'monthly' &&
-      (!input.calendar.standardHoursPerMonth || Number(input.calendar.standardHoursPerMonth) <= 0)
-    ) {
+    if (input.rateVersion.rateUnit === 'daily') {
       return {
-        kind: 'unresolved_missing_standard_hours',
+        kind: 'daily_allocation',
         rateVersionId: input.rateVersion.id,
         costAmount: null,
         costCurrency: null,
@@ -175,11 +158,10 @@ export function resolveLaborCostFromCompensation(input: {
     const total = calculateCompensationLaborCostTotal({
       baseRate: input.rateVersion.baseRate,
       currency: input.rateVersion.currency,
-      rateUnit: input.rateVersion.rateUnit,
+      rateUnit: 'hourly',
       hours: input.hours,
       burdenPercent: input.rateVersion.burdenPercent,
       components: input.components,
-      calendar: input.calendar,
     });
     const snap = costSnapshotFromAmount(total);
     return {
@@ -190,36 +172,9 @@ export function resolveLaborCostFromCompensation(input: {
     };
   }
 
-  if (input.monthlyEmployerCost) {
-    if (!input.calendar || Number(input.calendar.standardHoursPerMonth) <= 0) {
-      return {
-        kind: 'unresolved_missing_standard_hours',
-        rateVersionId: null,
-        costAmount: null,
-        costCurrency: null,
-      };
-    }
-    const total = laborCostFromMonthlyEmployerTotal({
-      monthlyEmployerCost: input.monthlyEmployerCost,
-      hours: input.hours,
-      calendar: input.calendar,
-    });
-    if (!total) {
-      return {
-        kind: 'unresolved_missing_standard_hours',
-        rateVersionId: null,
-        costAmount: null,
-        costCurrency: null,
-      };
-    }
-    const snap = costSnapshotFromAmount(total);
-    return {
-      kind: 'monthly_employer_cost',
-      rateVersionId: null,
-      costAmount: snap.costAmount,
-      costCurrency: snap.costCurrency,
-    };
-  }
+  // Do not convert monthly employer pools into entry snapshots.
+  void input.monthlyEmployerCost;
+  void input.calendar;
 
   return {
     kind: 'unresolved_missing_rate',

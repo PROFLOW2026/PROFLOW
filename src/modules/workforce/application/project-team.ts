@@ -209,23 +209,12 @@ export async function updateProjectTeamAssignment(
   );
   if (!existing || existing.status !== 'active') throw new NotFoundError('Team member');
 
-  const today = todayInTimeZone(context.organization.timezone);
   const nextStart = parsed.data.startDate ?? existing.startDate;
   const nextEnd =
     parsed.data.endDate !== undefined ? parsed.data.endDate : existing.endDate;
 
-  if (parsed.data.startDate !== undefined) {
-    const existingStart = businessDate(existing.startDate);
-    // Past-started assignments: keep start immutable (safe current/future edits only).
-    if (isBefore(existingStart, businessDate(today)) && parsed.data.startDate !== existing.startDate) {
-      throw new ValidationError([
-        {
-          path: 'startDate',
-          message: 'Cannot change start date after the assignment has begun.',
-        },
-      ]);
-    }
-  }
+  // Owner / workforce managers may correct historical assignment dates.
+  // Start date is not frozen merely because it is in the past.
 
   if (nextEnd && isBefore(businessDate(nextEnd), businessDate(nextStart))) {
     throw new ValidationError([

@@ -46,10 +46,25 @@ export const laborCostDefaultsSchema = z.object({
     .regex(/^\d+(\.\d{1,4})?$/)
     .nullable()
     .default(null),
+  /**
+   * Explicit org work week (JS weekday 0=Sun … 6=Sat).
+   * null / omitted → ProjectFlow canonical Sunday–Thursday.
+   * When Owner saves an explicit list, that list is preserved.
+   */
+  workWeekdays: z
+    .array(z.number().int().min(0).max(6))
+    .min(1)
+    .max(7)
+    .nullable()
+    .optional()
+    .default(null),
 });
 
 export type LaborCostDefaults = z.infer<typeof laborCostDefaultsSchema>;
 export type LaborCostDefaultComponent = z.infer<typeof laborCostDefaultComponentSchema>;
+
+/** Canonical ProjectFlow default: א׳–ה׳ (Sun–Thu). */
+export const CANONICAL_WORK_WEEKDAYS: readonly number[] = [0, 1, 2, 3, 4];
 
 export function emptyLaborCostDefaults(): LaborCostDefaults {
   return {
@@ -57,6 +72,7 @@ export function emptyLaborCostDefaults(): LaborCostDefaults {
     components: [],
     standardHoursPerDay: null,
     workingDaysPerMonth: null,
+    workWeekdays: null,
   };
 }
 
@@ -68,5 +84,20 @@ export function parseLaborCostDefaults(raw: unknown): LaborCostDefaults {
     components: parsed.data.components.map((c) => ({ ...c })),
     standardHoursPerDay: parsed.data.standardHoursPerDay,
     workingDaysPerMonth: parsed.data.workingDaysPerMonth,
+    workWeekdays: parsed.data.workWeekdays ?? null,
   };
+}
+
+/**
+ * Resolve effective work weekdays for forms/bulk.
+ * Explicit org list wins; otherwise canonical א׳–ה׳.
+ */
+export function resolveOrgWorkWeekdays(
+  defaults: Pick<LaborCostDefaults, 'workWeekdays'> | null | undefined,
+): readonly number[] {
+  const saved = defaults?.workWeekdays;
+  if (saved && saved.length > 0) {
+    return [...new Set(saved.filter((day) => day >= 0 && day <= 6))].sort((a, b) => a - b);
+  }
+  return [...CANONICAL_WORK_WEEKDAYS];
 }

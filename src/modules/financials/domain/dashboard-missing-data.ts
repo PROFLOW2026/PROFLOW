@@ -66,7 +66,7 @@ export interface BuildDashboardMissingDataInput {
 }
 
 const REASON_ACTION: Record<DataConfidenceReason, string> = {
-  workforce_entries_missing_cost: '/workforce/time',
+  workforce_entries_missing_cost: '/workforce/employees#org-work-framework',
   unallocated_remainder: '/expenses',
   open_draft_documents: '/expenses',
   open_allocations: '/overhead',

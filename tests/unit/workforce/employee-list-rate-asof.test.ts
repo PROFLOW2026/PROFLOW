@@ -24,6 +24,14 @@ describe('employee list rate as-of date (org timezone)', () => {
     expect(source).toContain('${asOfDate}::date');
   });
 
+  it('listEmployees qualifies employees.id in rate subqueries (drizzle select-list bug)', () => {
+    const source = readFileSync(employeesRepoPath, 'utf8');
+    // Bare ${employees.id} becomes unqualified `id` → correlates to rate_versions.id → null rates.
+    expect(source).toContain('"employees"."id"');
+    expect(source).toContain('employeeIdRef');
+    expect(source).not.toMatch(/rv\.employee_id = \$\{employees\.id\}/);
+  });
+
   it('listEmployeesForOrg passes todayInTimeZone as asOfDate (list/detail agree)', () => {
     const source = readFileSync(employeesAppPath, 'utf8');
     expect(source).toContain('todayInTimeZone(context.organization.timezone)');

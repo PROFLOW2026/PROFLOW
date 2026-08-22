@@ -21,15 +21,22 @@ import {
   submitTimesheet,
   updateTimeEntry,
   updateTimeEntrySchema,
+  purgeExactDuplicateDrafts,
 } from '@/modules/workforce';
 import { withOrgContext } from '@/shared/auth/session';
 import { businessDate } from '@/shared/dates';
-import { AppError } from '@/shared/errors';
 import { redirect } from '@/shared/i18n/navigation';
+import {
+  isRedirectError,
+  mapWorkforceActionError,
+} from '@/modules/workforce/application/map-workforce-action-error';
 
 export interface TimeEntryFormState {
   error?: string;
   ok?: boolean;
+  removedCount?: number;
+  createdCount?: number;
+  skippedDuplicateCount?: number;
   /** Local draft queued - not server truth. */
   offlineQueued?: boolean;
   /** Daily framework excess — user must confirm before resubmit. */
@@ -41,69 +48,19 @@ export interface TimeEntryFormState {
   };
 }
 
-const WORKFORCE_ERROR_KEYS = [
-  'invalidBulkRange',
-  'emptyBulk',
-  'timeEntryAlreadyVoid',
-  'timeEntryArchived',
-  'invalidWorkPackage',
-  'invalidPhase',
-  'closedMonthNeedsProject',
-  'closedMonthCurrencyMismatch',
-  'invalidTimesheetTransition',
-  'timesheetPeriodApproved',
-  'timesheetEmployeeMismatch',
-  'nothingToSubmit',
-  'managerNoteRequired',
-  'timeEntryApprovedLocked',
-  'timeEntryNotEditable',
-  'invalidTimesheetPeriod',
-  'timeSelfScope',
-  'selfApprovalBlocked',
-  'noLinkedEmployee',
-  'exactDuplicateTimeEntry',
-  'dailyHoursExceeded',
-  'timeEntryNotDeletable',
-] as const;
-
 async function mapActionError(error: unknown, fallback: string): Promise<TimeEntryFormState> {
-  if (!(error instanceof AppError)) throw error;
-  const prefix = 'workforce.errors.';
-  if (error.messageKey.startsWith(prefix)) {
-    const shortKey = error.messageKey.slice(prefix.length);
-    if (shortKey === 'dailyHoursExceeded' && error.details?.breakdown) {
-      const breakdown = error.details.breakdown as {
-        standardHoursPerDay: string;
-        reportedSoFar: string;
-        newHours: string;
-        excessHours: string;
-      };
-      const tWorkforce = await getTranslations('workforce');
-      return {
-        error: tWorkforce('errors.dailyHoursExceeded'),
-        dailyExcessWarning: breakdown,
-      };
-    }
-    if ((WORKFORCE_ERROR_KEYS as readonly string[]).includes(shortKey)) {
-      const tWorkforce = await getTranslations('workforce');
-      return { error: tWorkforce(`errors.${shortKey}` as 'errors.invalidBulkRange') };
-    }
+  if (isRedirectError(error)) throw error;
+  return mapWorkforceActionError(error, fallback);
+}
+
+/** Workforce time mutations must refresh Project Actual / workforce surfaces too. */
+function revalidateWorkforceProjectSurfaces(projectId?: string | null) {
+  revalidateWorkforceProjectSurfaces();
+  revalidatePath('/projects', 'layout');
+  revalidatePath('/dashboard');
+  if (projectId) {
+    revalidatePath(`/projects/${projectId}`);
   }
-  if (error.messageKey.startsWith('monthClose.')) {
-    const tMonthClose = await getTranslations('monthClose');
-    const key = error.messageKey.slice('monthClose.'.length);
-    try {
-      return { error: tMonthClose(key as 'errors.useCorrectionNotRewrite') };
-    } catch {
-      return { error: fallback };
-    }
-  }
-  if (error.messageKey.startsWith('approvals.errors.')) {
-    const tApprovals = await getTranslations('approvals');
-    const shortKey = error.messageKey.slice('approvals.errors.'.length);
-    return { error: tApprovals(`errors.${shortKey}` as 'errors.pending') };
-  }
-  return { error: fallback };
 }
 
 function parseDayHours(raw: FormDataEntryValue | null): { workDate: string; hours: string }[] | undefined {
@@ -171,7 +128,7 @@ export async function createTimeEntryAction(
     if (!parsed.success) return { error: tErrors('validationFailed') };
     try {
       await withOrgContext((context) => correctTimeEntry(context, parsed.data));
-      revalidatePath('/workforce', 'layout');
+      revalidateWorkforceProjectSurfaces();
       redirect({ href: '/workforce/time', locale });
     } catch (error) {
       return mapActionError(error, fallback);
@@ -195,8 +152,27 @@ export async function createTimeEntryAction(
     });
     if (!parsed.success) return { error: tErrors('validationFailed') };
     try {
-      await withOrgContext((context) => createBulkTimeEntries(context, parsed.data));
-      revalidatePath('/workforce', 'layout');
+      const result = await withOrgContext((context) => createBulkTimeEntries(context, parsed.data));
+      revalidateWorkforceProjectSurfaces();
+      if (result.entries.length === 0 && result.skippedDuplicateCount > 0) {
+        const tWorkforce = await getTranslations('workforce');
+        return {
+          error: tWorkforce('errors.bulkAllDuplicates'),
+          skippedDuplicateCount: result.skippedDuplicateCount,
+        };
+      }
+      if (result.skippedDuplicateCount > 0) {
+        const tWorkforce = await getTranslations('workforce');
+        return {
+          ok: true,
+          createdCount: result.entries.length,
+          skippedDuplicateCount: result.skippedDuplicateCount,
+          error: tWorkforce('time.form.bulkPartialSuccess', {
+            created: result.entries.length,
+            skipped: result.skippedDuplicateCount,
+          }),
+        };
+      }
       redirect({ href: '/workforce/time', locale });
     } catch (error) {
       return mapActionError(error, fallback);
@@ -214,6 +190,7 @@ export async function createTimeEntryAction(
     timeCodeId: formData.get('timeCodeId') || null,
     description: formData.get('description') || null,
     confirmDailyExcess: formData.get('confirmDailyExcess') === 'on',
+    approveOnCreate: formData.get('approveOnCreate') === 'on',
     clientRequestId: formData.get('clientRequestId') || null,
   });
 
@@ -223,7 +200,7 @@ export async function createTimeEntryAction(
 
   try {
     await withOrgContext((context) => createTimeEntry(context, parsed.data));
-    revalidatePath('/workforce', 'layout');
+    revalidateWorkforceProjectSurfaces();
     redirect({ href: '/workforce/time', locale });
   } catch (error) {
     return mapActionError(error, fallback);
@@ -250,7 +227,7 @@ export async function submitTimeEntriesAction(
           })
         : submitTimeEntries(context, { entryIds }),
     );
-    revalidatePath('/workforce', 'layout');
+    revalidateWorkforceProjectSurfaces();
     return { ok: true };
   } catch (error) {
     return mapActionError(error, fallback);
@@ -280,7 +257,7 @@ export async function approveTimesheetAction(
         await approveTimeEntry(context, { timeEntryId });
       }
     });
-    revalidatePath('/workforce', 'layout');
+    revalidateWorkforceProjectSurfaces();
     return { ok: true };
   } catch (error) {
     return mapActionError(error, fallback);
@@ -297,7 +274,7 @@ export async function returnTimesheetAction(
   const managerNote = String(formData.get('managerNote') ?? '');
   try {
     await withOrgContext((context) => returnTimesheet(context, { timesheetId, managerNote }));
-    revalidatePath('/workforce', 'layout');
+    revalidateWorkforceProjectSurfaces();
     return { ok: true };
   } catch (error) {
     return mapActionError(error, fallback);
@@ -313,8 +290,36 @@ export async function deleteDraftTimeEntryAction(
   const timeEntryId = String(formData.get('timeEntryId') ?? '');
   try {
     await withOrgContext((context) => deleteDraftTimeEntry(context, { timeEntryId }));
-    revalidatePath('/workforce', 'layout');
+    revalidateWorkforceProjectSurfaces();
     return { ok: true };
+  } catch (error) {
+    return mapActionError(error, fallback);
+  }
+}
+
+export async function purgeExactDuplicateDraftsAction(
+  _prevState: TimeEntryFormState,
+  formData: FormData,
+): Promise<TimeEntryFormState> {
+  const tErrors = await getTranslations('errors');
+  const fallback = tErrors('unexpected');
+  try {
+    const result = await withOrgContext((context) =>
+      purgeExactDuplicateDrafts(context, {
+        employeeId: String(formData.get('employeeId') || '') || undefined,
+        projectId: String(formData.get('projectId') || '') || undefined,
+        fromDate: (() => {
+          const raw = String(formData.get('fromDate') || '').trim();
+          return raw ? businessDate(raw) : undefined;
+        })(),
+        toDate: (() => {
+          const raw = String(formData.get('toDate') || '').trim();
+          return raw ? businessDate(raw) : undefined;
+        })(),
+      }),
+    );
+    revalidateWorkforceProjectSurfaces();
+    return { ok: true, removedCount: result.removedCount };
   } catch (error) {
     return mapActionError(error, fallback);
   }
@@ -344,7 +349,7 @@ export async function excessTimeEntryDecisionAction(
       }
       throw new Error('Unknown excess decision');
     });
-    revalidatePath('/workforce', 'layout');
+    revalidateWorkforceProjectSurfaces();
     return { ok: true };
   } catch (error) {
     return mapActionError(error, fallback);
@@ -365,7 +370,7 @@ export async function updateTimeEntryAction(
   if (!parsed.success) return { error: tErrors('validationFailed') };
   try {
     await withOrgContext((context) => updateTimeEntry(context, parsed.data));
-    revalidatePath('/workforce', 'layout');
+    revalidateWorkforceProjectSurfaces();
     return { ok: true };
   } catch (error) {
     return mapActionError(error, fallback);

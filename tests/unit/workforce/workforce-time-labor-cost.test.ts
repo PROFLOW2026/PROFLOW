@@ -94,7 +94,7 @@ describe('monthly compensation → labor cost', () => {
     expect(Number(total?.amount).toFixed(2)).toBe('593.40');
   });
 
-  it('does NOT cost monthly rate when denominator missing', () => {
+  it('routes monthly rate to monthly_allocation (no entry snapshot ÷ hours)', () => {
     const resolution = resolveLaborCostFromCompensation({
       hours: '6',
       calendar: null,
@@ -108,26 +108,17 @@ describe('monthly compensation → labor cost', () => {
       components: [],
       monthlyEmployerCost: null,
     });
-    expect(resolution.kind).toBe('unresolved_missing_standard_hours');
+    expect(resolution.kind).toBe('monthly_allocation');
     expect(resolution.costAmount).toBeNull();
   });
 
-  it('resolves monthly rate version with configured 182h denominator', () => {
-    const resolution = resolveLaborCostFromCompensation({
+  it('still exposes deprecated monthly÷hours helper for display-only math', () => {
+    const resolution = laborCostFromMonthlyEmployerTotal({
+      monthlyEmployerCost: money('18000', 'ILS'),
       hours: '6',
-      calendar: calendar,
-      rateVersion: {
-        id: 'rv-1',
-        baseRate: '18000',
-        currency: 'ILS',
-        rateUnit: 'monthly',
-        burdenPercent: null,
-      },
-      components: [],
-      monthlyEmployerCost: null,
+      calendar: calendar!,
     });
-    expect(resolution.kind).toBe('rate_version');
-    expect(Number(resolution.costAmount).toFixed(2)).toBe('593.41');
+    expect(Number(resolution?.amount).toFixed(2)).toBe('593.40');
   });
 });
 

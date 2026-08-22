@@ -5,8 +5,14 @@ export type WeekdayIndex = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 
 export const ALL_WEEKDAYS: readonly WeekdayIndex[] = [0, 1, 2, 3, 4, 5, 6];
 
-/** Default bulk filter: Mon–Fri. */
-export const WEEKDAY_WORKDAYS: readonly WeekdayIndex[] = [1, 2, 3, 4, 5];
+/**
+ * Canonical ProjectFlow work week: Sunday–Thursday (א׳–ה׳).
+ * JS/UTC weekday indexes: 0=Sun … 4=Thu. Friday/Saturday excluded.
+ */
+export const WEEKDAY_WORKDAYS: readonly WeekdayIndex[] = [0, 1, 2, 3, 4];
+
+/** @deprecated Alias — use WEEKDAY_WORKDAYS (canonical א׳–ה׳). */
+export const DEFAULT_WORK_WEEKDAYS = WEEKDAY_WORKDAYS;
 
 export interface BulkDayHours {
   readonly workDate: string;
@@ -95,4 +101,21 @@ export function previewBulkTimeEntries(input: {
     totalHours: Number.isFinite(total) ? String(total) : '0',
     entryCount: days.length,
   };
+}
+
+/**
+ * Expand from→to into concrete calendar dates matching selected weekdays
+ * (no hours payload — used by attendance range and similar).
+ */
+export function expandWorkDatesInRange(input: {
+  readonly fromDate: string;
+  readonly toDate: string;
+  readonly weekdays?: readonly number[];
+}): readonly string[] {
+  return expandBulkWorkDates({
+    fromDate: input.fromDate,
+    toDate: input.toDate,
+    weekdays: input.weekdays,
+    hours: '1',
+  }).map((day) => day.workDate);
 }

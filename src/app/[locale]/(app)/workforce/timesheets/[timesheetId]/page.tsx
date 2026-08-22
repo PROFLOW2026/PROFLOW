@@ -16,6 +16,7 @@ import {
 } from '@/modules/workforce/ui/timesheet-actions';
 import { WorkforceSubNav } from '@/modules/workforce/ui/workforce-sub-nav';
 import { withOrgContext } from '@/shared/auth/session';
+import { formatWorkHoursValue } from '@/modules/workforce/domain/format-work-hours';
 import { businessDate } from '@/shared/dates/dates';
 import { formatBusinessDate } from '@/shared/dates/format';
 import { Link } from '@/shared/i18n/navigation';
@@ -162,7 +163,7 @@ export default async function TimesheetDetailPage({
                         label={t(`time.approvalStatus.${entry.approvalStatus}`)}
                       />
                     </TableCell>
-                    <TableCell numeric>{entry.hours}</TableCell>
+                    <TableCell numeric>{formatWorkHoursValue(entry.hours)}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -180,7 +181,7 @@ export default async function TimesheetDetailPage({
                 : entry.timeCodeName ?? t('time.nonProject')}
             </p>
             <p className="mt-1 text-sm">
-              {entry.hours} {t('time.hoursAbbrev')}
+              {formatWorkHoursValue(entry.hours)} {t('time.hoursAbbrev')}
             </p>
           </div>
         )}

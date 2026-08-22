@@ -82,4 +82,13 @@ describe('client message wrappers for Hebrew closure', () => {
     expect(text).toContain("'assets'");
     expect(text).toMatch(/MaterialUsageForm|EquipmentUsageForm/);
   });
+
+  it('wraps project team access panel with settings client messages', () => {
+    const path = join(process.cwd(), 'src/modules/workforce/ui/project-team-panel.tsx');
+    expect(existsSync(path)).toBe(true);
+    const text = readFileSync(path, 'utf8');
+    expect(text).toMatch(/WithClientMessages/);
+    expect(text).toContain("'settings'");
+    expect(text).toMatch(/ProjectScopedAccessPanel/);
+  });
 });

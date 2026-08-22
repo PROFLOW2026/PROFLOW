@@ -1,4 +1,4 @@
-import { and, desc, eq, gte, inArray, isNotNull, isNull, lte, notExists, sql } from 'drizzle-orm';
+import { and, desc, eq, gte, inArray, isNotNull, isNull, lte, notExists, or, sql } from 'drizzle-orm';
 import {
   employeeMonthCosts,
   employees,
@@ -14,6 +14,7 @@ import {
   resolveListOffset,
 } from '@/shared/db/list-limits';
 import type { DbExecutor } from '@/shared/db/types';
+import { coerceBusinessDate } from '@/shared/dates';
 import { areEmployeeMonthCostsAvailable } from '../domain/monthly-cost-gates';
 import type {
   NonProjectTimeCodeRecord,
@@ -52,7 +53,7 @@ function mapTimeEntry(row: typeof timeEntries.$inferSelect): TimeEntryRecord {
     id: row.id,
     organizationId: row.organizationId,
     employeeId: row.employeeId,
-    workDate: row.workDate,
+    workDate: coerceBusinessDate(row.workDate),
     hours: row.hours,
     kind: row.kind,
     projectId: row.projectId,
@@ -175,6 +176,51 @@ export async function insertTimeEntry(
     .returning();
 
   return mapTimeEntry(row!);
+}
+
+/**
+ * Backfill missing labor cost snapshots on recorded rows (any approval status).
+ * Fills null `cost_amount` / currency, and/or stale null `rate_version_id`.
+ * Never overwrites an existing non-null cost amount.
+ */
+export async function patchTimeEntryCostSnapshot(
+  db: DbExecutor,
+  organizationId: string,
+  timeEntryId: string,
+  snapshot: {
+    readonly rateVersionId: string | null;
+    readonly costAmount: string | null;
+    readonly costCurrency: string | null;
+  },
+): Promise<TimeEntryRecord | null> {
+  const rateOnly =
+    snapshot.rateVersionId != null
+      ? and(isNull(timeEntries.rateVersionId), isNotNull(timeEntries.costAmount))
+      : sql`false`;
+
+  const [row] = await db
+    .update(timeEntries)
+    .set({
+      rateVersionId: sql`case
+        when ${timeEntries.costAmount} is null then ${snapshot.rateVersionId}
+        else coalesce(${timeEntries.rateVersionId}, ${snapshot.rateVersionId})
+      end`,
+      costAmount: sql`coalesce(${timeEntries.costAmount}, ${snapshot.costAmount})`,
+      costCurrency: sql`coalesce(${timeEntries.costCurrency}, ${snapshot.costCurrency})`,
+      updatedAt: new Date(),
+    })
+    .where(
+      and(
+        eq(timeEntries.id, timeEntryId),
+        eq(timeEntries.organizationId, organizationId),
+        eq(timeEntries.status, 'recorded'),
+        isNull(timeEntries.archivedAt),
+        or(isNull(timeEntries.costAmount), rateOnly),
+      ),
+    )
+    .returning();
+
+  return row ? mapTimeEntry(row) : null;
 }
 
 /** Only call from `correctTimeEntry` after the `time_correction` approval gate. */
@@ -303,6 +349,38 @@ export async function listTimeEntries(
     workPackageName: row.workPackageName,
     timeCodeName: row.timeCodeName,
   }));
+}
+
+export async function sumRecordedDailyHoursForPairs(
+  db: DbExecutor,
+  organizationId: string,
+  pairs: readonly { readonly employeeId: string; readonly workDate: string }[],
+): Promise<Map<string, string>> {
+  if (pairs.length === 0) return new Map();
+
+  const unique = [...new Map(pairs.map((pair) => [`${pair.employeeId}:${pair.workDate}`, pair])).values()];
+  const pairConditions = unique.map((pair) =>
+    and(eq(timeEntries.employeeId, pair.employeeId), eq(timeEntries.workDate, pair.workDate)),
+  );
+
+  const rows = await db
+    .select({
+      employeeId: timeEntries.employeeId,
+      workDate: timeEntries.workDate,
+      total: sql<string>`coalesce(sum(${timeEntries.hours}), 0)::text`,
+    })
+    .from(timeEntries)
+    .where(
+      and(
+        eq(timeEntries.organizationId, organizationId),
+        eq(timeEntries.status, 'recorded'),
+        isNull(timeEntries.archivedAt),
+        or(...pairConditions),
+      ),
+    )
+    .groupBy(timeEntries.employeeId, timeEntries.workDate);
+
+  return new Map(rows.map((row) => [`${row.employeeId}:${row.workDate}`, row.total]));
 }
 
 export async function findTimeEntryById(

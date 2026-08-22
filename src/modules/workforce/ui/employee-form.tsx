@@ -18,26 +18,25 @@ const UNLINKED = '__none__';
 export interface EmployeeFormProps {
   readonly action: typeof createEmployeeAction;
   readonly defaultCurrency: string;
-  readonly defaultValidFrom: string;
-  /** Rate fields require workforce.manage (create page already asserts this). */
+  /** @deprecated Ignored — salary effective date comes from hireDate. */
+  readonly defaultValidFrom?: string;
   readonly showRateFields?: boolean;
   readonly linkableUsers?: readonly OrgMemberLinkOption[];
 }
 
 /**
- * Simple create: name + basic details only.
- * Compensation (rate / burden) stays under Advanced - org may skip forever.
+ * Owner create: identity + employment start + salary.
+ * Initial compensation effective date = hireDate (not create day).
  */
 export function EmployeeForm({
   action,
   defaultCurrency,
-  defaultValidFrom,
   showRateFields = true,
   linkableUsers = [],
 }: EmployeeFormProps) {
   const t = useTranslations('workforce');
   const tCommon = useTranslations('common');
-  const [rateUnit, setRateUnit] = useState<(typeof RATE_UNITS)[number]>('hourly');
+  const [rateUnit, setRateUnit] = useState<(typeof RATE_UNITS)[number]>('monthly');
   const [baseRate, setBaseRate] = useState('');
   const [burdenPercent, setBurdenPercent] = useState('');
   const [showAdvanced, setShowAdvanced] = useState(false);
@@ -53,11 +52,96 @@ export function EmployeeForm({
       </Field>
 
       <Field
+        label={t('employees.form.hireDate')}
+        required={Boolean(baseRate.trim())}
+        description={t('employees.form.hireDateHint')}
+      >
+        {(control) => (
+          <Input {...control} name="hireDate" type="date" required={Boolean(baseRate.trim())} dir="ltr" />
+        )}
+      </Field>
+
+      <Field
         label={t('employees.form.employeeNumber')}
         optionalLabel={tCommon('labels.optional')}
       >
         {(control) => <Input {...control} name="employeeNumber" dir="ltr" />}
       </Field>
+
+      <Field
+        label={t('employees.form.jobTitle')}
+        optionalLabel={tCommon('labels.optional')}
+        description={t('employees.form.jobTitleHint')}
+      >
+        {(control) => <Input {...control} name="jobTitle" />}
+      </Field>
+
+      <input type="hidden" name="rateUnit" value={rateUnit} />
+      <input type="hidden" name="currency" value={defaultCurrency} />
+
+      {showRateFields ? (
+        <div className="flex flex-col gap-4 rounded-lg border border-[var(--pf-border-default)] p-4">
+          <p className="text-sm font-medium">{t('employees.form.salarySectionTitle')}</p>
+          <p className="text-xs text-[var(--pf-text-muted)]">{t('employees.form.salarySectionHint')}</p>
+
+          <Field
+            label={t('employees.form.employmentStyle')}
+            description={t('employees.form.employmentStyleHint')}
+          >
+            {(control) => (
+              <Select value={rateUnit} onValueChange={(value) => setRateUnit(value as typeof rateUnit)}>
+                <SelectTrigger id={control.id} aria-describedby={control['aria-describedby']}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {RATE_UNITS.map((unit) => (
+                    <SelectItem key={unit} value={unit}>
+                      {t(`rateUnits.${unit}`)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          </Field>
+
+          <Field
+            label={t('employees.form.baseRate')}
+            optionalLabel={tCommon('labels.optional')}
+            description={t('employees.form.baseRateHint')}
+          >
+            {(control) => (
+              <>
+                <input type="hidden" name="baseRate" value={baseRate} />
+                <MoneyInput
+                  {...control}
+                  value={baseRate}
+                  onValueChange={setBaseRate}
+                  currencySymbol={defaultCurrency}
+                />
+              </>
+            )}
+          </Field>
+
+          <Field
+            label={t('employees.form.standardHoursPerDay')}
+            optionalLabel={tCommon('labels.optional')}
+            description={t('employees.form.standardHoursPerDayHint')}
+          >
+            {(control) => (
+              <Input
+                {...control}
+                name="standardHoursPerDay"
+                type="text"
+                inputMode="decimal"
+                placeholder="8"
+                dir="ltr"
+              />
+            )}
+          </Field>
+        </div>
+      ) : (
+        <input type="hidden" name="baseRate" value="" />
+      )}
 
       <Field
         label={t('employees.form.linkedUser')}
@@ -84,20 +168,6 @@ export function EmployeeForm({
         )}
       </Field>
 
-      <Field
-        label={t('employees.form.jobTitle')}
-        optionalLabel={tCommon('labels.optional')}
-        description={t('employees.form.jobTitleHint')}
-      >
-        {(control) => <Input {...control} name="jobTitle" />}
-      </Field>
-
-      {/* Hidden defaults - create works with no salary / no rate version. */}
-      <input type="hidden" name="rateUnit" value={rateUnit} />
-      <input type="hidden" name="validFrom" value={defaultValidFrom} />
-      <input type="hidden" name="currency" value={defaultCurrency} />
-      {!showAdvanced || !showRateFields ? <input type="hidden" name="baseRate" value={baseRate} /> : null}
-
       {!showAdvanced ? (
         <Button type="button" variant="ghost" className="self-start" onClick={() => setShowAdvanced(true)}>
           {tCommon('actions.showAdvanced')}
@@ -105,69 +175,35 @@ export function EmployeeForm({
       ) : (
         <div className="flex flex-col gap-4 rounded-lg border border-[var(--pf-border-default)] p-4">
           <p className="text-sm font-medium">{t('employees.form.advancedTitle')}</p>
-          <p className="text-xs text-[var(--pf-text-muted)]">{t('employees.form.advancedHint')}</p>
 
           {showRateFields ? (
-            <>
-              <Field
-                label={t('employees.form.employmentStyle')}
-                optionalLabel={tCommon('labels.optional')}
-                description={t('employees.form.employmentStyleHint')}
-              >
-                {(control) => (
-                  <Select value={rateUnit} onValueChange={(value) => setRateUnit(value as typeof rateUnit)}>
-                    <SelectTrigger id={control.id} aria-describedby={control['aria-describedby']}>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {RATE_UNITS.map((unit) => (
-                        <SelectItem key={unit} value={unit}>
-                          {t(`rateUnits.${unit}`)}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-              </Field>
-
-              <Field
-                label={t('employees.form.baseRate')}
-                optionalLabel={tCommon('labels.optional')}
-                description={t('employees.form.baseRateHint')}
-              >
-                {(control) => (
-                  <>
-                    <input type="hidden" name="baseRate" value={baseRate} />
-                    <MoneyInput
-                      {...control}
-                      value={baseRate}
-                      onValueChange={setBaseRate}
-                      currencySymbol={defaultCurrency}
-                    />
-                  </>
-                )}
-              </Field>
-
-              <Field
-                label={t('employees.form.burdenPercent')}
-                optionalLabel={tCommon('labels.optional')}
-                description={t('employees.form.burdenHint')}
-              >
-                {(control) => (
-                  <>
-                    <input type="hidden" name="burdenPercent" value={burdenPercent} />
-                    <Input
-                      {...control}
-                      inputMode="decimal"
-                      value={burdenPercent}
-                      onChange={(event) => setBurdenPercent(event.target.value)}
-                      placeholder="30"
-                    />
-                  </>
-                )}
-              </Field>
-            </>
+            <Field
+              label={t('employees.form.burdenPercent')}
+              optionalLabel={tCommon('labels.optional')}
+              description={t('employees.form.burdenHint')}
+            >
+              {(control) => (
+                <>
+                  <input type="hidden" name="burdenPercent" value={burdenPercent} />
+                  <Input
+                    {...control}
+                    inputMode="decimal"
+                    value={burdenPercent}
+                    onChange={(event) => setBurdenPercent(event.target.value)}
+                    placeholder="30"
+                  />
+                </>
+              )}
+            </Field>
           ) : null}
+
+          <Field
+            label={t('employees.form.endDate')}
+            optionalLabel={tCommon('labels.optional')}
+            description={t('employees.form.endDateHint')}
+          >
+            {(control) => <Input {...control} name="endDate" type="date" dir="ltr" />}
+          </Field>
 
           <Field label={t('employees.form.email')} optionalLabel={tCommon('labels.optional')}>
             {(control) => <Input {...control} name="email" type="email" autoComplete="off" dir="ltr" />}

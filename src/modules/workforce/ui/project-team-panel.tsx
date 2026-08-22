@@ -14,6 +14,7 @@ import {
 } from '@/modules/workforce';
 import { withOrgContext } from '@/shared/auth/session';
 import { todayInTimeZone } from '@/shared/dates';
+import { WithClientMessages } from '@/shared/i18n/with-client-messages';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { canManageWorkforce } from './employees-table';
@@ -91,13 +92,15 @@ export async function ProjectTeamPanel({ projectId }: ProjectTeamPanelProps) {
       <p className="text-start text-sm text-[var(--pf-text-muted)]">{t('projectPanel.assignmentNote')}</p>
 
       {(data.allowAccessManage || data.grants.length > 0 || data.accessMode !== 'all') && (
-        <ProjectScopedAccessPanel
-          projectId={projectId}
-          mode={data.accessMode}
-          canManage={data.allowAccessManage}
-          members={data.members}
-          grants={data.grants}
-        />
+        <WithClientMessages extra={['settings']}>
+          <ProjectScopedAccessPanel
+            projectId={projectId}
+            mode={data.accessMode}
+            canManage={data.allowAccessManage}
+            members={data.members}
+            grants={data.grants}
+          />
+        </WithClientMessages>
       )}
     </div>
   );
