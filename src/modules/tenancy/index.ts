@@ -294,6 +294,10 @@ export {
   saveLaborCostDefaults,
 } from './application/labor-cost-defaults';
 export type { LaborCostDefaults, LaborCostDefaultComponent } from './domain/labor-cost-defaults';
+export {
+  LABOR_COST_DEFAULTS_SETTING_KEY,
+  parseLaborCostDefaults,
+} from './domain/labor-cost-defaults';
 export type { OrganizationDomainRow } from './domain/organization-domains';
 export {
   getOrganizationLegalIdentity,

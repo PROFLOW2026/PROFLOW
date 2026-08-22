@@ -75,6 +75,10 @@ function mapTimeEntry(row: typeof timeEntries.$inferSelect): TimeEntryRecord {
     decidedAt: row.decidedAt ?? null,
     decidedByUserId: row.decidedByUserId ?? null,
     managerNote: row.managerNote ?? null,
+    excessHours: row.excessHours ?? null,
+    excessApprovalStatus:
+      (row.excessApprovalStatus as TimeEntryRecord['excessApprovalStatus']) ?? null,
+    clientRequestId: row.clientRequestId ?? null,
     archivedAt: row.archivedAt,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
@@ -91,6 +95,15 @@ function mapTimeCode(row: typeof nonProjectTimeCodes.$inferSelect): NonProjectTi
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   };
+}
+
+function effectiveLaborCostAmountExpr() {
+  return sql<string>`case
+    when ${timeEntries.costAmount} is null then null
+    when ${timeEntries.excessHours} is null or ${timeEntries.excessHours} = 0 then ${timeEntries.costAmount}
+    when ${timeEntries.excessApprovalStatus} = 'approved' then ${timeEntries.costAmount}
+    else (${timeEntries.costAmount} * (${timeEntries.hours} - ${timeEntries.excessHours}) / ${timeEntries.hours})::numeric
+  end`;
 }
 
 export async function insertTimeEntry(
@@ -122,6 +135,9 @@ export async function insertTimeEntry(
     decidedAt?: Date | null;
     decidedByUserId?: string | null;
     managerNote?: string | null;
+    excessHours?: string | null;
+    excessApprovalStatus?: 'pending' | 'approved' | 'rejected' | null;
+    clientRequestId?: string | null;
   },
 ): Promise<TimeEntryRecord> {
   const [row] = await db
@@ -152,6 +168,9 @@ export async function insertTimeEntry(
       decidedAt: input.decidedAt ?? null,
       decidedByUserId: input.decidedByUserId ?? null,
       managerNote: input.managerNote ?? null,
+      excessHours: input.excessHours ?? null,
+      excessApprovalStatus: input.excessApprovalStatus ?? null,
+      clientRequestId: input.clientRequestId ?? null,
     })
     .returning();
 
@@ -330,10 +349,11 @@ export async function sumProjectLaborCost(
   excludedForeignCurrencyEntries: number;
 }> {
   const displacement = notDisplacedByMonthlyAllocation(db, organizationId);
+  const effectiveCost = effectiveLaborCostAmountExpr();
   const [row] = await db
     .select({
       totalAmount: sql<string | null>`coalesce(
-        sum(${timeEntries.costAmount}) filter (
+        sum(${effectiveCost}) filter (
           where upper(${timeEntries.costCurrency}) = upper(${projectCurrency})
         ),
         0
@@ -391,11 +411,12 @@ export async function sumLaborCostGroupedByProject(
   if (projectIds.length === 0) return result;
 
   const displacement = notDisplacedByMonthlyAllocation(db, organizationId);
+  const effectiveCost = effectiveLaborCostAmountExpr();
   const rows = await db
     .select({
       projectId: timeEntries.projectId,
       totalAmount: sql<string | null>`coalesce(
-        sum(${timeEntries.costAmount}) filter (
+        sum(${effectiveCost}) filter (
           where upper(${timeEntries.costCurrency}) = upper(${projectCurrency})
         ),
         0
@@ -464,7 +485,7 @@ export async function sumOrganizationProjectLaborCoverage(
   const [row] = await db
     .select({
       totalAmount: sql<string | null>`coalesce(
-        sum(${timeEntries.costAmount}) filter (
+        sum(${effectiveLaborCostAmountExpr()}) filter (
           where upper(${timeEntries.costCurrency}) = upper(${baseCurrency})
         ),
         0
@@ -548,4 +569,144 @@ export async function countNonProjectTimeCodes(db: DbExecutor, organizationId: s
     .where(and(eq(nonProjectTimeCodes.organizationId, organizationId), isNull(nonProjectTimeCodes.archivedAt)));
 
   return row?.count ?? 0;
+}
+
+/** Sum recorded non-void hours for an employee on a work date (excludes void rows). */
+export async function sumDailyHoursForEmployee(
+  db: DbExecutor,
+  organizationId: string,
+  employeeId: string,
+  workDate: string,
+  options: { readonly excludeEntryId?: string } = {},
+): Promise<string> {
+  const conditions = [
+    eq(timeEntries.organizationId, organizationId),
+    eq(timeEntries.employeeId, employeeId),
+    eq(timeEntries.workDate, workDate),
+    eq(timeEntries.status, 'recorded'),
+    isNull(timeEntries.archivedAt),
+  ];
+  if (options.excludeEntryId) {
+    conditions.push(sql`${timeEntries.id} <> ${options.excludeEntryId}`);
+  }
+  const [row] = await db
+    .select({ total: sql<string>`coalesce(sum(${timeEntries.hours}), 0)::text` })
+    .from(timeEntries)
+    .where(and(...conditions));
+  return row?.total ?? '0';
+}
+
+export async function listTimeEntriesForDuplicateCheck(
+  db: DbExecutor,
+  organizationId: string,
+  input: {
+    readonly employeeId: string;
+    readonly workDate: string;
+    readonly excludeEntryId?: string;
+  },
+): Promise<TimeEntryRecord[]> {
+  const conditions = [
+    eq(timeEntries.organizationId, organizationId),
+    eq(timeEntries.employeeId, input.employeeId),
+    eq(timeEntries.workDate, input.workDate),
+    eq(timeEntries.status, 'recorded'),
+    isNull(timeEntries.archivedAt),
+  ];
+  if (input.excludeEntryId) {
+    conditions.push(sql`${timeEntries.id} <> ${input.excludeEntryId}`);
+  }
+  const rows = await db.select().from(timeEntries).where(and(...conditions));
+  return rows.map(mapTimeEntry);
+}
+
+export async function findTimeEntryByClientRequestId(
+  db: DbExecutor,
+  organizationId: string,
+  clientRequestId: string,
+): Promise<TimeEntryRecord | null> {
+  const [row] = await db
+    .select()
+    .from(timeEntries)
+    .where(
+      and(
+        eq(timeEntries.organizationId, organizationId),
+        eq(timeEntries.clientRequestId, clientRequestId),
+      ),
+    )
+    .limit(1);
+  return row ? mapTimeEntry(row) : null;
+}
+
+/** Hard delete — only for draft/unsubmitted rows without timesheet lock. */
+export async function deleteDraftTimeEntryById(
+  db: DbExecutor,
+  organizationId: string,
+  timeEntryId: string,
+): Promise<TimeEntryRecord | null> {
+  const [row] = await db
+    .delete(timeEntries)
+    .where(
+      and(
+        eq(timeEntries.id, timeEntryId),
+        eq(timeEntries.organizationId, organizationId),
+        eq(timeEntries.approvalStatus, 'draft'),
+        eq(timeEntries.status, 'recorded'),
+      ),
+    )
+    .returning();
+  return row ? mapTimeEntry(row) : null;
+}
+
+export async function updateTimeEntryDailyExcess(
+  db: DbExecutor,
+  organizationId: string,
+  timeEntryId: string,
+  input: {
+    readonly excessHours: string | null;
+    readonly excessApprovalStatus: 'pending' | 'approved' | 'rejected' | null;
+  },
+): Promise<void> {
+  await db
+    .update(timeEntries)
+    .set({
+      excessHours: input.excessHours,
+      excessApprovalStatus: input.excessApprovalStatus,
+      updatedAt: new Date(),
+    })
+    .where(
+      and(eq(timeEntries.id, timeEntryId), eq(timeEntries.organizationId, organizationId)),
+    );
+}
+
+export async function updateTimeEntryExcessApproval(
+  db: DbExecutor,
+  organizationId: string,
+  timeEntryId: string,
+  input: {
+    readonly excessApprovalStatus: 'approved' | 'rejected';
+    readonly decidedAt: Date;
+    readonly decidedByUserId: string;
+    readonly managerNote?: string | null;
+  },
+): Promise<TimeEntryRecord | null> {
+  const [row] = await db
+    .update(timeEntries)
+    .set({
+      excessApprovalStatus: input.excessApprovalStatus,
+      decidedAt: input.decidedAt,
+      decidedByUserId: input.decidedByUserId,
+      managerNote: input.managerNote ?? null,
+      updatedAt: input.decidedAt,
+    })
+    .where(
+      and(
+        eq(timeEntries.id, timeEntryId),
+        eq(timeEntries.organizationId, organizationId),
+        eq(timeEntries.status, 'recorded'),
+        sql`${timeEntries.excessHours} is not null and ${timeEntries.excessHours} > 0`,
+        eq(timeEntries.excessApprovalStatus, 'pending'),
+      ),
+    )
+    .returning();
+  return row ? mapTimeEntry(row) : null;
 }

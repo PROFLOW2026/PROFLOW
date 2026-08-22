@@ -35,6 +35,7 @@ export {
   createBulkTimeEntries,
   createTimeEntry,
   correctTimeEntry,
+  deleteDraftTimeEntry,
   listNonProjectCodes,
   listProjectTimeEntries,
   listProjectsForTimeLog,
@@ -47,12 +48,14 @@ export type { CorrectTimeEntryResult, CostSnapshot } from './application/time-en
 
 export {
   approveTimeEntry,
+  approveTimeEntryExcess,
   approveTimesheet,
   bulkApproveTimeEntries,
   canApproveTime,
   getTimesheetDetail,
   listTimeApprovalQueue,
   listTimesheetsForOrg,
+  rejectTimeEntryExcess,
   returnTimesheet,
   submitTimeEntries,
   submitTimesheet,
@@ -120,6 +123,8 @@ export {
   approveTimesheetSchema,
   approveTimeEntrySchema,
   bulkApproveTimeEntriesSchema,
+  deleteDraftTimeEntrySchema,
+  excessTimeEntryDecisionSchema,
   voidAttendanceDaySchema,
   voidAttendanceEventSchema,
 } from './validation/schemas';

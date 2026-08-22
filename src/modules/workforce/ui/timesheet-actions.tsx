@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button';
 import type { TimeApprovalStatus } from '@/modules/workforce/domain/types';
 import {
   approveTimesheetAction,
+  deleteDraftTimeEntryAction,
+  excessTimeEntryDecisionAction,
   returnTimesheetAction,
   submitTimeEntriesAction,
   updateTimeEntryAction,
@@ -73,6 +75,77 @@ export function EditDraftTimeEntryForm({
       </Button>
       <ActionError state={state} />
     </form>
+  );
+}
+
+export function DeleteDraftTimeEntryButton({
+  entryId,
+  approvalStatus,
+}: {
+  readonly entryId: string;
+  readonly approvalStatus: TimeApprovalStatus;
+}) {
+  const t = useTranslations('workforce');
+  const [state, action, pending] = useActionState(deleteDraftTimeEntryAction, {});
+
+  if (approvalStatus !== 'draft' && approvalStatus !== 'returned') return null;
+
+  return (
+    <form action={action} className="flex flex-col items-start gap-1">
+      <input type="hidden" name="timeEntryId" value={entryId} />
+      <Button type="submit" variant="ghost" size="sm" loading={pending} className="text-[var(--pf-status-danger-fg)]">
+        {t('time.actions.deleteDraft')}
+      </Button>
+      <ActionError state={state} />
+    </form>
+  );
+}
+
+export function ExcessHoursApprovalPanel({
+  entryId,
+  excessHours,
+  excessApprovalStatus,
+}: {
+  readonly entryId: string;
+  readonly excessHours: string | null;
+  readonly excessApprovalStatus: 'pending' | 'approved' | 'rejected' | null;
+}) {
+  const t = useTranslations('workforce');
+  const [state, action, pending] = useActionState(excessTimeEntryDecisionAction, {});
+
+  if (!excessHours || Number(excessHours) <= 0 || excessApprovalStatus !== 'pending') {
+    return null;
+  }
+
+  return (
+    <div className="flex min-w-0 flex-col gap-2 rounded-md border border-[var(--pf-border-default)] p-3">
+      <p className="text-sm font-medium">{t('time.approvals.excessTitle')}</p>
+      <p className="text-xs text-[var(--pf-text-secondary)]">
+        {t('time.approvals.excessAmount', { hours: excessHours })}
+      </p>
+      <form action={action} className="flex flex-col gap-2">
+        <input type="hidden" name="timeEntryId" value={entryId} />
+        <Field label={t('time.approvals.managerNote')} optionalLabel={t('time.approvals.optionalForApprove')}>
+          {(control) => (
+            <Textarea
+              {...control}
+              name="managerNote"
+              rows={2}
+              placeholder={t('time.approvals.managerNotePlaceholder')}
+            />
+          )}
+        </Field>
+        <div className="flex flex-wrap gap-2">
+          <Button type="submit" name="decision" value="approve" size="sm" loading={pending}>
+            {t('time.approvals.excessApprove')}
+          </Button>
+          <Button type="submit" name="decision" value="reject" variant="secondary" size="sm" loading={pending}>
+            {t('time.approvals.excessReject')}
+          </Button>
+        </div>
+        <ActionError state={state} />
+      </form>
+    </div>
   );
 }
 

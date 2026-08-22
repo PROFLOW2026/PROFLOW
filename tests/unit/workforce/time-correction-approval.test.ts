@@ -57,9 +57,14 @@ vi.mock('@/shared/audit', () => ({
   recordAuditEvent: vi.fn(async () => undefined),
 }));
 
-vi.mock('@/modules/tenancy', () => ({
-  noteModuleUsage: vi.fn(async () => undefined),
-}));
+vi.mock('@/modules/tenancy', async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...(actual as Record<string, unknown>),
+    noteModuleUsage: vi.fn(async () => undefined),
+    getOrganizationSettingValue: vi.fn(async () => null),
+  };
+});
 
 vi.mock('@/modules/projects/application/project-access', () => ({
   assertCanAccessProject: vi.fn(async () => undefined),
@@ -93,7 +98,20 @@ vi.mock('@/modules/approvals/data/approvals.repository', () => ({
 vi.mock('@/modules/workforce/data/employees.repository', () => ({
   findEmployeeById,
   findEmployeeByUserId: vi.fn(),
+  lockEmployeeRowForUpdate: vi.fn(async () => undefined),
 }));
+
+vi.mock('@/modules/workforce/data/employee-month-costs.repository', () => ({
+  findEmployeeMonthCostByEmployeeMonth: vi.fn(async () => null),
+}));
+
+vi.mock('@/modules/workforce/application/time-entry-integrity', async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...(actual as Record<string, unknown>),
+    reconcileDailyExcessForEmployeeDate: vi.fn(async () => undefined),
+  };
+});
 
 vi.mock('@/modules/workforce/data/project-refs.repository', () => ({
   findProjectById,
@@ -117,6 +135,8 @@ vi.mock('@/modules/workforce/data/time-entries.repository', () => ({
   findNonProjectTimeCodeById,
   insertNonProjectTimeCode: vi.fn(),
   listNonProjectTimeCodes: vi.fn(),
+  listTimeEntriesForDuplicateCheck: vi.fn(async () => []),
+  updateTimeEntryDailyExcess: vi.fn(async () => undefined),
 }));
 
 vi.mock('@/modules/month-close', () => ({
@@ -169,6 +189,7 @@ function employee(): EmployeeRecord {
     email: null,
     phone: null,
     notes: null,
+    standardHoursPerDay: null,
     archivedAt: null,
     createdAt: new Date('2026-01-01T00:00:00.000Z'),
     updatedAt: new Date('2026-01-01T00:00:00.000Z'),
@@ -203,6 +224,9 @@ function originalEntry(partial: Partial<TimeEntryRecord> = {}): TimeEntryRecord 
     decidedAt: null,
     decidedByUserId: null,
     managerNote: null,
+    excessHours: null,
+    excessApprovalStatus: null,
+    clientRequestId: null,
     archivedAt: null,
     createdAt: new Date('2026-08-10T00:00:00.000Z'),
     updatedAt: new Date('2026-08-10T00:00:00.000Z'),
@@ -280,6 +304,18 @@ function stubHappyPathLookups() {
     status: 'recorded' as const,
     voidedAt: null,
   }));
+  findTimeEntryById.mockImplementation(async (_db, _org, id) => {
+    if (id === REPLACEMENT_ID) {
+      return {
+        ...originalEntry(),
+        id: REPLACEMENT_ID,
+        hours: '6',
+        description: 'Fixed hours',
+        correctsEntryId: ENTRY_ID,
+      };
+    }
+    return originalEntry({ id });
+  });
 }
 
 describe('resolveTimeCorrectionApprovalAmount', () => {

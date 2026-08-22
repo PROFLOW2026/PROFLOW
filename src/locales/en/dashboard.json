@@ -33,6 +33,76 @@
     "invoicedThisMonth": "Invoice total this month",
     "costsThisMonth": "Costs this month net"
   },
+  "missingData": {
+    "missingButtonOne": "1 missing data point",
+    "missingButtonMany": "{count} missing data points",
+    "attentionButtonOne": "1 item to review",
+    "attentionButtonMany": "Items to review",
+    "modalTitle": "What needs completing?",
+    "modalDescription": "Below is what is missing for accurate calculations, and what is worth reviewing for a complete business picture. Each item links to where you can fix it.",
+    "sectionMissing": "Data missing for calculation",
+    "sectionAttention": "Worth reviewing",
+    "missingItemLabel": "Missing for calculation",
+    "attentionItemLabel": "To review",
+    "whatHeading": "What",
+    "whyHeading": "Why it matters",
+    "scopeHeading": "Scope",
+    "affectedHeading": "Affects",
+    "scopeOrganization": "Whole business",
+    "scopeProject": "Project: {name}",
+    "kpiUnavailable": "Cannot calculate",
+    "kpiUnavailableContractHint": "No contract or price basis yet for open-price work.",
+    "kpiUnavailableProfitHint": "Profit and margin need a revenue basis — not shown as zero.",
+    "affected": {
+      "actual_cost": "Actual cost",
+      "forecast_cost": "Cost forecast",
+      "profit": "Profit",
+      "margin": "Margin",
+      "contract_value": "Contract value",
+      "billing": "Billing & collections"
+    },
+    "items": {
+      "workforce_entries_missing_cost": {
+        "title": "Missing cost on time entries",
+        "description": "Some time entries have no employer cost or labor rate.",
+        "descriptionCount": "({count, plural, one {# entry} other {# entries}})",
+        "why": "Without labor cost, actual cost and profitability may be understated.",
+        "action": "Complete time costs"
+      },
+      "unallocated_remainder": {
+        "title": "Unallocated business costs",
+        "description": "Approved organization expenses are not yet allocated to projects.",
+        "why": "These costs stay outside project actual — project totals may be partial.",
+        "action": "Allocate costs"
+      },
+      "open_draft_documents": {
+        "title": "Drafts not in actual cost",
+        "description": "Draft expenses or purchase orders are not finalized yet.",
+        "why": "Until finalized they are not in actual cost — totals may look lower than expected.",
+        "action": "Review expenses"
+      },
+      "open_allocations": {
+        "title": "Allocations not applied",
+        "description": "Allocation runs or overhead allocations are still open.",
+        "why": "Costs reach projects only after apply — until then they stay outside project actual.",
+        "action": "Finish allocations"
+      },
+      "foreign_currency_excluded": {
+        "title": "Projects in another currency",
+        "description": "Some projects use a currency different from the organization base.",
+        "descriptionCount": "({count, plural, one {# project} other {# projects}})",
+        "why": "Those amounts are excluded from this business summary — only base currency is totaled here.",
+        "action": "View project comparison"
+      },
+      "open_price_contract_basis": {
+        "title": "Missing contract or price basis",
+        "description": "All active work is open-price — no contract value or price set yet.",
+        "descriptionCount": "({count, plural, one {# job} other {# jobs}})",
+        "why": "Without revenue basis, contract value, profit and margin cannot be calculated — zero is not a real business value.",
+        "action": "Update projects"
+      }
+    }
+  },
   "ownerLinks": {
     "cashFlow": "Cash flow forecast",
     "management": "Owner management view"

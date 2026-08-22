@@ -16,6 +16,7 @@ import { WorkforceSubNav } from '@/modules/workforce/ui/workforce-sub-nav';
 import {
   ApproveTimesheetButton,
   BulkApproveEntriesForm,
+  ExcessHoursApprovalPanel,
   ReturnTimesheetForm,
 } from '@/modules/workforce/ui/timesheet-actions';
 import { TimesheetApprovalFilters } from '@/modules/workforce/ui/timesheet-approval-filters';
@@ -181,9 +182,16 @@ export default async function TimesheetApprovalsPage({
                         </TableCell>
                         <TableCell numeric>{entry.hours}</TableCell>
                         <TableCell>
-                          {entry.approvalStatus === 'submitted' ? (
-                            <ApproveTimesheetButton timeEntryId={entry.id} />
-                          ) : null}
+                          <div className="flex flex-col gap-2">
+                            {entry.approvalStatus === 'submitted' ? (
+                              <ApproveTimesheetButton timeEntryId={entry.id} />
+                            ) : null}
+                            <ExcessHoursApprovalPanel
+                              entryId={entry.id}
+                              excessHours={entry.excessHours}
+                              excessApprovalStatus={entry.excessApprovalStatus}
+                            />
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -215,6 +223,13 @@ export default async function TimesheetApprovalsPage({
                     <ApproveTimesheetButton timeEntryId={entry.id} />
                   </div>
                 ) : null}
+                <div className="mt-3">
+                  <ExcessHoursApprovalPanel
+                    entryId={entry.id}
+                    excessHours={entry.excessHours}
+                    excessApprovalStatus={entry.excessApprovalStatus}
+                  />
+                </div>
               </div>
             )}
           />

@@ -110,6 +110,14 @@ export interface OrganizationProjectRollup {
     readonly level: 'high' | 'medium' | 'needs_data';
     readonly reasons: readonly string[];
   };
+  /** Per-project time entries missing employer/labor cost (for dashboard UX). */
+  readonly projectMissingCostSignals: readonly {
+    readonly projectId: string;
+    readonly projectName: string;
+    readonly missingCostEntryCount: number;
+  }[];
+  readonly openPriceProjectCount: number;
+  readonly pricedProjectCount: number;
 }
 
 
@@ -188,6 +196,13 @@ export async function getOrganizationProjectRollup(
   );
 
   const builtRows: ProjectRollupRow[] = [];
+  const projectMissingCostSignals: {
+    projectId: string;
+    projectName: string;
+    missingCostEntryCount: number;
+  }[] = [];
+  let openPriceProjectCount = 0;
+  let pricedProjectCount = 0;
   for (const projectId of eligibleIds) {
     const meta = byId.get(projectId)!;
     const projectCurrency = (meta.currency ?? currency).toUpperCase();
@@ -199,6 +214,22 @@ export async function getOrganizationProjectRollup(
       financials.pricingMode ?? meta.pricingMode ?? null,
     );
     const priceNotSet = financials.priceNotSet;
+    if (priceNotSet) {
+      openPriceProjectCount += 1;
+    } else if (financials.commercial?.currentContractValue != null) {
+      pricedProjectCount += 1;
+    }
+
+    const missingCostPartial = financials.coverage.partials?.find(
+      (partial) => partial.reason === 'workforce_entries_missing_cost',
+    );
+    if ((missingCostPartial?.count ?? 0) > 0) {
+      projectMissingCostSignals.push({
+        projectId,
+        projectName: meta.name,
+        missingCostEntryCount: missingCostPartial?.count ?? 0,
+      });
+    }
 
     const originalContract = canCommercial
       ? (financials.commercial?.originalContractValue ?? null)
@@ -349,5 +380,8 @@ export async function getOrganizationProjectRollup(
     canReadBilling: canBilling,
     canReadCommercial: canCommercial,
     dataConfidence,
+    projectMissingCostSignals,
+    openPriceProjectCount,
+    pricedProjectCount,
   };
 }

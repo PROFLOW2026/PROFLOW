@@ -88,6 +88,13 @@ export const updateEmployeeSchema = z.object({
   email: z.string().trim().email().optional().nullable().or(z.literal('')),
   phone: z.string().trim().max(64).optional().nullable(),
   notes: z.string().trim().max(4000).optional().nullable(),
+  standardHoursPerDay: z
+    .string()
+    .trim()
+    .regex(/^\d+(\.\d{1,4})?$/)
+    .optional()
+    .nullable()
+    .or(z.literal('')),
 });
 
 export type UpdateEmployeeInput = z.infer<typeof updateEmployeeSchema>;
@@ -117,6 +124,9 @@ export const createTimeEntrySchema = z
     phaseId: z.string().uuid().optional().nullable(),
     timeCodeId: z.string().uuid().optional().nullable(),
     description: z.string().trim().max(2000).optional().nullable(),
+    confirmDailyExcess: z.boolean().optional(),
+    /** Raw client value — server coerces to a valid UUID via ensureValidClientRequestId. */
+    clientRequestId: z.union([z.string(), z.null()]).optional(),
   })
   .superRefine((value, ctx) => {
     if (value.kind === 'project' && !value.projectId) {
@@ -153,6 +163,7 @@ export const createBulkTimeEntriesSchema = z
     phaseId: z.string().uuid().optional().nullable(),
     timeCodeId: z.string().uuid().optional().nullable(),
     description: z.string().trim().max(2000).optional().nullable(),
+    confirmDailyExcess: z.boolean().optional(),
   })
   .superRefine((value, ctx) => {
     if (value.toDate < value.fromDate) {
@@ -233,6 +244,19 @@ export const bulkApproveTimeEntriesSchema = z.object({
 });
 
 export type BulkApproveTimeEntriesInput = z.infer<typeof bulkApproveTimeEntriesSchema>;
+
+export const excessTimeEntryDecisionSchema = z.object({
+  timeEntryId: z.string().uuid(),
+  managerNote: z.string().trim().max(2000).optional().nullable(),
+});
+
+export type ExcessTimeEntryDecisionInput = z.infer<typeof excessTimeEntryDecisionSchema>;
+
+export const deleteDraftTimeEntrySchema = z.object({
+  timeEntryId: z.string().uuid(),
+});
+
+export type DeleteDraftTimeEntryInput = z.infer<typeof deleteDraftTimeEntrySchema>;
 
 export const updateTimeEntrySchema = z.object({
   timeEntryId: z.string().uuid(),

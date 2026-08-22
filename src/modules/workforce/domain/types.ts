@@ -46,6 +46,8 @@ export interface EmployeeRecord {
   readonly email: string | null;
   readonly phone: string | null;
   readonly notes: string | null;
+  /** Optional daily work-hour framework override; null inherits org default. */
+  readonly standardHoursPerDay: string | null;
   readonly archivedAt: Date | null;
   readonly createdAt: Date;
   readonly updatedAt: Date;
@@ -118,6 +120,9 @@ export interface TimeEntryRecord {
   readonly decidedAt: Date | null;
   readonly decidedByUserId: string | null;
   readonly managerNote: string | null;
+  readonly excessHours: string | null;
+  readonly excessApprovalStatus: 'pending' | 'approved' | 'rejected' | null;
+  readonly clientRequestId: string | null;
   readonly archivedAt: Date | null;
   readonly createdAt: Date;
   readonly updatedAt: Date;

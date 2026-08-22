@@ -1,0 +1,38 @@
+---
+description: Mandatory release preflight — targeted dev checks; full CI-equivalent preflight before Owner-approved push/deploy
+alwaysApply: true
+---
+
+# ProjectFlow Release Preflight (mandatory)
+
+Read and obey this before any release, push, or deploy work in ProjectFlow.
+
+**Full policy:** [docs/RELEASE-PREFLIGHT.md](../../docs/RELEASE-PREFLIGHT.md)
+
+## Development (default)
+
+Use **targeted validation only** for normal fixes — not full build, full E2E, full audit, all tests, migration hardening, or full Hebrew/runtime suite after every small change.
+
+## Owner-approved release
+
+When the Owner explicitly approves release/push/deploy (e.g. “תדחוף”, “שחרר”, “deploy”, “commit/push”, “הכל תקין מבחינתי”):
+
+1. **Inspect** `.github/workflows/ci.yml` (and scripts it calls) — do not invent gates from memory.
+2. **Scope check** — intended files only; no secrets (`.env`, keys, credentials); no temp diagnostics; no accidental artifacts.
+3. **Run ONE complete local CI-equivalent preflight** (all current CI gates) **before the first push**.
+4. **Fix ALL failures locally** — no push-until-green push loops.
+5. **One final green preflight**, then commit → push → monitor GitHub CI → monitor Vercel Production until READY.
+6. Confirm deployment commit == GitHub HEAD.
+
+## Non-negotiables
+
+- **Migrations:** **0000–0066** applied + immutable (`0066_workforce_time_integrity.sql`). Agent prepares/reviews SQL; **never applies SQL**. Owner applies; then migration is immutable. **Next migration: 0067+.** Do not modify applied 0066.
+- **Infrastructure:** Vercel functions stay **`dub1`**; Supabase stays **`eu-west-1`**. Do not change region/pooler/DATABASE_URL without explicit Owner approval.
+
+## If GitHub CI fails after push
+
+Inspect failed job/logs → reproduce locally → fix **all visible failures together** → rerun relevant gates → full preflight if release code changed materially → **one** corrective push. No blind one-fix-at-a-time loops.
+
+## Conflict resolution
+
+Owner’s **current explicit instruction** wins over this rule. This rule is **not** permission to run broad validation during ordinary development.

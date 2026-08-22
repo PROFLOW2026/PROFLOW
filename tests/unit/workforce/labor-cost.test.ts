@@ -8,12 +8,12 @@ describe('hoursToRateUnits', () => {
   });
 
   it('converts hours to day fractions for daily rates', () => {
-    expect(hoursToRateUnits('8', 'daily')).toBe('1');
-    expect(hoursToRateUnits('4', 'daily')).toBe('0.5');
+    expect(hoursToRateUnits('8', 'daily', { standardHoursPerDay: '8', standardHoursPerMonth: '160' })).toBe('1');
+    expect(hoursToRateUnits('4', 'daily', { standardHoursPerDay: '8', standardHoursPerMonth: '160' })).toBe('0.5');
   });
 
   it('converts hours to month fractions for monthly rates', () => {
-    expect(hoursToRateUnits('160', 'monthly')).toBe('1');
+    expect(hoursToRateUnits('182', 'monthly', { standardHoursPerDay: '8', standardHoursPerMonth: '182' })).toBe('1');
   });
 });
 

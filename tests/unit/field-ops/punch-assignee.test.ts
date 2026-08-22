@@ -116,6 +116,7 @@ describe('punch assignee update', () => {
       email: null,
       phone: null,
       notes: null,
+      standardHoursPerDay: null,
       archivedAt: null,
       createdAt: new Date(),
       updatedAt: new Date(),

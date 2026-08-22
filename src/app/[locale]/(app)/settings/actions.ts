@@ -766,10 +766,12 @@ export async function saveLaborCostDefaultsAction(
   const components = parseLaborComponentsText(formValue(formData, 'componentsText') ?? undefined);
 
   try {
-    await withOrgContext((context) =>
+      await withOrgContext((context) =>
       saveLaborCostDefaults(context, {
         burdenPercent: burdenRaw ?? null,
         components,
+        standardHoursPerDay: formValue(formData, 'standardHoursPerDay') ?? null,
+        workingDaysPerMonth: formValue(formData, 'workingDaysPerMonth') ?? null,
       }),
     );
     revalidatePath('/settings/catalog');

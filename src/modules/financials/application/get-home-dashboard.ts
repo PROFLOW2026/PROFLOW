@@ -33,6 +33,12 @@ import {
   dataConfidenceFromCoverage,
   type DataConfidence,
 } from '../domain/data-confidence';
+import {
+  buildDashboardMissingDataItems,
+  resolveDashboardKpiAvailability,
+  type DashboardKpiAvailabilityMap,
+  type DashboardMissingDataItem,
+} from '../domain/dashboard-missing-data';
 import { buildFinancialCoverage, mergeCoveragePartials } from '../domain/coverage';
 import type { CoveragePartial } from '../domain/types';
 import { aggregateProjectCosts } from '../domain/cost-aggregation';
@@ -136,6 +142,9 @@ export interface HomeDashboardData {
   readonly preferServiceSurface: boolean;
   /** Org-scope DATA CONFIDENCE (worst-of projects + unallocated / FX). */
   readonly dataConfidence: DataConfidence | null;
+  /** Structured gaps for actionable dashboard UX (derived — no extra queries). */
+  readonly missingDataItems: readonly DashboardMissingDataItem[];
+  readonly kpiAvailability: DashboardKpiAvailabilityMap | null;
   readonly persona: ExperiencePersonaKey;
   readonly dashboardCards: readonly ExperienceDashboardCard[];
   /** Quotes module visible — used for quotePipeline card chrome. */
@@ -295,6 +304,8 @@ export async function getHomeDashboard(
       emptyStartKind,
       preferServiceSurface,
       dataConfidence: null,
+      missingDataItems: [],
+      kpiAvailability: null,
       persona,
       dashboardCards,
       showQuotes,
@@ -473,6 +484,32 @@ export async function getHomeDashboard(
         ? ({ level: 'high', reasons: [] } satisfies DataConfidence)
         : null;
 
+  const missingDataItems =
+    canReadFinancials && dataConfidence
+      ? buildDashboardMissingDataItems({
+          dataConfidence,
+          costCoverage,
+          contractValueCoverage,
+          billingCoverage,
+          unallocatedBusinessCosts,
+          openPriceProjectCount: rollup?.openPriceProjectCount ?? 0,
+          pricedProjectCount: rollup?.pricedProjectCount ?? 0,
+          excludedForeignCurrencyCount: rollup?.excludedForeignCurrencyCount ?? 0,
+          projectMissingCostSignals: rollup?.projectMissingCostSignals ?? [],
+        })
+      : [];
+
+  const kpiAvailability =
+    canReadFinancials && rollup
+      ? resolveDashboardKpiAvailability({
+          missingItems: missingDataItems,
+          openPriceProjectCount: rollup.openPriceProjectCount,
+          pricedProjectCount: rollup.pricedProjectCount,
+          hasContractValue: totalContractValue != null,
+          hasProfitValue: estimatedProfit != null,
+        })
+      : null;
+
   return {
     isBrandNew,
     activeProjectCount,
@@ -500,6 +537,8 @@ export async function getHomeDashboard(
     emptyStartKind,
     preferServiceSurface,
     dataConfidence,
+    missingDataItems,
+    kpiAvailability,
     persona,
     dashboardCards,
     showQuotes,

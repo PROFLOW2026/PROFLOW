@@ -268,6 +268,10 @@ export async function updateEmployee(
       email: input.email || null,
       phone: input.phone,
       notes: input.notes,
+      standardHoursPerDay:
+        input.standardHoursPerDay === '' || input.standardHoursPerDay === undefined
+          ? undefined
+          : input.standardHoursPerDay,
     });
   } catch (error) {
     if (isUniqueViolation(error)) {

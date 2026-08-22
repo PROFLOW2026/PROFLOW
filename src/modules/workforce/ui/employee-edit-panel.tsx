@@ -147,6 +147,25 @@ export function EmployeeEditPanel({ employee, linkableUsers }: EmployeeEditPanel
             )}
           </Field>
 
+          <Field
+            label={t('employees.form.standardHoursPerDay')}
+            optionalLabel={tCommon('labels.optional')}
+            description={t('employees.form.standardHoursPerDayHint')}
+          >
+            {(control) => (
+              <Input
+                {...control}
+                name="standardHoursPerDay"
+                type="text"
+                inputMode="decimal"
+                numeric
+                placeholder="8"
+                defaultValue={employee.standardHoursPerDay ?? ''}
+                dir="ltr"
+              />
+            )}
+          </Field>
+
           <Field label={t('employees.form.notes')} optionalLabel={tCommon('labels.optional')}>
             {(control) => (
               <Textarea {...control} name="notes" rows={3} defaultValue={employee.notes ?? ''} />

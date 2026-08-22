@@ -21,6 +21,7 @@ function mapEmployee(row: typeof employees.$inferSelect): EmployeeRecord {
     email: row.email,
     phone: row.phone,
     notes: row.notes,
+    standardHoursPerDay: row.standardHoursPerDay ?? null,
     archivedAt: row.archivedAt,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
@@ -72,6 +73,7 @@ export async function updateEmployeeById(
     email: string | null;
     phone: string | null;
     notes: string | null;
+    standardHoursPerDay: string | null;
     archivedAt: Date | null;
   }>,
 ): Promise<EmployeeRecord | null> {
@@ -96,6 +98,19 @@ export async function findEmployeeById(
     .limit(1);
 
   return row ? mapEmployee(row) : null;
+}
+
+/** Serializes concurrent time-entry creates for the same employee. */
+export async function lockEmployeeRowForUpdate(
+  db: DbExecutor,
+  organizationId: string,
+  employeeId: string,
+): Promise<void> {
+  await db
+    .select({ id: employees.id })
+    .from(employees)
+    .where(and(eq(employees.id, employeeId), eq(employees.organizationId, organizationId)))
+    .for('update');
 }
 
 export async function listEmployees(

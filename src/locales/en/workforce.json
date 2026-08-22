@@ -75,6 +75,8 @@
       "email": "Email",
       "phone": "Phone",
       "notes": "Notes",
+      "standardHoursPerDay": "Daily hours framework",
+      "standardHoursPerDayHint": "Hours above this count as excess and need manager approval. Empty = organization default.",
       "submit": "Save employee",
       "advancedTitle": "Advanced (optional)",
       "advancedHint": "Compensation and contact details. Skip forever if you only need names for time logging.",
@@ -91,6 +93,11 @@
       "openEnded": "Open-ended",
       "noRateHistory": "No rate versions recorded yet.",
       "compensationSection": "Cost / employment terms",
+      "dailyCapacity": "Daily hours framework",
+      "dailyCapacityInherited": "From organization default ({hours})",
+      "dailyCapacityOverride": "{hours} hours",
+      "dailyCapacityHint": "Hours above this framework are marked as excess and require approval.",
+      "dailyCapacityMissing": "No daily framework configured. Set it under Settings, Catalog, or on the employee.",
       "compensationAdvanced": "Employee cost / pay (advanced)",
       "addRate": "Add rate from date",
       "addRateHint": "Creates a new rate version from the chosen date. Past versions stay unchanged.",
@@ -161,7 +168,11 @@
       "saveHours": "Save hours",
       "waitingApproval": "Waiting for approval",
       "approved": "Approved",
-      "returned": "Returned for correction"
+      "returned": "Returned for correction",
+      "deleteDraft": "Delete entry"
+    },
+    "excess": {
+      "pending": "Excess {hours} h — waiting for manager approval"
     },
     "approvals": {
       "title": "Timesheet approvals",
@@ -179,6 +190,11 @@
       "successSubmitted": "Submitted for approval.",
       "successApproved": "Approved. These hours now count as labor Actual.",
       "successReturned": "Returned for correction.",
+      "excessTitle": "Excess hours — manager approval required",
+      "excessAmount": "Excess: {hours} hours",
+      "excessApprove": "Approve excess",
+      "excessReject": "Reject excess",
+      "optionalForApprove": "Optional for approval",
       "empty": {
         "title": "No timesheets waiting",
         "description": "Submitted hours appear here for review. Nothing is required until someone submits a timesheet."
@@ -247,7 +263,14 @@
       "submit": "Save time entry",
       "submitBulk": "Save bulk entries",
       "submitCorrection": "Save correction",
-      "noEmployees": "Add an employee first (Employees → New employee), then come back to log time."
+      "noEmployees": "Add an employee first (Employees → New employee), then come back to log time.",
+      "dailyExcessTitle": "This entry exceeds the employee's daily hours framework",
+      "dailyExcessRegular": "Regular hours: {hours}",
+      "dailyExcessReported": "Reported so far: {hours}",
+      "dailyExcessNew": "New entry: {hours}",
+      "dailyExcessOver": "Excess: {hours}",
+      "dailyExcessManagerNote": "Excess hours require manager approval.",
+      "dailyExcessConfirm": "I understand — save including excess hours"
     }
   },
   "projectPanel": {
@@ -448,6 +471,14 @@
     "selfApprovalBlocked": "You cannot approve your own timesheet. Ask another manager or the owner.",
     "userNotInOrganization": "That login is not an active member of this organization.",
     "userAlreadyLinked": "That login is already linked to another employee.",
+    "exactDuplicateTimeEntry": "This time entry already exists.",
+    "dailyHoursExceeded": "Reported hours exceed the employee's daily framework.",
+    "timeEntryNotDeletable": "Only draft or returned entries can be deleted.",
+    "noExcessHours": "This entry has no excess hours.",
+    "excessDecisionFailed": "Could not update excess-hours approval.",
+    "excessExceedsEntryHours": "Excess hours cannot exceed entry hours.",
+    "excessStatusRequired": "Excess hours require an approval status.",
+    "invalidHours": "Invalid hours quantity.",
     "breakStartInvalid": "Start a break only while clocked in.",
     "breakEndInvalid": "You are not on a break."
   }

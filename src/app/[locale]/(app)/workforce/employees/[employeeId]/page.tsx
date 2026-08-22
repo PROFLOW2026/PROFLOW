@@ -11,6 +11,7 @@ import { listCustomFieldValuesForEntity } from '@/modules/custom-fields';
 import { EntityCustomFieldsPanel } from '@/modules/custom-fields/ui';
 import { getEntityDocumentPanelData } from '@/modules/documents';
 import { DocumentAttachments } from '@/modules/documents/ui';
+import { resolveEmployeeDailyFramework } from '@/modules/workforce/application/work-calendar-context';
 import {
   getEmployee,
   listAssignableProjects,
@@ -61,6 +62,11 @@ export default async function EmployeeDetailPage({
   const data = await withOrgContext(async (context) => {
     try {
       const employee = await getEmployee(context, employeeId);
+      const dailyFramework = await resolveEmployeeDailyFramework(
+        context.db,
+        context.organizationId,
+        employeeId,
+      );
       const allowManage = canManageWorkforce(context);
       const canReadRates = canReadWorkforceCost(context);
       const canManageCosts = canManageWorkforceCost(context);
@@ -102,6 +108,7 @@ export default async function EmployeeDetailPage({
       const currentRate = resolveRateVersionForDate(employee.rateVersions, businessDate(today));
       return {
         employee,
+        dailyFramework,
         rateHistory,
         currentRate,
         today,
@@ -131,6 +138,7 @@ export default async function EmployeeDetailPage({
 
   const {
     employee,
+    dailyFramework,
     rateHistory,
     currentRate,
     documentsPanel,
@@ -197,6 +205,23 @@ export default async function EmployeeDetailPage({
             {t('employees.detail.compensationSection')}
           </summary>
           <div className="mt-4 flex flex-col gap-4">
+            <div className="flex flex-col gap-1 text-sm">
+              <h3 className="font-medium">{t('employees.detail.dailyCapacity')}</h3>
+              <p>
+                {employee.standardHoursPerDay
+                  ? t('employees.detail.dailyCapacityOverride', {
+                      hours: employee.standardHoursPerDay,
+                    })
+                  : dailyFramework.configured
+                    ? t('employees.detail.dailyCapacityInherited', {
+                        hours: dailyFramework.standardHoursPerDay,
+                      })
+                    : t('employees.detail.dailyCapacityMissing')}
+              </p>
+              <p className="text-[var(--pf-text-secondary)]">
+                {t('employees.detail.dailyCapacityHint')}
+              </p>
+            </div>
             <div className="flex flex-col gap-3">
               <h3 className="text-sm font-medium">{t('employees.detail.currentRate')}</h3>
               {currentRate ? (

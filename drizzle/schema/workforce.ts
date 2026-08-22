@@ -57,6 +57,8 @@ export const employees = pgTable(
     notes: text('notes'),
     /** Costing / employment basis — optional until compensation is configured. */
     employmentBasis: text('employment_basis'),
+    /** Optional daily work-hour framework override; null inherits org labor_cost_defaults. */
+    standardHoursPerDay: numeric('standard_hours_per_day', { precision: 8, scale: 4 }),
     hireDate: date('hire_date', { mode: 'string' }),
     endDate: date('end_date', { mode: 'string' }),
     archivedAt: archivedAt(),
@@ -71,6 +73,11 @@ export const employees = pgTable(
     check(
       'employees_employment_basis_known',
       sql`${table.employmentBasis} IS NULL OR ${table.employmentBasis} IN ('hourly', 'daily', 'monthly')`,
+    ),
+    check(
+      'employees_standard_hours_per_day_range',
+      sql`${table.standardHoursPerDay} IS NULL
+          OR (${table.standardHoursPerDay} > 0 AND ${table.standardHoursPerDay} <= 24)`,
     ),
   ],
 );
@@ -461,11 +468,20 @@ export const timeEntries = pgTable(
       onDelete: 'set null',
     }),
     managerNote: text('manager_note'),
+    /** Portion above daily framework; requires manager approval for labor Actual. */
+    excessHours: numeric('excess_hours', { precision: 8, scale: 4 }),
+    /** pending | approved | rejected */
+    excessApprovalStatus: text('excess_approval_status'),
+    /** Idempotency key for concurrent-safe create. */
+    clientRequestId: uuid('client_request_id'),
     archivedAt: archivedAt(),
     ...timestamps(),
   },
   (table) => [
     uniqueIndex('time_entries_id_organization_id_uq').on(table.id, table.organizationId),
+    uniqueIndex('time_entries_org_client_request_uq')
+      .on(table.organizationId, table.clientRequestId)
+      .where(sql`${table.clientRequestId} is not null`),
     index('time_entries_org_date_idx').on(table.organizationId, table.workDate),
     index('time_entries_employee_date_idx').on(table.employeeId, table.workDate),
     index('time_entries_project_idx').on(table.projectId),
@@ -482,6 +498,22 @@ export const timeEntries = pgTable(
       'time_entries_kind_target',
       sql`(${table.kind} = 'project' and ${table.projectId} is not null)
           or (${table.kind} = 'non_project' and ${table.projectId} is null)`,
+    ),
+    check(
+      'time_entries_excess_approval_status_known',
+      sql`${table.excessApprovalStatus} IS NULL
+          OR ${table.excessApprovalStatus} IN ('pending', 'approved', 'rejected')`,
+    ),
+    check(
+      'time_entries_excess_hours_within_entry',
+      sql`${table.excessHours} IS NULL
+          OR (${table.excessHours} >= 0 AND ${table.excessHours} <= ${table.hours})`,
+    ),
+    check(
+      'time_entries_excess_hours_status_coupling',
+      sql`((${table.excessHours} IS NULL OR ${table.excessHours} = 0) AND ${table.excessApprovalStatus} IS NULL)
+          OR (${table.excessHours} IS NOT NULL AND ${table.excessHours} > 0
+              AND ${table.excessApprovalStatus} IN ('pending', 'approved', 'rejected'))`,
     ),
     foreignKey({
       columns: [table.correctsEntryId, table.organizationId],

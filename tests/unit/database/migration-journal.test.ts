@@ -287,7 +287,19 @@ describe('migration journal', () => {
     expect(tags.indexOf('0064_payment_terms_eom_90_120')).toBeLessThan(
       tags.indexOf('0065_project_billing_plans'),
     );
-    expect(tags.at(-1)).toBe('0065_project_billing_plans');
+    expect(tags.indexOf('0065_project_billing_plans')).toBeLessThan(
+      tags.indexOf('0066_workforce_time_integrity'),
+    );
+    expect(tags.at(-1)).toBe('0066_workforce_time_integrity');
+
+    const sql66 = await readFile(
+      path.join(MIGRATIONS_DIR, '0066_workforce_time_integrity.sql'),
+      'utf8',
+    );
+    expect(sql66).toContain('standard_hours_per_day');
+    expect(sql66).toContain('excess_hours');
+    expect(sql66).toContain('client_request_id');
+    expect(sql66).toContain('time_entries_org_client_request_uq');
 
     const sql35 = await readFile(
       path.join(MIGRATIONS_DIR, '0035_boq_integrity_closure.sql'),

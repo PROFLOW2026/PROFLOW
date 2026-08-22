@@ -287,6 +287,9 @@
     "components": "רכיבי עלות ברירת מחדל",
     "componentsPlaceholder": "pension=percent:6.5\ntravel=fixed:50",
     "laborSaved": "ברירות המחדל נשמרו.",
+    "standardHoursPerDay": "שעות יומיות לתקן (עלות חודשית)",
+    "workingDaysPerMonth": "ימי עבודה בחודש לתקן",
+    "workCalendarHint": "נדרש לחישוב עלות מעסיק מעובדים חודשיים. לדוגמה: 8 שעות × 22.75 ימים = 182 שעות/חודש.",
     "burdenDisplay": "עלויות מעסיק ברירת מחדל {percent}%",
     "noLaborDefaults": "לא הוגדרו ברירות מחדל לעלות עבודה."
   },
@@ -499,7 +502,10 @@
         "corrected": "תיקון רישום שעות",
         "bulk_created": "יצירת רישומי שעות מרובים",
         "updated": "עדכון רישום שעות",
+        "deleted": "מחיקת רישום שעות",
         "approved": "אישור רישום שעות",
+        "excess_approved": "אישור שעות חריגה",
+        "excess_rejected": "דחיית שעות חריגה",
         "bulk_approved": "אישור שעות מרובות"
       },
       "timesheet": {

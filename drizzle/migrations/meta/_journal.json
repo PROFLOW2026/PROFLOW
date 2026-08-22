@@ -456,6 +456,13 @@
                         "when":  1787334100000,
                         "tag":  "0065_project_billing_plans",
                         "breakpoints":  true
+                    },
+                    {
+                        "idx":  65,
+                        "version":  "7",
+                        "when":  1787335000000,
+                        "tag":  "0066_workforce_time_integrity",
+                        "breakpoints":  true
                     }
                 ]
 }

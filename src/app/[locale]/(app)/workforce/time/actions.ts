@@ -4,6 +4,8 @@ import { revalidatePath } from 'next/cache';
 import { getLocale, getTranslations } from 'next-intl/server';
 import {
   approveTimeEntry,
+  approveTimeEntryExcess,
+  rejectTimeEntryExcess,
   approveTimesheet,
   bulkApproveTimeEntries,
   correctTimeEntry,
@@ -12,6 +14,8 @@ import {
   createBulkTimeEntriesSchema,
   createTimeEntry,
   createTimeEntrySchema,
+  deleteDraftTimeEntry,
+  excessTimeEntryDecisionSchema,
   returnTimesheet,
   submitTimeEntries,
   submitTimesheet,
@@ -28,6 +32,13 @@ export interface TimeEntryFormState {
   ok?: boolean;
   /** Local draft queued - not server truth. */
   offlineQueued?: boolean;
+  /** Daily framework excess — user must confirm before resubmit. */
+  dailyExcessWarning?: {
+    readonly standardHoursPerDay: string;
+    readonly reportedSoFar: string;
+    readonly newHours: string;
+    readonly excessHours: string;
+  };
 }
 
 const WORKFORCE_ERROR_KEYS = [
@@ -50,6 +61,9 @@ const WORKFORCE_ERROR_KEYS = [
   'timeSelfScope',
   'selfApprovalBlocked',
   'noLinkedEmployee',
+  'exactDuplicateTimeEntry',
+  'dailyHoursExceeded',
+  'timeEntryNotDeletable',
 ] as const;
 
 async function mapActionError(error: unknown, fallback: string): Promise<TimeEntryFormState> {
@@ -57,6 +71,19 @@ async function mapActionError(error: unknown, fallback: string): Promise<TimeEnt
   const prefix = 'workforce.errors.';
   if (error.messageKey.startsWith(prefix)) {
     const shortKey = error.messageKey.slice(prefix.length);
+    if (shortKey === 'dailyHoursExceeded' && error.details?.breakdown) {
+      const breakdown = error.details.breakdown as {
+        standardHoursPerDay: string;
+        reportedSoFar: string;
+        newHours: string;
+        excessHours: string;
+      };
+      const tWorkforce = await getTranslations('workforce');
+      return {
+        error: tWorkforce('errors.dailyHoursExceeded'),
+        dailyExcessWarning: breakdown,
+      };
+    }
     if ((WORKFORCE_ERROR_KEYS as readonly string[]).includes(shortKey)) {
       const tWorkforce = await getTranslations('workforce');
       return { error: tWorkforce(`errors.${shortKey}` as 'errors.invalidBulkRange') };
@@ -186,6 +213,8 @@ export async function createTimeEntryAction(
     phaseId: formData.get('phaseId') || null,
     timeCodeId: formData.get('timeCodeId') || null,
     description: formData.get('description') || null,
+    confirmDailyExcess: formData.get('confirmDailyExcess') === 'on',
+    clientRequestId: formData.get('clientRequestId') || null,
   });
 
   if (!parsed.success) {
@@ -268,6 +297,53 @@ export async function returnTimesheetAction(
   const managerNote = String(formData.get('managerNote') ?? '');
   try {
     await withOrgContext((context) => returnTimesheet(context, { timesheetId, managerNote }));
+    revalidatePath('/workforce', 'layout');
+    return { ok: true };
+  } catch (error) {
+    return mapActionError(error, fallback);
+  }
+}
+
+export async function deleteDraftTimeEntryAction(
+  _prevState: TimeEntryFormState,
+  formData: FormData,
+): Promise<TimeEntryFormState> {
+  const tErrors = await getTranslations('errors');
+  const fallback = tErrors('unexpected');
+  const timeEntryId = String(formData.get('timeEntryId') ?? '');
+  try {
+    await withOrgContext((context) => deleteDraftTimeEntry(context, { timeEntryId }));
+    revalidatePath('/workforce', 'layout');
+    return { ok: true };
+  } catch (error) {
+    return mapActionError(error, fallback);
+  }
+}
+
+export async function excessTimeEntryDecisionAction(
+  _prevState: TimeEntryFormState,
+  formData: FormData,
+): Promise<TimeEntryFormState> {
+  const tErrors = await getTranslations('errors');
+  const fallback = tErrors('unexpected');
+  const decision = String(formData.get('decision') ?? '');
+  const parsed = excessTimeEntryDecisionSchema.safeParse({
+    timeEntryId: formData.get('timeEntryId'),
+    managerNote: formData.get('managerNote') || null,
+  });
+  if (!parsed.success) return { error: tErrors('validationFailed') };
+  try {
+    await withOrgContext(async (context) => {
+      if (decision === 'approve') {
+        await approveTimeEntryExcess(context, parsed.data);
+        return;
+      }
+      if (decision === 'reject') {
+        await rejectTimeEntryExcess(context, parsed.data);
+        return;
+      }
+      throw new Error('Unknown excess decision');
+    });
     revalidatePath('/workforce', 'layout');
     return { ok: true };
   } catch (error) {

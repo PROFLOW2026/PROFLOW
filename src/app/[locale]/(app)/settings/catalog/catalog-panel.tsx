@@ -192,7 +192,8 @@ function LaborDefaultsForm({
     {} as SettingsActionState,
   );
 
-  if (!canEdit && !defaults.burdenPercent && defaults.components.length === 0) {
+  if (!canEdit && !defaults.burdenPercent && defaults.components.length === 0
+    && !defaults.standardHoursPerDay && !defaults.workingDaysPerMonth) {
     return null;
   }
 
@@ -230,6 +231,31 @@ function LaborDefaultsForm({
               />
             )}
           </Field>
+          <Field label={t('standardHoursPerDay')} optionalLabel={tCommon('labels.optional')}>
+            {(props) => (
+              <Input
+                {...props}
+                name="standardHoursPerDay"
+                inputMode="decimal"
+                dir="ltr"
+                placeholder="8"
+                defaultValue={defaults.standardHoursPerDay ?? ''}
+              />
+            )}
+          </Field>
+          <Field label={t('workingDaysPerMonth')} optionalLabel={tCommon('labels.optional')}>
+            {(props) => (
+              <Input
+                {...props}
+                name="workingDaysPerMonth"
+                inputMode="decimal"
+                dir="ltr"
+                placeholder="22.75"
+                defaultValue={defaults.workingDaysPerMonth ?? ''}
+              />
+            )}
+          </Field>
+          <p className="text-xs text-[var(--pf-text-muted)]">{t('workCalendarHint')}</p>
           <Field label={t('components')} optionalLabel={tCommon('labels.optional')}>
             {(props) => (
               <textarea

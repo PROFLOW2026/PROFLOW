@@ -33,6 +33,76 @@
     "invoicedThisMonth": "סכום חשבוניות החודש",
     "costsThisMonth": "עלויות החודש נטו"
   },
+  "missingData": {
+    "missingButtonOne": "חסר נתון אחד",
+    "missingButtonMany": "חסרים {count} נתונים",
+    "attentionButtonOne": "יש דבר לבדיקה",
+    "attentionButtonMany": "יש דברים לבדיקה",
+    "modalTitle": "מה צריך להשלים?",
+    "modalDescription": "להלן מה שחסר לחישוב מדויק, ומה שכדאי לבדוק כדי שהתמונה העסקית תהיה שלמה. ניתן לטפל בכל פריט ישירות מהמקום הרלוונטי.",
+    "sectionMissing": "נתונים שחסרים לחישוב",
+    "sectionAttention": "דברים שכדאי לבדוק",
+    "missingItemLabel": "חסר לחישוב",
+    "attentionItemLabel": "לבדיקה",
+    "whatHeading": "מה",
+    "whyHeading": "למה זה חשוב",
+    "scopeHeading": "היקף",
+    "affectedHeading": "משפיע על",
+    "scopeOrganization": "כל העסק",
+    "scopeProject": "פרויקט: {name}",
+    "kpiUnavailable": "לא ניתן לחשב",
+    "kpiUnavailableContractHint": "טרם הוגדר בסיס חוזה או מחיר לעבודות במחיר פתוח.",
+    "kpiUnavailableProfitHint": "רווח ומרווח דורשים בסיס הכנסה (חוזה/מחיר). לא מוצגים כאפס.",
+    "affected": {
+      "actual_cost": "עלות בפועל",
+      "forecast_cost": "תחזית עלות",
+      "profit": "רווח",
+      "margin": "מרווח",
+      "contract_value": "שווי חוזה",
+      "billing": "חיוב וגבייה"
+    },
+    "items": {
+      "workforce_entries_missing_cost": {
+        "title": "חסרה עלות לרישומי שעות",
+        "description": "לחלק מרישומי השעות לא הוזנה עלות מעסיק או תעריף עבודה.",
+        "descriptionCount": "({count, plural, one {רישום אחד} two {שני רישומים} other {# רישומים}})",
+        "why": "בלי עלות לשעות, עלות העבודה בפועל ורווחיות עלולים להיות נמוכים מהמציאות.",
+        "action": "להשלמת עלויות שעות"
+      },
+      "unallocated_remainder": {
+        "title": "עלויות עסק שלא הוקצו",
+        "description": "יש הוצאות ארגון שאושרו ועדיין לא הוקצו לפרויקטים.",
+        "why": "עלויות אלו לא נכללות בעלות בפועל של פרויקט. סיכום העלויות בפרויקטים עלול להיות חלקי.",
+        "action": "להקצאת עלויות"
+      },
+      "open_draft_documents": {
+        "title": "טיוטות שלא נכנסו לעלות בפועל",
+        "description": "יש טיוטות הוצאה או הזמנות רכש שטרם אושרו.",
+        "why": "עד שהן לא מאושרות, הן לא נספרות בעלות בפועל. התמונה עלולה להיראות נמוכה מהצפוי.",
+        "action": "לטיפול בהוצאות"
+      },
+      "open_allocations": {
+        "title": "הקצאות שטרם הוחלו",
+        "description": "יש ריצות הקצאה או הקצאות תקורה שעדיין לא הושלמו.",
+        "why": "עלויות מוקצות לפרויקטים רק אחרי החלה. עד אז הן נשארות מחוץ לעלות הפרויקט.",
+        "action": "להשלמת הקצאות"
+      },
+      "foreign_currency_excluded": {
+        "title": "פרויקטים במטבע אחר",
+        "description": "חלק מהפרויקטים במטבע שונה ממטבע הבסיס של העסק.",
+        "descriptionCount": "({count, plural, one {פרויקט אחד} two {שני פרויקטים} other {# פרויקטים}})",
+        "why": "סכומים אלו לא נכללים בסיכום העסקי. המספרים כאן מייצגים רק את מטבע הבסיס.",
+        "action": "לצפייה בהשוואת פרויקטים"
+      },
+      "open_price_contract_basis": {
+        "title": "חסר בסיס חוזה או מחיר",
+        "description": "כל העבודה הפעילה היא במחיר פתוח. טרם הוגדר שווי חוזה או מחיר.",
+        "descriptionCount": "({count, plural, one {עבודה אחת} two {שתי עבודות} other {# עבודות}})",
+        "why": "בלי בסיס הכנסה אי אפשר לחשב שווי חוזה, רווח או מרווח. אפס אינו ערך עסקי אמיתי.",
+        "action": "לעדכון הפרויקטים"
+      }
+    }
+  },
   "ownerLinks": {
     "cashFlow": "תחזית תזרים",
     "management": "תצוגת ניהול לבעלים"

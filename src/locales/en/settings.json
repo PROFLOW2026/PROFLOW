@@ -374,6 +374,9 @@
     "components": "Default cost components",
     "componentsPlaceholder": "pension=percent:6.5\ntravel=fixed:50",
     "laborSaved": "Labor defaults saved.",
+    "standardHoursPerDay": "Standard hours per day (monthly costing)",
+    "workingDaysPerMonth": "Working days per month",
+    "workCalendarHint": "Required for monthly employee labor costing. Example: 8 hours × 22.75 days = 182 hours/month.",
     "burdenDisplay": "Default burden {percent}%",
     "noLaborDefaults": "No labor defaults configured."
   },
@@ -586,7 +589,10 @@
         "corrected": "Time entry corrected",
         "bulk_created": "Bulk time entries created",
         "updated": "Time entry updated",
+        "deleted": "Time entry deleted",
         "approved": "Time entry approved",
+        "excess_approved": "Excess hours approved",
+        "excess_rejected": "Excess hours rejected",
         "bulk_approved": "Time entries approved in bulk"
       },
       "timesheet": {

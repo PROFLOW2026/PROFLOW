@@ -20,6 +20,7 @@ import {
   findTimeEntryById,
   listTimeEntries,
   listTimeEntriesByIds,
+  updateTimeEntryExcessApproval,
 } from '../data/time-entries.repository';
 import {
   attachEntriesToTimesheet,
@@ -49,6 +50,7 @@ import {
   approveTimeEntrySchema,
   approveTimesheetSchema,
   bulkApproveTimeEntriesSchema,
+  excessTimeEntryDecisionSchema,
   returnTimesheetSchema,
   submitTimeEntriesSchema,
   submitTimesheetSchema,
@@ -56,6 +58,7 @@ import {
   type ApproveTimeEntryInput,
   type ApproveTimesheetInput,
   type BulkApproveTimeEntriesInput,
+  type ExcessTimeEntryDecisionInput,
   type ReturnTimesheetInput,
   type SubmitTimeEntriesInput,
   type SubmitTimesheetInput,
@@ -746,6 +749,116 @@ export async function bulkApproveTimeEntries(
 
 export function canApproveTime(context: OrgContext): boolean {
   return hasPermission(context, PERMISSIONS.TIME_APPROVE);
+}
+
+export async function approveTimeEntryExcess(
+  context: OrgContext,
+  rawInput: ExcessTimeEntryDecisionInput,
+): Promise<TimeEntryRecord> {
+  assertPermission(context, PERMISSIONS.TIME_APPROVE);
+  const input = parseOrThrow(excessTimeEntryDecisionSchema.safeParse(rawInput));
+  const entry = await findTimeEntryById(context.db, context.organizationId, input.timeEntryId);
+  if (!entry || entry.archivedAt) throw new NotFoundError('Time entry');
+  if (entry.status !== 'recorded') {
+    throw new DomainRuleError('Time entry is void', 'workforce.errors.timeEntryAlreadyVoid');
+  }
+  if (!entry.excessHours || Number(entry.excessHours) <= 0) {
+    throw new DomainRuleError('No excess hours on this entry', 'workforce.errors.noExcessHours');
+  }
+  if (entry.excessApprovalStatus !== 'pending') {
+    return entry;
+  }
+  await assertNotSelfTimeApproval(context, entry.employeeId);
+
+  const now = new Date();
+  const updated = await updateTimeEntryExcessApproval(
+    context.db,
+    context.organizationId,
+    entry.id,
+    {
+      excessApprovalStatus: 'approved',
+      decidedAt: now,
+      decidedByUserId: context.userId,
+      managerNote: input.managerNote ?? null,
+    },
+  );
+  if (!updated) {
+    throw new DomainRuleError(
+      'Excess hours could not be approved',
+      'workforce.errors.excessDecisionFailed',
+    );
+  }
+
+  await recordAuditEvent(context, {
+    action: AUDIT_ACTIONS.TIME_ENTRY_EXCESS_APPROVED,
+    entityType: 'time_entry',
+    entityId: updated.id,
+    after: {
+      excessHours: updated.excessHours,
+      excessApprovalStatus: updated.excessApprovalStatus,
+    },
+  });
+
+  return updated;
+}
+
+export async function rejectTimeEntryExcess(
+  context: OrgContext,
+  rawInput: ExcessTimeEntryDecisionInput,
+): Promise<TimeEntryRecord> {
+  assertPermission(context, PERMISSIONS.TIME_APPROVE);
+  const input = parseOrThrow(excessTimeEntryDecisionSchema.safeParse(rawInput));
+  const note = input.managerNote?.trim();
+  if (!note) {
+    throw new DomainRuleError(
+      'A manager note is required when rejecting excess hours',
+      'workforce.errors.managerNoteRequired',
+    );
+  }
+  const entry = await findTimeEntryById(context.db, context.organizationId, input.timeEntryId);
+  if (!entry || entry.archivedAt) throw new NotFoundError('Time entry');
+  if (entry.status !== 'recorded') {
+    throw new DomainRuleError('Time entry is void', 'workforce.errors.timeEntryAlreadyVoid');
+  }
+  if (!entry.excessHours || Number(entry.excessHours) <= 0) {
+    throw new DomainRuleError('No excess hours on this entry', 'workforce.errors.noExcessHours');
+  }
+  if (entry.excessApprovalStatus !== 'pending') {
+    return entry;
+  }
+  await assertNotSelfTimeApproval(context, entry.employeeId);
+
+  const now = new Date();
+  const updated = await updateTimeEntryExcessApproval(
+    context.db,
+    context.organizationId,
+    entry.id,
+    {
+      excessApprovalStatus: 'rejected',
+      decidedAt: now,
+      decidedByUserId: context.userId,
+      managerNote: note,
+    },
+  );
+  if (!updated) {
+    throw new DomainRuleError(
+      'Excess hours could not be rejected',
+      'workforce.errors.excessDecisionFailed',
+    );
+  }
+
+  await recordAuditEvent(context, {
+    action: AUDIT_ACTIONS.TIME_ENTRY_EXCESS_REJECTED,
+    entityType: 'time_entry',
+    entityId: updated.id,
+    after: {
+      excessHours: updated.excessHours,
+      excessApprovalStatus: updated.excessApprovalStatus,
+      managerNote: note,
+    },
+  });
+
+  return updated;
 }
 
 export type { TimeApprovalStatus };

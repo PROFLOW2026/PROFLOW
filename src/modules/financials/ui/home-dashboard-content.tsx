@@ -12,9 +12,10 @@ import { textNavLinkClassName } from '@/components/ui/pressable';
 import { cn } from '@/shared/ui/cn';
 import type { ExperienceDashboardCard } from '@/modules/tenancy';
 import type { HomeDashboardData } from '../application/get-home-dashboard';
-import type { DataConfidenceLevel, DataConfidenceReason } from '../domain/data-confidence';
 import { mapCoverageToSources, partialNote, standalonePartialNotes } from './map-coverage-sources';
-import { DataConfidenceBadge } from './data-confidence-badge';
+import { DashboardMissingDataTrigger } from './dashboard-missing-data-trigger';
+import { mapDashboardMissingDataToView } from './map-dashboard-missing-data-view';
+import { partitionDashboardCompletenessItems } from '../domain/dashboard-missing-data';
 
 interface HomeDashboardContentProps {
   data: HomeDashboardData;
@@ -105,6 +106,24 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
     data.attention.pendingChangesCount > 0 ||
     data.attention.unbilledApprovedCount > 0 ||
     data.attention.overdueBillingCount > 0;
+
+  const completenessPartitions = partitionDashboardCompletenessItems(data.missingDataItems);
+  const translateDashboard = (key: string, values?: Record<string, string | number>) =>
+    t(key, values as Record<string, string | number> | undefined);
+  const missingDataItemsView = mapDashboardMissingDataToView(
+    completenessPartitions.missing,
+    translateDashboard,
+  );
+  const attentionItemsView = mapDashboardMissingDataToView(
+    completenessPartitions.attention,
+    translateDashboard,
+  );
+  const hasCompletenessTrigger =
+    missingDataItemsView.length > 0 || attentionItemsView.length > 0;
+
+  function isKpiUnavailable(key: keyof NonNullable<HomeDashboardData['kpiAvailability']>): boolean {
+    return data.kpiAvailability?.[key] === 'unavailable';
+  }
 
   function renderCard(card: ExperienceDashboardCard): ReactNode {
     switch (card) {
@@ -201,14 +220,17 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
         );
 
       case 'contractValue':
-        if (!data.totalContractValue) return null;
+        if (!data.totalContractValue && !isKpiUnavailable('contractValue')) return null;
         return (
           <section key={card} className="min-w-0 max-w-full">
             <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
               <KpiCard
                 title={tFinancial('kpis.currentContract')}
-                money={data.totalContractValue}
-                hint={tFinancial('basis.netExVat')}
+                money={isKpiUnavailable('contractValue') ? undefined : data.totalContractValue ?? undefined}
+                unavailable={isKpiUnavailable('contractValue')}
+                unavailableLabel={t('missingData.kpiUnavailable')}
+                unavailableHint={t('missingData.kpiUnavailableContractHint')}
+                hint={isKpiUnavailable('contractValue') ? undefined : tFinancial('basis.netExVat')}
                 footer={
                   contractValueNote ? (
                     <p className="break-words text-xs text-[var(--pf-text-secondary)]">
@@ -222,14 +244,24 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
         );
 
       case 'profit':
-        if (!(data.showProfit && data.estimatedProfit)) return null;
+        if (
+          !data.showProfit ||
+          (!data.estimatedProfit && !isKpiUnavailable('estimatedProfit'))
+        ) {
+          return null;
+        }
         return (
           <section key={card} className="min-w-0 max-w-full">
             <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
               <KpiCard
                 title={tFinancial('kpis.forecastMargin')}
-                money={data.estimatedProfit}
-                hint={tFinancial('basis.profitNet')}
+                money={
+                  isKpiUnavailable('estimatedProfit') ? undefined : data.estimatedProfit ?? undefined
+                }
+                unavailable={isKpiUnavailable('estimatedProfit')}
+                unavailableLabel={t('missingData.kpiUnavailable')}
+                unavailableHint={t('missingData.kpiUnavailableProfitHint')}
+                hint={isKpiUnavailable('estimatedProfit') ? undefined : tFinancial('basis.profitNet')}
                 footer={<CoverageDisclosure sources={coverageSources} />}
               />
             </div>
@@ -257,15 +289,45 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
               {data.showProfit && data.forecast.totalActualMargin ? (
                 <KpiCard
                   title={tFinancial('kpis.actualMargin')}
-                  money={data.forecast.totalActualMargin}
-                  hint={tFinancial('basis.profitNet')}
+                  money={
+                    isKpiUnavailable('actualMargin')
+                      ? undefined
+                      : data.forecast.totalActualMargin
+                  }
+                  unavailable={isKpiUnavailable('actualMargin')}
+                  unavailableLabel={t('missingData.kpiUnavailable')}
+                  unavailableHint={t('missingData.kpiUnavailableProfitHint')}
+                  hint={isKpiUnavailable('actualMargin') ? undefined : tFinancial('basis.profitNet')}
+                />
+              ) : isKpiUnavailable('actualMargin') ? (
+                <KpiCard
+                  title={tFinancial('kpis.actualMargin')}
+                  unavailable
+                  unavailableLabel={t('missingData.kpiUnavailable')}
+                  unavailableHint={t('missingData.kpiUnavailableProfitHint')}
                 />
               ) : null}
               {data.showProfit && data.forecast.totalForecastMargin ? (
                 <KpiCard
                   title={tFinancial('kpis.forecastMargin')}
-                  money={data.forecast.totalForecastMargin}
-                  hint={tFinancial('basis.profitNet')}
+                  money={
+                    isKpiUnavailable('forecastMargin')
+                      ? undefined
+                      : data.forecast.totalForecastMargin
+                  }
+                  unavailable={isKpiUnavailable('forecastMargin')}
+                  unavailableLabel={t('missingData.kpiUnavailable')}
+                  unavailableHint={t('missingData.kpiUnavailableProfitHint')}
+                  hint={
+                    isKpiUnavailable('forecastMargin') ? undefined : tFinancial('basis.profitNet')
+                  }
+                />
+              ) : isKpiUnavailable('forecastMargin') ? (
+                <KpiCard
+                  title={tFinancial('kpis.forecastMargin')}
+                  unavailable
+                  unavailableLabel={t('missingData.kpiUnavailable')}
+                  unavailableHint={t('missingData.kpiUnavailableProfitHint')}
                 />
               ) : null}
               <KpiCard
@@ -456,19 +518,26 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
           <h2 className="text-sm font-semibold text-[var(--pf-text-secondary)]">
             {t('businessSummary.title')}
           </h2>
-          {data.dataConfidence ? (
-            <DataConfidenceBadge
-              level={data.dataConfidence.level as DataConfidenceLevel}
-              label={tFinancial(`confidence.levels.${data.dataConfidence.level}`)}
-              title={
-                data.dataConfidence.reasons.length === 0
-                  ? tFinancial('confidence.highHint')
-                  : data.dataConfidence.reasons
-                      .map((reason) =>
-                        tFinancial(`confidence.reasons.${reason as DataConfidenceReason}`),
-                      )
-                      .join(' · ')
-              }
+          {hasCompletenessTrigger ? (
+            <DashboardMissingDataTrigger
+              missingItems={missingDataItemsView}
+              attentionItems={attentionItemsView}
+              copy={{
+                missingButtonOne: t('missingData.missingButtonOne'),
+                missingButtonMany: t.raw('missingData.missingButtonMany') as string,
+                attentionButtonOne: t('missingData.attentionButtonOne'),
+                attentionButtonMany: t.raw('missingData.attentionButtonMany') as string,
+                modalTitle: t('missingData.modalTitle'),
+                modalDescription: t('missingData.modalDescription'),
+                sectionMissing: t('missingData.sectionMissing'),
+                sectionAttention: t('missingData.sectionAttention'),
+                missingItemLabel: t('missingData.missingItemLabel'),
+                attentionItemLabel: t('missingData.attentionItemLabel'),
+                whatHeading: t('missingData.whatHeading'),
+                whyHeading: t('missingData.whyHeading'),
+                scopeHeading: t('missingData.scopeHeading'),
+                affectedHeading: t('missingData.affectedHeading'),
+              }}
             />
           ) : null}
         </div>
@@ -514,12 +583,18 @@ function KpiCard({
   value,
   hint,
   footer,
+  unavailable,
+  unavailableLabel,
+  unavailableHint,
 }: {
   title: string;
   money?: { amount: string; currency: string };
   value?: string;
   hint?: string;
   footer?: ReactNode;
+  unavailable?: boolean;
+  unavailableLabel?: string;
+  unavailableHint?: string;
 }) {
   return (
     <Card className="min-w-0 max-w-full">
@@ -529,7 +604,18 @@ function KpiCard({
         </CardTitle>
       </CardHeader>
       <CardContent className="flex min-w-0 flex-col gap-1">
-        {money ? (
+        {unavailable ? (
+          <>
+            <span className="text-lg font-semibold text-[var(--pf-status-warning-fg,var(--pf-text-primary))]">
+              {unavailableLabel}
+            </span>
+            {unavailableHint ? (
+              <p className="break-words text-xs text-[var(--pf-text-secondary)]">
+                {unavailableHint}
+              </p>
+            ) : null}
+          </>
+        ) : money ? (
           <div className="min-w-0 max-w-full overflow-x-auto">
             <MoneyText value={money} className="text-lg font-semibold" />
           </div>

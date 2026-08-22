@@ -8,10 +8,7 @@ import {
   type MoneyValue,
 } from '@/shared/money';
 import type { LaborCostComponentRecord, RateUnit } from './types';
-
-/** V1 assumptions for converting logged hours into daily/monthly rate units. */
-export const STANDARD_HOURS_PER_DAY = '8';
-export const STANDARD_HOURS_PER_MONTH = '160';
+import type { WorkCalendarRates } from './work-calendar';
 
 export interface LaborCostBreakdown {
   readonly basePortion: MoneyValue;
@@ -33,15 +30,29 @@ function toHoursDecimal(hours: string): Decimal {
 }
 
 /** Converts logged hours into the multiplier applied to the stored base rate. */
-export function hoursToRateUnits(hours: string, rateUnit: RateUnit): string {
+export function hoursToRateUnits(
+  hours: string,
+  rateUnit: RateUnit,
+  calendar?: Pick<WorkCalendarRates, 'standardHoursPerDay' | 'standardHoursPerMonth'>,
+): string {
   const quantity = toHoursDecimal(hours);
   switch (rateUnit) {
     case 'hourly':
       return quantity.toString();
-    case 'daily':
-      return quantity.dividedBy(STANDARD_HOURS_PER_DAY).toString();
-    case 'monthly':
-      return quantity.dividedBy(STANDARD_HOURS_PER_MONTH).toString();
+    case 'daily': {
+      const hoursPerDay = calendar?.standardHoursPerDay;
+      if (!hoursPerDay || Number(hoursPerDay) <= 0) {
+        throw new Error('Daily rate conversion requires configured standardHoursPerDay');
+      }
+      return quantity.dividedBy(hoursPerDay).toString();
+    }
+    case 'monthly': {
+      const hoursPerMonth = calendar?.standardHoursPerMonth;
+      if (!hoursPerMonth || Number(hoursPerMonth) <= 0) {
+        throw new Error('Monthly rate conversion requires configured standardHoursPerMonth');
+      }
+      return quantity.dividedBy(hoursPerMonth).toString();
+    }
     default:
       return quantity.toString();
   }
@@ -57,6 +68,7 @@ export interface CalculateLaborCostInput {
     LaborCostComponentRecord,
     'basis' | 'amount' | 'percent' | 'currency'
   >[];
+  readonly calendar?: Pick<WorkCalendarRates, 'standardHoursPerDay' | 'standardHoursPerMonth'>;
 }
 
 /**
@@ -68,7 +80,7 @@ export interface CalculateLaborCostInput {
 export function calculateLaborCost(input: CalculateLaborCostInput): LaborCostBreakdown {
   const currency = input.currency;
   const baseRate = money(input.baseRate, currency);
-  const units = hoursToRateUnits(input.hours, input.rateUnit);
+  const units = hoursToRateUnits(input.hours, input.rateUnit, input.calendar);
   const basePortion = multiplyMoney(baseRate, units);
 
   const burdenPortion =

@@ -50,6 +50,8 @@
       "email": "דוא״ל",
       "phone": "טלפון",
       "notes": "הערות",
+      "standardHoursPerDay": "מסגרת שעות יומית",
+      "standardHoursPerDayHint": "מעבר למסגרת זו הדיווח יסומן כחריגה ויידרש לאישור מנהל. ריק = לפי ברירת המחדל של הארגון.",
       "submit": "שמירת עובד",
       "advancedTitle": "מתקדם (אופציונלי)",
       "advancedHint": "תגמול ופרטי קשר. אפשר לדלג לתמיד אם צריך רק שמות לדיווח שעות.",
@@ -66,6 +68,11 @@
       "openEnded": "ללא תאריך סיום",
       "noRateHistory": "עדיין לא נרשמו גרסאות תעריף.",
       "compensationSection": "עלות / תנאי העסקה",
+      "dailyCapacity": "מסגרת שעות יומית",
+      "dailyCapacityInherited": "מוגדר לפי ברירת המחדל של הארגון ({hours})",
+      "dailyCapacityOverride": "{hours} שעות",
+      "dailyCapacityHint": "מעבר למסגרת זו הדיווח יסומן כחריגה ויידרש לאישור.",
+      "dailyCapacityMissing": "לא הוגדרה מסגרת שעות. הגדר/י בהגדרות, בקטלוג, או בעובד.",
       "compensationAdvanced": "עלות עובד / שכר (מתקדם)",
       "addRate": "הוסף תעריף מתאריך",
       "addRateHint": "יוצר גרסת תעריף חדשה מהתאריך שנבחר. גרסאות קודמות אינן משתנות.",
@@ -136,7 +143,11 @@
       "saveHours": "שמירת שעות",
       "waitingApproval": "מחכה לאישור",
       "approved": "אושר",
-      "returned": "הוחזר לתיקון"
+      "returned": "הוחזר לתיקון",
+      "deleteDraft": "מחיקת דיווח"
+    },
+    "excess": {
+      "pending": "חריגה {hours} שעות. ממתין לאישור מנהל"
     },
     "approvals": {
       "title": "אישורי שעות",
@@ -154,6 +165,11 @@
       "successSubmitted": "נשלח לאישור.",
       "successApproved": "אושר. השעות האלה נספרות עכשיו כעלות עבודה בפועל.",
       "successReturned": "הוחזר לתיקון.",
+      "excessTitle": "שעות חורגות. נדרש אישור מנהל",
+      "excessAmount": "חריגה: {hours} שעות",
+      "excessApprove": "אישור חריגה",
+      "excessReject": "דחיית חריגה",
+      "optionalForApprove": "אופציונלי לאישור",
       "empty": {
         "title": "אין גיליונות שממתינים",
         "description": "שעות שהוגשו יופיעו כאן לבדיקה. אין חובה עד שמישהו שולח גיליון שעות."
@@ -222,7 +238,14 @@
       "submit": "שמירת דיווח שעות",
       "submitBulk": "שמירת דיווחים מרובים",
       "submitCorrection": "שמירת תיקון",
-      "noEmployees": "קודם הוסיפו עובד (עובדים → עובד חדש), ואז חזרו לדווח שעות."
+      "noEmployees": "קודם הוסיפו עובד (עובדים → עובד חדש), ואז חזרו לדווח שעות.",
+      "dailyExcessTitle": "הדיווח חורג ממסגרת השעות היומית של העובד",
+      "dailyExcessRegular": "שעות רגילות: {hours}",
+      "dailyExcessReported": "דווח עד כה: {hours}",
+      "dailyExcessNew": "דיווח חדש: {hours}",
+      "dailyExcessOver": "חריגה: {hours}",
+      "dailyExcessManagerNote": "השעות החורגות יידרשו לאישור מנהל.",
+      "dailyExcessConfirm": "אני מבין/ה. לשמור גם את השעות החורגות"
     }
   },
   "projectPanel": {
@@ -422,6 +445,14 @@
     "selfApprovalBlocked": "לא ניתן לאשר את גיליון השעות של עצמך. יש לבקש ממנהל אחר או מהבעלים.",
     "userNotInOrganization": "המשתמש אינו חבר פעיל בארגון.",
     "userAlreadyLinked": "המשתמש כבר מקושר לעובד אחר.",
+    "exactDuplicateTimeEntry": "הדיווח הזה כבר קיים.",
+    "dailyHoursExceeded": "הדיווח חורג ממסגרת השעות היומית של העובד.",
+    "timeEntryNotDeletable": "אפשר למחוק רק דיווחים בטיוטה או שהוחזרו לתיקון.",
+    "noExcessHours": "אין שעות חריגה בדיווח זה.",
+    "excessDecisionFailed": "לא ניתן לעדכן את אישור השעות החורגות.",
+    "excessExceedsEntryHours": "שעות חריגה לא יכולות לעלות על שעות הדיווח.",
+    "excessStatusRequired": "לשעות חריגה נדרש סטטוס אישור.",
+    "invalidHours": "כמות השעות אינה תקינה.",
     "breakStartInvalid": "אפשר להתחיל הפסקה רק אחרי כניסה.",
     "breakEndInvalid": "אינך בהפסקה.",
     "timesheetPeriodLocked": "תקופת גיליון השעות נעולה. השתמשו בתיקון שעות במקום עריכה שקטה."

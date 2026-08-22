@@ -84,6 +84,20 @@ export function TimeEntryForm({
   const [weekdays, setWeekdays] = useState<WeekdayIndex[]>([...WEEKDAY_WORKDAYS]);
   const [usePerDayHours, setUsePerDayHours] = useState(false);
   const [perDayHours, setPerDayHours] = useState<Record<string, string>>({});
+  const [clientRequestId] = useState(() =>
+    typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+      ? crypto.randomUUID()
+      : '',
+  );
+  const [confirmDailyExcess, setConfirmDailyExcess] = useState(false);
+
+  function formatHoursDisplay(value: string): string {
+    const num = Number(value);
+    if (!Number.isFinite(num)) return value;
+    const whole = Math.floor(num);
+    const mins = Math.round((num - whole) * 60);
+    return `${whole}:${String(mins).padStart(2, '0')}`;
+  }
 
   const offlineSuccessState = useMemo<TimeEntryFormState>(() => ({ offlineQueued: true }), []);
 
@@ -96,6 +110,7 @@ export function TimeEntryForm({
   });
 
   const [state, formAction, pending] = useActionState(wrappedAction, {});
+  const dailyExcess = state.dailyExcessWarning;
 
   const sortedProjects = useMemo(() => {
     if (!recentProjectId) return projects;
@@ -168,6 +183,27 @@ export function TimeEntryForm({
   return (
     <form action={formAction} className="mx-auto flex w-full max-w-lg flex-col gap-4">
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
+      {dailyExcess ? (
+        <Alert tone="warning" role="status">
+          <p className="font-medium">{t('time.form.dailyExcessTitle')}</p>
+          <ul className="mt-2 list-inside list-disc text-sm">
+            <li>{t('time.form.dailyExcessRegular', { hours: formatHoursDisplay(dailyExcess.standardHoursPerDay) })}</li>
+            <li>{t('time.form.dailyExcessReported', { hours: formatHoursDisplay(dailyExcess.reportedSoFar) })}</li>
+            <li>{t('time.form.dailyExcessNew', { hours: formatHoursDisplay(dailyExcess.newHours) })}</li>
+            <li>{t('time.form.dailyExcessOver', { hours: formatHoursDisplay(dailyExcess.excessHours) })}</li>
+          </ul>
+          <p className="mt-2 text-sm">{t('time.form.dailyExcessManagerNote')}</p>
+          <label className="mt-3 inline-flex min-h-11 items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={confirmDailyExcess}
+              onChange={(event) => setConfirmDailyExcess(event.target.checked)}
+              className="size-4"
+            />
+            {t('time.form.dailyExcessConfirm')}
+          </label>
+        </Alert>
+      ) : null}
       {correctsEntryId ? (
         <Alert tone="info" role="status">
           {t('time.form.correctionNotice')}
@@ -185,6 +221,10 @@ export function TimeEntryForm({
       <input type="hidden" name="kind" value={kind} />
       <input type="hidden" name="entryMode" value={entryMode} />
       {correctsEntryId ? <input type="hidden" name="correctsEntryId" value={correctsEntryId} /> : null}
+      {clientRequestId ? (
+        <input type="hidden" name="clientRequestId" value={clientRequestId} />
+      ) : null}
+      {confirmDailyExcess ? <input type="hidden" name="confirmDailyExcess" value="on" /> : null}
       {dayHoursJson ? <input type="hidden" name="dayHoursJson" value={dayHoursJson} /> : null}
       {weekdays.map((day) => (
         <input key={day} type="hidden" name="weekdays" value={String(day)} />

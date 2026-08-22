@@ -10,19 +10,29 @@ export type Messages = Record<string, Record<string, unknown>>;
  */
 const messagesByLocale = new Map<Locale, Promise<Messages>>();
 
+function shouldCacheLoadedMessages(): boolean {
+  const appEnv = process.env.APP_ENV;
+  return appEnv === 'production' || appEnv === 'preview';
+}
+
 /**
- * Catalogs are static per deploy. Cache the merge so cold requests in the
- * same isolate do not re-import ~50 namespaces (twice for he-IL).
+ * Catalogs are static per deploy. Cache the merge in preview/production so cold
+ * requests in the same isolate do not re-import every namespace. Local dev skips
+ * the cache so edited locale JSON is picked up without restarting the dev server.
  */
 export async function loadMessages(locale: Locale): Promise<Messages> {
-  const hit = messagesByLocale.get(locale);
-  if (hit) return hit;
+  if (shouldCacheLoadedMessages()) {
+    const hit = messagesByLocale.get(locale);
+    if (hit) return hit;
+  }
 
   const pending = loadMessagesUncached(locale).catch((error: unknown) => {
     messagesByLocale.delete(locale);
     throw error;
   });
-  messagesByLocale.set(locale, pending);
+  if (shouldCacheLoadedMessages()) {
+    messagesByLocale.set(locale, pending);
+  }
   return pending;
 }
 

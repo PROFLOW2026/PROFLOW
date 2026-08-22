@@ -23,7 +23,11 @@ import {
 import { canReadWorkforceCost } from './workforce-cost-authz';
 import { assertCanActOnEmployeeTime, assertCanListTime, canReadOrgWorkforce, resolveSelfScopedEmployeeId } from './time-scope';
 import { expandBulkWorkDates } from '../domain/bulk-time-expand';
-import { calculateLaborCostTotal } from '../domain/labor-cost';
+import {
+  parseKnownMonthlyEmployerCost,
+  resolveLaborCostFromCompensation,
+  type LaborCostResolutionKind,
+} from '../domain/compensation-labor-cost';
 import { resolveRateVersionForDate } from '../domain/rate-lookup';
 import { resolveTimeCorrectionApprovalAmount } from '../domain/time-correction-approval';
 import {
@@ -31,6 +35,7 @@ import {
   isApprovedRecordedLocked,
 } from '../domain/timesheet-lifecycle';
 import { DEFAULT_NON_PROJECT_TIME_CODES } from '../domain/types';
+import { findEmployeeMonthCostByEmployeeMonth } from '../data/employee-month-costs.repository';
 import { findEmployeeById, findEmployeeByUserId } from '../data/employees.repository';
 import {
   findDefaultWorkPackage,
@@ -45,6 +50,7 @@ import {
 } from '../data/rate-versions.repository';
 import {
   countNonProjectTimeCodes,
+  deleteDraftTimeEntryById,
   findNonProjectTimeCodeById,
   findTimeEntryById,
   insertNonProjectTimeCode,
@@ -55,6 +61,13 @@ import {
   voidTimeEntryRow,
 } from '../data/time-entries.repository';
 import { findTimesheetById, patchMutableTimeEntry } from '../data/timesheets.repository';
+import { ensureValidClientRequestId } from '../domain/client-request-id';
+import {
+  assertTimeEntryIntegrity,
+  findIdempotentTimeEntry,
+  reconcileDailyExcessForEmployeeDate,
+} from './time-entry-integrity';
+import { resolveEmployeeWorkCalendarForCosting } from './work-calendar-context';
 import type {
   NonProjectTimeCodeRecord,
   TimeApprovalStatus,
@@ -78,38 +91,66 @@ export interface CostSnapshot {
   readonly rateVersionId: string | null;
   readonly costAmount: string | null;
   readonly costCurrency: string | null;
+  readonly resolutionKind?: LaborCostResolutionKind;
+}
+
+function isUniqueViolation(error: unknown): boolean {
+  return (error as { code?: string }).code === '23505';
 }
 
 /**
  * Resolves and calculates the labor cost snapshot for a time entry (doc 04 §13, doc 06 §5).
- * Returns null cost fields when no rate applies on the work date.
+ * Uses org/employee work calendar for monthly→hourly conversion; falls back to
+ * employee_month_costs when no rate version applies on the work date.
  */
 export async function resolveTimeEntryCostSnapshot(
   db: OrgContext['db'],
   organizationId: string,
   input: { employeeId: string; workDate: string; hours: string },
 ): Promise<CostSnapshot> {
+  const costing = await resolveEmployeeWorkCalendarForCosting(db, organizationId, input.employeeId);
+  const calendar = costing.configured ? costing.rates : null;
   const versions = await listRateVersionsByEmployee(db, organizationId, input.employeeId);
   const rateVersion = resolveRateVersionForDate(versions, businessDate(input.workDate));
+  const components = rateVersion
+    ? await listComponentsByRateVersion(db, organizationId, rateVersion.id)
+    : [];
 
-  if (!rateVersion) {
-    return { rateVersionId: null, costAmount: null, costCurrency: null };
-  }
+  const yearMonth = input.workDate.slice(0, 7);
+  const monthCostRow = await findEmployeeMonthCostByEmployeeMonth(
+    db,
+    organizationId,
+    input.employeeId,
+    yearMonth,
+  );
+  const monthlyEmployerCost = monthCostRow
+    ? parseKnownMonthlyEmployerCost({
+        knownAmount: monthCostRow.knownAmount,
+        currency: monthCostRow.currency,
+      })
+    : null;
 
-  const components = await listComponentsByRateVersion(db, organizationId, rateVersion.id);
-  const total = calculateLaborCostTotal({
-    baseRate: rateVersion.baseRate,
-    currency: rateVersion.currency,
-    rateUnit: rateVersion.rateUnit,
+  const resolution = resolveLaborCostFromCompensation({
     hours: input.hours,
-    burdenPercent: rateVersion.burdenPercent,
+    calendar,
+    rateVersion: rateVersion
+      ? {
+          id: rateVersion.id,
+          baseRate: rateVersion.baseRate,
+          currency: rateVersion.currency,
+          rateUnit: rateVersion.rateUnit,
+          burdenPercent: rateVersion.burdenPercent,
+        }
+      : null,
     components,
+    monthlyEmployerCost,
   });
 
   return {
-    rateVersionId: rateVersion.id,
-    costAmount: toNumericString(total),
-    costCurrency: total.currency,
+    rateVersionId: resolution.rateVersionId,
+    costAmount: resolution.costAmount,
+    costCurrency: resolution.costCurrency,
+    resolutionKind: resolution.kind,
   };
 }
 
@@ -291,6 +332,9 @@ async function insertRecordedTimeEntry(
     correctsEntryId?: string | null;
     bulkBatchId?: string | null;
     snapshot?: CostSnapshot;
+    excessHours?: string | null;
+    excessApprovalStatus?: 'pending' | 'approved' | 'rejected' | null;
+    clientRequestId?: string | null;
     /**
      * New logs: draft (no Actual). Corrections of approved history: approved
      * so Actual is not silently dropped - the time_correction gate still applies.
@@ -327,6 +371,9 @@ async function insertRecordedTimeEntry(
     approvalStatus: input.approvalStatus ?? 'draft',
     decidedAt: input.approvalStatus === 'approved' ? new Date() : null,
     decidedByUserId: input.approvalStatus === 'approved' ? context.userId : null,
+    excessHours: input.excessHours ?? null,
+    excessApprovalStatus: input.excessApprovalStatus ?? null,
+    clientRequestId: input.clientRequestId ?? null,
   });
 }
 
@@ -349,6 +396,7 @@ export async function createTimeEntry(
   }
 
   const input = parsed.data;
+  const clientRequestId = ensureValidClientRequestId(input.clientRequestId);
 
   const employee = await findEmployeeById(context.db, context.organizationId, input.employeeId);
   if (!employee || employee.archivedAt) throw new NotFoundError('Employee');
@@ -357,37 +405,87 @@ export async function createTimeEntry(
   await assertMonthOpenForRewrite(context, yearMonthFromBusinessDate(input.workDate));
 
   const targets = await resolveTimeTargets(context, input);
-  const entry = await insertRecordedTimeEntry(context, {
-    employeeId: input.employeeId,
-    workDate: input.workDate,
-    hours: input.hours,
-    kind: input.kind,
-    targets,
-    description: input.description,
+
+  return withTransaction(context.db, async (tx) => {
+    const txContext = { ...context, db: tx };
+
+    const idempotent = await findIdempotentTimeEntry(
+      tx,
+      context.organizationId,
+      clientRequestId,
+    );
+    if (idempotent) return idempotent;
+
+    await assertTimeEntryIntegrity(tx, context.organizationId, {
+      employeeId: input.employeeId,
+      workDate: input.workDate,
+      hours: input.hours,
+      kind: input.kind,
+      projectId: input.projectId,
+      workPackageId: input.workPackageId,
+      phaseId: input.phaseId,
+      timeCodeId: input.timeCodeId,
+      description: input.description,
+      clientRequestId,
+      confirmDailyExcess: input.confirmDailyExcess,
+    });
+
+    let entry: TimeEntryRecord;
+    try {
+      entry = await insertRecordedTimeEntry(txContext, {
+        employeeId: input.employeeId,
+        workDate: input.workDate,
+        hours: input.hours,
+        kind: input.kind,
+        targets,
+        description: input.description,
+        clientRequestId,
+      });
+    } catch (error) {
+      if (isUniqueViolation(error)) {
+        const raced = await findIdempotentTimeEntry(
+          tx,
+          context.organizationId,
+          clientRequestId,
+        );
+        if (raced) return raced;
+      }
+      throw error;
+    }
+
+    await reconcileDailyExcessForEmployeeDate(
+      tx,
+      context.organizationId,
+      input.employeeId,
+      input.workDate,
+    );
+
+    const refreshed = await findTimeEntryById(tx, context.organizationId, entry.id);
+    entry = refreshed ?? entry;
+
+    await noteModuleUsage(tx, context.organizationId, 'workforce');
+
+    await recordAuditEvent(txContext, {
+      action: AUDIT_ACTIONS.TIME_ENTRY_CREATED,
+      entityType: 'time_entry',
+      entityId: entry.id,
+      after: {
+        employeeId: entry.employeeId,
+        workDate: entry.workDate,
+        hours: entry.hours,
+        kind: entry.kind,
+        projectId: entry.projectId,
+        timeCodeId: entry.timeCodeId,
+        costAmount: entry.costAmount,
+        costCurrency: entry.costCurrency,
+        rateVersionId: entry.rateVersionId,
+        status: entry.status,
+        approvalStatus: entry.approvalStatus,
+      },
+    });
+
+    return entry;
   });
-
-  await noteModuleUsage(context.db, context.organizationId, 'workforce');
-
-  await recordAuditEvent(context, {
-    action: AUDIT_ACTIONS.TIME_ENTRY_CREATED,
-    entityType: 'time_entry',
-    entityId: entry.id,
-    after: {
-      employeeId: entry.employeeId,
-      workDate: entry.workDate,
-      hours: entry.hours,
-      kind: entry.kind,
-      projectId: entry.projectId,
-      timeCodeId: entry.timeCodeId,
-      costAmount: entry.costAmount,
-      costCurrency: entry.costCurrency,
-      rateVersionId: entry.rateVersionId,
-      status: entry.status,
-      approvalStatus: entry.approvalStatus,
-    },
-  });
-
-  return entry;
 }
 
 /**
@@ -444,6 +542,18 @@ export async function createBulkTimeEntries(
     const txContext = { ...context, db: tx };
     const created: TimeEntryRecord[] = [];
     for (const day of days) {
+      await assertTimeEntryIntegrity(tx, context.organizationId, {
+        employeeId: input.employeeId,
+        workDate: day.workDate,
+        hours: day.hours,
+        kind: input.kind,
+        projectId: input.projectId,
+        workPackageId: input.workPackageId,
+        phaseId: input.phaseId,
+        timeCodeId: input.timeCodeId,
+        description: input.description,
+        confirmDailyExcess: input.confirmDailyExcess,
+      });
       const entry = await insertRecordedTimeEntry(txContext, {
         employeeId: input.employeeId,
         workDate: day.workDate,
@@ -452,8 +562,16 @@ export async function createBulkTimeEntries(
         targets,
         description: input.description,
         bulkBatchId: batchId,
+        clientRequestId: ensureValidClientRequestId(null),
       });
-      created.push(entry);
+      await reconcileDailyExcessForEmployeeDate(
+        tx,
+        context.organizationId,
+        input.employeeId,
+        day.workDate,
+      );
+      const refreshed = await findTimeEntryById(tx, context.organizationId, entry.id);
+      created.push(refreshed ?? entry);
     }
     return created;
   });
@@ -675,9 +793,28 @@ export async function correctTimeEntry(
       correctsEntryId: original.id,
       snapshot,
       approvalStatus: original.approvalStatus === 'approved' ? 'approved' : 'draft',
+      clientRequestId: ensureValidClientRequestId(input.clientRequestId),
     });
 
-    return { voided, replacement };
+    await reconcileDailyExcessForEmployeeDate(
+      tx,
+      context.organizationId,
+      input.employeeId,
+      input.workDate,
+    );
+    if (original.workDate !== input.workDate) {
+      await reconcileDailyExcessForEmployeeDate(
+        tx,
+        context.organizationId,
+        original.employeeId,
+        original.workDate,
+      );
+    }
+
+    const refreshedReplacement =
+      (await findTimeEntryById(tx, context.organizationId, replacement.id)) ?? replacement;
+
+    return { voided, replacement: refreshedReplacement };
   });
 
   await recordAuditEvent(context, {
@@ -765,19 +902,33 @@ export async function updateTimeEntry(
     });
   }
 
-  const updated = await patchMutableTimeEntry(context.db, context.organizationId, original.id, {
-    hours: input.hours,
-    description: input.description,
-    costAmount: snapshot.costAmount,
-    costCurrency: snapshot.costCurrency,
-    rateVersionId: snapshot.rateVersionId,
+  const updated = await withTransaction(context.db, async (tx) => {
+    const patched = await patchMutableTimeEntry(tx, context.organizationId, original.id, {
+      hours: input.hours,
+      description: input.description,
+      costAmount: snapshot.costAmount,
+      costCurrency: snapshot.costCurrency,
+      rateVersionId: snapshot.rateVersionId,
+    });
+    if (!patched) {
+      throw new DomainRuleError(
+        'Approved time is locked; use a correction',
+        'workforce.errors.timeEntryApprovedLocked',
+      );
+    }
+
+    if (input.hours && input.hours !== original.hours) {
+      await reconcileDailyExcessForEmployeeDate(
+        tx,
+        context.organizationId,
+        original.employeeId,
+        original.workDate,
+      );
+      return (await findTimeEntryById(tx, context.organizationId, patched.id)) ?? patched;
+    }
+
+    return patched;
   });
-  if (!updated) {
-    throw new DomainRuleError(
-      'Approved time is locked; use a correction',
-      'workforce.errors.timeEntryApprovedLocked',
-    );
-  }
 
   await recordAuditEvent(context, {
     action: AUDIT_ACTIONS.TIME_ENTRY_UPDATED,
@@ -794,6 +945,69 @@ export async function updateTimeEntry(
 export async function suggestDefaultEmployee(context: OrgContext): Promise<string | null> {
   const linked = await findEmployeeByUserId(context.db, context.organizationId, context.userId);
   return linked?.id ?? null;
+}
+
+/**
+ * Permanently removes a draft time entry (unsubmitted only).
+ * Approved/submitted rows must be voided via correction.
+ */
+export async function deleteDraftTimeEntry(
+  context: OrgContext,
+  rawInput: { readonly timeEntryId: string },
+): Promise<TimeEntryRecord> {
+  assertPermission(context, PERMISSIONS.TIME_MANAGE);
+
+  const entry = await findTimeEntryById(
+    context.db,
+    context.organizationId,
+    rawInput.timeEntryId,
+  );
+  if (!entry) throw new NotFoundError('Time entry');
+  if (entry.status === 'void') {
+    throw new DomainRuleError(
+      'Time entry is already void',
+      'workforce.errors.timeEntryAlreadyVoid',
+    );
+  }
+  if (entry.approvalStatus !== 'draft' && entry.approvalStatus !== 'returned') {
+    throw new DomainRuleError(
+      'Only draft or returned entries can be deleted',
+      'workforce.errors.timeEntryNotDeletable',
+    );
+  }
+  await assertCanActOnEmployeeTime(context, entry.employeeId);
+  await assertMonthOpenForRewrite(context, yearMonthFromBusinessDate(entry.workDate));
+
+  const deleted = await withTransaction(context.db, async (tx) => {
+    const removed = await deleteDraftTimeEntryById(tx, context.organizationId, entry.id);
+    if (!removed) {
+      throw new DomainRuleError(
+        'Time entry could not be deleted',
+        'workforce.errors.timeEntryNotDeletable',
+      );
+    }
+    await reconcileDailyExcessForEmployeeDate(
+      tx,
+      context.organizationId,
+      removed.employeeId,
+      removed.workDate,
+    );
+    return removed;
+  });
+
+  await recordAuditEvent(context, {
+    action: AUDIT_ACTIONS.TIME_ENTRY_DELETED,
+    entityType: 'time_entry',
+    entityId: deleted.id,
+    before: {
+      employeeId: deleted.employeeId,
+      workDate: deleted.workDate,
+      hours: deleted.hours,
+      projectId: deleted.projectId,
+    },
+  });
+
+  return deleted;
 }
 
 export { sumProjectLaborCost };

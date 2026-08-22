@@ -11,7 +11,7 @@ import { businessDate } from '@/shared/dates/dates';
 import { formatBusinessDate } from '@/shared/dates/format';
 import { fromNumericString } from '@/shared/money';
 import { Link } from '@/shared/i18n/navigation';
-import { SubmitTimeEntryButton, EditDraftTimeEntryForm } from './timesheet-actions';
+import { SubmitTimeEntryButton, EditDraftTimeEntryForm, DeleteDraftTimeEntryButton } from './timesheet-actions';
 
 interface TimeEntriesTableProps {
   readonly entries: readonly TimeEntryListItem[];
@@ -107,6 +107,11 @@ export async function TimeEntriesTable({ entries, showCosts, canLogTime }: TimeE
                     {entry.correctsEntryId ? (
                       <p className="text-xs text-[var(--pf-text-muted)]">{t('time.status.correction')}</p>
                     ) : null}
+                    {entry.excessHours && Number(entry.excessHours) > 0 ? (
+                      <p className="mt-1 text-xs text-[var(--pf-text-secondary)]">
+                        {t('time.excess.pending', { hours: entry.excessHours })}
+                      </p>
+                    ) : null}
                     {entry.approvalStatus === 'returned' && entry.managerNote ? (
                       <p className="mt-1 text-xs text-[var(--pf-text-secondary)]">{entry.managerNote}</p>
                     ) : null}
@@ -148,6 +153,10 @@ export async function TimeEntriesTable({ entries, showCosts, canLogTime }: TimeE
                             <SubmitTimeEntryButton
                               entryId={entry.id}
                               employeeId={entry.employeeId}
+                              approvalStatus={entry.approvalStatus}
+                            />
+                            <DeleteDraftTimeEntryButton
+                              entryId={entry.id}
                               approvalStatus={entry.approvalStatus}
                             />
                           </>

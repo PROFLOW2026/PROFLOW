@@ -79,6 +79,7 @@ export async function updateEmployeeAction(
     phone: formData.get('phone') || null,
     notes: formData.get('notes') || null,
     employeeNumber: formData.get('employeeNumber') || null,
+    standardHoursPerDay: formData.get('standardHoursPerDay') || null,
     userId: formData.has('userId') ? formData.get('userId') || null : undefined,
   });
 
