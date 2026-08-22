@@ -83,6 +83,7 @@ export type { ProfessionStarterTemplate } from './domain/templates';
 
 export { createBillingPlan } from './application/create-plan';
 export { updateBillingPlan } from './application/update-plan';
+export { deleteBillingPlan, canDeleteBillingPlan } from './application/delete-plan';
 export {
   addPlanLine,
   updatePlanLine,
@@ -98,7 +99,9 @@ export { issueBillingCycle, submitBillingCycle } from './application/issue-cycle
 export { approveBillingCycle } from './application/approve-cycle';
 export { syncBillingRecordForCycle, loadCyclePaymentState } from './application/sync-billing-record-for-cycle';
 export { getBillingPlanDetail } from './application/get-plan-detail';
-export { getBillingCycleDetail } from './application/get-cycle-detail';
+export { getBillingCycleDetail, getBillingCycleDetailFromPlanDetail } from './application/get-cycle-detail';
+export { loadBillingPlanWorkspacePayload } from './application/load-billing-plan-workspace-payload';
+export type { BillingPlanWorkspacePayload } from './application/load-billing-plan-workspace-payload';
 export { applyBillingPlanTemplate } from './application/apply-template';
 export { saveOrgBillingPlanTemplate } from './application/save-org-template';
 export {
@@ -112,6 +115,7 @@ export {
   createPlanSchema,
   updatePlanSchema,
   planIdSchema,
+  deletePlanSchema,
   addPlanLineSchema,
   updatePlanLineSchema,
   removePlanLineSchema,
@@ -143,6 +147,7 @@ export type {
   ApplyTemplateInput,
   SaveOrgTemplateInput,
   ListPlansForProjectInput,
+  DeletePlanInput,
 } from './validation/schemas';
 
 export {

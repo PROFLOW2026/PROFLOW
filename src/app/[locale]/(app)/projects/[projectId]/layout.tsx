@@ -11,14 +11,13 @@ import {
   resolveProjectExperienceProfile,
   titleWithDocumentNumber,
 } from '@/modules/tenancy';
-import { listCloseoutStatusesForProjects } from '@/modules/closeout';
-import { getShellContext, withOrgContext } from '@/shared/auth/session';
+import { loadProjectDetail, loadProjectCloseoutStatus } from './load-project-detail';
+import { getShellContext } from '@/shared/auth/session';
 import { fromNumericString } from '@/shared/money';
 import { PERMISSIONS, type PermissionKey } from '@/shared/permissions/catalog';
 import { Link } from '@/shared/i18n/navigation';
 import { localeDirection } from '@/shared/i18n/config';
 import { ArchiveProjectButton } from './archive-project-button';
-import { loadOrgBusinessProfileKey, loadProjectDetail } from './load-project-detail';
 import { ProjectHeaderMetrics } from './project-header-metrics';
 import { ProjectStatusBadge } from '../project-status-badge';
 import {
@@ -42,8 +41,7 @@ interface ProjectLayoutProps {
  * segment only - header, metrics, and tab list stay mounted without re-fetching.
  */
 export default async function ProjectLayout({ children, params }: ProjectLayoutProps) {
-  const { projectId } = await params;
-  const shell = await getShellContext();
+  const [{ projectId }, shell] = await Promise.all([params, getShellContext()]);
 
   const can = (permission: PermissionKey) => shell?.permissions.has(permission) ?? false;
   const modules = shell?.modules;
@@ -68,30 +66,25 @@ export default async function ProjectLayout({ children, params }: ProjectLayoutP
   const showDocumentsTab = Boolean(modules?.documents) && can(PERMISSIONS.DOCUMENTS_READ);
   const showUsageTab = can(PERMISSIONS.MATERIALS_READ) || can(PERMISSIONS.ASSETS_READ);
 
-  const [t, tTabs, tStatus, tCloseout, detail, locale, businessProfileKey] = await Promise.all([
+  const [t, tTabs, tStatus, tCloseout, detail, locale, closeoutStatus] = await Promise.all([
     getTranslations('projects'),
     getTranslations('projects.workspace.tabs'),
     getTranslations('status.project'),
     getTranslations('closeout'),
     loadProjectDetail(projectId, false).catch(() => null),
     getLocale(),
-    loadOrgBusinessProfileKey(),
+    loadProjectCloseoutStatus(projectId).catch(() => null),
   ]);
   if (!detail) notFound();
+
+  const businessProfileKey = shell?.businessProfileKey ?? null;
 
   // Jobs / work orders use dedicated routes - page owns redirect (preserves `?tab=`).
   if (detail.project.workKind === 'job' || detail.project.workKind === 'work_order') {
     return <>{children}</>;
   }
 
-  const closeoutReady =
-    detail.project.status !== 'completed'
-      ? await withOrgContext((context) =>
-          listCloseoutStatusesForProjects(context, [projectId]),
-        )
-          .then((rows) => rows.some((row) => row.status === 'ready'))
-          .catch(() => false)
-      : false;
+  const closeoutReady = closeoutStatus === 'ready';
   const showWorkTab = detail.showWorkPackages;
   const canArchive = shell?.permissions.has(PERMISSIONS.PROJECTS_ARCHIVE) ?? false;
 
@@ -169,7 +162,7 @@ export default async function ProjectLayout({ children, params }: ProjectLayoutP
                   clientLabel: t('details.clientLabel'),
                   clientName: detail.clientName,
                   link: (chunks) => (
-                    <Link href={`/clients/${detail.project.clientId}`} prefetch={false} className="hover:underline">
+                    <Link href={`/clients/${detail.project.clientId}`} prefetch className="hover:underline">
                       {chunks}
                     </Link>
                   ),

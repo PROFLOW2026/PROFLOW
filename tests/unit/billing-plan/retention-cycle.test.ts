@@ -34,28 +34,34 @@ describe('billing-plan retention cycle math', () => {
     expect(toNumericString(accumulated)).toBe('7500.000000');
   });
 
-  it('E: line retention prefers override → cycle → plan default', () => {
+  it('E: effective retention uses cycle → plan → contract (ignores line override)', () => {
     expect(
       resolveEffectiveRetentionPercent({
         lineOverride: '10',
         cyclePercent: '5',
         planDefault: '3',
       }),
-    ).toBe('10');
+    ).toBe('5');
     expect(
       resolveEffectiveRetentionPercent({
-        lineOverride: null,
         cyclePercent: '5',
         planDefault: '3',
       }),
     ).toBe('5');
     expect(
       resolveEffectiveRetentionPercent({
-        lineOverride: null,
         cyclePercent: null,
         planDefault: '3',
+        contractDefault: '2',
       }),
     ).toBe('3');
+    expect(
+      resolveEffectiveRetentionPercent({
+        cyclePercent: null,
+        planDefault: null,
+        contractDefault: '2',
+      }),
+    ).toBe('2');
   });
 
   it('amount wins over percent for cycle line retention', () => {

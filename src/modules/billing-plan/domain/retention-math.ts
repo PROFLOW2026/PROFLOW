@@ -43,15 +43,17 @@ export function resolveCycleRetention(input: {
 }
 
 /**
- * Prefer line override → cycle percent → plan default.
- * Amount wins over percent when both provided (retention module rule).
+ * Global retention precedence: cycle → plan → contract.
+ * Per-line overrides are deprecated (0065 column retained, unused in app).
  */
 export function resolveEffectiveRetentionPercent(input: {
-  readonly lineOverride?: string | null;
   readonly cyclePercent?: string | null;
   readonly planDefault?: string | null;
+  readonly contractDefault?: string | null;
+  /** @deprecated Ignored — retained for call-site compatibility during migration. */
+  readonly lineOverride?: string | null;
 }): string | null {
-  const candidates = [input.lineOverride, input.cyclePercent, input.planDefault];
+  const candidates = [input.cyclePercent, input.planDefault, input.contractDefault];
   for (const value of candidates) {
     if (value != null && String(value).trim() !== '') return String(value).trim();
   }

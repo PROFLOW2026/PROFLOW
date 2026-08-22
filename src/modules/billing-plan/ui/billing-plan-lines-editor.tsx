@@ -102,10 +102,8 @@ export function BillingPlanLinesEditor({
         label: line.label,
         agreedAmount: line.agreedAmount || '0',
         agreedPercent: line.agreedPercent || null,
-        retentionPercentOverride: line.retentionPercent || null,
       });
       if (result.error) setError(result.error);
-      else router.refresh();
     });
   }
 
@@ -114,10 +112,7 @@ export function BillingPlanLinesEditor({
     startTransition(async () => {
       const result = await removePlanLineAction({ projectId, planId, lineId });
       if (result.error) setError(result.error);
-      else {
-        setLines((prev) => prev.filter((row) => row.id !== lineId));
-        router.refresh();
-      }
+      else setLines((prev) => prev.filter((row) => row.id !== lineId));
     });
   }
 
@@ -146,7 +141,6 @@ export function BillingPlanLinesEditor({
         orderedLineIds: ordered.map((item) => item.id),
       });
       if (result.error) setError(result.error);
-      else router.refresh();
     });
   }
 
@@ -180,10 +174,11 @@ export function BillingPlanLinesEditor({
       {error ? <Alert tone="danger">{error}</Alert> : null}
 
       {lines.length === 0 ? (
-        <p className="text-sm text-[var(--pf-text-secondary)]">{t('lines.empty')}</p>
+        <div className="rounded-md border border-dashed border-[var(--pf-border-default)] px-4 py-6 text-center">
+          <p className="text-sm text-[var(--pf-text-secondary)]">{t('lines.empty')}</p>
+        </div>
       ) : null}
 
-      {/* Mobile cards */}
       <div className="flex flex-col gap-3 md:hidden">
         {lines.map((line, index) => (
           <BillingPlanLineCard
@@ -204,18 +199,16 @@ export function BillingPlanLinesEditor({
         ))}
       </div>
 
-      {/* Desktop spreadsheet */}
       <div className="hidden min-w-0 overflow-x-auto md:block">
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead>{t('lines.label')}</TableHead>
               <TableHead>{t('lines.base')}</TableHead>
-              <TableHead>{t('lines.agreedPercent')}</TableHead>
-              <TableHead>{t('lines.priorPercent')}</TableHead>
-              <TableHead>{t('lines.priorAmount')}</TableHead>
+              <TableHead>{t('lines.prior')}</TableHead>
+              <TableHead>{t('lines.current')}</TableHead>
+              <TableHead>{t('lines.cumulative')}</TableHead>
               <TableHead>{t('lines.remaining')}</TableHead>
-              <TableHead>{t('fields.retention')}</TableHead>
               {canManage ? <TableHead /> : null}
             </TableRow>
           </TableHeader>
@@ -240,6 +233,9 @@ export function BillingPlanLinesEditor({
                     onBlur={() => canManage && saveLine(line)}
                   />
                 </TableCell>
+                <TableCell dir="ltr" className="text-[var(--pf-text-secondary)]">
+                  {formatMoneyAmountForInput(line.billedAmount, currency)}
+                </TableCell>
                 <TableCell className="min-w-[5rem]">
                   <Input
                     inputMode="decimal"
@@ -250,24 +246,11 @@ export function BillingPlanLinesEditor({
                     onBlur={() => canManage && saveLine(line)}
                   />
                 </TableCell>
-                <TableCell dir="ltr">{displayPercent(line.billedPercent)}</TableCell>
-                <TableCell dir="ltr">
+                <TableCell dir="ltr" className="text-[var(--pf-text-secondary)]">
                   {formatMoneyAmountForInput(line.billedAmount, currency)}
                 </TableCell>
-                <TableCell dir="ltr">
+                <TableCell dir="ltr" className="text-[var(--pf-text-secondary)]">
                   {formatMoneyAmountForInput(line.remainingAmount, currency)}
-                </TableCell>
-                <TableCell className="min-w-[5rem]">
-                  <Input
-                    inputMode="decimal"
-                    dir="ltr"
-                    value={displayPercent(line.retentionPercent)}
-                    disabled={!canManage}
-                    onChange={(e) =>
-                      patchLine(line.id, { retentionPercent: e.target.value.trim() })
-                    }
-                    onBlur={() => canManage && saveLine(line)}
-                  />
                 </TableCell>
                 {canManage ? (
                   <TableCell>

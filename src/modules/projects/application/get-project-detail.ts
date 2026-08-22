@@ -174,6 +174,52 @@ export async function getProjectDetailChrome(
   };
 }
 
+/** Build overview chrome from a single commercial bundle (no duplicate contract/event reads). */
+export function assembleProjectDetailChrome(input: {
+  readonly project: ProjectRecord;
+  readonly projectContracts: readonly ContractRecord[];
+  readonly allContractEvents: readonly ContractValueEventRecord[];
+  readonly canReadContracts: boolean;
+}): ProjectDetailChrome {
+  const { project, projectContracts, allContractEvents, canReadContracts } = input;
+  const contract =
+    projectContracts.find((row) => row.isPrimary) ?? projectContracts[0] ?? null;
+
+  const contractValueEvents = contract
+    ? allContractEvents.filter((event) => event.contractId === contract.id)
+    : [];
+
+  let currentContractValue: MoneyValue | null = null;
+  let originalContractAmountLocked = false;
+
+  if (canReadContracts) {
+    const currency =
+      contract?.currency ?? projectContracts[0]?.currency ?? project.currency ?? null;
+    if (currency) {
+      const sameCurrencyEvents = allContractEvents.filter(
+        (event) => event.currency.toUpperCase() === currency.toUpperCase(),
+      );
+      currentContractValue =
+        sameCurrencyEvents.length > 0
+          ? computeCurrentContractValue(sameCurrencyEvents, currency)
+          : fromNumericString(contract?.originalValueAmount ?? '0', currency);
+      originalContractAmountLocked = isOriginalContractAmountLocked(contractValueEvents);
+    }
+  }
+
+  return {
+    project,
+    clientName: null,
+    clientContact: null,
+    domainName: null,
+    contract,
+    contracts: projectContracts,
+    contractValueEvents,
+    currentContractValue,
+    originalContractAmountLocked,
+  };
+}
+
 export async function getProjectDetailStructure(
   context: OrgContext,
   projectId: string,

@@ -39,7 +39,7 @@ export async function getBillingPlanDetail(context: OrgContext, raw: { planId: s
   const plan = await findPlanById(context.db, context.organizationId, parsed.data.planId);
   if (!plan) throw new NotFoundError('Billing plan');
 
-  const [sections, lines, cycles, billed, contract, events, retentionAmounts] =
+  const [sections, lines, cycles, billed, contract, events, retentionAmounts, holdings] =
     await Promise.all([
       listSectionsForPlan(context.db, context.organizationId, plan.id),
       listLinesForPlan(context.db, context.organizationId, plan.id),
@@ -48,6 +48,7 @@ export async function getBillingPlanDetail(context: OrgContext, raw: { planId: s
       findContractById(context.db, context.organizationId, plan.contractId),
       listContractValueEvents(context.db, context.organizationId, plan.contractId),
       listIssuedRetentionAmounts(context.db, context.organizationId, plan.id),
+      listPlanRetentionHoldings(context, plan.id),
     ]);
 
   if (!contract) throw new NotFoundError('Contract');
@@ -64,7 +65,6 @@ export async function getBillingPlanDetail(context: OrgContext, raw: { planId: s
   });
 
   const retentionAccumulated = accumulateRetention(plan.currency, retentionAmounts);
-  const holdings = await listPlanRetentionHoldings(context, plan.id);
 
   return {
     plan,

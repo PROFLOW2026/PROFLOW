@@ -6,6 +6,7 @@ import {
   addPlanLine,
   createBillingCycle,
   createBillingPlan,
+  deleteBillingPlan,
   archiveTemplate,
   applyBillingPlanTemplate,
   saveOrgBillingPlanTemplate,
@@ -430,6 +431,35 @@ export async function activateBillingPlanAction(
   );
   revalidateBillingPlanPaths(projectId);
 }
+
+/** Saves a draft plan and activates it for billing accounts. */
+export async function saveBillingPlanAction(
+  formData: FormData,
+): Promise<void> {
+  await activateBillingPlanAction(formData);
+}
+
+export async function deleteBillingPlanAction(input: {
+  projectId: string;
+  planId: string;
+}): Promise<BillingPlanActionState> {
+  const tErrors = await getTranslations('errors');
+  try {
+    await withOrgContext((context) => deleteBillingPlan(context, { planId: input.planId }));
+    revalidateBillingPlanPaths(input.projectId);
+    return { success: true, planId: input.planId };
+  } catch (error) {
+    if (error instanceof AppError) {
+      const mapped = mapError(error, tErrors('validationFailed'));
+      return {
+        ...mapped,
+        error: await resolveMessageKey(mapped.error, tErrors('validationFailed')),
+      };
+    }
+    throw error;
+  }
+}
+
 export async function seedBillingPlanAfterProjectCreate(input: {
   projectId: string;
   mode: 'simple' | 'template';

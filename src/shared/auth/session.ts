@@ -1,38 +1,37 @@
 import 'server-only';
 import { cache } from 'react';
+import { revalidateTag } from 'next/cache';
 import { getLocale } from 'next-intl/server';
 import { redirect } from '@/shared/i18n/navigation';
 import { getSupabaseUser, isSupabaseConfigured } from '@/shared/supabase/server';
 import { isDatabaseConfigured, withUserContext } from '@/shared/db/client';
-import type { OrgContext, AuthenticatedUser, OrganizationSummary } from '@/shared/auth/context';
+import type { AuthenticatedUser, OrgContext, OrganizationSummary } from '@/shared/auth/context';
 import {
   getRequestOrgAuthzMemo,
   orgAuthzMemoKey,
   orgContextFromAuthzSnapshot,
-  toOrgAuthzSnapshot,
 } from '@/shared/auth/org-authz-memo';
+import { loadCachedOrgAuthz, orgAuthzCacheTag } from '@/shared/auth/cached-authz';
+import { loadCachedSessionDb, sessionDbCacheTag } from '@/shared/auth/cached-session-db';
 import {
-  ensureProfile,
-  getActiveOrganizationPreference,
+  getOrgRequestTxFrame,
+  runInOrgRequestTxFrame,
+  type OrgRequestTxFrame,
+} from '@/shared/auth/org-request-tx';
+import {
   setActiveOrganizationPreference,
 } from '@/modules/identity';
 import {
   applyComplexityToVisibility,
   dashboardCardsForPersona,
   getBusinessProfile,
-  getBusinessProfileKeyForOrg,
-  getCapabilityCustomizationModeForOrg,
-  getExperienceComplexityForOrg,
   getModuleVisibility,
-  getQuickCreateEmphasisForOrg,
-  getSuggestedDefaultsForOrg,
-  getWorkMixForOrg,
-  listMembershipsForUser,
+  loadShellOrgSettings,
   personaForBusinessProfile,
   resolveExperienceRoleSurface,
-  resolveOrgContext,
   type ModuleVisibility,
 } from '@/modules/tenancy';
+import { getShellOrgLogoUrl } from '@/modules/branding';
 import {
   canUseExperiencePreview,
   resolveExperiencePreview,
@@ -40,7 +39,6 @@ import {
 import { readExperiencePreviewCookie } from '@/modules/tenancy/application/experience-preview';
 import { serverEnv } from '@/shared/env/server';
 import { AuthenticationRequiredError, AppError } from '@/shared/errors';
-import { localeFromAuthMetadata } from '@/shared/i18n/auth-locale';
 
 /**
  * Server-side session and tenant resolution (docs 72 §5, 73 §4).
@@ -70,27 +68,28 @@ export const getSessionState = cache(async (): Promise<SessionState> => {
   const authUser = await getSupabaseUser();
   if (!authUser?.email) return { status: 'anonymous' };
 
-  return withUserContext(authUser.id, async (tx) => {
-    const user = await ensureProfile(tx, {
-      id: authUser.id,
-      email: authUser.email!,
-      displayName:
-        (authUser.user_metadata?.display_name as string | undefined) ??
-        (authUser.user_metadata?.full_name as string | undefined) ??
-        null,
-      localePreference: localeFromAuthMetadata(authUser.user_metadata),
-    });
-
-    const memberships = await listMembershipsForUser(tx, authUser.id);
-    const preferred = await getActiveOrganizationPreference(tx, authUser.id);
-
-    // A stale preference (membership removed, org archived) must not strand the
-    // user on a dead tenant, so fall back to whatever they can still reach.
-    const active =
-      memberships.find((membership) => membership.id === preferred)?.id ?? memberships[0]?.id ?? null;
-
-    return { status: 'authenticated', user, memberships, activeOrganizationId: active } as const;
+  const dbState = await loadCachedSessionDb({
+    userId: authUser.id,
+    email: authUser.email,
+    displayName:
+      (authUser.user_metadata?.display_name as string | undefined) ??
+      (authUser.user_metadata?.full_name as string | undefined) ??
+      null,
+    metadata: authUser.user_metadata as Record<string, unknown> | undefined,
   });
+
+  const active =
+    dbState.memberships.find((membership) => membership.id === dbState.preferredOrganizationId)
+      ?.id ??
+    dbState.memberships[0]?.id ??
+    null;
+
+  return {
+    status: 'authenticated',
+    user: dbState.user,
+    memberships: dbState.memberships,
+    activeOrganizationId: active,
+  } as const;
 });
 
 export async function requireSession(): Promise<
@@ -146,19 +145,40 @@ async function runInOrgContext<T>(
   organizationId: string,
   fn: (context: OrgContext) => Promise<T>,
 ): Promise<T> {
+  const nested = getOrgRequestTxFrame();
   const locale = await getLocale();
+
+  if (nested) {
+    return fn(
+      orgContextFromAuthzSnapshot(nested.snapshot, {
+        userId,
+        locale,
+        db: nested.tx,
+      }),
+    );
+  }
+
   const memo = getRequestOrgAuthzMemo();
   const key = orgAuthzMemoKey(userId, organizationId, locale);
+  const memoHit = memo.get(key);
+
+  const snapshot =
+    memoHit ?? (await loadCachedOrgAuthz(userId, organizationId, locale));
+  if (!memoHit) {
+    memo.set(key, snapshot);
+  }
 
   return withUserContext(userId, async (tx) => {
-    const cached = memo.get(key);
-    if (cached) {
-      return fn(orgContextFromAuthzSnapshot(cached, { userId, locale, db: tx }));
-    }
-
-    const context = await resolveOrgContext(tx, { userId, organizationId, locale });
-    memo.set(key, toOrgAuthzSnapshot(context));
-    return fn(context);
+    const frame: OrgRequestTxFrame = { tx: tx as OrgRequestTxFrame['tx'], snapshot };
+    return runInOrgRequestTxFrame(frame, () =>
+      fn(
+        orgContextFromAuthzSnapshot(snapshot, {
+          userId,
+          locale,
+          db: tx,
+        }),
+      ),
+    );
   });
 }
 
@@ -172,6 +192,8 @@ export async function setActiveOrganization(organizationId: string): Promise<voi
   await withUserContext(session.user.id, async (tx) => {
     await setActiveOrganizationPreference(tx, session.user.id, organizationId);
   });
+  revalidateTag(sessionDbCacheTag(session.user.id), 'max');
+  revalidateTag(orgAuthzCacheTag(session.user.id, organizationId), 'max');
 }
 
 /**
@@ -186,25 +208,20 @@ export const getShellContext = cache(async () => {
 
   try {
     return await runInOrgContext(session.user.id, session.activeOrganizationId, async (context) => {
-      const [
-        modules,
+      const [modules, orgSettings, previewSelection, organizationLogoUrl] = await Promise.all([
+        getModuleVisibility(context),
+        loadShellOrgSettings(context.db, context.organizationId),
+        readExperiencePreviewCookie(),
+        getShellOrgLogoUrl(context).catch(() => null),
+      ]);
+
+      const {
         workMix,
-        quickCreateEmphasis,
-        suggestedDefaults,
         businessProfileKey,
-        previewSelection,
+        suggestedDefaults,
         complexity,
         customizationMode,
-      ] = await Promise.all([
-        getModuleVisibility(context),
-        getWorkMixForOrg(context),
-        getQuickCreateEmphasisForOrg(context.db, context.organizationId),
-        getSuggestedDefaultsForOrg(context.db, context.organizationId),
-        getBusinessProfileKeyForOrg(context.db, context.organizationId),
-        readExperiencePreviewCookie(),
-        getExperienceComplexityForOrg(context),
-        getCapabilityCustomizationModeForOrg(context),
-      ]);
+      } = orgSettings;
 
       const env = serverEnv();
       const previewAllowed = canUseExperiencePreview(
@@ -241,6 +258,7 @@ export const getShellContext = cache(async () => {
         memberships: session.memberships,
         organization: context.organization,
         organizationId: context.organizationId,
+        organizationLogoUrl,
         permissions: context.permissions,
         roleKeys: context.roleKeys,
         businessProfileKey,
@@ -250,14 +268,10 @@ export const getShellContext = cache(async () => {
         dashboardCards: dashboardCardsForPersona(persona),
         modules: resolvedModules,
         workMix: preview.active && preview.workMix != null ? preview.workMix : workMix,
-        quickCreateEmphasis:
-          preview.active && preview.quickCreateEmphasis
-            ? preview.quickCreateEmphasis
-            : quickCreateEmphasis,
         suggestedDefaults:
           preview.active && preview.suggestedDefaults
             ? preview.suggestedDefaults
-            : suggestedDefaults,
+            : orgSettings.suggestedDefaults,
         experiencePreview: {
           allowed: previewAllowed,
           selection: preview.selection,
@@ -274,3 +288,32 @@ export const getShellContext = cache(async () => {
 });
 
 export type ShellContext = NonNullable<Awaited<ReturnType<typeof getShellContext>>>;
+
+/** Deferred Quick Create prefs — not awaited by AppShell layout. */
+export const getShellQuickCreatePrefs = cache(async () => {
+  const session = await getSessionState();
+  if (session.status !== 'authenticated' || !session.activeOrganizationId) return null;
+
+  return runInOrgContext(session.user.id, session.activeOrganizationId, async (context) => {
+    const [orgSettings, previewSelection] = await Promise.all([
+      loadShellOrgSettings(context.db, context.organizationId),
+      readExperiencePreviewCookie(),
+    ]);
+
+    const env = serverEnv();
+    const previewAllowed = canUseExperiencePreview(
+      context.roleKeys,
+      env.APP_ENV,
+      env.PF_EXPERIENCE_PREVIEW,
+    );
+    const preview = resolveExperiencePreview(previewAllowed ? previewSelection : 'actual');
+
+    return {
+      workMix: preview.active && preview.workMix != null ? preview.workMix : orgSettings.workMix,
+      quickCreateEmphasis:
+        preview.active && preview.quickCreateEmphasis
+          ? preview.quickCreateEmphasis
+          : orgSettings.quickCreateEmphasis,
+    };
+  });
+});

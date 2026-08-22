@@ -131,11 +131,22 @@ function resolveBaseCurrency(
   return (primary ?? contractRows[0]!).currency;
 }
 
-export async function loadProjectCommercialData(
+export interface ProjectCommercialBundle {
+  readonly commercial: ProjectCommercialData;
+  readonly contractRows: readonly (typeof contracts.$inferSelect)[];
+  readonly valueEvents: readonly ContractValueEventRecord[];
+}
+
+async function fetchProjectCommercialInputs(
   db: DbExecutor,
   organizationId: string,
   projectId: string,
-): Promise<ProjectCommercialData | null> {
+): Promise<{
+  contractRows: (typeof contracts.$inferSelect)[];
+  eventsByContract: Map<string, (typeof contractValueEvents.$inferSelect)[]>;
+  pendingChanges: PendingChangeRow[];
+  valueEvents: ContractValueEventRecord[];
+} | null> {
   const contractRows = await db
     .select()
     .from(contracts)
@@ -199,12 +210,42 @@ export async function loadProjectCommercialData(
     eventsByContract.set(event.contractId, list);
   }
 
-  return aggregateProjectContracts(
+  return {
     contractRows,
     eventsByContract,
     pendingChanges,
-    resolveBaseCurrency(contractRows),
-  );
+    valueEvents: toValueEvents(events),
+  };
+}
+
+/** Single contracts + events + pending fetch; shared by overview chrome and financial compose. */
+export async function loadProjectCommercialBundle(
+  db: DbExecutor,
+  organizationId: string,
+  projectId: string,
+): Promise<ProjectCommercialBundle | null> {
+  const inputs = await fetchProjectCommercialInputs(db, organizationId, projectId);
+  if (!inputs) return null;
+
+  return {
+    commercial: aggregateProjectContracts(
+      inputs.contractRows,
+      inputs.eventsByContract,
+      inputs.pendingChanges,
+      resolveBaseCurrency(inputs.contractRows),
+    ),
+    contractRows: inputs.contractRows,
+    valueEvents: inputs.valueEvents,
+  };
+}
+
+export async function loadProjectCommercialData(
+  db: DbExecutor,
+  organizationId: string,
+  projectId: string,
+): Promise<ProjectCommercialData | null> {
+  const bundle = await loadProjectCommercialBundle(db, organizationId, projectId);
+  return bundle?.commercial ?? null;
 }
 
 export async function loadContractCommercialData(

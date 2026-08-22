@@ -28,13 +28,14 @@ export function NotificationBell({
 } = {}) {
   const t = useTranslations('notifications');
   const [open, setOpen] = React.useState(false);
-  const [status, setStatus] = React.useState<'loading' | 'error' | 'ready'>(
-    initialInbox ? 'ready' : 'loading',
+  const [status, setStatus] = React.useState<'idle' | 'loading' | 'error' | 'ready'>(
+    initialInbox ? 'ready' : 'idle',
   );
   const [inbox, setInbox] = React.useState<NotificationInboxDto>(inboxOrEmpty(initialInbox));
   const [scanning, setScanning] = React.useState(false);
 
   const fetchInbox = React.useCallback(async () => {
+    setStatus('loading');
     try {
       const next = loadInbox ? await loadInbox() : await listNotificationsAction();
       setInbox(next);
@@ -43,24 +44,6 @@ export function NotificationBell({
       setStatus('error');
     }
   }, [loadInbox]);
-
-  React.useEffect(() => {
-    if (initialInbox) return;
-    let cancelled = false;
-    void (async () => {
-      try {
-        const next = loadInbox ? await loadInbox() : await listNotificationsAction();
-        if (cancelled) return;
-        setInbox(next);
-        setStatus('ready');
-      } catch {
-        if (!cancelled) setStatus('error');
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [initialInbox, loadInbox]);
 
   function handleOpenChange(next: boolean) {
     setOpen(next);
@@ -136,7 +119,7 @@ export function NotificationBell({
         <NotificationPanel
           items={inbox.items}
           unreadCount={inbox.unreadCount}
-          status={status}
+          status={status === 'idle' ? 'ready' : status}
           onMarkRead={(id) => void handleMarkRead(id)}
           onMarkAllRead={() => void handleMarkAllRead()}
           onRetry={() => void fetchInbox()}

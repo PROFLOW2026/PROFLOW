@@ -175,7 +175,7 @@ export function groupProfitByProject(
     .map((row) => ({
       id: row.projectId,
       label: row.name,
-      href: `/projects/${row.projectId}/financials`,
+      href: `/projects/${row.projectId}?tab=financials`,
       amount: row.actualProfit!,
     }));
   return grouped.length > 0 ? grouped : null;

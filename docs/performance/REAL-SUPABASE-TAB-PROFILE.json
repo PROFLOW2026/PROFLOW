@@ -1,0 +1,304 @@
+{
+  "measuredAt": "2026-08-22T10:29:13.708Z",
+  "stack": "real-supabase-rls-data-ready-query-reduced",
+  "projectId": "1800f2d6-5cad-46bb-816a-e57a3a5dd1af",
+  "baselineBefore": {
+    "overview": {
+      "warmMs": 3094,
+      "queryCount": null
+    },
+    "billing": {
+      "warmMs": 2505,
+      "queryCount": null
+    },
+    "billingPlan": {
+      "warmMs": 1590,
+      "queryCount": null
+    },
+    "expenses": {
+      "warmMs": 1287,
+      "queryCount": null
+    },
+    "schedule": {
+      "warmMs": 1283,
+      "queryCount": null
+    }
+  },
+  "tabs": [
+    {
+      "tab": "overview",
+      "coldMs": 2059,
+      "warmMs": 2048,
+      "txMs": 1969,
+      "queryCount": 13,
+      "rlsSetupMs": 375,
+      "businessQueryMs": 1594,
+      "businessQueryCount": 10,
+      "slowestQueries": [
+        {
+          "name": "select cr.contract_id, cr.status, cr.direction, cr.requested_amount, cr.currency, ( select qv.subtotal_amount from quote_versions qv inner j",
+          "ms": 379
+        },
+        {
+          "name": "select \"id\", \"organization_id\", \"contract_id\", \"project_id\", \"kind\", \"amount\", \"currency\", \"change_order_id\", \"effective_date\", \"reason\", \"a",
+          "ms": 302
+        },
+        {
+          "name": "select \"id\", \"organization_id\", \"name\", \"status\", \"work_kind\", \"experience_profile\", \"document_number\", \"pricing_mode\", \"client_id\", \"primar",
+          "ms": 155
+        },
+        {
+          "name": "select distinct \"role_permissions\".\"permission_key\", \"roles\".\"key\" from \"role_assignments\" inner join \"roles\" on \"roles\".\"id\" = \"role_assign",
+          "ms": 153
+        },
+        {
+          "name": "select \"id\", \"organization_id\", \"user_id\", \"status\" from \"organization_memberships\" where (\"organization_memberships\".\"organization_id\" = $1",
+          "ms": 152
+        }
+      ],
+      "slowestBusinessQueries": [
+        {
+          "name": "select cr.contract_id, cr.status, cr.direction, cr.requested_amount, cr.currency, ( select qv.subtotal_amount from quote_versions qv inner j",
+          "ms": 379
+        },
+        {
+          "name": "select \"id\", \"organization_id\", \"contract_id\", \"project_id\", \"kind\", \"amount\", \"currency\", \"change_order_id\", \"effective_date\", \"reason\", \"a",
+          "ms": 302
+        },
+        {
+          "name": "select \"id\", \"organization_id\", \"name\", \"status\", \"work_kind\", \"experience_profile\", \"document_number\", \"pricing_mode\", \"client_id\", \"primar",
+          "ms": 155
+        },
+        {
+          "name": "select distinct \"role_permissions\".\"permission_key\", \"roles\".\"key\" from \"role_assignments\" inner join \"roles\" on \"roles\".\"id\" = \"role_assign",
+          "ms": 153
+        },
+        {
+          "name": "select \"id\", \"organization_id\", \"user_id\", \"status\" from \"organization_memberships\" where (\"organization_memberships\".\"organization_id\" = $1",
+          "ms": 152
+        }
+      ],
+      "duplicateTableReads": []
+    },
+    {
+      "tab": "billingPlan",
+      "coldMs": 1594,
+      "warmMs": 1590,
+      "txMs": 1511,
+      "queryCount": 10,
+      "rlsSetupMs": 376,
+      "businessQueryMs": 1135,
+      "businessQueryCount": 7,
+      "slowestQueries": [
+        {
+          "name": "select \"id\", \"organization_id\", \"name\", \"description\", \"work_kind\", \"default_retention_percent\", \"currency\", \"rows_json\", \"is_system\", \"is_a",
+          "ms": 453
+        },
+        {
+          "name": "select \"id\", \"organization_id\", \"project_id\", \"contract_id\", \"template_id\", \"name\", \"status\", \"currency\", \"default_retention_percent\", \"note",
+          "ms": 226
+        },
+        {
+          "name": "select distinct \"role_permissions\".\"permission_key\", \"roles\".\"key\" from \"role_assignments\" inner join \"roles\" on \"roles\".\"id\" = \"role_assign",
+          "ms": 153
+        },
+        {
+          "name": "select \"id\", \"name\", \"base_currency\", \"timezone\", \"country_code\", \"default_locale\" from \"organizations\" where (\"organizations\".\"id\" = $1 and",
+          "ms": 152
+        },
+        {
+          "name": "select set_config('app.user_id', $1, true)",
+          "ms": 151
+        }
+      ],
+      "slowestBusinessQueries": [
+        {
+          "name": "select \"id\", \"organization_id\", \"name\", \"description\", \"work_kind\", \"default_retention_percent\", \"currency\", \"rows_json\", \"is_system\", \"is_a",
+          "ms": 453
+        },
+        {
+          "name": "select \"id\", \"organization_id\", \"project_id\", \"contract_id\", \"template_id\", \"name\", \"status\", \"currency\", \"default_retention_percent\", \"note",
+          "ms": 226
+        },
+        {
+          "name": "select distinct \"role_permissions\".\"permission_key\", \"roles\".\"key\" from \"role_assignments\" inner join \"roles\" on \"roles\".\"id\" = \"role_assign",
+          "ms": 153
+        },
+        {
+          "name": "select \"id\", \"name\", \"base_currency\", \"timezone\", \"country_code\", \"default_locale\" from \"organizations\" where (\"organizations\".\"id\" = $1 and",
+          "ms": 152
+        },
+        {
+          "name": "select \"id\", \"organization_id\", \"user_id\", \"status\" from \"organization_memberships\" where (\"organization_memberships\".\"organization_id\" = $1",
+          "ms": 151
+        }
+      ],
+      "duplicateTableReads": []
+    },
+    {
+      "tab": "billing",
+      "coldMs": 2219,
+      "warmMs": 2195,
+      "txMs": 2115,
+      "queryCount": 14,
+      "rlsSetupMs": 375,
+      "businessQueryMs": 1741,
+      "businessQueryCount": 11,
+      "slowestQueries": [
+        {
+          "name": "select \"payments\".\"id\", \"payments\".\"id\", \"payments\".\"billing_record_id\", \"billing_records\".\"reference\", \"billing_records\".\"kind\", \"billing_r",
+          "ms": 528
+        },
+        {
+          "name": "select \"id\", \"project_id\", \"name\", \"contract_number\", \"is_primary\" from \"contracts\" where (\"contracts\".\"organization_id\" = $1 and \"contracts",
+          "ms": 453
+        },
+        {
+          "name": "select distinct \"role_permissions\".\"permission_key\", \"roles\".\"key\" from \"role_assignments\" inner join \"roles\" on \"roles\".\"id\" = \"role_assign",
+          "ms": 153
+        },
+        {
+          "name": "select \"id\", \"organization_id\", \"user_id\", \"status\" from \"organization_memberships\" where (\"organization_memberships\".\"organization_id\" = $1",
+          "ms": 152
+        },
+        {
+          "name": "select \"id\", \"name\", \"currency\", \"client_id\" from \"projects\" where (\"projects\".\"organization_id\" = $1 and \"projects\".\"id\" = $2 and \"projects",
+          "ms": 152
+        }
+      ],
+      "slowestBusinessQueries": [
+        {
+          "name": "select \"payments\".\"id\", \"payments\".\"id\", \"payments\".\"billing_record_id\", \"billing_records\".\"reference\", \"billing_records\".\"kind\", \"billing_r",
+          "ms": 528
+        },
+        {
+          "name": "select \"id\", \"project_id\", \"name\", \"contract_number\", \"is_primary\" from \"contracts\" where (\"contracts\".\"organization_id\" = $1 and \"contracts",
+          "ms": 453
+        },
+        {
+          "name": "select distinct \"role_permissions\".\"permission_key\", \"roles\".\"key\" from \"role_assignments\" inner join \"roles\" on \"roles\".\"id\" = \"role_assign",
+          "ms": 153
+        },
+        {
+          "name": "select \"id\", \"organization_id\", \"user_id\", \"status\" from \"organization_memberships\" where (\"organization_memberships\".\"organization_id\" = $1",
+          "ms": 152
+        },
+        {
+          "name": "select \"id\", \"name\", \"currency\", \"client_id\" from \"projects\" where (\"projects\".\"organization_id\" = $1 and \"projects\".\"id\" = $2 and \"projects",
+          "ms": 152
+        }
+      ],
+      "duplicateTableReads": []
+    },
+    {
+      "tab": "expenses",
+      "coldMs": 1294,
+      "warmMs": 1293,
+      "txMs": 1210,
+      "queryCount": 8,
+      "rlsSetupMs": 375,
+      "businessQueryMs": 835,
+      "businessQueryCount": 5,
+      "slowestQueries": [
+        {
+          "name": "select \"expenses\".\"id\", \"expenses\".\"expense_date\", \"expenses\".\"description\", \"expenses\".\"supplier_name\", \"expenses\".\"vendor_id\", \"expenses\".",
+          "ms": 228
+        },
+        {
+          "name": "select distinct \"role_permissions\".\"permission_key\", \"roles\".\"key\" from \"role_assignments\" inner join \"roles\" on \"roles\".\"id\" = \"role_assign",
+          "ms": 153
+        },
+        {
+          "name": "select count(*)::int from \"expenses\" where (\"expenses\".\"organization_id\" = $1 and \"expenses\".\"archived_at\" is null and (\"expenses\".\"project_",
+          "ms": 152
+        },
+        {
+          "name": "select \"id\", \"organization_id\", \"user_id\", \"status\" from \"organization_memberships\" where (\"organization_memberships\".\"organization_id\" = $1",
+          "ms": 151
+        },
+        {
+          "name": "select \"id\", \"name\", \"base_currency\", \"timezone\", \"country_code\", \"default_locale\" from \"organizations\" where (\"organizations\".\"id\" = $1 and",
+          "ms": 151
+        }
+      ],
+      "slowestBusinessQueries": [
+        {
+          "name": "select \"expenses\".\"id\", \"expenses\".\"expense_date\", \"expenses\".\"description\", \"expenses\".\"supplier_name\", \"expenses\".\"vendor_id\", \"expenses\".",
+          "ms": 228
+        },
+        {
+          "name": "select distinct \"role_permissions\".\"permission_key\", \"roles\".\"key\" from \"role_assignments\" inner join \"roles\" on \"roles\".\"id\" = \"role_assign",
+          "ms": 153
+        },
+        {
+          "name": "select count(*)::int from \"expenses\" where (\"expenses\".\"organization_id\" = $1 and \"expenses\".\"archived_at\" is null and (\"expenses\".\"project_",
+          "ms": 152
+        },
+        {
+          "name": "select \"id\", \"organization_id\", \"user_id\", \"status\" from \"organization_memberships\" where (\"organization_memberships\".\"organization_id\" = $1",
+          "ms": 151
+        },
+        {
+          "name": "select \"id\", \"name\", \"base_currency\", \"timezone\", \"country_code\", \"default_locale\" from \"organizations\" where (\"organizations\".\"id\" = $1 and",
+          "ms": 151
+        }
+      ],
+      "duplicateTableReads": []
+    },
+    {
+      "tab": "schedule",
+      "coldMs": 1290,
+      "warmMs": 1288,
+      "txMs": 1209,
+      "queryCount": 8,
+      "rlsSetupMs": 376,
+      "businessQueryMs": 834,
+      "businessQueryCount": 5,
+      "slowestQueries": [
+        {
+          "name": "select \"id\", \"organization_id\", \"project_id\", \"predecessor_id\", \"successor_id\", \"type\", \"created_at\" from \"planning_dependencies\" where (\"pl",
+          "ms": 226
+        },
+        {
+          "name": "select distinct \"role_permissions\".\"permission_key\", \"roles\".\"key\" from \"role_assignments\" inner join \"roles\" on \"roles\".\"id\" = \"role_assign",
+          "ms": 156
+        },
+        {
+          "name": "select set_config('request.jwt.claim.sub', $1, true)",
+          "ms": 151
+        },
+        {
+          "name": "select \"id\", \"name\", \"base_currency\", \"timezone\", \"country_code\", \"default_locale\" from \"organizations\" where (\"organizations\".\"id\" = $1 and",
+          "ms": 151
+        },
+        {
+          "name": "select \"id\", \"organization_id\", \"project_id\", \"name\", \"kind\", \"start_date\", \"target_end_date\", \"actual_end_date\", \"progress_percent\", \"phase",
+          "ms": 151
+        }
+      ],
+      "slowestBusinessQueries": [
+        {
+          "name": "select \"id\", \"organization_id\", \"project_id\", \"predecessor_id\", \"successor_id\", \"type\", \"created_at\" from \"planning_dependencies\" where (\"pl",
+          "ms": 226
+        },
+        {
+          "name": "select distinct \"role_permissions\".\"permission_key\", \"roles\".\"key\" from \"role_assignments\" inner join \"roles\" on \"roles\".\"id\" = \"role_assign",
+          "ms": 156
+        },
+        {
+          "name": "select \"id\", \"name\", \"base_currency\", \"timezone\", \"country_code\", \"default_locale\" from \"organizations\" where (\"organizations\".\"id\" = $1 and",
+          "ms": 151
+        },
+        {
+          "name": "select \"id\", \"organization_id\", \"project_id\", \"name\", \"kind\", \"start_date\", \"target_end_date\", \"actual_end_date\", \"progress_percent\", \"phase",
+          "ms": 151
+        },
+        {
+          "name": "select \"id\", \"organization_id\", \"user_id\", \"status\" from \"organization_memberships\" where (\"organization_memberships\".\"organization_id\" = $1",
+          "ms": 150
+        }
+      ],
+      "duplicateTableReads": []
+    }
+  ]
+}

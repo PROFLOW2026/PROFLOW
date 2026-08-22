@@ -14,6 +14,7 @@ export { recordPayment } from './application/record-payment';
 export { recordCustomerPayment } from './application/record-customer-payment';
 export { voidPayment } from './application/void-payment';
 export { getProjectBillingPosition } from './application/get-project-billing-position';
+export { loadProjectBillingTabPayload } from './application/load-project-billing-tab';
 export {
   listUnbilledChangeOrders,
   listProjectBillingRecords,

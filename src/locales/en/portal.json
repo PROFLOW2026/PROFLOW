@@ -45,18 +45,40 @@
     "lineTotal": "Line total"
   },
   "scopes": {
-    "project.summary": "Project summary",
-    "billing.outstanding": "Billing, payments & outstanding",
-    "documents.read": "Read shared documents",
-    "milestones.read": "Selected milestones",
-    "quotes.read": "Shared quotes (status & totals)",
-    "documents.upload": "Upload compliance candidates",
-    "vendor.summary": "Vendor summary",
-    "rfq.read": "View RFQs",
-    "quote.submit": "Submit quote candidate",
-    "po.view": "View purchase orders",
-    "bill.candidate": "Submit vendor bill candidate",
-    "payment.outstanding": "Payment / outstanding (policy-gated)"
+    "project": {
+      "summary": "Project summary"
+    },
+    "billing": {
+      "outstanding": "Billing, payments & outstanding"
+    },
+    "documents": {
+      "read": "Read shared documents",
+      "upload": "Upload compliance candidates"
+    },
+    "milestones": {
+      "read": "Selected milestones"
+    },
+    "quotes": {
+      "read": "Shared quotes (status & totals)"
+    },
+    "vendor": {
+      "summary": "Vendor summary"
+    },
+    "rfq": {
+      "read": "View RFQs"
+    },
+    "quote": {
+      "submit": "Submit quote candidate"
+    },
+    "po": {
+      "view": "View purchase orders"
+    },
+    "bill": {
+      "candidate": "Submit vendor bill candidate"
+    },
+    "payment": {
+      "outstanding": "Payment / outstanding (policy-gated)"
+    }
   },
   "statuses": {
     "active": "Active",

@@ -1,0 +1,29 @@
+{
+  "measuredAt": "2026-08-22T09:53:03.471Z",
+  "mode": "local next build + next start (harness)",
+  "primaryMetric": "wallMs — tab click until content ready",
+  "hops": [
+    {
+      "hop": "Overview → Billing Plan",
+      "repeatedMs": 454
+    },
+    {
+      "hop": "Billing Plan → Billing",
+      "repeatedMs": 555
+    },
+    {
+      "hop": "Billing → Expenses",
+      "repeatedMs": 456
+    },
+    {
+      "hop": "Expenses → Schedule",
+      "repeatedMs": 450
+    },
+    {
+      "hop": "Schedule → Overview",
+      "repeatedMs": 114
+    }
+  ],
+  "averageMs": 406,
+  "worstMs": 555
+}

@@ -36,7 +36,9 @@ interface CreateBillingPlanDialogProps {
   readonly projectId: string;
   readonly contractId: string;
   readonly triggerLabel: string;
+  readonly triggerVariant?: 'primary' | 'secondary';
   readonly defaultOpen?: boolean;
+  readonly initialMode?: CreateMode;
   readonly simplified?: boolean;
   readonly orgTemplates?: readonly { id: string; name: string }[];
 }
@@ -45,7 +47,9 @@ export function CreateBillingPlanDialog({
   projectId,
   contractId,
   triggerLabel,
+  triggerVariant = 'primary',
   defaultOpen = false,
+  initialMode,
   simplified = false,
   orgTemplates = [],
 }: CreateBillingPlanDialogProps) {
@@ -53,7 +57,9 @@ export function CreateBillingPlanDialog({
   const tCommon = useTranslations('common');
   const router = useRouter();
   const [open, setOpen] = useState(defaultOpen);
-  const [mode, setMode] = useState<CreateMode>(simplified ? 'simple' : 'blank');
+  const [mode, setMode] = useState<CreateMode>(
+    initialMode ?? (simplified ? 'simple' : 'blank'),
+  );
   const [templateKey, setTemplateKey] = useState('small_works');
   const isOrgTemplate = templateKey.startsWith('org:');
   const selectedOrgTemplateId = isOrgTemplate ? templateKey.slice(4) : '';
@@ -78,7 +84,9 @@ export function CreateBillingPlanDialog({
         if (!state.success) setOpen(next);
       }}
     >      <DialogTrigger asChild>
-        <Button type="button">{triggerLabel}</Button>
+        <Button type="button" variant={triggerVariant === 'secondary' ? 'secondary' : undefined}>
+          {triggerLabel}
+        </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>

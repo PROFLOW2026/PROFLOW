@@ -1,7 +1,6 @@
 import { getLocale, getTranslations } from 'next-intl/server';
-import type { ReactNode } from 'react';
-import { getShellOrgLogoUrl } from '@/modules/branding';
-import { getShellContext, withOrgContext } from '@/shared/auth/session';
+import { Suspense, type ReactNode } from 'react';
+import { getShellContext } from '@/shared/auth/session';
 import { redirect } from '@/shared/i18n/navigation';
 import { ConnectivityBanner } from '@/modules/offline/ui/connectivity-banner';
 import { OfflineSyncProvider } from '@/modules/offline/ui/offline-sync-provider';
@@ -10,8 +9,7 @@ import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { ExperiencePreviewSwitcher } from './experience-preview-switcher';
 import { MobileNav } from './mobile-nav';
 import { visibleNavItems } from './navigation';
-import { QuickCreate } from './quick-create';
-import { buildQuickCreateActions } from './quick-create-actions';
+import { QuickCreateDeferred } from './quick-create-deferred';
 import { Sidebar } from './sidebar';
 import { TopBar } from './top-bar';
 import { UserMenu } from './user-menu';
@@ -23,15 +21,9 @@ import { HiddenCapabilityNotice } from './hidden-capability-notice';
  * Navigation and quick-create are derived from the viewer's permissions and
  * the organization's module visibility, so the chrome itself is the first
  * expression of Progressive Complexity rather than a filter applied later.
- *
- * Installed-app first paint is dominated by SW navigation preload and the `/`
- * rewrite - not by splitting this chrome across Suspense (that duplicated
- * Radix/client trees on hydrate).
  */
 export async function AppShell({ children }: { children: ReactNode }) {
-  const tCommon = await getTranslations('common');
-
-  const shell = await getShellContext();
+  const [tCommon, shell] = await Promise.all([getTranslations('common'), getShellContext()]);
   if (!shell) redirect({ href: '/onboarding', locale: await getLocale() });
 
   const workMix = shell.workMix ?? 'projects';
@@ -40,21 +32,8 @@ export async function AppShell({ children }: { children: ReactNode }) {
     persona: shell.persona,
     roleSurface: shell.roleSurface,
   });
-  const quickCreateActions = buildQuickCreateActions(
-    shell.permissions,
-    shell.modules,
-    workMix,
-    shell.quickCreateEmphasis,
-    shell.suggestedDefaults,
-    shell.persona,
-  );
 
-  let organizationLogoUrl: string | null = null;
-  try {
-    organizationLogoUrl = await withOrgContext((context) => getShellOrgLogoUrl(context));
-  } catch {
-    organizationLogoUrl = null;
-  }
+  const organizationLogoUrl = shell.organizationLogoUrl;
 
   return (
     <OfflineSyncProvider organizationId={shell.organizationId} userId={shell.user.id}>
@@ -89,7 +68,7 @@ export async function AppShell({ children }: { children: ReactNode }) {
             notifications={
               shell.permissions.has(PERMISSIONS.NOTIFICATIONS_READ) ? <NotificationBell /> : undefined
             }
-            quickCreate={<QuickCreate actions={quickCreateActions} />}
+            quickCreate={<QuickCreateDeferred shellCore={shell} />}
             userMenu={
               <UserMenu
                 displayName={shell.user.displayName}
@@ -110,7 +89,7 @@ export async function AppShell({ children }: { children: ReactNode }) {
           >
             <div className="mx-auto w-full min-w-0 max-w-6xl">
               <HiddenCapabilityNotice modules={shell.modules} />
-              {children}
+              <Suspense fallback={null}>{children}</Suspense>
             </div>
           </main>
         </div>

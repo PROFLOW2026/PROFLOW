@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { SkeletonText } from '@/components/ui/skeleton';
 import { BillingPlanStatusStrip } from '@/modules/billing-plan/ui/billing-plan-status-strip';
 import { ProjectFinancialsSnapshot } from '@/modules/financials/ui/project-financials-snapshot';
+import { ProjectFinancialsSnapshotView } from '@/modules/financials/ui/project-financials-snapshot-view';
 import {
   buildScheduleSummary,
   computeApprovedChangesTotal,
@@ -43,6 +44,10 @@ interface OverviewTabProps {
    */
   scheduleSlot?: ReactNode;
   milestonesSlot?: ReactNode;
+  /** Preloaded in one transaction on the overview critical path. */
+  preloadedFinancials?: import('@/modules/financials/domain/types').ProjectFinancials | null;
+  preloadedCanReadProfit?: boolean;
+  financialSnapshotT?: (key: string) => string;
 }
 
 export async function OverviewTab({
@@ -55,6 +60,9 @@ export async function OverviewTab({
   workKind = 'project',
   scheduleSlot,
   milestonesSlot,
+  preloadedFinancials,
+  preloadedCanReadProfit = false,
+  financialSnapshotT,
 }: OverviewTabProps) {
   const t = await getTranslations('projects.overview');
   const tJobs = await getTranslations('jobs');
@@ -199,9 +207,17 @@ export async function OverviewTab({
               <CardTitle>{t('financialSnapshot')}</CardTitle>
             </CardHeader>
             <CardContent className="flex min-w-0 flex-col gap-2 text-sm">
-              <Suspense fallback={<SkeletonText lines={3} />}>
-                <ProjectFinancialsSnapshot projectId={detail.project.id} />
-              </Suspense>
+              {preloadedFinancials && financialSnapshotT ? (
+                <ProjectFinancialsSnapshotView
+                  financials={preloadedFinancials}
+                  canReadProfit={preloadedCanReadProfit}
+                  t={financialSnapshotT}
+                />
+              ) : (
+                <Suspense fallback={<SkeletonText lines={3} />}>
+                  <ProjectFinancialsSnapshot projectId={detail.project.id} />
+                </Suspense>
+              )}
             </CardContent>
           </Card>
         ) : null}
@@ -245,14 +261,18 @@ export async function OverviewTab({
       ) : null}
 
       {canReadFinancials && !isJob ? (
-        <ProjectContractsPanel projectId={detail.project.id} currency={currency} />
+        <Suspense fallback={<SkeletonText lines={4} />}>
+          <ProjectContractsPanel projectId={detail.project.id} currency={currency} />
+        </Suspense>
       ) : null}
 
       {!isJob ? (
-        <OverviewNextGenPanel
-          projectId={detail.project.id}
-          canReadFinancials={canReadFinancials}
-        />
+        <Suspense fallback={<SkeletonText lines={3} />}>
+          <OverviewNextGenPanel
+            projectId={detail.project.id}
+            canReadFinancials={canReadFinancials}
+          />
+        </Suspense>
       ) : null}
     </div>
   );

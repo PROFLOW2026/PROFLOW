@@ -423,6 +423,64 @@ test('production navigation performance verification', async ({ page }) => {
     },
   );
 
+  // --- K. Owner wave: billing plan + schedule hops ---
+  await hop(
+    'K. Overview → Billing Plan',
+    'overview',
+    he.projects.workspace.tabs.overview,
+    'billingPlan',
+    he.projects.workspace.tabs.billingPlan,
+    async () => {
+      await expect(page.getByTestId('billing-plan-panel')).toBeVisible({ timeout: 30_000 });
+    },
+  );
+
+  await hop(
+    'L. Billing Plan → Billing',
+    'billingPlan',
+    he.projects.workspace.tabs.billingPlan,
+    'billing',
+    he.projects.workspace.tabs.billing,
+    async () => {
+      await expect(page.getByText(/אין חיובים|חיובים/).first()).toBeVisible({ timeout: 30_000 });
+    },
+  );
+
+  await hop(
+    'M. Billing → Expenses',
+    'billing',
+    he.projects.workspace.tabs.billing,
+    'expenses',
+    he.projects.workspace.tabs.expenses,
+    async () => {
+      await expect(page.getByText('כבלים וחומרי חשמל').first()).toBeVisible({ timeout: 30_000 });
+    },
+  );
+
+  await hop(
+    'N. Expenses → Schedule',
+    'expenses',
+    he.projects.workspace.tabs.expenses,
+    'schedule',
+    he.projects.workspace.tabs.schedule,
+    async () => {
+      await expect(page.getByText(/לוח זמנים|אבני דרך|שלבים/).first()).toBeVisible({
+        timeout: 30_000,
+      });
+    },
+  );
+
+  await hop(
+    'O. Schedule → Overview',
+    'schedule',
+    he.projects.workspace.tabs.schedule,
+    'overview',
+    he.projects.workspace.tabs.overview,
+    async () => {
+      await expect(page.getByRole('tab', { name: he.projects.workspace.tabs.overview })).toBeVisible();
+    },
+  );
+
   // --- I. Dashboard → Reports ---
   await page.goto('/he-IL');
   await expect(page.getByRole('heading', { name: `שלום ${OWNER.displayName}` })).toBeVisible();

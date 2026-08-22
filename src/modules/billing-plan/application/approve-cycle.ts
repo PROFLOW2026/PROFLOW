@@ -104,7 +104,6 @@ export async function approveBillingCycle(context: OrgContext, raw: ApproveCycle
     });
 
     const retentionPercent = resolveEffectiveRetentionPercent({
-      lineOverride: planLine.retentionPercentOverride,
       cyclePercent: cycle.retentionPercent,
       planDefault: plan.defaultRetentionPercent,
     });

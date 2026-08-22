@@ -19,13 +19,25 @@
     "noDraftAccount": "None"
   },
   "summary": {
-    "contractValue": "Current contract",
+    "contractValue": "Contract value",
     "planned": "Planned",
-    "billed": "Billed",
-    "remainingPlanned": "Remaining planned",
+    "billed": "Billed to date",
+    "remainingPlanned": "Remaining to bill",
     "unplanned": "Unplanned",
-    "retentionHeld": "Retention held",
-    "retentionReleased": "Retention released"
+    "retentionHeld": "Retention accumulated",
+    "retentionReleased": "Retention released",
+    "currentAccount": "Current account"
+  },
+  "empty": {
+    "title": "Billing plan",
+    "description": "Manage how and when the client is billed across the project.",
+    "createPlan": "Create plan",
+    "fromTemplate": "Choose template",
+    "importExcel": "Import from Excel"
+  },
+  "delete": {
+    "action": "Delete plan",
+    "confirm": "Delete this billing plan? This cannot be undone."
   },
   "lines": {
     "title": "Plan lines",
@@ -145,6 +157,7 @@
   },
   "actions": {
     "createPlan": "Create plan",
+    "savePlan": "Save plan",
     "activate": "Activate",
     "complete": "Mark completed",
     "archive": "Archive",
@@ -190,6 +203,8 @@
     "invalidPlanTransition": "This plan status change is not allowed.",
     "invalidCycleTransition": "This account status change is not allowed.",
     "planNotEditable": "Only draft or active plans can be edited.",
+    "planNotDeletable": "This billing plan cannot be deleted.",
+    "planHasBillingHistory": "Cannot delete a plan that has billing history.",
     "planNotActive": "Create or issue accounts only on an active plan.",
     "cycleNotIssuable": "Only draft or ready accounts can be issued.",
     "cycleLinesImmutable": "Issued account lines are immutable.",
@@ -352,7 +367,9 @@
     }
   },
   "retention": {
-    "heldTitle": "Retention held",
+    "globalLabel": "Retention",
+    "globalHint": "Global retention for this plan — applied automatically to each approved account.",
+    "heldTitle": "Retention accumulated",
     "heldHint": "Total retention held across issued cycles for this plan.",
     "remainingAfter": "Retention still held",
     "releaseAction": "Release retention",

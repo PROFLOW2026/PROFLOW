@@ -1,6 +1,7 @@
-import { and, asc, desc, eq, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, inArray, sql } from 'drizzle-orm';
 import {
   projectBillingCycleLines,
+  projectBillingCycleRevisions,
   projectBillingCycles,
 } from '@drizzle/schema';
 import type { DbExecutor } from '@/shared/db/types';
@@ -361,20 +362,38 @@ export async function sumApprovedAmountsByPlanLine(
   organizationId: string,
   planId: string,
 ): Promise<Map<string, { amount: string; percent: string }>> {
-  const cycles = await listCyclesForPlan(db, organizationId, planId);
-  const billable = cycles.filter((c) => BILLABLE_CYCLE_STATUSES.has(c.status));
-  const totals = new Map<string, { amount: string; percent: string }>();
+  const rows = await db
+    .select({
+      planLineId: projectBillingCycleLines.planLineId,
+      cumulativeAmount: projectBillingCycleLines.cumulativeAmount,
+      cumulativePercent: projectBillingCycleLines.cumulativePercent,
+      cycleNumber: projectBillingCycles.cycleNumber,
+    })
+    .from(projectBillingCycleLines)
+    .innerJoin(
+      projectBillingCycles,
+      and(
+        eq(projectBillingCycleLines.cycleId, projectBillingCycles.id),
+        eq(projectBillingCycleLines.organizationId, projectBillingCycles.organizationId),
+      ),
+    )
+    .where(
+      and(
+        eq(projectBillingCycles.organizationId, organizationId),
+        eq(projectBillingCycles.planId, planId),
+        inArray(projectBillingCycles.status, ['submitted', 'partially_approved', 'approved']),
+        sql`${projectBillingCycleLines.approvedAmount} IS NOT NULL`,
+      ),
+    )
+    .orderBy(asc(projectBillingCycles.cycleNumber));
 
-  for (const cycle of billable) {
-    const lines = await listCycleLines(db, organizationId, cycle.id);
-    for (const line of lines) {
-      if (line.approvedAmount == null) continue;
-      // Latest approved cumulative wins (cycles ordered by number).
-      totals.set(line.planLineId, {
-        amount: line.cumulativeAmount,
-        percent: line.cumulativePercent,
-      });
-    }
+  const totals = new Map<string, { amount: string; percent: string }>();
+  for (const row of rows) {
+    // Latest approved cumulative wins (cycles ordered by number).
+    totals.set(row.planLineId, {
+      amount: row.cumulativeAmount,
+      percent: row.cumulativePercent,
+    });
   }
   return totals;
 }
@@ -388,13 +407,47 @@ export async function listIssuedRetentionAmounts(
   planId: string,
 ): Promise<string[]> {
   const cycles = await listCyclesForPlan(db, organizationId, planId);
-  const amounts: string[] = [];
-  for (const cycle of cycles.filter((c) => BILLABLE_CYCLE_STATUSES.has(c.status))) {
-    const lines = await listCycleLines(db, organizationId, cycle.id);
-    for (const line of lines) {
-      if (line.approvedAmount == null) continue;
-      amounts.push(line.retentionAmount);
-    }
-  }
-  return amounts;
+  const billableIds = cycles.filter((c) => BILLABLE_CYCLE_STATUSES.has(c.status)).map((c) => c.id);
+  if (billableIds.length === 0) return [];
+
+  const rows = await db
+    .select({ retentionAmount: projectBillingCycleLines.retentionAmount })
+    .from(projectBillingCycleLines)
+    .where(
+      and(
+        eq(projectBillingCycleLines.organizationId, organizationId),
+        inArray(projectBillingCycleLines.cycleId, billableIds),
+        sql`${projectBillingCycleLines.approvedAmount} IS NOT NULL`,
+      ),
+    );
+
+  return rows.map((row) => row.retentionAmount);
+}
+
+/** Removes draft-only cycles (and revisions) before deleting an unused plan. */
+export async function deleteAllCyclesForPlan(
+  db: DbExecutor,
+  organizationId: string,
+  planId: string,
+): Promise<void> {
+  const cycles = await listCyclesForPlan(db, organizationId, planId);
+  if (cycles.length === 0) return;
+
+  const cycleIds = cycles.map((cycle) => cycle.id);
+  await db
+    .delete(projectBillingCycleRevisions)
+    .where(
+      and(
+        eq(projectBillingCycleRevisions.organizationId, organizationId),
+        inArray(projectBillingCycleRevisions.cycleId, cycleIds),
+      ),
+    );
+  await db
+    .delete(projectBillingCycles)
+    .where(
+      and(
+        eq(projectBillingCycles.organizationId, organizationId),
+        eq(projectBillingCycles.planId, planId),
+      ),
+    );
 }

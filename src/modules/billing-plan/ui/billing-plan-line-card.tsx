@@ -19,12 +19,10 @@ export interface BillingPlanLineDraft {
   readonly billedAmount: string;
   readonly billedPercent: string;
   readonly remainingAmount: string;
-  readonly retentionPercent: string;
 }
 
 interface BillingPlanLineCardProps {
   readonly line: BillingPlanLineDraft;
-  /** Contract (or plan) base used for % ↔ amount. */
   readonly contractBaseAmount: string;
   readonly currency: string;
   readonly currencySymbol: string;
@@ -87,7 +85,7 @@ export function BillingPlanLineCard({
   }
 
   return (
-    <article className="flex min-w-0 flex-col gap-3 rounded-lg border border-[var(--pf-border-default)] p-3">
+    <article className="flex min-w-0 flex-col gap-3 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-3 shadow-sm">
       <Field label={t('lines.label')}>
         {(control) => (
           <Input
@@ -99,19 +97,7 @@ export function BillingPlanLineCard({
         )}
       </Field>
 
-      <div className="grid grid-cols-2 gap-2">
-        <Field label={t('lines.agreedPercent')}>
-          {(control) => (
-            <Input
-              {...control}
-              inputMode="decimal"
-              dir="ltr"
-              value={formatMoneyAmountForInput(line.agreedPercent || '')}
-              disabled={!canManage}
-              onChange={(e) => onPercent(e.target.value)}
-            />
-          )}
-        </Field>
+      <div className="grid grid-cols-2 gap-3 text-sm">
         <Field label={t('lines.base')}>
           {(control) => (
             <MoneyInput
@@ -124,18 +110,34 @@ export function BillingPlanLineCard({
             />
           )}
         </Field>
+        <Field label={t('lines.current')}>
+          {(control) => (
+            <Input
+              {...control}
+              inputMode="decimal"
+              dir="ltr"
+              value={line.agreedPercent || ''}
+              disabled={!canManage}
+              onChange={(e) => onPercent(e.target.value)}
+            />
+          )}
+        </Field>
       </div>
 
-      <div className="grid grid-cols-2 gap-2 text-sm">
+      <dl className="grid grid-cols-3 gap-2 text-sm">
         <div>
-          <p className="text-xs text-[var(--pf-text-muted)]">{t('lines.priorAmount')}</p>
-          <p dir="ltr">{formatMoneyAmountForInput(line.billedAmount, currency)}</p>
+          <dt className="text-xs text-[var(--pf-text-muted)]">{t('lines.prior')}</dt>
+          <dd dir="ltr">{formatMoneyAmountForInput(line.billedAmount, currency)}</dd>
         </div>
         <div>
-          <p className="text-xs text-[var(--pf-text-muted)]">{t('lines.remaining')}</p>
-          <p dir="ltr">{formatMoneyAmountForInput(line.remainingAmount, currency)}</p>
+          <dt className="text-xs text-[var(--pf-text-muted)]">{t('lines.cumulative')}</dt>
+          <dd dir="ltr">{formatMoneyAmountForInput(line.billedAmount, currency)}</dd>
         </div>
-      </div>
+        <div>
+          <dt className="text-xs text-[var(--pf-text-muted)]">{t('lines.remaining')}</dt>
+          <dd dir="ltr">{formatMoneyAmountForInput(line.remainingAmount, currency)}</dd>
+        </div>
+      </dl>
 
       {canManage ? (
         <div className="flex flex-wrap gap-2">

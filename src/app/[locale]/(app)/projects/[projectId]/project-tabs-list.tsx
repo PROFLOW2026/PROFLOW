@@ -56,6 +56,7 @@ export function ProjectTabsList({
             aria-selected={selected}
             tabIndex={selected ? 0 : -1}
             scroll={false}
+            prefetch={false}
             className={cn(
               'relative shrink-0 whitespace-nowrap border-b-2 border-transparent px-3 py-2.5 text-sm font-medium text-start',
               'min-h-11',

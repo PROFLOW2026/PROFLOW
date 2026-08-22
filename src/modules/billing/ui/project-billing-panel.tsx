@@ -7,15 +7,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import {
-  getProjectBillingPosition,
-  listBillingContractOptionsForOrg,
-  listProjectBillingRecords,
-  listUnbilledChangeOrders,
-  listPaymentApplications,
+  loadProjectBillingTabPayload,
 } from '@/modules/billing';
 import { withOrgContext } from '@/shared/auth/session';
-import { hasPermission } from '@/shared/permissions/assert';
-import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { Link } from '@/shared/i18n/navigation';
 import { formatBusinessDate } from '@/shared/dates/format';
 import { BillingStatusBadge } from './billing-status-badge';
@@ -33,30 +27,10 @@ export async function ProjectBillingPanel({ projectId, contractId }: ProjectBill
   const tFinancial = await getTranslations('financial');
   const locale = await getLocale();
 
-  const { position, records, unbilledChanges, canManage, payments, contracts } = await withOrgContext(
-    async (context) => {
-      const [positionResult, recordsResult, unbilledResult, paymentsResult, contractOptions] =
-        await Promise.all([
-          getProjectBillingPosition(context, projectId),
-          listProjectBillingRecords(context, projectId, contractId),
-          listUnbilledChangeOrders(context, projectId),
-          listPaymentApplications(context, {
-            projectId,
-            limit: 25,
-            includeVoided: true,
-          }),
-          listBillingContractOptionsForOrg(context, projectId),
-        ]);
-      return {
-        position: positionResult,
-        records: recordsResult,
-        unbilledChanges: unbilledResult,
-        canManage: hasPermission(context, PERMISSIONS.BILLING_MANAGE),
-        payments: paymentsResult,
-        contracts: contractOptions,
-      };
-    },
-  );
+  const { position, records, unbilledChanges, canManage, payments, contracts } =
+    await withOrgContext((context) =>
+      loadProjectBillingTabPayload(context, projectId, contractId),
+    );
 
   const selectedContractId = contractId ?? null;
   const newBillingHref = selectedContractId

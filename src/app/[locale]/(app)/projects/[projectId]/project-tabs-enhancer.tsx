@@ -215,9 +215,38 @@ function ProjectTabsEnhancerChrome({
 
     root.addEventListener('click', onClick);
     root.addEventListener('keydown', onKeyDown);
+
+    const prefetched = new Set<string>();
+    function tabHref(tab: string) {
+      const params = new URLSearchParams();
+      if (tab !== 'overview') params.set('tab', tab);
+      const query = params.toString();
+      const path = pathnameRef.current;
+      return query ? `${path}?${query}` : path;
+    }
+    function prefetchTab(tab: string) {
+      if (prefetched.has(tab)) return;
+      prefetched.add(tab);
+      void router.prefetch(tabHref(tab));
+    }
+    function onPointerOver(event: Event) {
+      const target = (event.target as HTMLElement | null)?.closest?.('[role="tab"][data-tab]');
+      if (!target || !root!.contains(target)) return;
+      const tab = (target as HTMLElement).dataset.tab;
+      if (tab) prefetchTab(tab);
+    }
+    function onFocusIn(event: Event) {
+      onPointerOver(event);
+    }
+
+    root.addEventListener('pointerover', onPointerOver);
+    root.addEventListener('focusin', onFocusIn);
+
     return () => {
       root.removeEventListener('click', onClick);
       root.removeEventListener('keydown', onKeyDown);
+      root.removeEventListener('pointerover', onPointerOver);
+      root.removeEventListener('focusin', onFocusIn);
       delete root.dataset.pfTabsReady;
     };
   }, [router]);

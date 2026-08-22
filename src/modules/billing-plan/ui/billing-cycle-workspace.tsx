@@ -14,7 +14,7 @@ import {
   deriveAmountFromPercent,
   derivePercentFromAmount,
 } from '@/modules/billing-plan/domain/line-math';
-import { money, toNumericString } from '@/shared/money';
+import { money, subtractMoney, toNumericString } from '@/shared/money';
 import {
   createBillingCycleAction,
   issueBillingCycleAction,
@@ -33,7 +33,6 @@ export interface CycleLineDraft {
   readonly cumulativePercent: string;
   readonly cumulativeAmount: string;
   readonly remainingAmount: string;
-  readonly retentionAmount: string;
 }
 
 export interface CycleListItem {
@@ -53,10 +52,12 @@ interface BillingCycleWorkspaceProps {
   readonly currencySymbol: string;
   readonly canManage: boolean;
   readonly defaultAccountDate: string;
+  readonly defaultRetentionPercent?: string | null;
   readonly cycles: readonly CycleListItem[];
   readonly activeCycleId: string | null;
   readonly activeLines: readonly CycleLineDraft[];
   readonly activeTotals?: { currentAmount: string; retentionAmount: string };
+  readonly retentionAccumulated?: string;
 }
 
 function displayPercent(raw: string | null | undefined): string {
@@ -72,19 +73,20 @@ export function BillingCycleWorkspace({
   currencySymbol,
   canManage,
   defaultAccountDate,
+  defaultRetentionPercent,
   cycles,
   activeCycleId,
   activeLines: initialLines,
   activeTotals,
+  retentionAccumulated,
 }: BillingCycleWorkspaceProps) {
   const t = useTranslations('billingPlan');
   const router = useRouter();
   const [lines, setLines] = useState<CycleLineDraft[]>(() => [...initialLines]);
-  const [syncedLines, setSyncedLines] = useState(initialLines);
-  if (initialLines !== syncedLines) {
-    setSyncedLines(initialLines);
+
+  useEffect(() => {
     setLines([...initialLines]);
-  }
+  }, [activeCycleId, initialLines]);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const [createState, createAction, createPending] = useActionState<
@@ -99,11 +101,16 @@ export function BillingCycleWorkspace({
 
   const displayError = error ?? createState.error;
   const totals = activeTotals ?? { currentAmount: '0', retentionAmount: '0' };
+  const netPayable = toNumericString(
+    subtractMoney(
+      money(totals.currentAmount || '0', currency),
+      money(totals.retentionAmount || '0', currency),
+    ),
+  );
 
   useEffect(() => {
     if (createState.success && createState.cycleId) {
       router.replace(`/projects/${projectId}?tab=billingPlan&cycleId=${createState.cycleId}`);
-      router.refresh();
     }
   }, [createState.success, createState.cycleId, projectId, router]);
 
@@ -154,7 +161,6 @@ export function BillingCycleWorkspace({
         })),
       });
       if (result.error) setError(result.error);
-      else router.refresh();
     });
   }
 
@@ -169,7 +175,6 @@ export function BillingCycleWorkspace({
         finalize: true,
       });
       if (result.error) setError(result.error);
-      else router.refresh();
     });
   }
 
@@ -268,9 +273,19 @@ export function BillingCycleWorkspace({
             {lines.map((line) => (
               <article
                 key={line.planLineId}
-                className="flex flex-col gap-2 rounded-lg border border-[var(--pf-border-default)] p-3"
+                className="flex flex-col gap-2 rounded-lg bg-[var(--pf-bg-muted)]/30 p-3"
               >
                 <p className="font-medium">{line.label}</p>
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  <div>
+                    <p className="text-xs text-[var(--pf-text-muted)]">{t('lines.base')}</p>
+                    <p dir="ltr">{formatMoneyAmountForInput(line.baseAmount, currency)}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-[var(--pf-text-muted)]">{t('lines.priorPercent')}</p>
+                    <p dir="ltr">{displayPercent(line.priorPercent)}</p>
+                  </div>
+                </div>
                 <Field label={t('lines.currentPercent')}>
                   {(control) => (
                     <Input
@@ -299,6 +314,16 @@ export function BillingCycleWorkspace({
                     />
                   )}
                 </Field>
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  <div>
+                    <p className="text-xs text-[var(--pf-text-muted)]">{t('lines.cumPercent')}</p>
+                    <p dir="ltr">{displayPercent(line.cumulativePercent)}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-[var(--pf-text-muted)]">{t('lines.remaining')}</p>
+                    <p dir="ltr">{formatMoneyAmountForInput(line.remainingAmount, currency)}</p>
+                  </div>
+                </div>
               </article>
             ))}
           </div>
@@ -314,7 +339,6 @@ export function BillingCycleWorkspace({
                   <TableHead>{t('lines.currentAmount')}</TableHead>
                   <TableHead>{t('lines.cumPercent')}</TableHead>
                   <TableHead>{t('lines.cumAmount')}</TableHead>
-                  <TableHead>{t('lines.retention')}</TableHead>
                   <TableHead>{t('lines.remaining')}</TableHead>
                 </TableRow>
               </TableHeader>
@@ -349,22 +373,70 @@ export function BillingCycleWorkspace({
                     </TableCell>
                     <TableCell dir="ltr">{displayPercent(line.cumulativePercent)}</TableCell>
                     <TableCell dir="ltr">{formatMoneyAmountForInput(line.cumulativeAmount, currency)}</TableCell>
-                    <TableCell dir="ltr">{formatMoneyAmountForInput(line.retentionAmount, currency)}</TableCell>
                     <TableCell dir="ltr">{formatMoneyAmountForInput(line.remainingAmount, currency)}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
           </div>
-          <div className="flex flex-wrap items-center gap-4 text-sm">
+          <div
+            className="grid min-w-0 gap-3 rounded-md bg-[var(--pf-bg-muted)]/40 p-4 sm:grid-cols-2 lg:grid-cols-5"
+            data-testid="cycle-account-summary"
+          >
+            <div>
+              <p className="text-xs text-[var(--pf-text-muted)]">{t('cycles.accountApproved')}</p>
+              <p className="font-semibold">
+                <MoneyText value={money(totals.currentAmount || '0', currency)} />
+              </p>
+            </div>
+            {defaultRetentionPercent ? (
+              <div>
+                <p className="text-xs text-[var(--pf-text-muted)]">{t('cycles.accountRetentionPct')}</p>
+                <p className="font-semibold" dir="ltr">
+                  {displayPercent(defaultRetentionPercent)}%
+                </p>
+              </div>
+            ) : null}
+            <div>
+              <p className="text-xs text-[var(--pf-text-muted)]">{t('cycles.accountRetentionHeld')}</p>
+              <p className="font-semibold">
+                <MoneyText value={money(totals.retentionAmount || '0', currency)} />
+              </p>
+            </div>
+            <div>
+              <p className="text-xs text-[var(--pf-text-muted)]">{t('cycles.accountNetPayable')}</p>
+              <p className="font-semibold">
+                <MoneyText value={money(netPayable, currency)} />
+              </p>
+            </div>
+            {retentionAccumulated ? (
+              <div>
+                <p className="text-xs text-[var(--pf-text-muted)]">
+                  {t('cycles.accountRetentionAccumulated')}
+                </p>
+                <p className="font-semibold">
+                  <MoneyText value={money(retentionAccumulated, currency)} />
+                </p>
+              </div>
+            ) : null}
+          </div>
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-1 text-sm">
             <span>
               {t('cycles.totalsCurrent')}:{' '}
               <MoneyText value={money(totals.currentAmount || '0', currency)} />
             </span>
-            <span>
-              {t('cycles.totalsRetention')}:{' '}
-              <MoneyText value={money(totals.retentionAmount || '0', currency)} />
-            </span>
+            {defaultRetentionPercent ? (
+              <span className="text-[var(--pf-text-muted)]">
+                {t('retention.globalLabel')}: {displayPercent(defaultRetentionPercent)} ·{' '}
+                {t('cycles.totalsRetention')}:{' '}
+                <MoneyText value={money(totals.retentionAmount || '0', currency)} />
+              </span>
+            ) : (
+              <span>
+                {t('cycles.totalsRetention')}:{' '}
+                <MoneyText value={money(totals.retentionAmount || '0', currency)} />
+              </span>
+            )}
           </div>
           {mutable ? (
             <div className="flex flex-wrap gap-2">

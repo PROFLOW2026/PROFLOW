@@ -1,5 +1,12 @@
 import 'server-only';
 import { sql } from 'drizzle-orm';
+import { performance } from 'node:perf_hooks';
+import {
+  isTabProfilingEnabled,
+  profileTxEnd,
+  profileTxStart,
+} from '@/shared/perf/tab-profile';
+import { flushProfileQueryStarts, profileQueryStart } from '@/shared/db/profile-sql';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import * as schema from '@drizzle/schema';
@@ -18,9 +25,7 @@ import type { Database, DbExecutor, Transaction } from './types';
  */
 
 declare global {
-   
   var __projectflowSql: postgres.Sql | undefined;
-   
   var __projectflowAdminSql: postgres.Sql | undefined;
 }
 
@@ -39,8 +44,6 @@ export function isDatabaseConfigured(): boolean {
 
 function createSqlClient(connectionString: string): postgres.Sql {
   return postgres(connectionString, {
-    // Serverless functions get many short-lived instances; a small pool per
-    // instance avoids exhausting the Supabase pooler.
     max: serverEnv().DATABASE_POOL_MAX,
     idle_timeout: 20,
     connect_timeout: 15,
@@ -52,7 +55,6 @@ function createSqlClient(connectionString: string): postgres.Sql {
 function rawSql(): postgres.Sql {
   const connectionString = process.env.DATABASE_URL;
   if (!connectionString) throw new DatabaseNotConfiguredError();
-  // Reused across hot reloads in development so `next dev` does not leak pools.
   globalThis.__projectflowSql ??= createSqlClient(connectionString);
   return globalThis.__projectflowSql;
 }
@@ -64,44 +66,45 @@ function rawAdminSql(): postgres.Sql {
   return globalThis.__projectflowAdminSql;
 }
 
-/**
- * Connection pool for ordinary requests. Callers should almost always go
- * through `withUserContext` instead so RLS has an identity to work with.
- */
 export function getDb(): Database {
-  return drizzle(rawSql(), { schema, casing: 'snake_case' }) as unknown as Database;
+  const logger = isTabProfilingEnabled()
+    ? {
+        logQuery(query: string) {
+          profileQueryStart(query.replace(/\s+/g, ' ').trim().slice(0, 140));
+        },
+      }
+    : undefined;
+  return drizzle(rawSql(), { schema, casing: 'snake_case', logger }) as unknown as Database;
 }
 
-/**
- * Elevated handle. Every call site must be able to justify why RLS is bypassed
- * and must target an explicit organization (doc 74 §4).
- */
 export function getAdminDb(): Database {
   return drizzle(rawAdminSql(), { schema, casing: 'snake_case' }) as unknown as Database;
 }
 
-/**
- * Runs `fn` inside a transaction that is bound to `userId`.
- *
- * `SET LOCAL` is transaction-scoped, so a pooled connection returned to the
- * pool cannot carry one request's identity into the next. The role switch means
- * the statements inside are subject to the same policies a Supabase client
- * would face.
- */
 export async function withUserContext<T>(
   userId: string,
   fn: (tx: Transaction) => Promise<T>,
   db: Database = getDb(),
 ): Promise<T> {
-  return db.transaction(async (tx) => {
-    await tx.execute(sql`select set_config('request.jwt.claim.sub', ${userId}, true)`);
-    await tx.execute(sql`select set_config('app.user_id', ${userId}, true)`);
-    await tx.execute(sql`set local role authenticated`);
-    return fn(tx as Transaction);
-  });
+  const profile = isTabProfilingEnabled();
+  const txLabel = `user:${userId.slice(0, 8)}`;
+  const t0 = profile ? performance.now() : 0;
+  if (profile) profileTxStart(txLabel);
+
+  try {
+    return await db.transaction(async (tx) => {
+      await tx.execute(sql`select set_config('request.jwt.claim.sub', ${userId}, true)`);
+      await tx.execute(sql`select set_config('app.user_id', ${userId}, true)`);
+      await tx.execute(sql`set local role authenticated`);
+      const result = await fn(tx as Transaction);
+      if (profile) profileTxEnd(txLabel, Math.round(performance.now() - t0));
+      return result;
+    });
+  } finally {
+    if (profile) flushProfileQueryStarts();
+  }
 }
 
-/** Groups several repository calls into one atomic unit. */
 export async function withTransaction<T>(
   executor: DbExecutor,
   fn: (tx: Transaction) => Promise<T>,

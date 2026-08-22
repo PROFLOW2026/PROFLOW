@@ -96,7 +96,8 @@ export async function createBillingPlan(context: OrgContext, raw: CreatePlanInpu
     name: input.name,
     status: activate ? 'active' : 'draft',
     currency,
-    defaultRetentionPercent: input.defaultRetentionPercent ?? null,
+    defaultRetentionPercent:
+      input.defaultRetentionPercent ?? contract.retentionPercent ?? null,
     notes: input.notes ?? null,
     createdByUserId: context.userId,
     activatedAt: activate ? new Date() : null,

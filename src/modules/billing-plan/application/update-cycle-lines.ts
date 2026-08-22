@@ -129,7 +129,6 @@ export async function updateCycleLines(context: OrgContext, raw: UpdateCycleLine
     assertWithinLineCap(base, prior, finalSlice.currentAmount);
 
     const retentionPercent = resolveEffectiveRetentionPercent({
-      lineOverride: planLine.retentionPercentOverride,
       cyclePercent: cycle.retentionPercent,
       planDefault: plan.defaultRetentionPercent,
     });

@@ -19,18 +19,33 @@
     "noDraftAccount": "אין"
   },
   "summary": {
-    "contractValue": "חוזה נוכחי",
+    "contractValue": "שווי חוזה",
     "planned": "מתוכנן",
-    "billed": "חויב",
-    "remainingPlanned": "יתרה מתוכננת",
+    "billed": "חויב עד היום",
+    "remainingPlanned": "יתרה לחיוב",
     "unplanned": "לא מתוכנן",
-    "retentionHeld": "עיכבון מוחזק",
-    "retentionReleased": "עיכבון ששוחרר"
+    "retentionHeld": "עיכבון שנצבר",
+    "retentionReleased": "עיכבון ששוחרר",
+    "currentAccount": "בחשבון הנוכחי"
+  },
+  "empty": {
+    "title": "תוכנית חיובים",
+    "description": "נהלו איך ומתי הלקוח מחויב לאורך הפרויקט.",
+    "createPlan": "יצירת תוכנית",
+    "fromTemplate": "בחירה מתבנית",
+    "importExcel": "ייבוא מאקסל"
+  },
+  "delete": {
+    "action": "מחיקת תוכנית",
+    "confirm": "למחוק את תוכנית החיובים? פעולה זו אינה הפיכה."
   },
   "lines": {
     "title": "שורות התוכנית",
-    "label": "תיאור",
-    "base": "בסיס",
+    "label": "סעיף",
+    "base": "סכום בסיס",
+    "prior": "קודם",
+    "current": "נוכחי",
+    "cumulative": "מצטבר",
     "priorPercent": "קודם %",
     "priorAmount": "קודם ₪",
     "currentPercent": "נוכחי %",
@@ -54,7 +69,13 @@
     "issueConfirm": "להנפיק חשבון זה כרשומת חיוב? תשלומים נרשמים בנפרד.",
     "newTitlePlaceholder": "לדוגמה: חשבון חלקי 1",
     "totalsCurrent": "סה״כ בחשבון זה",
-    "totalsRetention": "עיכבון בחשבון זה"
+    "totalsRetention": "עיכבון בחשבון זה",
+    "accountSummaryTitle": "סיכום חשבון",
+    "accountApproved": "סכום מאושר",
+    "accountRetentionPct": "עיכבון",
+    "accountRetentionHeld": "עיכבון בחשבון",
+    "accountNetPayable": "לתשלום לאחר עיכבון",
+    "accountRetentionAccumulated": "עיכבון מצטבר"
   },
   "create": {
     "title": "יצירת תוכנית חיובים",
@@ -145,6 +166,7 @@
   },
   "actions": {
     "createPlan": "יצירת תוכנית",
+    "savePlan": "שמירת תוכנית",
     "activate": "הפעלה",
     "complete": "סימון כהושלמה",
     "archive": "העברה לארכיון",
@@ -190,6 +212,8 @@
     "invalidPlanTransition": "מעבר סטטוס זה בתוכנית אינו מותר.",
     "invalidCycleTransition": "מעבר סטטוס זה בחשבון אינו מותר.",
     "planNotEditable": "ניתן לערוך רק תוכניות בטיוטה או פעילות.",
+    "planNotDeletable": "לא ניתן למחוק תוכנית זו.",
+    "planHasBillingHistory": "לא ניתן למחוק תוכנית שיש לה היסטוריית חיוב.",
     "planNotActive": "יצירה או הנפקה של חשבונות מותרת רק בתוכנית פעילה.",
     "cycleNotIssuable": "ניתן להנפיק רק חשבונות בטיוטה או מוכנים.",
     "cycleLinesImmutable": "שורות חשבון שהונפקו אינן ניתנות לשינוי.",
@@ -352,6 +376,8 @@
     }
   },
   "retention": {
+    "globalLabel": "עיכבון",
+    "globalHint": "אחוז עיכבון גלובלי לתוכנית — מחושב אוטומטית בכל חשבון מאושר.",
     "heldTitle": "עיכבון שנצבר",
     "heldHint": "סה״כ עיכבון מוחזק מחשבונות שהונפקו בתוכנית זו.",
     "remainingAfter": "יתרת עיכבון מוחזק",

@@ -16,6 +16,10 @@ import type {
   SortDirection,
 } from '../domain/types';
 
+export function mapProjectRow(row: typeof projects.$inferSelect): ProjectRecord {
+  return mapProject(row);
+}
+
 function mapProject(row: typeof projects.$inferSelect): ProjectRecord {
   return {
     id: row.id,

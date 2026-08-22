@@ -38,11 +38,14 @@ export {
 export type { ProjectAccessMode, ProjectAccessLevel } from './domain/project-access';
 export {
   assembleProjectDetail,
+  assembleProjectDetailChrome,
   countProjectActiveWorkPackages,
   getProjectDetail,
   getProjectDetailChrome,
   getProjectDetailStructure,
 } from './application/get-project-detail';
+export { getProjectOverviewPayload } from './application/get-project-overview-payload';
+export type { ProjectOverviewPayload } from './application/get-project-overview-payload';
 export type {
   GetProjectDetailOptions,
   ProjectClientContactSummary,

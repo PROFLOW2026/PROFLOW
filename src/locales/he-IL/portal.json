@@ -45,18 +45,40 @@
     "lineTotal": "סה״כ שורה"
   },
   "scopes": {
-    "project.summary": "סיכום פרויקט",
-    "billing.outstanding": "חיובים, תשלומים ויתרה",
-    "documents.read": "קריאת מסמכים משותפים",
-    "milestones.read": "אבני דרך נבחרות",
-    "quotes.read": "הצעות מחיר משותפות (סטטוס וסכומים)",
-    "documents.upload": "העלאת מועמדי ציות",
-    "vendor.summary": "סיכום ספק",
-    "rfq.read": "צפייה בבקשות הצעה",
-    "quote.submit": "הגשת הצעת מחיר מועמדת",
-    "po.view": "צפייה בהזמנות רכש",
-    "bill.candidate": "הגשת מועמד חשבונית ספק",
-    "payment.outstanding": "תשלום / יתרה (כפוף למדיניות)"
+    "project": {
+      "summary": "סיכום פרויקט"
+    },
+    "billing": {
+      "outstanding": "חיובים, תשלומים ויתרה"
+    },
+    "documents": {
+      "read": "קריאת מסמכים משותפים",
+      "upload": "העלאת מועמדי ציות"
+    },
+    "milestones": {
+      "read": "אבני דרך נבחרות"
+    },
+    "quotes": {
+      "read": "הצעות מחיר משותפות (סטטוס וסכומים)"
+    },
+    "vendor": {
+      "summary": "סיכום ספק"
+    },
+    "rfq": {
+      "read": "צפייה בבקשות הצעה"
+    },
+    "quote": {
+      "submit": "הגשת הצעת מחיר מועמדת"
+    },
+    "po": {
+      "view": "צפייה בהזמנות רכש"
+    },
+    "bill": {
+      "candidate": "הגשת מועמד חשבונית ספק"
+    },
+    "payment": {
+      "outstanding": "תשלום / יתרה (כפוף למדיניות)"
+    }
   },
   "statuses": {
     "active": "פעיל",

@@ -1,13 +1,9 @@
 import { getLocale, getTranslations } from 'next-intl/server';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Button } from '@/components/ui/button';
-import { listBillingContractOptionsForOrg } from '@/modules/billing';
 import {
-  getBillingCycleDetail,
-  getBillingPlanDetail,
   isPlanEditable,
-  listActiveTemplates,
-  listBillingPlansForProject,
+  loadBillingPlanWorkspacePayload,
 } from '@/modules/billing-plan';
 import { withOrgContext } from '@/shared/auth/session';
 import { hasPermission } from '@/shared/permissions/assert';
@@ -19,10 +15,12 @@ import { Link } from '@/shared/i18n/navigation';
 import { BillingPlanSummaryCards } from './billing-plan-summary-cards';
 import { BillingPlanLinesEditor } from './billing-plan-lines-editor';
 import { BillingCycleWorkspace } from './billing-cycle-workspace';
-import { CreateBillingPlanDialog } from './create-billing-plan-dialog';
+import { BillingPlanEmptyState } from './billing-plan-empty-state';
+import { BillingPlanRetentionSetting } from './billing-plan-retention-setting';
+import { DeleteBillingPlanButton } from './delete-billing-plan-button';
 import { ReleasePlanRetentionDialog } from './release-plan-retention-dialog';
 import { OrgBillingPlanTemplatesPanel } from './org-billing-plan-templates-panel';
-import { activateBillingPlanAction } from './billing-plan-actions';
+import { saveBillingPlanAction } from './billing-plan-actions';
 
 interface ProjectBillingPlanPanelProps {
   readonly projectId: string;
@@ -57,56 +55,23 @@ export async function ProjectBillingPlanPanel({
 
   const data = await withOrgContext(async (context) => {
     const canManage = hasPermission(context, PERMISSIONS.BILLING_MANAGE);
-    const contracts = await listBillingContractOptionsForOrg(context, projectId);
-    const selectedContractId =
-      contractId ??
-      contracts.find((c) => c.isPrimary)?.id ??
-      contracts[0]?.id ??
-      null;
-
-    const orgTemplateRows = await listActiveTemplates(context.db, context.organizationId);
-    const orgTemplates = orgTemplateRows.map((row) => ({ id: row.id, name: row.name }));
-
-    if (!selectedContractId) {
-      return {
-        canManage,
-        contracts,
-        selectedContractId: null as string | null,
-        detail: null as Awaited<ReturnType<typeof getBillingPlanDetail>> | null,
-        cycleDetail: null as Awaited<ReturnType<typeof getBillingCycleDetail>> | null,
-        timezone: context.organization.timezone,
-        currencySymbol: '₪',
-        orgTemplates,
-      };
-    }
-
-    const plans = await listBillingPlansForProject(context, {
+    const workspace = await loadBillingPlanWorkspacePayload(context, {
       projectId,
-      contractId: selectedContractId,
-      includeArchived: false,
+      contractId,
+      cycleId,
     });
-
-    const preferred =
-      plans.find((p) => p.status === 'active') ??
-      plans.find((p) => p.status === 'draft') ??
-      plans[0] ??
-      null;
-
-    const detail = preferred
-      ? await getBillingPlanDetail(context, { planId: preferred.id })
-      : null;
-
-    let cycleDetail: Awaited<ReturnType<typeof getBillingCycleDetail>> | null = null;
-    if (detail) {
-      const targetCycleId =
-        cycleId ??
-        detail.cycles.find((c) => c.status === 'draft' || c.status === 'ready')?.id ??
-        detail.cycles[0]?.id ??
-        null;
-      if (targetCycleId) {
-        cycleDetail = await getBillingCycleDetail(context, { cycleId: targetCycleId });
-      }
-    }
+    const useSimplified =
+      simplified ||
+      workspace.project?.experienceProfile === 'simple' ||
+      workspace.project?.experienceProfile === 'small_job';
+    const {
+      contracts,
+      selectedContractId,
+      detail,
+      cycleDetail,
+      orgTemplates,
+      canDelete,
+    } = workspace;
 
     const sampleCurrency =
       detail?.plan.currency ?? context.organization.baseCurrency ?? 'ILS';
@@ -124,6 +89,8 @@ export async function ProjectBillingPlanPanel({
       timezone: context.organization.timezone,
       currencySymbol,
       orgTemplates,
+      canDelete,
+      useSimplified,
     };
   });
 
@@ -147,6 +114,8 @@ export async function ProjectBillingPlanPanel({
     cycleDetail,
     currencySymbol,
     orgTemplates,
+    canDelete,
+    useSimplified,
   } = data;
 
   return (
@@ -155,19 +124,7 @@ export async function ProjectBillingPlanPanel({
         <div className="min-w-0 text-start">
           <h2 className="text-lg font-semibold">{t('panel.title')}</h2>
           <p className="text-sm text-[var(--pf-text-secondary)]">{t('subtitle')}</p>
-          {simplified ? (
-            <p className="mt-1 text-xs text-[var(--pf-text-muted)]">
-              {t('panel.simplifiedHint')}
-            </p>
-          ) : null}
         </div>
-        {detail && canManage && detail.plan.status === 'draft' ? (
-          <form action={activateBillingPlanAction}>
-            <input type="hidden" name="projectId" value={projectId} />
-            <input type="hidden" name="planId" value={detail.plan.id} />
-            <Button type="submit">{t('actions.activate')}</Button>
-          </form>
-        ) : null}
       </div>
 
       {contracts.length > 1 ? (
@@ -179,10 +136,11 @@ export async function ProjectBillingPlanPanel({
               <Link
                 key={contract.id}
                 href={href}
+                prefetch
                 className={
                   selected
-                    ? 'rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-muted)] px-3 py-2 text-sm font-medium'
-                    : 'rounded-md border border-transparent px-3 py-2 text-sm text-[var(--pf-text-secondary)]'
+                    ? 'rounded-md bg-[var(--pf-bg-muted)] px-3 py-2 text-sm font-medium'
+                    : 'rounded-md px-3 py-2 text-sm text-[var(--pf-text-secondary)] hover:bg-[var(--pf-bg-muted)]/60'
                 }
               >
                 {contract.name ??
@@ -195,42 +153,54 @@ export async function ProjectBillingPlanPanel({
       ) : null}
 
       {!detail ? (
-        <EmptyState
-          title={t('panel.emptyTitle')}
-          description={t('panel.emptyBody')}
-          action={
-            canManage ? (
-              <CreateBillingPlanDialog
-                projectId={projectId}
-                contractId={selectedContractId}
-                triggerLabel={t('panel.emptyAction')}
-                simplified={simplified}
-                orgTemplates={orgTemplates}
-              />
-            ) : null
-          }
+        <BillingPlanEmptyState
+          projectId={projectId}
+          contractId={selectedContractId}
+          canManage={canManage}
+          simplified={useSimplified}
+          orgTemplates={orgTemplates}
         />
       ) : (
         <>
-          <div className="flex flex-wrap items-center gap-2 text-sm">
-            <span className="font-medium">{detail.plan.name}</span>
-            <span className="rounded-full bg-[var(--pf-bg-muted)] px-2 py-0.5 text-xs">
-              {t(`status.${detail.plan.status}` as never)}
-            </span>
-            <span className="text-[var(--pf-text-muted)]">
-              {detail.contract.name ??
-                detail.contract.contractNumber ??
-                detail.contract.id.slice(0, 8)}
-            </span>
+          <div className="flex min-w-0 flex-wrap items-center justify-between gap-3">
+            <div className="flex min-w-0 flex-wrap items-center gap-2 text-sm">
+              <span className="font-medium">{detail.plan.name}</span>
+              {detail.plan.status === 'draft' ? (
+                <span className="rounded-full bg-[var(--pf-bg-muted)] px-2 py-0.5 text-xs text-[var(--pf-text-muted)]">
+                  {t('status.draft')}
+                </span>
+              ) : null}
+              <span className="text-[var(--pf-text-muted)]">
+                {detail.contract.name ??
+                  detail.contract.contractNumber ??
+                  detail.contract.id.slice(0, 8)}
+              </span>
+            </div>
+            {canManage ? (
+              <div className="flex flex-wrap items-center gap-2">
+                {detail.plan.status === 'draft' && detail.lines.length > 0 ? (
+                  <form action={saveBillingPlanAction}>
+                    <input type="hidden" name="projectId" value={projectId} />
+                    <input type="hidden" name="planId" value={detail.plan.id} />
+                    <Button type="submit" size="sm">
+                      {t('actions.savePlan')}
+                    </Button>
+                  </form>
+                ) : null}
+                <DeleteBillingPlanButton
+                  projectId={projectId}
+                  planId={detail.plan.id}
+                  canDelete={canDelete}
+                />
+              </div>
+            ) : null}
           </div>
 
           <BillingPlanSummaryCards
             currency={detail.plan.currency}
             contractValue={detail.reconciliation.contractValue}
-            plannedTotal={detail.reconciliation.plannedTotal}
             billedTotal={detail.reconciliation.billedTotal}
             remainingPlanned={detail.reconciliation.remainingPlanned}
-            unplannedAmount={detail.reconciliation.unplannedAmount}
             retentionHeld={detail.retentionHeldRemaining}
             retentionReleased={toNumericString(
               subtractMoney(
@@ -238,29 +208,31 @@ export async function ProjectBillingPlanPanel({
                 money(detail.retentionHeldRemaining, detail.plan.currency),
               ),
             )}
+            currentAccountAmount={cycleDetail?.totals.currentAmount}
             overPlanned={detail.reconciliation.overPlanned}
-            simplified={simplified}
             labels={{
               contractValue: t('summary.contractValue'),
-              planned: t('summary.planned'),
               billed: t('summary.billed'),
               remainingPlanned: t('summary.remainingPlanned'),
-              unplanned: t('summary.unplanned'),
               retentionHeld: t('summary.retentionHeld'),
               retentionReleased: t('summary.retentionReleased'),
+              currentAccount: t('summary.currentAccount'),
               overPlanned: t('recon.overPlanned'),
             }}
           />
 
           {canManage ? (
-            <div
-              className="flex min-w-0 flex-col gap-3 rounded-md border border-[var(--pf-border-default)] p-4"
-              data-testid="retention-release-panel"
-            >
-              <div>
-                <h3 className="text-sm font-semibold">{t('retention.heldTitle')}</h3>
-                <p className="text-xs text-[var(--pf-text-muted)]">{t('retention.heldHint')}</p>
-              </div>
+            <BillingPlanRetentionSetting
+              projectId={projectId}
+              planId={detail.plan.id}
+              defaultRetentionPercent={detail.plan.defaultRetentionPercent ?? ''}
+              canManage={isPlanEditable(detail.plan.status)}
+            />
+          ) : null}
+
+          {canManage && detail.retentionHeldRemaining !== '0' ? (
+            <div className="flex min-w-0 flex-wrap items-center justify-between gap-3 text-sm">
+              <p className="text-[var(--pf-text-secondary)]">{t('retention.heldHint')}</p>
               <ReleasePlanRetentionDialog
                 projectId={projectId}
                 planId={detail.plan.id}
@@ -271,41 +243,28 @@ export async function ProjectBillingPlanPanel({
             </div>
           ) : null}
 
-          <OrgBillingPlanTemplatesPanel
+          <BillingPlanLinesEditor
             projectId={projectId}
             planId={detail.plan.id}
-            canManage={canManage}
-            templates={orgTemplates}
+            currency={detail.plan.currency}
+            currencySymbol={currencySymbol}
+            contractBaseAmount={detail.reconciliation.contractValue}
+            canManage={canManage && isPlanEditable(detail.plan.status)}
+            lines={detail.lines.map((line) => {
+              const progress = detail.reconciliation.lines.find(
+                (row) => row.planLineId === line.id,
+              );
+              return {
+                id: line.id,
+                label: resolveLabel(line.label, t),
+                agreedAmount: line.agreedAmount,
+                agreedPercent: line.agreedPercent ?? '',
+                billedAmount: progress?.billedAmount ?? '0',
+                billedPercent: progress?.billedPercent ?? '0',
+                remainingAmount: progress?.remainingAmount ?? line.agreedAmount,
+              };
+            })}
           />
-
-          {isPlanEditable(detail.plan.status) || detail.lines.length > 0 ? (
-            <BillingPlanLinesEditor
-              projectId={projectId}
-              planId={detail.plan.id}
-              currency={detail.plan.currency}
-              currencySymbol={currencySymbol}
-              contractBaseAmount={detail.reconciliation.contractValue}
-              canManage={canManage && isPlanEditable(detail.plan.status)}
-              lines={detail.lines.map((line) => {
-                const progress = detail.reconciliation.lines.find(
-                  (row) => row.planLineId === line.id,
-                );
-                return {
-                  id: line.id,
-                  label: resolveLabel(line.label, t),
-                  agreedAmount: line.agreedAmount,
-                  agreedPercent: line.agreedPercent ?? '',
-                  billedAmount: progress?.billedAmount ?? '0',
-                  billedPercent: progress?.billedPercent ?? '0',
-                  remainingAmount: progress?.remainingAmount ?? line.agreedAmount,
-                  retentionPercent:
-                    line.retentionPercentOverride ??
-                    detail.plan.defaultRetentionPercent ??
-                    '',
-                };
-              })}
-            />
-          ) : null}
 
           <BillingCycleWorkspace
             projectId={projectId}
@@ -315,6 +274,7 @@ export async function ProjectBillingPlanPanel({
             currencySymbol={currencySymbol}
             canManage={canManage}
             defaultAccountDate={todayInTimeZone(data.timezone)}
+            defaultRetentionPercent={detail.plan.defaultRetentionPercent}
             cycles={detail.cycles.map((cycle) => ({
               id: cycle.id,
               cycleNumber: cycle.cycleNumber,
@@ -336,7 +296,6 @@ export async function ProjectBillingPlanPanel({
                 cumulativePercent: line.cumulativePercent,
                 cumulativeAmount: line.cumulativeAmount,
                 remainingAmount: line.remainingAmount,
-                retentionAmount: line.retentionAmount,
               })) ?? []
             }
             activeTotals={
@@ -347,7 +306,24 @@ export async function ProjectBillingPlanPanel({
                   }
                 : undefined
             }
+            retentionAccumulated={detail.retentionAccumulated}
           />
+
+          {canManage ? (
+            <details className="min-w-0 text-sm">
+              <summary className="cursor-pointer font-medium text-[var(--pf-text-secondary)]">
+                {t('orgTemplates.listLabel')}
+              </summary>
+              <div className="mt-3">
+                <OrgBillingPlanTemplatesPanel
+                  projectId={projectId}
+                  planId={detail.plan.id}
+                  canManage={canManage}
+                  templates={orgTemplates}
+                />
+              </div>
+            </details>
+          ) : null}
         </>
       )}
     </div>

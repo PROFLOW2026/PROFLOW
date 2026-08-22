@@ -75,6 +75,10 @@ function mapContract(row: typeof contracts.$inferSelect): ContractRecord {
   };
 }
 
+export function mapContractRow(row: typeof contracts.$inferSelect): ContractRecord {
+  return mapContract(row);
+}
+
 function mapValueEvent(
   row: typeof contractValueEvents.$inferSelect,
   actor?: { displayName: string | null; email: string | null },

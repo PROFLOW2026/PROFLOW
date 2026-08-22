@@ -1,9 +1,9 @@
 import { getTranslations } from 'next-intl/server';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { listCloseoutStatusesForProjects } from '@/modules/closeout';
 import { listCommunications } from '@/modules/communications';
 import { listProjectWarrantyCoverages } from '@/modules/warranty';
 import { withOrgContext } from '@/shared/auth/session';
+import { loadProjectCloseoutStatus } from './load-project-detail';
 import { Link } from '@/shared/i18n/navigation';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
@@ -18,48 +18,47 @@ interface OverviewNextGenProps {
 export async function OverviewNextGenPanel({ projectId, canReadFinancials }: OverviewNextGenProps) {
   const t = await getTranslations('projects.nextGen');
 
-  const snapshot = await withOrgContext(async (context) => {
-    const canReadCommunications = hasPermission(context, PERMISSIONS.COMMUNICATIONS_READ);
-    const empty = {
-      closeoutStatus: null as string | null,
-      warrantyCount: 0,
-      communicationCount: 0,
-      canReadCommunications,
-    };
-
-    try {
-      const [closeoutRows, warranty, communications] = await Promise.all([
-        listCloseoutStatusesForProjects(context, [projectId]).catch(() => []),
-        listProjectWarrantyCoverages(context, projectId).catch(() => ({ coverages: [] })),
-        canReadCommunications
-          ? listCommunications(context, { projectId, limit: 20 }).catch(() => [])
-          : Promise.resolve([]),
-      ]);
-
-      return {
-        closeoutStatus: closeoutRows.find((row) => row.projectId === projectId)?.status ?? null,
-        warrantyCount: warranty.coverages.filter((coverage) => coverage.status !== 'void').length,
-        communicationCount: communications.length,
+  const [closeoutStatus, snapshot] = await Promise.all([
+    loadProjectCloseoutStatus(projectId).catch(() => null),
+    withOrgContext(async (context) => {
+      const canReadCommunications = hasPermission(context, PERMISSIONS.COMMUNICATIONS_READ);
+      const empty = {
+        warrantyCount: 0,
+        communicationCount: 0,
         canReadCommunications,
       };
-    } catch {
-      return empty;
-    }
-  }).catch(() => ({
-    closeoutStatus: null as string | null,
-    warrantyCount: 0,
-    communicationCount: 0,
-    canReadCommunications: false,
-  }));
+
+      try {
+        const [warranty, communications] = await Promise.all([
+          listProjectWarrantyCoverages(context, projectId).catch(() => ({ coverages: [] })),
+          canReadCommunications
+            ? listCommunications(context, { projectId, limit: 20 }).catch(() => [])
+            : Promise.resolve([]),
+        ]);
+
+        return {
+          warrantyCount: warranty.coverages.filter((coverage) => coverage.status !== 'void').length,
+          communicationCount: communications.length,
+          canReadCommunications,
+        };
+      } catch {
+        return empty;
+      }
+    }).catch(() => ({
+      warrantyCount: 0,
+      communicationCount: 0,
+      canReadCommunications: false,
+    })),
+  ]);
 
   const closeoutLabel =
-    snapshot.closeoutStatus === 'ready'
+    closeoutStatus === 'ready'
       ? t('closeoutReady')
-      : snapshot.closeoutStatus === 'closed'
+      : closeoutStatus === 'closed'
         ? t('closeoutClosed')
-        : snapshot.closeoutStatus === 'reopened'
+        : closeoutStatus === 'reopened'
           ? t('closeoutReopened')
-          : snapshot.closeoutStatus === 'open'
+          : closeoutStatus === 'open'
             ? t('closeoutOpen')
             : t('closeoutEmpty');
 

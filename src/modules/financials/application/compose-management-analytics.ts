@@ -159,7 +159,7 @@ export async function composeManagementAnalytics(
     riskByProject.set(row.projectId, {
       projectId: row.projectId,
       name: row.name,
-      href: warnings[0]?.href ?? `/projects/${row.projectId}/financials`,
+      href: warnings[0]?.href ?? `/projects/${row.projectId}?tab=financials`,
       warningCount: warnings.length,
       highestClass,
     });

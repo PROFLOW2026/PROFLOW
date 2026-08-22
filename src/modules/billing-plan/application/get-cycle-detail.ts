@@ -9,8 +9,9 @@ import {
 } from '@/shared/money';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
+import type { DbExecutor } from '@/shared/db/types';
 import { findPlanById } from '../data/plans.repository';
-import { findLineById } from '../data/lines.repository';
+import { listLinesForPlan } from '../data/lines.repository';
 import {
   findCycleById,
   listCycleLines,
@@ -28,6 +29,26 @@ function throwZod(error: {
   );
 }
 
+type PlanSnapshot = {
+  readonly id: string;
+  readonly name: string;
+  readonly currency: string;
+  readonly status: string;
+  readonly defaultRetentionPercent: string | null;
+};
+
+type PlanLineSnapshot = {
+  readonly id: string;
+  readonly label: string;
+  readonly lineKind: string;
+  readonly agreedAmount: string;
+};
+
+export type BillingPlanDetailSnapshot = {
+  readonly plan: PlanSnapshot;
+  readonly lines: readonly PlanLineSnapshot[];
+};
+
 export async function getBillingCycleDetail(context: OrgContext, raw: { cycleId: string }) {
   assertPermission(context, PERMISSIONS.BILLING_READ);
   const parsed = cycleIdSchema.safeParse(raw);
@@ -43,13 +64,47 @@ export async function getBillingCycleDetail(context: OrgContext, raw: { cycleId:
   const plan = await findPlanById(context.db, context.organizationId, cycle.planId);
   if (!plan) throw new NotFoundError('Billing plan');
 
-  const cycleLines = await listCycleLines(context.db, context.organizationId, cycle.id);
+  const planLines = await listLinesForPlan(context.db, context.organizationId, plan.id);
+  return buildBillingCycleDetail(context.db, context.organizationId, cycle, plan, planLines);
+}
+
+/** Reuses plan lines from getBillingPlanDetail — skips duplicate plan + line reads. */
+export async function getBillingCycleDetailFromPlanDetail(
+  context: OrgContext,
+  cycleId: string,
+  planDetail: BillingPlanDetailSnapshot,
+) {
+  assertPermission(context, PERMISSIONS.BILLING_READ);
+
+  const cycle = await findCycleById(context.db, context.organizationId, cycleId);
+  if (!cycle || cycle.planId !== planDetail.plan.id) {
+    throw new NotFoundError('Billing cycle');
+  }
+
+  return buildBillingCycleDetail(
+    context.db,
+    context.organizationId,
+    cycle,
+    planDetail.plan,
+    planDetail.lines,
+  );
+}
+
+async function buildBillingCycleDetail(
+  db: DbExecutor,
+  organizationId: string,
+  cycle: NonNullable<Awaited<ReturnType<typeof findCycleById>>>,
+  plan: PlanSnapshot,
+  planLines: readonly PlanLineSnapshot[],
+) {
+  const cycleLines = await listCycleLines(db, organizationId, cycle.id);
+  const planLineById = new Map(planLines.map((line) => [line.id, line]));
   const linesWithLabels = [];
   const currentParts = [];
   const retentionParts = [];
 
   for (const cl of cycleLines) {
-    const planLine = await findLineById(context.db, context.organizationId, cl.planLineId);
+    const planLine = planLineById.get(cl.planLineId);
     linesWithLabels.push({
       ...cl,
       label: planLine?.label ?? cl.planLineId,

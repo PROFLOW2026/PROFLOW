@@ -179,6 +179,21 @@ export async function updatePlan(
   return updated ? mapPlan(updated) : null;
 }
 
+export async function deletePlanById(
+  db: DbExecutor,
+  organizationId: string,
+  planId: string,
+): Promise<void> {
+  await db
+    .delete(projectBillingPlans)
+    .where(
+      and(
+        eq(projectBillingPlans.organizationId, organizationId),
+        eq(projectBillingPlans.id, planId),
+      ),
+    );
+}
+
 export async function listPlansOrdered(
   db: DbExecutor,
   organizationId: string,

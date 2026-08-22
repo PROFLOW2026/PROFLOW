@@ -6,6 +6,7 @@ const withNextIntl = createNextIntlPlugin('./src/shared/i18n/request.ts');
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
+  allowedDevOrigins: ['127.0.0.1', 'localhost'],
   // exceljs is large and export/import only — keep it out of the client graph.
   serverExternalPackages: ['postgres', 'exceljs', 'drizzle-orm', 'pdf-lib', '@pdf-lib/fontkit', 'bidi-js'],
   typedRoutes: false,

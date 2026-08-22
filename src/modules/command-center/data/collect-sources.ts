@@ -335,7 +335,7 @@ export async function collectProjectOverBudget(
         what: copy.what,
         why: copy.why,
         where: nameByProject.get(budget.projectId) ?? budget.name,
-        href: `/projects/${budget.projectId}/financials`,
+        href: `/projects/${budget.projectId}?tab=financials`,
         urgencyBump: Math.min(99, Math.floor(((actualNum - budgetNum) / Math.max(budgetNum, 1)) * 50)),
         meta: {
           projectId: budget.projectId,

@@ -63,6 +63,7 @@ export type {
   DeriveProjectProfileInput,
 } from './domain/project-profiles';
 export { getWorkMixForOrg, saveWorkMix } from './application/work-mix';
+export { loadShellOrgSettings, type ShellOrgSettings } from './application/shell-org-settings';
 export { DEFAULT_COST_CATEGORIES, defaultsForCountry } from './domain/organization-defaults';
 export {
   PROFESSION_PRESET_KEYS,

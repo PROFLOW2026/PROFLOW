@@ -51,8 +51,12 @@ export async function listPlanRetentionHoldings(context: OrgContext, planId: str
     currency: string;
   }[] = [];
 
-  for (const cycle of issued) {
-    const record = await getBillingRecord(context, cycle.billingRecordId!);
+  const records = await Promise.all(
+    issued.map((cycle) => getBillingRecord(context, cycle.billingRecordId!)),
+  );
+  for (let i = 0; i < issued.length; i += 1) {
+    const cycle = issued[i]!;
+    const record = records[i]!;
     const held = record.retentionHeldRemaining ?? money('0', record.totalAmount.currency);
     if (isPositiveMoney(held)) {
       holdings.push({

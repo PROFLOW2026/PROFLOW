@@ -87,6 +87,10 @@ export const planIdSchema = z.object({
   planId: z.string().uuid(),
 });
 
+export const deletePlanSchema = planIdSchema;
+
+export type DeletePlanInput = z.infer<typeof deletePlanSchema>;
+
 export const addPlanLineSchema = z.object({
   planId: z.string().uuid(),
   sectionId: z.string().uuid().optional().nullable(),
