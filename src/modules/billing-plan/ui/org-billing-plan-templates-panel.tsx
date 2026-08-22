@@ -54,10 +54,10 @@ export function OrgBillingPlanTemplatesPanel({
     applyOrgTemplateAction,
     {},
   );
+  const saveDialogOpen = saveState.success ? false : saveOpen;
 
   useEffect(() => {
     if (saveState.success) {
-      setSaveOpen(false);
       router.refresh();
     }
   }, [saveState.success, router]);
@@ -77,7 +77,12 @@ export function OrgBillingPlanTemplatesPanel({
     >
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h3 className="text-sm font-semibold">{t('orgTemplates.listLabel')}</h3>
-        <Dialog open={saveOpen} onOpenChange={setSaveOpen}>
+        <Dialog
+          open={saveDialogOpen}
+          onOpenChange={(next) => {
+            if (!saveState.success) setSaveOpen(next);
+          }}
+        >
           <DialogTrigger asChild>
             <Button type="button" variant="secondary" data-testid="save-org-template-trigger">
               {t('orgTemplates.saveAction')}

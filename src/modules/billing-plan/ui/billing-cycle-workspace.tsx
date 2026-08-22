@@ -80,6 +80,11 @@ export function BillingCycleWorkspace({
   const t = useTranslations('billingPlan');
   const router = useRouter();
   const [lines, setLines] = useState<CycleLineDraft[]>(() => [...initialLines]);
+  const [syncedLines, setSyncedLines] = useState(initialLines);
+  if (initialLines !== syncedLines) {
+    setSyncedLines(initialLines);
+    setLines([...initialLines]);
+  }
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const [createState, createAction, createPending] = useActionState<
@@ -101,10 +106,6 @@ export function BillingCycleWorkspace({
       router.refresh();
     }
   }, [createState.success, createState.cycleId, projectId, router]);
-
-  useEffect(() => {
-    setLines([...initialLines]);
-  }, [initialLines]);
 
   function patchLine(planLineId: string, patch: Partial<CycleLineDraft>) {
     setLines((prev) =>

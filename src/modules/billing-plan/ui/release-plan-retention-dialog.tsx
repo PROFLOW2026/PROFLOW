@@ -45,7 +45,9 @@ export function ReleasePlanRetentionDialog({
   const tCommon = useTranslations('common');
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  const [amount, setAmount] = useState('');
+  const [amount, setAmount] = useState(() =>
+    formatMoneyAmountForInput(heldRemaining, currency),
+  );
   const [state, formAction, pending] = useActionState<BillingPlanActionState, FormData>(
     releasePlanRetentionAction,
     {},
@@ -57,20 +59,13 @@ export function ReleasePlanRetentionDialog({
     amount.trim() !== '' &&
     isPositiveMoney(money(amount, currency)) &&
     compareMoney(money(amount, currency), held) > 0;
+  const dialogOpen = state.success ? false : open;
 
   useEffect(() => {
     if (state.success) {
-      setOpen(false);
-      setAmount('');
       router.refresh();
     }
   }, [state.success, router]);
-
-  useEffect(() => {
-    if (open) {
-      setAmount(formatMoneyAmountForInput(heldRemaining, currency));
-    }
-  }, [open, heldRemaining, currency]);
 
   if (!canRelease) {
     return (
@@ -81,7 +76,16 @@ export function ReleasePlanRetentionDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog
+      open={dialogOpen}
+      onOpenChange={(next) => {
+        if (state.success) return;
+        setOpen(next);
+        if (next) {
+          setAmount(formatMoneyAmountForInput(heldRemaining, currency));
+        }
+      }}
+    >
       <DialogTrigger asChild>
         <Button type="button" variant="secondary" data-testid="release-retention-trigger">
           {t('retention.releaseAction')}
