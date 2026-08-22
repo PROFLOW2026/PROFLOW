@@ -9,9 +9,9 @@ import {
   computeCurrentContractValue,
   findContractById,
   findProjectById,
+  listContractValueEvents,
 } from '@/modules/projects';
-import { listContractValueEvents } from '@/modules/projects/data/contracts.repository';
-import { BILLING_PLAN_AUDIT_ACTIONS } from '../domain/types';
+import { BILLING_PLAN_AUDIT_ACTIONS, type BillingPlanLineKind } from '../domain/types';
 import { findProfessionStarterTemplate } from '../domain/templates';
 import { assertCanTransitionPlanStatus, canActivatePlan } from '../domain/lifecycle';
 import {
@@ -156,7 +156,7 @@ async function materializeTemplateRows(
   rows: readonly {
     labelKey: string;
     labelFallback?: string;
-    lineKind: import('../domain/types').BillingPlanLineKind;
+    lineKind: BillingPlanLineKind;
     agreedPercent?: string | null;
     agreedAmount?: string | null;
     sortOrder: number;

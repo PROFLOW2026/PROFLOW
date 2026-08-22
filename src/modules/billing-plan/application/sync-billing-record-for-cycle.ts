@@ -18,7 +18,6 @@ import { DomainRuleError } from '@/shared/errors';
 import {
   compareMoney,
   isZeroMoney,
-  money,
   subtractMoney,
   toNumericString,
   type MoneyValue,

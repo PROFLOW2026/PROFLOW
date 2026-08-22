@@ -61,10 +61,10 @@ export function CreateBillingPlanDialog({
     createBillingPlanAction,
     {},
   );
+  const dialogOpen = state.success ? false : open;
 
   useEffect(() => {
     if (state.success) {
-      setOpen(false);
       router.refresh();
     }
   }, [state.success, router]);
@@ -72,8 +72,12 @@ export function CreateBillingPlanDialog({
   const templates = listProfessionStarterTemplates();
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
+    <Dialog
+      open={dialogOpen}
+      onOpenChange={(next) => {
+        if (!state.success) setOpen(next);
+      }}
+    >      <DialogTrigger asChild>
         <Button type="button">{triggerLabel}</Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-lg">
@@ -138,6 +142,11 @@ export function CreateBillingPlanDialog({
                         {templates.map((tpl) => (
                           <SelectItem key={tpl.key} value={tpl.key}>
                             {t(tpl.nameKey.replace(/^billingPlan\./, '') as never)}
+                          </SelectItem>
+                        ))}
+                        {orgTemplates.map((tpl) => (
+                          <SelectItem key={tpl.id} value={`org:${tpl.id}`}>
+                            {tpl.name}
                           </SelectItem>
                         ))}
                       </SelectContent>

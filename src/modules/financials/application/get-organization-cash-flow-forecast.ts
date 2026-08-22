@@ -6,9 +6,11 @@ import { assertPermission, hasAnyPermission, hasPermission } from '@/shared/perm
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { listBillingRecords } from '@/modules/billing';
 import type { BillingRecordSummary } from '@/modules/billing/domain/types';
-import { sumIssuedAmountsByPlanLine } from '@/modules/billing-plan/data/cycles.repository';
-import { listExpectedProgressBillingLines } from '@/modules/billing-plan/data/forecast.repository';
-import { computeRemaining } from '@/modules/billing-plan/domain/line-math';
+import {
+  computeRemaining,
+  listExpectedProgressBillingLines,
+  sumIssuedAmountsByPlanLine,
+} from '@/modules/billing-plan';
 import {
   computeBillOutstanding,
   getVendorPaymentsRepository,

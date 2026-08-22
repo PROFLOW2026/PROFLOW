@@ -6,8 +6,8 @@ import { PERMISSIONS } from '@/shared/permissions/catalog';
 import {
   computeCurrentContractValue,
   findContractById,
+  listContractValueEvents,
 } from '@/modules/projects';
-import { listContractValueEvents } from '@/modules/projects/data/contracts.repository';
 import { reconcileBillingPlan } from '../domain/plan-reconciliation';
 import { accumulateRetention } from '../domain/retention-math';
 import { findPlanById } from '../data/plans.repository';

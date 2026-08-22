@@ -150,3 +150,7 @@ export {
   archiveTemplate,
   findTemplateById,
 } from './data/templates.repository';
+
+/** Cross-module lookups (cash-flow forecast / progress remaining). */
+export { sumIssuedAmountsByPlanLine } from './data/cycles.repository';
+export { listExpectedProgressBillingLines } from './data/forecast.repository';

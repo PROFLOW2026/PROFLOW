@@ -93,7 +93,7 @@ export async function updateCycleLines(context: OrgContext, raw: UpdateCycleLine
 
   const existingLines = await listCycleLines(context.db, context.organizationId, cycle.id);
   const byPlanLine = new Map(existingLines.map((l) => [l.planLineId, l]));
-  let workingCycle = cycle;
+  const workingCycle = cycle;
   const wasSubmitted = POST_SUBMIT.has(workingCycle.status);
 
   const updated = [];

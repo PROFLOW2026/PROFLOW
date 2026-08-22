@@ -30,9 +30,11 @@ import {
 import { money, percentOfMoney, toNumericString } from '@/shared/money';
 import { withOrgContext } from '@/shared/auth/session';
 import { AppError, serializeError } from '@/shared/errors';
-import { findPrimaryContractByProject } from '@/modules/projects';
-import { computeCurrentContractValue } from '@/modules/projects';
-import { listContractValueEvents } from '@/modules/projects/data/contracts.repository';
+import {
+  computeCurrentContractValue,
+  findPrimaryContractByProject,
+  listContractValueEvents,
+} from '@/modules/projects';
 
 export interface BillingPlanActionState {
   error?: string;

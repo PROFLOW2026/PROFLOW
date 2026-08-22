@@ -6,11 +6,11 @@ import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import {
   computeCurrentContractValue,
+  listContractValueEvents,
 } from '@/modules/projects';
-import { listContractValueEvents } from '@/modules/projects/data/contracts.repository';
 import { assertPlanEditable } from '../domain/lifecycle';
 import { findProfessionStarterTemplate } from '../domain/templates';
-import { BILLING_PLAN_AUDIT_ACTIONS } from '../domain/types';
+import { BILLING_PLAN_AUDIT_ACTIONS, type BillingPlanLineKind } from '../domain/types';
 import { findPlanById, updatePlan } from '../data/plans.repository';
 import {
   archiveLine,
@@ -64,7 +64,7 @@ export async function applyBillingPlanTemplate(
   let rows: readonly {
     labelKey: string;
     labelFallback?: string;
-    lineKind: import('../domain/types').BillingPlanLineKind;
+    lineKind: BillingPlanLineKind;
     agreedPercent?: string | null;
     agreedAmount?: string | null;
     sortOrder: number;

@@ -243,6 +243,7 @@ export {
   findPrimaryContractByProject,
   listContractsByProject,
   listContractsForProjects,
+  listContractValueEvents,
 } from './data/contracts.repository';
 export {
   listOrgContracts,
