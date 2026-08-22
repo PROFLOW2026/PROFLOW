@@ -43,6 +43,9 @@
     "title": "Plan lines",
     "label": "Label",
     "base": "Base",
+    "prior": "Prior",
+    "current": "Current",
+    "cumulative": "Cumulative",
     "priorPercent": "Prior %",
     "priorAmount": "Prior ₪",
     "currentPercent": "Current %",
@@ -66,7 +69,13 @@
     "issueConfirm": "Issue this account as a billing record? Payments are recorded separately.",
     "newTitlePlaceholder": "e.g. Progress account 1",
     "totalsCurrent": "This account total",
-    "totalsRetention": "Retention this account"
+    "totalsRetention": "Retention this account",
+    "accountSummaryTitle": "Account summary",
+    "accountApproved": "Approved amount",
+    "accountRetentionPct": "Retention",
+    "accountRetentionHeld": "Retention held",
+    "accountNetPayable": "Net payable",
+    "accountRetentionAccumulated": "Retention accumulated"
   },
   "create": {
     "title": "Create billing plan",
@@ -368,7 +377,7 @@
   },
   "retention": {
     "globalLabel": "Retention",
-    "globalHint": "Global retention for this plan — applied automatically to each approved account.",
+    "globalHint": "Global retention for this plan, applied automatically to each approved account.",
     "heldTitle": "Retention accumulated",
     "heldHint": "Total retention held across issued cycles for this plan.",
     "remainingAfter": "Retention still held",
