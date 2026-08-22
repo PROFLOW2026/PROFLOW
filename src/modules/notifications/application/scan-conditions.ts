@@ -15,7 +15,7 @@ import {
   listDraftCyclesAwaitingIssue,
   listMilestoneLinesDue,
   listPlansWithRetentionHeld,
-} from '@/modules/billing-plan/data/forecast.repository';
+} from '@/modules/billing-plan';
 import { fromNumericString, isPositiveMoney, isZeroMoney } from '@/shared/money';
 import type { OrgContext } from '@/shared/auth/context';
 import { addDays, todayInTimeZone, type BusinessDate } from '@/shared/dates';

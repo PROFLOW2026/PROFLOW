@@ -242,7 +242,7 @@ describe('billing plan flow', () => {
         organizationId,
         locale: 'en',
       });
-      const result = await issueBillingCycle(context, {
+      await issueBillingCycle(context, {
         cycleId: cycle3Id,
         finalize: true,
       });
@@ -518,7 +518,7 @@ describe('billing plan flow', () => {
           cycleId: cycle.id,
           lines: [{ planLineId: seeded.lineId, currentPercent: percent }],
         });
-        const issued = await issueBillingCycle(context, {
+        await issueBillingCycle(context, {
           cycleId: cycle.id,
           finalize: true,
         });

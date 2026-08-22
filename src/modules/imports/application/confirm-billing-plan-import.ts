@@ -3,16 +3,18 @@
  * Adds draft lines to an existing plan, or creates a draft plan for projectId/contractId then adds lines.
  */
 
-import { addPlanLine, createBillingPlan, getBillingPlanDetail } from '@/modules/billing-plan';
 import {
+  addPlanLine,
+  createBillingPlan,
+  getBillingPlanDetail,
   insertSection,
   listSectionsForPlan,
-} from '@/modules/billing-plan/data/lines.repository';
-import { computeCurrentContractValue } from '@/modules/projects';
+} from '@/modules/billing-plan';
 import {
+  computeCurrentContractValue,
   findPrimaryContractByProject,
   listContractValueEvents,
-} from '@/modules/projects/data/contracts.repository';
+} from '@/modules/projects';
 import type { OrgContext } from '@/shared/auth/context';
 import { NotFoundError, ValidationError } from '@/shared/errors';
 import { money, percentOfMoney, toNumericString } from '@/shared/money';

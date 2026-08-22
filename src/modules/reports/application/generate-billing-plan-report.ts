@@ -16,14 +16,15 @@ import { reportDirection, resolveReportLocale, type getReportsCopy } from '../do
 import type { ReportKind, ReportPayload, ReportSection } from '../domain/types';
 import {
   derivePercentFromAmount,
+  findCycleById,
+  findPlanById,
   getBillingCycleDetail,
   getBillingPlanDetail,
   listBillingPlansForProject,
+  listCyclesForPlan,
   plannedCoveragePercent,
   type BillingCycleDocumentKind,
 } from '@/modules/billing-plan';
-import { findPlanById } from '@/modules/billing-plan/data/plans.repository';
-import { findCycleById, listCyclesForPlan } from '@/modules/billing-plan/data/cycles.repository';
 import { assertCanAccessProject, getProjectDetailChrome } from '@/modules/projects';
 
 type BuildCtx = {

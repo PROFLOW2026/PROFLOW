@@ -151,6 +151,17 @@ export {
   findTemplateById,
 } from './data/templates.repository';
 
-/** Cross-module lookups (cash-flow forecast / progress remaining). */
-export { sumIssuedAmountsByPlanLine } from './data/cycles.repository';
-export { listExpectedProgressBillingLines } from './data/forecast.repository';
+/** Cross-module lookups (cash-flow / reports / notifications / imports). */
+export { findPlanById } from './data/plans.repository';
+export {
+  findCycleById,
+  listCyclesForPlan,
+  sumIssuedAmountsByPlanLine,
+} from './data/cycles.repository';
+export {
+  listExpectedProgressBillingLines,
+  listDraftCyclesAwaitingIssue,
+  listMilestoneLinesDue,
+  listPlansWithRetentionHeld,
+} from './data/forecast.repository';
+export { insertSection, listSectionsForPlan } from './data/lines.repository';
