@@ -44,7 +44,7 @@ function SummaryCell({
       <p
         className={cn(
           'mt-1 text-lg font-semibold',
-          warn ? 'text-[var(--pf-danger)]' : undefined,
+          warn ? 'text-[var(--pf-action-danger)]' : undefined,
         )}
       >
         <MoneyText value={money(amount || '0', currency)} colorizeNegative />
@@ -103,7 +103,7 @@ export function BillingPlanSummaryCards({
         )}
       </div>
       {overPlanned ? (
-        <p className="text-xs text-[var(--pf-danger)]">{labels.overPlanned}</p>
+        <p className="text-xs text-[var(--pf-action-danger)]">{labels.overPlanned}</p>
       ) : null}
     </div>
   );
