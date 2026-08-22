@@ -2,15 +2,17 @@ import { and, eq } from 'drizzle-orm';
 import { projects } from '@drizzle/schema';
 import { composeProjectFinancials } from '@/modules/financials/application/compose-project-financials';
 import type { ProjectFinancials } from '@/modules/financials/domain/types';
-import { loadProjectBillingRows } from '@/modules/financials/data/billing.repository';
-import { loadProjectCommercialBundle } from '@/modules/financials/data/commercial.repository';
-import { loadProjectExpenseContributions } from '@/modules/financials/data/expenses.repository';
+import {
+  loadProjectBillingRows,
+  loadProjectCommercialBundle,
+  loadProjectExpenseContributions,
+} from '@/modules/financials';
+import type { ContractValueEventRecord as CommercialValueEventRecord } from '@/modules/commercial/domain/types';
 import {
   assembleProjectDetailChrome,
   type ProjectDetailChrome,
 } from '@/modules/projects/application/get-project-detail';
-import { mapProjectRow } from '@/modules/projects/data/projects.repository';
-import { mapContractRow } from '@/modules/projects/data/contracts.repository';
+import { mapProjectRow, mapContractRow } from '@/modules/projects';
 import type { ContractValueEventRecord } from '@/modules/projects/domain/types';
 import { assertCanAccessProject } from '@/modules/projects/application/project-access';
 import type { OrgContext } from '@/shared/auth/context';
@@ -25,7 +27,7 @@ export type ProjectOverviewPayload = {
 };
 
 function mapOverviewValueEvents(
-  events: readonly import('@/modules/commercial/domain/types').ContractValueEventRecord[],
+  events: readonly CommercialValueEventRecord[],
 ): ContractValueEventRecord[] {
   return events.map((event) => ({
     id: event.id,

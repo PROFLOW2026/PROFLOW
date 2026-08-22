@@ -1,5 +1,6 @@
 /** Public API of the financials module (docs 04, 46, 51). */
 export { getProjectFinancials } from './application/get-project-financials';
+export { composeProjectFinancials } from './application/compose-project-financials';
 export { loadProjectCommercialData, loadContractCommercialData } from './data/commercial.repository';
 export type { ContractCommercialSlice, ProjectCommercialData } from './data/commercial.repository';
 export { setProjectExpectedRemainingCost } from './application/set-project-expected-remaining-cost';
@@ -120,6 +121,10 @@ export type {
   ForecastFinalCostInput,
 } from './domain/cost-aggregation';
 export { loadProjectExpenseContributions } from './data/expenses.repository';
+export { loadProjectCommercialBundle } from './data/commercial.repository';
+export { loadProjectBillingRows } from './data/billing.repository';
+export type { ProjectBillingRows } from './data/billing.repository';
+export { loadMonthCloseEconomicForProject } from './data/month-close-economic.repository';
 export { loadRecognizedVendorBillsForProject } from './data/committed-costs.repository';
 export {
   sumProjectTouchingExpenseNets,

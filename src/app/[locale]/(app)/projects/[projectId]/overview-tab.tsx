@@ -6,6 +6,7 @@ import { SkeletonText } from '@/components/ui/skeleton';
 import { BillingPlanStatusStrip } from '@/modules/billing-plan/ui/billing-plan-status-strip';
 import { ProjectFinancialsSnapshot } from '@/modules/financials/ui/project-financials-snapshot';
 import { ProjectFinancialsSnapshotView } from '@/modules/financials/ui/project-financials-snapshot-view';
+import type { ProjectFinancials } from '@/modules/financials/domain/types';
 import {
   buildScheduleSummary,
   computeApprovedChangesTotal,
@@ -45,7 +46,7 @@ interface OverviewTabProps {
   scheduleSlot?: ReactNode;
   milestonesSlot?: ReactNode;
   /** Preloaded in one transaction on the overview critical path. */
-  preloadedFinancials?: import('@/modules/financials/domain/types').ProjectFinancials | null;
+  preloadedFinancials?: ProjectFinancials | null;
   preloadedCanReadProfit?: boolean;
   financialSnapshotT?: (key: string) => string;
 }

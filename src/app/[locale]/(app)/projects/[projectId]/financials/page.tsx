@@ -1,4 +1,3 @@
-import { getLocale } from 'next-intl/server';
 import { redirect } from '@/shared/i18n/navigation';
 
 interface ProjectFinancialsPageProps {

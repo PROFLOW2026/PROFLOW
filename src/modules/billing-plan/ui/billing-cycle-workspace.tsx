@@ -65,7 +65,16 @@ function displayPercent(raw: string | null | undefined): string {
   return raw.replace(/(\.\d*?[1-9])0+$|\.0+$/, '$1');
 }
 
-export function BillingCycleWorkspace({
+export function BillingCycleWorkspace(props: BillingCycleWorkspaceProps) {
+  return (
+    <BillingCycleWorkspaceInner
+      key={props.activeCycleId ?? 'no-cycle'}
+      {...props}
+    />
+  );
+}
+
+function BillingCycleWorkspaceInner({
   projectId,
   planId,
   planStatus,
@@ -83,10 +92,6 @@ export function BillingCycleWorkspace({
   const t = useTranslations('billingPlan');
   const router = useRouter();
   const [lines, setLines] = useState<CycleLineDraft[]>(() => [...initialLines]);
-
-  useEffect(() => {
-    setLines([...initialLines]);
-  }, [activeCycleId, initialLines]);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const [createState, createAction, createPending] = useActionState<

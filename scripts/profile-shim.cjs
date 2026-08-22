@@ -1,4 +1,5 @@
 /** Allows tsx CLI scripts to import modules guarded by `server-only`. */
+/* eslint-disable @typescript-eslint/no-require-imports */
 const Module = require('node:module');
 const originalLoad = Module._load;
 Module._load = function patchedLoad(request, parent, isMain) {

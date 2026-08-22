@@ -203,15 +203,6 @@ async function ProjectStructuredTabPanel({
     const showWorkTab = detail.showWorkPackages;
 
     const uiLocale = locale === 'he-IL' ? 'he-IL' : 'en';
-    const showContractorsPanel = can(PERMISSIONS.VENDORS_READ);
-    const workspaceLinks = selectProjectWorkspaceLinks({
-      projectId,
-      modules,
-      permissions: context.permissions,
-      showWorkPackages: detail.showWorkPackages,
-      canReadFinancials,
-    });
-    const organizationTimezone = context.organization.timezone ?? 'Asia/Jerusalem';
     const canManageContract = can(PERMISSIONS.CONTRACTS_MANAGE);
     const baseCurrency =
       detail.contract?.currency ?? detail.project.currency ?? context.organization.baseCurrency ?? 'ILS';

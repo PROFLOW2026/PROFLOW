@@ -1,6 +1,6 @@
 import { and, desc, eq, isNull } from 'drizzle-orm';
 import { billingRecords, contracts, projects } from '@drizzle/schema';
-import type { ProjectBillingRows } from '@/modules/financials/data/billing.repository';
+import type { ProjectBillingRows } from '@/modules/financials';
 import { businessDate, todayInTimeZone, type BusinessDate } from '@/shared/dates';
 import type { DbExecutor } from '@/shared/db/types';
 import { addMoney, fromNumericString, type MoneyValue, zeroMoney } from '@/shared/money';

@@ -4,8 +4,7 @@ import { hasPermission, assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { listPaymentApplications } from '@/modules/billing/application/list-payment-applications';
 import type { BillingPosition } from '@/modules/financials/domain/types';
-import { composeProjectFinancials } from '@/modules/financials/application/compose-project-financials';
-import { loadMonthCloseEconomicForProject } from '@/modules/financials/data/month-close-economic.repository';
+import { composeProjectFinancials, loadMonthCloseEconomicForProject } from '@/modules/financials';
 import {
   findProjectInOrganization,
   listBillingContractOptions,

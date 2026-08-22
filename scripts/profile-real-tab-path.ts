@@ -4,6 +4,7 @@
  *
  * Run: npx tsx --tsconfig scripts/profile-tsconfig.json scripts/profile-real-tab-path.ts
  */
+import type { OrgContext } from '@/shared/auth/context';
 import dotenv from 'dotenv';
 
 dotenv.config({ path: '.env.local', override: true });
@@ -116,7 +117,7 @@ async function main() {
 
   async function withProfileOrg<T>(
     target: Target,
-    fn: (context: import('@/shared/auth/context').OrgContext) => Promise<T>,
+    fn: (context: OrgContext) => Promise<T>,
   ): Promise<T> {
     return withUserContext(target.userId, async (tx) => {
       const resolved = await resolveOrgContext(tx, {
@@ -248,7 +249,6 @@ async function main() {
       slowestBusinessQueries: warm.breakdown.slowestBusiness.map((q) => ({ name: q.name, ms: q.ms })),
       duplicateTableReads: warm.duplicates,
     });
-    const before = BASELINE_BEFORE[name as keyof typeof BASELINE_BEFORE];
     const slow = warm.breakdown.slowestBusiness[0];
     console.info(
       `${name}: warm=${warm.totalMs}ms queries=${warm.summary.queryCount} (biz=${warm.breakdown.businessCount} rls=${warm.breakdown.rlsSetupCount}) bizMs=${warm.breakdown.businessMs} slowest="${slow?.name ?? '-'}"@${slow?.ms ?? 0}ms`,

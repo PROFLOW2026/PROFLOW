@@ -218,7 +218,6 @@ export const getShellContext = cache(async () => {
       const {
         workMix,
         businessProfileKey,
-        suggestedDefaults,
         complexity,
         customizationMode,
       } = orgSettings;
