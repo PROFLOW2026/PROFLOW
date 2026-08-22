@@ -314,9 +314,13 @@ export async function getVendorDetail(
   }
 
   let defaultPaymentTermName: string | null = null;
+  let defaultPaymentTermKey: string | null = null;
   if (vendor.defaultPaymentTermId) {
     const [termRow] = await db
-      .select({ name: organizationCatalogEntries.name })
+      .select({
+        name: organizationCatalogEntries.name,
+        key: organizationCatalogEntries.key,
+      })
       .from(organizationCatalogEntries)
       .where(
         and(
@@ -326,6 +330,7 @@ export async function getVendorDetail(
       )
       .limit(1);
     defaultPaymentTermName = termRow?.name ?? null;
+    defaultPaymentTermKey = termRow?.key ?? null;
   }
 
   const [identifiers, catalogLinks] = await Promise.all([
@@ -350,6 +355,7 @@ export async function getVendorDetail(
     catalogLinks,
     parentVendorName,
     defaultPaymentTermName,
+    defaultPaymentTermKey,
     projectCount: new Set(activeProjectIds).size,
   };
 }

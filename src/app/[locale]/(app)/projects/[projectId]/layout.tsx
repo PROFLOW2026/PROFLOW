@@ -56,6 +56,8 @@ export default async function ProjectLayout({ children, params }: ProjectLayoutP
   const showChangesTab = Boolean(modules?.changes) && can(PERMISSIONS.CHANGES_READ);
   const showBoqTab = Boolean(modules?.boq) && can(PERMISSIONS.BOQ_READ);
   const showBillingTab = Boolean(modules?.billing) && can(PERMISSIONS.BILLING_READ);
+  // Billing plan shares billing module + BILLING_READ (hidden without financial access).
+  const showBillingPlanTab = showBillingTab;
   const showBudgetsTab = Boolean(modules?.budgets) && can(PERMISSIONS.BUDGETS_READ);
   // Team is permission-gated (not module) so owners can assign people before
   // the workforce module preference flips on from first create.
@@ -108,6 +110,7 @@ export default async function ProjectLayout({ children, params }: ProjectLayoutP
         changes: showChangesTab,
         boq: showBoqTab,
         billing: showBillingTab,
+        billingPlan: showBillingPlanTab,
         budgets: showBudgetsTab,
         team: showTeamTab,
         schedule: showScheduleTab,

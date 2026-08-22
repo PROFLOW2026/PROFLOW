@@ -46,6 +46,8 @@ const SOURCE_CATEGORY: Readonly<Record<string, TodayFocusCategory>> = {
   expiring_compliance: 'other',
   automation_followup: 'other',
   communication_failed: 'other',
+  billing_plan_cycle_draft: 'money',
+  billing_plan_milestone_due: 'money',
 };
 
 export function todayCategoryForSource(sourceType: string): TodayFocusCategory {

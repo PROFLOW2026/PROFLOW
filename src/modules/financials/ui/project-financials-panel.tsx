@@ -15,6 +15,7 @@ import { CashFlowView } from './cash-flow-view';
 import { mapCoverageToSources, standalonePartialNotes } from './map-coverage-sources';
 import { ProjectFinancialsKpiPanel } from './project-financials-kpi-panel';
 import { ExpectedRemainingCostForm } from './expected-remaining-cost-form';
+import { BillingPlanStatusStrip } from '@/modules/billing-plan/ui/billing-plan-status-strip';
 
 export interface ProjectFinancialsPanelProps {
   readonly projectId: string;
@@ -52,6 +53,9 @@ export async function ProjectFinancialsPanel({ projectId }: ProjectFinancialsPan
 
   return (
     <div className="flex min-w-0 max-w-full flex-col gap-4">
+      {canReadBilling ? (
+        <BillingPlanStatusStrip projectId={projectId} />
+      ) : null}
       <Card>
         <CardHeader>
           <CardTitle>{t('panelTitle')}</CardTitle>

@@ -96,6 +96,8 @@ function mapSummary(row: {
   workPackageId: string | null;
   costFamily: CostFamily;
   costCategoryId: string | null;
+  netAmount: string;
+  taxAmount: string | null;
   grossAmount: string;
   currency: string;
   status: ExpenseStatus;
@@ -113,6 +115,8 @@ function mapSummary(row: {
     costFamily: row.costFamily,
     costCategoryId: row.costCategoryId,
     grossAmount: mapMoney(row.grossAmount, row.currency),
+    netAmount: mapMoney(row.netAmount, row.currency),
+    taxAmount: row.taxAmount ? mapMoney(row.taxAmount, row.currency) : null,
     status: row.status,
     voidsExpenseId: row.voidsExpenseId,
   };
@@ -298,8 +302,6 @@ export async function findExpenseById(
   return {
     ...mapSummary({ ...row, projectName: row.projectName }),
     phaseId: row.phaseId,
-    netAmount: mapMoney(row.netAmount, row.currency),
-    taxAmount: row.taxAmount ? mapMoney(row.taxAmount, row.currency) : null,
     taxSnapshot: row.taxSnapshot as ExpenseDetail['taxSnapshot'],
     finalizedAt: row.finalizedAt as BusinessDate | null,
     paymentMethod: row.paymentMethod,
@@ -371,6 +373,8 @@ export async function listExpenses(
       workPackageId: expenses.workPackageId,
       costFamily: expenses.costFamily,
       costCategoryId: expenses.costCategoryId,
+      netAmount: expenses.netAmount,
+      taxAmount: expenses.taxAmount,
       grossAmount: expenses.grossAmount,
       currency: expenses.currency,
       status: expenses.status,

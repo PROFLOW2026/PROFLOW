@@ -278,7 +278,16 @@ describe('migration journal', () => {
     expect(tags.indexOf('0061_ops_expense_usage_kinds')).toBeLessThan(
       tags.indexOf('0062_organization_branding'),
     );
-    expect(tags.at(-1)).toBe('0063_branding_billing_freeze_permission');
+    expect(tags.indexOf('0062_organization_branding')).toBeLessThan(
+      tags.indexOf('0063_branding_billing_freeze_permission'),
+    );
+    expect(tags.indexOf('0063_branding_billing_freeze_permission')).toBeLessThan(
+      tags.indexOf('0064_payment_terms_eom_90_120'),
+    );
+    expect(tags.indexOf('0064_payment_terms_eom_90_120')).toBeLessThan(
+      tags.indexOf('0065_project_billing_plans'),
+    );
+    expect(tags.at(-1)).toBe('0065_project_billing_plans');
 
     const sql35 = await readFile(
       path.join(MIGRATIONS_DIR, '0035_boq_integrity_closure.sql'),

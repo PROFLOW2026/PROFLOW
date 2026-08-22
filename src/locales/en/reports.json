@@ -3,6 +3,8 @@
   "description": "Download a snapshot PDF or open a print-friendly page. Figures keep Actual, Committed, and Forecast labels. Invoice totals are billing/cash, not profit. VAT is not profit.",
   "downloadPdf": "Download PDF",
   "previewPrint": "Preview / print",
+  "downloadKindPdf": "Download {kind} (PDF)",
+  "previewKindPrint": "Preview / print {kind}",
   "print": "Print or save as PDF",
   "generatedAt": "Generated",
   "snapshotNote": "This file is a snapshot at the time it was generated.",
@@ -52,7 +54,14 @@
     "contract_summary": "Contract summary",
     "work_order": "Work order",
     "service_completion": "Service completion report",
-    "timesheet": "Timesheet"
+    "timesheet": "Timesheet",
+    "project_billing_account": "Progress account / payment request",
+    "project_billing_plan_status": "Billing plan status"
+  },
+  "documentKinds": {
+    "progress_account": "Progress account",
+    "partial_account": "Partial account",
+    "payment_request": "Payment request"
   },
   "kindHints": {
     "project_status": "Status, dates, and operational snapshot.",
@@ -80,7 +89,9 @@
     "contract_summary": "Professional contract summary from stored commercial data.",
     "work_order": "Service / work order document.",
     "service_completion": "Frozen service completion report for a completed work order.",
-    "timesheet": "Timesheet period summary. Not payroll."
+    "timesheet": "Timesheet period summary. Not payroll.",
+    "project_billing_account": "Management progress account — not an official tax invoice. Billing only, not payment.",
+    "project_billing_plan_status": "Planned schedule, billed vs planned, unbilled contract, retention, next billing, and completion %."
   },
   "natures": {
     "actual": "Actual",
@@ -108,7 +119,15 @@
     "inspections": "Inspections",
     "vendors": "Vendors on this project",
     "subcontracts": "Subcontract agreements",
-    "omitted": "Omitted for this viewer"
+    "omitted": "Omitted for this viewer",
+    "billingAccountLines": "Account lines",
+    "billingAccountTotals": "Account totals",
+    "billingPlanCompletion": "Completion",
+    "billingPlanSchedule": "Planned billing schedule",
+    "billingPlanBilledVsPlanned": "Billed vs planned",
+    "billingPlanUnbilled": "Unbilled contract",
+    "billingPlanRetention": "Retention held / released",
+    "billingPlanNextBilling": "Next billing"
   },
   "fields": {
     "originalContract": "Original contract value net",
@@ -175,7 +194,28 @@
     "billed": "Billed (AP, not Actual cost)",
     "paidCash": "Paid (cash, not Actual cost)",
     "logDate": "Log date",
-    "title": "Title"
+    "title": "Title",
+    "priorBilled": "Previously billed",
+    "currentAccount": "This account",
+    "cumulativeBilled": "Cumulative billed",
+    "retentionHeld": "Retention held",
+    "accountDate": "Account date",
+    "cycleNumber": "Account #",
+    "planName": "Billing plan",
+    "period": "Period",
+    "periodStart": "Period start",
+    "periodEnd": "Period end",
+    "completionPercent": "Completion %",
+    "plannedCoverage": "Planned coverage of contract",
+    "plannedTotal": "Planned total",
+    "billedTotal": "Billed total",
+    "plannedAmount": "Planned amount",
+    "remainingPlanned": "Remaining planned",
+    "unplannedAmount": "Unplanned contract amount",
+    "retentionAccumulated": "Retention withheld (issued)",
+    "retentionReleased": "Retention released",
+    "nextLine": "Next planned line",
+    "nextCycle": "Next cycle"
   },
   "notices": {
     "pendingNotInContract": "Pending changes do not update the current contract until they are approved.",
@@ -184,6 +224,9 @@
     "actualCommittedForecast": "Actual, Committed, and Forecast are different figures and must not be mixed.",
     "progressNotActual": "BOQ physical progress is quantity complete. It is not Actual cost and not a payment.",
     "quoteNotBilling": "A quote / estimate is not a billing record, not a change order, and not revenue.",
+    "notOfficialTaxInvoice": "This document is a management progress account / payment request. It is not an official tax invoice.",
+    "billingPlanStatusSnapshot": "Billing-plan status is a management snapshot of planned vs billed amounts. It is not a tax invoice and not a payment.",
+    "billingPlanOverPlanned": "Planned line totals exceed the current contract value.",
     "profitOmitted": "Profit is omitted because this viewer cannot read project profit.",
     "compensationOmitted": "Workforce compensation is omitted because this viewer cannot read employer cost.",
     "commercialOmitted": "Commercial contract figures are omitted because this viewer cannot read contracts.",
@@ -197,7 +240,8 @@
     "vendors": "No vendors engaged on this project.",
     "subcontracts": "No subcontract agreements.",
     "photos": "No linked documents.",
-    "lines": "No lines."
+    "lines": "No lines.",
+    "billingPlanLines": "No active billing-plan lines."
   },
   "omitted": {
     "profit": "Profit",

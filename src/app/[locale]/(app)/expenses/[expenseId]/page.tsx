@@ -178,6 +178,8 @@ export default async function ExpenseDetailPage({
           canReverse={canReverse}
           canCorrect={canCorrect}
           expense={expense}
+          projects={projects}
+          categories={categories}
           amount={expense.grossAmount}
           expenseDate={expense.expenseDate}
         />

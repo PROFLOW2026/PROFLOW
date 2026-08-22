@@ -23,6 +23,8 @@ const PROJECT_KINDS: readonly ReportKind[] = [
   'change_order_summary',
   'punch_inspection',
   'vendor_subcontract_summary',
+  'project_billing_account',
+  'project_billing_plan_status',
 ];
 
 const CLIENT_KINDS: readonly ReportKind[] = ['client_360'];

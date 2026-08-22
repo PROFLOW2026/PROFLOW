@@ -114,8 +114,9 @@ describe('project experience profiles', () => {
   });
 
   it('allowlists tabs per profile without inventing capabilities', () => {
-    expect(projectProfileAllowsTab('simple', 'expenses')).toBe(true);
-    expect(projectProfileAllowsTab('simple', 'financials')).toBe(false);
+  expect(projectProfileAllowsTab('simple', 'expenses')).toBe(true);
+  expect(projectProfileAllowsTab('simple', 'billingPlan')).toBe(true);
+  expect(projectProfileAllowsTab('simple', 'financials')).toBe(false);
     expect(projectProfileAllowsTab('simple', 'time')).toBe(false);
     expect(projectProfileAllowsTab('simple', 'boq')).toBe(false);
     expect(projectProfileAllowsTab('simple', 'closeout')).toBe(false);

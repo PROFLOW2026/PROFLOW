@@ -15,6 +15,8 @@ const PERSONA_KIND_PRIORITY: Readonly<
     'vendor',
     'purchase_order',
     'boq_item',
+    'billing_plan',
+    'billing_cycle',
     'billing',
     'expense',
     'quote',

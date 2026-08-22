@@ -38,6 +38,8 @@ const KIND_FILENAME_STEM: Record<ReportKind, string> = {
   work_order: 'Work-Order',
   service_completion: 'Service-Completion',
   timesheet: 'Timesheet',
+  project_billing_account: 'Progress-Account',
+  project_billing_plan_status: 'Billing-Plan-Status',
 };
 
 /**

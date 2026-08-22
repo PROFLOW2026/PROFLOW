@@ -73,4 +73,13 @@ describe('client message wrappers for Hebrew closure', () => {
       expect(existsSync(path), ns).toBe(true);
     }
   });
+
+  it('wraps project usage embeds with assets client messages', () => {
+    const path = join(process.cwd(), 'src/modules/assets/ui/project-usage-panel.tsx');
+    expect(existsSync(path)).toBe(true);
+    const text = readFileSync(path, 'utf8');
+    expect(text).toMatch(/WithClientMessages/);
+    expect(text).toContain("'assets'");
+    expect(text).toMatch(/MaterialUsageForm|EquipmentUsageForm/);
+  });
 });

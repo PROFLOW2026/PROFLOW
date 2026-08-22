@@ -55,7 +55,10 @@
     "warranty_expiring": "אחריות שעומדת לפוג",
     "cash_flow_risk": "סיכון תזרים",
     "automation_followup": "מעקב אוטומציה",
-    "communication_failed": "הודעה לא נשלחה"
+    "communication_failed": "הודעה לא נשלחה",
+    "billing_plan_cycle_draft": "חשבון התקדמות להנפקה",
+    "billing_plan_milestone_due": "אבן דרך לחיוב",
+    "billing_plan_retention_release_due": "שחרור עיכבון לביצוע"
   },
   "empty": {
     "title": "הכול בסדר",

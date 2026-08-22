@@ -1,7 +1,7 @@
 'use client';
 
 import { useActionState, useRef, useState } from 'react';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { ConfirmAction } from '@/components/patterns/confirm-action';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -12,6 +12,9 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  localizePaymentTermName,
+} from '@/modules/business-catalog/domain/payment-term-labels';
 import {
   parsePaymentTermMetadata,
   type BusinessCatalogKind,
@@ -206,6 +209,7 @@ function DefaultPaymentTermSetting({
 }) {
   const t = useTranslations('settings.businessCatalogs');
   const tCommon = useTranslations('common');
+  const locale = useLocale();
   const activeEntries = entries.filter((entry) => entry.isActive);
   const [state, action, pending] = useActionState(
     setDefaultPaymentTermKeyAction,
@@ -213,10 +217,11 @@ function DefaultPaymentTermSetting({
   );
   const [selectedKey, setSelectedKey] = useState(defaultKey ?? '');
 
-  const currentLabel =
-    activeEntries.find((entry) => entry.key === defaultKey)?.name ??
-    defaultKey ??
-    t('defaultPaymentTermUnset');
+  const currentLabel = (() => {
+    const entry = activeEntries.find((item) => item.key === defaultKey);
+    if (entry) return localizePaymentTermName(entry.key, entry.name, locale);
+    return defaultKey ?? t('defaultPaymentTermUnset');
+  })();
 
   if (!canEdit) {
     return (
@@ -245,7 +250,7 @@ function DefaultPaymentTermSetting({
             <SelectContent>
               {activeEntries.map((entry) => (
                 <SelectItem key={entry.id} value={entry.key}>
-                  {entry.name}
+                  {localizePaymentTermName(entry.key, entry.name, locale)}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -393,6 +398,7 @@ function CatalogEntryRow({
 }) {
   const t = useTranslations('settings.businessCatalogs');
   const tCommon = useTranslations('common');
+  const locale = useLocale();
   const [updateState, updateAction, updatePending] = useActionState(
     updateCatalogEntryAction,
     {} as SettingsActionState,
@@ -403,6 +409,10 @@ function CatalogEntryRow({
   );
   const code =
     typeof entry.metadata.code === 'string' ? entry.metadata.code : entry.key;
+  const displayName =
+    entry.kind === 'payment_term'
+      ? localizePaymentTermName(entry.key, entry.name, locale)
+      : entry.name;
 
   async function handleDeactivate() {
     const result = await deactivateCatalogEntryAction(entry.id);
@@ -426,12 +436,19 @@ function CatalogEntryRow({
           <input type="hidden" name="id" value={entry.id} />
           <input type="hidden" name="kind" value={entry.kind} />
           <div className="flex flex-wrap items-center gap-2">
-            <Input
-              name="name"
-              defaultValue={entry.name}
-              className="min-w-0 w-full max-w-xs flex-1"
-              aria-label={entry.name}
-            />
+            {entry.kind === 'payment_term' && entry.isSystem ? (
+              <>
+                <input type="hidden" name="name" value={entry.name} />
+                <span className="min-w-0 flex-1 text-sm font-medium">{displayName}</span>
+              </>
+            ) : (
+              <Input
+                name="name"
+                defaultValue={entry.name}
+                className="min-w-0 w-full max-w-xs flex-1"
+                aria-label={displayName}
+              />
+            )}
             {!entry.isActive ? (
               <span className="text-xs text-[var(--pf-text-muted)]">{t('inactive')}</span>
             ) : null}
@@ -441,7 +458,7 @@ function CatalogEntryRow({
             {!entry.isSystem ? (
               <ConfirmAction
                 title={t('deactivate')}
-                description={<p>{t('deactivateQuestion', { name: entry.name })}</p>}
+                description={<p>{t('deactivateQuestion', { name: displayName })}</p>}
                 confirmLabel={t('deactivate')}
                 successMessage={t('deactivateSuccess')}
                 onConfirm={handleDeactivate}
@@ -475,7 +492,7 @@ function CatalogEntryRow({
         </form>
       ) : (
         <div className="flex flex-wrap items-baseline gap-2">
-          <span className="text-sm font-medium">{entry.name}</span>
+          <span className="text-sm font-medium">{displayName}</span>
           {metaSummary ? (
             <span className="text-xs text-[var(--pf-text-muted)]">{metaSummary}</span>
           ) : null}

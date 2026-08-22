@@ -8,6 +8,7 @@ import {
   listDocumentRequirements,
 } from '@/modules/business-catalog/application/manage-catalog';
 import { BUSINESS_CATALOG_KINDS } from '@/modules/business-catalog/domain/types';
+import { ensureOrgBusinessCatalogDefaults } from '@/modules/tenancy';
 import { withOrgContext } from '@/shared/auth/session';
 import { canAccessSection, canManageSection, SETTINGS_SECTIONS } from '../_lib/access';
 import { SettingsNotAllowed } from '../settings-not-allowed';
@@ -25,6 +26,8 @@ export default async function BusinessCatalogsSettingsPage() {
 
   const data = await withOrgContext(async (context) => {
     if (!canAccessSection(context, section)) return { allowed: false as const };
+
+    await ensureOrgBusinessCatalogDefaults(context.db, context.organizationId);
 
     const entriesByKind = {} as Record<string, CatalogEntryView[]>;
     await Promise.all(

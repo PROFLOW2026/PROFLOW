@@ -11,6 +11,11 @@
 import { listPendingApprovals } from '@/modules/approvals';
 import { getOrganizationApPayables } from '@/modules/ap';
 import { listBillingRecords } from '@/modules/billing';
+import {
+  listDraftCyclesAwaitingIssue,
+  listMilestoneLinesDue,
+  listPlansWithRetentionHeld,
+} from '@/modules/billing-plan/data/forecast.repository';
 import { fromNumericString, isPositiveMoney, isZeroMoney } from '@/shared/money';
 import type { OrgContext } from '@/shared/auth/context';
 import { addDays, todayInTimeZone, type BusinessDate } from '@/shared/dates';
@@ -53,6 +58,7 @@ import { emitNotification } from './emit';
 import { runNotificationScanSchema, type RunNotificationScanInput } from '../validation/schemas';
 
 const AP_DUE_SOON_DAYS = 7;
+const BILLING_PLAN_MILESTONE_DAYS = 7;
 
 interface ScannerContext {
   readonly context: OrgContext;
@@ -527,6 +533,125 @@ async function scanAutomationOutputs(ctx: ScannerContext): Promise<{ emitted: nu
   return { emitted, resolved };
 }
 
+async function scanBillingPlanDraftCycles(
+  ctx: ScannerContext,
+): Promise<{ emitted: number; resolved: number }> {
+  if (!hasPermission(ctx.context, PERMISSIONS.BILLING_READ)) {
+    return { emitted: 0, resolved: 0 };
+  }
+  let rows: Awaited<ReturnType<typeof listDraftCyclesAwaitingIssue>> = [];
+  try {
+    rows = await listDraftCyclesAwaitingIssue(
+      ctx.context.db,
+      ctx.context.organizationId,
+      ctx.cap,
+    );
+  } catch {
+    return { emitted: 0, resolved: 0 };
+  }
+  const entities: ScanEntity[] = rows.map((row) => ({
+    id: row.cycleId,
+    reference: row.title,
+    extra: row.status,
+    deepLink: `/projects/${row.projectId}?tab=billingPlan&cycleId=${row.cycleId}`,
+    projectId: row.projectId,
+  }));
+  const emitted = await emitLive(
+    ctx,
+    'billing_plan_cycle_draft',
+    'billing_plan_cycle',
+    'warning',
+    entities,
+    (entity) => permissionRecipients(ctx, PERMISSIONS.BILLING_MANAGE, entity),
+  );
+  const resolved = await resolveStaleForType(
+    ctx,
+    'billing_plan_cycle_draft',
+    new Set(entities.map((row) => row.id)),
+  );
+  return { emitted, resolved };
+}
+
+async function scanBillingPlanMilestonesDue(
+  ctx: ScannerContext,
+): Promise<{ emitted: number; resolved: number }> {
+  if (!hasPermission(ctx.context, PERMISSIONS.BILLING_READ)) {
+    return { emitted: 0, resolved: 0 };
+  }
+  let rows: Awaited<ReturnType<typeof listMilestoneLinesDue>> = [];
+  try {
+    rows = await listMilestoneLinesDue(
+      ctx.context.db,
+      ctx.context.organizationId,
+      ctx.today,
+      BILLING_PLAN_MILESTONE_DAYS,
+      ctx.cap,
+    );
+  } catch {
+    return { emitted: 0, resolved: 0 };
+  }
+  const entities: ScanEntity[] = rows.map((row) => ({
+    id: row.lineId,
+    reference: row.label,
+    extra: row.targetDate,
+    deepLink: `/projects/${row.projectId}?tab=billingPlan`,
+    projectId: row.projectId,
+  }));
+  const emitted = await emitLive(
+    ctx,
+    'billing_plan_milestone_due',
+    'billing_plan_line',
+    'warning',
+    entities,
+    (entity) => permissionRecipients(ctx, PERMISSIONS.BILLING_MANAGE, entity),
+  );
+  const resolved = await resolveStaleForType(
+    ctx,
+    'billing_plan_milestone_due',
+    new Set(entities.map((row) => row.id)),
+  );
+  return { emitted, resolved };
+}
+
+async function scanBillingPlanRetentionHeld(
+  ctx: ScannerContext,
+): Promise<{ emitted: number; resolved: number }> {
+  if (!hasPermission(ctx.context, PERMISSIONS.BILLING_READ)) {
+    return { emitted: 0, resolved: 0 };
+  }
+  let rows: Awaited<ReturnType<typeof listPlansWithRetentionHeld>> = [];
+  try {
+    rows = await listPlansWithRetentionHeld(
+      ctx.context.db,
+      ctx.context.organizationId,
+      ctx.cap,
+    );
+  } catch {
+    return { emitted: 0, resolved: 0 };
+  }
+  const entities: ScanEntity[] = rows.map((row) => ({
+    id: row.planId,
+    reference: row.planName,
+    extra: `${row.heldRemaining} ${row.currency}`,
+    deepLink: `/projects/${row.projectId}?tab=billingPlan`,
+    projectId: row.projectId,
+  }));
+  const emitted = await emitLive(
+    ctx,
+    'billing_plan_retention_held',
+    'billing_plan',
+    'info',
+    entities,
+    (entity) => permissionRecipients(ctx, PERMISSIONS.BILLING_MANAGE, entity),
+  );
+  const resolved = await resolveStaleForType(
+    ctx,
+    'billing_plan_retention_held',
+    new Set(entities.map((row) => row.id)),
+  );
+  return { emitted, resolved };
+}
+
 const SCANNERS: readonly {
   readonly key: string;
   readonly run: (ctx: ScannerContext) => Promise<{ emitted: number; resolved: number }>;
@@ -546,6 +671,9 @@ const SCANNERS: readonly {
   { key: 'closeout_blockers', run: scanCloseoutBlockers },
   { key: 'communication_failed', run: scanCommunicationFailed },
   { key: 'automation_output', run: scanAutomationOutputs },
+  { key: 'billing_plan_cycle_draft', run: scanBillingPlanDraftCycles },
+  { key: 'billing_plan_milestone_due', run: scanBillingPlanMilestonesDue },
+  { key: 'billing_plan_retention_held', run: scanBillingPlanRetentionHeld },
 ];
 
 export async function runNotificationScan(

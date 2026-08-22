@@ -300,6 +300,7 @@ export async function createSubcontractAction(
     parentContractId: formData.get('parentContractId') || null,
     originalAmount: formData.get('originalAmount'),
     retentionPercent: formData.get('retentionPercent') || null,
+    paymentTermId: formData.get('paymentTermId') || null,
     startDate: formData.get('startDate') || null,
     endDate: formData.get('endDate') || null,
     notes: formData.get('notes') || null,

@@ -14,6 +14,7 @@ describe('project tab business priority', () => {
       'boq',
       'changes',
       'billing',
+      'billingPlan',
       'expenses',
       'usage',
       'team',
@@ -34,6 +35,9 @@ describe('project tab business priority', () => {
     expect(PROJECT_TAB_PRIORITY.indexOf('changes')).toBeLessThan(
       PROJECT_TAB_PRIORITY.indexOf('billing'),
     );
+    expect(PROJECT_TAB_PRIORITY.indexOf('billing')).toBeLessThan(
+      PROJECT_TAB_PRIORITY.indexOf('billingPlan'),
+    );
   });
 
   it('filters by visibility without reordering or RTL-reversing', () => {
@@ -43,6 +47,7 @@ describe('project tab business priority', () => {
       changes: true,
       boq: true,
       billing: true,
+      billingPlan: true,
       budgets: true,
       team: true,
       schedule: true,
@@ -59,6 +64,7 @@ describe('project tab business priority', () => {
     expect(tabs.indexOf('team')).toBeLessThan(tabs.indexOf('schedule'));
     expect(tabs.indexOf('time')).toBeLessThan(tabs.indexOf('schedule'));
     expect(tabs.indexOf('billing')).toBeLessThan(tabs.indexOf('time'));
+    expect(tabs.indexOf('billing')).toBeLessThan(tabs.indexOf('billingPlan'));
     expect(tabs.indexOf('documents')).toBeLessThan(tabs.indexOf('details'));
     expect(tabs.indexOf('work')).toBeLessThan(tabs.indexOf('documents'));
   });
@@ -71,6 +77,7 @@ describe('project tab business priority', () => {
         changes: false,
         boq: false,
         billing: false,
+        billingPlan: false,
         budgets: false,
         team: false,
         schedule: false,
@@ -94,6 +101,7 @@ describe('project tab business priority', () => {
       changes: false,
       boq: false,
       billing: false,
+      billingPlan: false,
       budgets: false,
       team: false,
       schedule: false,

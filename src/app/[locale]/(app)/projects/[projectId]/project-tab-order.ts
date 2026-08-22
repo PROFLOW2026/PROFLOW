@@ -8,6 +8,7 @@ export type ProjectTabKey =
   | 'changes'
   | 'boq'
   | 'billing'
+  | 'billingPlan'
   | 'budgets'
   | 'work'
   | 'team'
@@ -32,6 +33,7 @@ export const PROJECT_TAB_PRIORITY: readonly ProjectTabKey[] = [
   'boq',
   'changes',
   'billing',
+  'billingPlan',
   'expenses',
   'usage',
   'team',
@@ -50,6 +52,7 @@ export interface ProjectTabVisibility {
   readonly changes: boolean;
   readonly boq: boolean;
   readonly billing: boolean;
+  readonly billingPlan: boolean;
   readonly budgets: boolean;
   readonly team: boolean;
   readonly schedule: boolean;
@@ -78,6 +81,8 @@ export function resolveProjectTabs(visibility: ProjectTabVisibility): ProjectTab
         return visibility.boq;
       case 'billing':
         return visibility.billing;
+      case 'billingPlan':
+        return visibility.billingPlan;
       case 'budgets':
         return visibility.budgets;
       case 'team':
@@ -113,6 +118,7 @@ export function applyProjectProfileToTabVisibility(
     changes: visibility.changes && projectProfileAllowsTab(profile, 'changes'),
     boq: visibility.boq && projectProfileAllowsTab(profile, 'boq'),
     billing: visibility.billing && projectProfileAllowsTab(profile, 'billing'),
+    billingPlan: visibility.billingPlan && projectProfileAllowsTab(profile, 'billingPlan'),
     budgets: visibility.budgets && projectProfileAllowsTab(profile, 'budgets'),
     team: visibility.team && projectProfileAllowsTab(profile, 'team'),
     schedule: visibility.schedule && projectProfileAllowsTab(profile, 'schedule'),

@@ -34,6 +34,9 @@ export const COMMAND_CENTER_SOURCE_TYPES = [
   'cash_flow_risk',
   'automation_followup',
   'communication_failed',
+  'billing_plan_cycle_draft',
+  'billing_plan_milestone_due',
+  'billing_plan_retention_release_due',
 ] as const;
 
 export type CommandCenterSourceType = (typeof COMMAND_CENTER_SOURCE_TYPES)[number];
@@ -55,6 +58,8 @@ export const FINANCIAL_SOURCE_TYPES = [
   'forecast_warning',
   'credit_void_issue',
   'cash_flow_risk',
+  'billing_plan_cycle_draft',
+  'billing_plan_retention_release_due',
 ] as const satisfies readonly CommandCenterSourceType[];
 
 export type FinancialSourceType = (typeof FINANCIAL_SOURCE_TYPES)[number];

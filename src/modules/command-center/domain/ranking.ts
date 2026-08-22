@@ -45,6 +45,9 @@ export const SOURCE_DEFAULT_SEVERITY: Record<CommandCenterSourceType, CommandCen
   cash_flow_risk: 'critical',
   automation_followup: 'medium',
   communication_failed: 'high',
+  billing_plan_cycle_draft: 'high',
+  billing_plan_milestone_due: 'medium',
+  billing_plan_retention_release_due: 'high',
 };
 
 export const INBOX_SECTION_ORDER = ['critical', 'high', 'medium', 'low'] as const;

@@ -104,6 +104,8 @@ export async function confirmImportAction(input: {
   rowNumbers?: number[];
   projectId?: string;
   boqId?: string;
+  planId?: string;
+  contractId?: string;
 }): Promise<ConfirmImportActionResult> {
   const t = await getTranslations('imports');
   try {
@@ -114,6 +116,8 @@ export async function confirmImportAction(input: {
       rowNumbers: input.rowNumbers,
       projectId: input.projectId,
       boqId: input.boqId,
+      planId: input.planId,
+      contractId: input.contractId,
     });
 
     revalidatePath('/clients');

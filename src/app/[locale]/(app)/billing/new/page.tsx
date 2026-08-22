@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { PageHeader } from '@/components/ui/page-header';
-import { listBusinessCatalog } from '@/modules/business-catalog';
+import { listBusinessCatalog, localizePaymentTermOptions } from '@/modules/business-catalog';
 import { listBillingContractOptionsForOrg, listBillingProjectOptions } from '@/modules/billing';
 import { BillingRecordForm } from '@/modules/billing/ui/billing-record-form';
 import { withOrgContext } from '@/shared/auth/session';
@@ -20,10 +20,13 @@ export async function generateMetadata({
 }
 
 export default async function NewBillingRecordPage({
+  params,
   searchParams,
 }: {
+  params: Promise<{ locale: string }>;
   searchParams: Promise<{ projectId?: string; contractId?: string }>;
 }) {
+  const { locale } = await params;
   const { projectId, contractId } = await searchParams;
   const t = await getTranslations('billing');
 
@@ -44,7 +47,7 @@ export default async function NewBillingRecordPage({
       <BillingRecordForm
         projects={projects}
         contracts={contracts}
-        paymentTerms={paymentTerms.map((term) => ({ id: term.id, name: term.name }))}
+        paymentTerms={localizePaymentTermOptions(paymentTerms, locale)}
         defaultProjectId={projectId}
         defaultContractId={contractId}
         defaultCurrency={defaultCurrency}

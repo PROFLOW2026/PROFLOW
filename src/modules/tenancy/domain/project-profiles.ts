@@ -29,6 +29,7 @@ export type ProjectTabCapability =
   | 'changes'
   | 'boq'
   | 'billing'
+  | 'billingPlan'
   | 'budgets'
   | 'team'
   | 'schedule'
@@ -43,11 +44,13 @@ export type ProjectTabCapability =
 export const PROJECT_PROFILE_TAB_ALLOWLIST: Readonly<
   Record<ProjectExperienceProfileKey, ReadonlySet<ProjectTabCapability>>
 > = {
-  simple: new Set(['expenses', 'billing', 'team', 'documents']),
-  small_job: new Set(['expenses', 'billing', 'documents', 'team']),
+  // Simple / small job: billing plan is a compact 3-payment surface only.
+  simple: new Set(['expenses', 'billing', 'billingPlan', 'team', 'documents']),
+  small_job: new Set(['expenses', 'billing', 'billingPlan', 'documents', 'team']),
   consulting: new Set([
     'financials',
     'billing',
+    'billingPlan',
     'team',
     'time',
     'documents',
@@ -57,6 +60,7 @@ export const PROJECT_PROFILE_TAB_ALLOWLIST: Readonly<
   service_installation: new Set([
     'expenses',
     'billing',
+    'billingPlan',
     'team',
     'time',
     'documents',
@@ -69,6 +73,7 @@ export const PROJECT_PROFILE_TAB_ALLOWLIST: Readonly<
     'changes',
     'boq',
     'billing',
+    'billingPlan',
     'budgets',
     'team',
     'schedule',
@@ -85,6 +90,7 @@ export const PROJECT_PROFILE_TAB_ALLOWLIST: Readonly<
     'changes',
     'boq',
     'billing',
+    'billingPlan',
     'budgets',
     'team',
     'schedule',

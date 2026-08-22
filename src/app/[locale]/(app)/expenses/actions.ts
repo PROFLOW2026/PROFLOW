@@ -16,7 +16,7 @@ import {
 } from '@/modules/expenses';
 import { promoteVendorFromTransaction } from '@/modules/vendors';
 import { withOrgContext } from '@/shared/auth/session';
-import { AppError, DomainRuleError, ValidationError, serializeError } from '@/shared/errors';
+import { AppError, DomainRuleError, ValidationError } from '@/shared/errors';
 import { redirect } from '@/shared/i18n/navigation';
 
 async function mapMonthCloseError(error: unknown): Promise<ExpenseActionState | null> {
@@ -30,6 +30,46 @@ async function mapMonthCloseError(error: unknown): Promise<ExpenseActionState | 
   } catch {
     return { error: error.message };
   }
+}
+
+/**
+ * Map DomainRuleError `expenses.errors.*` keys via the expenses namespace.
+ * Never surface raw keys like `errors.expenses.allocationAmountRequired`.
+ */
+async function mapExpenseDomainError(error: unknown): Promise<ExpenseActionState | null> {
+  if (!(error instanceof DomainRuleError) || !error.messageKey.startsWith('expenses.errors.')) {
+    return null;
+  }
+  const tExpenses = await getTranslations('expenses');
+  const key = error.messageKey.replace(/^expenses\./, '') as 'errors.allocationAmountRequired';
+  try {
+    const translated = tExpenses(key);
+    // Guard against next-intl returning an unresolved key path.
+    if (
+      !translated ||
+      translated === key ||
+      translated === error.messageKey ||
+      translated.includes('expenses.errors.') ||
+      translated.startsWith('errors.expenses.')
+    ) {
+      return { error: error.message };
+    }
+    return { error: translated };
+  } catch {
+    return { error: error.message };
+  }
+}
+
+async function mapExpenseActionError(error: unknown): Promise<ExpenseActionState> {
+  const closed = await mapMonthCloseError(error);
+  if (closed) return closed;
+  const domain = await mapExpenseDomainError(error);
+  if (domain) return domain;
+  const tErrors = await getTranslations('errors');
+  if (error instanceof AppError) {
+    return { error: tErrors('unexpected') };
+  }
+  throw error;
 }
 
 export interface ExpenseActionState {
@@ -109,12 +149,7 @@ export async function createExpenseAction(
       }
       return { error: tErrors('validationFailed') };
     }
-    const closed = await mapMonthCloseError(error);
-    if (closed) return closed;
-    if (error instanceof AppError) {
-      return { error: tErrors(serializeError(error).messageKey.replace('errors.', '') as 'validationFailed') };
-    }
-    throw error;
+    return mapExpenseActionError(error);
   }
 }
 
@@ -151,53 +186,33 @@ export async function updateExpenseAction(
       }
       return { error: tErrors('validationFailed') };
     }
-    const closed = await mapMonthCloseError(error);
-    if (closed) return closed;
-    if (error instanceof AppError) {
-      return { error: tErrors('unexpected') };
-    }
-    throw error;
+    return mapExpenseActionError(error);
   }
 }
 
 export async function finalizeExpenseAction(expenseId: string): Promise<ExpenseActionState> {
-  const tErrors = await getTranslations('errors');
-
   try {
     await withOrgContext((context) => finalizeExpense(context, expenseId));
     revalidatePath('/expenses');
     revalidatePath(`/expenses/${expenseId}`);
     return { ok: true, expenseId };
   } catch (error) {
-    const closed = await mapMonthCloseError(error);
-    if (closed) return closed;
-    if (error instanceof AppError) {
-      return { error: tErrors('unexpected') };
-    }
-    throw error;
+    return mapExpenseActionError(error);
   }
 }
 
 export async function voidExpenseAction(expenseId: string): Promise<ExpenseActionState> {
-  const tErrors = await getTranslations('errors');
-
   try {
     await withOrgContext((context) => voidExpense(context, expenseId));
     revalidatePath('/expenses');
     revalidatePath(`/expenses/${expenseId}`);
     return { ok: true, expenseId };
   } catch (error) {
-    const closed = await mapMonthCloseError(error);
-    if (closed) return closed;
-    if (error instanceof AppError) {
-      return { error: tErrors('unexpected') };
-    }
-    throw error;
+    return mapExpenseActionError(error);
   }
 }
 
 export async function reverseExpenseAction(expenseId: string): Promise<ExpenseActionState> {
-  const tErrors = await getTranslations('errors');
   const locale = await getLocale();
 
   try {
@@ -207,12 +222,7 @@ export async function reverseExpenseAction(expenseId: string): Promise<ExpenseAc
     revalidatePath(`/expenses/${reversal.id}`);
     redirect({ href: `/expenses/${reversal.id}`, locale });
   } catch (error) {
-    const closed = await mapMonthCloseError(error);
-    if (closed) return closed;
-    if (error instanceof AppError) {
-      return { error: tErrors('unexpected') };
-    }
-    throw error;
+    return mapExpenseActionError(error);
   }
 }
 
@@ -247,12 +257,7 @@ export async function correctExpenseAction(
     revalidatePath(`/expenses/${replacement.id}`);
     redirect({ href: `/expenses/${replacement.id}`, locale });
   } catch (error) {
-    const closed = await mapMonthCloseError(error);
-    if (closed) return closed;
-    if (error instanceof AppError) {
-      return { error: tErrors('unexpected') };
-    }
-    throw error;
+    return mapExpenseActionError(error);
   }
 }
 
@@ -260,7 +265,6 @@ export async function promoteExpenseVendorAction(
   _prev: ExpenseActionState,
   formData: FormData,
 ): Promise<ExpenseActionState> {
-  const tErrors = await getTranslations('errors');
   const expenseId = formValue(formData, 'expenseId') ?? '';
   const supplierName = formValue(formData, 'supplierName') ?? '';
 
@@ -278,11 +282,6 @@ export async function promoteExpenseVendorAction(
     revalidatePath(`/vendors/${result.vendor.id}`);
     return { ok: true, expenseId };
   } catch (error) {
-    const closed = await mapMonthCloseError(error);
-    if (closed) return closed;
-    if (error instanceof AppError) {
-      return { error: tErrors('unexpected') };
-    }
-    throw error;
+    return mapExpenseActionError(error);
   }
 }

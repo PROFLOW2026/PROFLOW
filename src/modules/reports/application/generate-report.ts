@@ -262,6 +262,10 @@ function brandOptsForExtendedKind(
       return { entityType: 'service_report', entityId: id, projectId: id, preferSnapshot: true };
     case 'timesheet':
       return { entityType: 'timesheet', entityId: id, preferSnapshot: true };
+    case 'project_billing_account':
+      return { preferSnapshot: false };
+    case 'project_billing_plan_status':
+      return { projectId: id, preferSnapshot: false };
     default:
       return { preferSnapshot: false };
   }

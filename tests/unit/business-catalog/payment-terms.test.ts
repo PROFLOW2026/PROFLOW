@@ -4,6 +4,7 @@ import {
   parseOrgDefaultPaymentTermKey,
 } from '@/modules/business-catalog/application/payment-term-defaults';
 import {
+  DEFAULT_PAYMENT_TERMS,
   deriveDueDate,
   parsePaymentTermMetadata,
   resolveApPaymentTermId,
@@ -12,6 +13,12 @@ import {
   resolveInheritedPaymentTermId,
   suggestDueDateFromPaymentTerm,
 } from '@/modules/business-catalog/domain/types';
+import {
+  localizePaymentTermName,
+  localizePaymentTermOptions,
+  PAYMENT_TERM_LABELS_EN,
+  PAYMENT_TERM_LABELS_HE,
+} from '@/modules/business-catalog/domain/payment-term-labels';
 
 describe('org default payment term key', () => {
   it('parses json string setting values', () => {
@@ -25,6 +32,74 @@ describe('org default payment term key', () => {
   });
 });
 
+describe('default payment terms catalog', () => {
+  it('includes eom_90 and eom_120 as eom_plus_days', () => {
+    const eom90 = DEFAULT_PAYMENT_TERMS.find((term) => term.key === 'eom_90');
+    const eom120 = DEFAULT_PAYMENT_TERMS.find((term) => term.key === 'eom_120');
+    expect(eom90?.metadata).toEqual({ strategy: 'eom_plus_days', eomOffsetDays: 90 });
+    expect(eom120?.metadata).toEqual({ strategy: 'eom_plus_days', eomOffsetDays: 120 });
+  });
+
+  it('maps שוטף family keys to end_of_month / eom_plus_days', () => {
+    expect(DEFAULT_PAYMENT_TERMS.find((term) => term.key === 'eom')?.metadata.strategy).toBe(
+      'end_of_month',
+    );
+    for (const key of ['eom_30', 'eom_45', 'eom_60', 'eom_90', 'eom_120'] as const) {
+      expect(DEFAULT_PAYMENT_TERMS.find((term) => term.key === key)?.metadata.strategy).toBe(
+        'eom_plus_days',
+      );
+    }
+  });
+});
+
+describe('payment term localization', () => {
+  it('maps system keys to Hebrew labels (never English Net/EOM strings)', () => {
+    expect(localizePaymentTermName('immediate', 'Immediate', 'he-IL')).toBe('מיידי');
+    expect(localizePaymentTermName('eom', 'End of month', 'he-IL')).toBe('שוטף');
+    expect(localizePaymentTermName('eom_30', 'EOM + 30', 'he-IL')).toBe('שוטף + 30');
+    expect(localizePaymentTermName('eom_45', 'EOM + 45', 'he-IL')).toBe('שוטף + 45');
+    expect(localizePaymentTermName('eom_60', 'EOM + 60', 'he-IL')).toBe('שוטף + 60');
+    expect(localizePaymentTermName('eom_90', 'EOM + 90', 'he-IL')).toBe('שוטף + 90');
+    expect(localizePaymentTermName('eom_120', 'EOM + 120', 'he-IL')).toBe('שוטף + 120');
+    expect(localizePaymentTermName('net_30', 'Net 30', 'he-IL')).toBe('תוך 30 ימים');
+    expect(localizePaymentTermName('milestone', 'Milestone-based', 'he-IL')).toBe('לפי אבן דרך');
+    expect(localizePaymentTermName('custom', 'Custom', 'he-IL')).toBe('מותאם');
+  });
+
+  it('keeps sensible English labels for en locale', () => {
+    expect(localizePaymentTermName('immediate', 'x', 'en')).toBe('Immediate');
+    expect(localizePaymentTermName('net_30', 'x', 'en')).toBe('Net 30');
+    expect(localizePaymentTermName('eom', 'x', 'en')).toBe('End of month');
+    expect(localizePaymentTermName('eom_90', 'x', 'en')).toBe('EOM + 90');
+  });
+
+  it('falls back to stored name for unknown keys', () => {
+    expect(localizePaymentTermName('acme_custom', 'Acme Net 10', 'he-IL')).toBe('Acme Net 10');
+  });
+
+  it('localizes option lists at map boundaries', () => {
+    expect(
+      localizePaymentTermOptions(
+        [
+          { id: '1', key: 'eom', name: 'End of month' },
+          { id: '2', key: 'net_30', name: 'Net 30' },
+        ],
+        'he-IL',
+      ),
+    ).toEqual([
+      { id: '1', name: 'שוטף' },
+      { id: '2', name: 'תוך 30 ימים' },
+    ]);
+  });
+
+  it('covers every DEFAULT_PAYMENT_TERMS key in both locale maps', () => {
+    for (const term of DEFAULT_PAYMENT_TERMS) {
+      expect(PAYMENT_TERM_LABELS_EN[term.key]).toBeTruthy();
+      expect(PAYMENT_TERM_LABELS_HE[term.key]).toBeTruthy();
+    }
+  });
+});
+
 describe('payment term due date derivation', () => {
   it('derives net days', () => {
     expect(deriveDueDate('2026-01-01', { strategy: 'net_days', netDays: 30 })).toBe('2026-01-31');
@@ -34,13 +109,22 @@ describe('payment term due date derivation', () => {
     expect(deriveDueDate('2026-03-15', { strategy: 'immediate' })).toBe('2026-03-15');
   });
 
-  it('derives end of month', () => {
+  it('derives end of month (שוטף)', () => {
     expect(deriveDueDate('2026-02-10', { strategy: 'end_of_month' })).toBe('2026-02-28');
   });
 
-  it('derives eom plus days', () => {
+  it('derives eom plus days (שוטף + N)', () => {
     expect(deriveDueDate('2026-01-05', { strategy: 'eom_plus_days', eomOffsetDays: 30 })).toBe(
       '2026-03-02',
+    );
+  });
+
+  it('derives eom_90 and eom_120 offsets', () => {
+    expect(deriveDueDate('2026-01-05', { strategy: 'eom_plus_days', eomOffsetDays: 90 })).toBe(
+      '2026-05-01',
+    );
+    expect(deriveDueDate('2026-01-05', { strategy: 'eom_plus_days', eomOffsetDays: 120 })).toBe(
+      '2026-05-31',
     );
   });
 

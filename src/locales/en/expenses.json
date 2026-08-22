@@ -14,7 +14,7 @@
     "adjustmentOf": "Corrected replacement for expense {id}",
     "viewVendor": "Open linked vendor",
     "correctionHistory": "Correction history",
-    "correctionHistoryHint": "Original, reversing, and replacement rows stay visible. Net Actual Cost uses the corrected amount.",
+    "correctionHistoryHint": "Original and corrections stay in history.",
     "correctionRole": {
       "original": "Original",
       "reversal": "Reversal",
@@ -56,11 +56,11 @@
   },
   "correction": {
     "title": "Correct expense",
-    "subtitle": "Creates a reversing entry for the original and a draft replacement with the corrected figures. History stays intact.",
+    "subtitle": "Creates a corrected version and preserves history.",
+    "historyHint": "Correction creates a corrected version and keeps the original records in history.",
     "amountLabel": "Corrected amount",
     "submit": "Create correction",
-    "success": "Correction draft created. Approve the replacement when ready.",
-    "exampleHint": "Example: 52,000 → 50,000 keeps +52,000 original, -52,000 reversal, +50,000 replacement (net 50,000)."
+    "success": "Correction draft created. Approve the replacement when ready."
   },
   "confirm": {
     "finalizeTitle": "Record expense",
@@ -82,6 +82,8 @@
   },
   "fields": {
     "amount": "Amount",
+    "grossAmount": "Amount incl. VAT",
+    "netCostBasis": "Net cost (excl. recoverable VAT)",
     "description": "Description",
     "date": "Date",
     "supplier": "Supplier",

@@ -44,7 +44,11 @@ import { SkeletonText } from '@/components/ui/skeleton';
 
 interface ProjectPageProps {
   params: Promise<{ locale: string; projectId: string }>;
-  searchParams: Promise<{ tab?: string | string[]; contractId?: string | string[] }>;
+  searchParams: Promise<{
+    tab?: string | string[];
+    contractId?: string | string[];
+    cycleId?: string | string[];
+  }>;
 }
 
 /** Module panels that only need project chrome - not WP/phase/milestone rows. */
@@ -54,6 +58,7 @@ const MODULE_PANEL_TABS = new Set<ProjectTabKey>([
   'changes',
   'boq',
   'billing',
+  'billingPlan',
   'budgets',
   'team',
   'schedule',
@@ -108,6 +113,7 @@ export default async function ProjectPage({ params, searchParams }: ProjectPageP
   const showChangesTab = Boolean(modules?.changes) && can(PERMISSIONS.CHANGES_READ);
   const showBoqTab = Boolean(modules?.boq) && can(PERMISSIONS.BOQ_READ);
   const showBillingTab = Boolean(modules?.billing) && can(PERMISSIONS.BILLING_READ);
+  const showBillingPlanTab = showBillingTab;
   const showBudgetsTab = Boolean(modules?.budgets) && can(PERMISSIONS.BUDGETS_READ);
   const showTeamTab = can(PERMISSIONS.WORKFORCE_READ);
   // Schedule is permission-gated (not module) - `planning` is not in OPTIONAL_MODULE_KEYS.
@@ -151,6 +157,7 @@ export default async function ProjectPage({ params, searchParams }: ProjectPageP
       changes: showChangesTab,
       boq: showBoqTab,
       billing: showBillingTab,
+      billingPlan: showBillingPlanTab,
       budgets: showBudgetsTab,
       team: showTeamTab,
       schedule: showScheduleTab,
@@ -170,6 +177,7 @@ export default async function ProjectPage({ params, searchParams }: ProjectPageP
   if (tabVisibility.changes) visibleModuleTabs.add('changes');
   if (tabVisibility.boq) visibleModuleTabs.add('boq');
   if (tabVisibility.billing) visibleModuleTabs.add('billing');
+  if (tabVisibility.billingPlan) visibleModuleTabs.add('billingPlan');
   if (tabVisibility.budgets) visibleModuleTabs.add('budgets');
   if (tabVisibility.team) visibleModuleTabs.add('team');
   if (tabVisibility.schedule) visibleModuleTabs.add('schedule');
@@ -200,10 +208,12 @@ export default async function ProjectPage({ params, searchParams }: ProjectPageP
       activeTab,
       projectId,
       boqContractId: typeof search.contractId === 'string' ? search.contractId : search.contractId?.[0],
+      cycleId: typeof search.cycleId === 'string' ? search.cycleId : search.cycleId?.[0],
       showExpensesTab,
       showChangesTab,
       showBoqTab,
       showBillingTab,
+      showBillingPlanTab,
       showBudgetsTab,
       showTeamTab,
       showScheduleTab,
@@ -212,6 +222,7 @@ export default async function ProjectPage({ params, searchParams }: ProjectPageP
       showUsageTab,
       canReadFinancials,
       hasContract: Boolean(chrome.contract),
+      experienceProfile,
     });
   }
 
@@ -442,10 +453,12 @@ async function renderModuleTab(input: {
   activeTab: ProjectTabKey;
   projectId: string;
   boqContractId?: string;
+  cycleId?: string;
   showExpensesTab: boolean;
   showChangesTab: boolean;
   showBoqTab: boolean;
   showBillingTab: boolean;
+  showBillingPlanTab: boolean;
   showBudgetsTab: boolean;
   showTeamTab: boolean;
   showScheduleTab: boolean;
@@ -454,6 +467,7 @@ async function renderModuleTab(input: {
   showUsageTab: boolean;
   canReadFinancials: boolean;
   hasContract: boolean;
+  experienceProfile: string;
 }) {
   // Import only the active module panel so overview / sibling tabs do not
   // pull financials, expenses, billing, team, … client graphs into this Flight.
@@ -471,10 +485,12 @@ async function loadActiveModulePanel(input: {
   activeTab: ProjectTabKey;
   projectId: string;
   boqContractId?: string;
+  cycleId?: string;
   showExpensesTab: boolean;
   showChangesTab: boolean;
   showBoqTab: boolean;
   showBillingTab: boolean;
+  showBillingPlanTab: boolean;
   showBudgetsTab: boolean;
   showTeamTab: boolean;
   showScheduleTab: boolean;
@@ -483,6 +499,7 @@ async function loadActiveModulePanel(input: {
   showUsageTab: boolean;
   canReadFinancials: boolean;
   hasContract: boolean;
+  experienceProfile: string;
 }) {
   const { activeTab, projectId } = input;
 
@@ -513,6 +530,22 @@ async function loadActiveModulePanel(input: {
       if (!input.showBillingTab) return null;
       const { ProjectBillingPanel } = await import('@/modules/billing/ui/project-billing-panel');
       return <ProjectBillingPanel projectId={projectId} contractId={input.boqContractId} />;
+    }
+    case 'billingPlan': {
+      if (!input.showBillingPlanTab) return null;
+      const { ProjectBillingPlanPanel } = await import(
+        '@/modules/billing-plan/ui/project-billing-plan-panel'
+      );
+      const simplified =
+        input.experienceProfile === 'simple' || input.experienceProfile === 'small_job';
+      return (
+        <ProjectBillingPlanPanel
+          projectId={projectId}
+          contractId={input.boqContractId}
+          cycleId={input.cycleId}
+          simplified={simplified}
+        />
+      );
     }
     case 'budgets': {
       if (!input.showBudgetsTab) return null;

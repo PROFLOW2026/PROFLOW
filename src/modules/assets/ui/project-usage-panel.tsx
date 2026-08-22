@@ -14,6 +14,7 @@ import { peekOpsExpenseLinksForRecords } from '@/modules/ops-finance';
 import { CreateLinkedExpenseForm } from '@/modules/ops-finance/ui/create-linked-expense-form';
 import { withOrgContext } from '@/shared/auth/session';
 import { todayInTimeZone } from '@/shared/dates';
+import { WithClientMessages } from '@/shared/i18n/with-client-messages';
 import { hasAnyPermission, hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import {
@@ -135,182 +136,184 @@ export async function ProjectUsagePanel({ projectId }: ProjectUsagePanelProps) {
   if (!data) return null;
 
   return (
-    <div className="flex flex-col gap-6">
-      <p className="text-sm text-[var(--pf-text-muted)]">{t('panelNote')}</p>
-      <p className="text-sm text-[var(--pf-text-muted)]">{t('threeActionsHint')}</p>
+    <WithClientMessages extra={['assets']}>
+      <div className="flex flex-col gap-6">
+        <p className="text-sm text-[var(--pf-text-muted)]">{t('panelNote')}</p>
+        <p className="text-sm text-[var(--pf-text-muted)]">{t('threeActionsHint')}</p>
 
-      {data.canReadMaterials ? (
-        <Card className="flex flex-col gap-4 p-4 sm:p-6">
-          <div className="text-start">
-            <h2 className="text-base font-semibold">{t('materialSection')}</h2>
-            <p className="text-sm text-[var(--pf-text-secondary)]">{t('materialHint')}</p>
-          </div>
+        {data.canReadMaterials ? (
+          <Card className="flex flex-col gap-4 p-4 sm:p-6">
+            <div className="text-start">
+              <h2 className="text-base font-semibold">{t('materialSection')}</h2>
+              <p className="text-sm text-[var(--pf-text-secondary)]">{t('materialHint')}</p>
+            </div>
 
-          {data.canManageMaterials ? (
-            <MaterialUsageForm
-              projectId={projectId}
-              defaultDate={data.today}
-              materials={data.materials}
-              inventoryItems={data.inventoryItems}
-              employees={data.employees}
-            />
-          ) : null}
+            {data.canManageMaterials ? (
+              <MaterialUsageForm
+                projectId={projectId}
+                defaultDate={data.today}
+                materials={data.materials}
+                inventoryItems={data.inventoryItems}
+                employees={data.employees}
+              />
+            ) : null}
 
-          {data.materialUsage.length === 0 ? (
-            <EmptyState title={t('emptyMaterial.title')} description={t('emptyMaterial.body')} />
-          ) : (
-            <div className="min-w-0 overflow-x-auto rounded-lg border border-[var(--pf-border-default)]">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>{t('columns.date')}</TableHead>
-                    <TableHead>{t('columns.description')}</TableHead>
-                    <TableHead numeric>{t('columns.quantity')}</TableHead>
-                    <TableHead>{t('columns.unit')}</TableHead>
-                    <TableHead>{t('columns.notes')}</TableHead>
-                    {data.canManageMaterials || data.canCreateExpense ? (
-                      <TableHead>{t('columns.actions')}</TableHead>
-                    ) : null}
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {data.materialUsage.map((row) => (
-                    <TableRow key={row.id}>
-                      <TableCell>
-                        <span dir="ltr">{row.usageDate}</span>
-                      </TableCell>
-                      <TableCell className="max-w-[14rem] truncate font-medium">
-                        {row.description}
-                      </TableCell>
-                      <TableCell numeric>
-                        <span dir="ltr">{row.quantity}</span>
-                      </TableCell>
-                      <TableCell>{row.unit ?? '-'}</TableCell>
-                      <TableCell className="max-w-[12rem] truncate text-[var(--pf-text-secondary)]">
-                        {row.notes ?? '-'}
-                      </TableCell>
+            {data.materialUsage.length === 0 ? (
+              <EmptyState title={t('emptyMaterial.title')} description={t('emptyMaterial.body')} />
+            ) : (
+              <div className="min-w-0 overflow-x-auto rounded-lg border border-[var(--pf-border-default)]">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>{t('columns.date')}</TableHead>
+                      <TableHead>{t('columns.description')}</TableHead>
+                      <TableHead numeric>{t('columns.quantity')}</TableHead>
+                      <TableHead>{t('columns.unit')}</TableHead>
+                      <TableHead>{t('columns.notes')}</TableHead>
                       {data.canManageMaterials || data.canCreateExpense ? (
-                        <TableCell>
-                          <div className="flex min-w-0 flex-col gap-2">
-                            {data.canCreateExpense ? (
-                              <CreateLinkedExpenseForm
-                                namespace="assets"
-                                opsRecordKind="material_usage_record"
-                                opsRecordId={row.id}
-                                defaultCurrency={data.currency}
-                                defaultDescription={row.description}
-                                revalidatePath={`/projects/${projectId}?tab=usage`}
-                                existingExpenseId={
-                                  data.linkedMaterialExpenseById.get(row.id) ?? null
-                                }
-                                compact
-                              />
-                            ) : null}
-                            {data.canManageMaterials ? (
-                              <ArchiveMaterialUsageButton materialUsageId={row.id} />
-                            ) : null}
-                          </div>
-                        </TableCell>
+                        <TableHead>{t('columns.actions')}</TableHead>
                       ) : null}
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {data.materialUsage.map((row) => (
+                      <TableRow key={row.id}>
+                        <TableCell>
+                          <span dir="ltr">{row.usageDate}</span>
+                        </TableCell>
+                        <TableCell className="max-w-[14rem] truncate font-medium">
+                          {row.description}
+                        </TableCell>
+                        <TableCell numeric>
+                          <span dir="ltr">{row.quantity}</span>
+                        </TableCell>
+                        <TableCell>{row.unit ?? '-'}</TableCell>
+                        <TableCell className="max-w-[12rem] truncate text-[var(--pf-text-secondary)]">
+                          {row.notes ?? '-'}
+                        </TableCell>
+                        {data.canManageMaterials || data.canCreateExpense ? (
+                          <TableCell>
+                            <div className="flex min-w-0 flex-col gap-2">
+                              {data.canCreateExpense ? (
+                                <CreateLinkedExpenseForm
+                                  namespace="assets"
+                                  opsRecordKind="material_usage_record"
+                                  opsRecordId={row.id}
+                                  defaultCurrency={data.currency}
+                                  defaultDescription={row.description}
+                                  revalidatePath={`/projects/${projectId}?tab=usage`}
+                                  existingExpenseId={
+                                    data.linkedMaterialExpenseById.get(row.id) ?? null
+                                  }
+                                  compact
+                                />
+                              ) : null}
+                              {data.canManageMaterials ? (
+                                <ArchiveMaterialUsageButton materialUsageId={row.id} />
+                              ) : null}
+                            </div>
+                          </TableCell>
+                        ) : null}
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </Card>
+        ) : null}
+
+        {data.canReadAssets ? (
+          <Card className="flex flex-col gap-4 p-4 sm:p-6">
+            <div className="text-start">
+              <h2 className="text-base font-semibold">{t('equipmentSection')}</h2>
+              <p className="text-sm text-[var(--pf-text-secondary)]">{t('equipmentHint')}</p>
             </div>
-          )}
-        </Card>
-      ) : null}
 
-      {data.canReadAssets ? (
-        <Card className="flex flex-col gap-4 p-4 sm:p-6">
-          <div className="text-start">
-            <h2 className="text-base font-semibold">{t('equipmentSection')}</h2>
-            <p className="text-sm text-[var(--pf-text-secondary)]">{t('equipmentHint')}</p>
-          </div>
+            {data.canManageAssets && data.assets.length > 0 ? (
+              <EquipmentUsageForm
+                projectId={projectId}
+                defaultDate={data.today}
+                assets={data.assets}
+                employees={data.employees}
+              />
+            ) : null}
 
-          {data.canManageAssets && data.assets.length > 0 ? (
-            <EquipmentUsageForm
-              projectId={projectId}
-              defaultDate={data.today}
-              assets={data.assets}
-              employees={data.employees}
-            />
-          ) : null}
-
-          {data.equipmentUsage.length === 0 ? (
-            <EmptyState title={t('emptyEquipment.title')} description={t('emptyEquipment.body')} />
-          ) : (
-            <div className="min-w-0 overflow-x-auto rounded-lg border border-[var(--pf-border-default)]">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>{t('columns.date')}</TableHead>
-                    <TableHead>{t('columns.asset')}</TableHead>
-                    <TableHead numeric>{t('columns.hours')}</TableHead>
-                    <TableHead numeric>{t('columns.days')}</TableHead>
-                    <TableHead numeric>{t('columns.mileage')}</TableHead>
-                    <TableHead>{t('columns.notes')}</TableHead>
-                    {data.canManageAssets || data.canCreateExpense ? (
-                      <TableHead>{t('columns.actions')}</TableHead>
-                    ) : null}
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {data.equipmentUsage.map((row) => (
-                    <TableRow key={row.id}>
-                      <TableCell>
-                        <span dir="ltr">
-                          {row.usageDate}
-                          {row.endDate ? ` → ${row.endDate}` : ''}
-                        </span>
-                      </TableCell>
-                      <TableCell className="max-w-[12rem] truncate font-medium">
-                        {data.assetNames.get(row.assetId) ?? row.assetId.slice(0, 8)}
-                      </TableCell>
-                      <TableCell numeric>
-                        <span dir="ltr">{row.hours ?? '-'}</span>
-                      </TableCell>
-                      <TableCell numeric>
-                        <span dir="ltr">{row.days ?? '-'}</span>
-                      </TableCell>
-                      <TableCell numeric>
-                        <span dir="ltr">{row.mileage ?? '-'}</span>
-                      </TableCell>
-                      <TableCell className="max-w-[12rem] truncate text-[var(--pf-text-secondary)]">
-                        {row.notes ?? '-'}
-                      </TableCell>
+            {data.equipmentUsage.length === 0 ? (
+              <EmptyState title={t('emptyEquipment.title')} description={t('emptyEquipment.body')} />
+            ) : (
+              <div className="min-w-0 overflow-x-auto rounded-lg border border-[var(--pf-border-default)]">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>{t('columns.date')}</TableHead>
+                      <TableHead>{t('columns.asset')}</TableHead>
+                      <TableHead numeric>{t('columns.hours')}</TableHead>
+                      <TableHead numeric>{t('columns.days')}</TableHead>
+                      <TableHead numeric>{t('columns.mileage')}</TableHead>
+                      <TableHead>{t('columns.notes')}</TableHead>
                       {data.canManageAssets || data.canCreateExpense ? (
-                        <TableCell>
-                          <div className="flex min-w-0 flex-col gap-2">
-                            {data.canCreateExpense ? (
-                              <CreateLinkedExpenseForm
-                                namespace="assets"
-                                opsRecordKind="equipment_usage_record"
-                                opsRecordId={row.id}
-                                assetId={row.assetId}
-                                defaultCurrency={data.currency}
-                                defaultDescription={t('equipmentExpenseDescription')}
-                                revalidatePath={`/projects/${projectId}?tab=usage`}
-                                existingExpenseId={
-                                  data.linkedEquipmentExpenseById.get(row.id) ?? null
-                                }
-                                compact
-                              />
-                            ) : null}
-                            {data.canManageAssets ? (
-                              <ArchiveEquipmentUsageButton equipmentUsageId={row.id} />
-                            ) : null}
-                          </div>
-                        </TableCell>
+                        <TableHead>{t('columns.actions')}</TableHead>
                       ) : null}
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-        </Card>
-      ) : null}
-    </div>
+                  </TableHeader>
+                  <TableBody>
+                    {data.equipmentUsage.map((row) => (
+                      <TableRow key={row.id}>
+                        <TableCell>
+                          <span dir="ltr">
+                            {row.usageDate}
+                            {row.endDate ? ` → ${row.endDate}` : ''}
+                          </span>
+                        </TableCell>
+                        <TableCell className="max-w-[12rem] truncate font-medium">
+                          {data.assetNames.get(row.assetId) ?? row.assetId.slice(0, 8)}
+                        </TableCell>
+                        <TableCell numeric>
+                          <span dir="ltr">{row.hours ?? '-'}</span>
+                        </TableCell>
+                        <TableCell numeric>
+                          <span dir="ltr">{row.days ?? '-'}</span>
+                        </TableCell>
+                        <TableCell numeric>
+                          <span dir="ltr">{row.mileage ?? '-'}</span>
+                        </TableCell>
+                        <TableCell className="max-w-[12rem] truncate text-[var(--pf-text-secondary)]">
+                          {row.notes ?? '-'}
+                        </TableCell>
+                        {data.canManageAssets || data.canCreateExpense ? (
+                          <TableCell>
+                            <div className="flex min-w-0 flex-col gap-2">
+                              {data.canCreateExpense ? (
+                                <CreateLinkedExpenseForm
+                                  namespace="assets"
+                                  opsRecordKind="equipment_usage_record"
+                                  opsRecordId={row.id}
+                                  assetId={row.assetId}
+                                  defaultCurrency={data.currency}
+                                  defaultDescription={t('equipmentExpenseDescription')}
+                                  revalidatePath={`/projects/${projectId}?tab=usage`}
+                                  existingExpenseId={
+                                    data.linkedEquipmentExpenseById.get(row.id) ?? null
+                                  }
+                                  compact
+                                />
+                              ) : null}
+                              {data.canManageAssets ? (
+                                <ArchiveEquipmentUsageButton equipmentUsageId={row.id} />
+                              ) : null}
+                            </div>
+                          </TableCell>
+                        ) : null}
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </Card>
+        ) : null}
+      </div>
+    </WithClientMessages>
   );
 }

@@ -32,6 +32,18 @@ export function closeoutSearchHref(projectId: string): string {
   return `/projects/${projectId}?tab=closeout`;
 }
 
+export function billingPlanSearchHref(projectId: string, planId?: string | null): string {
+  const base = `/projects/${projectId}?tab=billingPlan`;
+  return planId ? `${base}&planId=${planId}` : base;
+}
+
+export function billingCycleSearchHref(
+  projectId: string,
+  cycleId: string,
+): string {
+  return `/projects/${projectId}?tab=billingPlan&cycleId=${cycleId}`;
+}
+
 export function workEntityHref(workKind: string | null | undefined, id: string): string {
   if (workKind === 'job') return `/jobs/${id}`;
   if (workKind === 'work_order') return `/work-orders/${id}`;

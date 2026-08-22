@@ -16,12 +16,14 @@ import {
   previewProjectTemplate,
   type ProjectTemplateKey,
 } from '@/modules/projects/domain/templates';
+import { listProfessionStarterTemplates } from '@/modules/billing-plan/domain/templates';
 import { ContractAmountFields } from '@/modules/projects/ui/contract-amount-fields';
 import { rtlFlipClassName } from '@/shared/i18n/ltr-island';
 import { createProjectAction, type ProjectFormState } from '../actions';
 
 type ClientMode = 'none' | 'new' | 'existing';
 type ContactMode = 'none' | 'existing' | 'new';
+type BillingPlanCreateMode = 'none' | 'simple' | 'template';
 
 export interface ProjectCreateClientOption {
   id: string;
@@ -66,6 +68,7 @@ export function ProjectCreateForm({
   taxRatePercent = null,
 }: ProjectCreateFormProps) {
   const t = useTranslations('projects');
+  const tBillingPlan = useTranslations('billingPlan');
   const tCommon = useTranslations('common');
   const locale = useLocale() === 'he-IL' ? 'he-IL' : 'en';
   const [state, formAction, pending] = useActionState<ProjectFormState, FormData>(
@@ -78,6 +81,9 @@ export function ProjectCreateForm({
   const [selectedContactId, setSelectedContactId] = useState<string>('');
   const [showMore, setShowMore] = useState(false);
   const [templateKey, setTemplateKey] = useState<string>('none');
+  const [billingPlanMode, setBillingPlanMode] = useState<BillingPlanCreateMode>('none');
+  const [billingPlanTemplateKey, setBillingPlanTemplateKey] = useState('small_works');
+  const billingPlanTemplates = listProfessionStarterTemplates();
 
   const selectedClient = useMemo(
     () => clients.find((client) => client.id === selectedClientId) ?? null,
@@ -371,6 +377,56 @@ export function ProjectCreateForm({
         reductionError={state.fieldErrors?.openingReductionAmount}
         taxRatePercent={taxRatePercent}
       />
+
+      <fieldset className="flex flex-col gap-2 rounded-md border border-[var(--pf-border-default)] p-3">
+        <legend className="px-1 text-sm font-medium">{tBillingPlan('projectCreate.sectionTitle')}</legend>
+        <p className="text-xs text-[var(--pf-text-muted)]">{tBillingPlan('projectCreate.sectionHint')}</p>
+        <input type="hidden" name="billingPlanMode" value={billingPlanMode} />
+        {(
+          [
+            ['none', tBillingPlan('projectCreate.none')],
+            ['simple', tBillingPlan('projectCreate.simple')],
+            ['template', tBillingPlan('projectCreate.template')],
+          ] as const
+        ).map(([value, label]) => (
+          <label key={value} className="flex items-center gap-2 text-sm">
+            <input
+              type="radio"
+              name="billingPlanModeRadio"
+              checked={billingPlanMode === value}
+              onChange={() => setBillingPlanMode(value)}
+            />
+            {label}
+          </label>
+        ))}
+        {billingPlanMode === 'template' ? (
+          <Field label={tBillingPlan('projectCreate.templateLabel')}>
+            {(control) => (
+              <>
+                <input
+                  type="hidden"
+                  name="billingPlanTemplateKey"
+                  value={billingPlanTemplateKey}
+                />
+                <Select value={billingPlanTemplateKey} onValueChange={setBillingPlanTemplateKey}>
+                  <SelectTrigger id={control.id}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {billingPlanTemplates.map((tpl) => (
+                      <SelectItem key={tpl.key} value={tpl.key}>
+                        {tBillingPlan(
+                          tpl.nameKey.replace(/^billingPlan\./, '') as never,
+                        )}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </>
+            )}
+          </Field>
+        ) : null}
+      </fieldset>
 
       <Field
         label={t('create.domainLabel')}

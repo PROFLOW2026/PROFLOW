@@ -73,6 +73,10 @@ import {
   buildTimesheetReport,
   buildWorkOrderReport,
 } from "./generate-branded-entity-reports";
+import {
+  buildProjectBillingAccountReport,
+  buildProjectBillingPlanStatusReport,
+} from "./generate-billing-plan-report";
 
 import type { OrgContext } from "@/shared/auth/context";
 
@@ -234,6 +238,12 @@ export async function buildExtendedReport(
 
     case "timesheet":
       return buildTimesheetReport(context, id, ctx);
+
+    case "project_billing_account":
+      return buildProjectBillingAccountReport(context, id, ctx);
+
+    case "project_billing_plan_status":
+      return buildProjectBillingPlanStatusReport(context, id, ctx);
 
     default:
       return null;

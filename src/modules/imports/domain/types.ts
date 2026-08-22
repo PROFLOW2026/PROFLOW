@@ -13,6 +13,7 @@ export const IMPORT_KINDS = [
   'expenses',
   'inventory',
   'boq_items',
+  'billing_plan',
 ] as const;
 
 export type ImportKind = (typeof IMPORT_KINDS)[number];
@@ -34,6 +35,7 @@ export const ENABLED_IMPORT_KINDS = [
   'expenses',
   'inventory',
   'boq_items',
+  'billing_plan',
 ] as const satisfies readonly ImportKind[];
 
 export type EnabledImportKind = (typeof ENABLED_IMPORT_KINDS)[number];

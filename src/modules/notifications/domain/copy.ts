@@ -99,6 +99,25 @@ export function notificationCopy(
           title: ref ? `אוטומציה דורשת מעקב - ${ref}` : 'אוטומציה דורשת מעקב',
           body: extra ?? 'ריצת אוטומציה נכשלה או הפיקה פלט לטיפול.',
         };
+      case 'billing_plan_cycle_draft':
+        return {
+          title: ref ? `חשבון התקדמות ממתין להנפקה - ${ref}` : 'חשבון התקדמות ממתין להנפקה',
+          body: extra
+            ? `סטטוס ${extra} · מוכן להנפקה כחיוב לקוח.`
+            : 'מחזור טיוטה או מוכן ממתין להנפקה.',
+        };
+      case 'billing_plan_milestone_due':
+        return {
+          title: ref ? `אבן דרך לחיוב מתקרבת - ${ref}` : 'אבן דרך לחיוב מתקרבת',
+          body: extra ? `יעד ${extra}` : 'שורה בתוכנית החיוב מתקרבת לתאריך היעד.',
+        };
+      case 'billing_plan_retention_held':
+        return {
+          title: ref ? `עיכבון מוחזק לשחרור - ${ref}` : 'עיכבון מוחזק לשחרור',
+          body: extra
+            ? `יתרת עיכבון מוחזקת · ${extra}`
+            : 'יש יתרת עיכבון מוחזקת בתוכנית החיוב.',
+        };
     }
   }
 
@@ -187,6 +206,27 @@ export function notificationCopy(
       return {
         title: ref ? `Automation needs follow-up - ${ref}` : 'Automation needs follow-up',
         body: extra ?? 'An automation run failed or produced output to review.',
+      };
+    case 'billing_plan_cycle_draft':
+      return {
+        title: ref
+          ? `Progress account awaiting issue - ${ref}`
+          : 'Progress account awaiting issue',
+        body: extra
+          ? `Status ${extra} · ready to issue as customer billing.`
+          : 'A draft or ready cycle is waiting to be issued.',
+      };
+    case 'billing_plan_milestone_due':
+      return {
+        title: ref ? `Billing milestone due soon - ${ref}` : 'Billing milestone due soon',
+        body: extra ? `Target ${extra}` : 'A billing-plan line is approaching its target date.',
+      };
+    case 'billing_plan_retention_held':
+      return {
+        title: ref ? `Retention held for release - ${ref}` : 'Retention held for release',
+        body: extra
+          ? `Held retention remaining · ${extra}`
+          : 'A billing plan still holds retention that can be released.',
       };
   }
 }

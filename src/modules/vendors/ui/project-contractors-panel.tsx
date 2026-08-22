@@ -1,5 +1,6 @@
-import { getTranslations } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
 import { Card } from '@/components/ui/card';
+import { listBusinessCatalog, localizePaymentTermOptions } from '@/modules/business-catalog';
 import {
   listProjectVendorEngagementHistory,
   listProjectVendorEngagements,
@@ -26,6 +27,7 @@ export interface ProjectContractorsPanelProps {
  */
 export async function ProjectContractorsPanel({ projectId }: ProjectContractorsPanelProps) {
   const t = await getTranslations('vendors.projectPanel');
+  const locale = await getLocale();
 
   const data = await withOrgContext(async (context) => {
     if (!hasPermission(context, PERMISSIONS.VENDORS_READ)) {
@@ -33,16 +35,20 @@ export async function ProjectContractorsPanel({ projectId }: ProjectContractorsP
     }
 
     const allowManage = hasPermission(context, PERMISSIONS.VENDORS_MANAGE);
-    const [engagements, history, vendors, agreements, contracts, docs] = await Promise.all([
-      listProjectVendorEngagements(context, projectId),
-      listProjectVendorEngagementHistory(context, projectId).catch(() => []),
-      allowManage
-        ? listVendorsForOrg(context, { status: 'active' })
-        : Promise.resolve([]),
-      listProjectSubcontracts(context, projectId).catch(() => []),
-      listSubcontractParentContracts(context, projectId).catch(() => []),
-      listSubcontractDocumentCandidates(context).catch(() => []),
-    ]);
+    const [engagements, history, vendors, agreements, contracts, docs, paymentTermRows] =
+      await Promise.all([
+        listProjectVendorEngagements(context, projectId),
+        listProjectVendorEngagementHistory(context, projectId).catch(() => []),
+        allowManage
+          ? listVendorsForOrg(context, { status: 'active' })
+          : Promise.resolve([]),
+        listProjectSubcontracts(context, projectId).catch(() => []),
+        listSubcontractParentContracts(context, projectId).catch(() => []),
+        listSubcontractDocumentCandidates(context).catch(() => []),
+        allowManage
+          ? listBusinessCatalog(context, 'payment_term').catch(() => [])
+          : Promise.resolve([]),
+      ]);
     const details = await Promise.all(
       agreements.map((agreement) => getSubcontractById(context, agreement.id).catch(() => null)),
     );
@@ -59,6 +65,7 @@ export async function ProjectContractorsPanel({ projectId }: ProjectContractorsP
       subcontractDetails: details.filter((row): row is NonNullable<typeof row> => row !== null),
       parentContracts: contracts,
       documentCandidates: docs,
+      paymentTerms: localizePaymentTermOptions(paymentTermRows, locale),
       allowManage,
       defaultStartDate: todayInTimeZone(context.organization.timezone),
     };
@@ -86,6 +93,7 @@ export async function ProjectContractorsPanel({ projectId }: ProjectContractorsP
           candidateVendors={data.candidateVendors}
           parentContracts={data.parentContracts}
           documentCandidates={data.documentCandidates}
+          paymentTerms={data.paymentTerms}
           canManage={data.allowManage}
           defaultStartDate={data.defaultStartDate}
         />

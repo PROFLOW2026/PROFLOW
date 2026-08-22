@@ -244,6 +244,8 @@
     "vendorLabel": "Vendor",
     "parentContractLabel": "Parent contract",
     "parentContractNone": "None",
+    "paymentTermLabel": "Payment terms",
+    "paymentTermNone": "Vendor / organization default",
     "originalAmountLabel": "Original amount",
     "currentAmountLabel": "Current",
     "retentionLabel": "Retention %",

@@ -6,6 +6,7 @@ import { ResponsiveTable } from '@/components/patterns/responsive-table';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
   Select,
@@ -53,6 +54,10 @@ export interface ImportWizardProps {
   readonly projectId?: string;
   /** Optional draft BOQ id for boq_items. */
   readonly boqId?: string;
+  /** Existing billing plan for billing_plan import. */
+  readonly planId?: string;
+  /** Contract when creating a billing plan via import. */
+  readonly contractId?: string;
 }
 
 function downloadText(fileName: string, contents: string) {
@@ -78,7 +83,13 @@ function fileToBase64(file: File): Promise<string> {
   });
 }
 
-export function ImportWizard({ allowedKinds, projectId: projectIdProp, boqId }: ImportWizardProps) {
+export function ImportWizard({
+  allowedKinds,
+  projectId: projectIdProp,
+  boqId,
+  planId: planIdProp,
+  contractId: contractIdProp,
+}: ImportWizardProps) {
   const t = useTranslations('imports');
   const locale = useLocale();
   const [step, setStep] = useState<Step>('upload');
@@ -92,8 +103,12 @@ export function ImportWizard({ allowedKinds, projectId: projectIdProp, boqId }: 
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const [projectIdInput, setProjectIdInput] = useState(projectIdProp ?? '');
+  const [planIdInput, setPlanIdInput] = useState(planIdProp ?? '');
+  const [contractIdInput, setContractIdInput] = useState(contractIdProp ?? '');
 
   const projectId = (projectIdProp ?? projectIdInput).trim();
+  const planId = (planIdProp ?? planIdInput).trim();
+  const contractId = (contractIdProp ?? contractIdInput).trim();
 
   const fieldKeys = useMemo(() => Object.keys(mapping), [mapping]);
 
@@ -140,6 +155,10 @@ export function ImportWizard({ allowedKinds, projectId: projectIdProp, boqId }: 
       setError(t('errors.needFile'));
       return;
     }
+    if (kind === 'billing_plan' && !planId && !projectId) {
+      setError(t('errors.needPlanOrProjectId'));
+      return;
+    }
     if (kind === 'boq_items' && !projectId) {
       setError(t('errors.needProjectId'));
       return;
@@ -173,6 +192,10 @@ export function ImportWizard({ allowedKinds, projectId: projectIdProp, boqId }: 
       setError(t('errors.nothingSelected'));
       return;
     }
+    if (kind === 'billing_plan' && !planId && !projectId) {
+      setError(t('errors.needPlanOrProjectId'));
+      return;
+    }
     if (kind === 'boq_items' && !projectId) {
       setError(t('errors.needProjectId'));
       return;
@@ -184,8 +207,10 @@ export function ImportWizard({ allowedKinds, projectId: projectIdProp, boqId }: 
         csvText,
         mapping,
         rowNumbers: [...selectedRows],
-        projectId: kind === 'boq_items' ? projectId : undefined,
+        projectId: kind === 'boq_items' || kind === 'billing_plan' ? projectId || undefined : undefined,
         boqId: kind === 'boq_items' ? boqId : undefined,
+        planId: kind === 'billing_plan' ? planId || undefined : undefined,
+        contractId: kind === 'billing_plan' ? contractId || undefined : undefined,
       });
       if (!response.ok) {
         setError(response.error);
@@ -282,6 +307,41 @@ export function ImportWizard({ allowedKinds, projectId: projectIdProp, boqId }: 
             </Select>
           </div>
 
+          {kind === 'billing_plan' && !planIdProp ? (
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="import-plan-id">{t('fields.planId')}</Label>
+              <p className="text-sm text-[var(--pf-text-secondary)]">{t('billingPlanHint')}</p>
+              <Input
+                id="import-plan-id"
+                value={planIdInput}
+                onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+                  setPlanIdInput(event.target.value)
+                }
+                placeholder={t('fields.planIdPlaceholder')}
+              />
+              <Label htmlFor="import-contract-id">{t('fields.contractId')}</Label>
+              <Input
+                id="import-contract-id"
+                value={contractIdInput}
+                onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+                  setContractIdInput(event.target.value)
+                }
+                placeholder={t('fields.contractIdPlaceholder')}
+              />
+              {!projectIdProp ? (
+                <>
+                  <Label htmlFor="import-project-id-bp">{t('fields.projectId')}</Label>
+                  <Input
+                    id="import-project-id-bp"
+                    value={projectIdInput}
+                    onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+                      setProjectIdInput(event.target.value)
+                    }
+                  />
+                </>
+              ) : null}
+            </div>
+          ) : null}
           {kind === 'boq_items' && !projectIdProp ? (
             <div className="flex flex-col gap-2">
               <Label htmlFor="import-project-id">{t('fields.projectId')}</Label>

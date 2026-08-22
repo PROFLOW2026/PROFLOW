@@ -3,6 +3,8 @@
   "description": "הורדת PDF של תמונת מצב או פתיחת עמוד ידידותי להדפסה. הסכומים מסומנים כעלות בפועל, מחויב ותחזית. סכומי חשבוניות הם חיוב או מזומן, לא רווח. מע״מ מוצג בנפרד ואינו נכלל בחישוב הרווח.",
   "downloadPdf": "הורדת PDF",
   "previewPrint": "תצוגה מקדימה / הדפסה",
+  "downloadKindPdf": "הורדת {kind} (PDF)",
+  "previewKindPrint": "תצוגה מקדימה / הדפסה - {kind}",
   "print": "הדפסה או שמירה כ-PDF",
   "generatedAt": "נוצר ב-",
   "snapshotNote": "הקובץ הוא תמונת מצב במועד היצירה.",
@@ -52,7 +54,14 @@
     "contract_summary": "סיכום חוזה",
     "work_order": "הזמנת עבודה",
     "service_completion": "דוח השלמת שירות",
-    "timesheet": "גיליון שעות"
+    "timesheet": "גיליון שעות",
+    "project_billing_account": "חשבון התקדמות / דרישת תשלום",
+    "project_billing_plan_status": "סטטוס תוכנית חיוב"
+  },
+  "documentKinds": {
+    "progress_account": "חשבון התקדמות",
+    "partial_account": "חשבון חלקי",
+    "payment_request": "דרישת תשלום"
   },
   "kindHints": {
     "project_status": "סטטוס, תאריכים ותמונת מצב תפעולית.",
@@ -80,7 +89,9 @@
     "contract_summary": "סיכום חוזה מקצועי מנתונים קיימים.",
     "work_order": "מסמך הזמנת עבודה / שירות.",
     "service_completion": "דוח השלמת שירות קפוא להזמנת עבודה שהושלמה.",
-    "timesheet": "סיכום תקופת שעות. לא שכר."
+    "timesheet": "סיכום תקופת שעות. לא שכר.",
+    "project_billing_account": "חשבון התקדמות ניהולי — לא חשבונית מס רשמית. חיוב בלבד, לא תשלום.",
+    "project_billing_plan_status": "לוח מתוכנן, חויב מול מתוכנן, חוזה שלא חויב, עיכבון, חיוב הבא ואחוז השלמה."
   },
   "natures": {
     "actual": "בפועל",
@@ -108,7 +119,15 @@
     "inspections": "בדיקות",
     "vendors": "ספקים בפרויקט זה",
     "subcontracts": "הסכמי קבלנות משנה",
-    "omitted": "הושמט לצופה זה"
+    "omitted": "הושמט לצופה זה",
+    "billingAccountLines": "שורות חשבון",
+    "billingAccountTotals": "סיכומי חשבון",
+    "billingPlanCompletion": "השלמה",
+    "billingPlanSchedule": "לוח חיוב מתוכנן",
+    "billingPlanBilledVsPlanned": "חויב מול מתוכנן",
+    "billingPlanUnbilled": "חוזה שלא חויב",
+    "billingPlanRetention": "עיכבון מוחזק / שוחרר",
+    "billingPlanNextBilling": "חיוב הבא"
   },
   "fields": {
     "originalContract": "ערך חוזה מקורי נטו",
@@ -175,7 +194,28 @@
     "billed": "חויב (חשבונית ספק, לא עלות בפועל)",
     "paidCash": "שולם (מזומן, לא עלות בפועל)",
     "logDate": "תאריך יומן",
-    "title": "כותרת"
+    "title": "כותרת",
+    "priorBilled": "חויב בעבר",
+    "currentAccount": "חשבון זה",
+    "cumulativeBilled": "מצטבר",
+    "retentionHeld": "עיכבון מוחזק",
+    "accountDate": "תאריך חשבון",
+    "cycleNumber": "מספר חשבון",
+    "planName": "תוכנית חיובים",
+    "period": "תקופה",
+    "periodStart": "תחילת תקופה",
+    "periodEnd": "סוף תקופה",
+    "completionPercent": "אחוז השלמה",
+    "plannedCoverage": "כיסוי מתוכנן מהחוזה",
+    "plannedTotal": "סה״כ מתוכנן",
+    "billedTotal": "סה״כ חויב",
+    "plannedAmount": "סכום מתוכנן",
+    "remainingPlanned": "נותר מתוכנן",
+    "unplannedAmount": "סכום חוזה שלא תוכנן",
+    "retentionAccumulated": "עיכבון שנצבר (שהונפק)",
+    "retentionReleased": "עיכבון ששוחרר",
+    "nextLine": "שורה מתוכננת הבאה",
+    "nextCycle": "מחזור הבא"
   },
   "notices": {
     "pendingNotInContract": "שינויים ממתינים אינם מעדכנים את החוזה הנוכחי עד לאישורם.",
@@ -184,6 +224,9 @@
     "actualCommittedForecast": "עלות בפועל, מחויב ותחזית הם סכומים שונים ואין לערבב ביניהם.",
     "progressNotActual": "התקדמות כתב כמויות היא כמות שהושלמה. היא אינה עלות בפועל ואינה תשלום.",
     "quoteNotBilling": "הצעת מחיר / אומדן אינה רשומת חיוב, אינה שינוי ואינה הכנסה.",
+    "notOfficialTaxInvoice": "מסמך זה הוא חשבון התקדמות / דרישת תשלום ניהולי. הוא אינו חשבונית מס רשמית.",
+    "billingPlanStatusSnapshot": "סטטוס תוכנית החיוב הוא תמונת מצב ניהולית של מתוכנן מול חויב. אינו חשבונית מס ואינו תשלום.",
+    "billingPlanOverPlanned": "סכומי השורות המתוכננות עולים על ערך החוזה הנוכחי.",
     "profitOmitted": "הרווח הושמט כי לצופה אין הרשאת קריאת רווח פרויקט.",
     "compensationOmitted": "עלות השכר הושמטה כי לצופה אין הרשאת קריאת עלות מעסיק.",
     "commercialOmitted": "נתוני החוזה המסחרי הושמטו כי לצופה אין הרשאת קריאת חוזים.",
@@ -197,7 +240,8 @@
     "vendors": "אין ספקים משויכים לפרויקט זה.",
     "subcontracts": "אין הסכמי קבלנות משנה.",
     "photos": "אין מסמכים מקושרים.",
-    "lines": "אין שורות."
+    "lines": "אין שורות.",
+    "billingPlanLines": "אין שורות פעילות בתוכנית החיוב."
   },
   "omitted": {
     "profit": "רווח",

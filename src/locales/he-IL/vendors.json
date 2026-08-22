@@ -210,6 +210,8 @@
     "vendorLabel": "ספק",
     "parentContractLabel": "חוזה אב",
     "parentContractNone": "ללא",
+    "paymentTermLabel": "תנאי תשלום",
+    "paymentTermNone": "ברירת מחדל של הספק / הארגון",
     "originalAmountLabel": "סכום מקורי",
     "currentAmountLabel": "נוכחי",
     "retentionLabel": "אחוז עיכבון",

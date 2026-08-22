@@ -13,6 +13,7 @@ const PERSONA_RECOMMENDED_KINDS: Readonly<
     'project_financial_summary',
     'change_order_summary',
     'boq_progress',
+    'project_billing_plan_status',
     'vendor_subcontract_summary',
   ],
   electrical: [

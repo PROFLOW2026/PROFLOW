@@ -39,6 +39,16 @@ export const REPORT_KIND_DEFINITIONS: readonly ReportKindDefinition[] = [
   { kind: 'work_order', permission: PERMISSIONS.SERVICE_READ, projectScoped: false },
   { kind: 'service_completion', permission: PERMISSIONS.SERVICE_READ, projectScoped: false },
   { kind: 'timesheet', permission: PERMISSIONS.WORKFORCE_READ, projectScoped: false },
+  {
+    kind: 'project_billing_account',
+    permission: PERMISSIONS.BILLING_READ,
+    projectScoped: true,
+  },
+  {
+    kind: 'project_billing_plan_status',
+    permission: PERMISSIONS.BILLING_READ,
+    projectScoped: true,
+  },
 ] as const;
 
 const BY_KIND = new Map(REPORT_KIND_DEFINITIONS.map((item) => [item.kind, item]));

@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { ConfirmAction } from '@/components/patterns/confirm-action';
 import { MoneyText } from '@/components/patterns/money-text';
 import { isBrowserOnline } from '@/modules/offline';
-import type { ExpenseDetail } from '@/modules/expenses/domain/types';
+import type { CostCategoryRow, ExpenseDetail, ProjectOption } from '@/modules/expenses/domain/types';
 import type { BusinessDate } from '@/shared/dates/dates';
 import { formatBusinessDate } from '@/shared/dates/format';
 import type { MoneyValue } from '@/shared/money/money';
@@ -21,6 +21,8 @@ export interface ExpenseDetailActionsProps {
   readonly canReverse?: boolean;
   readonly canCorrect?: boolean;
   readonly expense?: ExpenseDetail;
+  readonly projects?: readonly ProjectOption[];
+  readonly categories?: readonly CostCategoryRow[];
   readonly amount: MoneyValue;
   readonly expenseDate: BusinessDate;
 }
@@ -41,6 +43,8 @@ export function ExpenseDetailActions({
   canReverse = false,
   canCorrect = false,
   expense,
+  projects = [],
+  categories = [],
   amount,
   expenseDate,
 }: ExpenseDetailActionsProps) {
@@ -88,7 +92,9 @@ export function ExpenseDetailActions({
           />
         ) : null}
 
-        {canCorrect && expense ? <ExpenseCorrectDialog expense={expense} /> : null}
+        {canCorrect && expense ? (
+          <ExpenseCorrectDialog expense={expense} projects={projects} categories={categories} />
+        ) : null}
 
         {canReverse ? (
           <ConfirmAction

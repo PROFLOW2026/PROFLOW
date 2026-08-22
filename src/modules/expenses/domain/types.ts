@@ -142,14 +142,14 @@ export interface ExpenseSummary {
   readonly costFamily: CostFamily;
   readonly costCategoryId: string | null;
   readonly grossAmount: MoneyValue;
+  readonly netAmount: MoneyValue;
+  readonly taxAmount: MoneyValue | null;
   readonly status: ExpenseStatus;
   readonly voidsExpenseId: string | null;
 }
 
 export interface ExpenseDetail extends ExpenseSummary {
   readonly phaseId: string | null;
-  readonly netAmount: MoneyValue;
-  readonly taxAmount: MoneyValue | null;
   readonly taxSnapshot: TaxSnapshot | null;
   readonly finalizedAt: BusinessDate | null;
   readonly paymentMethod: string | null;

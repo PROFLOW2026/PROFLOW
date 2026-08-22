@@ -10,6 +10,7 @@ import {
   ocrNeedsReviewCopy,
   timesheetMissingCopy,
   boqVsContractMismatchCopy,
+  billingPlanRetentionReleaseDueCopy,
 } from '@/modules/command-center/domain/item-copy';
 
 describe('command center item copy', () => {
@@ -87,5 +88,20 @@ describe('command center item copy', () => {
     const heCopy = boqVsContractMismatchCopy('he-IL', { status: 'unallocated_approved_change' });
     expect(heCopy.why).toContain('שינוי מאושר לא משויך');
     expect(heCopy.why).not.toMatch(/unallocated_approved_change/);
+  });
+
+  it('localizes billing-plan retention release due copy', () => {
+    const he = billingPlanRetentionReleaseDueCopy('he-IL', {
+      heldRemaining: '1500.00',
+      currency: 'ILS',
+    });
+    expect(he.what).toContain('עיכבון');
+    expect(he.why).toContain('1500.00');
+
+    const en = billingPlanRetentionReleaseDueCopy('en', {
+      heldRemaining: '1500.00',
+      currency: 'ILS',
+    });
+    expect(en.what.toLowerCase()).toContain('retention');
   });
 });

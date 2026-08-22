@@ -33,6 +33,7 @@ export interface ProjectSubcontractsRosterProps {
   readonly candidateVendors: readonly ProjectSubcontractVendorOption[];
   readonly parentContracts: readonly SubcontractParentContractOption[];
   readonly documentCandidates: readonly { id: string; originalFilename: string }[];
+  readonly paymentTerms?: readonly { id: string; name: string }[];
   readonly canManage: boolean;
   readonly defaultStartDate: string;
 }
@@ -44,6 +45,7 @@ export function ProjectSubcontractsRoster({
   candidateVendors,
   parentContracts,
   documentCandidates,
+  paymentTerms = [],
   canManage,
   defaultStartDate,
 }: ProjectSubcontractsRosterProps) {
@@ -52,6 +54,7 @@ export function ProjectSubcontractsRoster({
   const [showAdd, setShowAdd] = useState(false);
   const [vendorId, setVendorId] = useState<string | null>(null);
   const [parentContractId, setParentContractId] = useState<string>('none');
+  const [paymentTermId, setPaymentTermId] = useState<string>('none');
   const [state, formAction, pending] = useActionState<VendorFormState, FormData>(
     createSubcontractAction,
     {},
@@ -155,6 +158,32 @@ export function ProjectSubcontractsRoster({
                     </>
                   )}
                 </Field>
+                {paymentTerms.length > 0 ? (
+                  <Field label={t('paymentTermLabel')} optionalLabel={tCommon('labels.optional')}>
+                    {(control) => (
+                      <>
+                        <input
+                          type="hidden"
+                          name="paymentTermId"
+                          value={paymentTermId === 'none' ? '' : paymentTermId}
+                        />
+                        <Select value={paymentTermId} onValueChange={setPaymentTermId}>
+                          <SelectTrigger id={control.id}>
+                            <SelectValue placeholder={t('paymentTermNone')} />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none">{t('paymentTermNone')}</SelectItem>
+                            {paymentTerms.map((term) => (
+                              <SelectItem key={term.id} value={term.id}>
+                                {term.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </>
+                    )}
+                  </Field>
+                ) : null}
                 <Field label={t('startDate')}>
                   {(control) => (
                     <Input {...control} name="startDate" type="date" defaultValue={defaultStartDate} dir="ltr" />

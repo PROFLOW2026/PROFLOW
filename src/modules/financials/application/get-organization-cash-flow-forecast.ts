@@ -6,6 +6,9 @@ import { assertPermission, hasAnyPermission, hasPermission } from '@/shared/perm
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { listBillingRecords } from '@/modules/billing';
 import type { BillingRecordSummary } from '@/modules/billing/domain/types';
+import { sumIssuedAmountsByPlanLine } from '@/modules/billing-plan/data/cycles.repository';
+import { listExpectedProgressBillingLines } from '@/modules/billing-plan/data/forecast.repository';
+import { computeRemaining } from '@/modules/billing-plan/domain/line-math';
 import {
   computeBillOutstanding,
   getVendorPaymentsRepository,
@@ -21,6 +24,7 @@ import {
 import { loadCashFlowPayments } from '../data/billing.repository';
 import {
   buildCashFlowOutlook,
+  CASH_FLOW_HORIZON_DAYS,
   type ApBillCashInput,
   type CashFlowOutlook,
 } from '../domain/cash-flow';
@@ -233,6 +237,45 @@ function itemsFromRecurringDrafts(
 }
 
 /**
+ * Planned (not issued) progress-billing lines with target_date in the horizon.
+ * Certainty is always `expected` — never confirmed until a cycle is issued.
+ */
+async function itemsFromExpectedProgressBilling(
+  context: OrgContext,
+  rows: Awaited<ReturnType<typeof listExpectedProgressBillingLines>>,
+  currency: string,
+): Promise<CashFlowForecastItem[]> {
+  const items: CashFlowForecastItem[] = [];
+  const billedByPlan = new Map<string, Map<string, { amount: string; percent: string }>>();
+
+  for (const row of rows) {
+    if (row.currency.toUpperCase() !== currency.toUpperCase()) continue;
+    let billed = billedByPlan.get(row.planId);
+    if (!billed) {
+      billed = await sumIssuedAmountsByPlanLine(context.db, context.organizationId, row.planId);
+      billedByPlan.set(row.planId, billed);
+    }
+    const base = money(row.agreedAmount, currency);
+    const prior = money(billed.get(row.lineId)?.amount ?? '0', currency);
+    const remaining = computeRemaining(base, prior);
+    if (!isPositiveMoney(remaining)) continue;
+
+    items.push({
+      id: `billing-plan-line:${row.lineId}`,
+      href: `/projects/${row.projectId}?tab=billingPlan`,
+      label: `${row.projectName} · ${row.label}`,
+      amount: remaining,
+      dueDate: row.targetDate,
+      certainty: 'expected',
+      direction: 'in',
+      sourceType: 'expected_progress_billing',
+      projectId: row.projectId,
+    });
+  }
+  return items;
+}
+
+/**
  * Org cash-flow forecast with drilldown. Reuses the existing outlook engine.
  * Open PO commitments and undated retention are omitted - no reliable cash date.
  */
@@ -247,7 +290,7 @@ export async function getOrganizationCashFlowForecast(
   const showOutflows = hasPermission(context, PERMISSIONS.AP_READ);
   const canReadDrafts = hasAnyPermission(context, ANY_DRAFT_ACCESS_PERMISSIONS);
 
-  const [records, paymentRows, apBundle, drafts] = await Promise.all([
+  const [records, paymentRows, apBundle, drafts, progressLines] = await Promise.all([
     showInflows
       ? listBillingRecords(context, { filter: 'all', limit: ORG_LIST_EXPORT_CAP })
       : Promise.resolve([] as Awaited<ReturnType<typeof listBillingRecords>>),
@@ -275,6 +318,14 @@ export async function getOrganizationCashFlowForecast(
           () => [] as RecurringFinancialDraftRecord[],
         )
       : Promise.resolve([] as RecurringFinancialDraftRecord[]),
+    showInflows
+      ? listExpectedProgressBillingLines(
+          context.db,
+          context.organizationId,
+          asOf,
+          addDays(asOf, CASH_FLOW_HORIZON_DAYS),
+        ).catch(() => [] as Awaited<ReturnType<typeof listExpectedProgressBillingLines>>)
+      : Promise.resolve([] as Awaited<ReturnType<typeof listExpectedProgressBillingLines>>),
   ]);
 
   const outstandingRecords = records.filter(
@@ -299,10 +350,15 @@ export async function getOrganizationCashFlowForecast(
     openApBills: showOutflows ? openApBills : undefined,
   });
 
+  const progressItems = showInflows
+    ? await itemsFromExpectedProgressBilling(context, progressLines, currency)
+    : [];
+
   const items: CashFlowForecastItem[] = [
     ...(showInflows ? incomingFromBilling(outstandingRecords, currency) : []),
     ...(showOutflows && openApBills ? outgoingFromApBills(openApBills, currency) : []),
     ...itemsFromRecurringDrafts(drafts, currency, showInflows, showOutflows),
+    ...progressItems,
   ];
 
   return buildCashFlowForecast({

@@ -86,4 +86,5 @@ export interface ClientDetail extends ClientRecord {
   readonly projectCount: number;
   readonly clientTypeName: string | null;
   readonly defaultPaymentTermName: string | null;
+  readonly defaultPaymentTermKey: string | null;
 }

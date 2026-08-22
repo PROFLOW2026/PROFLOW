@@ -1,0 +1,378 @@
+{
+  "title": "Project billing plan",
+  "subtitle": "Schedule progress accounts against the contract. Issuing a cycle creates billing — never a payment.",
+  "panel": {
+    "title": "Billing plan",
+    "emptyTitle": "No billing plan yet",
+    "emptyBody": "Create a plan to schedule partial accounts against the contract value.",
+    "emptyAction": "Create billing plan",
+    "oneActiveHint": "Only one active plan is allowed per project and contract.",
+    "noContract": "Add a contract amount first, then create a billing plan.",
+    "selectContract": "Contract for this plan",
+    "simplifiedHint": "Simple three-payment schedule. Activate the plan, then issue progress accounts."
+  },
+  "strip": {
+    "nextStage": "Next stage",
+    "billedPercent": "Billed %",
+    "unbilled": "Unbilled remaining",
+    "draftAccount": "Draft account",
+    "noDraftAccount": "None"
+  },
+  "summary": {
+    "contractValue": "Current contract",
+    "planned": "Planned",
+    "billed": "Billed",
+    "remainingPlanned": "Remaining planned",
+    "unplanned": "Unplanned",
+    "retentionHeld": "Retention held",
+    "retentionReleased": "Retention released"
+  },
+  "lines": {
+    "title": "Plan lines",
+    "label": "Label",
+    "base": "Base",
+    "priorPercent": "Prior %",
+    "priorAmount": "Prior ₪",
+    "currentPercent": "Current %",
+    "currentAmount": "Current ₪",
+    "cumPercent": "Cum %",
+    "cumAmount": "Cum ₪",
+    "retention": "Retention",
+    "remaining": "Remaining",
+    "agreedPercent": "Agreed %",
+    "moveUp": "Move up",
+    "moveDown": "Move down",
+    "rename": "Rename",
+    "empty": "No lines yet. Add a line or apply a template."
+  },
+  "cycles": {
+    "title": "Progress accounts",
+    "empty": "No progress accounts yet.",
+    "draftWorkspace": "Draft account",
+    "selectCycle": "Open account",
+    "printPreview": "Print / PDF preview",
+    "issueConfirm": "Issue this account as a billing record? Payments are recorded separately.",
+    "newTitlePlaceholder": "e.g. Progress account 1",
+    "totalsCurrent": "This account total",
+    "totalsRetention": "Retention this account"
+  },
+  "create": {
+    "title": "Create billing plan",
+    "description": "Choose a blank plan, a simple 30/40/30 schedule, or a profession template.",
+    "modeBlank": "Blank plan",
+    "modeSimple": "Simple 30 / 40 / 30",
+    "modeTemplate": "From template",
+    "namePlaceholder": "Billing plan",
+    "templateLabel": "Template",
+    "activate": "Activate immediately",
+    "simpleLine1": "First payment (30%)",
+    "simpleLine2": "Second payment (40%)",
+    "simpleLine3": "Final payment (30%)"
+  },
+  "projectCreate": {
+    "sectionTitle": "Billing plan",
+    "sectionHint": "Optional. Does not block creating the project.",
+    "none": "Not now",
+    "simple": "Create a simple plan (30/40/30)",
+    "template": "Create from template",
+    "templateLabel": "Billing plan template"
+  },
+  "print": {
+    "documentTitle": "Progress account",
+    "accountDate": "Account date",
+    "period": "Period",
+    "cycleNumber": "Account no.",
+    "planName": "Billing plan",
+    "contract": "Contract",
+    "line": "Line",
+    "prior": "Previously billed",
+    "current": "This account",
+    "cumulative": "Cumulative",
+    "remaining": "Remaining",
+    "retention": "Retention",
+    "total": "Total",
+    "printButton": "Print",
+    "integrityNote": "This document is a progress account for billing only — not a payment receipt."
+  },
+  "status": {
+    "draft": "Draft",
+    "active": "Active",
+    "completed": "Completed",
+    "archived": "Archived"
+  },
+  "cycleStatus": {
+    "draft": "Draft",
+    "ready": "Ready",
+    "submitted": "Submitted",
+    "partially_approved": "Partially approved",
+    "approved": "Approved",
+    "void": "Void",
+    "issued": "Submitted"
+  },
+  "documentKind": {
+    "progress_account": "Progress account",
+    "partial_account": "Partial account",
+    "payment_request": "Payment request"
+  },
+  "lineKind": {
+    "fixed_amount": "Fixed amount",
+    "percent_of_contract": "Percent of contract",
+    "percent_of_base": "Percent of base",
+    "milestone": "Milestone",
+    "period": "Period",
+    "boq_link": "BOQ link",
+    "manual": "Manual"
+  },
+  "fields": {
+    "name": "Plan name",
+    "contract": "Contract",
+    "currency": "Currency",
+    "defaultRetention": "Default retention %",
+    "notes": "Notes",
+    "label": "Line label",
+    "agreedAmount": "Agreed amount",
+    "agreedPercent": "Agreed %",
+    "currentPercent": "This account %",
+    "currentAmount": "This account amount",
+    "priorAmount": "Previously billed",
+    "cumulativeAmount": "Cumulative billed",
+    "remainingAmount": "Remaining",
+    "retention": "Retention",
+    "accountDate": "Account date",
+    "period": "Period",
+    "cycleTitle": "Account title",
+    "section": "Section"
+  },
+  "actions": {
+    "createPlan": "Create plan",
+    "activate": "Activate",
+    "complete": "Mark completed",
+    "archive": "Archive",
+    "addLine": "Add line",
+    "removeLine": "Remove line",
+    "reorder": "Reorder",
+    "duplicate": "Duplicate",
+    "split": "Split line",
+    "applyTemplate": "Apply template",
+    "saveAsTemplate": "Save as organization template",
+    "createCycle": "New progress account",
+    "updateCycle": "Save account lines",
+    "issueCycle": "Issue as billing",
+    "viewBilling": "Open billing record",
+    "saveLines": "Save lines"
+  },
+  "recon": {
+    "title": "Plan vs contract",
+    "contractValue": "Current contract value",
+    "plannedTotal": "Planned total",
+    "billedTotal": "Billed to date",
+    "unplanned": "Unplanned (contract − planned)",
+    "remainingPlanned": "Remaining planned",
+    "overPlanned": "Planned total exceeds contract value"
+  },
+  "integrity": {
+    "billingNotPayment": "Issuing a cycle creates a billing record only. Record payments separately under collections.",
+    "cycleFullyPaidLocked": "A fully paid account cannot be edited normally. Use correction/reversal.",
+    "cannotReduceBelowPaid": "Cannot reduce the approved amount below the amount already paid.",
+    "cycleNotSubmittable": "Only draft or ready accounts can be submitted.",
+    "cycleNotApprovable": "Only submitted or partially approved accounts can be approved.",
+    "cycleNotEditable": "This account cannot be edited.",
+    "issuedImmutable": "Fully paid account lines cannot be edited normally.",
+    "overbillBlocked": "Cumulative billed cannot exceed the agreed line amount."
+  },
+  "errors": {
+    "overbill": "This account would overbill the line — cumulative exceeds the agreed amount.",
+    "negativeAmount": "Amount cannot be negative.",
+    "invalidPercent": "Percent is invalid.",
+    "currencyMismatch": "Currencies do not match.",
+    "agreedBelowBilled": "Agreed amount cannot be lower than already billed.",
+    "activePlanExists": "An active billing plan already exists for this project and contract.",
+    "invalidPlanTransition": "This plan status change is not allowed.",
+    "invalidCycleTransition": "This account status change is not allowed.",
+    "planNotEditable": "Only draft or active plans can be edited.",
+    "planNotActive": "Create or issue accounts only on an active plan.",
+    "cycleNotIssuable": "Only draft or ready accounts can be issued.",
+    "cycleLinesImmutable": "Issued account lines are immutable.",
+    "cycleAlreadyIssued": "This account was already issued to billing.",
+    "lineAlreadyBilled": "This line has already been billed and cannot be removed or replaced.",
+    "splitPercentsInvalid": "Split parts must total 100%.",
+    "retentionOverRelease": "Cannot release more than retention held.",
+    "boqAlreadyBilled": "This BOQ line was already billed via progress billing and cannot be billed again from the plan."
+  },
+  "templates": {
+    "sections": {
+      "cash": "Cash / advances",
+      "structure": "Structure",
+      "finishes": "Finishes",
+      "closeout": "Closeout",
+      "supply": "Supply",
+      "install": "Installation",
+      "prep": "Preparation",
+      "systems": "Systems",
+      "work": "Work",
+      "design": "Design",
+      "supervision": "Supervision",
+      "phases": "Phases",
+      "visits": "Visits",
+      "deliverables": "Deliverables",
+      "milestones": "Milestones",
+      "service": "Service"
+    },
+    "contractor": {
+      "name": "General contractor",
+      "description": "Advance, structure, finishes, and handover schedule.",
+      "lines": {
+        "advance": "Advance payment",
+        "foundation": "Foundations",
+        "structure": "Structure",
+        "envelope": "Envelope",
+        "finishes": "Finishes",
+        "handover": "Handover"
+      }
+    },
+    "electrical": {
+      "name": "Electrical",
+      "description": "Materials, rough-in, panels, and commissioning.",
+      "lines": {
+        "materials": "Materials",
+        "roughIn": "Rough-in",
+        "panels": "Panels and devices",
+        "commissioning": "Commissioning"
+      }
+    },
+    "renovation": {
+      "name": "Renovation",
+      "description": "Demolition through completion for renovation works.",
+      "lines": {
+        "demolition": "Demolition",
+        "systems": "Systems",
+        "finishes": "Finishes",
+        "completion": "Completion"
+      }
+    },
+    "smallWorks": {
+      "name": "Small works",
+      "description": "Simple deposit / progress / final schedule.",
+      "lines": {
+        "deposit": "Deposit",
+        "progress": "Progress",
+        "final": "Final"
+      }
+    },
+    "architecture": {
+      "name": "Architecture",
+      "description": "Concept through supervision fees.",
+      "lines": {
+        "concept": "Concept design",
+        "permit": "Permit drawings",
+        "detail": "Detail design",
+        "supervision": "Site supervision"
+      }
+    },
+    "consulting": {
+      "name": "Consulting",
+      "description": "Kickoff, mid-term, and delivery fees.",
+      "lines": {
+        "kickoff": "Kickoff",
+        "mid": "Mid-term",
+        "delivery": "Delivery"
+      }
+    },
+    "inspection": {
+      "name": "Inspection",
+      "description": "Site visit and report fixed amounts.",
+      "lines": {
+        "siteVisit": "Site visit",
+        "report": "Inspection report"
+      }
+    },
+    "serviceInstall": {
+      "name": "Service installation",
+      "description": "Equipment, install, and training.",
+      "lines": {
+        "equipment": "Equipment",
+        "install": "Installation",
+        "training": "Training and handover"
+      }
+    },
+    "mixed": {
+      "name": "Mixed milestones",
+      "description": "Four equal milestone accounts.",
+      "lines": {
+        "milestone1": "Milestone 1",
+        "milestone2": "Milestone 2",
+        "milestone3": "Milestone 3",
+        "milestone4": "Milestone 4"
+      }
+    },
+    "plumbing": {
+      "name": "Plumbing",
+      "description": "Materials, rough-in and fixtures.",
+      "lines": {
+        "materials": "Materials",
+        "roughIn": "Rough-in",
+        "fixtures": "Fixtures"
+      }
+    },
+    "hvac": {
+      "name": "HVAC",
+      "description": "Equipment, ducting and commissioning.",
+      "lines": {
+        "equipment": "Equipment",
+        "ducting": "Ducting",
+        "commissioning": "Commissioning"
+      }
+    },
+    "design": {
+      "name": "Design",
+      "description": "Concept, detail and delivery.",
+      "lines": {
+        "concept": "Concept",
+        "detail": "Detail",
+        "delivery": "Delivery"
+      }
+    },
+    "engineering": {
+      "name": "Engineering",
+      "description": "Survey, calculations and sign-off.",
+      "lines": {
+        "survey": "Survey",
+        "calculations": "Calculations",
+        "signOff": "Sign-off"
+      }
+    },
+    "maintenance": {
+      "name": "Maintenance",
+      "description": "Mobilization, service and closeout.",
+      "lines": {
+        "mobilization": "Mobilization",
+        "service": "Service",
+        "closeout": "Closeout"
+      }
+    }
+  },
+  "retention": {
+    "heldTitle": "Retention held",
+    "heldHint": "Total retention held across issued cycles for this plan.",
+    "remainingAfter": "Retention still held",
+    "releaseAction": "Release retention",
+    "releaseTitle": "Release retention",
+    "releaseDescription": "Partial or full release against billing records that hold retention. Cannot release more than remaining held.",
+    "amountLabel": "Amount to release",
+    "dateLabel": "Release date",
+    "notesLabel": "Notes",
+    "maxHint": "Maximum releasable: {amount}",
+    "overRelease": "Cannot release more than retention held.",
+    "noneHeld": "No retention held to release.",
+    "submit": "Release"
+  },
+  "orgTemplates": {
+    "saveAction": "Save as org template",
+    "saveTitle": "Save plan as template",
+    "saveName": "Template name",
+    "applyAction": "Apply org template",
+    "archiveAction": "Archive template",
+    "empty": "No active organization templates.",
+    "listLabel": "Organization templates"
+  }
+}

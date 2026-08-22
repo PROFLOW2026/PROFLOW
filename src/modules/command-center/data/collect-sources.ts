@@ -66,6 +66,9 @@ import {
   inspectionOpenCopy,
   recurringDraftIssueCopy,
   timesheetMissingCopy,
+  billingPlanCycleDraftCopy,
+  billingPlanMilestoneDueCopy,
+  billingPlanRetentionReleaseDueCopy,
 } from '../domain/item-copy';
 
 const PER_SOURCE_CAP = 15;
@@ -1080,6 +1083,124 @@ export async function collectMissingTimesheets(ctx: CollectContext): Promise<Com
   });
 }
 
+export async function collectBillingPlanDraftCycles(
+  ctx: CollectContext,
+): Promise<CommandCenterItem[]> {
+  if (!hasPermission(ctx.context, PERMISSIONS.BILLING_READ)) return [];
+  if (!moduleOn(ctx.modules, 'billing')) return [];
+
+  try {
+    const { listDraftCyclesAwaitingIssue } = await import(
+      '@/modules/billing-plan/data/forecast.repository'
+    );
+    const rows = await listDraftCyclesAwaitingIssue(
+      ctx.context.db,
+      ctx.context.organizationId,
+      PER_SOURCE_CAP,
+    );
+    const locale = localeOf(ctx);
+    return rows.map((row) => {
+      const copy = billingPlanCycleDraftCopy(locale, {
+        title: row.title,
+        cycleNumber: row.cycleNumber,
+      });
+      return withItemDefaults({
+        sourceType: 'billing_plan_cycle_draft',
+        sourceId: row.cycleId,
+        what: copy.what,
+        why: copy.why,
+        where: row.projectName || fallbackWhere(locale, 'billing'),
+        href: `/projects/${row.projectId}?tab=billingPlan`,
+        meta: { accountDate: row.accountDate, status: row.status },
+      });
+    });
+  } catch {
+    // Migration 0065 may be absent in older DBs — skip silently.
+    return [];
+  }
+}
+
+export async function collectBillingPlanMilestonesDue(
+  ctx: CollectContext,
+): Promise<CommandCenterItem[]> {
+  if (!hasPermission(ctx.context, PERMISSIONS.BILLING_READ)) return [];
+  if (!moduleOn(ctx.modules, 'billing')) return [];
+
+  try {
+    const { listMilestoneLinesDue } = await import(
+      '@/modules/billing-plan/data/forecast.repository'
+    );
+    const rows = await listMilestoneLinesDue(
+      ctx.context.db,
+      ctx.context.organizationId,
+      ctx.today,
+      7,
+      PER_SOURCE_CAP,
+    );
+    const locale = localeOf(ctx);
+    return rows.map((row) => {
+      const copy = billingPlanMilestoneDueCopy(locale, {
+        label: row.label,
+        targetDate: row.targetDate,
+      });
+      const days = daysBetween(row.targetDate as BusinessDate, ctx.today);
+      return withItemDefaults({
+        sourceType: 'billing_plan_milestone_due',
+        sourceId: row.lineId,
+        what: copy.what,
+        why: copy.why,
+        where: row.projectName || fallbackWhere(locale, 'billing'),
+        href: `/projects/${row.projectId}?tab=billingPlan`,
+        urgencyBump: Math.min(99, Math.max(0, days >= 0 ? days : 0)),
+        meta: { targetDate: row.targetDate, planId: row.planId },
+      });
+    });
+  } catch {
+    return [];
+  }
+}
+
+export async function collectBillingPlanRetentionReleaseDue(
+  ctx: CollectContext,
+): Promise<CommandCenterItem[]> {
+  if (!hasPermission(ctx.context, PERMISSIONS.BILLING_READ)) return [];
+  if (!moduleOn(ctx.modules, 'billing')) return [];
+
+  try {
+    const { listBillingPlanRetentionReleaseDue } = await import(
+      '@/modules/billing-plan/data/forecast.repository'
+    );
+    const rows = await listBillingPlanRetentionReleaseDue(
+      ctx.context.db,
+      ctx.context.organizationId,
+      PER_SOURCE_CAP,
+    );
+    const locale = localeOf(ctx);
+    return rows.map((row) => {
+      const copy = billingPlanRetentionReleaseDueCopy(locale, {
+        heldRemaining: row.heldRemaining,
+        currency: row.currency,
+      });
+      return withItemDefaults({
+        sourceType: 'billing_plan_retention_release_due',
+        sourceId: row.projectId,
+        what: copy.what,
+        why: copy.why,
+        where: row.projectName || fallbackWhere(locale, 'billing'),
+        href: `/projects/${row.projectId}?tab=billingPlan`,
+        meta: {
+          heldRemaining: row.heldRemaining,
+          currency: row.currency,
+          recordCount: row.recordCount,
+        },
+      });
+    });
+  } catch {
+    // Migration 0065 / sourceKind may be absent — skip silently.
+    return [];
+  }
+}
+
 /** Run all collectors; individual failures are isolated. */
 export async function collectAllSources(ctx: CollectContext): Promise<CommandCenterItem[]> {
   const collectors = [
@@ -1113,6 +1234,9 @@ export async function collectAllSources(ctx: CollectContext): Promise<CommandCen
     collectCashFlowRisk,
     collectAutomationFollowups,
     collectFailedCommunications,
+    collectBillingPlanDraftCycles,
+    collectBillingPlanMilestonesDue,
+    collectBillingPlanRetentionReleaseDue,
   ];
 
   const settled = await Promise.allSettled(collectors.map((fn) => fn(ctx)));

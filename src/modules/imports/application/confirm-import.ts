@@ -13,6 +13,7 @@ import { previewImport } from './preview-import';
 import { enrichImportPreview } from './enrich-preview';
 import { assertCanImportKind, employeeImportBaseRate } from './import-permissions';
 import { confirmBoqItemsRows } from './confirm-boq-import';
+import { confirmBillingPlanRows } from './confirm-billing-plan-import';
 import { isBoqImportSkipRow } from '../domain/boq-import-parse';
 import {
   isEnabledImportKind,
@@ -36,6 +37,10 @@ export interface ConfirmImportInput {
   readonly projectId?: string;
   /** Optional draft BOQ target for boq_items. */
   readonly boqId?: string;
+  /** Existing plan for billing_plan (preferred). */
+  readonly planId?: string;
+  /** Contract for billing_plan when creating a new plan. */
+  readonly contractId?: string;
 }
 
 function emptyToUndefined(value: string | undefined): string | undefined {
@@ -247,6 +252,14 @@ async function createFromRow(
         },
       ]);
     }
+    case 'billing_plan': {
+      throw new ValidationError([
+        {
+          path: 'kind',
+          message: 'billing_plan import uses confirmBillingPlanRows - not per-row createFromRow',
+        },
+      ]);
+    }
     default: {
       const _exhaustive: never = kind;
       throw new ValidationError([
@@ -328,6 +341,21 @@ export async function confirmImport(
       boqId: input.boqId,
     });
     results.push(...boqResults);
+  } else if (kind === 'billing_plan') {
+    if (!input.planId?.trim() && !input.projectId?.trim()) {
+      throw new ValidationError([
+        {
+          path: 'planId',
+          message: 'planId or projectId is required for billing_plan import',
+        },
+      ]);
+    }
+    const planResults = await confirmBillingPlanRows(context, candidates, {
+      planId: input.planId,
+      projectId: input.projectId,
+      contractId: input.contractId,
+    });
+    results.push(...planResults);
   } else {
     for (const row of candidates) {
       try {
@@ -407,6 +435,26 @@ export async function confirmImportInBatches(
         confirmBoqItemsRows(context, batch, {
           projectId: input.projectId!,
           boqId: input.boqId,
+        }),
+      );
+      results.push(...batchResults);
+    }
+  } else if (kind === 'billing_plan') {
+    if (!input.planId?.trim() && !input.projectId?.trim()) {
+      throw new ValidationError([
+        {
+          path: 'planId',
+          message: 'planId or projectId is required for billing_plan import',
+        },
+      ]);
+    }
+    for (let i = 0; i < candidates.length; i += BATCH_SIZE) {
+      const batch = candidates.slice(i, i + BATCH_SIZE);
+      const batchResults = await runInOrg(async (context) =>
+        confirmBillingPlanRows(context, batch, {
+          planId: input.planId,
+          projectId: input.projectId,
+          contractId: input.contractId,
         }),
       );
       results.push(...batchResults);

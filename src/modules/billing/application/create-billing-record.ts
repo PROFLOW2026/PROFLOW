@@ -189,6 +189,8 @@ export async function createBillingRecordWithPermission(
     projectId: input.projectId,
     clientId: project.clientId ?? null,
     contractId,
+    sourceKind: input.sourceKind ?? 'manual',
+    sourceId: input.sourceId ?? null,
     kind: 'invoice',
     reference: await resolveAllocatedReference(context, 'billing_record', input.reference),
     issueDate,

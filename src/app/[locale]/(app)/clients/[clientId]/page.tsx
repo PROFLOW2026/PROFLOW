@@ -4,6 +4,7 @@ import { getTranslations } from 'next-intl/server';
 import { PageHeader } from '@/components/ui/page-header';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { getClientById, getClientFinancials, getClientTimeline } from '@/modules/clients';
+import { listBusinessCatalog, localizePaymentTermOptions } from '@/modules/business-catalog';
 import { listCustomFieldValuesForEntity } from '@/modules/custom-fields';
 import { getEntityDocumentPanelData } from '@/modules/documents';
 import { DocumentAttachments } from '@/modules/documents/ui';
@@ -60,7 +61,6 @@ export default async function ClientPage({ params }: ClientPageProps) {
       const detail = await getClientById(context, clientId);
       const canReadBilling = hasPermission(context, PERMISSIONS.BILLING_READ);
       const canReadQuotes = hasPermission(context, PERMISSIONS.QUOTES_READ);
-      const { listBusinessCatalog } = await import('@/modules/business-catalog');
       const { listQuotesForOrg } = await import('@/modules/quotes');
       const [fields, panel, projects, clientFinancials, timeline, clientTypes, paymentTerms, quotes] =
         await Promise.all([
@@ -98,7 +98,7 @@ export default async function ClientPage({ params }: ClientPageProps) {
     linkedProjects = loaded.projects;
     financials = loaded.financials;
     clientTypes = loaded.clientTypes.map((row) => ({ id: row.id, name: row.name }));
-    paymentTerms = loaded.paymentTerms.map((row) => ({ id: row.id, name: row.name }));
+    paymentTerms = localizePaymentTermOptions(loaded.paymentTerms, locale);
     quotes = loaded.quotes.map((quote) => ({
       id: quote.id,
       title: quote.title,

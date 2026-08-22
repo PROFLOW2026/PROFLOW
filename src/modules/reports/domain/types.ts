@@ -29,6 +29,8 @@ export const REPORT_KINDS = [
   'work_order',
   'service_completion',
   'timesheet',
+  'project_billing_account',
+  'project_billing_plan_status',
 ] as const;
 
 export type ReportKind = (typeof REPORT_KINDS)[number];

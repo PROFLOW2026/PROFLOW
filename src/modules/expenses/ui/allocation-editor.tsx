@@ -250,6 +250,7 @@ export function AllocationEditor({
                     {...controlProps}
                     value={line.amount}
                     onValueChange={(amount) => updateLine(index, { amount })}
+                    currency={currency}
                     disabled={disabled || (line.method !== 'manual_amount' && line.method !== 'manual_percent')}
                   />
                 )}

@@ -7,7 +7,7 @@ import { Alert } from '@/components/ui/alert';
 import { PageHeader } from '@/components/ui/page-header';
 import { StatusBadge, type StatusShape } from '@/components/ui/status-badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { getCatalogEntryById } from '@/modules/business-catalog';
+import { getCatalogEntryById, localizePaymentTermName } from '@/modules/business-catalog';
 import {
   getApBillDetail,
   getBillPayablePosition,
@@ -115,7 +115,9 @@ export default async function ApBillDetailPage({
     return {
       ...detail,
       canManage,
-      paymentTermName: paymentTerm?.name ?? null,
+      paymentTermName: paymentTerm
+        ? localizePaymentTermName(paymentTerm.key, paymentTerm.name, locale)
+        : null,
       documentsPanel,
       payablePosition,
       hasActivePayments,

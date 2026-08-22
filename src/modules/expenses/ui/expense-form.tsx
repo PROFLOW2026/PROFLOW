@@ -300,6 +300,7 @@ export function ExpenseForm({
               {...controlProps}
               value={amount}
               onValueChange={setAmount}
+              currency={currency}
               disabled={readOnly}
               autoFocus={mode === 'create'}
               className="text-lg"
@@ -782,6 +783,7 @@ export function ExpenseForm({
                       name="netAmount"
                       value={netAmount}
                       onValueChange={setNetAmount}
+                      currency={currency}
                       disabled={readOnly}
                     />
                   )}
@@ -794,6 +796,7 @@ export function ExpenseForm({
                       name="taxAmount"
                       value={taxAmount}
                       onValueChange={setTaxAmount}
+                      currency={currency}
                       disabled={readOnly}
                     />
                   )}

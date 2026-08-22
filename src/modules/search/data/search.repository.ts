@@ -18,6 +18,8 @@ import {
   inventoryItems,
   materialItems,
   outboundCommunications,
+  projectBillingCycles,
+  projectBillingPlans,
   projectBoqs,
   projectCloseouts,
   projects,
@@ -34,6 +36,8 @@ import type { DbExecutor } from '@/shared/db/types';
 import type { GlobalSearchHit } from '../domain/types';
 import {
   assetSearchHref,
+  billingCycleSearchHref,
+  billingPlanSearchHref,
   calendarEventSearchHref,
   closeoutSearchHref,
   communicationSearchHref,
@@ -1238,6 +1242,135 @@ export async function searchCloseouts(
       href: closeoutSearchHref(row.projectId),
       status: row.status,
       contextLabel: row.projectName,
+    }));
+  } catch (error) {
+    if (isMissingRelation(error)) return [];
+    throw error;
+  }
+}
+
+export async function searchBillingPlans(
+  db: DbExecutor,
+  organizationId: string,
+  query: string,
+  limit: number,
+  accessibleProjectIds: string[] | null = null,
+): Promise<GlobalSearchHit[]> {
+  const term = likeTerm(query);
+  try {
+    const rows = await db
+      .select({
+        id: projectBillingPlans.id,
+        name: projectBillingPlans.name,
+        status: projectBillingPlans.status,
+        projectId: projectBillingPlans.projectId,
+        projectName: projects.name,
+        currency: projectBillingPlans.currency,
+      })
+      .from(projectBillingPlans)
+      .innerJoin(
+        projects,
+        and(
+          eq(projects.id, projectBillingPlans.projectId),
+          eq(projects.organizationId, projectBillingPlans.organizationId),
+        ),
+      )
+      .where(
+        and(
+          eq(projectBillingPlans.organizationId, organizationId),
+          isNull(projectBillingPlans.archivedAt),
+          sql`${projectBillingPlans.status} <> 'archived'`,
+          isNull(projects.archivedAt),
+          projectAccessSql(projectBillingPlans.projectId, accessibleProjectIds),
+          or(ilike(projectBillingPlans.name, term), ilike(projects.name, term))!,
+        ),
+      )
+      .orderBy(projectBillingPlans.updatedAt)
+      .limit(limit);
+
+    return rows.map((row) => ({
+      kind: 'billing_plan' as const,
+      id: row.id,
+      title: row.name,
+      subtitle: [row.projectName, row.status].filter(Boolean).join(' · ') || null,
+      href: billingPlanSearchHref(row.projectId, row.id),
+      status: row.status,
+      contextLabel: row.projectName,
+      currency: row.currency,
+    }));
+  } catch (error) {
+    if (isMissingRelation(error)) return [];
+    throw error;
+  }
+}
+
+export async function searchBillingCycles(
+  db: DbExecutor,
+  organizationId: string,
+  query: string,
+  limit: number,
+  accessibleProjectIds: string[] | null = null,
+): Promise<GlobalSearchHit[]> {
+  const term = likeTerm(query);
+  try {
+    const rows = await db
+      .select({
+        id: projectBillingCycles.id,
+        title: projectBillingCycles.title,
+        status: projectBillingCycles.status,
+        cycleNumber: projectBillingCycles.cycleNumber,
+        accountDate: projectBillingCycles.accountDate,
+        projectId: projectBillingCycles.projectId,
+        projectName: projects.name,
+        planName: projectBillingPlans.name,
+      })
+      .from(projectBillingCycles)
+      .innerJoin(
+        projectBillingPlans,
+        and(
+          eq(projectBillingPlans.id, projectBillingCycles.planId),
+          eq(projectBillingPlans.organizationId, projectBillingCycles.organizationId),
+        ),
+      )
+      .innerJoin(
+        projects,
+        and(
+          eq(projects.id, projectBillingCycles.projectId),
+          eq(projects.organizationId, projectBillingCycles.organizationId),
+        ),
+      )
+      .where(
+        and(
+          eq(projectBillingCycles.organizationId, organizationId),
+          inArray(projectBillingCycles.status, [
+            'draft',
+            'ready',
+            'submitted',
+            'partially_approved',
+            'approved',
+          ]),
+          isNull(projects.archivedAt),
+          projectAccessSql(projectBillingCycles.projectId, accessibleProjectIds),
+          or(
+            ilike(projectBillingCycles.title, term),
+            ilike(projectBillingPlans.name, term),
+            ilike(projects.name, term),
+            sql`cast(${projectBillingCycles.cycleNumber} as text) ilike ${term}`,
+          )!,
+        ),
+      )
+      .orderBy(projectBillingCycles.updatedAt)
+      .limit(limit);
+
+    return rows.map((row) => ({
+      kind: 'billing_cycle' as const,
+      id: row.id,
+      title: row.title?.trim() || `#${row.cycleNumber}`,
+      subtitle: [row.planName, row.status, `#${row.cycleNumber}`].filter(Boolean).join(' · ') || null,
+      href: billingCycleSearchHref(row.projectId, row.id),
+      status: row.status,
+      contextLabel: row.projectName,
+      date: row.accountDate,
     }));
   } catch (error) {
     if (isMissingRelation(error)) return [];

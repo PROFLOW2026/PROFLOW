@@ -1,7 +1,9 @@
 'use client';
 
 import * as React from 'react';
+import Decimal from 'decimal.js';
 import { Input, type InputProps } from '@/components/ui/input';
+import { displayScaleFor, MONEY_STORAGE_SCALE } from '@/shared/money';
 import { cn } from '@/shared/ui/cn';
 
 export interface MoneyInputProps extends Omit<InputProps, 'type' | 'numeric' | 'onChange' | 'value'> {
@@ -9,6 +11,8 @@ export interface MoneyInputProps extends Omit<InputProps, 'type' | 'numeric' | '
   /** Receives the raw decimal string; never a parsed float (doc 04). */
   onValueChange: (value: string) => void;
   currencySymbol?: string;
+  /** ISO currency used to round storage-scale amounts to minor units (e.g. 2 for ILS). */
+  currency?: string;
 }
 
 /**
@@ -26,19 +30,46 @@ export function normalizeMoneyInputText(raw: string): string | null {
 }
 
 /**
- * Present stored `numeric(18,6)` amounts without six trailing zeros.
- * Only rewrites exact storage-scale strings so in-progress typing is untouched.
+ * Present stored `numeric(18,6)` amounts for customer-facing inputs.
+ * Exact storage-scale strings are rounded to the currency display scale via
+ * decimal.js (never IEEE-754), then trailing zeros are trimmed.
+ * Also rounds any excess fractional precision beyond the display scale when
+ * a currency is provided (VAT division leakage such as `547.457627`).
+ * In-progress typing (trailing `.` or short fractions while editing) is left untouched.
  *
- * `52000.000000` → `52000`, `52.500000` → `52.5`, `12.340000` → `12.34`
+ * `52000.000000` → `52000`, `52.500000` → `52.5`, `547.457627` + ILS → `547.46`
  */
-export function formatMoneyAmountForInput(raw: string): string {
+export function formatMoneyAmountForInput(raw: string, currency?: string): string {
   const trimmed = raw.trim();
-  const match = /^(-?)(\d+)\.(\d{6})$/.exec(trimmed);
-  if (!match) return raw;
+  const storageMatch = new RegExp(`^(-?)(\\d+)\\.(\\d{${MONEY_STORAGE_SCALE}})$`).exec(trimmed);
+  if (storageMatch) {
+    const [, sign = '', integer = '', fraction = ''] = storageMatch;
+    const scale = currency ? displayScaleFor(currency) : 2;
+    return roundDecimalStringForInput(`${sign}${integer}.${fraction}`, scale);
+  }
 
-  const [, sign = '', integer = '', fraction = ''] = match;
-  const significantFraction = fraction.replace(/0+$/, '');
-  return significantFraction ? `${sign}${integer}.${significantFraction}` : `${sign}${integer}`;
+  if (currency) {
+    const excess = /^(-?)(\d+)\.(\d+)$/.exec(trimmed);
+    if (excess) {
+      const [, sign = '', integer = '', fraction = ''] = excess;
+      const scale = displayScaleFor(currency);
+      if (fraction.length > scale) {
+        return roundDecimalStringForInput(`${sign}${integer}.${fraction}`, scale);
+      }
+    }
+  }
+
+  return raw;
+}
+
+function roundDecimalStringForInput(value: string, scale: number): string {
+  const rounded = new Decimal(value).toDecimalPlaces(scale, Decimal.ROUND_HALF_UP);
+  const asFixed = rounded.toFixed(scale);
+  const negative = asFixed.startsWith('-');
+  const [intPart = '0', fracPart = ''] = asFixed.replace(/^-/, '').split('.');
+  const significantFraction = fracPart.replace(/0+$/, '');
+  const body = significantFraction ? `${intPart}.${significantFraction}` : intPart;
+  return negative ? `-${body}` : body;
 }
 
 /**
@@ -47,7 +78,7 @@ export function formatMoneyAmountForInput(raw: string): string {
  * persisted amounts, so the field never does it.
  */
 export const MoneyInput = React.forwardRef<HTMLInputElement, MoneyInputProps>(function MoneyInput(
-  { value, onValueChange, currencySymbol, className, ...props },
+  { value, onValueChange, currencySymbol, currency, className, ...props },
   ref,
 ) {
   function handleChange(event: React.ChangeEvent<HTMLInputElement>) {
@@ -74,7 +105,7 @@ export const MoneyInput = React.forwardRef<HTMLInputElement, MoneyInputProps>(fu
         numeric
         inputMode="decimal"
         autoComplete="off"
-        value={formatMoneyAmountForInput(value)}
+        value={formatMoneyAmountForInput(value, currency)}
         onChange={handleChange}
         className={cn(currencySymbol && 'ps-8', className)}
         {...props}

@@ -28,9 +28,11 @@
     "cost_categories": "קטגוריות עלות",
     "expenses": "הוצאות (טיוטה)",
     "inventory": "פריטי מלאי (כמות)",
-    "boq_items": "פריטי כתב כמויות"
+    "boq_items": "פריטי כתב כמויות",
+    "billing_plan": "שורות תוכנית חיובים"
   },
   "boqItemsHint": "ייבוא כתב כמויות נכתב לטיוטת כתב הכמויות של הפרויקט. שורות ריקות ושורות סה״כ מדולגות. קודי פריט כפולים הם שגיאה.",
+  "billingPlanHint": "ייבוא שורות טיוטה לתוכנית חיובים. יש לספק planId קיים, או projectId (ואופציונלי contractId) ליצירת תוכנית טיוטה.",
   "fields": {
     "name": "שם",
     "legalName": "שם משפטי",
@@ -76,7 +78,17 @@
     "barcode": "ברקוד",
     "reorderLevel": "רמת הזמנה מחדש",
     "minStockLevel": "מלאי מינימום",
-    "openingQty": "כמות פתיחה"
+    "openingQty": "כמות פתיחה",
+    "planId": "מזהה תוכנית חיובים",
+    "planIdPlaceholder": "UUID של תוכנית",
+    "contractId": "מזהה חוזה",
+    "contractIdPlaceholder": "UUID של חוזה (אופציונלי)",
+    "section": "סעיף",
+    "label": "תיאור שורה",
+    "agreedAmount": "סכום מוסכם",
+    "agreedPercent": "אחוז מוסכם",
+    "targetDate": "תאריך יעד",
+    "lineKind": "סוג שורה"
   },
   "mapping": {
     "title": "מיפוי עמודות",
@@ -122,6 +134,7 @@
     "previewFailed": "לא ניתן להציג תצוגה מקדימה של הייבוא.",
     "confirmFailed": "לא ניתן להשלים את הייבוא.",
     "nothingSelected": "בחרו לפחות שורה תקינה אחת לייבוא.",
-    "needProjectId": "הזינו מזהה פרויקט לייבוא כתב כמויות."
+    "needProjectId": "הזינו מזהה פרויקט לייבוא כתב כמויות.",
+    "needPlanOrProjectId": "הזינו מזהה תוכנית חיובים או מזהה פרויקט לייבוא תוכנית חיובים."
   }
 }

@@ -51,6 +51,8 @@
     "warranty": "אחריות",
     "communication": "הודעה",
     "calendar_event": "אירוע בלוח שנה",
-    "closeout": "סגירת פרויקט"
+    "closeout": "סגירת פרויקט",
+    "billing_plan": "תוכנית חיוב",
+    "billing_cycle": "מחזור חיוב"
   }
 }

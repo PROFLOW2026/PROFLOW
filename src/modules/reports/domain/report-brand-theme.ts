@@ -15,6 +15,7 @@ const CUSTOMER_KINDS = new Set<ReportKind>([
   'contract_summary',
   'work_order',
   'service_completion',
+  'project_billing_account',
 ]);
 
 export function reportBrandTheme(kind: ReportKind): DocumentTheme {

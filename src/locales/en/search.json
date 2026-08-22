@@ -51,6 +51,8 @@
     "warranty": "Warranty",
     "communication": "Message",
     "calendar_event": "Calendar event",
-    "closeout": "Closeout"
+    "closeout": "Closeout",
+    "billing_plan": "Billing plan",
+    "billing_cycle": "Billing cycle"
   }
 }

@@ -32,6 +32,11 @@ const EXAMPLE_ROWS: Partial<Record<ImportKind, readonly (readonly string[])[]>> 
     ['01.02', 'Lean concrete blinding', 'm2', '80', '45', '3600', 'Earthworks', 'Foundations'],
     ['02.01', 'Formwork walls', 'm2', '200', '120.00', '24000.00', 'Concrete', 'Walls'],
   ],
+  billing_plan: [
+    ['Structure', 'Foundations', '30000', '30', '2026-06-01', '', 'percent_of_contract'],
+    ['Structure', 'Frame', '40000', '40', '2026-09-01', '', 'percent_of_contract'],
+    ['Closeout', 'Handover', '30000', '30', '2026-12-01', '', 'percent_of_contract'],
+  ],
 };
 
 const BOQ_HE_EXAMPLE_ROWS: readonly (readonly string[])[] = [

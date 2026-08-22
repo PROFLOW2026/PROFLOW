@@ -565,6 +565,82 @@ function validateInventory(values: Readonly<Record<string, string>>): ImportIssu
   return issues;
 }
 
+
+const BILLING_PLAN_LINE_KINDS = [
+  'fixed_amount',
+  'percent_of_contract',
+  'percent_of_base',
+  'milestone',
+  'period',
+  'boq_link',
+  'manual',
+] as const;
+
+function validateBillingPlan(
+  values: Readonly<Record<string, string>>,
+  options: { locale?: string } = {},
+): ImportIssue[] {
+  const issues: ImportIssue[] = [];
+  const he = (options.locale ?? 'en').startsWith('he');
+  const label = emptyToUndefined(values.label);
+  if (!label) {
+    issues.push({
+      severity: 'error',
+      field: 'label',
+      message: he ? 'label הוא שדה חובה' : 'label is required',
+    });
+  }
+  const amountRaw = emptyToUndefined(values.agreedAmount);
+  const percentRaw = emptyToUndefined(values.agreedPercent);
+  if (!amountRaw && !percentRaw) {
+    issues.push({
+      severity: 'error',
+      field: 'agreedAmount',
+      message: he
+        ? 'נדרש סכום מוסכם או אחוז מוסכם'
+        : 'agreedAmount or agreedPercent is required',
+    });
+  }
+  if (amountRaw && !AMOUNT_RE.test(amountRaw)) {
+    issues.push({
+      severity: 'error',
+      field: 'agreedAmount',
+      message: he ? 'סכום מוסכם אינו תקין' : 'agreedAmount must be a positive number',
+    });
+  }
+  if (percentRaw) {
+    const n = Number(percentRaw);
+    if (!Number.isFinite(n) || n < 0 || n > 100) {
+      issues.push({
+        severity: 'error',
+        field: 'agreedPercent',
+        message: he
+          ? 'אחוז מוסכם חייב להיות בין 0 ל-100'
+          : 'agreedPercent must be between 0 and 100',
+      });
+    }
+  }
+  const dateRaw = emptyToUndefined(values.targetDate);
+  if (dateRaw && !DATE_RE.test(dateRaw)) {
+    issues.push({
+      severity: 'error',
+      field: 'targetDate',
+      message: he ? 'תאריך יעד חייב להיות YYYY-MM-DD' : 'targetDate must be YYYY-MM-DD',
+    });
+  }
+  const kindRaw = emptyToUndefined(values.lineKind)?.toLowerCase();
+  if (kindRaw && !(BILLING_PLAN_LINE_KINDS as readonly string[]).includes(kindRaw)) {
+    issues.push({
+      severity: 'error',
+      field: 'lineKind',
+      message: he
+        ? `סוג שורה לא תקין (צפוי: ${BILLING_PLAN_LINE_KINDS.join(', ')})`
+        : `Invalid lineKind (expected: ${BILLING_PLAN_LINE_KINDS.join(', ')})`,
+    });
+  }
+  return issues;
+}
+
 export function validateMappedValues(
   kind: EnabledImportKind,
   values: Readonly<Record<string, string>>,
@@ -595,6 +671,8 @@ export function validateMappedValues(
       return validateInventory(values);
     case 'boq_items':
       return validateBoqItems(values, options.locale ?? 'en');
+    case 'billing_plan':
+      return validateBillingPlan(values, options);
   }
 }
 

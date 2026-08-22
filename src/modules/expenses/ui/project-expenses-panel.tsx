@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/table';
 import { withOrgContext } from '@/shared/auth/session';
 import { Link } from '@/shared/i18n/navigation';
+import { isZeroMoney, type MoneyValue } from '@/shared/money';
 import { cn } from '@/shared/ui/cn';
 import { formatBusinessDate } from '@/shared/dates/format';
 import { listExpensesForOrg } from '../application/queries';
@@ -24,6 +25,10 @@ import { statusShape } from '../domain/lifecycle';
 export interface ProjectExpensesPanelProps {
   readonly projectId: string;
   readonly limit?: number;
+}
+
+function hasRecoverableTax(taxAmount: MoneyValue | null): boolean {
+  return taxAmount != null && !isZeroMoney(taxAmount);
 }
 
 /**
@@ -75,73 +80,108 @@ export async function ProjectExpensesPanel({ projectId, limit = 10 }: ProjectExp
                 <TableRow>
                   <TableHead>{t('fields.date')}</TableHead>
                   <TableHead className="hidden sm:table-cell">{t('fields.description')}</TableHead>
-                  <TableHead numeric>{t('fields.amount')}</TableHead>
+                  <TableHead numeric>{t('fields.grossAmount')}</TableHead>
+                  <TableHead numeric className="hidden md:table-cell">
+                    {t('fields.netCostBasis')}
+                  </TableHead>
                   <TableHead>{t('fields.status')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {items.map((expense) => (
-                  <TableRow key={expense.id}>
-                    <TableCell>
-                      <Link
-                        href={`/expenses/${expense.id}`}
-                        className={cn(textNavLinkClassName, 'block font-medium')}
-                        dir="ltr"
-                      >
-                        {formatBusinessDate(expense.expenseDate, locale, 'short')}
-                      </Link>
-                    </TableCell>
-                    <TableCell className="hidden max-w-[12rem] truncate text-start sm:table-cell">
-                      <Link
-                        href={`/expenses/${expense.id}`}
-                        className={cn(textNavLinkClassName, 'block')}
-                      >
-                        {expense.description || expense.supplierName || t('list.noDescription')}
-                      </Link>
-                    </TableCell>
-                    <TableCell numeric>
-                      <Link
-                        href={`/expenses/${expense.id}`}
-                        className={cn(textNavLinkClassName, 'block')}
-                      >
-                        <MoneyText value={expense.grossAmount} />
-                      </Link>
-                    </TableCell>
-                    <TableCell>
-                      <StatusBadge
-                        shape={statusShape(expense.status)}
-                        label={tStatus(`expense.${expense.status}`)}
-                      />
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {items.map((expense) => {
+                  const showNet = hasRecoverableTax(expense.taxAmount);
+                  return (
+                    <TableRow key={expense.id}>
+                      <TableCell>
+                        <Link
+                          href={`/expenses/${expense.id}`}
+                          className={cn(textNavLinkClassName, 'block font-medium')}
+                          dir="ltr"
+                        >
+                          {formatBusinessDate(expense.expenseDate, locale, 'short')}
+                        </Link>
+                      </TableCell>
+                      <TableCell className="hidden max-w-[12rem] truncate text-start sm:table-cell">
+                        <Link
+                          href={`/expenses/${expense.id}`}
+                          className={cn(textNavLinkClassName, 'block')}
+                        >
+                          {expense.description || expense.supplierName || t('list.noDescription')}
+                        </Link>
+                      </TableCell>
+                      <TableCell numeric>
+                        <Link
+                          href={`/expenses/${expense.id}`}
+                          className={cn(textNavLinkClassName, 'block')}
+                        >
+                          <MoneyText value={expense.grossAmount} />
+                          {showNet ? (
+                            <span className="mt-0.5 block text-xs font-normal text-[var(--pf-text-muted)] md:hidden">
+                              {t('fields.netCostBasis')}: <MoneyText value={expense.netAmount} />
+                            </span>
+                          ) : null}
+                        </Link>
+                      </TableCell>
+                      <TableCell numeric className="hidden md:table-cell">
+                        <Link
+                          href={`/expenses/${expense.id}`}
+                          className={cn(textNavLinkClassName, 'block')}
+                        >
+                          {showNet ? (
+                            <MoneyText value={expense.netAmount} />
+                          ) : (
+                            <span className="text-[var(--pf-text-muted)]">-</span>
+                          )}
+                        </Link>
+                      </TableCell>
+                      <TableCell>
+                        <StatusBadge
+                          shape={statusShape(expense.status)}
+                          label={tStatus(`expense.${expense.status}`)}
+                        />
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           </div>
         }
-        renderMobileCard={(expense) => (
-          <Link
-            href={`/expenses/${expense.id}`}
-            className={cn(pressableCardLinkClassName, 'text-start')}
-          >
-            <div className="flex items-start justify-between gap-2">
-              <span className="min-w-0 flex-1 font-semibold" dir="ltr">
-                {formatBusinessDate(expense.expenseDate, locale, 'short')}
-              </span>
-              <StatusBadge
-                className="shrink-0"
-                shape={statusShape(expense.status)}
-                label={tStatus(`expense.${expense.status}`)}
-              />
-            </div>
-            <p className="mt-1 truncate text-sm text-[var(--pf-text-secondary)]">
-              {expense.description || expense.supplierName || t('list.noDescription')}
-            </p>
-            <p className="mt-2 text-sm">
-              <MoneyText value={expense.grossAmount} />
-            </p>
-          </Link>
-        )}
+        renderMobileCard={(expense) => {
+          const showNet = hasRecoverableTax(expense.taxAmount);
+          return (
+            <Link
+              href={`/expenses/${expense.id}`}
+              className={cn(pressableCardLinkClassName, 'text-start')}
+            >
+              <div className="flex items-start justify-between gap-2">
+                <span className="min-w-0 flex-1 font-semibold" dir="ltr">
+                  {formatBusinessDate(expense.expenseDate, locale, 'short')}
+                </span>
+                <StatusBadge
+                  className="shrink-0"
+                  shape={statusShape(expense.status)}
+                  label={tStatus(`expense.${expense.status}`)}
+                />
+              </div>
+              <p className="mt-1 truncate text-sm text-[var(--pf-text-secondary)]">
+                {expense.description || expense.supplierName || t('list.noDescription')}
+              </p>
+              <div className="mt-2 flex flex-col gap-0.5 text-sm">
+                <p>
+                  <span className="text-[var(--pf-text-muted)]">{t('fields.grossAmount')}: </span>
+                  <MoneyText value={expense.grossAmount} />
+                </p>
+                {showNet ? (
+                  <p className="text-[var(--pf-text-secondary)]">
+                    <span className="text-[var(--pf-text-muted)]">{t('fields.netCostBasis')}: </span>
+                    <MoneyText value={expense.netAmount} />
+                  </p>
+                ) : null}
+              </div>
+            </Link>
+          );
+        }}
       />
 
       <Button asChild variant="ghost" size="sm" className="self-start">

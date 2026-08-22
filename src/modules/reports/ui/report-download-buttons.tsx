@@ -19,14 +19,15 @@ export function ReportDownloadButtons({
   const t = useTranslations('reports');
   const downloadHref = reportDownloadPath(kind, id);
   const previewHref = reportPreviewPath(kind, id);
+  const kindLabel = t(`kinds.${kind}`);
 
   return (
     <div className="flex flex-wrap items-center gap-2 print:hidden">
       <ExportDownloadButton href={downloadHref} variant={compact ? 'ghost' : 'secondary'} size="sm">
-        {t('downloadPdf')}
+        {t('downloadKindPdf', { kind: kindLabel })}
       </ExportDownloadButton>
       <Button asChild variant="ghost" size="sm">
-        <Link href={previewHref}>{t('previewPrint')}</Link>
+        <Link href={previewHref}>{t('previewKindPrint', { kind: kindLabel })}</Link>
       </Button>
     </div>
   );

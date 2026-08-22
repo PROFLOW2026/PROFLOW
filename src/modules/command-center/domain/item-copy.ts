@@ -780,3 +780,51 @@ export function communicationFailedCopy(
     why: 'Delivery failed or was not confirmed by the provider.',
   };
 }
+
+export function billingPlanCycleDraftCopy(
+  locale: string,
+  input: { title: string; cycleNumber: number },
+): { what: string; why: string } {
+  if (he(locale)) {
+    return {
+      what: `חשבון התקדמות ממתין להנפקה - ${input.title}`,
+      why: `חשבון מס׳ ${input.cycleNumber} בטיוטה או מוכן להנפקה כחיוב.`,
+    };
+  }
+  return {
+    what: `Progress account awaiting issue - ${input.title}`,
+    why: `Account #${input.cycleNumber} is draft/ready to issue as billing (not payment).`,
+  };
+}
+
+export function billingPlanMilestoneDueCopy(
+  locale: string,
+  input: { label: string; targetDate: string },
+): { what: string; why: string } {
+  if (he(locale)) {
+    return {
+      what: `אבן דרך לחיוב - ${input.label}`,
+      why: `תאריך יעד ${input.targetDate}`,
+    };
+  }
+  return {
+    what: `Billing milestone due - ${input.label}`,
+    why: `Target date ${input.targetDate}`,
+  };
+}
+
+export function billingPlanRetentionReleaseDueCopy(
+  locale: string,
+  input: { heldRemaining: string; currency: string },
+): { what: string; why: string } {
+  if (he(locale)) {
+    return {
+      what: 'שחרור עיכבון מתוכנית חיובים',
+      why: `יתרת עיכבון מוחזק ${input.heldRemaining} ${input.currency} — ניתן לשחרר לחיוב.`,
+    };
+  }
+  return {
+    what: 'Release billing-plan retention',
+    why: `${input.heldRemaining} ${input.currency} retention held remaining — ready to release as billing.`,
+  };
+}

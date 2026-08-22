@@ -35,6 +35,11 @@ export const createBillingRecordSchema = z.object({
   retentionAmount: moneyAmountSchema.optional().nullable(),
   retentionPercent: moneyAmountSchema.optional().nullable(),
   finalize: z.boolean().optional(),
+  /** Originating module link (e.g. billing_plan cycle). Defaults to manual. */
+  sourceKind: z
+    .enum(['manual', 'boq_progress', 'work_order', 'retention_release', 'billing_plan'])
+    .optional(),
+  sourceId: z.string().uuid().optional().nullable(),
 });
 
 export type CreateBillingRecordInput = z.infer<typeof createBillingRecordSchema>;

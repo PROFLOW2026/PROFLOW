@@ -6,6 +6,10 @@ export interface SeededWorld {
   otherOrganizationId: string;
   projectId: string;
   otherProjectId: string;
+  /** Optional seed ids present in richer harness worlds. */
+  vendorId?: string;
+  advancedProjectId?: string;
+  changeProjectId?: string;
 }
 
 const worldPath = path.resolve(process.cwd(), 'tests/e2e/.world.json');

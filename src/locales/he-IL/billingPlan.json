@@ -1,0 +1,378 @@
+{
+  "title": "תוכנית חיובים",
+  "subtitle": "תזמון חשבונות חלקיים מול החוזה. הנפקת מחזור יוצרת חיוב — לעולם לא תשלום.",
+  "panel": {
+    "title": "תוכנית חיובים",
+    "emptyTitle": "אין עדיין תוכנית חיובים",
+    "emptyBody": "צרו תוכנית כדי לתזמן חשבונות חלקיים מול ערך החוזה.",
+    "emptyAction": "יצירת תוכנית חיובים",
+    "oneActiveHint": "מותרת תוכנית פעילה אחת בלבד לכל פרויקט וחוזה.",
+    "noContract": "הוסיפו תחילה סכום חוזה, ואז צרו תוכנית חיובים.",
+    "selectContract": "חוזה לתוכנית זו",
+    "simplifiedHint": "לוח תשלומים פשוט בשלושה חלקים. הפעילו את התוכנית ואז הנפיקו חשבונות חלקיים."
+  },
+  "strip": {
+    "nextStage": "שלב הבא",
+    "billedPercent": "אחוז שחויב",
+    "unbilled": "יתרה לחיוב",
+    "draftAccount": "טיוטת חשבון",
+    "noDraftAccount": "אין"
+  },
+  "summary": {
+    "contractValue": "חוזה נוכחי",
+    "planned": "מתוכנן",
+    "billed": "חויב",
+    "remainingPlanned": "יתרה מתוכננת",
+    "unplanned": "לא מתוכנן",
+    "retentionHeld": "עיכבון מוחזק",
+    "retentionReleased": "עיכבון ששוחרר"
+  },
+  "lines": {
+    "title": "שורות התוכנית",
+    "label": "תיאור",
+    "base": "בסיס",
+    "priorPercent": "קודם %",
+    "priorAmount": "קודם ₪",
+    "currentPercent": "נוכחי %",
+    "currentAmount": "נוכחי ₪",
+    "cumPercent": "מצטבר %",
+    "cumAmount": "מצטבר ₪",
+    "retention": "עיכבון",
+    "remaining": "יתרה",
+    "agreedPercent": "אחוז מוסכם",
+    "moveUp": "העברה למעלה",
+    "moveDown": "העברה למטה",
+    "rename": "שינוי שם",
+    "empty": "אין עדיין שורות. הוסיפו שורה או החילו תבנית."
+  },
+  "cycles": {
+    "title": "חשבונות חלקיים",
+    "empty": "אין עדיין חשבונות חלקיים.",
+    "draftWorkspace": "טיוטת חשבון",
+    "selectCycle": "פתיחת חשבון",
+    "printPreview": "הדפסה / תצוגת PDF",
+    "issueConfirm": "להנפיק חשבון זה כרשומת חיוב? תשלומים נרשמים בנפרד.",
+    "newTitlePlaceholder": "לדוגמה: חשבון חלקי 1",
+    "totalsCurrent": "סה״כ בחשבון זה",
+    "totalsRetention": "עיכבון בחשבון זה"
+  },
+  "create": {
+    "title": "יצירת תוכנית חיובים",
+    "description": "בחרו תוכנית ריקה, לוח פשוט 30/40/30, או תבנית מקצוע.",
+    "modeBlank": "תוכנית ריקה",
+    "modeSimple": "תוכנית פשוטה 30 / 40 / 30",
+    "modeTemplate": "מתבנית",
+    "namePlaceholder": "תוכנית חיובים",
+    "templateLabel": "תבנית",
+    "activate": "הפעלה מיידית",
+    "simpleLine1": "תשלום ראשון (30%)",
+    "simpleLine2": "תשלום שני (40%)",
+    "simpleLine3": "תשלום אחרון (30%)"
+  },
+  "projectCreate": {
+    "sectionTitle": "תוכנית חיובים",
+    "sectionHint": "אופציונלי. לא חוסם את יצירת הפרויקט.",
+    "none": "לא עכשיו",
+    "simple": "צור תוכנית פשוטה (30/40/30)",
+    "template": "צור מתבנית",
+    "templateLabel": "תבנית תוכנית חיובים"
+  },
+  "print": {
+    "documentTitle": "חשבון חלקי",
+    "accountDate": "תאריך חשבון",
+    "period": "תקופה",
+    "cycleNumber": "מס׳ חשבון",
+    "planName": "תוכנית חיובים",
+    "contract": "חוזה",
+    "line": "שורה",
+    "prior": "חויב בעבר",
+    "current": "בחשבון זה",
+    "cumulative": "מצטבר",
+    "remaining": "יתרה",
+    "retention": "עיכבון",
+    "total": "סה״כ",
+    "printButton": "הדפסה",
+    "integrityNote": "מסמך זה הוא חשבון חלקי לצורכי חיוב בלבד — אינו קבלה על תשלום."
+  },
+  "status": {
+    "draft": "טיוטה",
+    "active": "פעילה",
+    "completed": "הושלמה",
+    "archived": "בארכיון"
+  },
+  "cycleStatus": {
+    "draft": "טיוטה",
+    "ready": "מוכן",
+    "submitted": "הוגש",
+    "partially_approved": "אושר חלקית",
+    "approved": "אושר",
+    "void": "מבוטל",
+    "issued": "הוגש"
+  },
+  "documentKind": {
+    "progress_account": "חשבון התקדמות",
+    "partial_account": "חשבון חלקי",
+    "payment_request": "בקשת תשלום"
+  },
+  "lineKind": {
+    "fixed_amount": "סכום קבוע",
+    "percent_of_contract": "אחוז מהחוזה",
+    "percent_of_base": "אחוז מבסיס",
+    "milestone": "אבן דרך",
+    "period": "תקופה",
+    "boq_link": "קישור לכתב כמויות",
+    "manual": "ידני"
+  },
+  "fields": {
+    "name": "שם התוכנית",
+    "contract": "חוזה",
+    "currency": "מטבע",
+    "defaultRetention": "עיכבון ברירת מחדל %",
+    "notes": "הערות",
+    "label": "תיאור שורה",
+    "agreedAmount": "סכום מוסכם",
+    "agreedPercent": "אחוז מוסכם",
+    "currentPercent": "אחוז בחשבון זה",
+    "currentAmount": "סכום בחשבון זה",
+    "priorAmount": "חויב בעבר",
+    "cumulativeAmount": "מצטבר שחויב",
+    "remainingAmount": "יתרה",
+    "retention": "עיכבון",
+    "accountDate": "תאריך חשבון",
+    "period": "תקופה",
+    "cycleTitle": "כותרת חשבון",
+    "section": "סעיף"
+  },
+  "actions": {
+    "createPlan": "יצירת תוכנית",
+    "activate": "הפעלה",
+    "complete": "סימון כהושלמה",
+    "archive": "העברה לארכיון",
+    "addLine": "הוספת שורה",
+    "removeLine": "הסרת שורה",
+    "reorder": "שינוי סדר",
+    "duplicate": "שכפול",
+    "split": "פיצול שורה",
+    "applyTemplate": "החלת תבנית",
+    "saveAsTemplate": "שמירה כתבנית ארגון",
+    "createCycle": "חשבון חלקי חדש",
+    "updateCycle": "שמירת שורות החשבון",
+    "issueCycle": "הנפקה כחיוב",
+    "viewBilling": "פתיחת רשומת חיוב",
+    "saveLines": "שמירת שורות"
+  },
+  "recon": {
+    "title": "תוכנית מול חוזה",
+    "contractValue": "ערך חוזה נוכחי",
+    "plannedTotal": "סה״כ מתוכנן",
+    "billedTotal": "חויב עד כה",
+    "unplanned": "לא מתוכנן (חוזה − מתוכנן)",
+    "remainingPlanned": "יתרה מתוכננת",
+    "overPlanned": "הסכום המתוכנן חורג מערך החוזה"
+  },
+  "integrity": {
+    "billingNotPayment": "הנפקת מחזור יוצרת רשומת חיוב בלבד. רישום תשלומים נעשה בנפרד תחת גבייה.",
+    "cycleFullyPaidLocked": "חשבון ששולם במלואו אינו ניתן לעריכה רגילה. השתמשו בתיקון/היפוך.",
+    "cannotReduceBelowPaid": "לא ניתן להקטין את הסכום המאושר מתחת לסכום שכבר שולם.",
+    "cycleNotSubmittable": "ניתן להגיש רק חשבון בטיוטה או מוכן.",
+    "cycleNotApprovable": "ניתן לאשר רק חשבון שהוגש או שאושר חלקית.",
+    "cycleNotEditable": "לא ניתן לערוך חשבון זה.",
+    "issuedImmutable": "שורות חשבון ששולמו במלואן אינן ניתנות לעריכה רגילה.",
+    "overbillBlocked": "החיוב המצטבר אינו יכול לחרוג מהסכום המוסכם בשורה."
+  },
+  "errors": {
+    "overbill": "חשבון זה יחרוג מהסכום המוסכם בשורה — המצטבר גדול מהמוסכם.",
+    "negativeAmount": "סכום לא יכול להיות שלילי.",
+    "invalidPercent": "אחוז לא תקין.",
+    "currencyMismatch": "המטבעות אינם תואמים.",
+    "agreedBelowBilled": "הסכום המוסכם לא יכול להיות נמוך ממה שכבר חויב.",
+    "activePlanExists": "כבר קיימת תוכנית חיובים פעילה לפרויקט ולחוזה אלה.",
+    "invalidPlanTransition": "מעבר סטטוס זה בתוכנית אינו מותר.",
+    "invalidCycleTransition": "מעבר סטטוס זה בחשבון אינו מותר.",
+    "planNotEditable": "ניתן לערוך רק תוכניות בטיוטה או פעילות.",
+    "planNotActive": "יצירה או הנפקה של חשבונות מותרת רק בתוכנית פעילה.",
+    "cycleNotIssuable": "ניתן להנפיק רק חשבונות בטיוטה או מוכנים.",
+    "cycleLinesImmutable": "שורות חשבון שהונפקו אינן ניתנות לשינוי.",
+    "cycleAlreadyIssued": "חשבון זה כבר הונפק לחיוב.",
+    "lineAlreadyBilled": "שורה זו כבר חויבה ולא ניתן להסיר או להחליף אותה.",
+    "splitPercentsInvalid": "חלקי הפיצול חייבים להסתכם ל־100%.",
+    "retentionOverRelease": "לא ניתן לשחרר יותר מהעיכבון המוחזק.",
+    "boqAlreadyBilled": "שורת כתב כמויות זו כבר חויבה בחשבון התקדמות ולא ניתן לחייב אותה שוב מתוכנית החיובים."
+  },
+  "templates": {
+    "sections": {
+      "cash": "מקדמות / מזומן",
+      "structure": "שלד",
+      "finishes": "גמרים",
+      "closeout": "מסירה",
+      "supply": "אספקה",
+      "install": "התקנה",
+      "prep": "הכנות",
+      "systems": "מערכות",
+      "work": "ביצוע",
+      "design": "תכנון",
+      "supervision": "פיקוח",
+      "phases": "שלבים",
+      "visits": "ביקורים",
+      "deliverables": "תוצרים",
+      "milestones": "אבני דרך",
+      "service": "שירות"
+    },
+    "contractor": {
+      "name": "קבלן ראשי",
+      "description": "מקדמה, שלד, גמרים ומסירה.",
+      "lines": {
+        "advance": "מקדמה",
+        "foundation": "יסודות",
+        "structure": "שלד",
+        "envelope": "מעטפת",
+        "finishes": "גמרים",
+        "handover": "מסירה"
+      }
+    },
+    "electrical": {
+      "name": "חשמל",
+      "description": "חומרים, תשתיות, לוחות והפעלה.",
+      "lines": {
+        "materials": "חומרים",
+        "roughIn": "תשתיות",
+        "panels": "לוחות והתקנים",
+        "commissioning": "הפעלה ובדיקות"
+      }
+    },
+    "renovation": {
+      "name": "שיפוץ",
+      "description": "הריסה עד השלמה בעבודות שיפוץ.",
+      "lines": {
+        "demolition": "הריסה",
+        "systems": "מערכות",
+        "finishes": "גמרים",
+        "completion": "השלמה"
+      }
+    },
+    "smallWorks": {
+      "name": "עבודות קטנות",
+      "description": "מקדמה / התקדמות / סיום פשוט.",
+      "lines": {
+        "deposit": "מקדמה",
+        "progress": "התקדמות",
+        "final": "סיום"
+      }
+    },
+    "architecture": {
+      "name": "אדריכלות",
+      "description": "קונספט עד פיקוח עליון.",
+      "lines": {
+        "concept": "תכנון ראשוני",
+        "permit": "הגשה להיתר",
+        "detail": "תכנון מפורט",
+        "supervision": "פיקוח עליון"
+      }
+    },
+    "consulting": {
+      "name": "ייעוץ",
+      "description": "פתיחה, אמצע ותוצרים.",
+      "lines": {
+        "kickoff": "פתיחה",
+        "mid": "אמצע",
+        "delivery": "מסירת תוצרים"
+      }
+    },
+    "inspection": {
+      "name": "ביקורת / בדיקה",
+      "description": "ביקור באתר ודוח בסכומים קבועים.",
+      "lines": {
+        "siteVisit": "ביקור באתר",
+        "report": "דוח ביקורת"
+      }
+    },
+    "serviceInstall": {
+      "name": "התקנת שירות",
+      "description": "ציוד, התקנה והדרכה.",
+      "lines": {
+        "equipment": "ציוד",
+        "install": "התקנה",
+        "training": "הדרכה ומסירה"
+      }
+    },
+    "mixed": {
+      "name": "אבני דרך מעורבות",
+      "description": "ארבעה חשבונות שווים לפי אבני דרך.",
+      "lines": {
+        "milestone1": "אבן דרך 1",
+        "milestone2": "אבן דרך 2",
+        "milestone3": "אבן דרך 3",
+        "milestone4": "אבן דרך 4"
+      }
+    },
+    "plumbing": {
+      "name": "אינסטלציה",
+      "description": "חומרים, תשתיות וסניטרים.",
+      "lines": {
+        "materials": "חומרים",
+        "roughIn": "תשתיות",
+        "fixtures": "סניטרים"
+      }
+    },
+    "hvac": {
+      "name": "מיזוג אוויר",
+      "description": "ציוד, תעלות והפעלה.",
+      "lines": {
+        "equipment": "ציוד",
+        "ducting": "תעלות",
+        "commissioning": "הפעלה"
+      }
+    },
+    "design": {
+      "name": "עיצוב",
+      "description": "קונספט, פירוט ומסירה.",
+      "lines": {
+        "concept": "קונספט",
+        "detail": "פירוט",
+        "delivery": "מסירה"
+      }
+    },
+    "engineering": {
+      "name": "הנדסה",
+      "description": "סקר, חישובים ואישור.",
+      "lines": {
+        "survey": "סקר",
+        "calculations": "חישובים",
+        "signOff": "אישור"
+      }
+    },
+    "maintenance": {
+      "name": "תחזוקה",
+      "description": "גיוס, שירות וסגירה.",
+      "lines": {
+        "mobilization": "גיוס",
+        "service": "שירות",
+        "closeout": "סגירה"
+      }
+    }
+  },
+  "retention": {
+    "heldTitle": "עיכבון שנצבר",
+    "heldHint": "סה״כ עיכבון מוחזק מחשבונות שהונפקו בתוכנית זו.",
+    "remainingAfter": "יתרת עיכבון מוחזק",
+    "releaseAction": "שחרור עיכבון",
+    "releaseTitle": "שחרור עיכבון",
+    "releaseDescription": "שחרור חלקי או מלא מול רשומות החיוב שמחזיקות עיכבון. לא ניתן לשחרר מעבר ליתרה.",
+    "amountLabel": "סכום לשחרור",
+    "dateLabel": "תאריך שחרור",
+    "notesLabel": "הערות",
+    "maxHint": "מקסימום לשחרור: {amount}",
+    "overRelease": "לא ניתן לשחרר יותר מהעיכבון המוחזק.",
+    "noneHeld": "אין עיכבון מוחזק לשחרור.",
+    "submit": "שחרור"
+  },
+  "orgTemplates": {
+    "saveAction": "שמירה כתבנית ארגון",
+    "saveTitle": "שמירת תוכנית כתבנית",
+    "saveName": "שם התבנית",
+    "applyAction": "החלת תבנית ארגון",
+    "archiveAction": "העברה לארכיון",
+    "empty": "אין תבניות ארגון פעילות.",
+    "listLabel": "תבניות ארגון"
+  }
+}

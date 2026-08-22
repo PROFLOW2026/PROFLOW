@@ -442,6 +442,20 @@
                         "when":  1786561700000,
                         "tag":  "0063_branding_billing_freeze_permission",
                         "breakpoints":  true
+                    },
+                    {
+                        "idx":  63,
+                        "version":  "7",
+                        "when":  1787334000000,
+                        "tag":  "0064_payment_terms_eom_90_120",
+                        "breakpoints":  true
+                    },
+                    {
+                        "idx":  64,
+                        "version":  "7",
+                        "when":  1787334100000,
+                        "tag":  "0065_project_billing_plans",
+                        "breakpoints":  true
                     }
                 ]
 }

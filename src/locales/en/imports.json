@@ -28,9 +28,11 @@
     "cost_categories": "Cost categories",
     "expenses": "Expenses (draft)",
     "inventory": "Inventory items (qty)",
-    "boq_items": "BOQ items"
+    "boq_items": "BOQ items",
+    "billing_plan": "Billing plan lines"
   },
   "boqItemsHint": "BOQ import writes into a draft Bill of Quantities for the project. Blank and total rows are skipped. Duplicate item codes are errors.",
+  "billingPlanHint": "Imports draft billing plan lines. Provide an existing planId, or projectId (and optional contractId) to create a draft plan.",
   "fields": {
     "name": "Name",
     "legalName": "Legal name",
@@ -76,7 +78,17 @@
     "barcode": "Barcode",
     "reorderLevel": "Reorder level",
     "minStockLevel": "Min stock level",
-    "openingQty": "Opening quantity"
+    "openingQty": "Opening quantity",
+    "planId": "Billing plan ID",
+    "planIdPlaceholder": "Plan UUID",
+    "contractId": "Contract ID",
+    "contractIdPlaceholder": "Contract UUID (optional)",
+    "section": "Section",
+    "label": "Line label",
+    "agreedAmount": "Agreed amount",
+    "agreedPercent": "Agreed percent",
+    "targetDate": "Target date",
+    "lineKind": "Line kind"
   },
   "mapping": {
     "title": "Column mapping",
@@ -122,6 +134,7 @@
     "previewFailed": "Could not preview the import.",
     "confirmFailed": "Could not complete the import.",
     "nothingSelected": "Select at least one valid row to import.",
-    "needProjectId": "Enter a project ID for BOQ import."
+    "needProjectId": "Enter a project ID for BOQ import.",
+    "needPlanOrProjectId": "Enter a billing plan ID or project ID for billing plan import."
   }
 }

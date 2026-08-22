@@ -3,6 +3,8 @@ import { GLOBAL_SEARCH_KINDS } from '@/modules/search/domain/types';
 import { globalSearchSchema } from '@/modules/search/validation/schemas';
 import {
   assetSearchHref,
+  billingCycleSearchHref,
+  billingPlanSearchHref,
   calendarEventSearchHref,
   closeoutSearchHref,
   communicationSearchHref,
@@ -50,6 +52,8 @@ describe('global search validation', () => {
         'communication',
         'calendar_event',
         'closeout',
+        'billing_plan',
+        'billing_cycle',
       ]),
     );
   });
@@ -72,5 +76,17 @@ describe('global search validation', () => {
     expect(workEntityHref('job', id)).toBe(`/jobs/${id}`);
     expect(workEntityHref('work_order', id)).toBe(`/work-orders/${id}`);
     expect(workEntityHref('project', id)).toBe(`/projects/${id}`);
+  });
+
+  it('points billing-plan hits at the project billing-plan tab', () => {
+    const planId = '11111111-2222-4333-8444-555555555555';
+    const cycleId = '22222222-3333-4444-8555-666666666666';
+    const projectId = 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee';
+    expect(billingPlanSearchHref(projectId, planId)).toBe(
+      `/projects/${projectId}?tab=billingPlan&planId=${planId}`,
+    );
+    expect(billingCycleSearchHref(projectId, cycleId)).toBe(
+      `/projects/${projectId}?tab=billingPlan&cycleId=${cycleId}`,
+    );
   });
 });

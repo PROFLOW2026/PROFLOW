@@ -55,7 +55,10 @@
     "warranty_expiring": "Warranty ending",
     "cash_flow_risk": "Cash flow risk",
     "automation_followup": "Automation follow-up",
-    "communication_failed": "Message not sent"
+    "communication_failed": "Message not sent",
+    "billing_plan_cycle_draft": "Progress account to issue",
+    "billing_plan_milestone_due": "Billing milestone due",
+    "billing_plan_retention_release_due": "Retention release due"
   },
   "empty": {
     "title": "You're clear",

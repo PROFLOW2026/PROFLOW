@@ -244,6 +244,45 @@ const EXPENSE_FIELDS: readonly ImportFieldDef[] = [
   { key: 'notes', required: false, aliases: ['notes', 'הערות'] },
 ];
 
+/** Billing plan line rows. Confirm needs planId or projectId (+ contractId). */
+const BILLING_PLAN_FIELDS: readonly ImportFieldDef[] = [
+  {
+    key: 'section',
+    required: false,
+    aliases: ['section', 'chapter', 'header', 'סעיף', 'פרק', 'קטגוריה'],
+  },
+  {
+    key: 'label',
+    required: true,
+    aliases: ['label', 'description', 'name', 'line', 'תיאור', 'שם', 'שורה'],
+  },
+  {
+    key: 'agreedAmount',
+    required: false,
+    aliases: ['agreed_amount', 'amount', 'base_amount', 'סכום', 'סכום_מוסכם'],
+  },
+  {
+    key: 'agreedPercent',
+    required: false,
+    aliases: ['agreed_percent', 'percent', 'pct', 'אחוז', 'אחוז_מוסכם'],
+  },
+  {
+    key: 'targetDate',
+    required: false,
+    aliases: ['target_date', 'date', 'due_date', 'תאריך', 'תאריך_יעד'],
+  },
+  {
+    key: 'notes',
+    required: false,
+    aliases: ['notes', 'remark', 'הערות'],
+  },
+  {
+    key: 'lineKind',
+    required: false,
+    aliases: ['line_kind', 'kind', 'type', 'סוג', 'סוג_שורה'],
+  },
+];
+
 const FIELDS_BY_KIND: Record<ImportKind, readonly ImportFieldDef[]> = {
   clients: CLIENT_FIELDS,
   contacts: CONTACT_FIELDS,
@@ -255,6 +294,7 @@ const FIELDS_BY_KIND: Record<ImportKind, readonly ImportFieldDef[]> = {
   expenses: EXPENSE_FIELDS,
   inventory: INVENTORY_FIELDS,
   boq_items: BOQ_ITEM_FIELDS,
+  billing_plan: BILLING_PLAN_FIELDS,
 };
 
 export function fieldDefsForKind(kind: ImportKind): readonly ImportFieldDef[] {

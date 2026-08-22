@@ -269,6 +269,7 @@ export async function getClientDetail(
 
   let clientTypeName: string | null = null;
   let defaultPaymentTermName: string | null = null;
+  let defaultPaymentTermKey: string | null = null;
   if (client.clientTypeId) {
     const [typeRow] = await db
       .select({ name: organizationCatalogEntries.name })
@@ -284,7 +285,10 @@ export async function getClientDetail(
   }
   if (client.defaultPaymentTermId) {
     const [termRow] = await db
-      .select({ name: organizationCatalogEntries.name })
+      .select({
+        name: organizationCatalogEntries.name,
+        key: organizationCatalogEntries.key,
+      })
       .from(organizationCatalogEntries)
       .where(
         and(
@@ -294,6 +298,7 @@ export async function getClientDetail(
       )
       .limit(1);
     defaultPaymentTermName = termRow?.name ?? null;
+    defaultPaymentTermKey = termRow?.key ?? null;
   }
 
   return {
@@ -303,6 +308,7 @@ export async function getClientDetail(
     projectCount: countRow?.count ?? 0,
     clientTypeName,
     defaultPaymentTermName,
+    defaultPaymentTermKey,
   };
 }
 

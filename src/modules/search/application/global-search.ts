@@ -8,6 +8,8 @@ import type { GlobalSearchHit, GlobalSearchResult } from '../domain/types';
 import {
   searchApBills,
   searchAssets,
+  searchBillingCycles,
+  searchBillingPlans,
   searchBillingRecords,
   searchBoqItems,
   searchClients,
@@ -139,6 +141,12 @@ export async function globalSearch(
   if (hasPermission(context, PERMISSIONS.BILLING_READ)) {
     tasks.push(
       searchBillingRecords(context.db, context.organizationId, query, limit, accessibleProjectIds),
+    );
+    tasks.push(
+      searchBillingPlans(context.db, context.organizationId, query, limit, accessibleProjectIds),
+    );
+    tasks.push(
+      searchBillingCycles(context.db, context.organizationId, query, limit, accessibleProjectIds),
     );
   }
   if (hasPermission(context, PERMISSIONS.EXPENSES_READ)) {

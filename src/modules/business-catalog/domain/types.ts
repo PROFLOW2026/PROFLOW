@@ -171,8 +171,20 @@ export const DEFAULT_PAYMENT_TERMS: readonly {
     metadata: { strategy: 'eom_plus_days', eomOffsetDays: 60 },
     sortOrder: 100,
   },
-  { key: 'milestone', name: 'Milestone-based', metadata: { strategy: 'milestone' }, sortOrder: 110 },
-  { key: 'custom', name: 'Custom', metadata: { strategy: 'custom' }, sortOrder: 120 },
+  {
+    key: 'eom_90',
+    name: 'EOM + 90',
+    metadata: { strategy: 'eom_plus_days', eomOffsetDays: 90 },
+    sortOrder: 105,
+  },
+  {
+    key: 'eom_120',
+    name: 'EOM + 120',
+    metadata: { strategy: 'eom_plus_days', eomOffsetDays: 120 },
+    sortOrder: 108,
+  },
+  { key: 'milestone', name: 'Milestone-based', metadata: { strategy: 'milestone' }, sortOrder: 120 },
+  { key: 'custom', name: 'Custom', metadata: { strategy: 'custom' }, sortOrder: 130 },
 ];
 
 export const DEFAULT_CLIENT_TYPES: readonly { readonly key: string; readonly name: string }[] = [

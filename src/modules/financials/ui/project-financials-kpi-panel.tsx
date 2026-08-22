@@ -311,23 +311,47 @@ export function ProjectFinancialsKpiPanel({
         whyLabel={actualDrill?.whyLabel}
         emphasis
         lines={
-          actualDrill?.lines ?? [
-            {
-              label: t('kpis.recognizedOriginal'),
-              value: financials.cost.actualCostToDate,
-            },
-            {
-              label: t('kpis.monthCloseCost'),
-              value: financials.cost.monthCloseCostNet,
-              muted: true,
-              hint: t('explain.infoLineHint'),
-            },
-            {
-              label: t('kpis.actualCost'),
-              value: financials.cost.actualCostToDate,
-              emphasis: true,
-            },
-          ]
+          actualDrill?.lines
+            ? [
+                ...actualDrill.lines,
+                {
+                  label: t('kpis.grossExpenseTotal'),
+                  muted: true,
+                  hint: t('kpis.vatReconciliationHint'),
+                },
+                {
+                  label: t('kpis.recoverableVat'),
+                  muted: true,
+                  hint: t('basis.netExVat'),
+                },
+              ]
+            : [
+                {
+                  label: t('kpis.recognizedOriginal'),
+                  value: financials.cost.actualCostToDate,
+                },
+                {
+                  label: t('kpis.monthCloseCost'),
+                  value: financials.cost.monthCloseCostNet,
+                  muted: true,
+                  hint: t('explain.infoLineHint'),
+                },
+                {
+                  label: t('kpis.actualCost'),
+                  value: financials.cost.actualCostToDate,
+                  emphasis: true,
+                },
+                {
+                  label: t('kpis.grossExpenseTotal'),
+                  muted: true,
+                  hint: t('kpis.vatReconciliationHint'),
+                },
+                {
+                  label: t('kpis.recoverableVat'),
+                  muted: true,
+                  hint: t('basis.netExVat'),
+                },
+              ]
         }
         links={
           actualDrill?.links ?? [

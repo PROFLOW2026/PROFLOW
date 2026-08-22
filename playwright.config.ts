@@ -47,7 +47,7 @@ export default defineConfig({
     },
     {
       name: 'desktop-he-authenticated',
-      testMatch: /authenticated\/(owner|regression|performance-verify|jobs-flows|master-completion-journeys|pwa-startup|ocr-review|boq-happy-path|capture-marketing-screenshots|branding)\.spec\.ts/,
+      testMatch: /authenticated\/(owner|regression|performance-verify|jobs-flows|master-completion-journeys|pwa-startup|ocr-review|boq-happy-path|capture-marketing-screenshots|branding|hebrew-runtime-closure|overnight-surfaces|billing-plan)\.spec\.ts/,
       dependencies: ['setup-owner'],
       use: {
         ...devices['Desktop Chrome'],
@@ -75,7 +75,7 @@ export default defineConfig({
     },
     {
       name: 'mobile-he',
-      testMatch: /mobile\.spec\.ts|authenticated\/workforce-discoverability\.spec\.ts|authenticated\/ocr-review\.spec\.ts/,
+      testMatch: /mobile\.spec\.ts|authenticated\/workforce-discoverability\.spec\.ts|authenticated\/ocr-review\.spec\.ts|authenticated\/hebrew-runtime-closure\.spec\.ts|authenticated\/overnight-surfaces\.spec\.ts|authenticated\/billing-plan\.spec\.ts/,
       dependencies: ['setup-owner'],
       use: {
         ...devices['Pixel 7'],

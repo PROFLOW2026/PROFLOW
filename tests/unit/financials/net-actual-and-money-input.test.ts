@@ -29,10 +29,18 @@ describe('money input storage-scale display', () => {
     expect(formatMoneyAmountForInput('12.340000')).toBe('12.34');
   });
 
+  it('rounds storage-scale amounts to currency display scale without JS float', () => {
+    expect(formatMoneyAmountForInput('547.457627', 'ILS')).toBe('547.46');
+    expect(formatMoneyAmountForInput('547.454627', 'ILS')).toBe('547.45');
+    expect(formatMoneyAmountForInput('1000.999000', 'ILS')).toBe('1001');
+    expect(formatMoneyAmountForInput('12.340000', 'JPY')).toBe('12');
+  });
+
   it('leaves in-progress or already-friendly values untouched', () => {
     expect(formatMoneyAmountForInput('52000')).toBe('52000');
     expect(formatMoneyAmountForInput('52.50')).toBe('52.50');
     expect(formatMoneyAmountForInput('1.')).toBe('1.');
+    expect(formatMoneyAmountForInput('547.45')).toBe('547.45');
   });
 });
 

@@ -93,7 +93,7 @@ export const billingRecords = pgTable(
       .where(sql`${table.reference} is not null`),
     check(
       'billing_records_source_kind_known',
-      sql`${table.sourceKind} IN ('manual', 'boq_progress', 'work_order', 'retention_release')`,
+      sql`${table.sourceKind} IN ('manual', 'boq_progress', 'work_order', 'retention_release', 'billing_plan')`,
     ),
     check(
       'billing_records_retention_range',

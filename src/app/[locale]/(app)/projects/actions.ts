@@ -154,6 +154,26 @@ export async function createProjectAction(
       });
     });
 
+    const billingPlanMode = formValue(formData, 'billingPlanMode') ?? 'none';
+    if (billingPlanMode === 'simple' || billingPlanMode === 'template') {
+      const { seedBillingPlanAfterProjectCreate } = await import(
+        '@/modules/billing-plan/ui/billing-plan-actions'
+      );
+      await seedBillingPlanAfterProjectCreate({
+        projectId: result.projectId,
+        mode: billingPlanMode,
+        professionTemplateKey:
+          billingPlanMode === 'template'
+            ? formValue(formData, 'billingPlanTemplateKey')
+            : null,
+      });
+      revalidatePath('/projects');
+      redirect({
+        href: `/projects/${result.projectId}?tab=billingPlan`,
+        locale,
+      });
+    }
+
     revalidatePath('/projects');
     redirect({ href: `/projects/${result.projectId}`, locale });
   } catch (error) {

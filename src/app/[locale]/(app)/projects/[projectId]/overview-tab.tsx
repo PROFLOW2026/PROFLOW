@@ -3,6 +3,7 @@ import { getTranslations } from 'next-intl/server';
 import { MoneyText } from '@/components/patterns/money-text';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { SkeletonText } from '@/components/ui/skeleton';
+import { BillingPlanStatusStrip } from '@/modules/billing-plan/ui/billing-plan-status-strip';
 import { ProjectFinancialsSnapshot } from '@/modules/financials/ui/project-financials-snapshot';
 import {
   buildScheduleSummary,
@@ -205,6 +206,12 @@ export async function OverviewTab({
           </Card>
         ) : null}
       </section>
+
+      {canReadFinancials && !isJob ? (
+        <Suspense fallback={<SkeletonText lines={2} />}>
+          <BillingPlanStatusStrip projectId={detail.project.id} />
+        </Suspense>
+      ) : null}
 
       {!isJob ? (
         <Suspense fallback={<SkeletonText lines={3} />}>

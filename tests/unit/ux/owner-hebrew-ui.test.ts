@@ -88,7 +88,29 @@ describe('owner-defined Hebrew UI corrections', () => {
     expect(hits).toEqual([]);
     const financial = flattenLocaleCatalog(readLocaleCatalog('he-IL', 'financial'));
     expect(financial.get('outstanding')).toBe('יתרה פתוחה');
-    expect(financial.get('kpis.actualCostHint')).toBe('העלויות שכבר נרשמו לפרויקט.');
+    const actualCostHint = financial.get('kpis.actualCostHint');
+    expect(actualCostHint).toBeTruthy();
+    expect(actualCostHint).toMatch(/נטו|מע״מ|מע"מ/);
+    expect(actualCostHint).not.toMatch(/\bActual\b|\bVAT\b|\bNET\b/);
+    expect(financial.get('kpis.grossExpenseTotal')).toMatch(/ברוטו|מע״מ|מע"מ/);
+    expect(financial.get('kpis.recoverableVat')).toMatch(/מע״מ|מע"מ/);
+  });
+
+  it('expense correction copy preserves history without numerical exampleHint', () => {
+    const expenses = flattenLocaleCatalog(readLocaleCatalog('he-IL', 'expenses'));
+    const catalog = readLocaleCatalog('he-IL', 'expenses') as {
+      correction?: Record<string, unknown>;
+    };
+    expect(catalog.correction).not.toHaveProperty('exampleHint');
+    expect(expenses.get('correction.exampleHint')).toBeUndefined();
+    expect(expenses.get('correction.subtitle')).toMatch(/היסטור/);
+    expect(expenses.get('correction.historyHint')).toMatch(/היסטור/);
+    expect(`${expenses.get('correction.subtitle')}\n${expenses.get('correction.historyHint')}`).not.toMatch(
+      /52[,.]?000/,
+    );
+    expect(expenses.get('errors.allocationAmountRequired')).toBe(
+      'יש להזין סכום לכל שורת סכום קבוע.',
+    );
   });
 
   it('sales navigation is מכירות, not a pipeline slogan', () => {

@@ -133,5 +133,6 @@ export interface VendorDetail extends VendorRecord {
   readonly catalogLinks: readonly VendorCatalogLinkRecord[];
   readonly parentVendorName: string | null;
   readonly defaultPaymentTermName: string | null;
+  readonly defaultPaymentTermKey: string | null;
   readonly projectCount: number;
 }

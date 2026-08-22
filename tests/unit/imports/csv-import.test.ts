@@ -139,6 +139,7 @@ describe('imports kinds', () => {
       'expenses',
       'inventory',
       'boq_items',
+      'billing_plan',
     ]);
   });
 

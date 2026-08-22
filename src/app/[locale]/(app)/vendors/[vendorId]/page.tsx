@@ -16,7 +16,7 @@ import {
   listVendorPaymentsForVendor,
 } from '@/modules/ap';
 import { VendorAp360Panel } from '@/modules/ap/ui/vendor-ap-360-panel';
-import { listBusinessCatalog } from '@/modules/business-catalog';
+import { listBusinessCatalog, localizePaymentTermName, localizePaymentTermOptions } from '@/modules/business-catalog';
 import {
   getVendorById,
   listVendorEngagementHistory,
@@ -64,9 +64,9 @@ export async function generateMetadata({
 export default async function VendorDetailPage({
   params,
 }: {
-  params: Promise<{ vendorId: string }>;
+  params: Promise<{ locale: string; vendorId: string }>;
 }) {
-  const { vendorId } = await params;
+  const { locale, vendorId } = await params;
   const t = await getTranslations('vendors');
   const tStatus = await getTranslations('status.generic');
   const tTypes = await getTranslations('vendors.types');
@@ -230,7 +230,7 @@ export default async function VendorDetailPage({
             {canManage ? (
               <VendorEditForm
                 vendor={vendor}
-                paymentTerms={paymentTerms.map((row) => ({ id: row.id, name: row.name }))}
+                paymentTerms={localizePaymentTermOptions(paymentTerms, locale)}
                 categories={categories.map((row) => ({ id: row.id, name: row.name }))}
                 specialties={specialties.map((row) => ({ id: row.id, name: row.name }))}
               />
@@ -258,7 +258,13 @@ export default async function VendorDetailPage({
                   ) : null}
                   {vendor.defaultPaymentTermName ? (
                     <p className="text-start text-[var(--pf-text-secondary)]">
-                      {t('detail.paymentTerm', { name: vendor.defaultPaymentTermName })}
+                      {t('detail.paymentTerm', {
+                        name: localizePaymentTermName(
+                          vendor.defaultPaymentTermKey,
+                          vendor.defaultPaymentTermName,
+                          locale,
+                        ),
+                      })}
                     </p>
                   ) : null}
                   {vendor.parentVendorName ? (

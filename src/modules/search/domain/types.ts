@@ -34,6 +34,8 @@ export const GLOBAL_SEARCH_KINDS = [
   'communication',
   'calendar_event',
   'closeout',
+  'billing_plan',
+  'billing_cycle',
 ] as const;
 
 export type GlobalSearchKind = (typeof GLOBAL_SEARCH_KINDS)[number];

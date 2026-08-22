@@ -15,6 +15,7 @@ const KIND_PERMISSION: Record<ImportKind, PermissionKey> = {
   expenses: PERMISSIONS.EXPENSES_CREATE,
   inventory: PERMISSIONS.ASSETS_MANAGE,
   boq_items: PERMISSIONS.BOQ_MANAGE,
+  billing_plan: PERMISSIONS.BILLING_MANAGE,
 };
 
 export function permissionForImportKind(kind: ImportKind): PermissionKey {
@@ -60,6 +61,7 @@ export function listImportableKinds(context: OrgContext): EnabledImportKind[] {
     'expenses',
     'inventory',
     'boq_items',
+    'billing_plan',
   ] as const) {
     if (canImportKind(context, kind)) kinds.push(kind);
   }

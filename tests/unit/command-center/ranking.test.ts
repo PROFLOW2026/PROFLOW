@@ -114,8 +114,10 @@ describe('command center ranking', () => {
     expect(SOURCE_DEFAULT_SEVERITY.cash_flow_risk).toBe('critical');
     expect(SOURCE_DEFAULT_SEVERITY.automation_followup).toBe('medium');
     expect(SOURCE_DEFAULT_SEVERITY.communication_failed).toBe('high');
+    expect(SOURCE_DEFAULT_SEVERITY.billing_plan_retention_release_due).toBe('high');
 
     expect(isFinancialSourceType('cash_flow_risk')).toBe(true);
+    expect(isFinancialSourceType('billing_plan_retention_release_due')).toBe(true);
     expect(isFinancialSourceType('closeout_blockers')).toBe(false);
     expect(isFinancialSourceType('warranty_expiring')).toBe(false);
     expect(isFinancialSourceType('automation_followup')).toBe(false);

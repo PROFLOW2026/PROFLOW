@@ -3,7 +3,7 @@ import { getTranslations } from 'next-intl/server';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/ui/page-header';
 import { Button } from '@/components/ui/button';
-import { listBusinessCatalog } from '@/modules/business-catalog';
+import { listBusinessCatalog, localizePaymentTermOptions } from '@/modules/business-catalog';
 import { listPurchaseOrderLinesForOrg, listPurchaseOrdersForOrg } from '@/modules/procurement';
 import { listProjectsForOrg } from '@/modules/projects';
 import { listVendorsForOrg } from '@/modules/vendors';
@@ -25,13 +25,16 @@ export async function generateMetadata({
 }
 
 export default async function NewApBillPage({
+  params,
   searchParams,
 }: {
+  params: Promise<{ locale: string }>;
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
+  const { locale } = await params;
   const t = await getTranslations('ap');
-  const params = await searchParams;
-  const requestedPoId = typeof params.purchaseOrderId === 'string' ? params.purchaseOrderId : '';
+  const search = await searchParams;
+  const requestedPoId = typeof search.purchaseOrderId === 'string' ? search.purchaseOrderId : '';
 
   const { vendors, projects, purchaseOrders, poLinesByPoId, paymentTerms, defaultCurrency, canManage } =
     await withOrgContext(async (context) => {
@@ -82,7 +85,7 @@ export default async function NewApBillPage({
           string,
           { id: string; description: string; lineTotal: string; currency: string }[]
         >,
-        paymentTerms: termRows.map((term) => ({ id: term.id, name: term.name })),
+        paymentTerms: localizePaymentTermOptions(termRows, locale),
         defaultCurrency: context.organization.baseCurrency,
         canManage: hasPermission(context, PERMISSIONS.AP_MANAGE),
       };
