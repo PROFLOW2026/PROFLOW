@@ -123,6 +123,27 @@ export interface OrganizationProjectRollup {
 
 
 /**
+ * Request-scoped memo for identical default rollups.
+ * Today inbox collectors previously ran getOrganizationProjectRollup twice in
+ * parallel (over-budget + early warnings) on the same OrgContext — doubling
+ * the heaviest path on every /today navigation.
+ */
+const rollupMemoByContext = new WeakMap<
+  OrgContext,
+  Map<string, Promise<OrganizationProjectRollup>>
+>();
+
+function rollupMemoKey(options: OrganizationProjectRollupOptions): string | null {
+  // Expense-reuse options are identity-sensitive; do not share those entries.
+  if (options.expenseContributions) return null;
+  return JSON.stringify({
+    limit: options.limit ?? null,
+    offset: options.offset ?? null,
+    workKindFilter: options.workKindFilter ?? null,
+  });
+}
+
+/**
  * Org-level project/job comparison for reporting (docs 29, 46).
  * Never mixes currencies. Profit only when PROJECT_PROFIT_READ is held.
  * Does not label anything as Revenue. VAT is not profit.
@@ -137,6 +158,26 @@ export interface OrganizationProjectRollup {
 export async function getOrganizationProjectRollup(
   context: OrgContext,
   options: OrganizationProjectRollupOptions = {},
+): Promise<OrganizationProjectRollup> {
+  const memoKey = rollupMemoKey(options);
+  if (memoKey) {
+    let byKey = rollupMemoByContext.get(context);
+    if (!byKey) {
+      byKey = new Map();
+      rollupMemoByContext.set(context, byKey);
+    }
+    const existing = byKey.get(memoKey);
+    if (existing) return existing;
+    const pending = computeOrganizationProjectRollup(context, options);
+    byKey.set(memoKey, pending);
+    return pending;
+  }
+  return computeOrganizationProjectRollup(context, options);
+}
+
+async function computeOrganizationProjectRollup(
+  context: OrgContext,
+  options: OrganizationProjectRollupOptions,
 ): Promise<OrganizationProjectRollup> {
   assertPermission(context, PERMISSIONS.PROJECT_FINANCIALS_READ);
 

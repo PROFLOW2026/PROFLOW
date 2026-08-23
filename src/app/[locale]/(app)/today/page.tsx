@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { Suspense } from 'react';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { PageHeader } from '@/components/ui/page-header';
 import { getTodayInbox } from '@/modules/command-center';
@@ -19,6 +20,26 @@ export async function generateMetadata({
 }
 
 export default async function TodayPage() {
+  const [t, tCommon] = await Promise.all([
+    getTranslations('commandCenter'),
+    getTranslations('common'),
+  ]);
+
+  return (
+    <div className="flex flex-col gap-6">
+      <PageHeader title={t('title')} description={t('description')} />
+      <Suspense
+        fallback={
+          <p className="text-sm text-[var(--pf-text-secondary)]">{tCommon('states.loading')}</p>
+        }
+      >
+        <TodayInboxBody />
+      </Suspense>
+    </div>
+  );
+}
+
+async function TodayInboxBody() {
   const t = await getTranslations('commandCenter');
   const locale = await getLocale();
 
@@ -36,12 +57,11 @@ export default async function TodayPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      <PageHeader title={t('title')} description={t('description')} />
+    <>
       <p className="text-sm text-[var(--pf-text-secondary)]">
         {t('summary', { count: result.inbox.totalActive })}
       </p>
       <TodayInboxPanel inbox={result.inbox} />
-    </div>
+    </>
   );
 }

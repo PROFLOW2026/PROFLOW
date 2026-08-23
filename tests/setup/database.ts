@@ -40,11 +40,22 @@ export interface TestDatabase {
   readonly db: Database;
   /** Runs `fn` as `authenticated` with `userId` pinned, exactly like production. */
   asUser: <T>(userId: string, fn: (tx: Transaction) => Promise<T>) => Promise<T>;
+  /**
+   * Same as `asUser`, but counts Drizzle logQuery callbacks during `fn`
+   * (for N=1 vs N=30 batch round-trip regression tests).
+   */
+  asUserCountingQueries: <T>(
+    userId: string,
+    fn: (tx: Transaction) => Promise<T>,
+  ) => Promise<{ result: T; queryCount: number }>;
   /** Bypasses RLS. Only for arranging fixtures, never for assertions about access. */
   asService: <T>(fn: (db: Database) => Promise<T>) => Promise<T>;
   reset: () => Promise<void>;
   close: () => Promise<void>;
 }
+
+/** Active counter used by the optional Drizzle logger in wrapClient. */
+let activeTestQueryCounter: { n: number } | null = null;
 
 /**
  * Splits a migration file into statements while respecting dollar-quoted
@@ -347,7 +358,15 @@ export function serializePglite(client: PGlite): PGlite {
 }
 
 function wrapClient(client: PGlite): TestDatabase {
-  const db = drizzle(client, { schema, casing: 'snake_case' }) as unknown as Database;
+  const db = drizzle(client, {
+    schema,
+    casing: 'snake_case',
+    logger: {
+      logQuery() {
+        if (activeTestQueryCounter) activeTestQueryCounter.n += 1;
+      },
+    },
+  }) as unknown as Database;
 
   const asUser = async <T>(userId: string, fn: (tx: Transaction) => Promise<T>): Promise<T> =>
     db.transaction(async (tx) => {
@@ -356,6 +375,20 @@ function wrapClient(client: PGlite): TestDatabase {
       await tx.execute(sql`set local role authenticated`);
       return fn(tx as Transaction);
     });
+
+  const asUserCountingQueries = async <T>(
+    userId: string,
+    fn: (tx: Transaction) => Promise<T>,
+  ): Promise<{ result: T; queryCount: number }> => {
+    const counter = { n: 0 };
+    activeTestQueryCounter = counter;
+    try {
+      const result = await asUser(userId, fn);
+      return { result, queryCount: counter.n };
+    } finally {
+      activeTestQueryCounter = null;
+    }
+  };
 
   const asService = async <T>(fn: (database: Database) => Promise<T>): Promise<T> => fn(db);
 
@@ -380,6 +413,7 @@ function wrapClient(client: PGlite): TestDatabase {
   const handle: TestDatabase = {
     db,
     asUser,
+    asUserCountingQueries,
     asService,
     reset,
     close: async () => {
