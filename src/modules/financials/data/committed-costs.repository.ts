@@ -1,6 +1,7 @@
 import { and, eq, inArray, isNotNull, isNull, sql } from 'drizzle-orm';
 import { apBillProjectAllocations, apBills, apPoMatches, committedCosts, expenses } from '@drizzle/schema';
 import type { DbExecutor } from '@/shared/db/types';
+import { buildLinkedExpenseDeductions } from '../domain/expense-ap-dedup';
 import {
   addMoney,
   fromNumericString,
@@ -17,6 +18,7 @@ import {
   getVendorPaymentsRepository,
   listActiveCreditAmountsForBills,
   resolveVendorBillProjectAmounts,
+  scaleBillOutstandingToProjectSlice,
   scaleBillSliceAfterCredits,
   listActiveCreditActualReductionsForBills,
 } from '@/modules/ap';
@@ -69,6 +71,7 @@ export async function sumOpenCommittedCostsForProject(
 /**
  * Sum cash outstanding on recognized AP bills for a project.
  * Outstanding = bill total − active (non-void) vendor payment applications.
+ * Honors `ap_bill_project_allocations` when the 0021 gate is on (R-020).
  * Not Actual cost (recognized bill totals enter Actual separately; payments ignored there).
  * PO match remainder is a separate matching metric - never used as open AP cash.
  */
@@ -79,6 +82,151 @@ export async function sumOpenApPayableForProject(
   currency: string,
 ): Promise<{ total: MoneyValue; excludedForeignCurrencyCount: number; billCount: number }> {
   const normalized = currency.toUpperCase();
+
+  if (!areApBillProjectAllocationsAvailable()) {
+    return sumOpenApPayableForProjectHeaderOnly(db, organizationId, projectId, normalized);
+  }
+
+  const billRows = await db
+    .select({
+      id: apBills.id,
+      projectId: apBills.projectId,
+      status: apBills.status,
+      totalAmount: apBills.totalAmount,
+      netAmount: apBills.netAmount,
+      currency: apBills.currency,
+      retentionHeldRemaining: apBills.retentionHeldRemaining,
+    })
+    .from(apBills)
+    .where(
+      and(
+        eq(apBills.organizationId, organizationId),
+        inArray(apBills.status, [...OPEN_AP_CASH_STATUSES]),
+        isNull(apBills.archivedAt),
+        sql`(
+          ${apBills.projectId} = ${projectId}
+          OR EXISTS (
+            SELECT 1 FROM ${apBillProjectAllocations} a
+            WHERE a.ap_bill_id = ${apBills.id}
+              AND a.organization_id = ${organizationId}
+              AND a.target_type = 'project'
+              AND a.project_id = ${projectId}
+              AND a.status = 'applied'
+          )
+        )`,
+      ),
+    );
+
+  const allocationLines: { billId: string; projectId: string; amount: string; currency: string }[] =
+    [];
+  const billIdsWithAllocations = new Set<string>();
+
+  if (billRows.length > 0) {
+    const allIds = billRows.map((row) => row.id);
+    const anyAlloc = await db
+      .select({
+        apBillId: apBillProjectAllocations.apBillId,
+        projectId: apBillProjectAllocations.projectId,
+        amount: apBillProjectAllocations.amount,
+        currency: apBillProjectAllocations.currency,
+        targetType: apBillProjectAllocations.targetType,
+        status: apBillProjectAllocations.status,
+      })
+      .from(apBillProjectAllocations)
+      .where(
+        and(
+          eq(apBillProjectAllocations.organizationId, organizationId),
+          inArray(apBillProjectAllocations.apBillId, allIds),
+          eq(apBillProjectAllocations.status, 'applied'),
+        ),
+      );
+
+    for (const row of anyAlloc) {
+      billIdsWithAllocations.add(row.apBillId);
+      if (row.targetType === 'project' && row.projectId === projectId) {
+        allocationLines.push({
+          billId: row.apBillId,
+          projectId: row.projectId,
+          amount: row.amount,
+          currency: row.currency,
+        });
+      }
+    }
+  }
+
+  const resolved = resolveVendorBillProjectAmounts({
+    projectId,
+    currency: normalized,
+    headerBills: billRows.map((row) => ({
+      billId: row.id,
+      projectId: row.projectId,
+      totalAmount: row.netAmount ?? row.totalAmount,
+      currency: row.currency,
+    })),
+    allocationLines,
+    billIdsWithAllocations,
+  });
+
+  const billIds = [...new Set(resolved.billIds)];
+  const appliedByBillId = await getVendorPaymentsRepository().listActiveAppliedAmountsForBills(
+    db,
+    organizationId,
+    billIds,
+  );
+  const creditsByBillId = await listActiveCreditAmountsForBills(db, organizationId, billIds);
+
+  const billById = new Map(billRows.map((row) => [row.id, row]));
+  let total = zeroMoney(normalized);
+  let excludedForeignCurrencyCount = 0;
+  let billCount = 0;
+  const countedBills = new Set<string>();
+
+  for (let i = 0; i < resolved.amounts.length; i += 1) {
+    const sliceAmount = resolved.amounts[i]!;
+    const billId = resolved.billIds[i]!;
+    const row = billById.get(billId);
+    if (!row) continue;
+    if (row.currency.toUpperCase() !== normalized) {
+      excludedForeignCurrencyCount += 1;
+      continue;
+    }
+    const billNet = row.netAmount ?? row.totalAmount;
+    const outstanding = computeBillOutstanding({
+      billStatus: row.status,
+      billTotal: money(row.totalAmount, row.currency),
+      applications: (appliedByBillId.get(billId) ?? []).map((amount) => ({
+        appliedAmount: money(amount, row.currency),
+        paymentStatus: 'recorded' as const,
+      })),
+      creditApplications: (creditsByBillId.get(billId) ?? []).map((amount) => ({
+        appliedAmount: money(amount, row.currency),
+        status: 'applied' as const,
+      })),
+      retentionHeldRemaining: money(row.retentionHeldRemaining, row.currency),
+    });
+    const sliceOutstanding = scaleBillOutstandingToProjectSlice({
+      currency: normalized,
+      billNetAmount: billNet,
+      sliceAmount,
+      billOutstanding: outstanding,
+    });
+    if (!isPositiveMoney(sliceOutstanding)) continue;
+    total = addMoney(total, sliceOutstanding);
+    if (!countedBills.has(billId)) {
+      countedBills.add(billId);
+      billCount += 1;
+    }
+  }
+
+  return { total: roundMoney(total), excludedForeignCurrencyCount, billCount };
+}
+
+async function sumOpenApPayableForProjectHeaderOnly(
+  db: DbExecutor,
+  organizationId: string,
+  projectId: string,
+  normalized: string,
+): Promise<{ total: MoneyValue; excludedForeignCurrencyCount: number; billCount: number }> {
   const rows = await db
     .select({
       id: apBills.id,
@@ -137,14 +285,15 @@ export async function sumOpenApPayableForProject(
 export interface RecognizedVendorBillRollup {
   readonly billAmounts: string[];
   readonly total: MoneyValue;
-  readonly linkedExpenseIds: ReadonlySet<string>;
+  /** Accepted expense-match totals per expense id (amount-aware dedupe). */
+  readonly linkedExpenseDeductions: ReadonlyMap<string, string>;
   readonly excludedForeignCurrencyCount: number;
   readonly billCount: number;
 }
 
 /**
  * Posted/approved vendor bills for a project - recognized Actual Vendor Cost.
- * Also returns expense ids linked via accepted matches (exclude to avoid double-count).
+ * Also returns accepted match totals per expense (amount-aware dedupe in compose).
  *
  * When `ap_bill_project_allocations` is available (0021 applied + gate on):
  * bills with allocation rows attribute via lines only; header project_id is ignored
@@ -280,13 +429,13 @@ export async function loadRecognizedVendorBillsForProject(
     recognizedBillIds.push(billId);
   }
 
-  const linkedExpenseIds = new Set<string>();
+  let linkedExpenseDeductions = new Map<string, string>();
   if (recognizedBillIds.length > 0) {
     const linkedRows = await db
       .select({
         expenseId: apPoMatches.expenseId,
+        matchedAmount: apPoMatches.matchedAmount,
         expenseCurrency: expenses.currency,
-        expenseStatus: expenses.status,
       })
       .from(apPoMatches)
       .innerJoin(expenses, eq(expenses.id, apPoMatches.expenseId))
@@ -301,17 +450,26 @@ export async function loadRecognizedVendorBillsForProject(
         ),
       );
 
-    for (const row of linkedRows) {
-      if (!row.expenseId) continue;
-      if (row.expenseCurrency.toUpperCase() !== normalized) continue;
-      linkedExpenseIds.add(row.expenseId);
-    }
+    linkedExpenseDeductions = buildLinkedExpenseDeductions(
+      linkedRows.flatMap((row) =>
+        row.expenseId
+          ? [
+              {
+                expenseId: row.expenseId,
+                matchedAmount: row.matchedAmount,
+                expenseCurrency: row.expenseCurrency,
+              },
+            ]
+          : [],
+      ),
+      normalized,
+    );
   }
 
   return {
     billAmounts,
     total: roundMoney(total),
-    linkedExpenseIds,
+    linkedExpenseDeductions,
     excludedForeignCurrencyCount,
     billCount: billAmounts.length,
   };
@@ -391,6 +549,16 @@ export async function sumOpenApPayableForProjects(
 ): Promise<Map<string, ProjectApPayableRollup>> {
   const result = new Map<string, ProjectApPayableRollup>();
   if (projectIds.length === 0) return result;
+
+  if (areApBillProjectAllocationsAvailable()) {
+    for (const projectId of projectIds) {
+      result.set(
+        projectId,
+        await sumOpenApPayableForProject(db, organizationId, projectId, currency),
+      );
+    }
+    return result;
+  }
 
   const normalized = currency.toUpperCase();
   const rows = await db
@@ -573,12 +741,16 @@ export async function loadRecognizedVendorBillsForProjects(
       (bucket) => bucket.recognizedBillIds,
     );
 
-    const linkedByBill = new Map<string, string[]>();
+    const linkedByBill = new Map<
+      string,
+      { expenseId: string; matchedAmount: string; expenseCurrency: string }[]
+    >();
     if (allRecognizedIds.length > 0) {
       const linkedRows = await db
         .select({
           apBillId: apPoMatches.apBillId,
           expenseId: apPoMatches.expenseId,
+          matchedAmount: apPoMatches.matchedAmount,
           expenseCurrency: expenses.currency,
         })
         .from(apPoMatches)
@@ -598,7 +770,11 @@ export async function loadRecognizedVendorBillsForProjects(
         if (!row.expenseId) continue;
         if (row.expenseCurrency.toUpperCase() !== normalized) continue;
         const list = linkedByBill.get(row.apBillId) ?? [];
-        list.push(row.expenseId);
+        list.push({
+          expenseId: row.expenseId,
+          matchedAmount: row.matchedAmount,
+          expenseCurrency: row.expenseCurrency,
+        });
         linkedByBill.set(row.apBillId, list);
       }
     }
@@ -609,22 +785,22 @@ export async function loadRecognizedVendorBillsForProjects(
         result.set(projectId, {
           billAmounts: [],
           total: zeroMoney(normalized),
-          linkedExpenseIds: new Set(),
+          linkedExpenseDeductions: new Map(),
           excludedForeignCurrencyCount: 0,
           billCount: 0,
         });
         continue;
       }
-      const linkedExpenseIds = new Set<string>();
+      const matchRows: { expenseId: string; matchedAmount: string; expenseCurrency: string }[] =
+        [];
       for (const billId of bucket.recognizedBillIds) {
-        for (const expenseId of linkedByBill.get(billId) ?? []) {
-          linkedExpenseIds.add(expenseId);
-        }
+        matchRows.push(...(linkedByBill.get(billId) ?? []));
       }
+      const linkedExpenseDeductions = buildLinkedExpenseDeductions(matchRows, normalized);
       result.set(projectId, {
         billAmounts: bucket.billAmounts,
         total: roundMoney(bucket.total),
-        linkedExpenseIds,
+        linkedExpenseDeductions,
         excludedForeignCurrencyCount: bucket.excluded,
         billCount: bucket.billAmounts.length,
       });

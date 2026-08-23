@@ -65,7 +65,11 @@
     "forecastMarginHint": "Estimated profit based on the data entered so far.",
     "forecastMarginEqualsActualHint": "Same as Actual Margin while Forecast Cost equals Actual Cost.",
     "priceNotSet": "Price not set yet",
-    "priceNotSetHint": "Open-price job: costs and cost forecast still accumulate. Profit and margin are not claimed until a revenue basis is set."
+    "priceNotSetHint": "Open-price job: costs and cost forecast still accumulate. Profit and margin are not claimed until a revenue basis is set.",
+    "unavailable": "Cannot calculate",
+    "partial": "Partial — some cost sources unavailable",
+    "billingNotSetup": "No billing records yet",
+    "unbilled": "Unbilled (contract − net billed)"
   },
   "drillLinks": {
     "viewChanges": "Open project changes",
@@ -84,7 +88,7 @@
   },
   "laborActual": "Labor (Actual)",
   "laborActualUnavailable": "Cannot calculate",
-  "vendorActual": "Vendors / subcontractors (Actual)",
+  "vendorActual": "Subcontractors & vendor bills (Actual)",
   "overheadActual": "Overhead (Actual)",
   "committedOpen": "Committed cost (PO open)",
   "committedVsActual": "Committed stays separate from Actual - not an expense",
@@ -118,11 +122,18 @@
       "laborCategoryExcludedForWorkforce": "{count, plural, one {# labor-category expense was excluded because time-entry labor cost is already included for this project} other {# labor-category expenses were excluded because time-entry labor cost is already included for this project}}"
     }
   },
+  "laborSources": {
+    "title": "Two ways to record labor cost",
+    "modeB": "Labor expense (payroll lump sum in Expenses)",
+    "modeC": "Time-entry True Cost (Workforce)",
+    "exclusion": "When time-entry labor exists for a project, labor-category expenses are excluded so Actual is not double-counted."
+  },
   "costFamilies": {
     "direct_project": "Direct project cost",
     "shared": "Shared cost",
     "business_overhead": "Business overhead",
-    "asset_capital": "Asset and capital cost"
+    "asset_capital": "Asset and capital cost",
+    "asset_capitalHint": "Capitalized equipment or asset spend — operating project cost, not depreciation schedule."
   },
   "basis": {
     "directOnly": "Based on direct costs only",
@@ -231,5 +242,11 @@
     "current": "Current",
     "costProfitHint": "Cost and profit remain project-level. This list does not allocate cost or invent per-contract profit.",
     "skippedFx": "Another currency - not included in the project total"
+  },
+  "vendorActualPanel": {
+    "title": "Vendor Actual on this project",
+    "description": "Finalized expenses and recognized vendor bills by vendor. Bill-linked expenses are counted once via the bill.",
+    "empty": "No vendor Actual recorded on this project yet.",
+    "hint": "Same recognition rules as project Actual — not open PO commitment or cash paid."
   }
 }

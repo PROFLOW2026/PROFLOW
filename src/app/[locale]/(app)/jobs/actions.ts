@@ -12,8 +12,8 @@ import { withOrgContext } from '@/shared/auth/session';
 import {
   AppError,
   AuthorizationError,
-  DomainRuleError,
   ValidationError,
+  mapServerActionError,
 } from '@/shared/errors';
 import { redirect } from '@/shared/i18n/navigation';
 
@@ -34,17 +34,26 @@ function requiredFormValue(formData: FormData, key: string): string {
 }
 
 async function mapValidationError(error: ValidationError): Promise<JobFormState> {
+  const tErrors = await getTranslations('errors');
   const tValidation = await getTranslations('validation');
-  const fieldErrors: Record<string, string> = {};
-  for (const issue of error.issues) {
-    if (!issue.path) continue;
-    const message =
-      issue.message === DATE_ORDER_MESSAGE || issue.message === 'validation.endBeforeStart'
-        ? tValidation('endBeforeStart')
-        : issue.message;
-    fieldErrors[issue.path] = message;
-  }
-  return { error: error.message, fieldErrors };
+  return mapServerActionError(error, {
+    tErrors: (key) => tErrors(key as 'validationFailed'),
+    fieldMessageOverrides: {
+      [DATE_ORDER_MESSAGE]: tValidation('endBeforeStart'),
+    },
+  });
+}
+
+async function mapJobAppError(error: unknown): Promise<JobFormState> {
+  const tErrors = await getTranslations('errors');
+  const tJobs = await getTranslations('jobs');
+  if (error instanceof ValidationError) return mapValidationError(error);
+  return mapServerActionError(error, {
+    tErrors: (key) => tErrors(key as 'unexpected'),
+    namespaces: {
+      jobs: (key) => tJobs(key as 'convert.notAJob'),
+    },
+  });
 }
 
 export async function createJobAction(
@@ -110,7 +119,6 @@ export async function setJobFixedPriceAction(
   _prev: JobFormState,
   formData: FormData,
 ): Promise<JobFormState> {
-  const tErrors = await getTranslations('errors');
   const jobId = requiredFormValue(formData, 'jobId');
 
   try {
@@ -127,11 +135,7 @@ export async function setJobFixedPriceAction(
     revalidatePath('/jobs');
     return { success: true };
   } catch (error) {
-    if (error instanceof ValidationError) return await mapValidationError(error);
-    if (error instanceof DomainRuleError) return { error: error.message };
-    if (error instanceof AuthorizationError) return { error: tErrors('notAllowed') };
-    if (error instanceof AppError) return { error: tErrors('unexpected') };
-    throw error;
+    return mapJobAppError(error);
   }
 }
 
@@ -139,8 +143,6 @@ export async function convertJobToProjectAction(
   _prev: JobFormState,
   formData: FormData,
 ): Promise<JobFormState> {
-  const tErrors = await getTranslations('errors');
-  const tJobs = await getTranslations('jobs');
   const locale = await getLocale();
   const jobId = requiredFormValue(formData, 'jobId');
 
@@ -153,20 +155,7 @@ export async function convertJobToProjectAction(
     revalidatePath(`/projects/${jobId}`);
     redirect({ href: `/projects/${jobId}`, locale });
   } catch (error) {
-    if (error instanceof DomainRuleError) {
-      return {
-        error:
-          error.messageKey === 'jobs.convert.notAJob'
-            ? tJobs('convert.notAJob')
-            : error.messageKey === 'jobs.convert.requiresRevenueBasis'
-              ? tJobs('convert.requiresRevenueBasis')
-              : error.message,
-      };
-    }
-    if (error instanceof ValidationError) return await mapValidationError(error);
-    if (error instanceof AuthorizationError) return { error: tErrors('notAllowed') };
-    if (error instanceof AppError) return { error: tErrors('unexpected') };
-    throw error;
+    return mapJobAppError(error);
   }
 
   return {};

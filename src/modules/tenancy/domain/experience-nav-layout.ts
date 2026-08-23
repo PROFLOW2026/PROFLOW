@@ -45,6 +45,7 @@ export const NAV_KEY_TO_EXPERIENCE_GROUP: Readonly<Record<string, ExperienceNavG
   vendors: 'purchasing',
   subcontracts: 'purchasing',
   procurement: 'purchasing',
+  procurementRfqs: 'purchasing',
   vendorBills: 'purchasing',
   materials: 'purchasing',
   expenses: 'money',
@@ -207,8 +208,12 @@ export function roleNavEmphasis(
         demote: ['monthClose', 'overhead', 'automations'],
       };
     case 'owner':
+      return {
+        prefer: ['dashboard', 'today', 'projects', 'billing', 'expenses', 'cashFlow', 'reports'],
+        demote: ['attendance', 'timesheets', 'fieldHome', 'scheduling', 'calendar'],
+      };
     case 'general':
     default:
-      return { prefer: [], demote: [] };
+      return { prefer: [], demote: ['attendance', 'timesheets'] };
   }
 }

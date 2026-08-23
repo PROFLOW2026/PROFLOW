@@ -136,6 +136,7 @@ export {
   areApBillProjectAllocationsAvailable,
   setApBillProjectAllocationsReadyForTests,
   resolveVendorBillProjectAmounts,
+  scaleBillOutstandingToProjectSlice,
 } from './domain/vendor-bill-project-attribution';
 export type {
   VendorBillHeaderSlice,

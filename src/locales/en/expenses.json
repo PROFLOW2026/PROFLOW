@@ -3,7 +3,10 @@
   "subtitle": "Record project costs and business expenses in one place.",
   "capture": {
     "title": "New expense",
-    "subtitle": "Saving creates a draft only. The expense enters project costs after you approve it. For business overhead, add allocation lines so it is not left unallocated."
+    "subtitle": "Saving creates a draft only. The expense enters project costs after you approve it. For business overhead, add allocation lines so it is not left unallocated.",
+    "overlapWarningTitle": "Similar open vendor bill exists",
+    "overlapWarningBody": "An open vendor bill with the same vendor and a similar NET amount already recognizes Actual. Finalizing a separate expense can double-count unless you link them.",
+    "overlapWarningHint": "Open the bill and accept a match to this expense after you finalize it, or void the duplicate capture."
   },
   "detail": {
     "title": "Expense",

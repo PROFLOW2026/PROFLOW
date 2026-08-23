@@ -22,7 +22,7 @@ import {
 } from '@/modules/ap';
 import { releaseVendorBillRetention } from '@/modules/retention';
 import { withOrgContext } from '@/shared/auth/session';
-import { AppError, DomainRuleError, ValidationError } from '@/shared/errors';
+import { mapServerActionError } from '@/shared/errors';
 import { redirect } from '@/shared/i18n/navigation';
 
 export interface ApFormState {
@@ -42,46 +42,19 @@ function requiredFormValue(formData: FormData, key: string): string {
   return formValue(formData, key) ?? '';
 }
 
-function mapValidationError(error: ValidationError): ApFormState {
-  const fieldErrors: Record<string, string> = {};
-  for (const issue of error.issues) {
-    if (issue.path) fieldErrors[issue.path] = issue.message;
-  }
-  return { error: error.message, fieldErrors };
-}
-
 async function mapAppError(error: unknown): Promise<ApFormState> {
   const tErrors = await getTranslations('errors');
   const tAp = await getTranslations('ap');
-  if (error instanceof ValidationError) return mapValidationError(error);
-  if (error instanceof DomainRuleError) {
-    if (error.messageKey.startsWith('monthClose.')) {
-      const tMonthClose = await getTranslations('monthClose');
-      const key = error.messageKey.replace(/^monthClose\./, '');
-      try {
-        return { error: tMonthClose(key as 'errors.monthClosed') };
-      } catch {
-        return { error: error.message };
-      }
-    }
-    if (error.messageKey.startsWith('approvals.')) {
-      const tApprovals = await getTranslations('approvals');
-      const key = error.messageKey.replace(/^approvals\./, '');
-      try {
-        return { error: tApprovals(key as 'errors.pending') };
-      } catch {
-        return { error: error.message };
-      }
-    }
-    const key = error.messageKey.replace(/^ap\./, '');
-    try {
-      return { error: tAp(key as 'errors.targetRequired') };
-    } catch {
-      return { error: error.message };
-    }
-  }
-  if (error instanceof AppError) return { error: tErrors('unexpected') };
-  throw error;
+  const tMonthClose = await getTranslations('monthClose');
+  const tApprovals = await getTranslations('approvals');
+  return mapServerActionError(error, {
+    tErrors: (key) => tErrors(key as 'unexpected'),
+    namespaces: {
+      ap: (key) => tAp(key as 'errors.targetRequired'),
+      monthClose: (key) => tMonthClose(key as 'errors.monthClosed'),
+      approvals: (key) => tApprovals(key as 'errors.pending'),
+    },
+  });
 }
 
 function revalidateCreditPaths(creditId?: string, billId?: string): void {

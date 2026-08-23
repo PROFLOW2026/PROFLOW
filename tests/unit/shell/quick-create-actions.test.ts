@@ -43,7 +43,7 @@ describe('buildQuickCreateActions', () => {
     expect(keys).toContain('expense');
     expect(keys).toContain('timeEntry');
     expect(keys).toContain('fieldLog');
-    expect(keys).toContain('maintenance');
+    expect(keys).toContain('asset');
     expect(keys).toContain('vendorBill');
     expect(keys).toContain('attendance');
     expect(keys).not.toContain('document');

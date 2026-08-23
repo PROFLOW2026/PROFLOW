@@ -11,6 +11,7 @@ import {
   type ProjectFinancialsWithOptionalKpis,
 } from '@/modules/financials/ui/resolve-kpi-display';
 import { zeroMoney } from '@/shared/money';
+import { buildSliceAvailability } from '@/modules/financials/domain/financial-slice-availability';
 import { renderWithIntl } from './test-utils';
 
 vi.mock('@/shared/i18n/navigation', () => ({
@@ -18,6 +19,16 @@ vi.mock('@/shared/i18n/navigation', () => ({
     <a href={href}>{children}</a>
   ),
 }));
+
+const allSlicesLoaded = buildSliceAvailability({
+  canReadCommercial: true,
+  canReadBilling: true,
+  canReadExpenses: true,
+  canReadWorkforce: true,
+  canReadProcurement: true,
+  canReadAp: true,
+  laborLoaded: true,
+});
 
 function buildFinancials(overrides?: {
   overheadActual?: string;
@@ -64,6 +75,8 @@ function buildFinancials(overrides?: {
       invoiced: { amount: '40000.000000', currency },
       paid: { amount: '10000.000000', currency },
       outstanding: { amount: '30000.000000', currency },
+      netInvoiced: { amount: '40000.000000', currency },
+      hasBillingData: true,
       monthCloseRevenueNet: zero,
     },
     cost: {
@@ -102,6 +115,7 @@ function buildFinancials(overrides?: {
       actualMarginPercent: '75.00',
     },
     coverage: buildFinancialCoverage([{ source: 'direct_expenses', hasData: true }], new Date()),
+    sliceAvailability: allSlicesLoaded,
     dataConfidence: { level: 'high', reasons: [] },
   };
 

@@ -244,7 +244,7 @@ export const BUSINESS_PROFILES: readonly BusinessProfile[] = [
       { key: 'hvac_equipment', nameEn: 'HVAC equipment', nameHe: 'ציוד מיזוג', family: 'direct_project' },
       { key: 'refrigerant', nameEn: 'Refrigerant / gas', nameHe: 'גז קירור', family: 'direct_project' },
     ]),
-    suggestedDefaults: { defaultWorkKind: 'job', preferServiceSurface: true, todayEmphasis: 'field' },
+    suggestedDefaults: { defaultWorkKind: 'job', preferServiceSurface: true, todayEmphasis: 'today' },
   },
   {
     key: 'MAINTENANCE',

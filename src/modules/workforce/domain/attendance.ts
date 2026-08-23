@@ -5,6 +5,8 @@
  * Corrections void events (or void + replace); history is not silently rewritten.
  */
 
+import { DomainRuleError } from '@/shared/errors';
+
 export const ATTENDANCE_EVENT_TYPES = [
   'clock_in',
   'clock_out',
@@ -98,10 +100,10 @@ export function assertCanAppendClockEvent(
   eventType: 'clock_in' | 'clock_out',
 ): void {
   if (eventType === 'clock_in' && !canClockIn(state)) {
-    throw new Error('attendance.errors.alreadyClockedIn');
+    throw new DomainRuleError('Already clocked in', 'workforce.errors.alreadyClockedIn');
   }
   if (eventType === 'clock_out' && !canClockOut(state)) {
-    throw new Error('attendance.errors.notClockedIn');
+    throw new DomainRuleError('Not clocked in', 'workforce.errors.notClockedIn');
   }
 }
 

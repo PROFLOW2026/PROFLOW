@@ -105,6 +105,7 @@ export async function loadProjectBillingRecordsBundle(
       status: billingRecords.status,
       kind: billingRecords.kind,
       totalAmount: billingRecords.totalAmount,
+      subtotalAmount: billingRecords.subtotalAmount,
       currency: billingRecords.currency,
       retentionAmount: billingRecords.retentionAmount,
       retentionHeldRemaining: billingRecords.retentionHeldRemaining,
@@ -159,6 +160,7 @@ export async function loadProjectBillingRecordsBundle(
       kind: record.kind,
       status: record.status,
       totalAmount: mapMoney(record.totalAmount, record.currency),
+      subtotalAmount: mapMoney(record.subtotalAmount, record.currency),
       payments: paymentsByRecord.get(record.id) ?? [],
       retentionHeldRemaining: record.retentionHeldRemaining
         ? mapMoney(record.retentionHeldRemaining, record.currency)

@@ -68,6 +68,12 @@ export default async function RecurringListPage({ searchParams }: RecurringListP
         }
       />
 
+      <p className="text-sm text-[var(--pf-text-secondary)]">
+        <Link href="/recurring-drafts" className="underline underline-offset-2">
+          {t('draftsLink')}
+        </Link>
+      </p>
+
       <div className="flex flex-wrap gap-2 text-sm">
         {(
           [

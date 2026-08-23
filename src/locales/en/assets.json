@@ -275,7 +275,13 @@
   },
   "errors": {
     "insufficientQuantity": "Not enough quantity on hand for this issue.",
+    "insufficientQuantityOnHand": "Not enough quantity on hand for this issue.",
+    "movementQuantityPositive": "Movement quantity must be positive.",
+    "adjustmentQuantityNonZero": "Adjustment quantity must be non-zero.",
+    "reservationQuantityPositive": "Reservation quantity must be positive.",
     "insufficientAvailable": "Not enough available quantity. Release or consume a reservation first.",
+    "insufficientAvailableQuantity": "Not enough available quantity. Release or consume a reservation first.",
+    "consumeQuantityPositive": "Consume quantity must be positive.",
     "reservationTargetRequired": "Reserve for a project and/or work order.",
     "reservationNotActive": "That reservation is not active.",
     "countNotDraft": "Only a draft count can be changed or finalized.",

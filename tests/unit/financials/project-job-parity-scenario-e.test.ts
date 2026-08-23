@@ -154,8 +154,8 @@ describe('Scenario E - mixed 2 projects + 8 jobs filters', () => {
     const jobsOnly = filterRowsByWorkKind(portfolio, 'job');
     const profit = aggregateOrgProfit(jobsOnly, ILS);
     // 5 fixed jobs × 11k forecast margin = 55k; open jobs contribute 0 (null)
-    expect(profit.estimatedProfit.value.amount).toBe('55000.000000');
-    expect(profit.actualProfit.value.amount).toBe('60000.000000');
+    expect(profit.estimatedProfit?.value.amount).toBe('55000.000000');
+    expect(profit.actualProfit?.value.amount).toBe('60000.000000');
 
     const openOnly = jobsOnly.filter((row) => row.priceNotSet);
     expect(openOnly).toHaveLength(3);
@@ -165,8 +165,8 @@ describe('Scenario E - mixed 2 projects + 8 jobs filters', () => {
     const cost = aggregateOrgCost(openOnly, ILS, {
       unallocatedBusinessCosts: money('12000', ILS),
     });
-    expect(cost.actual.value.amount).toBe('9000.000000');
-    expect(cost.estimatedFinal.value.amount).toBe('10500.000000');
+    expect(cost.actual?.value.amount).toBe('9000.000000');
+    expect(cost.estimatedFinal?.value.amount).toBe('10500.000000');
     // Unallocated org costs stay visible beside - not folded into project profit.
     expect(cost.unallocatedBusinessCosts?.value.amount).toBe('12000.000000');
   });

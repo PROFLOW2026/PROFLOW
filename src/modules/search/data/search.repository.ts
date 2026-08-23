@@ -25,10 +25,12 @@ import {
   projects,
   punchListItems,
   purchaseOrders,
+  recurringFinancialDrafts,
   safetyRecords,
   subcontractAgreements,
   vendors,
   warrantyCoverages,
+  approvalRequests,
 } from '@drizzle/schema';
 import { existsSearchableCustomFieldValueSql } from '@/modules/custom-fields';
 import { listAllDocuments } from '@/modules/documents/lookups';
@@ -1371,6 +1373,93 @@ export async function searchBillingCycles(
       status: row.status,
       contextLabel: row.projectName,
       date: row.accountDate,
+    }));
+  } catch (error) {
+    if (isMissingRelation(error)) return [];
+    throw error;
+  }
+}
+
+export async function searchRecurringDrafts(
+  db: DbExecutor,
+  organizationId: string,
+  query: string,
+  limit: number,
+): Promise<GlobalSearchHit[]> {
+  const term = likeTerm(query);
+  try {
+    const rows = await db
+      .select({
+        id: recurringFinancialDrafts.id,
+        title: recurringFinancialDrafts.title,
+        draftKind: recurringFinancialDrafts.draftKind,
+        status: recurringFinancialDrafts.status,
+        nextRunDate: recurringFinancialDrafts.nextRunDate,
+      })
+      .from(recurringFinancialDrafts)
+      .where(
+        and(
+          eq(recurringFinancialDrafts.organizationId, organizationId),
+          isNull(recurringFinancialDrafts.archivedAt),
+          ilike(recurringFinancialDrafts.title, term),
+        ),
+      )
+      .orderBy(recurringFinancialDrafts.updatedAt)
+      .limit(limit);
+
+    return rows.map((row) => ({
+      kind: 'recurring_draft' as const,
+      id: row.id,
+      title: row.title,
+      subtitle: [row.draftKind, row.status, row.nextRunDate].filter(Boolean).join(' · ') || null,
+      href: `/recurring-drafts/${row.id}`,
+      status: row.status,
+      date: row.nextRunDate,
+    }));
+  } catch (error) {
+    if (isMissingRelation(error)) return [];
+    throw error;
+  }
+}
+
+export async function searchApprovalRequests(
+  db: DbExecutor,
+  organizationId: string,
+  query: string,
+  limit: number,
+): Promise<GlobalSearchHit[]> {
+  const term = likeTerm(query);
+  try {
+    const rows = await db
+      .select({
+        id: approvalRequests.id,
+        entityType: approvalRequests.entityType,
+        entityId: approvalRequests.entityId,
+        status: approvalRequests.status,
+        amount: approvalRequests.amount,
+        currency: approvalRequests.currency,
+      })
+      .from(approvalRequests)
+      .where(
+        and(
+          eq(approvalRequests.organizationId, organizationId),
+          or(
+            ilike(approvalRequests.entityType, term),
+            ilike(approvalRequests.status, term),
+          )!,
+        ),
+      )
+      .orderBy(approvalRequests.updatedAt)
+      .limit(limit);
+
+    return rows.map((row) => ({
+      kind: 'approval' as const,
+      id: row.id,
+      title: `${row.entityType} · ${row.status}`,
+      subtitle: row.entityId,
+      href: '/approvals',
+      status: row.status,
+      ...moneyContext(true, row.amount, row.currency),
     }));
   } catch (error) {
     if (isMissingRelation(error)) return [];

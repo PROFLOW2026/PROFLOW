@@ -29,6 +29,7 @@ import { OverviewNextGenPanel } from './overview-next-gen';
 import { ScheduleSummaryPanel } from './schedule-summary-panel';
 import { textNavLinkClassName } from '@/components/ui/pressable';
 import { cn } from '@/shared/ui/cn';
+import { ProjectSetupChecklistPanel } from '@/modules/projects/ui/project-setup-checklist-panel';
 
 interface OverviewTabProps {
   detail: ProjectDetail;
@@ -104,6 +105,10 @@ export async function OverviewTab({
   return (
     <div className="flex min-w-0 max-w-full flex-col gap-4">
       <ProjectWorkspaceNav links={workspaceLinks} />
+
+      {canEdit && !isJob ? (
+        <ProjectSetupChecklistPanel projectId={detail.project.id} detail={detail} canEdit={canEdit} />
+      ) : null}
 
       {canReadFinancials ? (
         <Suspense fallback={<ProjectEarlyWarningsFallback />}>

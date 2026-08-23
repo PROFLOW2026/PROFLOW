@@ -58,6 +58,10 @@ export interface SubcontractListItem extends SubcontractAgreementRecord {
   readonly vendorName: string;
   readonly projectName: string;
   readonly currentAmount: string;
+  /** Recognized AP Actual tagged to this agreement (not billed/cash). */
+  readonly recognizedActualAmount: string;
+  /** Current − recognized, net of open PO on same vendor+project. */
+  readonly remainingCommitmentAmount: string;
   readonly billedAmount: string;
   readonly paidAmount: string;
   readonly outstandingAmount: string;

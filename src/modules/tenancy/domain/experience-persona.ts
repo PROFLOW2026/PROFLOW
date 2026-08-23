@@ -21,6 +21,8 @@ export const EXPERIENCE_PERSONA_KEYS = [
 export type ExperiencePersonaKey = (typeof EXPERIENCE_PERSONA_KEYS)[number];
 
 const PROFILE_TO_PERSONA: Readonly<Partial<Record<BusinessProfileKey, ExperiencePersonaKey>>> = {
+  // PLUMBING and HVAC share the service persona family but keep distinct profiles
+  // (terminology, modules, today emphasis) — see business-profiles.ts entries.
   GENERAL_CONTRACTOR: 'project_contractor',
   SUBCONTRACTOR: 'project_contractor',
   PROJECT_MANAGEMENT: 'project_contractor',

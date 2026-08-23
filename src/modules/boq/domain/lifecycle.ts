@@ -1,4 +1,14 @@
 import type { BoqBatchStatus, BoqStatus } from './types';
+import { DomainRuleError } from '@/shared/errors';
+
+export function assertBoqNodeNotOnBillingPlan(onActivePlan: boolean): void {
+  if (onActivePlan) {
+    throw new DomainRuleError(
+      'BOQ item is linked on an active billing plan — use the plan cycle instead',
+      'boq.errors.boqOnBillingPlan',
+    );
+  }
+}
 
 export function canEditBoqBaseline(status: BoqStatus): boolean {
   return status === 'draft';

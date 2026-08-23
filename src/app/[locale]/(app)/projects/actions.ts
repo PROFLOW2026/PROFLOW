@@ -31,6 +31,7 @@ import {
   AuthorizationError,
   DomainRuleError,
   ValidationError,
+  mapServerActionError,
 } from '@/shared/errors';
 import { redirect } from '@/shared/i18n/navigation';
 import { ORIGINAL_AMOUNT_LOCKED_MESSAGE_KEY } from '@/modules/projects';
@@ -53,17 +54,14 @@ function requiredFormValue(formData: FormData, key: string): string {
 }
 
 async function mapValidationError(error: ValidationError): Promise<ProjectFormState> {
+  const tErrors = await getTranslations('errors');
   const tValidation = await getTranslations('validation');
-  const fieldErrors: Record<string, string> = {};
-  for (const issue of error.issues) {
-    if (!issue.path) continue;
-    const message =
-      issue.message === DATE_ORDER_MESSAGE || issue.message === 'validation.endBeforeStart'
-        ? tValidation('endBeforeStart')
-        : issue.message;
-    fieldErrors[issue.path] = message;
-  }
-  return { error: error.message, fieldErrors };
+  return mapServerActionError(error, {
+    tErrors: (key) => tErrors(key as 'validationFailed'),
+    fieldMessageOverrides: {
+      [DATE_ORDER_MESSAGE]: tValidation('endBeforeStart'),
+    },
+  });
 }
 
 export async function createProjectAction(

@@ -4,6 +4,7 @@ import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import type { OrgContext } from '@/shared/auth/context';
 import { allocateDocumentNumber, documentKindForWorkKind } from '@/modules/tenancy';
+import { createClient } from '@/modules/clients';
 import { clients, projectDomains } from '@drizzle/schema';
 import { and, eq } from 'drizzle-orm';
 import { DEFAULT_WORK_PACKAGE_NAME } from '../domain/types';
@@ -43,7 +44,11 @@ export async function createProject(
   const input = parsed.data;
   const currency = (input.contractValueCurrency ?? context.organization.baseCurrency).toUpperCase();
 
-  const clientId = input.clientId ?? null;
+  let clientId = input.clientId ?? null;
+  if (!clientId && input.clientName) {
+    const client = await createClient(context, { name: input.clientName });
+    clientId = client.id;
+  }
 
   if (clientId) {
     const [client] = await context.db

@@ -47,6 +47,7 @@ export async function composeManagementAnalytics(
     readonly cashFlow: CashFlowOutlook | null;
     readonly commercialCurrent: ReturnType<typeof money> | null;
     readonly invoiced: ReturnType<typeof money> | null;
+    readonly netInvoiced?: ReturnType<typeof money> | null;
     readonly actualCost: ReturnType<typeof money> | null;
     readonly commitments: ReturnType<typeof money> | null;
     readonly expectedProfit: ReturnType<typeof money> | null;
@@ -180,7 +181,11 @@ export async function composeManagementAnalytics(
   return {
     ...base,
     activeProjectValue: input.commercialCurrent,
-    unbilledBacklog: computeUnbilledBacklog(input.commercialCurrent, input.invoiced),
+    unbilledBacklog: computeUnbilledBacklog(
+      input.commercialCurrent,
+      input.netInvoiced ?? input.invoiced,
+      input.invoiced,
+    ),
     totalActualCost: input.actualCost,
     totalCommitments: input.commitments,
     expectedProfit: canProfit ? input.expectedProfit : null,

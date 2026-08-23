@@ -16,6 +16,7 @@ import {
   zeroMoney,
   type MoneyValue,
 } from '@/shared/money';
+import { applyLinkedExpenseDeductionsToContributions } from '../domain/expense-ap-dedup';
 import {
   buildFinancialCoverage,
   defaultCostSourcePresence,
@@ -30,6 +31,10 @@ import {
   type ProjectExpenseContribution,
 } from '../domain/cost-aggregation';
 import { dataConfidenceFromCoverage } from '../domain/data-confidence';
+import {
+  buildSliceAvailability,
+  type FinancialSliceAvailability,
+} from '../domain/slice-availability';
 import { computeProfitPosition, roundProfitPosition } from '../domain/profit';
 import {
   hasRevenueBasisForProfitability,
@@ -59,9 +64,14 @@ export interface ProjectFinancialsLoadedSlices {
   readonly canReadCommercial: boolean;
   readonly canReadBilling: boolean;
   readonly canReadProfit: boolean;
+  readonly canReadExpenses?: boolean;
+  readonly canReadWorkforce?: boolean;
+  readonly canReadProcurement?: boolean;
+  readonly canReadAp?: boolean;
   readonly commercialData: ProjectCommercialData | null;
   readonly billingRows: ProjectBillingRows | null;
-  readonly expenseContributions: readonly ProjectExpenseContribution[];
+  /** Null when expenses.read withheld — never substitute []. */
+  readonly expenseContributions: readonly ProjectExpenseContribution[] | null;
   readonly laborInput: LaborCostContribution | null;
   readonly committed:
     | { readonly total: MoneyValue; readonly excludedForeignCurrencyCount: number }
@@ -91,6 +101,7 @@ export interface ProjectFinancialsLoadedSlices {
     readonly costNet: MoneyValue;
     readonly revenueNet: MoneyValue;
   };
+  readonly sliceAvailability?: FinancialSliceAvailability;
 }
 
 export function composeProjectFinancials(
@@ -104,9 +115,11 @@ export function composeProjectFinancials(
 
   let billing: BillingPosition = {
     invoiced: zeroMoney(currency),
+    netInvoiced: zeroMoney(currency),
     paid: zeroMoney(currency),
     outstanding: zeroMoney(currency),
     monthCloseRevenueNet: zeroMoney(currency),
+    hasBillingData: false,
   };
 
   let billingPartials: CoveragePartial[] = [];
@@ -115,9 +128,11 @@ export function composeProjectFinancials(
     const position = computeBillingPositionFromRows(input.billingRows, currency);
     billing = {
       invoiced: position.invoiced,
+      netInvoiced: position.netInvoiced,
       paid: position.paid,
       outstanding: position.outstanding,
       monthCloseRevenueNet: zeroMoney(currency),
+      hasBillingData: position.hasBillingData,
     };
     if (position.excludedForeignCurrencyRecordCount > 0) {
       billingPartials = [
@@ -129,13 +144,12 @@ export function composeProjectFinancials(
     }
   }
 
-  const linkedExpenseIds = input.recognizedVendor?.linkedExpenseIds ?? new Set<string>();
-  const expensesForActual =
-    linkedExpenseIds.size === 0
-      ? input.expenseContributions
-      : input.expenseContributions.filter(
-          (line) => !line.expenseId || !linkedExpenseIds.has(line.expenseId),
-        );
+  const linkedExpenseDeductions =
+    input.recognizedVendor?.linkedExpenseDeductions ?? new Map<string, string>();
+  const expensesForActual = applyLinkedExpenseDeductionsToContributions(
+    input.expenseContributions ?? [],
+    linkedExpenseDeductions,
+  );
 
   const hasRecognizedBills = (input.recognizedVendor?.billCount ?? 0) > 0;
   const aggregated =
@@ -200,6 +214,7 @@ export function composeProjectFinancials(
     billing = {
       ...billing,
       invoiced: roundMoney(addMoney(billing.invoiced, revenueAdjustment)),
+      netInvoiced: roundMoney(addMoney(billing.netInvoiced, revenueAdjustment)),
       outstanding: roundMoney(addMoney(billing.outstanding, revenueAdjustment)),
       monthCloseRevenueNet: roundMoney(revenueAdjustment),
     };
@@ -283,6 +298,18 @@ export function composeProjectFinancials(
     profit,
     coverage,
     dataConfidence,
+    sliceAvailability:
+      input.sliceAvailability ??
+      buildSliceAvailability({
+        canReadCommercial: input.canReadCommercial,
+        canReadBilling: input.canReadBilling,
+        canReadExpenses:
+          input.canReadExpenses !== false && input.expenseContributions !== null,
+        canReadWorkforce: input.canReadWorkforce !== false,
+        canReadProcurement: input.canReadProcurement !== false,
+        canReadAp: input.canReadAp !== false,
+        laborLoaded: input.laborInput?.hasWorkforceData === true,
+      }),
     perContract: input.commercialData?.perContract,
   };
 }

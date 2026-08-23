@@ -16,6 +16,7 @@ import { mapCoverageToSources, partialNote, standalonePartialNotes } from './map
 import { DashboardMissingDataTrigger } from './dashboard-missing-data-trigger';
 import { mapDashboardMissingDataToView } from './map-dashboard-missing-data-view';
 import { partitionDashboardCompletenessItems } from '../domain/dashboard-missing-data';
+import type { DashboardKpiKey } from '../domain/dashboard-missing-data';
 
 interface HomeDashboardContentProps {
   data: HomeDashboardData;
@@ -121,7 +122,7 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
   const hasCompletenessTrigger =
     missingDataItemsView.length > 0 || attentionItemsView.length > 0;
 
-  function isKpiUnavailable(key: keyof NonNullable<HomeDashboardData['kpiAvailability']>): boolean {
+  function isKpiUnavailable(key: DashboardKpiKey): boolean {
     return data.kpiAvailability?.[key] === 'unavailable';
   }
 
@@ -275,16 +276,37 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
             <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
               <KpiCard
                 title={tFinancial('kpis.forecast')}
-                money={data.forecast.totalForecastFinalCost}
-                hint={tFinancial('basis.netExVat')}
+                money={
+                  isKpiUnavailable('forecastCost')
+                    ? undefined
+                    : data.forecast.totalForecastFinalCost ?? undefined
+                }
+                unavailable={isKpiUnavailable('forecastCost')}
+                unavailableLabel={t('missingData.kpiUnavailable')}
+                unavailableHint={t('missingData.kpiUnavailableCostHint')}
+                hint={isKpiUnavailable('forecastCost') ? undefined : tFinancial('basis.netExVat')}
               />
               <KpiCard
                 title={tFinancial('kpis.expectedRemaining')}
-                money={data.forecast.totalExpectedRemaining}
+                money={
+                  isKpiUnavailable('forecastCost')
+                    ? undefined
+                    : data.forecast.totalExpectedRemaining ?? undefined
+                }
+                unavailable={isKpiUnavailable('forecastCost')}
+                unavailableLabel={t('missingData.kpiUnavailable')}
+                unavailableHint={t('missingData.kpiUnavailableCostHint')}
               />
               <KpiCard
                 title={tFinancial('kpis.allocatedOverhead')}
-                money={data.forecast.totalAllocatedOverhead}
+                money={
+                  isKpiUnavailable('actualCost')
+                    ? undefined
+                    : data.forecast.totalAllocatedOverhead ?? undefined
+                }
+                unavailable={isKpiUnavailable('actualCost')}
+                unavailableLabel={t('missingData.kpiUnavailable')}
+                unavailableHint={t('missingData.kpiUnavailableCostHint')}
               />
               {data.showProfit && data.forecast.totalActualMargin ? (
                 <KpiCard
@@ -330,15 +352,17 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
                   unavailableHint={t('missingData.kpiUnavailableProfitHint')}
                 />
               ) : null}
-              <KpiCard
-                title={tFinancial('unallocatedBusinessCosts')}
-                money={data.forecast.unallocatedBusinessCosts}
-                footer={
-                  <p className="break-words text-xs text-[var(--pf-text-secondary)]">
-                    {tFinancial('unallocatedBusinessCostsHint')}
-                  </p>
-                }
-              />
+              {data.forecast.unallocatedBusinessCosts != null ? (
+                <KpiCard
+                  title={tFinancial('unallocatedBusinessCosts')}
+                  money={data.forecast.unallocatedBusinessCosts}
+                  footer={
+                    <p className="break-words text-xs text-[var(--pf-text-secondary)]">
+                      {tFinancial('unallocatedBusinessCostsHint')}
+                    </p>
+                  }
+                />
+              ) : null}
             </div>
           </section>
         );
@@ -350,7 +374,14 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
             <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
               <KpiCard
                 title={tFinancial('kpis.committed')}
-                money={data.forecast.totalRemainingCommitments}
+                money={
+                  isKpiUnavailable('committed')
+                    ? undefined
+                    : data.forecast.totalRemainingCommitments ?? undefined
+                }
+                unavailable={isKpiUnavailable('committed')}
+                unavailableLabel={t('missingData.kpiUnavailable')}
+                unavailableHint={t('missingData.kpiUnavailableCostHint')}
               />
             </div>
           </section>

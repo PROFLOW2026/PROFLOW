@@ -37,8 +37,16 @@ export default defineConfig({
     timezoneId: 'Asia/Jerusalem',
   },
   projects: [
-    { name: 'setup-owner', testMatch: /auth\/owner\.setup\.ts/ },
-    { name: 'setup-worker', testMatch: /auth\/worker\.setup\.ts/ },
+    {
+      name: 'setup-owner',
+      testMatch: /auth\/owner\.setup\.ts/,
+      use: { viewport: { width: 1440, height: 900 } },
+    },
+    {
+      name: 'setup-worker',
+      testMatch: /auth\/worker\.setup\.ts/,
+      use: { viewport: { width: 1440, height: 900 } },
+    },
     {
       name: 'desktop-he',
       // Public shell + regression (overflow/locale). Authenticated specs run below.
@@ -47,7 +55,7 @@ export default defineConfig({
     },
     {
       name: 'desktop-he-authenticated',
-      testMatch: /authenticated\/(owner|regression|performance-verify|performance-signoff|jobs-flows|master-completion-journeys|pwa-startup|ocr-review|boq-happy-path|capture-marketing-screenshots|branding|hebrew-runtime-closure|overnight-surfaces|billing-plan|project-time-mobile-gate)\.spec\.ts/,
+      testMatch: /authenticated\/(owner|regression|performance-verify|performance-signoff|jobs-flows|master-completion-journeys|pwa-startup|ocr-review|boq-happy-path|capture-marketing-screenshots|branding|hebrew-runtime-closure|overnight-surfaces|billing-plan|project-time-mobile-gate|project-centric-money-chain)\.spec\.ts/,
       dependencies: ['setup-owner'],
       use: {
         ...devices['Desktop Chrome'],
@@ -75,7 +83,7 @@ export default defineConfig({
     },
     {
       name: 'mobile-he',
-      testMatch: /mobile\.spec\.ts|authenticated\/workforce-discoverability\.spec\.ts|authenticated\/ocr-review\.spec\.ts|authenticated\/hebrew-runtime-closure\.spec\.ts|authenticated\/overnight-surfaces\.spec\.ts|authenticated\/billing-plan\.spec\.ts/,
+      testMatch: /mobile\.spec\.ts|authenticated\/workforce-discoverability\.spec\.ts|authenticated\/ocr-review\.spec\.ts|authenticated\/hebrew-runtime-closure\.spec\.ts|authenticated\/overnight-surfaces\.spec\.ts|authenticated\/billing-plan\.spec\.ts|authenticated\/mobile-money-journeys\.spec\.ts/,
       dependencies: ['setup-owner'],
       use: {
         ...devices['Pixel 7'],

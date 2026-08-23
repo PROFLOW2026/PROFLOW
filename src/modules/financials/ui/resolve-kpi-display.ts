@@ -1,4 +1,5 @@
 import type { ProjectFinancials } from '../domain/types';
+import { computeUnbilledBacklog } from '../domain/management-analytics';
 import { subtractMoney, type MoneyValue } from '@/shared/money';
 
 /**
@@ -33,6 +34,8 @@ export interface ResolvedProjectKpis {
   readonly billed: MoneyValue;
   readonly paid: MoneyValue;
   readonly outstanding: MoneyValue;
+  /** Contract net − net billed; null when no revenue basis or billing unavailable. */
+  readonly unbilled: MoneyValue | null;
   readonly actualMargin: MoneyValue | null;
   readonly forecastMargin: MoneyValue | null;
   readonly actualMarginPercent: string | null;
@@ -84,6 +87,15 @@ export function resolveProjectKpiDisplay(
     cost.actualCostToDate.amount === forecastCost.amount &&
     cost.actualCostToDate.currency === forecastCost.currency;
 
+  const unbilled =
+    !priceNotSet && commercial
+      ? computeUnbilledBacklog(
+          commercial.currentContractValue,
+          financials.billing.netInvoiced,
+          financials.billing.invoiced,
+        )
+      : null;
+
   return {
     currentContract: priceNotSet ? null : (commercial?.currentContractValue ?? null),
     actualCost: cost.actualCostToDate,
@@ -94,6 +106,7 @@ export function resolveProjectKpiDisplay(
     billed: financials.billing.invoiced,
     paid: financials.billing.paid,
     outstanding: financials.billing.outstanding,
+    unbilled,
     actualMargin,
     forecastMargin,
     actualMarginPercent: priceNotSet ? null : (profit?.actualMarginPercent ?? null),

@@ -124,7 +124,10 @@
     "taxSplitHint": "If checked, the entered amount is payable GROSS and VAT is split out. Actual cost uses NET. If unchecked, the entered amount is NET and VAT is added to payable using the organization tax rule.",
     "saveAsDraft": "Save as draft only",
     "saveAsDraftHint": "A draft does not recognize Actual and does not consume PO commitment until posted.",
-    "actualVsPayableHint": "Actual / profit = NET excluding VAT. Payable / aging = GROSS including VAT. VAT is not profit."
+    "actualVsPayableHint": "Actual / profit = NET excluding VAT. Payable / aging = GROSS including VAT. VAT is not profit.",
+    "overlapWarningTitle": "Similar finalized expense exists",
+    "overlapWarningBody": "A finalized expense with the same vendor and a similar amount is already in Actual. Posting this bill without linking can double-count cost.",
+    "overlapWarningHint": "After creating the bill, propose and accept a match to the expense (partial matches are allowed)."
   },
   "retention": {
     "title": "Retention / holdback",

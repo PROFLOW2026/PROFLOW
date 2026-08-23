@@ -92,6 +92,7 @@
   "workspace": {
     "fallbackTitle": "פרויקט",
     "noClient": "ללא לקוח",
+    "completeClient": "הוספת לקוח",
     "clientLinked": "{clientLabel}: <link>{clientName}</link>",
     "contactPerson": "איש קשר: {name}",
     "contactPersonPhone": " · טל׳ {phone}",
@@ -212,6 +213,22 @@
     "apply": "שכפול כעותקים",
     "applied": "המבנה שוכפל כעותקים הניתנים לעריכה."
   },
+  "setupChecklist": {
+    "title": "סיימו להקים את הפרויקט",
+    "description": "נותרו {count, plural, one {צעד אחד} other {# צעדים}} כדי ליישר כסף ושטח.",
+    "steps": {
+      "client": "שיוך לקוח",
+      "clientHint": "מי משלם ולמי מדווחים.",
+      "contract": "הגדרת סכום חוזה",
+      "contractHint": "בסיס מסחרי לחיוב ולשינויים.",
+      "team": "שיוך צוות",
+      "teamHint": "מי עובד כאן ומי מאשר שעות.",
+      "cost": "רישום עלות ראשונה",
+      "costHint": "הוצאה, קבלן משנה או עלות אחרת.",
+      "billing": "הגדרת תוכנית חיוב",
+      "billingHint": "איך התקדמות הופכת לחשבוניות."
+    }
+  },
   "overview": {
     "contractSummary": "סיכום חוזה",
     "originalValue": "מה שמנהלים מכאן",
@@ -281,7 +298,7 @@
     "experienceProfileLabel": "מצב עבודה בפרויקט",
     "experienceProfiles": {
       "auto": "אוטומטי (לפי סוג העבודה)",
-      "simple": "פשוט",
+      "simple": "מצב פרויקט פשוט",
       "full": "מלא",
       "boq": "כתב כמויות",
       "consulting": "ייעוץ",

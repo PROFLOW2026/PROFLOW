@@ -4,6 +4,7 @@ import {
   assertAcceptMatchDoesNotCreateExpense,
   assertMatchCurrencyIntegrity,
   assertMatchDoesNotOverMatch,
+  assertMatchExpenseAmountWithinExpense,
   assertMatchHasTarget,
   computeMatchVariance,
   deriveBillStatusFromAcceptedMatches,
@@ -122,6 +123,23 @@ describe('AP matching domain rules', () => {
     });
     expect(over.hasOverMatchVariance).toBe(true);
     expect(over.overMatchVariance).toBe('50.000000');
+  });
+
+  it('rejects expense match above expense gross (R-040)', () => {
+    expect(() =>
+      assertMatchExpenseAmountWithinExpense({
+        currency: 'ILS',
+        expenseGrossAmount: '100',
+        matchedAmount: '150',
+      }),
+    ).toThrow(DomainRuleError);
+    expect(() =>
+      assertMatchExpenseAmountWithinExpense({
+        currency: 'ILS',
+        expenseGrossAmount: '100',
+        matchedAmount: '100',
+      }),
+    ).not.toThrow();
   });
 
   it('enforces currency integrity across bill, match, PO, and expense', () => {

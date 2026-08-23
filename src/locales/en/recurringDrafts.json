@@ -1,6 +1,7 @@
 {
   "title": "Recurring drafts",
   "subtitle": "Templates that create expense, vendor-bill, or billing drafts on a schedule. Generation never posts money - you still approve each draft.",
+  "serviceRecurringLink": "For scheduled service calls (work orders), see Recurring work under Service.",
   "navFromSource": "Recurring drafts",
   "notAllowed": {
     "title": "No access",

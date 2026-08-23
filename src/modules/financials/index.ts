@@ -145,3 +145,13 @@ export type {
   MetricNature,
 } from './domain/types';
 export { isCovered } from './domain/types';
+export {
+  listExpenseOverlapCandidates,
+  listApBillOverlapCandidates,
+} from './data/expense-ap-overlap.repository';
+export type {
+  ExpenseOverlapCandidate,
+  ApBillOverlapCandidate,
+} from './domain/expense-ap-overlap';
+export { loadRecognizedActualForSubcontractAgreement } from './data/subcontract-commitment.repository';
+

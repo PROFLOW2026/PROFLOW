@@ -402,20 +402,8 @@ describe('mapBudgetLineActuals', () => {
     const result = mapBudgetLineActuals({
       currency: ILS,
       cost: engineCost('10000'),
-      linkedExpenseIds: new Set(['bill-linked']),
       excludeLaborCategory: true,
       contributions: [
-        contribution({
-          amount: '8000',
-          categoryKey: 'materials',
-          expenseId: 'bill-linked',
-        }),
-        contribution({
-          amount: '7000',
-          categoryKey: 'labor',
-          isLaborCategory: true,
-          expenseId: 'labor-mode-b',
-        }),
         contribution({
           amount: '4000',
           categoryKey: 'materials',

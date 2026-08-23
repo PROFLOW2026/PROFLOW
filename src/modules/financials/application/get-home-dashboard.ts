@@ -88,15 +88,16 @@ export interface DashboardAttention {
  */
 export interface OrganizationForecastSummary {
   readonly totalCurrentContract: MoneyValue;
-  readonly totalActualProjectCost: MoneyValue;
-  readonly totalAllocatedOverhead: MoneyValue;
-  readonly totalRemainingCommitments: MoneyValue;
-  readonly totalExpectedRemaining: MoneyValue;
-  readonly totalForecastFinalCost: MoneyValue;
+  /** Null when org Actual is withheld (permission / incomplete KPI — N-002). */
+  readonly totalActualProjectCost: MoneyValue | null;
+  readonly totalAllocatedOverhead: MoneyValue | null;
+  readonly totalRemainingCommitments: MoneyValue | null;
+  readonly totalExpectedRemaining: MoneyValue | null;
+  readonly totalForecastFinalCost: MoneyValue | null;
   readonly totalActualMargin: MoneyValue | null;
   readonly totalForecastMargin: MoneyValue | null;
   /** Finalized org costs awaiting allocation - not in project Actual / profit. */
-  readonly unallocatedBusinessCosts: MoneyValue;
+  readonly unallocatedBusinessCosts: MoneyValue | null;
   readonly eligibleProjectCount: number;
   readonly excludedForeignCurrencyCount: number;
 }
@@ -361,7 +362,7 @@ export async function getHomeDashboard(
       ? aggregateOrgCommercial(rollup.rows, currency)
       : null;
     const cost = aggregateOrgCost(rollup.rows, currency, {
-      unallocatedBusinessCosts: unallocatedBusinessCosts ?? zeroMoney(currency),
+      unallocatedBusinessCosts,
     });
     const profitability = rollup.canReadProfit
       ? aggregateOrgProfit(rollup.rows, currency)
@@ -382,13 +383,14 @@ export async function getHomeDashboard(
     const hasProjectCost =
       rollup.totalEligibleProjectCount > 0 &&
       (costCoverageBundle?.hasCostData ||
-        !isZeroMoney(cost.actual.value) ||
-        !isZeroMoney(cost.committed.value) ||
-        !isZeroMoney(cost.expectedRemaining.value) ||
-        !isZeroMoney(cost.estimatedFinal.value));
+        (cost.actual != null && !isZeroMoney(cost.actual.value)) ||
+        (cost.committed != null && !isZeroMoney(cost.committed.value)) ||
+        (cost.expectedRemaining != null && !isZeroMoney(cost.expectedRemaining.value)) ||
+        (cost.estimatedFinal != null && !isZeroMoney(cost.estimatedFinal.value)));
 
     if (hasProjectCost || (unallocatedBusinessCosts && !isZeroMoney(unallocatedBusinessCosts))) {
-      totalActualCost = cost.actual.value;
+      // Never substitute zero when Actual was withheld on every row (N-002).
+      totalActualCost = cost.actual?.value ?? null;
       if (costCoverageBundle) {
         const mergedSources = mergeSourcePresence(costCoverageBundle.sources);
         const mergedPartials = mergeCoveragePartials(
@@ -400,20 +402,20 @@ export async function getHomeDashboard(
       }
 
       if (canReadProfit && profitability) {
-        estimatedProfit = profitability.estimatedProfit.value;
+        estimatedProfit = profitability.estimatedProfit?.value ?? null;
       }
     }
 
     forecast = {
       totalCurrentContract: commercial?.current.value ?? zeroMoney(currency),
-      totalActualProjectCost: cost.actual.value,
-      totalAllocatedOverhead: cost.overhead.value,
-      totalRemainingCommitments: cost.committed.value,
-      totalExpectedRemaining: cost.expectedRemaining.value,
-      totalForecastFinalCost: cost.estimatedFinal.value,
-      totalActualMargin: canReadProfit ? (profitability?.actualProfit.value ?? null) : null,
-      totalForecastMargin: canReadProfit ? (profitability?.estimatedProfit.value ?? null) : null,
-      unallocatedBusinessCosts: unallocatedBusinessCosts ?? zeroMoney(currency),
+      totalActualProjectCost: cost.actual?.value ?? null,
+      totalAllocatedOverhead: cost.overhead?.value ?? null,
+      totalRemainingCommitments: cost.committed?.value ?? null,
+      totalExpectedRemaining: cost.expectedRemaining?.value ?? null,
+      totalForecastFinalCost: cost.estimatedFinal?.value ?? null,
+      totalActualMargin: canReadProfit ? (profitability?.actualProfit?.value ?? null) : null,
+      totalForecastMargin: canReadProfit ? (profitability?.estimatedProfit?.value ?? null) : null,
+      unallocatedBusinessCosts: unallocatedBusinessCosts ?? null,
       eligibleProjectCount: rollup.totalEligibleProjectCount,
       excludedForeignCurrencyCount: rollup.excludedForeignCurrencyCount,
     };
@@ -507,6 +509,9 @@ export async function getHomeDashboard(
           pricedProjectCount: rollup.pricedProjectCount,
           hasContractValue: totalContractValue != null,
           hasProfitValue: estimatedProfit != null,
+          hasActualCost: (forecast?.totalActualProjectCost ?? totalActualCost) != null,
+          hasForecastCost: forecast?.totalForecastFinalCost != null,
+          hasCommitted: forecast?.totalRemainingCommitments != null,
         })
       : null;
 
@@ -564,7 +569,7 @@ async function collectOrgExpenseLayer(
     partials: CoveragePartial[];
     hasCostData: boolean;
   };
-  unallocatedBusinessCosts: MoneyValue;
+  unallocatedBusinessCosts: MoneyValue | null;
 }> {
   const canReadWorkforce = hasPermission(context, PERMISSIONS.WORKFORCE_READ);
   const canReadExpenses = hasPermission(context, PERMISSIONS.EXPENSES_READ);
@@ -587,10 +592,13 @@ async function collectOrgExpenseLayer(
   ]);
 
   const projectTouching = sumProjectTouchingExpenseNets(contributions, currency);
-  const unallocatedBusinessCosts = computeUnallocatedOrganizationCosts({
-    orgFinalizedExpenseTotal: orgExpense.total,
-    projectTouchingExpenseTotal: projectTouching,
-  });
+  // Do not invent a confident zero unallocated when expenses are permission-denied.
+  const unallocatedBusinessCosts = canReadExpenses
+    ? computeUnallocatedOrganizationCosts({
+        orgFinalizedExpenseTotal: orgExpense.total,
+        projectTouchingExpenseTotal: projectTouching,
+      })
+    : null;
 
   const residualTimeLabor =
     fromNumericString(laborAgg?.totalAmount ?? '0', currency) ?? zeroMoney(currency);

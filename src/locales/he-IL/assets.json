@@ -275,7 +275,13 @@
   },
   "errors": {
     "insufficientQuantity": "אין מספיק כמות במלאי לניפוק זה.",
+    "insufficientQuantityOnHand": "אין מספיק כמות במלאי לניפוק זה.",
+    "movementQuantityPositive": "כמות התנועה חייבת להיות חיובית.",
+    "adjustmentQuantityNonZero": "כמות ההתאמה חייבת להיות שונה מאפס.",
+    "reservationQuantityPositive": "כמות ההזמנה חייבת להיות חיובית.",
     "insufficientAvailable": "אין מספיק כמות זמינה. שחררו או נצלו הזמנה קודם.",
+    "insufficientAvailableQuantity": "אין מספיק כמות זמינה. שחררו או נצלו הזמנה קודם.",
+    "consumeQuantityPositive": "כמות הניצול חייבת להיות חיובית.",
     "reservationTargetRequired": "יש לשמור מלאי לפרויקט ו/או לקריאת שירות.",
     "reservationNotActive": "ההזמנה אינה פעילה.",
     "countNotDraft": "אפשר לשנות או לסגור רק ספירה בטיוטה.",

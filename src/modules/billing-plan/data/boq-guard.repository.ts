@@ -1,12 +1,14 @@
 /**
- * BOQ double-billing guard helpers for billing-plan cycle issue.
+ * BOQ double-billing guard helpers for billing-plan cycle issue and progress billing.
  */
 
-import { and, eq, isNull } from 'drizzle-orm';
+import { and, eq, inArray, isNotNull, isNull } from 'drizzle-orm';
 import {
   boqProgressBatches,
   boqProgressBillingLinks,
   boqProgressLines,
+  projectBillingPlanLines,
+  projectBillingPlans,
 } from '@drizzle/schema';
 import type { DbExecutor } from '@/shared/db/types';
 
@@ -66,4 +68,38 @@ export async function boqNodeHasProgressBillingClaimOrLink(
     .limit(1);
 
   return Boolean(claimed);
+}
+
+/**
+ * BOQ node ids linked on an active billing plan for this project (R-017 reverse guard).
+ */
+export async function listBoqNodeIdsOnActiveBillingPlan(
+  db: DbExecutor,
+  organizationId: string,
+  projectId: string,
+  boqNodeIds: readonly string[],
+): Promise<string[]> {
+  if (boqNodeIds.length === 0) return [];
+
+  const rows = await db
+    .select({ boqNodeId: projectBillingPlanLines.boqNodeId })
+    .from(projectBillingPlanLines)
+    .innerJoin(
+      projectBillingPlans,
+      and(
+        eq(projectBillingPlans.id, projectBillingPlanLines.planId),
+        eq(projectBillingPlans.organizationId, projectBillingPlanLines.organizationId),
+      ),
+    )
+    .where(
+      and(
+        eq(projectBillingPlanLines.organizationId, organizationId),
+        eq(projectBillingPlans.projectId, projectId),
+        eq(projectBillingPlans.status, 'active'),
+        inArray(projectBillingPlanLines.boqNodeId, [...boqNodeIds]),
+        isNotNull(projectBillingPlanLines.boqNodeId),
+      ),
+    );
+
+  return [...new Set(rows.map((row) => row.boqNodeId).filter(Boolean) as string[])];
 }

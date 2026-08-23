@@ -26,6 +26,7 @@
       "unapprovedTime": "שעות שטרם אושרו",
       "openCommitments": "התחייבויות פתוחות",
       "openPurchaseOrders": "הזמנות רכש פתוחות",
+      "noPurchaseRequestStage": "שלב בקשת רכש אינו במערכת בכוונה - השתמשו בהזמנות רכש פתוחות או בהוצאות.",
       "openSupplierLiabilities": "יתרות ספקים פתוחות",
       "openClientBalances": "יתרות לקוח פתוחות",
       "unbilledWork": "עבודה מאושרת שטרם חויבה",

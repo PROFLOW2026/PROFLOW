@@ -174,5 +174,23 @@ describe('resolveDashboardKpiAvailability', () => {
 
     expect(availability.contractValue).toBe('value');
     expect(availability.estimatedProfit).toBe('value');
+    expect(availability.actualCost).toBe('value');
+  });
+
+  it('marks actualCost unavailable when org Actual was withheld (N-002)', () => {
+    const availability = resolveDashboardKpiAvailability({
+      missingItems: [],
+      openPriceProjectCount: 0,
+      pricedProjectCount: 2,
+      hasContractValue: true,
+      hasProfitValue: true,
+      hasActualCost: false,
+      hasForecastCost: false,
+      hasCommitted: true,
+    });
+
+    expect(availability.actualCost).toBe('unavailable');
+    expect(availability.forecastCost).toBe('unavailable');
+    expect(availability.committed).toBe('value');
   });
 });

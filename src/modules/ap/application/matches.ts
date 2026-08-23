@@ -13,6 +13,7 @@ import {
   assertAcceptMatchDoesNotCreateExpense,
   assertMatchCurrencyIntegrity,
   assertMatchDoesNotOverMatch,
+  assertMatchExpenseAmountWithinExpense,
   assertMatchHasTarget,
   deriveBillStatusFromAcceptedMatches,
   isAcceptingMatchCreatingExpense,
@@ -121,6 +122,11 @@ export async function proposeApMatch(
       );
     }
     expenseCurrency = expense.currency;
+    assertMatchExpenseAmountWithinExpense({
+      currency: bill.currency,
+      expenseGrossAmount: expense.grossAmount,
+      matchedAmount: input.matchedAmount,
+    });
   }
 
   assertMatchCurrencyIntegrity({

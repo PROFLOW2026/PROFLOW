@@ -1,6 +1,26 @@
 import type { ClientContactRecord } from './types';
 
 /**
+ * Pick billing-role contact when present; otherwise practical primary.
+ * Used when creating AR records so billing contacts are not dead UX.
+ */
+export function pickBillingClientContact(
+  contacts: readonly ClientContactRecord[],
+): ClientContactRecord | null {
+  if (contacts.length === 0) return null;
+
+  const billing = contacts.filter((contact) => contact.role === 'billing');
+  const pool = billing.length > 0 ? billing : contacts.filter((contact) => contact.role === 'primary');
+  const fallback = pool.length > 0 ? pool : contacts;
+
+  return [...fallback].sort((a, b) => {
+    const byCreated = a.createdAt.getTime() - b.createdAt.getTime();
+    if (byCreated !== 0) return byCreated;
+    return a.name.localeCompare(b.name);
+  })[0]!;
+}
+
+/**
  * Client-wide practical contact: prefer role=primary, else earliest by createdAt.
  * Used as a default *suggestion* and as display fallback when a project has no
  * project-specific contact (projects.primary_contact_id).

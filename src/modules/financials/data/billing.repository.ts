@@ -20,6 +20,7 @@ export interface ProjectBillingRows {
     readonly dueDate: BusinessDate | null;
     readonly payments: readonly PaymentAmountInput[];
     readonly retentionHeldRemaining?: MoneyValue;
+    readonly subtotalAmount: MoneyValue;
   })[];
   readonly currency: string;
 }
@@ -53,6 +54,7 @@ async function mapBillingRecords(
     kind: record.kind,
     status: record.status,
     totalAmount: fromNumericString(record.totalAmount, record.currency)!,
+    subtotalAmount: fromNumericString(record.subtotalAmount, record.currency)!,
     payments: paymentsByRecord.get(record.id) ?? [],
     retentionHeldRemaining: fromNumericString(record.retentionHeldRemaining, record.currency) ?? undefined,
   }));
@@ -147,6 +149,7 @@ export async function loadBillingRowsGroupedByProject(
         kind: record.kind,
         status: record.status,
         totalAmount: fromNumericString(record.totalAmount, record.currency)!,
+        subtotalAmount: fromNumericString(record.subtotalAmount, record.currency)!,
         payments: paymentsByRecord.get(record.id) ?? [],
         retentionHeldRemaining:
           fromNumericString(record.retentionHeldRemaining, record.currency) ?? undefined,

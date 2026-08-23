@@ -17,7 +17,7 @@ import {
   updateOpportunity,
 } from '@/modules/crm';
 import { withOrgContext } from '@/shared/auth/session';
-import { AppError, DomainRuleError, ValidationError } from '@/shared/errors';
+import { mapServerActionError } from '@/shared/errors';
 import { redirect } from '@/shared/i18n/navigation';
 
 export interface CrmFormState {
@@ -41,20 +41,9 @@ function formValueOrNull(formData: FormData, key: string): string | null | undef
 }
 
 function mapError(error: unknown, tErrors: Awaited<ReturnType<typeof getTranslations>>): CrmFormState {
-  if (error instanceof ValidationError) {
-    const fieldErrors: Record<string, string> = {};
-    for (const issue of error.issues) {
-      if (issue.path) fieldErrors[issue.path] = issue.message;
-    }
-    return { error: error.message, fieldErrors };
-  }
-  if (error instanceof DomainRuleError) {
-    return { error: error.message };
-  }
-  if (error instanceof AppError) {
-    return { error: tErrors('unexpected') };
-  }
-  throw error;
+  return mapServerActionError(error, {
+    tErrors: (key) => tErrors(key as 'unexpected'),
+  });
 }
 
 export async function createProspectAction(

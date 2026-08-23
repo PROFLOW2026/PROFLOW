@@ -30,6 +30,20 @@ function mapError(error: unknown, t: (key: string) => string): BoqFormState {
   if (!(error instanceof AppError)) {
     return { error: t('errors.generic') };
   }
+  // Prefer messageKey when present — never surface English AppError.message to UI.
+  if (error.messageKey.startsWith('boq.')) {
+    const key = error.messageKey.replace(/^boq\./, '');
+    try {
+      const translated = t(key);
+      if (translated && translated !== key && translated !== error.messageKey) {
+        return { error: translated };
+      }
+    } catch {
+      /* fall through to legacy message matching */
+    }
+  }
+  // Legacy: some BOQ domain paths still encode rule identity in English message text.
+  // Matching is internal only — the returned string is always a localized boq.errors.* key.
   const message = error.message || '';
   if (/already has billing|duplicate billing|already being billed/i.test(message)) {
     return { error: t('errors.duplicateBilling') };

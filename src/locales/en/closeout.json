@@ -26,6 +26,7 @@
       "unapprovedTime": "Unapproved time",
       "openCommitments": "Open commitments",
       "openPurchaseOrders": "Open purchase orders",
+      "noPurchaseRequestStage": "Purchase requests are intentionally out of scope — use open POs or expenses instead.",
       "openSupplierLiabilities": "Open supplier balances",
       "openClientBalances": "Open client balances",
       "unbilledWork": "Approved work not yet billed",

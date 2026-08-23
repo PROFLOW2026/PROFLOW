@@ -86,6 +86,14 @@
     "confirm": "Approve the change",
     "noPermission": "You can view this request but approving requires the approve permission."
   },
+  "billingHandoff": {
+    "title": "Change approved — ready to bill",
+    "body": "Contract value is updated. Create a billing record or adjust the billing plan when you are ready to invoice this change.",
+    "createBilling": "Create billing record",
+    "billingPlan": "Open billing plan",
+    "viewBilling": "View project billing",
+    "noPermission": "You can view the approval; billing actions require billing manage permission."
+  },
   "detail": {
     "amount": "Commercial amount",
     "price": "Price / quote",
@@ -101,10 +109,15 @@
       "rejected": "Rejected"
     }
   },
+  "changeOrder": {
+    "reversalBadge": "Reversing change order",
+    "reversedBadge": "Reversed",
+    "reversalNote": "Reversing change orders neutralize contract value. They are not voided — both rows stay in history."
+  },
   "reverse": {
     "confirm": "Reverse change order",
     "reason": "Reason",
-    "description": "The original change order stays in the history. Current contract value is neutralized by an opposite change order.",
+    "description": "The original change order stays in the history. Current contract value is neutralized by an opposite change order — not by voiding the original.",
     "alreadyReversedTitle": "This change order was reversed",
     "alreadyReversedBody": "Reversed by {reference}. The original row remains in history; current contract value is neutralized.",
     "isReversal": "This is a reversing change order and cannot be reversed again.",

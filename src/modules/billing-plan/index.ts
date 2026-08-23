@@ -157,7 +157,11 @@ export {
 } from './data/templates.repository';
 
 /** Cross-module lookups (cash-flow / reports / notifications / imports). */
-export { findPlanById } from './data/plans.repository';
+export { findPlanById, listPlansForProject } from './data/plans.repository';
+export {
+  listBoqNodeIdsOnActiveBillingPlan,
+  boqNodeHasProgressBillingClaimOrLink,
+} from './data/boq-guard.repository';
 export {
   findCycleById,
   listCyclesForPlan,

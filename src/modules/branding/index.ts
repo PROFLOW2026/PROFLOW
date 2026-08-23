@@ -130,12 +130,13 @@ export {
 
 import type { OrgContext } from '@/shared/auth/context';
 import { getBrandAssetDownloadUrl as fetchBrandAssetDownloadUrl } from './application/brand-assets';
-import { getDefaultBrandProfile as fetchDefaultBrandProfile } from './application/manage-brand-profile';
+import { findDefaultBrandProfile } from './data/brand-profile.repository';
 
 /** Compact/default logo signed URL for app shell (document branding ≠ UI theme). */
 export async function getShellOrgLogoUrl(context: OrgContext): Promise<string | null> {
   try {
-    const brand = await fetchDefaultBrandProfile(context);
+    // Read-only: shell chrome must never seed branding (RLS insert race on first sign-in).
+    const brand = await findDefaultBrandProfile(context.db, context.organizationId);
     const key = brand?.logoCompactKey ?? brand?.logoPrimaryKey ?? null;
     if (!key) return null;
     const signed = await fetchBrandAssetDownloadUrl(context, key, 600);

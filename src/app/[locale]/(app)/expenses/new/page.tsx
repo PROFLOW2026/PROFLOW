@@ -3,6 +3,7 @@ import { getTranslations } from 'next-intl/server';
 import { PageHeader } from '@/components/ui/page-header';
 import { Button } from '@/components/ui/button';
 import { listCostCategoriesForOrg, listProjectsForOrg, listWorkPackagesForOrg } from '@/modules/expenses';
+import { listApBillOverlapCandidates } from '@/modules/financials';
 import { resolveApplicableDefaultTax } from '@/modules/tax';
 import { listVendorsForOrg } from '@/modules/vendors';
 import { hasPermission } from '@/shared/permissions/assert';
@@ -34,8 +35,9 @@ export default async function NewExpensePage({
   const params = await searchParams;
   const preselectedProjectId = typeof params.projectId === 'string' ? params.projectId : undefined;
 
-  const [projects, categories, workPackages, vendors, taxRatePercent] = await withOrgContext(
+  const [projects, categories, workPackages, vendors, taxRatePercent, apBillOverlapCandidates] = await withOrgContext(
     async (context) => {
+      const canReadAp = hasPermission(context, PERMISSIONS.AP_READ);
       const projectRows = await listProjectsForOrg(context);
       const categoryRows = await listCostCategoriesForOrg(context);
       const packages = preselectedProjectId
@@ -48,12 +50,16 @@ export default async function NewExpensePage({
         context,
         todayInTimeZone(context.organization.timezone),
       );
+      const apCandidates = canReadAp
+        ? await listApBillOverlapCandidates(context.db, context.organizationId)
+        : [];
       return [
         projectRows,
         categoryRows,
         packages,
         vendorRows,
         tax.resolved?.ratePercent ?? null,
+        apCandidates,
       ] as const;
     },
   );
@@ -80,6 +86,7 @@ export default async function NewExpensePage({
         vendors={vendors.map((vendor) => ({ id: vendor.id, name: vendor.name }))}
         initialProjectId={preselectedProjectId}
         taxRatePercent={taxRatePercent}
+        apBillOverlapCandidates={apBillOverlapCandidates}
       />
     </div>
   );

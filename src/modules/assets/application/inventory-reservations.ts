@@ -148,6 +148,7 @@ export async function reserveInventory(context: OrgContext, raw: ReserveInventor
         reserveQuantity: quantity,
       });
     } catch (error) {
+      if (error instanceof DomainRuleError) throw error;
       throw new DomainRuleError(
         error instanceof Error ? error.message : 'Insufficient available quantity',
         'assets.errors.insufficientAvailable',

@@ -16,6 +16,7 @@ import { mapCoverageToSources, standalonePartialNotes } from './map-coverage-sou
 import { ProjectFinancialsKpiPanel } from './project-financials-kpi-panel';
 import { ExpectedRemainingCostForm } from './expected-remaining-cost-form';
 import { BillingPlanStatusStrip } from '@/modules/billing-plan/ui/billing-plan-status-strip';
+import { ProjectVendorActualPanel } from './project-vendor-actual-panel';
 
 export interface ProjectFinancialsPanelProps {
   readonly projectId: string;
@@ -85,6 +86,8 @@ export async function ProjectFinancialsPanel({ projectId }: ProjectFinancialsPan
           />
         </CardContent>
       </Card>
+
+      <ProjectVendorActualPanel projectId={projectId} />
 
       {canReadCommercial && (financials.perContract?.length ?? 0) > 1 ? (
         <Card>
@@ -239,6 +242,7 @@ export async function ProjectFinancialsPanel({ projectId }: ProjectFinancialsPan
               value={financials.cost.byFamily.assetCapital}
               nature={t('metricNature.actual')}
             />
+            <p className="text-xs text-[var(--pf-text-muted)]">{t('costFamilies.asset_capitalHint')}</p>
             <Separator />
             <MetricRow
               label={t('actualCostToDate')}

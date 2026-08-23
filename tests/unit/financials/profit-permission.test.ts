@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { ProjectFinancials } from '@/modules/financials/domain/types';
 import { buildFinancialCoverage } from '@/modules/financials/domain/coverage';
+import { buildSliceAvailability } from '@/modules/financials/domain/financial-slice-availability';
 import { zeroMoney } from '@/shared/money';
 
 /**
@@ -14,6 +15,16 @@ function redactProfitForViewer(
   if (canReadProfit && financials.commercial) return financials;
   return { ...financials, profit: null };
 }
+
+const allSlicesLoaded = buildSliceAvailability({
+  canReadCommercial: true,
+  canReadBilling: true,
+  canReadExpenses: true,
+  canReadWorkforce: true,
+  canReadProcurement: true,
+  canReadAp: true,
+  laborLoaded: true,
+});
 
 describe('project profit permission shape', () => {
   const currency = 'ILS';
@@ -32,7 +43,14 @@ describe('project profit permission shape', () => {
       currentContractValue: { amount: '100000.000000', currency },
       pendingChanges: zero,
     },
-    billing: { invoiced: zero, paid: zero, outstanding: zero, monthCloseRevenueNet: zero },
+    billing: {
+      invoiced: zero,
+      paid: zero,
+      outstanding: zero,
+      netInvoiced: zero,
+      hasBillingData: false,
+      monthCloseRevenueNet: zero,
+    },
     cost: {
       actualCostToDate: { amount: '40000.000000', currency },
       estimatedFinalCost: { amount: '40000.000000', currency },
@@ -57,6 +75,7 @@ describe('project profit permission shape', () => {
       actualMarginPercent: '60.00',
     },
     coverage: buildFinancialCoverage([{ source: 'direct_expenses', hasData: true }], new Date()),
+    sliceAvailability: allSlicesLoaded,
     dataConfidence: { level: 'high', reasons: [] },
   };
 

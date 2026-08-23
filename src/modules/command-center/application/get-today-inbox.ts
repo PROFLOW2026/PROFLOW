@@ -6,6 +6,7 @@ import {
   getModuleVisibility,
   getSuggestedDefaultsForOrg,
   personaForBusinessProfile,
+  resolveExperienceRoleSurface,
   todayEmphasisUrgencyBump,
   todayItemVisibleForPersona,
   todayUrgencyBumpForPersona,
@@ -71,6 +72,7 @@ export async function getTodayInbox(context: OrgContext): Promise<CommandCenterI
   const effectiveProfileKey =
     preview.active && preview.profileKey ? preview.profileKey : businessProfileKey;
   const persona = personaForBusinessProfile(effectiveProfileKey);
+  const roleSurface = resolveExperienceRoleSurface(context.roleKeys);
 
   const today = todayInTimeZone(context.organization.timezone);
   const now = new Date();
@@ -95,10 +97,15 @@ export async function getTodayInbox(context: OrgContext): Promise<CommandCenterI
       hiddenByState += 1;
       continue;
     }
-    if (!todayItemVisibleForPersona(item.sourceType, persona, item.severity)) {
+    if (!todayItemVisibleForPersona(item.sourceType, persona, item.severity, roleSurface)) {
       continue;
     }
-    const personaBump = todayUrgencyBumpForPersona(item.sourceType, persona, item.severity);
+    const personaBump = todayUrgencyBumpForPersona(
+      item.sourceType,
+      persona,
+      item.severity,
+      roleSurface,
+    );
     const emphasisBump = todayEmphasisUrgencyBump(item.sourceType, todayEmphasis);
     const bump = Math.max(personaBump, emphasisBump);
     if (bump > 0) {

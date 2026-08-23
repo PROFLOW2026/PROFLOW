@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { DomainRuleError } from '@/shared/errors';
 import {
   applyInventoryMovement,
   applySignedQuantityChange,
@@ -55,7 +56,18 @@ describe('applyInventoryMovement', () => {
         movementType: 'issue',
         quantity: '3',
       }),
-    ).toThrow(/Insufficient/);
+    ).toThrow(DomainRuleError);
+    try {
+      applyInventoryMovement({
+        quantityOnHand: '2',
+        movementType: 'issue',
+        quantity: '3',
+      });
+    } catch (error) {
+      expect((error as DomainRuleError).messageKey).toBe(
+        'assets.errors.insufficientQuantityOnHand',
+      );
+    }
   });
 
   it('applies signed adjust deltas', () => {
@@ -83,7 +95,7 @@ describe('applyInventoryMovement', () => {
         movementType: 'adjust',
         quantity: '0',
       }),
-    ).toThrow(/non-zero/);
+    ).toThrow(DomainRuleError);
 
     expect(() =>
       applyInventoryMovement({
@@ -91,7 +103,7 @@ describe('applyInventoryMovement', () => {
         movementType: 'adjust',
         quantity: '-2',
       }),
-    ).toThrow(/negative|Insufficient/);
+    ).toThrow(DomainRuleError);
   });
 
   it('leaves header quantity unchanged on transfer', () => {
@@ -111,7 +123,7 @@ describe('applyInventoryMovement', () => {
         movementType: 'transfer',
         quantity: '0',
       }),
-    ).toThrow(/positive/);
+    ).toThrow(DomainRuleError);
   });
 });
 
@@ -136,7 +148,7 @@ describe('location quantity math', () => {
   });
 
   it('blocks negative location balances', () => {
-    expect(() => applySignedQuantityChange('2', '-3')).toThrow(/Insufficient/);
+    expect(() => applySignedQuantityChange('2', '-3')).toThrow(DomainRuleError);
     expect(applySignedQuantityChange('2', '-2')).toBe('0.000000');
   });
 
@@ -209,7 +221,7 @@ describe('available and reserve math', () => {
         reservedActive: '7',
         reserveQuantity: '4',
       }),
-    ).toThrow(/available/i);
+    ).toThrow(DomainRuleError);
   });
 
   it('partial consume leaves remaining reservation qty', () => {

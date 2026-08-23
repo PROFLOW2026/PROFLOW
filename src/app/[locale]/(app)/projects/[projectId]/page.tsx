@@ -397,8 +397,16 @@ async function loadActiveModulePanel(input: {
       return <ProjectTimePanel projectId={projectId} />;
     }
     case 'documents': {
-      const { DocumentsTab } = await import('./documents-tab');
-      return <DocumentsTab projectId={projectId} hasContract={false} />;
+      const [{ DocumentsTab }, chrome] = await Promise.all([
+        import('./documents-tab'),
+        loadProjectDetail(projectId, false),
+      ]);
+      return (
+        <DocumentsTab
+          projectId={projectId}
+          primaryContractId={chrome.contract?.id ?? null}
+        />
+      );
     }
     case 'closeout': {
       const { ProjectCloseoutPanel } = await import('@/modules/closeout/ui/project-closeout-panel');

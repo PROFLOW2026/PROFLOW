@@ -33,6 +33,9 @@ import { formatMoney } from '@/shared/money/format';
 import { rtlFlipClassName } from '@/shared/i18n/ltr-island';
 import { Link } from '@/shared/i18n/navigation';
 import { AllocationEditor, type AllocationDraft } from './allocation-editor';
+import type { ApBillOverlapCandidate } from '@/modules/financials/domain/expense-ap-overlap';
+import { findSimilarOpenApBillsForExpense } from '@/modules/financials/domain/expense-ap-overlap';
+import { ExpenseApOverlapWarning } from '@/modules/financials/ui/expense-ap-overlap-warning';
 
 const OVERHEAD_VALUE = '__overhead__';
 const NONE_VALUE = '__none__';
@@ -90,6 +93,8 @@ export interface ExpenseFormProps {
   readonly error?: string | null;
   readonly fieldErrors?: Record<string, string>;
   readonly children?: React.ReactNode;
+  /** Open AP bills for duplicate-capture warnings on create. */
+  readonly apBillOverlapCandidates?: readonly ApBillOverlapCandidate[];
 }
 
 export function ExpenseForm({
@@ -106,6 +111,7 @@ export function ExpenseForm({
   error,
   fieldErrors = {},
   children,
+  apBillOverlapCandidates = [],
 }: ExpenseFormProps) {
   const t = useTranslations('expenses');
   const tCommon = useTranslations('common');
@@ -281,12 +287,35 @@ export function ExpenseForm({
 
   const showingPolicyOverride = Boolean(selectedCategory) && (policyOverridden || !policyMethodMatches || !policyPeriodMatches);
 
+  const captureNetAmount = netAmount.trim() || taxPreview?.netAmountRaw || '';
+  const overlapHits = React.useMemo(() => {
+    if (mode !== 'create' || !vendorId || !captureNetAmount.trim()) return [];
+    return findSimilarOpenApBillsForExpense(
+      {
+        vendorId,
+        projectId: projectId || null,
+        netAmount: captureNetAmount,
+        currency,
+      },
+      apBillOverlapCandidates,
+    ).map((bill) => ({
+      id: bill.id,
+      label: bill.reference?.trim() || bill.id.slice(0, 8),
+      amount: bill.netAmount,
+      currency: bill.currency,
+      href: `/procurement/ap/${bill.id}`,
+    }));
+  }, [apBillOverlapCandidates, captureNetAmount, currency, mode, projectId, vendorId]);
+
   return (
     <div className="flex min-w-0 w-full flex-col gap-6">
       {error ? (
         <p className="rounded-md border border-[var(--pf-action-danger)] bg-[var(--pf-status-danger-bg)] px-3 py-2 text-start text-sm text-[var(--pf-status-danger-fg)]">
           {error}
         </p>
+      ) : null}
+      {mode === 'create' ? (
+        <ExpenseApOverlapWarning hits={overlapHits} namespace="expenses.capture" />
       ) : null}
 
       <section className="flex min-w-0 flex-col gap-4">

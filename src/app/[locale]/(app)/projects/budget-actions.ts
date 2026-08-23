@@ -4,12 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { getTranslations } from 'next-intl/server';
 import { createProjectBudget, reviseProjectBudget } from '@/modules/budgets';
 import { withOrgContext } from '@/shared/auth/session';
-import {
-  AppError,
-  AuthorizationError,
-  DomainRuleError,
-  ValidationError,
-} from '@/shared/errors';
+import { mapServerActionError } from '@/shared/errors';
 
 export interface BudgetActionState {
   error?: string;
@@ -18,18 +13,18 @@ export interface BudgetActionState {
 
 async function mapError(error: unknown): Promise<BudgetActionState> {
   const tErrors = await getTranslations('errors');
-  if (error instanceof ValidationError) {
-    return { error: error.message };
-  }
-  if (error instanceof DomainRuleError) {
-    const t = await getTranslations('budgets');
-    if (error.messageKey === 'budgets.activeExists') return { error: t('errors.activeExists') };
-    if (error.messageKey === 'budgets.notActive') return { error: t('errors.notActive') };
-    return { error: error.message };
-  }
-  if (error instanceof AuthorizationError) return { error: tErrors('notAllowed') };
-  if (error instanceof AppError) return { error: tErrors('unexpected') };
-  throw error;
+  const t = await getTranslations('budgets');
+  return mapServerActionError(error, {
+    tErrors: (key) => tErrors(key as 'unexpected'),
+    namespaces: {
+      budgets: (key) => {
+        // messageKeys are budgets.activeExists / budgets.notActive (not budgets.errors.*)
+        if (key === 'activeExists') return t('errors.activeExists');
+        if (key === 'notActive') return t('errors.notActive');
+        return t(`errors.${key}` as 'errors.activeExists');
+      },
+    },
+  });
 }
 
 function revalidateBudgetSurfaces(projectId: string) {

@@ -1,16 +1,17 @@
 {
   "panel": {
     "title": "Budget & cost control",
-    "description": "Compare budget to Actual, remaining commitment, ETC, and Forecast from the shared financial engine. Revisions never overwrite history.",
+    "description": "Internal budget for cost control — separate from client contract value. Compare budget to Actual, remaining commitment, ETC, and Forecast from the shared financial engine. Revisions never overwrite history.",
     "empty": "No budget yet. Create a lightweight total budget when you are ready."
   },
   "metrics": {
-    "budget": "Budget",
+    "budget": "Budget (internal)",
     "actual": "Actual",
     "remainingCommitment": "Remaining commitment",
     "etc": "ETC",
     "forecast": "Forecast",
     "variance": "Variance (Budget - Forecast)",
+    "contractNote": "Contract value lives under Financials / Changes — budget lines never replace it.",
     "engineMissing": "Actual and Forecast need project financials permission. Budget figures still show."
   },
   "lines": {

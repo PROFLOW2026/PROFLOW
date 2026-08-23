@@ -7,7 +7,7 @@ import {
   type CommandCenterSourceType,
 } from '@/modules/command-center';
 import { withOrgContext } from '@/shared/auth/session';
-import { AppError, DomainRuleError, ValidationError } from '@/shared/errors';
+import { AppError, DomainRuleError, ValidationError, mapServerActionError } from '@/shared/errors';
 
 export interface CommandCenterActionResult {
   readonly error?: string;
@@ -38,8 +38,11 @@ export async function snoozeCommandCenterItemAction(input: {
     if (error instanceof DomainRuleError) {
       return { error: t('errors.unsafeState') };
     }
-    if (error instanceof ValidationError) return { error: error.message };
-    if (error instanceof AppError) return { error: tErrors('unexpected') };
+    if (error instanceof ValidationError || error instanceof AppError) {
+      return mapServerActionError(error, {
+        tErrors: (key) => tErrors(key as 'unexpected'),
+      });
+    }
     throw error;
   }
 }
@@ -67,8 +70,11 @@ export async function handleCommandCenterItemAction(input: {
     if (error instanceof DomainRuleError) {
       return { error: t('errors.unsafeState') };
     }
-    if (error instanceof ValidationError) return { error: error.message };
-    if (error instanceof AppError) return { error: tErrors('unexpected') };
+    if (error instanceof ValidationError || error instanceof AppError) {
+      return mapServerActionError(error, {
+        tErrors: (key) => tErrors(key as 'unexpected'),
+      });
+    }
     throw error;
   }
 }

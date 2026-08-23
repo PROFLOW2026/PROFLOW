@@ -15,7 +15,7 @@ import {
   upsertClientPartyIdentifier,
 } from '@/modules/clients';
 import { withOrgContext } from '@/shared/auth/session';
-import { AppError, ValidationError } from '@/shared/errors';
+import { AppError, ValidationError, mapServerActionError } from '@/shared/errors';
 import { redirect } from '@/shared/i18n/navigation';
 
 export interface ClientFormState {
@@ -35,12 +35,13 @@ function requiredFormValue(formData: FormData, key: string): string {
   return formValue(formData, key) ?? '';
 }
 
-function mapValidationError(error: ValidationError): ClientFormState {
-  const fieldErrors: Record<string, string> = {};
-  for (const issue of error.issues) {
-    if (issue.path) fieldErrors[issue.path] = issue.message;
-  }
-  return { error: error.message, fieldErrors };
+function mapValidationError(
+  error: ValidationError,
+  tErrors: Awaited<ReturnType<typeof getTranslations>>,
+): ClientFormState {
+  return mapServerActionError(error, {
+    tErrors: (key) => tErrors(key as 'validationFailed'),
+  });
 }
 
 export async function createClientAction(
@@ -84,7 +85,7 @@ export async function createClientAction(
     revalidatePath('/clients');
     redirect({ href: `/clients/${client.id}`, locale });
   } catch (error) {
-    if (error instanceof ValidationError) return mapValidationError(error);
+    if (error instanceof ValidationError) return mapValidationError(error, tErrors);
     if (error instanceof AppError) return { error: tErrors('unexpected') };
     throw error;
   }
@@ -122,7 +123,7 @@ export async function updateClientAction(
     revalidatePath(`/clients/${String(formData.get('clientId'))}`);
     return {};
   } catch (error) {
-    if (error instanceof ValidationError) return mapValidationError(error);
+    if (error instanceof ValidationError) return mapValidationError(error, tErrors);
     if (error instanceof AppError) return { error: tErrors('unexpected') };
     throw error;
   }
@@ -183,7 +184,7 @@ export async function addClientContactAction(
     revalidatePath(`/clients/${String(formData.get('clientId'))}`);
     return {};
   } catch (error) {
-    if (error instanceof ValidationError) return mapValidationError(error);
+    if (error instanceof ValidationError) return mapValidationError(error, tErrors);
     if (error instanceof AppError) return { error: tErrors('unexpected') };
     throw error;
   }
@@ -207,7 +208,7 @@ export async function upsertIdentifierAction(
     revalidatePath(`/clients/${String(formData.get('clientId'))}`);
     return {};
   } catch (error) {
-    if (error instanceof ValidationError) return mapValidationError(error);
+    if (error instanceof ValidationError) return mapValidationError(error, tErrors);
     if (error instanceof AppError) return { error: tErrors('unexpected') };
     throw error;
   }
@@ -242,7 +243,7 @@ export async function updateClientContactAction(
     revalidatePath(`/clients/${clientId}`);
     return { ok: true };
   } catch (error) {
-    if (error instanceof ValidationError) return mapValidationError(error);
+    if (error instanceof ValidationError) return mapValidationError(error, tErrors);
     if (error instanceof AppError) return { error: tErrors('unexpected') };
     throw error;
   }

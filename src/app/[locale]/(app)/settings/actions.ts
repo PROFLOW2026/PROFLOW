@@ -669,7 +669,7 @@ export async function createServiceDomainAction(
     revalidatePath('/settings/catalog');
     return { ok: true };
   } catch (error) {
-    if (error instanceof AppError) return { error: error.message || tErrors('unexpected') };
+    if (error instanceof AppError) return { error: tErrors('unexpected') };
     throw error;
   }
 }
@@ -687,7 +687,7 @@ export async function createDocumentTypeAction(
     revalidatePath('/settings/catalog');
     return { ok: true };
   } catch (error) {
-    if (error instanceof AppError) return { error: error.message || tErrors('unexpected') };
+    if (error instanceof AppError) return { error: tErrors('unexpected') };
     throw error;
   }
 }
@@ -706,7 +706,7 @@ export async function renameCatalogItemAction(
     revalidatePath('/settings/catalog');
     return { ok: true };
   } catch (error) {
-    if (error instanceof AppError) return { error: error.message || tErrors('unexpected') };
+    if (error instanceof AppError) return { error: tErrors('unexpected') };
     throw error;
   }
 }
@@ -720,7 +720,7 @@ export async function archiveCatalogItemAction(id: string): Promise<SettingsActi
     revalidatePath('/settings/catalog');
     return { ok: true };
   } catch (error) {
-    if (error instanceof AppError) return { error: error.message || tErrors('unexpected') };
+    if (error instanceof AppError) return { error: tErrors('unexpected') };
     throw error;
   }
 }
@@ -777,7 +777,7 @@ export async function saveLaborCostDefaultsAction(
     revalidatePath('/settings/catalog');
     return { ok: true };
   } catch (error) {
-    if (error instanceof AppError) return { error: error.message || tErrors('unexpected') };
+    if (error instanceof AppError) return { error: tErrors('unexpected') };
     throw error;
   }
 }

@@ -1,6 +1,6 @@
 {
   "title": "API and webhooks",
-  "subtitle": "Manage access keys and notifications for external systems.",
+  "subtitle": "Foundation surface for developers: manage access keys and webhook notifications for external systems.",
   "versionNote": "These keys are for developers connecting an external system. Signing in to the app does not replace a key.",
   "moreInfo": "More information",
   "versionNoteDetails": "Send the API key in the Authorization header. Browser sign-in does not apply to these keys.",

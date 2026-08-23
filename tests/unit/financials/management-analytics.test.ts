@@ -29,6 +29,15 @@ describe('management analytics uncovered metrics stay null', () => {
     ).toBeNull();
   });
 
+  it('uses net invoiced for backlog when gross would skew (R-018)', () => {
+    expect(
+      computeUnbilledBacklog(money('100', 'ILS'), money('40', 'ILS'), money('47.2', 'ILS'))?.amount,
+    ).toBe('60.000000');
+    expect(computeUnbilledBacklog(money('100', 'ILS'), null, money('40', 'ILS'))?.amount).toBe(
+      '60.000000',
+    );
+  });
+
   it('returns backlog only when both sides exist and invoiced is not above current', () => {
     expect(computeUnbilledBacklog(money('100', 'ILS'), money('40', 'ILS'))?.amount).toBe(
       '60.000000',

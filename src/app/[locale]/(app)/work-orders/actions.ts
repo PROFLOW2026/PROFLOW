@@ -11,11 +11,8 @@ import {
 } from '@/modules/service';
 import { withOrgContext } from '@/shared/auth/session';
 import {
-  AppError,
-  AuthorizationError,
   ConflictError,
-  DomainRuleError,
-  ValidationError,
+  mapServerActionError,
 } from '@/shared/errors';
 import { redirect } from '@/shared/i18n/navigation';
 
@@ -36,61 +33,32 @@ function requiredFormValue(formData: FormData, key: string): string {
   return formValue(formData, key) ?? '';
 }
 
-async function mapValidationError(error: ValidationError): Promise<WorkOrderFormState> {
-  const fieldErrors: Record<string, string> = {};
-  for (const issue of error.issues) {
-    if (!issue.path) continue;
-    fieldErrors[issue.path] = issue.message;
-  }
-  return { error: error.message, fieldErrors };
-}
-
 async function mapWorkOrderError(error: unknown): Promise<WorkOrderFormState> {
   const tErrors = await getTranslations('errors');
   const t = await getTranslations('service');
-  if (error instanceof ValidationError) return await mapValidationError(error);
+  const tScheduling = await getTranslations('scheduling');
+
   if (error instanceof ConflictError) {
-    if (error.messageKey.startsWith('scheduling.')) {
-      const tScheduling = await getTranslations('scheduling');
-      const key = error.messageKey.replace(/^scheduling\./, '');
-      return {
-        error: tScheduling(key as 'errors.bookingOverlap'),
-        confirmRequired: Boolean(error.details?.confirmRequired),
-      };
-    }
-    if (error.messageKey.startsWith('service.')) {
-      const key = error.messageKey.replace(/^service\./, '');
-      try {
-        return { error: t(key as 'errors.checklistRequired') };
-      } catch {
-        return { error: error.message };
-      }
-    }
-    return { error: error.message };
+    const mapped = mapServerActionError(error, {
+      tErrors: (key) => tErrors(key as 'unexpected'),
+      namespaces: {
+        scheduling: (key) => tScheduling(key as 'errors.bookingOverlap'),
+        service: (key) => t(key as 'errors.checklistRequired'),
+      },
+    });
+    return {
+      error: mapped.error,
+      confirmRequired: Boolean(error.details?.confirmRequired),
+    };
   }
-  if (error instanceof DomainRuleError) {
-    if (error.messageKey.startsWith('scheduling.')) {
-      const tScheduling = await getTranslations('scheduling');
-      const key = error.messageKey.replace(/^scheduling\./, '');
-      try {
-        return { error: tScheduling(key as 'errors.unavailableOverlap') };
-      } catch {
-        return { error: error.message };
-      }
-    }
-    if (error.messageKey.startsWith('service.')) {
-      const key = error.messageKey.replace(/^service\./, '');
-      try {
-        return { error: t(key as 'errors.checklistRequired') };
-      } catch {
-        return { error: error.message };
-      }
-    }
-    return { error: error.message };
-  }
-  if (error instanceof AuthorizationError) return { error: tErrors('notAllowed') };
-  if (error instanceof AppError) return { error: tErrors('unexpected') };
-  throw error;
+
+  return mapServerActionError(error, {
+    tErrors: (key) => tErrors(key as 'unexpected'),
+    namespaces: {
+      scheduling: (key) => tScheduling(key as 'errors.unavailableOverlap'),
+      service: (key) => t(key as 'errors.checklistRequired'),
+    },
+  });
 }
 
 export async function createWorkOrderAction(

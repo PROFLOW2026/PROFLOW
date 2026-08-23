@@ -27,8 +27,8 @@ test.describe('signed-in owner', () => {
 
   test('desktop navigation exposes Employees without module preference', async ({ page }) => {
     await page.goto('/he-IL');
-    await expectNavLinkVisible(page, he.nav.workforce);
-    await clickNavLink(page, he.nav.workforce);
+    await expectNavLinkVisible(page, he.nav.people);
+    await clickNavLink(page, he.nav.people);
     await expect(page).toHaveURL(/\/he-IL\/workforce\/employees/);
     await expect(page.getByRole('heading', { name: he.nav.workforce, level: 1 })).toBeVisible();
     await expect(page.getByRole('link', { name: '+ עובד חדש' }).first()).toBeVisible();

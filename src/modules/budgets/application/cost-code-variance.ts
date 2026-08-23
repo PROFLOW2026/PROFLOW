@@ -26,7 +26,7 @@ export interface ProjectCostCodeVarianceView extends CostCodeVarianceResult {
 }
 
 /**
- * Budget vs Committed (PO lines) vs Actual (expense allocations + AP lines) by cost code.
+ * Budget vs Remaining committed (open PO ledger) vs Actual by cost code.
  * Uses existing budget + procurement + expense/AP rows — not a second accounting engine.
  */
 export async function getProjectCostCodeVariance(

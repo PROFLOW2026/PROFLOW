@@ -31,6 +31,7 @@ export async function AppShell({ children }: { children: ReactNode }) {
     workMix,
     persona: shell.persona,
     roleSurface: shell.roleSurface,
+    complexity: shell.complexity,
   });
 
   const organizationLogoUrl = shell.organizationLogoUrl;

@@ -82,13 +82,16 @@ export interface ManagementAnalytics {
 
 export function computeUnbilledBacklog(
   currentContract: MoneyValue | null | undefined,
-  invoiced: MoneyValue | null | undefined,
+  netInvoiced: MoneyValue | null | undefined,
+  /** @deprecated Prefer netInvoiced — gross invoiced skews against net CCV. */
+  grossInvoiced?: MoneyValue | null | undefined,
 ): MoneyValue | null {
-  if (!currentContract || !invoiced) return null;
-  if (currentContract.currency.toUpperCase() !== invoiced.currency.toUpperCase()) return null;
-  if (isZeroMoney(currentContract) && isZeroMoney(invoiced)) return null;
-  if (compareMoney(invoiced, currentContract) > 0) return null;
-  return subtractMoney(currentContract, invoiced);
+  const billed = netInvoiced ?? grossInvoiced;
+  if (!currentContract || !billed) return null;
+  if (currentContract.currency.toUpperCase() !== billed.currency.toUpperCase()) return null;
+  if (isZeroMoney(currentContract) && isZeroMoney(billed)) return null;
+  if (compareMoney(billed, currentContract) > 0) return null;
+  return subtractMoney(currentContract, billed);
 }
 
 export function computeQuotesConversion(

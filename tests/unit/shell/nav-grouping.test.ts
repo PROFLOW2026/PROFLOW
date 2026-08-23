@@ -41,8 +41,8 @@ describe('nav grouping', () => {
     expect(byKey.reports?.moreGroup).toBe('business');
 
     expect(byKey.vendors?.moreGroup).toBe('operations');
-    expect(byKey.workforce?.moreGroup).toBe('operations');
-    expect(byKey.attendance?.moreGroup).toBe('operations');
+    expect(byKey.workforce?.moreGroup).toBe('people');
+    expect(byKey.time?.moreGroup).toBe('people');
     expect(byKey.scheduling?.moreGroup).toBe('operations');
     expect(byKey.scheduling?.href).toBe('/scheduling');
     expect(byKey.scheduling?.permission).toBe(PERMISSIONS.SCHEDULING_READ);
@@ -118,28 +118,20 @@ describe('nav grouping', () => {
     expect(vendorBills?.permission).toBe(PERMISSIONS.AP_READ);
   });
 
-  it('lists attendance under operations for any attendance permission', () => {
+  it('keeps attendance in workforce sub-nav only, not shell nav', () => {
     const attendance = NAV_ITEMS.find((item) => item.key === 'attendance');
-    expect(attendance?.href).toBe('/workforce/attendance');
-    expect(attendance?.moreGroup).toBe('operations');
-    expect(attendance?.module).toBeUndefined();
-    expect(attendance?.anyPermissions).toEqual([
-      PERMISSIONS.ATTENDANCE_READ,
-      PERMISSIONS.ATTENDANCE_SELF,
-      PERMISSIONS.ATTENDANCE_MANAGE,
-    ]);
+    expect(attendance).toBeUndefined();
+
+    const people = NAV_ITEMS.find((item) => item.key === 'workforce');
+    expect(people?.labelKey).toBe('people');
+    expect(people?.moreGroup).toBe('people');
 
     const selfOnly = visibleNavItems(
-      new Set([PERMISSIONS.ATTENDANCE_SELF]),
+      new Set([PERMISSIONS.ATTENDANCE_SELF, PERMISSIONS.WORKFORCE_READ]),
       allModulesOn(),
       { workMix: 'projects' },
     );
-    expect(selfOnly.some((item) => item.key === 'attendance')).toBe(true);
-
-    const none = visibleNavItems(new Set([PERMISSIONS.WORKFORCE_READ]), allModulesOn(), {
-      workMix: 'projects',
-    });
-    expect(none.some((item) => item.key === 'attendance')).toBe(false);
+    expect(selfOnly.some((item) => item.key === 'attendance')).toBe(false);
   });
 
   it('partitions core → experience group order → settings last', () => {

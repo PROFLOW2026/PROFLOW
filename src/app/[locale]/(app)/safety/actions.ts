@@ -17,7 +17,7 @@ import {
 } from '@/modules/safety';
 import { linkDailyLogSafetyRecord } from '@/modules/field-ops';
 import { withOrgContext } from '@/shared/auth/session';
-import { AppError, DomainRuleError, ValidationError } from '@/shared/errors';
+import { mapServerActionError } from '@/shared/errors';
 import { redirect } from '@/shared/i18n/navigation';
 
 export interface SafetyFormState {
@@ -43,28 +43,15 @@ function requiredFormValue(formData: FormData, key: string): string {
   return formValue(formData, key) ?? '';
 }
 
-function mapValidationError(error: ValidationError): SafetyFormState {
-  const fieldErrors: Record<string, string> = {};
-  for (const issue of error.issues) {
-    if (issue.path) fieldErrors[issue.path] = issue.message;
-  }
-  return { error: error.message, fieldErrors };
-}
-
 async function mapAppError(error: unknown): Promise<SafetyFormState> {
   const tErrors = await getTranslations('errors');
   const t = await getTranslations('safety');
-  if (error instanceof ValidationError) return mapValidationError(error);
-  if (error instanceof DomainRuleError) {
-    const key = error.messageKey.replace(/^safety\./, '');
-    try {
-      return { error: t(key as 'errors.invalidRecordTransition') };
-    } catch {
-      return { error: error.message };
-    }
-  }
-  if (error instanceof AppError) return { error: tErrors('unexpected') };
-  throw error;
+  return mapServerActionError(error, {
+    tErrors: (key) => tErrors(key as 'unexpected'),
+    namespaces: {
+      safety: (key) => t(key as 'errors.invalidRecordTransition'),
+    },
+  });
 }
 
 function revalidateSafety(recordId?: string) {

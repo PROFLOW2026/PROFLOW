@@ -12,12 +12,7 @@ import {
 } from '@/modules/service';
 import type { RecurrenceFormState } from '@/modules/service/recurrence/ui/recurrence-create-form';
 import { withOrgContext } from '@/shared/auth/session';
-import {
-  AppError,
-  AuthorizationError,
-  DomainRuleError,
-  ValidationError,
-} from '@/shared/errors';
+import { mapServerActionError } from '@/shared/errors';
 import { redirect } from '@/shared/i18n/navigation';
 
 function formValue(formData: FormData, key: string): string | undefined {
@@ -32,33 +27,21 @@ async function mapError(error: unknown): Promise<RecurrenceFormState> {
   const tService = await getTranslations('service.recurring');
   const tValidation = await getTranslations('validation');
 
-  if (error instanceof ValidationError) {
-    const fieldErrors: Record<string, string> = {};
-    for (const issue of error.issues) {
-      if (!issue.path) continue;
-      fieldErrors[issue.path] =
-        issue.message === 'validation.endBeforeStart'
-          ? tValidation('endBeforeStart')
-          : issue.message;
-    }
-    return { error: error.message, fieldErrors };
-  }
-  if (error instanceof DomainRuleError) {
-    const key = error.messageKey;
-    if (key === 'service.errors.recurrenceNotActive') {
-      return { error: tService('errors.recurrenceNotActive') };
-    }
-    if (key === 'service.errors.recurrenceEnded') {
-      return { error: tService('errors.recurrenceEnded') };
-    }
-    if (key === 'service.errors.occurrenceAlreadyGenerated') {
-      return { error: tService('errors.occurrenceAlreadyGenerated') };
-    }
-    return { error: error.message };
-  }
-  if (error instanceof AuthorizationError) return { error: tErrors('notAllowed') };
-  if (error instanceof AppError) return { error: tErrors('unexpected') };
-  throw error;
+  return mapServerActionError(error, {
+    tErrors: (key) => tErrors(key as 'unexpected'),
+    fieldMessageOverrides: {
+      'validation.endBeforeStart': tValidation('endBeforeStart'),
+    },
+    namespaces: {
+      service: (key) => {
+        // keys like errors.recurrenceNotActive → service.recurring.errors.*
+        if (key.startsWith('errors.')) {
+          return tService(key as 'errors.recurrenceNotActive');
+        }
+        return tService(`errors.${key}` as 'errors.recurrenceNotActive');
+      },
+    },
+  });
 }
 
 export async function createRecurrenceDefinitionAction(
@@ -100,10 +83,7 @@ export async function createRecurrenceDefinitionAction(
     revalidatePath('/service/recurring');
     redirect({ href: `/service/recurring/${result.id}`, locale });
   } catch (error) {
-    if (error instanceof ValidationError || error instanceof DomainRuleError || error instanceof AuthorizationError || error instanceof AppError) {
-      return await mapError(error);
-    }
-    throw error;
+    return await mapError(error);
   }
 }
 

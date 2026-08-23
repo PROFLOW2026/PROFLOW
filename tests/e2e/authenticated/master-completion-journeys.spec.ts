@@ -13,7 +13,7 @@ test.describe('master completion owner journeys', () => {
     const editedName = `${employeeName} מעודכן`;
 
     await page.goto('/he-IL');
-    await clickNavLink(page, he.nav.workforce);
+    await clickNavLink(page, he.nav.people);
     await expect(page).toHaveURL(/\/he-IL\/workforce\/employees/);
 
     await page.getByRole('link', { name: '+ עובד חדש' }).first().click();

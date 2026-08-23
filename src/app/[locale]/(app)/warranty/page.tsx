@@ -4,8 +4,9 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/ui/page-header';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { listOrgWarrantyCoverages } from '@/modules/warranty';
-import { withOrgContext } from '@/shared/auth/session';
+import { getShellContext, withOrgContext } from '@/shared/auth/session';
 import { Link } from '@/shared/i18n/navigation';
+import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { textNavLinkClassName } from '@/components/ui/pressable';
 import { cn } from '@/shared/ui/cn';
 
@@ -20,10 +21,19 @@ export async function generateMetadata({
 }
 
 export default async function WarrantyPage() {
-  const t = await getTranslations('warranty');
-  const coverages = await withOrgContext((context) => listOrgWarrantyCoverages(context)).catch(
-    () => [],
-  );
+  const [t, shell] = await Promise.all([getTranslations('warranty'), getShellContext()]);
+  const canRead = shell?.permissions.has(PERMISSIONS.PROJECTS_READ) ?? false;
+
+  if (!canRead) {
+    return (
+      <div className="flex min-w-0 max-w-full flex-col gap-6">
+        <PageHeader title={t('title')} />
+        <EmptyState title={t('notAllowed.title')} description={t('notAllowed.body')} />
+      </div>
+    );
+  }
+
+  const coverages = await withOrgContext((context) => listOrgWarrantyCoverages(context));
 
   return (
     <div className="flex min-w-0 max-w-full flex-col gap-6">

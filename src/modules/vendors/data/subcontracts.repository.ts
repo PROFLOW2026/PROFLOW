@@ -38,6 +38,10 @@ import type {
 } from '../domain/subcontract-types';
 import { computeSubcontractCashPosition } from '../domain/subcontract-cash';
 import { computeCurrentSubcontractValue } from '../domain/subcontract-value';
+import {
+  computeSubcontractAgreementRemaining,
+} from '../domain/subcontract-commitment';
+import { loadRecognizedActualForSubcontractAgreement } from '@/modules/financials';
 
 function mapAgreement(row: typeof subcontractAgreements.$inferSelect): SubcontractAgreementRecord {
   return {
@@ -285,6 +289,17 @@ async function listAgreements(
     const agreement = mapAgreement(row.agreement);
     const events = await listSubcontractValueEvents(db, organizationId, agreement.id);
     const current = computeCurrentSubcontractValue(events, agreement.currency);
+    const recognized = await loadRecognizedActualForSubcontractAgreement(
+      db,
+      organizationId,
+      agreement.id,
+      agreement.currency,
+    );
+    const remaining = computeSubcontractAgreementRemaining({
+      currency: agreement.currency,
+      currentAmount: current.amount,
+      recognizedActualAmount: recognized.amount,
+    });
     const cashRows = await listApBillCashForSubcontractAgreement(
       db,
       organizationId,
@@ -296,6 +311,8 @@ async function listAgreements(
       vendorName: row.vendorName,
       projectName: row.projectName,
       currentAmount: current.amount,
+      recognizedActualAmount: recognized.amount,
+      remainingCommitmentAmount: remaining.amount,
       billedAmount: cash.billed,
       paidAmount: cash.paid,
       outstandingAmount: cash.outstanding,

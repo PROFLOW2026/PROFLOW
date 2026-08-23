@@ -51,6 +51,7 @@ export {
 } from './domain/types';
 export {
   pickPracticalClientContact,
+  pickBillingClientContact,
   resolveProjectDisplayContact,
   contactBelongsToClient,
 } from './domain/practical-contact';

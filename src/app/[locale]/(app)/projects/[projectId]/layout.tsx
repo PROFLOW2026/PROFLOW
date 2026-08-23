@@ -168,7 +168,21 @@ export default async function ProjectLayout({ children, params }: ProjectLayoutP
                   ),
                 })
               ) : (
-                t('workspace.noClient')
+                <>
+                  {t('workspace.noClient')}
+                  {can(PERMISSIONS.PROJECTS_UPDATE) ? (
+                    <>
+                      {' · '}
+                      <Link
+                        href={`/projects/${projectId}?tab=details`}
+                        prefetch={false}
+                        className="underline underline-offset-2"
+                      >
+                        {t('workspace.completeClient')}
+                      </Link>
+                    </>
+                  ) : null}
+                </>
               )}
               {detail.clientContact ? (
                 <>

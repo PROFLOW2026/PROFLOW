@@ -2,8 +2,12 @@ import type { MoneyValue } from '@/shared/money/money';
 import type { PricingMode, WorkKind } from './work-pricing';
 import type { DataConfidence } from './data-confidence';
 
+import type {
+  FinancialSliceAvailability,
+  ProjectFinancialKpiAvailability,
+} from './financial-slice-availability';
+
 /**
- * The financial contract every module reads from and none may redefine
  * (doc 04 §3, §10).
  *
  * The separations below are the product, not an implementation detail:
@@ -88,7 +92,10 @@ export interface CommercialPosition {
 
 /** Billing and cash, kept apart from commercial value. */
 export interface BillingPosition {
+  /** Gross billed total (incl. tax when recorded on the billing record). */
   invoiced: MoneyValue;
+  /** Net ex-VAT billed total — pairs with contract CCV for unbilled backlog. */
+  netInvoiced: MoneyValue;
   paid: MoneyValue;
   outstanding: MoneyValue;
   /**
@@ -96,7 +103,16 @@ export interface BillingPosition {
    * Folded into invoiced / outstanding once - not a second billing engine.
    */
   monthCloseRevenueNet: MoneyValue;
+  /** True when at least one non-draft billing row exists for the scope. */
+  hasBillingData: boolean;
 }
+
+export type {
+  FinancialSliceAvailability,
+  FinancialSliceLoadState,
+  ProjectFinancialKpiAvailability,
+  ProjectKpiAvailability,
+} from './financial-slice-availability';
 
 /**
  * How a money figure should be labelled in reports (docs 04, 29).
@@ -199,11 +215,15 @@ export interface ProjectFinancials {
    */
   profit: ProfitPosition | null;
   coverage: FinancialCoverage;
+  /** Which input slices were loaded vs permission-withheld (never treat withheld as zero). */
+  sliceAvailability: FinancialSliceAvailability;
   /**
    * High / Medium / Needs data - from known incompleteness only
    * (missing employer cost, unallocated remainder, open drafts/allocations, FX gaps).
    */
   dataConfidence: DataConfidence;
+  /** Headline KPI display flags — never show permission gaps as numeric zero. */
+  kpiAvailability?: ProjectFinancialKpiAvailability;
   /**
    * Per-contract commercial slices when more than one live contract exists.
    * Project `commercial` remains the same-currency sum - not a second engine.

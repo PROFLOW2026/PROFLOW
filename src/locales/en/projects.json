@@ -92,6 +92,7 @@
   "workspace": {
     "fallbackTitle": "Project",
     "noClient": "No client yet",
+    "completeClient": "Add client",
     "clientLinked": "{clientLabel}: <link>{clientName}</link>",
     "contactPerson": "Contact person: {name}",
     "contactPersonPhone": " · {phone}",
@@ -212,6 +213,22 @@
     "apply": "Clone as copies",
     "applied": "Structure cloned as editable copies."
   },
+  "setupChecklist": {
+    "title": "Finish setting up this project",
+    "description": "{count, plural, one {# step left} other {# steps left}} before money and field work stay aligned.",
+    "steps": {
+      "client": "Link a client",
+      "clientHint": "Who pays and who you report to.",
+      "contract": "Set contract value",
+      "contractHint": "Commercial basis for billing and changes.",
+      "team": "Assign the team",
+      "teamHint": "Who works here and who approves time.",
+      "cost": "Log the first cost",
+      "costHint": "Expense, subcontract, or other actual.",
+      "billing": "Set a billing plan",
+      "billingHint": "How progress becomes invoices."
+    }
+  },
   "overview": {
     "contractSummary": "Contract summary",
     "originalValue": "What you manage here",
@@ -281,7 +298,7 @@
     "experienceProfileLabel": "Project work mode",
     "experienceProfiles": {
       "auto": "Automatic (from work type)",
-      "simple": "Simple",
+      "simple": "Simple project mode",
       "full": "Full",
       "boq": "BOQ",
       "consulting": "Consulting",

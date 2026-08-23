@@ -4,6 +4,7 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/ui/page-header';
 import { Button } from '@/components/ui/button';
 import { listBusinessCatalog, localizePaymentTermOptions } from '@/modules/business-catalog';
+import { listExpenseOverlapCandidates } from '@/modules/financials';
 import { listPurchaseOrderLinesForOrg, listPurchaseOrdersForOrg } from '@/modules/procurement';
 import { listProjectsForOrg } from '@/modules/projects';
 import { listVendorsForOrg } from '@/modules/vendors';
@@ -36,19 +37,23 @@ export default async function NewApBillPage({
   const search = await searchParams;
   const requestedPoId = typeof search.purchaseOrderId === 'string' ? search.purchaseOrderId : '';
 
-  const { vendors, projects, purchaseOrders, poLinesByPoId, paymentTerms, defaultCurrency, canManage } =
+  const { vendors, projects, purchaseOrders, poLinesByPoId, paymentTerms, defaultCurrency, canManage, expenseOverlapCandidates } =
     await withOrgContext(async (context) => {
       const canReadVendors = hasPermission(context, PERMISSIONS.VENDORS_READ);
       const canReadProjects = hasPermission(context, PERMISSIONS.PROJECTS_READ);
       const canReadPo = hasPermission(context, PERMISSIONS.PROCUREMENT_READ);
       const canReadCatalog = hasPermission(context, PERMISSIONS.ORG_READ);
+      const canReadExpenses = hasPermission(context, PERMISSIONS.EXPENSES_READ);
 
-      const [vendorRows, projectRows, poRows, termRows] = await Promise.all([
+      const [vendorRows, projectRows, poRows, termRows, expenseCandidates] = await Promise.all([
         canReadVendors ? listVendorsForOrg(context, { status: 'active' }) : Promise.resolve([]),
         canReadProjects ? listProjectsForOrg(context, { status: 'active' }) : Promise.resolve([]),
         canReadPo ? listPurchaseOrdersForOrg(context) : Promise.resolve([]),
         canReadCatalog
           ? listBusinessCatalog(context, 'payment_term').catch(() => [])
+          : Promise.resolve([]),
+        canReadExpenses
+          ? listExpenseOverlapCandidates(context.db, context.organizationId)
           : Promise.resolve([]),
       ]);
 
@@ -88,6 +93,7 @@ export default async function NewApBillPage({
         paymentTerms: localizePaymentTermOptions(termRows, locale),
         defaultCurrency: context.organization.baseCurrency,
         canManage: hasPermission(context, PERMISSIONS.AP_MANAGE),
+        expenseOverlapCandidates: expenseCandidates,
       };
     });
 
@@ -127,6 +133,7 @@ export default async function NewApBillPage({
           poLinesByPoId={poLinesByPoId}
           paymentTerms={paymentTerms}
           defaultPurchaseOrderId={requestedPoId}
+          expenseOverlapCandidates={expenseOverlapCandidates}
         />
       )}
     </div>

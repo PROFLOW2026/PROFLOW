@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
 import { getTranslations } from 'next-intl/server';
 import { PageHeader } from '@/components/ui/page-header';
+import { Alert } from '@/components/ui/alert';
 import { textNavLinkClassName } from '@/components/ui/pressable';
 import { ProjectFinancialsPanel } from '@/modules/financials/ui/project-financials-panel';
 import { ProjectFormsPanel } from '@/modules/forms/ui';
@@ -45,7 +46,11 @@ function toDatetimeLocalValue(value: Date | null): string {
 
 export default async function WorkOrderDetailPage({ params }: WorkOrderPageProps) {
   const { id } = await params;
-  const [t, shell] = await Promise.all([getTranslations('service'), getShellContext()]);
+  const [t, tFinancial, shell] = await Promise.all([
+    getTranslations('service'),
+    getTranslations('financial'),
+    getShellContext(),
+  ]);
 
   const detail = await withOrgContext((context) => getWorkOrderDetail(context, id)).catch(
     () => null,
@@ -211,6 +216,12 @@ export default async function WorkOrderDetailPage({ params }: WorkOrderPageProps
       {canReadFinancials ? (
         <section className="flex flex-col gap-3 border-t border-[var(--pf-border-default)] pt-6">
           <h2 className="text-base font-semibold">{t('workspace.financialsTitle')}</h2>
+          {project.pricingMode === 'open' ? (
+            <Alert tone="info">
+              <p className="font-medium">{t('pricing.priceNotSet')}</p>
+              <p className="mt-1 text-muted-foreground">{tFinancial('kpis.priceNotSetHint')}</p>
+            </Alert>
+          ) : null}
           <Suspense fallback={<p className="text-sm text-[var(--pf-text-muted)]">…</p>}>
             <ProjectFinancialsPanel projectId={id} />
           </Suspense>

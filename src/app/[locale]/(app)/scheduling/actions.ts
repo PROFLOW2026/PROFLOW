@@ -10,11 +10,8 @@ import {
 } from '@/modules/scheduling';
 import { withOrgContext } from '@/shared/auth/session';
 import {
-  AppError,
-  AuthorizationError,
   ConflictError,
-  DomainRuleError,
-  ValidationError,
+  mapServerActionError,
 } from '@/shared/errors';
 
 export interface SchedulingFormState {
@@ -31,38 +28,27 @@ function formValue(formData: FormData, key: string): string | undefined {
   return text === '' ? undefined : text;
 }
 
-function mapValidationError(error: ValidationError): SchedulingFormState {
-  const fieldErrors: Record<string, string> = {};
-  for (const issue of error.issues) {
-    if (issue.path) fieldErrors[issue.path] = issue.message;
-  }
-  return { error: error.message, fieldErrors };
-}
-
 async function mapAppError(error: unknown): Promise<SchedulingFormState> {
   const tErrors = await getTranslations('errors');
   const t = await getTranslations('scheduling');
-  if (error instanceof ValidationError) return mapValidationError(error);
-  if (error instanceof AuthorizationError) return { error: tErrors('notAllowed') };
   if (error instanceof ConflictError) {
-    const key = error.messageKey.startsWith('scheduling.')
-      ? error.messageKey.replace(/^scheduling\./, '')
-      : null;
+    const mapped = mapServerActionError(error, {
+      tErrors: (key) => tErrors(key as 'unexpected'),
+      namespaces: {
+        scheduling: (key) => t(key as 'errors.bookingOverlap'),
+      },
+    });
     return {
-      error: key ? t(key as 'errors.bookingOverlap') : t('overlapWarning'),
+      error: error.messageKey.startsWith('scheduling.') ? mapped.error : t('overlapWarning'),
       confirmRequired: Boolean(error.details?.confirmRequired),
     };
   }
-  if (error instanceof DomainRuleError) {
-    const key = error.messageKey.replace(/^scheduling\./, '');
-    try {
-      return { error: t(key as 'errors.unavailableOverlap') };
-    } catch {
-      return { error: error.message };
-    }
-  }
-  if (error instanceof AppError) return { error: tErrors('unexpected') };
-  throw error;
+  return mapServerActionError(error, {
+    tErrors: (key) => tErrors(key as 'unexpected'),
+    namespaces: {
+      scheduling: (key) => t(key as 'errors.unavailableOverlap'),
+    },
+  });
 }
 
 function revalidateScheduling() {
@@ -129,16 +115,12 @@ export async function updateBookingAction(
 }
 
 export async function cancelBookingAction(bookingId: string): Promise<{ error?: string; ok?: boolean }> {
-  const tErrors = await getTranslations('errors');
   try {
     await withOrgContext((context) => cancelBooking(context, { bookingId }));
     revalidateScheduling();
     return { ok: true };
   } catch (error) {
-    if (error instanceof AppError) {
-      return { error: tErrors('unexpected') };
-    }
-    throw error;
+    return mapAppError(error);
   }
 }
 

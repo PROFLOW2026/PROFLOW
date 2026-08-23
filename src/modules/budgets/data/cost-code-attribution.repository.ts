@@ -3,6 +3,7 @@ import {
   apBillLines,
   apBills,
   apPoMatches,
+  committedCosts,
   expenseAllocations,
   expenses,
   projectBudgetLines,
@@ -15,8 +16,6 @@ import type { DbExecutor } from '@/shared/db/types';
 import type { CostCodeAmountSlice } from '../domain/cost-code-variance';
 
 export type { CostCodeAmountSlice };
-
-const OPEN_PO_STATUSES = ['issued', 'partially_received', 'closed'] as const;
 
 /** Budget amounts from active project budget lines attributed by catalog cost_code_id. */
 export async function loadBudgetAmountsByCostCodeForProject(
@@ -58,7 +57,7 @@ export async function loadBudgetAmountsByCostCodeForProject(
     }));
 }
 
-/** PO line totals (commitment path) — not Actual. Excludes draft/cancelled POs. */
+/** PO remaining commitment by cost code — prorates open committed_costs to lines (R-021). */
 export async function loadCommittedAmountsByCostCodeForProject(
   db: DbExecutor,
   organizationId: string,
@@ -67,34 +66,45 @@ export async function loadCommittedAmountsByCostCodeForProject(
   const rows = await db
     .select({
       costCodeId: purchaseOrderLines.costCodeId,
-      amount: purchaseOrderLines.lineTotal,
-      currency: purchaseOrderLines.currency,
+      lineTotal: purchaseOrderLines.lineTotal,
+      poCommitted: purchaseOrders.committedAmount,
+      openCommitted: committedCosts.amount,
+      currency: committedCosts.currency,
     })
-    .from(purchaseOrderLines)
+    .from(committedCosts)
+    .innerJoin(purchaseOrders, eq(purchaseOrders.id, committedCosts.purchaseOrderId))
     .innerJoin(
-      purchaseOrders,
+      purchaseOrderLines,
       and(
-        eq(purchaseOrders.id, purchaseOrderLines.purchaseOrderId),
-        eq(purchaseOrders.organizationId, organizationId),
-        eq(purchaseOrders.projectId, projectId),
-        isNull(purchaseOrders.archivedAt),
-        inArray(purchaseOrders.status, [...OPEN_PO_STATUSES]),
+        eq(purchaseOrderLines.purchaseOrderId, purchaseOrders.id),
+        eq(purchaseOrderLines.organizationId, purchaseOrders.organizationId),
       ),
     )
     .where(
       and(
-        eq(purchaseOrderLines.organizationId, organizationId),
+        eq(committedCosts.organizationId, organizationId),
+        eq(committedCosts.projectId, projectId),
+        inArray(committedCosts.status, ['open', 'partially_consumed']),
+        isNull(purchaseOrders.archivedAt),
         isNotNull(purchaseOrderLines.costCodeId),
       ),
     );
 
-  return rows
-    .filter((row): row is typeof row & { costCodeId: string } => row.costCodeId != null)
-    .map((row) => ({
+  const slices: CostCodeAmountSlice[] = [];
+  for (const row of rows) {
+    if (!row.costCodeId) continue;
+    const poTotal = Number(row.poCommitted);
+    const lineTotal = Number(row.lineTotal);
+    const openAmount = Number(row.openCommitted);
+    if (!Number.isFinite(poTotal) || poTotal <= 0 || !Number.isFinite(lineTotal)) continue;
+    const prorated = (openAmount * lineTotal) / poTotal;
+    slices.push({
       costCodeId: row.costCodeId,
-      amount: row.amount,
+      amount: prorated.toFixed(6),
       currency: row.currency,
-    }));
+    });
+  }
+  return slices;
 }
 
 async function loadLinkedExpenseIdsForProject(

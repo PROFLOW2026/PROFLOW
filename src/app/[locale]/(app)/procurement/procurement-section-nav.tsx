@@ -4,8 +4,8 @@ import { useTranslations } from 'next-intl';
 import { SectionNavLink } from '@/components/ui/section-nav-link';
 
 const TABS = [
-  { key: 'orders', href: '/procurement' },
   { key: 'rfqs', href: '/procurement/rfqs' },
+  { key: 'orders', href: '/procurement' },
   { key: 'materials', href: '/procurement/materials' },
   { key: 'ap', href: '/procurement/ap' },
   { key: 'credits', href: '/procurement/ap/credits' },

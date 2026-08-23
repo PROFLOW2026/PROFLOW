@@ -20,7 +20,7 @@ import {
 } from '@/modules/field-ops';
 import { withOrgContext } from '@/shared/auth/session';
 import type { OrgContext } from '@/shared/auth/context';
-import { AppError, AuthorizationError, ConflictError, DomainRuleError, ValidationError } from '@/shared/errors';
+import { AuthorizationError, mapServerActionError } from '@/shared/errors';
 import { redirect } from '@/shared/i18n/navigation';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 
@@ -50,34 +50,20 @@ function requiredFormValue(formData: FormData, key: string): string {
   return formValue(formData, key) ?? '';
 }
 
-function mapValidationError(error: ValidationError): FieldOpsFormState {
-  const fieldErrors: Record<string, string> = {};
-  for (const issue of error.issues) {
-    if (issue.path) fieldErrors[issue.path] = issue.message;
-  }
-  return { error: error.message, fieldErrors };
-}
-
 async function mapAppError(error: unknown): Promise<FieldOpsFormState> {
   const tErrors = await getTranslations('errors');
   const t = await getTranslations('fieldOps');
-  if (error instanceof ValidationError) return mapValidationError(error);
   if (error instanceof AuthorizationError) {
     if (error.details?.permission === PERMISSIONS.DOCUMENTS_MANAGE) {
       return { error: t('errors.photosRequireDocumentsManage') };
     }
-    return { error: tErrors('notAllowed') };
   }
-  if (error instanceof DomainRuleError || error instanceof ConflictError) {
-    const key = error.messageKey.replace(/^fieldOps\./, '');
-    try {
-      return { error: t(key as 'errors.invalidPunchTransition') };
-    } catch {
-      return { error: error.message };
-    }
-  }
-  if (error instanceof AppError) return { error: tErrors('unexpected') };
-  throw error;
+  return mapServerActionError(error, {
+    tErrors: (key) => tErrors(key as 'unexpected'),
+    namespaces: {
+      fieldOps: (key) => t(key as 'errors.invalidPunchTransition'),
+    },
+  });
 }
 
 async function createOwnerThenAttachPhotos<T extends { id: string }>(

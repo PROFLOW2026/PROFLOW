@@ -11,7 +11,7 @@ import {
 } from '@/modules/compliance';
 import { attachDocumentToComplianceArtifact } from '@/modules/compliance/application/attach-document';
 import { withOrgContext } from '@/shared/auth/session';
-import { AppError, ValidationError } from '@/shared/errors';
+import { AppError, ValidationError, mapServerActionError } from '@/shared/errors';
 import { redirect } from '@/shared/i18n/navigation';
 
 export interface ComplianceFormState {
@@ -25,12 +25,13 @@ function formValue(formData: FormData, key: string): string | undefined {
   return String(value);
 }
 
-function mapValidationError(error: ValidationError): ComplianceFormState {
-  const fieldErrors: Record<string, string> = {};
-  for (const issue of error.issues) {
-    if (issue.path) fieldErrors[issue.path] = issue.message;
-  }
-  return { error: error.message, fieldErrors };
+function mapValidationError(
+  error: ValidationError,
+  tErrors: Awaited<ReturnType<typeof getTranslations>>,
+): ComplianceFormState {
+  return mapServerActionError(error, {
+    tErrors: (key) => tErrors(key as 'validationFailed'),
+  });
 }
 
 export async function createComplianceArtifactAction(
@@ -62,7 +63,7 @@ export async function createComplianceArtifactAction(
     revalidatePath('/compliance');
     redirect({ href: `/compliance/${artifact.id}`, locale });
   } catch (error) {
-    if (error instanceof ValidationError) return mapValidationError(error);
+    if (error instanceof ValidationError) return mapValidationError(error, tErrors);
     if (error instanceof AppError) return { error: tErrors('unexpected') };
     throw error;
   }
@@ -100,7 +101,7 @@ export async function updateComplianceArtifactAction(
     revalidatePath(`/compliance/${input.artifactId}`);
     return {};
   } catch (error) {
-    if (error instanceof ValidationError) return mapValidationError(error);
+    if (error instanceof ValidationError) return mapValidationError(error, tErrors);
     if (error instanceof AppError) return { error: tErrors('unexpected') };
     throw error;
   }

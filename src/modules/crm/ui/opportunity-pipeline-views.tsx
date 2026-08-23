@@ -303,6 +303,11 @@ export function OpportunityPipelineViews({
                   {column.items.length}
                 </span>
               </h2>
+              {column.stage === 'won' ? (
+                <p className="mb-2 rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-2 text-xs text-[var(--pf-text-secondary)]">
+                  {t('board.wonConvertHint')}
+                </p>
+              ) : null}
               {column.items.length === 0 ? (
                 <p className="text-xs text-[var(--pf-text-muted)]">{t('board.emptyColumn')}</p>
               ) : (

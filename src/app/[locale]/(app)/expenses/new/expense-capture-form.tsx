@@ -8,6 +8,7 @@ import { ExpenseForm } from '@/modules/expenses/ui/expense-form';
 import type { CostCategoryRow, ProjectOption, VendorOption, WorkPackageOption } from '@/modules/expenses/domain/types';
 import { expensePayloadFromFormData } from '@/modules/offline/domain/payloads';
 import { useOfflineAwareFormAction } from '@/modules/offline/ui/use-offline-aware-form-action';
+import type { ApBillOverlapCandidate } from '@/modules/financials';
 import { Link } from '@/shared/i18n/navigation';
 import { createExpenseAction, type ExpenseActionState } from '../actions';
 
@@ -20,6 +21,7 @@ export interface ExpenseCaptureFormProps {
   readonly initialProjectId?: string;
   /** Org tax rule rate for live VAT preview - never hardcoded. */
   readonly taxRatePercent?: string | null;
+  readonly apBillOverlapCandidates?: readonly ApBillOverlapCandidate[];
 }
 
 export function ExpenseCaptureForm({
@@ -30,6 +32,7 @@ export function ExpenseCaptureForm({
   vendors = [],
   initialProjectId,
   taxRatePercent = null,
+  apBillOverlapCandidates = [],
 }: ExpenseCaptureFormProps) {
   const tCommon = useTranslations('common');
   const t = useTranslations('expenses');
@@ -72,6 +75,7 @@ export function ExpenseCaptureForm({
         workPackages={workPackages}
         vendors={vendors}
         taxRatePercent={taxRatePercent}
+        apBillOverlapCandidates={apBillOverlapCandidates}
         initialValues={{
           targeting: initialProjectId ?? '__overhead__',
           projectId: initialProjectId,

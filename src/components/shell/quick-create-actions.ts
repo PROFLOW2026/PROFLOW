@@ -157,9 +157,9 @@ export function buildQuickCreateActions(
   // Documents: no standalone /documents/new - upload lives on entity panels.
   // Skip Quick Create until a dedicated capture route exists.
 
-  // Assets / maintenance hub create (maintenance lines still need an asset).
+  // Assets hub — maintenance work starts from a registered asset.
   if (modules.assets && permissions.has(PERMISSIONS.ASSETS_MANAGE)) {
-    actions.push({ key: 'maintenance', href: '/assets/new', labelKey: 'maintenance' });
+    actions.push({ key: 'asset', href: '/assets/new', labelKey: 'asset' });
   }
 
   // Permission-only (same discoverability rule as Vendor bills nav).
@@ -174,7 +174,7 @@ export function buildQuickCreateActions(
     actions.push({
       key: 'attendance',
       href: '/workforce/attendance',
-      labelKey: 'attendance',
+      labelKey: 'clockAttendance',
     });
   }
 

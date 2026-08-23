@@ -108,7 +108,8 @@
     "receiptsTitle": "Receipts",
     "emptyReceipts": "No receipts yet.",
     "receivedBy": "Received by",
-    "success": "Receipt recorded."
+    "success": "Receipt recorded.",
+    "inventoryHandoffHint": "Receiving records quantities only. To add stock on hand, update inventory separately under Assets — this does not post project Actual or cost."
   },
   "create": {
     "title": "New purchase order",
@@ -131,7 +132,8 @@
     "lineMaterialNone": "None",
     "lineQuantity": "Qty",
     "lineUnitAmount": "Unit price",
-    "lineTotal": "Line total"
+    "lineTotal": "Line total",
+    "projectMissingWarning": "No project selected. Commitment will not appear on any project financials until you link a project."
   },
   "material": {
     "createTitle": "Add material",

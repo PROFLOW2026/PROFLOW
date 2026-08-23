@@ -91,6 +91,12 @@ export default async function RecurringDraftsPage({
         }
       />
 
+      <p className="text-sm text-[var(--pf-text-secondary)]">
+        <Link href="/service/recurring" className="underline underline-offset-2">
+          {t('serviceRecurringLink')}
+        </Link>
+      </p>
+
       <div className="flex min-w-0 max-w-full flex-wrap gap-2 text-sm">
         {(
           [

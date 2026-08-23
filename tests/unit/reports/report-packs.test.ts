@@ -5,6 +5,7 @@ import { AuthorizationError, NotFoundError } from '@/shared/errors';
 import { money, zeroMoney } from '@/shared/money';
 import { PERMISSIONS, type PermissionKey } from '@/shared/permissions/catalog';
 import type { ProjectFinancials } from '@/modules/financials/domain/types';
+import { buildSliceAvailability } from '@/modules/financials/domain/financial-slice-availability';
 import type { ProjectDetailChrome } from '@/modules/projects';
 import {
   assertReportKindPermission,
@@ -15,6 +16,16 @@ import {
   renderReportPdf,
 } from '@/modules/reports';
 import { toProviderAttachments } from '@/shared/ports/email';
+
+const allSlicesLoaded = buildSliceAvailability({
+  canReadCommercial: true,
+  canReadBilling: true,
+  canReadExpenses: true,
+  canReadWorkforce: true,
+  canReadProcurement: true,
+  canReadAp: true,
+  laborLoaded: true,
+});
 
 function contextWith(permissions: readonly PermissionKey[], locale = 'he-IL'): OrgContext {
   return {
@@ -94,6 +105,8 @@ function financials(overrides: Partial<ProjectFinancials> = {}): ProjectFinancia
       invoiced: money('20000', currency),
       paid: money('8000', currency),
       outstanding: money('12000', currency),
+      netInvoiced: money('20000', currency),
+      hasBillingData: true,
       monthCloseRevenueNet: zeroMoney(currency),
     },
     cost: {
@@ -124,6 +137,7 @@ function financials(overrides: Partial<ProjectFinancials> = {}): ProjectFinancia
       entries: [],
       calculatedAt: new Date('2026-08-16T00:00:00Z'),
     },
+    sliceAvailability: allSlicesLoaded,
     dataConfidence: { level: 'high', reasons: [] },
     ...overrides,
   };

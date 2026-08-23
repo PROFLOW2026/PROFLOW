@@ -155,9 +155,25 @@ export function computeMatchVariance(input: {
 }
 
 /**
- * Reject proposing/accepting a match that would exceed the bill total
- * when combined with already reserved amounts.
+ * Expense-linked matches must not exceed the expense gross (R-040 partial).
+ * Prevents amount-blind links that leave unmatched expense Actual on the books.
  */
+export function assertMatchExpenseAmountWithinExpense(input: {
+  readonly currency: string;
+  readonly expenseGrossAmount: string;
+  readonly matchedAmount: string;
+}): void {
+  const currency = input.currency.toUpperCase();
+  const expense = money(input.expenseGrossAmount, currency);
+  const matched = money(input.matchedAmount, currency);
+  if (compareMoney(matched, expense) > 0) {
+    throw new DomainRuleError(
+      'Match amount cannot exceed the linked expense total',
+      'ap.errors.matchExceedsExpense',
+    );
+  }
+}
+
 export function assertMatchDoesNotOverMatch(input: {
   readonly currency: string;
   readonly billTotal: string;

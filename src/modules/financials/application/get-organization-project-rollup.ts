@@ -19,6 +19,7 @@ import {
   mergeDataConfidence,
   type DataConfidence,
 } from '../domain/data-confidence';
+import { resolveOrgRollupKpiMoneyFields } from '../domain/org-rollup-kpi-money';
 import {
   loadProjectFinancialsBatch,
   type ProjectForecastMeta,
@@ -248,33 +249,36 @@ export async function getOrganizationProjectRollup(
     const pendingChanges = canCommercial
       ? (financials.commercial?.pendingChanges ?? null)
       : null;
-    const invoiced = canBilling ? financials.billing.invoiced : null;
-    const paid = canBilling ? financials.billing.paid : null;
-    const outstanding = canBilling ? financials.billing.outstanding : null;
-    const actualCost = financials.cost.actualCostToDate;
-    const laborActual = financials.cost.laborActual;
-    const vendorActual = financials.cost.vendorActual;
-    const overheadActual = financials.cost.overheadActual;
-    const committedOpen = financials.cost.committedOpen;
-    const openApPayable = financials.cost.openApPayable;
-    const expectedRemainingCost = financials.cost.expectedRemainingCost;
-    const estimatedFinalCost = financials.cost.estimatedFinalCost;
-    const assetCapitalActual = financials.cost.byFamily.assetCapital;
-    // Open-price rows keep null profit - never count as loss-making.
-    const estimatedProfit =
-      canProfit && !priceNotSet ? (financials.profit?.estimatedProfit ?? null) : null;
-    const marginPercent =
-      canProfit && !priceNotSet ? (financials.profit?.marginPercent ?? null) : null;
-    const actualProfit =
-      canProfit && !priceNotSet ? (financials.profit?.actualProfit ?? null) : null;
-    const actualMarginPercent =
-      canProfit && !priceNotSet ? (financials.profit?.actualMarginPercent ?? null) : null;
+    // N-002: withhold partial/unavailable KPIs — never map denied slices to zeroMoney.
+    const kpiMoney = resolveOrgRollupKpiMoneyFields({
+      kpiAvailability: financials.kpiAvailability,
+      canBilling,
+      canProfit,
+      priceNotSet,
+      invoiced: financials.billing.invoiced,
+      paid: financials.billing.paid,
+      outstanding: financials.billing.outstanding,
+      actualCost: financials.cost.actualCostToDate,
+      laborActual: financials.cost.laborActual,
+      vendorActual: financials.cost.vendorActual,
+      overheadActual: financials.cost.overheadActual,
+      committedOpen: financials.cost.committedOpen,
+      openApPayable: financials.cost.openApPayable,
+      expectedRemainingCost: financials.cost.expectedRemainingCost,
+      estimatedFinalCost: financials.cost.estimatedFinalCost,
+      assetCapitalActual: financials.cost.byFamily.assetCapital,
+      estimatedProfit: financials.profit?.estimatedProfit ?? null,
+      marginPercent: financials.profit?.marginPercent ?? null,
+      actualProfit: financials.profit?.actualProfit ?? null,
+      actualMarginPercent: financials.profit?.actualMarginPercent ?? null,
+    });
+    // Open-price / withheld forecast margin: never count as loss-making.
     const profitable =
-      estimatedProfit == null
+      kpiMoney.estimatedProfit == null
         ? null
-        : compareMoney(estimatedProfit, zeroMoney(currency)) > 0
+        : compareMoney(kpiMoney.estimatedProfit, zeroMoney(currency)) > 0
           ? true
-          : compareMoney(estimatedProfit, zeroMoney(currency)) < 0
+          : compareMoney(kpiMoney.estimatedProfit, zeroMoney(currency)) < 0
             ? false
             : null;
 
@@ -291,22 +295,22 @@ export async function getOrganizationProjectRollup(
       approvedReductions: priceNotSet ? null : approvedReductions,
       currentContract,
       pendingChanges: priceNotSet ? null : pendingChanges,
-      invoiced,
-      paid,
-      outstanding,
-      actualCost: actualCost ?? zeroMoney(currency),
-      laborActual,
-      vendorActual,
-      overheadActual,
-      committedOpen,
-      openApPayable,
-      expectedRemainingCost,
-      estimatedFinalCost,
-      assetCapitalActual,
-      estimatedProfit,
-      marginPercent,
-      actualProfit,
-      actualMarginPercent,
+      invoiced: kpiMoney.invoiced,
+      paid: kpiMoney.paid,
+      outstanding: kpiMoney.outstanding,
+      actualCost: kpiMoney.actualCost,
+      laborActual: kpiMoney.laborActual,
+      vendorActual: kpiMoney.vendorActual,
+      overheadActual: kpiMoney.overheadActual,
+      committedOpen: kpiMoney.committedOpen,
+      openApPayable: kpiMoney.openApPayable,
+      expectedRemainingCost: kpiMoney.expectedRemainingCost,
+      estimatedFinalCost: kpiMoney.estimatedFinalCost,
+      assetCapitalActual: kpiMoney.assetCapitalActual,
+      estimatedProfit: kpiMoney.estimatedProfit,
+      marginPercent: kpiMoney.marginPercent,
+      actualProfit: kpiMoney.actualProfit,
+      actualMarginPercent: kpiMoney.actualMarginPercent,
       progressPercent: meta.progressPercent,
       profitable,
     });

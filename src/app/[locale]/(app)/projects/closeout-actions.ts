@@ -9,7 +9,7 @@ import {
   startCloseout,
 } from '@/modules/closeout';
 import { withOrgContext } from '@/shared/auth/session';
-import { AppError, DomainRuleError, ValidationError } from '@/shared/errors';
+import { mapServerActionError } from '@/shared/errors';
 
 export interface CloseoutFormState {
   error?: string;
@@ -31,23 +31,12 @@ function requiredFormValue(formData: FormData, key: string): string {
 async function mapError(error: unknown): Promise<CloseoutFormState> {
   const tErrors = await getTranslations('errors');
   const t = await getTranslations('closeout');
-  if (error instanceof ValidationError) {
-    const fieldErrors: Record<string, string> = {};
-    for (const issue of error.issues) {
-      if (issue.path) fieldErrors[issue.path] = issue.message;
-    }
-    return { error: error.message, fieldErrors };
-  }
-  if (error instanceof DomainRuleError) {
-    const key = error.messageKey.replace(/^closeout\./, '');
-    try {
-      return { error: t(key as 'errors.notCloseable') };
-    } catch {
-      return { error: error.message };
-    }
-  }
-  if (error instanceof AppError) return { error: tErrors('unexpected') };
-  throw error;
+  return mapServerActionError(error, {
+    tErrors: (key) => tErrors(key as 'unexpected'),
+    namespaces: {
+      closeout: (key) => t(key as 'errors.notCloseable'),
+    },
+  });
 }
 
 function revalidateCloseout(projectId: string) {

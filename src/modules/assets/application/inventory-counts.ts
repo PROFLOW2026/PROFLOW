@@ -60,6 +60,7 @@ function parseOrThrow<T>(
 }
 
 function asDomainRule(error: unknown, messageKey: string): never {
+  if (error instanceof DomainRuleError) throw error;
   throw new DomainRuleError(
     error instanceof Error ? error.message : 'Invalid inventory movement',
     messageKey,

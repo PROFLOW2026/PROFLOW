@@ -85,13 +85,7 @@ export function SubcontractCard({
         <StatusBadge shape={statusShape(item.status)} label={t(`status.${item.status}`)} />
       </div>
 
-      <dl className="grid grid-cols-2 gap-2 text-sm sm:grid-cols-5">
-        <div className="text-start">
-          <dt className="text-[var(--pf-text-muted)]">{t('originalAmountLabel')}</dt>
-          <dd>
-            <MoneyText value={money(item.originalAmount, item.currency)} />
-          </dd>
-        </div>
+      <dl className="grid grid-cols-2 gap-2 text-sm sm:grid-cols-3 lg:grid-cols-6">
         <div className="text-start">
           <dt className="text-[var(--pf-text-muted)]">{t('currentAmountLabel')}</dt>
           <dd>
@@ -99,9 +93,15 @@ export function SubcontractCard({
           </dd>
         </div>
         <div className="text-start">
-          <dt className="text-[var(--pf-text-muted)]">{t('billedLabel')}</dt>
+          <dt className="text-[var(--pf-text-muted)]">{t('recognizedActualLabel')}</dt>
           <dd>
-            <MoneyText value={money(item.billedAmount, item.currency)} />
+            <MoneyText value={money(item.recognizedActualAmount, item.currency)} />
+          </dd>
+        </div>
+        <div className="text-start">
+          <dt className="text-[var(--pf-text-muted)]">{t('remainingCommitmentLabel')}</dt>
+          <dd>
+            <MoneyText value={money(item.remainingCommitmentAmount, item.currency)} />
           </dd>
         </div>
         <div className="text-start">
@@ -116,7 +116,14 @@ export function SubcontractCard({
             <MoneyText value={money(item.outstandingAmount, item.currency)} />
           </dd>
         </div>
+        <div className="text-start">
+          <dt className="text-[var(--pf-text-muted)]">{t('billedLabel')}</dt>
+          <dd>
+            <MoneyText value={money(item.billedAmount, item.currency)} />
+          </dd>
+        </div>
       </dl>
+      <p className="text-start text-xs text-[var(--pf-text-muted)]">{t('cardMetricsHint')}</p>
 
       {flags ? (
         <p className="text-start text-xs text-[var(--pf-text-secondary)]">

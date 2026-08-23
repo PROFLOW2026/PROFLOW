@@ -95,6 +95,30 @@ const COMMANDS: readonly CommandDef[] = [
     allowed: (context) => hasPermission(context, PERMISSIONS.PROJECTS_READ),
   },
   {
+    id: 'open-rfqs',
+    href: '/procurement/rfqs',
+    titleKey: 'commands.openRfqs',
+    keywords: ['rfq', 'request for quote', 'procurement', 'quote request', 'בקשת הצעה', 'מכרז'],
+    allowed: (context, modules) =>
+      Boolean(modules.procurement) && hasPermission(context, PERMISSIONS.PROCUREMENT_READ),
+  },
+  {
+    id: 'open-approvals',
+    href: '/approvals',
+    titleKey: 'commands.openApprovals',
+    keywords: ['approvals', 'approve', 'אישורים'],
+    allowed: (context, modules) =>
+      Boolean(modules.approvals) && hasPermission(context, PERMISSIONS.APPROVALS_READ),
+  },
+  {
+    id: 'open-forms',
+    href: '/forms',
+    titleKey: 'commands.openForms',
+    keywords: ['forms', 'checklist', 'field forms', 'טפסים', 'צ׳קליסט'],
+    allowed: (context, modules) =>
+      Boolean(modules.forms) && hasPermission(context, PERMISSIONS.FORMS_READ),
+  },
+  {
     id: 'open-cash-flow',
     href: '/cash-flow',
     titleKey: 'commands.openCashFlow',

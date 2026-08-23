@@ -16,7 +16,7 @@ import {
 } from '@/modules/expenses';
 import { promoteVendorFromTransaction } from '@/modules/vendors';
 import { withOrgContext } from '@/shared/auth/session';
-import { AppError, DomainRuleError, ValidationError } from '@/shared/errors';
+import { AppError, DomainRuleError, ValidationError, mapServerActionError } from '@/shared/errors';
 import { redirect } from '@/shared/i18n/navigation';
 
 async function mapMonthCloseError(error: unknown): Promise<ExpenseActionState | null> {
@@ -24,12 +24,14 @@ async function mapMonthCloseError(error: unknown): Promise<ExpenseActionState | 
     return null;
   }
   const tMonthClose = await getTranslations('monthClose');
-  const key = error.messageKey.replace(/^monthClose\./, '');
-  try {
-    return { error: tMonthClose(key as 'errors.monthClosed') };
-  } catch {
-    return { error: error.message };
-  }
+  const tErrors = await getTranslations('errors');
+  const mapped = mapServerActionError(error, {
+    tErrors: (key) => tErrors(key as 'unexpected'),
+    namespaces: {
+      monthClose: (key) => tMonthClose(key as 'errors.monthClosed'),
+    },
+  });
+  return { error: mapped.error };
 }
 
 /**
@@ -41,23 +43,14 @@ async function mapExpenseDomainError(error: unknown): Promise<ExpenseActionState
     return null;
   }
   const tExpenses = await getTranslations('expenses');
-  const key = error.messageKey.replace(/^expenses\./, '') as 'errors.allocationAmountRequired';
-  try {
-    const translated = tExpenses(key);
-    // Guard against next-intl returning an unresolved key path.
-    if (
-      !translated ||
-      translated === key ||
-      translated === error.messageKey ||
-      translated.includes('expenses.errors.') ||
-      translated.startsWith('errors.expenses.')
-    ) {
-      return { error: error.message };
-    }
-    return { error: translated };
-  } catch {
-    return { error: error.message };
-  }
+  const tErrors = await getTranslations('errors');
+  const mapped = mapServerActionError(error, {
+    tErrors: (key) => tErrors(key as 'unexpected'),
+    namespaces: {
+      expenses: (key) => tExpenses(key as 'errors.allocationAmountRequired'),
+    },
+  });
+  return { error: mapped.error };
 }
 
 async function mapExpenseActionError(error: unknown): Promise<ExpenseActionState> {
@@ -67,7 +60,9 @@ async function mapExpenseActionError(error: unknown): Promise<ExpenseActionState
   if (domain) return domain;
   const tErrors = await getTranslations('errors');
   if (error instanceof AppError) {
-    return { error: tErrors('unexpected') };
+    return mapServerActionError(error, {
+      tErrors: (key) => tErrors(key as 'unexpected'),
+    });
   }
   throw error;
 }

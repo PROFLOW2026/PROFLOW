@@ -11,6 +11,8 @@ import type {
   ExperiencePersonaKey,
   ExperienceRoleSurface,
 } from '@/modules/tenancy/domain/experience-persona';
+import type { ExperienceComplexityKey } from '@/modules/tenancy/domain/experience-complexity';
+import { filterNavKeysByComplexity } from '@/modules/tenancy/domain/experience-complexity';
 import {
   NAV_KEY_TO_EXPERIENCE_GROUP,
   PERSONA_PRIMARY_NAV_KEYS,
@@ -282,14 +284,12 @@ export const NAV_ITEMS: readonly NavItem[] = [
   },
   {
     key: 'workforce',
-    // Always discoverable when the viewer can read workforce - do not hide
-    // behind adaptive module prefs (chicken/egg: first employee cannot be
-    // created if Owners never see Employees in More).
+    // People hub — attendance/timesheets stay in workforce sub-nav only.
     href: '/workforce/employees',
-    labelKey: 'workforce',
+    labelKey: 'people',
     iconKey: 'workforce',
     permission: PERMISSIONS.WORKFORCE_READ,
-    moreGroup: 'operations',
+    moreGroup: 'people',
   },
   {
     key: 'time',
@@ -301,32 +301,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
       PERMISSIONS.TIME_APPROVE,
       PERMISSIONS.WORKFORCE_READ,
     ],
-    moreGroup: 'operations',
-  },
-  {
-    key: 'attendance',
-    // Permission-only (read | self | manage). No global planning / aging here.
-    href: '/workforce/attendance',
-    labelKey: 'attendance',
-    iconKey: 'attendance',
-    anyPermissions: [
-      PERMISSIONS.ATTENDANCE_READ,
-      PERMISSIONS.ATTENDANCE_SELF,
-      PERMISSIONS.ATTENDANCE_MANAGE,
-    ],
-    moreGroup: 'operations',
-  },
-  {
-    key: 'timesheets',
-    href: '/workforce/timesheets',
-    labelKey: 'timesheets',
-    iconKey: 'timesheets',
-    anyPermissions: [
-      PERMISSIONS.WORKFORCE_READ,
-      PERMISSIONS.TIME_MANAGE,
-      PERMISSIONS.TIME_APPROVE,
-    ],
-    moreGroup: 'operations',
+    moreGroup: 'people',
   },
   {
     key: 'scheduling',
@@ -388,6 +363,15 @@ export const NAV_ITEMS: readonly NavItem[] = [
     key: 'procurement',
     href: '/procurement',
     labelKey: 'procurement',
+    iconKey: 'procurement',
+    permission: PERMISSIONS.PROCUREMENT_READ,
+    module: 'procurement',
+    moreGroup: 'operations',
+  },
+  {
+    key: 'procurementRfqs',
+    href: '/procurement/rfqs',
+    labelKey: 'procurementRfqs',
     iconKey: 'procurement',
     permission: PERMISSIONS.PROCUREMENT_READ,
     module: 'procurement',
@@ -542,6 +526,7 @@ export interface VisibleNavOptions {
   readonly workMix?: WorkMix;
   readonly persona?: ExperiencePersonaKey;
   readonly roleSurface?: ExperienceRoleSurface;
+  readonly complexity?: ExperienceComplexityKey;
 }
 
 /**
@@ -659,6 +644,8 @@ export function visibleNavItems(
     withMix,
     options.persona ?? 'mixed',
     options.roleSurface ?? 'general',
+  ).filter((item) =>
+    filterNavKeysByComplexity([item.key], options.complexity ?? 'full').includes(item.key),
   );
 }
 

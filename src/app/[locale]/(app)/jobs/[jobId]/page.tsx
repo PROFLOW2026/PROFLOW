@@ -384,7 +384,10 @@ export default async function JobPage({ params, searchParams }: JobPageProps) {
         {activeTab === 'documents' && showDocumentsTab ? (
           <div className="pt-4">
             <Suspense fallback={<TabPanelSkeleton />}>
-              <DocumentsTab projectId={jobId} hasContract={Boolean(detail.contract)} />
+              <DocumentsTab
+                projectId={jobId}
+                primaryContractId={detail.contract?.id ?? null}
+              />
             </Suspense>
           </div>
         ) : null}

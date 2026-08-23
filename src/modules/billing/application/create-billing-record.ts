@@ -14,7 +14,7 @@ import {
   getCatalogEntryById,
   resolveOrgDefaultPaymentTermIdForContext,
 } from '@/modules/business-catalog';
-import { findClientById } from '@/modules/clients';
+import { findClientById, listContactsForClient, pickBillingClientContact } from '@/modules/clients';
 import { assertBillingCurrencyMatchesProject } from '../domain/currency';
 import { resolveTaxAmounts } from '../domain/tax';
 import {
@@ -147,6 +147,14 @@ export async function createBillingRecordWithPermission(
   const client = project.clientId
     ? await findClientById(context.db, context.organizationId, project.clientId)
     : null;
+  let notes = input.notes?.trim() || null;
+  if (!notes && project.clientId) {
+    const contacts = await listContactsForClient(context, project.clientId);
+    const billingContact = pickBillingClientContact(contacts);
+    if (billingContact) {
+      notes = `Bill to: ${billingContact.name}`;
+    }
+  }
   const orgDefaultId = await resolveOrgDefaultPaymentTermIdForContext(context);
   const paymentTermId = resolveArPaymentTermId({
     explicitId: input.paymentTermId,
@@ -203,7 +211,7 @@ export async function createBillingRecordWithPermission(
     retentionAmount: toNumericString(retention),
     retentionHeldRemaining: toNumericString(money('0', currency)),
     externalDocumentId: input.externalDocumentId ?? null,
-    notes: input.notes?.trim() || null,
+    notes,
     voidsBillingRecordId: null,
     createdByUserId: context.userId,
   });

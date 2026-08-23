@@ -174,11 +174,11 @@
     "title": "Experience depth",
     "subtitle": "How much of ProjectFlow to show for your business profile. Does not change permissions or stored data.",
     "label": "Complexity",
-    "simple": "Simple",
+    "simple": "Simpler navigation",
     "advanced": "Advanced",
     "full": "Full",
     "hint": {
-      "simple": "Core destinations only - clients, quotes, billing, documents, workforce, and jobs when recommended.",
+      "simple": "Core destinations only — hides permission-only chrome such as imports, month close, and vendor bills.",
       "advanced": "Adds purchasing, changes, field ops, materials, and related tools while keeping the heaviest modules off.",
       "full": "Shows the full profile recommendation."
     },

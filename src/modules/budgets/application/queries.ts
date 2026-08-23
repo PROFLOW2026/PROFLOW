@@ -5,6 +5,7 @@ import {
   type CostPosition,
   type ProjectExpenseContribution,
 } from '@/modules/financials';
+import { applyLinkedExpenseDeductionsToContributions } from '@/modules/financials/domain/expense-ap-dedup';
 import type { OrgContext } from '@/shared/auth/context';
 import { NotFoundError } from '@/shared/errors';
 import { assertPermission, hasPermission } from '@/shared/permissions/assert';
@@ -96,7 +97,6 @@ export async function getProjectBudgetWorkspace(
 
   let cost: CostPosition | null = null;
   let contributions: readonly ProjectExpenseContribution[] | null = null;
-  let linkedExpenseIds: ReadonlySet<string> | undefined;
   let excludeLaborCategory = false;
   if (canReadFinancials) {
     const canReadAp = hasPermission(context, PERMISSIONS.AP_READ);
@@ -116,8 +116,14 @@ export async function getProjectBudgetWorkspace(
         : Promise.resolve(null),
     ]);
     cost = engineCost;
-    contributions = expenseSlices;
-    linkedExpenseIds = recognizedVendor?.linkedExpenseIds;
+    if (expenseSlices && recognizedVendor?.linkedExpenseDeductions.size) {
+      contributions = applyLinkedExpenseDeductionsToContributions(
+        expenseSlices,
+        recognizedVendor.linkedExpenseDeductions,
+      );
+    } else {
+      contributions = expenseSlices;
+    }
     excludeLaborCategory = Boolean(cost && !isZeroMoney(cost.laborActual));
   }
 
@@ -161,7 +167,6 @@ export async function getProjectBudgetWorkspace(
     lines,
     cost,
     contributions,
-    linkedExpenseIds,
     excludeLaborCategory,
   });
 

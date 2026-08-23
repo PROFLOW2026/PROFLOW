@@ -412,7 +412,7 @@
     "roleLabel": "Role on project",
     "rolePlaceholder": "e.g. site lead",
     "plannedShareLabel": "Planned time share (optional)",
-    "plannedShareHint": "Planning hint only - not cost allocation and not Actual.",
+    "plannedShareHint": "Rough % of the employee's time on this project — not a cost weight, budget allocation, or Actual driver.",
     "plannedSharePlaceholder": "e.g. 50",
     "noCandidates": "Every active employee is already on this team, or create a new employee first.",
     "noHoursYet": "Assigned · no hours logged yet",
@@ -465,6 +465,7 @@
     "description": "Clock in and out for presence. Attendance is not project time and never creates labor Actual by itself.",
     "updateCta": "Update attendance",
     "filteredEmployee": "Showing attendance for {name}. You can update historical dates below.",
+    "scopeDisclaimer": "Attendance records site presence only — not project management, not project hours, and not labor cost. Billable or project hours belong under Time.",
     "disclaimer": "Presence only - not project hours and not cost.",
     "completenessHint": "Complete is a presence heuristic: at least one clock-in and currently clocked out. It is not a timesheet or payroll completeness check and does not create labor cost. Open means still on site, or the day has no closing clock-out yet.",
     "clock": {

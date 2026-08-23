@@ -37,7 +37,10 @@ export type DashboardKpiKey =
   | 'contractValue'
   | 'estimatedProfit'
   | 'actualMargin'
-  | 'forecastMargin';
+  | 'forecastMargin'
+  | 'actualCost'
+  | 'forecastCost'
+  | 'committed';
 
 export type DashboardKpiAvailability = 'value' | 'unavailable';
 
@@ -46,6 +49,10 @@ export interface DashboardKpiAvailabilityMap {
   readonly estimatedProfit: DashboardKpiAvailability;
   readonly actualMargin: DashboardKpiAvailability;
   readonly forecastMargin: DashboardKpiAvailability;
+  /** Org Actual — unavailable when every rollup row withheld cost (N-002). */
+  readonly actualCost: DashboardKpiAvailability;
+  readonly forecastCost: DashboardKpiAvailability;
+  readonly committed: DashboardKpiAvailability;
   readonly unavailableReasonCode: DashboardMissingDataCode | null;
 }
 
@@ -258,17 +265,27 @@ export function resolveDashboardKpiAvailability(input: {
   readonly pricedProjectCount: number;
   readonly hasContractValue: boolean;
   readonly hasProfitValue: boolean;
+  /** False when org Actual was withheld on all rows (permission / incomplete KPI). */
+  readonly hasActualCost?: boolean;
+  readonly hasForecastCost?: boolean;
+  readonly hasCommitted?: boolean;
 }): DashboardKpiAvailabilityMap {
   const noRevenueBasis =
     input.openPriceProjectCount > 0 && input.pricedProjectCount === 0;
   const contractUnavailable = noRevenueBasis;
   const profitUnavailable = noRevenueBasis;
+  const hasActualCost = input.hasActualCost ?? true;
+  const hasForecastCost = input.hasForecastCost ?? true;
+  const hasCommitted = input.hasCommitted ?? true;
 
   return {
     contractValue: contractUnavailable ? 'unavailable' : 'value',
     estimatedProfit: profitUnavailable ? 'unavailable' : 'value',
     actualMargin: profitUnavailable ? 'unavailable' : 'value',
     forecastMargin: profitUnavailable ? 'unavailable' : 'value',
+    actualCost: hasActualCost ? 'value' : 'unavailable',
+    forecastCost: hasForecastCost ? 'value' : 'unavailable',
+    committed: hasCommitted ? 'value' : 'unavailable',
     unavailableReasonCode: noRevenueBasis ? 'open_price_contract_basis' : null,
   };
 }

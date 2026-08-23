@@ -1,3 +1,4 @@
+import { buildSliceAvailability, resolveProjectFinancialKpiAvailability } from '../domain/financial-slice-availability';
 import { fromNumericString, zeroMoney } from '@/shared/money';
 import type { OrgContext } from '@/shared/auth/context';
 import { hasPermission } from '@/shared/permissions/assert';
@@ -20,6 +21,8 @@ import {
   sumOpenApPayableForProjects,
   sumOpenCommittedCostsForProjects,
 } from '../data/committed-costs.repository';
+import { sumSubcontractRemainingCommitmentForProject } from '../data/subcontract-commitment.repository';
+import { mergeProjectRemainingCommitments } from '../domain/merge-commitments';
 import { loadExpenseContributionsForProjects } from '../data/expenses.repository';
 import { loadMonthCloseEconomicForProjects } from '../data/month-close-economic.repository';
 import type { ProjectExpenseContribution } from '../domain/cost-aggregation';
@@ -35,6 +38,7 @@ export interface ProjectForecastMeta {
 /**
  * Set-based project financials for org rollup / reports.
  * Same compose path as getProjectFinancials - O(1) query groups vs O(N) per project.
+ * Permission-denied slices stay null / unavailable — never silent empty arrays as Actual zero (N-002).
  */
 export async function loadProjectFinancialsBatch(
   context: OrgContext,
@@ -76,7 +80,7 @@ export async function loadProjectFinancialsBatch(
           (row) => row.projectId != null && projectIdSet.has(row.projectId),
         )
       : await loadExpenseContributionsForProjects(context.db, context.organizationId, projectIds)
-    : [];
+    : null;
   const laborByProject = canReadWorkforce
     ? await sumLaborCostGroupedByProject(
         context.db,
@@ -124,12 +128,32 @@ export async function loadProjectFinancialsBatch(
     currency,
   );
 
+  const subcontractByProject = new Map<
+    string,
+    Awaited<ReturnType<typeof sumSubcontractRemainingCommitmentForProject>>
+  >();
+  if (canReadProcurement && canReadAp) {
+    for (const projectId of projectIds) {
+      subcontractByProject.set(
+        projectId,
+        await sumSubcontractRemainingCommitmentForProject(
+          context.db,
+          context.organizationId,
+          projectId,
+          currency,
+        ),
+      );
+    }
+  }
+
   const expensesByProject = new Map<string, ProjectExpenseContribution[]>();
-  for (const line of expenseContributions) {
-    if (!line.projectId) continue;
-    const list = expensesByProject.get(line.projectId) ?? [];
-    list.push(line);
-    expensesByProject.set(line.projectId, list);
+  if (expenseContributions) {
+    for (const line of expenseContributions) {
+      if (!line.projectId) continue;
+      const list = expensesByProject.get(line.projectId) ?? [];
+      list.push(line);
+      expensesByProject.set(line.projectId, list);
+    }
   }
 
   for (const projectId of projectIds) {
@@ -151,7 +175,7 @@ export async function loadProjectFinancialsBatch(
     });
 
     let laborInput = null;
-    if (hasWorkforce) {
+    if (canReadWorkforce && hasWorkforce) {
       laborInput = {
         laborCost: mergeResidualTimeAndMonthlyAllocatedLabor({
           residualTimeLabor,
@@ -163,27 +187,62 @@ export async function loadProjectFinancialsBatch(
       };
     }
 
-    result.set(
+    const poCommitted = canReadProcurement ? (committedByProject.get(projectId) ?? null) : null;
+    const subcontractCommitted = canReadProcurement
+      ? (subcontractByProject.get(projectId) ?? null)
+      : null;
+    const mergedCommitted =
+      poCommitted || subcontractCommitted
+        ? {
+            total: mergeProjectRemainingCommitments({
+              currency: projectCurrency,
+              poCommitted: poCommitted?.total ?? zeroMoney(projectCurrency),
+              subcontractRemaining: subcontractCommitted?.total ?? zeroMoney(projectCurrency),
+            }),
+            excludedForeignCurrencyCount:
+              (poCommitted?.excludedForeignCurrencyCount ?? 0) +
+              (subcontractCommitted?.excludedForeignCurrencyCount ?? 0),
+          }
+        : null;
+
+    const projectSliceAvailability = buildSliceAvailability({
+      canReadCommercial,
+      canReadBilling,
+      canReadExpenses,
+      canReadWorkforce,
+      canReadProcurement,
+      canReadAp,
+      laborLoaded: laborInput?.hasWorkforceData === true,
+    });
+
+    const composed = composeProjectFinancials({
       projectId,
-      composeProjectFinancials({
-        projectId,
-        currency: projectCurrency,
-        expectedRemainingCostAmount: meta?.expectedRemainingCostAmount ?? null,
-        workKind: meta?.workKind ?? 'project',
-        pricingMode: meta?.pricingMode ?? null,
-        canReadCommercial,
-        canReadBilling,
-        canReadProfit,
-        commercialData: commercialByProject.get(projectId) ?? null,
-        billingRows: billingByProject.get(projectId) ?? null,
-        expenseContributions: expensesByProject.get(projectId) ?? [],
-        laborInput,
-        committed: committedByProject.get(projectId) ?? null,
-        openAp: apByProject.get(projectId) ?? null,
-        recognizedVendor: recognizedByProject.get(projectId) ?? null,
-        monthCloseEconomic: monthCloseByProject.get(projectId),
-      }),
-    );
+      currency: projectCurrency,
+      expectedRemainingCostAmount: meta?.expectedRemainingCostAmount ?? null,
+      workKind: meta?.workKind ?? 'project',
+      pricingMode: meta?.pricingMode ?? null,
+      canReadCommercial,
+      canReadBilling,
+      canReadProfit,
+      canReadExpenses,
+      canReadWorkforce,
+      canReadProcurement,
+      canReadAp,
+      commercialData: commercialByProject.get(projectId) ?? null,
+      billingRows: billingByProject.get(projectId) ?? null,
+      expenseContributions: canReadExpenses ? (expensesByProject.get(projectId) ?? []) : null,
+      laborInput,
+      committed: mergedCommitted,
+      openAp: canReadAp ? (apByProject.get(projectId) ?? null) : null,
+      recognizedVendor: canReadAp ? (recognizedByProject.get(projectId) ?? null) : null,
+      monthCloseEconomic: monthCloseByProject.get(projectId),
+      sliceAvailability: projectSliceAvailability,
+    });
+
+    result.set(projectId, {
+      ...composed,
+      kpiAvailability: resolveProjectFinancialKpiAvailability(composed),
+    });
   }
 
   return result;

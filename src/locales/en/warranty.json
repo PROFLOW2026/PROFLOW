@@ -2,6 +2,10 @@
   "title": "Warranty",
   "navLabel": "Warranty",
   "description": "Post-completion coverage and warranty calls. A closed project stays closed.",
+  "notAllowed": {
+    "title": "No access",
+    "body": "You need project read permission to view warranty coverages."
+  },
   "list": {
     "empty": "No warranty coverages yet.",
     "new": "Add coverage",

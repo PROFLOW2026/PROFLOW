@@ -18,6 +18,9 @@ import {
 } from '@/components/ui/select';
 import { addMoney, money, multiplyMoney, toNumericString, zeroMoney } from '@/shared/money/money';
 import { RetentionCaptureFields } from '@/modules/retention/ui/retention-capture-fields';
+import type { ExpenseOverlapCandidate } from '@/modules/financials/domain/expense-ap-overlap';
+import { findSimilarFinalizedExpensesForBill } from '@/modules/financials/domain/expense-ap-overlap';
+import { ExpenseApOverlapWarning } from '@/modules/financials/ui/expense-ap-overlap-warning';
 import { createApBillAction, type ApFormState } from '../actions';
 
 const NONE = '__none__';
@@ -63,6 +66,7 @@ export function ApBillCreateForm({
   poLinesByPoId,
   paymentTerms,
   defaultPurchaseOrderId = '',
+  expenseOverlapCandidates = [],
 }: {
   defaultCurrency: string;
   vendors: readonly { id: string; name: string; defaultPaymentTermId: string | null }[];
@@ -74,6 +78,7 @@ export function ApBillCreateForm({
   >;
   paymentTerms: readonly { id: string; name: string }[];
   defaultPurchaseOrderId?: string;
+  expenseOverlapCandidates?: readonly ExpenseOverlapCandidate[];
 }) {
   const t = useTranslations('ap.create');
   const tCommon = useTranslations('common');
@@ -130,9 +135,29 @@ export function ApBillCreateForm({
     [currency, lines],
   );
 
+  const overlapHits = useMemo(() => {
+    if (!vendorId || Number(totalAmount) <= 0) return [];
+    return findSimilarFinalizedExpensesForBill(
+      {
+        vendorId,
+        projectId: projectId && projectId !== NONE ? projectId : null,
+        totalAmount,
+        currency,
+      },
+      expenseOverlapCandidates,
+    ).map((expense) => ({
+      id: expense.id,
+      label: expense.description?.trim() || expense.id.slice(0, 8),
+      amount: expense.netAmount,
+      currency: expense.currency,
+      href: `/expenses/${expense.id}`,
+    }));
+  }, [currency, expenseOverlapCandidates, projectId, totalAmount, vendorId]);
+
   return (
     <form action={formAction} className="flex w-full min-w-0 max-w-2xl flex-col gap-4">
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
+      <ExpenseApOverlapWarning hits={overlapHits} namespace="ap.create" />
 
       <input type="hidden" name="currency" value={currency} />
       <input type="hidden" name="totalAmount" value={totalAmount} />

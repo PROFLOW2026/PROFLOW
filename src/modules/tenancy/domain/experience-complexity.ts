@@ -98,6 +98,76 @@ export function filterModulesByComplexity(
  * Never turns on modules the org has explicitly disabled.
  * Never enables portal.
  */
+/**
+ * Shell destinations that stay visible when experience depth is Simple.
+ * Permission-only chrome (imports, month close, vendor bills, etc.) is hidden.
+ */
+export const SIMPLE_SHELL_NAV_KEYS = new Set([
+  'dashboard',
+  'today',
+  'projects',
+  'jobs',
+  'expenses',
+  'clients',
+  'quotes',
+  'contracts',
+  'crm',
+  'billing',
+  'documents',
+  'workforce',
+  'time',
+  'changes',
+  'vendors',
+  'procurement',
+  'procurementRfqs',
+  'subcontracts',
+  'materials',
+  'fieldOps',
+  'fieldHome',
+  'workOrders',
+  'dispatch',
+  'serviceRecurring',
+  'forms',
+  'safety',
+  'reports',
+  'settings',
+]);
+
+/** Nav keys gated by permission only (no optional module toggle). */
+export const PERMISSION_ONLY_NAV_KEYS = new Set([
+  'recurringDrafts',
+  'vendorBills',
+  'imports',
+  'monthClose',
+  'overhead',
+  'cashFlow',
+  'scheduling',
+  'calendar',
+  'approvals',
+  'compliance',
+  'assets',
+  'warranty',
+  'communications',
+  'assistant',
+  'automations',
+]);
+
+/**
+ * When complexity is simple, hide permission-only overflow unless explicitly allowlisted.
+ * Full/advanced leave the catalog unchanged.
+ */
+export function filterNavKeysByComplexity(
+  navKeys: readonly string[],
+  complexity: ExperienceComplexityKey,
+): readonly string[] {
+  if (complexity !== 'simple') return navKeys;
+  return navKeys.filter((key) => {
+    if (SIMPLE_SHELL_NAV_KEYS.has(key)) return true;
+    if (PERMISSION_ONLY_NAV_KEYS.has(key)) return false;
+    return true;
+  });
+}
+
 export function applyComplexityToVisibility(
   modules: ModuleVisibility | Record<string, boolean>,
   recommended: readonly OptionalModuleKey[],

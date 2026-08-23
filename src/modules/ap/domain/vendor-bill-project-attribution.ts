@@ -12,6 +12,16 @@
  * Payments never enter this path. Tests may override.
  */
 
+import {
+  divideMoney,
+  isZeroMoney,
+  money,
+  multiplyMoney,
+  roundMoney,
+  zeroMoney,
+  type MoneyValue,
+} from '@/shared/money';
+
 /** Post-0021: bill project allocations live in financial attribution. */
 export const AP_BILL_PROJECT_ALLOCATIONS_READY = true as boolean;
 
@@ -86,4 +96,28 @@ export function resolveVendorBillProjectAmounts(input: {
   }
 
   return { amounts, billIds };
+}
+
+/**
+ * Attribute bill cash outstanding to one project slice (allocation-aware).
+ * Outstanding is scaled by slice / bill net — payments never enter this path.
+ */
+export function scaleBillOutstandingToProjectSlice(input: {
+  readonly currency: string;
+  readonly billNetAmount: string;
+  readonly sliceAmount: string;
+  readonly billOutstanding: MoneyValue;
+}): MoneyValue {
+  const currency = input.currency.toUpperCase();
+  const outstanding = input.billOutstanding;
+  if (outstanding.currency.toUpperCase() !== currency) {
+    return zeroMoney(currency);
+  }
+  const billNet = money(input.billNetAmount, currency);
+  const slice = money(input.sliceAmount, currency);
+  if (isZeroMoney(outstanding) || isZeroMoney(billNet) || isZeroMoney(slice)) {
+    return zeroMoney(currency);
+  }
+  const ratio = divideMoney(slice, billNet.amount);
+  return roundMoney(multiplyMoney(outstanding, ratio.amount));
 }

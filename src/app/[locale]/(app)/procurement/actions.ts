@@ -19,7 +19,7 @@ import {
   updateRfqStatus,
 } from '@/modules/procurement';
 import { withOrgContext } from '@/shared/auth/session';
-import { AppError, DomainRuleError, ValidationError } from '@/shared/errors';
+import { mapServerActionError } from '@/shared/errors';
 import { redirect } from '@/shared/i18n/navigation';
 
 export interface ProcurementFormState {
@@ -39,28 +39,15 @@ function requiredFormValue(formData: FormData, key: string): string {
   return formValue(formData, key) ?? '';
 }
 
-function mapValidationError(error: ValidationError): ProcurementFormState {
-  const fieldErrors: Record<string, string> = {};
-  for (const issue of error.issues) {
-    if (issue.path) fieldErrors[issue.path] = issue.message;
-  }
-  return { error: error.message, fieldErrors };
-}
-
 async function mapAppError(error: unknown): Promise<ProcurementFormState> {
   const tErrors = await getTranslations('errors');
   const tProcurement = await getTranslations('procurement');
-  if (error instanceof ValidationError) return mapValidationError(error);
-  if (error instanceof DomainRuleError) {
-    const key = error.messageKey.replace(/^procurement\./, '');
-    try {
-      return { error: tProcurement(key as 'errors.notDraft') };
-    } catch {
-      return { error: error.message };
-    }
-  }
-  if (error instanceof AppError) return { error: tErrors('unexpected') };
-  throw error;
+  return mapServerActionError(error, {
+    tErrors: (key) => tErrors(key as 'unexpected'),
+    namespaces: {
+      procurement: (key) => tProcurement(key as 'errors.notDraft'),
+    },
+  });
 }
 
 function parseLines(formData: FormData) {

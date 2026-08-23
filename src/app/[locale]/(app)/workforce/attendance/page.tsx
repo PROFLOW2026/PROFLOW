@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
+import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/ui/page-header';
 import {
@@ -136,6 +137,8 @@ export default async function AttendancePage({
       />
 
       <WorkforceSubNav active="attendance" />
+
+      <Alert tone="info">{t('attendance.scopeDisclaimer')}</Alert>
 
       <div className="flex flex-col gap-6">
         {data.allowManage ? (

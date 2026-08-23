@@ -128,7 +128,7 @@ export async function updateProjectTeamAssignmentAction(
       return { error: tWorkforce('errors.duplicateTeamMember') };
     }
     if (error instanceof ValidationError) {
-      return { error: error.message };
+      return { error: tErrors('validationFailed') };
     }
     if (error instanceof AppError) {
       return { error: tErrors('unexpected') };

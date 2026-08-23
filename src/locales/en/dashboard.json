@@ -53,6 +53,7 @@
     "kpiUnavailable": "Cannot calculate",
     "kpiUnavailableContractHint": "No contract or price basis yet for open-price work.",
     "kpiUnavailableProfitHint": "Profit and margin need a revenue basis — not shown as zero.",
+    "kpiUnavailableCostHint": "Cost is incomplete or permission-limited — not shown as zero.",
     "affected": {
       "actual_cost": "Actual cost",
       "forecast_cost": "Cost forecast",

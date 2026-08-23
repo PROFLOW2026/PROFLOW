@@ -53,6 +53,7 @@
     "kpiUnavailable": "לא ניתן לחשב",
     "kpiUnavailableContractHint": "טרם הוגדר בסיס חוזה או מחיר לעבודות במחיר פתוח.",
     "kpiUnavailableProfitHint": "רווח ומרווח דורשים בסיס הכנסה (חוזה/מחיר). לא מוצגים כאפס.",
+    "kpiUnavailableCostHint": "העלות חלקית או מוגבלת בהרשאות, ולא מוצגת כאפס.",
     "affected": {
       "actual_cost": "עלות בפועל",
       "forecast_cost": "תחזית עלות",

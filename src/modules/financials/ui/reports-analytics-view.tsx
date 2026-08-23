@@ -202,41 +202,57 @@ export async function ReportsAnalyticsView({
             </p>
           </div>
           <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            <MoneyReportMetricTile
-              metric={analytics.cost.actual}
-              copy={moneyCopy(analytics.cost.actual, tFinancial('actualCostToDate'), 'netExVat')}
-            />
-            <MoneyReportMetricTile
-              metric={analytics.cost.labor}
-              copy={moneyCopy(analytics.cost.labor, tFinancial('laborActual'))}
-            />
-            <MoneyReportMetricTile
-              metric={analytics.cost.vendors}
-              copy={moneyCopy(analytics.cost.vendors, tFinancial('vendorActual'))}
-            />
-            <MoneyReportMetricTile
-              metric={analytics.cost.overhead}
-              copy={moneyCopy(analytics.cost.overhead, tFinancial('kpis.allocatedOverhead'))}
-            />
-            <MoneyReportMetricTile
-              metric={analytics.cost.committed}
-              copy={moneyCopy(analytics.cost.committed, tFinancial('committedOpen'))}
-            />
-            <MoneyReportMetricTile
-              metric={analytics.cost.expectedRemaining}
-              copy={moneyCopy(
-                analytics.cost.expectedRemaining,
-                tFinancial('kpis.expectedRemaining'),
-              )}
-            />
-            <MoneyReportMetricTile
-              metric={analytics.cost.openAp}
-              copy={moneyCopy(analytics.cost.openAp, tFinancial('openApPayable'))}
-            />
-            <MoneyReportMetricTile
-              metric={analytics.cost.estimatedFinal}
-              copy={moneyCopy(analytics.cost.estimatedFinal, tFinancial('estimatedFinalCost'))}
-            />
+            {analytics.cost.actual ? (
+              <MoneyReportMetricTile
+                metric={analytics.cost.actual}
+                copy={moneyCopy(analytics.cost.actual, tFinancial('actualCostToDate'), 'netExVat')}
+              />
+            ) : null}
+            {analytics.cost.labor ? (
+              <MoneyReportMetricTile
+                metric={analytics.cost.labor}
+                copy={moneyCopy(analytics.cost.labor, tFinancial('laborActual'))}
+              />
+            ) : null}
+            {analytics.cost.vendors ? (
+              <MoneyReportMetricTile
+                metric={analytics.cost.vendors}
+                copy={moneyCopy(analytics.cost.vendors, tFinancial('vendorActual'))}
+              />
+            ) : null}
+            {analytics.cost.overhead ? (
+              <MoneyReportMetricTile
+                metric={analytics.cost.overhead}
+                copy={moneyCopy(analytics.cost.overhead, tFinancial('kpis.allocatedOverhead'))}
+              />
+            ) : null}
+            {analytics.cost.committed ? (
+              <MoneyReportMetricTile
+                metric={analytics.cost.committed}
+                copy={moneyCopy(analytics.cost.committed, tFinancial('committedOpen'))}
+              />
+            ) : null}
+            {analytics.cost.expectedRemaining ? (
+              <MoneyReportMetricTile
+                metric={analytics.cost.expectedRemaining}
+                copy={moneyCopy(
+                  analytics.cost.expectedRemaining,
+                  tFinancial('kpis.expectedRemaining'),
+                )}
+              />
+            ) : null}
+            {analytics.cost.openAp ? (
+              <MoneyReportMetricTile
+                metric={analytics.cost.openAp}
+                copy={moneyCopy(analytics.cost.openAp, tFinancial('openApPayable'))}
+              />
+            ) : null}
+            {analytics.cost.estimatedFinal ? (
+              <MoneyReportMetricTile
+                metric={analytics.cost.estimatedFinal}
+                copy={moneyCopy(analytics.cost.estimatedFinal, tFinancial('estimatedFinalCost'))}
+              />
+            ) : null}
             {analytics.cost.unallocatedBusinessCosts ? (
               <MoneyReportMetricTile
                 metric={analytics.cost.unallocatedBusinessCosts}
@@ -263,24 +279,28 @@ export async function ReportsAnalyticsView({
             </p>
           </div>
           <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            <MoneyReportMetricTile
-              metric={analytics.profitability.actualProfit}
-              copy={moneyCopy(
-                analytics.profitability.actualProfit,
-                tFinancial('kpis.actualMargin'),
-                'profitNet',
-              )}
-              colorizeNegative
-            />
-            <MoneyReportMetricTile
-              metric={analytics.profitability.estimatedProfit}
-              copy={moneyCopy(
-                analytics.profitability.estimatedProfit,
-                tFinancial('kpis.forecastMargin'),
-                'profitNet',
-              )}
-              colorizeNegative
-            />
+            {analytics.profitability.actualProfit ? (
+              <MoneyReportMetricTile
+                metric={analytics.profitability.actualProfit}
+                copy={moneyCopy(
+                  analytics.profitability.actualProfit,
+                  tFinancial('kpis.actualMargin'),
+                  'profitNet',
+                )}
+                colorizeNegative
+              />
+            ) : null}
+            {analytics.profitability.estimatedProfit ? (
+              <MoneyReportMetricTile
+                metric={analytics.profitability.estimatedProfit}
+                copy={moneyCopy(
+                  analytics.profitability.estimatedProfit,
+                  tFinancial('kpis.forecastMargin'),
+                  'profitNet',
+                )}
+                colorizeNegative
+              />
+            ) : null}
             {rollup.ops.profitableCount != null ? (
               <div className="min-w-0 max-w-full rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-3 text-start">
                 <p className="break-words text-xs text-[var(--pf-text-secondary)]">

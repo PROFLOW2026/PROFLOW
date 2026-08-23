@@ -2,6 +2,7 @@ import { screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { ProjectFinancialsSnapshotView } from '@/modules/financials/ui/project-financials-snapshot-view';
 import { buildFinancialCoverage } from '@/modules/financials/domain/coverage';
+import { buildSliceAvailability } from '@/modules/financials/domain/financial-slice-availability';
 import type { ProjectFinancials } from '@/modules/financials/domain/types';
 import { zeroMoney } from '@/shared/money';
 import { renderWithIntl } from './test-utils';
@@ -23,7 +24,14 @@ function buildFinancials(): ProjectFinancials {
       currentContractValue: { amount: '100000.000000', currency },
       pendingChanges: zero,
     },
-    billing: { invoiced: zero, paid: zero, outstanding: zero, monthCloseRevenueNet: zero },
+    billing: {
+      invoiced: zero,
+      netInvoiced: zero,
+      paid: zero,
+      outstanding: zero,
+      hasBillingData: false,
+      monthCloseRevenueNet: zero,
+    },
     cost: {
       actualCostToDate: { amount: '25000.000000', currency },
       estimatedFinalCost: { amount: '25000.000000', currency },
@@ -52,6 +60,15 @@ function buildFinancials(): ProjectFinancials {
       new Date('2026-01-01'),
       [{ reason: 'foreign_currency_expenses_excluded', count: 1 }],
     ),
+    sliceAvailability: buildSliceAvailability({
+      canReadCommercial: true,
+      canReadBilling: true,
+      canReadExpenses: true,
+      canReadWorkforce: true,
+      canReadProcurement: true,
+      canReadAp: true,
+      laborLoaded: false,
+    }),
     dataConfidence: {
       level: 'medium',
       reasons: ['foreign_currency_excluded'],
@@ -65,9 +82,12 @@ describe('ProjectFinancialsSnapshotView', () => {
       'kpis.currentContract': 'Current Contract',
       'kpis.actualCost': 'Actual Cost',
       'kpis.allocatedOverhead': 'Allocated Overhead',
+      'kpis.forecast': 'Cost forecast',
+      'kpis.billingNotSetup': 'No billing records yet',
       'kpis.committed': 'Committed',
       'kpis.actualMargin': 'Actual Margin',
       'kpis.forecastMargin': 'Forecast Margin',
+      'kpis.unavailable': 'Cannot calculate',
       actualCostToDate: 'Actual cost to date',
       estimatedProfit: 'Estimated profit',
       'confidence.title': 'Data confidence',
@@ -87,11 +107,12 @@ describe('ProjectFinancialsSnapshotView', () => {
 
     expect(screen.getByText('Current Contract')).toBeInTheDocument();
     expect(screen.getByText('Actual Cost')).toBeInTheDocument();
-    expect(screen.getByText('Allocated Overhead')).toBeInTheDocument();
+    expect(screen.getByText('Cost forecast')).toBeInTheDocument();
     expect(screen.getByText('Committed')).toBeInTheDocument();
+    expect(screen.getByText('No billing records yet')).toBeInTheDocument();
     expect(screen.getByText('Actual Margin')).toBeInTheDocument();
     expect(screen.getByText('Forecast Margin')).toBeInTheDocument();
-    expect(screen.getByText(/25,000/)).toBeInTheDocument();
+    expect(screen.getAllByText(/25,000/).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/75,000/).length).toBeGreaterThan(0);
     expect(screen.queryByText('-')).not.toBeInTheDocument();
   });

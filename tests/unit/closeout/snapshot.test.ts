@@ -1,7 +1,18 @@
 import { describe, expect, it } from 'vitest';
 import { money, zeroMoney } from '@/shared/money';
 import type { ProjectFinancials } from '@/modules/financials/domain/types';
+import { buildSliceAvailability } from '@/modules/financials/domain/financial-slice-availability';
 import { buildCloseoutFinancialSnapshot } from '@/modules/closeout';
+
+const allSlicesLoaded = buildSliceAvailability({
+  canReadCommercial: true,
+  canReadBilling: true,
+  canReadExpenses: true,
+  canReadWorkforce: true,
+  canReadProcurement: true,
+  canReadAp: true,
+  laborLoaded: true,
+});
 
 function financials(overrides: Partial<ProjectFinancials> = {}): ProjectFinancials {
   const currency = 'ILS';
@@ -22,6 +33,8 @@ function financials(overrides: Partial<ProjectFinancials> = {}): ProjectFinancia
       invoiced: money('20000', currency),
       paid: money('8000', currency),
       outstanding: money('12000', currency),
+      netInvoiced: money('20000', currency),
+      hasBillingData: true,
       monthCloseRevenueNet: zeroMoney(currency),
     },
     cost: {
@@ -52,6 +65,7 @@ function financials(overrides: Partial<ProjectFinancials> = {}): ProjectFinancia
       entries: [],
       calculatedAt: new Date('2026-08-16T00:00:00Z'),
     },
+    sliceAvailability: allSlicesLoaded,
     dataConfidence: { level: 'high', reasons: [] },
     ...overrides,
   };

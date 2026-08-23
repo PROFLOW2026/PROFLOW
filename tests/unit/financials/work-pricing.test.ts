@@ -23,10 +23,10 @@ describe('work-pricing revenue basis', () => {
     expect(hasRevenueBasisForProfitability('job', 'fixed')).toBe(true);
   });
 
-  it('does not gate classic projects solely by missing contract', () => {
+  it('gates classic projects without managed contract (R-004)', () => {
     expect(
       hasRevenueBasisForProfitability('project', null, { hasManagedContract: false }),
-    ).toBe(true);
+    ).toBe(false);
     expect(hasRevenueBasisForProfitability('project', null)).toBe(true);
   });
 });

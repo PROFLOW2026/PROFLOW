@@ -88,16 +88,16 @@ describe('aggregateOrgReport invariants', () => {
     const cost = aggregateOrgCost(rows, ILS, {
       unallocatedBusinessCosts: money('250', ILS),
     });
-    expect(cost.actual.value).toEqual(money('800', ILS));
-    expect(cost.committed.value).toEqual(money('300', ILS));
-    expect(cost.expectedRemaining.value).toEqual(money('50', ILS));
-    expect(cost.openAp.value).toEqual(money('100', ILS));
-    expect(cost.estimatedFinal.value).toEqual(money('1150', ILS));
+    expect(cost.actual?.value).toEqual(money('800', ILS));
+    expect(cost.committed?.value).toEqual(money('300', ILS));
+    expect(cost.expectedRemaining?.value).toEqual(money('50', ILS));
+    expect(cost.openAp?.value).toEqual(money('100', ILS));
+    expect(cost.estimatedFinal?.value).toEqual(money('1150', ILS));
     expect(cost.unallocatedBusinessCosts?.value).toEqual(money('250', ILS));
-    expect(cost.actual.exclusions).toEqual(
+    expect(cost.actual?.exclusions).toEqual(
       expect.arrayContaining(['committedPo', 'openAp', 'unallocatedBusinessCosts']),
     );
-    expect(cost.estimatedFinal.exclusions).toContain('unallocatedBusinessCosts');
+    expect(cost.estimatedFinal?.exclusions).toContain('unallocatedBusinessCosts');
   });
 
   it('labels cash invoiced/paid as actual and skips foreign currency rows', () => {
@@ -139,13 +139,13 @@ describe('aggregateOrgReport invariants', () => {
       }),
     ];
     const profit = aggregateOrgProfit(rows, ILS);
-    expect(profit.estimatedProfit.kind).toBe('estimate');
-    expect(profit.actualProfit.kind).toBe('actual');
-    expect(profit.estimatedProfit.value).toEqual(money('350', ILS));
-    expect(profit.actualProfit.value).toEqual(money('500', ILS));
-    expect(profit.estimatedProfit.exclusions).toContain('vatNotProfit');
-    expect(profit.estimatedProfit.exclusions).toContain('unallocatedBusinessCosts');
-    expect(profit.actualProfit.exclusions).toContain('unallocatedBusinessCosts');
+    expect(profit.estimatedProfit?.kind).toBe('estimate');
+    expect(profit.actualProfit?.kind).toBe('actual');
+    expect(profit.estimatedProfit?.value).toEqual(money('350', ILS));
+    expect(profit.actualProfit?.value).toEqual(money('500', ILS));
+    expect(profit.estimatedProfit?.exclusions).toContain('vatNotProfit');
+    expect(profit.estimatedProfit?.exclusions).toContain('unallocatedBusinessCosts');
+    expect(profit.actualProfit?.exclusions).toContain('unallocatedBusinessCosts');
     expect(profit.sampleMarginPercent).toBe('30.43');
     expect(profit.sampleActualMarginPercent).toBe('43.48');
   });
@@ -163,10 +163,30 @@ describe('aggregateOrgReport invariants', () => {
       }),
     ];
     const profit = aggregateOrgProfit(rows, ILS);
-    expect(profit.estimatedProfit.value).toEqual(zeroMoney(ILS));
-    expect(profit.actualProfit.value).toEqual(zeroMoney(ILS));
+    expect(profit.estimatedProfit).toBeNull();
+    expect(profit.actualProfit).toBeNull();
     expect(profit.sampleMarginPercent).toBeNull();
     expect(profit.sampleActualMarginPercent).toBeNull();
+  });
+
+  it('does not invent zero Actual when every rollup row withheld cost (N-002)', () => {
+    const rows = [
+      row({
+        projectId: 'a',
+        name: 'A',
+        actualCost: null,
+        laborActual: null,
+        vendorActual: null,
+        overheadActual: null,
+        estimatedFinalCost: null,
+        committedOpen: money('100', ILS),
+      }),
+    ];
+    const cost = aggregateOrgCost(rows, ILS);
+    expect(cost.actual).toBeNull();
+    expect(cost.labor).toBeNull();
+    expect(cost.estimatedFinal).toBeNull();
+    expect(cost.committed?.value).toEqual(money('100', ILS));
   });
 
   it('aggregates forecast fields correctly across 120 projects (no 50-cap)', () => {
@@ -193,20 +213,20 @@ describe('aggregateOrgReport invariants', () => {
 
     expect(rows).toHaveLength(120);
     expect(commercial.current.value).toEqual(money('120000', ILS));
-    expect(cost.actual.value).toEqual(money('48000', ILS));
-    expect(cost.overhead.value).toEqual(money('6000', ILS));
-    expect(cost.committed.value).toEqual(money('12000', ILS));
-    expect(cost.expectedRemaining.value).toEqual(money('3000', ILS));
-    expect(cost.estimatedFinal.value).toEqual(money('63000', ILS));
+    expect(cost.actual?.value).toEqual(money('48000', ILS));
+    expect(cost.overhead?.value).toEqual(money('6000', ILS));
+    expect(cost.committed?.value).toEqual(money('12000', ILS));
+    expect(cost.expectedRemaining?.value).toEqual(money('3000', ILS));
+    expect(cost.estimatedFinal?.value).toEqual(money('63000', ILS));
     expect(cost.unallocatedBusinessCosts?.value).toEqual(money('9000', ILS));
-    expect(profit.actualProfit.value).toEqual(money('72000', ILS));
-    expect(profit.estimatedProfit.value).toEqual(money('57000', ILS));
+    expect(profit.actualProfit?.value).toEqual(money('72000', ILS));
+    expect(profit.estimatedProfit?.value).toEqual(money('57000', ILS));
 
     // Unallocated must not inflate project Actual or Forecast Final.
-    expect(cost.actual.value).not.toEqual(
+    expect(cost.actual?.value).not.toEqual(
       money(String(48000 + 9000), ILS),
     );
-    expect(cost.estimatedFinal.value).not.toEqual(
+    expect(cost.estimatedFinal?.value).not.toEqual(
       money(String(63000 + 9000), ILS),
     );
   });

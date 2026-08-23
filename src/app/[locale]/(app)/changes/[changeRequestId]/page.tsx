@@ -21,6 +21,7 @@ import {
   reverseChangeOrderAction,
   submitForApprovalAction,
 } from '../actions';
+import { ChangeOrderBillingHandoff } from '@/modules/commercial/ui/change-order-billing-handoff';
 import { ChangeActionButtons } from './change-action-buttons';
 
 const QUOTE_VERSION_SHAPES: Record<QuoteVersionStatus, StatusShape> = {
@@ -94,6 +95,7 @@ export default async function ChangeDetailPage({
 
   const canManage = shell?.permissions.has(PERMISSIONS.CHANGES_MANAGE) ?? false;
   const canApprove = shell?.permissions.has(PERMISSIONS.CHANGES_APPROVE) ?? false;
+  const canManageBilling = shell?.permissions.has(PERMISSIONS.BILLING_MANAGE) ?? false;
 
   const raw = selectedVersion?.totalAmount ?? detail.requestedAmount;
   const magnitude = raw ? fromNumericString(raw, detail.currency) : null;
@@ -161,10 +163,31 @@ export default async function ChangeDetailPage({
         </section>
       ) : null}
 
+      {detail.status === 'approved' && detail.changeOrder ? (
+        <ChangeOrderBillingHandoff
+          projectId={detail.projectId}
+          changeOrderId={detail.changeOrder.id}
+          canManageBilling={canManageBilling}
+        />
+      ) : null}
+
       {detail.changeOrder ? (
         <section className="flex min-w-0 flex-col gap-3 rounded-lg border border-[var(--pf-border-default)] p-4">
-          <h2 className="text-base font-semibold">{t('detail.changeOrderTitle')}</h2>
+          <div className="flex flex-wrap items-center gap-2">
+            <h2 className="text-base font-semibold">{t('detail.changeOrderTitle')}</h2>
+            {detail.changeOrder.reversalOfChangeOrderId ? (
+              <StatusBadge shape="pending" label={t('changeOrder.reversalBadge')} />
+            ) : detail.reversingChangeOrder ? (
+              <StatusBadge
+                shape="archived"
+                label={t('changeOrder.reversedBadge')}
+              />
+            ) : null}
+          </div>
           <p className="text-sm text-[var(--pf-text-secondary)]">{detail.changeOrder.reference}</p>
+          {detail.changeOrder.reversalOfChangeOrderId || detail.reversingChangeOrder ? (
+            <p className="text-sm text-[var(--pf-text-secondary)]">{t('changeOrder.reversalNote')}</p>
+          ) : null}
           <ReverseChangeOrderForm
             changeOrder={detail.changeOrder}
             reversingChangeOrder={detail.reversingChangeOrder}

@@ -1,12 +1,9 @@
-import type { ProjectFinancials } from '@/modules/financials/domain/types';
 import type { OrgContext } from '@/shared/auth/context';
 import { NotFoundError } from '@/shared/errors';
 import { hasPermission, assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { getProjectLaborCost } from '@/modules/workforce/application/project-labor-cost';
-import {
-  loadProjectBillingRows,
-} from '../data/billing.repository';
+import { loadProjectBillingRows } from '../data/billing.repository';
 import { loadProjectCommercialData } from '../data/commercial.repository';
 import {
   loadRecognizedVendorBillsForProject,
@@ -15,11 +12,17 @@ import {
 } from '../data/committed-costs.repository';
 import { loadProjectExpenseContributions } from '../data/expenses.repository';
 import { loadMonthCloseEconomicForProject } from '../data/month-close-economic.repository';
+import { loadProjectIncompletenessCounts } from '../data/incompleteness.repository';
+import {
+  buildSliceAvailability,
+  resolveProjectKpiAvailability,
+} from '../domain/slice-availability';
 import {
   assertProjectInOrg,
   findProjectForecastInputs,
 } from '../data/projects.repository';
 import { composeProjectFinancials } from './compose-project-financials';
+import type { ProjectFinancials } from '@/modules/financials/domain/types';
 
 export async function getProjectFinancials(
   context: OrgContext,
@@ -46,8 +49,7 @@ export async function getProjectFinancials(
   const canReadExpenses = hasPermission(context, PERMISSIONS.EXPENSES_READ);
   const canReadWorkforce = hasPermission(context, PERMISSIONS.WORKFORCE_READ);
 
-  // Sequential on purpose: this runs inside a single-connection transaction
-  // (PGlite in tests, one pooled client in production). Promise.all deadlocks.
+  // Sequential on purpose: single-connection transaction (PGlite / pooled client).
   const commercialData = canReadCommercial
     ? await loadProjectCommercialData(context.db, context.organizationId, projectId)
     : null;
@@ -56,7 +58,7 @@ export async function getProjectFinancials(
     : null;
   const expenseContributions = canReadExpenses
     ? await loadProjectExpenseContributions(context.db, context.organizationId, projectId)
-    : [];
+    : null;
   const laborResult = canReadWorkforce
     ? await getProjectLaborCost(context, projectId)
         .then(
@@ -103,8 +105,23 @@ export async function getProjectFinancials(
     projectId,
     currency,
   );
+  const incompleteness = await loadProjectIncompletenessCounts(
+    context.db,
+    context.organizationId,
+    projectId,
+  );
 
-  return composeProjectFinancials({
+  const sliceAvailabilityFinal = buildSliceAvailability({
+    canReadCommercial,
+    canReadBilling,
+    canReadExpenses,
+    canReadWorkforce,
+    canReadProcurement,
+    canReadAp,
+    laborLoaded: laborResult.ok && laborResult.laborInput?.hasWorkforceData === true,
+  });
+
+  const composed = composeProjectFinancials({
     projectId,
     currency,
     expectedRemainingCostAmount: forecastInputs.expectedRemainingCostAmount,
@@ -113,6 +130,10 @@ export async function getProjectFinancials(
     canReadCommercial,
     canReadBilling,
     canReadProfit,
+    canReadExpenses,
+    canReadWorkforce,
+    canReadProcurement,
+    canReadAp,
     commercialData,
     billingRows,
     expenseContributions,
@@ -121,5 +142,12 @@ export async function getProjectFinancials(
     openAp: apResult,
     recognizedVendor: recognizedVendorResult,
     monthCloseEconomic,
+    incompleteness,
+    sliceAvailability: sliceAvailabilityFinal,
   });
+
+  return {
+    ...composed,
+    kpiAvailability: resolveProjectKpiAvailability(composed),
+  };
 }

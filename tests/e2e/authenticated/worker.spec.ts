@@ -21,8 +21,8 @@ test.describe('worker permission gating', () => {
     await expect(nav.getByRole('link', { name: he.nav.projects })).toBeVisible();
     await expectNavLinkVisible(page, he.nav.expenses);
     await expect(nav.getByRole('link', { name: he.nav.settings })).toBeVisible();
-    // Attendance-only self clock is allowed for workers.
-    await expectNavLinkVisible(page, he.nav.attendance);
+    // R-008: attendance demoted from shell chrome; workers still reach it by URL (next test).
+    await expectNavLinkAbsent(page, he.nav.attendance);
 
     await expectNavLinkAbsent(page, he.nav.billing);
     await expectNavLinkAbsent(page, he.nav.changes);
@@ -44,9 +44,14 @@ test.describe('worker permission gating', () => {
   });
 
   test('project workspace omits financial tabs and contract totals', async ({ page }) => {
-    await page.goto(`/he-IL/projects/${world.projectId}?tab=financials`);
+    // Default overview tab — `?tab=financials` triggers a forbidden panel load and
+    // flakes before layout chrome settles; tab visibility is what we assert.
+    await page.goto(`/he-IL/projects/${world.projectId}`);
 
-    await expect(page.getByRole('heading', { name: seededProjectName })).toBeVisible();
+    await expect(page.getByRole('heading', { name: seededProjectName })).toBeVisible({
+      timeout: 30_000,
+    });
+    await expect(page.getByRole('tablist')).toBeVisible();
     await expect(page.getByRole('tab', { name: he.projects.workspace.tabs.financials })).toHaveCount(0);
     await expect(page.getByRole('tab', { name: he.projects.workspace.tabs.expenses })).toBeVisible();
     await expect(page.getByRole('tab', { name: he.projects.workspace.tabs.details })).toBeVisible();

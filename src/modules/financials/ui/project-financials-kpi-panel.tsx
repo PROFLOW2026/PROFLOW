@@ -206,6 +206,9 @@ export function ProjectFinancialsKpiPanel({
 }: ProjectFinancialsKpiPanelProps) {
   const kpis = resolveProjectKpiDisplay(financials);
   const confidence = financials.dataConfidence ?? { level: 'high' as const, reasons: [] };
+  const kpiAvailability = financials.kpiAvailability;
+  const actualCostUnavailable = kpiAvailability?.actualCost === 'unavailable';
+  const actualCostPartial = kpiAvailability?.actualCost === 'partial';
   const expensesHref = `/expenses?projectId=${encodeURIComponent(projectId)}&status=finalized`;
   const expensesAllHref = `/expenses?projectId=${encodeURIComponent(projectId)}`;
   const projectExpensesTab = `/projects/${projectId}?tab=expenses`;
@@ -305,11 +308,20 @@ export function ProjectFinancialsKpiPanel({
         label={t('kpis.actualCost')}
         value={kpis.actualCost}
         nature={t('metricNature.actual')}
-        explanation={t('kpis.actualCostHint')}
+        explanation={
+          actualCostUnavailable
+            ? t('kpis.unavailable')
+            : actualCostPartial
+              ? t('kpis.partial')
+              : t('kpis.actualCostHint')
+        }
         detail={actualDrill?.detail}
         basis={actualDrill?.basis}
         whyLabel={actualDrill?.whyLabel}
         emphasis
+        expandable={!actualCostUnavailable}
+        unavailable={actualCostUnavailable}
+        unavailableLabel={t('kpis.unavailable')}
         lines={
           actualDrill?.lines
             ? [

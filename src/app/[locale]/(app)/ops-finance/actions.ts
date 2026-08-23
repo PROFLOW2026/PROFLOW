@@ -8,7 +8,7 @@ import {
   type OpsRecordKind,
 } from '@/modules/ops-finance';
 import { withOrgContext } from '@/shared/auth/session';
-import { AppError, DomainRuleError, ValidationError } from '@/shared/errors';
+import { mapServerActionError } from '@/shared/errors';
 
 export interface OpsFinanceFormState {
   error?: string;
@@ -32,30 +32,18 @@ function optionalUuidOrNull(formData: FormData, key: string): string | null | un
   return text;
 }
 
-function mapValidationError(error: ValidationError): OpsFinanceFormState {
-  const fieldErrors: Record<string, string> = {};
-  for (const issue of error.issues) {
-    if (issue.path) fieldErrors[issue.path] = issue.message;
-  }
-  return { error: error.message, fieldErrors };
-}
-
 async function mapAppError(error: unknown): Promise<OpsFinanceFormState> {
   const tErrors = await getTranslations('errors');
   const tAssets = await getTranslations('assets');
-  if (error instanceof ValidationError) return mapValidationError(error);
-  if (error instanceof DomainRuleError) {
-    const short = error.messageKey.replace(/^opsFinance\.errors\./, '');
-    try {
-      return {
-        error: tAssets(`financeLink.errors.${short}` as 'financeLink.errors.alreadyLinked'),
-      };
-    } catch {
-      return { error: error.message };
-    }
-  }
-  if (error instanceof AppError) return { error: tErrors('unexpected') };
-  throw error;
+  return mapServerActionError(error, {
+    tErrors: (key) => tErrors(key as 'unexpected'),
+    namespaces: {
+      opsFinance: (key) => {
+        const short = key.replace(/^errors\./, '');
+        return tAssets(`financeLink.errors.${short}` as 'financeLink.errors.alreadyLinked');
+      },
+    },
+  });
 }
 
 export async function createLinkedExpenseAction(

@@ -168,6 +168,7 @@
   "recurring": {
     "title": "Recurring work",
     "description": "Service contracts and scheduled templates. Generated work orders stay draft until work is done - never silent revenue.",
+    "draftsLink": "For recurring expense, vendor-bill, or billing drafts, see Recurring drafts under Money.",
     "new": "New recurring template",
     "empty": {
       "title": "No recurring templates yet",

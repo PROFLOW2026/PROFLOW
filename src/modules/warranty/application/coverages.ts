@@ -4,7 +4,13 @@ import { todayInTimeZone } from '@/shared/dates';
 import { NotFoundError } from '@/shared/errors';
 import { assertPermission, assertSameOrganization } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
-import { assertCanAccessProject, findProjectById, findWorkPackageById } from '@/modules/projects';
+import {
+  assertCanAccessProject,
+  findProjectById,
+  findWorkPackageById,
+  isAccessibleProjectId,
+  resolveAccessibleProjectIds,
+} from '@/modules/projects';
 import { getVendorById } from '@/modules/vendors';
 import { parseOrThrow } from './parse';
 import { assertWarrantyDateOrder, deriveCoverageStatus } from '../domain/dates';
@@ -60,7 +66,10 @@ export async function listOrgWarrantyCoverages(
   context: OrgContext,
 ): Promise<readonly WarrantyCoverageListItem[]> {
   assertPermission(context, PERMISSIONS.PROJECTS_READ);
-  const rows = await listCoveragesForOrg(context.db, context.organizationId);
+  const accessibleProjectIds = await resolveAccessibleProjectIds(context);
+  const rows = (await listCoveragesForOrg(context.db, context.organizationId)).filter((row) =>
+    isAccessibleProjectId(accessibleProjectIds, row.coverage.projectId),
+  );
   const issues = await listIssuesByCoverageIds(
     context.db,
     context.organizationId,

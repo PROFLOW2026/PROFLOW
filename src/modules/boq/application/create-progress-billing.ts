@@ -7,7 +7,8 @@ import { isZeroMoney, money, toNumericString } from '@/shared/money';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { buildProgressCertificate } from '../domain/progress-certificate';
-import { canCreateProgressBilling } from '../domain/lifecycle';
+import { canCreateProgressBilling, assertBoqNodeNotOnBillingPlan } from '../domain/lifecycle';
+import { listBoqNodeIdsOnActiveBillingPlan } from '@/modules/billing-plan';
 import { BOQ_AUDIT_ACTIONS, type BoqPricingType } from '../domain/types';
 import {
   findBillingLinkForBatch,
@@ -77,6 +78,17 @@ export async function createProgressBilling(context: OrgContext, raw: CreateProg
   const lines = await listProgressLines(context.db, context.organizationId, batch.id);
   if (lines.length === 0) {
     throw new ValidationError([{ path: 'batchId', message: 'Progress batch has no lines' }]);
+  }
+
+  const nodeIds = lines.map((line) => line.boqNodeId);
+  const onBillingPlan = await listBoqNodeIdsOnActiveBillingPlan(
+    context.db,
+    context.organizationId,
+    batch.projectId,
+    nodeIds,
+  );
+  if (onBillingPlan.length > 0) {
+    assertBoqNodeNotOnBillingPlan(true);
   }
 
   const certLines = [];

@@ -1,4 +1,5 @@
 import Decimal from 'decimal.js';
+import { DomainRuleError } from '@/shared/errors';
 import type { InventoryMovementType } from './types';
 
 Decimal.set({ precision: 34, rounding: Decimal.ROUND_HALF_UP, toExpNeg: -9e15, toExpPos: 9e15 });
@@ -48,7 +49,10 @@ export function defaultInventoryLocationName(locale: string | null | undefined):
 export function applySignedQuantityChange(currentQuantity: string, delta: string): string {
   const next = new Decimal(currentQuantity).plus(delta);
   if (next.isNegative()) {
-    throw new Error('Insufficient quantity on hand');
+    throw new DomainRuleError(
+      'Insufficient quantity on hand',
+      'assets.errors.insufficientQuantityOnHand',
+    );
   }
   return next.toFixed(STORAGE_SCALE);
 }
@@ -65,25 +69,46 @@ export function locationDeltasForMovement(input: {
   switch (input.movementType) {
     case 'receive':
     case 'return':
-      if (qty.lte(0)) throw new Error('Movement quantity must be positive');
+      if (qty.lte(0)) {
+        throw new DomainRuleError(
+          'Movement quantity must be positive',
+          'assets.errors.movementQuantityPositive',
+        );
+      }
       return { fromDelta: null, toDelta: qty.toFixed(STORAGE_SCALE) };
     case 'issue':
-      if (qty.lte(0)) throw new Error('Movement quantity must be positive');
+      if (qty.lte(0)) {
+        throw new DomainRuleError(
+          'Movement quantity must be positive',
+          'assets.errors.movementQuantityPositive',
+        );
+      }
       return { fromDelta: qty.negated().toFixed(STORAGE_SCALE), toDelta: null };
     case 'transfer':
-      if (qty.lte(0)) throw new Error('Movement quantity must be positive');
+      if (qty.lte(0)) {
+        throw new DomainRuleError(
+          'Movement quantity must be positive',
+          'assets.errors.movementQuantityPositive',
+        );
+      }
       return {
         fromDelta: qty.negated().toFixed(STORAGE_SCALE),
         toDelta: qty.toFixed(STORAGE_SCALE),
       };
     case 'adjust':
-      if (qty.isZero()) throw new Error('Adjustment quantity must be non-zero');
+      if (qty.isZero()) {
+        throw new DomainRuleError(
+          'Adjustment quantity must be non-zero',
+          'assets.errors.adjustmentQuantityNonZero',
+        );
+      }
       if (qty.isPositive()) {
         return { fromDelta: null, toDelta: qty.toFixed(STORAGE_SCALE) };
       }
       return { fromDelta: qty.toFixed(STORAGE_SCALE), toDelta: null };
     default: {
       const _exhaustive: never = input.movementType;
+      // Internal exhaustiveness guard — not a user-facing domain rule.
       throw new Error(`Unknown movement type: ${_exhaustive}`);
     }
   }
@@ -176,11 +201,17 @@ export function assertCanReserve(input: {
 }): string {
   const qty = new Decimal(input.reserveQuantity);
   if (qty.lte(0)) {
-    throw new Error('Reservation quantity must be positive');
+    throw new DomainRuleError(
+      'Reservation quantity must be positive',
+      'assets.errors.reservationQuantityPositive',
+    );
   }
   const available = new Decimal(input.quantityOnHand).minus(input.reservedActive);
   if (available.lt(qty)) {
-    throw new Error('Insufficient available quantity');
+    throw new DomainRuleError(
+      'Insufficient available quantity',
+      'assets.errors.insufficientAvailable',
+    );
   }
   return available.minus(qty).toFixed(STORAGE_SCALE);
 }
@@ -195,7 +226,10 @@ export function remainingReservationAfterConsume(input: {
 }): { readonly remaining: string; readonly consumedFully: boolean } {
   const consume = new Decimal(input.consumeQuantity);
   if (consume.lte(0)) {
-    throw new Error('Consume quantity must be positive');
+    throw new DomainRuleError(
+      'Consume quantity must be positive',
+      'assets.errors.consumeQuantityPositive',
+    );
   }
   const reserved = new Decimal(input.reservedQuantity);
   if (consume.gte(reserved)) {

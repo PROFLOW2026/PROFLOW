@@ -38,6 +38,8 @@ export interface MetricDrilldownProps {
   /** When false, renders as a plain metric row (no expand). */
   readonly expandable?: boolean;
   readonly defaultOpen?: boolean;
+  readonly unavailable?: boolean;
+  readonly unavailableLabel?: string;
 }
 
 /**
@@ -57,6 +59,8 @@ export function MetricDrilldown({
   muted = false,
   expandable = true,
   defaultOpen = false,
+  unavailable = false,
+  unavailableLabel = '—',
 }: MetricDrilldownProps) {
   const [open, setOpen] = React.useState(defaultOpen);
   const hasDetails = expandable && (lines.length > 0 || links.length > 0 || Boolean(basis) || Boolean(detail));
@@ -106,7 +110,11 @@ export function MetricDrilldown({
               </span>
             ) : null}
           </span>
-          <MoneyText value={value} className={emphasis ? 'shrink-0 font-semibold' : 'shrink-0'} />
+          {unavailable ? (
+            <span className="shrink-0 text-[var(--pf-text-muted)]">{unavailableLabel}</span>
+          ) : (
+            <MoneyText value={value} className={emphasis ? 'shrink-0 font-semibold' : 'shrink-0'} />
+          )}
         </button>
       ) : (
         <div className="flex min-h-11 min-w-0 items-start justify-between gap-3 py-2">
@@ -124,7 +132,11 @@ export function MetricDrilldown({
               <span className="mt-0.5 block text-xs text-[var(--pf-text-muted)]">{explanation}</span>
             ) : null}
           </span>
-          <MoneyText value={value} className={emphasis ? 'shrink-0 font-semibold' : 'shrink-0'} />
+          {unavailable ? (
+            <span className="shrink-0 text-[var(--pf-text-muted)]">{unavailableLabel}</span>
+          ) : (
+            <MoneyText value={value} className={emphasis ? 'shrink-0 font-semibold' : 'shrink-0'} />
+          )}
         </div>
       )}
 

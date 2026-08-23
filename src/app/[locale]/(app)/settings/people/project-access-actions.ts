@@ -8,15 +8,14 @@ import {
   saveProjectAccessMode,
 } from '@/modules/projects';
 import { withOrgContext } from '@/shared/auth/session';
-import { AppError, AuthorizationError, ValidationError } from '@/shared/errors';
+import { mapServerActionError } from '@/shared/errors';
 import type { SettingsActionState } from '../actions';
 
 async function mapError(error: unknown): Promise<SettingsActionState> {
   const t = await getTranslations('errors');
-  if (error instanceof ValidationError) return { error: error.message };
-  if (error instanceof AuthorizationError) return { error: t('notAllowed') };
-  if (error instanceof AppError) return { error: error.message };
-  throw error;
+  return mapServerActionError(error, {
+    tErrors: (key) => t(key as 'unexpected'),
+  });
 }
 
 export async function saveProjectAccessModeAction(

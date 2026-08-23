@@ -12,7 +12,7 @@ import {
   type WarrantyIssueStatus,
 } from '@/modules/warranty';
 import { withOrgContext } from '@/shared/auth/session';
-import { AppError, DomainRuleError, ValidationError } from '@/shared/errors';
+import { mapServerActionError } from '@/shared/errors';
 
 export interface WarrantyFormState {
   error?: string;
@@ -34,23 +34,12 @@ function requiredFormValue(formData: FormData, key: string): string {
 async function mapError(error: unknown): Promise<WarrantyFormState> {
   const tErrors = await getTranslations('errors');
   const t = await getTranslations('warranty');
-  if (error instanceof ValidationError) {
-    const fieldErrors: Record<string, string> = {};
-    for (const issue of error.issues) {
-      if (issue.path) fieldErrors[issue.path] = issue.message;
-    }
-    return { error: error.message, fieldErrors };
-  }
-  if (error instanceof DomainRuleError) {
-    const key = error.messageKey.replace(/^warranty\./, '');
-    try {
-      return { error: t(key as 'errors.dates') };
-    } catch {
-      return { error: error.message };
-    }
-  }
-  if (error instanceof AppError) return { error: tErrors('unexpected') };
-  throw error;
+  return mapServerActionError(error, {
+    tErrors: (key) => tErrors(key as 'unexpected'),
+    namespaces: {
+      warranty: (key) => t(key as 'errors.dates'),
+    },
+  });
 }
 
 function revalidateWarranty(projectId?: string) {

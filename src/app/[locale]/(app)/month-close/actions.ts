@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { getTranslations } from 'next-intl/server';
 import { withOrgContext } from '@/shared/auth/session';
-import { AppError, AuthorizationError, DomainRuleError } from '@/shared/errors';
+import { mapServerActionErrorMessage } from '@/shared/errors';
 import {
   closeMonthClosePeriod,
   createMonthCloseAdjustment,
@@ -15,30 +15,15 @@ import {
 import type { MonthCloseActionState } from '@/modules/month-close/ui/month-close-panel';
 
 async function failMessage(error: unknown): Promise<string> {
-  if (error instanceof DomainRuleError && error.messageKey.startsWith('monthClose.')) {
-    const t = await getTranslations('monthClose');
-    const key = error.messageKey.replace('monthClose.', '') as 'errors.monthClosed';
-    try {
-      return t(key);
-    } catch {
-      /* fall through */
-    }
-  }
-  if (error instanceof AuthorizationError) {
-    const t = await getTranslations('errors');
-    return t('notAllowed');
-  }
-  if (error instanceof AppError) {
-    const t = await getTranslations('errors');
-    try {
-      const key = error.messageKey.replace('errors.', '');
-      return t(key as 'validationFailed');
-    } catch {
-      return error.message;
-    }
-  }
-  const t = await getTranslations('errors');
-  return t('unexpected');
+  const tErrors = await getTranslations('errors');
+  const tMonthClose = await getTranslations('monthClose');
+  return mapServerActionErrorMessage(error, {
+    tErrors: (key) => tErrors(key as 'unexpected'),
+    namespaces: {
+      monthClose: (key) => tMonthClose(key as 'errors.monthClosed'),
+    },
+    rethrowUnknown: false,
+  });
 }
 
 export async function ensureMonthClosePeriodAction(

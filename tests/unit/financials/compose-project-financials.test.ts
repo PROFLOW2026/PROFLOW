@@ -95,7 +95,7 @@ describe('composeProjectFinancials', () => {
       recognizedVendor: {
         billAmounts: ['80.00'],
         total: money('80.00', currency),
-        linkedExpenseIds: new Set(['linked-expense']),
+        linkedExpenseDeductions: new Map([['linked-expense', '80.00']]),
         excludedForeignCurrencyCount: 0,
         billCount: 1,
       },

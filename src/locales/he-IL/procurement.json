@@ -108,7 +108,8 @@
     "receiptsTitle": "קבלות",
     "emptyReceipts": "אין עדיין קבלות.",
     "receivedBy": "התקבל על ידי",
-    "success": "הקבלה נרשמה."
+    "success": "הקבלה נרשמה.",
+    "inventoryHandoffHint": "הקבלה רושמת כמויות בלבד. לעדכון מלאי במלאי - עדכנו בנפרד תחת נכסים. פעולה זו אינה רושמת עלות בפועל לפרויקט."
   },
   "create": {
     "title": "הזמנת רכש חדשה",
@@ -131,7 +132,8 @@
     "lineMaterialNone": "ללא",
     "lineQuantity": "כמות",
     "lineUnitAmount": "מחיר יחידה",
-    "lineTotal": "סה\"כ שורה"
+    "lineTotal": "סה\"כ שורה",
+    "projectMissingWarning": "לא נבחר פרויקט. ההתחייבות לא תופיע בדוחות הפרויקט עד שתקשרו פרויקט."
   },
   "material": {
     "createTitle": "הוספת חומר",

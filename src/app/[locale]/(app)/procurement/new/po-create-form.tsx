@@ -156,6 +156,10 @@ export function PurchaseOrderCreateForm({
       <input type="hidden" name="vendorId" value={vendorId} />
       <input type="hidden" name="projectId" value={projectId} />
 
+      {projects.length > 0 && !projectId ? (
+        <Alert tone="warning">{t('projectMissingWarning')}</Alert>
+      ) : null}
+
       <Field label={t('vendorLabel')} required error={state.fieldErrors?.vendorId}>
         {(control) => (
           <Select value={vendorId || NONE} onValueChange={(value) => setVendorId(value === NONE ? '' : value)}>

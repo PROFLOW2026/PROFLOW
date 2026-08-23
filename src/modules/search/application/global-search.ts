@@ -27,6 +27,8 @@ import {
   searchPunchItems,
   searchPurchaseOrders,
   searchQuotes,
+  searchRecurringDrafts,
+  searchApprovalRequests,
   searchSafetyRecords,
   searchSubcontracts,
   searchVendorCredits,
@@ -221,6 +223,19 @@ export async function globalSearch(
     tasks.push(
       searchCalendarEvents(context.db, context.organizationId, query, limit, accessibleProjectIds),
     );
+  }
+  if (
+    hasPermission(context, PERMISSIONS.EXPENSES_READ) ||
+    hasPermission(context, PERMISSIONS.AP_READ) ||
+    hasPermission(context, PERMISSIONS.BILLING_READ) ||
+    hasPermission(context, PERMISSIONS.EXPENSES_CREATE) ||
+    hasPermission(context, PERMISSIONS.AP_MANAGE) ||
+    hasPermission(context, PERMISSIONS.BILLING_MANAGE)
+  ) {
+    tasks.push(searchRecurringDrafts(context.db, context.organizationId, query, limit));
+  }
+  if (hasPermission(context, PERMISSIONS.APPROVALS_READ)) {
+    tasks.push(searchApprovalRequests(context.db, context.organizationId, query, limit));
   }
 
   const batches = await Promise.all(tasks);

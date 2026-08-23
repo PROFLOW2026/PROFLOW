@@ -39,7 +39,8 @@
     }
   },
   "board": {
-    "emptyColumn": "None in this stage"
+    "emptyColumn": "None in this stage",
+    "wonConvertHint": "Won deals convert on Quotes — accept a product quote there, then create the project or job. CRM does not replace the quotes book."
   },
   "followUp": {
     "title": "Next action / follow-up",

@@ -3,7 +3,7 @@ import type { ReceivablesAging } from '@/modules/billing';
 import type { OrgContext } from '@/shared/auth/context';
 import { todayInTimeZone } from '@/shared/dates';
 import { ORG_LIST_EXPORT_CAP } from '@/shared/db/list-limits';
-import { isZeroMoney, zeroMoney } from '@/shared/money';
+import { isZeroMoney } from '@/shared/money';
 import { assertPermission, hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import {
@@ -320,18 +320,23 @@ export async function getOrganizationReportsAnalytics(
       : null;
 
   const costVisible =
-    hasNonZeroMoney(cost.actual.value) ||
-    hasNonZeroMoney(cost.committed.value) ||
-    hasNonZeroMoney(cost.expectedRemaining.value) ||
-    hasNonZeroMoney(cost.openAp.value) ||
-    hasNonZeroMoney(cost.unallocatedBusinessCosts?.value)
+    cost.actual != null ||
+    cost.labor != null ||
+    cost.vendors != null ||
+    cost.overhead != null ||
+    cost.committed != null ||
+    cost.expectedRemaining != null ||
+    cost.openAp != null ||
+    cost.estimatedFinal != null ||
+    cost.unallocatedBusinessCosts != null
       ? cost
       : null;
 
   const profitVisible =
     profitability &&
-    (hasNonZeroMoney(profitability.estimatedProfit.value) ||
-      hasNonZeroMoney(profitability.actualProfit.value) ||
+    ((profitability.estimatedProfit != null &&
+      hasNonZeroMoney(profitability.estimatedProfit.value)) ||
+      (profitability.actualProfit != null && hasNonZeroMoney(profitability.actualProfit.value)) ||
       rollup.ops.lossMakingCount != null ||
       rollup.ops.profitableCount != null)
       ? profitability
@@ -342,9 +347,9 @@ export async function getOrganizationReportsAnalytics(
     cashFlow,
     commercialCurrent: commercialVisible?.current.value ?? null,
     invoiced: cashVisible?.invoiced.value ?? null,
-    actualCost: costVisible?.actual.value ?? null,
-    commitments: costVisible?.committed.value ?? null,
-    expectedProfit: profitVisible?.estimatedProfit.value ?? null,
+    actualCost: costVisible?.actual?.value ?? null,
+    commitments: costVisible?.committed?.value ?? null,
+    expectedProfit: profitVisible?.estimatedProfit?.value ?? null,
     clientOutstanding: cashVisible?.outstanding.value ?? null,
   });
 
@@ -370,7 +375,7 @@ async function loadUnallocatedBusinessCosts(
   currency: string,
 ) {
   if (!hasPermission(context, PERMISSIONS.EXPENSES_READ)) {
-    return zeroMoney(currency);
+    return null;
   }
 
   const [orgExpense, contributions] = await Promise.all([

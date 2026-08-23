@@ -31,12 +31,32 @@ export function signedBillingAmount(input: BillingAmountInput): MoneyValue | nul
   return input.totalAmount;
 }
 
+/** Net ex-VAT signed amount — pairs with contract CCV for backlog math. */
+export function signedBillingNetAmount(
+  input: BillingAmountInput & { readonly subtotalAmount?: MoneyValue },
+): MoneyValue | null {
+  if (input.status === 'void' || input.status === 'draft') return null;
+  const net = input.subtotalAmount ?? input.totalAmount;
+  if (input.kind === 'credit_note') return negateMoney(net);
+  return net;
+}
+
 export function sumInvoicedAmounts(
   records: readonly BillingAmountInput[],
   currency: string,
 ): MoneyValue {
   const signed = records
     .map((record) => signedBillingAmount(record))
+    .filter((value): value is MoneyValue => value !== null);
+  return sumMoney(signed, currency);
+}
+
+export function sumNetInvoicedAmounts(
+  records: readonly (BillingAmountInput & { readonly subtotalAmount?: MoneyValue })[],
+  currency: string,
+): MoneyValue {
+  const signed = records
+    .map((record) => signedBillingNetAmount(record))
     .filter((value): value is MoneyValue => value !== null);
   return sumMoney(signed, currency);
 }
@@ -132,10 +152,12 @@ export function aggregateBillingPosition(
   records: readonly (BillingAmountInput & {
     readonly payments: readonly PaymentAmountInput[];
     readonly retentionHeldRemaining?: MoneyValue;
+    readonly subtotalAmount?: MoneyValue;
   })[],
   currency: string,
-): { invoiced: MoneyValue; paid: MoneyValue; outstanding: MoneyValue } {
+): { invoiced: MoneyValue; netInvoiced: MoneyValue; paid: MoneyValue; outstanding: MoneyValue } {
   const invoiced = sumInvoicedAmounts(records, currency);
+  const netInvoiced = sumNetInvoicedAmounts(records, currency);
   const paid = sumMoney(
     records.map((record) => sumPaidAmountsForRecord(record.status, record.payments, currency)),
     currency,
@@ -152,7 +174,7 @@ export function aggregateBillingPosition(
     ),
     currency,
   );
-  return { invoiced, paid, outstanding };
+  return { invoiced, netInvoiced, paid, outstanding };
 }
 
 export function aggregateBillingPositionInCurrency(
@@ -160,10 +182,12 @@ export function aggregateBillingPositionInCurrency(
     readonly totalAmount: MoneyValue;
     readonly payments: readonly PaymentAmountInput[];
     readonly retentionHeldRemaining?: MoneyValue;
+    readonly subtotalAmount?: MoneyValue;
   })[],
   currency: string,
 ): {
   invoiced: MoneyValue;
+  netInvoiced: MoneyValue;
   paid: MoneyValue;
   outstanding: MoneyValue;
   hasBillingData: boolean;
@@ -173,6 +197,7 @@ export function aggregateBillingPositionInCurrency(
     const zero = zeroMoney(currency);
     return {
       invoiced: zero,
+      netInvoiced: zero,
       paid: zero,
       outstanding: zero,
       hasBillingData: false,
@@ -186,7 +211,9 @@ export function aggregateBillingPositionInCurrency(
 
   return {
     ...position,
-    hasBillingData: matchingRecords.length > 0,
+    hasBillingData: matchingRecords.some(
+      (record) => record.status !== 'draft' && record.status !== 'void',
+    ),
     excludedForeignCurrencyRecordCount,
   };
 }

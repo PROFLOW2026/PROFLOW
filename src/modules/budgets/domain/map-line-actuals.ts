@@ -71,13 +71,10 @@ export interface MapBudgetLineActualsInput {
    * Expense contribution slices already loaded for this project.
    * `null` = slices were not loaded (no expenses permission) - do not treat
    * as mapped-to-zero. `[]` = loaded, nothing to map.
+   *
+   * Bill-linked expense deductions should be applied upstream before mapping.
    */
   readonly contributions: readonly ProjectExpenseContribution[] | null;
-  /**
-   * Expense ids already recognized via posted vendor bills (compose drops them
-   * from Actual). Must be excluded here so mapped lines cannot exceed engine Actual.
-   */
-  readonly linkedExpenseIds?: ReadonlySet<string>;
   /**
    * When workforce True Cost is in engine Actual, Mode B labor-category expenses
    * are excluded from Actual - exclude them from mapping too.
@@ -126,18 +123,10 @@ export function lineHasReliableActualMapping(line: ProjectBudgetLineRecord): boo
 function contributionEligibleForMapping(
   contribution: ProjectExpenseContribution,
   currency: string,
-  linkedExpenseIds: ReadonlySet<string> | undefined,
   excludeLaborCategory: boolean,
 ): boolean {
   if (contribution.currency.toUpperCase() !== currency.toUpperCase()) return false;
   if (excludeLaborCategory && contribution.isLaborCategory) return false;
-  if (
-    linkedExpenseIds &&
-    contribution.expenseId &&
-    linkedExpenseIds.has(contribution.expenseId)
-  ) {
-    return false;
-  }
   return true;
 }
 
@@ -162,11 +151,10 @@ function assignMappedActuals(
   lines: readonly ProjectBudgetLineRecord[],
   contributions: readonly ProjectExpenseContribution[],
   currency: string,
-  linkedExpenseIds: ReadonlySet<string> | undefined,
   excludeLaborCategory: boolean,
 ): Map<string, MoneyValue> {
   const eligible = contributions.filter((contribution) =>
-    contributionEligibleForMapping(contribution, currency, linkedExpenseIds, excludeLaborCategory),
+    contributionEligibleForMapping(contribution, currency, excludeLaborCategory),
   );
   const claimed = new Set<number>();
   const actualByLineId = new Map<string, MoneyValue>();
@@ -292,7 +280,6 @@ export function mapBudgetLineActuals(
           input.lines,
           input.contributions,
           currency,
-          input.linkedExpenseIds,
           Boolean(input.excludeLaborCategory),
         );
 

@@ -205,6 +205,9 @@ export {
   parseExperienceComplexity,
   filterModulesByComplexity,
   applyComplexityToVisibility,
+  filterNavKeysByComplexity,
+  SIMPLE_SHELL_NAV_KEYS,
+  PERMISSION_ONLY_NAV_KEYS,
 } from './domain/experience-complexity';
 export type { ExperienceComplexityKey } from './domain/experience-complexity';
 export {

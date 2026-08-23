@@ -20,15 +20,16 @@ export interface OrgCashTotals {
 }
 
 export interface OrgCostTotals {
-  readonly actual: MoneyReportMetric;
-  readonly labor: MoneyReportMetric;
-  readonly vendors: MoneyReportMetric;
+  /** Null when every rollup row withheld Actual (permission / incomplete KPI). */
+  readonly actual: MoneyReportMetric | null;
+  readonly labor: MoneyReportMetric | null;
+  readonly vendors: MoneyReportMetric | null;
   /** Allocated overhead that landed on projects (not unallocated business costs). */
-  readonly overhead: MoneyReportMetric;
-  readonly committed: MoneyReportMetric;
-  readonly expectedRemaining: MoneyReportMetric;
-  readonly openAp: MoneyReportMetric;
-  readonly estimatedFinal: MoneyReportMetric;
+  readonly overhead: MoneyReportMetric | null;
+  readonly committed: MoneyReportMetric | null;
+  readonly expectedRemaining: MoneyReportMetric | null;
+  readonly openAp: MoneyReportMetric | null;
+  readonly estimatedFinal: MoneyReportMetric | null;
   /**
    * Finalized org/shared/overhead NET not yet allocated to any project.
    * Null when the caller did not supply an unallocated total.
@@ -38,15 +39,31 @@ export interface OrgCostTotals {
 }
 
 export interface OrgProfitTotals {
-  /** Forecast margin: Σ (current contract − forecast final cost). */
-  readonly estimatedProfit: MoneyReportMetric;
-  /** Actual margin: Σ (current contract − actual project cost). */
-  readonly actualProfit: MoneyReportMetric;
+  /** Forecast margin: Σ (current contract − forecast final cost). Null when withheld. */
+  readonly estimatedProfit: MoneyReportMetric | null;
+  /** Actual margin: Σ (current contract − actual project cost). Null when withheld. */
+  readonly actualProfit: MoneyReportMetric | null;
   /** Null when no projects have a margin (zero contract). */
   readonly sampleMarginPercent: string | null;
   readonly sampleActualMarginPercent: string | null;
 }
 
+/**
+ * Sum row money for cost/profit KPIs.
+ * When every pick is null (permission-denied / incomplete KPI), return null —
+ * never a confident zero Actual from an empty contribution set (N-002).
+ */
+function sumFieldOrNull(
+  rows: readonly ProjectRollupRow[],
+  currency: string,
+  pick: (row: ProjectRollupRow) => MoneyValue | null,
+): MoneyValue | null {
+  const values = rows.map((row) => pick(row));
+  if (values.every((value) => value == null)) return null;
+  return sumMoneyMetrics(values, currency);
+}
+
+/** Commercial/cash: absent fields contribute nothing; empty set is zeroMoney. */
 function sumField(
   rows: readonly ProjectRollupRow[],
   currency: string,
@@ -56,6 +73,23 @@ function sumField(
     rows.map((row) => pick(row)),
     currency,
   );
+}
+
+function moneyMetricFromSum(input: {
+  readonly key: string;
+  readonly kind: Parameters<typeof moneyMetric>[0]['kind'];
+  readonly value: MoneyValue | null;
+  readonly inclusions?: readonly string[];
+  readonly exclusions?: readonly string[];
+}): MoneyReportMetric | null {
+  if (input.value == null) return null;
+  return moneyMetric({
+    key: input.key,
+    kind: input.kind,
+    value: input.value,
+    inclusions: input.inclusions,
+    exclusions: input.exclusions,
+  });
 }
 
 /**
@@ -160,10 +194,10 @@ export function aggregateOrgCost(
   const fx = [FX_EXCL];
   const unallocatedValue = options.unallocatedBusinessCosts ?? null;
   return {
-    actual: moneyMetric({
+    actual: moneyMetricFromSum({
       key: 'actualCost',
       kind: 'actual',
-      value: sumField(rows, currency, (r) => r.actualCost),
+      value: sumFieldOrNull(rows, currency, (r) => r.actualCost),
       inclusions: ['expensesAndLaborEntered', 'recognizedVendorBills'],
       exclusions: [
         ...fx,
@@ -174,52 +208,52 @@ export function aggregateOrgCost(
         'unallocatedBusinessCosts',
       ],
     }),
-    labor: moneyMetric({
+    labor: moneyMetricFromSum({
       key: 'laborActual',
       kind: 'actual',
-      value: sumField(rows, currency, (r) => r.laborActual),
+      value: sumFieldOrNull(rows, currency, (r) => r.laborActual),
       inclusions: ['workforceCostedEntries'],
       exclusions: [...fx, 'entriesMissingRate'],
     }),
-    vendors: moneyMetric({
+    vendors: moneyMetricFromSum({
       key: 'vendorActual',
       kind: 'actual',
-      value: sumField(rows, currency, (r) => r.vendorActual),
+      value: sumFieldOrNull(rows, currency, (r) => r.vendorActual),
       inclusions: ['subcontractorExpenses', 'recognizedVendorBills'],
       exclusions: [...fx, 'committedPo', 'vendorPayments'],
     }),
-    overhead: moneyMetric({
+    overhead: moneyMetricFromSum({
       key: 'overheadActual',
       kind: 'actual',
-      value: sumField(rows, currency, (r) => r.overheadActual),
+      value: sumFieldOrNull(rows, currency, (r) => r.overheadActual),
       inclusions: ['allocatedOverheadOnProjects'],
       exclusions: [...fx, 'unallocatedBusinessCosts'],
     }),
-    committed: moneyMetric({
+    committed: moneyMetricFromSum({
       key: 'committedOpen',
       kind: 'committed',
-      value: sumField(rows, currency, (r) => r.committedOpen),
+      value: sumFieldOrNull(rows, currency, (r) => r.committedOpen),
       inclusions: ['openPurchaseOrderCommitments'],
       exclusions: [...fx, 'expenseActual', 'recognizedVendorBills'],
     }),
-    expectedRemaining: moneyMetric({
+    expectedRemaining: moneyMetricFromSum({
       key: 'expectedRemainingCost',
       kind: 'estimate',
-      value: sumField(rows, currency, (r) => r.expectedRemainingCost),
+      value: sumFieldOrNull(rows, currency, (r) => r.expectedRemainingCost),
       inclusions: ['projectExpectedRemainingEtc'],
       exclusions: [...fx, 'committedPo', 'expenseActual'],
     }),
-    openAp: moneyMetric({
+    openAp: moneyMetricFromSum({
       key: 'openApPayable',
       kind: 'forecast',
-      value: sumField(rows, currency, (r) => r.openApPayable),
+      value: sumFieldOrNull(rows, currency, (r) => r.openApPayable),
       inclusions: ['unmatchedOpenApBills'],
       exclusions: [...fx, 'expenseActual', 'committedPo'],
     }),
-    estimatedFinal: moneyMetric({
+    estimatedFinal: moneyMetricFromSum({
       key: 'estimatedFinalCost',
       kind: 'estimate',
-      value: sumField(rows, currency, (r) => r.estimatedFinalCost),
+      value: sumFieldOrNull(rows, currency, (r) => r.estimatedFinalCost),
       inclusions: ['actualPlusRemainingCommitmentsPlusEtc'],
       exclusions: [...fx, 'openAp', 'vendorPayments', 'unallocatedBusinessCosts'],
     }),
@@ -241,18 +275,18 @@ export function aggregateOrgProfit(
   rows: readonly ProjectRollupRow[],
   currency: string,
 ): OrgProfitTotals {
-  const estimatedProfit = moneyMetric({
+  const estimatedProfit = moneyMetricFromSum({
     key: 'estimatedProfit',
     kind: 'estimate',
-    value: sumField(rows, currency, (r) => r.estimatedProfit),
+    value: sumFieldOrNull(rows, currency, (r) => r.estimatedProfit),
     inclusions: ['currentContractMinusEstimatedFinal'],
     exclusions: [FX_EXCL, VAT_EXCL, 'incompleteCostCoverage', 'unallocatedBusinessCosts'],
   });
 
-  const actualProfit = moneyMetric({
+  const actualProfit = moneyMetricFromSum({
     key: 'actualProfit',
     kind: 'actual',
-    value: sumField(rows, currency, (r) => r.actualProfit),
+    value: sumFieldOrNull(rows, currency, (r) => r.actualProfit),
     inclusions: ['currentContractMinusActualCost'],
     exclusions: [FX_EXCL, VAT_EXCL, 'incompleteCostCoverage', 'unallocatedBusinessCosts'],
   });

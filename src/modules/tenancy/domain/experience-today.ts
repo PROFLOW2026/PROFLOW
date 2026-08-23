@@ -2,7 +2,7 @@
  * Today inbox focus by persona — same collectors; category filter + boost.
  */
 
-import type { ExperiencePersonaKey } from './experience-persona';
+import type { ExperiencePersonaKey, ExperienceRoleSurface } from './experience-persona';
 
 export type TodayFocusCategory =
   | 'money'
@@ -96,18 +96,29 @@ export const PERSONA_TODAY_DEEMPHASIZE: Readonly<
   all: [],
 };
 
+const OWNER_TODAY_DEEMPHASIZE: readonly TodayFocusCategory[] = ['time_people'];
+
 export function todayUrgencyBumpForPersona(
   sourceType: string,
   persona: ExperiencePersonaKey,
   severity: string,
+  roleSurface: ExperienceRoleSurface = 'general',
 ): number {
   const category = todayCategoryForSource(sourceType);
   const focus = PERSONA_TODAY_FOCUS[persona];
   const deemphasis = PERSONA_TODAY_DEEMPHASIZE[persona];
 
   if (severity === 'critical') return 40;
+  if (roleSurface === 'owner' && category === 'money') return 40;
   if (focus.includes(category)) return 35;
   if (category === 'money') return 25;
+  if (
+    roleSurface === 'owner' &&
+    OWNER_TODAY_DEEMPHASIZE.includes(category) &&
+    severity !== 'high'
+  ) {
+    return 0;
+  }
   if (deemphasis.includes(category)) return severity === 'high' ? 5 : 0;
   return 10;
 }
@@ -120,11 +131,19 @@ export function todayItemVisibleForPersona(
   sourceType: string,
   persona: ExperiencePersonaKey,
   severity: string,
+  roleSurface: ExperienceRoleSurface = 'general',
 ): boolean {
   if (persona === 'all') return true;
   if (severity === 'critical' || severity === 'high') return true;
   const category = todayCategoryForSource(sourceType);
   if (category === 'money') return true;
+  if (
+    roleSurface === 'owner' &&
+    OWNER_TODAY_DEEMPHASIZE.includes(category) &&
+    severity === 'low'
+  ) {
+    return false;
+  }
   const deemphasis = PERSONA_TODAY_DEEMPHASIZE[persona];
   if (deemphasis.includes(category) && severity === 'low') return false;
   if (deemphasis.includes(category) && severity === 'medium') return false;

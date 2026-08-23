@@ -36,6 +36,8 @@ export const GLOBAL_SEARCH_KINDS = [
   'closeout',
   'billing_plan',
   'billing_cycle',
+  'recurring_draft',
+  'approval',
 ] as const;
 
 export type GlobalSearchKind = (typeof GLOBAL_SEARCH_KINDS)[number];

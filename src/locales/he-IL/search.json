@@ -16,6 +16,9 @@
     "openVendors": "פתיחת ספקים",
     "openClients": "פתיחת לקוחות",
     "openOcr": "פתיחת בדיקת חשבונית",
+    "openRfqs": "פתיחת בקשות הצעת מחיר",
+    "openApprovals": "פתיחת אישורים",
+    "openForms": "פתיחת טפסי שטח",
     "openReports": "פתיחת דוחות",
     "openCalendar": "פתיחת לוח שנה",
     "openCommunications": "פתיחת הודעות",
@@ -53,6 +56,8 @@
     "calendar_event": "אירוע בלוח שנה",
     "closeout": "סגירת פרויקט",
     "billing_plan": "תוכנית חיוב",
-    "billing_cycle": "מחזור חיוב"
+    "billing_cycle": "מחזור חיוב",
+    "recurring_draft": "טיוטה חוזרת",
+    "approval": "אישור"
   }
 }

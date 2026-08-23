@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { getTranslations } from 'next-intl/server';
 import { cancelCalendarEvent, createCalendarEvent } from '@/modules/calendar';
 import { withOrgContext } from '@/shared/auth/session';
-import { AppError, AuthorizationError, ValidationError } from '@/shared/errors';
+import { mapServerActionError } from '@/shared/errors';
 
 export interface CalendarFormState {
   error?: string;
@@ -20,10 +20,9 @@ function formValue(formData: FormData, key: string): string | undefined {
 
 async function mapError(error: unknown): Promise<CalendarFormState> {
   const tErrors = await getTranslations('errors');
-  if (error instanceof ValidationError) return { error: error.message };
-  if (error instanceof AuthorizationError) return { error: tErrors('notAllowed') };
-  if (error instanceof AppError) return { error: tErrors('unexpected') };
-  throw error;
+  return mapServerActionError(error, {
+    tErrors: (key) => tErrors(key as 'unexpected'),
+  });
 }
 
 export async function createEventAction(

@@ -46,8 +46,7 @@ export interface RevenueBasisOptions {
 /**
  * Profit / margin require a managed revenue basis.
  * - Open-price jobs: never
- * - Jobs with `hasManagedContract === false`: never
- * - Classic projects: gated only by open-price (which they never are)
+ * - Any work kind with `hasManagedContract === false`: never (incl. classic projects)
  */
 export function hasRevenueBasisForProfitability(
   workKind: string | null | undefined,
@@ -55,11 +54,7 @@ export function hasRevenueBasisForProfitability(
   options?: RevenueBasisOptions,
 ): boolean {
   if (isOpenPriceJob(workKind, pricingMode)) return false;
-  const kind = normalizeWorkKind(workKind);
-  if (
-    (kind === 'job' || kind === 'work_order') &&
-    options?.hasManagedContract === false
-  ) {
+  if (options?.hasManagedContract === false) {
     return false;
   }
   return true;
