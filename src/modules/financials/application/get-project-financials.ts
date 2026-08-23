@@ -10,6 +10,8 @@ import {
   sumOpenApPayableForProject,
   sumOpenCommittedCostsForProject,
 } from '../data/committed-costs.repository';
+import { sumSubcontractRemainingCommitmentForProject } from '../data/subcontract-commitment.repository';
+import { mergeProjectRemainingCommitments } from '../domain/merge-commitments';
 import { loadProjectExpenseContributions } from '../data/expenses.repository';
 import { loadMonthCloseEconomicForProject } from '../data/month-close-economic.repository';
 import { loadProjectIncompletenessCounts } from '../data/incompleteness.repository';
@@ -23,6 +25,7 @@ import {
 } from '../data/projects.repository';
 import { composeProjectFinancials } from './compose-project-financials';
 import type { ProjectFinancials } from '@/modules/financials/domain/types';
+import { zeroMoney } from '@/shared/money';
 
 export async function getProjectFinancials(
   context: OrgContext,
@@ -88,6 +91,28 @@ export async function getProjectFinancials(
         currency,
       )
     : null;
+  const subcontractResult =
+    canReadProcurement && canReadAp
+      ? await sumSubcontractRemainingCommitmentForProject(
+          context.db,
+          context.organizationId,
+          projectId,
+          currency,
+        )
+      : null;
+  const mergedCommitted =
+    committedResult || subcontractResult
+      ? {
+          total: mergeProjectRemainingCommitments({
+            currency,
+            poCommitted: committedResult?.total ?? zeroMoney(currency),
+            subcontractRemaining: subcontractResult?.total ?? zeroMoney(currency),
+          }),
+          excludedForeignCurrencyCount:
+            (committedResult?.excludedForeignCurrencyCount ?? 0) +
+            (subcontractResult?.excludedForeignCurrencyCount ?? 0),
+        }
+      : null;
   const apResult = canReadAp
     ? await sumOpenApPayableForProject(context.db, context.organizationId, projectId, currency)
     : null;
@@ -138,7 +163,7 @@ export async function getProjectFinancials(
     billingRows,
     expenseContributions,
     laborInput: laborResult.laborInput,
-    committed: committedResult,
+    committed: mergedCommitted,
     openAp: apResult,
     recognizedVendor: recognizedVendorResult,
     monthCloseEconomic,

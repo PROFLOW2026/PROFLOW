@@ -21,7 +21,7 @@ import {
   sumOpenApPayableForProjects,
   sumOpenCommittedCostsForProjects,
 } from '../data/committed-costs.repository';
-import { sumSubcontractRemainingCommitmentForProject } from '../data/subcontract-commitment.repository';
+import { sumSubcontractRemainingCommitmentForProjects } from '../data/subcontract-commitment.repository';
 import { mergeProjectRemainingCommitments } from '../domain/merge-commitments';
 import { loadExpenseContributionsForProjects } from '../data/expenses.repository';
 import { loadMonthCloseEconomicForProjects } from '../data/month-close-economic.repository';
@@ -67,84 +67,79 @@ export async function loadProjectFinancialsBatch(
   const monthCostsReady = canReadWorkforce && areEmployeeMonthCostsAvailable();
 
   const projectIdSet = new Set(projectIds);
-  // Sequential on purpose: batch compose runs inside a single-connection tx.
-  const commercialByProject = canReadCommercial
-    ? await loadCommercialDataForProjects(context.db, context.organizationId, projectIds)
-    : new Map();
-  const billingByProject = canReadBilling
-    ? await loadBillingRowsGroupedByProject(context.db, context.organizationId, projectIds)
-    : new Map<string, ProjectBillingRows>();
-  const expenseContributions = canReadExpenses
-    ? options.expenseContributions
-      ? options.expenseContributions.filter(
-          (row) => row.projectId != null && projectIdSet.has(row.projectId),
-        )
-      : await loadExpenseContributionsForProjects(context.db, context.organizationId, projectIds)
-    : null;
-  const laborByProject = canReadWorkforce
-    ? await sumLaborCostGroupedByProject(
-        context.db,
-        context.organizationId,
-        projectIds,
-        currency,
-      )
-    : new Map();
-  const monthlyLaborByProject = monthCostsReady
-    ? await sumMonthlyAllocatedLaborByProject(
-        context.db,
-        context.organizationId,
-        projectIds,
-        currency,
-      )
-    : new Map();
-  const committedByProject = canReadProcurement
-    ? await sumOpenCommittedCostsForProjects(
-        context.db,
-        context.organizationId,
-        projectIds,
-        currency,
-      )
-    : new Map();
-  const apByProject = canReadAp
-    ? await sumOpenApPayableForProjects(
-        context.db,
-        context.organizationId,
-        projectIds,
-        currency,
-      )
-    : new Map();
-  const recognizedByProject = canReadAp
-    ? await loadRecognizedVendorBillsForProjects(
-        context.db,
-        context.organizationId,
-        projectIds,
-        currency,
-      )
-    : new Map();
-  const monthCloseByProject = await loadMonthCloseEconomicForProjects(
-    context.db,
-    context.organizationId,
-    projectIds,
-    currency,
-  );
-
-  const subcontractByProject = new Map<
-    string,
-    Awaited<ReturnType<typeof sumSubcontractRemainingCommitmentForProject>>
-  >();
-  if (canReadProcurement && canReadAp) {
-    for (const projectId of projectIds) {
-      subcontractByProject.set(
-        projectId,
-        await sumSubcontractRemainingCommitmentForProject(
+  // Parallel set-based loads (postgres.js pipelines on one connection).
+  const [
+    commercialByProject,
+    billingByProject,
+    expenseContributions,
+    laborByProject,
+    monthlyLaborByProject,
+    committedByProject,
+    apByProject,
+    recognizedByProject,
+    monthCloseByProject,
+    subcontractByProject,
+  ] = await Promise.all([
+    canReadCommercial
+      ? loadCommercialDataForProjects(context.db, context.organizationId, projectIds)
+      : Promise.resolve(new Map()),
+    canReadBilling
+      ? loadBillingRowsGroupedByProject(context.db, context.organizationId, projectIds)
+      : Promise.resolve(new Map<string, ProjectBillingRows>()),
+    canReadExpenses
+      ? options.expenseContributions
+        ? Promise.resolve(
+            options.expenseContributions.filter(
+              (row) => row.projectId != null && projectIdSet.has(row.projectId),
+            ),
+          )
+        : loadExpenseContributionsForProjects(context.db, context.organizationId, projectIds)
+      : Promise.resolve(null),
+    canReadWorkforce
+      ? sumLaborCostGroupedByProject(context.db, context.organizationId, projectIds, currency)
+      : Promise.resolve(new Map()),
+    monthCostsReady
+      ? sumMonthlyAllocatedLaborByProject(
           context.db,
           context.organizationId,
-          projectId,
+          projectIds,
           currency,
-        ),
-      );
-    }
-  }
+        )
+      : Promise.resolve(new Map()),
+    canReadProcurement
+      ? sumOpenCommittedCostsForProjects(
+          context.db,
+          context.organizationId,
+          projectIds,
+          currency,
+        )
+      : Promise.resolve(new Map()),
+    canReadAp
+      ? sumOpenApPayableForProjects(context.db, context.organizationId, projectIds, currency)
+      : Promise.resolve(new Map()),
+    canReadAp
+      ? loadRecognizedVendorBillsForProjects(
+          context.db,
+          context.organizationId,
+          projectIds,
+          currency,
+        )
+      : Promise.resolve(new Map()),
+    loadMonthCloseEconomicForProjects(
+      context.db,
+      context.organizationId,
+      projectIds,
+      currency,
+    ),
+    canReadProcurement && canReadAp
+      ? sumSubcontractRemainingCommitmentForProjects(
+          context.db,
+          context.organizationId,
+          projectIds,
+          currency,
+        )
+      : Promise.resolve(new Map()),
+  ]);
 
   const expensesByProject = new Map<string, ProjectExpenseContribution[]>();
   if (expenseContributions) {

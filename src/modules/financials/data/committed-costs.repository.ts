@@ -1,4 +1,4 @@
-import { and, eq, inArray, isNotNull, isNull, sql } from 'drizzle-orm';
+import { and, eq, inArray, isNotNull, isNull, or, sql } from 'drizzle-orm';
 import { apBillProjectAllocations, apBills, apPoMatches, committedCosts, expenses } from '@drizzle/schema';
 import type { DbExecutor } from '@/shared/db/types';
 import { buildLinkedExpenseDeductions } from '../domain/expense-ap-dedup';
@@ -550,23 +550,100 @@ export async function sumOpenApPayableForProjects(
   const result = new Map<string, ProjectApPayableRollup>();
   if (projectIds.length === 0) return result;
 
-  if (areApBillProjectAllocationsAvailable()) {
-    for (const projectId of projectIds) {
-      result.set(
-        projectId,
-        await sumOpenApPayableForProject(db, organizationId, projectId, currency),
+  const normalized = currency.toUpperCase();
+  for (const projectId of projectIds) {
+    result.set(projectId, {
+      total: zeroMoney(normalized),
+      excludedForeignCurrencyCount: 0,
+      billCount: 0,
+    });
+  }
+
+  if (!areApBillProjectAllocationsAvailable()) {
+    const rows = await db
+      .select({
+        id: apBills.id,
+        projectId: apBills.projectId,
+        status: apBills.status,
+        totalAmount: apBills.totalAmount,
+        currency: apBills.currency,
+        retentionHeldRemaining: apBills.retentionHeldRemaining,
+      })
+      .from(apBills)
+      .where(
+        and(
+          eq(apBills.organizationId, organizationId),
+          inArray(apBills.projectId, [...projectIds]),
+          inArray(apBills.status, [...OPEN_AP_CASH_STATUSES]),
+          isNull(apBills.archivedAt),
+        ),
       );
+
+    const billIds = rows.map((row) => row.id);
+    const appliedByBillId = await getVendorPaymentsRepository().listActiveAppliedAmountsForBills(
+      db,
+      organizationId,
+      billIds,
+    );
+    const creditsByBillId = await listActiveCreditAmountsForBills(db, organizationId, billIds);
+
+    const buckets = new Map<
+      string,
+      { total: MoneyValue; excluded: number; billCount: number }
+    >();
+    for (const row of rows) {
+      if (!row.projectId) continue;
+      const bucket = buckets.get(row.projectId) ?? {
+        total: zeroMoney(normalized),
+        excluded: 0,
+        billCount: 0,
+      };
+      if (row.currency.toUpperCase() !== normalized) {
+        bucket.excluded += 1;
+        buckets.set(row.projectId, bucket);
+        continue;
+      }
+      const outstanding = computeBillOutstanding({
+        billStatus: row.status,
+        billTotal: money(row.totalAmount, row.currency),
+        applications: (appliedByBillId.get(row.id) ?? []).map((amount) => ({
+          appliedAmount: money(amount, row.currency),
+          paymentStatus: 'recorded' as const,
+        })),
+        creditApplications: (creditsByBillId.get(row.id) ?? []).map((amount) => ({
+          appliedAmount: money(amount, row.currency),
+          status: 'applied' as const,
+        })),
+        retentionHeldRemaining: money(row.retentionHeldRemaining, row.currency),
+      });
+      if (!isPositiveMoney(outstanding)) {
+        buckets.set(row.projectId, bucket);
+        continue;
+      }
+      bucket.total = addMoney(bucket.total, outstanding);
+      bucket.billCount += 1;
+      buckets.set(row.projectId, bucket);
+    }
+
+    for (const [projectId, bucket] of buckets) {
+      result.set(projectId, {
+        total: roundMoney(bucket.total),
+        excludedForeignCurrencyCount: bucket.excluded,
+        billCount: bucket.billCount,
+      });
     }
     return result;
   }
 
-  const normalized = currency.toUpperCase();
-  const rows = await db
+  // Allocations-aware set-based path (replaces O(N) serial per-project loads).
+  const projectIdList = [...projectIds];
+  const billRows = await db
     .select({
       id: apBills.id,
       projectId: apBills.projectId,
       status: apBills.status,
       totalAmount: apBills.totalAmount,
+      netAmount: apBills.netAmount,
       currency: apBills.currency,
       retentionHeldRemaining: apBills.retentionHeldRemaining,
     })
@@ -574,65 +651,139 @@ export async function sumOpenApPayableForProjects(
     .where(
       and(
         eq(apBills.organizationId, organizationId),
-        inArray(apBills.projectId, [...projectIds]),
         inArray(apBills.status, [...OPEN_AP_CASH_STATUSES]),
         isNull(apBills.archivedAt),
+        or(
+          inArray(apBills.projectId, projectIdList),
+          sql`EXISTS (
+            SELECT 1 FROM ${apBillProjectAllocations} a
+            WHERE a.ap_bill_id = ${apBills.id}
+              AND a.organization_id = ${organizationId}
+              AND a.target_type = 'project'
+              AND a.project_id IN (${sql.join(
+                projectIdList.map((id) => sql`${id}`),
+                sql`, `,
+              )})
+              AND a.status = 'applied'
+          )`,
+        ),
       ),
     );
 
-  const billIds = rows.map((row) => row.id);
+  if (billRows.length === 0) return result;
+
+  const allIds = billRows.map((row) => row.id);
+  const anyAlloc = await db
+    .select({
+      apBillId: apBillProjectAllocations.apBillId,
+      projectId: apBillProjectAllocations.projectId,
+      amount: apBillProjectAllocations.amount,
+      currency: apBillProjectAllocations.currency,
+      targetType: apBillProjectAllocations.targetType,
+      status: apBillProjectAllocations.status,
+    })
+    .from(apBillProjectAllocations)
+    .where(
+      and(
+        eq(apBillProjectAllocations.organizationId, organizationId),
+        inArray(apBillProjectAllocations.apBillId, allIds),
+        eq(apBillProjectAllocations.status, 'applied'),
+      ),
+    );
+
+  const billIdsWithAllocations = new Set<string>();
+  const allocationLinesByProject = new Map<
+    string,
+    { billId: string; projectId: string; amount: string; currency: string }[]
+  >();
+  const projectIdSet = new Set(projectIds);
+  for (const row of anyAlloc) {
+    billIdsWithAllocations.add(row.apBillId);
+    if (row.targetType !== 'project' || !row.projectId || !projectIdSet.has(row.projectId)) {
+      continue;
+    }
+    const list = allocationLinesByProject.get(row.projectId) ?? [];
+    list.push({
+      billId: row.apBillId,
+      projectId: row.projectId,
+      amount: row.amount,
+      currency: row.currency,
+    });
+    allocationLinesByProject.set(row.projectId, list);
+  }
+
   const appliedByBillId = await getVendorPaymentsRepository().listActiveAppliedAmountsForBills(
     db,
     organizationId,
-    billIds,
+    allIds,
   );
-  const creditsByBillId = await listActiveCreditAmountsForBills(db, organizationId, billIds);
+  const creditsByBillId = await listActiveCreditAmountsForBills(db, organizationId, allIds);
+  const billById = new Map(billRows.map((row) => [row.id, row]));
+  const headerBills = billRows.map((row) => ({
+    billId: row.id,
+    projectId: row.projectId,
+    totalAmount: row.netAmount ?? row.totalAmount,
+    currency: row.currency,
+  }));
 
-  const buckets = new Map<
-    string,
-    { total: MoneyValue; excluded: number; billCount: number }
-  >();
-  for (const row of rows) {
-    if (!row.projectId) continue;
-    const bucket = buckets.get(row.projectId) ?? {
-      total: zeroMoney(normalized),
-      excluded: 0,
-      billCount: 0,
-    };
-    if (row.currency.toUpperCase() !== normalized) {
-      bucket.excluded += 1;
-      buckets.set(row.projectId, bucket);
-      continue;
-    }
-    const outstanding = computeBillOutstanding({
-      billStatus: row.status,
-      billTotal: money(row.totalAmount, row.currency),
-      applications: (appliedByBillId.get(row.id) ?? []).map((amount) => ({
-        appliedAmount: money(amount, row.currency),
-        paymentStatus: 'recorded' as const,
-      })),
-      creditApplications: (creditsByBillId.get(row.id) ?? []).map((amount) => ({
-        appliedAmount: money(amount, row.currency),
-        status: 'applied' as const,
-      })),
-      retentionHeldRemaining: money(row.retentionHeldRemaining, row.currency),
+  for (const projectId of projectIds) {
+    const resolved = resolveVendorBillProjectAmounts({
+      projectId,
+      currency: normalized,
+      headerBills,
+      allocationLines: allocationLinesByProject.get(projectId) ?? [],
+      billIdsWithAllocations,
     });
-    if (!isPositiveMoney(outstanding)) {
-      buckets.set(row.projectId, bucket);
-      continue;
-    }
-    bucket.total = addMoney(bucket.total, outstanding);
-    bucket.billCount += 1;
-    buckets.set(row.projectId, bucket);
-  }
 
-  for (const [projectId, bucket] of buckets) {
+    let total = zeroMoney(normalized);
+    let excludedForeignCurrencyCount = 0;
+    let billCount = 0;
+    const countedBills = new Set<string>();
+
+    for (let i = 0; i < resolved.amounts.length; i += 1) {
+      const sliceAmount = resolved.amounts[i]!;
+      const billId = resolved.billIds[i]!;
+      const row = billById.get(billId);
+      if (!row) continue;
+      if (row.currency.toUpperCase() !== normalized) {
+        excludedForeignCurrencyCount += 1;
+        continue;
+      }
+      const billNet = row.netAmount ?? row.totalAmount;
+      const outstanding = computeBillOutstanding({
+        billStatus: row.status,
+        billTotal: money(row.totalAmount, row.currency),
+        applications: (appliedByBillId.get(billId) ?? []).map((amount) => ({
+          appliedAmount: money(amount, row.currency),
+          paymentStatus: 'recorded' as const,
+        })),
+        creditApplications: (creditsByBillId.get(billId) ?? []).map((amount) => ({
+          appliedAmount: money(amount, row.currency),
+          status: 'applied' as const,
+        })),
+        retentionHeldRemaining: money(row.retentionHeldRemaining, row.currency),
+      });
+      const sliceOutstanding = scaleBillOutstandingToProjectSlice({
+        currency: normalized,
+        billNetAmount: billNet,
+        sliceAmount,
+        billOutstanding: outstanding,
+      });
+      if (!isPositiveMoney(sliceOutstanding)) continue;
+      total = addMoney(total, sliceOutstanding);
+      if (!countedBills.has(billId)) {
+        countedBills.add(billId);
+        billCount += 1;
+      }
+    }
+
     result.set(projectId, {
-      total: roundMoney(bucket.total),
-      excludedForeignCurrencyCount: bucket.excluded,
-      billCount: bucket.billCount,
+      total: roundMoney(total),
+      excludedForeignCurrencyCount,
+      billCount,
     });
   }
+
   return result;
 }
 

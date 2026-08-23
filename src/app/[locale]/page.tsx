@@ -99,12 +99,19 @@ export default async function LocaleRootPage({
     redirect({ href: '/onboarding', locale });
   }
 
+  // Suspense around the dashboard body so AppShell (nav) can stream first paint
+  // without waiting for org financial rollup — PWA splash dismisses on shell paint.
+  const tCommon = await getTranslations('common');
   return (
     <AppShell>
-      <AuthenticatedDashboardHome
-        workKind={query.workKind}
-        displayName={session.user.displayName}
-      />
+      <Suspense
+        fallback={<DashboardSkeleton showTitle label={tCommon('states.loading')} />}
+      >
+        <AuthenticatedDashboardHome
+          workKind={query.workKind}
+          displayName={session.user.displayName}
+        />
+      </Suspense>
     </AppShell>
   );
 }
@@ -123,6 +130,24 @@ async function AuthenticatedDashboardHome({
   const name = displayName;
   const workKindFilter = parseWorkKindFilter(workKind);
 
+  return (
+    <div className="flex min-w-0 max-w-full flex-col gap-6" data-pf-dashboard-home>
+      <PageHeader title={name ? t('greeting', { name }) : t('greetingNoName')} />
+      <Suspense fallback={null}>
+        <DashboardCapabilityTip />
+      </Suspense>
+      <PwaInstallCta variant="dashboard" />
+      <WorkKindFilterChrome active={workKindFilter} pathname="/" />
+      <Suspense
+        fallback={<DashboardSkeleton showTitle={false} label={tCommon('states.loading')} />}
+      >
+        <HomeDashboardSection workKindFilter={workKindFilter} />
+      </Suspense>
+    </div>
+  );
+}
+
+async function DashboardCapabilityTip() {
   const tip = await withOrgContext(async (context) => {
     if (!context.permissions.has(PERMISSIONS.SETTINGS_MANAGE)) {
       return null as OptionalModuleKey | null;
@@ -138,22 +163,11 @@ async function AuthenticatedDashboardHome({
     return key && isOptionalModuleKey(key) ? key : null;
   }).catch(() => null);
 
+  if (!tip) return null;
   return (
-    <div className="flex min-w-0 max-w-full flex-col gap-6" data-pf-dashboard-home>
-      <PageHeader title={name ? t('greeting', { name }) : t('greetingNoName')} />
-      {tip ? (
-        <WithClientMessages extra={['settings']}>
-          <UnusedCapabilityDashboardTip moduleKey={tip} canEdit />
-        </WithClientMessages>
-      ) : null}
-      <PwaInstallCta variant="dashboard" />
-      <WorkKindFilterChrome active={workKindFilter} pathname="/" />
-      <Suspense
-        fallback={<DashboardSkeleton showTitle={false} label={tCommon('states.loading')} />}
-      >
-        <HomeDashboardSection workKindFilter={workKindFilter} />
-      </Suspense>
-    </div>
+    <WithClientMessages extra={['settings']}>
+      <UnusedCapabilityDashboardTip moduleKey={tip} canEdit />
+    </WithClientMessages>
   );
 }
 

@@ -94,9 +94,29 @@ async function loadOpenPoCommittedByVendorForProject(
   projectId: string,
   currency: string,
 ): Promise<Map<string, MoneyValue>> {
+  const byProject = await loadOpenPoCommittedByVendorForProjects(
+    db,
+    organizationId,
+    [projectId],
+    currency,
+  );
+  return byProject.get(projectId) ?? new Map();
+}
+
+/** Open PO committed amounts keyed by projectId → vendorId → money. */
+async function loadOpenPoCommittedByVendorForProjects(
+  db: DbExecutor,
+  organizationId: string,
+  projectIds: readonly string[],
+  currency: string,
+): Promise<Map<string, Map<string, MoneyValue>>> {
+  const result = new Map<string, Map<string, MoneyValue>>();
+  if (projectIds.length === 0) return result;
+
   const normalized = currency.toUpperCase();
   const rows = await db
     .select({
+      projectId: committedCosts.projectId,
       vendorId: purchaseOrders.vendorId,
       amount: committedCosts.amount,
       currency: committedCosts.currency,
@@ -106,21 +126,23 @@ async function loadOpenPoCommittedByVendorForProject(
     .where(
       and(
         eq(committedCosts.organizationId, organizationId),
-        eq(committedCosts.projectId, projectId),
+        inArray(committedCosts.projectId, [...projectIds]),
         inArray(committedCosts.status, [...OPEN_COMMITTED_STATUSES]),
         isNull(purchaseOrders.archivedAt),
       ),
     );
 
-  const byVendor = new Map<string, MoneyValue>();
   for (const row of rows) {
+    if (!row.projectId) continue;
     if (row.currency.toUpperCase() !== normalized) continue;
     const amount = fromNumericString(row.amount, row.currency);
     if (!amount) continue;
+    const byVendor = result.get(row.projectId) ?? new Map<string, MoneyValue>();
     const current = byVendor.get(row.vendorId) ?? zeroMoney(normalized);
     byVendor.set(row.vendorId, addMoney(current, amount));
+    result.set(row.projectId, byVendor);
   }
-  return byVendor;
+  return result;
 }
 
 /**
@@ -219,6 +241,126 @@ export async function sumSubcontractRemainingCommitmentForProject(
   });
 
   return { total: roundMoney(total), excludedForeignCurrencyCount };
+}
+
+/**
+ * Set-based subcontract remaining for many projects (org rollup / home dashboard).
+ * Same formulas as {@link sumSubcontractRemainingCommitmentForProject} — O(1) query
+ * groups instead of O(N) serial per-project loads.
+ */
+export async function sumSubcontractRemainingCommitmentForProjects(
+  db: DbExecutor,
+  organizationId: string,
+  projectIds: readonly string[],
+  currency: string,
+): Promise<Map<string, { total: MoneyValue; excludedForeignCurrencyCount: number }>> {
+  const normalized = currency.toUpperCase();
+  const result = new Map<string, { total: MoneyValue; excludedForeignCurrencyCount: number }>();
+  for (const projectId of projectIds) {
+    result.set(projectId, { total: zeroMoney(normalized), excludedForeignCurrencyCount: 0 });
+  }
+  if (projectIds.length === 0) return result;
+
+  const agreements = await db
+    .select({
+      id: subcontractAgreements.id,
+      projectId: subcontractAgreements.projectId,
+      vendorId: subcontractAgreements.vendorId,
+      currency: subcontractAgreements.currency,
+      originalAmount: subcontractAgreements.originalAmount,
+    })
+    .from(subcontractAgreements)
+    .where(
+      and(
+        eq(subcontractAgreements.organizationId, organizationId),
+        inArray(subcontractAgreements.projectId, [...projectIds]),
+        inArray(subcontractAgreements.status, [...ACTIVE_SUBCONTRACT_STATUSES]),
+        isNull(subcontractAgreements.archivedAt),
+      ),
+    );
+
+  if (agreements.length === 0) return result;
+
+  const agreementIds = agreements.map((row) => row.id);
+  const events = await db
+    .select()
+    .from(subcontractValueEvents)
+    .where(
+      and(
+        eq(subcontractValueEvents.organizationId, organizationId),
+        inArray(subcontractValueEvents.subcontractId, agreementIds),
+      ),
+    );
+
+  const eventsByAgreement = new Map<string, typeof events>();
+  for (const event of events) {
+    const list = eventsByAgreement.get(event.subcontractId) ?? [];
+    list.push(event);
+    eventsByAgreement.set(event.subcontractId, list);
+  }
+
+  const recognizedByAgreement = await loadRecognizedActualByAgreement(
+    db,
+    organizationId,
+    agreementIds,
+    normalized,
+  );
+  const poByProjectVendor = await loadOpenPoCommittedByVendorForProjects(
+    db,
+    organizationId,
+    projectIds,
+    normalized,
+  );
+
+  const agreementsByProject = new Map<string, typeof agreements>();
+  for (const agreement of agreements) {
+    if (!agreement.projectId) continue;
+    const list = agreementsByProject.get(agreement.projectId) ?? [];
+    list.push(agreement);
+    agreementsByProject.set(agreement.projectId, list);
+  }
+
+  for (const [projectId, projectAgreements] of agreementsByProject) {
+    let excludedForeignCurrencyCount = 0;
+    const commitmentInputs: SubcontractAgreementCommitmentInput[] = [];
+    for (const agreement of projectAgreements) {
+      if (agreement.currency.toUpperCase() !== normalized) {
+        excludedForeignCurrencyCount += 1;
+        continue;
+      }
+      const agreementEvents = (eventsByAgreement.get(agreement.id) ?? []).map((event) => ({
+        ...event,
+        kind: event.kind as SubcontractValueEventKind,
+      }));
+      const current = computeCurrentSubcontractValue(agreementEvents, agreement.currency);
+      const recognized =
+        recognizedByAgreement.get(agreement.id) ?? zeroMoney(agreement.currency);
+      commitmentInputs.push({
+        agreementId: agreement.id,
+        vendorId: agreement.vendorId,
+        currency: agreement.currency,
+        currentAmount: current.amount,
+        recognizedActualAmount: recognized.amount,
+      });
+    }
+
+    const poByVendor = poByProjectVendor.get(projectId) ?? new Map();
+    const total = sumSubcontractRemainingCommitment({
+      currency: normalized,
+      agreements: commitmentInputs,
+      openPoByVendor: [...poByVendor.entries()].map(([vendorId, amount]) => ({
+        vendorId,
+        amount,
+      })),
+    });
+
+    result.set(projectId, {
+      total: roundMoney(total),
+      excludedForeignCurrencyCount,
+    });
+  }
+
+  return result;
 }
 
 /** Recognized AP Actual for one subcontract agreement (card / drill-down). */
