@@ -20,7 +20,7 @@ describe('OWNER GATE — Overview / Financials UX structure', () => {
     );
   });
 
-  it('Financials primary order: Owner experience before billing, cash flow, advanced KPI', () => {
+  it('Financials primary order: Owner → billing → cash → KPI drilldowns → advanced', () => {
     const panel = readFileSync(
       join(root, 'src/modules/financials/ui/project-financials-panel.tsx'),
       'utf8',
@@ -29,13 +29,13 @@ describe('OWNER GATE — Overview / Financials UX structure', () => {
     const owner = body.search(/<Project\w*Actual\w*/);
     const billing = body.search(/billingCollection|billingCollectionTitle/);
     const cash = body.search(/<CashFlowView/);
-    const advanced = body.search(/advancedTitle/);
     const kpi = body.search(/<ProjectFinancialsKpiPanel/);
+    const advanced = body.search(/advancedTitle/);
     expect(owner).toBeGreaterThan(-1);
     expect(billing).toBeGreaterThan(owner);
     expect(cash).toBeGreaterThan(billing);
-    expect(advanced).toBeGreaterThan(cash);
-    expect(kpi).toBeGreaterThan(advanced);
+    expect(kpi).toBeGreaterThan(cash);
+    expect(advanced).toBeGreaterThan(kpi);
   });
 
   it('Hebrew owner story values contain no English product jargon', () => {
