@@ -293,7 +293,10 @@ describe('migration journal', () => {
     expect(tags.indexOf('0066_workforce_time_integrity')).toBeLessThan(
       tags.indexOf('0067_time_entry_cost_snapshot_fill'),
     );
-    expect(tags.at(-1)).toBe('0067_time_entry_cost_snapshot_fill');
+    expect(tags.indexOf('0067_time_entry_cost_snapshot_fill')).toBeLessThan(
+      tags.indexOf('0068_rate_versions_working_days_per_month'),
+    );
+    expect(tags.at(-1)).toBe('0068_rate_versions_working_days_per_month');
 
     const sql66 = await readFile(
       path.join(MIGRATIONS_DIR, '0066_workforce_time_integrity.sql'),
@@ -309,6 +312,12 @@ describe('migration journal', () => {
       'utf8',
     );
     expect(sql67.length).toBeGreaterThan(0);
+
+    const sql68 = await readFile(
+      path.join(MIGRATIONS_DIR, '0068_rate_versions_working_days_per_month.sql'),
+      'utf8',
+    );
+    expect(sql68).toContain('working_days_per_month');
 
     const sql35 = await readFile(
       path.join(MIGRATIONS_DIR, '0035_boq_integrity_closure.sql'),

@@ -83,6 +83,14 @@ export const createEmployeeSchema = z
       .optional()
       .nullable()
       .or(z.literal('')),
+    /** MONTHLY only — null inherits org default. */
+    workingDaysPerMonth: z
+      .string()
+      .trim()
+      .regex(/^\d+(\.\d{1,4})?$/)
+      .optional()
+      .nullable()
+      .or(z.literal('')),
     components: z.array(laborComponentSchema).optional(),
   })
   .superRefine((value, ctx) => {
@@ -142,6 +150,14 @@ export const createRateVersionSchema = z.object({
   burdenPercent: percentSchema,
   notes: z.string().trim().max(2000).optional().nullable(),
   components: z.array(laborComponentSchema).optional(),
+  /** MONTHLY only — null/omit inherits org workingDaysPerMonth. */
+  workingDaysPerMonth: z
+    .string()
+    .trim()
+    .regex(/^\d+(\.\d{1,4})?$/)
+    .optional()
+    .nullable()
+    .or(z.literal('')),
 });
 
 export type CreateRateVersionInput = z.infer<typeof createRateVersionSchema>;

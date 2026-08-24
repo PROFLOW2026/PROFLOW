@@ -118,6 +118,10 @@ export async function createRateVersion(
       rateUnit: input.rateUnit,
       currency,
       burdenPercent: input.burdenPercent ?? null,
+      workingDaysPerMonth:
+        input.rateUnit === 'monthly'
+          ? input.workingDaysPerMonth?.trim() || null
+          : null,
       notes: input.notes ?? null,
     });
     if (!updated) throw new NotFoundError('Rate version');
@@ -180,6 +184,8 @@ export async function createRateVersion(
     rateUnit: input.rateUnit,
     currency,
     burdenPercent: input.burdenPercent ?? null,
+    workingDaysPerMonth:
+      input.rateUnit === 'monthly' ? input.workingDaysPerMonth?.trim() || null : null,
     notes: input.notes ?? null,
   });
 

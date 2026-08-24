@@ -260,6 +260,10 @@ export async function createEmployee(
       rateUnit: input.rateUnit,
       currency,
       burdenPercent,
+      workingDaysPerMonth:
+        input.rateUnit === 'monthly'
+          ? input.workingDaysPerMonth?.trim() || defaults?.workingDaysPerMonth || null
+          : null,
     });
 
     for (const component of components) {

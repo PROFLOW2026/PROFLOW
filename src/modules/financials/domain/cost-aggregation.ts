@@ -35,6 +35,10 @@ export interface ProjectExpenseContribution {
   /** Optional mapping for per-line budget Actual. Never guessed when absent. */
   readonly categoryKey?: string | null;
   readonly workPackageId?: string | null;
+  /** Optional vendor metadata for Owner Actual breakdown (engine ignores). */
+  readonly vendorId?: string | null;
+  readonly vendorName?: string | null;
+  readonly vendorType?: string | null;
 }
 
 export interface LaborCostContribution {

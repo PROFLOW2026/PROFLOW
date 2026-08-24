@@ -379,6 +379,11 @@ export default async function EmployeeDetailPage({
                 defaultRateUnit={currentRate?.rateUnit ?? 'monthly'}
                 defaultBaseRate={currentRate?.baseRate ?? ''}
                 defaultBurdenPercent={currentRate?.burdenPercent ?? ''}
+                defaultWorkingDaysPerMonth={
+                  currentRate?.workingDaysPerMonth ??
+                  laborDefaults?.workingDaysPerMonth ??
+                  null
+                }
               />
             ) : null}
             <div className="flex flex-col gap-3">

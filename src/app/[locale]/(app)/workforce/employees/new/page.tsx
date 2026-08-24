@@ -27,10 +27,13 @@ export default async function NewEmployeePage() {
     if (!hasPermission(context, PERMISSIONS.WORKFORCE_MANAGE)) {
       throw new AuthorizationError(PERMISSIONS.WORKFORCE_MANAGE);
     }
+    const { getLaborCostDefaultsForApply } = await import('@/modules/tenancy');
+    const laborDefaults = await getLaborCostDefaultsForApply(context).catch(() => null);
     return {
       currency: context.organization.baseCurrency,
       validFrom: todayInTimeZone(context.organization.timezone),
       linkableUsers: await listLinkableOrgMembers(context),
+      workingDaysPerMonth: laborDefaults?.workingDaysPerMonth ?? null,
     };
   });
 
@@ -42,6 +45,7 @@ export default async function NewEmployeePage() {
         defaultCurrency={defaults.currency}
         defaultValidFrom={defaults.validFrom}
         linkableUsers={defaults.linkableUsers}
+        defaultWorkingDaysPerMonth={defaults.workingDaysPerMonth}
       />
     </div>
   );

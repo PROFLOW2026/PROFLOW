@@ -16,6 +16,7 @@ function mapRateVersion(row: typeof rateVersions.$inferSelect): RateVersionRecor
     currency: row.currency,
     burdenPercent: row.burdenPercent,
     correctsRateVersionId: row.correctsRateVersionId,
+    workingDaysPerMonth: row.workingDaysPerMonth ?? null,
     notes: row.notes,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
@@ -49,6 +50,7 @@ export async function insertRateVersion(
     rateUnit: RateVersionRecord['rateUnit'];
     currency: string;
     burdenPercent?: string | null;
+    workingDaysPerMonth?: string | null;
     correctsRateVersionId?: string | null;
     notes?: string | null;
   },
@@ -64,6 +66,7 @@ export async function insertRateVersion(
       rateUnit: input.rateUnit,
       currency: input.currency,
       burdenPercent: input.burdenPercent ?? null,
+      workingDaysPerMonth: input.workingDaysPerMonth ?? null,
       correctsRateVersionId: input.correctsRateVersionId ?? null,
       notes: input.notes ?? null,
     })
@@ -126,20 +129,35 @@ export async function updateOpenRateVersionCompensation(
     readonly rateUnit: RateVersionRecord['rateUnit'];
     readonly currency: string;
     readonly burdenPercent?: string | null;
+    readonly workingDaysPerMonth?: string | null;
     readonly notes?: string | null;
   },
 ): Promise<RateVersionRecord | null> {
+  const patch: {
+    validFrom: string;
+    baseRate: string;
+    rateUnit: RateVersionRecord['rateUnit'];
+    currency: string;
+    burdenPercent: string | null;
+    notes: string | null;
+    updatedAt: Date;
+    workingDaysPerMonth?: string | null;
+  } = {
+    validFrom: input.validFrom,
+    baseRate: input.baseRate,
+    rateUnit: input.rateUnit,
+    currency: input.currency,
+    burdenPercent: input.burdenPercent ?? null,
+    notes: input.notes ?? null,
+    updatedAt: new Date(),
+  };
+  if (input.workingDaysPerMonth !== undefined) {
+    patch.workingDaysPerMonth = input.workingDaysPerMonth;
+  }
+
   const [row] = await db
     .update(rateVersions)
-    .set({
-      validFrom: input.validFrom,
-      baseRate: input.baseRate,
-      rateUnit: input.rateUnit,
-      currency: input.currency,
-      burdenPercent: input.burdenPercent ?? null,
-      notes: input.notes ?? null,
-      updatedAt: new Date(),
-    })
+    .set(patch)
     .where(
       and(
         eq(rateVersions.organizationId, input.organizationId),

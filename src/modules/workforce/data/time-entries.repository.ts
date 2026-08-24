@@ -30,7 +30,7 @@ import type {
  * (employee_id, YYYY-MM of work_date) matches an applied/closed
  * monthly_allocated employee_month_costs row (Displacement).
  */
-function notDisplacedByMonthlyAllocation(db: DbExecutor, organizationId: string) {
+export function notDisplacedByMonthlyAllocation(db: DbExecutor, organizationId: string) {
   if (!areEmployeeMonthCostsAvailable()) return null;
   return notExists(
     db
@@ -98,7 +98,7 @@ function mapTimeCode(row: typeof nonProjectTimeCodes.$inferSelect): NonProjectTi
   };
 }
 
-function effectiveLaborCostAmountExpr() {
+export function effectiveLaborCostAmountExpr() {
   return sql<string>`case
     when ${timeEntries.costAmount} is null then null
     when ${timeEntries.excessHours} is null or ${timeEntries.excessHours} = 0 then ${timeEntries.costAmount}

@@ -56,6 +56,7 @@ export async function createEmployeeAction(
     employeeNumber: formData.get('employeeNumber') || null,
     userId: formData.get('userId') || null,
     standardHoursPerDay: formData.get('standardHoursPerDay') || null,
+    workingDaysPerMonth: formData.get('workingDaysPerMonth') || null,
   });
 
   if (!parsed.success) {
@@ -186,6 +187,7 @@ export async function createRateVersionAction(
     rateUnit: formData.get('rateUnit'),
     currency: formData.get('currency') || undefined,
     burdenPercent: formData.get('burdenPercent') || null,
+    workingDaysPerMonth: formData.get('workingDaysPerMonth') || null,
     notes: formData.get('notes') || null,
   });
 

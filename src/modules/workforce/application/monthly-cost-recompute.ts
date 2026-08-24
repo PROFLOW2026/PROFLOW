@@ -1,9 +1,10 @@
 /**
- * Automatic monthly employer-cost allocation for MONTHLY employees.
+ * Automatic monthly employer-cost allocation for MONTHLY employees only.
  *
- * Derives the month pool from effective compensation + burden/components,
- * allocates by approved project vs non-project hours, applies the run
- * (displacement), and never converts monthly pay via workingDaysPerMonth.
+ * Open month: recognize accrued working-day cost (P / workingDaysPerMonth × days),
+ * attribute day-by-day via approved hours. Never apply the full month early.
+ * Past / completed calendar months: recognize full month pool.
+ * HOURLY / DAILY paths are untouched.
  */
 
 import { DomainRuleError, NotFoundError } from '@/shared/errors';
@@ -11,10 +12,18 @@ import { toNumericString } from '@/shared/money';
 import { withTransaction } from '@/shared/db';
 import type { OrgContext } from '@/shared/auth/context';
 import { isMonthClosed } from '@/modules/month-close';
+import {
+  LABOR_COST_DEFAULTS_SETTING_KEY,
+  parseLaborCostDefaults,
+  resolveOrgWorkWeekdays,
+  getOrganizationSettingValue,
+} from '@/modules/tenancy';
+import { todayInTimeZone } from '@/shared/dates';
 import { findEmployeeById } from '../data/employees.repository';
 import {
   findEmployeeMonthCostByEmployeeMonth,
   insertEmployeeMonthCostDraft,
+  supersedeEmployeeMonthCost,
   updateEmployeeMonthCostDraft,
 } from '../data/employee-month-costs.repository';
 import {
@@ -29,18 +38,17 @@ import {
   listRateVersionsByEmployee,
 } from '../data/rate-versions.repository';
 import { listTimeEntries } from '../data/time-entries.repository';
-import {
-  allocateConservedAmountByHours,
-  NON_PROJECT_COST_BUCKET,
-} from '../domain/conserved-hour-allocation';
+import { NON_PROJECT_COST_BUCKET } from '../domain/conserved-hour-allocation';
 import { calculateMonthlyEmployerCostPoolForMonth } from '../domain/employer-cost-pool';
 import { areEmployeeMonthCostsAvailable } from '../domain/monthly-cost-gates';
+import {
+  allocateMonthlyRecognizedPoolByWorkDays,
+  listConfiguredWorkDatesInRange,
+  monthDateBounds,
+  pickWorkingDaysPerMonthForMonth,
+  recognizeMonthlyEmployerPoolToDate,
+} from '../domain/monthly-accrual';
 import type { RateVersionRecord } from '../domain/types';
-
-function daysInCalendarMonth(yearMonth: string): number {
-  const [y, m] = yearMonth.split('-').map(Number);
-  return new Date(Date.UTC(y!, m!, 0)).getUTCDate();
-}
 
 export interface MonthlyCostRecomputeResult {
   readonly skipped: boolean;
@@ -49,18 +57,23 @@ export interface MonthlyCostRecomputeResult {
     | 'month_costs_unavailable'
     | 'not_monthly'
     | 'no_monthly_pool'
+    | 'working_days_unavailable'
     | 'month_closed'
+    | 'future_month'
     | 'employee_missing';
   readonly yearMonth: string;
   readonly employeeId: string;
   readonly knownAmount: string | null;
   readonly allocatedToProjects: string | null;
   readonly unallocated: string | null;
+  readonly workingDaysPerMonth: string | null;
+  readonly recognizedWorkDayCount: number | null;
+  readonly recognizeFullMonth: boolean | null;
 }
 
 /**
  * Idempotent open-month recompute for one monthly employee.
- * Closed months are skipped (historical correction path).
+ * Closed org months and closed employee-month rows are skipped.
  */
 export async function recomputeMonthlyEmployeeCostForOpenMonth(
   context: OrgContext,
@@ -74,6 +87,9 @@ export async function recomputeMonthlyEmployeeCostForOpenMonth(
     knownAmount: null,
     allocatedToProjects: null,
     unallocated: null,
+    workingDaysPerMonth: null,
+    recognizedWorkDayCount: null,
+    recognizeFullMonth: null,
   };
 
   if (!areEmployeeMonthCostsAvailable()) {
@@ -124,50 +140,103 @@ export async function recomputeMonthlyEmployeeCostForOpenMonth(
   });
 
   if (!poolResult) {
-    // Not a monthly employee for this month (hourly/daily/no rate).
     return { ...base, reason: 'not_monthly' };
   }
 
-  const lastDay = String(daysInCalendarMonth(yearMonth)).padStart(2, '0');
-  const fromDate = `${yearMonth}-01`;
-  const toDate = `${yearMonth}-${lastDay}`;
+  const defaultsRaw = await getOrganizationSettingValue<unknown>(
+    context.db,
+    context.organizationId,
+    LABOR_COST_DEFAULTS_SETTING_KEY,
+  );
+  const laborDefaults = parseLaborCostDefaults(defaultsRaw);
+  const workingDaysPerMonth = pickWorkingDaysPerMonthForMonth({
+    yearMonth,
+    versions,
+    orgWorkingDaysPerMonth: laborDefaults.workingDaysPerMonth,
+  });
+  if (!workingDaysPerMonth) {
+    return { ...base, reason: 'working_days_unavailable' };
+  }
+
+  const workWeekdays = resolveOrgWorkWeekdays(laborDefaults);
+  const { fromDate, toDate: monthEnd } = monthDateBounds(yearMonth);
+  const today = todayInTimeZone(context.organization.timezone);
+  const currentYearMonth = today.slice(0, 7);
+  if (yearMonth > currentYearMonth) {
+    return { ...base, reason: 'future_month' };
+  }
+  const recognizeFullMonth = yearMonth < currentYearMonth || today >= monthEnd;
+  const asOfDate = recognizeFullMonth ? monthEnd : today;
+
+  const coverageStart =
+    employee.hireDate && employee.hireDate > fromDate ? employee.hireDate : fromDate;
+  const coverageEnd =
+    employee.endDate && employee.endDate < asOfDate ? employee.endDate : asOfDate;
+  const rangeStart = coverageStart;
+  const rangeEnd = coverageEnd < rangeStart ? rangeStart : coverageEnd;
+
+  const hasCoverage = (date: string): boolean => {
+    if (employee.hireDate && date < employee.hireDate) return false;
+    if (employee.endDate && date > employee.endDate) return false;
+    return versions.some(
+      (v) =>
+        v.rateUnit === 'monthly' &&
+        v.validFrom <= date &&
+        (v.validTo == null || v.validTo >= date),
+    );
+  };
+
+  const workDates = listConfiguredWorkDatesInRange({
+    fromDate: rangeStart,
+    toDate: rangeEnd,
+    workWeekdays,
+    hasCoverage,
+  });
+
+  const recognition = recognizeMonthlyEmployerPoolToDate({
+    fullMonthlyEmployerCost: poolResult.pool,
+    workingDaysPerMonth,
+    accruedWorkDayCount: workDates.length,
+    recognizeFullMonth,
+  });
 
   const entries = await listTimeEntries(context.db, context.organizationId, {
     employeeId,
     fromDate,
-    toDate,
+    toDate: monthEnd,
     forCosting: true,
     limit: 10_000,
   });
 
-  const hoursByProject = new Map<string, number>();
-  let nonProjectHours = 0;
+  const hoursByDate = new Map<string, { key: string; hours: string }[]>();
   for (const entry of entries) {
+    if (!recognizeFullMonth && entry.workDate > asOfDate) {
+      continue;
+    }
     const hours = Number(entry.hours);
     if (!Number.isFinite(hours) || hours <= 0) continue;
-    if (entry.kind === 'project' && entry.projectId) {
-      hoursByProject.set(entry.projectId, (hoursByProject.get(entry.projectId) ?? 0) + hours);
+    const key =
+      entry.kind === 'project' && entry.projectId ? entry.projectId : NON_PROJECT_COST_BUCKET;
+    const list = hoursByDate.get(entry.workDate) ?? [];
+    const existing = list.find((b) => b.key === key);
+    if (existing) {
+      existing.hours = String(Number(existing.hours) + hours);
     } else {
-      nonProjectHours += hours;
+      list.push({ key, hours: String(hours) });
     }
+    hoursByDate.set(entry.workDate, list);
   }
 
-  const buckets = [
-    ...[...hoursByProject.entries()].map(([projectId, hours]) => ({
-      key: projectId,
-      hours: String(hours),
-    })),
-    ...(nonProjectHours > 0
-      ? [{ key: NON_PROJECT_COST_BUCKET, hours: String(nonProjectHours) }]
-      : []),
-  ];
-
-  const allocation = allocateConservedAmountByHours({
-    knownAmount: poolResult.pool,
-    buckets,
+  const allocation = allocateMonthlyRecognizedPoolByWorkDays({
+    recognizedPool: recognition.recognizedPool,
+    fullMonthlyEmployerCost: poolResult.pool,
+    workingDaysPerMonth,
+    workDates,
+    hoursByDate,
   });
 
-  const knownAmountStr = toNumericString(poolResult.pool);
+  const knownAmountStr = toNumericString(recognition.recognizedPool);
+  const fullExpectedStr = toNumericString(poolResult.pool);
 
   await withTransaction(context.db, async (tx) => {
     let month = await findEmployeeMonthCostByEmployeeMonth(
@@ -184,18 +253,38 @@ export async function recomputeMonthlyEmployeeCostForOpenMonth(
       );
     }
 
+    // Reopen applied months for rewrite. Superseding an applied run demotes the
+    // month to draft via SQL displacement. If the month stays applied (orphan /
+    // draft-only inconsistency), supersede the month row and insert a fresh draft.
     if (month?.status === 'applied') {
       const active = await findActiveLaborAllocationRun(tx, context.organizationId, month.id);
-      if (active?.status === 'applied') {
-        await supersedeActiveLaborRunsForMonth(tx, context.organizationId, month.id);
+      if (active) {
+        // Applied run → displacement demotes month to draft.
+        // Draft run alone does not demote an applied month — delete it, then
+        // fall through to month-row supersede if still applied.
+        if (active.status === 'applied') {
+          await supersedeActiveLaborRunsForMonth(tx, context.organizationId, month.id);
+        } else if (active.status === 'draft') {
+          await deleteDraftLaborAllocationRun(tx, context.organizationId, active.id);
+        }
       }
+
       month = await findEmployeeMonthCostByEmployeeMonth(
         tx,
         context.organizationId,
         employeeId,
         yearMonth,
       );
+
+      if (month?.status === 'applied') {
+        // Orphan applied month (no applied run left to demote via trigger).
+        await supersedeActiveLaborRunsForMonth(tx, context.organizationId, month.id);
+        await supersedeEmployeeMonthCost(tx, context.organizationId, month.id);
+        month = null;
+      }
     }
+
+    const accrualNotes = `Auto monthly accrual (full month expected ${fullExpectedStr}; ${workingDaysPerMonth} work days/mo; recognized ${recognition.recognizedWorkDayCount} day(s))`;
 
     if (!month) {
       month = await insertEmployeeMonthCostDraft(tx, {
@@ -208,7 +297,7 @@ export async function recomputeMonthlyEmployeeCostForOpenMonth(
         knownAmount: knownAmountStr,
         knownQuality: 'estimated',
         source: 'compensation_derived',
-        notes: 'Auto-derived from monthly compensation + approved work',
+        notes: accrualNotes,
       });
     } else if (month.status === 'draft') {
       const updated = await updateEmployeeMonthCostDraft(tx, context.organizationId, month.id, {
@@ -216,13 +305,13 @@ export async function recomputeMonthlyEmployeeCostForOpenMonth(
         actualAmount: null,
         knownAmount: knownAmountStr,
         knownQuality: 'estimated',
-        notes: 'Auto-derived from monthly compensation + approved work',
+        notes: accrualNotes,
       });
       if (!updated) throw new NotFoundError('Employee month cost');
       month = updated;
     } else {
       throw new DomainRuleError(
-        'Unexpected month cost status during recompute',
+        `Unexpected month cost status during recompute: ${month.status}`,
         'workforce.errors.monthCostImmutable',
       );
     }
@@ -230,6 +319,30 @@ export async function recomputeMonthlyEmployeeCostForOpenMonth(
     const prior = await findActiveLaborAllocationRun(tx, context.organizationId, month.id);
     if (prior?.status === 'applied') {
       await supersedeActiveLaborRunsForMonth(tx, context.organizationId, month.id);
+      // Displacement may have flipped month; ensure we still have a draft row.
+      const afterSupersede = await findEmployeeMonthCostByEmployeeMonth(
+        tx,
+        context.organizationId,
+        employeeId,
+        yearMonth,
+      );
+      if (afterSupersede?.status === 'applied') {
+        await supersedeEmployeeMonthCost(tx, context.organizationId, afterSupersede.id);
+        month = await insertEmployeeMonthCostDraft(tx, {
+          organizationId: context.organizationId,
+          employeeId,
+          yearMonth,
+          currency,
+          estimatedAmount: knownAmountStr,
+          actualAmount: null,
+          knownAmount: knownAmountStr,
+          knownQuality: 'estimated',
+          source: 'compensation_derived',
+          notes: accrualNotes,
+        });
+      } else if (afterSupersede) {
+        month = afterSupersede;
+      }
     } else if (prior?.status === 'draft') {
       await deleteDraftLaborAllocationRun(tx, context.organizationId, prior.id);
     }
@@ -237,11 +350,11 @@ export async function recomputeMonthlyEmployeeCostForOpenMonth(
     const run = await insertDraftLaborAllocationRun(tx, {
       organizationId: context.organizationId,
       employeeMonthCostId: month.id,
-      method: 'hours',
+      method: 'days',
       currency,
       allocatedAmount: toNumericString(allocation.allocatedToProjects),
       unallocatedAmount: toNumericString(allocation.nonProjectOrUnallocated),
-      explanation: 'Auto allocation from approved work distribution',
+      explanation: `Monthly accrued allocation (${recognition.recognizedWorkDayCount} work day(s) × derived daily)`,
       supersedesRunId: prior?.status === 'applied' ? prior.id : null,
       lines: allocation.projectLines.map((line, index) => ({
         projectId: line.key,
@@ -267,6 +380,9 @@ export async function recomputeMonthlyEmployeeCostForOpenMonth(
     knownAmount: knownAmountStr,
     allocatedToProjects: toNumericString(allocation.allocatedToProjects),
     unallocated: toNumericString(allocation.nonProjectOrUnallocated),
+    workingDaysPerMonth,
+    recognizedWorkDayCount: recognition.recognizedWorkDayCount,
+    recognizeFullMonth,
   };
 }
 
@@ -290,7 +406,7 @@ export async function recomputeMonthlyEmployeeCostsForDates(
 
 /**
  * After compensation change: recompute open months that have approved time,
- * plus the current calendar month (so admin/no-time months still recognize cost).
+ * plus the current calendar month (so admin/no-time months still accrue).
  */
 export async function recomputeOpenMonthsAfterCompensationChange(
   context: OrgContext,
@@ -311,9 +427,8 @@ export async function recomputeOpenMonthsAfterCompensationChange(
     limit: 10_000,
   });
   const months = new Set(entries.map((e) => e.workDate.slice(0, 7)));
-  const now = new Date();
-  const currentMonth = `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, '0')}`;
-  months.add(currentMonth);
+  const today = todayInTimeZone(context.organization.timezone);
+  months.add(today.slice(0, 7));
 
   const results: MonthlyCostRecomputeResult[] = [];
   for (const yearMonth of [...months].sort()) {

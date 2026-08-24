@@ -10,9 +10,10 @@ import { isZeroMoney, negateMoney } from '@/shared/money';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { getProjectCashFlowOutlook } from '../application/get-project-cash-flow';
-import { loadCachedProjectFinancials } from './load-cached-project-financials';
+import { loadCachedProjectFinancials } from '../application/load-cached-project-financials';
 import { CashFlowView } from './cash-flow-view';
 import { mapCoverageToSources, standalonePartialNotes } from './map-coverage-sources';
+import { ProjectOwnerActualExperience } from './project-owner-actual-experience';
 import { ProjectFinancialsKpiPanel } from './project-financials-kpi-panel';
 import { ExpectedRemainingCostForm } from './expected-remaining-cost-form';
 import { BillingPlanStatusStrip } from '@/modules/billing-plan/ui/billing-plan-status-strip';
@@ -66,28 +67,41 @@ export async function ProjectFinancialsPanel({ projectId }: ProjectFinancialsPan
 
   return (
     <div className="flex min-w-0 max-w-full flex-col gap-4">
+      <h3 className="text-base font-semibold">{t('panelTitle')}</h3>
+
       {canReadBilling ? (
         <BillingPlanStatusStrip projectId={projectId} />
       ) : null}
-      <Card>
-        <CardHeader>
-          <CardTitle>{t('panelTitle')}</CardTitle>
-          <CardDescription>{financials.currency}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <ProjectFinancialsKpiPanel
-            projectId={projectId}
-            financials={financials}
-            canReadProfit={canReadProfit}
-            canReadBilling={canReadBilling}
-            canReadCommercial={canReadCommercial}
-            canReadAp={canReadAp}
-            t={t}
-          />
-        </CardContent>
-      </Card>
 
-      <ProjectVendorActualPanel projectId={projectId} />
+      <ProjectOwnerActualExperience projectId={projectId} variant="financials" />
+
+      {canReadBilling ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>{t('ownerStory.billingCollectionTitle')}</CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-2 text-sm">
+            {financials.commercial ? (
+              <div className="flex justify-between gap-2">
+                <span className="text-[var(--pf-text-secondary)]">{t('ownerStory.currentContract')}</span>
+                <MoneyText value={financials.commercial.currentContractValue} />
+              </div>
+            ) : null}
+            <div className="flex justify-between gap-2">
+              <span className="text-[var(--pf-text-secondary)]">{t('ownerStory.billed')}</span>
+              <MoneyText value={financials.billing.invoiced} />
+            </div>
+            <div className="flex justify-between gap-2">
+              <span className="text-[var(--pf-text-secondary)]">{t('ownerStory.collected')}</span>
+              <MoneyText value={financials.billing.paid} />
+            </div>
+            <div className="flex justify-between gap-2">
+              <span className="text-[var(--pf-text-secondary)]">{t('ownerStory.outstanding')}</span>
+              <MoneyText value={financials.billing.outstanding} />
+            </div>
+          </CardContent>
+        </Card>
+      ) : null}
 
       {canReadCommercial && (financials.perContract?.length ?? 0) > 1 ? (
         <Card>
@@ -145,6 +159,17 @@ export async function ProjectFinancialsPanel({ projectId }: ProjectFinancialsPan
         />
       ) : null}
 
+      <ProjectFinancialsKpiPanel
+        projectId={projectId}
+        financials={financials}
+        canReadProfit={canReadProfit}
+        canReadBilling={canReadBilling}
+        canReadCommercial={canReadCommercial}
+        canReadAp={canReadAp}
+        t={t}
+      />
+      <ProjectVendorActualPanel projectId={projectId} />
+
       <details className="rounded-lg border border-[var(--pf-border-default)] p-4">
         <summary
           className={cn(
@@ -152,7 +177,7 @@ export async function ProjectFinancialsPanel({ projectId }: ProjectFinancialsPan
             'inline-flex min-h-11 cursor-pointer items-center text-sm font-medium text-[var(--pf-text-brand)] active:scale-100 active:opacity-80',
           )}
         >
-          {t('moreInfo')}
+          {t('ownerStory.advancedTitle')}
         </summary>
         <div className="mt-4 flex flex-col gap-4 text-sm">
           {canReadCommercial && financials.commercial ? (

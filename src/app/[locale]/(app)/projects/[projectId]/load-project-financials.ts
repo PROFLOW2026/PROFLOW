@@ -1,1 +1,1 @@
-export { loadCachedProjectFinancials as loadProjectFinancials } from '@/modules/financials/ui/load-cached-project-financials';
+export { loadCachedProjectFinancials as loadProjectFinancials } from '@/modules/financials/application/load-cached-project-financials';

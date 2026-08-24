@@ -22,6 +22,8 @@ export interface EmployeeFormProps {
   readonly defaultValidFrom?: string;
   readonly showRateFields?: boolean;
   readonly linkableUsers?: readonly OrgMemberLinkOption[];
+  /** Org default for MONTHLY working-days field. */
+  readonly defaultWorkingDaysPerMonth?: string | null;
 }
 
 /**
@@ -33,12 +35,16 @@ export function EmployeeForm({
   defaultCurrency,
   showRateFields = true,
   linkableUsers = [],
+  defaultWorkingDaysPerMonth = null,
 }: EmployeeFormProps) {
   const t = useTranslations('workforce');
   const tCommon = useTranslations('common');
   const [rateUnit, setRateUnit] = useState<(typeof RATE_UNITS)[number]>('monthly');
   const [baseRate, setBaseRate] = useState('');
   const [burdenPercent, setBurdenPercent] = useState('');
+  const [workingDaysPerMonth, setWorkingDaysPerMonth] = useState(
+    defaultWorkingDaysPerMonth ?? '',
+  );
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [linkedUserId, setLinkedUserId] = useState(UNLINKED);
   const [state, formAction, pending] = useActionState(action, {});
@@ -121,6 +127,27 @@ export function EmployeeForm({
               </>
             )}
           </Field>
+
+          {rateUnit === 'monthly' ? (
+            <Field
+              label={t('employees.form.workingDaysPerMonth')}
+              description={t('employees.form.workingDaysPerMonthHint')}
+            >
+              {(control) => (
+                <Input
+                  {...control}
+                  name="workingDaysPerMonth"
+                  inputMode="decimal"
+                  value={workingDaysPerMonth}
+                  onChange={(event) => setWorkingDaysPerMonth(event.target.value)}
+                  placeholder={defaultWorkingDaysPerMonth ?? '22'}
+                  dir="ltr"
+                />
+              )}
+            </Field>
+          ) : (
+            <input type="hidden" name="workingDaysPerMonth" value="" />
+          )}
 
           <Field
             label={t('employees.form.standardHoursPerDay')}

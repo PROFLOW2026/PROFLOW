@@ -4,7 +4,7 @@ import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { withOrgContext } from '@/shared/auth/session';
 import { fromNumericString, zeroMoney } from '@/shared/money/money';
-import { loadCachedProjectFinancials } from '@/modules/financials/ui/load-cached-project-financials';
+import { loadCachedProjectFinancials } from '@/modules/financials/application/load-cached-project-financials';
 import { getProjectBudgetWorkspace } from '../application/queries';
 import { BudgetVarianceSummary } from './budget-variance-summary';
 import { BudgetLineControlList } from './budget-line-control-list';

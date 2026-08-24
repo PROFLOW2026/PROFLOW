@@ -22,6 +22,8 @@ export interface AddRateVersionFormProps {
   /** Prefill so Owner can correct effective date without retyping salary. */
   readonly defaultBaseRate?: string;
   readonly defaultBurdenPercent?: string;
+  /** Org default working days/month — prefill for MONTHLY. */
+  readonly defaultWorkingDaysPerMonth?: string | null;
 }
 
 /**
@@ -35,6 +37,7 @@ export function AddRateVersionForm({
   defaultRateUnit = 'monthly',
   defaultBaseRate = '',
   defaultBurdenPercent = '',
+  defaultWorkingDaysPerMonth = null,
 }: AddRateVersionFormProps) {
   const t = useTranslations('workforce');
   const tCommon = useTranslations('common');
@@ -43,6 +46,9 @@ export function AddRateVersionForm({
     defaultBaseRate ? formatMoneyAmountForInput(defaultBaseRate, defaultCurrency) : '',
   );
   const [burdenPercent, setBurdenPercent] = useState(defaultBurdenPercent);
+  const [workingDaysPerMonth, setWorkingDaysPerMonth] = useState(
+    defaultWorkingDaysPerMonth ?? '',
+  );
   const [state, formAction, pending] = useActionState<WorkforceFormState, FormData>(
     createRateVersionAction,
     {},
@@ -102,6 +108,27 @@ export function AddRateVersionForm({
           </>
         )}
       </Field>
+
+      {rateUnit === 'monthly' ? (
+        <Field
+          label={t('employees.form.workingDaysPerMonth')}
+          description={t('employees.form.workingDaysPerMonthHint')}
+        >
+          {(control) => (
+            <Input
+              {...control}
+              name="workingDaysPerMonth"
+              inputMode="decimal"
+              value={workingDaysPerMonth}
+              onChange={(event) => setWorkingDaysPerMonth(event.target.value)}
+              placeholder={defaultWorkingDaysPerMonth ?? '22'}
+              dir="ltr"
+            />
+          )}
+        </Field>
+      ) : (
+        <input type="hidden" name="workingDaysPerMonth" value="" />
+      )}
 
       <Field
         label={t('employees.form.burdenPercent')}

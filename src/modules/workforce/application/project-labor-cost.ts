@@ -45,6 +45,11 @@ export async function getProjectLaborCost(
   const project = await findProjectById(context.db, context.organizationId, projectId);
   if (!project) throw new NotFoundError('Project');
 
+  const { ensureOpenMonthlyLaborFreshForProject } = await import(
+    './ensure-open-monthly-labor-fresh'
+  );
+  await ensureOpenMonthlyLaborFreshForProject(context, projectId);
+
   const currency = (project.currency ?? context.organization.baseCurrency).toUpperCase();
   const monthCostsReady = areEmployeeMonthCostsAvailable();
 

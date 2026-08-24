@@ -170,6 +170,11 @@ export const rateVersions = pgTable(
     baseRate: moneyAmount('base_rate').notNull(),
     rateUnit: rateUnitEnum('rate_unit').notNull().default('hourly'),
     currency: currencyCode().notNull(),
+    /**
+     * Optional monthly working-days denominator (MONTHLY rates only).
+     * NULL inherits organization labor_cost_defaults.workingDaysPerMonth.
+     */
+    workingDaysPerMonth: numeric('working_days_per_month', { precision: 8, scale: 4 }),
     /** Employer burden as a percentage on top of the base rate. */
     burdenPercent: percentAmount('burden_percent'),
     /** Set when this version corrects an earlier one rather than superseding it. */
@@ -194,6 +199,11 @@ export const rateVersions = pgTable(
     check(
       'rate_versions_cost_quality_known',
       sql`${table.costQuality} IN ('estimated', 'actual', 'mixed')`,
+    ),
+    check(
+      'rate_versions_working_days_per_month_range',
+      sql`${table.workingDaysPerMonth} IS NULL
+          OR (${table.workingDaysPerMonth} > 0 AND ${table.workingDaysPerMonth} <= 31)`,
     ),
   ],
 );

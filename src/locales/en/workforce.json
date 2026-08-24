@@ -90,6 +90,8 @@
       "notes": "Notes",
       "standardHoursPerDay": "Daily hours framework",
       "standardHoursPerDayHint": "Hours above this count as excess. Empty = organization default.",
+      "workingDaysPerMonth": "Working days per month",
+      "workingDaysPerMonthHint": "Denominator for monthly Project Actual (salary ÷ days). Defaults to the organization work framework; override on this compensation version only.",
       "submit": "Save employee",
       "advancedTitle": "Advanced (optional)",
       "advancedHint": "Contact details and burden. Skip if not needed.",
@@ -419,7 +421,13 @@
     "memberHours": "{hours} h · {count, plural, one {# entry} other {# entries}}",
     "assignmentNote": "Assignment ≠ labor Actual.",
     "showHistory": "Show history",
-    "hideHistory": "Hide history"
+    "hideHistory": "Hide history",
+    "laborActualTitle": "Labor Actual by employee",
+    "laborActualHint": "Same recognized labor as Project Actual · Employees — not assignment alone.",
+    "laborActualSummary": "{hours} hours · {count, plural, one {# employee} other {# employees}}",
+    "laborActualMissingCost": "Cost incomplete ({count, plural, one {# entry} other {# entries}} missing cost — not shown as ₪0)",
+    "laborActualEmployeeMeta": "{hours} h · {days} work days",
+    "laborActualCostUnavailable": "Cost unavailable"
   },
   "monthReview": {
     "title": "Monthly employer cost (optional advanced)",

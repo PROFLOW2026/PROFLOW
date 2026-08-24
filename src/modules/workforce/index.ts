@@ -108,6 +108,13 @@ export {
 export { getProjectLaborCost } from './application/project-labor-cost';
 export type { ProjectLaborCostSummary } from './application/project-labor-cost';
 
+export { loadProjectLaborByEmployee } from './data/project-labor-by-employee.repository';
+export type {
+  ProjectLaborByEmployeeAggregate,
+  ProjectLaborEmployeePeriodRow,
+  ProjectLaborEmployeeRow,
+} from './data/project-labor-by-employee.repository';
+
 /** Cross-module org-scoped lookups (FK / assignment seeds). */
 export { findEmployeeById } from './data/employees.repository';
 export { insertEmployeeProjectAssignment } from './data/project-team.repository';

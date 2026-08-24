@@ -4,6 +4,7 @@ import { MoneyText } from '@/components/patterns/money-text';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { SkeletonText } from '@/components/ui/skeleton';
 import { BillingPlanStatusStrip } from '@/modules/billing-plan/ui/billing-plan-status-strip';
+import { ProjectOwnerActualExperience } from '@/modules/financials/ui/project-owner-actual-experience';
 import { ProjectFinancialsSnapshot } from '@/modules/financials/ui/project-financials-snapshot';
 import { ProjectFinancialsSnapshotView } from '@/modules/financials/ui/project-financials-snapshot-view';
 import type { ProjectFinancials } from '@/modules/financials/domain/types';
@@ -206,6 +207,12 @@ export async function OverviewTab({
             )}
           </CardContent>
         </Card>
+
+        {canReadFinancials ? (
+          <Suspense fallback={<SkeletonText lines={8} />}>
+            <ProjectOwnerActualExperience projectId={detail.project.id} variant="overview" />
+          </Suspense>
+        ) : null}
 
         {canReadFinancials ? (
           <Card className="min-w-0 max-w-full">

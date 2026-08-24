@@ -70,6 +70,8 @@ export interface RateVersionRecord {
   readonly currency: string;
   readonly burdenPercent: string | null;
   readonly correctsRateVersionId: string | null;
+  /** MONTHLY only — null/undefined inherits org labor_cost_defaults.workingDaysPerMonth. */
+  readonly workingDaysPerMonth?: string | null;
   readonly notes: string | null;
   readonly createdAt: Date;
   readonly updatedAt: Date;

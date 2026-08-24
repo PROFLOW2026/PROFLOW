@@ -3,7 +3,7 @@ import { getTranslations } from 'next-intl/server';
 import { withOrgContext } from '@/shared/auth/session';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
-import { loadCachedProjectFinancials } from './load-cached-project-financials';
+import { loadCachedProjectFinancials } from '../application/load-cached-project-financials';
 import { ProjectFinancialsSnapshotView } from './project-financials-snapshot-view';
 
 /**

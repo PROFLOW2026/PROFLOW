@@ -10,6 +10,7 @@ import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { todayInTimeZone } from '@/shared/dates';
 import { Link } from '@/shared/i18n/navigation';
 import { canLogTime, canViewWorkforceCosts } from './employees-table';
+import { ProjectLaborActualSummary } from './project-labor-actual-summary';
 import { TimeEntriesTable } from './time-entries-table';
 
 export interface ProjectTimePanelProps {
@@ -130,6 +131,8 @@ export async function ProjectTimePanel({ projectId }: ProjectTimePanelProps) {
           {' - '}
           {t('projectPanel.assignmentNote')}
         </p>
+
+        <ProjectLaborActualSummary projectId={projectId} surface="time" />
 
         <TimeEntriesTable
           entries={entries.slice(0, 10)}

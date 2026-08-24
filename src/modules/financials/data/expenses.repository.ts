@@ -74,6 +74,8 @@ async function loadExpenseContributions(
       netAmount: expenses.netAmount,
       currency: expenses.currency,
       costFamily: expenses.costFamily,
+      vendorId: expenses.vendorId,
+      vendorName: vendors.name,
       vendorType: vendors.type,
       projectId: expenses.projectId,
       categoryKey: costCategories.key,
@@ -106,6 +108,8 @@ async function loadExpenseContributions(
       currency: expenseAllocations.currency,
       amountBasis: expenseAllocations.amountBasis,
       costFamily: expenses.costFamily,
+      vendorId: expenses.vendorId,
+      vendorName: vendors.name,
       vendorType: vendors.type,
       parentNetAmount: expenses.netAmount,
       parentGrossAmount: expenses.grossAmount,
@@ -137,6 +141,9 @@ async function loadExpenseContributions(
       expenseId: row.expenseId,
       categoryKey: row.categoryKey,
       workPackageId: row.workPackageId,
+      vendorId: row.vendorId,
+      vendorName: row.vendorName,
+      vendorType: row.vendorType,
     });
   }
 
@@ -163,6 +170,9 @@ async function loadExpenseContributions(
       expenseId: row.expenseId,
       categoryKey: row.lineCategoryKey ?? row.parentCategoryKey,
       workPackageId: row.workPackageId,
+      vendorId: row.vendorId,
+      vendorName: row.vendorName,
+      vendorType: row.vendorType,
     });
   }
 

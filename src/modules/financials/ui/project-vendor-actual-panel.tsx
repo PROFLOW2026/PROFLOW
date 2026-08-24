@@ -7,7 +7,7 @@ import { withOrgContext } from '@/shared/auth/session';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { loadProjectVendorActualBreakdown } from '../data/project-vendor-actual.repository';
-import { loadCachedProjectFinancials } from './load-cached-project-financials';
+import { loadCachedProjectFinancials } from '../application/load-cached-project-financials';
 
 export interface ProjectVendorActualPanelProps {
   readonly projectId: string;

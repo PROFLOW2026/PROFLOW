@@ -18,6 +18,7 @@ import { WithClientMessages } from '@/shared/i18n/with-client-messages';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { canManageWorkforce } from './employees-table';
+import { ProjectLaborActualSummary } from './project-labor-actual-summary';
 import { ProjectTeamRoster } from './project-team-roster';
 
 export interface ProjectTeamPanelProps {
@@ -88,6 +89,7 @@ export async function ProjectTeamPanel({ projectId }: ProjectTeamPanelProps) {
           canManage={data.allowManage}
           defaultStartDate={data.defaultStartDate}
         />
+        <ProjectLaborActualSummary projectId={projectId} surface="team" />
       </Card>
       <p className="text-start text-sm text-[var(--pf-text-muted)]">{t('projectPanel.assignmentNote')}</p>
 

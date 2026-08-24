@@ -470,6 +470,13 @@
                         "when":  1787420000000,
                         "tag":  "0067_time_entry_cost_snapshot_fill",
                         "breakpoints":  true
+                    },
+                    {
+                        "idx":  67,
+                        "version":  "7",
+                        "when":  1787500000000,
+                        "tag":  "0068_rate_versions_working_days_per_month",
+                        "breakpoints":  true
                     }
                 ]
 }

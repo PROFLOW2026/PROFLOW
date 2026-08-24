@@ -65,6 +65,8 @@
       "notes": "הערות",
       "standardHoursPerDay": "מסגרת שעות יומית",
       "standardHoursPerDayHint": "מעבר למסגרת זו הדיווח יסומן כחריגה. ריק = לפי ברירת המחדל של הארגון.",
+      "workingDaysPerMonth": "ימי עבודה בחודש",
+      "workingDaysPerMonthHint": "מכנה לעלות חודשית בפועל בפרויקט (שכר ÷ ימים). ברירת מחדל ממסגרת העבודה של הארגון; ניתן לדרוס בגרסת השכר הזו בלבד.",
       "submit": "שמירת עובד",
       "advancedTitle": "מתקדם (אופציונלי)",
       "advancedHint": "פרטי קשר והעמסה. אפשר לדלג.",
@@ -394,7 +396,13 @@
     "memberHours": "{hours} ש׳ · {count, plural, one {דיווח #} other {# דיווחים}}",
     "assignmentNote": "שיוך עובד לפרויקט אינו יוצר עלות עבודה בפועל.",
     "showHistory": "הצג היסטוריה",
-    "hideHistory": "הסתר היסטוריה"
+    "hideHistory": "הסתר היסטוריה",
+    "laborActualTitle": "עלות עבודה בפועל לפי עובד",
+    "laborActualHint": "אותה עלות עובדים כמו בפירוט העלות בפועל בפרויקט, לא שיוך בלבד.",
+    "laborActualSummary": "{hours} שעות · {count, plural, one {עובד #} other {# עובדים}}",
+    "laborActualMissingCost": "עלות חלקית ({count, plural, one {דיווח #} other {# דיווחים}} ללא עלות; לא מוצג כ־₪0)",
+    "laborActualEmployeeMeta": "{hours} ש׳ · {days} ימי עבודה",
+    "laborActualCostUnavailable": "עלות לא זמינה"
   },
   "monthReview": {
     "title": "עלות מעסיק חודשית (מתקדם, אופציונלי)",

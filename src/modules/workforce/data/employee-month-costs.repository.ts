@@ -153,6 +153,32 @@ export async function closeEmployeeMonthCost(
   return row ?? null;
 }
 
+/**
+ * Open-month rewrite path when an applied row cannot be demoted via run supersede
+ * (orphan applied / draft-run inconsistency). Allowed: applied → superseded.
+ */
+export async function supersedeEmployeeMonthCost(
+  db: DbExecutor,
+  organizationId: string,
+  id: string,
+): Promise<EmployeeMonthCostRow | null> {
+  const [row] = await db
+    .update(employeeMonthCosts)
+    .set({
+      status: 'superseded',
+      updatedAt: new Date(),
+    })
+    .where(
+      and(
+        eq(employeeMonthCosts.id, id),
+        eq(employeeMonthCosts.organizationId, organizationId),
+        eq(employeeMonthCosts.status, 'applied'),
+      ),
+    )
+    .returning();
+  return row ?? null;
+}
+
 export async function listActiveMonthCostsByYearMonthAsc(
   db: DbExecutor,
   organizationId: string,

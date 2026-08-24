@@ -3,7 +3,7 @@
  *
  * HOURLY → time-entry cost snapshot (hours × loaded hourly rate)
  * DAILY  → day-conserved allocation (filled by daily recompute; not per-entry ÷ day-hours)
- * MONTHLY → monthly pool allocation (filled by monthly recompute; NEVER ÷ workingDaysPerMonth)
+ * MONTHLY → monthly accrued allocation (workingDaysPerMonth denominator; open month ≠ full pool)
  */
 
 import Decimal from 'decimal.js';

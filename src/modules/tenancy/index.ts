@@ -301,6 +301,8 @@ export type { LaborCostDefaults, LaborCostDefaultComponent } from './domain/labo
 export {
   LABOR_COST_DEFAULTS_SETTING_KEY,
   parseLaborCostDefaults,
+  resolveOrgWorkWeekdays,
+  CANONICAL_WORK_WEEKDAYS,
 } from './domain/labor-cost-defaults';
 export type { OrganizationDomainRow } from './domain/organization-domains';
 export {

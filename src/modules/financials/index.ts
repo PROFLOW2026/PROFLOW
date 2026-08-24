@@ -154,4 +154,14 @@ export type {
   ApBillOverlapCandidate,
 } from './domain/expense-ap-overlap';
 export { loadRecognizedActualForSubcontractAgreement } from './data/subcontract-commitment.repository';
+export {
+  getCachedProjectActualBreakdown,
+  getProjectActualBreakdown,
+  getProjectLaborByEmployeeAggregate,
+} from './application/get-project-actual-breakdown';
+export type { ProjectActualBreakdownResult } from './application/get-project-actual-breakdown';
+export type {
+  ProjectActualBreakdown,
+  ProjectActualBreakdownCategoryKey,
+} from './domain/project-actual-breakdown';
 

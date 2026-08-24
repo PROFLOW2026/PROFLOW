@@ -1,7 +1,7 @@
 import 'server-only';
 import { cache } from 'react';
 import { withOrgContext } from '@/shared/auth/session';
-import { getProjectFinancials } from '../application/get-project-financials';
+import { getProjectFinancials } from './get-project-financials';
 
 /**
  * Request-scoped project financials (React `cache` only - not cross-request).
