@@ -11,6 +11,14 @@ const amountIncludesTaxSchema = z.preprocess((value) => {
   return value;
 }, z.boolean().optional());
 
+const booleanOptionalSchema = z.preprocess((value) => {
+  if (value === '' || value === null || value === undefined) return undefined;
+  if (typeof value === 'boolean') return value;
+  if (value === 'true' || value === '1' || value === 'on') return true;
+  if (value === 'false' || value === '0') return false;
+  return value;
+}, z.boolean().optional());
+
 const allocationMethodSchema = z.enum([
   'manual_amount',
   'manual_percent',
@@ -85,13 +93,67 @@ const expenseFieldsSchema = z.object({
   allocationScheduleMode: z.enum(['one_time', 'monthly', 'annual', 'custom']).nullable().optional(),
   /** Optional project filter for SHARED / explicit eligibility. */
   allocationProjectIds: z.array(z.string().uuid()).optional(),
+  /** Managerial Actual spread (1–120). Default 1 = full NET in the start month. */
+  installmentCount: z.preprocess((value) => {
+    if (value === '' || value === null || value === undefined) return undefined;
+    if (typeof value === 'number') return value;
+    if (typeof value === 'string') {
+      const parsed = Number(value.trim());
+      return Number.isFinite(parsed) ? parsed : value;
+    }
+    return value;
+  }, z.number().int().min(1).max(120).optional()),
+  installmentStartDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .nullable()
+    .optional(),
+  /** When true, NET books to inventory stock — not operating Actual (0069). */
+  inventoryStockPurchase: booleanOptionalSchema,
+  /** Required when inventoryStockPurchase is true. */
+  inventoryItemId: z.string().uuid().nullable().optional(),
+  /** Required when inventoryStockPurchase is true. */
+  inventoryPurchaseQty: z.string().trim().nullable().optional(),
 });
 
-export const createExpenseSchema = expenseFieldsSchema;
+function refineInventoryStockPurchase(
+  data: z.infer<typeof expenseFieldsSchema>,
+  ctx: z.RefinementCtx,
+): void {
+  if (!data.inventoryStockPurchase) return;
+  if (!data.inventoryItemId?.trim()) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['inventoryItemId'],
+      message: 'Required for inventory stock purchase',
+    });
+  }
+  const qty = data.inventoryPurchaseQty?.trim();
+  if (!qty) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['inventoryPurchaseQty'],
+      message: 'Required for inventory stock purchase',
+    });
+  } else {
+    const parsed = Number(qty);
+    if (!Number.isFinite(parsed) || parsed <= 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['inventoryPurchaseQty'],
+        message: 'Quantity must be positive',
+      });
+    }
+  }
+}
 
-export const updateExpenseSchema = expenseFieldsSchema.extend({
-  expenseId: z.string().uuid(),
-});
+export const createExpenseSchema = expenseFieldsSchema.superRefine(refineInventoryStockPurchase);
+
+export const updateExpenseSchema = expenseFieldsSchema
+  .extend({
+    expenseId: z.string().uuid(),
+  })
+  .superRefine(refineInventoryStockPurchase);
 
 export const expenseIdSchema = z.object({
   expenseId: z.string().uuid(),

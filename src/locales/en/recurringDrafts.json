@@ -1,6 +1,6 @@
 {
   "title": "Recurring drafts",
-  "subtitle": "Templates that create expense, vendor-bill, or billing drafts on a schedule. Generation never posts money - you still approve each draft.",
+  "subtitle": "Templates for fixed monthly business expenses and other recurring drafts. Generation creates drafts first; expenses can auto-finalize when the month is open.",
   "serviceRecurringLink": "For scheduled service calls (work orders), see Recurring work under Service.",
   "navFromSource": "Recurring drafts",
   "notAllowed": {
@@ -9,7 +9,7 @@
   },
   "empty": {
     "title": "No recurring drafts yet",
-    "body": "Save a template for rent, retainers, or regular vendor bills. Each run creates a draft only - nothing is approved or posted automatically.",
+    "body": "Save a fixed monthly business expense (rent, software) or other template. Each run creates a dated occurrence — past months keep their historical amount.",
     "action": "New recurring draft"
   },
   "list": {
@@ -34,6 +34,10 @@
     "vendor_bill": "Vendor bill",
     "billing_record": "Billing record"
   },
+  "managerialCostKind": {
+    "direct_project": "Direct project cost",
+    "general_business": "General business (overhead)"
+  },
   "status": {
     "active": "Active",
     "paused": "Paused",
@@ -47,7 +51,7 @@
   },
   "create": {
     "title": "New recurring draft",
-    "description": "The schedule only creates drafts. Approve the expense, post the vendor bill, or finalize billing separately.",
+    "description": "For a fixed monthly business expense, choose Expense + Monthly. Amount changes keep history for past months.",
     "submit": "Save template"
   },
   "edit": {
@@ -56,17 +60,28 @@
   },
   "detail": {
     "title": "Recurring draft",
+    "monthlyBusinessExpense": "Fixed monthly business expense",
     "schedule": "Schedule",
     "payload": "Draft preview",
     "history": "Generation history",
+    "amountHistory": "Amount history",
     "noHistory": "No drafts generated yet.",
+    "noAmountHistory": "No amount versions yet.",
     "openEntity": "Open draft",
     "lastGenerated": "Last generated",
     "neverGenerated": "Not generated yet",
-    "draftOnlyNote": "Generate now creates a draft only. It does not approve an expense, post a vendor bill, or finalize billing.",
+    "draftOnlyNote": "Generate now creates a draft first. Vendor bills and billing are never auto-posted.",
+    "autoFinalizeNote": "This template auto-finalizes expenses when the operational month is open. Closed months stay as drafts.",
     "backToList": "All recurring drafts",
     "edit": "Edit template",
     "intervalLabel": "Every {count, plural, =1 {one cycle} other {# cycles}}"
+  },
+  "historyBackfill": {
+    "title": "Backfill missing months",
+    "body": "Creates one occurrence per missing YYYY-MM with that month's date and historical amount. Closed months stay draft (no finalize).",
+    "from": "From month",
+    "to": "To month",
+    "submit": "Generate history"
   },
   "fields": {
     "title": "Title",
@@ -86,9 +101,18 @@
     "lineDescription": "Line description",
     "dueDays": "Due days after generation",
     "runDate": "Generation date",
+    "occurrenceMonth": "Month",
+    "validFrom": "Valid from",
+    "validTo": "Valid to",
+    "openEnded": "Current",
     "none": "None",
-    "overhead": "Business overhead (no project)",
-    "draftStatus": "Draft"
+    "yes": "Yes",
+    "no": "No",
+    "overhead": "General business costs (no project)",
+    "draftStatus": "Draft",
+    "managerialCostKind": "Cost attribution",
+    "autoFinalizeExpense": "Auto-finalize expense",
+    "autoFinalizeExpenseHint": "When the month is open, generated expenses become Actual automatically. Closed months remain draft."
   },
   "actions": {
     "pause": "Pause",
@@ -97,7 +121,7 @@
     "generate": "Generate draft now",
     "generateConfirm": "Create draft",
     "generateTitle": "Create a draft now?",
-    "generateBody": "This creates one draft from the template. Money is not posted until you approve or finalize that draft yourself."
+    "generateBody": "This creates one occurrence from the template for today. Expenses may finalize if auto-finalize is on and the month is open."
   },
   "success": {
     "created": "Template saved.",
@@ -105,7 +129,7 @@
     "paused": "Template paused.",
     "resumed": "Template resumed.",
     "ended": "Template ended.",
-    "generated": "Draft created. It is not posted."
+    "generated": "Occurrence created."
   },
   "confirm": {
     "endTitle": "End this template?",
@@ -121,8 +145,13 @@
     "notEditable": "Ended templates cannot be edited.",
     "endBeforeNext": "The end date cannot be before the next generation date.",
     "alreadyGeneratedToday": "A draft was already created from this template today.",
-    "mustRemainDraft": "Generation must stay a draft. Nothing was posted.",
-    "finalizeForbidden": "Recurring templates cannot auto-finalize.",
-    "kindMismatch": "The saved template type does not match the payload."
+    "alreadyGeneratedThisMonth": "A draft was already created for this template month.",
+    "mustRemainDraft": "Generation must create a draft first. Nothing was posted incorrectly.",
+    "finalizeForbidden": "Recurring templates cannot store auto-finalize on billing payloads.",
+    "kindMismatch": "The saved template type does not match the payload.",
+    "directProjectRequiresProject": "Direct project recurring expenses require a project.",
+    "managerialCostExpenseOnly": "Cost attribution applies only to expense templates.",
+    "historyMonthlyOnly": "History backfill is only for monthly templates.",
+    "historyRangeTooLarge": "Choose a shorter month range (max 240 months)."
   }
 }

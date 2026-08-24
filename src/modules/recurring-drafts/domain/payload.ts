@@ -1,8 +1,10 @@
 /**
  * Payload shaping for recurring financial DRAFT templates.
  *
- * HARD RULE: generation never finalizes an expense, never posts a vendor bill,
- * and never finalizes a billing record. `finalize` is always stripped.
+ * HARD RULE: stored payloads never carry `finalize: true`. Generation always
+ * creates draft entities first. Optional `auto_finalize_expense` on the template
+ * may finalize an expense afterward when the month is open (application layer).
+ * Vendor bills and billing records are never auto-posted.
  */
 
 import { addDays, businessDate, type BusinessDate } from '@/shared/dates';
@@ -93,6 +95,62 @@ export function expenseInputFromPayload(
     notes: data.notes ?? null,
     paymentMethod: data.paymentMethod ?? null,
   };
+}
+
+/** Current template amount/currency from stored payload (fallback for versions). */
+export function extractTemplateAmount(payload: StoredDraftPayload): {
+  readonly amount: string;
+  readonly currency: string;
+} {
+  switch (payload.kind) {
+    case 'expense':
+      return { amount: payload.data.amount, currency: payload.data.currency };
+    case 'vendor_bill':
+      return { amount: payload.data.totalAmount, currency: payload.data.currency };
+    case 'billing_record':
+      return {
+        amount: payload.data.amount,
+        currency: (payload.data.currency ?? 'ILS').toUpperCase(),
+      };
+  }
+}
+
+/** Apply a resolved amount onto a stored payload clone for one generation run. */
+export function withResolvedAmount(
+  payload: StoredDraftPayload,
+  amount: string,
+  currency: string,
+): StoredDraftPayload {
+  const ccy = currency.toUpperCase();
+  switch (payload.kind) {
+    case 'expense':
+      return { kind: 'expense', data: { ...payload.data, amount, currency: ccy } };
+    case 'vendor_bill':
+      return {
+        kind: 'vendor_bill',
+        data: {
+          ...payload.data,
+          totalAmount: amount,
+          currency: ccy,
+          lines:
+            payload.data.lines.length === 1
+              ? [
+                  {
+                    ...payload.data.lines[0]!,
+                    unitAmount: amount,
+                    lineTotal: amount,
+                    currency: ccy,
+                  },
+                ]
+              : payload.data.lines,
+        },
+      };
+    case 'billing_record':
+      return {
+        kind: 'billing_record',
+        data: { ...payload.data, amount, currency: ccy },
+      };
+  }
 }
 
 export function vendorBillDraftInsertFromPayload(

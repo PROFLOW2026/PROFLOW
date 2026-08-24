@@ -36,6 +36,7 @@ export {
   aggregateOrgCash,
   aggregateOrgCost,
   aggregateOrgProfit,
+  deriveRecognizedCompanyRevenue,
 } from './domain/aggregate-org-report';
 export { moneyMetric, sumMoneyMetrics } from './domain/report-metric';
 export type { MoneyReportMetric, CountReportMetric, ReportMetricKind } from './domain/report-metric';
@@ -86,6 +87,8 @@ export type {
 export { attachEntryBaselineContext } from './domain/entry-baseline-context';
 export { sumCommercialPositions, addCommercialPositions } from './domain/aggregate-commercial';
 export { computeProfitPosition, computeMarginPercent } from './domain/profit';
+export { resolveProjectProfitabilityDisplay } from './domain/project-profitability-display';
+export type { ProjectProfitabilityDisplay } from './domain/project-profitability-display';
 export { buildFinancialCoverage, ALL_COST_SOURCES } from './domain/coverage';
 export {
   resolveDataConfidence,
@@ -111,6 +114,7 @@ export type {
 export {
   aggregateProjectCosts,
   emptyCostPosition,
+  withAllocatedGeneralBusinessCost,
   withCommittedAndApPayable,
   withRecognizedVendorBills,
   computeForecastFinalCost,
@@ -121,6 +125,13 @@ export type {
   ForecastFinalCostInput,
 } from './domain/cost-aggregation';
 export { loadProjectExpenseContributions } from './data/expenses.repository';
+export {
+  loadInventoryConsumptionContributionsForProject,
+  loadInventoryConsumptionContributionsForProjects,
+  sumInventoryConsumptionsForProject,
+  sumInventoryConsumptionsForProjects,
+  sumInventoryWriteoffsForMonth,
+} from './data/inventory-consumptions.repository';
 export { loadProjectCommercialBundle } from './data/commercial.repository';
 export { loadProjectBillingRows } from './data/billing.repository';
 export type { ProjectBillingRows } from './data/billing.repository';
@@ -131,6 +142,48 @@ export {
   computeUnallocatedOrganizationCosts,
   expenseTotalsReconcile,
 } from './domain/org-cost-reconciliation';
+export {
+  buildGeneralCostSourceKey,
+  composeCompanyActual,
+  composeCompanyProfit,
+  composeCompanyActualFromOrgTotals,
+  laborConservation,
+  vendorBillConservation,
+  assertCompanyActualReconciles,
+  shouldSurfaceCompanyActual,
+  shouldSurfaceCompanyProfit,
+} from './domain/company-actual';
+export type {
+  CompanyActualComposition,
+  CompanyProfitComposition,
+  GeneralCostSourceAtom,
+  GeneralCostSourceKind,
+} from './domain/company-actual';
+export {
+  allocateGeneralPoolByDirectActual,
+  assertGeneralPoolConserves,
+  fullProjectActual,
+} from './domain/general-cost-allocation';
+export type {
+  GeneralPoolAllocationResult,
+  GeneralPoolAllocationLine,
+  ProjectDirectActualBasis,
+  GeneralAllocationBasisMode,
+} from './domain/general-cost-allocation';
+export {
+  recomputeGeneralCostMonth,
+  recomputeOpenGeneralCostMonthForDate,
+  refreshCurrentOpenGeneralCostMonthForSurfaces,
+  scheduleOpenGeneralCostRecompute,
+  tryRecomputeOpenGeneralCostMonth,
+} from './application/recompute-general-cost-month';
+export type { OpenGeneralCostMonthTarget } from './application/recompute-general-cost-month';
+export {
+  freezeGeneralCostMonth,
+  persistGeneralCostMonthRecompute,
+  sumGeneralAllocationsForProject,
+  sumGeneralAllocationsGroupedByProject,
+} from './data/general-cost-months.repository';
 
 export type {
   ProjectFinancials,

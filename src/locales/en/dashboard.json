@@ -84,7 +84,7 @@
       },
       "open_allocations": {
         "title": "Allocations not applied",
-        "description": "Allocation runs or overhead allocations are still open.",
+        "description": "Allocation runs or general business cost allocations are still open.",
         "why": "Costs reach projects only after apply — until then they stay outside project actual.",
         "action": "Finish allocations"
       },
@@ -165,7 +165,7 @@
       "cash": "Cash & receivables",
       "cashHint": "Invoice total and Paid are billing/cash amounts, including VAT if entered - not revenue for profit. Outstanding to collect is from open invoices. Forecast in/out uses due dates.",
       "cost": "Cost",
-      "costHint": "Project Actual Cost net, allocated overhead, commitments, ETC and Forecast Final Cost net. Unallocated business costs are shown separately and are not forced into project profit.",
+      "costHint": "Project Actual Cost net, general business costs allocated to the project, commitments, ETC and Forecast Final Cost net. Unallocated general business costs are shown separately and are not forced into project profit.",
       "profitability": "Profitability",
       "profitabilityHint": "Actual profit net = current contract net - actual project cost net. Forecast profit net = current contract net - forecast final cost net. VAT and invoice totals stay out of project profit.",
       "operations": "Operations",
@@ -183,7 +183,7 @@
       "apBillNeExpense": "Vendor bill ≠ Expense actual.",
       "forecastNeActual": "Forecast ≠ Actual / Paid.",
       "projectPlusUnallocatedEqualsOrgExpense": "Project-touching expense nets + unallocated organization costs = organization finalized expense total.",
-      "unallocatedNotInProjectProfit": "Unallocated business costs / costs awaiting allocation are not included in project Actual or project profit."
+      "unallocatedNotInProjectProfit": "Unallocated general business costs still awaiting allocation are not included in project profit. Automatic allocation is already included in project Actual."
     },
     "inclusions": {
       "primaryContractsBaseCurrency": "Includes: primary contracts in base currency",
@@ -197,8 +197,8 @@
       "recognizedVendorBills": "Includes: recognized posted vendor bills (Actual Vendor Cost)",
       "workforceCostedEntries": "Includes: workforce entries with rates",
       "subcontractorExpenses": "Includes: subcontractor expense lines",
-      "businessOverheadFamily": "Includes: business overhead expense family",
-      "allocatedOverheadOnProjects": "Includes: overhead allocated onto projects",
+      "businessOverheadFamily": "Includes: general business costs",
+      "allocatedOverheadOnProjects": "Includes: general business costs allocated to projects",
       "openPurchaseOrderCommitments": "Includes: open / partially consumed PO commitments",
       "projectExpectedRemainingEtc": "Includes: project expected remaining cost (ETC)",
       "unmatchedOpenApBills": "Includes: unmatched open vendor bills",
@@ -241,7 +241,7 @@
       "vatAsCost": "Excludes: inventing VAT as cost",
       "entriesMissingRate": "May understate when rates are missing",
       "incompleteCostCoverage": "May be incomplete when cost sources are not configured",
-      "unallocatedBusinessCosts": "Excludes: unallocated business costs / costs awaiting allocation",
+      "unallocatedBusinessCosts": "Excludes: unallocated general business costs / costs awaiting allocation",
       "projectActualCost": "Excludes: project Actual cost",
       "projectProfit": "Excludes: project profit / margin",
       "notifications": "Excludes: automated notifications (deferred)",

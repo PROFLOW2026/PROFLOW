@@ -9,9 +9,11 @@ import {
   enableAllCustomerCapabilities,
   resetCapabilitiesToBusinessProfile,
   saveWorkMix,
+  saveProjectProfitabilityMode,
   saveExperienceComplexity,
   isOptionalModuleKey,
   isWorkMix,
+  isProjectProfitabilityMode,
   isExperienceComplexityKey,
   parseModuleVisibilityMode,
   applyOrganizationProfessionPreset,
@@ -466,6 +468,27 @@ export async function setWorkMixAction(
 
   try {
     await withOrgContext((context) => saveWorkMix(context, workMix));
+    revalidatePath('/settings/features');
+    revalidatePath('/', 'layout');
+    return { ok: true };
+  } catch (error) {
+    if (error instanceof AppError) return { error: tErrors('unexpected') };
+    throw error;
+  }
+}
+
+export async function setProjectProfitabilityModeAction(
+  _prev: SettingsActionState,
+  formData: FormData,
+): Promise<SettingsActionState> {
+  const tErrors = await getTranslations('errors');
+  const mode = formValue(formData, 'projectProfitabilityMode');
+  if (!mode || !isProjectProfitabilityMode(mode)) {
+    return { error: tErrors('validationFailed') };
+  }
+
+  try {
+    await withOrgContext((context) => saveProjectProfitabilityMode(context, mode));
     revalidatePath('/settings/features');
     revalidatePath('/', 'layout');
     return { ok: true };

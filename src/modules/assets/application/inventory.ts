@@ -47,6 +47,7 @@ import {
   sumActiveReservedForItem,
 } from '../data/inventory-advanced.repository';
 import { consumeReservationsForIssue } from './inventory-reservations';
+import { consumeInventoryCostToProjectOnExecutor } from './inventory-cost';
 import {
   archiveInventoryLocationSchema,
   createInventoryItemSchema,
@@ -71,7 +72,8 @@ import type {
 /**
  * UX split (Wave 3): operational stock + movements live under /assets/inventory.
  * Materials catalog + vendor prices live under /procurement/materials.
- * Inventory movements update quantity_on_hand only - never Expense / GL / FIFO.
+ * Inventory movements update quantity_on_hand. Issue-to-project may optionally
+ * FIFO-burn managerial cost layers (consumeInventoryCostToProject) — never GL.
  */
 
 export type InventoryItemWithReorder = InventoryItemRecord & {
@@ -568,8 +570,9 @@ async function backfillHeaderOntoDefaultIfNeeded(
 }
 
 /**
- * Record stock movement. Updates location balances + quantity_on_hand only —
- * never GL / Expense / Actual / FIFO.
+ * Record stock movement. Updates location balances + quantity_on_hand.
+ * Never GL / Expense. Issue with projectId optionally FIFO-burns cost layers
+ * into project Actual via inventory_cost_consumptions (not a purchase expense).
  * Types: receive, issue, return, adjust (signed delta), transfer.
  */
 export async function recordInventoryMovement(
@@ -712,8 +715,9 @@ export async function recordInventoryMovement(
       toLocationId = to.id;
     }
 
-    // Hard rule: inventory qty is not GL and not Expense. Balances are applied
+  // Hard rule: inventory qty is not GL and not Expense. Balances are applied
     // by the movement INSERT trigger - never by rewriting location balances.
+    // Managerial FIFO cost (when layers exist) is separate from qty/GL.
     void isInventoryQuantityGlOrExpense();
 
     let movement: InventoryMovementRecord;
@@ -741,6 +745,18 @@ export async function recordInventoryMovement(
         projectId: movementProjectId,
         workOrderId: input.workOrderId ?? null,
       });
+
+      // Optional managerial cost: only when issued to a project and layers exist.
+      if (movementProjectId) {
+        await consumeInventoryCostToProjectOnExecutor(txContext, {
+          inventoryItemId: item.id,
+          quantity: normalizeQuantity(input.quantity),
+          occurredOn: input.occurredOn,
+          projectId: movementProjectId,
+          kind: 'project_consume',
+          movementId: movement.id,
+        });
+      }
     }
 
     const updated = await findInventoryItemById(tx, context.organizationId, item.id);
@@ -761,7 +777,7 @@ export async function recordInventoryMovement(
         quantityOnHand: updated.quantityOnHand,
         glPosted: false,
         expensePosted: false,
-        fifo: false,
+        fifoCostConsumed: Boolean(movementProjectId && input.movementType === 'issue'),
       },
     });
 

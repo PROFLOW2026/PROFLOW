@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { ExpenseForm } from '@/modules/expenses/ui/expense-form';
 import { decodeRecurrenceRule } from '@/modules/expenses/domain/recurrence';
 import { inferExpenseTaxModeFromAmounts } from '@/modules/expenses/domain/tax';
-import type { CostCategoryRow, ExpenseDetail, ProjectOption, VendorOption, WorkPackageOption } from '@/modules/expenses/domain/types';
+import type { CostCategoryRow, ExpenseDetail, InventoryItemOption, ProjectOption, VendorOption, WorkPackageOption } from '@/modules/expenses/domain/types';
 import type { AllocationDraft } from '@/modules/expenses/ui/allocation-editor';
 import { expensePayloadFromFormData } from '@/modules/offline/domain/payloads';
 import { useOfflineAwareFormAction } from '@/modules/offline/ui/use-offline-aware-form-action';
@@ -20,6 +20,7 @@ export interface ExpenseEditFormProps {
   readonly categories: readonly CostCategoryRow[];
   readonly workPackages: readonly WorkPackageOption[];
   readonly vendors?: readonly VendorOption[];
+  readonly inventoryItems?: readonly InventoryItemOption[];
   readonly taxRatePercent?: string | null;
 }
 
@@ -33,6 +34,7 @@ export function ExpenseEditForm({
   categories,
   workPackages,
   vendors = [],
+  inventoryItems = [],
   taxRatePercent = null,
 }: ExpenseEditFormProps) {
   const t = useTranslations('expenses');
@@ -100,6 +102,7 @@ export function ExpenseEditForm({
         categories={categories}
         workPackages={workPackages}
         vendors={vendors}
+        inventoryItems={inventoryItems}
         taxRatePercent={taxRatePercent}
         initialValues={{
           amount: taxMode.amount,
@@ -126,6 +129,11 @@ export function ExpenseEditForm({
           allocationPeriodStart: expense.allocationPeriodStart ?? '',
           allocationPeriodEnd: expense.allocationPeriodEnd ?? '',
           allocationScheduleMode: expense.allocationScheduleMode ?? '',
+          installmentCount: String(expense.installmentCount ?? 1),
+          installmentStartDate: expense.installmentStartDate ?? expense.expenseDate,
+          inventoryStockPurchase: expense.inventoryStockPurchase,
+          inventoryItemId: expense.inventoryItemId ?? '',
+          inventoryPurchaseQty: expense.inventoryPurchaseQty ?? '',
         }}
         error={state.error ?? null}
         fieldErrors={state.fieldErrors}

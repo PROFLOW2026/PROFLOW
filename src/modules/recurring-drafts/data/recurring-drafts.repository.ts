@@ -1,5 +1,6 @@
-import { and, desc, eq, isNull, ne } from 'drizzle-orm';
+import { and, asc, desc, eq, isNull, ne } from 'drizzle-orm';
 import {
+  recurringDraftAmountVersions,
   recurringFinancialDraftRuns,
   recurringFinancialDrafts,
 } from '@drizzle/schema';
@@ -9,15 +10,27 @@ import {
   resolveListLimit,
 } from '@/shared/db/list-limits';
 import type { DbExecutor } from '@/shared/db/types';
+import { asServiceRoleWrite } from '@/shared/db/service-role-write';
 import type {
   DraftFrequency,
   DraftKind,
   DraftStatus,
+  ManagerialCostKind,
+  RecurringDraftAmountVersionRecord,
   RecurringDraftListFilters,
   RecurringFinancialDraftRecord,
   RecurringFinancialDraftRunRecord,
 } from '../domain/types';
 import { isDraftFrequency, isDraftKind, isDraftStatus } from '../domain/types';
+import { isManagerialCostKind } from '../domain/managerial-cost';
+
+function mapManagerialCostKind(value: string | null): ManagerialCostKind | null {
+  if (value == null) return null;
+  if (!isManagerialCostKind(value)) {
+    throw new Error(`Unknown managerial cost kind: ${value}`);
+  }
+  return value;
+}
 
 function mapDraft(row: typeof recurringFinancialDrafts.$inferSelect): RecurringFinancialDraftRecord {
   if (!isDraftKind(row.draftKind)) {
@@ -41,6 +54,8 @@ function mapDraft(row: typeof recurringFinancialDrafts.$inferSelect): RecurringF
     payloadJson: row.payloadJson,
     status: row.status,
     lastGeneratedAt: row.lastGeneratedAt,
+    autoFinalizeExpense: row.autoFinalizeExpense,
+    managerialCostKind: mapManagerialCostKind(row.managerialCostKind),
     archivedAt: row.archivedAt,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
@@ -58,10 +73,28 @@ function mapRun(
     organizationId: row.organizationId,
     draftId: row.draftId,
     runDate: businessDate(row.runDate),
+    occurrenceYearMonth: row.occurrenceYearMonth,
     generatedEntityType: row.generatedEntityType,
     generatedEntityId: row.generatedEntityId,
     notes: row.notes,
     createdAt: row.createdAt,
+  };
+}
+
+function mapAmountVersion(
+  row: typeof recurringDraftAmountVersions.$inferSelect,
+): RecurringDraftAmountVersionRecord {
+  return {
+    id: row.id,
+    organizationId: row.organizationId,
+    draftId: row.draftId,
+    amount: row.amount,
+    currency: row.currency,
+    validFrom: row.validFrom,
+    validTo: row.validTo,
+    notes: row.notes,
+    createdAt: row.createdAt,
+    updatedAt: row.updatedAt,
   };
 }
 
@@ -119,6 +152,8 @@ export async function insertRecurringDraft(
     readonly endDate: BusinessDate | null;
     readonly payloadJson: unknown;
     readonly status?: DraftStatus;
+    readonly autoFinalizeExpense?: boolean;
+    readonly managerialCostKind?: ManagerialCostKind | null;
   },
 ): Promise<RecurringFinancialDraftRecord> {
   const [row] = await db
@@ -133,6 +168,8 @@ export async function insertRecurringDraft(
       endDate: values.endDate,
       payloadJson: values.payloadJson,
       status: values.status ?? 'active',
+      autoFinalizeExpense: values.autoFinalizeExpense ?? false,
+      managerialCostKind: values.managerialCostKind ?? null,
     })
     .returning();
   if (!row) throw new Error('Failed to insert recurring financial draft');
@@ -152,6 +189,8 @@ export async function updateRecurringDraftById(
     readonly payloadJson?: unknown;
     readonly status?: DraftStatus;
     readonly lastGeneratedAt?: Date | null;
+    readonly autoFinalizeExpense?: boolean;
+    readonly managerialCostKind?: ManagerialCostKind | null;
   },
 ): Promise<RecurringFinancialDraftRecord | null> {
   const [row] = await db
@@ -206,12 +245,33 @@ export async function findRunByDraftAndDate(
   return row ? mapRun(row) : null;
 }
 
+export async function findRunByDraftAndYearMonth(
+  db: DbExecutor,
+  organizationId: string,
+  draftId: string,
+  occurrenceYearMonth: string,
+): Promise<RecurringFinancialDraftRunRecord | null> {
+  const [row] = await db
+    .select()
+    .from(recurringFinancialDraftRuns)
+    .where(
+      and(
+        eq(recurringFinancialDraftRuns.organizationId, organizationId),
+        eq(recurringFinancialDraftRuns.draftId, draftId),
+        eq(recurringFinancialDraftRuns.occurrenceYearMonth, occurrenceYearMonth),
+      ),
+    )
+    .limit(1);
+  return row ? mapRun(row) : null;
+}
+
 export async function insertRecurringDraftRun(
   db: DbExecutor,
   values: {
     readonly organizationId: string;
     readonly draftId: string;
     readonly runDate: BusinessDate;
+    readonly occurrenceYearMonth?: string | null;
     readonly generatedEntityType: DraftKind;
     readonly generatedEntityId: string;
     readonly notes?: string | null;
@@ -223,6 +283,7 @@ export async function insertRecurringDraftRun(
       organizationId: values.organizationId,
       draftId: values.draftId,
       runDate: values.runDate,
+      occurrenceYearMonth: values.occurrenceYearMonth ?? null,
       generatedEntityType: values.generatedEntityType,
       generatedEntityId: values.generatedEntityId,
       notes: values.notes ?? null,
@@ -230,4 +291,94 @@ export async function insertRecurringDraftRun(
     .returning();
   if (!row) throw new Error('Failed to insert recurring draft run');
   return mapRun(row);
+}
+
+export async function listAmountVersionsForDraft(
+  db: DbExecutor,
+  organizationId: string,
+  draftId: string,
+): Promise<RecurringDraftAmountVersionRecord[]> {
+  const rows = await db
+    .select()
+    .from(recurringDraftAmountVersions)
+    .where(
+      and(
+        eq(recurringDraftAmountVersions.organizationId, organizationId),
+        eq(recurringDraftAmountVersions.draftId, draftId),
+      ),
+    )
+    .orderBy(asc(recurringDraftAmountVersions.validFrom), asc(recurringDraftAmountVersions.createdAt))
+    .limit(ORG_LIST_HARD_CAP);
+  return rows.map(mapAmountVersion);
+}
+
+export async function findOpenAmountVersion(
+  db: DbExecutor,
+  organizationId: string,
+  draftId: string,
+): Promise<RecurringDraftAmountVersionRecord | null> {
+  const [row] = await db
+    .select()
+    .from(recurringDraftAmountVersions)
+    .where(
+      and(
+        eq(recurringDraftAmountVersions.organizationId, organizationId),
+        eq(recurringDraftAmountVersions.draftId, draftId),
+        isNull(recurringDraftAmountVersions.validTo),
+      ),
+    )
+    .limit(1);
+  return row ? mapAmountVersion(row) : null;
+}
+
+export async function insertAmountVersion(
+  db: DbExecutor,
+  values: {
+    readonly organizationId: string;
+    readonly draftId: string;
+    readonly amount: string;
+    readonly currency: string;
+    readonly validFrom: string;
+    readonly validTo?: string | null;
+    readonly notes?: string | null;
+  },
+): Promise<RecurringDraftAmountVersionRecord> {
+  return asServiceRoleWrite(db, async () => {
+    const [row] = await db
+      .insert(recurringDraftAmountVersions)
+      .values({
+        organizationId: values.organizationId,
+        draftId: values.draftId,
+        amount: values.amount,
+        currency: values.currency.toUpperCase(),
+        validFrom: values.validFrom,
+        validTo: values.validTo ?? null,
+        notes: values.notes ?? null,
+      })
+      .returning();
+    if (!row) throw new Error('Failed to insert recurring draft amount version');
+    return mapAmountVersion(row);
+  });
+}
+
+export async function closeAmountVersion(
+  db: DbExecutor,
+  organizationId: string,
+  versionId: string,
+  validTo: string,
+): Promise<RecurringDraftAmountVersionRecord | null> {
+  return asServiceRoleWrite(db, async () => {
+    const [row] = await db
+      .update(recurringDraftAmountVersions)
+      .set({ validTo, updatedAt: new Date() })
+      .where(
+        and(
+          eq(recurringDraftAmountVersions.id, versionId),
+          eq(recurringDraftAmountVersions.organizationId, organizationId),
+          isNull(recurringDraftAmountVersions.validTo),
+        ),
+      )
+      .returning();
+    return row ? mapAmountVersion(row) : null;
+  });
 }

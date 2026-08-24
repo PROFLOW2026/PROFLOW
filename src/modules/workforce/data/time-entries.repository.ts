@@ -595,6 +595,99 @@ export async function sumOrganizationProjectLaborCoverage(
   };
 }
 
+/** LIKE pattern so `work_date` (YYYY-MM-DD) matches calendar month `YYYY-MM`. */
+export function workDateYearMonthPrefixPattern(yearMonth: string): string {
+  return `${yearMonth}-%`;
+}
+
+function nonProjectLaborConservationConditions(
+  db: DbExecutor,
+  organizationId: string,
+  options?: { readonly yearMonth?: string },
+) {
+  const displacement = notDisplacedByMonthlyAllocation(db, organizationId);
+  return and(
+    eq(timeEntries.organizationId, organizationId),
+    eq(timeEntries.kind, 'non_project'),
+    eq(timeEntries.status, 'recorded'),
+    eq(timeEntries.approvalStatus, 'approved'),
+    isNull(timeEntries.archivedAt),
+    ...(options?.yearMonth
+      ? [sql`${timeEntries.workDate}::text like ${workDateYearMonthPrefixPattern(options.yearMonth)}`]
+      : []),
+    ...(displacement ? [displacement] : []),
+  );
+}
+
+export interface NonProjectLaborCostAggregate {
+  readonly totalAmount: string;
+  readonly currency: string;
+  readonly entryCount: number;
+  readonly entriesMissingCost: number;
+}
+
+/**
+ * Org-wide non-project hourly/daily labor Actual (admin/overhead time).
+ * Uses residual time only — displaced employee-months stay on monthly allocation.
+ */
+export async function sumOrganizationNonProjectLaborCost(
+  db: DbExecutor,
+  organizationId: string,
+  currency: string,
+  options?: { readonly yearMonth?: string },
+): Promise<NonProjectLaborCostAggregate> {
+  const effectiveCost = effectiveLaborCostAmountExpr();
+  const [row] = await db
+    .select({
+      totalAmount: sql<string>`coalesce(
+        sum(${effectiveCost}) filter (
+          where upper(${timeEntries.costCurrency}) = upper(${currency})
+        ),
+        0
+      )::text`,
+      entryCount: sql<number>`count(*)::int`,
+      entriesMissingCost: sql<number>`count(*) filter (where ${timeEntries.costAmount} is null)::int`,
+    })
+    .from(timeEntries)
+    .where(nonProjectLaborConservationConditions(db, organizationId, options));
+
+  return {
+    totalAmount: row?.totalAmount ?? '0',
+    currency: currency.toUpperCase(),
+    entryCount: row?.entryCount ?? 0,
+    entriesMissingCost: row?.entriesMissingCost ?? 0,
+  };
+}
+
+/** Residual non-project labor Actual by calendar month (open-month recompute). */
+export async function sumNonProjectLaborCostByMonth(
+  db: DbExecutor,
+  organizationId: string,
+  currency: string,
+): Promise<Map<string, string>> {
+  const result = new Map<string, string>();
+  const effectiveCost = effectiveLaborCostAmountExpr();
+  const yearMonthExpr = sql<string>`to_char(${timeEntries.workDate}::date, 'YYYY-MM')`;
+  const rows = await db
+    .select({
+      yearMonth: yearMonthExpr,
+      totalAmount: sql<string>`coalesce(
+        sum(${effectiveCost}) filter (
+          where upper(${timeEntries.costCurrency}) = upper(${currency})
+        ),
+        0
+      )::text`,
+    })
+    .from(timeEntries)
+    .where(nonProjectLaborConservationConditions(db, organizationId))
+    .groupBy(yearMonthExpr);
+
+  for (const row of rows) {
+    result.set(row.yearMonth, row.totalAmount);
+  }
+  return result;
+}
+
 export async function insertNonProjectTimeCode(
   db: DbExecutor,
   input: { organizationId: string; key: string; name: string },

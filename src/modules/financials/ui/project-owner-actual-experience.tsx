@@ -8,6 +8,7 @@ import { getProjectActualBreakdown } from '../application/get-project-actual-bre
 import { getProjectFinancials } from '../application/get-project-financials';
 import { resolveProjectKpiDisplay } from './resolve-kpi-display';
 import {
+  AllocatedGeneralOfWhichNote,
   ProjectActualBreakdownView,
   ProjectForecastFormulaPanel,
   ProjectOwnerStoryPanel,
@@ -31,11 +32,14 @@ async function loadOwnerStoryCopy(): Promise<OwnerStoryCopy> {
     title: t('title'),
     currentContract: t('currentContract'),
     actualCost: t('actualCost'),
+    ofWhich: t('ofWhich'),
+    allocatedGeneral: t('allocatedGeneral'),
     openCommitments: t('openCommitments'),
     forecastFinal: t('forecastFinal'),
     billed: t('billed'),
     collected: t('collected'),
     actualProfit: t('actualProfit'),
+    afterGeneralProfit: t('afterGeneralProfit'),
     forecastProfit: t('forecastProfit'),
     unavailable: t('unavailable'),
     breakdownTitle: t('breakdownTitle'),
@@ -78,6 +82,7 @@ function buildMetrics(
   return {
     currentContract: kpis.currentContract,
     actualCost: kpis.actualCost,
+    allocatedGeneralBusinessCost: financials.cost.allocatedGeneralBusinessCost ?? null,
     openCommitments: kpis.committed,
     forecastFinal: kpis.forecastCost,
     billed: canReadBilling ? kpis.billed : null,
@@ -85,6 +90,8 @@ function buildMetrics(
     outstanding: canReadBilling ? kpis.outstanding : null,
     unbilled: canReadBilling ? kpis.unbilled : null,
     actualProfit: canReadProfit ? kpis.actualMargin : null,
+    afterGeneralProfit:
+      canReadProfit && kpis.showBothProfits ? kpis.afterGeneralProfit : null,
     forecastProfit: canReadProfit ? kpis.forecastMargin : null,
     expectedRemaining: kpis.expectedRemainingCost,
     openApPayable: financials.cost.openApPayable,
@@ -163,11 +170,21 @@ export async function ProjectOwnerActualExperience({
               )}
             </span>
           </div>
-          <div className="flex min-w-0 justify-between gap-3 font-semibold">
-            <span className="text-[var(--pf-text-secondary)]">{copy.actualCost}</span>
-            <span className="min-w-0 max-w-[55%] overflow-x-auto text-end">
-              {metrics.actualCost ? <MoneyText value={metrics.actualCost} /> : copy.unavailable}
-            </span>
+          <div className="flex min-w-0 flex-col gap-0.5">
+            <div className="flex min-w-0 justify-between gap-3 font-semibold">
+              <span className="text-[var(--pf-text-secondary)]">{copy.actualCost}</span>
+              <span className="min-w-0 max-w-[55%] overflow-x-auto text-end">
+                {metrics.actualCost ? <MoneyText value={metrics.actualCost} /> : copy.unavailable}
+              </span>
+            </div>
+            {metrics.allocatedGeneralBusinessCost &&
+            Number(metrics.allocatedGeneralBusinessCost.amount) > 0 ? (
+              <AllocatedGeneralOfWhichNote
+                ofWhich={copy.ofWhich}
+                label={copy.allocatedGeneral}
+                amount={metrics.allocatedGeneralBusinessCost}
+              />
+            ) : null}
           </div>
         </CardContent>
       </Card>

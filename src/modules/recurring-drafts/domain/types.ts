@@ -21,6 +21,8 @@ export function isDraftStatus(value: string): value is DraftStatus {
   return (DRAFT_STATUSES as readonly string[]).includes(value);
 }
 
+export type ManagerialCostKind = 'direct_project' | 'general_business';
+
 export interface RecurringFinancialDraftRecord {
   readonly id: string;
   readonly organizationId: string;
@@ -33,6 +35,10 @@ export interface RecurringFinancialDraftRecord {
   readonly payloadJson: unknown;
   readonly status: DraftStatus;
   readonly lastGeneratedAt: Date | null;
+  /** When true and draftKind=expense, finalize after create if month is open. */
+  readonly autoFinalizeExpense: boolean;
+  /** Owner attribution for generated expenses (0069). */
+  readonly managerialCostKind: ManagerialCostKind | null;
   readonly archivedAt: Date | null;
   readonly createdAt: Date;
   readonly updatedAt: Date;
@@ -43,10 +49,25 @@ export interface RecurringFinancialDraftRunRecord {
   readonly organizationId: string;
   readonly draftId: string;
   readonly runDate: BusinessDate;
+  /** YYYY-MM for monthly occurrence idempotency (null for non-monthly). */
+  readonly occurrenceYearMonth: string | null;
   readonly generatedEntityType: DraftKind;
   readonly generatedEntityId: string;
   readonly notes: string | null;
   readonly createdAt: Date;
+}
+
+export interface RecurringDraftAmountVersionRecord {
+  readonly id: string;
+  readonly organizationId: string;
+  readonly draftId: string;
+  readonly amount: string;
+  readonly currency: string;
+  readonly validFrom: string;
+  readonly validTo: string | null;
+  readonly notes: string | null;
+  readonly createdAt: Date;
+  readonly updatedAt: Date;
 }
 
 export interface RecurringDraftListFilters {

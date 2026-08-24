@@ -46,6 +46,7 @@ import {
   aggregateOrgCommercial,
   aggregateOrgCost,
   aggregateOrgProfit,
+  deriveRecognizedCompanyRevenue,
 } from '../domain/aggregate-org-report';
 import {
   computeUnallocatedOrganizationCosts,
@@ -75,6 +76,15 @@ import {
   type ActiveProjectSummary,
 } from '../data/projects.repository';
 import { getOrganizationProjectRollup } from './get-organization-project-rollup';
+import { refreshCurrentOpenGeneralCostMonthForSurfaces } from './recompute-general-cost-month';
+import { sumOrganizationGeneralPoolTotals } from '../data/general-cost-months.repository';
+import {
+  composeCompanyActualFromOrgTotals,
+  composeCompanyProfit,
+  shouldSurfaceCompanyActual,
+  shouldSurfaceCompanyProfit,
+} from '../domain/company-actual';
+import { parseWorkKindFilter } from '../domain/work-pricing';
 
 export interface DashboardAttention {
   readonly pendingChangesCount: number;
@@ -98,6 +108,10 @@ export interface OrganizationForecastSummary {
   readonly totalForecastMargin: MoneyValue | null;
   /** Finalized org costs awaiting allocation - not in project Actual / profit. */
   readonly unallocatedBusinessCosts: MoneyValue | null;
+  /** Company Actual when a general-cost pool exists (Direct + general; allocation is attribution only). */
+  readonly companyActual: MoneyValue | null;
+  /** Recognized revenue − Company Actual; null when revenue or company actual context is unavailable. */
+  readonly companyProfit: MoneyValue | null;
   readonly eligibleProjectCount: number;
   readonly excludedForeignCurrencyCount: number;
 }
@@ -317,7 +331,11 @@ export async function getHomeDashboard(
   const wantMonthInvoiced = canReadFinancials && wantBilling;
   const wantMonthCosts = canReadFinancials && (wantBilling || hasExpenses);
 
-  const [billingRows, invoicedThisMonth, costsThisMonth] = await Promise.all([
+  if (canReadFinancials) {
+    await refreshCurrentOpenGeneralCostMonthForSurfaces(context);
+  }
+
+  const [billingRows, invoicedThisMonth, costsThisMonth, generalPoolTotals] = await Promise.all([
     wantBilling
       ? loadOrganizationBillingRows(context.db, context.organizationId)
       : Promise.resolve(null),
@@ -338,6 +356,9 @@ export async function getHomeDashboard(
           monthStart,
           monthEnd,
         )
+      : Promise.resolve(null),
+    canReadFinancials
+      ? sumOrganizationGeneralPoolTotals(context.db, context.organizationId, currency)
       : Promise.resolve(null),
   ]);
 
@@ -406,6 +427,42 @@ export async function getHomeDashboard(
       }
     }
 
+    const workKindFilter = parseWorkKindFilter(options.workKindFilter);
+    const companyComposition =
+      workKindFilter === 'all' && generalPoolTotals
+        ? composeCompanyActualFromOrgTotals({
+            currency,
+            fullProjectActual: cost.actual?.value ?? null,
+            poolAmount: fromNumericString(generalPoolTotals.pool, currency) ?? zeroMoney(currency),
+            allocatedAmount:
+              fromNumericString(generalPoolTotals.allocated, currency) ?? zeroMoney(currency),
+            unallocatableAmount:
+              fromNumericString(generalPoolTotals.unallocatable, currency) ?? zeroMoney(currency),
+          })
+        : null;
+    const companyActual = shouldSurfaceCompanyActual(companyComposition)
+      ? (companyComposition?.companyActual ?? null)
+      : null;
+    const recognizedCompanyRevenue = deriveRecognizedCompanyRevenue(
+      rollup.rows,
+      currency,
+      rollup.canReadCommercial,
+    );
+    const companyProfitComposition =
+      companyComposition && canReadProfit
+        ? composeCompanyProfit({
+            currency,
+            recognizedCompanyRevenue,
+            companyActual: companyComposition.companyActual,
+          })
+        : null;
+    const companyProfit = shouldSurfaceCompanyProfit(
+      companyComposition,
+      companyProfitComposition,
+    )
+      ? (companyProfitComposition?.companyProfit ?? null)
+      : null;
+
     forecast = {
       totalCurrentContract: commercial?.current.value ?? zeroMoney(currency),
       totalActualProjectCost: cost.actual?.value ?? null,
@@ -416,6 +473,8 @@ export async function getHomeDashboard(
       totalActualMargin: canReadProfit ? (profitability?.actualProfit?.value ?? null) : null,
       totalForecastMargin: canReadProfit ? (profitability?.estimatedProfit?.value ?? null) : null,
       unallocatedBusinessCosts: unallocatedBusinessCosts ?? null,
+      companyActual,
+      companyProfit,
       eligibleProjectCount: rollup.totalEligibleProjectCount,
       excludedForeignCurrencyCount: rollup.excludedForeignCurrencyCount,
     };

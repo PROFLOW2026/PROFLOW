@@ -8,6 +8,7 @@ import {
   getModuleVisibility,
   getUnusedCapabilityDismissals,
   getWorkMixForOrg,
+  getProjectProfitabilityModeForOrg,
   isOptionalModuleKey,
   listDiscoverabilityTipKeys,
   suggestUnusedCapabilities,
@@ -24,6 +25,7 @@ import { ComplexityPanel } from './complexity-panel';
 import { FeaturesSettingsPanel } from './features-panel';
 import { UnusedCapabilitySuggestionBanner } from './unused-capability-suggestion-banner';
 import { WorkMixPanel } from './work-mix-panel';
+import { ProjectProfitabilityModePanel } from './project-profitability-mode-panel';
 
 export async function generateMetadata(): Promise<Metadata> {
   return settingsMetadata('features');
@@ -37,11 +39,12 @@ export default async function FeaturesSettingsPage() {
   const data = await withOrgContext(async (context) => {
     if (!canAccessSection(context, section)) return { allowed: false as const };
 
-    const [visibility, preferences, workMix, currentProfileKey, complexity, dismissals] =
+    const [visibility, preferences, workMix, projectProfitabilityMode, currentProfileKey, complexity, dismissals] =
       await Promise.all([
         getModuleVisibility(context),
         listModulePreferencesForOrg(context),
         getWorkMixForOrg(context),
+        getProjectProfitabilityModeForOrg(context),
         getBusinessProfileKeyForOrg(context.db, context.organizationId),
         getExperienceComplexityForOrg(context),
         getUnusedCapabilityDismissals(context),
@@ -62,6 +65,7 @@ export default async function FeaturesSettingsPage() {
       visibility,
       preferences,
       workMix,
+      projectProfitabilityMode,
       complexity,
       currentProfileKey,
       unusedSuggestion,
@@ -109,6 +113,10 @@ export default async function FeaturesSettingsPage() {
       ) : null}
       <Card className="flex flex-col gap-2 p-5">
         <WorkMixPanel initialWorkMix={data.workMix} canEdit={data.canEdit} />
+        <ProjectProfitabilityModePanel
+          initialMode={data.projectProfitabilityMode}
+          canEdit={data.canEdit}
+        />
         <ComplexityPanel initialComplexity={data.complexity} canEdit={data.canEdit} />
         <FeaturesSettingsPanel
           visibility={data.visibility}

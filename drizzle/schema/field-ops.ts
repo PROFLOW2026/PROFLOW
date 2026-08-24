@@ -19,6 +19,8 @@ import {
   timestamps,
 } from './_shared';
 import { profiles } from './identity';
+import { apBills } from './ap';
+import { expenses } from './expenses';
 import { materialItems } from './procurement';
 import { projects, workPackages } from './projects';
 import { organizations } from './tenancy';
@@ -168,6 +170,12 @@ export const assets = pgTable(
     assignedProjectId: uuid('assigned_project_id').references(() => projects.id, {
       onDelete: 'set null',
     }),
+    /** Display/trace only — Expense/AP remains Actual recognition source (0069). */
+    acquisitionAmount: moneyAmount('acquisition_amount'),
+    acquisitionCurrency: currencyCode('acquisition_currency'),
+    acquiredOn: date('acquired_on', { mode: 'string' }),
+    sourceExpenseId: uuid('source_expense_id'),
+    sourceApBillId: uuid('source_ap_bill_id'),
     notes: text('notes'),
     archivedAt: archivedAt(),
     ...timestamps(),
@@ -183,6 +191,16 @@ export const assets = pgTable(
       'assets_status_known',
       sql`${table.status} IN ('active', 'in_maintenance', 'retired', 'disposed')`,
     ),
+    foreignKey({
+      name: 'assets_source_expense_org_fk',
+      columns: [table.sourceExpenseId, table.organizationId],
+      foreignColumns: [expenses.id, expenses.organizationId],
+    }).onDelete('restrict'),
+    foreignKey({
+      name: 'assets_source_ap_bill_org_fk',
+      columns: [table.sourceApBillId, table.organizationId],
+      foreignColumns: [apBills.id, apBills.organizationId],
+    }).onDelete('restrict'),
   ],
 );
 
@@ -255,6 +273,9 @@ export const inventoryItems = pgTable(
     quantityOnHand: quantityAmount('quantity_on_hand').notNull().default('0'),
     reorderLevel: quantityAmount('reorder_level'),
     minStockLevel: quantityAmount('min_stock_level'),
+    /** Managerial remaining stock cost basis — not Project Actual (0069). */
+    costBasisAmount: moneyAmount('cost_basis_amount').notNull().default('0'),
+    costBasisCurrency: currencyCode('cost_basis_currency'),
     notes: text('notes'),
     archivedAt: archivedAt(),
     ...timestamps(),
@@ -262,6 +283,11 @@ export const inventoryItems = pgTable(
   (table) => [
     uniqueIndex('inventory_items_id_organization_id_uq').on(table.id, table.organizationId),
     index('inventory_items_org_idx').on(table.organizationId),
+    check('inventory_items_cost_basis_non_negative', sql`${table.costBasisAmount} >= 0`),
+    check(
+      'inventory_items_cost_basis_currency_shape',
+      sql`${table.costBasisAmount} = 0 OR ${table.costBasisCurrency} IS NOT NULL`,
+    ),
   ],
 );
 

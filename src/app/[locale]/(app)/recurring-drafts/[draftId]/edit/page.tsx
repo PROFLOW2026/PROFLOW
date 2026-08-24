@@ -97,6 +97,8 @@ export default async function EditRecurringDraftPage({
           intervalCount: detail.draft.intervalCount,
           nextRunDate: detail.draft.nextRunDate,
           endDate: detail.draft.endDate,
+          autoFinalizeExpense: detail.draft.autoFinalizeExpense,
+          managerialCostKind: detail.draft.managerialCostKind,
           payload: detail.payload,
         }}
       />

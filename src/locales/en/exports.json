@@ -182,7 +182,7 @@
     "costFamily": {
       "direct_project": "Direct project cost",
       "shared": "Shared cost",
-      "business_overhead": "Business overhead",
+      "business_overhead": "General business costs",
       "asset_capital": "Asset / capital"
     },
     "billingStatus": {

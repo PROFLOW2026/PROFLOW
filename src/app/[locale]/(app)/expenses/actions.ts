@@ -113,6 +113,11 @@ function buildExpensePayload(formData: FormData) {
     allocationPeriodEnd: formValue(formData, 'allocationPeriodEnd') ?? null,
     allocationDriverMethod: formValue(formData, 'allocationDriverMethod') ?? null,
     allocationScheduleMode: formValue(formData, 'allocationScheduleMode') ?? null,
+    installmentCount: formValue(formData, 'installmentCount'),
+    installmentStartDate: formValue(formData, 'installmentStartDate') ?? null,
+    inventoryStockPurchase: formValue(formData, 'inventoryStockPurchase'),
+    inventoryItemId: formValue(formData, 'inventoryItemId') ?? null,
+    inventoryPurchaseQty: formValue(formData, 'inventoryPurchaseQty') ?? null,
   };
 }
 
@@ -125,7 +130,20 @@ export async function createExpenseAction(
   const parsed = createExpenseSchema.safeParse(buildExpensePayload(formData));
 
   if (!parsed.success) {
-    return { error: tErrors('validationFailed') };
+    const fieldErrors: Record<string, string> = {};
+    const tExpenses = await getTranslations('expenses');
+    for (const issue of parsed.error.issues) {
+      const path = issue.path[0];
+      if (path === 'inventoryItemId') {
+        fieldErrors.inventoryItemId = tExpenses('errors.inventoryItemRequired');
+      } else if (path === 'inventoryPurchaseQty') {
+        fieldErrors.inventoryPurchaseQty = tExpenses('errors.inventoryQtyRequired');
+      }
+    }
+    return {
+      error: tErrors('validationFailed'),
+      ...(Object.keys(fieldErrors).length > 0 ? { fieldErrors } : {}),
+    };
   }
 
   try {
@@ -161,7 +179,20 @@ export async function updateExpenseAction(
   });
 
   if (!parsed.success) {
-    return { error: tErrors('validationFailed') };
+    const fieldErrors: Record<string, string> = {};
+    const tExpenses = await getTranslations('expenses');
+    for (const issue of parsed.error.issues) {
+      const path = issue.path[0];
+      if (path === 'inventoryItemId') {
+        fieldErrors.inventoryItemId = tExpenses('errors.inventoryItemRequired');
+      } else if (path === 'inventoryPurchaseQty') {
+        fieldErrors.inventoryPurchaseQty = tExpenses('errors.inventoryQtyRequired');
+      }
+    }
+    return {
+      error: tErrors('validationFailed'),
+      ...(Object.keys(fieldErrors).length > 0 ? { fieldErrors } : {}),
+    };
   }
 
   try {

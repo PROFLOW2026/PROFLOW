@@ -113,6 +113,11 @@ export async function voidApBill(context: OrgContext, raw: { billId: string }): 
     },
   });
 
+  const { tryRecomputeOpenGeneralCostMonth } = await import(
+    '@/modules/financials/application/recompute-general-cost-month'
+  );
+  await tryRecomputeOpenGeneralCostMonth(context, { date: freezeDate });
+
   return voided.after;
 }
 

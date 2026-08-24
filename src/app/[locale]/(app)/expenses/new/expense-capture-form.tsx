@@ -5,7 +5,7 @@ import { useTranslations } from 'next-intl';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { ExpenseForm } from '@/modules/expenses/ui/expense-form';
-import type { CostCategoryRow, ProjectOption, VendorOption, WorkPackageOption } from '@/modules/expenses/domain/types';
+import type { CostCategoryRow, InventoryItemOption, ProjectOption, VendorOption, WorkPackageOption } from '@/modules/expenses/domain/types';
 import { expensePayloadFromFormData } from '@/modules/offline/domain/payloads';
 import { useOfflineAwareFormAction } from '@/modules/offline/ui/use-offline-aware-form-action';
 import type { ApBillOverlapCandidate } from '@/modules/financials';
@@ -18,6 +18,7 @@ export interface ExpenseCaptureFormProps {
   readonly categories: readonly CostCategoryRow[];
   readonly workPackages: readonly WorkPackageOption[];
   readonly vendors?: readonly VendorOption[];
+  readonly inventoryItems?: readonly InventoryItemOption[];
   readonly initialProjectId?: string;
   /** Org tax rule rate for live VAT preview - never hardcoded. */
   readonly taxRatePercent?: string | null;
@@ -30,6 +31,7 @@ export function ExpenseCaptureForm({
   categories,
   workPackages,
   vendors = [],
+  inventoryItems = [],
   initialProjectId,
   taxRatePercent = null,
   apBillOverlapCandidates = [],
@@ -74,6 +76,7 @@ export function ExpenseCaptureForm({
         categories={categories}
         workPackages={workPackages}
         vendors={vendors}
+        inventoryItems={inventoryItems}
         taxRatePercent={taxRatePercent}
         apBillOverlapCandidates={apBillOverlapCandidates}
         initialValues={{

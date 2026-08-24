@@ -1,5 +1,7 @@
 import type { ProjectFinancials } from '../domain/types';
 import { computeUnbilledBacklog } from '../domain/management-analytics';
+import { resolveProjectProfitabilityDisplay } from '../domain/project-profitability-display';
+import { DEFAULT_PROJECT_PROFITABILITY_MODE } from '@/modules/tenancy/domain/project-profitability-mode';
 import { subtractMoney, type MoneyValue } from '@/shared/money';
 
 /**
@@ -27,6 +29,8 @@ export type ProjectFinancialsWithOptionalKpis = ProjectFinancials & {
 export interface ResolvedProjectKpis {
   readonly currentContract: MoneyValue | null;
   readonly actualCost: MoneyValue;
+  readonly directActualCost: MoneyValue;
+  readonly fullActualCost: MoneyValue;
   readonly allocatedOverhead: MoneyValue;
   readonly committed: MoneyValue;
   readonly expectedRemainingCost: MoneyValue;
@@ -37,10 +41,13 @@ export interface ResolvedProjectKpis {
   /** Contract net − net billed; null when no revenue basis or billing unavailable. */
   readonly unbilled: MoneyValue | null;
   readonly actualMargin: MoneyValue | null;
+  readonly afterGeneralProfit: MoneyValue | null;
+  readonly showBothProfits: boolean;
   readonly forecastMargin: MoneyValue | null;
   readonly actualMarginPercent: string | null;
+  readonly afterGeneralProfitPercent: string | null;
   readonly forecastMarginPercent: string | null;
-  /** True when Forecast Final Cost equals Actual (no remaining commitments / ETC). */
+  /** True when Forecast Final Cost equals Direct Actual (no remaining commitments / ETC). */
   readonly forecastEqualsActual: boolean;
   /**
    * Open-price job: cost forecast OK; margins null - show price-not-set copy.
@@ -60,10 +67,18 @@ export function resolveProjectKpiDisplay(
   const commercial = financials.commercial;
   const profit = financials.profit;
   const priceNotSet = financials.priceNotSet === true;
+  const mode = financials.projectProfitabilityMode ?? DEFAULT_PROJECT_PROFITABILITY_MODE;
 
   const allocatedOverhead = cost.allocatedOverhead ?? cost.overheadActual;
   const forecastCost = cost.forecastCost ?? cost.estimatedFinalCost;
   const expectedRemainingCost = cost.expectedRemainingCost;
+
+  const profitability = resolveProjectProfitabilityDisplay(
+    mode,
+    cost,
+    commercial?.currentContractValue ?? null,
+    priceNotSet,
+  );
 
   let actualMargin: MoneyValue | null =
     profit?.actualMargin ?? profit?.actualProfit ?? null;
@@ -71,12 +86,11 @@ export function resolveProjectKpiDisplay(
     profit?.forecastMargin ?? profit?.estimatedProfit ?? null;
 
   if (priceNotSet) {
-    // Do not fall back to contract(0) − cost (= fake loss).
     actualMargin = null;
     forecastMargin = null;
   } else if (commercial) {
     if (!actualMargin) {
-      actualMargin = subtractMoney(commercial.currentContractValue, cost.actualCostToDate);
+      actualMargin = profitability.primaryProfit;
     }
     if (!forecastMargin) {
       forecastMargin = subtractMoney(commercial.currentContractValue, forecastCost);
@@ -84,8 +98,8 @@ export function resolveProjectKpiDisplay(
   }
 
   const forecastEqualsActual =
-    cost.actualCostToDate.amount === forecastCost.amount &&
-    cost.actualCostToDate.currency === forecastCost.currency;
+    profitability.directActualCost.amount === forecastCost.amount &&
+    profitability.directActualCost.currency === forecastCost.currency;
 
   const unbilled =
     !priceNotSet && commercial
@@ -98,7 +112,9 @@ export function resolveProjectKpiDisplay(
 
   return {
     currentContract: priceNotSet ? null : (commercial?.currentContractValue ?? null),
-    actualCost: cost.actualCostToDate,
+    actualCost: profitability.primaryActualCost,
+    directActualCost: profitability.directActualCost,
+    fullActualCost: profitability.fullActualCost,
     allocatedOverhead,
     committed: cost.committedOpen,
     expectedRemainingCost,
@@ -108,8 +124,15 @@ export function resolveProjectKpiDisplay(
     outstanding: financials.billing.outstanding,
     unbilled,
     actualMargin,
+    afterGeneralProfit: profitability.showBothProfits
+      ? profitability.afterGeneralProfit
+      : null,
+    showBothProfits: profitability.showBothProfits,
     forecastMargin,
-    actualMarginPercent: priceNotSet ? null : (profit?.actualMarginPercent ?? null),
+    actualMarginPercent: priceNotSet
+      ? null
+      : (profit?.actualMarginPercent ?? profitability.primaryProfitPercent),
+    afterGeneralProfitPercent: priceNotSet ? null : profitability.afterGeneralProfitPercent,
     forecastMarginPercent: priceNotSet
       ? null
       : (profit?.forecastMarginPercent ?? profit?.marginPercent ?? null),

@@ -1,9 +1,20 @@
 {
   "title": "הוצאות",
   "subtitle": "רישום עלויות פרויקט והוצאות העסק במקום אחד.",
+  "generalBusinessCosts": "הוצאות כלליות",
+  "generalBusinessCostsAllocatedToProject": "הוצאות כלליות שהוקצו לפרויקט",
+  "directActualCost": "עלות ישירה בפועל",
+  "fullProjectActualCost": "עלות כוללת בפועל של הפרויקט",
+  "companyActual": "עלות בפועל של העסק",
+  "companyProfit": "רווח העסק",
+  "installmentCount": "מספר תשלומים",
+  "installmentStart": "תאריך התחלה",
+  "recurringMonthlyExpense": "הוצאה חודשית קבועה",
+  "inventoryStockValue": "ערך מלאי",
+  "remainingScheduledCost": "עלות מתוכננת שנותרה",
   "capture": {
     "title": "הוצאה חדשה",
-    "subtitle": "שמירה יוצרת טיוטה בלבד. ההוצאה נכנסת לעלויות הפרויקט אחרי אישור. להוצאות תפעול - הוסיפו שורות הקצאה כדי שלא תישאר תקורה לא מוקצית.",
+    "subtitle": "שמירה יוצרת טיוטה בלבד. ההוצאה נכנסת לעלויות הפרויקט אחרי אישור. להוצאות כלליות של העסק - הוסיפו שורות הקצאה כדי שלא יישארו בלי הקצאה לפרויקט.",
     "overlapWarningTitle": "קיימת חשבונית ספק פתוחה דומה",
     "overlapWarningBody": "חשבונית ספק פתוחה עם אותו ספק וסכום נטו דומה כבר מוכרת בעלות בפועל. אישור הוצאה נפרדת עלול להכפיל עלות אלא אם תקשרו ביניהן.",
     "overlapWarningHint": "פתחו את החשבונית וקבלו התאמה להוצאה אחרי האישור, או בטלו את הרישום הכפול."
@@ -37,8 +48,8 @@
   },
   "lifecycle": {
     "draftHint": "שמירה יוצרת טיוטה. ההוצאה תירשם בעלויות הפרויקט רק אחרי רישום.",
-    "overheadUnallocatedWarning": "זו הוצאת תפעול בלי הקצאה לפרויקטים. היא לא תופיע בעלות בפועל או בתקורה המוקצית של אף פרויקט עד שתוסיפו שורות הקצאה.",
-    "overheadAllocatedHint": "שורות ההקצאה קובעות אילו פרויקטים מקבלים חלק מהתקורה.",
+    "overheadUnallocatedWarning": "זו הוצאה כללית של העסק בלי הקצאה לפרויקטים. היא לא תופיע בעלות בפועל או בהוצאות הכלליות שהוקצו לפרויקט עד שתוסיפו שורות הקצאה.",
+    "overheadAllocatedHint": "שורות ההקצאה קובעות אילו פרויקטים מקבלים חלק מהוצאות הכלליות.",
     "allocationPeriod": "תקופה",
     "allocationMethodSummary": "שיטה",
     "allocationProjects": "פרויקטים"
@@ -91,7 +102,17 @@
     "date": "תאריך",
     "supplier": "ספק",
     "linkedVendor": "ספק מקושר",
-    "target": "פרויקט או תפעול",
+    "target": "פרויקט או הוצאות כלליות",
+    "installmentCount": "מספר תשלומים",
+    "installmentStart": "תאריך התחלה",
+    "installmentEnd": "תאריך סיום",
+    "installmentHint": "העלות בפועל נטו נפרסת שווה בין החודשים האלה. תשלום במזומן הוא נפרד.",
+    "inventoryStockPurchase": "רכישה למלאי מרכזי (לא עלות תפעולית מיידית)",
+    "inventoryItem": "פריט מלאי",
+    "inventoryPurchaseQty": "כמות שנרכשה",
+    "inventoryPurchaseQtyHint": "הכמות שנכנסת למלאי המרכזי. העלות הנטו של ההוצאה תחולק לשכבת עלות לפי כמות זו.",
+    "recurringMonthlyExpense": "הוצאה חודשית קבועה",
+    "fixedExpense": "הוצאה קבועה",
     "project": "פרויקט",
     "workPackage": "תחום עבודה",
     "costFamily": "סעיף עלות",
@@ -123,16 +144,17 @@
     "vendor": "קישור לספק קיים",
     "vendorNone": "ללא ספק מקושר",
     "costFamily": "נקבע לפי היעד",
-    "category": "קטגוריה (אופציונלי)"
+    "category": "קטגוריה (אופציונלי)",
+    "inventoryItem": "בחרו פריט מלאי"
   },
   "targeting": {
-    "none": "הוצאות תפעול (ללא פרויקט)",
-    "overhead": "הוצאות תפעול"
+    "none": "הוצאות כלליות (ללא פרויקט)",
+    "overhead": "הוצאות כלליות"
   },
   "costFamilies": {
     "direct_project": "עלות ישירה לפרויקט",
     "shared": "עלות משותפת",
-    "business_overhead": "הוצאות תפעול",
+    "business_overhead": "הוצאות כלליות של העסק",
     "asset_capital": "נכסים / הון"
   },
   "costCategories": {
@@ -155,7 +177,7 @@
     "bank_fees": "עמלות בנק ומימון",
     "office_supplies": "ציוד משרדי",
     "vehicle_fuel": "רכב ודלק",
-    "other_overhead": "תפעול אחר",
+    "other_overhead": "הוצאות כלליות אחרות",
     "equipment_purchase": "רכישת ציוד",
     "vehicle_purchase": "רכישת רכב",
     "tools": "כלים"
@@ -199,7 +221,7 @@
   },
   "allocation": {
     "title": "הקצאה לפרויקטים",
-    "subtitle": "בלי שורות הקצאה, תקורה כללית/משותפת לא נכנסת לעלות של אף פרויקט.",
+    "subtitle": "בלי שורות הקצאה, הוצאות כלליות או משותפות לא נכנסות לעלות של אף פרויקט.",
     "addLine": "שורה חדשה",
     "removeLine": "הסרה",
     "empty": "הוסיפו שורות כדי לראות שיטה, תקופה ואילו פרויקטים מקבלים חלק.",
@@ -212,7 +234,7 @@
     "amountRow": "סכום - שורה {row}",
     "percentRow": "אחוז - שורה {row}",
     "categoryRow": "סעיף - שורה {row}",
-    "selectTarget": "בחרו פרויקט או תפעול",
+    "selectTarget": "בחרו פרויקט או הוצאות כלליות",
     "methods": {
       "amount": "סכום קבוע",
       "percent": "אחוז",
@@ -227,18 +249,18 @@
     "periodEnd": "סוף תקופת הקצאה",
     "autoDriverHint": "המערכת תחלק את הנטו בין פרויקטים זכאים בתקופה לפי השיטה שנבחרה, ותשמור צילום היסטורי.",
     "sumHintPrefix": "השורות חייבות להסתכם בדיוק ב",
-    "unallocatedCallout": "עדיין לא נבחרו פרויקטים - התקורה לא תיכנס לעלות בפועל של פרויקט."
+    "unallocatedCallout": "עדיין לא נבחרו פרויקטים - ההוצאות הכלליות לא ייכנסו לעלות בפועל של פרויקט."
   },
   "errors": {
     "inclusiveTaxRateRequired": "כדי להזין סכום כולל מע״מ נדרש כלל מס באחוזים פעיל בארגון.",
     "workPackageRequiresProject": "תחום עבודה דורש פרויקט.",
     "directFamilyRequiresProject": "עלות ישירה לפרויקט דורשת פרויקט.",
-    "overheadFamilyRequiresNoProject": "הוצאות תפעול לא מתאימות להוצאה עם פרויקט.",
+    "overheadFamilyRequiresNoProject": "הוצאות כלליות של העסק לא מתאימות להוצאה עם פרויקט.",
     "allocationAmountRequired": "יש להזין סכום לכל שורת סכום קבוע.",
     "allocationPercentRequired": "יש להזין אחוז לכל שורת אחוזים.",
     "allocationSumMismatch": "שורות ההקצאה חייבות להסתכם בדיוק לסכום ההוצאה.",
     "allocationProjectRequired": "שורת הקצאה לפרויקט דורשת פרויקט.",
-    "allocationOverheadNoProject": "שורות תפעול לא יכולות לכלול פרויקט.",
+    "allocationOverheadNoProject": "שורות הוצאות כלליות לא יכולות לכלול פרויקט.",
     "customRecurrenceRequired": "יש לתאר את התדירות המותאמת.",
     "notEditable": "ניתן לערוך רק הוצאות בטיוטה.",
     "notFinalizable": "ניתן לסגור רק הוצאות בטיוטה.",
@@ -251,37 +273,45 @@
     "notAdjustable": "ניתן להתאים רק הוצאות שאושרו לעלות.",
     "reversalNotAdjustable": "לא ניתן להתאים רשומת קיזוז.",
     "currencyMustMatchProject": "מטבע ההוצאה חייב להתאים למטבע הפרויקט.",
-    "currencyMustMatchOrganization": "מטבע הוצאת תפעול חייב להתאים למטבע הבסיס של העסק.",
+    "currencyMustMatchOrganization": "מטבע הוצאה כללית של העסק חייב להתאים למטבע הבסיס של העסק.",
     "projectExpenseNoAllocations": "הוצאה לפרויקט לא ניתנת לפיצול בשורות הקצאה.",
-    "phaseProjectMismatch": "השלב שנבחר לא שייך לפרויקט הזה."
+    "phaseProjectMismatch": "השלב שנבחר לא שייך לפרויקט הזה.",
+    "invalidYearMonth": "יש להזין שנה וחודש תקינים.",
+    "invalidDate": "יש להזין תאריך תקין.",
+    "installmentCountRange": "מספר התשלומים חייב להיות בין 1 ל-120.",
+    "installmentTotal": "סך התשלומים חייב להיות סכום חיובי.",
+    "installmentConservation": "סכומי החודשים חייבים להסתכם בדיוק לנטו של ההוצאה.",
+    "inventoryItemRequired": "יש לבחור פריט מלאי לרכישת מלאי.",
+    "inventoryQtyRequired": "יש להזין את הכמות שנכנסה למלאי.",
+    "inventoryStockPurchaseIncomplete": "רכישת מלאי דורשת פריט וכמות לפני רישום."
   },
   "overheadHome": {
-    "title": "תקורה",
-    "description": "הוצאות תפעול והוצאות משותפות, והקצאה לפרויקטים - דרך מסך ההוצאות הקיים.",
+    "title": "הוצאות כלליות",
+    "description": "הוצאות כלליות של העסק והוצאות משותפות, והקצאה לפרויקטים - דרך מסך ההוצאות הקיים.",
     "notAllowed": {
       "title": "אין הרשאה",
       "body": "נדרשת הרשאת צפייה בהוצאות כדי לפתוח את הדף הזה."
     },
     "actions": {
-      "addOverhead": "הוצאת תקורה חדשה",
+      "addOverhead": "הוצאה כללית חדשה",
       "costCategories": "קטגוריות עלות",
-      "viewOverheadExpenses": "כל הוצאות התפעול",
+      "viewOverheadExpenses": "כל ההוצאות הכלליות",
       "viewSharedExpenses": "כל ההוצאות המשותפות"
     },
     "sections": {
-      "overhead": "הוצאות תפעול",
+      "overhead": "הוצאות כלליות",
       "shared": "הוצאות משותפות",
       "runs": "הקצאות",
       "categories": "קטגוריות עלות"
     },
     "empty": {
-      "overheadTitle": "אין הוצאות תפעול עדיין",
-      "overheadBody": "רשמו שכר דירה, ביטוח והוצאות עסק אחרות בלי פרויקט, ואז הקצו אותן לעבודה פעילה.",
+      "overheadTitle": "אין הוצאות כלליות עדיין",
+      "overheadBody": "רשמו שכר דירה, ביטוח והוצאות כלליות אחרות של העסק בלי פרויקט, ואז הקצו אותן לעבודה פעילה.",
       "sharedTitle": "אין הוצאות משותפות עדיין",
-      "sharedBody": "הוצאות משותפות משתמשות באותה שיטת הקצאה כמו התקורה.",
+      "sharedBody": "הוצאות משותפות משתמשות באותה שיטת הקצאה כמו ההוצאות הכלליות.",
       "runsTitle": "אין הקצאות עדיין",
-      "runsBody": "צילומי הקצאה אוטומטית מופיעים כאן אחרי שמקצים הוצאה משותפת או תפעול.",
-      "categoriesTitle": "אין קטגוריות תקורה עדיין"
+      "runsBody": "צילומי הקצאה אוטומטית מופיעים כאן אחרי שמקצים הוצאה משותפת או הוצאה כללית.",
+      "categoriesTitle": "אין קטגוריות להוצאות כלליות עדיין"
     },
     "runs": {
       "expense": "הוצאה",

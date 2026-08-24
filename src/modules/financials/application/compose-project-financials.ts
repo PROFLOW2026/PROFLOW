@@ -1,4 +1,5 @@
 import { composeVendorCostRecognition } from '@/modules/ap/domain/vendor-cost-recognition';
+import type { ProjectProfitabilityMode } from '@/modules/tenancy/domain/project-profitability-mode';
 import { excludeCommittedFromActualCost } from '@/modules/procurement/domain/committed-cost';
 import type {
   BillingPosition,
@@ -25,6 +26,7 @@ import {
 import {
   aggregateProjectCosts,
   emptyCostPosition,
+  withAllocatedGeneralBusinessCost,
   withCommittedAndApPayable,
   withRecognizedVendorBills,
   type LaborCostContribution,
@@ -101,7 +103,14 @@ export interface ProjectFinancialsLoadedSlices {
     readonly costNet: MoneyValue;
     readonly revenueNet: MoneyValue;
   };
+  /**
+   * Auto-allocated general business cost for this project (sum across months).
+   * Attribution only — does not change Company Actual pool recognition.
+   */
+  readonly allocatedGeneralBusinessCost?: MoneyValue | null;
   readonly sliceAvailability?: FinancialSliceAvailability;
+  /** Org presentation mode — attached to output; does not alter economics. */
+  readonly projectProfitabilityMode?: ProjectProfitabilityMode;
 }
 
 export function composeProjectFinancials(
@@ -195,7 +204,21 @@ export function composeProjectFinancials(
       actualCostToDate,
       estimatedFinalCost: actualCostToDate,
       monthCloseCostNet: roundMoney(costAdjustment),
+      directActualCostToDate: actualCostToDate,
     };
+  } else {
+    cost = {
+      ...cost,
+      directActualCostToDate: roundMoney(cost.actualCostToDate),
+      allocatedGeneralBusinessCost: zeroMoney(currency),
+      fullActualCostToDate: roundMoney(cost.actualCostToDate),
+    };
+  }
+
+  // Attach auto-general AFTER Direct is finalized — Full Actual = Direct + General.
+  const allocatedGeneral = input.allocatedGeneralBusinessCost;
+  if (allocatedGeneral && allocatedGeneral.currency === currency) {
+    cost = withAllocatedGeneralBusinessCost(cost, allocatedGeneral);
   }
 
   const revenueAdjustment = input.monthCloseEconomic?.revenueNet;
@@ -298,6 +321,7 @@ export function composeProjectFinancials(
     profit,
     coverage,
     dataConfidence,
+    projectProfitabilityMode: input.projectProfitabilityMode,
     sliceAvailability:
       input.sliceAvailability ??
       buildSliceAvailability({

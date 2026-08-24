@@ -64,6 +64,11 @@ export interface ExpenseInsertRow {
   readonly allocationPeriodEnd?: string | null;
   readonly allocationDriverMethod?: AllocationMethod | null;
   readonly allocationScheduleMode?: AllocationScheduleMode | null;
+  readonly installmentCount?: number;
+  readonly installmentStartDate?: BusinessDate | null;
+  readonly inventoryStockPurchase?: boolean;
+  readonly inventoryItemId?: string | null;
+  readonly inventoryPurchaseQty?: string | null;
   readonly createdByUserId: string | null;
 }
 
@@ -263,6 +268,11 @@ export async function findExpenseById(
       allocationPeriodEnd: expenses.allocationPeriodEnd,
       allocationDriverMethod: expenses.allocationDriverMethod,
       allocationScheduleMode: expenses.allocationScheduleMode,
+      installmentCount: expenses.installmentCount,
+      installmentStartDate: expenses.installmentStartDate,
+      inventoryStockPurchase: expenses.inventoryStockPurchase,
+      inventoryItemId: expenses.inventoryItemId,
+      inventoryPurchaseQty: expenses.inventoryPurchaseQty,
       createdByUserId: expenses.createdByUserId,
       createdAt: expenses.createdAt,
       updatedAt: expenses.updatedAt,
@@ -315,6 +325,11 @@ export async function findExpenseById(
     allocationPeriodEnd: (row.allocationPeriodEnd as BusinessDate | null) ?? null,
     allocationDriverMethod: row.allocationDriverMethod,
     allocationScheduleMode: row.allocationScheduleMode ?? null,
+    installmentCount: row.installmentCount,
+    installmentStartDate: (row.installmentStartDate as BusinessDate | null) ?? null,
+    inventoryStockPurchase: row.inventoryStockPurchase ?? false,
+    inventoryItemId: row.inventoryItemId ?? null,
+    inventoryPurchaseQty: row.inventoryPurchaseQty ?? null,
     allocations,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,

@@ -48,6 +48,11 @@ function expense(partial: Partial<ExpenseDetail> = {}): ExpenseDetail {
     allocationPeriodEnd: null,
     allocationDriverMethod: null,
     allocationScheduleMode: null,
+    installmentCount: 1,
+    installmentStartDate: null,
+    inventoryStockPurchase: false,
+    inventoryItemId: null,
+    inventoryPurchaseQty: null,
     allocations: [
       {
         targetType: 'project',

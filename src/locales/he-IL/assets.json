@@ -79,7 +79,14 @@
     "fleetTitle": "פרטי צי (אופציונלי)",
     "plateNumberLabel": "מספר לוחית",
     "vinLabel": "מספר שלדה",
-    "odometerLabel": "מד אוץ"
+    "odometerLabel": "מד אוץ",
+    "acquisitionTitle": "רכישה (אופציונלי)",
+    "acquisitionHint": "מעקב אחר סכום רכישה ומקור הוצאה/ספק. הקישור אינו יוצר עלות בפועל; ההוצאה או חשבונית הספק נשארות מקור העלות.",
+    "acquisitionAmountLabel": "סכום רכישה",
+    "acquisitionCurrencyLabel": "מטבע רכישה",
+    "acquiredOnLabel": "תאריך רכישה",
+    "sourceExpenseIdLabel": "מזהה הוצאת מקור",
+    "sourceApBillIdLabel": "מזהה חשבונית ספק"
   },
   "fleet": {
     "title": "צי רכב",
@@ -117,6 +124,9 @@
     "manufacturer": "יצרן",
     "model": "דגם",
     "serialNumber": "מספר סידורי",
+    "acquisition": "רכישה",
+    "acquisitionHint": "תצוגה/מעקב בלבד. הוצאה או חשבונית ספק נשארות מקור ההכרה בעלות בפועל; קישור כאן אינו רושם עלות.",
+    "saveAcquisition": "שמירת רכישה",
     "assignment": "שיוך / מסירה",
     "assignmentHint": "שייכו לפרויקט כדי למסור; נקו כדי להחזיר.",
     "assignedProject": "פרויקט משויך",
@@ -296,7 +306,8 @@
     "fleetRequiresVehicle": "רשומות צי חייבות להיות מקושרות לנכס מסוג רכב.",
     "fleetAlreadyLinked": "לרכב זה כבר יש רשומת צי.",
     "fleetKindLocked": "יש להסיר את רשומת הצי לפני שינוי סוג הנכס מרכב.",
-    "invalidUsageDateRange": "תאריך הסיום חייב להיות באותו יום או אחרי תאריך ההתחלה."
+    "invalidUsageDateRange": "תאריך הסיום חייב להיות באותו יום או אחרי תאריך ההתחלה.",
+    "inventoryCostLayerConsumed": "לא ניתן לבטל או להפוך רכישת מלאי זו; חלק מהמלאי שרכשו כבר נוצל או יצא מהמלאי."
   },
   "usage": {
     "panelNote": "שימוש מייחס חומרים וציוד לעבודה זו ככמות תפעולית. הוא אינו יוצר עלות בפועל - עלות רכישה נשארת בהוצאות / חשבוניות ספק פעם אחת.",
@@ -366,10 +377,10 @@
     "openExpense": "פתיחת הוצאה",
     "amountLabel": "סכום",
     "currencyLabel": "מטבע",
-    "allocationTitle": "תקופת תקורה אופציונלית",
+    "allocationTitle": "תקופת הקצאה אופציונלית להוצאות כלליות",
     "periodStartLabel": "תחילת תקופת הקצאה",
     "periodEndLabel": "סוף תקופת הקצאה",
-    "allocationHint": "כשממלאים, נעשה שימוש בהקצאת התקורה הקיימת (משקל חוזה / שנתי). עדיין טיוטה עד לאישור.",
+    "allocationHint": "כשממלאים, נעשה שימוש בהקצאה הקיימת של הוצאות כלליות (משקל חוזה / שנתי). עדיין טיוטה עד לאישור.",
     "success": "טיוטת הוצאה מקושרת נוצרה.",
     "errors": {
       "alreadyLinked": "לרשומה זו כבר יש הוצאה מקושרת.",

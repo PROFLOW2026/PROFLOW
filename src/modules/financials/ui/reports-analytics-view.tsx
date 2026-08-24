@@ -253,6 +253,12 @@ export async function ReportsAnalyticsView({
                 copy={moneyCopy(analytics.cost.estimatedFinal, tFinancial('estimatedFinalCost'))}
               />
             ) : null}
+            {analytics.companyActual ? (
+              <MoneyReportMetricTile
+                metric={analytics.companyActual}
+                copy={moneyCopy(analytics.companyActual, tFinancial('companyActual'))}
+              />
+            ) : null}
             {analytics.cost.unallocatedBusinessCosts ? (
               <MoneyReportMetricTile
                 metric={analytics.cost.unallocatedBusinessCosts}
@@ -266,6 +272,9 @@ export async function ReportsAnalyticsView({
           <p className="text-xs text-[var(--pf-text-secondary)]">{tFinancial('committedVsActual')}</p>
           <p className="text-xs text-[var(--pf-text-secondary)]">
             {tFinancial('orgCostReconciliationHint')}
+          </p>
+          <p className="text-xs text-[var(--pf-text-secondary)]">
+            {tFinancial('allocatedGeneralInProjectActualHint')}
           </p>
         </section>
       ) : null}
@@ -298,6 +307,13 @@ export async function ReportsAnalyticsView({
                   tFinancial('kpis.forecastMargin'),
                   'profitNet',
                 )}
+                colorizeNegative
+              />
+            ) : null}
+            {analytics.companyProfit ? (
+              <MoneyReportMetricTile
+                metric={analytics.companyProfit}
+                copy={moneyCopy(analytics.companyProfit, tFinancial('companyProfit'), 'profitNet')}
                 colorizeNegative
               />
             ) : null}

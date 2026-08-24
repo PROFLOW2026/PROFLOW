@@ -17,7 +17,8 @@ export interface RecurringOpsRunResult {
 export function isAlreadyGeneratedTodayError(error: unknown): boolean {
   return (
     error instanceof ConflictError &&
-    error.messageKey === 'recurringDrafts.errors.alreadyGeneratedToday'
+    (error.messageKey === 'recurringDrafts.errors.alreadyGeneratedToday' ||
+      error.messageKey === 'recurringDrafts.errors.alreadyGeneratedThisMonth')
   );
 }
 

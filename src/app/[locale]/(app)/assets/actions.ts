@@ -55,6 +55,14 @@ function optionalUuidOrNull(formData: FormData, key: string): string | null | un
   return text;
 }
 
+/** Present empty string clears; missing key leaves unchanged. */
+function optionalTextOrNull(formData: FormData, key: string): string | null | undefined {
+  const raw = formData.get(key);
+  if (raw === null) return undefined;
+  const text = String(raw).trim();
+  return text === '' ? null : text;
+}
+
 async function mapAppError(error: unknown): Promise<AssetsFormState> {
   const tErrors = await getTranslations('errors');
   const t = await getTranslations('assets');
@@ -96,6 +104,11 @@ export async function createAssetAction(
         plateNumber: formValue(formData, 'plateNumber'),
         vin: formValue(formData, 'vin'),
         odometer: formValue(formData, 'odometer'),
+        acquisitionAmount: formValue(formData, 'acquisitionAmount'),
+        acquisitionCurrency: formValue(formData, 'acquisitionCurrency'),
+        acquiredOn: formValue(formData, 'acquiredOn'),
+        sourceExpenseId: optionalUuidOrNull(formData, 'sourceExpenseId') ?? undefined,
+        sourceApBillId: optionalUuidOrNull(formData, 'sourceApBillId') ?? undefined,
       }),
     );
     revalidatePath('/assets');
@@ -122,6 +135,11 @@ export async function updateAssetAction(
           | 'disposed'
           | undefined,
         assignedProjectId: optionalUuidOrNull(formData, 'assignedProjectId'),
+        acquisitionAmount: optionalTextOrNull(formData, 'acquisitionAmount'),
+        acquisitionCurrency: optionalTextOrNull(formData, 'acquisitionCurrency'),
+        acquiredOn: optionalTextOrNull(formData, 'acquiredOn'),
+        sourceExpenseId: optionalUuidOrNull(formData, 'sourceExpenseId'),
+        sourceApBillId: optionalUuidOrNull(formData, 'sourceApBillId'),
       }),
     );
     revalidatePath('/assets');

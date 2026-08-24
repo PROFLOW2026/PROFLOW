@@ -162,7 +162,7 @@ describe('authenticated product simplification', () => {
     const heNav = flattenLocaleCatalog(readLocaleCatalog('he-IL', 'nav'));
     expect(heNav.get('vendorBills')).toBe('חשבוניות ספק');
     expect(heNav.get('jobs')).toBe('עבודות');
-    expect(heNav.get('overhead')).toBe('תקורה');
+    expect(heNav.get('overhead')).toBe('הוצאות כלליות');
     expect(heNav.get('newMenu.job')).toBe('עבודה');
     expect(heNav.get('attendance')).toBe('נוכחות');
     expect(heNav.get('newMenu.fieldLog')).toBe('יומן עבודה');

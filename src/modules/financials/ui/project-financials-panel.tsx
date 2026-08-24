@@ -14,6 +14,7 @@ import { loadCachedProjectFinancials } from '../application/load-cached-project-
 import { CashFlowView } from './cash-flow-view';
 import { mapCoverageToSources, standalonePartialNotes } from './map-coverage-sources';
 import { ProjectOwnerActualExperience } from './project-owner-actual-experience';
+import { AllocatedGeneralOfWhichNote } from './project-actual-breakdown-view';
 import { ProjectFinancialsKpiPanel } from './project-financials-kpi-panel';
 import { ExpectedRemainingCostForm } from './expected-remaining-cost-form';
 import { BillingPlanStatusStrip } from '@/modules/billing-plan/ui/billing-plan-status-strip';
@@ -275,6 +276,14 @@ export async function ProjectFinancialsPanel({ projectId }: ProjectFinancialsPan
               nature={t('metricNature.actual')}
               emphasis
             />
+            {financials.cost.allocatedGeneralBusinessCost &&
+            Number(financials.cost.allocatedGeneralBusinessCost.amount) > 0 ? (
+              <AllocatedGeneralOfWhichNote
+                ofWhich={t('ofWhich')}
+                label={t('generalBusinessCostsAllocatedToProject')}
+                amount={financials.cost.allocatedGeneralBusinessCost}
+              />
+            ) : null}
             <MetricRow
               label={t('estimatedFinalCost')}
               value={financials.cost.estimatedFinalCost}

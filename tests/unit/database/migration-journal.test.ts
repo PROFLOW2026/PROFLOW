@@ -296,7 +296,10 @@ describe('migration journal', () => {
     expect(tags.indexOf('0067_time_entry_cost_snapshot_fill')).toBeLessThan(
       tags.indexOf('0068_rate_versions_working_days_per_month'),
     );
-    expect(tags.at(-1)).toBe('0068_rate_versions_working_days_per_month');
+    expect(tags.indexOf('0068_rate_versions_working_days_per_month')).toBeLessThan(
+      tags.indexOf('0069_true_cost_profitability'),
+    );
+    expect(tags.at(-1)).toBe('0069_true_cost_profitability');
 
     const sql66 = await readFile(
       path.join(MIGRATIONS_DIR, '0066_workforce_time_integrity.sql'),
@@ -318,6 +321,39 @@ describe('migration journal', () => {
       'utf8',
     );
     expect(sql68).toContain('working_days_per_month');
+
+    const sql69 = await readFile(
+      path.join(MIGRATIONS_DIR, '0069_true_cost_profitability.sql'),
+      'utf8',
+    );
+    expect(sql69).toContain('general_cost_months');
+    expect(sql69).toContain('expense_managerial_schedule_lines');
+    expect(sql69).toContain('inventory_cost_layers');
+    expect(sql69).toContain('recurring_draft_amount_versions');
+    // Owner-review 0069 guards (house-style RLS, signed pool, immutability)
+    expect(sql69).toContain('install_org_table_rls');
+    expect(sql69).toContain('FORCE ROW LEVEL SECURITY');
+    expect(sql69).toContain('general_cost_month_frozen_guard');
+    expect(sql69).toContain('recurring_draft_amount_versions_assert_no_overlap');
+    expect(sql69).toContain('source_key');
+    expect(sql69).toMatch(/\(0\[1-9\]\|1\[0-2\]\)/);
+    expect(sql69).toContain('inventory_cost_layers_source_shape');
+    expect(sql69).toContain('general_cost_months_conservation');
+    expect(sql69).toMatch(/assets_source_expense_org_fk[\s\S]*ON DELETE RESTRICT/);
+    expect(sql69).toMatch(/assets_source_ap_bill_org_fk[\s\S]*ON DELETE RESTRICT/);
+    expect(sql69).not.toMatch(/auth\.jwt\(\)\s*->>\s*'organization_id'/);
+    expect(sql69).not.toMatch(
+      /ADD CONSTRAINT\s+general_cost_months_amounts_non_negative/i,
+    );
+    expect(sql69).toMatch(/DROP CONSTRAINT IF EXISTS general_cost_months_amounts_non_negative/);
+    // Owner-final 0069 blockers (Model A, inventory integrity, recurring overlap)
+    expect(sql69).toMatch(/Model A/i);
+    expect(sql69).toContain('general_cost_months_id_org_currency_uq');
+    expect(sql69).toContain('pg_advisory_xact_lock');
+    expect(sql69).toMatch(/EXCLUDE USING gist|btree_gist/);
+    expect(sql69).toContain('inventory_cost_consumptions_movement_layer_uq');
+    expect(sql69).toContain('inventory_cost_consumptions_material_layer_uq');
+    expect(sql69).toMatch(/inventory_cost_layers_id_org_item_uq|\(id,\s*organization_id,\s*inventory_item_id\)/);
 
     const sql35 = await readFile(
       path.join(MIGRATIONS_DIR, '0035_boq_integrity_closure.sql'),

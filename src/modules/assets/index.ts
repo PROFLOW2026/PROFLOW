@@ -52,6 +52,26 @@ export {
 } from './application/usage';
 
 export {
+  bookInventoryOpeningBalance,
+  bookInventoryPurchaseFromExpense,
+  bookInventoryPurchaseFromExpenseOnExecutor,
+  consumeInventoryCostToProject,
+  consumeInventoryCostToProjectOnExecutor,
+  unbookInventoryPurchaseFromExpense,
+  unbookInventoryPurchaseFromExpenseOnExecutor,
+} from './application/inventory-cost';
+export type {
+  BookInventoryOpeningBalanceInput,
+  BookInventoryOpeningBalanceResult,
+  BookInventoryPurchaseInput,
+  BookInventoryPurchaseResult,
+  ConsumeInventoryCostInput,
+  ConsumeInventoryCostResult,
+  UnbookInventoryPurchaseInput,
+  UnbookInventoryPurchaseResult,
+} from './application/inventory-cost';
+
+export {
   ASSET_KINDS,
   ASSET_STATUSES,
   MAINTENANCE_STATUSES,
@@ -116,6 +136,24 @@ export {
   isEquipmentUsageRecognizedActual,
   isMaterialUsageRecognizedActual,
 } from './domain/usage';
+
+export {
+  assertInventoryCostLayerSourceShape,
+  consumeInventoryCostFifo,
+  inventoryCostBasisConserves,
+  inventoryCostLayerHasConsumptions,
+  inventoryLayerValue,
+  reduceStockBasis,
+  sumInventoryStockValue,
+  unitCostFromPurchase,
+} from './domain/inventory-cost';
+export type {
+  InventoryConsumeAllocation,
+  InventoryConsumeResult,
+  InventoryCostLayerSlice,
+  InventoryCostLayerSourceKind,
+  InventoryCostLayerSourceShape,
+} from './domain/inventory-cost';
 
 export {
   allowedMaintenanceTransitions,

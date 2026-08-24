@@ -92,7 +92,14 @@ export async function insertBillProjectAllocations(
   currency: string,
   status: 'draft' | 'applied',
   lines: readonly {
-    projectId: string;
+    /** Required when targetType is `project` (default). Must be null for overhead. */
+    projectId?: string | null;
+    /**
+     * Schema allows `overhead` (project_id null). Default remains `project`.
+     * `resolveBillProjectAllocationLines` stays project-only; overhead is a
+     * persist option. Company Actual remainder already covers under-NET.
+     */
+    targetType?: 'project' | 'overhead';
     method: BillAllocationMethod;
     amount: string;
     percent?: string | null;
@@ -108,22 +115,25 @@ export async function insertBillProjectAllocations(
   const rows = await db
     .insert(apBillProjectAllocations)
     .values(
-      lines.map((line) => ({
-        organizationId,
-        apBillId,
-        targetType: 'project' as const,
-        projectId: line.projectId,
-        method: line.method,
-        amount: line.amount,
-        currency,
-        percent: line.percent ?? null,
-        basisDays: line.basisDays ?? null,
-        notes: line.notes ?? null,
-        sortOrder: line.sortOrder,
-        status,
-        supersedesAllocationId: line.supersedesAllocationId ?? null,
-        appliedAt,
-      })),
+      lines.map((line) => {
+        const targetType = line.targetType ?? 'project';
+        return {
+          organizationId,
+          apBillId,
+          targetType,
+          projectId: targetType === 'overhead' ? null : (line.projectId ?? null),
+          method: line.method,
+          amount: line.amount,
+          currency,
+          percent: line.percent ?? null,
+          basisDays: line.basisDays ?? null,
+          notes: line.notes ?? null,
+          sortOrder: line.sortOrder,
+          status,
+          supersedesAllocationId: line.supersedesAllocationId ?? null,
+          appliedAt,
+        };
+      }),
     )
     .returning();
 

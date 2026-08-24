@@ -280,6 +280,14 @@ export async function closeMonthClosePeriod(
     );
   }
 
+  // Refresh open general-cost pool before freeze (skips if already frozen).
+  // Dynamic import avoids a static cycle with financials → month-close.
+  const currency = context.organization.baseCurrency;
+  const { recomputeGeneralCostMonth } = await import(
+    '@/modules/financials/application/recompute-general-cost-month'
+  );
+  await recomputeGeneralCostMonth(context, period.yearMonth);
+
   const updated = await updatePeriodStatus(context.db, context.organizationId, period.id, {
     status: 'closed',
     closedAt: new Date(),
@@ -289,6 +297,19 @@ export async function closeMonthClosePeriod(
     completenessSnapshot: snapshot,
   });
   if (!updated) throw new NotFoundError('Month close period');
+
+  // Freeze general-cost pool for this yearMonth + org base currency.
+  // Model A: closed months never reopen; general cost stays frozen forever.
+  // Post-close corrections use month_close_adjustments only (not pool unfreeze).
+  const { freezeGeneralCostMonth } = await import(
+    '@/modules/financials/data/general-cost-months.repository'
+  );
+  await freezeGeneralCostMonth(
+    context.db,
+    context.organizationId,
+    period.yearMonth,
+    currency,
+  );
 
   await noteModuleUsage(context.db, context.organizationId, 'month_close');
 
@@ -300,6 +321,7 @@ export async function closeMonthClosePeriod(
       yearMonth: period.yearMonth,
       status: 'closed',
       completenessPercent: snapshot.percent,
+      generalCostFrozenCurrency: currency,
     },
   });
 

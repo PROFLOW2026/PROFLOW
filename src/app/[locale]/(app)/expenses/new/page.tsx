@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { PageHeader } from '@/components/ui/page-header';
 import { Button } from '@/components/ui/button';
+import { listInventoryItemsForOrg } from '@/modules/assets';
 import { listCostCategoriesForOrg, listProjectsForOrg, listWorkPackagesForOrg } from '@/modules/expenses';
 import { listApBillOverlapCandidates } from '@/modules/financials';
 import { resolveApplicableDefaultTax } from '@/modules/tax';
@@ -35,9 +36,11 @@ export default async function NewExpensePage({
   const params = await searchParams;
   const preselectedProjectId = typeof params.projectId === 'string' ? params.projectId : undefined;
 
-  const [projects, categories, workPackages, vendors, taxRatePercent, apBillOverlapCandidates] = await withOrgContext(
+  const [projects, categories, workPackages, vendors, taxRatePercent, apBillOverlapCandidates, inventoryItems] =
+    await withOrgContext(
     async (context) => {
       const canReadAp = hasPermission(context, PERMISSIONS.AP_READ);
+      const canManageAssets = hasPermission(context, PERMISSIONS.ASSETS_MANAGE);
       const projectRows = await listProjectsForOrg(context);
       const categoryRows = await listCostCategoriesForOrg(context);
       const packages = preselectedProjectId
@@ -53,6 +56,9 @@ export default async function NewExpensePage({
       const apCandidates = canReadAp
         ? await listApBillOverlapCandidates(context.db, context.organizationId)
         : [];
+      const inventoryRows = canManageAssets
+        ? await listInventoryItemsForOrg(context).catch(() => [])
+        : [];
       return [
         projectRows,
         categoryRows,
@@ -60,6 +66,7 @@ export default async function NewExpensePage({
         vendorRows,
         tax.resolved?.ratePercent ?? null,
         apCandidates,
+        inventoryRows.map((item) => ({ id: item.id, name: item.name, unit: item.unit })),
       ] as const;
     },
   );
@@ -84,6 +91,7 @@ export default async function NewExpensePage({
         categories={categories}
         workPackages={workPackages}
         vendors={vendors.map((vendor) => ({ id: vendor.id, name: vendor.name }))}
+        inventoryItems={inventoryItems}
         initialProjectId={preselectedProjectId}
         taxRatePercent={taxRatePercent}
         apBillOverlapCandidates={apBillOverlapCandidates}

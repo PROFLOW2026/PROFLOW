@@ -9,9 +9,11 @@ import {
   resumeRecurringDraft,
   endRecurringDraft,
   generateRecurringDraftNow,
+  generateRecurringDraftHistory,
   emptyToNull,
   isDraftKind,
   isDraftFrequency,
+  isManagerialCostKind,
 } from '@/modules/recurring-drafts';
 import type { RecurringDraftFormState } from '@/modules/recurring-drafts/ui/draft-form';
 import { withOrgContext } from '@/shared/auth/session';
@@ -31,6 +33,11 @@ function formValue(formData: FormData, key: string): string | undefined {
   return text === '' ? undefined : text;
 }
 
+function formBool(formData: FormData, key: string): boolean {
+  const value = formData.get(key);
+  return value === 'true' || value === 'on' || value === '1';
+}
+
 function buildPayload(kind: string, formData: FormData, title: string): unknown {
   const amount = formValue(formData, 'amount') ?? '';
   const currency = (formValue(formData, 'currency') ?? '').toUpperCase();
@@ -38,6 +45,9 @@ function buildPayload(kind: string, formData: FormData, title: string): unknown 
   const projectId = emptyToNull(formValue(formData, 'projectId') ?? null);
   const dueDaysRaw = formValue(formData, 'dueDays');
   const dueDays = dueDaysRaw ? Number(dueDaysRaw) : null;
+  const managerialRaw = formValue(formData, 'managerialCostKind') ?? null;
+  const managerialCostKind =
+    managerialRaw && isManagerialCostKind(managerialRaw) ? managerialRaw : null;
 
   if (kind === 'expense') {
     return {
@@ -45,7 +55,13 @@ function buildPayload(kind: string, formData: FormData, title: string): unknown 
       currency,
       description: formValue(formData, 'description') ?? null,
       supplierName: formValue(formData, 'supplierName') ?? null,
-      projectId,
+      projectId: managerialCostKind === 'general_business' ? null : projectId,
+      costFamily:
+        managerialCostKind === 'general_business'
+          ? 'business_overhead'
+          : managerialCostKind === 'direct_project'
+            ? 'direct_project'
+            : null,
       notes,
     };
   }
@@ -83,6 +99,18 @@ function buildPayload(kind: string, formData: FormData, title: string): unknown 
   };
 }
 
+function trueCostFields(kind: string, formData: FormData) {
+  if (kind !== 'expense') {
+    return { autoFinalizeExpense: false, managerialCostKind: null as null };
+  }
+  const managerialRaw = formValue(formData, 'managerialCostKind') ?? null;
+  return {
+    autoFinalizeExpense: formBool(formData, 'autoFinalizeExpense'),
+    managerialCostKind:
+      managerialRaw && isManagerialCostKind(managerialRaw) ? managerialRaw : null,
+  };
+}
+
 async function mapError(error: unknown): Promise<RecurringDraftFormState> {
   const tErrors = await getTranslations('errors');
   const t = await getTranslations('recurringDrafts');
@@ -98,24 +126,35 @@ async function mapError(error: unknown): Promise<RecurringDraftFormState> {
   if (error instanceof DomainRuleError) {
     const key = error.messageKey;
     if (key.startsWith('recurringDrafts.errors.')) {
-      const short = key.slice('recurringDrafts.errors.'.length) as
-        | 'notActive'
-        | 'ended'
-        | 'notPausable'
-        | 'notResumable'
-        | 'alreadyEnded'
-        | 'notEditable'
-        | 'endBeforeNext'
-        | 'mustRemainDraft'
-        | 'finalizeForbidden'
-        | 'kindMismatch';
-      return { error: t(`errors.${short}`) };
+      const short = key.slice('recurringDrafts.errors.'.length);
+      const known = [
+        'notActive',
+        'ended',
+        'notPausable',
+        'notResumable',
+        'alreadyEnded',
+        'notEditable',
+        'endBeforeNext',
+        'mustRemainDraft',
+        'finalizeForbidden',
+        'kindMismatch',
+        'directProjectRequiresProject',
+        'managerialCostExpenseOnly',
+        'historyMonthlyOnly',
+        'historyRangeTooLarge',
+      ] as const;
+      if ((known as readonly string[]).includes(short)) {
+        return { error: t(`errors.${short as (typeof known)[number]}`) };
+      }
     }
     return { error: tErrors('unexpected') };
   }
   if (error instanceof ConflictError) {
     if (error.messageKey === 'recurringDrafts.errors.alreadyGeneratedToday') {
       return { error: t('errors.alreadyGeneratedToday') };
+    }
+    if (error.messageKey === 'recurringDrafts.errors.alreadyGeneratedThisMonth') {
+      return { error: t('errors.alreadyGeneratedThisMonth') };
     }
     return { error: tErrors('conflict') };
   }
@@ -147,6 +186,7 @@ export async function createRecurringDraftAction(
         nextRunDate: formValue(formData, 'nextRunDate') ?? '',
         endDate: formValue(formData, 'endDate') ?? null,
         payload: buildPayload(kindRaw, formData, title),
+        ...trueCostFields(kindRaw, formData),
       }),
     );
     revalidatePath('/recurring-drafts');
@@ -189,6 +229,7 @@ export async function updateRecurringDraftAction(
         nextRunDate: formValue(formData, 'nextRunDate') ?? '',
         endDate: formValue(formData, 'endDate') ?? null,
         payload: buildPayload(kindRaw, formData, title),
+        ...trueCostFields(kindRaw, formData),
       }),
     );
     revalidatePath('/recurring-drafts');
@@ -266,4 +307,17 @@ export async function generateRecurringDraftAction(
   } catch (error) {
     return mapError(error);
   }
+}
+
+export async function generateRecurringDraftHistoryAction(
+  formData: FormData,
+): Promise<void> {
+  const draftId = formValue(formData, 'draftId') ?? '';
+  const fromYearMonth = formValue(formData, 'fromYearMonth') ?? '';
+  const toYearMonth = formValue(formData, 'toYearMonth') ?? '';
+  await withOrgContext((context) =>
+    generateRecurringDraftHistory(context, draftId, { fromYearMonth, toYearMonth }),
+  );
+  revalidatePath('/recurring-drafts');
+  revalidatePath(`/recurring-drafts/${draftId}`);
 }

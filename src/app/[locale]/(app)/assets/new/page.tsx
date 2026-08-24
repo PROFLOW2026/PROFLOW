@@ -20,11 +20,12 @@ export async function generateMetadata({
 export default async function NewAssetPage() {
   const t = await getTranslations('assets');
 
-  const projects = await withOrgContext(async (context) => {
+  const loaded = await withOrgContext(async (context) => {
     try {
-      return await listProjectsForOrg(context, { status: 'active' });
+      const projects = await listProjectsForOrg(context, { status: 'active' });
+      return { projects, baseCurrency: context.organization.baseCurrency };
     } catch {
-      return [];
+      return { projects: [], baseCurrency: context.organization.baseCurrency };
     }
   });
 
@@ -39,7 +40,10 @@ export default async function NewAssetPage() {
           </Link>
         }
       />
-      <AssetCreateForm projects={projects.map((p) => ({ id: p.id, name: p.name }))} />
+      <AssetCreateForm
+        projects={loaded.projects.map((p) => ({ id: p.id, name: p.name }))}
+        defaultCurrency={loaded.baseCurrency}
+      />
     </div>
   );
 }

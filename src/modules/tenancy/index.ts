@@ -63,6 +63,18 @@ export type {
   DeriveProjectProfileInput,
 } from './domain/project-profiles';
 export { getWorkMixForOrg, saveWorkMix } from './application/work-mix';
+export {
+  PROJECT_PROFITABILITY_MODE_SETTING_KEY,
+  PROJECT_PROFITABILITY_MODES,
+  DEFAULT_PROJECT_PROFITABILITY_MODE,
+  isProjectProfitabilityMode,
+  parseProjectProfitabilityMode,
+} from './domain/project-profitability-mode';
+export type { ProjectProfitabilityMode } from './domain/project-profitability-mode';
+export {
+  getProjectProfitabilityModeForOrg,
+  saveProjectProfitabilityMode,
+} from './application/project-profitability-mode';
 export { loadShellOrgSettings, type ShellOrgSettings } from './application/shell-org-settings';
 export { DEFAULT_COST_CATEGORIES, defaultsForCountry } from './domain/organization-defaults';
 export {

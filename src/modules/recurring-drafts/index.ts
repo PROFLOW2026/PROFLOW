@@ -12,6 +12,8 @@ export {
 } from './application/manage';
 export { generateRecurringDraftNow } from './application/generate';
 export type { GenerateRecurringDraftResult } from './application/generate';
+export { generateRecurringDraftHistory } from './application/generate-history';
+export type { GenerateRecurringDraftHistoryResult } from './application/generate-history';
 export { generateDueRecurringDrafts } from './application/ops-worker';
 export type { RecurringOpsWorkerResult } from './application/ops-worker';
 export { runDueRecurringDrafts, isAlreadyGeneratedTodayError } from './domain/ops-run';
@@ -30,8 +32,10 @@ export type {
   DraftKind,
   DraftFrequency,
   DraftStatus,
+  ManagerialCostKind,
   RecurringFinancialDraftRecord,
   RecurringFinancialDraftRunRecord,
+  RecurringDraftAmountVersionRecord,
   RecurringDraftListFilters,
   StoredDraftPayload,
   ExpenseDraftPayload,
@@ -58,18 +62,32 @@ export {
   bumpScheduleAfterGenerate,
 } from './domain/schedule';
 export {
+  resolveAmountForDate,
+  listYearMonthsInclusive,
+  yearMonthFromBusinessDate,
+  firstBusinessDateOfYearMonth,
+} from './domain/amount-versions';
+export {
+  MANAGERIAL_COST_KINDS,
+  applyManagerialCostKindToExpensePayload,
+  isManagerialCostKind,
+} from './domain/managerial-cost';
+export {
   stripFinalizeFlag,
   assertGeneratedEntityIsDraft,
   expenseInputFromPayload,
   vendorBillDraftInsertFromPayload,
   billingInputFromPayload,
   previewPayloadForRun,
+  extractTemplateAmount,
+  withResolvedAmount,
 } from './domain/payload';
 
 export {
   createRecurringDraftSchema,
   updateRecurringDraftSchema,
   generateRecurringDraftSchema,
+  generateRecurringDraftHistorySchema,
   listRecurringDraftsSchema,
   recurringDraftIdSchema,
   emptyToNull,
@@ -78,5 +96,6 @@ export type {
   CreateRecurringDraftInput,
   UpdateRecurringDraftInput,
   GenerateRecurringDraftInput,
+  GenerateRecurringDraftHistoryInput,
   ListRecurringDraftsInput,
 } from './validation/schemas';

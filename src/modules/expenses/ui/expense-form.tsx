@@ -14,6 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 import { MoneyInput } from '@/components/patterns/money-input';
 import { computeTaxAmountBreakdown } from '@/modules/tax/domain/amounts';
 import type {
@@ -22,6 +23,7 @@ import type {
   CategoryPeriodBehavior,
   CostCategoryRow,
   CostFamily,
+  InventoryItemOption,
   ProjectOption,
   RecurrenceCadence,
   VendorOption,
@@ -73,6 +75,11 @@ export interface ExpenseFormValues {
   allocationPeriodStart: string;
   allocationPeriodEnd: string;
   allocationScheduleMode: AllocationScheduleMode | '';
+  installmentCount: string;
+  installmentStartDate: string;
+  inventoryStockPurchase: boolean;
+  inventoryItemId: string;
+  inventoryPurchaseQty: string;
 }
 
 export interface ExpenseFormProps {
@@ -83,6 +90,8 @@ export interface ExpenseFormProps {
   readonly categories: readonly CostCategoryRow[];
   readonly workPackages: readonly WorkPackageOption[];
   readonly vendors?: readonly VendorOption[];
+  /** When provided, enables inventory stock purchase advanced capture. */
+  readonly inventoryItems?: readonly InventoryItemOption[];
   /**
    * Org default percentage tax rate for live נטו / מע״מ / סה״כ preview.
    * From resolveApplicableDefaultTax - never a hardcoded Israeli rate.
@@ -105,6 +114,7 @@ export function ExpenseForm({
   categories,
   workPackages,
   vendors = [],
+  inventoryItems = [],
   taxRatePercent = null,
   readOnly = false,
   onProjectChange,
@@ -121,8 +131,9 @@ export function ExpenseForm({
       initialValues?.vendorId ||
         initialValues?.allocations?.length ||
         initialValues?.taxAmount ||
-        !initialValues?.projectId,
-    ),
+        !initialValues?.projectId ||
+        (Number(initialValues?.installmentCount) > 1) ||
+        initialValues?.inventoryStockPurchase),
   );
   const [showAdvanced, setShowAdvanced] = React.useState(
     Boolean(initialValues?.taxAmount && initialValues?.netAmount),
@@ -172,6 +183,19 @@ export function ExpenseForm({
   );
   const [allocationScheduleMode, setAllocationScheduleMode] = React.useState<AllocationScheduleMode | ''>(
     initialValues?.allocationScheduleMode ?? '',
+  );
+  const [installmentCount, setInstallmentCount] = React.useState(
+    initialValues?.installmentCount?.trim() ? initialValues.installmentCount : '1',
+  );
+  const [installmentStartDate, setInstallmentStartDate] = React.useState(
+    initialValues?.installmentStartDate ?? initialValues?.expenseDate ?? '',
+  );
+  const [inventoryStockPurchase, setInventoryStockPurchase] = React.useState(
+    Boolean(initialValues?.inventoryStockPurchase),
+  );
+  const [inventoryItemId, setInventoryItemId] = React.useState(initialValues?.inventoryItemId ?? '');
+  const [inventoryPurchaseQty, setInventoryPurchaseQty] = React.useState(
+    initialValues?.inventoryPurchaseQty ?? '',
   );
   /** Once the operator changes driver/period after a category apply, stop re-applying. */
   const [policyOverridden, setPolicyOverridden] = React.useState(false);
@@ -500,6 +524,15 @@ export function ExpenseForm({
           <input type="hidden" name="recurrenceCustomLabel" value={recurrenceCustomLabel} />
           <input type="hidden" name="costFamily" value={costFamily} />
           <input type="hidden" name="costCategoryId" value={costCategoryId} />
+          <input type="hidden" name="installmentCount" value={installmentCount || '1'} />
+          <input type="hidden" name="installmentStartDate" value={installmentStartDate} />
+          <input
+            type="hidden"
+            name="inventoryStockPurchase"
+            value={inventoryStockPurchase ? 'true' : 'false'}
+          />
+          <input type="hidden" name="inventoryItemId" value={inventoryItemId} />
+          <input type="hidden" name="inventoryPurchaseQty" value={inventoryPurchaseQty} />
           {showOverheadUnallocatedWarning ? (
             <p role="status" className="text-sm text-[var(--pf-status-warning-fg)]">
               {t('lifecycle.overheadUnallocatedWarning')}
@@ -551,6 +584,132 @@ export function ExpenseForm({
               />
             )}
           </Field>
+
+          <Field
+            label={t('fields.installmentCount')}
+            optionalLabel={tCommon('labels.optional')}
+            error={fieldErrors.installmentCount}
+            description={t('fields.installmentHint')}
+          >
+            {(controlProps) => (
+              <Input
+                {...controlProps}
+                type="number"
+                name="installmentCount"
+                min={1}
+                max={120}
+                step={1}
+                value={installmentCount}
+                onChange={(event) => setInstallmentCount(event.target.value)}
+                disabled={readOnly}
+                dir="ltr"
+              />
+            )}
+          </Field>
+
+          {Number(installmentCount) > 1 ? (
+            <Field
+              label={t('fields.installmentStart')}
+              optionalLabel={tCommon('labels.optional')}
+              error={fieldErrors.installmentStartDate}
+            >
+              {(controlProps) => (
+                <Input
+                  {...controlProps}
+                  type="date"
+                  name="installmentStartDate"
+                  value={installmentStartDate || expenseDate}
+                  onChange={(event) => setInstallmentStartDate(event.target.value)}
+                  disabled={readOnly}
+                  dir="ltr"
+                />
+              )}
+            </Field>
+          ) : (
+            <input type="hidden" name="installmentStartDate" value={installmentStartDate} />
+          )}
+
+          {inventoryItems.length > 0 ? (
+            <div className="flex flex-col gap-4 rounded-md border border-dashed border-[var(--pf-border-default)] p-3">
+              <label className="flex cursor-pointer items-start gap-3">
+                <Checkbox
+                  checked={inventoryStockPurchase}
+                  onCheckedChange={(checked) => {
+                    const next = checked === true;
+                    setInventoryStockPurchase(next);
+                    if (!next) {
+                      setInventoryItemId('');
+                      setInventoryPurchaseQty('');
+                    }
+                  }}
+                  disabled={readOnly}
+                  aria-label={t('fields.inventoryStockPurchase')}
+                />
+                <span className="text-sm leading-snug">{t('fields.inventoryStockPurchase')}</span>
+              </label>
+              <input
+                type="hidden"
+                name="inventoryStockPurchase"
+                value={inventoryStockPurchase ? 'true' : 'false'}
+              />
+
+              {inventoryStockPurchase ? (
+                <>
+                  <Field
+                    label={t('fields.inventoryItem')}
+                    error={fieldErrors.inventoryItemId}
+                  >
+                    {(controlProps) => (
+                      <Select
+                        value={inventoryItemId || NONE_VALUE}
+                        onValueChange={(value) =>
+                          setInventoryItemId(value === NONE_VALUE ? '' : value)
+                        }
+                        disabled={readOnly}
+                      >
+                        <SelectTrigger {...controlProps}>
+                          <SelectValue placeholder={t('placeholders.inventoryItem')} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value={NONE_VALUE}>{t('placeholders.inventoryItem')}</SelectItem>
+                          {inventoryItems.map((item) => (
+                            <SelectItem key={item.id} value={item.id}>
+                              {item.name}
+                              {item.unit ? ` (${item.unit})` : ''}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  </Field>
+                  <input type="hidden" name="inventoryItemId" value={inventoryItemId} />
+
+                  <Field
+                    label={t('fields.inventoryPurchaseQty')}
+                    error={fieldErrors.inventoryPurchaseQty}
+                    description={t('fields.inventoryPurchaseQtyHint')}
+                  >
+                    {(controlProps) => (
+                      <Input
+                        {...controlProps}
+                        name="inventoryPurchaseQty"
+                        value={inventoryPurchaseQty}
+                        onChange={(event) => setInventoryPurchaseQty(event.target.value)}
+                        disabled={readOnly}
+                        inputMode="decimal"
+                        dir="ltr"
+                      />
+                    )}
+                  </Field>
+                </>
+              ) : (
+                <>
+                  <input type="hidden" name="inventoryItemId" value="" />
+                  <input type="hidden" name="inventoryPurchaseQty" value="" />
+                </>
+              )}
+            </div>
+          ) : null}
 
           <Field label={t('fields.costFamily')} optionalLabel={tCommon('labels.optional')}>
             {(controlProps) => (

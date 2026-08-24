@@ -47,6 +47,15 @@ export interface AssetRecord {
   readonly model: string | null;
   readonly serialNumber: string | null;
   readonly assignedProjectId: string | null;
+  /**
+   * Display/trace only. Linking a source Expense/AP does not post Actual —
+   * Expense/AP remains the recognition source.
+   */
+  readonly acquisitionAmount: string | null;
+  readonly acquisitionCurrency: string | null;
+  readonly acquiredOn: string | null;
+  readonly sourceExpenseId: string | null;
+  readonly sourceApBillId: string | null;
   readonly notes: string | null;
   readonly archivedAt: Date | null;
   readonly createdAt: Date;
@@ -94,6 +103,12 @@ export interface InventoryItemRecord {
   readonly unit: string;
   /** Quantity on hand - not a GL balance. */
   readonly quantityOnHand: string;
+  /**
+   * Managerial remaining stock cost basis (Σ open layers).
+   * Not Project Actual / General Pool — consume/write-off moves cost.
+   */
+  readonly costBasisAmount: string;
+  readonly costBasisCurrency: string | null;
   readonly reorderLevel: string | null;
   /** Canonical low-stock threshold; fall back to reorderLevel when null. */
   readonly minStockLevel: string | null;

@@ -7,3 +7,4 @@ export {
   withTransaction,
   withUserContext,
 } from './client';
+export { asServiceRoleWrite } from './service-role-write';

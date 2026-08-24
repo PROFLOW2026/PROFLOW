@@ -352,6 +352,20 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
                   unavailableHint={t('missingData.kpiUnavailableProfitHint')}
                 />
               ) : null}
+              {data.forecast.companyActual != null ? (
+                <KpiCard
+                  title={tFinancial('companyActual')}
+                  money={data.forecast.companyActual}
+                  hint={tFinancial('allocatedGeneralInProjectActualHint')}
+                />
+              ) : null}
+              {data.forecast.companyProfit != null ? (
+                <KpiCard
+                  title={tFinancial('companyProfit')}
+                  money={data.forecast.companyProfit}
+                  hint={tFinancial('basis.profitNet')}
+                />
+              ) : null}
               {data.forecast.unallocatedBusinessCosts != null ? (
                 <KpiCard
                   title={tFinancial('unallocatedBusinessCosts')}

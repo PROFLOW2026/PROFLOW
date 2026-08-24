@@ -19,6 +19,7 @@ import {
   moneyAmount,
   percentAmount,
   primaryId,
+  quantityAmount,
   timestamps,
 } from './_shared';
 import {
@@ -143,6 +144,19 @@ export const expenses = pgTable(
      */
     allocationScheduleMode: allocationScheduleModeEnum('allocation_schedule_mode'),
 
+    /**
+     * Managerial installment spread (0069). Default 1 = full NET in start month.
+     * Cash payments never create Actual.
+     */
+    installmentCount: integer('installment_count').notNull().default(1),
+    installmentStartDate: date('installment_start_date'),
+    /** When true, finalized NET books to inventory cost basis — not operating Actual. */
+    inventoryStockPurchase: boolean('inventory_stock_purchase').notNull().default(false),
+    /** Target item for stock purchase booking (required when inventoryStockPurchase). */
+    inventoryItemId: uuid('inventory_item_id'),
+    /** Quantity received into central stock (required when inventoryStockPurchase). */
+    inventoryPurchaseQty: quantityAmount('inventory_purchase_qty'),
+
     createdByUserId: uuid('created_by_user_id').references(() => profiles.id, { onDelete: 'set null' }),
     archivedAt: archivedAt(),
     ...timestamps(),
@@ -165,6 +179,11 @@ export const expenses = pgTable(
           or ${table.allocationPeriodEnd} is null
           or ${table.allocationPeriodStart} <= ${table.allocationPeriodEnd}`,
     ),
+    check(
+      'expenses_installment_count_range',
+      sql`${table.installmentCount} >= 1 AND ${table.installmentCount} <= 120`,
+    ),
+    // inventory_item_id → inventory_items (org composite FK, ON DELETE RESTRICT) — see migration 0069.
   ],
 );
 

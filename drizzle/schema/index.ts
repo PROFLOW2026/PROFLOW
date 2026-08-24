@@ -46,3 +46,4 @@ export * from './next-gen-ops';
 export * from './next-gen-experience';
 export * from './boq';
 export * from './platform-ops';
+export * from './true-cost';

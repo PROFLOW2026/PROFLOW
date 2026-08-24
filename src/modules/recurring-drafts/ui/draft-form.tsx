@@ -9,10 +9,17 @@ import { Field } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import type { DraftKind, DraftFrequency, StoredDraftPayload } from '../domain/types';
+import type {
+  DraftKind,
+  DraftFrequency,
+  ManagerialCostKind,
+  StoredDraftPayload,
+} from '../domain/types';
 import { DRAFT_FREQUENCIES } from '../domain/types';
+import { MANAGERIAL_COST_KINDS } from '../domain/managerial-cost';
 
 const NONE = '__none__';
+const MANAGERIAL_NONE = '__none__';
 
 export interface RecurringDraftFormState {
   readonly error?: string;
@@ -50,6 +57,8 @@ export function RecurringDraftForm({
     readonly intervalCount: number;
     readonly nextRunDate: string;
     readonly endDate: string | null;
+    readonly autoFinalizeExpense?: boolean;
+    readonly managerialCostKind?: ManagerialCostKind | null;
     readonly payload?: StoredDraftPayload;
   };
 }) {
@@ -66,6 +75,10 @@ export function RecurringDraftForm({
   const [currency, setCurrency] = useState(
     initialAmount(initial?.payload, defaultCurrency).currency,
   );
+  const [managerialCostKind, setManagerialCostKind] = useState<string>(
+    initial?.managerialCostKind ?? MANAGERIAL_NONE,
+  );
+  const [autoFinalize, setAutoFinalize] = useState(Boolean(initial?.autoFinalizeExpense));
 
   const kinds = mode === 'edit' ? [initialKind] : writableKinds;
 
@@ -216,19 +229,23 @@ export function RecurringDraftForm({
               />
             )}
           </Field>
-          <Field label={t('fields.project')} optionalLabel={tCommon('labels.optional')}>
+          <Field label={t('fields.managerialCostKind')} optionalLabel={tCommon('labels.optional')}>
             {(controlProps) => (
               <>
-                <input type="hidden" name="projectId" value={projectId === NONE ? '' : projectId} />
-                <Select value={projectId} onValueChange={setProjectId}>
+                <input
+                  type="hidden"
+                  name="managerialCostKind"
+                  value={managerialCostKind === MANAGERIAL_NONE ? '' : managerialCostKind}
+                />
+                <Select value={managerialCostKind} onValueChange={setManagerialCostKind}>
                   <SelectTrigger {...controlProps}>
-                    <SelectValue placeholder={t('fields.overhead')} />
+                    <SelectValue placeholder={t('fields.managerialCostKind')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value={NONE}>{t('fields.overhead')}</SelectItem>
-                    {projects.map((project) => (
-                      <SelectItem key={project.id} value={project.id}>
-                        {project.name}
+                    <SelectItem value={MANAGERIAL_NONE}>{t('fields.none')}</SelectItem>
+                    {MANAGERIAL_COST_KINDS.map((value) => (
+                      <SelectItem key={value} value={value}>
+                        {t(`managerialCostKind.${value}`)}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -236,6 +253,61 @@ export function RecurringDraftForm({
               </>
             )}
           </Field>
+          {managerialCostKind !== 'general_business' ? (
+            <Field
+              label={t('fields.project')}
+              optionalLabel={
+                managerialCostKind === 'direct_project' ? undefined : tCommon('labels.optional')
+              }
+              required={managerialCostKind === 'direct_project'}
+              error={state.fieldErrors?.projectId}
+            >
+              {(controlProps) => (
+                <>
+                  <input type="hidden" name="projectId" value={projectId === NONE ? '' : projectId} />
+                  <Select value={projectId} onValueChange={setProjectId}>
+                    <SelectTrigger {...controlProps}>
+                      <SelectValue
+                        placeholder={
+                          managerialCostKind === 'direct_project'
+                            ? t('fields.project')
+                            : t('fields.overhead')
+                        }
+                      />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {managerialCostKind !== 'direct_project' ? (
+                        <SelectItem value={NONE}>{t('fields.overhead')}</SelectItem>
+                      ) : null}
+                      {projects.map((project) => (
+                        <SelectItem key={project.id} value={project.id}>
+                          {project.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </>
+              )}
+            </Field>
+          ) : (
+            <input type="hidden" name="projectId" value="" />
+          )}
+          <label className="flex items-start gap-3 text-sm">
+            <input
+              type="checkbox"
+              name="autoFinalizeExpense"
+              value="true"
+              checked={autoFinalize}
+              onChange={(event) => setAutoFinalize(event.target.checked)}
+              className="mt-1 size-4"
+            />
+            <span>
+              <span className="font-medium">{t('fields.autoFinalizeExpense')}</span>
+              <span className="mt-1 block text-[var(--pf-text-secondary)]">
+                {t('fields.autoFinalizeExpenseHint')}
+              </span>
+            </span>
+          </label>
         </>
       ) : null}
 

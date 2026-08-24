@@ -106,7 +106,19 @@ export async function sumOrganizationMonthlyLaborUnallocated(
   db: DbExecutor,
   organizationId: string,
   currency: string,
+  options?: { readonly yearMonth?: string },
 ): Promise<{ totalAmount: string; currency: string }> {
+  const conditions = [
+    eq(laborAllocationRuns.organizationId, organizationId),
+    eq(laborAllocationRuns.status, 'applied'),
+    inArray(employeeMonthCosts.status, [...appliedClosedStatuses]),
+    eq(employeeMonthCosts.recognitionSource, 'monthly_allocated'),
+    sql`upper(${laborAllocationRuns.currency}) = upper(${currency})`,
+  ];
+  if (options?.yearMonth) {
+    conditions.push(eq(employeeMonthCosts.yearMonth, options.yearMonth));
+  }
+
   const [row] = await db
     .select({
       totalAmount: sql<string>`coalesce(sum(${laborAllocationRuns.unallocatedAmount}), 0)::text`,
@@ -119,15 +131,7 @@ export async function sumOrganizationMonthlyLaborUnallocated(
         eq(laborAllocationRuns.organizationId, employeeMonthCosts.organizationId),
       ),
     )
-    .where(
-      and(
-        eq(laborAllocationRuns.organizationId, organizationId),
-        eq(laborAllocationRuns.status, 'applied'),
-        inArray(employeeMonthCosts.status, [...appliedClosedStatuses]),
-        eq(employeeMonthCosts.recognitionSource, 'monthly_allocated'),
-        sql`upper(${laborAllocationRuns.currency}) = upper(${currency})`,
-      ),
-    );
+    .where(and(...conditions));
 
   return {
     totalAmount: row?.totalAmount ?? '0',

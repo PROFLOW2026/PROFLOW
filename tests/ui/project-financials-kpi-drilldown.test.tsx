@@ -95,6 +95,9 @@ function buildFinancials(overrides?: {
       expectedRemainingCost: etc,
       openApPayable: { amount: '2000.000000', currency },
       monthCloseCostNet: zero,
+      directActualCostToDate: actual,
+      allocatedGeneralBusinessCost: zero,
+      fullActualCostToDate: actual,
       ...(overrides?.allocatedOverhead
         ? { allocatedOverhead: { amount: overrides.allocatedOverhead, currency } }
         : {}),

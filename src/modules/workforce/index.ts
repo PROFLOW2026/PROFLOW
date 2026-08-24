@@ -347,7 +347,10 @@ export {
   findTimeEntryById,
   sumLaborCostGroupedByProject,
   sumOrganizationProjectLaborCoverage,
+  sumOrganizationNonProjectLaborCost,
+  sumNonProjectLaborCostByMonth,
 } from './data/time-entries.repository';
+export type { NonProjectLaborCostAggregate } from './data/time-entries.repository';
 
 /** Monthly allocation Displacement rollups (applied/closed months only). */
 export {

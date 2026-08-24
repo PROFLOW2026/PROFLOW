@@ -348,7 +348,7 @@ export async function applyMonthlyEmployerCostAllocation(
   const { assertMonthOpenForRewrite } = await import('@/modules/month-close');
   await assertMonthOpenForRewrite(context, parsed.data.yearMonth);
 
-  return withTransaction(context.db, async (tx) => {
+  const result = await withTransaction(context.db, async (tx) => {
     const month = await findEmployeeMonthCostByEmployeeMonth(
       tx,
       context.organizationId,
@@ -407,6 +407,13 @@ export async function applyMonthlyEmployerCostAllocation(
 
     return { month: refreshed, run: applied };
   });
+
+  const { tryRecomputeOpenGeneralCostMonth } = await import(
+    '@/modules/financials/application/recompute-general-cost-month'
+  );
+  await tryRecomputeOpenGeneralCostMonth(context, { yearMonth: parsed.data.yearMonth });
+
+  return result;
 }
 
 function emptyToNull(value: string | null | undefined): string | null {

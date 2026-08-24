@@ -22,7 +22,11 @@ import { withOrgContext } from '@/shared/auth/session';
 import { Link } from '@/shared/i18n/navigation';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
-import { AssetAssignmentForm, AssetStatusForm } from './asset-manage-forms';
+import {
+  AssetAcquisitionForm,
+  AssetAssignmentForm,
+  AssetStatusForm,
+} from './asset-manage-forms';
 import { MaintenanceCreateForm, MaintenanceStatusForm } from './maintenance-create-form';
 import { AssetEquipmentUsagePanel } from '@/modules/assets/ui';
 import { textNavLinkMutedClassName } from '@/components/ui/pressable';
@@ -183,6 +187,82 @@ export default async function AssetDetailPage({
         {loaded.canManage ? (
           <div className="mt-4">
             <AssetStatusForm assetId={asset.id} currentStatus={asset.status} />
+          </div>
+        ) : null}
+      </section>
+
+      <section className="rounded-lg border border-[var(--pf-border-default)] p-4">
+        <h2 className="font-semibold">{t('detail.acquisition')}</h2>
+        <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">{t('detail.acquisitionHint')}</p>
+        <dl className="mt-2 grid gap-2 text-sm sm:grid-cols-2 lg:grid-cols-3">
+          <div>
+            <dt className="text-[var(--pf-text-secondary)]">{t('createAsset.acquisitionAmountLabel')}</dt>
+            <dd>
+              {asset.acquisitionAmount ? (
+                <span className="pf-numeric" dir="ltr">
+                  {`${asset.acquisitionAmount}${asset.acquisitionCurrency ? ` ${asset.acquisitionCurrency}` : ''}`}
+                </span>
+              ) : (
+                '-'
+              )}
+            </dd>
+          </div>
+          <div>
+            <dt className="text-[var(--pf-text-secondary)]">{t('createAsset.acquiredOnLabel')}</dt>
+            <dd>
+              {asset.acquiredOn ? (
+                <span className="pf-ltr-island" dir="ltr">
+                  {asset.acquiredOn}
+                </span>
+              ) : (
+                '-'
+              )}
+            </dd>
+          </div>
+          <div>
+            <dt className="text-[var(--pf-text-secondary)]">{t('createAsset.sourceExpenseIdLabel')}</dt>
+            <dd>
+              {asset.sourceExpenseId ? (
+                <Link
+                  href={`/expenses/${asset.sourceExpenseId}`}
+                  className={`${textNavLinkMutedClassName} pf-ltr-island pf-entity-string`}
+                  dir="ltr"
+                >
+                  {asset.sourceExpenseId}
+                </Link>
+              ) : (
+                '-'
+              )}
+            </dd>
+          </div>
+          <div>
+            <dt className="text-[var(--pf-text-secondary)]">{t('createAsset.sourceApBillIdLabel')}</dt>
+            <dd>
+              {asset.sourceApBillId ? (
+                <Link
+                  href={`/procurement/ap/${asset.sourceApBillId}`}
+                  className={`${textNavLinkMutedClassName} pf-ltr-island pf-entity-string`}
+                  dir="ltr"
+                >
+                  {asset.sourceApBillId}
+                </Link>
+              ) : (
+                '-'
+              )}
+            </dd>
+          </div>
+        </dl>
+        {loaded.canManage ? (
+          <div className="mt-4">
+            <AssetAcquisitionForm
+              assetId={asset.id}
+              acquisitionAmount={asset.acquisitionAmount}
+              acquisitionCurrency={asset.acquisitionCurrency}
+              acquiredOn={asset.acquiredOn}
+              sourceExpenseId={asset.sourceExpenseId}
+              sourceApBillId={asset.sourceApBillId}
+              defaultCurrency={loaded.baseCurrency}
+            />
           </div>
         ) : null}
       </section>

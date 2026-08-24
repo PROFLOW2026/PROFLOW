@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { MoneyText } from '@/components/patterns/money-text';
 import { textNavLinkClassName } from '@/components/ui/pressable';
 import { Link } from '@/shared/i18n/navigation';
@@ -16,11 +16,14 @@ export type OwnerStoryCopy = {
   readonly title: string;
   readonly currentContract: string;
   readonly actualCost: string;
+  readonly ofWhich: string;
+  readonly allocatedGeneral: string;
   readonly openCommitments: string;
   readonly forecastFinal: string;
   readonly billed: string;
   readonly collected: string;
   readonly actualProfit: string;
+  readonly afterGeneralProfit: string;
   readonly forecastProfit: string;
   readonly unavailable: string;
   readonly breakdownTitle: string;
@@ -54,6 +57,7 @@ export type OwnerStoryCopy = {
 export type OwnerStoryMetrics = {
   readonly currentContract: MoneyValue | null;
   readonly actualCost: MoneyValue | null;
+  readonly allocatedGeneralBusinessCost: MoneyValue | null;
   readonly openCommitments: MoneyValue | null;
   readonly forecastFinal: MoneyValue | null;
   readonly billed: MoneyValue | null;
@@ -61,29 +65,59 @@ export type OwnerStoryMetrics = {
   readonly outstanding: MoneyValue | null;
   readonly unbilled: MoneyValue | null;
   readonly actualProfit: MoneyValue | null;
+  readonly afterGeneralProfit: MoneyValue | null;
   readonly forecastProfit: MoneyValue | null;
   readonly expectedRemaining: MoneyValue | null;
   readonly openApPayable: MoneyValue | null;
   readonly priceNotSet: boolean;
 };
 
+function isPositiveMoney(value: MoneyValue | null | undefined): value is MoneyValue {
+  return value != null && Number(value.amount) > 0;
+}
+
+export function AllocatedGeneralOfWhichNote({
+  ofWhich,
+  label,
+  amount,
+}: {
+  ofWhich: string;
+  label: string;
+  amount: MoneyValue;
+}) {
+  return (
+    <p
+      className="min-w-0 text-xs font-normal text-[var(--pf-text-muted)]"
+      data-pf-allocated-general-of-which
+    >
+      {ofWhich}: {label}:{' '}
+      <MoneyText value={amount} />
+    </p>
+  );
+}
+
 function StoryRow({
   label,
   value,
   unavailable,
   emphasis,
+  subtitle,
 }: {
   label: string;
   value: MoneyValue | null;
   unavailable: string;
   emphasis?: boolean;
+  subtitle?: ReactNode;
 }) {
   return (
-    <div className={cn('flex min-w-0 justify-between gap-3 text-sm', emphasis && 'font-semibold')}>
-      <span className="min-w-0 text-[var(--pf-text-secondary)]">{label}</span>
-      <span className="min-w-0 max-w-[55%] overflow-x-auto text-end">
-        {value ? <MoneyText value={value} /> : unavailable}
-      </span>
+    <div className="flex min-w-0 flex-col gap-0.5">
+      <div className={cn('flex min-w-0 justify-between gap-3 text-sm', emphasis && 'font-semibold')}>
+        <span className="min-w-0 text-[var(--pf-text-secondary)]">{label}</span>
+        <span className="min-w-0 max-w-[55%] overflow-x-auto text-end">
+          {value ? <MoneyText value={value} /> : unavailable}
+        </span>
+      </div>
+      {subtitle}
     </div>
   );
 }
@@ -104,7 +138,21 @@ export function ProjectOwnerStoryPanel({
         unavailable={copy.unavailable}
         emphasis
       />
-      <StoryRow label={copy.actualCost} value={metrics.actualCost} unavailable={copy.unavailable} emphasis />
+      <StoryRow
+        label={copy.actualCost}
+        value={metrics.actualCost}
+        unavailable={copy.unavailable}
+        emphasis
+        subtitle={
+          isPositiveMoney(metrics.allocatedGeneralBusinessCost) ? (
+            <AllocatedGeneralOfWhichNote
+              ofWhich={copy.ofWhich}
+              label={copy.allocatedGeneral}
+              amount={metrics.allocatedGeneralBusinessCost}
+            />
+          ) : null
+        }
+      />
       <StoryRow
         label={copy.openCommitments}
         value={metrics.openCommitments}
@@ -122,6 +170,13 @@ export function ProjectOwnerStoryPanel({
         value={metrics.priceNotSet ? null : metrics.actualProfit}
         unavailable={copy.unavailable}
       />
+      {metrics.afterGeneralProfit ? (
+        <StoryRow
+          label={copy.afterGeneralProfit}
+          value={metrics.priceNotSet ? null : metrics.afterGeneralProfit}
+          unavailable={copy.unavailable}
+        />
+      ) : null}
       <StoryRow
         label={copy.forecastProfit}
         value={metrics.priceNotSet ? null : metrics.forecastProfit}

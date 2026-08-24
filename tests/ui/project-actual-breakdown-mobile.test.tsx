@@ -37,11 +37,14 @@ function ownerCopy(): OwnerStoryCopy {
     title: o.title,
     currentContract: o.currentContract,
     actualCost: o.actualCost,
+    ofWhich: o.ofWhich,
+    allocatedGeneral: o.allocatedGeneral,
     openCommitments: o.openCommitments,
     forecastFinal: o.forecastFinal,
     billed: o.billed,
     collected: o.collected,
     actualProfit: o.actualProfit,
+    afterGeneralProfit: o.afterGeneralProfit,
     forecastProfit: o.forecastProfit,
     unavailable: o.unavailable,
     breakdownTitle: o.breakdownTitle,
@@ -139,6 +142,7 @@ describe('OWNER GATE — mobile 390 owner actual experience', () => {
           metrics={{
             currentContract: money('100000', ILS),
             actualCost: money('43518.64', ILS),
+            allocatedGeneralBusinessCost: zeroMoney(ILS),
             openCommitments: money('2000', ILS),
             forecastFinal: money('45518.64', ILS),
             billed: money('10000', ILS),
@@ -146,6 +150,7 @@ describe('OWNER GATE — mobile 390 owner actual experience', () => {
             outstanding: money('5000', ILS),
             unbilled: zeroMoney(ILS),
             actualProfit: money('56481.36', ILS),
+            afterGeneralProfit: null,
             forecastProfit: money('54481.36', ILS),
             expectedRemaining: zeroMoney(ILS),
             openApPayable: zeroMoney(ILS),
@@ -197,7 +202,7 @@ describe('OWNER GATE — mobile 390 owner actual experience', () => {
     expect(screen.getByText('ספקים')).toBeInTheDocument();
     expect(screen.getByText('חומרים')).toBeInTheDocument();
     expect(screen.getByText('הוצאות אחרות')).toBeInTheDocument();
-    expect(screen.getByText('תקורה')).toBeInTheDocument();
+    expect(screen.getByText('הוצאות כלליות')).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: /עובדים/i }));
     expect(screen.getByText('עובד שעות')).toBeInTheDocument();
@@ -209,5 +214,40 @@ describe('OWNER GATE — mobile 390 owner actual experience', () => {
 
     // No layout overflow class expected on mobile column
     expect(viewport.clientWidth).toBeLessThanOrEqual(MOBILE_WIDTH_PX);
+  });
+
+  it('shows allocated general as an of-which subtitle under Actual', () => {
+    const copy = ownerCopy();
+    renderWithIntl(
+      <MobileViewport>
+        <ProjectOwnerStoryPanel
+          copy={copy}
+          metrics={{
+            currentContract: money('100000', ILS),
+            actualCost: money('50000', ILS),
+            allocatedGeneralBusinessCost: money('8000', ILS),
+            openCommitments: money('0', ILS),
+            forecastFinal: money('50000', ILS),
+            billed: money('10000', ILS),
+            collected: money('5000', ILS),
+            outstanding: money('5000', ILS),
+            unbilled: zeroMoney(ILS),
+            actualProfit: money('50000', ILS),
+            afterGeneralProfit: null,
+            forecastProfit: money('50000', ILS),
+            expectedRemaining: zeroMoney(ILS),
+            openApPayable: zeroMoney(ILS),
+            priceNotSet: false,
+          }}
+        />
+      </MobileViewport>,
+      { locale: 'he-IL', messages: { financial: heFinancial } },
+    );
+
+    expect(screen.getByText('עלות בפועל')).toBeInTheDocument();
+    expect(screen.getByText(/מתוכן:/)).toBeInTheDocument();
+    expect(screen.getByText(/הוצאות כלליות שהוקצו לפרויקט/)).toBeInTheDocument();
+    expect(screen.queryByText(/תקורה/)).not.toBeInTheDocument();
+    expect(screen.getByTestId('mobile-viewport').clientWidth).toBeLessThanOrEqual(MOBILE_WIDTH_PX);
   });
 });

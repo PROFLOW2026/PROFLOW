@@ -1,6 +1,7 @@
 import type { MoneyValue } from '@/shared/money/money';
 import type { PricingMode, WorkKind } from './work-pricing';
 import type { DataConfidence } from './data-confidence';
+import type { ProjectProfitabilityMode } from '@/modules/tenancy/domain/project-profitability-mode';
 
 import type {
   FinancialSliceAvailability,
@@ -122,8 +123,9 @@ export type MetricNature = 'actual' | 'committed' | 'forecast';
 
 export interface CostPosition {
   /**
-   * Actual - finalized expenses + labor + recognized (posted) vendor bills.
-   * Never includes open committed PO. Bill-linked expenses are deduped.
+   * Direct Actual — finalized expenses + labor + recognized (posted) vendor bills
+   * + month-close economic corrections. Never includes auto-allocated general
+   * business cost or open committed PO. Bill-linked expenses are deduped.
    */
   actualCostToDate: MoneyValue;
   /**
@@ -167,6 +169,21 @@ export interface CostPosition {
    * Folded into actualCostToDate once - never into byFamily, never a second engine.
    */
   monthCloseCostNet: MoneyValue;
+  /**
+   * Same as `actualCostToDate` — Direct Actual before general allocation.
+   * Kept explicit for weight basis and profitability display.
+   */
+  directActualCostToDate: MoneyValue;
+  /**
+   * Auto-allocated general business costs attributed to this project (0069).
+   * Does not create a second recognition — attribution only.
+   */
+  allocatedGeneralBusinessCost: MoneyValue;
+  /**
+   * Full Project Actual = Direct + allocated general business cost.
+   * Used when profitability mode includes general costs.
+   */
+  fullActualCostToDate: MoneyValue;
 }
 
 export interface ProfitPosition {
@@ -177,7 +194,7 @@ export interface ProfitPosition {
   estimatedProfit: MoneyValue;
   /** Forecast margin % - null when contract value is zero. */
   marginPercent: string | null;
-  /** Actual margin: currentContractValue − actualCostToDate. */
+  /** Actual margin: currentContractValue − Direct actualCostToDate. */
   actualProfit: MoneyValue;
   /** Actual margin % - null when contract value is zero. */
   actualMarginPercent: string | null;
@@ -224,6 +241,11 @@ export interface ProjectFinancials {
   dataConfidence: DataConfidence;
   /** Headline KPI display flags — never show permission gaps as numeric zero. */
   kpiAvailability?: ProjectFinancialKpiAvailability;
+  /**
+   * Org setting for project profitability presentation (Direct / Full / both).
+   * Display only — does not change composed cost or Company Actual.
+   */
+  projectProfitabilityMode?: ProjectProfitabilityMode;
   /**
    * Per-contract commercial slices when more than one live contract exists.
    * Project `commercial` remains the same-currency sum - not a second engine.

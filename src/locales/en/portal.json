@@ -93,7 +93,7 @@
   },
   "preview": {
     "title": "Preview customer-safe summary",
-    "subtitle": "See exactly what a customer grant would expose for a project. Costs, profit, rates and overhead never appear.",
+    "subtitle": "See exactly what a customer grant would expose for a project. Costs, profit, rates and general business costs never appear.",
     "run": "Preview summary",
     "needProject": "Select a project to preview.",
     "notAllowed": "That grant does not cover this project, is inactive, or lacks summary scopes.",
@@ -107,7 +107,7 @@
       "margin": "Margin",
       "trueCost": "True cost",
       "employeeCost": "Employee cost",
-      "overhead": "Overhead",
+      "overhead": "General business costs",
       "laborRate": "Labor rate",
       "vendorConfidential": "Vendor confidential",
       "admin": "Admin",
@@ -142,7 +142,7 @@
   },
   "vendorPreview": {
     "title": "Preview vendor-safe portal",
-    "subtitle": "Inspect RFQs, approved POs, and candidate queues for a vendor grant. Profit, employee cost, overhead, and org admin never appear.",
+    "subtitle": "Inspect RFQs, approved POs, and candidate queues for a vendor grant. Profit, employee cost, general business costs, and org admin never appear.",
     "grant": "Vendor grant",
     "run": "Preview vendor portal",
     "needGrant": "Select an active vendor grant.",

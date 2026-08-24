@@ -37,6 +37,11 @@ export interface ExpenseDraftPayload extends Record<string, unknown> {
   readonly recurrenceCadence: string | null;
   readonly recurrenceCustomLabel: string | null;
   readonly allocations: unknown;
+  readonly installmentCount?: string | number | null;
+  readonly installmentStartDate?: string | null;
+  readonly inventoryStockPurchase?: string | boolean | null;
+  readonly inventoryItemId?: string | null;
+  readonly inventoryPurchaseQty?: string | null;
   /** Present for edit drafts. */
   readonly expenseId?: string | null;
 }
@@ -137,6 +142,11 @@ export function expensePayloadFromFormData(formData: FormData): ExpenseDraftPayl
     recurrenceCadence: formText(formData, 'recurrenceCadence'),
     recurrenceCustomLabel: formText(formData, 'recurrenceCustomLabel'),
     allocations: parseAllocationsFromForm(formData),
+    installmentCount: formText(formData, 'installmentCount'),
+    installmentStartDate: formText(formData, 'installmentStartDate'),
+    inventoryStockPurchase: formText(formData, 'inventoryStockPurchase'),
+    inventoryItemId: formText(formData, 'inventoryItemId'),
+    inventoryPurchaseQty: formText(formData, 'inventoryPurchaseQty'),
     expenseId: formText(formData, 'expenseId'),
   };
 }

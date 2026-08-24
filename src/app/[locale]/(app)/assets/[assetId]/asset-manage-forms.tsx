@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
+import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
@@ -102,6 +103,104 @@ export function AssetStatusForm({
       </Select>
       <Button type="submit" size="sm" variant="secondary" disabled={pending || status === currentStatus} className="min-h-11 md:min-h-8">
         {pending ? tCommon('states.saving') : t('saveStatus')}
+      </Button>
+    </form>
+  );
+}
+
+export function AssetAcquisitionForm({
+  assetId,
+  acquisitionAmount,
+  acquisitionCurrency,
+  acquiredOn,
+  sourceExpenseId,
+  sourceApBillId,
+  defaultCurrency,
+}: {
+  assetId: string;
+  acquisitionAmount: string | null;
+  acquisitionCurrency: string | null;
+  acquiredOn: string | null;
+  sourceExpenseId: string | null;
+  sourceApBillId: string | null;
+  defaultCurrency: string;
+}) {
+  const t = useTranslations('assets.detail');
+  const tCreate = useTranslations('assets.createAsset');
+  const tCommon = useTranslations('common');
+  const [state, formAction, pending] = useActionState<AssetsFormState, FormData>(
+    updateAssetAction,
+    {},
+  );
+
+  return (
+    <form action={formAction} className="flex max-w-lg flex-col gap-3">
+      <input type="hidden" name="assetId" value={assetId} />
+      {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
+      {state.success ? <Alert tone="success">{tCommon('states.saved')}</Alert> : null}
+      <p className="text-sm text-[var(--pf-text-secondary)]">{t('acquisitionHint')}</p>
+      <Field label={tCreate('acquisitionAmountLabel')} error={state.fieldErrors?.acquisitionAmount}>
+        {(control) => (
+          <Input
+            {...control}
+            name="acquisitionAmount"
+            defaultValue={acquisitionAmount ?? ''}
+            inputMode="decimal"
+            numeric
+            dir="ltr"
+          />
+        )}
+      </Field>
+      <Field
+        label={tCreate('acquisitionCurrencyLabel')}
+        error={state.fieldErrors?.acquisitionCurrency}
+      >
+        {(control) => (
+          <Input
+            {...control}
+            name="acquisitionCurrency"
+            defaultValue={acquisitionCurrency ?? defaultCurrency}
+            maxLength={3}
+            dir="ltr"
+            className="uppercase"
+          />
+        )}
+      </Field>
+      <Field label={tCreate('acquiredOnLabel')} error={state.fieldErrors?.acquiredOn}>
+        {(control) => (
+          <Input
+            {...control}
+            name="acquiredOn"
+            type="date"
+            defaultValue={acquiredOn ?? ''}
+            dir="ltr"
+          />
+        )}
+      </Field>
+      <Field label={tCreate('sourceExpenseIdLabel')} error={state.fieldErrors?.sourceExpenseId}>
+        {(control) => (
+          <Input
+            {...control}
+            name="sourceExpenseId"
+            defaultValue={sourceExpenseId ?? ''}
+            dir="ltr"
+            placeholder="UUID"
+          />
+        )}
+      </Field>
+      <Field label={tCreate('sourceApBillIdLabel')} error={state.fieldErrors?.sourceApBillId}>
+        {(control) => (
+          <Input
+            {...control}
+            name="sourceApBillId"
+            defaultValue={sourceApBillId ?? ''}
+            dir="ltr"
+            placeholder="UUID"
+          />
+        )}
+      </Field>
+      <Button type="submit" loading={pending} size="sm">
+        {pending ? tCommon('states.saving') : t('saveAcquisition')}
       </Button>
     </form>
   );

@@ -144,6 +144,19 @@ export type {
 } from './domain/vendor-bill-project-attribution';
 
 export {
+  classifyVendorBillGeneralRemainder,
+  vendorBillGeneralRemainderAmount,
+  splitVendorBillGeneralRemainder,
+  sumVendorBillGeneralRemainders,
+  billNetForGeneralRemainder,
+} from './domain/vendor-general-remainder';
+export type {
+  VendorBillGeneralRemainderKind,
+  VendorBillGeneralRemainderBuckets,
+  VendorBillGeneralRemainderInput,
+} from './domain/vendor-general-remainder';
+
+export {
   AP_PAYMENT_STATUSES,
   AP_PAYABLE_STATUSES,
   AP_PAYMENTS_PERSISTENCE_READY,
@@ -243,6 +256,9 @@ export {
   listActiveCreditAmountsForBills,
   listActiveCreditActualReductionsForBills,
 } from './data/credits.repository';
+
+export { sumRecognizedApGeneralRemainders } from './data/vendor-general-remainder.repository';
+export type { ApGeneralRemainderTotals } from './data/vendor-general-remainder.repository';
 
 export {
   getVendorPaymentsRepository,

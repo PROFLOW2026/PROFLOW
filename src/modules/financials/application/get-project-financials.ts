@@ -26,6 +26,7 @@ import {
 import { composeProjectFinancials } from './compose-project-financials';
 import type { ProjectFinancials } from '@/modules/financials/domain/types';
 import { zeroMoney } from '@/shared/money';
+import { getProjectProfitabilityModeForOrg } from '@/modules/tenancy/application/project-profitability-mode';
 
 export async function getProjectFinancials(
   context: OrgContext,
@@ -62,6 +63,22 @@ export async function getProjectFinancials(
   const expenseContributions = canReadExpenses
     ? await loadProjectExpenseContributions(context.db, context.organizationId, projectId)
     : null;
+
+  let expenseContributionsWithInventory = expenseContributions;
+  if (canReadExpenses) {
+    const { loadInventoryConsumptionContributionsForProject } = await import(
+      '../data/inventory-consumptions.repository'
+    );
+    const inventoryContributions = await loadInventoryConsumptionContributionsForProject(
+      context.db,
+      context.organizationId,
+      projectId,
+    );
+    expenseContributionsWithInventory = [
+      ...(expenseContributions ?? []),
+      ...inventoryContributions,
+    ];
+  }
   const laborResult = canReadWorkforce
     ? await getProjectLaborCost(context, projectId)
         .then(
@@ -136,6 +153,21 @@ export async function getProjectFinancials(
     projectId,
   );
 
+  const { sumGeneralAllocationsForProject } = await import(
+    '../data/general-cost-months.repository'
+  );
+  const { fromNumericString: parseMoney, zeroMoney: zMoney } = await import('@/shared/money');
+  const generalAllocatedRaw = await sumGeneralAllocationsForProject(
+    context.db,
+    context.organizationId,
+    projectId,
+    currency,
+  );
+  const allocatedGeneralBusinessCost =
+    parseMoney(generalAllocatedRaw, currency) ?? zMoney(currency);
+
+  const projectProfitabilityMode = await getProjectProfitabilityModeForOrg(context);
+
   const sliceAvailabilityFinal = buildSliceAvailability({
     canReadCommercial,
     canReadBilling,
@@ -161,13 +193,15 @@ export async function getProjectFinancials(
     canReadAp,
     commercialData,
     billingRows,
-    expenseContributions,
+    expenseContributions: expenseContributionsWithInventory,
     laborInput: laborResult.laborInput,
     committed: mergedCommitted,
     openAp: apResult,
     recognizedVendor: recognizedVendorResult,
     monthCloseEconomic,
     incompleteness,
+    allocatedGeneralBusinessCost,
+    projectProfitabilityMode,
     sliceAvailability: sliceAvailabilityFinal,
   });
 

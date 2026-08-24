@@ -8,12 +8,14 @@ import {
   rethrowClosedPeriodRewrite,
   yearMonthFromBusinessDate,
 } from '@/modules/month-close';
+import { unbookInventoryPurchaseFromExpense } from '@/modules/assets/application/inventory-cost';
 import { assertVoidable } from '../domain/lifecycle';
 import {
   findActiveReversalForExpense,
   findExpenseById,
   updateExpenseRow,
 } from '../data/expenses.repository';
+import { voidScheduleLines } from '../data/managerial-schedule.repository';
 import type { ExpenseDetail } from '../domain/types';
 
 const EXPENSE_AUDIT_VOIDED = 'expense.voided';
@@ -41,7 +43,12 @@ export async function voidExpense(context: OrgContext, expenseId: string): Promi
     );
     assertVoidable(existing.status, existing.voidsExpenseId, Boolean(activeReversal));
 
+    if (existing.inventoryStockPurchase) {
+      await unbookInventoryPurchaseFromExpense(context, { expenseId });
+    }
+
     await updateExpenseRow(context.db, context.organizationId, expenseId, { status: 'void' });
+    await voidScheduleLines(context.db, context.organizationId, expenseId);
   } catch (error) {
     rethrowClosedPeriodRewrite(error);
   }
@@ -56,6 +63,12 @@ export async function voidExpense(context: OrgContext, expenseId: string): Promi
 
   const voided = await findExpenseById(context.db, context.organizationId, expenseId);
   if (!voided) throw new NotFoundError('Expense');
+
+  const { tryRecomputeOpenGeneralCostMonth } = await import(
+    '@/modules/financials/application/recompute-general-cost-month'
+  );
+  await tryRecomputeOpenGeneralCostMonth(context, { date: voided.expenseDate });
+
   return voided;
 }
 

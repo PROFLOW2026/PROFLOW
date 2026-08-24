@@ -170,7 +170,10 @@ export async function recordMaterialUsage(context: OrgContext, raw: RecordMateri
     if (!description.trim()) description = item.name;
   }
 
-  // Hard financial invariant - usage never becomes Actual.
+  // Hard financial invariant - usage record itself is not an Expense.
+  // Managerial Actual from stock (if any) is via consumeInventoryCostToProject
+  // with materialUsageId — prefer that when no issue movement was recorded.
+  // Do not also consume on issue for the same physical quantity (double-count).
   void isMaterialUsageRecognizedActual();
   void doesUsageCreatePurchaseActual();
 

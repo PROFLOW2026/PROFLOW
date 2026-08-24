@@ -159,7 +159,9 @@ export async function saveBillProjectAllocations(
     await assertMonthOpenForRewrite(context, yearMonthFromBusinessDate(freezeDate));
   }
 
-  return withTransaction(context.db, async (tx) => {
+  const billDate = bill.billDate ?? bill.createdAt.toISOString().slice(0, 10);
+
+  const result = await withTransaction(context.db, async (tx) => {
     // Supersede applied + clear drafts so conservation cap does not double-count.
     await supersedeActiveBillAllocations(tx, context.organizationId, bill.id);
     await deleteDraftBillAllocations(tx, context.organizationId, bill.id);
@@ -168,6 +170,9 @@ export async function saveBillProjectAllocations(
       return { lines: [] };
     }
 
+    // Overhead persist is available on insertBillProjectAllocations (targetType).
+    // This save path stays project-only: resolveBillProjectAllocationLines requires
+    // projectId, and under-NET already lands in sumRecognizedApGeneralRemainders.
     const lines = await insertBillProjectAllocations(
       tx,
       context.organizationId,
@@ -176,6 +181,7 @@ export async function saveBillProjectAllocations(
       apply ? 'applied' : 'draft',
       resolved.lines.map((line) => ({
         projectId: line.projectId,
+        targetType: 'project' as const,
         method: line.method,
         amount: line.amount,
         percent: line.percent,
@@ -187,6 +193,15 @@ export async function saveBillProjectAllocations(
 
     return { lines };
   });
+
+  if (apply) {
+    const { tryRecomputeOpenGeneralCostMonth } = await import(
+      '@/modules/financials/application/recompute-general-cost-month'
+    );
+    await tryRecomputeOpenGeneralCostMonth(context, { date: billDate });
+  }
+
+  return result;
 }
 
 /** Promote existing draft lines to applied (superseding prior applied first). */
@@ -216,7 +231,9 @@ export async function applyBillProjectAllocations(
   const freezeDate = bill.billDate ?? bill.createdAt.toISOString().slice(0, 10);
   await assertMonthOpenForRewrite(context, yearMonthFromBusinessDate(freezeDate));
 
-  return withTransaction(context.db, async (tx) => {
+  const billDate = freezeDate;
+
+  const result = await withTransaction(context.db, async (tx) => {
     const existing = await listBillProjectAllocations(tx, context.organizationId, bill.id, [
       'draft',
       'applied',
@@ -235,4 +252,11 @@ export async function applyBillProjectAllocations(
     const lines = await applyDraftBillAllocations(tx, context.organizationId, bill.id);
     return { lines };
   });
+
+  const { tryRecomputeOpenGeneralCostMonth } = await import(
+    '@/modules/financials/application/recompute-general-cost-month'
+  );
+  await tryRecomputeOpenGeneralCostMonth(context, { date: billDate });
+
+  return result;
 }

@@ -241,6 +241,9 @@ export function aggregateProjectCosts(
       expectedRemainingCost: zeroMoney(currency),
       openApPayable: zeroMoney(currency),
       monthCloseCostNet: zeroMoney(currency),
+      directActualCostToDate: actualCostToDate,
+      allocatedGeneralBusinessCost: zeroMoney(currency),
+      fullActualCostToDate: actualCostToDate,
     },
     sources,
     partials,
@@ -265,6 +268,9 @@ export function emptyCostPosition(currency: string): CostPosition {
     expectedRemainingCost: zero,
     openApPayable: zero,
     monthCloseCostNet: zero,
+    directActualCostToDate: zero,
+    allocatedGeneralBusinessCost: zero,
+    fullActualCostToDate: zero,
   };
 }
 
@@ -294,10 +300,48 @@ export function withRecognizedVendorBills(
     actualCostToDate,
     estimatedFinalCost: actualCostToDate,
     vendorActual,
+    directActualCostToDate: actualCostToDate,
     byFamily: {
       ...cost.byFamily,
       directProject,
     },
+  };
+}
+
+/**
+ * Attach automatic general business cost allocation.
+ * `actualCostToDate` stays Direct; `fullActualCostToDate` = Direct + allocated.
+ * Forecast Final Cost uses Direct + commitments + ETC (not Full).
+ */
+export function withAllocatedGeneralBusinessCost(
+  cost: CostPosition,
+  allocatedGeneral: MoneyValue,
+): CostPosition {
+  if (cost.actualCostToDate.currency !== allocatedGeneral.currency) {
+    throw new Error('Allocated general currency must match project cost currency');
+  }
+  const direct = roundMoney(cost.directActualCostToDate ?? cost.actualCostToDate);
+  const estimatedFinalCost = roundMoney(
+    addMoney(addMoney(direct, cost.committedOpen), cost.expectedRemainingCost),
+  );
+  if (isZeroMoney(allocatedGeneral)) {
+    return {
+      ...cost,
+      directActualCostToDate: direct,
+      allocatedGeneralBusinessCost: zeroMoney(cost.actualCostToDate.currency),
+      actualCostToDate: direct,
+      fullActualCostToDate: direct,
+      estimatedFinalCost,
+    };
+  }
+  const full = roundMoney(addMoney(direct, allocatedGeneral));
+  return {
+    ...cost,
+    directActualCostToDate: direct,
+    allocatedGeneralBusinessCost: roundMoney(allocatedGeneral),
+    actualCostToDate: direct,
+    fullActualCostToDate: full,
+    estimatedFinalCost,
   };
 }
 

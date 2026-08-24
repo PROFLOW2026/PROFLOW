@@ -47,6 +47,9 @@ function baseFinancials(overrides: Partial<ProjectFinancials> = {}): ProjectFina
       expectedRemainingCost: money('1500', ILS),
       openApPayable: money('200', ILS),
       monthCloseCostNet: zeroMoney(ILS),
+      directActualCostToDate: money('5000', ILS),
+      allocatedGeneralBusinessCost: zeroMoney(ILS),
+      fullActualCostToDate: money('5000', ILS),
     },
     profit: {
       estimatedProfit: money('92000', ILS),

@@ -1,6 +1,7 @@
 import { sql } from 'drizzle-orm';
 import {
   boolean,
+  char,
   check,
   date,
   index,
@@ -175,8 +176,9 @@ export const commandCenterItemStates = pgTable(
 );
 
 /**
- * Recurring financial DRAFT templates only.
- * Never auto-finalize economic records.
+ * Recurring financial DRAFT templates.
+ * Generation creates drafts first; auto_finalize_expense may finalize expenses
+ * when the operational month is open (vendor bills / billing never auto-post).
  */
 export const recurringFinancialDrafts = pgTable(
   'recurring_financial_drafts',
@@ -194,6 +196,10 @@ export const recurringFinancialDrafts = pgTable(
     payloadJson: jsonb('payload_json').notNull(),
     status: text('status').notNull().default('active'),
     lastGeneratedAt: timestamp('last_generated_at', { withTimezone: true, mode: 'date' }),
+    /** When true and draft_kind=expense, generated rows finalize into Actual when month is open. */
+    autoFinalizeExpense: boolean('auto_finalize_expense').notNull().default(false),
+    /** direct_project | general_business — Owner attribution for generated expenses. */
+    managerialCostKind: text('managerial_cost_kind'),
     archivedAt: archivedAt(),
     ...timestamps(),
   },
@@ -215,6 +221,11 @@ export const recurringFinancialDrafts = pgTable(
       'recurring_financial_drafts_status_known',
       sql`${table.status} IN ('active', 'paused', 'ended')`,
     ),
+    check(
+      'recurring_financial_drafts_managerial_cost_kind_known',
+      sql`${table.managerialCostKind} IS NULL
+          OR ${table.managerialCostKind} IN ('direct_project', 'general_business')`,
+    ),
   ],
 );
 
@@ -230,6 +241,8 @@ export const recurringFinancialDraftRuns = pgTable(
       .references(() => organizations.id, { onDelete: 'cascade' }),
     draftId: uuid('draft_id').notNull(),
     runDate: date('run_date').notNull(),
+    /** Month-keyed idempotency for monthly recurring (0069). */
+    occurrenceYearMonth: char('occurrence_year_month', { length: 7 }),
     generatedEntityType: text('generated_entity_type').notNull(),
     generatedEntityId: uuid('generated_entity_id').notNull(),
     notes: text('notes'),
@@ -250,6 +263,9 @@ export const recurringFinancialDraftRuns = pgTable(
       table.generatedEntityType,
       table.generatedEntityId,
     ),
+    uniqueIndex('recurring_financial_draft_runs_month_uq')
+      .on(table.organizationId, table.draftId, table.occurrenceYearMonth)
+      .where(sql`${table.occurrenceYearMonth} IS NOT NULL`),
     index('recurring_financial_draft_runs_org_draft_idx').on(table.organizationId, table.draftId),
     check(
       'recurring_financial_draft_runs_type_known',

@@ -5,10 +5,11 @@ import {
   resolveApBillTaxSplit,
 } from '@/modules/ap';
 import { createBillingRecord } from '@/modules/billing';
-import { createExpense } from '@/modules/expenses';
+import { createExpense, finalizeExpense } from '@/modules/expenses';
+import { isMonthClosed, yearMonthFromBusinessDate } from '@/modules/month-close';
 import { AUDIT_ACTIONS, recordAuditEvent } from '@/shared/audit';
 import type { OrgContext } from '@/shared/auth/context';
-import { todayInTimeZone } from '@/shared/dates';
+import { businessDate, todayInTimeZone, type BusinessDate } from '@/shared/dates';
 import { withTransaction } from '@/shared/db';
 import { resolveAllocatedReference } from '@/modules/tenancy';
 import { ConflictError, DomainRuleError, NotFoundError, ValidationError } from '@/shared/errors';
@@ -20,14 +21,25 @@ import {
   assertGeneratedEntityIsDraft,
   billingInputFromPayload,
   expenseInputFromPayload,
+  extractTemplateAmount,
   vendorBillDraftInsertFromPayload,
+  withResolvedAmount,
 } from '../domain/payload';
+import { applyManagerialCostKindToExpensePayload } from '../domain/managerial-cost';
+import { resolveAmountForDate, yearMonthFromBusinessDate as draftYearMonth } from '../domain/amount-versions';
 import { bumpScheduleAfterGenerate } from '../domain/schedule';
-import type { DraftKind } from '../domain/types';
+import type {
+  DraftKind,
+  RecurringDraftAmountVersionRecord,
+  RecurringFinancialDraftRecord,
+  StoredDraftPayload,
+} from '../domain/types';
 import {
   findRecurringDraftById,
   findRunByDraftAndDate,
+  findRunByDraftAndYearMonth,
   insertRecurringDraftRun,
+  listAmountVersionsForDraft,
   updateRecurringDraftById,
 } from '../data/recurring-drafts.repository';
 import { generateRecurringDraftSchema } from '../validation/schemas';
@@ -36,11 +48,13 @@ import { parseStoredPayload } from './parse-payload';
 export interface GenerateRecurringDraftResult {
   readonly draftId: string;
   readonly runDate: string;
+  readonly occurrenceYearMonth: string | null;
   readonly generatedEntityType: DraftKind;
   readonly generatedEntityId: string;
-  readonly generatedStatus: 'draft';
+  readonly generatedStatus: 'draft' | 'finalized';
   readonly nextRunDate: string;
   readonly templateStatus: string;
+  readonly finalized: boolean;
 }
 
 function isUniqueViolation(error: unknown): boolean {
@@ -52,11 +66,38 @@ function isUniqueViolation(error: unknown): boolean {
   );
 }
 
+function occurrenceYearMonthForDraft(
+  draft: RecurringFinancialDraftRecord,
+  runDate: BusinessDate,
+): string | null {
+  if (draft.frequency !== 'monthly') return null;
+  return draftYearMonth(runDate);
+}
+
+function applyResolvedPayload(
+  draft: RecurringFinancialDraftRecord,
+  payload: StoredDraftPayload,
+  versions: readonly RecurringDraftAmountVersionRecord[],
+  runDate: BusinessDate,
+): StoredDraftPayload {
+  const fallback = extractTemplateAmount(payload);
+  const resolved = resolveAmountForDate(versions, runDate, fallback);
+  let next = withResolvedAmount(payload, resolved.amount, resolved.currency);
+
+  if (next.kind === 'expense') {
+    next = {
+      kind: 'expense',
+      data: applyManagerialCostKindToExpensePayload(next.data, draft.managerialCostKind),
+    };
+  }
+  return next;
+}
+
 async function createDraftEntity(
   context: OrgContext,
   kind: DraftKind,
-  payload: ReturnType<typeof parseStoredPayload>,
-  runDate: ReturnType<typeof todayInTimeZone>,
+  payload: StoredDraftPayload,
+  runDate: BusinessDate,
   templateTitle: string,
 ): Promise<{ id: string; status: string }> {
   switch (kind) {
@@ -151,9 +192,179 @@ async function createDraftEntity(
   }
 }
 
+export interface GenerateOccurrenceOptions {
+  readonly runDate: BusinessDate;
+  readonly bumpSchedule: boolean;
+  readonly notes: string;
+  /** When true, skip if month already has a run (monthly) without throwing. */
+  readonly skipIfMonthExists?: boolean;
+}
+
 /**
- * Creates one DRAFT expense / vendor bill / billing record from the template.
- * Never finalizes, never posts, never recognizes Actual.
+ * Shared occurrence create path used by generate-now and retro history.
+ * Always inserts a draft entity first; may finalize expense when policy allows.
+ */
+export async function generateRecurringDraftOccurrence(
+  context: OrgContext,
+  draft: RecurringFinancialDraftRecord,
+  options: GenerateOccurrenceOptions,
+): Promise<GenerateRecurringDraftResult | null> {
+  assertCanManageDraftKind(context, draft.draftKind);
+  assertDraftGeneratable(draft.status);
+
+  const runDate = businessDate(options.runDate);
+  const occurrenceYearMonth = occurrenceYearMonthForDraft(draft, runDate);
+
+  if (occurrenceYearMonth) {
+    const monthHit = await findRunByDraftAndYearMonth(
+      context.db,
+      context.organizationId,
+      draft.id,
+      occurrenceYearMonth,
+    );
+    if (monthHit) {
+      if (options.skipIfMonthExists) return null;
+      throw new ConflictError(
+        'A draft was already generated for this template month',
+        'recurringDrafts.errors.alreadyGeneratedThisMonth',
+      );
+    }
+  }
+
+  const already = await findRunByDraftAndDate(
+    context.db,
+    context.organizationId,
+    draft.id,
+    runDate,
+  );
+  if (already) {
+    if (options.skipIfMonthExists) return null;
+    throw new ConflictError(
+      'A draft was already generated for this template today',
+      'recurringDrafts.errors.alreadyGeneratedToday',
+    );
+  }
+
+  const basePayload = parseStoredPayload(draft.draftKind, draft.payloadJson);
+  const versions = await listAmountVersionsForDraft(
+    context.db,
+    context.organizationId,
+    draft.id,
+  );
+  const payload = applyResolvedPayload(draft, basePayload, versions, runDate);
+
+  try {
+    return await withTransaction(context.db, async (tx) => {
+      const txContext: OrgContext = { ...context, db: tx };
+      const created = await createDraftEntity(
+        txContext,
+        draft.draftKind,
+        payload,
+        runDate,
+        draft.title,
+      );
+      assertGeneratedEntityIsDraft({ kind: draft.draftKind, status: created.status });
+
+      let generatedStatus: 'draft' | 'finalized' = 'draft';
+      let finalized = false;
+
+      if (
+        draft.draftKind === 'expense' &&
+        draft.autoFinalizeExpense
+      ) {
+        const ym = yearMonthFromBusinessDate(runDate);
+        const closed = await isMonthClosed(txContext, ym);
+        if (!closed) {
+          await finalizeExpense(txContext, created.id);
+          generatedStatus = 'finalized';
+          finalized = true;
+        }
+      }
+
+      await insertRecurringDraftRun(tx, {
+        organizationId: context.organizationId,
+        draftId: draft.id,
+        runDate,
+        occurrenceYearMonth,
+        generatedEntityType: draft.draftKind,
+        generatedEntityId: created.id,
+        notes: options.notes,
+      });
+
+      let nextRunDate = draft.nextRunDate;
+      let templateStatus = draft.status;
+
+      if (options.bumpSchedule) {
+        const bumped = bumpScheduleAfterGenerate({
+          currentNextRunDate: draft.nextRunDate,
+          runDate,
+          frequency: draft.frequency,
+          intervalCount: draft.intervalCount,
+          endDate: draft.endDate,
+        });
+        nextRunDate = bumped.nextRunDate;
+        templateStatus = bumped.status;
+
+        const updated = await updateRecurringDraftById(tx, context.organizationId, draft.id, {
+          nextRunDate: bumped.nextRunDate,
+          status: bumped.status,
+          lastGeneratedAt: new Date(),
+        });
+        if (!updated) throw new NotFoundError('Recurring draft');
+      } else {
+        await updateRecurringDraftById(tx, context.organizationId, draft.id, {
+          lastGeneratedAt: new Date(),
+        });
+      }
+
+      await recordAuditEvent(txContext, {
+        action: AUDIT_ACTIONS.RECURRING_FINANCIAL_DRAFT_GENERATED,
+        entityType: 'recurring_financial_draft',
+        entityId: draft.id,
+        after: {
+          generatedEntityType: draft.draftKind,
+          generatedEntityId: created.id,
+          generatedStatus,
+          runDate,
+          occurrenceYearMonth,
+          nextRunDate,
+          posted: false,
+          finalized,
+        },
+      });
+
+      return {
+        draftId: draft.id,
+        runDate,
+        occurrenceYearMonth,
+        generatedEntityType: draft.draftKind,
+        generatedEntityId: created.id,
+        generatedStatus,
+        nextRunDate,
+        templateStatus,
+        finalized,
+      };
+    });
+  } catch (error) {
+    if (isUniqueViolation(error)) {
+      if (occurrenceYearMonth) {
+        throw new ConflictError(
+          'A draft was already generated for this template month',
+          'recurringDrafts.errors.alreadyGeneratedThisMonth',
+        );
+      }
+      throw new ConflictError(
+        'A draft was already generated for this template today',
+        'recurringDrafts.errors.alreadyGeneratedToday',
+      );
+    }
+    throw error;
+  }
+}
+
+/**
+ * Creates one expense / vendor bill / billing record from the template for today.
+ * Draft first; optional expense finalize when auto_finalize_expense and month open.
  */
 export async function generateRecurringDraftNow(
   context: OrgContext,
@@ -173,93 +384,19 @@ export async function generateRecurringDraftNow(
   );
   if (!existing) throw new NotFoundError('Recurring draft');
 
-  assertCanManageDraftKind(context, existing.draftKind);
-  assertDraftGeneratable(existing.status);
-
-  const payload = parseStoredPayload(existing.draftKind, existing.payloadJson);
   const runDate = todayInTimeZone(context.organization.timezone);
-
-  const already = await findRunByDraftAndDate(
-    context.db,
-    context.organizationId,
-    existing.id,
+  const result = await generateRecurringDraftOccurrence(context, existing, {
     runDate,
-  );
-  if (already) {
+    bumpSchedule: true,
+    notes: existing.autoFinalizeExpense
+      ? 'Manual generate-now — may finalize expense when month is open.'
+      : 'Manual generate-now - draft only, not posted.',
+  });
+  if (!result) {
     throw new ConflictError(
       'A draft was already generated for this template today',
       'recurringDrafts.errors.alreadyGeneratedToday',
     );
   }
-
-  try {
-    return await withTransaction(context.db, async (tx) => {
-      const txContext: OrgContext = { ...context, db: tx };
-      const created = await createDraftEntity(
-        txContext,
-        existing.draftKind,
-        payload,
-        runDate,
-        existing.title,
-      );
-      assertGeneratedEntityIsDraft({ kind: existing.draftKind, status: created.status });
-
-      await insertRecurringDraftRun(tx, {
-        organizationId: context.organizationId,
-        draftId: existing.id,
-        runDate,
-        generatedEntityType: existing.draftKind,
-        generatedEntityId: created.id,
-        notes: 'Manual generate-now - draft only, not posted.',
-      });
-
-      const bumped = bumpScheduleAfterGenerate({
-        currentNextRunDate: existing.nextRunDate,
-        runDate,
-        frequency: existing.frequency,
-        intervalCount: existing.intervalCount,
-        endDate: existing.endDate,
-      });
-
-      const updated = await updateRecurringDraftById(tx, context.organizationId, existing.id, {
-        nextRunDate: bumped.nextRunDate,
-        status: bumped.status,
-        lastGeneratedAt: new Date(),
-      });
-      if (!updated) throw new NotFoundError('Recurring draft');
-
-      await recordAuditEvent(txContext, {
-        action: AUDIT_ACTIONS.RECURRING_FINANCIAL_DRAFT_GENERATED,
-        entityType: 'recurring_financial_draft',
-        entityId: existing.id,
-        after: {
-          generatedEntityType: existing.draftKind,
-          generatedEntityId: created.id,
-          generatedStatus: 'draft',
-          runDate,
-          nextRunDate: bumped.nextRunDate,
-          posted: false,
-          finalized: false,
-        },
-      });
-
-      return {
-        draftId: existing.id,
-        runDate,
-        generatedEntityType: existing.draftKind,
-        generatedEntityId: created.id,
-        generatedStatus: 'draft' as const,
-        nextRunDate: bumped.nextRunDate,
-        templateStatus: bumped.status,
-      };
-    });
-  } catch (error) {
-    if (isUniqueViolation(error)) {
-      throw new ConflictError(
-        'A draft was already generated for this template today',
-        'recurringDrafts.errors.alreadyGeneratedToday',
-      );
-    }
-    throw error;
-  }
+  return result;
 }

@@ -45,6 +45,9 @@ function baseFinancials(overrides: Partial<ProjectFinancials> = {}): ProjectFina
       expectedRemainingCost: zeroMoney(currency),
       openApPayable: zeroMoney(currency),
       monthCloseCostNet: zeroMoney(currency),
+      directActualCostToDate: { amount: '5000', currency },
+      allocatedGeneralBusinessCost: zeroMoney(currency),
+      fullActualCostToDate: { amount: '5000', currency },
     },
     profit: null,
     coverage: {

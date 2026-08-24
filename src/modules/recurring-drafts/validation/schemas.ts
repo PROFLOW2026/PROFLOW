@@ -1,5 +1,11 @@
 import { z } from 'zod';
+import { MANAGERIAL_COST_KINDS } from '../domain/managerial-cost';
 import { DRAFT_FREQUENCIES, DRAFT_KINDS, DRAFT_STATUSES } from '../domain/types';
+
+const yearMonthSchema = z
+  .string()
+  .trim()
+  .regex(/^\d{4}-(0[1-9]|1[0-2])$/, 'Month must be YYYY-MM');
 
 const businessDateSchema = z
   .string()
@@ -101,10 +107,21 @@ function refineDateRange(
   }
 }
 
+const trueCostFieldsCreate = {
+  autoFinalizeExpense: z.boolean().optional().default(false),
+  managerialCostKind: z.enum(MANAGERIAL_COST_KINDS).nullable().optional(),
+};
+
+const trueCostFieldsUpdate = {
+  autoFinalizeExpense: z.boolean().optional(),
+  managerialCostKind: z.enum(MANAGERIAL_COST_KINDS).nullable().optional(),
+};
+
 export const createRecurringDraftSchema = z
   .object({
     draftKind: z.enum(DRAFT_KINDS),
     ...scheduleFields,
+    ...trueCostFieldsCreate,
     payload: z.unknown(),
   })
   .superRefine(refineDateRange);
@@ -113,6 +130,7 @@ export const updateRecurringDraftSchema = z
   .object({
     draftId: z.string().uuid(),
     ...scheduleFields,
+    ...trueCostFieldsUpdate,
     payload: z.unknown(),
   })
   .superRefine(refineDateRange);
@@ -125,6 +143,22 @@ export const generateRecurringDraftSchema = z.object({
   draftId: z.string().uuid(),
 });
 
+export const generateRecurringDraftHistorySchema = z
+  .object({
+    draftId: z.string().uuid(),
+    fromYearMonth: yearMonthSchema,
+    toYearMonth: yearMonthSchema,
+  })
+  .superRefine((data, ctx) => {
+    if (data.fromYearMonth > data.toYearMonth) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['toYearMonth'],
+        message: 'toYearMonth must be on or after fromYearMonth',
+      });
+    }
+  });
+
 export const listRecurringDraftsSchema = z.object({
   kind: z.enum(DRAFT_KINDS).optional(),
   status: z.enum(DRAFT_STATUSES).optional(),
@@ -134,6 +168,7 @@ export const listRecurringDraftsSchema = z.object({
 export type CreateRecurringDraftInput = z.input<typeof createRecurringDraftSchema>;
 export type UpdateRecurringDraftInput = z.input<typeof updateRecurringDraftSchema>;
 export type GenerateRecurringDraftInput = z.input<typeof generateRecurringDraftSchema>;
+export type GenerateRecurringDraftHistoryInput = z.input<typeof generateRecurringDraftHistorySchema>;
 export type ListRecurringDraftsInput = z.input<typeof listRecurringDraftsSchema>;
 
 /** Empty / sentinel form values become null. */

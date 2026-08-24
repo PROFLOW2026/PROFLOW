@@ -1,7 +1,7 @@
 import { AUDIT_ACTIONS, recordAuditEvent } from '@/shared/audit';
 import type { OrgContext } from '@/shared/auth/context';
-import { businessDate } from '@/shared/dates';
-import { NotFoundError, ValidationError } from '@/shared/errors';
+import { businessDate, todayInTimeZone } from '@/shared/dates';
+import { DomainRuleError, NotFoundError, ValidationError } from '@/shared/errors';
 import {
   assertCanManageDraftKind,
   assertCanReadDraftKind,
@@ -13,8 +13,13 @@ import {
   assertDraftPausable,
   assertDraftResumable,
 } from '../domain/lifecycle';
-import { stripFinalizeFlag } from '../domain/payload';
-import type { RecurringFinancialDraftRecord } from '../domain/types';
+import { extractTemplateAmount, stripFinalizeFlag } from '../domain/payload';
+import {
+  applyManagerialCostKindToExpensePayload,
+  isManagerialCostKind,
+  type ManagerialCostKind,
+} from '../domain/managerial-cost';
+import type { RecurringFinancialDraftRecord, StoredDraftPayload } from '../domain/types';
 import {
   findRecurringDraftById,
   insertRecurringDraft,
@@ -27,6 +32,10 @@ import {
   type CreateRecurringDraftInput,
   type UpdateRecurringDraftInput,
 } from '../validation/schemas';
+import {
+  openInitialAmountVersion,
+  rotateAmountVersionIfChanged,
+} from './amount-versions';
 import { parseStoredPayload } from './parse-payload';
 
 async function requireDraft(
@@ -36,6 +45,37 @@ async function requireDraft(
   const draft = await findRecurringDraftById(context.db, context.organizationId, draftId);
   if (!draft) throw new NotFoundError('Recurring draft');
   return draft;
+}
+
+function resolveManagerialCostKind(
+  draftKind: string,
+  raw: string | null | undefined,
+): ManagerialCostKind | null {
+  if (raw == null || raw === '') return null;
+  if (!isManagerialCostKind(raw)) {
+    throw new ValidationError(
+      [{ path: 'managerialCostKind', message: 'Invalid managerial cost kind' }],
+      'Invalid managerial cost kind',
+    );
+  }
+  if (draftKind !== 'expense') {
+    throw new DomainRuleError(
+      'Managerial cost kind applies only to expense templates',
+      'recurringDrafts.errors.managerialCostExpenseOnly',
+    );
+  }
+  return raw;
+}
+
+function shapeExpensePayloadForManagerial(
+  payload: StoredDraftPayload,
+  managerialCostKind: ManagerialCostKind | null,
+): StoredDraftPayload {
+  if (payload.kind !== 'expense') return payload;
+  return {
+    kind: 'expense',
+    data: applyManagerialCostKindToExpensePayload(payload.data, managerialCostKind),
+  };
 }
 
 export async function createRecurringDraft(
@@ -53,7 +93,15 @@ export async function createRecurringDraft(
   assertCanManageDraftKind(context, input.draftKind);
   assertScheduleRange(input.nextRunDate, input.endDate ?? null);
 
-  const payload = parseStoredPayload(input.draftKind, stripFinalizeFlag(input.payload));
+  const managerialCostKind = resolveManagerialCostKind(
+    input.draftKind,
+    input.managerialCostKind ?? null,
+  );
+  const autoFinalizeExpense =
+    input.draftKind === 'expense' ? Boolean(input.autoFinalizeExpense) : false;
+
+  let payload = parseStoredPayload(input.draftKind, stripFinalizeFlag(input.payload));
+  payload = shapeExpensePayloadForManagerial(payload, managerialCostKind);
   const stored = payload.data;
 
   const draft = await insertRecurringDraft(context.db, {
@@ -66,7 +114,20 @@ export async function createRecurringDraft(
     endDate: input.endDate ? businessDate(input.endDate) : null,
     payloadJson: stored,
     status: 'active',
+    autoFinalizeExpense,
+    managerialCostKind,
   });
+
+  const amount = extractTemplateAmount(payload);
+  if (input.draftKind === 'expense') {
+    await openInitialAmountVersion(context.db, {
+      organizationId: context.organizationId,
+      draftId: draft.id,
+      amount: amount.amount,
+      currency: amount.currency,
+      validFrom: todayInTimeZone(context.organization.timezone),
+    });
+  }
 
   await recordAuditEvent(context, {
     action: AUDIT_ACTIONS.RECURRING_FINANCIAL_DRAFT_CREATED,
@@ -77,6 +138,8 @@ export async function createRecurringDraft(
       draftKind: draft.draftKind,
       status: draft.status,
       nextRunDate: draft.nextRunDate,
+      autoFinalizeExpense: draft.autoFinalizeExpense,
+      managerialCostKind: draft.managerialCostKind,
     },
   });
 
@@ -100,7 +163,23 @@ export async function updateRecurringDraft(
   assertDraftEditable(existing.status);
   assertScheduleRange(input.nextRunDate, input.endDate ?? null);
 
-  const payload = parseStoredPayload(existing.draftKind, stripFinalizeFlag(input.payload));
+  const managerialCostKind =
+    input.managerialCostKind !== undefined
+      ? resolveManagerialCostKind(existing.draftKind, input.managerialCostKind)
+      : existing.managerialCostKind;
+  const autoFinalizeExpense =
+    existing.draftKind === 'expense'
+      ? input.autoFinalizeExpense !== undefined
+        ? Boolean(input.autoFinalizeExpense)
+        : existing.autoFinalizeExpense
+      : false;
+
+  let payload = parseStoredPayload(existing.draftKind, stripFinalizeFlag(input.payload));
+  payload = shapeExpensePayloadForManagerial(payload, managerialCostKind);
+
+  const previousPayload = parseStoredPayload(existing.draftKind, existing.payloadJson);
+  const previousAmount = extractTemplateAmount(previousPayload);
+  const nextAmount = extractTemplateAmount(payload);
 
   const updated = await updateRecurringDraftById(context.db, context.organizationId, existing.id, {
     title: input.title,
@@ -109,8 +188,22 @@ export async function updateRecurringDraft(
     nextRunDate: businessDate(input.nextRunDate),
     endDate: input.endDate ? businessDate(input.endDate) : null,
     payloadJson: payload.data,
+    autoFinalizeExpense,
+    managerialCostKind,
   });
   if (!updated) throw new NotFoundError('Recurring draft');
+
+  if (existing.draftKind === 'expense') {
+    await rotateAmountVersionIfChanged(context.db, {
+      organizationId: context.organizationId,
+      draftId: existing.id,
+      previousAmount: previousAmount.amount,
+      previousCurrency: previousAmount.currency,
+      nextAmount: nextAmount.amount,
+      nextCurrency: nextAmount.currency,
+      effectiveFrom: todayInTimeZone(context.organization.timezone),
+    });
+  }
 
   await recordAuditEvent(context, {
     action: AUDIT_ACTIONS.RECURRING_FINANCIAL_DRAFT_UPDATED,

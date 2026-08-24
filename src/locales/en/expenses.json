@@ -1,9 +1,20 @@
 {
   "title": "Expenses",
   "subtitle": "Record project costs and business expenses in one place.",
+  "generalBusinessCosts": "General business costs",
+  "generalBusinessCostsAllocatedToProject": "General business costs allocated to the project",
+  "directActualCost": "Direct actual cost",
+  "fullProjectActualCost": "Full project actual cost",
+  "companyActual": "Company actual cost",
+  "companyProfit": "Company profit",
+  "installmentCount": "Number of installments",
+  "installmentStart": "Start date",
+  "recurringMonthlyExpense": "Recurring monthly expense",
+  "inventoryStockValue": "Inventory stock value",
+  "remainingScheduledCost": "Remaining scheduled cost",
   "capture": {
     "title": "New expense",
-    "subtitle": "Saving creates a draft only. The expense enters project costs after you approve it. For business overhead, add allocation lines so it is not left unallocated.",
+    "subtitle": "Saving creates a draft only. The expense enters project costs after you approve it. For general business costs, add allocation lines so they are not left unallocated.",
     "overlapWarningTitle": "Similar open vendor bill exists",
     "overlapWarningBody": "An open vendor bill with the same vendor and a similar NET amount already recognizes Actual. Finalizing a separate expense can double-count unless you link them.",
     "overlapWarningHint": "Open the bill and accept a match to this expense after you finalize it, or void the duplicate capture."
@@ -37,8 +48,8 @@
   },
   "lifecycle": {
     "draftHint": "Saving creates a draft only. Approve it into costs when the amount is ready.",
-    "overheadUnallocatedWarning": "This is business overhead with no project allocation. It will not appear in any project’s Actual Cost or Allocated Overhead until you add allocation lines.",
-    "overheadAllocatedHint": "Allocation lines determine which projects receive a share of this overhead.",
+    "overheadUnallocatedWarning": "This is a general business cost with no project allocation. It will not appear in any project’s Actual Cost or general business costs allocated to the project until you add allocation lines.",
+    "overheadAllocatedHint": "Allocation lines determine which projects receive a share of these general business costs.",
     "allocationPeriod": "Period",
     "allocationMethodSummary": "Method",
     "allocationProjects": "Projects"
@@ -91,7 +102,17 @@
     "date": "Date",
     "supplier": "Supplier",
     "linkedVendor": "Linked vendor",
-    "target": "Project or overhead",
+    "target": "Project or general business costs",
+    "installmentCount": "Number of installments",
+    "installmentStart": "Start date",
+    "installmentEnd": "End date",
+    "installmentHint": "Net Actual is spread evenly across these months. Cash payment is separate.",
+    "inventoryStockPurchase": "Central stock purchase (not immediate operating cost)",
+    "inventoryItem": "Inventory item",
+    "inventoryPurchaseQty": "Quantity purchased",
+    "inventoryPurchaseQtyHint": "Quantity received into central stock. Expense net is divided into a cost layer by this quantity.",
+    "recurringMonthlyExpense": "Recurring monthly expense",
+    "fixedExpense": "Fixed expense",
     "project": "Project",
     "workPackage": "Work area",
     "costFamily": "Cost section",
@@ -123,16 +144,17 @@
     "vendor": "Link an existing vendor",
     "vendorNone": "No linked vendor",
     "costFamily": "Inferred from targeting",
-    "category": "Optional category"
+    "category": "Optional category",
+    "inventoryItem": "Choose inventory item"
   },
   "targeting": {
-    "none": "No project (overhead)",
-    "overhead": "Business overhead"
+    "none": "General business costs (no project)",
+    "overhead": "General business costs"
   },
   "costFamilies": {
     "direct_project": "Direct project cost",
     "shared": "Shared cost",
-    "business_overhead": "Business overhead",
+    "business_overhead": "General business costs",
     "asset_capital": "Asset / capital"
   },
   "costCategories": {
@@ -155,7 +177,7 @@
     "bank_fees": "Bank and finance fees",
     "office_supplies": "Office supplies",
     "vehicle_fuel": "Vehicle and fuel",
-    "other_overhead": "Other overhead",
+    "other_overhead": "Other general business costs",
     "equipment_purchase": "Equipment purchase",
     "vehicle_purchase": "Vehicle purchase",
     "tools": "Tools"
@@ -199,7 +221,7 @@
   },
   "allocation": {
     "title": "Allocate to projects",
-    "subtitle": "Without allocation lines, general/shared overhead stays off every project’s cost.",
+    "subtitle": "Without allocation lines, general or shared business costs stay off every project’s cost.",
     "addLine": "Add line",
     "removeLine": "Remove",
     "empty": "Add lines so contractors can see method, period, and which projects receive a share.",
@@ -212,7 +234,7 @@
     "amountRow": "Amount - row {row}",
     "percentRow": "Percentage - row {row}",
     "categoryRow": "Section - row {row}",
-    "selectTarget": "Choose project or overhead",
+    "selectTarget": "Choose project or general business costs",
     "methods": {
       "amount": "Fixed amount",
       "percent": "Percentage",
@@ -227,18 +249,18 @@
     "periodEnd": "Allocation period end",
     "autoDriverHint": "The system splits NET across eligible projects in the period and stores a historical snapshot.",
     "sumHintPrefix": "Lines must sum exactly to",
-    "unallocatedCallout": "No projects selected yet - this overhead will not land on project Actual Cost."
+    "unallocatedCallout": "No projects selected yet - these general business costs will not land on project Actual Cost."
   },
   "errors": {
     "inclusiveTaxRateRequired": "An applicable percentage tax rule is required when the amount includes VAT.",
     "workPackageRequiresProject": "A work area requires a project.",
     "directFamilyRequiresProject": "Direct project cost requires a project.",
-    "overheadFamilyRequiresNoProject": "Business overhead cannot be used on a project expense.",
+    "overheadFamilyRequiresNoProject": "General business costs cannot be used on a project expense.",
     "allocationAmountRequired": "Enter an amount for each fixed-amount line.",
     "allocationPercentRequired": "Enter a percentage for each percent line.",
     "allocationSumMismatch": "Allocation lines must sum exactly to the expense amount.",
     "allocationProjectRequired": "Project allocation lines require a project.",
-    "allocationOverheadNoProject": "Overhead lines cannot reference a project.",
+    "allocationOverheadNoProject": "General business cost lines cannot reference a project.",
     "customRecurrenceRequired": "Describe the custom recurrence.",
     "notEditable": "Only draft expenses can be edited.",
     "notFinalizable": "Only draft expenses can be finalized.",
@@ -251,37 +273,45 @@
     "notAdjustable": "Only finalized expenses can receive an adjustment.",
     "reversalNotAdjustable": "Reversal entries cannot be adjusted.",
     "currencyMustMatchProject": "Expense currency must match the project currency.",
-    "currencyMustMatchOrganization": "Overhead expense currency must match the organization currency.",
+    "currencyMustMatchOrganization": "General business cost currency must match the organization currency.",
     "projectExpenseNoAllocations": "Project expenses cannot be split across allocation lines.",
-    "phaseProjectMismatch": "The selected phase does not belong to this project."
+    "phaseProjectMismatch": "The selected phase does not belong to this project.",
+    "invalidYearMonth": "Enter a valid year and month.",
+    "invalidDate": "Enter a valid date.",
+    "installmentCountRange": "Number of installments must be between 1 and 120.",
+    "installmentTotal": "Installment total must be a positive amount.",
+    "installmentConservation": "Installment months must sum exactly to the expense net.",
+    "inventoryItemRequired": "Choose an inventory item for a stock purchase.",
+    "inventoryQtyRequired": "Enter the quantity received into stock.",
+    "inventoryStockPurchaseIncomplete": "Stock purchase expenses need an item and quantity before finalize."
   },
   "overheadHome": {
-    "title": "Overhead",
-    "description": "Business overhead and shared expenses, plus allocation runs - using the existing expense engine.",
+    "title": "General business costs",
+    "description": "General business costs and shared expenses, plus allocation runs - using the existing expense engine.",
     "notAllowed": {
       "title": "Not allowed",
       "body": "You need permission to view expenses to open this page."
     },
     "actions": {
-      "addOverhead": "New overhead expense",
+      "addOverhead": "New general business cost",
       "costCategories": "Cost categories",
-      "viewOverheadExpenses": "All overhead expenses",
+      "viewOverheadExpenses": "All general business costs",
       "viewSharedExpenses": "All shared expenses"
     },
     "sections": {
-      "overhead": "Business overhead",
+      "overhead": "General business costs",
       "shared": "Shared expenses",
       "runs": "Allocation runs",
       "categories": "Cost categories"
     },
     "empty": {
-      "overheadTitle": "No overhead expenses yet",
-      "overheadBody": "Record rent, insurance, and other business costs without a project, then allocate them to active work.",
+      "overheadTitle": "No general business costs yet",
+      "overheadBody": "Record rent, insurance, and other general business costs without a project, then allocate them to active work.",
       "sharedTitle": "No shared expenses yet",
-      "sharedBody": "Shared costs use the same allocation engine as overhead.",
+      "sharedBody": "Shared costs use the same allocation method as general business costs.",
       "runsTitle": "No allocation runs yet",
-      "runsBody": "Automatic allocation snapshots appear here after you allocate a shared or overhead expense.",
-      "categoriesTitle": "No overhead categories yet"
+      "runsBody": "Automatic allocation snapshots appear here after you allocate a shared or general business cost.",
+      "categoriesTitle": "No general business cost categories yet"
     },
     "runs": {
       "expense": "Expense",

@@ -9,6 +9,7 @@ import { listCustomFieldValuesForEntity } from '@/modules/custom-fields';
 import { EntityCustomFieldsPanel } from '@/modules/custom-fields/ui';
 import { getEntityDocumentPanelData } from '@/modules/documents';
 import { DocumentAttachments } from '@/modules/documents/ui';
+import { listInventoryItemsForOrg } from '@/modules/assets';
 import {
   getExpense,
   getExpenseCorrectionChain,
@@ -75,12 +76,16 @@ export default async function ExpenseDetailPage({
       const vendors = hasPermission(context, PERMISSIONS.VENDORS_READ)
         ? await listVendorsForOrg(context, { status: 'active' }).catch(() => [])
         : [];
+      const inventoryItems = hasPermission(context, PERMISSIONS.ASSETS_MANAGE)
+        ? await listInventoryItemsForOrg(context).catch(() => [])
+        : [];
       return {
         expense,
         projects,
         categories,
         workPackages,
         vendors: vendors.map((vendor) => ({ id: vendor.id, name: vendor.name })),
+        inventoryItems: inventoryItems.map((item) => ({ id: item.id, name: item.name, unit: item.unit })),
         documentsPanel,
         customFields,
         correctionChain,
@@ -102,6 +107,7 @@ export default async function ExpenseDetailPage({
     categories,
     workPackages,
     vendors,
+    inventoryItems,
     documentsPanel,
     customFields,
     correctionChain,
@@ -263,6 +269,7 @@ export default async function ExpenseDetailPage({
           categories={categories}
           workPackages={workPackages}
           vendors={vendors}
+          inventoryItems={inventoryItems}
           taxRatePercent={taxRatePercent}
         />
       )}

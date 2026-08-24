@@ -8,6 +8,7 @@ import {
   assertMonthOpenForRewrite,
   yearMonthFromBusinessDate,
 } from '@/modules/month-close';
+import { unbookInventoryPurchaseFromExpense } from '@/modules/assets/application/inventory-cost';
 import {
   buildReversalAmounts,
   negateAllocationLines,
@@ -54,6 +55,10 @@ export async function createExpenseReversal(
     Boolean(existingReversal),
   );
 
+  if (original.inventoryStockPurchase) {
+    await unbookInventoryPurchaseFromExpense(context, { expenseId: original.id });
+  }
+
   const amounts = buildReversalAmounts(original);
   const finalizedAt = todayInTimeZone(context.organization.timezone);
 
@@ -85,6 +90,9 @@ export async function createExpenseReversal(
     allocationPeriodEnd: null,
     allocationDriverMethod: null,
     allocationScheduleMode: null,
+    inventoryStockPurchase: false,
+    inventoryItemId: null,
+    inventoryPurchaseQty: null,
     createdByUserId: context.userId,
   });
 
@@ -111,5 +119,11 @@ export async function createExpenseReversal(
 
   const created = await findExpenseById(context.db, context.organizationId, reversalId);
   if (!created) throw new NotFoundError('Expense');
+
+  const { tryRecomputeOpenGeneralCostMonth } = await import(
+    '@/modules/financials/application/recompute-general-cost-month'
+  );
+  await tryRecomputeOpenGeneralCostMonth(context, { date: created.expenseDate });
+
   return created;
 }

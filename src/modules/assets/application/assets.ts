@@ -5,6 +5,8 @@ import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { noteModuleUsage } from '@/modules/tenancy';
 import { findProjectById } from '@/modules/projects';
+import { findExpenseById } from '@/modules/expenses';
+import { findApBillById } from '@/modules/ap';
 import {
   findAssetById,
   findFleetByAssetId,
@@ -38,6 +40,32 @@ export async function getAssetById(context: OrgContext, assetId: string) {
   };
 }
 
+/**
+ * Resolve optional acquisition source links.
+ * Storing sourceExpenseId / sourceApBillId is traceability only —
+ * does NOT create Actual (Expense/AP remains the recognition source).
+ */
+async function assertAcquisitionSources(
+  context: OrgContext,
+  input: {
+    readonly sourceExpenseId?: string | null;
+    readonly sourceApBillId?: string | null;
+  },
+): Promise<void> {
+  if (input.sourceExpenseId) {
+    const expense = await findExpenseById(
+      context.db,
+      context.organizationId,
+      input.sourceExpenseId,
+    );
+    if (!expense) throw new NotFoundError('Expense');
+  }
+  if (input.sourceApBillId) {
+    const bill = await findApBillById(context.db, context.organizationId, input.sourceApBillId);
+    if (!bill) throw new NotFoundError('AP bill');
+  }
+}
+
 export async function createAsset(context: OrgContext, raw: CreateAssetInput) {
   assertPermission(context, PERMISSIONS.ASSETS_MANAGE);
   const parsed = createAssetSchema.safeParse(raw);
@@ -57,6 +85,9 @@ export async function createAsset(context: OrgContext, raw: CreateAssetInput) {
     if (!project || project.archivedAt) throw new NotFoundError('Project');
   }
 
+  await assertAcquisitionSources(context, input);
+
+  // Acquisition fields are metadata/trace only — no Expense, AP, or Actual posting here.
   const asset = await insertAsset(context.db, {
     organizationId: context.organizationId,
     name: input.name,
@@ -67,6 +98,13 @@ export async function createAsset(context: OrgContext, raw: CreateAssetInput) {
     model: input.model ?? null,
     serialNumber: input.serialNumber ?? null,
     assignedProjectId: input.assignedProjectId ?? null,
+    acquisitionAmount: input.acquisitionAmount ?? null,
+    acquisitionCurrency: input.acquisitionCurrency
+      ? input.acquisitionCurrency.toUpperCase()
+      : null,
+    acquiredOn: input.acquiredOn ?? null,
+    sourceExpenseId: input.sourceExpenseId ?? null,
+    sourceApBillId: input.sourceApBillId ?? null,
     notes: input.notes ?? null,
   });
 
@@ -97,6 +135,8 @@ export async function createAsset(context: OrgContext, raw: CreateAssetInput) {
       name: asset.name,
       assetKind: asset.assetKind,
       fleetLinked: Boolean(fleet),
+      sourceExpenseId: asset.sourceExpenseId,
+      sourceApBillId: asset.sourceApBillId,
     },
   });
 
@@ -135,6 +175,25 @@ export async function updateAsset(context: OrgContext, raw: UpdateAssetInput) {
     }
   }
 
+  const nextSourceExpenseId =
+    input.sourceExpenseId === undefined ? existing.sourceExpenseId : input.sourceExpenseId;
+  const nextSourceApBillId =
+    input.sourceApBillId === undefined ? existing.sourceApBillId : input.sourceApBillId;
+  if (nextSourceExpenseId && nextSourceApBillId) {
+    throw new ValidationError([
+      {
+        path: 'sourceApBillId',
+        message: 'Link either a source expense or a source AP bill, not both',
+      },
+    ]);
+  }
+
+  await assertAcquisitionSources(context, {
+    sourceExpenseId: input.sourceExpenseId,
+    sourceApBillId: input.sourceApBillId,
+  });
+
+  // Acquisition patch is traceability only — never creates Actual.
   const updated = await updateAssetById(context.db, context.organizationId, input.assetId, {
     name: input.name,
     assetKind: input.assetKind,
@@ -146,6 +205,17 @@ export async function updateAsset(context: OrgContext, raw: UpdateAssetInput) {
     assignedProjectId:
       input.assignedProjectId === undefined ? undefined : input.assignedProjectId,
     notes: input.notes === undefined ? undefined : input.notes,
+    acquisitionAmount:
+      input.acquisitionAmount === undefined ? undefined : input.acquisitionAmount,
+    acquisitionCurrency:
+      input.acquisitionCurrency === undefined
+        ? undefined
+        : input.acquisitionCurrency
+          ? input.acquisitionCurrency.toUpperCase()
+          : null,
+    acquiredOn: input.acquiredOn === undefined ? undefined : input.acquiredOn,
+    sourceExpenseId: input.sourceExpenseId === undefined ? undefined : input.sourceExpenseId,
+    sourceApBillId: input.sourceApBillId === undefined ? undefined : input.sourceApBillId,
   });
   if (!updated) throw new NotFoundError('Asset');
 
@@ -157,10 +227,14 @@ export async function updateAsset(context: OrgContext, raw: UpdateAssetInput) {
     before: {
       status: existing.status,
       assignedProjectId: existing.assignedProjectId,
+      sourceExpenseId: existing.sourceExpenseId,
+      sourceApBillId: existing.sourceApBillId,
     },
     after: {
       status: updated.status,
       assignedProjectId: updated.assignedProjectId,
+      sourceExpenseId: updated.sourceExpenseId,
+      sourceApBillId: updated.sourceApBillId,
     },
   });
 

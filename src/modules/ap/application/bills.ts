@@ -429,6 +429,13 @@ export async function createApBill(context: OrgContext, raw: CreateApBillInput) 
     },
   });
 
+  if (initialStatus === 'open') {
+    const { tryRecomputeOpenGeneralCostMonth } = await import(
+      '@/modules/financials/application/recompute-general-cost-month'
+    );
+    await tryRecomputeOpenGeneralCostMonth(context, { date: billDate });
+  }
+
   return bill;
 }
 
@@ -482,6 +489,12 @@ export async function postApBill(context: OrgContext, billId: string): Promise<A
       postedFromDraft: true,
     },
   });
+
+  const billDate = updated.billDate ?? updated.createdAt.toISOString().slice(0, 10);
+  const { tryRecomputeOpenGeneralCostMonth } = await import(
+    '@/modules/financials/application/recompute-general-cost-month'
+  );
+  await tryRecomputeOpenGeneralCostMonth(context, { date: billDate });
 
   return updated;
 }

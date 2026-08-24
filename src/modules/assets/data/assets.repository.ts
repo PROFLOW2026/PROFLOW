@@ -66,6 +66,11 @@ function mapAsset(row: typeof assets.$inferSelect): AssetRecord {
     model: row.model,
     serialNumber: row.serialNumber,
     assignedProjectId: row.assignedProjectId,
+    acquisitionAmount: row.acquisitionAmount ?? null,
+    acquisitionCurrency: row.acquisitionCurrency ?? null,
+    acquiredOn: asDateString(row.acquiredOn),
+    sourceExpenseId: row.sourceExpenseId ?? null,
+    sourceApBillId: row.sourceApBillId ?? null,
     notes: row.notes,
     archivedAt: row.archivedAt,
     createdAt: row.createdAt,
@@ -116,6 +121,8 @@ function mapInventoryItem(row: typeof inventoryItems.$inferSelect): InventoryIte
     barcode: row.barcode ?? null,
     unit: row.unit,
     quantityOnHand: row.quantityOnHand,
+    costBasisAmount: row.costBasisAmount ?? '0',
+    costBasisCurrency: row.costBasisCurrency ?? null,
     reorderLevel: row.reorderLevel,
     minStockLevel: row.minStockLevel ?? null,
     notes: row.notes,
@@ -225,6 +232,11 @@ export async function updateAssetById(
     model: string | null;
     serialNumber: string | null;
     assignedProjectId: string | null;
+    acquisitionAmount: string | null;
+    acquisitionCurrency: string | null;
+    acquiredOn: string | null;
+    sourceExpenseId: string | null;
+    sourceApBillId: string | null;
     notes: string | null;
   }>,
 ): Promise<AssetRecord | null> {

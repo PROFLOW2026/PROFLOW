@@ -48,6 +48,9 @@ function buildFinancials(): ProjectFinancials {
       expectedRemainingCost: zero,
       openApPayable: zero,
       monthCloseCostNet: zero,
+      directActualCostToDate: { amount: '25000.000000', currency },
+      allocatedGeneralBusinessCost: zero,
+      fullActualCostToDate: { amount: '25000.000000', currency },
     },
     profit: {
       estimatedProfit: { amount: '75000.000000', currency },

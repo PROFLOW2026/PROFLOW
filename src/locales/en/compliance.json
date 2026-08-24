@@ -101,10 +101,10 @@
     "openExpense": "Open expense",
     "amountLabel": "Premium / fee amount",
     "currencyLabel": "Currency",
-    "allocationTitle": "Optional overhead period",
+    "allocationTitle": "Optional allocation period for general business costs",
     "periodStartLabel": "Allocation period start",
     "periodEndLabel": "Allocation period end",
-    "allocationHint": "For insurance-like costs, set a period to use the existing overhead allocation engine. Still draft until finalized.",
+    "allocationHint": "For insurance-like costs, set a period to use the existing allocation for general business costs. Still draft until finalized.",
     "success": "Linked expense draft created."
   }
 }

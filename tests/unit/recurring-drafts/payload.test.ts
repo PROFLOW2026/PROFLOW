@@ -84,15 +84,17 @@ describe('recurring draft payload - drafts only', () => {
     ).not.toThrow();
   });
 
-  it('generate application never posts or finalizes money', () => {
+  it('generate application creates drafts first; expense finalize is gated', () => {
     expect(GENERATE_SOURCE).not.toMatch(/createApBill\b/);
     expect(GENERATE_SOURCE).not.toMatch(/postApBill\b/);
-    expect(GENERATE_SOURCE).not.toMatch(/finalizeExpense\b/);
     expect(GENERATE_SOURCE).not.toMatch(/finalizeBillingRecord\b/);
     expect(GENERATE_SOURCE).toMatch(/status: 'draft'/);
     expect(GENERATE_SOURCE).toMatch(/finalize: false/);
     expect(GENERATE_SOURCE).toMatch(/insertApBill/);
     expect(GENERATE_SOURCE).toMatch(/createExpense/);
     expect(GENERATE_SOURCE).toMatch(/createBillingRecord/);
+    expect(GENERATE_SOURCE).toMatch(/autoFinalizeExpense/);
+    expect(GENERATE_SOURCE).toMatch(/finalizeExpense/);
+    expect(GENERATE_SOURCE).toMatch(/isMonthClosed/);
   });
 });

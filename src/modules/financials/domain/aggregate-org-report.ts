@@ -93,6 +93,19 @@ function moneyMetricFromSum(input: {
 }
 
 /**
+ * Σ current contract — recognized org commercial revenue (not billing or payments).
+ * Null when commercial is permission-denied or every eligible row lacks a priced contract.
+ */
+export function deriveRecognizedCompanyRevenue(
+  rows: readonly ProjectRollupRow[],
+  currency: string,
+  canReadCommercial: boolean,
+): MoneyValue | null {
+  if (!canReadCommercial) return null;
+  return sumFieldOrNull(rows, currency, (row) => row.currentContract);
+}
+
+/**
  * Org commercial rollup from base-currency project rows only.
  * Pending changes are never folded into current contract.
  */

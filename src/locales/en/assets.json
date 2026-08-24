@@ -79,7 +79,14 @@
     "fleetTitle": "Fleet details (optional)",
     "plateNumberLabel": "Plate number",
     "vinLabel": "VIN",
-    "odometerLabel": "Odometer"
+    "odometerLabel": "Odometer",
+    "acquisitionTitle": "Acquisition (optional)",
+    "acquisitionHint": "Trace purchase amount and source Expense/AP. Linking does not create Actual — Expense or AP remains the cost source.",
+    "acquisitionAmountLabel": "Acquisition amount",
+    "acquisitionCurrencyLabel": "Acquisition currency",
+    "acquiredOnLabel": "Acquired on",
+    "sourceExpenseIdLabel": "Source expense ID",
+    "sourceApBillIdLabel": "Source AP bill ID"
   },
   "fleet": {
     "title": "Fleet",
@@ -117,6 +124,9 @@
     "manufacturer": "Manufacturer",
     "model": "Model",
     "serialNumber": "Serial number",
+    "acquisition": "Acquisition",
+    "acquisitionHint": "Display/trace only. Expense or AP remains Actual recognition — linking here does not post cost.",
+    "saveAcquisition": "Save acquisition",
     "assignment": "Assignment / check-out",
     "assignmentHint": "Assign to a project to check out; clear to check in.",
     "assignedProject": "Assigned project",
@@ -296,7 +306,8 @@
     "fleetRequiresVehicle": "Fleet records must link to a vehicle asset.",
     "fleetAlreadyLinked": "This vehicle already has a fleet record.",
     "fleetKindLocked": "Remove the fleet record before changing this asset away from vehicle.",
-    "invalidUsageDateRange": "Usage end date must be on or after the start date."
+    "invalidUsageDateRange": "Usage end date must be on or after the start date.",
+    "inventoryCostLayerConsumed": "Cannot void or reverse this stock purchase — inventory from this purchase was already consumed or issued."
   },
   "usage": {
     "panelNote": "Record materials and equipment used on this work.",
@@ -366,10 +377,10 @@
     "openExpense": "Open expense",
     "amountLabel": "Amount",
     "currencyLabel": "Currency",
-    "allocationTitle": "Optional overhead period",
+    "allocationTitle": "Optional allocation period for general business costs",
     "periodStartLabel": "Allocation period start",
     "periodEndLabel": "Allocation period end",
-    "allocationHint": "When set, uses the existing overhead allocation engine (contract weight / annual). Still draft until finalized.",
+    "allocationHint": "When set, uses the existing allocation for general business costs (contract weight / annual). Still draft until finalized.",
     "success": "Linked expense draft created.",
     "errors": {
       "alreadyLinked": "This record already has a linked expense.",

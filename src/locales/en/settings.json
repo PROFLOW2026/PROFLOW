@@ -67,7 +67,7 @@
     "clients": "Clients",
     "documents": "Documents",
     "changes": "Changes",
-    "overhead": "Overhead",
+    "overhead": "General business costs",
     "crm": "Sales",
     "compliance": "Insurance and compliance",
     "api": "API and webhooks",
@@ -92,7 +92,7 @@
       "clients": "Manage the client list and contact details.",
       "documents": "Keep contracts, receipts, and photos in one place.",
       "changes": "Manage project changes and extras.",
-      "overhead": "Track business overhead expenses.",
+      "overhead": "Track general business costs.",
       "crm": "Manage leads, opportunities, and sales quotes.",
       "compliance": "Track insurance and compliance documents.",
       "api": "Connect external systems with keys and notifications.",
@@ -169,6 +169,19 @@
     "hintMixed": "Projects, jobs, and service calls appear together. They share one financial record - this is not a separate product, and BOQ stays off unless you enable it.",
     "hintProjects": "Projects appear in the main navigation. Jobs stay available when needed. Bill of quantities stays hidden unless you turn that feature on.",
     "saved": "Business focus updated."
+  },
+  "projectProfitabilityMode": {
+    "title": "Project profitability",
+    "subtitle": "How project Actual cost and profit appear on project pages. Does not change allocations or company-level totals.",
+    "label": "Presentation",
+    "direct": "Direct profitability",
+    "include_general": "Profitability including general business costs",
+    "both": "Show both",
+    "hintDirect": "Actual cost and profit use Direct project costs only (expenses, labor, vendor bills, month-close). General business costs allocated to the project are shown separately.",
+    "hintIncludeGeneral": "Actual cost and profit include automatically allocated general business costs.",
+    "hintBoth": "Shows Direct profit and profit after general allocation side by side.",
+    "explanation": "General business costs are allocated automatically across projects each month by the ratio of Direct costs.",
+    "saved": "Project profitability presentation updated."
   },
   "complexity": {
     "title": "Experience depth",
@@ -749,6 +762,13 @@
       },
       "inventory_item": {
         "created": "Inventory item created"
+      },
+      "inventory_cost_layer": {
+        "booked": "Inventory cost layer booked",
+        "unbooked": "Inventory cost layer unbooked"
+      },
+      "inventory_cost": {
+        "consumed": "Inventory cost consumed to Actual"
       },
       "inventory_movement": {
         "recorded": "Inventory movement recorded"

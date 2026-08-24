@@ -9,6 +9,7 @@ import {
 } from '../domain/permissions';
 import { previewPayloadForRun } from '../domain/payload';
 import type {
+  RecurringDraftAmountVersionRecord,
   RecurringDraftListFilters,
   RecurringFinancialDraftRecord,
   RecurringFinancialDraftRunRecord,
@@ -16,6 +17,7 @@ import type {
 } from '../domain/types';
 import {
   findRecurringDraftById,
+  listAmountVersionsForDraft,
   listRecurringDrafts,
   listRunsForDraft,
 } from '../data/recurring-drafts.repository';
@@ -62,12 +64,16 @@ export async function getRecurringDraftDetail(
   draft: RecurringFinancialDraftRecord;
   payload: StoredDraftPayload;
   runs: RecurringFinancialDraftRunRecord[];
+  amountVersions: RecurringDraftAmountVersionRecord[];
   preview: ReturnType<typeof previewPayloadForRun>;
 }> {
   const draft = await getRecurringDraftForOrg(context, draftId);
   const payload = parseStoredPayload(draft.draftKind, draft.payloadJson);
-  const runs = await listRunsForDraft(context.db, context.organizationId, draft.id);
+  const [runs, amountVersions] = await Promise.all([
+    listRunsForDraft(context.db, context.organizationId, draft.id),
+    listAmountVersionsForDraft(context.db, context.organizationId, draft.id),
+  ]);
   const runDate = todayInTimeZone(context.organization.timezone);
   const preview = previewPayloadForRun(payload, runDate, draft.title);
-  return { draft, payload, runs, preview };
+  return { draft, payload, runs, amountVersions, preview };
 }

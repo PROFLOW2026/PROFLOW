@@ -1,4 +1,5 @@
 import { MetricDrilldown } from './metric-drilldown';
+import { AllocatedGeneralOfWhichNote } from './project-actual-breakdown-view';
 import { DataConfidenceBadge } from './data-confidence-badge';
 import { resolveExplanationSourceHref } from './explainability-links';
 import {
@@ -221,6 +222,13 @@ export function ProjectFinancialsKpiPanel({
   const changesTab = `/projects/${projectId}?tab=changes`;
 
   const actualDrill = drillFromMetric(projectId, 'actual', financials, t, canReadAp);
+  const allocatedGeneral = financials.cost.allocatedGeneralBusinessCost;
+  const profitabilityMode = financials.projectProfitabilityMode ?? 'direct';
+  const showAllocatedGeneral = Boolean(
+    allocatedGeneral &&
+      Number(allocatedGeneral.amount) > 0 &&
+      profitabilityMode !== 'include_general',
+  );
   const forecastDrill = drillFromMetric(projectId, 'forecast', financials, t, canReadAp);
   const contractDrill = drillFromMetric(
     projectId,
@@ -322,6 +330,15 @@ export function ProjectFinancialsKpiPanel({
         expandable={!actualCostUnavailable}
         unavailable={actualCostUnavailable}
         unavailableLabel={t('kpis.unavailable')}
+        subtitle={
+          showAllocatedGeneral && allocatedGeneral ? (
+            <AllocatedGeneralOfWhichNote
+              ofWhich={t('ofWhich')}
+              label={t('generalBusinessCostsAllocatedToProject')}
+              amount={allocatedGeneral}
+            />
+          ) : null
+        }
         lines={
           actualDrill?.lines
             ? [
@@ -339,20 +356,35 @@ export function ProjectFinancialsKpiPanel({
               ]
             : [
                 {
-                  label: t('kpis.recognizedOriginal'),
-                  value: financials.cost.actualCostToDate,
+                  label: t('directActualCost'),
+                  value: kpis.directActualCost,
                 },
-                {
-                  label: t('kpis.monthCloseCost'),
-                  value: financials.cost.monthCloseCostNet,
-                  muted: true,
-                  hint: t('explain.infoLineHint'),
-                },
-                {
-                  label: t('kpis.actualCost'),
-                  value: financials.cost.actualCostToDate,
-                  emphasis: true,
-                },
+                ...(profitabilityMode === 'include_general'
+                  ? [
+                      {
+                        label: t('generalBusinessCostsAllocatedToProject'),
+                        value: allocatedGeneral ?? financials.cost.allocatedGeneralBusinessCost,
+                        muted: true as const,
+                      },
+                      {
+                        label: t('fullProjectActualCost'),
+                        value: kpis.fullActualCost,
+                        emphasis: true as const,
+                      },
+                    ]
+                  : [
+                      {
+                        label: t('kpis.monthCloseCost'),
+                        value: financials.cost.monthCloseCostNet,
+                        muted: true,
+                        hint: t('explain.infoLineHint'),
+                      },
+                      {
+                        label: t('kpis.actualCost'),
+                        value: kpis.actualCost,
+                        emphasis: true,
+                      },
+                    ]),
                 {
                   label: t('kpis.grossExpenseTotal'),
                   muted: true,
@@ -538,10 +570,14 @@ export function ProjectFinancialsKpiPanel({
 
       {canReadProfit && !kpis.priceNotSet && kpis.actualMargin ? (
         <MetricDrilldown
-          label={t('kpis.actualMargin')}
+          label={
+            kpis.showBothProfits ? t('kpis.directProfit') : t('kpis.actualMargin')
+          }
           value={kpis.actualMargin}
           nature={t('metricNature.actual')}
-          explanation={t('kpis.actualMarginHint')}
+          explanation={
+            kpis.showBothProfits ? t('kpis.directProfitHint') : t('kpis.actualMarginHint')
+          }
           detail={actualMarginDrill?.detail}
           basis={actualMarginDrill?.basis}
           whyLabel={actualMarginDrill?.whyLabel}
@@ -552,8 +588,8 @@ export function ProjectFinancialsKpiPanel({
                 ? [{ label: t('kpis.currentContract'), value: kpis.currentContract }]
                 : []),
               {
-                label: t('kpis.actualCost'),
-                value: kpis.actualCost,
+                label: t('directActualCost'),
+                value: kpis.directActualCost,
               },
               ...(kpis.actualMarginPercent != null
                 ? [
@@ -566,6 +602,34 @@ export function ProjectFinancialsKpiPanel({
                 : []),
             ]
           }
+        />
+      ) : null}
+
+      {canReadProfit && !kpis.priceNotSet && kpis.showBothProfits && kpis.afterGeneralProfit ? (
+        <MetricDrilldown
+          label={t('kpis.afterGeneralProfit')}
+          value={kpis.afterGeneralProfit}
+          nature={t('metricNature.actual')}
+          explanation={t('kpis.afterGeneralProfitHint')}
+          emphasis
+          lines={[
+            ...(kpis.currentContract
+              ? [{ label: t('kpis.currentContract'), value: kpis.currentContract }]
+              : []),
+            {
+              label: t('fullProjectActualCost'),
+              value: kpis.fullActualCost,
+            },
+            ...(kpis.afterGeneralProfitPercent != null
+              ? [
+                  {
+                    label: t('margin'),
+                    hint: `${kpis.afterGeneralProfitPercent}%`,
+                    muted: true as const,
+                  },
+                ]
+              : []),
+          ]}
         />
       ) : null}
 

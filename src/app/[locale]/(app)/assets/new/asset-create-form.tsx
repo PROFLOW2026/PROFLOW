@@ -19,8 +19,10 @@ import { createAssetAction, type AssetsFormState } from '../actions';
 
 export function AssetCreateForm({
   projects,
+  defaultCurrency,
 }: {
   projects: readonly { id: string; name: string }[];
+  defaultCurrency: string;
 }) {
   const t = useTranslations('assets.createAsset');
   const tKinds = useTranslations('assets.kinds');
@@ -124,6 +126,40 @@ export function AssetCreateForm({
       </Field>
 
       <fieldset className="flex flex-col gap-4 rounded-lg border border-[var(--pf-border-default)] p-4">
+        <legend className="px-1 text-sm font-medium">{t('acquisitionTitle')}</legend>
+        <p className="text-sm text-[var(--pf-text-secondary)]">{t('acquisitionHint')}</p>
+        <Field label={t('acquisitionAmountLabel')} error={state.fieldErrors?.acquisitionAmount}>
+          {(control) => (
+            <Input {...control} name="acquisitionAmount" inputMode="decimal" numeric dir="ltr" />
+          )}
+        </Field>
+        <Field
+          label={t('acquisitionCurrencyLabel')}
+          error={state.fieldErrors?.acquisitionCurrency}
+        >
+          {(control) => (
+            <Input
+              {...control}
+              name="acquisitionCurrency"
+              placeholder={defaultCurrency}
+              maxLength={3}
+              dir="ltr"
+              className="uppercase"
+            />
+          )}
+        </Field>
+        <Field label={t('acquiredOnLabel')} error={state.fieldErrors?.acquiredOn}>
+          {(control) => <Input {...control} name="acquiredOn" type="date" dir="ltr" />}
+        </Field>
+        <Field label={t('sourceExpenseIdLabel')} error={state.fieldErrors?.sourceExpenseId}>
+          {(control) => <Input {...control} name="sourceExpenseId" dir="ltr" placeholder="UUID" />}
+        </Field>
+        <Field label={t('sourceApBillIdLabel')} error={state.fieldErrors?.sourceApBillId}>
+          {(control) => <Input {...control} name="sourceApBillId" dir="ltr" placeholder="UUID" />}
+        </Field>
+      </fieldset>
+
+      <fieldset className="flex flex-col gap-4 rounded-lg border border-[var(--pf-border-default)] p-4">
         <legend className="px-1 text-sm font-medium">{t('fleetTitle')}</legend>
         <Field label={t('plateNumberLabel')}>
           {(control) => <Input {...control} name="plateNumber" dir="ltr" />}
@@ -142,3 +178,4 @@ export function AssetCreateForm({
     </form>
   );
 }
+

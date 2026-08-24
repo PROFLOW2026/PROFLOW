@@ -78,7 +78,7 @@ function matchingProjectDayEntries(
 async function promoteToApproved(
   context: OrgContext,
   entry: TimeEntryRecord,
-  options?: AttendanceProjectSyncOptions,
+  _options?: AttendanceProjectSyncOptions,
 ): Promise<TimeEntryRecord> {
   if (entry.approvalStatus === 'approved') return entry;
 
@@ -105,9 +105,6 @@ async function promoteToApproved(
 
   if (current.approvalStatus === 'submitted') {
     const approved = await approveTimeEntry(context, { timeEntryId: current.id });
-    if (options?.skipCostRecompute) {
-      // approveTimeEntry already recomputed; acceptable inside outer tx.
-    }
     return approved;
   }
 

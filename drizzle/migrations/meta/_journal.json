@@ -477,6 +477,13 @@
                         "when":  1787500000000,
                         "tag":  "0068_rate_versions_working_days_per_month",
                         "breakpoints":  true
+                    },
+                    {
+                        "idx":  68,
+                        "version":  "7",
+                        "when":  1787580000000,
+                        "tag":  "0069_true_cost_profitability",
+                        "breakpoints":  true
                     }
                 ]
 }

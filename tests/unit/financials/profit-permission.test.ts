@@ -67,6 +67,9 @@ describe('project profit permission shape', () => {
       expectedRemainingCost: zero,
       openApPayable: zero,
       monthCloseCostNet: zero,
+      directActualCostToDate: { amount: '40000.000000', currency },
+      allocatedGeneralBusinessCost: zero,
+      fullActualCostToDate: { amount: '40000.000000', currency },
     },
     profit: {
       estimatedProfit: { amount: '60000.000000', currency },

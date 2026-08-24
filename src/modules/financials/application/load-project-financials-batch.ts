@@ -24,7 +24,9 @@ import {
 import { sumSubcontractRemainingCommitmentForProjects } from '../data/subcontract-commitment.repository';
 import { mergeProjectRemainingCommitments } from '../domain/merge-commitments';
 import { loadExpenseContributionsForProjects } from '../data/expenses.repository';
+import { loadInventoryConsumptionContributionsForProjects } from '../data/inventory-consumptions.repository';
 import { loadMonthCloseEconomicForProjects } from '../data/month-close-economic.repository';
+import { sumGeneralAllocationsGroupedByProject } from '../data/general-cost-months.repository';
 import type { ProjectExpenseContribution } from '../domain/cost-aggregation';
 import { composeProjectFinancials } from './compose-project-financials';
 
@@ -79,6 +81,7 @@ export async function loadProjectFinancialsBatch(
     recognizedByProject,
     monthCloseByProject,
     subcontractByProject,
+    generalByProject,
   ] = await Promise.all([
     canReadCommercial
       ? loadCommercialDataForProjects(context.db, context.organizationId, projectIds)
@@ -139,11 +142,31 @@ export async function loadProjectFinancialsBatch(
           currency,
         )
       : Promise.resolve(new Map()),
+    sumGeneralAllocationsGroupedByProject(
+      context.db,
+      context.organizationId,
+      projectIds,
+      currency,
+    ),
   ]);
 
   const expensesByProject = new Map<string, ProjectExpenseContribution[]>();
   if (expenseContributions) {
     for (const line of expenseContributions) {
+      if (!line.projectId) continue;
+      const list = expensesByProject.get(line.projectId) ?? [];
+      list.push(line);
+      expensesByProject.set(line.projectId, list);
+    }
+  }
+
+  if (canReadExpenses) {
+    const inventoryContributions = await loadInventoryConsumptionContributionsForProjects(
+      context.db,
+      context.organizationId,
+      projectIds,
+    );
+    for (const line of inventoryContributions) {
       if (!line.projectId) continue;
       const list = expensesByProject.get(line.projectId) ?? [];
       list.push(line);
@@ -231,6 +254,9 @@ export async function loadProjectFinancialsBatch(
       openAp: canReadAp ? (apByProject.get(projectId) ?? null) : null,
       recognizedVendor: canReadAp ? (recognizedByProject.get(projectId) ?? null) : null,
       monthCloseEconomic: monthCloseByProject.get(projectId),
+      allocatedGeneralBusinessCost:
+        fromNumericString(generalByProject.get(projectId) ?? '0', projectCurrency) ??
+        zeroMoney(projectCurrency),
       sliceAvailability: projectSliceAvailability,
     });
 

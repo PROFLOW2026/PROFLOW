@@ -3,7 +3,7 @@ import type { ReceivablesAging } from '@/modules/billing';
 import type { OrgContext } from '@/shared/auth/context';
 import { todayInTimeZone } from '@/shared/dates';
 import { ORG_LIST_EXPORT_CAP } from '@/shared/db/list-limits';
-import { isZeroMoney } from '@/shared/money';
+import { fromNumericString, isZeroMoney, zeroMoney } from '@/shared/money';
 import { assertPermission, hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import {
@@ -11,6 +11,7 @@ import {
   aggregateOrgCommercial,
   aggregateOrgCost,
   aggregateOrgProfit,
+  deriveRecognizedCompanyRevenue,
   sumAssetCapitalActual,
   type OrgCashTotals,
   type OrgCommercialTotals,
@@ -21,14 +22,23 @@ import {
   computeUnallocatedOrganizationCosts,
   sumProjectTouchingExpenseNets,
 } from '../domain/org-cost-reconciliation';
-import { hasNonZeroMoney, type CountReportMetric } from '../domain/report-metric';
+import { hasNonZeroMoney, moneyMetric, type CountReportMetric } from '../domain/report-metric';
 import {
   loadOrganizationExpenseContributions,
   sumOrganizationActualCosts,
 } from '../data/expenses.repository';
 import { loadOperationsReportCounts } from '../data/operations-report.repository';
+import { sumOrganizationGeneralPoolTotals } from '../data/general-cost-months.repository';
+import {
+  composeCompanyActualFromOrgTotals,
+  composeCompanyProfit,
+  shouldSurfaceCompanyActual,
+  shouldSurfaceCompanyProfit,
+} from '../domain/company-actual';
+import { parseWorkKindFilter } from '../domain/work-pricing';
 import type { CashFlowOutlook } from '../domain/cash-flow';
 import { getOrganizationCashFlowOutlook } from './get-organization-cash-flow';
+import { refreshCurrentOpenGeneralCostMonthForSurfaces } from './recompute-general-cost-month';
 import {
   getOrganizationProjectRollup,
   type OrganizationProjectRollup,
@@ -69,6 +79,8 @@ export interface OrganizationReportsAnalytics {
   readonly commercial: OrgCommercialTotals | null;
   readonly cash: OrgCashTotals | null;
   readonly cost: OrgCostTotals | null;
+  readonly companyActual: ReturnType<typeof moneyMetric> | null;
+  readonly companyProfit: ReturnType<typeof moneyMetric> | null;
   readonly profitability: OrgProfitTotals | null;
   readonly operations: OperationsReportSection;
   readonly rollup: OrganizationProjectRollup;
@@ -116,8 +128,11 @@ export async function getOrganizationReportsAnalytics(
     ? listBillingRecords(context, { filter: 'all', limit: ORG_LIST_EXPORT_CAP })
     : Promise.resolve(null);
 
+  await refreshCurrentOpenGeneralCostMonthForSurfaces(context);
+
   // Shared org billing promise - cash flow + AR aging previously each re-listed all records.
-  const [rollup, billingRecords, unallocatedBusinessCosts, cashFlow] = await Promise.all([
+  const [rollup, billingRecords, unallocatedBusinessCosts, cashFlow, generalPoolTotals] =
+    await Promise.all([
     getOrganizationProjectRollup(context, {
       workKindFilter: options.workKindFilter,
     }),
@@ -128,6 +143,7 @@ export async function getOrganizationReportsAnalytics(
           getOrganizationCashFlowOutlook(context, { billingRecords: records }),
         )
       : Promise.resolve(null),
+    sumOrganizationGeneralPoolTotals(context.db, context.organizationId, currency),
   ]);
 
   const arAging = billingRecords
@@ -145,6 +161,63 @@ export async function getOrganizationReportsAnalytics(
     : null;
   const cash = rollup.canReadBilling ? aggregateOrgCash(rollup.rows, currency) : null;
   const cost = aggregateOrgCost(rollup.rows, currency, { unallocatedBusinessCosts });
+  const workKindFilter = parseWorkKindFilter(options.workKindFilter);
+  const companyComposition =
+    workKindFilter === 'all'
+      ? composeCompanyActualFromOrgTotals({
+          currency,
+          fullProjectActual: cost.actual?.value ?? null,
+          poolAmount: fromNumericString(generalPoolTotals.pool, currency) ?? zeroMoney(currency),
+          allocatedAmount:
+            fromNumericString(generalPoolTotals.allocated, currency) ?? zeroMoney(currency),
+          unallocatableAmount:
+            fromNumericString(generalPoolTotals.unallocatable, currency) ?? zeroMoney(currency),
+        })
+      : null;
+  const companyActual =
+    shouldSurfaceCompanyActual(companyComposition) && companyComposition
+      ? moneyMetric({
+          key: 'companyActual',
+          kind: 'actual',
+          value: companyComposition.companyActual,
+          inclusions: ['expensesAndLaborEntered', 'allocatedOverheadOnProjects'],
+          exclusions: ['foreignCurrencyProjects', 'vatNotProfit'],
+        })
+      : null;
+  const recognizedCompanyRevenue = deriveRecognizedCompanyRevenue(
+    rollup.rows,
+    currency,
+    rollup.canReadCommercial,
+  );
+  const companyProfitComposition =
+    companyComposition && rollup.canReadProfit
+      ? composeCompanyProfit({
+          currency,
+          recognizedCompanyRevenue,
+          companyActual: companyComposition.companyActual,
+        })
+      : null;
+  const companyProfit =
+    shouldSurfaceCompanyProfit(companyComposition, companyProfitComposition) &&
+    companyProfitComposition?.companyProfit
+      ? moneyMetric({
+          key: 'companyProfit',
+          kind: 'actual',
+          value: companyProfitComposition.companyProfit,
+          inclusions: [
+            'originalPlusApprovedChanges',
+            'expensesAndLaborEntered',
+            'allocatedOverheadOnProjects',
+          ],
+          exclusions: [
+            'foreignCurrencyProjects',
+            'vatNotProfit',
+            'invoiced',
+            'paid',
+            'projectProfit',
+          ],
+        })
+      : null;
   const profitability = rollup.canReadProfit
     ? aggregateOrgProfit(rollup.rows, currency)
     : null;
@@ -359,6 +432,8 @@ export async function getOrganizationReportsAnalytics(
     commercial: commercialVisible,
     cash: cashVisible,
     cost: costVisible,
+    companyActual,
+    companyProfit,
     profitability: profitVisible,
     operations,
     rollup,

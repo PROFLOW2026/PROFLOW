@@ -40,6 +40,8 @@ export interface MetricDrilldownProps {
   readonly defaultOpen?: boolean;
   readonly unavailable?: boolean;
   readonly unavailableLabel?: string;
+  /** Shown under the primary Actual (or other) KPI without expanding the drill. */
+  readonly subtitle?: React.ReactNode;
 }
 
 /**
@@ -61,6 +63,7 @@ export function MetricDrilldown({
   defaultOpen = false,
   unavailable = false,
   unavailableLabel = '—',
+  subtitle,
 }: MetricDrilldownProps) {
   const [open, setOpen] = React.useState(defaultOpen);
   const hasDetails = expandable && (lines.length > 0 || links.length > 0 || Boolean(basis) || Boolean(detail));
@@ -139,6 +142,8 @@ export function MetricDrilldown({
           )}
         </div>
       )}
+
+      {subtitle}
 
       {hasDetails && open ? (
         <div

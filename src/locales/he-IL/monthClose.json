@@ -61,7 +61,7 @@
     "missing_project_allocations": "הקצאות פרויקט חסרות",
     "unresolved_expense_drafts": "טיוטות הוצאה פתוחות",
     "incomplete_attendance": "נוכחות לא מלאה",
-    "open_overhead_allocation": "הקצאת תקורה פתוחה"
+    "open_overhead_allocation": "הקצאת הוצאות כלליות פתוחה"
   },
   "adjustments": {
     "title": "התאמה לאחר סגירה",

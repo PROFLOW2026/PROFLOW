@@ -90,6 +90,20 @@ function throwTimesheetRace(): never {
   throw new ConflictError('Timesheet was updated concurrently');
 }
 
+async function recomputeGeneralCostForWorkDates(
+  context: OrgContext,
+  workDates: readonly string[],
+): Promise<void> {
+  const yearMonths = [...new Set(workDates.map((date) => date.slice(0, 7)))];
+  if (yearMonths.length === 0) return;
+  const { tryRecomputeOpenGeneralCostMonth } = await import(
+    '@/modules/financials/application/recompute-general-cost-month'
+  );
+  for (const yearMonth of yearMonths) {
+    await tryRecomputeOpenGeneralCostMonth(context, { yearMonth });
+  }
+}
+
 async function requireEmployee(
   context: OrgContext,
   employeeId: string,
@@ -666,6 +680,8 @@ export async function approveTimeEntry(
     yearMonth: updated.workDate.slice(0, 7),
   });
 
+  await recomputeGeneralCostForWorkDates(context, [updated.workDate]);
+
   return updated;
 }
 
@@ -810,6 +826,11 @@ export async function bulkApproveTimeEntries(
       for (const [employeeId, workDates] of byEmployee) {
         await recomputeMonthlyEmployeeCostsForDates(txContext, { employeeId, workDates });
       }
+
+      await recomputeGeneralCostForWorkDates(
+        txContext,
+        approved.map((entry) => entry.workDate),
+      );
     }
 
     return { approved, alreadyApprovedIds, skippedIds };

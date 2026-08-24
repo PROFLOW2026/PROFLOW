@@ -44,37 +44,80 @@ const requiredQuantity = z
 
 const requiredDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be YYYY-MM-DD');
 
-export const createAssetSchema = z.object({
-  name: z.string().trim().min(1, 'Name is required').max(200),
-  assetKind: z.enum(ASSET_KINDS).optional().default('equipment'),
-  status: z.enum(ASSET_STATUSES).optional().default('active'),
-  identifier: optionalText,
-  manufacturer: optionalText,
-  model: optionalText,
-  serialNumber: optionalText,
-  assignedProjectId: optionalUuid,
-  notes: optionalText,
-  /** Optional fleet fields - only stored when assetKind is vehicle or fields provided. */
-  plateNumber: optionalText,
-  vin: optionalText,
-  odometer: optionalText,
-});
+/** Optional acquisition / source-link fields. Never posts Actual. */
+const acquisitionFields = {
+  acquisitionAmount: optionalMoney,
+  acquisitionCurrency: z.preprocess(
+    emptyToNull,
+    z.string().trim().length(3).nullable().optional(),
+  ),
+  acquiredOn: optionalDate,
+  sourceExpenseId: optionalUuid,
+  sourceApBillId: optionalUuid,
+};
+
+function refineAcquisition(
+  value: {
+    acquisitionAmount?: string | null;
+    acquisitionCurrency?: string | null;
+    sourceExpenseId?: string | null;
+    sourceApBillId?: string | null;
+  },
+  ctx: z.RefinementCtx,
+) {
+  if (value.acquisitionAmount && !value.acquisitionCurrency) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['acquisitionCurrency'],
+      message: 'Currency is required when acquisition amount is set',
+    });
+  }
+  if (value.sourceExpenseId && value.sourceApBillId) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['sourceApBillId'],
+      message: 'Link either a source expense or a source AP bill, not both',
+    });
+  }
+}
+
+export const createAssetSchema = z
+  .object({
+    name: z.string().trim().min(1, 'Name is required').max(200),
+    assetKind: z.enum(ASSET_KINDS).optional().default('equipment'),
+    status: z.enum(ASSET_STATUSES).optional().default('active'),
+    identifier: optionalText,
+    manufacturer: optionalText,
+    model: optionalText,
+    serialNumber: optionalText,
+    assignedProjectId: optionalUuid,
+    notes: optionalText,
+    /** Optional fleet fields - only stored when assetKind is vehicle or fields provided. */
+    plateNumber: optionalText,
+    vin: optionalText,
+    odometer: optionalText,
+    ...acquisitionFields,
+  })
+  .superRefine(refineAcquisition);
 
 export type CreateAssetInput = z.input<typeof createAssetSchema>;
 
-export const updateAssetSchema = z.object({
-  assetId: z.string().uuid(),
-  name: z.string().trim().min(1).max(200).optional(),
-  assetKind: z.enum(ASSET_KINDS).optional(),
-  status: z.enum(ASSET_STATUSES).optional(),
-  identifier: optionalText,
-  manufacturer: optionalText,
-  model: optionalText,
-  serialNumber: optionalText,
-  /** Project check-out; null / empty clears assignment (check-in). */
-  assignedProjectId: optionalUuid,
-  notes: optionalText,
-});
+export const updateAssetSchema = z
+  .object({
+    assetId: z.string().uuid(),
+    name: z.string().trim().min(1).max(200).optional(),
+    assetKind: z.enum(ASSET_KINDS).optional(),
+    status: z.enum(ASSET_STATUSES).optional(),
+    identifier: optionalText,
+    manufacturer: optionalText,
+    model: optionalText,
+    serialNumber: optionalText,
+    /** Project check-out; null / empty clears assignment (check-in). */
+    assignedProjectId: optionalUuid,
+    notes: optionalText,
+    ...acquisitionFields,
+  })
+  .superRefine(refineAcquisition);
 
 export type UpdateAssetInput = z.input<typeof updateAssetSchema>;
 

@@ -7,6 +7,7 @@ import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { toNumericString } from '@/shared/money';
 import { resolveApplicableDefaultTax } from '@/modules/tax';
 import { noteModuleUsage } from '@/modules/tenancy';
+import { getInventoryItemById, normalizeQuantity } from '@/modules/assets';
 import { resolveAllocationLines } from '../domain/allocation';
 import { resolveExpenseCurrency } from '../domain/currency';
 import { isOverheadTargeting, resolveExpenseTargeting, assertNoAllocationsOnProjectExpense } from '../domain/targeting';
@@ -207,6 +208,51 @@ async function shouldNoteFirstOverheadUsage(
   return !(await hasOverheadExpenses(context.db, context.organizationId));
 }
 
+async function resolveInventoryStockPurchaseFields(
+  context: OrgContext,
+  input: CreateExpenseInput,
+): Promise<{
+  readonly inventoryStockPurchase: boolean;
+  readonly inventoryItemId: string | null;
+  readonly inventoryPurchaseQty: string | null;
+}> {
+  const inventoryStockPurchase = input.inventoryStockPurchase === true;
+  if (!inventoryStockPurchase) {
+    return {
+      inventoryStockPurchase: false,
+      inventoryItemId: null,
+      inventoryPurchaseQty: null,
+    };
+  }
+
+  assertPermission(context, PERMISSIONS.ASSETS_MANAGE);
+
+  const inventoryItemId = input.inventoryItemId?.trim() ?? '';
+  const rawQty = input.inventoryPurchaseQty?.trim() ?? '';
+  if (!inventoryItemId || !rawQty) {
+    throw new ValidationError([
+      ...(!inventoryItemId
+        ? [{ path: 'inventoryItemId', message: 'Required for inventory stock purchase' }]
+        : []),
+      ...(!rawQty
+        ? [{ path: 'inventoryPurchaseQty', message: 'Required for inventory stock purchase' }]
+        : []),
+    ]);
+  }
+
+  let inventoryPurchaseQty: string;
+  try {
+    inventoryPurchaseQty = normalizeQuantity(rawQty);
+  } catch {
+    throw new ValidationError([{ path: 'inventoryPurchaseQty', message: 'Quantity must be positive' }]);
+  }
+
+  const item = await getInventoryItemById(context, inventoryItemId);
+  if (!item || item.archivedAt) throw new NotFoundError('Inventory item');
+
+  return { inventoryStockPurchase: true, inventoryItemId, inventoryPurchaseQty };
+}
+
 export async function buildExpensePayload(
   context: OrgContext,
   input: CreateExpenseInput,
@@ -282,6 +328,8 @@ export async function buildExpensePayload(
       ? encodeRecurrenceRule(input.recurrenceCadence ?? 'one_time', input.recurrenceCustomLabel)
       : null;
 
+  const inventoryStock = await resolveInventoryStockPurchaseFields(context, input);
+
   return {
     expenseDate,
     targeting,
@@ -316,6 +364,13 @@ export async function buildExpensePayload(
       allocationPeriodEnd: input.allocationPeriodEnd ? businessDate(input.allocationPeriodEnd) : null,
       allocationDriverMethod: input.allocationDriverMethod ?? null,
       allocationScheduleMode: input.allocationScheduleMode ?? null,
+      installmentCount: input.installmentCount ?? 1,
+      installmentStartDate: input.installmentStartDate
+        ? businessDate(input.installmentStartDate)
+        : null,
+      inventoryStockPurchase: inventoryStock.inventoryStockPurchase,
+      inventoryItemId: inventoryStock.inventoryItemId,
+      inventoryPurchaseQty: inventoryStock.inventoryPurchaseQty,
       createdByUserId: context.userId,
     },
   };

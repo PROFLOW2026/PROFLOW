@@ -163,6 +163,15 @@ export interface ExpenseDetail extends ExpenseSummary {
   readonly allocationPeriodEnd: BusinessDate | null;
   readonly allocationDriverMethod: AllocationMethod | null;
   readonly allocationScheduleMode: AllocationScheduleMode | null;
+  /** Managerial Actual spread; 1 = full NET in the start month. */
+  readonly installmentCount: number;
+  readonly installmentStartDate: BusinessDate | null;
+  /**
+   * When true, finalized NET books to inventory cost basis — not operating Actual.
+   */
+  readonly inventoryStockPurchase: boolean;
+  readonly inventoryItemId: string | null;
+  readonly inventoryPurchaseQty: string | null;
   readonly allocations: readonly ResolvedAllocationLine[];
   readonly createdAt: Date;
   readonly updatedAt: Date;
@@ -196,4 +205,11 @@ export interface WorkPackageOption {
 export interface VendorOption {
   readonly id: string;
   readonly name: string;
+}
+
+/** Lightweight inventory item pick list for stock-purchase expenses. */
+export interface InventoryItemOption {
+  readonly id: string;
+  readonly name: string;
+  readonly unit: string;
 }

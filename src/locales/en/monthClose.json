@@ -61,7 +61,7 @@
     "missing_project_allocations": "Missing project allocations",
     "unresolved_expense_drafts": "Unresolved expense drafts",
     "incomplete_attendance": "Incomplete attendance",
-    "open_overhead_allocation": "Open overhead allocation"
+    "open_overhead_allocation": "Open general business cost allocation"
   },
   "adjustments": {
     "title": "Post-close adjustment",
