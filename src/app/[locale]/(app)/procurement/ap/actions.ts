@@ -68,6 +68,12 @@ function revalidateCreditPaths(creditId?: string, billId?: string): void {
 function parseLines(formData: FormData) {
   const raw = formData.get('lines');
   if (!raw || typeof raw !== 'string') return [];
+  const families = new Set([
+    'direct_project',
+    'shared',
+    'business_overhead',
+    'asset_capital',
+  ] as const);
   try {
     const parsed = JSON.parse(raw) as unknown;
     if (!Array.isArray(parsed)) return [];
@@ -77,6 +83,16 @@ function parseLines(formData: FormData) {
         typeof row.purchaseOrderLineId === 'string' && row.purchaseOrderLineId.trim()
           ? row.purchaseOrderLineId.trim()
           : null;
+      const costFamilyRaw =
+        typeof row.costFamily === 'string' && row.costFamily.trim() ? row.costFamily.trim() : null;
+      const costFamily =
+        costFamilyRaw && families.has(costFamilyRaw as 'direct_project')
+          ? (costFamilyRaw as
+              | 'direct_project'
+              | 'shared'
+              | 'business_overhead'
+              | 'asset_capital')
+          : null;
       return {
         description: String(row.description ?? ''),
         quantity: String(row.quantity ?? '1'),
@@ -84,6 +100,11 @@ function parseLines(formData: FormData) {
         lineTotal: String(row.lineTotal ?? ''),
         currency: String(row.currency ?? ''),
         purchaseOrderLineId,
+        costCategoryId:
+          typeof row.costCategoryId === 'string' && row.costCategoryId.trim()
+            ? row.costCategoryId.trim()
+            : null,
+        costFamily,
       };
     });
   } catch {

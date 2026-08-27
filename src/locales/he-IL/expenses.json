@@ -102,6 +102,8 @@
     "date": "תאריך",
     "supplier": "ספק",
     "linkedVendor": "ספק מקושר",
+    "expenseType": "איזה סוג עלות זו?",
+    "destination": "לאן לשייך את העלות?",
     "target": "פרויקט או הוצאות כלליות",
     "installmentCount": "מספר תשלומים",
     "installmentStart": "תאריך התחלה",
@@ -116,7 +118,9 @@
     "project": "פרויקט",
     "workPackage": "תחום עבודה",
     "costFamily": "סעיף עלות",
-    "category": "קטגוריה",
+    "category": "קטגוריית עלות",
+    "categoryRequiredHint": "בחרו קטגוריה כדי לסווג את העלות בפועל. בלי קטגוריה ההוצאה תישאר כ״דורשת סיווג״ תחת הוצאות אחרות.",
+    "internalPayrollWarning": "מודול כוח האדם כבר מחשב שכר עובדים פנימי. השתמשו בקטגוריה זו רק לסכום שכר נוסף — לא לקבלני משנה או עבודה חיצונית.",
     "status": "סטטוס",
     "amountTaxMode": "הסכום שהוזן",
     "amountTaxModeHint": "בחרו האם הסכום כולל מע״מ או לא. שיעור המע״מ נלקח מכלל המס הפעיל בארגון. עלות בפועל ורווחיות משתמשות בנטו.",
@@ -144,8 +148,14 @@
     "vendor": "קישור לספק קיים",
     "vendorNone": "ללא ספק מקושר",
     "costFamily": "נקבע לפי היעד",
-    "category": "קטגוריה (אופציונלי)",
+    "category": "בחרו קטגוריית עלות",
     "inventoryItem": "בחרו פריט מלאי"
+  },
+  "destination": {
+    "project": "פרויקט",
+    "general": "הוצאות כלליות של העסק",
+    "inventory": "רכישה למלאי",
+    "asset": "נכס / הון"
   },
   "targeting": {
     "none": "הוצאות כלליות (ללא פרויקט)",
@@ -180,7 +190,10 @@
     "other_overhead": "הוצאות כלליות אחרות",
     "equipment_purchase": "רכישת ציוד",
     "vehicle_purchase": "רכישת רכב",
-    "tools": "כלים"
+    "tools": "כלים",
+    "internal_employee_payroll": "שכר עובדים פנימי",
+    "external_service": "שירות חיצוני",
+    "external_manpower": "כוח אדם חיצוני"
   },
   "recurrence": {
     "one_time": "חד-פעמי",
@@ -283,7 +296,8 @@
     "installmentConservation": "סכומי החודשים חייבים להסתכם בדיוק לנטו של ההוצאה.",
     "inventoryItemRequired": "יש לבחור פריט מלאי לרכישת מלאי.",
     "inventoryQtyRequired": "יש להזין את הכמות שנכנסה למלאי.",
-    "inventoryStockPurchaseIncomplete": "רכישת מלאי דורשת פריט וכמות לפני רישום."
+    "inventoryStockPurchaseIncomplete": "רכישת מלאי דורשת פריט וכמות לפני רישום.",
+    "classificationRequired": "יש לבחור סוג הוצאה לפני אישור העלות"
   },
   "overheadHome": {
     "title": "הוצאות כלליות",

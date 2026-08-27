@@ -1,0 +1,590 @@
+{
+  "catCols": [
+    {
+      "column_name": "id"
+    },
+    {
+      "column_name": "organization_id"
+    },
+    {
+      "column_name": "key"
+    },
+    {
+      "column_name": "name"
+    },
+    {
+      "column_name": "family"
+    },
+    {
+      "column_name": "is_system"
+    },
+    {
+      "column_name": "sort_order"
+    },
+    {
+      "column_name": "archived_at"
+    },
+    {
+      "column_name": "created_at"
+    },
+    {
+      "column_name": "updated_at"
+    },
+    {
+      "column_name": "default_allocation_method"
+    },
+    {
+      "column_name": "default_period_behavior"
+    }
+  ],
+  "cats": [
+    {
+      "id": "6aec9285-0e1b-4240-89b5-5a046f374db7",
+      "organization_id": "8ef9e353-ca0c-4cad-b0c7-c2de612eb1ec",
+      "key": "materials",
+      "name": "Materials",
+      "family": "direct_project",
+      "is_system": true,
+      "sort_order": 10,
+      "archived_at": null,
+      "created_at": "2026-08-27T11:34:05.070Z",
+      "updated_at": "2026-08-27T11:34:05.070Z",
+      "default_allocation_method": null,
+      "default_period_behavior": null
+    },
+    {
+      "id": "ab2754b1-f191-4380-bbeb-316f056d337b",
+      "organization_id": "8ef9e353-ca0c-4cad-b0c7-c2de612eb1ec",
+      "key": "subcontractor",
+      "name": "Subcontractor",
+      "family": "direct_project",
+      "is_system": true,
+      "sort_order": 20,
+      "archived_at": null,
+      "created_at": "2026-08-27T11:34:05.070Z",
+      "updated_at": "2026-08-27T11:34:05.070Z",
+      "default_allocation_method": null,
+      "default_period_behavior": null
+    },
+    {
+      "id": "233a76cb-5f15-4479-b49f-323dfd07dc9f",
+      "organization_id": "8ef9e353-ca0c-4cad-b0c7-c2de612eb1ec",
+      "key": "labor",
+      "name": "Labor",
+      "family": "direct_project",
+      "is_system": true,
+      "sort_order": 30,
+      "archived_at": null,
+      "created_at": "2026-08-27T11:34:05.070Z",
+      "updated_at": "2026-08-27T11:34:05.070Z",
+      "default_allocation_method": null,
+      "default_period_behavior": null
+    },
+    {
+      "id": "a8fe556d-997a-4c2d-bbb3-8564b760d9eb",
+      "organization_id": "8ef9e353-ca0c-4cad-b0c7-c2de612eb1ec",
+      "key": "equipment_rental",
+      "name": "Equipment rental",
+      "family": "direct_project",
+      "is_system": true,
+      "sort_order": 40,
+      "archived_at": null,
+      "created_at": "2026-08-27T11:34:05.070Z",
+      "updated_at": "2026-08-27T11:34:05.070Z",
+      "default_allocation_method": null,
+      "default_period_behavior": null
+    },
+    {
+      "id": "a0856e90-1163-4045-a513-5f5f0ec55087",
+      "organization_id": "8ef9e353-ca0c-4cad-b0c7-c2de612eb1ec",
+      "key": "permits_fees",
+      "name": "Permits and fees",
+      "family": "direct_project",
+      "is_system": true,
+      "sort_order": 50,
+      "archived_at": null,
+      "created_at": "2026-08-27T11:34:05.070Z",
+      "updated_at": "2026-08-27T11:34:05.070Z",
+      "default_allocation_method": null,
+      "default_period_behavior": null
+    },
+    {
+      "id": "5a91b2e8-0c0a-43b1-8087-337f7735b8de",
+      "organization_id": "8ef9e353-ca0c-4cad-b0c7-c2de612eb1ec",
+      "key": "project_travel",
+      "name": "Project travel",
+      "family": "direct_project",
+      "is_system": true,
+      "sort_order": 60,
+      "archived_at": null,
+      "created_at": "2026-08-27T11:34:05.070Z",
+      "updated_at": "2026-08-27T11:34:05.070Z",
+      "default_allocation_method": null,
+      "default_period_behavior": null
+    },
+    {
+      "id": "99ecd9c6-8d4b-4a7f-8f2f-54b4cf109ce0",
+      "organization_id": "8ef9e353-ca0c-4cad-b0c7-c2de612eb1ec",
+      "key": "other_direct",
+      "name": "Other direct cost",
+      "family": "direct_project",
+      "is_system": true,
+      "sort_order": 70,
+      "archived_at": null,
+      "created_at": "2026-08-27T11:34:05.070Z",
+      "updated_at": "2026-08-27T11:34:05.070Z",
+      "default_allocation_method": null,
+      "default_period_behavior": null
+    },
+    {
+      "id": "3bbd8347-bd77-4e77-a314-66344262590e",
+      "organization_id": "8ef9e353-ca0c-4cad-b0c7-c2de612eb1ec",
+      "key": "materials_electrical",
+      "name": "חומרי חשמל",
+      "family": "direct_project",
+      "is_system": false,
+      "sort_order": 300,
+      "archived_at": null,
+      "created_at": "2026-08-27T11:34:05.070Z",
+      "updated_at": "2026-08-27T11:34:05.070Z",
+      "default_allocation_method": null,
+      "default_period_behavior": null
+    },
+    {
+      "id": "6e1536cd-8571-4b9b-a2d0-76d623afdc22",
+      "organization_id": "8ef9e353-ca0c-4cad-b0c7-c2de612eb1ec",
+      "key": "permits_electrical",
+      "name": "היתרי חשמל",
+      "family": "direct_project",
+      "is_system": false,
+      "sort_order": 301,
+      "archived_at": null,
+      "created_at": "2026-08-27T11:34:05.070Z",
+      "updated_at": "2026-08-27T11:34:05.070Z",
+      "default_allocation_method": null,
+      "default_period_behavior": null
+    },
+    {
+      "id": "1ca652ab-79c5-4104-9187-b9e1c9647bff",
+      "organization_id": "8ef9e353-ca0c-4cad-b0c7-c2de612eb1ec",
+      "key": "shared_supervision",
+      "name": "Shared supervision",
+      "family": "shared",
+      "is_system": true,
+      "sort_order": 110,
+      "archived_at": null,
+      "created_at": "2026-08-27T11:34:05.070Z",
+      "updated_at": "2026-08-27T11:34:05.070Z",
+      "default_allocation_method": null,
+      "default_period_behavior": null
+    },
+    {
+      "id": "d75b554b-f9a5-4046-afef-1fd1a5e620dd",
+      "organization_id": "8ef9e353-ca0c-4cad-b0c7-c2de612eb1ec",
+      "key": "shared_equipment",
+      "name": "Shared equipment",
+      "family": "shared",
+      "is_system": true,
+      "sort_order": 120,
+      "archived_at": null,
+      "created_at": "2026-08-27T11:34:05.070Z",
+      "updated_at": "2026-08-27T11:34:05.070Z",
+      "default_allocation_method": null,
+      "default_period_behavior": null
+    },
+    {
+      "id": "ae27a5d4-3169-46aa-81f8-4f205f29c8f7",
+      "organization_id": "8ef9e353-ca0c-4cad-b0c7-c2de612eb1ec",
+      "key": "shared_logistics",
+      "name": "Shared logistics",
+      "family": "shared",
+      "is_system": true,
+      "sort_order": 130,
+      "archived_at": null,
+      "created_at": "2026-08-27T11:34:05.070Z",
+      "updated_at": "2026-08-27T11:34:05.070Z",
+      "default_allocation_method": null,
+      "default_period_behavior": null
+    },
+    {
+      "id": "8d7b4b6e-47a2-40a8-a90f-d63b15ae93fa",
+      "organization_id": "8ef9e353-ca0c-4cad-b0c7-c2de612eb1ec",
+      "key": "rent",
+      "name": "Rent",
+      "family": "business_overhead",
+      "is_system": true,
+      "sort_order": 210,
+      "archived_at": null,
+      "created_at": "2026-08-27T11:34:05.070Z",
+      "updated_at": "2026-08-27T11:34:05.070Z",
+      "default_allocation_method": null,
+      "default_period_behavior": null
+    },
+    {
+      "id": "40dd922a-1106-4af4-892a-38075d51cef2",
+      "organization_id": "8ef9e353-ca0c-4cad-b0c7-c2de612eb1ec",
+      "key": "utilities",
+      "name": "Utilities",
+      "family": "business_overhead",
+      "is_system": true,
+      "sort_order": 220,
+      "archived_at": null,
+      "created_at": "2026-08-27T11:34:05.070Z",
+      "updated_at": "2026-08-27T11:34:05.070Z",
+      "default_allocation_method": null,
+      "default_period_behavior": null
+    },
+    {
+      "id": "311d2928-9981-40b9-bc5a-075ccbec5beb",
+      "organization_id": "8ef9e353-ca0c-4cad-b0c7-c2de612eb1ec",
+      "key": "accounting_legal",
+      "name": "Accounting and legal",
+      "family": "business_overhead",
+      "is_system": true,
+      "sort_order": 230,
+      "archived_at": null,
+      "created_at": "2026-08-27T11:34:05.070Z",
+      "updated_at": "2026-08-27T11:34:05.070Z",
+      "default_allocation_method": null,
+      "default_period_behavior": null
+    },
+    {
+      "id": "403b5414-bdf7-4c62-9f8f-9ee3d18f8463",
+      "organization_id": "8ef9e353-ca0c-4cad-b0c7-c2de612eb1ec",
+      "key": "insurance",
+      "name": "Insurance",
+      "family": "business_overhead",
+      "is_system": true,
+      "sort_order": 240,
+      "archived_at": null,
+      "created_at": "2026-08-27T11:34:05.070Z",
+      "updated_at": "2026-08-27T11:34:05.070Z",
+      "default_allocation_method": null,
+      "default_period_behavior": null
+    },
+    {
+      "id": "8145e22b-2376-4e92-921a-a3a82ec39730",
+      "organization_id": "8ef9e353-ca0c-4cad-b0c7-c2de612eb1ec",
+      "key": "marketing",
+      "name": "Marketing",
+      "family": "business_overhead",
+      "is_system": true,
+      "sort_order": 250,
+      "archived_at": null,
+      "created_at": "2026-08-27T11:34:05.070Z",
+      "updated_at": "2026-08-27T11:34:05.070Z",
+      "default_allocation_method": null,
+      "default_period_behavior": null
+    },
+    {
+      "id": "bfa0e5c7-77e4-49a6-9f5f-940596efb5b6",
+      "organization_id": "8ef9e353-ca0c-4cad-b0c7-c2de612eb1ec",
+      "key": "software",
+      "name": "Software and subscriptions",
+      "family": "business_overhead",
+      "is_system": true,
+      "sort_order": 260,
+      "archived_at": null,
+      "created_at": "2026-08-27T11:34:05.070Z",
+      "updated_at": "2026-08-27T11:34:05.070Z",
+      "default_allocation_method": null,
+      "default_period_behavior": null
+    },
+    {
+      "id": "33d7c8e6-dfae-43df-a09d-e2004cebcd79",
+      "organization_id": "8ef9e353-ca0c-4cad-b0c7-c2de612eb1ec",
+      "key": "bank_fees",
+      "name": "Bank and finance fees",
+      "family": "business_overhead",
+      "is_system": true,
+      "sort_order": 270,
+      "archived_at": null,
+      "created_at": "2026-08-27T11:34:05.070Z",
+      "updated_at": "2026-08-27T11:34:05.070Z",
+      "default_allocation_method": null,
+      "default_period_behavior": null
+    },
+    {
+      "id": "a5114294-ab6d-4682-b005-a2b9419ccccb",
+      "organization_id": "8ef9e353-ca0c-4cad-b0c7-c2de612eb1ec",
+      "key": "office_supplies",
+      "name": "Office supplies",
+      "family": "business_overhead",
+      "is_system": true,
+      "sort_order": 280,
+      "archived_at": null,
+      "created_at": "2026-08-27T11:34:05.070Z",
+      "updated_at": "2026-08-27T11:34:05.070Z",
+      "default_allocation_method": null,
+      "default_period_behavior": null
+    },
+    {
+      "id": "c8b53e9e-0676-4e5e-b1e5-2507d08a38c7",
+      "organization_id": "8ef9e353-ca0c-4cad-b0c7-c2de612eb1ec",
+      "key": "vehicle_fuel",
+      "name": "Vehicle and fuel",
+      "family": "business_overhead",
+      "is_system": true,
+      "sort_order": 290,
+      "archived_at": null,
+      "created_at": "2026-08-27T11:34:05.070Z",
+      "updated_at": "2026-08-27T11:34:05.070Z",
+      "default_allocation_method": null,
+      "default_period_behavior": null
+    },
+    {
+      "id": "19e13f2f-5f55-455b-b53f-655f9c23ea6a",
+      "organization_id": "8ef9e353-ca0c-4cad-b0c7-c2de612eb1ec",
+      "key": "other_overhead",
+      "name": "Other overhead",
+      "family": "business_overhead",
+      "is_system": true,
+      "sort_order": 300,
+      "archived_at": null,
+      "created_at": "2026-08-27T11:34:05.070Z",
+      "updated_at": "2026-08-27T11:34:05.070Z",
+      "default_allocation_method": null,
+      "default_period_behavior": null
+    },
+    {
+      "id": "2803f2f7-e361-46f7-8ce1-14945a0f6598",
+      "organization_id": "8ef9e353-ca0c-4cad-b0c7-c2de612eb1ec",
+      "key": "equipment_purchase",
+      "name": "Equipment purchase",
+      "family": "asset_capital",
+      "is_system": true,
+      "sort_order": 410,
+      "archived_at": null,
+      "created_at": "2026-08-27T11:34:05.070Z",
+      "updated_at": "2026-08-27T11:34:05.070Z",
+      "default_allocation_method": null,
+      "default_period_behavior": null
+    },
+    {
+      "id": "b17089ef-f547-43f0-9c6f-862c0164f951",
+      "organization_id": "8ef9e353-ca0c-4cad-b0c7-c2de612eb1ec",
+      "key": "vehicle_purchase",
+      "name": "Vehicle purchase",
+      "family": "asset_capital",
+      "is_system": true,
+      "sort_order": 420,
+      "archived_at": null,
+      "created_at": "2026-08-27T11:34:05.070Z",
+      "updated_at": "2026-08-27T11:34:05.070Z",
+      "default_allocation_method": null,
+      "default_period_behavior": null
+    },
+    {
+      "id": "83e68ab5-26d1-472c-9ffd-0fb3153290ab",
+      "organization_id": "8ef9e353-ca0c-4cad-b0c7-c2de612eb1ec",
+      "key": "tools",
+      "name": "Tools",
+      "family": "asset_capital",
+      "is_system": true,
+      "sort_order": 430,
+      "archived_at": null,
+      "created_at": "2026-08-27T11:34:05.070Z",
+      "updated_at": "2026-08-27T11:34:05.070Z",
+      "default_allocation_method": null,
+      "default_period_behavior": null
+    }
+  ],
+  "laborish": [
+    {
+      "id": "5057f5e5-c5ec-4419-b08e-8ea78de889be",
+      "description": "עובדים",
+      "net_amount": "34980.000000",
+      "gross_amount": "41276.400000",
+      "project_id": "f3f79519-fed6-4307-81ac-0a7bd11df986",
+      "project_name": "ברנדייס 6 תל אביב",
+      "cost_family": "direct_project",
+      "cost_category_id": "ab2754b1-f191-4380-bbeb-316f056d337b",
+      "cat_key": "subcontractor",
+      "cat_name": "Subcontractor"
+    },
+    {
+      "id": "2807943d-8fcb-41e5-989d-3ee46982f8b0",
+      "description": "עובדים",
+      "net_amount": "28050.000000",
+      "gross_amount": "33099.000000",
+      "project_id": "f3f79519-fed6-4307-81ac-0a7bd11df986",
+      "project_name": "ברנדייס 6 תל אביב",
+      "cost_family": "direct_project",
+      "cost_category_id": null,
+      "cat_key": null,
+      "cat_name": null
+    },
+    {
+      "id": "3d6c0582-8bbe-43c6-a021-5734bd1ff93e",
+      "description": "גילוי אש",
+      "net_amount": "20650.847458",
+      "gross_amount": "24368.000000",
+      "project_id": "f3f79519-fed6-4307-81ac-0a7bd11df986",
+      "project_name": "ברנדייס 6 תל אביב",
+      "cost_family": "direct_project",
+      "cost_category_id": "233a76cb-5f15-4479-b49f-323dfd07dc9f",
+      "cat_key": "labor",
+      "cat_name": "Labor"
+    },
+    {
+      "id": "49426715-55d0-4175-816c-306e1a2f25bd",
+      "description": "עובדים",
+      "net_amount": "29700.000000",
+      "gross_amount": "35046.000000",
+      "project_id": "ee7cb842-bbd1-4188-b95e-9f98446c92aa",
+      "project_name": "פינס 16 פתח תקוה",
+      "cost_family": "direct_project",
+      "cost_category_id": "ab2754b1-f191-4380-bbeb-316f056d337b",
+      "cat_key": "subcontractor",
+      "cat_name": "Subcontractor"
+    },
+    {
+      "id": "ae11fb0d-168e-41d3-a100-e4445a4b9e75",
+      "description": "עובדים",
+      "net_amount": "30800.000000",
+      "gross_amount": "36344.000000",
+      "project_id": "ee7cb842-bbd1-4188-b95e-9f98446c92aa",
+      "project_name": "פינס 16 פתח תקוה",
+      "cost_family": "direct_project",
+      "cost_category_id": "ab2754b1-f191-4380-bbeb-316f056d337b",
+      "cat_key": "subcontractor",
+      "cat_name": "Subcontractor"
+    },
+    {
+      "id": "113e8f4a-bde3-4867-ab6e-6f08ac704f7d",
+      "description": "עובדים",
+      "net_amount": "38500.000000",
+      "gross_amount": "45430.000000",
+      "project_id": "f3f79519-fed6-4307-81ac-0a7bd11df986",
+      "project_name": "ברנדייס 6 תל אביב",
+      "cost_family": "direct_project",
+      "cost_category_id": "ab2754b1-f191-4380-bbeb-316f056d337b",
+      "cat_key": "subcontractor",
+      "cat_name": "Subcontractor"
+    },
+    {
+      "id": "2eca1fd7-4f3e-4a71-b365-b0eb6196a0b8",
+      "description": "עובדים",
+      "net_amount": "38500.000000",
+      "gross_amount": "45430.000000",
+      "project_id": "685e5343-606e-43fb-b5b2-d2b3bc2f9662",
+      "project_name": "חורגין 36 רמת גן",
+      "cost_family": "direct_project",
+      "cost_category_id": "ab2754b1-f191-4380-bbeb-316f056d337b",
+      "cat_key": "subcontractor",
+      "cat_name": "Subcontractor"
+    }
+  ],
+  "byCat": [
+    {
+      "cat_name": "Subcontractor",
+      "cat_key": "subcontractor",
+      "cost_family": "direct_project",
+      "unalloc": false,
+      "cnt": 6,
+      "net": "178480.000000"
+    },
+    {
+      "cat_name": "Materials",
+      "cat_key": "materials",
+      "cost_family": "direct_project",
+      "unalloc": false,
+      "cnt": 16,
+      "net": "66300.000001"
+    },
+    {
+      "cat_name": "(none)",
+      "cat_key": "(none)",
+      "cost_family": "direct_project",
+      "unalloc": false,
+      "cnt": 2,
+      "net": "49500.000000"
+    },
+    {
+      "cat_name": "Labor",
+      "cat_key": "labor",
+      "cost_family": "direct_project",
+      "unalloc": false,
+      "cnt": 1,
+      "net": "20650.847458"
+    },
+    {
+      "cat_name": "Vehicle and fuel",
+      "cat_key": "vehicle_fuel",
+      "cost_family": "business_overhead",
+      "unalloc": true,
+      "cnt": 3,
+      "net": "15826.271186"
+    },
+    {
+      "cat_name": "Shared equipment",
+      "cat_key": "shared_equipment",
+      "cost_family": "shared",
+      "unalloc": true,
+      "cnt": 15,
+      "net": "12566.864406"
+    },
+    {
+      "cat_name": "Rent",
+      "cat_key": "rent",
+      "cost_family": "business_overhead",
+      "unalloc": true,
+      "cnt": 1,
+      "net": "10677.966102"
+    },
+    {
+      "cat_name": "Software and subscriptions",
+      "cat_key": "software",
+      "cost_family": "business_overhead",
+      "unalloc": true,
+      "cnt": 2,
+      "net": "7832.016949"
+    },
+    {
+      "cat_name": "Shared logistics",
+      "cat_key": "shared_logistics",
+      "cost_family": "shared",
+      "unalloc": true,
+      "cnt": 4,
+      "net": "7755.644067"
+    },
+    {
+      "cat_name": "היתרי חשמל",
+      "cat_key": "permits_electrical",
+      "cost_family": "direct_project",
+      "unalloc": false,
+      "cnt": 3,
+      "net": "3350.000000"
+    },
+    {
+      "cat_name": "Office supplies",
+      "cat_key": "office_supplies",
+      "cost_family": "business_overhead",
+      "unalloc": true,
+      "cnt": 1,
+      "net": "1277.966102"
+    }
+  ],
+  "billingDetail": [
+    {
+      "status": "finalized",
+      "cnt": 7,
+      "subtotal": "381463.500000",
+      "total": "381463.500000"
+    },
+    {
+      "status": "void",
+      "cnt": 1,
+      "subtotal": "99007.000000",
+      "total": "99007.000000"
+    }
+  ],
+  "paymentsDetail": [
+    {
+      "cnt": 8,
+      "amount": "480470.500000"
+    }
+  ],
+  "laborNet": 221180.847458,
+  "directIfExcludeLaborExp": 262700.000001
+}

@@ -102,6 +102,8 @@
     "date": "Date",
     "supplier": "Supplier",
     "linkedVendor": "Linked vendor",
+    "expenseType": "What kind of cost is this?",
+    "destination": "Where should this cost land?",
     "target": "Project or general business costs",
     "installmentCount": "Number of installments",
     "installmentStart": "Start date",
@@ -116,7 +118,9 @@
     "project": "Project",
     "workPackage": "Work area",
     "costFamily": "Cost section",
-    "category": "Category",
+    "category": "Cost category",
+    "categoryRequiredHint": "Choose a category so Actual can classify this cost. Without one it stays as needs classification under other expenses.",
+    "internalPayrollWarning": "Workforce already computes internal employee payroll. Use this category only for an additional payroll lump sum — not for subcontractors or external labor.",
     "status": "Status",
     "amountTaxMode": "Entered amount",
     "amountTaxModeHint": "Choose whether the amount includes VAT. The rate comes from the organization’s active tax rule. Actual Cost and profitability use net.",
@@ -144,8 +148,14 @@
     "vendor": "Link an existing vendor",
     "vendorNone": "No linked vendor",
     "costFamily": "Inferred from targeting",
-    "category": "Optional category",
+    "category": "Choose a cost category",
     "inventoryItem": "Choose inventory item"
+  },
+  "destination": {
+    "project": "Project",
+    "general": "General business costs",
+    "inventory": "Inventory stock purchase",
+    "asset": "Asset / capital"
   },
   "targeting": {
     "none": "General business costs (no project)",
@@ -180,7 +190,10 @@
     "other_overhead": "Other general business costs",
     "equipment_purchase": "Equipment purchase",
     "vehicle_purchase": "Vehicle purchase",
-    "tools": "Tools"
+    "tools": "Tools",
+    "internal_employee_payroll": "Internal employee payroll",
+    "external_service": "External service",
+    "external_manpower": "External manpower"
   },
   "recurrence": {
     "one_time": "One-time",
@@ -283,7 +296,8 @@
     "installmentConservation": "Installment months must sum exactly to the expense net.",
     "inventoryItemRequired": "Choose an inventory item for a stock purchase.",
     "inventoryQtyRequired": "Enter the quantity received into stock.",
-    "inventoryStockPurchaseIncomplete": "Stock purchase expenses need an item and quantity before finalize."
+    "inventoryStockPurchaseIncomplete": "Stock purchase expenses need an item and quantity before finalize.",
+    "classificationRequired": "Choose an expense type before recognizing this cost."
   },
   "overheadHome": {
     "title": "General business costs",

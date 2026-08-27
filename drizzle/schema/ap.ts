@@ -23,7 +23,8 @@ import {
   quantityAmount,
   timestamps,
 } from './_shared';
-import { expenses } from './expenses';
+import { costFamilyEnum } from './enums';
+import { costCategories, expenses } from './expenses';
 import { profiles } from './identity';
 import { organizations } from './tenancy';
 import { projects } from './projects';
@@ -82,6 +83,12 @@ export const apBills = pgTable(
     retentionHeldRemaining: moneyAmount('retention_held_remaining').notNull().default('0'),
     subcontractAgreementId: uuid('subcontract_agreement_id'),
     notes: text('notes'),
+    /**
+     * Optional header entry default for line prefill — NOT authoritative Actual classification.
+     * Economic truth for new bills lives on ap_bill_lines only.
+     */
+    costFamily: costFamilyEnum('cost_family'),
+    costCategoryId: uuid('cost_category_id'),
     archivedAt: archivedAt(),
     ...timestamps(),
   },
@@ -90,6 +97,12 @@ export const apBills = pgTable(
     index('ap_bills_org_idx').on(table.organizationId),
     index('ap_bills_vendor_idx').on(table.vendorId),
     index('ap_bills_po_idx').on(table.purchaseOrderId),
+    // SQL: ON DELETE SET NULL (cost_category_id) — never organization_id
+    foreignKey({
+      name: 'ap_bills_cost_category_org_fk',
+      columns: [table.costCategoryId, table.organizationId],
+      foreignColumns: [costCategories.id, costCategories.organizationId],
+    }).onDelete('set null'),
     check(
       'ap_bills_status_known',
       sql`${table.status} IN ('draft', 'open', 'partially_matched', 'matched', 'void')`,
@@ -126,17 +139,68 @@ export const apBillLines = pgTable(
     description: text('description').notNull(),
     quantity: quantityAmount('quantity').notNull().default('1'),
     unitAmount: moneyAmount('unit_amount').notNull(),
+    /** Payable gross mirror — equals gross_amount. Kept for PO matching / legacy loaders. */
     lineTotal: moneyAmount('line_total').notNull(),
+    /** Canonical NET — Actual / profitability per line. */
+    netAmount: moneyAmount('net_amount').notNull(),
+    taxAmount: moneyAmount('tax_amount').notNull().default('0'),
+    /** Canonical GROSS = net + tax. Payable line weight. */
+    grossAmount: moneyAmount('gross_amount').notNull(),
     currency: currencyCode().notNull(),
+    /**
+     * Economic destination when not inheriting bill header / allocations.
+     * inherit = bill project_id or ap_bill_project_allocations.
+     */
+    economicTargetType: text('economic_target_type').notNull().default('inherit'),
+    projectId: uuid('project_id').references(() => projects.id, { onDelete: 'set null' }),
     purchaseOrderLineId: uuid('purchase_order_line_id').references(() => purchaseOrderLines.id, {
       onDelete: 'set null',
     }),
     /** Optional cost code attribution (kind=cost_code). Same-org FK in migration. */
     costCodeId: uuid('cost_code_id'),
+    /** Optional line-level economic family (0070); overrides bill header when set. */
+    costFamily: costFamilyEnum('cost_family'),
+    /** Optional line-level cost category for mixed invoices (materials + rental + service). */
+    costCategoryId: uuid('cost_category_id'),
+    /** Line-level classification certainty — identical semantics to expenses. */
+    classificationStatus: text('classification_status')
+      .notNull()
+      .default('needs_classification'),
     sortOrder: integer('sort_order').notNull().default(0),
     ...timestamps(),
   },
-  (table) => [index('ap_bill_lines_bill_idx').on(table.apBillId)],
+  (table) => [
+    index('ap_bill_lines_bill_idx').on(table.apBillId),
+    // SQL: ON DELETE SET NULL (cost_category_id) — never organization_id
+    foreignKey({
+      name: 'ap_bill_lines_cost_category_org_fk',
+      columns: [table.costCategoryId, table.organizationId],
+      foreignColumns: [costCategories.id, costCategories.organizationId],
+    }).onDelete('set null'),
+    check(
+      'ap_bill_lines_classification_status_known',
+      sql`${table.classificationStatus} IN ('classified', 'needs_classification')`,
+    ),
+    check(
+      'ap_bill_lines_net_tax_gross',
+      sql`${table.netAmount} + ${table.taxAmount} = ${table.grossAmount}
+        AND ${table.grossAmount} = ${table.lineTotal}`,
+    ),
+    check(
+      'ap_bill_lines_economic_target_known',
+      sql`${table.economicTargetType} IN ('inherit', 'project', 'overhead')`,
+    ),
+    check(
+      'ap_bill_lines_economic_target_shape',
+      sql`(${table.economicTargetType} = 'project' AND ${table.projectId} IS NOT NULL)
+          OR (${table.economicTargetType} <> 'project')`,
+    ),
+    foreignKey({
+      name: 'ap_bill_lines_bill_org_fk',
+      columns: [table.apBillId, table.organizationId],
+      foreignColumns: [apBills.id, apBills.organizationId],
+    }).onDelete('cascade'),
+  ],
 );
 
 export const apPoMatches = pgTable(

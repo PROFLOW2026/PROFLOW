@@ -8,6 +8,7 @@ import {
 } from '@drizzle/schema';
 import {
   listActiveCreditActualReductionsForBills,
+  netProjectSliceAfterCredits,
   scaleBillSliceAfterCredits,
 } from '@/modules/ap';
 import { RECOGNIZED_VENDOR_BILL_STATUSES } from '@/modules/ap/domain/vendor-cost-recognition';
@@ -44,6 +45,7 @@ async function loadRecognizedActualByAgreement(
   const bills = await db
     .select({
       id: apBills.id,
+      projectId: apBills.projectId,
       subcontractAgreementId: apBills.subcontractAgreementId,
       netAmount: apBills.netAmount,
       totalAmount: apBills.totalAmount,
@@ -74,12 +76,20 @@ async function loadRecognizedActualByAgreement(
     if (!bill.subcontractAgreementId) continue;
     if (bill.currency.toUpperCase() !== normalized) continue;
     const net = bill.netAmount ?? bill.totalAmount;
-    const netted = scaleBillSliceAfterCredits({
-      currency: normalized,
-      billNetAmount: net,
-      sliceAmount: net,
-      creditActualReductions: creditsByBill.get(bill.id) ?? [],
-    });
+    const netted = bill.projectId
+      ? netProjectSliceAfterCredits({
+          currency: normalized,
+          billNetAmount: net,
+          sliceAmount: net,
+          creditActualReductions: creditsByBill.get(bill.id) ?? [],
+          projectId: bill.projectId,
+        })
+      : scaleBillSliceAfterCredits({
+          currency: normalized,
+          billNetAmount: net,
+          sliceAmount: net,
+          creditActualReductions: (creditsByBill.get(bill.id) ?? []).map((row) => row.amount),
+        });
     if (isZeroMoney(netted) || !isPositiveMoney(netted)) continue;
     const current = result.get(bill.subcontractAgreementId) ?? zeroMoney(normalized);
     result.set(bill.subcontractAgreementId, addMoney(current, netted));

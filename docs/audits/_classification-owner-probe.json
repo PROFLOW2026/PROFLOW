@@ -1,0 +1,179 @@
+{
+  "vendors": [
+    {
+      "id": "d3831195-53df-4158-8ad3-8ac03ce82ae7",
+      "name": "אחמד קבלן חשמל",
+      "type": "subcontractor"
+    },
+    {
+      "id": "5e5ff1f0-dac7-4d88-b945-6f6a60b61c2e",
+      "name": "אספקה טכנית",
+      "type": "supplier"
+    },
+    {
+      "id": "9056eb27-a43d-462b-9b9f-2afc3d813bb1",
+      "name": "ארכה",
+      "type": "supplier"
+    },
+    {
+      "id": "67540aa1-81cb-4903-a55b-483a4c7685c3",
+      "name": "ארכה בע\"מ",
+      "type": "supplier"
+    },
+    {
+      "id": "e3deef1e-19e4-4c56-9ee5-ed908582dc9e",
+      "name": "ארנולד בריל",
+      "type": "supplier"
+    },
+    {
+      "id": "3e15c38c-927c-4ff5-8940-a26dab78a2f9",
+      "name": "אשלט ניהול בע\"מ",
+      "type": "other"
+    },
+    {
+      "id": "3a4b1de1-8895-4406-a96a-f7826d9cd63e",
+      "name": "ביטוח ישיר",
+      "type": "other"
+    },
+    {
+      "id": "206b6fc5-0c26-452d-af11-8350cd4d7879",
+      "name": "דלק",
+      "type": "supplier"
+    },
+    {
+      "id": "24048faa-38d2-495a-8741-7096eb3ac58d",
+      "name": "הזמנות חול",
+      "type": "supplier"
+    },
+    {
+      "id": "d2d96839-ae1c-400e-a4b7-f8e0a3de3fa0",
+      "name": "התותחים",
+      "type": "subcontractor"
+    },
+    {
+      "id": "78c4ea24-5dd0-48b7-9764-e42cd5a2c185",
+      "name": "חנייה",
+      "type": "supplier"
+    },
+    {
+      "id": "b17ea56a-4b0c-495c-9e42-6f645fbafc5b",
+      "name": "טיפולי רכב",
+      "type": "supplier"
+    },
+    {
+      "id": "1f3fd50c-6a13-4a9f-8c73-043a8b78b2d1",
+      "name": "משרדים ממשלתיים",
+      "type": "supplier"
+    },
+    {
+      "id": "4aec294a-f298-4908-af85-33f79739962f",
+      "name": "סלולר/מחשוב",
+      "type": "supplier"
+    },
+    {
+      "id": "3c08b782-3248-47ca-bc49-f5a0a9036ec2",
+      "name": "קרני",
+      "type": "both"
+    },
+    {
+      "id": "dd379015-f5cc-4218-b5d2-afa19fddf718",
+      "name": "ש. ברדוגו בע\"מ",
+      "type": "supplier"
+    },
+    {
+      "id": "d8b934eb-528c-4d34-86fb-e45e1987eee2",
+      "name": "ת.מ לוחות חשמל",
+      "type": "supplier"
+    }
+  ],
+  "related": [
+    {
+      "id": "5057f5e5-c5ec-4419-b08e-8ea78de889be",
+      "description": "עובדים",
+      "net_amount": "34980.000000",
+      "cost_family": "direct_project",
+      "project_id": "f3f79519-fed6-4307-81ac-0a7bd11df986",
+      "cat_key": "subcontractor",
+      "vendor_name": "התותחים",
+      "vendor_type": "subcontractor",
+      "vendor_id": "d2d96839-ae1c-400e-a4b7-f8e0a3de3fa0"
+    },
+    {
+      "id": "2807943d-8fcb-41e5-989d-3ee46982f8b0",
+      "description": "עובדים",
+      "net_amount": "28050.000000",
+      "cost_family": "direct_project",
+      "project_id": "f3f79519-fed6-4307-81ac-0a7bd11df986",
+      "cat_key": null,
+      "vendor_name": "התותחים",
+      "vendor_type": "subcontractor",
+      "vendor_id": "d2d96839-ae1c-400e-a4b7-f8e0a3de3fa0"
+    },
+    {
+      "id": "3d6c0582-8bbe-43c6-a021-5734bd1ff93e",
+      "description": "גילוי אש",
+      "net_amount": "20650.847458",
+      "cost_family": "direct_project",
+      "project_id": "f3f79519-fed6-4307-81ac-0a7bd11df986",
+      "cat_key": "labor",
+      "vendor_name": "קרני",
+      "vendor_type": "both",
+      "vendor_id": "3c08b782-3248-47ca-bc49-f5a0a9036ec2"
+    },
+    {
+      "id": "23559bd8-dc92-4f81-81e1-7b9ac85ae508",
+      "description": null,
+      "net_amount": "21450.000000",
+      "cost_family": "direct_project",
+      "project_id": "ee7cb842-bbd1-4188-b95e-9f98446c92aa",
+      "cat_key": null,
+      "vendor_name": "התותחים",
+      "vendor_type": "subcontractor",
+      "vendor_id": "d2d96839-ae1c-400e-a4b7-f8e0a3de3fa0"
+    },
+    {
+      "id": "49426715-55d0-4175-816c-306e1a2f25bd",
+      "description": "עובדים",
+      "net_amount": "29700.000000",
+      "cost_family": "direct_project",
+      "project_id": "ee7cb842-bbd1-4188-b95e-9f98446c92aa",
+      "cat_key": "subcontractor",
+      "vendor_name": "התותחים",
+      "vendor_type": "subcontractor",
+      "vendor_id": "d2d96839-ae1c-400e-a4b7-f8e0a3de3fa0"
+    },
+    {
+      "id": "ae11fb0d-168e-41d3-a100-e4445a4b9e75",
+      "description": "עובדים",
+      "net_amount": "30800.000000",
+      "cost_family": "direct_project",
+      "project_id": "ee7cb842-bbd1-4188-b95e-9f98446c92aa",
+      "cat_key": "subcontractor",
+      "vendor_name": "התותחים",
+      "vendor_type": "subcontractor",
+      "vendor_id": "d2d96839-ae1c-400e-a4b7-f8e0a3de3fa0"
+    },
+    {
+      "id": "113e8f4a-bde3-4867-ab6e-6f08ac704f7d",
+      "description": "עובדים",
+      "net_amount": "38500.000000",
+      "cost_family": "direct_project",
+      "project_id": "f3f79519-fed6-4307-81ac-0a7bd11df986",
+      "cat_key": "subcontractor",
+      "vendor_name": "התותחים",
+      "vendor_type": "subcontractor",
+      "vendor_id": "d2d96839-ae1c-400e-a4b7-f8e0a3de3fa0"
+    },
+    {
+      "id": "2eca1fd7-4f3e-4a71-b365-b0eb6196a0b8",
+      "description": "עובדים",
+      "net_amount": "38500.000000",
+      "cost_family": "direct_project",
+      "project_id": "685e5343-606e-43fb-b5b2-d2b3bc2f9662",
+      "cat_key": "subcontractor",
+      "vendor_name": "התותחים",
+      "vendor_type": "subcontractor",
+      "vendor_id": "d2d96839-ae1c-400e-a4b7-f8e0a3de3fa0"
+    }
+  ]
+}

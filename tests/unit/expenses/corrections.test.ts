@@ -29,6 +29,7 @@ function expense(partial: Partial<ExpenseDetail> = {}): ExpenseDetail {
     workPackageId: null,
     costFamily: 'direct_project',
     costCategoryId: null,
+    classificationStatus: 'needs_classification',
     grossAmount: money('1170', 'ILS'),
     status: 'finalized',
     voidsExpenseId: null,

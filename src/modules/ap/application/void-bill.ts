@@ -6,6 +6,7 @@
 import { AUDIT_ACTIONS, recordAuditEvent } from '@/shared/audit';
 import type { OrgContext } from '@/shared/auth/context';
 import { withTransaction } from '@/shared/db';
+import { withTrustedFinancialLatch } from '@/shared/db/trusted-financial-latch';
 import { DomainRuleError, NotFoundError, ValidationError } from '@/shared/errors';
 import { addMoney, compareMoney, money } from '@/shared/money';
 import { assertPermission } from '@/shared/permissions/assert';
@@ -92,7 +93,15 @@ export async function voidApBill(context: OrgContext, raw: { billId: string }): 
         await restoreCommitmentForVoidedBill(tx, context.organizationId, bill);
       }
 
-      const updated = await updateApBillStatus(tx, context.organizationId, bill.id, 'void');
+      const updated = await withTrustedFinancialLatch(
+        tx,
+        {
+          kind: 'ap_bill_void',
+          organizationId: context.organizationId,
+          permission: PERMISSIONS.AP_MANAGE,
+        },
+        () => updateApBillStatus(tx, context.organizationId, bill.id, 'void'),
+      );
       if (!updated) throw new NotFoundError('AP bill');
       assertVoidRemovesFromActual(updated.status as 'void');
       return { before: bill, after: updated };

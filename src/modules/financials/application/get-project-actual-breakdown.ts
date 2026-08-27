@@ -144,6 +144,7 @@ export async function getProjectActualBreakdown(
     if (
       shouldExcludeLaborExpenseForWorkforce({
         isLaborCategory: line.isLaborCategory ?? false,
+        categoryKey: line.categoryKey,
         projectId: line.projectId ?? null,
         hasWorkforceData: hasWorkforceLabor,
       })
@@ -166,6 +167,7 @@ export async function getProjectActualBreakdown(
       vendorType: line.vendorType,
       isLaborCategory: line.isLaborCategory,
       hasWorkforceLaborOnProject: hasWorkforceLabor,
+      classificationStatus: line.classificationStatus,
     });
   }
 
@@ -174,12 +176,15 @@ export async function getProjectActualBreakdown(
     atoms.push({
       amount: bill.amount,
       sourceKind: 'ap_bill',
-      sourceId: bill.billId,
+      sourceId: bill.lineId ? `${bill.billId}:${bill.lineId}` : bill.billId,
       label: bill.vendorName,
+      costFamily: bill.costFamily,
+      categoryKey: bill.categoryKey,
       vendorId: bill.vendorId,
       vendorName: bill.vendorName,
       vendorType: bill.vendorType,
       subcontractAgreementId: bill.subcontractAgreementId,
+      classificationStatus: bill.classificationStatus,
     });
   }
 

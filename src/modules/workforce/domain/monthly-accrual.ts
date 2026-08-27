@@ -1,5 +1,6 @@
 /**
- * MONTHLY employee open-month accrual — derived daily unit from workingDaysPerMonth.
+ * MONTHLY employee open-month accrual — derived daily unit from calendar
+ * eligible workdays (optional workingDaysPerMonth only as zero-calendar fallback).
  * Does not apply to HOURLY or DAILY compensation.
  */
 
@@ -56,8 +57,23 @@ export function deriveMonthlyDailyCostBasis(input: {
 }
 
 /**
+ * Accrual denominator: prefer actual configured workdays in the calendar month.
+ * Fall back to optional rate/org workingDaysPerMonth only when the calendar count is 0.
+ */
+export function resolveMonthlyAccrualDenominator(input: {
+  readonly totalEligibleWorkdaysInMonth: number;
+  readonly fallbackWorkingDaysPerMonth: string | null;
+}): string | null {
+  if (input.totalEligibleWorkdaysInMonth > 0) {
+    return String(input.totalEligibleWorkdaysInMonth);
+  }
+  return input.fallbackWorkingDaysPerMonth;
+}
+
+/**
  * Accrued recognized pool for an open month: min(accruedWorkDays, W) × (P / W),
  * conserved so Σ day units = recognized pool. Full month → exact full pool.
+ * `workingDaysPerMonth` is the accrual denominator (prefer calendar eligible count).
  */
 export function recognizeMonthlyEmployerPoolToDate(input: {
   readonly fullMonthlyEmployerCost: MoneyValue;
@@ -101,6 +117,38 @@ export function recognizeMonthlyEmployerPoolToDate(input: {
     recognizedPool: roundMoney(money(raw.toFixed(6), currency)),
     dailyBasis,
     recognizedWorkDayCount: capped,
+  };
+}
+
+/**
+ * Recognize monthly employer pool using calendar eligible workdays as denominator
+ * when available; otherwise optional rate/org workingDaysPerMonth fallback.
+ */
+export function recognizeMonthlyEmployerPoolByCalendar(input: {
+  readonly fullMonthlyEmployerCost: MoneyValue;
+  readonly totalEligibleWorkdaysInMonth: number;
+  readonly accruedWorkDayCount: number;
+  readonly recognizeFullMonth: boolean;
+  readonly fallbackWorkingDaysPerMonth: string | null;
+}): {
+  readonly recognizedPool: MoneyValue;
+  readonly dailyBasis: MoneyValue;
+  readonly recognizedWorkDayCount: number;
+  readonly workingDaysPerMonth: string;
+} | null {
+  const workingDaysPerMonth = resolveMonthlyAccrualDenominator({
+    totalEligibleWorkdaysInMonth: input.totalEligibleWorkdaysInMonth,
+    fallbackWorkingDaysPerMonth: input.fallbackWorkingDaysPerMonth,
+  });
+  if (!workingDaysPerMonth) return null;
+  return {
+    ...recognizeMonthlyEmployerPoolToDate({
+      fullMonthlyEmployerCost: input.fullMonthlyEmployerCost,
+      workingDaysPerMonth,
+      accruedWorkDayCount: input.accruedWorkDayCount,
+      recognizeFullMonth: input.recognizeFullMonth,
+    }),
+    workingDaysPerMonth,
   };
 }
 

@@ -484,6 +484,13 @@
                         "when":  1787580000000,
                         "tag":  "0069_true_cost_profitability",
                         "breakpoints":  true
+                    },
+                    {
+                        "idx":  69,
+                        "version":  "7",
+                        "when":  1787660000000,
+                        "tag":  "0070_financial_classification_architecture",
+                        "breakpoints":  true
                     }
                 ]
 }

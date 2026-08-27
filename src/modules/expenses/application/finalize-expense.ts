@@ -12,6 +12,7 @@ import {
   yearMonthFromBusinessDate,
 } from '@/modules/month-close';
 import { bookInventoryPurchaseFromExpenseOnExecutor } from '@/modules/assets/application/inventory-cost';
+import { resolveExpenseClassificationStatus } from '@/modules/financials/domain/economic-classification';
 import { isPositiveMoney, toNumericString } from '@/shared/money';
 import { assertFinalizable } from '../domain/lifecycle';
 import { captureTaxSnapshot } from '../domain/tax';
@@ -21,7 +22,7 @@ import {
   buildEqualInstallmentSchedule,
   yearMonthFromBusinessDate as installmentYearMonth,
 } from '../domain/installment-schedule';
-import { findExpenseById, updateExpenseRow } from '../data/expenses.repository';
+import { findExpenseById, findCostCategoryById, updateExpenseRow } from '../data/expenses.repository';
 import { markExpenseAllocationRunsApplied } from '../data/allocation-runs.repository';
 import { replaceScheduleLines } from '../data/managerial-schedule.repository';
 import { runAutomaticAllocation } from './run-automatic-allocation';
@@ -35,6 +36,16 @@ export async function finalizeExpense(context: OrgContext, expenseId: string) {
   if (!existing) throw new NotFoundError('Expense');
   assertFinalizable(existing.status);
 
+  let categoryKey: string | null = null;
+  if (existing.costCategoryId) {
+    const category = await findCostCategoryById(
+      context.db,
+      context.organizationId,
+      existing.costCategoryId,
+    );
+    categoryKey = category?.key ?? null;
+  }
+
   if (existing.inventoryStockPurchase) {
     if (!existing.inventoryItemId || !existing.inventoryPurchaseQty) {
       throw new DomainRuleError(
@@ -42,6 +53,24 @@ export async function finalizeExpense(context: OrgContext, expenseId: string) {
         'expenses.errors.inventoryStockPurchaseIncomplete',
       );
     }
+  }
+
+  const nextClassificationStatus = resolveExpenseClassificationStatus({
+    costCategoryId: existing.costCategoryId,
+    categoryKey,
+    inventoryStockPurchase: existing.inventoryStockPurchase,
+    costFamily: existing.costFamily,
+  });
+
+  if (
+    nextClassificationStatus !== 'classified' ||
+    !existing.costCategoryId ||
+    String(existing.costCategoryId).trim() === ''
+  ) {
+    throw new DomainRuleError(
+      'Choose an expense type before recognizing this cost',
+      'expenses.errors.classificationRequired',
+    );
   }
 
   // Refuse silent rewrite of a closed operational month.
@@ -96,6 +125,7 @@ export async function finalizeExpense(context: OrgContext, expenseId: string) {
       status: 'finalized',
       finalizedAt,
       taxSnapshot,
+      classificationStatus: nextClassificationStatus,
     });
 
     const row = await findExpenseById(tx, context.organizationId, expenseId);
@@ -149,10 +179,13 @@ export async function finalizeExpense(context: OrgContext, expenseId: string) {
     return row;
   });
 
-  const { tryRecomputeOpenGeneralCostMonth } = await import(
+  const { tryRecomputeOpenGeneralCostMonthsForExpense } = await import(
     '@/modules/financials/application/recompute-general-cost-month'
   );
-  await tryRecomputeOpenGeneralCostMonth(context, { date: finalized.expenseDate });
+  await tryRecomputeOpenGeneralCostMonthsForExpense(context, {
+    id: finalized.id,
+    expenseDate: finalized.expenseDate,
+  });
 
   return finalized;
 }

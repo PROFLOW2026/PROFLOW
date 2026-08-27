@@ -10,7 +10,12 @@ import {
   type MoneyValue,
 } from '@/shared/money';
 import type { DbCostFamily } from './cost-aggregation';
-import { isLaborCostCategoryKey } from './labor-expense-integrity';
+import {
+  hasReliableSubcontractorSignal,
+  isMaterialEconomicCategoryKey,
+  isSubcontractorEconomicCategoryKey,
+  resolveOwnerBreakdownBucket,
+} from './economic-classification';
 
 /**
  * Owner-facing exclusive partition of canonical Project Actual.
@@ -50,10 +55,18 @@ export interface ProjectActualAtom {
   readonly vendorName?: string | null;
   /** Vendor.type: supplier | subcontractor | both | other */
   readonly vendorType?: string | null;
+  /** Capability roles when loaded; preferred over vendorType for subcontract signal. */
+  readonly vendorRoleKeys?: readonly string[];
   /** AP / OCR only — reliable subcontract attribution when set. */
   readonly subcontractAgreementId?: string | null;
+  /**
+   * Loader exclusion flag for internal_employee_payroll (not generic `labor`).
+   * Excluded atoms should not be passed in; if present they still count via registry.
+   */
   readonly isLaborCategory?: boolean;
   readonly hasWorkforceLaborOnProject?: boolean;
+  /** Expense classification review state — needs_classification → otherExpenses. */
+  readonly classificationStatus?: string | null;
 }
 
 export interface ProjectActualBreakdownCategory {
@@ -73,64 +86,44 @@ export interface ProjectActualBreakdown {
   readonly reconciles: boolean;
 }
 
-/** Deterministic material keys — no vendor-name guessing. */
+/**
+ * Deterministic material keys via economic-classification registry.
+ * Exact allowlist + `materials_*` — no `.includes('materials')`.
+ */
 export function isMaterialCostCategoryKey(key: string | null | undefined): boolean {
-  if (!key) return false;
-  const normalized = key.trim().toLowerCase();
-  if (!normalized) return false;
-  if (normalized === 'materials') return true;
-  if (normalized.startsWith('materials_')) return true;
-  if (normalized.endsWith('_materials')) return true;
-  // Profile seeds: building_materials, install_materials, electrical_materials, …
-  if (normalized.includes('materials')) return true;
-  return false;
+  return isMaterialEconomicCategoryKey(key);
 }
 
 export function isSubcontractorCategoryKey(key: string | null | undefined): boolean {
-  if (!key) return false;
-  const normalized = key.trim().toLowerCase();
-  return normalized === 'subcontractor' || normalized.startsWith('subcontractor_');
+  return isSubcontractorEconomicCategoryKey(key);
 }
 
 /**
  * Reliable subcontract Actual attribution (Owner lock):
  * - AP/OCR atom with subcontractAgreementId, OR
- * - categoryKey subcontract, OR
- * - vendor.type === 'subcontractor' (strict; `both` alone is NOT enough).
+ * - transaction categoryKey subcontract / external_manpower
+ * Vendor type / catalog capability NEVER classify.
  */
 export function isReliableSubcontractorAtom(atom: ProjectActualAtom): boolean {
-  if (atom.subcontractAgreementId) return true;
-  if (isSubcontractorCategoryKey(atom.categoryKey)) return true;
-  if ((atom.vendorType ?? '').toLowerCase() === 'subcontractor') return true;
-  return false;
+  return hasReliableSubcontractorSignal({
+    categoryKey: atom.categoryKey,
+    subcontractAgreementId: atom.subcontractAgreementId,
+  });
 }
 
 export function classifyActualAtom(
   atom: ProjectActualAtom,
 ): ProjectActualBreakdownCategoryKey {
-  if (atom.sourceKind === 'labor') return 'employees';
-
-  if (atom.sourceKind === 'month_close') return 'otherExpenses';
-
-  // Labor-category expenses excluded from Actual when workforce feeds labor —
-  // those atoms should not be passed in. If they are, exclude from buckets via other.
-  if (
-    atom.isLaborCategory &&
-    atom.hasWorkforceLaborOnProject &&
-    isLaborCostCategoryKey(atom.categoryKey)
-  ) {
-    return 'otherExpenses';
-  }
-
-  if (atom.costFamily === 'business_overhead') return 'overhead';
-
-  if (isMaterialCostCategoryKey(atom.categoryKey)) return 'materials';
-
-  if (isReliableSubcontractorAtom(atom)) return 'subcontractors';
-
-  if (atom.vendorId) return 'vendors';
-
-  return 'otherExpenses';
+  return resolveOwnerBreakdownBucket({
+    sourceKind: atom.sourceKind,
+    costFamily: atom.costFamily,
+    categoryKey: atom.categoryKey,
+    vendorId: atom.vendorId,
+    vendorType: atom.vendorType,
+    vendorRoleKeys: atom.vendorRoleKeys,
+    subcontractAgreementId: atom.subcontractAgreementId,
+    classificationStatus: atom.classificationStatus,
+  });
 }
 
 function percentOf(part: MoneyValue, whole: MoneyValue): string | null {

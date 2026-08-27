@@ -8,6 +8,8 @@ import { toNumericString } from '@/shared/money';
 import { resolveApplicableDefaultTax } from '@/modules/tax';
 import { noteModuleUsage } from '@/modules/tenancy';
 import { getInventoryItemById, normalizeQuantity } from '@/modules/assets';
+import { resolveExpenseClassificationStatus, assertCostCategoryFamilyConsistent } from '@/modules/financials/domain/economic-classification';
+import { assertInternalPayrollExpenseAllowed } from '@/modules/financials/domain/labor-expense-integrity';
 import { resolveAllocationLines } from '../domain/allocation';
 import { resolveExpenseCurrency } from '../domain/currency';
 import { isOverheadTargeting, resolveExpenseTargeting, assertNoAllocationsOnProjectExpense } from '../domain/targeting';
@@ -67,11 +69,37 @@ async function resolveWorkPackageId(
 async function validateCategory(
   context: OrgContext,
   categoryId: string | null | undefined,
-): Promise<string | null> {
+  costFamily: string | null | undefined,
+): Promise<{ id: string; key: string; family: string } | null> {
   if (!categoryId) return null;
   const category = await findCostCategoryById(context.db, context.organizationId, categoryId);
   if (!category) throw new NotFoundError('Cost category');
-  return category.id;
+
+  try {
+    assertCostCategoryFamilyConsistent({
+      costCategoryId: category.id,
+      costFamily: costFamily ?? null,
+      categoryFamily: category.family,
+    });
+  } catch (error) {
+    throw new DomainRuleError(
+      error instanceof Error ? error.message : 'Category/family contradiction',
+      'expenses.errors.categoryFamilyMismatch',
+    );
+  }
+
+  try {
+    assertInternalPayrollExpenseAllowed({
+      categoryKey: category.key,
+    });
+  } catch (error) {
+    throw new DomainRuleError(
+      error instanceof Error ? error.message : 'Internal payroll not allowed on Expense',
+      'expenses.errors.internalPayrollRestricted',
+    );
+  }
+
+  return { id: category.id, key: category.key, family: category.family };
 }
 
 async function validateVendor(
@@ -126,7 +154,7 @@ async function validateAllocationReferences(
       if (!pkg) throw new NotFoundError('Work area');
     }
     if (line.costCategoryId) {
-      await validateCategory(context, line.costCategoryId);
+      await validateCategory(context, line.costCategoryId, null);
     }
   }
 }
@@ -277,6 +305,7 @@ export async function buildExpensePayload(
     projectId: input.projectId,
     workPackageId: input.workPackageId,
     costFamily: input.costFamily,
+    inventoryStockPurchase: input.inventoryStockPurchase === true,
   });
 
   assertNoAllocationsOnProjectExpense(targeting.mode, input.allocations ?? []);
@@ -292,7 +321,12 @@ export async function buildExpensePayload(
     ? await resolveWorkPackageId(context, targeting.projectId, targeting.workPackageId)
     : null;
 
-  const costCategoryId = await validateCategory(context, input.costCategoryId);
+  const category = await validateCategory(
+    context,
+    input.costCategoryId,
+    targeting.costFamily,
+  );
+  const costCategoryId = category?.id ?? null;
   const vendorId = await validateVendor(context, input.vendorId);
   const phaseId = await validatePhase(context, input.phaseId, targeting.projectId);
 
@@ -371,6 +405,12 @@ export async function buildExpensePayload(
       inventoryStockPurchase: inventoryStock.inventoryStockPurchase,
       inventoryItemId: inventoryStock.inventoryItemId,
       inventoryPurchaseQty: inventoryStock.inventoryPurchaseQty,
+      classificationStatus: resolveExpenseClassificationStatus({
+        costCategoryId,
+        categoryKey: category?.key ?? null,
+        inventoryStockPurchase: inventoryStock.inventoryStockPurchase,
+        costFamily: targeting.costFamily,
+      }),
       createdByUserId: context.userId,
     },
   };

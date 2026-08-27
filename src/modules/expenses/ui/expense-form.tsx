@@ -10,7 +10,9 @@ import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
@@ -31,6 +33,8 @@ import type {
 } from '@/modules/expenses/domain/types';
 import { isWeightAllocationMethod } from '@/modules/expenses/domain/types';
 import { scheduleModeFromCategoryPeriodBehavior } from '@/modules/expenses/domain/allocation-schedule';
+import { INTERNAL_EMPLOYEE_PAYROLL_CATEGORY_KEY } from '@/modules/financials/domain/labor-expense-integrity';
+import { isDeprecatedForNewTransactionEntry } from '@/modules/financials/domain/economic-classification';
 import { formatMoney } from '@/shared/money/format';
 import { rtlFlipClassName } from '@/shared/i18n/ltr-island';
 import { Link } from '@/shared/i18n/navigation';
@@ -43,12 +47,31 @@ const OVERHEAD_VALUE = '__overhead__';
 const NONE_VALUE = '__none__';
 const MANUAL_DRIVER = '__manual__';
 
+type ExpenseDestination = 'project' | 'general' | 'inventory' | 'asset';
+
+const COST_FAMILY_ORDER: readonly CostFamily[] = [
+  'direct_project',
+  'shared',
+  'business_overhead',
+  'asset_capital',
+];
+
 const WEIGHT_METHODS: readonly AllocationMethod[] = [
   'contract_weight',
   'labor_hours_weight',
   'direct_cost_weight',
   'equal_split',
 ];
+
+function resolveInitialDestination(initialValues?: Partial<ExpenseFormValues>): ExpenseDestination {
+  if (initialValues?.inventoryStockPurchase) return 'inventory';
+  if (initialValues?.costFamily === 'asset_capital') return 'asset';
+  if (initialValues?.projectId) return 'project';
+  if (initialValues?.targeting && initialValues.targeting !== OVERHEAD_VALUE && initialValues.targeting !== NONE_VALUE) {
+    return 'project';
+  }
+  return 'general';
+}
 
 export interface ExpenseFormValues {
   amount: string;
@@ -133,7 +156,8 @@ export function ExpenseForm({
         initialValues?.taxAmount ||
         !initialValues?.projectId ||
         (Number(initialValues?.installmentCount) > 1) ||
-        initialValues?.inventoryStockPurchase),
+        initialValues?.inventoryStockPurchase ||
+        initialValues?.costFamily === 'asset_capital'),
   );
   const [showAdvanced, setShowAdvanced] = React.useState(
     Boolean(initialValues?.taxAmount && initialValues?.netAmount),
@@ -155,6 +179,9 @@ export function ExpenseForm({
     }
     return OVERHEAD_VALUE;
   });
+  const [destination, setDestination] = React.useState<ExpenseDestination>(() =>
+    resolveInitialDestination(initialValues),
+  );
   const [workPackageId, setWorkPackageId] = React.useState(initialValues?.workPackageId ?? '');
   const [costFamily, setCostFamily] = React.useState<CostFamily | ''>(initialValues?.costFamily ?? '');
   const [costCategoryId, setCostCategoryId] = React.useState(initialValues?.costCategoryId ?? '');
@@ -213,6 +240,8 @@ export function ExpenseForm({
   const selectedCategory = costCategoryId
     ? categories.find((category) => category.id === costCategoryId) ?? null
     : null;
+  const isInternalPayrollCategory =
+    selectedCategory?.key.trim().toLowerCase() === INTERNAL_EMPLOYEE_PAYROLL_CATEGORY_KEY;
 
   const hasManualTaxOverride = Boolean(netAmount.trim() || taxAmount.trim());
 
@@ -286,14 +315,64 @@ export function ExpenseForm({
     setTargeting(value);
     if (value === OVERHEAD_VALUE || value === NONE_VALUE) {
       setShowMore(true);
+      if (destination === 'project') setDestination('general');
     } else {
+      setDestination((prev) => (prev === 'general' ? 'project' : prev));
       onProjectChange?.(value);
     }
   }
 
-  const filteredCategories = costFamily
+  function handleDestinationChange(value: ExpenseDestination) {
+    setDestination(value);
+    if (value === 'project') {
+      setInventoryStockPurchase(false);
+      setInventoryItemId('');
+      setInventoryPurchaseQty('');
+      if (targeting === OVERHEAD_VALUE || targeting === NONE_VALUE) {
+        const firstProject = projects[0]?.id;
+        if (firstProject) {
+          setTargeting(firstProject);
+          onProjectChange?.(firstProject);
+        }
+      }
+      if (costFamily === 'asset_capital') setCostFamily('');
+      return;
+    }
+    if (value === 'general') {
+      setTargeting(OVERHEAD_VALUE);
+      setShowMore(true);
+      setInventoryStockPurchase(false);
+      setInventoryItemId('');
+      setInventoryPurchaseQty('');
+      if (costFamily === 'asset_capital') setCostFamily('');
+      return;
+    }
+    if (value === 'inventory') {
+      setTargeting(OVERHEAD_VALUE);
+      setShowMore(true);
+      setShowAdvanced(true);
+      setInventoryStockPurchase(true);
+      if (costFamily === 'asset_capital') setCostFamily('');
+      return;
+    }
+    // asset
+    setInventoryStockPurchase(false);
+    setInventoryItemId('');
+    setInventoryPurchaseQty('');
+    setCostFamily('asset_capital');
+    setCostCategoryId('');
+    setShowMore(true);
+  }
+
+  const filteredCategories = (costFamily
     ? categories.filter((category) => category.family === costFamily)
-    : categories;
+    : categories
+  ).filter((category) => !isDeprecatedForNewTransactionEntry(category.key));
+
+  const categoriesByFamily = COST_FAMILY_ORDER.map((family) => ({
+    family,
+    items: filteredCategories.filter((category) => category.family === family),
+  })).filter((group) => group.items.length > 0);
 
   const policyMethodMatches =
     !selectedCategory?.defaultAllocationMethod ||
@@ -433,25 +512,57 @@ export function ExpenseForm({
           )}
         </Field>
 
-        <Field label={t('fields.target')}>
+        <Field label={t('fields.destination')} description={t('fields.expenseType')}>
           {(controlProps) => (
-            <Select value={targeting} onValueChange={handleTargetingChange} disabled={readOnly}>
+            <Select
+              value={destination}
+              onValueChange={(value) => handleDestinationChange(value as ExpenseDestination)}
+              disabled={readOnly}
+            >
               <SelectTrigger {...controlProps}>
-                <SelectValue placeholder={t('placeholders.target')} />
+                <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={OVERHEAD_VALUE}>{t('targeting.overhead')}</SelectItem>
-                {projects.map((project) => (
-                  <SelectItem key={project.id} value={project.id}>
-                    {project.name}
-                  </SelectItem>
-                ))}
+                <SelectItem value="project">{t('destination.project')}</SelectItem>
+                <SelectItem value="general">{t('destination.general')}</SelectItem>
+                <SelectItem value="inventory">{t('destination.inventory')}</SelectItem>
+                <SelectItem value="asset">{t('destination.asset')}</SelectItem>
               </SelectContent>
             </Select>
           )}
         </Field>
 
-        {isOverhead ? (
+        {destination === 'project' || destination === 'asset' ? (
+          <Field label={t('fields.project')} optionalLabel={destination === 'asset' ? tCommon('labels.optional') : undefined}>
+            {(controlProps) => (
+              <Select
+                value={targeting === OVERHEAD_VALUE ? NONE_VALUE : targeting}
+                onValueChange={(value) =>
+                  handleTargetingChange(value === NONE_VALUE ? OVERHEAD_VALUE : value)
+                }
+                disabled={readOnly}
+              >
+                <SelectTrigger {...controlProps}>
+                  <SelectValue placeholder={t('placeholders.target')} />
+                </SelectTrigger>
+                <SelectContent>
+                  {destination === 'asset' ? (
+                    <SelectItem value={NONE_VALUE}>{t('targeting.overhead')}</SelectItem>
+                  ) : null}
+                  {projects.map((project) => (
+                    <SelectItem key={project.id} value={project.id}>
+                      {project.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          </Field>
+        ) : (
+          <input type="hidden" name="destinationTarget" value={OVERHEAD_VALUE} />
+        )}
+
+        {destination === 'general' || destination === 'inventory' ? (
           <p className="rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-muted)] px-3 py-2 text-start text-sm text-[var(--pf-text-secondary)]">
             {t('allocation.subtitle')}
           </p>
@@ -494,6 +605,59 @@ export function ExpenseForm({
 
         <input type="hidden" name="workPackageId" value={workPackageId} />
         <input type="hidden" name="vendorId" value={vendorId} />
+
+        <Field
+          label={t('fields.category')}
+          description={t('fields.categoryRequiredHint')}
+          error={fieldErrors.costCategoryId}
+        >
+          {(controlProps) => (
+            <Select
+              value={costCategoryId || NONE_VALUE}
+              onValueChange={(value) => {
+                const nextId = value === NONE_VALUE ? '' : value;
+                setCostCategoryId(nextId);
+                const category = categories.find((item) => item.id === nextId);
+                if (nextId && category) {
+                  applyCategoryPolicy(category);
+                  if (isOverhead || category.family === 'shared' || category.family === 'business_overhead') {
+                    setShowMore(true);
+                  }
+                } else {
+                  setPolicyOverridden(false);
+                }
+              }}
+              disabled={readOnly}
+            >
+              <SelectTrigger {...controlProps}>
+                <SelectValue placeholder={t('placeholders.category')} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={NONE_VALUE}>{t('placeholders.category')}</SelectItem>
+                {categoriesByFamily.map((group) => (
+                  <SelectGroup key={group.family}>
+                    <SelectLabel>{t(`costFamilies.${group.family}`)}</SelectLabel>
+                    {group.items.map((category) => (
+                      <SelectItem key={category.id} value={category.id}>
+                        {category.isSystem ? t(`costCategories.${category.key}`) : category.name}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+        </Field>
+        <input type="hidden" name="costCategoryId" value={costCategoryId} />
+
+        {isInternalPayrollCategory ? (
+          <p
+            role="status"
+            className="rounded-md border border-[var(--pf-status-warning-border)] bg-[var(--pf-status-warning-bg)] px-3 py-2 text-start text-sm text-[var(--pf-status-warning-fg)]"
+          >
+            {t('fields.internalPayrollWarning')}
+          </p>
+        ) : null}
 
         <Field label={t('fields.supplier')} optionalLabel={tCommon('labels.optional')}>
           {(controlProps) => (
@@ -640,6 +804,12 @@ export function ExpenseForm({
                     if (!next) {
                       setInventoryItemId('');
                       setInventoryPurchaseQty('');
+                      if (destination === 'inventory') {
+                        setDestination(projectId ? 'project' : 'general');
+                      }
+                    } else {
+                      setDestination('inventory');
+                      setTargeting(OVERHEAD_VALUE);
                     }
                   }}
                   disabled={readOnly}
@@ -737,42 +907,6 @@ export function ExpenseForm({
           </Field>
 
           <input type="hidden" name="costFamily" value={costFamily} />
-
-          <Field label={t('fields.category')} optionalLabel={tCommon('labels.optional')}>
-            {(controlProps) => (
-              <Select
-                value={costCategoryId || NONE_VALUE}
-                onValueChange={(value) => {
-                  const nextId = value === NONE_VALUE ? '' : value;
-                  setCostCategoryId(nextId);
-                  const category = categories.find((item) => item.id === nextId);
-                  if (nextId && category) {
-                    applyCategoryPolicy(category);
-                    if (isOverhead || category.family === 'shared' || category.family === 'business_overhead') {
-                      setShowMore(true);
-                    }
-                  } else {
-                    setPolicyOverridden(false);
-                  }
-                }}
-                disabled={readOnly}
-              >
-                <SelectTrigger {...controlProps}>
-                  <SelectValue placeholder={t('placeholders.category')} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={NONE_VALUE}>{t('placeholders.category')}</SelectItem>
-                  {filteredCategories.map((category) => (
-                    <SelectItem key={category.id} value={category.id}>
-                      {category.isSystem ? t(`costCategories.${category.key}`) : category.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-          </Field>
-
-          <input type="hidden" name="costCategoryId" value={costCategoryId} />
 
           {selectedCategory ? (
             <div

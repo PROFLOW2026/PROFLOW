@@ -119,6 +119,8 @@
     "lineTotal": "Line total",
     "linePoLine": "PO line",
     "linePoLineNone": "No PO line",
+    "lineCategory": "Cost category",
+    "lineCategoryNone": "Needs classification",
     "totalLabel": "Entered amount",
     "amountIncludesTax": "Amount includes VAT",
     "taxSplitHint": "If checked, the entered amount is payable GROSS and VAT is split out. Actual cost uses NET. If unchecked, the entered amount is NET and VAT is added to payable using the organization tax rule.",
@@ -400,6 +402,7 @@
     "retentionNotReleasable": "Retention can only be released after the bill is posted.",
     "retentionReleaseExceedsHeld": "Release cannot exceed held remaining.",
     "retentionReleaseAmountInvalid": "Release amount must be positive.",
-    "retentionReleaseDateFuture": "Release date cannot be in the future."
+    "retentionReleaseDateFuture": "Release date cannot be in the future.",
+    "classificationRequired": "Choose an expense type before recognizing this bill."
   }
 }

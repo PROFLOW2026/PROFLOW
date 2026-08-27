@@ -4,6 +4,7 @@ import { eq, and } from 'drizzle-orm';
 import {
   organizationMemberships,
   organizationModulePreferences,
+  costCategories,
   expenses,
   phases,
   projects,
@@ -73,6 +74,8 @@ describe('expenses integration', () => {
   let orgBId: string;
   let orgAProjectId: string;
   let orgAExpenseId: string;
+  let orgAMaterialsCategoryId: string;
+  let orgAOverheadCategoryId: string;
 
   beforeAll(async () => {
     database = await createTestDatabase();
@@ -88,6 +91,15 @@ describe('expenses integration', () => {
 
     const created = await createProjectWithDefaultPackage(database, userA.id, orgAId, 'Site Alpha');
     orgAProjectId = created.projectId;
+
+    const categoryRows = await database.asService(async (db) =>
+      db
+        .select({ id: costCategories.id, key: costCategories.key })
+        .from(costCategories)
+        .where(eq(costCategories.organizationId, orgAId)),
+    );
+    orgAMaterialsCategoryId = categoryRows.find((r) => r.key === 'materials')!.id;
+    orgAOverheadCategoryId = categoryRows.find((r) => r.key === 'other_overhead')!.id;
 
     orgAExpenseId = await database.asUser(userA.id, async (tx) => {
       const context = await resolveOrgContext(tx, {
@@ -154,6 +166,8 @@ describe('expenses integration', () => {
         amount: '1000',
         currency: 'ILS',
         description: 'Shared invoice',
+        costCategoryId: orgAOverheadCategoryId,
+        costFamily: 'business_overhead',
         allocations: [
           {
             targetType: 'project',
@@ -234,6 +248,8 @@ describe('expenses integration', () => {
         amount: '1000',
         currency: 'ILS',
         projectId,
+        costCategoryId: orgAMaterialsCategoryId,
+        costFamily: 'direct_project',
       });
       await finalizeExpense(context, expense.id);
       await voidExpense(context, expense.id);
@@ -376,6 +392,8 @@ describe('expenses integration', () => {
         currency: 'ILS',
         projectId,
         description: 'Wrong amount',
+        costCategoryId: orgAMaterialsCategoryId,
+        costFamily: 'direct_project',
       });
       await finalizeExpense(context, original.id);
 
@@ -416,6 +434,8 @@ describe('expenses integration', () => {
         currency: 'ILS',
         projectId,
         description: 'Old figure',
+        costCategoryId: orgAMaterialsCategoryId,
+        costFamily: 'direct_project',
       });
       await finalizeExpense(context, original.id);
 
@@ -425,6 +445,8 @@ describe('expenses integration', () => {
         currency: 'ILS',
         projectId,
         description: 'Corrected figure',
+        costCategoryId: orgAMaterialsCategoryId,
+        costFamily: 'direct_project',
       });
 
       expect(reversal?.voidsExpenseId).toBe(original.id);
@@ -460,6 +482,8 @@ describe('expenses integration', () => {
         projectId,
         description: 'Materials wrong amount',
         netAmount: '52000',
+        costCategoryId: orgAMaterialsCategoryId,
+        costFamily: 'direct_project',
       });
       await finalizeExpense(context, original.id);
 
@@ -470,6 +494,8 @@ describe('expenses integration', () => {
         projectId,
         description: 'Materials corrected',
         netAmount: '50000',
+        costCategoryId: orgAMaterialsCategoryId,
+        costFamily: 'direct_project',
       });
 
       expect(reversal?.netAmount.amount).toBe('-52000.000000');

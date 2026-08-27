@@ -3,7 +3,7 @@ import { apBillProjectAllocations, apBills } from '@drizzle/schema';
 import type { DbExecutor } from '@/shared/db/types';
 import { ValidationError } from '@/shared/errors';
 import { zeroMoney, type MoneyValue } from '@/shared/money';
-import { listActiveCreditActualReductionsForBills } from './credits.repository';
+import { listActiveCreditActualReductionsForBills, creditActualReductionAmounts } from './credits.repository';
 import { areApBillProjectAllocationsAvailable } from '../domain/vendor-bill-project-attribution';
 import { RECOGNIZED_VENDOR_BILL_STATUSES } from '../domain/vendor-cost-recognition';
 import {
@@ -133,7 +133,7 @@ export async function sumRecognizedApGeneralRemainders(
       currency: row.currency,
       projectId: row.projectId,
       billNetAmount: billNetForGeneralRemainder(row),
-      creditActualReductions: creditsByBill.get(row.id) ?? [],
+      creditActualReductions: creditActualReductionAmounts(creditsByBill.get(row.id) ?? []),
       appliedProjectAllocationAmounts: projectAmountsByBill.get(row.id) ?? [],
       hasAppliedAllocationLines,
       hasAppliedProjectAllocationLines,

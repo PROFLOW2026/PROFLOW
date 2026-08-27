@@ -120,6 +120,7 @@ export {
   displayCreditLifecycleStatus,
   netRecognizedBillAfterCredits,
   scaleBillSliceAfterCredits,
+  netProjectSliceAfterCredits,
   creditApplicationActualReduction,
   creditRemaining,
   deriveCreditStatusAfterApplication,
@@ -255,6 +256,9 @@ export {
   listActiveCreditAmountsForBill,
   listActiveCreditAmountsForBills,
   listActiveCreditActualReductionsForBills,
+  creditActualReductionAmounts,
+  creditActualReductionsForProject,
+  type CreditActualReduction,
 } from './data/credits.repository';
 
 export { sumRecognizedApGeneralRemainders } from './data/vendor-general-remainder.repository';

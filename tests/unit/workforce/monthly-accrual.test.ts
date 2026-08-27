@@ -10,6 +10,7 @@ import {
   deriveMonthlyDailyCostBasis,
   listConfiguredWorkDatesInRange,
   pickWorkingDaysPerMonthForMonth,
+  recognizeMonthlyEmployerPoolByCalendar,
   recognizeMonthlyEmployerPoolToDate,
   resolveWorkingDaysPerMonthDenominator,
 } from '@/modules/workforce/domain/monthly-accrual';
@@ -183,6 +184,40 @@ describe('monthly working-days accrual', () => {
     });
     expect(jan).toBe('22');
     expect(jun).toBe('20');
+  });
+
+  it('calendar eligible workdays are the accrual denominator (not fixed W=5/22 override)', () => {
+    const eligible = listConfiguredWorkDatesInRange({
+      fromDate: '2026-08-01',
+      toDate: '2026-08-31',
+      workWeekdays: [0, 1, 2, 3, 4],
+      hasCoverage: () => true,
+    });
+    // Aug 2026 Sun–Thu: 22 configured workdays
+    expect(eligible.length).toBe(22);
+
+    const midMonth = recognizeMonthlyEmployerPoolByCalendar({
+      fullMonthlyEmployerCost: full,
+      totalEligibleWorkdaysInMonth: eligible.length,
+      accruedWorkDayCount: 10,
+      recognizeFullMonth: false,
+      // Fallback would understate if preferred over calendar count
+      fallbackWorkingDaysPerMonth: '5',
+    });
+    expect(midMonth).not.toBeNull();
+    expect(midMonth!.workingDaysPerMonth).toBe('22');
+    expect(midMonth!.recognizedWorkDayCount).toBe(10);
+    // 9750 × 10/22 → same rounding path as fixed-W tests
+    expect(toNumericString(midMonth!.recognizedPool)).toBe('4431.820000');
+
+    const noCalendar = recognizeMonthlyEmployerPoolByCalendar({
+      fullMonthlyEmployerCost: full,
+      totalEligibleWorkdaysInMonth: 0,
+      accruedWorkDayCount: 0,
+      recognizeFullMonth: false,
+      fallbackWorkingDaysPerMonth: '22',
+    });
+    expect(noCalendar?.workingDaysPerMonth).toBe('22');
   });
 
   it('work weekdays numerator excludes Friday/Saturday for Sun–Thu week', () => {

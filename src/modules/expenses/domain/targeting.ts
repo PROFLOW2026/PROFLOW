@@ -5,6 +5,11 @@ export interface TargetingInput {
   readonly projectId?: string | null;
   readonly workPackageId?: string | null;
   readonly costFamily?: CostFamily | null;
+  /**
+   * Central inventory stock acquisition: transaction category may be direct_project
+   * (e.g. materials) while economic destination is inventory — no project at purchase.
+   */
+  readonly inventoryStockPurchase?: boolean;
 }
 
 /**
@@ -14,6 +19,7 @@ export interface TargetingInput {
 export function resolveExpenseTargeting(input: TargetingInput): ExpenseTargeting {
   const projectId = input.projectId?.trim() ? input.projectId : null;
   const workPackageId = input.workPackageId?.trim() ? input.workPackageId : null;
+  const inventoryStockPurchase = input.inventoryStockPurchase === true;
 
   if (workPackageId && !projectId) {
     throw new DomainRuleError(
@@ -23,14 +29,21 @@ export function resolveExpenseTargeting(input: TargetingInput): ExpenseTargeting
   }
 
   const mode: ExpenseTargetingMode = projectId ? 'project' : 'overhead';
-  const costFamily = resolveCostFamily(mode, input.costFamily);
+  const costFamily = resolveCostFamily(mode, input.costFamily, inventoryStockPurchase);
 
   return { mode, projectId, workPackageId, costFamily };
 }
 
-function resolveCostFamily(mode: ExpenseTargetingMode, requested: CostFamily | null | undefined): CostFamily {
+function resolveCostFamily(
+  mode: ExpenseTargetingMode,
+  requested: CostFamily | null | undefined,
+  inventoryStockPurchase: boolean,
+): CostFamily {
   if (requested) {
     if (mode === 'overhead' && requested === 'direct_project') {
+      if (inventoryStockPurchase) {
+        return requested;
+      }
       throw new DomainRuleError(
         'Direct project cost family requires a project',
         'expenses.errors.directFamilyRequiresProject',

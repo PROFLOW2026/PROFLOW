@@ -22,7 +22,7 @@ import {
 } from '@/shared/money';
 import type { DbExecutor } from '@/shared/db/types';
 import type { DbCostFamily, ProjectExpenseContribution } from '../domain/cost-aggregation';
-import { isLaborCostCategoryKey } from '../domain/labor-expense-integrity';
+import { isInternalEmployeePayrollCategoryKey } from '../domain/labor-expense-integrity';
 import { sqlFirstRow } from './sql-rows';
 
 export async function loadProjectExpenseContributions(
@@ -98,6 +98,7 @@ async function loadExpenseContributions(
       vendorType: vendors.type,
       projectId: expenses.projectId,
       categoryKey: costCategories.key,
+      classificationStatus: expenses.classificationStatus,
       workPackageId: expenses.workPackageId,
       installmentCount: expenses.installmentCount,
     })
@@ -138,6 +139,7 @@ async function loadExpenseContributions(
       projectId: expenseAllocations.projectId,
       parentCategoryKey: costCategories.key,
       lineCategoryKey: lineCategories.key,
+      classificationStatus: expenses.classificationStatus,
       workPackageId: expenseAllocations.workPackageId,
     })
     .from(expenseAllocations)
@@ -179,9 +181,11 @@ async function loadExpenseContributions(
       isAllocated: false,
       isSubcontractor: isSubcontractorVendor(row.vendorType),
       projectId: row.projectId,
-      isLaborCategory: isLaborCostCategoryKey(row.categoryKey),
+      // Exclusion flag: internal employee payroll only (generic `labor` stays in Actual).
+      isLaborCategory: isInternalEmployeePayrollCategoryKey(row.categoryKey),
       expenseId: row.expenseId,
       categoryKey: row.categoryKey,
+      classificationStatus: row.classificationStatus,
       workPackageId: row.workPackageId,
       vendorId: row.vendorId,
       vendorName: row.vendorName,
@@ -214,10 +218,13 @@ async function loadExpenseContributions(
       isAllocated: true,
       isSubcontractor: isSubcontractorVendor(row.vendorType),
       projectId: row.projectId,
-      // Line category overrides parent when set; Mode B labor is usually on the parent.
-      isLaborCategory: isLaborCostCategoryKey(row.lineCategoryKey ?? row.parentCategoryKey),
+      // Line category overrides parent when set; exclusion is internal payroll only.
+      isLaborCategory: isInternalEmployeePayrollCategoryKey(
+        row.lineCategoryKey ?? row.parentCategoryKey,
+      ),
       expenseId: row.expenseId,
       categoryKey: row.lineCategoryKey ?? row.parentCategoryKey,
+      classificationStatus: row.classificationStatus,
       workPackageId: row.workPackageId,
       vendorId: row.vendorId,
       vendorName: row.vendorName,

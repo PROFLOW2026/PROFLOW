@@ -16,7 +16,7 @@ import {
   listVendorPaymentsForVendor,
 } from '@/modules/ap';
 import { VendorAp360Panel } from '@/modules/ap/ui/vendor-ap-360-panel';
-import { listBusinessCatalog, localizePaymentTermName, localizePaymentTermOptions } from '@/modules/business-catalog';
+import { listBusinessCatalog, localizePaymentTermName, localizePaymentTermOptions, localizeVendorCategoryOptions } from '@/modules/business-catalog';
 import {
   getVendorById,
   listVendorEngagementHistory,
@@ -187,6 +187,18 @@ export default async function VendorDetailPage({
 
   const categoryLinks = vendor.catalogLinks.filter((link) => link.linkKind === 'vendor_category');
   const specialtyLinks = vendor.catalogLinks.filter((link) => link.linkKind === 'vendor_specialty');
+  const localizedVendorCategories = localizeVendorCategoryOptions(
+    categories.map((row) => ({
+      id: row.id,
+      key: row.key,
+      name: row.name,
+      isSystem: row.isSystem,
+    })),
+    locale,
+  );
+  const vendorCategoryNameById = new Map(
+    localizedVendorCategories.map((row) => [row.id, row.name]),
+  );
 
   return (
     <div className="flex flex-col gap-6">
@@ -231,7 +243,7 @@ export default async function VendorDetailPage({
               <VendorEditForm
                 vendor={vendor}
                 paymentTerms={localizePaymentTermOptions(paymentTerms, locale)}
-                categories={categories.map((row) => ({ id: row.id, name: row.name }))}
+                categories={localizedVendorCategories.map((row) => ({ id: row.id, name: row.name }))}
                 specialties={specialties.map((row) => ({ id: row.id, name: row.name }))}
               />
             ) : (
@@ -344,7 +356,9 @@ export default async function VendorDetailPage({
                 ) : (
                   <ul className="mt-1 list-inside list-disc">
                     {categoryLinks.map((link) => (
-                      <li key={link.id}>{link.entryName}</li>
+                      <li key={link.id}>
+                        {vendorCategoryNameById.get(link.catalogEntryId) ?? link.entryName}
+                      </li>
                     ))}
                   </ul>
                 )}

@@ -10,8 +10,8 @@ import {
 import {
   areApBillProjectAllocationsAvailable,
   listActiveCreditActualReductionsForBills,
+  netProjectSliceAfterCredits,
   resolveVendorBillProjectAmounts,
-  scaleBillSliceAfterCredits,
 } from '@/modules/ap';
 import { RECOGNIZED_VENDOR_BILL_STATUSES } from '@/modules/ap/domain/vendor-cost-recognition';
 import type { DbExecutor } from '@/shared/db/types';
@@ -200,11 +200,12 @@ export async function loadProjectVendorActualBreakdown(
     const bill = billMeta.get(billId);
     if (!bill?.vendorId) continue;
     const billNet = bill.netAmount ?? bill.totalAmount;
-    const netted = scaleBillSliceAfterCredits({
+    const netted = netProjectSliceAfterCredits({
       currency: normalized,
       billNetAmount: billNet,
       sliceAmount: amountStr,
       creditActualReductions: creditsByBill.get(billId) ?? [],
+      projectId,
     });
     if (isZeroMoney(netted) || !isPositiveMoney(netted)) continue;
     const bucket = byVendor.get(bill.vendorId) ?? {

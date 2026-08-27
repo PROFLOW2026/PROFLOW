@@ -118,7 +118,8 @@ export default async function ExpenseDetailPage({
   } = data;
   const recurrence = decodeRecurrenceRule(expense.recurrenceRule);
   const readOnly = expense.status !== 'draft';
-  const canFinalize = expense.status === 'draft' && canFinalizeExpense;
+  const canFinalize =
+    expense.status === 'draft' && canFinalizeExpense && Boolean(expense.costCategoryId);
   const canVoid = expense.status === 'finalized' && !expense.voidsExpenseId && canFinalizeExpense;
   const canReverse =
     expense.status === 'finalized' &&
@@ -144,6 +145,15 @@ export default async function ExpenseDetailPage({
           </Link>
         }
       />
+
+      {expense.status === 'draft' && !expense.costCategoryId ? (
+        <div
+          role="status"
+          className="rounded-lg border border-[var(--pf-status-warning-border)] bg-[var(--pf-status-warning-bg)] px-4 py-3 text-sm text-[var(--pf-status-warning-fg)]"
+        >
+          {t('errors.classificationRequired')}
+        </div>
+      ) : null}
 
       {expense.status === 'draft' ? (
         <div

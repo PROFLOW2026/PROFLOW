@@ -1,9 +1,11 @@
 /**
  * Automatic monthly employer-cost allocation for MONTHLY employees only.
  *
- * Open month: recognize accrued working-day cost (P / workingDaysPerMonth × days),
- * attribute day-by-day via approved hours. Never apply the full month early.
- * Past / completed calendar months: recognize full month pool.
+ * Open month: recognize accrued working-day cost
+ * (P / calendarEligibleWorkdays × accruedDays), attribute day-by-day via approved hours.
+ * Denominator = configured work weekdays in the calendar month (with rate coverage);
+ * optional workingDaysPerMonth is fallback only when the calendar count is 0.
+ * Never apply the full month early. Past / completed calendar months: full pool.
  * HOURLY / DAILY paths are untouched.
  */
 
@@ -46,7 +48,7 @@ import {
   listConfiguredWorkDatesInRange,
   monthDateBounds,
   pickWorkingDaysPerMonthForMonth,
-  recognizeMonthlyEmployerPoolToDate,
+  recognizeMonthlyEmployerPoolByCalendar,
 } from '../domain/monthly-accrual';
 import type { RateVersionRecord } from '../domain/types';
 
@@ -149,14 +151,11 @@ export async function recomputeMonthlyEmployeeCostForOpenMonth(
     LABOR_COST_DEFAULTS_SETTING_KEY,
   );
   const laborDefaults = parseLaborCostDefaults(defaultsRaw);
-  const workingDaysPerMonth = pickWorkingDaysPerMonthForMonth({
+  const fallbackWorkingDaysPerMonth = pickWorkingDaysPerMonthForMonth({
     yearMonth,
     versions,
     orgWorkingDaysPerMonth: laborDefaults.workingDaysPerMonth,
   });
-  if (!workingDaysPerMonth) {
-    return { ...base, reason: 'working_days_unavailable' };
-  }
 
   const workWeekdays = resolveOrgWorkWeekdays(laborDefaults);
   const { fromDate, toDate: monthEnd } = monthDateBounds(yearMonth);
@@ -186,6 +185,12 @@ export async function recomputeMonthlyEmployeeCostForOpenMonth(
     );
   };
 
+  const totalEligibleWorkDates = listConfiguredWorkDatesInRange({
+    fromDate,
+    toDate: monthEnd,
+    workWeekdays,
+    hasCoverage,
+  });
   const workDates = listConfiguredWorkDatesInRange({
     fromDate: rangeStart,
     toDate: rangeEnd,
@@ -193,12 +198,17 @@ export async function recomputeMonthlyEmployeeCostForOpenMonth(
     hasCoverage,
   });
 
-  const recognition = recognizeMonthlyEmployerPoolToDate({
+  const recognition = recognizeMonthlyEmployerPoolByCalendar({
     fullMonthlyEmployerCost: poolResult.pool,
-    workingDaysPerMonth,
+    totalEligibleWorkdaysInMonth: totalEligibleWorkDates.length,
     accruedWorkDayCount: workDates.length,
     recognizeFullMonth,
+    fallbackWorkingDaysPerMonth,
   });
+  if (!recognition) {
+    return { ...base, reason: 'working_days_unavailable' };
+  }
+  const workingDaysPerMonth = recognition.workingDaysPerMonth;
 
   const entries = await listTimeEntries(context.db, context.organizationId, {
     employeeId,

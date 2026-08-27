@@ -30,7 +30,7 @@ import {
 import { loadOperationsReportCounts } from '../data/operations-report.repository';
 import { sumOrganizationGeneralPoolTotals } from '../data/general-cost-months.repository';
 import {
-  composeCompanyActualFromOrgTotals,
+  composeCompanyActual,
   composeCompanyProfit,
   shouldSurfaceCompanyActual,
   shouldSurfaceCompanyProfit,
@@ -161,16 +161,31 @@ export async function getOrganizationReportsAnalytics(
     : null;
   const cash = rollup.canReadBilling ? aggregateOrgCash(rollup.rows, currency) : null;
   const cost = aggregateOrgCost(rollup.rows, currency, { unallocatedBusinessCosts });
+  const allocatedGeneralFromPool =
+    fromNumericString(generalPoolTotals.allocated, currency) ?? zeroMoney(currency);
+  const costWithAllocatedGeneral =
+    (cost.overhead == null || isZeroMoney(cost.overhead.value)) &&
+    !isZeroMoney(allocatedGeneralFromPool)
+      ? {
+          ...cost,
+          overhead: moneyMetric({
+            key: 'overheadActual',
+            kind: 'actual',
+            value: allocatedGeneralFromPool,
+            inclusions: ['allocatedOverheadOnProjects'],
+            exclusions: ['foreignCurrencyProjects', 'unallocatedBusinessCosts'],
+          }),
+        }
+      : cost;
   const workKindFilter = parseWorkKindFilter(options.workKindFilter);
   const companyComposition =
     workKindFilter === 'all'
-      ? composeCompanyActualFromOrgTotals({
+      ? composeCompanyActual({
           currency,
-          fullProjectActual: cost.actual?.value ?? null,
-          poolAmount: fromNumericString(generalPoolTotals.pool, currency) ?? zeroMoney(currency),
-          allocatedAmount:
-            fromNumericString(generalPoolTotals.allocated, currency) ?? zeroMoney(currency),
-          unallocatableAmount:
+          directProjectActual: costWithAllocatedGeneral.actual?.value ?? zeroMoney(currency),
+          generalPool: fromNumericString(generalPoolTotals.pool, currency) ?? zeroMoney(currency),
+          allocatedGeneralToProjects: allocatedGeneralFromPool,
+          unallocatableGeneral:
             fromNumericString(generalPoolTotals.unallocatable, currency) ?? zeroMoney(currency),
         })
       : null;
@@ -393,16 +408,16 @@ export async function getOrganizationReportsAnalytics(
       : null;
 
   const costVisible =
-    cost.actual != null ||
-    cost.labor != null ||
-    cost.vendors != null ||
-    cost.overhead != null ||
-    cost.committed != null ||
-    cost.expectedRemaining != null ||
-    cost.openAp != null ||
-    cost.estimatedFinal != null ||
-    cost.unallocatedBusinessCosts != null
-      ? cost
+    costWithAllocatedGeneral.actual != null ||
+    costWithAllocatedGeneral.labor != null ||
+    costWithAllocatedGeneral.vendors != null ||
+    costWithAllocatedGeneral.overhead != null ||
+    costWithAllocatedGeneral.committed != null ||
+    costWithAllocatedGeneral.expectedRemaining != null ||
+    costWithAllocatedGeneral.openAp != null ||
+    costWithAllocatedGeneral.estimatedFinal != null ||
+    costWithAllocatedGeneral.unallocatedBusinessCosts != null
+      ? costWithAllocatedGeneral
       : null;
 
   const profitVisible =

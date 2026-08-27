@@ -382,21 +382,23 @@ export async function setInventoryItemCostBasis(
   inventoryItemId: string,
   basis: MoneyValue,
 ): Promise<void> {
-  await db.execute(sql`select app.next_gen_latch_acquire('inventory_cost_basis')`);
-  try {
-    await db
-      .update(inventoryItems)
-      .set({
-        costBasisAmount: basis.amount,
-        costBasisCurrency: basis.currency.toUpperCase(),
-        updatedAt: new Date(),
-      })
-      .where(
-        and(eq(inventoryItems.id, inventoryItemId), eq(inventoryItems.organizationId, organizationId)),
-      );
-  } finally {
-    await db.execute(sql`select app.next_gen_latch_release('inventory_cost_basis')`);
-  }
+  await asServiceRoleWrite(db, async () => {
+    await db.execute(sql`select app.next_gen_latch_acquire('inventory_cost_basis')`);
+    try {
+      await db
+        .update(inventoryItems)
+        .set({
+          costBasisAmount: basis.amount,
+          costBasisCurrency: basis.currency.toUpperCase(),
+          updatedAt: new Date(),
+        })
+        .where(
+          and(eq(inventoryItems.id, inventoryItemId), eq(inventoryItems.organizationId, organizationId)),
+        );
+    } finally {
+      await db.execute(sql`select app.next_gen_latch_release('inventory_cost_basis')`);
+    }
+  });
 }
 
 /** Sum remaining layer values for an item (diagnostic / conservation checks). */

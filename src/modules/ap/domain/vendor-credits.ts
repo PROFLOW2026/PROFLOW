@@ -157,6 +157,63 @@ export function scaleBillSliceAfterCredits(input: {
   return divideMoney(multiplyMoney(slice, net.amount), billNet.amount);
 }
 
+/**
+ * Project slice after credits: targeted reductions subtract from the slice first;
+ * untargeted reductions scale proportionally across the bill (cent reconciliation).
+ */
+export function netProjectSliceAfterCredits(input: {
+  readonly currency: string;
+  readonly billNetAmount?: string;
+  readonly billTotal?: string;
+  readonly sliceAmount: string;
+  readonly creditActualReductions: readonly {
+    readonly amount: string;
+    readonly projectId: string | null;
+  }[];
+  readonly projectId: string;
+}): MoneyValue {
+  const currency = input.currency.toUpperCase();
+  const billNet = money(input.billNetAmount ?? input.billTotal ?? '0', currency);
+  const targetedOnBill = sumMoney(
+    input.creditActualReductions
+      .filter((row) => row.projectId != null)
+      .map((row) => money(row.amount, currency)),
+    currency,
+  );
+  const targetedOnProject = sumMoney(
+    input.creditActualReductions
+      .filter((row) => row.projectId === input.projectId)
+      .map((row) => money(row.amount, currency)),
+    currency,
+  );
+  const untargetedReductions = input.creditActualReductions
+    .filter((row) => row.projectId == null)
+    .map((row) => row.amount);
+
+  let slice = money(input.sliceAmount, currency);
+  if (isPositiveMoney(targetedOnProject)) {
+    slice = subtractMoney(slice, targetedOnProject);
+    if (compareMoney(slice, zeroMoney(currency)) <= 0) {
+      return zeroMoney(currency);
+    }
+  }
+
+  let billNetForUntargeted = billNet;
+  if (isPositiveMoney(targetedOnBill)) {
+    billNetForUntargeted = subtractMoney(billNet, targetedOnBill);
+    if (compareMoney(billNetForUntargeted, zeroMoney(currency)) <= 0) {
+      return zeroMoney(currency);
+    }
+  }
+
+  return scaleBillSliceAfterCredits({
+    currency,
+    billNetAmount: billNetForUntargeted.amount,
+    sliceAmount: slice.amount,
+    creditActualReductions: untargetedReductions,
+  });
+}
+
 export function assertCreditCreatable(input: {
   readonly amount: string;
   readonly currency: string;

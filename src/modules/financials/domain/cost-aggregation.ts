@@ -28,7 +28,7 @@ export interface ProjectExpenseContribution {
   readonly isSubcontractor: boolean;
   /** Project the contribution lands on (direct or allocation target). */
   readonly projectId?: string | null;
-  /** System category key `labor` - Mode B payroll/labor lump sum. */
+  /** System category key `internal_employee_payroll` - Mode B' payroll lump sum. */
   readonly isLaborCategory?: boolean;
   /** Source expense id - used to exclude bill-linked expenses from Actual. */
   readonly expenseId?: string | null;
@@ -39,6 +39,8 @@ export interface ProjectExpenseContribution {
   readonly vendorId?: string | null;
   readonly vendorName?: string | null;
   readonly vendorType?: string | null;
+  /** Expense classification review state for Owner bucket (needs_classification → other). */
+  readonly classificationStatus?: string | null;
 }
 
 export interface LaborCostContribution {
@@ -141,6 +143,7 @@ export function aggregateProjectCosts(
     if (
       shouldExcludeLaborExpenseForWorkforce({
         isLaborCategory: line.isLaborCategory ?? false,
+        categoryKey: line.categoryKey,
         projectId: line.projectId ?? null,
         hasWorkforceData: labor?.hasWorkforceData ?? false,
         projectIdsWithWorkforceLabor: labor?.projectIdsWithWorkforceLabor,

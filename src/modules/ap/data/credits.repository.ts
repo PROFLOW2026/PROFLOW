@@ -267,12 +267,33 @@ export async function listActiveCreditAmountsForBills(
 }
 
 /** Per-bill Actual reductions using each credit's own NET/GROSS. */
+export interface CreditActualReduction {
+  readonly amount: string;
+  readonly projectId: string | null;
+}
+
+export function creditActualReductionAmounts(
+  reductions: readonly CreditActualReduction[],
+): string[] {
+  return reductions.map((row) => row.amount);
+}
+
+/** Credits with a known project target do not reduce unrelated project Actual. */
+export function creditActualReductionsForProject(
+  reductions: readonly CreditActualReduction[],
+  projectId: string,
+): string[] {
+  return reductions
+    .filter((row) => row.projectId == null || row.projectId === projectId)
+    .map((row) => row.amount);
+}
+
 export async function listActiveCreditActualReductionsForBills(
   db: DbExecutor,
   organizationId: string,
   billIds: readonly string[],
-): Promise<Map<string, string[]>> {
-  const map = new Map<string, string[]>();
+): Promise<Map<string, CreditActualReduction[]>> {
+  const map = new Map<string, CreditActualReduction[]>();
   if (billIds.length === 0) return map;
   const rows = await db
     .select({
@@ -281,6 +302,7 @@ export async function listActiveCreditActualReductionsForBills(
       currency: apCreditApplications.currency,
       creditNet: apVendorCredits.netAmount,
       creditGross: apVendorCredits.grossAmount,
+      creditProjectId: apVendorCredits.projectId,
     })
     .from(apCreditApplications)
     .innerJoin(apVendorCredits, eq(apVendorCredits.id, apCreditApplications.creditId))
@@ -299,7 +321,7 @@ export async function listActiveCreditActualReductionsForBills(
       creditGross: row.creditGross,
     });
     const list = map.get(row.apBillId) ?? [];
-    list.push(reduction.amount);
+    list.push({ amount: reduction.amount, projectId: row.creditProjectId ?? null });
     map.set(row.apBillId, list);
   }
   return map;

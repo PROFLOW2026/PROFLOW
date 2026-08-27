@@ -20,6 +20,7 @@ import {
   resolveVendorBillProjectAmounts,
   scaleBillOutstandingToProjectSlice,
   scaleBillSliceAfterCredits,
+  netProjectSliceAfterCredits,
   listActiveCreditActualReductionsForBills,
 } from '@/modules/ap';
 import { RECOGNIZED_VENDOR_BILL_STATUSES } from '@/modules/ap/domain/vendor-cost-recognition';
@@ -417,11 +418,12 @@ export async function loadRecognizedVendorBillsForProject(
     const amountStr = resolved.amounts[i]!;
     const billId = resolved.billIds[i]!;
     const billNet = billNetById.get(billId) ?? amountStr;
-    const netted = scaleBillSliceAfterCredits({
+    const netted = netProjectSliceAfterCredits({
       currency: normalized,
       billNetAmount: billNet,
       sliceAmount: amountStr,
       creditActualReductions: creditsByBill.get(billId) ?? [],
+      projectId,
     });
     if (isZeroMoney(netted) || !isPositiveMoney(netted)) continue;
     billAmounts.push(netted.amount);
@@ -865,18 +867,19 @@ export async function loadRecognizedVendorBillsForProjects(
     );
 
     // Re-net amounts after credits.
-    for (const [, bucket] of billAmountsByProject) {
+    for (const [projectId, bucket] of billAmountsByProject) {
       const netAmounts: string[] = [];
       const netIds: string[] = [];
       let netTotal = zeroMoney(normalized);
       for (let i = 0; i < bucket.billAmounts.length; i += 1) {
         const billId = bucket.recognizedBillIds[i]!;
         const slice = bucket.billAmounts[i]!;
-        const netted = scaleBillSliceAfterCredits({
+        const netted = netProjectSliceAfterCredits({
           currency: normalized,
           billNetAmount: bucket.billNets.get(billId) ?? slice,
           sliceAmount: slice,
           creditActualReductions: creditsByBill.get(billId) ?? [],
+          projectId,
         });
         if (isZeroMoney(netted) || !isPositiveMoney(netted)) continue;
         netAmounts.push(netted.amount);
@@ -1098,11 +1101,12 @@ export async function loadRecognizedVendorBillsForProjects(
       const billId = resolved.billIds[i]!;
       if ((billCurrencyById.get(billId) ?? '').toUpperCase() !== normalized) continue;
       const billNet = billNetById.get(billId) ?? amountStr;
-      const netted = scaleBillSliceAfterCredits({
+      const netted = netProjectSliceAfterCredits({
         currency: normalized,
         billNetAmount: billNet,
         sliceAmount: amountStr,
         creditActualReductions: creditsByBill.get(billId) ?? [],
+        projectId,
       });
       if (isZeroMoney(netted) || !isPositiveMoney(netted)) continue;
       billAmounts.push(netted.amount);

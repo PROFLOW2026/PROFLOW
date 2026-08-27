@@ -65,6 +65,8 @@
     "lineTotal": "סה״כ שורה",
     "linePoLine": "שורת הזמנת רכש",
     "linePoLineNone": "ללא שורת הזמנה",
+    "lineCategory": "קטגוריית עלות",
+    "lineCategoryNone": "דורש סיווג",
     "totalLabel": "סכום שהוזן",
     "amountIncludesTax": "הסכום כולל מע״מ",
     "taxSplitHint": "אם מסומן, הסכום הוא ברוטו לתשלום ומע״מ מופרד. עלות בפועל = נטו. אם לא מסומן, הסכום הוא נטו ומע״מ מתווסף לתשלום לפי כלל המס של הארגון.",
@@ -400,6 +402,7 @@
     "retentionNotReleasable": "ניתן לשחרר עיכבון רק אחרי פרסום החשבון.",
     "retentionReleaseExceedsHeld": "השחרור אינו יכול לחרוג מהסכום המוחזק.",
     "retentionReleaseAmountInvalid": "סכום השחרור חייב להיות חיובי.",
-    "retentionReleaseDateFuture": "תאריך השחרור לא יכול להיות בעתיד."
+    "retentionReleaseDateFuture": "תאריך השחרור לא יכול להיות בעתיד.",
+    "classificationRequired": "יש לבחור סוג הוצאה לפני אישור העלות"
   }
 }

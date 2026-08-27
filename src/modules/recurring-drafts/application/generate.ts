@@ -4,6 +4,7 @@ import {
   insertApBillLines,
   resolveApBillTaxSplit,
 } from '@/modules/ap';
+import { allocateApLineMonetarySplits } from '@/modules/ap/domain/bill-line-monetary';
 import { createBillingRecord } from '@/modules/billing';
 import { createExpense, finalizeExpense } from '@/modules/expenses';
 import { isMonthClosed, yearMonthFromBusinessDate } from '@/modules/month-close';
@@ -159,19 +160,34 @@ async function createDraftEntity(
         );
       }
 
+      const lineSplits = allocateApLineMonetarySplits({
+        currency: insert.currency,
+        billNetAmount: taxSplit.netAmount,
+        billTaxAmount: taxSplit.taxAmount,
+        billGrossAmount: taxSplit.grossAmount,
+        lineAmountBasis: taxSplit.amountIncludesTax === true ? 'gross' : 'net',
+        lines: insert.lines,
+      });
+
       await insertApBillLines(
         context.db,
-        insert.lines.map((line, index) => ({
-          organizationId: context.organizationId,
-          apBillId: bill.id,
-          description: line.description,
-          quantity: line.quantity,
-          unitAmount: line.unitAmount,
-          lineTotal: line.lineTotal,
-          currency: line.currency,
-          purchaseOrderLineId: null,
-          sortOrder: index,
-        })),
+        insert.lines.map((line, index) => {
+          const monetary = lineSplits[index]!;
+          return {
+            organizationId: context.organizationId,
+            apBillId: bill.id,
+            description: line.description,
+            quantity: line.quantity,
+            unitAmount: line.unitAmount,
+            lineTotal: monetary.grossAmount,
+            netAmount: monetary.netAmount,
+            taxAmount: monetary.taxAmount,
+            grossAmount: monetary.grossAmount,
+            currency: line.currency,
+            purchaseOrderLineId: null,
+            sortOrder: index,
+          };
+        }),
       );
 
       return { id: bill.id, status: bill.status };

@@ -17,13 +17,19 @@ export interface CostCategoryPreset {
   readonly sortOrder: number;
 }
 
+/**
+ * Canonical transaction taxonomy shared by Expense + AP.
+ * Legacy `labor` is NOT offered for new orgs (historical rows may still exist).
+ * Internal employee payroll is Workforce — not seeded here.
+ */
 export const DEFAULT_COST_CATEGORIES: readonly CostCategoryPreset[] = [
   { key: 'materials', name: 'Materials', family: 'direct_project', sortOrder: 10 },
   { key: 'subcontractor', name: 'Subcontractor', family: 'direct_project', sortOrder: 20 },
-  { key: 'labor', name: 'Labor', family: 'direct_project', sortOrder: 30 },
+  { key: 'external_manpower', name: 'External manpower', family: 'direct_project', sortOrder: 25 },
+  { key: 'external_service', name: 'External professional service', family: 'direct_project', sortOrder: 28 },
   { key: 'equipment_rental', name: 'Equipment rental', family: 'direct_project', sortOrder: 40 },
   { key: 'permits_fees', name: 'Permits and fees', family: 'direct_project', sortOrder: 50 },
-  { key: 'project_travel', name: 'Project travel', family: 'direct_project', sortOrder: 60 },
+  { key: 'project_travel', name: 'Project travel / logistics', family: 'direct_project', sortOrder: 60 },
   { key: 'other_direct', name: 'Other direct cost', family: 'direct_project', sortOrder: 70 },
 
   { key: 'shared_supervision', name: 'Shared supervision', family: 'shared', sortOrder: 110 },

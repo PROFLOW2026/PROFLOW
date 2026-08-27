@@ -15,7 +15,7 @@ import {
   findExpenseById,
   updateExpenseRow,
 } from '../data/expenses.repository';
-import { voidScheduleLines } from '../data/managerial-schedule.repository';
+import { listScheduleLines, voidScheduleLines } from '../data/managerial-schedule.repository';
 import type { ExpenseDetail } from '../domain/types';
 
 const EXPENSE_AUDIT_VOIDED = 'expense.voided';
@@ -29,6 +29,8 @@ export async function voidExpense(context: OrgContext, expenseId: string): Promi
 
   const existing = await findExpenseById(context.db, context.organizationId, expenseId);
   if (!existing) throw new NotFoundError('Expense');
+
+  let scheduleYearMonths: string[] = [];
 
   try {
     await assertMonthOpenForRewrite(
@@ -47,6 +49,10 @@ export async function voidExpense(context: OrgContext, expenseId: string): Promi
       await unbookInventoryPurchaseFromExpense(context, { expenseId });
     }
 
+    scheduleYearMonths = (
+      await listScheduleLines(context.db, context.organizationId, expenseId)
+    ).map((line) => line.yearMonth);
+
     await updateExpenseRow(context.db, context.organizationId, expenseId, { status: 'void' });
     await voidScheduleLines(context.db, context.organizationId, expenseId);
   } catch (error) {
@@ -64,11 +70,14 @@ export async function voidExpense(context: OrgContext, expenseId: string): Promi
   const voided = await findExpenseById(context.db, context.organizationId, expenseId);
   if (!voided) throw new NotFoundError('Expense');
 
-  const { tryRecomputeOpenGeneralCostMonth } = await import(
+  const { tryRecomputeOpenGeneralCostMonthsForExpense } = await import(
     '@/modules/financials/application/recompute-general-cost-month'
   );
-  await tryRecomputeOpenGeneralCostMonth(context, { date: voided.expenseDate });
+  await tryRecomputeOpenGeneralCostMonthsForExpense(context, {
+    id: voided.id,
+    expenseDate: voided.expenseDate,
+    scheduleYearMonths,
+  });
 
   return voided;
 }
-

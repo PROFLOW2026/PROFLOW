@@ -22,8 +22,10 @@ import {
 import { sumInventoryWriteoffsForMonth } from '../data/inventory-consumptions.repository';
 import {
   findGeneralCostMonth,
+  listOpenGeneralCostYearMonths,
   persistGeneralCostMonthRecompute,
 } from '../data/general-cost-months.repository';
+import { listScheduleLines } from '@/modules/expenses/data/managerial-schedule.repository';
 import {
   allocateGeneralPoolByDirectActual,
   assertGeneralPoolConserves,
@@ -325,6 +327,43 @@ export async function tryRecomputeOpenGeneralCostMonth(
   }
 }
 
+/**
+ * Recompute expense_date month plus every schedule-line year_month (open only).
+ * Pass `scheduleYearMonths` when lines were already voided / replaced (e.g. void path).
+ */
+export async function tryRecomputeOpenGeneralCostMonthsForExpense(
+  context: OrgContext,
+  expense: {
+    readonly id: string;
+    readonly expenseDate: string;
+    readonly scheduleYearMonths?: readonly string[];
+  },
+): Promise<void> {
+  try {
+    const months = new Set<string>();
+    months.add(yearMonthFromBusinessDate(expense.expenseDate));
+    if (expense.scheduleYearMonths) {
+      for (const yearMonth of expense.scheduleYearMonths) {
+        months.add(yearMonth);
+      }
+    } else {
+      const lines = await listScheduleLines(
+        context.db,
+        context.organizationId,
+        expense.id,
+      );
+      for (const line of lines) {
+        months.add(line.yearMonth);
+      }
+    }
+    for (const yearMonth of [...months].sort()) {
+      await recomputeGeneralCostMonth(context, yearMonth);
+    }
+  } catch {
+    // Recognition path already succeeded; stale general pool is acceptable until next hook/load.
+  }
+}
+
 /** Fire-and-forget open-month refresh (mutation hooks). */
 export function scheduleOpenGeneralCostRecompute(
   context: OrgContext,
@@ -334,13 +373,37 @@ export function scheduleOpenGeneralCostRecompute(
 }
 
 /**
- * At most one open-month refresh per org financial surface request.
+ * Refresh every open (non-frozen) general-cost month for the org, and always
+ * ensure the current calendar month exists/is recomputed.
+ */
+export async function refreshAllOpenGeneralCostMonthsForSurfaces(
+  context: OrgContext,
+): Promise<void> {
+  if (!hasPermission(context, PERMISSIONS.PROJECT_FINANCIALS_READ)) return;
+  const currency = context.organization.baseCurrency;
+  const today = todayInTimeZone(context.organization.timezone);
+  const currentYearMonth = today.slice(0, 7);
+
+  await tryRecomputeOpenGeneralCostMonth(context, { yearMonth: currentYearMonth });
+
+  const openMonths = await listOpenGeneralCostYearMonths(
+    context.db,
+    context.organizationId,
+    currency,
+  );
+  for (const yearMonth of openMonths) {
+    if (yearMonth === currentYearMonth) continue;
+    await tryRecomputeOpenGeneralCostMonth(context, { yearMonth });
+  }
+}
+
+/**
+ * At most one open-month refresh wave per org financial surface request.
  * Prefer mutation hooks; this covers reads that need companyActual freshness.
+ * Delegates to all-open refresh so installment months stay current.
  */
 export async function refreshCurrentOpenGeneralCostMonthForSurfaces(
   context: OrgContext,
 ): Promise<void> {
-  if (!hasPermission(context, PERMISSIONS.PROJECT_FINANCIALS_READ)) return;
-  const today = todayInTimeZone(context.organization.timezone);
-  await tryRecomputeOpenGeneralCostMonth(context, { date: today });
+  await refreshAllOpenGeneralCostMonthsForSurfaces(context);
 }

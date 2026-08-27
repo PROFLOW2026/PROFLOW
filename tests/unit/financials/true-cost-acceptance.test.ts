@@ -140,6 +140,30 @@ describe('acceptance — company actual C/D/Q', () => {
     expect(shouldSurfaceCompanyActual(composition)).toBe(true);
   });
 
+  it('surfaces Company Actual when only Direct exists (pool zero)', () => {
+    const composition = composeCompanyActual({
+      currency: ILS,
+      directProjectActual: money('50000', ILS),
+      generalPool: money('0', ILS),
+      allocatedGeneralToProjects: money('0', ILS),
+      unallocatableGeneral: money('0', ILS),
+    });
+    expect(shouldSurfaceCompanyActual(composition)).toBe(true);
+    expect(toNumericString(composition.companyActual)).toBe('50000.000000');
+  });
+
+  it('Direct + pool compose (not Full-as-Direct wiring)', () => {
+    const composition = composeCompanyActual({
+      currency: ILS,
+      directProjectActual: money('100000', ILS),
+      generalPool: money('10000', ILS),
+      allocatedGeneralToProjects: money('10000', ILS),
+      unallocatableGeneral: money('0', ILS),
+    });
+    expect(toNumericString(composition.companyActual)).toBe('110000.000000');
+    expect(shouldSurfaceCompanyActual(composition)).toBe(true);
+  });
+
   it('company profit = revenue - company actual', () => {
     const profit = composeCompanyProfit({
       currency: ILS,

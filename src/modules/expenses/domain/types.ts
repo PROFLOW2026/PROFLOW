@@ -130,6 +130,8 @@ export interface TaxSnapshot {
   readonly capturedAt: string;
 }
 
+export type ClassificationStatus = 'classified' | 'needs_classification';
+
 export interface ExpenseSummary {
   readonly id: string;
   readonly expenseDate: BusinessDate;
@@ -141,6 +143,7 @@ export interface ExpenseSummary {
   readonly workPackageId: string | null;
   readonly costFamily: CostFamily;
   readonly costCategoryId: string | null;
+  readonly classificationStatus: ClassificationStatus;
   readonly grossAmount: MoneyValue;
   readonly netAmount: MoneyValue;
   readonly taxAmount: MoneyValue | null;

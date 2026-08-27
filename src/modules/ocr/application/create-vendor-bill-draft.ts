@@ -9,6 +9,7 @@ import {
   insertApBillLines,
 } from '@/modules/ap';
 import { resolveApBillTaxSplit } from '@/modules/ap/domain/bill-tax';
+import { allocateApLineMonetarySplits } from '@/modules/ap/domain/bill-line-monetary';
 import type { mapConfirmedFieldsToVendorBillDraft } from '../domain/confirm';
 
 export type VendorBillDraftPayload = ReturnType<typeof mapConfirmedFieldsToVendorBillDraft>;
@@ -91,19 +92,34 @@ export async function createVendorBillDraftFromOcr(
     );
   }
 
+  const lineSplits = allocateApLineMonetarySplits({
+    currency: draft.currency,
+    billNetAmount: taxSplit.netAmount,
+    billTaxAmount: taxSplit.taxAmount,
+    billGrossAmount: taxSplit.grossAmount,
+    lineAmountBasis: taxSplit.amountIncludesTax === true ? 'gross' : 'net',
+    lines: draft.lines,
+  });
+
   await insertApBillLines(
     context.db,
-    draft.lines.map((line, index) => ({
-      organizationId: context.organizationId,
-      apBillId: bill.id,
-      description: line.description,
-      quantity: line.quantity,
-      unitAmount: line.unitAmount,
-      lineTotal: line.lineTotal,
-      currency: line.currency,
-      purchaseOrderLineId: null,
-      sortOrder: index,
-    })),
+    draft.lines.map((line, index) => {
+      const monetary = lineSplits[index]!;
+      return {
+        organizationId: context.organizationId,
+        apBillId: bill.id,
+        description: line.description,
+        quantity: line.quantity,
+        unitAmount: line.unitAmount,
+        lineTotal: monetary.grossAmount,
+        netAmount: monetary.netAmount,
+        taxAmount: monetary.taxAmount,
+        grossAmount: monetary.grossAmount,
+        currency: line.currency,
+        purchaseOrderLineId: null,
+        sortOrder: index,
+      };
+    }),
   );
 
   return { id: bill.id, status: 'draft' };

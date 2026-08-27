@@ -173,13 +173,16 @@ export type {
 export {
   recomputeGeneralCostMonth,
   recomputeOpenGeneralCostMonthForDate,
+  refreshAllOpenGeneralCostMonthsForSurfaces,
   refreshCurrentOpenGeneralCostMonthForSurfaces,
   scheduleOpenGeneralCostRecompute,
   tryRecomputeOpenGeneralCostMonth,
+  tryRecomputeOpenGeneralCostMonthsForExpense,
 } from './application/recompute-general-cost-month';
 export type { OpenGeneralCostMonthTarget } from './application/recompute-general-cost-month';
 export {
   freezeGeneralCostMonth,
+  listOpenGeneralCostYearMonths,
   persistGeneralCostMonthRecompute,
   sumGeneralAllocationsForProject,
   sumGeneralAllocationsGroupedByProject,

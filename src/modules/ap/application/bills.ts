@@ -61,6 +61,15 @@ import {
   resolveOrgDefaultPaymentTermIdForContext,
 } from '@/modules/business-catalog';
 import { findVendorById, findSubcontractAgreementById } from '@/modules/vendors';
+import { findCostCategoryById } from '@/modules/expenses/data/expenses.repository';
+import {
+  isDeprecatedForNewTransactionEntry,
+  resolveApClassificationStatus,
+} from '@/modules/financials/domain/economic-classification';
+import {
+  allocateApLineMonetarySplits,
+  assertApLineNetConservesBill,
+} from '../domain/bill-line-monetary';
 
 async function consumePoCommitmentForPostedBill(
   context: OrgContext,
@@ -111,6 +120,93 @@ function assertBillTotalMatchesLines(input: {
       'ap.errors.totalMismatch',
     );
   }
+}
+
+async function resolveLineClassification(
+  context: OrgContext,
+  line: { readonly costCategoryId?: string | null; readonly costFamily?: string | null },
+): Promise<{ readonly categoryKey: string | null; readonly classificationStatus: 'classified' | 'needs_classification' }> {
+  if (!line.costCategoryId) {
+    return { categoryKey: null, classificationStatus: 'needs_classification' };
+  }
+  const category = await findCostCategoryById(
+    context.db,
+    context.organizationId,
+    line.costCategoryId,
+  );
+  return {
+    categoryKey: category?.key ?? null,
+    classificationStatus: resolveApClassificationStatus({
+      costCategoryId: line.costCategoryId,
+      categoryKey: category?.key ?? null,
+    }),
+  };
+}
+
+function assertAllLinesClassifiedForRecognition(
+  lines: readonly {
+    readonly classificationStatus: string;
+    readonly costCategoryId: string | null;
+  }[],
+): void {
+  if (lines.length === 0) {
+    throw new DomainRuleError(
+      'Recognized AP bills require at least one classified line',
+      'ap.errors.linesRequired',
+    );
+  }
+  for (const line of lines) {
+    if (
+      line.classificationStatus !== 'classified' ||
+      line.costCategoryId == null ||
+      String(line.costCategoryId).trim() === ''
+    ) {
+      throw new DomainRuleError(
+        'Choose an expense type on every line before recognizing this bill',
+        'ap.errors.classificationRequired',
+      );
+    }
+  }
+}
+
+async function promoteDraftApBillToOpen(
+  context: OrgContext,
+  bill: ApBillRow,
+  options: { readonly postedFromDraft?: boolean } = {},
+): Promise<ApBillRow> {
+  const lines = await listApBillLines(context.db, context.organizationId, bill.id);
+  assertAllLinesClassifiedForRecognition(lines);
+
+  const updated = await updateApBillFields(context.db, context.organizationId, bill.id, {
+    status: 'open',
+    retentionHeldRemaining: bill.retentionAmount,
+  });
+  if (!updated) throw new NotFoundError('AP bill');
+
+  if (updated.purchaseOrderId) {
+    await consumePoCommitmentForPostedBill(context, updated.purchaseOrderId, updated.netAmount);
+  }
+
+  await recordAuditEvent(context, {
+    action: AUDIT_ACTIONS.AP_BILL_CREATED,
+    entityType: 'ap_bill',
+    entityId: updated.id,
+    after: {
+      id: updated.id,
+      status: updated.status,
+      totalAmount: updated.totalAmount,
+      recognizedVendorActual: true,
+      postedFromDraft: options.postedFromDraft ?? false,
+    },
+  });
+
+  const billDate = updated.billDate ?? updated.createdAt.toISOString().slice(0, 10);
+  const { tryRecomputeOpenGeneralCostMonth } = await import(
+    '@/modules/financials/application/recompute-general-cost-month'
+  );
+  await tryRecomputeOpenGeneralCostMonth(context, { date: billDate });
+
+  return updated;
 }
 
 export async function listApBillsForOrg(
@@ -181,11 +277,6 @@ export async function createApBill(context: OrgContext, raw: CreateApBillInput) 
   }
 
   const input = parsed.data;
-  assertBillTotalMatchesLines({
-    currency: input.currency,
-    totalAmount: input.totalAmount,
-    lines: input.lines,
-  });
 
   const vendorOk = await assertVendorInOrganization(
     context.db,
@@ -276,6 +367,28 @@ export async function createApBill(context: OrgContext, raw: CreateApBillInput) 
     resolved: taxResolution.resolved,
   });
 
+  const lineAmountBasis = input.amountIncludesTax === true ? 'gross' : 'net';
+
+  const lineMonetarySplits = allocateApLineMonetarySplits({
+    currency: input.currency,
+    billNetAmount: taxSplit.netAmount,
+    billTaxAmount: taxSplit.taxAmount,
+    billGrossAmount: taxSplit.grossAmount,
+    lineAmountBasis,
+    lines: input.lines,
+  });
+  assertBillTotalMatchesLines({
+    currency: input.currency,
+    totalAmount:
+      lineAmountBasis === 'gross' ? taxSplit.grossAmount : taxSplit.netAmount,
+    lines: input.lines,
+  });
+  assertApLineNetConservesBill({
+    currency: input.currency,
+    billNetAmount: taxSplit.netAmount,
+    lineNetAmounts: lineMonetarySplits.map((split) => split.netAmount),
+  });
+
   let projectId = input.projectId ?? null;
 
   if (purchaseOrderId) {
@@ -303,6 +416,26 @@ export async function createApBill(context: OrgContext, raw: CreateApBillInput) 
   }
 
   for (const line of input.lines) {
+    if (line.costCategoryId) {
+      const category = await findCostCategoryById(
+        context.db,
+        context.organizationId,
+        line.costCategoryId,
+      );
+      if (!category) throw new NotFoundError('Cost category');
+      if (isDeprecatedForNewTransactionEntry(category.key)) {
+        throw new DomainRuleError(
+          `Category ${category.key} is not available for new AP lines`,
+          'ap.errors.categoryNotAllowed',
+        );
+      }
+      if (line.costFamily && line.costFamily !== category.family) {
+        throw new DomainRuleError(
+          'cost_family contradicts category family',
+          'ap.errors.categoryFamilyMismatch',
+        );
+      }
+    }
     if (!line.purchaseOrderLineId) continue;
     const poLine = await findPurchaseOrderLineInOrg(
       context.db,
@@ -355,13 +488,46 @@ export async function createApBill(context: OrgContext, raw: CreateApBillInput) 
     initialStatus === 'open' ? heldRemainingOnPost(retention) : toNumericString(money('0', input.currency));
 
   const reference = await resolveAllocatedReference(context, 'vendor_bill', input.reference);
+
+  const resolvedLines = await Promise.all(
+    input.lines.map(async (line) => ({
+      line,
+      classification: await resolveLineClassification(context, line),
+    })),
+  );
+
+  const linePayloads = resolvedLines.map(({ line, classification }, index) => {
+    const monetary = lineMonetarySplits[index]!;
+    const economicTargetType = line.economicTargetType ?? 'inherit';
+    return {
+      organizationId: context.organizationId,
+      apBillId: '' as string,
+      description: line.description,
+      quantity: line.quantity,
+      unitAmount: line.unitAmount,
+      lineTotal: monetary.grossAmount,
+      netAmount: monetary.netAmount,
+      taxAmount: monetary.taxAmount,
+      grossAmount: monetary.grossAmount,
+      currency: line.currency.toUpperCase(),
+      economicTargetType,
+      projectId:
+        economicTargetType === 'project' ? (line.projectId ?? projectId ?? null) : null,
+      purchaseOrderLineId: line.purchaseOrderLineId ?? null,
+      costCategoryId: line.costCategoryId ?? null,
+      costFamily: line.costFamily ?? null,
+      classificationStatus: classification.classificationStatus,
+      sortOrder: index,
+    };
+  });
+
   const bill = await insertApBill(context.db, {
     organizationId: context.organizationId,
     vendorId: input.vendorId,
     projectId,
     purchaseOrderId,
     reference,
-    status: initialStatus,
+    status: 'draft',
     billDate,
     dueDate,
     paymentTermId,
@@ -381,23 +547,15 @@ export async function createApBill(context: OrgContext, raw: CreateApBillInput) 
 
   await insertApBillLines(
     context.db,
-    input.lines.map((line, index) => ({
-      organizationId: context.organizationId,
+    linePayloads.map((row) => ({
+      ...row,
       apBillId: bill.id,
-      description: line.description,
-      quantity: line.quantity,
-      unitAmount: line.unitAmount,
-      lineTotal: line.lineTotal,
-      currency: line.currency.toUpperCase(),
-      purchaseOrderLineId: line.purchaseOrderLineId ?? null,
-      sortOrder: index,
     })),
   );
 
-  // Posted PO-linked bill → consume commitment by bill total (Actual recognition path).
-  // Draft (awaiting approval) must NOT consume commitment or recognize Actual.
-  if (purchaseOrderId && initialStatus === 'open') {
-    await consumePoCommitmentForPostedBill(context, purchaseOrderId, bill.netAmount);
+  let resultBill = bill;
+  if (initialStatus === 'open') {
+    resultBill = await promoteDraftApBillToOpen(context, bill);
   }
 
   if (matchingApproval) {
@@ -418,25 +576,18 @@ export async function createApBill(context: OrgContext, raw: CreateApBillInput) 
   await recordAuditEvent(context, {
     action: AUDIT_ACTIONS.AP_BILL_CREATED,
     entityType: 'ap_bill',
-    entityId: bill.id,
+    entityId: resultBill.id,
     after: {
-      id: bill.id,
-      status: bill.status,
-      totalAmount: bill.totalAmount,
+      id: resultBill.id,
+      status: resultBill.status,
+      totalAmount: resultBill.totalAmount,
       expenseCreated: false,
-      recognizedVendorActual: initialStatus === 'open',
+      recognizedVendorActual: resultBill.status === 'open',
       awaitingApproval: Boolean(matchingApproval),
     },
   });
 
-  if (initialStatus === 'open') {
-    const { tryRecomputeOpenGeneralCostMonth } = await import(
-      '@/modules/financials/application/recompute-general-cost-month'
-    );
-    await tryRecomputeOpenGeneralCostMonth(context, { date: billDate });
-  }
-
-  return bill;
+  return resultBill;
 }
 
 /**
@@ -467,36 +618,10 @@ export async function postApBill(context: OrgContext, billId: string): Promise<A
     submitIfMissing: true,
   });
 
-  const updated = await updateApBillFields(context.db, context.organizationId, bill.id, {
-    status: 'open',
-    retentionHeldRemaining: bill.retentionAmount,
-  });
-  if (!updated) throw new NotFoundError('AP bill');
+  const lines = await listApBillLines(context.db, context.organizationId, bill.id);
+  assertAllLinesClassifiedForRecognition(lines);
 
-  if (updated.purchaseOrderId) {
-    await consumePoCommitmentForPostedBill(context, updated.purchaseOrderId, updated.netAmount);
-  }
-
-  await recordAuditEvent(context, {
-    action: AUDIT_ACTIONS.AP_BILL_CREATED,
-    entityType: 'ap_bill',
-    entityId: updated.id,
-    after: {
-      id: updated.id,
-      status: updated.status,
-      totalAmount: updated.totalAmount,
-      recognizedVendorActual: true,
-      postedFromDraft: true,
-    },
-  });
-
-  const billDate = updated.billDate ?? updated.createdAt.toISOString().slice(0, 10);
-  const { tryRecomputeOpenGeneralCostMonth } = await import(
-    '@/modules/financials/application/recompute-general-cost-month'
-  );
-  await tryRecomputeOpenGeneralCostMonth(context, { date: billDate });
-
-  return updated;
+  return promoteDraftApBillToOpen(context, bill, { postedFromDraft: true });
 }
 
 /**

@@ -5,6 +5,8 @@ import { PageHeader } from '@/components/ui/page-header';
 import { Button } from '@/components/ui/button';
 import { listBusinessCatalog, localizePaymentTermOptions } from '@/modules/business-catalog';
 import { listExpenseOverlapCandidates } from '@/modules/financials';
+import { isDeprecatedForNewTransactionEntry } from '@/modules/financials/domain/economic-classification';
+import { listCostCategoriesForOrg } from '@/modules/expenses';
 import { listPurchaseOrderLinesForOrg, listPurchaseOrdersForOrg } from '@/modules/procurement';
 import { listProjectsForOrg } from '@/modules/projects';
 import { listVendorsForOrg } from '@/modules/vendors';
@@ -37,7 +39,7 @@ export default async function NewApBillPage({
   const search = await searchParams;
   const requestedPoId = typeof search.purchaseOrderId === 'string' ? search.purchaseOrderId : '';
 
-  const { vendors, projects, purchaseOrders, poLinesByPoId, paymentTerms, defaultCurrency, canManage, expenseOverlapCandidates } =
+  const { vendors, projects, purchaseOrders, poLinesByPoId, paymentTerms, costCategories, defaultCurrency, canManage, expenseOverlapCandidates } =
     await withOrgContext(async (context) => {
       const canReadVendors = hasPermission(context, PERMISSIONS.VENDORS_READ);
       const canReadProjects = hasPermission(context, PERMISSIONS.PROJECTS_READ);
@@ -45,7 +47,8 @@ export default async function NewApBillPage({
       const canReadCatalog = hasPermission(context, PERMISSIONS.ORG_READ);
       const canReadExpenses = hasPermission(context, PERMISSIONS.EXPENSES_READ);
 
-      const [vendorRows, projectRows, poRows, termRows, expenseCandidates] = await Promise.all([
+      const [vendorRows, projectRows, poRows, termRows, expenseCandidates, categoryRows] =
+        await Promise.all([
         canReadVendors ? listVendorsForOrg(context, { status: 'active' }) : Promise.resolve([]),
         canReadProjects ? listProjectsForOrg(context, { status: 'active' }) : Promise.resolve([]),
         canReadPo ? listPurchaseOrdersForOrg(context) : Promise.resolve([]),
@@ -54,6 +57,9 @@ export default async function NewApBillPage({
           : Promise.resolve([]),
         canReadExpenses
           ? listExpenseOverlapCandidates(context.db, context.organizationId)
+          : Promise.resolve([]),
+        canReadExpenses
+          ? listCostCategoriesForOrg(context).catch(() => [])
           : Promise.resolve([]),
       ]);
 
@@ -91,6 +97,14 @@ export default async function NewApBillPage({
           { id: string; description: string; lineTotal: string; currency: string }[]
         >,
         paymentTerms: localizePaymentTermOptions(termRows, locale),
+        costCategories: categoryRows
+          .filter((category) => !isDeprecatedForNewTransactionEntry(category.key))
+          .map((category) => ({
+            id: category.id,
+            key: category.key,
+            name: category.name,
+            family: category.family,
+          })),
         defaultCurrency: context.organization.baseCurrency,
         canManage: hasPermission(context, PERMISSIONS.AP_MANAGE),
         expenseOverlapCandidates: expenseCandidates,
@@ -132,6 +146,7 @@ export default async function NewApBillPage({
           purchaseOrders={purchaseOrders}
           poLinesByPoId={poLinesByPoId}
           paymentTerms={paymentTerms}
+          costCategories={costCategories}
           defaultPurchaseOrderId={requestedPoId}
           expenseOverlapCandidates={expenseOverlapCandidates}
         />

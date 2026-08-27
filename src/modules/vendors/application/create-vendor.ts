@@ -6,7 +6,8 @@ import type { OrgContext } from '@/shared/auth/context';
 import { noteModuleUsage } from '@/modules/tenancy';
 import { resolveDocumentPaymentTermId } from '@/modules/business-catalog';
 import { resolveOrgDefaultPaymentTermIdForContext } from '@/modules/business-catalog/application/payment-term-defaults';
-import type { VendorRecord } from '../domain/types';import { findVendorById, insertVendor } from '../data/vendors.repository';
+import type { VendorRecord } from '../domain/types';
+import { findVendorById, insertVendor } from '../data/vendors.repository';
 import { createVendorSchema, type CreateVendorInput } from '../validation/schemas';
 import { setVendorCatalogLinks } from './manage-catalog-links';
 
@@ -48,7 +49,7 @@ export async function createVendor(
   const vendor = await insertVendor(context.db, {
     organizationId: context.organizationId,
     name: input.name,
-    type: input.type,
+    type: input.type ?? 'supplier',
     email: input.email ?? null,
     phone: input.phone ?? null,
     website: input.website ?? null,

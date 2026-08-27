@@ -1,38 +1,66 @@
 /**
  * V1 labor double-count rule (docs/financial/LABOR-COST-INTEGRITY.md).
  *
- * Mode B: generic labor expense (system category key `labor`).
- * Mode C: time-entry True Cost.
- * When Mode C has data for a project, Mode B labor expenses for that project
- * are excluded from Actual so payroll lump sums do not stack on True Cost.
+ * Mode B (legacy): generic system category key `labor` — external/service-capable;
+ * stays in Actual even when workforce True Cost is present.
+ * Mode B' (0070+): `internal_employee_payroll` — RESTRICTED exception classification.
+ * Mode C: time-entry / monthly True Cost.
+ *
+ * Internal employee payroll must NEVER silently duplicate Workforce Actual.
+ * Recognition: always exclude `internal_employee_payroll` expenses from Actual.
+ * External labor / subcontractor / manpower remain legitimate and separate.
  */
 
-/** Stable system cost-category key seeded in organization defaults. */
+/** Legacy / display system cost-category key (external labor / service-capable). */
 export const LABOR_COST_CATEGORY_KEY = 'labor';
+
+/** Explicit internal employee payroll — restricted; never silent ordinary Actual. */
+export const INTERNAL_EMPLOYEE_PAYROLL_CATEGORY_KEY = 'internal_employee_payroll';
 
 export function isLaborCostCategoryKey(key: string | null | undefined): boolean {
   return (key ?? '').trim().toLowerCase() === LABOR_COST_CATEGORY_KEY;
 }
 
+export function isInternalEmployeePayrollCategoryKey(key: string | null | undefined): boolean {
+  return (key ?? '').trim().toLowerCase() === INTERNAL_EMPLOYEE_PAYROLL_CATEGORY_KEY;
+}
+
 /**
  * Whether a contribution should be omitted from Actual under the V1 rule.
  *
- * - Project scope: pass `hasWorkforceData` and omit `projectIdsWithWorkforceLabor`.
- * - Org scope: pass the set of project ids that have workforce labor; only those
- *   projects' labor-category expenses are excluded.
+ * ALWAYS true for `internal_employee_payroll` (restricted — Workforce is the
+ * only internal payroll Actual path). Generic `labor` never excludes.
+ *
+ * `hasWorkforceData` / project id sets are retained for caller compatibility
+ * but are not required to exclude internal payroll.
  */
 export function shouldExcludeLaborExpenseForWorkforce(input: {
-  readonly isLaborCategory: boolean;
+  /** True when category is internal_employee_payroll (loader exclusion flag). */
+  readonly isLaborCategory?: boolean;
+  readonly categoryKey?: string | null;
   readonly projectId: string | null;
   readonly hasWorkforceData: boolean;
   readonly projectIdsWithWorkforceLabor?: ReadonlySet<string>;
 }): boolean {
-  if (!input.isLaborCategory || !input.hasWorkforceData) return false;
+  const hasCategoryKey = input.categoryKey != null && String(input.categoryKey).trim() !== '';
+  const isInternalPayroll = hasCategoryKey
+    ? isInternalEmployeePayrollCategoryKey(input.categoryKey)
+    : input.isLaborCategory === true;
 
-  if (input.projectIdsWithWorkforceLabor) {
-    if (input.projectId == null) return false;
-    return input.projectIdsWithWorkforceLabor.has(input.projectId);
-  }
+  return isInternalPayroll;
+}
 
-  return true;
+/**
+ * App-layer guard: ordinary Expense/AP must never use internal_employee_payroll.
+ * Workforce is the only internal payroll Actual path (DB also enforces).
+ */
+export function assertInternalPayrollExpenseAllowed(input: {
+  readonly categoryKey?: string | null;
+}): void {
+  if (!isInternalEmployeePayrollCategoryKey(input.categoryKey)) return;
+  const err = new Error(
+    'internal_employee_payroll is not allowed on ordinary Expense/AP; use Workforce',
+  );
+  err.name = 'DomainRuleError';
+  throw err;
 }

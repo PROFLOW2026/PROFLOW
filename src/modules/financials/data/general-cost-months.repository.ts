@@ -1160,3 +1160,26 @@ export async function sumOrganizationGeneralPoolTotals(
 }
 
 
+
+/** Open (non-frozen) general-cost year months for an org/currency, ascending. */
+export async function listOpenGeneralCostYearMonths(
+  db: DbExecutor,
+  organizationId: string,
+  currency: string,
+): Promise<readonly string[]> {
+  const rows = await db
+    .select({ yearMonth: generalCostMonths.yearMonth })
+    .from(generalCostMonths)
+    .where(
+      and(
+        eq(generalCostMonths.organizationId, organizationId),
+        sql`upper(${generalCostMonths.currency}) = upper(${currency})`,
+        eq(generalCostMonths.status, 'open'),
+      ),
+    )
+    .orderBy(generalCostMonths.yearMonth);
+
+  return [...new Set(rows.map((row) => row.yearMonth))];
+}
+
+

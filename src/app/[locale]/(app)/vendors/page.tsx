@@ -1,6 +1,6 @@
 import { Plus, Truck } from 'lucide-react';
 import type { Metadata } from 'next';
-import { getTranslations } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/ui/page-header';
@@ -8,7 +8,7 @@ import { StatusBadge } from '@/components/ui/status-badge';
 import { ResponsiveTable } from '@/components/patterns/responsive-table';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { listVendorsForOrg } from '@/modules/vendors';
-import { listBusinessCatalog } from '@/modules/business-catalog';
+import { listBusinessCatalog, localizeVendorCategoryOptions } from '@/modules/business-catalog';
 import { SavedListViewsBar } from '@/modules/tenancy/ui/saved-list-views-bar';
 import { withOrgContext } from '@/shared/auth/session';
 import { Link } from '@/shared/i18n/navigation';
@@ -40,6 +40,7 @@ export default async function VendorsPage({
 }) {
   const t = await getTranslations('vendors');
   const tCommon = await getTranslations('common');
+  const locale = await getLocale();
   const params = await searchParams;
   const q = params.q;
   const type = params.type && params.type !== 'all' ? params.type : undefined;
@@ -48,16 +49,27 @@ export default async function VendorsPage({
     params.categoryId && params.categoryId !== 'all' ? params.categoryId : undefined;
   const filtersActive = Boolean(q?.trim() || type || status || categoryId);
 
-  const { vendors, canManage, categories } = await withOrgContext(async (context) => ({
-    vendors: await listVendorsForOrg(context, {
-      search: q,
-      type: type as 'supplier' | undefined,
-      status: status as 'active' | undefined,
-      categoryId,
-    }),
-    canManage: hasPermission(context, PERMISSIONS.VENDORS_MANAGE),
-    categories: await listBusinessCatalog(context, 'vendor_category').catch(() => []),
-  }));
+  const { vendors, canManage, categories } = await withOrgContext(async (context) => {
+    const categoryRows = await listBusinessCatalog(context, 'vendor_category').catch(() => []);
+    return {
+      vendors: await listVendorsForOrg(context, {
+        search: q,
+        type: type as 'supplier' | undefined,
+        status: status as 'active' | undefined,
+        categoryId,
+      }),
+      canManage: hasPermission(context, PERMISSIONS.VENDORS_MANAGE),
+      categories: localizeVendorCategoryOptions(
+        categoryRows.map((row) => ({
+          id: row.id,
+          key: row.key,
+          name: row.name,
+          isSystem: row.isSystem,
+        })),
+        locale,
+      ),
+    };
+  });
 
   return (
     <div className="flex flex-col gap-6">

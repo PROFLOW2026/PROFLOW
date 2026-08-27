@@ -15,6 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   localizePaymentTermName,
 } from '@/modules/business-catalog/domain/payment-term-labels';
+import { localizeVendorCategoryName } from '@/modules/business-catalog/domain/vendor-capability-labels';
 import {
   parsePaymentTermMetadata,
   type BusinessCatalogKind,
@@ -412,7 +413,9 @@ function CatalogEntryRow({
   const displayName =
     entry.kind === 'payment_term'
       ? localizePaymentTermName(entry.key, entry.name, locale)
-      : entry.name;
+      : entry.kind === 'vendor_category'
+        ? localizeVendorCategoryName(entry.key, entry.name, locale, entry.isSystem)
+        : entry.name;
 
   async function handleDeactivate() {
     const result = await deactivateCatalogEntryAction(entry.id);

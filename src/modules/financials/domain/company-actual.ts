@@ -238,9 +238,8 @@ export function shouldSurfaceCompanyActual(
 ): boolean {
   if (!composition) return false;
   return (
-    !isZeroMoney(composition.generalRecognizedActual) ||
-    !isZeroMoney(composition.allocatedGeneralToProjects) ||
-    !isZeroMoney(composition.unallocatableGeneral)
+    !isZeroMoney(composition.companyActual) ||
+    !isZeroMoney(composition.generalRecognizedActual)
   );
 }
 

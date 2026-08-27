@@ -299,7 +299,10 @@ describe('migration journal', () => {
     expect(tags.indexOf('0068_rate_versions_working_days_per_month')).toBeLessThan(
       tags.indexOf('0069_true_cost_profitability'),
     );
-    expect(tags.at(-1)).toBe('0069_true_cost_profitability');
+    expect(tags.indexOf('0069_true_cost_profitability')).toBeLessThan(
+      tags.indexOf('0070_financial_classification_architecture'),
+    );
+    expect(tags.at(-1)).toBe('0070_financial_classification_architecture');
 
     const sql66 = await readFile(
       path.join(MIGRATIONS_DIR, '0066_workforce_time_integrity.sql'),
@@ -354,6 +357,19 @@ describe('migration journal', () => {
     expect(sql69).toContain('inventory_cost_consumptions_movement_layer_uq');
     expect(sql69).toContain('inventory_cost_consumptions_material_layer_uq');
     expect(sql69).toMatch(/inventory_cost_layers_id_org_item_uq|\(id,\s*organization_id,\s*inventory_item_id\)/);
+
+    const sql70 = await readFile(
+      path.join(MIGRATIONS_DIR, '0070_financial_classification_architecture.sql'),
+      'utf8',
+    );
+    expect(sql70).not.toMatch(/DROP\s+TABLE/i);
+    expect(sql70).not.toMatch(/DROP\s+TABLE[\s\S]*CASCADE/i);
+    expect(sql70).toContain('assert_expense_recognition_gate');
+    expect(sql70).toContain('assert_ap_bill_recognition_gate');
+    expect(sql70).not.toContain('ap_bills_classification_status_known');
+    expect(sql70).toContain('external_service');
+    expect(sql70).toContain('vendor_catalog_links');
+    expect(sql70).not.toMatch(/CREATE TABLE IF NOT EXISTS public\.vendor_roles/);
 
     const sql35 = await readFile(
       path.join(MIGRATIONS_DIR, '0035_boq_integrity_closure.sql'),

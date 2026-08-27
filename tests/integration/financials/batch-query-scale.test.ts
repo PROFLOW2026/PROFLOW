@@ -102,6 +102,12 @@ describe('financial batch query scale (N=1 vs N=30)', () => {
         })),
       );
 
+      const materialsId = randomUUID();
+      await db.execute(sql`
+        INSERT INTO cost_categories (id, organization_id, key, name, family, is_system, sort_order)
+        VALUES (${materialsId}::uuid, ${orgId}::uuid, 'materials', 'Materials', 'direct_project', true, 1)
+      `);
+
       for (let i = 0; i < projectIds.length; i += 1) {
         const projectId = projectIds[i]!;
         const billId = randomUUID();
@@ -112,7 +118,7 @@ describe('financial batch query scale (N=1 vs N=30)', () => {
           organizationId: orgId,
           vendorId,
           projectId,
-          status: 'open',
+          status: 'draft',
           currency: 'ILS',
           totalAmount: '1000.000000',
           netAmount: '1000.000000',
@@ -122,6 +128,20 @@ describe('financial batch query scale (N=1 vs N=30)', () => {
           billDate: '2026-06-01',
           retentionHeldRemaining: '0',
         });
+
+        await db.execute(sql`
+          INSERT INTO ap_bill_lines (
+            organization_id, ap_bill_id, description, quantity, unit_amount, line_total,
+            net_amount, tax_amount, gross_amount, currency, classification_status, cost_category_id, sort_order
+          ) VALUES (
+            ${orgId}::uuid, ${billId}::uuid, 'Scale line', 1, 1000, 1000,
+            1000, 0, 1000, 'ILS', 'classified', ${materialsId}::uuid, 0
+          )
+        `);
+
+        await db.execute(sql`
+          UPDATE ap_bills SET status = 'open' WHERE id = ${billId}::uuid
+        `);
 
         await db.insert(apBillProjectAllocations).values({
           organizationId: orgId,

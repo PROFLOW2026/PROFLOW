@@ -15,6 +15,7 @@ import type {
   AllocationMethod,
   AllocationScheduleMode,
   CategoryPeriodBehavior,
+  ClassificationStatus,
   CostFamily,
   ExpenseDetail,
   ExpenseStatus,
@@ -24,6 +25,10 @@ import type {
   WorkPackageOption,
 } from '../domain/types';
 import { allocationFromPersisted } from '../domain/allocation';
+
+function mapClassificationStatus(value: string | null | undefined): ClassificationStatus {
+  return value === 'needs_classification' ? 'needs_classification' : 'classified';
+}
 
 export interface ExpenseListFilters {
   readonly dateFrom?: BusinessDate;
@@ -69,6 +74,7 @@ export interface ExpenseInsertRow {
   readonly inventoryStockPurchase?: boolean;
   readonly inventoryItemId?: string | null;
   readonly inventoryPurchaseQty?: string | null;
+  readonly classificationStatus?: ClassificationStatus;
   readonly createdByUserId: string | null;
 }
 
@@ -101,6 +107,7 @@ function mapSummary(row: {
   workPackageId: string | null;
   costFamily: CostFamily;
   costCategoryId: string | null;
+  classificationStatus?: string | null;
   netAmount: string;
   taxAmount: string | null;
   grossAmount: string;
@@ -119,6 +126,7 @@ function mapSummary(row: {
     workPackageId: row.workPackageId,
     costFamily: row.costFamily,
     costCategoryId: row.costCategoryId,
+    classificationStatus: mapClassificationStatus(row.classificationStatus),
     grossAmount: mapMoney(row.grossAmount, row.currency),
     netAmount: mapMoney(row.netAmount, row.currency),
     taxAmount: row.taxAmount ? mapMoney(row.taxAmount, row.currency) : null,
@@ -250,6 +258,7 @@ export async function findExpenseById(
       phaseId: expenses.phaseId,
       costFamily: expenses.costFamily,
       costCategoryId: expenses.costCategoryId,
+      classificationStatus: expenses.classificationStatus,
       netAmount: expenses.netAmount,
       taxAmount: expenses.taxAmount,
       grossAmount: expenses.grossAmount,
@@ -388,6 +397,7 @@ export async function listExpenses(
       workPackageId: expenses.workPackageId,
       costFamily: expenses.costFamily,
       costCategoryId: expenses.costCategoryId,
+      classificationStatus: expenses.classificationStatus,
       netAmount: expenses.netAmount,
       taxAmount: expenses.taxAmount,
       grossAmount: expenses.grossAmount,
@@ -537,6 +547,7 @@ export async function findCostCategoryById(
   categoryId: string,
 ): Promise<{
   id: string;
+  key: string;
   family: CostFamily;
   defaultAllocationMethod: AllocationMethod | null;
   defaultPeriodBehavior: CategoryPeriodBehavior | null;
@@ -544,6 +555,7 @@ export async function findCostCategoryById(
   const [row] = await db
     .select({
       id: costCategories.id,
+      key: costCategories.key,
       family: costCategories.family,
       defaultAllocationMethod: costCategories.defaultAllocationMethod,
       defaultPeriodBehavior: costCategories.defaultPeriodBehavior,

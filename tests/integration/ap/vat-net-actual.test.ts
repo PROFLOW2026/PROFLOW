@@ -4,7 +4,8 @@ import { loadRecognizedVendorBillsForProject } from '@/modules/financials/data/c
 import { resolveOrgContext } from '@/modules/tenancy';
 import { createVendor } from '@/modules/vendors';
 import { createProject } from '@/modules/projects';
-import { createTestDatabase, type TestDatabase } from '@tests/setup/database';
+import { sql } from 'drizzle-orm';
+import { createTestDatabase, resultRows, type TestDatabase } from '@tests/setup/database';
 import { provisionTwoTenants } from '../billing/setup';
 
 const ILS = 'ILS';
@@ -35,6 +36,12 @@ describe('AP VAT: Actual NET vs payable GROSS', () => {
       });
       const vendor = await createVendor(context, { name: 'VAT Vendor' });
       const project = await createProject(context, { name: 'VAT Project' });
+      const categoryRows = resultRows<{ id: string }>(
+        await tx.execute(sql`
+          SELECT id FROM cost_categories
+          WHERE organization_id=${orgA.organization.id}::uuid AND key='materials' LIMIT 1
+        `),
+      );
       const bill = await createApBill(context, {
         vendorId: vendor.id,
         projectId: project.projectId,
@@ -51,6 +58,8 @@ describe('AP VAT: Actual NET vs payable GROSS', () => {
             unitAmount: '117',
             lineTotal: '117',
             currency: ILS,
+            costCategoryId: categoryRows[0]!.id,
+            costFamily: 'direct_project',
           },
         ],
       });

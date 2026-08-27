@@ -32,6 +32,7 @@ interface LineDraft {
   unitAmount: string;
   lineTotal: string;
   purchaseOrderLineId: string;
+  costCategoryId: string;
 }
 
 function newKey(): string {
@@ -46,6 +47,7 @@ function emptyLine(): LineDraft {
     unitAmount: '',
     lineTotal: '',
     purchaseOrderLineId: '',
+    costCategoryId: '',
   };
 }
 
@@ -65,6 +67,7 @@ export function ApBillCreateForm({
   purchaseOrders,
   poLinesByPoId,
   paymentTerms,
+  costCategories,
   defaultPurchaseOrderId = '',
   expenseOverlapCandidates = [],
 }: {
@@ -77,6 +80,7 @@ export function ApBillCreateForm({
     readonly { id: string; description: string; lineTotal: string; currency: string }[]
   >;
   paymentTerms: readonly { id: string; name: string }[];
+  costCategories: readonly { id: string; key: string; name: string; family: string }[];
   defaultPurchaseOrderId?: string;
   expenseOverlapCandidates?: readonly ExpenseOverlapCandidate[];
 }) {
@@ -130,9 +134,12 @@ export function ApBillCreateForm({
             lineTotal: line.lineTotal.trim(),
             currency,
             purchaseOrderLineId: line.purchaseOrderLineId.trim() || null,
+            costCategoryId: line.costCategoryId.trim() || null,
+            costFamily:
+              costCategories.find((c) => c.id === line.costCategoryId)?.family ?? null,
           })),
       ),
-    [currency, lines],
+    [currency, lines, costCategories],
   );
 
   const overlapHits = useMemo(() => {
@@ -394,6 +401,33 @@ export function ApBillCreateForm({
                   )}
                 </Field>
               ) : null}
+              <Field label={t('lineCategory')} className="sm:col-span-2">
+                {(props) => (
+                  <Select
+                    value={line.costCategoryId || NONE}
+                    onValueChange={(value) => {
+                      const nextId = value === NONE ? '' : value;
+                      setLines((prev) =>
+                        prev.map((row, i) =>
+                          i === index ? { ...row, costCategoryId: nextId } : row,
+                        ),
+                      );
+                    }}
+                  >
+                    <SelectTrigger {...props}>
+                      <SelectValue placeholder={t('lineCategoryNone')} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={NONE}>{t('lineCategoryNone')}</SelectItem>
+                      {costCategories.map((category) => (
+                        <SelectItem key={category.id} value={category.id}>
+                          {category.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              </Field>
               <div className="flex flex-wrap items-end justify-between gap-2 sm:col-span-2">
                 <p className="text-sm text-[var(--pf-text-secondary)]">
                   {t('lineTotal')}:{' '}

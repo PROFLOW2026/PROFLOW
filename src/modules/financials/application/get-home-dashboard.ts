@@ -79,7 +79,7 @@ import { getOrganizationProjectRollup } from './get-organization-project-rollup'
 import { refreshCurrentOpenGeneralCostMonthForSurfaces } from './recompute-general-cost-month';
 import { sumOrganizationGeneralPoolTotals } from '../data/general-cost-months.repository';
 import {
-  composeCompanyActualFromOrgTotals,
+  composeCompanyActual,
   composeCompanyProfit,
   shouldSurfaceCompanyActual,
   shouldSurfaceCompanyProfit,
@@ -430,13 +430,13 @@ export async function getHomeDashboard(
     const workKindFilter = parseWorkKindFilter(options.workKindFilter);
     const companyComposition =
       workKindFilter === 'all' && generalPoolTotals
-        ? composeCompanyActualFromOrgTotals({
+        ? composeCompanyActual({
             currency,
-            fullProjectActual: cost.actual?.value ?? null,
-            poolAmount: fromNumericString(generalPoolTotals.pool, currency) ?? zeroMoney(currency),
-            allocatedAmount:
+            directProjectActual: cost.actual?.value ?? zeroMoney(currency),
+            generalPool: fromNumericString(generalPoolTotals.pool, currency) ?? zeroMoney(currency),
+            allocatedGeneralToProjects:
               fromNumericString(generalPoolTotals.allocated, currency) ?? zeroMoney(currency),
-            unallocatableAmount:
+            unallocatableGeneral:
               fromNumericString(generalPoolTotals.unallocatable, currency) ?? zeroMoney(currency),
           })
         : null;

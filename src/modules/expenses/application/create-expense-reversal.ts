@@ -4,6 +4,7 @@ import { NotFoundError } from '@/shared/errors';
 import type { OrgContext } from '@/shared/auth/context';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
+import { withTrustedFinancialLatch } from '@/shared/db/trusted-financial-latch';
 import {
   assertMonthOpenForRewrite,
   yearMonthFromBusinessDate,
@@ -62,39 +63,49 @@ export async function createExpenseReversal(
   const amounts = buildReversalAmounts(original);
   const finalizedAt = todayInTimeZone(context.organization.timezone);
 
-  const reversalId = await insertExpense(context.db, context.organizationId, {
-    expenseDate: original.expenseDate,
-    description: reversalDescription(original),
-    supplierName: original.supplierName,
-    vendorId: original.vendorId,
-    projectId: original.projectId,
-    workPackageId: original.workPackageId,
-    phaseId: original.phaseId,
-    costFamily: original.costFamily,
-    costCategoryId: original.costCategoryId,
-    netAmount: amounts.netAmount,
-    taxAmount: amounts.taxAmount,
-    grossAmount: amounts.grossAmount,
-    currency: amounts.currency,
-    taxSnapshot: amounts.taxSnapshot,
-    status: 'finalized',
-    finalizedAt,
-    paymentMethod: original.paymentMethod,
-    notes: original.notes,
-    voidsExpenseId: original.id,
-    adjustsExpenseId: null,
-    isRecurringTemplate: false,
-    recurrenceRule: null,
-    recurringTemplateId: null,
-    allocationPeriodStart: null,
-    allocationPeriodEnd: null,
-    allocationDriverMethod: null,
-    allocationScheduleMode: null,
-    inventoryStockPurchase: false,
-    inventoryItemId: null,
-    inventoryPurchaseQty: null,
-    createdByUserId: context.userId,
-  });
+  const reversalId = await withTrustedFinancialLatch(
+    context.db,
+    {
+      kind: 'expense_correction',
+      organizationId: context.organizationId,
+      permission: PERMISSIONS.EXPENSES_FINALIZE,
+    },
+    () =>
+      insertExpense(context.db, context.organizationId, {
+        expenseDate: original.expenseDate,
+        description: reversalDescription(original),
+        supplierName: original.supplierName,
+        vendorId: original.vendorId,
+        projectId: original.projectId,
+        workPackageId: original.workPackageId,
+        phaseId: original.phaseId,
+        costFamily: original.costFamily,
+        costCategoryId: original.costCategoryId,
+        netAmount: amounts.netAmount,
+        taxAmount: amounts.taxAmount,
+        grossAmount: amounts.grossAmount,
+        currency: amounts.currency,
+        taxSnapshot: amounts.taxSnapshot,
+        status: 'finalized',
+        finalizedAt,
+        paymentMethod: original.paymentMethod,
+        notes: original.notes,
+        voidsExpenseId: original.id,
+        adjustsExpenseId: null,
+        isRecurringTemplate: false,
+        recurrenceRule: null,
+        recurringTemplateId: null,
+        allocationPeriodStart: null,
+        allocationPeriodEnd: null,
+        allocationDriverMethod: null,
+        allocationScheduleMode: null,
+        inventoryStockPurchase: false,
+        inventoryItemId: null,
+        inventoryPurchaseQty: null,
+        classificationStatus: original.classificationStatus,
+        createdByUserId: context.userId,
+      }),
+  );
 
   const reversedAllocations = negateAllocationLines(original.allocations);
   await replaceExpenseAllocations(
@@ -120,10 +131,13 @@ export async function createExpenseReversal(
   const created = await findExpenseById(context.db, context.organizationId, reversalId);
   if (!created) throw new NotFoundError('Expense');
 
-  const { tryRecomputeOpenGeneralCostMonth } = await import(
+  const { tryRecomputeOpenGeneralCostMonthsForExpense } = await import(
     '@/modules/financials/application/recompute-general-cost-month'
   );
-  await tryRecomputeOpenGeneralCostMonth(context, { date: created.expenseDate });
+  await tryRecomputeOpenGeneralCostMonthsForExpense(context, {
+    id: created.id,
+    expenseDate: created.expenseDate,
+  });
 
   return created;
 }

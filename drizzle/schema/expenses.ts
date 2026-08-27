@@ -73,6 +73,8 @@ export const costCategories = pgTable(
   },
   (table) => [
     uniqueIndex('cost_categories_org_key_uq').on(table.organizationId, table.key),
+    /** Required for same-org composite FKs (e.g. AP bill/line → category). */
+    uniqueIndex('cost_categories_id_org_uq').on(table.id, table.organizationId),
     index('cost_categories_org_family_idx').on(table.organizationId, table.family),
     check(
       'cost_categories_period_behavior_known',
@@ -157,6 +159,14 @@ export const expenses = pgTable(
     /** Quantity received into central stock (required when inventoryStockPurchase). */
     inventoryPurchaseQty: quantityAmount('inventory_purchase_qty'),
 
+    /**
+     * classified = structured category trusted; needs_classification = detailed bucket
+     * uncertain but amount still in Actual under other/unclassified (0070).
+     */
+    classificationStatus: text('classification_status')
+      .notNull()
+      .default('needs_classification'),
+
     createdByUserId: uuid('created_by_user_id').references(() => profiles.id, { onDelete: 'set null' }),
     archivedAt: archivedAt(),
     ...timestamps(),
@@ -182,6 +192,10 @@ export const expenses = pgTable(
     check(
       'expenses_installment_count_range',
       sql`${table.installmentCount} >= 1 AND ${table.installmentCount} <= 120`,
+    ),
+    check(
+      'expenses_classification_status_known',
+      sql`${table.classificationStatus} IN ('classified', 'needs_classification')`,
     ),
     // inventory_item_id → inventory_items (org composite FK, ON DELETE RESTRICT) — see migration 0069.
   ],

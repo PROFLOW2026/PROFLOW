@@ -35,6 +35,14 @@ export const createApBillSchema = z.object({
         lineTotal: moneyString,
         currency: z.string().trim().length(3),
         purchaseOrderLineId: z.string().uuid().optional().nullable(),
+        /** Shared transaction taxonomy (same cost_categories as Expense). */
+        costCategoryId: z.string().uuid().optional().nullable(),
+        costFamily: z
+          .enum(['direct_project', 'shared', 'business_overhead', 'asset_capital'])
+          .optional()
+          .nullable(),
+        economicTargetType: z.enum(['inherit', 'project', 'overhead']).optional(),
+        projectId: z.string().uuid().optional().nullable(),
       }),
     )
     .min(1),
