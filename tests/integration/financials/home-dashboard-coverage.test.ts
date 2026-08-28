@@ -18,6 +18,10 @@ import { getHomeDashboard } from '@/modules/financials/application/get-home-dash
 import { assignRole, provisionOrganizationRoles } from '@/modules/rbac';
 import { resolveOrgContext } from '@/modules/tenancy';
 import { createTestDatabase, type TestDatabase } from '../../setup/database';
+import {
+  ensureMaterialsCategory,
+  zeroVatFinalizedExpenseRow,
+} from '../../setup/cost-category-fixtures';
 
 describe('home dashboard cost coverage', () => {
   let database: TestDatabase;
@@ -116,16 +120,15 @@ describe('home dashboard cost coverage', () => {
         effectiveDate: '2026-01-01',
       });
 
-      await db.insert(expenses).values({
-        organizationId: orgId,
-        projectId,
-        expenseDate: '2026-02-01',
-        netAmount: '1000.000000',
-        grossAmount: '1000.000000',
-        currency: 'ILS',
-        status: 'finalized',
-        costFamily: 'direct_project',
-      });
+      const costCategoryId = await ensureMaterialsCategory(db, orgId);
+      await db.insert(expenses).values(
+        zeroVatFinalizedExpenseRow({
+          organizationId: orgId,
+          projectId,
+          costCategoryId,
+          amount: '1000.000000',
+        }),
+      );
 
       return projectId;
     });

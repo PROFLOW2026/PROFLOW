@@ -16,6 +16,7 @@ import { resolveOrgContext } from '@/modules/tenancy';
 import { createVendor } from '@/modules/vendors';
 import { DomainRuleError, NotFoundError } from '@/shared/errors';
 import { money } from '@/shared/money';
+import { classifyApBillLines, findCostCategoryId } from '@tests/setup/cost-category-fixtures';
 import { createTestDatabase, type TestDatabase } from '@tests/setup/database';
 import { provisionTwoTenants } from '../billing/setup';
 
@@ -50,6 +51,7 @@ describe('AP vendor payments hardening (PGlite)', () => {
     readonly totalAmount?: string;
     readonly currency?: string;
   }) {
+    const costCategoryId = await findCostCategoryId(database, input.organizationId);
     return database.asUser(input.userId, async (tx) => {
       const context = await resolveOrgContext(tx, {
         userId: input.userId,
@@ -66,15 +68,18 @@ describe('AP vendor payments hardening (PGlite)', () => {
         currency,
         totalAmount,
         billDate: '2026-08-01',
-        lines: [
-          {
-            description: 'Materials',
-            quantity: '1',
-            unitAmount: totalAmount,
-            lineTotal: totalAmount,
-            currency,
-          },
-        ],
+        lines: classifyApBillLines(
+          [
+            {
+              description: 'Materials',
+              quantity: '1',
+              unitAmount: totalAmount,
+              lineTotal: totalAmount,
+              currency,
+            },
+          ],
+          costCategoryId,
+        ),
       });
       return { context, vendor, bill };
     });

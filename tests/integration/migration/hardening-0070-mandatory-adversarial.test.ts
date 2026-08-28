@@ -4,7 +4,6 @@
 import { randomUUID } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
-import { eq, sql as dsql } from 'drizzle-orm';
 import { sql } from 'drizzle-orm';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import {
@@ -30,7 +29,6 @@ import { createProject } from '@/modules/projects';
 import { resolveOrgContext } from '@/modules/tenancy';
 import { createVendor } from '@/modules/vendors';
 import { DomainRuleError } from '@/shared/errors';
-import { money, toNumericString } from '@/shared/money';
 import {
   applySqlMigrations,
   createTestDatabase,

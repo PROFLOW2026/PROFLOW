@@ -25,7 +25,7 @@ import {
   listOpenGeneralCostYearMonths,
   persistGeneralCostMonthRecompute,
 } from '../data/general-cost-months.repository';
-import { listScheduleLines } from '@/modules/expenses/data/managerial-schedule.repository';
+import { listScheduleLines } from '@/modules/expenses';
 import {
   allocateGeneralPoolByDirectActual,
   assertGeneralPoolConserves,

@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
@@ -189,6 +190,15 @@ describe('AP credit hardening (tenant FK + immutability + concurrency)', () => {
         locale: 'en',
       });
       const vendor = await createVendor(context, { name: 'Credit Vendor' });
+      const materialsId = (
+        await tx.execute(sql`
+          SELECT id FROM cost_categories
+          WHERE organization_id = ${orgA.organization.id}::uuid AND key = 'materials' LIMIT 1
+        `)
+      );
+      const categoryRows = Array.isArray(materialsId)
+        ? materialsId
+        : ((materialsId as { rows?: { id: string }[] }).rows ?? []);
       const bill = await createApBill(context, {
         vendorId: vendor.id,
         currency: ILS,
@@ -202,6 +212,8 @@ describe('AP credit hardening (tenant FK + immutability + concurrency)', () => {
             unitAmount: '10000',
             lineTotal: '10000',
             currency: ILS,
+            costCategoryId: categoryRows[0]!.id,
+            costFamily: 'direct_project',
           },
         ],
       });
@@ -344,16 +356,37 @@ describe('AP credit concurrency conservation (two connections)', () => {
         `
       )[0]!.id as string;
 
+      const materialsId = randomUUID();
+      await harness.sqlA`
+        INSERT INTO cost_categories (id, organization_id, key, name, family, is_system, sort_order)
+        VALUES (${materialsId}::uuid, ${orgId}::uuid, 'materials', 'Materials', 'direct_project', true, 1)
+      `;
+
       const billId = (
         await harness.sqlA`
           INSERT INTO ap_bills (
-            id, organization_id, vendor_id, currency, total_amount, bill_date, status
+            id, organization_id, vendor_id, currency, total_amount, net_amount, tax_amount, gross_amount,
+            bill_date, status
           ) VALUES (
-            gen_random_uuid(), ${orgId}::uuid, ${vendorId}::uuid, 'ILS', 100000, '2026-08-01', 'open'
+            gen_random_uuid(), ${orgId}::uuid, ${vendorId}::uuid, 'ILS', 100000, 100000, 0, 100000,
+            '2026-08-01', 'draft'
           )
           RETURNING id
         `
       )[0]!.id as string;
+
+      await harness.sqlA`
+        INSERT INTO ap_bill_lines (
+          organization_id, ap_bill_id, description, quantity, unit_amount, line_total,
+          net_amount, tax_amount, gross_amount, currency, classification_status, cost_category_id, sort_order
+        ) VALUES (
+          ${orgId}::uuid, ${billId}::uuid, 'Materials', 1, 100000, 100000,
+          100000, 0, 100000, 'ILS', 'classified', ${materialsId}::uuid, 1
+        )
+      `;
+      await harness.sqlA`
+        UPDATE ap_bills SET status = 'open' WHERE id = ${billId}::uuid
+      `;
 
       const creditId = (
         await harness.sqlA`

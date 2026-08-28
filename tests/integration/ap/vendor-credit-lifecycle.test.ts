@@ -27,6 +27,7 @@ import { createVendor } from '@/modules/vendors';
 import { AuthorizationError, DomainRuleError } from '@/shared/errors';
 import { businessDate } from '@/shared/dates';
 import { money } from '@/shared/money';
+import { classifyApBillLines, findCostCategoryId } from '@tests/setup/cost-category-fixtures';
 import { createTestDatabase, type TestDatabase } from '@tests/setup/database';
 import { createTestUser } from '@tests/setup/fixtures';
 import { provisionTwoTenants } from '../billing/setup';
@@ -56,6 +57,7 @@ describe('vendor credit independent lifecycle (PGlite)', () => {
     readonly organizationId: string;
     readonly totalAmount?: string;
   }) {
+    const costCategoryId = await findCostCategoryId(database, input.organizationId);
     return database.asUser(input.userId, async (tx) => {
       const context = await resolveOrgContext(tx, {
         userId: input.userId,
@@ -70,15 +72,18 @@ describe('vendor credit independent lifecycle (PGlite)', () => {
         totalAmount,
         billDate: '2026-08-01',
         dueDate: '2026-09-01',
-        lines: [
-          {
-            description: 'Materials',
-            quantity: '1',
-            unitAmount: totalAmount,
-            lineTotal: totalAmount,
-            currency: ILS,
-          },
-        ],
+        lines: classifyApBillLines(
+          [
+            {
+              description: 'Materials',
+              quantity: '1',
+              unitAmount: totalAmount,
+              lineTotal: totalAmount,
+              currency: ILS,
+            },
+          ],
+          costCategoryId,
+        ),
       });
       return { context, vendor, bill };
     });

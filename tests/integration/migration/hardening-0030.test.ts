@@ -3,6 +3,7 @@ import path from 'node:path';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { sql } from 'drizzle-orm';
 import { createOrganization, resolveOrgContext } from '@/modules/tenancy';
+import { voidApBill } from '@/modules/ap';
 import { createClient } from '@/modules/clients';
 import { createProject } from '@/modules/projects';
 import { createVendor } from '@/modules/vendors';
@@ -34,6 +35,66 @@ function errorBlob(error: unknown): string {
   return [e.message, e.detail, e.code, e.hint, errorBlob(e.cause), errorBlob(e.error)]
     .filter(Boolean)
     .join('\n');
+}
+
+type TestTx = Parameters<Parameters<TestDatabase['asUser']>[1]>[0];
+
+async function insertRecognizedApBill(
+  tx: TestTx,
+  params: {
+    organizationId: string;
+    vendorId: string;
+    totalAmount?: number;
+    retentionAmount?: number;
+    retentionHeldRemaining?: number;
+    billDate?: string;
+  },
+): Promise<string> {
+  const total = params.totalAmount ?? 100_000;
+  const retention = params.retentionAmount ?? 10_000;
+  const held = params.retentionHeldRemaining ?? retention;
+  const billDate = params.billDate ?? '2026-08-01';
+
+  const materialsId = resultRows<{ id: string }>(
+    await tx.execute(sql`
+      SELECT id FROM cost_categories
+      WHERE organization_id = ${params.organizationId}::uuid AND key = 'materials' LIMIT 1
+    `),
+  )[0]!.id;
+
+  const inserted = resultRows<{ id: string }>(
+    await tx.execute(sql`
+      INSERT INTO ap_bills (
+        organization_id, vendor_id, status, currency, total_amount,
+        net_amount, tax_amount, gross_amount,
+        retention_amount, retention_held_remaining, bill_date
+      ) VALUES (
+        ${params.organizationId}::uuid, ${params.vendorId}::uuid, 'draft', 'ILS', ${total},
+        ${total}, 0, ${total},
+        ${retention}, 0, ${billDate}
+      )
+      RETURNING id
+    `),
+  );
+  const billId = inserted[0]!.id;
+
+  await tx.execute(sql`
+    INSERT INTO ap_bill_lines (
+      organization_id, ap_bill_id, description, quantity, unit_amount, line_total,
+      net_amount, tax_amount, gross_amount, currency, classification_status, cost_category_id, sort_order
+    ) VALUES (
+      ${params.organizationId}::uuid, ${billId}::uuid, 'Materials', 1, ${total}, ${total},
+      ${total}, 0, ${total}, 'ILS', 'classified', ${materialsId}::uuid, 1
+    )
+  `);
+
+  await tx.execute(sql`
+    UPDATE ap_bills
+    SET status = 'open', retention_held_remaining = ${held}
+    WHERE id = ${billId}::uuid
+  `);
+
+  return billId;
 }
 
 describe('migration hardening 0030', () => {
@@ -118,19 +179,11 @@ describe('migration hardening 0030', () => {
           locale: 'en',
         });
         const vendor = await createVendor(context, { name: 'Held Vendor' });
-        const inserted = resultRows<{ id: string }>(
-          await tx.execute(sql`
-            INSERT INTO ap_bills (
-              organization_id, vendor_id, status, currency, total_amount,
-              retention_amount, retention_held_remaining, bill_date
-            ) VALUES (
-              ${organizationId}::uuid, ${vendor.id}::uuid, 'open', 'ILS', 100000,
-              10000, 10000, '2026-08-01'
-            )
-            RETURNING id
-          `),
-        );
-        return { billId: inserted[0]!.id, currency: 'ILS' };
+        const billId = await insertRecognizedApBill(tx, {
+          organizationId,
+          vendorId: vendor.id,
+        });
+        return { billId, currency: 'ILS' };
       });
 
       await database.asUser(owner.id, async (tx) => {
@@ -482,18 +535,10 @@ describe('migration hardening 0030', () => {
           name: 'Freeze Project',
           clientId: client.id,
         });
-        const inserted = resultRows<{ id: string }>(
-          await tx.execute(sql`
-            INSERT INTO ap_bills (
-              organization_id, vendor_id, status, currency, total_amount,
-              retention_amount, retention_held_remaining, bill_date
-            ) VALUES (
-              ${organizationId}::uuid, ${vendor.id}::uuid, 'open', 'ILS', 100000,
-              10000, 10000, '2026-08-01'
-            )
-            RETURNING id
-          `),
-        );
+        const billId = await insertRecognizedApBill(tx, {
+          organizationId,
+          vendorId: vendor.id,
+        });
         const billing = resultRows<{ id: string }>(
           await tx.execute(sql`
             INSERT INTO billing_records (
@@ -507,7 +552,7 @@ describe('migration hardening 0030', () => {
             RETURNING id
           `),
         );
-        return { billId: inserted[0]!.id, billingId: billing[0]!.id };
+        return { billId, billingId: billing[0]!.id };
       });
 
       await database.asUser(owner.id, async (tx) => {
@@ -558,19 +603,10 @@ describe('migration hardening 0030', () => {
           locale: 'en',
         });
         const vendor = await createVendor(context, { name: 'Nested Vendor' });
-        const inserted = resultRows<{ id: string }>(
-          await tx.execute(sql`
-            INSERT INTO ap_bills (
-              organization_id, vendor_id, status, currency, total_amount,
-              retention_amount, retention_held_remaining, bill_date
-            ) VALUES (
-              ${organizationId}::uuid, ${vendor.id}::uuid, 'open', 'ILS', 100000,
-              10000, 10000, '2026-08-01'
-            )
-            RETURNING id
-          `),
-        );
-        return inserted[0]!.id;
+        return insertRecognizedApBill(tx, {
+          organizationId,
+          vendorId: vendor.id,
+        });
       });
 
       await database.asService(async (db) => {
@@ -640,13 +676,13 @@ describe('migration hardening 0030', () => {
       });
 
       await database.asUser(owner.id, async (tx) => {
-        await tx.execute(sql`
-          UPDATE ap_bills SET status = 'void' WHERE id = ${billId}::uuid
-        `);
-        const rows = resultRows<{ status: string }>(
-          await tx.execute(sql`SELECT status FROM ap_bills WHERE id = ${billId}::uuid`),
-        );
-        expect(rows[0]?.status).toBe('void');
+        const context = await resolveOrgContext(tx, {
+          userId: owner.id,
+          organizationId,
+          locale: 'en',
+        });
+        const voided = await voidApBill(context, { billId });
+        expect(voided.status).toBe('void');
       });
 
       await database.asUser(owner.id, async (tx) => {
@@ -675,19 +711,10 @@ describe('migration hardening 0030', () => {
           locale: 'en',
         });
         const vendor = await createVendor(context, { name: 'Unfreeze Vendor' });
-        const inserted = resultRows<{ id: string }>(
-          await tx.execute(sql`
-            INSERT INTO ap_bills (
-              organization_id, vendor_id, status, currency, total_amount,
-              retention_amount, retention_held_remaining, bill_date
-            ) VALUES (
-              ${organizationId}::uuid, ${vendor.id}::uuid, 'open', 'ILS', 100000,
-              10000, 10000, '2026-08-01'
-            )
-            RETURNING id
-          `),
-        );
-        return inserted[0]!.id;
+        return insertRecognizedApBill(tx, {
+          organizationId,
+          vendorId: vendor.id,
+        });
       });
 
       await database.asUser(owner.id, async (tx) => {
@@ -716,19 +743,10 @@ describe('migration hardening 0030', () => {
           locale: 'en',
         });
         const vendor = await createVendor(context, { name: 'Hijack Vendor' });
-        const inserted = resultRows<{ id: string }>(
-          await tx.execute(sql`
-            INSERT INTO ap_bills (
-              organization_id, vendor_id, status, currency, total_amount,
-              retention_amount, retention_held_remaining, bill_date
-            ) VALUES (
-              ${organizationId}::uuid, ${vendor.id}::uuid, 'open', 'ILS', 100000,
-              10000, 10000, '2026-08-01'
-            )
-            RETURNING id
-          `),
-        );
-        return inserted[0]!.id;
+        return insertRecognizedApBill(tx, {
+          organizationId,
+          vendorId: vendor.id,
+        });
       });
 
       await database.asUser(owner.id, async (tx) => {
@@ -780,19 +798,10 @@ describe('migration hardening 0030', () => {
           locale: 'en',
         });
         const vendor = await createVendor(context, { name: 'Date Vendor' });
-        const inserted = resultRows<{ id: string }>(
-          await tx.execute(sql`
-            INSERT INTO ap_bills (
-              organization_id, vendor_id, status, currency, total_amount,
-              retention_amount, retention_held_remaining, bill_date
-            ) VALUES (
-              ${organizationId}::uuid, ${vendor.id}::uuid, 'open', 'ILS', 100000,
-              10000, 10000, '2026-08-01'
-            )
-            RETURNING id
-          `),
-        );
-        return inserted[0]!.id;
+        return insertRecognizedApBill(tx, {
+          organizationId,
+          vendorId: vendor.id,
+        });
       });
 
       await database.asUser(owner.id, async (tx) => {
@@ -984,6 +993,12 @@ describe('migration hardening 0030', () => {
           clientId: client.id,
         });
 
+        const materialsId = resultRows<{ id: string }>(
+          await tx.execute(sql`
+            SELECT id FROM cost_categories
+            WHERE organization_id = ${organizationId}::uuid AND key = 'materials' LIMIT 1
+          `),
+        )[0]!.id;
         const expenseDraft = resultRows<{ id: string }>(
           await tx.execute(sql`
             INSERT INTO recurring_financial_drafts (
@@ -999,9 +1014,11 @@ describe('migration hardening 0030', () => {
         const finalizedExpense = resultRows<{ id: string }>(
           await tx.execute(sql`
             INSERT INTO expenses (
-              organization_id, expense_date, net_amount, gross_amount, currency, status
+              organization_id, expense_date, cost_family, cost_category_id,
+              net_amount, tax_amount, gross_amount, currency, status, classification_status
             ) VALUES (
-              ${organizationId}::uuid, '2026-09-01', 1000, 1000, 'ILS', 'finalized'
+              ${organizationId}::uuid, '2026-09-01', 'direct_project', ${materialsId}::uuid,
+              1000, 0, 1000, 'ILS', 'finalized', 'classified'
             )
             RETURNING id
           `),
@@ -1018,16 +1035,14 @@ describe('migration hardening 0030', () => {
             RETURNING id
           `),
         );
-        const openBill = resultRows<{ id: string }>(
-          await tx.execute(sql`
-            INSERT INTO ap_bills (
-              organization_id, vendor_id, status, currency, total_amount, bill_date
-            ) VALUES (
-              ${organizationId}::uuid, ${vendor.id}::uuid, 'open', 'ILS', 1000, '2026-09-01'
-            )
-            RETURNING id
-          `),
-        );
+        const openBillId = await insertRecognizedApBill(tx, {
+          organizationId,
+          vendorId: vendor.id,
+          totalAmount: 1000,
+          retentionAmount: 0,
+          retentionHeldRemaining: 0,
+          billDate: '2026-09-01',
+        });
         const billingDraft = resultRows<{ id: string }>(
           await tx.execute(sql`
             INSERT INTO recurring_financial_drafts (
@@ -1056,7 +1071,7 @@ describe('migration hardening 0030', () => {
           expenseDraftId: expenseDraft[0]!.id,
           finalizedExpenseId: finalizedExpense[0]!.id,
           billDraftId: billDraft[0]!.id,
-          openBillId: openBill[0]!.id,
+          openBillId,
           billingDraftId: billingDraft[0]!.id,
           finalizedBillingId: finalizedBilling[0]!.id,
         };

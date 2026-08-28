@@ -298,18 +298,35 @@ describe('BOQ owner v2 closure', () => {
       const openBill = resultRows<{ id: string }>(
         await tx.execute(sql`
           INSERT INTO ap_bills (
-            organization_id, vendor_id, project_id, status, currency, total_amount, bill_date
+            organization_id, vendor_id, project_id, status, currency, total_amount, net_amount, tax_amount, gross_amount, bill_date
           ) VALUES (
-            ${orgId}::uuid, ${vendor[0]!.id}::uuid, ${projectId}::uuid, 'open', 'ILS', 50, '2026-08-13'
+            ${orgId}::uuid, ${vendor[0]!.id}::uuid, ${projectId}::uuid, 'draft', 'ILS', 50, 50, 0, 50, '2026-08-13'
           ) RETURNING id
         `),
       );
+      const materialsId = resultRows<{ id: string }>(
+        await tx.execute(sql`
+          SELECT id FROM cost_categories
+          WHERE organization_id = ${orgId}::uuid AND key = 'materials'
+          LIMIT 1
+        `),
+      )[0]!.id;
+      await tx.execute(sql`
+        INSERT INTO ap_bill_lines (
+          organization_id, ap_bill_id, description, quantity, unit_amount, line_total,
+          net_amount, tax_amount, gross_amount, currency, classification_status, cost_category_id, sort_order
+        ) VALUES (
+          ${orgId}::uuid, ${openBill[0]!.id}::uuid, 'Test line', 1, 50, 50,
+          50, 0, 50, 'ILS', 'classified', ${materialsId}::uuid, 0
+        )
+      `);
+      await tx.execute(sql`UPDATE ap_bills SET status = 'open' WHERE id = ${openBill[0]!.id}::uuid`);
       const voidBill = resultRows<{ id: string }>(
         await tx.execute(sql`
           INSERT INTO ap_bills (
             organization_id, vendor_id, project_id, status, currency, total_amount, bill_date
           ) VALUES (
-            ${orgId}::uuid, ${vendor[0]!.id}::uuid, ${projectId}::uuid, 'draft', 'ILS', 50, '2026-08-13'
+            ${orgId}::uuid, ${vendor[0]!.id}::uuid, ${projectId}::uuid, 'void', 'ILS', 50, '2026-08-13'
           ) RETURNING id
         `),
       );
@@ -318,12 +335,6 @@ describe('BOQ owner v2 closure', () => {
         openBillId: openBill[0]!.id,
         voidBillId: voidBill[0]!.id,
       };
-    });
-
-    await database.asService(async (db) => {
-      await db.execute(sql`
-        UPDATE ap_bills SET status = 'void' WHERE id = ${ids.voidBillId}::uuid
-      `);
     });
 
     await expect(

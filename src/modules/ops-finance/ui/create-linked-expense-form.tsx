@@ -1,11 +1,13 @@
 'use client';
 
-import { useActionState } from 'react';
+import { useActionState, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Link } from '@/shared/i18n/navigation';
+import { ExpenseVatModeSelector } from '@/modules/expenses/ui/expense-vat-mode-selector';
+import { DEFAULT_EXPENSE_VAT_MODE, type ExpenseVatMode } from '@/modules/expenses/domain/vat-mode';
 import {
   createLinkedExpenseAction,
   type OpsFinanceFormState,
@@ -41,6 +43,8 @@ export function CreateLinkedExpenseForm({
   existingExpenseId,
 }: CreateLinkedExpenseFormProps) {
   const t = useTranslations(`${namespace}.financeLink`);
+  const tExpenses = useTranslations('expenses');
+  const [vatMode, setVatMode] = useState<ExpenseVatMode>(DEFAULT_EXPENSE_VAT_MODE);
   const [state, formAction, pending] = useActionState<OpsFinanceFormState, FormData>(
     createLinkedExpenseAction,
     {},
@@ -109,6 +113,11 @@ export function CreateLinkedExpenseForm({
           <input type="hidden" name="currency" value={defaultCurrency ?? ''} />
         </>
       )}
+
+      <div className="flex flex-col gap-1">
+        <Label>{tExpenses('fields.amountTaxMode')}</Label>
+        <ExpenseVatModeSelector value={vatMode} onChange={setVatMode} />
+      </div>
 
       {defaultDescription ? (
         <input type="hidden" name="description" value={defaultDescription} />

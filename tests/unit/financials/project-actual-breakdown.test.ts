@@ -129,7 +129,7 @@ describe('project actual breakdown — Owner exclusive partition', () => {
     expect(classifyActualAtom(bothOnly)).toBe('vendors');
   });
 
-  it('subcontractAgreementId or strict subcontractor type → Subcontractors', () => {
+  it('subcontractAgreementId or subcontract category → Subcontractors', () => {
     expect(
       isReliableSubcontractorAtom(
         atom({
@@ -149,6 +149,7 @@ describe('project actual breakdown — Owner exclusive partition', () => {
           sourceId: 'e1',
           vendorType: 'subcontractor',
           vendorId: 'v',
+          categoryKey: 'external_manpower',
         }),
       ),
     ).toBe(true);

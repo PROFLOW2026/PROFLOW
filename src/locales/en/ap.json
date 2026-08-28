@@ -303,12 +303,32 @@
   },
   "void": {
     "title": "Void bill",
-    "note": "Void removes the bill from Actual recognition and supersedes allocations. History is preserved. Correction path is void + replace, or credit - never silent edit.",
+    "note": "Void removes the bill from project costs for this month. You can restore it while the month is still open.",
     "paymentsFirst": "Void recorded payments on this bill before voiding the bill.",
     "creditsFirst": "Reverse applied vendor credits on this bill before voiding the bill.",
-    "action": "Void bill",
+    "action": "Void",
     "pending": "Voiding…",
-    "success": "Bill voided. It no longer contributes to Actual Cost."
+    "success": "Bill voided."
+  },
+  "restore": {
+    "title": "Restore bill",
+    "note": "Bring this bill back into project costs while the month is still open.",
+    "action": "Restore",
+    "pending": "Restoring…",
+    "success": "Bill restored."
+  },
+  "recognizedEdit": {
+    "title": "Edit bill",
+    "note": "Correct fields while the month is open. Saving is blocked only if the new amount is below payments and credits already applied.",
+    "action": "Edit",
+    "save": "Save",
+    "cancel": "Cancel",
+    "success": "Bill updated.",
+    "vendorLabel": "Vendor",
+    "projectLabel": "Project / general",
+    "billDateLabel": "Date",
+    "notesLabel": "Notes",
+    "noProject": "General"
   },
   "aging": {
     "title": "AP aging",
@@ -383,6 +403,12 @@
     "voidCreditsFirst": "Reverse applied vendor credits before voiding the vendor bill.",
     "billAlreadyVoid": "Bill is already void.",
     "billNotSilentlyEditable": "Recognized bills cannot be silently edited; void and replace, or apply a credit.",
+    "billEditUnavailable": "This bill cannot be edited here; use the edit form while the month is open.",
+    "billNotRecognized": "Only recognized vendor bills can be edited here.",
+    "billEditBlockedBySettlements": "Void payments and credits before changing bill amounts.",
+    "billEditBelowAppliedSettlements": "The bill amount cannot be reduced below payments and credits already applied ({applied} {currency}).",
+    "billNotVoid": "Only void bills can be restored.",
+    "restoreBlockedBySettlements": "Remove active payments and credits before restoring this bill.",
     "creditAmountInvalid": "Credit amount must be positive.",
     "creditNotApplicable": "Only open credits can be applied.",
     "creditBillNotPayable": "Cannot apply credit to a draft or void bill.",

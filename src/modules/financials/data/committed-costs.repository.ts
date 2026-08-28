@@ -19,7 +19,6 @@ import {
   listActiveCreditAmountsForBills,
   resolveVendorBillProjectAmounts,
   scaleBillOutstandingToProjectSlice,
-  scaleBillSliceAfterCredits,
   netProjectSliceAfterCredits,
   listActiveCreditActualReductionsForBills,
 } from '@/modules/ap';

@@ -1,4 +1,5 @@
 import type { CreateExpenseInput } from '@/modules/expenses';
+import { DEFAULT_EXPENSE_VAT_MODE } from '@/modules/expenses/domain/vat-mode';
 import { DomainRuleError } from '@/shared/errors';
 import type { OpsLinkPurpose, OpsRecordCostSnapshot, OpsRecordKind } from './types';
 
@@ -20,6 +21,7 @@ export interface MapOpsRecordToExpenseDraftInput {
   readonly allocationScheduleMode?: CreateExpenseInput['allocationScheduleMode'];
   readonly allocationProjectIds?: readonly string[];
   readonly linkPurpose?: OpsLinkPurpose;
+  readonly vatMode?: CreateExpenseInput['vatMode'];
 }
 
 export function defaultCostFamilyForOpsKind(
@@ -92,6 +94,7 @@ export function mapOpsRecordToExpenseDraft(
     projectId: projectId ?? undefined,
     costFamily,
     notes: notesParts.join('\n').slice(0, 4000),
+    vatMode: input.vatMode ?? DEFAULT_EXPENSE_VAT_MODE,
   };
 
   if (input.allocationPeriodStart) {

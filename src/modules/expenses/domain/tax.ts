@@ -7,6 +7,8 @@ import type { ResolvedTaxRate } from '@/modules/tax/domain/types';
 import { addMoney, money, subtractMoney, toDecimalValue, type MoneyValue } from '@/shared/money';
 import { toIsoInstant } from '@/shared/dates';
 import type { TaxSnapshot } from './types';
+import type { ExpenseVatMode } from './vat-mode';
+import { resolveExpenseVatMode } from './vat-mode';
 
 export interface TaxInput {
   /**
@@ -21,6 +23,8 @@ export interface TaxInput {
    * gross-first capture (net = gross, tax = null) unless manual net/tax override.
    */
   readonly amountIncludesTax?: boolean | null;
+  /** Owner-selected mode; takes precedence over amountIncludesTax when set. */
+  readonly vatMode?: ExpenseVatMode | null;
   /** Advanced capture may supply net and tax explicitly (bypasses tax engine). */
   readonly netAmount?: string | null;
   readonly taxAmount?: string | null;
@@ -93,12 +97,28 @@ export function resolveTaxAmounts(input: TaxInput): ResolvedExpenseTaxAmounts {
     });
   }
 
-  if (input.amountIncludesTax === true || input.amountIncludesTax === false) {
-    assertInclusiveTaxRateAvailable(input.amountIncludesTax, input.resolved ?? null);
+  const vatMode = resolveExpenseVatMode({
+    vatMode: input.vatMode,
+    amountIncludesTax: input.amountIncludesTax,
+  });
+
+  if (vatMode === 'zero') {
+    const entered = money(input.enteredAmount, input.currency);
+    return {
+      netAmount: entered,
+      taxAmount: null,
+      grossAmount: entered,
+      breakdown: null,
+    };
+  }
+
+  if (input.vatMode != null || input.amountIncludesTax === true || input.amountIncludesTax === false) {
+    const amountIncludesTax = vatMode === 'inclusive';
+    assertInclusiveTaxRateAvailable(amountIncludesTax, input.resolved ?? null);
     const breakdown = computeTaxAmountBreakdown({
       enteredAmount: input.enteredAmount,
       currency: input.currency,
-      amountIncludesTax: input.amountIncludesTax,
+      amountIncludesTax,
       resolved: input.resolved ?? null,
     });
     return {
@@ -120,24 +140,44 @@ export function resolveTaxAmounts(input: TaxInput): ResolvedExpenseTaxAmounts {
 }
 
 /**
- * Infers edit-form defaults from persisted amounts without a stored mode column.
- * Tax present → show gross as including; otherwise show net as excluding.
+ * Infers edit-form defaults from persisted amounts and optional stored vat_mode.
  */
 export function inferExpenseTaxModeFromAmounts(input: {
   readonly netAmount: string;
   readonly taxAmount: string | null | undefined;
   readonly grossAmount: string;
-}): { readonly amount: string; readonly amountIncludesTax: boolean } {
+  readonly vatMode?: ExpenseVatMode | null;
+  readonly taxSnapshot?: TaxSnapshot | null;
+}): { readonly amount: string; readonly vatMode: ExpenseVatMode; readonly amountIncludesTax: boolean } {
+  const stored =
+    input.vatMode ??
+    input.taxSnapshot?.vatMode ??
+    null;
+
+  if (stored) {
+    const amount =
+      stored === 'inclusive'
+        ? input.grossAmount.replace(/^-/, '')
+        : input.netAmount.replace(/^-/, '');
+    return {
+      amount,
+      vatMode: stored,
+      amountIncludesTax: stored === 'inclusive',
+    };
+  }
+
   const taxRaw = input.taxAmount?.trim() ?? '';
   const hasTax = taxRaw !== '' && !/^0+(\.0+)?$/.test(taxRaw);
   if (hasTax) {
     return {
       amount: input.grossAmount.replace(/^-/, ''),
+      vatMode: 'inclusive',
       amountIncludesTax: true,
     };
   }
   return {
     amount: input.netAmount.replace(/^-/, ''),
+    vatMode: 'exclusive',
     amountIncludesTax: false,
   };
 }
@@ -147,6 +187,7 @@ export function captureTaxSnapshot(
   netAmount: MoneyValue,
   taxAmount: MoneyValue | null,
   grossAmount: MoneyValue,
+  vatMode?: ExpenseVatMode | null,
 ): TaxSnapshot {
   return {
     netAmount: netAmount.amount,
@@ -154,5 +195,6 @@ export function captureTaxSnapshot(
     grossAmount: grossAmount.amount,
     currency: grossAmount.currency,
     capturedAt: toIsoInstant(new Date()),
+    vatMode: vatMode ?? undefined,
   };
 }

@@ -115,6 +115,8 @@ export const expenses = pgTable(
     currency: currencyCode().notNull(),
     /** Frozen at finalization; later tax rule edits never rewrite it (G1). */
     taxSnapshot: jsonb('tax_snapshot'),
+    /** Owner-selected VAT entry mode (inclusive / exclusive / zero). */
+    vatMode: text('vat_mode').default('inclusive'),
 
     status: expenseStatusEnum('status').notNull().default('draft'),
     finalizedAt: date('finalized_at'),

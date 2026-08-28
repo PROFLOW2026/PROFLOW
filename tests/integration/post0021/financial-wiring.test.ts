@@ -26,6 +26,7 @@ import { resolveOrgContext } from '@/modules/tenancy';
 import { getProjectLaborCost } from '@/modules/workforce/application/project-labor-cost';
 import { setEmployeeMonthCostsReadyForTests } from '@/modules/workforce/domain/monthly-cost-gates';
 import { createTestDatabase, type TestDatabase } from '@tests/setup/database';
+import { ensureMaterialsCategory } from '@tests/setup/cost-category-fixtures';
 
 describe('POST-0021 financial wiring (displacement + bill NET slices)', () => {
   let database: TestDatabase;
@@ -203,12 +204,13 @@ describe('POST-0021 financial wiring (displacement + bill NET slices)', () => {
         name: 'Vendor Co',
       });
 
+      await ensureMaterialsCategory(db, orgId);
       await db.insert(apBills).values({
         id: billId,
         organizationId: orgId,
         vendorId,
         projectId: projectAId,
-        status: 'open',
+        status: 'draft',
         currency: 'ILS',
         totalAmount: '1000.000000',
         netAmount: '1000.000000',
@@ -217,6 +219,18 @@ describe('POST-0021 financial wiring (displacement + bill NET slices)', () => {
         taxBasis: 'legacy_undivided',
         billDate: '2026-06-01',
       });
+
+      const categoryId = await ensureMaterialsCategory(db, orgId);
+      await db.execute(sql`
+        INSERT INTO ap_bill_lines (
+          organization_id, ap_bill_id, description, quantity, unit_amount, line_total,
+          net_amount, tax_amount, gross_amount, currency, classification_status, cost_category_id, sort_order
+        ) VALUES (
+          ${orgId}::uuid, ${billId}::uuid, 'Test line', 1, 1000, 1000,
+          1000, 0, 1000, 'ILS', 'classified', ${categoryId}::uuid, 0
+        )
+      `);
+      await db.execute(sql`UPDATE ap_bills SET status = 'open' WHERE id = ${billId}::uuid`);
 
       await db.insert(apBillProjectAllocations).values([
         {

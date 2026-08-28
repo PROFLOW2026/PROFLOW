@@ -36,12 +36,16 @@ import { scheduleModeFromCategoryPeriodBehavior } from '@/modules/expenses/domai
 import { INTERNAL_EMPLOYEE_PAYROLL_CATEGORY_KEY } from '@/modules/financials/domain/labor-expense-integrity';
 import { isDeprecatedForNewTransactionEntry } from '@/modules/financials/domain/economic-classification';
 import { formatMoney } from '@/shared/money/format';
+import { money } from '@/shared/money/money';
 import { rtlFlipClassName } from '@/shared/i18n/ltr-island';
 import { Link } from '@/shared/i18n/navigation';
 import { AllocationEditor, type AllocationDraft } from './allocation-editor';
 import type { ApBillOverlapCandidate } from '@/modules/financials/domain/expense-ap-overlap';
 import { findSimilarOpenApBillsForExpense } from '@/modules/financials/domain/expense-ap-overlap';
 import { ExpenseApOverlapWarning } from '@/modules/financials/ui/expense-ap-overlap-warning';
+import { ExpenseVatModeSelector } from './expense-vat-mode-selector';
+import type { ExpenseVatMode } from '../domain/vat-mode';
+import { resolveExpenseVatMode } from '../domain/vat-mode';
 
 const OVERHEAD_VALUE = '__overhead__';
 const NONE_VALUE = '__none__';
@@ -85,8 +89,9 @@ export interface ExpenseFormValues {
   workPackageId: string;
   costFamily: CostFamily | '';
   costCategoryId: string;
-  /** true = כולל מע״מ; false = לא כולל מע״מ */
-  amountIncludesTax: boolean;
+  /** @deprecated Use vatMode */
+  amountIncludesTax?: boolean;
+  vatMode?: ExpenseVatMode;
   netAmount: string;
   taxAmount: string;
   paymentMethod: string;
@@ -185,8 +190,12 @@ export function ExpenseForm({
   const [workPackageId, setWorkPackageId] = React.useState(initialValues?.workPackageId ?? '');
   const [costFamily, setCostFamily] = React.useState<CostFamily | ''>(initialValues?.costFamily ?? '');
   const [costCategoryId, setCostCategoryId] = React.useState(initialValues?.costCategoryId ?? '');
-  const [includesTax, setIncludesTax] = React.useState(
-    initialValues?.amountIncludesTax ? 'including' : 'excluding',
+  const [vatMode, setVatMode] = React.useState<ExpenseVatMode>(() =>
+    resolveExpenseVatMode({
+      vatMode: initialValues?.vatMode,
+      amountIncludesTax: initialValues?.amountIncludesTax,
+      forCreate: mode === 'create',
+    }),
   );
   const [netAmount, setNetAmount] = React.useState(initialValues?.netAmount ?? '');
   const [taxAmount, setTaxAmount] = React.useState(initialValues?.taxAmount ?? '');
@@ -250,7 +259,16 @@ export function ExpenseForm({
     const entered = amount.trim();
     if (!entered) return null;
     try {
-      const amountIncludesTax = includesTax === 'including';
+      if (vatMode === 'zero') {
+        const entered = money(amount.trim(), currency);
+        return {
+          net: formatMoney(entered, locale, { currencyDisplay: 'narrowSymbol' }),
+          tax: formatMoney(money('0', currency), locale, { currencyDisplay: 'narrowSymbol' }),
+          gross: formatMoney(entered, locale, { currencyDisplay: 'narrowSymbol' }),
+          netAmountRaw: entered.amount,
+        };
+      }
+      const amountIncludesTax = vatMode === 'inclusive';
       const resolved =
         taxRatePercent && taxRatePercent.trim() !== ''
           ? ({ method: 'percentage' as const, ratePercent: taxRatePercent })
@@ -271,7 +289,7 @@ export function ExpenseForm({
     } catch {
       return null;
     }
-  }, [amount, currency, hasManualTaxOverride, includesTax, locale, taxRatePercent]);
+  }, [amount, currency, hasManualTaxOverride, vatMode, locale, taxRatePercent]);
 
   /** Manual allocation lines must sum to NET (Actual Cost basis). */
   const allocationTotalAmount = taxPreview?.netAmountRaw ?? amount;
@@ -442,31 +460,19 @@ export function ExpenseForm({
 
         <input type="hidden" name="currency" value={currency} />
         <input type="hidden" name="amount" value={amount} />
-        <input
-          type="hidden"
-          name="amountIncludesTax"
-          value={includesTax === 'including' ? 'true' : 'false'}
-        />
-
         <Field
           label={t('fields.amountTaxMode')}
-          error={fieldErrors.amountIncludesTax}
+          error={fieldErrors.vatMode ?? fieldErrors.amountIncludesTax}
           description={t('fields.amountTaxModeHint')}
         >
           {(controlProps) => (
-            <Select
-              value={includesTax}
-              onValueChange={setIncludesTax}
+            <ExpenseVatModeSelector
+              value={vatMode}
+              onChange={setVatMode}
               disabled={readOnly || hasManualTaxOverride}
-            >
-              <SelectTrigger {...controlProps}>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="excluding">{t('fields.amountExcludingTax')}</SelectItem>
-                <SelectItem value="including">{t('fields.amountIncludingTax')}</SelectItem>
-              </SelectContent>
-            </Select>
+              controlId={controlProps.id}
+              describedBy={controlProps['aria-describedby']}
+            />
           )}
         </Field>
 

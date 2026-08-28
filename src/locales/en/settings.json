@@ -709,7 +709,9 @@
       },
       "ap": {
         "bill_created": "Vendor bill created",
+        "bill_updated": "Vendor bill updated",
         "bill_voided": "Vendor bill voided",
+        "bill_restored": "Vendor bill restored",
         "match_proposed": "Vendor bill match proposed",
         "match_accepted": "Vendor bill match accepted",
         "match_rejected": "Vendor bill match rejected",

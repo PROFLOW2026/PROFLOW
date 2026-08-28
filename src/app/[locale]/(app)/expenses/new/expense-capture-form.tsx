@@ -82,8 +82,8 @@ export function ExpenseCaptureForm({
         initialValues={{
           targeting: initialProjectId ?? '__overhead__',
           projectId: initialProjectId,
-          /** Gross-first capture: invoice totals are typically כולל מע״מ. */
-          amountIncludesTax: true,
+          /** Default for new expenses: כולל מע״מ */
+          vatMode: 'inclusive' as const,
         }}
         error={state.error ?? null}
         fieldErrors={state.fieldErrors}

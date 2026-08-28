@@ -17,6 +17,12 @@ import type {
 } from '../domain/types';
 import { DRAFT_FREQUENCIES } from '../domain/types';
 import { MANAGERIAL_COST_KINDS } from '../domain/managerial-cost';
+import { ExpenseVatModeSelector } from '@/modules/expenses/ui/expense-vat-mode-selector';
+import {
+  DEFAULT_EXPENSE_VAT_MODE,
+  isExpenseVatMode,
+  type ExpenseVatMode,
+} from '@/modules/expenses/domain/vat-mode';
 
 const NONE = '__none__';
 const MANAGERIAL_NONE = '__none__';
@@ -79,6 +85,12 @@ export function RecurringDraftForm({
     initial?.managerialCostKind ?? MANAGERIAL_NONE,
   );
   const [autoFinalize, setAutoFinalize] = useState(Boolean(initial?.autoFinalizeExpense));
+  const [vatMode, setVatMode] = useState<ExpenseVatMode>(() => {
+    if (initial?.payload?.kind === 'expense' && isExpenseVatMode(initial.payload.data.vatMode)) {
+      return initial.payload.data.vatMode;
+    }
+    return DEFAULT_EXPENSE_VAT_MODE;
+  });
 
   const kinds = mode === 'edit' ? [initialKind] : writableKinds;
 
@@ -192,6 +204,14 @@ export function RecurringDraftForm({
           </>
         )}
       </Field>
+
+      {kind === 'expense' ? (
+        <Field label={t('fields.vatMode')}>
+          {() => (
+            <ExpenseVatModeSelector value={vatMode} onChange={setVatMode} name="vatMode" />
+          )}
+        </Field>
+      ) : null}
 
       <Field label={t('fields.currency')} required>
         {(controlProps) => (

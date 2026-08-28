@@ -50,7 +50,7 @@ describe('overnight 0036–0045 SQL adversarial', () => {
           organization_id, vendor_id, status, currency, total_amount,
           net_amount, tax_amount, gross_amount, tax_basis, bill_date
         ) VALUES (
-          ${orgId}::uuid, ${vendorId}::uuid, 'open', 'ILS', 117,
+          ${orgId}::uuid, ${vendorId}::uuid, 'draft', 'ILS', 117,
           117, 0, 117, 'legacy_undivided', '2026-08-01'
         )
       `);
@@ -61,7 +61,7 @@ describe('overnight 0036–0045 SQL adversarial', () => {
               organization_id, vendor_id, status, currency, total_amount,
               net_amount, tax_amount, gross_amount, tax_basis, bill_date
             ) VALUES (
-              ${orgId}::uuid, ${vendorId}::uuid, 'open', 'ILS', 117,
+              ${orgId}::uuid, ${vendorId}::uuid, 'draft', 'ILS', 117,
               100, 17, 117, 'legacy_undivided', '2026-08-01'
             )
           `),
@@ -72,7 +72,7 @@ describe('overnight 0036–0045 SQL adversarial', () => {
           organization_id, vendor_id, status, currency, total_amount,
           net_amount, tax_amount, gross_amount, tax_basis, bill_date
         ) VALUES (
-          ${orgId}::uuid, ${vendorId}::uuid, 'open', 'ILS', 117,
+          ${orgId}::uuid, ${vendorId}::uuid, 'draft', 'ILS', 117,
           100, 17, 117, 'canonical', '2026-08-01'
         )
       `);

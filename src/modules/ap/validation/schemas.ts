@@ -162,6 +162,45 @@ export const voidApBillSchema = z.object({
 
 export type VoidApBillInput = z.input<typeof voidApBillSchema>;
 
+export const restoreApBillSchema = z.object({
+  billId: z.string().uuid(),
+});
+
+export type RestoreApBillInput = z.input<typeof restoreApBillSchema>;
+
+const apBillLineEditSchema = z.object({
+  lineId: z.string().uuid().optional(),
+  description: z.string().trim().min(1).max(500),
+  quantity: moneyString.default('1'),
+  unitAmount: moneyString,
+  lineTotal: moneyString,
+  currency: z.string().trim().length(3),
+  purchaseOrderLineId: z.string().uuid().optional().nullable(),
+  costCategoryId: z.string().uuid(),
+  costFamily: z
+    .enum(['direct_project', 'shared', 'business_overhead', 'asset_capital'])
+    .optional()
+    .nullable(),
+  economicTargetType: z.enum(['inherit', 'project', 'overhead']).optional(),
+  projectId: z.string().uuid().optional().nullable(),
+});
+
+export const editRecognizedApBillSchema = z.object({
+  billId: z.string().uuid(),
+  vendorId: z.string().uuid(),
+  projectId: z.string().uuid().optional().nullable(),
+  billDate: z.string().trim().optional().nullable(),
+  currency: z.string().trim().length(3),
+  totalAmount: moneyString,
+  amountIncludesTax: z.boolean().optional().nullable(),
+  netAmount: moneyString.optional().nullable(),
+  taxAmount: moneyString.optional().nullable(),
+  notes: z.string().trim().max(2000).optional().nullable(),
+  lines: z.array(apBillLineEditSchema).min(1),
+});
+
+export type EditRecognizedApBillInput = z.input<typeof editRecognizedApBillSchema>;
+
 export const createVendorCreditSchema = z.object({
   vendorId: z.string().uuid(),
   apBillId: z.string().uuid().optional().nullable(),

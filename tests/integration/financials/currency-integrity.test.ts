@@ -23,6 +23,10 @@ import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { rolePermissions } from '@drizzle/schema';
 import { and, eq, inArray } from 'drizzle-orm';
 import { createTestDatabase, type TestDatabase } from '../../setup/database';
+import {
+  ensureMaterialsCategory,
+  zeroVatFinalizedExpenseRow,
+} from '../../setup/cost-category-fixtures';
 
 describe('financials currency integrity', () => {
   let database: TestDatabase;
@@ -129,16 +133,16 @@ describe('financials currency integrity', () => {
       });
 
       if (input.expense) {
-        await db.insert(expenses).values({
-          organizationId: orgId,
-          projectId,
-          expenseDate: '2026-02-01',
-          netAmount: input.expense.amount,
-          grossAmount: input.expense.amount,
-          currency: input.expense.currency,
-          status: 'finalized',
-          costFamily: 'direct_project',
-        });
+        const costCategoryId = await ensureMaterialsCategory(db, orgId);
+        await db.insert(expenses).values(
+          zeroVatFinalizedExpenseRow({
+            organizationId: orgId,
+            projectId,
+            costCategoryId,
+            amount: input.expense.amount,
+            currency: input.expense.currency,
+          }),
+        );
       }
 
       return projectId;
@@ -174,16 +178,17 @@ describe('financials currency integrity', () => {
 
     await database.asService(async (db) => {
       await db.execute(sql`SET ROLE service_role`);
-      await db.insert(expenses).values({
-        organizationId: orgId,
-        projectId,
-        expenseDate: '2026-03-01',
-        netAmount: '2500.000000',
-        grossAmount: '2500.000000',
-        currency: 'USD',
-        status: 'finalized',
-        costFamily: 'direct_project',
-      });
+      const costCategoryId = await ensureMaterialsCategory(db, orgId);
+      await db.insert(expenses).values(
+        zeroVatFinalizedExpenseRow({
+          organizationId: orgId,
+          projectId,
+          costCategoryId,
+          amount: '2500.000000',
+          expenseDate: '2026-03-01',
+          currency: 'USD',
+        }),
+      );
     });
 
     const financials = await database.asUser(userId, async (tx) => {

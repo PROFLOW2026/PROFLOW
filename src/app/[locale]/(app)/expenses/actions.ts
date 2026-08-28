@@ -96,6 +96,7 @@ function buildExpensePayload(formData: FormData) {
     costFamily: formValue(formData, 'costFamily') ?? null,
     costCategoryId: formValue(formData, 'costCategoryId') ?? null,
     amountIncludesTax: formValue(formData, 'amountIncludesTax'),
+    vatMode: formValue(formData, 'vatMode'),
     netAmount: formValue(formData, 'netAmount') ?? null,
     taxAmount: formValue(formData, 'taxAmount') ?? null,
     paymentMethod: formValue(formData, 'paymentMethod') ?? null,
@@ -152,12 +153,14 @@ export async function createExpenseAction(
     redirect({ href: `/expenses/${expense.id}`, locale });
   } catch (error) {
     if (error instanceof ValidationError) {
-      const taxIssue = error.issues.find((issue) => issue.path === 'amountIncludesTax');
+      const taxIssue = error.issues.find(
+        (issue) => issue.path === 'amountIncludesTax' || issue.path === 'vatMode',
+      );
       if (taxIssue) {
         const tExpenses = await getTranslations('expenses');
         return {
           error: tExpenses('errors.inclusiveTaxRateRequired'),
-          fieldErrors: { amountIncludesTax: tExpenses('errors.inclusiveTaxRateRequired') },
+          fieldErrors: { vatMode: tExpenses('errors.inclusiveTaxRateRequired') },
         };
       }
       return { error: tErrors('validationFailed') };
@@ -202,12 +205,14 @@ export async function updateExpenseAction(
     redirect({ href: `/expenses/${expense.id}`, locale });
   } catch (error) {
     if (error instanceof ValidationError) {
-      const taxIssue = error.issues.find((issue) => issue.path === 'amountIncludesTax');
+      const taxIssue = error.issues.find(
+        (issue) => issue.path === 'amountIncludesTax' || issue.path === 'vatMode',
+      );
       if (taxIssue) {
         const tExpenses = await getTranslations('expenses');
         return {
           error: tExpenses('errors.inclusiveTaxRateRequired'),
-          fieldErrors: { amountIncludesTax: tExpenses('errors.inclusiveTaxRateRequired') },
+          fieldErrors: { vatMode: tExpenses('errors.inclusiveTaxRateRequired') },
         };
       }
       return { error: tErrors('validationFailed') };

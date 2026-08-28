@@ -154,12 +154,18 @@ test.describe('project-centric money chain QA', () => {
       .fill(expenseDescription);
     await page.getByRole('button', { name: /פרטים נוספים|show more/i }).click();
     await selectOption(page, he.expenses.fields.linkedVendor, seededVendorName);
+    await selectOption(page, he.expenses.fields.category, he.expenses.costCategories.materials);
     await page.getByRole('button', { name: he.expenses.actions.saveDraft }).click();
     await expect(page).toHaveURL(/\/he-IL\/expenses\/[0-9a-f-]+$/, { timeout: 30_000 });
 
     await page.getByRole('button', { name: he.expenses.actions.finalize }).click();
     await page.getByRole('button', { name: he.expenses.actions.finalize }).last().click();
-    await expect(page.getByText(he.expenses.detail.finalizedBanner).first()).toBeVisible({
+    await expect(
+      page
+        .getByText(he.expenses.detail.finalizedBanner)
+        .or(page.getByText(he.expenses.detail.finalizedEditableBanner))
+        .first(),
+    ).toBeVisible({
       timeout: 30_000,
     });
 
@@ -282,11 +288,17 @@ test.describe('project-centric money chain QA', () => {
       .fill(description);
     await page.getByRole('button', { name: /פרטים נוספים/ }).click();
     await selectOption(page, he.expenses.fields.linkedVendor, seededVendorName);
+    await selectOption(page, he.expenses.fields.category, he.expenses.costCategories.materials);
     await page.getByRole('button', { name: he.expenses.actions.saveDraft }).click();
     await expect(page).toHaveURL(/\/he-IL\/expenses\/[0-9a-f-]+$/, { timeout: 30_000 });
     await page.getByRole('button', { name: he.expenses.actions.finalize }).click();
     await page.getByRole('button', { name: he.expenses.actions.finalize }).last().click();
-    await expect(page.getByText(he.expenses.detail.finalizedBanner).first()).toBeVisible({
+    await expect(
+      page
+        .getByText(he.expenses.detail.finalizedBanner)
+        .or(page.getByText(he.expenses.detail.finalizedEditableBanner))
+        .first(),
+    ).toBeVisible({
       timeout: 30_000,
     });
 

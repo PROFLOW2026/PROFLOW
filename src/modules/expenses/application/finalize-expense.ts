@@ -89,7 +89,12 @@ export async function finalizeExpense(context: OrgContext, expenseId: string) {
   });
 
   const finalizedAt = todayInTimeZone(context.organization.timezone);
-  const taxSnapshot = captureTaxSnapshot(existing.netAmount, existing.taxAmount, existing.grossAmount);
+  const taxSnapshot = captureTaxSnapshot(
+    existing.netAmount,
+    existing.taxAmount,
+    existing.grossAmount,
+    existing.vatMode ?? existing.taxSnapshot?.vatMode ?? null,
+  );
 
   // Freeze automatic allocation snapshot on finalize so later contract growth
   // cannot rewrite this period's overhead. Periodic schedules keep prior applied

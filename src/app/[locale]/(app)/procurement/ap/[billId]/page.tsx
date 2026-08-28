@@ -25,9 +25,11 @@ import {
 import { VendorBillAllocationPanel } from '@/modules/ap/ui/vendor-bill-allocation-panel';
 import { getEntityDocumentPanelData } from '@/modules/documents';
 import { DocumentAttachments } from '@/modules/documents/ui';
-import { listExpensesForOrg } from '@/modules/expenses';
+import { listExpensesForOrg, listCostCategoriesForOrg } from '@/modules/expenses';
 import { listPurchaseOrdersForOrg } from '@/modules/procurement';
 import { listProjectsForOrg } from '@/modules/projects';
+import { listVendorsForOrg } from '@/modules/vendors';
+import { isMonthClosed, yearMonthFromBusinessDate } from '@/modules/month-close';
 import { money } from '@/shared/money/money';
 import { withOrgContext } from '@/shared/auth/session';
 import { todayInTimeZone } from '@/shared/dates';
@@ -39,6 +41,8 @@ import { VendorPaymentPanel } from './payment-actions';
 import { VendorCreditPanel } from './credit-actions';
 import { PostApBillPanel } from './post-actions';
 import { VoidApBillPanel } from './void-actions';
+import { RestoreApBillPanel } from './restore-actions';
+import { ApBillRecognizedEditPanel } from './ap-bill-edit-panel';
 import { textNavLinkMutedClassName } from '@/components/ui/pressable';
 import { ApBillTaxSummary } from '@/modules/ap/ui/ap-bill-tax-summary';
 
@@ -90,7 +94,9 @@ export default async function ApBillDetailPage({
 
     const canReadProjects = hasPermission(context, PERMISSIONS.PROJECTS_READ);
 
-    const [orders, expensesResult, documentsPanel, payablePosition, paymentRows, creditRows, projects, retentionReleases, paymentTerm] =
+    const canReadVendors = hasPermission(context, PERMISSIONS.VENDORS_READ);
+
+    const [orders, expensesResult, documentsPanel, payablePosition, paymentRows, creditRows, projects, retentionReleases, paymentTerm, vendors, costCategories, monthClosed] =
       await Promise.all([
         canReadPo ? listPurchaseOrdersForOrg(context) : Promise.resolve([]),
         canReadExpenses
@@ -107,14 +113,28 @@ export default async function ApBillDetailPage({
         detail.bill.paymentTermId
           ? getCatalogEntryById(context.db, context.organizationId, detail.bill.paymentTermId)
           : Promise.resolve(null),
+        canReadVendors
+          ? listVendorsForOrg(context, { status: 'active' }).catch(() => [])
+          : Promise.resolve([]),
+        canManage
+          ? listCostCategoriesForOrg(context).catch(() => [])
+          : Promise.resolve([]),
+        detail.bill.billDate
+          ? isMonthClosed(context, yearMonthFromBusinessDate(detail.bill.billDate))
+          : Promise.resolve(true),
       ]);
 
     const hasActivePayments = paymentRows.some((row) => row.payment.status === 'recorded');
     const hasActiveCredits = creditRows.some((row) => row.application.status === 'applied');
+    const canEditRecognizedBill =
+      canManage &&
+      isRecognizedVendorBillStatus(detail.bill.status) &&
+      !monthClosed;
 
     return {
       ...detail,
       canManage,
+      canEditRecognizedBill,
       paymentTermName: paymentTerm
         ? localizePaymentTermName(paymentTerm.key, paymentTerm.name, locale)
         : null,
@@ -160,6 +180,13 @@ export default async function ApBillDetailPage({
         id: expense.id,
         label: `${expense.description || expense.id.slice(0, 8)} · ${expense.grossAmount.amount} ${expense.grossAmount.currency}`,
       })),
+      vendors: vendors.map((vendor) => ({ id: vendor.id, name: vendor.name })),
+      costCategories: costCategories.map((category) => ({
+        id: category.id,
+        key: category.key,
+        name: category.name,
+        family: category.family,
+      })),
     };
   });
 
@@ -171,6 +198,7 @@ export default async function ApBillDetailPage({
     matches,
     matchPosition,
     canManage,
+    canEditRecognizedBill,
     purchaseOrders,
     expenses,
     documentsPanel,
@@ -183,6 +211,8 @@ export default async function ApBillDetailPage({
     projects,
     orgToday,
     paymentTermName,
+    vendors,
+    costCategories,
   } = data;
 
   return (
@@ -424,6 +454,28 @@ export default async function ApBillDetailPage({
 
       <PostApBillPanel billId={bill.id} canManage={canManage} billStatus={bill.status} />
 
+      <ApBillRecognizedEditPanel
+        billId={bill.id}
+        vendorId={bill.vendorId}
+        vendors={vendors}
+        projectId={bill.projectId}
+        projects={projects}
+        billDate={bill.billDate}
+        currency={bill.currency}
+        amountIncludesTax={bill.amountIncludesTax}
+        notes={bill.notes}
+        lines={lines.map((line) => ({
+          id: line.id,
+          description: line.description,
+          quantity: line.quantity,
+          unitAmount: line.unitAmount,
+          lineTotal: line.lineTotal,
+          costCategoryId: line.costCategoryId,
+        }))}
+        costCategories={costCategories}
+        canEdit={canEditRecognizedBill}
+      />
+
       <VoidApBillPanel
         billId={bill.id}
         canManage={canManage}
@@ -431,6 +483,8 @@ export default async function ApBillDetailPage({
         hasActivePayments={hasActivePayments}
         hasActiveCredits={hasActiveCredits}
       />
+
+      <RestoreApBillPanel billId={bill.id} canManage={canManage} billStatus={bill.status} />
 
       <section className="flex min-w-0 flex-col gap-4">
         <h2 className="text-sm font-semibold">{t('detail.matchesTitle')}</h2>

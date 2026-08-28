@@ -16,8 +16,10 @@ export {
   postApBill,
   updateDraftApBillRetention,
 } from './application/bills';
+export { editRecognizedApBill } from './application/edit-recognized-ap-bill';
 
 export { voidApBill, rejectSilentRecognizedBillEdit } from './application/void-bill';
+export { restoreApBill } from './application/restore-ap-bill';
 
 export {
   proposeApMatch,

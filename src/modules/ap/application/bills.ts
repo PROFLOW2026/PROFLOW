@@ -61,7 +61,7 @@ import {
   resolveOrgDefaultPaymentTermIdForContext,
 } from '@/modules/business-catalog';
 import { findVendorById, findSubcontractAgreementById } from '@/modules/vendors';
-import { findCostCategoryById } from '@/modules/expenses/data/expenses.repository';
+import { findCostCategoryById } from '@/modules/expenses';
 import {
   isDeprecatedForNewTransactionEntry,
   resolveApClassificationStatus,
@@ -649,8 +649,8 @@ export async function updateDraftApBillRetention(
   if (!bill || bill.archivedAt) throw new NotFoundError('AP bill');
   if (bill.status !== 'draft') {
     throw new DomainRuleError(
-      'Recognized vendor bills cannot be silently edited; void and replace, or apply a credit',
-      'ap.errors.billNotSilentlyEditable',
+      'Retention can only be changed on draft bills',
+      'ap.errors.billNotDraft',
     );
   }
 

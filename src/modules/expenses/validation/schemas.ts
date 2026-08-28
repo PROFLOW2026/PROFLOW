@@ -2,7 +2,15 @@ import { z } from 'zod';
 
 const costFamilySchema = z.enum(['direct_project', 'shared', 'business_overhead', 'asset_capital']);
 
-/** false = excluding VAT (לא כולל מע״מ); true = including VAT (כולל מע״מ). */
+const expenseVatModeSchema = z.preprocess((value) => {
+  if (value === '' || value === null || value === undefined) return undefined;
+  if (value === 'inclusive' || value === 'including' || value === 'true') return 'inclusive';
+  if (value === 'exclusive' || value === 'excluding' || value === 'false') return 'exclusive';
+  if (value === 'zero' || value === 'none') return 'zero';
+  return value;
+}, z.enum(['inclusive', 'exclusive', 'zero']).optional());
+
+/** @deprecated Prefer vatMode */
 const amountIncludesTaxSchema = z.preprocess((value) => {
   if (value === '' || value === null || value === undefined) return undefined;
   if (typeof value === 'boolean') return value;
@@ -66,6 +74,7 @@ const expenseFieldsSchema = z.object({
    * Not persisted as its own column - reconstructed from stored amounts on edit.
    */
   amountIncludesTax: amountIncludesTaxSchema,
+  vatMode: expenseVatModeSchema,
   netAmount: z.string().trim().nullable().optional(),
   taxAmount: z.string().trim().nullable().optional(),
   paymentMethod: z.string().trim().max(100).nullable().optional(),

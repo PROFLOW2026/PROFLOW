@@ -4,6 +4,7 @@ import { createProject } from '@/modules/projects';
 import { resolveOrgContext } from '@/modules/tenancy';
 import { createSubcontract, createVendor, listVendorSubcontracts } from '@/modules/vendors';
 import { createTestDatabase, type TestDatabase } from '../../setup/database';
+import { classifyApBillLines, findCostCategoryId } from '../../setup/cost-category-fixtures';
 import { createTestUser, seedSystem } from '../../setup/fixtures';
 import { createOrganization } from '@/modules/tenancy';
 
@@ -39,6 +40,7 @@ describe('AP subcontract agreement guard and outstanding', () => {
 
   it('rejects a vendor bill whose agreement vendor or project does not match', async () => {
     const tenant = await provisionTenant(database, 'owner-a@example.test', 'Alpha Electrical');
+    const costCategoryId = await findCostCategoryId(database, tenant.organizationId);
 
     await expect(
       database.asUser(tenant.owner.id, async (tx) => {
@@ -63,15 +65,18 @@ describe('AP subcontract agreement guard and outstanding', () => {
           totalAmount: '1000',
           billDate: '2026-08-01',
           subcontractAgreementId: agreement.id,
-          lines: [
-            {
-              description: 'Mismatch',
-              quantity: '1',
-              unitAmount: '1000',
-              lineTotal: '1000',
-              currency: context.organization.baseCurrency,
-            },
-          ],
+          lines: classifyApBillLines(
+            [
+              {
+                description: 'Mismatch',
+                quantity: '1',
+                unitAmount: '1000',
+                lineTotal: '1000',
+                currency: context.organization.baseCurrency,
+              },
+            ],
+            costCategoryId,
+          ),
         });
       }),
     ).rejects.toSatisfy((error) =>
@@ -83,6 +88,7 @@ describe('AP subcontract agreement guard and outstanding', () => {
 
   it('isolates billed/outstanding to the tagged subcontract agreement', async () => {
     const tenant = await provisionTenant(database, 'owner-a@example.test', 'Alpha Electrical');
+    const costCategoryId = await findCostCategoryId(database, tenant.organizationId);
 
     const result = await database.asUser(tenant.owner.id, async (tx) => {
       const context = await resolveOrgContext(tx, {
@@ -112,15 +118,18 @@ describe('AP subcontract agreement guard and outstanding', () => {
           totalAmount: '10000',
           billDate: '2026-08-01',
           subcontractAgreementId: agreementA.id,
-        lines: [
-          {
-            description: 'Valuation A',
-            quantity: '1',
-            unitAmount: '10000',
-            lineTotal: '10000',
-            currency,
-          },
-        ],
+        lines: classifyApBillLines(
+          [
+            {
+              description: 'Valuation A',
+              quantity: '1',
+              unitAmount: '10000',
+              lineTotal: '10000',
+              currency,
+            },
+          ],
+          costCategoryId,
+        ),
       });
         await createApBill(context, {
           vendorId: vendor.id,
@@ -129,15 +138,18 @@ describe('AP subcontract agreement guard and outstanding', () => {
           totalAmount: '3000',
           billDate: '2026-08-01',
           subcontractAgreementId: agreementB.id,
-        lines: [
-          {
-            description: 'Valuation B',
-            quantity: '1',
-            unitAmount: '3000',
-            lineTotal: '3000',
-            currency,
-          },
-        ],
+        lines: classifyApBillLines(
+          [
+            {
+              description: 'Valuation B',
+              quantity: '1',
+              unitAmount: '3000',
+              lineTotal: '3000',
+              currency,
+            },
+          ],
+          costCategoryId,
+        ),
       });
 
       const forA = await getVendorApOutstanding(context, vendor.id, {

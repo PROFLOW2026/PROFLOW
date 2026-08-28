@@ -161,10 +161,10 @@ async function restoreCommitmentForVoidedBill(
   });
 }
 
-/** Explicit rejection of silent financial edits on recognized bills. */
+/** @deprecated Use editRecognizedApBill in open months instead. */
 export function rejectSilentRecognizedBillEdit(): never {
   throw new DomainRuleError(
-    'Recognized vendor bills cannot be silently edited; void and replace, or apply a credit',
-    'ap.errors.billNotSilentlyEditable',
+    'This bill cannot be edited here; use the edit form while the month is open',
+    'ap.errors.billEditUnavailable',
   );
 }

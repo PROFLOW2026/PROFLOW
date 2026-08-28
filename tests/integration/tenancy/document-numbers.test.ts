@@ -17,6 +17,7 @@ import { createVendor } from '@/modules/vendors';
 import { AuthorizationError } from '@/shared/errors';
 import { sql } from 'drizzle-orm';
 import { createTestDatabase, resultRows, type TestDatabase } from '../../setup/database';
+import { classifyApBillLines, findCostCategoryId } from '../../setup/cost-category-fixtures';
 import { createTestUser, seedSystem } from '../../setup/fixtures';
 
 describe('internal document numbering', () => {
@@ -47,6 +48,8 @@ describe('internal document numbering', () => {
   });
 
   it('allocates sequential numbers and keeps a user-supplied reference', async () => {
+    const costCategoryId = await findCostCategoryId(database, organizationId);
+
     await database.asUser(ownerId, async (tx) => {
       const context = await resolveOrgContext(tx, {
         userId: ownerId,
@@ -118,15 +121,18 @@ describe('internal document numbering', () => {
         currency: 'ILS',
         totalAmount: '80',
         billDate: '2026-08-01',
-        lines: [
-          {
-            description: 'Materials',
-            quantity: '1',
-            unitAmount: '80',
-            lineTotal: '80',
-            currency: 'ILS',
-          },
-        ],
+        lines: classifyApBillLines(
+          [
+            {
+              description: 'Materials',
+              quantity: '1',
+              unitAmount: '80',
+              lineTotal: '80',
+              currency: 'ILS',
+            },
+          ],
+          costCategoryId,
+        ),
       });
       expect(bill.reference).toBe('VB-007');
 
@@ -136,15 +142,18 @@ describe('internal document numbering', () => {
         currency: 'ILS',
         totalAmount: '20',
         billDate: '2026-08-01',
-        lines: [
-          {
-            description: 'Sundries',
-            quantity: '1',
-            unitAmount: '20',
-            lineTotal: '20',
-            currency: 'ILS',
-          },
-        ],
+        lines: classifyApBillLines(
+          [
+            {
+              description: 'Sundries',
+              quantity: '1',
+              unitAmount: '20',
+              lineTotal: '20',
+              currency: 'ILS',
+            },
+          ],
+          costCategoryId,
+        ),
       });
       expect(vendorRefBill.reference).toBe('INV-88');
 

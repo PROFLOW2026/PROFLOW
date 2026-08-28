@@ -57,6 +57,7 @@ export {
   bookInventoryPurchaseFromExpenseOnExecutor,
   consumeInventoryCostToProject,
   consumeInventoryCostToProjectOnExecutor,
+  reconcileInventoryPurchaseFromExpenseEditOnExecutor,
   unbookInventoryPurchaseFromExpense,
   unbookInventoryPurchaseFromExpenseOnExecutor,
 } from './application/inventory-cost';

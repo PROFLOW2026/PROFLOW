@@ -15,6 +15,7 @@ import {
 import { resolveOrgContext } from '@/modules/tenancy';
 import { DomainRuleError } from '@/shared/errors';
 import { createTestDatabase, type TestDatabase } from '@tests/setup/database';
+import { directProjectZeroVatFields } from '@tests/setup/cost-category-fixtures';
 import { provisionTwoTenants } from './setup';
 
 describe('project entry baseline (opening reduction)', () => {
@@ -67,11 +68,13 @@ describe('project entry baseline (opening reduction)', () => {
         organizationId: orgA.organization.id,
         locale: 'he-IL',
       });
+      const expenseFields = await directProjectZeroVatFields(tx, orgA.organization.id);
       const expense = await createExpense(context, {
         amount: '10000',
         currency: 'ILS',
         projectId: created.project.id,
         description: 'Managed-period materials',
+        ...expenseFields,
       });
       await finalizeExpense(context, expense.id);
       return getProjectFinancials(context, created.project.id);

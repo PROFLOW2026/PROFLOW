@@ -8,7 +8,6 @@ import {
   hasReliableSubcontractorSignal,
   isMaterialEconomicCategoryKey,
   resolveExpenseClassificationStatus,
-  resolveTransactionClassificationStatus,
   resolveOwnerBreakdownBucket,
   sumExclusiveOwnerBucketAmounts,
   ownerBucketMoney,

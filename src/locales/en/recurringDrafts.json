@@ -91,6 +91,7 @@
     "nextRunDate": "Next generation date",
     "endDate": "End date",
     "amount": "Amount",
+    "vatMode": "VAT",
     "currency": "Currency",
     "description": "Description",
     "supplierName": "Supplier name",

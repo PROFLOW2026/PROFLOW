@@ -171,7 +171,7 @@ describe('OCR extract → confirm draft (PGlite)', () => {
           confirm: true,
           draftTarget: 'vendor_bill',
           vendorId: vendor.id,
-          acceptedFields: ['vendor', 'gross', 'currency', 'date', 'description'],
+          acceptedFields: ['vendor', 'gross', 'currency', 'date', 'net', 'tax', 'description'],
         },
         { createVendorBillDraft: createVendorBillDraftFromOcr, repo },
       );

@@ -13,6 +13,7 @@ import { getProjectFinancials } from '@/modules/financials/application/get-proje
 import { resolveOrgContext } from '@/modules/tenancy/application/resolve-org-context';
 import { seedSystemData } from '@drizzle/seed/system';
 import { createTestDatabase, type TestDatabase } from '../../setup/database';
+import { materialsCategoryId, zeroVatFinalizedExpenseRow } from '../../setup/cost-category-fixtures';
 
 async function createTestUser(database: TestDatabase): Promise<{ id: string; email: string }> {
   const id = randomUUID();
@@ -83,16 +84,15 @@ async function seedProjectWithFinancials(
       effectiveDate: '2026-01-01',
     });
 
-    await tx.insert(expenses).values({
-      organizationId,
-      projectId: project!.id,
-      expenseDate: '2026-02-01',
-      netAmount: '10000.000000',
-      grossAmount: '10000.000000',
-      currency: 'ILS',
-      status: 'finalized',
-      costFamily: 'direct_project',
-    });
+    const costCategoryId = await materialsCategoryId(tx, organizationId);
+    await tx.insert(expenses).values(
+      zeroVatFinalizedExpenseRow({
+        organizationId,
+        projectId: project!.id,
+        costCategoryId,
+        amount: '10000.000000',
+      }),
+    );
 
     return project!.id;
   });

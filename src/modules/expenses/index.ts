@@ -1,5 +1,6 @@
 export { createExpense } from './application/create-expense';
 export { updateExpense } from './application/update-expense';
+export { updateFinalizedExpense } from './application/update-finalized-expense';
 export { finalizeExpense } from './application/finalize-expense';
 export { voidExpense } from './application/void-expense';
 export { createExpenseReversal } from './application/create-expense-reversal';
@@ -86,4 +87,5 @@ export type {
 } from './validation/schemas';
 
 /** Cross-module org-scoped lookups (FK / tenancy guards). */
-export { findExpenseById } from './data/expenses.repository';
+export { findExpenseById, findCostCategoryById } from './data/expenses.repository';
+export { listScheduleLines } from './data/managerial-schedule.repository';

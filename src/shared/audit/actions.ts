@@ -198,7 +198,9 @@ export const AUDIT_ACTIONS = {
   SUPPLIER_QUOTE_RECEIVED: 'procurement.supplier_quote_received',
 
   AP_BILL_CREATED: 'ap.bill_created',
+  AP_BILL_UPDATED: 'ap.bill_updated',
   AP_BILL_VOIDED: 'ap.bill_voided',
+  AP_BILL_RESTORED: 'ap.bill_restored',
   AP_MATCH_PROPOSED: 'ap.match_proposed',
   AP_MATCH_ACCEPTED: 'ap.match_accepted',
   AP_MATCH_REJECTED: 'ap.match_rejected',

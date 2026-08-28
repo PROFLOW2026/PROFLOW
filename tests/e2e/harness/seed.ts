@@ -1,5 +1,5 @@
-import { sql } from 'drizzle-orm';
-import { organizationMemberships, profiles } from '@drizzle/schema';
+import { eq, sql } from 'drizzle-orm';
+import { costCategories, organizationMemberships, profiles } from '@drizzle/schema';
 import { seedSystemData } from '@drizzle/seed/system';
 import { createClient } from '@/modules/clients';
 import { createExpense, finalizeExpense } from '@/modules/expenses';
@@ -163,12 +163,24 @@ export async function seedWorld(db: Database): Promise<SeededWorld> {
     });
 
     // One finalized cost so the financial panels have something honest to show.
+    const categoryRows = await tx
+      .select({ id: costCategories.id, key: costCategories.key })
+      .from(costCategories)
+      .where(eq(costCategories.organizationId, context.organizationId));
+    const materialsCategoryId = categoryRows.find((row) => row.key === 'materials')?.id;
+    if (!materialsCategoryId) {
+      throw new Error('materials cost category missing after organization provisioning');
+    }
+
     const expense = await createExpense(context, {
       amount: '12000',
       currency: 'ILS',
       description: 'כבלים וחומרי חשמל',
       projectId: project.projectId,
       supplierName: 'אלקטרו ספקים',
+      costCategoryId: materialsCategoryId,
+      costFamily: 'direct_project',
+      vatMode: 'zero',
     });
     await finalizeExpense(context, expense.id);
 

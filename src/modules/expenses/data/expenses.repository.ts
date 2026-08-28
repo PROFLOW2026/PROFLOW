@@ -56,6 +56,7 @@ export interface ExpenseInsertRow {
   readonly grossAmount: string;
   readonly currency: string;
   readonly taxSnapshot: unknown | null;
+  readonly vatMode?: string | null;
   readonly status: ExpenseStatus;
   readonly finalizedAt: BusinessDate | null;
   readonly paymentMethod: string | null;
@@ -264,6 +265,7 @@ export async function findExpenseById(
       grossAmount: expenses.grossAmount,
       currency: expenses.currency,
       taxSnapshot: expenses.taxSnapshot,
+      vatMode: expenses.vatMode,
       status: expenses.status,
       finalizedAt: expenses.finalizedAt,
       paymentMethod: expenses.paymentMethod,
@@ -322,6 +324,7 @@ export async function findExpenseById(
     ...mapSummary({ ...row, projectName: row.projectName }),
     phaseId: row.phaseId,
     taxSnapshot: row.taxSnapshot as ExpenseDetail['taxSnapshot'],
+    vatMode: (row.vatMode as ExpenseDetail['vatMode']) ?? null,
     finalizedAt: row.finalizedAt as BusinessDate | null,
     paymentMethod: row.paymentMethod,
     notes: row.notes,

@@ -15,6 +15,7 @@ import { resolveExpenseCurrency } from '../domain/currency';
 import { isOverheadTargeting, resolveExpenseTargeting, assertNoAllocationsOnProjectExpense } from '../domain/targeting';
 import { encodeRecurrenceRule } from '../domain/recurrence';
 import { resolveTaxAmounts } from '../domain/tax';
+import { resolveExpenseVatMode } from '../domain/vat-mode';
 import { isWeightAllocationMethod } from '../domain/types';
 import type { AllocationLineInput } from '../domain/types';
 import { runAutomaticAllocation } from './run-automatic-allocation';
@@ -330,17 +331,24 @@ export async function buildExpensePayload(
   const vendorId = await validateVendor(context, input.vendorId);
   const phaseId = await validatePhase(context, input.phaseId, targeting.projectId);
 
+  const vatMode = resolveExpenseVatMode({
+    vatMode: input.vatMode,
+    amountIncludesTax: input.amountIncludesTax,
+    forCreate: !('expenseId' in input && input.expenseId),
+  });
+
   const taxResolution =
-    input.amountIncludesTax === true || input.amountIncludesTax === false
-      ? await resolveApplicableDefaultTax(context, expenseDate)
-      : null;
+    vatMode === 'zero'
+      ? null
+      : await resolveApplicableDefaultTax(context, expenseDate);
 
   let amounts: ReturnType<typeof resolveTaxAmounts>;
   try {
     amounts = resolveTaxAmounts({
       enteredAmount: input.amount,
       currency,
-      amountIncludesTax: input.amountIncludesTax,
+      vatMode,
+      amountIncludesTax: vatMode === 'inclusive',
       netAmount: input.netAmount,
       taxAmount: input.taxAmount,
       resolved: taxResolution?.resolved ?? null,
@@ -349,7 +357,7 @@ export async function buildExpensePayload(
     if (error instanceof Error && error.message === 'INCLUSIVE_TAX_RATE_REQUIRED') {
       throw new ValidationError([
         {
-          path: 'amountIncludesTax',
+          path: 'vatMode',
           message: 'An applicable percentage tax rule is required when the amount includes tax',
         },
       ]);
@@ -411,6 +419,7 @@ export async function buildExpensePayload(
         inventoryStockPurchase: inventoryStock.inventoryStockPurchase,
         costFamily: targeting.costFamily,
       }),
+      vatMode,
       createdByUserId: context.userId,
     },
   };

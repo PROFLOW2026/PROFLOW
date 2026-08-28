@@ -146,6 +146,7 @@ describe('OWNER GATE — double-count overlaps', () => {
           sourceKind: 'ap_bill',
           sourceId: 's',
           vendorType: 'subcontractor',
+          categoryKey: 'external_manpower',
         }),
       ),
     ).toBe(true);

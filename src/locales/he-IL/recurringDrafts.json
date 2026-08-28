@@ -91,6 +91,7 @@
     "nextRunDate": "תאריך היצירה הבאה",
     "endDate": "תאריך סיום",
     "amount": "סכום",
+    "vatMode": "מע״מ",
     "currency": "מטבע",
     "description": "תיאור",
     "supplierName": "שם ספק",

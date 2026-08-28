@@ -95,7 +95,7 @@ describe('expense tax resolution', () => {
         taxAmount: '180.000000',
         grossAmount: '1180.000000',
       }),
-    ).toEqual({ amount: '1180.000000', amountIncludesTax: true });
+    ).toEqual({ amount: '1180.000000', vatMode: 'inclusive', amountIncludesTax: true });
 
     expect(
       inferExpenseTaxModeFromAmounts({
@@ -103,6 +103,6 @@ describe('expense tax resolution', () => {
         taxAmount: null,
         grossAmount: '1500.000000',
       }),
-    ).toEqual({ amount: '1500.000000', amountIncludesTax: false });
+    ).toEqual({ amount: '1500.000000', vatMode: 'exclusive', amountIncludesTax: false });
   });
 });

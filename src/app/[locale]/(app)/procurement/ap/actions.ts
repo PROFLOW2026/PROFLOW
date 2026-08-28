@@ -17,6 +17,8 @@ import {
   updateDraftApBillRetention,
   updateVendorCredit,
   voidApBill,
+  restoreApBill,
+  editRecognizedApBill,
   voidVendorCredit,
   voidVendorPayment,
 } from '@/modules/ap';
@@ -94,6 +96,8 @@ function parseLines(formData: FormData) {
               | 'asset_capital')
           : null;
       return {
+        lineId:
+          typeof row.lineId === 'string' && row.lineId.trim() ? row.lineId.trim() : undefined,
         description: String(row.description ?? ''),
         quantity: String(row.quantity ?? '1'),
         unitAmount: String(row.unitAmount ?? ''),
@@ -399,6 +403,69 @@ export async function voidApBillAction(
   const billId = requiredFormValue(formData, 'apBillId');
   try {
     await withOrgContext((context) => voidApBill(context, { billId }));
+    revalidatePath(`/procurement/ap/${billId}`);
+    revalidatePath('/procurement/ap');
+    revalidatePath('/procurement/ap/aging');
+    return { success: true };
+  } catch (error) {
+    return mapAppError(error);
+  }
+}
+
+export async function restoreApBillAction(
+  _prev: ApFormState,
+  formData: FormData,
+): Promise<ApFormState> {
+  const billId = requiredFormValue(formData, 'apBillId');
+  try {
+    await withOrgContext((context) => restoreApBill(context, { billId }));
+    revalidatePath(`/procurement/ap/${billId}`);
+    revalidatePath('/procurement/ap');
+    revalidatePath('/procurement/ap/aging');
+    return { success: true };
+  } catch (error) {
+    return mapAppError(error);
+  }
+}
+
+export async function editRecognizedApBillAction(
+  _prev: ApFormState,
+  formData: FormData,
+): Promise<ApFormState> {
+  const t = await getTranslations('ap');
+  const billId = requiredFormValue(formData, 'billId');
+  const vendorId = formValue(formData, 'vendorId');
+  const parsedLines = parseLines(formData).filter(
+    (line) => line.costCategoryId && line.description.trim(),
+  );
+
+  if (!vendorId) return { error: t('errors.vendorRequired') };
+  if (parsedLines.length === 0) return { error: t('errors.linesRequired') };
+
+  try {
+    await withOrgContext((context) =>
+      editRecognizedApBill(context, {
+        billId,
+        vendorId,
+        projectId: formValue(formData, 'projectId'),
+        billDate: formValue(formData, 'billDate'),
+        currency: requiredFormValue(formData, 'currency'),
+        totalAmount: requiredFormValue(formData, 'totalAmount'),
+        amountIncludesTax: formData.get('amountIncludesTax') === 'on',
+        notes: formValue(formData, 'notes'),
+        lines: parsedLines.map((line) => ({
+          lineId: line.lineId,
+          description: line.description,
+          quantity: line.quantity,
+          unitAmount: line.unitAmount,
+          lineTotal: line.lineTotal,
+          currency: line.currency,
+          purchaseOrderLineId: line.purchaseOrderLineId,
+          costCategoryId: line.costCategoryId!,
+          costFamily: line.costFamily,
+        })),
+      }),
+    );
     revalidatePath(`/procurement/ap/${billId}`);
     revalidatePath('/procurement/ap');
     revalidatePath('/procurement/ap/aging');

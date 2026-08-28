@@ -30,6 +30,7 @@ export interface ExpenseDraftPayload extends Record<string, unknown> {
   readonly costFamily: string | null;
   readonly costCategoryId: string | null;
   readonly amountIncludesTax: string | boolean | null;
+  readonly vatMode: string | null;
   readonly netAmount: string | null;
   readonly taxAmount: string | null;
   readonly paymentMethod: string | null;
@@ -135,6 +136,7 @@ export function expensePayloadFromFormData(formData: FormData): ExpenseDraftPayl
     costFamily: formText(formData, 'costFamily'),
     costCategoryId: formText(formData, 'costCategoryId'),
     amountIncludesTax: formText(formData, 'amountIncludesTax'),
+    vatMode: formText(formData, 'vatMode'),
     netAmount: formText(formData, 'netAmount'),
     taxAmount: formText(formData, 'taxAmount'),
     paymentMethod: formText(formData, 'paymentMethod'),

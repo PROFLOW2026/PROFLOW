@@ -85,6 +85,7 @@ export async function createLinkedExpenseAction(
             | CreateLinkedExpenseInput['allocationScheduleMode']
             | undefined) ?? 'annual')
         : undefined,
+      vatMode: formValue(formData, 'vatMode') as CreateLinkedExpenseInput['vatMode'],
     };
 
     const result = await withOrgContext((context) =>

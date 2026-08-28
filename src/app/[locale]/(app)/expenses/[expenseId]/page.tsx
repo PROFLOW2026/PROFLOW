@@ -27,6 +27,7 @@ import { formatBusinessDate } from '@/shared/dates/format';
 import { Link } from '@/shared/i18n/navigation';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
+import { isMonthClosed, yearMonthFromBusinessDate } from '@/modules/month-close';
 import { upsertEntityFieldValueAction } from '../../settings/custom-fields/actions';
 import { ExpenseCorrectionHistory } from './expense-correction-history';
 import { ExpenseDetailActions } from './expense-detail-actions';
@@ -93,6 +94,14 @@ export default async function ExpenseDetailPage({
         canPromoteVendor: hasPermission(context, PERMISSIONS.VENDORS_MANAGE),
         canFinalizeExpense: hasPermission(context, PERMISSIONS.EXPENSES_FINALIZE),
         canCreateExpense: hasPermission(context, PERMISSIONS.EXPENSES_CREATE),
+        canUpdateExpense: hasPermission(context, PERMISSIONS.EXPENSES_UPDATE),
+        monthOpen:
+          expense.status === 'finalized'
+            ? !(await isMonthClosed(
+                context,
+                yearMonthFromBusinessDate(expense.expenseDate),
+              ))
+            : true,
       };
     } catch {
       return null;
@@ -115,9 +124,17 @@ export default async function ExpenseDetailPage({
     canPromoteVendor,
     canFinalizeExpense,
     canCreateExpense,
+    canUpdateExpense,
+    monthOpen,
   } = data;
   const recurrence = decodeRecurrenceRule(expense.recurrenceRule);
-  const readOnly = expense.status !== 'draft';
+  const canEditFinalized =
+    expense.status === 'finalized' &&
+    !expense.voidsExpenseId &&
+    !expense.adjustsExpenseId &&
+    monthOpen &&
+    canUpdateExpense;
+  const readOnly = expense.status !== 'draft' && !canEditFinalized;
   const canFinalize =
     expense.status === 'draft' && canFinalizeExpense && Boolean(expense.costCategoryId);
   const canVoid = expense.status === 'finalized' && !expense.voidsExpenseId && canFinalizeExpense;
@@ -169,7 +186,7 @@ export default async function ExpenseDetailPage({
           role="status"
           className="rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-muted)] px-4 py-3 text-sm text-[var(--pf-text-primary)]"
         >
-          {t('detail.finalizedBanner')}
+          {canEditFinalized ? t('detail.finalizedEditableBanner') : t('detail.finalizedBanner')}
         </div>
       ) : null}
 

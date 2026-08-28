@@ -20,9 +20,7 @@ import {
   isPositiveMoney,
   isZeroMoney,
   multiplyMoney,
-  money,
   subtractMoney,
-  toNumericString,
   type MoneyValue,
 } from '@/shared/money';
 import { lineNetMoney } from '@/modules/ap/domain/bill-line-monetary';

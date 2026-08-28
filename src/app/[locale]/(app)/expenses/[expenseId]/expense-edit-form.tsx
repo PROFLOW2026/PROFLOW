@@ -69,6 +69,8 @@ export function ExpenseEditForm({
     netAmount: expense.netAmount.amount,
     taxAmount: expense.taxAmount?.amount ?? null,
     grossAmount: expense.grossAmount.amount,
+    vatMode: expense.vatMode,
+    taxSnapshot: expense.taxSnapshot,
   });
   const allocations: AllocationDraft[] = expense.allocations.map((line) => ({
     targetType: line.targetType,
@@ -117,6 +119,7 @@ export function ExpenseEditForm({
           costFamily: expense.costFamily,
           costCategoryId: expense.costCategoryId ?? '',
           amountIncludesTax: taxMode.amountIncludesTax,
+          vatMode: taxMode.vatMode,
           // Leave advanced overrides empty so re-save uses the tax engine + mode.
           netAmount: '',
           taxAmount: '',

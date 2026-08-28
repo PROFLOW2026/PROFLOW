@@ -1,5 +1,6 @@
 import type { BusinessDate } from '@/shared/dates';
 import type { MoneyValue } from '@/shared/money';
+import type { ExpenseVatMode } from './vat-mode';
 
 /** Doc 04 §6 - the four V1 cost families. */
 export type CostFamily = 'direct_project' | 'shared' | 'business_overhead' | 'asset_capital';
@@ -128,6 +129,7 @@ export interface TaxSnapshot {
   readonly grossAmount: string;
   readonly currency: string;
   readonly capturedAt: string;
+  readonly vatMode?: ExpenseVatMode;
 }
 
 export type ClassificationStatus = 'classified' | 'needs_classification';
@@ -154,6 +156,7 @@ export interface ExpenseSummary {
 export interface ExpenseDetail extends ExpenseSummary {
   readonly phaseId: string | null;
   readonly taxSnapshot: TaxSnapshot | null;
+  readonly vatMode: ExpenseVatMode | null;
   readonly finalizedAt: BusinessDate | null;
   readonly paymentMethod: string | null;
   readonly notes: string | null;

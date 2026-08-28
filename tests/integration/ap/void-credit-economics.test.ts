@@ -21,6 +21,7 @@ import { createVendor } from '@/modules/vendors';
 import { createProject } from '@/modules/projects';
 import { DomainRuleError } from '@/shared/errors';
 import { money } from '@/shared/money';
+import { classifyApBillLines, findCostCategoryId } from '@tests/setup/cost-category-fixtures';
 import { createTestDatabase, type TestDatabase } from '@tests/setup/database';
 import { provisionTwoTenants } from '../billing/setup';
 
@@ -54,6 +55,7 @@ describe('AP void + credit economics (PGlite)', () => {
     readonly totalAmount?: string;
     readonly withProject?: boolean;
   }) {
+    const costCategoryId = await findCostCategoryId(database, input.organizationId);
     return database.asUser(input.userId, async (tx) => {
       const context = await resolveOrgContext(tx, {
         userId: input.userId,
@@ -76,15 +78,18 @@ describe('AP void + credit economics (PGlite)', () => {
         totalAmount,
         billDate: '2026-08-01',
         dueDate: '2026-09-01',
-        lines: [
-          {
-            description: 'Materials',
-            quantity: '1',
-            unitAmount: totalAmount,
-            lineTotal: totalAmount,
-            currency: ILS,
-          },
-        ],
+        lines: classifyApBillLines(
+          [
+            {
+              description: 'Materials',
+              quantity: '1',
+              unitAmount: totalAmount,
+              lineTotal: totalAmount,
+              currency: ILS,
+            },
+          ],
+          costCategoryId,
+        ),
       });
       return { context, vendor, bill, projectId };
     });

@@ -9,6 +9,7 @@ import type { UpdateExpenseInput } from '../validation/schemas';
 import { noteModuleUsage } from '@/modules/tenancy';
 import { isOverheadTargeting } from '../domain/targeting';
 import { buildExpensePayload, persistExpenseAllocations, shouldNoteFirstOverheadUsage } from './create-expense';
+import { updateFinalizedExpense } from './update-finalized-expense';
 
 const EXPENSE_AUDIT_UPDATED = 'expense.updated';
 
@@ -17,6 +18,9 @@ export async function updateExpense(context: OrgContext, input: UpdateExpenseInp
 
   const existing = await findExpenseById(context.db, context.organizationId, input.expenseId);
   if (!existing) throw new NotFoundError('Expense');
+  if (existing.status === 'finalized' && !existing.voidsExpenseId) {
+    return updateFinalizedExpense(context, input);
+  }
   assertEditable(existing.status);
 
   const payload = await buildExpensePayload(context, input);

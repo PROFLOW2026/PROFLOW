@@ -16,6 +16,7 @@ import {
   isManagerialCostKind,
 } from '@/modules/recurring-drafts';
 import type { RecurringDraftFormState } from '@/modules/recurring-drafts/ui/draft-form';
+import type { ExpenseVatMode } from '@/modules/expenses/domain/vat-mode';
 import { withOrgContext } from '@/shared/auth/session';
 import {
   AppError,
@@ -63,6 +64,7 @@ function buildPayload(kind: string, formData: FormData, title: string): unknown 
             ? 'direct_project'
             : null,
       notes,
+      vatMode: formValue(formData, 'vatMode') as ExpenseVatMode | undefined,
     };
   }
 

@@ -37,11 +37,15 @@ import {
   insertInventoryCostConsumptions,
   insertInventoryCostLayer,
   layerToSlice,
+  listConsumptionsByLayerId,
   listConsumptionsByMaterialUsageId,
   listConsumptionsByMovementId,
   listOpenLayersFifoForUpdate,
   lockInventoryItemForCost,
   setInventoryItemCostBasis,
+  sumRemainingLayerValueSql,
+  updateInventoryCostConsumptionAmount,
+  updateInventoryCostLayerEconomics,
   updateLayerRemainingQty,
   type InventoryCostConsumptionKind,
   type InventoryCostConsumptionRecord,
@@ -56,6 +60,7 @@ import {
   reduceStockBasis,
   unitCostFromPurchase,
 } from '../domain/inventory-cost';
+import { isMonthClosed, yearMonthFromBusinessDate } from '@/modules/month-close';
 
 export interface BookInventoryPurchaseInput {
   readonly expenseId: string;
@@ -285,6 +290,169 @@ export async function bookInventoryPurchaseFromExpenseOnExecutor(
   });
 
   return { layer, created: true, costBasisAfter: nextBasis };
+}
+
+export interface ReconcileInventoryPurchaseFromExpenseEditInput {
+  readonly expenseId: string;
+  readonly inventoryItemId: string;
+  readonly quantity: string;
+  readonly receivedOn: string;
+}
+
+/**
+ * Aligns the FIFO layer for a finalized inventory_stock_purchase after an open-month
+ * expense edit. Does not create operating Actual — stock basis only.
+ */
+export async function reconcileInventoryPurchaseFromExpenseEditOnExecutor(
+  context: OrgContext,
+  raw: ReconcileInventoryPurchaseFromExpenseEditInput,
+): Promise<void> {
+  assertPermission(context, PERMISSIONS.ASSETS_MANAGE);
+
+  const expenseId = raw.expenseId.trim();
+  const inventoryItemId = raw.inventoryItemId.trim();
+  const quantity = requirePositiveQuantity(raw.quantity, 'assets.errors.receiveQty');
+  const receivedOn = raw.receivedOn.trim();
+
+  const [expenseRow] = await context.db
+    .select({
+      id: expenses.id,
+      status: expenses.status,
+      netAmount: expenses.netAmount,
+      currency: expenses.currency,
+      inventoryStockPurchase: expenses.inventoryStockPurchase,
+    })
+    .from(expenses)
+    .where(
+      and(
+        eq(expenses.id, expenseId),
+        eq(expenses.organizationId, context.organizationId),
+        isNull(expenses.archivedAt),
+      ),
+    )
+    .limit(1);
+
+  if (!expenseRow?.inventoryStockPurchase || expenseRow.status !== 'finalized') {
+    return;
+  }
+
+  const netAmount =
+    fromNumericString(expenseRow.netAmount, expenseRow.currency) ??
+    money(expenseRow.netAmount, expenseRow.currency);
+  const unitCost = unitCostFromPurchase({ netAmount, quantity });
+  const layer = await findLayerBySourceExpenseId(context.db, context.organizationId, expenseId);
+
+  if (!layer) {
+    await bookInventoryPurchaseFromExpenseOnExecutor(context, {
+      expenseId,
+      inventoryItemId,
+      quantity,
+      receivedOn,
+    });
+    return;
+  }
+
+  if (layer.inventoryItemId !== inventoryItemId) {
+    const consumptionCount = await countConsumptionsByLayerId(
+      context.db,
+      context.organizationId,
+      layer.id,
+    );
+    if (inventoryCostLayerHasConsumptions(layer, consumptionCount)) {
+      throw new DomainRuleError(
+        'Cannot change inventory item after stock from this purchase was consumed',
+        'assets.errors.inventoryItemChangeBlocked',
+      );
+    }
+    const remainingValue = inventoryLayerValue(layerToSlice(layer));
+    await lockInventoryItemForCost(context.db, context.organizationId, layer.inventoryItemId);
+    const oldBasis = await getInventoryItemCostBasis(
+      context.db,
+      context.organizationId,
+      layer.inventoryItemId,
+    );
+    const oldBasisAmount =
+      oldBasis?.currency &&
+      oldBasis.currency.toUpperCase() === remainingValue.currency.toUpperCase()
+        ? oldBasis.amount
+        : zeroMoney(remainingValue.currency);
+    await setInventoryItemCostBasis(
+      context.db,
+      context.organizationId,
+      layer.inventoryItemId,
+      reduceStockBasis(oldBasisAmount, remainingValue),
+    );
+    await deleteInventoryCostLayer(context.db, context.organizationId, layer.id);
+    await bookInventoryPurchaseFromExpenseOnExecutor(context, {
+      expenseId,
+      inventoryItemId,
+      quantity,
+      receivedOn,
+    });
+    return;
+  }
+
+  const consumptions = await listConsumptionsByLayerId(
+    context.db,
+    context.organizationId,
+    layer.id,
+  );
+  const receivedDec = new Decimal(layer.receivedQty);
+  const remainingDec = new Decimal(layer.remainingQty);
+  const consumedDec = receivedDec.minus(remainingDec);
+  const newQtyDec = new Decimal(quantity);
+  if (newQtyDec.lt(consumedDec)) {
+    throw new DomainRuleError(
+      'Purchase quantity cannot be less than quantity already consumed from stock',
+      'assets.errors.inventoryQtyBelowConsumed',
+    );
+  }
+  const newRemainingQty = newQtyDec.minus(consumedDec).toFixed(6);
+
+  for (const consumption of consumptions) {
+    const ym = yearMonthFromBusinessDate(consumption.occurredOn);
+    const closed = await isMonthClosed(context, ym);
+    const newConsumptionAmount = toNumericString(
+      multiplyMoney(unitCost, consumption.quantity),
+    );
+    if (closed && consumption.amount !== newConsumptionAmount) {
+      throw new DomainRuleError(
+        'Cannot rewrite inventory consumption in a closed month',
+        'monthClose.errors.monthClosed',
+      );
+    }
+    if (!closed && consumption.amount !== newConsumptionAmount) {
+      await updateInventoryCostConsumptionAmount(
+        context.db,
+        context.organizationId,
+        consumption.id,
+        newConsumptionAmount,
+      );
+    }
+  }
+
+  await lockInventoryItemForCost(context.db, context.organizationId, inventoryItemId);
+  await updateInventoryCostLayerEconomics(context.db, context.organizationId, layer.id, {
+    inventoryItemId,
+    receivedOn,
+    receivedQty: quantity,
+    remainingQty: newRemainingQty,
+    unitCost: toNumericString(unitCost),
+    currency: unitCost.currency,
+  });
+
+  const remainingLayerValue = await sumRemainingLayerValueSql(
+    context.db,
+    context.organizationId,
+    inventoryItemId,
+    unitCost.currency,
+  );
+  await setInventoryItemCostBasis(
+    context.db,
+    context.organizationId,
+    inventoryItemId,
+    money(remainingLayerValue, unitCost.currency),
+  );
 }
 
 /**

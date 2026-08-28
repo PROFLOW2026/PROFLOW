@@ -132,7 +132,7 @@ async function onboardCustomRole(
   return user;
 }
 
-function billLines(currency: string, amount: string) {
+function billLines(currency: string, amount: string, costCategoryId: string) {
   return [
     {
       description: 'Valuation',
@@ -140,8 +140,22 @@ function billLines(currency: string, amount: string) {
       unitAmount: amount,
       lineTotal: amount,
       currency,
+      costCategoryId,
+      costFamily: 'direct_project' as const,
     },
   ];
+}
+
+async function materialsCategoryId(
+  tx: { execute: (query: ReturnType<typeof sql>) => Promise<unknown> },
+  orgId: string,
+): Promise<string> {
+  return resultRows<{ id: string }>(
+    await tx.execute(sql`
+      SELECT id FROM cost_categories
+      WHERE organization_id = ${orgId}::uuid AND key = 'materials' LIMIT 1
+    `),
+  )[0]!.id;
 }
 
 describe('migration hardening 0052–0053 product completion', () => {
@@ -325,6 +339,7 @@ describe('0052–0053 owner SQL integrity behavior', () => {
         subcontractAgreementId: agreement.id,
         title: 'Electrical schedule',
       });
+      const materialsId = await materialsCategoryId(tx, tenant.organizationId);
       const draftBill = await createDraftApBill(context, {
         vendorId: vendor.id,
         projectId,
@@ -332,7 +347,7 @@ describe('0052–0053 owner SQL integrity behavior', () => {
         totalAmount: '1000',
         billDate: '2026-08-01',
         subcontractAgreementId: agreement.id,
-        lines: billLines(context.organization.baseCurrency, '1000'),
+        lines: billLines(context.organization.baseCurrency, '1000', materialsId),
       });
       const opportunity = await createOpportunity(context, { name: 'Tower bid' });
       const quote = await createQuote(context, {
@@ -473,6 +488,7 @@ describe('0052–0053 owner SQL integrity behavior', () => {
         originalAmount: '20000',
       });
       const currency = context.organization.baseCurrency;
+      const materialsId = await materialsCategoryId(tx, tenant.organizationId);
       const posted = await createApBill(context, {
         vendorId: vendorA.id,
         projectId: projectA,
@@ -480,7 +496,7 @@ describe('0052–0053 owner SQL integrity behavior', () => {
         totalAmount: '5000',
         billDate: '2026-08-01',
         subcontractAgreementId: agreementA.id,
-        lines: billLines(currency, '5000'),
+        lines: billLines(currency, '5000', materialsId),
       });
       const draft = await createDraftApBill(context, {
         vendorId: vendorA.id,
@@ -489,7 +505,7 @@ describe('0052–0053 owner SQL integrity behavior', () => {
         totalAmount: '700',
         billDate: '2026-08-01',
         subcontractAgreementId: agreementA.id,
-        lines: billLines(currency, '700'),
+        lines: billLines(currency, '700', materialsId),
       });
       return {
         organizationId: tenant.organizationId,
@@ -502,6 +518,7 @@ describe('0052–0053 owner SQL integrity behavior', () => {
         postedId: posted.id,
         draftId: draft.id,
         currency,
+        materialsId,
       };
     });
 
@@ -519,7 +536,7 @@ describe('0052–0053 owner SQL integrity behavior', () => {
           totalAmount: '100',
           billDate: '2026-08-01',
           subcontractAgreementId: seeded.agreementAId,
-          lines: billLines(seeded.currency, '100'),
+          lines: billLines(seeded.currency, '100', seeded.materialsId),
         });
         await createApBill(context, {
           vendorId: seeded.vendorBId,
@@ -528,7 +545,7 @@ describe('0052–0053 owner SQL integrity behavior', () => {
           totalAmount: '100',
           billDate: '2026-08-01',
           subcontractAgreementId: seeded.agreementAId,
-          lines: billLines(seeded.currency, '100'),
+          lines: billLines(seeded.currency, '100', seeded.materialsId),
         });
       }),
     ).rejects.toSatisfy((error) =>
@@ -551,7 +568,7 @@ describe('0052–0053 owner SQL integrity behavior', () => {
           totalAmount: '100',
           billDate: '2026-08-01',
           subcontractAgreementId: seeded.agreementAId,
-          lines: billLines(seeded.currency, '100'),
+          lines: billLines(seeded.currency, '100', seeded.materialsId),
         });
       }),
     ).rejects.toSatisfy((error) => /project mismatch|check_violation|23514|Failed query/i.test(errorBlob(error)));
@@ -569,7 +586,7 @@ describe('0052–0053 owner SQL integrity behavior', () => {
           totalAmount: '100',
           billDate: '2026-08-01',
           subcontractAgreementId: seeded.agreementAId,
-          lines: billLines(seeded.currency, '100'),
+          lines: billLines(seeded.currency, '100', seeded.materialsId),
         });
       }),
     ).rejects.toSatisfy((error) =>
@@ -590,7 +607,7 @@ describe('0052–0053 owner SQL integrity behavior', () => {
           totalAmount: '100',
           billDate: '2026-08-01',
           subcontractAgreementId: seeded.agreementAId,
-          lines: billLines('USD', '100'),
+          lines: billLines('USD', '100', seeded.materialsId),
         });
       }),
     ).rejects.toSatisfy((error) => /currency mismatch|check_violation|23514|Failed query/i.test(errorBlob(error)));

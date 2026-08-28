@@ -8,6 +8,7 @@ import {
   splitSqlStatements,
   type TestDatabase,
 } from '@tests/setup/database';
+import { insertRecognizedApBill } from '@tests/setup/cost-category-fixtures';
 import {
   applyMigrationsAndAgent1Patch,
   isContendedConnectionError,
@@ -269,15 +270,7 @@ describe('PRE-0021 Agent 1 financial/data integrity (patched)', () => {
           RETURNING id
         `),
       )[0]!;
-      const bill = resultRows<{ id: string }>(
-        await db.execute(sql`
-          INSERT INTO ap_bills (
-            organization_id, vendor_id, status, currency, total_amount
-          )
-          VALUES (${orgId}, ${vendor.id}, 'open', 'ILS', 1000)
-          RETURNING id
-        `),
-      )[0]!;
+      const bill = { id: await insertRecognizedApBill(db, { orgId, vendorId: vendor.id, amount: 1000 }) };
 
       await expect(
         db.execute(sql`
@@ -413,15 +406,7 @@ describe('PRE-0021 Agent 1 financial/data integrity (patched)', () => {
           RETURNING id
         `),
       )[0]!;
-      const bill = resultRows<{ id: string }>(
-        await db.execute(sql`
-          INSERT INTO ap_bills (
-            organization_id, vendor_id, status, currency, total_amount
-          )
-          VALUES (${orgId}, ${vendor.id}, 'open', 'ILS', 1000)
-          RETURNING id
-        `),
-      )[0]!;
+      const bill = { id: await insertRecognizedApBill(db, { orgId, vendorId: vendor.id, amount: 1000 }) };
 
       // Payment must NOT raise the allocation ceiling.
       const payment = resultRows<{ id: string }>(
@@ -634,15 +619,41 @@ describe('PRE-0021 Agent 1 concurrency (two connections via PGlite socket)', () 
           RETURNING id
         `
       )[0]!;
-      const bill = (
+      const materialsCategory = (
+        await sqlA`
+          INSERT INTO cost_categories (organization_id, key, name, family, is_system, sort_order)
+          VALUES (${org.id}::uuid, 'materials', 'Materials', 'direct_project', true, 10)
+          ON CONFLICT DO NOTHING
+          RETURNING id
+        `
+      )[0]?.id ??
+        (
+          await sqlA`
+            SELECT id FROM cost_categories
+            WHERE organization_id = ${org.id}::uuid AND key = 'materials'
+            LIMIT 1
+          `
+        )[0]!.id;
+      const billDraft = (
         await sqlA`
           INSERT INTO ap_bills (
-            organization_id, vendor_id, status, currency, total_amount
+            organization_id, vendor_id, status, currency, total_amount, net_amount, tax_amount, gross_amount
           )
-          VALUES (${org.id}::uuid, ${vendor.id}::uuid, 'open', 'ILS', 100)
+          VALUES (${org.id}::uuid, ${vendor.id}::uuid, 'draft', 'ILS', 100, 100, 0, 100)
           RETURNING id
         `
       )[0]!;
+      await sqlA`
+        INSERT INTO ap_bill_lines (
+          organization_id, ap_bill_id, description, quantity, unit_amount, line_total,
+          net_amount, tax_amount, gross_amount, currency, classification_status, cost_category_id, sort_order
+        ) VALUES (
+          ${org.id}::uuid, ${billDraft.id}::uuid, 'Test line', 1, 100, 100,
+          100, 0, 100, 'ILS', 'classified', ${materialsCategory}::uuid, 0
+        )
+      `;
+      await sqlA`UPDATE ap_bills SET status = 'open' WHERE id = ${billDraft.id}::uuid`;
+      const bill = billDraft;
 
       const insertA = sqlA.begin((tx) => tx`
         INSERT INTO ap_bill_project_allocations (

@@ -91,6 +91,7 @@ export async function createLinkedExpenseFromOpsRecord(
     allocationScheduleMode: input.allocationScheduleMode,
     allocationProjectIds: input.allocationProjectIds,
     linkPurpose: input.linkPurpose,
+    vatMode: input.vatMode,
   });
 
   const create = deps.createExpense ?? createExpense;

@@ -166,6 +166,7 @@ describe('expenses integration', () => {
         amount: '1000',
         currency: 'ILS',
         description: 'Shared invoice',
+        vatMode: 'zero',
         costCategoryId: orgAOverheadCategoryId,
         costFamily: 'business_overhead',
         allocations: [
@@ -248,6 +249,7 @@ describe('expenses integration', () => {
         amount: '1000',
         currency: 'ILS',
         projectId,
+        vatMode: 'zero',
         costCategoryId: orgAMaterialsCategoryId,
         costFamily: 'direct_project',
       });
@@ -392,6 +394,7 @@ describe('expenses integration', () => {
         currency: 'ILS',
         projectId,
         description: 'Wrong amount',
+        vatMode: 'zero',
         costCategoryId: orgAMaterialsCategoryId,
         costFamily: 'direct_project',
       });
@@ -434,6 +437,7 @@ describe('expenses integration', () => {
         currency: 'ILS',
         projectId,
         description: 'Old figure',
+        vatMode: 'zero',
         costCategoryId: orgAMaterialsCategoryId,
         costFamily: 'direct_project',
       });
@@ -445,6 +449,7 @@ describe('expenses integration', () => {
         currency: 'ILS',
         projectId,
         description: 'Corrected figure',
+        vatMode: 'zero',
         costCategoryId: orgAMaterialsCategoryId,
         costFamily: 'direct_project',
       });
@@ -482,6 +487,7 @@ describe('expenses integration', () => {
         projectId,
         description: 'Materials wrong amount',
         netAmount: '52000',
+        vatMode: 'zero',
         costCategoryId: orgAMaterialsCategoryId,
         costFamily: 'direct_project',
       });
@@ -494,6 +500,7 @@ describe('expenses integration', () => {
         projectId,
         description: 'Materials corrected',
         netAmount: '50000',
+        vatMode: 'zero',
         costCategoryId: orgAMaterialsCategoryId,
         costFamily: 'direct_project',
       });

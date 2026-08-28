@@ -37,6 +37,7 @@ function expense(partial: Partial<ExpenseDetail> = {}): ExpenseDetail {
     netAmount: money('1000', 'ILS'),
     taxAmount: money('170', 'ILS'),
     taxSnapshot: null,
+    vatMode: null,
     finalizedAt: businessDate('2026-08-01'),
     paymentMethod: null,
     notes: null,

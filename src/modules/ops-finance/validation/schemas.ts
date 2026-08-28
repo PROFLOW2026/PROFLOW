@@ -47,6 +47,7 @@ export const createLinkedExpenseSchema = z.object({
   allocationScheduleMode: z.enum(['one_time', 'monthly', 'annual', 'custom']).nullable().optional(),
   allocationProjectIds: z.array(z.string().uuid()).optional(),
   linkPurpose: z.enum(OPS_LINK_PURPOSES).optional(),
+  vatMode: z.enum(['inclusive', 'exclusive', 'zero']).optional(),
 });
 
 export const opsExpenseLinkLookupSchema = z.object({

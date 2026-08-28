@@ -1,4 +1,5 @@
 import type { BusinessDate } from '@/shared/dates';
+import type { ExpenseVatMode } from '@/modules/expenses/domain/vat-mode';
 
 export const DRAFT_KINDS = ['expense', 'vendor_bill', 'billing_record'] as const;
 export type DraftKind = (typeof DRAFT_KINDS)[number];
@@ -86,6 +87,7 @@ export type ExpenseDraftPayload = {
   readonly costFamily?: 'direct_project' | 'shared' | 'business_overhead' | 'asset_capital' | null;
   readonly notes?: string | null;
   readonly paymentMethod?: string | null;
+  readonly vatMode?: ExpenseVatMode | null;
 };
 
 export type VendorBillDraftPayload = {

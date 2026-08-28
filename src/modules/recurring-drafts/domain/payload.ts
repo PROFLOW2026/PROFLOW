@@ -10,6 +10,7 @@
 import { addDays, businessDate, type BusinessDate } from '@/shared/dates';
 import { DomainRuleError } from '@/shared/errors';
 import type { CreateBillingRecordInput } from '@/modules/billing/validation/schemas';
+import { DEFAULT_EXPENSE_VAT_MODE } from '@/modules/expenses/domain/vat-mode';
 import type { CreateExpenseInput } from '@/modules/expenses/validation/schemas';
 import type {
   BillingRecordDraftPayload,
@@ -94,6 +95,7 @@ export function expenseInputFromPayload(
     costFamily: data.costFamily ?? null,
     notes: data.notes ?? null,
     paymentMethod: data.paymentMethod ?? null,
+    vatMode: data.vatMode ?? DEFAULT_EXPENSE_VAT_MODE,
   };
 }
 

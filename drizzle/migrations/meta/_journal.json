@@ -491,6 +491,13 @@
                         "when":  1787660000000,
                         "tag":  "0070_financial_classification_architecture",
                         "breakpoints":  true
+                    },
+                    {
+                        "idx":  70,
+                        "version":  "7",
+                        "when":  1787740000000,
+                        "tag":  "0071_internal_financial_editability",
+                        "breakpoints":  true
                     }
                 ]
 }

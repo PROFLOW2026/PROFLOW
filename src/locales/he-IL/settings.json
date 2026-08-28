@@ -622,7 +622,9 @@
       },
       "ap": {
         "bill_created": "יצירת חשבונית ספק",
+        "bill_updated": "עדכון חשבונית ספק",
         "bill_voided": "ביטול חשבונית ספק",
+        "bill_restored": "שחזור חשבונית ספק",
         "match_proposed": "הצעת התאמת חשבונית ספק",
         "match_accepted": "קבלת התאמת חשבונית ספק",
         "match_rejected": "דחיית התאמת חשבונית ספק",

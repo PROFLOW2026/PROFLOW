@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray, isNull } from 'drizzle-orm';
+import { and, desc, eq, inArray, isNull, notInArray } from 'drizzle-orm';
 import {
   apBillLines,
   apBills,
@@ -118,11 +118,7 @@ export async function updateApBillFields(
   db: DbExecutor,
   organizationId: string,
   id: string,
-  patch: {
-    readonly status?: ApBillStatus;
-    readonly retentionAmount?: string;
-    readonly retentionHeldRemaining?: string;
-  },
+  patch: Partial<Omit<typeof apBills.$inferInsert, 'id' | 'organizationId'>>,
 ): Promise<ApBillRow | null> {
   const [row] = await db
     .update(apBills)
@@ -130,6 +126,36 @@ export async function updateApBillFields(
     .where(and(eq(apBills.id, id), eq(apBills.organizationId, organizationId)))
     .returning();
   return row ?? null;
+}
+
+export async function updateApBillLine(
+  db: DbExecutor,
+  organizationId: string,
+  lineId: string,
+  patch: Partial<typeof apBillLines.$inferInsert>,
+): Promise<ApBillLineRow | null> {
+  const [row] = await db
+    .update(apBillLines)
+    .set({ ...patch, updatedAt: new Date() })
+    .where(and(eq(apBillLines.id, lineId), eq(apBillLines.organizationId, organizationId)))
+    .returning();
+  return row ?? null;
+}
+
+export async function deleteApBillLinesNotIn(
+  db: DbExecutor,
+  organizationId: string,
+  apBillId: string,
+  keepLineIds: readonly string[],
+): Promise<void> {
+  const conditions = [
+    eq(apBillLines.organizationId, organizationId),
+    eq(apBillLines.apBillId, apBillId),
+  ];
+  if (keepLineIds.length > 0) {
+    conditions.push(notInArray(apBillLines.id, [...keepLineIds]));
+  }
+  await db.delete(apBillLines).where(and(...conditions));
 }
 
 export async function insertApPoMatch(

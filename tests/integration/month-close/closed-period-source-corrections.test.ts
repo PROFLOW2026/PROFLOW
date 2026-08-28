@@ -28,6 +28,7 @@ import { ConflictError, type DomainRuleError } from '@/shared/errors';
 import type { OrgContext } from '@/shared/auth/context';
 import { createTestDatabase, type TestDatabase } from '@tests/setup/database';
 import { createTestUser, seedSystem, type TestUser } from '@tests/setup/fixtures';
+import { materialsCategoryId as lookupMaterialsCategoryId } from '@tests/setup/cost-category-fixtures';
 
 async function provisionTenant(database: TestDatabase, owner: TestUser, name: string) {
   return database.asService(async (db) =>
@@ -55,6 +56,7 @@ describe('closed-period source corrections (coherence)', () => {
   let owner: TestUser;
   let orgId: string;
   let projectId: string;
+  let orgMaterialsCategoryId: string;
 
   beforeAll(async () => {
     database = await createTestDatabase();
@@ -72,6 +74,7 @@ describe('closed-period source corrections (coherence)', () => {
       });
       const created = await createProject(context, { name: 'Closed-period site' });
       projectId = created.projectId;
+      orgMaterialsCategoryId = await lookupMaterialsCategoryId(tx, orgId);
     });
   }, 120_000);
 
@@ -93,7 +96,9 @@ describe('closed-period source corrections (coherence)', () => {
         description: 'Open-month materials',
         expenseDate: '2026-02-12',
         projectId,
+        costCategoryId: orgMaterialsCategoryId,
         costFamily: 'direct_project',
+        vatMode: 'zero',
       });
       await finalizeExpense(context, openExpense.id);
       const voided = await voidExpense(context, openExpense.id);
@@ -105,7 +110,9 @@ describe('closed-period source corrections (coherence)', () => {
         description: 'Closed-month materials',
         expenseDate: '2026-03-12',
         projectId,
+        costCategoryId: orgMaterialsCategoryId,
         costFamily: 'direct_project',
+        vatMode: 'zero',
       });
       await finalizeExpense(context, closedExpense.id);
       await closeMonth(context, '2026-03');
@@ -133,7 +140,15 @@ describe('closed-period source corrections (coherence)', () => {
         currency: 'ILS',
         totalAmount: '200',
         billDate: '2026-04-05',
-        lines: [{ description: 'Open month', quantity: '1', unitAmount: '200', lineTotal: '200', currency: 'ILS' }],
+        lines: [{
+          description: 'Open month',
+          quantity: '1',
+          unitAmount: '200',
+          lineTotal: '200',
+          currency: 'ILS',
+          costCategoryId: orgMaterialsCategoryId,
+          costFamily: 'direct_project',
+        }],
       });
       const voided = await voidApBill(context, { billId: openBill.id });
       expect(voided.status).toBe('void');
@@ -144,7 +159,15 @@ describe('closed-period source corrections (coherence)', () => {
         currency: 'ILS',
         totalAmount: '150',
         billDate: '2026-05-05',
-        lines: [{ description: 'Closed month', quantity: '1', unitAmount: '150', lineTotal: '150', currency: 'ILS' }],
+        lines: [{
+          description: 'Closed month',
+          quantity: '1',
+          unitAmount: '150',
+          lineTotal: '150',
+          currency: 'ILS',
+          costCategoryId: orgMaterialsCategoryId,
+          costFamily: 'direct_project',
+        }],
       });
       await closeMonth(context, '2026-05');
 

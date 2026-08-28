@@ -313,6 +313,76 @@ export async function countConsumptionsByLayerId(
   return row?.count ?? 0;
 }
 
+export async function listConsumptionsByLayerId(
+  db: DbExecutor,
+  organizationId: string,
+  layerId: string,
+): Promise<InventoryCostConsumptionRecord[]> {
+  const rows = await db
+    .select()
+    .from(inventoryCostConsumptions)
+    .where(
+      and(
+        eq(inventoryCostConsumptions.organizationId, organizationId),
+        eq(inventoryCostConsumptions.inventoryCostLayerId, layerId),
+      ),
+    );
+  return rows.map(mapConsumption);
+}
+
+export async function updateInventoryCostLayerEconomics(
+  db: DbExecutor,
+  organizationId: string,
+  layerId: string,
+  patch: {
+    readonly inventoryItemId?: string;
+    readonly receivedOn?: string;
+    readonly receivedQty: string;
+    readonly remainingQty: string;
+    readonly unitCost: string;
+    readonly currency: string;
+  },
+): Promise<void> {
+  await asServiceRoleWrite(db, async () => {
+    await db
+      .update(inventoryCostLayers)
+      .set({
+        ...(patch.inventoryItemId ? { inventoryItemId: patch.inventoryItemId } : {}),
+        ...(patch.receivedOn ? { receivedOn: patch.receivedOn } : {}),
+        receivedQty: normalizeQuantity(patch.receivedQty),
+        remainingQty: normalizeQuantity(patch.remainingQty),
+        unitCost: patch.unitCost,
+        currency: patch.currency.toUpperCase(),
+        updatedAt: new Date(),
+      })
+      .where(
+        and(
+          eq(inventoryCostLayers.id, layerId),
+          eq(inventoryCostLayers.organizationId, organizationId),
+        ),
+      );
+  });
+}
+
+export async function updateInventoryCostConsumptionAmount(
+  db: DbExecutor,
+  organizationId: string,
+  consumptionId: string,
+  amount: string,
+): Promise<void> {
+  await asServiceRoleWrite(db, async () => {
+    await db
+      .update(inventoryCostConsumptions)
+      .set({ amount, updatedAt: new Date() })
+      .where(
+        and(
+          eq(inventoryCostConsumptions.id, consumptionId),
+          eq(inventoryCostConsumptions.organizationId, organizationId),
+        ),
+      );
+  });
+}
+
 export async function deleteInventoryCostLayer(
   db: DbExecutor,
   organizationId: string,
