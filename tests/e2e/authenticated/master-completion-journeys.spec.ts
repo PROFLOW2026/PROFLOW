@@ -37,7 +37,7 @@ test.describe('master completion owner journeys', () => {
     await expect(page.getByRole('button', { name: 'השבת/ארכיון' })).toBeVisible({ timeout: 30_000 });
   });
 
-  test('project Team + Schedule tabs; schedule ≠ details', async ({ page }) => {
+  test('project Team + Schedule sections under Work hub; schedule ≠ details', async ({ page }) => {
     const world = loadWorld();
     await gotoProjectTab(page, world.projectId, 'team');
     await expect(page).toHaveURL(/tab=team/);

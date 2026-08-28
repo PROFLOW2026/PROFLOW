@@ -5,16 +5,44 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  workflow_dispatch:
+    inputs:
+      full_regression:
+        description: Run full Playwright regression (43 tests)
+        required: false
+        type: boolean
+        default: false
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  quality:
-    name: Typecheck · Lint · Test · Build
+  changes:
+    name: Detect change scope
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    outputs:
+      migration: ${{ steps.filter.outputs.migration }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Migration-related paths
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            migration:
+              - 'drizzle/**'
+              - 'drizzle.config.*'
+              - 'tests/integration/migration/**'
+              - 'tests/integration/database/migrations.test.ts'
+              - 'tests/unit/database/migration-journal.test.ts'
+
+  quality:
+    name: Fast gate · Lint · Typecheck · Test · Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
 
     steps:
       - name: Checkout
@@ -47,9 +75,6 @@ jobs:
       - name: Integration tests
         run: npm run test:integration
 
-      - name: Migration hardening (serial, 1 worker)
-        run: npm run test:migration
-
       - name: Production build
         run: npm run build
         env:
@@ -58,10 +83,36 @@ jobs:
           APP_ENV: local
           LOG_LEVEL: warn
 
-  e2e:
-    name: Playwright critical (local harness)
+  migration:
+    name: Migration hardening (DB changes only)
+    needs: changes
+    if: needs.changes.outputs.migration == 'true'
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 25
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Migration hardening (serial, 1 worker)
+        run: npm run test:migration
+
+  e2e-smoke:
+    name: Playwright smoke
+    needs: quality
+    if: github.event_name != 'workflow_dispatch' || inputs.full_regression != true
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -78,8 +129,8 @@ jobs:
       - name: Install Playwright Chromium
         run: npx playwright install --with-deps chromium
 
-      - name: Critical E2E (PGlite + auth stub, no live Supabase secrets)
-        run: npm run playwright:ci
+      - name: Release smoke E2E
+        run: npm run playwright:smoke
         env:
           CI: true
           APP_ENV: local
@@ -92,6 +143,47 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-report
+          name: playwright-smoke-report
+          path: playwright-report
+          retention-days: 7
+
+  e2e-regression:
+    name: Playwright full regression
+    needs: quality
+    if: github.event_name == 'workflow_dispatch' && inputs.full_regression == true
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Full Playwright regression
+        run: npm run playwright:regression
+        env:
+          CI: true
+          APP_ENV: local
+          DATABASE_URL: postgres://postgres@127.0.0.1:55432/postgres
+          NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:55321
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: e2e-anon-key
+          NEXT_PUBLIC_APP_URL: http://127.0.0.1:3100
+
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-regression-report
           path: playwright-report
           retention-days: 7
