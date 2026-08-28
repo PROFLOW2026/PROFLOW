@@ -1,10 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { he } from '../fixtures/locales';
 import { clickNavLink } from '../fixtures/nav';
-import {
-  expectProjectHeading,
-  gotoProjectTab,
-} from '../fixtures/project-workspace';
+import { gotoProjectTab } from '../fixtures/project-workspace';
 import { loadWorld } from '../fixtures/world';
 
 /**

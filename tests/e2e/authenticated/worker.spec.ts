@@ -9,7 +9,6 @@ import {
 import {
   expectProjectHeading,
   gotoProjectTab,
-  projectHubs,
 } from '../fixtures/project-workspace';
 import { loadWorld } from '../fixtures/world';
 

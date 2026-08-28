@@ -6,12 +6,10 @@ import { he } from '../fixtures/locales';
 import { clickNavLink, expectNavLinkVisible } from '../fixtures/nav';
 import {
   clickProjectHub,
-  clickProjectSection,
   expectProjectHeading,
   expectProjectHubTabs,
   gotoProjectTab,
   projectHubs,
-  projectSections,
 } from '../fixtures/project-workspace';
 import { loadWorld } from '../fixtures/world';
 
