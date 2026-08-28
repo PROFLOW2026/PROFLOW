@@ -113,6 +113,21 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 25
 
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: projectflow_e2e
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d projectflow_e2e"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -134,7 +149,8 @@ jobs:
         env:
           CI: true
           APP_ENV: local
-          DATABASE_URL: postgres://postgres@127.0.0.1:55432/postgres
+          E2E_DATABASE_MODE: postgres
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/projectflow_e2e
           NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:55321
           NEXT_PUBLIC_SUPABASE_ANON_KEY: e2e-anon-key
           NEXT_PUBLIC_APP_URL: http://127.0.0.1:3100

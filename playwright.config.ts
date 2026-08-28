@@ -1,10 +1,13 @@
 import { defineConfig, devices } from '@playwright/test';
-import { ANON_KEY, APP_PORT, APP_URL, AUTH_URL, DATABASE_URL } from './tests/e2e/harness/config';
+import { ANON_KEY, APP_PORT, APP_URL, AUTH_URL, DATABASE_URL as PGLITE_DATABASE_URL } from './tests/e2e/harness/config';
+import { e2eDatabaseMode, isPostgresHarnessMode, resolveHarnessDatabaseUrl } from './tests/e2e/harness/database-mode';
 
-const harnessEnv = {
+const harnessDatabaseUrl = resolveHarnessDatabaseUrl(PGLITE_DATABASE_URL);
+
+const harnessEnv: Record<string, string> = {
   APP_ENV: 'local',
-  DATABASE_URL,
-  DATABASE_POOL_MAX: '1',
+  DATABASE_URL: harnessDatabaseUrl,
+  E2E_DATABASE_MODE: e2eDatabaseMode(),
   NEXT_PUBLIC_SUPABASE_URL: AUTH_URL,
   NEXT_PUBLIC_SUPABASE_ANON_KEY: ANON_KEY,
   NEXT_PUBLIC_APP_URL: APP_URL,
@@ -16,6 +19,16 @@ const harnessEnv = {
   OCR_AZURE_QUERY_FIELDS: 'false',
   OCR_E2E_MOCK_PROVIDER: 'true',
   E2E_INMEMORY_STORAGE: 'true',
+};
+
+// PGlite socket backend: single wire connection. Real Postgres smoke uses app default pool (5).
+if (!isPostgresHarnessMode()) {
+  harnessEnv.DATABASE_POOL_MAX = '1';
+}
+
+const harnessServerEnv: Record<string, string> = {
+  E2E_DATABASE_MODE: e2eDatabaseMode(),
+  DATABASE_URL: harnessDatabaseUrl,
 };
 
 const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? APP_URL;
@@ -99,6 +112,7 @@ export default defineConfig({
           url: `${AUTH_URL}/health`,
           reuseExistingServer: !process.env.CI,
           timeout: 240_000,
+          env: harnessServerEnv,
         },
         {
           command: `npm run build && npm run start -- -p ${APP_PORT}`,
