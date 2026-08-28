@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import { PageHeader } from '@/components/ui/page-header';
+import { ContextualBackLink } from '@/components/ui/contextual-back-link';
 import { listProjectsForOrg } from '@/modules/projects';
 import { listVendorsForOrg } from '@/modules/vendors';
 import { getRecurringDraftDetail, canManageDraftKind } from '@/modules/recurring-drafts';
@@ -72,6 +73,11 @@ export default async function EditRecurringDraftPage({
       <PageHeader
         title={t('edit.title')}
         description={detail.draft.title}
+        breadcrumb={
+          <ContextualBackLink href={`/recurring-drafts/${detail.draft.id}`}>
+            {t('backToDraftDetail')}
+          </ContextualBackLink>
+        }
         actions={
           <Link
             href={`/recurring-drafts/${detail.draft.id}`}

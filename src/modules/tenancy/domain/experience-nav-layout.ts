@@ -76,7 +76,7 @@ export const NAV_KEY_TO_EXPERIENCE_GROUP: Readonly<Record<string, ExperienceNavG
 export const PERSONA_PRIMARY_NAV_KEYS: Readonly<
   Record<ExperiencePersonaKey, readonly string[]>
 > = {
-  project_contractor: ['today', 'dashboard', 'projects', 'expenses', 'clients'],
+  project_contractor: ['dashboard', 'projects', 'expenses', 'clients'],
   electrical: ['today', 'dashboard', 'jobs', 'projects', 'expenses'],
   renovation: ['today', 'dashboard', 'projects', 'clients', 'expenses'],
   small_works: ['today', 'dashboard', 'jobs', 'clients', 'expenses'],
@@ -209,7 +209,7 @@ export function roleNavEmphasis(
       };
     case 'owner':
       return {
-        prefer: ['dashboard', 'today', 'projects', 'billing', 'expenses', 'cashFlow', 'reports'],
+        prefer: ['dashboard', 'projects', 'expenses', 'clients', 'billing', 'cashFlow', 'reports'],
         demote: ['attendance', 'timesheets', 'fieldHome', 'scheduling', 'calendar'],
       };
     case 'general':

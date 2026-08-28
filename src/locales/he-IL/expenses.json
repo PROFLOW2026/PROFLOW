@@ -1,7 +1,9 @@
 {
   "title": "הוצאות",
   "subtitle": "רישום עלויות פרויקט והוצאות העסק במקום אחד.",
-  "generalBusinessCosts": "הוצאות כלליות",
+  "generalBusiness": "הוצאות כלליות של העסק",
+  "advancedOptions": "אפשרויות נוספות",
+  "historyAdvanced": "היסטוריה / פרטים מתקדמים",
   "generalBusinessCostsAllocatedToProject": "הוצאות כלליות שהוקצו לפרויקט",
   "directActualCost": "עלות ישירה בפועל",
   "fullProjectActualCost": "עלות כוללת בפועל של הפרויקט",
@@ -35,7 +37,25 @@
       "reversal": "קיזוז",
       "replacement": "החלפה מתוקנת"
     },
-    "correctionNet": "נטו אחרי תיקון"
+    "correctionNet": "נטו אחרי תיקון",
+    "attention": {
+      "actionLabel": "מה צריך לעשות",
+      "project_allocation": {
+        "title": "ההוצאה דורשת חלוקה לפרויקטים",
+        "explain": "ההוצאה כבר נכללת בעלות העסק, אבל עדיין לא חולקה לפרויקטים. לכן רווחיות הפרויקטים יכולה להיות חלקית.",
+        "action": "לבחור פרויקט או לחלק בין כמה פרויקטים"
+      },
+      "classification": {
+        "title": "ההוצאה דורשת סיווג",
+        "explain": "חסר סוג עלות להוצאה הזו. בחרו קטגוריית עלות כדי שהמערכת תדע איפה להציג אותה.",
+        "action": "לבחור קטגוריית עלות"
+      },
+      "approval": {
+        "title": "ההוצאה עדיין לא אושרה",
+        "explain": "ההוצאה עדיין בטיוטה ולא נכללה סופית בעלויות. אשרו אותה כדי שתיכנס לחישוב.",
+        "action": "לאשר את ההוצאה"
+      }
+    }
   },
   "categoryPolicy": {
     "title": "מדיניות הקטגוריה",
@@ -50,6 +70,8 @@
   "lifecycle": {
     "draftHint": "שמירה יוצרת טיוטה. ההוצאה תירשם בעלויות הפרויקט רק אחרי רישום.",
     "overheadUnallocatedWarning": "זו הוצאה כללית של העסק בלי הקצאה לפרויקטים. היא לא תופיע בעלות בפועל או בהוצאות הכלליות שהוקצו לפרויקט עד שתוסיפו שורות הקצאה.",
+    "companyOnlyOverheadHint": "הוצאה זו תיכלל בעלות העסק ולא תשויך לפרויקט.",
+    "sharedUnallocatedWarning": "זו עלות משותפת שטרם חולקה לפרויקטים. הוסיפו הקצאה כדי שהחלק של כל פרויקט יופיע בעלות הפרויקט.",
     "overheadAllocatedHint": "שורות ההקצאה קובעות אילו פרויקטים מקבלים חלק מהוצאות הכלליות.",
     "allocationPeriod": "תקופה",
     "allocationMethodSummary": "שיטה",
@@ -67,7 +89,17 @@
     "finalize": "רישום הוצאה",
     "void": "ביטול",
     "reverse": "קיזוז (היפוך)",
-    "correct": "תיקון הוצאה"
+    "correct": "תיקון הוצאה",
+    "recurringExpenses": "הוצאות קבועות / חוזרות"
+  },
+  "backToList": "חזרה להוצאות",
+  "backNavigation": {
+    "expenses": "חזרה להוצאות",
+    "expensesAttention": "חזרה להוצאות שדורשות טיפול",
+    "project": "חזרה לפרויקט",
+    "projectFinancials": "חזרה לכספים",
+    "projectExpenses": "חזרה להוצאות בפרויקט",
+    "vendor": "חזרה לספק"
   },
   "correction": {
     "title": "תיקון הוצאה",
@@ -154,6 +186,7 @@
     "inventoryItem": "בחרו פריט מלאי"
   },
   "destination": {
+    "label": "לאן לשייך את העלות?",
     "project": "פרויקט",
     "general": "הוצאות כלליות של העסק",
     "inventory": "רכישה למלאי",
@@ -209,13 +242,36 @@
     "dateFrom": "מתאריך",
     "dateTo": "עד תאריך",
     "project": "פרויקט",
-    "family": "סעיף עלות",
+    "family": "סעיף",
     "category": "קטגוריה",
     "status": "סטטוס",
+    "attention": "דורש טיפול",
+    "attentionAll": "הכל",
+    "attentionActiveLabel": "דורש טיפול:",
     "allProjects": "כל הפרויקטים",
     "allFamilies": "כל הסעיפים",
     "allCategories": "כל הקטגוריות",
     "allStatuses": "כל הסטטוסים"
+  },
+  "attention": {
+    "options": {
+      "project_allocation": "דורש חלוקה לפרויקטים",
+      "classification": "דורש סיווג",
+      "approval": "דורש אישור"
+    },
+    "required": {
+      "project_allocation": "דורש חלוקה לפרויקטים",
+      "classification": "דורש סיווג",
+      "approval": "דורש אישור"
+    },
+    "compact": {
+      "project_allocation": "דורש חלוקה",
+      "classification": "דורש סיווג",
+      "approval": "דורש אישור"
+    },
+    "summaryStrip": "{count, plural, one {# הוצאה דורשת טיפול} two {# הוצאות דורשות טיפול} other {# הוצאות דורשות טיפול}}",
+    "rowAction": "לטיפול",
+    "clearFilter": "הסרת סינון דורש טיפול"
   },
   "list": {
     "empty": {
@@ -224,7 +280,12 @@
       "action": "הוצאה ראשונה"
     },
     "noDescription": "ללא תיאור",
-    "count": "מוצגות {count} מתוך {total}"
+    "reversalPrefix": "קיזוז",
+    "adjustmentPrefix": "תיקון",
+    "count": "מוצגות {count} מתוך {total}",
+    "unallocatedBannerTitle": "הוצאות שדורשות חלוקה לפרויקטים",
+    "actionRequired": "מה נדרש",
+    "rowAction": "פעולה"
   },
   "projectPanel": {
     "title": "הוצאות אחרונות",

@@ -27,6 +27,21 @@
       "action": "Create a service call"
     }
   },
+  "ownerHeadline": {
+    "workValue": "Project value",
+    "actualProfit": "Actual profit",
+    "profitability": "Profitability",
+    "projectTableTitle": "Profitability by project",
+    "colProject": "Project",
+    "colClient": "Client",
+    "colValue": "Value",
+    "colActual": "Actual cost",
+    "colProfit": "Profit",
+    "colProfitability": "Profitability %",
+    "colStatus": "Status",
+    "noFinancialRows": "{count, plural, one {One active project — financial details appear when data is available} other {# active projects — financial details appear when data is available}}",
+    "reportsLink": "Reports & exports →"
+  },
   "businessSummary": {
     "title": "Business summary",
     "outstanding": "Outstanding to collect",
@@ -44,6 +59,9 @@
     "sectionAttention": "Worth reviewing",
     "missingItemLabel": "Missing for calculation",
     "attentionItemLabel": "To review",
+    "remainingExpensesLabel": "and {count} more expenses",
+    "unallocatedStatsLine": "{count, plural, one {# expense} other {# expenses}} · {amount}",
+    "unallocatedNotMissing": "The expense is already counted in business cost, but not yet split to projects.",
     "whatHeading": "What",
     "whyHeading": "Why it matters",
     "scopeHeading": "Scope",
@@ -71,10 +89,10 @@
         "action": "Complete time costs"
       },
       "unallocated_remainder": {
-        "title": "Unallocated business costs",
-        "description": "Approved organization expenses are not yet allocated to projects.",
-        "why": "These costs stay outside project actual — project totals may be partial.",
-        "action": "Allocate costs"
+        "title": "General business costs not yet split to projects",
+        "description": "Some general business costs are not yet allocated to projects.",
+        "why": "These expenses are already counted in business cost, but not linked to projects yet — project profitability may be partial.",
+        "action": "Show expenses that need allocation"
       },
       "open_draft_documents": {
         "title": "Drafts not in actual cost",
@@ -130,7 +148,7 @@
     "job": "Jobs"
   },
   "reports": {
-    "title": "Reports & analytics",
+    "title": "Reports & exports",
     "description": "Organization visibility in the base currency. Every figure is labelled Actual, Committed, Forecast, Commercial, or Estimate. Profit uses net contract excluding VAT. Invoice totals are billing/cash, not profit.",
     "exportMenu": "Export & import",
     "exportProjects": "Export projects",
@@ -149,6 +167,9 @@
     "exportAp": "Export vendor bills",
     "exportApBills": "Export vendor bills",
     "importData": "Import data",
+    "advancedAnalysis": "Advanced analysis",
+    "advancedAnalysisHint": "Open to load full organization analytics (contracts, cash, costs, profitability).",
+    "loadingAnalytics": "Loading analytics…",
     "excludedForeign": "{count, plural, =1 {# project excluded (other currency)} other {# projects excluded (other currency)}}",
     "truncatedRollup": "{count, plural, =1 {# additional active project omitted from this display page (totals still include all eligible projects)} other {# additional active projects omitted from this display page (totals still include all eligible projects)}}",
     "natures": {

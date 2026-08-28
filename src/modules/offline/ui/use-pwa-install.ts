@@ -38,7 +38,8 @@ function capabilityFromStore(): InstallCapability {
 }
 
 export function usePwaInstall() {
-  const [capability, setCapability] = useState<InstallCapability>(capabilityFromStore);
+  // SSR and the first client paint must agree — browser install signals are read after mount.
+  const [capability, setCapability] = useState<InstallCapability>('unavailable');
   const [promptOutcome, setPromptOutcome] = useState<InstallPromptOutcome | null>(null);
   const [installing, setInstalling] = useState(false);
 

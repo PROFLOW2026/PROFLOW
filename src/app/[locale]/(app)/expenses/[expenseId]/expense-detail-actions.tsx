@@ -25,6 +25,8 @@ export interface ExpenseDetailActionsProps {
   readonly categories?: readonly CostCategoryRow[];
   readonly amount: MoneyValue;
   readonly expenseDate: BusinessDate;
+  /** Primary: finalize / void. Advanced: reverse / correct. */
+  readonly section?: 'primary' | 'advanced';
 }
 
 function FormattedDate({ date, locale }: { date: BusinessDate; locale: string }) {
@@ -37,7 +39,7 @@ function FormattedDate({ date, locale }: { date: BusinessDate; locale: string })
 
 export function ExpenseDetailActions({
   expenseId,
-  status,
+  status: _status,
   canFinalize,
   canVoid,
   canReverse = false,
@@ -47,13 +49,16 @@ export function ExpenseDetailActions({
   categories = [],
   amount,
   expenseDate,
+  section = 'primary',
 }: ExpenseDetailActionsProps) {
   const t = useTranslations('expenses');
   const tOffline = useTranslations('offline');
   const locale = useLocale();
   const [offlineFinalizeError, setOfflineFinalizeError] = useState<string | null>(null);
 
-  if (status !== 'draft' && !canVoid && !canReverse && !canCorrect) return null;
+  const showPrimary = section === 'primary' && (canFinalize || canVoid);
+  const showAdvanced = section === 'advanced' && (canReverse || canCorrect);
+  if (!showPrimary && !showAdvanced) return null;
 
   const moneyAndDate = {
     amount: () => <MoneyText value={amount} />,
@@ -61,15 +66,15 @@ export function ExpenseDetailActions({
   };
 
   return (
-    <div className="flex flex-col gap-2">
-      {offlineFinalizeError ? (
+    <div className="flex flex-col gap-2" id={section === 'primary' ? 'expense-finalize-actions' : undefined}>
+      {section === 'primary' && offlineFinalizeError ? (
         <p role="alert" className="text-sm text-[var(--pf-status-warning-fg)]">
           {offlineFinalizeError}
         </p>
       ) : null}
 
       <div className="flex flex-wrap gap-2">
-        {canFinalize ? (
+        {section === 'primary' && canFinalize ? (
           <ConfirmAction
             title={t('confirm.finalizeTitle')}
             description={
@@ -92,11 +97,11 @@ export function ExpenseDetailActions({
           />
         ) : null}
 
-        {canCorrect && expense ? (
+        {section === 'advanced' && canCorrect && expense ? (
           <ExpenseCorrectDialog expense={expense} projects={projects} categories={categories} />
         ) : null}
 
-        {canReverse ? (
+        {section === 'advanced' && canReverse ? (
           <ConfirmAction
             title={t('confirm.reverseTitle')}
             description={
@@ -116,7 +121,7 @@ export function ExpenseDetailActions({
           />
         ) : null}
 
-        {canVoid ? (
+        {section === 'primary' && canVoid ? (
           <ConfirmAction
             title={t('confirm.voidTitle')}
             description={

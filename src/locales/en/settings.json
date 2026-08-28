@@ -2,8 +2,8 @@
   "title": "Settings",
   "navLabel": "Settings",
   "groups": {
-    "basic": "Basic",
-    "business": "Business config",
+    "myBusiness": "My business",
+    "workflow": "How we work",
     "advanced": "Advanced",
     "developers": "Developers"
   },

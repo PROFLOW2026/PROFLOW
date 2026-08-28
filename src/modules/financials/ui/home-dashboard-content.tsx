@@ -1,6 +1,6 @@
 import { AlertCircle, FolderKanban, Plus, Receipt } from 'lucide-react';
 import type { ReactNode } from 'react';
-import { getTranslations } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
 import { Link } from '@/shared/i18n/navigation';
 import { CoverageDisclosure } from '@/components/patterns/coverage-disclosure';
 import { MoneyText } from '@/components/patterns/money-text';
@@ -11,19 +11,35 @@ import { PrefetchOnIntentLink } from '@/components/ui/prefetch-on-intent-link';
 import { textNavLinkClassName } from '@/components/ui/pressable';
 import { cn } from '@/shared/ui/cn';
 import type { ExperienceDashboardCard } from '@/modules/tenancy';
+import type { ExperiencePersonaKey } from '@/modules/tenancy';
 import type { HomeDashboardData } from '../application/get-home-dashboard';
 import { mapCoverageToSources, partialNote, standalonePartialNotes } from './map-coverage-sources';
 import { DashboardMissingDataTrigger } from './dashboard-missing-data-trigger';
 import { mapDashboardMissingDataToView } from './map-dashboard-missing-data-view';
 import { partitionDashboardCompletenessItems } from '../domain/dashboard-missing-data';
+import { HomeDashboardOwnerView } from './home-dashboard-owner-view';
 import type { DashboardKpiKey } from '../domain/dashboard-missing-data';
 
 interface HomeDashboardContentProps {
   data: HomeDashboardData;
 }
 
+const PROJECT_FIRST_DASHBOARD_PERSONAS = new Set<ExperiencePersonaKey>([
+  'project_contractor',
+  'renovation',
+  'architecture',
+  'consulting',
+  'mixed',
+]);
+
+function shouldUseOwnerDashboard(data: HomeDashboardData): boolean {
+  if (data.preferServiceSurface) return false;
+  if (PROJECT_FIRST_DASHBOARD_PERSONAS.has(data.persona)) return true;
+  return false;
+}
+
 export async function HomeDashboardContent({ data }: HomeDashboardContentProps) {
-  const t = await getTranslations('dashboard');
+  const [t, locale] = await Promise.all([getTranslations('dashboard'), getLocale()]);
   const tFinancial = await getTranslations('financial');
   const tNav = await getTranslations('nav');
 
@@ -83,6 +99,10 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
     );
   }
 
+  if (!data.isBrandNew && shouldUseOwnerDashboard(data)) {
+    return <HomeDashboardOwnerView data={data} />;
+  }
+
   const cardSet = new Set(data.dashboardCards);
   const showMoneyChrome =
     cardSet.has('contractValue') ||
@@ -114,10 +134,12 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
   const missingDataItemsView = mapDashboardMissingDataToView(
     completenessPartitions.missing,
     translateDashboard,
+    { locale },
   );
   const attentionItemsView = mapDashboardMissingDataToView(
     completenessPartitions.attention,
     translateDashboard,
+    { locale },
   );
   const hasCompletenessTrigger =
     missingDataItemsView.length > 0 || attentionItemsView.length > 0;
@@ -578,10 +600,6 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
                 sectionAttention: t('missingData.sectionAttention'),
                 missingItemLabel: t('missingData.missingItemLabel'),
                 attentionItemLabel: t('missingData.attentionItemLabel'),
-                whatHeading: t('missingData.whatHeading'),
-                whyHeading: t('missingData.whyHeading'),
-                scopeHeading: t('missingData.scopeHeading'),
-                affectedHeading: t('missingData.affectedHeading'),
               }}
             />
           ) : null}

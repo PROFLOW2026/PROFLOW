@@ -3,6 +3,9 @@
   "subtitle": "Templates for fixed monthly business expenses and other recurring drafts. Generation creates drafts first; expenses can auto-finalize when the month is open.",
   "serviceRecurringLink": "For scheduled service calls (work orders), see Recurring work under Service.",
   "navFromSource": "Recurring drafts",
+  "backToExpenses": "Back to expenses",
+  "backToRecurringExpenses": "Back to recurring / fixed expenses",
+  "backToDraftDetail": "Back to recurring draft",
   "notAllowed": {
     "title": "No access",
     "body": "You need expense, vendor-bill, or billing permission to view recurring drafts."

@@ -2,6 +2,8 @@ import { and, asc, eq, ilike, isNotNull, isNull, ne, or, sql } from 'drizzle-orm
 import { employees, organizationMemberships, profiles } from '@drizzle/schema';
 import type { DbExecutor } from '@/shared/db/types';
 import type { EmployeeListItem, EmployeeRecord, RateUnit } from '../domain/types';
+import { calculateUnitEmployerCostPool } from '../domain/employer-cost-pool';
+import { toNumericString } from '@/shared/money';
 
 export interface OrgMemberLinkOption {
   readonly userId: string;
@@ -231,17 +233,54 @@ export async function listEmployees(
           )
         )
       )`,
+      currentBurdenPercent: sql<string | null>`(
+        coalesce(
+          (
+            select rv.burden_percent::text
+            from rate_versions rv
+            where rv.employee_id = ${employeeIdRef}
+              and rv.organization_id = ${organizationId}
+              and rv.valid_from <= ${asOfDate}::date
+              and (rv.valid_to is null or rv.valid_to >= ${asOfDate}::date)
+            order by rv.valid_from desc
+            limit 1
+          ),
+          (
+            select rv.burden_percent::text
+            from rate_versions rv
+            where rv.employee_id = ${employeeIdRef}
+              and rv.organization_id = ${organizationId}
+              and rv.valid_to is null
+            order by rv.valid_from desc
+            limit 1
+          )
+        )
+      )`,
     })
     .from(employees)
     .where(and(...conditions))
     .orderBy(asc(employees.name));
 
-  return rows.map((row) => ({
-    ...mapEmployee(row.employee),
-    currentRate: row.currentRate,
-    currentRateUnit: row.currentRateUnit,
-    currentRateCurrency: row.currentRateCurrency,
-  }));
+  return rows.map((row) => {
+    const currentEmployerCost =
+      row.currentRate && row.currentRateCurrency
+        ? toNumericString(
+            calculateUnitEmployerCostPool({
+              baseRate: row.currentRate,
+              currency: row.currentRateCurrency,
+              burdenPercent: row.currentBurdenPercent,
+            }).total,
+          )
+        : null;
+
+    return {
+      ...mapEmployee(row.employee),
+      currentRate: row.currentRate,
+      currentRateUnit: row.currentRateUnit,
+      currentRateCurrency: row.currentRateCurrency,
+      currentEmployerCost,
+    };
+  });
 }
 
 export async function findEmployeeByUserId(

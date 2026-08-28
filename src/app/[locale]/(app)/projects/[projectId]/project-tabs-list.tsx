@@ -2,33 +2,26 @@ import type { ReactNode } from 'react';
 import { pressableClassName } from '@/components/ui/pressable';
 import { Link } from '@/shared/i18n/navigation';
 import { cn } from '@/shared/ui/cn';
-import { type ProjectTabKey } from './project-tab-order';
-
-/** Setup / configuration tabs - visually quieter than day-to-day ops. */
-const SECONDARY_TABS = new Set<ProjectTabKey>(['work', 'details']);
+import { type ProjectHubKey } from './project-hub-order';
+import { defaultSectionForHub } from './project-hub-order';
 
 export interface ProjectTabsListProps {
-  tabs: readonly ProjectTabKey[];
-  activeTab: ProjectTabKey;
-  labels: Readonly<Partial<Record<ProjectTabKey, string>>>;
-  /** Absolute app path for this project (`/projects/{id}`) - enables no-JS tab navigation. */
+  tabs: readonly ProjectHubKey[];
+  activeHub: ProjectHubKey;
+  labels: Readonly<Partial<Record<ProjectHubKey, string>>>;
   projectHref: string;
   dir?: 'rtl' | 'ltr';
 }
 
-function tabHref(projectHref: string, tab: ProjectTabKey): string {
-  return tab === 'overview' ? projectHref : `${projectHref}?tab=${tab}`;
+function hubHref(projectHref: string, hub: ProjectHubKey): string {
+  if (hub === 'overview') return projectHref;
+  const section = defaultSectionForHub(hub);
+  return `${projectHref}?tab=${section}`;
 }
 
-/**
- * Server-safe tablist host markup. Soft-nav Flight can reveal
- * `aria-selected` here without waiting on the client enhancer chunk.
- * Links navigate even before the enhancer hydrates; the enhancer upgrades
- * clicks to soft `router.replace` when ready.
- */
 export function ProjectTabsList({
   tabs,
-  activeTab,
+  activeHub,
   labels,
   projectHref,
   dir,
@@ -43,15 +36,14 @@ export function ProjectTabsList({
         '[scrollbar-width:none] [&::-webkit-scrollbar]:hidden',
       )}
     >
-      {tabs.map((tab) => {
-        const selected = tab === activeTab;
-        const secondary = SECONDARY_TABS.has(tab);
+      {tabs.map((hub) => {
+        const selected = hub === activeHub;
         return (
           <Link
-            key={tab}
-            href={tabHref(projectHref, tab)}
+            key={hub}
+            href={hubHref(projectHref, hub)}
             role="tab"
-            data-tab={tab}
+            data-tab={hub}
             data-state={selected ? 'active' : 'inactive'}
             aria-selected={selected}
             tabIndex={selected ? 0 : -1}
@@ -69,11 +61,10 @@ export function ProjectTabsList({
               'data-[state=active]:active:bg-[var(--pf-action-subtle-active)]',
               'data-[pending]:cursor-wait data-[pending]:opacity-90 data-[pending]:text-[var(--pf-text-brand)]',
               'aria-disabled:pointer-events-none aria-disabled:opacity-50',
-              secondary ? 'font-normal text-[var(--pf-text-muted)]' : undefined,
             )}
           >
             <span className="inline-flex items-center gap-1.5" data-pf-tab-label="">
-              {labels[tab] ?? tab}
+              {labels[hub] ?? hub}
             </span>
           </Link>
         );
@@ -82,10 +73,9 @@ export function ProjectTabsList({
   );
 }
 
-/** Test / story helper: list + children wrapper. */
 export function ProjectTabsFrame({
   tabs,
-  activeTab,
+  activeHub,
   labels,
   projectHref,
   dir,
@@ -95,7 +85,7 @@ export function ProjectTabsFrame({
     <div className="min-w-0 max-w-full" dir={dir}>
       <ProjectTabsList
         tabs={tabs}
-        activeTab={activeTab}
+        activeHub={activeHub}
         labels={labels}
         projectHref={projectHref}
         dir={dir}

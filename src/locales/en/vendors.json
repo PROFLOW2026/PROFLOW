@@ -1,6 +1,7 @@
 {
   "title": "Vendors & subcontractors",
   "description": "Optional directory of suppliers and subcontractors you work with. Expenses never require a vendor record.",
+  "backToList": "Back to vendors",
   "newVendor": "New vendor",
   "empty": {
     "title": "No vendors yet",
@@ -137,17 +138,17 @@
     "categoriesHint": "Catalog tags for filtering and reporting.",
     "categoriesEmpty": "No categories linked.",
     "specialtiesEmpty": "No specialties linked.",
-    "categoriesEditHint": "Edit categories and specialties in the Identity tab.",
+    "categoriesEditHint": "Edit categories and specialties in the Details tab.",
     "tabs": {
       "label": "Vendor sections",
-      "identity": "Identity",
-      "contacts": "Contacts",
-      "categories": "Categories",
-      "commercial": "Commercial",
+      "details": "Details",
       "projects": "Projects",
+      "invoices": "Invoices & payments",
+      "agreements": "Agreements",
+      "documents": "Documents",
+      "advancedSection": "More information",
       "performance": "Performance",
       "compliance": "Compliance",
-      "documents": "Documents",
       "activity": "Activity"
     },
     "editSection": "Edit vendor",

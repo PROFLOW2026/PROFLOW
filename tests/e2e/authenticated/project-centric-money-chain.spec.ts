@@ -2,6 +2,7 @@ import { expect, test, type Locator, type Page } from '@playwright/test';
 import { formatMoney } from '@/shared/money/format';
 import { expectNavLinkAbsent } from '../fixtures/nav';
 import { he } from '../fixtures/locales';
+import { gotoProjectTab } from '../fixtures/project-workspace';
 import { loadWorld } from '../fixtures/world';
 
 /**
@@ -152,7 +153,7 @@ test.describe('project-centric money chain QA', () => {
       .locator('form')
       .getByRole('textbox', { name: he.expenses.fields.description })
       .fill(expenseDescription);
-    await page.getByRole('button', { name: /פרטים נוספים|show more/i }).click();
+    await page.getByRole('button', { name: /אפשרויות נוספים|פרטים נוספים|show more/i }).click();
     await selectOption(page, he.expenses.fields.linkedVendor, seededVendorName);
     await selectOption(page, he.expenses.fields.category, he.expenses.costCategories.materials);
     await page.getByRole('button', { name: he.expenses.actions.saveDraft }).click();
@@ -257,7 +258,7 @@ test.describe('project-centric money chain QA', () => {
     expect(overviewActual).toBeGreaterThan(0);
     expect(overviewActual).toBeLessThanOrEqual(Number(expenseAmount));
 
-    await page.getByRole('tab', { name: he.projects.workspace.tabs.financials }).click();
+    await gotoProjectTab(page, projectId!, 'financials');
     await expect(page.getByRole('heading', { name: he.financial.panelTitle, level: 3 })).toBeVisible();
     const financialsContract = await moneyFromKpiButton(page, he.financial.kpis.currentContract);
     const financialsActual = await moneyFromKpiButton(page, he.financial.kpis.actualCost);
@@ -286,7 +287,7 @@ test.describe('project-centric money chain QA', () => {
       .locator('form')
       .getByRole('textbox', { name: he.expenses.fields.description })
       .fill(description);
-    await page.getByRole('button', { name: /פרטים נוספים/ }).click();
+    await page.getByRole('button', { name: /אפשרויות נוספים|פרטים נוספים/ }).click();
     await selectOption(page, he.expenses.fields.linkedVendor, seededVendorName);
     await selectOption(page, he.expenses.fields.category, he.expenses.costCategories.materials);
     await page.getByRole('button', { name: he.expenses.actions.saveDraft }).click();
@@ -322,7 +323,9 @@ test.describe('project-centric money chain QA', () => {
     await expect(page.getByText('טרם נרשם סכום חוזה').first()).toBeVisible();
     await expect(page.getByRole('heading', { name: 'סיימו להקים את הפרויקט' })).toBeVisible();
 
-    await page.getByRole('tab', { name: he.projects.workspace.tabs.financials }).click();
+    const noContractProjectId = page.url().match(/\/projects\/([0-9a-f-]+)/)?.[1];
+    expect(noContractProjectId).toBeTruthy();
+    await gotoProjectTab(page, noContractProjectId!, 'financials');
     await expect(
       page.getByTestId('price-not-set-banner').or(page.getByText('המחיר טרם נקבע')).first(),
     ).toBeVisible({ timeout: 20_000 });
@@ -432,7 +435,7 @@ test.describe('project-centric money chain QA', () => {
     });
     const overviewActual = await moneyInContainer(overviewSnapshot, he.financial.kpis.actualCost);
 
-    await page.getByRole('tab', { name: he.projects.workspace.tabs.financials }).click();
+    await gotoProjectTab(page, world.projectId, 'financials');
     await expect(page.getByRole('heading', { name: he.financial.panelTitle, level: 3 })).toBeVisible();
     await expect(page.getByText(contractValueFormatted).first()).toBeVisible();
     const financialsContract = await moneyFromKpiButton(page, he.financial.kpis.currentContract);

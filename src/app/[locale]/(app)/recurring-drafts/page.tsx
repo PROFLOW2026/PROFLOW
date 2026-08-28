@@ -4,6 +4,7 @@ import { getLocale, getTranslations } from 'next-intl/server';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/ui/page-header';
+import { ContextualBackLink } from '@/components/ui/contextual-back-link';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { ResponsiveTable } from '@/components/patterns/responsive-table';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -68,7 +69,13 @@ export default async function RecurringDraftsPage({
   if (!shell || readableKinds.length === 0) {
     return (
       <div className="flex min-w-0 flex-col gap-6">
-        <PageHeader title={t('title')} description={t('subtitle')} />
+        <PageHeader
+          title={t('title')}
+          description={t('subtitle')}
+          breadcrumb={
+            <ContextualBackLink href="/expenses">{t('backToExpenses')}</ContextualBackLink>
+          }
+        />
         <EmptyState title={t('notAllowed.title')} description={t('notAllowed.body')} />
       </div>
     );
@@ -79,6 +86,9 @@ export default async function RecurringDraftsPage({
       <PageHeader
         title={t('title')}
         description={t('subtitle')}
+        breadcrumb={
+          <ContextualBackLink href="/expenses">{t('backToExpenses')}</ContextualBackLink>
+        }
         actions={
           canCreate ? (
             <Button asChild className="min-h-11">

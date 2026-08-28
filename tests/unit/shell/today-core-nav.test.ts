@@ -39,10 +39,11 @@ describe('Today is a core permission destination', () => {
     );
     expect(partitionNavItems(items).core.map((item) => item.key)).toEqual([
       'dashboard',
-      'today',
       'projects',
       'expenses',
     ]);
+    expect(items.some((item) => item.key === 'today')).toBe(true);
+    expect(items.find((item) => item.key === 'today')?.moreGroup).toBe('work');
   });
 
   it('hides Today when the user lacks command_center.read', () => {

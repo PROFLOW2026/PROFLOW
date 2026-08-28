@@ -4,6 +4,15 @@ import { formatMoney } from '@/shared/money/format';
 import { OWNER } from '../harness/config';
 import { he } from '../fixtures/locales';
 import { clickNavLink, expectNavLinkVisible } from '../fixtures/nav';
+import {
+  clickProjectHub,
+  clickProjectSection,
+  expectProjectHeading,
+  expectProjectHubTabs,
+  gotoProjectTab,
+  projectHubs,
+  projectSections,
+} from '../fixtures/project-workspace';
 import { loadWorld } from '../fixtures/world';
 
 const world = loadWorld();
@@ -35,17 +44,21 @@ test.describe('signed-in owner', () => {
   });
 
   test('project workspace shows seeded financial, expense and detail content', async ({ page }) => {
-    await page.goto(`/he-IL/projects/${world.projectId}`);
+    await page.goto(`/he-IL/projects/${world.projectId}`, { waitUntil: 'domcontentloaded' });
+    await expect(page.getByRole('tablist')).toBeVisible({ timeout: 30_000 });
 
-    await expect(page.getByRole('heading', { name: seededProjectName })).toBeVisible();
-    await expect(page.getByRole('tab', { name: he.projects.workspace.tabs.overview })).toBeVisible();
-    await expect(page.getByRole('tab', { name: he.projects.workspace.tabs.financials })).toBeVisible();
-    await expect(page.getByRole('tab', { name: he.projects.workspace.tabs.expenses })).toBeVisible();
-    await expect(page.getByRole('tab', { name: he.projects.workspace.tabs.details })).toBeVisible();
+    await expectProjectHeading(page, seededProjectName);
+    await expectProjectHubTabs(page, [
+      projectHubs.overview,
+      projectHubs.money,
+      projectHubs.work,
+      projectHubs.documents,
+      projectHubs.details,
+    ]);
 
     await expect(page.getByText(contractValueFormatted).first()).toBeVisible();
 
-    await page.getByRole('tab', { name: he.projects.workspace.tabs.financials }).click();
+    await gotoProjectTab(page, world.projectId, 'financials');
     await expect(page.getByRole('heading', { name: he.financial.panelTitle, level: 3 })).toBeVisible();
     await expect(
       page.getByRole('button', { name: new RegExp(he.financial.kpis.currentContract) }),
@@ -53,11 +66,11 @@ test.describe('signed-in owner', () => {
     await expect(page.getByText(contractValueFormatted).first()).toBeVisible();
     await expect(page.getByText(seededExpenseFormatted).first()).toBeVisible();
 
-    await page.getByRole('tab', { name: he.projects.workspace.tabs.expenses }).click();
+    await gotoProjectTab(page, world.projectId, 'expenses');
     await expect(page.getByText(seededExpenseDescription).first()).toBeVisible();
     await expect(page.getByText(seededExpenseFormatted).first()).toBeVisible();
 
-    await page.getByRole('tab', { name: he.projects.workspace.tabs.details }).click();
+    await clickProjectHub(page, projectHubs.details);
     await expect(page.getByRole('textbox', { name: he.common.labels.name, exact: true })).toHaveValue(
       seededProjectName,
     );
@@ -99,8 +112,7 @@ test.describe('signed-in owner', () => {
     ).toHaveValue(description);
     await expect(page.getByText(amountFormatted).first()).toBeVisible();
 
-    await page.goto(`/he-IL/projects/${world.projectId}`);
-    await page.getByRole('tab', { name: he.projects.workspace.tabs.expenses }).click();
+    await gotoProjectTab(page, world.projectId, 'expenses');
     await expect(page.getByText(description).first()).toBeVisible();
     await expect(page.getByText(amountFormatted).first()).toBeVisible();
   });
@@ -152,7 +164,7 @@ test.describe('accessibility', () => {
 
   test('project workspace has no WCAG violations', async ({ page }) => {
     await page.goto(`/he-IL/projects/${world.projectId}`);
-    await expect(page.getByRole('heading', { name: seededProjectName })).toBeVisible();
+    await expectProjectHeading(page, seededProjectName);
 
     const results = await new AxeBuilder({ page })
       .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])

@@ -6,6 +6,7 @@ import type { ReactElement, ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ProjectTabsEnhancer } from '@/app/[locale]/(app)/projects/[projectId]/project-tabs-enhancer';
 import { ProjectTabsList } from '@/app/[locale]/(app)/projects/[projectId]/project-tabs-list';
+import type { ProjectHubKey } from '@/app/[locale]/(app)/projects/[projectId]/project-hub-order';
 import { useQueryTabPending } from '@/components/patterns/query-tab-pending';
 import enCommon from '@/locales/en/common.json';
 import enProjects from '@/locales/en/projects.json';
@@ -37,31 +38,31 @@ vi.mock('@/shared/i18n/direction', () => ({
   useLocaleDir: () => 'ltr' as const,
 }));
 
-const TAB_LABELS = {
+const HUB_LABELS: Partial<Record<ProjectHubKey, string>> = {
   overview: 'Overview',
-  financials: 'Financials',
-  details: 'Details',
+  money: 'Money',
   work: 'Work',
-} as const;
+  details: 'Details',
+};
 
 function Shell({
   tabs,
-  activeTab,
+  activeHub,
   children,
 }: {
-  tabs: readonly ('overview' | 'financials' | 'details' | 'work')[];
-  activeTab: 'overview' | 'financials' | 'details' | 'work';
+  tabs: readonly ProjectHubKey[];
+  activeHub: ProjectHubKey;
   children: ReactNode;
 }) {
   return (
     <div className="min-w-0 max-w-full" dir="ltr">
       <ProjectTabsList
         tabs={tabs}
-        activeTab={activeTab}
-        labels={TAB_LABELS}
+        activeHub={activeHub}
+        labels={HUB_LABELS}
         projectHref="/projects/proj-1"
       />
-      <ProjectTabsEnhancer tabs={tabs} serverActiveTab={activeTab} activeTab={activeTab}>
+      <ProjectTabsEnhancer tabs={tabs} serverActiveHub={activeHub} activeHub={activeHub}>
         {children}
       </ProjectTabsEnhancer>
     </div>
@@ -95,28 +96,28 @@ describe('useQueryTabPending', () => {
 
     const navigate = vi.fn();
     act(() => {
-      result.current.navigateTab('financials', navigate);
+      result.current.navigateTab('money', navigate);
     });
 
     expect(navigate).toHaveBeenCalledTimes(1);
-    expect(result.current.displayTab).toBe('financials');
+    expect(result.current.displayTab).toBe('money');
     expect(result.current.isPending).toBe(true);
 
     act(() => {
-      result.current.navigateTab('financials', navigate);
+      result.current.navigateTab('money', navigate);
     });
     expect(navigate).toHaveBeenCalledTimes(1);
 
-    rerender({ active: 'financials' });
-    expect(result.current.displayTab).toBe('financials');
+    rerender({ active: 'money' });
+    expect(result.current.displayTab).toBe('money');
     expect(result.current.isPending).toBe(false);
   });
 
   it('ignores navigate to the already displayed tab', () => {
-    const { result } = renderHook(() => useQueryTabPending('expenses'));
+    const { result } = renderHook(() => useQueryTabPending('work'));
     const navigate = vi.fn();
     act(() => {
-      result.current.navigateTab('expenses', navigate);
+      result.current.navigateTab('work', navigate);
     });
     expect(navigate).not.toHaveBeenCalled();
   });
@@ -131,37 +132,37 @@ describe('ProjectTabsShell pending behavior', () => {
   it('shows a panel skeleton and pending tab chrome while soft-navigating', async () => {
     const user = userEvent.setup();
     const { rerender } = renderWithMessages(
-      <Shell tabs={['overview', 'financials', 'details']} activeTab="overview">
+      <Shell tabs={['overview', 'money', 'details']} activeHub="overview">
         <div>Overview body</div>
       </Shell>,
     );
 
     expect(screen.getByText('Overview body')).toBeVisible();
 
-    await user.click(screen.getByRole('tab', { name: 'Financials' }));
+    await user.click(screen.getByRole('tab', { name: 'Money' }));
 
     expect(navState.replace).toHaveBeenCalledWith('/projects/proj-1?tab=financials');
     expect(screen.queryByText('Overview body')).toBeNull();
     expect(screen.getByRole('status')).toBeVisible();
     expect(screen.getByRole('tablist')).toHaveAttribute('aria-busy', 'true');
 
-    const financialsTab = screen.getByRole('tab', { name: /Financials/ });
-    expect(financialsTab).toHaveAttribute('data-pending', '');
+    const moneyTab = screen.getByRole('tab', { name: /Money/ });
+    expect(moneyTab).toHaveAttribute('data-pending', '');
 
     rerender(
-      <Shell tabs={['overview', 'financials', 'details']} activeTab="financials">
-        <div>Financials body</div>
+      <Shell tabs={['overview', 'money', 'details']} activeHub="money">
+        <div>Money body</div>
       </Shell>,
     );
 
-    expect(screen.getByText('Financials body')).toBeVisible();
+    expect(screen.getByText('Money body')).toBeVisible();
     expect(screen.getByRole('tablist')).not.toHaveAttribute('aria-busy');
   });
 
   it('clears the tab query when returning to overview', async () => {
     const user = userEvent.setup();
     renderWithMessages(
-      <Shell tabs={['overview', 'work']} activeTab="work">
+      <Shell tabs={['overview', 'work']} activeHub="work">
         <div>Work body</div>
       </Shell>,
     );

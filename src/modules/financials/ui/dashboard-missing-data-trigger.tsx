@@ -21,8 +21,10 @@ export interface DashboardMissingDataItemView {
   readonly title: string;
   readonly description: string;
   readonly why: string;
-  readonly scope: string;
-  readonly affectedLabel: string;
+  readonly clarification?: string | null;
+  readonly statsLine?: string | null;
+  readonly expenseRows?: readonly { readonly href: string; readonly label: string }[];
+  readonly remainingExpensesMore?: string | null;
   readonly actionHref: string;
   readonly actionLabel: string;
 }
@@ -38,10 +40,6 @@ export interface DashboardMissingDataTriggerCopy {
   readonly sectionAttention: string;
   readonly missingItemLabel: string;
   readonly attentionItemLabel: string;
-  readonly whatHeading: string;
-  readonly whyHeading: string;
-  readonly scopeHeading: string;
-  readonly affectedHeading: string;
 }
 
 export interface DashboardMissingDataTriggerProps {
@@ -104,26 +102,34 @@ function CompletenessItemCard({
         </span>
       </div>
 
-      <dl className="grid gap-2 text-[var(--pf-text-secondary)]">
-        <div>
-          <dt className="text-xs font-medium text-[var(--pf-text-primary)]">{copy.whatHeading}</dt>
-          <dd>{item.description}</dd>
-        </div>
-        <div>
-          <dt className="text-xs font-medium text-[var(--pf-text-primary)]">{copy.whyHeading}</dt>
-          <dd>{item.why}</dd>
-        </div>
-        <div>
-          <dt className="text-xs font-medium text-[var(--pf-text-primary)]">{copy.scopeHeading}</dt>
-          <dd>{item.scope}</dd>
-        </div>
-        <div>
-          <dt className="text-xs font-medium text-[var(--pf-text-primary)]">
-            {copy.affectedHeading}
-          </dt>
-          <dd>{item.affectedLabel}</dd>
-        </div>
-      </dl>
+      <div className="flex flex-col gap-2 text-[var(--pf-text-secondary)]">
+        {item.statsLine ? (
+          <p className="text-base font-semibold text-[var(--pf-text-primary)]">{item.statsLine}</p>
+        ) : null}
+        <p>{item.description}</p>
+        {item.clarification ? <p>{item.clarification}</p> : null}
+        <p>{item.why}</p>
+      </div>
+
+      {item.expenseRows && item.expenseRows.length > 0 ? (
+        <ul className="mt-3 flex flex-col gap-1.5 border-t border-[var(--pf-border-default)] pt-3">
+          {item.expenseRows.map((row) => (
+            <li key={row.href}>
+              <Link
+                href={row.href}
+                prefetch={false}
+                onClick={onNavigate}
+                className="block rounded-md px-2 py-1.5 text-start text-sm text-[var(--pf-text-primary)] hover:bg-[var(--pf-bg-muted)]"
+              >
+                {row.label}
+              </Link>
+            </li>
+          ))}
+          {item.remainingExpensesMore ? (
+            <li className="px-2 text-xs text-[var(--pf-text-muted)]">{item.remainingExpensesMore}</li>
+          ) : null}
+        </ul>
+      ) : null}
 
       <div className="mt-3">
         <Button asChild size="sm" variant="secondary">
@@ -188,7 +194,7 @@ export function DashboardMissingDataTrigger({
               <h3 className="text-sm font-semibold">{copy.sectionMissing}</h3>
               {missingItems.map((item) => (
                 <CompletenessItemCard
-                  key={`missing-${item.code}-${item.scope}-${item.title}`}
+                  key={`missing-${item.code}-${item.title}`}
                   item={item}
                   copy={copy}
                   onNavigate={() => setOpen(false)}
@@ -201,7 +207,7 @@ export function DashboardMissingDataTrigger({
               <h3 className="text-sm font-semibold">{copy.sectionAttention}</h3>
               {attentionItems.map((item) => (
                 <CompletenessItemCard
-                  key={`attention-${item.code}-${item.scope}-${item.title}`}
+                  key={`attention-${item.code}-${item.title}`}
                   item={item}
                   copy={copy}
                   onNavigate={() => setOpen(false)}

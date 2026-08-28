@@ -6,6 +6,8 @@ import { ConnectivityBanner } from '@/modules/offline/ui/connectivity-banner';
 import { OfflineSyncProvider } from '@/modules/offline/ui/offline-sync-provider';
 import { NotificationBell } from '@/modules/notifications/ui';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
+import { isExperiencePreviewEnvironment } from '@/modules/tenancy/domain/experience-preview';
+import { serverEnv } from '@/shared/env/server';
 import { ExperiencePreviewSwitcher } from './experience-preview-switcher';
 import { MobileNav } from './mobile-nav';
 import { visibleNavItems } from './navigation';
@@ -35,6 +37,17 @@ export async function AppShell({ children }: { children: ReactNode }) {
   });
 
   const organizationLogoUrl = shell.organizationLogoUrl;
+  const env = serverEnv();
+  const showExperiencePreview =
+    shell.experiencePreview.allowed &&
+    isExperiencePreviewEnvironment(env.APP_ENV, env.PF_EXPERIENCE_PREVIEW);
+  const experiencePreviewSwitcher = showExperiencePreview ? (
+    <ExperiencePreviewSwitcher
+      selection={shell.experiencePreview.selection}
+      active={shell.experiencePreview.active}
+      labelKey={shell.experiencePreview.labelKey}
+    />
+  ) : null;
 
   return (
     <OfflineSyncProvider organizationId={shell.organizationId} userId={shell.user.id}>
@@ -43,6 +56,7 @@ export async function AppShell({ children }: { children: ReactNode }) {
           items={items}
           organizationName={shell.organization.name}
           organizationLogoUrl={organizationLogoUrl}
+          footer={experiencePreviewSwitcher}
         />
 
         <div className="relative flex min-w-0 max-w-full flex-1 flex-col">
@@ -54,14 +68,6 @@ export async function AppShell({ children }: { children: ReactNode }) {
           </a>
 
           <ConnectivityBanner />
-
-          {shell.experiencePreview.allowed ? (
-            <ExperiencePreviewSwitcher
-              selection={shell.experiencePreview.selection}
-              active={shell.experiencePreview.active}
-              labelKey={shell.experiencePreview.labelKey}
-            />
-          ) : null}
 
           <TopBar
             organizationName={shell.organization.name}
@@ -95,7 +101,7 @@ export async function AppShell({ children }: { children: ReactNode }) {
           </main>
         </div>
 
-        <MobileNav items={items} />
+        <MobileNav items={items} moreFooter={experiencePreviewSwitcher} />
       </div>
     </OfflineSyncProvider>
   );

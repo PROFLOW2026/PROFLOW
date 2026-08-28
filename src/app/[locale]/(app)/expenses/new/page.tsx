@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { PageHeader } from '@/components/ui/page-header';
+import { ContextualBackLink } from '@/components/ui/contextual-back-link';
 import { Button } from '@/components/ui/button';
 import { listInventoryItemsForOrg } from '@/modules/assets';
 import { listCostCategoriesForOrg, listProjectsForOrg, listWorkPackagesForOrg } from '@/modules/expenses';
@@ -78,6 +79,9 @@ export default async function NewExpensePage({
       <PageHeader
         title={t('capture.title')}
         description={t('capture.subtitle')}
+        breadcrumb={
+          <ContextualBackLink href="/expenses">{t('backToList')}</ContextualBackLink>
+        }
         actions={
           <Button asChild variant="ghost" size="sm">
             <Link href="/expenses">{tCommon('actions.cancel')}</Link>

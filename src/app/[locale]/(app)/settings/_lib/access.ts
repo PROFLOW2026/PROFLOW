@@ -29,7 +29,7 @@ export type SettingsSectionKey =
   | 'profile'
   | 'integrations';
 
-export type SettingsNavGroup = 'basic' | 'business' | 'advanced' | 'developers';
+export type SettingsNavGroup = 'myBusiness' | 'workflow' | 'advanced' | 'developers';
 
 export interface SettingsSection {
   readonly key: SettingsSectionKey;
@@ -41,35 +41,32 @@ export interface SettingsSection {
 }
 
 /**
- * Settings IA: BASIC → BUSINESS CONFIG → ADVANCED → DEVELOPERS.
+ * Settings IA: MY BUSINESS → WORKFLOW → ADVANCED → DEVELOPERS.
  * Portal foundation is not listed for normal customers.
  */
 export const SETTINGS_SECTIONS: readonly SettingsSection[] = [
-  { key: 'business', href: '/settings/business', permission: PERMISSIONS.ORG_READ, group: 'basic' },
-  { key: 'branding', href: '/settings/branding', permission: PERMISSIONS.ORG_READ, group: 'basic' },
-  { key: 'people', href: '/settings/people', permission: PERMISSIONS.MEMBERS_READ, group: 'basic' },
-  { key: 'profile', href: '/settings/profile', permission: null, group: 'basic' },
-  { key: 'tax', href: '/settings/tax', permission: PERMISSIONS.TAX_MANAGE, group: 'basic' },
-  { key: 'numbering', href: '/settings/numbering', permission: PERMISSIONS.ORG_READ, group: 'basic' },
-  { key: 'app', href: '/settings/app', permission: null, group: 'basic' },
+  { key: 'business', href: '/settings/business', permission: PERMISSIONS.ORG_READ, group: 'myBusiness' },
+  { key: 'branding', href: '/settings/branding', permission: PERMISSIONS.ORG_READ, group: 'myBusiness' },
+  { key: 'people', href: '/settings/people', permission: PERMISSIONS.MEMBERS_READ, group: 'myBusiness' },
+  { key: 'profile', href: '/settings/profile', permission: null, group: 'myBusiness' },
+  { key: 'tax', href: '/settings/tax', permission: PERMISSIONS.TAX_MANAGE, group: 'myBusiness' },
+  { key: 'numbering', href: '/settings/numbering', permission: PERMISSIONS.ORG_READ, group: 'myBusiness' },
 
-  { key: 'approvals', href: '/settings/approvals', permission: PERMISSIONS.APPROVALS_MANAGE, group: 'business' },
-  { key: 'features', href: '/settings/features', permission: PERMISSIONS.SETTINGS_MANAGE, group: 'business' },
-  { key: 'costCategories', href: '/settings/cost-categories', permission: PERMISSIONS.SETTINGS_MANAGE, group: 'business' },
+  { key: 'features', href: '/settings/features', permission: PERMISSIONS.SETTINGS_MANAGE, group: 'workflow' },
+  { key: 'costCategories', href: '/settings/cost-categories', permission: PERMISSIONS.SETTINGS_MANAGE, group: 'workflow' },
   {
     key: 'businessCatalogs',
     href: '/settings/business-catalogs',
     permission: PERMISSIONS.SETTINGS_MANAGE,
-    group: 'business',
+    group: 'workflow',
   },
-  { key: 'templates', href: '/settings/templates', permission: PERMISSIONS.SETTINGS_MANAGE, group: 'business' },
-  { key: 'catalog', href: '/settings/catalog', permission: PERMISSIONS.SETTINGS_MANAGE, group: 'business' },
-  { key: 'roles', href: '/settings/roles', permission: PERMISSIONS.ROLES_MANAGE, group: 'business' },
+  { key: 'templates', href: '/settings/templates', permission: PERMISSIONS.SETTINGS_MANAGE, group: 'workflow' },
+  { key: 'approvals', href: '/settings/approvals', permission: PERMISSIONS.APPROVALS_MANAGE, group: 'workflow' },
+  { key: 'catalog', href: '/settings/catalog', permission: PERMISSIONS.SETTINGS_MANAGE, group: 'workflow' },
+  { key: 'roles', href: '/settings/roles', permission: PERMISSIONS.ROLES_MANAGE, group: 'workflow' },
 
   { key: 'customFields', href: '/settings/custom-fields', permission: PERMISSIONS.CUSTOM_FIELDS_MANAGE, group: 'advanced' },
   { key: 'forms', href: '/settings/forms', permission: PERMISSIONS.FORMS_MANAGE, group: 'advanced' },
-  { key: 'activity', href: '/settings/activity', permission: PERMISSIONS.AUDIT_READ, group: 'advanced' },
-  { key: 'offlineDrafts', href: '/settings/offline-drafts', permission: null, group: 'advanced' },
   { key: 'banking', href: '/settings/banking', permission: PERMISSIONS.BANKING_READ, group: 'advanced' },
   {
     key: 'integrations',
@@ -77,6 +74,9 @@ export const SETTINGS_SECTIONS: readonly SettingsSection[] = [
     permission: PERMISSIONS.INTEGRATIONS_READ,
     group: 'advanced',
   },
+  { key: 'activity', href: '/settings/activity', permission: PERMISSIONS.AUDIT_READ, group: 'advanced' },
+  { key: 'offlineDrafts', href: '/settings/offline-drafts', permission: null, group: 'advanced' },
+  { key: 'app', href: '/settings/app', permission: null, group: 'advanced' },
   {
     key: 'ocr',
     href: '/settings/ocr',
@@ -86,7 +86,14 @@ export const SETTINGS_SECTIONS: readonly SettingsSection[] = [
     hideFromNav: true,
   },
 
-  { key: 'api', href: '/settings/api', permission: PERMISSIONS.API_MANAGE, group: 'developers' },
+  {
+    key: 'api',
+    href: '/settings/api',
+    permission: PERMISSIONS.API_MANAGE,
+    group: 'developers',
+    /** Listed in nav only when API_MANAGE is granted - see accessibleSections. */
+    hideFromNav: true,
+  },
 
   // Foundation only - not in customer Settings nav
   {
@@ -99,8 +106,8 @@ export const SETTINGS_SECTIONS: readonly SettingsSection[] = [
 ];
 
 export const SETTINGS_NAV_GROUP_ORDER: readonly SettingsNavGroup[] = [
-  'basic',
-  'business',
+  'myBusiness',
+  'workflow',
   'advanced',
   'developers',
 ];
@@ -114,6 +121,9 @@ export function accessibleSections(context: OrgContext): SettingsSection[] {
   return SETTINGS_SECTIONS.filter((section) => {
     if (section.key === 'ocr') {
       return isOcrIngestionFlagOn() && canAccessSection(context, section);
+    }
+    if (section.key === 'api') {
+      return canAccessSection(context, section);
     }
     return !section.hideFromNav && canAccessSection(context, section);
   });

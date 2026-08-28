@@ -22,9 +22,11 @@ import { ProjectHeaderMetrics } from './project-header-metrics';
 import { ProjectStatusBadge } from '../project-status-badge';
 import {
   applyProjectProfileToTabVisibility,
-  resolveProjectTabs,
-  type ProjectTabKey,
 } from './project-tab-order';
+import {
+  resolveProjectHubs,
+  type ProjectHubKey,
+} from './project-hub-order';
 import { ProjectTabsShell } from './project-tabs-shell';
 import { TabPanelSkeleton } from './tab-panel-skeleton';
 import { ProjectReportActions } from '@/modules/reports/ui';
@@ -66,9 +68,9 @@ export default async function ProjectLayout({ children, params }: ProjectLayoutP
   const showDocumentsTab = Boolean(modules?.documents) && can(PERMISSIONS.DOCUMENTS_READ);
   const showUsageTab = can(PERMISSIONS.MATERIALS_READ) || can(PERMISSIONS.ASSETS_READ);
 
-  const [t, tTabs, tStatus, tCloseout, detail, locale, closeoutStatus] = await Promise.all([
+  const [t, tHubs, tStatus, tCloseout, detail, locale, closeoutStatus] = await Promise.all([
     getTranslations('projects'),
-    getTranslations('projects.workspace.tabs'),
+    getTranslations('projects.workspace.hubs'),
     getTranslations('status.project'),
     getTranslations('closeout'),
     loadProjectDetail(projectId, false).catch(() => null),
@@ -95,8 +97,7 @@ export default async function ProjectLayout({ children, params }: ProjectLayoutP
     boqModuleEnabled: Boolean(modules?.boq),
   });
 
-  const tabs = resolveProjectTabs(
-    applyProjectProfileToTabVisibility(
+  const tabVisibility = applyProjectProfileToTabVisibility(
       {
         financials: canReadFinancials,
         expenses: showExpensesTab,
@@ -115,11 +116,12 @@ export default async function ProjectLayout({ children, params }: ProjectLayoutP
         warranty: true,
       },
       experienceProfile,
-    ),
-  );
+    );
 
-  const tabLabels = Object.fromEntries(tabs.map((tab) => [tab, tTabs(tab)])) as Partial<
-    Record<ProjectTabKey, string>
+  const hubs = resolveProjectHubs(tabVisibility);
+
+  const hubLabels = Object.fromEntries(hubs.map((hub) => [hub, tHubs(hub)])) as Partial<
+    Record<ProjectHubKey, string>
   >;
   const dir = localeDirection(locale);
 
@@ -224,8 +226,8 @@ export default async function ProjectLayout({ children, params }: ProjectLayoutP
         Soft-nav still only re-renders `children` (layout ignores searchParams).
       */}
       <ProjectTabsShell
-        tabs={tabs}
-        labels={tabLabels}
+        tabs={hubs}
+        labels={hubLabels}
         projectHref={`/projects/${projectId}`}
         dir={dir}
       >

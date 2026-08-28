@@ -56,6 +56,7 @@
       "hireDate": "Employment start",
       "employmentStyle": "How rate is expressed",
       "currentRate": "Current rate",
+      "employerCost": "Employer cost",
       "status": "Status"
     },
     "empty": {
@@ -208,6 +209,7 @@
     "hoursAbbrev": "h",
     "nonProject": "Non-project",
     "unknownProject": "Unknown project",
+    "defaultWorkPackageName": "General",
     "noCost": "No rate on date",
     "status": {
       "recorded": "Recorded",

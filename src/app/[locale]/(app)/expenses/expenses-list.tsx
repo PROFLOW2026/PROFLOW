@@ -26,19 +26,49 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Link, useRouter } from '@/shared/i18n/navigation';
+import { useSearchParams } from 'next/navigation';
+import { Link, usePathname, useRouter } from '@/shared/i18n/navigation';
 import { cn } from '@/shared/ui/cn';
 import { formatBusinessDate } from '@/shared/dates/format';
 import type {
   CostCategoryRow,
   CostFamily,
-  ExpenseStatus,
   ExpenseSummary,
   ProjectOption,
 } from '@/modules/expenses/domain/types';
+import {
+  countExpensesNeedingAttention,
+  expenseAttentionActionHref,
+  expenseListShowsAttentionColumns,
+  pickAttentionFilterFromItems,
+  resolveExpenseAttentionRequired,
+} from '@/modules/expenses/domain/expense-attention';
+import {
+  EXPENSE_LIST_STATUS_ALL,
+  EXPENSE_LIST_STATUS_FILTER_OPTIONS,
+  expenseListStatusFilterIsActive,
+  expenseListStatusFilterToSearchParams,
+  isExpenseListAttentionStatusFilter,
+  type ExpenseListStatusFilter,
+} from '@/modules/expenses/domain/expense-status-filter';
+import {
+  buildCurrentPathReturnTo,
+  buildExpenseDetailHref,
+} from '@/modules/expenses/domain/expense-return-navigation';
+import { ExpenseAttentionIndicator } from '@/modules/expenses/ui/expense-attention-indicator';
 import { statusShape } from '@/modules/expenses/domain/lifecycle';
+import { expenseListLabel, expenseSupplierDisplay } from '@/modules/expenses/ui/expense-list-label';
 
-const ALL = '__all__';
+function statusFilterLabel(
+  value: Exclude<ExpenseListStatusFilter, typeof EXPENSE_LIST_STATUS_ALL>,
+  t: (key: string) => string,
+  tStatus: (key: string) => string,
+): string {
+  if (value === 'finalized' || value === 'void') {
+    return tStatus(`expense.${value}`);
+  }
+  return t(`attention.options.${value}`);
+}
 
 export interface ExpensesListProps {
   readonly items: ExpenseSummary[];
@@ -52,7 +82,7 @@ export interface ExpensesListProps {
     projectId?: string;
     costFamily?: CostFamily;
     costCategoryId?: string;
-    status?: ExpenseStatus;
+    statusFilter?: ExpenseListStatusFilter;
   };
 }
 
@@ -68,33 +98,77 @@ export function ExpensesList({
   const tStatus = useTranslations('status');
   const tCommon = useTranslations('common');
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const listReturnTo = React.useMemo(
+    () => buildCurrentPathReturnTo(pathname, searchParams),
+    [pathname, searchParams],
+  );
 
   const [dateFrom, setDateFrom] = React.useState(initialFilters.dateFrom ?? '');
   const [dateTo, setDateTo] = React.useState(initialFilters.dateTo ?? '');
-  const [projectId, setProjectId] = React.useState(initialFilters.projectId ?? ALL);
-  const [costFamily, setCostFamily] = React.useState(initialFilters.costFamily ?? ALL);
-  const [costCategoryId, setCostCategoryId] = React.useState(initialFilters.costCategoryId ?? ALL);
-  const [status, setStatus] = React.useState(initialFilters.status ?? ALL);
+  const [projectId, setProjectId] = React.useState(initialFilters.projectId ?? EXPENSE_LIST_STATUS_ALL);
+  const [costFamily, setCostFamily] = React.useState(initialFilters.costFamily ?? EXPENSE_LIST_STATUS_ALL);
+  const [costCategoryId, setCostCategoryId] = React.useState(
+    initialFilters.costCategoryId ?? EXPENSE_LIST_STATUS_ALL,
+  );
+  const [statusFilter, setStatusFilter] = React.useState<ExpenseListStatusFilter>(
+    initialFilters.statusFilter ?? EXPENSE_LIST_STATUS_ALL,
+  );
 
-  function applyFilters() {
+  const activeAttention = isExpenseListAttentionStatusFilter(statusFilter)
+    ? statusFilter
+    : undefined;
+  const showAttentionColumns = expenseListShowsAttentionColumns(activeAttention);
+  const attentionCount =
+    statusFilter === EXPENSE_LIST_STATUS_ALL ? countExpensesNeedingAttention(items) : 0;
+
+  function buildFilterParams(nextStatusFilter?: ExpenseListStatusFilter) {
     const params = new URLSearchParams();
     if (dateFrom) params.set('dateFrom', dateFrom);
     if (dateTo) params.set('dateTo', dateTo);
-    if (projectId !== ALL) params.set('projectId', projectId);
-    if (costFamily !== ALL) params.set('costFamily', costFamily);
-    if (costCategoryId !== ALL) params.set('costCategoryId', costCategoryId);
-    if (status !== ALL) params.set('status', status);
-    router.push(`/expenses?${params.toString()}`);
+    if (projectId !== EXPENSE_LIST_STATUS_ALL) params.set('projectId', projectId);
+    if (costFamily !== EXPENSE_LIST_STATUS_ALL) params.set('costFamily', costFamily);
+    if (costCategoryId !== EXPENSE_LIST_STATUS_ALL) params.set('costCategoryId', costCategoryId);
+
+    const filterValue = nextStatusFilter ?? statusFilter;
+    if (filterValue !== EXPENSE_LIST_STATUS_ALL) {
+      const statusParams = expenseListStatusFilterToSearchParams(filterValue);
+      statusParams.forEach((value, key) => params.set(key, value));
+    }
+    return params;
+  }
+
+  function applyFilters() {
+    router.push(`/expenses?${buildFilterParams().toString()}`);
   }
 
   function clearFilters() {
     setDateFrom('');
     setDateTo('');
-    setProjectId(ALL);
-    setCostFamily(ALL);
-    setCostCategoryId(ALL);
-    setStatus(ALL);
+    setProjectId(EXPENSE_LIST_STATUS_ALL);
+    setCostFamily(EXPENSE_LIST_STATUS_ALL);
+    setCostCategoryId(EXPENSE_LIST_STATUS_ALL);
+    setStatusFilter(EXPENSE_LIST_STATUS_ALL);
     router.push('/expenses');
+  }
+
+  function resolveRowAttention(expense: ExpenseSummary) {
+    return resolveExpenseAttentionRequired(expense, {
+      assumeProjectAllocation: activeAttention === 'project_allocation',
+    });
+  }
+
+  function openAttentionFilterFromSummary() {
+    const filter = pickAttentionFilterFromItems(items);
+    if (!filter) return;
+    setStatusFilter(filter);
+    router.push(`/expenses?${buildFilterParams(filter).toString()}`);
+  }
+
+  function clearAttentionFilter() {
+    setStatusFilter(EXPENSE_LIST_STATUS_ALL);
+    router.push(`/expenses?${buildFilterParams(EXPENSE_LIST_STATUS_ALL).toString()}`);
   }
 
   if (items.length === 0 && !hasActiveFilters(initialFilters)) {
@@ -115,31 +189,41 @@ export function ExpensesList({
   return (
     <div className="flex min-w-0 flex-col gap-4">
       <div className="grid min-w-0 gap-3 rounded-lg border border-[var(--pf-border-default)] p-3 sm:grid-cols-2 lg:grid-cols-3">
-        <Input
-          type="date"
-          value={dateFrom}
-          onChange={(event) => setDateFrom(event.target.value)}
-          aria-label={t('filters.dateFrom')}
-          className="min-w-0"
-          dir="ltr"
-        />
-        <Input
-          type="date"
-          value={dateTo}
-          onChange={(event) => setDateTo(event.target.value)}
-          aria-label={t('filters.dateTo')}
-          className="min-w-0"
-          dir="ltr"
-        />
+        <Field label={t('filters.dateFrom')} className="min-w-0">
+          {(control) => (
+            <Input
+              type="date"
+              id={control.id}
+              aria-describedby={control['aria-describedby']}
+              value={dateFrom}
+              onChange={(event) => setDateFrom(event.target.value)}
+              className="min-w-0"
+              dir="ltr"
+            />
+          )}
+        </Field>
+        <Field label={t('filters.dateTo')} className="min-w-0">
+          {(control) => (
+            <Input
+              type="date"
+              id={control.id}
+              aria-describedby={control['aria-describedby']}
+              value={dateTo}
+              onChange={(event) => setDateTo(event.target.value)}
+              className="min-w-0"
+              dir="ltr"
+            />
+          )}
+        </Field>
 
-        <Field label={t('filters.project')}>
+        <Field label={t('filters.project')} className="min-w-0">
           {(control) => (
             <Select value={projectId} onValueChange={setProjectId}>
               <SelectTrigger id={control.id} aria-describedby={control['aria-describedby']}>
-                <SelectValue placeholder={t('filters.project')} />
+                <SelectValue placeholder={t('filters.allProjects')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={ALL}>{t('filters.allProjects')}</SelectItem>
+                <SelectItem value={EXPENSE_LIST_STATUS_ALL}>{t('filters.allProjects')}</SelectItem>
                 {projects.map((project) => (
                   <SelectItem key={project.id} value={project.id}>
                     {project.name}
@@ -150,28 +234,39 @@ export function ExpensesList({
           )}
         </Field>
 
-        <Select value={costFamily} onValueChange={setCostFamily}>
-          <SelectTrigger aria-label={t('filters.family')}>
-            <SelectValue placeholder={t('filters.family')} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value={ALL}>{t('filters.allFamilies')}</SelectItem>
-            {(['direct_project', 'shared', 'business_overhead', 'asset_capital'] as const).map((family) => (
-              <SelectItem key={family} value={family}>
-                {t(`costFamilies.${family}`)}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <Field label={t('filters.family')} className="min-w-0">
+          {(control) => (
+            <Select
+              value={costFamily}
+              onValueChange={(value) =>
+                setCostFamily(value as CostFamily | typeof EXPENSE_LIST_STATUS_ALL)
+              }
+            >
+              <SelectTrigger id={control.id} aria-describedby={control['aria-describedby']}>
+                <SelectValue placeholder={t('filters.allFamilies')} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={EXPENSE_LIST_STATUS_ALL}>{t('filters.allFamilies')}</SelectItem>
+                {(['direct_project', 'shared', 'business_overhead', 'asset_capital'] as const).map(
+                  (family) => (
+                    <SelectItem key={family} value={family}>
+                      {t(`costFamilies.${family}`)}
+                    </SelectItem>
+                  ),
+                )}
+              </SelectContent>
+            </Select>
+          )}
+        </Field>
 
-        <Field label={t('filters.category')}>
+        <Field label={t('filters.category')} className="min-w-0">
           {(control) => (
             <Select value={costCategoryId} onValueChange={setCostCategoryId}>
               <SelectTrigger id={control.id} aria-describedby={control['aria-describedby']}>
-                <SelectValue placeholder={t('filters.category')} />
+                <SelectValue placeholder={t('filters.allCategories')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={ALL}>{t('filters.allCategories')}</SelectItem>
+                <SelectItem value={EXPENSE_LIST_STATUS_ALL}>{t('filters.allCategories')}</SelectItem>
                 {categories.map((category) => (
                   <SelectItem key={category.id} value={category.id}>
                     {category.isSystem ? t(`costCategories.${category.key}`) : category.name}
@@ -182,17 +277,20 @@ export function ExpensesList({
           )}
         </Field>
 
-        <Field label={t('filters.status')}>
+        <Field label={t('filters.status')} className="min-w-0" id="expenses-status-filter">
           {(control) => (
-            <Select value={status} onValueChange={setStatus}>
+            <Select
+              value={statusFilter}
+              onValueChange={(value) => setStatusFilter(value as ExpenseListStatusFilter)}
+            >
               <SelectTrigger id={control.id} aria-describedby={control['aria-describedby']}>
-                <SelectValue placeholder={t('filters.status')} />
+                <SelectValue placeholder={t('filters.allStatuses')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={ALL}>{t('filters.allStatuses')}</SelectItem>
-                {(['draft', 'finalized', 'void'] as const).map((value) => (
+                <SelectItem value={EXPENSE_LIST_STATUS_ALL}>{t('filters.allStatuses')}</SelectItem>
+                {EXPENSE_LIST_STATUS_FILTER_OPTIONS.map((value) => (
                   <SelectItem key={value} value={value}>
-                    {tStatus(`expense.${value}`)}
+                    {statusFilterLabel(value, t, tStatus)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -210,6 +308,36 @@ export function ExpensesList({
         </div>
       </div>
 
+      {activeAttention ? (
+        <div
+          role="status"
+          className="flex min-w-0 flex-wrap items-center gap-2 rounded-lg border border-[var(--pf-status-warning-border)] bg-[var(--pf-status-warning-bg)] px-3 py-2 text-sm text-[var(--pf-status-warning-fg)]"
+        >
+          <span className="font-medium">{t('filters.attentionActiveLabel')}</span>
+          <span className="inline-flex min-w-0 items-center gap-1 rounded-full border border-current/30 bg-[var(--pf-bg-elevated)] px-3 py-1 text-[var(--pf-text-primary)]">
+            <span className="truncate">{t(`attention.options.${activeAttention}`)}</span>
+            <button
+              type="button"
+              className="shrink-0 rounded-sm px-1 text-base leading-none hover:bg-[var(--pf-bg-muted)]"
+              onClick={clearAttentionFilter}
+              aria-label={t('attention.clearFilter')}
+            >
+              ×
+            </button>
+          </span>
+        </div>
+      ) : null}
+
+      {!activeAttention && attentionCount > 0 ? (
+        <button
+          type="button"
+          onClick={openAttentionFilterFromSummary}
+          className="w-full rounded-lg border border-[var(--pf-status-warning-border)] bg-[var(--pf-status-warning-bg)] px-3 py-2 text-start text-sm font-medium text-[var(--pf-status-warning-fg)] transition-colors hover:bg-[var(--pf-status-warning-bg)]/80"
+        >
+          {t('attention.summaryStrip', { count: attentionCount })}
+        </button>
+      ) : null}
+
       {items.length === 0 ? (
         <p className="text-sm text-[var(--pf-text-muted)]">{tCommon('states.noResults')}</p>
       ) : (
@@ -223,19 +351,32 @@ export function ExpensesList({
                   <TableHeader>
                     <TableRow>
                       <TableHead>{t('fields.date')}</TableHead>
+                      <TableHead>{t('fields.supplier')}</TableHead>
                       <TableHead>{t('fields.description')}</TableHead>
                       <TableHead className="hidden md:table-cell">{t('fields.project')}</TableHead>
                       <TableHead className="hidden lg:table-cell">{t('fields.costFamily')}</TableHead>
                       <TableHead numeric>{t('fields.amount')}</TableHead>
                       <TableHead>{t('fields.status')}</TableHead>
+                      {showAttentionColumns ? (
+                        <>
+                          <TableHead>{t('list.actionRequired')}</TableHead>
+                          <TableHead className="w-[7rem]">{t('list.rowAction')}</TableHead>
+                        </>
+                      ) : null}
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {items.map((expense) => (
+                    {items.map((expense) => {
+                      const rowAttention = resolveRowAttention(expense);
+                      const actionHref = expenseAttentionActionHref(expense.id, rowAttention, {
+                        returnTo: listReturnTo,
+                      });
+                      const rowHref = buildExpenseDetailHref(expense.id, { returnTo: listReturnTo });
+                      return (
                       <TableRow key={expense.id}>
                         <TableCell>
                           <Link
-                            href={`/expenses/${expense.id}`}
+                            href={rowHref}
                             className={cn(textNavLinkClassName, 'font-medium')}
                           >
                             <span dir="ltr">
@@ -243,8 +384,11 @@ export function ExpensesList({
                             </span>
                           </Link>
                         </TableCell>
+                        <TableCell className="max-w-[12rem] truncate text-start">
+                          {expenseSupplierDisplay(expense)}
+                        </TableCell>
                         <TableCell className="max-w-[14rem] truncate text-start">
-                          {expense.description || expense.supplierName || t('list.noDescription')}
+                          {expenseListLabel(expense, t)}
                         </TableCell>
                         <TableCell className="hidden max-w-[12rem] truncate md:table-cell">
                           {expense.projectName ?? t('targeting.overhead')}
@@ -256,34 +400,76 @@ export function ExpensesList({
                           <MoneyText value={expense.grossAmount} />
                         </TableCell>
                         <TableCell>
-                          <StatusBadge
-                            shape={statusShape(expense.status)}
-                            label={tStatus(`expense.${expense.status}`)}
-                          />
+                          <div className="flex min-w-0 flex-col items-start gap-1">
+                            <StatusBadge
+                              shape={statusShape(expense.status)}
+                              label={tStatus(`expense.${expense.status}`)}
+                            />
+                            {rowAttention && !showAttentionColumns ? (
+                              <ExpenseAttentionIndicator attention={rowAttention} compact />
+                            ) : null}
+                          </div>
                         </TableCell>
+                        {showAttentionColumns ? (
+                          <>
+                            <TableCell className="text-start">
+                              {rowAttention ? (
+                                <span className="text-sm font-medium text-[var(--pf-status-warning-fg)]">
+                                  {t(`attention.required.${rowAttention}`)}
+                                </span>
+                              ) : (
+                                <span className="text-[var(--pf-text-muted)]">—</span>
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              {rowAttention ? (
+                                <Button asChild variant="secondary" size="sm">
+                                  <Link href={actionHref}>{t('attention.rowAction')}</Link>
+                                </Button>
+                              ) : null}
+                            </TableCell>
+                          </>
+                        ) : null}
                       </TableRow>
-                    ))}
+                      );
+                    })}
                   </TableBody>
                 </Table>
               </div>
             }
-            renderMobileCard={(expense) => (
-              <Link
-                href={`/expenses/${expense.id}`}
-                className={cn(pressableCardLinkClassName, 'text-start')}
-              >
+            renderMobileCard={(expense) => {
+              const rowAttention = resolveRowAttention(expense);
+              const actionHref = expenseAttentionActionHref(expense.id, rowAttention, {
+                returnTo: listReturnTo,
+              });
+              const rowHref = buildExpenseDetailHref(expense.id, { returnTo: listReturnTo });
+              return (
+              <div className={cn(pressableCardLinkClassName, 'text-start')}>
                 <div className="flex items-start justify-between gap-2">
-                  <span className="min-w-0 flex-1 font-semibold" dir="ltr">
-                    {formatBusinessDate(expense.expenseDate, locale, 'short')}
-                  </span>
-                  <StatusBadge
-                    className="shrink-0"
-                    shape={statusShape(expense.status)}
-                    label={tStatus(`expense.${expense.status}`)}
-                  />
+                  <Link
+                    href={rowHref}
+                    className={cn(textNavLinkClassName, 'min-w-0 flex-1 font-semibold')}
+                  >
+                    <span dir="ltr">
+                      {formatBusinessDate(expense.expenseDate, locale, 'short')}
+                    </span>
+                  </Link>
+                  <div className="flex shrink-0 flex-col items-end gap-1">
+                    <StatusBadge
+                      shape={statusShape(expense.status)}
+                      label={tStatus(`expense.${expense.status}`)}
+                    />
+                    {rowAttention && !showAttentionColumns ? (
+                      <ExpenseAttentionIndicator attention={rowAttention} compact />
+                    ) : null}
+                  </div>
                 </div>
                 <p className="mt-1 truncate text-start text-sm text-[var(--pf-text-secondary)]">
-                  {expense.description || expense.supplierName || t('list.noDescription')}
+                  {expenseListLabel(expense, t)}
+                </p>
+                <p className="mt-1 truncate text-start text-sm">
+                  <span className="text-[var(--pf-text-muted)]">{t('fields.supplier')}: </span>
+                  {expenseSupplierDisplay(expense)}
                 </p>
                 <div className="mt-2 flex flex-wrap items-baseline justify-between gap-2 text-sm">
                   <span className="min-w-0 truncate text-[var(--pf-text-secondary)]">
@@ -291,8 +477,22 @@ export function ExpensesList({
                   </span>
                   <MoneyText value={expense.grossAmount} />
                 </div>
-              </Link>
-            )}
+                {rowAttention && showAttentionColumns ? (
+                  <div className="mt-3 flex flex-col gap-2 border-t border-[var(--pf-border-default)] pt-3">
+                    <p className="text-sm text-start">
+                      <span className="text-[var(--pf-text-muted)]">{t('list.actionRequired')}: </span>
+                      <span className="font-medium text-[var(--pf-status-warning-fg)]">
+                        {t(`attention.required.${rowAttention}`)}
+                      </span>
+                    </p>
+                    <Button asChild variant="secondary" size="sm" className="self-start">
+                      <Link href={actionHref}>{t('attention.rowAction')}</Link>
+                    </Button>
+                  </div>
+                ) : null}
+              </div>
+              );
+            }}
           />
 
           <p className="text-xs text-[var(--pf-text-muted)]">
@@ -311,6 +511,6 @@ function hasActiveFilters(filters: ExpensesListProps['initialFilters']): boolean
       filters.projectId ||
       filters.costFamily ||
       filters.costCategoryId ||
-      filters.status,
+      expenseListStatusFilterIsActive(filters.statusFilter ?? EXPENSE_LIST_STATUS_ALL),
   );
 }

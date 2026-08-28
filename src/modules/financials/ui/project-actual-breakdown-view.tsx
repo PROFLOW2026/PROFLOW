@@ -2,6 +2,10 @@
 
 import { useState, type ReactNode } from 'react';
 import { MoneyText } from '@/components/patterns/money-text';
+import {
+  buildExpenseDetailHref,
+  buildProjectReturnTo,
+} from '@/modules/expenses/domain/expense-return-navigation';
 import { textNavLinkClassName } from '@/components/ui/pressable';
 import { Link } from '@/shared/i18n/navigation';
 import { cn } from '@/shared/ui/cn';
@@ -10,7 +14,12 @@ import type {
   ProjectActualBreakdown,
   ProjectActualBreakdownCategoryKey,
 } from '../domain/project-actual-breakdown';
+import type { ProjectAllocatedGeneralDetail } from '../domain/project-allocated-general-detail';
 import type { ProjectLaborByEmployeeAggregate } from '@/modules/workforce';
+import {
+  AllocatedGeneralDetailPanel,
+  type AllocatedGeneralDetailCopy,
+} from './allocated-general-detail-panel';
 
 export type OwnerStoryCopy = {
   readonly title: string;
@@ -27,7 +36,12 @@ export type OwnerStoryCopy = {
   readonly forecastProfit: string;
   readonly unavailable: string;
   readonly breakdownTitle: string;
-  readonly categories: Record<ProjectActualBreakdownCategoryKey, string>;
+  readonly categories: Record<ProjectActualBreakdownCategoryKey, string> & {
+    readonly allocatedGeneral?: string;
+  };
+  readonly directActualCost?: string;
+  readonly fullActualIncludingGeneral?: string;
+  readonly allocatedGeneralDetail?: AllocatedGeneralDetailCopy;
   readonly total: string;
   readonly percent: string;
   readonly sources: string;
@@ -71,10 +85,6 @@ export type OwnerStoryMetrics = {
   readonly openApPayable: MoneyValue | null;
   readonly priceNotSet: boolean;
 };
-
-function isPositiveMoney(value: MoneyValue | null | undefined): value is MoneyValue {
-  return value != null && Number(value.amount) > 0;
-}
 
 export function AllocatedGeneralOfWhichNote({
   ofWhich,
@@ -143,15 +153,6 @@ export function ProjectOwnerStoryPanel({
         value={metrics.actualCost}
         unavailable={copy.unavailable}
         emphasis
-        subtitle={
-          isPositiveMoney(metrics.allocatedGeneralBusinessCost) ? (
-            <AllocatedGeneralOfWhichNote
-              ofWhich={copy.ofWhich}
-              label={copy.allocatedGeneral}
-              amount={metrics.allocatedGeneralBusinessCost}
-            />
-          ) : null
-        }
       />
       <StoryRow
         label={copy.openCommitments}
@@ -332,7 +333,9 @@ function sourceHref(
   projectId: string,
 ): string | null {
   if (atom.sourceKind === 'expense') {
-    return `/expenses/${atom.sourceId}?projectId=${projectId}`;
+    return buildExpenseDetailHref(atom.sourceId, {
+      returnTo: buildProjectReturnTo(projectId, 'financials'),
+    });
   }
   if (atom.sourceKind === 'ap_bill') {
     return `/procurement/ap/${atom.sourceId}?projectId=${projectId}`;
@@ -462,23 +465,42 @@ export function ProjectActualBreakdownView({
   copy,
   projectId,
   subcontractCommercial = null,
+  allocatedGeneral = null,
+  breakdownTotalOverride = null,
 }: {
   breakdown: ProjectActualBreakdown;
   laborByEmployee: ProjectLaborByEmployeeAggregate | null;
   copy: OwnerStoryCopy;
   projectId: string;
   subcontractCommercial?: readonly SubcontractCommercialDrillRow[] | null;
+  allocatedGeneral?: {
+    readonly amount: MoneyValue;
+    readonly includeInBreakdownTotal: boolean;
+    readonly detail: ProjectAllocatedGeneralDetail | null;
+  } | null;
+  breakdownTotalOverride?: MoneyValue | null;
 }) {
-  const [openKey, setOpenKey] = useState<ProjectActualBreakdownCategoryKey | null>(null);
+  const [openKey, setOpenKey] = useState<ProjectActualBreakdownCategoryKey | 'allocatedGeneral' | null>(
+    null,
+  );
   const laborTotal =
     breakdown.categories.find((c) => c.key === 'employees')?.amount ?? breakdown.totalActual;
+  const displayTotal = breakdownTotalOverride ?? breakdown.totalActual;
+  const showAllocatedGeneralRow =
+    allocatedGeneral != null &&
+    allocatedGeneral.includeInBreakdownTotal &&
+    Number(allocatedGeneral.amount.amount) > 0;
+  const allocatedGeneralPercent =
+    showAllocatedGeneralRow && !Number.isNaN(Number(displayTotal.amount)) && Number(displayTotal.amount) > 0
+      ? ((Number(allocatedGeneral!.amount.amount) / Number(displayTotal.amount)) * 100).toFixed(1)
+      : null;
 
   return (
     <div className="flex flex-col gap-3" data-pf-actual-breakdown>
       <div className="flex min-w-0 flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between">
         <h3 className="text-base font-semibold">{copy.breakdownTitle}</h3>
         <p className="text-sm font-semibold">
-          <MoneyText value={breakdown.totalActual} />
+          <MoneyText value={displayTotal} />
         </p>
       </div>
 
@@ -533,11 +555,49 @@ export function ProjectActualBreakdownView({
             </li>
           );
         })}
+
+        {showAllocatedGeneralRow ? (
+          <li
+            className="rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)]"
+            data-pf-breakdown-allocated-general
+          >
+            <button
+              type="button"
+              className="flex w-full min-w-0 items-start justify-between gap-3 p-3 text-start"
+              onClick={() =>
+                setOpenKey(openKey === 'allocatedGeneral' ? null : 'allocatedGeneral')
+              }
+              aria-expanded={openKey === 'allocatedGeneral'}
+            >
+              <span className="min-w-0">
+                <span className="block text-sm font-medium">
+                  {copy.categories.allocatedGeneral ?? copy.allocatedGeneral}
+                </span>
+                <span className="mt-0.5 block text-xs text-[var(--pf-text-muted)]">
+                  {allocatedGeneral!.detail?.rows.length ?? 0} {copy.sources}
+                  {allocatedGeneralPercent ? ` · ${allocatedGeneralPercent}${copy.percent}` : ''}
+                </span>
+              </span>
+              <span className="shrink-0 text-sm font-semibold">
+                <MoneyText value={allocatedGeneral!.amount} />
+              </span>
+            </button>
+            {openKey === 'allocatedGeneral' && allocatedGeneral!.detail && copy.allocatedGeneralDetail ? (
+              <div className="px-3 pb-3">
+                <AllocatedGeneralDetailPanel
+                  detail={allocatedGeneral!.detail}
+                  copy={copy.allocatedGeneralDetail}
+                  projectId={projectId}
+                />
+              </div>
+            ) : null}
+          </li>
+        ) : null}
       </ul>
 
       <div className="flex justify-between gap-2 border-t border-[var(--pf-border-default)] pt-2 text-sm font-semibold">
         <span>{copy.total}</span>
-        <MoneyText value={breakdown.totalActual} />
+        <MoneyText value={displayTotal} />
       </div>
     </div>
   );

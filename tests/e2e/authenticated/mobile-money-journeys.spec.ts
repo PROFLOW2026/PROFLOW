@@ -2,6 +2,12 @@ import { expect, test } from '@playwright/test';
 import { formatMoney } from '@/shared/money/format';
 import { assertNoPageHorizontalOverflow } from '../fixtures/layout';
 import { he } from '../fixtures/locales';
+import {
+  expectProjectHeading,
+  gotoProjectTab,
+  projectHubs,
+  projectSections,
+} from '../fixtures/project-workspace';
 import { loadWorld } from '../fixtures/world';
 
 /**
@@ -17,7 +23,7 @@ test.describe('core mobile money journeys (R-035)', () => {
 
   test('1 · project overview exposes financial truth', async ({ page }) => {
     await page.goto(`/he-IL/projects/${world.projectId}`);
-    await expect(page.getByRole('heading', { name: seededProjectName })).toBeVisible();
+    await expectProjectHeading(page, seededProjectName);
 
     await expect(page.getByText(contractValueFormatted).first()).toBeVisible();
     await expect(page.getByRole('heading', { name: 'סיכום כספי' })).toBeVisible();
@@ -82,10 +88,14 @@ test.describe('core mobile money journeys (R-035)', () => {
   test('5 · billing plan create / handoff surfaces load', async ({ page }) => {
     test.setTimeout(120_000);
 
-    await page.goto(`/he-IL/projects/${world.projectId}?tab=billingPlan`);
-    await expect(page.getByRole('tab', { name: he.projects.workspace.tabs.billingPlan })).toHaveAttribute(
+    await gotoProjectTab(page, world.projectId, 'billingPlan');
+    await expect(page.getByRole('tab', { name: projectHubs.money })).toHaveAttribute(
       'data-state',
       'active',
+    );
+    await expect(page.getByRole('link', { name: projectSections.billingPlan })).toHaveAttribute(
+      'aria-current',
+      'page',
     );
 
     const createPlan = page.getByRole('button', { name: /^יצירת תוכנית$/ });

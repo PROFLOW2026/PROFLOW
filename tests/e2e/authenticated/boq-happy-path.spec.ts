@@ -1,20 +1,25 @@
 import { expect, test, type Page } from '@playwright/test';
 import { assertNoPageHorizontalOverflow } from '../fixtures/layout';
+import { gotoProjectTab } from '../fixtures/project-workspace';
+import { loadWorld } from '../fixtures/world';
 
 const seededProjectName = 'שיפוץ דירה ברמת גן';
 const advancedProjectName = 'BOQ Advanced E2E';
 const changeProjectName = 'BOQ Change Sub E2E';
 
+const world = loadWorld();
+
+function projectIdForName(projectName: string): string {
+  if (projectName === seededProjectName) return world.projectId;
+  if (projectName === advancedProjectName) return world.advancedProjectId ?? '';
+  if (projectName === changeProjectName) return world.changeProjectId ?? '';
+  throw new Error(`Unknown BOQ project: ${projectName}`);
+}
+
 async function openProjectBoqTab(page: Page, projectName: string) {
-  await page.goto('/he-IL/projects');
-  await expect(page.getByText(projectName).first()).toBeVisible({ timeout: 30_000 });
-  await page.getByRole('link', { name: new RegExp(projectName) }).first().click();
-  await expect(page.getByRole('heading', { name: projectName })).toBeVisible({
-    timeout: 30_000,
-  });
-  const boqTab = page.locator('[role="tab"][data-tab="boq"]');
-  await expect(boqTab).toBeVisible({ timeout: 20_000 });
-  await boqTab.click();
+  const projectId = projectIdForName(projectName);
+  expect(projectId).toBeTruthy();
+  await gotoProjectTab(page, projectId, 'boq');
   await expect(page).toHaveURL(/tab=boq/);
   await expect(page.getByRole('heading', { name: 'כתב כמויות', exact: true })).toBeVisible({
     timeout: 15_000,

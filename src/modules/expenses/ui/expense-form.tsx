@@ -77,6 +77,24 @@ function resolveInitialDestination(initialValues?: Partial<ExpenseFormValues>): 
   return 'general';
 }
 
+function hasAdvancedInitialValues(initialValues?: Partial<ExpenseFormValues>): boolean {
+  if (!initialValues) return false;
+  return Boolean(
+    initialValues.vendorId ||
+      initialValues.allocations?.length ||
+      initialValues.taxAmount ||
+      initialValues.netAmount ||
+      initialValues.notes ||
+      initialValues.paymentMethod ||
+      initialValues.workPackageId ||
+      (Number(initialValues.installmentCount) > 1) ||
+      initialValues.inventoryStockPurchase ||
+      initialValues.costFamily === 'asset_capital' ||
+      (initialValues.recurrenceCadence && initialValues.recurrenceCadence !== 'one_time') ||
+      initialValues.allocationDriverMethod,
+  );
+}
+
 export interface ExpenseFormValues {
   amount: string;
   currency: string;
@@ -154,18 +172,10 @@ export function ExpenseForm({
   const t = useTranslations('expenses');
   const tCommon = useTranslations('common');
   const locale = useLocale();
-  const [showMore, setShowMore] = React.useState(
-    Boolean(
-      initialValues?.vendorId ||
-        initialValues?.allocations?.length ||
-        initialValues?.taxAmount ||
-        !initialValues?.projectId ||
-        (Number(initialValues?.installmentCount) > 1) ||
-        initialValues?.inventoryStockPurchase ||
-        initialValues?.costFamily === 'asset_capital'),
-  );
-  const [showAdvanced, setShowAdvanced] = React.useState(
-    Boolean(initialValues?.taxAmount && initialValues?.netAmount),
+
+  const initialDestination = resolveInitialDestination(initialValues);
+  const [showAdvancedOptions, setShowAdvancedOptions] = React.useState(
+    () => hasAdvancedInitialValues(initialValues) || initialDestination === 'inventory' || initialDestination === 'asset',
   );
 
   const [amount, setAmount] = React.useState(initialValues?.amount ?? '');
@@ -184,9 +194,7 @@ export function ExpenseForm({
     }
     return OVERHEAD_VALUE;
   });
-  const [destination, setDestination] = React.useState<ExpenseDestination>(() =>
-    resolveInitialDestination(initialValues),
-  );
+  const [destination, setDestination] = React.useState<ExpenseDestination>(() => initialDestination);
   const [workPackageId, setWorkPackageId] = React.useState(initialValues?.workPackageId ?? '');
   const [costFamily, setCostFamily] = React.useState<CostFamily | ''>(initialValues?.costFamily ?? '');
   const [costCategoryId, setCostCategoryId] = React.useState(initialValues?.costCategoryId ?? '');
@@ -204,9 +212,7 @@ export function ExpenseForm({
   const [recurrenceCadence, setRecurrenceCadence] = React.useState<RecurrenceCadence>(
     initialValues?.recurrenceCadence ?? 'one_time',
   );
-  const [recurrenceCustomLabel] = React.useState(
-    initialValues?.recurrenceCustomLabel ?? '',
-  );
+  const [recurrenceCustomLabel] = React.useState(initialValues?.recurrenceCustomLabel ?? '');
   const [allocations, setAllocations] = React.useState<AllocationDraft[]>(initialValues?.allocations ?? []);
   const [allocationDriverMethod, setAllocationDriverMethod] = React.useState<AllocationMethod | ''>(
     initialValues?.allocationDriverMethod ?? '',
@@ -233,7 +239,6 @@ export function ExpenseForm({
   const [inventoryPurchaseQty, setInventoryPurchaseQty] = React.useState(
     initialValues?.inventoryPurchaseQty ?? '',
   );
-  /** Once the operator changes driver/period after a category apply, stop re-applying. */
   const [policyOverridden, setPolicyOverridden] = React.useState(false);
 
   const isOverhead = targeting === OVERHEAD_VALUE;
@@ -243,12 +248,18 @@ export function ExpenseForm({
   const hasProjectAllocation = allocations.some(
     (line) => line.targetType === 'project' && Boolean(line.projectId),
   );
-  const showOverheadUnallocatedWarning =
-    isOverhead && !hasProjectAllocation && !usesAutomaticDriver;
-
+  const primaryDestination = destination === 'project' ? 'project' : 'general';
   const selectedCategory = costCategoryId
     ? categories.find((category) => category.id === costCategoryId) ?? null
     : null;
+  const showSharedAllocationWarning =
+    isOverhead &&
+    selectedCategory?.family === 'shared' &&
+    !hasProjectAllocation &&
+    !usesAutomaticDriver;
+  const showCompanyOnlyOverheadHint =
+    primaryDestination === 'general' && selectedCategory?.family === 'business_overhead';
+
   const isInternalPayrollCategory =
     selectedCategory?.key.trim().toLowerCase() === INTERNAL_EMPLOYEE_PAYROLL_CATEGORY_KEY;
 
@@ -260,12 +271,12 @@ export function ExpenseForm({
     if (!entered) return null;
     try {
       if (vatMode === 'zero') {
-        const entered = money(amount.trim(), currency);
+        const enteredAmount = money(amount.trim(), currency);
         return {
-          net: formatMoney(entered, locale, { currencyDisplay: 'narrowSymbol' }),
+          net: formatMoney(enteredAmount, locale, { currencyDisplay: 'narrowSymbol' }),
           tax: formatMoney(money('0', currency), locale, { currencyDisplay: 'narrowSymbol' }),
-          gross: formatMoney(entered, locale, { currencyDisplay: 'narrowSymbol' }),
-          netAmountRaw: entered.amount,
+          gross: formatMoney(enteredAmount, locale, { currencyDisplay: 'narrowSymbol' }),
+          netAmountRaw: enteredAmount.amount,
         };
       }
       const amountIncludesTax = vatMode === 'inclusive';
@@ -291,7 +302,6 @@ export function ExpenseForm({
     }
   }, [amount, currency, hasManualTaxOverride, vatMode, locale, taxRatePercent]);
 
-  /** Manual allocation lines must sum to NET (Actual Cost basis). */
   const allocationTotalAmount = taxPreview?.netAmountRaw ?? amount;
 
   function applyCategoryPolicy(category: CostCategoryRow | null | undefined) {
@@ -325,19 +335,25 @@ export function ExpenseForm({
       setRecurrenceCadence('monthly');
       return;
     }
-    // date_range / annual: prefer yearly cadence and expose period date fields.
     setRecurrenceCadence('yearly');
   }
 
   function handleTargetingChange(value: string) {
     setTargeting(value);
     if (value === OVERHEAD_VALUE || value === NONE_VALUE) {
-      setShowMore(true);
       if (destination === 'project') setDestination('general');
     } else {
-      setDestination((prev) => (prev === 'general' ? 'project' : prev));
+      setDestination('project');
       onProjectChange?.(value);
     }
+  }
+
+  function handlePrimaryDestinationChange(value: 'project' | 'general') {
+    if (value === 'project') {
+      handleDestinationChange('project');
+      return;
+    }
+    handleDestinationChange('general');
   }
 
   function handleDestinationChange(value: ExpenseDestination) {
@@ -358,7 +374,6 @@ export function ExpenseForm({
     }
     if (value === 'general') {
       setTargeting(OVERHEAD_VALUE);
-      setShowMore(true);
       setInventoryStockPurchase(false);
       setInventoryItemId('');
       setInventoryPurchaseQty('');
@@ -367,19 +382,17 @@ export function ExpenseForm({
     }
     if (value === 'inventory') {
       setTargeting(OVERHEAD_VALUE);
-      setShowMore(true);
-      setShowAdvanced(true);
+      setShowAdvancedOptions(true);
       setInventoryStockPurchase(true);
       if (costFamily === 'asset_capital') setCostFamily('');
       return;
     }
-    // asset
     setInventoryStockPurchase(false);
     setInventoryItemId('');
     setInventoryPurchaseQty('');
     setCostFamily('asset_capital');
     setCostCategoryId('');
-    setShowMore(true);
+    setShowAdvancedOptions(true);
   }
 
   const filteredCategories = (costFamily
@@ -406,7 +419,8 @@ export function ExpenseForm({
     return recurrenceCadence === 'yearly' || Boolean(allocationPeriodStart && allocationPeriodEnd);
   })();
 
-  const showingPolicyOverride = Boolean(selectedCategory) && (policyOverridden || !policyMethodMatches || !policyPeriodMatches);
+  const showingPolicyOverride =
+    Boolean(selectedCategory) && (policyOverridden || !policyMethodMatches || !policyPeriodMatches);
 
   const captureNetAmount = netAmount.trim() || taxPreview?.netAmountRaw || '';
   const overlapHits = React.useMemo(() => {
@@ -428,6 +442,36 @@ export function ExpenseForm({
     }));
   }, [apBillOverlapCandidates, captureNetAmount, currency, mode, projectId, vendorId]);
 
+  function renderAdvancedHiddenInputs() {
+    return (
+      <>
+        <input
+          type="hidden"
+          name="allocations"
+          value={isOverhead && !usesAutomaticDriver ? JSON.stringify(allocations) : '[]'}
+        />
+        <input type="hidden" name="allocationDriverMethod" value={allocationDriverMethod} />
+        <input type="hidden" name="allocationPeriodStart" value={allocationPeriodStart} />
+        <input type="hidden" name="allocationPeriodEnd" value={allocationPeriodEnd} />
+        <input type="hidden" name="allocationScheduleMode" value={allocationScheduleMode} />
+        <input type="hidden" name="recurrenceCadence" value={recurrenceCadence} />
+        <input type="hidden" name="recurrenceCustomLabel" value={recurrenceCustomLabel} />
+        <input type="hidden" name="costFamily" value={costFamily} />
+        <input type="hidden" name="installmentCount" value={installmentCount || '1'} />
+        <input type="hidden" name="installmentStartDate" value={installmentStartDate} />
+        <input type="hidden" name="inventoryStockPurchase" value={inventoryStockPurchase ? 'true' : 'false'} />
+        <input type="hidden" name="inventoryItemId" value={inventoryItemId} />
+        <input type="hidden" name="inventoryPurchaseQty" value={inventoryPurchaseQty} />
+        <input type="hidden" name="notes" value={notes} />
+        <input type="hidden" name="netAmount" value={netAmount} />
+        <input type="hidden" name="taxAmount" value={taxAmount} />
+        <input type="hidden" name="paymentMethod" value={paymentMethod} />
+        <input type="hidden" name="vendorId" value={vendorId} />
+        <input type="hidden" name="workPackageId" value={workPackageId} />
+      </>
+    );
+  }
+
   return (
     <div className="flex min-w-0 w-full flex-col gap-6">
       {error ? (
@@ -440,11 +484,7 @@ export function ExpenseForm({
       ) : null}
 
       <section className="flex min-w-0 flex-col gap-4">
-        <Field
-          label={t('fields.amount')}
-          required
-          error={fieldErrors.amount}
-        >
+        <Field label={t('fields.amount')} required error={fieldErrors.amount}>
           {(controlProps) => (
             <MoneyInput
               {...controlProps}
@@ -460,6 +500,7 @@ export function ExpenseForm({
 
         <input type="hidden" name="currency" value={currency} />
         <input type="hidden" name="amount" value={amount} />
+
         <Field
           label={t('fields.amountTaxMode')}
           error={fieldErrors.vatMode ?? fieldErrors.amountIncludesTax}
@@ -505,113 +546,20 @@ export function ExpenseForm({
           </dl>
         ) : null}
 
-        <Field label={t('fields.description')} optionalLabel={tCommon('labels.optional')}>
+        <Field label={t('fields.supplier')} optionalLabel={tCommon('labels.optional')}>
           {(controlProps) => (
             <Input
               {...controlProps}
-              name="description"
-              value={description}
-              onChange={(event) => setDescription(event.target.value)}
+              name="supplierName"
+              value={supplierName}
+              onChange={(event) => setSupplierName(event.target.value)}
               disabled={readOnly}
-              placeholder={t('placeholders.description')}
+              placeholder={t('placeholders.supplier')}
             />
           )}
         </Field>
 
-        <Field label={t('fields.destination')} description={t('fields.expenseType')}>
-          {(controlProps) => (
-            <Select
-              value={destination}
-              onValueChange={(value) => handleDestinationChange(value as ExpenseDestination)}
-              disabled={readOnly}
-            >
-              <SelectTrigger {...controlProps}>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="project">{t('destination.project')}</SelectItem>
-                <SelectItem value="general">{t('destination.general')}</SelectItem>
-                <SelectItem value="inventory">{t('destination.inventory')}</SelectItem>
-                <SelectItem value="asset">{t('destination.asset')}</SelectItem>
-              </SelectContent>
-            </Select>
-          )}
-        </Field>
-
-        {destination === 'project' || destination === 'asset' ? (
-          <Field label={t('fields.project')} optionalLabel={destination === 'asset' ? tCommon('labels.optional') : undefined}>
-            {(controlProps) => (
-              <Select
-                value={targeting === OVERHEAD_VALUE ? NONE_VALUE : targeting}
-                onValueChange={(value) =>
-                  handleTargetingChange(value === NONE_VALUE ? OVERHEAD_VALUE : value)
-                }
-                disabled={readOnly}
-              >
-                <SelectTrigger {...controlProps}>
-                  <SelectValue placeholder={t('placeholders.target')} />
-                </SelectTrigger>
-                <SelectContent>
-                  {destination === 'asset' ? (
-                    <SelectItem value={NONE_VALUE}>{t('targeting.overhead')}</SelectItem>
-                  ) : null}
-                  {projects.map((project) => (
-                    <SelectItem key={project.id} value={project.id}>
-                      {project.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-          </Field>
-        ) : (
-          <input type="hidden" name="destinationTarget" value={OVERHEAD_VALUE} />
-        )}
-
-        {destination === 'general' || destination === 'inventory' ? (
-          <p className="rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-muted)] px-3 py-2 text-start text-sm text-[var(--pf-text-secondary)]">
-            {t('allocation.subtitle')}
-          </p>
-        ) : null}
-
-        {showOverheadUnallocatedWarning ? (
-          <p
-            role="status"
-            className="rounded-md border border-[var(--pf-status-warning-border)] bg-[var(--pf-status-warning-bg)] px-3 py-2 text-start text-sm text-[var(--pf-status-warning-fg)]"
-          >
-            {t('lifecycle.overheadUnallocatedWarning')}
-          </p>
-        ) : null}
-
-        <input type="hidden" name="projectId" value={projectId} />
-
-        {projectId ? (
-          <Field label={t('fields.workPackage')} optionalLabel={tCommon('labels.optional')}>
-            {(controlProps) => (
-              <Select
-                value={workPackageId || NONE_VALUE}
-                onValueChange={(value) => setWorkPackageId(value === NONE_VALUE ? '' : value)}
-                disabled={readOnly}
-              >
-                <SelectTrigger {...controlProps}>
-                  <SelectValue placeholder={t('placeholders.workPackageDefault')} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={NONE_VALUE}>{t('placeholders.workPackageDefault')}</SelectItem>
-                  {workPackages.map((pkg) => (
-                    <SelectItem key={pkg.id} value={pkg.id}>
-                      {pkg.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-          </Field>
-        ) : null}
-
-        <input type="hidden" name="workPackageId" value={workPackageId} />
-        <input type="hidden" name="vendorId" value={vendorId} />
-
+        <div id="expense-category" className="scroll-mt-24">
         <Field
           label={t('fields.category')}
           description={t('fields.categoryRequiredHint')}
@@ -627,7 +575,7 @@ export function ExpenseForm({
                 if (nextId && category) {
                   applyCategoryPolicy(category);
                   if (isOverhead || category.family === 'shared' || category.family === 'business_overhead') {
-                    setShowMore(true);
+                    setShowAdvancedOptions(true);
                   }
                 } else {
                   setPolicyOverridden(false);
@@ -654,6 +602,7 @@ export function ExpenseForm({
             </Select>
           )}
         </Field>
+        </div>
         <input type="hidden" name="costCategoryId" value={costCategoryId} />
 
         {isInternalPayrollCategory ? (
@@ -665,57 +614,149 @@ export function ExpenseForm({
           </p>
         ) : null}
 
-        <Field label={t('fields.supplier')} optionalLabel={tCommon('labels.optional')}>
+        <Field label={t('destination.label')} description={t('fields.expenseType')}>
+          {(controlProps) => (
+            <Select
+              value={primaryDestination}
+              onValueChange={(value) => handlePrimaryDestinationChange(value as 'project' | 'general')}
+              disabled={readOnly || destination === 'inventory' || destination === 'asset'}
+            >
+              <SelectTrigger {...controlProps}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="project">{t('destination.project')}</SelectItem>
+                <SelectItem value="general">{t('generalBusiness')}</SelectItem>
+              </SelectContent>
+            </Select>
+          )}
+        </Field>
+
+        {destination === 'inventory' ? (
+          <p className="text-sm text-[var(--pf-text-secondary)]">{t('destination.inventory')}</p>
+        ) : null}
+        {destination === 'asset' ? (
+          <p className="text-sm text-[var(--pf-text-secondary)]">{t('destination.asset')}</p>
+        ) : null}
+
+        {primaryDestination === 'project' ? (
+          <Field label={t('fields.project')}>
+            {(controlProps) => (
+              <Select
+                value={targeting === OVERHEAD_VALUE ? NONE_VALUE : targeting}
+                onValueChange={(value) =>
+                  handleTargetingChange(value === NONE_VALUE ? OVERHEAD_VALUE : value)
+                }
+                disabled={readOnly}
+              >
+                <SelectTrigger {...controlProps}>
+                  <SelectValue placeholder={t('placeholders.target')} />
+                </SelectTrigger>
+                <SelectContent>
+                  {projects.map((project) => (
+                    <SelectItem key={project.id} value={project.id}>
+                      {project.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          </Field>
+        ) : (
+          <input type="hidden" name="destinationTarget" value={OVERHEAD_VALUE} />
+        )}
+
+        {primaryDestination === 'general' ? (
+          <p className="rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-muted)] px-3 py-2 text-start text-sm text-[var(--pf-text-secondary)]">
+            {showCompanyOnlyOverheadHint
+              ? t('lifecycle.companyOnlyOverheadHint')
+              : t('allocation.subtitle')}
+          </p>
+        ) : null}
+
+        {showSharedAllocationWarning ? (
+          <p
+            role="status"
+            className="rounded-md border border-[var(--pf-status-warning-border)] bg-[var(--pf-status-warning-bg)] px-3 py-2 text-start text-sm text-[var(--pf-status-warning-fg)]"
+          >
+            {t('lifecycle.sharedUnallocatedWarning')}
+          </p>
+        ) : null}
+
+        <input type="hidden" name="projectId" value={projectId} />
+
+        <Field label={t('fields.date')} optionalLabel={tCommon('labels.optional')}>
           {(controlProps) => (
             <Input
               {...controlProps}
-              name="supplierName"
-              value={supplierName}
-              onChange={(event) => setSupplierName(event.target.value)}
+              type="date"
+              name="expenseDate"
+              value={expenseDate}
+              onChange={(event) => setExpenseDate(event.target.value)}
               disabled={readOnly}
-              placeholder={t('placeholders.supplier')}
+              dir="ltr"
             />
           )}
         </Field>
+
+        <Field label={t('fields.description')} optionalLabel={tCommon('labels.optional')}>
+          {(controlProps) => (
+            <Input
+              {...controlProps}
+              name="description"
+              value={description}
+              onChange={(event) => setDescription(event.target.value)}
+              disabled={readOnly}
+              placeholder={t('placeholders.description')}
+            />
+          )}
+        </Field>
+
+        {children}
       </section>
 
-      {!showMore ? (
+      {!showAdvancedOptions ? (
         <>
-          <input
-            type="hidden"
-            name="allocations"
-            value={isOverhead && !usesAutomaticDriver ? JSON.stringify(allocations) : '[]'}
-          />
-          <input type="hidden" name="allocationDriverMethod" value={allocationDriverMethod} />
-          <input type="hidden" name="allocationPeriodStart" value={allocationPeriodStart} />
-          <input type="hidden" name="allocationPeriodEnd" value={allocationPeriodEnd} />
-          <input type="hidden" name="allocationScheduleMode" value={allocationScheduleMode} />
-          <input type="hidden" name="recurrenceCadence" value={recurrenceCadence} />
-          <input type="hidden" name="recurrenceCustomLabel" value={recurrenceCustomLabel} />
-          <input type="hidden" name="costFamily" value={costFamily} />
-          <input type="hidden" name="costCategoryId" value={costCategoryId} />
-          <input type="hidden" name="installmentCount" value={installmentCount || '1'} />
-          <input type="hidden" name="installmentStartDate" value={installmentStartDate} />
-          <input
-            type="hidden"
-            name="inventoryStockPurchase"
-            value={inventoryStockPurchase ? 'true' : 'false'}
-          />
-          <input type="hidden" name="inventoryItemId" value={inventoryItemId} />
-          <input type="hidden" name="inventoryPurchaseQty" value={inventoryPurchaseQty} />
-          {showOverheadUnallocatedWarning ? (
-            <p role="status" className="text-sm text-[var(--pf-status-warning-fg)]">
-              {t('lifecycle.overheadUnallocatedWarning')}
-            </p>
-          ) : null}
-          <Button type="button" variant="ghost" className="self-start" onClick={() => setShowMore(true)}>
-            {tCommon('actions.showMore')}
+          {renderAdvancedHiddenInputs()}
+          <Button
+            type="button"
+            variant="ghost"
+            className="self-start"
+            onClick={() => setShowAdvancedOptions(true)}
+          >
+            {t('advancedOptions')}
             <ChevronRight className={rtlFlipClassName('size-4')} aria-hidden />
           </Button>
         </>
       ) : (
         <section className="flex flex-col gap-4 rounded-lg border border-[var(--pf-border-default)] p-4">
-          <h2 className="text-sm font-semibold">{tCommon('actions.showMore')}</h2>
+          <h2 className="text-sm font-semibold">{t('advancedOptions')}</h2>
+
+          {projectId ? (
+            <Field label={t('fields.workPackage')} optionalLabel={tCommon('labels.optional')}>
+              {(controlProps) => (
+                <Select
+                  value={workPackageId || NONE_VALUE}
+                  onValueChange={(value) => setWorkPackageId(value === NONE_VALUE ? '' : value)}
+                  disabled={readOnly}
+                >
+                  <SelectTrigger {...controlProps}>
+                    <SelectValue placeholder={t('placeholders.workPackageDefault')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={NONE_VALUE}>{t('placeholders.workPackageDefault')}</SelectItem>
+                    {workPackages.map((pkg) => (
+                      <SelectItem key={pkg.id} value={pkg.id}>
+                        {pkg.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </Field>
+          ) : (
+            <input type="hidden" name="workPackageId" value={workPackageId} />
+          )}
 
           {vendors.length > 0 ? (
             <Field label={t('fields.linkedVendor')} optionalLabel={tCommon('labels.optional')}>
@@ -739,21 +780,9 @@ export function ExpenseForm({
                 </Select>
               )}
             </Field>
-          ) : null}
-
-          <Field label={t('fields.date')} optionalLabel={tCommon('labels.optional')}>
-            {(controlProps) => (
-              <Input
-                {...controlProps}
-                type="date"
-                name="expenseDate"
-                value={expenseDate}
-                onChange={(event) => setExpenseDate(event.target.value)}
-                disabled={readOnly}
-                dir="ltr"
-              />
-            )}
-          </Field>
+          ) : (
+            <input type="hidden" name="vendorId" value={vendorId} />
+          )}
 
           <Field
             label={t('fields.installmentCount')}
@@ -799,6 +828,26 @@ export function ExpenseForm({
             <input type="hidden" name="installmentStartDate" value={installmentStartDate} />
           )}
 
+          <Field label={t('destination.label')} optionalLabel={tCommon('labels.optional')}>
+            {(controlProps) => (
+              <Select
+                value={destination}
+                onValueChange={(value) => handleDestinationChange(value as ExpenseDestination)}
+                disabled={readOnly}
+              >
+                <SelectTrigger {...controlProps}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="project">{t('destination.project')}</SelectItem>
+                  <SelectItem value="general">{t('generalBusiness')}</SelectItem>
+                  <SelectItem value="inventory">{t('destination.inventory')}</SelectItem>
+                  <SelectItem value="asset">{t('destination.asset')}</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
+          </Field>
+
           {inventoryItems.length > 0 ? (
             <div className="flex flex-col gap-4 rounded-md border border-dashed border-[var(--pf-border-default)] p-3">
               <label className="flex cursor-pointer items-start gap-3">
@@ -831,10 +880,7 @@ export function ExpenseForm({
 
               {inventoryStockPurchase ? (
                 <>
-                  <Field
-                    label={t('fields.inventoryItem')}
-                    error={fieldErrors.inventoryItemId}
-                  >
+                  <Field label={t('fields.inventoryItem')} error={fieldErrors.inventoryItemId}>
                     {(controlProps) => (
                       <Select
                         value={inventoryItemId || NONE_VALUE}
@@ -885,32 +931,13 @@ export function ExpenseForm({
                 </>
               )}
             </div>
-          ) : null}
-
-          <Field label={t('fields.costFamily')} optionalLabel={tCommon('labels.optional')}>
-            {(controlProps) => (
-              <Select
-                value={costFamily || NONE_VALUE}
-                onValueChange={(value) => {
-                  setCostFamily(value === NONE_VALUE ? '' : (value as CostFamily));
-                  setCostCategoryId('');
-                }}
-                disabled={readOnly}
-              >
-                <SelectTrigger {...controlProps}>
-                  <SelectValue placeholder={t('placeholders.costFamily')} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={NONE_VALUE}>{t('placeholders.costFamily')}</SelectItem>
-                  {(['direct_project', 'shared', 'business_overhead', 'asset_capital'] as const).map((family) => (
-                    <SelectItem key={family} value={family}>
-                      {t(`costFamilies.${family}`)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-          </Field>
+          ) : (
+            <>
+              <input type="hidden" name="inventoryStockPurchase" value={inventoryStockPurchase ? 'true' : 'false'} />
+              <input type="hidden" name="inventoryItemId" value={inventoryItemId} />
+              <input type="hidden" name="inventoryPurchaseQty" value={inventoryPurchaseQty} />
+            </>
+          )}
 
           <input type="hidden" name="costFamily" value={costFamily} />
 
@@ -947,9 +974,7 @@ export function ExpenseForm({
                 </div>
               </dl>
               <p className="mt-2 text-xs text-[var(--pf-text-muted)]">
-                {showingPolicyOverride
-                  ? t('categoryPolicy.overridden')
-                  : t('categoryPolicy.fromPolicy')}
+                {showingPolicyOverride ? t('categoryPolicy.overridden') : t('categoryPolicy.fromPolicy')}
                 {' · '}
                 {t('categoryPolicy.overrideHint')}
               </p>
@@ -966,11 +991,10 @@ export function ExpenseForm({
           ) : null}
 
           <input type="hidden" name="recurrenceCadence" value={recurrenceCadence} />
-
           <input type="hidden" name="recurrenceCustomLabel" value={recurrenceCustomLabel} />
 
           {isOverhead ? (
-            <>
+            <div id="expense-allocation" className="flex scroll-mt-24 flex-col gap-3">
               <Field label={t('allocation.driverLabel')}>
                 {(controlProps) => (
                   <Select
@@ -1070,7 +1094,7 @@ export function ExpenseForm({
               ) : (
                 <input type="hidden" name="allocations" value="[]" />
               )}
-            </>
+            </div>
           ) : (
             <>
               <input type="hidden" name="allocationDriverMethod" value={allocationDriverMethod} />
@@ -1094,68 +1118,51 @@ export function ExpenseForm({
             )}
           </Field>
 
-          {!showAdvanced ? (
-            <Button type="button" variant="ghost" className="self-start" onClick={() => setShowAdvanced(true)}>
-              {tCommon('actions.showMore')}
-              <ChevronRight className={rtlFlipClassName('size-4')} aria-hidden />
-            </Button>
-          ) : (
-            <div className="flex flex-col gap-4 border-t border-[var(--pf-border-default)] pt-4">
-              <h3 className="text-sm font-semibold">{tCommon('actions.showMore')}</h3>
+          <div className="flex flex-col gap-4 border-t border-[var(--pf-border-default)] pt-4">
+            <h3 className="text-sm font-semibold">{tCommon('actions.showAdvanced')}</h3>
 
-              <div className="grid min-w-0 gap-4 sm:grid-cols-2">
-                <Field label={t('fields.netAmount')} optionalLabel={tCommon('labels.optional')}>
-                  {(controlProps) => (
-                    <MoneyInput
-                      {...controlProps}
-                      name="netAmount"
-                      value={netAmount}
-                      onValueChange={setNetAmount}
-                      currency={currency}
-                      disabled={readOnly}
-                    />
-                  )}
-                </Field>
-
-                <Field label={t('fields.taxAmount')} optionalLabel={tCommon('labels.optional')}>
-                  {(controlProps) => (
-                    <MoneyInput
-                      {...controlProps}
-                      name="taxAmount"
-                      value={taxAmount}
-                      onValueChange={setTaxAmount}
-                      currency={currency}
-                      disabled={readOnly}
-                    />
-                  )}
-                </Field>
-              </div>
-
-              <Field label={t('fields.paymentMethod')} optionalLabel={tCommon('labels.optional')}>
+            <div className="grid min-w-0 gap-4 sm:grid-cols-2">
+              <Field label={t('fields.netAmount')} optionalLabel={tCommon('labels.optional')}>
                 {(controlProps) => (
-                  <Input
+                  <MoneyInput
                     {...controlProps}
-                    name="paymentMethod"
-                    value={paymentMethod}
-                    onChange={(event) => setPaymentMethod(event.target.value)}
+                    name="netAmount"
+                    value={netAmount}
+                    onValueChange={setNetAmount}
+                    currency={currency}
                     disabled={readOnly}
                   />
                 )}
               </Field>
 
-              {!isOverhead ? (
-                <input type="hidden" name="allocations" value="[]" />
-              ) : null}
+              <Field label={t('fields.taxAmount')} optionalLabel={tCommon('labels.optional')}>
+                {(controlProps) => (
+                  <MoneyInput
+                    {...controlProps}
+                    name="taxAmount"
+                    value={taxAmount}
+                    onValueChange={setTaxAmount}
+                    currency={currency}
+                    disabled={readOnly}
+                  />
+                )}
+              </Field>
             </div>
-          )}
 
-          {!isOverhead && !showAdvanced ? (
-            <input type="hidden" name="allocations" value="[]" />
-          ) : null}
+            <Field label={t('fields.paymentMethod')} optionalLabel={tCommon('labels.optional')}>
+              {(controlProps) => (
+                <Input
+                  {...controlProps}
+                  name="paymentMethod"
+                  value={paymentMethod}
+                  onChange={(event) => setPaymentMethod(event.target.value)}
+                  disabled={readOnly}
+                />
+              )}
+            </Field>
+          </div>
         </section>
       )}
-
-      {children}
     </div>
   );
 }

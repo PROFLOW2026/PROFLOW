@@ -187,6 +187,6 @@ describe('mobile money surfaces @390px', () => {
 
     expect(screen.getByRole('textbox', { name: 'סכום' })).toBeVisible();
     expect(screen.getByRole('combobox', { name: heExpenses.fields.destination })).toBeVisible();
-    expect(screen.getByRole('button', { name: 'פרטים נוספים' })).toBeVisible();
+    expect(screen.getByRole('button', { name: 'אפשרויות נוספות' })).toBeVisible();
   });
 });

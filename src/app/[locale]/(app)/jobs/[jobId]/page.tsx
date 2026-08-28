@@ -29,6 +29,10 @@ import { DocumentsTab } from '../../projects/[projectId]/documents-tab';
 import { OverviewTab } from '../../projects/[projectId]/overview-tab';
 import { ProjectHeaderMetrics } from '../../projects/[projectId]/project-header-metrics';
 import { ProjectTabsShell, type ProjectTabKey } from '../../projects/[projectId]/project-tabs-shell';
+import {
+  activeHubFromParams,
+  resolveProjectHubs,
+} from '../../projects/[projectId]/project-hub-order';
 import { TabPanelSkeleton } from '../../projects/[projectId]/tab-panel-skeleton';
 import { ProjectStatusBadge } from '../../projects/project-status-badge';
 import { resolveJobTabs } from '../job-tab-order';
@@ -112,11 +116,11 @@ export default async function JobPage({ params, searchParams }: JobPageProps) {
     MODULE_PANEL_TABS.has(tabParam as ProjectTabKey) && visibleModuleTabs.has(tabParam)
   );
 
-  const [t, tJobs, tStatus, tTabs, detail, resolvedLocale] = await Promise.all([
+  const [t, tJobs, tStatus, tHubs, detail, resolvedLocale] = await Promise.all([
     getTranslations('projects'),
     getTranslations('jobs'),
     getTranslations('status.project'),
-    getTranslations('projects.workspace.tabs'),
+    getTranslations('projects.workspace.hubs'),
     loadJobDetail(jobId, includeStructure).catch(() => null),
     getLocale(),
   ]);
@@ -174,23 +178,44 @@ export default async function JobPage({ params, searchParams }: JobPageProps) {
   });
   const currencySymbol = sample.replace(/[\d\s.,\u2212+-]/g, '').trim() || '₪';
 
-  const tabs: ProjectTabKey[] = resolveJobTabs({
-    expenses: showExpensesTab,
-    team: showTeamTab,
-    time: showTimeTab,
-    billing: showBillingTab,
-    documents: showDocumentsTab,
+  const jobTabVisibility = {
     financials: canReadFinancials,
+    expenses: showExpensesTab,
+    changes: false,
+    boq: false,
+    billing: showBillingTab,
+    billingPlan: false,
     budgets: showBudgetsTab,
+    team: showTeamTab,
+    schedule: false,
+    time: showTimeTab,
+    documents: showDocumentsTab,
     usage: showUsageTab,
-  });
+    work: false,
+    closeout: false,
+    warranty: false,
+  };
 
-  const activeTab: ProjectTabKey = tabs.includes(tabParam as ProjectTabKey)
-    ? (tabParam as ProjectTabKey)
-    : (tabs[0] ?? 'overview');
+  const hubs = resolveProjectHubs(jobTabVisibility);
+  const activeTab: ProjectTabKey = (() => {
+    const legacyTabs = resolveJobTabs({
+      expenses: showExpensesTab,
+      team: showTeamTab,
+      time: showTimeTab,
+      billing: showBillingTab,
+      documents: showDocumentsTab,
+      financials: canReadFinancials,
+      budgets: showBudgetsTab,
+      usage: showUsageTab,
+    });
+    return legacyTabs.includes(tabParam as ProjectTabKey)
+      ? (tabParam as ProjectTabKey)
+      : (legacyTabs[0] ?? 'overview');
+  })();
+  const activeHub = activeHubFromParams(tabParam);
 
-  const tabLabels = Object.fromEntries(tabs.map((tab) => [tab, tTabs(tab)])) as Partial<
-    Record<ProjectTabKey, string>
+  const hubLabels = Object.fromEntries(hubs.map((hub) => [hub, tHubs(hub)])) as Partial<
+    Record<(typeof hubs)[number], string>
   >;
   const dir = localeDirection(resolvedLocale);
 
@@ -309,9 +334,9 @@ export default async function JobPage({ params, searchParams }: JobPageProps) {
       )}
 
       <ProjectTabsShell
-        tabs={tabs}
-        activeTab={activeTab}
-        labels={tabLabels}
+        tabs={hubs}
+        activeHub={activeHub}
+        labels={hubLabels}
         projectHref={`/jobs/${jobId}`}
         dir={dir}
       >

@@ -40,7 +40,13 @@ const MobileNavMore = dynamic(
  * At most four destinations plus "More": a phone bar with nine icons is a
  * compressed desktop sidebar, which is exactly what V1 must not ship.
  */
-export function MobileNav({ items }: { items: NavItem[] }) {
+export function MobileNav({
+  items,
+  moreFooter,
+}: {
+  items: NavItem[];
+  moreFooter?: React.ReactNode;
+}) {
   const t = useTranslations('nav');
   const tCommon = useTranslations('common');
   const pathname = usePathname();
@@ -112,6 +118,7 @@ export function MobileNav({ items }: { items: NavItem[] }) {
           onOpenChange={setMoreOpen}
           items={overflow}
           pathname={pathname}
+          footer={moreFooter}
         />
       ) : null}
     </>

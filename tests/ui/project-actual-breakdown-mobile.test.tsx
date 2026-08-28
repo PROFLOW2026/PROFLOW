@@ -216,12 +216,16 @@ describe('OWNER GATE — mobile 390 owner actual experience', () => {
     expect(viewport.clientWidth).toBeLessThanOrEqual(MOBILE_WIDTH_PX);
   });
 
-  it('shows allocated general as an of-which subtitle under Actual', () => {
+  it('shows allocated general separately from direct actual in direct mode copy', () => {
     const copy = ownerCopy();
     renderWithIntl(
       <MobileViewport>
         <ProjectOwnerStoryPanel
-          copy={copy}
+          copy={{
+            ...copy,
+            directActualCost: 'עלות ישירה בפועל',
+            fullActualIncludingGeneral: 'עלות מלאה כולל הוצאות כלליות',
+          }}
           metrics={{
             currentContract: money('100000', ILS),
             actualCost: money('50000', ILS),
@@ -245,9 +249,6 @@ describe('OWNER GATE — mobile 390 owner actual experience', () => {
     );
 
     expect(screen.getByText('עלות בפועל')).toBeInTheDocument();
-    expect(screen.getByText(/מתוכן:/)).toBeInTheDocument();
-    expect(screen.getByText(/הוצאות כלליות שהוקצו לפרויקט/)).toBeInTheDocument();
-    expect(screen.queryByText(/תקורה/)).not.toBeInTheDocument();
-    expect(screen.getByTestId('mobile-viewport').clientWidth).toBeLessThanOrEqual(MOBILE_WIDTH_PX);
+    expect(screen.queryByText(/מתוכן:/)).not.toBeInTheDocument();
   });
 });

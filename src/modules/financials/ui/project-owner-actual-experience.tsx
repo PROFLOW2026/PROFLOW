@@ -5,10 +5,14 @@ import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { withOrgContext } from '@/shared/auth/session';
 import { getProjectActualBreakdown } from '../application/get-project-actual-breakdown';
-import { getProjectFinancials } from '../application/get-project-financials';
+import { getProjectAllocatedGeneralDetail } from '../application/get-project-allocated-general-detail';
+import { loadCachedProjectFinancials } from '../application/load-cached-project-financials';
+import type { getProjectFinancials } from '../application/get-project-financials';
+import { resolveProjectProfitabilityDisplay } from '../domain/project-profitability-display';
+import { DEFAULT_PROJECT_PROFITABILITY_MODE } from '@/modules/tenancy/domain/project-profitability-mode';
 import { resolveProjectKpiDisplay } from './resolve-kpi-display';
+import { AllocatedGeneralSummaryLine } from './allocated-general-detail-panel';
 import {
-  AllocatedGeneralOfWhichNote,
   ProjectActualBreakdownView,
   ProjectForecastFormulaPanel,
   ProjectOwnerStoryPanel,
@@ -43,7 +47,23 @@ async function loadOwnerStoryCopy(): Promise<OwnerStoryCopy> {
     forecastProfit: t('forecastProfit'),
     unavailable: t('unavailable'),
     breakdownTitle: t('breakdownTitle'),
-    categories,
+    categories: {
+      ...categories,
+      allocatedGeneral: t('allocatedGeneral'),
+    },
+    directActualCost: t('directActualCost'),
+    fullActualIncludingGeneral: t('fullActualIncludingGeneral'),
+    allocatedGeneralDetail: {
+      expand: t('expand'),
+      collapse: t('collapse'),
+      expenseAmount: t('allocatedGeneralDetail.expenseAmount'),
+      allocatedToProject: t('allocatedGeneralDetail.allocatedToProject'),
+      allocationPercent: t('allocatedGeneralDetail.allocationPercent'),
+      supplier: t('allocatedGeneralDetail.supplier'),
+      method: t('allocatedGeneralDetail.method'),
+      poolOther: t('allocatedGeneralDetail.poolOther'),
+      openExpense: t('allocatedGeneralDetail.openExpense'),
+    },
     total: t('total'),
     percent: t('percent'),
     sources: t('sources'),
@@ -108,27 +128,44 @@ export async function ProjectOwnerActualExperience({
 }) {
   const copy = await loadOwnerStoryCopy();
 
+  const financials = await loadCachedProjectFinancials(projectId).catch(() => null);
   const loaded = await withOrgContext(async (context) => {
     const canRead = hasPermission(context, PERMISSIONS.PROJECT_FINANCIALS_READ);
-    if (!canRead) return null;
-    // Already inside org context — do not nest loadCachedProjectFinancials (withOrgContext).
-    // Financials panel may still share work via its own loadCached call in the same request
-    // when React cache hits; otherwise one extra compose is acceptable (not N+1).
-    const financials = await getProjectFinancials(context, projectId);
-    const breakdownResult = await getProjectActualBreakdown(context, projectId, financials);
+    if (!canRead || !financials) return null;
+    const [breakdownResult, allocatedGeneralDetail] = await Promise.all([
+      getProjectActualBreakdown(context, projectId, financials),
+      getProjectAllocatedGeneralDetail(
+        context,
+        projectId,
+        financials.cost.allocatedGeneralBusinessCost,
+      ),
+    ]);
     return {
       breakdownResult,
-      financials,
+      allocatedGeneralDetail,
       canReadProfit: hasPermission(context, PERMISSIONS.PROJECT_PROFIT_READ),
       canReadBilling: hasPermission(context, PERMISSIONS.BILLING_READ),
     };
   });
 
-  if (!loaded) return null;
+  if (!loaded || !financials) return null;
 
-  const { breakdownResult, financials, canReadProfit, canReadBilling } = loaded;
+  const { breakdownResult, allocatedGeneralDetail, canReadProfit, canReadBilling } = loaded;
   const result = { breakdownResult, financials };
   const metrics = buildMetrics(financials, canReadProfit, canReadBilling);
+  const profitabilityMode =
+    financials.projectProfitabilityMode ?? DEFAULT_PROJECT_PROFITABILITY_MODE;
+  const profitability = resolveProjectProfitabilityDisplay(
+    profitabilityMode,
+    financials.cost,
+    financials.commercial?.currentContractValue ?? null,
+    financials.priceNotSet === true,
+  );
+  const hasAllocatedGeneral =
+    metrics.allocatedGeneralBusinessCost != null &&
+    Number(metrics.allocatedGeneralBusinessCost.amount) > 0;
+  const includeGeneralInPrimary = profitabilityMode === 'include_general';
+  const allocatedGeneralDetailCopy = copy.allocatedGeneralDetail!;
 
   if (variant === 'overview') {
     return (
@@ -142,6 +179,18 @@ export async function ProjectOwnerActualExperience({
                 laborByEmployee={result.breakdownResult.laborByEmployee}
                 copy={copy}
                 projectId={projectId}
+                allocatedGeneral={
+                  hasAllocatedGeneral && includeGeneralInPrimary
+                    ? {
+                        amount: metrics.allocatedGeneralBusinessCost!,
+                        includeInBreakdownTotal: true,
+                        detail: allocatedGeneralDetail,
+                      }
+                    : null
+                }
+                breakdownTotalOverride={
+                  includeGeneralInPrimary ? profitability.fullActualCost : null
+                }
               />
             </div>
           </CardContent>
@@ -170,20 +219,31 @@ export async function ProjectOwnerActualExperience({
               )}
             </span>
           </div>
-          <div className="flex min-w-0 flex-col gap-0.5">
+          <div className="flex min-w-0 flex-col gap-2">
             <div className="flex min-w-0 justify-between gap-3 font-semibold">
-              <span className="text-[var(--pf-text-secondary)]">{copy.actualCost}</span>
+              <span className="text-[var(--pf-text-secondary)]">
+                {includeGeneralInPrimary ? copy.actualCost : copy.directActualCost}
+              </span>
               <span className="min-w-0 max-w-[55%] overflow-x-auto text-end">
                 {metrics.actualCost ? <MoneyText value={metrics.actualCost} /> : copy.unavailable}
               </span>
             </div>
-            {metrics.allocatedGeneralBusinessCost &&
-            Number(metrics.allocatedGeneralBusinessCost.amount) > 0 ? (
-              <AllocatedGeneralOfWhichNote
-                ofWhich={copy.ofWhich}
-                label={copy.allocatedGeneral}
-                amount={metrics.allocatedGeneralBusinessCost}
-              />
+            {!includeGeneralInPrimary && hasAllocatedGeneral ? (
+              <>
+                <AllocatedGeneralSummaryLine
+                  label={copy.allocatedGeneral}
+                  amount={metrics.allocatedGeneralBusinessCost!}
+                  detail={allocatedGeneralDetail}
+                  copy={allocatedGeneralDetailCopy}
+                  projectId={projectId}
+                />
+                <div className="flex min-w-0 justify-between gap-3 text-sm text-[var(--pf-text-secondary)]">
+                  <span>{copy.fullActualIncludingGeneral}</span>
+                  <span className="min-w-0 max-w-[55%] overflow-x-auto text-end font-medium text-[var(--pf-text-primary)]">
+                    <MoneyText value={profitability.fullActualCost} />
+                  </span>
+                </div>
+              </>
             ) : null}
           </div>
         </CardContent>
@@ -196,6 +256,18 @@ export async function ProjectOwnerActualExperience({
             laborByEmployee={result.breakdownResult.laborByEmployee}
             copy={copy}
             projectId={projectId}
+            allocatedGeneral={
+              hasAllocatedGeneral && includeGeneralInPrimary
+                ? {
+                    amount: metrics.allocatedGeneralBusinessCost!,
+                    includeInBreakdownTotal: true,
+                    detail: allocatedGeneralDetail,
+                  }
+                : null
+            }
+            breakdownTotalOverride={
+              includeGeneralInPrimary ? profitability.fullActualCost : null
+            }
           />
         </CardContent>
       </Card>

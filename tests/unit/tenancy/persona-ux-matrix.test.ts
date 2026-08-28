@@ -155,8 +155,9 @@ describe('persona UX acceptance matrix', () => {
     const consulting = fingerprints.find((fp) => fp.persona === 'consulting')!;
 
     expect(contractor.coreKeys).toEqual(
-      expect.arrayContaining(['dashboard', 'today', 'projects']),
+      expect.arrayContaining(['dashboard', 'projects', 'expenses', 'clients']),
     );
+    expect(contractor.coreKeys).not.toContain('today');
     expect(small.coreKeys).toEqual(expect.arrayContaining(['dashboard', 'today', 'jobs']));
     expect(service.coreKeys).toEqual(
       expect.arrayContaining(['dashboard', 'today', 'workOrders']),

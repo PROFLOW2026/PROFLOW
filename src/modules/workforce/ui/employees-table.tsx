@@ -64,6 +64,7 @@ export async function EmployeesTable({
                 <TableHead>{t('employees.columns.hireDate')}</TableHead>
                 <TableHead>{t('employees.columns.employmentStyle')}</TableHead>
                 {showCosts ? <TableHead numeric>{t('employees.columns.currentRate')}</TableHead> : null}
+                {showCosts ? <TableHead numeric>{t('employees.columns.employerCost')}</TableHead> : null}
                 <TableHead>{t('employees.columns.status')}</TableHead>
               </TableRow>
             </TableHeader>
@@ -113,6 +114,25 @@ export async function EmployeesTable({
                       )}
                     </TableCell>
                   ) : null}
+                  {showCosts ? (
+                    <TableCell numeric>
+                      {employee.currentEmployerCost && employee.currentRateCurrency ? (
+                        <MoneyText
+                          value={
+                            fromNumericString(
+                              employee.currentEmployerCost,
+                              employee.currentRateCurrency,
+                            ) ?? {
+                              amount: employee.currentEmployerCost,
+                              currency: employee.currentRateCurrency,
+                            }
+                          }
+                        />
+                      ) : (
+                        <span className="text-[var(--pf-text-muted)]">—</span>
+                      )}
+                    </TableCell>
+                  ) : null}
                   <TableCell>
                     <StatusBadge
                       shape={employee.status === 'active' ? 'active' : 'archived'}
@@ -149,24 +169,49 @@ export async function EmployeesTable({
             />
           </div>
           {showCosts ? (
-            <p className="mt-2 text-start text-sm text-[var(--pf-text-secondary)]">
-              {employee.currentRate && employee.currentRateCurrency ? (
-                <>
+            <div className="mt-2 space-y-1 text-start text-sm text-[var(--pf-text-secondary)]">
+              <p>
+                {employee.currentRate && employee.currentRateCurrency ? (
+                  <>
+                    {t('employees.columns.currentRate')}:{' '}
+                    <MoneyText
+                      value={
+                        fromNumericString(employee.currentRate, employee.currentRateCurrency) ?? {
+                          amount: employee.currentRate,
+                          currency: employee.currentRateCurrency,
+                        }
+                      }
+                    />
+                    {employee.currentRateUnit ? (
+                      <>
+                        {' · '}
+                        {t(`rateUnits.${employee.currentRateUnit}`)}
+                      </>
+                    ) : null}
+                  </>
+                ) : (
+                  t('employees.noRate')
+                )}
+              </p>
+              <p>
+                {t('employees.columns.employerCost')}:{' '}
+                {employee.currentEmployerCost && employee.currentRateCurrency ? (
                   <MoneyText
                     value={
-                      fromNumericString(employee.currentRate, employee.currentRateCurrency) ?? {
-                        amount: employee.currentRate,
+                      fromNumericString(
+                        employee.currentEmployerCost,
+                        employee.currentRateCurrency,
+                      ) ?? {
+                        amount: employee.currentEmployerCost,
                         currency: employee.currentRateCurrency,
                       }
                     }
                   />
-                  {' · '}
-                  {employee.currentRateUnit ? t(`rateUnits.${employee.currentRateUnit}`) : null}
-                </>
-              ) : (
-                t('employees.noRate')
-              )}
-            </p>
+                ) : (
+                  '—'
+                )}
+              </p>
+            </div>
           ) : employee.jobTitle ? null : (
             <p className="mt-2 text-start text-sm text-[var(--pf-text-secondary)]">
               {employee.currentRateUnit ? t(`rateUnits.${employee.currentRateUnit}`) : null}

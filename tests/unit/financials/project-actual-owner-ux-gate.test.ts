@@ -5,13 +5,15 @@ import { join } from 'node:path';
 const root = process.cwd();
 
 describe('OWNER GATE — Overview / Financials UX structure', () => {
-  it('Overview renders owner experience without More info wrapper', () => {
+  it('Overview renders simplified financial snapshot without More info wrapper', () => {
     const overview = readFileSync(
       join(root, 'src/app/[locale]/(app)/projects/[projectId]/overview-tab.tsx'),
       'utf8',
     );
-    expect(overview).toMatch(/ProjectOwnerActualExperience|ProjectOwnerActualExperience/);
-    const match = overview.match(/<(Project\w*Actual\w*)/);
+    expect(overview).toMatch(
+      /ProjectFinancialsSnapshotView|financialSnapshotSlot|OverviewFinancialSnapshotPanel/,
+    );
+    const match = overview.match(/<(ProjectFinancialsSnapshotView|OverviewFinancialSnapshotPanel)/);
     expect(match?.[1]).toBeTruthy();
     const ownerIdx = overview.indexOf(match![1]!);
     const before = overview.slice(Math.max(0, ownerIdx - 500), ownerIdx);

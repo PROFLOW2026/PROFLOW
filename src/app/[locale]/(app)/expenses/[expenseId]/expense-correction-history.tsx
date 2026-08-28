@@ -4,6 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { StatusBadge } from '@/components/ui/status-badge';
 import type { ExpenseCorrectionChain } from '@/modules/expenses';
 import { statusShape } from '@/modules/expenses/domain/lifecycle';
+import { formatReversalDescription } from '@/modules/expenses/ui/expense-list-label';
+import { buildExpenseDetailHref } from '@/modules/expenses/domain/expense-return-navigation';
 import { formatBusinessDate } from '@/shared/dates/format';
 import { Link } from '@/shared/i18n/navigation';
 import { textNavLinkClassName } from '@/components/ui/pressable';
@@ -12,9 +14,11 @@ import { cn } from '@/shared/ui/cn';
 export async function ExpenseCorrectionHistory({
   chain,
   currentExpenseId,
+  returnTo,
 }: {
   readonly chain: ExpenseCorrectionChain;
   readonly currentExpenseId: string;
+  readonly returnTo?: string | null;
 }) {
   if (!chain.hasLinks) return null;
 
@@ -47,14 +51,23 @@ export async function ExpenseCorrectionHistory({
                     {isCurrent ? (
                       <span className="text-xs text-[var(--pf-text-muted)]">({t('detail.title')})</span>
                     ) : (
-                      <Link href={`/expenses/${entry.id}`} className={cn(textNavLinkClassName, 'text-xs')}>
+                      <Link
+                        href={buildExpenseDetailHref(entry.id, { returnTo })}
+                        className={cn(textNavLinkClassName, 'text-xs')}
+                      >
                         {entry.id.slice(0, 8)}…
                       </Link>
                     )}
                   </div>
                   <span className="text-xs text-[var(--pf-text-muted)]">
                     {formatBusinessDate(entry.expenseDate, locale)}
-                    {entry.description ? ` · ${entry.description}` : null}
+                    {entry.description
+                      ? ` · ${
+                          entry.role === 'reversal'
+                            ? formatReversalDescription(entry.description, t)
+                            : entry.description
+                        }`
+                      : null}
                   </span>
                 </div>
                 <MoneyText value={entry.netAmount} className="shrink-0 font-medium" />

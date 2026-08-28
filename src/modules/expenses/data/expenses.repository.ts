@@ -1,4 +1,5 @@
-import { and, desc, eq, exists, gte, isNull, lte, or, sql } from 'drizzle-orm';
+import { and, desc, eq, exists, gte, isNull, lte, not, or, sql } from 'drizzle-orm';
+import { alias } from 'drizzle-orm/pg-core';
 import {
   costCategories,
   expenseAllocations,
@@ -11,6 +12,7 @@ import {
 import type { BusinessDate } from '@/shared/dates';
 import type { DbExecutor } from '@/shared/db/types';
 import { fromNumericString, type MoneyValue } from '@/shared/money';
+import type { ExpenseAttentionFilter } from '../domain/expense-attention';
 import type {
   AllocationMethod,
   AllocationScheduleMode,
@@ -39,6 +41,9 @@ export interface ExpenseListFilters {
   readonly status?: ExpenseStatus;
   readonly limit?: number;
   readonly offset?: number;
+  /** Finalized overhead with no project allocation lines. */
+  readonly unallocatedOnly?: boolean;
+  readonly attentionFilter?: ExpenseAttentionFilter;
 }
 
 export interface ExpenseInsertRow {
@@ -103,6 +108,7 @@ function mapSummary(row: {
   description: string | null;
   supplierName: string | null;
   vendorId: string | null;
+  vendorName: string | null;
   projectId: string | null;
   projectName: string | null;
   workPackageId: string | null;
@@ -115,6 +121,9 @@ function mapSummary(row: {
   currency: string;
   status: ExpenseStatus;
   voidsExpenseId: string | null;
+  adjustsExpenseId?: string | null;
+  needsProjectAllocation?: boolean | null;
+  hasActiveReversal?: boolean | null;
 }): ExpenseSummary {
   return {
     id: row.id,
@@ -122,6 +131,7 @@ function mapSummary(row: {
     description: row.description,
     supplierName: row.supplierName,
     vendorId: row.vendorId,
+    vendorName: row.vendorName,
     projectId: row.projectId,
     projectName: row.projectName,
     workPackageId: row.workPackageId,
@@ -133,7 +143,61 @@ function mapSummary(row: {
     taxAmount: row.taxAmount ? mapMoney(row.taxAmount, row.currency) : null,
     status: row.status,
     voidsExpenseId: row.voidsExpenseId,
+    adjustsExpenseId: row.adjustsExpenseId ?? null,
+    needsProjectAllocation: row.needsProjectAllocation === true,
+    hasActiveReversal: row.hasActiveReversal === true,
   };
+}
+
+const expenseReversals = alias(expenses, 'expense_reversals');
+
+function hasActiveReversalExists(db: DbExecutor, organizationId: string) {
+  return exists(
+    db
+      .select({ id: expenseReversals.id })
+      .from(expenseReversals)
+      .where(
+        and(
+          eq(expenseReversals.voidsExpenseId, expenses.id),
+          eq(expenseReversals.organizationId, organizationId),
+          eq(expenseReversals.status, 'finalized'),
+          isNull(expenseReversals.archivedAt),
+        ),
+      ),
+  );
+}
+
+function hasActiveReversalSelect(db: DbExecutor, organizationId: string) {
+  return sql<boolean>`${hasActiveReversalExists(db, organizationId)}`;
+}
+
+function appendActionableExpenseAttentionConditions(
+  db: DbExecutor,
+  organizationId: string,
+  conditions: unknown[],
+) {
+  conditions.push(isNull(expenses.voidsExpenseId));
+  conditions.push(isNull(expenses.adjustsExpenseId));
+  conditions.push(not(hasActiveReversalExists(db, organizationId)));
+}
+
+function needsProjectAllocationSelect(db: DbExecutor, organizationId: string) {
+  return sql<boolean>`(
+    ${expenses.projectId} is null
+    and ${expenses.status} = 'finalized'
+    and ${expenses.costFamily} = 'shared'
+    and coalesce(${expenses.inventoryStockPurchase}, false) = false
+    and ${expenses.voidsExpenseId} is null
+    and ${expenses.adjustsExpenseId} is null
+    and not ${hasActiveReversalExists(db, organizationId)}
+    and not exists (
+      select 1
+      from ${expenseAllocations}
+      where ${expenseAllocations.expenseId} = ${expenses.id}
+        and ${expenseAllocations.organizationId} = ${organizationId}
+        and ${expenseAllocations.projectId} is not null
+    )
+  )`;
 }
 
 export async function insertExpense(
@@ -253,6 +317,7 @@ export async function findExpenseById(
       description: expenses.description,
       supplierName: expenses.supplierName,
       vendorId: expenses.vendorId,
+      vendorName: vendors.name,
       projectId: expenses.projectId,
       projectName: projects.name,
       workPackageId: expenses.workPackageId,
@@ -290,6 +355,7 @@ export async function findExpenseById(
     })
     .from(expenses)
     .leftJoin(projects, eq(expenses.projectId, projects.id))
+    .leftJoin(vendors, eq(expenses.vendorId, vendors.id))
     .where(and(eq(expenses.id, expenseId), eq(expenses.organizationId, organizationId), isNull(expenses.archivedAt)))
     .limit(1);
 
@@ -381,6 +447,42 @@ export async function listExpenses(
   if (filters.costCategoryId) conditions.push(eq(expenses.costCategoryId, filters.costCategoryId));
   if (filters.status) conditions.push(eq(expenses.status, filters.status));
 
+  const projectAllocationAttention =
+    filters.unallocatedOnly || filters.attentionFilter === 'project_allocation';
+
+  if (projectAllocationAttention) {
+    conditions.push(isNull(expenses.projectId));
+    conditions.push(eq(expenses.status, 'finalized'));
+    conditions.push(eq(expenses.inventoryStockPurchase, false));
+    conditions.push(
+      not(
+        exists(
+          db
+            .select({ id: expenseAllocations.id })
+            .from(expenseAllocations)
+            .where(
+              and(
+                eq(expenseAllocations.expenseId, expenses.id),
+                eq(expenseAllocations.organizationId, organizationId),
+                sql`${expenseAllocations.projectId} is not null`,
+              ),
+            ),
+        ),
+      ),
+    );
+    appendActionableExpenseAttentionConditions(db, organizationId, conditions);
+  }
+
+  if (filters.attentionFilter === 'classification') {
+    conditions.push(eq(expenses.classificationStatus, 'needs_classification'));
+    appendActionableExpenseAttentionConditions(db, organizationId, conditions);
+  }
+
+  if (filters.attentionFilter === 'approval') {
+    conditions.push(eq(expenses.status, 'draft'));
+    appendActionableExpenseAttentionConditions(db, organizationId, conditions);
+  }
+
   const where = and(...conditions);
 
   const [countRow] = await db
@@ -395,6 +497,7 @@ export async function listExpenses(
       description: expenses.description,
       supplierName: expenses.supplierName,
       vendorId: expenses.vendorId,
+      vendorName: vendors.name,
       projectId: expenses.projectId,
       projectName: projects.name,
       workPackageId: expenses.workPackageId,
@@ -407,9 +510,13 @@ export async function listExpenses(
       currency: expenses.currency,
       status: expenses.status,
       voidsExpenseId: expenses.voidsExpenseId,
+      adjustsExpenseId: expenses.adjustsExpenseId,
+      needsProjectAllocation: needsProjectAllocationSelect(db, organizationId),
+      hasActiveReversal: hasActiveReversalSelect(db, organizationId),
     })
     .from(expenses)
     .leftJoin(projects, eq(expenses.projectId, projects.id))
+    .leftJoin(vendors, eq(expenses.vendorId, vendors.id))
     .where(where)
     .orderBy(desc(expenses.expenseDate), desc(expenses.createdAt))
     .limit(filters.limit ?? 50)

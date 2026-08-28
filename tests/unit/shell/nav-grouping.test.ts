@@ -26,13 +26,13 @@ describe('nav grouping', () => {
     expect(jobs?.module).toBe('jobs');
   });
 
-  it('assigns moreGroup to overflow destinations and leaves core/settings ungrouped', () => {
+  it('assigns moreGroup to overflow destinations and leaves core ungrouped', () => {
     const byKey = Object.fromEntries(NAV_ITEMS.map((item) => [item.key, item]));
 
     expect(byKey.dashboard?.moreGroup).toBeUndefined();
     expect(byKey.projects?.moreGroup).toBeUndefined();
     expect(byKey.expenses?.moreGroup).toBeUndefined();
-    expect(byKey.settings?.moreGroup).toBeUndefined();
+    expect(byKey.settings?.moreGroup).toBe('advanced');
 
     expect(byKey.clients?.moreGroup).toBe('business');
     expect(byKey.changes?.moreGroup).toBe('business');
@@ -40,14 +40,14 @@ describe('nav grouping', () => {
     expect(byKey.recurringDrafts?.moreGroup).toBe('business');
     expect(byKey.reports?.moreGroup).toBe('business');
 
-    expect(byKey.vendors?.moreGroup).toBe('operations');
+    expect(byKey.vendors?.moreGroup).toBe('purchasing');
     expect(byKey.workforce?.moreGroup).toBe('people');
     expect(byKey.time?.moreGroup).toBe('people');
     expect(byKey.scheduling?.moreGroup).toBe('operations');
     expect(byKey.scheduling?.href).toBe('/scheduling');
     expect(byKey.scheduling?.permission).toBe(PERMISSIONS.SCHEDULING_READ);
-    expect(byKey.procurement?.moreGroup).toBe('operations');
-    expect(byKey.materials?.moreGroup).toBe('operations');
+    expect(byKey.procurement?.moreGroup).toBe('purchasing');
+    expect(byKey.materials?.moreGroup).toBe('purchasing');
     expect(byKey.fieldOps?.moreGroup).toBe('operations');
     expect(byKey.documents?.moreGroup).toBe('operations');
     expect(byKey.quotes?.moreGroup).toBe('business');
@@ -134,7 +134,7 @@ describe('nav grouping', () => {
     expect(selfOnly.some((item) => item.key === 'attendance')).toBe(false);
   });
 
-  it('partitions core → experience group order → settings last', () => {
+  it('partitions core → experience group order with settings under advanced', () => {
     const permissions = new Set([
       PERMISSIONS.PROJECTS_READ,
       PERMISSIONS.EXPENSES_READ,
@@ -148,20 +148,19 @@ describe('nav grouping', () => {
       workMix: 'projects',
       persona: 'project_contractor',
     });
-    const { core, groups, settings } = partitionNavItems(items);
+    const { core, groups } = partitionNavItems(items);
 
     expect(core.map((item) => item.key)).toEqual(
-      expect.arrayContaining(['dashboard', 'projects']),
+      expect.arrayContaining(['dashboard', 'projects', 'clients']),
     );
-    expect(core.length).toBeGreaterThanOrEqual(2);
+    expect(core.length).toBeGreaterThanOrEqual(3);
     expect(groups.map((entry) => entry.group)).toEqual(
       MORE_GROUP_ORDER.filter((group) => groups.some((entry) => entry.group === group)),
     );
-    expect(groups.some((entry) => entry.group === 'clients')).toBe(true);
-    expect(groups.some((entry) => entry.group === 'money' || entry.group === 'purchasing')).toBe(
-      true,
-    );
-    expect(settings.map((item) => item.key)).toEqual(['settings']);
+    expect(groups.some((entry) => entry.group === 'purchasing')).toBe(true);
+    expect(
+      groups.find((entry) => entry.group === 'advanced')?.items.map((item) => item.key),
+    ).toEqual(expect.arrayContaining(['settings']));
   });
 
   it('produces visibly different primary nav for small works vs service', () => {

@@ -1,8 +1,10 @@
+import { Suspense } from 'react';
 import type { Metadata } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { MoneyText } from '@/components/patterns/money-text';
 import { PageHeader } from '@/components/ui/page-header';
+import { ContextualBackLink } from '@/components/ui/contextual-back-link';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { listCustomFieldValuesForEntity } from '@/modules/custom-fields';
@@ -33,7 +35,11 @@ import { ExpenseCorrectionHistory } from './expense-correction-history';
 import { ExpenseDetailActions } from './expense-detail-actions';
 import { ExpenseEditForm } from './expense-edit-form';
 import { PromoteVendorPanel } from './promote-vendor-panel';
-import { textNavLinkClassName, textNavLinkMutedClassName } from '@/components/ui/pressable';
+import { ExpenseDetailAttentionFocus } from '@/modules/expenses/ui/expense-detail-attention-focus';
+import { ExpenseDetailAttentionPanel } from '@/modules/expenses/ui/expense-detail-attention-panel';
+import { resolveExpenseDetailAttention } from '@/modules/expenses/domain/expense-attention';
+import { resolveExpenseBackNavigation } from '@/modules/expenses/domain/expense-return-navigation';
+import { textNavLinkClassName } from '@/components/ui/pressable';
 
 export async function generateMetadata({
   params,
@@ -47,13 +53,18 @@ export async function generateMetadata({
 
 export default async function ExpenseDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ expenseId: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { expenseId } = await params;
+  const rawSearchParams = await searchParams;
+  const rawReturnTo =
+    typeof rawSearchParams.returnTo === 'string' ? rawSearchParams.returnTo : undefined;
+  const backNavigation = resolveExpenseBackNavigation(rawReturnTo);
   const t = await getTranslations('expenses');
   const tStatus = await getTranslations('status');
-  const tCommon = await getTranslations('common');
   const locale = await getLocale();
 
   const data = await withOrgContext(async (context) => {
@@ -151,28 +162,36 @@ export default async function ExpenseDetailPage({
   const showPromoteVendor =
     canPromoteVendor && Boolean(expense.supplierName?.trim()) && !expense.vendorId;
 
+  const hasActiveReversal =
+    correctionChain != null &&
+    expense.id === correctionChain.originalExpenseId &&
+    correctionChain.entries.some(
+      (entry) => entry.role === 'reversal' && entry.status === 'finalized',
+    );
+  const detailAttention = resolveExpenseDetailAttention(expense, { hasActiveReversal });
+
   return (
     <div className="mx-auto flex min-w-0 w-full max-w-2xl flex-col gap-6">
+      <Suspense fallback={null}>
+        <ExpenseDetailAttentionFocus attention={detailAttention} />
+      </Suspense>
       <PageHeader
         title={t('detail.title')}
         description={formatBusinessDate(expense.expenseDate, locale)}
-        actions={
-          <Link href="/expenses" className={textNavLinkMutedClassName}>
-            {tCommon('actions.back')}
-          </Link>
+        breadcrumb={
+          <ContextualBackLink href={backNavigation.href}>
+            {t(`backNavigation.${backNavigation.labelKey}`)}
+          </ContextualBackLink>
         }
       />
 
-      {expense.status === 'draft' && !expense.costCategoryId ? (
-        <div
-          role="status"
-          className="rounded-lg border border-[var(--pf-status-warning-border)] bg-[var(--pf-status-warning-bg)] px-4 py-3 text-sm text-[var(--pf-status-warning-fg)]"
-        >
-          {t('errors.classificationRequired')}
-        </div>
+      {detailAttention ? <ExpenseDetailAttentionPanel attention={detailAttention} /> : null}
+
+      {detailAttention === 'project_allocation' && readOnly && expense.allocations.length === 0 ? (
+        <div id="expense-allocation" className="scroll-mt-24" aria-hidden />
       ) : null}
 
-      {expense.status === 'draft' ? (
+      {expense.status === 'draft' && !detailAttention ? (
         <div
           role="status"
           className="rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-muted)] px-4 py-3 text-sm text-[var(--pf-text-primary)]"
@@ -190,20 +209,11 @@ export default async function ExpenseDetailPage({
         </div>
       ) : null}
 
-      {!expense.projectId &&
-      expense.allocations.every((line) => line.targetType !== 'project') ? (
-        <div
-          role="status"
-          className="rounded-lg border border-[var(--pf-status-warning-border)] bg-[var(--pf-status-warning-bg)] px-4 py-3 text-sm text-[var(--pf-status-warning-fg)]"
-        >
-          {t('lifecycle.overheadUnallocatedWarning')}
-        </div>
-      ) : null}
-
       <div className="flex flex-wrap items-center gap-3">
         <StatusBadge shape={statusShape(expense.status)} label={tStatus(`expense.${expense.status}`)} />
         <MoneyText value={expense.grossAmount} className="text-xl font-semibold" />
         <ExpenseDetailActions
+          section="primary"
           expenseId={expense.id}
           status={expense.status}
           canFinalize={canFinalize}
@@ -265,28 +275,6 @@ export default async function ExpenseDetailPage({
                 {t('fields.previewActualHint')}
               </p>
             </div>
-            <DetailRow label={t('fields.costFamily')} value={t(`costFamilies.${expense.costFamily}`)} />
-            {expense.recurrenceRule ? (
-              <DetailRow
-                label={t('fields.recurrence')}
-                value={
-                  recurrence.cadence === 'custom'
-                    ? recurrence.customLabel
-                    : t(`recurrence.${recurrence.cadence}`)
-                }
-              />
-            ) : null}
-            {expense.notes ? <DetailRow label={t('fields.notes')} value={expense.notes} /> : null}
-            {expense.voidsExpenseId ? (
-              <p className="text-[var(--pf-text-muted)]">
-                {t('detail.reversalOf', { id: expense.voidsExpenseId })}
-              </p>
-            ) : null}
-            {expense.adjustsExpenseId ? (
-              <p className="text-[var(--pf-text-muted)]">
-                {t('detail.adjustmentOf', { id: expense.adjustsExpenseId })}
-              </p>
-            ) : null}
           </CardContent>
         </Card>
       ) : (
@@ -301,16 +289,72 @@ export default async function ExpenseDetailPage({
         />
       )}
 
-      {correctionChain ? (
-        <ExpenseCorrectionHistory chain={correctionChain} currentExpenseId={expense.id} />
-      ) : null}
+      {canReverse || canCorrect || correctionChain?.hasLinks || expense.voidsExpenseId || expense.adjustsExpenseId || expense.notes || expense.recurrenceRule || showPromoteVendor ? (
+        <details className="rounded-lg border border-[var(--pf-border-default)]">
+          <summary className="cursor-pointer px-4 py-3 text-sm font-medium">{t('historyAdvanced')}</summary>
+          <div className="flex flex-col gap-4 border-t border-[var(--pf-border-default)] px-4 py-4">
+            <ExpenseDetailActions
+              section="advanced"
+              expenseId={expense.id}
+              status={expense.status}
+              canFinalize={canFinalize}
+              canVoid={canVoid}
+              canReverse={canReverse}
+              canCorrect={canCorrect}
+              expense={expense}
+              projects={projects}
+              categories={categories}
+              amount={expense.grossAmount}
+              expenseDate={expense.expenseDate}
+            />
 
-      {showPromoteVendor && expense.supplierName ? (
-        <PromoteVendorPanel expenseId={expense.id} supplierName={expense.supplierName} />
+            {correctionChain ? (
+              <ExpenseCorrectionHistory
+                chain={correctionChain}
+                currentExpenseId={expense.id}
+                returnTo={backNavigation.safeReturnTo}
+              />
+            ) : null}
+
+            <div className="grid gap-3 text-sm">
+              <DetailRow label={t('fields.costFamily')} value={t(`costFamilies.${expense.costFamily}`)} />
+              {expense.recurrenceRule ? (
+                <DetailRow
+                  label={t('fields.recurrence')}
+                  value={
+                    recurrence.cadence === 'custom'
+                      ? recurrence.customLabel
+                      : t(`recurrence.${recurrence.cadence}`)
+                  }
+                />
+              ) : null}
+              {expense.notes ? <DetailRow label={t('fields.notes')} value={expense.notes} /> : null}
+              {expense.voidsExpenseId ? (
+                <p className="text-[var(--pf-text-muted)]">
+                  {t('detail.reversalOf', { id: expense.voidsExpenseId })}
+                </p>
+              ) : null}
+              {expense.adjustsExpenseId ? (
+                <p className="text-[var(--pf-text-muted)]">
+                  {t('detail.adjustmentOf', { id: expense.adjustsExpenseId })}
+                </p>
+              ) : null}
+            </div>
+
+            {showPromoteVendor && expense.supplierName ? (
+              <PromoteVendorPanel expenseId={expense.id} supplierName={expense.supplierName} />
+            ) : null}
+          </div>
+        </details>
       ) : null}
 
       {expense.allocations.length > 0 ? (
-        <Card className="min-w-0">
+        <Card
+          className="min-w-0 scroll-mt-24"
+          id={
+            detailAttention === 'project_allocation' && readOnly ? 'expense-allocation' : undefined
+          }
+        >
           <CardHeader>
             <CardTitle className="text-start">{t('allocation.title')}</CardTitle>
           </CardHeader>

@@ -67,6 +67,16 @@ export async function ReportsAnalyticsView({
     ),
   });
 
+  const advancedFocusSections: ReportsSection[] = [
+    'commercial',
+    'cash',
+    'cost',
+    'profitability',
+    'management',
+  ];
+  const advancedOpen =
+    focusSection != null && advancedFocusSections.includes(focusSection);
+
   return (
     <div className="flex min-w-0 w-full max-w-full flex-col gap-8 text-start">
       <div className="flex min-w-0 flex-wrap items-center justify-between gap-2">
@@ -101,6 +111,16 @@ export async function ReportsAnalyticsView({
           }
         />
       </div>
+
+      <details
+        id="reports-advanced-analysis"
+        open={advancedOpen || undefined}
+        className="rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)]"
+      >
+        <summary className="min-h-11 cursor-pointer px-4 py-3 text-sm font-semibold">
+          {t('advancedAnalysis')}
+        </summary>
+        <div className="flex min-w-0 flex-col gap-8 border-t border-[var(--pf-border-default)] px-4 py-4">
 
       {analytics.commercial ? (
         <section id="reports-commercial" className={sectionClass('commercial')}>
@@ -380,6 +400,9 @@ export async function ReportsAnalyticsView({
           }}
         />
       </section>
+
+        </div>
+      </details>
 
       <section id="reports-operations" className={sectionClass('operations')}>
         <div className="min-w-0">

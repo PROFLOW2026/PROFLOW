@@ -28,7 +28,7 @@ export function Sidebar({ items, organizationName, organizationLogoUrl, footer }
   const t = useTranslations('nav');
   const tCommon = useTranslations('common');
   const pathname = usePathname();
-  const { core, groups, settings } = partitionNavItems(items);
+  const { core, groups } = partitionNavItems(items);
 
   return (
     <nav
@@ -71,27 +71,6 @@ export function Sidebar({ items, organizationName, organizationLogoUrl, footer }
             expandLabel={t('accordion.expand')}
             collapseLabel={t('accordion.collapse')}
           />
-        ) : null}
-
-        {settings.length > 0 ? (
-          <div className="mt-auto">
-            <ul className="flex flex-col gap-0.5">
-              {settings.map((item) => {
-                const active = isNavItemActive(pathname, item.href);
-                return (
-                  <li key={item.key}>
-                    <ShellNavLink
-                      href={item.href}
-                      label={t(item.labelKey)}
-                      iconKey={item.iconKey}
-                      active={active}
-                      variant="sidebar"
-                    />
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
         ) : null}
       </div>
 

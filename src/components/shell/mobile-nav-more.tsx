@@ -1,5 +1,6 @@
 'use client';
 
+import type * as React from 'react';
 import { useTranslations } from 'next-intl';
 import {
   Dialog,
@@ -10,17 +11,16 @@ import {
 } from '@/components/ui/dialog';
 import { NavAccordionSections } from './nav-accordion';
 import {
-  isNavItemActive,
   partitionNavItems,
   type NavItem,
 } from './navigation';
-import { ShellNavLink } from './shell-nav-link';
 
 export interface MobileNavMoreProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   items: NavItem[];
   pathname: string;
+  footer?: React.ReactNode;
 }
 
 /**
@@ -28,10 +28,10 @@ export interface MobileNavMoreProps {
  * Loaded on demand so ordinary screens do not pay for Dialog until "More" opens.
  * Groups use the same exclusive accordion as the desktop sidebar.
  */
-export function MobileNavMore({ open, onOpenChange, items, pathname }: MobileNavMoreProps) {
+export function MobileNavMore({ open, onOpenChange, items, pathname, footer }: MobileNavMoreProps) {
   const t = useTranslations('nav');
   const tCommon = useTranslations('common');
-  const { groups, settings } = partitionNavItems(items);
+  const { groups } = partitionNavItems(items);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -58,32 +58,8 @@ export function MobileNavMore({ open, onOpenChange, items, pathname }: MobileNav
                 onNavigate={() => onOpenChange(false)}
               />
             ) : null}
-
-            {settings.length > 0 ? (
-              <div>
-                <p className="px-3 pb-1 text-xs font-semibold tracking-wide text-[var(--pf-text-secondary)]">
-                  {t('settings')}
-                </p>
-                <ul className="flex flex-col">
-                  {settings.map((item) => {
-                    const active = isNavItemActive(pathname, item.href);
-                    return (
-                      <li key={item.key}>
-                        <ShellNavLink
-                          href={item.href}
-                          label={t(item.labelKey)}
-                          iconKey={item.iconKey}
-                          active={active}
-                          variant="sidebar"
-                          muteIcon
-                          onNavigate={() => onOpenChange(false)}
-                          className="min-h-11 py-3"
-                        />
-                      </li>
-                    );
-                  })}
-                </ul>
-              </div>
+            {footer ? (
+              <div className="mt-1 border-t border-[var(--pf-border-default)] pt-3">{footer}</div>
             ) : null}
           </div>
         </DialogBody>

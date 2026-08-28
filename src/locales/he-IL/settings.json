@@ -2,8 +2,8 @@
   "title": "הגדרות",
   "navLabel": "הגדרות",
   "groups": {
-    "basic": "בסיסי",
-    "business": "תצורת עסק",
+    "myBusiness": "העסק שלי",
+    "workflow": "איך עובדים",
     "advanced": "מתקדם",
     "developers": "מפתחים"
   },

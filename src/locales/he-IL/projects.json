@@ -98,7 +98,7 @@
     "contactPersonPhone": " · טל׳ {phone}",
     "tabs": {
       "overview": "סקירה",
-      "financials": "כספים",
+      "financials": "פירוט כספי",
       "expenses": "הוצאות",
       "changes": "שינויים ותוספות",
       "boq": "כתב כמויות",
@@ -113,6 +113,13 @@
       "usage": "חומרים וציוד",
       "closeout": "סגירה",
       "warranty": "אחריות",
+      "details": "פרטים"
+    },
+    "hubs": {
+      "overview": "סקירה",
+      "money": "כספים",
+      "work": "עבודה",
+      "documents": "מסמכים",
       "details": "פרטים"
     },
     "links": {
@@ -240,6 +247,9 @@
     "financialSnapshot": "סיכום כספי",
     "noContractYet": "טרם נרשם סכום חוזה",
     "noContractHint": "ניתן להוסיף סכום חוזה מקורי בפרטי הפרויקט כשתהיו מוכנים.",
+    "summaryTitle": "סיכום",
+    "datesLabel": "תאריכים",
+    "openFinancialsHub": "לפירוט כספי מלא ←",
     "valueEvents": "היסטוריית סכום חוזה",
     "eventKind": {
       "original": "מקורי",

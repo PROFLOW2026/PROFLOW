@@ -24,6 +24,7 @@ function expense(partial: Partial<ExpenseDetail> = {}): ExpenseDetail {
     description: 'Site labor',
     supplierName: null,
     vendorId: null,
+    vendorName: null,
     projectId: '22222222-2222-4222-8222-222222222222',
     projectName: 'Alpha',
     workPackageId: null,

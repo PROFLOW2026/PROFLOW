@@ -131,21 +131,22 @@ describe('authenticated product simplification', () => {
     ).toEqual(expect.arrayContaining(['vendorBills']));
     expect(
       groups.find((g: NavItemGroup) => g.group === 'advanced')?.items.map((i) => i.key),
-    ).toEqual(expect.arrayContaining(['assets', 'compliance', 'approvals']));
+    ).toEqual(expect.arrayContaining(['assets', 'compliance', 'approvals', 'settings']));
     expect(
       groups.find((g: NavItemGroup) => g.group === 'money')?.items.map((i) => i.key),
     ).toEqual(expect.arrayContaining(['overhead', 'billing']));
     expect(NAV_ITEMS.some((item) => item.href === '/documents/ocr-review')).toBe(false);
   });
 
-  it('Settings nav hides portal and groups sections including developers', () => {
+  it('Settings nav hides portal and api from static list; api appears with API_MANAGE', () => {
     expect(SETTINGS_SECTIONS.find((s) => s.key === 'portal')?.hideFromNav).toBe(true);
+    expect(SETTINGS_SECTIONS.find((s) => s.key === 'api')?.hideFromNav).toBe(true);
 
     const listed = SETTINGS_SECTIONS.filter((s) => !s.hideFromNav);
     const grouped = groupSettingsSections(listed);
-    expect(grouped.map((g) => g.group)).toEqual(['basic', 'business', 'advanced', 'developers']);
+    expect(grouped.map((g) => g.group)).toEqual(['myBusiness', 'workflow', 'advanced']);
     expect(listed.some((s) => s.key === 'portal')).toBe(false);
-    expect(listed.some((s) => s.key === 'api')).toBe(true);
+    expect(listed.some((s) => s.key === 'api')).toBe(false);
   });
 
   it('nav locale catalogs include moreGroups, vendorBills, and jobs', () => {
@@ -174,7 +175,12 @@ describe('authenticated product simplification', () => {
   it('settings locale catalogs include group labels', () => {
     const he = flattenLocaleCatalog(readLocaleCatalog('he-IL', 'settings'));
     const en = flattenLocaleCatalog(readLocaleCatalog('en', 'settings'));
+    expect(he.get('groups.myBusiness')).toBe('העסק שלי');
+    expect(he.get('groups.workflow')).toBe('איך עובדים');
+    expect(he.get('groups.advanced')).toBe('מתקדם');
     expect(he.get('groups.developers')).toBe('מפתחים');
+    expect(en.get('groups.myBusiness')).toBe('My business');
+    expect(en.get('groups.workflow')).toBe('How we work');
     expect(en.get('groups.developers')).toBe('Developers');
   });
 });

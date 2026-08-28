@@ -21,8 +21,9 @@ describe('nav accordion grouping surface', () => {
     });
     const { core, groups } = partitionNavItems(items);
     expect(core.map((item) => item.key)).toEqual(
-      expect.arrayContaining(['dashboard', 'today', 'projects']),
+      expect.arrayContaining(['dashboard', 'projects']),
     );
+    expect(core.map((item) => item.key)).not.toContain('today');
     expect(groups.length).toBeGreaterThan(0);
     for (const entry of groups) {
       expect(entry.items.length).toBeGreaterThan(0);

@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react';
 import { NextIntlClientProvider } from 'next-intl';
 import type { ReactElement, ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { PROJECT_TAB_PRIORITY } from '@/app/[locale]/(app)/projects/[projectId]/project-tab-order';
+import { PROJECT_HUB_PRIORITY } from '@/app/[locale]/(app)/projects/[projectId]/project-hub-order';
 import { ProjectTabsEnhancer } from '@/app/[locale]/(app)/projects/[projectId]/project-tabs-enhancer';
 import { ProjectTabsList } from '@/app/[locale]/(app)/projects/[projectId]/project-tabs-list';
 import enCommon from '@/locales/en/common.json';
@@ -38,34 +38,34 @@ vi.mock('@/shared/i18n/direction', () => ({
   useLocaleDir: () => navState.dir,
 }));
 
-function tabLabels(locale: 'he-IL' | 'en') {
-  const tabs =
-    locale === 'he-IL' ? heProjects.workspace.tabs : enProjects.workspace.tabs;
-  return tabs;
+function hubLabels(locale: 'he-IL' | 'en') {
+  const hubs =
+    locale === 'he-IL' ? heProjects.workspace.hubs : enProjects.workspace.hubs;
+  return hubs as Record<string, string>;
 }
+
+const ALL_HUBS = PROJECT_HUB_PRIORITY;
 
 function Shell({
   locale,
-  activeTab = 'overview',
   children,
 }: {
   locale: 'he-IL' | 'en';
-  activeTab?: 'overview';
   children: ReactNode;
 }) {
   return (
     <div className="min-w-0 max-w-full" dir={navState.dir}>
       <ProjectTabsList
-        tabs={PROJECT_TAB_PRIORITY}
-        activeTab={activeTab}
-        labels={tabLabels(locale)}
+        tabs={ALL_HUBS}
+        activeHub="overview"
+        labels={hubLabels(locale)}
         projectHref="/projects/proj-1"
         dir={navState.dir}
       />
       <ProjectTabsEnhancer
-        tabs={PROJECT_TAB_PRIORITY}
-        serverActiveTab={activeTab}
-        activeTab={activeTab}
+        tabs={ALL_HUBS}
+        serverActiveHub="overview"
+        activeHub="overview"
       >
         {children}
       </ProjectTabsEnhancer>
@@ -111,25 +111,13 @@ describe('ProjectTabsShell encounter order', () => {
     expect(labels).toEqual([
       'סקירה',
       'כספים',
-      'תקציב',
-      'כתב כמויות',
-      'שינויים ותוספות',
-      'חיובים וגבייה',
-      'תוכנית חיובים',
-      'הוצאות',
-      'חומרים וציוד',
-      'צוות',
-      'שעות',
-      'לוח זמנים',
-      'תחומי עבודה',
+      'עבודה',
       'מסמכים',
-      'סגירה',
-      'אחריות',
       'פרטים',
     ]);
   });
 
-  it('keeps the same data order under English LTR', () => {
+  it('keeps the same hub order under English LTR', () => {
     navState.dir = 'ltr';
     renderTabs(
       'en',
@@ -143,8 +131,8 @@ describe('ProjectTabsShell encounter order', () => {
 
     const labels = screen.getAllByRole('tab').map((tab) => tab.textContent?.trim());
     expect(labels[0]).toMatch(/overview/i);
-    expect(labels[1]).toMatch(/financial/i);
+    expect(labels[1]).toMatch(/money|financial/i);
     expect(labels[labels.length - 1]).toMatch(/detail/i);
-    expect(labels).toHaveLength(PROJECT_TAB_PRIORITY.length);
+    expect(labels).toHaveLength(ALL_HUBS.length);
   });
 });

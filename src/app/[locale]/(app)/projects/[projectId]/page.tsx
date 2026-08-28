@@ -1,12 +1,10 @@
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
-import { getTranslations } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
 import { listClientsForOrg, listContactsForClients } from '@/modules/clients';
 import { listCustomFieldValuesForEntity } from '@/modules/custom-fields';
 import {
   listProjectsForOrg,
-  selectProjectWorkspaceLinks,
-  assembleProjectDetail,
 } from '@/modules/projects';
 import {
   listOrgPhasePacks,
@@ -17,24 +15,29 @@ import {
 import { withOrgContext } from '@/shared/auth/session';
 import { getModuleVisibility } from '@/modules/tenancy';
 import { loadProjectDetailInContext, loadProjectDetail } from './load-project-detail';
-import { loadProjectOverviewCritical } from './load-project-overview-critical';
+import {
+  OverviewFinancialSnapshotFallback,
+  OverviewFinancialSnapshotPanel,
+} from './overview-financial-snapshot-panel';
 import { formatMoney } from '@/shared/money/format';
 import { zeroMoney } from '@/shared/money';
 import { PERMISSIONS, type PermissionKey } from '@/shared/permissions/catalog';
-import { ProjectContractorsPanel } from '@/modules/vendors/ui';
-import { DetailsTab } from './details-tab';
-import { OverviewTab } from './overview-tab';
-import {
-  OverviewMilestonesPanel,
-  OverviewSchedulePanel,
-  OverviewStructureFallback,
-} from './overview-schedule-milestones';
-import { type ProjectTabKey } from './project-tabs-shell';
-import { ProjectFieldOpsSummaryPanel } from './project-field-ops-summary';
 import { TabPanelSkeleton } from './tab-panel-skeleton';
 import { WorkTab } from './work-tab';
-import { ProjectFormsPanel } from '@/modules/forms/ui';
-import { SkeletonText } from '@/components/ui/skeleton';
+import { DetailsTab } from './details-tab';
+import { OverviewTab } from './overview-tab';
+import { type ProjectTabKey } from './project-tabs-shell';
+import {
+  resolveHubFromTabParam,
+  visibleHubSections,
+} from './project-hub-order';
+import {
+  applyProjectProfileToTabVisibility,
+} from './project-tab-order';
+import { resolveProjectExperienceProfile } from '@/modules/tenancy';
+import { getShellContext } from '@/shared/auth/session';
+import { localeDirection } from '@/shared/i18n/config';
+import { ProjectHubSectionNav } from './project-hub-section-nav';
 
 interface ProjectPageProps {
   params: Promise<{ locale: string; projectId: string }>;
@@ -121,79 +124,31 @@ async function ProjectStructuredTabPanel({
   activeTab: ProjectTabKey;
 }) {
   return withOrgContext(async (context) => {
-    const modules = await getModuleVisibility(context);
     const can = (permission: PermissionKey) => context.permissions.has(permission);
     const canReadFinancials =
       can(PERMISSIONS.PROJECT_FINANCIALS_READ) || can(PERMISSIONS.CONTRACTS_READ);
     const canEditProjects = can(PERMISSIONS.PROJECTS_UPDATE);
 
     if (activeTab === 'overview') {
-      const [critical, tFinancial] = await Promise.all([
-        loadProjectOverviewCritical(context, projectId),
-        getTranslations('financial'),
-      ]);
-      const detail = assembleProjectDetail(critical.detail, {
-        workPackages: [],
-        phases: [],
-        milestones: [],
-        activeCount: 0,
-      });
+      const detail = await loadProjectDetail(projectId, false);
       const organizationTimezone = context.organization.timezone ?? 'Asia/Jerusalem';
-      const workspaceLinks = selectProjectWorkspaceLinks({
-        projectId,
-        modules,
-        permissions: context.permissions,
-        showWorkPackages: false,
-        canReadFinancials,
-      });
 
       return (
         <div className="pt-4">
-          <div className="flex flex-col gap-4">
-            {Boolean(modules.field_ops) && can(PERMISSIONS.FIELD_OPS_READ) ? (
-              <Suspense fallback={<TabPanelSkeleton />}>
-                <ProjectFieldOpsSummaryPanel projectId={projectId} />
-              </Suspense>
-            ) : null}
-            {Boolean(modules.forms) && can(PERMISSIONS.FORMS_READ) ? (
-              <Suspense fallback={<TabPanelSkeleton />}>
-                <ProjectFormsPanel ownerType="project" ownerId={projectId} />
-              </Suspense>
-            ) : null}
-            <OverviewTab
-              detail={detail}
-              locale={locale}
-              canReadFinancials={canReadFinancials}
-              canEdit={canEditProjects}
-              workspaceLinks={workspaceLinks}
-              organizationTimezone={organizationTimezone}
-              preloadedFinancials={critical.financials}
-              preloadedCanReadProfit={critical.canReadProfit}
-              financialSnapshotT={(key) => tFinancial(key as never)}
-              scheduleSlot={
-                <Suspense fallback={<OverviewStructureFallback />}>
-                  <OverviewSchedulePanel
-                    projectId={projectId}
-                    organizationTimezone={organizationTimezone}
-                  />
+          <OverviewTab
+            detail={detail}
+            locale={locale}
+            canReadFinancials={canReadFinancials}
+            canEdit={canEditProjects}
+            organizationTimezone={organizationTimezone}
+            financialSnapshotSlot={
+              canReadFinancials ? (
+                <Suspense fallback={<OverviewFinancialSnapshotFallback />}>
+                  <OverviewFinancialSnapshotPanel projectId={projectId} />
                 </Suspense>
-              }
-              milestonesSlot={
-                <Suspense fallback={<SkeletonText lines={3} />}>
-                  <OverviewMilestonesPanel
-                    projectId={projectId}
-                    canEdit={canEditProjects}
-                    organizationTimezone={organizationTimezone}
-                  />
-                </Suspense>
-              }
-            />
-            {can(PERMISSIONS.VENDORS_READ) ? (
-              <Suspense fallback={<TabPanelSkeleton />}>
-                <ProjectContractorsPanel projectId={projectId} />
-              </Suspense>
-            ) : null}
-          </div>
+              ) : null
+            }
+          />
         </div>
       );
     }
@@ -316,21 +271,72 @@ function renderModuleTab(input: {
   return (
     <div className="pt-4">
       <Suspense fallback={<TabPanelSkeleton />}>
-        <ActiveModuleTabPanel {...input} />
+        <ModuleTabWithHubNav {...input} />
       </Suspense>
     </div>
   );
 }
 
-async function ActiveModuleTabPanel(input: {
+async function ModuleTabWithHubNav(input: {
   activeTab: ProjectTabKey;
   projectId: string;
   boqContractId?: string;
   cycleId?: string;
 }) {
-  const panel = await loadActiveModulePanel(input);
-  if (!panel) return null;
-  return panel;
+  const { hub, section } = resolveHubFromTabParam(input.activeTab);
+  const [locale, shell] = await Promise.all([getLocale(), getShellContext()]);
+  const direction = localeDirection(locale);
+
+  return withOrgContext(async (context) => {
+    const modules = await getModuleVisibility(context);
+    const can = (permission: PermissionKey) => context.permissions.has(permission);
+    const detail = await loadProjectDetail(input.projectId, false);
+    const experienceProfile = resolveProjectExperienceProfile({
+      stored: detail.project.experienceProfile ?? null,
+      workKind: detail.project.workKind ?? 'project',
+      businessProfileKey: shell?.businessProfileKey ?? null,
+      boqModuleEnabled: Boolean(modules.boq),
+    });
+    const visibility = applyProjectProfileToTabVisibility(
+      {
+        financials:
+          can(PERMISSIONS.PROJECT_FINANCIALS_READ) || can(PERMISSIONS.CONTRACTS_READ),
+        expenses: can(PERMISSIONS.EXPENSES_READ),
+        changes: Boolean(modules.changes) && can(PERMISSIONS.CHANGES_READ),
+        boq: Boolean(modules.boq) && can(PERMISSIONS.BOQ_READ),
+        billing: Boolean(modules.billing) && can(PERMISSIONS.BILLING_READ),
+        billingPlan: Boolean(modules.billing) && can(PERMISSIONS.BILLING_READ),
+        budgets: Boolean(modules.budgets) && can(PERMISSIONS.BUDGETS_READ),
+        team: can(PERMISSIONS.WORKFORCE_READ),
+        schedule: can(PERMISSIONS.PLANNING_READ),
+        time: can(PERMISSIONS.WORKFORCE_READ),
+        documents: Boolean(modules.documents) && can(PERMISSIONS.DOCUMENTS_READ),
+        usage: can(PERMISSIONS.MATERIALS_READ) || can(PERMISSIONS.ASSETS_READ),
+        work: detail.showWorkPackages,
+        closeout: true,
+        warranty: true,
+      },
+      experienceProfile,
+    );
+    const sections = visibleHubSections(hub, visibility);
+    const activeSection = sections.includes(section) ? section : (sections[0] ?? section);
+    const panel = await loadActiveModulePanel({ ...input, activeTab: activeSection });
+
+    return (
+      <div className="flex flex-col gap-4">
+        {sections.length > 1 ? (
+          <ProjectHubSectionNav
+            hub={hub}
+            sections={sections}
+            activeSection={activeSection}
+            projectHref={`/projects/${input.projectId}`}
+            dir={direction}
+          />
+        ) : null}
+        {panel}
+      </div>
+    );
+  });
 }
 
 async function loadActiveModulePanel(input: {

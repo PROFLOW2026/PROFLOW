@@ -21,6 +21,11 @@ import { cn } from '@/shared/ui/cn';
 import { formatBusinessDate } from '@/shared/dates/format';
 import { listExpensesForOrg } from '../application/queries';
 import { statusShape } from '../domain/lifecycle';
+import { expenseListLabel, expenseSupplierDisplay } from './expense-list-label';
+import {
+  buildExpenseDetailHref,
+  buildProjectReturnTo,
+} from '../domain/expense-return-navigation';
 
 export interface ProjectExpensesPanelProps {
   readonly projectId: string;
@@ -43,6 +48,9 @@ export async function ProjectExpensesPanel({ projectId, limit = 10 }: ProjectExp
   const { items } = await withOrgContext((context) =>
     listExpensesForOrg(context, { projectId, limit }),
   );
+  const projectReturnTo = buildProjectReturnTo(projectId, 'expenses');
+  const expenseHref = (expenseId: string) =>
+    buildExpenseDetailHref(expenseId, { returnTo: projectReturnTo });
 
   if (items.length === 0) {
     return (
@@ -79,6 +87,7 @@ export async function ProjectExpensesPanel({ projectId, limit = 10 }: ProjectExp
               <TableHeader>
                 <TableRow>
                   <TableHead>{t('fields.date')}</TableHead>
+                  <TableHead>{t('fields.supplier')}</TableHead>
                   <TableHead className="hidden sm:table-cell">{t('fields.description')}</TableHead>
                   <TableHead numeric>{t('fields.grossAmount')}</TableHead>
                   <TableHead numeric className="hidden md:table-cell">
@@ -94,24 +103,27 @@ export async function ProjectExpensesPanel({ projectId, limit = 10 }: ProjectExp
                     <TableRow key={expense.id}>
                       <TableCell>
                         <Link
-                          href={`/expenses/${expense.id}`}
+                          href={expenseHref(expense.id)}
                           className={cn(textNavLinkClassName, 'block font-medium')}
                           dir="ltr"
                         >
                           {formatBusinessDate(expense.expenseDate, locale, 'short')}
                         </Link>
                       </TableCell>
+                      <TableCell className="max-w-[10rem] truncate text-start">
+                        {expenseSupplierDisplay(expense)}
+                      </TableCell>
                       <TableCell className="hidden max-w-[12rem] truncate text-start sm:table-cell">
                         <Link
-                          href={`/expenses/${expense.id}`}
+                          href={expenseHref(expense.id)}
                           className={cn(textNavLinkClassName, 'block')}
                         >
-                          {expense.description || expense.supplierName || t('list.noDescription')}
+                          {expenseListLabel(expense, t)}
                         </Link>
                       </TableCell>
                       <TableCell numeric>
                         <Link
-                          href={`/expenses/${expense.id}`}
+                          href={expenseHref(expense.id)}
                           className={cn(textNavLinkClassName, 'block')}
                         >
                           <MoneyText value={expense.grossAmount} />
@@ -124,7 +136,7 @@ export async function ProjectExpensesPanel({ projectId, limit = 10 }: ProjectExp
                       </TableCell>
                       <TableCell numeric className="hidden md:table-cell">
                         <Link
-                          href={`/expenses/${expense.id}`}
+                          href={expenseHref(expense.id)}
                           className={cn(textNavLinkClassName, 'block')}
                         >
                           {showNet ? (
@@ -151,7 +163,7 @@ export async function ProjectExpensesPanel({ projectId, limit = 10 }: ProjectExp
           const showNet = hasRecoverableTax(expense.taxAmount);
           return (
             <Link
-              href={`/expenses/${expense.id}`}
+              href={expenseHref(expense.id)}
               className={cn(pressableCardLinkClassName, 'text-start')}
             >
               <div className="flex items-start justify-between gap-2">
@@ -165,7 +177,11 @@ export async function ProjectExpensesPanel({ projectId, limit = 10 }: ProjectExp
                 />
               </div>
               <p className="mt-1 truncate text-sm text-[var(--pf-text-secondary)]">
-                {expense.description || expense.supplierName || t('list.noDescription')}
+                {expenseListLabel(expense, t)}
+              </p>
+              <p className="mt-1 truncate text-sm">
+                <span className="text-[var(--pf-text-muted)]">{t('fields.supplier')}: </span>
+                {expenseSupplierDisplay(expense)}
               </p>
               <div className="mt-2 flex flex-col gap-0.5 text-sm">
                 <p>

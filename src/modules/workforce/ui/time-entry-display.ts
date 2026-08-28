@@ -1,4 +1,5 @@
 import type { TimeEntryListItem, TimeApprovalStatus } from '@/modules/workforce/domain/types';
+import { DEFAULT_WORK_PACKAGE_NAME } from '@/modules/projects/domain/types';
 import { formatWorkHoursValue } from '@/modules/workforce/domain/format-work-hours';
 import {
   dailySummaryKey,
@@ -42,13 +43,26 @@ export function resolveTimeEntryStatusLabel(
   return { primary, shape: approvalShape(entry.approvalStatus) };
 }
 
+export function formatWorkPackageDisplayName(
+  workPackageName: string | null | undefined,
+  t: (key: string) => string,
+): string | null {
+  if (!workPackageName) return null;
+  if (workPackageName === DEFAULT_WORK_PACKAGE_NAME) {
+    return t('time.defaultWorkPackageName');
+  }
+  return workPackageName;
+}
+
 export function entryTargetLine(
   entry: TimeEntryListItem,
   t: (key: string, values?: Record<string, string>) => string,
   options: { readonly projectScoped: boolean },
 ): string | null {
+  const workPackageLabel = formatWorkPackageDisplayName(entry.workPackageName, t);
+
   if (options.projectScoped && entry.kind === 'project') {
-    return entry.workPackageName ?? null;
+    return workPackageLabel;
   }
 
   const primary =
@@ -56,7 +70,7 @@ export function entryTargetLine(
       ? entry.projectName ?? t('time.unknownProject')
       : entry.timeCodeName ?? t('time.nonProject');
 
-  return entry.workPackageName ? `${primary} · ${entry.workPackageName}` : primary;
+  return workPackageLabel ? `${primary} · ${workPackageLabel}` : primary;
 }
 
 export function formatHoursWithUnit(

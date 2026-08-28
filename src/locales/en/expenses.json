@@ -1,7 +1,9 @@
 {
   "title": "Expenses",
   "subtitle": "Record project costs and business expenses in one place.",
-  "generalBusinessCosts": "General business costs",
+  "generalBusiness": "General business costs",
+  "advancedOptions": "More options",
+  "historyAdvanced": "History / advanced details",
   "generalBusinessCostsAllocatedToProject": "General business costs allocated to the project",
   "directActualCost": "Direct actual cost",
   "fullProjectActualCost": "Full project actual cost",
@@ -35,7 +37,25 @@
       "reversal": "Reversal",
       "replacement": "Corrected replacement"
     },
-    "correctionNet": "Net after correction"
+    "correctionNet": "Net after correction",
+    "attention": {
+      "actionLabel": "What to do",
+      "project_allocation": {
+        "title": "This expense needs project allocation",
+        "explain": "It is already counted in business costs but not split across projects, so project profitability may be incomplete.",
+        "action": "Choose a project or split across several projects"
+      },
+      "classification": {
+        "title": "This expense needs classification",
+        "explain": "A cost type is missing. Choose a cost category so the system knows where to show it.",
+        "action": "Choose a cost category"
+      },
+      "approval": {
+        "title": "This expense is not approved yet",
+        "explain": "It is still a draft and not included in costs. Approve it to include it in calculations.",
+        "action": "Approve the expense"
+      }
+    }
   },
   "categoryPolicy": {
     "title": "Category policy",
@@ -50,6 +70,8 @@
   "lifecycle": {
     "draftHint": "Saving creates a draft only. Approve it into costs when the amount is ready.",
     "overheadUnallocatedWarning": "This is a general business cost with no project allocation. It will not appear in any project’s Actual Cost or general business costs allocated to the project until you add allocation lines.",
+    "companyOnlyOverheadHint": "This expense counts in business costs and is not assigned to a project.",
+    "sharedUnallocatedWarning": "This is a shared cost that has not been split across projects yet. Add allocation so each project’s share appears in project cost.",
     "overheadAllocatedHint": "Allocation lines determine which projects receive a share of these general business costs.",
     "allocationPeriod": "Period",
     "allocationMethodSummary": "Method",
@@ -67,7 +89,17 @@
     "finalize": "Record expense",
     "void": "Void",
     "reverse": "Reverse (offset)",
-    "correct": "Correct expense"
+    "correct": "Correct expense",
+    "recurringExpenses": "Recurring / fixed expenses"
+  },
+  "backToList": "Back to expenses",
+  "backNavigation": {
+    "expenses": "Back to expenses",
+    "expensesAttention": "Back to expenses needing attention",
+    "project": "Back to project",
+    "projectFinancials": "Back to financials",
+    "projectExpenses": "Back to project expenses",
+    "vendor": "Back to vendor"
   },
   "correction": {
     "title": "Correct expense",
@@ -154,6 +186,7 @@
     "inventoryItem": "Choose inventory item"
   },
   "destination": {
+    "label": "Where should this cost land?",
     "project": "Project",
     "general": "General business costs",
     "inventory": "Inventory stock purchase",
@@ -209,13 +242,36 @@
     "dateFrom": "From date",
     "dateTo": "To date",
     "project": "Project",
-    "family": "Cost section",
+    "family": "Section",
     "category": "Category",
     "status": "Status",
+    "attention": "Needs action",
+    "attentionAll": "All",
+    "attentionActiveLabel": "Needs action:",
     "allProjects": "All projects",
     "allFamilies": "All sections",
     "allCategories": "All categories",
     "allStatuses": "All statuses"
+  },
+  "attention": {
+    "options": {
+      "project_allocation": "Needs project allocation",
+      "classification": "Needs classification",
+      "approval": "Needs approval"
+    },
+    "required": {
+      "project_allocation": "Needs project allocation",
+      "classification": "Needs classification",
+      "approval": "Needs approval"
+    },
+    "compact": {
+      "project_allocation": "Needs allocation",
+      "classification": "Needs classification",
+      "approval": "Needs approval"
+    },
+    "summaryStrip": "{count, plural, one {# expense needs action} other {# expenses need action}}",
+    "rowAction": "Take action",
+    "clearFilter": "Clear needs-action filter"
   },
   "list": {
     "empty": {
@@ -224,7 +280,12 @@
       "action": "Add first expense"
     },
     "noDescription": "No description",
-    "count": "Showing {count} of {total}"
+    "reversalPrefix": "Reversal",
+    "adjustmentPrefix": "Correction",
+    "count": "Showing {count} of {total}",
+    "unallocatedBannerTitle": "Expenses that need project allocation",
+    "actionRequired": "Action needed",
+    "rowAction": "Action"
   },
   "projectPanel": {
     "title": "Recent expenses",

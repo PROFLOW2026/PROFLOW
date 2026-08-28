@@ -96,6 +96,7 @@ describe('buildDashboardMissingDataItems', () => {
       kind: 'attention',
       required: false,
       severity: 'optional',
+      actionHref: '/expenses?unallocated=true',
     });
   });
 

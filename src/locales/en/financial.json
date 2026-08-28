@@ -287,7 +287,19 @@
       "vendors": "Vendors",
       "materials": "Materials",
       "otherExpenses": "Other expenses",
-      "overhead": "General business costs"
+      "overhead": "General business costs",
+      "allocatedGeneral": "General business costs allocated to the project"
+    },
+    "directActualCost": "Direct actual cost",
+    "fullActualIncludingGeneral": "Full actual cost including allocated general",
+    "allocatedGeneralDetail": {
+      "expenseAmount": "Expense",
+      "allocatedToProject": "Allocated to project",
+      "allocationPercent": "Project share",
+      "supplier": "Supplier",
+      "method": "Allocation method",
+      "poolOther": "Share of general cost pool",
+      "openExpense": "Open expense"
     },
     "total": "Total",
     "percent": "%",

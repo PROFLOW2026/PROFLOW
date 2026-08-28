@@ -287,7 +287,19 @@
       "vendors": "ספקים",
       "materials": "חומרים",
       "otherExpenses": "הוצאות אחרות",
-      "overhead": "הוצאות כלליות"
+      "overhead": "הוצאות כלליות",
+      "allocatedGeneral": "הוצאות כלליות שהוקצו לפרויקט"
+    },
+    "directActualCost": "עלות ישירה בפועל",
+    "fullActualIncludingGeneral": "עלות מלאה כולל הוצאות כלליות",
+    "allocatedGeneralDetail": {
+      "expenseAmount": "הוצאה",
+      "allocatedToProject": "הוקצה לפרויקט",
+      "allocationPercent": "אחוז לפרויקט",
+      "supplier": "ספק",
+      "method": "שיטת חלוקה",
+      "poolOther": "חלק ממאגר עלויות כלליות",
+      "openExpense": "פתיחת ההוצאה"
     },
     "total": "סה״כ",
     "percent": "%",

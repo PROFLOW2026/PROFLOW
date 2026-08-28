@@ -4,68 +4,74 @@ import { useTranslations } from 'next-intl';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import type { ReactNode } from 'react';
 
-export type Vendor360Tab =
-  | 'identity'
-  | 'contacts'
-  | 'categories'
-  | 'commercial'
-  | 'projects'
-  | 'performance'
-  | 'compliance'
-  | 'documents'
-  | 'activity';
+export type Vendor360Tab = 'details' | 'projects' | 'invoices' | 'agreements' | 'documents';
 
 interface Vendor360ShellProps {
   defaultTab?: Vendor360Tab;
-  identity: ReactNode;
-  contacts: ReactNode;
-  categories: ReactNode;
-  commercial: ReactNode;
+  details: ReactNode;
   projects: ReactNode;
-  performance: ReactNode;
-  compliance?: ReactNode;
+  invoices: ReactNode;
+  agreements: ReactNode;
   documents: ReactNode;
-  activity?: ReactNode;
+  /** Collapsed under Details — performance, activity, compliance, etc. */
+  detailsAdvanced?: ReactNode;
+}
+
+function AdvancedSections({ children }: { children: ReactNode }) {
+  const t = useTranslations('vendors.detail.tabs');
+
+  if (!children) return null;
+
+  return (
+    <details className="rounded-md border border-[var(--pf-border-default)]">
+      <summary className="cursor-pointer px-4 py-3 text-sm font-medium text-[var(--pf-text-secondary)] marker:me-2">
+        {t('advancedSection')}
+      </summary>
+      <div className="flex flex-col gap-4 border-t border-[var(--pf-border-default)] p-4">
+        {children}
+      </div>
+    </details>
+  );
 }
 
 export function Vendor360Shell({
-  defaultTab = 'identity',
-  identity,
-  contacts,
-  categories,
-  commercial,
+  defaultTab = 'details',
+  details,
   projects,
-  performance,
-  compliance,
+  invoices,
+  agreements,
   documents,
-  activity,
+  detailsAdvanced,
 }: Vendor360ShellProps) {
   const t = useTranslations('vendors.detail.tabs');
 
-  const tabs: Array<{ id: Vendor360Tab; label: string; content: ReactNode; show?: boolean }> = [
-    { id: 'identity', label: t('identity'), content: identity },
-    { id: 'contacts', label: t('contacts'), content: contacts },
-    { id: 'categories', label: t('categories'), content: categories },
-    { id: 'commercial', label: t('commercial'), content: commercial },
+  const tabs: Array<{ id: Vendor360Tab; label: string; content: ReactNode }> = [
+    {
+      id: 'details',
+      label: t('details'),
+      content: (
+        <>
+          {details}
+          <AdvancedSections>{detailsAdvanced}</AdvancedSections>
+        </>
+      ),
+    },
     { id: 'projects', label: t('projects'), content: projects },
-    { id: 'performance', label: t('performance'), content: performance },
-    { id: 'compliance', label: t('compliance'), content: compliance ?? null, show: Boolean(compliance) },
+    { id: 'invoices', label: t('invoices'), content: invoices },
+    { id: 'agreements', label: t('agreements'), content: agreements },
     { id: 'documents', label: t('documents'), content: documents },
-    { id: 'activity', label: t('activity'), content: activity ?? null, show: Boolean(activity) },
   ];
-
-  const visible = tabs.filter((tab) => tab.show !== false && tab.content != null);
 
   return (
     <Tabs defaultValue={defaultTab} className="flex min-w-0 flex-col gap-4">
       <TabsList aria-label={t('label')}>
-        {visible.map((tab) => (
+        {tabs.map((tab) => (
           <TabsTrigger key={tab.id} value={tab.id}>
             {tab.label}
           </TabsTrigger>
         ))}
       </TabsList>
-      {visible.map((tab) => (
+      {tabs.map((tab) => (
         <TabsContent key={tab.id} value={tab.id} className="flex min-w-0 flex-col gap-4">
           {tab.content}
         </TabsContent>

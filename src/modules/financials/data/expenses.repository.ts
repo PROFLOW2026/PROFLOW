@@ -23,7 +23,7 @@ import {
 import type { DbExecutor } from '@/shared/db/types';
 import type { DbCostFamily, ProjectExpenseContribution } from '../domain/cost-aggregation';
 import { isInternalEmployeePayrollCategoryKey } from '../domain/labor-expense-integrity';
-import { sqlFirstRow } from './sql-rows';
+import { sqlFirstRow, sqlRows } from './sql-rows';
 
 export async function loadProjectExpenseContributions(
   db: DbExecutor,
@@ -390,6 +390,80 @@ export async function sumUnallocatedExpensesForMonth(
     `),
   );
   return fromNumericString(row?.total ?? '0', currency) ?? zeroMoney(currency);
+}
+
+export interface UnallocatedBusinessExpenseRow {
+  readonly id: string;
+  readonly expenseDate: string;
+  readonly description: string | null;
+  readonly supplierName: string | null;
+  readonly vendorName: string | null;
+  readonly netAmount: string;
+  readonly currency: string;
+}
+
+/** Finalized shared expenses with no project allocation (company pool attribution pending). */
+export async function listUnallocatedBusinessExpenses(
+  db: DbExecutor,
+  organizationId: string,
+  currency: string,
+  limit = 5,
+): Promise<{ readonly items: readonly UnallocatedBusinessExpenseRow[]; readonly totalCount: number }> {
+  const baseConditions = sql`
+    e.organization_id = ${organizationId}
+    and e.currency = ${currency}
+    and e.status = 'finalized'
+    and e.archived_at is null
+    and coalesce(e.inventory_stock_purchase, false) = false
+    and e.project_id is null
+    and e.cost_family = 'shared'
+    and e.voids_expense_id is null
+    and e.adjusts_expense_id is null
+    and not exists (
+      select 1 from expenses rev
+      where rev.voids_expense_id = e.id
+        and rev.organization_id = e.organization_id
+        and rev.status = 'finalized'
+        and rev.archived_at is null
+    )
+    and not exists (
+      select 1 from expense_allocations a
+      where a.expense_id = e.id
+        and a.organization_id = e.organization_id
+        and a.project_id is not null
+    )
+  `;
+
+  const countRow = sqlFirstRow<{ count: number }>(
+    await db.execute(sql`
+      select count(*)::int as count
+      from expenses e
+      where ${baseConditions}
+    `),
+  );
+
+  const items = sqlRows<UnallocatedBusinessExpenseRow>(
+    await db.execute(sql`
+      select
+        e.id,
+        e.expense_date as "expenseDate",
+        e.description,
+        e.supplier_name as "supplierName",
+        v.name as "vendorName",
+        e.net_amount::text as "netAmount",
+        e.currency
+      from expenses e
+      left join vendors v on v.id = e.vendor_id
+      where ${baseConditions}
+      order by e.expense_date desc, e.created_at desc
+      limit ${limit}
+    `),
+  );
+
+  return {
+    items,
+    totalCount: countRow?.count ?? 0,
+  };
 }
 
 interface InstallmentRecognition {

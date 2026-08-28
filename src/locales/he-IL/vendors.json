@@ -1,6 +1,7 @@
 {
   "title": "רשימת ספקים",
   "description": "רשימה אופציונלית של ספקים וקבלני משנה. הוצאות לא דורשות רשומת ספק.",
+  "backToList": "חזרה לספקים",
   "newVendor": "ספק חדש",
   "empty": {
     "title": "עדיין אין ספקים",
@@ -134,17 +135,17 @@
     "categoriesHint": "תגיות קטלוג לסינון ולדיווח.",
     "categoriesEmpty": "אין קטגוריות מקושרות.",
     "specialtiesEmpty": "אין התמחויות מקושרות.",
-    "categoriesEditHint": "ערכו קטגוריות והתמחויות בלשונית זהות.",
+    "categoriesEditHint": "ערכו קטגוריות והתמחויות בלשונית פרטים.",
     "tabs": {
       "label": "סעיפי ספק",
-      "identity": "זהות",
-      "contacts": "אנשי קשר",
-      "categories": "קטגוריות",
-      "commercial": "מסחרי",
+      "details": "פרטים",
       "projects": "פרויקטים",
+      "invoices": "חשבוניות ותשלומים",
+      "agreements": "הסכמים",
+      "documents": "מסמכים",
+      "advancedSection": "מידע נוסף",
       "performance": "ביצועים",
       "compliance": "ציות",
-      "documents": "מסמכים",
       "activity": "פעילות"
     }
   },

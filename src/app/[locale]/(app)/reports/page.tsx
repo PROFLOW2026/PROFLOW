@@ -1,14 +1,16 @@
 import type { Metadata } from 'next';
+import { Suspense } from 'react';
 import { getTranslations } from 'next-intl/server';
 import { PageHeader } from '@/components/ui/page-header';
-import { getOrganizationReportsAnalytics, parseReportsSection, parseWorkKindFilter } from '@/modules/financials';
-import { ReportsAnalyticsView } from '@/modules/financials/ui';
+import { parseReportsSection, parseWorkKindFilter } from '@/modules/financials';
 import { ReportsSectionFocus } from '@/modules/financials/ui/reports-section-focus';
 import { WorkKindFilterChrome } from '@/modules/financials/ui/work-kind-filter-chrome';
 import { loadReportPackCatalog } from '@/modules/reports';
 import { ReportPacksSection } from '@/modules/reports/ui';
 import { withOrgContext } from '@/shared/auth/session';
 import { ReportsExportActionsLazy } from './reports-export-actions-lazy';
+import { ReportsAdvancedAnalysisGate } from './reports-advanced-analysis-gate';
+import { ReportsAnalyticsLoader } from './reports-analytics-loader';
 
 export async function generateMetadata({
   params,
@@ -31,15 +33,9 @@ export default async function ReportsPage({
   ]);
   const workKindFilter = parseWorkKindFilter(params.workKind);
   const section = parseReportsSection(params.section);
+  const loadAnalytics = section != null;
 
-  const [analytics, packs] = await Promise.all([
-    withOrgContext(async (context) =>
-      getOrganizationReportsAnalytics(context, {
-        workKindFilter,
-      }),
-    ),
-    withOrgContext((context) => loadReportPackCatalog(context)),
-  ]);
+  const packs = await withOrgContext((context) => loadReportPackCatalog(context));
 
   return (
     <div className="flex min-w-0 max-w-full flex-col gap-6">
@@ -62,9 +58,15 @@ export default async function ReportsPage({
 
       <WorkKindFilterChrome active={workKindFilter} pathname="/reports" section={section} />
 
-      <ReportsSectionFocus section={section} />
+      {section ? <ReportsSectionFocus section={section} /> : null}
 
-      <ReportsAnalyticsView analytics={analytics} focusSection={section} />
+      {loadAnalytics ? (
+        <Suspense fallback={<p className="text-sm text-[var(--pf-text-secondary)]">{t('loadingAnalytics')}</p>}>
+          <ReportsAnalyticsLoader workKindFilter={workKindFilter} section={section} />
+        </Suspense>
+      ) : (
+        <ReportsAdvancedAnalysisGate workKindFilter={workKindFilter} />
+      )}
     </div>
   );
 }

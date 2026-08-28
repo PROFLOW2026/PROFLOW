@@ -5,25 +5,27 @@ import { useTranslations } from 'next-intl';
 import { useQueryTabPending } from '@/components/patterns/query-tab-pending';
 import { usePathname, useRouter } from '@/shared/i18n/navigation';
 import { useSearchParams } from 'next/navigation';
-import { type ProjectTabKey } from './project-tab-order';
+import {
+  activeHubFromParams,
+  defaultSectionForHub,
+  type ProjectHubKey,
+} from './project-hub-order';
 import { TabPanelSkeleton } from './tab-panel-skeleton';
 
+/** Money/work hubs run full module loaders — prefetch on hover freezes dev/local DB. */
+const HUB_PREFETCH_SKIP = new Set<ProjectHubKey>(['money', 'work']);
+
 interface ProjectTabsEnhancerProps {
-  tabs: readonly ProjectTabKey[];
-  serverActiveTab: ProjectTabKey;
-  activeTab?: ProjectTabKey;
+  tabs: readonly ProjectHubKey[];
+  serverActiveHub: ProjectHubKey;
+  activeHub?: ProjectHubKey;
   children: ReactNode;
 }
 
-/**
- * Soft-nav + optimistic pending for the Server-rendered tablist
- * (`[data-pf-project-tabs]`). Attaches in `useLayoutEffect` so hops work as
- * soon as the enhancer hydrates; URL remains source of truth after settle.
- */
 export function ProjectTabsEnhancer(props: ProjectTabsEnhancerProps) {
-  if (props.activeTab && props.tabs.includes(props.activeTab)) {
+  if (props.activeHub && props.tabs.includes(props.activeHub)) {
     return (
-      <ProjectTabsEnhancerChrome tabs={props.tabs} activeTab={props.activeTab}>
+      <ProjectTabsEnhancerChrome tabs={props.tabs} activeHub={props.activeHub}>
         {props.children}
       </ProjectTabsEnhancerChrome>
     );
@@ -38,17 +40,16 @@ export function ProjectTabsEnhancer(props: ProjectTabsEnhancerProps) {
 
 function ProjectTabsEnhancerWithParams({
   tabs,
-  serverActiveTab,
+  serverActiveHub,
   children,
 }: ProjectTabsEnhancerProps) {
   const searchParams = useSearchParams();
   const urlTabRaw = searchParams?.get('tab') ?? 'overview';
-  const urlTab: ProjectTabKey = tabs.includes(urlTabRaw as ProjectTabKey)
-    ? (urlTabRaw as ProjectTabKey)
-    : serverActiveTab;
+  const urlHub = activeHubFromParams(urlTabRaw);
+  const activeHub: ProjectHubKey = tabs.includes(urlHub) ? urlHub : serverActiveHub;
 
   return (
-    <ProjectTabsEnhancerChrome tabs={tabs} activeTab={urlTab}>
+    <ProjectTabsEnhancerChrome tabs={tabs} activeHub={activeHub}>
       {children}
     </ProjectTabsEnhancerChrome>
   );
@@ -56,17 +57,17 @@ function ProjectTabsEnhancerWithParams({
 
 function ProjectTabsEnhancerChrome({
   tabs,
-  activeTab,
+  activeHub,
   children,
 }: {
-  tabs: readonly ProjectTabKey[];
-  activeTab: ProjectTabKey;
+  tabs: readonly ProjectHubKey[];
+  activeHub: ProjectHubKey;
   children: ReactNode;
 }) {
   const tCommon = useTranslations('common');
   const pathname = usePathname();
   const router = useRouter();
-  const { displayTab, isPending, navigateTab } = useQueryTabPending(activeTab);
+  const { displayTab, isPending, navigateTab } = useQueryTabPending(activeHub);
   const navigatingRef = useRef(tCommon('a11y.navigating'));
   const navigateTabRef = useRef(navigateTab);
   const pathnameRef = useRef(pathname);
@@ -88,10 +89,10 @@ function ProjectTabsEnhancerChrome({
     const buttons = [...root.querySelectorAll<HTMLElement>('[role="tab"][data-tab]')];
 
     for (const button of buttons) {
-      const tab = button.dataset.tab as ProjectTabKey | undefined;
-      if (!tab || !tabs.includes(tab)) continue;
+      const hub = button.dataset.tab as ProjectHubKey | undefined;
+      if (!hub || !tabs.includes(hub)) continue;
 
-      const selected = displayTab === tab;
+      const selected = displayTab === hub;
       const pendingThis = isPending && selected;
 
       button.setAttribute('aria-selected', selected ? 'true' : 'false');
@@ -150,11 +151,11 @@ function ProjectTabsEnhancerChrome({
     const root = document.querySelector<HTMLElement>('[data-pf-project-tabs]');
     if (!root) return;
 
-    function softNavigate(tab: string) {
-      navigateTabRef.current(tab, () => {
+    function softNavigate(hub: string) {
+      navigateTabRef.current(hub, () => {
         const params = new URLSearchParams();
-        if (tab !== 'overview') {
-          params.set('tab', tab);
+        if (hub !== 'overview') {
+          params.set('tab', defaultSectionForHub(hub as ProjectHubKey));
         }
         const query = params.toString();
         const path = pathnameRef.current;
@@ -165,14 +166,14 @@ function ProjectTabsEnhancerChrome({
     function onClick(event: MouseEvent) {
       const target = (event.target as HTMLElement | null)?.closest?.('[role="tab"][data-tab]');
       if (!target || !root!.contains(target)) return;
-      const tab = (target as HTMLElement).dataset.tab;
-      if (!tab || !tabsRef.current.includes(tab as ProjectTabKey)) return;
+      const hub = (target as HTMLElement).dataset.tab;
+      if (!hub || !tabsRef.current.includes(hub as ProjectHubKey)) return;
       if ((target as HTMLElement).getAttribute('aria-disabled') === 'true') {
         event.preventDefault();
         return;
       }
       event.preventDefault();
-      softNavigate(tab);
+      softNavigate(hub);
     }
 
     function onKeyDown(event: KeyboardEvent) {
@@ -207,33 +208,36 @@ function ProjectTabsEnhancerChrome({
       event.preventDefault();
       nextIdx = (nextIdx + buttons.length) % buttons.length;
       const next = buttons[nextIdx];
-      const tab = next?.dataset.tab;
-      if (!tab) return;
+      const hub = next?.dataset.tab;
+      if (!hub) return;
       next.focus();
-      softNavigate(tab);
+      softNavigate(hub);
     }
 
     root.addEventListener('click', onClick);
     root.addEventListener('keydown', onKeyDown);
 
     const prefetched = new Set<string>();
-    function tabHref(tab: string) {
+    function hubHref(hub: string) {
       const params = new URLSearchParams();
-      if (tab !== 'overview') params.set('tab', tab);
+      if (hub !== 'overview') {
+        params.set('tab', defaultSectionForHub(hub as ProjectHubKey));
+      }
       const query = params.toString();
       const path = pathnameRef.current;
       return query ? `${path}?${query}` : path;
     }
-    function prefetchTab(tab: string) {
-      if (prefetched.has(tab)) return;
-      prefetched.add(tab);
-      void router.prefetch?.(tabHref(tab));
+    function prefetchHub(hub: string) {
+      if (HUB_PREFETCH_SKIP.has(hub as ProjectHubKey)) return;
+      if (prefetched.has(hub)) return;
+      prefetched.add(hub);
+      void router.prefetch?.(hubHref(hub));
     }
     function onPointerOver(event: Event) {
       const target = (event.target as HTMLElement | null)?.closest?.('[role="tab"][data-tab]');
       if (!target || !root!.contains(target)) return;
-      const tab = (target as HTMLElement).dataset.tab;
-      if (tab) prefetchTab(tab);
+      const hub = (target as HTMLElement).dataset.tab;
+      if (hub) prefetchHub(hub);
     }
     function onFocusIn(event: Event) {
       onPointerOver(event);

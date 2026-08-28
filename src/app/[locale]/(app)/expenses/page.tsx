@@ -9,9 +9,14 @@ import {
   listExpensesForOrg,
   listExpensesSchema,
   listProjectsForOrg,
+  type ListExpensesInput,
 } from '@/modules/expenses';
 import { withOrgContext } from '@/shared/auth/session';
 import { Link } from '@/shared/i18n/navigation';
+import {
+  isExpenseListAttentionStatusFilter,
+  resolveExpenseListStatusFilterFromQuery,
+} from '@/modules/expenses/domain/expense-status-filter';
 import { OcrEntryLink } from '@/modules/ocr/ui/ocr-entry-link';
 import { SavedListViewsBar } from '@/modules/tenancy/ui/saved-list-views-bar';
 import { ExpensesList } from './expenses-list';
@@ -31,9 +36,8 @@ export default async function ExpensesPage({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const [t, tNavFrom, locale, rawParams] = await Promise.all([
+  const [t, locale, rawParams] = await Promise.all([
     getTranslations('expenses'),
-    getTranslations('recurringDrafts').then((tr) => tr('navFromSource')),
     getLocale(),
     searchParams,
   ]);
@@ -45,13 +49,29 @@ export default async function ExpensesPage({
     costFamily: rawParams.costFamily,
     costCategoryId: rawParams.costCategoryId,
     status: rawParams.status,
+    attention: rawParams.attention,
+    unallocated: rawParams.unallocated,
   });
 
-  const filters = parsedFilters.success ? parsedFilters.data : {};
+  const filters: ListExpensesInput = parsedFilters.success
+    ? parsedFilters.data
+    : { unallocated: false };
+  const { unallocated, attention: attentionParam, status, ...restFilters } = filters;
+  const statusFilter = resolveExpenseListStatusFilterFromQuery({
+    status,
+    attention: attentionParam,
+    unallocated,
+  });
+  const activeAttention = isExpenseListAttentionStatusFilter(statusFilter)
+    ? statusFilter
+    : undefined;
+  const showUnallocatedFilter = statusFilter === 'project_allocation';
   const listFilters = {
-    ...filters,
-    dateFrom: filters.dateFrom as BusinessDate | undefined,
-    dateTo: filters.dateTo as BusinessDate | undefined,
+    ...restFilters,
+    dateFrom: restFilters.dateFrom as BusinessDate | undefined,
+    dateTo: restFilters.dateTo as BusinessDate | undefined,
+    unallocatedOnly: showUnallocatedFilter,
+    attentionFilter: activeAttention,
   };
 
   const [listResult, projects, categories] = await withOrgContext(async (context) => {
@@ -71,7 +91,7 @@ export default async function ExpensesPage({
         actions={
           <div className="flex max-w-full flex-wrap gap-2">
             <Button asChild variant="secondary" className="max-w-full">
-              <Link href="/recurring-drafts?kind=expense">{tNavFrom}</Link>
+              <Link href="/recurring-drafts?kind=expense">{t('actions.recurringExpenses')}</Link>
             </Button>
             <OcrEntryLink workflow="expense" />
             <Button asChild>
@@ -87,8 +107,26 @@ export default async function ExpensesPage({
       <SavedListViewsBar
         listKey="expenses"
         searchParams={rawParams}
-        keys={['dateFrom', 'dateTo', 'projectId', 'costFamily', 'costCategoryId', 'status']}
+        keys={[
+          'dateFrom',
+          'dateTo',
+          'projectId',
+          'costFamily',
+          'costCategoryId',
+          'status',
+          'attention',
+          'unallocated',
+        ]}
       />
+
+      {showUnallocatedFilter ? (
+        <div
+          role="status"
+          className="rounded-lg border border-[var(--pf-status-warning-border)] bg-[var(--pf-status-warning-bg)] px-4 py-3 text-sm text-[var(--pf-status-warning-fg)]"
+        >
+          {t('list.unallocatedBannerTitle')}
+        </div>
+      ) : null}
 
       <ExpensesList
         items={listResult.items}
@@ -96,7 +134,10 @@ export default async function ExpensesPage({
         projects={projects}
         categories={categories}
         locale={locale}
-        initialFilters={filters}
+        initialFilters={{
+          ...restFilters,
+          statusFilter,
+        }}
       />
     </div>
   );

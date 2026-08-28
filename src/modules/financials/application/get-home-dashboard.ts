@@ -65,6 +65,7 @@ import {
 } from '../data/commercial.repository';
 import {
   hasAnyExpenseUsage,
+  listUnallocatedBusinessExpenses,
   loadOrganizationExpenseContributions,
   sumOrganizationActualCosts,
   sumOrganizationCostsInDateRange,
@@ -73,6 +74,7 @@ import {
   countActiveProjects,
   hasAnyProject,
   listRecentActiveProjects,
+  loadActiveProjectClientNames,
   type ActiveProjectSummary,
 } from '../data/projects.repository';
 import { getOrganizationProjectRollup } from './get-organization-project-rollup';
@@ -116,10 +118,27 @@ export interface OrganizationForecastSummary {
   readonly excludedForeignCurrencyCount: number;
 }
 
+export interface HomeDashboardProjectTableRow {
+  readonly projectId: string;
+  readonly name: string;
+  readonly clientName: string | null;
+  readonly currentContract: MoneyValue | null;
+  readonly actualCost: MoneyValue | null;
+  readonly actualProfit: MoneyValue | null;
+  readonly marginPercent: string | null;
+  readonly status: string;
+}
+
 export interface HomeDashboardData {
   readonly isBrandNew: boolean;
   readonly activeProjectCount: number;
   readonly recentProjects: readonly ActiveProjectSummary[];
+  /** Active projects with financial rollup for owner dashboard table. */
+  readonly projectTableRows: readonly HomeDashboardProjectTableRow[];
+  /** Org actual profit (sum of project actual margins). */
+  readonly actualProfitTotal: MoneyValue | null;
+  /** Org profitability % from actual profit / contract value. */
+  readonly profitabilityPercent: string | null;
   readonly totalContractValue: MoneyValue | null;
   readonly contractValueCoverage: FinancialCoverage | null;
   readonly totalActualCost: MoneyValue | null;
@@ -223,6 +242,13 @@ export async function getHomeDashboard(
     Boolean(effectiveModules.jobs) || workMixSurfacesJobs(effectiveWorkMix);
   const serviceReachable = Boolean(effectiveModules.service) && canCreateService;
   const preferServiceSurface = Boolean(effectiveSuggestedDefaults?.preferServiceSurface);
+  const slimOwnerDashboard =
+    !preferServiceSurface &&
+    (persona === 'project_contractor' ||
+      persona === 'renovation' ||
+      persona === 'architecture' ||
+      persona === 'consulting' ||
+      persona === 'mixed');
   let emptyStartKind: 'project' | 'job' | 'work_order' = 'project';
   if (
     serviceReachable &&
@@ -296,6 +322,9 @@ export async function getHomeDashboard(
       isBrandNew: true,
       activeProjectCount,
       recentProjects,
+      projectTableRows: [],
+      actualProfitTotal: null,
+      profitabilityPercent: null,
       totalContractValue: null,
       contractValueCoverage: null,
       totalActualCost: null,
@@ -328,10 +357,12 @@ export async function getHomeDashboard(
   }
 
   const wantBilling = canReadBilling && hasBilling;
-  const wantMonthInvoiced = canReadFinancials && wantBilling;
-  const wantMonthCosts = canReadFinancials && (wantBilling || hasExpenses);
+  const wantMonthInvoiced = !slimOwnerDashboard && canReadFinancials && wantBilling;
+  const wantMonthCosts = !slimOwnerDashboard && canReadFinancials && (wantBilling || hasExpenses);
 
-  if (canReadFinancials) {
+  // Slim owner dashboard reads rollup before this hook; it does not surface companyActual /
+  // general-pool forecast fields — skip the all-open-month recompute wave on every home load.
+  if (canReadFinancials && !slimOwnerDashboard) {
     await refreshCurrentOpenGeneralCostMonthForSurfaces(context);
   }
 
@@ -357,7 +388,7 @@ export async function getHomeDashboard(
           monthEnd,
         )
       : Promise.resolve(null),
-    canReadFinancials
+    canReadFinancials && !slimOwnerDashboard
       ? sumOrganizationGeneralPoolTotals(context.db, context.organizationId, currency)
       : Promise.resolve(null),
   ]);
@@ -429,7 +460,7 @@ export async function getHomeDashboard(
 
     const workKindFilter = parseWorkKindFilter(options.workKindFilter);
     const companyComposition =
-      workKindFilter === 'all' && generalPoolTotals
+      !slimOwnerDashboard && workKindFilter === 'all' && generalPoolTotals
         ? composeCompanyActual({
             currency,
             directProjectActual: cost.actual?.value ?? zeroMoney(currency),
@@ -466,13 +497,17 @@ export async function getHomeDashboard(
     forecast = {
       totalCurrentContract: commercial?.current.value ?? zeroMoney(currency),
       totalActualProjectCost: cost.actual?.value ?? null,
-      totalAllocatedOverhead: cost.overhead?.value ?? null,
-      totalRemainingCommitments: cost.committed?.value ?? null,
-      totalExpectedRemaining: cost.expectedRemaining?.value ?? null,
-      totalForecastFinalCost: cost.estimatedFinal?.value ?? null,
+      totalAllocatedOverhead: slimOwnerDashboard ? null : (cost.overhead?.value ?? null),
+      totalRemainingCommitments: slimOwnerDashboard ? null : (cost.committed?.value ?? null),
+      totalExpectedRemaining: slimOwnerDashboard ? null : (cost.expectedRemaining?.value ?? null),
+      totalForecastFinalCost: slimOwnerDashboard ? null : (cost.estimatedFinal?.value ?? null),
       totalActualMargin: canReadProfit ? (profitability?.actualProfit?.value ?? null) : null,
-      totalForecastMargin: canReadProfit ? (profitability?.estimatedProfit?.value ?? null) : null,
-      unallocatedBusinessCosts: unallocatedBusinessCosts ?? null,
+      totalForecastMargin: slimOwnerDashboard
+        ? null
+        : canReadProfit
+          ? (profitability?.estimatedProfit?.value ?? null)
+          : null,
+      unallocatedBusinessCosts: slimOwnerDashboard ? null : (unallocatedBusinessCosts ?? null),
       companyActual,
       companyProfit,
       eligibleProjectCount: rollup.totalEligibleProjectCount,
@@ -484,7 +519,7 @@ export async function getHomeDashboard(
   let billingCoverage: FinancialCoverage | null = null;
   let organizationSummary: HomeDashboardData['organizationSummary'] = null;
 
-  if (billingRows) {
+  if (billingRows && !slimOwnerDashboard) {
     const position = computeBillingPositionFromRows(billingRows, currency);
     billing = {
       invoiced: position.invoiced,
@@ -507,7 +542,7 @@ export async function getHomeDashboard(
         costsThisMonth,
       };
     }
-  } else if (canReadFinancials && hasExpenses && costsThisMonth) {
+  } else if (!slimOwnerDashboard && canReadFinancials && hasExpenses && costsThisMonth) {
     organizationSummary = {
       outstanding: zeroMoney(currency),
       invoicedThisMonth: zeroMoney(currency),
@@ -553,6 +588,21 @@ export async function getHomeDashboard(
           contractValueCoverage,
           billingCoverage,
           unallocatedBusinessCosts,
+          unallocatedExpensePreview:
+            canReadExpenses &&
+            unallocatedBusinessCosts &&
+            !isZeroMoney(unallocatedBusinessCosts)
+              ? await listUnallocatedBusinessExpenses(
+                  context.db,
+                  context.organizationId,
+                  currency,
+                  5,
+                ).then((preview) => ({
+                  count: preview.totalCount,
+                  amount: unallocatedBusinessCosts,
+                  samples: preview.items,
+                }))
+              : null,
           openPriceProjectCount: rollup?.openPriceProjectCount ?? 0,
           pricedProjectCount: rollup?.pricedProjectCount ?? 0,
           excludedForeignCurrencyCount: rollup?.excludedForeignCurrencyCount ?? 0,
@@ -574,10 +624,40 @@ export async function getHomeDashboard(
         })
       : null;
 
+  let projectTableRows: HomeDashboardProjectTableRow[] = [];
+  let actualProfitTotal: MoneyValue | null = null;
+  let profitabilityPercent: string | null = null;
+
+  if (rollup && canReadFinancials) {
+    const clientNames = await loadActiveProjectClientNames(context.db, context.organizationId);
+    projectTableRows = rollup.rows.map((row) => ({
+      projectId: row.projectId,
+      name: row.name,
+      clientName: clientNames.get(row.projectId) ?? null,
+      currentContract: row.currentContract,
+      actualCost: row.actualCost,
+      actualProfit: row.actualProfit,
+      marginPercent: row.actualMarginPercent,
+      status: row.status,
+    }));
+    const profitTotals = aggregateOrgProfit(rollup.rows, currency);
+    actualProfitTotal = profitTotals.actualProfit?.value ?? forecast?.totalActualMargin ?? null;
+    if (actualProfitTotal && totalContractValue) {
+      const contractAmt = Number.parseFloat(totalContractValue.amount);
+      const profitAmt = Number.parseFloat(actualProfitTotal.amount);
+      if (contractAmt > 0 && Number.isFinite(profitAmt)) {
+        profitabilityPercent = ((profitAmt / contractAmt) * 100).toFixed(1);
+      }
+    }
+  }
+
   return {
     isBrandNew,
     activeProjectCount,
     recentProjects,
+    projectTableRows,
+    actualProfitTotal,
+    profitabilityPercent,
     totalContractValue,
     contractValueCoverage,
     totalActualCost,

@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { PageHeader } from '@/components/ui/page-header';
+import { ContextualBackLink } from '@/components/ui/contextual-back-link';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { listCustomFieldValuesForEntity } from '@/modules/custom-fields';
 import { EntityCustomFieldsPanel } from '@/modules/custom-fields/ui';
@@ -34,14 +35,12 @@ import {
 } from '@/modules/vendors/ui';
 import { withOrgContext } from '@/shared/auth/session';
 import { todayInTimeZone } from '@/shared/dates';
-import { Link } from '@/shared/i18n/navigation';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { upsertEntityFieldValueAction } from '../../settings/custom-fields/actions';
 import { VendorContactForm } from './vendor-contact-form';
 import { VendorEditForm } from './vendor-edit-form';
 import { VendorIdentifiersPanel } from './vendor-identifiers-panel';
-import { textNavLinkMutedClassName } from '@/components/ui/pressable';
 import { RelatedCommunicationsPanel } from '@/modules/communications/ui/related-panel';
 import { PrepareMessageLink } from '@/modules/communications/ui/prepare-message-link';
 
@@ -221,9 +220,7 @@ export default async function VendorDetailPage({
           </>
         }
         breadcrumb={
-          <Link href="/vendors" className={textNavLinkMutedClassName}>
-            {t('title')}
-          </Link>
+          <ContextualBackLink href="/vendors">{t('backToList')}</ContextualBackLink>
         }
       />
 
@@ -237,7 +234,7 @@ export default async function VendorDetailPage({
       />
 
       <Vendor360Shell
-        identity={
+        details={
           <>
             {canManage ? (
               <VendorEditForm
@@ -295,123 +292,85 @@ export default async function VendorDetailPage({
               identifiers={vendor.identifiers}
               canManage={canManage}
             />
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">{t('detail.contactsSection')}</CardTitle>
+              </CardHeader>
+              <CardContent className="flex flex-col gap-4">
+                {vendor.contacts.length === 0 ? (
+                  <p className="text-sm text-[var(--pf-text-secondary)]">{t('detail.contactsEmpty')}</p>
+                ) : (
+                  <ul className="flex flex-col gap-2">
+                    {vendor.contacts.map((contact) => (
+                      <li
+                        key={contact.id}
+                        className="rounded-md border border-[var(--pf-border-default)] p-3 text-sm"
+                      >
+                        <p className="text-start font-medium">{contact.name}</p>
+                        <p className="text-start text-[var(--pf-text-secondary)]">
+                          {t(`detail.contactRoles.${contact.role}`)}
+                          {contact.email ? (
+                            <>
+                              {' · '}
+                              <span dir="ltr">{contact.email}</span>
+                            </>
+                          ) : null}
+                          {contact.phone ? (
+                            <>
+                              {' · '}
+                              <span dir="ltr">{contact.phone}</span>
+                            </>
+                          ) : null}
+                        </p>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                {canManage ? <VendorContactForm vendorId={vendor.id} /> : null}
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">{t('detail.categoriesSection')}</CardTitle>
+                <CardDescription>{t('detail.categoriesHint')}</CardDescription>
+              </CardHeader>
+              <CardContent className="flex flex-col gap-3 text-sm">
+                <div>
+                  <p className="font-medium">{t('catalog.categoriesLabel')}</p>
+                  {categoryLinks.length === 0 ? (
+                    <p className="text-[var(--pf-text-secondary)]">{t('detail.categoriesEmpty')}</p>
+                  ) : (
+                    <ul className="mt-1 list-inside list-disc">
+                      {categoryLinks.map((link) => (
+                        <li key={link.id}>
+                          {vendorCategoryNameById.get(link.catalogEntryId) ?? link.entryName}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+                <div>
+                  <p className="font-medium">{t('catalog.specialtiesLabel')}</p>
+                  {specialtyLinks.length === 0 ? (
+                    <p className="text-[var(--pf-text-secondary)]">{t('detail.specialtiesEmpty')}</p>
+                  ) : (
+                    <ul className="mt-1 list-inside list-disc">
+                      {specialtyLinks.map((link) => (
+                        <li key={link.id}>{link.entryName}</li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+                {canManage ? (
+                  <p className="text-xs text-[var(--pf-text-secondary)]">{t('detail.categoriesEditHint')}</p>
+                ) : null}
+              </CardContent>
+            </Card>
             <EntityCustomFieldsPanel
               entityId={vendor.id}
               fields={customFields}
               revalidatePath={`/vendors/${vendor.id}`}
               saveAction={upsertEntityFieldValueAction}
-            />
-          </>
-        }
-        contacts={
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">{t('detail.contactsSection')}</CardTitle>
-            </CardHeader>
-            <CardContent className="flex flex-col gap-4">
-              {vendor.contacts.length === 0 ? (
-                <p className="text-sm text-[var(--pf-text-secondary)]">{t('detail.contactsEmpty')}</p>
-              ) : (
-                <ul className="flex flex-col gap-2">
-                  {vendor.contacts.map((contact) => (
-                    <li
-                      key={contact.id}
-                      className="rounded-md border border-[var(--pf-border-default)] p-3 text-sm"
-                    >
-                      <p className="text-start font-medium">{contact.name}</p>
-                      <p className="text-start text-[var(--pf-text-secondary)]">
-                        {t(`detail.contactRoles.${contact.role}`)}
-                        {contact.email ? (
-                          <>
-                            {' · '}
-                            <span dir="ltr">{contact.email}</span>
-                          </>
-                        ) : null}
-                        {contact.phone ? (
-                          <>
-                            {' · '}
-                            <span dir="ltr">{contact.phone}</span>
-                          </>
-                        ) : null}
-                      </p>
-                    </li>
-                  ))}
-                </ul>
-              )}
-              {canManage ? <VendorContactForm vendorId={vendor.id} /> : null}
-            </CardContent>
-          </Card>
-        }
-        categories={
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">{t('detail.categoriesSection')}</CardTitle>
-              <CardDescription>{t('detail.categoriesHint')}</CardDescription>
-            </CardHeader>
-            <CardContent className="flex flex-col gap-3 text-sm">
-              <div>
-                <p className="font-medium">{t('catalog.categoriesLabel')}</p>
-                {categoryLinks.length === 0 ? (
-                  <p className="text-[var(--pf-text-secondary)]">{t('detail.categoriesEmpty')}</p>
-                ) : (
-                  <ul className="mt-1 list-inside list-disc">
-                    {categoryLinks.map((link) => (
-                      <li key={link.id}>
-                        {vendorCategoryNameById.get(link.catalogEntryId) ?? link.entryName}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-              <div>
-                <p className="font-medium">{t('catalog.specialtiesLabel')}</p>
-                {specialtyLinks.length === 0 ? (
-                  <p className="text-[var(--pf-text-secondary)]">{t('detail.specialtiesEmpty')}</p>
-                ) : (
-                  <ul className="mt-1 list-inside list-disc">
-                    {specialtyLinks.map((link) => (
-                      <li key={link.id}>{link.entryName}</li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-              {canManage ? (
-                <p className="text-xs text-[var(--pf-text-secondary)]">{t('detail.categoriesEditHint')}</p>
-              ) : null}
-            </CardContent>
-          </Card>
-        }
-        commercial={
-          <>
-            <VendorAp360Panel
-              canRead={canReadAp}
-              outstanding={apOutstanding}
-              aging={apAging}
-              credits={apCredits}
-              payments={apPayments}
-              linkedProjects={[
-                ...vendor.engagements.map((engagement) => ({
-                  id: engagement.projectId,
-                  name: engagement.projectName,
-                })),
-                ...engagementHistory.map((engagement) => ({
-                  id: engagement.projectId,
-                  name: engagement.projectName,
-                })),
-              ].filter(
-                (project, index, all) => all.findIndex((row) => row.id === project.id) === index,
-              )}
-            />
-            <VendorSubcontractsPanel
-              vendorId={vendor.id}
-              vendorType={vendor.type}
-              items={subcontracts}
-              details={subcontractDetails}
-              candidateProjects={candidateProjects}
-              parentContracts={parentContracts}
-              documentCandidates={documentCandidates}
-              canManage={canManage}
-              defaultStartDate={defaultStartDate}
             />
           </>
         }
@@ -425,7 +384,40 @@ export default async function VendorDetailPage({
             defaultStartDate={defaultStartDate}
           />
         }
-        performance={<VendorPerformancePanel performance={performance} />}
+        invoices={
+          <VendorAp360Panel
+            canRead={canReadAp}
+            outstanding={apOutstanding}
+            aging={apAging}
+            credits={apCredits}
+            payments={apPayments}
+            linkedProjects={[
+              ...vendor.engagements.map((engagement) => ({
+                id: engagement.projectId,
+                name: engagement.projectName,
+              })),
+              ...engagementHistory.map((engagement) => ({
+                id: engagement.projectId,
+                name: engagement.projectName,
+              })),
+            ].filter(
+              (project, index, all) => all.findIndex((row) => row.id === project.id) === index,
+            )}
+          />
+        }
+        agreements={
+          <VendorSubcontractsPanel
+            vendorId={vendor.id}
+            vendorType={vendor.type}
+            items={subcontracts}
+            details={subcontractDetails}
+            candidateProjects={candidateProjects}
+            parentContracts={parentContracts}
+            documentCandidates={documentCandidates}
+            canManage={canManage}
+            defaultStartDate={defaultStartDate}
+          />
+        }
         documents={
           <DocumentAttachments
             ownerType="vendor"
@@ -437,7 +429,12 @@ export default async function VendorDetailPage({
             storageConfigured={documentsPanel.storageConfigured}
           />
         }
-        activity={<RelatedCommunicationsPanel vendorId={vendor.id} />}
+        detailsAdvanced={
+          <>
+            <VendorPerformancePanel performance={performance} />
+            <RelatedCommunicationsPanel vendorId={vendor.id} />
+          </>
+        }
       />
     </div>
   );

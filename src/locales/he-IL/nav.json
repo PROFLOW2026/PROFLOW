@@ -57,12 +57,12 @@
     "clients": "לקוחות",
     "work": "עבודה",
     "people": "אנשים",
-    "purchasing": "רכש וספקים",
-    "money": "כסף",
-    "field": "שטח",
+    "purchasing": "ספקים ורכש",
+    "money": "חיובים וגבייה",
+    "field": "שטח ושירות",
     "documents": "מסמכים",
     "reports": "דוחות",
-    "advanced": "מתקדם"
+    "advanced": "מתקדם והגדרות"
   },
   "newMenu": {
     "trigger": "חדש",

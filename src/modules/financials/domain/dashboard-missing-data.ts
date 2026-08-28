@@ -18,6 +18,22 @@ export type DashboardAffectedMetric =
 /** Semantic kind — missing information vs workflow/completeness attention. */
 export type DashboardCompletenessKind = 'missing' | 'attention';
 
+export interface DashboardAttentionExpenseSample {
+  readonly id: string;
+  readonly expenseDate: string;
+  readonly description: string | null;
+  readonly supplierName: string | null;
+  readonly vendorName: string | null;
+  readonly netAmount: string;
+  readonly currency: string;
+}
+
+export interface DashboardUnallocatedExpensePreview {
+  readonly count: number;
+  readonly amount: MoneyValue;
+  readonly samples: readonly DashboardAttentionExpenseSample[];
+}
+
 export interface DashboardMissingDataItem {
   readonly code: DashboardMissingDataCode;
   /** missing = information absent; attention = data exists but worth reviewing. */
@@ -31,6 +47,8 @@ export interface DashboardMissingDataItem {
   readonly count: number | null;
   readonly affectedMetrics: readonly DashboardAffectedMetric[];
   readonly actionHref: string;
+  readonly amount?: MoneyValue | null;
+  readonly expenseSamples?: readonly DashboardAttentionExpenseSample[];
 }
 
 export type DashboardKpiKey =
@@ -62,6 +80,7 @@ export interface BuildDashboardMissingDataInput {
   readonly contractValueCoverage: FinancialCoverage | null;
   readonly billingCoverage: FinancialCoverage | null;
   readonly unallocatedBusinessCosts: MoneyValue | null;
+  readonly unallocatedExpensePreview?: DashboardUnallocatedExpensePreview | null;
   readonly openPriceProjectCount: number;
   readonly pricedProjectCount: number;
   readonly excludedForeignCurrencyCount: number;
@@ -74,7 +93,7 @@ export interface BuildDashboardMissingDataInput {
 
 const REASON_ACTION: Record<DataConfidenceReason, string> = {
   workforce_entries_missing_cost: '/workforce/employees#org-work-framework',
-  unallocated_remainder: '/expenses',
+  unallocated_remainder: '/expenses?unallocated=true',
   open_draft_documents: '/expenses',
   open_allocations: '/overhead',
   foreign_currency_excluded: '/reports?section=comparison',
@@ -201,7 +220,15 @@ export function buildDashboardMissingDataItems(
       !isZeroMoney(input.unallocatedBusinessCosts) &&
       Number(input.unallocatedBusinessCosts.amount) > 0;
     if (hasRemainder) {
-      items.push(itemForReason('unallocated_remainder', null));
+      const preview = input.unallocatedExpensePreview;
+      items.push({
+        ...itemForReason(
+          'unallocated_remainder',
+          preview?.count != null && preview.count > 0 ? preview.count : null,
+        ),
+        amount: preview?.amount ?? input.unallocatedBusinessCosts,
+        expenseSamples: preview?.samples ?? [],
+      });
     }
   }
 

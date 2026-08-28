@@ -165,6 +165,8 @@ export interface EmployeeListItem extends EmployeeRecord {
   readonly currentRate: string | null;
   readonly currentRateUnit: RateUnit | null;
   readonly currentRateCurrency: string | null;
+  /** Fully loaded employer cost for one compensation unit (hour/day/month). */
+  readonly currentEmployerCost: string | null;
 }
 
 export interface TimeEntryListItem extends TimeEntryRecord {

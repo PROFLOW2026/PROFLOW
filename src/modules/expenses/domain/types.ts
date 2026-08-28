@@ -140,6 +140,8 @@ export interface ExpenseSummary {
   readonly description: string | null;
   readonly supplierName: string | null;
   readonly vendorId: string | null;
+  /** Linked vendor display name (list joins only). */
+  readonly vendorName: string | null;
   readonly projectId: string | null;
   readonly projectName: string | null;
   readonly workPackageId: string | null;
@@ -151,6 +153,11 @@ export interface ExpenseSummary {
   readonly taxAmount: MoneyValue | null;
   readonly status: ExpenseStatus;
   readonly voidsExpenseId: string | null;
+  /** List query only — matches existing unallocated attention condition. */
+  readonly needsProjectAllocation?: boolean;
+  readonly adjustsExpenseId?: string | null;
+  /** List query only — finalized reversing row exists for this expense. */
+  readonly hasActiveReversal?: boolean;
 }
 
 export interface ExpenseDetail extends ExpenseSummary {

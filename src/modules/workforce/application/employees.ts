@@ -53,6 +53,7 @@ function redactListRates(items: readonly EmployeeListItem[]): EmployeeListItem[]
     currentRate: null,
     currentRateUnit: null,
     currentRateCurrency: null,
+    currentEmployerCost: null,
   }));
 }
 

@@ -1,53 +1,29 @@
 import { Suspense, type ReactNode } from 'react';
 import { getTranslations } from 'next-intl/server';
-import { MoneyText } from '@/components/patterns/money-text';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { SkeletonText } from '@/components/ui/skeleton';
-import { BillingPlanStatusStrip } from '@/modules/billing-plan/ui/billing-plan-status-strip';
-import { ProjectOwnerActualExperience } from '@/modules/financials/ui/project-owner-actual-experience';
-import { ProjectFinancialsSnapshot } from '@/modules/financials/ui/project-financials-snapshot';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ProjectFinancialsSnapshotView } from '@/modules/financials/ui/project-financials-snapshot-view';
 import type { ProjectFinancials } from '@/modules/financials/domain/types';
-import {
-  buildScheduleSummary,
-  computeApprovedChangesTotal,
-  findOriginalValueEvent,
-  hasStoredOpeningReduction,
-  resolveDisplayOriginalNet,
-  resolveOpeningReductionNet,
-  type ProjectDetail,
-  type ProjectWorkspaceLink,
-} from '@/modules/projects';
+import { buildScheduleSummary, type ProjectDetail } from '@/modules/projects';
 import { todayInTimeZone } from '@/shared/dates/dates';
 import { Link } from '@/shared/i18n/navigation';
-import { MilestonesPanel } from './milestones-panel';
-import { OverviewContractHistorySuspense } from './overview-contract-history';
-import { ProjectWorkspaceNav } from './project-workspace-nav';
 import { ProjectEarlyWarningsPanel, ProjectEarlyWarningsFallback } from './overview-early-warnings';
-import { ProjectOverviewLatest } from './overview-latest';
-import { ProjectContractsPanel } from '@/modules/projects/ui/project-contracts-panel';
-import { OverviewNextGenPanel } from './overview-next-gen';
 import { ScheduleSummaryPanel } from './schedule-summary-panel';
 import { textNavLinkClassName } from '@/components/ui/pressable';
 import { cn } from '@/shared/ui/cn';
-import { ProjectSetupChecklistPanel } from '@/modules/projects/ui/project-setup-checklist-panel';
 
 interface OverviewTabProps {
   detail: ProjectDetail;
   locale: string;
   canReadFinancials: boolean;
   canEdit: boolean;
-  workspaceLinks: readonly ProjectWorkspaceLink[];
+  workspaceLinks?: readonly unknown[];
   organizationTimezone: string;
-  /** Jobs get a slim overview (dates + money links) without schedule/milestones chrome. */
   workKind?: 'project' | 'job';
-  /**
-   * When set, schedule / milestones render from these slots (own Suspense +
-   * cached structure fetch) so contract cards are not blocked on WP rows.
-   */
   scheduleSlot?: ReactNode;
   milestonesSlot?: ReactNode;
-  /** Preloaded in one transaction on the overview critical path. */
+  /** Streams in Suspense — overview shell must not block on full financial compose. */
+  financialSnapshotSlot?: ReactNode;
+  /** @deprecated Prefer financialSnapshotSlot */
   preloadedFinancials?: ProjectFinancials | null;
   preloadedCanReadProfit?: boolean;
   financialSnapshotT?: (key: string) => string;
@@ -55,14 +31,10 @@ interface OverviewTabProps {
 
 export async function OverviewTab({
   detail,
-  locale,
   canReadFinancials,
-  canEdit,
-  workspaceLinks,
   organizationTimezone,
   workKind = 'project',
-  scheduleSlot,
-  milestonesSlot,
+  financialSnapshotSlot,
   preloadedFinancials,
   preloadedCanReadProfit = false,
   financialSnapshotT,
@@ -73,51 +45,41 @@ export async function OverviewTab({
   const detailsHref = isJob
     ? `/jobs/${detail.project.id}?tab=details`
     : `/projects/${detail.project.id}?tab=details`;
+  const moneyHref = `/projects/${detail.project.id}?tab=financials`;
 
-  const schedule =
-    isJob || scheduleSlot
-      ? null
-      : buildScheduleSummary({
-          project: detail.project,
-          workPackages: detail.workPackages,
-          milestones: detail.milestones,
-          phases: detail.phases,
-          today: todayInTimeZone(organizationTimezone),
-        });
-
-  const originalEvent = detail.contract
-    ? findOriginalValueEvent(detail.contractValueEvents)
-    : null;
-
-  const approvedChanges =
-    detail.contract && detail.currentContractValue
-      ? computeApprovedChangesTotal(detail.contractValueEvents, detail.contract.currency)
-      : null;
-
-  const currency = detail.contract?.currency ?? detail.currentContractValue?.currency ?? 'ILS';
-  const showEntryBaseline =
-    Boolean(detail.contract) && hasStoredOpeningReduction(detail.contract!);
-  const displayOriginalNet = detail.contract ? resolveDisplayOriginalNet(detail.contract) : null;
-  const openingReductionNet = detail.contract ? resolveOpeningReductionNet(detail.contract) : null;
+  const schedule = isJob
+    ? null
+    : buildScheduleSummary({
+        project: detail.project,
+        workPackages: detail.workPackages,
+        milestones: detail.milestones,
+        phases: detail.phases,
+        today: todayInTimeZone(organizationTimezone),
+      });
 
   const dateRange =
     [detail.project.startDate, detail.project.targetEndDate].filter(Boolean).join(' → ') || '-';
 
-  return (
-    <div className="flex min-w-0 max-w-full flex-col gap-4">
-      <ProjectWorkspaceNav links={workspaceLinks} />
+  const financialSummary =
+    financialSnapshotSlot ??
+    (canReadFinancials && preloadedFinancials && financialSnapshotT ? (
+      <Card className="min-w-0 max-w-full">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base">{t('financialSnapshot')}</CardTitle>
+        </CardHeader>
+        <CardContent className="flex min-w-0 flex-col gap-2 text-sm">
+          <ProjectFinancialsSnapshotView
+            financials={preloadedFinancials}
+            canReadProfit={preloadedCanReadProfit}
+            t={financialSnapshotT}
+          />
+        </CardContent>
+      </Card>
+    ) : null);
 
-      {canEdit && !isJob ? (
-        <ProjectSetupChecklistPanel projectId={detail.project.id} detail={detail} canEdit={canEdit} />
-      ) : null}
-
-      {canReadFinancials ? (
-        <Suspense fallback={<ProjectEarlyWarningsFallback />}>
-          <ProjectEarlyWarningsPanel projectId={detail.project.id} />
-        </Suspense>
-      ) : null}
-
-      {isJob ? (
+  if (isJob) {
+    return (
+      <div className="flex min-w-0 max-w-full flex-col gap-4">
         <section className="rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4">
           <div className="flex flex-wrap items-start justify-between gap-2">
             <h2 className="text-sm font-semibold">{tJobs('overview.datesTitle')}</h2>
@@ -129,163 +91,47 @@ export async function OverviewTab({
             {dateRange}
           </p>
         </section>
-      ) : scheduleSlot ? (
-        scheduleSlot
-      ) : schedule ? (
-        <ScheduleSummaryPanel summary={schedule} projectId={detail.project.id} />
+        {financialSummary}
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex min-w-0 max-w-full flex-col gap-4">
+      {canReadFinancials ? (
+        <Suspense fallback={<ProjectEarlyWarningsFallback />}>
+          <ProjectEarlyWarningsPanel projectId={detail.project.id} />
+        </Suspense>
       ) : null}
 
-      <section className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <Card className="min-w-0 max-w-full">
-          <CardHeader>
-            <CardTitle>{isJob ? tJobs('overview.priceSummary') : t('contractSummary')}</CardTitle>
-          </CardHeader>
-          <CardContent className="flex min-w-0 flex-col gap-2 text-sm">
-            {canReadFinancials && detail.currentContractValue ? (
-              <>
-                {!isJob && showEntryBaseline && displayOriginalNet ? (
-                  <div className="flex min-w-0 justify-between gap-2">
-                    <span className="min-w-0 break-words text-[var(--pf-text-secondary)]">
-                      {t('displayOriginalValue')}
-                    </span>
-                    <span className="min-w-0 max-w-[55%] overflow-x-auto text-end">
-                      <MoneyText value={displayOriginalNet} />
-                    </span>
-                  </div>
-                ) : null}
-                {!isJob && showEntryBaseline && openingReductionNet ? (
-                  <div className="flex min-w-0 justify-between gap-2">
-                    <span className="min-w-0 break-words text-[var(--pf-text-secondary)]">
-                      {t('openingReductionValue')}
-                    </span>
-                    <span className="min-w-0 max-w-[55%] overflow-x-auto text-end">
-                      <MoneyText value={openingReductionNet} />
-                    </span>
-                  </div>
-                ) : null}
-                {!isJob && originalEvent ? (
-                  <div className="flex min-w-0 justify-between gap-2">
-                    <span className="min-w-0 break-words text-[var(--pf-text-secondary)]">
-                      {t('originalValue')}
-                    </span>
-                    <span className="min-w-0 max-w-[55%] overflow-x-auto text-end">
-                      <MoneyText
-                        value={{
-                          amount: originalEvent.amount,
-                          currency: originalEvent.currency,
-                        }}
-                      />
-                    </span>
-                  </div>
-                ) : null}
-                {!isJob && approvedChanges ? (
-                  <div className="flex min-w-0 justify-between gap-2">
-                    <span className="min-w-0 break-words text-[var(--pf-text-secondary)]">
-                      {t('approvedChanges')}
-                    </span>
-                    <span className="min-w-0 max-w-[55%] overflow-x-auto text-end">
-                      <MoneyText value={approvedChanges} />
-                    </span>
-                  </div>
-                ) : null}
-                <div className="flex min-w-0 justify-between gap-2 font-medium">
-                  <span className="min-w-0 break-words">
-                    {isJob ? tJobs('pricing.priceLabel') : t('currentValue')}
-                  </span>
-                  <span className="min-w-0 max-w-[55%] overflow-x-auto text-end">
-                    <MoneyText value={detail.currentContractValue} />
-                  </span>
-                </div>
-              </>
-            ) : (
-              <>
-                <p>{isJob ? tJobs('pricing.priceNotSet') : t('noContractYet')}</p>
-                <CardDescription>
-                  {isJob ? tJobs('overview.noPriceHint') : t('noContractHint')}
-                </CardDescription>
-              </>
-            )}
-          </CardContent>
-        </Card>
-
-        {canReadFinancials ? (
-          <Suspense fallback={<SkeletonText lines={8} />}>
-            <ProjectOwnerActualExperience projectId={detail.project.id} variant="overview" />
-          </Suspense>
-        ) : null}
-
-        {canReadFinancials ? (
+      <section className="grid min-w-0 grid-cols-1 gap-4">
+        {schedule ? (
+          <ScheduleSummaryPanel summary={schedule} projectId={detail.project.id} />
+        ) : (
           <Card className="min-w-0 max-w-full">
-            <CardHeader>
-              <CardTitle>{t('financialSnapshot')}</CardTitle>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base">{t('summaryTitle')}</CardTitle>
             </CardHeader>
-            <CardContent className="flex min-w-0 flex-col gap-2 text-sm">
-              {preloadedFinancials && financialSnapshotT ? (
-                <ProjectFinancialsSnapshotView
-                  financials={preloadedFinancials}
-                  canReadProfit={preloadedCanReadProfit}
-                  t={financialSnapshotT}
-                />
-              ) : (
-                <Suspense fallback={<SkeletonText lines={3} />}>
-                  <ProjectFinancialsSnapshot projectId={detail.project.id} />
-                </Suspense>
-              )}
+            <CardContent className="text-sm">
+              <div className="flex min-w-0 justify-between gap-2">
+                <span className="text-[var(--pf-text-secondary)]">{t('datesLabel')}</span>
+                <span className="min-w-0 text-end tabular-nums" dir="ltr">
+                  {dateRange}
+                </span>
+              </div>
             </CardContent>
           </Card>
-        ) : null}
+        )}
       </section>
 
-      {canReadFinancials && !isJob ? (
-        <Suspense fallback={<SkeletonText lines={2} />}>
-          <BillingPlanStatusStrip projectId={detail.project.id} />
-        </Suspense>
-      ) : null}
+      {financialSummary}
 
-      {!isJob ? (
-        <Suspense fallback={<SkeletonText lines={3} />}>
-          <ProjectOverviewLatest projectId={detail.project.id} />
-        </Suspense>
-      ) : null}
-
-      {!isJob
-        ? (milestonesSlot ?? (
-            <MilestonesPanel
-              projectId={detail.project.id}
-              milestones={detail.milestones.map((row) => ({
-                id: row.id,
-                name: row.name,
-                targetDate: row.targetDate,
-                status: row.status,
-                archivedAt: row.archivedAt,
-              }))}
-              canEdit={canEdit}
-              today={todayInTimeZone(organizationTimezone)}
-            />
-          ))
-        : null}
-
-      {canReadFinancials && !isJob ? (
-        <OverviewContractHistorySuspense
-          projectId={detail.project.id}
-          locale={locale}
-          currency={currency}
-        />
-      ) : null}
-
-      {canReadFinancials && !isJob ? (
-        <Suspense fallback={<SkeletonText lines={4} />}>
-          <ProjectContractsPanel projectId={detail.project.id} currency={currency} />
-        </Suspense>
-      ) : null}
-
-      {!isJob ? (
-        <Suspense fallback={<SkeletonText lines={3} />}>
-          <OverviewNextGenPanel
-            projectId={detail.project.id}
-            canReadFinancials={canReadFinancials}
-          />
-        </Suspense>
+      {canReadFinancials ? (
+        <p className="text-sm">
+          <Link href={moneyHref} className={textNavLinkClassName} prefetch={false}>
+            {t('openFinancialsHub')}
+          </Link>
+        </p>
       ) : null}
     </div>
   );

@@ -115,6 +115,13 @@
       "warranty": "Warranty",
       "details": "Details"
     },
+    "hubs": {
+      "overview": "Overview",
+      "money": "Money",
+      "work": "Work",
+      "documents": "Documents",
+      "details": "Details"
+    },
     "links": {
       "navLabel": "Project workspace",
       "title": "Workspace",
@@ -240,6 +247,9 @@
     "financialSnapshot": "Financial snapshot",
     "noContractYet": "No contract value recorded yet",
     "noContractHint": "Add an original contract value in project details when you are ready.",
+    "summaryTitle": "Summary",
+    "datesLabel": "Dates",
+    "openFinancialsHub": "Full financial details →",
     "valueEvents": "Contract value history",
     "eventKind": {
       "original": "Original",

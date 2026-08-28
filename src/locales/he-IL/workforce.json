@@ -31,6 +31,7 @@
       "hireDate": "תחילת עבודה",
       "employmentStyle": "איך מבוטא התעריף",
       "currentRate": "תעריף נוכחי",
+      "employerCost": "עלות מעסיק",
       "status": "סטטוס"
     },
     "empty": {
@@ -183,6 +184,7 @@
     "hoursAbbrev": "ש׳",
     "nonProject": "לא פרויקט",
     "unknownProject": "פרויקט לא ידוע",
+    "defaultWorkPackageName": "כללי",
     "noCost": "אין תעריף לתאריך",
     "status": {
       "recorded": "רשום",

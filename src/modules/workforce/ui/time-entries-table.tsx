@@ -22,6 +22,7 @@ import {
   approvalShape,
   entryTargetLine,
   formatHoursWithUnit,
+  formatWorkPackageDisplayName,
   resolveTimeEntryStatusLabel,
 } from './time-entry-display';
 import { TimeEntriesMobileList } from './time-entries-mobile-list';
@@ -110,7 +111,9 @@ export async function TimeEntriesTable({
                       <TableCell>
                         {desktopTarget(entry)}
                         {entry.workPackageName && !projectScoped && entry.kind === 'project' ? (
-                          <p className="text-xs text-[var(--pf-text-muted)]">{entry.workPackageName}</p>
+                          <p className="text-xs text-[var(--pf-text-muted)]">
+                            {formatWorkPackageDisplayName(entry.workPackageName, t)}
+                          </p>
                         ) : null}
                       </TableCell>
                       <TableCell>

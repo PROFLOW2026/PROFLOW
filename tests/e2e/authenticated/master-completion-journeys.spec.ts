@@ -1,6 +1,10 @@
 import { expect, test } from '@playwright/test';
 import { he } from '../fixtures/locales';
 import { clickNavLink } from '../fixtures/nav';
+import {
+  expectProjectHeading,
+  gotoProjectTab,
+} from '../fixtures/project-workspace';
 import { loadWorld } from '../fixtures/world';
 
 /**
@@ -38,12 +42,10 @@ test.describe('master completion owner journeys', () => {
 
   test('project Team + Schedule tabs; schedule ≠ details', async ({ page }) => {
     const world = loadWorld();
-    await page.goto(`/he-IL/projects/${world.projectId}`);
+    await gotoProjectTab(page, world.projectId, 'team');
+    await expect(page).toHaveURL(/tab=team/);
 
-    await expect(page.getByRole('tab', { name: he.projects.workspace.tabs.team })).toBeVisible();
-    const scheduleTab = page.getByRole('tab', { name: he.projects.workspace.tabs.schedule });
-    await expect(scheduleTab).toBeVisible();
-    await scheduleTab.click();
+    await gotoProjectTab(page, world.projectId, 'schedule');
     await expect(page).toHaveURL(/tab=schedule/);
     await expect(page.getByRole('heading', { name: 'תכנון ולוח זמנים' })).toBeVisible();
     await expect(page.getByRole('textbox', { name: he.common.labels.name, exact: true })).toHaveCount(0);
@@ -136,12 +138,11 @@ test.describe('master completion owner journeys', () => {
     await expect(page.getByRole('heading', { name: 'זיכויי ספק', exact: true })).toBeVisible();
 
     const world = loadWorld();
-    await page.goto(`/he-IL/projects/${world.projectId}`);
-    const budgetTab = page.getByRole('tab', { name: 'תקציב' });
-    if ((await budgetTab.count()) > 0) {
-      await budgetTab.click();
+    await gotoProjectTab(page, world.projectId, 'budgets');
+    const budgetHeading = page.getByRole('heading', { name: /תקציב/ });
+    if ((await budgetHeading.count()) > 0) {
       await expect(page).toHaveURL(/tab=budgets/);
-      await expect(page.getByRole('heading', { name: /תקציב/ }).first()).toBeVisible();
+      await expect(budgetHeading.first()).toBeVisible();
     }
   });
 });

@@ -39,38 +39,42 @@ describe('settings section grouping', () => {
       'profile',
       'tax',
       'numbering',
-      'app',
-      'approvals',
       'features',
       'costCategories',
       'businessCatalogs',
       'templates',
+      'approvals',
       'catalog',
       'roles',
       'customFields',
       'forms',
-      'activity',
-      'offlineDrafts',
       'banking',
       'integrations',
-      'api',
+      'activity',
+      'offlineDrafts',
+      'app',
     ]);
 
-    expect(listed.find((s) => s.key === 'business')?.group).toBe('basic');
-    expect(listed.find((s) => s.key === 'branding')?.group).toBe('basic');
+    expect(listed.find((s) => s.key === 'business')?.group).toBe('myBusiness');
+    expect(listed.find((s) => s.key === 'branding')?.group).toBe('myBusiness');
     expect(listed.find((s) => s.key === 'branding')?.href).toBe('/settings/branding');
-    expect(listed.find((s) => s.key === 'features')?.group).toBe('business');
+    expect(listed.find((s) => s.key === 'features')?.group).toBe('workflow');
     expect(listed.find((s) => s.key === 'customFields')?.group).toBe('advanced');
-    expect(listed.find((s) => s.key === 'api')?.group).toBe('developers');
+    expect(listed.find((s) => s.key === 'app')?.group).toBe('advanced');
+    expect(SETTINGS_SECTIONS.find((s) => s.key === 'api')?.group).toBe('developers');
+    expect(SETTINGS_SECTIONS.find((s) => s.key === 'api')?.hideFromNav).toBe(true);
   });
 
-  it('hides portal from accessibleSections while keeping direct-URL access', () => {
+  it('hides portal and api from static nav while keeping direct-URL access', () => {
     const context = contextWith([PERMISSIONS.PORTAL_MANAGE, PERMISSIONS.ORG_READ]);
     const portal = SETTINGS_SECTIONS.find((section) => section.key === 'portal')!;
+    const api = SETTINGS_SECTIONS.find((section) => section.key === 'api')!;
 
     expect(portal.hideFromNav).toBe(true);
+    expect(api.hideFromNav).toBe(true);
     expect(canAccessSection(context, portal)).toBe(true);
     expect(accessibleSections(context).some((section) => section.key === 'portal')).toBe(false);
+    expect(accessibleSections(context).some((section) => section.key === 'api')).toBe(false);
     expect(accessibleSections(context).some((section) => section.key === 'business')).toBe(true);
   });
 

@@ -173,6 +173,12 @@ export const createExpenseAdjustmentSchema = expenseFieldsSchema.extend({
   reverseOriginal: z.boolean().optional(),
 });
 
+export const expenseAttentionFilterSchema = z.enum([
+  'project_allocation',
+  'classification',
+  'approval',
+]);
+
 export const listExpensesSchema = z.object({
   dateFrom: z
     .string()
@@ -186,6 +192,11 @@ export const listExpensesSchema = z.object({
   costFamily: costFamilySchema.optional(),
   costCategoryId: z.string().uuid().optional(),
   status: z.enum(['draft', 'finalized', 'void']).optional(),
+  attention: expenseAttentionFilterSchema.optional(),
+  unallocated: z
+    .string()
+    .optional()
+    .transform((value) => value === 'true' || value === '1'),
   limit: z.coerce.number().int().min(1).max(200).optional(),
   offset: z.coerce.number().int().min(0).optional(),
 });

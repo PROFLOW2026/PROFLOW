@@ -271,7 +271,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
     iconKey: 'vendors',
     permission: PERMISSIONS.VENDORS_READ,
     module: 'vendors',
-    moreGroup: 'operations',
+    moreGroup: 'purchasing',
   },
   {
     key: 'subcontracts',
@@ -280,7 +280,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
     iconKey: 'subcontracts',
     permission: PERMISSIONS.VENDORS_READ,
     module: 'vendors',
-    moreGroup: 'operations',
+    moreGroup: 'purchasing',
   },
   {
     key: 'workforce',
@@ -366,7 +366,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
     iconKey: 'procurement',
     permission: PERMISSIONS.PROCUREMENT_READ,
     module: 'procurement',
-    moreGroup: 'operations',
+    moreGroup: 'purchasing',
   },
   {
     key: 'procurementRfqs',
@@ -375,7 +375,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
     iconKey: 'procurement',
     permission: PERMISSIONS.PROCUREMENT_READ,
     module: 'procurement',
-    moreGroup: 'operations',
+    moreGroup: 'purchasing',
   },
   {
     key: 'vendorBills',
@@ -394,7 +394,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
     iconKey: 'materials',
     permission: PERMISSIONS.MATERIALS_READ,
     module: 'materials',
-    moreGroup: 'operations',
+    moreGroup: 'purchasing',
   },
   {
     key: 'fieldOps',
@@ -519,6 +519,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
     href: '/settings',
     labelKey: 'settings',
     iconKey: 'settings',
+    moreGroup: 'advanced',
   },
 ];
 
@@ -580,7 +581,7 @@ export function applyExperienceNavLayout(
 
   return items.map((item) => {
     if (item.key === 'settings') {
-      return { ...item, moreGroup: undefined, primaryOnMobile: false };
+      return { ...item, moreGroup: 'advanced' as const, primaryOnMobile: false };
     }
 
     const mappedGroup = NAV_KEY_TO_EXPERIENCE_GROUP[item.key] ?? 'advanced';
@@ -595,8 +596,19 @@ export function applyExperienceNavLayout(
       group = 'advanced';
     }
 
-    if (item.key === 'today' || item.key === 'dashboard') {
+    if (item.key === 'dashboard') {
       return { ...item, moreGroup: undefined, primaryOnMobile: true };
+    }
+
+    if (item.key === 'today') {
+      const todayPrimary =
+        primaryKeys.includes('today') &&
+        !demoteSet.has('today') &&
+        persona !== 'project_contractor';
+      if (todayPrimary) {
+        return { ...item, moreGroup: undefined, primaryOnMobile: true };
+      }
+      return { ...item, moreGroup: 'work' as const, primaryOnMobile: false };
     }
 
     if (isPrimary && primaryKeys.indexOf(item.key) >= 0 && primaryKeys.indexOf(item.key) < 4) {
@@ -656,21 +668,19 @@ export interface NavItemGroup {
 
 /**
  * Partitions visible nav for sidebar / More sheet:
- * core (no moreGroup, not settings) → business/operations/advanced → settings last.
+ * core (no moreGroup) → experience groups (including settings under advanced).
  */
 export function partitionNavItems(items: readonly NavItem[]): {
   core: NavItem[];
   groups: NavItemGroup[];
-  settings: NavItem[];
 } {
-  const settings = items.filter((item) => item.key === 'settings');
-  const core = items.filter((item) => !item.moreGroup && item.key !== 'settings');
+  const core = items.filter((item) => !item.moreGroup);
   const groups = MORE_GROUP_ORDER.map((group) => ({
     group,
     items: items.filter((item) => item.moreGroup === group),
   })).filter((entry) => entry.items.length > 0);
 
-  return { core, groups, settings };
+  return { core, groups };
 }
 
 /**

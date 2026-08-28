@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { PageHeader } from '@/components/ui/page-header';
+import { ContextualBackLink } from '@/components/ui/contextual-back-link';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { ResponsiveTable } from '@/components/patterns/responsive-table';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -76,6 +77,11 @@ export default async function RecurringDraftDetailPage({
         description={
           isMonthlyExpense ? t('detail.monthlyBusinessExpense') : t('detail.title')
         }
+        breadcrumb={
+          <ContextualBackLink href="/recurring-drafts">
+            {t('backToRecurringExpenses')}
+          </ContextualBackLink>
+        }
         meta={
           <StatusBadge shape={draftStatusShape(draft.status)} label={t(`status.${draft.status}`)} />
         }
@@ -86,9 +92,6 @@ export default async function RecurringDraftDetailPage({
                 {t('detail.edit')}
               </Link>
             ) : null}
-            <Link href="/recurring-drafts" className={textNavLinkClassName}>
-              {t('detail.backToList')}
-            </Link>
           </div>
         }
       />

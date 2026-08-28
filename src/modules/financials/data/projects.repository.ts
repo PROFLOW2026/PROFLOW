@@ -57,6 +57,22 @@ export async function listRecentActiveProjects(
   }));
 }
 
+/** Lightweight client names for dashboard project table (no financial batch). */
+export async function loadActiveProjectClientNames(
+  db: DbExecutor,
+  organizationId: string,
+): Promise<Map<string, string | null>> {
+  const rows = sqlRows<{ id: string; client_name: string | null }>(await db.execute(sql`
+    select p.id, c.name as client_name
+    from projects p
+    left join clients c on c.id = p.client_id
+    where p.organization_id = ${organizationId}
+      and p.archived_at is null
+      and p.status = 'active'
+  `));
+  return new Map(rows.map((row) => [row.id, row.client_name]));
+}
+
 export async function countActiveProjects(
   db: DbExecutor,
   organizationId: string,

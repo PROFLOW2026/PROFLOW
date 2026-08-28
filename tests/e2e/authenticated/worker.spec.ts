@@ -6,6 +6,11 @@ import {
   expectNavLinkVisible,
   mainNav,
 } from '../fixtures/nav';
+import {
+  expectProjectHeading,
+  gotoProjectTab,
+  projectHubs,
+} from '../fixtures/project-workspace';
 import { loadWorld } from '../fixtures/world';
 
 const world = loadWorld();
@@ -48,13 +53,13 @@ test.describe('worker permission gating', () => {
     // flakes before layout chrome settles; tab visibility is what we assert.
     await page.goto(`/he-IL/projects/${world.projectId}`);
 
-    await expect(page.getByRole('heading', { name: seededProjectName })).toBeVisible({
-      timeout: 30_000,
-    });
+    await expectProjectHeading(page, seededProjectName);
     await expect(page.getByRole('tablist')).toBeVisible();
     await expect(page.getByRole('tab', { name: he.projects.workspace.tabs.financials })).toHaveCount(0);
-    await expect(page.getByRole('tab', { name: he.projects.workspace.tabs.expenses })).toBeVisible();
-    await expect(page.getByRole('tab', { name: he.projects.workspace.tabs.details })).toBeVisible();
+    await expect(page.getByRole('tab', { name: he.projects.workspace.hubs.money })).toBeVisible();
+    await expect(page.getByRole('tab', { name: he.projects.workspace.hubs.details })).toBeVisible();
+    await gotoProjectTab(page, world.projectId, 'expenses');
+    await expect(page.getByText('כבלים וחומרי חשמל').first()).toBeVisible({ timeout: 20_000 });
     await expect(page.getByText(contractValueFormatted)).toHaveCount(0);
   });
 
