@@ -54,8 +54,11 @@
   },
   "create": {
     "title": "טיוטה חוזרת חדשה",
+    "fixedExpenseTitle": "הוספת הוצאה קבועה",
     "description": "להוצאה חודשית קבועה בחרו הוצאה + חודשי. שינוי סכום שומר היסטוריה לחודשים קודמים.",
-    "submit": "שמירת תבנית"
+    "fixedExpenseDescription": "הגדירו הוצאה חודשית קבועה: שכירות, תוכנה וכדומה.",
+    "submit": "שמירת תבנית",
+    "fixedExpenseSubmit": "שמירת הוצאה קבועה"
   },
   "edit": {
     "title": "עריכת טיוטה חוזרת",
@@ -64,20 +67,62 @@
   "detail": {
     "title": "טיוטה חוזרת",
     "monthlyBusinessExpense": "הוצאה חודשית קבועה",
+    "monthlyFixedExpense": "הוצאה קבועה חודשית",
     "schedule": "לוח זמנים",
-    "payload": "תצוגה מקדימה של הטיוטה",
+    "payload": "פרטי ההוצאה",
     "history": "היסטוריית יצירה",
+    "generatedExpenses": "הוצאות שנוצרו",
     "amountHistory": "היסטוריית סכומים",
-    "noHistory": "עדיין לא נוצרו טיוטות.",
+    "noHistory": "עדיין לא נוצרו הוצאות.",
     "noAmountHistory": "עדיין אין גרסאות סכום.",
-    "openEntity": "פתיחת הטיוטה",
+    "openEntity": "פתיחת ההוצאה",
     "lastGenerated": "יצירה אחרונה",
-    "neverGenerated": "עדיין לא נוצרה טיוטה",
+    "neverGenerated": "עדיין לא נוצרה הוצאה",
     "draftOnlyNote": "יצירה עכשיו מייצרת טיוטה תחילה. חשבוניות ספק וחיובים לא נסגרים אוטומטית.",
+    "draftOnlySimple": "הוצאות חדשות נוצרות כטיוטה לבדיקה.",
     "autoFinalizeNote": "תבנית זו סוגרת הוצאות אוטומטית כשהחודש התפעולי פתוח. בחודש סגור נשארת טיוטה.",
+    "autoFinalizeSimple": "נוצר אוטומטית כהוצאה",
+    "statusLabel": "סטטוס",
     "backToList": "כל הטיוטות החוזרות",
-    "edit": "עריכת תבנית",
-    "intervalLabel": "כל {count, plural, =1 {מחזור אחד} other {# מחזורים}}"
+    "edit": "עריכה",
+    "intervalLabel": "כל {count, plural, =1 {מחזור אחד} other {# מחזורים}}",
+    "occurrenceStatus": "סטטוס"
+  },
+  "occurrenceOutcome": {
+    "finalized": "נרשם בפועל",
+    "draft": "טיוטה לבדיקה",
+    "blocked_closed": "לא נרשם בפועל: החודש סגור"
+  },
+  "historyResult": {
+    "created": "נוצרו {count, plural, =1 {הוצאה אחת} other {# הוצאות}}.",
+    "partial": "נוצרו {finalized, plural, =1 {הוצאה אחת} other {# הוצאות}}. {closed, plural, =1 {חודש אחד סגור ולא שונה} other {# חודשים סגורים ולא שונו}}."
+  },
+  "destination": {
+    "project": "פרויקט",
+    "general": "הוצאה כללית של העסק",
+    "shared": "עלות משותפת"
+  },
+  "retro": {
+    "createPast": "ליצור גם את ההוצאות הקודמות עד היום",
+    "preview": "ייווצרו גם {count, plural, =1 {הוצאה אחת} other {# הוצאות}} עבור {from}-{to}"
+  },
+  "pastExpenses": {
+    "title": "הוצאות קודמות",
+    "missing": "חסרות {count, plural, =1 {הוצאה אחת} other {# הוצאות}} עבור {from}-{to}",
+    "create": "יצירת ההוצאות החסרות",
+    "creating": "יוצר…",
+    "created": "ההוצאות החסרות נוצרו.",
+    "upToDate": "הכל מעודכן"
+  },
+  "advanced": {
+    "title": "אפשרויות מתקדמות",
+    "creationMode": "אופן יצירה",
+    "automaticLabel": "ליצור אוטומטית כהוצאה",
+    "automaticHint": "ברירת המחדל: ההוצאה נרשמת ישירות לפי התבנית, בלי אישור חודשי.",
+    "draftLabel": "ליצור כטיוטה לבדיקה",
+    "draftHint": "כל מופע נשאר טיוטה עד שתאשרו אותו ידנית.",
+    "autoFinalizeLabel": "יצירה אוטומטית כהוצאה",
+    "autoFinalizeHint": "כשהחודש פתוח, ההוצאה נרשמת ישירות. בחודש סגור נשארת טיוטה."
   },
   "historyBackfill": {
     "title": "השלמת חודשים חסרים",
@@ -88,10 +133,12 @@
   },
   "fields": {
     "title": "כותרת",
+    "expenseTitle": "שם ההוצאה",
     "kind": "סוג",
     "frequency": "תדירות",
     "intervalCount": "כל כמה מחזורים",
-    "nextRunDate": "תאריך היצירה הבאה",
+    "nextRunDate": "הרצה הבאה",
+    "startDate": "תאריך התחלה",
     "endDate": "תאריך סיום",
     "amount": "סכום",
     "vatMode": "מע״מ",
@@ -115,8 +162,15 @@
     "overhead": "הוצאות כלליות (בלי פרויקט)",
     "draftStatus": "טיוטה",
     "managerialCostKind": "ייחוס עלות",
+    "costCategory": "קטגוריית עלות",
     "autoFinalizeExpense": "סגירת הוצאה אוטומטית",
-    "autoFinalizeExpenseHint": "כשהחודש פתוח, הוצאות שנוצרו נרשמות כעלות בפועל. בחודש סגור נשארת טיוטה."
+    "autoFinalizeExpenseHint": "כשהחודש פתוח, הוצאות שנוצרו נרשמות כעלות בפועל. בחודש סגור נשארת טיוטה.",
+    "destination": "לאן ההוצאה שייכת"
+  },
+  "vatMode": {
+    "inclusive": "כולל מע״מ",
+    "exclusive": "לפני מע״מ",
+    "zero": "ללא מע״מ"
   },
   "actions": {
     "pause": "השהיה",
@@ -156,6 +210,7 @@
     "directProjectRequiresProject": "הוצאה חוזרת ישירה לפרויקט דורשת פרויקט.",
     "managerialCostExpenseOnly": "ייחוס עלות חל רק על תבניות הוצאה.",
     "historyMonthlyOnly": "השלמת היסטוריה זמינה רק לתבניות חודשיות.",
-    "historyRangeTooLarge": "בחרו טווח חודשים קצר יותר (עד 240 חודשים)."
+    "historyRangeTooLarge": "בחרו טווח חודשים קצר יותר (עד 240 חודשים).",
+    "categoryRequiredForActual": "יש לבחור קטגוריית עלות לפני שניתן ליצור את ההוצאה בפועל."
   }
 }

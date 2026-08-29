@@ -1,20 +1,22 @@
 import { getTranslations } from 'next-intl/server';
 import type { StoredDraftPayload } from '../domain/types';
 import type { previewPayloadForRun } from '../domain/payload';
+import { formatSafeBusinessDate } from '../domain/safe-dates';
 
 export async function PayloadPreview({
   payload,
   preview,
+  locale,
+  categoryLabel,
 }: {
   payload: StoredDraftPayload;
   preview: ReturnType<typeof previewPayloadForRun>;
+  locale: string;
+  categoryLabel?: string | null;
 }) {
   const t = await getTranslations('recurringDrafts');
 
-  const rows: { label: string; value: string; ltr?: boolean }[] = [
-    { label: t('fields.kind'), value: t(`kind.${payload.kind}`) },
-    { label: t('fields.runDate'), value: preview.runDate, ltr: true },
-  ];
+  const rows: { label: string; value: string; ltr?: boolean }[] = [];
 
   if (preview.expense) {
     rows.push(
@@ -23,9 +25,30 @@ export async function PayloadPreview({
         value: `${preview.expense.amount} ${preview.expense.currency}`,
         ltr: true,
       },
-      { label: t('fields.description'), value: preview.expense.description?.trim() || t('fields.none') },
-      { label: t('fields.supplierName'), value: preview.expense.supplierName?.trim() || t('fields.none') },
+      {
+        label: t('fields.description'),
+        value: preview.expense.description?.trim() || t('fields.none'),
+      },
+      {
+        label: t('fields.supplierName'),
+        value: preview.expense.supplierName?.trim() || t('fields.none'),
+      },
+      {
+        label: t('fields.costCategory'),
+        value: categoryLabel?.trim() || t('fields.none'),
+      },
+      {
+        label: t('fields.vatMode'),
+        value: t(`vatMode.${preview.expense.vatMode ?? 'inclusive'}`),
+      },
     );
+    if (preview.expense.costFamily === 'business_overhead') {
+      rows.push({ label: t('fields.destination'), value: t('destination.general') });
+    } else if (preview.expense.costFamily === 'shared') {
+      rows.push({ label: t('fields.destination'), value: t('destination.shared') });
+    } else if (preview.expense.projectId) {
+      rows.push({ label: t('fields.destination'), value: t('destination.project') });
+    }
   }
   if (preview.vendorBill) {
     rows.push(
@@ -51,6 +74,16 @@ export async function PayloadPreview({
       { label: t('fields.reference'), value: preview.billing.reference?.trim() || t('fields.none') },
     );
   }
+
+  if (rows.length === 0) {
+    rows.push({ label: t('fields.kind'), value: t(`kind.${payload.kind}`) });
+  }
+
+  rows.push({
+    label: t('fields.runDate'),
+    value: formatSafeBusinessDate(preview.runDate, locale, t('fields.none')),
+    ltr: true,
+  });
 
   return (
     <dl className="grid gap-3 sm:grid-cols-2">

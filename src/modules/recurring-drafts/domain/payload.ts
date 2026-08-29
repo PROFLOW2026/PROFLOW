@@ -93,6 +93,7 @@ export function expenseInputFromPayload(
     vendorId: data.vendorId ?? null,
     projectId: data.projectId ?? null,
     costFamily: data.costFamily ?? null,
+    costCategoryId: typeof data.costCategoryId === 'string' ? data.costCategoryId : null,
     notes: data.notes ?? null,
     paymentMethod: data.paymentMethod ?? null,
     vatMode: data.vatMode ?? DEFAULT_EXPENSE_VAT_MODE,

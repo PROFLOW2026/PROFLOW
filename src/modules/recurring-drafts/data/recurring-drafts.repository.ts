@@ -26,9 +26,7 @@ import { isManagerialCostKind } from '../domain/managerial-cost';
 
 function mapManagerialCostKind(value: string | null): ManagerialCostKind | null {
   if (value == null) return null;
-  if (!isManagerialCostKind(value)) {
-    throw new Error(`Unknown managerial cost kind: ${value}`);
-  }
+  if (!isManagerialCostKind(value)) return null;
   return value;
 }
 
@@ -65,16 +63,16 @@ function mapDraft(row: typeof recurringFinancialDrafts.$inferSelect): RecurringF
 function mapRun(
   row: typeof recurringFinancialDraftRuns.$inferSelect,
 ): RecurringFinancialDraftRunRecord {
-  if (!isDraftKind(row.generatedEntityType)) {
-    throw new Error(`Unknown generated entity type: ${row.generatedEntityType}`);
-  }
+  const entityType = isDraftKind(row.generatedEntityType)
+    ? row.generatedEntityType
+    : 'expense';
   return {
     id: row.id,
     organizationId: row.organizationId,
     draftId: row.draftId,
     runDate: businessDate(row.runDate),
     occurrenceYearMonth: row.occurrenceYearMonth,
-    generatedEntityType: row.generatedEntityType,
+    generatedEntityType: entityType,
     generatedEntityId: row.generatedEntityId,
     notes: row.notes,
     createdAt: row.createdAt,

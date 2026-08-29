@@ -6,7 +6,7 @@ import {
 } from '@/modules/ap';
 import { allocateApLineMonetarySplits } from '@/modules/ap/domain/bill-line-monetary';
 import { createBillingRecord } from '@/modules/billing';
-import { createExpense, finalizeExpense } from '@/modules/expenses';
+import { createExpense, finalizeExpense, findExpenseById } from '@/modules/expenses';
 import { isMonthClosed, yearMonthFromBusinessDate } from '@/modules/month-close';
 import { AUDIT_ACTIONS, recordAuditEvent } from '@/shared/audit';
 import type { OrgContext } from '@/shared/auth/context';
@@ -27,10 +27,12 @@ import {
   withResolvedAmount,
 } from '../domain/payload';
 import { applyManagerialCostKindToExpensePayload } from '../domain/managerial-cost';
-import { resolveAmountForDate, yearMonthFromBusinessDate as draftYearMonth } from '../domain/amount-versions';
+import { resolveAmountForDate, yearMonthFromBusinessDate as draftYearMonth, firstBusinessDateOfYearMonth } from '../domain/amount-versions';
 import { bumpScheduleAfterGenerate } from '../domain/schedule';
+import type { RecurringOccurrenceOutcome } from '../domain/occurrence-outcome';
 import type {
   DraftKind,
+  ExpenseDraftPayload,
   RecurringDraftAmountVersionRecord,
   RecurringFinancialDraftRecord,
   StoredDraftPayload,
@@ -45,6 +47,7 @@ import {
 } from '../data/recurring-drafts.repository';
 import { generateRecurringDraftSchema } from '../validation/schemas';
 import { parseStoredPayload } from './parse-payload';
+import { hasExplicitRecurringCategory } from './resolve-expense-category';
 
 export interface GenerateRecurringDraftResult {
   readonly draftId: string;
@@ -53,6 +56,7 @@ export interface GenerateRecurringDraftResult {
   readonly generatedEntityType: DraftKind;
   readonly generatedEntityId: string;
   readonly generatedStatus: 'draft' | 'finalized';
+  readonly outcome: RecurringOccurrenceOutcome;
   readonly nextRunDate: string;
   readonly templateStatus: string;
   readonly finalized: boolean;
@@ -94,12 +98,50 @@ function applyResolvedPayload(
   return next;
 }
 
+function blockedOccurrenceResult(
+  draft: RecurringFinancialDraftRecord,
+  runDate: BusinessDate,
+  occurrenceYearMonth: string | null,
+  outcome: RecurringOccurrenceOutcome,
+): GenerateRecurringDraftResult {
+  return {
+    draftId: draft.id,
+    runDate,
+    occurrenceYearMonth,
+    generatedEntityType: draft.draftKind,
+    generatedEntityId: '',
+    generatedStatus: 'draft',
+    outcome,
+    nextRunDate: draft.nextRunDate,
+    templateStatus: draft.status,
+    finalized: false,
+  };
+}
+
+async function tryFinalizeRecurringExpense(
+  context: OrgContext,
+  draft: RecurringFinancialDraftRecord,
+  expenseId: string,
+  runDate: BusinessDate,
+  expensePayload: ExpenseDraftPayload,
+): Promise<RecurringOccurrenceOutcome> {
+  if (draft.draftKind !== 'expense' || !draft.autoFinalizeExpense) return 'draft';
+  if (!hasExplicitRecurringCategory(expensePayload)) return 'blocked_missing_category';
+
+  const ym = yearMonthFromBusinessDate(runDate);
+  if (await isMonthClosed(context, ym)) return 'blocked_closed';
+
+  await finalizeExpense(context, expenseId);
+  return 'finalized';
+}
+
 async function createDraftEntity(
   context: OrgContext,
   kind: DraftKind,
   payload: StoredDraftPayload,
   runDate: BusinessDate,
   templateTitle: string,
+  _draft: RecurringFinancialDraftRecord,
 ): Promise<{ id: string; status: string }> {
   switch (kind) {
     case 'expense': {
@@ -108,7 +150,7 @@ async function createDraftEntity(
         throw new DomainRuleError('Payload kind mismatch', 'recurringDrafts.errors.kindMismatch');
       }
       const input = expenseInputFromPayload(payload.data, runDate);
-      const note = `Generated from recurring draft “${templateTitle}”. Draft only.`;
+      const note = `Generated from recurring draft “${templateTitle}”.`;
       const created = await createExpense(context, {
         ...input,
         notes: [input.notes?.trim() || null, note].filter(Boolean).join('\n'),
@@ -269,6 +311,14 @@ export async function generateRecurringDraftOccurrence(
   );
   const payload = applyResolvedPayload(draft, basePayload, versions, runDate);
 
+  if (
+    draft.autoFinalizeExpense &&
+    payload.kind === 'expense' &&
+    !hasExplicitRecurringCategory(payload.data)
+  ) {
+    return blockedOccurrenceResult(draft, runDate, occurrenceYearMonth, 'blocked_missing_category');
+  }
+
   try {
     return await withTransaction(context.db, async (tx) => {
       const txContext: OrgContext = { ...context, db: tx };
@@ -278,20 +328,23 @@ export async function generateRecurringDraftOccurrence(
         payload,
         runDate,
         draft.title,
+        draft,
       );
       assertGeneratedEntityIsDraft({ kind: draft.draftKind, status: created.status });
 
       let generatedStatus: 'draft' | 'finalized' = 'draft';
       let finalized = false;
+      let outcome: RecurringOccurrenceOutcome = 'draft';
 
-      if (
-        draft.draftKind === 'expense' &&
-        draft.autoFinalizeExpense
-      ) {
-        const ym = yearMonthFromBusinessDate(runDate);
-        const closed = await isMonthClosed(txContext, ym);
-        if (!closed) {
-          await finalizeExpense(txContext, created.id);
+      if (draft.draftKind === 'expense' && payload.kind === 'expense') {
+        outcome = await tryFinalizeRecurringExpense(
+          txContext,
+          draft,
+          created.id,
+          runDate,
+          payload.data,
+        );
+        if (outcome === 'finalized') {
           generatedStatus = 'finalized';
           finalized = true;
         }
@@ -356,6 +409,7 @@ export async function generateRecurringDraftOccurrence(
         generatedEntityType: draft.draftKind,
         generatedEntityId: created.id,
         generatedStatus,
+        outcome,
         nextRunDate,
         templateStatus,
         finalized,
@@ -376,6 +430,69 @@ export async function generateRecurringDraftOccurrence(
     }
     throw error;
   }
+}
+
+/**
+ * When a month already has a generated draft expense, finalize it instead of creating a duplicate.
+ */
+export async function finalizeExistingRecurringMonthOccurrence(
+  context: OrgContext,
+  draft: RecurringFinancialDraftRecord,
+  yearMonth: string,
+): Promise<GenerateRecurringDraftResult | null> {
+  if (!draft.autoFinalizeExpense || draft.draftKind !== 'expense') return null;
+
+  const existingRun = await findRunByDraftAndYearMonth(
+    context.db,
+    context.organizationId,
+    draft.id,
+    yearMonth,
+  );
+  if (!existingRun) return null;
+
+  const expense = await findExpenseById(
+    context.db,
+    context.organizationId,
+    existingRun.generatedEntityId,
+  );
+  if (!expense || expense.status !== 'draft') return null;
+
+  const basePayload = parseStoredPayload(draft.draftKind, draft.payloadJson);
+  const versions = await listAmountVersionsForDraft(
+    context.db,
+    context.organizationId,
+    draft.id,
+  );
+  const runDate = businessDate(firstBusinessDateOfYearMonth(yearMonth));
+  const payload = applyResolvedPayload(draft, basePayload, versions, runDate);
+  if (payload.kind !== 'expense') return null;
+  if (!hasExplicitRecurringCategory(payload.data)) {
+    return blockedOccurrenceResult(draft, runDate, yearMonth, 'blocked_missing_category');
+  }
+
+  const outcome = await tryFinalizeRecurringExpense(
+    context,
+    draft,
+    expense.id,
+    runDate,
+    payload.data,
+  );
+  if (outcome === 'finalized') {
+    return {
+      draftId: draft.id,
+      runDate,
+      occurrenceYearMonth: yearMonth,
+      generatedEntityType: draft.draftKind,
+      generatedEntityId: expense.id,
+      generatedStatus: 'finalized',
+      outcome: 'finalized',
+      nextRunDate: draft.nextRunDate,
+      templateStatus: draft.status,
+      finalized: true,
+    };
+  }
+
+  return blockedOccurrenceResult(draft, runDate, yearMonth, outcome);
 }
 
 /**

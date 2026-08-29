@@ -35,8 +35,10 @@ export const expenseDraftPayloadSchema = z.object({
     .enum(['direct_project', 'shared', 'business_overhead', 'asset_capital'])
     .nullable()
     .optional(),
+  costCategoryId: z.string().uuid().nullable().optional(),
   notes: z.string().trim().max(4000).nullable().optional(),
   paymentMethod: z.string().trim().max(100).nullable().optional(),
+  vatMode: z.enum(['inclusive', 'exclusive', 'zero']).nullable().optional(),
 });
 
 export const vendorBillDraftPayloadSchema = z.object({
@@ -108,7 +110,7 @@ function refineDateRange(
 }
 
 const trueCostFieldsCreate = {
-  autoFinalizeExpense: z.boolean().optional().default(false),
+  autoFinalizeExpense: z.boolean().optional().default(true),
   managerialCostKind: z.enum(MANAGERIAL_COST_KINDS).nullable().optional(),
 };
 

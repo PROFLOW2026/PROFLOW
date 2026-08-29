@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import { PageHeader } from '@/components/ui/page-header';
 import { ContextualBackLink } from '@/components/ui/contextual-back-link';
+import { listCostCategoriesForOrg } from '@/modules/expenses';
 import { listProjectsForOrg } from '@/modules/projects';
 import { listVendorsForOrg } from '@/modules/vendors';
 import { getRecurringDraftDetail, canManageDraftKind } from '@/modules/recurring-drafts';
@@ -47,11 +48,15 @@ export default async function EditRecurringDraftPage({
       const projectRows = hasPermission(context, PERMISSIONS.PROJECTS_READ)
         ? await listProjectsForOrg(context).catch(() => [])
         : [];
+      const categoryRows = hasPermission(context, PERMISSIONS.EXPENSES_READ)
+        ? await listCostCategoriesForOrg(context).catch(() => [])
+        : [];
       return {
         forbidden: false as const,
         detail,
         vendors: vendorRows.map((vendor) => ({ id: vendor.id, name: vendor.name })),
         projects: projectRows.map((project) => ({ id: project.id, name: project.name })),
+        categories: categoryRows,
         defaultCurrency: context.organization.baseCurrency,
         defaultNextRunDate: todayInTimeZone(context.organization.timezone),
       };
@@ -66,7 +71,7 @@ export default async function EditRecurringDraftPage({
     return null;
   }
 
-  const { detail, vendors, projects, defaultCurrency, defaultNextRunDate } = loaded;
+  const { detail, vendors, projects, categories, defaultCurrency, defaultNextRunDate } = loaded;
 
   return (
     <div className="flex min-w-0 max-w-full flex-col gap-6">
@@ -95,6 +100,8 @@ export default async function EditRecurringDraftPage({
         writableKinds={[detail.draft.draftKind]}
         vendors={vendors}
         projects={projects}
+        categories={categories}
+        expenseFocused={detail.draft.draftKind === 'expense'}
         initial={{
           draftId: detail.draft.id,
           title: detail.draft.title,

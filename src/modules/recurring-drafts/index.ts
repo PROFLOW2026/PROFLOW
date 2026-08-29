@@ -92,6 +92,7 @@ export {
   recurringDraftIdSchema,
   emptyToNull,
 } from './validation/schemas';
+export { findRecurringDraftById, updateRecurringDraftById } from './data/recurring-drafts.repository';
 export type {
   CreateRecurringDraftInput,
   UpdateRecurringDraftInput,

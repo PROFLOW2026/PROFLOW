@@ -54,8 +54,11 @@
   },
   "create": {
     "title": "New recurring draft",
+    "fixedExpenseTitle": "Add fixed expense",
     "description": "For a fixed monthly business expense, choose Expense + Monthly. Amount changes keep history for past months.",
-    "submit": "Save template"
+    "fixedExpenseDescription": "Set up a recurring monthly expense — rent, software, and similar.",
+    "submit": "Save template",
+    "fixedExpenseSubmit": "Save fixed expense"
   },
   "edit": {
     "title": "Edit recurring draft",
@@ -64,20 +67,62 @@
   "detail": {
     "title": "Recurring draft",
     "monthlyBusinessExpense": "Fixed monthly business expense",
+    "monthlyFixedExpense": "Fixed monthly expense",
     "schedule": "Schedule",
-    "payload": "Draft preview",
+    "payload": "Expense details",
     "history": "Generation history",
+    "generatedExpenses": "Generated expenses",
     "amountHistory": "Amount history",
-    "noHistory": "No drafts generated yet.",
+    "noHistory": "No expenses generated yet.",
     "noAmountHistory": "No amount versions yet.",
-    "openEntity": "Open draft",
+    "openEntity": "Open expense",
     "lastGenerated": "Last generated",
     "neverGenerated": "Not generated yet",
     "draftOnlyNote": "Generate now creates a draft first. Vendor bills and billing are never auto-posted.",
+    "draftOnlySimple": "New expenses are created as drafts for review.",
     "autoFinalizeNote": "This template auto-finalizes expenses when the operational month is open. Closed months stay as drafts.",
+    "autoFinalizeSimple": "Created automatically as expense",
+    "statusLabel": "Status",
     "backToList": "All recurring drafts",
-    "edit": "Edit template",
-    "intervalLabel": "Every {count, plural, =1 {one cycle} other {# cycles}}"
+    "edit": "Edit",
+    "intervalLabel": "Every {count, plural, =1 {one cycle} other {# cycles}}",
+    "occurrenceStatus": "Status"
+  },
+  "occurrenceOutcome": {
+    "finalized": "Recorded as actual",
+    "draft": "Draft for review",
+    "blocked_closed": "Not recorded — month is closed"
+  },
+  "historyResult": {
+    "created": "{count, plural, =1 {One expense was created} other {# expenses were created}}.",
+    "partial": "{finalized, plural, =1 {One expense was created} other {# expenses were created}}. {closed, plural, =1 {One closed month was left unchanged} other {# closed months were left unchanged}}."
+  },
+  "destination": {
+    "project": "Project",
+    "general": "General business expense",
+    "shared": "Shared cost"
+  },
+  "retro": {
+    "createPast": "Also create past expenses through today",
+    "preview": "{count, plural, =1 {One expense} other {# expenses}} will be created for {from}–{to}"
+  },
+  "pastExpenses": {
+    "title": "Past expenses",
+    "missing": "{count, plural, =1 {One missing expense} other {# missing expenses}} for {from}–{to}",
+    "create": "Create missing expenses",
+    "creating": "Creating…",
+    "created": "Missing expenses were created.",
+    "upToDate": "Everything is up to date"
+  },
+  "advanced": {
+    "title": "Advanced options",
+    "creationMode": "Creation mode",
+    "automaticLabel": "Create automatically as expense",
+    "automaticHint": "Default — each occurrence is recorded directly without monthly approval.",
+    "draftLabel": "Create as draft for review",
+    "draftHint": "Each occurrence stays a draft until you approve it manually.",
+    "autoFinalizeLabel": "Create automatically as expense",
+    "autoFinalizeHint": "When the month is open, the expense is recorded directly. Closed months stay as drafts."
   },
   "historyBackfill": {
     "title": "Backfill missing months",
@@ -88,10 +133,12 @@
   },
   "fields": {
     "title": "Title",
+    "expenseTitle": "Expense name",
     "kind": "Type",
     "frequency": "Frequency",
     "intervalCount": "Every N periods",
-    "nextRunDate": "Next generation date",
+    "nextRunDate": "Next run",
+    "startDate": "Start date",
     "endDate": "End date",
     "amount": "Amount",
     "vatMode": "VAT",
@@ -115,8 +162,15 @@
     "overhead": "General business costs (no project)",
     "draftStatus": "Draft",
     "managerialCostKind": "Cost attribution",
+    "costCategory": "Cost category",
     "autoFinalizeExpense": "Auto-finalize expense",
-    "autoFinalizeExpenseHint": "When the month is open, generated expenses become Actual automatically. Closed months remain draft."
+    "autoFinalizeExpenseHint": "When the month is open, generated expenses become Actual automatically. Closed months remain draft.",
+    "destination": "Expense destination"
+  },
+  "vatMode": {
+    "inclusive": "VAT inclusive",
+    "exclusive": "VAT exclusive",
+    "zero": "No VAT"
   },
   "actions": {
     "pause": "Pause",
@@ -156,6 +210,7 @@
     "directProjectRequiresProject": "Direct project recurring expenses require a project.",
     "managerialCostExpenseOnly": "Cost attribution applies only to expense templates.",
     "historyMonthlyOnly": "History backfill is only for monthly templates.",
-    "historyRangeTooLarge": "Choose a shorter month range (max 240 months)."
+    "historyRangeTooLarge": "Choose a shorter month range (max 240 months).",
+    "categoryRequiredForActual": "Choose a cost category before actual expenses can be generated."
   }
 }

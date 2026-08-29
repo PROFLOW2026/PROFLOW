@@ -36,7 +36,14 @@ import {
   openInitialAmountVersion,
   rotateAmountVersionIfChanged,
 } from './amount-versions';
+import { generateRecurringDraftHistory } from './generate-history';
+import type { HistoryOutcomeSummary } from '../domain/occurrence-outcome';
 import { parseStoredPayload } from './parse-payload';
+import { hasExplicitRecurringCategory } from './resolve-expense-category';
+import {
+  nextRunDateAfterRetro,
+  retroMonthRangeFromStart,
+} from '../domain/missing-months';
 
 async function requireDraft(
   context: OrgContext,
@@ -80,8 +87,11 @@ function shapeExpensePayloadForManagerial(
 
 export async function createRecurringDraft(
   context: OrgContext,
-  raw: CreateRecurringDraftInput,
-): Promise<RecurringFinancialDraftRecord> {
+  raw: CreateRecurringDraftInput & { readonly generateRetroMonths?: boolean },
+): Promise<{
+  readonly draft: RecurringFinancialDraftRecord;
+  readonly retroSummary: HistoryOutcomeSummary | null;
+}> {
   const parsed = createRecurringDraftSchema.safeParse(raw);
   if (!parsed.success) {
     throw new ValidationError(
@@ -98,10 +108,18 @@ export async function createRecurringDraft(
     input.managerialCostKind ?? null,
   );
   const autoFinalizeExpense =
-    input.draftKind === 'expense' ? Boolean(input.autoFinalizeExpense) : false;
+    input.draftKind === 'expense'
+      ? input.autoFinalizeExpense !== false
+      : false;
 
   let payload = parseStoredPayload(input.draftKind, stripFinalizeFlag(input.payload));
   payload = shapeExpensePayloadForManagerial(payload, managerialCostKind);
+  if (input.draftKind === 'expense' && payload.kind === 'expense' && !hasExplicitRecurringCategory(payload.data)) {
+    throw new ValidationError(
+      [{ path: 'costCategoryId', message: 'Cost category is required' }],
+      'Cost category is required',
+    );
+  }
   const stored = payload.data;
 
   const draft = await insertRecurringDraft(context.db, {
@@ -143,7 +161,35 @@ export async function createRecurringDraft(
     },
   });
 
-  return draft;
+  let retroSummary: HistoryOutcomeSummary | null = null;
+
+  if (
+    raw.generateRetroMonths &&
+    draft.draftKind === 'expense' &&
+    draft.frequency === 'monthly'
+  ) {
+    const today = todayInTimeZone(context.organization.timezone);
+    const range = retroMonthRangeFromStart(draft.nextRunDate, today, draft.endDate);
+    if (range && range.count > 0) {
+      const history = await generateRecurringDraftHistory(context, draft.id, {
+        fromYearMonth: range.fromYearMonth,
+        toYearMonth: range.toYearMonth,
+      });
+      retroSummary = history.summary;
+      const nextRun = nextRunDateAfterRetro(
+        range.toYearMonth,
+        draft.nextRunDate,
+        draft.frequency,
+        draft.intervalCount,
+      );
+      const updated = await updateRecurringDraftById(context.db, context.organizationId, draft.id, {
+        nextRunDate: nextRun,
+      });
+      if (updated) return { draft: updated, retroSummary };
+    }
+  }
+
+  return { draft, retroSummary };
 }
 
 export async function updateRecurringDraft(
@@ -176,6 +222,12 @@ export async function updateRecurringDraft(
 
   let payload = parseStoredPayload(existing.draftKind, stripFinalizeFlag(input.payload));
   payload = shapeExpensePayloadForManagerial(payload, managerialCostKind);
+  if (existing.draftKind === 'expense' && payload.kind === 'expense' && !hasExplicitRecurringCategory(payload.data)) {
+    throw new ValidationError(
+      [{ path: 'costCategoryId', message: 'Cost category is required' }],
+      'Cost category is required',
+    );
+  }
 
   const previousPayload = parseStoredPayload(existing.draftKind, existing.payloadJson);
   const previousAmount = extractTemplateAmount(previousPayload);

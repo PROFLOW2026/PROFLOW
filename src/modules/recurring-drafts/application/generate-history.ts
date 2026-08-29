@@ -14,15 +14,22 @@ import {
 } from '../validation/schemas';
 import {
   generateRecurringDraftOccurrence,
+  finalizeExistingRecurringMonthOccurrence,
   type GenerateRecurringDraftResult,
 } from './generate';
+import {
+  summarizeOccurrenceOutcomes,
+  type HistoryOutcomeSummary,
+} from '../domain/occurrence-outcome';
 
 export interface GenerateRecurringDraftHistoryResult {
   readonly draftId: string;
   readonly fromYearMonth: string;
   readonly toYearMonth: string;
   readonly generated: readonly GenerateRecurringDraftResult[];
+  readonly finalizedExisting: readonly GenerateRecurringDraftResult[];
   readonly skippedExistingMonths: readonly string[];
+  readonly summary: HistoryOutcomeSummary;
 }
 
 /**
@@ -66,6 +73,7 @@ export async function generateRecurringDraftHistory(
 
   const months = listYearMonthsInclusive(parsed.data.fromYearMonth, parsed.data.toYearMonth);
   const generated: GenerateRecurringDraftResult[] = [];
+  const finalizedExisting: GenerateRecurringDraftResult[] = [];
   const skippedExistingMonths: string[] = [];
 
   // Reload draft each iteration so status/end stays accurate; schedule is not bumped.
@@ -88,17 +96,32 @@ export async function generateRecurringDraftHistory(
     });
 
     if (!result) {
+      const recovered = await finalizeExistingRecurringMonthOccurrence(context, current, yearMonth);
+      if (recovered) {
+        finalizedExisting.push(recovered);
+        continue;
+      }
       skippedExistingMonths.push(yearMonth);
       continue;
     }
     generated.push(result);
   }
 
+  const baseSummary = summarizeOccurrenceOutcomes(
+    [...generated, ...finalizedExisting].map((item) => item.outcome),
+  );
+  const summary: HistoryOutcomeSummary = {
+    ...baseSummary,
+    skippedExisting: baseSummary.skippedExisting + skippedExistingMonths.length,
+  };
+
   return {
     draftId: draft.id,
     fromYearMonth: parsed.data.fromYearMonth,
     toYearMonth: parsed.data.toYearMonth,
     generated,
+    finalizedExisting,
     skippedExistingMonths,
+    summary,
   };
 }

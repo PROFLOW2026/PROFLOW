@@ -85,6 +85,7 @@ export type ExpenseDraftPayload = {
   readonly vendorId?: string | null;
   readonly projectId?: string | null;
   readonly costFamily?: 'direct_project' | 'shared' | 'business_overhead' | 'asset_capital' | null;
+  readonly costCategoryId?: string | null;
   readonly notes?: string | null;
   readonly paymentMethod?: string | null;
   readonly vatMode?: ExpenseVatMode | null;

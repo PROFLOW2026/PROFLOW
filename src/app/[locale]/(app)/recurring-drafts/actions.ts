@@ -14,7 +14,13 @@ import {
   isDraftKind,
   isDraftFrequency,
   isManagerialCostKind,
+  findRecurringDraftById,
+  updateRecurringDraftById,
 } from '@/modules/recurring-drafts';
+import { yearMonthFromBusinessDate } from '@/modules/recurring-drafts/domain/amount-versions';
+import { nextRunDateAfterRetro } from '@/modules/recurring-drafts/domain/missing-months';
+import { resolveAutoFinalizeFromCreationMode } from '@/modules/recurring-drafts/application/resolve-expense-category';
+import type { HistoryOutcomeSummary } from '@/modules/recurring-drafts/domain/occurrence-outcome';
 import type { RecurringDraftFormState } from '@/modules/recurring-drafts/ui/draft-form';
 import type { ExpenseVatMode } from '@/modules/expenses/domain/vat-mode';
 import { withOrgContext } from '@/shared/auth/session';
@@ -41,7 +47,7 @@ function formBool(formData: FormData, key: string): boolean {
 
 function buildPayload(kind: string, formData: FormData, title: string): unknown {
   const amount = formValue(formData, 'amount') ?? '';
-  const currency = (formValue(formData, 'currency') ?? '').toUpperCase();
+  const currency = (formValue(formData, 'currency') ?? 'ILS').toUpperCase();
   const notes = formValue(formData, 'notes') ?? null;
   const projectId = emptyToNull(formValue(formData, 'projectId') ?? null);
   const dueDaysRaw = formValue(formData, 'dueDays');
@@ -49,20 +55,28 @@ function buildPayload(kind: string, formData: FormData, title: string): unknown 
   const managerialRaw = formValue(formData, 'managerialCostKind') ?? null;
   const managerialCostKind =
     managerialRaw && isManagerialCostKind(managerialRaw) ? managerialRaw : null;
+  const expenseDestination = formValue(formData, 'expenseDestination');
 
   if (kind === 'expense') {
+    const costFamily =
+      expenseDestination === 'shared'
+        ? 'shared'
+        : managerialCostKind === 'general_business'
+          ? 'business_overhead'
+          : managerialCostKind === 'direct_project'
+            ? 'direct_project'
+            : null;
     return {
       amount,
       currency,
       description: formValue(formData, 'description') ?? null,
       supplierName: formValue(formData, 'supplierName') ?? null,
-      projectId: managerialCostKind === 'general_business' ? null : projectId,
-      costFamily:
-        managerialCostKind === 'general_business'
-          ? 'business_overhead'
-          : managerialCostKind === 'direct_project'
-            ? 'direct_project'
-            : null,
+      projectId:
+        expenseDestination === 'shared' || managerialCostKind === 'direct_project'
+          ? projectId
+          : null,
+      costFamily,
+      costCategoryId: emptyToNull(formValue(formData, 'costCategoryId') ?? null),
       notes,
       vatMode: formValue(formData, 'vatMode') as ExpenseVatMode | undefined,
     };
@@ -106,11 +120,46 @@ function trueCostFields(kind: string, formData: FormData) {
     return { autoFinalizeExpense: false, managerialCostKind: null as null };
   }
   const managerialRaw = formValue(formData, 'managerialCostKind') ?? null;
+  const expenseDestination = formValue(formData, 'expenseDestination');
   return {
-    autoFinalizeExpense: formBool(formData, 'autoFinalizeExpense'),
+    autoFinalizeExpense: resolveAutoFinalizeFromCreationMode(formValue(formData, 'creationMode')),
     managerialCostKind:
-      managerialRaw && isManagerialCostKind(managerialRaw) ? managerialRaw : null,
+      expenseDestination === 'shared'
+        ? null
+        : managerialRaw && isManagerialCostKind(managerialRaw)
+          ? managerialRaw
+          : null,
   };
+}
+
+async function formatHistorySummaryMessage(
+  summary: HistoryOutcomeSummary,
+): Promise<string> {
+  const t = await getTranslations('recurringDrafts');
+  if (summary.blockedMissingCategory > 0 && summary.finalized === 0 && summary.draft === 0) {
+    return t('errors.categoryRequiredForActual');
+  }
+  if (summary.blockedClosed > 0) {
+    return t('historyResult.partial', {
+      finalized: summary.finalized,
+      closed: summary.blockedClosed,
+    });
+  }
+  if (summary.finalized > 0) {
+    return t('historyResult.created', { count: summary.finalized });
+  }
+  return t('pastExpenses.upToDate');
+}
+
+function historyRedirectQuery(summary: HistoryOutcomeSummary): string {
+  const params = new URLSearchParams();
+  if (summary.finalized > 0) params.set('finalized', String(summary.finalized));
+  if (summary.blockedClosed > 0) params.set('closed', String(summary.blockedClosed));
+  if (summary.blockedMissingCategory > 0) {
+    params.set('missingCategory', String(summary.blockedMissingCategory));
+  }
+  const query = params.toString();
+  return query ? `?${query}` : '';
 }
 
 async function mapError(error: unknown): Promise<RecurringDraftFormState> {
@@ -121,7 +170,10 @@ async function mapError(error: unknown): Promise<RecurringDraftFormState> {
     const fieldErrors: Record<string, string> = {};
     for (const issue of error.issues) {
       if (!issue.path) continue;
-      fieldErrors[issue.path] = issue.message;
+      fieldErrors[issue.path] =
+        issue.path === 'costCategoryId'
+          ? t('errors.categoryRequiredForActual')
+          : issue.message;
     }
     return { error: tErrors('validationFailed'), fieldErrors };
   }
@@ -144,6 +196,7 @@ async function mapError(error: unknown): Promise<RecurringDraftFormState> {
         'managerialCostExpenseOnly',
         'historyMonthlyOnly',
         'historyRangeTooLarge',
+        'categoryRequiredForActual',
       ] as const;
       if ((known as readonly string[]).includes(short)) {
         return { error: t(`errors.${short as (typeof known)[number]}`) };
@@ -179,7 +232,7 @@ export async function createRecurringDraftAction(
 
   try {
     const title = formValue(formData, 'title') ?? '';
-    const created = await withOrgContext((context) =>
+    const result = await withOrgContext((context) =>
       createRecurringDraft(context, {
         draftKind: kindRaw,
         title,
@@ -189,10 +242,15 @@ export async function createRecurringDraftAction(
         endDate: formValue(formData, 'endDate') ?? null,
         payload: buildPayload(kindRaw, formData, title),
         ...trueCostFields(kindRaw, formData),
+        generateRetroMonths:
+          kindRaw === 'expense' &&
+          frequencyRaw === 'monthly' &&
+          formBool(formData, 'generateRetroMonths'),
       }),
     );
     revalidatePath('/recurring-drafts');
-    redirect({ href: `/recurring-drafts/${created.id}`, locale });
+    const query = result.retroSummary ? historyRedirectQuery(result.retroSummary) : '';
+    redirect({ href: `/recurring-drafts/${result.draft.id}${query}`, locale });
   } catch (error) {
     if (
       error instanceof ValidationError ||
@@ -322,4 +380,41 @@ export async function generateRecurringDraftHistoryAction(
   );
   revalidatePath('/recurring-drafts');
   revalidatePath(`/recurring-drafts/${draftId}`);
+}
+
+export async function generateRecurringDraftHistoryFormAction(
+  _prev: RecurringDraftFormState,
+  formData: FormData,
+): Promise<RecurringDraftFormState> {
+  const draftId = formValue(formData, 'draftId') ?? '';
+  const fromYearMonth = formValue(formData, 'fromYearMonth') ?? '';
+  const toYearMonth = formValue(formData, 'toYearMonth') ?? '';
+  try {
+    const history = await withOrgContext(async (context) => {
+      const result = await generateRecurringDraftHistory(context, draftId, {
+        fromYearMonth,
+        toYearMonth,
+      });
+      const draft = await findRecurringDraftById(context.db, context.organizationId, draftId);
+      if (draft && yearMonthFromBusinessDate(draft.nextRunDate) <= toYearMonth) {
+        await updateRecurringDraftById(context.db, context.organizationId, draftId, {
+          nextRunDate: nextRunDateAfterRetro(
+            toYearMonth,
+            draft.nextRunDate,
+            draft.frequency,
+            draft.intervalCount,
+          ),
+        });
+      }
+      return result;
+    });
+    revalidatePath('/recurring-drafts');
+    revalidatePath(`/recurring-drafts/${draftId}`);
+    return {
+      success: true,
+      historyMessage: await formatHistorySummaryMessage(history.summary),
+    };
+  } catch (error) {
+    return mapError(error);
+  }
 }

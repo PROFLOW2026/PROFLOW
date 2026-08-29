@@ -22,7 +22,7 @@ import {
   listRunsForDraft,
 } from '../data/recurring-drafts.repository';
 import { listRecurringDraftsSchema, recurringDraftIdSchema } from '../validation/schemas';
-import { parseStoredPayload } from './parse-payload';
+import { parseStoredPayloadLenient } from './parse-payload';
 
 export async function listRecurringDraftsForOrg(
   context: OrgContext,
@@ -68,7 +68,7 @@ export async function getRecurringDraftDetail(
   preview: ReturnType<typeof previewPayloadForRun>;
 }> {
   const draft = await getRecurringDraftForOrg(context, draftId);
-  const payload = parseStoredPayload(draft.draftKind, draft.payloadJson);
+  const payload = parseStoredPayloadLenient(draft.draftKind, draft.payloadJson);
   const [runs, amountVersions] = await Promise.all([
     listRunsForDraft(context.db, context.organizationId, draft.id),
     listAmountVersionsForDraft(context.db, context.organizationId, draft.id),

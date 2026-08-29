@@ -14,6 +14,7 @@ const config = [
       'playwright-report/**',
       'test-results/**',
       'drizzle/migrations/**',
+      '.tmp/**',
       'next-env.d.ts',
     ],
   },
