@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { money, toNumericString } from '@/shared/money';
+import { money } from '@/shared/money';
 import {
   computeDirectForecastFinalCost,
   computeFullForecastFinalCost,

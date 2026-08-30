@@ -350,7 +350,7 @@ export async function loadFinancialsApOrgFactsBundle(
 export async function loadFinancialsApFactsBundle(
   db: DbExecutor,
   organizationId: string,
-  projectId: string,
+  _projectId: string,
 ): Promise<FinancialsApFactsBundle> {
   return loadFinancialsApOrgFactsBundle(db, organizationId);
 }

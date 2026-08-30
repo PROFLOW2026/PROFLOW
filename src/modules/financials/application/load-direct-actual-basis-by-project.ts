@@ -14,7 +14,7 @@ import {
   sumMonthlyAllocatedLaborByProject,
 } from '@/modules/workforce';
 import { composeVendorCostRecognition } from '@/modules/ap/domain/vendor-cost-recognition';
-import { addMoney, fromNumericString, isZeroMoney, roundMoney, zeroMoney, type MoneyValue } from '@/shared/money';
+import { addMoney, fromNumericString, isZeroMoney, roundMoney, zeroMoney } from '@/shared/money';
 import {
   aggregateProjectCosts,
   withRecognizedVendorBills,

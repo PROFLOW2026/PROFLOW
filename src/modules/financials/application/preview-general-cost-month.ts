@@ -16,7 +16,7 @@ import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { fromNumericString, toNumericString, zeroMoney, type MoneyValue } from '@/shared/money';
 import { timedPhase } from '@/shared/perf/tab-profile';
 import { filterClosedYearMonthsForFinancialsRead } from '@/modules/month-close';
-import { sumRecognizedApGeneralRemaindersByYearMonth } from '@/modules/ap';
+import { sumRecognizedApGeneralRemaindersByYearMonth, type ApGeneralRemainderTotals } from '@/modules/ap';
 import {
   foldGeneralCostNonApSourceRows,
   loadGeneralCostNonApSourceTotalsByMonths,
@@ -108,7 +108,7 @@ function sourcesFromMonthTotals(input: {
   readonly expense: MoneyValue | undefined;
   readonly laborMonthly: string | undefined;
   readonly laborNonProject: string | undefined;
-  readonly ap: ReturnType<typeof emptyApBuckets> | undefined;
+  readonly ap: ApGeneralRemainderTotals | undefined;
   readonly writeoffs: MoneyValue | undefined;
 }): GeneralCostSourceAtom[] {
   const { currency } = input;
@@ -159,15 +159,6 @@ function sourcesFromMonthTotals(input: {
     });
   }
   return sources;
-}
-
-function emptyApBuckets(currency: string) {
-  const zero = zeroMoney(currency);
-  return {
-    remainderFromUnderAllocatedBills: zero,
-    remainderFromNullProjectBills: zero,
-    totalGeneralRemainder: zero,
-  };
 }
 
 export async function gatherGeneralCostSourcesByMonths(

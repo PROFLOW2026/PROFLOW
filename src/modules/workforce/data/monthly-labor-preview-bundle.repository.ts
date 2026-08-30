@@ -4,8 +4,15 @@
 
 import { sql } from 'drizzle-orm';
 import type { DbExecutor } from '@/shared/db/types';
-import { sqlRows } from '@/modules/financials/data/sql-rows';
 import type { EmployeeRecord, LaborCostComponentRecord, RateVersionRecord } from '../domain/types';
+
+function sqlRows<T>(result: unknown): T[] {
+  if (Array.isArray(result)) return result as T[];
+  if (result && typeof result === 'object' && Array.isArray((result as { rows?: unknown }).rows)) {
+    return (result as { rows: T[] }).rows;
+  }
+  return [];
+}
 
 export type MonthlyLaborPreviewBundleRow = {
   readonly employeeId: string;

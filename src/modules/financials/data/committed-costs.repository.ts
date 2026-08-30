@@ -23,8 +23,7 @@ import {
   listActiveCreditActualReductionsForBills,
 } from '@/modules/ap';
 import { RECOGNIZED_VENDOR_BILL_STATUSES } from '@/modules/ap/domain/vendor-cost-recognition';
-import { foldRecognizedVendorBillsForProjectsFromFacts } from '@/modules/ap/application/fold-ap-read-facts';
-import { getApOrgReadFactsCache } from '@/modules/ap/data/ap-read-facts-cache';
+import { foldRecognizedVendorBillsForProjectsFromFacts, getApOrgReadFactsCache } from '@/modules/ap';
 const OPEN_COMMITTED_STATUSES = ['open', 'partially_consumed'] as const;
 /** Recognized bills may still owe cash after PO match - include `matched`. */
 const OPEN_AP_CASH_STATUSES = RECOGNIZED_VENDOR_BILL_STATUSES;

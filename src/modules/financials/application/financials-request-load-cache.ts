@@ -6,13 +6,8 @@ import {
   LABOR_COST_DEFAULTS_SETTING_KEY,
   parseLaborCostDefaults,
   type LaborCostDefaults,
-} from '@/modules/tenancy/domain/labor-cost-defaults';
-import {
-  parseProjectProfitabilityMode,
-  PROJECT_PROFITABILITY_MODE_SETTING_KEY,
-  type ProjectProfitabilityMode,
-} from '@/modules/tenancy/domain/project-profitability-mode';
-import { getOrganizationSettingValue } from '@/modules/tenancy/data/organization-settings.repository';
+  getOrganizationSettingValue,
+} from '@/modules/tenancy';
 import type { ProjectExpenseContribution } from '../domain/cost-aggregation';
 import { loadOrganizationExpenseContributions } from '../data/expenses.repository';
 import { loadOrganizationInventoryConsumptionContributions } from '../data/inventory-consumptions.repository';

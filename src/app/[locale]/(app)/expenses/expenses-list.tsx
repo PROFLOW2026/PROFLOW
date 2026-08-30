@@ -95,7 +95,7 @@ export function ExpensesList({
   total,
   currentPage,
   pageCount,
-  pageSize,
+  pageSize: _pageSize,
   attentionCount,
   projects,
   categories,

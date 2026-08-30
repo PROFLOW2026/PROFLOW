@@ -44,7 +44,7 @@ import {
   loadFinancialsProcurementBundle,
   loadFinancialsProjectSetupBundle,
 } from '../data/financials-read-bundle.repository';
-import { seedApOrgReadFactsCache } from '@/modules/ap/data/ap-read-facts-cache';
+import { seedApOrgReadFactsCache } from '@/modules/ap';
 import {
   loadCachedMonthCloseEconomicByProject,
   loadCachedMonthCloseEconomicForProject,

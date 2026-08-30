@@ -92,7 +92,7 @@ export type MonthlyLaborAllocationDraft = {
 export type MonthlyLaborAllocationPreload = {
   readonly employee: EmployeeRecord;
   readonly versions: readonly RateVersionRecord[];
-  readonly components: readonly import('../domain/types').LaborCostComponentRecord[];
+  readonly components: readonly LaborCostComponentRecord[];
   readonly entries: readonly Pick<TimeEntryRecord, 'workDate' | 'hours' | 'kind' | 'projectId'>[];
   readonly monthClosed: boolean;
   readonly laborDefaults: ReturnType<typeof parseLaborCostDefaults>;

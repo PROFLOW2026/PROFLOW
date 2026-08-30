@@ -267,6 +267,13 @@ export { sumRecognizedApGeneralRemainders, sumRecognizedApGeneralRemaindersByYea
 export type { ApGeneralRemainderTotals } from './data/vendor-general-remainder.repository';
 
 export {
+  foldRecognizedVendorBillsForProjectsFromFacts,
+  foldRecognizedVendorBillsForProjectFromFacts,
+} from './application/fold-ap-read-facts';
+export { getApOrgReadFactsCache, seedApOrgReadFactsCache } from './data/ap-read-facts-cache';
+export type { ApOrgReadFactsBundle } from './data/ap-read-facts.types';
+
+export {
   getVendorPaymentsRepository,
   setVendorPaymentsRepository,
   resetVendorPaymentsRepository,
