@@ -305,7 +305,10 @@ describe('migration journal', () => {
     expect(tags.indexOf('0070_financial_classification_architecture')).toBeLessThan(
       tags.indexOf('0071_internal_financial_editability'),
     );
-    expect(tags.at(-1)).toBe('0071_internal_financial_editability');
+    expect(tags.indexOf('0071_internal_financial_editability')).toBeLessThan(
+      tags.indexOf('0072_recurring_auto_finalize_run_guard'),
+    );
+    expect(tags.at(-1)).toBe('0072_recurring_auto_finalize_run_guard');
 
     const sql66 = await readFile(
       path.join(MIGRATIONS_DIR, '0066_workforce_time_integrity.sql'),
