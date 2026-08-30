@@ -973,138 +973,121 @@ export async function freezeGeneralCostMonth(
 
 
 
-/** Sum of auto-general allocations for one project across all months (or open+frozen). */
-
+/** Sum of auto-general allocations for one project across recognized Actual months only. */
 export async function sumGeneralAllocationsForProject(
-
   db: DbExecutor,
-
   organizationId: string,
-
   projectId: string,
-
   currency: string,
-
+  options?: {
+    readonly throughYearMonth?: string;
+    readonly yearMonthEquals?: string;
+  },
 ): Promise<string> {
+  const conditions = [
+    eq(generalCostMonthAllocations.organizationId, organizationId),
+    eq(generalCostMonthAllocations.projectId, projectId),
+    sql`upper(${generalCostMonthAllocations.currency}) = upper(${currency})`,
+    inArray(generalCostMonths.status, ['open', 'frozen']),
+  ];
+  if (options?.yearMonthEquals) {
+    conditions.push(eq(generalCostMonths.yearMonth, options.yearMonthEquals));
+  } else if (options?.throughYearMonth) {
+    conditions.push(sql`${generalCostMonths.yearMonth} <= ${options.throughYearMonth}`);
+  }
 
   const [row] = await db
-
     .select({
-
       total: sql<string>`coalesce(sum(${generalCostMonthAllocations.amount}), 0)::text`,
-
     })
-
     .from(generalCostMonthAllocations)
-
     .innerJoin(
-
       generalCostMonths,
-
       and(
-
         eq(generalCostMonthAllocations.generalCostMonthId, generalCostMonths.id),
-
         eq(generalCostMonthAllocations.organizationId, generalCostMonths.organizationId),
-
       ),
-
     )
+    .where(and(...conditions));
 
-    .where(
+  return row?.total ?? '0';
+}
 
+/** Stored allocations strictly before `beforeYearMonth` (for current-month live preview). */
+export async function sumStoredGeneralAllocationsBeforeYearMonth(
+  db: DbExecutor,
+  organizationId: string,
+  projectId: string,
+  currency: string,
+  beforeYearMonth: string,
+): Promise<string> {
+  const [row] = await db
+    .select({
+      total: sql<string>`coalesce(sum(${generalCostMonthAllocations.amount}), 0)::text`,
+    })
+    .from(generalCostMonthAllocations)
+    .innerJoin(
+      generalCostMonths,
       and(
-
-        eq(generalCostMonthAllocations.organizationId, organizationId),
-
-        eq(generalCostMonthAllocations.projectId, projectId),
-
-        sql`upper(${generalCostMonthAllocations.currency}) = upper(${currency})`,
-
-        inArray(generalCostMonths.status, ['open', 'frozen']),
-
+        eq(generalCostMonthAllocations.generalCostMonthId, generalCostMonths.id),
+        eq(generalCostMonthAllocations.organizationId, generalCostMonths.organizationId),
       ),
-
+    )
+    .where(
+      and(
+        eq(generalCostMonthAllocations.organizationId, organizationId),
+        eq(generalCostMonthAllocations.projectId, projectId),
+        sql`upper(${generalCostMonthAllocations.currency}) = upper(${currency})`,
+        inArray(generalCostMonths.status, ['open', 'frozen']),
+        sql`${generalCostMonths.yearMonth} < ${beforeYearMonth}`,
+      ),
     );
 
   return row?.total ?? '0';
-
 }
 
 
 
 export async function sumGeneralAllocationsGroupedByProject(
-
   db: DbExecutor,
-
   organizationId: string,
-
   projectIds: readonly string[],
-
   currency: string,
-
+  options?: { readonly throughYearMonth?: string },
 ): Promise<Map<string, string>> {
-
   const result = new Map<string, string>();
-
   if (projectIds.length === 0) return result;
 
-
-
-  const rows = await db
-
-    .select({
-
-      projectId: generalCostMonthAllocations.projectId,
-
-      total: sql<string>`coalesce(sum(${generalCostMonthAllocations.amount}), 0)::text`,
-
-    })
-
-    .from(generalCostMonthAllocations)
-
-    .innerJoin(
-
-      generalCostMonths,
-
-      and(
-
-        eq(generalCostMonthAllocations.generalCostMonthId, generalCostMonths.id),
-
-        eq(generalCostMonthAllocations.organizationId, generalCostMonths.organizationId),
-
-      ),
-
-    )
-
-    .where(
-
-      and(
-
-        eq(generalCostMonthAllocations.organizationId, organizationId),
-
-        inArray(generalCostMonthAllocations.projectId, [...projectIds]),
-
-        sql`upper(${generalCostMonthAllocations.currency}) = upper(${currency})`,
-
-        inArray(generalCostMonths.status, ['open', 'frozen']),
-
-      ),
-
-    )
-
-    .groupBy(generalCostMonthAllocations.projectId);
-
-
-
-  for (const row of rows) {
-
-    result.set(row.projectId, row.total);
-
+  const conditions = [
+    eq(generalCostMonthAllocations.organizationId, organizationId),
+    inArray(generalCostMonthAllocations.projectId, [...projectIds]),
+    sql`upper(${generalCostMonthAllocations.currency}) = upper(${currency})`,
+    inArray(generalCostMonths.status, ['open', 'frozen']),
+  ];
+  if (options?.throughYearMonth) {
+    conditions.push(sql`${generalCostMonths.yearMonth} <= ${options.throughYearMonth}`);
   }
 
-  return result;
+  const rows = await db
+    .select({
+      projectId: generalCostMonthAllocations.projectId,
+      total: sql<string>`coalesce(sum(${generalCostMonthAllocations.amount}), 0)::text`,
+    })
+    .from(generalCostMonthAllocations)
+    .innerJoin(
+      generalCostMonths,
+      and(
+        eq(generalCostMonthAllocations.generalCostMonthId, generalCostMonths.id),
+        eq(generalCostMonthAllocations.organizationId, generalCostMonths.organizationId),
+      ),
+    )
+    .where(and(...conditions))
+    .groupBy(generalCostMonthAllocations.projectId);
 
+  for (const row of rows) {
+    result.set(row.projectId, row.total);
+  }
+  return result;
 }
 
 

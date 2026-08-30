@@ -283,6 +283,7 @@
     "reversalPrefix": "קיזוז",
     "adjustmentPrefix": "תיקון",
     "count": "מוצגות {count} מתוך {total}",
+    "pageStatus": "עמוד {page} מתוך {pageCount}",
     "unallocatedBannerTitle": "הוצאות שדורשות חלוקה לפרויקטים",
     "actionRequired": "מה נדרש",
     "rowAction": "פעולה"

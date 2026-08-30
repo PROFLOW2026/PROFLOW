@@ -129,10 +129,14 @@ export interface CostPosition {
    */
   actualCostToDate: MoneyValue;
   /**
-   * Forecast Final Cost = Actual + Remaining Valid Commitments + Expected Remaining Cost.
-   * Must diverge from actual whenever open commitments or ETC exist (no double count).
+   * Forecast Final Cost = Direct Actual + commitments + ETC (mode-selected primary in UI).
+   * @deprecated Prefer directForecastFinalCost / fullForecastFinalCost.
    */
   estimatedFinalCost: MoneyValue;
+  /** Direct Forecast = Direct Actual + commitments + ETC. Excludes general allocation. */
+  directForecastFinalCost: MoneyValue;
+  /** Full Forecast = Full Actual + commitments + ETC + future general allocation. */
+  fullForecastFinalCost: MoneyValue;
   byFamily: {
     directProject: MoneyValue;
     shared: MoneyValue;
@@ -184,6 +188,11 @@ export interface CostPosition {
    * Used when profitability mode includes general costs.
    */
   fullActualCostToDate: MoneyValue;
+  /**
+   * Future general-cost allocation forecast from live schedule/source preview.
+   * Included once in Forecast Final Cost; excluded from Actual.
+   */
+  futureGeneralAllocatedForecast: MoneyValue;
 }
 
 export interface ProfitPosition {

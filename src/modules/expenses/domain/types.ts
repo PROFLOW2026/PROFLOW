@@ -158,6 +158,8 @@ export interface ExpenseSummary {
   readonly adjustsExpenseId?: string | null;
   /** List query only — finalized reversing row exists for this expense. */
   readonly hasActiveReversal?: boolean;
+  /** Recurring draft title when this row was generated from a fixed-expense template. */
+  readonly recurringSourceTitle?: string | null;
 }
 
 export interface ExpenseDetail extends ExpenseSummary {

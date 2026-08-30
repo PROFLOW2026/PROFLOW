@@ -223,11 +223,15 @@ export function ProjectFinancialsKpiPanel({
 
   const actualDrill = drillFromMetric(projectId, 'actual', financials, t, canReadAp);
   const allocatedGeneral = financials.cost.allocatedGeneralBusinessCost;
+  const directProjectOverhead = financials.cost.overheadActual;
   const profitabilityMode = financials.projectProfitabilityMode ?? 'direct';
   const showAllocatedGeneral = Boolean(
     allocatedGeneral &&
       Number(allocatedGeneral.amount) > 0 &&
       profitabilityMode !== 'include_general',
+  );
+  const showDirectProjectOverhead = Boolean(
+    directProjectOverhead && Number(directProjectOverhead.amount) > 0,
   );
   const forecastDrill = drillFromMetric(projectId, 'forecast', financials, t, canReadAp);
   const contractDrill = drillFromMetric(
@@ -405,31 +409,57 @@ export function ProjectFinancialsKpiPanel({
         }
       />
 
-      <MetricDrilldown
-        label={t('kpis.allocatedOverhead')}
-        value={kpis.allocatedOverhead}
-        nature={t('metricNature.actual')}
-        explanation={t('kpis.allocatedOverheadHint')}
-        whyLabel={t('explain.whyThisNumber')}
-        lines={[
-          {
-            label: t('costFamilies.business_overhead'),
-            value: financials.cost.byFamily.businessOverhead,
-          },
-          {
-            label: t('coverage.allocatedOverhead'),
-            value: kpis.allocatedOverhead,
-            hint: t('kpis.allocatedOverheadSourceHint'),
-          },
-        ]}
-        links={[
-          {
-            href: `/expenses?projectId=${encodeURIComponent(projectId)}&costFamily=business_overhead&status=finalized`,
-            label: t('drillLinks.viewOverheadOnProject'),
-          },
-          { href: '/expenses?status=finalized', label: t('drillLinks.viewAllExpenses') },
-        ]}
-      />
+      {showAllocatedGeneral && allocatedGeneral ? (
+        <MetricDrilldown
+          label={t('kpis.allocatedOverhead')}
+          value={allocatedGeneral}
+          nature={t('metricNature.actual')}
+          explanation={t('kpis.allocatedOverheadHint')}
+          whyLabel={t('explain.whyThisNumber')}
+          lines={[
+            {
+              label: t('generalBusinessCostsAllocatedToProject'),
+              value: allocatedGeneral,
+              hint: t('kpis.allocatedOverheadSourceHint'),
+              emphasis: true,
+            },
+          ]}
+          links={[
+            {
+              href: `/projects/${projectId}?tab=financials`,
+              label: t('drillLinks.projectExpensesTab'),
+            },
+          ]}
+        />
+      ) : null}
+
+      {showDirectProjectOverhead ? (
+        <MetricDrilldown
+          label={t('overheadActual')}
+          value={directProjectOverhead}
+          nature={t('metricNature.actual')}
+          explanation={t('ownerStory.overheadCategoryHint')}
+          whyLabel={t('explain.whyThisNumber')}
+          lines={[
+            {
+              label: t('costFamilies.business_overhead'),
+              value: financials.cost.byFamily.businessOverhead,
+            },
+            {
+              label: t('overheadActual'),
+              value: directProjectOverhead,
+              emphasis: true,
+            },
+          ]}
+          links={[
+            {
+              href: `/expenses?projectId=${encodeURIComponent(projectId)}&costFamily=business_overhead&status=finalized`,
+              label: t('drillLinks.viewOverheadOnProject'),
+            },
+            { href: '/expenses?status=finalized', label: t('drillLinks.viewAllExpenses') },
+          ]}
+        />
+      ) : null}
 
       <MetricDrilldown
         label={t('kpis.committed')}

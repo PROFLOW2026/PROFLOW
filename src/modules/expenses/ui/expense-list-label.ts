@@ -2,6 +2,19 @@ import type { ExpenseSummary } from '../domain/types';
 
 const REVERSAL_PREFIX = /^Reversal:\s*/i;
 
+/** Visible expense name — stored description, else recurring template title (read fallback). */
+export function resolveExpenseDisplayDescription(
+  expense: Pick<ExpenseSummary, 'description'> & {
+    readonly recurringSourceTitle?: string | null;
+  },
+): string | null {
+  const direct = expense.description?.trim();
+  if (direct) return direct;
+  const recurring = expense.recurringSourceTitle?.trim();
+  if (recurring) return recurring;
+  return null;
+}
+
 export function formatReversalDescription(
   description: string | null | undefined,
   t: (key: string, values?: Record<string, string>) => string,
@@ -16,7 +29,10 @@ export function formatReversalDescription(
 
 /** Localized list label — avoids English "Reversal:" stored on reversal rows. */
 export function expenseListLabel(
-  expense: Pick<ExpenseSummary, 'description' | 'supplierName' | 'voidsExpenseId' | 'adjustsExpenseId'>,
+  expense: Pick<
+    ExpenseSummary,
+    'description' | 'supplierName' | 'voidsExpenseId' | 'adjustsExpenseId'
+  > & { readonly recurringSourceTitle?: string | null },
   t: (key: string, values?: Record<string, string>) => string,
 ): string {
   if (expense.voidsExpenseId) {
@@ -34,7 +50,7 @@ export function expenseListLabel(
     }
     return t('detail.adjustmentOf', { id: expense.adjustsExpenseId.slice(0, 8) });
   }
-  return expense.description?.trim() || t('list.noDescription');
+  return resolveExpenseDisplayDescription(expense) || t('list.noDescription');
 }
 
 const MISSING_SUPPLIER = '—';

@@ -1,18 +1,19 @@
 import type { ProjectFinancials } from '../domain/types';
 import { computeUnbilledBacklog } from '../domain/management-analytics';
 import { resolveProjectProfitabilityDisplay } from '../domain/project-profitability-display';
+import { resolveForecastCostBasis } from '../domain/resolve-forecast-cost-basis';
 import { DEFAULT_PROJECT_PROFITABILITY_MODE } from '@/modules/tenancy/domain/project-profitability-mode';
 import { subtractMoney, type MoneyValue } from '@/shared/money';
 
 /**
  * Optional Wave-2 fields Agents 1/4 may attach without breaking older payloads.
  * Canonical Agent 2 fields: cost.expectedRemainingCost, profit.actualProfit,
- * profit.estimatedProfit (= forecast margin), cost.estimatedFinalCost (= forecast final).
+ * profit.estimatedProfit (= forecast margin), cost.estimatedFinalCost (= direct forecast final).
  */
 export type ProjectFinancialsWithOptionalKpis = ProjectFinancials & {
   readonly cost?: ProjectFinancials['cost'] & {
     readonly allocatedOverhead?: MoneyValue;
-    /** Alias - prefer estimatedFinalCost (Forecast Final Cost). */
+    /** Alias - prefer directForecastFinalCost. */
     readonly forecastCost?: MoneyValue;
   };
   readonly profit?: (NonNullable<ProjectFinancials['profit']> & {
@@ -35,6 +36,9 @@ export interface ResolvedProjectKpis {
   readonly committed: MoneyValue;
   readonly expectedRemainingCost: MoneyValue;
   readonly forecastCost: MoneyValue;
+  readonly directForecastCost: MoneyValue;
+  readonly fullForecastCost: MoneyValue;
+  readonly futureGeneralAllocatedForecast: MoneyValue;
   readonly billed: MoneyValue;
   readonly paid: MoneyValue;
   readonly outstanding: MoneyValue;
@@ -44,10 +48,11 @@ export interface ResolvedProjectKpis {
   readonly afterGeneralProfit: MoneyValue | null;
   readonly showBothProfits: boolean;
   readonly forecastMargin: MoneyValue | null;
+  readonly fullForecastMargin: MoneyValue | null;
   readonly actualMarginPercent: string | null;
   readonly afterGeneralProfitPercent: string | null;
   readonly forecastMarginPercent: string | null;
-  /** True when Forecast Final Cost equals Direct Actual (no remaining commitments / ETC). */
+  /** True when primary Forecast Final Cost equals primary Actual (no remaining commitments / ETC). */
   readonly forecastEqualsActual: boolean;
   /**
    * Open-price job: cost forecast OK; margins null - show price-not-set copy.
@@ -70,8 +75,10 @@ export function resolveProjectKpiDisplay(
   const mode = financials.projectProfitabilityMode ?? DEFAULT_PROJECT_PROFITABILITY_MODE;
 
   const allocatedOverhead = cost.allocatedOverhead ?? cost.overheadActual;
-  const forecastCost = cost.forecastCost ?? cost.estimatedFinalCost;
   const expectedRemainingCost = cost.expectedRemainingCost;
+  const futureGeneralAllocatedForecast = cost.futureGeneralAllocatedForecast;
+  const forecastBasis = resolveForecastCostBasis(mode, cost);
+  const forecastCost = cost.forecastCost ?? forecastBasis.primaryForecastFinalCost;
 
   const profitability = resolveProjectProfitabilityDisplay(
     mode,
@@ -84,6 +91,7 @@ export function resolveProjectKpiDisplay(
     profit?.actualMargin ?? profit?.actualProfit ?? null;
   let forecastMargin: MoneyValue | null =
     profit?.forecastMargin ?? profit?.estimatedProfit ?? null;
+  let fullForecastMargin: MoneyValue | null = null;
 
   if (priceNotSet) {
     actualMargin = null;
@@ -95,11 +103,15 @@ export function resolveProjectKpiDisplay(
     if (!forecastMargin) {
       forecastMargin = subtractMoney(commercial.currentContractValue, forecastCost);
     }
+    fullForecastMargin = subtractMoney(
+      commercial.currentContractValue,
+      forecastBasis.fullForecastFinalCost,
+    );
   }
 
   const forecastEqualsActual =
-    profitability.directActualCost.amount === forecastCost.amount &&
-    profitability.directActualCost.currency === forecastCost.currency;
+    profitability.primaryActualCost.amount === forecastCost.amount &&
+    profitability.primaryActualCost.currency === forecastCost.currency;
 
   const unbilled =
     !priceNotSet && commercial
@@ -119,6 +131,9 @@ export function resolveProjectKpiDisplay(
     committed: cost.committedOpen,
     expectedRemainingCost,
     forecastCost,
+    directForecastCost: forecastBasis.directForecastFinalCost,
+    fullForecastCost: forecastBasis.fullForecastFinalCost,
+    futureGeneralAllocatedForecast,
     billed: financials.billing.invoiced,
     paid: financials.billing.paid,
     outstanding: financials.billing.outstanding,
@@ -129,6 +144,7 @@ export function resolveProjectKpiDisplay(
       : null,
     showBothProfits: profitability.showBothProfits,
     forecastMargin,
+    fullForecastMargin,
     actualMarginPercent: priceNotSet
       ? null
       : (profit?.actualMarginPercent ?? profitability.primaryProfitPercent),

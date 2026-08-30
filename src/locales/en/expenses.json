@@ -283,6 +283,7 @@
     "reversalPrefix": "Reversal",
     "adjustmentPrefix": "Correction",
     "count": "Showing {count} of {total}",
+    "pageStatus": "Page {page} of {pageCount}",
     "unallocatedBannerTitle": "Expenses that need project allocation",
     "actionRequired": "Action needed",
     "rowAction": "Action"

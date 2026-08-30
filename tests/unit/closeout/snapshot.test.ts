@@ -56,6 +56,9 @@ function financials(overrides: Partial<ProjectFinancials> = {}): ProjectFinancia
       directActualCostToDate: money('30000', currency),
       allocatedGeneralBusinessCost: zeroMoney(currency),
       fullActualCostToDate: money('30000', currency),
+      futureGeneralAllocatedForecast: zeroMoney(currency),
+      directForecastFinalCost: money('80000', currency),
+      fullForecastFinalCost: money('80000', currency),
     },
     profit: {
       estimatedProfit: money('25000', currency),

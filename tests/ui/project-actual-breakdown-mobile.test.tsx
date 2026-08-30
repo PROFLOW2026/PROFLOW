@@ -49,6 +49,10 @@ function ownerCopy(): OwnerStoryCopy {
     unavailable: o.unavailable,
     breakdownTitle: o.breakdownTitle,
     categories: o.categories,
+    directActualCost: o.directActualCost,
+    directBreakdownSectionTitle: o.directBreakdownSectionTitle,
+    fullCostLayerTitle: o.fullCostLayerTitle,
+    fullActualIncludingGeneral: o.fullActualIncludingGeneral,
     total: o.total,
     percent: o.percent,
     sources: o.sources,
@@ -73,6 +77,8 @@ function ownerCopy(): OwnerStoryCopy {
     commitmentLabel: o.commitmentLabel,
     paidLabel: o.paidLabel,
     openSource: o.openSource,
+    subcontractGroupTotal: o.subcontractGroupTotal,
+    overheadCategoryHint: o.overheadCategoryHint,
   };
 }
 
@@ -203,6 +209,7 @@ describe('OWNER GATE — mobile 390 owner actual experience', () => {
     expect(screen.getByText('חומרים')).toBeInTheDocument();
     expect(screen.getByText('הוצאות אחרות')).toBeInTheDocument();
     expect(screen.getByText('הוצאות כלליות')).toBeInTheDocument();
+    expect(screen.getByText('סה״כ')).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: /עובדים/i }));
     expect(screen.getByText('עובד שעות')).toBeInTheDocument();

@@ -6,10 +6,9 @@ import type { ReactNode } from 'react';
 import { ToastProvider } from '@/components/ui/toast';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { PwaBootstrap } from '@/modules/offline/ui/pwa-bootstrap';
-import { LOCALE_METADATA, type Locale } from '@/shared/i18n/config';
 import { pickClientMessages } from '@/shared/i18n/pick-client-messages';
+import { LocaleDocumentAttributes } from '@/shared/i18n/locale-document-attributes';
 import { routing } from '@/shared/i18n/routing';
-import '../globals.css';
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -61,21 +60,17 @@ export default async function LocaleLayout({
   // Required for static rendering of locale segments.
   setRequestLocale(locale);
 
-  const metadata = LOCALE_METADATA[locale as Locale];
   // Server Components still see full catalogs via getRequestConfig.
   // Client flights only carry the lean app set (~80KB vs ~237KB).
   const clientMessages = pickClientMessages(await getMessages());
 
   return (
-    <html lang={metadata.htmlLang} dir={metadata.dir} suppressHydrationWarning>
-      <body className="min-h-dvh bg-page text-content antialiased" dir={metadata.dir}>
-        <NextIntlClientProvider messages={clientMessages}>
-          <PwaBootstrap />
-          <TooltipProvider delayDuration={200}>
-            <ToastProvider>{children}</ToastProvider>
-          </TooltipProvider>
-        </NextIntlClientProvider>
-      </body>
-    </html>
+    <NextIntlClientProvider messages={clientMessages}>
+      <LocaleDocumentAttributes />
+      <PwaBootstrap />
+      <TooltipProvider delayDuration={200}>
+        <ToastProvider>{children}</ToastProvider>
+      </TooltipProvider>
+    </NextIntlClientProvider>
   );
 }

@@ -50,7 +50,7 @@ import {
   pickWorkingDaysPerMonthForMonth,
   recognizeMonthlyEmployerPoolByCalendar,
 } from '../domain/monthly-accrual';
-import type { RateVersionRecord } from '../domain/types';
+import type { EmployeeRecord, LaborCostComponentRecord, RateVersionRecord, TimeEntryRecord } from '../domain/types';
 
 export interface MonthlyCostRecomputeResult {
   readonly skipped: boolean;
@@ -73,53 +73,80 @@ export interface MonthlyCostRecomputeResult {
   readonly recognizeFullMonth: boolean | null;
 }
 
+export type MonthlyLaborAllocationDraft = {
+  readonly skipped: true;
+  readonly reason: NonNullable<MonthlyCostRecomputeResult['reason']>;
+} | {
+  readonly skipped: false;
+  readonly reason: null;
+  readonly yearMonth: string;
+  readonly employeeId: string;
+  readonly currency: string;
+  readonly knownAmount: string;
+  readonly allocation: ReturnType<typeof allocateMonthlyRecognizedPoolByWorkDays>;
+  readonly workingDaysPerMonth: string;
+  readonly recognizedWorkDayCount: number;
+  readonly recognizeFullMonth: boolean;
+};
+
+export type MonthlyLaborAllocationPreload = {
+  readonly employee: EmployeeRecord;
+  readonly versions: readonly RateVersionRecord[];
+  readonly components: readonly import('../domain/types').LaborCostComponentRecord[];
+  readonly entries: readonly Pick<TimeEntryRecord, 'workDate' | 'hours' | 'kind' | 'projectId'>[];
+  readonly monthClosed: boolean;
+  readonly laborDefaults: ReturnType<typeof parseLaborCostDefaults>;
+};
+
 /**
- * Idempotent open-month recompute for one monthly employee.
- * Closed org months and closed employee-month rows are skipped.
+ * Read-only monthly allocation math — same path as recompute, no DB writes.
  */
-export async function recomputeMonthlyEmployeeCostForOpenMonth(
+export async function computeMonthlyEmployeeLaborAllocationDraft(
   context: OrgContext,
-  input: { readonly employeeId: string; readonly yearMonth: string },
-): Promise<MonthlyCostRecomputeResult> {
+  input: {
+    readonly employeeId: string;
+    readonly yearMonth: string;
+    readonly laborDefaults?: ReturnType<typeof parseLaborCostDefaults>;
+    readonly preload?: MonthlyLaborAllocationPreload;
+  },
+): Promise<MonthlyLaborAllocationDraft> {
   const { employeeId, yearMonth } = input;
-  const base = {
-    skipped: true as const,
-    yearMonth,
-    employeeId,
-    knownAmount: null,
-    allocatedToProjects: null,
-    unallocated: null,
-    workingDaysPerMonth: null,
-    recognizedWorkDayCount: null,
-    recognizeFullMonth: null,
-  };
+  const skip = (reason: NonNullable<MonthlyCostRecomputeResult['reason']>): MonthlyLaborAllocationDraft =>
+    ({ skipped: true, reason });
 
   if (!areEmployeeMonthCostsAvailable()) {
-    return { ...base, reason: 'month_costs_unavailable' };
+    return skip('month_costs_unavailable');
   }
 
-  const employee = await findEmployeeById(context.db, context.organizationId, employeeId);
+  if (input.preload?.monthClosed) {
+    return skip('month_closed');
+  }
+
+  const employee =
+    input.preload?.employee ??
+    (await findEmployeeById(context.db, context.organizationId, employeeId));
   if (!employee) {
-    return { ...base, reason: 'employee_missing' };
+    return skip('employee_missing');
   }
 
-  if (await isMonthClosed(context, yearMonth)) {
-    return { ...base, reason: 'month_closed' };
+  if (input.preload == null && (await isMonthClosed(context, yearMonth))) {
+    return skip('month_closed');
   }
 
-  const versions = await listRateVersionsByEmployee(
-    context.db,
-    context.organizationId,
-    employeeId,
-  );
+  const versions =
+    input.preload?.versions ??
+    (await listRateVersionsByEmployee(context.db, context.organizationId, employeeId));
   const currency = context.organization.baseCurrency.toUpperCase();
 
-  const rateIds = versions.map((v) => v.id);
-  const components =
-    rateIds.length > 0
-      ? await listComponentsByRateVersions(context.db, context.organizationId, rateIds)
-      : [];
-  const componentsByRateId = new Map<string, typeof components>();
+  const components = input.preload?.components ?? (
+    await (async () => {
+      const rateIds = versions.map((v) => v.id);
+      return rateIds.length > 0
+        ? await listComponentsByRateVersions(context.db, context.organizationId, rateIds)
+        : [];
+    })()
+  );
+  const componentsByRateId = new Map<string, LaborCostComponentRecord[]>();
   for (const component of components) {
     const list = componentsByRateId.get(component.rateVersionId) ?? [];
     list.push(component);
@@ -142,15 +169,19 @@ export async function recomputeMonthlyEmployeeCostForOpenMonth(
   });
 
   if (!poolResult) {
-    return { ...base, reason: 'not_monthly' };
+    return skip('not_monthly');
   }
 
-  const defaultsRaw = await getOrganizationSettingValue<unknown>(
-    context.db,
-    context.organizationId,
-    LABOR_COST_DEFAULTS_SETTING_KEY,
-  );
-  const laborDefaults = parseLaborCostDefaults(defaultsRaw);
+  const laborDefaults =
+    input.preload?.laborDefaults ??
+    input.laborDefaults ??
+    parseLaborCostDefaults(
+      await getOrganizationSettingValue<unknown>(
+        context.db,
+        context.organizationId,
+        LABOR_COST_DEFAULTS_SETTING_KEY,
+      ),
+    );
   const fallbackWorkingDaysPerMonth = pickWorkingDaysPerMonthForMonth({
     yearMonth,
     versions,
@@ -162,7 +193,7 @@ export async function recomputeMonthlyEmployeeCostForOpenMonth(
   const today = todayInTimeZone(context.organization.timezone);
   const currentYearMonth = today.slice(0, 7);
   if (yearMonth > currentYearMonth) {
-    return { ...base, reason: 'future_month' };
+    return skip('future_month');
   }
   const recognizeFullMonth = yearMonth < currentYearMonth || today >= monthEnd;
   const asOfDate = recognizeFullMonth ? monthEnd : today;
@@ -206,17 +237,19 @@ export async function recomputeMonthlyEmployeeCostForOpenMonth(
     fallbackWorkingDaysPerMonth,
   });
   if (!recognition) {
-    return { ...base, reason: 'working_days_unavailable' };
+    return skip('working_days_unavailable');
   }
   const workingDaysPerMonth = recognition.workingDaysPerMonth;
 
-  const entries = await listTimeEntries(context.db, context.organizationId, {
-    employeeId,
-    fromDate,
-    toDate: monthEnd,
-    forCosting: true,
-    limit: 10_000,
-  });
+  const entries =
+    input.preload?.entries ??
+    (await listTimeEntries(context.db, context.organizationId, {
+      employeeId,
+      fromDate,
+      toDate: monthEnd,
+      forCosting: true,
+      limit: 10_000,
+    }));
 
   const hoursByDate = new Map<string, { key: string; hours: string }[]>();
   for (const entry of entries) {
@@ -245,8 +278,56 @@ export async function recomputeMonthlyEmployeeCostForOpenMonth(
     hoursByDate,
   });
 
-  const knownAmountStr = toNumericString(recognition.recognizedPool);
-  const fullExpectedStr = toNumericString(poolResult.pool);
+  return {
+    skipped: false,
+    reason: null,
+    yearMonth,
+    employeeId,
+    currency,
+    knownAmount: toNumericString(recognition.recognizedPool),
+    allocation,
+    workingDaysPerMonth,
+    recognizedWorkDayCount: recognition.recognizedWorkDayCount,
+    recognizeFullMonth,
+  };
+}
+
+/**
+ * Idempotent open-month recompute for one monthly employee.
+ * Closed org months and closed employee-month rows are skipped.
+ */
+export async function recomputeMonthlyEmployeeCostForOpenMonth(
+  context: OrgContext,
+  input: { readonly employeeId: string; readonly yearMonth: string },
+): Promise<MonthlyCostRecomputeResult> {
+  const { employeeId, yearMonth } = input;
+  const base = {
+    skipped: true as const,
+    yearMonth,
+    employeeId,
+    knownAmount: null,
+    allocatedToProjects: null,
+    unallocated: null,
+    workingDaysPerMonth: null,
+    recognizedWorkDayCount: null,
+    recognizeFullMonth: null,
+  };
+
+  const draft = await computeMonthlyEmployeeLaborAllocationDraft(context, input);
+  if (draft.skipped) {
+    return { ...base, reason: draft.reason };
+  }
+
+  const {
+    allocation,
+    knownAmount: knownAmountStr,
+    workingDaysPerMonth,
+    recognizedWorkDayCount,
+    recognizeFullMonth,
+    currency,
+  } = draft;
+  const fullExpectedStr = toNumericString(allocation.knownAmount);
+  const accrualNotes = `Auto monthly accrual (full month expected ${fullExpectedStr}; ${workingDaysPerMonth} work days/mo; recognized ${recognizedWorkDayCount} day(s))`;
 
   await withTransaction(context.db, async (tx) => {
     let month = await findEmployeeMonthCostByEmployeeMonth(
@@ -293,8 +374,6 @@ export async function recomputeMonthlyEmployeeCostForOpenMonth(
         month = null;
       }
     }
-
-    const accrualNotes = `Auto monthly accrual (full month expected ${fullExpectedStr}; ${workingDaysPerMonth} work days/mo; recognized ${recognition.recognizedWorkDayCount} day(s))`;
 
     if (!month) {
       month = await insertEmployeeMonthCostDraft(tx, {
@@ -364,7 +443,7 @@ export async function recomputeMonthlyEmployeeCostForOpenMonth(
       currency,
       allocatedAmount: toNumericString(allocation.allocatedToProjects),
       unallocatedAmount: toNumericString(allocation.nonProjectOrUnallocated),
-      explanation: `Monthly accrued allocation (${recognition.recognizedWorkDayCount} work day(s) × derived daily)`,
+      explanation: `Monthly accrued allocation (${recognizedWorkDayCount} work day(s) × derived daily)`,
       supersedesRunId: prior?.status === 'applied' ? prior.id : null,
       lines: allocation.projectLines.map((line, index) => ({
         projectId: line.key,
@@ -391,7 +470,7 @@ export async function recomputeMonthlyEmployeeCostForOpenMonth(
     allocatedToProjects: toNumericString(allocation.allocatedToProjects),
     unallocated: toNumericString(allocation.nonProjectOrUnallocated),
     workingDaysPerMonth,
-    recognizedWorkDayCount: recognition.recognizedWorkDayCount,
+    recognizedWorkDayCount,
     recognizeFullMonth,
   };
 }

@@ -149,7 +149,7 @@ async function createDraftEntity(
       if (payload.kind !== 'expense') {
         throw new DomainRuleError('Payload kind mismatch', 'recurringDrafts.errors.kindMismatch');
       }
-      const input = expenseInputFromPayload(payload.data, runDate);
+      const input = expenseInputFromPayload(payload.data, runDate, templateTitle);
       const note = `Generated from recurring draft “${templateTitle}”.`;
       const created = await createExpense(context, {
         ...input,

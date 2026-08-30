@@ -72,6 +72,9 @@ function buildFinancials(): ProjectFinancials {
       directActualCostToDate: { amount: '12000.000000', currency },
       allocatedGeneralBusinessCost: zero,
       fullActualCostToDate: { amount: '12000.000000', currency },
+      futureGeneralAllocatedForecast: zero,
+      directForecastFinalCost: { amount: '12000.000000', currency },
+      fullForecastFinalCost: { amount: '12000.000000', currency },
     },
     profit: {
       estimatedProfit: { amount: '138000.000000', currency },

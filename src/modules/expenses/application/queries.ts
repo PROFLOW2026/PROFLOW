@@ -7,6 +7,7 @@ import {
   findExpenseById,
   listCostCategories,
   listExpenses,
+  countExpensesNeedingAttentionForOrg as countExpensesNeedingAttentionRows,
   listProjectsForOrganization,
   listWorkPackagesForProject,
   type ExpenseListFilters,
@@ -22,6 +23,11 @@ export async function getExpense(context: OrgContext, expenseId: string) {
 export async function listExpensesForOrg(context: OrgContext, filters: ExpenseListFilters = {}) {
   assertPermission(context, PERMISSIONS.EXPENSES_READ);
   return listExpenses(context.db, context.organizationId, filters);
+}
+
+export async function countExpensesNeedingAttentionForOrg(context: OrgContext): Promise<number> {
+  assertPermission(context, PERMISSIONS.EXPENSES_READ);
+  return countExpensesNeedingAttentionRows(context.db, context.organizationId);
 }
 
 export async function listCostCategoriesForOrg(context: OrgContext, family?: CostFamily) {

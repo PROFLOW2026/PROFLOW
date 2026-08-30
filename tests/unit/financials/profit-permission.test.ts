@@ -70,6 +70,9 @@ describe('project profit permission shape', () => {
       directActualCostToDate: { amount: '40000.000000', currency },
       allocatedGeneralBusinessCost: zero,
       fullActualCostToDate: { amount: '40000.000000', currency },
+      futureGeneralAllocatedForecast: zero,
+      directForecastFinalCost: { amount: '40000.000000', currency },
+      fullForecastFinalCost: { amount: '40000.000000', currency },
     },
     profit: {
       estimatedProfit: { amount: '60000.000000', currency },

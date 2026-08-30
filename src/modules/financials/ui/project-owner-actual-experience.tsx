@@ -40,6 +40,10 @@ async function loadOwnerStoryCopy(): Promise<OwnerStoryCopy> {
     allocatedGeneral: t('allocatedGeneral'),
     openCommitments: t('openCommitments'),
     forecastFinal: t('forecastFinal'),
+    directForecastFinal: t('directForecastFinal'),
+    fullForecastFinal: t('fullForecastFinal'),
+    futureGeneralAllocatedForecast: t('futureGeneralAllocatedForecast'),
+    recognizedAllocatedGeneral: t('recognizedAllocatedGeneral'),
     billed: t('billed'),
     collected: t('collected'),
     actualProfit: t('actualProfit'),
@@ -52,17 +56,33 @@ async function loadOwnerStoryCopy(): Promise<OwnerStoryCopy> {
       allocatedGeneral: t('allocatedGeneral'),
     },
     directActualCost: t('directActualCost'),
+    directBreakdownSectionTitle: t('directBreakdownSectionTitle'),
+    fullCostLayerTitle: t('fullCostLayerTitle'),
     fullActualIncludingGeneral: t('fullActualIncludingGeneral'),
     allocatedGeneralDetail: {
       expand: t('expand'),
       collapse: t('collapse'),
       expenseAmount: t('allocatedGeneralDetail.expenseAmount'),
       allocatedToProject: t('allocatedGeneralDetail.allocatedToProject'),
-      allocationPercent: t('allocatedGeneralDetail.allocationPercent'),
+      poolWeightPercent: t('allocatedGeneralDetail.poolWeightPercent'),
+      informationalPercent: t('allocatedGeneralDetail.informationalPercent'),
+      monthBreakdownTitle: t('allocatedGeneralDetail.monthBreakdownTitle'),
       supplier: t('allocatedGeneralDetail.supplier'),
       method: t('allocatedGeneralDetail.method'),
       poolOther: t('allocatedGeneralDetail.poolOther'),
       openExpense: t('allocatedGeneralDetail.openExpense'),
+      sharedAcrossProjects: t.raw('allocatedGeneralDetail.sharedAcrossProjects') as string,
+      methods: {
+        manual_amount: t('allocatedGeneralDetail.methods.manual_amount'),
+        manual_percent: t('allocatedGeneralDetail.methods.manual_percent'),
+        contract_weight: t('allocatedGeneralDetail.methods.contract_weight'),
+        labor_hours_weight: t('allocatedGeneralDetail.methods.labor_hours_weight'),
+        direct_cost_weight: t('allocatedGeneralDetail.methods.direct_cost_weight'),
+        equal_split: t('allocatedGeneralDetail.methods.equal_split'),
+        direct_actual_weight: t('allocatedGeneralDetail.methods.direct_actual_weight'),
+        none: t('allocatedGeneralDetail.methods.none'),
+        category_default: t('allocatedGeneralDetail.methods.category_default'),
+      },
     },
     total: t('total'),
     percent: t('percent'),
@@ -88,6 +108,10 @@ async function loadOwnerStoryCopy(): Promise<OwnerStoryCopy> {
     commitmentLabel: t('commitmentLabel'),
     paidLabel: t('paidLabel'),
     openSource: t('openSource'),
+    subcontractGroupTotal: t('subcontractGroupTotal'),
+    overheadCategoryHint: t('overheadCategoryHint'),
+    allocatedGeneralCompanyOnlyNote: t('allocatedGeneralCompanyOnlyNote'),
+    fullCostFormulaTitle: t('fullCostFormulaTitle'),
   };
 }
 
@@ -104,7 +128,11 @@ function buildMetrics(
     actualCost: kpis.actualCost,
     allocatedGeneralBusinessCost: financials.cost.allocatedGeneralBusinessCost ?? null,
     openCommitments: kpis.committed,
-    forecastFinal: kpis.forecastCost,
+    forecastFinal: kpis.directForecastCost,
+    directForecastFinal: kpis.directForecastCost,
+    fullForecastFinal: kpis.fullForecastCost,
+    futureGeneralAllocatedForecast: kpis.futureGeneralAllocatedForecast,
+    fullActualCost: kpis.fullActualCost,
     billed: canReadBilling ? kpis.billed : null,
     collected: canReadBilling ? kpis.paid : null,
     outstanding: canReadBilling ? kpis.outstanding : null,
@@ -113,6 +141,7 @@ function buildMetrics(
     afterGeneralProfit:
       canReadProfit && kpis.showBothProfits ? kpis.afterGeneralProfit : null,
     forecastProfit: canReadProfit ? kpis.forecastMargin : null,
+    fullForecastProfit: canReadProfit ? kpis.fullForecastMargin : null,
     expectedRemaining: kpis.expectedRemainingCost,
     openApPayable: financials.cost.openApPayable,
     priceNotSet,
@@ -166,6 +195,20 @@ export async function ProjectOwnerActualExperience({
     Number(metrics.allocatedGeneralBusinessCost.amount) > 0;
   const includeGeneralInPrimary = profitabilityMode === 'include_general';
   const allocatedGeneralDetailCopy = copy.allocatedGeneralDetail!;
+  const allocatedGeneralProp = hasAllocatedGeneral
+    ? {
+        amount: metrics.allocatedGeneralBusinessCost!,
+        includeInBreakdownTotal: includeGeneralInPrimary,
+        detail: allocatedGeneralDetail,
+      }
+    : null;
+  const costComposition =
+    hasAllocatedGeneral && !includeGeneralInPrimary
+      ? {
+          directActual: financials.cost.actualCostToDate,
+          fullActual: profitability.fullActualCost,
+        }
+      : null;
 
   if (variant === 'overview') {
     return (
@@ -179,18 +222,11 @@ export async function ProjectOwnerActualExperience({
                 laborByEmployee={result.breakdownResult.laborByEmployee}
                 copy={copy}
                 projectId={projectId}
-                allocatedGeneral={
-                  hasAllocatedGeneral && includeGeneralInPrimary
-                    ? {
-                        amount: metrics.allocatedGeneralBusinessCost!,
-                        includeInBreakdownTotal: true,
-                        detail: allocatedGeneralDetail,
-                      }
-                    : null
-                }
+                allocatedGeneral={allocatedGeneralProp}
                 breakdownTotalOverride={
                   includeGeneralInPrimary ? profitability.fullActualCost : null
                 }
+                costComposition={costComposition}
               />
             </div>
           </CardContent>
@@ -256,18 +292,11 @@ export async function ProjectOwnerActualExperience({
             laborByEmployee={result.breakdownResult.laborByEmployee}
             copy={copy}
             projectId={projectId}
-            allocatedGeneral={
-              hasAllocatedGeneral && includeGeneralInPrimary
-                ? {
-                    amount: metrics.allocatedGeneralBusinessCost!,
-                    includeInBreakdownTotal: true,
-                    detail: allocatedGeneralDetail,
-                  }
-                : null
-            }
+            allocatedGeneral={allocatedGeneralProp}
             breakdownTotalOverride={
               includeGeneralInPrimary ? profitability.fullActualCost : null
             }
+            costComposition={costComposition}
           />
         </CardContent>
       </Card>

@@ -358,5 +358,6 @@ export {
   sumMonthlyAllocatedLaborByProject,
   sumMonthlyAllocatedLaborForProject,
   sumOrganizationMonthlyLaborUnallocated,
+  sumOrganizationMonthlyLaborUnallocatedByMonth,
 } from './data/labor-displacement.repository';
 export type { MonthlyAllocatedLaborAggregate } from './data/labor-displacement.repository';

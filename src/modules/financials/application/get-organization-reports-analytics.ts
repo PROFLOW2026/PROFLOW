@@ -38,7 +38,6 @@ import {
 import { parseWorkKindFilter } from '../domain/work-pricing';
 import type { CashFlowOutlook } from '../domain/cash-flow';
 import { getOrganizationCashFlowOutlook } from './get-organization-cash-flow';
-import { refreshCurrentOpenGeneralCostMonthForSurfaces } from './recompute-general-cost-month';
 import {
   getOrganizationProjectRollup,
   type OrganizationProjectRollup,
@@ -127,8 +126,6 @@ export async function getOrganizationReportsAnalytics(
   const billingRecordsPromise = canReadBilling
     ? listBillingRecords(context, { filter: 'all', limit: ORG_LIST_EXPORT_CAP })
     : Promise.resolve(null);
-
-  await refreshCurrentOpenGeneralCostMonthForSurfaces(context);
 
   // Shared org billing promise - cash flow + AR aging previously each re-listed all records.
   const [rollup, billingRecords, unallocatedBusinessCosts, cashFlow, generalPoolTotals] =

@@ -23,6 +23,8 @@ import {
   listActiveCreditActualReductionsForBills,
 } from '@/modules/ap';
 import { RECOGNIZED_VENDOR_BILL_STATUSES } from '@/modules/ap/domain/vendor-cost-recognition';
+import { foldRecognizedVendorBillsForProjectsFromFacts } from '@/modules/ap/application/fold-ap-read-facts';
+import { getApOrgReadFactsCache } from '@/modules/ap/data/ap-read-facts-cache';
 const OPEN_COMMITTED_STATUSES = ['open', 'partially_consumed'] as const;
 /** Recognized bills may still owe cash after PO match - include `matched`. */
 const OPEN_AP_CASH_STATUSES = RECOGNIZED_VENDOR_BILL_STATUSES;
@@ -798,6 +800,22 @@ export async function loadRecognizedVendorBillsForProjects(
   projectIds: readonly string[],
   currency: string,
 ): Promise<Map<string, RecognizedVendorBillRollup>> {
+  const cached = getApOrgReadFactsCache(db as object);
+  if (cached) {
+    const folded = foldRecognizedVendorBillsForProjectsFromFacts(cached, projectIds, currency);
+    const result = new Map<string, RecognizedVendorBillRollup>();
+    for (const [projectId, rollup] of folded) {
+      result.set(projectId, {
+        billAmounts: [...rollup.billAmounts],
+        total: rollup.total,
+        linkedExpenseDeductions: rollup.linkedExpenseDeductions,
+        excludedForeignCurrencyCount: rollup.excludedForeignCurrencyCount,
+        billCount: rollup.billCount,
+      });
+    }
+    return result;
+  }
+
   const result = new Map<string, RecognizedVendorBillRollup>();
   if (projectIds.length === 0) return result;
 

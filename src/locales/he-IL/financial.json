@@ -262,7 +262,7 @@
   },
   "vendorActualPanel": {
     "title": "עלות ספקים בפרויקט זה",
-    "description": "הוצאות שאושרו וחשבוניות ספק שהוכרו, לפי ספק. הוצאות מקושרות לחשבונית נספרות פעם אחת דרך החשבונית.",
+    "description": "מקור משני לפי ספק — לא מוסיף לסה״כ הפרויקט. אותם כללי הכרה כמו פירוט הקטגוריות למעלה.",
     "empty": "עדיין אין עלות ספקים בפועל בפרויקט זה.",
     "hint": "אותם כללי הכרה כמו עלות בפועל בפרויקט - לא התחייבות הזמנת רכש פתוחה ולא תשלום במזומן."
   },
@@ -273,7 +273,11 @@
     "ofWhich": "מתוכן",
     "allocatedGeneral": "הוצאות כלליות שהוקצו לפרויקט",
     "openCommitments": "התחייבויות פתוחות",
-    "forecastFinal": "עלות צפויה בסיום",
+    "forecastFinal": "עלות ישירה צפויה בסיום",
+    "directForecastFinal": "עלות ישירה צפויה בסיום",
+    "fullForecastFinal": "עלות מלאה צפויה בסיום",
+    "recognizedAllocatedGeneral": "הוצאות כלליות שכבר הוקצו",
+    "futureGeneralAllocatedForecast": "הוצאות כלליות צפויות בהמשך",
     "billed": "חויב",
     "collected": "נגבה",
     "actualProfit": "רווח בפועל",
@@ -291,15 +295,33 @@
       "allocatedGeneral": "הוצאות כלליות שהוקצו לפרויקט"
     },
     "directActualCost": "עלות ישירה בפועל",
-    "fullActualIncludingGeneral": "עלות מלאה כולל הוצאות כלליות",
+    "directBreakdownSectionTitle": "עלות ישירה",
+    "fullCostLayerTitle": "תוספת לעלות מלאה",
+    "fullActualIncludingGeneral": "עלות מלאה בפועל",
+    "fullCostFormulaTitle": "עלות ישירה + הוצאות כלליות שהוקצו = עלות מלאה",
+    "allocatedGeneralCompanyOnlyNote": "הוצאות כלליות של העסק שלא הוקצו לפרויקט אינן כלולות בפרויקט זה.",
     "allocatedGeneralDetail": {
-      "expenseAmount": "הוצאה",
+      "expenseAmount": "סכום ההוצאה",
       "allocatedToProject": "הוקצה לפרויקט",
-      "allocationPercent": "אחוז לפרויקט",
+      "poolWeightPercent": "חלק הפרויקט בחלוקה",
+      "informationalPercent": "יחס מההוצאה (מידע)",
+      "monthBreakdownTitle": "פירוט לפי חודשים",
       "supplier": "ספק",
       "method": "שיטת חלוקה",
       "poolOther": "חלק ממאגר עלויות כלליות",
-      "openExpense": "פתיחת ההוצאה"
+      "openExpense": "פתיחת ההוצאה",
+      "sharedAcrossProjects": "הוצאה זו חולקה בין {count} פרויקטים",
+      "methods": {
+        "manual_amount": "סכום ידני",
+        "manual_percent": "אחוז ידני",
+        "contract_weight": "לפי שווי הפרויקטים",
+        "labor_hours_weight": "לפי שעות עבודה",
+        "direct_cost_weight": "לפי עלויות ישירות",
+        "equal_split": "חלוקה שווה",
+        "direct_actual_weight": "לפי עלויות ישירות",
+        "none": "לא הוקצה",
+        "category_default": "לפי ברירת המחדל של הקטגוריה"
+      }
     },
     "total": "סה״כ",
     "percent": "%",
@@ -328,6 +350,8 @@
     "actualLabel": "עלות בפועל",
     "commitmentLabel": "התחייבות",
     "paidLabel": "שולם",
-    "openSource": "פתיחת המקור"
+    "openSource": "פתיחת המקור",
+    "subcontractGroupTotal": "סה״כ בפועל",
+    "overheadCategoryHint": "הוצאות כלליות של העסק ששויכו ישירות לפרויקט. הוצאות כלליות שלא הוקצו לפרויקט אינן חלק מהעלות הישירה שלו. חלקים מהוצאות משותפות מוצגים בנפרד תחת «הוצאות כלליות שהוקצו לפרויקט»."
   }
 }

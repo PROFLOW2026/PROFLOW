@@ -23,10 +23,11 @@ import {
 } from '../data/committed-costs.repository';
 import { sumSubcontractRemainingCommitmentForProjects } from '../data/subcontract-commitment.repository';
 import { mergeProjectRemainingCommitments } from '../domain/merge-commitments';
-import { loadExpenseContributionsForProjects } from '../data/expenses.repository';
+import { loadCachedExpenseContributionsForProjects } from './financials-request-load-cache';
 import { loadInventoryConsumptionContributionsForProjects } from '../data/inventory-consumptions.repository';
 import { loadMonthCloseEconomicForProjects } from '../data/month-close-economic.repository';
 import { sumGeneralAllocationsGroupedByProject } from '../data/general-cost-months.repository';
+import { actualRecognitionThroughYearMonth } from '../domain/general-cost-actual-recognition';
 import type { ProjectExpenseContribution } from '../domain/cost-aggregation';
 import { composeProjectFinancials } from './compose-project-financials';
 
@@ -53,6 +54,12 @@ export async function loadProjectFinancialsBatch(
      * authoritative org expense load for rollup + unallocated layer.
      */
     readonly expenseContributions?: readonly ProjectExpenseContribution[];
+    /**
+     * Weight-basis loads for GCM preview — Direct Actual slices only.
+     * Skips commercial, billing, commitments, cash AP, and general allocation.
+     */
+    readonly omitGeneralAllocation?: boolean;
+    readonly directActualBasisOnly?: boolean;
   } = {},
 ): Promise<Map<string, ProjectFinancials>> {
   const result = new Map<string, ProjectFinancials>();
@@ -70,6 +77,13 @@ export async function loadProjectFinancialsBatch(
 
   const projectIdSet = new Set(projectIds);
   // Parallel set-based loads (postgres.js pipelines on one connection).
+  const directActualOnly = options.directActualBasisOnly === true;
+  const skipCommercial = directActualOnly || !canReadCommercial;
+  const skipBilling = directActualOnly || !canReadBilling;
+  const skipProcurementExtras = directActualOnly || !canReadProcurement;
+  const skipOpenAp = directActualOnly || !canReadAp;
+  const skipGeneral = options.omitGeneralAllocation === true || directActualOnly;
+
   const [
     commercialByProject,
     billingByProject,
@@ -83,12 +97,12 @@ export async function loadProjectFinancialsBatch(
     subcontractByProject,
     generalByProject,
   ] = await Promise.all([
-    canReadCommercial
-      ? loadCommercialDataForProjects(context.db, context.organizationId, projectIds)
-      : Promise.resolve(new Map()),
-    canReadBilling
-      ? loadBillingRowsGroupedByProject(context.db, context.organizationId, projectIds)
-      : Promise.resolve(new Map<string, ProjectBillingRows>()),
+    skipCommercial
+      ? Promise.resolve(new Map())
+      : loadCommercialDataForProjects(context.db, context.organizationId, projectIds),
+    skipBilling
+      ? Promise.resolve(new Map<string, ProjectBillingRows>())
+      : loadBillingRowsGroupedByProject(context.db, context.organizationId, projectIds),
     canReadExpenses
       ? options.expenseContributions
         ? Promise.resolve(
@@ -96,7 +110,7 @@ export async function loadProjectFinancialsBatch(
               (row) => row.projectId != null && projectIdSet.has(row.projectId),
             ),
           )
-        : loadExpenseContributionsForProjects(context.db, context.organizationId, projectIds)
+        : loadCachedExpenseContributionsForProjects(context.db, context.organizationId, projectIds)
       : Promise.resolve(null),
     canReadWorkforce
       ? sumLaborCostGroupedByProject(context.db, context.organizationId, projectIds, currency)
@@ -109,17 +123,17 @@ export async function loadProjectFinancialsBatch(
           currency,
         )
       : Promise.resolve(new Map()),
-    canReadProcurement
-      ? sumOpenCommittedCostsForProjects(
+    skipProcurementExtras
+      ? Promise.resolve(new Map())
+      : sumOpenCommittedCostsForProjects(
           context.db,
           context.organizationId,
           projectIds,
           currency,
-        )
-      : Promise.resolve(new Map()),
-    canReadAp
-      ? sumOpenApPayableForProjects(context.db, context.organizationId, projectIds, currency)
-      : Promise.resolve(new Map()),
+        ),
+    skipOpenAp
+      ? Promise.resolve(new Map())
+      : sumOpenApPayableForProjects(context.db, context.organizationId, projectIds, currency),
     canReadAp
       ? loadRecognizedVendorBillsForProjects(
           context.db,
@@ -134,20 +148,23 @@ export async function loadProjectFinancialsBatch(
       projectIds,
       currency,
     ),
-    canReadProcurement && canReadAp
-      ? sumSubcontractRemainingCommitmentForProjects(
+    skipProcurementExtras || !canReadAp
+      ? Promise.resolve(new Map())
+      : sumSubcontractRemainingCommitmentForProjects(
           context.db,
           context.organizationId,
           projectIds,
           currency,
-        )
-      : Promise.resolve(new Map()),
-    sumGeneralAllocationsGroupedByProject(
-      context.db,
-      context.organizationId,
-      projectIds,
-      currency,
-    ),
+        ),
+    skipGeneral
+      ? Promise.resolve(new Map<string, string>())
+      : sumGeneralAllocationsGroupedByProject(
+          context.db,
+          context.organizationId,
+          projectIds,
+          currency,
+          { throughYearMonth: actualRecognitionThroughYearMonth(context.organization.timezone) },
+        ),
   ]);
 
   const expensesByProject = new Map<string, ProjectExpenseContribution[]>();
@@ -254,9 +271,10 @@ export async function loadProjectFinancialsBatch(
       openAp: canReadAp ? (apByProject.get(projectId) ?? null) : null,
       recognizedVendor: canReadAp ? (recognizedByProject.get(projectId) ?? null) : null,
       monthCloseEconomic: monthCloseByProject.get(projectId),
-      allocatedGeneralBusinessCost:
-        fromNumericString(generalByProject.get(projectId) ?? '0', projectCurrency) ??
-        zeroMoney(projectCurrency),
+      allocatedGeneralBusinessCost: options.omitGeneralAllocation
+        ? zeroMoney(projectCurrency)
+        : (fromNumericString(generalByProject.get(projectId) ?? '0', projectCurrency) ??
+          zeroMoney(projectCurrency)),
       sliceAvailability: projectSliceAvailability,
     });
 

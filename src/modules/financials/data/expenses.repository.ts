@@ -392,6 +392,263 @@ export async function sumUnallocatedExpensesForMonth(
   return fromNumericString(row?.total ?? '0', currency) ?? zeroMoney(currency);
 }
 
+/**
+ * Same contribution rules as {@link sumUnallocatedExpensesForMonth}, grouped by year-month.
+ * One query for a candidate-month set — not per-month N+1.
+ */
+export async function sumUnallocatedExpensesGroupedByYearMonth(
+  db: DbExecutor,
+  organizationId: string,
+  currency: string,
+  yearMonths: readonly string[],
+): Promise<Map<string, MoneyValue>> {
+  const result = new Map<string, MoneyValue>();
+  if (yearMonths.length === 0) return result;
+  const rows = sqlRows<{ yearMonth: string; total: string }>(
+    await db.execute(sql`
+      select s.ym as "yearMonth", coalesce(sum(s.contrib), 0)::text as total
+      from (
+        select
+          l.year_month as ym,
+          l.amount as contrib
+        from expense_managerial_schedule_lines l
+        inner join expenses e
+          on e.id = l.expense_id
+          and e.organization_id = l.organization_id
+        where l.organization_id = ${organizationId}
+          and l.year_month in (${sql.join(yearMonths.map((ym) => sql`${ym}`), sql`, `)})
+          and l.status in ('scheduled', 'recognized')
+          and e.currency = ${currency}
+          and e.status = 'finalized'
+          and e.archived_at is null
+          and coalesce(e.inventory_stock_purchase, false) = false
+          and e.project_id is null
+          and e.installment_count > 1
+          and not exists (
+            select 1 from expense_allocations a
+            where a.expense_id = e.id
+              and a.organization_id = e.organization_id
+              and a.project_id is not null
+          )
+        union all
+        select
+          to_char(e.expense_date::date, 'YYYY-MM') as ym,
+          e.net_amount as contrib
+        from expenses e
+        where e.organization_id = ${organizationId}
+          and e.currency = ${currency}
+          and e.status = 'finalized'
+          and e.archived_at is null
+          and coalesce(e.inventory_stock_purchase, false) = false
+          and e.project_id is null
+          and to_char(e.expense_date::date, 'YYYY-MM') in (${sql.join(yearMonths.map((ym) => sql`${ym}`), sql`, `)})
+          and not (
+            e.installment_count > 1 and exists (
+              select 1
+              from expense_managerial_schedule_lines l
+              where l.expense_id = e.id
+                and l.organization_id = e.organization_id
+                and l.status in ('scheduled', 'recognized')
+            )
+          )
+          and not exists (
+            select 1 from expense_allocations a
+            where a.expense_id = e.id
+              and a.organization_id = e.organization_id
+              and a.project_id is not null
+          )
+      ) s
+      group by s.ym
+    `),
+  );
+  for (const row of rows) {
+    result.set(row.yearMonth, fromNumericString(row.total, currency) ?? zeroMoney(currency));
+  }
+  return result;
+}
+
+export interface UnallocatedExpenseMonthContribution {
+  readonly expenseId: string;
+  readonly expenseDate: string;
+  readonly description: string | null;
+  readonly recurringSourceTitle: string | null;
+  readonly supplierName: string | null;
+  readonly grossAmount: string;
+  readonly netContribution: string;
+  readonly costFamily: string;
+  readonly costCategoryKey: string | null;
+  readonly allocationDriverMethod: string | null;
+  readonly categoryDefaultAllocationMethod: string | null;
+  readonly yearMonth: string;
+}
+
+/** Per-expense contributions to a month's expense_unallocated general pool. */
+export async function listUnallocatedExpenseContributionsForMonth(
+  db: DbExecutor,
+  organizationId: string,
+  currency: string,
+  yearMonth: string,
+): Promise<readonly UnallocatedExpenseMonthContribution[]> {
+  return sqlRows<UnallocatedExpenseMonthContribution>(
+    await db.execute(sql`
+      select
+        e.id as "expenseId",
+        e.expense_date as "expenseDate",
+        e.description,
+        rd.title as "recurringSourceTitle",
+        e.supplier_name as "supplierName",
+        e.gross_amount::text as "grossAmount",
+        s.contrib::text as "netContribution",
+        e.cost_family as "costFamily",
+        cc.key as "costCategoryKey",
+        e.allocation_driver_method as "allocationDriverMethod",
+        cc.default_allocation_method as "categoryDefaultAllocationMethod",
+        ${yearMonth}::text as "yearMonth"
+      from (
+        select
+          e.id,
+          case
+            when e.installment_count > 1 and exists (
+              select 1
+              from expense_managerial_schedule_lines l
+              where l.expense_id = e.id
+                and l.organization_id = e.organization_id
+                and l.status in ('scheduled', 'recognized')
+            )
+            then coalesce((
+              select sum(l2.amount)
+              from expense_managerial_schedule_lines l2
+              where l2.expense_id = e.id
+                and l2.organization_id = e.organization_id
+                and l2.year_month = ${yearMonth}
+                and l2.status in ('scheduled', 'recognized')
+            ), 0)
+            else case
+              when to_char(e.expense_date::date, 'YYYY-MM') = ${yearMonth} then e.net_amount
+              else 0
+            end
+          end as contrib
+        from expenses e
+        where e.organization_id = ${organizationId}
+          and e.currency = ${currency}
+          and e.status = 'finalized'
+          and e.archived_at is null
+          and coalesce(e.inventory_stock_purchase, false) = false
+          and e.project_id is null
+          and not exists (
+            select 1 from expense_allocations a
+            where a.expense_id = e.id
+              and a.organization_id = e.organization_id
+              and a.project_id is not null
+          )
+      ) s
+      inner join expenses e on e.id = s.id and e.organization_id = ${organizationId}
+      left join cost_categories cc
+        on cc.id = e.cost_category_id and cc.organization_id = e.organization_id
+      left join recurring_financial_draft_runs rr
+        on rr.generated_entity_id = e.id
+        and rr.generated_entity_type = 'expense'
+        and rr.organization_id = ${organizationId}
+      left join recurring_financial_drafts rd
+        on rd.id = rr.draft_id and rd.organization_id = ${organizationId}
+      where s.contrib <> 0
+      order by e.expense_date desc, e.created_at desc
+    `),
+  );
+}
+
+/** Per-expense contributions across many months — one query, not per-month N+1. */
+export async function listUnallocatedExpenseContributionsForYearMonths(
+  db: DbExecutor,
+  organizationId: string,
+  currency: string,
+  yearMonths: readonly string[],
+): Promise<readonly UnallocatedExpenseMonthContribution[]> {
+  if (yearMonths.length === 0) return [];
+  return sqlRows<UnallocatedExpenseMonthContribution>(
+    await db.execute(sql`
+      select
+        e.id as "expenseId",
+        e.expense_date as "expenseDate",
+        e.description,
+        rd.title as "recurringSourceTitle",
+        e.supplier_name as "supplierName",
+        e.gross_amount::text as "grossAmount",
+        s.contrib::text as "netContribution",
+        e.cost_family as "costFamily",
+        cc.key as "costCategoryKey",
+        e.allocation_driver_method as "allocationDriverMethod",
+        cc.default_allocation_method as "categoryDefaultAllocationMethod",
+        s.ym as "yearMonth"
+      from (
+        select
+          e.id,
+          l.year_month as ym,
+          l.amount as contrib
+        from expense_managerial_schedule_lines l
+        inner join expenses e
+          on e.id = l.expense_id
+          and e.organization_id = l.organization_id
+        where l.organization_id = ${organizationId}
+          and l.year_month in (${sql.join(yearMonths.map((ym) => sql`${ym}`), sql`, `)})
+          and l.status in ('scheduled', 'recognized')
+          and e.currency = ${currency}
+          and e.status = 'finalized'
+          and e.archived_at is null
+          and coalesce(e.inventory_stock_purchase, false) = false
+          and e.project_id is null
+          and e.installment_count > 1
+          and l.amount <> 0
+          and not exists (
+            select 1 from expense_allocations a
+            where a.expense_id = e.id
+              and a.organization_id = e.organization_id
+              and a.project_id is not null
+          )
+        union all
+        select
+          e.id,
+          to_char(e.expense_date::date, 'YYYY-MM') as ym,
+          e.net_amount as contrib
+        from expenses e
+        where e.organization_id = ${organizationId}
+          and e.currency = ${currency}
+          and e.status = 'finalized'
+          and e.archived_at is null
+          and coalesce(e.inventory_stock_purchase, false) = false
+          and e.project_id is null
+          and to_char(e.expense_date::date, 'YYYY-MM') in (${sql.join(yearMonths.map((ym) => sql`${ym}`), sql`, `)})
+          and e.net_amount <> 0
+          and not (
+            e.installment_count > 1 and exists (
+              select 1
+              from expense_managerial_schedule_lines l
+              where l.expense_id = e.id
+                and l.organization_id = e.organization_id
+                and l.status in ('scheduled', 'recognized')
+            )
+          )
+          and not exists (
+            select 1 from expense_allocations a
+            where a.expense_id = e.id
+              and a.organization_id = e.organization_id
+              and a.project_id is not null
+          )
+      ) s
+      inner join expenses e on e.id = s.id and e.organization_id = ${organizationId}
+      left join cost_categories cc
+        on cc.id = e.cost_category_id and cc.organization_id = e.organization_id
+      left join recurring_financial_draft_runs rr
+        on rr.generated_entity_id = e.id
+        and rr.generated_entity_type = 'expense'
+        and rr.organization_id = ${organizationId}
+      left join recurring_financial_drafts rd
+        on rd.id = rr.draft_id and rd.organization_id = ${organizationId}
+      order by s.ym, e.expense_date desc, e.created_at desc
+    `),
+  );
+}
+
 export interface UnallocatedBusinessExpenseRow {
   readonly id: string;
   readonly expenseDate: string;

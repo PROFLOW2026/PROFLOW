@@ -78,7 +78,6 @@ import {
   type ActiveProjectSummary,
 } from '../data/projects.repository';
 import { getOrganizationProjectRollup } from './get-organization-project-rollup';
-import { refreshCurrentOpenGeneralCostMonthForSurfaces } from './recompute-general-cost-month';
 import { sumOrganizationGeneralPoolTotals } from '../data/general-cost-months.repository';
 import {
   composeCompanyActual,
@@ -359,12 +358,6 @@ export async function getHomeDashboard(
   const wantBilling = canReadBilling && hasBilling;
   const wantMonthInvoiced = !slimOwnerDashboard && canReadFinancials && wantBilling;
   const wantMonthCosts = !slimOwnerDashboard && canReadFinancials && (wantBilling || hasExpenses);
-
-  // Slim owner dashboard reads rollup before this hook; it does not surface companyActual /
-  // general-pool forecast fields — skip the all-open-month recompute wave on every home load.
-  if (canReadFinancials && !slimOwnerDashboard) {
-    await refreshCurrentOpenGeneralCostMonthForSurfaces(context);
-  }
 
   const [billingRows, invoicedThisMonth, costsThisMonth, generalPoolTotals] = await Promise.all([
     wantBilling

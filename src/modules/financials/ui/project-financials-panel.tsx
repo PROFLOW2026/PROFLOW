@@ -169,7 +169,6 @@ export async function ProjectFinancialsPanel({ projectId }: ProjectFinancialsPan
         canReadAp={canReadAp}
         t={t}
       />
-      <ProjectVendorActualPanel projectId={projectId} />
 
       <details className="rounded-lg border border-[var(--pf-border-default)] p-4">
         <summary
@@ -181,6 +180,7 @@ export async function ProjectFinancialsPanel({ projectId }: ProjectFinancialsPan
           {t('ownerStory.advancedTitle')}
         </summary>
         <div className="mt-4 flex flex-col gap-4 text-sm">
+          <ProjectVendorActualPanel projectId={projectId} />
           {canReadCommercial && financials.commercial ? (
             <section className="flex flex-col gap-3">
               {financials.commercial.displayOriginalContractValue ? (

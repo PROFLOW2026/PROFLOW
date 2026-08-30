@@ -108,6 +108,7 @@ export interface ProjectFinancialsLoadedSlices {
    * Attribution only — does not change Company Actual pool recognition.
    */
   readonly allocatedGeneralBusinessCost?: MoneyValue | null;
+  readonly futureGeneralAllocatedForecast?: MoneyValue | null;
   readonly sliceAvailability?: FinancialSliceAvailability;
   /** Org presentation mode — attached to output; does not alter economics. */
   readonly projectProfitabilityMode?: ProjectProfitabilityMode;
@@ -217,6 +218,8 @@ export function composeProjectFinancials(
 
   // Attach auto-general AFTER Direct is finalized — Full Actual = Direct + General.
   const allocatedGeneral = input.allocatedGeneralBusinessCost;
+  const futureGeneralForecast =
+    input.futureGeneralAllocatedForecast ?? zeroMoney(currency);
   if (allocatedGeneral && allocatedGeneral.currency === currency) {
     cost = withAllocatedGeneralBusinessCost(cost, allocatedGeneral);
   }
@@ -274,7 +277,13 @@ export function composeProjectFinancials(
     currency,
   });
 
-  cost = withCommittedAndApPayable(cost, committedOpen, openApPayable, expectedRemainingCost);
+  cost = withCommittedAndApPayable(
+    cost,
+    committedOpen,
+    openApPayable,
+    expectedRemainingCost,
+    futureGeneralForecast,
+  );
   const coverage = buildFinancialCoverage(
     sources,
     new Date(),
@@ -291,13 +300,22 @@ export function composeProjectFinancials(
   });
 
   // No revenue basis: cost forecast stays; never claim profit from revenue=0.
+  const directActual = roundMoney(cost.directActualCostToDate ?? cost.actualCostToDate);
+  const fullActual = roundMoney(
+    cost.fullActualCostToDate ??
+      addMoney(directActual, cost.allocatedGeneralBusinessCost ?? zeroMoney(currency)),
+  );
+  const mode = input.projectProfitabilityMode ?? 'direct';
+  const forecastForProfit =
+    mode === 'include_general' ? cost.fullForecastFinalCost : cost.directForecastFinalCost;
+  const actualForProfit = mode === 'include_general' ? fullActual : directActual;
   const profit =
     input.canReadProfit && commercial && !priceNotSet
       ? roundProfitPosition(
           computeProfitPosition(
             commercial.currentContractValue,
-            cost.estimatedFinalCost,
-            cost.actualCostToDate,
+            forecastForProfit,
+            actualForProfit,
           ),
         )
       : null;

@@ -85,6 +85,7 @@
     "statusLabel": "סטטוס",
     "backToList": "כל הטיוטות החוזרות",
     "edit": "עריכה",
+    "editDefinition": "עריכת ההוצאה הקבועה",
     "intervalLabel": "כל {count, plural, =1 {מחזור אחד} other {# מחזורים}}",
     "occurrenceStatus": "סטטוס"
   },
@@ -143,7 +144,7 @@
     "amount": "סכום",
     "vatMode": "מע״מ",
     "currency": "מטבע",
-    "description": "תיאור",
+    "description": "פירוט נוסף / הערה — לא מחליף את שם ההוצאה",
     "supplierName": "שם ספק",
     "vendor": "ספק",
     "project": "פרויקט",

@@ -50,6 +50,9 @@ function baseFinancials(overrides: Partial<ProjectFinancials> = {}): ProjectFina
       directActualCostToDate: money('5000', ILS),
       allocatedGeneralBusinessCost: zeroMoney(ILS),
       fullActualCostToDate: money('5000', ILS),
+      futureGeneralAllocatedForecast: zeroMoney(ILS),
+      directForecastFinalCost: money('8000', ILS),
+      fullForecastFinalCost: money('8000', ILS),
     },
     profit: {
       estimatedProfit: money('92000', ILS),

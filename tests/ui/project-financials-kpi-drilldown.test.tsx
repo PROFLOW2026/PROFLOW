@@ -98,6 +98,9 @@ function buildFinancials(overrides?: {
       directActualCostToDate: actual,
       allocatedGeneralBusinessCost: zero,
       fullActualCostToDate: actual,
+      futureGeneralAllocatedForecast: zero,
+      directForecastFinalCost: estimatedFinal,
+      fullForecastFinalCost: estimatedFinal,
       ...(overrides?.allocatedOverhead
         ? { allocatedOverhead: { amount: overrides.allocatedOverhead, currency } }
         : {}),
@@ -228,7 +231,7 @@ describe('ProjectFinancialsKpiPanel', () => {
 
     expect(screen.getByText('kpis.currentContract')).toBeInTheDocument();
     expect(screen.getByText('kpis.actualCost')).toBeInTheDocument();
-    expect(screen.getByText('kpis.allocatedOverhead')).toBeInTheDocument();
+    expect(screen.queryByText('kpis.allocatedOverhead')).not.toBeInTheDocument();
     expect(screen.getByText('kpis.committed')).toBeInTheDocument();
     expect(screen.getByText('kpis.forecast')).toBeInTheDocument();
     expect(screen.getByText('kpis.billed')).toBeInTheDocument();
@@ -240,5 +243,31 @@ describe('ProjectFinancialsKpiPanel', () => {
     expect(screen.getAllByText('kpis.actualCostHint').length).toBeGreaterThan(0);
     expect(screen.getAllByText('kpis.outstandingHint').length).toBeGreaterThan(0);
     expect(screen.getAllByText('kpis.actualMarginHint').length).toBeGreaterThan(0);
+  });
+
+  it('shows allocated general KPI from pool allocation, not direct overheadActual', () => {
+    const financials = buildFinancials({
+      overheadActual: '0.000000',
+    }) as ProjectFinancials;
+    financials.cost.allocatedGeneralBusinessCost = {
+      amount: '19415.370000',
+      currency: 'ILS',
+    };
+    financials.cost.overheadActual = { amount: '0.000000', currency: 'ILS' };
+
+    renderWithIntl(
+      <ProjectFinancialsKpiPanel
+        projectId="project-1"
+        financials={financials}
+        canReadProfit
+        canReadBilling
+        canReadCommercial
+        t={t}
+      />,
+      { locale: 'en' },
+    );
+
+    expect(screen.getByText('kpis.allocatedOverhead')).toBeInTheDocument();
+    expect(screen.queryByText('overheadActual')).not.toBeInTheDocument();
   });
 });

@@ -37,7 +37,6 @@ import type {
   ProjectOption,
 } from '@/modules/expenses/domain/types';
 import {
-  countExpensesNeedingAttention,
   expenseAttentionActionHref,
   expenseListShowsAttentionColumns,
   pickAttentionFilterFromItems,
@@ -56,6 +55,7 @@ import {
   buildExpenseDetailHref,
 } from '@/modules/expenses/domain/expense-return-navigation';
 import { ExpenseAttentionIndicator } from '@/modules/expenses/ui/expense-attention-indicator';
+import { Pagination } from '@/components/ui/pagination';
 import { statusShape } from '@/modules/expenses/domain/lifecycle';
 import { expenseListLabel, expenseSupplierDisplay } from '@/modules/expenses/ui/expense-list-label';
 
@@ -73,6 +73,10 @@ function statusFilterLabel(
 export interface ExpensesListProps {
   readonly items: ExpenseSummary[];
   readonly total: number;
+  readonly currentPage: number;
+  readonly pageCount: number;
+  readonly pageSize: number;
+  readonly attentionCount: number;
   readonly projects: ProjectOption[];
   readonly categories: CostCategoryRow[];
   readonly locale: string;
@@ -89,6 +93,10 @@ export interface ExpensesListProps {
 export function ExpensesList({
   items,
   total,
+  currentPage,
+  pageCount,
+  pageSize,
+  attentionCount,
   projects,
   categories,
   locale,
@@ -120,10 +128,8 @@ export function ExpensesList({
     ? statusFilter
     : undefined;
   const showAttentionColumns = expenseListShowsAttentionColumns(activeAttention);
-  const attentionCount =
-    statusFilter === EXPENSE_LIST_STATUS_ALL ? countExpensesNeedingAttention(items) : 0;
 
-  function buildFilterParams(nextStatusFilter?: ExpenseListStatusFilter) {
+  function buildFilterParams(nextStatusFilter?: ExpenseListStatusFilter, page = 1) {
     const params = new URLSearchParams();
     if (dateFrom) params.set('dateFrom', dateFrom);
     if (dateTo) params.set('dateTo', dateTo);
@@ -136,11 +142,12 @@ export function ExpensesList({
       const statusParams = expenseListStatusFilterToSearchParams(filterValue);
       statusParams.forEach((value, key) => params.set(key, value));
     }
+    if (page > 1) params.set('page', String(page));
     return params;
   }
 
   function applyFilters() {
-    router.push(`/expenses?${buildFilterParams().toString()}`);
+    router.push(`/expenses?${buildFilterParams(undefined, 1).toString()}`);
   }
 
   function clearFilters() {
@@ -153,6 +160,10 @@ export function ExpensesList({
     router.push('/expenses');
   }
 
+  function goToPage(page: number) {
+    router.push(`/expenses?${buildFilterParams(undefined, page).toString()}`);
+  }
+
   function resolveRowAttention(expense: ExpenseSummary) {
     return resolveExpenseAttentionRequired(expense, {
       assumeProjectAllocation: activeAttention === 'project_allocation',
@@ -163,12 +174,12 @@ export function ExpensesList({
     const filter = pickAttentionFilterFromItems(items);
     if (!filter) return;
     setStatusFilter(filter);
-    router.push(`/expenses?${buildFilterParams(filter).toString()}`);
+    router.push(`/expenses?${buildFilterParams(filter, 1).toString()}`);
   }
 
   function clearAttentionFilter() {
     setStatusFilter(EXPENSE_LIST_STATUS_ALL);
-    router.push(`/expenses?${buildFilterParams(EXPENSE_LIST_STATUS_ALL).toString()}`);
+    router.push(`/expenses?${buildFilterParams(EXPENSE_LIST_STATUS_ALL, 1).toString()}`);
   }
 
   if (items.length === 0 && !hasActiveFilters(initialFilters)) {
@@ -494,6 +505,17 @@ export function ExpensesList({
               );
             }}
           />
+
+          {pageCount > 1 ? (
+            <Pagination
+              page={currentPage}
+              pageCount={pageCount}
+              onPageChange={goToPage}
+              previousLabel={tCommon('actions.previous')}
+              nextLabel={tCommon('actions.next')}
+              statusLabel={t('list.pageStatus', { page: currentPage, pageCount })}
+            />
+          ) : null}
 
           <p className="text-xs text-[var(--pf-text-muted)]">
             {t('list.count', { count: items.length, total })}

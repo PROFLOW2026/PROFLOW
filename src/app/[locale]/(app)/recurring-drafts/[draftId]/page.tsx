@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { Alert } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/ui/page-header';
 import { ContextualBackLink } from '@/components/ui/contextual-back-link';
 import { StatusBadge } from '@/components/ui/status-badge';
@@ -196,13 +197,11 @@ export default async function RecurringDraftDetailPage({
           <StatusBadge shape={draftStatusShape(draft.status)} label={t(`status.${draft.status}`)} />
         }
         actions={
-          <div className="flex max-w-full flex-wrap gap-3">
-            {canManage && draft.status !== 'ended' ? (
-              <Link href={`/recurring-drafts/${draft.id}/edit`} className={textNavLinkClassName}>
-                {t('detail.edit')}
-              </Link>
-            ) : null}
-          </div>
+          canManage && draft.status !== 'ended' ? (
+            <Button asChild variant="secondary" className="min-h-11">
+              <Link href={`/recurring-drafts/${draft.id}/edit`}>{t('detail.editDefinition')}</Link>
+            </Button>
+          ) : null
         }
       />
 

@@ -1,9 +1,10 @@
 import type { OrgContext } from '@/shared/auth/context';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
-import { fromNumericString, isZeroMoney, type MoneyValue } from '@/shared/money';
-import { sumGeneralAllocationsForProject } from '../data/general-cost-months.repository';
+import { isZeroMoney, type MoneyValue } from '@/shared/money';
 import { loadProjectAllocatedGeneralAttributionRows } from '../data/project-allocated-general-detail.repository';
+import { actualRecognitionThroughYearMonth } from '../domain/general-cost-actual-recognition';
+import { resolveRecognizedGeneralAllocationForProject } from './resolve-project-general-allocations';
 import {
   buildProjectAllocatedGeneralDetail,
   type ProjectAllocatedGeneralDetail,
@@ -16,18 +17,11 @@ export async function getProjectAllocatedGeneralDetail(
 ): Promise<ProjectAllocatedGeneralDetail | null> {
   assertPermission(context, PERMISSIONS.PROJECT_FINANCIALS_READ);
   const currency = context.organization.baseCurrency;
+  const throughYearMonth = actualRecognitionThroughYearMonth(context.organization.timezone);
 
   const totalRaw = expectedTotal
     ? expectedTotal
-    : fromNumericString(
-        await sumGeneralAllocationsForProject(
-          context.db,
-          context.organizationId,
-          projectId,
-          currency,
-        ),
-        currency,
-      );
+    : await resolveRecognizedGeneralAllocationForProject(context, projectId, currency);
 
   if (!totalRaw || isZeroMoney(totalRaw)) return null;
 
@@ -36,6 +30,7 @@ export async function getProjectAllocatedGeneralDetail(
     context.organizationId,
     projectId,
     currency,
+    { throughYearMonth },
   );
 
   return buildProjectAllocatedGeneralDetail({

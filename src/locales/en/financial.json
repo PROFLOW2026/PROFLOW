@@ -262,7 +262,7 @@
   },
   "vendorActualPanel": {
     "title": "Vendor Actual on this project",
-    "description": "Finalized expenses and recognized vendor bills by vendor. Bill-linked expenses are counted once via the bill.",
+    "description": "Secondary vendor drill-down — does not add to project totals. Same recognition rules as the category breakdown above.",
     "empty": "No vendor Actual recorded on this project yet.",
     "hint": "Same recognition rules as project Actual — not open PO commitment or cash paid."
   },
@@ -273,7 +273,11 @@
     "ofWhich": "Of which",
     "allocatedGeneral": "General business costs allocated to the project",
     "openCommitments": "Open commitments",
-    "forecastFinal": "Forecast final cost",
+    "forecastFinal": "Direct forecast final cost",
+    "directForecastFinal": "Direct forecast final cost",
+    "fullForecastFinal": "Full forecast final cost",
+    "recognizedAllocatedGeneral": "General costs already allocated",
+    "futureGeneralAllocatedForecast": "Expected future general allocation",
     "billed": "Billed",
     "collected": "Collected",
     "actualProfit": "Actual profit",
@@ -291,15 +295,33 @@
       "allocatedGeneral": "General business costs allocated to the project"
     },
     "directActualCost": "Direct actual cost",
-    "fullActualIncludingGeneral": "Full actual cost including allocated general",
+    "directBreakdownSectionTitle": "Direct cost",
+    "fullCostLayerTitle": "Added for full cost",
+    "fullActualIncludingGeneral": "Full actual cost",
+    "fullCostFormulaTitle": "Direct cost + allocated general = full cost",
+    "allocatedGeneralCompanyOnlyNote": "General business costs not allocated to this project are not included here.",
     "allocatedGeneralDetail": {
-      "expenseAmount": "Expense",
+      "expenseAmount": "Expense amount",
       "allocatedToProject": "Allocated to project",
-      "allocationPercent": "Project share",
+      "poolWeightPercent": "Project share in allocation",
+      "informationalPercent": "Share of expense (informational)",
+      "monthBreakdownTitle": "Breakdown by month",
       "supplier": "Supplier",
       "method": "Allocation method",
       "poolOther": "Share of general cost pool",
-      "openExpense": "Open expense"
+      "openExpense": "Open expense",
+      "sharedAcrossProjects": "This expense is split across {count} projects",
+      "methods": {
+        "manual_amount": "Manual amount",
+        "manual_percent": "Manual percent",
+        "contract_weight": "By project contract value",
+        "labor_hours_weight": "By labor hours",
+        "direct_cost_weight": "By direct costs",
+        "equal_split": "Equal split",
+        "direct_actual_weight": "By direct costs",
+        "none": "Not allocated",
+        "category_default": "Category default policy"
+      }
     },
     "total": "Total",
     "percent": "%",
@@ -328,6 +350,8 @@
     "actualLabel": "Cost recognized",
     "commitmentLabel": "Open commitment",
     "paidLabel": "Paid",
-    "openSource": "Open source"
+    "openSource": "Open source",
+    "subcontractGroupTotal": "Total recognized",
+    "overheadCategoryHint": "General business expenses assigned directly to this project. Company general expenses not allocated here are not part of direct project cost. Shared-cost portions appear separately under allocated general."
   }
 }

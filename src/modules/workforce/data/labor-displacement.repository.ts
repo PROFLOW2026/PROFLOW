@@ -1,4 +1,4 @@
-import { and, eq, inArray, sql } from 'drizzle-orm';
+import { and, eq, inArray, not, sql } from 'drizzle-orm';
 import {
   employeeMonthCosts,
   laborAllocationRunLines,
@@ -37,6 +37,7 @@ export async function sumMonthlyAllocatedLaborByProject(
   organizationId: string,
   projectIds: readonly string[] | null,
   currency: string,
+  options?: { readonly excludeYearMonths?: readonly string[] },
 ): Promise<Map<string, MonthlyAllocatedLaborAggregate>> {
   const result = new Map<string, MonthlyAllocatedLaborAggregate>();
   if (projectIds !== null && projectIds.length === 0) return result;
@@ -44,6 +45,9 @@ export async function sumMonthlyAllocatedLaborByProject(
   const conditions = [monthlyAllocatedJoinConditions(organizationId, currency)];
   if (projectIds !== null) {
     conditions.push(inArray(laborAllocationRunLines.projectId, [...projectIds]));
+  }
+  if (options?.excludeYearMonths && options.excludeYearMonths.length > 0) {
+    conditions.push(not(inArray(employeeMonthCosts.yearMonth, [...options.excludeYearMonths])));
   }
 
   const rows = await db
@@ -85,12 +89,14 @@ export async function sumMonthlyAllocatedLaborForProject(
   organizationId: string,
   projectId: string,
   currency: string,
+  options?: { readonly excludeYearMonths?: readonly string[] },
 ): Promise<MonthlyAllocatedLaborAggregate> {
   const byProject = await sumMonthlyAllocatedLaborByProject(
     db,
     organizationId,
     [projectId],
     currency,
+    options,
   );
   return (
     byProject.get(projectId) ?? {
@@ -137,6 +143,45 @@ export async function sumOrganizationMonthlyLaborUnallocated(
     totalAmount: row?.totalAmount ?? '0',
     currency: currency.toUpperCase(),
   };
+}
+
+export async function sumOrganizationMonthlyLaborUnallocatedByMonth(
+  db: DbExecutor,
+  organizationId: string,
+  currency: string,
+  yearMonths: readonly string[],
+): Promise<Map<string, string>> {
+  const result = new Map<string, string>();
+  if (yearMonths.length === 0) return result;
+  const rows = await db
+    .select({
+      yearMonth: employeeMonthCosts.yearMonth,
+      totalAmount: sql<string>`coalesce(sum(${laborAllocationRuns.unallocatedAmount}), 0)::text`,
+    })
+    .from(laborAllocationRuns)
+    .innerJoin(
+      employeeMonthCosts,
+      and(
+        eq(laborAllocationRuns.employeeMonthCostId, employeeMonthCosts.id),
+        eq(laborAllocationRuns.organizationId, employeeMonthCosts.organizationId),
+      ),
+    )
+    .where(
+      and(
+        eq(laborAllocationRuns.organizationId, organizationId),
+        eq(laborAllocationRuns.status, 'applied'),
+        inArray(employeeMonthCosts.status, [...appliedClosedStatuses]),
+        eq(employeeMonthCosts.recognitionSource, 'monthly_allocated'),
+        sql`upper(${laborAllocationRuns.currency}) = upper(${currency})`,
+        inArray(employeeMonthCosts.yearMonth, [...yearMonths]),
+      ),
+    )
+    .groupBy(employeeMonthCosts.yearMonth);
+
+  for (const row of rows) {
+    result.set(row.yearMonth, row.totalAmount);
+  }
+  return result;
 }
 
 /** Displaced (employee, YYYY-MM) keys for applied/closed monthly_allocated months. */

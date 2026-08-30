@@ -85,6 +85,7 @@
     "statusLabel": "Status",
     "backToList": "All recurring drafts",
     "edit": "Edit",
+    "editDefinition": "Edit fixed expense definition",
     "intervalLabel": "Every {count, plural, =1 {one cycle} other {# cycles}}",
     "occurrenceStatus": "Status"
   },
@@ -143,7 +144,7 @@
     "amount": "Amount",
     "vatMode": "VAT",
     "currency": "Currency",
-    "description": "Description",
+    "description": "Additional detail / note",
     "supplierName": "Supplier name",
     "vendor": "Vendor",
     "project": "Project",

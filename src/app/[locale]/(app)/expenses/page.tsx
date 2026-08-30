@@ -8,14 +8,22 @@ import {
   listCostCategoriesForOrg,
   listExpensesForOrg,
   listExpensesSchema,
+  countExpensesNeedingAttentionForOrg,
   listProjectsForOrg,
   type ListExpensesInput,
 } from '@/modules/expenses';
+import {
+  EXPENSE_LIST_PAGE_SIZE,
+  expenseListOffset,
+  resolveExpenseListPage,
+  expenseListPageCount,
+} from '@/modules/expenses/domain/expense-list-pagination';
 import { withOrgContext } from '@/shared/auth/session';
 import { Link } from '@/shared/i18n/navigation';
 import {
   isExpenseListAttentionStatusFilter,
   resolveExpenseListStatusFilterFromQuery,
+  EXPENSE_LIST_STATUS_ALL,
 } from '@/modules/expenses/domain/expense-status-filter';
 import { OcrEntryLink } from '@/modules/ocr/ui/ocr-entry-link';
 import { SavedListViewsBar } from '@/modules/tenancy/ui/saved-list-views-bar';
@@ -51,12 +59,15 @@ export default async function ExpensesPage({
     status: rawParams.status,
     attention: rawParams.attention,
     unallocated: rawParams.unallocated,
+    page: rawParams.page,
   });
 
   const filters: ListExpensesInput = parsedFilters.success
     ? parsedFilters.data
     : { unallocated: false };
-  const { unallocated, attention: attentionParam, status, ...restFilters } = filters;
+  const { unallocated, attention: attentionParam, status, page: requestedPageRaw, ...restFilters } =
+    filters;
+  const requestedPage = requestedPageRaw ?? 1;
   const statusFilter = resolveExpenseListStatusFilterFromQuery({
     status,
     attention: attentionParam,
@@ -66,7 +77,7 @@ export default async function ExpensesPage({
     ? statusFilter
     : undefined;
   const showUnallocatedFilter = statusFilter === 'project_allocation';
-  const listFilters = {
+  const baseListFilters = {
     ...restFilters,
     dateFrom: restFilters.dateFrom as BusinessDate | undefined,
     dateTo: restFilters.dateTo as BusinessDate | undefined,
@@ -74,14 +85,42 @@ export default async function ExpensesPage({
     attentionFilter: activeAttention,
   };
 
-  const [listResult, projects, categories] = await withOrgContext(async (context) => {
-    const [expenses, projectRows, categoryRows] = await Promise.all([
-      listExpensesForOrg(context, listFilters),
+  const [listResult, projects, categories, attentionCount] = await withOrgContext(async (context) => {
+    const provisional = await listExpensesForOrg(context, {
+      ...baseListFilters,
+      limit: EXPENSE_LIST_PAGE_SIZE,
+      offset: expenseListOffset(requestedPage),
+    });
+    const currentPage = resolveExpenseListPage(
+      provisional.total,
+      requestedPage,
+      EXPENSE_LIST_PAGE_SIZE,
+    );
+    const listPromise =
+      currentPage === requestedPage
+        ? Promise.resolve(provisional)
+        : listExpensesForOrg(context, {
+            ...baseListFilters,
+            limit: EXPENSE_LIST_PAGE_SIZE,
+            offset: expenseListOffset(currentPage),
+          });
+    const [expenses, projectRows, categoryRows, attentionTotal] = await Promise.all([
+      listPromise,
       listProjectsForOrg(context),
       listCostCategoriesForOrg(context),
+      statusFilter === EXPENSE_LIST_STATUS_ALL
+        ? countExpensesNeedingAttentionForOrg(context)
+        : Promise.resolve(0),
     ]);
-    return [expenses, projectRows, categoryRows] as const;
+    return [expenses, projectRows, categoryRows, attentionTotal] as const;
   });
+
+  const currentPage = resolveExpenseListPage(
+    listResult.total,
+    requestedPage,
+    EXPENSE_LIST_PAGE_SIZE,
+  );
+  const pageCount = expenseListPageCount(listResult.total, EXPENSE_LIST_PAGE_SIZE);
 
   return (
     <div className="flex min-w-0 flex-col gap-6">
@@ -116,6 +155,7 @@ export default async function ExpensesPage({
           'status',
           'attention',
           'unallocated',
+          'page',
         ]}
       />
 
@@ -131,6 +171,10 @@ export default async function ExpensesPage({
       <ExpensesList
         items={listResult.items}
         total={listResult.total}
+        currentPage={currentPage}
+        pageCount={pageCount}
+        pageSize={EXPENSE_LIST_PAGE_SIZE}
+        attentionCount={attentionCount}
         projects={projects}
         categories={categories}
         locale={locale}

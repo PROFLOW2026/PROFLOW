@@ -16,7 +16,7 @@ import {
   type MoneyValue,
 } from '@/shared/money';
 import type { ProjectExpenseContribution } from '../domain/cost-aggregation';
-import { sqlFirstRow } from './sql-rows';
+import { sqlFirstRow, sqlRows } from './sql-rows';
 
 const YEAR_MONTH_RE = /^([0-9]{4})-(0[1-9]|1[0-2])$/;
 
@@ -163,6 +163,52 @@ export async function loadInventoryConsumptionContributionsForProject(
   return loadInventoryConsumptionContributionsForProjects(db, organizationId, [projectId]);
 }
 
+/** Org-wide project_consume rows grouped by project — one load per Financials request. */
+export async function loadOrganizationInventoryConsumptionContributions(
+  db: DbExecutor,
+  organizationId: string,
+): Promise<ProjectExpenseContribution[]> {
+  const rows = await db
+    .select({
+      projectId: inventoryCostConsumptions.projectId,
+      amount: sql<string>`coalesce(sum(${inventoryCostConsumptions.amount}), 0)::text`,
+      currency: inventoryCostConsumptions.currency,
+    })
+    .from(inventoryCostConsumptions)
+    .where(
+      and(
+        eq(inventoryCostConsumptions.organizationId, organizationId),
+        eq(inventoryCostConsumptions.kind, 'project_consume'),
+        isNotNull(inventoryCostConsumptions.projectId),
+      ),
+    )
+    .groupBy(inventoryCostConsumptions.projectId, inventoryCostConsumptions.currency);
+
+  const contributions: ProjectExpenseContribution[] = [];
+  for (const row of rows) {
+    if (!row.projectId) continue;
+    const amount = fromNumericString(row.amount, row.currency);
+    if (!amount || toDecimalValue(amount).eq(0)) continue;
+    contributions.push({
+      amount: row.amount,
+      currency: row.currency,
+      costFamily: 'direct_project',
+      isDirectOnProject: true,
+      isAllocated: false,
+      isSubcontractor: false,
+      projectId: row.projectId,
+      isLaborCategory: false,
+      expenseId: null,
+      categoryKey: 'materials',
+      workPackageId: null,
+      vendorId: null,
+      vendorName: null,
+      vendorType: null,
+    });
+  }
+  return contributions;
+}
+
 /**
  * Write-off consumptions in a calendar month → General Pool source.
  * Stock remaining value is intentionally excluded.
@@ -187,4 +233,37 @@ export async function sumInventoryWriteoffsForMonth(
     `),
   );
   return fromNumericString(row?.total ?? '0', normalized) ?? zeroMoney(normalized);
+}
+
+export async function sumInventoryWriteoffsGroupedByYearMonth(
+  db: DbExecutor,
+  organizationId: string,
+  currency: string,
+  yearMonths: readonly string[],
+): Promise<Map<string, MoneyValue>> {
+  const result = new Map<string, MoneyValue>();
+  if (yearMonths.length === 0) return result;
+  const sorted = [...yearMonths].sort();
+  const startDate = yearMonthDateBounds(sorted[0]!).startDate;
+  const endDate = yearMonthDateBounds(sorted[sorted.length - 1]!).endDate;
+  const normalized = currency.toUpperCase();
+  const allowed = new Set(yearMonths);
+  const rows = sqlRows<{ yearMonth: string; total: string }>(
+    await db.execute(sql`
+      select to_char(c.occurred_on::date, 'YYYY-MM') as "yearMonth",
+             coalesce(sum(c.amount), 0)::text as total
+      from inventory_cost_consumptions c
+      where c.organization_id = ${organizationId}
+        and c.currency = ${normalized}
+        and c.kind = 'writeoff'
+        and c.occurred_on >= ${startDate}
+        and c.occurred_on <= ${endDate}
+      group by 1
+    `),
+  );
+  for (const row of rows) {
+    if (!allowed.has(row.yearMonth)) continue;
+    result.set(row.yearMonth, fromNumericString(row.total, normalized) ?? zeroMoney(normalized));
+  }
+  return result;
 }

@@ -69,6 +69,16 @@ export interface ForecastFinalCostInput {
   readonly expectedRemainingCost: MoneyValue;
 }
 
+export interface FullForecastFinalCostInput extends ForecastFinalCostInput {
+  /** Full Actual = Direct + recognized allocated general. */
+  readonly fullActualCostToDate: MoneyValue;
+  /**
+   * Future general-cost allocation forecast from live schedule/source preview.
+   * Included in Full Forecast only — never in Direct Forecast.
+   */
+  readonly futureGeneralAllocatedForecast?: MoneyValue;
+}
+
 function familyKeyFromDb(value: string): CostFamilyKey {
   switch (value) {
     case 'direct_project':
@@ -85,13 +95,10 @@ function familyKeyFromDb(value: string): CostFamilyKey {
 }
 
 /**
- * Forecast Final Cost = Actual + Remaining Valid Commitments + Expected Remaining Cost.
- *
- * Actual includes finalized expenses and recognized (posted) vendor bills.
- * Commitments must already be remaining (post bill/PO consumption). Never add open AP
- * payable / vendor payments here - cash obligations only, not incremental cost.
+ * Direct Forecast Final Cost = Direct Actual + commitments + ETC.
+ * Excludes recognized and future general allocation.
  */
-export function computeForecastFinalCost(input: ForecastFinalCostInput): MoneyValue {
+export function computeDirectForecastFinalCost(input: ForecastFinalCostInput): MoneyValue {
   const currency = input.actualCostToDate.currency;
   if (input.remainingCommitments.currency !== currency) {
     throw new Error('Remaining commitments currency must match actual cost currency');
@@ -102,6 +109,42 @@ export function computeForecastFinalCost(input: ForecastFinalCostInput): MoneyVa
   return roundMoney(
     sumMoney(
       [input.actualCostToDate, input.remainingCommitments, input.expectedRemainingCost],
+      currency,
+    ),
+  );
+}
+
+/** @deprecated Use computeDirectForecastFinalCost — kept for call-site clarity. */
+export function computeForecastFinalCost(input: ForecastFinalCostInput): MoneyValue {
+  return computeDirectForecastFinalCost(input);
+}
+
+/**
+ * Full Forecast Final Cost = Full Actual + commitments + ETC + future general allocation.
+ */
+export function computeFullForecastFinalCost(input: FullForecastFinalCostInput): MoneyValue {
+  const currency = input.fullActualCostToDate.currency;
+  const futureGeneral = input.futureGeneralAllocatedForecast ?? zeroMoney(currency);
+  if (input.actualCostToDate.currency !== currency) {
+    throw new Error('Direct actual currency must match full actual currency');
+  }
+  if (input.remainingCommitments.currency !== currency) {
+    throw new Error('Remaining commitments currency must match full actual currency');
+  }
+  if (input.expectedRemainingCost.currency !== currency) {
+    throw new Error('Expected remaining currency must match full actual currency');
+  }
+  if (futureGeneral.currency !== currency) {
+    throw new Error('Future general forecast currency must match full actual currency');
+  }
+  return roundMoney(
+    sumMoney(
+      [
+        input.fullActualCostToDate,
+        input.remainingCommitments,
+        input.expectedRemainingCost,
+        futureGeneral,
+      ],
       currency,
     ),
   );
@@ -231,6 +274,8 @@ export function aggregateProjectCosts(
       actualCostToDate,
       // Forecast applied later with commitments + ETC.
       estimatedFinalCost: actualCostToDate,
+      directForecastFinalCost: actualCostToDate,
+      fullForecastFinalCost: actualCostToDate,
       byFamily: {
         directProject: roundMoney(byFamily.directProject),
         shared: roundMoney(byFamily.shared),
@@ -247,6 +292,7 @@ export function aggregateProjectCosts(
       directActualCostToDate: actualCostToDate,
       allocatedGeneralBusinessCost: zeroMoney(currency),
       fullActualCostToDate: actualCostToDate,
+      futureGeneralAllocatedForecast: zeroMoney(currency),
     },
     sources,
     partials,
@@ -274,6 +320,9 @@ export function emptyCostPosition(currency: string): CostPosition {
     directActualCostToDate: zero,
     allocatedGeneralBusinessCost: zero,
     fullActualCostToDate: zero,
+    futureGeneralAllocatedForecast: zero,
+    directForecastFinalCost: zero,
+    fullForecastFinalCost: zero,
   };
 }
 
@@ -314,7 +363,7 @@ export function withRecognizedVendorBills(
 /**
  * Attach automatic general business cost allocation.
  * `actualCostToDate` stays Direct; `fullActualCostToDate` = Direct + allocated.
- * Forecast Final Cost uses Direct + commitments + ETC (not Full).
+ * Forecast costs are composed in withCommittedAndApPayable (direct vs full basis).
  */
 export function withAllocatedGeneralBusinessCost(
   cost: CostPosition,
@@ -324,9 +373,6 @@ export function withAllocatedGeneralBusinessCost(
     throw new Error('Allocated general currency must match project cost currency');
   }
   const direct = roundMoney(cost.directActualCostToDate ?? cost.actualCostToDate);
-  const estimatedFinalCost = roundMoney(
-    addMoney(addMoney(direct, cost.committedOpen), cost.expectedRemainingCost),
-  );
   if (isZeroMoney(allocatedGeneral)) {
     return {
       ...cost,
@@ -334,7 +380,6 @@ export function withAllocatedGeneralBusinessCost(
       allocatedGeneralBusinessCost: zeroMoney(cost.actualCostToDate.currency),
       actualCostToDate: direct,
       fullActualCostToDate: direct,
-      estimatedFinalCost,
     };
   }
   const full = roundMoney(addMoney(direct, allocatedGeneral));
@@ -344,7 +389,6 @@ export function withAllocatedGeneralBusinessCost(
     allocatedGeneralBusinessCost: roundMoney(allocatedGeneral),
     actualCostToDate: direct,
     fullActualCostToDate: full,
-    estimatedFinalCost,
   };
 }
 
@@ -357,6 +401,7 @@ export function withCommittedAndApPayable(
   committedOpen: MoneyValue,
   openApPayable: MoneyValue,
   expectedRemainingCost: MoneyValue = zeroMoney(cost.actualCostToDate.currency),
+  futureGeneralAllocatedForecast: MoneyValue = zeroMoney(cost.actualCostToDate.currency),
 ): CostPosition {
   if (cost.actualCostToDate.currency !== committedOpen.currency) {
     throw new Error('Committed currency must match project cost currency');
@@ -370,10 +415,28 @@ export function withCommittedAndApPayable(
 
   const remainingCommitments = roundMoney(committedOpen);
   const etc = roundMoney(expectedRemainingCost);
-  const estimatedFinalCost = computeForecastFinalCost({
-    actualCostToDate: cost.actualCostToDate,
+  const futureGeneral = roundMoney(futureGeneralAllocatedForecast);
+  const direct = roundMoney(
+    cost.directActualCostToDate != null && !isZeroMoney(cost.directActualCostToDate)
+      ? cost.directActualCostToDate
+      : cost.actualCostToDate,
+  );
+  const fullActual = roundMoney(
+    cost.fullActualCostToDate != null && !isZeroMoney(cost.fullActualCostToDate)
+      ? cost.fullActualCostToDate
+      : direct,
+  );
+  const directForecastFinalCost = computeDirectForecastFinalCost({
+    actualCostToDate: direct,
     remainingCommitments,
     expectedRemainingCost: etc,
+  });
+  const fullForecastFinalCost = computeFullForecastFinalCost({
+    actualCostToDate: direct,
+    fullActualCostToDate: fullActual,
+    remainingCommitments,
+    expectedRemainingCost: etc,
+    futureGeneralAllocatedForecast: futureGeneral,
   });
 
   return {
@@ -381,7 +444,10 @@ export function withCommittedAndApPayable(
     committedOpen: remainingCommitments,
     expectedRemainingCost: etc,
     openApPayable: roundMoney(openApPayable),
-    estimatedFinalCost,
+    futureGeneralAllocatedForecast: futureGeneral,
+    directForecastFinalCost,
+    fullForecastFinalCost,
+    estimatedFinalCost: directForecastFinalCost,
   };
 }
 

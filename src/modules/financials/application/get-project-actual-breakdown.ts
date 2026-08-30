@@ -38,10 +38,6 @@ export const getProjectLaborByEmployeeAggregate = cache(
       ) {
         return null;
       }
-      const { ensureOpenMonthlyLaborFreshForProject } = await import(
-        '@/modules/workforce/application/ensure-open-monthly-labor-fresh'
-      );
-      await ensureOpenMonthlyLaborFreshForProject(context, projectId);
       const currency = context.organization.baseCurrency;
       return loadProjectLaborByEmployee(
         context.db,
@@ -77,42 +73,35 @@ export async function getProjectActualBreakdown(
   const canReadAp = hasPermission(context, PERMISSIONS.AP_READ);
   const canReadWorkforce = hasPermission(context, PERMISSIONS.WORKFORCE_READ);
 
-  const expenseContributions = canReadExpenses
-    ? await loadProjectExpenseContributions(context.db, context.organizationId, projectId)
-    : [];
-
-  const recognizedRollup = canReadAp
-    ? await loadRecognizedVendorBillsForProject(
-        context.db,
-        context.organizationId,
-        projectId,
-        currency,
-      )
-    : null;
-
-  const billAtoms = canReadAp
-    ? await loadRecognizedVendorBillAtomsForProject(
-        context.db,
-        context.organizationId,
-        projectId,
-        currency,
-      )
-    : [];
-
-  const laborByEmployee = canReadWorkforce
-    ? await (async () => {
-        const { ensureOpenMonthlyLaborFreshForProject } = await import(
-          '@/modules/workforce/application/ensure-open-monthly-labor-fresh'
-        );
-        await ensureOpenMonthlyLaborFreshForProject(context, projectId);
-        return loadProjectLaborByEmployee(
+  const [expenseContributions, recognizedRollup, billAtoms, laborByEmployee] = await Promise.all([
+    canReadExpenses
+      ? loadProjectExpenseContributions(context.db, context.organizationId, projectId)
+      : Promise.resolve([]),
+    canReadAp
+      ? loadRecognizedVendorBillsForProject(
           context.db,
           context.organizationId,
           projectId,
           currency,
-        );
-      })()
-    : null;
+        )
+      : Promise.resolve(null),
+    canReadAp
+      ? loadRecognizedVendorBillAtomsForProject(
+          context.db,
+          context.organizationId,
+          projectId,
+          currency,
+        )
+      : Promise.resolve([]),
+    canReadWorkforce
+      ? loadProjectLaborByEmployee(
+          context.db,
+          context.organizationId,
+          projectId,
+          currency,
+        )
+      : Promise.resolve(null),
+  ]);
 
   const linked = recognizedRollup?.linkedExpenseDeductions ?? new Map<string, string>();
   const expensesForActual = applyLinkedExpenseDeductionsToContributions(

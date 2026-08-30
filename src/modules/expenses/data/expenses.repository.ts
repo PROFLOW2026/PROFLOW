@@ -6,6 +6,8 @@ import {
   expenses,
   phases,
   projects,
+  recurringFinancialDraftRuns,
+  recurringFinancialDrafts,
   vendors,
   workPackages,
 } from '@drizzle/schema';
@@ -124,6 +126,7 @@ function mapSummary(row: {
   adjustsExpenseId?: string | null;
   needsProjectAllocation?: boolean | null;
   hasActiveReversal?: boolean | null;
+  recurringSourceTitle?: string | null;
 }): ExpenseSummary {
   return {
     id: row.id,
@@ -146,6 +149,7 @@ function mapSummary(row: {
     adjustsExpenseId: row.adjustsExpenseId ?? null,
     needsProjectAllocation: row.needsProjectAllocation === true,
     hasActiveReversal: row.hasActiveReversal === true,
+    recurringSourceTitle: row.recurringSourceTitle ?? null,
   };
 }
 
@@ -352,10 +356,26 @@ export async function findExpenseById(
       createdByUserId: expenses.createdByUserId,
       createdAt: expenses.createdAt,
       updatedAt: expenses.updatedAt,
+      recurringSourceTitle: recurringFinancialDrafts.title,
     })
     .from(expenses)
     .leftJoin(projects, eq(expenses.projectId, projects.id))
     .leftJoin(vendors, eq(expenses.vendorId, vendors.id))
+    .leftJoin(
+      recurringFinancialDraftRuns,
+      and(
+        eq(recurringFinancialDraftRuns.generatedEntityId, expenses.id),
+        eq(recurringFinancialDraftRuns.generatedEntityType, 'expense'),
+        eq(recurringFinancialDraftRuns.organizationId, organizationId),
+      ),
+    )
+    .leftJoin(
+      recurringFinancialDrafts,
+      and(
+        eq(recurringFinancialDrafts.id, recurringFinancialDraftRuns.draftId),
+        eq(recurringFinancialDrafts.organizationId, organizationId),
+      ),
+    )
     .where(and(eq(expenses.id, expenseId), eq(expenses.organizationId, organizationId), isNull(expenses.archivedAt)))
     .limit(1);
 
@@ -513,16 +533,79 @@ export async function listExpenses(
       adjustsExpenseId: expenses.adjustsExpenseId,
       needsProjectAllocation: needsProjectAllocationSelect(db, organizationId),
       hasActiveReversal: hasActiveReversalSelect(db, organizationId),
+      recurringSourceTitle: recurringFinancialDrafts.title,
     })
     .from(expenses)
     .leftJoin(projects, eq(expenses.projectId, projects.id))
     .leftJoin(vendors, eq(expenses.vendorId, vendors.id))
+    .leftJoin(
+      recurringFinancialDraftRuns,
+      and(
+        eq(recurringFinancialDraftRuns.generatedEntityId, expenses.id),
+        eq(recurringFinancialDraftRuns.generatedEntityType, 'expense'),
+        eq(recurringFinancialDraftRuns.organizationId, organizationId),
+      ),
+    )
+    .leftJoin(
+      recurringFinancialDrafts,
+      and(
+        eq(recurringFinancialDrafts.id, recurringFinancialDraftRuns.draftId),
+        eq(recurringFinancialDrafts.organizationId, organizationId),
+      ),
+    )
     .where(where)
     .orderBy(desc(expenses.expenseDate), desc(expenses.createdAt))
     .limit(filters.limit ?? 50)
     .offset(filters.offset ?? 0);
 
   return { items: rows.map(mapSummary), total: countRow?.count ?? 0 };
+}
+
+/** Org-wide actionable attention count — not limited by list pagination. */
+export async function countExpensesNeedingAttentionForOrg(
+  db: DbExecutor,
+  organizationId: string,
+): Promise<number> {
+  const sharedUnallocated = and(
+    eq(expenses.status, 'finalized'),
+    eq(expenses.costFamily, 'shared'),
+    isNull(expenses.projectId),
+    eq(expenses.inventoryStockPurchase, false),
+    not(
+      exists(
+        db
+          .select({ id: expenseAllocations.id })
+          .from(expenseAllocations)
+          .where(
+            and(
+              eq(expenseAllocations.expenseId, expenses.id),
+              eq(expenseAllocations.organizationId, organizationId),
+              sql`${expenseAllocations.projectId} is not null`,
+            ),
+          ),
+      ),
+    ),
+  );
+
+  const [countRow] = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(expenses)
+    .where(
+      and(
+        eq(expenses.organizationId, organizationId),
+        isNull(expenses.archivedAt),
+        isNull(expenses.voidsExpenseId),
+        isNull(expenses.adjustsExpenseId),
+        not(hasActiveReversalExists(db, organizationId)),
+        or(
+          eq(expenses.status, 'draft'),
+          eq(expenses.classificationStatus, 'needs_classification'),
+          sharedUnallocated,
+        ),
+      ),
+    );
+
+  return countRow?.count ?? 0;
 }
 
 export async function listProjectsForOrganization(

@@ -66,10 +66,12 @@ function buildPayload(kind: string, formData: FormData, title: string): unknown 
           : managerialCostKind === 'direct_project'
             ? 'direct_project'
             : null;
+    const extraDetail = formValue(formData, 'description')?.trim();
+    const noteParts = [notes?.trim() || null, extraDetail || null].filter(Boolean);
     return {
       amount,
       currency,
-      description: formValue(formData, 'description') ?? null,
+      description: title.trim() || null,
       supplierName: formValue(formData, 'supplierName') ?? null,
       projectId:
         expenseDestination === 'shared' || managerialCostKind === 'direct_project'
@@ -77,7 +79,7 @@ function buildPayload(kind: string, formData: FormData, title: string): unknown 
           : null,
       costFamily,
       costCategoryId: emptyToNull(formValue(formData, 'costCategoryId') ?? null),
-      notes,
+      notes: noteParts.length > 0 ? noteParts.join('\n') : null,
       vatMode: formValue(formData, 'vatMode') as ExpenseVatMode | undefined,
     };
   }

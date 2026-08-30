@@ -72,6 +72,11 @@ export {
   markMonthCloseReady,
   refreshPeriodCompleteness,
 } from './application/manage-periods';
+export {
+  filterClosedYearMonthsForFinancialsRead,
+  isMonthClosedForFinancialsRead,
+  loadCachedClosedYearMonthsSet,
+} from './application/closed-periods-read-cache';
 export { gatherCompletenessSignals } from './data/completeness.repository';
 
 export {

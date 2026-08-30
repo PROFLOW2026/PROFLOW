@@ -83,11 +83,14 @@ function dueDateFromOffset(runDate: BusinessDate, dueDays: number | null | undef
 export function expenseInputFromPayload(
   data: ExpenseDraftPayload,
   runDate: BusinessDate,
+  templateTitle?: string,
 ): CreateExpenseInput {
+  const description =
+    data.description?.trim() || templateTitle?.trim() || null;
   return {
     amount: data.amount,
     currency: data.currency,
-    description: data.description ?? null,
+    description,
     expenseDate: runDate,
     supplierName: data.supplierName ?? null,
     vendorId: data.vendorId ?? null,
@@ -234,7 +237,11 @@ export function previewPayloadForRun(
   const date = businessDate(runDate);
   switch (stored.kind) {
     case 'expense':
-      return { kind: 'expense', runDate: date, expense: expenseInputFromPayload(stored.data, date) };
+      return {
+        kind: 'expense',
+        runDate: date,
+        expense: expenseInputFromPayload(stored.data, date, templateTitle),
+      };
     case 'vendor_bill':
       return {
         kind: 'vendor_bill',

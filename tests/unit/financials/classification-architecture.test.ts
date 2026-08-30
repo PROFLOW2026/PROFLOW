@@ -235,8 +235,9 @@ describe('classification architecture', () => {
     ).toBe('vendors');
   });
 
-  it('K) refreshAllOpenGeneralCostMonthsForSurfaces exists (no live GCM DB)', () => {
+  it('K) read-surface GCM refresh helpers are no-op (no live GCM DB)', async () => {
     expect(typeof refreshAllOpenGeneralCostMonthsForSurfaces).toBe('function');
+    await expect(refreshAllOpenGeneralCostMonthsForSurfaces({} as never)).resolves.toBeUndefined();
   });
 
   it('L) calendar accrual: W=22, accrued=10 → not full month', () => {

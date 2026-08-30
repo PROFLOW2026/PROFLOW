@@ -1,32 +1,24 @@
 import type { OrgContext } from '@/shared/auth/context';
-import { NotFoundError } from '@/shared/errors';
-import { hasPermission, assertPermission } from '@/shared/permissions/assert';
+
+import { assertPermission, hasPermission } from '@/shared/permissions/assert';
+
 import { PERMISSIONS } from '@/shared/permissions/catalog';
-import { getProjectLaborCost } from '@/modules/workforce/application/project-labor-cost';
-import { loadProjectBillingRows } from '../data/billing.repository';
-import { loadProjectCommercialData } from '../data/commercial.repository';
-import {
-  loadRecognizedVendorBillsForProject,
-  sumOpenApPayableForProject,
-  sumOpenCommittedCostsForProject,
-} from '../data/committed-costs.repository';
-import { sumSubcontractRemainingCommitmentForProject } from '../data/subcontract-commitment.repository';
-import { mergeProjectRemainingCommitments } from '../domain/merge-commitments';
-import { loadProjectExpenseContributions } from '../data/expenses.repository';
-import { loadMonthCloseEconomicForProject } from '../data/month-close-economic.repository';
-import { loadProjectIncompletenessCounts } from '../data/incompleteness.repository';
+
 import {
   buildSliceAvailability,
   resolveProjectKpiAvailability,
 } from '../domain/slice-availability';
-import {
-  assertProjectInOrg,
-  findProjectForecastInputs,
-} from '../data/projects.repository';
+
 import { composeProjectFinancials } from './compose-project-financials';
+
 import type { ProjectFinancials } from '@/modules/financials/domain/types';
-import { zeroMoney } from '@/shared/money';
-import { getProjectProfitabilityModeForOrg } from '@/modules/tenancy/application/project-profitability-mode';
+
+import {
+  loadProjectFinancialsReadBundle,
+  mergeBundleCommitted,
+} from './load-project-financials-read-bundle';
+
+const financialsByTx = new WeakMap<object, Map<string, Promise<ProjectFinancials>>>();
 
 export async function getProjectFinancials(
   context: OrgContext,
@@ -34,16 +26,30 @@ export async function getProjectFinancials(
 ): Promise<ProjectFinancials> {
   assertPermission(context, PERMISSIONS.PROJECT_FINANCIALS_READ);
 
-  const exists = await assertProjectInOrg(context.db, context.organizationId, projectId);
-  if (!exists) throw new NotFoundError('Project');
+  const txKey = context.db as object;
+  let byProject = financialsByTx.get(txKey);
+  if (!byProject) {
+    byProject = new Map();
+    financialsByTx.set(txKey, byProject);
+  }
+  const hit = byProject.get(projectId);
+  if (hit) return hit;
+  const pending = getProjectFinancialsUncached(context, projectId);
+  byProject.set(projectId, pending);
+  return pending;
+}
 
-  const forecastInputs = await findProjectForecastInputs(
-    context.db,
-    context.organizationId,
-    projectId,
-    context.organization.baseCurrency,
-  );
-  const currency = forecastInputs.currency;
+async function getProjectFinancialsUncached(
+  context: OrgContext,
+  projectId: string,
+): Promise<ProjectFinancials> {
+  const t0 = performance.now();
+  const bundle = await loadProjectFinancialsReadBundle(context, projectId);
+  if (process.env.PF_TAB_PROFILE === '1') {
+    console.error(`[getProjectFinancials] bundleMs=${Math.round(performance.now() - t0)}`);
+  }
+
+  const currency = bundle.currency;
 
   const canReadCommercial = hasPermission(context, PERMISSIONS.CONTRACTS_READ);
   const canReadBilling = hasPermission(context, PERMISSIONS.BILLING_READ);
@@ -53,120 +59,11 @@ export async function getProjectFinancials(
   const canReadExpenses = hasPermission(context, PERMISSIONS.EXPENSES_READ);
   const canReadWorkforce = hasPermission(context, PERMISSIONS.WORKFORCE_READ);
 
-  // Sequential on purpose: single-connection transaction (PGlite / pooled client).
-  const commercialData = canReadCommercial
-    ? await loadProjectCommercialData(context.db, context.organizationId, projectId)
-    : null;
-  const billingRows = canReadBilling
-    ? await loadProjectBillingRows(context.db, context.organizationId, projectId)
-    : null;
-  const expenseContributions = canReadExpenses
-    ? await loadProjectExpenseContributions(context.db, context.organizationId, projectId)
-    : null;
+  const expenseContributionsWithInventory = canReadExpenses
+    ? [...(bundle.expenseContributions ?? []), ...bundle.inventoryContributions]
+    : bundle.expenseContributions;
 
-  let expenseContributionsWithInventory = expenseContributions;
-  if (canReadExpenses) {
-    const { loadInventoryConsumptionContributionsForProject } = await import(
-      '../data/inventory-consumptions.repository'
-    );
-    const inventoryContributions = await loadInventoryConsumptionContributionsForProject(
-      context.db,
-      context.organizationId,
-      projectId,
-    );
-    expenseContributionsWithInventory = [
-      ...(expenseContributions ?? []),
-      ...inventoryContributions,
-    ];
-  }
-  const laborResult = canReadWorkforce
-    ? await getProjectLaborCost(context, projectId)
-        .then(
-          (labor) =>
-            ({
-              ok: true as const,
-              laborInput: {
-                laborCost: labor.laborCost,
-                hasWorkforceData: labor.hasWorkforceData,
-                entriesMissingCost: labor.entriesMissingCost,
-                excludedForeignCurrencyEntries: labor.excludedForeignCurrencyEntries,
-              },
-            }) as const,
-        )
-        .catch((error: unknown) => {
-          if (error instanceof NotFoundError) {
-            return { ok: false as const, laborInput: null };
-          }
-          throw error;
-        })
-    : { ok: false as const, laborInput: null };
-  const committedResult = canReadProcurement
-    ? await sumOpenCommittedCostsForProject(
-        context.db,
-        context.organizationId,
-        projectId,
-        currency,
-      )
-    : null;
-  const subcontractResult =
-    canReadProcurement && canReadAp
-      ? await sumSubcontractRemainingCommitmentForProject(
-          context.db,
-          context.organizationId,
-          projectId,
-          currency,
-        )
-      : null;
-  const mergedCommitted =
-    committedResult || subcontractResult
-      ? {
-          total: mergeProjectRemainingCommitments({
-            currency,
-            poCommitted: committedResult?.total ?? zeroMoney(currency),
-            subcontractRemaining: subcontractResult?.total ?? zeroMoney(currency),
-          }),
-          excludedForeignCurrencyCount:
-            (committedResult?.excludedForeignCurrencyCount ?? 0) +
-            (subcontractResult?.excludedForeignCurrencyCount ?? 0),
-        }
-      : null;
-  const apResult = canReadAp
-    ? await sumOpenApPayableForProject(context.db, context.organizationId, projectId, currency)
-    : null;
-  const recognizedVendorResult = canReadAp
-    ? await loadRecognizedVendorBillsForProject(
-        context.db,
-        context.organizationId,
-        projectId,
-        currency,
-      )
-    : null;
-  const monthCloseEconomic = await loadMonthCloseEconomicForProject(
-    context.db,
-    context.organizationId,
-    projectId,
-    currency,
-  );
-  const incompleteness = await loadProjectIncompletenessCounts(
-    context.db,
-    context.organizationId,
-    projectId,
-  );
-
-  const { sumGeneralAllocationsForProject } = await import(
-    '../data/general-cost-months.repository'
-  );
-  const { fromNumericString: parseMoney, zeroMoney: zMoney } = await import('@/shared/money');
-  const generalAllocatedRaw = await sumGeneralAllocationsForProject(
-    context.db,
-    context.organizationId,
-    projectId,
-    currency,
-  );
-  const allocatedGeneralBusinessCost =
-    parseMoney(generalAllocatedRaw, currency) ?? zMoney(currency);
-
-  const projectProfitabilityMode = await getProjectProfitabilityModeForOrg(context);
+  const mergedCommitted = mergeBundleCommitted(bundle);
 
   const sliceAvailabilityFinal = buildSliceAvailability({
     canReadCommercial,
@@ -175,15 +72,15 @@ export async function getProjectFinancials(
     canReadWorkforce,
     canReadProcurement,
     canReadAp,
-    laborLoaded: laborResult.ok && laborResult.laborInput?.hasWorkforceData === true,
+    laborLoaded: bundle.laborInput?.hasWorkforceData === true,
   });
 
   const composed = composeProjectFinancials({
     projectId,
     currency,
-    expectedRemainingCostAmount: forecastInputs.expectedRemainingCostAmount,
-    workKind: forecastInputs.workKind,
-    pricingMode: forecastInputs.pricingMode,
+    expectedRemainingCostAmount: bundle.forecastInputs.expectedRemainingCostAmount,
+    workKind: bundle.forecastInputs.workKind,
+    pricingMode: bundle.forecastInputs.pricingMode,
     canReadCommercial,
     canReadBilling,
     canReadProfit,
@@ -191,17 +88,18 @@ export async function getProjectFinancials(
     canReadWorkforce,
     canReadProcurement,
     canReadAp,
-    commercialData,
-    billingRows,
+    commercialData: bundle.commercialData,
+    billingRows: bundle.billingRows,
     expenseContributions: expenseContributionsWithInventory,
-    laborInput: laborResult.laborInput,
+    laborInput: bundle.laborInput,
     committed: mergedCommitted,
-    openAp: apResult,
-    recognizedVendor: recognizedVendorResult,
-    monthCloseEconomic,
-    incompleteness,
-    allocatedGeneralBusinessCost,
-    projectProfitabilityMode,
+    openAp: bundle.openAp,
+    recognizedVendor: bundle.recognizedVendor,
+    monthCloseEconomic: bundle.monthCloseEconomic,
+    incompleteness: bundle.incompleteness,
+    allocatedGeneralBusinessCost: bundle.generalResolved.recognizedActual,
+    futureGeneralAllocatedForecast: bundle.generalResolved.futureForecast,
+    projectProfitabilityMode: bundle.projectProfitabilityMode,
     sliceAvailability: sliceAvailabilityFinal,
   });
 

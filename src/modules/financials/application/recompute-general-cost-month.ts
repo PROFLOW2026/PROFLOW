@@ -22,7 +22,6 @@ import {
 import { sumInventoryWriteoffsForMonth } from '../data/inventory-consumptions.repository';
 import {
   findGeneralCostMonth,
-  listOpenGeneralCostYearMonths,
   persistGeneralCostMonthRecompute,
 } from '../data/general-cost-months.repository';
 import { listScheduleLines } from '@/modules/expenses';
@@ -36,11 +35,12 @@ import {
   type GeneralCostSourceAtom,
 } from '../domain/company-actual';
 import { loadProjectFinancialsBatch } from './load-project-financials-batch';
+import { isFutureEconomicYearMonth } from '../domain/general-cost-actual-recognition';
 
 export interface RecomputeGeneralCostMonthResult {
   readonly yearMonth: string;
   readonly skipped: boolean;
-  readonly reason: null | 'frozen' | 'month_closed_without_row';
+  readonly reason: null | 'frozen' | 'month_closed_without_row' | 'future_economic_period';
   readonly poolAmount: string;
   readonly allocatedAmount: string;
   readonly unallocatableAmount: string;
@@ -58,6 +58,19 @@ export async function recomputeGeneralCostMonth(
 ): Promise<RecomputeGeneralCostMonthResult> {
   assertPermission(context, PERMISSIONS.PROJECT_FINANCIALS_READ);
   const currency = context.organization.baseCurrency;
+
+  if (isFutureEconomicYearMonth(yearMonth, context.organization.timezone)) {
+    return {
+      yearMonth,
+      skipped: true,
+      reason: 'future_economic_period',
+      poolAmount: '0',
+      allocatedAmount: '0',
+      unallocatableAmount: '0',
+      projectCount: 0,
+    };
+  }
+
   const existing = await findGeneralCostMonth(
     context.db,
     context.organizationId,
@@ -321,6 +334,8 @@ export async function tryRecomputeOpenGeneralCostMonth(
   target: OpenGeneralCostMonthTarget,
 ): Promise<void> {
   try {
+    const yearMonth = resolveOpenGeneralCostYearMonth(context, target);
+    if (isFutureEconomicYearMonth(yearMonth, context.organization.timezone)) return;
     await recomputeOpenGeneralCostMonthForDate(context, target);
   } catch {
     // Recognition path already succeeded; stale general pool is acceptable until next hook/load.
@@ -357,6 +372,7 @@ export async function tryRecomputeOpenGeneralCostMonthsForExpense(
       }
     }
     for (const yearMonth of [...months].sort()) {
+      if (isFutureEconomicYearMonth(yearMonth, context.organization.timezone)) continue;
       await recomputeGeneralCostMonth(context, yearMonth);
     }
   } catch {
@@ -372,38 +388,16 @@ export function scheduleOpenGeneralCostRecompute(
   void tryRecomputeOpenGeneralCostMonth(context, target);
 }
 
-/**
- * Refresh every open (non-frozen) general-cost month for the org, and always
- * ensure the current calendar month exists/is recomputed.
- */
+/** @deprecated Read surfaces must not mutate GCM. Use mutation hooks only. */
 export async function refreshAllOpenGeneralCostMonthsForSurfaces(
-  context: OrgContext,
+  _context: OrgContext,
 ): Promise<void> {
-  if (!hasPermission(context, PERMISSIONS.PROJECT_FINANCIALS_READ)) return;
-  const currency = context.organization.baseCurrency;
-  const today = todayInTimeZone(context.organization.timezone);
-  const currentYearMonth = today.slice(0, 7);
-
-  await tryRecomputeOpenGeneralCostMonth(context, { yearMonth: currentYearMonth });
-
-  const openMonths = await listOpenGeneralCostYearMonths(
-    context.db,
-    context.organizationId,
-    currency,
-  );
-  for (const yearMonth of openMonths) {
-    if (yearMonth === currentYearMonth) continue;
-    await tryRecomputeOpenGeneralCostMonth(context, { yearMonth });
-  }
+  // Intentionally no-op: general cost month persistence is write-triggered only.
 }
 
-/**
- * At most one open-month refresh wave per org financial surface request.
- * Prefer mutation hooks; this covers reads that need companyActual freshness.
- * Delegates to all-open refresh so installment months stay current.
- */
+/** @deprecated Read surfaces must not mutate GCM. Use mutation hooks only. */
 export async function refreshCurrentOpenGeneralCostMonthForSurfaces(
-  context: OrgContext,
+  _context: OrgContext,
 ): Promise<void> {
-  await refreshAllOpenGeneralCostMonthsForSurfaces(context);
+  // Intentionally no-op: general cost month persistence is write-triggered only.
 }

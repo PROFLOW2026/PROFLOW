@@ -54,12 +54,23 @@ describe('recurring expense explicit category', () => {
           costCategoryId: BITUACH_CATEGORY_ID,
         },
         businessDate(month),
+        'ביטוח ישיר',
       );
       expect(input.amount).toBe('800');
       expect(input.vatMode).toBe('zero');
       expect(input.costCategoryId).toBe(BITUACH_CATEGORY_ID);
       expect(input.expenseDate).toBe(month);
+      expect(input.description).toBe('ביטוח ישיר');
     }
+  });
+
+  it('falls back to template title when legacy payload description is empty', () => {
+    const input = expenseInputFromPayload(
+      { amount: '800', currency: 'ILS', costCategoryId: BITUACH_CATEGORY_ID },
+      businessDate('2026-01-01'),
+      'ביטוח ישיר',
+    );
+    expect(input.description).toBe('ביטוח ישיר');
   });
 
   it('does not auto-pick a category from catalog or heuristics', () => {

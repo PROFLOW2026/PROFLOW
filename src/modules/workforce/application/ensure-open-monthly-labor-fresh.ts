@@ -17,9 +17,22 @@ import { todayInTimeZone } from '@/shared/dates';
 import { areEmployeeMonthCostsAvailable } from '../domain/monthly-cost-gates';
 import { recomputeMonthlyEmployeeCostForOpenMonth } from './monthly-cost-recompute';
 
+const freshByTx = new WeakMap<object, Map<string, Promise<void>>>();
+
+function priorCalendarYearMonth(yearMonth: string): string {
+  const [yearRaw, monthRaw] = yearMonth.split('-');
+  const year = Number(yearRaw);
+  const month = Number(monthRaw);
+  if (month <= 1) return `${year - 1}-12`;
+  return `${year}-${String(month - 1).padStart(2, '0')}`;
+}
+
 /**
  * Ensure current + prior open calendar months for project-touching monthly
  * employees are recomputed so Project Actual is not stale after the accrual fix.
+ *
+ * Historical employee-months are not recomputed on every Financials read.
+ * One in-flight promise per transaction + project.
  */
 export async function ensureOpenMonthlyLaborFreshForProject(
   context: OrgContext,
@@ -27,8 +40,26 @@ export async function ensureOpenMonthlyLaborFreshForProject(
 ): Promise<void> {
   if (!areEmployeeMonthCostsAvailable()) return;
 
+  const txKey = context.db as object;
+  let byProject = freshByTx.get(txKey);
+  if (!byProject) {
+    byProject = new Map();
+    freshByTx.set(txKey, byProject);
+  }
+  const hit = byProject.get(projectId);
+  if (hit) return hit;
+  const pending = ensureOpenMonthlyLaborFreshForProjectUncached(context, projectId);
+  byProject.set(projectId, pending);
+  return pending;
+}
+
+async function ensureOpenMonthlyLaborFreshForProjectUncached(
+  context: OrgContext,
+  projectId: string,
+): Promise<void> {
   const today = todayInTimeZone(context.organization.timezone);
   const currentYearMonth = today.slice(0, 7);
+  const minYearMonth = priorCalendarYearMonth(currentYearMonth);
 
   const fromAlloc = await context.db
     .selectDistinct({ employeeId: employeeMonthCosts.employeeId, yearMonth: employeeMonthCosts.yearMonth })
@@ -53,6 +84,7 @@ export async function ensureOpenMonthlyLaborFreshForProject(
         eq(laborAllocationRunLines.projectId, projectId),
         inArray(laborAllocationRuns.status, ['applied', 'draft']),
         inArray(employeeMonthCosts.status, ['draft', 'applied']),
+        sql`${employeeMonthCosts.yearMonth} >= ${minYearMonth}`,
         sql`${employeeMonthCosts.yearMonth} <= ${currentYearMonth}`,
       ),
     );
@@ -79,12 +111,14 @@ export async function ensureOpenMonthlyLaborFreshForProject(
         eq(timeEntries.status, 'recorded'),
         eq(timeEntries.approvalStatus, 'approved'),
         isNull(timeEntries.archivedAt),
+        sql`to_char(${timeEntries.workDate}::date, 'YYYY-MM') >= ${minYearMonth}`,
         sql`to_char(${timeEntries.workDate}::date, 'YYYY-MM') <= ${currentYearMonth}`,
       ),
     );
 
   const keys = new Map<string, { employeeId: string; yearMonth: string }>();
   for (const row of [...fromAlloc, ...fromTime]) {
+    if (row.yearMonth < minYearMonth) continue;
     keys.set(`${row.employeeId}:${row.yearMonth}`, {
       employeeId: row.employeeId,
       yearMonth: row.yearMonth,
@@ -99,15 +133,25 @@ export async function ensureOpenMonthlyLaborFreshForProject(
     });
   }
 
-  for (const item of [...keys.values()].sort((a, b) =>
-    a.yearMonth === b.yearMonth
-      ? a.employeeId.localeCompare(b.employeeId)
-      : a.yearMonth.localeCompare(b.yearMonth),
-  )) {
+  const items = [...keys.values()]
+    .filter((item) => item.yearMonth >= minYearMonth)
+    .sort((a, b) =>
+      a.yearMonth === b.yearMonth
+        ? a.employeeId.localeCompare(b.employeeId)
+        : a.yearMonth.localeCompare(b.yearMonth),
+    );
+
+  const t0 = performance.now();
+  for (const item of items) {
     try {
       await recomputeMonthlyEmployeeCostForOpenMonth(context, item);
     } catch {
       // One bad employee-month must not crash Project Financials; others still refresh.
     }
+  }
+  if (process.env.PF_TAB_PROFILE === '1') {
+    console.error(
+      `[labor-fresh] project=${projectId} employeeMonths=${items.length} ms=${Math.round(performance.now() - t0)}`,
+    );
   }
 }

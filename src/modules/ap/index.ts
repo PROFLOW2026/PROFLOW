@@ -263,7 +263,7 @@ export {
   type CreditActualReduction,
 } from './data/credits.repository';
 
-export { sumRecognizedApGeneralRemainders } from './data/vendor-general-remainder.repository';
+export { sumRecognizedApGeneralRemainders, sumRecognizedApGeneralRemaindersByYearMonth } from './data/vendor-general-remainder.repository';
 export type { ApGeneralRemainderTotals } from './data/vendor-general-remainder.repository';
 
 export {

@@ -147,54 +147,60 @@ async function fetchProjectCommercialInputs(
   pendingChanges: PendingChangeRow[];
   valueEvents: ContractValueEventRecord[];
 } | null> {
-  const contractRows = await db
-    .select()
-    .from(contracts)
-    .where(
-      and(
-        eq(contracts.organizationId, organizationId),
-        eq(contracts.projectId, projectId),
-        isNull(contracts.archivedAt),
-      ),
-    );
+  const bundleRow = sqlFirstRow<{
+    contracts: Record<string, unknown>[] | null;
+    valueEvents: Record<string, unknown>[] | null;
+    pendingChanges: {
+      contract_id: string | null;
+      status: string;
+      direction: string;
+      requested_amount: string | null;
+      currency: string;
+      priced_amount: string | null;
+    }[] | null;
+  }>(
+    await db.execute(sql`
+      with project_contracts as (
+        select c.*
+        from contracts c
+        where c.organization_id = ${organizationId}::uuid
+          and c.project_id = ${projectId}::uuid
+          and c.archived_at is null
+      )
+      select
+        (select coalesce(jsonb_agg(to_jsonb(pc)), '[]'::jsonb) from project_contracts pc) as contracts,
+        (select coalesce(jsonb_agg(to_jsonb(cve)), '[]'::jsonb)
+         from contract_value_events cve
+         where cve.organization_id = ${organizationId}::uuid
+           and cve.contract_id in (select id from project_contracts)) as "valueEvents",
+        (select coalesce(jsonb_agg(jsonb_build_object(
+          'contract_id', cr.contract_id,
+          'status', cr.status,
+          'direction', cr.direction,
+          'requested_amount', cr.requested_amount,
+          'currency', cr.currency,
+          'priced_amount', (
+            select qv.subtotal_amount
+            from quote_versions qv
+            inner join quotes q on q.id = qv.quote_id
+            where q.change_request_id = cr.id and qv.is_selected = true
+            limit 1
+          )
+        )), '[]'::jsonb)
+         from change_requests cr
+         where cr.organization_id = ${organizationId}::uuid
+           and cr.project_id = ${projectId}::uuid
+           and cr.archived_at is null
+           and cr.status in ('draft', 'awaiting_approval')) as "pendingChanges"
+    `),
+  );
 
-  if (contractRows.length === 0) return null;
+  const rawContracts = bundleRow?.contracts ?? [];
+  if (rawContracts.length === 0) return null;
 
-  const contractIds = contractRows.map((row) => row.id);
-  const events = await db
-    .select()
-    .from(contractValueEvents)
-    .where(
-      and(
-        eq(contractValueEvents.organizationId, organizationId),
-        inArray(contractValueEvents.contractId, contractIds),
-      ),
-    );
-
-  const pendingResult = await db.execute(sql`
-    select cr.contract_id, cr.status, cr.direction, cr.requested_amount, cr.currency,
-      (
-        select qv.subtotal_amount
-        from quote_versions qv
-        inner join quotes q on q.id = qv.quote_id
-        where q.change_request_id = cr.id and qv.is_selected = true
-        limit 1
-      ) as priced_amount
-    from change_requests cr
-    where cr.organization_id = ${organizationId}
-      and cr.project_id = ${projectId}
-      and cr.archived_at is null
-      and cr.status in ('draft', 'awaiting_approval')
-  `);
-
-  const pendingChanges: PendingChangeRow[] = sqlRows<{
-    contract_id: string | null;
-    status: string;
-    direction: string;
-    requested_amount: string | null;
-    currency: string;
-    priced_amount: string | null;
-  }>(pendingResult).map((row) => ({
+  const contractRows = rawContracts.map(mapContractRowFromJson);
+  const events = (bundleRow?.valueEvents ?? []).map(mapContractValueEventRowFromJson);
+  const pendingChanges: PendingChangeRow[] = (bundleRow?.pendingChanges ?? []).map((row) => ({
     contractId: row.contract_id,
     status: row.status as PendingChangeInput['status'],
     direction: row.direction as PendingChangeInput['direction'],
@@ -215,6 +221,65 @@ async function fetchProjectCommercialInputs(
     eventsByContract,
     pendingChanges,
     valueEvents: toValueEvents(events),
+  };
+}
+
+function mapContractRowFromJson(raw: Record<string, unknown>): typeof contracts.$inferSelect {
+  return {
+    id: String(raw.id),
+    organizationId: String(raw.organization_id),
+    projectId: String(raw.project_id),
+    isPrimary: Boolean(raw.is_primary),
+    contractType: String(raw.contract_type),
+    contractNumber: (raw.contract_number as string | null) ?? null,
+    clientId: (raw.client_id as string | null) ?? null,
+    startDate: (raw.start_date as string | null) ?? null,
+    endDate: (raw.end_date as string | null) ?? null,
+    retentionPercent: (raw.retention_percent as string | null) ?? null,
+    paymentTermId: (raw.payment_term_id as string | null) ?? null,
+    name: (raw.name as string | null) ?? null,
+    reference: (raw.reference as string | null) ?? null,
+    status: raw.status as typeof contracts.$inferSelect.status,
+    enteredValueAmount: (raw.entered_value_amount as string | null) ?? null,
+    amountIncludesTax: Boolean(raw.amount_includes_tax),
+    originalValueAmount: (raw.original_value_amount as string | null) ?? null,
+    originalTaxAmount: (raw.original_tax_amount as string | null) ?? null,
+    originalGrossAmount: (raw.original_gross_amount as string | null) ?? null,
+    displayOriginalEnteredAmount: (raw.display_original_entered_amount as string | null) ?? null,
+    displayOriginalNetAmount: (raw.display_original_net_amount as string | null) ?? null,
+    displayOriginalTaxAmount: (raw.display_original_tax_amount as string | null) ?? null,
+    displayOriginalGrossAmount: (raw.display_original_gross_amount as string | null) ?? null,
+    openingReductionEnteredAmount: (raw.opening_reduction_entered_amount as string | null) ?? null,
+    openingReductionNetAmount: (raw.opening_reduction_net_amount as string | null) ?? null,
+    openingReductionTaxAmount: (raw.opening_reduction_tax_amount as string | null) ?? null,
+    openingReductionGrossAmount: (raw.opening_reduction_gross_amount as string | null) ?? null,
+    taxSnapshot: (raw.tax_snapshot as Record<string, unknown> | null) ?? null,
+    currency: String(raw.currency),
+    signedDate: (raw.signed_date as string | null) ?? null,
+    notes: (raw.notes as string | null) ?? null,
+    archivedAt: (raw.archived_at as Date | null) ?? null,
+    createdAt: raw.created_at as Date,
+    updatedAt: raw.updated_at as Date,
+  };
+}
+
+function mapContractValueEventRowFromJson(
+  raw: Record<string, unknown>,
+): typeof contractValueEvents.$inferSelect {
+  return {
+    id: String(raw.id),
+    organizationId: String(raw.organization_id),
+    contractId: String(raw.contract_id),
+    projectId: String(raw.project_id),
+    kind: raw.kind as typeof contractValueEvents.$inferSelect.kind,
+    amount: String(raw.amount),
+    currency: String(raw.currency),
+    changeOrderId: (raw.change_order_id as string | null) ?? null,
+    effectiveDate: String(raw.effective_date),
+    reason: (raw.reason as string | null) ?? null,
+    actorUserId: (raw.actor_user_id as string | null) ?? null,
+    createdAt: raw.created_at as Date,
+    updatedAt: raw.updated_at as Date,
   };
 }
 

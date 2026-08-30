@@ -66,10 +66,18 @@ const reversalExpense: ExpenseSummary = {
   needsProjectAllocation: true,
 };
 
+const defaultListProps = {
+  currentPage: 1,
+  pageCount: 1,
+  pageSize: 50,
+  attentionCount: 0,
+};
+
 describe('ExpensesList attention filter visibility', () => {
   it('shows visible labels above every filter control in Hebrew', () => {
     renderWithIntl(
       <ExpensesList
+        {...defaultListProps}
         items={[]}
         total={0}
         projects={[]}
@@ -93,6 +101,7 @@ describe('ExpensesList attention filter visibility', () => {
     searchParamsMock.mockReturnValue(new URLSearchParams('unallocated=true'));
     renderWithIntl(
       <ExpensesList
+        {...defaultListProps}
         items={[finalizedExpense]}
         total={1}
         projects={[]}
@@ -131,6 +140,7 @@ describe('ExpensesList attention filter visibility', () => {
     searchParamsMock.mockReturnValue(new URLSearchParams('unallocated=true'));
     renderWithIntl(
       <ExpensesList
+        {...defaultListProps}
         items={[finalizedExpense]}
         total={1}
         projects={[]}
@@ -160,6 +170,8 @@ describe('ExpensesList attention filter visibility', () => {
 
     renderWithIntl(
       <ExpensesList
+        {...defaultListProps}
+        attentionCount={1}
         items={[finalizedExpense, cleanExpense]}
         total={2}
         projects={[]}
@@ -192,6 +204,7 @@ describe('ExpensesList attention filter visibility', () => {
   it('does not show attention badges on voided or reversal rows in the general list', () => {
     renderWithIntl(
       <ExpensesList
+        {...defaultListProps}
         items={[voidedExpense, reversalExpense, cleanExpense]}
         total={3}
         projects={[]}

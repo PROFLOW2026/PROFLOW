@@ -18,6 +18,7 @@ export { runAutomaticAllocation } from './application/run-automatic-allocation';
 export {
   getExpense,
   listExpensesForOrg,
+  countExpensesNeedingAttentionForOrg,
   listCostCategoriesForOrg,
   listProjectsForOrg,
   listWorkPackagesForOrg,

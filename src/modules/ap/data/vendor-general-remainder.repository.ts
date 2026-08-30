@@ -3,6 +3,8 @@ import { apBillProjectAllocations, apBills } from '@drizzle/schema';
 import type { DbExecutor } from '@/shared/db/types';
 import { ValidationError } from '@/shared/errors';
 import { zeroMoney, type MoneyValue } from '@/shared/money';
+import { foldApGeneralRemaindersByYearMonthFromFacts } from '../application/fold-ap-read-facts';
+import { getApOrgReadFactsCache } from './ap-read-facts-cache';
 import { listActiveCreditActualReductionsForBills, creditActualReductionAmounts } from './credits.repository';
 import { areApBillProjectAllocationsAvailable } from '../domain/vendor-bill-project-attribution';
 import { RECOGNIZED_VENDOR_BILL_STATUSES } from '../domain/vendor-cost-recognition';
@@ -141,6 +143,120 @@ export async function sumRecognizedApGeneralRemainders(
   });
 
   return sumVendorBillGeneralRemainders(inputs, normalized);
+}
+
+export async function sumRecognizedApGeneralRemaindersByYearMonth(
+  db: DbExecutor,
+  organizationId: string,
+  currency: string,
+  yearMonths: readonly string[],
+): Promise<Map<string, VendorBillGeneralRemainderBuckets>> {
+  const cached = getApOrgReadFactsCache(db as object);
+  if (cached) {
+    return foldApGeneralRemaindersByYearMonthFromFacts(cached, yearMonths, currency);
+  }
+
+  const result = new Map<string, VendorBillGeneralRemainderBuckets>();
+  if (yearMonths.length === 0) return result;
+  const normalized = currency.toUpperCase();
+  const sorted = [...yearMonths].sort();
+  const startDate = yearMonthBillDateBounds(sorted[0]!).startDate;
+  const endDate = yearMonthBillDateBounds(sorted[sorted.length - 1]!).endDate;
+  const allowed = new Set(yearMonths);
+
+  const billRows = await db
+    .select({
+      id: apBills.id,
+      projectId: apBills.projectId,
+      netAmount: apBills.netAmount,
+      totalAmount: apBills.totalAmount,
+      currency: apBills.currency,
+      billDate: apBills.billDate,
+    })
+    .from(apBills)
+    .where(
+      and(
+        eq(apBills.organizationId, organizationId),
+        inArray(apBills.status, [...RECOGNIZED_VENDOR_BILL_STATUSES]),
+        isNull(apBills.archivedAt),
+        eq(apBills.currency, normalized),
+        isNotNull(apBills.billDate),
+        gte(apBills.billDate, startDate),
+        lte(apBills.billDate, endDate),
+      ),
+    );
+
+  const billsInRange = billRows.filter((row) => {
+    const ym = row.billDate ? String(row.billDate).slice(0, 7) : '';
+    return allowed.has(ym);
+  });
+  if (billsInRange.length === 0) return result;
+
+  const useAllocations = areApBillProjectAllocationsAvailable();
+  const projectAmountsByBill = new Map<string, string[]>();
+  const billsWithAnyApplied = new Set<string>();
+  const billsWithProjectApplied = new Set<string>();
+
+  if (useAllocations) {
+    const allocationRows = await db
+      .select({
+        apBillId: apBillProjectAllocations.apBillId,
+        projectId: apBillProjectAllocations.projectId,
+        amount: apBillProjectAllocations.amount,
+        currency: apBillProjectAllocations.currency,
+        targetType: apBillProjectAllocations.targetType,
+      })
+      .from(apBillProjectAllocations)
+      .where(
+        and(
+          eq(apBillProjectAllocations.organizationId, organizationId),
+          inArray(
+            apBillProjectAllocations.apBillId,
+            billsInRange.map((row) => row.id),
+          ),
+          eq(apBillProjectAllocations.status, 'applied'),
+        ),
+      );
+
+    for (const row of allocationRows) {
+      if (row.currency.toUpperCase() !== normalized) continue;
+      billsWithAnyApplied.add(row.apBillId);
+      if (row.targetType === 'project' && row.projectId) {
+        billsWithProjectApplied.add(row.apBillId);
+        const list = projectAmountsByBill.get(row.apBillId) ?? [];
+        list.push(row.amount);
+        projectAmountsByBill.set(row.apBillId, list);
+      }
+    }
+  }
+
+  const creditsByBill = await listActiveCreditActualReductionsForBills(
+    db,
+    organizationId,
+    billsInRange.map((row) => row.id),
+  );
+
+  const byMonth = new Map<string, VendorBillGeneralRemainderInput[]>();
+  for (const row of billsInRange) {
+    const ym = String(row.billDate).slice(0, 7);
+    const input: VendorBillGeneralRemainderInput = {
+      currency: row.currency,
+      projectId: row.projectId,
+      billNetAmount: billNetForGeneralRemainder(row),
+      creditActualReductions: creditActualReductionAmounts(creditsByBill.get(row.id) ?? []),
+      appliedProjectAllocationAmounts: projectAmountsByBill.get(row.id) ?? [],
+      hasAppliedAllocationLines: billsWithAnyApplied.has(row.id),
+      hasAppliedProjectAllocationLines: billsWithProjectApplied.has(row.id),
+    };
+    const list = byMonth.get(ym) ?? [];
+    list.push(input);
+    byMonth.set(ym, list);
+  }
+
+  for (const [ym, inputs] of byMonth) {
+    result.set(ym, sumVendorBillGeneralRemainders(inputs, normalized));
+  }
+  return result;
 }
 
 export type { VendorBillGeneralRemainderBuckets };
