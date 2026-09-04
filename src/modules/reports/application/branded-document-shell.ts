@@ -556,33 +556,48 @@ export function buildHtmlFooter(
   </footer>`;
 }
 
+const VISUAL_ACKNOWLEDGEMENT_NOTE_HE =
+  'חתימה או חותמת זו היא אישור חזותי בלבד ואינה מהווה חתימה אלקטרונית מחייבת.';
+const VISUAL_ACKNOWLEDGEMENT_NOTE_EN =
+  'This signature/stamp is a visual acknowledgement only and does not constitute a legally binding electronic signature.';
+
 /**
  * Builds the visual-acknowledgement disclaimer for signature/stamp sections.
  * IMPORTANT: must remain visible whenever a signature or stamp image is shown.
  */
-export const VISUAL_ACKNOWLEDGEMENT_NOTE =
-  'This signature/stamp is a visual acknowledgement only and does not constitute a legally binding electronic signature.';
+export function visualAcknowledgementNote(locale?: string | null): string {
+  return locale === 'he-IL' || (locale ?? '').startsWith('he')
+    ? VISUAL_ACKNOWLEDGEMENT_NOTE_HE
+    : VISUAL_ACKNOWLEDGEMENT_NOTE_EN;
+}
+
+/** English default for tests and non-Hebrew renderers. Prefer visualAcknowledgementNote(locale). */
+export const VISUAL_ACKNOWLEDGEMENT_NOTE = VISUAL_ACKNOWLEDGEMENT_NOTE_EN;
 
 export function buildSignatureSection(
   brand: DocumentBrandContext,
   opts: { escapeHtml: (s: string) => string },
 ): string {
   const { escapeHtml } = opts;
+  const note = visualAcknowledgementNote(brand.locale);
+  const hebrew = brand.locale === 'he-IL' || brand.locale.startsWith('he');
+  const signatureAlt = hebrew ? 'חתימה' : 'signature';
+  const stampAlt = hebrew ? 'חותמת' : 'stamp';
   const parts: string[] = [];
 
   if (brand.includeSignature && brand.signatureBytes) {
     const src = bytesToDataUrl(brand.signatureBytes, brand.signatureMime ?? 'image/png');
     parts.push(`<div class="brand-signature">
-      <img src="${src}" alt="signature" class="brand-signature-img" />
-      <p class="brand-signature-note">${escapeHtml(VISUAL_ACKNOWLEDGEMENT_NOTE)}</p>
+      <img src="${src}" alt="${escapeHtml(signatureAlt)}" class="brand-signature-img" />
+      <p class="brand-signature-note">${escapeHtml(note)}</p>
     </div>`);
   }
 
   if (brand.includeStamp && brand.stampBytes) {
     const src = bytesToDataUrl(brand.stampBytes, brand.stampMime ?? 'image/png');
     parts.push(`<div class="brand-stamp">
-      <img src="${src}" alt="stamp" class="brand-stamp-img" />
-      <p class="brand-signature-note">${escapeHtml(VISUAL_ACKNOWLEDGEMENT_NOTE)}</p>
+      <img src="${src}" alt="${escapeHtml(stampAlt)}" class="brand-stamp-img" />
+      <p class="brand-signature-note">${escapeHtml(note)}</p>
     </div>`);
   }
 

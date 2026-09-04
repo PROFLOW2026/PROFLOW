@@ -1,4 +1,4 @@
-import { getTranslations } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
 import { MoneyText } from '@/components/patterns/money-text';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
@@ -15,7 +15,7 @@ export interface ProjectBudgetPanelProps {
 }
 
 export async function ProjectBudgetPanel({ projectId }: ProjectBudgetPanelProps) {
-  const t = await getTranslations('budgets');
+  const [t, locale] = await Promise.all([getTranslations('budgets'), getLocale()]);
 
   const workspace = await withOrgContext(async (context) => {
     const canReadFinancials = hasPermission(context, PERMISSIONS.PROJECT_FINANCIALS_READ);
@@ -72,6 +72,7 @@ export async function ProjectBudgetPanel({ projectId }: ProjectBudgetPanelProps)
           </p>
           <BudgetLineControlList
             rows={workspace.lineControls}
+            locale={locale}
             labels={{
               title: t('lines.title'),
               mappingHint: t('lines.mappingHint'),

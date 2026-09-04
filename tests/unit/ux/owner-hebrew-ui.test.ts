@@ -32,6 +32,23 @@ describe('owner-defined Hebrew UI corrections', () => {
     expect(quotes.get('description')).toBe('צרו, ערכו ועקבו אחרי הצעות מחיר ללקוחות.');
   });
 
+  it('reports and catalog copy do not mention PDF download or parser grammar', () => {
+    const reports = flattenLocaleCatalog(readLocaleCatalog('he-IL', 'reports'));
+    expect(reports.get('title')).toBe('דוחות');
+    expect(reports.get('print')).toBe('הדפסה');
+    expect(reports.get('downloadPdf')).toBeUndefined();
+    expect(reports.get('downloadKindPdf')).toBeUndefined();
+    const joinedReports = [...reports.values()].join('\n');
+    expect(joinedReports).not.toMatch(/הורדת PDF|שמירה כ-PDF|דוחות PDF/);
+    const settings = flattenLocaleCatalog(readLocaleCatalog('he-IL', 'settings'));
+    expect(settings.get('catalog.componentsPlaceholder')).toBeUndefined();
+    expect(settings.get('catalog.componentsHint')).toMatch(/אחוז או סכום קבוע/);
+    expect(settings.get('catalog.componentsHint')).not.toMatch(/percent:|fixed:/);
+    const billingPlan = flattenLocaleCatalog(readLocaleCatalog('he-IL', 'billingPlan'));
+    expect(billingPlan.get('cycles.printPreview')).toBe('תצוגה מקדימה והדפסה');
+    expect(billingPlan.get('cycles.printPreview')).not.toMatch(/PDF/);
+  });
+
   it('projects empty state contains no architecture language', () => {
     const projects = flattenLocaleCatalog(readLocaleCatalog('he-IL', 'projects'));
     expect(projects.get('empty.body')).not.toMatch(/רשומה כספית/);

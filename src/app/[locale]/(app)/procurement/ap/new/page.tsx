@@ -7,6 +7,7 @@ import { listBusinessCatalog, localizePaymentTermOptions } from '@/modules/busin
 import { listExpenseOverlapCandidates } from '@/modules/financials';
 import { isDeprecatedForNewTransactionEntry } from '@/modules/financials/domain/economic-classification';
 import { listCostCategoriesForOrg } from '@/modules/expenses';
+import { displayCostCategoryName } from '@/modules/expenses/domain/cost-category-display';
 import { listPurchaseOrderLinesForOrg, listPurchaseOrdersForOrg } from '@/modules/procurement';
 import { listProjectsForOrg } from '@/modules/projects';
 import { listVendorsForOrg } from '@/modules/vendors';
@@ -36,6 +37,7 @@ export default async function NewApBillPage({
 }) {
   const { locale } = await params;
   const t = await getTranslations('ap');
+  const tExpenses = await getTranslations('expenses');
   const search = await searchParams;
   const requestedPoId = typeof search.purchaseOrderId === 'string' ? search.purchaseOrderId : '';
 
@@ -102,7 +104,7 @@ export default async function NewApBillPage({
           .map((category) => ({
             id: category.id,
             key: category.key,
-            name: category.name,
+            name: displayCostCategoryName(category, (key) => tExpenses(key)),
             family: category.family,
           })),
         defaultCurrency: context.organization.baseCurrency,

@@ -17,6 +17,7 @@ import {
 import { MoneyInput } from '@/components/patterns/money-input';
 import { money } from '@/shared/money/money';
 import type { AllocationMethod, CostCategoryRow, ProjectOption } from '@/modules/expenses/domain/types';
+import { displayCostCategoryName } from '@/modules/expenses/domain/cost-category-display';
 
 const OVERHEAD_VALUE = '__overhead__';
 
@@ -275,7 +276,7 @@ export function AllocationEditor({
                   <SelectContent>
                     {categories.map((category) => (
                       <SelectItem key={category.id} value={category.id}>
-                        {category.isSystem ? t(`costCategories.${category.key}`) : category.name}
+                        {displayCostCategoryName(category, (key) => t(key))}
                       </SelectItem>
                     ))}
                   </SelectContent>

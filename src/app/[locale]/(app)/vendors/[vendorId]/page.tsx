@@ -18,6 +18,7 @@ import {
 } from '@/modules/ap';
 import { VendorAp360Panel } from '@/modules/ap/ui/vendor-ap-360-panel';
 import { listBusinessCatalog, localizePaymentTermName, localizePaymentTermOptions, localizeVendorCategoryOptions } from '@/modules/business-catalog';
+import { looksLikeEnglishDisplayName, looksLikeInternalCode, localizeCode } from '@/shared/i18n/code-display';
 import {
   getVendorById,
   listVendorEngagementHistory,
@@ -198,6 +199,14 @@ export default async function VendorDetailPage({
   const vendorCategoryNameById = new Map(
     localizedVendorCategories.map((row) => [row.id, row.name]),
   );
+  const localizedSpecialties = specialties.map((row) => ({
+    id: row.id,
+    name:
+      looksLikeInternalCode(row.name) || looksLikeEnglishDisplayName(row.name)
+        ? localizeCode(locale, row.key)
+        : row.name,
+  }));
+  const specialtyNameById = new Map(localizedSpecialties.map((row) => [row.id, row.name]));
 
   return (
     <div className="flex flex-col gap-6">
@@ -241,7 +250,7 @@ export default async function VendorDetailPage({
                 vendor={vendor}
                 paymentTerms={localizePaymentTermOptions(paymentTerms, locale)}
                 categories={localizedVendorCategories.map((row) => ({ id: row.id, name: row.name }))}
-                specialties={specialties.map((row) => ({ id: row.id, name: row.name }))}
+                specialties={localizedSpecialties}
               />
             ) : (
               <Card>
@@ -343,7 +352,7 @@ export default async function VendorDetailPage({
                     <ul className="mt-1 list-inside list-disc">
                       {categoryLinks.map((link) => (
                         <li key={link.id}>
-                          {vendorCategoryNameById.get(link.catalogEntryId) ?? link.entryName}
+                          {vendorCategoryNameById.get(link.catalogEntryId) ?? localizeCode(locale, link.entryName)}
                         </li>
                       ))}
                     </ul>
@@ -356,7 +365,7 @@ export default async function VendorDetailPage({
                   ) : (
                     <ul className="mt-1 list-inside list-disc">
                       {specialtyLinks.map((link) => (
-                        <li key={link.id}>{link.entryName}</li>
+                        <li key={link.id}>{specialtyNameById.get(link.catalogEntryId) ?? localizeCode(locale, link.entryName)}</li>
                       ))}
                     </ul>
                   )}

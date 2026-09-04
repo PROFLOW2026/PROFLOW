@@ -168,6 +168,22 @@ describe('HTML letterhead / CSS', () => {
     expect(html).toContain('brand-signature-note');
   });
 
+  it('labels Hebrew print preview signatures in Hebrew', () => {
+    const html = buildSignatureSection(
+      brand({
+        locale: 'he-IL',
+        dir: 'rtl',
+        includeSignature: true,
+        signatureBytes: new Uint8Array([137, 80, 78, 71]),
+        signatureMime: 'image/png',
+      }),
+      { escapeHtml: (s) => s },
+    );
+    expect(html).toContain('חתימה או חותמת זו היא אישור חזותי בלבד');
+    expect(html).not.toContain('This signature/stamp');
+    expect(html).toContain('alt="חתימה"');
+  });
+
   it('buildHtmlFooter includes company footer text', () => {
     const html = buildHtmlFooter(brand({ footerText: 'On site' }), {
       escapeHtml: (s) => s,

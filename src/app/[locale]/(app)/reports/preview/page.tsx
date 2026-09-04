@@ -1,12 +1,10 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
-import { Button } from '@/components/ui/button';
-import { generateReport, isReportKind, reportDownloadPath } from '@/modules/reports';
+import { generateReport, isReportKind } from '@/modules/reports';
 import { ReportPrintButton, ReportPrintView } from '@/modules/reports/ui';
 import { AppError } from '@/shared/errors';
 import { withOrgContext } from '@/shared/auth/session';
-import { Link } from '@/shared/i18n/navigation';
 
 export async function generateMetadata({
   params,
@@ -43,9 +41,6 @@ export default async function ReportPreviewPage({
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center gap-2 print:hidden">
-        <Button asChild variant="secondary" size="sm">
-          <Link href={reportDownloadPath(kind, id)}>{t('downloadPdf')}</Link>
-        </Button>
         <ReportPrintButton label={t('print')} />
       </div>
       <ReportPrintView payload={payload} />

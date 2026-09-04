@@ -14,7 +14,8 @@
     "archived": "בארכיון",
     "approved": "מאושר",
     "billed": "חויב",
-    "voided": "בוטל"
+    "voided": "בוטל",
+    "proposed_ap": "חשבון ספק מוצע"
   },
   "batchStatus": {
     "draft": "טיוטה",

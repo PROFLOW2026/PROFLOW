@@ -13,6 +13,7 @@ import {
   zeroMoney,
 } from '@/shared/money';
 import { reportDirection, resolveReportLocale, type getReportsCopy } from '../domain/copy';
+import { localizeCode } from '@/shared/i18n/code-display';
 import type { ReportKind, ReportPayload, ReportSection } from '../domain/types';
 import {
   derivePercentFromAmount,
@@ -134,7 +135,7 @@ export async function buildProjectBillingAccountReport(
           : []),
         {
           label: ctx.copy.identity.status,
-          value: detail.cycle.status,
+          value: localizeCode(locale, detail.cycle.status),
         },
         {
           label: ctx.copy.fields.kind,
@@ -331,7 +332,7 @@ export async function buildProjectBillingPlanStatusReport(
       heading: ctx.copy.sections.identity,
       rows: [
         { label: ctx.copy.fields.title, value: detail.plan.name },
-        { label: ctx.copy.identity.status, value: detail.plan.status },
+        { label: ctx.copy.identity.status, value: localizeCode(locale, detail.plan.status) },
         {
           label: ctx.copy.fields.currentContract,
           value: formatMoney(contractValue, locale),
@@ -469,9 +470,9 @@ export async function buildProjectBillingPlanStatusReport(
         {
           label: ctx.copy.fields.nextCycle,
           value: draftCycle
-            ? `${draftCycle.title} (#${draftCycle.cycleNumber}) · ${draftCycle.status}`
+            ? `${draftCycle.title} (#${draftCycle.cycleNumber}) · ${localizeCode(locale, draftCycle.status)}`
             : nextIssuedCandidate
-              ? `${nextIssuedCandidate.title} (#${nextIssuedCandidate.cycleNumber}) · ${nextIssuedCandidate.status}`
+              ? `${nextIssuedCandidate.title} (#${nextIssuedCandidate.cycleNumber}) · ${localizeCode(locale, nextIssuedCandidate.status)}`
               : '-',
         },
         {

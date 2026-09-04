@@ -1,7 +1,8 @@
 'use client';
 
 import { useActionState, useState } from 'react';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
+import { localizeCode } from '@/shared/i18n/code-display';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -87,6 +88,11 @@ export function SubcontractorSchedulePanel({
   schedules,
 }: SubcontractorSchedulePanelProps) {
   const t = useTranslations('boq');
+  const locale = useLocale();
+  const valuationStatusLabel = (status: string) =>
+    t.has(`status.${status}` as 'status.draft')
+      ? t(`status.${status}` as 'status.draft')
+      : localizeCode(locale, status);
   const [selectedScheduleId, setSelectedScheduleId] = useState(schedules[0]?.id ?? '');
   const [engagementId, setEngagementId] = useState(engagements[0]?.id ?? '');
   const [agreementId, setAgreementId] = useState('');
@@ -173,9 +179,9 @@ export function SubcontractorSchedulePanel({
                   <ul className="mt-1 space-y-1 text-xs text-[var(--pf-text-secondary)]">
                     {selected.valuations.map((valuation) => (
                       <li key={valuation.id}>
-                        {valuation.periodLabel} · {valuation.status}
+                        {valuation.periodLabel} · {valuationStatusLabel(valuation.status)}
                         {valuation.proposedVendorBillId
-                          ? ` · AP ${valuation.proposedVendorBillId.slice(0, 8)}`
+                          ? ` · ${t('subcontractor.draftApCreated')}`
                           : ''}
                       </li>
                     ))}
@@ -405,7 +411,7 @@ export function SubcontractorSchedulePanel({
                     <input type="hidden" name="projectId" value={projectId} />
                     <input type="hidden" name="valuationId" value={valuation.id} />
                     <span className="text-sm">
-                      {valuation.periodLabel} · {valuation.status}
+                      {valuation.periodLabel} · {valuationStatusLabel(valuation.status)}
                     </span>
                     {canProposeApDraft ? (
                       <>

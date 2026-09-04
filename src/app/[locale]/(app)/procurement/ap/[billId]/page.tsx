@@ -26,6 +26,7 @@ import { VendorBillAllocationPanel } from '@/modules/ap/ui/vendor-bill-allocatio
 import { getEntityDocumentPanelData } from '@/modules/documents';
 import { DocumentAttachments } from '@/modules/documents/ui';
 import { listExpensesForOrg, listCostCategoriesForOrg } from '@/modules/expenses';
+import { displayCostCategoryName } from '@/modules/expenses/domain/cost-category-display';
 import { listPurchaseOrdersForOrg } from '@/modules/procurement';
 import { listProjectsForOrg } from '@/modules/projects';
 import { listVendorsForOrg } from '@/modules/vendors';
@@ -80,6 +81,7 @@ export default async function ApBillDetailPage({
 }) {
   const { billId } = await params;
   const t = await getTranslations('ap');
+  const tExpenses = await getTranslations('expenses');
   const locale = await getLocale();
 
   const data = await withOrgContext(async (context) => {
@@ -184,7 +186,7 @@ export default async function ApBillDetailPage({
       costCategories: costCategories.map((category) => ({
         id: category.id,
         key: category.key,
-        name: category.name,
+        name: displayCostCategoryName(category, (key) => tExpenses(key)),
         family: category.family,
       })),
     };

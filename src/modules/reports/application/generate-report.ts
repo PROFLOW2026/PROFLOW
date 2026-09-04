@@ -30,6 +30,7 @@ import { fromNumericString, money } from '@/shared/money';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { getReportsCopy, reportDirection, reportTitle, resolveReportLocale } from '../domain/copy';
+import { localizeCode } from '@/shared/i18n/code-display';
 import { assertReportKindPermission, isReportKind } from '../domain/kinds';
 import { presentProjectFinancialSummary } from '../domain/present-financials';
 import {
@@ -291,7 +292,7 @@ async function buildProjectStatus(
       id: 'status',
       heading: ctx.copy.sections.status,
       rows: [
-        { label: ctx.copy.identity.status, value: p.status },
+        { label: ctx.copy.identity.status, value: localizeCode(ctx.locale, p.status) },
         { label: ctx.copy.identity.location, value: p.location ?? '-' },
         { label: ctx.copy.identity.startDate, value: formatDay(p.startDate, ctx.locale) },
         { label: ctx.copy.identity.targetEnd, value: formatDay(p.targetEndDate, ctx.locale) },
@@ -505,8 +506,8 @@ async function buildChangeOrders(
       return [
         row.reference ?? row.id.slice(0, 8),
         row.title,
-        row.status,
-        row.direction,
+        localizeCode(ctx.locale, row.status),
+        localizeCode(ctx.locale, row.direction),
         formatMoney(amount, ctx.locale),
       ];
     });
@@ -676,7 +677,7 @@ async function buildDailyLog(
       heading: ctx.copy.sections.dailyLog,
       rows: [
         { label: ctx.copy.fields.logDate, value: formatDay(log.logDate, ctx.locale) },
-        { label: ctx.copy.identity.status, value: log.status },
+        { label: ctx.copy.identity.status, value: localizeCode(ctx.locale, log.status) },
         { label: ctx.copy.fields.weather, value: log.weather ?? '-' },
         { label: ctx.copy.fields.summary, value: log.summary },
         { label: ctx.copy.fields.workPerformed, value: log.workPerformed ?? '-' },
@@ -736,7 +737,7 @@ async function buildPunchInspection(
           heading: ctx.copy.sections.punch,
           rows: [
             { label: ctx.copy.fields.title, value: punch.title },
-            { label: ctx.copy.identity.status, value: punch.status },
+            { label: ctx.copy.identity.status, value: localizeCode(ctx.locale, punch.status) },
             { label: ctx.copy.fields.priority, value: punch.priority },
             { label: ctx.copy.fields.location, value: punch.location ?? '-' },
             { label: ctx.copy.fields.dueDate, value: formatDay(punch.dueDate, ctx.locale) },
@@ -769,11 +770,11 @@ async function buildPunchInspection(
           heading: ctx.copy.sections.inspections,
           rows: [
             { label: ctx.copy.fields.title, value: inspection.title },
-            { label: ctx.copy.fields.kind, value: inspection.kind },
-            { label: ctx.copy.identity.status, value: inspection.status },
+            { label: ctx.copy.fields.kind, value: localizeCode(ctx.locale, inspection.kind) },
+            { label: ctx.copy.identity.status, value: localizeCode(ctx.locale, inspection.status) },
             { label: ctx.copy.fields.scheduledOn, value: formatDay(inspection.scheduledOn, ctx.locale) },
             { label: ctx.copy.fields.completedOn, value: formatDay(inspection.completedOn, ctx.locale) },
-            { label: ctx.copy.fields.result, value: inspection.result ?? '-' },
+            { label: ctx.copy.fields.result, value: localizeCode(ctx.locale, inspection.result) ?? '-' },
             { label: ctx.copy.fields.description, value: inspection.notes ?? '-' },
           ],
         },
@@ -809,8 +810,8 @@ async function buildPunchInspection(
                   ],
                   rows: punches.map((item) => [
                     item.title,
-                    item.status,
-                    item.priority,
+                    localizeCode(ctx.locale, item.status),
+                    localizeCode(ctx.locale, item.priority),
                     formatDay(item.dueDate, ctx.locale),
                   ]),
                 },
@@ -833,8 +834,8 @@ async function buildPunchInspection(
                   ],
                   rows: inspections.map((item) => [
                     item.title,
-                    item.kind,
-                    item.status,
+                    localizeCode(ctx.locale, item.kind),
+                    localizeCode(ctx.locale, item.status),
                     formatDay(item.scheduledOn, ctx.locale),
                   ]),
                 },
@@ -871,7 +872,7 @@ async function buildVendors(
             ? [
                 {
                   headers: [ctx.copy.fields.vendor, ctx.copy.identity.status],
-                  rows: engagements.map((row) => [row.vendorName, row.status]),
+                  rows: engagements.map((row) => [row.vendorName, localizeCode(ctx.locale, row.status)]),
                 },
               ]
             : undefined,
@@ -895,7 +896,7 @@ async function buildVendors(
                   rows: agreements.map((row) => [
                     row.title,
                     row.vendorName,
-                    row.status,
+                    localizeCode(ctx.locale, row.status),
                     formatMoney(money(row.currentAmount, row.currency), ctx.locale),
                     formatMoney(money(row.billedAmount, row.currency), ctx.locale),
                     formatMoney(money(row.paidAmount, row.currency), ctx.locale),

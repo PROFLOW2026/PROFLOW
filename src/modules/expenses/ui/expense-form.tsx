@@ -35,6 +35,7 @@ import { isWeightAllocationMethod } from '@/modules/expenses/domain/types';
 import { scheduleModeFromCategoryPeriodBehavior } from '@/modules/expenses/domain/allocation-schedule';
 import { INTERNAL_EMPLOYEE_PAYROLL_CATEGORY_KEY } from '@/modules/financials/domain/labor-expense-integrity';
 import { isDeprecatedForNewTransactionEntry } from '@/modules/financials/domain/economic-classification';
+import { displayCostCategoryName } from '@/modules/expenses/domain/cost-category-display';
 import { formatMoney } from '@/shared/money/format';
 import { money } from '@/shared/money/money';
 import { rtlFlipClassName } from '@/shared/i18n/ltr-island';
@@ -593,7 +594,7 @@ export function ExpenseForm({
                     <SelectLabel>{t(`costFamilies.${group.family}`)}</SelectLabel>
                     {group.items.map((category) => (
                       <SelectItem key={category.id} value={category.id}>
-                        {category.isSystem ? t(`costCategories.${category.key}`) : category.name}
+                        {displayCostCategoryName(category, (key) => t(key))}
                       </SelectItem>
                     ))}
                   </SelectGroup>

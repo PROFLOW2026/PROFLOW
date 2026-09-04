@@ -14,7 +14,8 @@
     "archived": "Archived",
     "approved": "Approved",
     "billed": "Billed",
-    "voided": "Voided"
+    "voided": "Voided",
+    "proposed_ap": "Proposed vendor bill"
   },
   "batchStatus": {
     "draft": "Draft",

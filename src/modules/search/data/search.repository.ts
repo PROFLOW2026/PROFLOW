@@ -1455,7 +1455,7 @@ export async function searchApprovalRequests(
     return rows.map((row) => ({
       kind: 'approval' as const,
       id: row.id,
-      title: `${row.entityType} · ${row.status}`,
+      title: row.entityType,
       subtitle: row.entityId,
       href: '/approvals',
       status: row.status,

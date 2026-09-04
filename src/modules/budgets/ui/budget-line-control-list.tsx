@@ -1,6 +1,7 @@
 import { MoneyText } from '@/components/patterns/money-text';
 import { cn } from '@/shared/ui/cn';
 import type { MoneyValue } from '@/shared/money/money';
+import { localizeCode } from '@/shared/i18n/code-display';
 import type { BudgetLineControlRow } from '../domain/map-line-actuals';
 import type { BudgetLineType } from '../domain/types';
 
@@ -49,20 +50,25 @@ function typeLabel(row: BudgetLineControlRow, labels: BudgetLineControlLabels): 
   return labels.lineTypes[row.lineType];
 }
 
-function keyBits(row: BudgetLineControlRow): string[] {
+function keyBits(row: BudgetLineControlRow, locale: string): string[] {
   const bits: string[] = [];
-  if (row.costCode) bits.push(row.costCode);
-  if (row.categoryKey) bits.push(row.categoryKey);
-  if (row.disciplineKey) bits.push(row.disciplineKey);
+  for (const value of [row.costCode, row.categoryKey, row.disciplineKey]) {
+    const trimmed = value?.trim() ?? '';
+    if (!trimmed) continue;
+    if (/^[0-9a-f]{8}-[0-9a-f-]{27,}$/i.test(trimmed)) continue;
+    bits.push(localizeCode(locale, trimmed));
+  }
   return bits;
 }
 
 export function BudgetLineControlList({
   rows,
   labels,
+  locale,
 }: {
   readonly rows: readonly BudgetLineControlRow[];
   readonly labels: BudgetLineControlLabels;
+  readonly locale: string;
 }) {
   if (rows.length === 0) return null;
 
@@ -74,7 +80,7 @@ export function BudgetLineControlList({
         {rows.map((row) => {
           const remainder = row.kind === 'unmapped_remainder';
           const status = statusLabel(row, labels);
-          const extras = keyBits(row);
+          const extras = keyBits(row, locale);
           return (
             <li
               key={row.id}

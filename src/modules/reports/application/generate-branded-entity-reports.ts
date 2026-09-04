@@ -15,6 +15,7 @@ import {
   reportTitle,
   resolveReportLocale,
 } from '../domain/copy';
+import { localizeCode } from '@/shared/i18n/code-display';
 import type { ReportKind, ReportPayload, ReportSection } from '../domain/types';
 
 type BuildCtx = {
@@ -78,7 +79,7 @@ export async function buildPurchaseOrderReport(
         id: 'po',
         heading: ctx.copy.sections.identity,
         rows: [
-          { label: ctx.copy.identity.status, value: po.status },
+          { label: ctx.copy.identity.status, value: localizeCode(ctx.locale, po.status) },
           { label: ctx.copy.fields.vendor, value: po.vendorId },
           {
             label: ctx.copy.fields.total,
@@ -142,7 +143,7 @@ export async function buildProcurementRfqReport(
         id: 'rfq',
         heading: ctx.copy.sections.identity,
         rows: [
-          { label: ctx.copy.identity.status, value: rfq.status },
+          { label: ctx.copy.identity.status, value: localizeCode(ctx.locale, rfq.status) },
           { label: ctx.copy.fields.title, value: rfq.title },
         ],
         paragraphs: rfq.notes ? [rfq.notes] : undefined,
@@ -211,7 +212,7 @@ export async function buildCustomerStatementReport(
             nature: 'cash',
           },
           {
-            label: 'Overdue',
+            label: ctx.copy.fields.overdue,
             value: formatMoney(snap.overdue, ctx.locale),
             nature: 'cash',
           },
@@ -250,7 +251,7 @@ export async function buildContractSummaryReport(
         id: 'contract',
         heading: ctx.copy.sections.identity,
         rows: [
-          { label: ctx.copy.identity.status, value: contract.status },
+          { label: ctx.copy.identity.status, value: localizeCode(ctx.locale, contract.status) },
           {
             label: ctx.copy.fields.currentContract,
             value: contract.originalValueAmount
@@ -294,7 +295,7 @@ export async function buildWorkOrderReport(
         id: 'work_order',
         heading: ctx.copy.sections.status,
         rows: [
-          { label: ctx.copy.identity.status, value: detail.service.serviceStatus },
+          { label: ctx.copy.identity.status, value: localizeCode(ctx.locale, detail.service.serviceStatus) },
           { label: ctx.copy.identity.location, value: detail.project.location ?? '-' },
           {
             label: ctx.copy.identity.startDate,
@@ -316,7 +317,7 @@ export async function buildTimesheetReport(
   const detail = await getTimesheetDetail(context, timesheetId);
   const entryRows = detail.entries.map((entry) => [
     entry.workDate,
-    entry.kind,
+    localizeCode(ctx.locale, entry.kind),
     entry.hours,
     entry.projectName ?? entry.projectId ?? '-',
     entry.description ?? '',
@@ -339,13 +340,13 @@ export async function buildTimesheetReport(
         id: 'summary',
         heading: ctx.copy.sections.identity,
         rows: [
-          { label: ctx.copy.identity.status, value: detail.timesheet.status },
+          { label: ctx.copy.identity.status, value: localizeCode(ctx.locale, detail.timesheet.status) },
           {
-            label: 'Project hours',
+            label: ctx.copy.fields.projectHours,
             value: String(detail.totals.projectHours),
           },
           {
-            label: 'Non-project hours',
+            label: ctx.copy.fields.nonProjectHours,
             value: String(detail.totals.nonProjectHours),
           },
         ],
@@ -357,7 +358,13 @@ export async function buildTimesheetReport(
           entryRows.length > 0
             ? [
                 {
-                  headers: ['Date', 'Kind', 'Hours', 'Project', 'Notes'],
+                  headers: [
+                    ctx.copy.fields.date,
+                    ctx.copy.fields.kind,
+                    ctx.copy.fields.hours,
+                    ctx.copy.identity.project,
+                    ctx.copy.fields.notes,
+                  ],
                   rows: entryRows,
                 },
               ]

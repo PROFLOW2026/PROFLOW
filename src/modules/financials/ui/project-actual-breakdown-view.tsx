@@ -17,6 +17,10 @@ import type {
 import type { ProjectAllocatedGeneralDetail } from '../domain/project-allocated-general-detail';
 import type { ProjectLaborByEmployeeAggregate } from '@/modules/workforce';
 import {
+  displayActualAtomLabel,
+  type ActualAtomDisplayCopy,
+} from '../domain/actual-atom-display';
+import {
   AllocatedGeneralDetailPanel,
   type AllocatedGeneralDetailCopy,
 } from './allocated-general-detail-panel';
@@ -76,6 +80,7 @@ export type OwnerStoryCopy = {
   readonly overheadCategoryHint?: string;
   readonly allocatedGeneralCompanyOnlyNote?: string;
   readonly fullCostFormulaTitle?: string;
+  readonly atomDisplay?: ActualAtomDisplayCopy;
 };
 
 export type OwnerStoryMetrics = {
@@ -415,6 +420,17 @@ export type SubcontractCommercialDrillRow = {
   readonly paid: MoneyValue | null;
 };
 
+function resolveAtomDisplay(copy: OwnerStoryCopy): ActualAtomDisplayCopy {
+  return (
+    copy.atomDisplay ?? {
+      employees: copy.categories.employees,
+      monthClose: 'סגירת חודש',
+      unnamed: copy.unavailable,
+      translateCostCategory: (key) => `costCategories.${key}`,
+    }
+  );
+}
+
 function sourceHref(
   atom: {
     readonly sourceKind: string;
@@ -453,6 +469,8 @@ function AtomList({
     return <p className="text-xs text-[var(--pf-text-muted)]">{copy.unavailable}</p>;
   }
 
+  const atomDisplay = resolveAtomDisplay(copy);
+
   if (categoryKey === 'subcontractors') {
     const groups = new Map<
       string,
@@ -473,7 +491,7 @@ function AtomList({
         }
       } else {
         groups.set(key, {
-          label: atom.vendorName?.trim() || atom.label || key,
+          label: displayActualAtomLabel(atom, atomDisplay),
           atoms: [atom],
           total: atom.amount,
         });
@@ -507,10 +525,10 @@ function AtomList({
                         <span className="min-w-0 truncate text-[var(--pf-text-secondary)]">
                           {href ? (
                             <Link href={href} className={textNavLinkClassName}>
-                              {atom.label ?? atom.sourceId}
+                              {displayActualAtomLabel(atom, atomDisplay)}
                             </Link>
                           ) : (
-                            (atom.label ?? atom.sourceId)
+                            displayActualAtomLabel(atom, atomDisplay)
                           )}
                         </span>
                         <span className="shrink-0">
@@ -556,10 +574,10 @@ function AtomList({
             <span className="min-w-0 truncate text-[var(--pf-text-secondary)]">
               {href ? (
                 <Link href={href} className={textNavLinkClassName}>
-                  {atom.label ?? atom.sourceId}
+                  {displayActualAtomLabel(atom, atomDisplay)}
                 </Link>
               ) : (
-                (atom.label ?? atom.sourceId)
+                displayActualAtomLabel(atom, atomDisplay)
               )}
             </span>
             <span className="shrink-0">

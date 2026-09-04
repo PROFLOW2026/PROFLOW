@@ -352,6 +352,8 @@
     "commitmentLabel": "Open commitment",
     "paidLabel": "Paid",
     "openSource": "Open source",
+    "sourceMonthClose": "Month close",
+    "unnamedSource": "Cost source",
     "subcontractGroupTotal": "Total recognized",
     "overheadCategoryHint": "General business expenses assigned directly to this project. Company general expenses not allocated here are not part of direct project cost. Shared-cost portions appear separately under allocated general."
   }

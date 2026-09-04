@@ -1,7 +1,7 @@
 'use client';
 
 import { useActionState } from 'react';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { ResponsiveTable } from '@/components/patterns/responsive-table';
 import { Alert } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
@@ -17,6 +17,7 @@ import {
   type VendorApBillCandidate,
   type VendorComplianceUploadCandidate,
 } from '@/modules/portal/domain/types';
+import { localizeCode } from '@/shared/i18n/code-display';
 import {
   createCustomerGrantAction,
   createVendorGrantAction,
@@ -218,6 +219,7 @@ function CustomerSafePreview({
   const t = useTranslations('portal');
   const tStatus = useTranslations('status');
   const tProgress = useTranslations('projects.details');
+  const locale = useLocale();
   const [state, action, pending] = useActionState(
     previewCustomerSafeSummaryAction,
     {} as PortalPreviewState,
@@ -371,7 +373,7 @@ function CustomerSafePreview({
                 <ul className="mt-1 flex flex-col gap-1">
                   {summary.milestones.map((milestone) => (
                     <li key={milestone.milestoneId} className="break-words text-sm">
-                      {milestone.name} · {milestone.status}
+                      {milestone.name} · {localizeCode(locale, milestone.status)}
                       {milestone.targetDate ? ` · ${milestone.targetDate}` : ''}
                     </li>
                   ))}
@@ -390,7 +392,7 @@ function CustomerSafePreview({
                 <ul className="mt-1 flex flex-col gap-1">
                   {summary.quotes.map((quote) => (
                     <li key={quote.quoteId} className="break-words text-sm">
-                      {quote.title} · {quote.status}
+                      {quote.title} · {localizeCode(locale, quote.status)}
                       {quote.totalAmount ? (
                         <span dir="ltr" className="pf-numeric">
                           {' '}

@@ -139,8 +139,8 @@ export async function loadProjectAllocatedGeneralAttributionRows(
         sourceId: null,
         sourceLabel:
           resolveGeneralCostSourceLabelHebrew(source.sourceKind) ??
-          source.sourceLabel ??
-          source.sourceKind,
+          resolveGeneralCostSourceLabelHebrew('other') ??
+          'מקורות אחרים',
         sourcePoolAmount: source.sourcePoolAmount,
         expenseDate: null,
         description: null,

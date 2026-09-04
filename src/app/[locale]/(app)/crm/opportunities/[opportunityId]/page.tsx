@@ -7,6 +7,7 @@ import { PageHeader } from '@/components/ui/page-header';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { canConvertOpportunity, getOpportunityById, nextActionUrgency } from '@/modules/crm';
 import { productQuoteDetailHref } from '@/modules/quotes/domain/product-path';
+import { localizeCode } from '@/shared/i18n/code-display';
 import { listCustomFieldValuesForEntity } from '@/modules/custom-fields';
 import { EntityCustomFieldsPanel } from '@/modules/custom-fields/ui';
 import { withOrgContext } from '@/shared/auth/session';
@@ -337,7 +338,11 @@ export default async function OpportunityDetailPage({
                     {quote.title}
                   </Link>
                   <span className="text-[var(--pf-text-secondary)]">
-                    {quote.status}
+                    {t.has(`statuses.quote.${quote.status}` as 'statuses.quote.draft')
+                      ? t(`statuses.quote.${quote.status}` as 'statuses.quote.draft')
+                      : t.has(`statuses.estimate.${quote.status}` as 'statuses.estimate.draft')
+                        ? t(`statuses.estimate.${quote.status}` as 'statuses.estimate.draft')
+                        : localizeCode(locale, quote.status)}
                     {quote.totalAmount ? ` · ${quote.totalAmount} ${quote.currency}` : ''}
                   </span>
                 </li>

@@ -98,6 +98,7 @@ import {
   reportTitle,
   resolveReportLocale,
 } from "../domain/copy";
+import { localizeCode } from "@/shared/i18n/code-display";
 
 import type {
   ReportKind,
@@ -171,8 +172,11 @@ function orgIdentity(
   };
 }
 
-function deepLinkExtra(path: string, label?: string): readonly string[] {
-  return [label ? `${label}: ${path}` : `Open: ${path}`];
+function deepLinkExtra(
+  copy: ReturnType<typeof getReportsCopy>,
+  path: string,
+): readonly string[] {
+  return [`${copy.phrases.open}: ${path}`];
 }
 
 export async function buildExtendedReport(
@@ -274,9 +278,9 @@ async function buildClient360(
           href: `/clients/${client.id}`,
         },
 
-        { label: "Status", value: client.status ?? "-" },
+        { label: ctx.copy.identity.status, value: localizeCode(ctx.locale, client.status) },
 
-        { label: "Type", value: client.clientTypeName ?? "-" },
+        { label: ctx.copy.fields.kind, value: client.clientTypeName ?? "-" },
       ],
     },
   ];
@@ -290,7 +294,7 @@ async function buildClient360(
   sections.push({
     id: "contacts",
 
-    heading: "Contacts",
+    heading: ctx.copy.sections.contacts,
 
     rows: contacts.slice(0, 8).map((contact) => ({
       label: contact.name,
@@ -303,27 +307,27 @@ async function buildClient360(
 
     paragraphs:
       contacts.length === 0
-        ? ["No contacts on file for this client."]
+        ? [ctx.copy.empty.noContacts]
         : undefined,
   });
 
   sections.push({
     id: "projects",
 
-    heading: "Projects",
+    heading: ctx.copy.sections.projects,
 
     rows: projects.map((project) => ({
       label: project.name,
 
-      value: project.status ?? "-",
+      value: localizeCode(ctx.locale, project.status),
 
       href: `/projects/${project.id}`,
     })),
 
     paragraphs:
       projects.length === 0
-        ? ["No accessible projects linked to this client."]
-        : deepLinkExtra("/projects", "All projects"),
+        ? [ctx.copy.empty.noClientProjects]
+        : deepLinkExtra(ctx.copy, "/projects"),
   });
 
   const omitted: ReportPayload["omitted"] = hasPermission(
@@ -346,7 +350,7 @@ async function buildClient360(
 
         rows: [
           {
-            label: "Outstanding",
+            label: ctx.copy.fields.outstanding,
 
             value: formatMoney(financials.snapshot.outstanding, ctx.locale),
 
@@ -354,7 +358,7 @@ async function buildClient360(
           },
 
           {
-            label: "Invoiced",
+            label: ctx.copy.fields.invoiced,
 
             value: formatMoney(financials.snapshot.invoiced, ctx.locale),
 
@@ -362,7 +366,7 @@ async function buildClient360(
           },
 
           {
-            label: "Overdue",
+            label: ctx.copy.fields.overdue,
 
             value: formatMoney(financials.snapshot.overdue, ctx.locale),
 
@@ -372,7 +376,7 @@ async function buildClient360(
           ...(financials.snapshot.heldRetention
             ? [
                 {
-                  label: "Retention held",
+                  label: ctx.copy.fields.retentionHeld,
 
                   value: formatMoney(
                     financials.snapshot.heldRetention,
@@ -389,12 +393,12 @@ async function buildClient360(
       sections.push({
         id: "billing_recent",
 
-        heading: "Recent billing",
+        heading: ctx.copy.sections.recentBilling,
 
         rows: financials.recentBilling.slice(0, 8).map((record) => ({
           label: record.reference ?? record.id.slice(0, 8),
 
-          value: `${formatMoney(record.outstandingAmount, ctx.locale)} · ${record.status}`,
+          value: `${formatMoney(record.outstandingAmount, ctx.locale)} · ${localizeCode(ctx.locale, record.status)}`,
 
           nature: "cash" as const,
 
@@ -403,8 +407,8 @@ async function buildClient360(
 
         paragraphs:
           financials.recentBilling.length === 0
-            ? ["No billing records for this client."]
-            : deepLinkExtra("/billing"),
+            ? [ctx.copy.empty.noClientBilling]
+            : deepLinkExtra(ctx.copy, "/billing"),
       });
     }
   }
@@ -444,11 +448,11 @@ async function buildVendor360(
       heading: ctx.copy.sections.identity,
 
       rows: [
-        { label: "Vendor", value: vendor.name, href: `/vendors/${vendor.id}` },
+        { label: ctx.copy.fields.vendor, value: vendor.name, href: `/vendors/${vendor.id}` },
 
-        { label: "Type", value: vendor.type },
+        { label: ctx.copy.fields.kind, value: localizeCode(ctx.locale, vendor.type) },
 
-        { label: "Status", value: vendor.status ?? "-" },
+        { label: ctx.copy.identity.status, value: localizeCode(ctx.locale, vendor.status) },
       ],
     },
   ];
@@ -467,13 +471,13 @@ async function buildVendor360(
     sections.push({
       id: "subcontracts",
 
-      heading: "Subcontracts",
+      heading: ctx.copy.sections.subcontracts,
 
       rows: [
-        { label: "Active subcontracts", value: String(subs.length) },
+        { label: ctx.copy.fields.activeSubcontracts, value: String(subs.length) },
 
         {
-          label: "Cash outstanding (sum)",
+          label: ctx.copy.fields.cashOutstandingSum,
 
           value: totalOutstanding.toFixed(2),
 
@@ -495,10 +499,10 @@ async function buildVendor360(
     sections.push({
       id: "subcontracts",
 
-      heading: "Subcontracts",
+      heading: ctx.copy.sections.subcontracts,
 
       paragraphs: [
-        "No subcontract agreements for this vendor on accessible projects.",
+        ctx.copy.empty.noVendorSubcontracts,
       ],
     });
   }
@@ -523,11 +527,11 @@ async function buildVendor360(
       sections.push({
         id: "ap_kpi",
 
-        heading: "Accounts payable",
+        heading: ctx.copy.sections.accountsPayable,
 
         rows: [
           {
-            label: "Outstanding",
+            label: ctx.copy.fields.outstanding,
 
             value: formatMoney(
               money(apSummary.outstanding, apSummary.currency),
@@ -538,7 +542,7 @@ async function buildVendor360(
           },
 
           {
-            label: "Retention held",
+            label: ctx.copy.fields.retentionHeld,
 
             value: formatMoney(
               money(apSummary.retentionHeld, apSummary.currency),
@@ -549,24 +553,24 @@ async function buildVendor360(
           },
 
           {
-            label: "Open bills",
+            label: ctx.copy.fields.openBills,
             value: String(apSummary.unpaidCount + apSummary.partialCount),
           },
         ],
 
-        paragraphs: deepLinkExtra("/procurement/ap/aging", "AP aging"),
+        paragraphs: deepLinkExtra(ctx.copy, "/procurement/ap/aging"),
       });
     }
 
     sections.push({
       id: "ap_bills",
 
-      heading: "Recent bills",
+      heading: ctx.copy.sections.recentBills,
 
       rows: vendorBills.slice(0, 15).map((bill) => ({
         label: bill.reference ?? bill.id.slice(0, 8),
 
-        value: `${bill.totalAmount} ${bill.currency} · ${bill.status}`,
+        value: `${bill.totalAmount} ${bill.currency} · ${localizeCode(ctx.locale, bill.status)}`,
 
         nature: "cash" as const,
 
@@ -575,7 +579,7 @@ async function buildVendor360(
 
       paragraphs:
         vendorBills.length === 0
-          ? ["No AP bills for this vendor in the recent list."]
+          ? [ctx.copy.empty.noVendorBills]
           : undefined,
     });
   }
@@ -625,16 +629,16 @@ async function buildContractPortfolio(
   }
 
   const kpiRows: ReportRow[] = [
-    { label: "Contracts listed", value: String(contracts.length) },
+    { label: ctx.copy.fields.contractsListed, value: String(contracts.length) },
 
     ...[...byStatus.entries()].map(([status, count]) => ({
-      label: `Status · ${status}`,
+      label: `${ctx.copy.identity.status} · ${localizeCode(ctx.locale, status)}`,
 
       value: String(count),
     })),
 
     {
-      label: "Active contract value (base currency)",
+      label: ctx.copy.fields.activeContractValueBase,
 
       value: formatMoney(activeValue, ctx.locale),
 
@@ -645,7 +649,7 @@ async function buildContractPortfolio(
   const detailRows: ReportRow[] = contracts.slice(0, 40).map((contract) => ({
     label: `${contract.projectName} · ${contract.contractNumber ?? contract.name ?? contract.id.slice(0, 8)}`,
 
-    value: `${contract.status} · ${contract.currentAmount ?? "-"} ${contract.currency}`,
+    value: `${localizeCode(ctx.locale, contract.status)} · ${contract.currentAmount ?? "-"} ${contract.currency}`,
 
     nature: "commercial" as const,
 
@@ -665,7 +669,7 @@ async function buildContractPortfolio(
       {
         id: "kpi",
 
-        heading: "Portfolio KPIs",
+        heading: ctx.copy.sections.portfolioKpis,
 
         rows: kpiRows,
       },
@@ -673,14 +677,14 @@ async function buildContractPortfolio(
       {
         id: "contracts",
 
-        heading: "Contract portfolio",
+        heading: ctx.copy.sections.contractPortfolio,
 
         rows: detailRows,
 
         paragraphs:
           contracts.length === 0
-            ? ["No contracts found on accessible projects."]
-            : deepLinkExtra("/contracts", "Contracts directory"),
+            ? [ctx.copy.empty.noContracts]
+            : deepLinkExtra(ctx.copy, "/contracts"),
       },
     ],
 
@@ -725,7 +729,7 @@ async function buildSubcontractCash(
   const rows: ReportRow[] = subs.slice(0, 30).map((sub) => ({
     label: `${sub.projectName} · ${sub.subcontractNumber ?? sub.title}`,
 
-    value: `${sub.outstandingAmount} ${sub.currency} outstanding · ${sub.status}`,
+    value: `${sub.outstandingAmount} ${sub.currency} ${ctx.copy.phrases.outstanding} · ${localizeCode(ctx.locale, sub.status)}`,
 
     nature: "cash" as const,
 
@@ -745,13 +749,13 @@ async function buildSubcontractCash(
       {
         id: "kpi",
 
-        heading: "Subcontract cash KPIs",
+        heading: ctx.copy.sections.subcontractCashKpis,
 
         rows: [
-          { label: "Agreements", value: String(subs.length) },
+          { label: ctx.copy.fields.agreements, value: String(subs.length) },
 
           {
-            label: "Total outstanding (base)",
+            label: ctx.copy.fields.totalOutstandingBase,
 
             value: formatMoney(totalOutstanding, ctx.locale),
 
@@ -759,7 +763,7 @@ async function buildSubcontractCash(
           },
 
           {
-            label: "Current value (base)",
+            label: ctx.copy.fields.currentValueBase,
 
             value: formatMoney(totalCurrent, ctx.locale),
 
@@ -771,17 +775,17 @@ async function buildSubcontractCash(
       {
         id: "subs",
 
-        heading: "Subcontract cash view",
+        heading: ctx.copy.sections.subcontractCashView,
 
         rows,
 
         paragraphs:
           subs.length === 0
-            ? ["No subcontract agreements for this vendor."]
+            ? [ctx.copy.empty.noVendorSubcontractsShort]
             : [
-                "Cash / retention timing — not Actual cost.",
+                ctx.copy.notices.retentionCashTiming,
 
-                ...deepLinkExtra(`/vendors/${vendor.id}`, "Vendor detail"),
+                ...deepLinkExtra(ctx.copy, `/vendors/${vendor.id}`),
               ],
       },
     ],
@@ -845,27 +849,27 @@ async function buildLaborUtilization(
     {
       id: "hours",
 
-      heading: "Utilization (hours)",
+      heading: ctx.copy.sections.utilizationHours,
 
       rows: [
-        { label: "Project hours", value: projectHours.toFixed(2) },
+        { label: ctx.copy.fields.projectHours, value: projectHours.toFixed(2) },
 
-        { label: "Non-project hours", value: nonProjectHours.toFixed(2) },
+        { label: ctx.copy.fields.nonProjectHours, value: nonProjectHours.toFixed(2) },
 
-        { label: "Project share", value: `${utilizationPct}%` },
+        { label: ctx.copy.fields.projectShare, value: `${utilizationPct}%` },
 
-        { label: "Timesheet periods", value: String(sheets.length) },
+        { label: ctx.copy.fields.timesheetPeriods, value: String(sheets.length) },
 
-        { label: "Recorded entries", value: String(entries.length) },
+        { label: ctx.copy.fields.recordedEntries, value: String(entries.length) },
       ],
 
-      paragraphs: deepLinkExtra("/workforce/timesheets", "Timesheets"),
+      paragraphs: deepLinkExtra(ctx.copy, "/workforce/timesheets"),
     },
 
     {
       id: "by_project",
 
-      heading: "Hours by project",
+      heading: ctx.copy.sections.hoursByProject,
 
       rows: topProjects.map(([projectId, hours]) => ({
         label: projectId.slice(0, 8),
@@ -877,7 +881,7 @@ async function buildLaborUtilization(
 
       paragraphs:
         topProjects.length === 0
-          ? ["No project hours recorded in the current list."]
+          ? [ctx.copy.empty.noProjectHours]
           : undefined,
     },
   ];
@@ -899,17 +903,17 @@ async function buildLaborUtilization(
     sections.push({
       id: "cost",
 
-      heading: "Labor cost (gated)",
+      heading: ctx.copy.sections.laborCostGated,
 
       rows: [
         {
-          label: "Entries with cost snapshot",
+          label: ctx.copy.fields.entriesWithCostSnapshot,
           value: String(withCost.length),
           nature: "actual",
         },
 
         {
-          label: "Sum of snapshotted cost",
+          label: ctx.copy.fields.sumSnapshottedCost,
           value: costTotal.toFixed(2),
           nature: "actual",
         },
@@ -928,7 +932,7 @@ async function buildLaborUtilization(
 
     sections,
 
-    notices: [ctx.copy.snapshotNote, "Not payroll."],
+    notices: [ctx.copy.snapshotNote, ctx.copy.notices.notPayroll],
 
     omitted,
   });
@@ -975,7 +979,7 @@ async function buildRetentionSchedule(
     if (arSummary) {
       arKpi.push(
         {
-          label: "AR outstanding",
+          label: ctx.copy.fields.arOutstanding,
 
           value: formatMoney(arSummary.totalOutstanding, ctx.locale),
 
@@ -983,7 +987,7 @@ async function buildRetentionSchedule(
         },
 
         {
-          label: "Overdue AR",
+          label: ctx.copy.fields.overdueAr,
           value: formatMoney(arSummary.overdueTotal, ctx.locale),
           nature: "cash",
         },
@@ -992,7 +996,7 @@ async function buildRetentionSchedule(
 
     if (isPositiveMoney(arRetentionHeld)) {
       arKpi.push({
-        label: "Retention held (AR)",
+        label: ctx.copy.fields.retentionHeldAr,
 
         value: formatMoney(arRetentionHeld, ctx.locale),
 
@@ -1006,7 +1010,7 @@ async function buildRetentionSchedule(
       arSummary.retentionReleaseOutstanding
     ) {
       arKpi.push({
-        label: "Retention release outstanding",
+        label: ctx.copy.fields.retentionReleaseOutstanding,
 
         value: formatMoney(arSummary.retentionReleaseOutstanding, ctx.locale),
 
@@ -1018,7 +1022,7 @@ async function buildRetentionSchedule(
       sections.push({
         id: "ar_kpi",
 
-        heading: "Receivables retention",
+        heading: ctx.copy.sections.receivablesRetention,
 
         rows: arKpi,
       });
@@ -1028,7 +1032,7 @@ async function buildRetentionSchedule(
       sections.push({
         id: "ar",
 
-        heading: "AR aging (cash)",
+        heading: ctx.copy.sections.arAging,
 
         rows: arAging.buckets.map((bucket) => ({
           label: bucket.key,
@@ -1038,7 +1042,7 @@ async function buildRetentionSchedule(
           nature: "cash" as const,
         })),
 
-        paragraphs: deepLinkExtra("/billing"),
+        paragraphs: deepLinkExtra(ctx.copy, "/billing"),
       });
     }
   }
@@ -1054,11 +1058,11 @@ async function buildRetentionSchedule(
       sections.push({
         id: "ap_kpi",
 
-        heading: "Payables retention",
+        heading: ctx.copy.sections.payablesRetention,
 
         rows: [
           {
-            label: "AP outstanding",
+            label: ctx.copy.fields.apOutstanding,
 
             value: formatMoney(
               money(apSummary.outstanding, apSummary.currency),
@@ -1069,7 +1073,7 @@ async function buildRetentionSchedule(
           },
 
           {
-            label: "Retention held (AP)",
+            label: ctx.copy.fields.retentionHeldAp,
 
             value: formatMoney(
               money(apSummary.retentionHeld, apSummary.currency),
@@ -1080,7 +1084,7 @@ async function buildRetentionSchedule(
           },
         ],
 
-        paragraphs: deepLinkExtra("/procurement/ap/aging", "AP aging"),
+        paragraphs: deepLinkExtra(ctx.copy, "/procurement/ap/aging"),
       });
     }
 
@@ -1088,7 +1092,7 @@ async function buildRetentionSchedule(
       sections.push({
         id: "ap",
 
-        heading: "AP aging (cash)",
+        heading: ctx.copy.sections.apAging,
 
         rows: apAging.buckets.map((bucket) => ({
           label: bucket.key,
@@ -1105,10 +1109,10 @@ async function buildRetentionSchedule(
     sections.push({
       id: "empty",
 
-      heading: "Retention schedule",
+      heading: ctx.copy.sections.retentionSchedule,
 
       paragraphs: [
-        "No billing.read or ap.read access for retention cash sections.",
+        ctx.copy.empty.noRetentionAccess,
       ],
     });
   }
@@ -1124,7 +1128,7 @@ async function buildRetentionSchedule(
 
     sections,
 
-    notices: [ctx.copy.snapshotNote, "Retention is cash timing, not profit."],
+    notices: [ctx.copy.snapshotNote, ctx.copy.notices.retentionCashTiming],
   });
 }
 
@@ -1168,21 +1172,21 @@ async function buildInventoryMovement(
       {
         id: "kpi",
 
-        heading: "Inventory KPIs",
+        heading: ctx.copy.sections.inventoryKpis,
 
         rows: [
-          { label: "Active items", value: String(items.length) },
+          { label: ctx.copy.fields.activeItems, value: String(items.length) },
 
-          { label: "Recent movements", value: String(movements.length) },
+          { label: ctx.copy.fields.recentMovements, value: String(movements.length) },
 
-          { label: "At/below reorder", value: String(lowStock.length) },
+          { label: ctx.copy.fields.atOrBelowReorder, value: String(lowStock.length) },
         ],
       },
 
       {
         id: "items",
 
-        heading: "Inventory items",
+        heading: ctx.copy.sections.inventoryItems,
 
         rows: items.slice(0, 20).map((item) => ({
           label: item.name ?? item.sku ?? item.id.slice(0, 8),
@@ -1194,24 +1198,24 @@ async function buildInventoryMovement(
 
         paragraphs:
           items.length === 0
-            ? ["No inventory items in this organization."]
+            ? [ctx.copy.empty.noInventoryItems]
             : undefined,
       },
 
       {
         id: "moves",
 
-        heading: "Recent movements",
+        heading: ctx.copy.sections.recentMovements,
 
         rows: moveRows,
 
         paragraphs:
           moveRows.length === 0
-            ? ["No inventory movements recorded yet."]
+            ? [ctx.copy.empty.noInventoryMovements]
             : [
-                "Quantities only — not costing.",
+                ctx.copy.empty.quantitiesOnly,
 
-                ...deepLinkExtra("/assets/inventory", "Inventory"),
+                ...deepLinkExtra(ctx.copy, "/assets/inventory"),
               ],
       },
     ],
@@ -1241,7 +1245,7 @@ async function buildComplianceExpiry(
         {
           id: "denied",
 
-          heading: "Compliance expiry",
+          heading: ctx.copy.sections.complianceExpiry,
 
           paragraphs: ["compliance.read permission required."],
         },
@@ -1286,17 +1290,17 @@ async function buildComplianceExpiry(
       {
         id: "kpi",
 
-        heading: "Compliance KPIs",
+        heading: ctx.copy.sections.complianceKpis,
 
         rows: [
-          { label: "Artifacts tracked", value: String(all.length) },
+          { label: ctx.copy.fields.artifactsTracked, value: String(all.length) },
 
-          { label: "Expiring soon", value: String(expiring.length) },
+          { label: ctx.copy.fields.expiringSoon, value: String(expiring.length) },
 
-          { label: "Expired", value: String(expired.length) },
+          { label: ctx.copy.fields.expired, value: String(expired.length) },
 
           ...[...statusCounts.entries()].map(([status, count]) => ({
-            label: `Status · ${status}`,
+            label: `${ctx.copy.identity.status} · ${localizeCode(ctx.locale, status)}`,
 
             value: String(count),
           })),
@@ -1306,20 +1310,20 @@ async function buildComplianceExpiry(
       {
         id: "watchlist",
 
-        heading: "Expiry watchlist",
+        heading: ctx.copy.sections.expiryWatchlist,
 
         rows: watchlist.map((artifact) => ({
           label: `${artifact.name} (${artifact.artifactKind})`,
 
-          value: `${artifact.status} · expires ${artifact.expiresOn ?? "-"}`,
+          value: `${localizeCode(ctx.locale, artifact.status)} · ${ctx.copy.phrases.expires} ${artifact.expiresOn ?? "-"}`,
 
           href: `/compliance/${artifact.id}`,
         })),
 
         paragraphs:
           watchlist.length === 0
-            ? ["No expiring or expired artifacts in the current list."]
-            : deepLinkExtra("/compliance", "Compliance"),
+            ? [ctx.copy.empty.noExpiringArtifacts]
+            : deepLinkExtra(ctx.copy, "/compliance"),
       },
     ],
 
@@ -1348,7 +1352,7 @@ async function buildCrmFunnel(
         {
           id: "denied",
 
-          heading: "CRM funnel",
+          heading: ctx.copy.sections.crmFunnel,
 
           paragraphs: ["crm.read permission required."],
         },
@@ -1401,7 +1405,7 @@ async function buildCrmFunnel(
   const leadRows: ReportRow[] = leads.slice(0, 12).map((lead) => ({
     label: lead.title,
 
-    value: lead.status,
+    value: localizeCode(ctx.locale, lead.status),
 
     href: `/crm/leads/${lead.id}`,
   }));
@@ -1419,62 +1423,62 @@ async function buildCrmFunnel(
       {
         id: "kpi",
 
-        heading: "Pipeline KPIs",
+        heading: ctx.copy.sections.pipelineKpis,
 
         rows: [
-          { label: "Open opportunities", value: String(opportunities.length) },
+          { label: ctx.copy.fields.openOpportunities, value: String(opportunities.length) },
 
           {
-            label: "Open leads",
+            label: ctx.copy.fields.openLeads,
             value: String(leads.filter((l) => l.status !== "converted").length),
           },
 
           {
-            label: "Weighted pipeline (raw sum)",
+            label: ctx.copy.fields.weightedPipeline,
 
             value: pipelineValue.toFixed(2),
 
             nature: "estimate",
           },
 
-          { label: "Overdue next actions", value: String(overdueActions) },
+          { label: ctx.copy.fields.overdueNextActions, value: String(overdueActions) },
         ],
       },
 
       {
         id: "stages",
 
-        heading: "Funnel by stage",
+        heading: ctx.copy.sections.funnelByStage,
 
         rows: stageRows,
 
         paragraphs: stageRows.every((row) => row.value === "0")
-          ? ["No open opportunities in the pipeline."]
+          ? [ctx.copy.empty.noOpenOpportunities]
           : undefined,
       },
 
       {
         id: "opportunities",
 
-        heading: "Open opportunities",
+        heading: ctx.copy.sections.openOpportunities,
 
         rows: topOpps,
 
-        paragraphs: deepLinkExtra("/crm", "CRM"),
+        paragraphs: deepLinkExtra(ctx.copy, "/crm"),
       },
 
       {
         id: "leads",
 
-        heading: "Recent leads",
+        heading: ctx.copy.sections.recentLeads,
 
         rows: leadRows,
 
-        paragraphs: leadRows.length === 0 ? ["No leads on file."] : undefined,
+        paragraphs: leadRows.length === 0 ? [ctx.copy.empty.noLeads] : undefined,
       },
     ],
 
-    notices: [ctx.copy.snapshotNote, "Application snapshot — not a BI cube."],
+    notices: [ctx.copy.snapshotNote, ctx.copy.notices.applicationSnapshot],
   });
 }
 
@@ -1499,7 +1503,7 @@ async function buildMonthClose(
         {
           id: "denied",
 
-          heading: "Month close completeness",
+          heading: ctx.copy.sections.monthCloseCompleteness,
 
           paragraphs: ["month_close.read permission required."],
         },
@@ -1526,13 +1530,12 @@ async function buildMonthClose(
   );
 
   const checkRows: ReportRow[] = liveSnapshot.items.map((item) => ({
-    label: item.key,
-
+    label: localizeCode(ctx.locale, item.key),
     value: item.applicable
       ? item.issueCount === 0
-        ? "Pass"
-        : `${item.issueCount} issue(s)`
-      : "N/A",
+        ? ctx.copy.phrases.pass
+        : ctx.copy.phrases.issues.replace('{count}', String(item.issueCount))
+      : ctx.copy.phrases.notApplicable,
   }));
 
   const periodRows: ReportRow[] = workspace.periods
@@ -1540,7 +1543,7 @@ async function buildMonthClose(
     .map((period) => ({
       label: period.yearMonth,
 
-      value: `${period.status} · ${period.completenessPercent ?? "-"}%`,
+      value: `${localizeCode(ctx.locale, period.status)} · ${period.completenessPercent ?? "-"}%`,
 
       href: `/month-close/${period.id}`,
     }));
@@ -1558,21 +1561,21 @@ async function buildMonthClose(
       {
         id: "kpi",
 
-        heading: "Completeness KPIs",
+        heading: ctx.copy.sections.completenessKpis,
 
         rows: [
-          { label: "Target month", value: yearMonth },
+          { label: ctx.copy.fields.targetMonth, value: yearMonth },
 
           {
-            label: "Live completeness",
+            label: ctx.copy.fields.liveCompleteness,
 
             value: `${liveSnapshot.percent}% (${liveSnapshot.passedCount}/${liveSnapshot.applicableCount} checks)`,
           },
 
           {
-            label: "Stored period status",
+            label: ctx.copy.fields.storedPeriodStatus,
 
-            value: currentPeriod?.status ?? "not opened",
+            value: localizeCode(ctx.locale, currentPeriod?.status ?? "not_opened"),
           },
         ],
       },
@@ -1580,27 +1583,27 @@ async function buildMonthClose(
       {
         id: "checks",
 
-        heading: "Completeness checks",
+        heading: ctx.copy.sections.completenessChecks,
 
         rows: checkRows,
 
         paragraphs:
           liveSnapshot.applicableCount === 0
-            ? ["No applicable completeness checks for this month."]
+            ? [ctx.copy.empty.noCompletenessChecks]
             : undefined,
       },
 
       {
         id: "periods",
 
-        heading: "Recent periods",
+        heading: ctx.copy.sections.recentPeriods,
 
         rows: periodRows,
 
         paragraphs: [
-          "Operational month close — not statutory accounting close.",
+          ctx.copy.notices.operationalMonthClose,
 
-          ...deepLinkExtra("/month-close", "Month close"),
+          ...deepLinkExtra(ctx.copy, "/month-close"),
         ],
       },
     ],
@@ -1630,7 +1633,7 @@ async function buildSafetyOpen(
         {
           id: "denied",
 
-          heading: "Open safety actions",
+          heading: ctx.copy.sections.openSafetyActions,
 
           paragraphs: ["safety.read permission required."],
         },
@@ -1655,7 +1658,7 @@ async function buildSafetyOpen(
   const actionRows: ReportRow[] = openActions.slice(0, 30).map((action) => ({
     label: action.title,
 
-    value: `${action.status}${action.dueDate ? ` · due ${action.dueDate}` : ""}`,
+    value: `${localizeCode(ctx.locale, action.status)}${action.dueDate ? ` · ${ctx.copy.phrases.due} ${action.dueDate}` : ""}`,
 
     href: `/safety/${action.safetyRecordId}`,
   }));
@@ -1673,20 +1676,20 @@ async function buildSafetyOpen(
       {
         id: "kpi",
 
-        heading: "Safety KPIs",
+        heading: ctx.copy.sections.safetyKpis,
 
         rows: [
-          { label: "Open records", value: String(summary.openRecords) },
+          { label: ctx.copy.fields.openRecords, value: String(summary.openRecords) },
 
           {
-            label: "Open corrective actions",
+            label: ctx.copy.fields.openCorrectiveActions,
             value: String(openActions.length),
           },
 
-          { label: "Overdue actions", value: String(overdueCount) },
+          { label: ctx.copy.fields.overdueActions, value: String(overdueCount) },
 
           {
-            label: "Critical/high records",
+            label: ctx.copy.fields.criticalHighRecords,
             value: String(
               summary.bySeverity.critical + summary.bySeverity.high,
             ),
@@ -1697,18 +1700,18 @@ async function buildSafetyOpen(
       {
         id: "actions",
 
-        heading: "Open corrective actions",
+        heading: ctx.copy.sections.openCorrectiveActions,
 
         rows: actionRows,
 
         paragraphs:
           actionRows.length === 0
-            ? ["No open corrective actions on accessible projects."]
-            : deepLinkExtra("/safety", "Safety / HSE"),
+            ? [ctx.copy.empty.noOpenCorrectiveActions]
+            : deepLinkExtra(ctx.copy, "/safety"),
       },
     ],
 
-    notices: [ctx.copy.snapshotNote, "Application report — not a BI platform."],
+    notices: [ctx.copy.snapshotNote, ctx.copy.notices.applicationReport],
   });
 }
 

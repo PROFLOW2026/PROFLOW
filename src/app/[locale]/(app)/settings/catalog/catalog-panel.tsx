@@ -1,7 +1,8 @@
 'use client';
 
-import { useActionState } from 'react';
-import { useTranslations } from 'next-intl';
+import { useActionState, useState } from 'react';
+import { useLocale, useTranslations } from 'next-intl';
+import { localizeCode } from '@/shared/i18n/code-display';
 import { ConfirmAction } from '@/components/patterns/confirm-action';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -187,23 +188,25 @@ function LaborDefaultsForm({
 }) {
   const t = useTranslations('settings.catalog');
   const tCommon = useTranslations('common');
+  const locale = useLocale();
   const [state, action, pending] = useActionState(
     saveLaborCostDefaultsAction,
     {} as SettingsActionState,
   );
 
+  const initialRows: ComponentRow[] =
+    defaults.components.length > 0
+      ? defaults.components.map((component) => ({
+          name: component.key,
+          basis: component.basis,
+          value: component.basis === 'percent' ? (component.percent ?? '') : (component.amount ?? ''),
+        }))
+      : [{ name: '', basis: 'percent' as const, value: '' }];
+
   if (!canEdit && !defaults.burdenPercent && defaults.components.length === 0
     && !defaults.standardHoursPerDay && !defaults.workingDaysPerMonth) {
     return null;
   }
-
-  const componentsText = defaults.components
-    .map((c) =>
-      c.basis === 'percent'
-        ? `${c.key}=percent:${c.percent ?? ''}`
-        : `${c.key}=fixed:${c.amount ?? ''}`,
-    )
-    .join('\n');
 
   return (
     <section className="flex flex-col gap-3 border-t border-[var(--pf-border-default)] pt-6">
@@ -256,30 +259,135 @@ function LaborDefaultsForm({
             )}
           </Field>
           <p className="text-xs text-[var(--pf-text-muted)]">{t('workCalendarHint')}</p>
-          <Field label={t('components')} optionalLabel={tCommon('labels.optional')}>
-            {(props) => (
-              <textarea
-                {...props}
-                name="componentsText"
-                rows={4}
-                dir="ltr"
-                className="w-full rounded-md border border-[var(--pf-border-default)] bg-transparent px-3 py-2 font-mono text-sm"
-                defaultValue={componentsText}
-                placeholder={t('componentsPlaceholder')}
-              />
-            )}
-          </Field>
+          <LaborComponentsEditor initialRows={initialRows} />
           <Button type="submit" loading={pending} variant="secondary">
             {tCommon('actions.save')}
           </Button>
         </form>
       ) : (
-        <p className="text-sm text-[var(--pf-text-secondary)]">
-          {defaults.burdenPercent
-            ? t('burdenDisplay', { percent: defaults.burdenPercent })
-            : t('noLaborDefaults')}
-        </p>
+        <div className="flex flex-col gap-2">
+          <p className="text-sm text-[var(--pf-text-secondary)]">
+            {defaults.burdenPercent
+              ? t('burdenDisplay', { percent: defaults.burdenPercent })
+              : t('noLaborDefaults')}
+          </p>
+          {defaults.components.length > 0 ? (
+            <ul className="text-sm text-[var(--pf-text-secondary)]">
+              {defaults.components.map((component) => (
+                <li key={component.key}>
+                  {localizeCode(locale, component.key)}
+                  {' · '}
+                  {component.basis === 'percent'
+                    ? t('componentPercent')
+                    : t('componentFixedAmount')}
+                  {component.basis === 'percent' && component.percent
+                    ? ` ${component.percent}%`
+                    : component.amount
+                      ? ` ${component.amount}`
+                      : ''}
+                </li>
+              ))}
+            </ul>
+          ) : null}
+        </div>
       )}
     </section>
+  );
+}
+
+type ComponentRow = {
+  name: string;
+  basis: 'percent' | 'fixed';
+  value: string;
+};
+
+function serializeComponentRows(rows: readonly ComponentRow[]): string {
+  return rows
+    .filter((row) => row.name.trim() && row.value.trim())
+    .map((row) => `${row.name.trim()}=${row.basis}:${row.value.trim()}`)
+    .join('\n');
+}
+
+function LaborComponentsEditor({ initialRows }: { initialRows: ComponentRow[] }) {
+  const t = useTranslations('settings.catalog');
+  const tCommon = useTranslations('common');
+  const [rows, setRows] = useState<ComponentRow[]>(initialRows);
+
+  return (
+    <div className="flex flex-col gap-2">
+      <p className="text-sm font-medium">{t('components')}</p>
+      <p className="text-xs text-[var(--pf-text-muted)]">{t('componentsHint')}</p>
+      <input type="hidden" name="componentsText" value={serializeComponentRows(rows)} />
+      {rows.map((row, index) => (
+        <div key={index} className="grid gap-2 rounded-md border border-[var(--pf-border-default)] p-2 sm:grid-cols-[1fr_8rem_6rem_auto]">
+          <Field label={t('componentName')}>
+            {(props) => (
+              <Input
+                {...props}
+                value={row.name}
+                onChange={(event) =>
+                  setRows((current) =>
+                    current.map((item, i) => (i === index ? { ...item, name: event.target.value } : item)),
+                  )
+                }
+              />
+            )}
+          </Field>
+          <Field label={t('componentBasis')}>
+            {(props) => (
+              <select
+                {...props}
+                className="flex h-10 w-full rounded-md border border-[var(--pf-border-strong)] bg-[var(--pf-bg-surface)] px-3 py-2 text-sm"
+                value={row.basis}
+                onChange={(event) =>
+                  setRows((current) =>
+                    current.map((item, i) =>
+                      i === index ? { ...item, basis: event.target.value as 'percent' | 'fixed' } : item,
+                    ),
+                  )
+                }
+              >
+                <option value="percent">{t('componentPercent')}</option>
+                <option value="fixed">{t('componentFixedAmount')}</option>
+              </select>
+            )}
+          </Field>
+          <Field label={row.basis === 'percent' ? t('componentPercent') : t('componentFixedAmount')}>
+            {(props) => (
+              <Input
+                {...props}
+                inputMode="decimal"
+                dir="ltr"
+                value={row.value}
+                onChange={(event) =>
+                  setRows((current) =>
+                    current.map((item, i) => (i === index ? { ...item, value: event.target.value } : item)),
+                  )
+                }
+              />
+            )}
+          </Field>
+          <div className="flex items-end">
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              onClick={() => setRows((current) => current.filter((_, i) => i !== index))}
+            >
+              {t('removeComponent')}
+            </Button>
+          </div>
+        </div>
+      ))}
+      <Button
+        type="button"
+        size="sm"
+        variant="secondary"
+        onClick={() => setRows((current) => [...current, { name: '', basis: 'percent', value: '' }])}
+      >
+        {t('addComponent')}
+      </Button>
+      <span className="sr-only">{tCommon('labels.optional')}</span>
+    </div>
   );
 }

@@ -20,6 +20,7 @@ import {
 import {
   resolveAllocationMethodKey,
   resolveAllocationMethodLabelHebrew,
+  resolveGeneralCostSourceLabelHebrew,
 } from './allocation-method-labels';
 
 export type ProjectAllocatedGeneralSourceKind = 'expense' | 'pool_other';
@@ -290,7 +291,11 @@ export function buildProjectAllocatedGeneralDetail(input: {
           expenseId: null,
           expenseDate: null,
           supplierName: null,
-          description: resolveExpenseDescription(row) ?? row.sourceLabel ?? row.sourceKind,
+          description:
+            resolveExpenseDescription(row) ??
+            row.sourceLabel ??
+            resolveGeneralCostSourceLabelHebrew(row.sourceKind) ??
+            'מקורות אחרים',
           expenseGrossAmount: poolGross,
           allocatedAmount: allocated,
           poolWeightPercent: poolWeight,
@@ -340,7 +345,8 @@ export function buildProjectAllocatedGeneralDetail(input: {
           supplierName: null,
           description:
             bucket.otherSources[0]?.sourceLabel ??
-            bucket.otherSources[0]?.sourceKind ??
+            resolveGeneralCostSourceLabelHebrew(bucket.otherSources[0]?.sourceKind) ??
+            resolveGeneralCostSourceLabelHebrew('other') ??
             yearMonth,
           expenseGrossAmount: fromNumericString(bucket.poolAmount, currency),
           allocatedAmount: remainder,

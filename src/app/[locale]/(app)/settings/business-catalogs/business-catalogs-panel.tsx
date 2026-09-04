@@ -634,11 +634,7 @@ function DocumentRequirementRow({
   canEdit: boolean;
 }) {
   const t = useTranslations('settings.businessCatalogs');
-  const display =
-    item.label?.trim() ||
-    item.documentTypeKey +
-      (item.contextKey ? ` · ${item.contextKey}` : '') +
-      ` · ${item.contextKind}`;
+  const display = item.label?.trim() || t('unnamedRequirement');
 
   async function handleDeactivate() {
     const result = await deactivateDocumentRequirementAction(item.id);
@@ -653,10 +649,8 @@ function DocumentRequirementRow({
         <p className="text-xs text-[var(--pf-text-muted)]">
           {t(`contextKinds.${item.contextKind}`)}
           {item.contextKey
-            ? ` · ${(VENDOR_TYPE_CONTEXT_KEYS as readonly string[]).includes(item.contextKey) ? t(`vendorTypes.${item.contextKey as (typeof VENDOR_TYPE_CONTEXT_KEYS)[number]}`) : item.contextKey}`
+            ? ` · ${(VENDOR_TYPE_CONTEXT_KEYS as readonly string[]).includes(item.contextKey) ? t(`vendorTypes.${item.contextKey as (typeof VENDOR_TYPE_CONTEXT_KEYS)[number]}`) : t('unnamedRequirement')}`
             : null}
-          {' · '}
-          <span dir="ltr">{item.documentTypeKey}</span>
           {!item.isActive ? ` · ${t('inactive')}` : null}
         </p>
       </div>

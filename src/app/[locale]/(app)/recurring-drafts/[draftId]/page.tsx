@@ -10,6 +10,7 @@ import { ResponsiveTable } from '@/components/patterns/responsive-table';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { pressableCardLinkClassName, textNavLinkClassName } from '@/components/ui/pressable';
 import { listCostCategoriesForOrg, findExpenseById } from '@/modules/expenses';
+import { displayCostCategoryName } from '@/modules/expenses/domain/cost-category-display';
 import { isMonthClosed } from '@/modules/month-close';
 import { hasExplicitRecurringCategory } from '@/modules/recurring-drafts/application/resolve-expense-category';
 import {
@@ -129,9 +130,7 @@ export default async function RecurringDraftDetailPage({
         ? categories.find((category) => category.id === costCategoryId)
         : null;
       const categoryLabel = categoryRow
-        ? categoryRow.isSystem
-          ? tExpenses(`costCategories.${categoryRow.key}`)
-          : categoryRow.name
+        ? displayCostCategoryName(categoryRow, (key) => tExpenses(key))
         : null;
 
       return {

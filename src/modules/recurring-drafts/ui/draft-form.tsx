@@ -18,6 +18,7 @@ import type {
 import { DRAFT_FREQUENCIES } from '../domain/types';
 import { retroMonthRangeFromStart } from '../domain/missing-months';
 import { ExpenseVatModeSelector } from '@/modules/expenses/ui/expense-vat-mode-selector';
+import { displayCostCategoryName } from '@/modules/expenses/domain/cost-category-display';
 import {
   DEFAULT_EXPENSE_VAT_MODE,
   isExpenseVatMode,
@@ -232,9 +233,7 @@ export function RecurringDraftForm({
                         <SelectLabel>{tExpenses(`costFamilies.${group.family}`)}</SelectLabel>
                         {group.items.map((category) => (
                           <SelectItem key={category.id} value={category.id}>
-                            {category.isSystem
-                              ? tExpenses(`costCategories.${category.key}`)
-                              : category.name}
+                            {displayCostCategoryName(category, (key) => tExpenses(key))}
                           </SelectItem>
                         ))}
                       </SelectGroup>

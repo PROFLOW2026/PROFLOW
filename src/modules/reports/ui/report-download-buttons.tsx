@@ -2,10 +2,9 @@
 
 import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
-import { ExportDownloadButton } from '@/components/patterns/export-download-button';
 import { Link } from '@/shared/i18n/navigation';
 import type { ReportKind } from '../domain/types';
-import { reportDownloadPath, reportPreviewPath } from '../domain/paths';
+import { reportPreviewPath } from '../domain/paths';
 
 export function ReportDownloadButtons({
   kind,
@@ -17,16 +16,12 @@ export function ReportDownloadButtons({
   compact?: boolean;
 }) {
   const t = useTranslations('reports');
-  const downloadHref = reportDownloadPath(kind, id);
   const previewHref = reportPreviewPath(kind, id);
   const kindLabel = t(`kinds.${kind}`);
 
   return (
     <div className="flex flex-wrap items-center gap-2 print:hidden">
-      <ExportDownloadButton href={downloadHref} variant={compact ? 'ghost' : 'secondary'} size="sm">
-        {t('downloadKindPdf', { kind: kindLabel })}
-      </ExportDownloadButton>
-      <Button asChild variant="ghost" size="sm">
+      <Button asChild variant={compact ? 'ghost' : 'secondary'} size="sm">
         <Link href={previewHref}>{t('previewKindPrint', { kind: kindLabel })}</Link>
       </Button>
     </div>

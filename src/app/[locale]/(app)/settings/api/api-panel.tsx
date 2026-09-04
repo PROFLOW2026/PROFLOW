@@ -1,7 +1,8 @@
 'use client';
 
 import { useActionState } from 'react';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
+import { localizeCode } from '@/shared/i18n/code-display';
 import { ResponsiveTable } from '@/components/patterns/responsive-table';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -54,6 +55,7 @@ export function ApiSettingsPanel({
   canEdit: boolean;
 }) {
   const t = useTranslations('api');
+  const locale = useLocale();
   const [clientState, clientAction, clientPending] = useActionState(
     createApiClientAction,
     {} as ApiActionState,
@@ -557,11 +559,17 @@ export function ApiSettingsPanel({
                   className="flex min-h-11 flex-col gap-2 border-b border-[var(--pf-border-default)] py-2 last:border-b-0 sm:flex-row sm:items-center sm:justify-between"
                 >
                   <div>
-                    <span dir="ltr">{delivery.eventType}</span> · {delivery.status}
+                    <span>
+                      {t.has(`events.${delivery.eventType}` as 'events.test.ping')
+                        ? t(`events.${delivery.eventType}` as 'events.test.ping')
+                        : localizeCode(locale, delivery.eventType)}
+                    </span>
+                    {' · '}
+                    {localizeCode(locale, delivery.status)}
                     {delivery.lastHttpStatus != null ? (
                       <>
                         {' · '}
-                        <span dir="ltr">HTTP {delivery.lastHttpStatus}</span>
+                        <span dir="ltr">{delivery.lastHttpStatus}</span>
                       </>
                     ) : null}
                     {delivery.attemptCount > 0 ? (

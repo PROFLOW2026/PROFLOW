@@ -16,6 +16,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { EmptyState } from '@/components/ui/empty-state';
+import { displayCostCategoryName } from '@/modules/expenses/domain/cost-category-display';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { pressableCardLinkClassName, textNavLinkClassName } from '@/components/ui/pressable';
@@ -280,7 +281,7 @@ export function ExpensesList({
                 <SelectItem value={EXPENSE_LIST_STATUS_ALL}>{t('filters.allCategories')}</SelectItem>
                 {categories.map((category) => (
                   <SelectItem key={category.id} value={category.id}>
-                    {category.isSystem ? t(`costCategories.${category.key}`) : category.name}
+                    {displayCostCategoryName(category, (key) => t(key))}
                   </SelectItem>
                 ))}
               </SelectContent>

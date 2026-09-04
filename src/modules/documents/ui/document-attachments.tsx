@@ -150,8 +150,9 @@ export function DocumentAttachments({
 
   const resolveLinkLabel = () => {
     const note = label.trim();
-    if (category && note) return `${category}: ${note}`;
-    if (category) return category;
+    const categoryLabel = category ? tCategories(category) : '';
+    if (categoryLabel && note) return `${categoryLabel}: ${note}`;
+    if (categoryLabel) return categoryLabel;
     return note || null;
   };
 

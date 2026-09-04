@@ -35,6 +35,7 @@ import { AddRateVersionForm } from '@/modules/workforce/ui/add-rate-version-form
 import { RateHistoryTable } from '@/modules/workforce/ui/rate-history-table';
 import { OrgWorkFrameworkForm } from '@/modules/workforce/ui/org-work-framework-form';
 import { withOrgContext } from '@/shared/auth/session';
+import { localizeCode } from '@/shared/i18n/code-display';
 import { businessDate, todayInTimeZone } from '@/shared/dates';
 import { Link } from '@/shared/i18n/navigation';
 import { hasPermission } from '@/shared/permissions/assert';
@@ -59,7 +60,11 @@ export default async function EmployeeDetailPage({
   params: Promise<{ employeeId: string }>;
 }) {
   const { employeeId } = await params;
-  const [t, locale] = await Promise.all([getTranslations('workforce'), getLocale()]);
+  const [t, tComplianceStatus, locale] = await Promise.all([
+    getTranslations('workforce'),
+    getTranslations('status.compliance'),
+    getLocale(),
+  ]);
 
   const data = await withOrgContext(async (context) => {
     try {
@@ -497,7 +502,11 @@ export default async function EmployeeDetailPage({
                   >
                     {artifact.name}
                   </Link>
-                  <span className="text-[var(--pf-text-secondary)]">{artifact.status}</span>
+                  <span className="text-[var(--pf-text-secondary)]">
+                    {tComplianceStatus.has(artifact.status)
+                      ? tComplianceStatus(artifact.status)
+                      : localizeCode(locale, artifact.status)}
+                  </span>
                 </li>
               ))}
             </ul>

@@ -201,7 +201,7 @@
       "Quick search across the business",
       "Photograph an invoice for review",
       "Overrun warnings",
-      "PDF reports for clients",
+      "Printable reports for clients",
       "Multiple contracts on a complex project",
       "Materials, assets & compliance"
     ]
@@ -306,7 +306,7 @@
         "items": [
           {
             "q": "Can I produce reports for a client?",
-            "a": "Yes. You can produce PDF reports for project status, financial summary, progress, changes, and daily logs."
+            "a": "Yes. You can produce printable reports for project status, financial summary, progress, changes, and daily logs."
           },
           {
             "q": "Can I install ProjectFlow?",

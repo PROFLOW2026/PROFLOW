@@ -22,6 +22,7 @@ import {
   PERIOD_BEHAVIORS,
   type CostCategoryRow,
 } from '../_lib/cost-category-options';
+import { displayCostCategoryName } from '@/modules/expenses/domain/cost-category-display';
 
 const NONE_VALUE = '__none__';
 
@@ -209,6 +210,7 @@ function CreateCategoryForm({
 
 function CategoryRow({ category, canEdit }: { category: CostCategoryRow; canEdit: boolean }) {
   const t = useTranslations('settings.costCategories');
+  const tExpenses = useTranslations('expenses');
   const tCommon = useTranslations('common');
   const [renameState, renameAction, renamePending] = useActionState(
     renameCostCategoryAction,
@@ -220,7 +222,8 @@ function CategoryRow({ category, canEdit }: { category: CostCategoryRow; canEdit
   );
   const [method, setMethod] = useState(category.defaultAllocationMethod ?? NONE_VALUE);
   const [period, setPeriod] = useState(category.defaultPeriodBehavior ?? NONE_VALUE);
-  const renameLabel = t('renameLabel', { name: category.name });
+  const displayName = displayCostCategoryName(category, (key) => tExpenses(key));
+  const renameLabel = t('renameLabel', { name: displayName });
 
   async function handleArchive() {
     const result = await archiveCostCategoryAction(category.id);
@@ -246,7 +249,7 @@ function CategoryRow({ category, canEdit }: { category: CostCategoryRow; canEdit
           <input type="hidden" name="categoryId" value={category.id} />
           <Input
             name="name"
-            defaultValue={category.name}
+            defaultValue={displayName}
             className="min-w-0 w-full max-w-xs flex-1"
             aria-label={renameLabel}
           />
@@ -265,7 +268,7 @@ function CategoryRow({ category, canEdit }: { category: CostCategoryRow; canEdit
           ) : null}
         </form>
       ) : (
-        <span className="flex-1 text-sm font-medium">{category.name}</span>
+        <span className="flex-1 text-sm font-medium">{displayName}</span>
       )}
 
       {canEdit ? (
@@ -292,7 +295,7 @@ function CategoryRow({ category, canEdit }: { category: CostCategoryRow; canEdit
                 title={tCommon('actions.archive')}
                 description={
                   <>
-                    <p>{t('archiveQuestion', { name: category.name })}</p>
+                    <p>{t('archiveQuestion', { name: displayName })}</p>
                     <p>{t('archiveConsequence')}</p>
                   </>
                 }

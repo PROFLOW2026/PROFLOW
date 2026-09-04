@@ -1,7 +1,7 @@
 'use client';
 
 import { Search } from 'lucide-react';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import * as React from 'react';
 import { useRouter } from '@/shared/i18n/navigation';
 import {
@@ -15,10 +15,12 @@ import { Input } from '@/components/ui/input';
 import { pressableChromeClassName } from '@/components/ui/pressable';
 import { globalSearchAction } from '@/modules/search/application/search-actions';
 import type { GlobalSearchGroup, GlobalSearchHit, SearchCommandHit } from '@/modules/search/domain/types';
+import { localizeCode } from '@/shared/i18n/code-display';
 import { cn } from '@/shared/ui/cn';
 
-function formatHitMeta(hit: GlobalSearchHit): string | null {
-  const parts = [hit.contextLabel, hit.status, hit.date, hit.amount && hit.currency ? `${hit.amount} ${hit.currency}` : hit.amount]
+function formatHitMeta(hit: GlobalSearchHit, locale: string): string | null {
+  const status = hit.status ? localizeCode(locale, hit.status) : null;
+  const parts = [hit.contextLabel, status, hit.date, hit.amount && hit.currency ? `${hit.amount} ${hit.currency}` : hit.amount]
     .filter(Boolean);
   if (parts.length === 0) return hit.subtitle;
   return parts.join(' · ');
@@ -37,6 +39,7 @@ export function GlobalSearchDialog({
 }) {
   const t = useTranslations('search');
   const tCommon = useTranslations('common');
+  const locale = useLocale();
   const router = useRouter();
   const [query, setQuery] = React.useState('');
   const [groups, setGroups] = React.useState<GlobalSearchGroup[]>([]);
@@ -198,7 +201,7 @@ export function GlobalSearchDialog({
               <ul className="flex flex-col gap-1" role="listbox" aria-label={t(`kinds.${group.kind}`)}>
                 {group.hits.map((hit, hitIndex) => {
                   const index = (groupHitOffsets[groupIndex] ?? displayCommands.length) + hitIndex;
-                  const meta = formatHitMeta(hit);
+                  const meta = formatHitMeta(hit, locale);
                   return (
                     <li key={`${hit.kind}:${hit.id}`}>
                       <button
@@ -212,7 +215,9 @@ export function GlobalSearchDialog({
                         )}
                         onClick={() => navigate(hit.href)}
                       >
-                        <span className="text-sm font-medium text-[var(--pf-text-primary)]">{hit.title}</span>
+                        <span className="text-sm font-medium text-[var(--pf-text-primary)]">
+                          {hit.kind === 'approval' ? localizeCode(locale, hit.title) : hit.title}
+                        </span>
                         {meta ? (
                           <span className="text-xs text-[var(--pf-text-secondary)]">{meta}</span>
                         ) : null}

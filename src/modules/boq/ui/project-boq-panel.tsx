@@ -7,6 +7,7 @@ import {
   getProjectCommercialSummary,
 } from '@/modules/commercial';
 import { listCostCategoriesForOrg, listWorkPackagesForOrg } from '@/modules/expenses';
+import { displayCostCategoryName } from '@/modules/expenses/domain/cost-category-display';
 import { getProjectBudgetWorkspace } from '@/modules/budgets';
 import { listProjectSubcontracts, listProjectVendorEngagements } from '@/modules/vendors';
 import { listImportableKinds } from '@/modules/imports';
@@ -38,6 +39,7 @@ export interface ProjectBoqPanelProps {
 
 export async function ProjectBoqPanel({ projectId, contractId }: ProjectBoqPanelProps) {
   const t = await getTranslations('boq');
+  const tExpenses = await getTranslations('expenses');
 
   const view = await withOrgContext(async (context) => {
     const canManage = hasPermission(context, PERMISSIONS.BOQ_MANAGE);
@@ -390,7 +392,10 @@ export async function ProjectBoqPanel({ projectId, contractId }: ProjectBoqPanel
           workPackages={workPackages.map((wp) => ({ id: wp.id, label: wp.name }))}
           costCategories={costCategories.map((c) => ({
             id: c.id,
-            label: c.name ?? c.key ?? c.id,
+            label: displayCostCategoryName(
+              { key: c.key, name: c.name ?? '', isSystem: c.isSystem },
+              (key) => tExpenses(key),
+            ),
           }))}
           budgetLines={budgetLines.map((line) => ({
             id: line.id,

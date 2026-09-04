@@ -1,6 +1,7 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
+import { localizeCode } from '@/shared/i18n/code-display';
 import { useActionState, useState, useTransition } from 'react';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -70,6 +71,8 @@ export function ClientDetailView({
   const tClients = useTranslations('clients');
   const tCommon = useTranslations('common');
   const tProjectStatus = useTranslations('status.project');
+  const tQuoteStatus = useTranslations('status.estimateQuote');
+  const locale = useLocale();
   const [clientTypeId, setClientTypeId] = useState(client.clientTypeId ?? '');
   const [paymentTermId, setPaymentTermId] = useState(client.defaultPaymentTermId ?? '');
   const [state, formAction, pending] = useActionState<ClientFormState, FormData>(
@@ -388,7 +391,11 @@ export function ClientDetailView({
                   >
                     {quote.title}
                   </Link>
-                  <span className="shrink-0 text-[var(--pf-text-secondary)]">{quote.status}</span>
+                  <span className="shrink-0 text-[var(--pf-text-secondary)]">
+                    {tQuoteStatus.has(quote.status)
+                      ? tQuoteStatus(quote.status)
+                      : localizeCode(locale, quote.status)}
+                  </span>
                 </li>
               ))}
             </ul>
