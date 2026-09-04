@@ -71,7 +71,10 @@ async function loadOwnerStoryCopy(): Promise<OwnerStoryCopy> {
       method: t('allocatedGeneralDetail.method'),
       poolOther: t('allocatedGeneralDetail.poolOther'),
       openExpense: t('allocatedGeneralDetail.openExpense'),
-      sharedAcrossProjects: t.raw('allocatedGeneralDetail.sharedAcrossProjects') as string,
+      sharedAcrossProjects: (() => {
+        const raw = t.raw('allocatedGeneralDetail.sharedAcrossProjects');
+        return typeof raw === 'string' ? raw : '';
+      })(),
       methods: {
         manual_amount: t('allocatedGeneralDetail.methods.manual_amount'),
         manual_percent: t('allocatedGeneralDetail.methods.manual_percent'),
@@ -162,12 +165,12 @@ export async function ProjectOwnerActualExperience({
     const canRead = hasPermission(context, PERMISSIONS.PROJECT_FINANCIALS_READ);
     if (!canRead || !financials) return null;
     const [breakdownResult, allocatedGeneralDetail] = await Promise.all([
-      getProjectActualBreakdown(context, projectId, financials),
+      getProjectActualBreakdown(context, projectId, financials).catch(() => null),
       getProjectAllocatedGeneralDetail(
         context,
         projectId,
         financials.cost.allocatedGeneralBusinessCost,
-      ),
+      ).catch(() => null),
     ]);
     return {
       breakdownResult,
@@ -175,12 +178,11 @@ export async function ProjectOwnerActualExperience({
       canReadProfit: hasPermission(context, PERMISSIONS.PROJECT_PROFIT_READ),
       canReadBilling: hasPermission(context, PERMISSIONS.BILLING_READ),
     };
-  });
+  }).catch(() => null);
 
   if (!loaded || !financials) return null;
 
   const { breakdownResult, allocatedGeneralDetail, canReadProfit, canReadBilling } = loaded;
-  const result = { breakdownResult, financials };
   const metrics = buildMetrics(financials, canReadProfit, canReadBilling);
   const profitabilityMode =
     financials.projectProfitabilityMode ?? DEFAULT_PROJECT_PROFITABILITY_MODE;
@@ -216,19 +218,21 @@ export async function ProjectOwnerActualExperience({
         <Card className="min-w-0 max-w-full">
           <CardContent className="flex flex-col gap-4 pt-6">
             <ProjectOwnerStoryPanel copy={copy} metrics={metrics} />
-            <div className="border-t border-[var(--pf-border-default)] pt-4">
-              <ProjectActualBreakdownView
-                breakdown={result.breakdownResult.breakdown}
-                laborByEmployee={result.breakdownResult.laborByEmployee}
-                copy={copy}
-                projectId={projectId}
-                allocatedGeneral={allocatedGeneralProp}
-                breakdownTotalOverride={
-                  includeGeneralInPrimary ? profitability.fullActualCost : null
-                }
-                costComposition={costComposition}
-              />
-            </div>
+            {breakdownResult ? (
+              <div className="border-t border-[var(--pf-border-default)] pt-4">
+                <ProjectActualBreakdownView
+                  breakdown={breakdownResult.breakdown}
+                  laborByEmployee={breakdownResult.laborByEmployee}
+                  copy={copy}
+                  projectId={projectId}
+                  allocatedGeneral={allocatedGeneralProp}
+                  breakdownTotalOverride={
+                    includeGeneralInPrimary ? profitability.fullActualCost : null
+                  }
+                  costComposition={costComposition}
+                />
+              </div>
+            ) : null}
           </CardContent>
         </Card>
       </div>
@@ -285,21 +289,23 @@ export async function ProjectOwnerActualExperience({
         </CardContent>
       </Card>
 
-      <Card className="min-w-0 max-w-full" data-pf-actual-breakdown-block>
-        <CardContent className="pt-6">
-          <ProjectActualBreakdownView
-            breakdown={result.breakdownResult.breakdown}
-            laborByEmployee={result.breakdownResult.laborByEmployee}
-            copy={copy}
-            projectId={projectId}
-            allocatedGeneral={allocatedGeneralProp}
-            breakdownTotalOverride={
-              includeGeneralInPrimary ? profitability.fullActualCost : null
-            }
-            costComposition={costComposition}
-          />
-        </CardContent>
-      </Card>
+      {breakdownResult ? (
+        <Card className="min-w-0 max-w-full" data-pf-actual-breakdown-block>
+          <CardContent className="pt-6">
+            <ProjectActualBreakdownView
+              breakdown={breakdownResult.breakdown}
+              laborByEmployee={breakdownResult.laborByEmployee}
+              copy={copy}
+              projectId={projectId}
+              allocatedGeneral={allocatedGeneralProp}
+              breakdownTotalOverride={
+                includeGeneralInPrimary ? profitability.fullActualCost : null
+              }
+              costComposition={costComposition}
+            />
+          </CardContent>
+        </Card>
+      ) : null}
 
       <Card className="min-w-0 max-w-full" data-pf-forecast-block>
         <CardContent className="pt-6">

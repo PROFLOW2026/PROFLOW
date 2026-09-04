@@ -198,7 +198,11 @@ export async function ProjectFinancialsPanel({ projectId }: ProjectFinancialsPan
                 />
               ) : null}
               <MetricRow
-                label={t('originalContractValue')}
+                label={
+                  financials.commercial.displayOriginalContractValue
+                    ? t('managedOpeningContractValue')
+                    : t('originalContractValue')
+                }
                 value={financials.commercial.originalContractValue}
               />
               <MetricRow

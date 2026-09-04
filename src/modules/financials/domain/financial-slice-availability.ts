@@ -1,3 +1,4 @@
+import { isZeroMoney } from '@/shared/money';
 import type { FinancialCoverage, ProjectFinancials } from './types';
 
 /** How a cost/revenue slice was loaded for compose — never confuse with zero Actual. */
@@ -63,13 +64,23 @@ function laborMissingCostCount(coverage: FinancialCoverage): number {
 
 /**
  * Resolve which headline KPIs may show numeric values vs unavailable/partial.
- * Permission-denied slices and unresolved labor cost must not render as factual zeros.
+ * Permission-denied slices must not render as factual zeros.
+ *
+ * Residual hours missing a time-entry cost must not hide a recognized Actual
+ * that already exists from expenses / AP / monthly labor / materials.
+ * Only withhold Actual when there is no recognized amount at all and labor
+ * would otherwise be shown as ₪0.
  */
 export function resolveProjectFinancialKpiAvailability(
   financials: ProjectFinancials,
 ): ProjectFinancialKpiAvailability {
   const slices = financials.sliceAvailability;
   const missingLaborCost = laborMissingCostCount(financials.coverage) > 0;
+  const laborUnresolvedZero =
+    missingLaborCost && isZeroMoney(financials.cost.laborActual);
+  const noRecognizedActual = isZeroMoney(
+    financials.cost.directActualCostToDate ?? financials.cost.actualCostToDate,
+  );
 
   const expensesDenied = slices.expenses === 'permission_denied';
   const laborDenied = slices.labor === 'permission_denied';
@@ -80,20 +91,20 @@ export function resolveProjectFinancialKpiAvailability(
   const anyCostSliceDenied = expensesDenied || laborDenied || apDenied;
 
   let actualCost: ProjectKpiAvailability = 'value';
-  if (missingLaborCost) {
+  if (laborUnresolvedZero && noRecognizedActual) {
     actualCost = 'unavailable';
   } else if (anyCostSliceDenied) {
     actualCost = 'partial';
   }
 
   let forecastCost: ProjectKpiAvailability = 'value';
-  if (missingLaborCost) {
+  if (actualCost === 'unavailable') {
     forecastCost = 'unavailable';
   } else if (anyCostSliceDenied || procurementDenied) {
     forecastCost = 'partial';
   }
 
-  const profitBlocked = financials.priceNotSet || missingLaborCost;
+  const profitBlocked = financials.priceNotSet || actualCost === 'unavailable';
   const actualProfit: ProjectKpiAvailability = profitBlocked
     ? 'unavailable'
     : anyCostSliceDenied

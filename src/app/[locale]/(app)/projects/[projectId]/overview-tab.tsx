@@ -54,7 +54,13 @@ export async function OverviewTab({
         workPackages: detail.workPackages,
         milestones: detail.milestones,
         phases: detail.phases,
-        today: todayInTimeZone(organizationTimezone),
+        today: (() => {
+          try {
+            return todayInTimeZone(organizationTimezone);
+          } catch {
+            return todayInTimeZone('Asia/Jerusalem');
+          }
+        })(),
       });
 
   const dateRange =

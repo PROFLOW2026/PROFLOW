@@ -181,8 +181,6 @@
     "adjust": "Adjust",
     "transfer": "Transfer",
     "qtyOnlyBanner": "Inventory shows quantities for managing the work.",
-    "qtyOnlyBannerHe": "המלאי מציג כמויות לצורך ניהול העבודה.",
-    "qtyOnlyBannerEn": "Inventory shows quantities for managing the work.",
     "threeActionsHint": "Purchase receiving, inventory quantity, and material usage are three different actions. None of them posts project Actual.",
     "locationsTitle": "Locations",
     "locationsHint": "Quantity-only bins. Receive goes to a location, issue comes from one, transfer moves between two. Header on-hand is the sum.",

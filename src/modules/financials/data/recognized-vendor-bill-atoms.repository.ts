@@ -75,8 +75,6 @@ export async function loadRecognizedVendorBillAtomsForProject(
       vendorName: vendors.name,
       vendorType: vendors.type,
       subcontractAgreementId: apBills.subcontractAgreementId,
-      headerCostFamily: apBills.costFamily,
-      headerCostCategoryId: apBills.costCategoryId,
     })
     .from(apBills)
     .leftJoin(vendors, eq(vendors.id, apBills.vendorId))
@@ -227,26 +225,6 @@ export async function loadRecognizedVendorBillAtomsForProject(
     projectBillIds,
   );
 
-  const headerCategoryIds = billRows
-    .map((b) => b.headerCostCategoryId)
-    .filter((id): id is string => id != null);
-  const headerCats =
-    headerCategoryIds.length === 0
-      ? []
-      : await db
-          .select({
-            id: costCategories.id,
-            key: costCategories.key,
-            family: costCategories.family,
-          })
-          .from(costCategories)
-          .where(
-            and(
-              eq(costCategories.organizationId, organizationId),
-              inArray(costCategories.id, headerCategoryIds),
-            ),
-          );
-  const headerCatById = new Map(headerCats.map((c) => [c.id, c]));
   const atoms: RecognizedVendorBillAtom[] = [];
 
   function pushLineAtom(input: {
@@ -355,10 +333,8 @@ export async function loadRecognizedVendorBillAtomsForProject(
       continue;
     }
 
-    const headerCat = row.headerCostCategoryId
-      ? headerCatById.get(row.headerCostCategoryId)
-      : undefined;
-    const categoryKey = headerCat?.key ?? null;
+    // Line-level classification is financial authority. Header category/family
+    // must not classify a bill that has no usable lines.
     atoms.push({
       billId,
       lineId: null,
@@ -367,12 +343,9 @@ export async function loadRecognizedVendorBillAtomsForProject(
       vendorName: row.vendorName,
       vendorType: row.vendorType,
       subcontractAgreementId: row.subcontractAgreementId,
-      costFamily:
-        (row.headerCostFamily as DbCostFamily | null) ??
-        (headerCat?.family as DbCostFamily | null) ??
-        null,
-      categoryKey,
-      classificationStatus: categoryKey ? 'classified' : 'needs_classification',
+      costFamily: null,
+      categoryKey: null,
+      classificationStatus: 'needs_classification',
     });
   }
 

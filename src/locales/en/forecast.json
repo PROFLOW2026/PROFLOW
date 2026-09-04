@@ -1,6 +1,7 @@
 {
   "panelTitle": "Early warnings",
   "open": "Open",
+  "copyUnavailable": "This detail cannot be shown.",
   "recommendationNote": "Recommendation - not accounting truth.",
   "actualOverBudget": {
     "title": "Actual cost is over budget",

@@ -91,7 +91,6 @@ const IDENTICAL_MESSAGE_ALLOWLIST = new Set([
   'documents.fileSize.kilobytes',
   'documents.fileSize.megabytes',
   'onboarding.countries.IL_latin',
-  'settings.catalog.componentsPlaceholder',
   'projects.workspace.clientLinked',
   'api.scopes.projects.read',
   'api.scopes.clients.read',
@@ -105,8 +104,6 @@ const IDENTICAL_MESSAGE_ALLOWLIST = new Set([
   'api.events.api.key.revoked',
   'settings.activity.actions._fallback',
   'settings.activity.entities._fallback',
-  'assets.inventory.qtyOnlyBannerEn',
-  'assets.inventory.qtyOnlyBannerHe',
   'marketing.hero.brand',
   'marketing.footer.note',
   // Shared screenshot asset paths (language-neutral).

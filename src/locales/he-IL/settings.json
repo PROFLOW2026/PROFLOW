@@ -298,7 +298,7 @@
     "laborHint": "מועתקות לעובדים חדשים כשמגדירים שכר בסיס. תעריפים קיימים לא משתנים.",
     "burdenPercent": "אחוז עלויות מעסיק ברירת מחדל",
     "components": "רכיבי עלות ברירת מחדל",
-    "componentsPlaceholder": "pension=percent:6.5\ntravel=fixed:50",
+    "componentsPlaceholder": "פנסיה=percent:6.5\nנסיעות=fixed:50",
     "laborSaved": "ברירות המחדל נשמרו.",
     "standardHoursPerDay": "שעות יומיות לתקן (עלות חודשית)",
     "workingDaysPerMonth": "ימי עבודה בחודש לתקן",

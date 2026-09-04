@@ -10,6 +10,37 @@ import { Link } from '@/shared/i18n/navigation';
 import { pressableCardLinkClassName } from '@/components/ui/pressable';
 import { cn } from '@/shared/ui/cn';
 
+const FORECAST_COPY_FALLBACK = 'לא ניתן להציג את הפרט הזה.';
+
+function forecastCopyUnavailable(
+  tForecast: Awaited<ReturnType<typeof getTranslations>>,
+): string {
+  try {
+    const fallback = tForecast('copyUnavailable');
+    return typeof fallback === 'string' && fallback.trim() ? fallback : FORECAST_COPY_FALLBACK;
+  } catch {
+    return FORECAST_COPY_FALLBACK;
+  }
+}
+
+function forecastMessage(
+  tForecast: Awaited<ReturnType<typeof getTranslations>>,
+  key: string,
+): string {
+  try {
+    if (typeof tForecast.has === 'function' && !tForecast.has(key as never)) {
+      return forecastCopyUnavailable(tForecast);
+    }
+    const value = tForecast(key as never);
+    if (typeof value !== 'string' || !value.trim() || value === key) {
+      return forecastCopyUnavailable(tForecast);
+    }
+    return value;
+  } catch {
+    return forecastCopyUnavailable(tForecast);
+  }
+}
+
 function classShape(warningClass: EarlyWarningClass): StatusShape {
   if (warningClass === 'confirmed') return 'overdue';
   if (warningClass === 'projected') return 'pending';
@@ -65,17 +96,19 @@ export async function ProjectEarlyWarningsPanel({
                 <div className="flex flex-wrap items-center gap-2">
                   <StatusBadge
                     shape={classShape(warning.warningClass)}
-                    label={tForecast(`class.${warning.warningClass}`)}
+                    label={forecastMessage(tForecast, `class.${warning.warningClass}`)}
                   />
                   <StatusBadge
                     shape={severityShape(warning.severity)}
-                    label={tForecast(`severity.${warning.severity}`)}
+                    label={forecastMessage(tForecast, `severity.${warning.severity}`)}
                   />
                 </div>
-                <CardTitle>{tForecast(warning.titleKey)}</CardTitle>
+                <CardTitle>{forecastMessage(tForecast, warning.titleKey)}</CardTitle>
               </CardHeader>
               <CardContent className="flex min-w-0 flex-col gap-3 text-sm">
-                <p className="text-[var(--pf-text-secondary)]">{tForecast(warning.whyKey)}</p>
+                <p className="text-[var(--pf-text-secondary)]">
+                  {forecastMessage(tForecast, warning.whyKey)}
+                </p>
                 {warning.drivers.length > 0 ? (
                   <dl className="grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-2">
                     {warning.drivers.map((driver) => (
@@ -84,7 +117,7 @@ export async function ProjectEarlyWarningsPanel({
                         className="flex min-w-0 justify-between gap-2"
                       >
                         <dt className="min-w-0 text-[var(--pf-text-muted)]">
-                          {tForecast(driver.labelKey)}
+                          {forecastMessage(tForecast, driver.labelKey)}
                         </dt>
                         <dd className="min-w-0 max-w-[55%] overflow-x-auto text-end">
                           <DriverValue driver={driver} />
@@ -95,8 +128,8 @@ export async function ProjectEarlyWarningsPanel({
                 ) : null}
                 {warning.recommendationKey ? (
                   <p className="text-sm text-[var(--pf-text-secondary)]">
-                    <span className="font-medium">{tForecast('recommendationNote')}</span>{' '}
-                    {tForecast(warning.recommendationKey)}
+                    <span className="font-medium">{forecastMessage(tForecast, 'recommendationNote')}</span>{' '}
+                    {forecastMessage(tForecast, warning.recommendationKey)}
                   </p>
                 ) : null}
                 <Link

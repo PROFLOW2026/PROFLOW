@@ -455,6 +455,14 @@ export async function loadFinancialsLaborAggregateBundle(
             and te.status = 'recorded'
             and te.approval_status = 'approved'
             and te.archived_at is null
+            and not exists (
+              select 1 from employee_month_costs emc
+              where emc.organization_id = te.organization_id
+                and emc.employee_id = te.employee_id
+                and emc.year_month = to_char(te.work_date::date, 'YYYY-MM')
+                and emc.status in ('applied', 'closed')
+                and emc.recognition_source = 'monthly_allocated'
+            )
         ), 0) as "entryCount",
         coalesce((
           select count(*)::int from time_entries te
@@ -465,6 +473,16 @@ export async function loadFinancialsLaborAggregateBundle(
             and te.approval_status = 'approved'
             and te.archived_at is null
             and te.cost_amount is null
+            -- Residual hours only. Monthly-allocated months have no time-entry cost_amount
+            -- by design; counting them as missing cost hid a complete project Actual.
+            and not exists (
+              select 1 from employee_month_costs emc
+              where emc.organization_id = te.organization_id
+                and emc.employee_id = te.employee_id
+                and emc.year_month = to_char(te.work_date::date, 'YYYY-MM')
+                and emc.status in ('applied', 'closed')
+                and emc.recognition_source = 'monthly_allocated'
+            )
         ), 0) as "entriesMissingCost",
         coalesce((
           select count(*)::int from time_entries te
@@ -476,6 +494,14 @@ export async function loadFinancialsLaborAggregateBundle(
             and te.archived_at is null
             and te.cost_currency is not null
             and upper(te.cost_currency) <> upper(${currency})
+            and not exists (
+              select 1 from employee_month_costs emc
+              where emc.organization_id = te.organization_id
+                and emc.employee_id = te.employee_id
+                and emc.year_month = to_char(te.work_date::date, 'YYYY-MM')
+                and emc.status in ('applied', 'closed')
+                and emc.recognition_source = 'monthly_allocated'
+            )
         ), 0) as "excludedForeignCurrencyEntries",
         coalesce((
           select sum(larl.amount)::text

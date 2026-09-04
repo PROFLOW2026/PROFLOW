@@ -1,6 +1,7 @@
 {
   "panelTitle": "אזהרות מוקדמות",
   "open": "פתיחה",
+  "copyUnavailable": "לא ניתן להציג את הפרט הזה.",
   "recommendationNote": "המלצה - לא אמת חשבונאית.",
   "actualOverBudget": {
     "title": "העלות בפועל חרגה מהתקציב",

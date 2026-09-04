@@ -181,8 +181,6 @@
     "adjust": "התאמה",
     "transfer": "העברה",
     "qtyOnlyBanner": "המלאי מציג כמויות לצורך ניהול העבודה.",
-    "qtyOnlyBannerHe": "המלאי מציג כמויות לצורך ניהול העבודה.",
-    "qtyOnlyBannerEn": "Inventory shows quantities for managing the work.",
     "threeActionsHint": "קבלה, כמות במלאי ושימוש בחומרים הם פעולות נפרדות.",
     "locationsTitle": "מיקומים",
     "locationsHint": "מיקומי כמות בלבד. קבלה אל מיקום, ניפוק ממיקום, העברה בין שני מיקומים. הכמות בראש הפריט היא הסכום.",

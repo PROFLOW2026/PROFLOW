@@ -2,6 +2,7 @@
   "panelTitle": "Project financials",
   "originalContractValue": "Original contract value",
   "displayOriginalContractValue": "Per original contract",
+  "managedOpeningContractValue": "Managed from here",
   "openingReductionValue": "Opening reduction",
   "approvedChanges": "Approved changes",
   "approvedAdditions": "Approved additions",

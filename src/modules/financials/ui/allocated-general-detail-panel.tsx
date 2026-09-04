@@ -150,7 +150,12 @@ export function AllocatedGeneralDetailPanel({
                 ) : null}
                 {row.sharedProjectCount != null && row.sharedProjectCount > 1 ? (
                   <p className="text-[var(--pf-text-muted)]">
-                    {copy.sharedAcrossProjects.replace('{count}', String(row.sharedProjectCount))}
+                    {typeof copy.sharedAcrossProjects === 'string'
+                      ? copy.sharedAcrossProjects.replace(
+                          '{count}',
+                          String(row.sharedProjectCount),
+                        )
+                      : ''}
                   </p>
                 ) : null}
                 {row.expenseId ? (

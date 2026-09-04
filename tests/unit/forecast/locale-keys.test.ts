@@ -28,5 +28,7 @@ describe('forecast locale keys', () => {
     expect(heClass.projected).toBe('צפוי');
     expect(heClass.missing_data).toBe('חסרים נתונים');
     expect(en.recommendationNote).toBe('Recommendation - not accounting truth.');
+    expect(en.copyUnavailable).toBe('This detail cannot be shown.');
+    expect(he.copyUnavailable).toBe('לא ניתן להציג את הפרט הזה.');
   });
 });

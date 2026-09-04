@@ -27,6 +27,10 @@ import { ArchiveProjectButton } from '../../projects/[projectId]/archive-project
 import { DetailsTab } from '../../projects/[projectId]/details-tab';
 import { DocumentsTab } from '../../projects/[projectId]/documents-tab';
 import { OverviewTab } from '../../projects/[projectId]/overview-tab';
+import {
+  OverviewFinancialSnapshotFallback,
+  OverviewFinancialSnapshotPanel,
+} from '../../projects/[projectId]/overview-financial-snapshot-panel';
 import { ProjectHeaderMetrics } from '../../projects/[projectId]/project-header-metrics';
 import { ProjectTabsShell, type ProjectTabKey } from '../../projects/[projectId]/project-tabs-shell';
 import {
@@ -361,6 +365,14 @@ export default async function JobPage({ params, searchParams }: JobPageProps) {
                 canEdit={canEditProjects}
                 workspaceLinks={workspaceLinks}
                 organizationTimezone={shell?.organization.timezone ?? 'Asia/Jerusalem'}
+                workKind="job"
+                financialSnapshotSlot={
+                  canReadFinancials ? (
+                    <Suspense fallback={<OverviewFinancialSnapshotFallback />}>
+                      <OverviewFinancialSnapshotPanel projectId={jobId} />
+                    </Suspense>
+                  ) : null
+                }
               />
             </div>
           </div>

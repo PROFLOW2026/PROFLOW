@@ -73,7 +73,7 @@ function baseFinancials(overrides: Partial<ProjectFinancials> = {}): ProjectFina
 }
 
 describe('financial-slice-availability KPI resolution', () => {
-  it('blocks actual cost when labor cost missing (R-007)', () => {
+  it('keeps recognized Actual when residual hours lack time-entry cost (R-007)', () => {
     const financials = baseFinancials({
       coverage: {
         basis: 'direct_only',
@@ -81,10 +81,57 @@ describe('financial-slice-availability KPI resolution', () => {
         calculatedAt: new Date(),
         partials: [{ reason: 'workforce_entries_missing_cost', count: 3 }],
       },
+      profit: {
+        estimatedProfit: { amount: '95000', currency: 'ILS' },
+        actualProfit: { amount: '95000', currency: 'ILS' },
+        marginPercent: '95',
+        actualMarginPercent: '95',
+      },
+    });
+
+    const availability = resolveProjectFinancialKpiAvailability(financials);
+    expect(availability.actualCost).toBe('value');
+    expect(availability.forecastCost).toBe('value');
+    expect(availability.actualProfit).toBe('value');
+  });
+
+  it('withholds Actual only when labor is unresolved and no recognized cost exists', () => {
+    const currency = 'ILS';
+    const financials = baseFinancials({
+      cost: {
+        actualCostToDate: { amount: '0', currency },
+        estimatedFinalCost: { amount: '0', currency },
+        byFamily: {
+          directProject: { amount: '0', currency },
+          shared: { amount: '0', currency },
+          businessOverhead: { amount: '0', currency },
+          assetCapital: { amount: '0', currency },
+        },
+        laborActual: { amount: '0', currency },
+        vendorActual: { amount: '0', currency },
+        overheadActual: { amount: '0', currency },
+        committedOpen: { amount: '0', currency },
+        expectedRemainingCost: { amount: '0', currency },
+        openApPayable: { amount: '0', currency },
+        monthCloseCostNet: { amount: '0', currency },
+        directActualCostToDate: { amount: '0', currency },
+        allocatedGeneralBusinessCost: { amount: '0', currency },
+        fullActualCostToDate: { amount: '0', currency },
+        futureGeneralAllocatedForecast: { amount: '0', currency },
+        directForecastFinalCost: { amount: '0', currency },
+        fullForecastFinalCost: { amount: '0', currency },
+      },
+      coverage: {
+        basis: 'direct_only',
+        entries: [],
+        calculatedAt: new Date(),
+        partials: [{ reason: 'workforce_entries_missing_cost', count: 2 }],
+      },
     });
 
     const availability = resolveProjectFinancialKpiAvailability(financials);
     expect(availability.actualCost).toBe('unavailable');
+    expect(availability.forecastCost).toBe('unavailable');
     expect(availability.actualProfit).toBe('unavailable');
   });
 
