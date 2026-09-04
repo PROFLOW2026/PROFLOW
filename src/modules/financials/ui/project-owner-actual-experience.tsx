@@ -23,7 +23,6 @@ import type { ProjectActualBreakdownCategoryKey } from '../domain/project-actual
 
 async function loadOwnerStoryCopy(): Promise<OwnerStoryCopy> {
   const t = await getTranslations('financial.ownerStory');
-  const tExpenses = await getTranslations('expenses');
   const categories = {
     employees: t('categories.employees'),
     subcontractors: t('categories.subcontractors'),
@@ -116,12 +115,8 @@ async function loadOwnerStoryCopy(): Promise<OwnerStoryCopy> {
     overheadCategoryHint: t('overheadCategoryHint'),
     allocatedGeneralCompanyOnlyNote: t('allocatedGeneralCompanyOnlyNote'),
     fullCostFormulaTitle: t('fullCostFormulaTitle'),
-    atomDisplay: {
-      employees: t('categories.employees'),
-      monthClose: t('sourceMonthClose'),
-      unnamed: t('unnamedSource'),
-      translateCostCategory: (key) => tExpenses(key),
-    },
+    sourceMonthClose: t('sourceMonthClose'),
+    unnamedSource: t('unnamedSource'),
   };
 }
 

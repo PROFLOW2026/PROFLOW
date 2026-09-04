@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, type ReactNode } from 'react';
+import { useLocale } from 'next-intl';
 import { MoneyText } from '@/components/patterns/money-text';
 import {
   buildExpenseDetailHref,
@@ -20,6 +21,7 @@ import {
   displayActualAtomLabel,
   type ActualAtomDisplayCopy,
 } from '../domain/actual-atom-display';
+import { localizeCode } from '@/shared/i18n/code-display';
 import {
   AllocatedGeneralDetailPanel,
   type AllocatedGeneralDetailCopy,
@@ -80,7 +82,8 @@ export type OwnerStoryCopy = {
   readonly overheadCategoryHint?: string;
   readonly allocatedGeneralCompanyOnlyNote?: string;
   readonly fullCostFormulaTitle?: string;
-  readonly atomDisplay?: ActualAtomDisplayCopy;
+  readonly sourceMonthClose?: string;
+  readonly unnamedSource?: string;
 };
 
 export type OwnerStoryMetrics = {
@@ -420,15 +423,16 @@ export type SubcontractCommercialDrillRow = {
   readonly paid: MoneyValue | null;
 };
 
-function resolveAtomDisplay(copy: OwnerStoryCopy): ActualAtomDisplayCopy {
-  return (
-    copy.atomDisplay ?? {
-      employees: copy.categories.employees,
-      monthClose: 'סגירת חודש',
-      unnamed: copy.unavailable,
-      translateCostCategory: (key) => `costCategories.${key}`,
-    }
-  );
+function resolveAtomDisplay(copy: OwnerStoryCopy, locale: string): ActualAtomDisplayCopy {
+  return {
+    employees: copy.categories.employees,
+    monthClose: copy.sourceMonthClose ?? 'סגירת חודש',
+    unnamed: copy.unnamedSource ?? copy.unavailable,
+    translateCostCategory: (key) => {
+      const stripped = key.replace(/^costCategories\./, '');
+      return localizeCode(locale, stripped);
+    },
+  };
 }
 
 function sourceHref(
@@ -465,11 +469,12 @@ function AtomList({
   categoryKey: ProjectActualBreakdownCategoryKey;
   subcontractCommercial?: readonly SubcontractCommercialDrillRow[] | null;
 }) {
+  const locale = useLocale();
   if (atoms.length === 0 && !(subcontractCommercial && subcontractCommercial.length > 0)) {
     return <p className="text-xs text-[var(--pf-text-muted)]">{copy.unavailable}</p>;
   }
 
-  const atomDisplay = resolveAtomDisplay(copy);
+  const atomDisplay = resolveAtomDisplay(copy, locale);
 
   if (categoryKey === 'subcontractors') {
     const groups = new Map<
