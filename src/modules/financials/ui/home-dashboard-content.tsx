@@ -440,7 +440,7 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
               <KpiCard
                 title={tFinancial('kpis.billed')}
                 money={data.billing.invoiced}
-                hint={tFinancial('basis.billingCash')}
+                hint={tFinancial('kpis.billedHint')}
                 footer={(() => {
                   if (!data.billingCoverage) return null;
                   const notes = standalonePartialNotes(data.billingCoverage, tFinancial, [
@@ -457,7 +457,7 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
               <KpiCard
                 title={tFinancial('kpis.paid')}
                 money={data.billing.paid}
-                hint={tFinancial('basis.billingCash')}
+                hint={tFinancial('kpis.paidHint')}
               />
             </div>
           </section>
@@ -664,14 +664,14 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
                 <KpiCard
                   title={t('businessSummary.invoicedThisMonth')}
                   money={data.organizationSummary.invoicedThisMonth}
-                  hint={tFinancial('basis.billingCash')}
+                  hint={tFinancial('kpis.billedHint')}
                 />
               ) : null}
               {data.showBilling && cardSet.has('collections') ? (
                 <KpiCard
                   title={t('businessSummary.collectionsThisMonth')}
                   money={data.organizationSummary.collectionsThisMonth}
-                  hint={tFinancial('basis.billingCash')}
+                  hint={tFinancial('kpis.paidHint')}
                 />
               ) : null}
               <KpiCard
