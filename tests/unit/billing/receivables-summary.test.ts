@@ -204,42 +204,45 @@ describe('receivables summary', () => {
 
 
 
-  it('surfaces retention_release outstanding only when present', () => {
-
-    const withRetention = computeReceivablesSummary(
-
+  it('surfaces held retention separately from receivable-now', () => {
+    const summary = computeReceivablesSummary(
       [
-
         record({
-
-          id: 'ret',
-
-          kind: 'retention_release',
-
-          dueDate: null,
-
-          outstandingAmount: money('500', currency),
-
+          id: 'held',
+          dueDate: businessDate('2026-08-20'),
+          outstandingAmount: money('900', currency),
+          totalAmount: money('1000', currency),
+          retentionHeldRemaining: money('100', currency),
           collectionStatus: 'open',
-
         }),
-
       ],
-
       currency,
-
       asOf,
-
     );
 
+    expect(summary.totalOutstanding.amount).toBe('900.000000');
+    expect(summary.heldRetention?.amount).toBe('100.000000');
+  });
 
+  it('surfaces retention_release outstanding only when present', () => {
+    const withRetention = computeReceivablesSummary(
+      [
+        record({
+          id: 'ret',
+          kind: 'retention_release',
+          dueDate: null,
+          outstandingAmount: money('500', currency),
+          collectionStatus: 'open',
+        }),
+      ],
+      currency,
+      asOf,
+    );
 
     expect(withRetention.retentionReleaseOutstanding?.amount).toBe('500.000000');
-
     expect(withRetention.retentionReleaseOpenCount).toBe(1);
-
+    expect(withRetention.heldRetention).toBeNull();
     expect(withRetention.totalOutstanding.amount).toBe('500.000000');
-
   });
 
 
@@ -303,6 +306,10 @@ describe('receivables summary', () => {
     expect(summary.note).toMatch(/voided/i);
 
     expect(summary.note).toMatch(/VAT is not profit/i);
+
+    expect(summary.note).toMatch(/held retention/i);
+
+    expect(summary.heldRetention).toBeNull();
 
   });
 

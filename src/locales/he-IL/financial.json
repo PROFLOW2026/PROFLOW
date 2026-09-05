@@ -58,7 +58,7 @@
     "paid": "תשלומים שהתקבלו",
     "paidHint": "הסכום שכבר התקבל מהלקוח.",
     "outstanding": "יתרה פתוחה",
-    "outstandingHint": "הסכום שעדיין לא התקבל.",
+    "outstandingHint": "יתרה לגבייה עכשיו (אחרי עיכבון מוחזק).",
     "retentionHeld": "עיכבון מוחזק",
     "actualMargin": "רווח צפוי",
     "actualMarginHint": "הרווח המשוער לפי הנתונים הקיימים.",

@@ -1,5 +1,5 @@
 import { and, eq, inArray, isNull, sql } from 'drizzle-orm';
-import { billingRecords, payments } from '@drizzle/schema';
+import { billingRecords, paymentApplications, payments } from '@drizzle/schema';
 import { loadProjectFinancialsBatch } from '@/modules/financials/application/load-project-financials-batch';
 import type { BillingPosition } from '@/modules/financials/domain/types';
 import type { OrgContext } from '@/shared/auth/context';
@@ -143,13 +143,15 @@ export async function listJobsForOrg(
           .select({
             projectId: billingRecords.projectId,
             paid: sql<string>`coalesce(sum(
-              case when ${payments.status} = 'recorded' then ${payments.amount} else 0 end
+              case when ${payments.status} = 'recorded' then ${paymentApplications.appliedAmount} else 0 end
             ), 0)::text`,
           })
-          .from(payments)
-          .innerJoin(billingRecords, eq(payments.billingRecordId, billingRecords.id))
+          .from(paymentApplications)
+          .innerJoin(payments, eq(payments.id, paymentApplications.paymentId))
+          .innerJoin(billingRecords, eq(paymentApplications.billingRecordId, billingRecords.id))
           .where(
             and(
+              eq(paymentApplications.organizationId, context.organizationId),
               eq(payments.organizationId, context.organizationId),
               isNull(billingRecords.archivedAt),
               inArray(billingRecords.projectId, jobIds),

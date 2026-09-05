@@ -16,6 +16,8 @@ export interface ReceivablesSummary {
   readonly openCount: number;
   readonly partialPaidCount: number;
   readonly overdueCount: number;
+  /** Held retention still reducing receivable-now (cash timing, not a second invoice). */
+  readonly heldRetention: MoneyValue | null;
   /**
    * Outstanding on finalized `retention_release` billing only.
    * Null when the org has no such open amounts in base currency - do not invent holdback accounting.
@@ -26,9 +28,27 @@ export interface ReceivablesSummary {
   readonly note: string;
 }
 
+function sumHeldRetention(
+  records: readonly BillingRecordSummary[],
+  currency: string,
+): MoneyValue | null {
+  let total = zeroMoney(currency);
+  let any = false;
+  for (const record of records) {
+    if (record.totalAmount.currency !== currency) continue;
+    if (record.status !== 'finalized') continue;
+    if (record.kind === 'credit_note') continue;
+    const held = record.retentionHeldRemaining;
+    if (!held || !isPositiveMoney(held)) continue;
+    total = addMoney(total, held);
+    any = true;
+  }
+  return any ? total : null;
+}
+
 /**
  * Org-level AR snapshot from BillingRecord summaries.
- * Outstanding is signed Invoiced − Paid per record (credit notes reduce totals).
+ * Outstanding per record is receivable-now = signed invoiced − paid − held retention.
  * Draft/void are excluded via zero outstanding + null collectionStatus.
  */
 export function computeReceivablesSummary(
@@ -82,10 +102,11 @@ export function computeReceivablesSummary(
     openCount,
     partialPaidCount,
     overdueCount,
+    heldRetention: sumHeldRetention(records, currency),
     retentionReleaseOutstanding:
       retentionReleaseOpenCount > 0 ? retentionReleaseOutstanding : null,
     retentionReleaseOpenCount,
     excludedForeignCurrencyCount,
-    note: 'Outstanding is derived (Invoiced − Paid). Credit notes reduce Outstanding; voided records and voided payments are excluded. VAT is not profit or revenue.',
+    note: 'Outstanding (receivable now) = Invoiced − Paid − held retention. Credit notes reduce Outstanding; voided records and voided payments are excluded. VAT is not profit or revenue. Retention is cash timing, not a second invoice.',
   };
 }

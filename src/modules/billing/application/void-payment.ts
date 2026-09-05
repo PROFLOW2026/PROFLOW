@@ -5,7 +5,11 @@ import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { assertPaymentVoidable } from '../domain/lifecycle';
 import { findBillingRecordById } from '../data/billing.repository';
-import { findPaymentById, updatePaymentStatus } from '../data/payments.repository';
+import {
+  findPaymentById,
+  listBillingRecordIdsForPayment,
+  updatePaymentStatus,
+} from '../data/payments.repository';
 
 const PAYMENT_AUDIT_VOIDED = 'payment.voided';
 
@@ -15,6 +19,12 @@ export async function voidPayment(context: OrgContext, paymentId: string) {
   const payment = await findPaymentById(context.db, context.organizationId, paymentId);
   if (!payment) throw new NotFoundError('Payment');
   assertPaymentVoidable(payment.status);
+
+  const affectedBillingRecordIds = await listBillingRecordIdsForPayment(
+    context.db,
+    context.organizationId,
+    paymentId,
+  );
 
   const voidedAt = new Date();
   await updatePaymentStatus(context.db, context.organizationId, paymentId, 'void', voidedAt);
@@ -27,16 +37,19 @@ export async function voidPayment(context: OrgContext, paymentId: string) {
     after: { status: 'void', voidedAt: voidedAt.toISOString() },
   });
 
-  if (!payment.billingRecordId) {
-    return null;
+  const billingRecords = [];
+  for (const billingRecordId of affectedBillingRecordIds) {
+    const billingRecord = await findBillingRecordById(
+      context.db,
+      context.organizationId,
+      billingRecordId,
+      context.organization.timezone,
+    );
+    if (billingRecord) billingRecords.push(billingRecord);
   }
 
-  const billingRecord = await findBillingRecordById(
-    context.db,
-    context.organizationId,
-    payment.billingRecordId,
-    context.organization.timezone,
-  );
-  if (!billingRecord) throw new NotFoundError('Billing record');
-  return billingRecord;
+  return {
+    billingRecords,
+    primaryBillingRecord: billingRecords[0] ?? null,
+  };
 }

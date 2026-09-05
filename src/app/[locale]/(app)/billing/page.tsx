@@ -10,14 +10,17 @@ import { MoneyText } from '@/components/patterns/money-text';
 import {
   listBillingRecords,
   listPaymentApplications,
+  listUnallocatedPayments,
   computeReceivablesAging,
   computeReceivablesSummary,
   matchesListFilter,
+  sumUnallocatedReceiptAmounts,
 } from '@/modules/billing';
 import { BillingListTable } from '@/modules/billing/ui/billing-list-table';
 import { PaymentHistoryTable } from '@/modules/billing/ui/payment-history-panel';
 import { ReceivablesAgingPanel } from '@/modules/billing/ui/receivables-aging-panel';
 import { ReceivablesSummaryPanel } from '@/modules/billing/ui/receivables-summary-panel';
+import { UnallocatedReceiptsPanel } from '@/modules/billing/ui/unallocated-receipts-panel';
 import { withOrgContext } from '@/shared/auth/session';
 import { businessDate, todayInTimeZone } from '@/shared/dates';
 import { hasPermission } from '@/shared/permissions/assert';
@@ -26,8 +29,9 @@ import { Link } from '@/shared/i18n/navigation';
 import type { BillingListFilter } from '@/modules/billing';
 import { CommercialDocsHub } from '@/modules/quotes/ui/commercial-docs-hub';
 import { ReportsEntryLink } from '@/modules/financials/ui/reports-entry-link';
-import { isZeroMoney, type MoneyValue } from '@/shared/money';
+import { isZeroMoney, money, type MoneyValue } from '@/shared/money';
 import { sumCollectionsInDateRange } from '@/modules/financials';
+import type { UnallocatedPaymentRow } from '@/modules/billing/domain/types';
 
 export async function generateMetadata({
   params,
@@ -81,7 +85,20 @@ export default async function BillingListPage({
   }
 
   // One org billing load feeds the list filter + AR summary + aging (was 3× listBillingRecords).
-  const { canRead, records, canManage, summary, aging, payments, canReadReports, contractOptions, collectionsInPeriod, today } =
+  const {
+    canRead,
+    records,
+    canManage,
+    summary,
+    aging,
+    payments,
+    unallocatedRows,
+    canReadReports,
+    contractOptions,
+    collectionsInPeriod,
+    unallocatedReceipts,
+    today,
+  } =
     await withOrgContext(
     async (context) => {
       const allowed = hasPermission(context, PERMISSIONS.BILLING_READ);
@@ -93,9 +110,11 @@ export default async function BillingListPage({
           summary: null,
           aging: null,
           payments: [],
+          unallocatedRows: [] as UnallocatedPaymentRow[],
           canReadReports: false,
           contractOptions: [] as { id: string; name: string | null }[],
           collectionsInPeriod: null as null | MoneyValue,
+          unallocatedReceipts: null as null | MoneyValue,
           orgCurrency: context.organization.baseCurrency ?? 'ILS',
           today: todayInTimeZone(context.organization.timezone),
         };
@@ -104,19 +123,22 @@ export default async function BillingListPage({
       const asOf = todayInTimeZone(context.organization.timezone);
       const currency = context.organization.baseCurrency;
 
-      const [allRecords, paymentRows, collectionsAmt] = await Promise.all([
-        listBillingRecords(context, { filter: 'all', limit: 5_000 }),
-        listPaymentApplications(context, { limit: 25, includeVoided: true }),
-        paymentFrom && paymentTo
-          ? sumCollectionsInDateRange(
-              context.db,
-              context.organizationId,
-              currency,
-              businessDate(paymentFrom),
-              businessDate(paymentTo),
-            )
-          : Promise.resolve(null),
-      ]);
+      const [allRecords, paymentRows, collectionsAmt, unallocatedRaw, unallocatedRows] =
+        await Promise.all([
+          listBillingRecords(context, { filter: 'all', limit: 5_000 }),
+          listPaymentApplications(context, { limit: 25, includeVoided: true }),
+          paymentFrom && paymentTo
+            ? sumCollectionsInDateRange(
+                context.db,
+                context.organizationId,
+                currency,
+                businessDate(paymentFrom),
+                businessDate(paymentTo),
+              )
+            : Promise.resolve(null),
+          sumUnallocatedReceiptAmounts(context.db, context.organizationId, currency),
+          listUnallocatedPayments(context, { limit: 25 }),
+        ]);
       const receivablesSummary = computeReceivablesSummary(allRecords, currency, asOf);
       const receivablesAging = computeReceivablesAging(
         allRecords.filter((record) => !isZeroMoney(record.outstandingAmount)),
@@ -154,9 +176,11 @@ export default async function BillingListPage({
         summary: receivablesSummary,
         aging: receivablesAging,
         payments: paymentRows,
+        unallocatedRows,
         canReadReports: hasPermission(context, PERMISSIONS.PROJECT_FINANCIALS_READ),
         contractOptions,
         collectionsInPeriod: collectionsAmt,
+        unallocatedReceipts: money(unallocatedRaw, currency),
         orgCurrency: currency,
         today: asOf,
       };
@@ -273,8 +297,16 @@ export default async function BillingListPage({
         </div>
       ) : null}
 
-      {showSummary && summary ? <ReceivablesSummaryPanel summary={summary} /> : null}
+      {showSummary && summary ? (
+        <ReceivablesSummaryPanel summary={summary} unallocatedReceipts={unallocatedReceipts} />
+      ) : null}
       {showAging && aging ? <ReceivablesAgingPanel aging={aging} /> : null}
+
+      <UnallocatedReceiptsPanel
+        rows={unallocatedRows}
+        locale={locale}
+        canManage={canManage}
+      />
 
       {contractOptions.length > 1 ? (
         <nav className="flex min-w-0 flex-wrap gap-2" aria-label={t('list.contract')}>

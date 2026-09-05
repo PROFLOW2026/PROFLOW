@@ -76,7 +76,7 @@ export function assertCustomerPaymentCurrencyMatch(
 /**
  * Validates a customer payment header + applications.
  * Partial allocation and unapplied remainder are allowed.
- * Applications may be empty (cash on account).
+ * Applications may be empty (cash on account / standalone receipt).
  */
 export function assertCustomerPaymentApplicationsValid(input: {
   readonly currency: string;
@@ -147,6 +147,46 @@ export function assertCustomerPaymentApplicationsValid(input: {
       'billing.errors.applicationsExceedPayment',
     );
   }
+}
+
+/**
+ * Validates *additional* applications against an existing payment's remaining
+ * unallocated cash (payment header − already applied).
+ */
+export function assertAdditionalCustomerPaymentApplicationsValid(input: {
+  readonly currency: string;
+  readonly paymentAmount: string;
+  readonly alreadyAppliedAmounts: readonly string[];
+  readonly clientId: string;
+  readonly applications: readonly CustomerPaymentApplicationDraft[];
+}): void {
+  if (input.applications.length === 0) {
+    throw new DomainRuleError(
+      'At least one allocation is required',
+      'billing.errors.paymentOverApplied',
+    );
+  }
+
+  const currency = input.currency.toUpperCase();
+  const remaining = computeCustomerPaymentUnapplied({
+    currency,
+    paymentAmount: input.paymentAmount,
+    applicationAmounts: input.alreadyAppliedAmounts,
+  });
+
+  if (!isPositiveMoney(remaining)) {
+    throw new DomainRuleError(
+      'Payment has no unallocated remainder',
+      'billing.errors.applicationsExceedPayment',
+    );
+  }
+
+  assertCustomerPaymentApplicationsValid({
+    currency,
+    paymentAmount: remaining.amount,
+    clientId: input.clientId,
+    applications: input.applications,
+  });
 }
 
 /** Payment remaining after proposed applications - may be unapplied cash. */

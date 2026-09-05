@@ -12,7 +12,9 @@ export { listBillingRecords } from './application/list-billing-records';
 export { getBillingRecord } from './application/get-billing-record';
 export { recordPayment } from './application/record-payment';
 export { recordCustomerPayment } from './application/record-customer-payment';
+export { allocateCustomerPayment } from './application/allocate-customer-payment';
 export { voidPayment } from './application/void-payment';
+export { listUnallocatedPayments } from './application/list-unallocated-payments';
 export { getProjectBillingPosition } from './application/get-project-billing-position';
 export { loadProjectBillingTabPayload } from './application/load-project-billing-tab';
 export {
@@ -47,6 +49,7 @@ export {
 export { recordStatusShape } from './domain/lifecycle';
 export {
   assertCustomerPaymentApplicationsValid,
+  assertAdditionalCustomerPaymentApplicationsValid,
   computeCustomerPaymentUnapplied,
   computeInvoiceRemainingOutstanding,
 } from './domain/payment-applications';
@@ -62,6 +65,7 @@ export type {
   PaymentSummary,
   PaymentApplicationRow,
   PaymentApplicationFilters,
+  UnallocatedPaymentRow,
   UnbilledChangeOrder,
   ProjectOption,
   BillingContractOption,
@@ -72,6 +76,7 @@ export {
   updateBillingRecordSchema,
   createPaymentSchema,
   recordCustomerPaymentSchema,
+  allocateCustomerPaymentSchema,
   listBillingRecordsSchema,
   listPaymentApplicationsSchema,
   createAdjustmentSchema,
@@ -83,6 +88,7 @@ export type {
   UpdateBillingRecordInput,
   CreatePaymentInput,
   RecordCustomerPaymentInput,
+  AllocateCustomerPaymentInput,
   ListBillingRecordsInput,
   ListPaymentApplicationsInput,
   CreateAdjustmentInput,
@@ -90,4 +96,7 @@ export type {
 
 /** Cross-module billing amount rows for safe portal outstanding (not payment write). */
 export { listProjectBillingAmountRows } from './data/billing.repository';
-export { listPaidAmountRowsByBillingRecordIds } from './data/payments.repository';
+export {
+  listPaidAmountRowsByBillingRecordIds,
+  sumUnallocatedReceiptAmounts,
+} from './data/payments.repository';

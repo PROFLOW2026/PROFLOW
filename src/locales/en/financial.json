@@ -58,7 +58,7 @@
     "paid": "Payments received",
     "paidHint": "The amount already received from the client.",
     "outstanding": "Outstanding balance",
-    "outstandingHint": "The amount not yet received.",
+    "outstandingHint": "Receivable now (after held retention).",
     "retentionHeld": "Held retainage",
     "actualMargin": "Expected profit",
     "actualMarginHint": "Estimated profit based on the data entered so far.",

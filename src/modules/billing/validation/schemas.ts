@@ -78,15 +78,32 @@ export const recordCustomerPaymentSchema = z.object({
   method: z.string().trim().max(80).optional().nullable(),
   reference: z.string().trim().max(120).optional().nullable(),
   notes: z.string().trim().max(4000).optional().nullable(),
-  applications: z.array(
-    z.object({
-      billingRecordId: z.string().uuid(),
-      amount: moneyAmountSchema,
-    }),
-  ),
+  /** Empty = standalone cash on account (unallocated receipt). */
+  applications: z
+    .array(
+      z.object({
+        billingRecordId: z.string().uuid(),
+        amount: moneyAmountSchema,
+      }),
+    )
+    .default([]),
 });
 
 export type RecordCustomerPaymentInput = z.infer<typeof recordCustomerPaymentSchema>;
+
+export const allocateCustomerPaymentSchema = z.object({
+  paymentId: z.string().uuid('Payment is required'),
+  applications: z
+    .array(
+      z.object({
+        billingRecordId: z.string().uuid(),
+        amount: moneyAmountSchema,
+      }),
+    )
+    .min(1, 'At least one allocation is required'),
+});
+
+export type AllocateCustomerPaymentInput = z.infer<typeof allocateCustomerPaymentSchema>;
 
 export const paymentIdSchema = z.object({
   paymentId: z.string().uuid(),

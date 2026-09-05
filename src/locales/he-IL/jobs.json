@@ -34,7 +34,7 @@
       "noClient": "-"
     },
     "billingStatus": {
-      "none": "אין חשבונית",
+      "none": "אין חיוב",
       "unpaid": "לא שולם",
       "partial": "חלקי",
       "paid": "שולם"

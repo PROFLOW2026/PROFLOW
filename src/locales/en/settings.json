@@ -593,6 +593,7 @@
       },
       "payment": {
         "recorded": "Payment recorded",
+        "allocated": "Payment allocated to billing records",
         "voided": "Payment voided"
       },
       "employee": {

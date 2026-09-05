@@ -42,6 +42,25 @@ export interface PaymentRecordRow {
   readonly amount: string;
   readonly currency: string;
   readonly status: PaymentRecordStatus;
+  readonly paymentDate: string;
+  readonly method: string | null;
+  readonly reference: string | null;
+  readonly notes: string | null;
+}
+
+export interface UnallocatedPaymentRow {
+  readonly id: string;
+  readonly clientId: string;
+  readonly clientName: string | null;
+  readonly amount: string;
+  readonly appliedAmount: string;
+  readonly unallocatedAmount: string;
+  readonly currency: string;
+  readonly paymentDate: string;
+  readonly method: string | null;
+  readonly reference: string | null;
+  readonly status: PaymentRecordStatus;
+  readonly notes: string | null;
 }
 
 export interface BillingRecordPaymentRow {
@@ -132,12 +151,94 @@ export async function findPaymentById(
       amount: payments.amount,
       currency: payments.currency,
       status: payments.status,
+      paymentDate: payments.paymentDate,
+      method: payments.method,
+      reference: payments.reference,
+      notes: payments.notes,
     })
     .from(payments)
     .where(and(eq(payments.organizationId, organizationId), eq(payments.id, paymentId)))
     .limit(1);
 
   return row ?? null;
+}
+
+/** Invoice ids touched by applications (or legacy billing_record_id). */
+export async function listBillingRecordIdsForPayment(
+  db: DbExecutor,
+  organizationId: string,
+  paymentId: string,
+): Promise<readonly string[]> {
+  const applicationRows = await db
+    .select({ billingRecordId: paymentApplications.billingRecordId })
+    .from(paymentApplications)
+    .where(
+      and(
+        eq(paymentApplications.organizationId, organizationId),
+        eq(paymentApplications.paymentId, paymentId),
+      ),
+    );
+
+  if (applicationRows.length > 0) {
+    return [...new Set(applicationRows.map((row) => row.billingRecordId))];
+  }
+
+  const payment = await findPaymentById(db, organizationId, paymentId);
+  return payment?.billingRecordId ? [payment.billingRecordId] : [];
+}
+
+/**
+ * Cash received that is not yet allocated to any invoice (customer credit / on-account).
+ * Payment header − Σ applications for recorded payments in the given currency.
+ */
+export async function sumUnallocatedReceiptAmounts(
+  db: DbExecutor,
+  organizationId: string,
+  currency: string,
+): Promise<string> {
+  const paymentRows = await db
+    .select({
+      id: payments.id,
+      amount: payments.amount,
+    })
+    .from(payments)
+    .where(
+      and(
+        eq(payments.organizationId, organizationId),
+        eq(payments.currency, currency),
+        eq(payments.status, 'recorded'),
+      ),
+    );
+
+  if (paymentRows.length === 0) return '0';
+
+  const paymentIds = paymentRows.map((row) => row.id);
+  const applicationRows = await db
+    .select({
+      paymentId: paymentApplications.paymentId,
+      appliedAmount: paymentApplications.appliedAmount,
+    })
+    .from(paymentApplications)
+    .where(
+      and(
+        eq(paymentApplications.organizationId, organizationId),
+        inArray(paymentApplications.paymentId, paymentIds),
+      ),
+    );
+
+  const appliedByPayment = new Map<string, number>();
+  for (const row of applicationRows) {
+    const prior = appliedByPayment.get(row.paymentId) ?? 0;
+    appliedByPayment.set(row.paymentId, prior + Number(row.appliedAmount));
+  }
+
+  let total = 0;
+  for (const row of paymentRows) {
+    const remainder = Number(row.amount) - (appliedByPayment.get(row.id) ?? 0);
+    if (remainder > 0) total += remainder;
+  }
+
+  return total.toFixed(2);
 }
 
 export async function findClientInOrganization(
@@ -266,6 +367,111 @@ export async function listActiveAppliedAmountsForBillingRecord(
 ): Promise<readonly string[]> {
   const rows = await listPaidAmountRowsByBillingRecordIds(db, organizationId, [billingRecordId]);
   return rows.filter((row) => row.status === 'recorded').map((row) => row.amount);
+}
+
+/** Applied amounts on a payment header (recorded applications only). */
+export async function listActiveAppliedAmountsForPayment(
+  db: DbExecutor,
+  organizationId: string,
+  paymentId: string,
+): Promise<readonly string[]> {
+  const rows = await db
+    .select({
+      appliedAmount: paymentApplications.appliedAmount,
+      status: payments.status,
+    })
+    .from(paymentApplications)
+    .innerJoin(payments, eq(payments.id, paymentApplications.paymentId))
+    .where(
+      and(
+        eq(paymentApplications.organizationId, organizationId),
+        eq(payments.organizationId, organizationId),
+        eq(paymentApplications.paymentId, paymentId),
+        eq(payments.status, 'recorded'),
+      ),
+    );
+  return rows.map((row) => row.appliedAmount);
+}
+
+/**
+ * Recorded payments with a positive unallocated remainder (cash on account).
+ */
+export async function listUnallocatedPayments(
+  db: DbExecutor,
+  organizationId: string,
+  options: { readonly limit?: number; readonly clientId?: string } = {},
+): Promise<UnallocatedPaymentRow[]> {
+  const limit = options.limit ?? 50;
+  const paymentRows = await db
+    .select({
+      id: payments.id,
+      clientId: payments.clientId,
+      clientName: clients.name,
+      amount: payments.amount,
+      currency: payments.currency,
+      paymentDate: payments.paymentDate,
+      method: payments.method,
+      reference: payments.reference,
+      status: payments.status,
+      notes: payments.notes,
+    })
+    .from(payments)
+    .leftJoin(clients, eq(clients.id, payments.clientId))
+    .where(
+      and(
+        eq(payments.organizationId, organizationId),
+        eq(payments.status, 'recorded'),
+        options.clientId ? eq(payments.clientId, options.clientId) : undefined,
+      ),
+    )
+    .orderBy(desc(payments.paymentDate), desc(payments.createdAt))
+    .limit(Math.min(limit * 4, 400));
+
+  if (paymentRows.length === 0) return [];
+
+  const paymentIds = paymentRows.map((row) => row.id);
+  const applicationRows = await db
+    .select({
+      paymentId: paymentApplications.paymentId,
+      appliedAmount: paymentApplications.appliedAmount,
+    })
+    .from(paymentApplications)
+    .where(
+      and(
+        eq(paymentApplications.organizationId, organizationId),
+        inArray(paymentApplications.paymentId, paymentIds),
+      ),
+    );
+
+  const appliedByPayment = new Map<string, number>();
+  for (const row of applicationRows) {
+    const prior = appliedByPayment.get(row.paymentId) ?? 0;
+    appliedByPayment.set(row.paymentId, prior + Number(row.appliedAmount));
+  }
+
+  const result: UnallocatedPaymentRow[] = [];
+  for (const row of paymentRows) {
+    if (!row.clientId) continue;
+    const applied = appliedByPayment.get(row.id) ?? 0;
+    const unallocated = Number(row.amount) - applied;
+    if (unallocated <= 0) continue;
+    result.push({
+      id: row.id,
+      clientId: row.clientId,
+      clientName: row.clientName ?? null,
+      amount: row.amount,
+      appliedAmount: applied.toFixed(6),
+      unallocatedAmount: unallocated.toFixed(6),
+      currency: row.currency,
+      paymentDate: row.paymentDate,
+      method: row.method,
+      reference: row.reference,
+      status: row.status,
+      notes: row.notes,
+    });
+    if (result.length >= limit) break;
+  }
+  return result;
 }
 
 export async function listPaymentRowsForBillingRecord(

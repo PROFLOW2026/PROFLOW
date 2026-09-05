@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { DomainRuleError } from '@/shared/errors';
 import { money } from '@/shared/money';
 import {
+  assertAdditionalCustomerPaymentApplicationsValid,
   assertCustomerPaymentApplicationsValid,
   computeCustomerPaymentUnapplied,
   computeInvoiceRemainingOutstanding,
@@ -167,28 +168,63 @@ describe('AR customer payment applications', () => {
     ).toThrow(DomainRuleError);
   });
 
-  it('requires the payment client to match each invoice client', () => {
-    try {
+  it('allows standalone cash on account with zero applications', () => {
+    expect(() =>
       assertCustomerPaymentApplicationsValid({
         currency: ILS,
-        paymentAmount: '1000',
+        paymentAmount: '50000',
+        clientId: CLIENT,
+        applications: [],
+      }),
+    ).not.toThrow();
+
+    expect(
+      computeCustomerPaymentUnapplied({
+        currency: ILS,
+        paymentAmount: '50000',
+        applicationAmounts: [],
+      }).amount,
+    ).toBe(money('50000', ILS).amount);
+  });
+
+  it('allows later allocation against remaining unallocated cash', () => {
+    expect(() =>
+      assertAdditionalCustomerPaymentApplicationsValid({
+        currency: ILS,
+        paymentAmount: '50000',
+        alreadyAppliedAmounts: [],
         clientId: CLIENT,
         applications: [
           {
             billingRecordId: INVOICE_A,
-            amount: '1000',
+            amount: '30000',
             kind: 'invoice',
             status: 'finalized',
-            totalAmount: '1000',
+            totalAmount: '40000',
             priorAppliedAmounts: [],
-            invoiceClientId: '22222222-2222-4222-8222-222222222222',
+            invoiceClientId: CLIENT,
+            invoiceCurrency: ILS,
+          },
+          {
+            billingRecordId: INVOICE_B,
+            amount: '15000',
+            kind: 'invoice',
+            status: 'finalized',
+            totalAmount: '20000',
+            priorAppliedAmounts: [],
+            invoiceClientId: CLIENT,
             invoiceCurrency: ILS,
           },
         ],
-      });
-      throw new Error('expected client mismatch');
-    } catch (error) {
-      expect((error as DomainRuleError).messageKey).toBe('billing.errors.paymentClientMismatch');
-    }
+      }),
+    ).not.toThrow();
+
+    expect(
+      computeCustomerPaymentUnapplied({
+        currency: ILS,
+        paymentAmount: '50000',
+        applicationAmounts: ['30000', '15000'],
+      }).amount,
+    ).toBe(money('5000', ILS).amount);
   });
 });

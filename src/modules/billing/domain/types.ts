@@ -51,6 +51,21 @@ export interface PaymentApplicationRow {
   readonly notes: string | null;
 }
 
+/** Cash on account — recorded payment with unallocated remainder. */
+export interface UnallocatedPaymentRow {
+  readonly id: string;
+  readonly clientId: string;
+  readonly clientName: string | null;
+  readonly amount: MoneyValue;
+  readonly appliedAmount: MoneyValue;
+  readonly unallocatedAmount: MoneyValue;
+  readonly paymentDate: BusinessDate;
+  readonly method: string | null;
+  readonly reference: string | null;
+  readonly status: PaymentRecordStatus;
+  readonly notes: string | null;
+}
+
 export interface PaymentApplicationFilters {
   readonly projectId?: string;
   readonly clientId?: string;

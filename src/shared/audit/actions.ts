@@ -100,6 +100,7 @@ export const AUDIT_ACTIONS = {
   BILLING_RECORD_VOIDED: 'billing_record.voided',
   BILLING_RECORD_ADJUSTMENT_CREATED: 'billing_record.adjustment_created',
   PAYMENT_RECORDED: 'payment.recorded',
+  PAYMENT_ALLOCATED: 'payment.allocated',
   PAYMENT_VOIDED: 'payment.voided',
 
   BILLING_PLAN_CREATED: 'billing_plan.created',

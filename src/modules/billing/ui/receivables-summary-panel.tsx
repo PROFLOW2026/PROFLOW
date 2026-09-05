@@ -1,11 +1,14 @@
 import { MoneyText } from '@/components/patterns/money-text';
 import { getTranslations } from 'next-intl/server';
 import type { ReceivablesSummary } from '@/modules/billing/domain/receivables-summary';
+import { isPositiveMoney, type MoneyValue } from '@/shared/money';
 
 export async function ReceivablesSummaryPanel({
   summary,
+  unallocatedReceipts,
 }: {
   summary: ReceivablesSummary;
+  unallocatedReceipts?: MoneyValue | null;
 }) {
   const t = await getTranslations('billing.receivables');
 
@@ -40,6 +43,26 @@ export async function ReceivablesSummaryPanel({
           <p className="mt-1 text-base font-semibold">{summary.partialPaidCount}</p>
         </div>
       </div>
+      {summary.heldRetention ? (
+        <div className="min-w-0 rounded-md border border-dashed border-[var(--pf-border-default)] p-3 text-start">
+          <p className="text-xs text-[var(--pf-text-secondary)]">{t('heldRetention')}</p>
+          <p className="mt-1 break-words text-sm font-semibold">
+            <MoneyText value={summary.heldRetention} />
+          </p>
+          <p className="mt-1 text-xs text-[var(--pf-text-secondary)]">{t('heldRetentionHint')}</p>
+        </div>
+      ) : null}
+      {unallocatedReceipts && isPositiveMoney(unallocatedReceipts) ? (
+        <div className="min-w-0 rounded-md border border-dashed border-[var(--pf-border-default)] p-3 text-start">
+          <p className="text-xs text-[var(--pf-text-secondary)]">{t('unallocatedReceipts')}</p>
+          <p className="mt-1 break-words text-sm font-semibold">
+            <MoneyText value={unallocatedReceipts} />
+          </p>
+          <p className="mt-1 text-xs text-[var(--pf-text-secondary)]">
+            {t('unallocatedReceiptsHint')}
+          </p>
+        </div>
+      ) : null}
       {summary.retentionReleaseOutstanding ? (
         <div className="min-w-0 rounded-md border border-dashed border-[var(--pf-border-default)] p-3 text-start">
           <p className="text-xs text-[var(--pf-text-secondary)]">{t('retentionRelease')}</p>

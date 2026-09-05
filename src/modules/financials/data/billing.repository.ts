@@ -1,5 +1,5 @@
 import { and, eq, gte, inArray, isNull, lte, sql } from 'drizzle-orm';
-import { billingRecords, payments } from '@drizzle/schema';
+import { billingRecords, paymentApplications, payments } from '@drizzle/schema';
 import {
   aggregateBillingPositionInCurrency,
   isOverdueOn,
@@ -229,6 +229,10 @@ export async function sumInvoicedInDateRange(
  * Sum of actually recorded payment collections in a date range.
  * Uses paymentDate (when cash was received), not issueDate.
  * "Void" payments are excluded.
+ *
+ * Authority is the payment header cash amount — including split/customer
+ * payments where `billing_record_id` is null. Do not join invoices here;
+ * that dropped multi-invoice receipts from org "collected" KPIs.
  */
 export async function sumCollectionsInDateRange(
   db: DbExecutor,
@@ -240,7 +244,6 @@ export async function sumCollectionsInDateRange(
   const rows = await db
     .select({ amount: payments.amount, currency: payments.currency })
     .from(payments)
-    .innerJoin(billingRecords, eq(billingRecords.id, payments.billingRecordId))
     .where(
       and(
         eq(payments.organizationId, organizationId),
@@ -248,7 +251,6 @@ export async function sumCollectionsInDateRange(
         sql`${payments.status} = 'recorded'`,
         gte(payments.paymentDate, fromDate),
         lte(payments.paymentDate, toDate),
-        isNull(billingRecords.archivedAt),
       ),
     );
 
@@ -299,17 +301,40 @@ export interface CashFlowPaymentRow {
 
 /**
  * Recorded/void payments for cash Actual (Paid collected by paymentDate).
- * Optionally scoped to one project via billing_records.project_id.
+ *
+ * Org scope: payment header cash (includes unallocated remainder and split
+ * receipts with null billing_record_id).
+ * Project scope: applied amounts attributed via payment_applications → invoice
+ * project (plus legacy 1:1 payments without application rows).
  */
 export async function loadCashFlowPayments(
   db: DbExecutor,
   organizationId: string,
   options: { readonly projectId?: string } = {},
 ): Promise<CashFlowPaymentRow[]> {
-  const conditions = [eq(payments.organizationId, organizationId)];
-
   if (options.projectId) {
-    const rows = await db
+    const applicationRows = await db
+      .select({
+        amount: paymentApplications.appliedAmount,
+        currency: paymentApplications.currency,
+        paymentDate: payments.paymentDate,
+        status: payments.status,
+        projectId: billingRecords.projectId,
+      })
+      .from(paymentApplications)
+      .innerJoin(payments, eq(payments.id, paymentApplications.paymentId))
+      .innerJoin(billingRecords, eq(billingRecords.id, paymentApplications.billingRecordId))
+      .where(
+        and(
+          eq(paymentApplications.organizationId, organizationId),
+          eq(payments.organizationId, organizationId),
+          eq(billingRecords.organizationId, organizationId),
+          eq(billingRecords.projectId, options.projectId),
+          isNull(billingRecords.archivedAt),
+        ),
+      );
+
+    const legacyRows = await db
       .select({
         amount: payments.amount,
         currency: payments.currency,
@@ -321,14 +346,18 @@ export async function loadCashFlowPayments(
       .innerJoin(billingRecords, eq(billingRecords.id, payments.billingRecordId))
       .where(
         and(
-          ...conditions,
+          eq(payments.organizationId, organizationId),
           eq(billingRecords.organizationId, organizationId),
           eq(billingRecords.projectId, options.projectId),
           isNull(billingRecords.archivedAt),
+          sql`not exists (
+            select 1 from payment_applications pa
+            where pa.payment_id = ${payments.id}
+          )`,
         ),
       );
 
-    return mapCashFlowPaymentRows(rows);
+    return mapCashFlowPaymentRows([...applicationRows, ...legacyRows]);
   }
 
   const rows = await db
@@ -337,19 +366,16 @@ export async function loadCashFlowPayments(
       currency: payments.currency,
       paymentDate: payments.paymentDate,
       status: payments.status,
-      projectId: billingRecords.projectId,
     })
     .from(payments)
-    .innerJoin(billingRecords, eq(billingRecords.id, payments.billingRecordId))
-    .where(
-      and(
-        ...conditions,
-        eq(billingRecords.organizationId, organizationId),
-        isNull(billingRecords.archivedAt),
-      ),
-    );
+    .where(eq(payments.organizationId, organizationId));
 
-  return mapCashFlowPaymentRows(rows);
+  return mapCashFlowPaymentRows(
+    rows.map((row) => ({
+      ...row,
+      projectId: null,
+    })),
+  );
 }
 
 function mapCashFlowPaymentRows(

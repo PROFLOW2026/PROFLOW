@@ -171,19 +171,46 @@ export async function loadFinancialsBillingBundle(
         ), '[]'::jsonb),
         'payments', coalesce((
           select jsonb_agg(jsonb_build_object(
-            'billingRecordId', pay.billing_record_id,
-            'amount', pay.amount,
-            'currency', pay.currency,
-            'status', pay.status
+            'billingRecordId', pay_rows.billing_record_id,
+            'amount', pay_rows.amount,
+            'currency', pay_rows.currency,
+            'status', pay_rows.status
           ))
-          from payments pay
-          where pay.organization_id = ${organizationId}::uuid
-            and pay.billing_record_id in (
-              select br.id from billing_records br
-              where br.organization_id = ${organizationId}::uuid
-                and br.project_id = ${projectId}::uuid
-                and br.archived_at is null
-            )
+          from (
+            select
+              pa.billing_record_id,
+              pa.applied_amount as amount,
+              pa.currency,
+              pay.status
+            from payment_applications pa
+            inner join payments pay on pay.id = pa.payment_id
+            where pa.organization_id = ${organizationId}::uuid
+              and pay.organization_id = ${organizationId}::uuid
+              and pa.billing_record_id in (
+                select br.id from billing_records br
+                where br.organization_id = ${organizationId}::uuid
+                  and br.project_id = ${projectId}::uuid
+                  and br.archived_at is null
+              )
+            union all
+            select
+              pay.billing_record_id,
+              pay.amount,
+              pay.currency,
+              pay.status
+            from payments pay
+            where pay.organization_id = ${organizationId}::uuid
+              and pay.billing_record_id in (
+                select br.id from billing_records br
+                where br.organization_id = ${organizationId}::uuid
+                  and br.project_id = ${projectId}::uuid
+                  and br.archived_at is null
+              )
+              and not exists (
+                select 1 from payment_applications pa
+                where pa.payment_id = pay.id
+              )
+          ) pay_rows
         ), '[]'::jsonb)
       ) as payload
     `),

@@ -505,6 +505,7 @@
       },
       "payment": {
         "recorded": "רישום תשלום",
+        "allocated": "הקצאת תקבול לחיובים",
         "voided": "ביטול תשלום"
       },
       "employee": {
