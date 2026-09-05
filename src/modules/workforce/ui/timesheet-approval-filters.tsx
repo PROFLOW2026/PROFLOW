@@ -1,14 +1,15 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
+import { DateRangeSelector } from '@/components/patterns/date-range-selector';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
-import { Input } from '@/components/ui/input';
 import { Link } from '@/shared/i18n/navigation';
 
 export function TimesheetApprovalFilters({
   employees,
   initial,
+  today,
 }: {
   readonly employees: readonly { id: string; name: string }[];
   readonly initial: {
@@ -17,6 +18,7 @@ export function TimesheetApprovalFilters({
     toDate?: string;
     status?: string;
   };
+  readonly today?: string;
 }) {
   const t = useTranslations('workforce');
   const tCommon = useTranslations('common');
@@ -43,17 +45,20 @@ export function TimesheetApprovalFilters({
         )}
       </Field>
 
-      <Field label={t('time.filters.from')} className="sm:w-40">
-        {(control) => (
-          <Input {...control} name="fromDate" type="date" defaultValue={initial.fromDate ?? ''} />
-        )}
-      </Field>
-
-      <Field label={t('time.filters.to')} className="sm:w-40">
-        {(control) => (
-          <Input {...control} name="toDate" type="date" defaultValue={initial.toDate ?? ''} />
-        )}
-      </Field>
+      <div className="w-full">
+        <p className="mb-1 text-xs text-[var(--pf-text-muted)]">{t('time.filters.workDateHint')}</p>
+        <DateRangeSelector
+          today={today}
+          defaultFrom={initial.fromDate ?? ''}
+          defaultTo={initial.toDate ?? ''}
+          fromName="fromDate"
+          toName="toDate"
+          labels={{
+            from: t('time.filters.from'),
+            to: t('time.filters.to'),
+          }}
+        />
+      </div>
 
       <Field label={t('time.approvals.filters.approvalStatus')} className="sm:w-48">
         {(control) => (

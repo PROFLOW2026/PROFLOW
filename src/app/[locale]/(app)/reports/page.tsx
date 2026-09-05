@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import { getTranslations } from 'next-intl/server';
 import { PageHeader } from '@/components/ui/page-header';
+import { DateRangeSelector } from '@/components/patterns/date-range-selector';
 import { parseReportsSection, parseWorkKindFilter } from '@/modules/financials';
 import { ReportsSectionFocus } from '@/modules/financials/ui/reports-section-focus';
 import { WorkKindFilterChrome } from '@/modules/financials/ui/work-kind-filter-chrome';
@@ -25,7 +26,7 @@ export async function generateMetadata({
 export default async function ReportsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ workKind?: string; section?: string }>;
+  searchParams: Promise<{ workKind?: string; section?: string; from?: string; to?: string }>;
 }) {
   const [t, params] = await Promise.all([
     getTranslations('dashboard.reports'),
@@ -34,6 +35,8 @@ export default async function ReportsPage({
   const workKindFilter = parseWorkKindFilter(params.workKind);
   const section = parseReportsSection(params.section);
   const loadAnalytics = section != null;
+  const fromDate = params.from || undefined;
+  const toDate = params.to || undefined;
 
   const packs = await withOrgContext((context) => loadReportPackCatalog(context));
 
@@ -58,11 +61,20 @@ export default async function ReportsPage({
 
       <WorkKindFilterChrome active={workKindFilter} pathname="/reports" section={section} />
 
+      {/* Period filter for analytics section */}
+      {loadAnalytics ? (
+        <form method="get" className="flex flex-wrap items-center gap-2">
+          {params.workKind && <input type="hidden" name="workKind" value={params.workKind} />}
+          {params.section && <input type="hidden" name="section" value={params.section} />}
+          <DateRangeSelector fromName="from" toName="to" defaultFrom={fromDate} defaultTo={toDate} />
+        </form>
+      ) : null}
+
       {section ? <ReportsSectionFocus section={section} /> : null}
 
       {loadAnalytics ? (
         <Suspense fallback={<p className="text-sm text-[var(--pf-text-secondary)]">{t('loadingAnalytics')}</p>}>
-          <ReportsAnalyticsLoader workKindFilter={workKindFilter} section={section} />
+          <ReportsAnalyticsLoader workKindFilter={workKindFilter} section={section} fromDate={fromDate} toDate={toDate} />
         </Suspense>
       ) : (
         <ReportsAdvancedAnalysisGate workKindFilter={workKindFilter} />

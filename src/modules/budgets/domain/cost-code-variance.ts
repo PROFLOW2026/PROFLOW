@@ -43,22 +43,31 @@ export interface CostCodeVarianceResult {
 function sumSlicesByCostCode(
   slices: readonly CostCodeAmountSlice[],
   currency: string,
-): Map<string, MoneyValue> {
+): { readonly byCode: Map<string, MoneyValue>; readonly excludedActual: MoneyValue } {
   const normalized = currency.toUpperCase();
   const buckets = new Map<string, MoneyValue[]>();
+  const excluded: MoneyValue[] = [];
   for (const slice of slices) {
-    if (slice.currency.toUpperCase() !== normalized) continue;
+    if (slice.currency.toUpperCase() !== normalized) {
+      const asProjectCurrency = fromNumericString(slice.amount, normalized);
+      if (asProjectCurrency) excluded.push(asProjectCurrency);
+      continue;
+    }
     const amount = fromNumericString(slice.amount, slice.currency);
     if (!amount) continue;
     const list = buckets.get(slice.costCodeId) ?? [];
     list.push(amount);
     buckets.set(slice.costCodeId, list);
   }
-  const out = new Map<string, MoneyValue>();
+  const byCode = new Map<string, MoneyValue>();
   for (const [costCodeId, values] of buckets) {
-    out.set(costCodeId, values.length === 0 ? zeroMoney(normalized) : roundMoney(sumMoney(values, normalized)));
+    byCode.set(costCodeId, values.length === 0 ? zeroMoney(normalized) : roundMoney(sumMoney(values, normalized)));
   }
-  return out;
+  return {
+    byCode,
+    excludedActual:
+      excluded.length === 0 ? zeroMoney(normalized) : roundMoney(sumMoney(excluded, normalized)),
+  };
 }
 
 /**
@@ -75,9 +84,12 @@ export function composeCostCodeVariance(input: {
   readonly unattributedActualAmount?: string | null;
 }): CostCodeVarianceResult {
   const currency = input.currency.toUpperCase();
-  const budgetByCode = sumSlicesByCostCode(input.budgetSlices, currency);
-  const committedByCode = sumSlicesByCostCode(input.committedSlices, currency);
-  const actualByCode = sumSlicesByCostCode(input.actualSlices, currency);
+  const { byCode: budgetByCode } = sumSlicesByCostCode(input.budgetSlices, currency);
+  const { byCode: committedByCode } = sumSlicesByCostCode(input.committedSlices, currency);
+  const { byCode: actualByCode, excludedActual } = sumSlicesByCostCode(
+    input.actualSlices,
+    currency,
+  );
 
   const costCodeIds = new Set<string>([
     ...budgetByCode.keys(),
@@ -105,8 +117,9 @@ export function composeCostCodeVariance(input: {
     })
     .sort((a, b) => a.costCodeName.localeCompare(b.costCodeName));
 
-  const unattributed =
+  const unattributedBase =
     fromNumericString(input.unattributedActualAmount ?? '0', currency) ?? zero;
+  const unattributed = addMoney(unattributedBase, excludedActual);
 
   return {
     currency,

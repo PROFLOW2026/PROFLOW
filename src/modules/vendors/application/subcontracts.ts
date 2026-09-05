@@ -43,6 +43,11 @@ import {
   updateSubcontractAgreementById,
 } from '../data/subcontracts.repository';
 import { computeSubcontractCashPosition } from '../domain/subcontract-cash';
+import {
+  computeAdvanceOutstandingBalance,
+  foldAdvanceCashIntoPaid,
+} from '../domain/subcontract-advances';
+import { listSubcontractAdvances } from '../data/subcontract-advances.repository';
 import { assessSubcontractDocuments } from '../domain/subcontract-documents';
 import {
   assertCanRelinkParties,
@@ -101,7 +106,7 @@ async function loadDetail(
   );
   if (!agreement) throw new NotFoundError('Subcontract');
 
-  const [vendor, project, events, cashRows, docs] = await Promise.all([
+  const [vendor, project, events, cashRows, docs, advances] = await Promise.all([
     findVendorById(context.db, context.organizationId, agreement.vendorId),
     findProjectById(context.db, context.organizationId, agreement.projectId),
     listSubcontractValueEvents(context.db, context.organizationId, agreement.id),
@@ -111,6 +116,7 @@ async function loadDetail(
       agreement.id,
     ),
     listSubcontractLinkedDocuments(context.db, context.organizationId, agreement.id),
+    listSubcontractAdvances(context.db, context.organizationId, agreement.id),
   ]);
 
   const parent = agreement.parentContractId
@@ -123,6 +129,12 @@ async function loadDetail(
     originalValueFallback: agreement.originalAmount,
   });
   const today = todayInTimeZone(context.organization.timezone);
+  const cash = computeSubcontractCashPosition(cashRows, agreement.currency);
+  const advancePosition = computeAdvanceOutstandingBalance(advances, agreement.currency);
+  const paidWithAdvances = foldAdvanceCashIntoPaid(
+    money(cash.paid, agreement.currency),
+    money(advancePosition.paid, agreement.currency),
+  );
 
   return {
     ...agreement,
@@ -133,7 +145,13 @@ async function loadDetail(
     originalAmountDerived: position.originalAmount.amount,
     approvedChangesAmount: position.approvedChanges.amount,
     currentAmount: position.currentAmount.amount,
-    cash: computeSubcontractCashPosition(cashRows, agreement.currency),
+    cash: { ...cash, paid: paidWithAdvances.amount },
+    advances,
+    advancePosition: {
+      paid: advancePosition.paid,
+      applied: advancePosition.applied,
+      outstanding: advancePosition.outstanding,
+    },
     documents: docs,
     documentFlags: assessSubcontractDocuments(docs, today),
   };
@@ -591,6 +609,8 @@ export async function listOrgSubcontracts(
     projectId: input.projectId,
     status: input.status,
     limit: input.limit,
+    fromDate: input.fromDate ?? null,
+    toDate: input.toDate ?? null,
   });
   return rows.filter((row) => isAccessibleProjectId(allowed, row.projectId));
 }

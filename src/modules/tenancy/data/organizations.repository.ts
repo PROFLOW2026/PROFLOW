@@ -10,8 +10,29 @@ import {
 } from '@drizzle/schema';
 import type { DbExecutor } from '@/shared/db/types';
 import type { OrganizationSummary } from '@/shared/auth/context';
+import { normalizeWorkWeekStartDay } from '@/shared/dates';
 import { DEFAULT_COST_CATEGORIES } from '../domain/organization-defaults';
 import type { OrganizationDraft } from '../domain/types';
+
+function mapOrganizationSummary(row: {
+  id: string;
+  name: string;
+  baseCurrency: string;
+  timezone: string;
+  countryCode: string;
+  defaultLocale: string;
+  workWeekStartDay: number;
+}): OrganizationSummary {
+  return {
+    id: row.id,
+    name: row.name,
+    baseCurrency: row.baseCurrency,
+    timezone: row.timezone,
+    countryCode: row.countryCode,
+    defaultLocale: row.defaultLocale,
+    workWeekStartDay: normalizeWorkWeekStartDay(row.workWeekStartDay),
+  };
+}
 
 export interface MembershipRow {
   id: string;
@@ -104,12 +125,13 @@ export async function findOrganizationById(
       timezone: organizations.timezone,
       countryCode: organizations.countryCode,
       defaultLocale: organizations.defaultLocale,
+      workWeekStartDay: organizations.workWeekStartDay,
     })
     .from(organizations)
     .where(and(eq(organizations.id, organizationId), isNull(organizations.archivedAt)))
     .limit(1);
 
-  return row ?? null;
+  return row ? mapOrganizationSummary(row) : null;
 }
 
 /** Organizations the user can actually act in - used by the org switcher. */
@@ -117,7 +139,7 @@ export async function listMembershipsForUser(
   db: DbExecutor,
   userId: string,
 ): Promise<(OrganizationSummary & { membershipId: string })[]> {
-  return db
+  const rows = await db
     .select({
       membershipId: organizationMemberships.id,
       id: organizations.id,
@@ -126,6 +148,7 @@ export async function listMembershipsForUser(
       timezone: organizations.timezone,
       countryCode: organizations.countryCode,
       defaultLocale: organizations.defaultLocale,
+      workWeekStartDay: organizations.workWeekStartDay,
     })
     .from(organizationMemberships)
     .innerJoin(organizations, eq(organizations.id, organizationMemberships.organizationId))
@@ -137,6 +160,11 @@ export async function listMembershipsForUser(
       ),
     )
     .orderBy(organizations.name);
+
+  return rows.map((row) => ({
+    membershipId: row.membershipId,
+    ...mapOrganizationSummary(row),
+  }));
 }
 
 export async function seedDefaultCostCategories(db: DbExecutor, organizationId: string): Promise<void> {

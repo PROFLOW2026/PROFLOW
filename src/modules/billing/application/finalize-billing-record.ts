@@ -3,6 +3,11 @@ import { NotFoundError } from '@/shared/errors';
 import type { OrgContext } from '@/shared/auth/context';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
+import {
+  assertMonthOpenForRewrite,
+  rethrowClosedPeriodRewrite,
+  yearMonthFromBusinessDate,
+} from '@/modules/month-close';
 import { assertFinalizable } from '../domain/lifecycle';
 import { captureTaxSnapshot } from '../domain/tax';
 import { money } from '@/shared/money';
@@ -40,30 +45,40 @@ export async function finalizeBillingRecordCore(
     existing.totalAmount,
   );
 
-  await updateBillingRecordRow(context.db, context.organizationId, billingRecordId, {
-    status: 'finalized',
-    finalizedAt,
-    taxSnapshot,
-    retentionHeldRemaining: heldRemainingOnPost(
-      existing.retentionAmount ?? money('0', existing.totalAmount.currency),
-    ),
-  });
+  let finalized;
+  try {
+    await assertMonthOpenForRewrite(
+      context,
+      yearMonthFromBusinessDate(existing.issueDate),
+    );
 
-  await recordAuditEvent(context, {
-    action: BILLING_AUDIT_FINALIZED,
-    entityType: 'billing_record',
-    entityId: billingRecordId,
-    before: { status: 'draft' },
-    after: { status: 'finalized', finalizedAt },
-  });
+    await updateBillingRecordRow(context.db, context.organizationId, billingRecordId, {
+      status: 'finalized',
+      finalizedAt,
+      taxSnapshot,
+      retentionHeldRemaining: heldRemainingOnPost(
+        existing.retentionAmount ?? money('0', existing.totalAmount.currency),
+      ),
+    });
 
-  const finalized = await findBillingRecordById(
-    context.db,
-    context.organizationId,
-    billingRecordId,
-    context.organization.timezone,
-  );
-  if (!finalized) throw new NotFoundError('Billing record');
+    await recordAuditEvent(context, {
+      action: BILLING_AUDIT_FINALIZED,
+      entityType: 'billing_record',
+      entityId: billingRecordId,
+      before: { status: 'draft' },
+      after: { status: 'finalized', finalizedAt },
+    });
+
+    finalized = await findBillingRecordById(
+      context.db,
+      context.organizationId,
+      billingRecordId,
+      context.organization.timezone,
+    );
+    if (!finalized) throw new NotFoundError('Billing record');
+  } catch (error) {
+    rethrowClosedPeriodRewrite(error);
+  }
 
   const { captureBrandSnapshot } = await import('@/modules/branding');
   await captureBrandSnapshot(context, {

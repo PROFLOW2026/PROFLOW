@@ -19,6 +19,7 @@ import { ProjectFinancialsKpiPanel } from './project-financials-kpi-panel';
 import { ExpectedRemainingCostForm } from './expected-remaining-cost-form';
 import { BillingPlanStatusStrip } from '@/modules/billing-plan/ui/billing-plan-status-strip';
 import { ProjectVendorActualPanel } from './project-vendor-actual-panel';
+import { ProjectApPaymentStatusPanel } from './project-ap-payment-status-panel';
 
 export interface ProjectFinancialsPanelProps {
   readonly projectId: string;
@@ -181,6 +182,9 @@ export async function ProjectFinancialsPanel({ projectId }: ProjectFinancialsPan
         </summary>
         <div className="mt-4 flex flex-col gap-4 text-sm">
           <ProjectVendorActualPanel projectId={projectId} />
+          {canReadAp ? (
+            <ProjectApPaymentStatusPanel projectId={projectId} />
+          ) : null}
           {canReadCommercial && financials.commercial ? (
             <section className="flex flex-col gap-3">
               {financials.commercial.displayOriginalContractValue ? (

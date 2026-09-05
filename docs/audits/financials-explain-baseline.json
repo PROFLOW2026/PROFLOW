@@ -1,0 +1,299 @@
+{
+  "orgId": "8ef9e353-ca0c-4cad-b0c7-c2de612eb1ec",
+  "projectId": "ee7cb842-bbd1-4188-b95e-9f98446c92aa",
+  "currency": "ILS",
+  "currentYm": "2026-08",
+  "fromDate": "2026-08-01",
+  "monthEnd": "2026-08-31",
+  "apStart": "2026-08-01",
+  "apEnd": "2028-02-29",
+  "yearMonthCount": 19,
+  "yearMonths": [
+    "2026-08",
+    "2026-09",
+    "2026-10",
+    "2026-11",
+    "2026-12",
+    "2027-01",
+    "2027-02",
+    "2027-03",
+    "2027-04",
+    "2027-05",
+    "2027-06",
+    "2027-07",
+    "2027-08",
+    "2027-09",
+    "2027-10",
+    "2027-11",
+    "2027-12",
+    "2028-01",
+    "2028-02"
+  ],
+  "indexes": [
+    {
+      "schemaname": "public",
+      "tablename": "ap_bill_project_allocations",
+      "indexname": "ap_bill_project_allocations_bill_idx",
+      "indexdef": "CREATE INDEX ap_bill_project_allocations_bill_idx ON public.ap_bill_project_allocations USING btree (ap_bill_id)"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "ap_bill_project_allocations",
+      "indexname": "ap_bill_project_allocations_bill_project_active_uq",
+      "indexdef": "CREATE UNIQUE INDEX ap_bill_project_allocations_bill_project_active_uq ON public.ap_bill_project_allocations USING btree (ap_bill_id, project_id) WHERE ((target_type = 'project'::text) AND (project_id IS NOT NULL) AND (status = ANY (ARRAY['draft'::text, 'applied'::text])))"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "ap_bill_project_allocations",
+      "indexname": "ap_bill_project_allocations_id_organization_id_uq",
+      "indexdef": "CREATE UNIQUE INDEX ap_bill_project_allocations_id_organization_id_uq ON public.ap_bill_project_allocations USING btree (id, organization_id)"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "ap_bill_project_allocations",
+      "indexname": "ap_bill_project_allocations_pkey",
+      "indexdef": "CREATE UNIQUE INDEX ap_bill_project_allocations_pkey ON public.ap_bill_project_allocations USING btree (id)"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "ap_bill_project_allocations",
+      "indexname": "ap_bill_project_allocations_project_idx",
+      "indexdef": "CREATE INDEX ap_bill_project_allocations_project_idx ON public.ap_bill_project_allocations USING btree (project_id)"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "ap_bills",
+      "indexname": "ap_bills_id_organization_id_uq",
+      "indexdef": "CREATE UNIQUE INDEX ap_bills_id_organization_id_uq ON public.ap_bills USING btree (id, organization_id)"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "ap_bills",
+      "indexname": "ap_bills_org_idx",
+      "indexdef": "CREATE INDEX ap_bills_org_idx ON public.ap_bills USING btree (organization_id)"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "ap_bills",
+      "indexname": "ap_bills_pkey",
+      "indexdef": "CREATE UNIQUE INDEX ap_bills_pkey ON public.ap_bills USING btree (id)"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "ap_bills",
+      "indexname": "ap_bills_po_idx",
+      "indexdef": "CREATE INDEX ap_bills_po_idx ON public.ap_bills USING btree (purchase_order_id)"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "ap_bills",
+      "indexname": "ap_bills_subcontract_idx",
+      "indexdef": "CREATE INDEX ap_bills_subcontract_idx ON public.ap_bills USING btree (organization_id, subcontract_agreement_id)"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "ap_bills",
+      "indexname": "ap_bills_vendor_idx",
+      "indexdef": "CREATE INDEX ap_bills_vendor_idx ON public.ap_bills USING btree (vendor_id)"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "labor_cost_components",
+      "indexname": "labor_cost_components_pkey",
+      "indexdef": "CREATE UNIQUE INDEX labor_cost_components_pkey ON public.labor_cost_components USING btree (id)"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "labor_cost_components",
+      "indexname": "labor_cost_components_rate_version_idx",
+      "indexdef": "CREATE INDEX labor_cost_components_rate_version_idx ON public.labor_cost_components USING btree (rate_version_id)"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "rate_versions",
+      "indexname": "rate_versions_employee_idx",
+      "indexdef": "CREATE INDEX rate_versions_employee_idx ON public.rate_versions USING btree (employee_id)"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "rate_versions",
+      "indexname": "rate_versions_id_organization_id_uq",
+      "indexdef": "CREATE UNIQUE INDEX rate_versions_id_organization_id_uq ON public.rate_versions USING btree (id, organization_id)"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "rate_versions",
+      "indexname": "rate_versions_org_idx",
+      "indexdef": "CREATE INDEX rate_versions_org_idx ON public.rate_versions USING btree (organization_id)"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "rate_versions",
+      "indexname": "rate_versions_pkey",
+      "indexdef": "CREATE UNIQUE INDEX rate_versions_pkey ON public.rate_versions USING btree (id)"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "time_entries",
+      "indexname": "time_entries_bulk_batch_idx",
+      "indexdef": "CREATE INDEX time_entries_bulk_batch_idx ON public.time_entries USING btree (bulk_batch_id) WHERE (bulk_batch_id IS NOT NULL)"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "time_entries",
+      "indexname": "time_entries_employee_date_idx",
+      "indexdef": "CREATE INDEX time_entries_employee_date_idx ON public.time_entries USING btree (employee_id, work_date)"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "time_entries",
+      "indexname": "time_entries_id_organization_id_uq",
+      "indexdef": "CREATE UNIQUE INDEX time_entries_id_organization_id_uq ON public.time_entries USING btree (id, organization_id)"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "time_entries",
+      "indexname": "time_entries_org_approval_idx",
+      "indexdef": "CREATE INDEX time_entries_org_approval_idx ON public.time_entries USING btree (organization_id, approval_status)"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "time_entries",
+      "indexname": "time_entries_org_client_request_uq",
+      "indexdef": "CREATE UNIQUE INDEX time_entries_org_client_request_uq ON public.time_entries USING btree (organization_id, client_request_id) WHERE (client_request_id IS NOT NULL)"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "time_entries",
+      "indexname": "time_entries_org_date_idx",
+      "indexdef": "CREATE INDEX time_entries_org_date_idx ON public.time_entries USING btree (organization_id, work_date)"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "time_entries",
+      "indexname": "time_entries_org_status_idx",
+      "indexdef": "CREATE INDEX time_entries_org_status_idx ON public.time_entries USING btree (organization_id, status)"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "time_entries",
+      "indexname": "time_entries_pkey",
+      "indexdef": "CREATE UNIQUE INDEX time_entries_pkey ON public.time_entries USING btree (id)"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "time_entries",
+      "indexname": "time_entries_project_idx",
+      "indexdef": "CREATE INDEX time_entries_project_idx ON public.time_entries USING btree (project_id)"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "time_entries",
+      "indexname": "time_entries_timesheet_idx",
+      "indexdef": "CREATE INDEX time_entries_timesheet_idx ON public.time_entries USING btree (timesheet_id)"
+    }
+  ],
+  "laborExplainRls": [
+    "Incremental Sort  (cost=47.75..47.80 rows=2 width=40) (actual time=4.524..4.531 rows=20 loops=1)",
+    "  Output: e.id, rv.id, te.work_date, rv.valid_from",
+    "  Sort Key: e.id, rv.valid_from, te.work_date",
+    "  Presorted Key: e.id",
+    "  Full-sort Groups: 1  Sort Method: quicksort  Average Memory: 26kB  Peak Memory: 26kB",
+    "  Buffers: shared hit=387",
+    "  ->  Nested Loop Left Join  (cost=24.31..47.74 rows=1 width=40) (actual time=3.570..4.463 rows=20 loops=1)",
+    "        Output: e.id, rv.id, te.work_date, rv.valid_from",
+    "        Buffers: shared hit=381",
+    "        ->  Nested Loop Left Join  (cost=16.61..24.99 rows=1 width=36) (actual time=3.313..3.454 rows=1 loops=1)",
+    "              Output: e.id, rv.id, rv.valid_from",
+    "              Buffers: shared hit=277",
+    "              ->  Nested Loop  (cost=15.35..20.57 rows=1 width=36) (actual time=3.304..3.443 rows=1 loops=1)",
+    "                    Output: e.id, rv.id, rv.valid_from",
+    "                    Join Filter: (e.id = rv.employee_id)",
+    "                    Rows Removed by Join Filter: 2",
+    "                    Buffers: shared hit=275",
+    "                    ->  Nested Loop  (cost=15.20..17.69 rows=1 width=32) (actual time=2.844..2.852 rows=1 loops=1)",
+    "                          Output: te_1.employee_id, e.id",
+    "                          Inner Unique: true",
+    "                          Join Filter: (te_1.employee_id = e.id)",
+    "                          Buffers: shared hit=252",
+    "                          ->  Unique  (cost=15.06..15.07 rows=1 width=16) (actual time=2.687..2.694 rows=1 loops=1)",
+    "                                Output: te_1.employee_id",
+    "                                Buffers: shared hit=248",
+    "                                ->  Sort  (cost=15.06..15.06 rows=1 width=16) (actual time=2.686..2.690 rows=20 loops=1)",
+    "                                      Output: te_1.employee_id",
+    "                                      Sort Key: te_1.employee_id",
+    "                                      Sort Method: quicksort  Memory: 25kB",
+    "                                      Buffers: shared hit=248",
+    "                                      ->  Nested Loop  (cost=4.43..15.05 rows=1 width=16) (actual time=1.675..2.672 rows=20 loops=1)",
+    "                                            Output: te_1.employee_id",
+    "                                            Buffers: shared hit=248",
+    "                                            ->  Index Scan using rate_versions_org_idx on public.rate_versions rv_1  (cost=0.15..2.87 rows=1 width=32) (actual time=0.556..0.671 rows=3 loops=1)",
+    "                                                  Output: rv_1.employee_id, rv_1.organization_id",
+    "                                                  Index Cond: (rv_1.organization_id = '8ef9e353-ca0c-4cad-b0c7-c2de612eb1ec'::uuid)",
+    "                                                  Filter: (app.is_org_member(rv_1.organization_id) AND app.has_org_permission(rv_1.organization_id, 'workforce.cost.read'::text) AND (rv_1.rate_unit = 'monthly'::rate_unit))",
+    "                                                  Buffers: shared hit=23",
+    "                                            ->  Bitmap Heap Scan on public.time_entries te_1  (cost=4.28..12.17 rows=1 width=32) (actual time=0.384..0.663 rows=7 loops=3)",
+    "                                                  Output: te_1.employee_id, te_1.organization_id",
+    "                                                  Recheck Cond: ((rv_1.employee_id = te_1.employee_id) AND (te_1.work_date >= '2026-08-01'::date) AND (te_1.work_date <= '2026-08-31'::date) AND (te_1.project_id = 'ee7cb842-bbd1-4188-b95e-9f98446c92aa'::uuid))",
+    "                                                  Filter: ((te_1.archived_at IS NULL) AND (te_1.organization_id = '8ef9e353-ca0c-4cad-b0c7-c2de612eb1ec'::uuid) AND (te_1.status = 'recorded'::text) AND (te_1.approval_status = 'approved'::text) AND app.is_org_member(te_1.organization_id) AND ((te_1.project_id IS NULL) OR app.can_access_project(te_1.organization_id, te_1.project_id)) AND (te_1.kind = 'project'::time_entry_kind))",
+    "                                                  Heap Blocks: exact=1",
+    "                                                  Buffers: shared hit=225",
+    "                                                  ->  BitmapAnd  (cost=4.28..4.28 rows=5 width=0) (actual time=0.020..0.021 rows=0 loops=3)",
+    "                                                        Buffers: shared hit=9",
+    "                                                        ->  Bitmap Index Scan on time_entries_employee_date_idx  (cost=0.00..1.60 rows=18 width=0) (actual time=0.011..0.011 rows=20 loops=3)",
+    "                                                              Index Cond: ((te_1.employee_id = rv_1.employee_id) AND (te_1.work_date >= '2026-08-01'::date) AND (te_1.work_date <= '2026-08-31'::date))",
+    "                                                              Buffers: shared hit=6",
+    "                                                        ->  Bitmap Index Scan on time_entries_project_idx  (cost=0.00..2.43 rows=157 width=0) (actual time=0.009..0.009 rows=166 loops=3)",
+    "                                                              Index Cond: (te_1.project_id = 'ee7cb842-bbd1-4188-b95e-9f98446c92aa'::uuid)",
+    "                                                              Buffers: shared hit=3",
+    "                          ->  Index Scan using employees_org_idx on public.employees e  (cost=0.14..2.61 rows=1 width=16) (actual time=0.155..0.155 rows=1 loops=1)",
+    "                                Output: e.id, e.organization_id, e.name, e.status, e.user_id, e.employee_number, e.job_title, e.email, e.phone, e.notes, e.archived_at, e.created_at, e.updated_at, e.employment_basis, e.hire_date, e.end_date, e.standard_hours_per_day",
+    "                                Index Cond: (e.organization_id = '8ef9e353-ca0c-4cad-b0c7-c2de612eb1ec'::uuid)",
+    "                                Filter: app.is_org_member(e.organization_id)",
+    "                                Buffers: shared hit=4",
+    "                    ->  Index Scan using rate_versions_org_idx on public.rate_versions rv  (cost=0.15..2.87 rows=1 width=36) (actual time=0.458..0.589 rows=3 loops=1)",
+    "                          Output: rv.id, rv.valid_from, rv.employee_id",
+    "                          Index Cond: (rv.organization_id = '8ef9e353-ca0c-4cad-b0c7-c2de612eb1ec'::uuid)",
+    "                          Filter: (app.is_org_member(rv.organization_id) AND app.has_org_permission(rv.organization_id, 'workforce.cost.read'::text) AND (rv.rate_unit = 'monthly'::rate_unit))",
+    "                          Buffers: shared hit=23",
+    "              ->  Bitmap Heap Scan on public.labor_cost_components lcc  (cost=1.26..4.40 rows=1 width=16) (actual time=0.007..0.008 rows=0 loops=1)",
+    "                    Output: lcc.id, lcc.organization_id, lcc.rate_version_id, lcc.key, lcc.label, lcc.basis, lcc.amount, lcc.percent, lcc.currency, lcc.created_at, lcc.updated_at",
+    "                    Recheck Cond: (lcc.rate_version_id = rv.id)",
+    "                    Filter: ((lcc.organization_id = '8ef9e353-ca0c-4cad-b0c7-c2de612eb1ec'::uuid) AND app.is_org_member(lcc.organization_id) AND app.has_org_permission(lcc.organization_id, 'workforce.cost.read'::text))",
+    "                    Buffers: shared hit=2",
+    "                    ->  Bitmap Index Scan on labor_cost_components_rate_version_idx  (cost=0.00..1.26 rows=2 width=0) (actual time=0.002..0.002 rows=0 loops=1)",
+    "                          Index Cond: (lcc.rate_version_id = rv.id)",
+    "                          Buffers: shared hit=2",
+    "        ->  Bitmap Heap Scan on public.time_entries te  (cost=7.69..22.75 rows=1 width=20) (actual time=0.255..1.002 rows=20 loops=1)",
+    "              Output: te.work_date, te.employee_id",
+    "              Recheck Cond: ((te.employee_id = e.id) AND (te.work_date >= '2026-08-01'::date) AND (te.work_date <= '2026-08-31'::date) AND (te.organization_id = '8ef9e353-ca0c-4cad-b0c7-c2de612eb1ec'::uuid) AND (te.status = 'recorded'::text))",
+    "              Filter: ((te.archived_at IS NULL) AND (te.approval_status = 'approved'::text) AND app.is_org_member(te.organization_id) AND ((te.project_id IS NULL) OR app.can_access_project(te.organization_id, te.project_id)))",
+    "              Heap Blocks: exact=1",
+    "              Buffers: shared hit=104",
+    "              ->  BitmapAnd  (cost=7.69..7.69 rows=11 width=0) (actual time=0.024..0.025 rows=0 loops=1)",
+    "                    Buffers: shared hit=3",
+    "                    ->  Bitmap Index Scan on time_entries_employee_date_idx  (cost=0.00..1.60 rows=18 width=0) (actual time=0.005..0.005 rows=20 loops=1)",
+    "                          Index Cond: ((te.employee_id = e.id) AND (te.work_date >= '2026-08-01'::date) AND (te.work_date <= '2026-08-31'::date))",
+    "                          Buffers: shared hit=2",
+    "                    ->  Bitmap Index Scan on time_entries_org_status_idx  (cost=0.00..5.84 rows=349 width=0) (actual time=0.018..0.018 rows=426 loops=1)",
+    "                          Index Cond: ((te.organization_id = '8ef9e353-ca0c-4cad-b0c7-c2de612eb1ec'::uuid) AND (te.status = 'recorded'::text))",
+    "                          Buffers: shared hit=1",
+    "Query Identifier: -4984644775838159194",
+    "Planning:",
+    "  Buffers: shared hit=501",
+    "Planning Time: 1.628 ms",
+    "Execution Time: 4.629 ms"
+  ],
+  "apExplainRls": [
+    "Index Scan using ap_bills_subcontract_idx on public.ap_bills  (cost=0.14..2.87 rows=1 width=92) (actual time=0.002..0.003 rows=0 loops=1)",
+    "  Output: id, project_id, total_amount, net_amount, currency, bill_date",
+    "  Index Cond: (ap_bills.organization_id = '8ef9e353-ca0c-4cad-b0c7-c2de612eb1ec'::uuid)",
+    "  Filter: ((ap_bills.archived_at IS NULL) AND (ap_bills.bill_date IS NOT NULL) AND (ap_bills.bill_date >= '2026-08-01'::date) AND (ap_bills.bill_date <= '2028-02-29'::date) AND (ap_bills.currency = 'ILS'::bpchar) AND (ap_bills.status = ANY ('{open,partially_matched,matched}'::text[])) AND app.is_org_member(ap_bills.organization_id) AND ((ap_bills.project_id IS NULL) OR app.can_access_project(ap_bills.organization_id, ap_bills.project_id)))",
+    "  Buffers: shared hit=2",
+    "Query Identifier: -1909454027473173264",
+    "Planning:",
+    "  Buffers: shared hit=148",
+    "Planning Time: 0.420 ms",
+    "Execution Time: 0.030 ms"
+  ]
+}

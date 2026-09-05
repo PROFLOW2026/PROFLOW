@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray, isNull, notInArray } from 'drizzle-orm';
+import { and, desc, eq, gte, inArray, isNull, lte, notInArray } from 'drizzle-orm';
 import {
   apBillLines,
   apBills,
@@ -34,12 +34,22 @@ export interface ApBillListItem extends ApBillRow {
 export async function listApBills(
   db: DbExecutor,
   organizationId: string,
-  options: { readonly limit?: number; readonly offset?: number } = {},
+  options: {
+    readonly limit?: number;
+    readonly offset?: number;
+    readonly fromDate?: string;
+    readonly toDate?: string;
+  } = {},
 ): Promise<ApBillListItem[]> {
   const hardCap =
     options.limit != null && options.limit > ORG_LIST_HARD_CAP
       ? ORG_LIST_EXPORT_CAP
       : ORG_LIST_HARD_CAP;
+
+  const conditions = [eq(apBills.organizationId, organizationId), isNull(apBills.archivedAt)];
+  if (options.fromDate) conditions.push(gte(apBills.billDate, options.fromDate));
+  if (options.toDate) conditions.push(lte(apBills.billDate, options.toDate));
+
   const rows = await db
     .select({
       bill: apBills,
@@ -47,7 +57,7 @@ export async function listApBills(
     })
     .from(apBills)
     .leftJoin(vendors, eq(apBills.vendorId, vendors.id))
-    .where(and(eq(apBills.organizationId, organizationId), isNull(apBills.archivedAt)))
+    .where(and(...conditions))
     .orderBy(desc(apBills.createdAt))
     .limit(resolveListLimit(options.limit, { hardCap }))
     .offset(resolveListOffset(options.offset));

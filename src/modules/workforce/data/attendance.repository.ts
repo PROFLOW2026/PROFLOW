@@ -1,6 +1,7 @@
-import { and, asc, desc, eq, gte, isNull, lte, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, gte, isNull, lte, ne, sql } from 'drizzle-orm';
 import { attendanceDays, attendanceEvents, employees } from '@drizzle/schema';
 import {
+  ORG_LIST_EXPORT_CAP,
   ORG_LIST_HARD_CAP,
   resolveListLimit,
   resolveListOffset,
@@ -218,7 +219,7 @@ export interface AttendanceDayFilters {
   readonly employeeId?: string;
   readonly fromDate?: string;
   readonly toDate?: string;
-  readonly status?: AttendanceDayStatus | 'all';
+  readonly status?: AttendanceDayStatus | 'all' | 'active';
   readonly includeArchived?: boolean;
   readonly limit?: number;
   readonly offset?: number;
@@ -248,10 +249,19 @@ export async function listAttendanceDays(
   }
 
   if (filters.status && filters.status !== 'all') {
-    conditions.push(eq(attendanceDays.status, filters.status));
+    if (filters.status === 'active') {
+      // 'active' = all non-void records (open + complete)
+      conditions.push(ne(attendanceDays.status, 'void'));
+    } else {
+      conditions.push(eq(attendanceDays.status, filters.status));
+    }
   }
 
-  const limit = resolveListLimit(filters.limit, { hardCap: ORG_LIST_HARD_CAP });
+  const hardCap =
+    filters.limit != null && filters.limit > ORG_LIST_HARD_CAP
+      ? ORG_LIST_EXPORT_CAP
+      : ORG_LIST_HARD_CAP;
+  const limit = resolveListLimit(filters.limit, { hardCap });
   const offset = resolveListOffset(filters.offset);
 
   const rows = await db
@@ -314,4 +324,46 @@ export async function listAttendanceDays(
       : null,
     eventCount: row.eventCount,
   }));
+}
+
+/**
+ * Returns all non-archived active employees that have NOT reported attendance today
+ * (i.e., no non-void attendance_day record for workDate).
+ *
+ * Strategy: LEFT JOIN attendance_days where date + org match AND status != 'void',
+ * then return rows where the join found nothing (day.id IS NULL).
+ */
+export async function listEmployeesWithoutAttendanceToday(
+  db: DbExecutor,
+  organizationId: string,
+  workDate: string,
+): Promise<{ employeeId: string; employeeName: string }[]> {
+  const rows = await db
+    .select({
+      employeeId: employees.id,
+      employeeName: employees.name,
+      // Will be NULL when no active attendance record exists for today
+      attendanceDayId: sql<string | null>`(
+        select id from attendance_days ad
+        where ad.employee_id = ${employees.id}
+          and ad.organization_id = ${organizationId}
+          and ad.work_date = ${workDate}
+          and ad.archived_at is null
+          and ad.status <> 'void'
+        limit 1
+      )`,
+    })
+    .from(employees)
+    .where(
+      and(
+        eq(employees.organizationId, organizationId),
+        isNull(employees.archivedAt),
+        eq(employees.status, 'active'),
+      ),
+    )
+    .orderBy(asc(employees.name));
+
+  return rows
+    .filter((row) => row.attendanceDayId === null)
+    .map((row) => ({ employeeId: row.employeeId, employeeName: row.employeeName }));
 }

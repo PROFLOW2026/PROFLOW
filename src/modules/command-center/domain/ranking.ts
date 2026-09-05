@@ -48,6 +48,7 @@ export const SOURCE_DEFAULT_SEVERITY: Record<CommandCenterSourceType, CommandCen
   billing_plan_cycle_draft: 'high',
   billing_plan_milestone_due: 'medium',
   billing_plan_retention_release_due: 'high',
+  missing_attendance_today: 'medium',
 };
 
 export const INBOX_SECTION_ORDER = ['critical', 'high', 'medium', 'low'] as const;

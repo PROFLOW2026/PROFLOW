@@ -551,7 +551,7 @@ export const attendanceFiltersSchema = z.object({
   employeeId: z.string().uuid().optional(),
   fromDate: businessDateSchema.optional(),
   toDate: businessDateSchema.optional(),
-  status: z.enum([...ATTENDANCE_DAY_STATUSES, 'all'] as const).optional(),
+  status: z.enum([...ATTENDANCE_DAY_STATUSES, 'all', 'active'] as const).optional(),
   limit: z.coerce.number().int().min(0).optional(),
   offset: z.coerce.number().int().min(0).optional(),
 });

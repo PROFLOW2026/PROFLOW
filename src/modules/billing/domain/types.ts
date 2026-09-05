@@ -114,6 +114,9 @@ export interface BillingListFilters {
   readonly contractId?: string;
   readonly limit?: number;
   readonly offset?: number;
+  /** Filter by billing record issueDate (inclusive). Date string YYYY-MM-DD. */
+  readonly fromDate?: string | null;
+  readonly toDate?: string | null;
 }
 
 export interface ProjectOption {

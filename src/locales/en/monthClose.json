@@ -104,7 +104,7 @@
   "errors": {
     "invalidTransition": "That status change is not allowed.",
     "monthClosed": "This month is closed. Open Month close and record an explicit post-close adjustment instead of changing the original record.",
-    "useCorrectionNotRewrite": "This month is closed. Do not void or rewrite the original expense, vendor bill, or time entry - record a month-close correction instead.",
+    "useCorrectionNotRewrite": "This month is closed. Do not void or rewrite the original expense, vendor bill, billing record, or time entry - record a month-close correction instead.",
     "notClosed": "Post-close adjustments require a closed month.",
     "notComplete": "Completeness must be 100% before ready/close.",
     "currencyMismatch": "Economic corrections must use the organization base currency.",

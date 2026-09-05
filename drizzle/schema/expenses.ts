@@ -108,6 +108,8 @@ export const expenses = pgTable(
 
     costFamily: costFamilyEnum('cost_family').notNull().default('direct_project'),
     costCategoryId: uuid('cost_category_id').references(() => costCategories.id, { onDelete: 'set null' }),
+    /** Optional header cost-code default (0074). Allocation line remains authoritative. */
+    costCodeId: uuid('cost_code_id'),
 
     netAmount: moneyAmount('net_amount').notNull(),
     taxAmount: moneyAmount('tax_amount'),

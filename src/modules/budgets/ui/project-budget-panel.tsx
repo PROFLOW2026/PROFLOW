@@ -5,6 +5,7 @@ import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { withOrgContext } from '@/shared/auth/session';
 import { fromNumericString, zeroMoney } from '@/shared/money/money';
 import { loadCachedProjectFinancials } from '@/modules/financials/application/load-cached-project-financials';
+import { DEFAULT_PROJECT_PROFITABILITY_MODE } from '@/modules/tenancy/domain/project-profitability-mode';
 import { getProjectBudgetWorkspace } from '../application/queries';
 import { BudgetVarianceSummary } from './budget-variance-summary';
 import { BudgetLineControlList } from './budget-line-control-list';
@@ -19,10 +20,18 @@ export async function ProjectBudgetPanel({ projectId }: ProjectBudgetPanelProps)
 
   const workspace = await withOrgContext(async (context) => {
     const canReadFinancials = hasPermission(context, PERMISSIONS.PROJECT_FINANCIALS_READ);
+    const financialsPromise = canReadFinancials
+      ? loadCachedProjectFinancials(projectId)
+      : null;
     const data = await getProjectBudgetWorkspace(context, projectId, {
-      costPromise: canReadFinancials
-        ? loadCachedProjectFinancials(projectId).then((row) => row.cost)
+      costPromise: financialsPromise
+        ? financialsPromise.then((row) => row.cost)
         : Promise.resolve(null),
+      profitabilityModePromise: financialsPromise
+        ? financialsPromise.then(
+            (row) => row.projectProfitabilityMode ?? DEFAULT_PROJECT_PROFITABILITY_MODE,
+          )
+        : undefined,
     });
     return {
       ...data,
@@ -32,6 +41,9 @@ export async function ProjectBudgetPanel({ projectId }: ProjectBudgetPanelProps)
   });
 
   const currency = workspace.budget?.currency ?? workspace.baseCurrency;
+  const includeGeneral = workspace.profitabilityMode === 'include_general';
+  const forecastLabel = includeGeneral ? t('metrics.forecastFull') : t('metrics.forecast');
+  const varianceLabel = includeGeneral ? t('metrics.varianceFull') : t('metrics.variance');
 
   return (
     <div className="flex min-w-0 flex-col gap-6">
@@ -49,8 +61,8 @@ export async function ProjectBudgetPanel({ projectId }: ProjectBudgetPanelProps)
             actual: t('metrics.actual'),
             remainingCommitment: t('metrics.remainingCommitment'),
             etc: t('metrics.etc'),
-            forecast: t('metrics.forecast'),
-            variance: t('metrics.variance'),
+            forecast: forecastLabel,
+            variance: varianceLabel,
             engineMissing: t('metrics.engineMissing'),
           }}
         />
@@ -86,8 +98,8 @@ export async function ProjectBudgetPanel({ projectId }: ProjectBudgetPanelProps)
               actual: t('metrics.actual'),
               remainingCommitment: t('metrics.remainingCommitment'),
               etc: t('metrics.etc'),
-              forecast: t('metrics.forecast'),
-              variance: t('metrics.variance'),
+              forecast: forecastLabel,
+              variance: varianceLabel,
               lineTypes: {
                 total: t('lineTypes.total'),
                 category: t('lineTypes.category'),

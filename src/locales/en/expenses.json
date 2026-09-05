@@ -5,9 +5,9 @@
   "advancedOptions": "More options",
   "historyAdvanced": "History / advanced details",
   "generalBusinessCostsAllocatedToProject": "General business costs allocated to the project",
-  "directActualCost": "Direct actual cost",
+  "directActualCost": "Direct recognized cost",
   "fullProjectActualCost": "Full project actual cost",
-  "companyActual": "Company actual cost",
+  "companyActual": "Company recognized cost",
   "companyProfit": "Company profit",
   "installmentCount": "Number of installments",
   "installmentStart": "Start date",
@@ -239,8 +239,9 @@
     "date_range": "Date range / annual period"
   },
   "filters": {
-    "dateFrom": "From date",
-    "dateTo": "To date",
+    "dateFrom": "Expense date from",
+    "dateTo": "Expense date to",
+    "expenseDateHint": "Filters use the expense date — not the payment date.",
     "project": "Project",
     "family": "Section",
     "category": "Category",

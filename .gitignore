@@ -53,3 +53,7 @@ Thumbs.db
 .eslintcache
 .vitest/
 .pglite/
+
+# temporary / diagnostic artefacts
+.tmp/
+vitest-full.txt

@@ -86,4 +86,15 @@ describe('timesheetPeriodForWorkDate', () => {
       periodEnd: '2026-08-15',
     });
   });
+
+  it('honors Monday week start', () => {
+    expect(timesheetPeriodForWorkDate('2026-08-12', 1)).toEqual({
+      periodStart: '2026-08-10',
+      periodEnd: '2026-08-16',
+    });
+    expect(timesheetPeriodForWorkDate('2026-08-10', 1)).toEqual({
+      periodStart: '2026-08-10',
+      periodEnd: '2026-08-16',
+    });
+  });
 });

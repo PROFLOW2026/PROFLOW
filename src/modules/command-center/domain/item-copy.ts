@@ -828,3 +828,19 @@ export function billingPlanRetentionReleaseDueCopy(
     why: `${input.heldRemaining} ${input.currency} retention held remaining — ready to release as billing.`,
   };
 }
+
+export function missingAttendanceTodayCopy(
+  locale: string,
+  input: { count: number; date: string },
+): { what: string; why: string } {
+  if (he(locale)) {
+    return {
+      what: `${input.count} עובדים לא דיווחו נוכחות היום`,
+      why: `תאריך ${input.date} — יש לדווח נוכחות לעובדים שטרם דיווחו.`,
+    };
+  }
+  return {
+    what: `${input.count} employee${input.count === 1 ? '' : 's'} have not reported attendance today`,
+    why: `Date ${input.date} — attendance is missing for these employees.`,
+  };
+}

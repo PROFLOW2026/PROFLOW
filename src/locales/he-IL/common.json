@@ -97,6 +97,20 @@
     "lastMonth": "החודש שעבר",
     "openEnded": "עד היום"
   },
+  "dateRange": {
+    "today": "היום",
+    "thisWeek": "השבוע",
+    "thisMonth": "החודש",
+    "lastMonth": "חודש קודם",
+    "last30Days": "30 יום אחרונים",
+    "last90Days": "90 יום אחרונים",
+    "thisYear": "השנה",
+    "lastYear": "שנה קודמת",
+    "custom": "טווח מותאם",
+    "from": "מ-",
+    "to": "עד",
+    "apply": "החל"
+  },
   "a11y": {
     "skipToContent": "דילוג לתוכן הראשי",
     "mainNavigation": "ניווט ראשי",

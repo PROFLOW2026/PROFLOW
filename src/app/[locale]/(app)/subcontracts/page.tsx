@@ -7,6 +7,7 @@ import { StatusBadge, type StatusShape } from '@/components/ui/status-badge';
 import { ResponsiveTable } from '@/components/patterns/responsive-table';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { MoneyText } from '@/components/patterns/money-text';
+import { DateRangeSelector } from '@/components/patterns/date-range-selector';
 import { listProjectsForOrg } from '@/modules/projects';
 import { listOrgSubcontracts, listVendorsForOrg } from '@/modules/vendors';
 import { money } from '@/shared/money';
@@ -45,11 +46,13 @@ function statusShape(status: string): StatusShape {
 export default async function SubcontractsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ vendorId?: string; projectId?: string; status?: string }>;
+  searchParams: Promise<{ vendorId?: string; projectId?: string; status?: string; from?: string; to?: string }>;
 }) {
   const t = await getTranslations('vendors.subcontractsWorkspace');
   const tSub = await getTranslations('vendors.subcontracts');
   const params = await searchParams;
+  const fromDate = params.from || undefined;
+  const toDate = params.to || undefined;
 
   const { items, vendors, projects } = await withOrgContext(async (context) => ({
     items: await listOrgSubcontracts(context, {
@@ -59,6 +62,8 @@ export default async function SubcontractsPage({
         params.status && params.status !== 'all'
           ? (params.status as 'draft' | 'active' | 'completed' | 'cancelled')
           : 'all',
+      fromDate,
+      toDate,
     }),
     vendors: await listVendorsForOrg(context, {}).catch(() => []),
     projects: await listProjectsForOrg(context, {}).catch(() => []),
@@ -76,6 +81,13 @@ export default async function SubcontractsPage({
           vendors={vendors.map((vendor) => ({ id: vendor.id, name: vendor.name }))}
           projects={projects.map((project) => ({ id: project.id, name: project.name }))}
         />
+
+        <form method="get" className="flex flex-wrap items-center gap-2">
+          {params.vendorId && <input type="hidden" name="vendorId" value={params.vendorId} />}
+          {params.projectId && <input type="hidden" name="projectId" value={params.projectId} />}
+          {params.status && <input type="hidden" name="status" value={params.status} />}
+          <DateRangeSelector fromName="from" toName="to" defaultFrom={fromDate} defaultTo={toDate} />
+        </form>
 
         {items.length === 0 ? (
           <EmptyState icon={Handshake} title={t('empty.title')} description={t('empty.body')} />

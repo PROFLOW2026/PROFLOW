@@ -106,6 +106,8 @@ const IDENTICAL_MESSAGE_ALLOWLIST = new Set([
   'settings.activity.entities._fallback',
   'marketing.hero.brand',
   'marketing.footer.note',
+  // Pure math / formula templates that are language-neutral.
+  'dashboard.laborReconciliation.equation',
   // Shared screenshot asset paths (language-neutral).
   'marketing.tour.tabs.0.src',
   'marketing.tour.tabs.1.src',

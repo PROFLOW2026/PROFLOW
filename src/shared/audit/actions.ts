@@ -75,6 +75,7 @@ export const AUDIT_ACTIONS = {
   SUBCONTRACT_STATUS_CHANGED: 'subcontract.status_changed',
   SUBCONTRACT_VALUE_RECORDED: 'subcontract.value_recorded',
   SUBCONTRACT_DOCUMENT_LINKED: 'subcontract.document_linked',
+  SUBCONTRACT_ADVANCE_RECORDED: 'subcontract.advance_recorded',
 
   EXPENSE_CREATED: 'expense.created',
   EXPENSE_UPDATED: 'expense.updated',

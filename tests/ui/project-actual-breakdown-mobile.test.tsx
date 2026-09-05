@@ -215,9 +215,9 @@ describe('OWNER GATE — mobile 390 owner actual experience', () => {
     expect(screen.getByText('עובד שעות')).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: /קבלני משנה/i }));
-    expect(screen.getAllByText('עלות בפועל').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('עלות מוכרת').length).toBeGreaterThan(0);
     expect(screen.getByText('התחייבות')).toBeInTheDocument();
-    expect(screen.getByText('שולם')).toBeInTheDocument();
+    expect(screen.getByText('שולם בפועל')).toBeInTheDocument();
 
     // No layout overflow class expected on mobile column
     expect(viewport.clientWidth).toBeLessThanOrEqual(MOBILE_WIDTH_PX);
@@ -255,7 +255,7 @@ describe('OWNER GATE — mobile 390 owner actual experience', () => {
       { locale: 'he-IL', messages: { financial: heFinancial } },
     );
 
-    expect(screen.getByText('עלות בפועל')).toBeInTheDocument();
+    expect(screen.getByText('עלות מוכרת')).toBeInTheDocument();
     expect(screen.queryByText(/מתוכן:/)).not.toBeInTheDocument();
   });
 });

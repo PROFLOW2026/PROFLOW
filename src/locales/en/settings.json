@@ -544,7 +544,8 @@
         "updated": "Subcontract updated",
         "status_changed": "Subcontract status changed",
         "value_recorded": "Subcontract value recorded",
-        "document_linked": "Subcontract document linked"
+        "document_linked": "Subcontract document linked",
+        "advance_recorded": "Subcontract advance recorded"
       },
       "expense": {
         "created": "Expense created",
@@ -1088,6 +1089,19 @@
     "postalCode": "Postal code",
     "country": "Country",
     "countryPlaceholder": "Select country"
+  },
+  "workWeek": {
+    "startDay": "Work week start day",
+    "startDayHint": "Controls when the work week starts for timesheets, scheduling, and date-range presets.",
+    "days": {
+      "0": "Sunday",
+      "1": "Monday",
+      "2": "Tuesday",
+      "3": "Wednesday",
+      "4": "Thursday",
+      "5": "Friday",
+      "6": "Saturday"
+    }
   },
   "branding": {
     "pageTitle": "Branding & documents",

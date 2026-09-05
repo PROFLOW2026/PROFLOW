@@ -38,6 +38,11 @@ export {
   scoreCompleteness,
 } from './domain/completeness';
 export type { CompletenessCheckInput } from './domain/completeness';
+export {
+  billCompletenessAllocationBasis,
+  isVendorBillUnallocatedForCompleteness,
+  isApBillAnomalyForCompleteness,
+} from './domain/completeness-ap-signals';
 
 export {
   CLOSED_PERIOD_FREEZE_CODE,

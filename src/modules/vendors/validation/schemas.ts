@@ -12,6 +12,7 @@ import {
   SUBCONTRACT_REQUIRED_DOC_TYPES,
   SUBCONTRACT_STATUSES,
 } from '../domain/subcontract-types';
+import { SUBCONTRACT_ADVANCE_STATUSES } from '../domain/subcontract-advances';
 
 const emptyToNull = (value: unknown) => {
   if (value === '' || value === null || value === undefined) return null;
@@ -233,6 +234,9 @@ export const listOrgSubcontractsSchema = z.object({
     .enum(['draft', 'active', 'completed', 'cancelled', 'all'] as const)
     .optional(),
   limit: z.coerce.number().int().min(0).optional(),
+  /** Filter agreements active within this date range (YYYY-MM-DD). Uses startDate/endDate on agreement. */
+  fromDate: z.string().optional().nullable(),
+  toDate: z.string().optional().nullable(),
 });
 
 export type ListOrgSubcontractsInput = z.input<typeof listOrgSubcontractsSchema>;
@@ -291,3 +295,13 @@ export const linkSubcontractDocumentSchema = z.object({
 });
 
 export type LinkSubcontractDocumentInput = z.infer<typeof linkSubcontractDocumentSchema>;
+
+export const createSubcontractAdvanceSchema = z.object({
+  subcontractAgreementId: z.string().uuid(),
+  amount: moneyAmountSchema,
+  paidDate: optionalBusinessDate,
+  status: z.enum(SUBCONTRACT_ADVANCE_STATUSES).optional(),
+  notes: optionalText,
+});
+
+export type CreateSubcontractAdvanceFormInput = z.infer<typeof createSubcontractAdvanceSchema>;

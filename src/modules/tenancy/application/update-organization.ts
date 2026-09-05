@@ -5,6 +5,7 @@ import { NotFoundError, ValidationError } from '@/shared/errors';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import type { OrgContext } from '@/shared/auth/context';
+import { normalizeWorkWeekStartDay } from '@/shared/dates';
 import { defaultsForCountry } from '../domain/organization-defaults';
 import { updateOrganizationSchema } from '../validation/schemas';
 
@@ -14,6 +15,7 @@ export interface OrganizationProfile {
   readonly timezone: string;
   readonly countryCode: string;
   readonly defaultLocale: string;
+  readonly workWeekStartDay: number;
 }
 
 /**
@@ -44,6 +46,7 @@ export async function updateOrganizationProfile(
       timezone: organizations.timezone,
       countryCode: organizations.countryCode,
       defaultLocale: organizations.defaultLocale,
+      workWeekStartDay: organizations.workWeekStartDay,
     })
     .from(organizations)
     .where(eq(organizations.id, context.organizationId))
@@ -60,6 +63,9 @@ export async function updateOrganizationProfile(
     ...(input.timezone !== undefined ? { timezone: input.timezone } : {}),
     ...(input.countryCode !== undefined ? { countryCode } : {}),
     ...(input.defaultLocale !== undefined ? { defaultLocale: input.defaultLocale } : {}),
+    ...(input.workWeekStartDay !== undefined
+      ? { workWeekStartDay: normalizeWorkWeekStartDay(input.workWeekStartDay) }
+      : {}),
     ...(countryDefaults && input.countryCode && input.baseCurrency === undefined
       ? { baseCurrency: countryDefaults.currency }
       : {}),
@@ -78,6 +84,7 @@ export async function updateOrganizationProfile(
       timezone: organizations.timezone,
       countryCode: organizations.countryCode,
       defaultLocale: organizations.defaultLocale,
+      workWeekStartDay: organizations.workWeekStartDay,
     });
 
   await recordAuditEvent(context, {
@@ -88,5 +95,8 @@ export async function updateOrganizationProfile(
     after,
   });
 
-  return after!;
+  return {
+    ...after!,
+    workWeekStartDay: normalizeWorkWeekStartDay(after!.workWeekStartDay),
+  };
 }

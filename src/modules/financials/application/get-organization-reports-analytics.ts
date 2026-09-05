@@ -106,6 +106,12 @@ export interface OrganizationReportsAnalyticsOptions {
    * project/job totals regardless of filter (never double-counted into profit).
    */
   readonly workKindFilter?: string | null;
+  /**
+   * Optional date range filter for period-based metrics (billing issue date,
+   * expense date). When omitted, all-time data is used.
+   */
+  readonly fromDate?: string | null;
+  readonly toDate?: string | null;
 }
 
 /**
@@ -124,7 +130,12 @@ export async function getOrganizationReportsAnalytics(
 
   const canReadBilling = hasPermission(context, PERMISSIONS.BILLING_READ);
   const billingRecordsPromise = canReadBilling
-    ? listBillingRecords(context, { filter: 'all', limit: ORG_LIST_EXPORT_CAP })
+    ? listBillingRecords(context, {
+        filter: 'all',
+        limit: ORG_LIST_EXPORT_CAP,
+        fromDate: options.fromDate ?? undefined,
+        toDate: options.toDate ?? undefined,
+      })
     : Promise.resolve(null);
 
   // Shared org billing promise - cash flow + AR aging previously each re-listed all records.

@@ -5,6 +5,7 @@
     "employees": "עובדים",
     "time": "דיווחי שעות",
     "attendance": "נוכחות",
+    "monthlyAttendance": "לוח חודשי",
     "approvals": "אישורי שעות",
     "timesheets": "גיליונות שעות"
   },
@@ -150,7 +151,24 @@
       "attendanceLink": "נוכחות",
       "complianceSection": "ציות",
       "complianceOpen": "פתיחת ציות",
-      "complianceEmpty": "אין עדיין פריטי ציות לעובד זה."
+      "complianceEmpty": "אין עדיין פריטי ציות לעובד זה.",
+      "periodSummarySection": "סיכום תקופה"
+    },
+    "periodSummary": {
+      "title": "סיכום תקופה",
+      "workDays": "ימי עבודה שדווחו",
+      "hours": "סה״כ שעות",
+      "missing": "{count, plural, one {יום חסר} other {{count} ימים חסרים}}",
+      "missingNone": "ימים חסרים",
+      "pending": "ממתינים לאישור",
+      "approved": "אושרו",
+      "projectBreakdown": "פירוט לפי פרויקט",
+      "projectMeta": "{days} ימים · {hours} שעות",
+      "costPending": "עלות בהמתנה",
+      "unallocated": "כללי / תקורה",
+      "unallocatedMeta": "{days} ימים · {hours} שעות",
+      "recognizedCost": "עלות מוכרת",
+      "selectRange": "בחירת תקופה"
     },
     "projects": {
       "title": "שיוכים / פרויקטים",
@@ -275,8 +293,9 @@
       "all": "הכל",
       "employee": "עובד",
       "project": "פרויקט",
-      "from": "מתאריך",
-      "to": "עד תאריך",
+      "from": "מתאריך עבודה",
+      "to": "עד תאריך עבודה",
+      "workDateHint": "הסינון הוא לפי תאריך העבודה; לא לפי מועד הרישום.",
       "status": "סטטוס",
       "kind": "סוג",
       "approval": "אישור"
@@ -404,7 +423,8 @@
     "laborActualSummary": "{hours} שעות · {count, plural, one {עובד #} other {# עובדים}}",
     "laborActualMissingCost": "עלות חלקית ({count, plural, one {דיווח #} other {# דיווחים}} ללא עלות; לא מוצג כ־₪0)",
     "laborActualEmployeeMeta": "{hours} ש׳ · {days} ימי עבודה",
-    "laborActualCostUnavailable": "עלות לא זמינה"
+    "laborActualCostUnavailable": "עלות לא זמינה",
+    "laborPoolEquation": "הוקצה {allocated} + ממתין {unallocated} = {total} מאגר עבודה"
   },
   "monthReview": {
     "title": "עלות מעסיק חודשית (מתקדם, אופציונלי)",
@@ -447,6 +467,71 @@
   },
   "attendance": {
     "title": "נוכחות",
+    "viewsLabel": "תצוגות נוכחות",
+    "monthCalendar": {
+      "title": "לוח נוכחות חודשי",
+      "prevMonth": "חודש קודם",
+      "nextMonth": "חודש הבא",
+      "missing": "חסר",
+      "approved": "אושר",
+      "pending": "ממתין",
+      "void": "בוטל",
+      "workday": "יום עבודה",
+      "holiday": "חופש",
+      "noData": "אין נתונים"
+    },
+    "dailyRoster": {
+      "title": "סטטוס נוכחות היום",
+      "reported": "דיווחו",
+      "notReported": "טרם דיווחו",
+      "addAttendance": "הוסף נוכחות"
+    },
+    "todayView": {
+      "tab": "היום",
+      "hint": "מי דיווח היום, מי לא, באיזה פרויקט, שעות ושעת התחלה, וסטטוס אישור.",
+      "awaiting": "ממתינים / חסר דיווח שעות",
+      "noProject": "עבודה כללית",
+      "openDay": "פרטי היום",
+      "columns": {
+        "employee": "עובד",
+        "project": "פרויקט",
+        "start": "שעת התחלה",
+        "hours": "שעות",
+        "approval": "סטטוס אישור",
+        "action": "פעולה"
+      },
+      "approval": {
+        "draft": "טיוטה",
+        "submitted": "הוגש",
+        "approved": "אושר",
+        "returned": "הוחזר",
+        "awaiting": "ממתין לדיווח שעות",
+        "missing": "לא דיווח"
+      }
+    },
+    "monthlyGrid": {
+      "tab": "לוח חודשי",
+      "navLink": "לוח נוכחות חודשי",
+      "title": "לוח נוכחות חודשי",
+      "description": "בחרו עובד וחודש. ימים חסרים מסומנים באדום. לחיצה על יום פותחת את הפרטים.",
+      "employee": "עובד",
+      "allEmployees": "כל העובדים",
+      "missingOnly": "הצג רק עובדים עם ימים חסרים החודש",
+      "apply": "החל",
+      "prevMonth": "חודש קודם",
+      "nextMonth": "חודש הבא",
+      "empty": "אין שורות להצגה לפי הסינון.",
+      "missingCount": "{count, plural, one {יום חסר אחד} other {{count} ימים חסרים}}",
+      "legend": {
+        "approved": "אושר",
+        "pending": "ממתין",
+        "worked": "עבד",
+        "missing": "חסר",
+        "dayOff": "יום חופש",
+        "future": "עתידי",
+        "void": "בוטל"
+      }
+    },
     "description": "כניסה ויציאה לנוכחות. נוכחות אינה דיווח שעות לפרויקט ואינה יוצרת עלות עבודה בפועל לבדה.",
     "updateCta": "עדכון נוכחות",
     "filteredEmployee": "מציגים נוכחות עבור {name}. ניתן לעדכן תאריכים היסטוריים למטה.",
@@ -488,7 +573,8 @@
     },
     "list": {
       "title": "ימי נוכחות",
-      "hint": "סינון לפי תאריך או סטטוס. פתיחת יום מציגה אירועים ותיקונים. הסטטוס הוא נוכחות בלבד - ראו את הערת השלמות.",
+      "tab": "היסטוריה",
+      "hint": "סינון לפי תאריך עבודה או סטטוס. פתיחת יום מציגה אירועים ותיקונים. הסטטוס הוא נוכחות בלבד - ראו את הערת השלמות.",
       "empty": {
         "title": "עדיין אין נוכחות",
         "description": "אופציונלי - השתמשו בשעון או בהזנה ידנית של מנהל כשצריך מעקב נוכחות. אין הגדרה חובה."
@@ -505,10 +591,12 @@
       "correct": "תיקון נוכחות"
     },
     "filters": {
-      "from": "מתאריך",
-      "to": "עד תאריך",
+      "from": "מתאריך עבודה",
+      "to": "עד תאריך עבודה",
+      "workDateHint": "הסינון הוא לפי תאריך העבודה; לא לפי מועד הרישום.",
       "status": "סטטוס",
-      "allStatuses": "כל הסטטוסים",
+      "allStatuses": "כל הסטטוסים (כולל בוטל)",
+      "activeStatuses": "פעיל (ללא בוטל)",
       "apply": "החלת מסננים"
     },
     "manual": {
@@ -656,6 +744,9 @@
     "empty": {
       "title": "אין עדיין גיליונות שעות",
       "description": "הגישו דיווחי שעות כדי ליצור גיליון תקופתי לשבוע העובד."
+    },
+    "filters": {
+      "workDateHint": "הסינון הוא לפי תקופת העבודה בגיליון; לא לפי תאריך תשלום או אישור."
     }
   }
 }

@@ -16,7 +16,7 @@ import { listBillingRecords } from '@/modules/billing';
 import { listComplianceArtifactsForOrg } from '@/modules/compliance';
 import { getOrganizationApPayables } from '@/modules/ap';
 import { listMaintenanceScheduleForOrg } from '@/modules/assets';
-import { listAttendanceDaysForOrg, listTimesheetsForOrg } from '@/modules/workforce';
+import { listAttendanceDaysForOrg, listEmployeesWithoutAttendanceToday, listTimesheetsForOrg } from '@/modules/workforce';
 import { getOrganizationProjectRollup } from '@/modules/financials/application/get-organization-project-rollup';
 import { getOrganizationEarlyWarnings } from '@/modules/forecast';
 import { isOcrReviewUiAllowed, listOcrCandidates } from '@/modules/ocr';
@@ -69,6 +69,7 @@ import {
   billingPlanCycleDraftCopy,
   billingPlanMilestoneDueCopy,
   billingPlanRetentionReleaseDueCopy,
+  missingAttendanceTodayCopy,
 } from '../domain/item-copy';
 
 const PER_SOURCE_CAP = 15;
@@ -192,6 +193,30 @@ export async function collectOpenAttendance(ctx: CollectContext): Promise<Comman
       meta: { workDate: day.workDate, employeeId: day.employeeId },
     });
   });
+}
+
+export async function collectMissingAttendanceToday(
+  ctx: CollectContext,
+): Promise<CommandCenterItem[]> {
+  if (!hasPermission(ctx.context, PERMISSIONS.ATTENDANCE_MANAGE)) return [];
+
+  const missing = await listEmployeesWithoutAttendanceToday(ctx.context, ctx.today);
+  if (missing.length === 0) return [];
+
+  const locale = localeOf(ctx);
+  const copy = missingAttendanceTodayCopy(locale, { count: missing.length, date: ctx.today });
+  return [
+    withItemDefaults({
+      sourceType: 'missing_attendance_today',
+      sourceId: `${ctx.today}`,
+      what: copy.what,
+      why: copy.why,
+      where: fallbackWhere(locale, 'workforce'),
+      href: '/workforce/attendance',
+      severity: 'medium' as const,
+      meta: { count: missing.length, date: ctx.today },
+    }),
+  ];
 }
 
 export async function collectUnallocatedEmployeeCost(
@@ -1237,6 +1262,7 @@ export async function collectAllSources(ctx: CollectContext): Promise<CommandCen
     collectBillingPlanDraftCycles,
     collectBillingPlanMilestonesDue,
     collectBillingPlanRetentionReleaseDue,
+    collectMissingAttendanceToday,
   ];
 
   const settled = await Promise.allSettled(collectors.map((fn) => fn(ctx)));

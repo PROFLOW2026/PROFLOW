@@ -16,10 +16,12 @@ import {
   changeSubcontractStatus,
   addApprovedSubcontractChange,
   linkSubcontractDocument,
+  recordSubcontractAdvance,
   createSubcontractSchema,
   changeSubcontractStatusSchema,
   addSubcontractValueChangeSchema,
   linkSubcontractDocumentSchema,
+  createSubcontractAdvanceSchema,
   upsertVendorPartyIdentifier,
   removeVendorPartyIdentifier,
   type CreateVendorInput,
@@ -404,6 +406,37 @@ export async function linkSubcontractDocumentAction(
   try {
     await withOrgContext((context) => linkSubcontractDocument(context, parsed.data));
     revalidatePath('/vendors');
+    if (vendorId) revalidatePath(`/vendors/${vendorId}`);
+    if (projectId) revalidatePath(`/projects/${projectId}`);
+    return { ok: true };
+  } catch (error) {
+    if (error instanceof AppError) return { error: t('validationFailed') };
+    throw error;
+  }
+}
+
+export async function createSubcontractAdvanceAction(
+  _prev: VendorFormState,
+  formData: FormData,
+): Promise<VendorFormState> {
+  const t = await getTranslations('errors');
+  const vendorId = String(formData.get('vendorId') ?? '');
+  const projectId = String(formData.get('projectId') ?? '');
+
+  const parsed = createSubcontractAdvanceSchema.safeParse({
+    subcontractAgreementId: formData.get('subcontractAgreementId'),
+    amount: formData.get('amount'),
+    paidDate: formData.get('paidDate') || null,
+    notes: formData.get('notes') || null,
+  });
+  if (!parsed.success) {
+    return { error: t('validationFailed') };
+  }
+
+  try {
+    await withOrgContext((context) => recordSubcontractAdvance(context, parsed.data));
+    revalidatePath('/vendors');
+    revalidatePath('/subcontracts');
     if (vendorId) revalidatePath(`/vendors/${vendorId}`);
     if (projectId) revalidatePath(`/projects/${projectId}`);
     return { ok: true };

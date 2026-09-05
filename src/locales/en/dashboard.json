@@ -10,7 +10,17 @@
     "approvedNotBilled": "{count, plural, =1 {# approved change is not billed yet} other {# approved changes are not billed yet}}",
     "overdueBilling": "{count, plural, =1 {# billing record is overdue} other {# billing records are overdue}}",
     "pendingChanges": "{count, plural, =1 {# change is waiting for approval} other {# changes are waiting for approval}}",
+    "pendingTime": "{employees} employee(s) — {hours} hours pending approval",
+    "pendingTimeLink": "Review time approvals",
     "linkToday": "Everything that needs handling"
+  },
+  "laborReconciliation": {
+    "title": "Labor pool",
+    "hint": "Approved allocated hours + pending hours = total labor pool for the period.",
+    "allocated": "Allocated (approved)",
+    "unallocated": "Pending approval",
+    "total": "Total labor pool",
+    "equation": "{allocated} + {unallocated} = {total}"
   },
   "empty": {
     "title": "Start with your first project",
@@ -35,7 +45,7 @@
     "colProject": "Project",
     "colClient": "Client",
     "colValue": "Value",
-    "colActual": "Actual cost",
+    "colActual": "Recognized cost",
     "colProfit": "Profit",
     "colProfitability": "Profitability %",
     "colStatus": "Status",
@@ -46,7 +56,12 @@
     "title": "Business summary",
     "outstanding": "Outstanding to collect",
     "invoicedThisMonth": "Invoice total this month",
-    "costsThisMonth": "Costs this month net"
+    "collectionsThisMonth": "Collections this month",
+    "costsThisMonth": "Costs this month net",
+    "prevMonth": "Previous month",
+    "nextMonth": "Next month",
+    "viewApOutstanding": "View open vendor bills",
+    "viewUnallocatedExpenses": "View unallocated expenses"
   },
   "missingData": {
     "missingButtonOne": "1 missing data point",
@@ -337,7 +352,7 @@
       "empty": "No management metrics yet from the data entered so far.",
       "activeProjectValue": "Active project contract value",
       "unbilledBacklog": "Still to bill on contract",
-      "totalActualCost": "Total actual cost",
+      "totalActualCost": "Total recognized cost",
       "totalCommitments": "Open commitments",
       "expectedProfit": "Expected profit",
       "clientOutstanding": "Client outstanding",

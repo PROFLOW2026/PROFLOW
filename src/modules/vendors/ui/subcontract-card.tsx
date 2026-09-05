@@ -18,6 +18,7 @@ import type { SubcontractDetail, SubcontractListItem, SubcontractStatus } from '
 import {
   addSubcontractChangeAction,
   changeSubcontractStatusAction,
+  createSubcontractAdvanceAction,
   linkSubcontractDocumentAction,
   type VendorFormState,
 } from '@/app/[locale]/(app)/vendors/actions';
@@ -33,6 +34,7 @@ export interface SubcontractCardProps {
   readonly item: SubcontractListItem;
   readonly detail?: SubcontractDetail;
   readonly canManage: boolean;
+  readonly canManageAdvances?: boolean;
   readonly counterpartHref: string;
   readonly counterpartLabel: string;
   readonly documentCandidates: readonly { id: string; originalFilename: string }[];
@@ -42,6 +44,7 @@ export function SubcontractCard({
   item,
   detail,
   canManage,
+  canManageAdvances = false,
   counterpartHref,
   counterpartLabel,
   documentCandidates,
@@ -60,6 +63,11 @@ export function SubcontractCard({
     linkSubcontractDocumentAction,
     {},
   );
+  const [advanceState, advanceAction, advancePending] = useActionState<VendorFormState, FormData>(
+    createSubcontractAdvanceAction,
+    {},
+  );
+  const [showAdvance, setShowAdvance] = useState(false);
 
   const resolvedDocumentId =
     documentId && documentCandidates.some((document) => document.id === documentId)
@@ -124,6 +132,84 @@ export function SubcontractCard({
         </div>
       </dl>
       <p className="text-start text-xs text-[var(--pf-text-muted)]">{t('cardMetricsHint')}</p>
+
+      <section className="flex flex-col gap-2 rounded-md border border-dashed border-[var(--pf-border-default)] p-3">
+        <h3 className="text-sm font-medium">{t('advances.title')}</h3>
+        <p className="text-xs text-[var(--pf-text-muted)]">{t('advances.hint')}</p>
+        <dl className="grid grid-cols-2 gap-2 text-sm sm:grid-cols-3">
+          <div className="text-start">
+            <dt className="text-[var(--pf-text-muted)]">{t('advances.paid')}</dt>
+            <dd>
+              <MoneyText
+                value={money(detail?.advancePosition.paid ?? item.advancePaidAmount, item.currency)}
+              />
+            </dd>
+          </div>
+          <div className="text-start">
+            <dt className="text-[var(--pf-text-muted)]">{t('advances.applied')}</dt>
+            <dd>
+              <MoneyText
+                value={money(
+                  detail?.advancePosition.applied ?? item.advanceAppliedAmount,
+                  item.currency,
+                )}
+              />
+            </dd>
+          </div>
+          <div className="text-start">
+            <dt className="text-[var(--pf-text-muted)]">{t('advances.outstanding')}</dt>
+            <dd>
+              <MoneyText
+                value={money(
+                  detail?.advancePosition.outstanding ?? item.advanceOutstandingAmount,
+                  item.currency,
+                )}
+              />
+            </dd>
+          </div>
+        </dl>
+        {canManageAdvances ? (
+          <>
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              className="self-start"
+              onClick={() => setShowAdvance((value) => !value)}
+            >
+              {t('advances.add')}
+            </Button>
+            {showAdvance ? (
+              <form
+                action={advanceAction}
+                className="flex flex-col gap-3 rounded-lg border border-[var(--pf-border-default)] p-3"
+              >
+                <input type="hidden" name="subcontractAgreementId" value={item.id} />
+                <input type="hidden" name="vendorId" value={item.vendorId} />
+                <input type="hidden" name="projectId" value={item.projectId} />
+                {advanceState.error ? <Alert tone="danger">{advanceState.error}</Alert> : null}
+                {advanceState.ok ? <Alert tone="success">{t('advances.addSuccess')}</Alert> : null}
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <Field label={t('advances.amountLabel')} required>
+                    {(control) => (
+                      <Input {...control} name="amount" inputMode="decimal" dir="ltr" required />
+                    )}
+                  </Field>
+                  <Field label={t('advances.paidDateLabel')} required>
+                    {(control) => <Input {...control} name="paidDate" type="date" dir="ltr" required />}
+                  </Field>
+                </div>
+                <Field label={t('notesLabel')}>
+                  {(control) => <Input {...control} name="notes" />}
+                </Field>
+                <Button type="submit" size="sm" loading={advancePending} className="self-start">
+                  {t('advances.addSave')}
+                </Button>
+              </form>
+            ) : null}
+          </>
+        ) : null}
+      </section>
 
       {flags ? (
         <p className="text-start text-xs text-[var(--pf-text-secondary)]">

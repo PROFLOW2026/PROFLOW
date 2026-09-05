@@ -1,0 +1,14 @@
+{
+  "title": "נוכחות",
+  "today": "היום",
+  "monthly": "לוח חודשי",
+  "history": "היסטוריה",
+  "whoReported": "מי דיווח היום",
+  "whoMissing": "מי לא דיווח",
+  "project": "פרויקט",
+  "hours": "שעות",
+  "startTime": "שעת התחלה",
+  "approval": "סטטוס אישור",
+  "missingDays": "ימים חסרים",
+  "missingOnly": "הצג רק עובדים עם ימים חסרים החודש"
+}

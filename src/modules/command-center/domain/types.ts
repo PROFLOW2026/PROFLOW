@@ -37,6 +37,7 @@ export const COMMAND_CENTER_SOURCE_TYPES = [
   'billing_plan_cycle_draft',
   'billing_plan_milestone_due',
   'billing_plan_retention_release_due',
+  'missing_attendance_today',
 ] as const;
 
 export type CommandCenterSourceType = (typeof COMMAND_CENTER_SOURCE_TYPES)[number];

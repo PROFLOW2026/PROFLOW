@@ -74,6 +74,7 @@ export const updateOrganizationSchema = z.object({
   timezone: z.string().trim().min(1).optional(),
   countryCode: z.string().trim().length(2).optional(),
   defaultLocale: z.enum(['he-IL', 'en']).optional(),
+  workWeekStartDay: z.coerce.number().int().min(0).max(6).optional(),
 });
 
 export const inviteMemberSchema = z.object({

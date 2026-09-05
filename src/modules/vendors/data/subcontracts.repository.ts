@@ -10,7 +10,7 @@
  * via the canonical documents linker.
  */
 
-import { and, desc, eq, inArray, isNull } from 'drizzle-orm';
+import { and, desc, eq, gte, inArray, isNull, lte, or } from 'drizzle-orm';
 import {
   apBills,
   apPaymentApplications,
@@ -41,6 +41,11 @@ import { computeCurrentSubcontractValue } from '../domain/subcontract-value';
 import {
   computeSubcontractAgreementRemaining,
 } from '../domain/subcontract-commitment';
+import {
+  computeAdvanceOutstandingBalance,
+  foldAdvanceCashIntoPaid,
+} from '../domain/subcontract-advances';
+import { listSubcontractAdvances } from './subcontract-advances.repository';
 import { loadRecognizedActualForSubcontractAgreement } from '@/modules/financials';
 
 function mapAgreement(row: typeof subcontractAgreements.$inferSelect): SubcontractAgreementRecord {
@@ -259,6 +264,9 @@ async function listAgreements(
     projectId?: string;
     status?: string;
     limit?: number;
+    /** Filter agreements active within this period (startDate <= toDate AND (endDate IS NULL OR endDate >= fromDate)) */
+    fromDate?: string | null;
+    toDate?: string | null;
   },
 ): Promise<SubcontractListItem[]> {
   const conditions = [
@@ -269,6 +277,24 @@ async function listAgreements(
   if (filters.projectId) conditions.push(eq(subcontractAgreements.projectId, filters.projectId));
   if (filters.status && filters.status !== 'all') {
     conditions.push(eq(subcontractAgreements.status, filters.status));
+  }
+  if (filters.toDate) {
+    // Agreement must have started on or before the end of the filter range
+    conditions.push(
+      or(
+        isNull(subcontractAgreements.startDate),
+        lte(subcontractAgreements.startDate, filters.toDate),
+      )!,
+    );
+  }
+  if (filters.fromDate) {
+    // Agreement must still be ongoing or have ended on/after the start of the filter range
+    conditions.push(
+      or(
+        isNull(subcontractAgreements.endDate),
+        gte(subcontractAgreements.endDate, filters.fromDate),
+      )!,
+    );
   }
 
   const rows = await db
@@ -306,6 +332,12 @@ async function listAgreements(
       agreement.id,
     );
     const cash = computeSubcontractCashPosition(cashRows, agreement.currency);
+    const advances = await listSubcontractAdvances(db, organizationId, agreement.id);
+    const advancePosition = computeAdvanceOutstandingBalance(advances, agreement.currency);
+    const paidWithAdvances = foldAdvanceCashIntoPaid(
+      money(cash.paid, agreement.currency),
+      money(advancePosition.paid, agreement.currency),
+    );
     items.push({
       ...agreement,
       vendorName: row.vendorName,
@@ -314,8 +346,11 @@ async function listAgreements(
       recognizedActualAmount: recognized.amount,
       remainingCommitmentAmount: remaining.amount,
       billedAmount: cash.billed,
-      paidAmount: cash.paid,
+      paidAmount: paidWithAdvances.amount,
       outstandingAmount: cash.outstanding,
+      advancePaidAmount: advancePosition.paid,
+      advanceAppliedAmount: advancePosition.applied,
+      advanceOutstandingAmount: advancePosition.outstanding,
     });
   }
   return items;
@@ -345,6 +380,8 @@ export async function listOrgSubcontracts(
     projectId?: string;
     status?: string;
     limit?: number;
+    fromDate?: string | null;
+    toDate?: string | null;
   } = {},
 ): Promise<SubcontractListItem[]> {
   return listAgreements(db, organizationId, filters);

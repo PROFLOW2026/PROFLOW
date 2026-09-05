@@ -6,6 +6,7 @@
     "time": "Time entries",
     "timesheets": "Timesheets",
     "attendance": "Attendance",
+    "monthlyAttendance": "Monthly grid",
     "approvals": "Timesheet approvals"
   },
   "timesheets": {
@@ -31,6 +32,9 @@
     "empty": {
       "title": "No timesheets yet",
       "description": "Submit time entries to create a period timesheet for the employee week."
+    },
+    "filters": {
+      "workDateHint": "Filters use the timesheet work period — not payment or approval date."
     }
   },
   "rateUnits": {
@@ -175,7 +179,24 @@
       "archive": "Deactivate / archive",
       "archiveConfirm": "Archive this employee? History and time entries are kept. There is no hard delete.",
       "restore": "Restore to active",
-      "archivedBadge": "Archived"
+      "archivedBadge": "Archived",
+      "periodSummarySection": "Period summary"
+    },
+    "periodSummary": {
+      "title": "Period summary",
+      "workDays": "Days reported",
+      "hours": "Total hours",
+      "missing": "{count, plural, one {# missing day} other {# missing days}}",
+      "missingNone": "Missing days",
+      "pending": "Pending approval",
+      "approved": "Approved",
+      "projectBreakdown": "Breakdown by project",
+      "projectMeta": "{days} days · {hours} hours",
+      "costPending": "Cost pending",
+      "unallocated": "General / overhead",
+      "unallocatedMeta": "{days} days · {hours} hours",
+      "recognizedCost": "Recognized cost",
+      "selectRange": "Apply period"
     },
     "projects": {
       "title": "Assignments / projects",
@@ -300,8 +321,9 @@
       "all": "All",
       "employee": "Employee",
       "project": "Project",
-      "from": "From",
-      "to": "To",
+      "from": "Work date from",
+      "to": "Work date to",
+      "workDateHint": "Filters use the work date — not the time the hours were entered.",
       "status": "Status",
       "kind": "Type",
       "approval": "Approval"
@@ -429,7 +451,8 @@
     "laborActualSummary": "{hours} hours · {count, plural, one {# employee} other {# employees}}",
     "laborActualMissingCost": "Cost incomplete ({count, plural, one {# entry} other {# entries}} missing cost — not shown as ₪0)",
     "laborActualEmployeeMeta": "{hours} h · {days} work days",
-    "laborActualCostUnavailable": "Cost unavailable"
+    "laborActualCostUnavailable": "Cost unavailable",
+    "laborPoolEquation": "Allocated {allocated} + pending {unallocated} = {total} labor pool"
   },
   "monthReview": {
     "title": "Monthly employer cost (optional advanced)",
@@ -472,6 +495,71 @@
   },
   "attendance": {
     "title": "Attendance",
+    "viewsLabel": "Attendance views",
+    "monthCalendar": {
+      "title": "Monthly Attendance Calendar",
+      "prevMonth": "Previous month",
+      "nextMonth": "Next month",
+      "missing": "Missing",
+      "approved": "Approved",
+      "pending": "Pending",
+      "void": "Void",
+      "workday": "Workday",
+      "holiday": "Day off",
+      "noData": "No data"
+    },
+    "dailyRoster": {
+      "title": "Today's Attendance Status",
+      "reported": "Reported",
+      "notReported": "Not reported",
+      "addAttendance": "Add attendance"
+    },
+    "todayView": {
+      "tab": "Today",
+      "hint": "Who reported today, who has not, which project, hours and start time, and approval status.",
+      "awaiting": "Awaiting / missing hours",
+      "noProject": "General work",
+      "openDay": "Day details",
+      "columns": {
+        "employee": "Employee",
+        "project": "Project",
+        "start": "Start time",
+        "hours": "Hours",
+        "approval": "Approval",
+        "action": "Action"
+      },
+      "approval": {
+        "draft": "Draft",
+        "submitted": "Submitted",
+        "approved": "Approved",
+        "returned": "Returned",
+        "awaiting": "Awaiting hours",
+        "missing": "Did not report"
+      }
+    },
+    "monthlyGrid": {
+      "tab": "Monthly grid",
+      "navLink": "Monthly attendance grid",
+      "title": "Monthly attendance grid",
+      "description": "Select an employee and month. Missing days are highlighted in red. Click a day for details.",
+      "employee": "Employee",
+      "allEmployees": "All employees",
+      "missingOnly": "Show only employees with missing days this month",
+      "apply": "Apply",
+      "prevMonth": "Previous month",
+      "nextMonth": "Next month",
+      "empty": "No rows match this filter.",
+      "missingCount": "{count, plural, one {# missing day} other {# missing days}}",
+      "legend": {
+        "approved": "Approved",
+        "pending": "Pending",
+        "worked": "Worked",
+        "missing": "Missing",
+        "dayOff": "Day off",
+        "future": "Future",
+        "void": "Void"
+      }
+    },
     "description": "Clock in and out for presence. Attendance is not project time and never creates labor Actual by itself.",
     "updateCta": "Update attendance",
     "filteredEmployee": "Showing attendance for {name}. You can update historical dates below.",
@@ -513,7 +601,8 @@
     },
     "list": {
       "title": "Attendance days",
-      "hint": "Filter by date or status. Open a day for events and corrections. Status is presence only - see the completeness note.",
+      "tab": "History",
+      "hint": "Filter by work date or status. Open a day for events and corrections. Status is presence only - see the completeness note.",
       "empty": {
         "title": "No attendance yet",
         "description": "Optional - use the clock or a manager manual entry when you need presence tracking. Nothing is required to set up."
@@ -530,10 +619,12 @@
       "correct": "Correct attendance"
     },
     "filters": {
-      "from": "From",
-      "to": "To",
+      "from": "Work date from",
+      "to": "Work date to",
+      "workDateHint": "Filters use the work date — not the time the record was entered.",
       "status": "Status",
-      "allStatuses": "All statuses",
+      "allStatuses": "All statuses (including void)",
+      "activeStatuses": "Active (excluding void)",
       "apply": "Apply filters"
     },
     "manual": {

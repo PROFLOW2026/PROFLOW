@@ -10,7 +10,9 @@
     "remainingCommitment": "Remaining commitment",
     "etc": "ETC",
     "forecast": "Forecast",
+    "forecastFull": "Forecast (including general costs)",
     "variance": "Variance (Budget - Forecast)",
+    "varianceFull": "Variance (Budget - Full Forecast)",
     "contractNote": "Contract value lives under Financials / Changes — budget lines never replace it.",
     "engineMissing": "Actual and Forecast need project financials permission. Budget figures still show."
   },

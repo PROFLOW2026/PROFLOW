@@ -58,6 +58,15 @@ export interface OrgApPayablesSummary {
   readonly note: string;
 }
 
+export function billMatchesPayablesFilters(
+  bill: { readonly vendorId: string; readonly projectId: string | null },
+  filters: { readonly vendorId?: string; readonly projectId?: string | null },
+): boolean {
+  if (filters.vendorId && bill.vendorId !== filters.vendorId) return false;
+  if (filters.projectId !== undefined && bill.projectId !== filters.projectId) return false;
+  return true;
+}
+
 function toAggregateBills(bills: readonly BillPayableSummary[]) {
   return bills.map((bill) => {
     const paid = money(bill.paid, bill.currency);
@@ -115,8 +124,7 @@ async function loadPayableBills(
 ): Promise<BillPayableSummary[]> {
   const bills = await listApBills(context.db, context.organizationId, { limit: 500 });
   const filtered = bills.filter((bill) => {
-    if (options.vendorId && bill.vendorId !== options.vendorId) return false;
-    if (options.projectId !== undefined && bill.projectId !== options.projectId) return false;
+    if (!billMatchesPayablesFilters(bill, options)) return false;
     if (
       options.subcontractAgreementId &&
       bill.subcontractAgreementId !== options.subcontractAgreementId
@@ -265,12 +273,21 @@ function agingFromBills(
 
 export async function getOrganizationPayablesAging(
   context: OrgContext,
-  options: { readonly currency?: string; readonly asOf?: BusinessDate } = {},
+  options: {
+    readonly currency?: string;
+    readonly asOf?: BusinessDate;
+    readonly vendorId?: string;
+    readonly projectId?: string;
+  } = {},
 ): Promise<PayablesAging> {
   assertPermission(context, PERMISSIONS.AP_READ);
   const currency = (options.currency ?? context.organization.baseCurrency).toUpperCase();
   const asOf = options.asOf ?? businessDate(new Date().toISOString().slice(0, 10));
-  const bills = await loadPayableBills(context, { currency });
+  const bills = await loadPayableBills(context, {
+    currency,
+    vendorId: options.vendorId,
+    projectId: options.projectId,
+  });
   return agingFromBills(bills, currency, asOf);
 }
 

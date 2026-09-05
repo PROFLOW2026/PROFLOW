@@ -6,6 +6,10 @@ import { money, toNumericString } from '@/shared/money';
 import { resolveRetentionCapture } from '@/modules/retention';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
+import {
+  assertMonthOpenForRewrite,
+  yearMonthFromBusinessDate,
+} from '@/modules/month-close';
 import { noteModuleUsage, resolveAllocatedReference } from '@/modules/tenancy';
 import {
   parsePaymentTermMetadata,
@@ -144,6 +148,7 @@ export async function createBillingRecordWithPermission(
   }
 
   const issueDate = businessDate(input.issueDate);
+  await assertMonthOpenForRewrite(context, yearMonthFromBusinessDate(issueDate));
   const client = project.clientId
     ? await findClientById(context.db, context.organizationId, project.clientId)
     : null;

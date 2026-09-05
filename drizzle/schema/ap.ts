@@ -89,6 +89,8 @@ export const apBills = pgTable(
      */
     costFamily: costFamilyEnum('cost_family'),
     costCategoryId: uuid('cost_category_id'),
+    /** Optional header cost-code default (0074). Bill line remains authoritative. */
+    costCodeId: uuid('cost_code_id'),
     archivedAt: archivedAt(),
     ...timestamps(),
   },

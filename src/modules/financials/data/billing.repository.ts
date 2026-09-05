@@ -225,6 +225,43 @@ export async function sumInvoicedInDateRange(
   return sumInvoicedAmounts(inputs, currency);
 }
 
+/**
+ * Sum of actually recorded payment collections in a date range.
+ * Uses paymentDate (when cash was received), not issueDate.
+ * "Void" payments are excluded.
+ */
+export async function sumCollectionsInDateRange(
+  db: DbExecutor,
+  organizationId: string,
+  currency: string,
+  fromDate: BusinessDate,
+  toDate: BusinessDate,
+): Promise<MoneyValue> {
+  const rows = await db
+    .select({ amount: payments.amount, currency: payments.currency })
+    .from(payments)
+    .innerJoin(billingRecords, eq(billingRecords.id, payments.billingRecordId))
+    .where(
+      and(
+        eq(payments.organizationId, organizationId),
+        eq(payments.currency, currency),
+        sql`${payments.status} = 'recorded'`,
+        gte(payments.paymentDate, fromDate),
+        lte(payments.paymentDate, toDate),
+        isNull(billingRecords.archivedAt),
+      ),
+    );
+
+  let total = { amount: '0', currency };
+  for (const row of rows) {
+    const amt = fromNumericString(row.amount, row.currency);
+    if (!amt || amt.currency.toUpperCase() !== currency.toUpperCase()) continue;
+    const sum = parseFloat(total.amount) + parseFloat(amt.amount);
+    total = { amount: sum.toFixed(2), currency };
+  }
+  return { amount: total.amount, currency };
+}
+
 export async function countOverdueBillingRecords(
   db: DbExecutor,
   organizationId: string,

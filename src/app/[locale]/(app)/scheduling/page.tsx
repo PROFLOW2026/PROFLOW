@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/ui/page-header';
 import { listBoard, type SchedulingView } from '@/modules/scheduling';
-import { addDays, businessDate, todayInTimeZone } from '@/shared/dates';
+import { addDays, businessDate, normalizeWorkWeekStartDay, todayInTimeZone } from '@/shared/dates';
 import { endOfWeekSunday, startOfWeekSunday } from '@/modules/scheduling/domain/windows';
 import { listProjectsForOrg } from '@/modules/projects';
 import { listEmployeesForOrg } from '@/modules/workforce';
@@ -60,8 +60,9 @@ export default async function SchedulingPage({ searchParams }: SchedulingPagePro
       params.from && /^\d{4}-\d{2}-\d{2}$/.test(params.from)
         ? businessDate(params.from)
         : today;
-    const from = view === 'week' ? startOfWeekSunday(fromParam) : fromParam;
-    const to = view === 'week' ? endOfWeekSunday(fromParam) : from;
+    const weekStart = normalizeWorkWeekStartDay(context.organization.workWeekStartDay);
+    const from = view === 'week' ? startOfWeekSunday(fromParam, weekStart) : fromParam;
+    const to = view === 'week' ? endOfWeekSunday(fromParam, weekStart) : from;
 
     const prevFrom = view === 'week' ? addDays(from, -7) : addDays(from, -1);
     const nextFrom = view === 'week' ? addDays(from, 7) : addDays(from, 1);

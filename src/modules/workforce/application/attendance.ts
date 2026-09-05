@@ -38,6 +38,7 @@ import {
   insertAttendanceEvent,
   listAttendanceDays,
   listAttendanceEventsForDay,
+  listEmployeesWithoutAttendanceToday as listEmployeesWithoutAttendanceTodayDb,
   updateAttendanceDayStatus,
   voidAttendanceEventById,
 } from '../data/attendance.repository';
@@ -307,7 +308,8 @@ export async function listAttendanceDaysForOrg(
     employeeId: scopedEmployeeId,
     fromDate: parsed.fromDate,
     toDate: parsed.toDate,
-    status: parsed.status ?? 'all',
+    // Default: exclude void records so the owner sees only active attendance
+    status: parsed.status ?? 'active',
   });
 }
 
@@ -1224,4 +1226,16 @@ export function canClockAttendance(context: OrgContext): boolean {
     hasPermission(context, PERMISSIONS.ATTENDANCE_MANAGE) ||
     hasPermission(context, PERMISSIONS.ATTENDANCE_SELF)
   );
+}
+
+/**
+ * Returns active employees who have NOT reported attendance for a given work date.
+ * Requires ATTENDANCE_MANAGE permission (manager-only feature).
+ */
+export async function listEmployeesWithoutAttendanceToday(
+  context: OrgContext,
+  workDate: string,
+): Promise<{ employeeId: string; employeeName: string }[]> {
+  assertPermission(context, PERMISSIONS.ATTENDANCE_MANAGE);
+  return listEmployeesWithoutAttendanceTodayDb(context.db, context.organizationId, workDate);
 }

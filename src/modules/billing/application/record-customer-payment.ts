@@ -6,6 +6,11 @@ import type { OrgContext } from '@/shared/auth/context';
 import { money, toNumericString } from '@/shared/money';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
+import {
+  assertMonthOpenForRewrite,
+  rethrowClosedPeriodRewrite,
+  yearMonthFromBusinessDate,
+} from '@/modules/month-close';
 import { findBillingRecordById } from '../data/billing.repository';
 import {
   findClientInOrganization,
@@ -39,100 +44,107 @@ export async function recordCustomerPayment(
   const input = parsed.data;
   const currency = input.currency.toUpperCase();
   const billIds = input.applications.map((app) => app.billingRecordId);
+  const paymentDate = businessDate(input.paymentDate);
 
-  const paymentId = await withTransaction(context.db, async (tx) => {
-    const clientOk = await findClientInOrganization(tx, context.organizationId, input.clientId);
-    if (!clientOk) throw new NotFoundError('Client');
+  let paymentId: string;
+  try {
+    await assertMonthOpenForRewrite(context, yearMonthFromBusinessDate(paymentDate));
 
-    await lockBillingRecordsForUpdate(tx, context.organizationId, billIds);
+    paymentId = await withTransaction(context.db, async (tx) => {
+      const clientOk = await findClientInOrganization(tx, context.organizationId, input.clientId);
+      if (!clientOk) throw new NotFoundError('Client');
 
-    const applicationDetails: {
-      billingRecordId: string;
-      amount: string;
-      kind: 'invoice' | 'credit_note' | 'advance' | 'retention_release';
-      status: 'draft' | 'finalized' | 'void';
-      totalAmount: string;
-      priorAppliedAmounts: readonly string[];
-      priorRetentionHeldRemaining: string;
-      invoiceClientId: string | null;
-      invoiceCurrency: string;
-    }[] = [];
+      await lockBillingRecordsForUpdate(tx, context.organizationId, billIds);
 
-    for (const app of input.applications) {
-      const billingRecord = await findBillingRecordById(
-        tx,
-        context.organizationId,
-        app.billingRecordId,
-        context.organization.timezone,
-      );
-      if (!billingRecord) throw new NotFoundError('Billing record');
+      const applicationDetails: {
+        billingRecordId: string;
+        amount: string;
+        kind: 'invoice' | 'credit_note' | 'advance' | 'retention_release';
+        status: 'draft' | 'finalized' | 'void';
+        totalAmount: string;
+        priorAppliedAmounts: readonly string[];
+        priorRetentionHeldRemaining: string;
+        invoiceClientId: string | null;
+        invoiceCurrency: string;
+      }[] = [];
 
-      if (billingRecord.totalAmount.currency.toUpperCase() !== currency) {
-        throw new DomainRuleError(
-          'Invoice currency must match payment currency',
-          'billing.errors.paymentCurrencyMismatch',
+      for (const app of input.applications) {
+        const billingRecord = await findBillingRecordById(
+          tx,
+          context.organizationId,
+          app.billingRecordId,
+          context.organization.timezone,
         );
+        if (!billingRecord) throw new NotFoundError('Billing record');
+
+        if (billingRecord.totalAmount.currency.toUpperCase() !== currency) {
+          throw new DomainRuleError(
+            'Invoice currency must match payment currency',
+            'billing.errors.paymentCurrencyMismatch',
+          );
+        }
+
+        const prior = await listActiveAppliedAmountsForBillingRecord(
+          tx,
+          context.organizationId,
+          billingRecord.id,
+        );
+
+        applicationDetails.push({
+          billingRecordId: billingRecord.id,
+          amount: app.amount,
+          kind: billingRecord.kind,
+          status: billingRecord.status,
+          totalAmount: toNumericString(billingRecord.totalAmount),
+          priorAppliedAmounts: prior,
+          priorRetentionHeldRemaining: toNumericString(
+            billingRecord.retentionHeldRemaining ?? money('0', currency),
+          ),
+          invoiceClientId: billingRecord.clientId,
+          invoiceCurrency: billingRecord.totalAmount.currency,
+        });
       }
 
-      const prior = await listActiveAppliedAmountsForBillingRecord(
+      assertCustomerPaymentApplicationsValid({
+        currency,
+        paymentAmount: input.amount,
+        clientId: input.clientId,
+        applications: applicationDetails,
+      });
+
+      const paymentAmount = money(input.amount, currency);
+
+      // billingRecordId stays null so the 0039 1:1 trigger does not auto-apply.
+      const insertedPaymentId = await insertPayment(tx, context.organizationId, {
+        billingRecordId: null,
+        clientId: input.clientId,
+        amount: toNumericString(paymentAmount),
+        currency,
+        paymentDate,
+        method: input.method?.trim() || null,
+        reference: input.reference?.trim() || null,
+        notes: input.notes?.trim() || null,
+        createdByUserId: context.userId,
+      });
+
+      await lockPaymentForUpdate(tx, context.organizationId, insertedPaymentId);
+
+      await insertPaymentApplications(
         tx,
         context.organizationId,
-        billingRecord.id,
+        applicationDetails.map((app) => ({
+          paymentId: insertedPaymentId,
+          billingRecordId: app.billingRecordId,
+          appliedAmount: toNumericString(money(app.amount, currency)),
+          currency,
+        })),
       );
 
-      applicationDetails.push({
-        billingRecordId: billingRecord.id,
-        amount: app.amount,
-        kind: billingRecord.kind,
-        status: billingRecord.status,
-        totalAmount: toNumericString(billingRecord.totalAmount),
-        priorAppliedAmounts: prior,
-        priorRetentionHeldRemaining: toNumericString(
-          billingRecord.retentionHeldRemaining ?? money('0', currency),
-        ),
-        invoiceClientId: billingRecord.clientId,
-        invoiceCurrency: billingRecord.totalAmount.currency,
-      });
-    }
-
-    assertCustomerPaymentApplicationsValid({
-      currency,
-      paymentAmount: input.amount,
-      clientId: input.clientId,
-      applications: applicationDetails,
+      return insertedPaymentId;
     });
-
-    const paymentAmount = money(input.amount, currency);
-    const paymentDate = businessDate(input.paymentDate);
-
-    // billingRecordId stays null so the 0039 1:1 trigger does not auto-apply.
-    const insertedPaymentId = await insertPayment(tx, context.organizationId, {
-      billingRecordId: null,
-      clientId: input.clientId,
-      amount: toNumericString(paymentAmount),
-      currency,
-      paymentDate,
-      method: input.method?.trim() || null,
-      reference: input.reference?.trim() || null,
-      notes: input.notes?.trim() || null,
-      createdByUserId: context.userId,
-    });
-
-    await lockPaymentForUpdate(tx, context.organizationId, insertedPaymentId);
-
-    await insertPaymentApplications(
-      tx,
-      context.organizationId,
-      applicationDetails.map((app) => ({
-        paymentId: insertedPaymentId,
-        billingRecordId: app.billingRecordId,
-        appliedAmount: toNumericString(money(app.amount, currency)),
-        currency,
-      })),
-    );
-
-    return insertedPaymentId;
-  });
+  } catch (error) {
+    rethrowClosedPeriodRewrite(error);
+  }
 
   await recordAuditEvent(context, {
     action: PAYMENT_AUDIT_RECORDED,
@@ -143,7 +155,7 @@ export async function recordCustomerPayment(
       billingRecordId: null,
       amount: toNumericString(money(input.amount, currency)),
       currency,
-      paymentDate: businessDate(input.paymentDate),
+      paymentDate,
       applications: input.applications.map((app) => ({
         billingRecordId: app.billingRecordId,
         amount: app.amount,

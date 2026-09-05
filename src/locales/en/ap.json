@@ -27,9 +27,16 @@
       "net": "Net",
       "vat": "VAT",
       "gross": "Gross",
-      "billDate": "Bill date"
+      "billDate": "Bill date",
+      "dueDate": "Due date",
+      "payableStatus": "Payment status"
     },
-    "noReference": "Untitled bill"
+    "noReference": "Untitled bill",
+    "paidInPeriodLabel": "Cash paid to vendors in period:",
+    "paidInPeriodHint": "(by payment date — not bill date)",
+    "billDateHint": "The list is filtered by bill date — not payment date.",
+    "paymentDateFrom": "Payment date from",
+    "paymentDateTo": "Payment date to"
   },
   "statuses": {
     "draft": "Draft",
@@ -336,9 +343,16 @@
     "description": "Payables aging by due date using outstanding (bill - payments - credits). Cash view - not Actual Cost.",
     "note": "Buckets use outstanding only. Payments never increase Actual; credits reduce both outstanding and Actual.",
     "asOf": "As of {date}",
-    "total": "Total outstanding",
+    "asOfLabel": "As of date",
+    "vendor": "Vendor",
+    "project": "Project",
+    "allVendors": "All vendors",
+    "allProjects": "All projects",
+    "apply": "Apply filters",
+    "clear": "Clear filters",
+    "total": "Total outstanding payable",
     "count": "{count, plural, one {# bill} other {# bills}}",
-    "filterNote": "Vendor/project query filters are reserved for a later pass; buckets show org-wide aging in the base currency.",
+    "filterNote": "Aging uses due date. Vendor and project narrow the buckets. This is a cash view — not recognized cost.",
     "buckets": {
       "current": "Current",
       "days_1_30": "1-30 days",

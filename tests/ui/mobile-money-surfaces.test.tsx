@@ -124,7 +124,7 @@ describe('mobile money surfaces @390px', () => {
     const viewport = screen.getByTestId('mobile-viewport');
     expect(viewport.getBoundingClientRect().width).toBeLessThanOrEqual(MOBILE_WIDTH_PX + 1);
 
-    for (const label of [/^סכום החוזה הנוכחי/, /^עלות בפועל/, /^רווח צפוי/]) {
+    for (const label of [/^סכום החוזה הנוכחי/, /^עלות מוכרת/, /^רווח צפוי/]) {
       const button = screen.getByRole('button', { name: label });
       expect(button).toBeVisible();
       expect(button.getBoundingClientRect().width).toBeLessThanOrEqual(MOBILE_WIDTH_PX + 1);
@@ -138,7 +138,7 @@ describe('mobile money surfaces @390px', () => {
       </MobileViewport>,
     );
 
-    expect(screen.getByText('עלות בפועל')).toBeVisible();
+    expect(screen.getByText('עלות מוכרת')).toBeVisible();
     expect(screen.getByText('חיובים ללקוח')).toBeVisible();
     expect(screen.getByText('יתרה פתוחה')).toBeVisible();
     expect(screen.getByText('רווח צפוי')).toBeVisible();

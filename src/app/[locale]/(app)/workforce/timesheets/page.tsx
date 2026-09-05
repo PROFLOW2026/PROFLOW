@@ -12,7 +12,8 @@ import { withOrgContext } from '@/shared/auth/session';
 import { AuthorizationError } from '@/shared/errors';
 import { hasAnyPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
-import { businessDate } from '@/shared/dates/dates';
+import { DateRangeSelector } from '@/components/patterns/date-range-selector';
+import { businessDate, todayInTimeZone } from '@/shared/dates/dates';
 import { formatBusinessDate } from '@/shared/dates/format';
 import { Link } from '@/shared/i18n/navigation';
 
@@ -29,7 +30,7 @@ export async function generateMetadata({
 export default async function TimesheetsListPage({
   searchParams,
 }: {
-  searchParams: Promise<{ employeeId?: string; status?: string }>;
+  searchParams: Promise<{ employeeId?: string; status?: string; fromDate?: string; toDate?: string }>;
 }) {
   const [t, locale, raw] = await Promise.all([
     getTranslations('workforce'),
@@ -39,10 +40,12 @@ export default async function TimesheetsListPage({
   const parsed = timesheetFiltersSchema.safeParse({
     employeeId: raw.employeeId || undefined,
     status: raw.status || undefined,
+    fromDate: raw.fromDate || undefined,
+    toDate: raw.toDate || undefined,
   });
   const filters = parsed.success ? parsed.data : {};
 
-  const sheets = await withOrgContext(async (context) => {
+  const { sheets, today } = await withOrgContext(async (context) => {
     if (
       !hasAnyPermission(context, [
         PERMISSIONS.WORKFORCE_READ,
@@ -52,7 +55,10 @@ export default async function TimesheetsListPage({
     ) {
       throw new AuthorizationError(PERMISSIONS.WORKFORCE_READ);
     }
-    return listTimesheetsForOrg(context, { ...filters, status: filters.status ?? 'all' });
+    return {
+      sheets: await listTimesheetsForOrg(context, { ...filters, status: filters.status ?? 'all' }),
+      today: todayInTimeZone(context.organization.timezone),
+    };
   });
 
   return (
@@ -60,6 +66,24 @@ export default async function TimesheetsListPage({
       <PageHeader title={t('timesheets.title')} description={t('timesheets.description')} />
       <WorkforceSubNav active="timesheets" />
       <p className="text-sm text-[var(--pf-text-secondary)]">{t('timesheets.notPayroll')}</p>
+      <form method="get" className="flex flex-col gap-2">
+        <p className="text-xs text-[var(--pf-text-muted)]">{t('timesheets.filters.workDateHint')}</p>
+        {filters.employeeId ? <input type="hidden" name="employeeId" value={filters.employeeId} /> : null}
+        {filters.status ? <input type="hidden" name="status" value={filters.status} /> : null}
+        <DateRangeSelector
+          today={today}
+          defaultFrom={filters.fromDate ?? ''}
+          defaultTo={filters.toDate ?? ''}
+          fromName="fromDate"
+          toName="toDate"
+        />
+        <button
+          type="submit"
+          className="self-start h-9 rounded-md border border-[var(--pf-border-strong)] px-4 text-sm font-medium"
+        >
+          {t('attendance.filters.apply')}
+        </button>
+      </form>
 
       {sheets.length === 0 ? (
         <EmptyState

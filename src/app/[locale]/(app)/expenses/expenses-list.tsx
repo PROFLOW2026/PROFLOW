@@ -5,6 +5,7 @@ import * as React from 'react';
 import { Receipt } from 'lucide-react';
 import { MoneyText } from '@/components/patterns/money-text';
 import { ResponsiveTable } from '@/components/patterns/responsive-table';
+import { DateRangeSelector } from '@/components/patterns/date-range-selector';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { Field } from '@/components/ui/field';
 import {
@@ -18,7 +19,7 @@ import {
 import { EmptyState } from '@/components/ui/empty-state';
 import { displayCostCategoryName } from '@/modules/expenses/domain/cost-category-display';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Input as _Input } from '@/components/ui/input';
 import { pressableCardLinkClassName, textNavLinkClassName } from '@/components/ui/pressable';
 import {
   Select,
@@ -89,6 +90,8 @@ export interface ExpensesListProps {
     costCategoryId?: string;
     statusFilter?: ExpenseListStatusFilter;
   };
+  /** Server-supplied today for timezone-accurate presets in DateRangeSelector. */
+  today?: string;
 }
 
 export function ExpensesList({
@@ -102,6 +105,7 @@ export function ExpensesList({
   categories,
   locale,
   initialFilters,
+  today,
 }: ExpensesListProps) {
   const t = useTranslations('expenses');
   const tStatus = useTranslations('status');
@@ -200,33 +204,24 @@ export function ExpensesList({
 
   return (
     <div className="flex min-w-0 flex-col gap-4">
+      {/* Date range with presets — controlled by the parent's dateFrom/dateTo state */}
+      <div className="rounded-lg border border-[var(--pf-border-default)] p-3">
+        <p className="mb-2 text-xs text-[var(--pf-text-muted)]">{t('filters.expenseDateHint')}</p>
+        <DateRangeSelector
+          today={today}
+          from={dateFrom}
+          to={dateTo}
+          onFromChange={setDateFrom}
+          onToChange={setDateTo}
+          fromName="dateFrom"
+          toName="dateTo"
+          labels={{
+            from: t('filters.dateFrom'),
+            to: t('filters.dateTo'),
+          }}
+        />
+      </div>
       <div className="grid min-w-0 gap-3 rounded-lg border border-[var(--pf-border-default)] p-3 sm:grid-cols-2 lg:grid-cols-3">
-        <Field label={t('filters.dateFrom')} className="min-w-0">
-          {(control) => (
-            <Input
-              type="date"
-              id={control.id}
-              aria-describedby={control['aria-describedby']}
-              value={dateFrom}
-              onChange={(event) => setDateFrom(event.target.value)}
-              className="min-w-0"
-              dir="ltr"
-            />
-          )}
-        </Field>
-        <Field label={t('filters.dateTo')} className="min-w-0">
-          {(control) => (
-            <Input
-              type="date"
-              id={control.id}
-              aria-describedby={control['aria-describedby']}
-              value={dateTo}
-              onChange={(event) => setDateTo(event.target.value)}
-              className="min-w-0"
-              dir="ltr"
-            />
-          )}
-        </Field>
 
         <Field label={t('filters.project')} className="min-w-0">
           {(control) => (

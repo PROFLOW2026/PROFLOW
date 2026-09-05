@@ -1,0 +1,14 @@
+{
+  "title": "Attendance",
+  "today": "Today",
+  "monthly": "Monthly grid",
+  "history": "History",
+  "whoReported": "Who reported today",
+  "whoMissing": "Who has not reported",
+  "project": "Project",
+  "hours": "Hours",
+  "startTime": "Start time",
+  "approval": "Approval status",
+  "missingDays": "Missing days",
+  "missingOnly": "Show only employees with missing days this month"
+}

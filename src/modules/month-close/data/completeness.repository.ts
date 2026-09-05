@@ -227,8 +227,10 @@ async function countVendorBillsUnallocated(
           AND a.ap_bill_id = b.id
           AND a.status = 'applied'
       )
+      -- Compare allocations to NET (VAT-exclusive), falling back to total.
+      -- Keep in sync with billCompletenessAllocationBasis.
       AND (
-        b.total_amount::numeric
+        COALESCE(b.net_amount, b.total_amount)::numeric
         - COALESCE((
             SELECT SUM(a.amount::numeric)
             FROM ap_bill_project_allocations a
@@ -293,8 +295,7 @@ async function countApAnomalies(
       AND b.bill_date >= ${startDate}
       AND b.bill_date <= ${endDate}
       AND (
-        b.status = 'partially_matched'
-        OR ABS(
+        ABS(
           b.total_amount::numeric
           - COALESCE((
               SELECT SUM(l.line_total::numeric)
@@ -309,7 +310,7 @@ async function countApAnomalies(
             WHERE a.organization_id = b.organization_id
               AND a.ap_bill_id = b.id
               AND a.status = 'applied'
-          ), 0) > b.total_amount::numeric + 0.000001
+          ), 0) > COALESCE(b.net_amount, b.total_amount)::numeric + 0.000001
       )
     ORDER BY b.id
     LIMIT 200

@@ -85,6 +85,56 @@ describe('budget variance math', () => {
     expect(control.variance).toEqual(money('-10000', ILS));
   });
 
+  it('uses Full Forecast when profitability mode is include_general', () => {
+    const cost = {
+      ...emptyCostPosition(ILS),
+      actualCostToDate: money('50000', ILS),
+      estimatedFinalCost: money('80000', ILS),
+      directForecastFinalCost: money('80000', ILS),
+      fullForecastFinalCost: money('95000', ILS),
+      committedOpen: money('20000', ILS),
+      expectedRemainingCost: money('10000', ILS),
+    };
+
+    const control = composeBudgetControlPosition({
+      budgetAmount: '100000',
+      currency: ILS,
+      cost,
+      mode: 'include_general',
+    });
+
+    expect(control.forecast).toEqual(money('95000', ILS));
+    expect(control.variance).toEqual(money('5000', ILS));
+  });
+
+  it('keeps Direct Forecast when profitability mode is omitted or direct', () => {
+    const cost = {
+      ...emptyCostPosition(ILS),
+      actualCostToDate: money('50000', ILS),
+      estimatedFinalCost: money('80000', ILS),
+      directForecastFinalCost: money('80000', ILS),
+      fullForecastFinalCost: money('95000', ILS),
+      committedOpen: money('20000', ILS),
+      expectedRemainingCost: money('10000', ILS),
+    };
+
+    const omitted = composeBudgetControlPosition({
+      budgetAmount: '100000',
+      currency: ILS,
+      cost,
+    });
+    const direct = composeBudgetControlPosition({
+      budgetAmount: '100000',
+      currency: ILS,
+      cost,
+      mode: 'direct',
+    });
+
+    expect(omitted.forecast).toEqual(money('80000', ILS));
+    expect(direct.forecast).toEqual(money('80000', ILS));
+    expect(omitted.variance).toEqual(money('20000', ILS));
+  });
+
   it('without engine cost, Actual/Forecast stay zero and variance equals budget', () => {
     const control = composeBudgetControlPosition({
       budgetAmount: '25000',

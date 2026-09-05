@@ -633,3 +633,36 @@ export function createInMemoryVendorPaymentsRepository(): VendorPaymentsReposito
     },
   };
 }
+
+/**
+ * Sum of cash payments made to vendors in a date range (by paymentDate).
+ * Only "recorded" (non-voided) payments are counted.
+ * Returns 0 if no payments found.
+ */
+export async function sumApPaymentsMadeInDateRange(
+  db: DbExecutor,
+  organizationId: string,
+  currency: string,
+  fromDate: BusinessDate,
+  toDate: BusinessDate,
+): Promise<string> {
+  const { gte, lte } = await import('drizzle-orm');
+  const rows = await db
+    .select({ amount: apPayments.amount })
+    .from(apPayments)
+    .where(
+      and(
+        eq(apPayments.organizationId, organizationId),
+        eq(apPayments.currency, currency),
+        sql`${apPayments.status} = 'recorded'`,
+        gte(apPayments.paymentDate, fromDate),
+        lte(apPayments.paymentDate, toDate),
+      ),
+    );
+
+  let total = 0;
+  for (const row of rows) {
+    total += parseFloat(row.amount ?? '0');
+  }
+  return total.toFixed(2);
+}

@@ -157,6 +157,7 @@ export async function updateBusinessProfileAction(
         baseCurrency: formValue(formData, 'baseCurrency'),
         timezone: formValue(formData, 'timezone'),
         defaultLocale: formValue(formData, 'defaultLocale'),
+        workWeekStartDay: formValue(formData, 'workWeekStartDay'),
       }),
     );
     revalidatePath('/settings/business');

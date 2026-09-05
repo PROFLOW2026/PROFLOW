@@ -3,6 +3,11 @@ import { NotFoundError } from '@/shared/errors';
 import type { OrgContext } from '@/shared/auth/context';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
+import {
+  assertMonthOpenForRewrite,
+  rethrowClosedPeriodRewrite,
+  yearMonthFromBusinessDate,
+} from '@/modules/month-close';
 import { assertVoidable } from '../domain/lifecycle';
 import { findBillingRecordById, updateBillingRecordRow } from '../data/billing.repository';
 
@@ -26,10 +31,19 @@ export async function voidBillingRecord(context: OrgContext, billingRecordId: st
 
   const voidedAt = new Date();
 
-  await updateBillingRecordRow(context.db, context.organizationId, billingRecordId, {
-    status: 'void',
-    voidedAt,
-  });
+  try {
+    await assertMonthOpenForRewrite(
+      context,
+      yearMonthFromBusinessDate(existing.issueDate),
+    );
+
+    await updateBillingRecordRow(context.db, context.organizationId, billingRecordId, {
+      status: 'void',
+      voidedAt,
+    });
+  } catch (error) {
+    rethrowClosedPeriodRewrite(error);
+  }
 
   await recordAuditEvent(context, {
     action: BILLING_AUDIT_VOIDED,

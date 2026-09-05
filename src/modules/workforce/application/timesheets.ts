@@ -4,6 +4,7 @@ import { ConflictError, DomainRuleError, NotFoundError, ValidationError } from '
 import { assertAnyPermission, assertPermission, hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import type { OrgContext } from '@/shared/auth/context';
+import { normalizeWorkWeekStartDay } from '@/shared/dates';
 import {
   isAccessibleProjectId,
   resolveAccessibleProjectIds,
@@ -320,10 +321,11 @@ export async function submitTimesheet(
   await requireEmployee(context, input.employeeId);
   await assertCanActOnEmployeeTime(context, input.employeeId);
 
+  const weekStart = normalizeWorkWeekStartDay(context.organization.workWeekStartDay);
   const period = input.periodStart
-    ? timesheetPeriodForWorkDate(input.periodStart)
+    ? timesheetPeriodForWorkDate(input.periodStart, weekStart)
     : input.workDate
-      ? timesheetPeriodForWorkDate(input.workDate)
+      ? timesheetPeriodForWorkDate(input.workDate, weekStart)
       : null;
 
   return withTransaction(context.db, async (tx) => {
@@ -347,9 +349,9 @@ export async function submitTimesheet(
       if (!first) {
         throw new DomainRuleError('Nothing to submit', 'workforce.errors.nothingToSubmit');
       }
-      const derived = timesheetPeriodForWorkDate(first.workDate);
+      const derived = timesheetPeriodForWorkDate(first.workDate, weekStart);
       for (const entry of candidates) {
-        const period = timesheetPeriodForWorkDate(entry.workDate);
+        const period = timesheetPeriodForWorkDate(entry.workDate, weekStart);
         if (period.periodStart !== derived.periodStart) {
           throw new DomainRuleError(
             'Time entries must belong to the same timesheet period',

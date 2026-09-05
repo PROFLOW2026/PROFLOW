@@ -289,6 +289,87 @@ export async function sumOrganizationCostsInDateRange(
   return sumMoney(values, currency);
 }
 
+/**
+ * Recognized org costs in a date range — expenses + AP vendor bills + labor.
+ *
+ * Cost types included:
+ *  - Expenses: finalized, expenseDate in range. Expenses that are already captured
+ *    by an accepted AP bill match are excluded to prevent double-counting.
+ *  - AP bills: recognized status (open/partially_matched/matched), billDate in range.
+ *    Uses netAmount (excl. VAT) as authoritative vendor cost.
+ *  - Labor: employee_month_costs (draft/applied/closed), yearMonth overlapping the range.
+ *
+ * This replaces the legacy `sumOrganizationCostsInDateRange` for the home dashboard
+ * "costs this month" KPI so that the figure reflects full recognized cost, not just
+ * finalized expense rows.
+ */
+export async function sumOrganizationRecognizedCostsInDateRange(
+  db: DbExecutor,
+  organizationId: string,
+  currency: string,
+  fromDate: BusinessDate,
+  toDate: BusinessDate,
+): Promise<MoneyValue> {
+  const row = sqlFirstRow<{ total: string }>(
+    await db.execute(sql`
+      SELECT coalesce(sum(s.amount), 0)::text AS total
+      FROM (
+        -- 1. Finalized expenses whose cost is NOT already covered by a recognized AP bill.
+        --    An expense is excluded when it has at least one accepted match to a recognized
+        --    bill (open/partially_matched/matched) so the AP bill amount is authoritative.
+        SELECT e.net_amount::numeric AS amount
+        FROM expenses e
+        WHERE e.organization_id = ${organizationId}
+          AND e.currency = ${currency}
+          AND e.status = 'finalized'
+          AND e.archived_at IS NULL
+          AND e.expense_date >= ${fromDate}
+          AND e.expense_date <= ${toDate}
+          AND NOT EXISTS (
+            SELECT 1
+            FROM ap_po_matches m
+            INNER JOIN ap_bills b
+              ON b.id = m.ap_bill_id
+              AND b.organization_id = m.organization_id
+            WHERE m.organization_id = ${organizationId}
+              AND m.expense_id = e.id
+              AND m.status = 'accepted'
+              AND b.status IN ('open', 'partially_matched', 'matched')
+              AND b.archived_at IS NULL
+          )
+
+        UNION ALL
+
+        -- 2. Recognized AP vendor bills — billDate used for period recognition
+        --    (billDate = recognition date; dueDate = cash payment date, not used here).
+        SELECT b.net_amount::numeric AS amount
+        FROM ap_bills b
+        WHERE b.organization_id = ${organizationId}
+          AND b.currency = ${currency}
+          AND b.status IN ('open', 'partially_matched', 'matched')
+          AND b.archived_at IS NULL
+          AND b.bill_date IS NOT NULL
+          AND b.bill_date >= ${fromDate}
+          AND b.bill_date <= ${toDate}
+
+        UNION ALL
+
+        -- 3. Employee monthly labor costs whose yearMonth overlaps the date range.
+        --    knownAmount is the best-available figure (actual when closed, estimated otherwise).
+        SELECT emc.known_amount::numeric AS amount
+        FROM employee_month_costs emc
+        WHERE emc.organization_id = ${organizationId}
+          AND emc.currency = ${currency}
+          AND emc.status IN ('draft', 'applied', 'closed')
+          AND emc.year_month >= to_char(${fromDate}::date, 'YYYY-MM')
+          AND emc.year_month <= to_char(${toDate}::date, 'YYYY-MM')
+      ) s
+    `),
+  );
+
+  return fromNumericString(row?.total ?? '0', currency) ?? zeroMoney(currency);
+}
+
 export async function hasAnyExpenseUsage(
   db: DbExecutor,
   organizationId: string,

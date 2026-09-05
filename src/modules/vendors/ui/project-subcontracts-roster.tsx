@@ -35,6 +35,7 @@ export interface ProjectSubcontractsRosterProps {
   readonly documentCandidates: readonly { id: string; originalFilename: string }[];
   readonly paymentTerms?: readonly { id: string; name: string }[];
   readonly canManage: boolean;
+  readonly canManageAdvances?: boolean;
   readonly defaultStartDate: string;
 }
 
@@ -47,6 +48,7 @@ export function ProjectSubcontractsRoster({
   documentCandidates,
   paymentTerms = [],
   canManage,
+  canManageAdvances = false,
   defaultStartDate,
 }: ProjectSubcontractsRosterProps) {
   const t = useTranslations('vendors.subcontracts');
@@ -214,6 +216,7 @@ export function ProjectSubcontractsRoster({
               item={item}
               detail={detailById.get(item.id)}
               canManage={canManage}
+              canManageAdvances={canManageAdvances}
               counterpartHref={`/vendors/${item.vendorId}`}
               counterpartLabel={item.vendorName}
               documentCandidates={documentCandidates}

@@ -18,7 +18,11 @@ export {
 } from './application/bills';
 export { editRecognizedApBill } from './application/edit-recognized-ap-bill';
 
-export { voidApBill, rejectSilentRecognizedBillEdit } from './application/void-bill';
+export {
+  voidApBill,
+  rejectSilentRecognizedBillEdit,
+  resolveVoidedBillCommitmentRestoreAmount,
+} from './application/void-bill';
 export { restoreApBill } from './application/restore-ap-bill';
 
 export {
@@ -57,6 +61,7 @@ export {
   getProjectApOutstanding,
   getOrganizationPayablesAging,
   getVendorPayablesAging,
+  billMatchesPayablesFilters,
 } from './application/payables';
 export type { BillPayableSummary, OrgApPayablesSummary } from './application/payables';
 
@@ -289,3 +294,4 @@ export type {
   ApPaymentWithApplications,
   VendorPaymentsRepository,
 } from './data/payments.repository';
+export { sumApPaymentsMadeInDateRange } from './data/payments.repository';

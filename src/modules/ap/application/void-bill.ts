@@ -145,7 +145,8 @@ async function restoreCommitmentForVoidedBill(
 
   const currency = committed.currency.toUpperCase();
   const cap = money(po.committedAmount, currency);
-  const restored = addMoney(money(committed.amount, currency), money(bill.totalAmount, currency));
+  const restoreAmount = resolveVoidedBillCommitmentRestoreAmount(bill);
+  const restored = addMoney(money(committed.amount, currency), money(restoreAmount, currency));
   const next =
     compareMoney(restored, cap) > 0 ? cap : restored;
   const nextStatus =
@@ -159,6 +160,17 @@ async function restoreCommitmentForVoidedBill(
     amount: next.amount,
     status: nextStatus,
   });
+}
+
+/**
+ * Restore the NET amount consumed at bill create (ex-VAT).
+ * Legacy rows without net fall back to total.
+ */
+export function resolveVoidedBillCommitmentRestoreAmount(bill: {
+  readonly netAmount?: string | null;
+  readonly totalAmount: string;
+}): string {
+  return bill.netAmount ?? bill.totalAmount;
 }
 
 /** @deprecated Use editRecognizedApBill in open months instead. */

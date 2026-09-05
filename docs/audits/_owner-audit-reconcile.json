@@ -1,0 +1,530 @@
+{
+  "generatedAt": "2026-08-27T21:28:18.356Z",
+  "engineUnallocByMonth": [
+    {
+      "yearMonth": "2026-01",
+      "engineUnalloc": "3518.561695"
+    },
+    {
+      "yearMonth": "2026-02",
+      "engineUnalloc": "5249.917627"
+    },
+    {
+      "yearMonth": "2026-03",
+      "engineUnalloc": "4802.958644"
+    },
+    {
+      "yearMonth": "2026-04",
+      "engineUnalloc": "5400.416271"
+    },
+    {
+      "yearMonth": "2026-05",
+      "engineUnalloc": "4689.823051"
+    },
+    {
+      "yearMonth": "2026-06",
+      "engineUnalloc": "5181.368474"
+    },
+    {
+      "yearMonth": "2026-07",
+      "engineUnalloc": "11098.306271"
+    },
+    {
+      "yearMonth": "2026-08",
+      "engineUnalloc": "3210.790000"
+    }
+  ],
+  "gcmMonths": [
+    {
+      "year_month": "2026-01",
+      "status": "open",
+      "pool_amount": "3518.560000",
+      "allocated_amount": "3518.560000",
+      "unallocatable_amount": "0.000000",
+      "basis_mode": "direct_actual_weight"
+    },
+    {
+      "year_month": "2026-02",
+      "status": "open",
+      "pool_amount": "5009.810000",
+      "allocated_amount": "5009.810000",
+      "unallocatable_amount": "0.000000",
+      "basis_mode": "direct_actual_weight"
+    },
+    {
+      "year_month": "2026-03",
+      "status": "open",
+      "pool_amount": "4802.960000",
+      "allocated_amount": "4802.960000",
+      "unallocatable_amount": "0.000000",
+      "basis_mode": "direct_actual_weight"
+    },
+    {
+      "year_month": "2026-04",
+      "status": "open",
+      "pool_amount": "1274.580000",
+      "allocated_amount": "1274.580000",
+      "unallocatable_amount": "0.000000",
+      "basis_mode": "direct_actual_weight"
+    },
+    {
+      "year_month": "2026-05",
+      "status": "open",
+      "pool_amount": "4151.330000",
+      "allocated_amount": "4151.330000",
+      "unallocatable_amount": "0.000000",
+      "basis_mode": "direct_actual_weight"
+    },
+    {
+      "year_month": "2026-06",
+      "status": "open",
+      "pool_amount": "4642.860000",
+      "allocated_amount": "4642.860000",
+      "unallocatable_amount": "0.000000",
+      "basis_mode": "direct_actual_weight"
+    },
+    {
+      "year_month": "2026-07",
+      "status": "open",
+      "pool_amount": "11098.310000",
+      "allocated_amount": "11098.310000",
+      "unallocatable_amount": "0.000000",
+      "basis_mode": "direct_actual_weight"
+    },
+    {
+      "year_month": "2026-08",
+      "status": "open",
+      "pool_amount": "3210.790000",
+      "allocated_amount": "3210.790000",
+      "unallocatable_amount": "0.000000",
+      "basis_mode": "direct_actual_weight"
+    }
+  ],
+  "gcmSources": [
+    {
+      "year_month": "2026-01",
+      "source_kind": "expense_unallocated",
+      "amount": "3518.561695",
+      "pool": "3518.560000"
+    },
+    {
+      "year_month": "2026-02",
+      "source_kind": "expense_unallocated",
+      "amount": "5009.807627",
+      "pool": "5009.810000"
+    },
+    {
+      "year_month": "2026-03",
+      "source_kind": "expense_unallocated",
+      "amount": "4802.958644",
+      "pool": "4802.960000"
+    },
+    {
+      "year_month": "2026-04",
+      "source_kind": "expense_unallocated",
+      "amount": "1274.576271",
+      "pool": "1274.580000"
+    },
+    {
+      "year_month": "2026-05",
+      "source_kind": "expense_unallocated",
+      "amount": "4151.333051",
+      "pool": "4151.330000"
+    },
+    {
+      "year_month": "2026-06",
+      "source_kind": "expense_unallocated",
+      "amount": "4642.858474",
+      "pool": "4642.860000"
+    },
+    {
+      "year_month": "2026-07",
+      "source_kind": "expense_unallocated",
+      "amount": "11098.306271",
+      "pool": "11098.310000"
+    },
+    {
+      "year_month": "2026-08",
+      "source_kind": "expense_unallocated",
+      "amount": "3210.790000",
+      "pool": "3210.790000"
+    }
+  ],
+  "expenseAllocations": [
+    {
+      "cnt": 0
+    }
+  ],
+  "costFamilies": [
+    {
+      "cost_family": "business_overhead",
+      "unalloc": true,
+      "cnt": 7,
+      "net": "35614.220339"
+    },
+    {
+      "cost_family": "direct_project",
+      "unalloc": false,
+      "cnt": 28,
+      "net": "318280.847459"
+    },
+    {
+      "cost_family": "shared",
+      "unalloc": true,
+      "cnt": 19,
+      "net": "20322.508473"
+    }
+  ],
+  "installmentExpenseImpact": [
+    {
+      "id": "989cc273-cd8e-4932-b205-6869d5154b02",
+      "full_net": "10677.966102",
+      "installment_count": 12,
+      "expense_date": "2026-08-27T00:00:00.000Z",
+      "description": "השכרת מחסן",
+      "project_id": null,
+      "recognized_through_aug": "7118.640000",
+      "schedule_total": "10677.970000"
+    },
+    {
+      "id": "23b26eee-46c3-49ff-99e0-71fbc5b0ebb3",
+      "full_net": "7022.033898",
+      "installment_count": 8,
+      "expense_date": "2026-08-27T00:00:00.000Z",
+      "description": "דלק",
+      "project_id": null,
+      "recognized_through_aug": "7022.030000",
+      "schedule_total": "7022.030000"
+    },
+    {
+      "id": "332bedd7-cf98-4de8-a34c-27026e82e455",
+      "full_net": "1440.677966",
+      "installment_count": 6,
+      "expense_date": "2026-01-12T00:00:00.000Z",
+      "description": "החלפת צמיגים",
+      "project_id": null,
+      "recognized_through_aug": "1440.680000",
+      "schedule_total": "1440.680000"
+    },
+    {
+      "id": "e800507f-2ff4-468b-aa32-63a849ba398d",
+      "full_net": "7161.016949",
+      "installment_count": 24,
+      "expense_date": "2026-03-01T00:00:00.000Z",
+      "description": "סלולר",
+      "project_id": null,
+      "recognized_through_aug": "1790.280000",
+      "schedule_total": "7161.020000"
+    },
+    {
+      "id": "7d127420-d37a-469a-97b5-702389de4fee",
+      "full_net": "4200.000000",
+      "installment_count": 12,
+      "expense_date": "2026-01-01T00:00:00.000Z",
+      "description": "ביטוח רכב",
+      "project_id": null,
+      "recognized_through_aug": "2800.000000",
+      "schedule_total": "4200.000000"
+    },
+    {
+      "id": "bbd3cdce-22e5-477f-bae1-1161e87cacb6",
+      "full_net": "7363.559322",
+      "installment_count": 12,
+      "expense_date": "2026-01-01T00:00:00.000Z",
+      "description": "טיפולי רכב",
+      "project_id": null,
+      "recognized_through_aug": "4909.040000",
+      "schedule_total": "7363.560000"
+    },
+    {
+      "id": "253c6631-635b-402a-9697-0044041c6ffc",
+      "full_net": "1350.000000",
+      "installment_count": 2,
+      "expense_date": "2026-03-25T00:00:00.000Z",
+      "description": "כלים חשמליים",
+      "project_id": null,
+      "recognized_through_aug": "1350.000000",
+      "schedule_total": "1350.000000"
+    },
+    {
+      "id": "85c2986b-d309-48d0-bb2b-8bae3d8e73d9",
+      "full_net": "1449.152542",
+      "installment_count": 8,
+      "expense_date": "2026-08-27T00:00:00.000Z",
+      "description": "אספקה טכנית",
+      "project_id": null,
+      "recognized_through_aug": "1449.150000",
+      "schedule_total": "1449.150000"
+    }
+  ],
+  "monthlyExpenseNet": [
+    {
+      "ym": "2026-01",
+      "net": "55374.915254",
+      "project_net": "42004.576271",
+      "unalloc_net": "13370.338983",
+      "cnt": 7
+    },
+    {
+      "ym": "2026-02",
+      "net": "35772.033898",
+      "project_net": "33674.576271",
+      "unalloc_net": "2097.457627",
+      "cnt": 8
+    },
+    {
+      "ym": "2026-03",
+      "net": "55837.288136",
+      "project_net": "46649.152543",
+      "unalloc_net": "9188.135593",
+      "cnt": 6
+    },
+    {
+      "ym": "2026-04",
+      "net": "42892.372881",
+      "project_net": "41617.796610",
+      "unalloc_net": "1274.576271",
+      "cnt": 7
+    },
+    {
+      "ym": "2026-05",
+      "net": "43425.423729",
+      "project_net": "42186.440678",
+      "unalloc_net": "1238.983051",
+      "cnt": 6
+    },
+    {
+      "ym": "2026-06",
+      "net": "47501.694915",
+      "project_net": "45771.186441",
+      "unalloc_net": "1730.508474",
+      "cnt": 7
+    },
+    {
+      "ym": "2026-07",
+      "net": "68264.694916",
+      "project_net": "60377.118645",
+      "unalloc_net": "7887.576271",
+      "cnt": 9
+    },
+    {
+      "ym": "2026-08",
+      "net": "25149.152542",
+      "project_net": "6000.000000",
+      "unalloc_net": "19149.152542",
+      "cnt": 4
+    }
+  ],
+  "laborByMonth": [
+    {
+      "year_month": "2026-01",
+      "amount": "17250.000000"
+    },
+    {
+      "year_month": "2026-02",
+      "amount": "17250.000000"
+    },
+    {
+      "year_month": "2026-03",
+      "amount": "17250.000000"
+    },
+    {
+      "year_month": "2026-04",
+      "amount": "17250.000000"
+    },
+    {
+      "year_month": "2026-05",
+      "amount": "24150.000000"
+    },
+    {
+      "year_month": "2026-06",
+      "amount": "24150.000000"
+    },
+    {
+      "year_month": "2026-07",
+      "amount": "24150.000000"
+    },
+    {
+      "year_month": "2026-08",
+      "amount": "24150.000000"
+    }
+  ],
+  "billing": [
+    {
+      "project_id": "685e5343-606e-43fb-b5b2-d2b3bc2f9662",
+      "status": "finalized",
+      "cnt": 2,
+      "subtotal": "96718.500000",
+      "total": "96718.500000"
+    },
+    {
+      "project_id": "ee7cb842-bbd1-4188-b95e-9f98446c92aa",
+      "status": "finalized",
+      "cnt": 3,
+      "subtotal": "185000.000000",
+      "total": "185000.000000"
+    },
+    {
+      "project_id": "f3f79519-fed6-4307-81ac-0a7bd11df986",
+      "status": "finalized",
+      "cnt": 2,
+      "subtotal": "99745.000000",
+      "total": "99745.000000"
+    }
+  ],
+  "contracts": [
+    {
+      "project_id": "f3f79519-fed6-4307-81ac-0a7bd11df986",
+      "name": null,
+      "status": "active",
+      "original_value_amount": "380000.000000",
+      "entered_value_amount": "380000.000000",
+      "display_original_net_amount": "1240000.000000",
+      "currency": "ILS"
+    },
+    {
+      "project_id": "685e5343-606e-43fb-b5b2-d2b3bc2f9662",
+      "name": null,
+      "status": "active",
+      "original_value_amount": "990000.000000",
+      "entered_value_amount": "990000.000000",
+      "display_original_net_amount": null,
+      "currency": "ILS"
+    },
+    {
+      "project_id": "ee7cb842-bbd1-4188-b95e-9f98446c92aa",
+      "name": null,
+      "status": "active",
+      "original_value_amount": "470000.000000",
+      "entered_value_amount": "470000.000000",
+      "display_original_net_amount": null,
+      "currency": "ILS"
+    }
+  ],
+  "perProject": [
+    {
+      "projectId": "f3f79519-fed6-4307-81ac-0a7bd11df986",
+      "name": "ברנדייס 6 תל אביב",
+      "contractOriginal": "380000.000000",
+      "contractEntered": "380000.000000",
+      "contractDisplayNet": "1240000.000000",
+      "expenseRecognizedNet": 147874.915255,
+      "labor": 69000,
+      "directActualCandidate": 216874.915255,
+      "allocatedGeneral": 15972.88,
+      "fullActualCandidate": 232847.795255
+    },
+    {
+      "projectId": "685e5343-606e-43fb-b5b2-d2b3bc2f9662",
+      "name": "חורגין 36 רמת גן",
+      "contractOriginal": "990000.000000",
+      "contractEntered": "990000.000000",
+      "contractDisplayNet": null,
+      "expenseRecognizedNet": 52918.644068,
+      "labor": 39675,
+      "directActualCandidate": 92593.644068,
+      "allocatedGeneral": 7538.48,
+      "fullActualCandidate": 100132.12406799999
+    },
+    {
+      "projectId": "ee7cb842-bbd1-4188-b95e-9f98446c92aa",
+      "name": "פינס 16 פתח תקוה",
+      "contractOriginal": "470000.000000",
+      "contractEntered": "470000.000000",
+      "contractDisplayNet": null,
+      "expenseRecognizedNet": 117487.288136,
+      "labor": 56925,
+      "directActualCandidate": 174412.288136,
+      "allocatedGeneral": 14197.84,
+      "fullActualCandidate": 188610.12813599998
+    }
+  ],
+  "monthCompare": [
+    {
+      "yearMonth": "2026-01",
+      "engineUnalloc": 3518.561695,
+      "gcmSource": 3518.561695,
+      "gcmPool": 3518.56,
+      "sourceVsEngineDiff": 0,
+      "poolVsSourceDiff": -0.0016949999999269494
+    },
+    {
+      "yearMonth": "2026-02",
+      "engineUnalloc": 5249.917627,
+      "gcmSource": 5009.807627,
+      "gcmPool": 5009.81,
+      "sourceVsEngineDiff": -240.10999999999967,
+      "poolVsSourceDiff": 0.002373000000261527
+    },
+    {
+      "yearMonth": "2026-03",
+      "engineUnalloc": 4802.958644,
+      "gcmSource": 4802.958644,
+      "gcmPool": 4802.96,
+      "sourceVsEngineDiff": 0,
+      "poolVsSourceDiff": 0.0013559999997596606
+    },
+    {
+      "yearMonth": "2026-04",
+      "engineUnalloc": 5400.416271,
+      "gcmSource": 1274.576271,
+      "gcmPool": 1274.58,
+      "sourceVsEngineDiff": -4125.84,
+      "poolVsSourceDiff": 0.0037290000000211876
+    },
+    {
+      "yearMonth": "2026-05",
+      "engineUnalloc": 4689.823051,
+      "gcmSource": 4151.333051,
+      "gcmPool": 4151.33,
+      "sourceVsEngineDiff": -538.4900000000007,
+      "poolVsSourceDiff": -0.00305099999968661
+    },
+    {
+      "yearMonth": "2026-06",
+      "engineUnalloc": 5181.368474,
+      "gcmSource": 4642.858474,
+      "gcmPool": 4642.86,
+      "sourceVsEngineDiff": -538.5100000000002,
+      "poolVsSourceDiff": 0.0015260000000125729
+    },
+    {
+      "yearMonth": "2026-07",
+      "engineUnalloc": 11098.306271,
+      "gcmSource": 11098.306271,
+      "gcmPool": 11098.31,
+      "sourceVsEngineDiff": 0,
+      "poolVsSourceDiff": 0.0037290000000211876
+    },
+    {
+      "yearMonth": "2026-08",
+      "engineUnalloc": 3210.79,
+      "gcmSource": 3210.79,
+      "gcmPool": 3210.79,
+      "sourceVsEngineDiff": 0,
+      "poolVsSourceDiff": 0
+    }
+  ],
+  "reconciliation": {
+    "sumDirectProjectActualCandidate": 483880.847459,
+    "generalPool": 37709.2,
+    "sumAllocatedGeneral": 37709.2,
+    "sumUnallocatable": 0,
+    "companyActualCandidate": 521590.047459,
+    "sumFullProjectActualCandidate": 521590.047459,
+    "identityExpected": 521590.047459,
+    "identityDifference": 0,
+    "identityReconciles": true,
+    "rawUnallocExpenseNet": 55936.728812,
+    "engineUnallocTotal": 43152.142033,
+    "gcmExpenseSourceTotal": 37709.192033,
+    "engineVsGcmSourceDiff": 5442.95,
+    "laborTotal": 165600,
+    "notes": [
+      "Direct candidate = installment-aware project expenses + applied labor allocation lines",
+      "No AP bills, no inventory consumptions in this org",
+      "Company Actual candidate = Direct + GCM pool",
+      "Identity: Company = Full + Unallocatable (allocation attribution only)"
+    ]
+  }
+}

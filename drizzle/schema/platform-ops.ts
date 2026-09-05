@@ -334,6 +334,150 @@ export const subcontractValueEvents = pgTable(
   ],
 );
 
+/**
+ * Subcontract advance / mobilization cash.
+ * Cash Paid + Advance Outstanding only — never Recognized Actual.
+ */
+export const subcontractAdvances = pgTable(
+  'subcontract_advances',
+  {
+    id: primaryId(),
+    organizationId: uuid('organization_id')
+      .notNull()
+      .references(() => organizations.id, { onDelete: 'cascade' }),
+    subcontractAgreementId: uuid('subcontract_agreement_id').notNull(),
+    projectId: uuid('project_id').notNull(),
+    amount: moneyAmount('amount').notNull(),
+    currency: currencyCode().notNull(),
+    paidDate: date('paid_date', { mode: 'string' }),
+    status: text('status').notNull().default('recorded'),
+    appliedAmountCache: moneyAmount('applied_amount_cache').notNull().default('0'),
+    refundedAmountCache: moneyAmount('refunded_amount_cache').notNull().default('0'),
+    notes: text('notes'),
+    archivedAt: archivedAt(),
+    ...timestamps(),
+  },
+  (table) => [
+    uniqueIndex('subcontract_advances_id_organization_id_uq').on(table.id, table.organizationId),
+    index('subcontract_advances_agreement_idx').on(table.organizationId, table.subcontractAgreementId),
+    index('subcontract_advances_project_idx').on(table.organizationId, table.projectId),
+    index('subcontract_advances_org_paid_date_idx').on(table.organizationId, table.paidDate),
+    foreignKey({
+      name: 'subcontract_advances_agreement_org_fk',
+      columns: [table.subcontractAgreementId, table.organizationId],
+      foreignColumns: [subcontractAgreements.id, subcontractAgreements.organizationId],
+    }).onDelete('restrict'),
+    foreignKey({
+      name: 'subcontract_advances_project_org_fk',
+      columns: [table.projectId, table.organizationId],
+      foreignColumns: [projects.id, projects.organizationId],
+    }).onDelete('restrict'),
+    foreignKey({
+      name: 'subcontract_advances_agreement_project_fk',
+      columns: [table.subcontractAgreementId, table.organizationId, table.projectId],
+      foreignColumns: [
+        subcontractAgreements.id,
+        subcontractAgreements.organizationId,
+        subcontractAgreements.projectId,
+      ],
+    }).onDelete('restrict'),
+    check(
+      'subcontract_advances_status_known',
+      sql`${table.status} IN ('recorded', 'paid', 'partially_applied', 'fully_applied', 'partially_refunded', 'fully_refunded', 'voided')`,
+    ),
+    check('subcontract_advances_amount_positive', sql`${table.amount} > 0`),
+    check(
+      'subcontract_advances_applied_range',
+      sql`${table.appliedAmountCache} >= 0 AND ${table.appliedAmountCache} <= ${table.amount}`,
+    ),
+    check(
+      'subcontract_advances_refunded_range',
+      sql`${table.refundedAmountCache} >= 0 AND ${table.refundedAmountCache} <= ${table.amount}`,
+    ),
+    check(
+      'subcontract_advances_applied_plus_refunded',
+      sql`${table.appliedAmountCache} + ${table.refundedAmountCache} <= ${table.amount}`,
+    ),
+  ],
+);
+
+/**
+ * Immutable event-sourced records of advance amounts applied against AP bills.
+ * event_type='apply' adds; event_type='reverse' subtracts.
+ * Net applied = SUM(CASE event_type WHEN 'apply' THEN amount ELSE -amount END).
+ */
+export const subcontractAdvanceApplications = pgTable(
+  'subcontract_advance_applications',
+  {
+    id: primaryId(),
+    organizationId: uuid('organization_id')
+      .notNull()
+      .references(() => organizations.id, { onDelete: 'cascade' }),
+    advanceId: uuid('advance_id').notNull(),
+    eventType: text('event_type').notNull().default('apply'),
+    reversalOfId: uuid('reversal_of_id'),
+    apBillId: uuid('ap_bill_id'),
+    appliedAmount: moneyAmount('applied_amount').notNull(),
+    currency: currencyCode().notNull(),
+    appliedDate: date('applied_date', { mode: 'string' }).notNull(),
+    notes: text('notes'),
+    createdByUserId: uuid('created_by_user_id'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex('saa_id_org_adv_uq').on(table.id, table.organizationId, table.advanceId),
+    uniqueIndex('saa_id_org_uq').on(table.id, table.organizationId),
+    index('saa_advance_idx').on(table.organizationId, table.advanceId),
+    foreignKey({
+      name: 'saa_advance_org_fk',
+      columns: [table.advanceId, table.organizationId],
+      foreignColumns: [subcontractAdvances.id, subcontractAdvances.organizationId],
+    }).onDelete('restrict'),
+    check('saa_event_type_known', sql`${table.eventType} IN ('apply', 'reverse')`),
+    check('saa_amount_positive', sql`${table.appliedAmount} > 0`),
+    check('saa_apply_requires_bill', sql`${table.eventType} = 'reverse' OR ${table.apBillId} IS NOT NULL`),
+    check('saa_reverse_requires_ref', sql`${table.eventType} = 'apply' OR ${table.reversalOfId} IS NOT NULL`),
+    check('saa_apply_no_rev_ref', sql`${table.eventType} = 'reverse' OR ${table.reversalOfId} IS NULL`),
+  ],
+);
+
+/**
+ * Immutable event-sourced refund records for subcontract advances.
+ * event_type='refund' adds; event_type='void' subtracts.
+ */
+export const subcontractAdvanceRefunds = pgTable(
+  'subcontract_advance_refunds',
+  {
+    id: primaryId(),
+    organizationId: uuid('organization_id')
+      .notNull()
+      .references(() => organizations.id, { onDelete: 'cascade' }),
+    advanceId: uuid('advance_id').notNull(),
+    eventType: text('event_type').notNull().default('refund'),
+    voidedById: uuid('voided_by_id'),
+    amount: moneyAmount('amount').notNull(),
+    currency: currencyCode().notNull(),
+    refundDate: date('refund_date', { mode: 'string' }).notNull(),
+    notes: text('notes'),
+    createdByUserId: uuid('created_by_user_id'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex('sar_id_org_adv_uq').on(table.id, table.organizationId, table.advanceId),
+    uniqueIndex('sar_id_org_uq').on(table.id, table.organizationId),
+    index('sar_advance_idx').on(table.organizationId, table.advanceId),
+    foreignKey({
+      name: 'sar_advance_org_fk',
+      columns: [table.advanceId, table.organizationId],
+      foreignColumns: [subcontractAdvances.id, subcontractAdvances.organizationId],
+    }).onDelete('restrict'),
+    check('sar_event_type_known', sql`${table.eventType} IN ('refund', 'void')`),
+    check('sar_amount_positive', sql`${table.amount} > 0`),
+    check('sar_void_requires_ref', sql`${table.eventType} = 'refund' OR ${table.voidedById} IS NOT NULL`),
+    check('sar_refund_no_void_ref', sql`${table.eventType} = 'void' OR ${table.voidedById} IS NULL`),
+  ],
+);
+
 export const ocrBatches = pgTable(
   'ocr_batches',
   {

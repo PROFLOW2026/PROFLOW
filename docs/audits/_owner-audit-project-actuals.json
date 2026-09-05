@@ -1,0 +1,58 @@
+{
+  "rows": [
+    {
+      "name": "ברנדייס 6 תל אביב",
+      "projectId": "f3f79519-fed6-4307-81ac-0a7bd11df986",
+      "contractOriginal": 380000,
+      "billed": 99745,
+      "expenseNetExLaborCat": 127224.067797,
+      "workforceLabor": 69000,
+      "ovdimExpenseNetStillInActual": 101530,
+      "laborCatExcluded": 20650.847458,
+      "directActual": 196224.067797,
+      "allocatedGeneral": 15972.88,
+      "fullActual": 212196.947797,
+      "directProfit": 183775.932203,
+      "fullProfit": 167803.052203
+    },
+    {
+      "name": "חורגין 36 רמת גן",
+      "projectId": "685e5343-606e-43fb-b5b2-d2b3bc2f9662",
+      "contractOriginal": 990000,
+      "billed": 96718.5,
+      "expenseNetExLaborCat": 52918.644068,
+      "workforceLabor": 39675,
+      "ovdimExpenseNetStillInActual": 38500,
+      "laborCatExcluded": 0,
+      "directActual": 92593.644068,
+      "allocatedGeneral": 7538.48,
+      "fullActual": 100132.12406799999,
+      "directProfit": 897406.355932,
+      "fullProfit": 889867.875932
+    },
+    {
+      "name": "פינס 16 פתח תקוה",
+      "projectId": "ee7cb842-bbd1-4188-b95e-9f98446c92aa",
+      "contractOriginal": 470000,
+      "billed": 185000,
+      "expenseNetExLaborCat": 117487.288136,
+      "workforceLabor": 56925,
+      "ovdimExpenseNetStillInActual": 60500,
+      "laborCatExcluded": 0,
+      "directActual": 174412.288136,
+      "allocatedGeneral": 14197.84,
+      "fullActual": 188610.12813599998,
+      "directProfit": 295587.711864,
+      "fullProfit": 281389.871864
+    }
+  ],
+  "sums": {
+    "sumDirect": 463230.00000099995,
+    "sumAlloc": 37709.2,
+    "pool": 37709.2,
+    "companyActualCorrect": 500939.20000099996,
+    "companyActualUiShows": 463230.00000099995,
+    "uiCompanyUnderstatement": 37709.2,
+    "identityDiff": 0
+  }
+}

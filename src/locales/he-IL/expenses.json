@@ -5,9 +5,9 @@
   "advancedOptions": "אפשרויות נוספות",
   "historyAdvanced": "היסטוריה / פרטים מתקדמים",
   "generalBusinessCostsAllocatedToProject": "הוצאות כלליות שהוקצו לפרויקט",
-  "directActualCost": "עלות ישירה בפועל",
+  "directActualCost": "עלות ישירה מוכרת",
   "fullProjectActualCost": "עלות כוללת בפועל של הפרויקט",
-  "companyActual": "עלות בפועל של העסק",
+  "companyActual": "עלות מוכרת של העסק",
   "companyProfit": "רווח העסק",
   "installmentCount": "מספר תשלומים",
   "installmentStart": "תאריך התחלה",
@@ -239,8 +239,9 @@
     "date_range": "טווח תאריכים / תקופה שנתית"
   },
   "filters": {
-    "dateFrom": "מתאריך",
-    "dateTo": "עד תאריך",
+    "dateFrom": "מתאריך הוצאה",
+    "dateTo": "עד תאריך הוצאה",
+    "expenseDateHint": "הסינון הוא לפי תאריך ההוצאה; לא לפי תאריך תשלום.",
     "project": "פרויקט",
     "family": "סעיף",
     "category": "קטגוריה",

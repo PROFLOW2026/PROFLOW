@@ -33,6 +33,8 @@ import {
   listBudgetRevisions,
 } from '../data/budgets.repository';
 import { findProjectById } from '@/modules/projects';
+import { getProjectProfitabilityModeForOrg } from '@/modules/tenancy/application/project-profitability-mode';
+import type { ProjectProfitabilityMode } from '@/modules/tenancy/domain/project-profitability-mode';
 
 export async function getActiveBudgetForProject(context: OrgContext, projectId: string) {
   return findActiveBudgetForProject(context.db, context.organizationId, projectId);
@@ -55,6 +57,7 @@ export interface ProjectBudgetWorkspace {
   readonly cost: CostPosition | null;
   readonly canManage: boolean;
   readonly hasEngineActual: boolean;
+  readonly profitabilityMode: ProjectProfitabilityMode;
 }
 
 function sumLineBudgets(
@@ -77,6 +80,8 @@ export async function getProjectBudgetWorkspace(
      * with budget/expense queries in the same tx.
      */
     costPromise?: Promise<CostPosition | null>;
+    /** Request-cached org profitability mode (from project financials). */
+    profitabilityModePromise?: Promise<ProjectProfitabilityMode>;
   },
 ): Promise<ProjectBudgetWorkspace> {
   assertPermission(context, PERMISSIONS.BUDGETS_READ);
@@ -94,6 +99,8 @@ export async function getProjectBudgetWorkspace(
   const canManage = hasPermission(context, PERMISSIONS.BUDGETS_MANAGE);
   const canReadFinancials = hasPermission(context, PERMISSIONS.PROJECT_FINANCIALS_READ);
   const canReadExpenses = hasPermission(context, PERMISSIONS.EXPENSES_READ);
+  const profitabilityMode = await (options?.profitabilityModePromise ??
+    getProjectProfitabilityModeForOrg(context));
 
   let cost: CostPosition | null = null;
   let contributions: readonly ProjectExpenseContribution[] | null = null;
@@ -138,6 +145,7 @@ export async function getProjectBudgetWorkspace(
       cost,
       canManage,
       hasEngineActual: cost !== null,
+      profitabilityMode,
     };
   }
 
@@ -160,6 +168,7 @@ export async function getProjectBudgetWorkspace(
     budgetAmount: budgetTotal,
     currency,
     cost,
+    mode: profitabilityMode,
   });
 
   const { rows: lineControls } = mapBudgetLineActuals({
@@ -168,6 +177,7 @@ export async function getProjectBudgetWorkspace(
     cost,
     contributions,
     excludeLaborCategory,
+    mode: profitabilityMode,
   });
 
   return {
@@ -180,5 +190,6 @@ export async function getProjectBudgetWorkspace(
     cost,
     canManage,
     hasEngineActual: cost !== null,
+    profitabilityMode,
   };
 }

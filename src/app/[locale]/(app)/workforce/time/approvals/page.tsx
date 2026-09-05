@@ -25,7 +25,7 @@ import { AuthorizationError } from '@/shared/errors';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { formatWorkHoursValue } from '@/modules/workforce/domain/format-work-hours';
-import { businessDate } from '@/shared/dates/dates';
+import { businessDate, todayInTimeZone } from '@/shared/dates/dates';
 import { formatBusinessDate } from '@/shared/dates/format';
 
 export async function generateMetadata({
@@ -71,7 +71,7 @@ export default async function TimesheetApprovalsPage({
       status: filters.status ?? 'submitted',
     });
     const employees = await listEmployeesForOrg(context, { status: 'active' });
-    return { ...queue, employees };
+    return { ...queue, employees, today: todayInTimeZone(context.organization.timezone) };
   });
 
   const submittedEntryIds = data.entries
@@ -86,6 +86,7 @@ export default async function TimesheetApprovalsPage({
 
       <TimesheetApprovalFilters
         employees={data.employees.map((employee) => ({ id: employee.id, name: employee.name }))}
+        today={data.today}
         initial={{
           employeeId: filters.employeeId,
           fromDate: filters.fromDate,

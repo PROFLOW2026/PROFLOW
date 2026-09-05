@@ -27,6 +27,8 @@ function CountryOptionLabel({ code }: { code: (typeof COUNTRY_CODES)[number] }) 
   return t(`countries.${code}`);
 }
 
+const WORK_WEEK_START_DAYS = [0, 1, 2, 3, 4, 5, 6] as const;
+
 export function BusinessProfileForm({
   organization,
   canEdit,
@@ -37,14 +39,19 @@ export function BusinessProfileForm({
     baseCurrency: string;
     timezone: string;
     defaultLocale: string;
+    workWeekStartDay?: number;
   };
   canEdit: boolean;
 }) {
   const t = useTranslations('organization.profile');
+  const tWorkWeek = useTranslations('settings.workWeek');
   const tCommon = useTranslations('common');
   const [country, setCountry] = useState(organization.countryCode);
   const [timezone, setTimezone] = useState(organization.timezone);
   const [locale, setLocale] = useState(organization.defaultLocale);
+  const [workWeekStartDay, setWorkWeekStartDay] = useState(
+    String(organization.workWeekStartDay ?? 0),
+  );
   const [state, action, pending] = useActionState(updateBusinessProfileAction, {} as SettingsActionState);
 
   return (
@@ -105,6 +112,30 @@ export function BusinessProfileForm({
                 {TIMEZONES.map((zone) => (
                   <SelectItem key={zone} value={zone}>
                     <span dir="ltr">{zone}</span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </>
+        )}
+      </Field>
+
+      <Field label={tWorkWeek('startDay')} description={tWorkWeek('startDayHint')} required>
+        {(props) => (
+          <>
+            <input type="hidden" name="workWeekStartDay" value={workWeekStartDay} />
+            <Select
+              value={workWeekStartDay}
+              onValueChange={setWorkWeekStartDay}
+              disabled={!canEdit}
+            >
+              <SelectTrigger id={props.id} aria-describedby={props['aria-describedby']}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {WORK_WEEK_START_DAYS.map((day) => (
+                  <SelectItem key={day} value={String(day)}>
+                    {tWorkWeek(`days.${day}`)}
                   </SelectItem>
                 ))}
               </SelectContent>

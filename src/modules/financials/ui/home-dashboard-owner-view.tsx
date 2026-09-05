@@ -1,3 +1,4 @@
+import type React from 'react';
 import { AlertCircle, Plus, Receipt } from 'lucide-react';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { Link } from '@/shared/i18n/navigation';
@@ -14,6 +15,7 @@ import type { ProjectStatus } from '@/modules/projects';
 import type { HomeDashboardData } from '../application/get-home-dashboard';
 import { partitionDashboardCompletenessItems } from '../domain/dashboard-missing-data';
 import { DashboardMissingDataTrigger } from './dashboard-missing-data-trigger';
+import { HomeLaborReconciliation, HomePendingTimeAlert } from './home-labor-alerts';
 import { mapDashboardMissingDataToView } from './map-dashboard-missing-data-view';
 
 interface HomeDashboardOwnerViewProps {
@@ -24,12 +26,16 @@ function KpiTile({
   title,
   money,
   percent,
+  hint,
+  footer,
   unavailable,
   unavailableLabel,
 }: {
   title: string;
   money?: { amount: string; currency: string };
   percent?: string | null;
+  hint?: string;
+  footer?: React.ReactNode;
   unavailable?: boolean;
   unavailableLabel?: string;
 }) {
@@ -50,6 +56,8 @@ function KpiTile({
         ) : (
           <p className="text-sm text-[var(--pf-text-secondary)]">—</p>
         )}
+        {hint ? <p className="break-words text-xs text-[var(--pf-text-muted)]">{hint}</p> : null}
+        {footer}
       </CardContent>
     </Card>
   );
@@ -91,6 +99,12 @@ export async function HomeDashboardOwnerView({ data }: HomeDashboardOwnerViewPro
 
   return (
     <div className="flex min-w-0 max-w-full flex-col gap-6">
+      {data.pendingTime ? (
+        <HomePendingTimeAlert pendingTime={data.pendingTime} canApproveTime={data.canApproveTime} />
+      ) : null}
+      {data.laborReconciliation ? (
+        <HomeLaborReconciliation laborReconciliation={data.laborReconciliation} />
+      ) : null}
       {hasCompletenessTrigger ? (
         <div className="flex min-w-0 flex-wrap items-center justify-end gap-2">
           <DashboardMissingDataTrigger
@@ -123,6 +137,7 @@ export async function HomeDashboardOwnerView({ data }: HomeDashboardOwnerViewPro
           money={data.totalActualCost ?? data.forecast?.totalActualProjectCost ?? undefined}
           unavailable={costUnavailable}
           unavailableLabel={t('missingData.kpiUnavailable')}
+          hint={costUnavailable ? undefined : tFinancial('basis.actualNotCash')}
         />
         <KpiTile
           title={t('ownerHeadline.actualProfit')}
@@ -137,6 +152,28 @@ export async function HomeDashboardOwnerView({ data }: HomeDashboardOwnerViewPro
           unavailableLabel={t('missingData.kpiUnavailable')}
         />
       </section>
+
+      {/* FIN-HIGH-001: AP outstanding — what the business owes vendors in unpaid bills */}
+      {data.apOutstanding ? (
+        <section className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <KpiTile
+            title={tFinancial('apOutstanding')}
+            money={data.apOutstanding}
+            hint={tFinancial('apOutstandingHint')}
+            footer={
+              <p className="break-words text-xs">
+                <Link
+                  href="/procurement/ap?status=open"
+                  className={textNavLinkClassName}
+                  prefetch={false}
+                >
+                  {t('businessSummary.viewApOutstanding')}
+                </Link>
+              </p>
+            }
+          />
+        </section>
+      ) : null}
 
       {data.projectTableRows.length > 0 ? (
         <section className="min-w-0 max-w-full">

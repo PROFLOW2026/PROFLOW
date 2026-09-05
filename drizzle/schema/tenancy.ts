@@ -35,10 +35,21 @@ export const organizations = pgTable(
     /** ISO-3166 alpha-2. Drives the country pack, independent of UI language. */
     countryCode: char('country_code', { length: 2 }).notNull().default('IL'),
     defaultLocale: text('default_locale').notNull().default('he-IL'),
+    /**
+     * Work-week start weekday. 0=Sunday … 6=Saturday.
+     * Default 0 preserves historic Sunday-start timesheets and boards.
+     */
+    workWeekStartDay: integer('work_week_start_day').notNull().default(0),
     archivedAt: archivedAt(),
     ...timestamps(),
   },
-  (table) => [index('organizations_name_idx').on(table.name)],
+  (table) => [
+    index('organizations_name_idx').on(table.name),
+    check(
+      'organizations_work_week_start_day_range',
+      sql`${table.workWeekStartDay} >= 0 AND ${table.workWeekStartDay} <= 6`,
+    ),
+  ],
 );
 
 export const organizationMemberships = pgTable(

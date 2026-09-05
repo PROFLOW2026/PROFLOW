@@ -77,10 +77,14 @@ export {
   emptyManagementAnalytics,
 } from './domain/management-analytics';
 export { getHomeDashboard } from './application/get-home-dashboard';
+export { getFinancialsOverview } from './application/get-financials-overview';
+export type { FinancialsOverviewData } from './application/get-financials-overview';
 export type {
   HomeDashboardData,
   HomeDashboardOptions,
   DashboardAttention,
+  PendingTimeAlert,
+  LaborReconciliation,
   OrganizationForecastSummary,
 } from './application/get-home-dashboard';
 
@@ -220,4 +224,5 @@ export type {
   ProjectActualBreakdown,
   ProjectActualBreakdownCategoryKey,
 } from './domain/project-actual-breakdown';
+export { sumCollectionsInDateRange } from './data/billing.repository';
 

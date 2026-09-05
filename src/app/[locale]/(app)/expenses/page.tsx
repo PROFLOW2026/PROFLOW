@@ -4,6 +4,7 @@ import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/ui/page-header';
 import type { BusinessDate } from '@/shared/dates';
+import { todayInTimeZone } from '@/shared/dates';
 import {
   listCostCategoriesForOrg,
   listExpensesForOrg,
@@ -85,7 +86,7 @@ export default async function ExpensesPage({
     attentionFilter: activeAttention,
   };
 
-  const [listResult, projects, categories, attentionCount] = await withOrgContext(async (context) => {
+  const [listResult, projects, categories, attentionCount, today] = await withOrgContext(async (context) => {
     const provisional = await listExpensesForOrg(context, {
       ...baseListFilters,
       limit: EXPENSE_LIST_PAGE_SIZE,
@@ -112,7 +113,7 @@ export default async function ExpensesPage({
         ? countExpensesNeedingAttentionForOrg(context)
         : Promise.resolve(0),
     ]);
-    return [expenses, projectRows, categoryRows, attentionTotal] as const;
+    return [expenses, projectRows, categoryRows, attentionTotal, todayInTimeZone(context.organization.timezone)] as const;
   });
 
   const currentPage = resolveExpenseListPage(
@@ -120,6 +121,7 @@ export default async function ExpensesPage({
     requestedPage,
     EXPENSE_LIST_PAGE_SIZE,
   );
+  // today is now returned from withOrgContext for accurate timezone-based presets
   const pageCount = expenseListPageCount(listResult.total, EXPENSE_LIST_PAGE_SIZE);
 
   return (
@@ -178,6 +180,7 @@ export default async function ExpensesPage({
         projects={projects}
         categories={categories}
         locale={locale}
+        today={today}
         initialFilters={{
           ...restFilters,
           statusFilter,

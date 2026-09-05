@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray, isNull, notInArray, or } from 'drizzle-orm';
+import { and, desc, eq, gte, inArray, isNull, lte, notInArray, or } from 'drizzle-orm';
 import {
   billingLines,
   billingRecords,
@@ -485,6 +485,8 @@ export async function listBillingRecords(
               eq(projects.clientId, filters.clientId),
             )
           : undefined,
+        filters.fromDate ? gte(billingRecords.issueDate, filters.fromDate as BusinessDate) : undefined,
+        filters.toDate ? lte(billingRecords.issueDate, filters.toDate as BusinessDate) : undefined,
       ),
     )
     .orderBy(desc(billingRecords.issueDate), desc(billingRecords.createdAt))

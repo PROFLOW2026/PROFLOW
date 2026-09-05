@@ -128,6 +128,7 @@ export {
   getAttendanceClockSurface,
   getAttendanceDayDetail,
   listAttendanceDaysForOrg,
+  listEmployeesWithoutAttendanceToday,
   previewManualAttendanceWorkdayRange,
   recordManualAttendanceEvent,
   replaceAttendanceEvent,
@@ -135,6 +136,19 @@ export {
   voidAttendanceDay,
   voidAttendanceEvent,
 } from './application/attendance';
+export {
+  getMonthlyAttendanceGrid,
+  getTodayAttendanceOverview,
+} from './application/attendance-owner-views';
+export type {
+  MonthlyAttendanceCell,
+  MonthlyAttendanceEmployeeRow,
+  MonthlyAttendanceGrid,
+  MonthlyCellKind,
+  TodayApprovalStatus,
+  TodayAttendanceOverview,
+  TodayAttendanceRow,
+} from './application/attendance-owner-views';
 export type {
   AttendanceApplyOptions,
   AttendanceApplyRollbackProbe,
@@ -349,8 +363,12 @@ export {
   sumOrganizationProjectLaborCoverage,
   sumOrganizationNonProjectLaborCost,
   sumNonProjectLaborCostByMonth,
+  sumTimeLaborPeriodReconciliation,
 } from './data/time-entries.repository';
-export type { NonProjectLaborCostAggregate } from './data/time-entries.repository';
+export type {
+  NonProjectLaborCostAggregate,
+  TimeLaborPeriodReconciliation,
+} from './data/time-entries.repository';
 
 /** Monthly allocation Displacement rollups (applied/closed months only). */
 export {

@@ -24,6 +24,8 @@ export interface OrganizationSummary {
   readonly timezone: string;
   readonly countryCode: string;
   readonly defaultLocale: string;
+  /** 0=Sunday … 6=Saturday. Default 0 when omitted (historic Sunday-start). */
+  readonly workWeekStartDay?: number;
 }
 
 export interface OrgContext {

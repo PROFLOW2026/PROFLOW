@@ -10,6 +10,11 @@ import { money, toNumericString } from '@/shared/money';
 import { assertRetentionFitsTotal, resolveRetentionCapture } from '@/modules/retention';
 import { businessDate } from '@/shared/dates';
 import {
+  assertMonthOpenForRewrite,
+  rethrowClosedPeriodRewrite,
+  yearMonthFromBusinessDate,
+} from '@/modules/month-close';
+import {
   findBillingRecordById,
   findChangeOrdersInProject,
   findProjectInOrganization,
@@ -41,6 +46,8 @@ export async function updateBillingRecord(context: OrgContext, rawInput: UpdateB
   if (!existing) throw new NotFoundError('Billing record');
   assertEditable(existing.status);
 
+  const nextIssueDate = input.issueDate ? businessDate(input.issueDate) : existing.issueDate;
+
   const projectId = input.projectId ?? existing.projectId;
   if (!projectId) throw new NotFoundError('Project');
 
@@ -64,60 +71,66 @@ export async function updateBillingRecord(context: OrgContext, rawInput: UpdateB
   });
 
   const changeOrderIds = input.changeOrderIds;
-  if (changeOrderIds) {
-    const changeOrders = await findChangeOrdersInProject(
-      context.db,
-      context.organizationId,
-      projectId,
-      changeOrderIds,
-    );
-    if (changeOrderIds.length !== changeOrders.length) {
-      throw new NotFoundError('Change order');
+  try {
+    await assertMonthOpenForRewrite(context, yearMonthFromBusinessDate(nextIssueDate));
+
+    if (changeOrderIds) {
+      const changeOrders = await findChangeOrdersInProject(
+        context.db,
+        context.organizationId,
+        projectId,
+        changeOrderIds,
+      );
+      if (changeOrderIds.length !== changeOrders.length) {
+        throw new NotFoundError('Change order');
+      }
+
+      await replaceBillingLines(
+        context.db,
+        context.organizationId,
+        input.billingRecordId,
+        changeOrders.map((changeOrder, index) => ({
+          description: changeOrder.reference?.trim() || `Change order ${index + 1}`,
+          lineTotal: toNumericString(amounts.totalAmount),
+          currency,
+          changeOrderId: changeOrder.id,
+          sortOrder: index,
+        })),
+      );
     }
 
-    await replaceBillingLines(
-      context.db,
-      context.organizationId,
-      input.billingRecordId,
-      changeOrders.map((changeOrder, index) => ({
-        description: changeOrder.reference?.trim() || `Change order ${index + 1}`,
-        lineTotal: toNumericString(amounts.totalAmount),
-        currency,
-        changeOrderId: changeOrder.id,
-        sortOrder: index,
-      })),
-    );
+    const retentionTouched =
+      input.retentionAmount !== undefined || input.retentionPercent !== undefined;
+    const retention = retentionTouched
+      ? resolveRetentionCapture({
+          totalAmount: toNumericString(amounts.totalAmount),
+          currency,
+          retentionAmount: input.retentionAmount,
+          retentionPercent: input.retentionPercent,
+          side: 'ar',
+        })
+      : (existing.retentionAmount ?? money('0', currency));
+    assertRetentionFitsTotal(retention, amounts.totalAmount, 'ar');
+
+    await updateBillingRecordRow(context.db, context.organizationId, input.billingRecordId, {
+      projectId,
+      reference: input.reference === undefined ? undefined : input.reference?.trim() || null,
+      issueDate: input.issueDate ? nextIssueDate : undefined,
+      dueDate:
+        input.dueDate === undefined ? undefined : input.dueDate ? businessDate(input.dueDate) : null,
+      subtotalAmount: toNumericString(amounts.subtotalAmount),
+      taxAmount: amounts.taxAmount ? toNumericString(amounts.taxAmount) : null,
+      totalAmount: toNumericString(amounts.totalAmount),
+      currency,
+      retentionAmount: toNumericString(retention),
+      retentionHeldRemaining: toNumericString(money('0', currency)),
+      externalDocumentId:
+        input.externalDocumentId === undefined ? undefined : input.externalDocumentId ?? null,
+      notes: input.notes === undefined ? undefined : input.notes?.trim() || null,
+    });
+  } catch (error) {
+    rethrowClosedPeriodRewrite(error);
   }
-
-  const retentionTouched =
-    input.retentionAmount !== undefined || input.retentionPercent !== undefined;
-  const retention = retentionTouched
-    ? resolveRetentionCapture({
-        totalAmount: toNumericString(amounts.totalAmount),
-        currency,
-        retentionAmount: input.retentionAmount,
-        retentionPercent: input.retentionPercent,
-        side: 'ar',
-      })
-    : (existing.retentionAmount ?? money('0', currency));
-  assertRetentionFitsTotal(retention, amounts.totalAmount, 'ar');
-
-  await updateBillingRecordRow(context.db, context.organizationId, input.billingRecordId, {
-    projectId,
-    reference: input.reference === undefined ? undefined : input.reference?.trim() || null,
-    issueDate: input.issueDate ? businessDate(input.issueDate) : undefined,
-    dueDate:
-      input.dueDate === undefined ? undefined : input.dueDate ? businessDate(input.dueDate) : null,
-    subtotalAmount: toNumericString(amounts.subtotalAmount),
-    taxAmount: amounts.taxAmount ? toNumericString(amounts.taxAmount) : null,
-    totalAmount: toNumericString(amounts.totalAmount),
-    currency,
-    retentionAmount: toNumericString(retention),
-    retentionHeldRemaining: toNumericString(money('0', currency)),
-    externalDocumentId:
-      input.externalDocumentId === undefined ? undefined : input.externalDocumentId ?? null,
-    notes: input.notes === undefined ? undefined : input.notes?.trim() || null,
-  });
 
   await recordAuditEvent(context, {
     action: BILLING_AUDIT_UPDATED,

@@ -211,7 +211,12 @@ async function promoteDraftApBillToOpen(
 
 export async function listApBillsForOrg(
   context: OrgContext,
-  options: { readonly limit?: number; readonly offset?: number } = {},
+  options: {
+    readonly limit?: number;
+    readonly offset?: number;
+    readonly fromDate?: string;
+    readonly toDate?: string;
+  } = {},
 ): Promise<ApBillListItem[]> {
   assertPermission(context, PERMISSIONS.AP_READ);
   return listApBills(context.db, context.organizationId, options);

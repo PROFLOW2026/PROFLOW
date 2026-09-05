@@ -29,6 +29,7 @@ export interface VendorSubcontractsPanelProps {
   readonly parentContracts: readonly SubcontractParentContractOption[];
   readonly documentCandidates: readonly { id: string; originalFilename: string }[];
   readonly canManage: boolean;
+  readonly canManageAdvances?: boolean;
   readonly defaultStartDate: string;
 }
 
@@ -41,6 +42,7 @@ export function VendorSubcontractsPanel({
   parentContracts,
   documentCandidates,
   canManage,
+  canManageAdvances = false,
   defaultStartDate,
 }: VendorSubcontractsPanelProps) {
   const t = useTranslations('vendors.subcontracts');
@@ -218,6 +220,7 @@ export function VendorSubcontractsPanel({
               item={item}
               detail={detailById.get(item.id)}
               canManage={canManage}
+              canManageAdvances={canManageAdvances}
               counterpartHref={`/projects/${item.projectId}`}
               counterpartLabel={item.projectName}
               documentCandidates={documentCandidates}

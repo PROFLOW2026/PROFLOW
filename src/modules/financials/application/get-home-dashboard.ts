@@ -4,7 +4,9 @@ import {
   mergeResidualTimeAndMonthlyAllocatedLabor,
   sumMonthlyAllocatedLaborByProject,
   sumOrganizationProjectLaborCoverage,
+  sumTimeLaborPeriodReconciliation,
 } from '@/modules/workforce';
+import { getOrganizationApPayables } from '@/modules/ap';
 import {
   getBusinessProfileKeyForOrg,
   getModuleVisibility,
@@ -24,8 +26,8 @@ import { readExperiencePreviewCookie } from '@/modules/tenancy/application/exper
 import { serverEnv } from '@/shared/env/server';
 import type { CostSourceKey, FinancialCoverage } from '@/modules/financials/domain/types';
 import type { OrgContext } from '@/shared/auth/context';
-import { endOfMonth, startOfMonth, todayInTimeZone } from '@/shared/dates';
-import { addMoney, fromNumericString, isZeroMoney, zeroMoney, type MoneyValue } from '@/shared/money';
+import { endOfMonth, todayInTimeZone, type BusinessDate } from '@/shared/dates';
+import { addMoney, fromNumericString, isZeroMoney, money, zeroMoney, type MoneyValue } from '@/shared/money';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import {
@@ -58,6 +60,7 @@ import {
   hasAnyBillingUsage,
   loadOrganizationBillingRows,
   sumInvoicedInDateRange,
+  sumCollectionsInDateRange,
 } from '../data/billing.repository';
 import {
   countPendingChanges,
@@ -68,7 +71,7 @@ import {
   listUnallocatedBusinessExpenses,
   loadOrganizationExpenseContributions,
   sumOrganizationActualCosts,
-  sumOrganizationCostsInDateRange,
+  sumOrganizationRecognizedCostsInDateRange,
 } from '../data/expenses.repository';
 import {
   countActiveProjects,
@@ -91,6 +94,20 @@ export interface DashboardAttention {
   readonly pendingChangesCount: number;
   readonly unbilledApprovedCount: number;
   readonly overdueBillingCount: number;
+}
+
+/** Draft / submitted time in the selected period — not in labor Actual. */
+export interface PendingTimeAlert {
+  readonly pendingTimeCount: number;
+  readonly affectedEmployees: number;
+  readonly pendingHours: number;
+}
+
+/** Allocated (approved) + unallocated (draft/submitted) = total recorded labor hours. */
+export interface LaborReconciliation {
+  readonly allocatedHours: number;
+  readonly unallocatedHours: number;
+  readonly totalHours: number;
 }
 
 /**
@@ -155,9 +172,15 @@ export interface HomeDashboardData {
   readonly organizationSummary: {
     readonly outstanding: MoneyValue;
     readonly invoicedThisMonth: MoneyValue;
+    readonly collectionsThisMonth: MoneyValue;
     readonly costsThisMonth: MoneyValue;
   } | null;
   readonly attention: DashboardAttention;
+  /** Null when the user cannot read workforce or there is nothing pending. */
+  readonly pendingTime: PendingTimeAlert | null;
+  /** Null when there are no recorded hours in the selected period. */
+  readonly laborReconciliation: LaborReconciliation | null;
+  readonly canApproveTime: boolean;
   readonly showBilling: boolean;
   readonly showProfit: boolean;
   readonly canCreateProject: boolean;
@@ -182,11 +205,31 @@ export interface HomeDashboardData {
   readonly dashboardCards: readonly ExperienceDashboardCard[];
   /** Quotes module visible — used for quotePipeline card chrome. */
   readonly showQuotes: boolean;
+  /**
+   * Total AP outstanding (unpaid vendor bills, base currency).
+   * Null when the user lacks AP_READ permission or no AP bills exist.
+   */
+  readonly apOutstanding: MoneyValue | null;
+  /**
+   * The effective month being shown as "YYYY-MM".
+   * Defaults to the current month; can be overridden via the `selectedMonth` option.
+   */
+  readonly selectedMonth: string;
+  /**
+   * Work-kind filter active during this load — preserved in month-navigation links.
+   * Null / "all" means no filter.
+   */
+  readonly workKindFilter: string | null;
 }
 
 export interface HomeDashboardOptions {
   /** All | Projects | Jobs for forecast / rollup scope. Default: all. */
   readonly workKindFilter?: string | null;
+  /**
+   * Month to show for the `organizationSummary` KPIs (costsThisMonth / invoicedThisMonth).
+   * Format: "YYYY-MM". Defaults to the current month when omitted or invalid.
+   */
+  readonly selectedMonth?: string | null;
 }
 
 export async function getHomeDashboard(
@@ -195,8 +238,15 @@ export async function getHomeDashboard(
 ): Promise<HomeDashboardData> {
   const currency = context.organization.baseCurrency;
   const today = todayInTimeZone(context.organization.timezone);
-  const monthStart = startOfMonth(today);
-  const monthEnd = endOfMonth(today);
+
+  // Resolve effective month — default to current, allow override via options.
+  const rawSelectedMonth =
+    options.selectedMonth && /^\d{4}-\d{2}$/.test(options.selectedMonth)
+      ? options.selectedMonth
+      : null;
+  const effectiveSelectedMonth = rawSelectedMonth ?? today.slice(0, 7);
+  const monthStart = `${effectiveSelectedMonth}-01` as BusinessDate;
+  const monthEnd = endOfMonth(monthStart);
 
   const canReadFinancials = hasPermission(context, PERMISSIONS.PROJECT_FINANCIALS_READ);
   const canReadBilling = hasPermission(context, PERMISSIONS.BILLING_READ);
@@ -207,6 +257,9 @@ export async function getHomeDashboard(
   const canReadToday = hasPermission(context, PERMISSIONS.COMMAND_CENTER_READ);
   const canReadExpenses = hasPermission(context, PERMISSIONS.EXPENSES_READ);
   const canCreateService = hasPermission(context, PERMISSIONS.SERVICE_MANAGE);
+  const canReadAp = hasPermission(context, PERMISSIONS.AP_READ);
+  const canReadWorkforce = hasPermission(context, PERMISSIONS.WORKFORCE_READ);
+  const canApproveTime = hasPermission(context, PERMISSIONS.TIME_APPROVE);
 
   const [workMix, suggestedDefaults, modules, businessProfileKey, previewSelection] =
     await Promise.all([
@@ -298,6 +351,7 @@ export async function getHomeDashboard(
     unbilledApprovedCount,
     rollup,
     expenseLayer,
+    timeLaborPeriod,
   ] = await Promise.all([
     hasAnyProject(context.db, context.organizationId),
     hasAnyExpenseUsage(context.db, context.organizationId),
@@ -312,7 +366,32 @@ export async function getHomeDashboard(
       : Promise.resolve(0),
     rollupPromise,
     expenseLayerPromise,
+    canReadWorkforce
+      ? sumTimeLaborPeriodReconciliation(
+          context.db,
+          context.organizationId,
+          monthStart,
+          monthEnd,
+        )
+      : Promise.resolve(null),
   ]);
+
+  const pendingTime: PendingTimeAlert | null =
+    timeLaborPeriod && timeLaborPeriod.pendingTimeCount > 0
+      ? {
+          pendingTimeCount: timeLaborPeriod.pendingTimeCount,
+          affectedEmployees: timeLaborPeriod.affectedEmployees,
+          pendingHours: timeLaborPeriod.pendingHours,
+        }
+      : null;
+  const laborReconciliation: LaborReconciliation | null = timeLaborPeriod
+    ? (() => {
+        const allocatedHours = timeLaborPeriod.allocatedHours;
+        const unallocatedHours = timeLaborPeriod.pendingHours;
+        const totalHours = allocatedHours + unallocatedHours;
+        return totalHours > 0 ? { allocatedHours, unallocatedHours, totalHours } : null;
+      })()
+    : null;
 
   const isBrandNew = !hasProjects && !hasExpenses && !hasBilling;
 
@@ -339,6 +418,9 @@ export async function getHomeDashboard(
         unbilledApprovedCount,
         overdueBillingCount: 0,
       },
+      pendingTime,
+      laborReconciliation,
+      canApproveTime,
       showBilling: false,
       showProfit: false,
       canCreateProject,
@@ -352,14 +434,25 @@ export async function getHomeDashboard(
       persona,
       dashboardCards,
       showQuotes,
+      apOutstanding: null,
+      selectedMonth: effectiveSelectedMonth,
+      workKindFilter: options.workKindFilter ?? null,
     };
   }
 
   const wantBilling = canReadBilling && hasBilling;
   const wantMonthInvoiced = !slimOwnerDashboard && canReadFinancials && wantBilling;
   const wantMonthCosts = !slimOwnerDashboard && canReadFinancials && (wantBilling || hasExpenses);
+  const wantMonthCollections = !slimOwnerDashboard && canReadFinancials && wantBilling;
 
-  const [billingRows, invoicedThisMonth, costsThisMonth, generalPoolTotals] = await Promise.all([
+  const [
+    billingRows,
+    invoicedThisMonth,
+    costsThisMonth,
+    collectionsThisMonth,
+    generalPoolTotals,
+    apPayablesSummary,
+  ] = await Promise.all([
     wantBilling
       ? loadOrganizationBillingRows(context.db, context.organizationId)
       : Promise.resolve(null),
@@ -373,7 +466,16 @@ export async function getHomeDashboard(
         )
       : Promise.resolve(null),
     wantMonthCosts
-      ? sumOrganizationCostsInDateRange(
+      ? sumOrganizationRecognizedCostsInDateRange(
+          context.db,
+          context.organizationId,
+          currency,
+          monthStart,
+          monthEnd,
+        )
+      : Promise.resolve(null),
+    wantMonthCollections
+      ? sumCollectionsInDateRange(
           context.db,
           context.organizationId,
           currency,
@@ -384,7 +486,17 @@ export async function getHomeDashboard(
     canReadFinancials && !slimOwnerDashboard
       ? sumOrganizationGeneralPoolTotals(context.db, context.organizationId, currency)
       : Promise.resolve(null),
+    // AP outstanding: base-currency bills not yet paid. Only loaded when permissioned.
+    canReadAp
+      ? getOrganizationApPayables(context, { currency })
+      : Promise.resolve(null),
   ]);
+
+  // Derive AP outstanding KPI: non-null only when AP bills exist in base currency.
+  const apOutstanding: MoneyValue | null =
+    apPayablesSummary && apPayablesSummary.bills.length > 0
+      ? money(apPayablesSummary.outstanding, apPayablesSummary.currency)
+      : null;
 
   // Derive overdue from the billing rows already loaded - avoid a second full org load.
   const overdueBillingCount = billingRows
@@ -532,6 +644,7 @@ export async function getHomeDashboard(
       organizationSummary = {
         outstanding: position.outstanding,
         invoicedThisMonth,
+        collectionsThisMonth: collectionsThisMonth ?? zeroMoney(currency),
         costsThisMonth,
       };
     }
@@ -539,6 +652,7 @@ export async function getHomeDashboard(
     organizationSummary = {
       outstanding: zeroMoney(currency),
       invoicedThisMonth: zeroMoney(currency),
+      collectionsThisMonth: zeroMoney(currency),
       costsThisMonth,
     };
   }
@@ -666,6 +780,9 @@ export async function getHomeDashboard(
       unbilledApprovedCount,
       overdueBillingCount,
     },
+    pendingTime,
+    laborReconciliation,
+    canApproveTime,
     showBilling: hasBilling && canReadBilling,
     showProfit: canReadProfit && estimatedProfit !== null,
     canCreateProject,
@@ -679,6 +796,9 @@ export async function getHomeDashboard(
     persona,
     dashboardCards,
     showQuotes,
+    apOutstanding,
+    selectedMonth: effectiveSelectedMonth,
+    workKindFilter: options.workKindFilter ?? null,
   };
 }
 

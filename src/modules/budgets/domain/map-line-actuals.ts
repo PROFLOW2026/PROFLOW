@@ -1,5 +1,6 @@
 import type { ProjectExpenseContribution } from '@/modules/financials/domain/cost-aggregation';
 import type { CostPosition } from '@/modules/financials/domain/types';
+import type { ProjectProfitabilityMode } from '@/modules/tenancy/domain/project-profitability-mode';
 import {
   addMoney,
   fromNumericString,
@@ -80,6 +81,8 @@ export interface MapBudgetLineActualsInput {
    * are excluded from Actual - exclude them from mapping too.
    */
   readonly excludeLaborCategory?: boolean;
+  /** Passed through to the engine-total line so variance matches org profitability mode. */
+  readonly mode?: ProjectProfitabilityMode;
 }
 
 export interface MapBudgetLineActualsResult {
@@ -222,6 +225,7 @@ function totalLineMetrics(
   line: ProjectBudgetLineRecord,
   currency: string,
   cost: CostPosition | null,
+  mode?: ProjectProfitabilityMode,
 ): BudgetLineControlMetrics {
   if (!cost) {
     return {
@@ -234,6 +238,7 @@ function totalLineMetrics(
       budgetAmount: line.budgetAmount,
       currency,
       cost,
+      mode,
     }),
   );
 }
@@ -285,7 +290,7 @@ export function mapBudgetLineActuals(
 
   for (const line of input.lines) {
     if (line.lineType === 'total') {
-      rows.push(toLineRow(line, totalLineMetrics(line, currency, input.cost), 'engine_total'));
+      rows.push(toLineRow(line, totalLineMetrics(line, currency, input.cost, input.mode), 'engine_total'));
       continue;
     }
 

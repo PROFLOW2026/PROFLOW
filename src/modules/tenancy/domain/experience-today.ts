@@ -32,6 +32,7 @@ const SOURCE_CATEGORY: Readonly<Record<string, TodayFocusCategory>> = {
   overdue_maintenance: 'service',
   recurring_draft_issue: 'service',
   attendance_open: 'time_people',
+  missing_attendance_today: 'time_people',
   timesheet_missing: 'time_people',
   open_approval: 'approvals',
   month_close_incomplete: 'approvals',

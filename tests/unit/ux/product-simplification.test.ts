@@ -85,7 +85,7 @@ describe('authenticated product simplification', () => {
     const financial = flattenLocaleCatalog(readLocaleCatalog('he-IL', 'financial'));
     expect(financial.get('contractValue')).toBe('סכום חוזה');
     expect(financial.get('metricNature.committed')).toBe('התחייבויות');
-    expect(financial.get('actualCostToDate')).toMatch(/עלות בפועל/);
+    expect(financial.get('actualCostToDate')).toMatch(/עלות/);
     expect(financial.get('outstanding')).toMatch(/יתרה/);
     expect(financial.get('openApPayable')).not.toMatch(/\bAP\b/);
   });

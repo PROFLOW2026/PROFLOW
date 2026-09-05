@@ -328,6 +328,18 @@ export const NAV_ITEMS: readonly NavItem[] = [
     moreGroup: 'business',
   },
   {
+    key: 'financialsOverview',
+    href: '/financials/overview',
+    labelKey: 'financialsOverview',
+    iconKey: 'reports',
+    anyPermissions: [
+      PERMISSIONS.PROJECT_FINANCIALS_READ,
+      PERMISSIONS.BILLING_READ,
+      PERMISSIONS.AP_READ,
+    ],
+    moreGroup: 'business',
+  },
+  {
     key: 'warranty',
     href: '/warranty',
     labelKey: 'warranty',

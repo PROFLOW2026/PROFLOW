@@ -1,0 +1,338 @@
+﻿Γùç injected env (26) from .env.local // tip: Γîÿ custom filepath { path: '/custom/path/.env' }
+node.exe : [labor-preview] project=ee7cb842-bbd1-4188-b95e-9f98446c92aa employees=1 queries=3 ms=1042 
+amount=7841.000000
+At C:\Program Files\nodejs\npx.ps1:29 char:3
++   & $NODE_EXE $NPX_CLI_JS $args
++   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ([labor-preview]...unt=7841.000000:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+[gcm-sources] months=19 ms=452
+[gcm-basis] projects=3 ms=616
+[getProjectFinancials] bundleMs=2837
+[labor-preview] project=ee7cb842-bbd1-4188-b95e-9f98446c92aa employees=1 queries=3 ms=1025 amount=7841.000000
+[gcm-sources] months=19 ms=450
+[gcm-basis] projects=3 ms=615
+[getProjectFinancials] bundleMs=2783
+{
+  "cold": {
+    "label": "cold_request_a",
+    "totalMs": 4328,
+    "getProjectFinancialsMs": 2839,
+    "getProjectActualBreakdownMs": 1038,
+    "getProjectAllocatedGeneralDetailMs": 451,
+    "primaryQueryCount": 19,
+    "primaryWriteCount": 0,
+    "primaryQueryGroups": {
+      "other": {
+        "count": 6,
+        "ms": 146,
+        "duplicateSimilar": 5
+      },
+      "month_close": {
+        "count": 2,
+        "ms": 143,
+        "duplicateSimilar": 1
+      },
+      "ap": {
+        "count": 1,
+        "ms": 452,
+        "duplicateSimilar": 0
+      },
+      "expenses": {
+        "count": 2,
+        "ms": 285,
+        "duplicateSimilar": 1
+      },
+      "gcm_sources": {
+        "count": 3,
+        "ms": 289,
+        "duplicateSimilar": 2
+      },
+      "financials_bundle": {
+        "count": 2,
+        "ms": 0,
+        "duplicateSimilar": 1
+      },
+      "labor_preview": {
+        "count": 1,
+        "ms": 1044,
+        "duplicateSimilar": 0
+      },
+      "contracts_project": {
+        "count": 1,
+        "ms": 0,
+        "duplicateSimilar": 0
+      },
+      "gcm_basis": {
+        "count": 1,
+        "ms": 0,
+        "duplicateSimilar": 0
+      }
+    },
+    "recognized": "19415.370000",
+    "futureForecast": "2925.030000",
+    "directActual": "179900.940000",
+    "fullActual": "199316.310000",
+    "directForecast": "179900.940000",
+    "fullForecast": "202241.340000",
+    "breakdownTotal": "179900.940000",
+    "detailRows": 66,
+    "dispatchedQueryCount": 10,
+    "dispatchedWriteCount": 0,
+    "queryGroups": {
+      "gcm_basis": {
+        "count": 3,
+        "ms": 1056,
+        "duplicateSimilar": 2
+      },
+      "expenses": {
+        "count": 2,
+        "ms": 456,
+        "duplicateSimilar": 1
+      },
+      "ap": {
+        "count": 2,
+        "ms": 0,
+        "duplicateSimilar": 1
+      },
+      "other": {
+        "count": 2,
+        "ms": 150,
+        "duplicateSimilar": 1
+      },
+      "gcm_sources": {
+        "count": 1,
+        "ms": 145,
+        "duplicateSimilar": 0
+      }
+    },
+    "summary": {
+      "dbMs": 4807,
+      "txMs": 0,
+      "phaseMs": 1213,
+      "totalMs": 6020,
+      "queryCount": 34,
+      "slowestQueries": [
+        {
+          "name": "with project_monthly_employees as ( select distinct te.employee_id from time_entries te where te.organization_id = $1::uuid and te.project_i",
+          "ms": 1044,
+          "kind": "query"
+        },
+        {
+          "name": "select \"labor_allocation_run_lines\".\"project_id\", coalesce(sum(\"labor_allocation_run_lines\".\"amount\"), 0)::text from \"labor_allocation_run_l",
+          "ms": 626,
+          "kind": "query"
+        },
+        {
+          "name": "select \"expenses\".\"id\", \"expense_allocations\".\"amount\", \"expense_allocations\".\"currency\", \"expense_allocations\".\"amount_basis\", \"expenses\".\"",
+          "ms": 456,
+          "kind": "query"
+        },
+        {
+          "name": "with candidate_bills as ( select b.id from ap_bills b where b.organization_id = $1::uuid and b.archived_at is null ) select jsonb_build_obje",
+          "ms": 452,
+          "kind": "query"
+        },
+        {
+          "name": "select \"expenses\".\"id\", \"expense_allocations\".\"amount\", \"expense_allocations\".\"currency\", \"expense_allocations\".\"amount_basis\", \"expenses\".\"",
+          "ms": 285,
+          "kind": "query"
+        }
+      ]
+    },
+    "queries": {
+      "rlsSetupMs": 354,
+      "rlsSetupCount": 3,
+      "businessMs": 4453,
+      "businessCount": 31,
+      "slowestBusiness": [
+        {
+          "name": "with project_monthly_employees as ( select distinct te.employee_id from time_entries te where te.organization_id = $1::uuid and te.project_i",
+          "ms": 1044,
+          "kind": "query"
+        },
+        {
+          "name": "select \"labor_allocation_run_lines\".\"project_id\", coalesce(sum(\"labor_allocation_run_lines\".\"amount\"), 0)::text from \"labor_allocation_run_l",
+          "ms": 626,
+          "kind": "query"
+        },
+        {
+          "name": "select \"expenses\".\"id\", \"expense_allocations\".\"amount\", \"expense_allocations\".\"currency\", \"expense_allocations\".\"amount_basis\", \"expenses\".\"",
+          "ms": 456,
+          "kind": "query"
+        },
+        {
+          "name": "with candidate_bills as ( select b.id from ap_bills b where b.organization_id = $1::uuid and b.archived_at is null ) select jsonb_build_obje",
+          "ms": 452,
+          "kind": "query"
+        },
+        {
+          "name": "select \"expenses\".\"id\", \"expense_allocations\".\"amount\", \"expense_allocations\".\"currency\", \"expense_allocations\".\"amount_basis\", \"expenses\".\"",
+          "ms": 285,
+          "kind": "query"
+        }
+      ]
+    }
+  },
+  "secondNavigation": {
+    "label": "second_request_b",
+    "totalMs": 4263,
+    "getProjectFinancialsMs": 2783,
+    "getProjectActualBreakdownMs": 1033,
+    "getProjectAllocatedGeneralDetailMs": 447,
+    "primaryQueryCount": 19,
+    "primaryWriteCount": 0,
+    "primaryQueryGroups": {
+      "other": {
+        "count": 6,
+        "ms": 143,
+        "duplicateSimilar": 5
+      },
+      "month_close": {
+        "count": 2,
+        "ms": 141,
+        "duplicateSimilar": 1
+      },
+      "ap": {
+        "count": 1,
+        "ms": 426,
+        "duplicateSimilar": 0
+      },
+      "expenses": {
+        "count": 2,
+        "ms": 283,
+        "duplicateSimilar": 1
+      },
+      "gcm_sources": {
+        "count": 3,
+        "ms": 287,
+        "duplicateSimilar": 2
+      },
+      "financials_bundle": {
+        "count": 2,
+        "ms": 0,
+        "duplicateSimilar": 1
+      },
+      "labor_preview": {
+        "count": 1,
+        "ms": 1025,
+        "duplicateSimilar": 0
+      },
+      "contracts_project": {
+        "count": 1,
+        "ms": 0,
+        "duplicateSimilar": 0
+      },
+      "gcm_basis": {
+        "count": 1,
+        "ms": 0,
+        "duplicateSimilar": 0
+      }
+    },
+    "recognized": "19415.370000",
+    "futureForecast": "2925.030000",
+    "directActual": "179900.940000",
+    "fullActual": "199316.310000",
+    "directForecast": "179900.940000",
+    "fullForecast": "202241.340000",
+    "breakdownTotal": "179900.940000",
+    "detailRows": 66,
+    "dispatchedQueryCount": 10,
+    "dispatchedWriteCount": 0,
+    "queryGroups": {
+      "gcm_basis": {
+        "count": 3,
+        "ms": 1049,
+        "duplicateSimilar": 2
+      },
+      "expenses": {
+        "count": 2,
+        "ms": 455,
+        "duplicateSimilar": 1
+      },
+      "ap": {
+        "count": 2,
+        "ms": 0,
+        "duplicateSimilar": 1
+      },
+      "other": {
+        "count": 2,
+        "ms": 149,
+        "duplicateSimilar": 1
+      },
+      "gcm_sources": {
+        "count": 1,
+        "ms": 146,
+        "duplicateSimilar": 0
+      }
+    },
+    "summary": {
+      "dbMs": 4738,
+      "txMs": 0,
+      "phaseMs": 1208,
+      "totalMs": 5946,
+      "queryCount": 34,
+      "slowestQueries": [
+        {
+          "name": "with project_monthly_employees as ( select distinct te.employee_id from time_entries te where te.organization_id = $1::uuid and te.project_i",
+          "ms": 1025,
+          "kind": "query"
+        },
+        {
+          "name": "select \"labor_allocation_run_lines\".\"project_id\", coalesce(sum(\"labor_allocation_run_lines\".\"amount\"), 0)::text from \"labor_allocation_run_l",
+          "ms": 621,
+          "kind": "query"
+        },
+        {
+          "name": "select \"expenses\".\"id\", \"expense_allocations\".\"amount\", \"expense_allocations\".\"currency\", \"expense_allocations\".\"amount_basis\", \"expenses\".\"",
+          "ms": 455,
+          "kind": "query"
+        },
+        {
+          "name": "with candidate_bills as ( select b.id from ap_bills b where b.organization_id = $1::uuid and b.archived_at is null ) select jsonb_build_obje",
+          "ms": 426,
+          "kind": "query"
+        },
+        {
+          "name": "select \"employee_month_costs\".\"employee_id\", \"employees\".\"name\", \"employee_month_costs\".\"year_month\", \"labor_allocation_run_lines\".\"amount\",",
+          "ms": 285,
+          "kind": "query"
+        }
+      ]
+    },
+    "queries": {
+      "rlsSetupMs": 351,
+      "rlsSetupCount": 3,
+      "businessMs": 4387,
+      "businessCount": 31,
+      "slowestBusiness": [
+        {
+          "name": "with project_monthly_employees as ( select distinct te.employee_id from time_entries te where te.organization_id = $1::uuid and te.project_i",
+          "ms": 1025,
+          "kind": "query"
+        },
+        {
+          "name": "select \"labor_allocation_run_lines\".\"project_id\", coalesce(sum(\"labor_allocation_run_lines\".\"amount\"), 0)::text from \"labor_allocation_run_l",
+          "ms": 621,
+          "kind": "query"
+        },
+        {
+          "name": "select \"expenses\".\"id\", \"expense_allocations\".\"amount\", \"expense_allocations\".\"currency\", \"expense_allocations\".\"amount_basis\", \"expenses\".\"",
+          "ms": 455,
+          "kind": "query"
+        },
+        {
+          "name": "with candidate_bills as ( select b.id from ap_bills b where b.organization_id = $1::uuid and b.archived_at is null ) select jsonb_build_obje",
+          "ms": 426,
+          "kind": "query"
+        },
+        {
+          "name": "select \"employee_month_costs\".\"employee_id\", \"employees\".\"name\", \"employee_month_costs\".\"year_month\", \"labor_allocation_run_lines\".\"amount\",",
+          "ms": 285,
+          "kind": "query"
+        }
+      ]
+    }
+  }
+}

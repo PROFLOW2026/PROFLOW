@@ -10,7 +10,17 @@
     "approvedNotBilled": "{count, plural, one {שינוי מאושר אחד עדיין לא חויב} two {שני שינויים מאושרים עדיין לא חויבו} other {# שינויים מאושרים עדיין לא חויבו}}",
     "overdueBilling": "{count, plural, one {חיוב אחד באיחור} two {שני חיובים באיחור} other {# חיובים באיחור}}",
     "pendingChanges": "{count, plural, one {שינוי אחד ממתין לאישור} two {שני שינויים ממתינים לאישור} other {# שינויים ממתינים לאישור}}",
+    "pendingTime": "{employees} עובד/ים, {hours} שעות ממתינות לאישור",
+    "pendingTimeLink": "לאישור שעות",
     "linkToday": "לכל מה שדורש טיפול"
+  },
+  "laborReconciliation": {
+    "title": "מאזן עבודה",
+    "hint": "שעות מאושרות שהוקצו + שעות ממתינות = סך מאגר העבודה לתקופה.",
+    "allocated": "הוקצה (מאושר)",
+    "unallocated": "ממתין לאישור",
+    "total": "סה״כ מאגר עבודה",
+    "equation": "{allocated} + {unallocated} = {total}"
   },
   "empty": {
     "title": "מתחילים עם הפרויקט הראשון",
@@ -35,7 +45,7 @@
     "colProject": "פרויקט",
     "colClient": "לקוח",
     "colValue": "שווי",
-    "colActual": "עלות בפועל",
+    "colActual": "עלות מוכרת",
     "colProfit": "רווח",
     "colProfitability": "רווחיות %",
     "colStatus": "סטטוס",
@@ -46,7 +56,12 @@
     "title": "תמונת מצב עסקית",
     "outstanding": "יתרה פתוחה",
     "invoicedThisMonth": "סכום חשבוניות החודש",
-    "costsThisMonth": "עלויות החודש נטו"
+    "collectionsThisMonth": "גבייה בפועל החודש",
+    "costsThisMonth": "עלות מוכרת החודש",
+    "prevMonth": "חודש קודם",
+    "nextMonth": "חודש הבא",
+    "viewApOutstanding": "פתיחת חשבוניות ספק פתוחות",
+    "viewUnallocatedExpenses": "הצג הוצאות לא-משויכות"
   },
   "missingData": {
     "missingButtonOne": "חסר נתון אחד",
@@ -73,7 +88,7 @@
     "kpiUnavailableProfitHint": "רווח ומרווח דורשים בסיס הכנסה (חוזה/מחיר). לא מוצגים כאפס.",
     "kpiUnavailableCostHint": "העלות חלקית או מוגבלת בהרשאות, ולא מוצגת כאפס.",
     "affected": {
-      "actual_cost": "עלות בפועל",
+      "actual_cost": "עלות מוכרת",
       "forecast_cost": "תחזית עלות",
       "profit": "רווח",
       "margin": "מרווח",
@@ -337,7 +352,7 @@
       "empty": "עדיין אין מדדי ניהול מהנתונים שהוזנו.",
       "activeProjectValue": "סכום חוזה בפרויקטים פעילים",
       "unbilledBacklog": "עדיין לחייב לפי חוזה",
-      "totalActualCost": "סך עלות בפועל",
+      "totalActualCost": "סך עלות מוכרת",
       "totalCommitments": "התחייבויות פתוחות",
       "expectedProfit": "רווח צפוי",
       "clientOutstanding": "יתרת לקוחות",

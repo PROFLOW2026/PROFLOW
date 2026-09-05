@@ -1,4 +1,4 @@
-import { AlertCircle, FolderKanban, Plus, Receipt } from 'lucide-react';
+import { AlertCircle, ChevronLeft, ChevronRight, FolderKanban, Plus, Receipt } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { Link } from '@/shared/i18n/navigation';
@@ -18,6 +18,7 @@ import { DashboardMissingDataTrigger } from './dashboard-missing-data-trigger';
 import { mapDashboardMissingDataToView } from './map-dashboard-missing-data-view';
 import { partitionDashboardCompletenessItems } from '../domain/dashboard-missing-data';
 import { HomeDashboardOwnerView } from './home-dashboard-owner-view';
+import { HomeLaborReconciliation, HomePendingTimeAlert } from './home-labor-alerts';
 import type { DashboardKpiKey } from '../domain/dashboard-missing-data';
 
 interface HomeDashboardContentProps {
@@ -378,7 +379,7 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
                 <KpiCard
                   title={tFinancial('companyActual')}
                   money={data.forecast.companyActual}
-                  hint={tFinancial('allocatedGeneralInProjectActualHint')}
+                  hint={tFinancial('basis.actualNotCash')}
                 />
               ) : null}
               {data.forecast.companyProfit != null ? (
@@ -395,6 +396,14 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
                   footer={
                     <p className="break-words text-xs text-[var(--pf-text-secondary)]">
                       {tFinancial('unallocatedBusinessCostsHint')}
+                      {' '}
+                      <Link
+                        href="/expenses?projectId=unallocated"
+                        className={textNavLinkClassName}
+                        prefetch={false}
+                      >
+                        {t('businessSummary.viewUnallocatedExpenses')}
+                      </Link>
                     </p>
                   }
                 />
@@ -454,16 +463,20 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
           </section>
         );
 
-      case 'collections':
-        if (!(data.showBilling && data.billing)) return null;
+      case 'collections': {
+        const hasAr = data.showBilling && data.billing;
+        const hasAp = data.apOutstanding != null;
+        if (!hasAr && !hasAp) return null;
         return (
           <section key={card} className="min-w-0 max-w-full">
             <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-3">
-              <KpiCard
-                title={tFinancial('kpis.outstanding')}
-                money={data.billing.outstanding}
-                hint={tFinancial('basis.outstandingCash')}
-              />
+              {hasAr ? (
+                <KpiCard
+                  title={tFinancial('kpis.outstanding')}
+                  money={data.billing!.outstanding}
+                  hint={tFinancial('basis.outstandingCash')}
+                />
+              ) : null}
               {data.organizationSummary && data.showBilling ? (
                 <KpiCard
                   title={t('businessSummary.outstanding')}
@@ -471,9 +484,28 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
                   hint={tFinancial('basis.outstandingCash')}
                 />
               ) : null}
+              {hasAp ? (
+                <KpiCard
+                  title={tFinancial('apOutstanding')}
+                  money={data.apOutstanding!}
+                  hint={tFinancial('apOutstandingHint')}
+                  footer={
+                    <p className="break-words text-xs">
+                      <Link
+                        href="/procurement/ap?status=open"
+                        className={textNavLinkClassName}
+                        prefetch={false}
+                      >
+                        {t('businessSummary.viewApOutstanding')}
+                      </Link>
+                    </p>
+                  }
+                />
+              ) : null}
             </div>
           </section>
         );
+      }
 
       case 'serviceToday':
         return (
@@ -606,26 +638,50 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
         </div>
       ) : null}
 
+      {data.pendingTime ? (
+        <HomePendingTimeAlert pendingTime={data.pendingTime} canApproveTime={data.canApproveTime} />
+      ) : null}
+      {data.laborReconciliation ? (
+        <HomeLaborReconciliation laborReconciliation={data.laborReconciliation} />
+      ) : null}
+
       {data.dashboardCards.map((card) => renderCard(card))}
 
       {data.organizationSummary &&
       (cardSet.has('billing') || cardSet.has('collections') || cardSet.has('profit')) ? (
-        <section className="min-w-0 max-w-full">
-          <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-3">
-            {data.showBilling && cardSet.has('billing') ? (
+        <>
+          {/* Month navigation for costsThisMonth / invoicedThisMonth KPIs */}
+          <MonthNavigation
+            selectedMonth={data.selectedMonth}
+            locale={locale}
+            workKindFilter={data.workKindFilter}
+            prevLabel={t('businessSummary.prevMonth')}
+            nextLabel={t('businessSummary.nextMonth')}
+          />
+          <section className="min-w-0 max-w-full">
+            <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-3">
+              {data.showBilling && cardSet.has('billing') ? (
+                <KpiCard
+                  title={t('businessSummary.invoicedThisMonth')}
+                  money={data.organizationSummary.invoicedThisMonth}
+                  hint={tFinancial('basis.billingCash')}
+                />
+              ) : null}
+              {data.showBilling && cardSet.has('collections') ? (
+                <KpiCard
+                  title={t('businessSummary.collectionsThisMonth')}
+                  money={data.organizationSummary.collectionsThisMonth}
+                  hint={tFinancial('basis.billingCash')}
+                />
+              ) : null}
               <KpiCard
-                title={t('businessSummary.invoicedThisMonth')}
-                money={data.organizationSummary.invoicedThisMonth}
-                hint={tFinancial('basis.billingCash')}
+                title={t('businessSummary.costsThisMonth')}
+                money={data.organizationSummary.costsThisMonth}
+                hint={tFinancial('basis.actualNotCash')}
               />
-            ) : null}
-            <KpiCard
-              title={t('businessSummary.costsThisMonth')}
-              money={data.organizationSummary.costsThisMonth}
-              hint={tFinancial('basis.netExVat')}
-            />
-          </div>
-        </section>
+            </div>
+          </section>
+        </>
       ) : null}
 
       <section className="flex min-w-0 flex-wrap gap-3 text-sm">
@@ -636,6 +692,82 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
           {t('ownerLinks.management')}
         </Link>
       </section>
+    </div>
+  );
+}
+
+/** Month navigator: ← Sep 2026 → links that change the `?month=YYYY-MM` query param. */
+function MonthNavigation({
+  selectedMonth,
+  locale,
+  workKindFilter,
+  prevLabel,
+  nextLabel,
+}: {
+  selectedMonth: string;
+  locale: string;
+  workKindFilter: string | null;
+  prevLabel: string;
+  nextLabel: string;
+}) {
+  const parts = selectedMonth.split('-');
+  const year = parseInt(parts[0] ?? '2024', 10);
+  const month = parseInt(parts[1] ?? '1', 10); // 1-indexed
+
+  // Compute prev / next month strings.
+  const prevDate = new Date(year, month - 2, 1);
+  const nextDate = new Date(year, month, 1);
+  const prevMonthStr = `${prevDate.getFullYear()}-${String(prevDate.getMonth() + 1).padStart(2, '0')}`;
+  const nextMonthStr = `${nextDate.getFullYear()}-${String(nextDate.getMonth() + 1).padStart(2, '0')}`;
+
+  // Block navigation past the current month.
+  const todayMonthStr = new Date().toISOString().slice(0, 7);
+  const isCurrentOrFuture = selectedMonth >= todayMonthStr;
+
+  // Format month display label in the UI locale.
+  const displayDate = new Date(year, month - 1, 1);
+  const monthLabel = new Intl.DateTimeFormat(locale, {
+    month: 'long',
+    year: 'numeric',
+  }).format(displayDate);
+
+  const buildUrl = (m: string) => {
+    const params = new URLSearchParams();
+    params.set('month', m);
+    if (workKindFilter && workKindFilter !== 'all') {
+      params.set('workKind', workKindFilter);
+    }
+    return `/?${params.toString()}`;
+  };
+
+  return (
+    <div className="flex min-w-0 items-center gap-2" dir="ltr">
+      <Link
+        href={buildUrl(prevMonthStr)}
+        className={cn(textNavLinkClassName, 'flex items-center rounded p-1')}
+        prefetch={false}
+        aria-label={prevLabel}
+      >
+        <ChevronLeft className="size-4" aria-hidden />
+      </Link>
+      <span className="min-w-[8rem] text-center text-sm font-medium">{monthLabel}</span>
+      {!isCurrentOrFuture ? (
+        <Link
+          href={buildUrl(nextMonthStr)}
+          className={cn(textNavLinkClassName, 'flex items-center rounded p-1')}
+          prefetch={false}
+          aria-label={nextLabel}
+        >
+          <ChevronRight className="size-4" aria-hidden />
+        </Link>
+      ) : (
+        <span
+          className="flex items-center rounded p-1 text-[var(--pf-text-muted)] opacity-40"
+          aria-hidden
+        >
+          <ChevronRight className="size-4" />
+        </span>
+      )}
     </div>
   );
 }

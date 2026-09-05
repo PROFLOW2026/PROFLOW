@@ -3,15 +3,17 @@ import type { Metadata } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { MoneyText } from '@/components/patterns/money-text';
 import { ResponsiveTable } from '@/components/patterns/responsive-table';
+import { DateRangeSelector } from '@/components/patterns/date-range-selector';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/ui/page-header';
 import { StatusBadge, type StatusShape } from '@/components/ui/status-badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { listApBillsForOrg, type ApBillStatus } from '@/modules/ap';
+import { listApBillsForOrg, sumApPaymentsMadeInDateRange, type ApBillStatus } from '@/modules/ap';
 import { money } from '@/shared/money/money';
 import { withOrgContext } from '@/shared/auth/session';
 import { Link } from '@/shared/i18n/navigation';
+import { todayInTimeZone, type BusinessDate } from '@/shared/dates';
 import { OcrEntryLink } from '@/modules/ocr/ui/ocr-entry-link';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
@@ -59,14 +61,36 @@ export default async function ApBillsPage({
   const locale = await getLocale();
   const params = await searchParams;
 
-  const { bills, canManage, canRead, canReadReports } = await withOrgContext(async (context) => ({
-    bills: hasPermission(context, PERMISSIONS.AP_READ)
-      ? await listApBillsForOrg(context)
-      : [],
-    canManage: hasPermission(context, PERMISSIONS.AP_MANAGE),
-    canRead: hasPermission(context, PERMISSIONS.AP_READ),
-    canReadReports: hasPermission(context, PERMISSIONS.PROJECT_FINANCIALS_READ),
-  }));
+  const fromDate = typeof params.fromDate === 'string' && params.fromDate ? params.fromDate : undefined;
+  const toDate = typeof params.toDate === 'string' && params.toDate ? params.toDate : undefined;
+  const paymentFrom =
+    typeof params.paymentFrom === 'string' && params.paymentFrom ? params.paymentFrom : undefined;
+  const paymentTo = typeof params.paymentTo === 'string' && params.paymentTo ? params.paymentTo : undefined;
+
+  const { bills, canManage, canRead, canReadReports, today, paidInPeriod, currency } = await withOrgContext(async (context) => {
+    const orgCurrency = context.organization.baseCurrency ?? 'ILS';
+    const paidAmount =
+      hasPermission(context, PERMISSIONS.AP_READ) && paymentFrom && paymentTo
+        ? await sumApPaymentsMadeInDateRange(
+            context.db,
+            context.organizationId,
+            orgCurrency,
+            paymentFrom as BusinessDate,
+            paymentTo as BusinessDate,
+          )
+        : null;
+    return {
+      bills: hasPermission(context, PERMISSIONS.AP_READ)
+        ? await listApBillsForOrg(context, { fromDate, toDate })
+        : [],
+      canManage: hasPermission(context, PERMISSIONS.AP_MANAGE),
+      canRead: hasPermission(context, PERMISSIONS.AP_READ),
+      canReadReports: hasPermission(context, PERMISSIONS.PROJECT_FINANCIALS_READ),
+      today: todayInTimeZone(context.organization.timezone),
+      paidInPeriod: paidAmount,
+      currency: orgCurrency,
+    };
+  });
 
   if (!canRead) {
     return (
@@ -111,7 +135,60 @@ export default async function ApBillsPage({
       />
 
       <ProcurementSectionNav active="ap" />
-      <SavedListViewsBar listKey="ap_bills" searchParams={params} />
+      <SavedListViewsBar listKey="ap_bills" searchParams={params} keys={['fromDate', 'toDate', 'paymentFrom', 'paymentTo']} />
+
+      {/* Bill-date filter for the list; payment-date filter for cash paid. */}
+      <form method="get" className="flex flex-col gap-3">
+        <div>
+          <p className="mb-1 text-xs text-[var(--pf-text-muted)]">{t('list.billDateHint')}</p>
+          <DateRangeSelector
+            today={today}
+            defaultFrom={fromDate ?? ''}
+            defaultTo={toDate ?? ''}
+            fromName="fromDate"
+            toName="toDate"
+          />
+        </div>
+        <div>
+          <p className="mb-1 text-xs text-[var(--pf-text-muted)]">{t('list.paidInPeriodHint')}</p>
+          <DateRangeSelector
+            today={today}
+            defaultFrom={paymentFrom ?? ''}
+            defaultTo={paymentTo ?? ''}
+            fromName="paymentFrom"
+            toName="paymentTo"
+            labels={{
+              from: t('list.paymentDateFrom'),
+              to: t('list.paymentDateTo'),
+            }}
+          />
+        </div>
+        <div className="flex gap-2">
+          <button
+            type="submit"
+            className="h-9 rounded-md border border-[var(--pf-border-strong)] px-4 text-sm font-medium"
+          >
+            {t('aging.apply')}
+          </button>
+          {(fromDate ?? toDate ?? paymentFrom ?? paymentTo) ? (
+            <Link
+              href="/procurement/ap"
+              className="inline-flex h-9 items-center rounded-md px-3 text-sm text-[var(--pf-text-secondary)] hover:underline"
+            >
+              {t('aging.clear')}
+            </Link>
+          ) : null}
+        </div>
+      </form>
+
+      {/* Period payments summary — shown when date range is active */}
+      {paidInPeriod !== null && parseFloat(paidInPeriod) > 0 ? (
+        <div className="rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-muted)] px-4 py-3 text-sm">
+          <span className="font-medium">{t('list.paidInPeriodLabel')} </span>
+          <MoneyText value={{ amount: paidInPeriod, currency }} />
+          <span className="ml-2 text-[var(--pf-text-secondary)]">{t('list.paidInPeriodHint')}</span>
+        </div>
+      ) : null}
 
       {bills.length === 0 ? (
         <EmptyState
@@ -142,6 +219,7 @@ export default async function ApBillsPage({
                     <TableHead numeric>{t('list.columns.vat')}</TableHead>
                     <TableHead numeric>{t('list.columns.gross')}</TableHead>
                     <TableHead>{t('list.columns.billDate')}</TableHead>
+                    <TableHead>{t('list.columns.dueDate')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -176,6 +254,22 @@ export default async function ApBillsPage({
                           <span dir="ltr">
                             {new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(
                               new Date(bill.billDate),
+                            )}
+                          </span>
+                        ) : (
+                          '-'
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {bill.dueDate ? (
+                          <span dir="ltr" className={
+                            bill.dueDate < new Date().toISOString().slice(0,10) &&
+                            bill.status !== 'matched'
+                              ? 'text-[var(--pf-status-danger-fg)] font-medium'
+                              : ''
+                          }>
+                            {new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(
+                              new Date(bill.dueDate),
                             )}
                           </span>
                         ) : (
@@ -217,6 +311,19 @@ export default async function ApBillsPage({
                 <p className="text-xs text-[var(--pf-text-muted)]" dir="ltr">
                   {new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(
                     new Date(bill.billDate),
+                  )}
+                </p>
+              ) : null}
+              {bill.dueDate ? (
+                <p className={
+                  'text-xs ' + (
+                    bill.dueDate < new Date().toISOString().slice(0,10) && bill.status !== 'matched'
+                      ? 'text-[var(--pf-status-danger-fg)] font-medium'
+                      : 'text-[var(--pf-text-muted)]'
+                  )
+                } dir="ltr">
+                  {t('list.columns.dueDate')}: {new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(
+                    new Date(bill.dueDate),
                   )}
                 </p>
               ) : null}

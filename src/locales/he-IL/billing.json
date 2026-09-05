@@ -9,7 +9,11 @@
     "kind": "סוג",
     "contract": "חוזה",
     "allContracts": "כל החוזים",
-    "issueDate": "תאריך",
+    "issueDate": "תאריך הנפקה",
+    "issueDateHint": "סינון הרשימה לפי תאריך הנפקת החיוב; לא לפי תאריך גבייה.",
+    "paymentDateHint": "גבייה מסוכמת לפי תאריך תשלום.",
+    "paymentFrom": "מתאריך תשלום",
+    "paymentTo": "עד תאריך תשלום",
     "amount": "סכום",
     "paid": "שולם",
     "outstanding": "יתרה פתוחה",
@@ -24,6 +28,10 @@
     },
     "emptyTitle": "אין עדיין רשומות חיוב",
     "emptyBody": "רשמו חיוב כששלחתם סכום ללקוח - גם אם החשבונית החוקית במערכת אחרת.",
+    "filterButton": "סנן",
+    "clearFilter": "נקה סינון",
+    "collectedInPeriodLabel": "נגבה בפועל בתקופה:",
+    "collectedInPeriodHint": "(תשלומי לקוחות שהתקבלו לפי תאריך תשלום)",
     "emptyAction": "חיוב חדש"
   },
   "aging": {
@@ -194,7 +202,8 @@
     "retentionNotReleasable": "ניתן לשחרר עיכבון רק אחרי סגירת החיוב.",
     "retentionReleaseExceedsHeld": "השחרור אינו יכול לחרוג מהסכום המוחזק.",
     "retentionReleaseAmountInvalid": "סכום השחרור חייב להיות חיובי.",
-    "retentionReleaseDateFuture": "תאריך השחרור לא יכול להיות בעתיד."
+    "retentionReleaseDateFuture": "תאריך השחרור לא יכול להיות בעתיד.",
+    "closedPeriod": "החודש סגור. רשמו תיקון בסגירת החודש במקום ליצור, להפיק או לבטל את רשומת החיוב."
   },
   "notAllowed": {
     "title": "אין הרשאה",

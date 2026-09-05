@@ -9,7 +9,11 @@
     "kind": "Kind",
     "contract": "Contract",
     "allContracts": "All contracts",
-    "issueDate": "Date",
+    "issueDate": "Issue date",
+    "issueDateHint": "The list is filtered by billing issue date — not collection date.",
+    "paymentDateHint": "Collections are totaled by payment date.",
+    "paymentFrom": "Payment date from",
+    "paymentTo": "Payment date to",
     "amount": "Amount",
     "paid": "Paid",
     "outstanding": "Outstanding to collect",
@@ -24,6 +28,10 @@
     },
     "emptyTitle": "No billing records yet",
     "emptyBody": "Record billing when you send an amount to a client - even if the legal invoice lives in another system.",
+    "filterButton": "Filter",
+    "clearFilter": "Clear filter",
+    "collectedInPeriodLabel": "Collected in period:",
+    "collectedInPeriodHint": "(customer payments received, by payment date)",
     "emptyAction": "Add billing record"
   },
   "aging": {
@@ -194,7 +202,8 @@
     "retentionNotReleasable": "Retention can only be released after the billing record is finalized.",
     "retentionReleaseExceedsHeld": "Release cannot exceed held remaining.",
     "retentionReleaseAmountInvalid": "Release amount must be positive.",
-    "retentionReleaseDateFuture": "Release date cannot be in the future."
+    "retentionReleaseDateFuture": "Release date cannot be in the future.",
+    "closedPeriod": "This month is closed. Record a month-close correction instead of creating, finalizing, or voiding this billing record."
   },
   "notAllowed": {
     "title": "Not allowed",

@@ -133,6 +133,7 @@ async function loadLinkedExpenseIdsForProject(
 /**
  * Actual path: finalized expense allocations + recognized AP bill lines.
  * Expense rows linked to recognized vendor bills are excluded to avoid double-counting.
+ * Cost code is COALESCE(line/allocation, header) so a header tag is not dropped (0074).
  */
 export async function loadActualAmountsByCostCodeForProject(
   db: DbExecutor,
@@ -142,10 +143,11 @@ export async function loadActualAmountsByCostCodeForProject(
   const linkedExpenseIds = await loadLinkedExpenseIdsForProject(db, organizationId, projectId);
   const linkedList = [...linkedExpenseIds];
 
+  const allocationCostCode = sql<string>`${expenseAllocations.costCodeId}`;
   const allocationFilters = [
     eq(expenseAllocations.organizationId, organizationId),
     eq(expenseAllocations.projectId, projectId),
-    isNotNull(expenseAllocations.costCodeId),
+    sql`${expenseAllocations.costCodeId} is not null`,
     eq(expenses.status, 'finalized'),
     isNull(expenses.archivedAt),
   ];
@@ -155,7 +157,7 @@ export async function loadActualAmountsByCostCodeForProject(
 
   const allocationRows = await db
     .select({
-      costCodeId: expenseAllocations.costCodeId,
+      costCodeId: allocationCostCode,
       amount: expenseAllocations.amount,
       currency: expenseAllocations.currency,
     })
@@ -163,9 +165,10 @@ export async function loadActualAmountsByCostCodeForProject(
     .innerJoin(expenses, eq(expenses.id, expenseAllocations.expenseId))
     .where(and(...allocationFilters));
 
+  const apCostCode = sql<string>`${apBillLines.costCodeId}`;
   const apRows = await db
     .select({
-      costCodeId: apBillLines.costCodeId,
+      costCodeId: apCostCode,
       amount: apBillLines.lineTotal,
       currency: apBillLines.currency,
     })
@@ -177,7 +180,7 @@ export async function loadActualAmountsByCostCodeForProject(
         eq(apBills.organizationId, organizationId),
         eq(apBills.projectId, projectId),
         inArray(apBills.status, [...RECOGNIZED_VENDOR_BILL_STATUSES]),
-        isNotNull(apBillLines.costCodeId),
+        sql`${apBillLines.costCodeId} is not null`,
       ),
     );
 
@@ -204,10 +207,11 @@ export async function loadUnattributedActualForProject(
   const linkedList = [...linkedExpenseIds];
   const normalized = currency.toUpperCase();
 
+  const _allocationCostCode = sql`${expenseAllocations.costCodeId}`;
   const allocationFilters = [
     eq(expenseAllocations.organizationId, organizationId),
     eq(expenseAllocations.projectId, projectId),
-    isNull(expenseAllocations.costCodeId),
+    sql`${expenseAllocations.costCodeId} is null`,
     eq(expenses.status, 'finalized'),
     isNull(expenses.archivedAt),
     eq(expenseAllocations.currency, normalized),
@@ -236,7 +240,7 @@ export async function loadUnattributedActualForProject(
         eq(apBills.organizationId, organizationId),
         eq(apBills.projectId, projectId),
         inArray(apBills.status, [...RECOGNIZED_VENDOR_BILL_STATUSES]),
-        isNull(apBillLines.costCodeId),
+        sql`${apBillLines.costCodeId} is null`,
         eq(apBillLines.currency, normalized),
       ),
     );

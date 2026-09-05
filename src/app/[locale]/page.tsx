@@ -74,7 +74,7 @@ export default async function LocaleRootPage({
   searchParams,
 }: {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ workKind?: string }>;
+  searchParams: Promise<{ workKind?: string; month?: string }>;
 }) {
   const [{ locale }, query, session] = await Promise.all([
     params,
@@ -109,6 +109,7 @@ export default async function LocaleRootPage({
       >
         <AuthenticatedDashboardHome
           workKind={query.workKind}
+          month={query.month}
           displayName={session.user.displayName}
         />
       </Suspense>
@@ -118,9 +119,11 @@ export default async function LocaleRootPage({
 
 async function AuthenticatedDashboardHome({
   workKind,
+  month,
   displayName,
 }: {
   workKind?: string;
+  month?: string;
   displayName: string | null;
 }) {
   const [t, tCommon] = await Promise.all([
@@ -141,7 +144,7 @@ async function AuthenticatedDashboardHome({
       <Suspense
         fallback={<DashboardSkeleton showTitle={false} label={tCommon('states.loading')} />}
       >
-        <HomeDashboardSection workKindFilter={workKindFilter} />
+        <HomeDashboardSection workKindFilter={workKindFilter} selectedMonth={month} />
       </Suspense>
     </div>
   );
@@ -173,11 +176,13 @@ async function DashboardCapabilityTip() {
 
 async function HomeDashboardSection({
   workKindFilter,
+  selectedMonth,
 }: {
   workKindFilter: string;
+  selectedMonth?: string;
 }) {
   const data = await withOrgContext((context) =>
-    getHomeDashboard(context, { workKindFilter }),
+    getHomeDashboard(context, { workKindFilter, selectedMonth }),
   );
   return <HomeDashboardContent data={data} />;
 }

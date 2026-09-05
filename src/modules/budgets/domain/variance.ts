@@ -1,5 +1,6 @@
 import { computeForecastFinalCost } from '@/modules/financials/domain/cost-aggregation';
 import type { CostPosition } from '@/modules/financials/domain/types';
+import type { ProjectProfitabilityMode } from '@/modules/tenancy/domain/project-profitability-mode';
 import {
   fromNumericString,
   subtractMoney,
@@ -29,6 +30,12 @@ export interface ComposeBudgetControlInput {
   readonly currency: string;
   /** Engine cost position - required for Actual / Commitment / ETC / Forecast. */
   readonly cost: CostPosition | null;
+  /**
+   * Org profitability mode. `include_general` compares Budget to Full Forecast
+   * (direct + allocated/future overhead). Default / `direct` / `both` keep
+   * the existing Direct Forecast comparison.
+   */
+  readonly mode?: ProjectProfitabilityMode;
 }
 
 export function moneyFromBudgetAmount(
@@ -65,9 +72,13 @@ export function composeBudgetControlPosition(
   const actual = input.cost.actualCostToDate;
   const remainingCommitment = input.cost.committedOpen;
   const etc = input.cost.expectedRemainingCost;
+  const forecastSource =
+    input.mode === 'include_general'
+      ? (input.cost.fullForecastFinalCost ?? input.cost.estimatedFinalCost)
+      : input.cost.estimatedFinalCost;
   const forecast =
-    input.cost.estimatedFinalCost.currency === currency
-      ? input.cost.estimatedFinalCost
+    forecastSource.currency === currency
+      ? forecastSource
       : computeForecastFinalCost({
           actualCostToDate: actual,
           remainingCommitments: remainingCommitment,

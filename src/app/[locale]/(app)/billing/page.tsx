@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/ui/page-header';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { DateRangeSelector } from '@/components/patterns/date-range-selector';
+import { MoneyText } from '@/components/patterns/money-text';
 import {
   listBillingRecords,
   listPaymentApplications,
@@ -17,14 +19,15 @@ import { PaymentHistoryTable } from '@/modules/billing/ui/payment-history-panel'
 import { ReceivablesAgingPanel } from '@/modules/billing/ui/receivables-aging-panel';
 import { ReceivablesSummaryPanel } from '@/modules/billing/ui/receivables-summary-panel';
 import { withOrgContext } from '@/shared/auth/session';
-import { todayInTimeZone } from '@/shared/dates';
+import { businessDate, todayInTimeZone } from '@/shared/dates';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { Link } from '@/shared/i18n/navigation';
 import type { BillingListFilter } from '@/modules/billing';
 import { CommercialDocsHub } from '@/modules/quotes/ui/commercial-docs-hub';
 import { ReportsEntryLink } from '@/modules/financials/ui/reports-entry-link';
-import { isZeroMoney } from '@/shared/money';
+import { isZeroMoney, type MoneyValue } from '@/shared/money';
+import { sumCollectionsInDateRange } from '@/modules/financials';
 
 export async function generateMetadata({
   params,
@@ -43,7 +46,14 @@ export default async function BillingListPage({
   searchParams,
 }: {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ filter?: string; contractId?: string }>;
+  searchParams: Promise<{
+    filter?: string;
+    contractId?: string;
+    fromDate?: string;
+    toDate?: string;
+    paymentFrom?: string;
+    paymentTo?: string;
+  }>;
 }) {
   const [{ locale }, search, t, tRecurring] = await Promise.all([
     params,
@@ -55,6 +65,12 @@ export default async function BillingListPage({
   const filter = (FILTERS.includes(rawFilter as BillingListFilter) ? rawFilter : 'all') as BillingListFilter;
   const contractId =
     typeof search.contractId === 'string' && search.contractId.length > 0 ? search.contractId : undefined;
+  const fromDate = typeof search.fromDate === 'string' && search.fromDate ? search.fromDate : undefined;
+  const toDate = typeof search.toDate === 'string' && search.toDate ? search.toDate : undefined;
+  const paymentFrom =
+    typeof search.paymentFrom === 'string' && search.paymentFrom ? search.paymentFrom : undefined;
+  const paymentTo =
+    typeof search.paymentTo === 'string' && search.paymentTo ? search.paymentTo : undefined;
 
   function billingListHref(nextFilter: BillingListFilter, nextContractId?: string) {
     const params = new URLSearchParams();
@@ -65,7 +81,7 @@ export default async function BillingListPage({
   }
 
   // One org billing load feeds the list filter + AR summary + aging (was 3× listBillingRecords).
-  const { canRead, records, canManage, summary, aging, payments, canReadReports, contractOptions } =
+  const { canRead, records, canManage, summary, aging, payments, canReadReports, contractOptions, collectionsInPeriod, today } =
     await withOrgContext(
     async (context) => {
       const allowed = hasPermission(context, PERMISSIONS.BILLING_READ);
@@ -79,16 +95,28 @@ export default async function BillingListPage({
           payments: [],
           canReadReports: false,
           contractOptions: [] as { id: string; name: string | null }[],
+          collectionsInPeriod: null as null | MoneyValue,
+          orgCurrency: context.organization.baseCurrency ?? 'ILS',
+          today: todayInTimeZone(context.organization.timezone),
         };
       }
 
-      const [allRecords, paymentRows] = await Promise.all([
-        listBillingRecords(context, { filter: 'all', limit: 5_000 }),
-        listPaymentApplications(context, { limit: 25, includeVoided: true }),
-      ]);
-
       const asOf = todayInTimeZone(context.organization.timezone);
       const currency = context.organization.baseCurrency;
+
+      const [allRecords, paymentRows, collectionsAmt] = await Promise.all([
+        listBillingRecords(context, { filter: 'all', limit: 5_000 }),
+        listPaymentApplications(context, { limit: 25, includeVoided: true }),
+        paymentFrom && paymentTo
+          ? sumCollectionsInDateRange(
+              context.db,
+              context.organizationId,
+              currency,
+              businessDate(paymentFrom),
+              businessDate(paymentTo),
+            )
+          : Promise.resolve(null),
+      ]);
       const receivablesSummary = computeReceivablesSummary(allRecords, currency, asOf);
       const receivablesAging = computeReceivablesAging(
         allRecords.filter((record) => !isZeroMoney(record.outstandingAmount)),
@@ -98,6 +126,11 @@ export default async function BillingListPage({
       const listed = allRecords
         .filter((record) => matchesListFilter(filter, record.collectionStatus))
         .filter((record) => (contractId ? record.contractId === contractId : true))
+        .filter((record) => {
+          if (fromDate && record.issueDate < fromDate) return false;
+          if (toDate && record.issueDate > toDate) return false;
+          return true;
+        })
         .slice(0, 100);
 
       const contractOptions = [
@@ -123,6 +156,9 @@ export default async function BillingListPage({
         payments: paymentRows,
         canReadReports: hasPermission(context, PERMISSIONS.PROJECT_FINANCIALS_READ),
         contractOptions,
+        collectionsInPeriod: collectionsAmt,
+        orgCurrency: currency,
+        today: asOf,
       };
     },
   );
@@ -178,6 +214,64 @@ export default async function BillingListPage({
       />
       <p className="text-xs text-[var(--pf-text-muted)]">{t('statutoryDisclosure')}</p>
       <CommercialDocsHub current="billing" />
+
+      <form method="get" className="flex flex-col gap-3">
+        {filter !== 'all' && <input type="hidden" name="filter" value={filter} />}
+        {contractId && <input type="hidden" name="contractId" value={contractId} />}
+        <div>
+          <p className="mb-1 text-xs text-[var(--pf-text-muted)]">{t('list.issueDateHint')}</p>
+          <DateRangeSelector
+            today={today}
+            defaultFrom={fromDate ?? ''}
+            defaultTo={toDate ?? ''}
+            fromName="fromDate"
+            toName="toDate"
+            labels={{
+              from: t('list.issueDate'),
+              to: t('list.issueDate'),
+            }}
+          />
+        </div>
+        <div>
+          <p className="mb-1 text-xs text-[var(--pf-text-muted)]">{t('list.paymentDateHint')}</p>
+          <DateRangeSelector
+            today={today}
+            defaultFrom={paymentFrom ?? ''}
+            defaultTo={paymentTo ?? ''}
+            fromName="paymentFrom"
+            toName="paymentTo"
+            labels={{
+              from: t('list.paymentFrom'),
+              to: t('list.paymentTo'),
+            }}
+          />
+        </div>
+        <div className="flex gap-2">
+          <button
+            type="submit"
+            className="h-9 rounded-md border border-[var(--pf-border-strong)] px-4 text-sm font-medium"
+          >
+            {t('list.filterButton')}
+          </button>
+          {(fromDate ?? toDate ?? paymentFrom ?? paymentTo) ? (
+            <a
+              href={billingListHref(filter, contractId)}
+              className="inline-flex h-9 items-center rounded-md px-3 text-sm text-[var(--pf-text-secondary)] hover:underline"
+            >
+              {t('list.clearFilter')}
+            </a>
+          ) : null}
+        </div>
+      </form>
+
+      {/* Collections summary for the selected period */}
+      {collectionsInPeriod && parseFloat(collectionsInPeriod.amount) > 0 ? (
+        <div className="rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-muted)] px-4 py-3 text-sm">
+          <span className="font-medium">{t('list.collectedInPeriodLabel')} </span>
+          <MoneyText value={collectionsInPeriod} />
+          <span className="ml-2 text-[var(--pf-text-secondary)]">{t('list.collectedInPeriodHint')}</span>
+        </div>
+      ) : null}
 
       {showSummary && summary ? <ReceivablesSummaryPanel summary={summary} /> : null}
       {showAging && aging ? <ReceivablesAgingPanel aging={aging} /> : null}

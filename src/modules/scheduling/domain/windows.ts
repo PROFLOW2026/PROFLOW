@@ -3,7 +3,13 @@
  * Framework-free - unit-tested without DB.
  */
 
-import { addDays, businessDate, type BusinessDate } from '@/shared/dates';
+import {
+  addDays,
+  businessDate,
+  endOfWeek,
+  startOfWeek,
+  type BusinessDate,
+} from '@/shared/dates';
 
 /**
  * Start of a calendar day in `timeZone`, as a UTC instant.
@@ -71,14 +77,11 @@ export function enumerateBusinessDates(from: string, to: string, maxDays = 31): 
   return days;
 }
 
-/** Sunday-start week (typical Israeli calendar). */
-export function startOfWeekSunday(date: string): BusinessDate {
-  const day = businessDate(date);
-  const [y, m, d] = day.split('-').map(Number) as [number, number, number];
-  const weekday = new Date(Date.UTC(y, m - 1, d)).getUTCDay();
-  return addDays(day, -weekday);
+/** Week start. `weekStart` 0=Sunday (default) … 6=Saturday. */
+export function startOfWeekSunday(date: string, weekStart = 0): BusinessDate {
+  return startOfWeek(businessDate(date), weekStart);
 }
 
-export function endOfWeekSunday(date: string): BusinessDate {
-  return addDays(startOfWeekSunday(date), 6);
+export function endOfWeekSunday(date: string, weekStart = 0): BusinessDate {
+  return endOfWeek(businessDate(date), weekStart);
 }

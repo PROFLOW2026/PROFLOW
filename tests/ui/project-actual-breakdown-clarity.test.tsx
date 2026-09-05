@@ -125,8 +125,8 @@ describe('OWNER GATE — actual breakdown clarity', () => {
 
     expect(screen.queryByText('הוצאות כלליות')).not.toBeInTheDocument();
     expect(screen.getAllByText('הוצאות כלליות שהוקצו לפרויקט')).toHaveLength(1);
-    expect(screen.getByText('עלות ישירה בפועל')).toBeInTheDocument();
-    expect(screen.getByText('עלות מלאה בפועל')).toBeInTheDocument();
+    expect(screen.getByText('עלות ישירה מוכרת')).toBeInTheDocument();
+    expect(screen.getByText('עלות מלאה מוכרת')).toBeInTheDocument();
     expect(screen.getByText('תוספת לעלות מלאה')).toBeInTheDocument();
     expect(document.querySelector('[data-pf-direct-subtotal]')).toBeInTheDocument();
     expect(document.querySelector('[data-pf-full-actual-total]')).toBeInTheDocument();

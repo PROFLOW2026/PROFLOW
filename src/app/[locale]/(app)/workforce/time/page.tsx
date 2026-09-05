@@ -109,6 +109,7 @@ export default async function TimeEntriesPage({
           employees={employees.map((employee) => ({ id: employee.id, name: employee.name }))}
           projects={projects}
           hideEmployeeFilter={selfScoped}
+          today={todayDate}
           initial={{
             employeeId: filters.employeeId,
             projectId: filters.projectId,

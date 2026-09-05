@@ -2,6 +2,7 @@ import { getTranslations } from 'next-intl/server';
 import { MoneyText } from '@/components/patterns/money-text';
 import { formatWorkHoursValue } from '@/modules/workforce/domain/format-work-hours';
 import { getProjectLaborByEmployeeAggregate } from '@/modules/financials/application/get-project-actual-breakdown';
+import { sumTimeLaborPeriodReconciliation } from '@/modules/workforce';
 import { withOrgContext } from '@/shared/auth/session';
 import { canViewWorkforceCosts } from './employees-table';
 
@@ -21,15 +22,34 @@ export async function ProjectLaborActualSummary({
 }: ProjectLaborActualSummaryProps) {
   const t = await getTranslations('workforce.projectPanel');
 
-  const aggregate = await getProjectLaborByEmployeeAggregate(projectId);
-  const showCosts = await withOrgContext(async (context) => canViewWorkforceCosts(context));
+  const [aggregate, reconciliation, showCosts] = await Promise.all([
+    getProjectLaborByEmployeeAggregate(projectId),
+    withOrgContext(async (context) =>
+      sumTimeLaborPeriodReconciliation(
+        context.db,
+        context.organizationId,
+        null,
+        null,
+        projectId,
+      ),
+    ),
+    withOrgContext(async (context) => Promise.resolve(canViewWorkforceCosts(context))),
+  ]);
 
-  if (!aggregate || !aggregate.hasWorkforceData || aggregate.employees.length === 0) {
+  const hasAllocated =
+    Boolean(aggregate?.hasWorkforceData) && (aggregate?.employees.length ?? 0) > 0;
+  const hasPending = reconciliation.pendingHours > 0;
+  if (!hasAllocated && !hasPending) {
     return null;
   }
 
   const formattedHours = formatWorkHoursValue(
-    aggregate.employees.reduce((sum, row) => sum + Number(row.hours), 0),
+    aggregate?.employees.reduce((sum, row) => sum + Number(row.hours), 0) ?? 0,
+  );
+  const allocatedHours = formatWorkHoursValue(reconciliation.allocatedHours);
+  const unallocatedHours = formatWorkHoursValue(reconciliation.pendingHours);
+  const totalHours = formatWorkHoursValue(
+    reconciliation.allocatedHours + reconciliation.pendingHours,
   );
 
   return (
@@ -40,28 +60,38 @@ export async function ProjectLaborActualSummary({
       <div className="flex flex-col gap-1 text-start">
         <h3 className="text-sm font-semibold">{t('laborActualTitle')}</h3>
         <p className="text-xs text-[var(--pf-text-muted)]">{t('laborActualHint')}</p>
+        <p className="text-xs text-[var(--pf-text-secondary)]">
+          {t('laborPoolEquation', {
+            allocated: allocatedHours,
+            unallocated: unallocatedHours,
+            total: totalHours,
+          })}
+        </p>
+        {hasAllocated ? (
         <p className="text-sm text-[var(--pf-text-secondary)]">
           {t('laborActualSummary', {
             hours: formattedHours,
-            count: aggregate.employees.length,
+            count: aggregate!.employees.length,
           })}
           {showCosts ? (
             <>
               {' · '}
-              {aggregate.entriesMissingCost > 0 ? (
+              {(aggregate?.entriesMissingCost ?? 0) > 0 ? (
                 <span className="text-[var(--pf-status-warning-fg)]">
-                  {t('laborActualMissingCost', { count: aggregate.entriesMissingCost })}
+                  {t('laborActualMissingCost', { count: aggregate?.entriesMissingCost ?? 0 })}
                 </span>
-              ) : (
+              ) : aggregate?.totalLaborCost ? (
                 <MoneyText value={aggregate.totalLaborCost} />
-              )}
+              ) : null}
             </>
           ) : null}
         </p>
+        ) : null}
       </div>
 
+      {hasAllocated ? (
       <ul className="flex flex-col gap-2">
-        {aggregate.employees.map((row) => (
+        {aggregate!.employees.map((row) => (
           <li
             key={row.employeeId}
             className="flex min-w-0 items-start justify-between gap-3 text-sm"
@@ -89,6 +119,7 @@ export async function ProjectLaborActualSummary({
           </li>
         ))}
       </ul>
+      ) : null}
     </section>
   );
 }

@@ -1,0 +1,51 @@
+---
+description: All file writes only inside the active project workspace — never outside without Owner approval
+alwaysApply: true
+---
+
+# Workspace-only writes (mandatory)
+
+Read and obey this before creating, editing, moving, or deleting any file.
+
+## Law
+
+**Every file save must stay inside the active working project directory**
+(the Cursor workspace root for ProjectFlow — e.g. `…/FINAL-WEB/projectflow`).
+
+There is **no approval** to touch other directories unless the Owner gives
+**explicit permission in the current message**.
+
+## Allowed write roots
+
+- Paths under the workspace root (repo): `src/`, `docs/`, `tests/`, `drizzle/`,
+  `.cursor/rules/`, `scripts/`, etc.
+- Audits, reports, plans, notes → prefer `docs/audits/` (or other in-repo
+  paths the Owner named).
+
+## Forbidden without explicit Owner approval
+
+Do **not** create, edit, move, or delete files under:
+
+- `~/.cursor/projects/.../canvases/`
+- `~/.cursor/skills-cursor/`
+- Other repos or Desktop folders outside this workspace
+- User home, AppData, temp “convenience” dumps outside the workspace
+- Sibling projects under `FINAL-WEB/` that are not this workspace
+
+## Canvas / analytical artifacts
+
+If a skill suggests writing a `.canvas.tsx` under Cursor’s managed canvases
+folder — **do not**. Write the deliverable **inside the workspace** instead
+(e.g. `docs/audits/*.md`). Ask the Owner only if they explicitly want a
+Cursor canvas outside the repo.
+
+## If already written outside by mistake
+
+1. Copy/move the content into the workspace path the Owner wants.
+2. Delete the out-of-workspace copy.
+3. Confirm the in-repo path to the Owner.
+
+## Conflict resolution
+
+Owner’s **current explicit instruction** wins. This rule is not permission
+to write outside the workspace “for convenience.”

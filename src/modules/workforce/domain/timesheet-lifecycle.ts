@@ -121,17 +121,22 @@ export function canDecideApprovalStatus(status: TimeApprovalStatus): boolean {
 }
 
 /**
- * Israeli week: Sunday–Saturday, derived from the work date (YYYY-MM-DD).
+ * Work week for a date. `weekStart` is JS weekday (0=Sunday … 6=Saturday).
+ * Default 0 preserves historic Sunday–Saturday Israeli weeks.
  * One active timesheet per employee per period_start.
  */
-export function timesheetPeriodForWorkDate(workDate: string): {
+export function timesheetPeriodForWorkDate(
+  workDate: string,
+  weekStart = 0,
+): {
   readonly periodStart: string;
   readonly periodEnd: string;
 } {
   const date = parseUtcDate(workDate);
-  const daysFromSunday = date.getUTCDay();
+  const startDay = ((weekStart % 7) + 7) % 7;
+  const daysFromStart = (date.getUTCDay() - startDay + 7) % 7;
   const start = new Date(date);
-  start.setUTCDate(date.getUTCDate() - daysFromSunday);
+  start.setUTCDate(date.getUTCDate() - daysFromStart);
   const end = new Date(start);
   end.setUTCDate(start.getUTCDate() + 6);
   return { periodStart: formatUtcDate(start), periodEnd: formatUtcDate(end) };

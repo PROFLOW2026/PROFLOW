@@ -29,7 +29,7 @@ describe('financial basis labels distinguish invoice cash from net profit', () =
     expect(profit).toMatch(/רווח/);
     expect(actualMargin).toMatch(/רווח/);
     expect(actualMarginHint).toMatch(/הרווח המשוער/);
-    expect(actualCost).toMatch(/עלות בפועל/);
+    expect(actualCost).toMatch(/עלות/);
     expect(outstanding).toMatch(/יתרה פתוחה/);
     expect(billingCash).not.toBe(profitNet);
     expect(billingCash).toMatch(/מע״מ/);

@@ -81,6 +81,7 @@ export default async function VendorDetailPage({
   let documentCandidates: Awaited<ReturnType<typeof listSubcontractDocumentCandidates>> = [];
   let candidateProjects: { id: string; name: string }[] = [];
   let canManage = false;
+  let canManageAdvances = false;
   let canReadAp = false;
   let defaultStartDate = '';
   let apOutstanding: Awaited<ReturnType<typeof getVendorApOutstanding>> | null = null;
@@ -96,6 +97,7 @@ export default async function VendorDetailPage({
     const result = await withOrgContext(async (context) => {
       const detail = await getVendorById(context, vendorId);
       const allowManage = hasPermission(context, PERMISSIONS.VENDORS_MANAGE);
+      const allowManageAdvances = hasPermission(context, PERMISSIONS.AP_MANAGE);
       const allowAp = hasPermission(context, PERMISSIONS.AP_READ);
       const [
         panel,
@@ -149,6 +151,7 @@ export default async function VendorDetailPage({
         parentContracts: contracts,
         documentCandidates: docs,
         canManage: allowManage,
+        canManageAdvances: allowManageAdvances,
         canReadAp: allowAp,
         defaultStartDate: todayInTimeZone(context.organization.timezone),
         apOutstanding: outstanding,
@@ -171,6 +174,7 @@ export default async function VendorDetailPage({
     parentContracts = result.parentContracts;
     documentCandidates = result.documentCandidates;
     canManage = result.canManage;
+    canManageAdvances = result.canManageAdvances;
     canReadAp = result.canReadAp;
     defaultStartDate = result.defaultStartDate;
     apOutstanding = result.apOutstanding;
@@ -424,6 +428,7 @@ export default async function VendorDetailPage({
             parentContracts={parentContracts}
             documentCandidates={documentCandidates}
             canManage={canManage}
+            canManageAdvances={canManageAdvances}
             defaultStartDate={defaultStartDate}
           />
         }

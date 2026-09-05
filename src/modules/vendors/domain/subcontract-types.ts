@@ -5,6 +5,8 @@
  * append-only value events - never from a pending proposal.
  */
 
+import type { SubcontractAdvanceRecord } from './subcontract-advances';
+
 export const SUBCONTRACT_STATUSES = ['draft', 'active', 'completed', 'cancelled'] as const;
 export type SubcontractStatus = (typeof SUBCONTRACT_STATUSES)[number];
 
@@ -65,6 +67,10 @@ export interface SubcontractListItem extends SubcontractAgreementRecord {
   readonly billedAmount: string;
   readonly paidAmount: string;
   readonly outstandingAmount: string;
+  /** Paid advances included in Cash Paid — not in Recognized Actual. */
+  readonly advancePaidAmount: string;
+  readonly advanceAppliedAmount: string;
+  readonly advanceOutstandingAmount: string;
 }
 
 export interface SubcontractCashPosition {
@@ -74,6 +80,12 @@ export interface SubcontractCashPosition {
   readonly currency: string;
   /** Cash from existing AP bills. Never Actual. Never posted by this module. */
   readonly note: string;
+}
+
+export interface SubcontractAdvanceSnapshot {
+  readonly paid: string;
+  readonly applied: string;
+  readonly outstanding: string;
 }
 
 export interface SubcontractLinkedDocument {
@@ -103,6 +115,8 @@ export interface SubcontractDetail extends SubcontractAgreementRecord {
   readonly approvedChangesAmount: string;
   readonly currentAmount: string;
   readonly cash: SubcontractCashPosition;
+  readonly advances: readonly SubcontractAdvanceRecord[];
+  readonly advancePosition: SubcontractAdvanceSnapshot;
   readonly documents: readonly SubcontractLinkedDocument[];
   readonly documentFlags: SubcontractDocumentFlags;
 }

@@ -6,12 +6,16 @@ import { withOrgContext } from '@/shared/auth/session';
 export async function ReportsAnalyticsLoader({
   workKindFilter,
   section,
+  fromDate,
+  toDate,
 }: {
   workKindFilter: string;
   section: ReportsSection | null;
+  fromDate?: string;
+  toDate?: string;
 }) {
   const analytics = await withOrgContext(async (context) =>
-    getOrganizationReportsAnalytics(context, { workKindFilter }),
+    getOrganizationReportsAnalytics(context, { workKindFilter, fromDate, toDate }),
   );
 
   return <ReportsAnalyticsView analytics={analytics} focusSection={section} />;

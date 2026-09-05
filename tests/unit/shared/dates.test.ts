@@ -5,9 +5,12 @@ import {
   businessDate,
   daysBetween,
   endOfMonth,
+  endOfWeek,
   isEffectiveOn,
+  normalizeWorkWeekStartDay,
   rangesOverlap,
   selectEffective,
+  startOfWeek,
   todayInTimeZone,
   type BusinessDate,
   type EffectiveRange,
@@ -94,5 +97,20 @@ describe('business date type guard', () => {
   it('accepts a Date instance and narrows it to a calendar day', () => {
     const value: BusinessDate = businessDate(new Date('2026-08-09T21:15:00Z'));
     expect(value).toBe('2026-08-09');
+  });
+});
+
+describe('work week boundaries', () => {
+  it('defaults invalid week starts to Sunday', () => {
+    expect(normalizeWorkWeekStartDay(undefined)).toBe(0);
+    expect(normalizeWorkWeekStartDay(9)).toBe(0);
+    expect(normalizeWorkWeekStartDay(1)).toBe(1);
+  });
+
+  it('uses Sunday start by default and Monday when configured', () => {
+    expect(startOfWeek(date('2026-08-12'))).toBe('2026-08-09');
+    expect(endOfWeek(date('2026-08-12'))).toBe('2026-08-15');
+    expect(startOfWeek(date('2026-08-12'), 1)).toBe('2026-08-10');
+    expect(endOfWeek(date('2026-08-12'), 1)).toBe('2026-08-16');
   });
 });

@@ -29,6 +29,8 @@ import {
 } from '@/modules/workforce/ui/employees-table';
 import { canManageWorkforceCost, canReadWorkforceCost } from '@/modules/workforce/application/workforce-cost-authz';
 import { EmployeeProjectsPanel } from '@/modules/workforce/ui/employee-projects-panel';
+import { EmployeePeriodSummaryPanel } from '@/modules/workforce/ui/employee-period-summary';
+import { DateRangeSelector } from '@/components/patterns/date-range-selector';
 import { EmployeeEditPanel } from '@/modules/workforce/ui/employee-edit-panel';
 import { MonthlyEmployerCostReview } from '@/modules/workforce/ui/monthly-employer-cost-review';
 import { AddRateVersionForm } from '@/modules/workforce/ui/add-rate-version-form';
@@ -36,7 +38,7 @@ import { RateHistoryTable } from '@/modules/workforce/ui/rate-history-table';
 import { OrgWorkFrameworkForm } from '@/modules/workforce/ui/org-work-framework-form';
 import { withOrgContext } from '@/shared/auth/session';
 import { localizeCode } from '@/shared/i18n/code-display';
-import { businessDate, todayInTimeZone } from '@/shared/dates';
+import { businessDate, todayInTimeZone, startOfMonth, endOfMonth } from '@/shared/dates';
 import { Link } from '@/shared/i18n/navigation';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
@@ -56,10 +58,15 @@ export async function generateMetadata({
 
 export default async function EmployeeDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ employeeId: string }>;
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const { employeeId } = await params;
+  const [{ employeeId }, rawSearchParams] = await Promise.all([
+    params,
+    searchParams ?? Promise.resolve({} as Record<string, string | string[] | undefined>),
+  ]);
   const [t, tComplianceStatus, locale] = await Promise.all([
     getTranslations('workforce'),
     getTranslations('status.compliance'),
@@ -168,6 +175,7 @@ export default async function EmployeeDetailPage({
         allowManage,
         currency: context.organization.baseCurrency,
         defaultYearMonth: today.slice(0, 7),
+        workWeekStartDay: context.organization.workWeekStartDay,
       };
     } catch {
       return null;
@@ -175,6 +183,12 @@ export default async function EmployeeDetailPage({
   });
 
   if (!data) notFound();
+
+  // Period summary date range: default to current month.
+  const summaryFromRaw = typeof rawSearchParams.summaryFrom === 'string' ? rawSearchParams.summaryFrom : undefined;
+  const summaryToRaw = typeof rawSearchParams.summaryTo === 'string' ? rawSearchParams.summaryTo : undefined;
+  const summaryFrom = summaryFromRaw ? businessDate(summaryFromRaw) : startOfMonth(data.today);
+  const summaryTo = summaryToRaw ? businessDate(summaryToRaw) : endOfMonth(data.today);
 
   const {
     employee,
@@ -202,6 +216,7 @@ export default async function EmployeeDetailPage({
     currency,
     defaultYearMonth,
     today,
+    workWeekStartDay,
   } = data;
 
   const orgFrameworkConfigured = Boolean(laborDefaults?.standardHoursPerDay);
@@ -429,6 +444,37 @@ export default async function EmployeeDetailPage({
         canManage={allowManage}
         defaultStartDate={today}
       />
+
+      {canReadAttendance && (
+        <section className="flex flex-col gap-3" id="period-summary">
+          <div>
+            <h2 className="text-base font-semibold">
+              {t('employees.detail.periodSummarySection')}
+            </h2>
+          </div>
+          <form method="get" className="flex flex-col gap-2">
+            <DateRangeSelector
+              today={today}
+              defaultFrom={summaryFrom}
+              defaultTo={summaryTo}
+              fromName="summaryFrom"
+              toName="summaryTo"
+              weekStartDay={workWeekStartDay}
+            />
+            <button
+              type="submit"
+              className="self-start h-9 rounded-md border border-[var(--pf-border-strong)] px-4 text-sm font-medium"
+            >
+              {t('employees.periodSummary.selectRange')}
+            </button>
+          </form>
+          <EmployeePeriodSummaryPanel
+            employeeId={employee.id}
+            fromDate={summaryFrom}
+            toDate={summaryTo}
+          />
+        </section>
+      )}
 
       {(allowLog || canReadTimesheets || canReadAttendance) && (
         <Card className="flex flex-col gap-3 p-4 sm:p-6">

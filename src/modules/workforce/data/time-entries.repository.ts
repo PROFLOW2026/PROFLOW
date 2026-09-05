@@ -14,7 +14,7 @@ import {
   resolveListOffset,
 } from '@/shared/db/list-limits';
 import type { DbExecutor } from '@/shared/db/types';
-import { coerceBusinessDate } from '@/shared/dates';
+import { coerceBusinessDate, type BusinessDate } from '@/shared/dates';
 import { areEmployeeMonthCostsAvailable } from '../domain/monthly-cost-gates';
 import type {
   NonProjectTimeCodeRecord,
@@ -880,4 +880,57 @@ export async function updateTimeEntryExcessApproval(
     )
     .returning();
   return row ? mapTimeEntry(row) : null;
+}
+
+export interface TimeLaborPeriodReconciliation {
+  readonly pendingTimeCount: number;
+  readonly affectedEmployees: number;
+  readonly pendingHours: number;
+  readonly allocatedHours: number;
+}
+
+/**
+ * Period labor pool: approved hours vs draft/submitted hours that are not Actual.
+ * Used by the owner dashboard so unallocated time is visible.
+ */
+export async function sumTimeLaborPeriodReconciliation(
+  db: DbExecutor,
+  organizationId: string,
+  from?: BusinessDate | null,
+  to?: BusinessDate | null,
+  projectId?: string | null,
+): Promise<TimeLaborPeriodReconciliation> {
+  const [row] = await db
+    .select({
+      pendingTimeCount: sql<number>`count(*) filter (
+        where ${timeEntries.approvalStatus} in ('draft', 'submitted')
+      )::int`,
+      affectedEmployees: sql<number>`count(distinct ${timeEntries.employeeId}) filter (
+        where ${timeEntries.approvalStatus} in ('draft', 'submitted')
+      )::int`,
+      pendingHours: sql<string>`coalesce(sum(${timeEntries.hours}) filter (
+        where ${timeEntries.approvalStatus} in ('draft', 'submitted')
+      ), 0)::text`,
+      allocatedHours: sql<string>`coalesce(sum(${timeEntries.hours}) filter (
+        where ${timeEntries.approvalStatus} = 'approved'
+      ), 0)::text`,
+    })
+    .from(timeEntries)
+    .where(
+      and(
+        eq(timeEntries.organizationId, organizationId),
+        eq(timeEntries.status, 'recorded'),
+        isNull(timeEntries.archivedAt),
+        ...(from ? [gte(timeEntries.workDate, from)] : []),
+        ...(to ? [lte(timeEntries.workDate, to)] : []),
+        ...(projectId ? [eq(timeEntries.projectId, projectId)] : []),
+      ),
+    );
+
+  return {
+    pendingTimeCount: row?.pendingTimeCount ?? 0,
+    affectedEmployees: row?.affectedEmployees ?? 0,
+    pendingHours: Number(row?.pendingHours ?? 0),
+    allocatedHours: Number(row?.allocatedHours ?? 0),
+  };
 }

@@ -52,6 +52,7 @@ export const NAV_KEY_TO_EXPERIENCE_GROUP: Readonly<Record<string, ExperienceNavG
   billing: 'money',
   recurringDrafts: 'money',
   cashFlow: 'money',
+  financialsOverview: 'money',
   monthClose: 'money',
   overhead: 'money',
   fieldOps: 'field',
@@ -194,7 +195,16 @@ export function roleNavEmphasis(
       };
     case 'finance':
       return {
-        prefer: ['dashboard', 'billing', 'expenses', 'vendors', 'vendorBills', 'cashFlow', 'reports'],
+        prefer: [
+          'dashboard',
+          'billing',
+          'expenses',
+          'vendors',
+          'vendorBills',
+          'cashFlow',
+          'financialsOverview',
+          'reports',
+        ],
         demote: ['fieldOps', 'fieldHome', 'safety', 'forms', 'dispatch'],
       };
     case 'office':
@@ -209,7 +219,16 @@ export function roleNavEmphasis(
       };
     case 'owner':
       return {
-        prefer: ['dashboard', 'projects', 'expenses', 'clients', 'billing', 'cashFlow', 'reports'],
+        prefer: [
+          'dashboard',
+          'projects',
+          'expenses',
+          'clients',
+          'billing',
+          'cashFlow',
+          'financialsOverview',
+          'reports',
+        ],
         demote: ['attendance', 'timesheets', 'fieldHome', 'scheduling', 'calendar'],
       };
     case 'general':

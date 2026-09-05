@@ -1,0 +1,661 @@
+{
+  "generatedAt": "2026-08-27T15:25:49.228Z",
+  "gaps": {
+    "2026-02": {
+      "allNullProject": 26,
+      "contributingThisMonth": [
+        {
+          "id": "bbd3cdce-22e5-477f-bae1-1161e87cacb6",
+          "description": "טיפולי רכב",
+          "supplier_name": "ב.מ.ש",
+          "expense_date": "2026-01-01T00:00:00.000Z",
+          "net": "7363.559322",
+          "installment_count": 12,
+          "cost_family": "business_overhead",
+          "month_contrib": "613.630000",
+          "has_project_alloc": false,
+          "month_contrib_n": 613.63
+        },
+        {
+          "id": "7d127420-d37a-469a-97b5-702389de4fee",
+          "description": "ביטוח רכב",
+          "supplier_name": "ביטוח ישיר",
+          "expense_date": "2026-01-01T00:00:00.000Z",
+          "net": "4200.000000",
+          "installment_count": 12,
+          "cost_family": "shared",
+          "month_contrib": "350.000000",
+          "has_project_alloc": false,
+          "month_contrib_n": 350
+        },
+        {
+          "id": "332bedd7-cf98-4de8-a34c-27026e82e455",
+          "description": "החלפת צמיגים",
+          "supplier_name": "טיפולי רכב",
+          "expense_date": "2026-01-12T00:00:00.000Z",
+          "net": "1440.677966",
+          "installment_count": 6,
+          "cost_family": "business_overhead",
+          "month_contrib": "240.110000",
+          "has_project_alloc": false,
+          "month_contrib_n": 240.11
+        },
+        {
+          "id": "7f31c326-2f00-4130-a866-9b15bf417196",
+          "description": "כללי",
+          "supplier_name": "ארכה",
+          "expense_date": "2026-02-28T00:00:00.000Z",
+          "net": "677.118644",
+          "installment_count": 1,
+          "cost_family": "shared",
+          "month_contrib": "677.118644",
+          "has_project_alloc": false,
+          "month_contrib_n": 677.118644
+        },
+        {
+          "id": "f59305ca-886e-4a92-a6b3-d1c1ecd3a82d",
+          "description": "Reversal: כללי",
+          "supplier_name": "ארכה",
+          "expense_date": "2026-02-28T00:00:00.000Z",
+          "net": "-677.118644",
+          "installment_count": 1,
+          "cost_family": "shared",
+          "month_contrib": "-677.118644",
+          "has_project_alloc": false,
+          "month_contrib_n": -677.118644
+        },
+        {
+          "id": "b068332b-ac7b-469d-935e-dd237eb94956",
+          "description": "כללי",
+          "supplier_name": "ארכה",
+          "expense_date": "2026-02-28T00:00:00.000Z",
+          "net": "2097.457627",
+          "installment_count": 1,
+          "cost_family": "shared",
+          "month_contrib": "2097.457627",
+          "has_project_alloc": false,
+          "month_contrib_n": 2097.457627
+        },
+        {
+          "id": "6906893f-9748-4e86-81e5-5da5c83a3a69",
+          "description": "Reversal: כללי",
+          "supplier_name": "ארכה",
+          "expense_date": "2026-02-28T00:00:00.000Z",
+          "net": "-2097.457627",
+          "installment_count": 1,
+          "cost_family": "shared",
+          "month_contrib": "-2097.457627",
+          "has_project_alloc": false,
+          "month_contrib_n": -2097.457627
+        },
+        {
+          "id": "a048e91a-e3f7-4d33-ae99-ee0d06c162b1",
+          "description": "כללי",
+          "supplier_name": "ארכה",
+          "expense_date": "2026-02-28T00:00:00.000Z",
+          "net": "2097.457627",
+          "installment_count": 1,
+          "cost_family": "shared",
+          "month_contrib": "2097.457627",
+          "has_project_alloc": false,
+          "month_contrib_n": 2097.457627
+        },
+        {
+          "id": "989cc273-cd8e-4932-b205-6869d5154b02",
+          "description": "השכרת מחסן",
+          "supplier_name": "אשלט ניהול",
+          "expense_date": "2026-08-27T00:00:00.000Z",
+          "net": "10677.966102",
+          "installment_count": 12,
+          "cost_family": "business_overhead",
+          "month_contrib": "889.830000",
+          "has_project_alloc": false,
+          "month_contrib_n": 889.83
+        },
+        {
+          "id": "23b26eee-46c3-49ff-99e0-71fbc5b0ebb3",
+          "description": "דלק",
+          "supplier_name": "דלק",
+          "expense_date": "2026-08-27T00:00:00.000Z",
+          "net": "7022.033898",
+          "installment_count": 8,
+          "cost_family": "business_overhead",
+          "month_contrib": "877.750000",
+          "has_project_alloc": false,
+          "month_contrib_n": 877.75
+        },
+        {
+          "id": "85c2986b-d309-48d0-bb2b-8bae3d8e73d9",
+          "description": "אספקה טכנית",
+          "supplier_name": "אספקה טכנית",
+          "expense_date": "2026-08-27T00:00:00.000Z",
+          "net": "1449.152542",
+          "installment_count": 8,
+          "cost_family": "shared",
+          "month_contrib": "181.140000",
+          "has_project_alloc": false,
+          "month_contrib_n": 181.14
+        }
+      ],
+      "sumContrib": 5249.917627,
+      "withAllocFlag": []
+    },
+    "2026-04": {
+      "allNullProject": 26,
+      "contributingThisMonth": [
+        {
+          "id": "bbd3cdce-22e5-477f-bae1-1161e87cacb6",
+          "description": "טיפולי רכב",
+          "supplier_name": "ב.מ.ש",
+          "expense_date": "2026-01-01T00:00:00.000Z",
+          "net": "7363.559322",
+          "installment_count": 12,
+          "cost_family": "business_overhead",
+          "month_contrib": "613.630000",
+          "has_project_alloc": false,
+          "month_contrib_n": 613.63
+        },
+        {
+          "id": "7d127420-d37a-469a-97b5-702389de4fee",
+          "description": "ביטוח רכב",
+          "supplier_name": "ביטוח ישיר",
+          "expense_date": "2026-01-01T00:00:00.000Z",
+          "net": "4200.000000",
+          "installment_count": 12,
+          "cost_family": "shared",
+          "month_contrib": "350.000000",
+          "has_project_alloc": false,
+          "month_contrib_n": 350
+        },
+        {
+          "id": "332bedd7-cf98-4de8-a34c-27026e82e455",
+          "description": "החלפת צמיגים",
+          "supplier_name": "טיפולי רכב",
+          "expense_date": "2026-01-12T00:00:00.000Z",
+          "net": "1440.677966",
+          "installment_count": 6,
+          "cost_family": "business_overhead",
+          "month_contrib": "240.110000",
+          "has_project_alloc": false,
+          "month_contrib_n": 240.11
+        },
+        {
+          "id": "e800507f-2ff4-468b-aa32-63a849ba398d",
+          "description": "סלולר",
+          "supplier_name": "סלולר",
+          "expense_date": "2026-03-01T00:00:00.000Z",
+          "net": "7161.016949",
+          "installment_count": 24,
+          "cost_family": "business_overhead",
+          "month_contrib": "298.380000",
+          "has_project_alloc": false,
+          "month_contrib_n": 298.38
+        },
+        {
+          "id": "253c6631-635b-402a-9697-0044041c6ffc",
+          "description": "כלים חשמליים",
+          "supplier_name": "ברדוגו",
+          "expense_date": "2026-03-25T00:00:00.000Z",
+          "net": "1350.000000",
+          "installment_count": 2,
+          "cost_family": "shared",
+          "month_contrib": "675.000000",
+          "has_project_alloc": false,
+          "month_contrib_n": 675
+        },
+        {
+          "id": "9637b0ad-e611-4943-bb47-de6f41d241f1",
+          "description": "כללי",
+          "supplier_name": "ארכה",
+          "expense_date": "2026-04-30T00:00:00.000Z",
+          "net": "1274.576271",
+          "installment_count": 1,
+          "cost_family": "shared",
+          "month_contrib": "1274.576271",
+          "has_project_alloc": false,
+          "month_contrib_n": 1274.576271
+        },
+        {
+          "id": "227eaec3-48ec-4cf0-a4b2-46ec0d4d3032",
+          "description": "Reversal: כללי",
+          "supplier_name": "ארכה",
+          "expense_date": "2026-04-30T00:00:00.000Z",
+          "net": "-1274.576271",
+          "installment_count": 1,
+          "cost_family": "shared",
+          "month_contrib": "-1274.576271",
+          "has_project_alloc": false,
+          "month_contrib_n": -1274.576271
+        },
+        {
+          "id": "76269c26-e29a-4d5b-90d3-6ad20c455c0d",
+          "description": "כללי",
+          "supplier_name": "ארכה",
+          "expense_date": "2026-04-30T00:00:00.000Z",
+          "net": "1274.576271",
+          "installment_count": 1,
+          "cost_family": "shared",
+          "month_contrib": "1274.576271",
+          "has_project_alloc": false,
+          "month_contrib_n": 1274.576271
+        },
+        {
+          "id": "989cc273-cd8e-4932-b205-6869d5154b02",
+          "description": "השכרת מחסן",
+          "supplier_name": "אשלט ניהול",
+          "expense_date": "2026-08-27T00:00:00.000Z",
+          "net": "10677.966102",
+          "installment_count": 12,
+          "cost_family": "business_overhead",
+          "month_contrib": "889.830000",
+          "has_project_alloc": false,
+          "month_contrib_n": 889.83
+        },
+        {
+          "id": "23b26eee-46c3-49ff-99e0-71fbc5b0ebb3",
+          "description": "דלק",
+          "supplier_name": "דלק",
+          "expense_date": "2026-08-27T00:00:00.000Z",
+          "net": "7022.033898",
+          "installment_count": 8,
+          "cost_family": "business_overhead",
+          "month_contrib": "877.750000",
+          "has_project_alloc": false,
+          "month_contrib_n": 877.75
+        },
+        {
+          "id": "85c2986b-d309-48d0-bb2b-8bae3d8e73d9",
+          "description": "אספקה טכנית",
+          "supplier_name": "אספקה טכנית",
+          "expense_date": "2026-08-27T00:00:00.000Z",
+          "net": "1449.152542",
+          "installment_count": 8,
+          "cost_family": "shared",
+          "month_contrib": "181.140000",
+          "has_project_alloc": false,
+          "month_contrib_n": 181.14
+        }
+      ],
+      "sumContrib": 5400.416271,
+      "withAllocFlag": []
+    },
+    "2026-05": {
+      "allNullProject": 26,
+      "contributingThisMonth": [
+        {
+          "id": "bbd3cdce-22e5-477f-bae1-1161e87cacb6",
+          "description": "טיפולי רכב",
+          "supplier_name": "ב.מ.ש",
+          "expense_date": "2026-01-01T00:00:00.000Z",
+          "net": "7363.559322",
+          "installment_count": 12,
+          "cost_family": "business_overhead",
+          "month_contrib": "613.630000",
+          "has_project_alloc": false,
+          "month_contrib_n": 613.63
+        },
+        {
+          "id": "7d127420-d37a-469a-97b5-702389de4fee",
+          "description": "ביטוח רכב",
+          "supplier_name": "ביטוח ישיר",
+          "expense_date": "2026-01-01T00:00:00.000Z",
+          "net": "4200.000000",
+          "installment_count": 12,
+          "cost_family": "shared",
+          "month_contrib": "350.000000",
+          "has_project_alloc": false,
+          "month_contrib_n": 350
+        },
+        {
+          "id": "332bedd7-cf98-4de8-a34c-27026e82e455",
+          "description": "החלפת צמיגים",
+          "supplier_name": "טיפולי רכב",
+          "expense_date": "2026-01-12T00:00:00.000Z",
+          "net": "1440.677966",
+          "installment_count": 6,
+          "cost_family": "business_overhead",
+          "month_contrib": "240.110000",
+          "has_project_alloc": false,
+          "month_contrib_n": 240.11
+        },
+        {
+          "id": "e800507f-2ff4-468b-aa32-63a849ba398d",
+          "description": "סלולר",
+          "supplier_name": "סלולר",
+          "expense_date": "2026-03-01T00:00:00.000Z",
+          "net": "7161.016949",
+          "installment_count": 24,
+          "cost_family": "business_overhead",
+          "month_contrib": "298.380000",
+          "has_project_alloc": false,
+          "month_contrib_n": 298.38
+        },
+        {
+          "id": "30f6986b-5089-46a1-940c-9b860b6b5df7",
+          "description": "כללי",
+          "supplier_name": "ארכה",
+          "expense_date": "2026-05-31T00:00:00.000Z",
+          "net": "1238.983051",
+          "installment_count": 1,
+          "cost_family": "shared",
+          "month_contrib": "1238.983051",
+          "has_project_alloc": false,
+          "month_contrib_n": 1238.983051
+        },
+        {
+          "id": "989cc273-cd8e-4932-b205-6869d5154b02",
+          "description": "השכרת מחסן",
+          "supplier_name": "אשלט ניהול",
+          "expense_date": "2026-08-27T00:00:00.000Z",
+          "net": "10677.966102",
+          "installment_count": 12,
+          "cost_family": "business_overhead",
+          "month_contrib": "889.830000",
+          "has_project_alloc": false,
+          "month_contrib_n": 889.83
+        },
+        {
+          "id": "23b26eee-46c3-49ff-99e0-71fbc5b0ebb3",
+          "description": "דלק",
+          "supplier_name": "דלק",
+          "expense_date": "2026-08-27T00:00:00.000Z",
+          "net": "7022.033898",
+          "installment_count": 8,
+          "cost_family": "business_overhead",
+          "month_contrib": "877.750000",
+          "has_project_alloc": false,
+          "month_contrib_n": 877.75
+        },
+        {
+          "id": "85c2986b-d309-48d0-bb2b-8bae3d8e73d9",
+          "description": "אספקה טכנית",
+          "supplier_name": "אספקה טכנית",
+          "expense_date": "2026-08-27T00:00:00.000Z",
+          "net": "1449.152542",
+          "installment_count": 8,
+          "cost_family": "shared",
+          "month_contrib": "181.140000",
+          "has_project_alloc": false,
+          "month_contrib_n": 181.14
+        }
+      ],
+      "sumContrib": 4689.823051,
+      "withAllocFlag": []
+    },
+    "2026-06": {
+      "allNullProject": 26,
+      "contributingThisMonth": [
+        {
+          "id": "bbd3cdce-22e5-477f-bae1-1161e87cacb6",
+          "description": "טיפולי רכב",
+          "supplier_name": "ב.מ.ש",
+          "expense_date": "2026-01-01T00:00:00.000Z",
+          "net": "7363.559322",
+          "installment_count": 12,
+          "cost_family": "business_overhead",
+          "month_contrib": "613.630000",
+          "has_project_alloc": false,
+          "month_contrib_n": 613.63
+        },
+        {
+          "id": "7d127420-d37a-469a-97b5-702389de4fee",
+          "description": "ביטוח רכב",
+          "supplier_name": "ביטוח ישיר",
+          "expense_date": "2026-01-01T00:00:00.000Z",
+          "net": "4200.000000",
+          "installment_count": 12,
+          "cost_family": "shared",
+          "month_contrib": "350.000000",
+          "has_project_alloc": false,
+          "month_contrib_n": 350
+        },
+        {
+          "id": "332bedd7-cf98-4de8-a34c-27026e82e455",
+          "description": "החלפת צמיגים",
+          "supplier_name": "טיפולי רכב",
+          "expense_date": "2026-01-12T00:00:00.000Z",
+          "net": "1440.677966",
+          "installment_count": 6,
+          "cost_family": "business_overhead",
+          "month_contrib": "240.130000",
+          "has_project_alloc": false,
+          "month_contrib_n": 240.13
+        },
+        {
+          "id": "e800507f-2ff4-468b-aa32-63a849ba398d",
+          "description": "סלולר",
+          "supplier_name": "סלולר",
+          "expense_date": "2026-03-01T00:00:00.000Z",
+          "net": "7161.016949",
+          "installment_count": 24,
+          "cost_family": "business_overhead",
+          "month_contrib": "298.380000",
+          "has_project_alloc": false,
+          "month_contrib_n": 298.38
+        },
+        {
+          "id": "bff6c3e0-6cc2-4751-92ac-4471be3691a6",
+          "description": "חנייה",
+          "supplier_name": "חנייה",
+          "expense_date": "2026-06-10T00:00:00.000Z",
+          "net": "169.491525",
+          "installment_count": 1,
+          "cost_family": "shared",
+          "month_contrib": "169.491525",
+          "has_project_alloc": false,
+          "month_contrib_n": 169.491525
+        },
+        {
+          "id": "670012f9-119e-4484-b967-48a66bfb87fd",
+          "description": "כללי",
+          "supplier_name": "ארכה",
+          "expense_date": "2026-06-30T00:00:00.000Z",
+          "net": "1561.016949",
+          "installment_count": 1,
+          "cost_family": "shared",
+          "month_contrib": "1561.016949",
+          "has_project_alloc": false,
+          "month_contrib_n": 1561.016949
+        },
+        {
+          "id": "989cc273-cd8e-4932-b205-6869d5154b02",
+          "description": "השכרת מחסן",
+          "supplier_name": "אשלט ניהול",
+          "expense_date": "2026-08-27T00:00:00.000Z",
+          "net": "10677.966102",
+          "installment_count": 12,
+          "cost_family": "business_overhead",
+          "month_contrib": "889.830000",
+          "has_project_alloc": false,
+          "month_contrib_n": 889.83
+        },
+        {
+          "id": "23b26eee-46c3-49ff-99e0-71fbc5b0ebb3",
+          "description": "דלק",
+          "supplier_name": "דלק",
+          "expense_date": "2026-08-27T00:00:00.000Z",
+          "net": "7022.033898",
+          "installment_count": 8,
+          "cost_family": "business_overhead",
+          "month_contrib": "877.750000",
+          "has_project_alloc": false,
+          "month_contrib_n": 877.75
+        },
+        {
+          "id": "85c2986b-d309-48d0-bb2b-8bae3d8e73d9",
+          "description": "אספקה טכנית",
+          "supplier_name": "אספקה טכנית",
+          "expense_date": "2026-08-27T00:00:00.000Z",
+          "net": "1449.152542",
+          "installment_count": 8,
+          "cost_family": "shared",
+          "month_contrib": "181.140000",
+          "has_project_alloc": false,
+          "month_contrib_n": 181.14
+        }
+      ],
+      "sumContrib": 5181.368474,
+      "withAllocFlag": []
+    }
+  },
+  "dated": [
+    {
+      "ym": "2026-02",
+      "id": "7f31c326-2f00-4130-a866-9b15bf417196",
+      "description": "כללי",
+      "supplier_name": "ארכה",
+      "net_amount": "677.118644",
+      "installment_count": 1,
+      "cost_family": "shared"
+    },
+    {
+      "ym": "2026-02",
+      "id": "f59305ca-886e-4a92-a6b3-d1c1ecd3a82d",
+      "description": "Reversal: כללי",
+      "supplier_name": "ארכה",
+      "net_amount": "-677.118644",
+      "installment_count": 1,
+      "cost_family": "shared"
+    },
+    {
+      "ym": "2026-02",
+      "id": "a048e91a-e3f7-4d33-ae99-ee0d06c162b1",
+      "description": "כללי",
+      "supplier_name": "ארכה",
+      "net_amount": "2097.457627",
+      "installment_count": 1,
+      "cost_family": "shared"
+    },
+    {
+      "ym": "2026-02",
+      "id": "b068332b-ac7b-469d-935e-dd237eb94956",
+      "description": "כללי",
+      "supplier_name": "ארכה",
+      "net_amount": "2097.457627",
+      "installment_count": 1,
+      "cost_family": "shared"
+    },
+    {
+      "ym": "2026-02",
+      "id": "6906893f-9748-4e86-81e5-5da5c83a3a69",
+      "description": "Reversal: כללי",
+      "supplier_name": "ארכה",
+      "net_amount": "-2097.457627",
+      "installment_count": 1,
+      "cost_family": "shared"
+    },
+    {
+      "ym": "2026-04",
+      "id": "227eaec3-48ec-4cf0-a4b2-46ec0d4d3032",
+      "description": "Reversal: כללי",
+      "supplier_name": "ארכה",
+      "net_amount": "-1274.576271",
+      "installment_count": 1,
+      "cost_family": "shared"
+    },
+    {
+      "ym": "2026-04",
+      "id": "9637b0ad-e611-4943-bb47-de6f41d241f1",
+      "description": "כללי",
+      "supplier_name": "ארכה",
+      "net_amount": "1274.576271",
+      "installment_count": 1,
+      "cost_family": "shared"
+    },
+    {
+      "ym": "2026-04",
+      "id": "76269c26-e29a-4d5b-90d3-6ad20c455c0d",
+      "description": "כללי",
+      "supplier_name": "ארכה",
+      "net_amount": "1274.576271",
+      "installment_count": 1,
+      "cost_family": "shared"
+    },
+    {
+      "ym": "2026-05",
+      "id": "30f6986b-5089-46a1-940c-9b860b6b5df7",
+      "description": "כללי",
+      "supplier_name": "ארכה",
+      "net_amount": "1238.983051",
+      "installment_count": 1,
+      "cost_family": "shared"
+    },
+    {
+      "ym": "2026-06",
+      "id": "bff6c3e0-6cc2-4751-92ac-4471be3691a6",
+      "description": "חנייה",
+      "supplier_name": "חנייה",
+      "net_amount": "169.491525",
+      "installment_count": 1,
+      "cost_family": "shared"
+    },
+    {
+      "ym": "2026-06",
+      "id": "670012f9-119e-4484-b967-48a66bfb87fd",
+      "description": "כללי",
+      "supplier_name": "ארכה",
+      "net_amount": "1561.016949",
+      "installment_count": 1,
+      "cost_family": "shared"
+    }
+  ],
+  "byMonth": [
+    {
+      "ym": "2026-01",
+      "labor": 17250,
+      "projectExpenseByDate": 42004.576271,
+      "gcmPoolStored": 3518.56,
+      "companyActualApproxByDate": 62773.136270999996
+    },
+    {
+      "ym": "2026-02",
+      "labor": 17250,
+      "projectExpenseByDate": 33674.576271,
+      "gcmPoolStored": 5009.81,
+      "companyActualApproxByDate": 55934.386270999996
+    },
+    {
+      "ym": "2026-03",
+      "labor": 17250,
+      "projectExpenseByDate": 46649.152543,
+      "gcmPoolStored": 4802.96,
+      "companyActualApproxByDate": 68702.112543
+    },
+    {
+      "ym": "2026-04",
+      "labor": 17250,
+      "projectExpenseByDate": 41617.79661,
+      "gcmPoolStored": 1274.58,
+      "companyActualApproxByDate": 60142.37661
+    },
+    {
+      "ym": "2026-05",
+      "labor": 24150,
+      "projectExpenseByDate": 42186.440678,
+      "gcmPoolStored": 4151.33,
+      "companyActualApproxByDate": 70487.770678
+    },
+    {
+      "ym": "2026-06",
+      "labor": 24150,
+      "projectExpenseByDate": 45771.186441,
+      "gcmPoolStored": 4642.86,
+      "companyActualApproxByDate": 74564.046441
+    },
+    {
+      "ym": "2026-07",
+      "labor": 24150,
+      "projectExpenseByDate": 60377.118645,
+      "gcmPoolStored": 11098.31,
+      "companyActualApproxByDate": 95625.428645
+    },
+    {
+      "ym": "2026-08",
+      "labor": 24150,
+      "projectExpenseByDate": 6000,
+      "gcmPoolStored": 3210.79,
+      "companyActualApproxByDate": 33360.79
+    }
+  ],
+  "refreshNote": "Code refreshCurrentOpenGeneralCostMonthForSurfaces typically recomputes only current org month; historical open GCMs can stay stale."
+}

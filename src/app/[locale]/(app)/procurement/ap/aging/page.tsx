@@ -4,8 +4,11 @@ import { MoneyText } from '@/components/patterns/money-text';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/ui/page-header';
 import { getOrganizationPayablesAging, type ApAgingBucketKey } from '@/modules/ap';
+import { listVendorsForOrg } from '@/modules/vendors';
+import { listProjectsForOrg } from '@/modules/projects';
 import { ExportDownloadControl } from '@/modules/exports/ui/export-download-control';
 import { withOrgContext } from '@/shared/auth/session';
+import { businessDate, todayInTimeZone } from '@/shared/dates';
 import { Link } from '@/shared/i18n/navigation';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
@@ -32,19 +35,41 @@ const BUCKET_ORDER: ApAgingBucketKey[] = [
 export default async function ApAgingPage({
   searchParams,
 }: {
-  searchParams: Promise<{ vendorId?: string; projectId?: string }>;
+  searchParams: Promise<{ vendorId?: string; projectId?: string; asOf?: string }>;
 }) {
   const t = await getTranslations('ap');
   const tExports = await getTranslations('exports');
   const locale = await getLocale();
   const filters = await searchParams;
+  const asOfRaw = typeof filters.asOf === 'string' && filters.asOf ? filters.asOf : undefined;
 
   const data = await withOrgContext(async (context) => {
     if (!hasPermission(context, PERMISSIONS.AP_READ)) {
-      return { canRead: false as const, aging: null };
+      return { canRead: false as const, aging: null, vendors: [], projects: [], today: '' };
     }
-    const aging = await getOrganizationPayablesAging(context);
-    return { canRead: true as const, aging, baseCurrency: context.organization.baseCurrency };
+    const today = todayInTimeZone(context.organization.timezone);
+    const asOf = asOfRaw ? businessDate(asOfRaw) : today;
+    const [aging, vendors, projects] = await Promise.all([
+      getOrganizationPayablesAging(context, {
+        vendorId: filters.vendorId || undefined,
+        projectId: filters.projectId || undefined,
+        asOf,
+      }),
+      hasPermission(context, PERMISSIONS.VENDORS_READ)
+        ? listVendorsForOrg(context, { status: 'active' }).catch(() => [])
+        : Promise.resolve([]),
+      hasPermission(context, PERMISSIONS.PROJECTS_READ)
+        ? listProjectsForOrg(context, {}).catch(() => [])
+        : Promise.resolve([]),
+    ]);
+    return {
+      canRead: true as const,
+      aging,
+      baseCurrency: context.organization.baseCurrency,
+      vendors,
+      projects,
+      today,
+    };
   });
 
   if (!data.canRead || !data.aging) {
@@ -57,8 +82,6 @@ export default async function ApAgingPage({
   }
 
   const { aging } = data;
-  const filterNote =
-    filters.vendorId || filters.projectId ? t('aging.filterNote') : null;
 
   return (
     <div className="flex min-w-0 flex-col gap-6">
@@ -87,7 +110,68 @@ export default async function ApAgingPage({
       />
 
       <p className="text-xs text-[var(--pf-text-muted)]">{t('aging.note')}</p>
-      {filterNote ? <p className="text-xs text-[var(--pf-text-secondary)]">{filterNote}</p> : null}
+      <p className="text-xs text-[var(--pf-text-secondary)]">{t('aging.filterNote')}</p>
+
+      <form method="get" className="flex flex-wrap items-end gap-3">
+        <label className="flex flex-col gap-1 text-sm">
+          <span>{t('aging.asOfLabel')}</span>
+          <input
+            type="date"
+            name="asOf"
+            defaultValue={asOfRaw ?? data.today}
+            className="h-11 rounded-md border border-[var(--pf-border-default)] bg-transparent px-3"
+            dir="ltr"
+          />
+        </label>
+        {data.vendors.length > 0 ? (
+          <label className="flex flex-col gap-1 text-sm">
+            <span>{t('aging.vendor')}</span>
+            <select
+              name="vendorId"
+              defaultValue={filters.vendorId ?? ''}
+              className="h-11 min-w-[12rem] rounded-md border border-[var(--pf-border-default)] bg-transparent px-3"
+            >
+              <option value="">{t('aging.allVendors')}</option>
+              {data.vendors.map((vendor) => (
+                <option key={vendor.id} value={vendor.id}>
+                  {vendor.name}
+                </option>
+              ))}
+            </select>
+          </label>
+        ) : null}
+        {data.projects.length > 0 ? (
+          <label className="flex flex-col gap-1 text-sm">
+            <span>{t('aging.project')}</span>
+            <select
+              name="projectId"
+              defaultValue={filters.projectId ?? ''}
+              className="h-11 min-w-[12rem] rounded-md border border-[var(--pf-border-default)] bg-transparent px-3"
+            >
+              <option value="">{t('aging.allProjects')}</option>
+              {data.projects.map((project) => (
+                <option key={project.id} value={project.id}>
+                  {project.name}
+                </option>
+              ))}
+            </select>
+          </label>
+        ) : null}
+        <button
+          type="submit"
+          className="h-11 rounded-md border border-[var(--pf-border-strong)] px-4 text-sm font-medium"
+        >
+          {t('aging.apply')}
+        </button>
+        {(filters.vendorId || filters.projectId || asOfRaw) ? (
+          <Link
+            href="/procurement/ap/aging"
+            className="inline-flex h-11 items-center px-3 text-sm text-[var(--pf-text-secondary)] hover:underline"
+          >
+            {t('aging.clear')}
+          </Link>
+        ) : null}
+      </form>
 
       <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
         <div className="min-w-0 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-muted)] p-4">

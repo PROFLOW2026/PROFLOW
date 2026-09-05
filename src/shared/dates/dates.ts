@@ -175,3 +175,27 @@ export function nowUtc(): Date {
 export function toIsoInstant(value: Date): string {
   return value.toISOString();
 }
+
+/**
+ * JS weekday: 0 = Sunday … 6 = Saturday.
+ * Invalid / omitted values fall back to 0 (Sunday) so historic callers stay stable.
+ */
+export function normalizeWorkWeekStartDay(value: unknown): number {
+  const n = typeof value === 'number' ? value : Number(value);
+  if (!Number.isInteger(n) || n < 0 || n > 6) return 0;
+  return n;
+}
+
+/** Start of the week containing `date`, using `weekStart` (default Sunday). */
+export function startOfWeek(date: BusinessDate, weekStart = 0): BusinessDate {
+  const start = normalizeWorkWeekStartDay(weekStart);
+  const [year, month, day] = date.split('-').map(Number) as [number, number, number];
+  const weekday = new Date(Date.UTC(year, month - 1, day)).getUTCDay();
+  const offset = (weekday - start + 7) % 7;
+  return addDays(date, -offset);
+}
+
+/** Inclusive end of the week containing `date`, using `weekStart` (default Sunday). */
+export function endOfWeek(date: BusinessDate, weekStart = 0): BusinessDate {
+  return addDays(startOfWeek(date, weekStart), 6);
+}

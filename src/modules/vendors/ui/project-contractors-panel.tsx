@@ -35,6 +35,7 @@ export async function ProjectContractorsPanel({ projectId }: ProjectContractorsP
     }
 
     const allowManage = hasPermission(context, PERMISSIONS.VENDORS_MANAGE);
+    const allowManageAdvances = hasPermission(context, PERMISSIONS.AP_MANAGE);
     const [engagements, history, vendors, agreements, contracts, docs, paymentTermRows] =
       await Promise.all([
         listProjectVendorEngagements(context, projectId),
@@ -67,6 +68,7 @@ export async function ProjectContractorsPanel({ projectId }: ProjectContractorsP
       documentCandidates: docs,
       paymentTerms: localizePaymentTermOptions(paymentTermRows, locale),
       allowManage,
+      allowManageAdvances,
       defaultStartDate: todayInTimeZone(context.organization.timezone),
     };
   });
@@ -95,6 +97,7 @@ export async function ProjectContractorsPanel({ projectId }: ProjectContractorsP
           documentCandidates={data.documentCandidates}
           paymentTerms={data.paymentTerms}
           canManage={data.allowManage}
+          canManageAdvances={data.allowManageAdvances}
           defaultStartDate={data.defaultStartDate}
         />
       </Card>

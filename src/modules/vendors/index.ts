@@ -44,6 +44,16 @@ export {
   linkSubcontractDocument,
 } from './application/subcontracts';
 export {
+  listSubcontractAdvancesForAgreement,
+  getSubcontractAdvanceOutstanding,
+  recordSubcontractAdvance,
+} from './application/manage-advances';
+export {
+  listSubcontractAdvances,
+  createSubcontractAdvance,
+  getAdvanceOutstandingBalance,
+} from './data/subcontract-advances.repository';
+export {
   upsertVendorPartyIdentifier,
   removeVendorPartyIdentifier,
 } from './application/manage-identifiers';
@@ -66,6 +76,17 @@ export type {
   SubcontractParentContractOption,
   SubcontractLinkedDocument,
 } from './domain/subcontract-types';
+export {
+  SUBCONTRACT_ADVANCE_STATUSES,
+  computeAdvanceOutstandingBalance,
+  foldAdvanceCashIntoPaid,
+} from './domain/subcontract-advances';
+export type {
+  SubcontractAdvanceStatus,
+  SubcontractAdvanceRecord,
+  SubcontractAdvancePosition,
+  CreateSubcontractAdvanceInput,
+} from './domain/subcontract-advances';
 export {
   VENDOR_TYPES,
   VENDOR_STATUSES,
@@ -115,6 +136,7 @@ export {
   changeSubcontractStatusSchema,
   addSubcontractValueChangeSchema,
   linkSubcontractDocumentSchema,
+  createSubcontractAdvanceSchema,
   listOrgSubcontractsSchema,
   upsertVendorIdentifierSchema,
   deleteVendorIdentifierSchema,
@@ -131,6 +153,7 @@ export type {
   ChangeSubcontractStatusInput,
   AddSubcontractValueChangeInput,
   LinkSubcontractDocumentInput,
+  CreateSubcontractAdvanceFormInput,
   ListOrgSubcontractsInput,
 } from './validation/schemas';
 
@@ -141,3 +164,4 @@ export {
   findActiveEngagementForVendorProject,
 } from './data/vendors.repository';
 export { findSubcontractAgreementById } from './data/subcontracts.repository';
+export { sumPaidSubcontractAdvancesInDateRange } from './data/subcontract-advances.repository';
