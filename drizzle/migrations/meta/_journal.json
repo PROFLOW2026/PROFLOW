@@ -533,6 +533,13 @@
                         "when":  1788060000000,
                         "tag":  "0076_subcontract_advances",
                         "breakpoints":  true
+                    },
+                    {
+                        "idx":  76,
+                        "version":  "7",
+                        "when":  1788150000000,
+                        "tag":  "0077_billing_records_rls_boq_finalize",
+                        "breakpoints":  true
                     }
                 ]
 }

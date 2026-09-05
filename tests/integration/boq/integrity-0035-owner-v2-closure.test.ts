@@ -8,6 +8,7 @@ import { assignRole, findRoleByKey } from '@/modules/rbac';
 import { organizationMemberships } from '@drizzle/schema';
 import { createProgressBilling } from '@/modules/boq/application/create-progress-billing';
 import { createBillingRecordWithPermission, finalizeBillingRecord } from '@/modules/billing';
+import { ensureDefaultBranding } from '@/modules/branding';
 import { listActiveBoqsWithTotalsForOrg } from '@/modules/boq/data/boq.repository';
 import { reconcileContractBoq } from '@/modules/boq/domain/reconciliation';
 import { computeNetApprovedChanges } from '@/modules/commercial';
@@ -53,6 +54,10 @@ describe('BOQ owner v2 closure', () => {
         locale: 'en',
       });
       await setModuleVisibility(context, { moduleKey: 'boq', enabled: true });
+      await ensureDefaultBranding(context.db, context.organizationId, {
+        name: org.organization.name ?? 'V2 Closure Org',
+        countryCode: 'IL',
+      });
       const client = await createClient(context, { name: 'Client V2' });
       const project = await createProject(context, {
         name: 'Project V2',
