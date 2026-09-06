@@ -135,6 +135,8 @@ function buildSummary(
     kind: BillingKind;
     totalAmount: string;
     currency: string;
+    subtotalAmount?: string;
+    taxAmount?: string | null;
     retentionAmount?: string;
     retentionHeldRemaining?: string;
   },
@@ -142,6 +144,13 @@ function buildSummary(
   today: BusinessDate,
 ): BillingRecordSummary {
   const totalAmount = mapMoney(row.totalAmount, row.currency);
+  const subtotalAmount = row.subtotalAmount
+    ? mapMoney(row.subtotalAmount, row.currency)
+    : totalAmount;
+  const taxAmount =
+    row.taxAmount != null && row.taxAmount !== ''
+      ? mapMoney(row.taxAmount, row.currency)
+      : null;
   const retentionHeldRemaining = row.retentionHeldRemaining
     ? mapMoney(row.retentionHeldRemaining, row.currency)
     : undefined;
@@ -173,6 +182,8 @@ function buildSummary(
     status: row.status,
     kind: row.kind,
     totalAmount,
+    subtotalAmount,
+    taxAmount,
     paidAmount,
     outstandingAmount,
     retentionAmount: row.retentionAmount
@@ -405,6 +416,8 @@ export async function findBillingRecordById(
       dueDate: row.dueDate,
       status: row.status,
       kind: row.kind,
+      subtotalAmount: row.subtotalAmount,
+      taxAmount: row.taxAmount,
       totalAmount: row.totalAmount,
       currency: row.currency,
       retentionAmount: row.retentionAmount,
@@ -465,6 +478,8 @@ export async function listBillingRecords(
       dueDate: billingRecords.dueDate,
       status: billingRecords.status,
       kind: billingRecords.kind,
+      subtotalAmount: billingRecords.subtotalAmount,
+      taxAmount: billingRecords.taxAmount,
       totalAmount: billingRecords.totalAmount,
       currency: billingRecords.currency,
       retentionAmount: billingRecords.retentionAmount,

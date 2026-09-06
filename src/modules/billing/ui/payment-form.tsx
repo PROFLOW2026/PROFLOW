@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import type { BillingRecordSummary } from '@/modules/billing/domain/types';
+import { BillingVatBreakdown } from '@/modules/billing/ui/billing-vat-breakdown';
 import {
   addMoney,
   compareMoney,
@@ -274,6 +275,20 @@ export function PaymentForm({
 
       {entryMode === 'invoice' && selected && !splitMode ? (
         <div className="rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-muted)] p-3 text-sm">
+          <p className="mb-2 text-xs font-medium text-[var(--pf-text-secondary)]">
+            {t('paymentForm.billingContextTitle')}
+          </p>
+          <BillingVatBreakdown
+            subtotalAmount={selected.subtotalAmount ?? selected.totalAmount}
+            taxAmount={selected.taxAmount}
+            totalAmount={selected.totalAmount}
+            labels={{
+              net: t('detail.beforeVat'),
+              tax: t('detail.vat'),
+              gross: t('detail.totalDue'),
+            }}
+            className="mb-3 grid gap-2 sm:grid-cols-3"
+          />
           <p>
             {t('paymentForm.invoiceBalanceBefore')}:{' '}
             <MoneyText value={selected.outstandingAmount} />
@@ -301,7 +316,11 @@ export function PaymentForm({
       <Field
         label={t('paymentForm.amount')}
         required
-        description={t('paymentForm.amountDescription')}
+        description={
+          entryMode === 'unallocated'
+            ? t('paymentForm.unallocatedAmountDescription')
+            : t('paymentForm.amountDescription')
+        }
       >
         {(controlProps) => (
           <>

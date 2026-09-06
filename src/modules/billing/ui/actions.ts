@@ -40,6 +40,11 @@ export async function createBillingRecordAction(
   const locale = await getLocale();
 
   const changeOrderIds = formData.getAll('changeOrderIds').map(String).filter(Boolean);
+  const vatModeRaw = formData.get('vatMode');
+  const vatMode =
+    vatModeRaw === 'inclusive' || vatModeRaw === 'exclusive' || vatModeRaw === 'zero'
+      ? vatModeRaw
+      : undefined;
   const input: CreateBillingRecordInput = {
     projectId: String(formData.get('projectId') ?? ''),
     amount: String(formData.get('amount') ?? ''),
@@ -57,6 +62,7 @@ export async function createBillingRecordAction(
       : null,
     changeOrderIds: changeOrderIds.length > 0 ? changeOrderIds : undefined,
     contractId: formData.get('contractId') ? String(formData.get('contractId')) : undefined,
+    vatMode,
     finalize: formData.get('finalize') === 'true',
   };
 

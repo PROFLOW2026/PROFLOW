@@ -90,6 +90,10 @@ export interface BillingRecordSummary {
   readonly totalAmount: MoneyValue;
   readonly paidAmount: MoneyValue;
   readonly outstandingAmount: MoneyValue;
+  /** NET / before VAT — same currency as total. */
+  readonly subtotalAmount?: MoneyValue;
+  /** VAT portion; null/zero means no VAT on this billing. */
+  readonly taxAmount?: MoneyValue | null;
   /** Original holdback - cash timing, not a second invoiced amount. */
   readonly retentionAmount?: MoneyValue;
   /** Still held; reduces receivable-now only. */

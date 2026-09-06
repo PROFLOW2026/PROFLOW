@@ -29,6 +29,8 @@ export const createBillingRecordSchema = z.object({
   reference: z.string().trim().max(120).optional().nullable(),
   externalDocumentId: z.string().uuid().optional().nullable(),
   changeOrderIds: z.array(z.string().uuid()).optional(),
+  /** Owner VAT entry mode — same values as expenses (inclusive / exclusive / zero). */
+  vatMode: z.enum(['inclusive', 'exclusive', 'zero']).optional().nullable(),
   netAmount: moneyAmountSchema.optional().nullable(),
   taxAmount: moneyAmountSchema.optional().nullable(),
   notes: z.string().trim().max(4000).optional().nullable(),

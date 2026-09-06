@@ -4,6 +4,7 @@ import { PageHeader } from '@/components/ui/page-header';
 import { listBusinessCatalog, localizePaymentTermOptions } from '@/modules/business-catalog';
 import { listBillingContractOptionsForOrg, listBillingProjectOptions } from '@/modules/billing';
 import { BillingRecordForm } from '@/modules/billing/ui/billing-record-form';
+import { resolveApplicableDefaultTax } from '@/modules/tax';
 import { withOrgContext } from '@/shared/auth/session';
 import { todayInTimeZone } from '@/shared/dates';
 import { hasPermission } from '@/shared/permissions/assert';
@@ -30,15 +31,21 @@ export default async function NewBillingRecordPage({
   const { projectId, contractId } = await searchParams;
   const t = await getTranslations('billing');
 
-  const { projects, contracts, paymentTerms, defaultIssueDate, defaultCurrency } = await withOrgContext(async (context) => ({
-    projects: await listBillingProjectOptions(context),
-    contracts: await listBillingContractOptionsForOrg(context),
-    paymentTerms: hasPermission(context, PERMISSIONS.ORG_READ)
-      ? await listBusinessCatalog(context, 'payment_term').catch(() => [])
-      : [],
-    defaultIssueDate: todayInTimeZone(context.organization.timezone),
-    defaultCurrency: context.organization.baseCurrency,
-  }));
+  const { projects, contracts, paymentTerms, defaultIssueDate, defaultCurrency, taxRatePercent } =
+    await withOrgContext(async (context) => {
+      const defaultIssueDate = todayInTimeZone(context.organization.timezone);
+      const tax = await resolveApplicableDefaultTax(context, defaultIssueDate).catch(() => null);
+      return {
+        projects: await listBillingProjectOptions(context),
+        contracts: await listBillingContractOptionsForOrg(context),
+        paymentTerms: hasPermission(context, PERMISSIONS.ORG_READ)
+          ? await listBusinessCatalog(context, 'payment_term').catch(() => [])
+          : [],
+        defaultIssueDate,
+        defaultCurrency: context.organization.baseCurrency,
+        taxRatePercent: tax?.resolved?.ratePercent ?? null,
+      };
+    });
 
   return (
     <div className="flex min-w-0 flex-col gap-6">
@@ -52,6 +59,7 @@ export default async function NewBillingRecordPage({
         defaultContractId={contractId}
         defaultCurrency={defaultCurrency}
         defaultIssueDate={defaultIssueDate}
+        taxRatePercent={taxRatePercent}
       />
     </div>
   );

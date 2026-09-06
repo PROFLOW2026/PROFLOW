@@ -11,6 +11,7 @@ export function ExpenseVatModeSelector({
   name = 'vatMode',
   controlId,
   describedBy,
+  labels,
 }: {
   readonly value: ExpenseVatMode;
   readonly onChange: (mode: ExpenseVatMode) => void;
@@ -18,13 +19,20 @@ export function ExpenseVatModeSelector({
   readonly name?: string;
   readonly controlId?: string;
   readonly describedBy?: string;
+  /** Optional label overrides (e.g. billing uses "לפני מע״מ"). */
+  readonly labels?: {
+    readonly group?: string;
+    readonly inclusive?: string;
+    readonly exclusive?: string;
+    readonly zero?: string;
+  };
 }) {
   const t = useTranslations('expenses');
 
   const options: readonly { readonly id: ExpenseVatMode; readonly label: string }[] = [
-    { id: 'inclusive', label: t('fields.amountIncludingTax') },
-    { id: 'exclusive', label: t('fields.amountExcludingTax') },
-    { id: 'zero', label: t('fields.amountZeroTax') },
+    { id: 'inclusive', label: labels?.inclusive ?? t('fields.amountIncludingTax') },
+    { id: 'exclusive', label: labels?.exclusive ?? t('fields.amountExcludingTax') },
+    { id: 'zero', label: labels?.zero ?? t('fields.amountZeroTax') },
   ];
 
   return (
@@ -32,7 +40,7 @@ export function ExpenseVatModeSelector({
       id={controlId}
       aria-describedby={describedBy}
       role="radiogroup"
-      aria-label={t('fields.amountTaxMode')}
+      aria-label={labels?.group ?? t('fields.amountTaxMode')}
       className="flex flex-wrap gap-2"
     >
       <input type="hidden" name={name} value={value} />

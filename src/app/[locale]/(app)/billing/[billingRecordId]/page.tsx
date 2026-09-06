@@ -9,6 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { getBillingRecord } from '@/modules/billing';
 import { BillingDetailActions } from '@/modules/billing/ui/billing-detail-actions';
 import { BillingStatusBadge } from '@/modules/billing/ui/billing-status-badge';
+import { BillingVatBreakdown } from '@/modules/billing/ui/billing-vat-breakdown';
 import {
   releaseBillingRetentionAction,
   updateBillingRetentionAction,
@@ -138,13 +139,23 @@ export default async function BillingDetailPage({
       />
 
       <div className="grid min-w-0 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card className="min-w-0">
+        <Card className="min-w-0 sm:col-span-2">
           <CardHeader>
-            <CardTitle className="text-sm text-start">{t('list.amount')}</CardTitle>
+            <CardTitle className="text-sm text-start">{t('detail.amountBreakdownTitle')}</CardTitle>
           </CardHeader>
           <CardContent className="min-w-0 text-start">
-            <MoneyText value={record.totalAmount} className="text-lg font-semibold" />
-            <p className="mt-2 text-xs text-[var(--pf-text-secondary)]">
+            <BillingVatBreakdown
+              subtotalAmount={record.subtotalAmount}
+              taxAmount={record.taxAmount}
+              totalAmount={record.totalAmount}
+              labels={{
+                net: t('detail.beforeVat'),
+                tax: t('detail.vat'),
+                gross: t('detail.totalDue'),
+              }}
+              className="grid gap-3 text-sm sm:grid-cols-3"
+            />
+            <p className="mt-3 text-xs text-[var(--pf-text-secondary)]">
               {t('detail.kind')}: {tKind(record.kind)}
             </p>
             {record.contractName ? (

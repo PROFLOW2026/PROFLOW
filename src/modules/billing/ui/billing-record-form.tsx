@@ -1,7 +1,7 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
-import { useActionState, useState } from 'react';
+import { useLocale, useTranslations } from 'next-intl';
+import { useActionState, useMemo, useState } from 'react';
 import { MoneyInput } from '@/components/patterns/money-input';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
@@ -9,9 +9,15 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { pressableClassName } from '@/components/ui/pressable';
 import { Textarea } from '@/components/ui/textarea';
-import { cn } from '@/shared/ui/cn';
 import type { BillingContractOption, ProjectOption } from '@/modules/billing/domain/types';
+import type { BillingVatMode } from '@/modules/billing/domain/tax';
 import { RetentionCaptureFields } from '@/modules/retention/ui/retention-capture-fields';
+import { ExpenseVatModeSelector } from '@/modules/expenses/ui/expense-vat-mode-selector';
+import { DEFAULT_EXPENSE_VAT_MODE } from '@/modules/expenses/domain/vat-mode';
+import { computeTaxAmountBreakdown } from '@/modules/tax/domain/amounts';
+import { formatMoney } from '@/shared/money/format';
+import { money } from '@/shared/money/money';
+import { cn } from '@/shared/ui/cn';
 import { createBillingRecordAction, type BillingFormState } from './actions';
 
 interface BillingRecordFormProps {
@@ -22,6 +28,8 @@ interface BillingRecordFormProps {
   defaultContractId?: string;
   defaultCurrency?: string;
   defaultIssueDate: string;
+  /** Org default tax rate percent for preview (never hardcoded in UI). */
+  taxRatePercent?: string | null;
 }
 
 export function BillingRecordForm({
@@ -32,10 +40,14 @@ export function BillingRecordForm({
   defaultContractId,
   defaultCurrency,
   defaultIssueDate,
+  taxRatePercent = null,
 }: BillingRecordFormProps) {
   const t = useTranslations('billing');
   const tCommon = useTranslations('common');
+  const locale = useLocale();
+  const currency = defaultCurrency ?? 'ILS';
   const [amount, setAmount] = useState('');
+  const [vatMode, setVatMode] = useState<BillingVatMode>(DEFAULT_EXPENSE_VAT_MODE);
   const [projectId, setProjectId] = useState(defaultProjectId ?? '');
   const [contractId, setContractId] = useState(defaultContractId ?? '');
   const [paymentTermId, setPaymentTermId] = useState('');
@@ -43,6 +55,46 @@ export function BillingRecordForm({
     createBillingRecordAction,
     {},
   );
+
+  const taxPreview = useMemo(() => {
+    const entered = amount.trim();
+    if (!entered) return null;
+    try {
+      if (vatMode === 'zero') {
+        const enteredAmount = money(entered, currency);
+        return {
+          net: formatMoney(enteredAmount, locale, { currencyDisplay: 'narrowSymbol' }),
+          tax: formatMoney(money('0', currency), locale, { currencyDisplay: 'narrowSymbol' }),
+          gross: formatMoney(enteredAmount, locale, { currencyDisplay: 'narrowSymbol' }),
+          grossAmountRaw: enteredAmount.amount,
+          rateLabel: null as string | null,
+        };
+      }
+      const amountIncludesTax = vatMode === 'inclusive';
+      const resolved =
+        taxRatePercent && taxRatePercent.trim() !== ''
+          ? ({ method: 'percentage' as const, ratePercent: taxRatePercent })
+          : null;
+      if (amountIncludesTax && !resolved) return null;
+      const breakdown = computeTaxAmountBreakdown({
+        enteredAmount: entered,
+        currency,
+        amountIncludesTax,
+        resolved,
+      });
+      return {
+        net: formatMoney(breakdown.net, locale, { currencyDisplay: 'narrowSymbol' }),
+        tax: formatMoney(breakdown.tax, locale, { currencyDisplay: 'narrowSymbol' }),
+        gross: formatMoney(breakdown.gross, locale, { currencyDisplay: 'narrowSymbol' }),
+        grossAmountRaw: breakdown.gross.amount,
+        rateLabel: breakdown.ratePercent,
+      };
+    } catch {
+      return null;
+    }
+  }, [amount, currency, vatMode, locale, taxRatePercent]);
+
+  const retentionBasis = (taxPreview?.grossAmountRaw ?? amount) || '0';
 
   return (
     <form action={formAction} className="mx-auto flex w-full max-w-xl flex-col gap-5">
@@ -100,7 +152,7 @@ export function BillingRecordForm({
         </Field>
       ) : null}
 
-      <Field label={t('form.amount')} required>
+      <Field label={t('form.amount')} required description={t('form.amountHint')}>
         {(controlProps) => (
           <>
             <MoneyInput
@@ -108,13 +160,65 @@ export function BillingRecordForm({
               required
               value={amount}
               onValueChange={setAmount}
+              currency={currency}
             />
             <input type="hidden" name="amount" value={amount} />
           </>
         )}
       </Field>
 
-      <input type="hidden" name="currency" value={defaultCurrency ?? ''} />
+      <Field
+        label={t('form.amountTaxMode')}
+        description={t('form.amountTaxModeHint')}
+      >
+        {(controlProps) => (
+          <ExpenseVatModeSelector
+            value={vatMode}
+            onChange={setVatMode}
+            controlId={controlProps.id}
+            describedBy={controlProps['aria-describedby']}
+            labels={{
+              group: t('form.amountTaxMode'),
+              inclusive: t('form.amountIncludingTax'),
+              exclusive: t('form.amountExcludingTax'),
+              zero: t('form.amountZeroTax'),
+            }}
+          />
+        )}
+      </Field>
+
+      {taxPreview ? (
+        <dl
+          className="grid gap-2 rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-muted)] px-3 py-2 text-sm sm:grid-cols-3"
+          aria-live="polite"
+        >
+          {taxPreview.rateLabel ? (
+            <p className="text-xs text-[var(--pf-text-muted)] sm:col-span-3">
+              {t('form.taxRateLabel', { rate: taxPreview.rateLabel })}
+            </p>
+          ) : null}
+          <div>
+            <dt className="text-xs text-[var(--pf-text-muted)]">{t('form.previewNet')}</dt>
+            <dd className="pf-ltr-island font-medium tabular-nums" dir="ltr">
+              {taxPreview.net}
+            </dd>
+          </div>
+          <div>
+            <dt className="text-xs text-[var(--pf-text-muted)]">{t('form.previewTax')}</dt>
+            <dd className="pf-ltr-island font-medium tabular-nums" dir="ltr">
+              {taxPreview.tax}
+            </dd>
+          </div>
+          <div>
+            <dt className="text-xs text-[var(--pf-text-muted)]">{t('form.previewGross')}</dt>
+            <dd className="pf-ltr-island font-medium tabular-nums" dir="ltr">
+              {taxPreview.gross}
+            </dd>
+          </div>
+        </dl>
+      ) : null}
+
+      <input type="hidden" name="currency" value={currency} />
 
       <Field label={t('form.issueDate')} required>
         {(controlProps) => (
@@ -163,8 +267,8 @@ export function BillingRecordForm({
 
       <RetentionCaptureFields
         namespace="billing.retention"
-        currency={defaultCurrency ?? 'ILS'}
-        totalAmount={amount || '0'}
+        currency={currency}
+        totalAmount={retentionBasis}
       />
 
       <details className="rounded-md border border-[var(--pf-border-default)] p-3">
