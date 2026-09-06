@@ -1,7 +1,7 @@
 import { and, eq, gte, isNull, lte, or, sql } from 'drizzle-orm';
 import { expenses } from '@drizzle/schema';
 import type { OrgContext } from '@/shared/auth/context';
-import { addDays, todayInTimeZone, businessDate, type BusinessDate } from '@/shared/dates';
+import { todayInTimeZone, businessDate, type BusinessDate } from '@/shared/dates';
 import { recordAuditEvent } from '@/shared/audit';
 import { AUDIT_ACTIONS } from '@/shared/audit/actions';
 import { DomainRuleError, NotFoundError } from '@/shared/errors';
@@ -10,7 +10,6 @@ import { PERMISSIONS } from '@/shared/permissions/catalog';
 import {
   addMoney,
   fromNumericString,
-  money,
   toNumericString,
   zeroMoney,
   type MoneyValue,

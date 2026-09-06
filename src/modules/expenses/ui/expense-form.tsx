@@ -253,14 +253,6 @@ export function ExpenseForm({
   );
   const [policyOverridden, setPolicyOverridden] = React.useState(false);
 
-  React.useEffect(() => {
-    if (!vendorId) return;
-    const vendor = vendors.find((row) => row.id === vendorId);
-    if (vendor?.defaultPaymentTermId && !paymentTermId) {
-      setPaymentTermId(vendor.defaultPaymentTermId);
-    }
-  }, [vendorId, vendors, paymentTermId]);
-
   const isOverhead = targeting === OVERHEAD_VALUE;
   const projectId = isOverhead || targeting === NONE_VALUE ? '' : targeting;
   const usesAutomaticDriver =
@@ -783,7 +775,16 @@ export function ExpenseForm({
               {(controlProps) => (
                 <Select
                   value={vendorId || NONE_VALUE}
-                  onValueChange={(value) => setVendorId(value === NONE_VALUE ? '' : value)}
+                  onValueChange={(value) => {
+                    const nextVendorId = value === NONE_VALUE ? '' : value;
+                    setVendorId(nextVendorId);
+                    if (nextVendorId) {
+                      const vendor = vendors.find((row) => row.id === nextVendorId);
+                      if (vendor?.defaultPaymentTermId) {
+                        setPaymentTermId(vendor.defaultPaymentTermId);
+                      }
+                    }
+                  }}
                   disabled={readOnly}
                 >
                   <SelectTrigger {...controlProps}>
