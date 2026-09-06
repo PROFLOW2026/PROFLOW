@@ -54,6 +54,9 @@ export function evaluateEarlyWarnings(input: EarlyWarningInput): EarlyWarning[] 
   const etc = dec(input.expectedRemainingAmount);
   const contract = dec(input.currentContractAmount);
   const invoiced = input.canReadBilling ? dec(input.invoicedAmount) : null;
+  const grossInvoiced = input.canReadBilling
+    ? dec(input.grossInvoicedAmount ?? input.invoicedAmount)
+    : null;
   const outstanding = input.canReadBilling ? dec(input.outstandingAmount) : null;
   const progress = dec(input.progressPercent);
   const actualMargin = input.canReadProfit ? dec(input.actualMarginPercent) : null;
@@ -214,8 +217,15 @@ export function evaluateEarlyWarnings(input: EarlyWarningInput): EarlyWarning[] 
     }
   }
 
-  if (input.canReadBilling && invoiced && invoiced.greaterThan(0) && outstanding && outstanding.greaterThan(0)) {
-    const share = outstanding.dividedBy(invoiced).times(100);
+  // Collection share must be GROSS AR / GROSS billed — never mix VAT into NET "חיוב".
+  if (
+    input.canReadBilling &&
+    grossInvoiced &&
+    grossInvoiced.greaterThan(0) &&
+    outstanding &&
+    outstanding.greaterThan(0)
+  ) {
+    const share = outstanding.dividedBy(grossInvoiced).times(100);
     if (share.greaterThanOrEqualTo(FIFTY)) {
       warnings.push({
         kind: 'collection_risk',
@@ -228,7 +238,8 @@ export function evaluateEarlyWarnings(input: EarlyWarningInput): EarlyWarning[] 
         href: workHref(input.workKind, input.projectId).replace('financials', 'billing'),
         drivers: [
           driver('drivers.outstanding', outstanding.toFixed(2), currency),
-          driver('drivers.invoiced', invoiced.toFixed(2), currency),
+          driver('drivers.billedGross', grossInvoiced.toFixed(2), currency),
+          driver('drivers.invoiced', invoiced ? invoiced.toFixed(2) : null, currency),
         ],
       });
     }

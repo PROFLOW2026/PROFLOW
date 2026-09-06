@@ -42,6 +42,7 @@ export async function getOrganizationEarlyWarnings(
       committedOpenAmount: row.committedOpen?.amount ?? null,
       expectedRemainingAmount: row.expectedRemainingCost?.amount ?? null,
       invoicedAmount: row.invoiced?.amount ?? null,
+      grossInvoicedAmount: row.invoicedGross?.amount ?? null,
       outstandingAmount: row.outstanding?.amount ?? null,
       actualMarginPercent: row.actualMarginPercent,
       forecastMarginPercent: row.marginPercent,

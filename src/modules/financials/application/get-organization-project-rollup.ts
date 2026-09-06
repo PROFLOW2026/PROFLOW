@@ -40,6 +40,8 @@ export interface ProjectRollupRow {
   readonly currentContract: MoneyValue | null;
   readonly pendingChanges: MoneyValue | null;
   readonly invoiced: MoneyValue | null;
+  /** GROSS billed (incl. VAT) — AR / collection share only; never revenue. */
+  readonly invoicedGross?: MoneyValue | null;
   readonly paid: MoneyValue | null;
   readonly outstanding: MoneyValue | null;
   readonly actualCost: MoneyValue | null;
@@ -297,6 +299,7 @@ async function computeOrganizationProjectRollup(
       canProfit,
       priceNotSet,
       invoiced: financials.billing.netInvoiced,
+      invoicedGross: financials.billing.invoiced,
       paid: financials.billing.paid,
       outstanding: financials.billing.outstanding,
       actualCost: financials.cost.actualCostToDate,
@@ -337,6 +340,7 @@ async function computeOrganizationProjectRollup(
       currentContract,
       pendingChanges: priceNotSet ? null : pendingChanges,
       invoiced: kpiMoney.invoiced,
+      invoicedGross: kpiMoney.invoicedGross,
       paid: kpiMoney.paid,
       outstanding: kpiMoney.outstanding,
       actualCost: kpiMoney.actualCost,

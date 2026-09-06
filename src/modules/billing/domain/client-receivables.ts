@@ -7,8 +7,12 @@ import type { BillingRecordSummary } from './types';
 export interface ClientReceivablesSnapshot {
   readonly currency: string;
   readonly asOf: BusinessDate;
+  /** Signed GROSS billed (collections / AR obligation). */
   readonly invoiced: MoneyValue;
+  /** Signed NET billed (revenue / "חיוב" before VAT). */
+  readonly netInvoiced: MoneyValue;
   readonly paid: MoneyValue;
+  /** GROSS receivable now (incl. VAT). */
   readonly outstanding: MoneyValue;
   readonly overdue: MoneyValue;
   readonly overdueCount: number;
@@ -23,6 +27,7 @@ function toPositionRecord(record: BillingRecordSummary) {
     kind: record.kind,
     status: record.status,
     totalAmount: record.totalAmount,
+    subtotalAmount: record.subtotalAmount ?? record.totalAmount,
     payments: [{ amount: record.paidAmount, status: 'recorded' as const }],
     retentionHeldRemaining: record.retentionHeldRemaining,
   };
@@ -64,6 +69,7 @@ export function computeClientReceivablesSnapshot(
     currency,
     asOf,
     invoiced: position.invoiced,
+    netInvoiced: position.netInvoiced,
     paid: position.paid,
     outstanding: position.outstanding,
     overdue: receivables.overdueTotal,

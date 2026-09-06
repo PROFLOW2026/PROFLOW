@@ -6,7 +6,7 @@ import { pressableClassName } from '@/components/ui/pressable';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/shared/ui/cn';
 import { withOrgContext } from '@/shared/auth/session';
-import { isZeroMoney, negateMoney } from '@/shared/money';
+import { isZeroMoney, negateMoney, subtractMoney } from '@/shared/money';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { getProjectCashFlowOutlook } from '../application/get-project-cash-flow';
@@ -92,6 +92,12 @@ export async function ProjectFinancialsPanel({ projectId }: ProjectFinancialsPan
             <div className="flex justify-between gap-2">
               <span className="text-[var(--pf-text-secondary)]">{t('ownerStory.billed')}</span>
               <MoneyText value={financials.billing.netInvoiced} />
+            </div>
+            <div className="flex justify-between gap-2">
+              <span className="text-[var(--pf-text-secondary)]">{t('ownerStory.billedVat')}</span>
+              <MoneyText
+                value={subtractMoney(financials.billing.invoiced, financials.billing.netInvoiced)}
+              />
             </div>
             <div className="flex justify-between gap-2">
               <span className="text-[var(--pf-text-secondary)]">{t('ownerStory.billedGross')}</span>

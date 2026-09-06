@@ -170,7 +170,7 @@
     "pendingChanges": "Pending changes (not in current contract)",
     "invoiced": "Invoice total",
     "paid": "Paid",
-    "outstanding": "Outstanding to collect",
+    "outstanding": "Outstanding including VAT",
     "actualCost": "Actual cost to date net",
     "committedOpen": "Open commitments (PO remaining)",
     "expectedRemaining": "Expected remaining cost (ETC)",

@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import type { ClientFinancialView } from '@/modules/clients/application/get-client-financials';
 import { BillingListTable } from '@/modules/billing/ui/billing-list-table';
 import { PaymentHistoryTable } from '@/modules/billing/ui/payment-history-panel';
+import { subtractMoney } from '@/shared/money';
 
 interface ClientFinancialPanelProps {
   financials: ClientFinancialView;
@@ -12,7 +13,9 @@ interface ClientFinancialPanelProps {
 
 export async function ClientFinancialPanel({ financials, locale }: ClientFinancialPanelProps) {
   const t = await getTranslations('clients.detail.financial');
+  const tFinancial = await getTranslations('financial');
   const { snapshot, recentBilling, recentPayments } = financials;
+  const billedVat = subtractMoney(snapshot.invoiced, snapshot.netInvoiced);
 
   return (
     <section className="flex min-w-0 flex-col gap-4" aria-labelledby="client-financial-heading">
@@ -22,9 +25,22 @@ export async function ClientFinancialPanel({ financials, locale }: ClientFinanci
           <CardDescription>{t('subtitle')}</CardDescription>
         </CardHeader>
         <CardContent className="flex min-w-0 flex-col gap-4">
-          <div className="grid min-w-0 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid min-w-0 gap-3 sm:grid-cols-2 lg:grid-cols-3">
             <div className="min-w-0 rounded-md bg-[var(--pf-bg-muted)] p-3 text-start">
               <p className="text-xs text-[var(--pf-text-secondary)]">{t('invoiced')}</p>
+              <p className="mt-1 break-words text-base font-semibold">
+                <MoneyText value={snapshot.netInvoiced} />
+              </p>
+              <p className="mt-1 text-xs text-[var(--pf-text-secondary)]">{tFinancial('basis.billingNet')}</p>
+            </div>
+            <div className="min-w-0 rounded-md bg-[var(--pf-bg-muted)] p-3 text-start">
+              <p className="text-xs text-[var(--pf-text-secondary)]">{tFinancial('kpis.billedVat')}</p>
+              <p className="mt-1 break-words text-base font-semibold">
+                <MoneyText value={billedVat} />
+              </p>
+            </div>
+            <div className="min-w-0 rounded-md bg-[var(--pf-bg-muted)] p-3 text-start">
+              <p className="text-xs text-[var(--pf-text-secondary)]">{t('invoicedGross')}</p>
               <p className="mt-1 break-words text-base font-semibold">
                 <MoneyText value={snapshot.invoiced} />
               </p>

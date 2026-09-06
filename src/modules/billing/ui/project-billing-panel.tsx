@@ -12,6 +12,7 @@ import {
 import { withOrgContext } from '@/shared/auth/session';
 import { Link } from '@/shared/i18n/navigation';
 import { formatBusinessDate } from '@/shared/dates/format';
+import { subtractMoney } from '@/shared/money';
 import { BillingStatusBadge } from './billing-status-badge';
 import { PaymentHistoryTable } from './payment-history-panel';
 import { pressableCardLinkClassName, textNavLinkClassName } from '@/components/ui/pressable';
@@ -36,6 +37,8 @@ export async function ProjectBillingPanel({ projectId, contractId }: ProjectBill
   const newBillingHref = selectedContractId
     ? `/billing/new?projectId=${projectId}&contractId=${selectedContractId}`
     : `/billing/new?projectId=${projectId}`;
+
+  const billedVat = subtractMoney(position.invoiced, position.netInvoiced);
 
   return (
     <div className="flex min-w-0 flex-col gap-4">
@@ -77,26 +80,42 @@ export async function ProjectBillingPanel({ projectId, contractId }: ProjectBill
         <CardHeader>
           <CardTitle className="text-start">{t('panel.positionTitle')}</CardTitle>
         </CardHeader>
-        <CardContent className="grid min-w-0 gap-3 sm:grid-cols-3">
+        <CardContent className="grid min-w-0 gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <div className="min-w-0 text-start">
             <p className="text-xs text-[var(--pf-text-muted)]">{tFinancial('invoiced')}</p>
             <p className="text-lg font-semibold">
+              <MoneyText value={position.netInvoiced} />
+            </p>
+            <p className="text-xs text-[var(--pf-text-secondary)]">{tFinancial('basis.billingNet')}</p>
+          </div>
+          <div className="min-w-0 text-start">
+            <p className="text-xs text-[var(--pf-text-muted)]">{tFinancial('kpis.billedVat')}</p>
+            <p className="text-lg font-semibold">
+              <MoneyText value={billedVat} />
+            </p>
+          </div>
+          <div className="min-w-0 text-start">
+            <p className="text-xs text-[var(--pf-text-muted)]">{tFinancial('kpis.billedGross')}</p>
+            <p className="text-lg font-semibold">
               <MoneyText value={position.invoiced} />
             </p>
+            <p className="text-xs text-[var(--pf-text-secondary)]">{tFinancial('kpis.billedGrossHint')}</p>
           </div>
           <div className="min-w-0 text-start">
             <p className="text-xs text-[var(--pf-text-muted)]">{tFinancial('paid')}</p>
             <p className="text-lg font-semibold">
               <MoneyText value={position.paid} />
             </p>
+            <p className="text-xs text-[var(--pf-text-secondary)]">{tFinancial('kpis.paidHint')}</p>
           </div>
           <div className="min-w-0 text-start">
             <p className="text-xs text-[var(--pf-text-muted)]">{tFinancial('outstanding')}</p>
             <p className="text-lg font-semibold">
               <MoneyText value={position.outstanding} colorizeNegative />
             </p>
+            <p className="text-xs text-[var(--pf-text-secondary)]">{tFinancial('kpis.outstandingHint')}</p>
           </div>
-          <p className="sm:col-span-3 text-start text-xs text-[var(--pf-text-secondary)]">
+          <p className="sm:col-span-2 lg:col-span-3 text-start text-xs text-[var(--pf-text-secondary)]">
             {t('panel.integrityHint')}
           </p>
         </CardContent>
@@ -160,7 +179,8 @@ export async function ProjectBillingPanel({ projectId, contractId }: ProjectBill
                         <TableHead>{t('list.issueDate')}</TableHead>
                         <TableHead>{t('list.kind')}</TableHead>
                         <TableHead>{t('list.contract')}</TableHead>
-                        <TableHead numeric>{t('list.amount')}</TableHead>
+                        <TableHead numeric>{t('list.amountNet')}</TableHead>
+                        <TableHead numeric>{t('list.amountGross')}</TableHead>
                         <TableHead numeric>{t('list.outstanding')}</TableHead>
                         <TableHead>{t('list.status')}</TableHead>
                       </TableRow>
@@ -176,6 +196,9 @@ export async function ProjectBillingPanel({ projectId, contractId }: ProjectBill
                           <TableCell>{t(`kinds.${record.kind}`)}</TableCell>
                           <TableCell className="max-w-[8rem] truncate">
                             {record.contractName ?? '-'}
+                          </TableCell>
+                          <TableCell numeric>
+                            <MoneyText value={record.subtotalAmount ?? record.totalAmount} />
                           </TableCell>
                           <TableCell numeric>
                             <MoneyText value={record.totalAmount} />
@@ -216,7 +239,11 @@ export async function ProjectBillingPanel({ projectId, contractId }: ProjectBill
                   </p>
                   <div className="mt-2 flex flex-wrap items-baseline gap-x-3 gap-y-1 text-sm">
                     <span>
-                      {t('list.amount')}: <MoneyText value={record.totalAmount} />
+                      {t('list.amountNet')}:{' '}
+                      <MoneyText value={record.subtotalAmount ?? record.totalAmount} />
+                    </span>
+                    <span>
+                      {t('list.amountGross')}: <MoneyText value={record.totalAmount} />
                     </span>
                     <span>
                       {t('list.outstanding')}:{' '}

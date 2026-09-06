@@ -57,7 +57,11 @@ export interface EarlyWarningInput {
   readonly forecastFinalCostAmount: string | null;
   readonly committedOpenAmount: string | null;
   readonly expectedRemainingAmount: string | null;
+  /** NET billed (ex-VAT) — revenue / billing-lag comparisons. */
   readonly invoicedAmount: string | null;
+  /** GROSS billed — collection-risk share denominator only. */
+  readonly grossInvoicedAmount?: string | null;
+  /** GROSS receivable now (incl. VAT). */
   readonly outstandingAmount: string | null;
   readonly actualMarginPercent: string | null;
   readonly forecastMarginPercent: string | null;

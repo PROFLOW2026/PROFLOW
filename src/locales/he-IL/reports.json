@@ -170,7 +170,7 @@
     "pendingChanges": "שינויים ממתינים (לא בחוזה הנוכחי)",
     "invoiced": "סך חשבוניות",
     "paid": "שולם",
-    "outstanding": "יתרה לגבייה",
+    "outstanding": "יתרה לגבייה כולל מע״מ",
     "actualCost": "עלות בפועל עד כה נטו",
     "committedOpen": "התחייבויות פתוחות (יתרת הזמנת רכש)",
     "expectedRemaining": "עלות נותרת צפויה (ETC)",

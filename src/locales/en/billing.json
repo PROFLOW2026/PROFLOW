@@ -15,8 +15,10 @@
     "paymentFrom": "Payment date from",
     "paymentTo": "Payment date to",
     "amount": "Amount",
-    "paid": "Paid",
-    "outstanding": "Outstanding to collect",
+    "amountNet": "Before VAT",
+    "amountGross": "Total including VAT",
+    "paid": "Cash received",
+    "outstanding": "Outstanding including VAT",
     "status": "Status",
     "unknownProject": "Unknown project",
     "filtersLabel": "Billing filters",
@@ -36,8 +38,8 @@
   },
   "aging": {
     "title": "Receivables aging",
-    "note": "Aging uses receivable now only (invoiced − paid − held retention). Invoice totals are gross cash including VAT if entered on the invoice - VAT is not revenue for profit. Foreign-currency records are excluded.",
-    "total": "Total outstanding",
+    "note": "Aging uses outstanding including VAT only (gross − paid − held retention). Billed revenue is before VAT. VAT is not profit. Foreign-currency records are excluded.",
+    "total": "Total outstanding including VAT",
     "count": "{count, plural, =0 {No records} =1 {# record} other {# records}}",
     "buckets": {
       "current": "Current / no due date",
@@ -49,8 +51,8 @@
   },
   "receivables": {
     "title": "Receivables summary",
-    "integrityNote": "Receivable now = Invoice total − Paid − held retention. Invoice totals are gross cash (including VAT if entered on the invoice). Credit notes reduce outstanding; voided records and voided payments are excluded. VAT is not profit or revenue.",
-    "totalOutstanding": "Total outstanding",
+    "integrityNote": "Outstanding including VAT = gross − paid − held retention. Billed revenue is before VAT. Credit notes reduce both. Voided records are excluded. VAT is not profit or revenue.",
+    "totalOutstanding": "Total outstanding including VAT",
     "overdueTotal": "Overdue",
     "overdueCount": "{count, plural, =0 {No overdue records} =1 {# overdue record} other {# overdue records}}",
     "openCount": "Open (unpaid)",
@@ -222,7 +224,7 @@
     "emptyAction": "Add billing",
     "recordsTitle": "Billing records",
     "addBilling": "Add billing",
-    "integrityHint": "Credit notes reduce invoice totals. Voided records are excluded from totals. Invoice total is not revenue for profit."
+    "integrityHint": "Billed to client = before VAT. Total due = including VAT. Credit notes reduce both accordingly. Voided records are excluded. VAT is not revenue for profit."
   },
   "errors": {
     "notEditable": "Only draft billing records can be edited.",

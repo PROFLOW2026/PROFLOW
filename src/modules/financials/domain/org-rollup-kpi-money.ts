@@ -25,6 +25,7 @@ export function moneyForRollupKpi(
 
 export interface OrgRollupKpiMoneyFields {
   readonly invoiced: MoneyValue | null;
+  readonly invoicedGross: MoneyValue | null;
   readonly paid: MoneyValue | null;
   readonly outstanding: MoneyValue | null;
   readonly actualCost: MoneyValue | null;
@@ -51,6 +52,7 @@ export function resolveOrgRollupKpiMoneyFields(input: {
   readonly canProfit: boolean;
   readonly priceNotSet: boolean;
   readonly invoiced: MoneyValue | null;
+  readonly invoicedGross?: MoneyValue | null;
   readonly paid: MoneyValue | null;
   readonly outstanding: MoneyValue | null;
   readonly actualCost: MoneyValue | null;
@@ -75,6 +77,7 @@ export function resolveOrgRollupKpiMoneyFields(input: {
 
   return {
     invoiced: billingUnavailable ? null : input.invoiced,
+    invoicedGross: billingUnavailable ? null : (input.invoicedGross ?? input.invoiced),
     paid: billingUnavailable ? null : input.paid,
     outstanding: billingUnavailable ? null : input.outstanding,
     actualCost: moneyForRollupKpi(kpi?.actualCost, input.actualCost),

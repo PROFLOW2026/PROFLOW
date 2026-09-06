@@ -30,19 +30,21 @@ describe('financial basis labels distinguish invoice cash from net profit', () =
     expect(billed).not.toBe(actualMargin);
     expect(billedHint).toMatch(/לפני מע״מ|הכנסת הפרויקט/);
     expect(billedHint).toMatch(/מע״מ אינו חלק מהרווח/);
-    expect(paid).toMatch(/תשלומים שהתקבלו/);
-    expect(paidHint).toMatch(/סכום שהתקבל בפועל מלקוחות/);
-    expect(outstandingCash).toMatch(/הסכום שטרם התקבל/);
+    expect(paid).toMatch(/סכום שהתקבל בפועל|תשלומים שהתקבלו/);
+    expect(paidHint).toMatch(/מזומן שהתקבל|סכום שהתקבל בפועל/);
+    expect(outstandingCash).toMatch(/יתרה לגבייה כולל מע״מ|עדיין חייב/);
     expect(profit).toMatch(/רווח/);
     expect(actualMargin).toMatch(/רווח/);
     expect(actualMarginHint).toMatch(/הרווח המשוער/);
     expect(actualCost).toMatch(/עלות/);
-    expect(outstanding).toMatch(/יתרה פתוחה/);
+    expect(outstanding).toMatch(/יתרה לגבייה כולל מע״מ/);
     expect(billingCash).not.toBe(profitNet);
     expect(billingCash).not.toMatch(/מע״מ|הכנסה לרווח|חיוב מזומן/);
-    expect(paidHint).not.toMatch(/מע״מ|הכנסה לרווח/);
+    expect(paidHint).not.toMatch(/הכנסה לרווח/);
     expect(profitNet).toMatch(/מע״מ/);
     expect(financial.get('basis.billingNet') ?? '').toMatch(/לפני מע״מ|הכנסת הפרויקט/);
+    expect(financial.get('kpis.billedGross') ?? '').toMatch(/סה״כ לגבייה כולל מע״מ/);
+    expect(financial.get('kpis.billedVat') ?? '').toMatch(/מע״מ/);
     expect(dashboard.get('businessSummary.invoicedThisMonth')).toMatch(/חשבוניות/);
     expect(dashboard.get('reports.columns.profit')).toMatch(/נטו/);
     expect(dashboard.get('reports.columns.invoiced')).not.toBe(
@@ -77,8 +79,9 @@ describe('financial basis labels distinguish invoice cash from net profit', () =
     expect(actualMargin.toLowerCase()).toMatch(/profit/);
     expect(actualMarginHint.toLowerCase()).toMatch(/estimated profit|data entered/);
     expect(actualCost.toLowerCase()).toMatch(/cost/);
-    expect(outstanding.toLowerCase()).toMatch(/outstanding|open/);
+    expect(outstanding.toLowerCase()).toMatch(/outstanding including vat/);
     expect(financial.get('basis.billingNet')?.toLowerCase()).toMatch(/before vat|project revenue/);
+    expect(financial.get('kpis.billedGross')?.toLowerCase()).toMatch(/including vat/);
     expect(dashboard.get('businessSummary.invoicedThisMonth')?.toLowerCase()).toMatch(/invoice/);
     expect(dashboard.get('reports.columns.profit')?.toLowerCase()).toMatch(/net/);
     expect(dashboard.get('reports.columns.invoiced')).not.toBe(

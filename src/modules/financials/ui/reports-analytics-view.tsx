@@ -43,7 +43,7 @@ export async function ReportsAnalyticsView({
   const moneyCopy = (
     metric: MoneyReportMetric,
     label: string,
-    basisKey?: 'netExVat' | 'billingCash' | 'profitNet' | 'outstandingCash',
+    basisKey?: 'netExVat' | 'billingCash' | 'billingNet' | 'profitNet' | 'outstandingCash',
   ) => ({
     label,
     natureLabel: t(`natures.${natureKey(metric.kind)}` as 'natures.actual'),
@@ -171,7 +171,7 @@ export async function ReportsAnalyticsView({
             <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-3">
               <MoneyReportMetricTile
                 metric={analytics.cash.invoiced}
-                copy={moneyCopy(analytics.cash.invoiced, tFinancial('invoiced'), 'billingCash')}
+                copy={moneyCopy(analytics.cash.invoiced, tFinancial('invoiced'), 'billingNet')}
               />
               <MoneyReportMetricTile
                 metric={analytics.cash.paid}

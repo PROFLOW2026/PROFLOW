@@ -67,6 +67,7 @@ describe('computeClientReceivablesSnapshot', () => {
     const receivables = computeReceivablesSummary(records, currency, asOf);
 
     expect(snapshot.invoiced.amount).toBe('235.500000');
+    expect(snapshot.netInvoiced.amount).toBe('235.500000');
     expect(snapshot.paid.amount).toBe('70.000000');
     expect(snapshot.outstanding.amount).toBe(receivables.totalOutstanding.amount);
     expect(snapshot.overdue.amount).toBe(receivables.overdueTotal.amount);
@@ -195,5 +196,34 @@ describe('computeClientReceivablesSnapshot', () => {
     expect(snapshot.invoiced.amount).toBe('10.000000');
     expect(snapshot.outstanding.amount).toBe('10.000000');
     expect(snapshot.excludedForeignCurrencyCount).toBe(1);
+  });
+
+  it('keeps NET billed separate from GROSS when VAT is present on records', () => {
+    const records = [
+      record({
+        id: 'with-vat',
+        dueDate: businessDate('2026-08-15'),
+        totalAmount: money('91351.47', currency),
+        subtotalAmount: money('77416.5', currency),
+        taxAmount: money('13934.97', currency),
+        paidAmount: money('0', currency),
+        outstandingAmount: money('91351.47', currency),
+        collectionStatus: 'open',
+      }),
+      record({
+        id: 'net-only',
+        dueDate: businessDate('2026-08-20'),
+        totalAmount: money('96718.5', currency),
+        subtotalAmount: money('96718.5', currency),
+        paidAmount: money('96718.5', currency),
+        outstandingAmount: money('0', currency),
+        collectionStatus: 'paid',
+      }),
+    ];
+
+    const snapshot = computeClientReceivablesSnapshot(records, currency, asOf);
+    expect(snapshot.netInvoiced.amount).toBe('174135.000000');
+    expect(snapshot.invoiced.amount).toBe('188069.970000');
+    expect(snapshot.outstanding.amount).toBe('91351.470000');
   });
 });

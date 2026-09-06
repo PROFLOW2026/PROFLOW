@@ -38,7 +38,8 @@ export function BillingListTable({ records, locale }: BillingListTableProps) {
                 <TableHead>{t('list.reference')}</TableHead>
                 <TableHead>{t('list.kind')}</TableHead>
                 <TableHead>{t('list.issueDate')}</TableHead>
-                <TableHead numeric>{t('list.amount')}</TableHead>
+                <TableHead numeric>{t('list.amountNet')}</TableHead>
+                <TableHead numeric>{t('list.amountGross')}</TableHead>
                 <TableHead numeric>{t('list.paid')}</TableHead>
                 <TableHead numeric>{t('list.outstanding')}</TableHead>
                 <TableHead>{t('list.status')}</TableHead>
@@ -64,6 +65,9 @@ export function BillingListTable({ records, locale }: BillingListTableProps) {
                   </TableCell>
                   <TableCell>
                     <span dir="ltr">{formatBusinessDate(record.issueDate, locale, 'short')}</span>
+                  </TableCell>
+                  <TableCell numeric>
+                    <MoneyText value={record.subtotalAmount ?? record.totalAmount} />
                   </TableCell>
                   <TableCell numeric>
                     <MoneyText value={record.totalAmount} />
@@ -108,7 +112,11 @@ export function BillingListTable({ records, locale }: BillingListTableProps) {
           </p>
           <div className="mt-2 flex flex-wrap items-baseline gap-x-3 gap-y-1 text-sm">
             <span>
-              {t('list.amount')}: <MoneyText value={record.totalAmount} />
+              {t('list.amountNet')}:{' '}
+              <MoneyText value={record.subtotalAmount ?? record.totalAmount} />
+            </span>
+            <span>
+              {t('list.amountGross')}: <MoneyText value={record.totalAmount} />
             </span>
             <span>
               {t('list.outstanding')}:{' '}

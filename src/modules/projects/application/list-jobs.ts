@@ -113,6 +113,16 @@ export async function listJobsForOrg(
               case
                 when ${billingRecords.status} = 'finalized'
                   and ${billingRecords.kind} = 'credit_note'
+                  then -${billingRecords.subtotalAmount}
+                when ${billingRecords.status} = 'finalized'
+                  then ${billingRecords.subtotalAmount}
+                else 0
+              end
+            ), 0)::text`,
+            invoicedGross: sql<string>`coalesce(sum(
+              case
+                when ${billingRecords.status} = 'finalized'
+                  and ${billingRecords.kind} = 'credit_note'
                   then -${billingRecords.totalAmount}
                 when ${billingRecords.status} = 'finalized'
                   then ${billingRecords.totalAmount}
@@ -137,7 +147,14 @@ export async function listJobsForOrg(
             ),
           )
           .groupBy(billingRecords.projectId)
-      : Promise.resolve([] as { projectId: string | null; invoiced: string; held: string }[]),
+      : Promise.resolve(
+          [] as {
+            projectId: string | null;
+            invoiced: string;
+            invoicedGross: string;
+            held: string;
+          }[],
+        ),
     canReadBilling && !canReadFinancials
       ? context.db
           .select({
@@ -163,15 +180,43 @@ export async function listJobsForOrg(
 
   const invoicedByJob = new Map(
     invoiceRows
-      .filter((row): row is { projectId: string; invoiced: string; held: string } =>
-        Boolean(row.projectId),
+      .filter(
+        (
+          row,
+        ): row is {
+          projectId: string;
+          invoiced: string;
+          invoicedGross: string;
+          held: string;
+        } => Boolean(row.projectId),
       )
       .map((row) => [row.projectId, row.invoiced]),
   );
+  const invoicedGrossByJob = new Map(
+    invoiceRows
+      .filter(
+        (
+          row,
+        ): row is {
+          projectId: string;
+          invoiced: string;
+          invoicedGross: string;
+          held: string;
+        } => Boolean(row.projectId),
+      )
+      .map((row) => [row.projectId, row.invoicedGross]),
+  );
   const heldByJob = new Map(
     invoiceRows
-      .filter((row): row is { projectId: string; invoiced: string; held: string } =>
-        Boolean(row.projectId),
+      .filter(
+        (
+          row,
+        ): row is {
+          projectId: string;
+          invoiced: string;
+          invoicedGross: string;
+          held: string;
+        } => Boolean(row.projectId),
       )
       .map((row) => [row.projectId, row.held]),
   );
@@ -209,7 +254,8 @@ export async function listJobsForOrg(
       } else {
         invoicedAmount = invoicedByJob.get(row.id) ?? null;
         paidAmount = paidByJob.get(row.id) ?? null;
-        const invoicedMoney = invoicedAmount ? fromNumericString(invoicedAmount, currency) : null;
+        const grossInvoiced = invoicedGrossByJob.get(row.id) ?? null;
+        const invoicedMoney = grossInvoiced ? fromNumericString(grossInvoiced, currency) : null;
         const heldMoney =
           fromNumericString(heldByJob.get(row.id) ?? '0', currency) ?? zeroMoney(currency);
         billingPaymentStatus = resolveBillingPaymentStatus({

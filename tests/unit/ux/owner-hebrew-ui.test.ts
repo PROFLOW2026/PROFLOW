@@ -104,7 +104,9 @@ describe('owner-defined Hebrew UI corrections', () => {
     }
     expect(hits).toEqual([]);
     const financial = flattenLocaleCatalog(readLocaleCatalog('he-IL', 'financial'));
-    expect(financial.get('outstanding')).toBe('יתרה פתוחה');
+    expect(financial.get('outstanding')).toBe('יתרה לגבייה כולל מע״מ');
+    expect(financial.get('kpis.outstanding')).toBe('יתרה לגבייה כולל מע״מ');
+    expect(financial.get('kpis.billedGross')).toMatch(/סה״כ לגבייה כולל מע״מ/);
     const actualCostHint = financial.get('kpis.actualCostHint');
     expect(actualCostHint).toBeTruthy();
     expect(actualCostHint).toMatch(/נטו|מע״מ|מע"מ/);

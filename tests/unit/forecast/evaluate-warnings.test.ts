@@ -78,4 +78,17 @@ describe('evaluateEarlyWarnings', () => {
     );
     expect(warnings.some((item) => item.kind === 'billing_lag')).toBe(false);
   });
+
+  it('collection risk uses GROSS billed share, not NET mixed with VAT outstanding', () => {
+    const warnings = evaluateEarlyWarnings(
+      base({
+        invoicedAmount: '174135.00',
+        grossInvoicedAmount: '188069.97',
+        outstandingAmount: '100000.00',
+      }),
+    );
+    const risk = warnings.find((item) => item.kind === 'collection_risk');
+    expect(risk).toBeTruthy();
+    expect(risk?.drivers.some((d) => d.labelKey === 'drivers.billedGross')).toBe(true);
+  });
 });

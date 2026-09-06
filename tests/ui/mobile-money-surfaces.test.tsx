@@ -140,7 +140,7 @@ describe('mobile money surfaces @390px', () => {
 
     expect(screen.getByText('עלות מוכרת')).toBeVisible();
     expect(screen.getByText('חיובים ללקוח')).toBeVisible();
-    expect(screen.getByText('יתרה פתוחה')).toBeVisible();
+    expect(screen.getByText('יתרה לגבייה כולל מע״מ')).toBeVisible();
     expect(screen.getByText('רווח צפוי')).toBeVisible();
   });
 

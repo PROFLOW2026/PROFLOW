@@ -13,7 +13,7 @@ import {
   type ExplainableMetricKey,
 } from '../domain/metric-explainability';
 import type { DataConfidenceLevel, DataConfidenceReason } from '../domain/data-confidence';
-import { negateMoney } from '@/shared/money';
+import { negateMoney, subtractMoney } from '@/shared/money';
 
 export interface ProjectFinancialsKpiPanelProps {
   readonly projectId: string;
@@ -536,6 +536,10 @@ export function ProjectFinancialsKpiPanel({
             basis={t('basis.billingNet')}
             whyLabel={t('explain.whyThisNumber')}
             lines={[
+              {
+                label: t('kpis.billedVat'),
+                value: subtractMoney(kpis.billedGross, kpis.billed),
+              },
               {
                 label: t('kpis.billedGross'),
                 value: kpis.billedGross,
