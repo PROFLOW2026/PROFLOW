@@ -28,7 +28,8 @@ describe('financial basis labels distinguish invoice cash from net profit', () =
     expect(billed).toMatch(/חיוב/);
     expect(invoiced).not.toBe(profit);
     expect(billed).not.toBe(actualMargin);
-    expect(billedHint).toMatch(/סך החיובים הסופיים ללקוחות/);
+    expect(billedHint).toMatch(/לפני מע״מ|הכנסת הפרויקט/);
+    expect(billedHint).toMatch(/מע״מ אינו חלק מהרווח/);
     expect(paid).toMatch(/תשלומים שהתקבלו/);
     expect(paidHint).toMatch(/סכום שהתקבל בפועל מלקוחות/);
     expect(outstandingCash).toMatch(/הסכום שטרם התקבל/);
@@ -39,9 +40,9 @@ describe('financial basis labels distinguish invoice cash from net profit', () =
     expect(outstanding).toMatch(/יתרה פתוחה/);
     expect(billingCash).not.toBe(profitNet);
     expect(billingCash).not.toMatch(/מע״מ|הכנסה לרווח|חיוב מזומן/);
-    expect(billedHint).not.toMatch(/מע״מ|הכנסה לרווח/);
     expect(paidHint).not.toMatch(/מע״מ|הכנסה לרווח/);
     expect(profitNet).toMatch(/מע״מ/);
+    expect(financial.get('basis.billingNet') ?? '').toMatch(/לפני מע״מ|הכנסת הפרויקט/);
     expect(dashboard.get('businessSummary.invoicedThisMonth')).toMatch(/חשבוניות/);
     expect(dashboard.get('reports.columns.profit')).toMatch(/נטו/);
     expect(dashboard.get('reports.columns.invoiced')).not.toBe(
@@ -68,7 +69,8 @@ describe('financial basis labels distinguish invoice cash from net profit', () =
     expect(billed.toLowerCase()).toMatch(/bill/);
     expect(invoiced).not.toBe(profit);
     expect(billed).not.toBe(actualMargin);
-    expect(billedHint.toLowerCase()).toMatch(/finalized billings|total finalized/);
+    expect(billedHint.toLowerCase()).toMatch(/before vat|project revenue/);
+    expect(billedHint.toLowerCase()).toMatch(/vat is not profit/);
     expect(paidHint.toLowerCase()).toMatch(/cash actually received|received from clients/);
     expect(billingCash.toLowerCase()).not.toMatch(/including vat|not revenue for profit/);
     expect(profit.toLowerCase()).toMatch(/profit/);
@@ -76,6 +78,7 @@ describe('financial basis labels distinguish invoice cash from net profit', () =
     expect(actualMarginHint.toLowerCase()).toMatch(/estimated profit|data entered/);
     expect(actualCost.toLowerCase()).toMatch(/cost/);
     expect(outstanding.toLowerCase()).toMatch(/outstanding|open/);
+    expect(financial.get('basis.billingNet')?.toLowerCase()).toMatch(/before vat|project revenue/);
     expect(dashboard.get('businessSummary.invoicedThisMonth')?.toLowerCase()).toMatch(/invoice/);
     expect(dashboard.get('reports.columns.profit')?.toLowerCase()).toMatch(/net/);
     expect(dashboard.get('reports.columns.invoiced')).not.toBe(
