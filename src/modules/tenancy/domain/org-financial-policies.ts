@@ -19,7 +19,12 @@ export const DEFAULT_SALARY_PAYMENT_DAY = 10;
 export const EXPENSE_PAYMENT_STATUSES = ['upcoming', 'due', 'paid', 'overdue'] as const;
 export type ExpensePaymentStatus = (typeof EXPENSE_PAYMENT_STATUSES)[number];
 
-export const PAYMENT_CONFIRMATION_SOURCES = ['manual', 'automatic_policy'] as const;
+export const PAYMENT_CONFIRMATION_SOURCES = [
+  'manual',
+  'automatic_policy',
+  'automatic_recurring_policy',
+  'automatic_installment_policy',
+] as const;
 export type PaymentConfirmationSource = (typeof PAYMENT_CONFIRMATION_SOURCES)[number];
 
 export interface OrgFinancialPolicies {

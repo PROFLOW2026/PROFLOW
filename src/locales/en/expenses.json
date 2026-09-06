@@ -142,6 +142,8 @@
     "installmentStart": "Start date",
     "installmentEnd": "End date",
     "installmentHint": "Net Actual is spread evenly across these months. Cash payment is separate.",
+    "paymentTerm": "Payment terms",
+    "automaticInstallmentPaymentHint": "Pay cash automatically on each installment date (no monthly Owner confirmation).",
     "inventoryStockPurchase": "Central stock purchase (not immediate operating cost)",
     "inventoryItem": "Inventory item",
     "inventoryPurchaseQty": "Quantity purchased",
@@ -181,6 +183,8 @@
     "workPackageDefault": "Default work area",
     "vendor": "Link an existing vendor",
     "vendorNone": "No linked vendor",
+    "paymentTerm": "Vendor / organization default",
+    "paymentTermNone": "Vendor / organization default",
     "costFamily": "Inferred from targeting",
     "category": "Choose a cost category",
     "inventoryItem": "Choose inventory item"

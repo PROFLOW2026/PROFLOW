@@ -142,6 +142,8 @@
     "installmentStart": "תאריך התחלה",
     "installmentEnd": "תאריך סיום",
     "installmentHint": "העלות בפועל נטו נפרסת שווה בין החודשים האלה. תשלום במזומן הוא נפרד.",
+    "paymentTerm": "תנאי תשלום",
+    "automaticInstallmentPaymentHint": "תשלום מזומן אוטומטי בכל מועד תשלום — ללא אישור חודשי של הבעלים.",
     "inventoryStockPurchase": "רכישה למלאי מרכזי (לא עלות תפעולית מיידית)",
     "inventoryItem": "פריט מלאי",
     "inventoryPurchaseQty": "כמות שנרכשה",
@@ -181,6 +183,8 @@
     "workPackageDefault": "תחום עבודה ברירת מחדל",
     "vendor": "קישור לספק קיים",
     "vendorNone": "ללא ספק מקושר",
+    "paymentTerm": "ברירת מחדל של הספק / הארגון",
+    "paymentTermNone": "ברירת מחדל של הספק / הארגון",
     "costFamily": "נקבע לפי היעד",
     "category": "בחרו קטגוריית עלות",
     "inventoryItem": "בחרו פריט מלאי"

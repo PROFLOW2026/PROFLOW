@@ -1,7 +1,8 @@
 import type { BusinessDate } from '@/shared/dates';
-import { compareBusinessDates } from '@/shared/dates';
+import { addDays, compareBusinessDates } from '@/shared/dates';
 import type { ExpensePaymentStatus, PaymentConfirmationSource } from '@/modules/tenancy/domain/org-financial-policies';
 import { resolveExpensePaymentStatus } from '@/modules/tenancy/domain/org-financial-policies';
+import { PAYMENT_DUE_SOON_DAYS } from './payment-behavior';
 
 export interface ExpensePaymentRow {
   readonly id: string;
@@ -17,13 +18,16 @@ export interface ExpensePaymentRow {
   readonly supplierName: string | null;
   readonly projectId: string | null;
   readonly status: string;
+  readonly vendorId?: string | null;
+  readonly automaticInstallmentPayment?: boolean;
+  readonly installmentCount?: number;
 }
 
 export function effectiveExpensePaymentStatus(
   row: Pick<ExpensePaymentRow, 'paymentStatus' | 'dueDate' | 'paidAt'>,
   today: BusinessDate,
 ): ExpensePaymentStatus | null {
-  if (row.paidAt) return 'paid';
+  if (row.paidAt && row.paymentStatus === 'paid') return 'paid';
   return resolveExpensePaymentStatus({
     paymentStatus: row.paymentStatus,
     dueDate: row.dueDate,
@@ -39,22 +43,33 @@ export function expenseCashOutAmount(row: ExpensePaymentRow): string | null {
 
 export function isExpenseDueToday(row: ExpensePaymentRow, today: BusinessDate): boolean {
   const status = effectiveExpensePaymentStatus(row, today);
-  return status === 'due' && !row.paidAt;
+  return status === 'due' && row.paymentStatus !== 'paid';
 }
 
 export function isExpenseOverdue(row: ExpensePaymentRow, today: BusinessDate): boolean {
   const status = effectiveExpensePaymentStatus(row, today);
-  return status === 'overdue' && !row.paidAt;
+  return status === 'overdue' && row.paymentStatus !== 'paid';
+}
+
+export function isExpenseDueSoon(
+  row: ExpensePaymentRow,
+  today: BusinessDate,
+  soonDays = PAYMENT_DUE_SOON_DAYS,
+): boolean {
+  if (row.paymentStatus === 'paid' || !row.dueDate) return false;
+  if (compareBusinessDates(row.dueDate, today) <= 0) return false;
+  const soonUntil = addDays(today, soonDays);
+  return compareBusinessDates(row.dueDate, soonUntil) <= 0;
 }
 
 export function isExpenseUpcoming(row: ExpensePaymentRow, today: BusinessDate): boolean {
   const status = effectiveExpensePaymentStatus(row, today);
-  return status === 'upcoming' && !row.paidAt;
+  return status === 'upcoming' && row.paymentStatus !== 'paid';
 }
 
 /** Legacy or unset due date — never treated as overdue; may still need owner review. */
 export function isExpensePendingReview(row: ExpensePaymentRow): boolean {
-  if (row.paidAt) return false;
+  if (row.paymentStatus === 'paid') return false;
   if (row.dueDate) return false;
   const rawStatus = row.paymentStatus as string | null;
   return rawStatus === null || rawStatus === 'legacy_unknown';

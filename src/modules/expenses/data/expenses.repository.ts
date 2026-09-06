@@ -79,6 +79,9 @@ export interface ExpenseInsertRow {
   readonly allocationScheduleMode?: AllocationScheduleMode | null;
   readonly installmentCount?: number;
   readonly installmentStartDate?: BusinessDate | null;
+  readonly automaticInstallmentPayment?: boolean;
+  readonly paymentTermId?: string | null;
+  readonly dueDate?: BusinessDate | null;
   readonly inventoryStockPurchase?: boolean;
   readonly inventoryItemId?: string | null;
   readonly inventoryPurchaseQty?: string | null;

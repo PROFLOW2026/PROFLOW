@@ -226,6 +226,12 @@ export interface WorkPackageOption {
 export interface VendorOption {
   readonly id: string;
   readonly name: string;
+  readonly defaultPaymentTermId?: string | null;
+}
+
+export interface PaymentTermOption {
+  readonly id: string;
+  readonly name: string;
 }
 
 /** Lightweight inventory item pick list for stock-purchase expenses. */

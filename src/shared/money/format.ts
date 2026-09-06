@@ -93,7 +93,7 @@ function formatCurrencyFromParts(
 }
 
 export function formatMoney(value: MoneyValue, locale: string, options: FormatMoneyOptions = {}): string {
-  const { decimals = 'auto', compact = false, signDisplay = 'auto', currencyDisplay = 'narrowSymbol' } = options;
+  const { decimals = 'minor-units', compact = false, signDisplay = 'auto', currencyDisplay = 'narrowSymbol' } = options;
 
   const fractionDigits = resolveFractionDigits(value, decimals);
   const decimal = toDecimalValue(value);
@@ -142,4 +142,9 @@ export function formatPercent(
  */
 export function bidiIsolate(text: string): string {
   return `\u2066${text}\u2069`;
+}
+
+/** Server-side display helper — always 2 decimal places (presentation only). */
+export function formatMoneyDisplay(value: MoneyValue, locale = 'he-IL'): string {
+  return formatMoney(value, locale, { decimals: 'minor-units' });
 }

@@ -49,6 +49,8 @@ export async function updateVendor(
     parentVendorId: parsed.data.parentVendorId,
     notes: parsed.data.notes,
     defaultPaymentTermId: parsed.data.defaultPaymentTermId,
+    paymentConfirmationOverride: parsed.data.paymentConfirmationOverride,
+    recurringPaymentDay: parsed.data.recurringPaymentDay,
   });
 
   if (!updated) throw new NotFoundError('Vendor');

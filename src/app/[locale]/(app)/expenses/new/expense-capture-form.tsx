@@ -18,6 +18,7 @@ export interface ExpenseCaptureFormProps {
   readonly categories: readonly CostCategoryRow[];
   readonly workPackages: readonly WorkPackageOption[];
   readonly vendors?: readonly VendorOption[];
+  readonly paymentTerms?: readonly { readonly id: string; readonly name: string }[];
   readonly inventoryItems?: readonly InventoryItemOption[];
   readonly initialProjectId?: string;
   /** Org tax rule rate for live VAT preview - never hardcoded. */
@@ -31,6 +32,7 @@ export function ExpenseCaptureForm({
   categories,
   workPackages,
   vendors = [],
+  paymentTerms = [],
   inventoryItems = [],
   initialProjectId,
   taxRatePercent = null,
@@ -76,6 +78,7 @@ export function ExpenseCaptureForm({
         categories={categories}
         workPackages={workPackages}
         vendors={vendors}
+        paymentTerms={paymentTerms}
         inventoryItems={inventoryItems}
         taxRatePercent={taxRatePercent}
         apBillOverlapCandidates={apBillOverlapCandidates}

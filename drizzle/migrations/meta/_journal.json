@@ -547,6 +547,13 @@
                         "when":  1788240000000,
                         "tag":  "0078_owner_business_decisions",
                         "breakpoints":  true
+                    },
+                    {
+                        "idx":  78,
+                        "version":  "7",
+                        "when":  1788330000000,
+                        "tag":  "0079_vendor_payment_terms_recurring",
+                        "breakpoints":  true
                     }
                 ]
 }

@@ -43,6 +43,10 @@ export function VendorEditForm({
   const [type, setType] = useState<(typeof VENDOR_TYPES)[number]>(vendor.type);
   const [status, setStatus] = useState<'active' | 'inactive'>(vendor.status);
   const [paymentTermId, setPaymentTermId] = useState(vendor.defaultPaymentTermId ?? '');
+  const [paymentBehavior, setPaymentBehavior] = useState(vendor.paymentConfirmationOverride ?? 'org_default');
+  const [recurringPaymentDay, setRecurringPaymentDay] = useState(
+    vendor.recurringPaymentDay != null ? String(vendor.recurringPaymentDay) : '',
+  );
   const [state, formAction, pending] = useActionState<VendorFormState, FormData>(
     updateVendorAction,
     {},
@@ -142,6 +146,51 @@ export function VendorEditForm({
               )}
             </Field>
           ) : null}
+
+          <Field label={tDetail('paymentBehaviorLabel')} description={tDetail('paymentBehaviorHint')}>
+            {(control) => (
+              <>
+                <input type="hidden" name="paymentConfirmationOverride" value={paymentBehavior} />
+                <Select
+                  value={paymentBehavior}
+                  onValueChange={(value) =>
+                    setPaymentBehavior(value as 'org_default' | 'automatic')
+                  }
+                >
+                  <SelectTrigger id={control.id} aria-describedby={control['aria-describedby']}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="org_default">{tDetail('paymentBehaviorOrgDefault')}</SelectItem>
+                    <SelectItem value="automatic">{tDetail('paymentBehaviorAutomatic')}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </>
+            )}
+          </Field>
+
+          {paymentBehavior === 'automatic' ? (
+            <Field
+              label={tDetail('recurringPaymentDayLabel')}
+              description={tDetail('recurringPaymentDayHint')}
+              optionalLabel={tCommon('labels.optional')}
+            >
+              {(control) => (
+                <Input
+                  {...control}
+                  name="recurringPaymentDay"
+                  type="number"
+                  min={1}
+                  max={28}
+                  value={recurringPaymentDay}
+                  onChange={(event) => setRecurringPaymentDay(event.target.value)}
+                  dir="ltr"
+                />
+              )}
+            </Field>
+          ) : (
+            <input type="hidden" name="recurringPaymentDay" value="" />
+          )}
 
           <VendorCatalogMultiSelect
             categories={categories}

@@ -29,6 +29,7 @@ import type {
   ProjectOption,
   RecurrenceCadence,
   VendorOption,
+  PaymentTermOption,
   WorkPackageOption,
 } from '@/modules/expenses/domain/types';
 import { isWeightAllocationMethod } from '@/modules/expenses/domain/types';
@@ -124,6 +125,9 @@ export interface ExpenseFormValues {
   allocationScheduleMode: AllocationScheduleMode | '';
   installmentCount: string;
   installmentStartDate: string;
+  paymentTermId: string;
+  dueDate: string;
+  automaticInstallmentPayment: boolean;
   inventoryStockPurchase: boolean;
   inventoryItemId: string;
   inventoryPurchaseQty: string;
@@ -137,6 +141,7 @@ export interface ExpenseFormProps {
   readonly categories: readonly CostCategoryRow[];
   readonly workPackages: readonly WorkPackageOption[];
   readonly vendors?: readonly VendorOption[];
+  readonly paymentTerms?: readonly PaymentTermOption[];
   /** When provided, enables inventory stock purchase advanced capture. */
   readonly inventoryItems?: readonly InventoryItemOption[];
   /**
@@ -161,6 +166,7 @@ export function ExpenseForm({
   categories,
   workPackages,
   vendors = [],
+  paymentTerms = [],
   inventoryItems = [],
   taxRatePercent = null,
   readOnly = false,
@@ -233,6 +239,11 @@ export function ExpenseForm({
   const [installmentStartDate, setInstallmentStartDate] = React.useState(
     initialValues?.installmentStartDate ?? initialValues?.expenseDate ?? '',
   );
+  const [paymentTermId, setPaymentTermId] = React.useState(initialValues?.paymentTermId ?? '');
+  const [dueDate, setDueDate] = React.useState(initialValues?.dueDate ?? '');
+  const [automaticInstallmentPayment, setAutomaticInstallmentPayment] = React.useState(
+    Boolean(initialValues?.automaticInstallmentPayment),
+  );
   const [inventoryStockPurchase, setInventoryStockPurchase] = React.useState(
     Boolean(initialValues?.inventoryStockPurchase),
   );
@@ -241,6 +252,14 @@ export function ExpenseForm({
     initialValues?.inventoryPurchaseQty ?? '',
   );
   const [policyOverridden, setPolicyOverridden] = React.useState(false);
+
+  React.useEffect(() => {
+    if (!vendorId) return;
+    const vendor = vendors.find((row) => row.id === vendorId);
+    if (vendor?.defaultPaymentTermId && !paymentTermId) {
+      setPaymentTermId(vendor.defaultPaymentTermId);
+    }
+  }, [vendorId, vendors, paymentTermId]);
 
   const isOverhead = targeting === OVERHEAD_VALUE;
   const projectId = isOverhead || targeting === NONE_VALUE ? '' : targeting;
@@ -785,6 +804,48 @@ export function ExpenseForm({
             <input type="hidden" name="vendorId" value={vendorId} />
           )}
 
+          {paymentTerms.length > 0 ? (
+            <Field label={t('fields.paymentTerm')} optionalLabel={tCommon('labels.optional')}>
+              {(controlProps) => (
+                <>
+                  <input type="hidden" name="paymentTermId" value={paymentTermId} />
+                  <Select
+                    value={paymentTermId || NONE_VALUE}
+                    onValueChange={(value) => setPaymentTermId(value === NONE_VALUE ? '' : value)}
+                    disabled={readOnly}
+                  >
+                    <SelectTrigger {...controlProps}>
+                      <SelectValue placeholder={t('placeholders.paymentTerm')} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={NONE_VALUE}>{t('placeholders.paymentTermNone')}</SelectItem>
+                      {paymentTerms.map((term) => (
+                        <SelectItem key={term.id} value={term.id}>
+                          {term.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </>
+              )}
+            </Field>
+          ) : (
+            <input type="hidden" name="paymentTermId" value={paymentTermId} />
+          )}
+
+          <Field label={t('dueDate')} optionalLabel={tCommon('labels.optional')}>
+            {(controlProps) => (
+              <Input
+                {...controlProps}
+                type="date"
+                name="dueDate"
+                value={dueDate}
+                onChange={(event) => setDueDate(event.target.value)}
+                disabled={readOnly}
+              />
+            )}
+          </Field>
+
           <Field
             label={t('fields.installmentCount')}
             optionalLabel={tCommon('labels.optional')}
@@ -827,6 +888,26 @@ export function ExpenseForm({
             </Field>
           ) : (
             <input type="hidden" name="installmentStartDate" value={installmentStartDate} />
+          )}
+
+          {Number(installmentCount) > 1 ? (
+            <div className="flex flex-col gap-1">
+              <input
+                type="hidden"
+                name="automaticInstallmentPayment"
+                value={automaticInstallmentPayment ? 'true' : 'false'}
+              />
+              <label className="flex cursor-pointer items-start gap-3">
+                <Checkbox
+                  checked={automaticInstallmentPayment}
+                  onCheckedChange={(checked) => setAutomaticInstallmentPayment(checked === true)}
+                  disabled={readOnly}
+                />
+                <span className="text-sm">{t('fields.automaticInstallmentPaymentHint')}</span>
+              </label>
+            </div>
+          ) : (
+            <input type="hidden" name="automaticInstallmentPayment" value="false" />
           )}
 
           <Field label={t('destination.label')} optionalLabel={tCommon('labels.optional')}>

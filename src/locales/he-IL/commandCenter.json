@@ -63,10 +63,12 @@
     "billing_plan_retention_release_due": "שחרור עיכבון לביצוע",
     "missing_attendance_today": "חסר דיווח נוכחות",
     "expense_due_today": "הוצאה לתשלום",
+    "expense_due_soon": "הוצאה לתשלום בקרוב",
     "expense_overdue": "הוצאה באיחור",
     "expense_upcoming": "הוצאה צפויה לתשלום",
     "expense_pending_review": "הוצאה ממתינה לאישור",
     "payroll_due_today": "שכר לתשלום",
+    "payroll_due_soon": "שכר לתשלום בקרוב",
     "payroll_overdue": "שכר באיחור",
     "payroll_upcoming": "שכר צפוי לתשלום",
     "payroll_pending_review": "שכר ממתין לאישור"

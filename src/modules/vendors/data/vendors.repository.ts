@@ -50,6 +50,9 @@ function mapVendor(row: typeof vendors.$inferSelect): VendorRecord {
     countryCode: row.countryCode,
     notes: row.notes,
     defaultPaymentTermId: row.defaultPaymentTermId ?? null,
+    paymentConfirmationOverride:
+      (row.paymentConfirmationOverride as VendorRecord['paymentConfirmationOverride']) ?? 'org_default',
+    recurringPaymentDay: row.recurringPaymentDay ?? null,
     archivedAt: row.archivedAt,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
@@ -106,6 +109,8 @@ export async function insertVendor(
     countryCode?: string | null;
     notes?: string | null;
     defaultPaymentTermId?: string | null;
+    paymentConfirmationOverride?: VendorRecord['paymentConfirmationOverride'];
+    recurringPaymentDay?: number | null;
   },
 ): Promise<VendorRecord> {
   const [row] = await db
@@ -126,6 +131,8 @@ export async function insertVendor(
       countryCode: input.countryCode ?? null,
       notes: input.notes ?? null,
       defaultPaymentTermId: input.defaultPaymentTermId ?? null,
+      paymentConfirmationOverride: input.paymentConfirmationOverride ?? 'org_default',
+      recurringPaymentDay: input.recurringPaymentDay ?? null,
     })
     .returning();
 
@@ -150,6 +157,8 @@ export async function updateVendorById(
     countryCode: string | null;
     notes: string | null;
     defaultPaymentTermId: string | null;
+    paymentConfirmationOverride: VendorRecord['paymentConfirmationOverride'];
+    recurringPaymentDay: number | null;
     archivedAt: Date | null;
   }>,
 ): Promise<VendorRecord | null> {

@@ -167,6 +167,10 @@ export const expenses = pgTable(
      */
     installmentCount: integer('installment_count').notNull().default(1),
     installmentStartDate: date('installment_start_date'),
+    /** When true, cash pays in equal installments on schedule (distinct from managerial spread). */
+    automaticInstallmentPayment: boolean('automatic_installment_payment').notNull().default(false),
+    /** Count of cash installments already paid (automatic or manual partial). */
+    installmentsPaidCount: integer('installments_paid_count').notNull().default(0),
     /** When true, finalized NET books to inventory cost basis — not operating Actual. */
     inventoryStockPurchase: boolean('inventory_stock_purchase').notNull().default(false),
     /** Target item for stock purchase booking (required when inventoryStockPurchase). */
@@ -218,9 +222,19 @@ export const expenses = pgTable(
           OR ${table.paymentStatus} IN ('upcoming', 'due', 'paid', 'overdue')`,
     ),
     check(
+      'expenses_installments_paid_count_range',
+      sql`${table.installmentsPaidCount} >= 0
+          AND ${table.installmentsPaidCount} <= ${table.installmentCount}`,
+    ),
+    check(
       'expenses_payment_confirmation_source_known',
       sql`${table.paymentConfirmationSource} IS NULL
-          OR ${table.paymentConfirmationSource} IN ('manual', 'automatic_policy')`,
+          OR ${table.paymentConfirmationSource} IN (
+            'manual',
+            'automatic_policy',
+            'automatic_recurring_policy',
+            'automatic_installment_policy'
+          )`,
     ),
     check(
       'expenses_paid_fields_coupled',

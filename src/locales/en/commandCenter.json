@@ -63,10 +63,12 @@
     "billing_plan_retention_release_due": "Retention release due",
     "missing_attendance_today": "Missing attendance",
     "expense_due_today": "Expense due",
+    "expense_due_soon": "Expense due soon",
     "expense_overdue": "Expense overdue",
     "expense_upcoming": "Expense upcoming",
     "expense_pending_review": "Expense pending review",
     "payroll_due_today": "Payroll due",
+    "payroll_due_soon": "Payroll due soon",
     "payroll_overdue": "Payroll overdue",
     "payroll_upcoming": "Payroll upcoming",
     "payroll_pending_review": "Payroll pending review"

@@ -50,6 +50,12 @@ export const createVendorSchema = z.object({
   parentVendorId: z.preprocess(emptyToNull, z.string().uuid().nullable().optional()),
   notes: optionalText,
   defaultPaymentTermId: z.preprocess(emptyToNull, z.string().uuid().nullable().optional()),
+  paymentConfirmationOverride: z.enum(['org_default', 'automatic']).optional(),
+  recurringPaymentDay: z.preprocess((value) => {
+    if (value === '' || value === null || value === undefined) return null;
+    const n = Number(value);
+    return Number.isFinite(n) ? Math.trunc(n) : value;
+  }, z.number().int().min(1).max(28).nullable().optional()),
   categoryIds: z.array(z.string().uuid()).optional(),
   specialtyIds: z.array(z.string().uuid()).optional(),
 });
@@ -71,6 +77,12 @@ export const updateVendorSchema = z.object({
   parentVendorId: z.preprocess(emptyToNull, z.string().uuid().nullable().optional()),
   notes: optionalText,
   defaultPaymentTermId: z.preprocess(emptyToNull, z.string().uuid().nullable().optional()),
+  paymentConfirmationOverride: z.enum(['org_default', 'automatic']).optional(),
+  recurringPaymentDay: z.preprocess((value) => {
+    if (value === '' || value === null || value === undefined) return null;
+    const n = Number(value);
+    return Number.isFinite(n) ? Math.trunc(n) : value;
+  }, z.number().int().min(1).max(28).nullable().optional()),
   categoryIds: z.array(z.string().uuid()).optional(),
   specialtyIds: z.array(z.string().uuid()).optional(),
 });

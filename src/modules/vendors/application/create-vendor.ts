@@ -60,6 +60,8 @@ export async function createVendor(
     parentVendorId: input.parentVendorId ?? null,
     notes: input.notes ?? null,
     defaultPaymentTermId,
+    paymentConfirmationOverride: input.paymentConfirmationOverride ?? 'org_default',
+    recurringPaymentDay: input.recurringPaymentDay ?? null,
   });
 
   if (input.categoryIds?.length || input.specialtyIds?.length) {

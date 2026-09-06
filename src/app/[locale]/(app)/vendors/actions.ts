@@ -98,6 +98,10 @@ export async function updateVendorAction(
     countryCode: String(formData.get('countryCode') ?? '') || undefined,
     notes: String(formData.get('notes') ?? '') || undefined,
     defaultPaymentTermId: String(formData.get('defaultPaymentTermId') ?? '') || null,
+    paymentConfirmationOverride:
+      (formData.get('paymentConfirmationOverride') as UpdateVendorInput['paymentConfirmationOverride']) ||
+      undefined,
+    recurringPaymentDay: String(formData.get('recurringPaymentDay') ?? '') || null,
     categoryIds: formUuidList(formData, 'categoryIds'),
     specialtyIds: formUuidList(formData, 'specialtyIds'),
   };

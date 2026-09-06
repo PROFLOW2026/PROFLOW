@@ -1,5 +1,5 @@
 import { relations, sql } from 'drizzle-orm';
-import { type AnyPgColumn, check, date, index, pgTable, text, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
+import { type AnyPgColumn, check, date, index, integer, pgTable, text, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
 import { archivedAt, primaryId, timestamps } from './_shared';
 import { contactRoleEnum, vendorStatusEnum, vendorTypeEnum } from './enums';
 import { projects } from './projects';
@@ -34,6 +34,10 @@ export const vendors = pgTable(
     notes: text('notes'),
     /** Optional default payment term (kind=payment_term). Same-org FK in migration. */
     defaultPaymentTermId: uuid('default_payment_term_id'),
+    /** org_default | automatic — overrides org manual/auto for this vendor's payments. */
+    paymentConfirmationOverride: text('payment_confirmation_override').notNull().default('org_default'),
+    /** Day-of-month (1–28) for recurring automatic vendor payments. */
+    recurringPaymentDay: integer('recurring_payment_day'),
     archivedAt: archivedAt(),
     ...timestamps(),
   },
@@ -42,6 +46,15 @@ export const vendors = pgTable(
     index('vendors_org_idx').on(table.organizationId),
     index('vendors_org_name_idx').on(table.organizationId, table.name),
     index('vendors_org_payment_term_idx').on(table.organizationId, table.defaultPaymentTermId),
+    check(
+      'vendors_payment_confirmation_override_known',
+      sql`${table.paymentConfirmationOverride} IN ('org_default', 'automatic')`,
+    ),
+    check(
+      'vendors_recurring_payment_day_range',
+      sql`${table.recurringPaymentDay} IS NULL
+          OR (${table.recurringPaymentDay} >= 1 AND ${table.recurringPaymentDay} <= 28)`,
+    ),
   ],
 );
 

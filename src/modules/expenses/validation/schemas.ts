@@ -1,5 +1,10 @@
 import { z } from 'zod';
 
+const emptyToNull = (value: unknown) => {
+  if (value === '' || value === null || value === undefined) return null;
+  return value;
+};
+
 const costFamilySchema = z.enum(['direct_project', 'shared', 'business_overhead', 'asset_capital']);
 
 const expenseVatModeSchema = z.preprocess((value) => {
@@ -117,6 +122,13 @@ const expenseFieldsSchema = z.object({
     .regex(/^\d{4}-\d{2}-\d{2}$/)
     .nullable()
     .optional(),
+  paymentTermId: z.preprocess(emptyToNull, z.string().uuid().nullable().optional()),
+  dueDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .nullable()
+    .optional(),
+  automaticInstallmentPayment: booleanOptionalSchema,
   /** When true, NET books to inventory stock — not operating Actual (0069). */
   inventoryStockPurchase: booleanOptionalSchema,
   /** Required when inventoryStockPurchase is true. */

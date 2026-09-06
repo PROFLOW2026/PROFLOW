@@ -59,6 +59,19 @@ export function resolveDocumentPaymentTermId(input: {
   return input.explicitId ?? input.partyDefaultId ?? input.orgDefaultId ?? null;
 }
 
+/** Expense precedence: explicit → vendor default → organization default. */
+export function resolveExpensePaymentTermId(input: {
+  readonly explicitId?: string | null;
+  readonly vendorDefaultId?: string | null;
+  readonly orgDefaultId?: string | null;
+}): string | null {
+  return resolveDocumentPaymentTermId({
+    explicitId: input.explicitId,
+    partyDefaultId: input.vendorDefaultId,
+    orgDefaultId: input.orgDefaultId,
+  });
+}
+
 /** @deprecated Use resolveDocumentPaymentTermId or side-specific resolvers. */
 export function resolveInheritedPaymentTermId(input: {
   readonly selectedId?: string | null;

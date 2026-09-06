@@ -33,6 +33,7 @@ import {
   type AllocationInsertRow,
 } from '../data/expenses.repository';
 import type { CreateExpenseInput } from '../validation/schemas';
+import { resolveExpensePaymentSchedule } from './resolve-expense-payment-schedule';
 
 const EXPENSE_AUDIT_CREATED = 'expense.created';
 
@@ -372,6 +373,13 @@ export async function buildExpensePayload(
 
   const inventoryStock = await resolveInventoryStockPurchaseFields(context, input);
 
+  const paymentSchedule = await resolveExpensePaymentSchedule(context, {
+    expenseDate,
+    vendorId,
+    paymentTermId: input.paymentTermId,
+    dueDate: input.dueDate,
+  });
+
   return {
     expenseDate,
     targeting,
@@ -395,6 +403,8 @@ export async function buildExpensePayload(
       finalizedAt: null,
       paymentMethod: input.paymentMethod?.trim() || null,
       notes: input.notes?.trim() || null,
+      paymentTermId: paymentSchedule.paymentTermId,
+      dueDate: paymentSchedule.dueDate,
       voidsExpenseId: null,
       adjustsExpenseId: null,
       isRecurringTemplate: false,
@@ -410,6 +420,7 @@ export async function buildExpensePayload(
       installmentStartDate: input.installmentStartDate
         ? businessDate(input.installmentStartDate)
         : null,
+      automaticInstallmentPayment: input.automaticInstallmentPayment === true,
       inventoryStockPurchase: inventoryStock.inventoryStockPurchase,
       inventoryItemId: inventoryStock.inventoryItemId,
       inventoryPurchaseQty: inventoryStock.inventoryPurchaseQty,

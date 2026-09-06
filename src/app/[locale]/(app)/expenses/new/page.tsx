@@ -5,6 +5,7 @@ import { ContextualBackLink } from '@/components/ui/contextual-back-link';
 import { Button } from '@/components/ui/button';
 import { listInventoryItemsForOrg } from '@/modules/assets';
 import { listCostCategoriesForOrg, listProjectsForOrg, listWorkPackagesForOrg } from '@/modules/expenses';
+import { listBusinessCatalog } from '@/modules/business-catalog';
 import { listApBillOverlapCandidates } from '@/modules/financials';
 import { resolveApplicableDefaultTax } from '@/modules/tax';
 import { listVendorsForOrg } from '@/modules/vendors';
@@ -37,7 +38,7 @@ export default async function NewExpensePage({
   const params = await searchParams;
   const preselectedProjectId = typeof params.projectId === 'string' ? params.projectId : undefined;
 
-  const [projects, categories, workPackages, vendors, taxRatePercent, apBillOverlapCandidates, inventoryItems] =
+  const [projects, categories, workPackages, vendors, paymentTerms, taxRatePercent, apBillOverlapCandidates, inventoryItems] =
     await withOrgContext(
     async (context) => {
       const canReadAp = hasPermission(context, PERMISSIONS.AP_READ);
@@ -50,6 +51,7 @@ export default async function NewExpensePage({
       const vendorRows = hasPermission(context, PERMISSIONS.VENDORS_READ)
         ? await listVendorsForOrg(context, { status: 'active' }).catch(() => [])
         : [];
+      const termRows = await listBusinessCatalog(context, 'payment_term').catch(() => []);
       const tax = await resolveApplicableDefaultTax(
         context,
         todayInTimeZone(context.organization.timezone),
@@ -65,6 +67,7 @@ export default async function NewExpensePage({
         categoryRows,
         packages,
         vendorRows,
+        termRows.map((term) => ({ id: term.id, name: term.name })),
         tax.resolved?.ratePercent ?? null,
         apCandidates,
         inventoryRows.map((item) => ({ id: item.id, name: item.name, unit: item.unit })),
@@ -94,7 +97,12 @@ export default async function NewExpensePage({
         projects={projects}
         categories={categories}
         workPackages={workPackages}
-        vendors={vendors.map((vendor) => ({ id: vendor.id, name: vendor.name }))}
+        paymentTerms={paymentTerms}
+        vendors={vendors.map((vendor) => ({
+          id: vendor.id,
+          name: vendor.name,
+          defaultPaymentTermId: vendor.defaultPaymentTermId,
+        }))}
         inventoryItems={inventoryItems}
         initialProjectId={preselectedProjectId}
         taxRatePercent={taxRatePercent}

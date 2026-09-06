@@ -28,6 +28,9 @@ export type EngagementStatus = (typeof ENGAGEMENT_STATUSES)[number];
 export const VENDOR_CATALOG_LINK_KINDS = ['vendor_category', 'vendor_specialty'] as const;
 export type VendorCatalogLinkKind = (typeof VENDOR_CATALOG_LINK_KINDS)[number];
 
+export const VENDOR_PAYMENT_CONFIRMATION_OVERRIDES = ['org_default', 'automatic'] as const;
+export type VendorPaymentConfirmationOverride = (typeof VENDOR_PAYMENT_CONFIRMATION_OVERRIDES)[number];
+
 export interface VendorRecord {
   readonly id: string;
   readonly organizationId: string;
@@ -45,6 +48,10 @@ export interface VendorRecord {
   readonly notes: string | null;
   /** Org catalog entry (kind=payment_term). */
   readonly defaultPaymentTermId: string | null;
+  /** org_default | automatic — overrides org manual/auto for vendor payments. */
+  readonly paymentConfirmationOverride: VendorPaymentConfirmationOverride;
+  /** Day-of-month (1–28) for recurring automatic vendor payments. */
+  readonly recurringPaymentDay: number | null;
   readonly archivedAt: Date | null;
   readonly createdAt: Date;
   readonly updatedAt: Date;
