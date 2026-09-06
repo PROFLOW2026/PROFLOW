@@ -18,7 +18,7 @@ import {
 } from '@/modules/billing-plan';
 import { fromNumericString, isPositiveMoney, isZeroMoney } from '@/shared/money';
 import type { OrgContext } from '@/shared/auth/context';
-import { addDays, todayInTimeZone, type BusinessDate } from '@/shared/dates';
+import { todayInTimeZone, type BusinessDate } from '@/shared/dates';
 import { ValidationError } from '@/shared/errors';
 import { assertPermission, hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS, type PermissionKey } from '@/shared/permissions/catalog';
@@ -57,7 +57,6 @@ import {
 import { emitNotification } from './emit';
 import { runNotificationScanSchema, type RunNotificationScanInput } from '../validation/schemas';
 
-const AP_DUE_SOON_DAYS = 7;
 const BILLING_PLAN_MILESTONE_DAYS = 7;
 
 interface ScannerContext {
@@ -197,8 +196,6 @@ async function scanApDue(ctx: ScannerContext): Promise<{ emitted: number; resolv
     return { emitted: 0, resolved: 0 };
   }
   const payables = await getOrganizationApPayables(ctx.context);
-  const soonUntil = addDays(ctx.today, AP_DUE_SOON_DAYS);
-  const dueSoon: ScanEntity[] = [];
   const overdue: ScanEntity[] = [];
 
   for (const bill of payables.bills) {
@@ -214,18 +211,15 @@ async function scanApDue(ctx: ScannerContext): Promise<{ emitted: number; resolv
     };
     if (bill.dueDate < ctx.today) {
       if (overdue.length < ctx.cap) overdue.push(entity);
-    } else if (bill.dueDate <= soonUntil) {
-      if (dueSoon.length < ctx.cap) dueSoon.push(entity);
     }
   }
 
   const recipients = (entity: ScanEntity) => permissionRecipients(ctx, PERMISSIONS.AP_MANAGE, entity);
-  const emittedSoon = await emitLive(ctx, 'ap_due_soon', 'ap_bill', 'warning', dueSoon, recipients);
   const emittedOverdue = await emitLive(ctx, 'ap_overdue', 'ap_bill', 'urgent', overdue, recipients);
-  const resolvedSoon = await resolveStaleForType(ctx, 'ap_due_soon', new Set(dueSoon.map((row) => row.id)));
+  const resolvedSoon = await resolveStaleForType(ctx, 'ap_due_soon', new Set());
   const resolvedOverdue = await resolveStaleForType(ctx, 'ap_overdue', new Set(overdue.map((row) => row.id)));
   return {
-    emitted: emittedSoon + emittedOverdue,
+    emitted: emittedOverdue,
     resolved: resolvedSoon + resolvedOverdue,
   };
 }

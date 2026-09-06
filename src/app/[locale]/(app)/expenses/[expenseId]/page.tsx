@@ -21,6 +21,7 @@ import {
 } from '@/modules/expenses';
 import { resolveApplicableDefaultTax } from '@/modules/tax';
 import { listVendorsForOrg } from '@/modules/vendors';
+import { listActivePaymentInstruments } from '@/modules/payment-instruments';
 import { statusShape } from '@/modules/expenses/domain/lifecycle';
 import { decodeRecurrenceRule } from '@/modules/expenses/domain/recurrence';
 import { withOrgContext } from '@/shared/auth/session';
@@ -92,13 +93,19 @@ export default async function ExpenseDetailPage({
       const inventoryItems = hasPermission(context, PERMISSIONS.ASSETS_MANAGE)
         ? await listInventoryItemsForOrg(context).catch(() => [])
         : [];
+      const paymentInstruments = await listActivePaymentInstruments(
+        context.db,
+        context.organizationId,
+      ).catch(() => []);
       return {
         expense,
         projects,
         categories,
         workPackages,
+        defaultPaymentDate: todayInTimeZone(context.organization.timezone),
         vendors: vendors.map((vendor) => ({ id: vendor.id, name: vendor.name })),
         inventoryItems: inventoryItems.map((item) => ({ id: item.id, name: item.name, unit: item.unit })),
+        paymentInstruments,
         documentsPanel,
         customFields,
         correctionChain,
@@ -129,6 +136,8 @@ export default async function ExpenseDetailPage({
     workPackages,
     vendors,
     inventoryItems,
+    paymentInstruments,
+    defaultPaymentDate,
     documentsPanel,
     customFields,
     correctionChain,
@@ -230,7 +239,12 @@ export default async function ExpenseDetailPage({
       </div>
 
       {expense.status === 'finalized' ? (
-        <ExpensePaymentPanel expense={expense} locale={locale} canManage={canFinalizeExpense} />
+        <ExpensePaymentPanel
+          expense={expense}
+          locale={locale}
+          canManage={canFinalizeExpense}
+          defaultPaymentDate={data.defaultPaymentDate}
+        />
       ) : null}
 
       {readOnly ? (
@@ -290,6 +304,8 @@ export default async function ExpenseDetailPage({
           workPackages={workPackages}
           vendors={vendors}
           inventoryItems={inventoryItems}
+          paymentInstruments={paymentInstruments}
+          defaultToday={defaultPaymentDate}
           taxRatePercent={taxRatePercent}
         />
       )}

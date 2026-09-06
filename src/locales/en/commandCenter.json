@@ -9,6 +9,10 @@
   "actions": {
     "open": "Open",
     "confirmPaid": "Confirm paid",
+    "paymentDateLabel": "Payment date",
+    "paymentDateHint": "Actual payment date. Defaults to today; you can choose a retroactive date.",
+    "paymentConfirm": "Confirm",
+    "cancel": "Cancel",
     "handle": "Mark as handled",
     "snooze1d": "Snooze 1 day",
     "snooze7d": "Snooze 7 days"

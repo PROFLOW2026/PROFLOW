@@ -100,7 +100,30 @@ describe('automatic payment behavior', () => {
     expect(expenseRequiresOwnerPaymentConfirmation(kind, true)).toBe(false);
   });
 
-  it('automatic installment schedule skips Owner confirmation', () => {
+  it('recurring expense template defaults to automatic even with org_default override', () => {
+    const kind = resolveExpenseAutomaticPaymentKind({
+      automaticInstallmentPayment: false,
+      installmentCount: 1,
+      vendor: null,
+      recurringDraft: { paymentConfirmationOverride: 'org_default', draftKind: 'expense' },
+      policies,
+    });
+    expect(kind).toBe('template_recurring_automatic');
+    expect(expenseRequiresOwnerPaymentConfirmation(kind, true)).toBe(false);
+  });
+
+  it('automatic installment schedule skips Owner confirmation even without explicit flag', () => {
+    const kind = resolveExpenseAutomaticPaymentKind({
+      automaticInstallmentPayment: false,
+      installmentCount: 12,
+      vendor: null,
+      policies,
+    });
+    expect(kind).toBe('installment_automatic');
+    expect(expenseRequiresOwnerPaymentConfirmation(kind, true)).toBe(false);
+  });
+
+  it('automatic installment schedule skips Owner confirmation with explicit flag', () => {
     const kind = resolveExpenseAutomaticPaymentKind({
       automaticInstallmentPayment: true,
       installmentCount: 12,

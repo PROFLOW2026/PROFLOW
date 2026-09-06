@@ -9,6 +9,10 @@
   "actions": {
     "open": "פתיחה",
     "confirmPaid": "אשר ששולם",
+    "paymentDateLabel": "תאריך תשלום",
+    "paymentDateHint": "תאריך התשלום בפועל. ברירת מחדל היום; ניתן לבחור תאריך רטרואקטיבי.",
+    "paymentConfirm": "אישור",
+    "cancel": "ביטול",
     "handle": "סימון כטופל",
     "snooze1d": "דחייה ליום אחד",
     "snooze7d": "דחייה ל-7 ימים"

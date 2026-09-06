@@ -92,7 +92,8 @@ async function mapAttendanceError(error: unknown): Promise<string> {
 
   if (error instanceof ValidationError) return tErrors('validationFailed');
   if (error instanceof AppError) return tErrors('unexpected');
-  throw error;
+  console.error('[attendance action]', error);
+  return tErrors('unexpected');
 }
 
 async function mapWarningKey(key: string | null | undefined): Promise<string | undefined> {

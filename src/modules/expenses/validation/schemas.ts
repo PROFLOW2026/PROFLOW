@@ -83,6 +83,13 @@ const expenseFieldsSchema = z.object({
   netAmount: z.string().trim().nullable().optional(),
   taxAmount: z.string().trim().nullable().optional(),
   paymentMethod: z.string().trim().max(100).nullable().optional(),
+  paymentInstrumentId: z.preprocess(emptyToNull, z.string().uuid().nullable().optional()),
+  markPaidOnCreate: booleanOptionalSchema,
+  paidAt: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .nullable()
+    .optional(),
   notes: z.string().trim().max(4000).nullable().optional(),
   recurrenceCadence: z.enum(['one_time', 'monthly', 'quarterly', 'yearly', 'custom']).optional(),
   recurrenceCustomLabel: z.string().trim().max(200).nullable().optional(),

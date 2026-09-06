@@ -42,6 +42,10 @@ import { money } from '@/shared/money/money';
 import { rtlFlipClassName } from '@/shared/i18n/ltr-island';
 import { Link } from '@/shared/i18n/navigation';
 import { AllocationEditor, type AllocationDraft } from './allocation-editor';
+import { VendorSelector } from './vendor-selector';
+import { PaymentMethodPicker } from './payment-method-picker';
+import type { PaymentInstrumentRow } from '@/modules/payment-instruments/domain/types';
+import { isPaymentMethodKey } from '../domain/payment-method';
 import type { ApBillOverlapCandidate } from '@/modules/financials/domain/expense-ap-overlap';
 import { findSimilarOpenApBillsForExpense } from '@/modules/financials/domain/expense-ap-overlap';
 import { ExpenseApOverlapWarning } from '@/modules/financials/ui/expense-ap-overlap-warning';
@@ -115,6 +119,9 @@ export interface ExpenseFormValues {
   netAmount: string;
   taxAmount: string;
   paymentMethod: string;
+  paymentInstrumentId: string;
+  markPaid: boolean;
+  paidAt: string;
   notes: string;
   recurrenceCadence: RecurrenceCadence;
   recurrenceCustomLabel: string;
@@ -156,6 +163,10 @@ export interface ExpenseFormProps {
   readonly children?: React.ReactNode;
   /** Open AP bills for duplicate-capture warnings on create. */
   readonly apBillOverlapCandidates?: readonly ApBillOverlapCandidate[];
+  /** Saved org credit cards (optional). */
+  readonly paymentInstruments?: readonly PaymentInstrumentRow[];
+  /** Org-local today for default paid date. */
+  readonly defaultToday?: string;
 }
 
 export function ExpenseForm({
@@ -175,6 +186,8 @@ export function ExpenseForm({
   fieldErrors = {},
   children,
   apBillOverlapCandidates = [],
+  paymentInstruments = [],
+  defaultToday = '',
 }: ExpenseFormProps) {
   const t = useTranslations('expenses');
   const tCommon = useTranslations('common');
@@ -214,7 +227,19 @@ export function ExpenseForm({
   );
   const [netAmount, setNetAmount] = React.useState(initialValues?.netAmount ?? '');
   const [taxAmount, setTaxAmount] = React.useState(initialValues?.taxAmount ?? '');
-  const [paymentMethod, setPaymentMethod] = React.useState(initialValues?.paymentMethod ?? '');
+  const [paymentMethod, setPaymentMethod] = React.useState(() => {
+    const raw = initialValues?.paymentMethod ?? '';
+    return isPaymentMethodKey(raw) ? raw : raw ? 'other' : '';
+  });
+  const [paymentMethodOther, setPaymentMethodOther] = React.useState(() => {
+    const raw = initialValues?.paymentMethod ?? '';
+    return raw && !isPaymentMethodKey(raw) ? raw : '';
+  });
+  const [paymentInstrumentId, setPaymentInstrumentId] = React.useState(
+    initialValues?.paymentInstrumentId ?? '',
+  );
+  const [markPaid, setMarkPaid] = React.useState(Boolean(initialValues?.markPaid));
+  const [paidAt, setPaidAt] = React.useState(initialValues?.paidAt ?? defaultToday);
   const [notes, setNotes] = React.useState(initialValues?.notes ?? '');
   const [recurrenceCadence, setRecurrenceCadence] = React.useState<RecurrenceCadence>(
     initialValues?.recurrenceCadence ?? 'one_time',
@@ -274,6 +299,10 @@ export function ExpenseForm({
 
   const isInternalPayrollCategory =
     selectedCategory?.key.trim().toLowerCase() === INTERNAL_EMPLOYEE_PAYROLL_CATEGORY_KEY;
+
+  const selectedVendorName = vendorId
+    ? vendors.find((vendor) => vendor.id === vendorId)?.name ?? supplierName
+    : supplierName;
 
   const hasManualTaxOverride = Boolean(netAmount.trim() || taxAmount.trim());
 
@@ -477,7 +506,12 @@ export function ExpenseForm({
         <input type="hidden" name="notes" value={notes} />
         <input type="hidden" name="netAmount" value={netAmount} />
         <input type="hidden" name="taxAmount" value={taxAmount} />
-        <input type="hidden" name="paymentMethod" value={paymentMethod} />
+        <input type="hidden" name="paymentMethod" value={
+          paymentMethod === 'other' ? paymentMethodOther.trim() || 'other' : paymentMethod
+        } />
+        <input type="hidden" name="paymentInstrumentId" value={paymentInstrumentId} />
+        <input type="hidden" name="markPaidOnCreate" value={markPaid ? 'true' : 'false'} />
+        <input type="hidden" name="paidAt" value={markPaid ? paidAt : ''} />
         <input type="hidden" name="vendorId" value={vendorId} />
         <input type="hidden" name="workPackageId" value={workPackageId} />
       </>
@@ -558,18 +592,19 @@ export function ExpenseForm({
           </dl>
         ) : null}
 
-        <Field label={t('fields.supplier')} optionalLabel={tCommon('labels.optional')}>
-          {(controlProps) => (
-            <Input
-              {...controlProps}
-              name="supplierName"
-              value={supplierName}
-              onChange={(event) => setSupplierName(event.target.value)}
-              disabled={readOnly}
-              placeholder={t('placeholders.supplier')}
-            />
-          )}
-        </Field>
+        <VendorSelector
+          vendors={vendors}
+          vendorId={vendorId}
+          supplierName={supplierName}
+          onVendorIdChange={setVendorId}
+          onSupplierNameChange={setSupplierName}
+          disabled={readOnly}
+          onVendorSelected={(vendor) => {
+            if (vendor?.defaultPaymentTermId) {
+              setPaymentTermId(vendor.defaultPaymentTermId);
+            }
+          }}
+        />
 
         <div id="expense-category" className="scroll-mt-24">
         <Field
@@ -724,6 +759,43 @@ export function ExpenseForm({
           )}
         </Field>
 
+        <PaymentMethodPicker
+          paymentMethod={paymentMethod}
+          paymentMethodOther={paymentMethodOther}
+          paymentInstrumentId={paymentInstrumentId}
+          instruments={paymentInstruments}
+          onPaymentMethodChange={setPaymentMethod}
+          onPaymentMethodOtherChange={setPaymentMethodOther}
+          onPaymentInstrumentChange={setPaymentInstrumentId}
+          disabled={readOnly}
+        />
+
+        <div className="flex flex-col gap-2">
+          <label className="flex cursor-pointer items-start gap-3">
+            <Checkbox
+              checked={markPaid}
+              onCheckedChange={(checked) => setMarkPaid(checked === true)}
+              disabled={readOnly}
+              aria-label={t('payment.markPaid')}
+            />
+            <span className="text-sm">{t('payment.markPaid')}</span>
+          </label>
+          {markPaid ? (
+            <Field label={t('payment.paidDate')}>
+              {(controlProps) => (
+                <Input
+                  {...controlProps}
+                  type="date"
+                  value={paidAt}
+                  onChange={(event) => setPaidAt(event.target.value)}
+                  disabled={readOnly}
+                  dir="ltr"
+                />
+              )}
+            </Field>
+          ) : null}
+        </div>
+
         {children}
       </section>
 
@@ -770,40 +842,11 @@ export function ExpenseForm({
             <input type="hidden" name="workPackageId" value={workPackageId} />
           )}
 
-          {vendors.length > 0 ? (
-            <Field label={t('fields.linkedVendor')} optionalLabel={tCommon('labels.optional')}>
-              {(controlProps) => (
-                <Select
-                  value={vendorId || NONE_VALUE}
-                  onValueChange={(value) => {
-                    const nextVendorId = value === NONE_VALUE ? '' : value;
-                    setVendorId(nextVendorId);
-                    if (nextVendorId) {
-                      const vendor = vendors.find((row) => row.id === nextVendorId);
-                      if (vendor?.defaultPaymentTermId) {
-                        setPaymentTermId(vendor.defaultPaymentTermId);
-                      }
-                    }
-                  }}
-                  disabled={readOnly}
-                >
-                  <SelectTrigger {...controlProps}>
-                    <SelectValue placeholder={t('placeholders.vendor')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value={NONE_VALUE}>{t('placeholders.vendorNone')}</SelectItem>
-                    {vendors.map((vendor) => (
-                      <SelectItem key={vendor.id} value={vendor.id}>
-                        {vendor.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-            </Field>
-          ) : (
-            <input type="hidden" name="vendorId" value={vendorId} />
-          )}
+          {vendorId && selectedVendorName ? (
+            <p className="text-sm text-[var(--pf-text-secondary)]">
+              {t('vendor.advancedSynced', { name: selectedVendorName })}
+            </p>
+          ) : null}
 
           {paymentTerms.length > 0 ? (
             <Field label={t('fields.paymentTerm')} optionalLabel={tCommon('labels.optional')}>
@@ -1231,18 +1274,6 @@ export function ExpenseForm({
                 )}
               </Field>
             </div>
-
-            <Field label={t('fields.paymentMethod')} optionalLabel={tCommon('labels.optional')}>
-              {(controlProps) => (
-                <Input
-                  {...controlProps}
-                  name="paymentMethod"
-                  value={paymentMethod}
-                  onChange={(event) => setPaymentMethod(event.target.value)}
-                  disabled={readOnly}
-                />
-              )}
-            </Field>
           </div>
         </section>
       )}

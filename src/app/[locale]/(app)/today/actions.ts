@@ -11,6 +11,7 @@ import {
   PAYROLL_PAYMENT_SOURCE_TYPES,
 } from '@/modules/command-center/domain/types';
 import { withOrgContext } from '@/shared/auth/session';
+import { businessDate } from '@/shared/dates';
 import { AppError, DomainRuleError, ValidationError, mapServerActionError } from '@/shared/errors';
 
 export interface CommandCenterActionResult {
@@ -86,23 +87,28 @@ export async function handleCommandCenterItemAction(input: {
 export async function confirmTodayPaymentAction(input: {
   readonly sourceType: CommandCenterSourceType;
   readonly sourceId: string;
+  readonly paidAt?: string;
 }): Promise<CommandCenterActionResult> {
   const tErrors = await getTranslations('errors');
 
   try {
     await withOrgContext(async (context) => {
+      const paidAt =
+        input.paidAt && /^\d{4}-\d{2}-\d{2}$/.test(input.paidAt)
+          ? businessDate(input.paidAt)
+          : undefined;
       if ((EXPENSE_PAYMENT_SOURCE_TYPES as readonly string[]).includes(input.sourceType)) {
         const { confirmExpensePaid } = await import(
           '@/modules/expenses/application/expense-payments'
         );
-        await confirmExpensePaid(context, input.sourceId);
+        await confirmExpensePaid(context, input.sourceId, paidAt ? { paidAt } : undefined);
         return;
       }
       if ((PAYROLL_PAYMENT_SOURCE_TYPES as readonly string[]).includes(input.sourceType)) {
         const { confirmPayrollPaid } = await import(
           '@/modules/workforce/application/payroll-payments'
         );
-        await confirmPayrollPaid(context, input.sourceId);
+        await confirmPayrollPaid(context, input.sourceId, paidAt ? { paidAt } : undefined);
       }
     });
     revalidatePath('/today');

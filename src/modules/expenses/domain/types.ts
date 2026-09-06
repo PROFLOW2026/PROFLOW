@@ -168,6 +168,7 @@ export interface ExpenseDetail extends ExpenseSummary {
   readonly vatMode: ExpenseVatMode | null;
   readonly finalizedAt: BusinessDate | null;
   readonly paymentMethod: string | null;
+  readonly paymentInstrumentId?: string | null;
   readonly paymentTermId: string | null;
   readonly dueDate: BusinessDate | null;
   readonly paymentStatus: string | null;

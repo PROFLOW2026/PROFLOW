@@ -27,6 +27,7 @@ import {
   listSubcontractParentContracts,
   listSubcontractDocumentCandidates,
 } from '@/modules/vendors';
+import { getVendorFinancialActivity } from '@/modules/vendors/application/get-vendor-financial-activity';
 import { getVendorPerformance } from '@/modules/vendors/application/get-vendor-performance';
 import {
   Vendor360Shell,
@@ -34,6 +35,7 @@ import {
   VendorSubcontractsPanel,
   VendorPerformancePanel,
 } from '@/modules/vendors/ui';
+import { VendorFinancialActivityPanel } from '@/modules/vendors/ui/vendor-financial-activity-panel';
 import { withOrgContext } from '@/shared/auth/session';
 import { todayInTimeZone } from '@/shared/dates';
 import { hasPermission } from '@/shared/permissions/assert';
@@ -89,6 +91,7 @@ export default async function VendorDetailPage({
   let apCredits: Awaited<ReturnType<typeof listVendorCredits>> = [];
   let apPayments: Awaited<ReturnType<typeof listVendorPaymentsForVendor>> = [];
   let performance: Awaited<ReturnType<typeof getVendorPerformance>> | null = null;
+  let financialActivity: Awaited<ReturnType<typeof getVendorFinancialActivity>> | null = null;
   let paymentTerms: Awaited<ReturnType<typeof listBusinessCatalog>> = [];
   let categories: Awaited<ReturnType<typeof listBusinessCatalog>> = [];
   let specialties: Awaited<ReturnType<typeof listBusinessCatalog>> = [];
@@ -129,14 +132,23 @@ export default async function VendorDetailPage({
       const details = await Promise.all(
         agreements.map((agreement) => getSubcontractById(context, agreement.id).catch(() => null)),
       );
-      const [outstanding, aging, credits, payments] = allowAp
+      const [outstanding, aging, credits, payments, financial] = allowAp
         ? await Promise.all([
             getVendorApOutstanding(context, vendorId).catch(() => null),
             getVendorPayablesAging(context, vendorId).catch(() => null),
             listVendorCredits(context, { vendorId }).catch(() => []),
             listVendorPaymentsForVendor(context, vendorId).catch(() => []),
+            getVendorFinancialActivity(context, vendorId).catch(() => null),
           ])
-        : [null, null, [], []];
+        : [
+            null,
+            null,
+            [],
+            [],
+            hasPermission(context, PERMISSIONS.EXPENSES_READ)
+              ? await getVendorFinancialActivity(context, vendorId).catch(() => null)
+              : null,
+          ];
       return {
         vendor: detail,
         documentsPanel: panel,
@@ -159,6 +171,7 @@ export default async function VendorDetailPage({
         apCredits: credits,
         apPayments: payments,
         performance: performanceRow,
+        financialActivity: financial,
         paymentTerms: paymentTermRows,
         categories: categoryRows,
         specialties: specialtyRows,
@@ -182,6 +195,7 @@ export default async function VendorDetailPage({
     apCredits = result.apCredits;
     apPayments = result.apPayments;
     performance = result.performance;
+    financialActivity = result.financialActivity;
     paymentTerms = result.paymentTerms;
     categories = result.categories;
     specialties = result.specialties;
@@ -211,6 +225,13 @@ export default async function VendorDetailPage({
         : row.name,
   }));
   const specialtyNameById = new Map(localizedSpecialties.map((row) => [row.id, row.name]));
+
+  const derivedProjectLinks = [
+    ...(financialActivity?.derivedProjects.map((project) => ({
+      id: project.id,
+      name: project.name,
+    })) ?? []),
+  ];
 
   return (
     <div className="flex flex-col gap-6">
@@ -393,30 +414,35 @@ export default async function VendorDetailPage({
             engagements={vendor.engagements}
             history={engagementHistory}
             candidateProjects={candidateProjects}
+            derivedProjects={derivedProjectLinks}
             canManage={canManage}
             defaultStartDate={defaultStartDate}
           />
         }
         invoices={
-          <VendorAp360Panel
-            canRead={canReadAp}
-            outstanding={apOutstanding}
-            aging={apAging}
-            credits={apCredits}
-            payments={apPayments}
-            linkedProjects={[
-              ...vendor.engagements.map((engagement) => ({
-                id: engagement.projectId,
-                name: engagement.projectName,
-              })),
-              ...engagementHistory.map((engagement) => ({
-                id: engagement.projectId,
-                name: engagement.projectName,
-              })),
-            ].filter(
-              (project, index, all) => all.findIndex((row) => row.id === project.id) === index,
-            )}
-          />
+          <>
+            <VendorFinancialActivityPanel activity={financialActivity} locale={locale} />
+            <VendorAp360Panel
+              canRead={canReadAp}
+              outstanding={apOutstanding}
+              aging={apAging}
+              credits={apCredits}
+              payments={apPayments}
+              linkedProjects={[
+                ...vendor.engagements.map((engagement) => ({
+                  id: engagement.projectId,
+                  name: engagement.projectName,
+                })),
+                ...engagementHistory.map((engagement) => ({
+                  id: engagement.projectId,
+                  name: engagement.projectName,
+                })),
+                ...derivedProjectLinks,
+              ].filter(
+                (project, index, all) => all.findIndex((row) => row.id === project.id) === index,
+              )}
+            />
+          </>
         }
         agreements={
           <VendorSubcontractsPanel

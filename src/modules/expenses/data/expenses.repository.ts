@@ -67,6 +67,7 @@ export interface ExpenseInsertRow {
   readonly status: ExpenseStatus;
   readonly finalizedAt: BusinessDate | null;
   readonly paymentMethod: string | null;
+  readonly paymentInstrumentId?: string | null;
   readonly notes: string | null;
   readonly voidsExpenseId: string | null;
   readonly adjustsExpenseId: string | null;
@@ -342,6 +343,7 @@ export async function findExpenseById(
       status: expenses.status,
       finalizedAt: expenses.finalizedAt,
       paymentMethod: expenses.paymentMethod,
+      paymentInstrumentId: expenses.paymentInstrumentId,
       paymentTermId: expenses.paymentTermId,
       dueDate: expenses.dueDate,
       paymentStatus: expenses.paymentStatus,
@@ -424,6 +426,7 @@ export async function findExpenseById(
     vatMode: (row.vatMode as ExpenseDetail['vatMode']) ?? null,
     finalizedAt: row.finalizedAt as BusinessDate | null,
     paymentMethod: row.paymentMethod,
+    paymentInstrumentId: row.paymentInstrumentId ?? null,
     paymentTermId: row.paymentTermId ?? null,
     dueDate: (row.dueDate as BusinessDate | null) ?? null,
     paymentStatus: row.paymentStatus ?? null,

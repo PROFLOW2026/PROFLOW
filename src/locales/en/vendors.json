@@ -331,6 +331,24 @@
       "cancelled": "Cancelled"
     }
   },
+  "financialActivity": {
+    "title": "Expense financial activity",
+    "description": "Expenses, payments, and projects. Canonical source is expenses.",
+    "empty": "No expenses linked to this vendor.",
+    "recognizedNet": "Recognized cost (net)",
+    "paidGross": "Paid (gross)",
+    "outstandingGross": "Outstanding",
+    "expenseCount": "Transactions",
+    "derivedProjects": "Projects from expenses",
+    "projectExpenseCount": "{count, plural, one {1 transaction} other {# transactions}}",
+    "expensesTitle": "Expenses",
+    "untitledExpense": "Expense",
+    "projectLabel": "Project: {name}",
+    "generalBusiness": "General business expense",
+    "paid": "Paid",
+    "unpaid": "Unpaid",
+    "overdue": "Overdue"
+  },
   "performance": {
     "title": "Supplier performance",
     "description": "Recorded facts only. Missing data stays neutral and is not punished.",

@@ -128,6 +128,8 @@ const HE_EXTRAS: Readonly<Record<string, string>> = {
   medium: 'בינוני',
   low: 'נמוך',
   critical: 'קריטי',
+  general: 'כללי',
+  General: 'כללי',
 };
 
 const EN_EXTRAS: Readonly<Record<string, string>> = {
@@ -165,6 +167,22 @@ function unknownFor(locale: string | null | undefined): string {
  * Map an internal code / enum / slug to a human label.
  * Never returns a snake_case token when the value looks like an internal code.
  */
+export function localizeProjectDisplayName(
+  locale: string | null | undefined,
+  name: string | null | undefined,
+): string {
+  const trimmed = name?.trim() ?? '';
+  if (!trimmed) return '-';
+  if (trimmed === 'General') {
+    return locale === 'he-IL' || (locale ?? '').startsWith('he') ? 'כללי' : 'General';
+  }
+  if (looksLikeEnglishDisplayName(trimmed) && (locale === 'he-IL' || (locale ?? '').startsWith('he'))) {
+    const mapped = HE_EXTRAS[trimmed] ?? HE_EXTRAS[trimmed.toLowerCase()];
+    if (mapped) return mapped;
+  }
+  return trimmed;
+}
+
 export function localizeCode(
   locale: string | null | undefined,
   value: string | null | undefined,

@@ -6,6 +6,7 @@ import { ContextualBackLink } from '@/components/ui/contextual-back-link';
 import { listCostCategoriesForOrg } from '@/modules/expenses';
 import { listProjectsForOrg } from '@/modules/projects';
 import { listVendorsForOrg } from '@/modules/vendors';
+import { listActivePaymentInstruments } from '@/modules/payment-instruments';
 import { getRecurringDraftDetail, canManageDraftKind } from '@/modules/recurring-drafts';
 import { RecurringDraftForm } from '@/modules/recurring-drafts/ui/draft-form';
 import { withOrgContext } from '@/shared/auth/session';
@@ -51,12 +52,17 @@ export default async function EditRecurringDraftPage({
       const categoryRows = hasPermission(context, PERMISSIONS.EXPENSES_READ)
         ? await listCostCategoriesForOrg(context).catch(() => [])
         : [];
+      const paymentInstruments = await listActivePaymentInstruments(
+        context.db,
+        context.organizationId,
+      ).catch(() => []);
       return {
         forbidden: false as const,
         detail,
         vendors: vendorRows.map((vendor) => ({ id: vendor.id, name: vendor.name })),
         projects: projectRows.map((project) => ({ id: project.id, name: project.name })),
         categories: categoryRows,
+        paymentInstruments,
         defaultCurrency: context.organization.baseCurrency,
         defaultNextRunDate: todayInTimeZone(context.organization.timezone),
       };
@@ -71,7 +77,7 @@ export default async function EditRecurringDraftPage({
     return null;
   }
 
-  const { detail, vendors, projects, categories, defaultCurrency, defaultNextRunDate } = loaded;
+  const { detail, vendors, projects, categories, paymentInstruments, defaultCurrency, defaultNextRunDate } = loaded;
 
   return (
     <div className="flex min-w-0 max-w-full flex-col gap-6">
@@ -101,6 +107,7 @@ export default async function EditRecurringDraftPage({
         vendors={vendors}
         projects={projects}
         categories={categories}
+        paymentInstruments={paymentInstruments}
         expenseFocused={detail.draft.draftKind === 'expense'}
         initial={{
           draftId: detail.draft.id,
@@ -114,6 +121,8 @@ export default async function EditRecurringDraftPage({
           managerialCostKind: detail.draft.managerialCostKind,
           paymentConfirmationOverride: detail.draft.paymentConfirmationOverride,
           recurringPaymentDay: detail.draft.recurringPaymentDay,
+          paymentMethod: detail.draft.paymentMethod,
+          paymentInstrumentId: detail.draft.paymentInstrumentId,
           payload: detail.payload,
         }}
       />

@@ -8,6 +8,7 @@ import { ExpenseForm } from '@/modules/expenses/ui/expense-form';
 import { decodeRecurrenceRule } from '@/modules/expenses/domain/recurrence';
 import { inferExpenseTaxModeFromAmounts } from '@/modules/expenses/domain/tax';
 import type { CostCategoryRow, ExpenseDetail, InventoryItemOption, ProjectOption, VendorOption, WorkPackageOption } from '@/modules/expenses/domain/types';
+import type { PaymentInstrumentRow } from '@/modules/payment-instruments/domain/types';
 import type { AllocationDraft } from '@/modules/expenses/ui/allocation-editor';
 import { expensePayloadFromFormData } from '@/modules/offline/domain/payloads';
 import { useOfflineAwareFormAction } from '@/modules/offline/ui/use-offline-aware-form-action';
@@ -21,6 +22,8 @@ export interface ExpenseEditFormProps {
   readonly workPackages: readonly WorkPackageOption[];
   readonly vendors?: readonly VendorOption[];
   readonly inventoryItems?: readonly InventoryItemOption[];
+  readonly paymentInstruments?: readonly PaymentInstrumentRow[];
+  readonly defaultToday?: string;
   readonly taxRatePercent?: string | null;
 }
 
@@ -35,6 +38,8 @@ export function ExpenseEditForm({
   workPackages,
   vendors = [],
   inventoryItems = [],
+  paymentInstruments = [],
+  defaultToday = '',
   taxRatePercent = null,
 }: ExpenseEditFormProps) {
   const t = useTranslations('expenses');
@@ -105,6 +110,8 @@ export function ExpenseEditForm({
         workPackages={workPackages}
         vendors={vendors}
         inventoryItems={inventoryItems}
+        paymentInstruments={paymentInstruments}
+        defaultToday={defaultToday}
         taxRatePercent={taxRatePercent}
         initialValues={{
           amount: taxMode.amount,
@@ -124,6 +131,11 @@ export function ExpenseEditForm({
           netAmount: '',
           taxAmount: '',
           paymentMethod: expense.paymentMethod ?? '',
+          paymentInstrumentId: expense.paymentInstrumentId ?? '',
+          markPaid: Boolean(expense.paidAt && expense.paymentStatus === 'paid'),
+          paidAt: expense.paidAt ?? defaultToday,
+          paymentTermId: expense.paymentTermId ?? '',
+          dueDate: expense.dueDate ?? '',
           notes: expense.notes ?? '',
           recurrenceCadence: recurrence.cadence,
           recurrenceCustomLabel: recurrence.customLabel ?? '',

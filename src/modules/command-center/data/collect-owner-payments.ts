@@ -2,18 +2,21 @@
  * Today collectors: expense and payroll payment due / overdue / pending confirmation.
  */
 
-import { addDays, compareBusinessDates, type BusinessDate } from '@/shared/dates';
+import { and, eq, inArray, isNull } from 'drizzle-orm';
+import { costCategories, projects } from '@drizzle/schema';
+import { getTranslations } from 'next-intl/server';
+import { compareBusinessDates, formatBusinessDate, type BusinessDate } from '@/shared/dates';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { hasPermission } from '@/shared/permissions/assert';
 import { formatMoneyDisplay } from '@/shared/money/format';
 import { fromNumericString, type MoneyValue } from '@/shared/money';
+import { localizeProjectDisplayName } from '@/shared/i18n/code-display';
 import {
   listExpensePaymentsForOrg,
   syncAutomaticExpensePayments,
 } from '@/modules/expenses/application/expense-payments';
 import { ensureRecurringDraftOccurrencesForOrg } from '@/modules/recurring-drafts/application/ensure-occurrences';
 import {
-  isExpenseDueSoon,
   isExpenseDueToday,
   isExpenseOverdue,
   isExpensePendingReview,
@@ -21,7 +24,6 @@ import {
 } from '@/modules/expenses/domain/payment-lifecycle';
 import {
   expenseRequiresOwnerPaymentConfirmation,
-  PAYMENT_DUE_SOON_DAYS,
   resolveExpenseAutomaticPaymentKind,
 } from '@/modules/expenses/domain/payment-behavior';
 import { findVendorById } from '@/modules/vendors';
@@ -31,6 +33,7 @@ import {
   syncAutomaticPayrollPayments,
 } from '@/modules/workforce/application/payroll-payments';
 import { getOrgFinancialPolicies } from '@/modules/tenancy/application/org-financial-policies';
+import { displayCostCategoryName } from '@/modules/expenses/domain/cost-category-display';
 import { withItemDefaults } from '../domain/ranking';
 import type { CommandCenterItem, CommandCenterSourceType } from '../domain/types';
 import type { CollectContext } from './collect-sources';
@@ -53,6 +56,8 @@ function expenseItem(input: {
   return withItemDefaults(input);
 }
 
+const GENERAL_BUSINESS_ATTRIBUTION = 'שיוך: הוצאה כללית של העסק';
+
 export async function collectExpensesDueToday(ctx: CollectContext): Promise<CommandCenterItem[]> {
   if (!hasPermission(ctx.context, PERMISSIONS.EXPENSES_READ)) return [];
 
@@ -62,9 +67,62 @@ export async function collectExpensesDueToday(ctx: CollectContext): Promise<Comm
   const policies = await getOrgFinancialPolicies(ctx.context);
   const manualConfirm = policies.expensePaymentConfirmationMode === 'manual';
   const locale = ctx.context.locale ?? 'he-IL';
+  const tExpenses = await getTranslations({ locale, namespace: 'expenses' });
 
   const rows = sortByDueDate(await listExpensePaymentsForOrg(ctx.context, { unpaidOnly: true }));
   const items: CommandCenterItem[] = [];
+
+  const projectIds = [...new Set(rows.map((row) => row.projectId).filter(Boolean))] as string[];
+  const categoryIds = [...new Set(rows.map((row) => row.costCategoryId).filter(Boolean))] as string[];
+
+  const projectNameById = new Map<string, string>();
+  if (projectIds.length > 0) {
+    const projectRows = await ctx.context.db
+      .select({ id: projects.id, name: projects.name })
+      .from(projects)
+      .where(
+        and(
+          eq(projects.organizationId, ctx.context.organizationId),
+          inArray(projects.id, projectIds),
+        ),
+      );
+    for (const project of projectRows) {
+      projectNameById.set(project.id, localizeProjectDisplayName(locale, project.name));
+    }
+  }
+
+  const categoryById = new Map<string, { key: string; name: string; isSystem: boolean }>();
+  if (categoryIds.length > 0) {
+    const categoryRows = await ctx.context.db
+      .select({
+        id: costCategories.id,
+        key: costCategories.key,
+        name: costCategories.name,
+        isSystem: costCategories.isSystem,
+      })
+      .from(costCategories)
+      .where(
+        and(
+          eq(costCategories.organizationId, ctx.context.organizationId),
+          inArray(costCategories.id, categoryIds),
+          isNull(costCategories.archivedAt),
+        ),
+      );
+    for (const category of categoryRows) {
+      categoryById.set(category.id, {
+        key: category.key,
+        name: category.name,
+        isSystem: category.isSystem,
+      });
+    }
+  }
+
+  const categoryLabel = (categoryId: string | null | undefined): string | null => {
+    if (!categoryId) return null;
+    const category = categoryById.get(categoryId);
+    if (!category) return null;
+    return displayCostCategoryName(category, (key) => tExpenses(key as 'costCategories.insurance'), 'קטגוריה');
+  };
 
   for (const row of rows) {
     if (items.length >= 20) break;
@@ -88,8 +146,47 @@ export async function collectExpensesDueToday(ctx: CollectContext): Promise<Comm
     });
     if (!expenseRequiresOwnerPaymentConfirmation(autoKind, manualConfirm)) continue;
 
-    const label = row.supplierName ?? row.description ?? 'הוצאה';
+    // Actionable payments only when due today, overdue, or missing due date (review).
+    // Future due_date (> today) is upcoming — never surfaces in Today / Bell / badge.
+    if (
+      row.dueDate &&
+      !isExpensePendingReview(row) &&
+      compareBusinessDates(row.dueDate, ctx.today) > 0
+    ) {
+      continue;
+    }
+
+    const expenseTitle = row.description?.trim() || row.supplierName?.trim() || vendor?.name || 'הוצאה';
     const amount = moneyLabel(gross, locale);
+    const expenseDateLabel = formatBusinessDate(row.expenseDate, locale);
+    const vendorLabel = vendor?.name ?? row.supplierName ?? null;
+    const projectName = row.projectId ? projectNameById.get(row.projectId) ?? null : null;
+    const categoryName = categoryLabel(row.costCategoryId);
+    const where = row.projectId && projectName
+      ? `פרויקט: ${projectName}`
+      : GENERAL_BUSINESS_ATTRIBUTION;
+
+    const detailParts = [
+      expenseTitle,
+      amount,
+      `תאריך הוצאה: ${expenseDateLabel}`,
+    ];
+    if (vendorLabel) detailParts.push(`ספק: ${vendorLabel}`);
+    if (categoryName) detailParts.push(`קטגוריה: ${categoryName}`);
+    if (row.dueDate) detailParts.push(`מועד תשלום: ${formatBusinessDate(row.dueDate, locale)}`);
+
+    const why = detailParts.join(' · ');
+    const meta: CommandCenterItem['meta'] = {
+      expenseDate: row.expenseDate,
+      dueDate: row.dueDate,
+      amount: gross.amount,
+      currency: gross.currency,
+      expenseTitle,
+      vendorName: vendorLabel,
+      projectName,
+      categoryName,
+      isGeneralBusiness: !row.projectId,
+    };
 
     if (isExpensePendingReview(row)) {
       items.push(
@@ -97,12 +194,12 @@ export async function collectExpensesDueToday(ctx: CollectContext): Promise<Comm
           sourceType: 'expense_pending_review',
           sourceId: row.id,
           what: 'הוצאה ממתינה לאישור תשלום',
-          why: `${label} · ${amount} · דורש בדיקה`,
-          where: row.projectId ? 'פרויקט' : 'הוצאות כלליות',
+          why,
+          where,
           href: `/expenses/${row.id}`,
           urgencyBump: 15,
           confirmPaid: 'expense',
-          meta: { amount: gross.amount, currency: gross.currency },
+          meta,
         }),
       );
       continue;
@@ -114,12 +211,12 @@ export async function collectExpensesDueToday(ctx: CollectContext): Promise<Comm
           sourceType: 'expense_overdue',
           sourceId: row.id,
           what: 'הוצאה באיחור לתשלום',
-          why: `${label} · ${amount} · מועד ${row.dueDate ?? '—'}`,
-          where: row.projectId ? 'פרויקט' : 'הוצאות כלליות',
+          why,
+          where,
           href: `/expenses/${row.id}`,
           urgencyBump: 40,
           confirmPaid: 'expense',
-          meta: { dueDate: row.dueDate, amount: gross.amount, currency: gross.currency },
+          meta,
         }),
       );
       continue;
@@ -131,31 +228,15 @@ export async function collectExpensesDueToday(ctx: CollectContext): Promise<Comm
           sourceType: 'expense_due_today',
           sourceId: row.id,
           what: 'הוצאה לתשלום היום',
-          why: `${label} · ${amount} · מועד ${row.dueDate ?? '—'}`,
-          where: row.projectId ? 'פרויקט' : 'הוצאות כלליות',
+          why,
+          where,
           href: `/expenses/${row.id}`,
           urgencyBump: 25,
           confirmPaid: 'expense',
-          meta: { dueDate: row.dueDate, amount: gross.amount, currency: gross.currency },
+          meta,
         }),
       );
       continue;
-    }
-
-    if (isExpenseDueSoon(row, ctx.today)) {
-      items.push(
-        expenseItem({
-          sourceType: 'expense_due_soon',
-          sourceId: row.id,
-          what: 'הוצאה לתשלום בקרוב',
-          why: `${label} · ${amount} · מועד ${row.dueDate ?? '—'}`,
-          where: row.projectId ? 'פרויקט' : 'הוצאות כלליות',
-          href: `/expenses/${row.id}`,
-          urgencyBump: 12,
-          confirmPaid: 'expense',
-          meta: { dueDate: row.dueDate, amount: gross.amount, currency: gross.currency },
-        }),
-      );
     }
   }
 
@@ -165,12 +246,10 @@ export async function collectExpensesDueToday(ctx: CollectContext): Promise<Comm
 function payrollStatus(
   dueDate: BusinessDate | null,
   today: BusinessDate,
-): 'pending_review' | 'overdue' | 'due' | 'upcoming' | 'due_soon' {
+): 'pending_review' | 'overdue' | 'due' | 'upcoming' {
   if (!dueDate) return 'pending_review';
   if (compareBusinessDates(dueDate, today) < 0) return 'overdue';
   if (dueDate === today) return 'due';
-  const soonUntil = addDays(today, PAYMENT_DUE_SOON_DAYS);
-  if (compareBusinessDates(dueDate, soonUntil) <= 0) return 'due_soon';
   return 'upcoming';
 }
 
@@ -239,19 +318,6 @@ export async function collectPayrollDueToday(ctx: CollectContext): Promise<Comma
           what: `שכר ${row.yearMonth} מוכן לתשלום`,
           urgencyBump: 25,
           confirmPaid: manualConfirm ? 'payroll' : undefined,
-        }),
-      );
-      continue;
-    }
-
-    if (manualConfirm && status === 'due_soon') {
-      items.push(
-        withItemDefaults({
-          ...base,
-          sourceType: 'payroll_due_soon',
-          what: `שכר ${row.yearMonth} לתשלום בקרוב`,
-          urgencyBump: 12,
-          confirmPaid: 'payroll',
         }),
       );
     }

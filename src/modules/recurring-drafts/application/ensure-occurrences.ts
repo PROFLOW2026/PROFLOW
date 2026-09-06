@@ -18,6 +18,8 @@ import {
 } from '../data/recurring-drafts.repository';
 import { assertCanManageDraftKind } from '../domain/permissions';
 import { assertDraftGeneratable } from '../domain/lifecycle';
+import { businessDate, compareBusinessDates } from '@/shared/dates';
+import { firstBusinessDateOfYearMonth } from '../domain/amount-versions';
 
 export interface EnsureRecurringOccurrencesResult {
   readonly templatesScanned: number;
@@ -72,22 +74,36 @@ async function ensureMonthlyDraft(
     refreshed.frequency,
     refreshed.intervalCount,
   );
-  const bumped = bumpScheduleAfterGenerate({
-    currentNextRunDate: refreshed.nextRunDate,
-    runDate: today,
-    frequency: refreshed.frequency,
-    intervalCount: refreshed.intervalCount,
-    endDate: refreshed.endDate,
-  });
-  const targetNext = bumped.nextRunDate >= nextRun ? bumped.nextRunDate : nextRun;
+
+  // Only bump when the scheduled next date is not still in the future — advancing from a
+  // future next_run_date with `today` as runDate incorrectly ends templates before end_date.
+  const lastRunDate = businessDate(firstBusinessDateOfYearMonth(expectedRange.toYearMonth));
+  const todayDate = businessDate(today);
+  const scheduleRunDate =
+    compareBusinessDates(refreshed.nextRunDate, todayDate) <= 0
+      ? compareBusinessDates(refreshed.nextRunDate, lastRunDate) <= 0
+        ? lastRunDate
+        : todayDate
+      : null;
 
   let advanced = false;
-  if (targetNext !== refreshed.nextRunDate || bumped.status !== refreshed.status) {
-    await updateRecurringDraftById(context.db, context.organizationId, draft.id, {
-      nextRunDate: targetNext,
-      status: bumped.status,
+  if (scheduleRunDate) {
+    const bumped = bumpScheduleAfterGenerate({
+      currentNextRunDate: refreshed.nextRunDate,
+      runDate: scheduleRunDate,
+      frequency: refreshed.frequency,
+      intervalCount: refreshed.intervalCount,
+      endDate: refreshed.endDate,
     });
-    advanced = true;
+    const targetNext = bumped.nextRunDate >= nextRun ? bumped.nextRunDate : nextRun;
+
+    if (targetNext !== refreshed.nextRunDate || bumped.status !== refreshed.status) {
+      await updateRecurringDraftById(context.db, context.organizationId, draft.id, {
+        nextRunDate: targetNext,
+        status: bumped.status,
+      });
+      advanced = true;
+    }
   }
 
   return { generated, skipped, advanced };

@@ -187,6 +187,20 @@
       "automatic_on_day": "Automatic on payment day"
     }
   },
+  "paymentInstruments": {
+    "title": "Saved credit cards",
+    "subtitle": "Nickname, last four digits, and monthly debit day — all optional.",
+    "empty": "No cards saved yet.",
+    "displayName": "Name / nickname",
+    "displayNamePlaceholder": "e.g. Business Visa",
+    "lastFour": "Last four digits",
+    "debitDay": "Monthly debit day",
+    "debitDayPlaceholder": "1–28",
+    "addCard": "Add card",
+    "remove": "Remove",
+    "saved": "Card saved.",
+    "removed": "Card removed."
+  },
   "projectProfitabilityMode": {
     "title": "Project profitability",
     "subtitle": "How project Actual cost and profit appear on project pages. Does not change allocations or company-level totals.",

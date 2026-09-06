@@ -30,10 +30,12 @@ function InboxItemCard({
   item,
   t,
   actionLabels,
+  defaultPaymentDate,
 }: {
   readonly item: CommandCenterItem;
   readonly t: Awaited<ReturnType<typeof getTranslations>>;
   readonly actionLabels: CommandCenterItemActionLabels;
+  readonly defaultPaymentDate: string;
 }) {
   return (
     <li className="rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4">
@@ -71,12 +73,22 @@ function InboxItemCard({
         </Link>
       </div>
 
-      <CommandCenterItemActions item={item} labels={actionLabels} />
+      <CommandCenterItemActions
+        item={item}
+        labels={actionLabels}
+        defaultPaymentDate={defaultPaymentDate}
+      />
     </li>
   );
 }
 
-export async function TodayInboxPanel({ inbox }: { readonly inbox: CommandCenterInbox }) {
+export async function TodayInboxPanel({
+  inbox,
+  defaultPaymentDate,
+}: {
+  readonly inbox: CommandCenterInbox;
+  readonly defaultPaymentDate: string;
+}) {
   const t = await getTranslations('commandCenter');
   const actionLabels = {
     handle: t('actions.handle'),
@@ -84,6 +96,10 @@ export async function TodayInboxPanel({ inbox }: { readonly inbox: CommandCenter
     snooze7d: t('actions.snooze7d'),
     financialGuard: t('financialGuard'),
     confirmPaid: t('actions.confirmPaid'),
+    paymentDateLabel: t('actions.paymentDateLabel'),
+    paymentDateHint: t('actions.paymentDateHint'),
+    paymentConfirm: t('actions.paymentConfirm'),
+    cancel: t('actions.cancel'),
   };
 
   if (inbox.items.length === 0) {
@@ -114,6 +130,7 @@ export async function TodayInboxPanel({ inbox }: { readonly inbox: CommandCenter
                 item={item}
                 t={t}
                 actionLabels={actionLabels}
+                defaultPaymentDate={defaultPaymentDate}
               />
             ))}
           </ul>

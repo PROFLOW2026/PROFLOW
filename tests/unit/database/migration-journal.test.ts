@@ -317,7 +317,10 @@ describe('migration journal', () => {
     expect(tags.indexOf('0076_subcontract_advances')).toBeLessThan(
       tags.indexOf('0077_billing_records_rls_boq_finalize'),
     );
-    expect(tags.at(-1)).toBe('0080_recurring_template_payment_occurrences');
+    expect(tags.indexOf('0077_billing_records_rls_boq_finalize')).toBeLessThan(
+      tags.indexOf('0080_recurring_template_payment_occurrences'),
+    );
+    expect(tags.at(-1)).toBe('0081_payment_instruments');
 
     const sql66 = await readFile(
       path.join(MIGRATIONS_DIR, '0066_workforce_time_integrity.sql'),

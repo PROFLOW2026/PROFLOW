@@ -5,6 +5,8 @@ import { useTranslations } from 'next-intl';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Field } from '@/components/ui/field';
+import { Input } from '@/components/ui/input';
 import { MoneyText } from '@/components/patterns/money-text';
 import { StatusBadge, type StatusShape } from '@/components/ui/status-badge';
 import { formatBusinessDate } from '@/shared/dates/format';
@@ -20,9 +22,15 @@ interface ExpensePaymentPanelProps {
   readonly expense: ExpenseDetail;
   readonly locale: string;
   readonly canManage: boolean;
+  readonly defaultPaymentDate: string;
 }
 
-export function ExpensePaymentPanel({ expense, locale, canManage }: ExpensePaymentPanelProps) {
+export function ExpensePaymentPanel({
+  expense,
+  locale,
+  canManage,
+  defaultPaymentDate,
+}: ExpensePaymentPanelProps) {
   const t = useTranslations('expenses.payment');
   const [confirmState, confirmAction, confirmPending] = useActionState(
     confirmExpensePaidAction,
@@ -89,6 +97,17 @@ export function ExpensePaymentPanel({ expense, locale, canManage }: ExpensePayme
         {canManage && !expense.paidAt ? (
           <form action={confirmAction} className="flex flex-col gap-2">
             <input type="hidden" name="expenseId" value={expense.id} />
+            <Field label={t('paymentDateLabel')} required>
+              {(controlProps) => (
+                <Input
+                  {...controlProps}
+                  type="date"
+                  name="paidAt"
+                  defaultValue={defaultPaymentDate}
+                />
+              )}
+            </Field>
+            <p className="text-xs text-[var(--pf-text-muted)]">{t('paymentDateHint')}</p>
             <Button type="submit" size="sm" loading={confirmPending} className="self-start">
               {t('confirmPaid')}
             </Button>

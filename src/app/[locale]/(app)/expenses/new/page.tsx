@@ -9,6 +9,7 @@ import { listBusinessCatalog } from '@/modules/business-catalog';
 import { listApBillOverlapCandidates } from '@/modules/financials';
 import { resolveApplicableDefaultTax } from '@/modules/tax';
 import { listVendorsForOrg } from '@/modules/vendors';
+import { listActivePaymentInstruments } from '@/modules/payment-instruments';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { getShellContext } from '@/shared/auth/session';
@@ -38,7 +39,7 @@ export default async function NewExpensePage({
   const params = await searchParams;
   const preselectedProjectId = typeof params.projectId === 'string' ? params.projectId : undefined;
 
-  const [projects, categories, workPackages, vendors, paymentTerms, taxRatePercent, apBillOverlapCandidates, inventoryItems] =
+  const [projects, categories, workPackages, vendors, paymentTerms, taxRatePercent, apBillOverlapCandidates, inventoryItems, paymentInstruments] =
     await withOrgContext(
     async (context) => {
       const canReadAp = hasPermission(context, PERMISSIONS.AP_READ);
@@ -62,6 +63,10 @@ export default async function NewExpensePage({
       const inventoryRows = canManageAssets
         ? await listInventoryItemsForOrg(context).catch(() => [])
         : [];
+      const instruments = await listActivePaymentInstruments(
+        context.db,
+        context.organizationId,
+      ).catch(() => []);
       return [
         projectRows,
         categoryRows,
@@ -71,9 +76,14 @@ export default async function NewExpensePage({
         tax.resolved?.ratePercent ?? null,
         apCandidates,
         inventoryRows.map((item) => ({ id: item.id, name: item.name, unit: item.unit })),
+        instruments,
       ] as const;
     },
   );
+
+  const defaultToday = shell
+    ? todayInTimeZone(shell.organization.timezone)
+    : todayInTimeZone('Asia/Jerusalem');
 
   const defaultCurrency = shell?.organization.baseCurrency ?? 'ILS';
 
@@ -107,6 +117,8 @@ export default async function NewExpensePage({
         initialProjectId={preselectedProjectId}
         taxRatePercent={taxRatePercent}
         apBillOverlapCandidates={apBillOverlapCandidates}
+        paymentInstruments={paymentInstruments}
+        defaultToday={defaultToday}
       />
     </div>
   );

@@ -115,6 +115,8 @@ const trueCostFieldsCreate = {
   paymentConfirmationOverride: z.enum(['org_default', 'automatic']).optional().default('org_default'),
   recurringPaymentDay: z.coerce.number().int().min(1).max(28).nullable().optional(),
   paymentTermId: z.string().uuid().nullable().optional(),
+  paymentMethod: z.string().trim().max(100).nullable().optional(),
+  paymentInstrumentId: z.string().uuid().nullable().optional(),
 };
 
 const trueCostFieldsUpdate = {
@@ -123,6 +125,8 @@ const trueCostFieldsUpdate = {
   paymentConfirmationOverride: z.enum(['org_default', 'automatic']).optional(),
   recurringPaymentDay: z.coerce.number().int().min(1).max(28).nullable().optional(),
   paymentTermId: z.string().uuid().nullable().optional(),
+  paymentMethod: z.string().trim().max(100).nullable().optional(),
+  paymentInstrumentId: z.string().uuid().nullable().optional(),
 };
 
 export const createRecurringDraftSchema = z

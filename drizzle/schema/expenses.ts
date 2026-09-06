@@ -123,6 +123,8 @@ export const expenses = pgTable(
     status: expenseStatusEnum('status').notNull().default('draft'),
     finalizedAt: date('finalized_at'),
     paymentMethod: text('payment_method'),
+    /** Saved org credit card (0081) — optional when payment_method = credit_card. */
+    paymentInstrumentId: uuid('payment_instrument_id'),
     /** Optional payment term — derives/suggests dueDate (0078). */
     paymentTermId: uuid('payment_term_id'),
     /** Cash obligation due date. Distinct from expenseDate (recognition). */

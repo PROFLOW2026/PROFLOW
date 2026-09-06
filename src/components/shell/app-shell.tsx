@@ -4,7 +4,7 @@ import { getShellContext } from '@/shared/auth/session';
 import { redirect } from '@/shared/i18n/navigation';
 import { ConnectivityBanner } from '@/modules/offline/ui/connectivity-banner';
 import { OfflineSyncProvider } from '@/modules/offline/ui/offline-sync-provider';
-import { NotificationBell } from '@/modules/notifications/ui';
+import { NotificationBellLoader } from '@/modules/notifications/ui/notification-bell-loader';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { isExperiencePreviewEnvironment } from '@/modules/tenancy/domain/experience-preview';
 import { serverEnv } from '@/shared/env/server';
@@ -73,7 +73,9 @@ export async function AppShell({ children }: { children: ReactNode }) {
             organizationName={shell.organization.name}
             organizationLogoUrl={organizationLogoUrl}
             notifications={
-              shell.permissions.has(PERMISSIONS.NOTIFICATIONS_READ) ? <NotificationBell /> : undefined
+              shell.permissions.has(PERMISSIONS.NOTIFICATIONS_READ) ? (
+                <NotificationBellLoader />
+              ) : undefined
             }
             quickCreate={<QuickCreateDeferred shellCore={shell} />}
             userMenu={

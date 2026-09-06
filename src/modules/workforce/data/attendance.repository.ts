@@ -1,5 +1,5 @@
 import { and, asc, desc, eq, gte, isNull, lte, ne, sql } from 'drizzle-orm';
-import { attendanceDays, attendanceEvents, employees } from '@drizzle/schema';
+import { attendanceDays, attendanceEvents, employeeAttendanceOutcomes, employees } from '@drizzle/schema';
 import {
   ORG_LIST_EXPORT_CAP,
   ORG_LIST_HARD_CAP,
@@ -327,11 +327,8 @@ export async function listAttendanceDays(
 }
 
 /**
- * Returns all non-archived active employees that have NOT reported attendance today
- * (i.e., no non-void attendance_day record for workDate).
- *
- * Strategy: LEFT JOIN attendance_days where date + org match AND status != 'void',
- * then return rows where the join found nothing (day.id IS NULL).
+ * Returns active employees with no attendance report for workDate.
+ * Explicit attendance outcomes (worked / not_worked incl. unpaid leave) count as reported.
  */
 export async function listEmployeesWithoutAttendanceToday(
   db: DbExecutor,
@@ -342,18 +339,28 @@ export async function listEmployeesWithoutAttendanceToday(
     .select({
       employeeId: employees.id,
       employeeName: employees.name,
-      // Will be NULL when no active attendance record exists for today
-      attendanceDayId: sql<string | null>`(
-        select id from attendance_days ad
-        where ad.employee_id = ${employees.id}
-          and ad.organization_id = ${organizationId}
-          and ad.work_date = ${workDate}
-          and ad.archived_at is null
-          and ad.status <> 'void'
-        limit 1
-      )`,
+      attendanceDayId: attendanceDays.id,
+      attendanceOutcomeId: employeeAttendanceOutcomes.id,
     })
     .from(employees)
+    .leftJoin(
+      attendanceDays,
+      and(
+        eq(attendanceDays.employeeId, employees.id),
+        eq(attendanceDays.organizationId, organizationId),
+        eq(attendanceDays.workDate, workDate),
+        isNull(attendanceDays.archivedAt),
+        ne(attendanceDays.status, 'void'),
+      ),
+    )
+    .leftJoin(
+      employeeAttendanceOutcomes,
+      and(
+        eq(employeeAttendanceOutcomes.employeeId, employees.id),
+        eq(employeeAttendanceOutcomes.organizationId, organizationId),
+        eq(employeeAttendanceOutcomes.workDate, workDate),
+      ),
+    )
     .where(
       and(
         eq(employees.organizationId, organizationId),
@@ -366,6 +373,6 @@ export async function listEmployeesWithoutAttendanceToday(
     .orderBy(asc(employees.name));
 
   return rows
-    .filter((row) => row.attendanceDayId === null)
+    .filter((row) => row.attendanceDayId === null && row.attendanceOutcomeId === null)
     .map((row) => ({ employeeId: row.employeeId, employeeName: row.employeeName }));
 }

@@ -78,8 +78,23 @@ export async function attendanceOutcomeAction(
     revalidatePath('/workforce/attendance/monthly');
     return { ok: true, savedCount };
   } catch (error) {
+    if (error instanceof DomainRuleError) {
+      const t = await getTranslations('workforce');
+      const key = error.messageKey;
+      if (key === 'workforce.errors.attendanceClosedPeriod') return { error: t('errors.attendanceClosedPeriod') };
+      if (key === 'workforce.errors.invalidBulkRange') return { error: t('errors.invalidBulkRange') };
+      if (key.startsWith('workforce.errors.')) {
+        const short = key.slice('workforce.errors.'.length);
+        try {
+          return { error: t(`errors.${short}` as 'errors.alreadyClockedIn') };
+        } catch {
+          /* fall through */
+        }
+      }
+    }
     if (error instanceof AppError) return { error: tErrors('validationFailed') };
-    throw error;
+    console.error('[attendance outcome action]', error);
+    return { error: tErrors('unexpected') };
   }
 }
 

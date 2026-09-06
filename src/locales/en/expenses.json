@@ -187,7 +187,14 @@
     "paymentTermNone": "Vendor / organization default",
     "costFamily": "Inferred from targeting",
     "category": "Choose a cost category",
-    "inventoryItem": "Choose inventory item"
+    "inventoryItem": "Choose inventory item",
+    "supplierSearch": "Search vendors or type a free-text name"
+  },
+  "vendor": {
+    "optional": "Optional",
+    "noVendor": "No vendor",
+    "linkedHint": "Linked to vendor {name}",
+    "advancedSynced": "Linked vendor: {name}"
   },
   "destination": {
     "label": "Where should this cost land?",
@@ -303,11 +310,28 @@
   },
   "payment": {
     "title": "Expense payment",
+    "methodLabel": "Payment method",
+    "optional": "Optional",
+    "markPaid": "Paid",
+    "paidDate": "Payment date",
+    "otherDetail": "Payment method details",
+    "otherPlaceholder": "e.g. cash, PayPal",
+    "cardSelect": "Which card?",
+    "cardSelectPlaceholder": "Choose a saved card",
+    "cardGeneric": "Credit (no saved card)",
+    "methods": {
+      "check": "Check",
+      "credit_card": "Credit card",
+      "transfer": "Transfer",
+      "other": "Other"
+    },
     "dueDate": "Due date",
     "paidAt": "Paid on",
     "paidAmount": "Amount paid",
     "payableAmount": "Amount payable",
     "confirmPaid": "Confirm paid",
+    "paymentDateLabel": "Payment date",
+    "paymentDateHint": "Actual payment date. Defaults to today; you can choose a retroactive date.",
     "voidConfirmation": "Void payment confirmation",
     "confirmed": "Payment confirmed",
     "status": {
@@ -353,6 +377,7 @@
     "periodEnd": "Allocation period end",
     "autoDriverHint": "The system splits NET across eligible projects in the period and stores a historical snapshot.",
     "sumHintPrefix": "Lines must sum exactly to",
+    "sumHintEnterAmount": "Enter an expense amount to see the required allocation total.",
     "unallocatedCallout": "No projects selected yet - these general business costs will not land on project Actual Cost."
   },
   "errors": {

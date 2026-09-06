@@ -1232,7 +1232,6 @@ export async function collectAllSources(ctx: CollectContext): Promise<CommandCen
   const collectors = [
     collectOverdueAr,
     collectVendorBillsDue,
-    collectVendorBillsApproaching,
     collectOpenAttendance,
     collectUnallocatedEmployeeCost,
     collectUnallocatedVendorBills,

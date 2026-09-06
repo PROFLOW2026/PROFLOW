@@ -8,6 +8,7 @@ import { withOrgContext } from '@/shared/auth/session';
 import { redirect } from '@/shared/i18n/navigation';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
+import { todayInTimeZone } from '@/shared/dates';
 
 export async function generateMetadata({
   params,
@@ -49,7 +50,8 @@ async function TodayInboxBody() {
     }
 
     const inbox = await getTodayInbox(context);
-    return { kind: 'ok' as const, inbox };
+    const defaultPaymentDate = todayInTimeZone(context.organization.timezone);
+    return { kind: 'ok' as const, inbox, defaultPaymentDate };
   });
 
   if (result.kind !== 'ok') {
@@ -61,7 +63,7 @@ async function TodayInboxBody() {
       <p className="text-sm text-[var(--pf-text-secondary)]">
         {t('summary', { count: result.inbox.totalActive })}
       </p>
-      <TodayInboxPanel inbox={result.inbox} />
+      <TodayInboxPanel inbox={result.inbox} defaultPaymentDate={result.defaultPaymentDate} />
     </>
   );
 }

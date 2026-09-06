@@ -143,6 +143,8 @@ function trueCostFields(kind: string, formData: FormData) {
       paymentBehavior === 'automatic' ? ('automatic' as const) : ('org_default' as const),
     recurringPaymentDay: dayRaw ? Number(dayRaw) : null,
     paymentTermId: emptyToNull(formValue(formData, 'paymentTermId') ?? null),
+    paymentMethod: emptyToNull(formValue(formData, 'paymentMethod') ?? null),
+    paymentInstrumentId: emptyToNull(formValue(formData, 'paymentInstrumentId') ?? null),
   };
 }
 

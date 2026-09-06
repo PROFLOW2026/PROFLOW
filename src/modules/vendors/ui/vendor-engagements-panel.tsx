@@ -31,6 +31,8 @@ export interface VendorEngagementsPanelProps {
   readonly engagements: readonly VendorEngagementSummary[];
   readonly history?: readonly VendorEngagementSummary[];
   readonly candidateProjects: readonly VendorEngagementProjectOption[];
+  /** Projects derived from canonical expense/AP activity (not manual engagements). */
+  readonly derivedProjects?: readonly VendorEngagementProjectOption[];
   readonly canManage: boolean;
   readonly defaultStartDate: string;
 }
@@ -54,6 +56,7 @@ export function VendorEngagementsPanel({
   engagements,
   history = [],
   candidateProjects,
+  derivedProjects = [],
   canManage,
   defaultStartDate,
 }: VendorEngagementsPanelProps) {
@@ -152,6 +155,21 @@ export function VendorEngagementsPanel({
             </>
           )}
         </form>
+      ) : null}
+
+      {derivedProjects.length > 0 ? (
+        <section className="flex flex-col gap-2">
+          <h3 className="text-sm font-semibold">{t('financialActivity.derivedProjects')}</h3>
+          <ul className="flex flex-wrap gap-2">
+            {derivedProjects.map((project) => (
+              <li key={project.id}>
+                <Link href={`/projects/${project.id}`} className={textNavLinkClassName}>
+                  {project.name}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
       ) : null}
 
       {active.length === 0 ? (

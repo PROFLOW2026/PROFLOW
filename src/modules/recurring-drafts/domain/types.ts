@@ -43,6 +43,8 @@ export interface RecurringFinancialDraftRecord {
   readonly paymentConfirmationOverride: 'org_default' | 'automatic';
   readonly recurringPaymentDay: number | null;
   readonly paymentTermId: string | null;
+  readonly paymentMethod: string | null;
+  readonly paymentInstrumentId: string | null;
   readonly archivedAt: Date | null;
   readonly createdAt: Date;
   readonly updatedAt: Date;

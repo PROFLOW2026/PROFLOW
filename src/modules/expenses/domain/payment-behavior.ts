@@ -20,15 +20,20 @@ export interface ExpensePaymentBehaviorInput {
   readonly automaticInstallmentPayment: boolean;
   readonly installmentCount: number;
   readonly vendor: Pick<VendorRecord, 'paymentConfirmationOverride'> | null;
-  readonly recurringDraft?: RecurringTemplatePaymentBehavior | null;
+  readonly recurringDraft?: (RecurringTemplatePaymentBehavior & { readonly draftKind?: string }) | null;
   readonly policies: OrgFinancialPolicies;
 }
 
 export function resolveExpenseAutomaticPaymentKind(
   input: ExpensePaymentBehaviorInput,
 ): ExpenseAutomaticPaymentKind {
-  if (input.automaticInstallmentPayment && input.installmentCount > 1) {
+  // Installment schedules pre-authorize each due payment — no monthly Owner confirm.
+  if (input.installmentCount > 1) {
     return 'installment_automatic';
+  }
+  // Recurring expense templates with a schedule are pre-authorized operational payments.
+  if (input.recurringDraft?.draftKind === 'expense') {
+    return 'template_recurring_automatic';
   }
   if (input.recurringDraft?.paymentConfirmationOverride === 'automatic') {
     return 'template_recurring_automatic';

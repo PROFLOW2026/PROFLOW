@@ -51,6 +51,10 @@ import { getEmailPort } from '@/shared/ports/email';
 import { withOrgContext } from '@/shared/auth/session';
 import { AppError, serializeError } from '@/shared/errors';
 import { isPermissionKey } from '@/shared/permissions/catalog';
+import {
+  upsertPaymentInstrument,
+  deactivatePaymentInstrument,
+} from '@/modules/payment-instruments';
 import { removeMemberAccess, updateOrganizationProfile } from '@/modules/tenancy';
 import {
   archiveCostCategory,
@@ -975,6 +979,54 @@ export async function saveDocumentNumberSettingsAction(
     return { ok: true };
   } catch (error) {
     if (error instanceof AppError) return { error: tErrors('validationFailed') };
+    throw error;
+  }
+}
+
+export async function savePaymentInstrumentAction(
+  _prev: SettingsActionState,
+  formData: FormData,
+): Promise<SettingsActionState> {
+  const tErrors = await getTranslations('errors');
+  const instrumentId = formValue(formData, 'instrumentId');
+  const displayName = formValue(formData, 'displayName') ?? null;
+  const lastFour = formValue(formData, 'lastFour') ?? null;
+  const debitDayRaw = formValue(formData, 'monthlyDebitDay');
+  const monthlyDebitDay = debitDayRaw ? Number(debitDayRaw) : null;
+
+  try {
+    await withOrgContext((context) =>
+      upsertPaymentInstrument(context, {
+        id: instrumentId,
+        displayName,
+        lastFour,
+        monthlyDebitDay,
+      }),
+    );
+    revalidatePath('/settings/business');
+    revalidatePath('/expenses/new');
+    return { ok: true };
+  } catch (error) {
+    if (error instanceof AppError) return { error: tErrors('validationFailed') };
+    throw error;
+  }
+}
+
+export async function deactivatePaymentInstrumentAction(
+  _prev: SettingsActionState,
+  formData: FormData,
+): Promise<SettingsActionState> {
+  const tErrors = await getTranslations('errors');
+  const instrumentId = formValue(formData, 'instrumentId');
+  if (!instrumentId) return { error: tErrors('validationFailed') };
+
+  try {
+    await withOrgContext((context) => deactivatePaymentInstrument(context, instrumentId));
+    revalidatePath('/settings/business');
+    revalidatePath('/expenses/new');
+    return { ok: true };
+  } catch (error) {
+    if (error instanceof AppError) return { error: tErrors('unexpected') };
     throw error;
   }
 }

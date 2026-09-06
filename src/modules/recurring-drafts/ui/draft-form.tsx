@@ -18,6 +18,9 @@ import type {
 import { DRAFT_FREQUENCIES } from '../domain/types';
 import { retroMonthRangeFromStart } from '../domain/missing-months';
 import { ExpenseVatModeSelector } from '@/modules/expenses/ui/expense-vat-mode-selector';
+import { PaymentMethodPicker } from '@/modules/expenses/ui/payment-method-picker';
+import { isPaymentMethodKey } from '@/modules/expenses/domain/payment-method';
+import type { PaymentInstrumentRow } from '@/modules/payment-instruments/domain/types';
 import { displayCostCategoryName } from '@/modules/expenses/domain/cost-category-display';
 import {
   DEFAULT_EXPENSE_VAT_MODE,
@@ -67,6 +70,7 @@ export function RecurringDraftForm({
   vendors,
   projects,
   categories = [],
+  paymentInstruments = [],
   initial,
   expenseFocused = false,
 }: {
@@ -78,6 +82,7 @@ export function RecurringDraftForm({
   vendors: readonly RecurringDraftFormOption[];
   projects: readonly RecurringDraftFormOption[];
   categories?: readonly CostCategoryRow[];
+  paymentInstruments?: readonly PaymentInstrumentRow[];
   expenseFocused?: boolean;
   initial?: {
     readonly draftId?: string;
@@ -91,6 +96,8 @@ export function RecurringDraftForm({
     readonly managerialCostKind?: ManagerialCostKind | null;
     readonly paymentConfirmationOverride?: 'org_default' | 'automatic';
     readonly recurringPaymentDay?: number | null;
+    readonly paymentMethod?: string | null;
+    readonly paymentInstrumentId?: string | null;
     readonly payload?: StoredDraftPayload;
   };
 }) {
@@ -125,6 +132,14 @@ export function RecurringDraftForm({
   const [recurringPaymentDay, setRecurringPaymentDay] = useState(
     initial?.recurringPaymentDay != null ? String(initial.recurringPaymentDay) : '10',
   );
+  const initialPaymentMethod = initial?.paymentMethod ?? payloadString(initial?.payload, 'paymentMethod') ?? '';
+  const [paymentMethod, setPaymentMethod] = useState(() =>
+    isPaymentMethodKey(initialPaymentMethod) ? initialPaymentMethod : initialPaymentMethod ? 'other' : '',
+  );
+  const [paymentMethodOther, setPaymentMethodOther] = useState(() =>
+    initialPaymentMethod && !isPaymentMethodKey(initialPaymentMethod) ? initialPaymentMethod : '',
+  );
+  const [paymentInstrumentId, setPaymentInstrumentId] = useState(initial?.paymentInstrumentId ?? '');
   const [vatMode, setVatMode] = useState<ExpenseVatMode>(() => {
     if (initial?.payload?.kind === 'expense' && isExpenseVatMode(initial.payload.data.vatMode)) {
       return initial.payload.data.vatMode;
@@ -426,6 +441,15 @@ export function RecurringDraftForm({
               ) : (
                 <input type="hidden" name="recurringPaymentDay" value="" />
               )}
+              <PaymentMethodPicker
+                paymentMethod={paymentMethod}
+                paymentMethodOther={paymentMethodOther}
+                paymentInstrumentId={paymentInstrumentId}
+                instruments={paymentInstruments}
+                onPaymentMethodChange={setPaymentMethod}
+                onPaymentMethodOtherChange={setPaymentMethodOther}
+                onPaymentInstrumentChange={setPaymentInstrumentId}
+              />
             </fieldset>
           ) : null}
 

@@ -402,6 +402,7 @@ export async function buildExpensePayload(
       status: 'draft',
       finalizedAt: null,
       paymentMethod: input.paymentMethod?.trim() || null,
+      paymentInstrumentId: input.paymentInstrumentId ?? null,
       notes: input.notes?.trim() || null,
       paymentTermId: paymentSchedule.paymentTermId,
       dueDate: paymentSchedule.dueDate,

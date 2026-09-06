@@ -137,6 +137,8 @@ export async function createRecurringDraft(
     paymentConfirmationOverride: input.paymentConfirmationOverride ?? 'org_default',
     recurringPaymentDay: input.recurringPaymentDay ?? null,
     paymentTermId: input.paymentTermId ?? null,
+    paymentMethod: input.paymentMethod ?? null,
+    paymentInstrumentId: input.paymentInstrumentId ?? null,
   });
 
   const amount = extractTemplateAmount(payload);
@@ -252,6 +254,10 @@ export async function updateRecurringDraft(
       ? { recurringPaymentDay: input.recurringPaymentDay }
       : {}),
     ...(input.paymentTermId !== undefined ? { paymentTermId: input.paymentTermId } : {}),
+    ...(input.paymentMethod !== undefined ? { paymentMethod: input.paymentMethod } : {}),
+    ...(input.paymentInstrumentId !== undefined
+      ? { paymentInstrumentId: input.paymentInstrumentId }
+      : {}),
   });
   if (!updated) throw new NotFoundError('Recurring draft');
 

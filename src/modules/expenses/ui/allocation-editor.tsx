@@ -300,11 +300,13 @@ export function AllocationEditor({
         );
       })}
 
-      {value.length > 0 ? (
+      {value.length > 0 && totalAmount.trim() ? (
         <p className="text-xs text-[var(--pf-text-muted)]">
           {t('allocation.sumHintPrefix')}{' '}
           <MoneyText value={money(totalAmount, currency)} />
         </p>
+      ) : value.length > 0 ? (
+        <p className="text-xs text-[var(--pf-text-muted)]">{t('allocation.sumHintEnterAmount')}</p>
       ) : null}
     </div>
   );

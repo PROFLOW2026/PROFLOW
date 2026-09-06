@@ -5,6 +5,7 @@ import { getTranslations } from 'next-intl/server';
 import { confirmExpensePaid, voidExpensePaymentConfirmation } from '@/modules/expenses/application/expense-payments';
 import { withOrgContext } from '@/shared/auth/session';
 import { AppError } from '@/shared/errors';
+import { businessDate, isBusinessDate } from '@/shared/dates';
 
 export interface ExpensePaymentActionState {
   ok?: boolean;
@@ -21,8 +22,13 @@ export async function confirmExpensePaidAction(
     return { error: tErrors('validationFailed') };
   }
 
+  const paidAtRaw = String(formData.get('paidAt') ?? '').trim();
+  const paidAt = isBusinessDate(paidAtRaw) ? businessDate(paidAtRaw) : undefined;
+
   try {
-    await withOrgContext((context) => confirmExpensePaid(context, expenseId.trim()));
+    await withOrgContext((context) =>
+      confirmExpensePaid(context, expenseId.trim(), paidAt ? { paidAt } : undefined),
+    );
     revalidatePath(`/expenses/${expenseId.trim()}`);
     revalidatePath('/today');
     revalidatePath('/financial');

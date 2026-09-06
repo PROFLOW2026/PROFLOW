@@ -206,6 +206,10 @@ export const recurringFinancialDrafts = pgTable(
     recurringPaymentDay: integer('recurring_payment_day'),
     /** Explicit payment term for generated expenses; wins over vendor/org defaults. */
     paymentTermId: uuid('payment_term_id'),
+    /** Payment method key (check | credit_card | transfer | other) inherited by occurrences. */
+    paymentMethod: text('payment_method'),
+    /** Saved credit card when payment_method = credit_card (0081). */
+    paymentInstrumentId: uuid('payment_instrument_id'),
     archivedAt: archivedAt(),
     ...timestamps(),
   },

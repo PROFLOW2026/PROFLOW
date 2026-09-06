@@ -19,6 +19,7 @@ export interface ExpensePaymentRow {
   readonly projectId: string | null;
   readonly status: string;
   readonly vendorId?: string | null;
+  readonly costCategoryId?: string | null;
   readonly automaticInstallmentPayment?: boolean;
   readonly installmentCount?: number;
 }
@@ -70,6 +71,7 @@ export function isExpenseUpcoming(row: ExpensePaymentRow, today: BusinessDate): 
 /** Legacy or unset due date — never treated as overdue; may still need owner review. */
 export function isExpensePendingReview(row: ExpensePaymentRow): boolean {
   if (row.paymentStatus === 'paid') return false;
+  if ((row.installmentCount ?? 1) > 1) return false;
   if (row.dueDate) return false;
   const rawStatus = row.paymentStatus as string | null;
   return rawStatus === null || rawStatus === 'legacy_unknown';

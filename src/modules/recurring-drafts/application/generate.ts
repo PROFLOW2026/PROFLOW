@@ -167,6 +167,8 @@ async function createDraftEntity(
         ...input,
         notes: [input.notes?.trim() || null, note].filter(Boolean).join('\n'),
         paymentTermId: draft.paymentTermId,
+        paymentMethod: draft.paymentMethod ?? input.paymentMethod,
+        paymentInstrumentId: draft.paymentInstrumentId ?? input.paymentInstrumentId,
         dueDate:
           draft.paymentConfirmationOverride === 'automatic' && draft.recurringPaymentDay
             ? nextOccurrenceOfDayOfMonth(runDate, draft.recurringPaymentDay)

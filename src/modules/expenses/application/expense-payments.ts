@@ -16,7 +16,9 @@ import {
 } from '@/shared/money';
 import { getOrgFinancialPolicies } from '@/modules/tenancy/application/org-financial-policies';
 import type { PaymentConfirmationSource } from '@/modules/tenancy/domain/org-financial-policies';
+import { findPaymentInstrumentById } from '@/modules/payment-instruments';
 import { findVendorById } from '@/modules/vendors';
+import { resolveExpenseCashOutDate } from '../domain/resolve-cash-out-date';
 import {
   findRecurringDraftById,
   findRecurringDraftForGeneratedExpense,
@@ -53,6 +55,10 @@ type ExpenseSyncRow = {
   readonly automaticInstallmentPayment: boolean;
   readonly installmentsPaidCount: number;
   readonly paidGrossAmount: string | null;
+  readonly paymentStatus: string | null;
+  readonly paidAt: string | null;
+  readonly paymentMethod: string | null;
+  readonly paymentInstrumentId: string | null;
   readonly sourceRecurringDraftId?: string | null;
 };
 
@@ -108,9 +114,21 @@ async function applyInstallmentPayment(
   context: OrgContext,
   row: ExpenseSyncRow,
   lineIndex: number,
-  paidAt: BusinessDate,
+  scheduleDueDate: BusinessDate,
   lineAmount: MoneyValue,
 ): Promise<void> {
+  const instrument = row.paymentInstrumentId
+    ? await findPaymentInstrumentById(context.db, context.organizationId, row.paymentInstrumentId)
+    : null;
+  const paidAt = resolveExpenseCashOutDate({
+    expenseDate: businessDate(row.expenseDate),
+    explicitPaidAt: null,
+    paymentMethod: row.paymentMethod,
+    cardMonthlyDebitDay: instrument?.monthlyDebitDay ?? null,
+    installmentDueDate: scheduleDueDate,
+    termDueDate: row.dueDate ? businessDate(row.dueDate) : null,
+  }) ?? scheduleDueDate;
+
   const priorPaid = fromNumericString(row.paidGrossAmount ?? '0', row.currency) ?? zeroMoney(row.currency);
   const nextPaid = addMoney(priorPaid, lineAmount);
   const nextCount = lineIndex + 1;
@@ -142,12 +160,62 @@ async function applyInstallmentPayment(
   });
 }
 
+async function backfillInstallmentPaidCountFromExistingCash(
+  context: OrgContext,
+  row: ExpenseSyncRow,
+  today: BusinessDate,
+): Promise<number> {
+  const paidGross = fromNumericString(row.paidGrossAmount ?? '0', row.currency);
+  if (!paidGross || Number(paidGross.amount) <= 0) return 0;
+
+  const startDate = businessDate(row.installmentStartDate ?? row.expenseDate);
+  const totalGross = fromNumericString(row.grossAmount, row.currency);
+  if (!totalGross) return 0;
+
+  const schedule = buildCashInstallmentSchedule({
+    totalGross,
+    installmentCount: row.installmentCount,
+    startDate,
+  });
+
+  let cumulative = zeroMoney(row.currency);
+  let targetCount = row.installmentsPaidCount;
+  for (let index = 0; index < schedule.length; index += 1) {
+    const line = schedule[index]!;
+    if (line.dueDate > today) break;
+    cumulative = addMoney(cumulative, line.amount);
+    if (Number(paidGross.amount) + 0.000001 >= Number(cumulative.amount)) {
+      targetCount = index + 1;
+    } else {
+      break;
+    }
+  }
+
+  if (targetCount <= row.installmentsPaidCount) return 0;
+
+  const fullyPaid = targetCount >= row.installmentCount;
+  await context.db
+    .update(expenses)
+    .set({
+      installmentsPaidCount: targetCount,
+      paymentStatus: fullyPaid ? 'paid' : 'upcoming',
+    })
+    .where(and(eq(expenses.id, row.id), eq(expenses.organizationId, context.organizationId)));
+
+  return targetCount - row.installmentsPaidCount;
+}
+
 async function syncInstallmentAutomaticPayments(
   context: OrgContext,
   row: ExpenseSyncRow,
   today: BusinessDate,
 ): Promise<number> {
-  if (!row.automaticInstallmentPayment || row.installmentCount <= 1) return 0;
+  if (row.installmentCount <= 1) return 0;
+
+  if (row.paymentStatus === 'paid' && row.installmentsPaidCount < row.installmentCount) {
+    return backfillInstallmentPaidCountFromExistingCash(context, row, today);
+  }
+
   const startDate = businessDate(row.installmentStartDate ?? row.expenseDate);
   const totalGross = fromNumericString(row.grossAmount, row.currency);
   if (!totalGross) return 0;
@@ -255,7 +323,19 @@ export async function confirmExpensePaid(
     throw new DomainRuleError('Expense already marked paid', 'expenses.errors.alreadyPaid');
   }
 
-  const paidAt = input?.paidAt ?? todayInTimeZone(context.organization.timezone);
+  const paidAtInput = input?.paidAt ?? null;
+  const instrument = row.paymentInstrumentId
+    ? await findPaymentInstrumentById(context.db, context.organizationId, row.paymentInstrumentId)
+    : null;
+  const resolvedCashOut = resolveExpenseCashOutDate({
+    expenseDate: businessDate(row.expenseDate),
+    explicitPaidAt: paidAtInput,
+    paymentMethod: row.paymentMethod,
+    cardMonthlyDebitDay: instrument?.monthlyDebitDay ?? null,
+    installmentDueDate: null,
+    termDueDate: row.dueDate ? businessDate(row.dueDate) : null,
+  });
+  const paidAt = resolvedCashOut ?? paidAtInput ?? todayInTimeZone(context.organization.timezone);
   const paidGross = input?.paidGrossAmount ?? toNumericString(row.grossAmount);
 
   await context.db
@@ -337,6 +417,10 @@ export async function syncAutomaticExpensePayments(
       automaticInstallmentPayment: expenses.automaticInstallmentPayment,
       installmentsPaidCount: expenses.installmentsPaidCount,
       paidGrossAmount: expenses.paidGrossAmount,
+      paymentStatus: expenses.paymentStatus,
+      paidAt: expenses.paidAt,
+      paymentMethod: expenses.paymentMethod,
+      paymentInstrumentId: expenses.paymentInstrumentId,
       sourceRecurringDraftId: expenses.sourceRecurringDraftId,
     })
     .from(expenses)
@@ -345,7 +429,14 @@ export async function syncAutomaticExpensePayments(
         eq(expenses.organizationId, context.organizationId),
         eq(expenses.status, 'finalized'),
         isNull(expenses.archivedAt),
-        or(isNull(expenses.paymentStatus), sql`${expenses.paymentStatus} <> 'paid'`),
+        or(
+          isNull(expenses.paymentStatus),
+          sql`${expenses.paymentStatus} <> 'paid'`,
+          and(
+            sql`${expenses.installmentCount} > 1`,
+            sql`coalesce(${expenses.installmentsPaidCount}, 0) < ${expenses.installmentCount}`,
+          ),
+        ),
       ),
     );
 
@@ -418,6 +509,7 @@ export async function listExpensePaymentsForOrg(
       description: expenses.description,
       supplierName: expenses.supplierName,
       projectId: expenses.projectId,
+      costCategoryId: expenses.costCategoryId,
       status: expenses.status,
       vendorId: expenses.vendorId,
       automaticInstallmentPayment: expenses.automaticInstallmentPayment,

@@ -35,6 +35,16 @@ describe('Owner payment Today collectors — classification', () => {
     expect(isExpenseDueToday(legacy, businessDate('2026-09-06'))).toBe(false);
   });
 
+  it('does not treat multi-installment expenses as pending review when due date is unset', () => {
+    const installment = {
+      ...base,
+      dueDate: null,
+      paymentStatus: null,
+      installmentCount: 8,
+    };
+    expect(isExpensePendingReview(installment)).toBe(false);
+  });
+
   it('classifies due today, overdue, and upcoming from due date', () => {
     const dueToday = { ...base, dueDate: businessDate('2026-09-06'), paymentStatus: 'due' as const };
     const overdue = { ...base, dueDate: businessDate('2026-09-05'), paymentStatus: 'overdue' as const };

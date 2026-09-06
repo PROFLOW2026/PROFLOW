@@ -5,6 +5,7 @@ import { ContextualBackLink } from '@/components/ui/contextual-back-link';
 import { listCostCategoriesForOrg } from '@/modules/expenses';
 import { listProjectsForOrg } from '@/modules/projects';
 import { listVendorsForOrg } from '@/modules/vendors';
+import { listActivePaymentInstruments } from '@/modules/payment-instruments';
 import { RecurringDraftForm } from '@/modules/recurring-drafts/ui/draft-form';
 import { writableDraftKinds } from '@/modules/recurring-drafts';
 import { withOrgContext } from '@/shared/auth/session';
@@ -38,7 +39,7 @@ export default async function NewRecurringDraftPage({
     searchParams,
   ]);
 
-  const { writableKinds, vendors, projects, categories, defaultCurrency, defaultNextRunDate } =
+  const { writableKinds, vendors, projects, categories, paymentInstruments, defaultCurrency, defaultNextRunDate } =
     await withOrgContext(async (context) => {
       const kinds = writableDraftKinds(context);
       const vendorRows = hasPermission(context, PERMISSIONS.VENDORS_READ)
@@ -50,11 +51,16 @@ export default async function NewRecurringDraftPage({
       const categoryRows = hasPermission(context, PERMISSIONS.EXPENSES_READ)
         ? await listCostCategoriesForOrg(context).catch(() => [])
         : [];
+      const instruments = await listActivePaymentInstruments(
+        context.db,
+        context.organizationId,
+      ).catch(() => []);
       return {
         writableKinds: kinds,
         vendors: vendorRows.map((vendor) => ({ id: vendor.id, name: vendor.name })),
         projects: projectRows.map((project) => ({ id: project.id, name: project.name })),
         categories: categoryRows,
+        paymentInstruments: instruments,
         defaultCurrency: context.organization.baseCurrency,
         defaultNextRunDate: todayInTimeZone(context.organization.timezone),
       };
@@ -97,6 +103,7 @@ export default async function NewRecurringDraftPage({
         vendors={vendors}
         projects={projects}
         categories={categories}
+        paymentInstruments={paymentInstruments}
         expenseFocused={initialKind === 'expense'}
         initial={
           initialKind

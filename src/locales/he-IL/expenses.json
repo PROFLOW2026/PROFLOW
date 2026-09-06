@@ -187,7 +187,14 @@
     "paymentTermNone": "ברירת מחדל של הספק / הארגון",
     "costFamily": "נקבע לפי היעד",
     "category": "בחרו קטגוריית עלות",
-    "inventoryItem": "בחרו פריט מלאי"
+    "inventoryItem": "בחרו פריט מלאי",
+    "supplierSearch": "חפשו ספק או הקלידו שם חופשי"
+  },
+  "vendor": {
+    "optional": "אופציונלי",
+    "noVendor": "ללא ספק",
+    "linkedHint": "מקושר לספק {name}",
+    "advancedSynced": "ספק מקושר: {name}"
   },
   "destination": {
     "label": "לאן לשייך את העלות?",
@@ -303,11 +310,28 @@
   },
   "payment": {
     "title": "תשלום הוצאה",
+    "methodLabel": "אמצעי תשלום",
+    "optional": "אופציונלי",
+    "markPaid": "שולם",
+    "paidDate": "תאריך תשלום",
+    "otherDetail": "פרטי אמצעי תשלום",
+    "otherPlaceholder": "למשל מזומן, PayPal",
+    "cardSelect": "באיזה כרטיס?",
+    "cardSelectPlaceholder": "בחרו כרטיס שמור",
+    "cardGeneric": "אשראי (ללא כרטיס שמור)",
+    "methods": {
+      "check": "צ׳ק",
+      "credit_card": "אשראי",
+      "transfer": "העברה",
+      "other": "אחר"
+    },
     "dueDate": "מועד פירעון",
     "paidAt": "שולם בתאריך",
     "paidAmount": "סכום ששולם",
     "payableAmount": "סכום לתשלום",
     "confirmPaid": "אשר ששולם",
+    "paymentDateLabel": "תאריך תשלום",
+    "paymentDateHint": "תאריך התשלום בפועל. ברירת מחדל היום; ניתן לבחור תאריך רטרואקטיבי.",
     "voidConfirmation": "בטל אישור תשלום",
     "confirmed": "התשלום אושר",
     "status": {
@@ -353,6 +377,7 @@
     "periodEnd": "סוף תקופת הקצאה",
     "autoDriverHint": "המערכת תחלק את הנטו בין פרויקטים זכאים בתקופה לפי השיטה שנבחרה, ותשמור צילום היסטורי.",
     "sumHintPrefix": "השורות חייבות להסתכם בדיוק ב",
+    "sumHintEnterAmount": "הזינו סכום הוצאה כדי לראות את סכום ההקצאות הנדרש.",
     "unallocatedCallout": "עדיין לא נבחרו פרויקטים - ההוצאות הכלליות לא ייכנסו לעלות בפועל של פרויקט."
   },
   "errors": {

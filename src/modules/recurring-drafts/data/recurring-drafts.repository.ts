@@ -58,6 +58,8 @@ function mapDraft(row: typeof recurringFinancialDrafts.$inferSelect): RecurringF
       row.paymentConfirmationOverride === 'automatic' ? 'automatic' : 'org_default',
     recurringPaymentDay: row.recurringPaymentDay,
     paymentTermId: row.paymentTermId,
+    paymentMethod: row.paymentMethod,
+    paymentInstrumentId: row.paymentInstrumentId,
     archivedAt: row.archivedAt,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
@@ -159,6 +161,8 @@ export async function insertRecurringDraft(
     readonly paymentConfirmationOverride?: 'org_default' | 'automatic';
     readonly recurringPaymentDay?: number | null;
     readonly paymentTermId?: string | null;
+    readonly paymentMethod?: string | null;
+    readonly paymentInstrumentId?: string | null;
   },
 ): Promise<RecurringFinancialDraftRecord> {
   const [row] = await db
@@ -178,6 +182,8 @@ export async function insertRecurringDraft(
       paymentConfirmationOverride: values.paymentConfirmationOverride ?? 'org_default',
       recurringPaymentDay: values.recurringPaymentDay ?? null,
       paymentTermId: values.paymentTermId ?? null,
+      paymentMethod: values.paymentMethod ?? null,
+      paymentInstrumentId: values.paymentInstrumentId ?? null,
     })
     .returning();
   if (!row) throw new Error('Failed to insert recurring financial draft');
@@ -202,6 +208,8 @@ export async function updateRecurringDraftById(
     readonly paymentConfirmationOverride?: 'org_default' | 'automatic';
     readonly recurringPaymentDay?: number | null;
     readonly paymentTermId?: string | null;
+    readonly paymentMethod?: string | null;
+    readonly paymentInstrumentId?: string | null;
   },
 ): Promise<RecurringFinancialDraftRecord | null> {
   const [row] = await db

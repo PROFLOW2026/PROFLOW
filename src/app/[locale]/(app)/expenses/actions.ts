@@ -14,6 +14,8 @@ import {
   updateExpenseSchema,
   voidExpense,
 } from '@/modules/expenses';
+import { confirmExpensePaid } from '@/modules/expenses/application/expense-payments';
+import { businessDate } from '@/shared/dates';
 import { promoteVendorFromTransaction } from '@/modules/vendors';
 import { withOrgContext } from '@/shared/auth/session';
 import { AppError, DomainRuleError, ValidationError, mapServerActionError } from '@/shared/errors';
@@ -100,6 +102,9 @@ function buildExpensePayload(formData: FormData) {
     netAmount: formValue(formData, 'netAmount') ?? null,
     taxAmount: formValue(formData, 'taxAmount') ?? null,
     paymentMethod: formValue(formData, 'paymentMethod') ?? null,
+    paymentInstrumentId: formValue(formData, 'paymentInstrumentId') ?? null,
+    markPaidOnCreate: formValue(formData, 'markPaidOnCreate'),
+    paidAt: formValue(formData, 'paidAt') ?? null,
     notes: formValue(formData, 'notes') ?? null,
     recurrenceCadence: formValue(formData, 'recurrenceCadence') as
       | 'one_time'
@@ -151,7 +156,17 @@ export async function createExpenseAction(
   }
 
   try {
-    const expense = await withOrgContext((context) => createExpense(context, parsed.data));
+    const expense = await withOrgContext(async (context) => {
+      const created = await createExpense(context, parsed.data);
+      if (parsed.data.markPaidOnCreate && parsed.data.costCategoryId) {
+        await finalizeExpense(context, created.id);
+        const paidAt = parsed.data.paidAt
+          ? businessDate(parsed.data.paidAt)
+          : undefined;
+        await confirmExpensePaid(context, created.id, { paidAt });
+      }
+      return created;
+    });
     revalidatePath('/expenses');
     redirect({ href: `/expenses/${expense.id}`, locale });
   } catch (error) {

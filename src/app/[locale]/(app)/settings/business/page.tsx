@@ -13,6 +13,8 @@ import { BusinessProfilePresetForm } from './business-profile-preset-form';
 import { CompanyDetailsForm } from './company-details-form';
 import { LegalIdentityForm } from './legal-identity-form';
 import { OrgFinancialPoliciesPanel } from './org-financial-policies-panel';
+import { PaymentInstrumentsPanel } from './payment-instruments-panel';
+import { listActivePaymentInstruments } from '@/modules/payment-instruments';
 
 export async function generateMetadata(): Promise<Metadata> {
   return settingsMetadata('business');
@@ -27,11 +29,12 @@ export default async function BusinessSettingsPage() {
       return { allowed: false as const };
     }
 
-    const [companyProfile, currentProfileKey, legalIdentity, financialPolicies] = await Promise.all([
+    const [companyProfile, currentProfileKey, legalIdentity, financialPolicies, paymentInstruments] = await Promise.all([
       getCompanyProfile(context),
       getBusinessProfileKeyForOrg(context.db, context.organizationId),
       getOrganizationLegalIdentity(context.db, context.organizationId),
       getOrgFinancialPolicies(context),
+      listActivePaymentInstruments(context.db, context.organizationId).catch(() => []),
     ]);
 
     return {
@@ -42,6 +45,7 @@ export default async function BusinessSettingsPage() {
       companyProfile,
       legalIdentity,
       financialPolicies,
+      paymentInstruments,
     };
   });
 
@@ -92,6 +96,7 @@ export default async function BusinessSettingsPage() {
           />
           <BusinessProfilePresetForm canEdit={data.canEdit} currentProfileKey={data.currentProfileKey} />
           <OrgFinancialPoliciesPanel initialPolicies={data.financialPolicies} canEdit={data.canEdit} />
+          <PaymentInstrumentsPanel initialInstruments={data.paymentInstruments} canEdit={data.canEdit} />
         </Card>
       </div>
     </SettingsPageShell>
