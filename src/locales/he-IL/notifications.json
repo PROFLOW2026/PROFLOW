@@ -32,7 +32,8 @@
     "warranty_expiring": "אחריות שעומדת לפוג",
     "closeout_blockers": "סגירת פרויקט חסומה",
     "communication_failed": "הודעה לא נשלחה",
-    "automation_output": "מעקב אוטומציה"
+    "automation_output": "מעקב אוטומציה",
+    "action_required": "דורש טיפול"
   },
   "viewAll": "כל ההתראות",
   "scan": "רענון",

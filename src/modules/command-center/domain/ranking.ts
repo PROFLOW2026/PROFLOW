@@ -1,6 +1,7 @@
 import {
   COMMAND_CENTER_SEVERITIES,
   isFinancialSourceType,
+  isPaymentPendingSourceType,
   type CommandCenterItem,
   type CommandCenterSeverity,
   type CommandCenterSourceType,
@@ -51,7 +52,12 @@ export const SOURCE_DEFAULT_SEVERITY: Record<CommandCenterSourceType, CommandCen
   missing_attendance_today: 'medium',
   expense_due_today: 'high',
   expense_overdue: 'critical',
+  expense_upcoming: 'medium',
+  expense_pending_review: 'medium',
   payroll_due_today: 'high',
+  payroll_overdue: 'critical',
+  payroll_upcoming: 'medium',
+  payroll_pending_review: 'medium',
 };
 
 export const INBOX_SECTION_ORDER = ['critical', 'high', 'medium', 'low'] as const;
@@ -72,6 +78,26 @@ export function groupInboxBySeverity(
   return INBOX_SECTION_ORDER.filter((severity) => buckets[severity].length > 0).map(
     (severity) => ({ severity, items: buckets[severity] }),
   );
+}
+
+export type TodayInboxSection =
+  | { readonly key: 'pendingPayments'; readonly items: readonly CommandCenterItem[] }
+  | { readonly key: CommandCenterSeverity; readonly items: readonly CommandCenterItem[] };
+
+/** Today layout: pending payment confirmations first, then severity groups. */
+export function groupInboxForToday(items: readonly CommandCenterItem[]): TodayInboxSection[] {
+  const paymentItems = sortCommandCenterItems(
+    items.filter((item) => isPaymentPendingSourceType(item.sourceType)),
+  );
+  const otherItems = items.filter((item) => !isPaymentPendingSourceType(item.sourceType));
+  const sections: TodayInboxSection[] = [];
+  if (paymentItems.length > 0) {
+    sections.push({ key: 'pendingPayments', items: paymentItems });
+  }
+  for (const section of groupInboxBySeverity(otherItems)) {
+    sections.push({ key: section.severity, items: section.items });
+  }
+  return sections;
 }
 
 /**

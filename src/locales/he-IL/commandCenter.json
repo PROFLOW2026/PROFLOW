@@ -21,6 +21,7 @@
     "low": "נמוך"
   },
   "sections": {
+    "pendingPayments": "תשלומים ממתינים לאישור",
     "critical": "קריטי",
     "high": "באיחור",
     "medium": "דורש בדיקה",
@@ -63,7 +64,12 @@
     "missing_attendance_today": "חסר דיווח נוכחות",
     "expense_due_today": "הוצאה לתשלום",
     "expense_overdue": "הוצאה באיחור",
-    "payroll_due_today": "שכר לתשלום"
+    "expense_upcoming": "הוצאה צפויה לתשלום",
+    "expense_pending_review": "הוצאה ממתינה לאישור",
+    "payroll_due_today": "שכר לתשלום",
+    "payroll_overdue": "שכר באיחור",
+    "payroll_upcoming": "שכר צפוי לתשלום",
+    "payroll_pending_review": "שכר ממתין לאישור"
   },
   "empty": {
     "title": "הכול בסדר",

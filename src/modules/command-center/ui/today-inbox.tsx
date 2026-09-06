@@ -5,7 +5,7 @@ import { StatusBadge, type StatusShape } from '@/components/ui/status-badge';
 import { Link } from '@/shared/i18n/navigation';
 import { pressableCardLinkClassName } from '@/components/ui/pressable';
 import { cn } from '@/shared/ui/cn';
-import { groupInboxBySeverity } from '../domain/ranking';
+import { groupInboxForToday } from '../domain/ranking';
 import type {
   CommandCenterInbox,
   CommandCenterItem,
@@ -96,14 +96,16 @@ export async function TodayInboxPanel({ inbox }: { readonly inbox: CommandCenter
     );
   }
 
-  const sections = groupInboxBySeverity(inbox.items);
+  const sections = groupInboxForToday(inbox.items);
 
   return (
     <div className="flex flex-col gap-8" aria-label={t('listLabel')}>
       {sections.map((section) => (
-        <section key={section.severity} className="flex flex-col gap-3">
+        <section key={section.key} className="flex flex-col gap-3">
           <h2 className="text-sm font-semibold text-[var(--pf-text-secondary)]">
-            {t(`sections.${section.severity}`)}
+            {section.key === 'pendingPayments'
+              ? t('sections.pendingPayments')
+              : t(`sections.${section.key}`)}
           </h2>
           <ul className="flex flex-col gap-3">
             {section.items.map((item) => (

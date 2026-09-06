@@ -118,6 +118,11 @@ export function notificationCopy(
             ? `יתרת עיכבון מוחזקת · ${extra}`
             : 'יש יתרת עיכבון מוחזקת בתוכנית החיוב.',
         };
+      case 'action_required':
+        return {
+          title: ref ?? 'דורש טיפול',
+          body: extra ?? 'פריט שדורש טיפול מיידי.',
+        };
     }
   }
 
@@ -227,6 +232,11 @@ export function notificationCopy(
         body: extra
           ? `Held retention remaining · ${extra}`
           : 'A billing plan still holds retention that can be released.',
+      };
+    case 'action_required':
+      return {
+        title: ref ?? 'Action required',
+        body: extra ?? 'An item needs your attention now.',
       };
   }
 }

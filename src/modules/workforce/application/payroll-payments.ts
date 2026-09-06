@@ -227,6 +227,37 @@ export async function sumPaidPayrollInDateRange(
   return row?.total ?? '0';
 }
 
+export async function listUnpaidPayrollPayments(context: OrgContext) {
+  assertPermission(context, PERMISSIONS.WORKFORCE_READ);
+
+  return context.db
+    .select({
+      id: employeePayrollPayments.id,
+      employeeId: employeePayrollPayments.employeeId,
+      employeeName: employees.name,
+      yearMonth: employeePayrollPayments.yearMonth,
+      expectedAmount: employeePayrollPayments.expectedAmount,
+      currency: employeePayrollPayments.currency,
+      dueDate: employeePayrollPayments.dueDate,
+      paymentStatus: employeePayrollPayments.paymentStatus,
+    })
+    .from(employeePayrollPayments)
+    .innerJoin(
+      employees,
+      and(
+        eq(employees.id, employeePayrollPayments.employeeId),
+        eq(employees.organizationId, context.organizationId),
+      ),
+    )
+    .where(
+      and(
+        eq(employeePayrollPayments.organizationId, context.organizationId),
+        isNull(employeePayrollPayments.paidAt),
+        isNull(employeePayrollPayments.voidedAt),
+      ),
+    );
+}
+
 export async function listPayrollDueToday(context: OrgContext, today: BusinessDate) {
   assertPermission(context, PERMISSIONS.WORKFORCE_READ);
 

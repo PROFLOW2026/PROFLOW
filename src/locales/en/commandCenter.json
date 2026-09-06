@@ -21,6 +21,7 @@
     "low": "Low"
   },
   "sections": {
+    "pendingPayments": "Payments pending confirmation",
     "critical": "Critical",
     "high": "Overdue",
     "medium": "Needs review",
@@ -63,7 +64,12 @@
     "missing_attendance_today": "Missing attendance",
     "expense_due_today": "Expense due",
     "expense_overdue": "Expense overdue",
-    "payroll_due_today": "Payroll due"
+    "expense_upcoming": "Expense upcoming",
+    "expense_pending_review": "Expense pending review",
+    "payroll_due_today": "Payroll due",
+    "payroll_overdue": "Payroll overdue",
+    "payroll_upcoming": "Payroll upcoming",
+    "payroll_pending_review": "Payroll pending review"
   },
   "empty": {
     "title": "You're clear",

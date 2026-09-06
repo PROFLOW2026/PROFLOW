@@ -1,4 +1,5 @@
 export { getTodayInbox } from './application/get-today-inbox';
+export { getActionableInbox, getActionableInboxIfAllowed } from './application/get-actionable-inbox';
 export { updateCommandCenterItemState } from './application/update-item-state';
 
 export {
@@ -26,6 +27,7 @@ export {
   assertSafeItemStateTransition,
   SOURCE_DEFAULT_SEVERITY,
   groupInboxBySeverity,
+  groupInboxForToday,
 } from './domain/ranking';
 
 export {

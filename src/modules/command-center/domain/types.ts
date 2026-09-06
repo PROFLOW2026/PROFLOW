@@ -40,7 +40,12 @@ export const COMMAND_CENTER_SOURCE_TYPES = [
   'missing_attendance_today',
   'expense_due_today',
   'expense_overdue',
+  'expense_upcoming',
+  'expense_pending_review',
   'payroll_due_today',
+  'payroll_overdue',
+  'payroll_upcoming',
+  'payroll_pending_review',
 ] as const;
 
 export type CommandCenterSourceType = (typeof COMMAND_CENTER_SOURCE_TYPES)[number];
@@ -66,7 +71,44 @@ export const FINANCIAL_SOURCE_TYPES = [
   'billing_plan_retention_release_due',
   'expense_due_today',
   'expense_overdue',
+  'expense_upcoming',
+  'expense_pending_review',
   'payroll_due_today',
+  'payroll_overdue',
+  'payroll_upcoming',
+  'payroll_pending_review',
+] as const satisfies readonly CommandCenterSourceType[];
+
+/** Owner payment confirmation items grouped under Today pending-payments section. */
+export const PAYMENT_PENDING_SOURCE_TYPES = [
+  'expense_pending_review',
+  'expense_upcoming',
+  'expense_due_today',
+  'expense_overdue',
+  'payroll_pending_review',
+  'payroll_upcoming',
+  'payroll_due_today',
+  'payroll_overdue',
+] as const satisfies readonly CommandCenterSourceType[];
+
+export function isPaymentPendingSourceType(
+  sourceType: CommandCenterSourceType,
+): sourceType is (typeof PAYMENT_PENDING_SOURCE_TYPES)[number] {
+  return (PAYMENT_PENDING_SOURCE_TYPES as readonly string[]).includes(sourceType);
+}
+
+export const EXPENSE_PAYMENT_SOURCE_TYPES = [
+  'expense_pending_review',
+  'expense_upcoming',
+  'expense_due_today',
+  'expense_overdue',
+] as const satisfies readonly CommandCenterSourceType[];
+
+export const PAYROLL_PAYMENT_SOURCE_TYPES = [
+  'payroll_pending_review',
+  'payroll_upcoming',
+  'payroll_due_today',
+  'payroll_overdue',
 ] as const satisfies readonly CommandCenterSourceType[];
 
 export type FinancialSourceType = (typeof FINANCIAL_SOURCE_TYPES)[number];

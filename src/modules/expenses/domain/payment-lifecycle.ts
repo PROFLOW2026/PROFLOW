@@ -47,6 +47,19 @@ export function isExpenseOverdue(row: ExpensePaymentRow, today: BusinessDate): b
   return status === 'overdue' && !row.paidAt;
 }
 
+export function isExpenseUpcoming(row: ExpensePaymentRow, today: BusinessDate): boolean {
+  const status = effectiveExpensePaymentStatus(row, today);
+  return status === 'upcoming' && !row.paidAt;
+}
+
+/** Legacy or unset due date — never treated as overdue; may still need owner review. */
+export function isExpensePendingReview(row: ExpensePaymentRow): boolean {
+  if (row.paidAt) return false;
+  if (row.dueDate) return false;
+  const rawStatus = row.paymentStatus as string | null;
+  return rawStatus === null || rawStatus === 'legacy_unknown';
+}
+
 export function sortByDueDate<T extends { readonly dueDate: BusinessDate | null }>(
   rows: readonly T[],
 ): readonly T[] {

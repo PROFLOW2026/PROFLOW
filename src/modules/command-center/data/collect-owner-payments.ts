@@ -1,7 +1,8 @@
 /**
- * Today collectors: expense and payroll payment due / overdue.
+ * Today collectors: expense and payroll payment due / overdue / pending confirmation.
  */
 
+import { compareBusinessDates, type BusinessDate } from '@/shared/dates';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { hasPermission } from '@/shared/permissions/assert';
 import { fromNumericString, type MoneyValue } from '@/shared/money';
@@ -12,18 +13,35 @@ import {
 import {
   isExpenseDueToday,
   isExpenseOverdue,
+  isExpensePendingReview,
+  isExpenseUpcoming,
+  sortByDueDate,
 } from '@/modules/expenses/domain/payment-lifecycle';
 import {
-  listPayrollDueToday,
+  listUnpaidPayrollPayments,
   syncAutomaticPayrollPayments,
 } from '@/modules/workforce/application/payroll-payments';
 import { getOrgFinancialPolicies } from '@/modules/tenancy/application/org-financial-policies';
 import { withItemDefaults } from '../domain/ranking';
-import type { CommandCenterItem } from '../domain/types';
+import type { CommandCenterItem, CommandCenterSourceType } from '../domain/types';
 import type { CollectContext } from './collect-sources';
 
 function moneyLabel(value: MoneyValue): string {
   return `${value.amount} ${value.currency}`;
+}
+
+function expenseItem(input: {
+  readonly sourceType: CommandCenterSourceType;
+  readonly sourceId: string;
+  readonly what: string;
+  readonly why: string;
+  readonly where: string;
+  readonly href: string;
+  readonly urgencyBump: number;
+  readonly confirmPaid?: 'expense';
+  readonly meta?: CommandCenterItem['meta'];
+}): CommandCenterItem {
+  return withItemDefaults(input);
 }
 
 export async function collectExpensesDueToday(ctx: CollectContext): Promise<CommandCenterItem[]> {
@@ -34,34 +52,97 @@ export async function collectExpensesDueToday(ctx: CollectContext): Promise<Comm
   const policies = await getOrgFinancialPolicies(ctx.context);
   const manualConfirm = policies.expensePaymentConfirmationMode === 'manual';
 
-  const rows = await listExpensePaymentsForOrg(ctx.context, { unpaidOnly: true });
-  const locale = ctx.context.locale || 'he-IL';
+  const rows = sortByDueDate(await listExpensePaymentsForOrg(ctx.context, { unpaidOnly: true }));
   const items: CommandCenterItem[] = [];
 
   for (const row of rows) {
-    if (!isExpenseDueToday(row, ctx.today) && !isExpenseOverdue(row, ctx.today)) continue;
+    if (items.length >= 20) break;
     const gross = fromNumericString(row.grossAmount, row.currency);
     if (!gross) continue;
 
-    const overdue = isExpenseOverdue(row, ctx.today);
-    items.push(
-      withItemDefaults({
-        sourceType: overdue ? 'expense_overdue' : 'expense_due_today',
-        sourceId: row.id,
-        what: overdue ? 'הוצאה באיחור לתשלום' : 'הוצאה לתשלום היום',
-        why: `${row.supplierName ?? row.description ?? 'הוצאה'} · ${moneyLabel(gross)} · מועד ${row.dueDate ?? '—'}`,
-        where: row.projectId ? 'פרויקט' : 'הוצאות כלליות',
-        href: `/expenses/${row.id}`,
-        urgencyBump: overdue ? 40 : 20,
-        confirmPaid: manualConfirm ? 'expense' : undefined,
-        meta: { dueDate: row.dueDate, amount: gross.amount, currency: gross.currency },
-      }),
-    );
-    if (items.length >= 15) break;
+    const label = row.supplierName ?? row.description ?? 'הוצאה';
+    const amount = moneyLabel(gross);
+
+    if (isExpensePendingReview(row)) {
+      if (!manualConfirm) continue;
+      items.push(
+        expenseItem({
+          sourceType: 'expense_pending_review',
+          sourceId: row.id,
+          what: 'הוצאה ממתינה לאישור תשלום',
+          why: `${label} · ${amount} · דורש בדיקה`,
+          where: row.projectId ? 'פרויקט' : 'הוצאות כלליות',
+          href: `/expenses/${row.id}`,
+          urgencyBump: 15,
+          confirmPaid: 'expense',
+          meta: { amount: gross.amount, currency: gross.currency },
+        }),
+      );
+      continue;
+    }
+
+    if (isExpenseOverdue(row, ctx.today)) {
+      items.push(
+        expenseItem({
+          sourceType: 'expense_overdue',
+          sourceId: row.id,
+          what: 'הוצאה באיחור לתשלום',
+          why: `${label} · ${amount} · מועד ${row.dueDate ?? '—'}`,
+          where: row.projectId ? 'פרויקט' : 'הוצאות כלליות',
+          href: `/expenses/${row.id}`,
+          urgencyBump: 40,
+          confirmPaid: manualConfirm ? 'expense' : undefined,
+          meta: { dueDate: row.dueDate, amount: gross.amount, currency: gross.currency },
+        }),
+      );
+      continue;
+    }
+
+    if (isExpenseDueToday(row, ctx.today)) {
+      items.push(
+        expenseItem({
+          sourceType: 'expense_due_today',
+          sourceId: row.id,
+          what: 'הוצאה לתשלום היום',
+          why: `${label} · ${amount} · מועד ${row.dueDate ?? '—'}`,
+          where: row.projectId ? 'פרויקט' : 'הוצאות כלליות',
+          href: `/expenses/${row.id}`,
+          urgencyBump: 25,
+          confirmPaid: manualConfirm ? 'expense' : undefined,
+          meta: { dueDate: row.dueDate, amount: gross.amount, currency: gross.currency },
+        }),
+      );
+      continue;
+    }
+
+    if (manualConfirm && isExpenseUpcoming(row, ctx.today)) {
+      items.push(
+        expenseItem({
+          sourceType: 'expense_upcoming',
+          sourceId: row.id,
+          what: 'הוצאה צפויה לתשלום',
+          why: `${label} · ${amount} · מועד ${row.dueDate ?? '—'}`,
+          where: row.projectId ? 'פרויקט' : 'הוצאות כלליות',
+          href: `/expenses/${row.id}`,
+          urgencyBump: 10,
+          confirmPaid: 'expense',
+          meta: { dueDate: row.dueDate, amount: gross.amount, currency: gross.currency },
+        }),
+      );
+    }
   }
 
-  void locale;
   return items;
+}
+
+function payrollStatus(
+  dueDate: BusinessDate | null,
+  today: BusinessDate,
+): 'pending_review' | 'overdue' | 'due' | 'upcoming' {
+  if (!dueDate) return 'pending_review';
+  if (compareBusinessDates(dueDate, today) < 0) return 'overdue';
+  if (dueDate === today) return 'due';
+  return 'upcoming';
 }
 
 export async function collectPayrollDueToday(ctx: CollectContext): Promise<CommandCenterItem[]> {
@@ -72,18 +153,76 @@ export async function collectPayrollDueToday(ctx: CollectContext): Promise<Comma
   const policies = await getOrgFinancialPolicies(ctx.context);
   const manualConfirm = policies.salaryPaymentConfirmationMode === 'manual';
 
-  const rows = await listPayrollDueToday(ctx.context, ctx.today);
-  return rows.slice(0, 15).map((row) =>
-    withItemDefaults({
-      sourceType: 'payroll_due_today',
+  const rows = await listUnpaidPayrollPayments(ctx.context);
+  const items: CommandCenterItem[] = [];
+
+  for (const row of rows) {
+    if (items.length >= 20) break;
+    const status = payrollStatus(
+      (row.dueDate as BusinessDate | null) ?? null,
+      ctx.today,
+    );
+
+    const base = {
       sourceId: row.id,
-      what: `שכר חודש ${row.yearMonth} מוכן לתשלום`,
       why: `${row.employeeName} · ${row.expectedAmount} ${row.currency}`,
       where: row.employeeName,
       href: `/workforce/employees/${row.employeeId}`,
-      urgencyBump: 25,
-      confirmPaid: manualConfirm ? 'payroll' : undefined,
       meta: { yearMonth: row.yearMonth, dueDate: row.dueDate },
-    }),
-  );
+    };
+
+    if (status === 'pending_review') {
+      if (!manualConfirm) continue;
+      items.push(
+        withItemDefaults({
+          ...base,
+          sourceType: 'payroll_pending_review',
+          what: `שכר ${row.yearMonth} ממתין לאישור תשלום`,
+          urgencyBump: 15,
+          confirmPaid: 'payroll',
+        }),
+      );
+      continue;
+    }
+
+    if (status === 'overdue') {
+      items.push(
+        withItemDefaults({
+          ...base,
+          sourceType: 'payroll_overdue',
+          what: `שכר ${row.yearMonth} באיחור לתשלום`,
+          urgencyBump: 35,
+          confirmPaid: manualConfirm ? 'payroll' : undefined,
+        }),
+      );
+      continue;
+    }
+
+    if (status === 'due') {
+      items.push(
+        withItemDefaults({
+          ...base,
+          sourceType: 'payroll_due_today',
+          what: `שכר ${row.yearMonth} מוכן לתשלום`,
+          urgencyBump: 25,
+          confirmPaid: manualConfirm ? 'payroll' : undefined,
+        }),
+      );
+      continue;
+    }
+
+    if (manualConfirm && status === 'upcoming') {
+      items.push(
+        withItemDefaults({
+          ...base,
+          sourceType: 'payroll_upcoming',
+          what: `שכר ${row.yearMonth} צפוי לתשלום`,
+          urgencyBump: 10,
+          confirmPaid: 'payroll',
+        }),
+      );
+    }
+  }
+
+  return items;
 }

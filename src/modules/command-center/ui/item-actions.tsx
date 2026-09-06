@@ -38,10 +38,7 @@ export function CommandCenterItemActions({
           onClick={() => {
             startTransition(async () => {
               await confirmTodayPaymentAction({
-                sourceType: item.sourceType as
-                  | 'expense_due_today'
-                  | 'expense_overdue'
-                  | 'payroll_due_today',
+                sourceType: item.sourceType,
                 sourceId: item.sourceId,
               });
               router.refresh();

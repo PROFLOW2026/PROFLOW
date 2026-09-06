@@ -32,7 +32,8 @@
     "warranty_expiring": "Warranty ending",
     "closeout_blockers": "Closeout blocked",
     "communication_failed": "Message not sent",
-    "automation_output": "Automation follow-up"
+    "automation_output": "Automation follow-up",
+    "action_required": "Action required"
   },
   "viewAll": "View all",
   "scan": "Refresh",

@@ -26,6 +26,7 @@ export const NOTIFICATION_EVENT_TYPES = [
   'billing_plan_cycle_draft',
   'billing_plan_milestone_due',
   'billing_plan_retention_held',
+  'action_required',
 ] as const;
 export type NotificationEventType = (typeof NOTIFICATION_EVENT_TYPES)[number];
 
@@ -69,6 +70,7 @@ export const EVENT_DOMAIN: Readonly<Record<NotificationEventType, NotificationDo
   billing_plan_cycle_draft: 'billing',
   billing_plan_milestone_due: 'billing',
   billing_plan_retention_held: 'billing',
+  action_required: 'approvals',
 };
 
 export function isNotificationSeverity(value: string): value is NotificationSeverity {

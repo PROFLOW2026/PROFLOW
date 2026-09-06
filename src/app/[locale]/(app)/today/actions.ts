@@ -6,6 +6,10 @@ import {
   updateCommandCenterItemState,
   type CommandCenterSourceType,
 } from '@/modules/command-center';
+import {
+  EXPENSE_PAYMENT_SOURCE_TYPES,
+  PAYROLL_PAYMENT_SOURCE_TYPES,
+} from '@/modules/command-center/domain/types';
 import { withOrgContext } from '@/shared/auth/session';
 import { AppError, DomainRuleError, ValidationError, mapServerActionError } from '@/shared/errors';
 
@@ -80,24 +84,21 @@ export async function handleCommandCenterItemAction(input: {
 }
 
 export async function confirmTodayPaymentAction(input: {
-  readonly sourceType: 'expense_due_today' | 'expense_overdue' | 'payroll_due_today';
+  readonly sourceType: CommandCenterSourceType;
   readonly sourceId: string;
 }): Promise<CommandCenterActionResult> {
   const tErrors = await getTranslations('errors');
 
   try {
     await withOrgContext(async (context) => {
-      if (
-        input.sourceType === 'expense_due_today' ||
-        input.sourceType === 'expense_overdue'
-      ) {
+      if ((EXPENSE_PAYMENT_SOURCE_TYPES as readonly string[]).includes(input.sourceType)) {
         const { confirmExpensePaid } = await import(
           '@/modules/expenses/application/expense-payments'
         );
         await confirmExpensePaid(context, input.sourceId);
         return;
       }
-      if (input.sourceType === 'payroll_due_today') {
+      if ((PAYROLL_PAYMENT_SOURCE_TYPES as readonly string[]).includes(input.sourceType)) {
         const { confirmPayrollPaid } = await import(
           '@/modules/workforce/application/payroll-payments'
         );
@@ -105,6 +106,7 @@ export async function confirmTodayPaymentAction(input: {
       }
     });
     revalidatePath('/today');
+    revalidatePath('/notifications');
     revalidatePath('/financial');
     revalidatePath('/financials/overview');
     return {};
