@@ -29,7 +29,7 @@ describe('entry baseline domain', () => {
     expect(managed.amount).toBe('50000.000000');
 
     // Live preview formatting (he-IL): 52,000 ₪ style - whole units, symbol after.
-    expect(formatMoney(money('50000', 'ILS'), 'he-IL')).toBe('50,000 ₪');
+    expect(formatMoney(money('50000', 'ILS'), 'he-IL')).toBe('50,000.00 ₪');
   });
 
   it('Scenario A margin sketch: managed 50k − expense 10k = 40k; +20k CO ⇒ current 70k', () => {

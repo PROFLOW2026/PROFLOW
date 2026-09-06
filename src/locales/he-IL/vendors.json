@@ -122,7 +122,7 @@
     "paymentBehaviorOrgDefault": "לפי מדיניות הארגון",
     "paymentBehaviorAutomatic": "תשלום אוטומטי חוזר",
     "recurringPaymentDayLabel": "יום תשלום חודשי",
-    "recurringPaymentDayHint": "יום בחודש (1–28) שבו המזומן משולם אוטומטית.",
+    "recurringPaymentDayHint": "יום בחודש (1-28) שבו המזומן משולם אוטומטית.",
     "identifiersSection": "מזהי מס ורישום",
     "identifiersHint": "משמשים להתאמת חשבוניות ולייצוא משפטי - אופציונלי לעבודה יומיומית.",
     "identifiersEmpty": "אין מזהים עדיין",

@@ -143,7 +143,7 @@
     "installmentEnd": "תאריך סיום",
     "installmentHint": "העלות בפועל נטו נפרסת שווה בין החודשים האלה. תשלום במזומן הוא נפרד.",
     "paymentTerm": "תנאי תשלום",
-    "automaticInstallmentPaymentHint": "תשלום מזומן אוטומטי בכל מועד תשלום — ללא אישור חודשי של הבעלים.",
+    "automaticInstallmentPaymentHint": "תשלום מזומן אוטומטי בכל מועד תשלום, ללא אישור חודשי של הבעלים.",
     "inventoryStockPurchase": "רכישה למלאי מרכזי (לא עלות תפעולית מיידית)",
     "inventoryItem": "פריט מלאי",
     "inventoryPurchaseQty": "כמות שנרכשה",
