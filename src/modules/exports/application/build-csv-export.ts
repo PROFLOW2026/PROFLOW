@@ -426,9 +426,9 @@ async function tableProjectFinancials(
   rows.push(
     [
       copy.metrics.invoiced,
-      toExcelNumber(financials.billing.invoiced.amount),
-      financials.billing.invoiced.currency,
-      copy.metricNotes.notRevenue,
+      toExcelNumber(financials.billing.netInvoiced.amount),
+      financials.billing.netInvoiced.currency,
+      copy.metricNotes.netCommercial,
     ],
     [
       copy.metrics.paid,

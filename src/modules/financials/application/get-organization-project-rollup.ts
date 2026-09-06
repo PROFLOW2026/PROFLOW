@@ -296,7 +296,7 @@ async function computeOrganizationProjectRollup(
       canBilling,
       canProfit,
       priceNotSet,
-      invoiced: financials.billing.invoiced,
+      invoiced: financials.billing.netInvoiced,
       paid: financials.billing.paid,
       outstanding: financials.billing.outstanding,
       actualCost: financials.cost.actualCostToDate,

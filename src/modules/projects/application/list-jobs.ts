@@ -204,7 +204,7 @@ export async function listJobsForOrg(
     if (canReadBilling) {
       if (financials && canReadFinancials) {
         billingPaymentStatus = resolveBillingPaymentStatusFromPosition(financials.billing);
-        invoicedAmount = financials.billing.invoiced.amount;
+        invoicedAmount = financials.billing.netInvoiced.amount;
         paidAmount = financials.billing.paid.amount;
       } else {
         invoicedAmount = invoicedByJob.get(row.id) ?? null;

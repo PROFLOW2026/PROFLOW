@@ -4,7 +4,7 @@ import {
   aggregateBillingPositionInCurrency,
   isOverdueOn,
   recordOutstanding,
-  sumInvoicedAmounts,
+  sumNetInvoicedAmounts,
   sumPaidAmountsForRecord,
   type BillingAmountInput,
   type PaymentAmountInput,
@@ -216,13 +216,17 @@ export async function sumInvoicedInDateRange(
       ),
     );
 
-  const inputs: BillingAmountInput[] = records.map((record) => ({
-    kind: record.kind,
-    status: record.status,
-    totalAmount: fromNumericString(record.totalAmount, record.currency)!,
-  }));
+  const inputs: (BillingAmountInput & { readonly subtotalAmount: MoneyValue })[] = records.map(
+    (record) => ({
+      kind: record.kind,
+      status: record.status,
+      totalAmount: fromNumericString(record.totalAmount, record.currency)!,
+      subtotalAmount: fromNumericString(record.subtotalAmount, record.currency)!,
+    }),
+  );
 
-  return sumInvoicedAmounts(inputs, currency);
+  // Period "billed" / revenue KPIs are NET (ex-VAT). GROSS is for AR only.
+  return sumNetInvoicedAmounts(inputs, currency);
 }
 
 /**

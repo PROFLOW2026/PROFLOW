@@ -164,7 +164,10 @@ export interface HomeDashboardData {
   /** Full org forecast rollup (closes Wave 2 Actual-centric home limitation). */
   readonly forecast: OrganizationForecastSummary | null;
   readonly billing: {
+    /** Gross customer billing (incl. VAT) — keep for AR / cash context. */
     readonly invoiced: MoneyValue;
+    /** NET billed revenue (ex-VAT) — project income / billed KPIs. */
+    readonly netInvoiced: MoneyValue;
     readonly paid: MoneyValue;
     readonly outstanding: MoneyValue;
   } | null;
@@ -628,6 +631,7 @@ export async function getHomeDashboard(
     const position = computeBillingPositionFromRows(billingRows, currency);
     billing = {
       invoiced: position.invoiced,
+      netInvoiced: position.netInvoiced,
       paid: position.paid,
       outstanding: position.outstanding,
     };

@@ -533,8 +533,14 @@ export function ProjectFinancialsKpiPanel({
             value={kpis.billed}
             nature={t('metricNature.actual')}
             explanation={t('kpis.billedHint')}
-            basis={t('basis.billingCash')}
+            basis={t('basis.billingNet')}
             whyLabel={t('explain.whyThisNumber')}
+            lines={[
+              {
+                label: t('kpis.billedGross'),
+                value: kpis.billedGross,
+              },
+            ]}
             links={[
               { href: projectBillingTab, label: t('drillLinks.projectBillingTab') },
               { href: billingAllHref, label: t('drillLinks.viewBilling') },

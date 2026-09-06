@@ -40,6 +40,8 @@ export interface ResolvedProjectKpis {
   readonly fullForecastCost: MoneyValue;
   readonly futureGeneralAllocatedForecast: MoneyValue;
   readonly billed: MoneyValue;
+  /** Gross customer billing (incl. VAT) — AR basis, not project revenue. */
+  readonly billedGross: MoneyValue;
   readonly paid: MoneyValue;
   readonly outstanding: MoneyValue;
   /** Contract net − net billed; null when no revenue basis or billing unavailable. */
@@ -134,7 +136,9 @@ export function resolveProjectKpiDisplay(
     directForecastCost: forecastBasis.directForecastFinalCost,
     fullForecastCost: forecastBasis.fullForecastFinalCost,
     futureGeneralAllocatedForecast,
-    billed: financials.billing.invoiced,
+    // Project revenue / "חיוב" is always NET (ex-VAT). GROSS stays on billing.invoiced for AR.
+    billed: financials.billing.netInvoiced,
+    billedGross: financials.billing.invoiced,
     paid: financials.billing.paid,
     outstanding: financials.billing.outstanding,
     unbilled,

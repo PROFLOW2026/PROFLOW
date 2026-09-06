@@ -439,7 +439,7 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
             <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-3">
               <KpiCard
                 title={tFinancial('kpis.billed')}
-                money={data.billing.invoiced}
+                money={data.billing.netInvoiced}
                 hint={tFinancial('kpis.billedHint')}
                 footer={(() => {
                   if (!data.billingCoverage) return null;

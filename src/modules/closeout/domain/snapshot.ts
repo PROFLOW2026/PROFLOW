@@ -35,7 +35,7 @@ export function buildCloseoutFinancialSnapshot(
     approvedChanges: approvedChanges ? serializeMoney(approvedChanges) : null,
     actualCost: serializeMoney(financials.cost.actualCostToDate),
     remainingCommitments: serializeMoney(financials.cost.committedOpen),
-    totalBilling: serializeMoney(financials.billing.invoiced),
+    totalBilling: serializeMoney(financials.billing.netInvoiced),
     paymentsReceived: serializeMoney(financials.billing.paid),
     outstandingClient: serializeMoney(financials.billing.outstanding),
     supplierOutstanding: serializeMoney(financials.cost.openApPayable),

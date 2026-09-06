@@ -91,6 +91,10 @@ export async function ProjectFinancialsPanel({ projectId }: ProjectFinancialsPan
             ) : null}
             <div className="flex justify-between gap-2">
               <span className="text-[var(--pf-text-secondary)]">{t('ownerStory.billed')}</span>
+              <MoneyText value={financials.billing.netInvoiced} />
+            </div>
+            <div className="flex justify-between gap-2">
+              <span className="text-[var(--pf-text-secondary)]">{t('ownerStory.billedGross')}</span>
               <MoneyText value={financials.billing.invoiced} />
             </div>
             <div className="flex justify-between gap-2">
